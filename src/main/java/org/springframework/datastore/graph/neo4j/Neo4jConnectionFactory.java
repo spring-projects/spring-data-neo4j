@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.datastore.neo4j;
+package org.springframework.datastore.graph.neo4j;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
