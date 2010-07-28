@@ -10,5 +10,7 @@ import org.neo4j.graphdb.Node;
 public interface NodeBacked {
 	
 	Node getUnderlyingNode();
+	
+	void setUnderlyingNode(Node n);
 
 }
