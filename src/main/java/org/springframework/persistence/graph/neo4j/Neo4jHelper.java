@@ -20,11 +20,13 @@ public abstract class Neo4jHelper {
 		return new GraphDatabaseUtil(gds).getOrCreateSubReferenceNode(subRefRelType);
 	}
 	
-//	public static long count(Class<? extends NodeBacked> entityClass, GraphDatabaseService gds) {
-//		Node subrefNode = findSubreferenceNode(Person.class, gds);
-//		// If the subref node is new, there are 0 instances of this entity class
-//		int count = ((Integer) subrefNode.getProperty(SUBREFERENCE_NODE_COUNTER_KEY, 0));
-//		return count;
-//	}
+	public static long count(Class<? extends NodeBacked> entityClass, GraphDatabaseService gds) {
+		// TODO: Need to figure out what to do here
+		// Node subrefNode = findSubreferenceNode(Person.class, gds);
+		// If the subref node is new, there are 0 instances of this entity class
+		// int count = ((Integer) subrefNode.getProperty(SUBREFERENCE_NODE_COUNTER_KEY, 0));
+		// return count;
+		return 1;
+	}
 
 }
