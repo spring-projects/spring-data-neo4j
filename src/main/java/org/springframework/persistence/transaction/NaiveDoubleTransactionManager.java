@@ -1,5 +1,8 @@
 package org.springframework.persistence.transaction;
 
+import java.util.IdentityHashMap;
+import java.util.Map;
+
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.TransactionException;
@@ -7,7 +10,7 @@ import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.DefaultTransactionStatus;
 
 public class NaiveDoubleTransactionManager implements PlatformTransactionManager {
-	
+	Map<TransactionStatus,TransactionStatus> status=new IdentityHashMap<TransactionStatus, TransactionStatus>();
 	private final PlatformTransactionManager a;
 	
 	private final PlatformTransactionManager b;
@@ -20,7 +23,8 @@ public class NaiveDoubleTransactionManager implements PlatformTransactionManager
 
 	@Override
 	public void commit(TransactionStatus ts) throws TransactionException {
-		TransactionStatus tsb = copyTransactionStatus(ts);
+		try {
+		final TransactionStatus tsb = copyTransactionStatus(status.get(ts));
 		try {
 			a.commit(ts);
 		}
@@ -34,10 +38,14 @@ public class NaiveDoubleTransactionManager implements PlatformTransactionManager
 			System.err.println("Can't commit tx" + t);
 			throw new TransactionException(t.getMessage(), t) {}; 
 		}
+		} finally {
+			status.remove(ts);
+		}
 	}
 
 	private TransactionStatus copyTransactionStatus(TransactionStatus ts) {
-		return new DefaultTransactionStatus(null, ts.isNewTransaction(), false,  false, false, null);
+		Object t = (ts instanceof DefaultTransactionStatus) ? ((DefaultTransactionStatus) ts).getTransaction() : null;
+		return new DefaultTransactionStatus(t,ts.isNewTransaction(), false,  false, false, null);
 	}
 	
 	@Override
@@ -45,12 +53,13 @@ public class NaiveDoubleTransactionManager implements PlatformTransactionManager
 			throws TransactionException {
 		TransactionStatus atx = a.getTransaction(td);
 		TransactionStatus btx = b.getTransaction(td);
+		status.put(atx, btx);
 		return atx;
 	}
 
 	@Override
 	public void rollback(TransactionStatus ts) throws TransactionException {
-		TransactionStatus tsb = copyTransactionStatus(ts);
+		final TransactionStatus tsb = copyTransactionStatus(status.remove(ts));
 		try {
 			a.rollback(ts);
 		}
