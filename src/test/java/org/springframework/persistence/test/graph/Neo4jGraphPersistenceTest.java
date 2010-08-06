@@ -5,10 +5,12 @@ import junit.framework.Assert;
 import org.junit.After;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.neo4j.graphdb.DynamicRelationshipType;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Transaction;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.persistence.graph.Direction;
 import org.springframework.persistence.graph.neo4j.NodeBacked;
 import org.springframework.persistence.support.EntityInstantiator;
 import org.springframework.persistence.test.Person;
@@ -46,6 +48,18 @@ public class Neo4jGraphPersistenceTest {
 		Assert.assertEquals(p.getAge(), p.getUnderlyingNode().getProperty("Person.age"));
 		insertedId = p.getId();
 	}
+	
+	@Test
+	@Transactional
+	public void testCreateRelationshipOnSet() {
+		Person p = new Person("Michael", 35);
+		Person spouse=new Person("Tina",36);
+		p.setSpouse(spouse);
+		Assert.assertEquals("Tina", p.getSpouse().getUnderlyingNode().getProperty("Person.name"));
+		Node spouseNode=p.getUnderlyingNode().getSingleRelationship(DynamicRelationshipType.withName("Person.spouse"), org.neo4j.graphdb.Direction.OUTGOING).getEndNode();
+		Assert.assertEquals(spouse.getUnderlyingNode(), spouseNode);
+	}
+	
 	
 	@Test
 	@Transactional

@@ -4,14 +4,13 @@ import java.lang.reflect.Field;
 
 import org.aspectj.lang.Signature;
 import org.aspectj.lang.reflect.FieldSignature;
+import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.DynamicRelationshipType;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.util.GraphDatabaseUtil;
-
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.persistence.graph.Direction;
 import org.springframework.persistence.graph.GraphEntity;
 import org.springframework.persistence.graph.Relationship;
 import org.springframework.persistence.support.AbstractTypeAnnotatingMixinFields;
@@ -61,12 +60,16 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<GraphEn
 		entity.setUnderlyingNode(graphDatabaseService.createNode());
 		log.info("User-defined constructor called on class " + entity.getClass() + "; created Node [" + entity.getUnderlyingNode() +"]; " +
 				"Updating metamodel");
-		// TODO pull naming out into a strategy interface
+		// TODO pull naming out into a strategy interface, todo a separate one, or the Entity Instatiator
+		// graphEntityInstantiator.postEntityCreation(entity);
+		postEntityCreation(entity);
+	}
+
+	public void postEntityCreation(NodeBacked entity) {
 		Node subReference = Neo4jHelper.findSubreferenceNode(entity.getClass(), graphDatabaseService);
 		entity.getUnderlyingNode().createRelationshipTo(subReference, Neo4jHelper.INSTANCE_OF_RELATIONSHIP_TYPE);
 		graphDatabaseUtil.incrementAndGetCounter(subReference, Neo4jHelper.SUBREFERENCE_NODE_COUNTER_KEY);
 	}
-	
 	
 	// Introduced field
 	private Node NodeBacked.underlyingNode;
@@ -98,7 +101,8 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<GraphEn
 
 
 	Object around(NodeBacked entity) : entityFieldGet(entity) {	
-		Field f = ((FieldSignature) thisJoinPoint.getSignature()).getField();
+		FieldSignature fieldSignature=(FieldSignature) thisJoinPoint.getSignature();
+		Field f = fieldSignature.getField();
 		
 		// TODO fix arrays
 		if (f.getType().isPrimitive() || f.getType().equals(String.class)) {
@@ -109,18 +113,15 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<GraphEn
 		
 		// Look for a relationship
 		if (isNeo4jRelationshipField(f)) {
-			Relationship r = f.getAnnotation(Relationship.class);
-			if (r == null) {
-				throw new IllegalStateException("Must have @Relationship on " + f);
-			}
+			// does it have to be there, isn't it enough to have a nodebacked as target?
 			Node me = entity.getUnderlyingNode();
 			if (me == null) {
 				throw new IllegalStateException("Entity must have a backing Node");
 			}
-			RelationshipType type = DynamicRelationshipType.withName(r.type());
-			org.neo4j.graphdb.Relationship singleRelationship = me.getSingleRelationship(type, r.direction().toNeo4jDir());
+			org.neo4j.graphdb.Relationship singleRelationship = getRelationship(me, fieldSignature);
 			
 			// TODO is this correct
+			// [mh] i assume only for null
 			if (singleRelationship == null) {
 				log.info("GET " + f + ": " + f.getType().getName() + ": not set yet so returning field value");
 				return proceed(entity);
@@ -134,11 +135,23 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<GraphEn
 		log.info("Ignored GET " + f + ": " + f.getType().getName() + " not primitive or GraphEntity");
 		return proceed(entity);
 	}
+
+
+	private org.neo4j.graphdb.Relationship getRelationship(Node me, FieldSignature f) {
+		Relationship r = f.getField().getAnnotation(Relationship.class);
+		if (r == null) {
+			RelationshipType type=DynamicRelationshipType.withName(getNeo4jPropertyName((Signature)f));
+			return me.getSingleRelationship(type, Direction.OUTGOING);
+		}
+		RelationshipType type = DynamicRelationshipType.withName(r.type());
+		org.neo4j.graphdb.Relationship singleRelationship = me.getSingleRelationship(type, r.direction().toNeo4jDir());
+		return singleRelationship;
+	}
 	
 	
 	Object around(NodeBacked entity, Object newVal) : entityFieldSet(entity, newVal) {
-		Field f = ((FieldSignature) thisJoinPoint.getSignature()).getField();
-		 
+		FieldSignature fieldSignature=(FieldSignature) thisJoinPoint.getSignature();
+		Field f = fieldSignature.getField();
 		// TODO fix arrays
 		if (f.getType().isPrimitive() || f.getType().equals(String.class)) {
 			String propName = getNeo4jPropertyName(thisJoinPoint.getSignature());
@@ -151,9 +164,10 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<GraphEn
 		if (isNeo4jRelationshipField(f)) {
 			Relationship r = f.getAnnotation(Relationship.class);
 			if (r == null) {
-				throw new IllegalStateException("Must have @Relationship on " + f);
+				graphEntityFieldSet(entity, (NodeBacked) newVal, getNeo4jPropertyName(thisJoinPoint.getSignature()),Direction.OUTGOING);
+			} else {
+				graphEntityFieldSet(entity, (NodeBacked) newVal, r.type(), r.direction().toNeo4jDir());
 			}
-			graphEntityFieldSet(entity, r, (NodeBacked) newVal);
 			log.info("SET " + f + " -> Neo4J relationship with value=[" + newVal + "]");
 			return null;
 		}
@@ -163,16 +177,19 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<GraphEn
 		}
 	}
 	
-	
-	private void graphEntityFieldSet(NodeBacked entity, Relationship r, NodeBacked newVal) {
+	// todo what happens to the previous value, remove relationships?
+	private void graphEntityFieldSet(NodeBacked entity, NodeBacked newVal, String relationshipName, Direction direction) {
+		RelationshipType type = DynamicRelationshipType.withName(relationshipName);
+
 		Node me = entity.getUnderlyingNode();
-		RelationshipType type = DynamicRelationshipType.withName(r.type());
 		Node targetNode = newVal.getUnderlyingNode();
-		if (r.direction() == Direction.OUTGOING) {
-			me.createRelationshipTo(targetNode, type);
-		}
-		else {
+		switch(direction) {
+		case OUTGOING : me.createRelationshipTo(targetNode, type); break;
+		case INCOMING : targetNode.createRelationshipTo(me, type); break;
+		case BOTH : 
+			me.createRelationshipTo(targetNode, type); 
 			targetNode.createRelationshipTo(me, type);
+			break;
 		}
 	}
 	
