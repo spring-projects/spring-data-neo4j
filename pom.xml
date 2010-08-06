@@ -15,6 +15,13 @@
 		<slf4j.version>1.6.0</slf4j.version>
 	</properties>
 
+	<repositories>
+		<repository>
+			<id>neo4j-public-repository</id>
+			<url>http://m2.neo4j.org </url>
+		</repository>
+	</repositories>
+
 	<dependencies>
 		<dependency>
 			<groupId>junit</groupId>
