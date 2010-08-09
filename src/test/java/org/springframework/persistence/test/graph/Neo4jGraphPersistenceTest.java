@@ -5,6 +5,7 @@ import junit.framework.Assert;
 import org.junit.After;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.junit.Ignore;
 import org.junit.runner.RunWith;
 import org.neo4j.graphdb.DynamicRelationshipType;
 import org.neo4j.graphdb.GraphDatabaseService;
@@ -19,11 +20,15 @@ import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
 public class Neo4jGraphPersistenceTest {
+
+	protected final Log log = LogFactory.getLog(getClass());
 
 	@Autowired
 	private EntityInstantiator<NodeBacked,Node> nodeInstantiator;
@@ -43,8 +48,7 @@ public class Neo4jGraphPersistenceTest {
 	@Transactional
 	@Rollback(false)
 	public void testUserConstructor() {
-		int age = 39;
-		Person p = new Person("Rod", age);
+		Person p = new Person("Rod", 39);
 		Assert.assertEquals(p.getName(), p.getUnderlyingNode().getProperty("Person.name"));
 		Assert.assertEquals(p.getAge(), p.getUnderlyingNode().getProperty("Person.age"));
 		insertedId = p.getId();
@@ -52,35 +56,78 @@ public class Neo4jGraphPersistenceTest {
 	
 	@Test
 	@Transactional
+	public void testSetProperties() {
+		Person p = new Person("Foo", 2);
+		p.setName("Michael");
+		p.setAge(35);
+		Assert.assertEquals("Michael", p.getUnderlyingNode().getProperty("Person.name"));
+		Assert.assertEquals(35, p.getUnderlyingNode().getProperty("Person.age"));
+	}
+	
+	@Test
+	@Transactional
 	public void testCreateRelationshipWithoutAnnotationOnSet() {
 		Person p = new Person("Michael", 35);
-		Person spouse=new Person("Tina",36);
+		Person spouse = new Person("Tina",36);
 		p.setSpouse(spouse);
-		Assert.assertEquals("Tina", p.getSpouse().getUnderlyingNode().getProperty("Person.name"));
 		Node spouseNode=p.getUnderlyingNode().getSingleRelationship(DynamicRelationshipType.withName("Person.spouse"), org.neo4j.graphdb.Direction.OUTGOING).getEndNode();
 		Assert.assertEquals(spouse.getUnderlyingNode(), spouseNode);
 		Assert.assertEquals(spouse, p.getSpouse());
 	}
 	
 	@Test
-	@Ignore
 	@Transactional
 	public void testCreateRelationshipWithAnnotationOnSet() {
 		Person p = new Person("Michael", 35);
-		Person mother=new Person("Gabi",60);
+		Person mother = new Person("Gabi",60);
 		p.setMother(mother);
-		Assert.assertEquals("Gabi", p.getMother().getUnderlyingNode().getProperty("Person.name"));
-		Node motherNode=p.getUnderlyingNode().getSingleRelationship(DynamicRelationshipType.withName("mother"), org.neo4j.graphdb.Direction.BOTH).getEndNode();
+		Node motherNode = p.getUnderlyingNode().getSingleRelationship(DynamicRelationshipType.withName("mother"), org.neo4j.graphdb.Direction.OUTGOING).getEndNode();
 		Assert.assertEquals(mother.getUnderlyingNode(), motherNode);
 		Assert.assertEquals(mother, p.getMother());
 	}
+
+	@Test
+	@Transactional
+	public void testDeleteRelationship() {
+		Person p = new Person("Michael", 35);
+		Person spouse = new Person("Tina", 36);
+		p.setSpouse(spouse);
+		p.setSpouse(null);
+		Assert.assertNull(p.getUnderlyingNode().getSingleRelationship(DynamicRelationshipType.withName("Person.spouse"), org.neo4j.graphdb.Direction.OUTGOING));
+		Assert.assertNull(p.getSpouse());
+	}
 	
-	// TODO test delete relationship
-	// TODO test delete previous relationship
-	// TODO test incoming relationship
-	// TODO test bidirectional relationship
-	// TODO test remove property (set to null)
+	@Test
+	@Transactional
+	public void testDeletePreviousRelationshipOnNewRelationship() {
+		Person p = new Person("Michael", 35);
+		Person spouse = new Person("Tina", 36);
+		Person friend = new Person("Helga", 34);
+		p.setSpouse(spouse);
+		p.setSpouse(friend);
+		Assert.assertEquals(friend.getUnderlyingNode(), p.getUnderlyingNode().getSingleRelationship(DynamicRelationshipType.withName("Person.spouse"), org.neo4j.graphdb.Direction.OUTGOING).getEndNode());
+		Assert.assertEquals(friend, p.getSpouse());
+	}
 	
+	@Test
+	@Transactional
+	public void testCreateIncomingRelationshipWithAnnotationOnSet() {
+		Person p = new Person("David", 25);
+		Person boss = new Person("Emil", 32);
+		p.setBoss(boss);
+		Assert.assertEquals(boss.getUnderlyingNode(), p.getUnderlyingNode().getSingleRelationship(DynamicRelationshipType.withName("boss"), org.neo4j.graphdb.Direction.INCOMING).getStartNode());
+		Assert.assertEquals(boss, p.getBoss());
+	}
+	
+	@Ignore
+	@Test
+	@Transactional
+	public void testBidirectionalRelationshipWithAnnotationOnSet() {
+		Person p = new Person("Michael", 35);
+		Person friend = new Person("David", 25);
+		p.setFriend(friend);
+	}
+
 	@Test
 	@Transactional
 	public void testInstantiatedFinder() {
