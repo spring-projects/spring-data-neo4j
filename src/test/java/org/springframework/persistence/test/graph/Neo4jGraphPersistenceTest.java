@@ -3,6 +3,7 @@ package org.springframework.persistence.test.graph;
 import junit.framework.Assert;
 
 import org.junit.After;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.neo4j.graphdb.DynamicRelationshipType;
@@ -51,15 +52,34 @@ public class Neo4jGraphPersistenceTest {
 	
 	@Test
 	@Transactional
-	public void testCreateRelationshipOnSet() {
+	public void testCreateRelationshipWithoutAnnotationOnSet() {
 		Person p = new Person("Michael", 35);
 		Person spouse=new Person("Tina",36);
 		p.setSpouse(spouse);
 		Assert.assertEquals("Tina", p.getSpouse().getUnderlyingNode().getProperty("Person.name"));
 		Node spouseNode=p.getUnderlyingNode().getSingleRelationship(DynamicRelationshipType.withName("Person.spouse"), org.neo4j.graphdb.Direction.OUTGOING).getEndNode();
 		Assert.assertEquals(spouse.getUnderlyingNode(), spouseNode);
+		Assert.assertEquals(spouse, p.getSpouse());
 	}
 	
+	@Test
+	@Ignore
+	@Transactional
+	public void testCreateRelationshipWithAnnotationOnSet() {
+		Person p = new Person("Michael", 35);
+		Person mother=new Person("Gabi",60);
+		p.setMother(mother);
+		Assert.assertEquals("Gabi", p.getMother().getUnderlyingNode().getProperty("Person.name"));
+		Node motherNode=p.getUnderlyingNode().getSingleRelationship(DynamicRelationshipType.withName("mother"), org.neo4j.graphdb.Direction.BOTH).getEndNode();
+		Assert.assertEquals(mother.getUnderlyingNode(), motherNode);
+		Assert.assertEquals(mother, p.getMother());
+	}
+	
+	// TODO test delete relationship
+	// TODO test delete previous relationship
+	// TODO test incoming relationship
+	// TODO test bidirectional relationship
+	// TODO test remove property (set to null)
 	
 	@Test
 	@Transactional

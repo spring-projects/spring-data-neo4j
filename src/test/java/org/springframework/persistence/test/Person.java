@@ -1,5 +1,8 @@
 package org.springframework.persistence.test;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.ParameterizedType;
+
 import org.springframework.persistence.graph.Direction;
 import org.springframework.persistence.graph.GraphEntity;
 import org.springframework.persistence.graph.Relationship;
@@ -18,6 +21,20 @@ public class Person {
 	@Relationship(type="mother",direction=Direction.BOTH)
 	Person mother;
 
+	// @Property(serialize=SerializationPolicy.STRING, index=true, queryable=true, removeOnReset=true)
+	// Date birthday;
+	
+	/*
+	{
+		Field f;
+		if (f.getGenericType() instanceof ParameterizedType) {
+			((ParameterizedType)(f.getGenericType())).getActualTypeArguments();
+		} 
+	}
+	@Relationship( target=Person.class, cardinality="", type="children",)
+	Collection<Person> children;
+	*/
+	
 	public Person(String name, int age) {
 		this.name = name;
 		this.age = age;

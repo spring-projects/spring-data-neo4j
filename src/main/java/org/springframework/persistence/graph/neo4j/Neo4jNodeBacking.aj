@@ -104,9 +104,9 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<GraphEn
 		FieldSignature fieldSignature=(FieldSignature) thisJoinPoint.getSignature();
 		Field f = fieldSignature.getField();
 		
-		// TODO fix arrays
+		// TODO fix arrays, TODO serialize other types as byte[] or string (for indexing, querying) via Annotation
 		if (f.getType().isPrimitive() || f.getType().equals(String.class)) {
-			String propName = getNeo4jPropertyName(thisJoinPoint.getSignature());
+			String propName = getNeo4jPropertyName(f);
 			log.info("GET " + f + " <- Neo4J simple node property [" + propName + "]");
 			return entity.getUnderlyingNode().getProperty(propName, null);
 		}
@@ -118,7 +118,7 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<GraphEn
 			if (me == null) {
 				throw new IllegalStateException("Entity must have a backing Node");
 			}
-			org.neo4j.graphdb.Relationship singleRelationship = getRelationship(me, fieldSignature);
+			org.neo4j.graphdb.Relationship singleRelationship = getRelationship(me, f);
 			
 			// TODO is this correct
 			// [mh] i assume only for null
@@ -137,10 +137,10 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<GraphEn
 	}
 
 
-	private org.neo4j.graphdb.Relationship getRelationship(Node me, FieldSignature f) {
-		Relationship r = f.getField().getAnnotation(Relationship.class);
+	private org.neo4j.graphdb.Relationship getRelationship(Node me, Field field) {
+		Relationship r = field.getAnnotation(Relationship.class);
 		if (r == null) {
-			RelationshipType type=DynamicRelationshipType.withName(getNeo4jPropertyName((Signature)f));
+			RelationshipType type=DynamicRelationshipType.withName(getNeo4jPropertyName(field));
 			return me.getSingleRelationship(type, Direction.OUTGOING);
 		}
 		RelationshipType type = DynamicRelationshipType.withName(r.type());
@@ -154,7 +154,7 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<GraphEn
 		Field f = fieldSignature.getField();
 		// TODO fix arrays
 		if (f.getType().isPrimitive() || f.getType().equals(String.class)) {
-			String propName = getNeo4jPropertyName(thisJoinPoint.getSignature());
+			String propName = getNeo4jPropertyName(f);
 			entity.getUnderlyingNode().setProperty(propName, newVal);
 			log.info("SET " + f + " -> Neo4J simple node property [" + propName + "] with value=[" + newVal + "]");
 			return null;
@@ -162,12 +162,10 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<GraphEn
 		
 		// Look for a relationship
 		if (isNeo4jRelationshipField(f)) {
-			Relationship r = f.getAnnotation(Relationship.class);
-			if (r == null) {
-				graphEntityFieldSet(entity, (NodeBacked) newVal, getNeo4jPropertyName(thisJoinPoint.getSignature()),Direction.OUTGOING);
-			} else {
-				graphEntityFieldSet(entity, (NodeBacked) newVal, r.type(), r.direction().toNeo4jDir());
-			}
+
+			org.neo4j.graphdb.Relationship relationship=getRelationship(entity.getUnderlyingNode(), f);
+			if (relationship!=null) relationship.delete();
+			addRelationship(entity, newVal, f);
 			log.info("SET " + f + " -> Neo4J relationship with value=[" + newVal + "]");
 			return null;
 		}
@@ -176,9 +174,19 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<GraphEn
 			return proceed(entity, newVal);
 		}
 	}
+
+
+	private void addRelationship(NodeBacked entity, Object newVal, Field f) {
+		Relationship r = f.getAnnotation(Relationship.class);
+		if (r == null) {
+			addRelationship(entity, (NodeBacked) newVal, getNeo4jPropertyName(f),Direction.OUTGOING);
+		} else {
+			addRelationship(entity, (NodeBacked) newVal, r.type(), r.direction().toNeo4jDir());
+		}
+	}
 	
 	// todo what happens to the previous value, remove relationships?
-	private void graphEntityFieldSet(NodeBacked entity, NodeBacked newVal, String relationshipName, Direction direction) {
+	private void addRelationship(NodeBacked entity, NodeBacked newVal, String relationshipName, Direction direction) {
 		RelationshipType type = DynamicRelationshipType.withName(relationshipName);
 
 		Node me = entity.getUnderlyingNode();
@@ -199,8 +207,8 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<GraphEn
 	}
 	
 	
-	private String getNeo4jPropertyName(Signature sig) {
-		return sig.toShortString();
+	private String getNeo4jPropertyName(Field field) {
+		return String.format("%s.%s",field.getDeclaringClass().getSimpleName(),field.getName());
 	}
 
 }
