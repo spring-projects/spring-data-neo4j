@@ -2,6 +2,7 @@ package org.springframework.persistence.graph.neo4j;
 
 import java.lang.reflect.Field;
 
+import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.Signature;
 import org.aspectj.lang.reflect.FieldSignature;
 import org.neo4j.graphdb.Direction;
@@ -118,7 +119,7 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<GraphEn
 			if (me == null) {
 				throw new IllegalStateException("Entity must have a backing Node");
 			}
-			org.neo4j.graphdb.Relationship singleRelationship = getRelationship(me, fieldSignature);
+			org.neo4j.graphdb.Relationship singleRelationship = getRelationship(me, new RelationshipInfo(fieldSignature));
 			
 			// TODO is this correct
 			// [mh] i assume only for null
@@ -137,15 +138,8 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<GraphEn
 	}
 
 
-	private org.neo4j.graphdb.Relationship getRelationship(Node me, FieldSignature f) {
-		Relationship r = f.getField().getAnnotation(Relationship.class);
-		if (r == null) {
-			RelationshipType type=DynamicRelationshipType.withName(getNeo4jPropertyName((Signature)f));
-			return me.getSingleRelationship(type, Direction.OUTGOING);
-		}
-		RelationshipType type = DynamicRelationshipType.withName(r.type());
-		org.neo4j.graphdb.Relationship singleRelationship = me.getSingleRelationship(type, r.direction().toNeo4jDir());
-		return singleRelationship;
+	private org.neo4j.graphdb.Relationship getRelationship(Node me, RelationshipInfo relInfo) {
+		return me.getSingleRelationship(relInfo.getType(), relInfo.getDirection());
 	}
 	
 	
@@ -162,12 +156,8 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<GraphEn
 		
 		// Look for a relationship
 		if (isNeo4jRelationshipField(f)) {
-			Relationship r = f.getAnnotation(Relationship.class);
-			if (r == null) {
-				graphEntityFieldSet(entity, (NodeBacked) newVal, getNeo4jPropertyName(thisJoinPoint.getSignature()),Direction.OUTGOING);
-			} else {
-				graphEntityFieldSet(entity, (NodeBacked) newVal, r.type(), r.direction().toNeo4jDir());
-			}
+			RelationshipInfo relInfo = new RelationshipInfo(fieldSignature);
+			graphEntityFieldSet(entity, (NodeBacked) newVal, relInfo.getType(), relInfo.getDirection());
 			log.info("SET " + f + " -> Neo4J relationship with value=[" + newVal + "]");
 			return null;
 		}
@@ -178,10 +168,16 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<GraphEn
 	}
 	
 	// todo what happens to the previous value, remove relationships?
-	private void graphEntityFieldSet(NodeBacked entity, NodeBacked newVal, String relationshipName, Direction direction) {
-		RelationshipType type = DynamicRelationshipType.withName(relationshipName);
+	private void graphEntityFieldSet(NodeBacked entity, NodeBacked newVal, RelationshipType relationshipType, Direction direction) {
+		RelationshipType type = relationshipType;//DynamicRelationshipType.withName(relationshipTypeName);
 
 		Node me = entity.getUnderlyingNode();
+		for ( org.neo4j.graphdb.Relationship relationship : me.getRelationships(type, direction) ) {
+			relationship.delete();
+		}
+		if (newVal == null) {
+			return;
+		}
 		Node targetNode = newVal.getUnderlyingNode();
 		switch(direction) {
 		case OUTGOING : me.createRelationshipTo(targetNode, type); break;
@@ -198,9 +194,27 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<GraphEn
 		return NodeBacked.class.isAssignableFrom(f.getType());
 	}
 	
-	
-	private String getNeo4jPropertyName(Signature sig) {
+	// TODO: Do something better with this.
+	private static String getNeo4jPropertyName(Signature sig) {
 		return sig.toShortString();
+	}
+	
+	public static class RelationshipInfo {
+		private Relationship relAnnotation;
+		private final FieldSignature fieldSignature; 
+		
+		public RelationshipInfo(FieldSignature fieldSignature) {
+			this.fieldSignature = fieldSignature;
+			relAnnotation = fieldSignature.getField().getAnnotation(Relationship.class);
+		}
+		
+		public RelationshipType getType() {
+			return DynamicRelationshipType.withName((relAnnotation == null) ? getNeo4jPropertyName(fieldSignature) : relAnnotation.type());
+		}
+		
+		public Direction getDirection() {
+			return (relAnnotation == null) ? Direction.OUTGOING : relAnnotation.direction().toNeo4jDir();
+		}
 	}
 
 }

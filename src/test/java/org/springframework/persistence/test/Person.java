@@ -15,8 +15,14 @@ public class Person {
 
 	Person spouse;
 	
-	@Relationship(type="mother",direction=Direction.BOTH)
+	@Relationship(type="mother", direction=Direction.OUTGOING)
 	Person mother;
+	
+	@Relationship(type="boss", direction=Direction.INCOMING)
+	Person boss;
+	
+	@Relationship(type="friend", direction=Direction.BOTH)
+	Person friend;
 
 	public Person(String name, int age) {
 		this.name = name;
@@ -44,18 +50,31 @@ public class Person {
 		return spouse;
 	}
 
-
 	public void setSpouse(Person spouse) {
 		this.spouse = spouse;
 	}
-
 
 	public Person getMother() {
 		return mother;
 	}
 
-
 	public void setMother(Person mother) {
 		this.mother = mother;
 	}
+	
+	public Person getBoss() {
+		return boss;
+	}
+	public void setBoss(Person boss) {
+		this.boss = boss;
+	}
+
+	public Person getFriend() {
+		return friend;
+	}
+
+	public void setFriend(Person friend) {
+		this.friend = friend;
+	}
+	
 }
