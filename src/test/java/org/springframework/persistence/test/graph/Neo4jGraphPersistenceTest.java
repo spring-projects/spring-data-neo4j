@@ -10,8 +10,11 @@ import org.junit.runner.RunWith;
 import org.neo4j.graphdb.DynamicRelationshipType;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.NotInTransactionException;
 import org.neo4j.graphdb.Transaction;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.InvalidDataAccessApiUsageException;
+import org.springframework.dao.InvalidDataAccessResourceUsageException;
 import org.springframework.persistence.graph.Direction;
 import org.springframework.persistence.graph.neo4j.NodeBacked;
 import org.springframework.persistence.support.EntityInstantiator;
@@ -119,13 +122,57 @@ public class Neo4jGraphPersistenceTest {
 		Assert.assertEquals(boss, p.getBoss());
 	}
 	
-	@Ignore
-	@Test
-	@Transactional
-	public void testBidirectionalRelationshipWithAnnotationOnSet() {
+	@Test(expected = InvalidDataAccessResourceUsageException.class)
+	public void testCreateOutsideTransaction() {
 		Person p = new Person("Michael", 35);
-		Person friend = new Person("David", 25);
-		p.setFriend(friend);
+	}
+	
+	@Test(expected = InvalidDataAccessResourceUsageException.class)
+	public void testSetPropertyOutsideTransaction() {
+		Transaction tx = graphDatabaseService.beginTx();
+		Person p = null;
+		try {
+			p = new Person("Michael", 35);
+			tx.success();
+		} finally {
+			tx.finish();
+		}
+		p.setAge(25);
+	}
+	
+	@Test(expected = InvalidDataAccessResourceUsageException.class)
+	public void testCreateRelationshipOutsideTransaction() {
+		Transaction tx = graphDatabaseService.beginTx();
+		Person p = null;
+		Person spouse = null;
+		try {
+			p = new Person("Michael", 35);
+			spouse = new Person("Tina", 36);
+			tx.success();
+		} finally {
+			tx.finish();
+		}
+		p.setSpouse(spouse);
+	}
+	
+	@Test
+	public void testGetPropertyOutsideTransaction() {
+		Transaction tx = graphDatabaseService.beginTx();
+		Person p = null;
+		try {
+			p = new Person("Michael", 35);
+			tx.success();
+		} finally {
+			tx.finish();
+		}
+		Assert.assertEquals("Wrong age.", 35, p.getAge());
+	}
+	
+	@Test(expected = InvalidDataAccessApiUsageException.class)
+	@Transactional
+	public void testCircularRelationship() {
+		Person p = new Person("Michael", 35);
+		p.setSpouse(p);
 	}
 
 	@Test

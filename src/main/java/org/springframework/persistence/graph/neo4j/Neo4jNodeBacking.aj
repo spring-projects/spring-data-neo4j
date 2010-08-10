@@ -10,9 +10,12 @@ import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.DynamicRelationshipType;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.NotInTransactionException;
 import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.util.GraphDatabaseUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.InvalidDataAccessApiUsageException;
+import org.springframework.dao.InvalidDataAccessResourceUsageException;
 import org.springframework.persistence.graph.GraphEntity;
 import org.springframework.persistence.graph.Relationship;
 import org.springframework.persistence.support.AbstractTypeAnnotatingMixinFields;
@@ -59,15 +62,19 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<GraphEn
 	
 	// Create a new node in the Graph if no Node was passed in a constructor
 	before(NodeBacked entity) : arbitraryUserConstructorOfNodeBackedObject(entity) {
-		entity.setUnderlyingNode(graphDatabaseService.createNode());
-		log.info("User-defined constructor called on class " + entity.getClass() + "; created Node [" + entity.getUnderlyingNode() +"]; " +
-				"Updating metamodel");
-		// TODO pull naming out into a strategy interface, todo a separate one, or the Entity Instatiator
-		// graphEntityInstantiator.postEntityCreation(entity);
-		postEntityCreation(entity);
+		try {
+			entity.setUnderlyingNode(graphDatabaseService.createNode());
+			log.info("User-defined constructor called on class " + entity.getClass() + "; created Node [" + entity.getUnderlyingNode() +"]; " +
+					"Updating metamodel");
+			// TODO pull naming out into a strategy interface, todo a separate one, or the Entity Instatiator
+			// graphEntityInstantiator.postEntityCreation(entity);
+			postEntityCreation(entity);
+		} catch(NotInTransactionException e) {
+			throw new InvalidDataAccessResourceUsageException("Not in a Neo4j transaction.", e);
+		}
 	}
 
-	public void postEntityCreation(NodeBacked entity) {
+	private void postEntityCreation(NodeBacked entity) {
 		Node subReference = Neo4jHelper.findSubreferenceNode(entity.getClass(), graphDatabaseService);
 		entity.getUnderlyingNode().createRelationshipTo(subReference, Neo4jHelper.INSTANCE_OF_RELATIONSHIP_TYPE);
 		graphDatabaseUtil.incrementAndGetCounter(subReference, Neo4jHelper.SUBREFERENCE_NODE_COUNTER_KEY);
@@ -145,27 +152,31 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<GraphEn
 	
 	
 	Object around(NodeBacked entity, Object newVal) : entityFieldSet(entity, newVal) {
-		FieldSignature fieldSignature=(FieldSignature) thisJoinPoint.getSignature();
-		Field f = fieldSignature.getField();
-		// TODO fix arrays
-		if (f.getType().isPrimitive() || f.getType().equals(String.class)) {
-			String propName = getNeo4jPropertyName(f);
-			entity.getUnderlyingNode().setProperty(propName, newVal);
-			log.info("SET " + f + " -> Neo4J simple node property [" + propName + "] with value=[" + newVal + "]");
-			return null;
-		}
-		
-		// Look for a relationship
-		if (isNeo4jRelationshipField(f)) {
-			RelationshipInfo relInfo = RelationshipInfo.forField(f);
-			graphEntityFieldSet(entity, (NodeBacked) newVal, relInfo);
+		try {
+			FieldSignature fieldSignature=(FieldSignature) thisJoinPoint.getSignature();
+			Field f = fieldSignature.getField();
+			// TODO fix arrays
+			if (f.getType().isPrimitive() || f.getType().equals(String.class)) {
+				String propName = getNeo4jPropertyName(f);
+				entity.getUnderlyingNode().setProperty(propName, newVal);
+				log.info("SET " + f + " -> Neo4J simple node property [" + propName + "] with value=[" + newVal + "]");
+				return null;
+			}
+			
+			// Look for a relationship
+			if (isNeo4jRelationshipField(f)) {
+				RelationshipInfo relInfo = RelationshipInfo.forField(f);
+				graphEntityFieldSet(entity, (NodeBacked) newVal, relInfo);
 
-			log.info("SET " + f + " -> Neo4J relationship with value=[" + newVal + "]");
-			return null;
-		}
-		else { 
-			log.info("Ignored SET " + f + ": " + f.getType().getName() + " not primitive or GraphEntity");
-			return proceed(entity, newVal);
+				log.info("SET " + f + " -> Neo4J relationship with value=[" + newVal + "]");
+				return null;
+			}
+			else { 
+				log.info("Ignored SET " + f + ": " + f.getType().getName() + " not primitive or GraphEntity");
+				return proceed(entity, newVal);
+			}
+		} catch(NotInTransactionException e) {
+			throw new InvalidDataAccessResourceUsageException("Not in a Neo4j transaction.", e);
 		}
 	}
 
@@ -179,10 +190,13 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<GraphEn
 			return;
 		}
 		Node targetNode = newVal.getUnderlyingNode();
+		if (me.equals(targetNode)) {
+			throw new InvalidDataAccessApiUsageException("Cannot create circular reference.");
+		}
 		switch(relationshipInfo.getDirection()) {
-		case OUTGOING : me.createRelationshipTo(targetNode, relationshipInfo.getType()); break;
-		case INCOMING : targetNode.createRelationshipTo(me, relationshipInfo.getType()); break;
-		default : throw new IllegalArgumentException("invalid direction "+relationshipInfo.getDirection()); 
+			case OUTGOING : me.createRelationshipTo(targetNode, relationshipInfo.getType()); break;
+			case INCOMING : targetNode.createRelationshipTo(me, relationshipInfo.getType()); break;
+			default : throw new IllegalArgumentException("invalid direction "+relationshipInfo.getDirection()); 
 		}
 	}
 	
