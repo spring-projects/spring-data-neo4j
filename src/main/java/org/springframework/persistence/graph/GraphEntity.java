@@ -14,5 +14,6 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
 public @interface GraphEntity {
-
+  public enum Type { NODE, RELATIONSHIP };
+  Type value() default Type.NODE;
 }
