@@ -2,10 +2,11 @@ package org.springframework.persistence.test.graph;
 
 import junit.framework.Assert;
 
-import org.junit.After;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
-import org.junit.Ignore;
 import org.junit.runner.RunWith;
 import org.neo4j.graphdb.DynamicRelationshipType;
 import org.neo4j.graphdb.GraphDatabaseService;
@@ -19,12 +20,9 @@ import org.springframework.persistence.graph.Direction;
 import org.springframework.persistence.graph.neo4j.NodeBacked;
 import org.springframework.persistence.support.EntityInstantiator;
 import org.springframework.persistence.test.Person;
-import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 
 
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -39,7 +37,7 @@ public class Neo4jGraphPersistenceTest {
 	@Autowired
 	protected GraphDatabaseService graphDatabaseService;
 	
-	private static Long insertedId = 0L;
+	private Long insertedId = 0L;
 	
 	@Test
 	public void testStuffWasAutowired() {
@@ -47,9 +45,8 @@ public class Neo4jGraphPersistenceTest {
         Assert.assertNotNull( nodeInstantiator );
 	}
 
-	@Test
+	@Before
 	@Transactional
-	@Rollback(false)
 	public void testUserConstructor() {
 		Person p = new Person("Rod", 39);
 		Assert.assertEquals(p.getName(), p.getUnderlyingNode().getProperty("Person.name"));
