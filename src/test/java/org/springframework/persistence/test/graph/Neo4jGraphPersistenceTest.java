@@ -8,21 +8,26 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.DynamicRelationshipType;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.NotInTransactionException;
+import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.Transaction;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.dao.InvalidDataAccessResourceUsageException;
-import org.springframework.persistence.graph.Direction;
 import org.springframework.persistence.graph.neo4j.NodeBacked;
 import org.springframework.persistence.support.EntityInstantiator;
+import org.springframework.persistence.test.Group;
 import org.springframework.persistence.test.Person;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
 
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -70,7 +75,7 @@ public class Neo4jGraphPersistenceTest {
 		Person p = new Person("Michael", 35);
 		Person spouse = new Person("Tina",36);
 		p.setSpouse(spouse);
-		Node spouseNode=p.getUnderlyingNode().getSingleRelationship(DynamicRelationshipType.withName("Person.spouse"), org.neo4j.graphdb.Direction.OUTGOING).getEndNode();
+		Node spouseNode=p.getUnderlyingNode().getSingleRelationship(DynamicRelationshipType.withName("Person.spouse"), Direction.OUTGOING).getEndNode();
 		Assert.assertEquals(spouse.getUnderlyingNode(), spouseNode);
 		Assert.assertEquals(spouse, p.getSpouse());
 	}
@@ -81,7 +86,7 @@ public class Neo4jGraphPersistenceTest {
 		Person p = new Person("Michael", 35);
 		Person mother = new Person("Gabi",60);
 		p.setMother(mother);
-		Node motherNode = p.getUnderlyingNode().getSingleRelationship(DynamicRelationshipType.withName("mother"), org.neo4j.graphdb.Direction.OUTGOING).getEndNode();
+		Node motherNode = p.getUnderlyingNode().getSingleRelationship(DynamicRelationshipType.withName("mother"), Direction.OUTGOING).getEndNode();
 		Assert.assertEquals(mother.getUnderlyingNode(), motherNode);
 		Assert.assertEquals(mother, p.getMother());
 	}
@@ -93,7 +98,7 @@ public class Neo4jGraphPersistenceTest {
 		Person spouse = new Person("Tina", 36);
 		p.setSpouse(spouse);
 		p.setSpouse(null);
-		Assert.assertNull(p.getUnderlyingNode().getSingleRelationship(DynamicRelationshipType.withName("Person.spouse"), org.neo4j.graphdb.Direction.OUTGOING));
+		Assert.assertNull(p.getUnderlyingNode().getSingleRelationship(DynamicRelationshipType.withName("Person.spouse"), Direction.OUTGOING));
 		Assert.assertNull(p.getSpouse());
 	}
 	
@@ -105,7 +110,7 @@ public class Neo4jGraphPersistenceTest {
 		Person friend = new Person("Helga", 34);
 		p.setSpouse(spouse);
 		p.setSpouse(friend);
-		Assert.assertEquals(friend.getUnderlyingNode(), p.getUnderlyingNode().getSingleRelationship(DynamicRelationshipType.withName("Person.spouse"), org.neo4j.graphdb.Direction.OUTGOING).getEndNode());
+		Assert.assertEquals(friend.getUnderlyingNode(), p.getUnderlyingNode().getSingleRelationship(DynamicRelationshipType.withName("Person.spouse"), Direction.OUTGOING).getEndNode());
 		Assert.assertEquals(friend, p.getSpouse());
 	}
 	
@@ -115,7 +120,7 @@ public class Neo4jGraphPersistenceTest {
 		Person p = new Person("David", 25);
 		Person boss = new Person("Emil", 32);
 		p.setBoss(boss);
-		Assert.assertEquals(boss.getUnderlyingNode(), p.getUnderlyingNode().getSingleRelationship(DynamicRelationshipType.withName("boss"), org.neo4j.graphdb.Direction.INCOMING).getStartNode());
+		Assert.assertEquals(boss.getUnderlyingNode(), p.getUnderlyingNode().getSingleRelationship(DynamicRelationshipType.withName("boss"), Direction.INCOMING).getStartNode());
 		Assert.assertEquals(boss, p.getBoss());
 	}
 	
@@ -170,6 +175,22 @@ public class Neo4jGraphPersistenceTest {
 	public void testCircularRelationship() {
 		Person p = new Person("Michael", 35);
 		p.setSpouse(p);
+	}
+
+	@Ignore
+	@Test
+	@Transactional
+	public void testOneToManyRelationshipsWithoutAnnotation() {
+		Person michael = new Person("Michael", 35);
+		Person david = new Person("David", 25);
+		Group group = new Group();
+		Set<Person> persons = new HashSet<Person>(Arrays.asList(michael, david));
+		group.setPersons(persons);
+		Relationship michaelRel = michael.getUnderlyingNode().getSingleRelationship(DynamicRelationshipType.withName("Group.persons"), Direction.INCOMING);
+		Relationship davidRel = david.getUnderlyingNode().getSingleRelationship(DynamicRelationshipType.withName("Group.persons"), Direction.INCOMING);
+		Assert.assertEquals(group.getUnderlyingNode(), michaelRel.getStartNode());
+		Assert.assertEquals(group.getUnderlyingNode(), davidRel.getStartNode());
+		Assert.assertEquals(persons, group.getPersons());
 	}
 
 	@Test
