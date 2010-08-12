@@ -93,5 +93,8 @@ public class Person {
 	public void setFriend(Person friend) {
 		this.friend = friend;
 	}
-	
+	@Override
+	public String toString() {
+		return name;
+	}
 }

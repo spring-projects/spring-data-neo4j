@@ -1,8 +1,10 @@
 package org.springframework.persistence.graph.neo4j;
 
 import java.lang.reflect.Field;
+import java.util.AbstractSet;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Set;
 
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -142,7 +144,7 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<GraphEn
 				String propName = getNeo4jPropertyName(f);
 				entity.getUnderlyingNode().setProperty(propName, newVal);
 				log.info("SET " + f + " -> Neo4J simple node property [" + propName + "] with value=[" + newVal + "]");
-				return null;
+				return proceed(entity, newVal);
 			}
 			
 			RelationshipInfo relInfo = relationshipInfoFactory.forField(f);
@@ -267,6 +269,37 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<GraphEn
 	
 	public static class OneToNRelationshipInfo implements RelationshipInfo {
 
+		private static final class ManagedSet extends AbstractSet<NodeBacked> {
+			private final NodeBacked entity;
+			final Set<NodeBacked> delegate;
+			private final RelationshipInfo relationshipInfo;
+
+			private ManagedSet(NodeBacked entity, Object newVal, RelationshipInfo relationshipInfo) {
+				this.entity = entity;
+				this.relationshipInfo = relationshipInfo;
+				delegate = (Set<NodeBacked>) newVal;
+			}
+
+			@Override
+			public Iterator<NodeBacked> iterator() {
+				return delegate.iterator();
+			}
+
+			@Override
+			public int size() {
+				return delegate.size();
+			}
+
+			@Override
+			public boolean add(NodeBacked e) {
+				boolean res=delegate.add(e);
+				if (res) {
+					relationshipInfo.apply(entity, delegate);
+				}
+				return res;
+			}
+		}
+
 		private final RelationshipType type;
 		private final Direction direction;
 		private final Class<? extends NodeBacked> relatedType;
@@ -279,7 +312,7 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<GraphEn
 			this.graphEntityInstantiator = graphEntityInstantiator;
 		}
 
-		public Object apply(NodeBacked entity, Object newVal) {
+		public Object apply(final NodeBacked entity, final Object newVal) {
 			Node entityNode = entity.getUnderlyingNode();
 			
 			Set<Node> newNodes=new HashSet<Node>();
@@ -314,7 +347,7 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<GraphEn
 					default : throw new IllegalArgumentException("invalid direction " + direction); 
 				}
 			}
-			return newVal; // TODO managedSet that for each mutating method calls this apply (todo use AspectJ to handle that?)
+			return new ManagedSet(entity, newVal,this); // TODO managedSet that for each mutating method calls this apply (todo use AspectJ to handle that?)
 		}
 		
 		@Override
@@ -328,7 +361,7 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<GraphEn
 				NodeBacked newEntity=graphEntityInstantiator.createEntityFromState(rel.getOtherNode(entityNode), relatedType);;
 				result.add(newEntity);
 			}
-			return result; 
+			return new ManagedSet(entity, result,this); 
 		}
 		
 	}
