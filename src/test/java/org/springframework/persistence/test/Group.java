@@ -10,8 +10,8 @@ import java.util.Collection;
 @GraphEntity
 public class Group {
 
-	@Relationship(type = "Group.persons", direction = Direction.OUTGOING, elementClass = Person.class)
-	private Collection<Person> persons = new ArrayList<Person>();
+	@Relationship(type = "persons", direction = Direction.OUTGOING, elementClass = Person.class)
+	private Collection<Person> persons;
 
 	public void setPersons(Collection<Person> persons) {
 		this.persons = persons;

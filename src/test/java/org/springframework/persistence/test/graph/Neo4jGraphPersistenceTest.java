@@ -26,6 +26,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -177,20 +178,31 @@ public class Neo4jGraphPersistenceTest {
 		p.setSpouse(p);
 	}
 
-	@Ignore
 	@Test
 	@Transactional
-	public void testOneToManyRelationshipsWithoutAnnotation() {
+	public void testSetOneToManyRelationship() {
 		Person michael = new Person("Michael", 35);
 		Person david = new Person("David", 25);
 		Group group = new Group();
 		Set<Person> persons = new HashSet<Person>(Arrays.asList(michael, david));
 		group.setPersons(persons);
-		Relationship michaelRel = michael.getUnderlyingNode().getSingleRelationship(DynamicRelationshipType.withName("Group.persons"), Direction.INCOMING);
-		Relationship davidRel = david.getUnderlyingNode().getSingleRelationship(DynamicRelationshipType.withName("Group.persons"), Direction.INCOMING);
+		Relationship michaelRel = michael.getUnderlyingNode().getSingleRelationship(DynamicRelationshipType.withName("persons"), Direction.INCOMING);
+		Relationship davidRel = david.getUnderlyingNode().getSingleRelationship(DynamicRelationshipType.withName("persons"), Direction.INCOMING);
 		Assert.assertEquals(group.getUnderlyingNode(), michaelRel.getStartNode());
 		Assert.assertEquals(group.getUnderlyingNode(), davidRel.getStartNode());
-		Assert.assertEquals(persons, group.getPersons());
+	}
+
+	@Test
+	@Transactional
+	public void testGetOneToManyRelationship() {
+		Person michael = new Person("Michael", 35);
+		Person david = new Person("David", 25);
+		Group group = new Group();
+		Set<Person> persons = new HashSet<Person>(Arrays.asList(michael, david));
+		group.setPersons(persons);
+		Collection<Person> personsFromGet = group.getPersons();
+		Assert.assertEquals(persons, personsFromGet);
+		Assert.assertTrue(Set.class.isAssignableFrom(personsFromGet.getClass()));
 	}
 
 	@Test
