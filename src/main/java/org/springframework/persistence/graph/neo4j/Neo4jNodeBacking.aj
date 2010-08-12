@@ -1,13 +1,10 @@
 package org.springframework.persistence.graph.neo4j;
 
 import java.lang.reflect.Field;
-import java.lang.reflect.Type;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.aspectj.lang.JoinPoint;
-import org.aspectj.lang.Signature;
 import org.aspectj.lang.reflect.FieldSignature;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.DynamicRelationshipType;
@@ -21,7 +18,6 @@ import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.dao.InvalidDataAccessResourceUsageException;
 import org.springframework.persistence.graph.GraphEntity;
 import org.springframework.persistence.graph.Relationship;
-import org.springframework.persistence.graph.neo4j.Neo4jNodeBacking.RelationshipInfoFactory;
 import org.springframework.persistence.support.AbstractTypeAnnotatingMixinFields;
 import org.springframework.persistence.support.EntityInstantiator;
 
