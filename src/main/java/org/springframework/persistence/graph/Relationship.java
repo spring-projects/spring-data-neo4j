@@ -5,6 +5,8 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+import org.springframework.persistence.graph.neo4j.NodeBacked;
+
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
 public @interface Relationship {
@@ -13,6 +15,6 @@ public @interface Relationship {
 	
 	Direction direction();
 
-	Class<?> elementClass() default Void.class;
+	Class<? extends NodeBacked> elementClass() default NodeBacked.class;
 
 }

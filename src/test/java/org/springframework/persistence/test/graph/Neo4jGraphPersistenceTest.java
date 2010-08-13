@@ -207,6 +207,20 @@ public class Neo4jGraphPersistenceTest {
 
 	@Test
 	@Transactional
+	public void testAddToOneToManyRelationship() {
+		Person michael = new Person("Michael", 35);
+		Person david = new Person("David", 25);
+		Group group = new Group();
+		group.setPersons(new HashSet<Person>());
+		group.addPerson(michael);
+		group.addPerson(david);
+		Collection<Person> personsFromGet = group.getPersons();
+		Assert.assertEquals(new HashSet<Person>(Arrays.asList(david,michael)), personsFromGet);
+		Assert.assertTrue(Set.class.isAssignableFrom(personsFromGet.getClass()));
+	}
+
+	@Test
+	@Transactional
 	public void testInstantiatedFinder() {
 		Node n = findPersonTestNode();
 		Person found = nodeInstantiator.createEntityFromState(n, Person.class);

@@ -1,10 +1,13 @@
 package org.springframework.persistence.graph.neo4j;
 
 import java.lang.reflect.Field;
+import java.util.AbstractSet;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Set;
 
+import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.reflect.FieldSignature;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.DynamicRelationshipType;
@@ -141,7 +144,7 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<GraphEn
 				String propName = getNeo4jPropertyName(f);
 				entity.getUnderlyingNode().setProperty(propName, newVal);
 				log.info("SET " + f + " -> Neo4J simple node property [" + propName + "] with value=[" + newVal + "]");
-				return null;
+				return proceed(entity, newVal);
 			}
 			
 			RelationshipInfo relInfo = relationshipInfoFactory.forField(f);
@@ -150,8 +153,8 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<GraphEn
 				return proceed(entity, newVal);
 			}
 			log.info("SET " + f + " -> Neo4J relationship with value=[" + newVal + "]");
-			relInfo.apply(entity, newVal);
-			return null;
+			Object result=relInfo.apply(entity, newVal);
+			return proceed(entity,result);
 		} catch(NotInTransactionException e) {
 			throw new InvalidDataAccessResourceUsageException("Not in a Neo4j transaction.", e);
 		}
@@ -168,7 +171,7 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<GraphEn
 	
 	public static interface RelationshipInfo {
 		// Set entity field to newVal
-		void apply(NodeBacked entity, Object newVal);
+		Object apply(NodeBacked entity, Object newVal);
 
 		// Read object from entity field
 		Object readObject(NodeBacked entity);
@@ -182,17 +185,17 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<GraphEn
 		}
 		
 		public RelationshipInfo forField(Field field) {
+			final Relationship relAnnotation = field.getAnnotation(Relationship.class);
 			if (isSingleRelationshipField(field)) {
-				final Relationship relAnnotation = field.getAnnotation(Relationship.class);
+				Class<? extends NodeBacked> relatedType=(Class<? extends NodeBacked>)field.getType();
 				if (relAnnotation != null) {
 					return new SingleRelationshipInfo(DynamicRelationshipType.withName(relAnnotation.type()), 
-							relAnnotation.direction().toNeo4jDir(), field.getType(), graphEntityInstantiator);
+							relAnnotation.direction().toNeo4jDir(),relatedType, graphEntityInstantiator);
 				}
 				return new SingleRelationshipInfo(DynamicRelationshipType.withName(getNeo4jPropertyName(field)), 
-						Direction.OUTGOING, field.getType(), graphEntityInstantiator);
+						Direction.OUTGOING, relatedType, graphEntityInstantiator);
 			}
 			if (isOneToNRelationshipField(field)) {
-				final Relationship relAnnotation = field.getAnnotation(Relationship.class);
 				return new OneToNRelationshipInfo(DynamicRelationshipType.withName(relAnnotation.type()), 
 						relAnnotation.direction().toNeo4jDir(), relAnnotation.elementClass(), graphEntityInstantiator);
 			}
@@ -200,14 +203,13 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<GraphEn
 		}
 
 		private static boolean isSingleRelationshipField(Field f) {
-//			return f.getType().isAnnotationPresent(GraphEntity.class);
 			return NodeBacked.class.isAssignableFrom(f.getType());
 		}
 		
 		private static boolean isOneToNRelationshipField(Field f) {
-			return f.isAnnotationPresent(Relationship.class) 
-				&& !Void.class.isAssignableFrom(f.getAnnotation(Relationship.class).elementClass())
-				&& Collection.class.isAssignableFrom(f.getType());
+			if (!Collection.class.isAssignableFrom(f.getType())) return false;
+			Relationship relationship=f.getAnnotation(Relationship.class);
+			return relationship!=null &&  NodeBacked.class.isAssignableFrom(relationship.elementClass()) && !relationship.elementClass().equals(NodeBacked.class);
 		}
 	}
 	
@@ -215,17 +217,17 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<GraphEn
 
 		private final RelationshipType type;
 		private final Direction direction;
-		private final Class<?> clazz;
+		private final Class<? extends NodeBacked> relatedType;
 		private final EntityInstantiator<NodeBacked, Node> graphEntityInstantiator;
 		
-		public SingleRelationshipInfo(RelationshipType type, Direction direction, Class<?> clazz, EntityInstantiator<NodeBacked,Node> graphEntityInstantiator) {
+		public SingleRelationshipInfo(RelationshipType type, Direction direction, Class<? extends NodeBacked> clazz, EntityInstantiator<NodeBacked,Node> graphEntityInstantiator) {
 			this.type = type;
 			this.direction = direction;
-			this.clazz = clazz;
+			this.relatedType = clazz;
 			this.graphEntityInstantiator = graphEntityInstantiator;
 		}
 
-		public void apply(NodeBacked entity, Object newVal) {
+		public Object apply(NodeBacked entity, Object newVal) {
 			if (newVal != null && !(newVal instanceof NodeBacked)) {
 				throw new IllegalArgumentException("New value must be NodeBacked.");
 			}
@@ -234,7 +236,7 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<GraphEn
 				relationship.delete();
 			}
 			if (newVal == null) {
-				return;
+				return null;
 			}
 			Node targetNode = ((NodeBacked) newVal).getUnderlyingNode();
 			if (entityNode.equals(targetNode)) {
@@ -245,46 +247,75 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<GraphEn
 				case INCOMING : targetNode.createRelationshipTo(entityNode, type); break;
 				default : throw new IllegalArgumentException("invalid direction " + direction); 
 			}
+			return newVal;
 		}
 
 		@Override
 		public Object readObject(NodeBacked entity) {
-			// does it have to be there, isn't it enough to have a nodebacked as target?
 			Node entityNode = entity.getUnderlyingNode();
 			if (entityNode == null) {
 				throw new IllegalStateException("Entity must have a backing Node");
 			}
 			org.neo4j.graphdb.Relationship singleRelationship = entityNode.getSingleRelationship(type, direction);
 			
-			// TODO is this correct
-			// [mh] i assume only for null
 			if (singleRelationship == null) {
 				return null;
 			}
 			Node targetNode = singleRelationship.getOtherNode(entityNode);
-//			log.info("GET " + f + ": " + f.getType().getName() + ": setting from relationship " + singleRelationship);
-			return graphEntityInstantiator.createEntityFromState(targetNode, (Class<NodeBacked>) clazz);
+			return graphEntityInstantiator.createEntityFromState(targetNode, relatedType);
 		}
 		
 	}
 	
 	public static class OneToNRelationshipInfo implements RelationshipInfo {
 
+		private static final class ManagedSet extends AbstractSet<NodeBacked> {
+			private final NodeBacked entity;
+			final Set<NodeBacked> delegate;
+			private final RelationshipInfo relationshipInfo;
+
+			private ManagedSet(NodeBacked entity, Object newVal, RelationshipInfo relationshipInfo) {
+				this.entity = entity;
+				this.relationshipInfo = relationshipInfo;
+				delegate = (Set<NodeBacked>) newVal;
+			}
+
+			@Override
+			public Iterator<NodeBacked> iterator() {
+				return delegate.iterator();
+			}
+
+			@Override
+			public int size() {
+				return delegate.size();
+			}
+
+			@Override
+			public boolean add(NodeBacked e) {
+				boolean res=delegate.add(e);
+				if (res) {
+					relationshipInfo.apply(entity, delegate);
+				}
+				return res;
+			}
+		}
+
 		private final RelationshipType type;
 		private final Direction direction;
-		private final Class<?> elementClass;
+		private final Class<? extends NodeBacked> relatedType;
 		private final EntityInstantiator<NodeBacked, Node> graphEntityInstantiator;
 
-		public OneToNRelationshipInfo(RelationshipType type, Direction direction, Class<?> elementClass, EntityInstantiator<NodeBacked, Node> graphEntityInstantiator) {
+		public OneToNRelationshipInfo(RelationshipType type, Direction direction, Class<? extends NodeBacked> elementClass, EntityInstantiator<NodeBacked, Node> graphEntityInstantiator) {
 			this.type = type;
 			this.direction = direction;
-			this.elementClass = elementClass;
+			this.relatedType = elementClass;
 			this.graphEntityInstantiator = graphEntityInstantiator;
 		}
 
-		public void apply(NodeBacked entity, Object newVal) {
+		public Object apply(final NodeBacked entity, final Object newVal) {
 			Node entityNode = entity.getUnderlyingNode();
 			
+			Set<Node> newNodes=new HashSet<Node>();
 			if (newVal != null) {
 				if (!(newVal instanceof Set)) {
 					throw new IllegalArgumentException("New value must be a Set, was: " + newVal.getClass());
@@ -294,28 +325,29 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<GraphEn
 					if (!(obj instanceof NodeBacked)) {
 						throw new IllegalArgumentException("New value elements must be NodeBacked.");
 					}
-					if (entityNode.equals(((NodeBacked) obj).getUnderlyingNode())) {
+					Node newNode=((NodeBacked) obj).getUnderlyingNode();
+					if (entityNode.equals(newNode)) {
 						throw new InvalidDataAccessApiUsageException("Cannot create circular reference.");
 					}
+					newNodes.add(newNode);
 				}
 			}
 			for ( org.neo4j.graphdb.Relationship relationship : entityNode.getRelationships(type, direction) ) {
-				relationship.delete();
+				if (!newNodes.remove(relationship.getOtherNode(entityNode)))
+					relationship.delete();
 			}
 			if (newVal == null) {
-				return;
+				return null;
 			}
 			
-			for (Object obj : (Set<Object>) newVal) {
-				NodeBacked nb = (NodeBacked) obj;
-				Node targetNode = nb.getUnderlyingNode();
+			for (Node newNode : newNodes) {
 				switch(direction) {
-					case OUTGOING : entityNode.createRelationshipTo(targetNode, type); break;
-					case INCOMING : targetNode.createRelationshipTo(entityNode, type); break;
+					case OUTGOING : entityNode.createRelationshipTo(newNode, type); break;
+					case INCOMING : newNode.createRelationshipTo(entityNode, type); break;
 					default : throw new IllegalArgumentException("invalid direction " + direction); 
 				}
 			}
-			
+			return new ManagedSet(entity, newVal,this); // TODO managedSet that for each mutating method calls this apply (todo use AspectJ to handle that?)
 		}
 		
 		@Override
@@ -324,12 +356,12 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<GraphEn
 			if (entityNode == null) {
 				throw new IllegalStateException("Entity must have a backing Node");
 			}
-			Iterable<org.neo4j.graphdb.Relationship> rels = entityNode.getRelationships(type, direction);
-			Set<Object> result = new HashSet<Object>();
-			for (org.neo4j.graphdb.Relationship rel : rels) {
-				result.add(graphEntityInstantiator.createEntityFromState(rel.getOtherNode(entityNode), (Class<NodeBacked>) elementClass));
+			Set<NodeBacked> result = new HashSet<NodeBacked>();
+			for (org.neo4j.graphdb.Relationship rel : entityNode.getRelationships(type, direction)) {
+				NodeBacked newEntity=graphEntityInstantiator.createEntityFromState(rel.getOtherNode(entityNode), relatedType);;
+				result.add(newEntity);
 			}
-			return result; 
+			return new ManagedSet(entity, result,this); 
 		}
 		
 	}
