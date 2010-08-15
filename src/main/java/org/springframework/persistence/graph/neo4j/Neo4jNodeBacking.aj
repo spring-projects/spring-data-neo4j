@@ -97,6 +97,10 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<GraphEn
 		return underlyingNode;
 	}
 
+	public long NodeBacked.getId() {
+		return underlyingNode.getId();
+	}
+
 	
 	//-------------------------------------------------------------------------
 	// Equals and hashCode for Neo4j entities.
@@ -140,7 +144,8 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<GraphEn
 			FieldSignature fieldSignature=(FieldSignature) thisJoinPoint.getSignature();
 			Field f = fieldSignature.getField();
 			// TODO fix arrays
-			if (f.getType().isPrimitive() || f.getType().equals(String.class)) {
+			Class fieldType=f.getType();
+			if (isPropertyType(fieldType)) {
 				String propName = getNeo4jPropertyName(f);
 				entity.getUnderlyingNode().setProperty(propName, newVal);
 				log.info("SET " + f + " -> Neo4J simple node property [" + propName + "] with value=[" + newVal + "]");
@@ -158,6 +163,11 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<GraphEn
 		} catch(NotInTransactionException e) {
 			throw new InvalidDataAccessResourceUsageException("Not in a Neo4j transaction.", e);
 		}
+	}
+
+	private boolean isPropertyType(Class fieldType) {
+	  return fieldType.isPrimitive() || fieldType.equals(String.class) || (fieldType.getName().startsWith("java.lang") && Number.class.isAssignableFrom(fieldType));
+	  // TODO boolean, arrays, character
 	}
 	
 	private boolean isSingleRelationshipField(Field f) {
@@ -199,7 +209,7 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<GraphEn
 				return new OneToNRelationshipInfo(DynamicRelationshipType.withName(relAnnotation.type()), 
 						relAnnotation.direction().toNeo4jDir(), relAnnotation.elementClass(), graphEntityInstantiator);
 			}
-			throw new IllegalArgumentException("Not a Neo4j relationship field.");
+			throw new IllegalArgumentException("Not a Neo4j relationship field: "+field);
 		}
 
 		private static boolean isSingleRelationshipField(Field f) {

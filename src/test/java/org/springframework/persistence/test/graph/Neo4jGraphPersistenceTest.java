@@ -66,8 +66,10 @@ public class Neo4jGraphPersistenceTest {
 		Person p = new Person("Foo", 2);
 		p.setName("Michael");
 		p.setAge(35);
+		p.setHeight((short)182);
 		Assert.assertEquals("Michael", p.getUnderlyingNode().getProperty("Person.name"));
 		Assert.assertEquals(35, p.getUnderlyingNode().getProperty("Person.age"));
+		Assert.assertEquals((short)182, p.getUnderlyingNode().getProperty("Person.height"));
 	}
 	
 	@Test
@@ -168,7 +170,7 @@ public class Neo4jGraphPersistenceTest {
 		} finally {
 			tx.finish();
 		}
-		Assert.assertEquals("Wrong age.", 35, p.getAge());
+		Assert.assertEquals("Wrong age.", (int)35, p.getAge());
 	}
 	
 	@Test(expected = InvalidDataAccessApiUsageException.class)

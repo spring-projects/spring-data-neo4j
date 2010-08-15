@@ -16,6 +16,8 @@ public class Person {
 	
 	private int age;
 
+	private Short height;
+
 	Person spouse;
 	
 	@Relationship(type="mother", direction=Direction.OUTGOING)
@@ -62,6 +64,15 @@ public class Person {
 	public void setAge(int age) {
 		this.age = age;
 	}
+	
+	public Short getHeight() {
+		return height;
+	}
+
+	public void setHeight(Short height) {
+		this.height = height;
+	}
+
 
 	public Person getSpouse() {
 		return spouse;

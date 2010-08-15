@@ -39,11 +39,6 @@ privileged aspect Person_Graph_Entity {
 	public Person.new(Node node) {
 		setUnderlyingNode(node);
 	}
-	
-	public Long Person.getId() {
-        return getUnderlyingNode().getId();
-    }
-    
 
 	public static long Person.countPeople() {
 		return Neo4jHelper.count(Person.class, Person_Graph_Entity.graphDatabaseService());
