@@ -124,7 +124,7 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<GraphEn
 		Field f = fieldSignature.getField();
 		
 		// TODO fix arrays, TODO serialize other types as byte[] or string (for indexing, querying) via Annotation
-		if (f.getType().isPrimitive() || f.getType().equals(String.class)) {
+		if (isPropertyType(f.getType())) {
 			String propName = getNeo4jPropertyName(f);
 			log.info("GET " + f + " <- Neo4J simple node property [" + propName + "]");
 			return entity.getUnderlyingNode().getProperty(propName, null);

@@ -70,6 +70,7 @@ public class Neo4jGraphPersistenceTest {
 		Assert.assertEquals("Michael", p.getUnderlyingNode().getProperty("Person.name"));
 		Assert.assertEquals(35, p.getUnderlyingNode().getProperty("Person.age"));
 		Assert.assertEquals((short)182, p.getUnderlyingNode().getProperty("Person.height"));
+		Assert.assertEquals((short)182, (short)p.getHeight());
 	}
 	
 	@Test
