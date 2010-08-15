@@ -171,7 +171,7 @@ public class Neo4jGraphPersistenceTest {
 		} finally {
 			tx.finish();
 		}
-		Assert.assertEquals("Wrong age.", (int)35, p.getAge());
+		Assert.assertEquals("Wrong age.", (int)35, (int)p.getAge());
 	}
 	
 	@Test(expected = InvalidDataAccessApiUsageException.class)
