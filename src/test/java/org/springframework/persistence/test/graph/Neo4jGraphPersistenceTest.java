@@ -233,8 +233,8 @@ public class Neo4jGraphPersistenceTest {
 		Person david = new Person("David", 25);
 		Group group = new Group();
 		group.setPersons(new HashSet<Person>());
-		group.addPerson(michael);
-		group.addPerson(david);
+		group.getPersons().add(michael);
+		group.getPersons().add(david);
 		Collection<Person> personsFromGet = group.getPersons();
 		Assert.assertEquals(new HashSet<Person>(Arrays.asList(david,michael)), personsFromGet);
 		Assert.assertTrue(Set.class.isAssignableFrom(personsFromGet.getClass()));
