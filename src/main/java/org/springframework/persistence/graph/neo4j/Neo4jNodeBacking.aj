@@ -2,9 +2,11 @@ package org.springframework.persistence.graph.neo4j;
 
 import java.lang.reflect.Field;
 import java.util.AbstractSet;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -100,7 +102,7 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<GraphEn
 	public long NodeBacked.getId() {
 		return underlyingNode.getId();
 	}
-
+	
 	
 	//-------------------------------------------------------------------------
 	// Equals and hashCode for Neo4j entities.
@@ -144,7 +146,7 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<GraphEn
 			FieldSignature fieldSignature=(FieldSignature) thisJoinPoint.getSignature();
 			Field f = fieldSignature.getField();
 			// TODO fix arrays
-			Class fieldType=f.getType();
+			Class<?> fieldType = f.getType();
 			if (isPropertyType(fieldType)) {
 				String propName = getNeo4jPropertyName(f);
 				entity.getUnderlyingNode().setProperty(propName, newVal);
@@ -158,21 +160,21 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<GraphEn
 				return proceed(entity, newVal);
 			}
 			log.info("SET " + f + " -> Neo4J relationship with value=[" + newVal + "]");
-			Object result=relInfo.apply(entity, newVal);
+			Object result = relInfo.apply(entity, newVal);
 			return proceed(entity,result);
 		} catch(NotInTransactionException e) {
 			throw new InvalidDataAccessResourceUsageException("Not in a Neo4j transaction.", e);
 		}
 	}
 
-	private boolean isPropertyType(Class fieldType) {
-	  return fieldType.isPrimitive() || fieldType.equals(String.class) || (fieldType.getName().startsWith("java.lang") && Number.class.isAssignableFrom(fieldType));
-	  // TODO boolean, arrays, character
-	}
-	
-	private boolean isSingleRelationshipField(Field f) {
-		return f.getType().isAnnotationPresent(GraphEntity.class);
-		//return NodeBacked.class.isAssignableFrom(f.getType());
+	private boolean isPropertyType(Class<?> fieldType) {
+		// todo: add array support
+		return fieldType.isPrimitive()
+	  		|| (fieldType.isArray() && !fieldType.getComponentType().isArray() && isPropertyType(fieldType.getComponentType()))
+	  		|| fieldType.equals(String.class)
+	  		|| fieldType.equals(Character.class)
+	  		|| fieldType.equals(Boolean.class)
+	  		|| (fieldType.getName().startsWith("java.lang") && Number.class.isAssignableFrom(fieldType));
 	}
 	
 	private static String getNeo4jPropertyName(Field field) {

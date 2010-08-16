@@ -81,7 +81,12 @@
 		 <constructor-arg index="0" value="${neo4j.databaseDirectory}" />
 	</bean>
 	
-	<bean class="org.springframework.persistence.graph.neo4j.Neo4jConstructorEntityInstantiator" />	
+	<bean id="finderFactory" class="org.springframework.persistence.graph.neo4j.FinderFactory">
+		<constructor-arg ref="graphDbService" />
+		<constructor-arg ref="entityInstantiator" />
+	</bean>
+	
+	<bean id="entityInstantiator" class="org.springframework.persistence.graph.neo4j.Neo4jConstructorEntityInstantiator" />	
 
 	<!--
  	-->

@@ -14,9 +14,13 @@ import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.Transaction;
+import org.neo4j.helpers.collection.IteratorUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.dao.InvalidDataAccessResourceUsageException;
+import org.springframework.persistence.graph.neo4j.Finder;
+import org.springframework.persistence.graph.neo4j.FinderFactory;
+import org.springframework.persistence.graph.neo4j.Neo4jHelper;
 import org.springframework.persistence.graph.neo4j.NodeBacked;
 import org.springframework.persistence.support.EntityInstantiator;
 import org.springframework.persistence.test.Group;
@@ -25,6 +29,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
@@ -43,6 +48,9 @@ public class Neo4jGraphPersistenceTest {
 	@Autowired
 	protected GraphDatabaseService graphDatabaseService;
 	
+	@Autowired
+	private FinderFactory finderFactory;
+	
 	private Long insertedId = 0L;
 	
 	@Test
@@ -50,14 +58,24 @@ public class Neo4jGraphPersistenceTest {
         Assert.assertNotNull( graphDatabaseService );
         Assert.assertNotNull( nodeInstantiator );
 	}
-
+	
 	@Before
+	@Transactional
+	public void cleanDb() {
+		Neo4jHelper.cleanDb(graphDatabaseService);
+	}
+
+	@Test
 	@Transactional
 	public void testUserConstructor() {
 		Person p = new Person("Rod", 39);
 		Assert.assertEquals(p.getName(), p.getUnderlyingNode().getProperty("Person.name"));
 		Assert.assertEquals(p.getAge(), p.getUnderlyingNode().getProperty("Person.age"));
 		insertedId = p.getId();
+		Node n = findPersonTestNode();
+		Person found = nodeInstantiator.createEntityFromState(n, Person.class);
+		Assert.assertEquals("Rod", found.getUnderlyingNode().getProperty("Person.name"));
+		Assert.assertEquals(39, found.getUnderlyingNode().getProperty("Person.age"));
 	}
 	
 	@Test
@@ -221,14 +239,42 @@ public class Neo4jGraphPersistenceTest {
 		Assert.assertEquals(new HashSet<Person>(Arrays.asList(david,michael)), personsFromGet);
 		Assert.assertTrue(Set.class.isAssignableFrom(personsFromGet.getClass()));
 	}
-
+	
 	@Test
 	@Transactional
-	public void testInstantiatedFinder() {
-		Node n = findPersonTestNode();
-		Person found = nodeInstantiator.createEntityFromState(n, Person.class);
-		Assert.assertEquals("Rod", found.getUnderlyingNode().getProperty("Person.name"));
-		Assert.assertEquals(39, found.getUnderlyingNode().getProperty("Person.age"));
+	public void testFinderFindAll() {
+		Person p1 = new Person("Michael", 35);
+		Person p2 = new Person("David", 25);
+		Finder<Person> finder = finderFactory.getFinderForClass(Person.class);
+		Iterable<Person> allPersons = finder.findAll();
+		Assert.assertEquals(new HashSet<Person>(Arrays.asList(p1, p2)), IteratorUtil.addToCollection(allPersons.iterator(), new HashSet<Person>()));
+	}
+	
+	@Test
+	@Transactional
+	public void testFinderFindById() {
+		Person p = new Person("Michael", 35);
+		Finder<Person> finder = finderFactory.getFinderForClass(Person.class);
+		Person pById = finder.findById(p.getId());
+		Assert.assertEquals(p, pById);
+	}
+	
+	@Test
+	@Transactional
+	public void testFinderFindByIdNonexistent() {
+		Person p = new Person("Michael", 35);
+		Finder<Person> finder = finderFactory.getFinderForClass(Person.class);
+		Person p2 = finder.findById(589736218);
+		Assert.assertNull(p2);
+	}
+	
+	@Test
+	@Transactional
+	public void testFinderCount() {
+		Finder<Person> finder = finderFactory.getFinderForClass(Person.class);
+		Assert.assertEquals(0, finder.count());
+		Person p = new Person("Michael", 35);
+		Assert.assertEquals(1, finder.count());
 	}
 
 	@Test
