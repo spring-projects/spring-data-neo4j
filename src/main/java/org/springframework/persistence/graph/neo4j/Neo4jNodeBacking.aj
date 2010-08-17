@@ -63,6 +63,9 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<Graph.E
 		execution((@Graph.Entity *).new(..)) &&
 		!execution((@Graph.Entity *).new(Node)) &&
 		this(entity);
+		execution((@GraphEntity *).new(..)) &&
+		!execution((@GraphEntity *).new(Node)) &&
+		this(entity);  // && !cflow(execution(* fromStateInternal(..));
 	
 	
 	// Create a new node in the Graph if no Node was passed in a constructor
