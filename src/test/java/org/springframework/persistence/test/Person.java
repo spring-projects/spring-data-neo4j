@@ -1,13 +1,9 @@
 package org.springframework.persistence.test;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.ParameterizedType;
-
 import org.springframework.persistence.graph.Direction;
-import org.springframework.persistence.graph.GraphEntity;
-import org.springframework.persistence.graph.Relationship;
+import org.springframework.persistence.graph.Graph;
 
-@GraphEntity
+@Graph.Entity
 public class Person {
 	
 	private Long id;
@@ -18,30 +14,17 @@ public class Person {
 
 	private Short height;
 
-	Person spouse;
+	private Person spouse;
 	
-	@Relationship(type="mother", direction=Direction.OUTGOING)
-	Person mother;
+	@Graph.Entity.Relationship(type="mother", direction=Direction.OUTGOING)
+	private Person mother;
 	
-	@Relationship(type="boss", direction=Direction.INCOMING)
-	Person boss;
-	
-	@Relationship(type="friend", direction=Direction.BOTH)
-	Person friend;
+	@Graph.Entity.Relationship(type="boss", direction=Direction.INCOMING)
+	private Person boss;
 
 	// @Property(serialize=SerializationPolicy.STRING, index=true, queryable=true, removeOnReset=true)
 	// Date birthday;
 	
-	/*
-	{
-		Field f;
-		if (f.getGenericType() instanceof ParameterizedType) {
-			((ParameterizedType)(f.getGenericType())).getActualTypeArguments();
-		} 
-	}
-	@Relationship( target=Person.class, cardinality="", type="children",)
-	Collection<Person> children;
-	*/
 	
 	public Person(String name, int age) {
 		this.name = name;
@@ -93,17 +76,11 @@ public class Person {
 	public Person getBoss() {
 		return boss;
 	}
+	
 	public void setBoss(Person boss) {
 		this.boss = boss;
 	}
-
-	public Person getFriend() {
-		return friend;
-	}
-
-	public void setFriend(Person friend) {
-		this.friend = friend;
-	}
+	
 	@Override
 	public String toString() {
 		return name;

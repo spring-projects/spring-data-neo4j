@@ -5,7 +5,6 @@ import junit.framework.Assert;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.neo4j.graphdb.Direction;
@@ -23,13 +22,13 @@ import org.springframework.persistence.graph.neo4j.FinderFactory;
 import org.springframework.persistence.graph.neo4j.Neo4jHelper;
 import org.springframework.persistence.graph.neo4j.NodeBacked;
 import org.springframework.persistence.support.EntityInstantiator;
+import org.springframework.persistence.test.Friendship;
 import org.springframework.persistence.test.Group;
 import org.springframework.persistence.test.Person;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
@@ -43,7 +42,7 @@ public class Neo4jGraphPersistenceTest {
 	protected final Log log = LogFactory.getLog(getClass());
 
 	@Autowired
-	private EntityInstantiator<NodeBacked,Node> nodeInstantiator;
+	private EntityInstantiator<NodeBacked,Node> graphEntityInstantiator;
 
 	@Autowired
 	protected GraphDatabaseService graphDatabaseService;
@@ -56,7 +55,7 @@ public class Neo4jGraphPersistenceTest {
 	@Test
 	public void testStuffWasAutowired() {
         Assert.assertNotNull( graphDatabaseService );
-        Assert.assertNotNull( nodeInstantiator );
+        Assert.assertNotNull( graphEntityInstantiator );
 	}
 	
 	@Before
@@ -73,7 +72,7 @@ public class Neo4jGraphPersistenceTest {
 		Assert.assertEquals(p.getAge(), p.getUnderlyingNode().getProperty("Person.age"));
 		insertedId = p.getId();
 		Node n = findPersonTestNode();
-		Person found = nodeInstantiator.createEntityFromState(n, Person.class);
+		Person found = graphEntityInstantiator.createEntityFromState(n, Person.class);
 		Assert.assertEquals("Rod", found.getUnderlyingNode().getProperty("Person.name"));
 		Assert.assertEquals(39, found.getUnderlyingNode().getProperty("Person.age"));
 	}
@@ -276,23 +275,91 @@ public class Neo4jGraphPersistenceTest {
 		Person p = new Person("Michael", 35);
 		Assert.assertEquals(1, finder.count());
 	}
-
+	
 	@Test
-	public void printNeo4jData() {
-		StringBuilder ret = new StringBuilder();
-		for (Node n : graphDatabaseService.getAllNodes()) {
-			ret.append("ID: " + n.getId() + " [");
-			int x = 0;
-			for (String prop : n.getPropertyKeys()) {
-				if (x++ > 0) {
-					ret.append(", ");
-				}
-				ret.append(prop + "=" + n.getProperty(prop));				
-			}
-			ret.append("] ");			
-		}
-		System.out.println("*** NEO4J DATA: " + ret);
+	@Transactional
+	public void testRelationshipCreate() {
+		Person p = new Person("Michael", 35);
+		Person p2 = new Person("David", 25);
+		Friendship f = new Friendship(p, p2);
+		Relationship rel = p.getUnderlyingNode().getSingleRelationship(DynamicRelationshipType.withName("Friendship"), Direction.OUTGOING);
+		Assert.assertEquals(f.getUnderlyingRelationship(), rel);
+		Assert.assertEquals(p2.getUnderlyingNode(), rel.getEndNode());
 	}
+	
+	@Test
+	@Transactional
+	public void testRelationshipSetProperty() {
+		Person p = new Person("Michael", 35);
+		Person p2 = new Person("David", 25);
+		Friendship f = new Friendship(p, p2);
+		f.setYears(1);
+		Assert.assertEquals(1, f.getUnderlyingRelationship().getProperty("Friendship.years"));
+	}
+	
+	@Test
+	@Transactional
+	public void testRelationshipGetProperty() {
+		Person p = new Person("Michael", 35);
+		Person p2 = new Person("David", 25);
+		Friendship f = new Friendship(p, p2);
+		f.getUnderlyingRelationship().setProperty("Friendship.years", 1);
+		Assert.assertEquals(1, f.getYears());
+	}
+	
+	@Test(expected = InvalidDataAccessApiUsageException.class)
+	@Transactional
+	public void testRelationshipSetPropertyBeforeCreated() {
+		Friendship f = new Friendship();
+		f.setYears(1);
+	}
+	
+	@Test(expected = InvalidDataAccessApiUsageException.class)
+	@Transactional
+	public void testRelationshipGetPropertyBeforeCreated() {
+		Friendship f = new Friendship();
+		f.getYears();
+	}
+	
+	@Test
+	@Transactional
+	public void testRelationshipSetEndNodeBeforeStartNode() {
+		Person p = new Person("Michael", 35);
+		Person p2 = new Person("David", 25);
+		Friendship f = new Friendship();
+		f.setPerson2(p2);
+		f.setPerson1(p);
+		Relationship rel = p.getUnderlyingNode().getSingleRelationship(DynamicRelationshipType.withName("Friendship"), Direction.OUTGOING);
+		Assert.assertEquals(f.getUnderlyingRelationship(), rel);
+		Assert.assertEquals(p2.getUnderlyingNode(), rel.getEndNode());
+	}
+	
+	@Test
+	@Transactional
+	public void testRelationshipGetStartNodeAndEndNode() {
+		Person p = new Person("Michael", 35);
+		Person p2 = new Person("David", 25);
+		Friendship f = new Friendship(p, p2);
+		Assert.assertEquals(p, f.getPerson1());
+		Assert.assertEquals(p2, f.getPerson2());
+	}
+	
+//	@Test
+//	public void printNeo4jData() {
+//		StringBuilder ret = new StringBuilder();
+//		for (Node n : graphDatabaseService.getAllNodes()) {
+//			ret.append("ID: " + n.getId() + " [");
+//			int x = 0;
+//			for (String prop : n.getPropertyKeys()) {
+//				if (x++ > 0) {
+//					ret.append(", ");
+//				}
+//				ret.append(prop + "=" + n.getProperty(prop));				
+//			}
+//			ret.append("] ");			
+//		}
+//		System.out.println("*** NEO4J DATA: " + ret);
+//	}
 
 	private Node findPersonTestNode() {
 		return graphDatabaseService.getNodeById(insertedId);

@@ -2,27 +2,24 @@ package org.springframework.persistence.graph.neo4j;
 
 import java.lang.reflect.Field;
 import java.util.AbstractSet;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Set;
 
-import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.reflect.FieldSignature;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.DynamicRelationshipType;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.NotInTransactionException;
+import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.util.GraphDatabaseUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.dao.InvalidDataAccessResourceUsageException;
-import org.springframework.persistence.graph.GraphEntity;
-import org.springframework.persistence.graph.Relationship;
+import org.springframework.persistence.graph.Graph;
 import org.springframework.persistence.support.AbstractTypeAnnotatingMixinFields;
 import org.springframework.persistence.support.EntityInstantiator;
 
@@ -33,7 +30,7 @@ import org.springframework.persistence.support.EntityInstantiator;
  * 
  * @author Rod Johnson
  */
-public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<GraphEntity,NodeBacked> {
+public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<Graph.Entity,NodeBacked> {
 	
 	//-------------------------------------------------------------------------
 	// Configure aspect for whole system.
@@ -43,7 +40,7 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<GraphEn
 	// Aspect shared Neo4J Graph Database Service
 	private GraphDatabaseService graphDatabaseService;
 	
-	private EntityInstantiator<NodeBacked,Node> graphEntityInstantiator;
+	private EntityInstantiator<NodeBacked, Node> graphEntityInstantiator;
 	
 	private GraphDatabaseUtil graphDatabaseUtil;
 
@@ -63,8 +60,8 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<GraphEn
 	// Neo4J backing node
 	//-------------------------------------------------------------------------
 	pointcut arbitraryUserConstructorOfNodeBackedObject(NodeBacked entity) : 
-		execution((@GraphEntity *).new(..)) &&
-		!execution((@GraphEntity *).new(Node)) &&
+		execution((@Graph.Entity *).new(..)) &&
+		!execution((@Graph.Entity *).new(Node)) &&
 		this(entity);
 	
 	
@@ -197,12 +194,12 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<GraphEn
 		}
 		
 		public RelationshipInfo forField(Field field) {
-			final Relationship relAnnotation = field.getAnnotation(Relationship.class);
+			Graph.Entity.Relationship relAnnotation = field.getAnnotation(Graph.Entity.Relationship.class);
 			if (isSingleRelationshipField(field)) {
-				Class<? extends NodeBacked> relatedType=(Class<? extends NodeBacked>)field.getType();
+				Class<? extends NodeBacked> relatedType = (Class<? extends NodeBacked>) field.getType();
 				if (relAnnotation != null) {
 					return new SingleRelationshipInfo(DynamicRelationshipType.withName(relAnnotation.type()), 
-							relAnnotation.direction().toNeo4jDir(),relatedType, graphEntityInstantiator);
+							relAnnotation.direction().toNeo4jDir(), relatedType, graphEntityInstantiator);
 				}
 				return new SingleRelationshipInfo(DynamicRelationshipType.withName(getNeo4jPropertyName(field)), 
 						Direction.OUTGOING, relatedType, graphEntityInstantiator);
@@ -211,7 +208,7 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<GraphEn
 				return new OneToNRelationshipInfo(DynamicRelationshipType.withName(relAnnotation.type()), 
 						relAnnotation.direction().toNeo4jDir(), relAnnotation.elementClass(), graphEntityInstantiator);
 			}
-			throw new IllegalArgumentException("Not a Neo4j relationship field: "+field);
+			throw new IllegalArgumentException("Not a Neo4j relationship field: " + field);
 		}
 
 		private static boolean isSingleRelationshipField(Field f) {
@@ -220,8 +217,8 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<GraphEn
 		
 		private static boolean isOneToNRelationshipField(Field f) {
 			if (!Collection.class.isAssignableFrom(f.getType())) return false;
-			Relationship relationship=f.getAnnotation(Relationship.class);
-			return relationship!=null &&  NodeBacked.class.isAssignableFrom(relationship.elementClass()) && !relationship.elementClass().equals(NodeBacked.class);
+			Graph.Entity.Relationship relationship = f.getAnnotation(Graph.Entity.Relationship.class);
+			return relationship != null &&  NodeBacked.class.isAssignableFrom(relationship.elementClass()) && !relationship.elementClass().equals(NodeBacked.class);
 		}
 	}
 	
@@ -232,7 +229,7 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<GraphEn
 		private final Class<? extends NodeBacked> relatedType;
 		private final EntityInstantiator<NodeBacked, Node> graphEntityInstantiator;
 		
-		public SingleRelationshipInfo(RelationshipType type, Direction direction, Class<? extends NodeBacked> clazz, EntityInstantiator<NodeBacked,Node> graphEntityInstantiator) {
+		public SingleRelationshipInfo(RelationshipType type, Direction direction, Class<? extends NodeBacked> clazz, EntityInstantiator<NodeBacked, Node> graphEntityInstantiator) {
 			this.type = type;
 			this.direction = direction;
 			this.relatedType = clazz;
@@ -244,7 +241,7 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<GraphEn
 				throw new IllegalArgumentException("New value must be NodeBacked.");
 			}
 			Node entityNode = entity.getUnderlyingNode();
-			for ( org.neo4j.graphdb.Relationship relationship : entityNode.getRelationships(type, direction) ) {
+			for ( Relationship relationship : entityNode.getRelationships(type, direction) ) {
 				relationship.delete();
 			}
 			if (newVal == null) {
@@ -268,7 +265,7 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<GraphEn
 			if (entityNode == null) {
 				throw new IllegalStateException("Entity must have a backing Node");
 			}
-			org.neo4j.graphdb.Relationship singleRelationship = entityNode.getSingleRelationship(type, direction);
+			Relationship singleRelationship = entityNode.getSingleRelationship(type, direction);
 			
 			if (singleRelationship == null) {
 				return null;
@@ -344,7 +341,7 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<GraphEn
 					newNodes.add(newNode);
 				}
 			}
-			for ( org.neo4j.graphdb.Relationship relationship : entityNode.getRelationships(type, direction) ) {
+			for ( Relationship relationship : entityNode.getRelationships(type, direction) ) {
 				if (!newNodes.remove(relationship.getOtherNode(entityNode)))
 					relationship.delete();
 			}
@@ -369,13 +366,13 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<GraphEn
 				throw new IllegalStateException("Entity must have a backing Node");
 			}
 			Set<NodeBacked> result = new HashSet<NodeBacked>();
-			for (org.neo4j.graphdb.Relationship rel : entityNode.getRelationships(type, direction)) {
-				NodeBacked newEntity=graphEntityInstantiator.createEntityFromState(rel.getOtherNode(entityNode), relatedType);;
+			for (Relationship rel : entityNode.getRelationships(type, direction)) {
+				NodeBacked newEntity = graphEntityInstantiator.createEntityFromState(rel.getOtherNode(entityNode), relatedType);
 				result.add(newEntity);
 			}
 			return new ManagedSet(entity, result,this); 
 		}
 		
 	}
-
+	
 }

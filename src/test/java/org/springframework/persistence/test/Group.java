@@ -1,16 +1,14 @@
 package org.springframework.persistence.test;
 
 import org.springframework.persistence.graph.Direction;
-import org.springframework.persistence.graph.GraphEntity;
-import org.springframework.persistence.graph.Relationship;
+import org.springframework.persistence.graph.Graph;
 
-import java.util.ArrayList;
 import java.util.Collection;
 
-@GraphEntity
+@Graph.Entity
 public class Group {
 
-	@Relationship(type = "persons", direction = Direction.OUTGOING, elementClass = Person.class)
+	@Graph.Entity.Relationship(type = "persons", direction = Direction.OUTGOING, elementClass = Person.class)
 	private Collection<Person> persons;
 
 	public void setPersons(Collection<Person> persons) {

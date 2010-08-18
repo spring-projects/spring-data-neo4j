@@ -69,8 +69,9 @@
 	    Start datastore config
     -->
 
-	<bean class="org.springframework.persistence.graph.neo4j.Neo4jNodeBacking" 
-		factory-method="aspectOf" />
+	<bean class="org.springframework.persistence.graph.neo4j.Neo4jNodeBacking" factory-method="aspectOf" />
+
+	<bean class="org.springframework.persistence.graph.neo4j.Neo4jRelationshipBacking" factory-method="aspectOf" />
 
 	<!--
 		<bean class="org.springframework.persistence.graph.Neo4jSimpleNodePropertyStorageForeignStoreKeyManager"/>
@@ -83,11 +84,11 @@
 	
 	<bean id="finderFactory" class="org.springframework.persistence.graph.neo4j.FinderFactory">
 		<constructor-arg ref="graphDbService" />
-		<constructor-arg ref="entityInstantiator" />
+		<constructor-arg ref="graphEntityInstantiator" />
 	</bean>
 	
-	<bean id="entityInstantiator" class="org.springframework.persistence.graph.neo4j.Neo4jConstructorEntityInstantiator" />	
-
+	<bean id="graphEntityInstantiator" name="gei" class="org.springframework.persistence.graph.neo4j.Neo4jConstructorGraphEntityInstantiator" />	
+	
 	<!--
  	-->
 	<bean id="transactionManager" class="org.springframework.persistence.transaction.NaiveDoubleTransactionManager" >
