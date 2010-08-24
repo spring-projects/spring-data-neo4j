@@ -5,7 +5,6 @@ import junit.framework.Assert;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.neo4j.graphdb.Direction;
@@ -32,6 +31,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -238,6 +238,17 @@ public class Neo4jGraphPersistenceTest {
 	
 	@Test
 	@Transactional
+	public void testRemoveFromOneToManyRelationship() {
+		Person michael = new Person("Michael", 35);
+		Person david = new Person("David", 25);
+		Group group = new Group();
+		group.setPersons(new HashSet<Person>(Arrays.asList(michael, david)));
+		group.getPersons().remove(david);
+		Assert.assertEquals(Collections.singleton(michael), group.getPersons());
+	}
+	
+	@Test
+	@Transactional
 	public void testFinderFindAll() {
 		Person p1 = new Person("Michael", 35);
 		Person p2 = new Person("David", 25);
@@ -315,7 +326,6 @@ public class Neo4jGraphPersistenceTest {
 	}
 
 	@Test
-	@Ignore
 	@Transactional
 	public void testRelationshipGetEntities() {
 		Person p = new Person("Michael", 35);

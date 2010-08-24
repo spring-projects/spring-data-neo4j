@@ -89,6 +89,8 @@
 	
 	<bean id="graphEntityInstantiator" name="gei" class="org.springframework.persistence.graph.neo4j.Neo4jConstructorGraphEntityInstantiator" />	
 	
+	<bean id="relationshipEntityInstantiator" name="rei" class="org.springframework.persistence.graph.neo4j.ConstructorBypassingGraphRelationshipInstantiator" />	
+	
 	<!--
  	-->
 	<bean id="transactionManager" class="org.springframework.persistence.transaction.NaiveDoubleTransactionManager" >

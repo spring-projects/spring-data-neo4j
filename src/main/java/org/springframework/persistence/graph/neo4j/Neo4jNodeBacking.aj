@@ -45,13 +45,16 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<Graph.E
 	private GraphDatabaseUtil graphDatabaseUtil;
 
 	private RelationshipInfoFactory relationshipInfoFactory;
+
+	private EntityInstantiator<RelationshipBacked, Relationship> relationshipEntityInstantiator;
 	
 	@Autowired
-	public void init(GraphDatabaseService gds, EntityInstantiator<NodeBacked, Node> gei) {
+	public void init(GraphDatabaseService gds, EntityInstantiator<NodeBacked, Node> gei, EntityInstantiator<RelationshipBacked, Relationship> rei) {
 		this.graphDatabaseService = gds;
 		this.graphEntityInstantiator = gei;
+		this.relationshipEntityInstantiator = rei;
 		this.graphDatabaseUtil = new GraphDatabaseUtil(gds);
-		this.relationshipInfoFactory = new RelationshipInfoFactory(graphEntityInstantiator);
+		this.relationshipInfoFactory = new RelationshipInfoFactory(graphEntityInstantiator, relationshipEntityInstantiator);
 	}
 	
 	
@@ -192,9 +195,11 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<Graph.E
 	
 	public static class RelationshipInfoFactory {
 		private final EntityInstantiator<NodeBacked, Node> graphEntityInstantiator;
+		private final EntityInstantiator<RelationshipBacked, Relationship> relationshipEntityInstantiator;
 
-		public RelationshipInfoFactory(EntityInstantiator<NodeBacked,Node> graphEntityInstantiator) {
+		public RelationshipInfoFactory(EntityInstantiator<NodeBacked,Node> graphEntityInstantiator, EntityInstantiator<RelationshipBacked, Relationship> relationshipEntityInstantiator) {
 			this.graphEntityInstantiator = graphEntityInstantiator;
+			this.relationshipEntityInstantiator = relationshipEntityInstantiator;
 		}
 		
 		public RelationshipInfo forField(Field field) {
@@ -215,7 +220,7 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<Graph.E
 			if (isOneToNRelationshipEntityField(field)) {
 				Graph.Entity.RelationshipEntity relEntityAnnotation = field.getAnnotation(Graph.Entity.RelationshipEntity.class);
 				return new OneToNRelationshipEntityInfo(DynamicRelationshipType.withName(relEntityAnnotation.type()), 
-						relEntityAnnotation.direction().toNeo4jDir(), relEntityAnnotation.elementClass());
+						relEntityAnnotation.direction().toNeo4jDir(), relEntityAnnotation.elementClass(), relationshipEntityInstantiator);
 			}
 			throw new IllegalArgumentException("Not a Neo4j relationship field: " + field);
 		}
@@ -292,37 +297,6 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<Graph.E
 	
 	public static class OneToNRelationshipInfo implements RelationshipInfo {
 
-		private static final class ManagedSet extends AbstractSet<NodeBacked> {
-			private final NodeBacked entity;
-			final Set<NodeBacked> delegate;
-			private final RelationshipInfo relationshipInfo;
-
-			private ManagedSet(NodeBacked entity, Object newVal, RelationshipInfo relationshipInfo) {
-				this.entity = entity;
-				this.relationshipInfo = relationshipInfo;
-				delegate = (Set<NodeBacked>) newVal;
-			}
-
-			@Override
-			public Iterator<NodeBacked> iterator() {
-				return delegate.iterator();
-			}
-
-			@Override
-			public int size() {
-				return delegate.size();
-			}
-
-			@Override
-			public boolean add(NodeBacked e) {
-				boolean res=delegate.add(e);
-				if (res) {
-					relationshipInfo.apply(entity, delegate);
-				}
-				return res;
-			}
-		}
-
 		private final RelationshipType type;
 		private final Direction direction;
 		private final Class<? extends NodeBacked> relatedType;
@@ -370,7 +344,7 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<Graph.E
 					default : throw new IllegalArgumentException("invalid direction " + direction); 
 				}
 			}
-			return new ManagedSet(entity, newVal,this); // TODO managedSet that for each mutating method calls this apply (todo use AspectJ to handle that?)
+			return new ManagedSet<NodeBacked>(entity, newVal,this); // TODO managedSet that for each mutating method calls this apply (todo use AspectJ to handle that?)
 		}
 		
 		@Override
@@ -381,10 +355,9 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<Graph.E
 			}
 			Set<NodeBacked> result = new HashSet<NodeBacked>();
 			for (Relationship rel : entityNode.getRelationships(type, direction)) {
-				NodeBacked newEntity = graphEntityInstantiator.createEntityFromState(rel.getOtherNode(entityNode), relatedType);
-				result.add(newEntity);
+				result.add(graphEntityInstantiator.createEntityFromState(rel.getOtherNode(entityNode), relatedType));
 			}
-			return new ManagedSet(entity, result,this); 
+			return new ManagedSet<NodeBacked>(entity, result, this); 
 		}
 		
 	}
@@ -394,12 +367,13 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<Graph.E
 		private final RelationshipType type;
 		private final Direction direction;
 		private final Class<? extends RelationshipBacked> elementClass;
+		private final EntityInstantiator<RelationshipBacked, Relationship> relationshipEntityInstantiator;
 
-		public OneToNRelationshipEntityInfo(RelationshipType type, Direction direction, Class<? extends RelationshipBacked> elementClass) {
+		public OneToNRelationshipEntityInfo(RelationshipType type, Direction direction, Class<? extends RelationshipBacked> elementClass, EntityInstantiator<RelationshipBacked, Relationship> relationshipEntityInstantiator) {
 			this.type = type;
 			this.direction = direction;
 			this.elementClass = elementClass;
-			
+			this.relationshipEntityInstantiator = relationshipEntityInstantiator;
 		}
 
 		@Override
@@ -409,9 +383,53 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<Graph.E
 
 		@Override
 		public Object readObject(NodeBacked entity) {
-			// TODO Auto-generated method stub
-			return null;
+			Set<RelationshipBacked> result = new HashSet<RelationshipBacked>();
+			for (Relationship rel : entity.getUnderlyingNode().getRelationships(type, direction)) {
+				result.add(relationshipEntityInstantiator.createEntityFromState(rel, elementClass));
+			}
+			return new ManagedSet<RelationshipBacked>(entity, result, this);
 		}
 	}
 	
+	private static final class ManagedSet<T> extends AbstractSet<T> {
+		private final NodeBacked entity;
+		final Set<T> delegate;
+		private final RelationshipInfo relationshipInfo;
+
+		private ManagedSet(NodeBacked entity, Object newVal, RelationshipInfo relationshipInfo) {
+			this.entity = entity;
+			this.relationshipInfo = relationshipInfo;
+			delegate = (Set<T>) newVal;
+		}
+
+		@Override
+		public Iterator<T> iterator() {
+			return delegate.iterator();
+		}
+
+		@Override
+		public int size() {
+			return delegate.size();
+		}
+
+		@Override
+		public boolean add(T e) {
+			boolean res = delegate.add(e);
+			if (res) {
+				relationshipInfo.apply(entity, delegate);
+			}
+			return res;
+		}
+
+		@Override
+		public boolean remove(Object o) {
+			boolean res = delegate.remove(o);
+			if (res) {
+				relationshipInfo.apply(entity, delegate);
+			}
+			return res;
+		}
+		
+	}
+
 }

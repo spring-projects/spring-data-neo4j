@@ -2,12 +2,12 @@ package org.springframework.persistence.graph.neo4j;
 
 import java.lang.reflect.Constructor;
 
-import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.Relationship;
 import org.springframework.persistence.support.EntityInstantiator;
 
 import sun.reflect.ReflectionFactory;
 
-public class ConstructorBypassingGraphEntityInstantiator implements EntityInstantiator<NodeBacked, Node> {
+public class ConstructorBypassingGraphRelationshipInstantiator implements EntityInstantiator<RelationshipBacked, Relationship> {
 	
 	protected static <T> T createWithoutConstructorInvocation(Class<T> clazz) {
 		return createWithoutConstructorInvocation(clazz, Object.class);
@@ -29,9 +29,9 @@ public class ConstructorBypassingGraphEntityInstantiator implements EntityInstan
 	}
 	
 	@Override
-	public <T extends NodeBacked> T createEntityFromState(Node n, Class<T> c) {
+	public <T extends RelationshipBacked> T createEntityFromState(Relationship r, Class<T> c) {
 		T t = createWithoutConstructorInvocation(c);
-		t.setUnderlyingNode(n);
+		t.setUnderlyingRelationship(r);
 		return t; 
 	}
 
