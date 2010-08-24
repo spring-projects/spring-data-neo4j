@@ -2,6 +2,7 @@ package org.springframework.persistence.graph.neo4j;
 
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.Relationship;
 import org.neo4j.kernel.EmbeddedGraphDatabase;
 import org.springframework.persistence.support.EntityInstantiator;
 import org.springframework.stereotype.Service;
@@ -15,7 +16,7 @@ import javax.transaction.*;
  * @since 20.08.2010
  *        TODO Relationships
  */
-@Service
+//@Service
 public class Neo4jEntityManager implements EntityManager {
     @Resource
     GraphDatabaseService graphDatabaseService;
@@ -24,7 +25,15 @@ public class Neo4jEntityManager implements EntityManager {
     EntityInstantiator<NodeBacked, Node> nodeInstantiator;
     private volatile boolean closed;
 
-    private Node nodeFor(Object entity) {
+    public Neo4jEntityManager(final GraphDatabaseService graphDatabaseService, final EntityInstantiator<NodeBacked, Node> nodeInstantiator) {
+        this.graphDatabaseService = graphDatabaseService;
+        this.nodeInstantiator = nodeInstantiator;
+    }
+
+    public Neo4jEntityManager() {
+    }
+
+    private Node nodeFor(final Object entity) {
         checkClosed();
         if (!(entity instanceof NodeBacked)) throw new IllegalArgumentException("Not a nodebacked entity " + entity);
         final Node node = ((NodeBacked) entity).getUnderlyingNode();
@@ -45,7 +54,11 @@ public class Neo4jEntityManager implements EntityManager {
 
     @Override
     public void remove(final Object entity) {
-        nodeFor(entity).delete();
+        final Node node = nodeFor(entity);
+        for (final Relationship r : node.getRelationships()) {
+        	r.delete();
+        }
+		node.delete();
     }
 
     @SuppressWarnings({"unchecked"})

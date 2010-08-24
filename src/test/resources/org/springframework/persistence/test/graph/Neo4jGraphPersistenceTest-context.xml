@@ -125,5 +125,15 @@
     </bean>
  
     <tx:annotation-driven mode="aspectj" transaction-manager="transactionManager"/>
-     
+
+    <bean class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean" id="entityManagerFactory">
+        <property name="jpaDialect">
+            <bean class="org.springframework.persistence.graph.neo4j.Neo4jJpaDialect"/>
+        </property>
+        <property name="persistenceProvider">
+            <bean class="org.springframework.persistence.graph.neo4j.Neo4jPersistenceProvider"/>
+        </property>
+    </bean>
+
+    <!--bean id="neoEntityManager"  class="org.springframework.persistence.graph.neo4j.Neo4jEntityManager" scope="prototype"/-->
 </beans>
