@@ -217,6 +217,10 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<Graph.E
 				return new OneToNRelationshipInfo(DynamicRelationshipType.withName(relAnnotation.type()), 
 						relAnnotation.direction().toNeo4jDir(), relAnnotation.elementClass(), graphEntityInstantiator);
 			}
+			if (isReadOnlyOneToNRelationshipField(field)) {
+				return new ReadOnlyOneToNRelationshipInfo(DynamicRelationshipType.withName(relAnnotation.type()), 
+						relAnnotation.direction().toNeo4jDir(), relAnnotation.elementClass(), graphEntityInstantiator);
+			}
 			if (isOneToNRelationshipEntityField(field)) {
 				Graph.Entity.RelationshipEntity relEntityAnnotation = field.getAnnotation(Graph.Entity.RelationshipEntity.class);
 				return new OneToNRelationshipEntityInfo(DynamicRelationshipType.withName(relEntityAnnotation.type()), 
@@ -225,19 +229,28 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<Graph.E
 			throw new IllegalArgumentException("Not a Neo4j relationship field: " + field);
 		}
 
-		private boolean isOneToNRelationshipEntityField(Field f) {
-			if (!Iterable.class.isAssignableFrom(f.getType())) return false;
-			return f.isAnnotationPresent(Graph.Entity.RelationshipEntity.class);
-		}
-
 		private static boolean isSingleRelationshipField(Field f) {
 			return NodeBacked.class.isAssignableFrom(f.getType());
 		}
 		
 		private static boolean isOneToNRelationshipField(Field f) {
 			if (!Collection.class.isAssignableFrom(f.getType())) return false;
-			Graph.Entity.Relationship relationship = f.getAnnotation(Graph.Entity.Relationship.class);
-			return relationship != null &&  NodeBacked.class.isAssignableFrom(relationship.elementClass()) && !relationship.elementClass().equals(NodeBacked.class);
+			Graph.Entity.Relationship relAnnotation = f.getAnnotation(Graph.Entity.Relationship.class);
+			return relAnnotation != null &&  NodeBacked.class.isAssignableFrom(relAnnotation.elementClass()) && !relAnnotation.elementClass().equals(NodeBacked.class);
+		}
+
+		private boolean isReadOnlyOneToNRelationshipField(Field f) {
+			Graph.Entity.Relationship relAnnotation = f.getAnnotation(Graph.Entity.Relationship.class);
+			return Iterable.class.equals(f.getType()) 
+				&& relAnnotation != null 
+				&& !NodeBacked.class.equals(relAnnotation.elementClass());
+		}
+
+		private boolean isOneToNRelationshipEntityField(Field f) {
+			Graph.Entity.RelationshipEntity relEntityAnnotation = f.getAnnotation(Graph.Entity.RelationshipEntity.class);
+			return Iterable.class.isAssignableFrom(f.getType()) 
+				&& relEntityAnnotation != null 
+				&& !RelationshipBacked.class.equals(relEntityAnnotation.elementClass());
 		}
 	}
 	
@@ -294,7 +307,7 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<Graph.E
 		}
 		
 	}
-	
+
 	public static class OneToNRelationshipInfo implements RelationshipInfo {
 
 		private final RelationshipType type;
@@ -345,6 +358,39 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<Graph.E
 				}
 			}
 			return new ManagedSet<NodeBacked>(entity, newVal,this); // TODO managedSet that for each mutating method calls this apply (todo use AspectJ to handle that?)
+		}
+		
+		@Override
+		public Object readObject(NodeBacked entity) {
+			Node entityNode = entity.getUnderlyingNode();
+			if (entityNode == null) {
+				throw new IllegalStateException("Entity must have a backing Node");
+			}
+			Set<NodeBacked> result = new HashSet<NodeBacked>();
+			for (Relationship rel : entityNode.getRelationships(type, direction)) {
+				result.add(graphEntityInstantiator.createEntityFromState(rel.getOtherNode(entityNode), relatedType));
+			}
+			return new ManagedSet<NodeBacked>(entity, result, this); 
+		}
+		
+	}
+
+	public static class ReadOnlyOneToNRelationshipInfo implements RelationshipInfo {
+
+		private final RelationshipType type;
+		private final Direction direction;
+		private final Class<? extends NodeBacked> relatedType;
+		private final EntityInstantiator<NodeBacked, Node> graphEntityInstantiator;
+
+		public ReadOnlyOneToNRelationshipInfo(RelationshipType type, Direction direction, Class<? extends NodeBacked> elementClass, EntityInstantiator<NodeBacked, Node> graphEntityInstantiator) {
+			this.type = type;
+			this.direction = direction;
+			this.relatedType = elementClass;
+			this.graphEntityInstantiator = graphEntityInstantiator;
+		}
+
+		public Object apply(final NodeBacked entity, final Object newVal) {
+			throw new InvalidDataAccessApiUsageException("Cannot set read-only relationship entity field.");
 		}
 		
 		@Override

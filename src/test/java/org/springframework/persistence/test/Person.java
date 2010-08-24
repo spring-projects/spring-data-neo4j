@@ -1,7 +1,5 @@
 package org.springframework.persistence.test;
 
-import java.util.Collection;
-
 import org.neo4j.graphdb.DynamicRelationshipType;
 import org.neo4j.graphdb.Relationship;
 import org.springframework.persistence.graph.Direction;
@@ -32,13 +30,11 @@ public class Person {
 	// @Property(serialize=SerializationPolicy.STRING, index=true, queryable=true, removeOnReset=true)
 	// Date birthday;
 	
-	
 	public Person(String name, int age) {
 		this.name = name;
 		this.age = age;
 	}
 	
-
 	public String getName() {
 		return name;
 	}

@@ -342,4 +342,22 @@ public class Neo4jGraphPersistenceTest {
 		Person p = new Person("Michael", 35);
 		p.setFriendships(new HashSet<Friendship>());
 	}
+	
+	@Test
+	@Transactional
+	public void testOneToManyReadOnly() {
+		Person michael = new Person("Michael", 35);
+		Person david = new Person("David", 25);
+		Group group = new Group();
+		Set<Person> persons = new HashSet<Person>(Arrays.asList(michael, david));
+		group.setPersons(persons);
+		Assert.assertEquals(persons, IteratorUtil.addToCollection(group.getReadOnlyPersons().iterator(), new HashSet<Person>()));
+	}
+	
+	@Test(expected = InvalidDataAccessApiUsageException.class)
+	@Transactional
+	public void testOneToManyReadOnlyShouldThrowExceptionOnSet() {
+		Group group = new Group();
+		group.setReadOnlyPersons(new HashSet<Person>());
+	}
 }
