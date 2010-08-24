@@ -20,15 +20,15 @@ public class Neo4jPersistenceProvider implements PersistenceProvider {
     GraphDatabaseService graphDatabaseService;
 
     @Resource
-    EntityInstantiator<NodeBacked, Node> nodeInstantiator;
+    EntityInstantiator<NodeBacked, Node> graphEntityInstantiator;
 
     @Override
     public EntityManagerFactory createEntityManagerFactory(String emName, Map map) {
-        return new Neo4jEntityManagerFactory(graphDatabaseService,nodeInstantiator);
+        return new Neo4jEntityManagerFactory(graphDatabaseService,graphEntityInstantiator);
     }
 
     @Override
     public EntityManagerFactory createContainerEntityManagerFactory(PersistenceUnitInfo info, Map map) {
-        return new Neo4jEntityManagerFactory(graphDatabaseService,nodeInstantiator);
+        return new Neo4jEntityManagerFactory(graphDatabaseService,graphEntityInstantiator);
     }
 }

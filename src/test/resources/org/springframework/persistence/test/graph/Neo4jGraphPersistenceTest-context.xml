@@ -78,7 +78,7 @@
 	-->
 	
 	<bean id="graphDbService" class="org.neo4j.kernel.EmbeddedGraphDatabase" 
-			destroy-method="shutdown" >
+			destroy-method="shutdown">
 		 <constructor-arg index="0" value="${neo4j.databaseDirectory}" />
 	</bean>
 	

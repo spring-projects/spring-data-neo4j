@@ -4,6 +4,7 @@ import junit.framework.Assert;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -40,6 +41,8 @@ import java.util.Set;
 @ContextConfiguration
 public class Neo4jGraphPersistenceTest {
 
+	private static GraphDatabaseService gds;
+
 	protected final Log log = LogFactory.getLog(getClass());
 
 	@Autowired
@@ -61,7 +64,12 @@ public class Neo4jGraphPersistenceTest {
 	@Transactional
 	public void cleanDb() {
 		Neo4jHelper.cleanDb(graphDatabaseService);
+		gds=graphDatabaseService;
 	}
+    @AfterClass
+    public static void shutdownDb() {
+    	gds.shutdown();
+    }
 
 	@Test
 	@Transactional

@@ -47,10 +47,10 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<Graph.E
 	private EntityInstantiator<RelationshipBacked, Relationship> relationshipEntityInstantiator;
 	
 	@Autowired
-	public void init(GraphDatabaseService gds, EntityInstantiator<NodeBacked, Node> gei, EntityInstantiator<RelationshipBacked, Relationship> rei) {
+	public void init(GraphDatabaseService gds, EntityInstantiator<NodeBacked, Node> graphEntityInstantiator, EntityInstantiator<RelationshipBacked, Relationship> relationshipEntityInstantiator) {
 		this.graphDatabaseService = gds;
-		this.graphEntityInstantiator = gei;
-		this.relationshipEntityInstantiator = rei;
+		this.graphEntityInstantiator = graphEntityInstantiator;
+		this.relationshipEntityInstantiator = relationshipEntityInstantiator;
 		this.fieldAccessorFactory = new FieldAccessorFactory(graphEntityInstantiator, relationshipEntityInstantiator);
 	}
 	
