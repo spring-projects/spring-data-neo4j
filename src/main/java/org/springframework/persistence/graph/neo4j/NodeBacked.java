@@ -1,6 +1,8 @@
 package org.springframework.persistence.graph.neo4j;
 
 import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.Relationship;
+import org.neo4j.graphdb.RelationshipType;
 
 /**
  * Interface introduced to objects annotated with GraphEntity 
@@ -12,5 +14,7 @@ public interface NodeBacked {
 	Node getUnderlyingNode();
 	
 	void setUnderlyingNode(Node n);
+	
+	Relationship relateTo(NodeBacked nb, RelationshipType type);
 
 }

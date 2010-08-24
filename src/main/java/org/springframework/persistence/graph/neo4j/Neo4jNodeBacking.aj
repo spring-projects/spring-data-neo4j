@@ -82,7 +82,7 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<Graph.E
 	private void postEntityCreation(NodeBacked entity) {
 		Node subReference = Neo4jHelper.findSubreferenceNode(entity.getClass(), graphDatabaseService);
 		entity.getUnderlyingNode().createRelationshipTo(subReference, Neo4jHelper.INSTANCE_OF_RELATIONSHIP_TYPE);
-		graphDatabaseUtil.incrementAndGetCounter(subReference, Neo4jHelper.SUBREFERENCE_NODE_COUNTER_KEY);
+		GraphDatabaseUtil.incrementAndGetCounter(subReference, Neo4jHelper.SUBREFERENCE_NODE_COUNTER_KEY);
 	}
 	
 	// Introduced field
@@ -94,6 +94,10 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<Graph.E
 	
 	public Node NodeBacked.getUnderlyingNode() {
 		return underlyingNode;
+	}
+	
+	public Relationship NodeBacked.relateTo(NodeBacked nb, RelationshipType type) {
+		return this.underlyingNode.createRelationshipTo(nb.getUnderlyingNode(), type);
 	}
 
 	public long NodeBacked.getId() {
@@ -208,7 +212,17 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<Graph.E
 				return new OneToNRelationshipInfo(DynamicRelationshipType.withName(relAnnotation.type()), 
 						relAnnotation.direction().toNeo4jDir(), relAnnotation.elementClass(), graphEntityInstantiator);
 			}
+			if (isOneToNRelationshipEntityField(field)) {
+				Graph.Entity.RelationshipEntity relEntityAnnotation = field.getAnnotation(Graph.Entity.RelationshipEntity.class);
+				return new OneToNRelationshipEntityInfo(DynamicRelationshipType.withName(relEntityAnnotation.type()), 
+						relEntityAnnotation.direction().toNeo4jDir(), relEntityAnnotation.elementClass());
+			}
 			throw new IllegalArgumentException("Not a Neo4j relationship field: " + field);
+		}
+
+		private boolean isOneToNRelationshipEntityField(Field f) {
+			if (!Iterable.class.isAssignableFrom(f.getType())) return false;
+			return f.isAnnotationPresent(Graph.Entity.RelationshipEntity.class);
 		}
 
 		private static boolean isSingleRelationshipField(Field f) {
@@ -373,6 +387,31 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<Graph.E
 			return new ManagedSet(entity, result,this); 
 		}
 		
+	}
+
+	public static class OneToNRelationshipEntityInfo implements RelationshipInfo {
+
+		private final RelationshipType type;
+		private final Direction direction;
+		private final Class<? extends RelationshipBacked> elementClass;
+
+		public OneToNRelationshipEntityInfo(RelationshipType type, Direction direction, Class<? extends RelationshipBacked> elementClass) {
+			this.type = type;
+			this.direction = direction;
+			this.elementClass = elementClass;
+			
+		}
+
+		@Override
+		public Object apply(NodeBacked entity, Object newVal) {
+			throw new InvalidDataAccessApiUsageException("Cannot set read-only relationship entity field.");
+		}
+
+		@Override
+		public Object readObject(NodeBacked entity) {
+			// TODO Auto-generated method stub
+			return null;
+		}
 	}
 	
 }

@@ -5,6 +5,7 @@ import junit.framework.Assert;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.neo4j.graphdb.Direction;
@@ -50,8 +51,6 @@ public class Neo4jGraphPersistenceTest {
 	@Autowired
 	private FinderFactory finderFactory;
 	
-	private Long insertedId = 0L;
-	
 	@Test
 	public void testStuffWasAutowired() {
         Assert.assertNotNull( graphDatabaseService );
@@ -70,9 +69,7 @@ public class Neo4jGraphPersistenceTest {
 		Person p = new Person("Rod", 39);
 		Assert.assertEquals(p.getName(), p.getUnderlyingNode().getProperty("Person.name"));
 		Assert.assertEquals(p.getAge(), p.getUnderlyingNode().getProperty("Person.age"));
-		insertedId = p.getId();
-		Node n = findPersonTestNode();
-		Person found = graphEntityInstantiator.createEntityFromState(n, Person.class);
+		Person found = graphEntityInstantiator.createEntityFromState(graphDatabaseService.getNodeById(p.getId()), Person.class);
 		Assert.assertEquals("Rod", found.getUnderlyingNode().getProperty("Person.name"));
 		Assert.assertEquals(39, found.getUnderlyingNode().getProperty("Person.age"));
 	}
@@ -281,8 +278,8 @@ public class Neo4jGraphPersistenceTest {
 	public void testRelationshipCreate() {
 		Person p = new Person("Michael", 35);
 		Person p2 = new Person("David", 25);
-		Friendship f = new Friendship(p, p2);
-		Relationship rel = p.getUnderlyingNode().getSingleRelationship(DynamicRelationshipType.withName("Friendship"), Direction.OUTGOING);
+		Friendship f = p.knows(p2);
+		Relationship rel = p.getUnderlyingNode().getSingleRelationship(DynamicRelationshipType.withName("knows"), Direction.OUTGOING);
 		Assert.assertEquals(f.getUnderlyingRelationship(), rel);
 		Assert.assertEquals(p2.getUnderlyingNode(), rel.getEndNode());
 	}
@@ -292,7 +289,7 @@ public class Neo4jGraphPersistenceTest {
 	public void testRelationshipSetProperty() {
 		Person p = new Person("Michael", 35);
 		Person p2 = new Person("David", 25);
-		Friendship f = new Friendship(p, p2);
+		Friendship f = p.knows(p2);
 		f.setYears(1);
 		Assert.assertEquals(1, f.getUnderlyingRelationship().getProperty("Friendship.years"));
 	}
@@ -302,36 +299,9 @@ public class Neo4jGraphPersistenceTest {
 	public void testRelationshipGetProperty() {
 		Person p = new Person("Michael", 35);
 		Person p2 = new Person("David", 25);
-		Friendship f = new Friendship(p, p2);
+		Friendship f = p.knows(p2);
 		f.getUnderlyingRelationship().setProperty("Friendship.years", 1);
 		Assert.assertEquals(1, f.getYears());
-	}
-	
-	@Test(expected = InvalidDataAccessApiUsageException.class)
-	@Transactional
-	public void testRelationshipSetPropertyBeforeCreated() {
-		Friendship f = new Friendship();
-		f.setYears(1);
-	}
-	
-	@Test(expected = InvalidDataAccessApiUsageException.class)
-	@Transactional
-	public void testRelationshipGetPropertyBeforeCreated() {
-		Friendship f = new Friendship();
-		f.getYears();
-	}
-	
-	@Test
-	@Transactional
-	public void testRelationshipSetEndNodeBeforeStartNode() {
-		Person p = new Person("Michael", 35);
-		Person p2 = new Person("David", 25);
-		Friendship f = new Friendship();
-		f.setPerson2(p2);
-		f.setPerson1(p);
-		Relationship rel = p.getUnderlyingNode().getSingleRelationship(DynamicRelationshipType.withName("Friendship"), Direction.OUTGOING);
-		Assert.assertEquals(f.getUnderlyingRelationship(), rel);
-		Assert.assertEquals(p2.getUnderlyingNode(), rel.getEndNode());
 	}
 	
 	@Test
@@ -339,30 +309,27 @@ public class Neo4jGraphPersistenceTest {
 	public void testRelationshipGetStartNodeAndEndNode() {
 		Person p = new Person("Michael", 35);
 		Person p2 = new Person("David", 25);
-		Friendship f = new Friendship(p, p2);
+		Friendship f = p.knows(p2);
 		Assert.assertEquals(p, f.getPerson1());
 		Assert.assertEquals(p2, f.getPerson2());
 	}
-	
-//	@Test
-//	public void printNeo4jData() {
-//		StringBuilder ret = new StringBuilder();
-//		for (Node n : graphDatabaseService.getAllNodes()) {
-//			ret.append("ID: " + n.getId() + " [");
-//			int x = 0;
-//			for (String prop : n.getPropertyKeys()) {
-//				if (x++ > 0) {
-//					ret.append(", ");
-//				}
-//				ret.append(prop + "=" + n.getProperty(prop));				
-//			}
-//			ret.append("] ");			
-//		}
-//		System.out.println("*** NEO4J DATA: " + ret);
-//	}
 
-	private Node findPersonTestNode() {
-		return graphDatabaseService.getNodeById(insertedId);
+	@Test
+	@Ignore
+	@Transactional
+	public void testRelationshipGetEntities() {
+		Person p = new Person("Michael", 35);
+		Person p2 = new Person("David", 25);
+		Person p3 = new Person("Emil", 32);
+		Friendship f2 = p.knows(p2);
+		Friendship f3 = p.knows(p3);
+		Assert.assertEquals(new HashSet<Friendship>(Arrays.asList(f2, f3)), IteratorUtil.addToCollection(p.getFriendships().iterator(), new HashSet<Friendship>()));
 	}
-
+	
+	@Test(expected = InvalidDataAccessApiUsageException.class)
+	@Transactional
+	public void testRelationshipSetEntitiesShouldThrowException() {
+		Person p = new Person("Michael", 35);
+		p.setFriendships(new HashSet<Friendship>());
+	}
 }

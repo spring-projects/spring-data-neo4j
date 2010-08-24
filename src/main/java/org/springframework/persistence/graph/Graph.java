@@ -6,6 +6,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 import org.springframework.persistence.graph.neo4j.NodeBacked;
+import org.springframework.persistence.graph.neo4j.RelationshipBacked;
 
 public @interface Graph {
 
@@ -19,7 +20,7 @@ public @interface Graph {
 			
 			String type();
 			
-			Direction direction();
+			Direction direction() default Direction.OUTGOING;
 
 			Class<? extends NodeBacked> elementClass() default NodeBacked.class;	
 		}
@@ -29,7 +30,9 @@ public @interface Graph {
 		public @interface RelationshipEntity {
 			String type();
 			
-			Direction direction();
+			Direction direction() default Direction.OUTGOING;
+
+			Class<? extends RelationshipBacked> elementClass() default RelationshipBacked.class;	
 		}
 		
 	}

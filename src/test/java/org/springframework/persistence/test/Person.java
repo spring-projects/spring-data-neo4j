@@ -1,5 +1,9 @@
 package org.springframework.persistence.test;
 
+import java.util.Collection;
+
+import org.neo4j.graphdb.DynamicRelationshipType;
+import org.neo4j.graphdb.Relationship;
 import org.springframework.persistence.graph.Direction;
 import org.springframework.persistence.graph.Graph;
 
@@ -16,11 +20,14 @@ public class Person {
 
 	private Person spouse;
 	
-	@Graph.Entity.Relationship(type="mother", direction=Direction.OUTGOING)
+	@Graph.Entity.Relationship(type = "mother", direction = Direction.OUTGOING)
 	private Person mother;
 	
-	@Graph.Entity.Relationship(type="boss", direction=Direction.INCOMING)
+	@Graph.Entity.Relationship(type = "boss", direction = Direction.INCOMING)
 	private Person boss;
+
+	@Graph.Entity.RelationshipEntity(type = "knows", elementClass = Friendship.class)
+	private Iterable<Friendship> friendships;
 
 	// @Property(serialize=SerializationPolicy.STRING, index=true, queryable=true, removeOnReset=true)
 	// Date birthday;
@@ -84,5 +91,20 @@ public class Person {
 	@Override
 	public String toString() {
 		return name;
+	}
+	
+	public Iterable<Friendship> getFriendships() {
+		return friendships;
+	}
+	
+	public void setFriendships(Iterable<Friendship> f) {
+		friendships = f;
+	}
+
+	public Friendship knows(Person p) {
+		Relationship rel = this.getUnderlyingNode().createRelationshipTo(p.getUnderlyingNode(), DynamicRelationshipType.withName("knows"));
+		Friendship friendship = new Friendship();
+		friendship.setUnderlyingRelationship(rel);
+		return friendship;
 	}
 }

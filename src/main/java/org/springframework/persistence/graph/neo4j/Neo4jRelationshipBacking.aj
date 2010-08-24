@@ -50,33 +50,13 @@ public aspect Neo4jRelationshipBacking extends AbstractTypeAnnotatingMixinFields
 	
 	// Introduced fields
 	private Relationship RelationshipBacked.underlyingRelationship;
-	private Node RelationshipBacked.underlyingStartNode;
-	private Node RelationshipBacked.underlyingEndNode;
 	
 	public void RelationshipBacked.setUnderlyingRelationship(Relationship r) {
 		this.underlyingRelationship = r;
-		underlyingStartNode = r.getStartNode();
-		underlyingEndNode = r.getEndNode();
 	}
 	
 	public Relationship RelationshipBacked.getUnderlyingRelationship() {
 		return underlyingRelationship;
-	}
-	
-	public void RelationshipBacked.setUnderlyingStartNode(Node n) {
-		underlyingStartNode = n;
-	}
-	
-	public Node RelationshipBacked.getUnderlyingStartNode() {
-		return underlyingStartNode;
-	}
-	
-	public void RelationshipBacked.setUnderlyingEndNode(Node n) {
-		underlyingEndNode = n;
-	}
-	
-	public Node RelationshipBacked.getUnderlyingEndNode() {
-		return underlyingEndNode;
 	}
 
 	public long RelationshipBacked.getId() {
@@ -106,14 +86,14 @@ public aspect Neo4jRelationshipBacking extends AbstractTypeAnnotatingMixinFields
 		Field f = fieldSignature.getField();
 
 		if (isStartNodeField(f)) {
-			Node startNode = entity.getUnderlyingStartNode();
+			Node startNode = entity.getUnderlyingRelationship().getStartNode();
 			if (startNode == null) {
 				return null;
 			}
 			return graphEntityInstantiator.createEntityFromState(startNode, (Class<? extends NodeBacked>) f.getType());
 		}
 		if (isEndNodeField(f)) {
-			Node endNode = entity.getUnderlyingEndNode();
+			Node endNode = entity.getUnderlyingRelationship().getEndNode();
 			if (endNode == null) {
 				return null;
 			}
@@ -138,23 +118,8 @@ public aspect Neo4jRelationshipBacking extends AbstractTypeAnnotatingMixinFields
 		try {
 			FieldSignature fieldSignature = (FieldSignature) thisJoinPoint.getSignature();
 			Field f = fieldSignature.getField();
-			if (newVal instanceof NodeBacked 
-					&& isStartNodeField(f)
-					&& entity.getUnderlyingStartNode() == null) {
-				NodeBacked newValNb = (NodeBacked) newVal;
-				entity.setUnderlyingStartNode(newValNb.getUnderlyingNode());
-				if (entity.getUnderlyingEndNode() != null) {
-					entity.setUnderlyingRelationship(entity.getUnderlyingStartNode().createRelationshipTo(entity.getUnderlyingEndNode(), DynamicRelationshipType.withName(f.getDeclaringClass().getSimpleName())));
-				}
-			}
-			if (newVal instanceof NodeBacked 
-					&& isEndNodeField(f)
-					&& entity.getUnderlyingEndNode() == null) {
-				NodeBacked newValNb = (NodeBacked) newVal;
-				entity.setUnderlyingEndNode(newValNb.getUnderlyingNode());
-				if (entity.getUnderlyingStartNode() != null) {
-					entity.setUnderlyingRelationship(entity.getUnderlyingStartNode().createRelationshipTo(entity.getUnderlyingEndNode(), DynamicRelationshipType.withName(f.getDeclaringClass().getSimpleName())));
-				}
+			if (isStartNodeField(f) || isEndNodeField(f)) {
+				throw new InvalidDataAccessApiUsageException("Cannot change start node or end node of existing relationship.");
 			}
 			if (isPropertyType(f.getType())) {
 				Relationship rel = entity.getUnderlyingRelationship();
