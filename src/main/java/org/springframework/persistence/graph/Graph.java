@@ -8,6 +8,8 @@ import java.lang.annotation.Target;
 import org.springframework.persistence.graph.neo4j.NodeBacked;
 import org.springframework.persistence.graph.neo4j.RelationshipBacked;
 
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.TYPE)
 public @interface Graph {
 
 	@Retention(RetentionPolicy.RUNTIME)
