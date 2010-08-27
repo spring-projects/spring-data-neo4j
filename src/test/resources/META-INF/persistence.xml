@@ -2,7 +2,7 @@
 <persistence xmlns="http://java.sun.com/xml/ns/persistence" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.0" xsi:schemaLocation="http://java.sun.com/xml/ns/persistence http://java.sun.com/xml/ns/persistence/persistence_1_0.xsd">
 
     <persistence-unit name="neo4j-persistence" transaction-type="RESOURCE_LOCAL">
-        <provider>org.springframework.persistence.graph.neo4j.Neo4jPersistenceProvider</provider>
+        <provider>org.springframework.datastore.graph.neo4j.jpa.Neo4jPersistenceProvider</provider>
         <properties>
             <property name="neo4j.path" value="test/data"/> <!-- TODO handle this -->
         </properties>
