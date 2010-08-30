@@ -3,7 +3,6 @@ package org.springframework.datastore.graph.neo4j;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
@@ -45,7 +44,7 @@ privileged aspect Person_Graph_Entity {
 	}
 
 	public static List<Person> Person.findAllPeople() {
-		Node subrefNode = Neo4jHelper.findSubreferenceNode(Person.class, graphDatabaseService());
+		Node subrefNode = Neo4jHelper.obtainSubreferenceNode(Person.class, graphDatabaseService());
 		// TODO Neo4j should add lazy list on top of graph
 		List<Person> people = new ArrayList<Person>((int) countPeople());		
 		for (Relationship rel : subrefNode.getRelationships(Neo4jHelper.INSTANCE_OF_RELATIONSHIP_TYPE, org.neo4j.graphdb.Direction.INCOMING)) {

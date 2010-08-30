@@ -1,5 +1,6 @@
 package org.springframework.datastore.graph.neo4j.jpa;
 
+import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
@@ -9,11 +10,11 @@ import javax.annotation.Resource;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityTransaction;
 import javax.persistence.PersistenceContext;
+import javax.persistence.Query;
 
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.hamcrest.CoreMatchers;
+import org.hamcrest.Matcher;
+import org.junit.*;
 import org.junit.runner.RunWith;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
@@ -23,6 +24,10 @@ import org.springframework.datastore.graph.neo4j.spi.node.Neo4jHelper;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
 
 /**
  * @author Michael Hunger
@@ -43,8 +48,8 @@ public class Neo4jEntityManagerTest {
     @Before
     public void cleanDb() {
         Neo4jHelper.cleanDb(graphDatabaseService);
-        node = graphDatabaseService.createNode();
-        person = new Person(node);
+        person = new Person("Michael",35);
+        node = person.getUnderlyingNode();
     }
 
     @Test
@@ -69,6 +74,45 @@ public class Neo4jEntityManagerTest {
     public void testFind() throws Exception {
     	final Person found = entityManager.find(Person.class, node.getId());
     	assertEquals(person,found);
+    }
+    @Test
+    public void testFindSingle() throws Exception {
+        final Query query = entityManager.createQuery("select o from Person o");
+        final Person found = (Person) query.getSingleResult();
+    	assertEquals(person,found);
+    }
+    @Test
+    public void testFindAll() throws Exception {
+        final Query query = entityManager.createQuery("select o from Person o");
+        Collection<Person> people=query.getResultList();
+    	Assert.assertEquals(asList(person),people);
+    }
+
+    @Test
+    public void testFindAll2() throws Exception {
+        final Person person2 = new Person("Rod", 39);
+        final Query query = entityManager.createQuery("select o from Person o");
+        Collection<Person> people=query.getResultList();
+    	Assert.assertEquals(new HashSet<Person>(asList(person,person2)),new HashSet<Person>(people));
+    }
+    @Test
+    public void testFindAllStart() throws Exception {
+        final Query query = entityManager.createQuery("select o from Person o").setFirstResult(1);
+        Collection<Person> people=query.getResultList();
+    	Assert.assertEquals(Collections.<Person>emptySet(),new HashSet<Person>(people));
+    }
+    @Test
+    public void testFindAllEnd() throws Exception {
+        final Query query = entityManager.createQuery("select o from Person o").setMaxResults(0);
+        Collection<Person> people=query.getResultList();
+    	Assert.assertEquals(Collections.<Person>emptySet(),new HashSet<Person>(people));
+    }
+    @Test
+    public void testFindAllStartEnd() throws Exception {
+        new Person("Rod", 39);
+        final Query query = entityManager.createQuery("select o from Person o").setMaxResults(1).setFirstResult(1);
+        Collection<Person> people=query.getResultList();
+    	Assert.assertEquals(1,people.size());
     }
 
     @Test

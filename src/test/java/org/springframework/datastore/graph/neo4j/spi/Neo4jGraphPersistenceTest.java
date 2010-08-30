@@ -134,12 +134,13 @@ public class Neo4jGraphPersistenceTest {
 		Assert.assertEquals(boss, p.getBoss());
 	}
 	
-	@Test(expected = InvalidDataAccessResourceUsageException.class)
+	// @Test(expected = InvalidDataAccessResourceUsageException.class)
 	public void testCreateOutsideTransaction() {
 		Person p = new Person("Michael", 35);
+        Assert.assertEquals(35,p.getAge());
 	}
 	
-	@Test(expected = InvalidDataAccessResourceUsageException.class)
+	// @Test(expected = InvalidDataAccessResourceUsageException.class)
 	public void testSetPropertyOutsideTransaction() {
 		Transaction tx = graphDatabaseService.beginTx();
 		Person p = null;
@@ -150,9 +151,19 @@ public class Neo4jGraphPersistenceTest {
 			tx.finish();
 		}
 		p.setAge(25);
+        Assert.assertEquals(25,p.getAge());
+        tx = graphDatabaseService.beginTx();
+        try {
+            Assert.assertEquals(25,p.getAge());
+            p.setAge(20);
+            tx.success();
+        } finally {
+            tx.finish();
+        }
+        Assert.assertEquals(20,p.getAge());
 	}
 	
-	@Test(expected = InvalidDataAccessResourceUsageException.class)
+	// @Test(expected = InvalidDataAccessResourceUsageException.class)
 	public void testCreateRelationshipOutsideTransaction() {
 		Transaction tx = graphDatabaseService.beginTx();
 		Person p = null;
@@ -165,6 +176,17 @@ public class Neo4jGraphPersistenceTest {
 			tx.finish();
 		}
 		p.setSpouse(spouse);
+        Assert.assertEquals(spouse,p.getSpouse());
+        Person spouse2;
+        tx = graphDatabaseService.beginTx();
+        try {
+            Assert.assertEquals(spouse,p.getSpouse());
+            spouse2 = new Person("Rana", 5);
+            tx.success();
+        } finally {
+            tx.finish();
+        }
+        Assert.assertEquals(spouse2,p.getSpouse());
 	}
 	
 	@Test
@@ -179,7 +201,14 @@ public class Neo4jGraphPersistenceTest {
 		}
 		Assert.assertEquals("Wrong age.", (int)35, (int)p.getAge());
 	}
-	
+
+    @Test
+	public void testFindOutsideTransaction() {
+        final FinderFactory factory = new FinderFactory(graphDatabaseService, graphEntityInstantiator);
+        final Finder<Person> finder = factory.getFinderForClass(Person.class);
+        Assert.assertEquals(false,finder.findAll().iterator().hasNext());
+	}
+
 	@Test(expected = InvalidDataAccessApiUsageException.class)
 	@Transactional
 	public void testCircularRelationship() {

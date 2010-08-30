@@ -32,8 +32,8 @@ public aspect Neo4jRelationshipBacking extends AbstractTypeAnnotatingMixinFields
 	private EntityInstantiator<NodeBacked, Node> graphEntityInstantiator;
 	
 	@Autowired
-	public void init(EntityInstantiator<NodeBacked, Node> gei) {
-		this.graphEntityInstantiator = gei;
+	public void setEntityInstantiator(EntityInstantiator<NodeBacked, Node> entityInstantiator) {
+		this.graphEntityInstantiator = entityInstantiator;
 	}
 	
 	// Introduced fields
@@ -46,8 +46,12 @@ public aspect Neo4jRelationshipBacking extends AbstractTypeAnnotatingMixinFields
 	public Relationship RelationshipBacked.getUnderlyingRelationship() {
 		return underlyingRelationship;
 	}
+	public boolean RelationshipBacked.hasUnderlyingRelationship() {
+		return underlyingRelationship!=null;
+	}
 
-	public long RelationshipBacked.getId() {
+	public Long RelationshipBacked.getId() {
+        if (!hasUnderlyingRelationship()) return null;
 		return underlyingRelationship.getId();
 	}
 	

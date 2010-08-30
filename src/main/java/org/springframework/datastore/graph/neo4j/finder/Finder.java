@@ -1,6 +1,7 @@
 package org.springframework.datastore.graph.neo4j.finder;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.neo4j.graphdb.Direction;
@@ -30,6 +31,7 @@ public class Finder<T extends NodeBacked> {
 	
 	public Iterable<T> findAll() {
 		Node subrefNode = Neo4jHelper.findSubreferenceNode(clazz, graphDatabaseService);
+		if (subrefNode==null) return Collections.emptyList();
 		// TODO add lazy list on top of graph
 		List<T> result = new ArrayList<T>((int) count());		
 		for (Relationship rel : subrefNode.getRelationships(Neo4jHelper.INSTANCE_OF_RELATIONSHIP_TYPE, Direction.INCOMING)) {

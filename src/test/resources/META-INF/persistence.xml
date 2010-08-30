@@ -3,6 +3,9 @@
 
     <persistence-unit name="neo4j-persistence" transaction-type="RESOURCE_LOCAL">
         <provider>org.springframework.datastore.graph.neo4j.jpa.Neo4jPersistenceProvider</provider>
+        <class>org.springframework.datastore.graph.neo4j.Person</class>
+        <class>org.springframework.datastore.graph.neo4j.Group</class>
+        <class>org.springframework.datastore.graph.neo4j.Friendship</class>
         <properties>
             <property name="neo4j.path" value="test/data"/> <!-- TODO handle this -->
         </properties>

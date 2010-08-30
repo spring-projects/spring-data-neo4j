@@ -1,15 +1,20 @@
 package org.springframework.datastore.graph.neo4j.jpa;
 
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Relationship;
+import org.neo4j.graphdb.*;
+import org.neo4j.graphdb.Transaction;
 import org.neo4j.kernel.EmbeddedGraphDatabase;
+import org.springframework.beans.factory.annotation.Configurable;
 import org.springframework.datastore.graph.api.NodeBacked;
+import org.springframework.datastore.graph.neo4j.finder.FinderFactory;
 import org.springframework.persistence.support.EntityInstantiator;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import javax.persistence.*;
+import javax.persistence.spi.PersistenceUnitInfo;
 import javax.transaction.*;
+import java.util.Map;
 
 /**
  * @author Michael Hunger
@@ -17,20 +22,27 @@ import javax.transaction.*;
  *        TODO Relationships
  */
 //@Service
+@Transactional
+@Configurable
 public class Neo4jEntityManager implements EntityManager {
-    @Resource
     GraphDatabaseService graphDatabaseService;
-
-    @Resource
     EntityInstantiator<NodeBacked, Node> nodeInstantiator;
-    private volatile boolean closed;
+    private PersistenceUnitInfo info;
 
-    public Neo4jEntityManager(final GraphDatabaseService graphDatabaseService, final EntityInstantiator<NodeBacked, Node> nodeInstantiator) {
+    private Map params;
+    private volatile boolean closed;
+    private final FinderFactory finderFactory;
+
+    public Neo4jEntityManager(final GraphDatabaseService graphDatabaseService, final EntityInstantiator<NodeBacked, Node> nodeInstantiator, PersistenceUnitInfo info, Map params) {
         this.graphDatabaseService = graphDatabaseService;
         this.nodeInstantiator = nodeInstantiator;
+        this.info = info;
+        this.params = params;
+        finderFactory = new FinderFactory(graphDatabaseService, nodeInstantiator);
     }
 
     public Neo4jEntityManager() {
+        finderFactory = new FinderFactory(graphDatabaseService, nodeInstantiator);
     }
 
     private Node nodeFor(final Object entity) {
@@ -44,6 +56,13 @@ public class Neo4jEntityManager implements EntityManager {
     @Override
     public void persist(final Object entity) {
         checkClosed();
+        final Transaction tx = graphDatabaseService.beginTx();
+        try {
+
+            tx.success();
+        } finally {
+            tx.finish();
+        }
     }
 
     @Override
@@ -102,6 +121,7 @@ public class Neo4jEntityManager implements EntityManager {
     @Override
     public void refresh(final Object entity) {
         nodeFor(entity);
+        // todo NodeBacked.refresh -> discard dirty
     }
 
     /**
@@ -129,7 +149,7 @@ public class Neo4jEntityManager implements EntityManager {
     @Override
     public Query createQuery(final String qlString) {
         checkClosed();
-        throw new UnsupportedOperationException();
+        return new Neo4JQuery(qlString, finderFactory,info);
     }
 
     /*
@@ -208,5 +228,6 @@ public class Neo4jEntityManager implements EntityManager {
         final TransactionManager transactionManager = ((EmbeddedGraphDatabase) graphDatabaseService).getConfig().getTxModule().getTxManager();
         return new Neo4jEntityTransaction(transactionManager);
     }
+
 
 }

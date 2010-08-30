@@ -1,6 +1,7 @@
 package org.springframework.datastore.graph.neo4j.fieldaccess;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.util.Collection;
 
 import org.neo4j.graphdb.Direction;
@@ -23,6 +24,7 @@ public class FieldAccessorFactory {
 	}
 	
 	public FieldAccessor forField(Field field) {
+        if (Modifier.isTransient(field.getModifiers())) return null;
 		GraphEntityRelationship relAnnotation = field.getAnnotation(GraphEntityRelationship.class);
 		if (isSingleRelationshipField(field)) {
 			Class<? extends NodeBacked> relatedType = (Class<? extends NodeBacked>) field.getType();
