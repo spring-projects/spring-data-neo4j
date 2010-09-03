@@ -140,9 +140,13 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<GraphEn
     private void NodeBacked.clearDirty() {
         if (this.dirty!=null) this.dirty.clear();
     }
+    private String NodeBacked.dump() {
+        if (this.dirty!=null) return this.dirty.toString();
+        return "";
+    }
 
     private void NodeBacked.addDirty(Field f, Object previousValue) {
-        if (this.dirty==null) this.dirty=new IdentityHashMap<Field, Object>();
+        if (this.dirty==null) this.dirty=new HashMap<Field, Object>();
         this.dirty.put(f,previousValue);
     }
 
@@ -226,6 +230,7 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<GraphEn
             if (entity.isDirty()) {
                 for (final Map.Entry<Field,Object> entry : entity.eachDirty()) {
                     final Field field = entry.getKey();
+                    log.warn("Flushing dirty Entity new node "+newNode+" field "+field);
                     if (!newNode) {
                         checkConcurrentModification(entity, entry, field);
                     }
@@ -279,10 +284,13 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<GraphEn
         Field f = fieldSignature.getField();
 
         if (!transactionIsRunning()) {
+            log.warn("Outside of transaction, GET value from field "+f+" has node "+entity.hasUnderlyingNode()+" dirty "+entity.isDirty(f)+" "+entity.dump());
             if (!entity.hasUnderlyingNode() || (entity.isDirty(f))) {
+                log.warn("Outside of transaction, GET value from field "+f);
                 return proceed(entity);
             }
         }
+        log.trace("Inside of transaction, GET-FLUSH to field "+f+" has node "+entity.hasUnderlyingNode()+" dirty "+entity.isDirty()+" "+entity.dump());
 
         flushDirty(entity);
 
@@ -298,12 +306,20 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<GraphEn
         FieldSignature fieldSignature=(FieldSignature) thisJoinPoint.getSignature();
         Field f = fieldSignature.getField();
         if (!transactionIsRunning()) {
+            log.warn("Outside of transaction, SET value "+newVal+" to field "+f+" has node "+entity.hasUnderlyingNode()+" dirty "+entity.isDirty(f));
             if (!entity.isDirty(f)) {
-                Object existingValue = entity.hasUnderlyingNode() ? getDefaultValue(f.getType()) : getValueFromEntity(f,entity);
+                Object existingValue;
+                if (entity.hasUnderlyingNode()) existingValue = getNodePropertyOrRelationship(f, entity).value;
+                else {
+                    existingValue = getValueFromEntity(f, entity);
+                    if (existingValue==null) existingValue=getDefaultValue(f.getType());
+                }
                 entity.addDirty(f,existingValue);
             }
+            log.warn("Outside of transaction, SET2 value "+newVal+" to field "+f+" has node "+entity.hasUnderlyingNode()+" dirty "+entity.isDirty(f)+" "+entity.dump());
             return proceed(entity, newVal);
         }
+        log.trace("Inside of transaction, FLUSH-SET value "+newVal+" to field "+f+" has node "+entity.hasUnderlyingNode()+" dirty "+entity.isDirty()+" "+entity.dump());
         flushDirty(entity);
 
         ShouldProceedOrReturn shouldProceedOrReturn=setNodePropertyOrRelationship(f,entity,newVal);

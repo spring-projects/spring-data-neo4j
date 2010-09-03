@@ -141,6 +141,7 @@ public class Neo4jGraphPersistenceTest {
 	}
 	
 	// @Test(expected = InvalidDataAccessResourceUsageException.class)
+    @Test
 	public void testSetPropertyOutsideTransaction() {
 		Transaction tx = graphDatabaseService.beginTx();
 		Person p = null;
@@ -164,6 +165,7 @@ public class Neo4jGraphPersistenceTest {
 	}
 	
 	// @Test(expected = InvalidDataAccessResourceUsageException.class)
+    @Test
 	public void testCreateRelationshipOutsideTransaction() {
 		Transaction tx = graphDatabaseService.beginTx();
 		Person p = null;
@@ -182,6 +184,7 @@ public class Neo4jGraphPersistenceTest {
         try {
             Assert.assertEquals(spouse,p.getSpouse());
             spouse2 = new Person("Rana", 5);
+            p.setSpouse(spouse2);
             tx.success();
         } finally {
             tx.finish();
