@@ -78,7 +78,14 @@ public class Neo4jGraphPersistenceTest {
 		Assert.assertEquals((short)182, p.getUnderlyingNode().getProperty("Person.height"));
 		Assert.assertEquals((short)182, (short)p.getHeight());
 	}
-	
+	@Test
+	@Transactional
+	public void testSetShortProperty() {
+		Group group = new Group();
+		group.setName("developers");
+		Assert.assertEquals("developers", group.getUnderlyingNode().getProperty("name"));
+	}
+
 	@Test
 	@Transactional
 	public void testCreateRelationshipWithoutAnnotationOnSet() {

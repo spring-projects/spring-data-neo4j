@@ -6,7 +6,7 @@ import org.springframework.datastore.graph.api.GraphEntityRelationship;
 
 import java.util.Collection;
 
-@GraphEntity
+@GraphEntity(useShortNames = true)
 public class Group {
 
 	@GraphEntityRelationship(type = "persons", direction = Direction.OUTGOING, elementClass = Person.class)
@@ -15,7 +15,17 @@ public class Group {
 	@GraphEntityRelationship(type = "persons", elementClass = Person.class)
 	private Iterable<Person> readOnlyPersons;
 
-	public void setPersons(Collection<Person> persons) {
+    private String name;
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public void setPersons(Collection<Person> persons) {
 		this.persons = persons;
 	}
 

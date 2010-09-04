@@ -8,10 +8,7 @@ import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.DynamicRelationshipType;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
-import org.springframework.datastore.graph.api.GraphEntityRelationship;
-import org.springframework.datastore.graph.api.GraphEntityRelationshipEntity;
-import org.springframework.datastore.graph.api.NodeBacked;
-import org.springframework.datastore.graph.api.RelationshipBacked;
+import org.springframework.datastore.graph.api.*;
 import org.springframework.persistence.support.EntityInstantiator;
 
 public class FieldAccessorFactory {
@@ -76,6 +73,15 @@ public class FieldAccessorFactory {
 	}
 
 	public static String getNeo4jPropertyName(Field field) {
-		return String.format("%s.%s",field.getDeclaringClass().getSimpleName(),field.getName());
+        final Class<?> entityClass = field.getDeclaringClass();
+        return useShortNames(entityClass) ? field.getName() : String.format("%s.%s", entityClass.getSimpleName(),field.getName());
 	}
+
+    private static boolean useShortNames(Class<?> entityClass) {
+        final GraphEntity graphEntity = entityClass.getAnnotation(GraphEntity.class);
+        if (graphEntity!=null) return graphEntity.useShortNames();
+        final GraphRelationship graphRelationship = entityClass.getAnnotation(GraphRelationship.class);
+        if (graphRelationship!=null) return graphRelationship.useShortNames();
+        return false;
+    }
 }
