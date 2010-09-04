@@ -11,6 +11,8 @@ import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.dao.InvalidDataAccessResourceUsageException;
 import org.springframework.datastore.graph.api.*;
 
+import org.springframework.datastore.graph.neo4j.fieldaccess.FieldAccessorFactory;
+import org.springframework.datastore.graph.neo4j.finder.FinderFactory;
 import org.springframework.persistence.support.AbstractTypeAnnotatingMixinFields;
 import org.springframework.persistence.support.EntityInstantiator;
 
@@ -98,7 +100,7 @@ public aspect Neo4jRelationshipBacking extends AbstractTypeAnnotatingMixinFields
 			if (rel == null) {
 				throw new InvalidDataAccessApiUsageException("Please set start node and end node before reading from other fields.");
 			}
-			String propName = getNeo4jPropertyName(f);
+			String propName = FieldAccessorFactory.getNeo4jPropertyName(f);
 			log.info("GET " + f + " <- Neo4J simple relationship property [" + propName + "]");
 			return rel.getProperty(propName, null);
 		}
@@ -118,7 +120,7 @@ public aspect Neo4jRelationshipBacking extends AbstractTypeAnnotatingMixinFields
 				if (rel == null) {
 					throw new InvalidDataAccessApiUsageException("Please set start node and end node before assigning to other fields.");
 				}
-				String propName = getNeo4jPropertyName(f);
+				String propName = FieldAccessorFactory.getNeo4jPropertyName(f);
 				entity.getUnderlyingRelationship().setProperty(propName, newVal);
 				log.info("SET " + f + " -> Neo4J simple relationship property [" + propName + "] with value=[" + newVal + "]");
 				return proceed(entity, newVal);
@@ -146,10 +148,5 @@ public aspect Neo4jRelationshipBacking extends AbstractTypeAnnotatingMixinFields
 	  		|| fieldType.equals(Boolean.class)
 	  		|| (fieldType.getName().startsWith("java.lang") && Number.class.isAssignableFrom(fieldType));
 	}
-
-	private static String getNeo4jPropertyName(Field field) {
-		return String.format("%s.%s",field.getDeclaringClass().getSimpleName(),field.getName());
-	}
-	
 
 }
