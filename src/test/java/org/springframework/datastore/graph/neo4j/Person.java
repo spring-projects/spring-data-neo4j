@@ -101,9 +101,6 @@ public class Person {
 	}
 
 	public Friendship knows(Person p) {
-		Relationship rel = this.getUnderlyingNode().createRelationshipTo(p.getUnderlyingNode(), DynamicRelationshipType.withName("knows"));
-		Friendship friendship = new Friendship();
-		friendship.setUnderlyingRelationship(rel);
-		return friendship;
+        return (Friendship)relateTo(p, Friendship.class,"knows");
 	}
 }

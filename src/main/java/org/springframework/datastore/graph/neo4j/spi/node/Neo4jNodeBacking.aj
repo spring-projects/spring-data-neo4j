@@ -1,14 +1,11 @@
 package org.springframework.datastore.graph.neo4j.spi.node;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.util.*;
 
 import org.aspectj.lang.reflect.FieldSignature;
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.NotInTransactionException;
-import org.neo4j.graphdb.Relationship;
-import org.neo4j.graphdb.RelationshipType;
+import org.neo4j.graphdb.*;
 import org.neo4j.kernel.EmbeddedGraphDatabase;
 import org.neo4j.util.GraphDatabaseUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -149,6 +146,24 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<GraphEn
         if (this.dirty==null) this.dirty=new HashMap<Field, Object>();
         this.dirty.put(f,previousValue);
     }
+/*
+    public <R extends RelationshipBacked, N extends NodeBacked> R NodeBacked.relateTo(N node, Class<R> relationshipType, String type) {
+        Relationship rel = this.getUnderlyingNode().createRelationshipTo(node.getUnderlyingNode(), DynamicRelationshipType.withName(type));
+        return relationshipEntityInstantiator.createEntityFromState(rel, relationshipType);
+    }
+*/
+    public RelationshipBacked NodeBacked.relateTo(NodeBacked node, Class<? extends RelationshipBacked> relationshipType, String type) {
+        Relationship rel = this.getUnderlyingNode().createRelationshipTo(node.getUnderlyingNode(), DynamicRelationshipType.withName(type));
+        try {
+            final RelationshipBacked relationshipEntity = relationshipType.newInstance();
+            relationshipEntity.setUnderlyingRelationship(rel);
+            return relationshipEntity;
+        } catch (InstantiationException e) {
+            throw new RuntimeException(e);
+        } catch (IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     private Iterable<Map.Entry<Field,Object>> NodeBacked.eachDirty() {
         return this.dirty!=null ? this.dirty.entrySet() : Collections.<Field, Object>emptyMap().entrySet();
@@ -172,6 +187,7 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<GraphEn
         if (!hasUnderlyingNode()) return System.identityHashCode(this);
 		return getUnderlyingNode().hashCode();
 	}
+
 
 
     private Object getValueFromEntity(Field field, NodeBacked entity) {
@@ -241,6 +257,8 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<GraphEn
         }
     }
 
+
+
     private void checkConcurrentModification(NodeBacked entity, Map.Entry<Field, Object> entry, Field field) {
         final Object nodeValue = getNodePropertyOrRelationship(field, entity).value;
         final Object previousValue = entry.getValue();
@@ -256,6 +274,7 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<GraphEn
     private ShouldProceedOrReturn setNodePropertyOrRelationship(Field field, NodeBacked entity, Object newVal) {
         try {
             if (isIdField(field)) return new ShouldProceedOrReturn(null);
+            if (Modifier.isFinal(field.getModifiers())) return new ShouldProceedOrReturn(newVal);
             if (isPropertyType(field.getType())) {
                 String propName = FieldAccessorFactory.getNeo4jPropertyName(field);
                 if (newVal==null) {
