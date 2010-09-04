@@ -154,6 +154,10 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<GraphEn
 */
     public RelationshipBacked NodeBacked.relateTo(NodeBacked node, Class<? extends RelationshipBacked> relationshipType, String type) {
         Relationship rel = this.getUnderlyingNode().createRelationshipTo(node.getUnderlyingNode(), DynamicRelationshipType.withName(type));
+        return createRelationshipEntity(relationshipType,rel);
+    }
+
+    private static RelationshipBacked createRelationshipEntity(Class<? extends RelationshipBacked> relationshipType, Relationship rel) {
         try {
             final RelationshipBacked relationshipEntity = relationshipType.newInstance();
             relationshipEntity.setUnderlyingRelationship(rel);
@@ -163,6 +167,15 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<GraphEn
         } catch (IllegalAccessException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public RelationshipBacked NodeBacked.getRelationshipTo(NodeBacked node, Class<? extends RelationshipBacked> relationshipType, String type) {
+        Node myNode=this.getUnderlyingNode();
+        Node otherNode=node.getUnderlyingNode();
+        for (Relationship rel : this.getUnderlyingNode().getRelationships(DynamicRelationshipType.withName(type))) {
+            if (rel.getOtherNode(myNode).equals(otherNode)) return createRelationshipEntity(relationshipType,rel);
+        }
+        return null;
     }
 
     private Iterable<Map.Entry<Field,Object>> NodeBacked.eachDirty() {

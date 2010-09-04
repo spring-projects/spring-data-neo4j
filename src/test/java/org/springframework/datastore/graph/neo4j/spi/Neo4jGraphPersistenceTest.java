@@ -355,6 +355,14 @@ public class Neo4jGraphPersistenceTest {
 		Assert.assertEquals(p, f.getPerson1());
 		Assert.assertEquals(p2, f.getPerson2());
 	}
+	@Test
+	@Transactional
+	public void testGetRelationshipToReturnsRelationship() {
+		Person p = new Person("Michael", 35);
+		Person p2 = new Person("David", 25);
+		Friendship f = p.knows(p2);
+        Assert.assertEquals(f,p.getRelationshipTo(p2,Friendship.class, "knows"));
+	}
 
 	@Test
 	@Transactional
