@@ -1,6 +1,8 @@
 package org.springframework.datastore.graph.neo4j.spi.node;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
 import java.util.*;
 
@@ -159,13 +161,19 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<GraphEn
 
     private static RelationshipBacked createRelationshipEntity(Class<? extends RelationshipBacked> relationshipType, Relationship rel) {
         try {
-            final RelationshipBacked relationshipEntity = relationshipType.newInstance();
+            final Constructor<? extends RelationshipBacked> constructor = relationshipType.getDeclaredConstructor();
+            constructor.setAccessible(true);
+            final RelationshipBacked relationshipEntity = constructor.newInstance();
             relationshipEntity.setUnderlyingRelationship(rel);
             return relationshipEntity;
         } catch (InstantiationException e) {
             throw new RuntimeException(e);
         } catch (IllegalAccessException e) {
             throw new RuntimeException(e);
+        } catch (NoSuchMethodException e) {
+            throw new RuntimeException(e);
+        } catch (InvocationTargetException e) {
+            throw new RuntimeException(e.getTargetException());
         }
     }
 

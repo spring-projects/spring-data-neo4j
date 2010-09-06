@@ -121,7 +121,12 @@ public aspect Neo4jRelationshipBacking extends AbstractTypeAnnotatingMixinFields
 					throw new InvalidDataAccessApiUsageException("Please set start node and end node before assigning to other fields.");
 				}
 				String propName = FieldAccessorFactory.getNeo4jPropertyName(f);
-				entity.getUnderlyingRelationship().setProperty(propName, newVal);
+                if (newVal==null) {
+                    entity.getUnderlyingRelationship().removeProperty(propName);
+                }
+                else {
+                    entity.getUnderlyingRelationship().setProperty(propName, newVal);
+                }
 				log.info("SET " + f + " -> Neo4J simple relationship property [" + propName + "] with value=[" + newVal + "]");
 				return proceed(entity, newVal);
 			}
