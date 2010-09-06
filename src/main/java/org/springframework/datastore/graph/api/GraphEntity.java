@@ -12,5 +12,7 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
 public @interface GraphEntity {
-    boolean useShortNames() default false;
+    boolean useShortNames() default true;
+
+    boolean fullIndex() default false;
 }

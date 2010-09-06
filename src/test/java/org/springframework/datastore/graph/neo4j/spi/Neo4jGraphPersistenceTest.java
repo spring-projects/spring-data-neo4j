@@ -1,18 +1,16 @@
 package org.springframework.datastore.graph.neo4j.spi;
 
-import junit.framework.Assert;
+import org.junit.Assert;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.junit.AfterClass;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.neo4j.graphdb.*;
 import org.neo4j.helpers.collection.IteratorUtil;
+import org.neo4j.index.IndexService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
-import org.springframework.dao.InvalidDataAccessResourceUsageException;
 import org.springframework.datastore.graph.api.NodeBacked;
 import org.springframework.datastore.graph.neo4j.Friendship;
 import org.springframework.datastore.graph.neo4j.Group;
@@ -42,8 +40,11 @@ public class Neo4jGraphPersistenceTest {
 	
 	@Autowired
 	private FinderFactory finderFactory;
-	
-	@Test
+
+    @Autowired
+    private IndexService indexService;
+
+    @Test
 	public void testStuffWasAutowired() {
         Assert.assertNotNull( graphDatabaseService );
         Assert.assertNotNull( graphEntityInstantiator );
@@ -214,7 +215,7 @@ public class Neo4jGraphPersistenceTest {
 
     @Test
 	public void testFindOutsideTransaction() {
-        final FinderFactory factory = new FinderFactory(graphDatabaseService, graphEntityInstantiator);
+        final FinderFactory factory = new FinderFactory(graphDatabaseService, graphEntityInstantiator, indexService);
         final Finder<Person> finder = factory.getFinderForClass(Person.class);
         Assert.assertEquals(false,finder.findAll().iterator().hasNext());
 	}
@@ -398,5 +399,26 @@ public class Neo4jGraphPersistenceTest {
 	public void testOneToManyReadOnlyShouldThrowExceptionOnSet() {
 		Group group = new Group();
 		group.setReadOnlyPersons(new HashSet<Person>());
+	}
+	@Test(expected = InvalidDataAccessApiUsageException.class)
+	@Transactional
+	public void testFindGroupByIndex() {
+		Group group = new Group();
+        group.setName("test");
+        final Finder<Group> finder = finderFactory.getFinderForClass(Group.class);
+        final Group found = finder.getByIndex("name", "test");
+        Assert.assertEquals(group,found);
+	}
+	@Test(expected = InvalidDataAccessApiUsageException.class)
+	@Transactional
+	public void testFindAllGroupsByIndex() {
+		Group group = new Group();
+        group.setName("test");
+		Group group2 = new Group();
+        group.setName("test");
+        final Finder<Group> finder = finderFactory.getFinderForClass(Group.class);
+        final Iterable<Group> found = finder.getAllByIndex("name", "test");
+        final Collection<Group> result = IteratorUtil.addToCollection(found.iterator(), new HashSet<Group>());
+        Assert.assertEquals(new HashSet<Group>(Arrays.asList(group,group2)), result);
 	}
 }

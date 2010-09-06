@@ -2,9 +2,9 @@ package org.springframework.datastore.graph.neo4j.jpa;
 
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
+import org.neo4j.index.IndexService;
 import org.springframework.beans.factory.annotation.Configurable;
 import org.springframework.datastore.graph.api.NodeBacked;
-import org.springframework.datastore.graph.neo4j.spi.node.Neo4jHelper;
 import org.springframework.persistence.support.EntityInstantiator;
 
 import javax.annotation.Resource;
@@ -21,16 +21,18 @@ import java.util.Map;
 @Configurable
 public class Neo4jPersistenceProvider implements PersistenceProvider {
     @Resource
-    GraphDatabaseService graphDatabaseService;
+    private GraphDatabaseService graphDatabaseService;
 
     @Resource
-    EntityInstantiator<NodeBacked, Node> graphEntityInstantiator;
+    private EntityInstantiator<NodeBacked, Node> graphEntityInstantiator;
+    @Resource
+    private IndexService indexService;
 
     @Override
     public EntityManagerFactory createEntityManagerFactory(String emName, Map params) {
         System.out.println("emName = " + emName);
         System.out.println("params = " + params);
-        return new Neo4jEntityManagerFactory(graphDatabaseService,graphEntityInstantiator,null,params);
+        return new Neo4jEntityManagerFactory(graphDatabaseService,graphEntityInstantiator, indexService, null,params);
     }
 
     @Override
@@ -42,6 +44,6 @@ public class Neo4jPersistenceProvider implements PersistenceProvider {
         System.out.println("info.getProperties() = " + info.getProperties());
         System.out.println("info.getPersistenceUnitName() = " + info.getPersistenceUnitName());
         System.out.println("params = " + params);
-        return new Neo4jEntityManagerFactory(graphDatabaseService,graphEntityInstantiator,info,params);
+        return new Neo4jEntityManagerFactory(graphDatabaseService,graphEntityInstantiator, indexService, info,params);
     }
 }

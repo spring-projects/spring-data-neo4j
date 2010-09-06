@@ -6,7 +6,7 @@ import org.springframework.datastore.graph.api.GraphEntityRelationship;
 
 import java.util.Collection;
 
-@GraphEntity(useShortNames = true)
+@GraphEntity(fullIndex = true)
 public class Group {
 
 	@GraphEntityRelationship(type = "persons", direction = Direction.OUTGOING, elementClass = Person.class)

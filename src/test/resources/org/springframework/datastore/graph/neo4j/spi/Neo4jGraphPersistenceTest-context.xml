@@ -83,10 +83,16 @@
 			destroy-method="shutdown" scope="singleton">
 		 <constructor-arg index="0" value="${neo4j.databaseDirectory}" />
 	</bean>
+
+    <bean id="indexService" class="org.neo4j.index.lucene.LuceneIndexService" destroy-method="shutdown">
+        <constructor-arg index="0" ref="graphDbService" />
+    </bean>
+
 	
 	<bean id="finderFactory" class="org.springframework.datastore.graph.neo4j.finder.FinderFactory">
 		<constructor-arg ref="graphDbService" />
 		<constructor-arg ref="graphEntityInstantiator" />
+		<constructor-arg ref="indexService" />
 	</bean>
 	
 	<bean id="graphEntityInstantiator" name="gei" class="org.springframework.datastore.graph.neo4j.spi.node.Neo4jConstructorGraphEntityInstantiator" />

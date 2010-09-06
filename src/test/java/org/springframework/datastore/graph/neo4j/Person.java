@@ -8,7 +8,7 @@ import org.springframework.datastore.graph.api.GraphEntityRelationship;
 import org.springframework.datastore.graph.api.GraphEntityRelationshipEntity;
 
 
-@GraphEntity
+@GraphEntity(useShortNames = false)
 public class Person {
 	
 	private Long id;

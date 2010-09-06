@@ -8,6 +8,7 @@ import java.util.*;
 
 import org.aspectj.lang.reflect.FieldSignature;
 import org.neo4j.graphdb.*;
+import org.neo4j.index.IndexService;
 import org.neo4j.kernel.EmbeddedGraphDatabase;
 import org.neo4j.util.GraphDatabaseUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,13 +48,15 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<GraphEn
 	private FieldAccessorFactory fieldAccessorFactory;
 
 	private EntityInstantiator<RelationshipBacked, Relationship> relationshipEntityInstantiator;
-	
-	@Autowired
-	public void init(GraphDatabaseService gds, EntityInstantiator<NodeBacked, Node> graphEntityInstantiator, EntityInstantiator<RelationshipBacked, Relationship> relationshipEntityInstantiator) {
+    private IndexService indexService;
+
+    @Autowired
+	public void init(GraphDatabaseService gds, EntityInstantiator<NodeBacked, Node> graphEntityInstantiator, EntityInstantiator<RelationshipBacked, Relationship> relationshipEntityInstantiator, IndexService indexService) {
 		this.graphDatabaseService = gds;
 		this.graphEntityInstantiator = graphEntityInstantiator;
 		this.relationshipEntityInstantiator = relationshipEntityInstantiator;
-		this.fieldAccessorFactory = new FieldAccessorFactory(graphEntityInstantiator, relationshipEntityInstantiator);
+        this.indexService = indexService;
+        this.fieldAccessorFactory = new FieldAccessorFactory(graphEntityInstantiator, relationshipEntityInstantiator);
 	}
 	
 	
@@ -151,14 +154,14 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<GraphEn
 /*
     public <R extends RelationshipBacked, N extends NodeBacked> R NodeBacked.relateTo(N node, Class<R> relationshipType, String type) {
         Relationship rel = this.getUnderlyingNode().createRelationshipTo(node.getUnderlyingNode(), DynamicRelationshipType.withName(type));
-        return relationshipEntityInstantiator.createEntityFromState(rel, relationshipType);
+        return (R)createRelationshipEntity(relationshipType,rel);
+        // relationshipEntityInstantiator.createEntityFromState(rel, relationshipType);
     }
 */
     public RelationshipBacked NodeBacked.relateTo(NodeBacked node, Class<? extends RelationshipBacked> relationshipType, String type) {
         Relationship rel = this.getUnderlyingNode().createRelationshipTo(node.getUnderlyingNode(), DynamicRelationshipType.withName(type));
         return createRelationshipEntity(relationshipType,rel);
     }
-
     private static RelationshipBacked createRelationshipEntity(Class<? extends RelationshipBacked> relationshipType, Relationship rel) {
         try {
             final Constructor<? extends RelationshipBacked> constructor = relationshipType.getDeclaredConstructor();
@@ -298,10 +301,13 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<GraphEn
             if (Modifier.isFinal(field.getModifiers())) return new ShouldProceedOrReturn(newVal);
             if (isPropertyType(field.getType())) {
                 String propName = FieldAccessorFactory.getNeo4jPropertyName(field);
+                Node node = entity.getUnderlyingNode();
                 if (newVal==null) {
-                    entity.getUnderlyingNode().removeProperty(propName);
+                    node.removeProperty(propName);
+                    if (isIndexedProperty(field)) indexService.removeIndex(node,propName);
                 } else {
-                    entity.getUnderlyingNode().setProperty(propName, newVal);
+                    node.setProperty(propName, newVal);
+                    if (isIndexedProperty(field)) indexService.index(node,propName,newVal);
                 }
                 log.info("SET " + field + " -> Neo4J simple node property [" + propName + "] with value=[" + newVal + "]");
                 return new ShouldProceedOrReturn(true,newVal);
@@ -379,5 +385,12 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<GraphEn
 	  		|| fieldType.equals(Boolean.class)
 	  		|| (fieldType.getName().startsWith("java.lang") && Number.class.isAssignableFrom(fieldType));
 	}
-	
+
+    // todo @property annotation
+    // todo fieldlist in @graphentity
+    private boolean isIndexedProperty(Field field) {
+        final GraphEntity graphEntity = field.getDeclaringClass().getAnnotation(GraphEntity.class);
+        if (graphEntity==null) return false;
+        return graphEntity.fullIndex();
+    }
 }

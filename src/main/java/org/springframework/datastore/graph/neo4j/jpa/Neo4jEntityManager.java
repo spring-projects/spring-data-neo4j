@@ -2,15 +2,14 @@ package org.springframework.datastore.graph.neo4j.jpa;
 
 import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.Transaction;
+import org.neo4j.index.IndexService;
 import org.neo4j.kernel.EmbeddedGraphDatabase;
 import org.springframework.beans.factory.annotation.Configurable;
 import org.springframework.datastore.graph.api.NodeBacked;
 import org.springframework.datastore.graph.neo4j.finder.FinderFactory;
 import org.springframework.persistence.support.EntityInstantiator;
-import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.annotation.Resource;
 import javax.persistence.*;
 import javax.persistence.spi.PersistenceUnitInfo;
 import javax.transaction.*;
@@ -25,24 +24,26 @@ import java.util.Map;
 @Transactional
 @Configurable
 public class Neo4jEntityManager implements EntityManager {
-    GraphDatabaseService graphDatabaseService;
-    EntityInstantiator<NodeBacked, Node> nodeInstantiator;
+    private GraphDatabaseService graphDatabaseService;
+    private EntityInstantiator<NodeBacked, Node> nodeInstantiator;
     private PersistenceUnitInfo info;
 
     private Map params;
+    private IndexService indexService;
     private volatile boolean closed;
     private final FinderFactory finderFactory;
 
-    public Neo4jEntityManager(final GraphDatabaseService graphDatabaseService, final EntityInstantiator<NodeBacked, Node> nodeInstantiator, PersistenceUnitInfo info, Map params) {
+    public Neo4jEntityManager(final GraphDatabaseService graphDatabaseService, final EntityInstantiator<NodeBacked, Node> nodeInstantiator, PersistenceUnitInfo info, Map params, IndexService indexService) {
         this.graphDatabaseService = graphDatabaseService;
         this.nodeInstantiator = nodeInstantiator;
         this.info = info;
         this.params = params;
-        finderFactory = new FinderFactory(graphDatabaseService, nodeInstantiator);
+        this.indexService = indexService;
+        finderFactory = new FinderFactory(graphDatabaseService, nodeInstantiator, indexService);
     }
 
     public Neo4jEntityManager() {
-        finderFactory = new FinderFactory(graphDatabaseService, nodeInstantiator);
+        finderFactory = new FinderFactory(graphDatabaseService, nodeInstantiator, indexService);
     }
 
     private Node nodeFor(final Object entity) {
