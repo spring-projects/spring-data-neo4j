@@ -54,7 +54,7 @@ public class Finder<T extends NodeBacked> {
 			return null;
 		}
 	}
-    public T getByIndex(String property, Object value) {
+    public T findByPropertyValue(String property, Object value) {
         try {
             final Node node = indexService.getSingleNode(property, value);
             if (node==null) return null;
@@ -64,7 +64,7 @@ public class Finder<T extends NodeBacked> {
         }
 
     }
-    public Iterable<T> getAllByIndex(String property, Object value) {
+    public Iterable<T> findAllByPropertyValue(String property, Object value) {
         try {
             final IndexHits<Node> nodes = indexService.getNodes(property, value);
             if (nodes==null) return Collections.emptyList();
@@ -77,7 +77,10 @@ public class Finder<T extends NodeBacked> {
         } catch(NotFoundException e) {
             return null;
         }
+    }
 
+    public <N extends NodeBacked> Iterable<T> findAllByTraversal(N startNode,TraversalDescription traversalDescription) {
+        return (Iterable<T>) startNode.find(clazz, traversalDescription);
     }
 }
 

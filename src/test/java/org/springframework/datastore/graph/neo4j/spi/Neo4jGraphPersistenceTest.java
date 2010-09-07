@@ -7,7 +7,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.neo4j.graphdb.*;
-import org.neo4j.graphdb.traversal.PruneEvaluator;
 import org.neo4j.graphdb.traversal.TraversalDescription;
 import org.neo4j.helpers.collection.IteratorUtil;
 import org.neo4j.index.IndexService;
@@ -410,7 +409,7 @@ public class Neo4jGraphPersistenceTest {
 		Group group = new Group();
         group.setName("test");
         final Finder<Group> finder = finderFactory.getFinderForClass(Group.class);
-        final Group found = finder.getByIndex("name", "test");
+        final Group found = finder.findByPropertyValue("name", "test");
         Assert.assertEquals(group,found);
 	}
 
@@ -422,7 +421,7 @@ public class Neo4jGraphPersistenceTest {
 		Group group2 = new Group();
         group2.setName("test");
         final Finder<Group> finder = finderFactory.getFinderForClass(Group.class);
-        final Iterable<Group> found = finder.getAllByIndex("name", "test");
+        final Iterable<Group> found = finder.findAllByPropertyValue("name", "test");
         final Collection<Group> result = IteratorUtil.addToCollection(found.iterator(), new HashSet<Group>());
         Assert.assertEquals(new HashSet<Group>(Arrays.asList(group,group2)), result);
 	}
@@ -435,6 +434,22 @@ public class Neo4jGraphPersistenceTest {
         group.addPerson(p);
         final TraversalDescription traversalDescription = new TraversalDescriptionImpl().relationships(DynamicRelationshipType.withName("persons")).filter(Traversal.returnAllButStartNode());
         Iterable<Person> people=(Iterable<Person>)group.find(Person.class, traversalDescription);
+        final HashSet<Person> found = new HashSet<Person>();
+        for (Person person : people) {
+            found.add(person);
+        }
+        Assert.assertEquals(Collections.singleton(p),found);
+	}
+	@Test
+	@Transactional
+	public void testTraverseFromGroupToPeopleWithFinder() {
+        final Finder<Person> finder = finderFactory.getFinderForClass(Person.class);
+        Person p=new Person("Michael",35);
+		Group group = new Group();
+        group.setName("dev");
+        group.addPerson(p);
+        final TraversalDescription traversalDescription = new TraversalDescriptionImpl().relationships(DynamicRelationshipType.withName("persons")).filter(Traversal.returnAllButStartNode());
+        Iterable<Person> people=finder.findAllByTraversal(group, traversalDescription);
         final HashSet<Person> found = new HashSet<Person>();
         for (Person person : people) {
             found.add(person);
