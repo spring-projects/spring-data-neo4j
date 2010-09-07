@@ -8,6 +8,10 @@ import java.util.*;
 
 import org.aspectj.lang.reflect.FieldSignature;
 import org.neo4j.graphdb.*;
+import org.neo4j.graphdb.traversal.*;
+import org.neo4j.graphdb.traversal.Traverser;
+import org.neo4j.helpers.collection.IterableWrapper;
+import org.neo4j.index.IndexHits;
 import org.neo4j.index.IndexService;
 import org.neo4j.kernel.EmbeddedGraphDatabase;
 import org.neo4j.util.GraphDatabaseUtil;
@@ -43,11 +47,11 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<GraphEn
 	// Aspect shared Neo4J Graph Database Service
 	private GraphDatabaseService graphDatabaseService;
 	
-	private EntityInstantiator<NodeBacked, Node> graphEntityInstantiator;
+    public EntityInstantiator<NodeBacked, Node> graphEntityInstantiator;
 
 	private FieldAccessorFactory fieldAccessorFactory;
 
-	private EntityInstantiator<RelationshipBacked, Relationship> relationshipEntityInstantiator;
+	public EntityInstantiator<RelationshipBacked, Relationship> relationshipEntityInstantiator;
     private IndexService indexService;
 
     @Autowired
@@ -151,40 +155,36 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<GraphEn
         if (this.dirty==null) this.dirty=new HashMap<Field, Object>();
         this.dirty.put(f,previousValue);
     }
-/*
+
+    public  Iterable<? extends NodeBacked> NodeBacked.find(final Class<? extends NodeBacked> targetType, TraversalDescription traversalDescription) {
+        if (!hasUnderlyingNode()) throw new IllegalStateException("No node attached to " + this);
+        final Traverser traverser = traversalDescription.traverse(this.getUnderlyingNode());
+        final EntityInstantiator<NodeBacked,Node> instantiator=Neo4jNodeBacking.aspectOf().graphEntityInstantiator;
+        return new Neo4jNodeBacking.NodeBackedNodeIterableWrapper(traverser, targetType);
+    }
+    /*
+    public Iterable<? extends NodeBacked> NodeBacked.traverse(TraversalDescription traversalDescription) {
+        final Class<? extends NodeBacked> target = this.getClass();
+        return this.traverse(target,traversalDescription);
+    }
+    */
+
+    /*
     public <R extends RelationshipBacked, N extends NodeBacked> R NodeBacked.relateTo(N node, Class<R> relationshipType, String type) {
         Relationship rel = this.getUnderlyingNode().createRelationshipTo(node.getUnderlyingNode(), DynamicRelationshipType.withName(type));
-        return (R)createRelationshipEntity(relationshipType,rel);
-        // relationshipEntityInstantiator.createEntityFromState(rel, relationshipType);
+        Neo4jNodeBacking.aspectOf().relationshipEntityInstantiator.createEntityFromState(rel, relationshipType);
     }
-*/
+    */
     public RelationshipBacked NodeBacked.relateTo(NodeBacked node, Class<? extends RelationshipBacked> relationshipType, String type) {
         Relationship rel = this.getUnderlyingNode().createRelationshipTo(node.getUnderlyingNode(), DynamicRelationshipType.withName(type));
-        return createRelationshipEntity(relationshipType,rel);
-    }
-    private static RelationshipBacked createRelationshipEntity(Class<? extends RelationshipBacked> relationshipType, Relationship rel) {
-        try {
-            final Constructor<? extends RelationshipBacked> constructor = relationshipType.getDeclaredConstructor();
-            constructor.setAccessible(true);
-            final RelationshipBacked relationshipEntity = constructor.newInstance();
-            relationshipEntity.setUnderlyingRelationship(rel);
-            return relationshipEntity;
-        } catch (InstantiationException e) {
-            throw new RuntimeException(e);
-        } catch (IllegalAccessException e) {
-            throw new RuntimeException(e);
-        } catch (NoSuchMethodException e) {
-            throw new RuntimeException(e);
-        } catch (InvocationTargetException e) {
-            throw new RuntimeException(e.getTargetException());
-        }
+        return Neo4jNodeBacking.aspectOf().relationshipEntityInstantiator.createEntityFromState(rel, relationshipType);
     }
 
     public RelationshipBacked NodeBacked.getRelationshipTo(NodeBacked node, Class<? extends RelationshipBacked> relationshipType, String type) {
         Node myNode=this.getUnderlyingNode();
         Node otherNode=node.getUnderlyingNode();
         for (Relationship rel : this.getUnderlyingNode().getRelationships(DynamicRelationshipType.withName(type))) {
-            if (rel.getOtherNode(myNode).equals(otherNode)) return createRelationshipEntity(relationshipType,rel);
+            if (rel.getOtherNode(myNode).equals(otherNode)) return Neo4jNodeBacking.aspectOf().relationshipEntityInstantiator.createEntityFromState(rel, relationshipType);
         }
         return null;
     }
@@ -392,5 +392,19 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<GraphEn
         final GraphEntity graphEntity = field.getDeclaringClass().getAnnotation(GraphEntity.class);
         if (graphEntity==null) return false;
         return graphEntity.fullIndex();
+    }
+
+    public static class NodeBackedNodeIterableWrapper extends IterableWrapper<NodeBacked, Node> {
+        private final Class<? extends NodeBacked> targetType;
+
+        public NodeBackedNodeIterableWrapper(Traverser traverser, Class<? extends NodeBacked> targetType) {
+            super(traverser.nodes());
+            this.targetType = targetType;
+        }
+
+        @Override
+        protected NodeBacked underlyingObjectToObject(Node node) {
+            return Neo4jNodeBacking.aspectOf().graphEntityInstantiator.createEntityFromState(node,targetType);
+        }
     }
 }

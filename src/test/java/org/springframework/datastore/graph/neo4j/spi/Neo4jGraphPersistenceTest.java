@@ -7,8 +7,12 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.neo4j.graphdb.*;
+import org.neo4j.graphdb.traversal.PruneEvaluator;
+import org.neo4j.graphdb.traversal.TraversalDescription;
 import org.neo4j.helpers.collection.IteratorUtil;
 import org.neo4j.index.IndexService;
+import org.neo4j.kernel.Traversal;
+import org.neo4j.kernel.impl.traversal.TraversalDescriptionImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.datastore.graph.api.NodeBacked;
@@ -400,7 +404,7 @@ public class Neo4jGraphPersistenceTest {
 		Group group = new Group();
 		group.setReadOnlyPersons(new HashSet<Person>());
 	}
-	@Test(expected = InvalidDataAccessApiUsageException.class)
+	@Test
 	@Transactional
 	public void testFindGroupByIndex() {
 		Group group = new Group();
@@ -409,16 +413,32 @@ public class Neo4jGraphPersistenceTest {
         final Group found = finder.getByIndex("name", "test");
         Assert.assertEquals(group,found);
 	}
-	@Test(expected = InvalidDataAccessApiUsageException.class)
+
+    @Test
 	@Transactional
 	public void testFindAllGroupsByIndex() {
 		Group group = new Group();
         group.setName("test");
 		Group group2 = new Group();
-        group.setName("test");
+        group2.setName("test");
         final Finder<Group> finder = finderFactory.getFinderForClass(Group.class);
         final Iterable<Group> found = finder.getAllByIndex("name", "test");
         final Collection<Group> result = IteratorUtil.addToCollection(found.iterator(), new HashSet<Group>());
         Assert.assertEquals(new HashSet<Group>(Arrays.asList(group,group2)), result);
+	}
+	@Test
+	@Transactional
+	public void testTraverseFromGroupToPeople() {
+        Person p=new Person("Michael",35);
+		Group group = new Group();
+        group.setName("dev");
+        group.addPerson(p);
+        final TraversalDescription traversalDescription = new TraversalDescriptionImpl().relationships(DynamicRelationshipType.withName("persons")).filter(Traversal.returnAllButStartNode());
+        Iterable<Person> people=(Iterable<Person>)group.find(Person.class, traversalDescription);
+        final HashSet<Person> found = new HashSet<Person>();
+        for (Person person : people) {
+            found.add(person);
+        }
+        Assert.assertEquals(Collections.singleton(p),found);
 	}
 }
