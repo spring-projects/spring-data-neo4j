@@ -425,6 +425,14 @@ public class Neo4jGraphPersistenceTest {
         final Collection<Group> result = IteratorUtil.addToCollection(found.iterator(), new HashSet<Group>());
         Assert.assertEquals(new HashSet<Group>(Arrays.asList(group,group2)), result);
 	}
+    @Test
+	@Transactional
+	public void testFindAllPersonByIndexOnAnnotatedField() {
+		Person person = new Person("Michael",35);
+        final Finder<Person> finder = finderFactory.getFinderForClass(Person.class);
+        final Person found = finder.findByPropertyValue("Person.name", "Michael");
+        Assert.assertEquals(person, found);
+	}
 	@Test
 	@Transactional
 	public void testTraverseFromGroupToPeople() {

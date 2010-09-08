@@ -2,17 +2,15 @@ package org.springframework.datastore.graph.neo4j;
 
 import org.neo4j.graphdb.DynamicRelationshipType;
 import org.neo4j.graphdb.Relationship;
-import org.springframework.datastore.graph.api.Direction;
-import org.springframework.datastore.graph.api.GraphEntity;
-import org.springframework.datastore.graph.api.GraphEntityRelationship;
-import org.springframework.datastore.graph.api.GraphEntityRelationshipEntity;
+import org.springframework.datastore.graph.api.*;
 
 
 @GraphEntity(useShortNames = false)
 public class Person {
 	
 	private Long id;
-	
+
+    @GraphEntityProperty(index = true)
 	private String name;
 	
 	private int age;

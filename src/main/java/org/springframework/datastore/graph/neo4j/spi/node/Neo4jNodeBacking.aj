@@ -17,6 +17,7 @@ import org.neo4j.kernel.EmbeddedGraphDatabase;
 import org.neo4j.util.GraphDatabaseUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.InvalidDataAccessResourceUsageException;
+import org.springframework.datastore.graph.api.GraphEntityProperty;
 import org.springframework.datastore.graph.api.NodeBacked;
 import org.springframework.datastore.graph.api.RelationshipBacked;
 
@@ -390,8 +391,9 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<GraphEn
     // todo fieldlist in @graphentity
     private boolean isIndexedProperty(Field field) {
         final GraphEntity graphEntity = field.getDeclaringClass().getAnnotation(GraphEntity.class);
-        if (graphEntity==null) return false;
-        return graphEntity.fullIndex();
+        if (graphEntity != null && graphEntity.fullIndex()) return true;
+        final GraphEntityProperty graphEntityProperty = field.getAnnotation(GraphEntityProperty.class);
+        return graphEntityProperty!=null && graphEntityProperty.index();
     }
 
     public static class NodeBackedNodeIterableWrapper extends IterableWrapper<NodeBacked, Node> {
