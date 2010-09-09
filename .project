@@ -1,10 +1,7 @@
 <projectDescription>
-  <name>datastore-graph</name>
-  <comment/>
-  <projects>
-    <project>data-commons</project>
-    <project>datastore-cross-store</project>
-  </projects>
+  <name>spring-datastore-graph</name>
+  <comment>Spring Datastore Graph Support</comment>
+  <projects/>
   <buildSpec>
     <buildCommand>
       <name>org.eclipse.ajdt.core.ajbuilder</name>
@@ -29,6 +26,9 @@
     </buildCommand>
     <buildCommand>
       <name>org.maven.ide.eclipse.maven2Builder</name>
+    </buildCommand>
+    <buildCommand>
+      <name>org.eclipse.jdt.core.javabuilder</name>
     </buildCommand>
   </buildSpec>
   <natures>
