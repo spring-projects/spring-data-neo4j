@@ -131,7 +131,7 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<GraphEn
 		return this.underlyingNode.createRelationshipTo(nb.getUnderlyingNode(), type);
 	}
 
-	public Long NodeBacked.getId() {
+	public Long NodeBacked.getNodeId() {
         if (!hasUnderlyingNode()) return null;
 		return underlyingNode.getId();
 	}

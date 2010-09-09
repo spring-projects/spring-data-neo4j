@@ -65,7 +65,7 @@ public class Neo4jGraphPersistenceTest {
 		Person p = new Person("Rod", 39);
 		Assert.assertEquals(p.getName(), p.getUnderlyingNode().getProperty("Person.name"));
 		Assert.assertEquals(p.getAge(), p.getUnderlyingNode().getProperty("Person.age"));
-		Person found = graphEntityInstantiator.createEntityFromState(graphDatabaseService.getNodeById(p.getId()), Person.class);
+		Person found = graphEntityInstantiator.createEntityFromState(graphDatabaseService.getNodeById(p.getNodeId()), Person.class);
 		Assert.assertEquals("Rod", found.getUnderlyingNode().getProperty("Person.name"));
 		Assert.assertEquals(39, found.getUnderlyingNode().getProperty("Person.age"));
 	}
@@ -297,7 +297,7 @@ public class Neo4jGraphPersistenceTest {
 	public void testFinderFindById() {
 		Person p = new Person("Michael", 35);
 		Finder<Person> finder = finderFactory.getFinderForClass(Person.class);
-		Person pById = finder.findById(p.getId());
+		Person pById = finder.findById(p.getNodeId());
 		Assert.assertEquals(p, pById);
 	}
 	
