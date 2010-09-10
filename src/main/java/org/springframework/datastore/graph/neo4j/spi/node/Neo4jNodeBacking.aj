@@ -235,6 +235,7 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<GraphEn
     private ShouldProceedOrReturn getNodePropertyOrRelationship(Field field, NodeBacked entity) {
         // TODO fix arrays, TODO serialize other types as byte[] or string (for indexing, querying) via Annotation
         if (isIdField(field)) return new ShouldProceedOrReturn(entity.getUnderlyingNode().getId());
+        if (Modifier.isTransient(field.getModifiers())) return new ShouldProceedOrReturn();
         if (isNeo4jPropertyType(field.getType()) || isConvertableType(field.getType())) {
             String propName = FieldAccessorFactory.getNeo4jPropertyName(field);
             log.info("GET " + field + " <- Neo4J simple node property [" + propName + "]");
@@ -306,6 +307,7 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<GraphEn
         try {
             if (isIdField(field)) return new ShouldProceedOrReturn(null);
             if (Modifier.isFinal(field.getModifiers())) return new ShouldProceedOrReturn(newVal);
+            if (Modifier.isTransient(field.getModifiers())) return new ShouldProceedOrReturn(true, newVal);
             if (isNeo4jPropertyType(field.getType()) || isConvertableType(field.getType())) {
                 String propName = FieldAccessorFactory.getNeo4jPropertyName(field);
                 Node node = entity.getUnderlyingNode();

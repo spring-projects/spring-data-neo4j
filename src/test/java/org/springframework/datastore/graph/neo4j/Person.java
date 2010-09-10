@@ -17,6 +17,8 @@ public class Person {
 
 	private Short height;
 	
+	private transient String thought;
+	
 	private Personality personality;
 
 	private Person spouse;
@@ -114,5 +116,13 @@ public class Person {
 	
 	public Personality getPersonality() {
 		return personality;
+	}
+	
+	public void setThought(String thought) {
+		this.thought = thought;
+	}
+	
+	public String getThought() {
+		return thought;
 	}
 }

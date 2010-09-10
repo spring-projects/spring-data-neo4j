@@ -485,4 +485,21 @@ public class Neo4jGraphPersistenceTest {
 		p.getUnderlyingNode().setProperty("Person.personality", "EXTROVERT");
 		Assert.assertEquals("Did not deserialize property value properly.", Personality.EXTROVERT, p.getPersonality());
 	}
+	
+	@Test(expected = NotFoundException.class)
+	@Transactional
+	public void testSetTransientPropertyFieldNotManaged() {
+		Person p = new Person("Michael", 35);
+		p.setThought("food");
+		p.getUnderlyingNode().getProperty("Person.thought");
+	}
+	
+	@Test
+	@Transactional
+	public void testGetTransientPropertyFieldNotManaged() {
+		Person p = new Person("Michael", 35);
+		p.setThought("food");
+		p.getUnderlyingNode().setProperty("Person.thought", "sleep");
+		Assert.assertEquals("Should not have read transient value from graph.", "food", p.getThought());
+	}
 }
