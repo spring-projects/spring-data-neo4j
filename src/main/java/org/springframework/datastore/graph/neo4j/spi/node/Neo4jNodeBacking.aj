@@ -28,6 +28,8 @@ import org.springframework.persistence.support.AbstractTypeAnnotatingMixinFields
 import org.springframework.persistence.support.EntityInstantiator;
 import org.springframework.util.ObjectUtils;
 
+import org.springframework.core.convert.ConversionService;
+
 import javax.transaction.Status;
 import javax.transaction.SystemException;
 
@@ -53,10 +55,14 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<GraphEn
 	private FieldAccessorFactory fieldAccessorFactory;
 
 	public EntityInstantiator<RelationshipBacked, Relationship> relationshipEntityInstantiator;
+	
     private IndexService indexService;
+    
+//    private ConversionService conversionService;
 
     @Autowired
-	public void init(GraphDatabaseService gds, EntityInstantiator<NodeBacked, Node> graphEntityInstantiator, EntityInstantiator<RelationshipBacked, Relationship> relationshipEntityInstantiator, IndexService indexService) {
+	public void init(GraphDatabaseService gds, EntityInstantiator<NodeBacked, Node> graphEntityInstantiator, 
+			EntityInstantiator<RelationshipBacked, Relationship> relationshipEntityInstantiator, IndexService indexService) {
 		this.graphDatabaseService = gds;
 		this.graphEntityInstantiator = graphEntityInstantiator;
 		this.relationshipEntityInstantiator = relationshipEntityInstantiator;
@@ -229,11 +235,12 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<GraphEn
     private ShouldProceedOrReturn getNodePropertyOrRelationship(Field field, NodeBacked entity) {
         // TODO fix arrays, TODO serialize other types as byte[] or string (for indexing, querying) via Annotation
         if (isIdField(field)) return new ShouldProceedOrReturn(entity.getUnderlyingNode().getId());
-        if (isPropertyType(field.getType())) {
+        if (Modifier.isTransient(field.getModifiers())) return new ShouldProceedOrReturn();
+        if (isNeo4jPropertyType(field.getType()) || isConvertableType(field.getType())) {
             String propName = FieldAccessorFactory.getNeo4jPropertyName(field);
             log.info("GET " + field + " <- Neo4J simple node property [" + propName + "]");
             Node node = entity.getUnderlyingNode();
-            Object nodeProperty = node.getProperty(propName, getDefaultValue(field.getType()));
+            Object nodeProperty = deserializePropertyValue(node.getProperty(propName, getDefaultValue(field.getType())), field.getType());
             return new ShouldProceedOrReturn(nodeProperty);
         }
 
@@ -300,14 +307,15 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<GraphEn
         try {
             if (isIdField(field)) return new ShouldProceedOrReturn(null);
             if (Modifier.isFinal(field.getModifiers())) return new ShouldProceedOrReturn(newVal);
-            if (isPropertyType(field.getType())) {
+            if (Modifier.isTransient(field.getModifiers())) return new ShouldProceedOrReturn(true, newVal);
+            if (isNeo4jPropertyType(field.getType()) || isConvertableType(field.getType())) {
                 String propName = FieldAccessorFactory.getNeo4jPropertyName(field);
                 Node node = entity.getUnderlyingNode();
                 if (newVal==null) {
                     node.removeProperty(propName);
                     if (isIndexedProperty(field)) indexService.removeIndex(node,propName);
                 } else {
-                    node.setProperty(propName, newVal);
+                    node.setProperty(propName, serializePropertyValue(newVal, field.getType()));
                     if (isIndexedProperty(field)) indexService.index(node,propName,newVal);
                 }
                 log.info("SET " + field + " -> Neo4J simple node property [" + propName + "] with value=[" + newVal + "]");
@@ -316,7 +324,7 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<GraphEn
 
             FieldAccessor accessor = fieldAccessorFactory.forField(field);
             if (accessor == null) {
-                log.info("Ignored SET " + field + ": " + field.getType().getName() + " not primitive or GraphEntity");
+                log.info("Ignored SET " + field + ": " + field.getType().getName() + " not primitive, convertable, or GraphEntity");
                 return new ShouldProceedOrReturn(true,newVal);
             }
             log.info("SET " + field + " -> Neo4J relationship with value=[" + newVal + "]");
@@ -377,16 +385,37 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<GraphEn
         }
 	}
 
-	private boolean isPropertyType(Class<?> fieldType) {
+	private boolean isNeo4jPropertyType(Class<?> fieldType) {
 		// todo: add array support
 		return fieldType.isPrimitive()
-	  		|| (fieldType.isArray() && !fieldType.getComponentType().isArray() && isPropertyType(fieldType.getComponentType()))
+	  		|| (fieldType.isArray() && !fieldType.getComponentType().isArray() && isNeo4jPropertyType(fieldType.getComponentType()))
 	  		|| fieldType.equals(String.class)
 	  		|| fieldType.equals(Character.class)
 	  		|| fieldType.equals(Boolean.class)
 	  		|| (fieldType.getName().startsWith("java.lang") && Number.class.isAssignableFrom(fieldType));
 	}
 
+	private boolean isConvertableType(Class<?> fieldType) {
+		//return conversionService.canConvert(fieldType, String.class);
+		return fieldType.isEnum();
+	}
+	
+	private Object serializePropertyValue(Object newVal, Class<?> fieldType) {
+		if (isNeo4jPropertyType(fieldType)) {
+			return newVal;
+		}
+//		return conversionService.convert(newVal, String.class);
+		return ((Enum<?>)newVal).name();
+	}
+	
+	private Object deserializePropertyValue(Object value, Class<?> fieldType) {
+		if (isNeo4jPropertyType(fieldType)) {
+			return value;
+		}
+//		return conversionService.convert(value, fieldType);
+		return Enum.valueOf((Class<Enum>)fieldType, (String)value);
+	}
+	
     // todo @property annotation
     // todo fieldlist in @graphentity
     private boolean isIndexedProperty(Field field) {
