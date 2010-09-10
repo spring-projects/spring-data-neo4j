@@ -5,10 +5,12 @@ import org.springframework.datastore.graph.api.GraphRelationship;
 import org.springframework.datastore.graph.api.GraphRelationshipEndNode;
 import org.springframework.datastore.graph.api.GraphRelationshipStartNode;
 
+import java.util.Date;
+
 @GraphRelationship
 public class Friendship {
-	
-	public Friendship() {
+
+    public Friendship() {
 	}
 	
 	public Friendship(Person p1, Person p2) {
@@ -29,6 +31,10 @@ public class Friendship {
 	private Person p2;
 	
 	private int years;
+    
+	private Date firstMeetingDate;
+
+	private transient String latestLocation;
 	
 	public void setPerson1(Person p) {
 		p1 = p;
@@ -52,5 +58,21 @@ public class Friendship {
 
 	public int getYears() {
 		return years;
+	}
+
+	public void setFirstMeetingDate(Date firstMeetingDate) {
+		this.firstMeetingDate = firstMeetingDate;
+	}
+
+	public Date getFirstMeetingDate() {
+		return firstMeetingDate;
+	}
+
+	public void setLatestLocation(String latestLocation) {
+		this.latestLocation = latestLocation;
+	}
+
+	public String getLatestLocation() {
+		return latestLocation;
 	}
 }

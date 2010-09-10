@@ -1,6 +1,7 @@
 package org.springframework.datastore.graph.neo4j.spi.relationship;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 
 import org.aspectj.lang.reflect.FieldSignature;
 import org.neo4j.graphdb.Node;
@@ -16,13 +17,8 @@ import org.springframework.datastore.graph.neo4j.finder.FinderFactory;
 import org.springframework.persistence.support.AbstractTypeAnnotatingMixinFields;
 import org.springframework.persistence.support.EntityInstantiator;
 
-/**
- * Aspect to turn an object annotated with GraphEntity into a graph entity using Neo4J.
- * Delegates all field access (except for fields assumed to be transient)
- * to an underlying Neo4 graph node.
- * 
- * @author Rod Johnson
- */
+import org.springframework.core.convert.ConversionService;
+
 public aspect Neo4jRelationshipBacking extends AbstractTypeAnnotatingMixinFields<GraphRelationship,RelationshipBacked> {
 	
 	//-------------------------------------------------------------------------
@@ -32,10 +28,14 @@ public aspect Neo4jRelationshipBacking extends AbstractTypeAnnotatingMixinFields
 	//-------------------------------------------------------------------------
 	// Aspect shared Neo4J Graph Database Service
 	private EntityInstantiator<NodeBacked, Node> graphEntityInstantiator;
+
+	private ConversionService conversionService;
 	
 	@Autowired
-	public void setEntityInstantiator(EntityInstantiator<NodeBacked, Node> entityInstantiator) {
-		this.graphEntityInstantiator = entityInstantiator;
+	public void init(EntityInstantiator<NodeBacked, Node> graphEntityInstantiator,
+	        ConversionService conversionService) {
+		this.graphEntityInstantiator = graphEntityInstantiator;
+		this.conversionService = conversionService;
 	}
 	
 	// Introduced fields
@@ -78,6 +78,10 @@ public aspect Neo4jRelationshipBacking extends AbstractTypeAnnotatingMixinFields
 	Object around(RelationshipBacked entity) : entityFieldGet(entity) {	
 		FieldSignature fieldSignature=(FieldSignature) thisJoinPoint.getSignature();
 		Field f = fieldSignature.getField();
+		
+        if (Modifier.isTransient(f.getModifiers())) {
+            return proceed(entity);
+        }
 
 		if (isStartNodeField(f)) {
 			Node startNode = entity.getUnderlyingRelationship().getStartNode();
@@ -95,14 +99,14 @@ public aspect Neo4jRelationshipBacking extends AbstractTypeAnnotatingMixinFields
 		}
 		
 //		TODO fix arrays, TODO serialize other types as byte[] or string (for indexing, querying) via Annotation
-		if (isPropertyType(f.getType())) {
+		if (isNeo4jPropertyType(f.getType()) || isDeserializableField(f)) {
 			Relationship rel = entity.getUnderlyingRelationship();
 			if (rel == null) {
 				throw new InvalidDataAccessApiUsageException("Please set start node and end node before reading from other fields.");
 			}
 			String propName = FieldAccessorFactory.getNeo4jPropertyName(f);
 			log.info("GET " + f + " <- Neo4J simple relationship property [" + propName + "]");
-			return rel.getProperty(propName, null);
+			return deserializePropertyValue(rel.getProperty(propName, null), f.getType());
 		}
 		
 		return proceed(entity);
@@ -112,10 +116,15 @@ public aspect Neo4jRelationshipBacking extends AbstractTypeAnnotatingMixinFields
 		try {
 			FieldSignature fieldSignature = (FieldSignature) thisJoinPoint.getSignature();
 			Field f = fieldSignature.getField();
+
+			if (Modifier.isTransient(f.getModifiers())) {
+				return proceed(entity, newVal);
+			}
+
 			if (isStartNodeField(f) || isEndNodeField(f)) {
 				throw new InvalidDataAccessApiUsageException("Cannot change start node or end node of existing relationship.");
 			}
-			if (isPropertyType(f.getType())) {
+			if (isNeo4jPropertyType(f.getType()) || isSerializableField(f)) {
 				Relationship rel = entity.getUnderlyingRelationship();
 				if (rel == null) {
 					throw new InvalidDataAccessApiUsageException("Please set start node and end node before assigning to other fields.");
@@ -125,7 +134,7 @@ public aspect Neo4jRelationshipBacking extends AbstractTypeAnnotatingMixinFields
                     entity.getUnderlyingRelationship().removeProperty(propName);
                 }
                 else {
-                    entity.getUnderlyingRelationship().setProperty(propName, newVal);
+                    entity.getUnderlyingRelationship().setProperty(propName, serializePropertyValue(newVal, f.getType()));
                 }
 				log.info("SET " + f + " -> Neo4J simple relationship property [" + propName + "] with value=[" + newVal + "]");
 				return proceed(entity, newVal);
@@ -143,15 +152,37 @@ public aspect Neo4jRelationshipBacking extends AbstractTypeAnnotatingMixinFields
 	private boolean isStartNodeField(Field f) {
 		return f.isAnnotationPresent(GraphRelationshipStartNode.class);
 	}
-	
-	private boolean isPropertyType(Class<?> fieldType) {
+
+	private boolean isNeo4jPropertyType(Class<?> fieldType) {
 		// todo: add array support
 		return fieldType.isPrimitive()
-	  		|| (fieldType.isArray() && !fieldType.getComponentType().isArray() && isPropertyType(fieldType.getComponentType()))
+	  		|| (fieldType.isArray() && !fieldType.getComponentType().isArray() && isNeo4jPropertyType(fieldType.getComponentType()))
 	  		|| fieldType.equals(String.class)
 	  		|| fieldType.equals(Character.class)
 	  		|| fieldType.equals(Boolean.class)
 	  		|| (fieldType.getName().startsWith("java.lang") && Number.class.isAssignableFrom(fieldType));
+	}
+
+	private boolean isSerializableField(Field field) {
+		return !FieldAccessorFactory.isRelationshipField(field) && conversionService.canConvert(field.getType(), String.class);
+	}
+
+	private boolean isDeserializableField(Field field) {
+		return !FieldAccessorFactory.isRelationshipField(field) && conversionService.canConvert(String.class, field.getType());
+	}
+
+	private Object serializePropertyValue(Object newVal, Class<?> fieldType) {
+		if (isNeo4jPropertyType(fieldType)) {
+			return newVal;
+		}
+		return conversionService.convert(newVal, String.class);
+	}
+
+	private Object deserializePropertyValue(Object value, Class<?> fieldType) {
+		if (isNeo4jPropertyType(fieldType)) {
+			return value;
+		}
+		return conversionService.convert(value, fieldType);
 	}
 
 }

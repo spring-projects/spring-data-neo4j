@@ -71,9 +71,7 @@
 
 	<bean class="org.springframework.datastore.graph.neo4j.spi.node.Neo4jNodeBacking" factory-method="aspectOf" />
 
-	<bean class="org.springframework.datastore.graph.neo4j.spi.relationship.Neo4jRelationshipBacking" factory-method="aspectOf" >
-        <property name="entityInstantiator" ref="gei"/>
-    </bean>
+	<bean class="org.springframework.datastore.graph.neo4j.spi.relationship.Neo4jRelationshipBacking" factory-method="aspectOf" />
 
 	<!--
 		<bean class="org.springframework.persistence.graph.Neo4jSimpleNodePropertyStorageForeignStoreKeyManager"/>
@@ -99,6 +97,9 @@
 	
 	<bean id="relationshipEntityInstantiator" name="rei" class="org.springframework.datastore.graph.neo4j.spi.relationship.ConstructorBypassingGraphRelationshipInstantiator" />
 	
+	<!-- conversion support -->
+	<bean id="conversionService" class="org.springframework.datastore.graph.neo4j.fieldaccess.Neo4jConversionServiceFactoryBean"/>
+
 	<!--
  	-->
 	<bean id="transactionManager" class="org.springframework.persistence.transaction.NaiveDoubleTransactionManager" >

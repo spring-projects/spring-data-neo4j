@@ -47,6 +47,13 @@ public class FieldAccessorFactory {
 		}
 		throw new IllegalArgumentException("Not a Neo4j relationship field: " + field);
 	}
+	
+	public static boolean isRelationshipField(Field f) {
+		return isSingleRelationshipField(f) 
+			|| isOneToNRelationshipField(f)
+			|| isOneToNRelationshipEntityField(f)
+			|| isReadOnlyOneToNRelationshipField(f);
+	}
 
 	private static boolean isSingleRelationshipField(Field f) {
 		return NodeBacked.class.isAssignableFrom(f.getType());

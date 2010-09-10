@@ -3,6 +3,7 @@ package org.springframework.datastore.graph.neo4j;
 import org.neo4j.graphdb.DynamicRelationshipType;
 import org.neo4j.graphdb.Relationship;
 import org.springframework.datastore.graph.api.*;
+import java.util.Date;
 
 
 @GraphEntity(useShortNames = false)
@@ -20,6 +21,8 @@ public class Person {
 	private transient String thought;
 	
 	private Personality personality;
+	
+	private Date birthdate;
 
 	private Person spouse;
 	
@@ -125,4 +128,13 @@ public class Person {
 	public String getThought() {
 		return thought;
 	}
+
+	public Date getBirthdate() {
+		return birthdate;
+	}
+
+	public void setBirthdate(Date birthdate) {
+		this.birthdate = birthdate;
+	}
+	
 }

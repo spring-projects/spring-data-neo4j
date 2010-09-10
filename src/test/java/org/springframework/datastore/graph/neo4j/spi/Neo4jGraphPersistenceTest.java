@@ -472,7 +472,7 @@ public class Neo4jGraphPersistenceTest {
 	
 	@Test
 	@Transactional
-	public void testSetPropertyConversionOfEnumProperty() {
+	public void testSetPropertyEnum() {
 		Person p = new Person("Michael", 35);
 		p.setPersonality(Personality.EXTROVERT);
 		Assert.assertEquals("Wrong enum serialization.", "EXTROVERT", p.getUnderlyingNode().getProperty("Person.personality"));
@@ -480,7 +480,7 @@ public class Neo4jGraphPersistenceTest {
 	
 	@Test
 	@Transactional
-	public void testGetPropertyConversionOfEnumProperty() {
+	public void testGetPropertyEnum() {
 		Person p = new Person("Michael", 35);
 		p.getUnderlyingNode().setProperty("Person.personality", "EXTROVERT");
 		Assert.assertEquals("Did not deserialize property value properly.", Personality.EXTROVERT, p.getPersonality());
@@ -501,5 +501,46 @@ public class Neo4jGraphPersistenceTest {
 		p.setThought("food");
 		p.getUnderlyingNode().setProperty("Person.thought", "sleep");
 		Assert.assertEquals("Should not have read transient value from graph.", "food", p.getThought());
+	}
+
+	@Test
+	@Transactional
+	public void testRelationshipSetPropertyDate() {
+		Person p = new Person("Michael", 35);
+        Person p2 = new Person("David", 25);
+        Friendship f = p.knows(p2);
+        f.setFirstMeetingDate(new Date(3));
+		Assert.assertEquals("Date not serialized properly.", "3", f.getUnderlyingRelationship().getProperty("Friendship.firstMeetingDate"));
+	}
+
+	@Test
+	@Transactional
+	public void testRelationshipGetPropertyDate() {
+		Person p = new Person("Michael", 35);
+        Person p2 = new Person("David", 25);
+        Friendship f = p.knows(p2);
+        f.getUnderlyingRelationship().setProperty("Friendship.firstMeetingDate", "3");
+		Assert.assertEquals("Date not deserialized properly.", new Date(3), f.getFirstMeetingDate());
+	}
+
+	@Test(expected = NotFoundException.class)
+	@Transactional
+	public void testRelationshipSetTransientPropertyFieldNotManaged() {
+		Person p = new Person("Michael", 35);
+        Person p2 = new Person("David", 25);
+        Friendship f = p.knows(p2);
+        f.setLatestLocation("Menlo Park");
+		f.getUnderlyingRelationship().getProperty("Friendship.latestLocation");
+	}
+
+	@Test
+	@Transactional
+	public void testRelationshipGetTransientPropertyFieldNotManaged() {
+		Person p = new Person("Michael", 35);
+        Person p2 = new Person("David", 25);
+        Friendship f = p.knows(p2);
+        f.setLatestLocation("Menlo Park");
+		f.getUnderlyingRelationship().setProperty("Friendship.latestLocation", "Palo Alto");
+		Assert.assertEquals("Should not have read transient value from graph.", "Menlo Park", f.getLatestLocation());
 	}
 }
