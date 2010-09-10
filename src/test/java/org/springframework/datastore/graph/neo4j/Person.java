@@ -16,6 +16,8 @@ public class Person {
 	private int age;
 
 	private Short height;
+	
+	private Personality personality;
 
 	private Person spouse;
 	
@@ -104,5 +106,13 @@ public class Person {
 
 	public Friendship knows(Person p) {
         return (Friendship)relateTo(p, Friendship.class,"knows");
+	}
+	
+	public void setPersonality(Personality personality) {
+		this.personality = personality;
+	}
+	
+	public Personality getPersonality() {
+		return personality;
 	}
 }

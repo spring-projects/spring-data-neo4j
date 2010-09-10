@@ -18,13 +18,14 @@ import org.springframework.datastore.graph.api.NodeBacked;
 import org.springframework.datastore.graph.neo4j.Friendship;
 import org.springframework.datastore.graph.neo4j.Group;
 import org.springframework.datastore.graph.neo4j.Person;
+import org.springframework.datastore.graph.neo4j.Personality;
 import org.springframework.datastore.graph.neo4j.finder.Finder;
 import org.springframework.datastore.graph.neo4j.finder.FinderFactory;
 import org.springframework.datastore.graph.neo4j.spi.node.Neo4jHelper;
-import org.springframework.persistence.support.EntityInstantiator;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.persistence.support.EntityInstantiator;
 
 import java.util.*;
 
@@ -175,7 +176,6 @@ public class Neo4jGraphPersistenceTest {
         Assert.assertEquals(20,p.getAge());
 	}
 	
-	// @Test(expected = InvalidDataAccessResourceUsageException.class)
     @Test
 	public void testCreateRelationshipOutsideTransaction() {
 		Transaction tx = graphDatabaseService.beginTx();
@@ -359,6 +359,7 @@ public class Neo4jGraphPersistenceTest {
 		Assert.assertEquals(p, f.getPerson1());
 		Assert.assertEquals(p2, f.getPerson2());
 	}
+	
 	@Test
 	@Transactional
 	public void testGetRelationshipToReturnsRelationship() {
@@ -403,6 +404,7 @@ public class Neo4jGraphPersistenceTest {
 		Group group = new Group();
 		group.setReadOnlyPersons(new HashSet<Person>());
 	}
+	
 	@Test
 	@Transactional
 	public void testFindGroupByIndex() {
@@ -425,6 +427,7 @@ public class Neo4jGraphPersistenceTest {
         final Collection<Group> result = IteratorUtil.addToCollection(found.iterator(), new HashSet<Group>());
         Assert.assertEquals(new HashSet<Group>(Arrays.asList(group,group2)), result);
 	}
+    
     @Test
 	@Transactional
 	public void testFindAllPersonByIndexOnAnnotatedField() {
@@ -433,35 +436,53 @@ public class Neo4jGraphPersistenceTest {
         final Person found = finder.findByPropertyValue("Person.name", "Michael");
         Assert.assertEquals(person, found);
 	}
+    
 	@Test
 	@Transactional
 	public void testTraverseFromGroupToPeople() {
-        Person p=new Person("Michael",35);
+        Person p = new Person("Michael", 35);
 		Group group = new Group();
         group.setName("dev");
         group.addPerson(p);
         final TraversalDescription traversalDescription = new TraversalDescriptionImpl().relationships(DynamicRelationshipType.withName("persons")).filter(Traversal.returnAllButStartNode());
-        Iterable<Person> people=(Iterable<Person>)group.find(Person.class, traversalDescription);
+        Iterable<Person> people = (Iterable<Person>) group.find(Person.class, traversalDescription);
         final HashSet<Person> found = new HashSet<Person>();
         for (Person person : people) {
             found.add(person);
         }
         Assert.assertEquals(Collections.singleton(p),found);
 	}
+	
 	@Test
 	@Transactional
 	public void testTraverseFromGroupToPeopleWithFinder() {
         final Finder<Person> finder = finderFactory.getFinderForClass(Person.class);
-        Person p=new Person("Michael",35);
+        Person p = new Person("Michael", 35);
 		Group group = new Group();
         group.setName("dev");
         group.addPerson(p);
         final TraversalDescription traversalDescription = new TraversalDescriptionImpl().relationships(DynamicRelationshipType.withName("persons")).filter(Traversal.returnAllButStartNode());
-        Iterable<Person> people=finder.findAllByTraversal(group, traversalDescription);
+        Iterable<Person> people = finder.findAllByTraversal(group, traversalDescription);
         final HashSet<Person> found = new HashSet<Person>();
         for (Person person : people) {
             found.add(person);
         }
         Assert.assertEquals(Collections.singleton(p),found);
+	}
+	
+	@Test
+	@Transactional
+	public void testSetPropertyConversionOfEnumProperty() {
+		Person p = new Person("Michael", 35);
+		p.setPersonality(Personality.EXTROVERT);
+		Assert.assertEquals("Wrong enum serialization.", "EXTROVERT", p.getUnderlyingNode().getProperty("Person.personality"));
+	}
+	
+	@Test
+	@Transactional
+	public void testGetPropertyConversionOfEnumProperty() {
+		Person p = new Person("Michael", 35);
+		p.getUnderlyingNode().setProperty("Person.personality", "EXTROVERT");
+		Assert.assertEquals("Did not deserialize property value properly.", Personality.EXTROVERT, p.getPersonality());
 	}
 }
