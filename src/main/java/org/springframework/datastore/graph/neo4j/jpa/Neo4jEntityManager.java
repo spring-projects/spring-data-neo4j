@@ -223,10 +223,10 @@ public class Neo4jEntityManager implements EntityManager {
     @Override
     public <T> TypedQuery<T> createQuery(final String qlString, final Class<T> entityClass) {
         checkClosed();
-        return (TypedQuery<T>)createNeo4jQuery(qlString,(Class<? extends NodeBacked>)entityClass);
+        return (TypedQuery<T>)createNeo4jQuery(qlString,entityClass);
     }
 
-    public <T extends NodeBacked> TypedQuery<T> createNeo4jQuery(final String qlString, final Class<T> entityClass) {
+    public <T> TypedQuery<T> createNeo4jQuery(final String qlString, final Class<T> entityClass) {
         return new Neo4JQuery<T>(qlString, finderFactory,info,entityClass);
     }
 

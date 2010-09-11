@@ -16,62 +16,71 @@ import static org.springframework.datastore.graph.neo4j.support.Tuple2._;
 import static org.springframework.util.ObjectUtils.nullSafeEquals;
 
 /**
-* @author Michael Hunger
-* @since 29.08.2010
-*/
-public class Neo4JQuery<T extends NodeBacked> implements TypedQuery<T> {
-    protected final Finder<T> finder;
-    protected final Class<T> entityClass;
+ * @author Michael Hunger
+ * @since 29.08.2010
+ */
+public class Neo4JQuery<T> implements TypedQuery<T> {
+    protected final Class<T> resultClass;
     protected final String qlString;
+    private final FinderFactory finderFactory;
     private final PersistenceUnitInfo info;
     private final Pattern fromPattern = Pattern.compile("^.*\\bfrom\\s+([A-Z][A-Za-z0-9]+)\\b.*");
-    private int startPosition=0;
-    private int maxResult=-1;
-    private QueryExectuor<?> queryExectuor;
-    private Map<Parameter<?>, Tuple2<?,TemporalType>> parameters=new HashMap<Parameter<?>, Tuple2<?,TemporalType>>();
+    private int startPosition = 0;
+    private int maxResult = -1;
+    private QueryExecutor<?> queryExecutor;
+    private Map<Parameter<?>, Tuple2<?, TemporalType>> parameters = new HashMap<Parameter<?>, Tuple2<?, TemporalType>>();
 
-    public Neo4JQuery(final String qlString, final FinderFactory finderFactory, final PersistenceUnitInfo info, final Class<T> entityClass) {
+    public Neo4JQuery(final String qlString, final FinderFactory finderFactory, final PersistenceUnitInfo info, Class<T> resultClass) {
         this.qlString = qlString;
+        this.finderFactory = finderFactory;
         this.info = info;
-        final Matcher matcher = fromPattern.matcher(qlString);
-        if (matcher.matches()) {
-            final String shortName = matcher.group(1);
-            if (entityClass!=null) this.entityClass= entityClass;
-            else this.entityClass=getEntityClass(shortName);
-            finder = finderFactory.getFinderForClass(this.entityClass);
-            queryExectuor = createExecutor(qlString);
-        } else {
-            throw new IllegalAccessError("Unable to parse query "+qlString);
-        }
+        this.resultClass = resultClass;
+        queryExecutor = createExecutor(qlString);
     }
 
-    private QueryExectuor<?> createExecutor(final String qlString) {
-        if (qlString.contains(" count(")) return new QueryExectuor<Long>() {
-            @Override
-            protected Long findObject() {
-                return finder.count();
-            }
-        };
-        return new QueryExectuor<T>() {
+    private QueryExecutor<T> createExecutor(final String qlString) {
+        final Finder<?> finder = getFinderFromQuery(qlString);
+        if (qlString.contains(" count(")) {
+            return new QueryExecutor<T>() {
+                @Override
+                protected T findObject() {
+                    return (T)Long.valueOf(finder.count());
+                }
+            };
+        }
+        return new QueryExecutor<T>() {
             @Override
             protected Iterable<T> findList() {
-                return finder.findAll();
+                return (Iterable<T>) finder.findAll();
             }
         };
     }
 
-    abstract static class QueryExectuor<T> {
-        protected Iterable<T> findList() { return Collections.singleton(findObject()); }
-        protected T findObject() { return null; }
+    private Finder<? extends NodeBacked> getFinderFromQuery(String qlString) {
+        final Matcher matcher = fromPattern.matcher(qlString);
+        if (!matcher.matches()) throw new IllegalAccessError("Unable to parse query " + qlString);
+        final String shortName = matcher.group(1);
+        final Class<? extends NodeBacked> entityClass = getEntityClass(shortName);
+        return finderFactory.getFinderForClass(entityClass);
+    }
+
+    abstract static class QueryExecutor<T> {
+        protected Iterable<T> findList() {
+            return Collections.singleton(findObject());
+        }
+
+        protected T findObject() {
+            return null;
+        }
 
     }
 
-    private Class<T> getEntityClass(final String shortName) {
+    private Class<? extends NodeBacked> getEntityClass(final String shortName) {
         try {
             final String className = getFQN(shortName);
-            return (Class<T>) Class.forName(className);
+            return (Class<? extends NodeBacked>) Class.forName(className);
         } catch (ClassNotFoundException e) {
-            throw new IllegalStateException("Error resolving class "+shortName,e);
+            throw new IllegalStateException("Error resolving class " + shortName, e);
         }
     }
 
@@ -79,16 +88,16 @@ public class Neo4JQuery<T extends NodeBacked> implements TypedQuery<T> {
         for (final String className : info.getManagedClassNames()) {
             if (className.endsWith(shortName)) return className;
         }
-        throw new ClassNotFoundException("No mapped class found for "+shortName);
+        throw new ClassNotFoundException("No mapped class found for " + shortName);
     }
 
     @Override
     public List<T> getResultList() {
         final List<T> result = new ArrayList<T>();
-        int count=0;
-        for (final T nodeBacked : (Iterable<T>)queryExectuor.findList()) {
-            if (maxResult>=0 && count==startPosition+maxResult) break;
-            if (count>=startPosition) {
+        int count = 0;
+        for (final T nodeBacked : (Iterable<T>) queryExecutor.findList()) {
+            if (maxResult >= 0 && count == startPosition + maxResult) break;
+            if (count >= startPosition) {
                 result.add(nodeBacked);
             }
             count++;
@@ -98,7 +107,7 @@ public class Neo4JQuery<T extends NodeBacked> implements TypedQuery<T> {
 
     @Override
     public T getSingleResult() {
-        final Iterator<?> found = queryExectuor.findList().iterator();
+        final Iterator<?> found = queryExecutor.findList().iterator();
         return found.hasNext() ? (T) found.next() : null; // todo errors when none or too many ?
     }
 
@@ -146,48 +155,48 @@ public class Neo4JQuery<T extends NodeBacked> implements TypedQuery<T> {
     }
 
     private static <P> Tuple2<P, TemporalType> value(final P value) {
-        return _(value,(TemporalType)null);
+        return _(value, (TemporalType) null);
     }
 
     @Override
     public TypedQuery<T> setParameter(final Parameter<Calendar> parameter, final Calendar calendar, final TemporalType temporalType) {
-        this.parameters.put(parameter,_(calendar,temporalType));
+        this.parameters.put(parameter, _(calendar, temporalType));
         return this;
     }
 
     @Override
     public TypedQuery<T> setParameter(final Parameter<Date> parameter, final Date date, final TemporalType temporalType) {
-        this.parameters.put(parameter,_(date,temporalType));
+        this.parameters.put(parameter, _(date, temporalType));
         return this;
     }
 
     @Override
     public TypedQuery<T> setParameter(final String name, final Object value) {
-        this.parameters.put(param(name),value(value));
+        this.parameters.put(param(name), value(value));
         return this;
     }
 
     @Override
     public TypedQuery<T> setParameter(final String name, final Date value, final TemporalType temporalType) {
-        this.parameters.put(param(name),_(value,temporalType));
+        this.parameters.put(param(name), _(value, temporalType));
         return this;
     }
 
     @Override
     public TypedQuery<T> setParameter(final String name, final Calendar value, final TemporalType temporalType) {
-        this.parameters.put(param(name),_(value,temporalType));
+        this.parameters.put(param(name), _(value, temporalType));
         return this;
     }
 
     @Override
     public TypedQuery<T> setParameter(final int position, final Object value) {
-        this.parameters.put(param(position),value(value));
+        this.parameters.put(param(position), value(value));
         return this;
     }
 
     @Override
     public TypedQuery<T> setParameter(final int position, final Date value, final TemporalType temporalType) {
-        this.parameters.put(param(position),value(value));
+        this.parameters.put(param(position), value(value));
         return this;
     }
 
@@ -199,7 +208,7 @@ public class Neo4JQuery<T extends NodeBacked> implements TypedQuery<T> {
     @Override
     public Parameter<?> getParameter(final String name) {
         for (final Parameter<?> parameter : parameters.keySet()) {
-            if (nullSafeEquals(parameter.getName(),name))  return parameter;
+            if (nullSafeEquals(parameter.getName(), name)) return parameter;
         }
         return null;
     }
@@ -207,7 +216,8 @@ public class Neo4JQuery<T extends NodeBacked> implements TypedQuery<T> {
     @Override
     public <T> Parameter<T> getParameter(final String name, final Class<T> type) {
         for (final Parameter<?> parameter : parameters.keySet()) {
-            if (nullSafeEquals(parameter.getName(),name) && nullSafeEquals(type,parameter.getParameterType()))  return (Parameter<T>) parameter;
+            if (nullSafeEquals(parameter.getName(), name) && nullSafeEquals(type, parameter.getParameterType()))
+                return (Parameter<T>) parameter;
         }
         return null;
     }
@@ -215,7 +225,7 @@ public class Neo4JQuery<T extends NodeBacked> implements TypedQuery<T> {
     @Override
     public Parameter<?> getParameter(final int index) {
         for (final Parameter<?> parameter : parameters.keySet()) {
-            if (nullSafeEquals(parameter.getPosition(),index))  return parameter;
+            if (nullSafeEquals(parameter.getPosition(), index)) return parameter;
         }
         return null;
     }
@@ -223,7 +233,8 @@ public class Neo4JQuery<T extends NodeBacked> implements TypedQuery<T> {
     @Override
     public <T> Parameter<T> getParameter(final int index, final Class<T> type) {
         for (final Parameter<?> parameter : parameters.keySet()) {
-            if (nullSafeEquals(parameter.getPosition(),index) && nullSafeEquals(type,parameter.getParameterType()))  return (Parameter<T>) parameter;
+            if (nullSafeEquals(parameter.getPosition(), index) && nullSafeEquals(type, parameter.getParameterType()))
+                return (Parameter<T>) parameter;
         }
         return null;
     }
@@ -250,7 +261,7 @@ public class Neo4JQuery<T extends NodeBacked> implements TypedQuery<T> {
 
     @Override
     public TypedQuery<T> setParameter(final int position, final Calendar value, final TemporalType temporalType) {
-        parameters.put(param(position),_(value,temporalType));
+        parameters.put(param(position), _(value, temporalType));
         return this;
     }
 
