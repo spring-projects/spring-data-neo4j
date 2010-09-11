@@ -9,8 +9,10 @@ import org.springframework.persistence.support.EntityInstantiator;
 
 import javax.annotation.Resource;
 import javax.persistence.EntityManagerFactory;
+import javax.persistence.spi.LoadState;
 import javax.persistence.spi.PersistenceProvider;
 import javax.persistence.spi.PersistenceUnitInfo;
+import javax.persistence.spi.ProviderUtil;
 import java.util.Map;
 
 /**
@@ -45,5 +47,25 @@ public class Neo4jPersistenceProvider implements PersistenceProvider {
         System.out.println("info.getPersistenceUnitName() = " + info.getPersistenceUnitName());
         System.out.println("params = " + params);
         return new Neo4jEntityManagerFactory(graphDatabaseService,graphEntityInstantiator, indexService, info,params);
+    }
+
+    @Override
+    public ProviderUtil getProviderUtil() {
+        return new ProviderUtil(){
+            @Override
+            public LoadState isLoadedWithoutReference(Object o, String s) {
+                return LoadState.UNKNOWN;
+            }
+
+            @Override
+            public LoadState isLoadedWithReference(Object o, String s) {
+                return LoadState.UNKNOWN;
+            }
+
+            @Override
+            public LoadState isLoaded(Object o) {
+                return LoadState.UNKNOWN;
+            }
+        };
     }
 }

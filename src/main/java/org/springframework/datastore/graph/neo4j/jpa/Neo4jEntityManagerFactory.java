@@ -6,9 +6,14 @@ import org.neo4j.index.IndexService;
 import org.springframework.datastore.graph.api.NodeBacked;
 import org.springframework.persistence.support.EntityInstantiator;
 
+import javax.persistence.Cache;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
+import javax.persistence.PersistenceUnitUtil;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.metamodel.Metamodel;
 import javax.persistence.spi.PersistenceUnitInfo;
+import java.util.Collections;
 import java.util.Map;
 
 /**
@@ -42,7 +47,32 @@ public class Neo4jEntityManagerFactory implements EntityManagerFactory {
     }
 
     @Override
+    public CriteriaBuilder getCriteriaBuilder() {
+        return null;
+    }
+
+    @Override
+    public Metamodel getMetamodel() {
+        return null;
+    }
+
+    @Override
     public void close() {
+    }
+
+    @Override
+    public Map<String, Object> getProperties() {
+        return Collections.emptyMap();
+    }
+
+    @Override
+    public Cache getCache() {
+        return null;
+    }
+
+    @Override
+    public PersistenceUnitUtil getPersistenceUnitUtil() {
+        return null;
     }
 
     @Override

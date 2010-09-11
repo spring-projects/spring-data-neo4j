@@ -189,22 +189,28 @@
 			<groupId>org.springframework.data</groupId>
 			<artifactId>spring-datastore-cross-store</artifactId>
 			<version>1.0.0.M1-SNAPSHOT</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>javax.persistence</groupId>
+                    <artifactId>persistence-api</artifactId>
+                </exclusion>
+            </exclusions>
 		</dependency>
 		
 		<!-- JPA dependencies -->
+           <!--dependency>
+               <groupId>org.apache.geronimo.specs</groupId>
+               <artifactId>geronimo-jpa_2.0_spec</artifactId>
+               <version>1.1</version>
+           </dependency-->
+
         <dependency>
-            <groupId>javax.persistence</groupId>
-            <artifactId>persistence-api</artifactId>
-            <version>1.0</version>
+            <groupId>org.hibernate.javax.persistence</groupId>
+            <artifactId>hibernate-jpa-2.0-api</artifactId>
+            <version>1.0.0.Final</version>
         </dependency>
 
-		<!-- Test only  dependencies -->
-		<dependency>
-            <groupId>org.hsqldb</groupId>
-            <artifactId>hsqldb</artifactId>
-            <version>1.8.0.10</version>
-        </dependency>
-	</dependencies>
+    </dependencies>
 
 	<build>
 		<plugins>

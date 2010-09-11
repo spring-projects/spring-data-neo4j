@@ -10,7 +10,11 @@ import org.springframework.datastore.graph.neo4j.finder.FinderFactory;
 import org.springframework.persistence.support.EntityInstantiator;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.annotation.Resource;
 import javax.persistence.*;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.metamodel.Metamodel;
 import javax.persistence.spi.PersistenceUnitInfo;
 import javax.transaction.*;
 import java.util.Map;
@@ -33,7 +37,10 @@ public class Neo4jEntityManager implements EntityManager {
     private volatile boolean closed;
     private final FinderFactory finderFactory;
 
-    public Neo4jEntityManager(final GraphDatabaseService graphDatabaseService, final EntityInstantiator<NodeBacked, Node> nodeInstantiator, PersistenceUnitInfo info, Map params, IndexService indexService) {
+    @Resource
+    private Neo4jEntityManagerFactory neo4jEntityManagerFactory;
+
+    public Neo4jEntityManager(final GraphDatabaseService graphDatabaseService, final EntityInstantiator<NodeBacked, Node> nodeInstantiator, final PersistenceUnitInfo info, final Map params, final IndexService indexService) {
         this.graphDatabaseService = graphDatabaseService;
         this.nodeInstantiator = nodeInstantiator;
         this.info = info;
@@ -59,7 +66,7 @@ public class Neo4jEntityManager implements EntityManager {
         checkClosed();
         final Transaction tx = graphDatabaseService.beginTx();
         try {
-
+            //todo nodebacked justwriteback, no check
             tx.success();
         } finally {
             tx.finish();
@@ -68,6 +75,7 @@ public class Neo4jEntityManager implements EntityManager {
 
     @Override
     public <T> T merge(final T entity) {
+        // todo nodebacked merge
         checkClosed();
         return entity;
     }
@@ -94,6 +102,21 @@ public class Neo4jEntityManager implements EntityManager {
     }
 
     @Override
+    public <T> T find(final Class<T> entityClass, final Object primaryKey, final Map<String, Object> params) {
+        return find(entityClass, primaryKey);
+    }
+
+    @Override
+    public <T> T find(final Class<T> entityClass, final Object primaryKey, final LockModeType lockModeType) {
+        return find(entityClass, primaryKey);
+    }
+
+    @Override
+    public <T> T find(final Class<T> entityClass, final Object primaryKey, final LockModeType lockModeType, final Map<String, Object> params) {
+        return find(entityClass, primaryKey);
+    }
+
+    @Override
     public <T> T getReference(final Class<T> entityClass, final Object primaryKey) {
         return find(entityClass, primaryKey);
     }
@@ -115,14 +138,34 @@ public class Neo4jEntityManager implements EntityManager {
     }
 
     @Override
-    public void lock(final Object entity, final LockModeType lockMode) {
+    public void lock(final Object entity, final LockModeType lockModeType) {
         nodeFor(entity);
     }
 
     @Override
+    public void lock(final Object entity, final LockModeType lockModeType, final Map<String, Object> params) {
+        lock(entity,lockModeType);
+    }
+
+    @Override
     public void refresh(final Object entity) {
+        // todo nodebacked.refresh, throw away dirty
         nodeFor(entity);
-        // todo NodeBacked.refresh -> discard dirty
+    }
+
+    @Override
+    public void refresh(final Object entity, final Map<String, Object> params) {
+        refresh(entity);
+    }
+
+    @Override
+    public void refresh(final Object entity, final LockModeType lockModeType) {
+        refresh(entity);
+    }
+
+    @Override
+    public void refresh(final Object entity, final LockModeType lockModeType, final Map<String, Object> params) {
+        refresh(entity);
     }
 
     /**
@@ -131,6 +174,10 @@ public class Neo4jEntityManager implements EntityManager {
     @Override
     public void clear() {
         checkClosed();
+    }
+
+    @Override
+    public void detach(final Object entity) {
     }
 
     @Override
@@ -143,14 +190,44 @@ public class Neo4jEntityManager implements EntityManager {
         }
     }
 
+    @Override
+    public LockModeType getLockMode(final Object entity) {
+        return LockModeType.NONE; // todo use neo4j locks?
+    }
+
+    @Override
+    public void setProperty(final String name, final Object value) {
+        params.put(name,value);
+    }
+
+    @Override
+    public Map<String, Object> getProperties() {
+        return params;
+    }
+
     /*
     TODO Gremlin
      */
 
     @Override
     public Query createQuery(final String qlString) {
+        return createQuery(qlString,null);
+    }
+
+    @Override
+    public <T> TypedQuery<T> createQuery(final CriteriaQuery<T> query) {
+        return null;
+    }
+
+    @SuppressWarnings({"unchecked"})
+    @Override
+    public <T> TypedQuery<T> createQuery(final String qlString, final Class<T> entityClass) {
         checkClosed();
-        return new Neo4JQuery(qlString, finderFactory,info);
+        return (TypedQuery<T>)createNeo4jQuery(qlString,(Class<? extends NodeBacked>)entityClass);
+    }
+
+    public <T extends NodeBacked> TypedQuery<T> createNeo4jQuery(final String qlString, final Class<T> entityClass) {
+        return new Neo4JQuery<T>(qlString, finderFactory,info,entityClass);
     }
 
     /*
@@ -161,6 +238,11 @@ public class Neo4jEntityManager implements EntityManager {
     public Query createNamedQuery(final String name) {
         checkClosed();
         throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> TypedQuery<T> createNamedQuery(final String s, final Class<T> entityClass) {
+        return null;
     }
 
     /*
@@ -178,7 +260,7 @@ public class Neo4jEntityManager implements EntityManager {
      */
 
     @Override
-    public Query createNativeQuery(final String sqlString, final Class resultClass) {
+    public Query createNativeQuery(final String sqlString, final Class resulentityClass) {
         checkClosed();
         throw new UnsupportedOperationException();
     }
@@ -201,6 +283,11 @@ public class Neo4jEntityManager implements EntityManager {
     public void joinTransaction() {
         checkClosed();
         throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> T unwrap(final Class<T> entityClass) {
+        return null;
     }
 
     @Override
@@ -228,6 +315,21 @@ public class Neo4jEntityManager implements EntityManager {
     public EntityTransaction getTransaction() {
         final TransactionManager transactionManager = ((EmbeddedGraphDatabase) graphDatabaseService).getConfig().getTxModule().getTxManager();
         return new Neo4jEntityTransaction(transactionManager);
+    }
+
+    @Override
+    public EntityManagerFactory getEntityManagerFactory() {
+        return neo4jEntityManagerFactory;
+    }
+
+    @Override
+    public CriteriaBuilder getCriteriaBuilder() {
+        return null;
+    }
+
+    @Override
+    public Metamodel getMetamodel() {
+        return null;
     }
 
 
