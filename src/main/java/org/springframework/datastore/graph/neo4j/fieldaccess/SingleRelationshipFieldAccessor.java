@@ -16,15 +16,15 @@ public class SingleRelationshipFieldAccessor extends AbstractFieldAccessor {
 
 	@Override
     public Object setValue(final NodeBacked entity, final Object newVal) {
-        checkUnderlyingNode(entity);
+        Node node=checkUnderlyingNode(entity);
         if (newVal == null) {
-            removeMissingRelationships(entity, Collections.<NodeBacked>emptySet());
+            removeMissingRelationships(node, Collections.<Node>emptySet());
             return null;
         }
-        final Set<NodeBacked> target=checkTargetIsSetOfNodebacked(Collections.singleton(newVal));
-        checkNoCircularReference(entity,target);
-        removeMissingRelationships(entity, target);
-		createNewRelationshipsFrom(entity,target);
+        final Set<Node> target=checkTargetIsSetOfNodebacked(Collections.singleton(newVal));
+        checkNoCircularReference(node,target);
+        removeMissingRelationships(node, target);
+		createAddedRelationships(node,target);
         return newVal;
 	}
 

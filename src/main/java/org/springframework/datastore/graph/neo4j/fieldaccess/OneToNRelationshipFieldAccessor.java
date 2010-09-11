@@ -16,16 +16,16 @@ public class OneToNRelationshipFieldAccessor extends AbstractFieldAccessor {
 	}
 
 	public Object setValue(final NodeBacked entity, final Object newVal) {
-        checkUnderlyingNode(entity);
+        final Node node = checkUnderlyingNode(entity);
         if (newVal==null) {
-            removeMissingRelationships(entity, Collections.<NodeBacked>emptySet());
+            removeMissingRelationships(node, Collections.<Node>emptySet());
             return null;
         }
-        final Set<NodeBacked> target = checkTargetIsSetOfNodebacked(newVal);
-        checkNoCircularReference(entity,target);
-        removeMissingRelationships(entity, target);
-		createNewRelationshipsFrom(entity,target);
-        return createManagedSet(entity, target);
+        final Set<Node> targetNodes = checkTargetIsSetOfNodebacked(newVal);
+        checkNoCircularReference(node,targetNodes);
+        removeMissingRelationships(node, targetNodes);
+		createAddedRelationships(node,targetNodes);
+        return createManagedSet(entity, (Set<NodeBacked>)newVal);
 	}
 
     @Override
