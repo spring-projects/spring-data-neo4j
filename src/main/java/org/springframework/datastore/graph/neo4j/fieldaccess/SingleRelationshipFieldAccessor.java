@@ -6,6 +6,9 @@ import org.neo4j.graphdb.RelationshipType;
 import org.springframework.datastore.graph.api.NodeBacked;
 import org.springframework.persistence.support.EntityInstantiator;
 
+import java.util.Collections;
+import java.util.Set;
+
 public class SingleRelationshipFieldAccessor extends AbstractFieldAccessor {
     public SingleRelationshipFieldAccessor(final RelationshipType type, final Direction direction, final Class<? extends NodeBacked> clazz, final EntityInstantiator<NodeBacked, Node> graphEntityInstantiator) {
         super(clazz, graphEntityInstantiator, direction, type);
@@ -15,20 +18,20 @@ public class SingleRelationshipFieldAccessor extends AbstractFieldAccessor {
     public Object setValue(final NodeBacked entity, final Object newVal) {
         checkUnderlyingNode(entity);
         if (newVal == null) {
-            removeRelationships(entity);
+            removeMissingRelationships(entity, Collections.<NodeBacked>emptySet());
             return null;
         }
-
-        final NodeBacked target=checkTargetTypeNodebacked(newVal);
-        if (isExistingRelationship(entity, target)) return target;
-        checkCircularReference(entity, target);
-        removeRelationships(entity);
-        return createSingleRelationship(entity, target);
+        final Set<NodeBacked> target=checkTargetIsSetOfNodebacked(Collections.singleton(newVal));
+        checkNoCircularReference(entity,target);
+        removeMissingRelationships(entity, target);
+		createNewRelationshipsFrom(entity,target);
+        return newVal;
 	}
 
     @Override
 	public Object getValue(final NodeBacked entity) {
         checkUnderlyingNode(entity);
-        return createEntityFromRelationshipEndNode(entity.getUnderlyingNode());
+        final Set<NodeBacked> result = createEntitySetFromRelationshipEndNodes(entity);
+        return result.isEmpty() ? null : result.iterator().next();
 	}
 }

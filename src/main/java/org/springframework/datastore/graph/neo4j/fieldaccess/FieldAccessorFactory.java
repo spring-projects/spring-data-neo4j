@@ -25,24 +25,19 @@ public class FieldAccessorFactory {
 		GraphEntityRelationship relAnnotation = field.getAnnotation(GraphEntityRelationship.class);
 		if (isSingleRelationshipField(field)) {
             if (relAnnotation != null) {
-				return new SingleRelationshipFieldAccessor(typeFrom(relAnnotation),
-                        dirFrom(relAnnotation), targetFrom(field), graphEntityInstantiator);
+				return new SingleRelationshipFieldAccessor(typeFrom(relAnnotation), dirFrom(relAnnotation), targetFrom(field), graphEntityInstantiator);
 			}
-			return new SingleRelationshipFieldAccessor(typeFrom(field),
-					Direction.OUTGOING, targetFrom(field), graphEntityInstantiator);
+			return new SingleRelationshipFieldAccessor(typeFrom(field), Direction.OUTGOING, targetFrom(field), graphEntityInstantiator);
 		}
 		if (isOneToNRelationshipField(field)) {
-			return new OneToNRelationshipFieldAccessor(typeFrom(relAnnotation),
-                    dirFrom(relAnnotation), targetFrom(relAnnotation), graphEntityInstantiator);
+			return new OneToNRelationshipFieldAccessor(typeFrom(relAnnotation), dirFrom(relAnnotation), targetFrom(relAnnotation), graphEntityInstantiator);
 		}
 		if (isReadOnlyOneToNRelationshipField(field)) {
-			return new ReadOnlyOneToNRelationshipFieldAccessor(typeFrom(relAnnotation),
-                    dirFrom(relAnnotation), targetFrom(relAnnotation), graphEntityInstantiator);
+			return new ReadOnlyOneToNRelationshipFieldAccessor(typeFrom(relAnnotation), dirFrom(relAnnotation), targetFrom(relAnnotation), graphEntityInstantiator);
 		}
 		if (isOneToNRelationshipEntityField(field)) {
 			GraphEntityRelationshipEntity relEntityAnnotation = field.getAnnotation(GraphEntityRelationshipEntity.class);
-			return new OneToNRelationshipEntityFieldAccessor(typeFrom(relEntityAnnotation),
-                    dirFrom(relEntityAnnotation), targetFrom(relEntityAnnotation), relationshipEntityInstantiator);
+			return new OneToNRelationshipEntityFieldAccessor(typeFrom(relEntityAnnotation), dirFrom(relEntityAnnotation), targetFrom(relEntityAnnotation), relationshipEntityInstantiator);
 		}
 		throw new IllegalArgumentException("Not a Neo4j relationship field: " + field);
 	}
@@ -112,8 +107,9 @@ public class FieldAccessorFactory {
 
 	public static String getNeo4jPropertyName(Field field) {
         final Class<?> entityClass = field.getDeclaringClass();
-        return useShortNames(entityClass) ? field.getName() : String.format("%s.%s", entityClass.getSimpleName(),field.getName());
-	}
+        if (useShortNames(entityClass)) return field.getName();
+        return String.format("%s.%s", entityClass.getSimpleName(), field.getName());
+    }
 
     private static boolean useShortNames(Class<?> entityClass) {
         final GraphEntity graphEntity = entityClass.getAnnotation(GraphEntity.class);
