@@ -6,43 +6,56 @@ import java.util.AbstractSet;
 import java.util.Iterator;
 import java.util.Set;
 
+/**
+ * TODO handle all mutating methods
+ * @param <T>
+ */
 public class ManagedFieldAccessorSet<T> extends AbstractSet<T> {
 	private final NodeBacked entity;
 	final Set<T> delegate;
-	private final FieldAccessor relationshipInfo;
+	private final FieldAccessor fieldAccessor;
 
-	public ManagedFieldAccessorSet(NodeBacked entity, Object newVal, FieldAccessor relationshipInfo) {
+	public ManagedFieldAccessorSet(final NodeBacked entity, final Object newVal, final FieldAccessor fieldAccessor) {
 		this.entity = entity;
-		this.relationshipInfo = relationshipInfo;
+		this.fieldAccessor = fieldAccessor;
 		delegate = (Set<T>) newVal;
 	}
 
 	@Override
 	public Iterator<T> iterator() {
-		return delegate.iterator();
+        final Iterator<T> iterator = delegate.iterator();
+        return new Iterator<T>() {
+            @Override
+            public boolean hasNext() {
+                return iterator.hasNext();
+            }
+
+            @Override
+            public T next() {
+                return iterator.next();
+            }
+
+            @Override
+            public void remove() {
+                iterator.remove();
+                update();
+            }
+        };
 	}
 
-	@Override
+    private void update() {
+        fieldAccessor.setValue(entity, delegate);
+    }
+
+    @Override
 	public int size() {
 		return delegate.size();
 	}
 
 	@Override
-	public boolean add(T e) {
-		boolean res = delegate.add(e);
-		if (res) {
-			relationshipInfo.apply(entity, delegate);
-		}
+	public boolean add(final T e) {
+		final boolean res = delegate.add(e);
+		if (res) update();
 		return res;
 	}
-
-	@Override
-	public boolean remove(Object o) {
-		boolean res = delegate.remove(o);
-		if (res) {
-			relationshipInfo.apply(entity, delegate);
-		}
-		return res;
-	}
-	
 }

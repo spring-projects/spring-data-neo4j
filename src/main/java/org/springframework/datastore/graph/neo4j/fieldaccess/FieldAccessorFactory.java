@@ -24,31 +24,62 @@ public class FieldAccessorFactory {
         if (Modifier.isTransient(field.getModifiers())) return null;
 		GraphEntityRelationship relAnnotation = field.getAnnotation(GraphEntityRelationship.class);
 		if (isSingleRelationshipField(field)) {
-			Class<? extends NodeBacked> relatedType = (Class<? extends NodeBacked>) field.getType();
-			if (relAnnotation != null) {
-				return new SingleRelationshipFieldAccessor(DynamicRelationshipType.withName(relAnnotation.type()),
-						relAnnotation.direction().toNeo4jDir(), relatedType, graphEntityInstantiator);
+            if (relAnnotation != null) {
+				return new SingleRelationshipFieldAccessor(typeFrom(relAnnotation),
+                        dirFrom(relAnnotation), targetFrom(field), graphEntityInstantiator);
 			}
-			return new SingleRelationshipFieldAccessor(DynamicRelationshipType.withName(getNeo4jPropertyName(field)), 
-					Direction.OUTGOING, relatedType, graphEntityInstantiator);
+			return new SingleRelationshipFieldAccessor(typeFrom(field),
+					Direction.OUTGOING, targetFrom(field), graphEntityInstantiator);
 		}
 		if (isOneToNRelationshipField(field)) {
-			return new OneToNRelationshipFieldAccessor(DynamicRelationshipType.withName(relAnnotation.type()),
-					relAnnotation.direction().toNeo4jDir(), relAnnotation.elementClass(), graphEntityInstantiator);
+			return new OneToNRelationshipFieldAccessor(typeFrom(relAnnotation),
+                    dirFrom(relAnnotation), targetFrom(relAnnotation), graphEntityInstantiator);
 		}
 		if (isReadOnlyOneToNRelationshipField(field)) {
-			return new ReadOnlyOneToNRelationshipFieldAccessor(DynamicRelationshipType.withName(relAnnotation.type()),
-					relAnnotation.direction().toNeo4jDir(), relAnnotation.elementClass(), graphEntityInstantiator);
+			return new ReadOnlyOneToNRelationshipFieldAccessor(typeFrom(relAnnotation),
+                    dirFrom(relAnnotation), targetFrom(relAnnotation), graphEntityInstantiator);
 		}
 		if (isOneToNRelationshipEntityField(field)) {
 			GraphEntityRelationshipEntity relEntityAnnotation = field.getAnnotation(GraphEntityRelationshipEntity.class);
-			return new OneToNRelationshipEntityFieldAccessor(DynamicRelationshipType.withName(relEntityAnnotation.type()), 
-					relEntityAnnotation.direction().toNeo4jDir(), relEntityAnnotation.elementClass(), relationshipEntityInstantiator);
+			return new OneToNRelationshipEntityFieldAccessor(typeFrom(relEntityAnnotation),
+                    dirFrom(relEntityAnnotation), targetFrom(relEntityAnnotation), relationshipEntityInstantiator);
 		}
 		throw new IllegalArgumentException("Not a Neo4j relationship field: " + field);
 	}
-	
-	public static boolean isRelationshipField(Field f) {
+
+    private Class<? extends RelationshipBacked> targetFrom(GraphEntityRelationshipEntity relEntityAnnotation) {
+        return relEntityAnnotation.elementClass();
+    }
+
+    private Direction dirFrom(GraphEntityRelationshipEntity relEntityAnnotation) {
+        return relEntityAnnotation.direction().toNeo4jDir();
+    }
+
+    private Class<? extends NodeBacked> targetFrom(Field field) {
+        return (Class<? extends NodeBacked>) field.getType();
+    }
+
+    private Class<? extends NodeBacked> targetFrom(GraphEntityRelationship relAnnotation) {
+        return relAnnotation.elementClass();
+    }
+
+    private Direction dirFrom(GraphEntityRelationship relAnnotation) {
+        return relAnnotation.direction().toNeo4jDir();
+    }
+
+    private DynamicRelationshipType typeFrom(Field field) {
+        return DynamicRelationshipType.withName(getNeo4jPropertyName(field));
+    }
+
+    private DynamicRelationshipType typeFrom(GraphEntityRelationshipEntity relEntityAnnotation) {
+        return DynamicRelationshipType.withName(relEntityAnnotation.type());
+    }
+
+    private DynamicRelationshipType typeFrom(GraphEntityRelationship relAnnotation) {
+        return DynamicRelationshipType.withName(relAnnotation.type());
+    }
+
+    public static boolean isRelationshipField(Field f) {
 		return isSingleRelationshipField(f) 
 			|| isOneToNRelationshipField(f)
 			|| isOneToNRelationshipEntityField(f)

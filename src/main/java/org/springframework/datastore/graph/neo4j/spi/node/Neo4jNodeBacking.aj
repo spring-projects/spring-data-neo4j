@@ -1,8 +1,6 @@
 package org.springframework.datastore.graph.neo4j.spi.node;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
 import java.util.*;
 
@@ -11,7 +9,6 @@ import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.traversal.*;
 import org.neo4j.graphdb.traversal.Traverser;
 import org.neo4j.helpers.collection.IterableWrapper;
-import org.neo4j.index.IndexHits;
 import org.neo4j.index.IndexService;
 import org.neo4j.kernel.EmbeddedGraphDatabase;
 import org.neo4j.util.GraphDatabaseUtil;
@@ -248,7 +245,7 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<GraphEn
 
         FieldAccessor accessor = fieldAccessorFactory.forField(field);
         if (accessor!=null) {
-            Object obj = accessor.readObject(entity);
+            Object obj = accessor.getValue(entity);
             if (obj != null) {
                 return new ShouldProceedOrReturn(obj);
             }
@@ -330,7 +327,7 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<GraphEn
                 return new ShouldProceedOrReturn(true,newVal);
             }
             log.info("SET " + field + " -> Neo4J relationship with value=[" + newVal + "]");
-            Object result = accessor.apply(entity, newVal);
+            Object result = accessor.setValue(entity, newVal);
             return new ShouldProceedOrReturn(true,result);
         } catch(NotInTransactionException e) {
             throw new InvalidDataAccessResourceUsageException("Not in a Neo4j transaction.", e);

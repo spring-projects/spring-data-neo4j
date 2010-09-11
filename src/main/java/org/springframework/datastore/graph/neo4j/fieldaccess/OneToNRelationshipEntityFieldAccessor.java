@@ -26,12 +26,12 @@ public class OneToNRelationshipEntityFieldAccessor implements FieldAccessor {
 	}
 
 	@Override
-	public Object apply(NodeBacked entity, Object newVal) {
+	public Object setValue(NodeBacked entity, Object newVal) {
 		throw new InvalidDataAccessApiUsageException("Cannot set read-only relationship entity field.");
 	}
 
 	@Override
-	public Object readObject(NodeBacked entity) {
+	public Object getValue(NodeBacked entity) {
 		Set<RelationshipBacked> result = new HashSet<RelationshipBacked>();
 		for (Relationship rel : entity.getUnderlyingNode().getRelationships(type, direction)) {
 			result.add(relationshipEntityInstantiator.createEntityFromState(rel, elementClass));

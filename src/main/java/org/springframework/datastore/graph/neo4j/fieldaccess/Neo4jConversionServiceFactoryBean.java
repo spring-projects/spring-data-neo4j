@@ -75,7 +75,7 @@ public class Neo4jConversionServiceFactoryBean implements FactoryBean<Conversion
             return new StringToEnum(targetType);
         }
 
-        private class StringToEnum<T extends Enum> implements Converter<String, T> {
+        private static class StringToEnum<T extends Enum> implements Converter<String, T> {
 
             private final Class<T> enumType;
 
@@ -83,7 +83,10 @@ public class Neo4jConversionServiceFactoryBean implements FactoryBean<Conversion
                 this.enumType = enumType;
             }
             public T convert(String source) {
-                return source.length() == 0 ? null : Enum.valueOf( this.enumType, source.trim() );
+                if (source == null) return null;
+                final String trimmed=source.trim();
+                if (trimmed.isEmpty()) return null;
+                return Enum.valueOf(this.enumType, trimmed);
             }
 
         }

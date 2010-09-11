@@ -25,7 +25,7 @@ public class OneToNRelationshipFieldAccessor implements FieldAccessor {
 		this.graphEntityInstantiator = graphEntityInstantiator;
 	}
 
-	public Object apply(final NodeBacked entity, final Object newVal) {
+	public Object setValue(final NodeBacked entity, final Object newVal) {
 		Node entityNode = entity.getUnderlyingNode();
 		
 		Set<Node> newNodes=new HashSet<Node>();
@@ -64,7 +64,7 @@ public class OneToNRelationshipFieldAccessor implements FieldAccessor {
 	}
 	
 	@Override
-	public Object readObject(NodeBacked entity) {
+	public Object getValue(NodeBacked entity) {
 		Node entityNode = entity.getUnderlyingNode();
 		if (entityNode == null) {
 			throw new IllegalStateException("Entity must have a backing Node");

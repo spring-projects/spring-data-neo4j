@@ -25,12 +25,12 @@ public class ReadOnlyOneToNRelationshipFieldAccessor implements FieldAccessor {
 		this.graphEntityInstantiator = graphEntityInstantiator;
 	}
 
-	public Object apply(final NodeBacked entity, final Object newVal) {
+	public Object setValue(final NodeBacked entity, final Object newVal) {
 		throw new InvalidDataAccessApiUsageException("Cannot set read-only relationship entity field.");
 	}
 	
 	@Override
-	public Object readObject(NodeBacked entity) {
+	public Object getValue(NodeBacked entity) {
 		Node entityNode = entity.getUnderlyingNode();
 		if (entityNode == null) {
 			throw new IllegalStateException("Entity must have a backing Node");
