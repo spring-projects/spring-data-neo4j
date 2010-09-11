@@ -38,7 +38,7 @@ public class Neo4jEntityManager implements EntityManager {
     private final FinderFactory finderFactory;
 
     @Resource
-    private Neo4jEntityManagerFactory neo4jEntityManagerFactory;
+    private EntityManagerFactory entityManagerFactory;
 
     public Neo4jEntityManager(final GraphDatabaseService graphDatabaseService, final EntityInstantiator<NodeBacked, Node> nodeInstantiator, final PersistenceUnitInfo info, final Map params, final IndexService indexService) {
         this.graphDatabaseService = graphDatabaseService;
@@ -319,7 +319,7 @@ public class Neo4jEntityManager implements EntityManager {
 
     @Override
     public EntityManagerFactory getEntityManagerFactory() {
-        return neo4jEntityManagerFactory;
+        return entityManagerFactory;
     }
 
     @Override
