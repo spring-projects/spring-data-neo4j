@@ -4,6 +4,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.neo4j.graphdb.Direction;
+import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.RelationshipType;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
@@ -11,15 +12,10 @@ import org.springframework.datastore.graph.api.NodeBacked;
 import org.springframework.datastore.graph.api.RelationshipBacked;
 import org.springframework.persistence.support.EntityInstantiator;
 
-public class OneToNRelationshipEntityFieldAccessor extends AbstractFieldAccessor {
-
-	private final Class<? extends RelationshipBacked> elementClass;
-	private final EntityInstantiator<RelationshipBacked, Relationship> relationshipEntityInstantiator;
+public class OneToNRelationshipEntityFieldAccessor extends AbstractRelationshipFieldAccessor<NodeBacked, Node, RelationshipBacked,Relationship> {
 
 	public OneToNRelationshipEntityFieldAccessor(final RelationshipType type, final Direction direction, final Class<? extends RelationshipBacked> elementClass, final EntityInstantiator<RelationshipBacked, Relationship> relationshipEntityInstantiator) {
-        super(null,null,direction,type);
-		this.elementClass = elementClass;
-		this.relationshipEntityInstantiator = relationshipEntityInstantiator;
+        super(elementClass,relationshipEntityInstantiator,direction,type);
 	}
 
 	@Override
@@ -31,18 +27,29 @@ public class OneToNRelationshipEntityFieldAccessor extends AbstractFieldAccessor
 	public Object getValue(final NodeBacked entity) {
         checkUnderlyingNode(entity);
         final Set<RelationshipBacked> result = createEntitySetFromRelationships(entity);
-		return new ManagedFieldAccessorSet<RelationshipBacked>(entity, result, this);
+		return new ManagedFieldAccessorSet<NodeBacked, RelationshipBacked>(entity, result, this);
 	}
 
     private Set<RelationshipBacked> createEntitySetFromRelationships(final NodeBacked entity) {
         final Set<RelationshipBacked> result = new HashSet<RelationshipBacked>();
         for (final Relationship rel : getStatesFromEntity(entity)) {
-            result.add(relationshipEntityInstantiator.createEntityFromState(rel, elementClass));
+            result.add(graphEntityInstantiator.createEntityFromState(rel, relatedType));
         }
         return result;
     }
 
-    private Iterable<Relationship> getStatesFromEntity(NodeBacked entity) {
+    @Override
+    protected Iterable<Relationship> getStatesFromEntity(NodeBacked entity) {
         return entity.getUnderlyingNode().getRelationships(type, direction);
+    }
+
+    @Override
+    protected Relationship obtainSingleRelationship(Node start, Relationship end) {
+        return null;
+    }
+
+    @Override
+    protected Node getState(NodeBacked nodeBacked) {
+        return nodeBacked.getUnderlyingNode();
     }
 }

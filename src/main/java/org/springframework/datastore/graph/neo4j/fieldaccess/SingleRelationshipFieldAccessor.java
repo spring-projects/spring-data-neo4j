@@ -4,12 +4,13 @@ import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.RelationshipType;
 import org.springframework.datastore.graph.api.NodeBacked;
+import org.springframework.datastore.graph.api.RelationshipBacked;
 import org.springframework.persistence.support.EntityInstantiator;
 
 import java.util.Collections;
 import java.util.Set;
 
-public class SingleRelationshipFieldAccessor extends AbstractFieldAccessor {
+public class SingleRelationshipFieldAccessor extends NodeToNodesRelationshipFieldAccessor<NodeBacked> {
     public SingleRelationshipFieldAccessor(final RelationshipType type, final Direction direction, final Class<? extends NodeBacked> clazz, final EntityInstantiator<NodeBacked, Node> graphEntityInstantiator) {
         super(clazz, graphEntityInstantiator, direction, type);
     }

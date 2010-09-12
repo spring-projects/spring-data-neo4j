@@ -10,12 +10,12 @@ import java.util.Set;
  * TODO handle all mutating methods
  * @param <T>
  */
-public class ManagedFieldAccessorSet<T> extends AbstractSet<T> {
-	private final NodeBacked entity;
+public class ManagedFieldAccessorSet<ENTITY,T> extends AbstractSet<T> {
+	private final ENTITY entity;
 	final Set<T> delegate;
-	private final FieldAccessor fieldAccessor;
+	private final FieldAccessor<ENTITY,T> fieldAccessor;
 
-	public ManagedFieldAccessorSet(final NodeBacked entity, final Object newVal, final FieldAccessor fieldAccessor) {
+	public ManagedFieldAccessorSet(final ENTITY entity, final Object newVal, final FieldAccessor fieldAccessor) {
 		this.entity = entity;
 		this.fieldAccessor = fieldAccessor;
 		delegate = (Set<T>) newVal;

@@ -9,7 +9,7 @@ import org.neo4j.graphdb.RelationshipType;
 import org.springframework.datastore.graph.api.NodeBacked;
 import org.springframework.persistence.support.EntityInstantiator;
 
-public class OneToNRelationshipFieldAccessor extends AbstractFieldAccessor {
+public class OneToNRelationshipFieldAccessor extends NodeToNodesRelationshipFieldAccessor<NodeBacked> {
 
 	public OneToNRelationshipFieldAccessor(final RelationshipType type, final Direction direction, final Class<? extends NodeBacked> elementClass, final EntityInstantiator<NodeBacked, Node> graphEntityInstantiator) {
         super(elementClass, graphEntityInstantiator, direction, type);
