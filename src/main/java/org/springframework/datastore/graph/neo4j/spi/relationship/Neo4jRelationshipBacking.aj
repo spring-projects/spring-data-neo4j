@@ -12,8 +12,7 @@ import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.dao.InvalidDataAccessResourceUsageException;
 import org.springframework.datastore.graph.api.*;
 
-import org.springframework.datastore.graph.neo4j.fieldaccess.FieldAccessorFactory;
-import org.springframework.datastore.graph.neo4j.finder.FinderFactory;
+import org.springframework.datastore.graph.neo4j.fieldaccess.DelegatingFieldAccessorFactory;
 import org.springframework.persistence.support.AbstractTypeAnnotatingMixinFields;
 import org.springframework.persistence.support.EntityInstantiator;
 
@@ -104,7 +103,7 @@ public aspect Neo4jRelationshipBacking extends AbstractTypeAnnotatingMixinFields
 			if (rel == null) {
 				throw new InvalidDataAccessApiUsageException("Please set start node and end node before reading from other fields.");
 			}
-			String propName = FieldAccessorFactory.getNeo4jPropertyName(f);
+			String propName = DelegatingFieldAccessorFactory.getNeo4jPropertyName(f);
 			log.info("GET " + f + " <- Neo4J simple relationship property [" + propName + "]");
 			return deserializePropertyValue(rel.getProperty(propName, null), f.getType());
 		}
@@ -129,7 +128,7 @@ public aspect Neo4jRelationshipBacking extends AbstractTypeAnnotatingMixinFields
 				if (rel == null) {
 					throw new InvalidDataAccessApiUsageException("Please set start node and end node before assigning to other fields.");
 				}
-				String propName = FieldAccessorFactory.getNeo4jPropertyName(f);
+				String propName = DelegatingFieldAccessorFactory.getNeo4jPropertyName(f);
                 if (newVal==null) {
                     entity.getUnderlyingRelationship().removeProperty(propName);
                 }
@@ -164,11 +163,11 @@ public aspect Neo4jRelationshipBacking extends AbstractTypeAnnotatingMixinFields
 	}
 
 	private boolean isSerializableField(Field field) {
-		return !FieldAccessorFactory.isRelationshipField(field) && conversionService.canConvert(field.getType(), String.class);
+		return !DelegatingFieldAccessorFactory.isRelationshipField(field) && conversionService.canConvert(field.getType(), String.class);
 	}
 
 	private boolean isDeserializableField(Field field) {
-		return !FieldAccessorFactory.isRelationshipField(field) && conversionService.canConvert(String.class, field.getType());
+		return !DelegatingFieldAccessorFactory.isRelationshipField(field) && conversionService.canConvert(String.class, field.getType());
 	}
 
 	private Object serializePropertyValue(Object newVal, Class<?> fieldType) {

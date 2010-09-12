@@ -3,10 +3,11 @@ package org.springframework.datastore.graph.neo4j.fieldaccess;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.RelationshipType;
+import org.springframework.datastore.graph.api.GraphEntityRelationship;
 import org.springframework.datastore.graph.api.NodeBacked;
-import org.springframework.datastore.graph.api.RelationshipBacked;
 import org.springframework.persistence.support.EntityInstantiator;
 
+import java.lang.reflect.Field;
 import java.util.Collections;
 import java.util.Set;
 
@@ -17,7 +18,7 @@ public class SingleRelationshipFieldAccessor extends NodeToNodesRelationshipFiel
 
 	@Override
     public Object setValue(final NodeBacked entity, final Object newVal) {
-        Node node=checkUnderlyingNode(entity);
+        final Node node=checkUnderlyingNode(entity);
         if (newVal == null) {
             removeMissingRelationships(node, Collections.<Node>emptySet());
             return null;
@@ -35,4 +36,22 @@ public class SingleRelationshipFieldAccessor extends NodeToNodesRelationshipFiel
         final Set<NodeBacked> result = createEntitySetFromRelationshipEndNodes(entity);
         return result.isEmpty() ? null : result.iterator().next();
 	}
+
+    public static FieldAccessorFactory<NodeBacked> factory() {
+        return new RelationshipFieldAccessorFactory() {
+            @Override
+            public boolean accept(final Field f) {
+                return NodeBacked.class.isAssignableFrom(f.getType());
+            }
+
+            @Override
+            public FieldAccessor<NodeBacked, ?> forField(final Field field) {
+                final GraphEntityRelationship relAnnotation = getRelationshipAnnotation(field);
+                if (relAnnotation == null)
+                    return new SingleRelationshipFieldAccessor(typeFrom(field), Direction.OUTGOING, targetFrom(field), graphEntityInstantiator);
+                return new SingleRelationshipFieldAccessor(typeFrom(relAnnotation), dirFrom(relAnnotation), targetFrom(field), graphEntityInstantiator);
+            }
+        };
+    }
+
 }

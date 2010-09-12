@@ -1,34 +1,34 @@
 package org.springframework.datastore.graph.neo4j.fieldaccess;
 
-import java.util.HashSet;
-import java.util.Set;
-
-import org.neo4j.graphdb.Direction;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Relationship;
-import org.neo4j.graphdb.RelationshipType;
+import org.neo4j.graphdb.*;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
+import org.springframework.datastore.graph.api.GraphEntityRelationshipEntity;
 import org.springframework.datastore.graph.api.NodeBacked;
 import org.springframework.datastore.graph.api.RelationshipBacked;
 import org.springframework.persistence.support.EntityInstantiator;
 
-public class OneToNRelationshipEntityFieldAccessor extends AbstractRelationshipFieldAccessor<NodeBacked, Node, RelationshipBacked,Relationship> {
+import java.lang.reflect.Field;
+import java.util.HashSet;
+import java.util.Set;
 
-	public OneToNRelationshipEntityFieldAccessor(final RelationshipType type, final Direction direction, final Class<? extends RelationshipBacked> elementClass, final EntityInstantiator<RelationshipBacked, Relationship> relationshipEntityInstantiator) {
-        super(elementClass,relationshipEntityInstantiator,direction,type);
-	}
+public class OneToNRelationshipEntityFieldAccessor extends AbstractRelationshipFieldAccessor<NodeBacked, Node, RelationshipBacked, Relationship> {
 
-	@Override
-	public Object setValue(final NodeBacked entity, final Object newVal) {
-		throw new InvalidDataAccessApiUsageException("Cannot set read-only relationship entity field.");
-	}
+    public OneToNRelationshipEntityFieldAccessor(final RelationshipType type, final Direction direction, final Class<? extends RelationshipBacked> elementClass, final EntityInstantiator<RelationshipBacked, Relationship> relationshipEntityInstantiator) {
+        super(elementClass, relationshipEntityInstantiator, direction, type);
+    }
 
-	@Override
-	public Object getValue(final NodeBacked entity) {
+    @Override
+    public Object setValue(final NodeBacked entity, final Object newVal) {
+        throw new InvalidDataAccessApiUsageException("Cannot set read-only relationship entity field.");
+    }
+
+    @Override
+    public Object getValue(final NodeBacked entity) {
         checkUnderlyingNode(entity);
         final Set<RelationshipBacked> result = createEntitySetFromRelationships(entity);
-		return new ManagedFieldAccessorSet<NodeBacked, RelationshipBacked>(entity, result, this);
-	}
+        return new ManagedFieldAccessorSet<NodeBacked, RelationshipBacked>(entity, result, this);
+    }
 
     private Set<RelationshipBacked> createEntitySetFromRelationships(final NodeBacked entity) {
         final Set<RelationshipBacked> result = new HashSet<RelationshipBacked>();
@@ -39,17 +39,59 @@ public class OneToNRelationshipEntityFieldAccessor extends AbstractRelationshipF
     }
 
     @Override
-    protected Iterable<Relationship> getStatesFromEntity(NodeBacked entity) {
+    protected Iterable<Relationship> getStatesFromEntity(final NodeBacked entity) {
         return entity.getUnderlyingNode().getRelationships(type, direction);
     }
 
     @Override
-    protected Relationship obtainSingleRelationship(Node start, Relationship end) {
+    protected Relationship obtainSingleRelationship(final Node start, final Relationship end) {
         return null;
     }
 
     @Override
-    protected Node getState(NodeBacked nodeBacked) {
+    protected Node getState(final NodeBacked nodeBacked) {
         return nodeBacked.getUnderlyingNode();
+    }
+
+    public static FieldAccessorFactory<NodeBacked> factory() {
+        return new RelationshipEntityFieldAccessorFactory();
+    }
+
+
+    private static class RelationshipEntityFieldAccessorFactory implements FieldAccessorFactory<NodeBacked> {
+        @Autowired
+        private EntityInstantiator<RelationshipBacked, Relationship> relationshipEntityInstantiator;
+
+        @Override
+        public boolean accept(final Field f) {
+            return Iterable.class.isAssignableFrom(f.getType()) && hasValidRelationshipAnnotation(f);
+        }
+
+        @Override
+        public FieldAccessor<NodeBacked, ?> forField(final Field field) {
+            final GraphEntityRelationshipEntity relEntityAnnotation = getRelationshipAnnotation(field);
+            return new OneToNRelationshipEntityFieldAccessor(typeFrom(relEntityAnnotation), dirFrom(relEntityAnnotation), targetFrom(relEntityAnnotation), relationshipEntityInstantiator);
+        }
+
+        private boolean hasValidRelationshipAnnotation(final Field f) {
+            final GraphEntityRelationshipEntity relEntityAnnotation = getRelationshipAnnotation(f);
+            return relEntityAnnotation != null && !RelationshipBacked.class.equals(relEntityAnnotation.elementClass());
+        }
+
+        private GraphEntityRelationshipEntity getRelationshipAnnotation(final Field field) {
+            return field.getAnnotation(GraphEntityRelationshipEntity.class);
+        }
+
+        private Class<? extends RelationshipBacked> targetFrom(final GraphEntityRelationshipEntity relEntityAnnotation) {
+            return relEntityAnnotation.elementClass();
+        }
+
+        private Direction dirFrom(final GraphEntityRelationshipEntity relEntityAnnotation) {
+            return relEntityAnnotation.direction().toNeo4jDir();
+        }
+
+        private DynamicRelationshipType typeFrom(final GraphEntityRelationshipEntity relEntityAnnotation) {
+            return DynamicRelationshipType.withName(relEntityAnnotation.type());
+        }
     }
 }

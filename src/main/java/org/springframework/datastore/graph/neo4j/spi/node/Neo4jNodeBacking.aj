@@ -19,8 +19,8 @@ import org.springframework.datastore.graph.api.NodeBacked;
 import org.springframework.datastore.graph.api.RelationshipBacked;
 
 import org.springframework.datastore.graph.api.GraphEntity;
+import org.springframework.datastore.graph.neo4j.fieldaccess.DelegatingFieldAccessorFactory;
 import org.springframework.datastore.graph.neo4j.fieldaccess.FieldAccessor;
-import org.springframework.datastore.graph.neo4j.fieldaccess.FieldAccessorFactory;
 import org.springframework.persistence.support.AbstractTypeAnnotatingMixinFields;
 import org.springframework.persistence.support.EntityInstantiator;
 import org.springframework.util.ObjectUtils;
@@ -49,7 +49,7 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<GraphEn
 	
     public EntityInstantiator<NodeBacked, Node> graphEntityInstantiator;
 
-	private FieldAccessorFactory fieldAccessorFactory;
+	private DelegatingFieldAccessorFactory fieldAccessorFactory;
 
 	public EntityInstantiator<RelationshipBacked, Relationship> relationshipEntityInstantiator;
 	
@@ -66,7 +66,7 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<GraphEn
 		this.relationshipEntityInstantiator = relationshipEntityInstantiator;
         this.indexService = indexService;
 		this.conversionService = conversionService;
-        this.fieldAccessorFactory = new FieldAccessorFactory(graphEntityInstantiator, relationshipEntityInstantiator);
+        this.fieldAccessorFactory = new DelegatingFieldAccessorFactory(graphEntityInstantiator, relationshipEntityInstantiator);
 	}
 	
 	
@@ -236,7 +236,7 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<GraphEn
         if (isIdField(field)) return new ShouldProceedOrReturn(entity.getUnderlyingNode().getId());
         if (Modifier.isTransient(field.getModifiers())) return new ShouldProceedOrReturn();
         if (isNeo4jPropertyType(field.getType()) || isDeserializableField(field)) {
-            String propName = FieldAccessorFactory.getNeo4jPropertyName(field);
+            String propName = DelegatingFieldAccessorFactory.getNeo4jPropertyName(field);
             log.info("GET " + field + " <- Neo4J simple node property [" + propName + "]");
             Node node = entity.getUnderlyingNode();
             Object nodeProperty = deserializePropertyValue(node.getProperty(propName, getDefaultValue(field.getType())), field.getType());
@@ -308,7 +308,7 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<GraphEn
             if (Modifier.isFinal(field.getModifiers())) return new ShouldProceedOrReturn(newVal);
             if (Modifier.isTransient(field.getModifiers())) return new ShouldProceedOrReturn(true, newVal);
             if (isNeo4jPropertyType(field.getType()) || isSerializableField(field)) {
-                String propName = FieldAccessorFactory.getNeo4jPropertyName(field);
+                String propName = DelegatingFieldAccessorFactory.getNeo4jPropertyName(field);
                 Node node = entity.getUnderlyingNode();
                 if (newVal==null) {
                     node.removeProperty(propName);
@@ -395,11 +395,11 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<GraphEn
 	}
 
 	private boolean isSerializableField(Field field) {
-		return !FieldAccessorFactory.isRelationshipField(field) && conversionService.canConvert(field.getType(), String.class);
+		return !DelegatingFieldAccessorFactory.isRelationshipField(field) && conversionService.canConvert(field.getType(), String.class);
 	}
 	
 	private boolean isDeserializableField(Field field) {
-		return !FieldAccessorFactory.isRelationshipField(field) && conversionService.canConvert(String.class, field.getType());
+		return !DelegatingFieldAccessorFactory.isRelationshipField(field) && conversionService.canConvert(String.class, field.getType());
 	}
 	
 	private Object serializePropertyValue(Object newVal, Class<?> fieldType) {
