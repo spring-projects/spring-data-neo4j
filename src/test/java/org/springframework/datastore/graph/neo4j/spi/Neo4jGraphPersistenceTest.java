@@ -14,7 +14,6 @@ import org.neo4j.kernel.Traversal;
 import org.neo4j.kernel.impl.traversal.TraversalDescriptionImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
-import org.springframework.datastore.graph.api.NodeBacked;
 import org.springframework.datastore.graph.neo4j.Friendship;
 import org.springframework.datastore.graph.neo4j.Group;
 import org.springframework.datastore.graph.neo4j.Person;
@@ -22,10 +21,10 @@ import org.springframework.datastore.graph.neo4j.Personality;
 import org.springframework.datastore.graph.neo4j.finder.Finder;
 import org.springframework.datastore.graph.neo4j.finder.FinderFactory;
 import org.springframework.datastore.graph.neo4j.spi.node.Neo4jHelper;
+import org.springframework.datastore.graph.neo4j.support.GraphDatabaseContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.persistence.support.EntityInstantiator;
 
 import java.util.*;
 
@@ -37,11 +36,8 @@ public class Neo4jGraphPersistenceTest {
 	protected final Log log = LogFactory.getLog(getClass());
 
 	@Autowired
-	private EntityInstantiator<NodeBacked,Node> graphEntityInstantiator;
+	private GraphDatabaseContext graphDatabaseContext;
 
-	@Autowired
-	protected GraphDatabaseService graphDatabaseService;
-	
 	@Autowired
 	private FinderFactory finderFactory;
 
@@ -50,14 +46,13 @@ public class Neo4jGraphPersistenceTest {
 
     @Test
 	public void testStuffWasAutowired() {
-        Assert.assertNotNull( graphDatabaseService );
-        Assert.assertNotNull( graphEntityInstantiator );
+        Assert.assertNotNull(graphDatabaseContext);
 	}
 	
 	@Before
 	@Transactional
 	public void cleanDb() {
-		Neo4jHelper.cleanDb(graphDatabaseService);
+		Neo4jHelper.cleanDb(graphDatabaseContext);
     }
 
 	@Test
@@ -66,7 +61,7 @@ public class Neo4jGraphPersistenceTest {
 		Person p = new Person("Rod", 39);
 		Assert.assertEquals(p.getName(), p.getUnderlyingNode().getProperty("Person.name"));
 		Assert.assertEquals(p.getAge(), p.getUnderlyingNode().getProperty("Person.age"));
-		Person found = graphEntityInstantiator.createEntityFromState(graphDatabaseService.getNodeById(p.getNodeId()), Person.class);
+		Person found = graphDatabaseContext.createEntityFromState(graphDatabaseContext.getNodeById(p.getNodeId()), Person.class);
 		Assert.assertEquals("Rod", found.getUnderlyingNode().getProperty("Person.name"));
 		Assert.assertEquals(39, found.getUnderlyingNode().getProperty("Person.age"));
 	}
@@ -155,7 +150,7 @@ public class Neo4jGraphPersistenceTest {
 	// @Test(expected = InvalidDataAccessResourceUsageException.class)
     @Test
 	public void testSetPropertyOutsideTransaction() {
-		Transaction tx = graphDatabaseService.beginTx();
+		Transaction tx = graphDatabaseContext.beginTx();
 		Person p = null;
 		try {
 			p = new Person("Michael", 35);
@@ -165,7 +160,7 @@ public class Neo4jGraphPersistenceTest {
 		}
 		p.setAge(25);
         Assert.assertEquals(25,p.getAge());
-        tx = graphDatabaseService.beginTx();
+        tx = graphDatabaseContext.beginTx();
         try {
             Assert.assertEquals(25,p.getAge());
             p.setAge(20);
@@ -178,7 +173,7 @@ public class Neo4jGraphPersistenceTest {
 	
     @Test
 	public void testCreateRelationshipOutsideTransaction() {
-		Transaction tx = graphDatabaseService.beginTx();
+		Transaction tx = graphDatabaseContext.beginTx();
 		Person p = null;
 		Person spouse = null;
 		try {
@@ -191,7 +186,7 @@ public class Neo4jGraphPersistenceTest {
 		p.setSpouse(spouse);
         Assert.assertEquals(spouse,p.getSpouse());
         Person spouse2;
-        tx = graphDatabaseService.beginTx();
+        tx = graphDatabaseContext.beginTx();
         try {
             Assert.assertEquals(spouse,p.getSpouse());
             spouse2 = new Person("Rana", 5);
@@ -205,7 +200,7 @@ public class Neo4jGraphPersistenceTest {
 	
 	@Test
 	public void testGetPropertyOutsideTransaction() {
-		Transaction tx = graphDatabaseService.beginTx();
+		Transaction tx = graphDatabaseContext.beginTx();
 		Person p = null;
 		try {
 			p = new Person("Michael", 35);
@@ -218,8 +213,7 @@ public class Neo4jGraphPersistenceTest {
 
     @Test
 	public void testFindOutsideTransaction() {
-        final FinderFactory factory = new FinderFactory(graphDatabaseService, graphEntityInstantiator, indexService);
-        final Finder<Person> finder = factory.getFinderForClass(Person.class);
+        final Finder<Person> finder = finderFactory.getFinderForClass(Person.class);
         Assert.assertEquals(false,finder.findAll().iterator().hasNext());
 	}
 

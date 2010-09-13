@@ -82,15 +82,18 @@
 		 <constructor-arg index="0" value="${neo4j.databaseDirectory}" />
 	</bean>
 
+    <bean id="nodeTypeStrategy" class="org.springframework.datastore.graph.neo4j.support.SubReferenceNodeTypeStrategy">
+        <constructor-arg index="0" ref="graphDatabaseContext"/>
+    </bean>
     <bean id="indexService" class="org.neo4j.index.lucene.LuceneIndexService" destroy-method="shutdown">
         <constructor-arg index="0" ref="graphDbService" />
     </bean>
 
+    <bean id="graphDatabaseContext" class="org.springframework.datastore.graph.neo4j.support.GraphDatabaseContext"/>
+
 	
 	<bean id="finderFactory" class="org.springframework.datastore.graph.neo4j.finder.FinderFactory">
-		<constructor-arg ref="graphDbService" />
-		<constructor-arg ref="graphEntityInstantiator" />
-		<constructor-arg ref="indexService" />
+		<constructor-arg ref="graphDatabaseContext" />
 	</bean>
 	
 	<bean id="graphEntityInstantiator" name="gei" class="org.springframework.datastore.graph.neo4j.spi.node.Neo4jConstructorGraphEntityInstantiator" />

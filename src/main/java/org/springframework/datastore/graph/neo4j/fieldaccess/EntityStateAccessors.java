@@ -4,6 +4,7 @@ import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.springframework.datastore.graph.api.NodeBacked;
 import org.springframework.datastore.graph.api.RelationshipBacked;
+import org.springframework.datastore.graph.neo4j.support.GraphDatabaseContext;
 import org.springframework.persistence.support.EntityInstantiator;
 import org.springframework.util.ReflectionUtils;
 
@@ -23,15 +24,15 @@ public class EntityStateAccessors<ENTITY, STATE> {
     private final Map<Field,FieldAccessor<ENTITY,?>> fieldAccessors=new HashMap<Field, FieldAccessor<ENTITY,?>>();
     private final Map<Field,List<FieldAccessListener<ENTITY,?>>> fieldAccessorListeners=new HashMap<Field, List<FieldAccessListener<ENTITY,?>>>();
 
-    public EntityStateAccessors(final STATE underlyingState, final ENTITY entity, final Class<? extends ENTITY> type, final EntityInstantiator<NodeBacked, Node> nodeInstantiator, final EntityInstantiator<RelationshipBacked, Relationship> relationshipInstantiator) {
+    public EntityStateAccessors(final STATE underlyingState, final ENTITY entity, final Class<? extends ENTITY> type, final GraphDatabaseContext graphDatabaseContext) {
         this.underlyingState = underlyingState;
         this.entity = entity;
         this.type = type;
-        createAccessorsAndListeners(type, nodeInstantiator, relationshipInstantiator);
+        createAccessorsAndListeners(type, graphDatabaseContext);
     }
 
-    private void createAccessorsAndListeners(final Class<? extends ENTITY> type, final EntityInstantiator<NodeBacked, Node> nodeInstantiator, final EntityInstantiator<RelationshipBacked, Relationship> relationshipInstantiator) {
-        final DelegatingFieldAccessorFactory fieldAccessorFactory = new DelegatingFieldAccessorFactory(nodeInstantiator,relationshipInstantiator);
+    private void createAccessorsAndListeners(final Class<? extends ENTITY> type, final GraphDatabaseContext graphDatabaseContext) {
+        final DelegatingFieldAccessorFactory fieldAccessorFactory = new DelegatingFieldAccessorFactory(graphDatabaseContext);
         ReflectionUtils.doWithFields(type, new ReflectionUtils.FieldCallback() {
             public void doWith(final Field field) throws IllegalArgumentException, IllegalAccessException {
                 fieldAccessors.put(field, fieldAccessorFactory.forField(field));

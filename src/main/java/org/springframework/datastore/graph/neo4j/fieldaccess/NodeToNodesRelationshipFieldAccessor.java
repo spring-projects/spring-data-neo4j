@@ -5,7 +5,7 @@ import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.RelationshipType;
 import org.springframework.datastore.graph.api.NodeBacked;
-import org.springframework.persistence.support.EntityInstantiator;
+import org.springframework.datastore.graph.neo4j.support.GraphDatabaseContext;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -15,8 +15,8 @@ import java.util.Set;
  * @since 12.09.2010
  */
 public abstract class NodeToNodesRelationshipFieldAccessor<TARGET> extends AbstractRelationshipFieldAccessor<NodeBacked, Node, TARGET, Node> {
-    public NodeToNodesRelationshipFieldAccessor(Class<? extends TARGET> clazz, EntityInstantiator<TARGET, Node> graphEntityInstantiator, Direction direction, RelationshipType type) {
-        super(clazz, graphEntityInstantiator, direction, type);
+    public NodeToNodesRelationshipFieldAccessor(Class<? extends TARGET> clazz, GraphDatabaseContext graphDatabaseContext, Direction direction, RelationshipType type) {
+        super(clazz, graphDatabaseContext, direction, type);
     }
 
     @Override

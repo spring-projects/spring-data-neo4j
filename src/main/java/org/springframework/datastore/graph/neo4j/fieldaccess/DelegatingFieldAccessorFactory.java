@@ -9,19 +9,15 @@ import java.util.List;
 
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.DynamicRelationshipType;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Relationship;
 import org.springframework.datastore.graph.api.*;
-import org.springframework.persistence.support.EntityInstantiator;
+import org.springframework.datastore.graph.neo4j.support.GraphDatabaseContext;
 
 public class DelegatingFieldAccessorFactory<T> implements FieldAccessorFactory<T> {
-	private final EntityInstantiator<NodeBacked, Node> graphEntityInstantiator;
-	private final EntityInstantiator<RelationshipBacked, Relationship> relationshipEntityInstantiator;
+    private final GraphDatabaseContext graphDatabaseContext;
 
-	public DelegatingFieldAccessorFactory(EntityInstantiator<NodeBacked,Node> graphEntityInstantiator, EntityInstantiator<RelationshipBacked, Relationship> relationshipEntityInstantiator) {
-		this.graphEntityInstantiator = graphEntityInstantiator;
-		this.relationshipEntityInstantiator = relationshipEntityInstantiator;
-	}
+    public DelegatingFieldAccessorFactory(GraphDatabaseContext graphDatabaseContext) {
+        this.graphDatabaseContext = graphDatabaseContext;
+    }
 
     @Override
     public boolean accept(Field f) {
@@ -45,19 +41,19 @@ public class DelegatingFieldAccessorFactory<T> implements FieldAccessorFactory<T
 		GraphEntityRelationship relAnnotation = field.getAnnotation(GraphEntityRelationship.class);
 		if (isSingleRelationshipField(field)) {
             if (relAnnotation != null) {
-				return new SingleRelationshipFieldAccessor(typeFrom(relAnnotation), dirFrom(relAnnotation), targetFrom(field), graphEntityInstantiator);
+				return new SingleRelationshipFieldAccessor(typeFrom(relAnnotation), dirFrom(relAnnotation), targetFrom(field), graphDatabaseContext);
 			}
-			return new SingleRelationshipFieldAccessor(typeFrom(field), Direction.OUTGOING, targetFrom(field), graphEntityInstantiator);
+			return new SingleRelationshipFieldAccessor(typeFrom(field), Direction.OUTGOING, targetFrom(field), graphDatabaseContext);
 		}
 		if (isOneToNRelationshipField(field)) {
-			return new OneToNRelationshipFieldAccessor(typeFrom(relAnnotation), dirFrom(relAnnotation), targetFrom(relAnnotation), graphEntityInstantiator);
+			return new OneToNRelationshipFieldAccessor(typeFrom(relAnnotation), dirFrom(relAnnotation), targetFrom(relAnnotation), graphDatabaseContext);
 		}
 		if (isReadOnlyOneToNRelationshipField(field)) {
-			return new ReadOnlyOneToNRelationshipFieldAccessor(typeFrom(relAnnotation), dirFrom(relAnnotation), targetFrom(relAnnotation), graphEntityInstantiator);
+			return new ReadOnlyOneToNRelationshipFieldAccessor(typeFrom(relAnnotation), dirFrom(relAnnotation), targetFrom(relAnnotation), graphDatabaseContext);
 		}
 		if (isOneToNRelationshipEntityField(field)) {
 			GraphEntityRelationshipEntity relEntityAnnotation = field.getAnnotation(GraphEntityRelationshipEntity.class);
-			return new OneToNRelationshipEntityFieldAccessor(typeFrom(relEntityAnnotation), dirFrom(relEntityAnnotation), targetFrom(relEntityAnnotation), relationshipEntityInstantiator);
+			return new OneToNRelationshipEntityFieldAccessor(typeFrom(relEntityAnnotation), dirFrom(relEntityAnnotation), targetFrom(relEntityAnnotation), graphDatabaseContext);
 		}
 		throw new IllegalArgumentException("Not a Neo4j relationship field: " + field);
 	}

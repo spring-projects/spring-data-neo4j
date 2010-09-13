@@ -1,22 +1,21 @@
 package org.springframework.datastore.graph.neo4j.spi.relationship;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
-
 import org.aspectj.lang.reflect.FieldSignature;
 import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.NotInTransactionException;
+import org.neo4j.graphdb.Relationship;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.convert.ConversionService;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.dao.InvalidDataAccessResourceUsageException;
 import org.springframework.datastore.graph.api.*;
-
 import org.springframework.datastore.graph.neo4j.fieldaccess.DelegatingFieldAccessorFactory;
+import org.springframework.datastore.graph.neo4j.support.GraphDatabaseContext;
 import org.springframework.persistence.support.AbstractTypeAnnotatingMixinFields;
 import org.springframework.persistence.support.EntityInstantiator;
 
-import org.springframework.core.convert.ConversionService;
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 
 public aspect Neo4jRelationshipBacking extends AbstractTypeAnnotatingMixinFields<GraphRelationship,RelationshipBacked> {
 	
@@ -26,16 +25,12 @@ public aspect Neo4jRelationshipBacking extends AbstractTypeAnnotatingMixinFields
 	// bean, or called in user code.
 	//-------------------------------------------------------------------------
 	// Aspect shared Neo4J Graph Database Service
-	private EntityInstantiator<NodeBacked, Node> graphEntityInstantiator;
+	private GraphDatabaseContext graphDatabaseContext;
 
-	private ConversionService conversionService;
-	
 	@Autowired
-	public void init(EntityInstantiator<NodeBacked, Node> graphEntityInstantiator,
-	        ConversionService conversionService) {
-		this.graphEntityInstantiator = graphEntityInstantiator;
-		this.conversionService = conversionService;
-	}
+	public void init(GraphDatabaseContext graphDatabaseContext) {
+        this.graphDatabaseContext = graphDatabaseContext;
+    }
 	
 	// Introduced fields
 	private Relationship RelationshipBacked.underlyingRelationship;
@@ -87,14 +82,14 @@ public aspect Neo4jRelationshipBacking extends AbstractTypeAnnotatingMixinFields
 			if (startNode == null) {
 				return null;
 			}
-			return graphEntityInstantiator.createEntityFromState(startNode, (Class<? extends NodeBacked>) f.getType());
+			return graphDatabaseContext.createEntityFromState(startNode, (Class<? extends NodeBacked>) f.getType());
 		}
 		if (isEndNodeField(f)) {
 			Node endNode = entity.getUnderlyingRelationship().getEndNode();
 			if (endNode == null) {
 				return null;
 			}
-			return graphEntityInstantiator.createEntityFromState(endNode, (Class<? extends NodeBacked>) f.getType());
+			return graphDatabaseContext.createEntityFromState(endNode, (Class<? extends NodeBacked>) f.getType());
 		}
 		
 //		TODO fix arrays, TODO serialize other types as byte[] or string (for indexing, querying) via Annotation
@@ -163,25 +158,25 @@ public aspect Neo4jRelationshipBacking extends AbstractTypeAnnotatingMixinFields
 	}
 
 	private boolean isSerializableField(Field field) {
-		return !DelegatingFieldAccessorFactory.isRelationshipField(field) && conversionService.canConvert(field.getType(), String.class);
+		return !DelegatingFieldAccessorFactory.isRelationshipField(field) && graphDatabaseContext.canConvert(field.getType(), String.class);
 	}
 
 	private boolean isDeserializableField(Field field) {
-		return !DelegatingFieldAccessorFactory.isRelationshipField(field) && conversionService.canConvert(String.class, field.getType());
+		return !DelegatingFieldAccessorFactory.isRelationshipField(field) && graphDatabaseContext.canConvert(String.class, field.getType());
 	}
 
 	private Object serializePropertyValue(Object newVal, Class<?> fieldType) {
 		if (isNeo4jPropertyType(fieldType)) {
 			return newVal;
 		}
-		return conversionService.convert(newVal, String.class);
+		return graphDatabaseContext.convert(newVal, String.class);
 	}
 
 	private Object deserializePropertyValue(Object value, Class<?> fieldType) {
 		if (isNeo4jPropertyType(fieldType)) {
 			return value;
 		}
-		return conversionService.convert(value, fieldType);
+		return graphDatabaseContext.convert(value, fieldType);
 	}
 
 }

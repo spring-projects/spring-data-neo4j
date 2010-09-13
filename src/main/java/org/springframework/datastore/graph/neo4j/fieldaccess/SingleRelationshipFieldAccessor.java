@@ -5,15 +5,15 @@ import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.RelationshipType;
 import org.springframework.datastore.graph.api.GraphEntityRelationship;
 import org.springframework.datastore.graph.api.NodeBacked;
-import org.springframework.persistence.support.EntityInstantiator;
+import org.springframework.datastore.graph.neo4j.support.GraphDatabaseContext;
 
 import java.lang.reflect.Field;
 import java.util.Collections;
 import java.util.Set;
 
 public class SingleRelationshipFieldAccessor extends NodeToNodesRelationshipFieldAccessor<NodeBacked> {
-    public SingleRelationshipFieldAccessor(final RelationshipType type, final Direction direction, final Class<? extends NodeBacked> clazz, final EntityInstantiator<NodeBacked, Node> graphEntityInstantiator) {
-        super(clazz, graphEntityInstantiator, direction, type);
+    public SingleRelationshipFieldAccessor(final RelationshipType type, final Direction direction, final Class<? extends NodeBacked> clazz, final GraphDatabaseContext graphDatabaseContext) {
+        super(clazz, graphDatabaseContext, direction, type);
     }
 
 	@Override
@@ -48,8 +48,8 @@ public class SingleRelationshipFieldAccessor extends NodeToNodesRelationshipFiel
             public FieldAccessor<NodeBacked, ?> forField(final Field field) {
                 final GraphEntityRelationship relAnnotation = getRelationshipAnnotation(field);
                 if (relAnnotation == null)
-                    return new SingleRelationshipFieldAccessor(typeFrom(field), Direction.OUTGOING, targetFrom(field), graphEntityInstantiator);
-                return new SingleRelationshipFieldAccessor(typeFrom(relAnnotation), dirFrom(relAnnotation), targetFrom(field), graphEntityInstantiator);
+                    return new SingleRelationshipFieldAccessor(typeFrom(field), Direction.OUTGOING, targetFrom(field), graphDatabaseContext);
+                return new SingleRelationshipFieldAccessor(typeFrom(relAnnotation), dirFrom(relAnnotation), targetFrom(field), graphDatabaseContext);
             }
         };
     }

@@ -12,8 +12,6 @@ import javax.persistence.EntityTransaction;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 
-import org.hamcrest.CoreMatchers;
-import org.hamcrest.Matcher;
 import org.junit.*;
 import org.junit.runner.RunWith;
 import org.neo4j.graphdb.GraphDatabaseService;
@@ -21,6 +19,7 @@ import org.neo4j.graphdb.Node;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.datastore.graph.neo4j.Person;
 import org.springframework.datastore.graph.neo4j.spi.node.Neo4jHelper;
+import org.springframework.datastore.graph.neo4j.support.GraphDatabaseContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
@@ -38,7 +37,7 @@ import java.util.HashSet;
 @Transactional
 public class Neo4jEntityManagerTest {
 	@Resource
-    GraphDatabaseService graphDatabaseService;
+    GraphDatabaseContext graphDatabaseContext;
     @PersistenceContext(unitName="neo4j-persistence")
     EntityManager entityManager;
 
@@ -47,7 +46,7 @@ public class Neo4jEntityManagerTest {
 
     @Before
     public void cleanDb() {
-        Neo4jHelper.cleanDb(graphDatabaseService);
+        Neo4jHelper.cleanDb(graphDatabaseContext);
         person = new Person("Michael",35);
         node = person.getUnderlyingNode();
     }
@@ -67,7 +66,7 @@ public class Neo4jEntityManagerTest {
     public void testRemove() throws Exception {
     	long nodeId=node.getId();
     	entityManager.remove(person);
-    	final Node foundNode = graphDatabaseService.getNodeById(nodeId);
+    	final Node foundNode = graphDatabaseContext.getNodeById(nodeId);
     	assertNull(foundNode);
     }
     @Test
@@ -177,7 +176,7 @@ public class Neo4jEntityManagerTest {
 */
     @Test
     public void testGetDelegate() throws Exception {
-    	assertTrue(entityManager.getDelegate() instanceof GraphDatabaseService);
+    	assertTrue(entityManager.getDelegate() instanceof GraphDatabaseContext);
     }
 
     @Ignore("Springs shared EM does not honor the contract of close")

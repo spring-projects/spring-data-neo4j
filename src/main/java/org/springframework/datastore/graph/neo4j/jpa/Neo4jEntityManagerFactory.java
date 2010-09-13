@@ -4,6 +4,7 @@ import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.index.IndexService;
 import org.springframework.datastore.graph.api.NodeBacked;
+import org.springframework.datastore.graph.neo4j.support.GraphDatabaseContext;
 import org.springframework.persistence.support.EntityInstantiator;
 
 import javax.persistence.Cache;
@@ -21,29 +22,25 @@ import java.util.Map;
  * @since 23.08.2010
  */
 public class Neo4jEntityManagerFactory implements EntityManagerFactory {
-    GraphDatabaseService graphDatabaseService;
-    EntityInstantiator<NodeBacked, Node> nodeInstantiator;
     private PersistenceUnitInfo info;
     private Map params;
-    private IndexService indexService;
+    private final GraphDatabaseContext graphDatabaseContext;
 
-    public Neo4jEntityManagerFactory(GraphDatabaseService graphDatabaseService, EntityInstantiator<NodeBacked, Node> nodeInstantiator, IndexService indexService, PersistenceUnitInfo info, Map params) {
-        this.graphDatabaseService = graphDatabaseService;
-        this.nodeInstantiator = nodeInstantiator;
-        this.indexService = indexService;
+    public Neo4jEntityManagerFactory(GraphDatabaseContext graphDatabaseContext, PersistenceUnitInfo info, Map params) {
+        this.graphDatabaseContext = graphDatabaseContext;
         this.info = info;
         this.params = params;
     }
 
     @Override
     public EntityManager createEntityManager() {
-        return new Neo4jEntityManager(graphDatabaseService,nodeInstantiator,info,params, indexService);
+        return new Neo4jEntityManager(graphDatabaseContext,info,params);
     }
 
     /* TODO handle different directories for target datastore */
     @Override
     public EntityManager createEntityManager(Map map) {
-        return new Neo4jEntityManager(graphDatabaseService,nodeInstantiator,info,params, indexService);
+        return new Neo4jEntityManager(graphDatabaseContext,info,params);
     }
 
     @Override

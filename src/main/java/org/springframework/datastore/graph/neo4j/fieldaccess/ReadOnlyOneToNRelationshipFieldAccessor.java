@@ -3,17 +3,16 @@ package org.springframework.datastore.graph.neo4j.fieldaccess;
 import java.lang.reflect.Field;
 
 import org.neo4j.graphdb.Direction;
-import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.RelationshipType;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.datastore.graph.api.GraphEntityRelationship;
 import org.springframework.datastore.graph.api.NodeBacked;
-import org.springframework.persistence.support.EntityInstantiator;
+import org.springframework.datastore.graph.neo4j.support.GraphDatabaseContext;
 
 public class ReadOnlyOneToNRelationshipFieldAccessor extends OneToNRelationshipFieldAccessor {
 
-	public ReadOnlyOneToNRelationshipFieldAccessor(final RelationshipType type, final Direction direction, final Class<? extends NodeBacked> elementClass, final EntityInstantiator<NodeBacked, Node> graphEntityInstantiator) {
-        super(type,direction,elementClass,graphEntityInstantiator);
+	public ReadOnlyOneToNRelationshipFieldAccessor(final RelationshipType type, final Direction direction, final Class<? extends NodeBacked> elementClass, final GraphDatabaseContext graphDatabaseContext) {
+        super(type,direction,elementClass, graphDatabaseContext);
 	}
 
 	public Object setValue(final NodeBacked entity, final Object newVal) {
@@ -30,7 +29,7 @@ public class ReadOnlyOneToNRelationshipFieldAccessor extends OneToNRelationshipF
             @Override
             public FieldAccessor<NodeBacked, ?> forField(final Field field) {
                 final GraphEntityRelationship relAnnotation = getRelationshipAnnotation(field);
-                return new ReadOnlyOneToNRelationshipFieldAccessor(typeFrom(relAnnotation), dirFrom(relAnnotation), targetFrom(relAnnotation), graphEntityInstantiator);
+                return new ReadOnlyOneToNRelationshipFieldAccessor(typeFrom(relAnnotation), dirFrom(relAnnotation), targetFrom(relAnnotation), graphDatabaseContext);
             }
 
         };

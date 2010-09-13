@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 import org.springframework.datastore.graph.api.GraphEntityRelationship;
 import org.springframework.datastore.graph.api.NodeBacked;
+import org.springframework.datastore.graph.neo4j.support.GraphDatabaseContext;
 import org.springframework.persistence.support.EntityInstantiator;
 
 import java.lang.reflect.Field;
@@ -18,7 +19,7 @@ import java.lang.reflect.Field;
 @Configurable
 abstract class RelationshipFieldAccessorFactory implements FieldAccessorFactory<NodeBacked> {
     @Autowired
-    protected EntityInstantiator<NodeBacked, Node> graphEntityInstantiator;
+    protected GraphDatabaseContext graphDatabaseContext;
 
     protected Class<? extends NodeBacked> targetFrom(Field field) {
         return (Class<? extends NodeBacked>) field.getType();

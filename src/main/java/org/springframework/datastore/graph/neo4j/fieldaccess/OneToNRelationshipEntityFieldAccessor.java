@@ -6,6 +6,7 @@ import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.datastore.graph.api.GraphEntityRelationshipEntity;
 import org.springframework.datastore.graph.api.NodeBacked;
 import org.springframework.datastore.graph.api.RelationshipBacked;
+import org.springframework.datastore.graph.neo4j.support.GraphDatabaseContext;
 import org.springframework.persistence.support.EntityInstantiator;
 
 import java.lang.reflect.Field;
@@ -14,8 +15,8 @@ import java.util.Set;
 
 public class OneToNRelationshipEntityFieldAccessor extends AbstractRelationshipFieldAccessor<NodeBacked, Node, RelationshipBacked, Relationship> {
 
-    public OneToNRelationshipEntityFieldAccessor(final RelationshipType type, final Direction direction, final Class<? extends RelationshipBacked> elementClass, final EntityInstantiator<RelationshipBacked, Relationship> relationshipEntityInstantiator) {
-        super(elementClass, relationshipEntityInstantiator, direction, type);
+    public OneToNRelationshipEntityFieldAccessor(final RelationshipType type, final Direction direction, final Class<? extends RelationshipBacked> elementClass, final GraphDatabaseContext graphDatabaseContext) {
+        super(elementClass, graphDatabaseContext, direction, type);
     }
 
     @Override
@@ -33,7 +34,8 @@ public class OneToNRelationshipEntityFieldAccessor extends AbstractRelationshipF
     private Set<RelationshipBacked> createEntitySetFromRelationships(final NodeBacked entity) {
         final Set<RelationshipBacked> result = new HashSet<RelationshipBacked>();
         for (final Relationship rel : getStatesFromEntity(entity)) {
-            result.add(graphEntityInstantiator.createEntityFromState(rel, relatedType));
+            final RelationshipBacked relationshipEntity = (RelationshipBacked) graphDatabaseContext.createEntityFromState(rel, (Class<?>) relatedType);
+            result.add(relationshipEntity);
         }
         return result;
     }
@@ -60,7 +62,7 @@ public class OneToNRelationshipEntityFieldAccessor extends AbstractRelationshipF
 
     private static class RelationshipEntityFieldAccessorFactory implements FieldAccessorFactory<NodeBacked> {
         @Autowired
-        private EntityInstantiator<RelationshipBacked, Relationship> relationshipEntityInstantiator;
+        private GraphDatabaseContext graphDatabaseContext;
 
         @Override
         public boolean accept(final Field f) {
@@ -70,7 +72,7 @@ public class OneToNRelationshipEntityFieldAccessor extends AbstractRelationshipF
         @Override
         public FieldAccessor<NodeBacked, ?> forField(final Field field) {
             final GraphEntityRelationshipEntity relEntityAnnotation = getRelationshipAnnotation(field);
-            return new OneToNRelationshipEntityFieldAccessor(typeFrom(relEntityAnnotation), dirFrom(relEntityAnnotation), targetFrom(relEntityAnnotation), relationshipEntityInstantiator);
+            return new OneToNRelationshipEntityFieldAccessor(typeFrom(relEntityAnnotation), dirFrom(relEntityAnnotation), targetFrom(relEntityAnnotation), graphDatabaseContext);
         }
 
         private boolean hasValidRelationshipAnnotation(final Field f) {

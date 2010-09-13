@@ -9,9 +9,6 @@ import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.traversal.*;
 import org.neo4j.graphdb.traversal.Traverser;
 import org.neo4j.helpers.collection.IterableWrapper;
-import org.neo4j.index.IndexService;
-import org.neo4j.kernel.EmbeddedGraphDatabase;
-import org.neo4j.util.GraphDatabaseUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.InvalidDataAccessResourceUsageException;
 import org.springframework.datastore.graph.api.GraphEntityProperty;
@@ -21,14 +18,10 @@ import org.springframework.datastore.graph.api.RelationshipBacked;
 import org.springframework.datastore.graph.api.GraphEntity;
 import org.springframework.datastore.graph.neo4j.fieldaccess.DelegatingFieldAccessorFactory;
 import org.springframework.datastore.graph.neo4j.fieldaccess.FieldAccessor;
+import org.springframework.datastore.graph.neo4j.support.GraphDatabaseContext;
 import org.springframework.persistence.support.AbstractTypeAnnotatingMixinFields;
 import org.springframework.persistence.support.EntityInstantiator;
 import org.springframework.util.ObjectUtils;
-
-import org.springframework.core.convert.ConversionService;
-
-import javax.transaction.Status;
-import javax.transaction.SystemException;
 
 /**
  * Aspect to turn an object annotated with GraphEntity into a graph entity using Neo4J.
@@ -38,35 +31,19 @@ import javax.transaction.SystemException;
  * @author Rod Johnson
  */
 public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<GraphEntity, NodeBacked> {
-	
-	//-------------------------------------------------------------------------
+    private GraphDatabaseContext graphDatabaseContext;
+    private DelegatingFieldAccessorFactory fieldAccessorFactory;
+
+    //-------------------------------------------------------------------------
 	// Configure aspect for whole system.
 	// init() method can be invoked automatically if the aspect is a Spring
 	// bean, or called in user code.
 	//-------------------------------------------------------------------------
-	// Aspect shared Neo4J Graph Database Service
-	private GraphDatabaseService graphDatabaseService;
-	
-    public EntityInstantiator<NodeBacked, Node> graphEntityInstantiator;
-
-	private DelegatingFieldAccessorFactory fieldAccessorFactory;
-
-	public EntityInstantiator<RelationshipBacked, Relationship> relationshipEntityInstantiator;
-	
-    private IndexService indexService;
-    
-    private ConversionService conversionService;
 
     @Autowired
-	public void init(GraphDatabaseService gds, EntityInstantiator<NodeBacked, Node> graphEntityInstantiator, 
-			EntityInstantiator<RelationshipBacked, Relationship> relationshipEntityInstantiator, IndexService indexService,
-			ConversionService conversionService) {
-		this.graphDatabaseService = gds;
-		this.graphEntityInstantiator = graphEntityInstantiator;
-		this.relationshipEntityInstantiator = relationshipEntityInstantiator;
-        this.indexService = indexService;
-		this.conversionService = conversionService;
-        this.fieldAccessorFactory = new DelegatingFieldAccessorFactory(graphEntityInstantiator, relationshipEntityInstantiator);
+	public void init(GraphDatabaseContext ctx) {
+        this.graphDatabaseContext = ctx;
+        this.fieldAccessorFactory = new DelegatingFieldAccessorFactory(ctx);
 	}
 	
 	
@@ -82,7 +59,7 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<GraphEn
 	
 	// Create a new node in the Graph if no Node was passed in a constructor
 	before(NodeBacked entity) : arbitraryUserConstructorOfNodeBackedObject(entity) {
-        if (!transactionIsRunning()) {
+        if (!graphDatabaseContext.transactionIsRunning()) {
             log.warn("New Nodebacked created outside of transaction "+ entity.getClass());
 
         } else {
@@ -92,31 +69,16 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<GraphEn
 
     private void createAndAssignNode(NodeBacked entity) {
 		try {
-			entity.setUnderlyingNode(graphDatabaseService.createNode());
+			entity.setUnderlyingNode(graphDatabaseContext.createNode());
 			log.info("User-defined constructor called on class " + entity.getClass() + "; created Node [" + entity.getUnderlyingNode() +"]; " +
 					"Updating metamodel");
-			postEntityCreation(entity);
+			graphDatabaseContext.postEntityCreation(entity);
 		} catch(NotInTransactionException e) {
 			throw new InvalidDataAccessResourceUsageException("Not in a Neo4j transaction.", e);
 		}
     }
 
-    private void postEntityCreation(NodeBacked entity) {
-        Node subReference = Neo4jHelper.obtainSubreferenceNode(entity.getClass(), graphDatabaseService);
-        entity.getUnderlyingNode().createRelationshipTo(subReference, Neo4jHelper.INSTANCE_OF_RELATIONSHIP_TYPE);
-        GraphDatabaseUtil.incrementAndGetCounter(subReference, Neo4jHelper.SUBREFERENCE_NODE_COUNTER_KEY);
-    }
-
-    private boolean transactionIsRunning() {
-        try {
-            return ((EmbeddedGraphDatabase)graphDatabaseService).getConfig().getTxModule().getTxManager().getStatus() != Status.STATUS_NO_TRANSACTION;
-        } catch (SystemException e) {
-            log.error("Error accessing TransactionManager",e);
-            return false;
-        }
-    }
-
-	// Introduced field
+    // Introduced field
 	private Node NodeBacked.underlyingNode;
     private Map<Field,Object> NodeBacked.dirty;
 
@@ -165,7 +127,6 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<GraphEn
     public  Iterable<? extends NodeBacked> NodeBacked.find(final Class<? extends NodeBacked> targetType, TraversalDescription traversalDescription) {
         if (!hasUnderlyingNode()) throw new IllegalStateException("No node attached to " + this);
         final Traverser traverser = traversalDescription.traverse(this.getUnderlyingNode());
-        final EntityInstantiator<NodeBacked,Node> instantiator=Neo4jNodeBacking.aspectOf().graphEntityInstantiator;
         return new Neo4jNodeBacking.NodeBackedNodeIterableWrapper(traverser, targetType);
     }
     /*
@@ -183,14 +144,14 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<GraphEn
     */
     public RelationshipBacked NodeBacked.relateTo(NodeBacked node, Class<? extends RelationshipBacked> relationshipType, String type) {
         Relationship rel = this.getUnderlyingNode().createRelationshipTo(node.getUnderlyingNode(), DynamicRelationshipType.withName(type));
-        return Neo4jNodeBacking.aspectOf().relationshipEntityInstantiator.createEntityFromState(rel, relationshipType);
+        return Neo4jNodeBacking.aspectOf().graphDatabaseContext.createEntityFromState(rel, relationshipType);
     }
 
     public RelationshipBacked NodeBacked.getRelationshipTo(NodeBacked node, Class<? extends RelationshipBacked> relationshipType, String type) {
         Node myNode=this.getUnderlyingNode();
         Node otherNode=node.getUnderlyingNode();
         for (Relationship rel : this.getUnderlyingNode().getRelationships(DynamicRelationshipType.withName(type))) {
-            if (rel.getOtherNode(myNode).equals(otherNode)) return Neo4jNodeBacking.aspectOf().relationshipEntityInstantiator.createEntityFromState(rel, relationshipType);
+            if (rel.getOtherNode(myNode).equals(otherNode)) return Neo4jNodeBacking.aspectOf().graphDatabaseContext.createEntityFromState(rel, relationshipType);
         }
         return null;
     }
@@ -269,7 +230,7 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<GraphEn
     }
 
     private void flushDirty(NodeBacked entity) {
-        if (transactionIsRunning()) {
+        if (graphDatabaseContext.transactionIsRunning()) {
             final boolean newNode=!entity.hasUnderlyingNode();
             if (newNode) {
                 createAndAssignNode(entity);
@@ -312,10 +273,10 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<GraphEn
                 Node node = entity.getUnderlyingNode();
                 if (newVal==null) {
                     node.removeProperty(propName);
-                    if (isIndexedProperty(field)) indexService.removeIndex(node,propName);
+                    if (isIndexedProperty(field)) graphDatabaseContext.removeIndex(node,propName);
                 } else {
                     node.setProperty(propName, serializePropertyValue(newVal, field.getType()));
-                    if (isIndexedProperty(field)) indexService.index(node,propName,newVal);
+                    if (isIndexedProperty(field)) graphDatabaseContext.index(node,propName,newVal);
                 }
                 log.info("SET " + field + " -> Neo4J simple node property [" + propName + "] with value=[" + newVal + "]");
                 return new ShouldProceedOrReturn(true,newVal);
@@ -337,7 +298,7 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<GraphEn
         FieldSignature fieldSignature = (FieldSignature) thisJoinPoint.getSignature();
         Field f = fieldSignature.getField();
 
-        if (!transactionIsRunning()) {
+        if (!graphDatabaseContext.transactionIsRunning()) {
             log.warn("Outside of transaction, GET value from field "+f+" has node "+entity.hasUnderlyingNode()+" dirty "+entity.isDirty(f)+" "+entity.dump());
             if (!entity.hasUnderlyingNode() || (entity.isDirty(f))) {
                 log.warn("Outside of transaction, GET value from field "+f);
@@ -359,7 +320,7 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<GraphEn
     Object around(NodeBacked entity, Object newVal) : entityFieldSet(entity, newVal) {
         FieldSignature fieldSignature=(FieldSignature) thisJoinPoint.getSignature();
         Field f = fieldSignature.getField();
-        if (!transactionIsRunning()) {
+        if (!graphDatabaseContext.transactionIsRunning()) {
             log.warn("Outside of transaction, SET value "+newVal+" to field "+f+" has node "+entity.hasUnderlyingNode()+" dirty "+entity.isDirty(f));
             if (!entity.isDirty(f)) {
                 Object existingValue;
@@ -395,25 +356,25 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<GraphEn
 	}
 
 	private boolean isSerializableField(Field field) {
-		return !DelegatingFieldAccessorFactory.isRelationshipField(field) && conversionService.canConvert(field.getType(), String.class);
+		return !DelegatingFieldAccessorFactory.isRelationshipField(field) && graphDatabaseContext.canConvert(field.getType(), String.class);
 	}
 	
 	private boolean isDeserializableField(Field field) {
-		return !DelegatingFieldAccessorFactory.isRelationshipField(field) && conversionService.canConvert(String.class, field.getType());
+		return !DelegatingFieldAccessorFactory.isRelationshipField(field) && graphDatabaseContext.canConvert(String.class, field.getType());
 	}
 	
 	private Object serializePropertyValue(Object newVal, Class<?> fieldType) {
 		if (isNeo4jPropertyType(fieldType)) {
 			return newVal;
 		}
-		return conversionService.convert(newVal, String.class);
+		return graphDatabaseContext.convert(newVal, String.class);
 	}
 	
 	private Object deserializePropertyValue(Object value, Class<?> fieldType) {
 		if (isNeo4jPropertyType(fieldType)) {
 			return value;
 		}
-		return conversionService.convert(value, fieldType);
+		return graphDatabaseContext.convert(value, fieldType);
 	}
 	
     // todo @property annotation
@@ -435,7 +396,7 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<GraphEn
 
         @Override
         protected NodeBacked underlyingObjectToObject(Node node) {
-            return Neo4jNodeBacking.aspectOf().graphEntityInstantiator.createEntityFromState(node,targetType);
+            return Neo4jNodeBacking.aspectOf().graphDatabaseContext.createEntityFromState(node,targetType);
         }
     }
 }

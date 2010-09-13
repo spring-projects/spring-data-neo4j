@@ -5,7 +5,8 @@ import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.RelationshipType;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
-import org.springframework.persistence.support.EntityInstantiator;
+import org.springframework.datastore.graph.api.NodeBacked;
+import org.springframework.datastore.graph.neo4j.support.GraphDatabaseContext;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -18,11 +19,11 @@ public abstract class AbstractRelationshipFieldAccessor<ENTITY,STATE,TARGET,TSTA
     protected final RelationshipType type;
     protected final Direction direction;
     protected final Class<? extends TARGET> relatedType;
-    protected final EntityInstantiator<TARGET, TSTATE> graphEntityInstantiator;
+    protected final GraphDatabaseContext graphDatabaseContext;
 
-    public AbstractRelationshipFieldAccessor(Class<? extends TARGET> clazz, EntityInstantiator<TARGET, TSTATE> graphEntityInstantiator, Direction direction, RelationshipType type) {
+    public AbstractRelationshipFieldAccessor(Class<? extends TARGET> clazz, GraphDatabaseContext graphDatabaseContext, Direction direction, RelationshipType type) {
         this.relatedType = clazz;
-        this.graphEntityInstantiator = graphEntityInstantiator;
+        this.graphDatabaseContext = graphDatabaseContext;
         this.direction = direction;
         this.type = type;
     }
@@ -74,7 +75,8 @@ public abstract class AbstractRelationshipFieldAccessor<ENTITY,STATE,TARGET,TSTA
         final Iterable<TSTATE> nodes = getStatesFromEntity(entity);
         final Set<TARGET> result = new HashSet<TARGET>();
         for (final TSTATE otherNode : nodes) {
-            result.add(graphEntityInstantiator.createEntityFromState(otherNode, relatedType));
+            TARGET target=graphDatabaseContext.createEntityFromState(otherNode, relatedType);
+            result.add(target);
 		}
         return result;
     }

@@ -7,6 +7,7 @@ import org.neo4j.kernel.EmbeddedGraphDatabase;
 import org.springframework.beans.factory.annotation.Configurable;
 import org.springframework.datastore.graph.api.NodeBacked;
 import org.springframework.datastore.graph.neo4j.finder.FinderFactory;
+import org.springframework.datastore.graph.neo4j.support.GraphDatabaseContext;
 import org.springframework.persistence.support.EntityInstantiator;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,29 +29,25 @@ import java.util.Map;
 @Transactional
 @Configurable
 public class Neo4jEntityManager implements EntityManager {
-    private GraphDatabaseService graphDatabaseService;
-    private EntityInstantiator<NodeBacked, Node> nodeInstantiator;
+    private GraphDatabaseContext graphDatabaseContext;
     private PersistenceUnitInfo info;
 
     private Map params;
-    private IndexService indexService;
     private volatile boolean closed;
     private final FinderFactory finderFactory;
 
     @Resource
     private EntityManagerFactory entityManagerFactory;
 
-    public Neo4jEntityManager(final GraphDatabaseService graphDatabaseService, final EntityInstantiator<NodeBacked, Node> nodeInstantiator, final PersistenceUnitInfo info, final Map params, final IndexService indexService) {
-        this.graphDatabaseService = graphDatabaseService;
-        this.nodeInstantiator = nodeInstantiator;
+    public Neo4jEntityManager(final GraphDatabaseContext graphDatabaseContext,final PersistenceUnitInfo info, final Map params) {
+        this.graphDatabaseContext = graphDatabaseContext;
         this.info = info;
         this.params = params;
-        this.indexService = indexService;
-        finderFactory = new FinderFactory(graphDatabaseService, nodeInstantiator, indexService);
+        finderFactory = new FinderFactory(graphDatabaseContext);
     }
 
     public Neo4jEntityManager() {
-        finderFactory = new FinderFactory(graphDatabaseService, nodeInstantiator, indexService);
+        finderFactory = new FinderFactory(graphDatabaseContext);
     }
 
     private Node nodeFor(final Object entity) {
@@ -64,19 +61,13 @@ public class Neo4jEntityManager implements EntityManager {
     @Override
     public void persist(final Object entity) {
         checkClosed();
-        final Transaction tx = graphDatabaseService.beginTx();
-        try {
-            //todo nodebacked justwriteback, no check
-            tx.success();
-        } finally {
-            tx.finish();
-        }
+        //todo nodebacked justwriteback, no check
     }
 
     @Override
     public <T> T merge(final T entity) {
-        // todo nodebacked merge
         checkClosed();
+        // todo nodebacked merge
         return entity;
     }
 
@@ -97,8 +88,8 @@ public class Neo4jEntityManager implements EntityManager {
             throw new IllegalArgumentException("Not a nodebacked entity type " + entityClass);
         if (!(primaryKey instanceof Number))
             throw new IllegalArgumentException("Primary Key for entity type " + entityClass + " is not a number " + primaryKey);
-        final Node node = graphDatabaseService.getNodeById(((Number) primaryKey).longValue());
-        return (T) nodeInstantiator.createEntityFromState(node, (Class<? extends NodeBacked>) entityClass);
+        final Node node = graphDatabaseContext.getNodeById(((Number) primaryKey).longValue());
+        return (T) graphDatabaseContext.createEntityFromState(node, (Class<? extends NodeBacked>) entityClass);
     }
 
     @Override
@@ -293,7 +284,7 @@ public class Neo4jEntityManager implements EntityManager {
     @Override
     public Object getDelegate() {
         checkClosed();
-        return graphDatabaseService;
+        return graphDatabaseContext;
     }
 
     @Override
@@ -313,7 +304,7 @@ public class Neo4jEntityManager implements EntityManager {
 
     @Override
     public EntityTransaction getTransaction() {
-        final TransactionManager transactionManager = ((EmbeddedGraphDatabase) graphDatabaseService).getConfig().getTxModule().getTxManager();
+        final TransactionManager transactionManager = graphDatabaseContext.getTxManager();
         return new Neo4jEntityTransaction(transactionManager);
     }
 
