@@ -41,27 +41,30 @@ public class ConvertingNodePropertyFieldAccessor extends NodePropertyFieldAccess
     }
 
     public static FieldAccessorFactory<NodeBacked> factory() {
-        return new FieldAccessorFactory<NodeBacked>() {
-            @Autowired
-            ConversionService conversionService;
+        return new ConvertingNodePropertyFieldAccessorFactory();
+    }
 
-            @Override
-            public boolean accept(final Field field) {
-                return isSerializableField(field) && isDeserializableField(field);
-            }
+    @Configurable
+    private static class ConvertingNodePropertyFieldAccessorFactory implements FieldAccessorFactory<NodeBacked> {
+        @Autowired
+        ConversionService conversionService;
 
-            @Override
-            public FieldAccessor<NodeBacked,?> forField(final Field field) {
-                return new ConvertingNodePropertyFieldAccessor(field,conversionService);
-            }
+        @Override
+        public boolean accept(final Field field) {
+            return isSerializableField(field) && isDeserializableField(field);
+        }
 
-            private boolean isSerializableField(final Field field) {
-                return !DelegatingFieldAccessorFactory.isRelationshipField(field) && conversionService.canConvert(field.getType(), String.class);
-            }
+        @Override
+        public FieldAccessor<NodeBacked,?> forField(final Field field) {
+            return new ConvertingNodePropertyFieldAccessor(field,conversionService);
+        }
 
-            private boolean isDeserializableField(final Field field) {
-                return !DelegatingFieldAccessorFactory.isRelationshipField(field) && conversionService.canConvert(String.class, field.getType());
-            }
-        };
+        private boolean isSerializableField(final Field field) {
+            return !DelegatingFieldAccessorFactory.isRelationshipField(field) && conversionService.canConvert(field.getType(), String.class);
+        }
+
+        private boolean isDeserializableField(final Field field) {
+            return !DelegatingFieldAccessorFactory.isRelationshipField(field) && conversionService.canConvert(String.class, field.getType());
+        }
     }
 }

@@ -8,7 +8,6 @@ import org.aspectj.lang.reflect.FieldSignature;
 import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.traversal.*;
 import org.neo4j.graphdb.traversal.Traverser;
-import org.neo4j.helpers.collection.IterableWrapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.InvalidDataAccessResourceUsageException;
 import org.springframework.datastore.graph.api.GraphEntityProperty;
@@ -17,10 +16,10 @@ import org.springframework.datastore.graph.api.RelationshipBacked;
 
 import org.springframework.datastore.graph.api.GraphEntity;
 import org.springframework.datastore.graph.neo4j.fieldaccess.DelegatingFieldAccessorFactory;
+import org.springframework.datastore.graph.neo4j.fieldaccess.EntityStateAccessors;
 import org.springframework.datastore.graph.neo4j.fieldaccess.FieldAccessor;
 import org.springframework.datastore.graph.neo4j.support.GraphDatabaseContext;
 import org.springframework.persistence.support.AbstractTypeAnnotatingMixinFields;
-import org.springframework.persistence.support.EntityInstantiator;
 import org.springframework.util.ObjectUtils;
 
 /**
@@ -69,7 +68,9 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<GraphEn
 
     private void createAndAssignNode(NodeBacked entity) {
 		try {
-			entity.setUnderlyingNode(graphDatabaseContext.createNode());
+            Node node=graphDatabaseContext.createNode();
+			entity.setUnderlyingNode(node);
+            entity.underlyingState=new EntityStateAccessors<NodeBacked,Node>(node,entity,entity.getClass(),graphDatabaseContext);
 			log.info("User-defined constructor called on class " + entity.getClass() + "; created Node [" + entity.getUnderlyingNode() +"]; " +
 					"Updating metamodel");
 			graphDatabaseContext.postEntityCreation(entity);
@@ -80,6 +81,8 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<GraphEn
 
     // Introduced field
 	private Node NodeBacked.underlyingNode;
+    private EntityStateAccessors<NodeBacked,Node> NodeBacked.underlyingState;
+
     private Map<Field,Object> NodeBacked.dirty;
 
 	public void NodeBacked.setUnderlyingNode(Node n) {
@@ -127,7 +130,7 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<GraphEn
     public  Iterable<? extends NodeBacked> NodeBacked.find(final Class<? extends NodeBacked> targetType, TraversalDescription traversalDescription) {
         if (!hasUnderlyingNode()) throw new IllegalStateException("No node attached to " + this);
         final Traverser traverser = traversalDescription.traverse(this.getUnderlyingNode());
-        return new Neo4jNodeBacking.NodeBackedNodeIterableWrapper(traverser, targetType);
+        return new NodeBackedNodeIterableWrapper(traverser, targetType, Neo4jNodeBacking.aspectOf().graphDatabaseContext);
     }
     /*
     public Iterable<? extends NodeBacked> NodeBacked.traverse(TraversalDescription traversalDescription) {
@@ -178,8 +181,6 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<GraphEn
         if (!hasUnderlyingNode()) return System.identityHashCode(this);
 		return getUnderlyingNode().hashCode();
 	}
-
-
 
     private Object getValueFromEntity(Field field, NodeBacked entity) {
         try {
@@ -386,17 +387,4 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<GraphEn
         return graphEntityProperty!=null && graphEntityProperty.index();
     }
 
-    public static class NodeBackedNodeIterableWrapper extends IterableWrapper<NodeBacked, Node> {
-        private final Class<? extends NodeBacked> targetType;
-
-        public NodeBackedNodeIterableWrapper(Traverser traverser, Class<? extends NodeBacked> targetType) {
-            super(traverser.nodes());
-            this.targetType = targetType;
-        }
-
-        @Override
-        protected NodeBacked underlyingObjectToObject(Node node) {
-            return Neo4jNodeBacking.aspectOf().graphDatabaseContext.createEntityFromState(node,targetType);
-        }
-    }
 }

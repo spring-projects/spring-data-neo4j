@@ -1,16 +1,13 @@
 package org.springframework.datastore.graph.neo4j.fieldaccess;
 
+import org.springframework.datastore.graph.api.*;
+import org.springframework.datastore.graph.neo4j.support.GraphDatabaseContext;
+
 import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
-
-import org.neo4j.graphdb.Direction;
-import org.neo4j.graphdb.DynamicRelationshipType;
-import org.springframework.datastore.graph.api.*;
-import org.springframework.datastore.graph.neo4j.support.GraphDatabaseContext;
 
 public class DelegatingFieldAccessorFactory<T> implements FieldAccessorFactory<T> {
     private final GraphDatabaseContext graphDatabaseContext;
@@ -25,6 +22,8 @@ public class DelegatingFieldAccessorFactory<T> implements FieldAccessorFactory<T
     }
 
     final Collection<FieldAccessorFactory<?>> fieldAccessorFactories = Arrays.<FieldAccessorFactory<?>>asList(
+            IdFieldAccessor.factory(),
+            TransientFieldAccessor.factory(),
             NodePropertyFieldAccessor.factory(),
             ConvertingNodePropertyFieldAccessor.factory(),
             SingleRelationshipFieldAccessor.factory(),
@@ -37,7 +36,7 @@ public class DelegatingFieldAccessorFactory<T> implements FieldAccessorFactory<T
             );
 
     public FieldAccessor forField(Field field) {
-        if (Modifier.isTransient(field.getModifiers())) return null;
+        if (field.getName().startsWith("ajc")) return null;
 	    for (FieldAccessorFactory<?> fieldAccessorFactory : fieldAccessorFactories) {
 		    if (fieldAccessorFactory.accept(field)) {
 			    System.out.println("Factory " + fieldAccessorFactory + " used for field: " + field);
@@ -47,37 +46,6 @@ public class DelegatingFieldAccessorFactory<T> implements FieldAccessorFactory<T
 		throw new IllegalArgumentException("Not a Neo4j relationship field: " + field);
 	}
 
-
-    private Class<? extends NodeBacked> targetFrom(Field field) {
-        return (Class<? extends NodeBacked>) field.getType();
-    }
-
-    private Class<? extends NodeBacked> targetFrom(GraphEntityRelationship relAnnotation) {
-        return relAnnotation.elementClass();
-    }
-
-    private Direction dirFrom(GraphEntityRelationship relAnnotation) {
-        return relAnnotation.direction().toNeo4jDir();
-    }
-
-    private DynamicRelationshipType typeFrom(Field field) {
-        return DynamicRelationshipType.withName(getNeo4jPropertyName(field));
-    }
-
-    private Class<? extends RelationshipBacked> targetFrom(GraphEntityRelationshipEntity relEntityAnnotation) {
-        return relEntityAnnotation.elementClass();
-    }
-
-    private Direction dirFrom(GraphEntityRelationshipEntity relEntityAnnotation) {
-        return relEntityAnnotation.direction().toNeo4jDir();
-    }
-    private DynamicRelationshipType typeFrom(GraphEntityRelationshipEntity relEntityAnnotation) {
-        return DynamicRelationshipType.withName(relEntityAnnotation.type());
-    }
-
-    private DynamicRelationshipType typeFrom(GraphEntityRelationship relAnnotation) {
-        return DynamicRelationshipType.withName(relAnnotation.type());
-    }
 
     public static boolean isRelationshipField(Field f) {
 		return isSingleRelationshipField(f) 
@@ -124,11 +92,11 @@ public class DelegatingFieldAccessorFactory<T> implements FieldAccessorFactory<T
         return false;
     }
 
-    public List<FieldAccessor<T, ?>> listenersFor(Field field) {
-        List<FieldAccessor<T,?>> result=new ArrayList<FieldAccessor<T,?>>();
+    public List<FieldAccessListener<T, ?>> listenersFor(Field field) {
+        List<FieldAccessListener<T,?>> result=new ArrayList<FieldAccessListener<T,?>>();
         for (FieldAccessorListenerFactory<?> fieldAccessorListenerFactory : fieldAccessorListenerFactories) {
             if (fieldAccessorListenerFactory.accept(field)) {
-                final FieldAccessor<T, ?> listener = (FieldAccessor<T, ?>) fieldAccessorListenerFactory.forField(field);
+                final FieldAccessListener<T, ?> listener = (FieldAccessListener<T, ?>) fieldAccessorListenerFactory.forField(field);
                 result.add(listener);
             }
         }
