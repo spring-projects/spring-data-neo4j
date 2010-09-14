@@ -36,7 +36,7 @@ public class DelegatingFieldAccessorFactory<T> implements FieldAccessorFactory<T
             );
 
     public FieldAccessor forField(Field field) {
-        if (field.getName().startsWith("ajc")) return null;
+        if (isAspectjField(field)) return null;
 	    for (FieldAccessorFactory<?> fieldAccessorFactory : fieldAccessorFactories) {
 		    if (fieldAccessorFactory.accept(field)) {
 			    System.out.println("Factory " + fieldAccessorFactory + " used for field: " + field);
@@ -45,6 +45,10 @@ public class DelegatingFieldAccessorFactory<T> implements FieldAccessorFactory<T
 	    }
 		throw new IllegalArgumentException("Not a Neo4j relationship field: " + field);
 	}
+
+    private boolean isAspectjField(Field field) {
+        return field.getName().startsWith("ajc");
+    }
 
 
     public static boolean isRelationshipField(Field f) {
