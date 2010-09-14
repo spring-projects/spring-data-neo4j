@@ -2,12 +2,12 @@ package org.springframework.datastore.graph.neo4j.fieldaccess;
 
 import org.neo4j.graphdb.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Configurable;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.datastore.graph.api.GraphEntityRelationshipEntity;
 import org.springframework.datastore.graph.api.NodeBacked;
 import org.springframework.datastore.graph.api.RelationshipBacked;
 import org.springframework.datastore.graph.neo4j.support.GraphDatabaseContext;
-import org.springframework.persistence.support.EntityInstantiator;
 
 import java.lang.reflect.Field;
 import java.util.HashSet;
@@ -59,7 +59,7 @@ public class OneToNRelationshipEntityFieldAccessor extends AbstractRelationshipF
         return new RelationshipEntityFieldAccessorFactory();
     }
 
-
+	@Configurable
     private static class RelationshipEntityFieldAccessorFactory implements FieldAccessorFactory<NodeBacked> {
         @Autowired
         private GraphDatabaseContext graphDatabaseContext;

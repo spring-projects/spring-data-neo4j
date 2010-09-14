@@ -38,23 +38,12 @@ public class DelegatingFieldAccessorFactory<T> implements FieldAccessorFactory<T
 
     public FieldAccessor forField(Field field) {
         if (Modifier.isTransient(field.getModifiers())) return null;
-		GraphEntityRelationship relAnnotation = field.getAnnotation(GraphEntityRelationship.class);
-		if (isSingleRelationshipField(field)) {
-            if (relAnnotation != null) {
-				return new SingleRelationshipFieldAccessor(typeFrom(relAnnotation), dirFrom(relAnnotation), targetFrom(field), graphDatabaseContext);
-			}
-			return new SingleRelationshipFieldAccessor(typeFrom(field), Direction.OUTGOING, targetFrom(field), graphDatabaseContext);
-		}
-		if (isOneToNRelationshipField(field)) {
-			return new OneToNRelationshipFieldAccessor(typeFrom(relAnnotation), dirFrom(relAnnotation), targetFrom(relAnnotation), graphDatabaseContext);
-		}
-		if (isReadOnlyOneToNRelationshipField(field)) {
-			return new ReadOnlyOneToNRelationshipFieldAccessor(typeFrom(relAnnotation), dirFrom(relAnnotation), targetFrom(relAnnotation), graphDatabaseContext);
-		}
-		if (isOneToNRelationshipEntityField(field)) {
-			GraphEntityRelationshipEntity relEntityAnnotation = field.getAnnotation(GraphEntityRelationshipEntity.class);
-			return new OneToNRelationshipEntityFieldAccessor(typeFrom(relEntityAnnotation), dirFrom(relEntityAnnotation), targetFrom(relEntityAnnotation), graphDatabaseContext);
-		}
+	    for (FieldAccessorFactory<?> fieldAccessorFactory : fieldAccessorFactories) {
+		    if (fieldAccessorFactory.accept(field)) {
+			    System.out.println("Factory " + fieldAccessorFactory + " used for field: " + field);
+			    return fieldAccessorFactory.forField(field);
+		    }
+	    }
 		throw new IllegalArgumentException("Not a Neo4j relationship field: " + field);
 	}
 
