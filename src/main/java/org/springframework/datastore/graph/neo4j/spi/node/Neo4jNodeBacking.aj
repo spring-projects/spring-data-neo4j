@@ -16,6 +16,7 @@ import org.springframework.datastore.graph.api.RelationshipBacked;
 
 import org.springframework.datastore.graph.api.GraphEntity;
 import org.springframework.datastore.graph.neo4j.fieldaccess.DelegatingFieldAccessorFactory;
+import org.springframework.datastore.graph.neo4j.fieldaccess.DoReturn;
 import org.springframework.datastore.graph.neo4j.fieldaccess.EntityStateAccessors;
 import org.springframework.datastore.graph.neo4j.fieldaccess.FieldAccessor;
 import org.springframework.datastore.graph.neo4j.support.GraphDatabaseContext;
@@ -310,12 +311,17 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<GraphEn
 
         flushDirty(entity);
 
+        Object result=entity.underlyingState.getValue(f);
+        if (result instanceof DoReturn) return ((DoReturn)result).value;
+        return proceed(entity);
+        /*
         ShouldProceedOrReturn shouldProceedOrReturn=getNodePropertyOrRelationship(f,entity);
         if (shouldProceedOrReturn.proceed) {
             return proceed(entity);
         } else {
             return shouldProceedOrReturn.value;
         }
+        */
     }
 
     Object around(NodeBacked entity, Object newVal) : entityFieldSet(entity, newVal) {

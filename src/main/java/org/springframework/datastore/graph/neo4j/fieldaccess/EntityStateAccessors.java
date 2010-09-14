@@ -37,19 +37,26 @@ public class EntityStateAccessors<ENTITY, STATE> {
     }
 
     public Object getValue(final Field field) {
-       return fieldAccessors.get(field).getValue(entity);
+        final FieldAccessor<ENTITY, ?> accessor = accessorFor(field);
+        return accessor == null ? null : accessor.getValue(entity);
     }
     public Object setValue(final Field field, final Object newVal) {
-        final Object result = fieldAccessors.get(field).setValue(entity, newVal);
+        final FieldAccessor<ENTITY, ?> accessor = accessorFor(field);
+        Object result=newVal;
+        if (accessor!=null) result = accessor.setValue(entity, newVal);
         notifyListeners(field, result); // async ?
         return result;
     }
 
+    private FieldAccessor<ENTITY, ?> accessorFor(Field field) {
+        return fieldAccessors.get(field);
+    }
+
     private void notifyListeners(Field field, Object result) {
-        if (fieldAccessorListeners.containsKey(field)) {
-            for (final FieldAccessListener<ENTITY, ?> listener : fieldAccessorListeners.get(field)) {
-                listener.valueChanged(entity,null,result); // todo oldValue
-            }
+        if (!fieldAccessorListeners.containsKey(field) || fieldAccessorListeners.get(field) == null) return;
+
+        for (final FieldAccessListener<ENTITY, ?> listener : fieldAccessorListeners.get(field)) {
+            listener.valueChanged(entity, null, result); // todo oldValue
         }
     }
 

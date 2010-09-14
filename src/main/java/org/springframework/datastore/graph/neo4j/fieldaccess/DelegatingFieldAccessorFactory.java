@@ -1,5 +1,7 @@
 package org.springframework.datastore.graph.neo4j.fieldaccess;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.datastore.graph.api.*;
 import org.springframework.datastore.graph.neo4j.support.GraphDatabaseContext;
 
@@ -10,6 +12,7 @@ import java.util.Collection;
 import java.util.List;
 
 public class DelegatingFieldAccessorFactory<T> implements FieldAccessorFactory<T> {
+    private final static Log log= LogFactory.getLog(DelegatingFieldAccessorFactory.class);
     private final GraphDatabaseContext graphDatabaseContext;
 
     public DelegatingFieldAccessorFactory(GraphDatabaseContext graphDatabaseContext) {
@@ -43,7 +46,8 @@ public class DelegatingFieldAccessorFactory<T> implements FieldAccessorFactory<T
 			    return fieldAccessorFactory.forField(field);
 		    }
 	    }
-		throw new IllegalArgumentException("Not a Neo4j relationship field: " + field);
+	    log.warn("No FieldAccessor configured for field: " + field);
+        return null;
 	}
 
     private boolean isAspectjField(Field field) {
