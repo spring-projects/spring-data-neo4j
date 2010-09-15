@@ -48,9 +48,9 @@ public class DelegatingFieldAccessorFactory<T> implements FieldAccessorFactory<T
                 return fieldAccessorFactory.forField(field);
             }
         }
-        throw new RuntimeException("No FieldAccessor configured for field: " + field);
-        //log.warn("No FieldAccessor configured for field: " + field);
-        //return null;
+        //throw new RuntimeException("No FieldAccessor configured for field: " + field);
+        log.warn("No FieldAccessor configured for field: " + field);
+        return null;
     }
 
     private boolean isAspectjField(Field field) {
