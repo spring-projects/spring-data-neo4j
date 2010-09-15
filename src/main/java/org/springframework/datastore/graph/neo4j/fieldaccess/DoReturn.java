@@ -13,4 +13,8 @@ public class DoReturn<T> {
     public static <T> DoReturn<T> doReturn(T value) {
         return new DoReturn<T>(value);
     }
+
+    public static Object unwrap(final Object value) {
+        return (value instanceof DoReturn) ? ((DoReturn) value).value : value;
+    }
 }

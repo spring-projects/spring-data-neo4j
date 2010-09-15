@@ -12,6 +12,8 @@ import java.util.ConcurrentModificationException;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.springframework.datastore.graph.neo4j.fieldaccess.DoReturn.unwrap;
+
 /**
  * @author Michael Hunger
  * @since 15.09.2010
@@ -131,10 +133,6 @@ public class DetachableEntityStateAccessors<ENTITY extends NodeBacked, STATE> im
         if (!ObjectUtils.nullSafeEquals(nodeValue, previousValue)) {
             throw new ConcurrentModificationException("Node " + entity.getUnderlyingNode() + " field " + field + " changed in between previous " + previousValue + " current " + nodeValue); // todo or just overwrite
         }
-    }
-
-    private Object unwrap(final Object value) {
-        return (value instanceof DoReturn) ? ((DoReturn) value).value : value;
     }
 
     private boolean isDirty() {
