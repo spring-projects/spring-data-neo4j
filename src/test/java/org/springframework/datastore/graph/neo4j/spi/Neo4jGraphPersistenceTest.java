@@ -446,7 +446,22 @@ public class Neo4jGraphPersistenceTest {
         }
         Assert.assertEquals(Collections.singleton(p),found);
 	}
-	
+
+	@Test
+	@Transactional
+	public void testTraverseFieldFromGroupToPeople() {
+        Person p = new Person("Michael", 35);
+		Group group = new Group();
+        group.setName("dev");
+        group.addPerson(p);
+        Iterable<Person> people = group.getPeople();
+        final HashSet<Person> found = new HashSet<Person>();
+        for (Person person : people) {
+            found.add(person);
+        }
+        Assert.assertEquals(Collections.singleton(p),found);
+	}
+
 	@Test
 	@Transactional
 	public void testTraverseFromGroupToPeopleWithFinder() {

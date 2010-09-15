@@ -32,6 +32,7 @@ public class DelegatingFieldAccessorFactory<T> implements FieldAccessorFactory<T
             SingleRelationshipFieldAccessor.factory(),
             OneToNRelationshipFieldAccessor.factory(),
             ReadOnlyOneToNRelationshipFieldAccessor.factory(),
+            TraversalFieldAccessor.factory(),
             OneToNRelationshipEntityFieldAccessor.factory()
             );
     final Collection<FieldAccessorListenerFactory<?>> fieldAccessorListenerFactories = Arrays.<FieldAccessorListenerFactory<?>>asList(

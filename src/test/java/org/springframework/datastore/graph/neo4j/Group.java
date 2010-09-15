@@ -1,19 +1,25 @@
 package org.springframework.datastore.graph.neo4j;
 
-import org.springframework.datastore.graph.api.Direction;
-import org.springframework.datastore.graph.api.GraphEntity;
-import org.springframework.datastore.graph.api.GraphEntityRelationship;
+import org.neo4j.graphdb.DynamicRelationshipType;
+import org.neo4j.graphdb.traversal.TraversalDescription;
+import org.neo4j.kernel.Traversal;
+import org.neo4j.kernel.impl.traversal.TraversalDescriptionImpl;
+import org.springframework.datastore.graph.api.*;
 
+import java.lang.reflect.Field;
 import java.util.Collection;
 
 @GraphEntity(fullIndex = true)
 public class Group {
 
-	@GraphEntityRelationship(type = "persons", direction = Direction.OUTGOING, elementClass = Person.class)
-	private Collection<Person> persons;
-	
-	@GraphEntityRelationship(type = "persons", elementClass = Person.class)
-	private Iterable<Person> readOnlyPersons;
+    @GraphEntityRelationship(type = "persons", direction = Direction.OUTGOING, elementClass = Person.class)
+    private Collection<Person> persons;
+
+    @GraphEntityRelationship(type = "persons", elementClass = Person.class)
+    private Iterable<Person> readOnlyPersons;
+
+    @GraphEntityTraversal(traversalBuilder = PeopleTraversalBuilder.class, elementClass = Person.class)
+    private Iterable<Person> people;
 
     private String name;
 
@@ -26,23 +32,36 @@ public class Group {
     }
 
     public void setPersons(Collection<Person> persons) {
-		this.persons = persons;
-	}
+        this.persons = persons;
+    }
 
-	public void addPerson(Person person) {
-		persons.add(person);
-	}
+    public void addPerson(Person person) {
+        persons.add(person);
+    }
 
-	public Collection<Person> getPersons() {
-		return persons;
-	}
-	
-	public Iterable<Person> getReadOnlyPersons() {
-		return readOnlyPersons;
-	}
+    public Collection<Person> getPersons() {
+        return persons;
+    }
 
-	public void setReadOnlyPersons(Iterable<Person> p) {
-		readOnlyPersons = p;
-	}
-	
+    public Iterable<Person> getReadOnlyPersons() {
+        return readOnlyPersons;
+    }
+
+    public void setReadOnlyPersons(Iterable<Person> p) {
+        readOnlyPersons = p;
+    }
+
+    public Iterable<Person> getPeople() {
+        return people;
+    }
+
+    private static class PeopleTraversalBuilder implements FieldTraversalDescriptionBuilder {
+        @Override
+        public TraversalDescription build(NodeBacked start, Field field) {
+            return new TraversalDescriptionImpl()
+                    .relationships(DynamicRelationshipType.withName("persons"))
+                    .filter(Traversal.returnAllButStartNode());
+
+        }
+    }
 }
