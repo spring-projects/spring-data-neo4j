@@ -4,10 +4,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.datastore.graph.api.NodeBacked;
+import org.springframework.datastore.graph.api.RelationshipBacked;
 
 import java.lang.reflect.Field;
-
-import static org.springframework.datastore.graph.neo4j.fieldaccess.DoReturn.doReturn;
 
 /**
  * @author Michael Hunger
@@ -25,7 +24,7 @@ public class ConvertingNodePropertyFieldAccessor extends NodePropertyFieldAccess
 
     @Override
     public Object setValue(final NodeBacked nodeBacked, final Object newVal) {
-        super.setValue(nodeBacked,serializePropertyValue(newVal));
+        super.setValue(nodeBacked, serializePropertyValue(newVal));
         return newVal;
     }
 
@@ -57,16 +56,23 @@ public class ConvertingNodePropertyFieldAccessor extends NodePropertyFieldAccess
         }
 
         @Override
-        public FieldAccessor<NodeBacked,?> forField(final Field field) {
-            return new ConvertingNodePropertyFieldAccessor(field,conversionService);
+        public FieldAccessor<NodeBacked, ?> forField(final Field field) {
+            return new ConvertingNodePropertyFieldAccessor(field, conversionService);
         }
 
         private boolean isSerializableField(final Field field) {
-            return !DelegatingFieldAccessorFactory.isRelationshipField(field) && conversionService.canConvert(field.getType(), String.class);
+            return isSimpleValueField(field) && conversionService.canConvert(field.getType(), String.class);
         }
 
         private boolean isDeserializableField(final Field field) {
-            return !DelegatingFieldAccessorFactory.isRelationshipField(field) && conversionService.canConvert(String.class, field.getType());
+            return isSimpleValueField(field) && conversionService.canConvert(String.class, field.getType());
+        }
+
+        private boolean isSimpleValueField(final Field field) {
+            final Class<?> type = field.getType();
+            if (Iterable.class.isAssignableFrom(type) || NodeBacked.class.isAssignableFrom(type) || RelationshipBacked.class.isAssignableFrom(type))
+                return false;
+            return true;
         }
     }
 }

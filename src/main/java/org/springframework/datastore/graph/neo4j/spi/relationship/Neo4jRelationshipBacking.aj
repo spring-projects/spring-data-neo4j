@@ -16,6 +16,7 @@ import org.springframework.persistence.support.EntityInstantiator;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
+import java.util.Collection;
 
 public aspect Neo4jRelationshipBacking extends AbstractTypeAnnotatingMixinFields<GraphRelationship,RelationshipBacked> {
 	
@@ -158,11 +159,11 @@ public aspect Neo4jRelationshipBacking extends AbstractTypeAnnotatingMixinFields
 	}
 
 	private boolean isSerializableField(Field field) {
-		return !DelegatingFieldAccessorFactory.isRelationshipField(field) && graphDatabaseContext.canConvert(field.getType(), String.class);
+		return !isRelationshipField(field) && graphDatabaseContext.canConvert(field.getType(), String.class);
 	}
 
 	private boolean isDeserializableField(Field field) {
-		return !DelegatingFieldAccessorFactory.isRelationshipField(field) && graphDatabaseContext.canConvert(String.class, field.getType());
+		return !isRelationshipField(field) && graphDatabaseContext.canConvert(String.class, field.getType());
 	}
 
 	private Object serializePropertyValue(Object newVal, Class<?> fieldType) {
@@ -178,5 +179,39 @@ public aspect Neo4jRelationshipBacking extends AbstractTypeAnnotatingMixinFields
 		}
 		return graphDatabaseContext.convert(value, fieldType);
 	}
+
+
+
+    public static boolean isRelationshipField(Field f) {
+		return isSingleRelationshipField(f)
+			|| isOneToNRelationshipField(f)
+			|| isOneToNRelationshipEntityField(f)
+			|| isReadOnlyOneToNRelationshipField(f);
+	}
+
+	private static boolean isSingleRelationshipField(Field f) {
+		return NodeBacked.class.isAssignableFrom(f.getType());
+	}
+
+	private static boolean isOneToNRelationshipField(Field f) {
+		if (!Collection.class.isAssignableFrom(f.getType())) return false;
+		GraphEntityRelationship relAnnotation = f.getAnnotation(GraphEntityRelationship.class);
+		return relAnnotation != null &&  NodeBacked.class.isAssignableFrom(relAnnotation.elementClass()) && !relAnnotation.elementClass().equals(NodeBacked.class);
+	}
+
+	private static boolean isReadOnlyOneToNRelationshipField(Field f) {
+		GraphEntityRelationship relAnnotation = f.getAnnotation(GraphEntityRelationship.class);
+		return Iterable.class.equals(f.getType())
+			&& relAnnotation != null
+			&& !NodeBacked.class.equals(relAnnotation.elementClass());
+	}
+
+	private static boolean isOneToNRelationshipEntityField(Field f) {
+		GraphEntityRelationshipEntity relEntityAnnotation = f.getAnnotation(GraphEntityRelationshipEntity.class);
+		return Iterable.class.isAssignableFrom(f.getType())
+			&& relEntityAnnotation != null
+			&& !RelationshipBacked.class.equals(relEntityAnnotation.elementClass());
+	}
+
 
 }
