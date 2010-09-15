@@ -1,5 +1,6 @@
 package org.springframework.datastore.graph.neo4j.spi.node;
 
+import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.reflect.FieldSignature;
 import org.neo4j.graphdb.DynamicRelationshipType;
 import org.neo4j.graphdb.Node;
@@ -132,19 +133,19 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<GraphEn
 	}
 
     Object around(NodeBacked entity): entityFieldGet(entity) {
-        FieldSignature fieldSignature = (FieldSignature) thisJoinPoint.getSignature();
-        Field field = fieldSignature.getField();
-
-        Object result=entity.underlyingState.getValue(field);
+        Object result=entity.underlyingState.getValue(field(thisJoinPoint));
         if (result instanceof DoReturn) return unwrap(result);
         return proceed(entity);
     }
 
     Object around(NodeBacked entity, Object newVal) : entityFieldSet(entity, newVal) {
-        FieldSignature fieldSignature=(FieldSignature) thisJoinPoint.getSignature();
-        Field field = fieldSignature.getField();
-        Object result=entity.underlyingState.setValue(field,newVal);
+        Object result=entity.underlyingState.setValue(field(thisJoinPoint),newVal);
         if (result instanceof DoReturn) return unwrap(result);
         return proceed(entity,result);
 	}
+
+    Field field(JoinPoint joinPoint) {
+        FieldSignature fieldSignature = (FieldSignature)joinPoint.getSignature();
+        return fieldSignature.getField();
+    }
 }
