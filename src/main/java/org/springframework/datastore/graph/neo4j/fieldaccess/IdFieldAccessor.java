@@ -18,6 +18,11 @@ public class IdFieldAccessor implements FieldAccessor<NodeBacked, Object> {
     }
 
     @Override
+    public boolean isWriteable(NodeBacked nodeBacked) {
+        return false;
+    }
+
+    @Override
     public Object setValue(final NodeBacked nodeBacked, final Object newVal) {
         return doReturn(null);
     }

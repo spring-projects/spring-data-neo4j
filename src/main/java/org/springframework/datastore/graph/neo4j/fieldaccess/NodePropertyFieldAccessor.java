@@ -18,6 +18,11 @@ public class NodePropertyFieldAccessor implements FieldAccessor<NodeBacked, Obje
     }
 
     @Override
+    public boolean isWriteable(NodeBacked nodeBacked) {
+        return true;
+    }
+
+    @Override
     public Object setValue(final NodeBacked nodeBacked, final Object newVal) {
         nodeBacked.getUnderlyingNode().setProperty(getPropertyName(),newVal);
         return newVal;

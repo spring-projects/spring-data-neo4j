@@ -22,6 +22,11 @@ public class TransientFieldAccessor implements FieldAccessor<NodeBacked, Object>
     }
 
     @Override
+    public boolean isWriteable(NodeBacked nodeBacked) {
+        return true;
+    }
+
+    @Override
     public Object getValue(final NodeBacked nodeBacked) {
         return null;
     }

@@ -34,6 +34,11 @@ public class TraversalFieldAccessor implements FieldAccessor<NodeBacked, Object>
     }
 
     @Override
+    public boolean isWriteable(NodeBacked nodeBacked) {
+        return false;
+    }
+
+    @Override
     public Object setValue(final NodeBacked nodeBacked, final Object newVal) {
         throw new InvalidDataAccessApiUsageException("Cannot set readonly traversal description field " + field);
     }

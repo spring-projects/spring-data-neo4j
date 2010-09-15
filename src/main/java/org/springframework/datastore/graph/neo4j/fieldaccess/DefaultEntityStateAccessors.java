@@ -77,6 +77,13 @@ public class DefaultEntityStateAccessors<ENTITY extends NodeBacked, STATE> imple
     }
 
     @Override
+    public boolean isWritable(Field field) {
+        final FieldAccessor<ENTITY, ?> accessor = accessorFor(field);
+        if (accessor == null) return true;
+        return accessor.isWriteable(entity);
+    }
+
+    @Override
     public Object getValue(final Field field) {
         final FieldAccessor<ENTITY, ?> accessor = accessorFor(field);
         if (accessor == null) return null;

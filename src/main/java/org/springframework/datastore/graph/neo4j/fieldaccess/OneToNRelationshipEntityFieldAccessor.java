@@ -27,6 +27,11 @@ public class OneToNRelationshipEntityFieldAccessor extends AbstractRelationshipF
     }
 
     @Override
+    public boolean isWriteable(NodeBacked nodeBacked) {
+        return false;
+    }
+
+    @Override
     public Object getValue(final NodeBacked entity) {
         checkUnderlyingNode(entity);
         final Set<RelationshipBacked> result = createEntitySetFromRelationships(entity);

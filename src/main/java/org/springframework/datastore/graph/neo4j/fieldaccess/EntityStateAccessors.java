@@ -18,6 +18,7 @@ public interface EntityStateAccessors<ENTITY extends NodeBacked> {
     void setNode(Node node);
 
     Object getValue(Field field);
+    boolean isWritable(Field field);
 
     Object setValue(Field field, Object newVal);
 

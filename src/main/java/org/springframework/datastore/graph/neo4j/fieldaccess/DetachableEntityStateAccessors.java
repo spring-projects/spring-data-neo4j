@@ -32,6 +32,11 @@ public class DetachableEntityStateAccessors<ENTITY extends NodeBacked, STATE> im
     }
 
     @Override
+    public boolean isWritable(Field field) {
+        return delegate.isWritable(field);
+    }
+
+    @Override
     public ENTITY getEntity() {
         return delegate.getEntity();
     }
@@ -61,7 +66,7 @@ public class DetachableEntityStateAccessors<ENTITY extends NodeBacked, STATE> im
     public Object setValue(final Field field, final Object newVal) {
         if (!transactionIsRunning()) {
             final ENTITY entity = getEntity();
-            if (!isDirty(field)) {
+            if (!isDirty(field) && isWritable(field)) {
                 Object existingValue;
                 if (entity.hasUnderlyingNode()) existingValue = unwrap(delegate.getValue(field));
                 else {

@@ -28,6 +28,10 @@ public abstract class AbstractRelationshipFieldAccessor<ENTITY,STATE,TARGET,TSTA
         this.type = type;
     }
 
+    @Override
+    public boolean isWriteable(ENTITY entity) {
+        return true;
+    }
 
     protected STATE checkUnderlyingNode(ENTITY entity) {
         if (entity==null) throw new IllegalStateException("Entity is null");

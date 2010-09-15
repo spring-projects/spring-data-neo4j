@@ -15,7 +15,12 @@ public class ReadOnlyOneToNRelationshipFieldAccessor extends OneToNRelationshipF
         super(type,direction,elementClass, graphDatabaseContext);
 	}
 
-	public Object setValue(final NodeBacked entity, final Object newVal) {
+    @Override
+    public boolean isWriteable(NodeBacked nodeBacked) {
+        return false;
+    }
+
+    public Object setValue(final NodeBacked entity, final Object newVal) {
 		throw new InvalidDataAccessApiUsageException("Cannot set read-only relationship entity field.");
 	}
 
