@@ -42,12 +42,13 @@ public class DelegatingFieldAccessorFactory<T> implements FieldAccessorFactory<T
         if (isAspectjField(field)) return null;
 	    for (FieldAccessorFactory<?> fieldAccessorFactory : fieldAccessorFactories) {
 		    if (fieldAccessorFactory.accept(field)) {
-			    System.out.println("Factory " + fieldAccessorFactory + " used for field: " + field);
+			    if (log.isInfoEnabled()) log.info("Factory " + fieldAccessorFactory + " used for field: " + field);
 			    return fieldAccessorFactory.forField(field);
 		    }
 	    }
-	    log.warn("No FieldAccessor configured for field: " + field);
-        return null;
+        throw new RuntimeException("No FieldAccessor configured for field: " + field);
+	    //log.warn("No FieldAccessor configured for field: " + field);
+        //return null;
 	}
 
     private boolean isAspectjField(Field field) {

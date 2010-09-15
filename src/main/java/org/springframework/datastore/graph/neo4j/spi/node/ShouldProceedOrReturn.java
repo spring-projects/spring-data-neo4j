@@ -19,7 +19,7 @@ public class ShouldProceedOrReturn {
     }
 
     public ShouldProceedOrReturn(final boolean proceed, final Object value) {
-        this.proceed = true;
+        this.proceed = proceed;
         this.value = value;
     }
 }

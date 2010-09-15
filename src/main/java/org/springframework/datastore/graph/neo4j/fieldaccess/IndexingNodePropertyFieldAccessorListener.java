@@ -2,6 +2,7 @@ package org.springframework.datastore.graph.neo4j.fieldaccess;
 
 import org.neo4j.index.IndexService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Configurable;
 import org.springframework.datastore.graph.api.NodeBacked;
 
 import java.lang.reflect.Field;
@@ -31,19 +32,22 @@ public class IndexingNodePropertyFieldAccessorListener implements FieldAccessLis
     }
 
     public static FieldAccessorListenerFactory<NodeBacked> factory() {
-        return new FieldAccessorListenerFactory<NodeBacked>() {
-            @Autowired
-            IndexService indexService;
+        return new NodeBackedFieldAccessorListenerFactory();
+    }
 
-            @Override
-            public boolean accept(final Field f) {
-                return NodePropertyFieldAccessor.factory().accept(f) || ConvertingNodePropertyFieldAccessor.factory().accept(f);
-            }
+    @Configurable
+    private static class NodeBackedFieldAccessorListenerFactory implements FieldAccessorListenerFactory<NodeBacked> {
+        @Autowired
+        IndexService indexService;
 
-            @Override
-            public FieldAccessListener<NodeBacked,?> forField(final Field field) {
-                return new IndexingNodePropertyFieldAccessorListener(field,indexService);
-            }
-        };
+        @Override
+        public boolean accept(final Field f) {
+            return NodePropertyFieldAccessor.factory().accept(f) || ConvertingNodePropertyFieldAccessor.factory().accept(f);
+        }
+
+        @Override
+        public FieldAccessListener<NodeBacked,?> forField(final Field field) {
+            return new IndexingNodePropertyFieldAccessorListener(field,indexService);
+        }
     }
 }

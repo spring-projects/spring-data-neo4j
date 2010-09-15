@@ -4,6 +4,8 @@ import org.springframework.datastore.graph.api.NodeBacked;
 
 import java.lang.reflect.Field;
 
+import static org.springframework.datastore.graph.neo4j.fieldaccess.DoReturn.doReturn;
+
 /**
  * @author Michael Hunger
  * @since 12.09.2010
@@ -22,7 +24,11 @@ public class NodePropertyFieldAccessor implements FieldAccessor<NodeBacked, Obje
     }
 
     @Override
-    public Object getValue(final NodeBacked nodeBacked) {
+    public final Object getValue(final NodeBacked nodeBacked) {
+        return doReturn(doGetValue(nodeBacked));
+    }
+
+    protected Object doGetValue(NodeBacked nodeBacked) {
         return nodeBacked.getUnderlyingNode().getProperty(getPropertyName());
     }
 

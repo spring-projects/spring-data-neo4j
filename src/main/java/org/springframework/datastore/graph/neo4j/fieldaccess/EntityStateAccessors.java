@@ -38,12 +38,17 @@ public class EntityStateAccessors<ENTITY, STATE> {
 
     public Object getValue(final Field field) {
         final FieldAccessor<ENTITY, ?> accessor = accessorFor(field);
-        return accessor == null ? null : accessor.getValue(entity);
+        if (accessor == null) {
+            System.err.println("No accessor for "+field);
+            return null;
+        }
+        else return accessor.getValue(entity);
     }
     public Object setValue(final Field field, final Object newVal) {
         final FieldAccessor<ENTITY, ?> accessor = accessorFor(field);
         Object result=newVal;
         if (accessor!=null) result = accessor.setValue(entity, newVal);
+        else System.err.println("No accessor for "+field);
         notifyListeners(field, result); // async ?
         return result;
     }

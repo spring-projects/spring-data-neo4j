@@ -13,6 +13,8 @@ import java.lang.reflect.Field;
 import java.util.HashSet;
 import java.util.Set;
 
+import static org.springframework.datastore.graph.neo4j.fieldaccess.DoReturn.doReturn;
+
 public class OneToNRelationshipEntityFieldAccessor extends AbstractRelationshipFieldAccessor<NodeBacked, Node, RelationshipBacked, Relationship> {
 
     public OneToNRelationshipEntityFieldAccessor(final RelationshipType type, final Direction direction, final Class<? extends RelationshipBacked> elementClass, final GraphDatabaseContext graphDatabaseContext) {
@@ -28,7 +30,7 @@ public class OneToNRelationshipEntityFieldAccessor extends AbstractRelationshipF
     public Object getValue(final NodeBacked entity) {
         checkUnderlyingNode(entity);
         final Set<RelationshipBacked> result = createEntitySetFromRelationships(entity);
-        return new ManagedFieldAccessorSet<NodeBacked, RelationshipBacked>(entity, result, this);
+        return doReturn(new ManagedFieldAccessorSet<NodeBacked, RelationshipBacked>(entity, result, this));
     }
 
     private Set<RelationshipBacked> createEntitySetFromRelationships(final NodeBacked entity) {

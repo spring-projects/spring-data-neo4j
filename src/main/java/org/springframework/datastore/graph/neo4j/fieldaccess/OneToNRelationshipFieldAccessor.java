@@ -12,6 +12,8 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Set;
 
+import static org.springframework.datastore.graph.neo4j.fieldaccess.DoReturn.doReturn;
+
 public class OneToNRelationshipFieldAccessor extends NodeToNodesRelationshipFieldAccessor<NodeBacked> {
 
     public OneToNRelationshipFieldAccessor(final RelationshipType type, final Direction direction, final Class<? extends NodeBacked> elementClass, final GraphDatabaseContext graphDatabaseContext) {
@@ -35,7 +37,7 @@ public class OneToNRelationshipFieldAccessor extends NodeToNodesRelationshipFiel
     public Object getValue(final NodeBacked entity) {
         checkUnderlyingNode(entity);
         final Set<NodeBacked> result = createEntitySetFromRelationshipEndNodes(entity);
-        return createManagedSet(entity, result);
+        return doReturn(createManagedSet(entity, result));
     }
 
     public static FieldAccessorFactory<NodeBacked> factory() {

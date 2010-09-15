@@ -344,12 +344,19 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<GraphEn
         log.trace("Inside of transaction, FLUSH-SET value "+newVal+" to field "+f+" has node "+entity.hasUnderlyingNode()+" dirty "+entity.isDirty()+" "+entity.dump());
         flushDirty(entity);
 
+
+        Object result=entity.underlyingState.setValue(f,newVal);
+        if (result instanceof DoReturn) return ((DoReturn)result).value;
+        return proceed(entity,result);
+
+        /*
         ShouldProceedOrReturn shouldProceedOrReturn=setNodePropertyOrRelationship(f,entity,newVal);
         if (shouldProceedOrReturn.proceed) {
             return proceed(entity,shouldProceedOrReturn.value);
         } else {
             return shouldProceedOrReturn.value;
         }
+        */
 	}
 
 	private boolean isNeo4jPropertyType(Class<?> fieldType) {

@@ -7,6 +7,8 @@ import org.springframework.datastore.graph.api.NodeBacked;
 
 import java.lang.reflect.Field;
 
+import static org.springframework.datastore.graph.neo4j.fieldaccess.DoReturn.doReturn;
+
 /**
  * @author Michael Hunger
  * @since 12.09.2010
@@ -28,8 +30,8 @@ public class ConvertingNodePropertyFieldAccessor extends NodePropertyFieldAccess
     }
 
     @Override
-    public Object getValue(final NodeBacked nodeBacked) {
-        return deserializePropertyValue(super.getValue(nodeBacked));
+    public Object doGetValue(final NodeBacked nodeBacked) {
+        return deserializePropertyValue(super.doGetValue(nodeBacked));
     }
 
     private Object serializePropertyValue(final Object newVal) {
