@@ -15,10 +15,7 @@ import org.springframework.datastore.graph.api.NodeBacked;
 import org.springframework.datastore.graph.api.RelationshipBacked;
 
 import org.springframework.datastore.graph.api.GraphEntity;
-import org.springframework.datastore.graph.neo4j.fieldaccess.DelegatingFieldAccessorFactory;
-import org.springframework.datastore.graph.neo4j.fieldaccess.DoReturn;
-import org.springframework.datastore.graph.neo4j.fieldaccess.EntityStateAccessors;
-import org.springframework.datastore.graph.neo4j.fieldaccess.FieldAccessor;
+import org.springframework.datastore.graph.neo4j.fieldaccess.*;
 import org.springframework.datastore.graph.neo4j.support.GraphDatabaseContext;
 import org.springframework.persistence.support.AbstractTypeAnnotatingMixinFields;
 import org.springframework.util.ObjectUtils;
@@ -59,6 +56,7 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<GraphEn
 	
 	// Create a new node in the Graph if no Node was passed in a constructor
 	before(NodeBacked entity) : arbitraryUserConstructorOfNodeBackedObject(entity) {
+        entity.underlyingState=new DetachableEntityStateAccessors(new DefaultEntityStateAccessors<NodeBacked,Node>(null,entity,entity.getClass(),graphDatabaseContext));
         if (!graphDatabaseContext.transactionIsRunning()) {
             log.warn("New Nodebacked created outside of transaction "+ entity.getClass());
 
@@ -70,8 +68,8 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<GraphEn
     private void createAndAssignNode(NodeBacked entity) {
 		try {
             Node node=graphDatabaseContext.createNode();
+            entity.underlyingState.setNode(node);
 			entity.setUnderlyingNode(node);
-            entity.underlyingState=new EntityStateAccessors<NodeBacked,Node>(node,entity,entity.getClass(),graphDatabaseContext);
 			log.info("User-defined constructor called on class " + entity.getClass() + "; created Node [" + entity.getUnderlyingNode() +"]; " +
 					"Updating metamodel");
 			graphDatabaseContext.postEntityCreation(entity);
@@ -82,7 +80,7 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<GraphEn
 
     // Introduced field
 	private Node NodeBacked.underlyingNode;
-    private EntityStateAccessors<NodeBacked,Node> NodeBacked.underlyingState;
+    private EntityStateAccessors<NodeBacked> NodeBacked.underlyingState;
 
     private Map<Field,Object> NodeBacked.dirty;
 
