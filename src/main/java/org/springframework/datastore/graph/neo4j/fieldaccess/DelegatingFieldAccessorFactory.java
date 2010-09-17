@@ -26,18 +26,18 @@ public class DelegatingFieldAccessorFactory<T> implements FieldAccessorFactory<T
     }
 
     final Collection<FieldAccessorFactory<?>> fieldAccessorFactories = Arrays.<FieldAccessorFactory<?>>asList(
-            IdFieldAccessor.factory(),
-            TransientFieldAccessor.factory(),
-            NodePropertyFieldAccessor.factory(),
-            ConvertingNodePropertyFieldAccessor.factory(),
-            SingleRelationshipFieldAccessor.factory(),
-            OneToNRelationshipFieldAccessor.factory(),
-            ReadOnlyOneToNRelationshipFieldAccessor.factory(),
-            TraversalFieldAccessor.factory(),
-            OneToNRelationshipEntityFieldAccessor.factory()
+		    new IdFieldAccessorFactory(),
+		    new TransientFieldAccessorFactory(),
+		    new NodePropertyFieldAccessorFactory(),
+		    new ConvertingNodePropertyFieldAccessorFactory(),
+		    new SingleRelationshipFieldAccessorFactory(),
+		    new OneToNRelationshipFieldAccessorFactory(),
+		    new ReadOnlyOneToNRelationshipFieldAccessorFactory(),
+		    new TraversalFieldAccessorFactory(),
+		    new OneToNRelationshipEntityFieldAccessorFactory()
     );
-    final Collection<FieldAccessorListenerFactory<?>> fieldAccessorListenerFactories = Arrays.<FieldAccessorListenerFactory<?>>asList(
-            IndexingNodePropertyFieldAccessorListener.factory()
+	final Collection<FieldAccessorListenerFactory<?>> fieldAccessorListenerFactories = Arrays.<FieldAccessorListenerFactory<?>>asList(
+            IndexingNodePropertyFieldAccessorListenerFactory.IndexingNodePropertyFieldAccessorListener.factory()
     );
 
     public FieldAccessor forField(Field field) {
