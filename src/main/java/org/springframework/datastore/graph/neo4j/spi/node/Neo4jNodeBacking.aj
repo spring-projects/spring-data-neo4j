@@ -19,6 +19,7 @@ import org.springframework.persistence.support.AbstractTypeAnnotatingMixinFields
 import java.lang.reflect.Field;
 
 import static org.springframework.datastore.graph.neo4j.fieldaccess.DoReturn.unwrap;
+import org.springframework.datastore.graph.neo4j.fieldaccess.DetachableEntityStateAccessorsFactory;
 
 /**
  * Aspect to turn an object annotated with GraphEntity into a graph entity using Neo4J.
@@ -29,12 +30,12 @@ import static org.springframework.datastore.graph.neo4j.fieldaccess.DoReturn.unw
  */
 public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<GraphEntity, NodeBacked> {
     private GraphDatabaseContext graphDatabaseContext;
-    private DelegatingFieldAccessorFactory fieldAccessorFactory;
+    private DetachableEntityStateAccessorsFactory entityStateAccessorsFactory;
 
     @Autowired
-	public void init(GraphDatabaseContext ctx) {
+	public void init(GraphDatabaseContext ctx, DetachableEntityStateAccessorsFactory entityStateAccessorsFactory) {
         this.graphDatabaseContext = ctx;
-        this.fieldAccessorFactory = new DelegatingFieldAccessorFactory(ctx);
+        this.entityStateAccessorsFactory = entityStateAccessorsFactory;
 	}
 
 	//-------------------------------------------------------------------------
@@ -48,7 +49,7 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<GraphEn
 	
 	// Create a new node in the Graph if no Node was passed in a constructor
 	before(NodeBacked entity) : arbitraryUserConstructorOfNodeBackedObject(entity) {
-        entity.underlyingState=new DetachableEntityStateAccessors(new DefaultEntityStateAccessors<NodeBacked,Node>(null,entity,entity.getClass(),graphDatabaseContext));
+        entity.underlyingState = entityStateAccessorsFactory.getEntityStateAccessors(entity);
         if (graphDatabaseContext.transactionIsRunning()) {
             entity.underlyingState.createAndAssignNode();
         } else {
@@ -62,8 +63,8 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<GraphEn
 
 	public void NodeBacked.setUnderlyingNode(Node n) {
 		this.underlyingNode = n;
-        if (this.underlyingState==null) {
-            this.underlyingState=new DetachableEntityStateAccessors(new DefaultEntityStateAccessors<NodeBacked,Node>(n,this,this.getClass(),Neo4jNodeBacking.aspectOf().graphDatabaseContext));
+        if (this.underlyingState == null) {
+            this.underlyingState = entityStateAccessorsFactory.getEntityStateAccessors(this);
         } else {
             this.underlyingState.setNode(n);
         }

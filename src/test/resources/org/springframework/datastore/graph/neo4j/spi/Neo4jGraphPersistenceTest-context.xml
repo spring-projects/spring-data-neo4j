@@ -91,6 +91,7 @@
 
     <bean id="graphDatabaseContext" class="org.springframework.datastore.graph.neo4j.support.GraphDatabaseContext"/>
 
+    <bean id="EntityStateAccessorsFactory" class="org.springframework.datastore.graph.neo4j.fieldaccess.DetachableEntityStateAccessorsFactory" />
 	
 	<bean id="finderFactory" class="org.springframework.datastore.graph.neo4j.finder.FinderFactory">
 		<constructor-arg ref="graphDatabaseContext" />

@@ -37,7 +37,6 @@ public class DefaultEntityStateAccessors<ENTITY extends NodeBacked, STATE> imple
         createAccessorsAndListeners(type, graphDatabaseContext);
     }
 
-
     @Override
     public void createAndAssignNode() {
 		try {

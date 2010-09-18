@@ -13,8 +13,6 @@ import org.springframework.core.convert.ConversionService;
 import org.springframework.datastore.graph.api.NodeBacked;
 import org.springframework.datastore.graph.api.NodeTypeStrategy;
 import org.springframework.datastore.graph.api.RelationshipBacked;
-import org.springframework.datastore.graph.neo4j.fieldaccess.DelegatingFieldAccessorFactory;
-import org.springframework.persistence.support.AbstractMixinFields;
 import org.springframework.persistence.support.EntityInstantiator;
 
 import javax.transaction.Status;
