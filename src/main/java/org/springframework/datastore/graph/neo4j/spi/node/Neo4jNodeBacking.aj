@@ -64,7 +64,7 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<GraphEn
 	public void NodeBacked.setUnderlyingNode(Node n) {
 		this.underlyingNode = n;
         if (this.underlyingState == null) {
-            this.underlyingState = entityStateAccessorsFactory.getEntityStateAccessors(this);
+            this.underlyingState = Neo4jNodeBacking.aspectOf().entityStateAccessorsFactory.getEntityStateAccessors(this);
         } else {
             this.underlyingState.setNode(n);
         }
