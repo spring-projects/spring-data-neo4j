@@ -37,7 +37,7 @@ privileged aspect Person_Graph_Entity {
 	 * @param node
 	 */
 	public Person.new(Node node) {
-		setUnderlyingNode(node);
+		setUnderlyingState(node);
 	}
 
 	public static long Person.countPeople() {

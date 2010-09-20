@@ -48,7 +48,7 @@ public class Neo4jEntityManagerTest {
     public void cleanDb() {
         Neo4jHelper.cleanDb(graphDatabaseContext);
         person = new Person("Michael",35);
-        node = person.getUnderlyingNode();
+        node = person.getUnderlyingState();
     }
 
     @Test
@@ -139,7 +139,7 @@ public class Neo4jEntityManagerTest {
     @Test
     public void testRefresh() throws Exception {
     	entityManager.refresh(person);
-    	assertEquals(node, person.getUnderlyingNode());
+    	assertEquals(node, person.getUnderlyingState());
     }
     @Test
     public void testClear() throws Exception {

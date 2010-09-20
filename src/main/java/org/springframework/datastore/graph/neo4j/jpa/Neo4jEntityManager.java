@@ -1,14 +1,10 @@
 package org.springframework.datastore.graph.neo4j.jpa;
 
 import org.neo4j.graphdb.*;
-import org.neo4j.graphdb.Transaction;
-import org.neo4j.index.IndexService;
-import org.neo4j.kernel.EmbeddedGraphDatabase;
 import org.springframework.beans.factory.annotation.Configurable;
 import org.springframework.datastore.graph.api.NodeBacked;
 import org.springframework.datastore.graph.neo4j.finder.FinderFactory;
 import org.springframework.datastore.graph.neo4j.support.GraphDatabaseContext;
-import org.springframework.persistence.support.EntityInstantiator;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
@@ -53,7 +49,7 @@ public class Neo4jEntityManager implements EntityManager {
     private Node nodeFor(final Object entity) {
         checkClosed();
         if (!(entity instanceof NodeBacked)) throw new IllegalArgumentException("Not a nodebacked entity " + entity);
-        final Node node = ((NodeBacked) entity).getUnderlyingNode();
+        final Node node = ((NodeBacked) entity).getUnderlyingState();
         if (node == null) throw new IllegalArgumentException("Node of entity " + entity + " is null");
         return node;
     }

@@ -51,7 +51,7 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<GraphEn
 	before(NodeBacked entity) : arbitraryUserConstructorOfNodeBackedObject(entity) {
         entity.underlyingState = entityStateAccessorsFactory.getEntityStateAccessors(entity);
         if (graphDatabaseContext.transactionIsRunning()) {
-            entity.underlyingState.createAndAssignNode();
+            entity.underlyingState.createAndAssignState();
         } else {
             log.warn("New Nodebacked created outside of transaction "+ entity.getClass());
         }
@@ -59,18 +59,18 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<GraphEn
 
     // Introduced field
 	private Node NodeBacked.underlyingNode;
-    private EntityStateAccessors<NodeBacked> NodeBacked.underlyingState;
+    private EntityStateAccessors<NodeBacked,Node> NodeBacked.underlyingState;
 
-	public void NodeBacked.setUnderlyingNode(Node n) {
+	public void NodeBacked.setUnderlyingState(Node n) {
 		this.underlyingNode = n;
         if (this.underlyingState == null) {
             this.underlyingState = Neo4jNodeBacking.aspectOf().entityStateAccessorsFactory.getEntityStateAccessors(this);
         } else {
-            this.underlyingState.setNode(n);
+            this.underlyingState.setUnderlyingState(n);
         }
 	}
 	
-	public Node NodeBacked.getUnderlyingNode() {
+	public Node NodeBacked.getUnderlyingState() {
 		return underlyingNode;
 	}
 	
@@ -79,7 +79,7 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<GraphEn
     }
 
 	public Relationship NodeBacked.relateTo(NodeBacked nb, RelationshipType type) {
-		return this.underlyingNode.createRelationshipTo(nb.getUnderlyingNode(), type);
+		return this.underlyingNode.createRelationshipTo(nb.getUnderlyingState(), type);
 	}
 
 	public Long NodeBacked.getNodeId() {
@@ -89,7 +89,7 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<GraphEn
 
     public  Iterable<? extends NodeBacked> NodeBacked.find(final Class<? extends NodeBacked> targetType, TraversalDescription traversalDescription) {
         if (!hasUnderlyingNode()) throw new IllegalStateException("No node attached to " + this);
-        final Traverser traverser = traversalDescription.traverse(this.getUnderlyingNode());
+        final Traverser traverser = traversalDescription.traverse(this.getUnderlyingState());
         return new NodeBackedNodeIterableWrapper(traverser, targetType, Neo4jNodeBacking.aspectOf().graphDatabaseContext);
     }
     /* todo Andy Clement
@@ -101,19 +101,19 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<GraphEn
 
     /* todo Andy Clement
     public <R extends RelationshipBacked, N extends NodeBacked> R NodeBacked.relateTo(N node, Class<R> relationshipType, String type) {
-        Relationship rel = this.getUnderlyingNode().createRelationshipTo(node.getUnderlyingNode(), DynamicRelationshipType.withName(type));
+        Relationship rel = this.getUnderlyingState().createRelationshipTo(node.getUnderlyingState(), DynamicRelationshipType.withName(type));
         Neo4jNodeBacking.aspectOf().relationshipEntityInstantiator.createEntityFromState(rel, relationshipType);
     }
     */
     public RelationshipBacked NodeBacked.relateTo(NodeBacked node, Class<? extends RelationshipBacked> relationshipType, String type) {
-        Relationship rel = this.getUnderlyingNode().createRelationshipTo(node.getUnderlyingNode(), DynamicRelationshipType.withName(type));
+        Relationship rel = this.getUnderlyingState().createRelationshipTo(node.getUnderlyingState(), DynamicRelationshipType.withName(type));
         return Neo4jNodeBacking.aspectOf().graphDatabaseContext.createEntityFromState(rel, relationshipType);
     }
 
     public RelationshipBacked NodeBacked.getRelationshipTo(NodeBacked node, Class<? extends RelationshipBacked> relationshipType, String type) {
-        Node myNode=this.getUnderlyingNode();
-        Node otherNode=node.getUnderlyingNode();
-        for (Relationship rel : this.getUnderlyingNode().getRelationships(DynamicRelationshipType.withName(type))) {
+        Node myNode=this.getUnderlyingState();
+        Node otherNode=node.getUnderlyingState();
+        for (Relationship rel : this.getUnderlyingState().getRelationships(DynamicRelationshipType.withName(type))) {
             if (rel.getOtherNode(myNode).equals(otherNode)) return Neo4jNodeBacking.aspectOf().graphDatabaseContext.createEntityFromState(rel, relationshipType);
         }
         return null;
@@ -123,14 +123,14 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<GraphEn
         if (obj == this) return true;
         if (!hasUnderlyingNode()) return false;
 		if (obj instanceof NodeBacked) {
-			return this.getUnderlyingNode().equals(((NodeBacked) obj).getUnderlyingNode());
+			return this.getUnderlyingState().equals(((NodeBacked) obj).getUnderlyingState());
 		}
 		return false;
 	}
 	
 	public final int NodeBacked.hashCode() {
         if (!hasUnderlyingNode()) return System.identityHashCode(this);
-		return getUnderlyingNode().hashCode();
+		return getUnderlyingState().hashCode();
 	}
 
     Object around(NodeBacked entity): entityFieldGet(entity) {

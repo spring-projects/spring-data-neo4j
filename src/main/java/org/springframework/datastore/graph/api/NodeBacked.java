@@ -9,12 +9,12 @@ import org.neo4j.graphdb.RelationshipType;
  * annotation, to hold underlying Neo4j Node state.
  * @author Rod Johnson
  */
-public interface NodeBacked {
+public interface NodeBacked extends GraphBacked<Node> {
 	
-	Node getUnderlyingNode();
+	Node getUnderlyingState();
 	
-	void setUnderlyingNode(Node n);
+	void setUnderlyingState(Node n);
 	
-	Relationship relateTo(NodeBacked nb, RelationshipType type);
+	// Relationship relateTo(NodeBacked nb, RelationshipType type);
 
 }

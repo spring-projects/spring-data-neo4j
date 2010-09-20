@@ -9,8 +9,8 @@ public class DetachableEntityStateAccessorsFactory {
 	@Autowired
 	private GraphDatabaseContext graphDatabaseContext;
 
-	public EntityStateAccessors<NodeBacked> getEntityStateAccessors(NodeBacked entity) {
+	public EntityStateAccessors<NodeBacked,Node> getEntityStateAccessors(final NodeBacked entity) {
 		return new DetachableEntityStateAccessors<NodeBacked, Node>(
-				new DefaultEntityStateAccessors<NodeBacked, Node>(null,entity,entity.getClass(), graphDatabaseContext));
+				new NodeEntityStateAccessors<NodeBacked>(null,entity,entity.getClass(), graphDatabaseContext));
 	}
 }

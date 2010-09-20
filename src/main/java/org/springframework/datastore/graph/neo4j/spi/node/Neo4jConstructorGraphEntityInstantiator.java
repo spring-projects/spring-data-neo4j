@@ -6,7 +6,7 @@ import org.springframework.persistence.support.AbstractConstructorEntityInstanti
 
 /**
  * Try for a constructor taking a Neo4j Node: failing that, try a no-arg
- * constructor and then setUnderlyingNode().
+ * constructor and then setUnderlyingState().
  * 
  * @author Rod Johnson
  */
@@ -14,7 +14,7 @@ public class Neo4jConstructorGraphEntityInstantiator extends AbstractConstructor
 	
 	@Override
 	protected void setState(NodeBacked entity, Node s) {
-		entity.setUnderlyingNode(s);
+		entity.setUnderlyingState(s);
 	}
 
 }

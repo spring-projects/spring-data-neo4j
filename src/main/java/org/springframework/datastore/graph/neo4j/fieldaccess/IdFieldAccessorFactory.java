@@ -46,7 +46,7 @@ public class IdFieldAccessorFactory implements FieldAccessorFactory<NodeBacked> 
 
 	    @Override
 	    public Object getValue(final NodeBacked nodeBacked) {
-	        return doReturn(nodeBacked.getUnderlyingNode().getId());
+	        return doReturn(nodeBacked.getUnderlyingState().getId());
 	    }
 
 	}

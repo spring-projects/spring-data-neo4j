@@ -45,7 +45,7 @@ public class NodePropertyFieldAccessorFactory implements FieldAccessorFactory<No
 
 	    @Override
 	    public Object setValue(final NodeBacked nodeBacked, final Object newVal) {
-	        nodeBacked.getUnderlyingNode().setProperty(getPropertyName(),newVal);
+	        nodeBacked.getUnderlyingState().setProperty(getPropertyName(),newVal);
 	        return newVal;
 	    }
 
@@ -55,7 +55,7 @@ public class NodePropertyFieldAccessorFactory implements FieldAccessorFactory<No
 	    }
 
 	    protected Object doGetValue(NodeBacked nodeBacked) {
-	        return nodeBacked.getUnderlyingNode().getProperty(getPropertyName());
+	        return nodeBacked.getUnderlyingState().getProperty(getPropertyName());
 	    }
 
 	    private String getPropertyName() {

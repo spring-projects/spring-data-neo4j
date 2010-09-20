@@ -32,7 +32,7 @@ public class ConstructorBypassingGraphRelationshipInstantiator implements Entity
 	@Override
 	public <T extends RelationshipBacked> T createEntityFromState(Relationship r, Class<T> c) {
 		T t = createWithoutConstructorInvocation(c);
-		t.setUnderlyingRelationship(r);
+		t.setUnderlyingState(r);
 		return t; 
 	}
 

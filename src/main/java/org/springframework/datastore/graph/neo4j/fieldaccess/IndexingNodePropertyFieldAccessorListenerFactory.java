@@ -37,8 +37,8 @@ class IndexingNodePropertyFieldAccessorListenerFactory implements FieldAccessorL
 
 	    @Override
 	    public void valueChanged(final NodeBacked nodeBacked, final Object oldVal, final Object newVal) {
-	        if (newVal==null) indexService.removeIndex(nodeBacked.getUnderlyingNode(),getPropertyName());
-	        else indexService.index(nodeBacked.getUnderlyingNode(), getPropertyName(),newVal);
+	        if (newVal==null) indexService.removeIndex(nodeBacked.getUnderlyingState(),getPropertyName());
+	        else indexService.index(nodeBacked.getUnderlyingState(), getPropertyName(),newVal);
 	    }
 
 	    // todo

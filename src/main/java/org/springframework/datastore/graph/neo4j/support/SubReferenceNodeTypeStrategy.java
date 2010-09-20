@@ -27,7 +27,7 @@ public class SubReferenceNodeTypeStrategy implements NodeTypeStrategy {
     @Override
     public void postEntityCreation(final NodeBacked entity) {
         final Node subReference = obtainSubreferenceNode(entity.getClass());
-        entity.getUnderlyingNode().createRelationshipTo(subReference, INSTANCE_OF_RELATIONSHIP_TYPE);
+        entity.getUnderlyingState().createRelationshipTo(subReference, INSTANCE_OF_RELATIONSHIP_TYPE);
         GraphDatabaseUtil.incrementAndGetCounter(subReference, SUBREFERENCE_NODE_COUNTER_KEY);
     }
 

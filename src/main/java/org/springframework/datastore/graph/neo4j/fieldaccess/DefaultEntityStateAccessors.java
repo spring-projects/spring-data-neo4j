@@ -5,7 +5,7 @@ import org.apache.commons.logging.LogFactory;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.NotInTransactionException;
 import org.springframework.dao.InvalidDataAccessResourceUsageException;
-import org.springframework.datastore.graph.api.NodeBacked;
+import org.springframework.datastore.graph.api.GraphBacked;
 import org.springframework.datastore.graph.neo4j.support.GraphDatabaseContext;
 import org.springframework.util.ReflectionUtils;
 
@@ -18,15 +18,15 @@ import java.util.Map;
  * @author Michael Hunger
  * @since 12.09.2010
  */
-public class DefaultEntityStateAccessors<ENTITY extends NodeBacked, STATE> implements EntityStateAccessors<ENTITY> {
+public abstract class DefaultEntityStateAccessors<ENTITY extends GraphBacked<STATE>, STATE> implements EntityStateAccessors<ENTITY,STATE> {
     private final STATE underlyingState;
-    private final ENTITY entity;
+    protected final ENTITY entity;
     private final Class<? extends ENTITY> type;
-    private final GraphDatabaseContext graphDatabaseContext;
+    protected final GraphDatabaseContext graphDatabaseContext;
     private final Map<Field,FieldAccessor<ENTITY,?>> fieldAccessors=new HashMap<Field, FieldAccessor<ENTITY,?>>();
     private final Map<Field,List<FieldAccessListener<ENTITY,?>>> fieldAccessorListeners=new HashMap<Field, List<FieldAccessListener<ENTITY,?>>>();
-    private Node node;
-    private final static Log log= LogFactory.getLog(DefaultEntityStateAccessors.class);
+    private STATE state;
+    protected final static Log log= LogFactory.getLog(DefaultEntityStateAccessors.class);
 
 
     public DefaultEntityStateAccessors(final STATE underlyingState, final ENTITY entity, final Class<? extends ENTITY> type, final GraphDatabaseContext graphDatabaseContext) {
@@ -38,17 +38,7 @@ public class DefaultEntityStateAccessors<ENTITY extends NodeBacked, STATE> imple
     }
 
     @Override
-    public void createAndAssignNode() {
-		try {
-            final Node node=graphDatabaseContext.createNode();
-            setNode(node);
-			entity.setUnderlyingNode(node);
-			log.info("User-defined constructor called on class " + entity.getClass() + "; created Node [" + entity.getUnderlyingNode() +"]; Updating metamodel");
-			graphDatabaseContext.postEntityCreation(entity);
-		} catch(NotInTransactionException e) {
-			throw new InvalidDataAccessResourceUsageException("Not in a Neo4j transaction.", e);
-		}
-    }
+    public abstract void createAndAssignState();
 
     @Override
     public ENTITY getEntity() {
@@ -61,8 +51,8 @@ public class DefaultEntityStateAccessors<ENTITY extends NodeBacked, STATE> imple
     }
 
     @Override
-    public void setNode(final Node node) {
-        this.node = node;
+    public void setUnderlyingState(final STATE state) {
+        this.state = state;
     }
 
     private void createAccessorsAndListeners(final Class<? extends ENTITY> type, final GraphDatabaseContext graphDatabaseContext) {

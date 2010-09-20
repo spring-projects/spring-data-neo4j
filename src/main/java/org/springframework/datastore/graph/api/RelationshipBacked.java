@@ -2,9 +2,9 @@ package org.springframework.datastore.graph.api;
 
 import org.neo4j.graphdb.Relationship;
 
-public interface RelationshipBacked {
+public interface RelationshipBacked extends GraphBacked<Relationship>{
 	
-	Relationship getUnderlyingRelationship();
+	Relationship getUnderlyingState();
 	
-	void setUnderlyingRelationship(Relationship r);
+	void setUnderlyingState(Relationship r);
 }

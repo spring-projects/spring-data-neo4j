@@ -5,14 +5,12 @@ import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.NotInTransactionException;
 import org.neo4j.graphdb.Relationship;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.convert.ConversionService;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.dao.InvalidDataAccessResourceUsageException;
 import org.springframework.datastore.graph.api.*;
 import org.springframework.datastore.graph.neo4j.fieldaccess.DelegatingFieldAccessorFactory;
 import org.springframework.datastore.graph.neo4j.support.GraphDatabaseContext;
 import org.springframework.persistence.support.AbstractTypeAnnotatingMixinFields;
-import org.springframework.persistence.support.EntityInstantiator;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
@@ -36,11 +34,11 @@ public aspect Neo4jRelationshipBacking extends AbstractTypeAnnotatingMixinFields
 	// Introduced fields
 	private Relationship RelationshipBacked.underlyingRelationship;
 	
-	public void RelationshipBacked.setUnderlyingRelationship(Relationship r) {
+	public void RelationshipBacked.setUnderlyingState(Relationship r) {
 		this.underlyingRelationship = r;
 	}
 	
-	public Relationship RelationshipBacked.getUnderlyingRelationship() {
+	public Relationship RelationshipBacked.getUnderlyingState() {
 		return underlyingRelationship;
 	}
 	public boolean RelationshipBacked.hasUnderlyingRelationship() {
@@ -60,13 +58,13 @@ public aspect Neo4jRelationshipBacking extends AbstractTypeAnnotatingMixinFields
 	// TODO could use template method for further checks if needed
 	public final boolean RelationshipBacked.equals(Object obj) {
 		if (obj instanceof RelationshipBacked) {
-			return this.getUnderlyingRelationship().equals(((RelationshipBacked) obj).getUnderlyingRelationship());
+			return this.getUnderlyingState().equals(((RelationshipBacked) obj).getUnderlyingState());
 		}
 		return false;
 	}
 	
 	public final int RelationshipBacked.hashCode() {
-		return getUnderlyingRelationship().hashCode();
+		return getUnderlyingState().hashCode();
 	}
 
 
@@ -79,14 +77,14 @@ public aspect Neo4jRelationshipBacking extends AbstractTypeAnnotatingMixinFields
         }
 
 		if (isStartNodeField(f)) {
-			Node startNode = entity.getUnderlyingRelationship().getStartNode();
+			Node startNode = entity.getUnderlyingState().getStartNode();
 			if (startNode == null) {
 				return null;
 			}
 			return graphDatabaseContext.createEntityFromState(startNode, (Class<? extends NodeBacked>) f.getType());
 		}
 		if (isEndNodeField(f)) {
-			Node endNode = entity.getUnderlyingRelationship().getEndNode();
+			Node endNode = entity.getUnderlyingState().getEndNode();
 			if (endNode == null) {
 				return null;
 			}
@@ -95,7 +93,7 @@ public aspect Neo4jRelationshipBacking extends AbstractTypeAnnotatingMixinFields
 		
 //		TODO fix arrays, TODO serialize other types as byte[] or string (for indexing, querying) via Annotation
 		if (isNeo4jPropertyType(f.getType()) || isDeserializableField(f)) {
-			Relationship rel = entity.getUnderlyingRelationship();
+			Relationship rel = entity.getUnderlyingState();
 			if (rel == null) {
 				throw new InvalidDataAccessApiUsageException("Please set start node and end node before reading from other fields.");
 			}
@@ -120,16 +118,16 @@ public aspect Neo4jRelationshipBacking extends AbstractTypeAnnotatingMixinFields
 				throw new InvalidDataAccessApiUsageException("Cannot change start node or end node of existing relationship.");
 			}
 			if (isNeo4jPropertyType(f.getType()) || isSerializableField(f)) {
-				Relationship rel = entity.getUnderlyingRelationship();
+				Relationship rel = entity.getUnderlyingState();
 				if (rel == null) {
 					throw new InvalidDataAccessApiUsageException("Please set start node and end node before assigning to other fields.");
 				}
 				String propName = DelegatingFieldAccessorFactory.getNeo4jPropertyName(f);
                 if (newVal==null) {
-                    entity.getUnderlyingRelationship().removeProperty(propName);
+                    entity.getUnderlyingState().removeProperty(propName);
                 }
                 else {
-                    entity.getUnderlyingRelationship().setProperty(propName, serializePropertyValue(newVal, f.getType()));
+                    entity.getUnderlyingState().setProperty(propName, serializePropertyValue(newVal, f.getType()));
                 }
 				log.info("SET " + f + " -> Neo4J simple relationship property [" + propName + "] with value=[" + newVal + "]");
 				return proceed(entity, newVal);

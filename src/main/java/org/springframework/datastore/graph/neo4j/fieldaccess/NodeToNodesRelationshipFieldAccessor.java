@@ -38,6 +38,6 @@ public abstract class NodeToNodesRelationshipFieldAccessor<TARGET> extends Abstr
 
     @Override
     protected Node getState(NodeBacked entity) {
-        return entity.getUnderlyingNode();
+        return entity.getUnderlyingState();
     }
 }

@@ -2,8 +2,7 @@ package org.springframework.datastore.graph.neo4j.fieldaccess;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.neo4j.graphdb.Node;
-import org.springframework.datastore.graph.api.NodeBacked;
+import org.springframework.datastore.graph.api.GraphBacked;
 import org.springframework.datastore.graph.neo4j.support.GraphDatabaseContext;
 import org.springframework.util.ObjectUtils;
 
@@ -18,21 +17,17 @@ import static org.springframework.datastore.graph.neo4j.fieldaccess.DoReturn.unw
  * @author Michael Hunger
  * @since 15.09.2010
  */
-public class DetachableEntityStateAccessors<ENTITY extends NodeBacked, STATE> implements EntityStateAccessors<ENTITY> {
+public class DetachableEntityStateAccessors<ENTITY extends GraphBacked<STATE>, STATE> implements EntityStateAccessors<ENTITY,STATE> {
     private final Map<Field, Object> dirty = new HashMap<Field, Object>();
-    private final EntityStateAccessors<ENTITY> delegate;
+    private final EntityStateAccessors<ENTITY,STATE> delegate;
     private final static Log log = LogFactory.getLog(DetachableEntityStateAccessors.class);
 
-    public DetachableEntityStateAccessors(final STATE underlyingState, final ENTITY entity, final Class<? extends ENTITY> type, final GraphDatabaseContext graphDatabaseContext) {
-        this(new DefaultEntityStateAccessors<ENTITY, STATE>(underlyingState, entity, type, graphDatabaseContext));
-    }
-
-    public DetachableEntityStateAccessors(final EntityStateAccessors<ENTITY> delegate) {
+    public DetachableEntityStateAccessors(final EntityStateAccessors<ENTITY,STATE> delegate) {
         this.delegate = delegate;
     }
 
     @Override
-    public boolean isWritable(Field field) {
+    public boolean isWritable(final Field field) {
         return delegate.isWritable(field);
     }
 
@@ -49,7 +44,7 @@ public class DetachableEntityStateAccessors<ENTITY extends NodeBacked, STATE> im
     @Override
     public Object getValue(final Field field) {
         if (!transactionIsRunning()) {
-            if (!getEntity().hasUnderlyingNode() || isDirty(field)) {
+            if (getEntity().getUnderlyingState()==null || isDirty(field)) {
                 log.warn("Outside of transaction, GET value from field " + field);
                 return null;
             }
@@ -68,7 +63,7 @@ public class DetachableEntityStateAccessors<ENTITY extends NodeBacked, STATE> im
             final ENTITY entity = getEntity();
             if (!isDirty(field) && isWritable(field)) {
                 Object existingValue;
-                if (entity.hasUnderlyingNode()) existingValue = unwrap(delegate.getValue(field));
+                if (entity.getUnderlyingState()!=null) existingValue = unwrap(delegate.getValue(field));
                 else {
                     existingValue = getValueFromEntity(field);
                     if (existingValue == null) existingValue = getDefaultValue(field.getType());
@@ -90,18 +85,18 @@ public class DetachableEntityStateAccessors<ENTITY extends NodeBacked, STATE> im
     }
 
     @Override
-    public void createAndAssignNode() {
-        delegate.createAndAssignNode();
+    public void createAndAssignState() {
+        delegate.createAndAssignState();
     }
 
     /**
      * always runs inside of a transaction
      */
     private void flushDirty() {
-        final NodeBacked entity = getEntity();
-        final boolean newNode = !entity.hasUnderlyingNode();
+        final ENTITY entity = getEntity();
+        final boolean newNode = entity.getUnderlyingState()==null;
         if (newNode) {
-            createAndAssignNode();
+            createAndAssignState();
         }
         if (isDirty()) {
             for (final Map.Entry<Field, Object> entry : dirty.entrySet()) {
@@ -117,8 +112,8 @@ public class DetachableEntityStateAccessors<ENTITY extends NodeBacked, STATE> im
     }
 
     @Override
-    public void setNode(final Node node) {
-        delegate.setNode(node);
+    public void setUnderlyingState(final STATE state) {
+        delegate.setUnderlyingState(state);
     }
 
 
@@ -132,11 +127,11 @@ public class DetachableEntityStateAccessors<ENTITY extends NodeBacked, STATE> im
         }
     }
 
-    private void checkConcurrentModification(final NodeBacked entity, final Map.Entry<Field, Object> entry, final Field field) {
+    private void checkConcurrentModification(final ENTITY entity, final Map.Entry<Field, Object> entry, final Field field) {
         final Object nodeValue = unwrap(delegate.getValue(field));
         final Object previousValue = entry.getValue();
         if (!ObjectUtils.nullSafeEquals(nodeValue, previousValue)) {
-            throw new ConcurrentModificationException("Node " + entity.getUnderlyingNode() + " field " + field + " changed in between previous " + previousValue + " current " + nodeValue); // todo or just overwrite
+            throw new ConcurrentModificationException("Node " + entity.getUnderlyingState() + " field " + field + " changed in between previous " + previousValue + " current " + nodeValue); // todo or just overwrite
         }
     }
 
