@@ -21,8 +21,8 @@ public class NodeEntityStateAccessors<ENTITY extends NodeBacked> extends Default
         super(underlyingState, entity, type, new DelegatingFieldAccessorFactory(graphDatabaseContext) {
             @Override
             protected Collection<FieldAccessorListenerFactory<?>> createListenerFactories() {
-                return Arrays.<FieldAccessorListenerFactory<?>>asList(
-                        IndexingNodePropertyFieldAccessorListenerFactory.IndexingNodePropertyFieldAccessorListener.factory()
+	            return Arrays.<FieldAccessorListenerFactory<?>>asList(
+			            new IndexingNodePropertyFieldAccessorListenerFactory()
                 );
             }
 

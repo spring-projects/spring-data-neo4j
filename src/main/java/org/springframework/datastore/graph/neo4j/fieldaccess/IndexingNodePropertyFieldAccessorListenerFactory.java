@@ -46,9 +46,5 @@ class IndexingNodePropertyFieldAccessorListenerFactory implements FieldAccessorL
 	        return DelegatingFieldAccessorFactory.getNeo4jPropertyName(field);
 	    }
 
-	    public static FieldAccessorListenerFactory<NodeBacked> factory() {
-	        return new IndexingNodePropertyFieldAccessorListenerFactory();
-	    }
-
 	}
 }
