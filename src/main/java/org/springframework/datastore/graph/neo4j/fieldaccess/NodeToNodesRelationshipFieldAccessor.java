@@ -14,7 +14,7 @@ import java.util.Set;
  * @author Michael Hunger
  * @since 12.09.2010
  */
-public abstract class NodeToNodesRelationshipFieldAccessor<TARGET> extends AbstractRelationshipFieldAccessor<NodeBacked, Node, TARGET, Node> {
+public abstract class NodeToNodesRelationshipFieldAccessor<TARGET> extends AbstractNodeRelationshipFieldAccessor<NodeBacked, Node, TARGET, Node> {
     public NodeToNodesRelationshipFieldAccessor(Class<? extends TARGET> clazz, GraphDatabaseContext graphDatabaseContext, Direction direction, RelationshipType type) {
         super(clazz, graphDatabaseContext, direction, type);
     }

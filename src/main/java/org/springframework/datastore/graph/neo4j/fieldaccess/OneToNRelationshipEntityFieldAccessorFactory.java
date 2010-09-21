@@ -52,7 +52,7 @@ public class OneToNRelationshipEntityFieldAccessorFactory implements FieldAccess
 		return DynamicRelationshipType.withName(relEntityAnnotation.type());
 	}
 
-	public static class OneToNRelationshipEntityFieldAccessor extends AbstractRelationshipFieldAccessor<NodeBacked, Node, RelationshipBacked, Relationship> {
+	public static class OneToNRelationshipEntityFieldAccessor extends AbstractNodeRelationshipFieldAccessor<NodeBacked, Node, RelationshipBacked, Relationship> {
 
 	    public OneToNRelationshipEntityFieldAccessor(final RelationshipType type, final Direction direction, final Class<? extends RelationshipBacked> elementClass, final GraphDatabaseContext graphDatabaseContext) {
 	        super(elementClass, graphDatabaseContext, direction, type);

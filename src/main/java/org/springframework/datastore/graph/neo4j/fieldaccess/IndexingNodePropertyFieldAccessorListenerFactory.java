@@ -14,7 +14,7 @@ class IndexingNodePropertyFieldAccessorListenerFactory implements FieldAccessorL
 
     @Override
     public boolean accept(final Field f) {
-	    return new NodePropertyFieldAccessorFactory().accept(f) || new ConvertingNodePropertyFieldAccessorFactory().accept(f);
+	    return new PropertyFieldAccessorFactory().accept(f) || new ConvertingNodePropertyFieldAccessorFactory().accept(f);
     }
 
     @Override

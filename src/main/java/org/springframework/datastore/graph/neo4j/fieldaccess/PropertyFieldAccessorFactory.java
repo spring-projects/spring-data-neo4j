@@ -1,6 +1,7 @@
 package org.springframework.datastore.graph.neo4j.fieldaccess;
 
-import org.springframework.datastore.graph.api.NodeBacked;
+import org.neo4j.graphdb.PropertyContainer;
+import org.springframework.datastore.graph.api.GraphBacked;
 
 import java.lang.reflect.Field;
 
@@ -10,15 +11,15 @@ import static org.springframework.datastore.graph.neo4j.fieldaccess.DoReturn.doR
  * @author Michael Hunger
  * @since 12.09.2010
  */
-public class NodePropertyFieldAccessorFactory implements FieldAccessorFactory<NodeBacked> {
+public class PropertyFieldAccessorFactory implements FieldAccessorFactory<GraphBacked<PropertyContainer>> {
 	@Override
 	public boolean accept(final Field f) {
 	    return isNeo4jPropertyType(f.getType());
 	}
 
 	@Override
-	public FieldAccessor<NodeBacked,?> forField(final Field field) {
-	    return new NodePropertyFieldAccessor(field);
+	public FieldAccessor<GraphBacked<PropertyContainer>,?> forField(final Field field) {
+	    return new PropertyFieldAccessor(field);
 	}
 
 	private boolean isNeo4jPropertyType(final Class<?> fieldType) {
@@ -31,31 +32,31 @@ public class NodePropertyFieldAccessorFactory implements FieldAccessorFactory<No
 	          || (fieldType.getName().startsWith("java.lang") && Number.class.isAssignableFrom(fieldType));
 	}
 
-	public static class NodePropertyFieldAccessor implements FieldAccessor<NodeBacked, Object> {
+	public static class PropertyFieldAccessor implements FieldAccessor<GraphBacked<PropertyContainer>, Object> {
 	    protected final Field field;
 
-	    public NodePropertyFieldAccessor(final Field field) {
+	    public PropertyFieldAccessor(final Field field) {
 	        this.field = field;
 	    }
 
 	    @Override
-	    public boolean isWriteable(NodeBacked nodeBacked) {
+	    public boolean isWriteable(final GraphBacked<PropertyContainer> graphBacked) {
 	        return true;
 	    }
 
 	    @Override
-	    public Object setValue(final NodeBacked nodeBacked, final Object newVal) {
-	        nodeBacked.getUnderlyingState().setProperty(getPropertyName(),newVal);
+	    public Object setValue(final GraphBacked<PropertyContainer> graphBacked, final Object newVal) {
+	        graphBacked.getUnderlyingState().setProperty(getPropertyName(),newVal);
 	        return newVal;
 	    }
 
 	    @Override
-	    public final Object getValue(final NodeBacked nodeBacked) {
-	        return doReturn(doGetValue(nodeBacked));
+	    public final Object getValue(final GraphBacked<PropertyContainer> graphBacked) {
+	        return doReturn(doGetValue(graphBacked));
 	    }
 
-	    protected Object doGetValue(NodeBacked nodeBacked) {
-	        return nodeBacked.getUnderlyingState().getProperty(getPropertyName());
+	    protected Object doGetValue(final GraphBacked<PropertyContainer> graphBacked) {
+	        return graphBacked.getUnderlyingState().getProperty(getPropertyName());
 	    }
 
 	    private String getPropertyName() {

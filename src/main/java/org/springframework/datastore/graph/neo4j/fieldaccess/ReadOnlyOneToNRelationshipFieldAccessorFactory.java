@@ -9,7 +9,7 @@ import org.springframework.datastore.graph.neo4j.support.GraphDatabaseContext;
 
 import java.lang.reflect.Field;
 
-public class ReadOnlyOneToNRelationshipFieldAccessorFactory extends RelationshipFieldAccessorFactory {
+public class ReadOnlyOneToNRelationshipFieldAccessorFactory extends NodeRelationshipFieldAccessorFactory {
 	@Override
 	public boolean accept(final Field f) {
 	    return Iterable.class.equals(f.getType()) && hasValidRelationshipAnnotation(f);

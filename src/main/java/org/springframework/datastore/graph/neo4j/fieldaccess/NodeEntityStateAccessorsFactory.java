@@ -5,7 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.datastore.graph.api.NodeBacked;
 import org.springframework.datastore.graph.neo4j.support.GraphDatabaseContext;
 
-public class DetachableEntityStateAccessorsFactory {
+public class NodeEntityStateAccessorsFactory {
 	@Autowired
 	private GraphDatabaseContext graphDatabaseContext;
 

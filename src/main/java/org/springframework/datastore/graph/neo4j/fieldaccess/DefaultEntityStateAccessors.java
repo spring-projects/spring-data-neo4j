@@ -2,9 +2,6 @@ package org.springframework.datastore.graph.neo4j.fieldaccess;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.NotInTransactionException;
-import org.springframework.dao.InvalidDataAccessResourceUsageException;
 import org.springframework.datastore.graph.api.GraphBacked;
 import org.springframework.datastore.graph.neo4j.support.GraphDatabaseContext;
 import org.springframework.util.ReflectionUtils;
@@ -27,13 +24,15 @@ public abstract class DefaultEntityStateAccessors<ENTITY extends GraphBacked<STA
     private final Map<Field,List<FieldAccessListener<ENTITY,?>>> fieldAccessorListeners=new HashMap<Field, List<FieldAccessListener<ENTITY,?>>>();
     private STATE state;
     protected final static Log log= LogFactory.getLog(DefaultEntityStateAccessors.class);
+    private DelegatingFieldAccessorFactory delegatingFieldAccessorFactory;
 
 
-    public DefaultEntityStateAccessors(final STATE underlyingState, final ENTITY entity, final Class<? extends ENTITY> type, final GraphDatabaseContext graphDatabaseContext) {
+    public DefaultEntityStateAccessors(final STATE underlyingState, final ENTITY entity, final Class<? extends ENTITY> type, final GraphDatabaseContext graphDatabaseContext, final DelegatingFieldAccessorFactory delegatingFieldAccessorFactory) {
         this.underlyingState = underlyingState;
         this.entity = entity;
         this.type = type;
         this.graphDatabaseContext = graphDatabaseContext;
+        this.delegatingFieldAccessorFactory = delegatingFieldAccessorFactory;
         createAccessorsAndListeners(type, graphDatabaseContext);
     }
 
@@ -56,11 +55,10 @@ public abstract class DefaultEntityStateAccessors<ENTITY extends GraphBacked<STA
     }
 
     private void createAccessorsAndListeners(final Class<? extends ENTITY> type, final GraphDatabaseContext graphDatabaseContext) {
-        final DelegatingFieldAccessorFactory fieldAccessorFactory = new DelegatingFieldAccessorFactory(graphDatabaseContext);
         ReflectionUtils.doWithFields(type, new ReflectionUtils.FieldCallback() {
             public void doWith(final Field field) throws IllegalArgumentException, IllegalAccessException {
-                fieldAccessors.put(field, fieldAccessorFactory.forField(field));
-                fieldAccessorListeners.put(field, fieldAccessorFactory.listenersFor(field)); // TODO Bad code
+                fieldAccessors.put(field, delegatingFieldAccessorFactory.forField(field));
+                fieldAccessorListeners.put(field, delegatingFieldAccessorFactory.listenersFor(field)); // TODO Bad code
             }
         });
     }

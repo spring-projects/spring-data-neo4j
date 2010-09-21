@@ -14,7 +14,7 @@ import java.util.Set;
 
 import static org.springframework.datastore.graph.neo4j.fieldaccess.DoReturn.doReturn;
 
-public class OneToNRelationshipFieldAccessorFactory extends RelationshipFieldAccessorFactory {
+public class OneToNRelationshipFieldAccessorFactory extends NodeRelationshipFieldAccessorFactory {
 	@Override
 	public boolean accept(final Field f) {
 	    return Collection.class.isAssignableFrom(f.getType()) && hasValidRelationshipAnnotation(f);

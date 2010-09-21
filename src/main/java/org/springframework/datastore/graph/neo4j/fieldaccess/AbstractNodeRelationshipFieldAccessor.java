@@ -15,13 +15,13 @@ import java.util.Set;
  * @author Michael Hunger
  * @since 11.09.2010
  */
-public abstract class AbstractRelationshipFieldAccessor<ENTITY,STATE,TARGET,TSTATE> implements FieldAccessor<ENTITY,TARGET> {
+public abstract class AbstractNodeRelationshipFieldAccessor<ENTITY,STATE,TARGET,TSTATE> implements FieldAccessor<ENTITY,TARGET> {
     protected final RelationshipType type;
     protected final Direction direction;
     protected final Class<? extends TARGET> relatedType;
     protected final GraphDatabaseContext graphDatabaseContext;
 
-    public AbstractRelationshipFieldAccessor(Class<? extends TARGET> clazz, GraphDatabaseContext graphDatabaseContext, Direction direction, RelationshipType type) {
+    public AbstractNodeRelationshipFieldAccessor(Class<? extends TARGET> clazz, GraphDatabaseContext graphDatabaseContext, Direction direction, RelationshipType type) {
         this.relatedType = clazz;
         this.graphDatabaseContext = graphDatabaseContext;
         this.direction = direction;

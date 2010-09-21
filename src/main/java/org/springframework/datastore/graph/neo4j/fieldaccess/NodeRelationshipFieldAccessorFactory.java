@@ -17,7 +17,7 @@ import java.lang.reflect.Field;
  * @since 12.09.2010
  */
 @Configurable
-abstract class RelationshipFieldAccessorFactory implements FieldAccessorFactory<NodeBacked> {
+abstract class NodeRelationshipFieldAccessorFactory implements FieldAccessorFactory<NodeBacked> {
     @Autowired
     protected GraphDatabaseContext graphDatabaseContext;
 

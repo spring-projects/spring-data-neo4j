@@ -12,34 +12,26 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
-public class DelegatingFieldAccessorFactory<T> implements FieldAccessorFactory<T> {
+public abstract class DelegatingFieldAccessorFactory<T> implements FieldAccessorFactory<T> {
     private final static Log log = LogFactory.getLog(DelegatingFieldAccessorFactory.class);
     private final GraphDatabaseContext graphDatabaseContext;
 
     public DelegatingFieldAccessorFactory(GraphDatabaseContext graphDatabaseContext) {
         this.graphDatabaseContext = graphDatabaseContext;
+        this.fieldAccessorFactories.addAll(createAccessorFactories());
+        this.fieldAccessorListenerFactories.addAll(createListenerFactories());
     }
+
+    protected abstract Collection<FieldAccessorListenerFactory<?>> createListenerFactories();
+    protected abstract Collection<? extends FieldAccessorFactory<?>> createAccessorFactories();
 
     @Override
     public boolean accept(Field f) {
         return true;
     }
 
-    final Collection<FieldAccessorFactory<?>> fieldAccessorFactories = Arrays.<FieldAccessorFactory<?>>asList(
-		    new IdFieldAccessorFactory(),
-		    new TransientFieldAccessorFactory(),
-		    new NodePropertyFieldAccessorFactory(),
-		    new ConvertingNodePropertyFieldAccessorFactory(),
-		    new SingleRelationshipFieldAccessorFactory(),
-		    new OneToNRelationshipFieldAccessorFactory(),
-		    new ReadOnlyOneToNRelationshipFieldAccessorFactory(),
-		    new TraversalFieldAccessorFactory(),
-		    new OneToNRelationshipEntityFieldAccessorFactory()
-    );
-	final Collection<FieldAccessorListenerFactory<?>> fieldAccessorListenerFactories = Arrays.<FieldAccessorListenerFactory<?>>asList(
-            IndexingNodePropertyFieldAccessorListenerFactory.IndexingNodePropertyFieldAccessorListener.factory()
-    );
-
+    final Collection<FieldAccessorFactory<?>> fieldAccessorFactories=new ArrayList<FieldAccessorFactory<?>>();
+	final Collection<FieldAccessorListenerFactory<?>> fieldAccessorListenerFactories = new ArrayList<FieldAccessorListenerFactory<?>>();
     public FieldAccessor forField(Field field) {
         if (isAspectjField(field)) return null;
         for (FieldAccessorFactory<?> fieldAccessorFactory : fieldAccessorFactories) {

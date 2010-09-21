@@ -19,7 +19,7 @@ import org.springframework.persistence.support.AbstractTypeAnnotatingMixinFields
 import java.lang.reflect.Field;
 
 import static org.springframework.datastore.graph.neo4j.fieldaccess.DoReturn.unwrap;
-import org.springframework.datastore.graph.neo4j.fieldaccess.DetachableEntityStateAccessorsFactory;
+import org.springframework.datastore.graph.neo4j.fieldaccess.NodeEntityStateAccessorsFactory;
 
 /**
  * Aspect to turn an object annotated with GraphEntity into a graph entity using Neo4J.
@@ -30,10 +30,10 @@ import org.springframework.datastore.graph.neo4j.fieldaccess.DetachableEntitySta
  */
 public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<GraphEntity, NodeBacked> {
     private GraphDatabaseContext graphDatabaseContext;
-    private DetachableEntityStateAccessorsFactory entityStateAccessorsFactory;
+    private NodeEntityStateAccessorsFactory entityStateAccessorsFactory;
 
     @Autowired
-	public void init(GraphDatabaseContext ctx, DetachableEntityStateAccessorsFactory entityStateAccessorsFactory) {
+	public void init(GraphDatabaseContext ctx, NodeEntityStateAccessorsFactory entityStateAccessorsFactory) {
         this.graphDatabaseContext = ctx;
         this.entityStateAccessorsFactory = entityStateAccessorsFactory;
 	}
