@@ -14,8 +14,6 @@ import java.lang.reflect.Field;
 public interface EntityStateAccessors<ENTITY extends GraphBacked<STATE>,STATE> {
     ENTITY getEntity();
 
-    GraphDatabaseContext getGraphDatabaseContext();
-
     void setUnderlyingState(STATE state);
 
     Object getValue(Field field);

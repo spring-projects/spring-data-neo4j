@@ -15,8 +15,10 @@ import java.util.Collection;
  */
 public class NodeEntityStateAccessors<ENTITY extends NodeBacked> extends DefaultEntityStateAccessors<ENTITY, Node> {
 
+    private final GraphDatabaseContext graphDatabaseContext;
+
     public NodeEntityStateAccessors(final Node underlyingState, final ENTITY entity, final Class<? extends ENTITY> type, final GraphDatabaseContext graphDatabaseContext) {
-        super(underlyingState, entity, type, graphDatabaseContext, new DelegatingFieldAccessorFactory(graphDatabaseContext) {
+        super(underlyingState, entity, type, new DelegatingFieldAccessorFactory(graphDatabaseContext) {
             @Override
             protected Collection<FieldAccessorListenerFactory<?>> createListenerFactories() {
                 return Arrays.<FieldAccessorListenerFactory<?>>asList(
@@ -39,6 +41,7 @@ public class NodeEntityStateAccessors<ENTITY extends NodeBacked> extends Default
                 );
             }
         });
+        this.graphDatabaseContext = graphDatabaseContext;
     }
 
     @Override

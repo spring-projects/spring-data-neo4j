@@ -3,7 +3,6 @@ package org.springframework.datastore.graph.neo4j.fieldaccess;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.datastore.graph.api.GraphBacked;
-import org.springframework.datastore.graph.neo4j.support.GraphDatabaseContext;
 import org.springframework.util.ReflectionUtils;
 
 import java.lang.reflect.Field;
@@ -19,7 +18,6 @@ public abstract class DefaultEntityStateAccessors<ENTITY extends GraphBacked<STA
     private final STATE underlyingState;
     protected final ENTITY entity;
     private final Class<? extends ENTITY> type;
-    protected final GraphDatabaseContext graphDatabaseContext;
     private final Map<Field,FieldAccessor<ENTITY,?>> fieldAccessors=new HashMap<Field, FieldAccessor<ENTITY,?>>();
     private final Map<Field,List<FieldAccessListener<ENTITY,?>>> fieldAccessorListeners=new HashMap<Field, List<FieldAccessListener<ENTITY,?>>>();
     private STATE state;
@@ -27,13 +25,12 @@ public abstract class DefaultEntityStateAccessors<ENTITY extends GraphBacked<STA
     private DelegatingFieldAccessorFactory delegatingFieldAccessorFactory;
 
 
-    public DefaultEntityStateAccessors(final STATE underlyingState, final ENTITY entity, final Class<? extends ENTITY> type, final GraphDatabaseContext graphDatabaseContext, final DelegatingFieldAccessorFactory delegatingFieldAccessorFactory) {
+    public DefaultEntityStateAccessors(final STATE underlyingState, final ENTITY entity, final Class<? extends ENTITY> type, final DelegatingFieldAccessorFactory delegatingFieldAccessorFactory) {
         this.underlyingState = underlyingState;
         this.entity = entity;
         this.type = type;
-        this.graphDatabaseContext = graphDatabaseContext;
         this.delegatingFieldAccessorFactory = delegatingFieldAccessorFactory;
-        createAccessorsAndListeners(type, graphDatabaseContext);
+        createAccessorsAndListeners(type);
     }
 
     @Override
@@ -45,20 +42,15 @@ public abstract class DefaultEntityStateAccessors<ENTITY extends GraphBacked<STA
     }
 
     @Override
-    public GraphDatabaseContext getGraphDatabaseContext() {
-        return graphDatabaseContext;
-    }
-
-    @Override
     public void setUnderlyingState(final STATE state) {
         this.state = state;
     }
 
-    private void createAccessorsAndListeners(final Class<? extends ENTITY> type, final GraphDatabaseContext graphDatabaseContext) {
+    private void createAccessorsAndListeners(final Class<? extends ENTITY> type) {
         ReflectionUtils.doWithFields(type, new ReflectionUtils.FieldCallback() {
             public void doWith(final Field field) throws IllegalArgumentException, IllegalAccessException {
                 fieldAccessors.put(field, delegatingFieldAccessorFactory.forField(field));
-                fieldAccessorListeners.put(field, delegatingFieldAccessorFactory.listenersFor(field)); // TODO Bad code
+                fieldAccessorListeners.put(field, delegatingFieldAccessorFactory.listenersFor(field));
             }
         });
     }

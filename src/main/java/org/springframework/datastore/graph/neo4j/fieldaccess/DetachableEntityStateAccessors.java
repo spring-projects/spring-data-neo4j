@@ -21,9 +21,11 @@ public class DetachableEntityStateAccessors<ENTITY extends GraphBacked<STATE>, S
     private final Map<Field, Object> dirty = new HashMap<Field, Object>();
     private final EntityStateAccessors<ENTITY,STATE> delegate;
     private final static Log log = LogFactory.getLog(DetachableEntityStateAccessors.class);
+    private GraphDatabaseContext graphDatabaseContext;
 
-    public DetachableEntityStateAccessors(final EntityStateAccessors<ENTITY,STATE> delegate) {
+    public DetachableEntityStateAccessors(final EntityStateAccessors<ENTITY,STATE> delegate, GraphDatabaseContext graphDatabaseContext) {
         this.delegate = delegate;
+        this.graphDatabaseContext = graphDatabaseContext;
     }
 
     @Override
@@ -34,11 +36,6 @@ public class DetachableEntityStateAccessors<ENTITY extends GraphBacked<STATE>, S
     @Override
     public ENTITY getEntity() {
         return delegate.getEntity();
-    }
-
-    @Override
-    public GraphDatabaseContext getGraphDatabaseContext() {
-        return delegate.getGraphDatabaseContext();
     }
 
     @Override
@@ -54,7 +51,7 @@ public class DetachableEntityStateAccessors<ENTITY extends GraphBacked<STATE>, S
     }
 
     private boolean transactionIsRunning() {
-        return delegate.getGraphDatabaseContext().transactionIsRunning();
+        return getGraphDatabaseContext().transactionIsRunning();
     }
 
     @Override
@@ -151,6 +148,9 @@ public class DetachableEntityStateAccessors<ENTITY extends GraphBacked<STATE>, S
         this.dirty.put(f, previousValue);
     }
 
+    public GraphDatabaseContext getGraphDatabaseContext() {
+        return graphDatabaseContext;
+    }
 }
 
 

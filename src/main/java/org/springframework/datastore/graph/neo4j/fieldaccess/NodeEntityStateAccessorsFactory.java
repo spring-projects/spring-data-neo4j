@@ -11,6 +11,6 @@ public class NodeEntityStateAccessorsFactory {
 
 	public EntityStateAccessors<NodeBacked,Node> getEntityStateAccessors(final NodeBacked entity) {
 		return new DetachableEntityStateAccessors<NodeBacked, Node>(
-				new NodeEntityStateAccessors<NodeBacked>(null,entity,entity.getClass(), graphDatabaseContext));
+				new NodeEntityStateAccessors<NodeBacked>(null,entity,entity.getClass(), graphDatabaseContext),graphDatabaseContext);
 	}
 }

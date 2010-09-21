@@ -17,7 +17,7 @@ import java.util.Collections;
 public class RelationshipEntityStateAccessors<ENTITY extends RelationshipBacked> extends DefaultEntityStateAccessors<ENTITY, Relationship> {
 
     public RelationshipEntityStateAccessors(final Relationship underlyingState, final ENTITY entity, final Class<? extends ENTITY> type, final GraphDatabaseContext graphDatabaseContext) {
-        super(underlyingState, entity, type, graphDatabaseContext, new DelegatingFieldAccessorFactory(graphDatabaseContext) {
+        super(underlyingState, entity, type, new DelegatingFieldAccessorFactory(graphDatabaseContext) {
             @Override
             protected Collection<FieldAccessorListenerFactory<?>> createListenerFactories() {
                 return Collections.emptyList();
