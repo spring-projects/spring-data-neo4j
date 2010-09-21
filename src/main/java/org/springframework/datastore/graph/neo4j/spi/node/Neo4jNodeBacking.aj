@@ -49,9 +49,9 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<GraphEn
 	
 	// Create a new node in the Graph if no Node was passed in a constructor
 	before(NodeBacked entity) : arbitraryUserConstructorOfNodeBackedObject(entity) {
-        entity.underlyingState = entityStateAccessorsFactory.getEntityStateAccessors(entity);
+        entity.stateAccessors = entityStateAccessorsFactory.getEntityStateAccessors(entity);
         if (graphDatabaseContext.transactionIsRunning()) {
-            entity.underlyingState.createAndAssignState();
+            entity.stateAccessors.createAndAssignState();
         } else {
             log.warn("New Nodebacked created outside of transaction "+ entity.getClass());
         }
@@ -59,14 +59,14 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<GraphEn
 
     // Introduced field
 	private Node NodeBacked.underlyingNode;
-    private EntityStateAccessors<NodeBacked,Node> NodeBacked.underlyingState;
+    private EntityStateAccessors<NodeBacked,Node> NodeBacked.stateAccessors;
 
 	public void NodeBacked.setUnderlyingState(Node n) {
 		this.underlyingNode = n;
-        if (this.underlyingState == null) {
-            this.underlyingState = Neo4jNodeBacking.aspectOf().entityStateAccessorsFactory.getEntityStateAccessors(this);
+        if (this.stateAccessors == null) {
+            this.stateAccessors = Neo4jNodeBacking.aspectOf().entityStateAccessorsFactory.getEntityStateAccessors(this);
         } else {
-            this.underlyingState.setUnderlyingState(n);
+            this.stateAccessors.setUnderlyingState(n);
         }
 	}
 	
@@ -134,13 +134,13 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<GraphEn
 	}
 
     Object around(NodeBacked entity): entityFieldGet(entity) {
-        Object result=entity.underlyingState.getValue(field(thisJoinPoint));
+        Object result=entity.stateAccessors.getValue(field(thisJoinPoint));
         if (result instanceof DoReturn) return unwrap(result);
         return proceed(entity);
     }
 
     Object around(NodeBacked entity, Object newVal) : entityFieldSet(entity, newVal) {
-        Object result=entity.underlyingState.setValue(field(thisJoinPoint),newVal);
+        Object result=entity.stateAccessors.setValue(field(thisJoinPoint),newVal);
         if (result instanceof DoReturn) return unwrap(result);
         return proceed(entity,result);
 	}

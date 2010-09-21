@@ -40,14 +40,14 @@ public aspect Neo4jRelationshipBacking extends AbstractTypeAnnotatingMixinFields
 	
 	// Introduced fields
 	private Relationship RelationshipBacked.underlyingRelationship;
-    private EntityStateAccessors<RelationshipBacked,Relationship> RelationshipBacked.underlyingState;
+    private EntityStateAccessors<RelationshipBacked,Relationship> RelationshipBacked.stateAccessors;
 
 	public void RelationshipBacked.setUnderlyingState(Relationship r) {
         this.underlyingRelationship = r;
-        if (this.underlyingState == null) {
-            this.underlyingState = Neo4jRelationshipBacking.aspectOf().entityStateAccessorsFactory.getEntityStateAccessors(this);
+        if (this.stateAccessors == null) {
+            this.stateAccessors = Neo4jRelationshipBacking.aspectOf().entityStateAccessorsFactory.getEntityStateAccessors(this);
         } else {
-            this.underlyingState.setUnderlyingState(r);
+            this.stateAccessors.setUnderlyingState(r);
         }
 	}
 	
@@ -82,13 +82,13 @@ public aspect Neo4jRelationshipBacking extends AbstractTypeAnnotatingMixinFields
 
 
     Object around(RelationshipBacked entity): entityFieldGet(entity) {
-        Object result=entity.underlyingState.getValue(field(thisJoinPoint));
+        Object result=entity.stateAccessors.getValue(field(thisJoinPoint));
         if (result instanceof DoReturn) return unwrap(result);
         return proceed(entity);
     }
 
     Object around(RelationshipBacked entity, Object newVal) : entityFieldSet(entity, newVal) {
-        Object result=entity.underlyingState.setValue(field(thisJoinPoint),newVal);
+        Object result=entity.stateAccessors.setValue(field(thisJoinPoint),newVal);
         if (result instanceof DoReturn) return unwrap(result);
         return proceed(entity,result);
 	}
