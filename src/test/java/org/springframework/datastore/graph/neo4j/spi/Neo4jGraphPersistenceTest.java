@@ -4,6 +4,7 @@ import org.junit.Assert;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.neo4j.graphdb.*;
@@ -28,7 +29,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 
-//@Ignore
+import static org.junit.Assert.*;
+
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = {"classpath:org/springframework/datastore/graph/neo4j/spi/Neo4jGraphPersistenceTest-context.xml"})
 public class Neo4jGraphPersistenceTest {
@@ -59,11 +61,11 @@ public class Neo4jGraphPersistenceTest {
 	@Transactional
 	public void testUserConstructor() {
 		Person p = new Person("Rod", 39);
-		Assert.assertEquals(p.getName(), p.getUnderlyingState().getProperty("Person.name"));
-		Assert.assertEquals(p.getAge(), p.getUnderlyingState().getProperty("Person.age"));
+		assertEquals(p.getName(), p.getUnderlyingState().getProperty("Person.name"));
+		assertEquals(p.getAge(), p.getUnderlyingState().getProperty("Person.age"));
 		Person found = graphDatabaseContext.createEntityFromState(graphDatabaseContext.getNodeById(p.getNodeId()), Person.class);
-		Assert.assertEquals("Rod", found.getUnderlyingState().getProperty("Person.name"));
-		Assert.assertEquals(39, found.getUnderlyingState().getProperty("Person.age"));
+		assertEquals("Rod", found.getUnderlyingState().getProperty("Person.name"));
+		assertEquals(39, found.getUnderlyingState().getProperty("Person.age"));
 	}
 	
 	@Test
@@ -73,17 +75,17 @@ public class Neo4jGraphPersistenceTest {
 		p.setName("Michael");
 		p.setAge(35);
 		p.setHeight((short)182);
-		Assert.assertEquals("Michael", p.getUnderlyingState().getProperty("Person.name"));
-		Assert.assertEquals(35, p.getUnderlyingState().getProperty("Person.age"));
-		Assert.assertEquals((short)182, p.getUnderlyingState().getProperty("Person.height"));
-		Assert.assertEquals((short)182, (short)p.getHeight());
+		assertEquals("Michael", p.getUnderlyingState().getProperty("Person.name"));
+		assertEquals(35, p.getUnderlyingState().getProperty("Person.age"));
+		assertEquals((short)182, p.getUnderlyingState().getProperty("Person.height"));
+		assertEquals((short)182, (short)p.getHeight());
 	}
 	@Test
 	@Transactional
 	public void testSetShortProperty() {
 		Group group = new Group();
 		group.setName("developers");
-		Assert.assertEquals("developers", group.getUnderlyingState().getProperty("name"));
+		assertEquals("developers", group.getUnderlyingState().getProperty("name"));
 	}
 
 	@Test
@@ -93,8 +95,8 @@ public class Neo4jGraphPersistenceTest {
 		Person spouse = new Person("Tina",36);
 		p.setSpouse(spouse);
 		Node spouseNode=p.getUnderlyingState().getSingleRelationship(DynamicRelationshipType.withName("Person.spouse"), Direction.OUTGOING).getEndNode();
-		Assert.assertEquals(spouse.getUnderlyingState(), spouseNode);
-		Assert.assertEquals(spouse, p.getSpouse());
+		assertEquals(spouse.getUnderlyingState(), spouseNode);
+		assertEquals(spouse, p.getSpouse());
 	}
 	
 	@Test
@@ -104,8 +106,8 @@ public class Neo4jGraphPersistenceTest {
 		Person mother = new Person("Gabi",60);
 		p.setMother(mother);
 		Node motherNode = p.getUnderlyingState().getSingleRelationship(DynamicRelationshipType.withName("mother"), Direction.OUTGOING).getEndNode();
-		Assert.assertEquals(mother.getUnderlyingState(), motherNode);
-		Assert.assertEquals(mother, p.getMother());
+		assertEquals(mother.getUnderlyingState(), motherNode);
+		assertEquals(mother, p.getMother());
 	}
 
 	@Test
@@ -127,8 +129,8 @@ public class Neo4jGraphPersistenceTest {
 		Person friend = new Person("Helga", 34);
 		p.setSpouse(spouse);
 		p.setSpouse(friend);
-		Assert.assertEquals(friend.getUnderlyingState(), p.getUnderlyingState().getSingleRelationship(DynamicRelationshipType.withName("Person.spouse"), Direction.OUTGOING).getEndNode());
-		Assert.assertEquals(friend, p.getSpouse());
+		assertEquals(friend.getUnderlyingState(), p.getUnderlyingState().getSingleRelationship(DynamicRelationshipType.withName("Person.spouse"), Direction.OUTGOING).getEndNode());
+		assertEquals(friend, p.getSpouse());
 	}
 	
 	@Test
@@ -137,14 +139,14 @@ public class Neo4jGraphPersistenceTest {
 		Person p = new Person("David", 25);
 		Person boss = new Person("Emil", 32);
 		p.setBoss(boss);
-		Assert.assertEquals(boss.getUnderlyingState(), p.getUnderlyingState().getSingleRelationship(DynamicRelationshipType.withName("boss"), Direction.INCOMING).getStartNode());
-		Assert.assertEquals(boss, p.getBoss());
+		assertEquals(boss.getUnderlyingState(), p.getUnderlyingState().getSingleRelationship(DynamicRelationshipType.withName("boss"), Direction.INCOMING).getStartNode());
+		assertEquals(boss, p.getBoss());
 	}
 	
 	// @Test(expected = InvalidDataAccessResourceUsageException.class)
 	public void testCreateOutsideTransaction() {
 		Person p = new Person("Michael", 35);
-        Assert.assertEquals(35,p.getAge());
+        assertEquals(35,p.getAge());
 	}
 	
 	// @Test(expected = InvalidDataAccessResourceUsageException.class)
@@ -159,16 +161,16 @@ public class Neo4jGraphPersistenceTest {
 			tx.finish();
 		}
 		p.setAge(25);
-        Assert.assertEquals(25,p.getAge());
+        assertEquals(25,p.getAge());
         tx = graphDatabaseContext.beginTx();
         try {
-            Assert.assertEquals(25,p.getAge());
+            assertEquals(25,p.getAge());
             p.setAge(20);
             tx.success();
         } finally {
             tx.finish();
         }
-        Assert.assertEquals(20,p.getAge());
+        assertEquals(20,p.getAge());
 	}
 	
     @Test
@@ -184,18 +186,18 @@ public class Neo4jGraphPersistenceTest {
 			tx.finish();
 		}
 		p.setSpouse(spouse);
-        Assert.assertEquals(spouse,p.getSpouse());
+        assertEquals(spouse,p.getSpouse());
         Person spouse2;
         tx = graphDatabaseContext.beginTx();
         try {
-            Assert.assertEquals(spouse,p.getSpouse());
+            assertEquals(spouse,p.getSpouse());
             spouse2 = new Person("Rana", 5);
             p.setSpouse(spouse2);
             tx.success();
         } finally {
             tx.finish();
         }
-        Assert.assertEquals(spouse2,p.getSpouse());
+        assertEquals(spouse2,p.getSpouse());
 	}
 	
 	@Test
@@ -208,13 +210,13 @@ public class Neo4jGraphPersistenceTest {
 		} finally {
 			tx.finish();
 		}
-		Assert.assertEquals("Wrong age.", (int)35, (int)p.getAge());
+		assertEquals("Wrong age.", (int)35, (int)p.getAge());
 	}
 
     @Test
 	public void testFindOutsideTransaction() {
         final Finder<Person> finder = finderFactory.getFinderForClass(Person.class);
-        Assert.assertEquals(false,finder.findAll().iterator().hasNext());
+        assertEquals(false,finder.findAll().iterator().hasNext());
 	}
 
 	@Test(expected = InvalidDataAccessApiUsageException.class)
@@ -234,8 +236,8 @@ public class Neo4jGraphPersistenceTest {
 		group.setPersons(persons);
 		Relationship michaelRel = michael.getUnderlyingState().getSingleRelationship(DynamicRelationshipType.withName("persons"), Direction.INCOMING);
 		Relationship davidRel = david.getUnderlyingState().getSingleRelationship(DynamicRelationshipType.withName("persons"), Direction.INCOMING);
-		Assert.assertEquals(group.getUnderlyingState(), michaelRel.getStartNode());
-		Assert.assertEquals(group.getUnderlyingState(), davidRel.getStartNode());
+		assertEquals(group.getUnderlyingState(), michaelRel.getStartNode());
+		assertEquals(group.getUnderlyingState(), davidRel.getStartNode());
 	}
 
 	@Test
@@ -247,7 +249,7 @@ public class Neo4jGraphPersistenceTest {
 		Set<Person> persons = new HashSet<Person>(Arrays.asList(michael, david));
 		group.setPersons(persons);
 		Collection<Person> personsFromGet = group.getPersons();
-		Assert.assertEquals(persons, personsFromGet);
+		assertEquals(persons, personsFromGet);
 		Assert.assertTrue(Set.class.isAssignableFrom(personsFromGet.getClass()));
 	}
 
@@ -261,7 +263,7 @@ public class Neo4jGraphPersistenceTest {
 		group.getPersons().add(michael);
 		group.getPersons().add(david);
 		Collection<Person> personsFromGet = group.getPersons();
-		Assert.assertEquals(new HashSet<Person>(Arrays.asList(david,michael)), personsFromGet);
+		assertEquals(new HashSet<Person>(Arrays.asList(david,michael)), personsFromGet);
 		Assert.assertTrue(Set.class.isAssignableFrom(personsFromGet.getClass()));
 	}
 	
@@ -273,7 +275,7 @@ public class Neo4jGraphPersistenceTest {
 		Group group = new Group();
 		group.setPersons(new HashSet<Person>(Arrays.asList(michael, david)));
 		group.getPersons().remove(david);
-		Assert.assertEquals(Collections.singleton(michael), group.getPersons());
+		assertEquals(Collections.singleton(michael), group.getPersons());
 	}
 	
 	@Test
@@ -283,7 +285,7 @@ public class Neo4jGraphPersistenceTest {
 		Person p2 = new Person("David", 25);
 		Finder<Person> finder = finderFactory.getFinderForClass(Person.class);
 		Iterable<Person> allPersons = finder.findAll();
-		Assert.assertEquals(new HashSet<Person>(Arrays.asList(p1, p2)), IteratorUtil.addToCollection(allPersons.iterator(), new HashSet<Person>()));
+		assertEquals(new HashSet<Person>(Arrays.asList(p1, p2)), IteratorUtil.addToCollection(allPersons.iterator(), new HashSet<Person>()));
 	}
 	
 	@Test
@@ -292,7 +294,7 @@ public class Neo4jGraphPersistenceTest {
 		Person p = new Person("Michael", 35);
 		Finder<Person> finder = finderFactory.getFinderForClass(Person.class);
 		Person pById = finder.findById(p.getNodeId());
-		Assert.assertEquals(p, pById);
+		assertEquals(p, pById);
 	}
 	
 	@Test
@@ -308,9 +310,9 @@ public class Neo4jGraphPersistenceTest {
 	@Transactional
 	public void testFinderCount() {
 		Finder<Person> finder = finderFactory.getFinderForClass(Person.class);
-		Assert.assertEquals(0, finder.count());
+		assertEquals(0, finder.count());
 		Person p = new Person("Michael", 35);
-		Assert.assertEquals(1, finder.count());
+		assertEquals(1, finder.count());
 	}
 	
 	@Test
@@ -320,8 +322,8 @@ public class Neo4jGraphPersistenceTest {
 		Person p2 = new Person("David", 25);
 		Friendship f = p.knows(p2);
 		Relationship rel = p.getUnderlyingState().getSingleRelationship(DynamicRelationshipType.withName("knows"), Direction.OUTGOING);
-		Assert.assertEquals(f.getUnderlyingState(), rel);
-		Assert.assertEquals(p2.getUnderlyingState(), rel.getEndNode());
+		assertEquals(f.getUnderlyingState(), rel);
+		assertEquals(p2.getUnderlyingState(), rel.getEndNode());
 	}
 	
 	@Test
@@ -331,7 +333,7 @@ public class Neo4jGraphPersistenceTest {
 		Person p2 = new Person("David", 25);
 		Friendship f = p.knows(p2);
 		f.setYears(1);
-		Assert.assertEquals(1, f.getUnderlyingState().getProperty("Friendship.years"));
+		assertEquals(1, f.getUnderlyingState().getProperty("Friendship.years"));
 	}
 	
 	@Test
@@ -341,7 +343,7 @@ public class Neo4jGraphPersistenceTest {
 		Person p2 = new Person("David", 25);
 		Friendship f = p.knows(p2);
 		f.getUnderlyingState().setProperty("Friendship.years", 1);
-		Assert.assertEquals(1, f.getYears());
+		assertEquals(1, f.getYears());
 	}
 	
 	@Test
@@ -350,8 +352,8 @@ public class Neo4jGraphPersistenceTest {
 		Person p = new Person("Michael", 35);
 		Person p2 = new Person("David", 25);
 		Friendship f = p.knows(p2);
-		Assert.assertEquals(p, f.getPerson1());
-		Assert.assertEquals(p2, f.getPerson2());
+		assertEquals(p, f.getPerson1());
+		assertEquals(p2, f.getPerson2());
 	}
 	
 	@Test
@@ -360,7 +362,7 @@ public class Neo4jGraphPersistenceTest {
 		Person p = new Person("Michael", 35);
 		Person p2 = new Person("David", 25);
 		Friendship f = p.knows(p2);
-        Assert.assertEquals(f,p.getRelationshipTo(p2,Friendship.class, "knows"));
+        assertEquals(f,p.getRelationshipTo(p2,Friendship.class, "knows"));
 	}
 
 	@Test
@@ -371,7 +373,7 @@ public class Neo4jGraphPersistenceTest {
 		Person p3 = new Person("Emil", 32);
 		Friendship f2 = p.knows(p2);
 		Friendship f3 = p.knows(p3);
-		Assert.assertEquals(new HashSet<Friendship>(Arrays.asList(f2, f3)), IteratorUtil.addToCollection(p.getFriendships().iterator(), new HashSet<Friendship>()));
+		assertEquals(new HashSet<Friendship>(Arrays.asList(f2, f3)), IteratorUtil.addToCollection(p.getFriendships().iterator(), new HashSet<Friendship>()));
 	}
 	
 	@Test(expected = InvalidDataAccessApiUsageException.class)
@@ -389,7 +391,7 @@ public class Neo4jGraphPersistenceTest {
 		Group group = new Group();
 		Set<Person> persons = new HashSet<Person>(Arrays.asList(michael, david));
 		group.setPersons(persons);
-		Assert.assertEquals(persons, IteratorUtil.addToCollection(group.getReadOnlyPersons().iterator(), new HashSet<Person>()));
+		assertEquals(persons, IteratorUtil.addToCollection(group.getReadOnlyPersons().iterator(), new HashSet<Person>()));
 	}
 	
 	@Test(expected = InvalidDataAccessApiUsageException.class)
@@ -406,7 +408,7 @@ public class Neo4jGraphPersistenceTest {
         group.setName("test");
         final Finder<Group> finder = finderFactory.getFinderForClass(Group.class);
         final Group found = finder.findByPropertyValue("name", "test");
-        Assert.assertEquals(group,found);
+        assertEquals(group,found);
 	}
 
     @Test
@@ -419,7 +421,7 @@ public class Neo4jGraphPersistenceTest {
         final Finder<Group> finder = finderFactory.getFinderForClass(Group.class);
         final Iterable<Group> found = finder.findAllByPropertyValue("name", "test");
         final Collection<Group> result = IteratorUtil.addToCollection(found.iterator(), new HashSet<Group>());
-        Assert.assertEquals(new HashSet<Group>(Arrays.asList(group,group2)), result);
+        assertEquals(new HashSet<Group>(Arrays.asList(group,group2)), result);
 	}
     
     @Test
@@ -428,7 +430,7 @@ public class Neo4jGraphPersistenceTest {
 		Person person = new Person("Michael",35);
         final Finder<Person> finder = finderFactory.getFinderForClass(Person.class);
         final Person found = finder.findByPropertyValue("Person.name", "Michael");
-        Assert.assertEquals(person, found);
+        assertEquals(person, found);
 	}
     
 	@Test
@@ -444,7 +446,7 @@ public class Neo4jGraphPersistenceTest {
         for (Person person : people) {
             found.add(person);
         }
-        Assert.assertEquals(Collections.singleton(p),found);
+        assertEquals(Collections.singleton(p),found);
 	}
 
 	@Test
@@ -459,7 +461,7 @@ public class Neo4jGraphPersistenceTest {
         for (Person person : people) {
             found.add(person);
         }
-        Assert.assertEquals(Collections.singleton(p),found);
+        assertEquals(Collections.singleton(p),found);
 	}
 
 	@Test
@@ -476,7 +478,7 @@ public class Neo4jGraphPersistenceTest {
         for (Person person : people) {
             found.add(person);
         }
-        Assert.assertEquals(Collections.singleton(p),found);
+        assertEquals(Collections.singleton(p),found);
 	}
 	
 	@Test
@@ -484,7 +486,7 @@ public class Neo4jGraphPersistenceTest {
 	public void testSetPropertyEnum() {
 		Person p = new Person("Michael", 35);
 		p.setPersonality(Personality.EXTROVERT);
-		Assert.assertEquals("Wrong enum serialization.", "EXTROVERT", p.getUnderlyingState().getProperty("Person.personality"));
+		assertEquals("Wrong enum serialization.", "EXTROVERT", p.getUnderlyingState().getProperty("Person.personality"));
 	}
 	
 	@Test
@@ -492,7 +494,7 @@ public class Neo4jGraphPersistenceTest {
 	public void testGetPropertyEnum() {
 		Person p = new Person("Michael", 35);
 		p.getUnderlyingState().setProperty("Person.personality", "EXTROVERT");
-		Assert.assertEquals("Did not deserialize property value properly.", Personality.EXTROVERT, p.getPersonality());
+		assertEquals("Did not deserialize property value properly.", Personality.EXTROVERT, p.getPersonality());
 	}
 	
 	@Test(expected = NotFoundException.class)
@@ -509,7 +511,7 @@ public class Neo4jGraphPersistenceTest {
 		Person p = new Person("Michael", 35);
 		p.setThought("food");
 		p.getUnderlyingState().setProperty("Person.thought", "sleep");
-		Assert.assertEquals("Should not have read transient value from graph.", "food", p.getThought());
+		assertEquals("Should not have read transient value from graph.", "food", p.getThought());
 	}
 
 	@Test
@@ -519,7 +521,7 @@ public class Neo4jGraphPersistenceTest {
         Person p2 = new Person("David", 25);
         Friendship f = p.knows(p2);
         f.setFirstMeetingDate(new Date(3));
-		Assert.assertEquals("Date not serialized properly.", "3", f.getUnderlyingState().getProperty("Friendship.firstMeetingDate"));
+		assertEquals("Date not serialized properly.", "3", f.getUnderlyingState().getProperty("Friendship.firstMeetingDate"));
 	}
 
 	@Test
@@ -529,7 +531,7 @@ public class Neo4jGraphPersistenceTest {
         Person p2 = new Person("David", 25);
         Friendship f = p.knows(p2);
         f.getUnderlyingState().setProperty("Friendship.firstMeetingDate", "3");
-		Assert.assertEquals("Date not deserialized properly.", new Date(3), f.getFirstMeetingDate());
+		assertEquals("Date not deserialized properly.", new Date(3), f.getFirstMeetingDate());
 	}
 
 	@Test(expected = NotFoundException.class)
@@ -550,6 +552,24 @@ public class Neo4jGraphPersistenceTest {
         Friendship f = p.knows(p2);
         f.setLatestLocation("Menlo Park");
 		f.getUnderlyingState().setProperty("Friendship.latestLocation", "Palo Alto");
-		Assert.assertEquals("Should not have read transient value from graph.", "Menlo Park", f.getLatestLocation());
+		assertEquals("Should not have read transient value from graph.", "Menlo Park", f.getLatestLocation());
+	}
+
+	@Test
+	@Transactional
+	public void testEntityIdField() {
+		Person p = new Person("Michael", 35);
+		assertEquals("Wrong ID.", p.getUnderlyingState().getId(), p.getId());
+	}
+
+	// Would like to have this working.
+	@Ignore
+	@Test
+	@Transactional
+	public void testRelationshipIdField() {
+		Person p = new Person("Michael", 35);
+        Person p2 = new Person("David", 25);
+        Friendship f = p.knows(p2);
+//		assertEquals("Wrong ID.", f.getUnderlyingState().getId(), f.getId());
 	}
 }

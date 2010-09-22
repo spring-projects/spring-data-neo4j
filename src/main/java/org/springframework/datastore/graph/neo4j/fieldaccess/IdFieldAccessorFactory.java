@@ -1,5 +1,6 @@
 package org.springframework.datastore.graph.neo4j.fieldaccess;
 
+import org.springframework.datastore.graph.api.GraphId;
 import org.springframework.datastore.graph.api.NodeBacked;
 
 import java.lang.reflect.Field;
@@ -17,9 +18,8 @@ public class IdFieldAccessorFactory implements FieldAccessorFactory<NodeBacked> 
 	}
 
 	private boolean isIdField(Field field) {
-	    if (!field.getName().equals("id")) return false;
 	    final Class<?> type = field.getType();
-	    return type.equals(Long.class) || type.equals(long.class);
+		return (field.getAnnotation(GraphId.class) != null) && (type.equals(Long.class) || type.equals(long.class));
 	}
 
 	@Override

@@ -8,8 +8,9 @@ import java.util.Date;
 
 @GraphEntity(useShortNames = false)
 public class Person {
-	
-	private Long id;
+
+	@GraphId
+	private Long graphId;
 
     @GraphEntityProperty(index = true)
 	private String name;
@@ -34,10 +35,6 @@ public class Person {
 
 	@GraphEntityRelationshipEntity(type = "knows", elementClass = Friendship.class)
 	private Iterable<Friendship> friendships;
-
-	// @Property(serialize=SerializationPolicy.STRING, index=true, queryable=true, removeOnReset=true)
-	// Date birthday;
-
 
     public Person() {
     }
@@ -135,6 +132,10 @@ public class Person {
 
 	public void setBirthdate(Date birthdate) {
 		this.birthdate = birthdate;
+	}
+
+	public long getId() {
+		return graphId;
 	}
 	
 }
