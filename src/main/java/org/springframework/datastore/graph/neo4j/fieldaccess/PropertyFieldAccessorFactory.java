@@ -12,56 +12,64 @@ import static org.springframework.datastore.graph.neo4j.fieldaccess.DoReturn.doR
  * @since 12.09.2010
  */
 public class PropertyFieldAccessorFactory implements FieldAccessorFactory<GraphBacked<PropertyContainer>> {
-	@Override
-	public boolean accept(final Field f) {
-	    return isNeo4jPropertyType(f.getType());
-	}
+    @Override
+    public boolean accept(final Field f) {
+        return isNeo4jPropertyType(f.getType());
+    }
 
-	@Override
-	public FieldAccessor<GraphBacked<PropertyContainer>,?> forField(final Field field) {
-	    return new PropertyFieldAccessor(field);
-	}
+    @Override
+    public FieldAccessor<GraphBacked<PropertyContainer>, ?> forField(final Field field) {
+        return new PropertyFieldAccessor(field);
+    }
 
-	private boolean isNeo4jPropertyType(final Class<?> fieldType) {
-	    // todo: add array support
-	    return fieldType.isPrimitive()
-	          || (fieldType.isArray() && !fieldType.getComponentType().isArray() && isNeo4jPropertyType(fieldType.getComponentType()))
-	          || fieldType.equals(String.class)
-	          || fieldType.equals(Character.class)
-	          || fieldType.equals(Boolean.class)
-	          || (fieldType.getName().startsWith("java.lang") && Number.class.isAssignableFrom(fieldType));
-	}
+    private boolean isNeo4jPropertyType(final Class<?> fieldType) {
+        // todo: add array support
+        return fieldType.isPrimitive()
+                || (fieldType.isArray() && !fieldType.getComponentType().isArray() && isNeo4jPropertyType(fieldType.getComponentType()))
+                || fieldType.equals(String.class)
+                || fieldType.equals(Character.class)
+                || fieldType.equals(Boolean.class)
+                || (fieldType.getName().startsWith("java.lang") && Number.class.isAssignableFrom(fieldType));
+    }
 
-	public static class PropertyFieldAccessor implements FieldAccessor<GraphBacked<PropertyContainer>, Object> {
-	    protected final Field field;
+    public static class PropertyFieldAccessor implements FieldAccessor<GraphBacked<PropertyContainer>, Object> {
+        protected final Field field;
 
-	    public PropertyFieldAccessor(final Field field) {
-	        this.field = field;
-	    }
+        public PropertyFieldAccessor(final Field field) {
+            this.field = field;
+        }
 
-	    @Override
-	    public boolean isWriteable(final GraphBacked<PropertyContainer> graphBacked) {
-	        return true;
-	    }
+        @Override
+        public boolean isWriteable(final GraphBacked<PropertyContainer> graphBacked) {
+            return true;
+        }
 
-	    @Override
-	    public Object setValue(final GraphBacked<PropertyContainer> graphBacked, final Object newVal) {
-	        graphBacked.getUnderlyingState().setProperty(getPropertyName(),newVal);
-	        return newVal;
-	    }
+        @Override
+        public Object setValue(final GraphBacked<PropertyContainer> graphBacked, final Object newVal) {
+            graphBacked.getUnderlyingState().setProperty(getPropertyName(), newVal);
+            return newVal;
+        }
 
-	    @Override
-	    public final Object getValue(final GraphBacked<PropertyContainer> graphBacked) {
-	        return doReturn(doGetValue(graphBacked));
-	    }
+        @Override
+        public final Object getValue(final GraphBacked<PropertyContainer> graphBacked) {
+            return doReturn(doGetValue(graphBacked));
+        }
 
-	    protected Object doGetValue(final GraphBacked<PropertyContainer> graphBacked) {
-	        return graphBacked.getUnderlyingState().getProperty(getPropertyName());
-	    }
+        protected Object doGetValue(final GraphBacked<PropertyContainer> graphBacked) {
+            return graphBacked.getUnderlyingState().getProperty(getPropertyName(), getDefaultValue(field.getType()));
+        }
 
-	    private String getPropertyName() {
-	        return DelegatingFieldAccessorFactory.getNeo4jPropertyName(field);
-	    }
+        private String getPropertyName() {
+            return DelegatingFieldAccessorFactory.getNeo4jPropertyName(field);
+        }
 
-	}
+        private Object getDefaultValue(final Class<?> type) {
+            if (type.isPrimitive()) {
+                if (type.equals(boolean.class)) return false;
+                return 0;
+            }
+            return null;
+        }
+
+    }
 }

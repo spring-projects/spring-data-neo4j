@@ -365,6 +365,19 @@ public class Neo4jGraphPersistenceTest {
         assertEquals(f,p.getRelationshipTo(p2,Friendship.class, "knows"));
 	}
 
+    @Test
+    @Ignore
+	@Transactional
+	public void testFindAllOnGroup() {
+        Group g=new Group();
+        g.setName("test");
+        Group g2=new Group();
+        g.setName("test");
+        final Finder<Group> finder = finderFactory.getFinderForClass(Group.class);
+        Collection<Group> groups= IteratorUtil.addToCollection(finder.findAll().iterator(), new HashSet<Group>());
+        Assert.assertEquals(2, groups.size());
+	}
+
 	@Test
 	@Transactional
 	public void testRelationshipGetEntities() {

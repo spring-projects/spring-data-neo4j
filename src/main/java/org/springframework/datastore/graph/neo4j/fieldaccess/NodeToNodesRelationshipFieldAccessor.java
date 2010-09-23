@@ -15,19 +15,21 @@ import java.util.Set;
  * @since 12.09.2010
  */
 public abstract class NodeToNodesRelationshipFieldAccessor<TARGET> extends AbstractNodeRelationshipFieldAccessor<NodeBacked, Node, TARGET, Node> {
-    public NodeToNodesRelationshipFieldAccessor(Class<? extends TARGET> clazz, GraphDatabaseContext graphDatabaseContext, Direction direction, RelationshipType type) {
+    public NodeToNodesRelationshipFieldAccessor(final Class<? extends TARGET> clazz, final GraphDatabaseContext graphDatabaseContext, final Direction direction, final RelationshipType type) {
         super(clazz, graphDatabaseContext, direction, type);
     }
 
     @Override
-    protected Relationship obtainSingleRelationship(Node start, Node end) {
-        final Relationship existingRelationship = start.getSingleRelationship(type, direction);
-        if (existingRelationship!=null && existingRelationship.getOtherNode(start).equals(end)) return existingRelationship;
+    protected Relationship obtainSingleRelationship(final Node start, final Node end) {
+        final Iterable<Relationship> existingRelationships = start.getRelationships(type, direction);
+        for (final Relationship existingRelationship : existingRelationships) {
+            if (existingRelationship!=null && existingRelationship.getOtherNode(start).equals(end)) return existingRelationship;
+        }
         return start.createRelationshipTo(end, type);
     }
 
     @Override
-    protected Iterable<Node> getStatesFromEntity(NodeBacked entity) {
+    protected Iterable<Node> getStatesFromEntity(final NodeBacked entity) {
         final Node entityNode = getState(entity);
         final Set<Node> result = new HashSet<Node>();
         for (final Relationship rel : entityNode.getRelationships(type, direction)) {
@@ -37,7 +39,7 @@ public abstract class NodeToNodesRelationshipFieldAccessor<TARGET> extends Abstr
     }
 
     @Override
-    protected Node getState(NodeBacked entity) {
+    protected Node getState(final NodeBacked entity) {
         return entity.getUnderlyingState();
     }
 }
