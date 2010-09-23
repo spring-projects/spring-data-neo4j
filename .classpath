@@ -9,7 +9,7 @@
   <classpathentry kind="var" path="M2_REPO/org/aspectj/aspectjrt/1.6.10.BUILD-SNAPSHOT/aspectjrt-1.6.10.BUILD-SNAPSHOT.jar"/>
   <classpathentry kind="var" path="M2_REPO/commons-logging/commons-logging/1.1.1/commons-logging-1.1.1.jar" sourcepath="M2_REPO/commons-logging/commons-logging/1.1.1/commons-logging-1.1.1-sources.jar"/>
   <classpathentry kind="var" path="M2_REPO/org/apache/geronimo/specs/geronimo-jta_1.1_spec/1.1.1/geronimo-jta_1.1_spec-1.1.1.jar" sourcepath="M2_REPO/org/apache/geronimo/specs/geronimo-jta_1.1_spec/1.1.1/geronimo-jta_1.1_spec-1.1.1-sources.jar"/>
-  <classpathentry kind="var" path="M2_REPO/org/hsqldb/hsqldb/1.8.0.10/hsqldb-1.8.0.10.jar"/>
+  <classpathentry kind="var" path="M2_REPO/org/hibernate/javax/persistence/hibernate-jpa-2.0-api/1.0.0.Final/hibernate-jpa-2.0-api-1.0.0.Final.jar"/>
   <classpathentry kind="var" path="M2_REPO/org/slf4j/jcl-over-slf4j/1.6.0/jcl-over-slf4j-1.6.0.jar" sourcepath="M2_REPO/org/slf4j/jcl-over-slf4j/1.6.0/jcl-over-slf4j-1.6.0-sources.jar"/>
   <classpathentry kind="var" path="M2_REPO/junit/junit/4.7/junit-4.7.jar" sourcepath="M2_REPO/junit/junit/4.7/junit-4.7-sources.jar"/>
   <classpathentry kind="var" path="M2_REPO/log4j/log4j/1.2.15/log4j-1.2.15.jar" sourcepath="M2_REPO/log4j/log4j/1.2.15/log4j-1.2.15-sources.jar"/>
@@ -17,7 +17,6 @@
   <classpathentry kind="var" path="M2_REPO/org/neo4j/neo4j-index/1.1/neo4j-index-1.1.jar" sourcepath="M2_REPO/org/neo4j/neo4j-index/1.1/neo4j-index-1.1-sources.jar"/>
   <classpathentry kind="var" path="M2_REPO/org/neo4j/neo4j-kernel/1.1/neo4j-kernel-1.1.jar" sourcepath="M2_REPO/org/neo4j/neo4j-kernel/1.1/neo4j-kernel-1.1-sources.jar"/>
   <classpathentry kind="var" path="M2_REPO/org/neo4j/neo4j-utils/1.1/neo4j-utils-1.1.jar" sourcepath="M2_REPO/org/neo4j/neo4j-utils/1.1/neo4j-utils-1.1-sources.jar"/>
-  <classpathentry kind="var" path="M2_REPO/javax/persistence/persistence-api/1.0/persistence-api-1.0.jar" sourcepath="M2_REPO/javax/persistence/persistence-api/1.0/persistence-api-1.0-sources.jar"/>
   <classpathentry kind="var" path="M2_REPO/org/slf4j/slf4j-api/1.6.0/slf4j-api-1.6.0.jar" sourcepath="M2_REPO/org/slf4j/slf4j-api/1.6.0/slf4j-api-1.6.0-sources.jar"/>
   <classpathentry kind="var" path="M2_REPO/org/slf4j/slf4j-log4j12/1.6.0/slf4j-log4j12-1.6.0.jar" sourcepath="M2_REPO/org/slf4j/slf4j-log4j12/1.6.0/slf4j-log4j12-1.6.0-sources.jar"/>
   <classpathentry kind="var" path="M2_REPO/org/springframework/spring-aop/3.0.4.RELEASE/spring-aop-3.0.4.RELEASE.jar" sourcepath="M2_REPO/org/springframework/spring-aop/3.0.4.RELEASE/spring-aop-3.0.4.RELEASE-sources.jar"/>
@@ -30,8 +29,8 @@
   <classpathentry kind="var" path="M2_REPO/org/springframework/data/spring-data-commons/1.0.0.M1-SNAPSHOT/spring-data-commons-1.0.0.M1-SNAPSHOT.jar" sourcepath="M2_REPO/org/springframework/data/spring-data-commons/1.0.0.M1-SNAPSHOT/spring-data-commons-1.0.0.M1-SNAPSHOT-sources.jar"/>
   <classpathentry kind="var" path="M2_REPO/org/springframework/data/spring-datastore-cross-store/1.0.0.M1-SNAPSHOT/spring-datastore-cross-store-1.0.0.M1-SNAPSHOT.jar" sourcepath="M2_REPO/org/springframework/data/spring-datastore-cross-store/1.0.0.M1-SNAPSHOT/spring-datastore-cross-store-1.0.0.M1-SNAPSHOT-sources.jar"/>
   <classpathentry kind="var" path="M2_REPO/org/springframework/spring-expression/3.0.4.RELEASE/spring-expression-3.0.4.RELEASE.jar" sourcepath="M2_REPO/org/springframework/spring-expression/3.0.4.RELEASE/spring-expression-3.0.4.RELEASE-sources.jar"/>
-  <classpathentry kind="var" path="M2_REPO/org/springframework/spring-jdbc/3.0.4.RELEASE/spring-jdbc-3.0.4.RELEASE.jar"/>
-  <classpathentry kind="var" path="M2_REPO/org/springframework/spring-orm/3.0.4.RELEASE/spring-orm-3.0.4.RELEASE.jar"/>
+  <classpathentry kind="var" path="M2_REPO/org/springframework/spring-jdbc/3.0.4.RELEASE/spring-jdbc-3.0.4.RELEASE.jar" sourcepath="M2_REPO/org/springframework/spring-jdbc/3.0.4.RELEASE/spring-jdbc-3.0.4.RELEASE-sources.jar"/>
+  <classpathentry kind="var" path="M2_REPO/org/springframework/spring-orm/3.0.4.RELEASE/spring-orm-3.0.4.RELEASE.jar" sourcepath="M2_REPO/org/springframework/spring-orm/3.0.4.RELEASE/spring-orm-3.0.4.RELEASE-sources.jar"/>
   <classpathentry kind="var" path="M2_REPO/org/springframework/spring-test/3.0.4.RELEASE/spring-test-3.0.4.RELEASE.jar" sourcepath="M2_REPO/org/springframework/spring-test/3.0.4.RELEASE/spring-test-3.0.4.RELEASE-sources.jar"/>
   <classpathentry kind="var" path="M2_REPO/org/springframework/spring-tx/3.0.4.RELEASE/spring-tx-3.0.4.RELEASE.jar" sourcepath="M2_REPO/org/springframework/spring-tx/3.0.4.RELEASE/spring-tx-3.0.4.RELEASE-sources.jar"/>
 </classpath>
