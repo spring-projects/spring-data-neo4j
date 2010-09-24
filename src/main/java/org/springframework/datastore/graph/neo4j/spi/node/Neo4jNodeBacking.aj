@@ -20,6 +20,7 @@ import java.lang.reflect.Field;
 
 import static org.springframework.datastore.graph.neo4j.fieldaccess.DoReturn.unwrap;
 import org.springframework.datastore.graph.neo4j.fieldaccess.NodeEntityStateAccessorsFactory;
+import org.springframework.persistence.support.StateProvider;
 
 /**
  * Aspect to turn an object annotated with GraphEntity into a graph entity using Neo4J.
@@ -44,23 +45,33 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<GraphEn
 	pointcut arbitraryUserConstructorOfNodeBackedObject(NodeBacked entity) : 
 		execution((@GraphEntity *).new(..)) &&
 		!execution((@GraphEntity *).new(Node)) &&
-		this(entity); // && !cflow(execution(* fromStateInternal(..)));
+		this(entity) && !cflowbelow(call(* fromStateInternal(..)));
 	
 	
 	// Create a new node in the Graph if no Node was passed in a constructor
 	before(NodeBacked entity) : arbitraryUserConstructorOfNodeBackedObject(entity) {
         entity.stateAccessors = entityStateAccessorsFactory.getEntityStateAccessors(entity);
-        if (graphDatabaseContext.transactionIsRunning()) {
-            entity.stateAccessors.createAndAssignState();
+        Node node=StateProvider.retrieveState();
+        if (node != null) {
+            entity.setUnderlyingState(node);
         } else {
-            log.warn("New Nodebacked created outside of transaction "+ entity.getClass());
+            if (graphDatabaseContext.transactionIsRunning()) {
+                entity.stateAccessors.createAndAssignState();
+            } else {
+                log.warn("New Nodebacked created outside of transaction " + entity.getClass());
+            }
         }
-	}
+    }
 
     // Introduced field
 	private Node NodeBacked.underlyingNode;
     private EntityStateAccessors<NodeBacked,Node> NodeBacked.stateAccessors;
 
+    /*
+    public NodeBacked.new(Node n) {
+       this.setUnderlyingState(n);
+    }
+    */
 	public void NodeBacked.setUnderlyingState(Node n) {
 		this.underlyingNode = n;
         if (this.stateAccessors == null) {

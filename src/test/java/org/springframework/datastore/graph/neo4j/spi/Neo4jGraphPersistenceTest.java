@@ -366,7 +366,6 @@ public class Neo4jGraphPersistenceTest {
 	}
 
     @Test
-    @Ignore
 	@Transactional
 	public void testFindAllOnGroup() {
         Group g=new Group();
