@@ -37,6 +37,7 @@ public class RelationshipEntityStateAccessors<ENTITY extends RelationshipBacked>
 
     @Override
     public void createAndAssignState() {
+        if (entity.getUnderlyingState()!=null) return;
         try {
             final Relationship relationship = null; // TODO graphDatabaseContext.create();
             setUnderlyingState(relationship);

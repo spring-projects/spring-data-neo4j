@@ -46,6 +46,7 @@ public class NodeEntityStateAccessors<ENTITY extends NodeBacked> extends Default
 
     @Override
     public void createAndAssignState() {
+        if (entity.getUnderlyingState()!=null) return;
         try {
             final Node node = graphDatabaseContext.createNode();
             setUnderlyingState(node);
