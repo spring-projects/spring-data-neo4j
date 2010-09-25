@@ -365,6 +365,17 @@ public class Neo4jGraphPersistenceTest {
         assertEquals(f,p.getRelationshipTo(p2,Friendship.class, "knows"));
 	}
 
+	@Test
+	@Transactional
+	public void testGetRelationshipFromLookedUpNode() {
+		Person me = new Person("Michael", 35);
+		Person spouse = new Person("Tina", 36);
+		me.setSpouse(spouse);
+        final Finder<Person> personFinder = finderFactory.getFinderForClass(Person.class);
+        final Person foundMe = personFinder.findByPropertyValue("Person.name", "Michael");
+        assertEquals(spouse,foundMe.getSpouse());
+	}
+
     @Test
 	@Transactional
 	public void testFindAllOnGroup() {

@@ -11,6 +11,8 @@ import java.lang.reflect.Field;
 import java.util.Collections;
 import java.util.Set;
 
+import static org.springframework.datastore.graph.neo4j.fieldaccess.DoReturn.doReturn;
+
 public class SingleRelationshipFieldAccessorFactory extends NodeRelationshipFieldAccessorFactory {
 	@Override
 	public boolean accept(final Field f) {
@@ -48,7 +50,8 @@ public class SingleRelationshipFieldAccessorFactory extends NodeRelationshipFiel
 		public Object getValue(final NodeBacked entity) {
 	        checkUnderlyingNode(entity);
 	        final Set<NodeBacked> result = createEntitySetFromRelationshipEndNodes(entity);
-	        return result.isEmpty() ? null : result.iterator().next();
+            final NodeBacked singleEntity = result.isEmpty() ? null : result.iterator().next();
+            return doReturn(singleEntity);
 		}
 
 	}
