@@ -9,7 +9,7 @@ import org.springframework.datastore.graph.api.*;
 import java.lang.reflect.Field;
 import java.util.Collection;
 
-@GraphEntity(fullIndex = true)
+@GraphEntity
 public class Group {
 
     @GraphEntityRelationship(type = "persons", direction = Direction.OUTGOING, elementClass = Person.class)
@@ -21,7 +21,13 @@ public class Group {
     @GraphEntityTraversal(traversalBuilder = PeopleTraversalBuilder.class, elementClass = Person.class)
     private Iterable<Person> people;
 
+    @GraphEntityProperty
     private String name;
+
+    @GraphEntityProperty(index = false)
+    private String unindexedName;
+
+    private String unindexedName2;
 
     public String getName() {
         return name;
@@ -63,5 +69,21 @@ public class Group {
                     .filter(Traversal.returnAllButStartNode());
 
         }
+    }
+
+    public String getUnindexedName() {
+        return unindexedName;
+    }
+
+    public void setUnindexedName(String unindexedName) {
+        this.unindexedName = unindexedName;
+    }
+
+    public String getUnindexedName2() {
+        return unindexedName2;
+    }
+
+    public void setUnindexedName2(String unindexedName2) {
+        this.unindexedName2 = unindexedName2;
     }
 }

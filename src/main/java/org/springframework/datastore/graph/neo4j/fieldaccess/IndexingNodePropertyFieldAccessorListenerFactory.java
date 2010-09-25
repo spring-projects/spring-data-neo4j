@@ -3,7 +3,10 @@ package org.springframework.datastore.graph.neo4j.fieldaccess;
 import org.neo4j.index.IndexService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
+import org.springframework.datastore.graph.api.GraphEntity;
+import org.springframework.datastore.graph.api.GraphEntityProperty;
 import org.springframework.datastore.graph.api.NodeBacked;
+import sun.security.action.GetPropertyAction;
 
 import java.lang.reflect.Field;
 
@@ -14,7 +17,18 @@ class IndexingNodePropertyFieldAccessorListenerFactory implements FieldAccessorL
 
     @Override
     public boolean accept(final Field f) {
-	    return new PropertyFieldAccessorFactory().accept(f) || new ConvertingNodePropertyFieldAccessorFactory().accept(f);
+        return isPropertyField(f) && isIndexed(f);
+    }
+
+    private boolean isIndexed(Field f) {
+        final GraphEntity entityAnnotation = f.getDeclaringClass().getAnnotation(GraphEntity.class);
+        if (entityAnnotation!=null && entityAnnotation.fullIndex()) return true;
+        final GraphEntityProperty propertyAnnotation = f.getAnnotation(GraphEntityProperty.class);
+        return propertyAnnotation!=null && propertyAnnotation.index();
+    }
+
+    private boolean isPropertyField(Field f) {
+        return new PropertyFieldAccessorFactory().accept(f) || new ConvertingNodePropertyFieldAccessorFactory().accept(f);
     }
 
     @Override

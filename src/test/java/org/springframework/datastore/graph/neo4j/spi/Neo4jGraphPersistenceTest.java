@@ -433,6 +433,24 @@ public class Neo4jGraphPersistenceTest {
         final Group found = finder.findByPropertyValue("name", "test");
         assertEquals(group,found);
 	}
+	@Test
+	@Transactional
+	public void testDontFindGroupByNonIndexedFieldWithAnnotation() {
+		Group group = new Group();
+        group.setUnindexedName("value-unindexedName");
+        final Finder<Group> finder = finderFactory.getFinderForClass(Group.class);
+        final Group found = finder.findByPropertyValue("unindexedName", "value-unindexedName");
+        assertNull(found);
+	}
+	@Test
+	@Transactional
+	public void testDontFindGroupByNonIndexedField() {
+		Group group = new Group();
+        group.setUnindexedName2("value-unindexedName2");
+        final Finder<Group> finder = finderFactory.getFinderForClass(Group.class);
+        final Group found = finder.findByPropertyValue("unindexedName2", "value-unindexedName2");
+        assertNull(found);
+	}
 
     @Test
 	@Transactional
