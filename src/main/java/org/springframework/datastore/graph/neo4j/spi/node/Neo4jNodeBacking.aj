@@ -16,6 +16,10 @@ import org.springframework.datastore.graph.neo4j.fieldaccess.*;
 import org.springframework.datastore.graph.neo4j.support.GraphDatabaseContext;
 import org.springframework.persistence.support.AbstractTypeAnnotatingMixinFields;
 
+import org.springframework.persistence.support.AbstractConstructorEntityInstantiator;
+import org.springframework.datastore.graph.neo4j.spi.node.Neo4jConstructorGraphEntityInstantiator;
+import org.springframework.datastore.graph.neo4j.spi.relationship.ConstructorBypassingGraphRelationshipInstantiator;
+
 import java.lang.reflect.Field;
 
 import static org.springframework.datastore.graph.neo4j.fieldaccess.DoReturn.unwrap;

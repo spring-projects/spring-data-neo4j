@@ -1,7 +1,5 @@
 package org.springframework.datastore.graph.neo4j;
 
-import org.neo4j.graphdb.DynamicRelationshipType;
-import org.neo4j.graphdb.Relationship;
 import org.springframework.datastore.graph.api.*;
 import java.util.Date;
 
@@ -26,6 +24,8 @@ public class Person {
 	private Date birthdate;
 
 	private Person spouse;
+
+	private Car car;
 	
 	@GraphEntityRelationship(type = "mother", direction = Direction.OUTGOING)
 	private Person mother;
@@ -136,6 +136,14 @@ public class Person {
 
 	public long getId() {
 		return graphId;
+	}
+
+	public void setCar(Car car) {
+		this.car = car;
+	}
+
+	public Car getCar() {
+		return car;
 	}
 	
 }

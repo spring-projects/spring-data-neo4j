@@ -40,19 +40,19 @@ privileged aspect Person_Graph_Entity {
 		setUnderlyingState(node);
 	}
 
-	public static long Person.countPeople() {
-        return new SubReferenceNodeTypeStrategy(graphDatabaseContext()).count(Person.class);
-	}
-
-	public static Iterable<Person> Person.findAllPeople() {
-        final SubReferenceNodeTypeStrategy strategy = new SubReferenceNodeTypeStrategy(graphDatabaseContext());
-        return strategy.findAll(Person.class);
-	}
-
-	public static Person Person.findPerson(Long id) {
-		Node personNode = Person_Graph_Entity.graphDatabaseContext().getNodeById(id);
-        return new Person(personNode);
-	}
+//	public static long Person.countPeople() {
+//        return new SubReferenceNodeTypeStrategy(graphDatabaseContext()).count(Person.class);
+//	}
+//
+//	public static Iterable<Person> Person.findAllPeople() {
+//        final SubReferenceNodeTypeStrategy strategy = new SubReferenceNodeTypeStrategy(graphDatabaseContext());
+//        return strategy.findAll(Person.class);
+//	}
+//
+//	public static Person Person.findPerson(Long id) {
+//		Node personNode = Person_Graph_Entity.graphDatabaseContext().getNodeById(id);
+//        return new Person(personNode);
+//	}
 	
 
 	// Pluggable query executors/resolvers, discussed with PL

@@ -15,10 +15,7 @@ import org.neo4j.kernel.Traversal;
 import org.neo4j.kernel.impl.traversal.TraversalDescriptionImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
-import org.springframework.datastore.graph.neo4j.Friendship;
-import org.springframework.datastore.graph.neo4j.Group;
-import org.springframework.datastore.graph.neo4j.Person;
-import org.springframework.datastore.graph.neo4j.Personality;
+import org.springframework.datastore.graph.neo4j.*;
 import org.springframework.datastore.graph.neo4j.finder.Finder;
 import org.springframework.datastore.graph.neo4j.finder.FinderFactory;
 import org.springframework.datastore.graph.neo4j.spi.node.Neo4jHelper;
@@ -379,13 +376,15 @@ public class Neo4jGraphPersistenceTest {
     @Test
 	@Transactional
 	public void testFindAllOnGroup() {
+	    log.debug("FindAllOnGroup start");
         Group g=new Group();
         g.setName("test");
         Group g2=new Group();
         g.setName("test");
         final Finder<Group> finder = finderFactory.getFinderForClass(Group.class);
-        Collection<Group> groups= IteratorUtil.addToCollection(finder.findAll().iterator(), new HashSet<Group>());
+        Collection<Group> groups = IteratorUtil.addToCollection(finder.findAll().iterator(), new HashSet<Group>());
         Assert.assertEquals(2, groups.size());
+	    log.debug("FindAllOnGroup done");
 	}
 
 	@Test
@@ -612,5 +611,37 @@ public class Neo4jGraphPersistenceTest {
         Person p2 = new Person("David", 25);
         Friendship f = p.knows(p2);
 //		assertEquals("Wrong ID.", f.getUnderlyingState().getId(), f.getId());
+	}
+
+	@Test
+	@Transactional
+	public void testInstantiateConcreteClass() {
+		log.debug("testInstantiateConcreteClass");
+		Person p = new Person("Michael", 35);
+		Car c = new Volvo();
+		p.setCar(c);
+		assertEquals("Wrong concrete class.", Volvo.class, p.getCar().getClass());
+	}
+
+	@Test
+	@Transactional
+	public void testInstantiateConcreteClassWithFinder() {
+		log.debug("testInstantiateConcreteClassWithFinder");
+		new Volvo();
+		Finder<Car> finder = finderFactory.getFinderForClass(Car.class);
+		assertEquals("Wrong concrete class.", Volvo.class, finder.findAll().iterator().next().getClass());
+	}
+
+	@Test
+	@Transactional
+	public void testCountSubclasses() {
+		log.debug("testCountSubclasses");
+		new Volvo();
+		log.debug("Created volvo");
+		new Toyota();
+		log.debug("Created volvo");
+		assertEquals("Wrong count.", 1, finderFactory.getFinderForClass(Volvo.class).count());
+		assertEquals("Wrong count.", 1, finderFactory.getFinderForClass(Toyota.class).count());
+		assertEquals("Wrong count.", 2, finderFactory.getFinderForClass(Car.class).count());
 	}
 }

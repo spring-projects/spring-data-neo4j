@@ -24,7 +24,7 @@ import javax.transaction.TransactionManager;
  * @since 13.09.2010
  */
 @Configurable
-public class GraphDatabaseContext implements NodeTypeStrategy {
+public class GraphDatabaseContext {
     @Autowired
     private GraphDatabaseService graphDatabaseService;
 
@@ -51,21 +51,11 @@ public class GraphDatabaseContext implements NodeTypeStrategy {
         return graphDatabaseService.createNode();
     }
 
-
-    public <T extends NodeBacked> T createEntityFromState(final Node node, final Class<T> type) {
-        return graphEntityInstantiator.createEntityFromState(node, type);
-    }
-
     public <S, T> T createEntityFromState(final S state, final Class<T> type) {
         if (state instanceof Node)
-            return (T) graphEntityInstantiator.createEntityFromState((Node) state, (Class<? extends NodeBacked>) type);
+            return (T) graphEntityInstantiator.createEntityFromState((Node) state, getJavaType((Node) state));
         else
             return (T) relationshipEntityInstantiator.createEntityFromState((Relationship) state, (Class<? extends RelationshipBacked>) type);
-
-    }
-
-    public <T extends RelationshipBacked> T createEntityFromState(final Relationship relationship, final Class<T> type) {
-        return relationshipEntityInstantiator.createEntityFromState(relationship, type);
     }
 
     public IndexHits<Node> getIndexedNodes(final String property, final Object value) {
@@ -80,22 +70,23 @@ public class GraphDatabaseContext implements NodeTypeStrategy {
         return graphDatabaseService.getNodeById(id);
     }
 
-    @Override
     public void postEntityCreation(final NodeBacked entity) {
         nodeTypeStrategy.postEntityCreation(entity);
     }
 
-    @Override
     public <T extends NodeBacked> Iterable<T> findAll(final Class<T> clazz) {
         return nodeTypeStrategy.findAll(clazz);
     }
 
-    @Override
     public long count(final Class<? extends NodeBacked> entityClass) {
         return nodeTypeStrategy.count(entityClass);
     }
 
-    public Node getReferenceNode() {
+	public <T extends NodeBacked> Class<T> getJavaType(Node node) {
+		return nodeTypeStrategy.getJavaType(node);
+	}
+
+	public Node getReferenceNode() {
         return graphDatabaseService.getReferenceNode();
     }
 
