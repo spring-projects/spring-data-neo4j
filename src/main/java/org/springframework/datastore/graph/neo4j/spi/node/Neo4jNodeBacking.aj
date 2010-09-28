@@ -68,8 +68,8 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<GraphEn
     }
 
     // Introduced field
-	private Node NodeBacked.underlyingNode;
-    private EntityStateAccessors<NodeBacked,Node> NodeBacked.stateAccessors;
+	private transient Node NodeBacked.underlyingNode;
+    private transient EntityStateAccessors<NodeBacked,Node> NodeBacked.stateAccessors;
 
     /*
     public NodeBacked.new(Node n) {
@@ -89,6 +89,10 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<GraphEn
 		return underlyingNode;
 	}
 	
+    public EntityStateAccessors NodeBacked.getStateAccessors() {
+        return stateAccessors;
+    }
+
     public boolean NodeBacked.hasUnderlyingNode() {
         return underlyingNode!=null;
     }
@@ -120,6 +124,7 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<GraphEn
         Neo4jNodeBacking.aspectOf().relationshipEntityInstantiator.createEntityFromState(rel, relationshipType);
     }
     */
+
     public RelationshipBacked NodeBacked.relateTo(NodeBacked node, Class<? extends RelationshipBacked> relationshipType, String type) {
         Relationship rel = this.getUnderlyingState().createRelationshipTo(node.getUnderlyingState(), DynamicRelationshipType.withName(type));
         return Neo4jNodeBacking.aspectOf().graphDatabaseContext.createEntityFromState(rel, relationshipType);

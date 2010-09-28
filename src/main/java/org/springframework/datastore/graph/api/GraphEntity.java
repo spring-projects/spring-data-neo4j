@@ -15,4 +15,6 @@ public @interface GraphEntity {
     boolean useShortNames() default true;
 
     boolean fullIndex() default false;
+
+    boolean partial() default false;
 }
