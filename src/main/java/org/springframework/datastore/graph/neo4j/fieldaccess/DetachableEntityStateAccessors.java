@@ -45,8 +45,9 @@ public class DetachableEntityStateAccessors<ENTITY extends GraphBacked<STATE>, S
                 log.warn("Outside of transaction, GET value from field " + field);
                 return null;
             }
+        } else {
+            flushDirty();
         }
-        flushDirty();
         return delegate.getValue(field);
     }
 
