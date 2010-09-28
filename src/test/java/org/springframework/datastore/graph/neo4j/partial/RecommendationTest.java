@@ -49,20 +49,19 @@ public class RecommendationTest {
     public void jpaUserHasNodeAndId() {
         User user = new User();
         user.setAge(35);
-        user = em.merge(user);
-        Assert.assertNotNull(user.getId());
-        Assert.assertNotNull(user.getUnderlyingState());
+        em.persist(user);
+        Assert.assertNotNull("jpa-id",user.getId());
+        Assert.assertNotNull("node",user.getUnderlyingState());
     }
     @Test
-    public void jpaUserCanHaveGrapProperties() {
+    public void jpaUserCanHaveGraphProperties() {
         User user = new User();
         user.setAge(35);
         user.setNickname("John");
-        user = em.merge(user);
-        Assert.assertNotNull(user.getId());
-        Assert.assertNotNull(user.getUnderlyingState());
-        Assert.assertNotNull(user.getNickname());
-        Assert.assertEquals("John",user.getUnderlyingState().getProperty("nickname"));
-
+        em.persist(user);
+        Assert.assertNotNull("jpa-id",user.getId());
+        Assert.assertNotNull("node",user.getUnderlyingState());
+        Assert.assertNotNull("nickname in entity",user.getNickname());
+        Assert.assertEquals("nickname in graph","John",user.getUnderlyingState().getProperty("nickname"));
     }
 }
