@@ -42,7 +42,7 @@ public class DetachableEntityStateAccessors<ENTITY extends GraphBacked<STATE>, S
     public Object getValue(final Field field) {
         if (!transactionIsRunning()) {
             if (getEntity().getUnderlyingState()==null || isDirty(field)) {
-                log.warn("Outside of transaction, GET value from field " + field);
+                if (log.isWarnEnabled()) log.warn("Outside of transaction, GET value from field " + field);
                 return null;
             }
         } else {
@@ -99,7 +99,7 @@ public class DetachableEntityStateAccessors<ENTITY extends GraphBacked<STATE>, S
         if (isDirty()) {
             for (final Map.Entry<Field, Object> entry : dirty.entrySet()) {
                 final Field field = entry.getKey();
-                log.warn("Flushing dirty Entity new node " + newNode + " field " + field);
+                if (log.isWarnEnabled()) log.warn("Flushing dirty Entity new node " + newNode + " field " + field);
                 if (!newNode) {
                     checkConcurrentModification(entity, entry, field);
                 }

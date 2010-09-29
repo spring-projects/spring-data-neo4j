@@ -38,7 +38,7 @@ public class SubReferenceNodeTypeStrategy implements NodeTypeStrategy {
 	    final Node subReference = obtainSubreferenceNode(clazz);
         entity.getUnderlyingState().createRelationshipTo(subReference, INSTANCE_OF_RELATIONSHIP_TYPE);
 	    subReference.setProperty(SUBREF_CLASS_KEY, clazz.getName());
-	    log.debug("Created link to subref node: " + subReference + " with type: " + clazz.getName());
+	    if (log.isDebugEnabled()) log.debug("Created link to subref node: " + subReference + " with type: " + clazz.getName());
 
         GraphDatabaseUtil.incrementAndGetCounter(subReference, SUBREFERENCE_NODE_COUNTER_KEY);
 
@@ -54,7 +54,7 @@ public class SubReferenceNodeTypeStrategy implements NodeTypeStrategy {
 		    }
 		    superClassSubref.setProperty(SUBREF_CLASS_KEY, superClass.getName());
 		    Integer count = GraphDatabaseUtil.incrementAndGetCounter(superClassSubref, SUBREFERENCE_NODE_COUNTER_KEY);
-		    log.debug("count on ref " + superClassSubref + " for class " + superClass.getSimpleName() + " = " + count);
+		    if (log.isDebugEnabled()) log.debug("count on ref " + superClassSubref + " for class " + superClass.getSimpleName() + " = " + count);
 		    updateSuperClassSubrefs(superClass, superClassSubref);
 	    }
 	}
@@ -72,7 +72,7 @@ public class SubReferenceNodeTypeStrategy implements NodeTypeStrategy {
 		Node subrefNode = node.getSingleRelationship(INSTANCE_OF_RELATIONSHIP_TYPE, Direction.OUTGOING).getEndNode();
 		try {
 			Class<T> clazz = (Class<T>) Class.forName((String) subrefNode.getProperty(SUBREF_CLASS_KEY)).asSubclass(NodeBacked.class);
-			log.debug("Found class " + clazz.getSimpleName() + " for node: " + node);
+			if (log.isDebugEnabled()) log.debug("Found class " + clazz.getSimpleName() + " for node: " + node);
 			return clazz;
 		} catch (ClassNotFoundException e) {
 			throw new IllegalStateException("Unable to get type for node: " + node, e);
@@ -82,7 +82,7 @@ public class SubReferenceNodeTypeStrategy implements NodeTypeStrategy {
 	@Override
     public <T extends NodeBacked> Iterable<T> findAll(final Class<T> clazz) {
         final Node subrefNode = findSubreferenceNode(clazz);
-		log.debug("Subref: " + subrefNode);
+		if (log.isDebugEnabled()) log.debug("Subref: " + subrefNode);
 		Iterable<Iterable<T>> relIterables = findEntityIterables(subrefNode);
 		return new CombiningIterable<T>(relIterables);
     }
@@ -98,7 +98,7 @@ public class SubReferenceNodeTypeStrategy implements NodeTypeStrategy {
             protected T underlyingObjectToObject(final Relationship rel) {
                 final Node node = rel.getStartNode();
 	            T entity = (T) graphDatabaseContext.createEntityFromState(node, getJavaType(node));
-	            log.debug("Converting node: " + node + " to entity: " + entity);
+	            if (log.isDebugEnabled()) log.debug("Converting node: " + node + " to entity: " + entity);
 	            return entity;
             }
         };

@@ -42,7 +42,7 @@ public class RelationshipEntityStateAccessors<ENTITY extends RelationshipBacked>
             final Relationship relationship = null; // TODO graphDatabaseContext.create();
             setUnderlyingState(relationship);
             entity.setUnderlyingState(relationship);
-            log.info("User-defined constructor called on class " + entity.getClass() + "; created Node [" + entity.getUnderlyingState() + "]; Updating metamodel");
+            if (log.isInfoEnabled()) log.info("User-defined constructor called on class " + entity.getClass() + "; created Node [" + entity.getUnderlyingState() + "]; Updating metamodel");
         } catch (NotInTransactionException e) {
             throw new InvalidDataAccessResourceUsageException("Not in a Neo4j transaction.", e);
         }
