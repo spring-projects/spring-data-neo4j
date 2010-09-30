@@ -8,14 +8,12 @@ import org.springframework.datastore.graph.api.GraphEntityRelationshipEntity;
 import org.springframework.datastore.graph.api.NodeBacked;
 import org.springframework.datastore.graph.api.RelationshipBacked;
 import org.springframework.datastore.graph.neo4j.support.GraphDatabaseContext;
-import org.springframework.datastore.graph.neo4j.support.ReflectUtils;
 
 import java.lang.reflect.Field;
 import java.util.HashSet;
 import java.util.Set;
 
 import static org.springframework.datastore.graph.neo4j.fieldaccess.DoReturn.doReturn;
-import static org.springframework.datastore.graph.neo4j.support.ReflectUtils.getAnnotation;
 
 @Configurable
 public class OneToNRelationshipEntityFieldAccessorFactory implements FieldAccessorFactory<NodeBacked> {
@@ -39,8 +37,8 @@ public class OneToNRelationshipEntityFieldAccessorFactory implements FieldAccess
 	}
 
 	private GraphEntityRelationshipEntity getRelationshipAnnotation(final Field field) {
-        return getAnnotation(field, GraphEntityRelationshipEntity.class);
-	}
+        return field.getAnnotation(GraphEntityRelationshipEntity.class);
+    }
 
 	private Class<? extends RelationshipBacked> targetFrom(final GraphEntityRelationshipEntity relEntityAnnotation) {
 		return relEntityAnnotation.elementClass();

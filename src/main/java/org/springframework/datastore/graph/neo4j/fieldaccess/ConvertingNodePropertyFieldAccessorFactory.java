@@ -44,9 +44,7 @@ public class ConvertingNodePropertyFieldAccessorFactory implements FieldAccessor
         return true;
     }
 
-    @Configurable
     public static class ConvertingNodePropertyFieldAccessor extends PropertyFieldAccessorFactory.PropertyFieldAccessor {
-
         private final ConversionService conversionService;
 
         public ConvertingNodePropertyFieldAccessor(final Field field, final ConversionService conversionService) {

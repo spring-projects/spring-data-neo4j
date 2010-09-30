@@ -6,11 +6,9 @@ import org.springframework.beans.factory.annotation.Configurable;
 import org.springframework.datastore.graph.api.GraphEntity;
 import org.springframework.datastore.graph.api.GraphEntityProperty;
 import org.springframework.datastore.graph.api.NodeBacked;
-import org.springframework.datastore.graph.neo4j.support.ReflectUtils;
 
 import java.lang.reflect.Field;
 
-import static org.springframework.datastore.graph.neo4j.support.ReflectUtils.getAnnotation;
 
 @Configurable
 class IndexingNodePropertyFieldAccessorListenerFactory implements FieldAccessorListenerFactory<NodeBacked> {
@@ -30,9 +28,9 @@ class IndexingNodePropertyFieldAccessorListenerFactory implements FieldAccessorL
     }
 
     private boolean isIndexed(final Field f) {
-        final GraphEntity entityAnnotation = getAnnotation(f.getDeclaringClass(), GraphEntity.class);
+        final GraphEntity entityAnnotation = f.getDeclaringClass().getAnnotation(GraphEntity.class);
         if (entityAnnotation!=null && entityAnnotation.fullIndex()) return true;
-        final GraphEntityProperty propertyAnnotation = getAnnotation(f, GraphEntityProperty.class);
+        final GraphEntityProperty propertyAnnotation = f.getAnnotation(GraphEntityProperty.class);
         return propertyAnnotation!=null && propertyAnnotation.index();
     }
 

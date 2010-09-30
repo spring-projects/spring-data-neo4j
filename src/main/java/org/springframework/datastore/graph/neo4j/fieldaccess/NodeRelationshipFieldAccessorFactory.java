@@ -7,7 +7,6 @@ import org.springframework.beans.factory.annotation.Configurable;
 import org.springframework.datastore.graph.api.GraphEntityRelationship;
 import org.springframework.datastore.graph.api.NodeBacked;
 import org.springframework.datastore.graph.neo4j.support.GraphDatabaseContext;
-import org.springframework.datastore.graph.neo4j.support.ReflectUtils;
 
 import java.lang.reflect.Field;
 
@@ -41,7 +40,7 @@ abstract class NodeRelationshipFieldAccessorFactory implements FieldAccessorFact
     }
 
     protected GraphEntityRelationship getRelationshipAnnotation(Field field) {
-        return ReflectUtils.getAnnotation(field, GraphEntityRelationship.class);
+        return field.getAnnotation(GraphEntityRelationship.class);
     }
 
     protected boolean hasValidRelationshipAnnotation(Field field) {

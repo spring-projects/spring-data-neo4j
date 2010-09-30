@@ -5,13 +5,11 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.datastore.graph.api.GraphEntity;
 import org.springframework.datastore.graph.api.GraphRelationship;
 import org.springframework.datastore.graph.neo4j.support.GraphDatabaseContext;
-import org.springframework.datastore.graph.neo4j.support.ReflectUtils;
 import org.springframework.util.ReflectionUtils;
 
 import java.lang.reflect.Field;
 import java.util.*;
 
-import static org.springframework.datastore.graph.neo4j.support.ReflectUtils.getAnnotation;
 
 public abstract class DelegatingFieldAccessorFactory<T> implements FieldAccessorFactory<T> {
     private final static Log log = LogFactory.getLog(DelegatingFieldAccessorFactory.class);
@@ -64,9 +62,9 @@ public abstract class DelegatingFieldAccessorFactory<T> implements FieldAccessor
     }
 
     private static boolean useShortNames(final Class<?> entityClass) {
-        final GraphEntity graphEntity = getAnnotation(entityClass,GraphEntity.class);
+        final GraphEntity graphEntity = entityClass.getAnnotation(GraphEntity.class);
         if (graphEntity != null) return graphEntity.useShortNames();
-        final GraphRelationship graphRelationship = getAnnotation(entityClass, GraphRelationship.class);
+        final GraphRelationship graphRelationship = entityClass.getAnnotation(GraphRelationship.class);
         if (graphRelationship != null) return graphRelationship.useShortNames();
         return false;
     }
