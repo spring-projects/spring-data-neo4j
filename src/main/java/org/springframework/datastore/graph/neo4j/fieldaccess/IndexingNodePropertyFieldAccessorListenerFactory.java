@@ -6,29 +6,38 @@ import org.springframework.beans.factory.annotation.Configurable;
 import org.springframework.datastore.graph.api.GraphEntity;
 import org.springframework.datastore.graph.api.GraphEntityProperty;
 import org.springframework.datastore.graph.api.NodeBacked;
-import sun.security.action.GetPropertyAction;
+import org.springframework.datastore.graph.neo4j.support.ReflectUtils;
 
 import java.lang.reflect.Field;
+
+import static org.springframework.datastore.graph.neo4j.support.ReflectUtils.getAnnotation;
 
 @Configurable
 class IndexingNodePropertyFieldAccessorListenerFactory implements FieldAccessorListenerFactory<NodeBacked> {
     @Autowired
-    IndexService indexService;
+    private IndexService indexService;
+    private final PropertyFieldAccessorFactory propertyFieldAccessorFactory;
+    private final ConvertingNodePropertyFieldAccessorFactory convertingNodePropertyFieldAccessorFactory;
+
+    IndexingNodePropertyFieldAccessorListenerFactory(final PropertyFieldAccessorFactory propertyFieldAccessorFactory, final ConvertingNodePropertyFieldAccessorFactory convertingNodePropertyFieldAccessorFactory) {
+        this.propertyFieldAccessorFactory = propertyFieldAccessorFactory;
+        this.convertingNodePropertyFieldAccessorFactory = convertingNodePropertyFieldAccessorFactory;
+    }
 
     @Override
     public boolean accept(final Field f) {
         return isPropertyField(f) && isIndexed(f);
     }
 
-    private boolean isIndexed(Field f) {
-        final GraphEntity entityAnnotation = f.getDeclaringClass().getAnnotation(GraphEntity.class);
+    private boolean isIndexed(final Field f) {
+        final GraphEntity entityAnnotation = getAnnotation(f.getDeclaringClass(), GraphEntity.class);
         if (entityAnnotation!=null && entityAnnotation.fullIndex()) return true;
-        final GraphEntityProperty propertyAnnotation = f.getAnnotation(GraphEntityProperty.class);
+        final GraphEntityProperty propertyAnnotation = getAnnotation(f, GraphEntityProperty.class);
         return propertyAnnotation!=null && propertyAnnotation.index();
     }
 
-    private boolean isPropertyField(Field f) {
-        return new PropertyFieldAccessorFactory().accept(f) || new ConvertingNodePropertyFieldAccessorFactory().accept(f);
+    private boolean isPropertyField(final Field f) {
+        return propertyFieldAccessorFactory.accept(f) || convertingNodePropertyFieldAccessorFactory.accept(f);
     }
 
     @Override

@@ -93,6 +93,9 @@
 
     <bean id="nodeEntityStateAccessorsFactory" class="org.springframework.datastore.graph.neo4j.fieldaccess.NodeEntityStateAccessorsFactory" />
     <bean id="relationshipEntityStateAccessorsFactory" class="org.springframework.datastore.graph.neo4j.fieldaccess.RelationshipEntityStateAccessorsFactory" />
+    <bean id="nodeDelegatingFieldAccessorFactory" class="org.springframework.datastore.graph.neo4j.fieldaccess.NodeDelegatingFieldAccessorFactory">
+        <constructor-arg ref="graphDatabaseContext"/>
+    </bean>
 
 	<bean id="finderFactory" class="org.springframework.datastore.graph.neo4j.finder.FinderFactory">
 		<constructor-arg ref="graphDatabaseContext" />

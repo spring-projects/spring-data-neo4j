@@ -19,7 +19,7 @@ public class IdFieldAccessorFactory implements FieldAccessorFactory<NodeBacked> 
 
 	private boolean isIdField(Field field) {
 	    final Class<?> type = field.getType();
-		return (field.getAnnotation(GraphId.class) != null) && (type.equals(Long.class) || type.equals(long.class));
+		return (type.equals(Long.class) || type.equals(long.class)) && field.isAnnotationPresent(GraphId.class);
 	}
 
 	@Override

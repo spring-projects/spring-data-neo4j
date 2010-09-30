@@ -9,11 +9,13 @@ import org.springframework.datastore.graph.api.GraphEntityTraversal;
 import org.springframework.datastore.graph.api.NodeBacked;
 import org.springframework.datastore.graph.neo4j.finder.Finder;
 import org.springframework.datastore.graph.neo4j.finder.FinderFactory;
+import org.springframework.datastore.graph.neo4j.support.ReflectUtils;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 
 import static org.springframework.datastore.graph.neo4j.fieldaccess.DoReturn.doReturn;
+import static org.springframework.datastore.graph.neo4j.support.ReflectUtils.getAnnotation;
 
 @Configurable
 public class TraversalFieldAccessorFactory implements FieldAccessorFactory<NodeBacked> {
@@ -22,7 +24,7 @@ public class TraversalFieldAccessorFactory implements FieldAccessorFactory<NodeB
 
     @Override
     public boolean accept(final Field f) {
-        final GraphEntityTraversal graphEntityTraversal = f.getAnnotation(GraphEntityTraversal.class);
+        final GraphEntityTraversal graphEntityTraversal = getAnnotation(f, GraphEntityTraversal.class);
         return graphEntityTraversal != null
                 && graphEntityTraversal.traversalBuilder() != TraversalDescription.class
                 && f.getType().equals(Iterable.class);
@@ -47,7 +49,7 @@ public class TraversalFieldAccessorFactory implements FieldAccessorFactory<NodeB
 	    public TraversalFieldAccessor(final Field field, FinderFactory finderFactory) {
 	        this.field = field;
 	        this.finderFactory = finderFactory;
-	        final GraphEntityTraversal graphEntityTraversal = field.getAnnotation(GraphEntityTraversal.class);
+            final GraphEntityTraversal graphEntityTraversal = getAnnotation(field, GraphEntityTraversal.class);
 	        this.target = graphEntityTraversal.elementClass();
 	        this.fieldTraversalDescriptionBuilder = createTraversalDescription(graphEntityTraversal);
 	    }

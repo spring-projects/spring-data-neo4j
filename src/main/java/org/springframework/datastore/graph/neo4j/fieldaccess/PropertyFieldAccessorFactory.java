@@ -25,11 +25,11 @@ public class PropertyFieldAccessorFactory implements FieldAccessorFactory<GraphB
     private boolean isNeo4jPropertyType(final Class<?> fieldType) {
         // todo: add array support
         return fieldType.isPrimitive()
-                || (fieldType.isArray() && !fieldType.getComponentType().isArray() && isNeo4jPropertyType(fieldType.getComponentType()))
                 || fieldType.equals(String.class)
                 || fieldType.equals(Character.class)
                 || fieldType.equals(Boolean.class)
-                || (fieldType.getName().startsWith("java.lang") && Number.class.isAssignableFrom(fieldType));
+                || (fieldType.getName().startsWith("java.lang") && Number.class.isAssignableFrom(fieldType))
+                || (fieldType.isArray() && !fieldType.getComponentType().isArray() && isNeo4jPropertyType(fieldType.getComponentType()));
     }
 
     public static class PropertyFieldAccessor implements FieldAccessor<GraphBacked<PropertyContainer>, Object> {

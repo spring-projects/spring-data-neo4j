@@ -23,7 +23,7 @@ public class DetachableEntityStateAccessors<ENTITY extends GraphBacked<STATE>, S
     private final static Log log = LogFactory.getLog(DetachableEntityStateAccessors.class);
     private GraphDatabaseContext graphDatabaseContext;
 
-    public DetachableEntityStateAccessors(final EntityStateAccessors<ENTITY,STATE> delegate, GraphDatabaseContext graphDatabaseContext) {
+    public DetachableEntityStateAccessors(final EntityStateAccessors<ENTITY, STATE> delegate, GraphDatabaseContext graphDatabaseContext) {
         this.delegate = delegate;
         this.graphDatabaseContext = graphDatabaseContext;
     }

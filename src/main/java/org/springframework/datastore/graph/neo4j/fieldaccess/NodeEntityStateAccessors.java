@@ -6,9 +6,6 @@ import org.springframework.dao.InvalidDataAccessResourceUsageException;
 import org.springframework.datastore.graph.api.NodeBacked;
 import org.springframework.datastore.graph.neo4j.support.GraphDatabaseContext;
 
-import java.util.Arrays;
-import java.util.Collection;
-
 /**
  * @author Michael Hunger
  * @since 21.09.2010
@@ -17,30 +14,8 @@ public class NodeEntityStateAccessors<ENTITY extends NodeBacked> extends Default
 
     private final GraphDatabaseContext graphDatabaseContext;
 
-    public NodeEntityStateAccessors(final Node underlyingState, final ENTITY entity, final Class<? extends ENTITY> type, final GraphDatabaseContext graphDatabaseContext) {
-        super(underlyingState, entity, type, new DelegatingFieldAccessorFactory(graphDatabaseContext) {
-            @Override
-            protected Collection<FieldAccessorListenerFactory<?>> createListenerFactories() {
-	            return Arrays.<FieldAccessorListenerFactory<?>>asList(
-			            new IndexingNodePropertyFieldAccessorListenerFactory()
-                );
-            }
-
-            @Override
-            protected Collection<? extends FieldAccessorFactory<?>> createAccessorFactories() {
-                return Arrays.<FieldAccessorFactory<?>>asList(
-                        new IdFieldAccessorFactory(),
-                        new TransientFieldAccessorFactory(),
-                        new PropertyFieldAccessorFactory(),
-                        new ConvertingNodePropertyFieldAccessorFactory(),
-                        new SingleRelationshipFieldAccessorFactory(),
-                        new OneToNRelationshipFieldAccessorFactory(),
-                        new ReadOnlyOneToNRelationshipFieldAccessorFactory(),
-                        new TraversalFieldAccessorFactory(),
-                        new OneToNRelationshipEntityFieldAccessorFactory()
-                );
-            }
-        });
+    public NodeEntityStateAccessors(final Node underlyingState, final ENTITY entity, final Class<? extends ENTITY> type, final GraphDatabaseContext graphDatabaseContext, final NodeDelegatingFieldAccessorFactory nodeDelegatingFieldAccessorFactory) {
+        super(underlyingState, entity, type, nodeDelegatingFieldAccessorFactory);
         this.graphDatabaseContext = graphDatabaseContext;
     }
 
@@ -57,4 +32,5 @@ public class NodeEntityStateAccessors<ENTITY extends NodeBacked> extends Default
             throw new InvalidDataAccessResourceUsageException("Not in a Neo4j transaction.", e);
         }
     }
+
 }
