@@ -69,7 +69,7 @@
 	    Start datastore config
     -->
 
-	<bean class="org.springframework.datastore.graph.neo4j.spi.node.Neo4jNodeBacking" factory-method="aspectOf" />
+	<bean id="neo4jNodeBacking" class="org.springframework.datastore.graph.neo4j.spi.node.Neo4jNodeBacking" factory-method="aspectOf" depends-on="nodeEntityStateAccessorsFactory"/>
 
 	<bean class="org.springframework.datastore.graph.neo4j.spi.relationship.Neo4jRelationshipBacking" factory-method="aspectOf" />
 
@@ -98,7 +98,12 @@
 		<constructor-arg ref="graphDatabaseContext" />
 	</bean>
 	
-	<bean id="graphEntityInstantiator" name="gei" class="org.springframework.datastore.graph.neo4j.spi.node.Neo4jConstructorGraphEntityInstantiator" />
+	<bean id="graphEntityInstantiator" name="gei" class="org.springframework.datastore.graph.neo4j.spi.node.PartialNeo4jEntityInstantiator">
+        <property name="entityInstantiator" >
+            <bean class="org.springframework.datastore.graph.neo4j.spi.node.Neo4jConstructorGraphEntityInstantiator"/>
+        </property>
+        <property name="entityManagerFactory" ref="entityManagerFactory"/>
+    </bean>
 	
 	<bean id="relationshipEntityInstantiator" name="rei" class="org.springframework.datastore.graph.neo4j.spi.relationship.ConstructorBypassingGraphRelationshipInstantiator" />
 	
@@ -137,7 +142,7 @@
  
     <tx:annotation-driven mode="aspectj" transaction-manager="transactionManager"/>
 
-    <bean class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean" id="entityManagerFactory">
+    <bean class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean" id="entityManagerFactory" depends-on="neo4jNodeBacking">
         <property name="dataSource" ref="dataSource"/>
         <property name="persistenceXmlLocation" value="classpath:META-INF/persistence.xml"/>
     </bean>

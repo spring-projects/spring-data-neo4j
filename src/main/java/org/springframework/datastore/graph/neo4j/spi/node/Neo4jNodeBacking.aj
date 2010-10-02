@@ -38,11 +38,10 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<GraphEn
     private NodeEntityStateAccessorsFactory entityStateAccessorsFactory;
 
     @Autowired
-	public void init(GraphDatabaseContext ctx, NodeEntityStateAccessorsFactory entityStateAccessorsFactory) {
-        this.graphDatabaseContext = ctx;
+    public void init(GraphDatabaseContext graphDatabaseContext, NodeEntityStateAccessorsFactory entityStateAccessorsFactory) {
+        this.graphDatabaseContext = graphDatabaseContext;
         this.entityStateAccessorsFactory = entityStateAccessorsFactory;
-	}
-
+    }
 	//-------------------------------------------------------------------------
 	// Advise user-defined constructors of NodeBacked objects to create a new Neo4J backing node
 	//-------------------------------------------------------------------------
@@ -53,16 +52,20 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<GraphEn
 	
 	
 	// Create a new node in the Graph if no Node was passed in a constructor
-	before(NodeBacked entity) : arbitraryUserConstructorOfNodeBackedObject(entity) {
-        entity.stateAccessors = entityStateAccessorsFactory.getEntityStateAccessors(entity);
-        Node node=StateProvider.retrieveState();
-        if (node != null) {
-            entity.setUnderlyingState(node);
+    before(NodeBacked entity): arbitraryUserConstructorOfNodeBackedObject(entity) {
+        if (entityStateAccessorsFactory == null) {
+            log.error("entityStateAccessorsFactory not set, not creating accessors for " + entity.getClass());
         } else {
-            if (graphDatabaseContext.transactionIsRunning()) {
-                entity.stateAccessors.createAndAssignState();
+            entity.stateAccessors = entityStateAccessorsFactory.getEntityStateAccessors(entity);
+            Node node = StateProvider.retrieveState();
+            if (node != null) {
+                entity.setUnderlyingState(node);
             } else {
-                log.warn("New Nodebacked created outside of transaction " + entity.getClass());
+                if (graphDatabaseContext.transactionIsRunning()) {
+                    entity.stateAccessors.createAndAssignState();
+                } else {
+                    log.warn("New Nodebacked created outside of transaction " + entity.getClass());
+                }
             }
         }
     }

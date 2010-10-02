@@ -3,6 +3,7 @@ package org.springframework.datastore.graph.neo4j.fieldaccess;
 import org.neo4j.graphdb.NotInTransactionException;
 import org.neo4j.graphdb.Relationship;
 import org.springframework.dao.InvalidDataAccessResourceUsageException;
+import org.springframework.datastore.graph.api.GraphInactive;
 import org.springframework.datastore.graph.api.RelationshipBacked;
 import org.springframework.datastore.graph.neo4j.support.GraphDatabaseContext;
 

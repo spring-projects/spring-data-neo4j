@@ -75,7 +75,7 @@ public class PartialNodeEntityStateAccessors<ENTITY extends NodeBacked> extends 
     public void createAndAssignState() {
         if (entity.getUnderlyingState() != null) return;
         try {
-            final String id = getId(entity,type);
+            final Object id = getId(entity,type);
             if (id == null) return;
             final String foreignId = createForeignId(id);
             Node node = graphDatabaseContext.getSingleIndexedNode(FOREIGN_ID, foreignId);
@@ -95,27 +95,26 @@ public class PartialNodeEntityStateAccessors<ENTITY extends NodeBacked> extends 
         }
     }
 
-    private void persistForeignId(Node node, String id) {
+    private void persistForeignId(Node node, Object id) {
         if (!node.hasProperty(FOREIGN_ID) && id != null) {
             final String foreignId = createForeignId(id);
-            node.setProperty(FOREIGN_ID, foreignId);
+            node.setProperty(FOREIGN_ID, id);
             graphDatabaseContext.index(node, FOREIGN_ID, foreignId);
         }
     }
 
-    private String createForeignId(String id) {
+    private String createForeignId(Object id) {
         return type.getName() + ":" + id;
     }
 
-    public static String getId(final Object entity, Class type) {
+    public static Object getId(final Object entity, Class type) {
         Class clazz = type;
         while (clazz != null) {
             for (Field field : clazz.getDeclaredFields()) {
                 if (field.isAnnotationPresent(Id.class)) {
                     try {
                         field.setAccessible(true);
-                        final Object result = field.get(entity);
-                        return result == null ? null : result.toString();
+                        return field.get(entity);
                     } catch (IllegalAccessException e) {
                         throw new RuntimeException(e);
                     }
