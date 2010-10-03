@@ -7,6 +7,7 @@ import org.springframework.persistence.support.EntityInstantiator;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
+import javax.persistence.LockModeType;
 
 /**
  * @author Michael Hunger

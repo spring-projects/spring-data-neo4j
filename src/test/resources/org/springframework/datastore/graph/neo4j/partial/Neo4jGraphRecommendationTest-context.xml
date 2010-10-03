@@ -110,11 +110,16 @@
 	<!-- conversion support -->
 	<bean id="conversionService" class="org.springframework.datastore.graph.neo4j.fieldaccess.Neo4jConversionServiceFactoryBean"/>
 
+
+
     <bean id="transactionManager" class="org.springframework.persistence.transaction.NaiveDoubleTransactionManager" >
 		<constructor-arg>
-			 <bean class="org.springframework.jdbc.datasource.DataSourceTransactionManager" >
+            <bean class="org.springframework.orm.jpa.JpaTransactionManager" id="jpaTransactionManager">
+                <property name="entityManagerFactory" ref="entityManagerFactory"/>
+            </bean>
+			 <!--bean class="org.springframework.jdbc.datasource.DataSourceTransactionManager" >
 			 	<property name="dataSource" ref="dataSource"/>
-			 </bean>
+			 </bean-->
 		</constructor-arg>
 		<constructor-arg>
 			<bean 

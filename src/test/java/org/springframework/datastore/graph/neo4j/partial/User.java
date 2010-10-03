@@ -1,9 +1,7 @@
 package org.springframework.datastore.graph.neo4j.partial;
 
-import org.springframework.datastore.graph.api.GraphEntity;
-import org.springframework.datastore.graph.api.GraphEntityProperty;
-import org.springframework.datastore.graph.api.GraphEntityRelationship;
-import org.springframework.datastore.graph.api.GraphEntityRelationshipEntity;
+import org.neo4j.graphdb.DynamicRelationshipType;
+import org.springframework.datastore.graph.api.*;
 
 import javax.persistence.*;
 import java.util.Set;
@@ -81,4 +79,7 @@ public class User {
     }
 
 
+    public void knows(User other) {
+        relateTo(other, DynamicRelationshipType.withName("friends"));
+    }
 }

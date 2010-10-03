@@ -47,21 +47,36 @@ public class RecommendationTest {
 
     @Test
     public void jpaUserHasNodeAndId() {
-        User user = new User();
-        user.setAge(35);
-        em.persist(user);
+        User user = user("John");
         Assert.assertNotNull("jpa-id",user.getId());
         Assert.assertNotNull("node",user.getUnderlyingState());
     }
     @Test
     public void jpaUserCanHaveGraphProperties() {
-        User user = new User();
-        user.setAge(35);
-        user.setNickname("John");
-        em.persist(user);
+        User user = user("John");
         Assert.assertNotNull("jpa-id",user.getId());
         Assert.assertNotNull("node",user.getUnderlyingState());
         Assert.assertNotNull("nickname in entity",user.getNickname());
         Assert.assertEquals("nickname in graph","John",user.getUnderlyingState().getProperty("nickname"));
+    }
+
+    private User user(final String name) {
+        User user = new User();
+        user.setAge(35);
+        user.setNickname(name);
+        em.persist(user);
+        em.flush();
+        user.getId();
+        return user;
+    }
+
+    @Test
+    public void jpaUserCanHaveGraphRelationships() {
+        User user = user("John");
+        Assert.assertNotNull("jpa-id",user.getId());
+        Assert.assertNotNull("node",user.getUnderlyingState());
+        User user2 = user("Jane");
+        user.knows(user2);
+        Assert.assertEquals(user2, user.getFriends().iterator().next());
     }
 }

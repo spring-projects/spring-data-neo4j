@@ -24,7 +24,7 @@ public class TraversalFieldAccessorFactory implements FieldAccessorFactory<NodeB
     public boolean accept(final Field f) {
         final GraphEntityTraversal graphEntityTraversal = f.getAnnotation(GraphEntityTraversal.class);
         return graphEntityTraversal != null
-                && graphEntityTraversal.traversalBuilder() != TraversalDescription.class
+                && graphEntityTraversal.traversalBuilder() != FieldTraversalDescriptionBuilder.class
                 && f.getType().equals(Iterable.class);
     }
 

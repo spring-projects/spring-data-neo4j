@@ -112,6 +112,10 @@ public class GraphDatabaseContext {
         indexService.removeIndex(node,propName);
     }
 
+    public void removeIndex(String propName) {
+        indexService.removeIndex(propName);
+    }
+
     public void index(Node node, String propName, Object newVal) {
         indexService.index(node,propName,newVal);
     }
