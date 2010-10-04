@@ -8,6 +8,7 @@ import org.springframework.persistence.support.EntityInstantiator;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.LockModeType;
+import javax.persistence.PersistenceContext;
 
 /**
  * @author Michael Hunger
@@ -15,6 +16,8 @@ import javax.persistence.LockModeType;
  */
 public class PartialNeo4jEntityInstantiator implements EntityInstantiator<NodeBacked, Node> {
     Neo4jConstructorGraphEntityInstantiator delegate;
+
+    @PersistenceContext
     EntityManager entityManager;
 
     public <T extends NodeBacked> T createEntityFromState(Node n, Class<T> entityClass) {
@@ -25,10 +28,6 @@ public class PartialNeo4jEntityInstantiator implements EntityInstantiator<NodeBa
             return result;
         }
         return delegate.createEntityFromState(n, entityClass);
-    }
-
-    public void setEntityManagerFactory(EntityManagerFactory entityManagerFactory) {
-        this.entityManager = entityManagerFactory.createEntityManager();
     }
 
     public void setEntityInstantiator(Neo4jConstructorGraphEntityInstantiator delegate) {
