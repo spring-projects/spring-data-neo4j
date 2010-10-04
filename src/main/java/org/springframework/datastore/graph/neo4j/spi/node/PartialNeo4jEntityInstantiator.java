@@ -4,6 +4,7 @@ import org.neo4j.graphdb.Node;
 import org.springframework.datastore.graph.api.NodeBacked;
 import org.springframework.datastore.graph.neo4j.fieldaccess.PartialNodeEntityStateAccessors;
 import org.springframework.persistence.support.EntityInstantiator;
+import org.springframework.persistence.support.StateProvider;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
@@ -23,9 +24,8 @@ public class PartialNeo4jEntityInstantiator implements EntityInstantiator<NodeBa
     public <T extends NodeBacked> T createEntityFromState(Node n, Class<T> entityClass) {
         if (n.hasProperty(PartialNodeEntityStateAccessors.FOREIGN_ID)) {
             final Object foreignId = n.getProperty(PartialNodeEntityStateAccessors.FOREIGN_ID);
-            final T result = entityManager.find(entityClass, foreignId);
-            result.setUnderlyingState(n);
-            return result;
+            StateProvider.setUnderlyingState(n);
+            return entityManager.find(entityClass, foreignId);
         }
         return delegate.createEntityFromState(n, entityClass);
     }
