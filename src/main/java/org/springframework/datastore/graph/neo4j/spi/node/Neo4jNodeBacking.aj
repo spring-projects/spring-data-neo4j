@@ -61,15 +61,13 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<GraphEn
             if (node != null) {
                 entity.setUnderlyingState(node);
             } else {
-                if (log.isWarnEnabled()) log.warn("New Nodebacked created outside of transaction " + entity.getClass());
-                else {}
-
                 if (graphDatabaseContext.transactionIsRunning()) {
                     entity.stateAccessors.createAndAssignState();
                 } else {
                     log.warn("New Nodebacked created outside of transaction " + entity.getClass());
                 }
             }
+
         }
     }
 
