@@ -7,7 +7,7 @@ import org.springframework.datastore.graph.api.GraphRelationshipStartNode;
 
 import java.util.Date;
 
-@GraphRelationship
+@GraphRelationship(useShortNames = false)
 public class Friendship {
 
     public Friendship() {

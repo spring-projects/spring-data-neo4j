@@ -19,7 +19,7 @@ import static org.springframework.datastore.graph.neo4j.fieldaccess.DoReturn.unw
  */
 public class DetachableEntityStateAccessors<ENTITY extends GraphBacked<STATE>, STATE> implements EntityStateAccessors<ENTITY,STATE> {
     private final Map<Field, Object> dirty = new HashMap<Field, Object>();
-    private final EntityStateAccessors<ENTITY,STATE> delegate;
+    protected final EntityStateAccessors<ENTITY,STATE> delegate;
     private final static Log log = LogFactory.getLog(DetachableEntityStateAccessors.class);
     private GraphDatabaseContext graphDatabaseContext;
 
@@ -51,7 +51,7 @@ public class DetachableEntityStateAccessors<ENTITY extends GraphBacked<STATE>, S
         return delegate.getValue(field);
     }
 
-    private boolean transactionIsRunning() {
+    protected boolean transactionIsRunning() {
         return getGraphDatabaseContext().transactionIsRunning();
     }
 

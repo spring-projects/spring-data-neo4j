@@ -16,7 +16,7 @@ import java.util.Map;
 public abstract class DefaultEntityStateAccessors<ENTITY extends GraphBacked<STATE>, STATE> implements EntityStateAccessors<ENTITY,STATE> {
     private final STATE underlyingState;
     protected final ENTITY entity;
-    private final Class<? extends ENTITY> type;
+    protected final Class<? extends ENTITY> type;
     private final Map<Field,FieldAccessor<ENTITY,?>> fieldAccessors;
     private final Map<Field,List<FieldAccessListener<ENTITY,?>>> fieldAccessorListeners;
     private STATE state;

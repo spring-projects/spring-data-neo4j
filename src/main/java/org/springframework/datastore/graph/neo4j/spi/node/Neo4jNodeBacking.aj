@@ -38,11 +38,10 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<GraphEn
     private NodeEntityStateAccessorsFactory entityStateAccessorsFactory;
 
     @Autowired
-	public void init(GraphDatabaseContext ctx, NodeEntityStateAccessorsFactory entityStateAccessorsFactory) {
-        this.graphDatabaseContext = ctx;
+    public void init(GraphDatabaseContext graphDatabaseContext, NodeEntityStateAccessorsFactory entityStateAccessorsFactory) {
+        this.graphDatabaseContext = graphDatabaseContext;
         this.entityStateAccessorsFactory = entityStateAccessorsFactory;
-	}
-
+    }
 	//-------------------------------------------------------------------------
 	// Advise user-defined constructors of NodeBacked objects to create a new Neo4J backing node
 	//-------------------------------------------------------------------------
@@ -53,23 +52,30 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<GraphEn
 	
 	
 	// Create a new node in the Graph if no Node was passed in a constructor
-	before(NodeBacked entity) : arbitraryUserConstructorOfNodeBackedObject(entity) {
-        entity.stateAccessors = entityStateAccessorsFactory.getEntityStateAccessors(entity);
-        Node node=StateProvider.retrieveState();
-        if (node != null) {
-            entity.setUnderlyingState(node);
+    before(NodeBacked entity): arbitraryUserConstructorOfNodeBackedObject(entity) {
+        if (entityStateAccessorsFactory == null) {
+            log.error("entityStateAccessorsFactory not set, not creating accessors for " + entity.getClass());
         } else {
-            if (graphDatabaseContext.transactionIsRunning()) {
-                entity.stateAccessors.createAndAssignState();
+            entity.stateAccessors = entityStateAccessorsFactory.getEntityStateAccessors(entity);
+            Node node = StateProvider.retrieveState();
+            if (node != null) {
+                entity.setUnderlyingState(node);
             } else {
                 if (log.isWarnEnabled()) log.warn("New Nodebacked created outside of transaction " + entity.getClass());
+                else {}
+
+                if (graphDatabaseContext.transactionIsRunning()) {
+                    entity.stateAccessors.createAndAssignState();
+                } else {
+                    log.warn("New Nodebacked created outside of transaction " + entity.getClass());
+                }
             }
         }
     }
 
     // Introduced field
-	private Node NodeBacked.underlyingNode;
-    private EntityStateAccessors<NodeBacked,Node> NodeBacked.stateAccessors;
+	private transient Node NodeBacked.underlyingNode;
+    private transient EntityStateAccessors<NodeBacked,Node> NodeBacked.stateAccessors;
 
     /*
     public NodeBacked.new(Node n) {
@@ -89,6 +95,10 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<GraphEn
 		return underlyingNode;
 	}
 	
+    public EntityStateAccessors NodeBacked.getStateAccessors() {
+        return stateAccessors;
+    }
+
     public boolean NodeBacked.hasUnderlyingNode() {
         return underlyingNode!=null;
     }
@@ -120,9 +130,22 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<GraphEn
         Neo4jNodeBacking.aspectOf().relationshipEntityInstantiator.createEntityFromState(rel, relationshipType);
     }
     */
+
     public RelationshipBacked NodeBacked.relateTo(NodeBacked node, Class<? extends RelationshipBacked> relationshipType, String type) {
         Relationship rel = this.getUnderlyingState().createRelationshipTo(node.getUnderlyingState(), DynamicRelationshipType.withName(type));
         return Neo4jNodeBacking.aspectOf().graphDatabaseContext.createEntityFromState(rel, relationshipType);
+    }
+
+    public void NodeBacked.removeRelationshipTo(NodeBacked node, String type) {
+        Node myNode=this.getUnderlyingState();
+        Node otherNode=node.getUnderlyingState();
+        for (Relationship rel : this.getUnderlyingState().getRelationships(DynamicRelationshipType.withName(type))) {
+            if (rel.getOtherNode(myNode).equals(otherNode)) {
+                rel.delete();
+                return;
+            }
+        }
+        return;
     }
 
     public RelationshipBacked NodeBacked.getRelationshipTo(NodeBacked node, Class<? extends RelationshipBacked> relationshipType, String type) {

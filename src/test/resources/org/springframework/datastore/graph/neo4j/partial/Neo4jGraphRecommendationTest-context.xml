@@ -21,7 +21,7 @@
 		then be used within application context files in the form of
 		${propertyKey}.
 	-->
-	<context:property-placeholder location="classpath*:META-INF/spring/*.properties"/>
+	<context:property-placeholder location="classpath*:META-INF/spring/database.properties"/>
 
 	<!--
 		Turn on AspectJ @Configurable support. As a result, any time you
@@ -69,7 +69,7 @@
 	    Start datastore config
     -->
 
-	<bean class="org.springframework.datastore.graph.neo4j.spi.node.Neo4jNodeBacking" factory-method="aspectOf" />
+	<bean id="neo4jNodeBacking" class="org.springframework.datastore.graph.neo4j.spi.node.Neo4jNodeBacking" factory-method="aspectOf" depends-on="nodeEntityStateAccessorsFactory"/>
 
 	<bean class="org.springframework.datastore.graph.neo4j.spi.relationship.Neo4jRelationshipBacking" factory-method="aspectOf" />
 
@@ -79,7 +79,7 @@
 	
 	<bean id="graphDbService" class="org.neo4j.kernel.EmbeddedGraphDatabase" 
 			destroy-method="shutdown" scope="singleton">
-		 <constructor-arg index="0" value="${neo4j.databaseDirectory}" />
+		 <constructor-arg index="0" value="target/data/recommendation" />
 	</bean>
 
     <bean id="nodeTypeStrategy" class="org.springframework.datastore.graph.neo4j.support.SubReferenceNodeTypeStrategy">
@@ -101,20 +101,27 @@
 		<constructor-arg ref="graphDatabaseContext" />
 	</bean>
 	
-	<bean id="graphEntityInstantiator" name="gei" class="org.springframework.datastore.graph.neo4j.spi.node.Neo4jConstructorGraphEntityInstantiator" />
+	<bean id="graphEntityInstantiator" name="gei" class="org.springframework.datastore.graph.neo4j.spi.node.PartialNeo4jEntityInstantiator">
+        <property name="entityInstantiator" >
+            <bean class="org.springframework.datastore.graph.neo4j.spi.node.Neo4jConstructorGraphEntityInstantiator"/>
+        </property>
+    </bean>
 	
 	<bean id="relationshipEntityInstantiator" name="rei" class="org.springframework.datastore.graph.neo4j.spi.relationship.ConstructorBypassingGraphRelationshipInstantiator" />
 	
 	<!-- conversion support -->
 	<bean id="conversionService" class="org.springframework.datastore.graph.neo4j.fieldaccess.Neo4jConversionServiceFactoryBean"/>
 
-	<!--
- 	-->
-	<!--bean id="transactionManager" class="org.springframework.persistence.transaction.NaiveDoubleTransactionManager" >
+
+
+    <bean id="transactionManager" class="org.springframework.persistence.transaction.NaiveDoubleTransactionManager" >
 		<constructor-arg>
-			 <bean class="org.springframework.jdbc.datasource.DataSourceTransactionManager" >
+            <bean class="org.springframework.orm.jpa.JpaTransactionManager" id="jpaTransactionManager">
+                <property name="entityManagerFactory" ref="entityManagerFactory"/>
+            </bean>
+			 <!--bean class="org.springframework.jdbc.datasource.DataSourceTransactionManager" >
 			 	<property name="dataSource" ref="dataSource"/>
-			 </bean>
+			 </bean-->
 		</constructor-arg>
 		<constructor-arg>
 			<bean 
@@ -123,12 +130,7 @@
 			    <property name="userTransaction" ref="neo4jUserTransactionService" />
 			</bean>
 		</constructor-arg>
-	</bean-->
-
-    <bean id="transactionManager" class="org.springframework.transaction.jta.JtaTransactionManager">
-                <property name="transactionManager" ref="neo4jTransactionManagerService" />
-                <property name="userTransaction" ref="neo4jUserTransactionService" />
-    </bean>
+	</bean>
 
 	<bean id="neo4jTransactionManagerService" class="org.neo4j.kernel.impl.transaction.SpringTransactionManager" >
 	  <constructor-arg index="0" ref="graphDbService" />
@@ -137,24 +139,19 @@
 	<bean id="neo4jUserTransactionService" class="org.neo4j.kernel.impl.transaction.UserTransactionImpl">
 	    <constructor-arg index="0" ref="graphDbService" />
 	</bean>
-	
-	<!--bean class="org.springframework.jdbc.datasource.DriverManagerDataSource" id="dataSource">
+
+	<bean class="org.springframework.jdbc.datasource.DriverManagerDataSource" id="dataSource">
         <property name="driverClassName" value="${database.driverClassName}"/>
         <property name="url" value="${database.url}"/>
         <property name="username" value="${database.username}"/>
         <property name="password" value="${database.password}"/>
-    </bean-->
+    </bean>
  
     <tx:annotation-driven mode="aspectj" transaction-manager="transactionManager"/>
 
-    <bean class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean" id="entityManagerFactory">
-        <property name="jpaDialect">
-            <bean class="org.springframework.datastore.graph.neo4j.jpa.Neo4jJpaDialect"/>
-        </property>
-        <property name="persistenceProvider">
-            <bean class="org.springframework.datastore.graph.neo4j.jpa.Neo4jPersistenceProvider"/>
-        </property>
-        <property name="persistenceXmlLocation" value="classpath:META-INF/persistence-neo4j.xml"/>
+    <bean class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean" id="entityManagerFactory" depends-on="neo4jNodeBacking">
+        <property name="dataSource" ref="dataSource"/>
+        <property name="persistenceXmlLocation" value="classpath:META-INF/persistence.xml"/>
     </bean>
 
     <!--bean id="neoEntityManager"  class="org.springframework.persistence.graph.neo4j.Neo4jEntityManager" scope="prototype"/-->
