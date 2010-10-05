@@ -24,7 +24,6 @@ public class PartialNeo4jEntityInstantiator implements EntityInstantiator<NodeBa
     public <T extends NodeBacked> T createEntityFromState(Node n, Class<T> entityClass) {
         if (n.hasProperty(PartialNodeEntityStateAccessors.FOREIGN_ID)) {
             final Object foreignId = n.getProperty(PartialNodeEntityStateAccessors.FOREIGN_ID);
-            StateProvider.setUnderlyingState(n);
             final T result = entityManager.find(entityClass, foreignId);
             result.setUnderlyingState(n);
             return result;
