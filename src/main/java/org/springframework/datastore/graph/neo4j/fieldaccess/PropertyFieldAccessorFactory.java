@@ -46,7 +46,12 @@ public class PropertyFieldAccessorFactory implements FieldAccessorFactory<GraphB
 
         @Override
         public Object setValue(final GraphBacked<PropertyContainer> graphBacked, final Object newVal) {
-            graphBacked.getUnderlyingState().setProperty(getPropertyName(), newVal);
+            final PropertyContainer propertyContainer = graphBacked.getUnderlyingState();
+            if (newVal==null) {
+                propertyContainer.removeProperty(getPropertyName());
+            } else {
+                propertyContainer.setProperty(getPropertyName(), newVal);
+            }
             return newVal;
         }
 
