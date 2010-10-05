@@ -133,6 +133,18 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<GraphEn
         return Neo4jNodeBacking.aspectOf().graphDatabaseContext.createEntityFromState(rel, relationshipType);
     }
 
+    public void NodeBacked.removeRelationshipTo(NodeBacked node, String type) {
+        Node myNode=this.getUnderlyingState();
+        Node otherNode=node.getUnderlyingState();
+        for (Relationship rel : this.getUnderlyingState().getRelationships(DynamicRelationshipType.withName(type))) {
+            if (rel.getOtherNode(myNode).equals(otherNode)) {
+                rel.delete();
+                return;
+            }
+        }
+        return;
+    }
+
     public RelationshipBacked NodeBacked.getRelationshipTo(NodeBacked node, Class<? extends RelationshipBacked> relationshipType, String type) {
         Node myNode=this.getUnderlyingState();
         Node otherNode=node.getUnderlyingState();
