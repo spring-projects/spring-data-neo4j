@@ -18,9 +18,9 @@ package org.springframework.datastore.graph;
 
 import org.springframework.dao.UncategorizedDataAccessException;
 
-public class UncategorizedKeyvalueStoreException extends UncategorizedDataAccessException {
+public class UncategorizedGraphStoreException extends UncategorizedDataAccessException {
 
-	public UncategorizedKeyvalueStoreException(String msg, Throwable cause) {
+	public UncategorizedGraphStoreException(String msg, Throwable cause) {
 		super(msg, cause);
 	}
 
