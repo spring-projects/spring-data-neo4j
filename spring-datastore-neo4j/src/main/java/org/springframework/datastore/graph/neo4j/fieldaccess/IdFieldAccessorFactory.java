@@ -3,6 +3,7 @@ package org.springframework.datastore.graph.neo4j.fieldaccess;
 import org.springframework.datastore.graph.api.GraphId;
 import org.springframework.datastore.graph.api.NodeBacked;
 
+import javax.persistence.Id;
 import java.lang.reflect.Field;
 
 import static org.springframework.datastore.graph.neo4j.fieldaccess.DoReturn.doReturn;
@@ -19,7 +20,7 @@ public class IdFieldAccessorFactory implements FieldAccessorFactory<NodeBacked> 
 
 	private boolean isIdField(Field field) {
 	    final Class<?> type = field.getType();
-		return (type.equals(Long.class) || type.equals(long.class)) && field.isAnnotationPresent(GraphId.class);
+		return (type.equals(Long.class) || type.equals(long.class)) && (field.isAnnotationPresent(GraphId.class) || field.isAnnotationPresent(Id.class));
 	}
 
 	@Override

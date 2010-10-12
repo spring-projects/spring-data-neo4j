@@ -18,7 +18,7 @@ public class Neo4jConversionServiceFactoryBean implements FactoryBean<Conversion
     {
         GenericConversionService conversionService = new GenericConversionService();
         addConverters(conversionService);
-        //ConversionServiceFactory.addDefaultConverters( conversionService );
+        ConversionServiceFactory.addDefaultConverters( conversionService );
         return conversionService;
     }
 
