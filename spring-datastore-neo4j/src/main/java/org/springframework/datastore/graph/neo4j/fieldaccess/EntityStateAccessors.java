@@ -22,4 +22,5 @@ public interface EntityStateAccessors<ENTITY extends GraphBacked<STATE>,STATE> {
     Object setValue(Field field, Object newVal);
 
     void createAndAssignState();
+
 }

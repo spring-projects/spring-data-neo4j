@@ -1,5 +1,6 @@
 package org.springframework.datastore.graph.neo4j.fieldaccess;
 
+import org.neo4j.graphdb.Node;
 import org.springframework.datastore.graph.api.GraphId;
 import org.springframework.datastore.graph.api.NodeBacked;
 
@@ -42,12 +43,12 @@ public class IdFieldAccessorFactory implements FieldAccessorFactory<NodeBacked> 
 
 	    @Override
 	    public Object setValue(final NodeBacked nodeBacked, final Object newVal) {
-	        return doReturn(null);
+	        return newVal;
 	    }
 
 	    @Override
 	    public Object getValue(final NodeBacked nodeBacked) {
-	        return doReturn(nodeBacked.getUnderlyingState().getId());
+            return doReturn(nodeBacked.getUnderlyingState().getId());
 	    }
 
 	}

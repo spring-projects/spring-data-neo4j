@@ -2,6 +2,7 @@ package org.springframework.datastore.graph.neo4j.fieldaccess;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.neo4j.graphdb.Node;
 import org.springframework.datastore.graph.api.GraphBacked;
 import org.springframework.datastore.graph.neo4j.support.GraphDatabaseContext;
 import org.springframework.util.ObjectUtils;
@@ -92,15 +93,15 @@ public class DetachableEntityStateAccessors<ENTITY extends GraphBacked<STATE>, S
      */
     private void flushDirty() {
         final ENTITY entity = getEntity();
-        final boolean newNode = entity.getUnderlyingState()==null;
-        if (newNode) {
+        final boolean newState = entity.getUnderlyingState()==null;
+        if (newState) {
             createAndAssignState();
         }
         if (isDirty()) {
             for (final Map.Entry<Field, Object> entry : dirty.entrySet()) {
                 final Field field = entry.getKey();
-                if (log.isWarnEnabled()) log.warn("Flushing dirty Entity new node " + newNode + " field " + field);
-                if (!newNode) {
+                if (log.isWarnEnabled()) log.warn("Flushing dirty Entity new node " + newState + " field " + field);
+                if (!newState) {
                     checkConcurrentModification(entity, entry, field);
                 }
                 delegate.setValue(field, getValueFromEntity(field));

@@ -6,6 +6,8 @@ import org.springframework.dao.InvalidDataAccessResourceUsageException;
 import org.springframework.datastore.graph.api.NodeBacked;
 import org.springframework.datastore.graph.neo4j.support.GraphDatabaseContext;
 
+import java.lang.reflect.Field;
+
 /**
  * @author Michael Hunger
  * @since 21.09.2010
@@ -23,6 +25,16 @@ public class NodeEntityStateAccessors<ENTITY extends NodeBacked> extends Default
     public void createAndAssignState() {
         if (entity.getUnderlyingState()!=null) return;
         try {
+            final Object id = getIdFromEntity();
+            if (id instanceof Number) {
+                final Node node = graphDatabaseContext.getNodeById(((Number) id).longValue());
+                setUnderlyingState(node);
+                entity.setUnderlyingState(node);
+                if (log.isInfoEnabled())
+                    log.info("Entity reattached " + entity.getClass() + "; used Node [" + entity.getUnderlyingState() + "];");
+                return;
+            }
+
             final Node node = graphDatabaseContext.createNode();
             setUnderlyingState(node);
             entity.setUnderlyingState(node);
@@ -32,5 +44,4 @@ public class NodeEntityStateAccessors<ENTITY extends NodeBacked> extends Default
             throw new InvalidDataAccessResourceUsageException("Not in a Neo4j transaction.", e);
         }
     }
-
 }

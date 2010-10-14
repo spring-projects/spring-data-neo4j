@@ -5,7 +5,6 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.datastore.graph.api.GraphBacked;
 
 import java.lang.reflect.Field;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -17,18 +16,20 @@ public abstract class DefaultEntityStateAccessors<ENTITY extends GraphBacked<STA
     private final STATE underlyingState;
     protected final ENTITY entity;
     protected final Class<? extends ENTITY> type;
-    private final Map<Field,FieldAccessor<ENTITY,?>> fieldAccessors;
+    private final Map<Field, FieldAccessor<ENTITY, ?>> fieldAccessors;
     private final Map<Field,List<FieldAccessListener<ENTITY,?>>> fieldAccessorListeners;
     private STATE state;
     protected final static Log log= LogFactory.getLog(DefaultEntityStateAccessors.class);
+    private final FieldAccessorFactoryProviders<ENTITY> fieldAccessorFactoryProviders;
 
 
     public DefaultEntityStateAccessors(final STATE underlyingState, final ENTITY entity, final Class<? extends ENTITY> type, final DelegatingFieldAccessorFactory delegatingFieldAccessorFactory) {
         this.underlyingState = underlyingState;
         this.entity = entity;
         this.type = type;
-        this.fieldAccessors= delegatingFieldAccessorFactory.accessorsFor(type);
-        this.fieldAccessorListeners= delegatingFieldAccessorFactory.listenersFor(type);
+        fieldAccessorFactoryProviders = delegatingFieldAccessorFactory.accessorFactoriesFor(type);
+        this.fieldAccessors= fieldAccessorFactoryProviders.getFieldAccessors();
+        this.fieldAccessorListeners= fieldAccessorFactoryProviders.getFieldAccessListeners();
     }
 
     @Override
@@ -74,6 +75,18 @@ public abstract class DefaultEntityStateAccessors<ENTITY extends GraphBacked<STA
 
         for (final FieldAccessListener<ENTITY, ?> listener : fieldAccessorListeners.get(field)) {
             listener.valueChanged(entity, null, result); // todo oldValue
+        }
+    }
+
+    protected Object getIdFromEntity() {
+        final Field idField = fieldAccessorFactoryProviders.getIdField();
+        if (idField==null) return null;
+        try {
+            idField.setAccessible(true);
+            return idField.get(entity);
+        } catch (IllegalAccessException e) {
+            log.warn("Error accessing id field "+idField);
+            return null;
         }
     }
 

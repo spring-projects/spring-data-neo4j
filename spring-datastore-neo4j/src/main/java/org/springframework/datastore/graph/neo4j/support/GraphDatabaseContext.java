@@ -82,7 +82,7 @@ public class GraphDatabaseContext {
         return nodeTypeStrategy.count(entityClass);
     }
 
-	public <T extends NodeBacked> Class<T> getJavaType(Node node) {
+	public <T extends NodeBacked> Class<T> getJavaType(final Node node) {
 		return nodeTypeStrategy.getJavaType(node);
 	}
 
@@ -108,23 +108,23 @@ public class GraphDatabaseContext {
         }
     }
 
-    public void removeIndex(Node node, String propName) {
+    public void removeIndex(final Node node, final String propName) {
         indexService.removeIndex(node,propName);
     }
 
-    public void removeIndex(String propName) {
+    public void removeIndex(final String propName) {
         indexService.removeIndex(propName);
     }
 
-    public void index(Node node, String propName, Object newVal) {
+    public void index(final Node node, final String propName, final Object newVal) {
         indexService.index(node,propName,newVal);
     }
 
-    public boolean canConvert(Class<?> from, Class<?> to) {
+    public boolean canConvert(final Class<?> from, final Class<?> to) {
         return conversionService.canConvert(from,to);
     }
 
-    public <T> T convert(Object value, Class<T> type) {
+    public <T> T convert(final Object value, final Class<T> type) {
         return conversionService.convert(value,type);
     }
 
@@ -134,6 +134,10 @@ public class GraphDatabaseContext {
 
     public Transaction beginTx() {
         return graphDatabaseService.beginTx();
+    }
+
+    public Relationship getRelationshipById(final long id) {
+        return graphDatabaseService.getRelationshipById(id);
     }
 }
 

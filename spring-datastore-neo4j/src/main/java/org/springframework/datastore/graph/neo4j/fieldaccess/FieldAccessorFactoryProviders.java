@@ -1,0 +1,81 @@
+package org.springframework.datastore.graph.neo4j.fieldaccess;
+
+import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * @author Michael Hunger
+ * @since 15.10.2010
+ */
+public class FieldAccessorFactoryProviders<T> {
+
+    static class FieldAccessorFactoryProvider<E> {
+        private final Field field;
+        private final FieldAccessorFactory<E> fieldAccessorFactory;
+        private final List<FieldAccessorListenerFactory<E>> fieldAccessorListenerFactories;
+
+        FieldAccessorFactoryProvider(final Field field, final FieldAccessorFactory<E> fieldAccessorFactory, final List<FieldAccessorListenerFactory<E>> fieldAccessorListenerFactories) {
+            this.field = field;
+            this.fieldAccessorFactory = fieldAccessorFactory;
+            this.fieldAccessorListenerFactories = fieldAccessorListenerFactories;
+        }
+
+        public FieldAccessor<E, ?> accessor() {
+            if (fieldAccessorFactory == null) return null;
+            return fieldAccessorFactory.forField(field);
+        }
+
+        public List<FieldAccessListener<E, ?>> listeners() {
+            if (fieldAccessorListenerFactories == null) return null;
+            final List<FieldAccessListener<E, ?>> listeners = new ArrayList<FieldAccessListener<E, ?>>();
+            for (final FieldAccessorListenerFactory<E> fieldAccessorListenerFactory : fieldAccessorListenerFactories) {
+                listeners.add(fieldAccessorListenerFactory.forField(field));
+            }
+            return listeners;
+        }
+
+        public Field getField() {
+            return field;
+        }
+    }
+
+    private final Class<T> type;
+    private final List<FieldAccessorFactoryProvider<T>> fieldAccessorFactoryProviders = new ArrayList<FieldAccessorFactoryProvider<T>>();
+    private final IdFieldAccessorFactory idFieldAccessorFactory;
+    private Field idField;
+
+    FieldAccessorFactoryProviders(Class<T> type) {
+        this.type = type;
+        idFieldAccessorFactory = new IdFieldAccessorFactory();
+    }
+
+    public Map<Field, FieldAccessor<T, ?>> getFieldAccessors() {
+        final Map<Field, FieldAccessor<T, ?>> result = new HashMap<Field, FieldAccessor<T, ?>>();
+        for (final FieldAccessorFactoryProvider<T> fieldAccessorFactoryProvider : fieldAccessorFactoryProviders) {
+            final FieldAccessor<T, ?> accessor = fieldAccessorFactoryProvider.accessor();
+            result.put(fieldAccessorFactoryProvider.getField(), accessor);
+        }
+        return result;
+    }
+
+    public Map<Field, List<FieldAccessListener<T,?>>> getFieldAccessListeners() {
+        final Map<Field, List<FieldAccessListener<T,?>>> result = new HashMap<Field, List<FieldAccessListener<T,?>>>();
+        for (final FieldAccessorFactoryProvider<T> fieldAccessorFactoryProvider : fieldAccessorFactoryProviders) {
+            final List<FieldAccessListener<T,?>> listeners = (List<FieldAccessListener<T,?>>) fieldAccessorFactoryProvider.listeners();
+            result.put(fieldAccessorFactoryProvider.getField(), listeners);
+        }
+        return result;
+    }
+
+    public void add(Field field, FieldAccessorFactory<?> fieldAccessorFactory, List<FieldAccessorListenerFactory> listenerFactories) {
+        fieldAccessorFactoryProviders.add(new FieldAccessorFactoryProvider(field, fieldAccessorFactory, listenerFactories));
+        if (idFieldAccessorFactory.accept(field)) this.idField = field;
+    }
+
+    public Field getIdField() {
+        return idField;
+    }
+}

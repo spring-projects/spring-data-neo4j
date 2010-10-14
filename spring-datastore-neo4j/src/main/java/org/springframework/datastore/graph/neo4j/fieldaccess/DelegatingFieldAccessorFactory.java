@@ -90,72 +90,25 @@ public abstract class DelegatingFieldAccessorFactory<T> implements FieldAccessor
     }
 
 
-    static class FieldAccessorFactoryProvider<E> {
-        private final Field field;
-        private final FieldAccessorFactory<E> fieldAccessorFactory;
-        private final List<FieldAccessorListenerFactory<E>> fieldAccessorListenerFactories;
 
-        FieldAccessorFactoryProvider(final Field field, final FieldAccessorFactory<E> fieldAccessorFactory, final List<FieldAccessorListenerFactory<E>> fieldAccessorListenerFactories) {
-            this.field = field;
-            this.fieldAccessorFactory = fieldAccessorFactory;
-            this.fieldAccessorListenerFactories = fieldAccessorListenerFactories;
-        }
 
-        public FieldAccessor<E, ?> accessor() {
-            if (fieldAccessorFactory == null) return null;
-            return fieldAccessorFactory.forField(field);
-        }
+    private final Map<Class<?>, FieldAccessorFactoryProviders> acessorFactoryProviderCache = new HashMap<Class<?>, FieldAccessorFactoryProviders>();
 
-        public List<FieldAccessListener<E, ?>> listeners() {
-            if (fieldAccessorListenerFactories == null) return null;
-            final List<FieldAccessListener<E, ?>> listeners = new ArrayList<FieldAccessListener<E, ?>>();
-            for (final FieldAccessorListenerFactory<E> fieldAccessorListenerFactory : fieldAccessorListenerFactories) {
-                listeners.add(fieldAccessorListenerFactory.forField(field));
-            }
-            return listeners;
-        }
-
-        public Field getField() {
-            return field;
+    public <T> FieldAccessorFactoryProviders<T> accessorFactoriesFor(final Class<T> type) {
+        synchronized (this) {
+            final FieldAccessorFactoryProviders<T> fieldAccessorFactoryProviders = acessorFactoryProviderCache.get(type);
+            if (fieldAccessorFactoryProviders != null) return fieldAccessorFactoryProviders;
+            final FieldAccessorFactoryProviders<T> newFieldAccessorFactories = new FieldAccessorFactoryProviders<T>(type);
+            ReflectionUtils.doWithFields(type, new ReflectionUtils.FieldCallback() {
+                public void doWith(final Field field) throws IllegalArgumentException, IllegalAccessException {
+                    final FieldAccessorFactory<?> factory = factoryForField(field);
+                    final List<FieldAccessorListenerFactory> listenerFactories = (List<FieldAccessorListenerFactory>) getFieldAccessListenerFactories(field);
+                    newFieldAccessorFactories.add(field, factory, listenerFactories);
+                }
+            });
+            acessorFactoryProviderCache.put(type, newFieldAccessorFactories);
+            return newFieldAccessorFactories;
         }
     }
 
-
-    private final Map<Class<?>, List<FieldAccessorFactoryProvider<?>>> acessorFactoryProviderCache = new HashMap<Class<?>, List<FieldAccessorFactoryProvider<?>>>();
-
-    public Map<Field, FieldAccessor<?, ?>> accessorsFor(final Class<?> type) {
-        final List<FieldAccessorFactoryProvider<?>> fieldAccessorFactories = getCachedFieldAccessorFactories(type);
-        final Map<Field, FieldAccessor<?, ?>> result = new HashMap<Field, FieldAccessor<?, ?>>();
-        for (final FieldAccessorFactoryProvider<?> fieldAccessorFactoryProvider : fieldAccessorFactories) {
-            final FieldAccessor<?, ?> accessor = fieldAccessorFactoryProvider.accessor();
-            result.put(fieldAccessorFactoryProvider.getField(), accessor);
-        }
-        return result;
-    }
-
-    public Map<Field, List<FieldAccessListener>> listenersFor(final Class<?> type) {
-        final List<FieldAccessorFactoryProvider<?>> fieldAccessorFactories = getCachedFieldAccessorFactories(type);
-        final Map<Field, List<FieldAccessListener>> result = new HashMap<Field, List<FieldAccessListener>>();
-        for (final FieldAccessorFactoryProvider<?> fieldAccessorFactoryProvider : fieldAccessorFactories) {
-            final List<FieldAccessListener> listeners = (List<FieldAccessListener>) fieldAccessorFactoryProvider.listeners();
-            result.put(fieldAccessorFactoryProvider.getField(), listeners);
-        }
-        return result;
-    }
-
-    private synchronized List<FieldAccessorFactoryProvider<?>> getCachedFieldAccessorFactories(final Class<?> type) {
-        final List<FieldAccessorFactoryProvider<?>> fieldAccessorFactoryProviders = acessorFactoryProviderCache.get(type);
-        if (fieldAccessorFactoryProviders != null) return fieldAccessorFactoryProviders;
-        final List<FieldAccessorFactoryProvider<?>> fieldAccessorFactories = new ArrayList<FieldAccessorFactoryProvider<?>>();
-        ReflectionUtils.doWithFields(type, new ReflectionUtils.FieldCallback() {
-            public void doWith(final Field field) throws IllegalArgumentException, IllegalAccessException {
-                final FieldAccessorFactory<?> factory = factoryForField(field);
-                final List<FieldAccessorListenerFactory> listenerFactories = (List<FieldAccessorListenerFactory>) getFieldAccessListenerFactories(field);
-                fieldAccessorFactories.add(new FieldAccessorFactoryProvider(field, factory, listenerFactories));
-
-            }
-        });
-        acessorFactoryProviderCache.put(type, fieldAccessorFactories);
-        return fieldAccessorFactories;
-    }
 }
