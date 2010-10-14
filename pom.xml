@@ -90,7 +90,7 @@
 		<!-- dist.* properties are used by the antrun tasks below -->
 		<dist.id>spring-datastore-graph</dist.id>
 		<dist.name>Spring Datastore Graph</dist.name>
-		<dist.key>DATADOC</dist.key>
+		<dist.key>DATAGRAPH</dist.key>
 		<dist.version>${project.version}</dist.version>
 		<dist.releaseType>snapshot</dist.releaseType>
 		<dist.finalName>${dist.id}-${dist.version}</dist.finalName>
