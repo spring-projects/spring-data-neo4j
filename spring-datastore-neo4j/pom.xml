@@ -147,6 +147,11 @@
 			<url>http://m2.neo4j.org </url>
 		</repository>
 		<repository>
+			<id>jboss-repository</id>
+			<name>JBoss Public Repository</name>
+			<url>http://repository.jboss.org/nexus/content/groups/public-jboss</url>
+		</repository>
+		<repository>
 			<id>spring-maven-snapshot</id>
 			<snapshots>
 				<enabled>true</enabled>
