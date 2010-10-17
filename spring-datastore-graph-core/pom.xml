@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>org.springframework.data</groupId>
 		<artifactId>spring-datastore-graph-parent</artifactId>
-		<version>1.0.0.BUILD-SNAPSHOT</version>
+		<version>1.0.0.M1-SNAPSHOT</version>
 		<relativePath>../spring-datastore-graph-parent/pom.xml</relativePath>
 	</parent>
 	<artifactId>spring-datastore-graph-core</artifactId>

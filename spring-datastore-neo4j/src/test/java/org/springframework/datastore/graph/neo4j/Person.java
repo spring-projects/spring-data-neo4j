@@ -15,7 +15,7 @@ public class Person {
 	@NodeId
 	private Long graphId;
 
-    @Indexed(index = true)
+    @Indexed(true)
 	private String name;
 	
 	private int age;

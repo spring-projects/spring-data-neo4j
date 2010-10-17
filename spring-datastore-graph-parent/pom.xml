@@ -6,7 +6,7 @@
 	<artifactId>spring-datastore-graph-parent</artifactId>
 	<name>Spring Datastore Graph Parent</name>
 	<url>http://www.springsource.org/spring-data/datastore-graph</url>
-	<version>1.0.0.BUILD-SNAPSHOT</version>
+	<version>1.0.0.M1-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

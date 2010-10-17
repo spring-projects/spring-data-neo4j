@@ -5,7 +5,7 @@
 	<groupId>org.springframework.data</groupId>
 	<artifactId>spring-datastore-graph-dist</artifactId>
 	<name>Spring Datastore Graph Distribution</name>
-	<version>1.0.0.BUILD-SNAPSHOT</version>
+	<version>1.0.0.M1-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	<modules>
 		<module>spring-datastore-graph-parent</module>

@@ -31,7 +31,7 @@ class IndexingNodePropertyFieldAccessorListenerFactory implements FieldAccessorL
         final NodeEntity entityAnnotation = f.getDeclaringClass().getAnnotation(NodeEntity.class);
         if (entityAnnotation!=null && entityAnnotation.fullIndex()) return true;
         final Indexed propertyAnnotation = f.getAnnotation(Indexed.class);
-        return propertyAnnotation!=null && propertyAnnotation.index();
+        return propertyAnnotation!=null && propertyAnnotation.value();
     }
 
     private boolean isPropertyField(final Field f) {

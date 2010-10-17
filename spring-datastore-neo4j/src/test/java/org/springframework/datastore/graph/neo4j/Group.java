@@ -28,7 +28,7 @@ public class Group {
     @Indexed
     private String name;
 
-    @Indexed(index = false)
+    @Indexed(false)
     private String unindexedName;
 
     private String unindexedName2;
