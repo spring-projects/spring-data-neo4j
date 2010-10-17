@@ -9,7 +9,7 @@ import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.graphdb.traversal.TraversalDescription;
 import org.neo4j.graphdb.traversal.Traverser;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.datastore.graph.api.GraphEntity;
+import org.springframework.datastore.graph.annotations.NodeEntity;
 import org.springframework.datastore.graph.api.NodeBacked;
 import org.springframework.datastore.graph.api.RelationshipBacked;
 import org.springframework.datastore.graph.neo4j.fieldaccess.*;
@@ -33,7 +33,7 @@ import org.springframework.persistence.support.StateProvider;
  * 
  * @author Rod Johnson
  */
-public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<GraphEntity, NodeBacked> {
+public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<NodeEntity, NodeBacked> {
     private GraphDatabaseContext graphDatabaseContext;
     private NodeEntityStateAccessorsFactory entityStateAccessorsFactory;
 
@@ -46,8 +46,8 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<GraphEn
 	// Advise user-defined constructors of NodeBacked objects to create a new Neo4J backing node
 	//-------------------------------------------------------------------------
 	pointcut arbitraryUserConstructorOfNodeBackedObject(NodeBacked entity) : 
-		execution((@GraphEntity *).new(..)) &&
-		!execution((@GraphEntity *).new(Node)) &&
+		execution((@NodeEntity *).new(..)) &&
+		!execution((@NodeEntity *).new(Node)) &&
 		this(entity) && !cflowbelow(call(* fromStateInternal(..)));
 	
 	

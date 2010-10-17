@@ -4,7 +4,7 @@ import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.DynamicRelationshipType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
-import org.springframework.datastore.graph.api.GraphEntityRelationship;
+import org.springframework.datastore.graph.annotations.Relationship;
 import org.springframework.datastore.graph.api.NodeBacked;
 import org.springframework.datastore.graph.neo4j.support.GraphDatabaseContext;
 
@@ -23,11 +23,11 @@ abstract class NodeRelationshipFieldAccessorFactory implements FieldAccessorFact
         return (Class<? extends NodeBacked>) field.getType();
     }
 
-    protected Class<? extends NodeBacked> targetFrom(GraphEntityRelationship relAnnotation) {
+    protected Class<? extends NodeBacked> targetFrom(Relationship relAnnotation) {
         return (Class<? extends NodeBacked>) relAnnotation.elementClass();
     }
 
-    protected Direction dirFrom(GraphEntityRelationship relAnnotation) {
+    protected Direction dirFrom(Relationship relAnnotation) {
         return relAnnotation.direction().toNeo4jDir();
     }
 
@@ -35,16 +35,16 @@ abstract class NodeRelationshipFieldAccessorFactory implements FieldAccessorFact
         return DynamicRelationshipType.withName(DelegatingFieldAccessorFactory.getNeo4jPropertyName(field));
     }
 
-    protected DynamicRelationshipType typeFrom(GraphEntityRelationship relAnnotation) {
+    protected DynamicRelationshipType typeFrom(Relationship relAnnotation) {
         return DynamicRelationshipType.withName(relAnnotation.type());
     }
 
-    protected GraphEntityRelationship getRelationshipAnnotation(Field field) {
-        return field.getAnnotation(GraphEntityRelationship.class);
+    protected Relationship getRelationshipAnnotation(Field field) {
+        return field.getAnnotation(Relationship.class);
     }
 
     protected boolean hasValidRelationshipAnnotation(Field field) {
-        final GraphEntityRelationship relAnnotation = getRelationshipAnnotation(field);
+        final Relationship relAnnotation = getRelationshipAnnotation(field);
         return relAnnotation != null && !relAnnotation.elementClass().equals(NodeBacked.class);
     }
 }

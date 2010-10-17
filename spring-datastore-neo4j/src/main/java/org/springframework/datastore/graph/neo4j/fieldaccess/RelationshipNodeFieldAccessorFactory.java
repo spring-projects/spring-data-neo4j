@@ -5,8 +5,8 @@ import org.neo4j.graphdb.Relationship;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
-import org.springframework.datastore.graph.api.GraphRelationshipEndNode;
-import org.springframework.datastore.graph.api.GraphRelationshipStartNode;
+import org.springframework.datastore.graph.annotations.RelationshipEndNode;
+import org.springframework.datastore.graph.annotations.RelationshipStartNode;
 import org.springframework.datastore.graph.api.NodeBacked;
 import org.springframework.datastore.graph.api.RelationshipBacked;
 import org.springframework.datastore.graph.neo4j.support.GraphDatabaseContext;
@@ -30,11 +30,11 @@ public class RelationshipNodeFieldAccessorFactory implements FieldAccessorFactor
     }
 
     private boolean isEndNodeField(final Field f) {
-        return f.isAnnotationPresent(GraphRelationshipEndNode.class);
+        return f.isAnnotationPresent(RelationshipEndNode.class);
     }
 
     private boolean isStartNodeField(final Field f) {
-        return f.isAnnotationPresent(GraphRelationshipStartNode.class);
+        return f.isAnnotationPresent(RelationshipStartNode.class);
     }
 
     @Override

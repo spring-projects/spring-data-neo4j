@@ -3,7 +3,7 @@ package org.springframework.datastore.graph.neo4j.fieldaccess;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.RelationshipType;
-import org.springframework.datastore.graph.api.GraphEntityRelationship;
+import org.springframework.datastore.graph.annotations.Relationship;
 import org.springframework.datastore.graph.api.NodeBacked;
 import org.springframework.datastore.graph.neo4j.support.GraphDatabaseContext;
 
@@ -22,7 +22,7 @@ public class OneToNRelationshipFieldAccessorFactory extends NodeRelationshipFiel
 
 	@Override
 	public FieldAccessor<NodeBacked, ?> forField(final Field field) {
-	    final GraphEntityRelationship relAnnotation = getRelationshipAnnotation(field);
+	    final Relationship relAnnotation = getRelationshipAnnotation(field);
 	    return new OneToNRelationshipFieldAccessor(typeFrom(relAnnotation), dirFrom(relAnnotation), targetFrom(relAnnotation), graphDatabaseContext);
 	}
 

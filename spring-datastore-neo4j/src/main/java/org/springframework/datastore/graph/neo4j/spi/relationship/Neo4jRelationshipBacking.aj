@@ -8,6 +8,7 @@ import org.neo4j.graphdb.Relationship;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.dao.InvalidDataAccessResourceUsageException;
+import org.springframework.datastore.graph.annotations.RelationshipEntity;
 import org.springframework.datastore.graph.api.*;
 import org.springframework.datastore.graph.neo4j.fieldaccess.*;
 import org.springframework.datastore.graph.neo4j.support.GraphDatabaseContext;
@@ -20,7 +21,7 @@ import java.util.Collection;
 
 import static org.springframework.datastore.graph.neo4j.fieldaccess.DoReturn.unwrap;
 
-public aspect Neo4jRelationshipBacking extends AbstractTypeAnnotatingMixinFields<GraphRelationship,RelationshipBacked> {
+public aspect Neo4jRelationshipBacking extends AbstractTypeAnnotatingMixinFields<RelationshipEntity,RelationshipBacked> {
 	
 	//-------------------------------------------------------------------------
 	// Configure aspect for whole system.

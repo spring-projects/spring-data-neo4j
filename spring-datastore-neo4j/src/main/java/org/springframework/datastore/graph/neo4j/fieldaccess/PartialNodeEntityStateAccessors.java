@@ -3,8 +3,8 @@ package org.springframework.datastore.graph.neo4j.fieldaccess;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.NotInTransactionException;
 import org.springframework.dao.InvalidDataAccessResourceUsageException;
-import org.springframework.datastore.graph.api.GraphEntityProperty;
-import org.springframework.datastore.graph.api.GraphEntityRelationship;
+import org.springframework.datastore.graph.annotations.GraphEntityProperty;
+import org.springframework.datastore.graph.annotations.Relationship;
 import org.springframework.datastore.graph.api.NodeBacked;
 import org.springframework.datastore.graph.neo4j.support.GraphDatabaseContext;
 
@@ -47,7 +47,7 @@ public class PartialNodeEntityStateAccessors<ENTITY extends NodeBacked> extends 
                         new SingleRelationshipFieldAccessorFactory() {
                             @Override
                             public boolean accept(Field f) {
-                                return f.isAnnotationPresent(GraphEntityRelationship.class) && super.accept(f);
+                                return f.isAnnotationPresent(Relationship.class) && super.accept(f);
                             }
                         },
                         new OneToNRelationshipFieldAccessorFactory(),

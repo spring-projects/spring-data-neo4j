@@ -1,7 +1,7 @@
 package org.springframework.datastore.graph.neo4j.partial;
 
-import org.springframework.datastore.graph.api.GraphEntity;
-import org.springframework.datastore.graph.api.GraphEntityProperty;
+import org.springframework.datastore.graph.annotations.GraphEntityProperty;
+import org.springframework.datastore.graph.annotations.NodeEntity;
 
 import javax.persistence.*;
 
@@ -10,7 +10,7 @@ import javax.persistence.*;
  * @since 27.09.2010
  */
 @Entity
-@GraphEntity(partial = true)
+@NodeEntity(partial = true)
 public class Restaurant {
     @Id
     @GeneratedValue(strategy = GenerationType.TABLE, generator = "id_gen")

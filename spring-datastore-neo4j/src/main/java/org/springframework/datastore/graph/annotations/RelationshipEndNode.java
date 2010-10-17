@@ -1,4 +1,4 @@
-package org.springframework.datastore.graph.api;
+package org.springframework.datastore.graph.annotations;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -10,11 +10,6 @@ import java.lang.annotation.Target;
  * @since 27.08.2010
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.TYPE)
-public @interface GraphEntity {
-    boolean useShortNames() default true;
-
-    boolean fullIndex() default false;
-
-    boolean partial() default false;
+@Target(ElementType.FIELD)
+public @interface RelationshipEndNode {
 }

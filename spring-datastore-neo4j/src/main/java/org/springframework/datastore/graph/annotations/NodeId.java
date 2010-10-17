@@ -1,4 +1,4 @@
-package org.springframework.datastore.graph.api;
+package org.springframework.datastore.graph.annotations;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -7,5 +7,5 @@ import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
-public @interface GraphId {
+public @interface NodeId {
 }

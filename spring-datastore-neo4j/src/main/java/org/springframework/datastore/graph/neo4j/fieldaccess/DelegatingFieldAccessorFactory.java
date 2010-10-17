@@ -2,8 +2,8 @@ package org.springframework.datastore.graph.neo4j.fieldaccess;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.datastore.graph.api.GraphEntity;
-import org.springframework.datastore.graph.api.GraphRelationship;
+import org.springframework.datastore.graph.annotations.NodeEntity;
+import org.springframework.datastore.graph.annotations.RelationshipEntity;
 import org.springframework.datastore.graph.neo4j.support.GraphDatabaseContext;
 import org.springframework.util.ReflectionUtils;
 
@@ -62,9 +62,9 @@ public abstract class DelegatingFieldAccessorFactory<T> implements FieldAccessor
     }
 
     private static boolean useShortNames(final Class<?> entityClass) {
-        final GraphEntity graphEntity = entityClass.getAnnotation(GraphEntity.class);
+        final NodeEntity graphEntity = entityClass.getAnnotation(NodeEntity.class);
         if (graphEntity != null) return graphEntity.useShortNames();
-        final GraphRelationship graphRelationship = entityClass.getAnnotation(GraphRelationship.class);
+        final RelationshipEntity graphRelationship = entityClass.getAnnotation(RelationshipEntity.class);
         if (graphRelationship != null) return graphRelationship.useShortNames();
         return false;
     }

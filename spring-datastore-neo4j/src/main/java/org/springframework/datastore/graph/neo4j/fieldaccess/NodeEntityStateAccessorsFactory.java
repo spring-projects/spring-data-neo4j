@@ -2,7 +2,7 @@ package org.springframework.datastore.graph.neo4j.fieldaccess;
 
 import org.neo4j.graphdb.Node;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.datastore.graph.api.GraphEntity;
+import org.springframework.datastore.graph.annotations.NodeEntity;
 import org.springframework.datastore.graph.api.NodeBacked;
 import org.springframework.datastore.graph.neo4j.support.GraphDatabaseContext;
 
@@ -15,7 +15,7 @@ public class NodeEntityStateAccessorsFactory {
     private NodeDelegatingFieldAccessorFactory nodeDelegatingFieldAccessorFactory;
 
 	public EntityStateAccessors<NodeBacked,Node> getEntityStateAccessors(final NodeBacked entity) {
-        final GraphEntity graphEntityAnnotation = entity.getClass().getAnnotation(GraphEntity.class);
+        final NodeEntity graphEntityAnnotation = entity.getClass().getAnnotation(NodeEntity.class);
         if (graphEntityAnnotation!=null && graphEntityAnnotation.partial()) {
             return new DetachableEntityStateAccessors<NodeBacked, Node>(
                     new PartialNodeEntityStateAccessors<NodeBacked>(null, entity, entity.getClass(), graphDatabaseContext), graphDatabaseContext) {
