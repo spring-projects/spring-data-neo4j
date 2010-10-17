@@ -1,10 +1,10 @@
 package org.springframework.datastore.graph.neo4j;
 
-import org.springframework.datastore.graph.annotations.GraphProperty;
+import org.springframework.datastore.graph.annotations.Indexed;
 import org.springframework.datastore.graph.annotations.NodeEntity;
-import org.springframework.datastore.graph.annotations.GraphId;
-import org.springframework.datastore.graph.annotations.Relationship;
-import org.springframework.datastore.graph.annotations.EntityBackedRelationship;
+import org.springframework.datastore.graph.annotations.NodeId;
+import org.springframework.datastore.graph.annotations.RelatedTo;
+import org.springframework.datastore.graph.annotations.RelatedToVia;
 import org.springframework.datastore.graph.api.*;
 import java.util.Date;
 
@@ -12,10 +12,10 @@ import java.util.Date;
 @NodeEntity(useShortNames = false)
 public class Person {
 
-	@GraphId
+	@NodeId
 	private Long graphId;
 
-    @GraphProperty(index = true)
+    @Indexed(index = true)
 	private String name;
 	
 	private int age;
@@ -32,13 +32,13 @@ public class Person {
 
 	private Car car;
 	
-	@Relationship(type = "mother", direction = Direction.OUTGOING)
+	@RelatedTo(type = "mother", direction = Direction.OUTGOING)
 	private Person mother;
 	
-	@Relationship(type = "boss", direction = Direction.INCOMING)
+	@RelatedTo(type = "boss", direction = Direction.INCOMING)
 	private Person boss;
 
-	@EntityBackedRelationship(type = "knows", elementClass = Friendship.class)
+	@RelatedToVia(type = "knows", elementClass = Friendship.class)
 	private Iterable<Friendship> friendships;
 
     public Person() {
