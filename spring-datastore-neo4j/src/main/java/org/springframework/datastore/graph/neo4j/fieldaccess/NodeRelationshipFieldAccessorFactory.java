@@ -4,7 +4,7 @@ import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.DynamicRelationshipType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
-import org.springframework.datastore.graph.annotations.Relationship;
+import org.springframework.datastore.graph.annotations.RelatedTo;
 import org.springframework.datastore.graph.api.NodeBacked;
 import org.springframework.datastore.graph.neo4j.support.GraphDatabaseContext;
 
@@ -23,11 +23,11 @@ abstract class NodeRelationshipFieldAccessorFactory implements FieldAccessorFact
         return (Class<? extends NodeBacked>) field.getType();
     }
 
-    protected Class<? extends NodeBacked> targetFrom(Relationship relAnnotation) {
+    protected Class<? extends NodeBacked> targetFrom(RelatedTo relAnnotation) {
         return (Class<? extends NodeBacked>) relAnnotation.elementClass();
     }
 
-    protected Direction dirFrom(Relationship relAnnotation) {
+    protected Direction dirFrom(RelatedTo relAnnotation) {
         return relAnnotation.direction().toNeo4jDir();
     }
 
@@ -35,16 +35,16 @@ abstract class NodeRelationshipFieldAccessorFactory implements FieldAccessorFact
         return DynamicRelationshipType.withName(DelegatingFieldAccessorFactory.getNeo4jPropertyName(field));
     }
 
-    protected DynamicRelationshipType typeFrom(Relationship relAnnotation) {
+    protected DynamicRelationshipType typeFrom(RelatedTo relAnnotation) {
         return DynamicRelationshipType.withName(relAnnotation.type());
     }
 
-    protected Relationship getRelationshipAnnotation(Field field) {
-        return field.getAnnotation(Relationship.class);
+    protected RelatedTo getRelationshipAnnotation(Field field) {
+        return field.getAnnotation(RelatedTo.class);
     }
 
     protected boolean hasValidRelationshipAnnotation(Field field) {
-        final Relationship relAnnotation = getRelationshipAnnotation(field);
+        final RelatedTo relAnnotation = getRelationshipAnnotation(field);
         return relAnnotation != null && !relAnnotation.elementClass().equals(NodeBacked.class);
     }
 }

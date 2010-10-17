@@ -6,7 +6,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 import org.springframework.datastore.graph.api.Direction;
-import org.springframework.datastore.graph.api.NodeBacked;
+import org.springframework.datastore.graph.api.RelationshipBacked;
 
 /**
  * @author Michael Hunger
@@ -14,10 +14,10 @@ import org.springframework.datastore.graph.api.NodeBacked;
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
-public @interface Relationship {
+public @interface RelatedToVia {
     String type();
 
     Direction direction() default Direction.OUTGOING;
 
-    Class<? extends NodeBacked> elementClass() default NodeBacked.class;
+    Class<? extends RelationshipBacked> elementClass() default RelationshipBacked.class;
 }

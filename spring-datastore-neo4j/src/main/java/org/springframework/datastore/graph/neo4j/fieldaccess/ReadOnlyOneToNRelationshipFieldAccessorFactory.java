@@ -3,7 +3,7 @@ package org.springframework.datastore.graph.neo4j.fieldaccess;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.RelationshipType;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
-import org.springframework.datastore.graph.annotations.Relationship;
+import org.springframework.datastore.graph.annotations.RelatedTo;
 import org.springframework.datastore.graph.api.NodeBacked;
 import org.springframework.datastore.graph.neo4j.support.GraphDatabaseContext;
 
@@ -17,7 +17,7 @@ public class ReadOnlyOneToNRelationshipFieldAccessorFactory extends NodeRelation
 
 	@Override
 	public FieldAccessor<NodeBacked, ?> forField(final Field field) {
-	    final Relationship relAnnotation = getRelationshipAnnotation(field);
+	    final RelatedTo relAnnotation = getRelationshipAnnotation(field);
 	    return new ReadOnlyOneToNRelationshipFieldAccessor(typeFrom(relAnnotation), dirFrom(relAnnotation), targetFrom(relAnnotation), graphDatabaseContext);
 	}
 
