@@ -114,6 +114,11 @@
 		</dependency>
 		<dependency>
 			<groupId>org.neo4j</groupId>
+			<artifactId>neo4j-remote-graphdb</artifactId>
+			<version>0.7</version>
+		</dependency>
+		<dependency>
+			<groupId>org.neo4j</groupId>
 			<artifactId>neo4j-utils</artifactId>
 			<version>1.1</version>
 		</dependency>
@@ -144,7 +149,7 @@
 		<repository>
 			<id>neo4j-public-repository</id>
 			<name>Neo4J Public Repository</name>
-			<url>http://m2.neo4j.org </url>
+			<url>http://m2.neo4j.org</url>
 		</repository>
 		<repository>
 			<id>jboss-repository</id>
