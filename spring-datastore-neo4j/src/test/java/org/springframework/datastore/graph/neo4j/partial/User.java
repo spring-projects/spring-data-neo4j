@@ -29,7 +29,7 @@ public class User {
     @Transient
     String nickname;
 
-    @EntityBackedRelationship(type = "recommends", backingEntityClass = Recommendation.class)
+    @EntityBackedRelationship(type = "recommends", elementClass = Recommendation.class)
     @Transient
     Iterable<Recommendation> recommendations;
 

@@ -19,5 +19,5 @@ public @interface EntityBackedRelationship {
 
     Direction direction() default Direction.OUTGOING;
 
-    Class<? extends RelationshipBacked> backingEntityClass() default RelationshipBacked.class;
+    Class<? extends RelationshipBacked> elementClass() default RelationshipBacked.class;
 }

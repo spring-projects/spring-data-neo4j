@@ -38,7 +38,7 @@ public class Person {
 	@Relationship(type = "boss", direction = Direction.INCOMING)
 	private Person boss;
 
-	@EntityBackedRelationship(type = "knows", backingEntityClass = Friendship.class)
+	@EntityBackedRelationship(type = "knows", elementClass = Friendship.class)
 	private Iterable<Friendship> friendships;
 
     public Person() {

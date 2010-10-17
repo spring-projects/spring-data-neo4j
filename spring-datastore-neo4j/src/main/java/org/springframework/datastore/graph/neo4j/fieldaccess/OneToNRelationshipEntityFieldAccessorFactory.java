@@ -33,7 +33,7 @@ public class OneToNRelationshipEntityFieldAccessorFactory implements FieldAccess
 
 	private boolean hasValidRelationshipAnnotation(final Field f) {
 		final EntityBackedRelationship relEntityAnnotation = getRelationshipAnnotation(f);
-		return relEntityAnnotation != null && !RelationshipBacked.class.equals(relEntityAnnotation.backingEntityClass());
+		return relEntityAnnotation != null && !RelationshipBacked.class.equals(relEntityAnnotation.elementClass());
 	}
 
 	private EntityBackedRelationship getRelationshipAnnotation(final Field field) {
@@ -41,7 +41,7 @@ public class OneToNRelationshipEntityFieldAccessorFactory implements FieldAccess
     }
 
 	private Class<? extends RelationshipBacked> targetFrom(final EntityBackedRelationship relEntityAnnotation) {
-		return relEntityAnnotation.backingEntityClass();
+		return relEntityAnnotation.elementClass();
 	}
 
 	private Direction dirFrom(final EntityBackedRelationship relEntityAnnotation) {
