@@ -14,7 +14,7 @@ import org.springframework.datastore.graph.api.NodeBacked;
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
-public @interface GraphEntityTraversal {
+public @interface GraphTraversal {
     Class<? extends FieldTraversalDescriptionBuilder> traversalBuilder() default FieldTraversalDescriptionBuilder.class;
     Class<? extends NodeBacked> elementClass() default NodeBacked.class;
 }

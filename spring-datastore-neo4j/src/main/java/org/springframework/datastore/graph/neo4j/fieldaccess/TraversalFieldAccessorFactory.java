@@ -4,7 +4,7 @@ import org.neo4j.graphdb.traversal.TraversalDescription;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
-import org.springframework.datastore.graph.annotations.GraphEntityTraversal;
+import org.springframework.datastore.graph.annotations.GraphTraversal;
 import org.springframework.datastore.graph.api.FieldTraversalDescriptionBuilder;
 import org.springframework.datastore.graph.api.NodeBacked;
 import org.springframework.datastore.graph.neo4j.finder.Finder;
@@ -22,7 +22,7 @@ public class TraversalFieldAccessorFactory implements FieldAccessorFactory<NodeB
 
     @Override
     public boolean accept(final Field f) {
-        final GraphEntityTraversal graphEntityTraversal = f.getAnnotation(GraphEntityTraversal.class);
+        final GraphTraversal graphEntityTraversal = f.getAnnotation(GraphTraversal.class);
         return graphEntityTraversal != null
                 && graphEntityTraversal.traversalBuilder() != FieldTraversalDescriptionBuilder.class
                 && f.getType().equals(Iterable.class);
@@ -47,7 +47,7 @@ public class TraversalFieldAccessorFactory implements FieldAccessorFactory<NodeB
 	    public TraversalFieldAccessor(final Field field, FinderFactory finderFactory) {
 	        this.field = field;
 	        this.finderFactory = finderFactory;
-            final GraphEntityTraversal graphEntityTraversal = field.getAnnotation(GraphEntityTraversal.class);
+            final GraphTraversal graphEntityTraversal = field.getAnnotation(GraphTraversal.class);
 	        this.target = graphEntityTraversal.elementClass();
 	        this.fieldTraversalDescriptionBuilder = createTraversalDescription(graphEntityTraversal);
 	    }
@@ -70,7 +70,7 @@ public class TraversalFieldAccessorFactory implements FieldAccessorFactory<NodeB
 	    }
 
 
-	    private FieldTraversalDescriptionBuilder createTraversalDescription(final GraphEntityTraversal graphEntityTraversal) {
+	    private FieldTraversalDescriptionBuilder createTraversalDescription(final GraphTraversal graphEntityTraversal) {
 	        try {
 	            final Class<? extends FieldTraversalDescriptionBuilder> traversalDescriptionClass = graphEntityTraversal.traversalBuilder();
 	            final Constructor<? extends FieldTraversalDescriptionBuilder> constructor = traversalDescriptionClass.getDeclaredConstructor();

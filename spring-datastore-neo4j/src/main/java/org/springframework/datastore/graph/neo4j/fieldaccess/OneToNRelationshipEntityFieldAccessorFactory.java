@@ -4,7 +4,7 @@ import org.neo4j.graphdb.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
-import org.springframework.datastore.graph.annotations.RelationshipWithEntity;
+import org.springframework.datastore.graph.annotations.EntityBackedRelationship;
 import org.springframework.datastore.graph.api.NodeBacked;
 import org.springframework.datastore.graph.api.RelationshipBacked;
 import org.springframework.datastore.graph.neo4j.support.GraphDatabaseContext;
@@ -27,28 +27,28 @@ public class OneToNRelationshipEntityFieldAccessorFactory implements FieldAccess
 
 	@Override
 	public FieldAccessor<NodeBacked, ?> forField(final Field field) {
-		final RelationshipWithEntity relEntityAnnotation = getRelationshipAnnotation(field);
+		final EntityBackedRelationship relEntityAnnotation = getRelationshipAnnotation(field);
 		return new OneToNRelationshipEntityFieldAccessor(typeFrom(relEntityAnnotation), dirFrom(relEntityAnnotation), targetFrom(relEntityAnnotation), graphDatabaseContext);
 	}
 
 	private boolean hasValidRelationshipAnnotation(final Field f) {
-		final RelationshipWithEntity relEntityAnnotation = getRelationshipAnnotation(f);
-		return relEntityAnnotation != null && !RelationshipBacked.class.equals(relEntityAnnotation.elementClass());
+		final EntityBackedRelationship relEntityAnnotation = getRelationshipAnnotation(f);
+		return relEntityAnnotation != null && !RelationshipBacked.class.equals(relEntityAnnotation.backingEntityClass());
 	}
 
-	private RelationshipWithEntity getRelationshipAnnotation(final Field field) {
-        return field.getAnnotation(RelationshipWithEntity.class);
+	private EntityBackedRelationship getRelationshipAnnotation(final Field field) {
+        return field.getAnnotation(EntityBackedRelationship.class);
     }
 
-	private Class<? extends RelationshipBacked> targetFrom(final RelationshipWithEntity relEntityAnnotation) {
-		return relEntityAnnotation.elementClass();
+	private Class<? extends RelationshipBacked> targetFrom(final EntityBackedRelationship relEntityAnnotation) {
+		return relEntityAnnotation.backingEntityClass();
 	}
 
-	private Direction dirFrom(final RelationshipWithEntity relEntityAnnotation) {
+	private Direction dirFrom(final EntityBackedRelationship relEntityAnnotation) {
 		return relEntityAnnotation.direction().toNeo4jDir();
 	}
 
-	private DynamicRelationshipType typeFrom(final RelationshipWithEntity relEntityAnnotation) {
+	private DynamicRelationshipType typeFrom(final EntityBackedRelationship relEntityAnnotation) {
 		return DynamicRelationshipType.withName(relEntityAnnotation.type());
 	}
 

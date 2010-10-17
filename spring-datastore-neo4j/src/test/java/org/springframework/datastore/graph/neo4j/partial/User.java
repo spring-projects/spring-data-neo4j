@@ -1,10 +1,10 @@
 package org.springframework.datastore.graph.neo4j.partial;
 
 import org.neo4j.graphdb.DynamicRelationshipType;
-import org.springframework.datastore.graph.annotations.GraphEntityProperty;
+import org.springframework.datastore.graph.annotations.GraphProperty;
 import org.springframework.datastore.graph.annotations.NodeEntity;
 import org.springframework.datastore.graph.annotations.Relationship;
-import org.springframework.datastore.graph.annotations.RelationshipWithEntity;
+import org.springframework.datastore.graph.annotations.EntityBackedRelationship;
 import org.springframework.datastore.graph.api.*;
 
 import javax.persistence.*;
@@ -25,11 +25,11 @@ public class User {
     String name;
     int age;
 
-    @GraphEntityProperty
+    @GraphProperty
     @Transient
     String nickname;
 
-    @RelationshipWithEntity(type = "recommends", elementClass = Recommendation.class)
+    @EntityBackedRelationship(type = "recommends", backingEntityClass = Recommendation.class)
     @Transient
     Iterable<Recommendation> recommendations;
 

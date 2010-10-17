@@ -1,6 +1,6 @@
 package org.springframework.datastore.graph.neo4j.partial;
 
-import org.springframework.datastore.graph.annotations.GraphEntityProperty;
+import org.springframework.datastore.graph.annotations.GraphProperty;
 import org.springframework.datastore.graph.annotations.NodeEntity;
 
 import javax.persistence.*;
@@ -19,7 +19,7 @@ public class Restaurant {
     String name;
     String zipCode;
 
-    @GraphEntityProperty
+    @GraphProperty
     @Transient
     Cuisine cuisine;
 
