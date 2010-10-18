@@ -8,7 +8,7 @@ import org.neo4j.graphdb.Relationship;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.dao.InvalidDataAccessResourceUsageException;
-import org.springframework.datastore.graph.annotations.RelationshipEntity;
+import org.springframework.datastore.graph.annotation.RelationshipEntity;
 import org.springframework.datastore.graph.api.*;
 import org.springframework.datastore.graph.neo4j.fieldaccess.*;
 import org.springframework.datastore.graph.neo4j.support.GraphDatabaseContext;

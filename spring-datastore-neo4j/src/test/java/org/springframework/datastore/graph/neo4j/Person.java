@@ -1,10 +1,10 @@
 package org.springframework.datastore.graph.neo4j;
 
-import org.springframework.datastore.graph.annotations.Indexed;
-import org.springframework.datastore.graph.annotations.NodeEntity;
-import org.springframework.datastore.graph.annotations.NodeId;
-import org.springframework.datastore.graph.annotations.RelatedTo;
-import org.springframework.datastore.graph.annotations.RelatedToVia;
+import org.springframework.datastore.graph.annotation.GraphProperty;
+import org.springframework.datastore.graph.annotation.NodeEntity;
+import org.springframework.datastore.graph.annotation.GraphId;
+import org.springframework.datastore.graph.annotation.RelatedTo;
+import org.springframework.datastore.graph.annotation.RelatedToVia;
 import org.springframework.datastore.graph.api.*;
 import java.util.Date;
 
@@ -12,10 +12,10 @@ import java.util.Date;
 @NodeEntity(useShortNames = false)
 public class Person {
 
-	@NodeId
+	@GraphId
 	private Long graphId;
 
-    @Indexed(true)
+    @GraphProperty(index = true)
 	private String name;
 	
 	private int age;

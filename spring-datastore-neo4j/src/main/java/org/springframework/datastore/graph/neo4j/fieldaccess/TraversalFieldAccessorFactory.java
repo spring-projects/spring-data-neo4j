@@ -4,7 +4,7 @@ import org.neo4j.graphdb.traversal.TraversalDescription;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
-import org.springframework.datastore.graph.annotations.GraphTraversal;
+import org.springframework.datastore.graph.annotation.GraphTraversal;
 import org.springframework.datastore.graph.api.FieldTraversalDescriptionBuilder;
 import org.springframework.datastore.graph.api.NodeBacked;
 import org.springframework.datastore.graph.neo4j.finder.Finder;

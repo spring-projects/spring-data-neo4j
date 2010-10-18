@@ -4,7 +4,7 @@ import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.DynamicRelationshipType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
-import org.springframework.datastore.graph.annotations.RelatedTo;
+import org.springframework.datastore.graph.annotation.RelatedTo;
 import org.springframework.datastore.graph.api.NodeBacked;
 import org.springframework.datastore.graph.neo4j.support.GraphDatabaseContext;
 

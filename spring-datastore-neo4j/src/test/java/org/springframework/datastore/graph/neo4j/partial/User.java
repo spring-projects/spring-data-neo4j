@@ -1,10 +1,10 @@
 package org.springframework.datastore.graph.neo4j.partial;
 
 import org.neo4j.graphdb.DynamicRelationshipType;
-import org.springframework.datastore.graph.annotations.Indexed;
-import org.springframework.datastore.graph.annotations.NodeEntity;
-import org.springframework.datastore.graph.annotations.RelatedTo;
-import org.springframework.datastore.graph.annotations.RelatedToVia;
+import org.springframework.datastore.graph.annotation.GraphProperty;
+import org.springframework.datastore.graph.annotation.NodeEntity;
+import org.springframework.datastore.graph.annotation.RelatedTo;
+import org.springframework.datastore.graph.annotation.RelatedToVia;
 import org.springframework.datastore.graph.api.*;
 
 import javax.persistence.*;
@@ -25,7 +25,7 @@ public class User {
     String name;
     int age;
 
-    @Indexed
+    @GraphProperty
     @Transient
     String nickname;
 

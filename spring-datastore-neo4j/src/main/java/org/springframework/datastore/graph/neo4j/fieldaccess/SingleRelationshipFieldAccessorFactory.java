@@ -3,7 +3,7 @@ package org.springframework.datastore.graph.neo4j.fieldaccess;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.RelationshipType;
-import org.springframework.datastore.graph.annotations.RelatedTo;
+import org.springframework.datastore.graph.annotation.RelatedTo;
 import org.springframework.datastore.graph.api.NodeBacked;
 import org.springframework.datastore.graph.neo4j.support.GraphDatabaseContext;
 

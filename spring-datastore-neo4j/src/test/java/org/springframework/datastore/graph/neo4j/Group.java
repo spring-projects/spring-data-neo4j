@@ -4,10 +4,10 @@ import org.neo4j.graphdb.DynamicRelationshipType;
 import org.neo4j.graphdb.traversal.TraversalDescription;
 import org.neo4j.kernel.Traversal;
 import org.neo4j.kernel.impl.traversal.TraversalDescriptionImpl;
-import org.springframework.datastore.graph.annotations.Indexed;
-import org.springframework.datastore.graph.annotations.GraphTraversal;
-import org.springframework.datastore.graph.annotations.NodeEntity;
-import org.springframework.datastore.graph.annotations.RelatedTo;
+import org.springframework.datastore.graph.annotation.GraphTraversal;
+import org.springframework.datastore.graph.annotation.GraphProperty;
+import org.springframework.datastore.graph.annotation.NodeEntity;
+import org.springframework.datastore.graph.annotation.RelatedTo;
 import org.springframework.datastore.graph.api.*;
 
 import java.lang.reflect.Field;
@@ -25,10 +25,10 @@ public class Group {
     @GraphTraversal(traversalBuilder = PeopleTraversalBuilder.class, elementClass = Person.class)
     private Iterable<Person> people;
 
-    @Indexed
+    @GraphProperty
     private String name;
 
-    @Indexed(false)
+    @GraphProperty(index = false)
     private String unindexedName;
 
     private String unindexedName2;

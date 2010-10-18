@@ -1,4 +1,4 @@
-package org.springframework.datastore.graph.annotations;
+package org.springframework.datastore.graph.annotation;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

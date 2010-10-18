@@ -2,8 +2,8 @@ package org.springframework.datastore.graph.neo4j.fieldaccess;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.datastore.graph.annotations.NodeEntity;
-import org.springframework.datastore.graph.annotations.RelationshipEntity;
+import org.springframework.datastore.graph.annotation.NodeEntity;
+import org.springframework.datastore.graph.annotation.RelationshipEntity;
 import org.springframework.datastore.graph.neo4j.support.GraphDatabaseContext;
 import org.springframework.util.ReflectionUtils;
 

@@ -2,7 +2,7 @@ package org.springframework.datastore.graph.neo4j.fieldaccess;
 
 import org.neo4j.graphdb.Node;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.datastore.graph.annotations.NodeEntity;
+import org.springframework.datastore.graph.annotation.NodeEntity;
 import org.springframework.datastore.graph.api.NodeBacked;
 import org.springframework.datastore.graph.neo4j.support.GraphDatabaseContext;
 

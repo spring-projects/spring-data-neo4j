@@ -1,9 +1,9 @@
 package org.springframework.datastore.graph.neo4j;
 
 
-import org.springframework.datastore.graph.annotations.EndNode;
-import org.springframework.datastore.graph.annotations.RelationshipEntity;
-import org.springframework.datastore.graph.annotations.StartNode;
+import org.springframework.datastore.graph.annotation.EndNode;
+import org.springframework.datastore.graph.annotation.RelationshipEntity;
+import org.springframework.datastore.graph.annotation.StartNode;
 
 import java.util.Date;
 
