@@ -125,7 +125,7 @@
 		<!-- see 'staging' profile for dry-run deployment settings -->
 		<downloadUrl>http://www.springsource.com/download/community</downloadUrl>
 		<site>
-			<id>spring-site</id>
+			<id>static.springframework.org</id>
 			<url>scp://static.springframework.org/var/www/domains/springframework.org/static/htdocs/spring-data/datastore-graph/docs/${project.version}</url>
 		</site>
 		<repository>
