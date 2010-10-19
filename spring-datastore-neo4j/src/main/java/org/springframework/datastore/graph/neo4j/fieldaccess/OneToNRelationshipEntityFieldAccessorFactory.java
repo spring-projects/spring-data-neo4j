@@ -1,10 +1,26 @@
+/*
+ * Copyright 2010 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.springframework.datastore.graph.neo4j.fieldaccess;
 
 import org.neo4j.graphdb.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
-import org.springframework.datastore.graph.api.GraphEntityRelationshipEntity;
+import org.springframework.datastore.graph.annotation.RelatedToVia;
 import org.springframework.datastore.graph.api.NodeBacked;
 import org.springframework.datastore.graph.api.RelationshipBacked;
 import org.springframework.datastore.graph.neo4j.support.GraphDatabaseContext;
@@ -27,28 +43,28 @@ public class OneToNRelationshipEntityFieldAccessorFactory implements FieldAccess
 
 	@Override
 	public FieldAccessor<NodeBacked, ?> forField(final Field field) {
-		final GraphEntityRelationshipEntity relEntityAnnotation = getRelationshipAnnotation(field);
+		final RelatedToVia relEntityAnnotation = getRelationshipAnnotation(field);
 		return new OneToNRelationshipEntityFieldAccessor(typeFrom(relEntityAnnotation), dirFrom(relEntityAnnotation), targetFrom(relEntityAnnotation), graphDatabaseContext);
 	}
 
 	private boolean hasValidRelationshipAnnotation(final Field f) {
-		final GraphEntityRelationshipEntity relEntityAnnotation = getRelationshipAnnotation(f);
+		final RelatedToVia relEntityAnnotation = getRelationshipAnnotation(f);
 		return relEntityAnnotation != null && !RelationshipBacked.class.equals(relEntityAnnotation.elementClass());
 	}
 
-	private GraphEntityRelationshipEntity getRelationshipAnnotation(final Field field) {
-        return field.getAnnotation(GraphEntityRelationshipEntity.class);
+	private RelatedToVia getRelationshipAnnotation(final Field field) {
+        return field.getAnnotation(RelatedToVia.class);
     }
 
-	private Class<? extends RelationshipBacked> targetFrom(final GraphEntityRelationshipEntity relEntityAnnotation) {
+	private Class<? extends RelationshipBacked> targetFrom(final RelatedToVia relEntityAnnotation) {
 		return relEntityAnnotation.elementClass();
 	}
 
-	private Direction dirFrom(final GraphEntityRelationshipEntity relEntityAnnotation) {
+	private Direction dirFrom(final RelatedToVia relEntityAnnotation) {
 		return relEntityAnnotation.direction().toNeo4jDir();
 	}
 
-	private DynamicRelationshipType typeFrom(final GraphEntityRelationshipEntity relEntityAnnotation) {
+	private DynamicRelationshipType typeFrom(final RelatedToVia relEntityAnnotation) {
 		return DynamicRelationshipType.withName(relEntityAnnotation.type());
 	}
 

@@ -1,9 +1,9 @@
 package org.springframework.datastore.graph.neo4j;
 
 import org.neo4j.graphdb.Node;
-import org.springframework.datastore.graph.api.GraphEntity;
+import org.springframework.datastore.graph.annotation.NodeEntity;
 
-@GraphEntity
+@NodeEntity
 public class Volvo extends Car {
 	public Volvo() {
 	}

@@ -1,18 +1,18 @@
 package org.springframework.datastore.graph.neo4j.partial;
 
-import org.springframework.datastore.graph.api.GraphRelationship;
-import org.springframework.datastore.graph.api.GraphRelationshipEndNode;
-import org.springframework.datastore.graph.api.GraphRelationshipStartNode;
+import org.springframework.datastore.graph.annotation.EndNode;
+import org.springframework.datastore.graph.annotation.RelationshipEntity;
+import org.springframework.datastore.graph.annotation.StartNode;
 
 /**
  * @author Michael Hunger
  * @since 27.09.2010
  */
-@GraphRelationship
+@RelationshipEntity
 public class Recommendation {
-    @GraphRelationshipStartNode
+    @StartNode
     private User user;
-    @GraphRelationshipEndNode
+    @EndNode
     private Restaurant restaurant;
 
     private int stars;

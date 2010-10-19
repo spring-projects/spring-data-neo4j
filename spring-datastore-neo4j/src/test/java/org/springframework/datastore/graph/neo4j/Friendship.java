@@ -1,13 +1,13 @@
 package org.springframework.datastore.graph.neo4j;
 
 
-import org.springframework.datastore.graph.api.GraphRelationship;
-import org.springframework.datastore.graph.api.GraphRelationshipEndNode;
-import org.springframework.datastore.graph.api.GraphRelationshipStartNode;
+import org.springframework.datastore.graph.annotation.EndNode;
+import org.springframework.datastore.graph.annotation.RelationshipEntity;
+import org.springframework.datastore.graph.annotation.StartNode;
 
 import java.util.Date;
 
-@GraphRelationship(useShortNames = false)
+@RelationshipEntity(useShortNames = false)
 public class Friendship {
 
     public Friendship() {
@@ -24,10 +24,10 @@ public class Friendship {
 		this.years = years;
 	}
 
-	@GraphRelationshipStartNode
+	@StartNode
 	private Person p1;
 	
-	@GraphRelationshipEndNode
+	@EndNode
 	private Person p2;
 	
 	private int years;

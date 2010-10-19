@@ -1,16 +1,21 @@
 package org.springframework.datastore.graph.neo4j;
 
+import org.springframework.datastore.graph.annotation.GraphProperty;
+import org.springframework.datastore.graph.annotation.NodeEntity;
+import org.springframework.datastore.graph.annotation.GraphId;
+import org.springframework.datastore.graph.annotation.RelatedTo;
+import org.springframework.datastore.graph.annotation.RelatedToVia;
 import org.springframework.datastore.graph.api.*;
 import java.util.Date;
 
 
-@GraphEntity(useShortNames = false)
+@NodeEntity(useShortNames = false)
 public class Person {
 
 	@GraphId
 	private Long graphId;
 
-    @GraphEntityProperty(index = true)
+    @GraphProperty(index = true)
 	private String name;
 	
 	private int age;
@@ -27,13 +32,13 @@ public class Person {
 
 	private Car car;
 	
-	@GraphEntityRelationship(type = "mother", direction = Direction.OUTGOING)
+	@RelatedTo(type = "mother", direction = Direction.OUTGOING)
 	private Person mother;
 	
-	@GraphEntityRelationship(type = "boss", direction = Direction.INCOMING)
+	@RelatedTo(type = "boss", direction = Direction.INCOMING)
 	private Person boss;
 
-	@GraphEntityRelationshipEntity(type = "knows", elementClass = Friendship.class)
+	@RelatedToVia(type = "knows", elementClass = Friendship.class)
 	private Iterable<Friendship> friendships;
 
     public Person() {

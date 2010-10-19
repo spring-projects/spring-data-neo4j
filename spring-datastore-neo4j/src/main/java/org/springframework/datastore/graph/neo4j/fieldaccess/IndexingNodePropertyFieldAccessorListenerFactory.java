@@ -1,10 +1,26 @@
+/*
+ * Copyright 2010 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.springframework.datastore.graph.neo4j.fieldaccess;
 
 import org.neo4j.index.IndexService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
-import org.springframework.datastore.graph.api.GraphEntity;
-import org.springframework.datastore.graph.api.GraphEntityProperty;
+import org.springframework.datastore.graph.annotation.GraphProperty;
+import org.springframework.datastore.graph.annotation.NodeEntity;
 import org.springframework.datastore.graph.api.NodeBacked;
 
 import java.lang.reflect.Field;
@@ -28,9 +44,9 @@ class IndexingNodePropertyFieldAccessorListenerFactory implements FieldAccessorL
     }
 
     private boolean isIndexed(final Field f) {
-        final GraphEntity entityAnnotation = f.getDeclaringClass().getAnnotation(GraphEntity.class);
+        final NodeEntity entityAnnotation = f.getDeclaringClass().getAnnotation(NodeEntity.class);
         if (entityAnnotation!=null && entityAnnotation.fullIndex()) return true;
-        final GraphEntityProperty propertyAnnotation = f.getAnnotation(GraphEntityProperty.class);
+        final GraphProperty propertyAnnotation = f.getAnnotation(GraphProperty.class);
         return propertyAnnotation!=null && propertyAnnotation.index();
     }
 

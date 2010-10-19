@@ -14,23 +14,19 @@
  * limitations under the License.
  */
 
-package org.springframework.datastore.graph.neo4j.fieldaccess;
+package org.springframework.datastore.graph.annotation;
+
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
  * @author Michael Hunger
- * @since 15.09.2010
+ * @since 27.08.2010
  */
-public class DoReturn<T> {
-    public final T value;
-
-    public DoReturn(T value) {
-        this.value = value;
-    }
-    public static <T> DoReturn<T> doReturn(T value) {
-        return new DoReturn<T>(value);
-    }
-
-    public static Object unwrap(final Object value) {
-        return (value instanceof DoReturn) ? ((DoReturn) value).value : value;
-    }
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.TYPE)
+public @interface RelationshipEntity {
+    boolean useShortNames() default true;
 }

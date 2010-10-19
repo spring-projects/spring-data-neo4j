@@ -14,23 +14,26 @@
  * limitations under the License.
  */
 
-package org.springframework.datastore.graph.neo4j.fieldaccess;
+package org.springframework.datastore.graph.annotation;
+
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
+import org.springframework.datastore.graph.api.Direction;
+import org.springframework.datastore.graph.api.RelationshipBacked;
 
 /**
  * @author Michael Hunger
- * @since 15.09.2010
+ * @since 27.08.2010
  */
-public class DoReturn<T> {
-    public final T value;
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.FIELD)
+public @interface RelatedToVia {
+    String type();
 
-    public DoReturn(T value) {
-        this.value = value;
-    }
-    public static <T> DoReturn<T> doReturn(T value) {
-        return new DoReturn<T>(value);
-    }
+    Direction direction() default Direction.OUTGOING;
 
-    public static Object unwrap(final Object value) {
-        return (value instanceof DoReturn) ? ((DoReturn) value).value : value;
-    }
+    Class<? extends RelationshipBacked> elementClass() default RelationshipBacked.class;
 }

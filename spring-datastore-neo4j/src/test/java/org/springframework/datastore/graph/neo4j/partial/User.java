@@ -1,6 +1,10 @@
 package org.springframework.datastore.graph.neo4j.partial;
 
 import org.neo4j.graphdb.DynamicRelationshipType;
+import org.springframework.datastore.graph.annotation.GraphProperty;
+import org.springframework.datastore.graph.annotation.NodeEntity;
+import org.springframework.datastore.graph.annotation.RelatedTo;
+import org.springframework.datastore.graph.annotation.RelatedToVia;
 import org.springframework.datastore.graph.api.*;
 
 import javax.persistence.*;
@@ -11,7 +15,7 @@ import java.util.Set;
  * @since 27.09.2010
  */
 @Entity
-@GraphEntity(partial = true)
+@NodeEntity(partial = true)
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.TABLE, generator = "id_gen")
@@ -21,15 +25,15 @@ public class User {
     String name;
     int age;
 
-    @GraphEntityProperty
+    @GraphProperty
     @Transient
     String nickname;
 
-    @GraphEntityRelationshipEntity(type = "recommends", elementClass = Recommendation.class)
+    @RelatedToVia(type = "recommends", elementClass = Recommendation.class)
     @Transient
     Iterable<Recommendation> recommendations;
 
-    @GraphEntityRelationship(type = "friends", elementClass = User.class)
+    @RelatedTo(type = "friends", elementClass = User.class)
     @Transient
     Set<User> friends;
 

@@ -20,6 +20,7 @@ import org.springframework.datastore.graph.neo4j.finder.Finder;
 import org.springframework.datastore.graph.neo4j.finder.FinderFactory;
 import org.springframework.datastore.graph.neo4j.spi.node.Neo4jHelper;
 import org.springframework.datastore.graph.neo4j.support.GraphDatabaseContext;
+import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
@@ -491,6 +492,7 @@ public class Neo4jGraphPersistenceTest {
 
 	@Test
 	@Transactional
+	@Rollback(false)
 	public void testTraverseFieldFromGroupToPeople() {
         Person p = new Person("Michael", 35);
 		Group group = new Group();
@@ -556,6 +558,7 @@ public class Neo4jGraphPersistenceTest {
 
 	@Test
 	@Transactional
+	@Rollback(false)
 	public void testRelationshipSetPropertyDate() {
 		Person p = new Person("Michael", 35);
         Person p2 = new Person("David", 25);
