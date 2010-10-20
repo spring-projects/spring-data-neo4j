@@ -6,27 +6,37 @@ Datastore-graph-neo4j is to Neo4j what Hibernate is to an RDBMS. It requires
 AspectJ and Spring Framework.
 
 
-Standalone setup using datastore-graph-neo4j
-============================================
+Standalone setup of project using datastore-graph-neo4j
+=======================================================
 
-1. You need to git clone and mvn install the dependencies:
+1. Include datastore-graph-neo4j in your pom.xml:
 
-     spring-data-parent
-     data-commons
+  <dependency>
+    <groupId>org.springframework.data</groupId>
+    <artifactId>spring-datastore-neo4j</artifactId>
+    <version>1.0.0.BUILD-SNAPSHOT</version>
+  </dependency> 
 
-2. Build datastore-graph-neo4j:
+2. Since datastore-graph-neo4j requires Spring Framework to work, setting up 
+   those dependencies in your project is not included in this guide. You need:
 
-     mvn install
+   <dependency>
+     <groupId>org.springframework</groupId>
+     <artifactId>spring-beans</artifactId>
+     <version>3.0.4.RELEASE</version>
+   </dependency>
+   <dependency>
+     <groupId>org.springframework</groupId>
+     <artifactId>spring-tx</artifactId>
+     <version>3.0.4.RELEASE</version>
+   </dependency>
+   <dependency>
+     <groupId>org.springframework</groupId>
+     <artifactId>spring-orm</artifactId>
+     <version>3.0.4.RELEASE</version>
+   </dependency>
 
-   Then grab target/spring-datastore-neo4j-*-SNAPSHOT.jar and add it as a 
-   dependency to your project.
-
-3. Since datastore-graph-neo4j requires Spring Framework to work, setting up 
-   those dependencies in your project is not included in this guide. You 
-   pretty much need spring-beans, spring-tx, and spring-orm, and that will 
-   pretty much include the rest of the libraries.
-
-4. Add the following plugin XML to your project's <plugins> config in pom.xml
+3. Add the following plugin XML to your project's <plugins> config in pom.xml
    to hook AspectJ into the build process:
 
    <plugin>
@@ -71,7 +81,7 @@ Standalone setup using datastore-graph-neo4j
    </plugin>
 
 
-5. This is a basic Spring XML context configuration to get started. It creates 
+4. This is a basic Spring XML context configuration to get started. It creates 
    all dependencies required by the library. After this is set up, you can just
    use the annotated POJOs and they will automatically be backed by Neo4j. The 
    one thing that the user has to do is wrap any datastore-graph-neo4j usage 
