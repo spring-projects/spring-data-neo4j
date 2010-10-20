@@ -17,26 +17,7 @@ Standalone setup of project using datastore-graph-neo4j
     <version>1.0.0.BUILD-SNAPSHOT</version>
   </dependency> 
 
-2. Since datastore-graph-neo4j requires Spring Framework to work, setting up 
-   those dependencies in your project is not included in this guide. You need:
-
-   <dependency>
-     <groupId>org.springframework</groupId>
-     <artifactId>spring-beans</artifactId>
-     <version>3.0.4.RELEASE</version>
-   </dependency>
-   <dependency>
-     <groupId>org.springframework</groupId>
-     <artifactId>spring-tx</artifactId>
-     <version>3.0.4.RELEASE</version>
-   </dependency>
-   <dependency>
-     <groupId>org.springframework</groupId>
-     <artifactId>spring-orm</artifactId>
-     <version>3.0.4.RELEASE</version>
-   </dependency>
-
-3. Add the following plugin XML to your project's <plugins> config in pom.xml
+2. Add the following plugin XML to your project's <plugins> config in pom.xml
    to hook AspectJ into the build process:
 
    <plugin>
@@ -81,7 +62,7 @@ Standalone setup of project using datastore-graph-neo4j
    </plugin>
 
 
-4. This is a basic Spring XML context configuration to get started. It creates 
+3. This is a basic Spring XML context configuration to get started. It creates 
    all dependencies required by the library. After this is set up, you can just
    use the annotated POJOs and they will automatically be backed by Neo4j. The 
    one thing that the user has to do is wrap any datastore-graph-neo4j usage 
