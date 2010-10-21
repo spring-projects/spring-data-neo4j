@@ -19,8 +19,8 @@ package org.springframework.datastore.graph.neo4j.fieldaccess;
 import org.neo4j.index.IndexService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
+import org.springframework.datastore.annotation.Indexed;
 import org.springframework.datastore.graph.annotation.GraphProperty;
-import org.springframework.datastore.graph.annotation.Indexed;
 import org.springframework.datastore.graph.annotation.NodeEntity;
 import org.springframework.datastore.graph.api.NodeBacked;
 

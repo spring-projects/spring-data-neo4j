@@ -1,5 +1,6 @@
 package org.springframework.datastore.graph.neo4j;
 
+import org.springframework.datastore.annotation.Indexed;
 import org.springframework.datastore.graph.annotation.*;
 import org.springframework.datastore.graph.api.Direction;
 
