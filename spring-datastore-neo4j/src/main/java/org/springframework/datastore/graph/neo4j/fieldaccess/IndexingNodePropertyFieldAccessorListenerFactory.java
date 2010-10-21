@@ -20,6 +20,7 @@ import org.neo4j.index.IndexService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 import org.springframework.datastore.graph.annotation.GraphProperty;
+import org.springframework.datastore.graph.annotation.Indexed;
 import org.springframework.datastore.graph.annotation.NodeEntity;
 import org.springframework.datastore.graph.api.NodeBacked;
 
@@ -46,6 +47,8 @@ class IndexingNodePropertyFieldAccessorListenerFactory implements FieldAccessorL
     private boolean isIndexed(final Field f) {
         final NodeEntity entityAnnotation = f.getDeclaringClass().getAnnotation(NodeEntity.class);
         if (entityAnnotation!=null && entityAnnotation.fullIndex()) return true;
+	    final Indexed indexedAnnotation = f.getAnnotation(Indexed.class);
+        if (indexedAnnotation != null) return true;
         final GraphProperty propertyAnnotation = f.getAnnotation(GraphProperty.class);
         return propertyAnnotation!=null && propertyAnnotation.index();
     }

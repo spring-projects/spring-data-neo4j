@@ -471,9 +471,19 @@ public class Neo4jGraphPersistenceTest {
 		Person person = new Person("Michael",35);
         final Finder<Person> finder = finderFactory.getFinderForClass(Person.class);
         final Person found = finder.findByPropertyValue("Person.name", "Michael");
-        assertEquals(person, found);
+	    assertEquals(person, found);
+    }
+
+	@Test
+	@Transactional
+	public void testFindAllPersonByIndexOnAnnotatedFieldWithAtIndexed() {
+		Person person = new Person("Michael", 35);
+		person.setNickname("Mike");
+		final Finder<Person> finder = finderFactory.getFinderForClass(Person.class);
+		final Person found = finder.findByPropertyValue("Person.nickname", "Mike");
+		assertEquals(person, found);
 	}
-    
+
 	@Test
 	@Transactional
 	public void testTraverseFromGroupToPeople() {

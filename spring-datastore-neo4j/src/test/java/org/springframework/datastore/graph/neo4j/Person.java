@@ -1,11 +1,8 @@
 package org.springframework.datastore.graph.neo4j;
 
-import org.springframework.datastore.graph.annotation.GraphProperty;
-import org.springframework.datastore.graph.annotation.NodeEntity;
-import org.springframework.datastore.graph.annotation.GraphId;
-import org.springframework.datastore.graph.annotation.RelatedTo;
-import org.springframework.datastore.graph.annotation.RelatedToVia;
-import org.springframework.datastore.graph.api.*;
+import org.springframework.datastore.graph.annotation.*;
+import org.springframework.datastore.graph.api.Direction;
+
 import java.util.Date;
 
 
@@ -17,24 +14,27 @@ public class Person {
 
     @GraphProperty(index = true)
 	private String name;
-	
+
+	@Indexed
+	private String nickname;
+
 	private int age;
 
 	private Short height;
-	
+
 	private transient String thought;
-	
+
 	private Personality personality;
-	
+
 	private Date birthdate;
 
 	private Person spouse;
 
 	private Car car;
-	
+
 	@RelatedTo(type = "mother", direction = Direction.OUTGOING)
 	private Person mother;
-	
+
 	@RelatedTo(type = "boss", direction = Direction.INCOMING)
 	private Person boss;
 
@@ -48,7 +48,7 @@ public class Person {
 		this.name = name;
 		this.age = age;
 	}
-	
+
 	public String getName() {
 		return name;
 	}
@@ -64,7 +64,7 @@ public class Person {
 	public void setAge(int age) {
 		this.age = age;
 	}
-	
+
 	public Short getHeight() {
 		return height;
 	}
@@ -89,24 +89,24 @@ public class Person {
 	public void setMother(Person mother) {
 		this.mother = mother;
 	}
-	
+
 	public Person getBoss() {
 		return boss;
 	}
-	
+
 	public void setBoss(Person boss) {
 		this.boss = boss;
 	}
-	
+
 	@Override
 	public String toString() {
 		return name;
 	}
-	
+
 	public Iterable<Friendship> getFriendships() {
 		return friendships;
 	}
-	
+
 	public void setFriendships(Iterable<Friendship> f) {
 		friendships = f;
 	}
@@ -114,19 +114,19 @@ public class Person {
 	public Friendship knows(Person p) {
         return (Friendship)relateTo(p, Friendship.class,"knows");
 	}
-	
+
 	public void setPersonality(Personality personality) {
 		this.personality = personality;
 	}
-	
+
 	public Personality getPersonality() {
 		return personality;
 	}
-	
+
 	public void setThought(String thought) {
 		this.thought = thought;
 	}
-	
+
 	public String getThought() {
 		return thought;
 	}
@@ -150,5 +150,8 @@ public class Person {
 	public Car getCar() {
 		return car;
 	}
-	
+
+	public void setNickname(String nickname) {
+		this.nickname = nickname;
+	}
 }
