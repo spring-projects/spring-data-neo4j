@@ -147,15 +147,4 @@
  
     <tx:annotation-driven mode="aspectj" transaction-manager="transactionManager"/>
 
-    <bean class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean" id="entityManagerFactory">
-        <property name="jpaDialect">
-            <bean class="org.springframework.datastore.graph.neo4j.jpa.Neo4jJpaDialect"/>
-        </property>
-        <property name="persistenceProvider">
-            <bean class="org.springframework.datastore.graph.neo4j.jpa.Neo4jPersistenceProvider"/>
-        </property>
-        <property name="persistenceXmlLocation" value="classpath:META-INF/persistence-neo4j.xml"/>
-    </bean>
-
-    <!--bean id="neoEntityManager"  class="org.springframework.persistence.graph.neo4j.Neo4jEntityManager" scope="prototype"/-->
 </beans>

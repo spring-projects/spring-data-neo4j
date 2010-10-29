@@ -11,6 +11,7 @@
 		<module>spring-datastore-graph-parent</module>
 		<module>spring-datastore-graph-core</module>
 		<module>spring-datastore-neo4j</module>
+		<module>spring-datastore-neo4j-roo</module>
 	</modules>
 
 	<developers>
