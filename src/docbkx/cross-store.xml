@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN"
+"http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
+<chapter id="cross-store">
+  <title>Cross-store persistence with a graph database</title>
+
+  <para>The Spring Datastore Graph project support cross-store persistence
+  ...</para>
+
+  <section>
+    <title>Partial graph persistence</title>
+
+    <para>..</para>
+
+    <section>
+      <title>@NodeEntity(partial = "true")</title>
+
+      <para>..</para>
+    </section>
+
+    <section>
+      <title>@GraphProperty</title>
+
+      <para>..</para>
+    </section>
+  </section>
+
+  <section>
+    <title>Configuring cross-store persistence</title>
+
+    <para>..</para>
+  </section>
+</chapter>

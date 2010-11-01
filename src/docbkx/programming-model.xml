@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN"
+"http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
+<chapter id="programming-model">
+  <title>Programming model for a graph database</title>
+
+  <para>This chapter ...</para>
+
+  <section>
+    <title>Overview of the AspectJ support</title>
+
+    <para>..</para>
+  </section>
+
+  <section>
+    <title>Using annotations to define POJO entities and relationships</title>
+
+    <para>..</para>
+
+    <section>
+      <title>@NodeEntity</title>
+
+      <para>..</para>
+    </section>
+
+    <section>
+      <title>@RelationshipEntity</title>
+
+      <para>..</para>
+    </section>
+
+    <section>
+      <title>@RelatedTo</title>
+
+      <para>..</para>
+    </section>
+
+    <section>
+      <title>@RelatedToVia</title>
+
+      <para>..</para>
+    </section>
+
+    <section>
+      <title>@StartNode</title>
+
+      <para>..</para>
+    </section>
+
+    <section>
+      <title>@EndNode</title>
+
+      <para>..</para>
+    </section>
+
+    <section>
+      <title>@Indexed</title>
+
+      <para>..</para>
+    </section>
+
+    <section>
+      <title>@GraphTraversal</title>
+
+      <para>..</para>
+    </section>
+  </section>
+
+  <section>
+    <title>Configuration</title>
+
+    <para>..</para>
+  </section>
+</chapter>
