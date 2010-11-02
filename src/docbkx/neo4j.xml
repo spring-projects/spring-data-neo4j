@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN"
+"http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
+<chapter id="neo4j-intro">
+  <title>Introduction to Neo4j graph database</title>
+
+  <para>The Neo4j database ...</para>
+
+  <section>
+    <title>What is a graph database?</title>
+
+    <para>..</para>
+  </section>
+
+  <section>
+    <title>GraphDatabaseService</title>
+
+    <para>..</para>
+  </section>
+
+  <section>
+    <title>Creating a Node</title>
+
+    <para>..</para>
+  </section>
+
+  <section>
+    <title>Creating a relationship</title>
+
+    <para>..</para>
+  </section>
+
+  <section>
+    <title>Adding attributes to a relationship</title>
+
+    <para>..</para>
+  </section>
+
+  <section>
+    <title>Graph traversal</title>
+
+    <para>..</para>
+  </section>
+</chapter>

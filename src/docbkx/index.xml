@@ -8,6 +8,14 @@
 
         <authorgroup>
             <author>
+                <firstname>Michael</firstname>
+                <surname>Hunger</surname>
+            </author>
+            <author>
+                <firstname>David</firstname>
+                <surname>Montag</surname>
+            </author>
+            <author>
                 <firstname>Mark</firstname>
                 <surname>Pollack</surname>
             </author>
@@ -29,8 +37,6 @@
 
     <toc/>
 
-    <xi:include href="preface.xml"/>
-
     <part>
         <title>Reference</title>
         <partintro>
@@ -38,6 +44,9 @@
                 This part of the reference documentation details the ...
             </para>
         </partintro>
-        <!-- <xi:include href="neo4j.xml"/> -->
+	    <xi:include href="preface.xml"/>
+	    <xi:include href="neo4j.xml"/>
+	    <xi:include href="programming-model.xml"/>
+	    <xi:include href="cross-store.xml"/>
     </part>
 </book>
