@@ -11,7 +11,7 @@
 	<packaging>jar</packaging>
 	<name>Spring Datastore Neo4J Roo Support</name>
 	<properties>
-		<aspectj.version>1.6.10.BUILD-SNAPSHOT</aspectj.version>
+		<aspectj.version>1.6.10.RELEASE</aspectj.version>
 	</properties>
 	<dependencies>
 
