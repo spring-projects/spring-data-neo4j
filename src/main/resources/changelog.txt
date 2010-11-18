@@ -1,4 +1,4 @@
-Spring Datastore Key-Value 1.0.0 Milestone 1 (?, 2010)
+Spring Data Graph 1.0.0 Milestone 1 (?, 2010)
 =============================================
 
 New Features

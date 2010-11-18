@@ -3,15 +3,15 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.springframework.data</groupId>
-	<artifactId>spring-datastore-graph-dist</artifactId>
-	<name>Spring Datastore Graph Distribution</name>
+	<artifactId>spring-data-graph-dist</artifactId>
+	<name>Spring Data Graph Distribution</name>
 	<version>1.0.0.BUILD-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	<modules>
-		<module>spring-datastore-graph-parent</module>
-		<module>spring-datastore-graph-core</module>
-		<module>spring-datastore-neo4j</module>
-		<module>spring-datastore-neo4j-roo</module>
+		<module>spring-data-graph-parent</module>
+		<module>spring-data-graph-core</module>
+		<module>spring-data-neo4j</module>
+		<module>spring-data-neo4j-roo</module>
 	</modules>
 
 	<developers>
@@ -89,8 +89,8 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<!-- dist.* properties are used by the antrun tasks below -->
-		<dist.id>spring-datastore-graph</dist.id>
-		<dist.name>Spring Datastore Graph</dist.name>
+		<dist.id>spring-data-graph</dist.id>
+		<dist.name>Spring Data Graph</dist.name>
 		<dist.key>DATAGRAPH</dist.key>
 		<dist.version>${project.version}</dist.version>
 		<dist.releaseType>snapshot</dist.releaseType>
@@ -109,15 +109,15 @@
 			<distributionManagement>
 				<site>
 					<id>spring-site-staging</id>
-					<url>file:///${java.io.tmpdir}/spring-data/datastore-graph/docs/${project.version}</url>
+					<url>file:///${java.io.tmpdir}/spring-data/data-graph/docs/${project.version}</url>
 				</site>
 				<repository>
 					<id>spring-milestone-staging</id>
-					<url>file:///${java.io.tmpdir}/spring-data/datastore-graph/milestone</url>
+					<url>file:///${java.io.tmpdir}/spring-data/data-graph/milestone</url>
 				</repository>
 				<snapshotRepository>
 					<id>spring-snapshot-staging</id>
-					<url>file:///${java.io.tmpdir}/spring-data/datastore-graph/snapshot</url>
+					<url>file:///${java.io.tmpdir}/spring-data/data-graph/snapshot</url>
 				</snapshotRepository>
 			</distributionManagement>
 		</profile>
@@ -127,7 +127,7 @@
 		<downloadUrl>http://www.springsource.com/download/community</downloadUrl>
 		<site>
 			<id>static.springframework.org</id>
-			<url>scp://static.springframework.org/var/www/domains/springframework.org/static/htdocs/spring-data/datastore-graph/docs/${project.version}</url>
+			<url>scp://static.springframework.org/var/www/domains/springframework.org/static/htdocs/spring-data/data-graph/docs/${project.version}</url>
 		</site>
 		<repository>
 			<id>spring-milestone</id>
@@ -206,7 +206,7 @@
 							</fileset>
 						</copy>
 						<move file="${project.basedir}/target/site/reference/pdf/index.pdf"
-							tofile="${project.basedir}/target/site/reference/pdf/spring-datastore-graph-reference.pdf"
+							tofile="${project.basedir}/target/site/reference/pdf/spring-data-graph-reference.pdf"
 							failonerror="false" />
 					</postProcess>
 				</configuration>
@@ -224,7 +224,7 @@
 						<configuration>
 							<javadoc:aggregate>true</javadoc:aggregate>
 							<breakiterator>true</breakiterator>
-							<header>Spring Datastore Graph</header>
+							<header>Spring Data Graph</header>
 							<source>1.5</source>
 							<quiet>true</quiet>
 							<javadocDirectory>${project.basedir}/src/main/javadoc</javadocDirectory>

@@ -1,7 +1,7 @@
-SPRING DATASTORE KEY-VALUE 1.0.0 M1 (? ? 2010)
--------------------------------------------------
+SPRING DATA GRAPH 1.0.0 M1 (? ? 2010)
+-------------------------------------
 
-Spring Datastore Key-Value is released under the terms of the Apache Software License Version 2.0 (see license.txt).
+Spring Data Graph is released under the terms of the Apache Software License Version 2.0 (see license.txt).
 
 
 DISTRIBUTION CONTENTS:

@@ -4,6 +4,6 @@
 <preface id="preface">
   <title>Preface</title>
 
-  <para>The Spring Datastore Graph project applies core Spring concepts to the development of solutions using a graph style data store. 
+  <para>The Spring Data Graph project applies core Spring concepts to the development of solutions using a graph style data store. 
   </para>
 </preface>

@@ -1,0 +1,25 @@
+Bundle-SymbolicName: org.springframework.data.neo4j
+Bundle-Name: Spring Data Neo4J
+Bundle-Vendor: SpringSource
+Bundle-ManifestVersion: 2
+Import-Package: 
+ sun.reflect;version="0";resolution:=optional
+Import-Template: 
+ org.springframework.beans.*;version="[3.0.0, 4.0.0)",
+ org.springframework.core.*;version="[3.0.0, 4.0.0)",
+ org.springframework.dao.*;version="[3.0.0, 4.0.0)",
+ org.springframework.jdbc.*;version="[3.0.0, 4.0.0)",
+ org.springframework.orm.*;version="[3.0.0, 4.0.0)",
+ org.springframework.transaction.*;version="[3.0.0, 4.0.0)",
+ org.springframework.util.*;version="[3.0.0, 4.0.0)",
+ org.springframework.data.core.*;version="[1.0.0, 2.0.0)",
+ org.springframework.data.core.*;version="[1.0.0, 2.0.0)",
+ org.springframework.data.annotation.*;version="[1.0.0, 2.0.0)",
+ org.springframework.persistence.*;version="[1.0.0, 2.0.0)",
+ org.neo4j.*;version="0",
+ org.aspectj.*;version="[1.6.5, 2.0.0)",
+ org.apache.commons.logging.*;version="[1.1.1, 2.0.0)",
+ javax.annotation.*;version="0";resolution:=optional,
+ javax.persistence.*;version="[1.0.0, 3.0.0)";resolution:=optional,
+ javax.persistence.spi.*;version="[1.0.0, 3.0.0)";resolution:=optional,
+ javax.transaction.*;version="[1.0.1, 2.0.0)";resolution:=optional

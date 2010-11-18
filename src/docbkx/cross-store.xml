@@ -4,7 +4,7 @@
 <chapter id="cross-store">
   <title>Cross-store persistence with a graph database</title>
 
-  <para>The Spring Datastore Graph project support cross-store persistence
+  <para>The Spring Data Graph project support cross-store persistence
   ...</para>
 
   <section>
