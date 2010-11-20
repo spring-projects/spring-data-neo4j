@@ -16,11 +16,9 @@
 
 package org.springframework.data.graph.neo4j.fieldaccess;
 
-import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.graph.api.NodeBacked;
-import org.springframework.data.graph.api.RelationshipBacked;
+import org.springframework.data.graph.core.RelationshipBacked;
 import org.springframework.data.graph.neo4j.support.GraphDatabaseContext;
 
 public class RelationshipEntityStateAccessorsFactory {

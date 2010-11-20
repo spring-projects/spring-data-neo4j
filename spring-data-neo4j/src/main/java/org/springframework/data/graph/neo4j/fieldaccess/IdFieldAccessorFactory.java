@@ -16,9 +16,8 @@
 
 package org.springframework.data.graph.neo4j.fieldaccess;
 
-import org.neo4j.graphdb.Node;
 import org.springframework.data.graph.annotation.GraphId;
-import org.springframework.data.graph.api.NodeBacked;
+import org.springframework.data.graph.core.NodeBacked;
 
 import javax.persistence.Id;
 import java.lang.reflect.Field;

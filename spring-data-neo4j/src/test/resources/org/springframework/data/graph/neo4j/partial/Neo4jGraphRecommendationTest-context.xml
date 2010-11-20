@@ -69,9 +69,9 @@
 	    Start datastore config
     -->
 
-	<bean id="neo4jNodeBacking" class="org.springframework.data.graph.neo4j.spi.node.Neo4jNodeBacking" factory-method="aspectOf" depends-on="nodeEntityStateAccessorsFactory"/>
+	<bean id="neo4jNodeBacking" class="org.springframework.data.graph.neo4j.support.node.Neo4jNodeBacking" factory-method="aspectOf" depends-on="nodeEntityStateAccessorsFactory"/>
 
-	<bean class="org.springframework.data.graph.neo4j.spi.relationship.Neo4jRelationshipBacking" factory-method="aspectOf" />
+	<bean class="org.springframework.data.graph.neo4j.support.relationship.Neo4jRelationshipBacking" factory-method="aspectOf" />
 
 	<!--
 		<bean class="org.springframework.persistence.graph.Neo4jSimpleNodePropertyStorageForeignStoreKeyManager"/>
@@ -101,13 +101,13 @@
 		<constructor-arg ref="graphDatabaseContext" />
 	</bean>
 	
-	<bean id="graphEntityInstantiator" name="gei" class="org.springframework.data.graph.neo4j.spi.node.PartialNeo4jEntityInstantiator">
+	<bean id="graphEntityInstantiator" name="gei" class="org.springframework.data.graph.neo4j.support.node.PartialNeo4jEntityInstantiator">
         <property name="entityInstantiator" >
-            <bean class="org.springframework.data.graph.neo4j.spi.node.Neo4jConstructorGraphEntityInstantiator"/>
+            <bean class="org.springframework.data.graph.neo4j.support.node.Neo4jConstructorGraphEntityInstantiator"/>
         </property>
     </bean>
 	
-	<bean id="relationshipEntityInstantiator" name="rei" class="org.springframework.data.graph.neo4j.spi.relationship.ConstructorBypassingGraphRelationshipInstantiator" />
+	<bean id="relationshipEntityInstantiator" name="rei" class="org.springframework.data.graph.neo4j.support.relationship.ConstructorBypassingGraphRelationshipInstantiator" />
 	
 	<!-- conversion support -->
 	<bean id="conversionService" class="org.springframework.data.graph.neo4j.fieldaccess.Neo4jConversionServiceFactoryBean"/>

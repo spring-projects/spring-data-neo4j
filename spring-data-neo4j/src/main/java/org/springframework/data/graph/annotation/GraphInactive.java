@@ -21,9 +21,9 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import org.springframework.data.graph.api.Direction;
-import org.springframework.data.graph.api.NodeBacked;
-import org.springframework.data.graph.api.RelationshipBacked;
+import org.springframework.data.graph.core.Direction;
+import org.springframework.data.graph.core.NodeBacked;
+import org.springframework.data.graph.core.RelationshipBacked;
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)

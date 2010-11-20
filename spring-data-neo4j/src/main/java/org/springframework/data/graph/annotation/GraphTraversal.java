@@ -21,8 +21,8 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import org.springframework.data.graph.api.FieldTraversalDescriptionBuilder;
-import org.springframework.data.graph.api.NodeBacked;
+import org.springframework.data.graph.core.FieldTraversalDescriptionBuilder;
+import org.springframework.data.graph.core.NodeBacked;
 
 /**
  * @author Michael Hunger

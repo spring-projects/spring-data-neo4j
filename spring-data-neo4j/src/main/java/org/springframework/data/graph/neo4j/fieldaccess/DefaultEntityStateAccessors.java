@@ -18,7 +18,7 @@ package org.springframework.data.graph.neo4j.fieldaccess;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.data.graph.api.GraphBacked;
+import org.springframework.data.graph.core.GraphBacked;
 
 import java.lang.reflect.Field;
 import java.util.List;

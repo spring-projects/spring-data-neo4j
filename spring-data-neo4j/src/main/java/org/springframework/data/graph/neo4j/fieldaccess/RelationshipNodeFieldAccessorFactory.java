@@ -23,8 +23,8 @@ import org.springframework.beans.factory.annotation.Configurable;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.graph.annotation.EndNode;
 import org.springframework.data.graph.annotation.StartNode;
-import org.springframework.data.graph.api.NodeBacked;
-import org.springframework.data.graph.api.RelationshipBacked;
+import org.springframework.data.graph.core.NodeBacked;
+import org.springframework.data.graph.core.RelationshipBacked;
 import org.springframework.data.graph.neo4j.support.GraphDatabaseContext;
 
 import java.lang.reflect.Field;

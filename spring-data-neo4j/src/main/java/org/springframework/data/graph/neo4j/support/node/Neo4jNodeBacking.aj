@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.data.graph.neo4j.spi.node;
+package org.springframework.data.graph.neo4j.support.node;
 
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.reflect.FieldSignature;
@@ -26,15 +26,11 @@ import org.neo4j.graphdb.traversal.TraversalDescription;
 import org.neo4j.graphdb.traversal.Traverser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.graph.annotation.NodeEntity;
-import org.springframework.data.graph.api.NodeBacked;
-import org.springframework.data.graph.api.RelationshipBacked;
+import org.springframework.data.graph.core.NodeBacked;
+import org.springframework.data.graph.core.RelationshipBacked;
 import org.springframework.data.graph.neo4j.fieldaccess.*;
-import org.springframework.data.graph.neo4j.spi.node.Neo4jConstructorGraphEntityInstantiator;
-import org.springframework.data.graph.neo4j.spi.relationship.ConstructorBypassingGraphRelationshipInstantiator;
 import org.springframework.data.graph.neo4j.support.GraphDatabaseContext;
 import org.springframework.persistence.support.AbstractTypeAnnotatingMixinFields;
-
-import org.springframework.persistence.support.AbstractConstructorEntityInstantiator;
 
 import java.lang.reflect.Field;
 

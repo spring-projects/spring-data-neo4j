@@ -16,7 +16,7 @@
 
 package org.springframework.data.graph.neo4j.fieldaccess;
 
-import org.springframework.data.graph.api.NodeBacked;
+import org.springframework.data.graph.core.NodeBacked;
 import org.springframework.data.graph.neo4j.support.GraphDatabaseContext;
 
 import java.util.Arrays;

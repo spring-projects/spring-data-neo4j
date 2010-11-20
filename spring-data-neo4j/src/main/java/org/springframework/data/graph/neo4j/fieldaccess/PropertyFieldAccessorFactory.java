@@ -17,7 +17,7 @@
 package org.springframework.data.graph.neo4j.fieldaccess;
 
 import org.neo4j.graphdb.PropertyContainer;
-import org.springframework.data.graph.api.GraphBacked;
+import org.springframework.data.graph.core.GraphBacked;
 
 import java.lang.reflect.Field;
 

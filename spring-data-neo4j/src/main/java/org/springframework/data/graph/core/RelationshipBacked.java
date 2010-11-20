@@ -14,23 +14,13 @@
  * limitations under the License.
  */
 
-package org.springframework.data.graph.neo4j.spi.node;
+package org.springframework.data.graph.core;
 
-import org.neo4j.graphdb.Node;
-import org.springframework.data.graph.api.NodeBacked;
-import org.springframework.persistence.support.AbstractConstructorEntityInstantiator;
+import org.neo4j.graphdb.Relationship;
 
-/**
- * Try for a constructor taking a Neo4j Node: failing that, try a no-arg
- * constructor and then setUnderlyingState().
- * 
- * @author Rod Johnson
- */
-public class Neo4jConstructorGraphEntityInstantiator extends AbstractConstructorEntityInstantiator<NodeBacked, Node>{
+public interface RelationshipBacked extends GraphBacked<Relationship>{
 	
-	@Override
-	protected void setState(NodeBacked entity, Node s) {
-		entity.setUnderlyingState(s);
-	}
-
+	Relationship getUnderlyingState();
+	
+	void setUnderlyingState(Relationship r);
 }

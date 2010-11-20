@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package org.springframework.data.graph.neo4j.spi.relationship;
+package org.springframework.data.graph.neo4j.support.relationship;
 
 import java.lang.reflect.Constructor;
 
 import org.neo4j.graphdb.Relationship;
-import org.springframework.data.graph.api.RelationshipBacked;
+import org.springframework.data.graph.core.RelationshipBacked;
 import org.springframework.persistence.support.EntityInstantiator;
 
 import sun.reflect.ReflectionFactory;

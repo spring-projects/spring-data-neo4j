@@ -22,8 +22,8 @@ import org.neo4j.graphdb.*;
 import org.neo4j.helpers.collection.CombiningIterable;
 import org.neo4j.helpers.collection.IterableWrapper;
 import org.neo4j.util.GraphDatabaseUtil;
-import org.springframework.data.graph.api.NodeBacked;
-import org.springframework.data.graph.api.NodeTypeStrategy;
+import org.springframework.data.graph.core.NodeBacked;
+import org.springframework.data.graph.core.NodeTypeStrategy;
 
 import java.util.*;
 

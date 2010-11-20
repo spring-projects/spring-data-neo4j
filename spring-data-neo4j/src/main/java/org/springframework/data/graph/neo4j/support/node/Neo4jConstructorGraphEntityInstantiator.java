@@ -14,23 +14,23 @@
  * limitations under the License.
  */
 
-package org.springframework.data.graph.api;
+package org.springframework.data.graph.neo4j.support.node;
 
 import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Relationship;
-import org.neo4j.graphdb.RelationshipType;
+import org.springframework.data.graph.core.NodeBacked;
+import org.springframework.persistence.support.AbstractConstructorEntityInstantiator;
 
 /**
- * Interface introduced to objects annotated with GraphEntity 
- * annotation, to hold underlying Neo4j Node state.
+ * Try for a constructor taking a Neo4j Node: failing that, try a no-arg
+ * constructor and then setUnderlyingState().
+ * 
  * @author Rod Johnson
  */
-public interface NodeBacked extends GraphBacked<Node> {
+public class Neo4jConstructorGraphEntityInstantiator extends AbstractConstructorEntityInstantiator<NodeBacked, Node>{
 	
-	Node getUnderlyingState();
-	
-	void setUnderlyingState(Node n);
-	
-	// Relationship relateTo(NodeBacked nb, RelationshipType type);
+	@Override
+	protected void setState(NodeBacked entity, Node s) {
+		entity.setUnderlyingState(s);
+	}
 
 }

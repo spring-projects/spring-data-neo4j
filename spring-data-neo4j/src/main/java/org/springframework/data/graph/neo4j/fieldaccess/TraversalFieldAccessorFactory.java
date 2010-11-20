@@ -21,8 +21,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.graph.annotation.GraphTraversal;
-import org.springframework.data.graph.api.FieldTraversalDescriptionBuilder;
-import org.springframework.data.graph.api.NodeBacked;
+import org.springframework.data.graph.core.FieldTraversalDescriptionBuilder;
+import org.springframework.data.graph.core.NodeBacked;
 import org.springframework.data.graph.neo4j.finder.Finder;
 import org.springframework.data.graph.neo4j.finder.FinderFactory;
 

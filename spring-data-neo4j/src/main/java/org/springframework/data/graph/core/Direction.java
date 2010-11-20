@@ -14,13 +14,16 @@
  * limitations under the License.
  */
 
-package org.springframework.data.graph.api;
+package org.springframework.data.graph.core;
 
 public enum Direction {
 	
-	OUTGOING(org.neo4j.graphdb.Direction.OUTGOING), INCOMING(org.neo4j.graphdb.Direction.INCOMING), BOTH(org.neo4j.graphdb.Direction.BOTH);
+	OUTGOING(org.neo4j.graphdb.Direction.OUTGOING), INCOMING(
+			org.neo4j.graphdb.Direction.INCOMING), BOTH(
+			org.neo4j.graphdb.Direction.BOTH);
 	
 	private org.neo4j.graphdb.Direction neo4jDirection;
+
 	private Direction( org.neo4j.graphdb.Direction neo4jDirection ) {
 		this.neo4jDirection = neo4jDirection;
 	}

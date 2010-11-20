@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package org.springframework.data.graph.neo4j.spi.node;
+package org.springframework.data.graph.neo4j.support.node;
 
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.traversal.Traverser;
 import org.neo4j.helpers.collection.IterableWrapper;
-import org.springframework.data.graph.api.NodeBacked;
+import org.springframework.data.graph.core.NodeBacked;
 import org.springframework.data.graph.neo4j.support.GraphDatabaseContext;
 
 /**

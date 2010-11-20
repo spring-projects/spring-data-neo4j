@@ -20,9 +20,9 @@ import org.neo4j.graphdb.PropertyContainer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 import org.springframework.core.convert.ConversionService;
-import org.springframework.data.graph.api.GraphBacked;
-import org.springframework.data.graph.api.NodeBacked;
-import org.springframework.data.graph.api.RelationshipBacked;
+import org.springframework.data.graph.core.GraphBacked;
+import org.springframework.data.graph.core.NodeBacked;
+import org.springframework.data.graph.core.RelationshipBacked;
 
 import java.lang.reflect.Field;
 

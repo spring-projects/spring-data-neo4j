@@ -16,12 +16,10 @@
 
 package org.springframework.data.graph.neo4j.fieldaccess;
 
-import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.NotInTransactionException;
 import org.neo4j.graphdb.Relationship;
 import org.springframework.dao.InvalidDataAccessResourceUsageException;
-import org.springframework.data.graph.annotation.GraphInactive;
-import org.springframework.data.graph.api.RelationshipBacked;
+import org.springframework.data.graph.core.RelationshipBacked;
 import org.springframework.data.graph.neo4j.support.GraphDatabaseContext;
 
 import java.util.Arrays;

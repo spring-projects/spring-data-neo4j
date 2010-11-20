@@ -14,15 +14,16 @@
  * limitations under the License.
  */
 
-package org.springframework.data.graph.api;
+package org.springframework.data.graph.core;
 
-import org.neo4j.graphdb.PropertyContainer;
+import org.neo4j.graphdb.traversal.TraversalDescription;
+
+import java.lang.reflect.Field;
 
 /**
  * @author Michael Hunger
- * @since 21.09.2010
+ * @since 15.09.2010
  */
-public interface GraphBacked<STATE> {
-    void setUnderlyingState(STATE state);
-    STATE getUnderlyingState();
+public interface FieldTraversalDescriptionBuilder {
+    TraversalDescription build(NodeBacked start, Field field);
 }

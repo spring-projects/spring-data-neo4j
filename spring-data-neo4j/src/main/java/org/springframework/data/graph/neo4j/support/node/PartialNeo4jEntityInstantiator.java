@@ -14,17 +14,14 @@
  * limitations under the License.
  */
 
-package org.springframework.data.graph.neo4j.spi.node;
+package org.springframework.data.graph.neo4j.support.node;
 
 import org.neo4j.graphdb.Node;
-import org.springframework.data.graph.api.NodeBacked;
+import org.springframework.data.graph.core.NodeBacked;
 import org.springframework.data.graph.neo4j.fieldaccess.PartialNodeEntityStateAccessors;
 import org.springframework.persistence.support.EntityInstantiator;
-import org.springframework.persistence.support.StateProvider;
 
 import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.LockModeType;
 import javax.persistence.PersistenceContext;
 
 /**

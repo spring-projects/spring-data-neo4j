@@ -26,9 +26,9 @@ import org.neo4j.util.GraphDatabaseUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 import org.springframework.core.convert.ConversionService;
-import org.springframework.data.graph.api.NodeBacked;
-import org.springframework.data.graph.api.NodeTypeStrategy;
-import org.springframework.data.graph.api.RelationshipBacked;
+import org.springframework.data.graph.core.NodeBacked;
+import org.springframework.data.graph.core.NodeTypeStrategy;
+import org.springframework.data.graph.core.RelationshipBacked;
 import org.springframework.persistence.support.EntityInstantiator;
 
 import javax.transaction.Status;

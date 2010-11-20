@@ -1,7 +1,7 @@
 package org.springframework.data.graph.neo4j;
 
 import org.springframework.data.graph.annotation.*;
-import org.springframework.data.graph.api.Direction;
+import org.springframework.data.graph.core.Direction;
 import org.springframework.data.graph.neo4j.Car;
 import org.springframework.data.graph.neo4j.Friendship;
 import org.springframework.data.graph.neo4j.Person;

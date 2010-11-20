@@ -1,4 +1,4 @@
-package org.springframework.data.graph.neo4j.spi;
+package org.springframework.data.graph.neo4j.support;
 
 import org.junit.Assert;
 import org.apache.commons.logging.Log;
@@ -18,8 +18,8 @@ import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.graph.neo4j.*;
 import org.springframework.data.graph.neo4j.finder.Finder;
 import org.springframework.data.graph.neo4j.finder.FinderFactory;
-import org.springframework.data.graph.neo4j.spi.node.Neo4jHelper;
 import org.springframework.data.graph.neo4j.support.GraphDatabaseContext;
+import org.springframework.data.graph.neo4j.support.node.Neo4jHelper;
 import org.springframework.data.graph.neo4j.Car;
 import org.springframework.data.graph.neo4j.Friendship;
 import org.springframework.data.graph.neo4j.Person;

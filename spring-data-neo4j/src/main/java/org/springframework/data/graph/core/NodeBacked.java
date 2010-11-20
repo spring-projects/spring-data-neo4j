@@ -14,13 +14,21 @@
  * limitations under the License.
  */
 
-package org.springframework.data.graph.api;
+package org.springframework.data.graph.core;
 
-import org.neo4j.graphdb.Relationship;
+import org.neo4j.graphdb.Node;
 
-public interface RelationshipBacked extends GraphBacked<Relationship>{
+/**
+ * Interface introduced to objects annotated with GraphEntity 
+ * annotation, to hold underlying Neo4j Node state.
+ * @author Rod Johnson
+ */
+public interface NodeBacked extends GraphBacked<Node> {
 	
-	Relationship getUnderlyingState();
+	Node getUnderlyingState();
 	
-	void setUnderlyingState(Relationship r);
+	void setUnderlyingState(Node n);
+	
+	// Relationship relateTo(NodeBacked nb, RelationshipType type);
+
 }
