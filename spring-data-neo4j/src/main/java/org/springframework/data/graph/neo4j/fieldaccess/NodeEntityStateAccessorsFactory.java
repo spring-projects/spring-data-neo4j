@@ -48,18 +48,11 @@ public class NodeEntityStateAccessorsFactory {
 
 	public void setNodeDelegatingFieldAccessorFactory(
 			NodeDelegatingFieldAccessorFactory nodeDelegatingFieldAccessorFactory) {
-		System.out.println("setNodeDelegatingFieldAccessorFactory: " + nodeDelegatingFieldAccessorFactory);
 		this.nodeDelegatingFieldAccessorFactory = nodeDelegatingFieldAccessorFactory;
 	}
 	
 	public void setGraphDatabaseContext(GraphDatabaseContext graphDatabaseContext) {
-		System.out.println("setGraphDatabaseContext: " + graphDatabaseContext);
 		this.graphDatabaseContext = graphDatabaseContext;
 	}
-
-	public void setConversionService(ConversionService conversionService) {
-		System.out.println("setConversionService: " + conversionService);
-	}
-
 	
 }
