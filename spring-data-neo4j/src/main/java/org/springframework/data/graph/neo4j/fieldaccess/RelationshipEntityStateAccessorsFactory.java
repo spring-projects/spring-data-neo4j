@@ -17,15 +17,19 @@
 package org.springframework.data.graph.neo4j.fieldaccess;
 
 import org.neo4j.graphdb.Relationship;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.graph.core.RelationshipBacked;
 import org.springframework.data.graph.neo4j.support.GraphDatabaseContext;
 
 public class RelationshipEntityStateAccessorsFactory {
-	@Autowired
+
 	private GraphDatabaseContext graphDatabaseContext;
 
 	public EntityStateAccessors<RelationshipBacked, Relationship> getEntityStateAccessors(final RelationshipBacked entity) {
 		return new RelationshipEntityStateAccessors<RelationshipBacked>(null,entity,entity.getClass(), graphDatabaseContext);
 	}
+
+	public void setGraphDatabaseContext(GraphDatabaseContext graphDatabaseContext) {
+		this.graphDatabaseContext = graphDatabaseContext;
+	}
+
 }

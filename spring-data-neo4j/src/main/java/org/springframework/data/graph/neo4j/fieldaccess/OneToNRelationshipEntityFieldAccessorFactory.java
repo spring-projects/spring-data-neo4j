@@ -17,8 +17,6 @@
 package org.springframework.data.graph.neo4j.fieldaccess;
 
 import org.neo4j.graphdb.*;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Configurable;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.graph.annotation.RelatedToVia;
 import org.springframework.data.graph.core.NodeBacked;
@@ -31,10 +29,15 @@ import java.util.Set;
 
 import static org.springframework.data.graph.neo4j.fieldaccess.DoReturn.doReturn;
 
-@Configurable
 public class OneToNRelationshipEntityFieldAccessorFactory implements FieldAccessorFactory<NodeBacked> {
-	@Autowired
+
 	private GraphDatabaseContext graphDatabaseContext;
+	
+	public OneToNRelationshipEntityFieldAccessorFactory(
+			GraphDatabaseContext graphDatabaseContext) {
+		super();
+		this.graphDatabaseContext = graphDatabaseContext;
+	}
 
 	@Override
 	public boolean accept(final Field f) {

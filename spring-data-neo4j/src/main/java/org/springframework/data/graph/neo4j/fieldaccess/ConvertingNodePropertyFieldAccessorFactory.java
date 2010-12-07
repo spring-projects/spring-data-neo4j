@@ -17,7 +17,6 @@
 package org.springframework.data.graph.neo4j.fieldaccess;
 
 import org.neo4j.graphdb.PropertyContainer;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.data.graph.core.GraphBacked;
@@ -32,10 +31,16 @@ import java.lang.reflect.Field;
  */
 @Configurable
 public class ConvertingNodePropertyFieldAccessorFactory implements FieldAccessorFactory<GraphBacked<PropertyContainer>> {
-    @Autowired
-    ConversionService conversionService;
 
-    @Override
+	ConversionService conversionService;
+	
+    public ConvertingNodePropertyFieldAccessorFactory(ConversionService conversionService) {
+		super();
+		this.conversionService = conversionService;
+	}
+
+    
+	@Override
     public boolean accept(final Field field) {
         return isSerializableField(field) && isDeserializableField(field);
     }

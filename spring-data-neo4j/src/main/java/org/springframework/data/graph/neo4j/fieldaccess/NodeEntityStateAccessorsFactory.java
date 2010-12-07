@@ -17,7 +17,7 @@
 package org.springframework.data.graph.neo4j.fieldaccess;
 
 import org.neo4j.graphdb.Node;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.convert.ConversionService;
 import org.springframework.data.graph.annotation.NodeEntity;
 import org.springframework.data.graph.core.NodeBacked;
 import org.springframework.data.graph.neo4j.support.GraphDatabaseContext;
@@ -25,10 +25,10 @@ import org.springframework.data.graph.neo4j.support.GraphDatabaseContext;
 import static org.springframework.data.graph.neo4j.fieldaccess.PartialNodeEntityStateAccessors.getId;
 
 public class NodeEntityStateAccessorsFactory {
-	@Autowired
+
 	private GraphDatabaseContext graphDatabaseContext;
-    @Autowired
-    private NodeDelegatingFieldAccessorFactory nodeDelegatingFieldAccessorFactory;
+
+	private NodeDelegatingFieldAccessorFactory nodeDelegatingFieldAccessorFactory;
 
 	public EntityStateAccessors<NodeBacked,Node> getEntityStateAccessors(final NodeBacked entity) {
         final NodeEntity graphEntityAnnotation = entity.getClass().getAnnotation(NodeEntity.class);
@@ -45,4 +45,21 @@ public class NodeEntityStateAccessorsFactory {
                     new NodeEntityStateAccessors<NodeBacked>(null,entity,entity.getClass(), graphDatabaseContext, nodeDelegatingFieldAccessorFactory),graphDatabaseContext);
         }
     }
+
+	public void setNodeDelegatingFieldAccessorFactory(
+			NodeDelegatingFieldAccessorFactory nodeDelegatingFieldAccessorFactory) {
+		System.out.println("setNodeDelegatingFieldAccessorFactory: " + nodeDelegatingFieldAccessorFactory);
+		this.nodeDelegatingFieldAccessorFactory = nodeDelegatingFieldAccessorFactory;
+	}
+	
+	public void setGraphDatabaseContext(GraphDatabaseContext graphDatabaseContext) {
+		System.out.println("setGraphDatabaseContext: " + graphDatabaseContext);
+		this.graphDatabaseContext = graphDatabaseContext;
+	}
+
+	public void setConversionService(ConversionService conversionService) {
+		System.out.println("setConversionService: " + conversionService);
+	}
+
+	
 }

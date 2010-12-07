@@ -18,6 +18,7 @@ package org.springframework.data.graph.neo4j.fieldaccess;
 
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.NotInTransactionException;
+import org.springframework.core.convert.ConversionService;
 import org.springframework.dao.InvalidDataAccessResourceUsageException;
 import org.springframework.data.graph.annotation.GraphProperty;
 import org.springframework.data.graph.annotation.RelatedTo;
@@ -36,21 +37,25 @@ import java.util.Collection;
 public class PartialNodeEntityStateAccessors<ENTITY extends NodeBacked> extends DefaultEntityStateAccessors<ENTITY, Node> {
 
     public static final String FOREIGN_ID = "foreignId";
+    
     private final GraphDatabaseContext graphDatabaseContext;
 
     public PartialNodeEntityStateAccessors(final Node underlyingState, final ENTITY entity, final Class<? extends ENTITY> type, final GraphDatabaseContext graphDatabaseContext) {
-        super(underlyingState, entity, type, new DelegatingFieldAccessorFactory(graphDatabaseContext) {
+    	super(underlyingState, entity, type, new DelegatingFieldAccessorFactory(graphDatabaseContext) {
+        	
             @Override
             protected Collection<FieldAccessorListenerFactory<?>> createListenerFactories() {
                 return Arrays.<FieldAccessorListenerFactory<?>>asList(
-                        new IndexingNodePropertyFieldAccessorListenerFactory(newPropertyFieldAccessorFactory(),newConvertingNodePropertyFieldAccessorFactory()) {
-                            @Override
-                            public boolean accept(Field f) {
-                                return f.isAnnotationPresent(GraphProperty.class) && super.accept(f);
-                            }
-                        },
-                        new JpaIdFieldAccessListenerFactory()
-                );
+                        new IndexingNodePropertyFieldAccessorListenerFactory(
+                        		getGraphDatabaseContext().getIndexService(), 
+                        		newPropertyFieldAccessorFactory(),
+                        		newConvertingNodePropertyFieldAccessorFactory()) {
+		                            @Override
+		                            public boolean accept(Field f) {
+		                                return f.isAnnotationPresent(GraphProperty.class) && super.accept(f);
+		                            }
+		                        },
+		                        new JpaIdFieldAccessListenerFactory());
             }
 
             @Override
@@ -60,21 +65,21 @@ public class PartialNodeEntityStateAccessors<ENTITY extends NodeBacked> extends 
                         //new TransientFieldAccessorFactory(),
                         newPropertyFieldAccessorFactory(),
                         newConvertingNodePropertyFieldAccessorFactory(),
-                        new SingleRelationshipFieldAccessorFactory() {
+                        new SingleRelationshipFieldAccessorFactory(getGraphDatabaseContext()) {
                             @Override
                             public boolean accept(Field f) {
                                 return f.isAnnotationPresent(RelatedTo.class) && super.accept(f);
                             }
                         },
-                        new OneToNRelationshipFieldAccessorFactory(),
-                        new ReadOnlyOneToNRelationshipFieldAccessorFactory(),
-                        new TraversalFieldAccessorFactory(),
-                        new OneToNRelationshipEntityFieldAccessorFactory()
+                        new OneToNRelationshipFieldAccessorFactory(getGraphDatabaseContext()),
+                        new ReadOnlyOneToNRelationshipFieldAccessorFactory(getGraphDatabaseContext()),
+                        new TraversalFieldAccessorFactory(getGraphDatabaseContext().getFinderFactory()),
+                        new OneToNRelationshipEntityFieldAccessorFactory(getGraphDatabaseContext())
                 );
             }
 
             private ConvertingNodePropertyFieldAccessorFactory newConvertingNodePropertyFieldAccessorFactory() {
-                return new ConvertingNodePropertyFieldAccessorFactory() {
+                return new ConvertingNodePropertyFieldAccessorFactory(getGraphDatabaseContext().getConversionService()) {
                     @Override
                     public boolean accept(Field f) {
                         return f.isAnnotationPresent(GraphProperty.class) && super.accept(f);

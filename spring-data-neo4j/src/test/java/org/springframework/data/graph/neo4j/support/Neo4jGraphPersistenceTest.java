@@ -34,7 +34,7 @@ import java.util.*;
 import static org.junit.Assert.*;
 
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(locations = {"classpath:org/springframework/data/graph/neo4j/spi/Neo4jGraphPersistenceTest-context.xml"})
+@ContextConfiguration(locations = {"classpath:org/springframework/data/graph/neo4j/support/Neo4jGraphPersistenceTest-context.xml"})
 public class Neo4jGraphPersistenceTest {
 
 	protected final Log log = LogFactory.getLog(getClass());

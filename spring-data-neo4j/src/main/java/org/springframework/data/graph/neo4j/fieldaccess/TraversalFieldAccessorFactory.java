@@ -17,8 +17,6 @@
 package org.springframework.data.graph.neo4j.fieldaccess;
 
 import org.neo4j.graphdb.traversal.TraversalDescription;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Configurable;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.graph.annotation.GraphTraversal;
 import org.springframework.data.graph.core.FieldTraversalDescriptionBuilder;
@@ -31,12 +29,18 @@ import java.lang.reflect.Field;
 
 import static org.springframework.data.graph.neo4j.fieldaccess.DoReturn.doReturn;
 
-@Configurable
 public class TraversalFieldAccessorFactory implements FieldAccessorFactory<NodeBacked> {
-    @Autowired
-    private FinderFactory finderFactory;
 
-    @Override
+	private FinderFactory finderFactory;
+
+	
+    public TraversalFieldAccessorFactory(FinderFactory finderFactory) {
+		super();
+		this.finderFactory = finderFactory;
+	}
+
+
+	@Override
     public boolean accept(final Field f) {
         final GraphTraversal graphEntityTraversal = f.getAnnotation(GraphTraversal.class);
         return graphEntityTraversal != null

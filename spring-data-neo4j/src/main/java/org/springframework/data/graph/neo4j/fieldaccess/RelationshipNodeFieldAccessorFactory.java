@@ -18,8 +18,6 @@ package org.springframework.data.graph.neo4j.fieldaccess;
 
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Configurable;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.graph.annotation.EndNode;
 import org.springframework.data.graph.annotation.StartNode;
@@ -35,12 +33,16 @@ import static org.springframework.data.graph.neo4j.fieldaccess.DoReturn.doReturn
  * @author Michael Hunger
  * @since 21.09.2010
  */
-@Configurable
 public class RelationshipNodeFieldAccessorFactory implements FieldAccessorFactory<RelationshipBacked> {
-    @Autowired
-    private GraphDatabaseContext graphDatabaseContext;
 
-    @Override
+	private GraphDatabaseContext graphDatabaseContext;
+
+    public RelationshipNodeFieldAccessorFactory(GraphDatabaseContext graphDatabaseContext) {
+		super();
+		this.graphDatabaseContext = graphDatabaseContext;
+	}
+
+	@Override
     public boolean accept(final Field f) {
         return isStartNodeField(f) || isEndNodeField(f);
     }

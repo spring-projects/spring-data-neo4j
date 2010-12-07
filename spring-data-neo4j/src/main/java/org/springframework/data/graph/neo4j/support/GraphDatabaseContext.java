@@ -23,12 +23,11 @@ import org.neo4j.index.IndexHits;
 import org.neo4j.index.IndexService;
 import org.neo4j.kernel.EmbeddedGraphDatabase;
 import org.neo4j.util.GraphDatabaseUtil;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Configurable;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.data.graph.core.NodeBacked;
 import org.springframework.data.graph.core.NodeTypeStrategy;
 import org.springframework.data.graph.core.RelationshipBacked;
+import org.springframework.data.graph.neo4j.finder.FinderFactory;
 import org.springframework.persistence.support.EntityInstantiator;
 
 import javax.transaction.Status;
@@ -39,31 +38,87 @@ import javax.transaction.TransactionManager;
  * @author Michael Hunger
  * @since 13.09.2010
  */
-@Configurable
 public class GraphDatabaseContext {
-    @Autowired
+
     private GraphDatabaseService graphDatabaseService;
 
-    @Autowired
     public EntityInstantiator<NodeBacked, Node> graphEntityInstantiator;
 
-/*    @Autowired
+/*
     private DelegatingFieldAccessorFactory fieldAccessorFactory;
 */
-    @Autowired
+
     public EntityInstantiator<RelationshipBacked, Relationship> relationshipEntityInstantiator;
 
-    @Autowired
     private IndexService indexService;
 
-    @Autowired
     private ConversionService conversionService;
 
-    @Autowired
     private NodeTypeStrategy nodeTypeStrategy;
+    
+    private FinderFactory finderFactory;
+
     private final static Log log = LogFactory.getLog(GraphDatabaseContext.class);
 
-    public Node createNode() {
+    public GraphDatabaseService getGraphDatabaseService() {
+		return graphDatabaseService;
+	}
+
+	public void setGraphDatabaseService(GraphDatabaseService graphDatabaseService) {
+		this.graphDatabaseService = graphDatabaseService;
+	}
+
+	public EntityInstantiator<NodeBacked, Node> getGraphEntityInstantiator() {
+		return graphEntityInstantiator;
+	}
+
+	public void setGraphEntityInstantiator(
+			EntityInstantiator<NodeBacked, Node> graphEntityInstantiator) {
+		this.graphEntityInstantiator = graphEntityInstantiator;
+	}
+
+	public EntityInstantiator<RelationshipBacked, Relationship> getRelationshipEntityInstantiator() {
+		return relationshipEntityInstantiator;
+	}
+
+	public void setRelationshipEntityInstantiator(
+			EntityInstantiator<RelationshipBacked, Relationship> relationshipEntityInstantiator) {
+		this.relationshipEntityInstantiator = relationshipEntityInstantiator;
+	}
+
+	public IndexService getIndexService() {
+		return indexService;
+	}
+
+	public void setIndexService(IndexService indexService) {
+		this.indexService = indexService;
+	}
+
+	public ConversionService getConversionService() {
+		return conversionService;
+	}
+
+	public void setConversionService(ConversionService conversionService) {
+		this.conversionService = conversionService;
+	}
+
+	public NodeTypeStrategy getNodeTypeStrategy() {
+		return nodeTypeStrategy;
+	}
+
+	public void setNodeTypeStrategy(NodeTypeStrategy nodeTypeStrategy) {
+		this.nodeTypeStrategy = nodeTypeStrategy;
+	}
+
+	public FinderFactory getFinderFactory() {
+		return finderFactory;
+	}
+
+	public void setFinderFactory(FinderFactory finderFactory) {
+		this.finderFactory = finderFactory;
+	}
+
+	public Node createNode() {
         return graphDatabaseService.createNode();
     }
 

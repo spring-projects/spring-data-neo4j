@@ -18,8 +18,6 @@ package org.springframework.data.graph.neo4j.fieldaccess;
 
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.DynamicRelationshipType;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Configurable;
 import org.springframework.data.graph.annotation.RelatedTo;
 import org.springframework.data.graph.core.NodeBacked;
 import org.springframework.data.graph.neo4j.support.GraphDatabaseContext;
@@ -30,12 +28,17 @@ import java.lang.reflect.Field;
  * @author Michael Hunger
  * @since 12.09.2010
  */
-@Configurable
 abstract class NodeRelationshipFieldAccessorFactory implements FieldAccessorFactory<NodeBacked> {
-    @Autowired
-    protected GraphDatabaseContext graphDatabaseContext;
 
-    protected Class<? extends NodeBacked> targetFrom(Field field) {
+    protected GraphDatabaseContext graphDatabaseContext;
+    
+    public NodeRelationshipFieldAccessorFactory(
+			GraphDatabaseContext graphDatabaseContext) {
+		super();
+		this.graphDatabaseContext = graphDatabaseContext;
+	}
+
+	protected Class<? extends NodeBacked> targetFrom(Field field) {
         return (Class<? extends NodeBacked>) field.getType();
     }
 

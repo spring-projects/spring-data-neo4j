@@ -30,6 +30,11 @@ import java.util.Set;
 import static org.springframework.data.graph.neo4j.fieldaccess.DoReturn.doReturn;
 
 public class SingleRelationshipFieldAccessorFactory extends NodeRelationshipFieldAccessorFactory {
+
+	public SingleRelationshipFieldAccessorFactory(GraphDatabaseContext graphDatabaseContext) {
+		super(graphDatabaseContext);
+	}
+
 	@Override
 	public boolean accept(final Field f) {
 	    return NodeBacked.class.isAssignableFrom(f.getType());

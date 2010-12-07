@@ -19,7 +19,6 @@ package org.springframework.data.graph.neo4j.support.relationship;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.reflect.FieldSignature;
 import org.neo4j.graphdb.Relationship;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.graph.annotation.RelationshipEntity;
 import org.springframework.data.graph.core.RelationshipBacked;
 import org.springframework.data.graph.neo4j.fieldaccess.*;
@@ -42,10 +41,12 @@ public aspect Neo4jRelationshipBacking extends AbstractTypeAnnotatingMixinFields
     private RelationshipEntityStateAccessorsFactory entityStateAccessorsFactory;
 
 
-	@Autowired
-	public void init(GraphDatabaseContext graphDatabaseContext, RelationshipEntityStateAccessorsFactory relationshipEntityStateAccessorsFactory) {
+    public void setGraphDatabaseContext(GraphDatabaseContext graphDatabaseContext) {
         this.graphDatabaseContext = graphDatabaseContext;
-        this.entityStateAccessorsFactory = relationshipEntityStateAccessorsFactory;
+    }
+
+    public void setRelationshipEntityStateAccessorsFactory(RelationshipEntityStateAccessorsFactory entityStateAccessorsFactory) {
+        this.entityStateAccessorsFactory = entityStateAccessorsFactory;
     }
 	
 	// Introduced fields

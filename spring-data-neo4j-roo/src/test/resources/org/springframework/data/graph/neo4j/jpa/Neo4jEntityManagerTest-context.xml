@@ -69,9 +69,15 @@
 	    Start datastore config
     -->
 
-	<bean class="org.springframework.data.graph.neo4j.support.node.Neo4jNodeBacking" factory-method="aspectOf" />
+	<bean id="neo4jNodeBacking" class="org.springframework.data.graph.neo4j.support.node.Neo4jNodeBacking" factory-method="aspectOf">
+		<property name="graphDatabaseContext" ref="graphDatabaseContext"/>
+		<property name="nodeEntityStateAccessorsFactory" ref="nodeEntityStateAccessorsFactory"/>
+	</bean>
 
-	<bean class="org.springframework.data.graph.neo4j.support.relationship.Neo4jRelationshipBacking" factory-method="aspectOf" />
+	<bean class="org.springframework.data.graph.neo4j.support.relationship.Neo4jRelationshipBacking" factory-method="aspectOf">
+		<property name="graphDatabaseContext" ref="graphDatabaseContext"/>
+		<property name="relationshipEntityStateAccessorsFactory" ref="relationshipEntityStateAccessorsFactory"/>
+	</bean>
 
 	<!--
 		<bean class="org.springframework.persistence.graph.Neo4jSimpleNodePropertyStorageForeignStoreKeyManager"/>
@@ -89,10 +95,25 @@
         <constructor-arg index="0" ref="graphDbService" />
     </bean>
 
-    <bean id="graphDatabaseContext" class="org.springframework.data.graph.neo4j.support.GraphDatabaseContext"/>
+    <bean id="graphDatabaseContext" class="org.springframework.data.graph.neo4j.support.GraphDatabaseContext">
+    	<property name="graphDatabaseService" ref="graphDbService"/>
+    	<property name="relationshipEntityInstantiator" ref="relationshipEntityInstantiator"/>
+    	<property name="graphEntityInstantiator" ref="graphEntityInstantiator"/>
+    	<property name="indexService" ref="indexService"/>
+    	<property name="conversionService" ref="conversionService"/>
+    	<property name="nodeTypeStrategy" ref="nodeTypeStrategy"/>
+    	<property name="finderFactory" ref="finderFactory"/>
+    </bean>
 
-    <bean id="nodeEntityStateAccessorsFactory" class="org.springframework.data.graph.neo4j.fieldaccess.NodeEntityStateAccessorsFactory" />
-    <bean id="relationshipEntityStateAccessorsFactory" class="org.springframework.data.graph.neo4j.fieldaccess.RelationshipEntityStateAccessorsFactory" />
+    <bean id="nodeEntityStateAccessorsFactory" class="org.springframework.data.graph.neo4j.fieldaccess.NodeEntityStateAccessorsFactory">
+    	<property name="nodeDelegatingFieldAccessorFactory" ref="nodeDelegatingFieldAccessorFactory"/>
+    	<property name="graphDatabaseContext" ref="graphDatabaseContext"/>
+    </bean>
+    
+    <bean id="relationshipEntityStateAccessorsFactory" class="org.springframework.data.graph.neo4j.fieldaccess.RelationshipEntityStateAccessorsFactory">
+    	<property name="graphDatabaseContext" ref="graphDatabaseContext"/>
+    </bean>
+    
     <bean id="nodeDelegatingFieldAccessorFactory" class="org.springframework.data.graph.neo4j.fieldaccess.NodeDelegatingFieldAccessorFactory">
         <constructor-arg ref="graphDatabaseContext"/>
     </bean>

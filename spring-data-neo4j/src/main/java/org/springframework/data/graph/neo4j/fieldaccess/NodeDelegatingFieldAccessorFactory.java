@@ -27,6 +27,7 @@ import java.util.Collection;
 * @since 30.09.2010
 */
 class NodeDelegatingFieldAccessorFactory extends DelegatingFieldAccessorFactory<NodeBacked> {
+	
     public NodeDelegatingFieldAccessorFactory(GraphDatabaseContext graphDatabaseContext) {
         super(graphDatabaseContext);
     }
@@ -34,7 +35,10 @@ class NodeDelegatingFieldAccessorFactory extends DelegatingFieldAccessorFactory<
     @Override
     protected Collection<FieldAccessorListenerFactory<?>> createListenerFactories() {
         return Arrays.<FieldAccessorListenerFactory<?>>asList(
-                new IndexingNodePropertyFieldAccessorListenerFactory(new PropertyFieldAccessorFactory(), new ConvertingNodePropertyFieldAccessorFactory())
+                new IndexingNodePropertyFieldAccessorListenerFactory(
+                		graphDatabaseContext.getIndexService(),
+                		new PropertyFieldAccessorFactory(), 
+                		new ConvertingNodePropertyFieldAccessorFactory(graphDatabaseContext.getConversionService()))
         );
     }
 
@@ -44,12 +48,12 @@ class NodeDelegatingFieldAccessorFactory extends DelegatingFieldAccessorFactory<
                 new IdFieldAccessorFactory(),
                 new TransientFieldAccessorFactory(),
                 new PropertyFieldAccessorFactory(),
-                new ConvertingNodePropertyFieldAccessorFactory(),
-                new SingleRelationshipFieldAccessorFactory(),
-                new OneToNRelationshipFieldAccessorFactory(),
-                new ReadOnlyOneToNRelationshipFieldAccessorFactory(),
-                new TraversalFieldAccessorFactory(),
-                new OneToNRelationshipEntityFieldAccessorFactory()
+                new ConvertingNodePropertyFieldAccessorFactory(graphDatabaseContext.getConversionService()),
+                new SingleRelationshipFieldAccessorFactory(graphDatabaseContext),
+                new OneToNRelationshipFieldAccessorFactory(graphDatabaseContext),
+                new ReadOnlyOneToNRelationshipFieldAccessorFactory(graphDatabaseContext),
+                new TraversalFieldAccessorFactory(graphDatabaseContext.getFinderFactory()),
+                new OneToNRelationshipEntityFieldAccessorFactory(graphDatabaseContext)
         );
     }
 }

@@ -18,6 +18,7 @@ package org.springframework.data.graph.neo4j.fieldaccess;
 
 import org.neo4j.graphdb.NotInTransactionException;
 import org.neo4j.graphdb.Relationship;
+import org.springframework.core.convert.ConversionService;
 import org.springframework.dao.InvalidDataAccessResourceUsageException;
 import org.springframework.data.graph.core.RelationshipBacked;
 import org.springframework.data.graph.neo4j.support.GraphDatabaseContext;
@@ -45,9 +46,9 @@ public class RelationshipEntityStateAccessors<ENTITY extends RelationshipBacked>
             protected Collection<? extends FieldAccessorFactory<?>> createAccessorFactories() {
                 return Arrays.<FieldAccessorFactory<?>>asList(
                         new TransientFieldAccessorFactory(),
-                        new RelationshipNodeFieldAccessorFactory(),
+                        new RelationshipNodeFieldAccessorFactory(graphDatabaseContext),
                         new PropertyFieldAccessorFactory(),
-                        new ConvertingNodePropertyFieldAccessorFactory()
+                        new ConvertingNodePropertyFieldAccessorFactory(graphDatabaseContext.getConversionService())
                 );
             }
         });

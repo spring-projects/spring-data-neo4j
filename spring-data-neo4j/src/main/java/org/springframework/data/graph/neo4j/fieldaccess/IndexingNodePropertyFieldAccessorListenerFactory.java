@@ -17,8 +17,6 @@
 package org.springframework.data.graph.neo4j.fieldaccess;
 
 import org.neo4j.index.IndexService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Configurable;
 import org.springframework.data.graph.annotation.GraphProperty;
 import org.springframework.data.graph.annotation.NodeEntity;
 import org.springframework.data.graph.core.NodeBacked;
@@ -27,15 +25,15 @@ import org.springframework.data.annotation.Indexed;
 import java.lang.reflect.Field;
 
 
-@Configurable
 class IndexingNodePropertyFieldAccessorListenerFactory implements FieldAccessorListenerFactory<NodeBacked> {
-    @Autowired
-    private IndexService indexService;
+
+	private final IndexService indexService;
     private final PropertyFieldAccessorFactory propertyFieldAccessorFactory;
     private final ConvertingNodePropertyFieldAccessorFactory convertingNodePropertyFieldAccessorFactory;
 
-    IndexingNodePropertyFieldAccessorListenerFactory(final PropertyFieldAccessorFactory propertyFieldAccessorFactory, final ConvertingNodePropertyFieldAccessorFactory convertingNodePropertyFieldAccessorFactory) {
-        this.propertyFieldAccessorFactory = propertyFieldAccessorFactory;
+    IndexingNodePropertyFieldAccessorListenerFactory(final IndexService indexService, final PropertyFieldAccessorFactory propertyFieldAccessorFactory, final ConvertingNodePropertyFieldAccessorFactory convertingNodePropertyFieldAccessorFactory) {
+    	this.indexService = indexService;
+    	this.propertyFieldAccessorFactory = propertyFieldAccessorFactory;
         this.convertingNodePropertyFieldAccessorFactory = convertingNodePropertyFieldAccessorFactory;
     }
 

@@ -28,8 +28,14 @@ import java.util.*;
 
 
 public abstract class DelegatingFieldAccessorFactory<T> implements FieldAccessorFactory<T> {
-    private final static Log log = LogFactory.getLog(DelegatingFieldAccessorFactory.class);
-    private final GraphDatabaseContext graphDatabaseContext;
+
+	private final static Log log = LogFactory.getLog(DelegatingFieldAccessorFactory.class);
+
+	protected final GraphDatabaseContext graphDatabaseContext;
+
+    protected abstract Collection<FieldAccessorListenerFactory<?>> createListenerFactories();
+
+    protected abstract Collection<? extends FieldAccessorFactory<?>> createAccessorFactories();
 
     public DelegatingFieldAccessorFactory(final GraphDatabaseContext graphDatabaseContext) {
         this.graphDatabaseContext = graphDatabaseContext;
@@ -37,11 +43,12 @@ public abstract class DelegatingFieldAccessorFactory<T> implements FieldAccessor
         this.fieldAccessorListenerFactories.addAll(createListenerFactories());
     }
 
-    protected abstract Collection<FieldAccessorListenerFactory<?>> createListenerFactories();
+    
+    public GraphDatabaseContext getGraphDatabaseContext() {
+		return graphDatabaseContext;
+	}
 
-    protected abstract Collection<? extends FieldAccessorFactory<?>> createAccessorFactories();
-
-    @Override
+	@Override
     public boolean accept(final Field f) {
         return true;
     }

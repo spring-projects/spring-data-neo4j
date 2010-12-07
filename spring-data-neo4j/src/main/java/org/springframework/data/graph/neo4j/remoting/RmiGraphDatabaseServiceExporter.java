@@ -23,7 +23,7 @@ import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.remote.transports.LocalGraphDatabase;
 import org.neo4j.remote.transports.RmiTransport;
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.Assert;
 
 public class RmiGraphDatabaseServiceExporter implements InitializingBean {
 	
@@ -31,11 +31,14 @@ public class RmiGraphDatabaseServiceExporter implements InitializingBean {
 	
 	private String resourceUri = DEFAULT_RESOURCE_URI;
 	
-	@Autowired
-	GraphDatabaseService neo;
+	GraphDatabaseService graphDatabaseService;
 
 	
-    public void setResourceUri(String resourceUri) {
+    public void setGraphDatabaseService(GraphDatabaseService graphDatabaseService) {
+		this.graphDatabaseService = graphDatabaseService;
+	}
+
+	public void setResourceUri(String resourceUri) {
 		this.resourceUri = resourceUri;
 	}
 
@@ -46,8 +49,7 @@ public class RmiGraphDatabaseServiceExporter implements InitializingBean {
 
 	@Override
 	public void afterPropertiesSet() throws Exception {
-		if (neo != null) {
-			publishServer(this.neo);
-		}
+		Assert.notNull(graphDatabaseService, "graphDatabaseService must not be null");
+		publishServer(this.graphDatabaseService);
 	}
 }

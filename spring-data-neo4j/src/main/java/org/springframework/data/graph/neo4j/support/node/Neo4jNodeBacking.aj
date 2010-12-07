@@ -24,7 +24,6 @@ import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.graphdb.traversal.TraversalDescription;
 import org.neo4j.graphdb.traversal.Traverser;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.graph.annotation.NodeEntity;
 import org.springframework.data.graph.core.NodeBacked;
 import org.springframework.data.graph.core.RelationshipBacked;
@@ -49,9 +48,10 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<NodeEnt
     private GraphDatabaseContext graphDatabaseContext;
     private NodeEntityStateAccessorsFactory entityStateAccessorsFactory;
 
-    @Autowired
-    public void init(GraphDatabaseContext graphDatabaseContext, NodeEntityStateAccessorsFactory entityStateAccessorsFactory) {
+    public void setGraphDatabaseContext(GraphDatabaseContext graphDatabaseContext) {
         this.graphDatabaseContext = graphDatabaseContext;
+    }
+    public void setNodeEntityStateAccessorsFactory(NodeEntityStateAccessorsFactory entityStateAccessorsFactory) {
         this.entityStateAccessorsFactory = entityStateAccessorsFactory;
     }
 	//-------------------------------------------------------------------------
