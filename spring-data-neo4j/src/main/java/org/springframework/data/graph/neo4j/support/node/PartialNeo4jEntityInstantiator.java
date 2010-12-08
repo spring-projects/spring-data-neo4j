@@ -29,12 +29,20 @@ import javax.persistence.PersistenceContext;
  * @since 02.10.2010
  */
 public class PartialNeo4jEntityInstantiator implements EntityInstantiator<NodeBacked, Node> {
-    Neo4jConstructorGraphEntityInstantiator delegate;
+
+	Neo4jConstructorGraphEntityInstantiator delegate;
 
     @PersistenceContext
     EntityManager entityManager;
 
-    public <T extends NodeBacked> T createEntityFromState(Node n, Class<T> entityClass) {
+    public PartialNeo4jEntityInstantiator() {
+	}
+    
+    public PartialNeo4jEntityInstantiator(Neo4jConstructorGraphEntityInstantiator delegate) {
+		this.delegate = delegate;
+	}
+
+	public <T extends NodeBacked> T createEntityFromState(Node n, Class<T> entityClass) {
         if (n.hasProperty(PartialNodeEntityStateAccessors.FOREIGN_ID)) {
             final Object foreignId = n.getProperty(PartialNodeEntityStateAccessors.FOREIGN_ID);
             final T result = entityManager.find(entityClass, foreignId);
