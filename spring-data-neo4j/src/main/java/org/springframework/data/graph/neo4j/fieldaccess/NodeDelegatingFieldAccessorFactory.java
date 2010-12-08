@@ -27,7 +27,7 @@ import java.util.Collection;
 * @author Michael Hunger
 * @since 30.09.2010
 */
-class NodeDelegatingFieldAccessorFactory extends DelegatingFieldAccessorFactory<NodeBacked> {
+public class NodeDelegatingFieldAccessorFactory extends DelegatingFieldAccessorFactory<NodeBacked> {
 	
     public NodeDelegatingFieldAccessorFactory(GraphDatabaseContext graphDatabaseContext, FinderFactory finderFactory) {
         super(graphDatabaseContext, finderFactory);
