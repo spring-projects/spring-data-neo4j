@@ -18,18 +18,25 @@ package org.springframework.data.graph.neo4j.fieldaccess;
 
 import org.neo4j.graphdb.Relationship;
 import org.springframework.data.graph.core.RelationshipBacked;
+import org.springframework.data.graph.neo4j.finder.FinderFactory;
 import org.springframework.data.graph.neo4j.support.GraphDatabaseContext;
 
 public class RelationshipEntityStateAccessorsFactory {
 
 	private GraphDatabaseContext graphDatabaseContext;
+	
+	private FinderFactory finderFactory;
 
 	public EntityStateAccessors<RelationshipBacked, Relationship> getEntityStateAccessors(final RelationshipBacked entity) {
-		return new RelationshipEntityStateAccessors<RelationshipBacked>(null,entity,entity.getClass(), graphDatabaseContext);
+		return new RelationshipEntityStateAccessors<RelationshipBacked>(null,entity,entity.getClass(), graphDatabaseContext, finderFactory);
 	}
 
 	public void setGraphDatabaseContext(GraphDatabaseContext graphDatabaseContext) {
 		this.graphDatabaseContext = graphDatabaseContext;
+	}
+
+	public void setFinderFactory(FinderFactory finderFactory) {
+		this.finderFactory = finderFactory;
 	}
 
 }

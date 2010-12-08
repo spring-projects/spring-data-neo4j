@@ -56,8 +56,6 @@ public class GraphDatabaseContext {
 
     private NodeTypeStrategy nodeTypeStrategy;
     
-    private FinderFactory finderFactory;
-
     private final static Log log = LogFactory.getLog(GraphDatabaseContext.class);
 
     public GraphDatabaseService getGraphDatabaseService() {
@@ -108,14 +106,6 @@ public class GraphDatabaseContext {
 
 	public void setNodeTypeStrategy(NodeTypeStrategy nodeTypeStrategy) {
 		this.nodeTypeStrategy = nodeTypeStrategy;
-	}
-
-	public FinderFactory getFinderFactory() {
-		return finderFactory;
-	}
-
-	public void setFinderFactory(FinderFactory finderFactory) {
-		this.finderFactory = finderFactory;
 	}
 
 	public Node createNode() {

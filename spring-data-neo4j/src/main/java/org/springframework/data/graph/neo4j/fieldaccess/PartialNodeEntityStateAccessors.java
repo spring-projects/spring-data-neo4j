@@ -23,6 +23,7 @@ import org.springframework.dao.InvalidDataAccessResourceUsageException;
 import org.springframework.data.graph.annotation.GraphProperty;
 import org.springframework.data.graph.annotation.RelatedTo;
 import org.springframework.data.graph.core.NodeBacked;
+import org.springframework.data.graph.neo4j.finder.FinderFactory;
 import org.springframework.data.graph.neo4j.support.GraphDatabaseContext;
 
 import javax.persistence.Id;
@@ -40,8 +41,8 @@ public class PartialNodeEntityStateAccessors<ENTITY extends NodeBacked> extends 
     
     private final GraphDatabaseContext graphDatabaseContext;
 
-    public PartialNodeEntityStateAccessors(final Node underlyingState, final ENTITY entity, final Class<? extends ENTITY> type, final GraphDatabaseContext graphDatabaseContext) {
-    	super(underlyingState, entity, type, new DelegatingFieldAccessorFactory(graphDatabaseContext) {
+    public PartialNodeEntityStateAccessors(final Node underlyingState, final ENTITY entity, final Class<? extends ENTITY> type, final GraphDatabaseContext graphDatabaseContext, final FinderFactory finderFactory) {
+    	super(underlyingState, entity, type, new DelegatingFieldAccessorFactory(graphDatabaseContext, finderFactory) {
         	
             @Override
             protected Collection<FieldAccessorListenerFactory<?>> createListenerFactories() {
@@ -73,7 +74,7 @@ public class PartialNodeEntityStateAccessors<ENTITY extends NodeBacked> extends 
                         },
                         new OneToNRelationshipFieldAccessorFactory(getGraphDatabaseContext()),
                         new ReadOnlyOneToNRelationshipFieldAccessorFactory(getGraphDatabaseContext()),
-                        new TraversalFieldAccessorFactory(getGraphDatabaseContext().getFinderFactory()),
+                        new TraversalFieldAccessorFactory(finderFactory),
                         new OneToNRelationshipEntityFieldAccessorFactory(getGraphDatabaseContext())
                 );
             }

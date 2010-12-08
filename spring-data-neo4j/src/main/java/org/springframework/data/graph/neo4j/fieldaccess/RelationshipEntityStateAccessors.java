@@ -21,6 +21,7 @@ import org.neo4j.graphdb.Relationship;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.dao.InvalidDataAccessResourceUsageException;
 import org.springframework.data.graph.core.RelationshipBacked;
+import org.springframework.data.graph.neo4j.finder.FinderFactory;
 import org.springframework.data.graph.neo4j.support.GraphDatabaseContext;
 
 import java.util.Arrays;
@@ -34,9 +35,11 @@ import java.util.Collections;
 public class RelationshipEntityStateAccessors<ENTITY extends RelationshipBacked> extends DefaultEntityStateAccessors<ENTITY, Relationship> {
 
     private final GraphDatabaseContext graphDatabaseContext;
+    
+    private final FinderFactory finderFactory;
 
-    public RelationshipEntityStateAccessors(final Relationship underlyingState, final ENTITY entity, final Class<? extends ENTITY> type, final GraphDatabaseContext graphDatabaseContext) {
-        super(underlyingState, entity, type, new DelegatingFieldAccessorFactory(graphDatabaseContext) {
+    public RelationshipEntityStateAccessors(final Relationship underlyingState, final ENTITY entity, final Class<? extends ENTITY> type, final GraphDatabaseContext graphDatabaseContext, final FinderFactory finderFactory) {
+        super(underlyingState, entity, type, new DelegatingFieldAccessorFactory(graphDatabaseContext, finderFactory) {
             @Override
             protected Collection<FieldAccessorListenerFactory<?>> createListenerFactories() {
                 return Collections.emptyList();
@@ -53,6 +56,7 @@ public class RelationshipEntityStateAccessors<ENTITY extends RelationshipBacked>
             }
         });
         this.graphDatabaseContext = graphDatabaseContext;
+        this.finderFactory = finderFactory;
     }
 
     @Override

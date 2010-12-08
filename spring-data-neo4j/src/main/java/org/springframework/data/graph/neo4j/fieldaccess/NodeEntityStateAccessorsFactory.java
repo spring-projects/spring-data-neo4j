@@ -20,6 +20,7 @@ import org.neo4j.graphdb.Node;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.data.graph.annotation.NodeEntity;
 import org.springframework.data.graph.core.NodeBacked;
+import org.springframework.data.graph.neo4j.finder.FinderFactory;
 import org.springframework.data.graph.neo4j.support.GraphDatabaseContext;
 
 import static org.springframework.data.graph.neo4j.fieldaccess.PartialNodeEntityStateAccessors.getId;
@@ -27,6 +28,8 @@ import static org.springframework.data.graph.neo4j.fieldaccess.PartialNodeEntity
 public class NodeEntityStateAccessorsFactory {
 
 	private GraphDatabaseContext graphDatabaseContext;
+	
+	private FinderFactory finderFactory;
 
 	private NodeDelegatingFieldAccessorFactory nodeDelegatingFieldAccessorFactory;
 
@@ -34,7 +37,7 @@ public class NodeEntityStateAccessorsFactory {
         final NodeEntity graphEntityAnnotation = entity.getClass().getAnnotation(NodeEntity.class);
         if (graphEntityAnnotation!=null && graphEntityAnnotation.partial()) {
             return new DetachableEntityStateAccessors<NodeBacked, Node>(
-                    new PartialNodeEntityStateAccessors<NodeBacked>(null, entity, entity.getClass(), graphDatabaseContext), graphDatabaseContext) {
+                    new PartialNodeEntityStateAccessors<NodeBacked>(null, entity, entity.getClass(), graphDatabaseContext, finderFactory), graphDatabaseContext) {
                 @Override
                 protected boolean transactionIsRunning() {
                     return super.transactionIsRunning() && getId(entity, entity.getClass()) != null;
@@ -54,5 +57,9 @@ public class NodeEntityStateAccessorsFactory {
 	public void setGraphDatabaseContext(GraphDatabaseContext graphDatabaseContext) {
 		this.graphDatabaseContext = graphDatabaseContext;
 	}
-	
+
+	public void setFinderFactory(FinderFactory finderFactory) {
+		this.finderFactory = finderFactory;
+	}
+
 }

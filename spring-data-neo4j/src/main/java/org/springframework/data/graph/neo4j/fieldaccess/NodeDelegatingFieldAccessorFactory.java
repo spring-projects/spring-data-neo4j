@@ -17,6 +17,7 @@
 package org.springframework.data.graph.neo4j.fieldaccess;
 
 import org.springframework.data.graph.core.NodeBacked;
+import org.springframework.data.graph.neo4j.finder.FinderFactory;
 import org.springframework.data.graph.neo4j.support.GraphDatabaseContext;
 
 import java.util.Arrays;
@@ -28,8 +29,8 @@ import java.util.Collection;
 */
 class NodeDelegatingFieldAccessorFactory extends DelegatingFieldAccessorFactory<NodeBacked> {
 	
-    public NodeDelegatingFieldAccessorFactory(GraphDatabaseContext graphDatabaseContext) {
-        super(graphDatabaseContext);
+    public NodeDelegatingFieldAccessorFactory(GraphDatabaseContext graphDatabaseContext, FinderFactory finderFactory) {
+        super(graphDatabaseContext, finderFactory);
     }
 
     @Override
@@ -52,7 +53,7 @@ class NodeDelegatingFieldAccessorFactory extends DelegatingFieldAccessorFactory<
                 new SingleRelationshipFieldAccessorFactory(graphDatabaseContext),
                 new OneToNRelationshipFieldAccessorFactory(graphDatabaseContext),
                 new ReadOnlyOneToNRelationshipFieldAccessorFactory(graphDatabaseContext),
-                new TraversalFieldAccessorFactory(graphDatabaseContext.getFinderFactory()),
+                new TraversalFieldAccessorFactory(finderFactory),
                 new OneToNRelationshipEntityFieldAccessorFactory(graphDatabaseContext)
         );
     }
