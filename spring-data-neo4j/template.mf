@@ -6,6 +6,7 @@ Import-Package:
  sun.reflect;version="0";resolution:=optional
 Import-Template: 
  org.springframework.beans.*;version="[3.0.0, 4.0.0)",
+ org.springframework.context.*;version="[3.0.0, 4.0.0)",
  org.springframework.core.*;version="[3.0.0, 4.0.0)",
  org.springframework.dao.*;version="[3.0.0, 4.0.0)",
  org.springframework.jdbc.*;version="[3.0.0, 4.0.0)",
