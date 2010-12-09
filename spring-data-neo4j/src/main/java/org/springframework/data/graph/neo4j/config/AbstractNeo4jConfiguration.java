@@ -39,7 +39,6 @@ import org.springframework.data.graph.neo4j.support.node.PartialNeo4jEntityInsta
 import org.springframework.data.graph.neo4j.support.relationship.ConstructorBypassingGraphRelationshipInstantiator;
 import org.springframework.data.graph.neo4j.support.relationship.Neo4jRelationshipBacking;
 import org.springframework.orm.jpa.JpaTransactionManager;
-import org.springframework.persistence.support.EntityInstantiator;
 import org.springframework.persistence.transaction.NaiveDoubleTransactionManager;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.jta.JtaTransactionManager;
