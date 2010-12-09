@@ -22,15 +22,28 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
+ * Annotation to declare an Pojo-Entity as graph backed. It is used by the {@link org.springframework.data.graph.neo4j.support.node.Neo4jNodeBacking} aspect to
+ * introduce constructor and field advices as well as add the {@link org.springframework.data.graph.core.NodeBacked} interface.
  * @author Michael Hunger
  * @since 27.08.2010
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
 public @interface NodeEntity {
+    /**
+     * @return true if the property names default to field names, otherwise the FQN of the class will be prepended
+     */
     boolean useShortNames() default true;
 
+    /**
+     * @return true if all fields of the entity will be indexed by default
+     */
     boolean fullIndex() default false;
 
+    /**
+     * @return true if the entity is only partially managed by the {@link org.springframework.data.graph.neo4j.support.node.Neo4jNodeBacking} aspect
+     * If partial is set, then construction of the node is delayed until the entity's id has been set by another persistent store. And only annotated fields
+     * will be handled by the graph storage.
+     */
     boolean partial() default false;
 }
