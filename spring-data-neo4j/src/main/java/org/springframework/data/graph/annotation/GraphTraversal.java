@@ -25,12 +25,26 @@ import org.springframework.data.graph.core.FieldTraversalDescriptionBuilder;
 import org.springframework.data.graph.core.NodeBacked;
 
 /**
+ * Field that provides access to an iterator which is created by applying the traversal that is built by the supplied
+ * traversal builder to the current node. The result elements are automatically converted to appropriate element
+ * entity class instances.
+ * <pre>
+ * &#64;GraphTraversal(traversalBuilder=FriendTraversalBuilder.class, elementClass=Person.class)
+ * Iterable&lt;Person&gt; friends;
+ * </pre>
  * @author Michael Hunger
  * @since 15.09.2010
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
 public @interface GraphTraversal {
+    /**
+     * @return Builder for the {@link org.neo4j.graphdb.traversal.TraversalDescription} to be applied
+     */
     Class<? extends FieldTraversalDescriptionBuilder> traversalBuilder() default FieldTraversalDescriptionBuilder.class;
+
+    /**
+     * @return target graph entity to be iterated over.
+     */
     Class<? extends NodeBacked> elementClass() default NodeBacked.class;
 }

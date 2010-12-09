@@ -25,15 +25,32 @@ import org.springframework.data.graph.core.Direction;
 import org.springframework.data.graph.core.RelationshipBacked;
 
 /**
+ * Annotation for {@link org.springframework.data.graph.annotation.NodeEntity} fields that relate to other entities via
+ * relationships. The fields represent read only iterators that provide the relationship-entities
+ * {@link org.springframework.persistence.RelatedEntity} of the relationships. The iterator reflects the underlying relationships.
+ *
+ * <pre>
+ * &#64;RelatedToVia([type=&quot;roles&quot;], elementClass=Role.class)
+ * Iterator&lt;Role&gt; roles;
+ * </pre>
  * @author Michael Hunger
  * @since 27.08.2010
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
 public @interface RelatedToVia {
+    /**
+     * @return name of the relationship type, optional, can be inferred from the field name
+     */
     String type();
 
+    /**
+     * @return direction for the relationship, by default outgoing
+     */
     Direction direction() default Direction.OUTGOING;
 
+    /**
+     * @return target relationship entity class
+     */
     Class<? extends RelationshipBacked> elementClass() default RelationshipBacked.class;
 }
