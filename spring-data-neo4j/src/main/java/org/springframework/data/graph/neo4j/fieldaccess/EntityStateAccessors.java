@@ -21,6 +21,8 @@ import org.springframework.data.graph.core.GraphBacked;
 import java.lang.reflect.Field;
 
 /**
+ * Interface for classes encapsulating and delegating read and write field access of an GraphBacked entity to a number of field accessors.
+ * Wraps the entity, the underlying state and also handles the creation of the state (call back).
  * @author Michael Hunger
  * @since 15.09.2010
  */
@@ -29,11 +31,28 @@ public interface EntityStateAccessors<ENTITY extends GraphBacked<STATE>,STATE> {
 
     void setUnderlyingState(STATE state);
 
+    /**
+     * @param field
+     * @return value of the field either from the state and/or the entity
+     */
     Object getValue(Field field);
+
+    /**
+     * @param field
+     * @return true if the field can be written
+     */
     boolean isWritable(Field field);
 
+    /**
+     * @param field
+     * @param newVal
+     * @return sets the value in the entity and/or the state
+     */
     Object setValue(Field field, Object newVal);
 
+    /**
+     * callback for creating and initializing an initial state
+     */
     void createAndAssignState();
 
 }

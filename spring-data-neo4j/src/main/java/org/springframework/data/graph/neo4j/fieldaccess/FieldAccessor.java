@@ -16,11 +16,35 @@
 
 package org.springframework.data.graph.neo4j.fieldaccess;
 
+/**
+ * interface for field accessors, encapsulates reading and writing from fields and write support information about the field.
+ * It is used by the {@link org.springframework.data.graph.neo4j.fieldaccess.EntityStateAccessors} which is delegated to by the
+ * {@link org.springframework.data.graph.neo4j.support.node.Neo4jNodeBacking} {@link org.springframework.data.graph.neo4j.support.relationship.Neo4jRelationshipBacking}
+ * aspects.
+ * @param <ENTITY>
+ * @param <TARGET>
+ */
 public interface FieldAccessor<ENTITY, TARGET> {
 
+    /**
+     * handles field write modification.
+     * @param entity
+     * @param newVal
+     * @return the written value or a DoReturn wrapper with the written value or null.
+     * DoReturn indicates that the aspect should not proceed to the original field access but instead return immediately.
+     */
 	Object setValue(ENTITY entity, Object newVal);
 
+    /**
+     * @param entity
+     * @return the value or a DoReturn wrapper with the value for the field.
+     * DoReturn indicates that the aspect should not proceed to the original field access but instead return immediately.
+     */
 	Object getValue(ENTITY entity);
 
+    /**
+     * @param entity
+     * @return false for read only or computed fields, true otherwise
+     */
     boolean isWriteable(ENTITY entity);
 }
