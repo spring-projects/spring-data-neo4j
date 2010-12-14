@@ -19,6 +19,9 @@ package org.springframework.data.graph.neo4j.finder;
 import org.springframework.data.graph.core.NodeBacked;
 import org.springframework.data.graph.neo4j.support.GraphDatabaseContext;
 
+/**
+ * Simple Factory for {@link org.springframework.data.graph.neo4j.finder.Finder} instances.
+ */
 public class FinderFactory {
 
     private final GraphDatabaseContext graphDatabaseContext;

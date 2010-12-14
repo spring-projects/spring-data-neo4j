@@ -22,14 +22,18 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
+ * Annotation to explcitely declare a property handled by datastore-graph. Automatically indexes the property.
+ * Only required in partial mode. Otherwise properties are handled by default if they are primitive or convertible to
+ * a String using the built in conversion services.
+ *
  * @author Michael Hunger
  * @since 27.08.2010
- * indexing true by default
- * implies automatic conversion
- * TODO support for custom converter class
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
 public @interface GraphProperty {
+    /**
+     * @return true if the property should be indexed, false if not
+     */
     boolean index() default true;
 }

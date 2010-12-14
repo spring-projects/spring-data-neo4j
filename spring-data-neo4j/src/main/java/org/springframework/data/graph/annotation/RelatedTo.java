@@ -25,15 +25,37 @@ import org.springframework.data.graph.core.Direction;
 import org.springframework.data.graph.core.NodeBacked;
 
 /**
+ * Annotation for {@link org.springframework.data.graph.annotation.NodeEntity} fields that relate to other entities via
+ * relationships. Works for one-to-one and one-to-many relationships. It is optionally possible to define the relationship type,
+ * relationship direction and target class (required for one-many-relationships).
+ *
+ * Collection based one-to-many relationships return managed collections that reflect addition and removal to the underlying relationships.
+ *
+ * <pre>
+ * &#64;RelatedTo([type=&quot;friends&quot;], elementClass=Person.class)
+ * Collection&lt;Person&gt; friends;
+ * &#64;RelatedTo([type=&quot;spouse&quot;], [elementClass=Person.class])
+ * Person spouse;
+ * </pre>
+
  * @author Michael Hunger
  * @since 27.08.2010
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
 public @interface RelatedTo {
+    /**
+     * @return name of the relationship type, optional, can be inferred from the field name
+     */
     String type();
 
+    /**
+     * @return direction for the relationship, by default outgoing
+     */
     Direction direction() default Direction.OUTGOING;
 
+    /**
+     * @return target class, required for collection based fields (no generic inferring)
+     */
     Class<? extends NodeBacked> elementClass() default NodeBacked.class;
 }

@@ -22,11 +22,21 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
+ * Annotation to declare a Pojo-Entity as graph backed relationship entity.
+ * It is used by the {@link org.springframework.data.graph.neo4j.support.relationship.Neo4jRelationshipBacking} aspect to add
+ * field advices as well as the {@link org.springframework.data.graph.core.RelationshipBacked} interface.
+ *
+ * Relationship entities cannot be instantiated directly. The will be provided by relationship fields and the
+ * methods relatedTo and getRelationshipTo introduced to the node entities.
+ *
  * @author Michael Hunger
  * @since 27.08.2010
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
 public @interface RelationshipEntity {
+    /**
+     * @return true if the property names default to field names, otherwise the FQN of the class will be prepended
+     */
     boolean useShortNames() default true;
 }

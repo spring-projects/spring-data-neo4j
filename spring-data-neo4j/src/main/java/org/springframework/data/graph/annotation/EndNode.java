@@ -22,6 +22,9 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
+ * Field annotation for the end node of a relationship entity. The field type must be a node entity. The end node
+ * field is read only.
+ *
  * @author Michael Hunger
  * @since 27.08.2010
  */

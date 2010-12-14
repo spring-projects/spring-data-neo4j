@@ -26,9 +26,19 @@ import org.springframework.data.graph.neo4j.support.GraphDatabaseContext;
 
 import java.util.Collections;
 
+/**
+ * Repository like finder for NodeEntities. Provides finder methods for direct access, access via {@link org.springframework.data.graph.core.NodeTypeStrategy}
+ * and indexing.
+ *
+ * @param <T> NodeBacked target of this finder, enables the finder methods to return this concrete type
+ */
 public class Finder<T extends NodeBacked> {
 
+    /**
+     * Target nodebacked type
+     */
     private final Class<T> clazz;
+
     private final GraphDatabaseContext graphDatabaseContext;
 
     public Finder(final Class<T> clazz, final GraphDatabaseContext graphDatabaseContext) {
@@ -36,14 +46,24 @@ public class Finder<T extends NodeBacked> {
         this.graphDatabaseContext = graphDatabaseContext;
     }
 
+    /**
+     * @return Number of instances of the target type in the graph.
+     */
     public long count() {
         return graphDatabaseContext.count(clazz);
     }
 
+    /**
+     * @return lazy Iterable over all instances of the target type.
+     */
     public Iterable<T> findAll() {
         return graphDatabaseContext.findAll(clazz);
     }
 
+    /**
+     * @param id nodeId
+     * @return Node with the given id or null.
+     */
     public T findById(final long id) {
         try {
             return graphDatabaseContext.createEntityFromState(graphDatabaseContext.getNodeById(id), clazz);
@@ -52,6 +72,12 @@ public class Finder<T extends NodeBacked> {
         }
     }
 
+    /**
+     * Index based single finder.
+     * @param property
+     * @param value
+     * @return Single Node Entity with this property and value
+     */
     public T findByPropertyValue(final String property, final Object value) {
         try {
             final Node node = graphDatabaseContext.getSingleIndexedNode(property, value);
@@ -63,6 +89,12 @@ public class Finder<T extends NodeBacked> {
 
     }
 
+    /**
+     * Index based finder.
+     * @param property
+     * @param value
+     * @return Iterable over Node Entities with this property and value
+     */
     public Iterable<T> findAllByPropertyValue(final String property, final Object value) {
         try {
             final IndexHits<Node> nodes = graphDatabaseContext.getIndexedNodes(property, value);
@@ -78,6 +110,13 @@ public class Finder<T extends NodeBacked> {
         }
     }
 
+    /**
+     * Traversal based finder that returns a lazy Iterable over the traversal results
+     * @param startNode the node to start the traversal from
+     * @param traversalDescription
+     * @param <N> Start node entity type
+     * @return Iterable over traversal result
+     */
     public <N extends NodeBacked> Iterable<T> findAllByTraversal(final N startNode, final TraversalDescription traversalDescription) {
         return (Iterable<T>) startNode.find(clazz, traversalDescription);
     }

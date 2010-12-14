@@ -19,10 +19,22 @@ package org.springframework.data.graph.neo4j.fieldaccess;
 import java.lang.reflect.Field;
 
 /**
-* @author Michael Hunger
-* @since 12.09.2010
+ * Factory interface for a single field / field accessor. Provides means to check if a certain field is eligible for this
+ * factory and also a factory method to create the field accessor.
+ *
+ * @author Michael Hunger
+ * @since 12.09.2010
 */
 public interface FieldAccessorFactory<E> {
+    /**
+     * @param f field to check
+     * @return true if this factory is responsible for creating a accessor for this field
+     */
     boolean accept(Field f);
+
+    /**
+     * @param f the field to create an accessor for
+     * @return a field accessor for the field or null if none can be created
+     */
     FieldAccessor<E,?> forField(Field f);
 }

@@ -17,15 +17,24 @@
 package org.springframework.data.graph.neo4j.fieldaccess;
 
 /**
+ * Wrapper for return values of FieldAccessor methods.
+ * DoReturn indicates that the wrapping aspect should not proceed to the original field access but instead return immediately.
  * @author Michael Hunger
  * @since 15.09.2010
  */
 public class DoReturn<T> {
-    public final T value;
+    private final T value;
 
-    public DoReturn(T value) {
+    private DoReturn(T value) {
         this.value = value;
     }
+
+    /**
+     * static factory method
+     * @param value
+     * @param <T>
+     * @return
+     */
     public static <T> DoReturn<T> doReturn(T value) {
         return new DoReturn<T>(value);
     }

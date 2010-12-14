@@ -19,11 +19,22 @@ package org.springframework.data.graph.neo4j.fieldaccess;
 import java.lang.reflect.Field;
 
 /**
+ * factory interface for field accessor listeners. Provides means to check if a field is eligible for this factory
+ * and a factory method for creating the listener instance.
+ *
  * @author Michael Hunger
  * @since 12.09.2010
  */
 interface FieldAccessorListenerFactory<E> {
+    /**
+     * @param f field to check
+     * @return true if this factory is able to create a listener for the field
+     */
     boolean accept(Field f);
 
+    /**
+     * @param f field to create a listener for
+     * @return newly created field listener
+     */
     FieldAccessListener<E, ?> forField(Field f);
 }
