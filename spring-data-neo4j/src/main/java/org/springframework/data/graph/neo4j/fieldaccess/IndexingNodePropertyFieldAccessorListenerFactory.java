@@ -16,6 +16,8 @@
 
 package org.springframework.data.graph.neo4j.fieldaccess;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.neo4j.index.IndexService;
 import org.springframework.data.graph.annotation.GraphProperty;
 import org.springframework.data.graph.annotation.NodeEntity;
@@ -65,23 +67,21 @@ class IndexingNodePropertyFieldAccessorListenerFactory implements FieldAccessorL
 	 * @since 12.09.2010
 	 */
 	public static class IndexingNodePropertyFieldAccessorListener implements FieldAccessListener<NodeBacked, Object> {
-	    protected final Field field;
+
+	    private final static Log log = LogFactory.getLog( IndexingNodePropertyFieldAccessorListener.class );
+
+	    protected final String indexKey;
 	    private final IndexService indexService;
 
 	    public IndexingNodePropertyFieldAccessorListener(final Field field, final IndexService indexService) {
-	        this.field = field;
+	        this.indexKey = DelegatingFieldAccessorFactory.getNeo4jPropertyName(field);
 	        this.indexService = indexService;
 	    }
 
 	    @Override
 	    public void valueChanged(final NodeBacked nodeBacked, final Object oldVal, final Object newVal) {
-	        if (newVal==null) indexService.removeIndex(nodeBacked.getUnderlyingState(),getPropertyName());
-	        else indexService.index(nodeBacked.getUnderlyingState(), getPropertyName(),newVal);
-	    }
-
-	    // todo
-	    private String getPropertyName() {
-	        return DelegatingFieldAccessorFactory.getNeo4jPropertyName(field);
+            if (newVal==null) indexService.removeIndex(nodeBacked.getUnderlyingState(), indexKey );
+	        else indexService.index(nodeBacked.getUnderlyingState(), indexKey, newVal.toString());
 	    }
 
 	}
