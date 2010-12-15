@@ -16,10 +16,7 @@
 
 package org.springframework.data.graph.annotation;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import java.lang.annotation.*;
 
 /**
  * Annotation to declare a Pojo-Entity as graph backed relationship entity.
@@ -34,6 +31,7 @@ import java.lang.annotation.Target;
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
+@Inherited
 public @interface RelationshipEntity {
     /**
      * @return true if the property names default to field names, otherwise the FQN of the class will be prepended
