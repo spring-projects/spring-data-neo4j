@@ -120,11 +120,11 @@ public class GraphDatabaseContext {
     }
 
     public IndexHits<Node> getIndexedNodes(final String property, final Object value) {
-        return indexService.getNodes(property, value);
+        return indexService.getNodes(property, value.toString());
     }
 
     public Node getSingleIndexedNode(final String property, final Object value) {
-        return indexService.getSingleNode(property, value);
+        return indexService.getSingleNode(property, value.toString());
     }
 
     public Node getNodeById(final long id) {
@@ -178,7 +178,7 @@ public class GraphDatabaseContext {
     }
 
     public void index(final Node node, final String propName, final Object newVal) {
-        indexService.index(node,propName,newVal);
+        indexService.index(node,propName,newVal.toString());
     }
 
     public boolean canConvert(final Class<?> from, final Class<?> to) {
