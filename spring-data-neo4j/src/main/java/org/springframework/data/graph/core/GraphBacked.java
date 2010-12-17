@@ -17,10 +17,22 @@
 package org.springframework.data.graph.core;
 
 /**
+ * super interface denoting entities that are graph backed, the backing STATE can be a {@link org.neo4j.graphdb.Node}
+ * or a {@link org.neo4j.graphdb.Relationship}.
+ * Subclasses of this interface bind the type parameter to a concrete Node or Relationship state.
+ *
  * @author Michael Hunger
  * @since 21.09.2010
  */
 public interface GraphBacked<STATE> {
+    /**
+     * internal setter used for initializing the graph-db state on existing or newly created entities
+     * @param state (Node or Relationship)
+     */
     void setUnderlyingState(STATE state);
+
+    /**
+     * @return the underlying graph-db state or null if the current entity is not related to the graph-store (possible with unsaved or partial entities)
+     */
     STATE getUnderlyingState();
 }

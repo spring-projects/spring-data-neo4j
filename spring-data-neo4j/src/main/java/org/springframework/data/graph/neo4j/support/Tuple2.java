@@ -17,6 +17,8 @@
 package org.springframework.data.graph.neo4j.support;
 
 /**
+ * A simple class for holding a tuple of two typed elements. Useful for instance for map construction.
+ * Instantiated via the static factory method Tuple2._(v1,v2)
  * @author Michael Hunger
  * @since 11.09.2010
  */

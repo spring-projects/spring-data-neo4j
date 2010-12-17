@@ -20,14 +20,40 @@ import org.neo4j.graphdb.Node;
 import org.springframework.data.graph.core.NodeBacked;
 
 /**
+ * Strategy to handle representation of java types in the graph. Possible implementation are type/class nodes
+ * (forming an inheritance chain) that is linked to from the instance and keeps a count of the instances. Another
+ * approach could use indexing and a type property on the instance fields.
+ *
+ * Contains a callback on entity creation that can setup the type representation. The finder methods are delegated to
+ * for the appropriate calls for the strategy set for the datastore.
+ *
 * @author Michael Hunger
 * @since 13.09.2010
 */
 public interface NodeTypeStrategy {
+    /**
+     * callback on entity creation for setting up type representation
+     * @param entity
+     */
     void postEntityCreation(NodeBacked entity);
 
+    /**
+     * @param clazz Type whose instances should be iterated over
+     * @param <T> Type parameter for generified return value
+     * @return lazy Iterable over all instances of the given type
+     */
     <T extends NodeBacked> Iterable<T> findAll(final Class<T> clazz);
+
+    /**
+     * @param entityClass
+     * @return number of instances of this class contained in the graph
+     */
     long count(final Class<? extends NodeBacked> entityClass);
 
+    /**
+     * @param node
+     * @param <T>
+     * @return java type that of the node entity of this node
+     */
 	<T extends NodeBacked> Class<T> getJavaType(Node node);
 }

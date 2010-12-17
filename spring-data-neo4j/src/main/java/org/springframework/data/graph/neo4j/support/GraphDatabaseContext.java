@@ -35,6 +35,12 @@ import javax.transaction.SystemException;
 import javax.transaction.TransactionManager;
 
 /**
+ * Mediator class for the graph related services like the {@link GraphDatabaseService}, the {@link IndexService} the used
+ * {@link NodeTypeStrategy}, entity instantiators for nodes and relationships as well as a spring conversion service.
+ *
+ * It delegates the appropriate methods to those services. The services are not intended to be accessible from outside.
+ * TODO constructor injection
+ *
  * @author Michael Hunger
  * @since 13.09.2010
  */
@@ -43,10 +49,6 @@ public class GraphDatabaseContext {
     private GraphDatabaseService graphDatabaseService;
 
     public EntityInstantiator<NodeBacked, Node> graphEntityInstantiator;
-
-/*
-    private DelegatingFieldAccessorFactory fieldAccessorFactory;
-*/
 
     public EntityInstantiator<RelationshipBacked, Relationship> relationshipEntityInstantiator;
 

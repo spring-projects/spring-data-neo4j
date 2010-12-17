@@ -29,6 +29,11 @@ import java.lang.reflect.Field;
 
 import static org.springframework.data.graph.neo4j.fieldaccess.DoReturn.unwrap;
 
+/**
+ * Aspect for handling relationship entity creation and field access (read & write)
+ * puts the underlying state into and delegates field access to an {@link EntityStateAccessors} instance,
+ * created by a configured {@link RelationshipEntityStateAccessorsFactory}
+ */
 public aspect Neo4jRelationshipBacking extends AbstractTypeAnnotatingMixinFields<RelationshipEntity,RelationshipBacked> {
 	
 	//-------------------------------------------------------------------------
@@ -48,11 +53,20 @@ public aspect Neo4jRelationshipBacking extends AbstractTypeAnnotatingMixinFields
     public void setRelationshipEntityStateAccessorsFactory(RelationshipEntityStateAccessorsFactory entityStateAccessorsFactory) {
         this.entityStateAccessorsFactory = entityStateAccessorsFactory;
     }
-	
-	// Introduced fields
+
+    /**
+     * field for underlying relationship
+     */
 	private Relationship RelationshipBacked.underlyingRelationship;
+    /**
+     * field for {@link EntityStateAccessors} that takes care of all entity operations
+     */
     private EntityStateAccessors<RelationshipBacked,Relationship> RelationshipBacked.stateAccessors;
 
+    /**
+     * creates a new {@link EntityStateAccessors} instance with the relationship parameter or updates an existing one
+     * @param r
+     */
 	public void RelationshipBacked.setUnderlyingState(Relationship r) {
         this.underlyingRelationship = r;
         if (this.stateAccessors == null) {
@@ -65,28 +79,34 @@ public aspect Neo4jRelationshipBacking extends AbstractTypeAnnotatingMixinFields
 	public Relationship RelationshipBacked.getUnderlyingState() {
 		return underlyingRelationship;
 	}
+
 	public boolean RelationshipBacked.hasUnderlyingRelationship() {
 		return underlyingRelationship!=null;
 	}
 
+    /**
+     * @return relationship id if there is an underlying relationship
+     */
 	public Long RelationshipBacked.getId() {
         if (!hasUnderlyingRelationship()) return null;
 		return underlyingRelationship.getId();
 	}
-	
-	
-	//-------------------------------------------------------------------------
-	// Equals and hashCode for Neo4j entities.
-	// Final to prevent overriding.
-	//-------------------------------------------------------------------------
-	// TODO could use template method for further checks if needed
+
+
+    /**
+     * @param obj
+     * @return result of equality check of the underlying relationship
+     */
 	public final boolean RelationshipBacked.equals(Object obj) {
 		if (obj instanceof RelationshipBacked) {
 			return this.getUnderlyingState().equals(((RelationshipBacked) obj).getUnderlyingState());
 		}
 		return false;
 	}
-	
+
+    /**
+     * @return hashCode of the underlying relationship
+     */
 	public final int RelationshipBacked.hashCode() {
 		return getUnderlyingState().hashCode();
 	}

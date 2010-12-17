@@ -24,6 +24,12 @@ import org.springframework.persistence.support.EntityInstantiator;
 
 import sun.reflect.ReflectionFactory;
 
+/**
+ * Instantiator for relationship entities uses non constructor invoking {@link ReflectionFactory} internal to sun reflect
+ * package.
+ * Part of the SPI, not intended for public use.
+ */
+
 public class ConstructorBypassingGraphRelationshipInstantiator implements EntityInstantiator<RelationshipBacked, Relationship> {
 	
 	protected static <T> T createWithoutConstructorInvocation(Class<T> clazz) {

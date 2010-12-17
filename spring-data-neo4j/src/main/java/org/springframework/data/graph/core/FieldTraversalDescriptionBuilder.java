@@ -21,9 +21,19 @@ import org.neo4j.graphdb.traversal.TraversalDescription;
 import java.lang.reflect.Field;
 
 /**
+ * Interface for classes that build traversal descriptions. Those classes can be referred to by
+ * {@link org.springframework.data.graph.annotation.GraphTraversal#traversalBuilder()} to  provide fields that return
+ * a dynamic traversal on access.
+ *
  * @author Michael Hunger
  * @since 15.09.2010
  */
 public interface FieldTraversalDescriptionBuilder {
+    /**
+     * Builder method for traversal description.
+     * @param start the Entity that contains the field with the dynamic traversal. Used for the parametrization of the traversal description.
+     * @param field the concrete field that will provide the traversal. Used for the parametrization of the traversal description.
+     * @return the TraversalDescription to apply on fieldaccess, the start node is the current entity node
+     */
     TraversalDescription build(NodeBacked start, Field field);
 }

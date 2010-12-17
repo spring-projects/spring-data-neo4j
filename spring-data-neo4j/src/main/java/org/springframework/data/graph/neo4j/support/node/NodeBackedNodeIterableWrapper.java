@@ -23,6 +23,8 @@ import org.springframework.data.graph.core.NodeBacked;
 import org.springframework.data.graph.neo4j.support.GraphDatabaseContext;
 
 /**
+ * Simple wrapper to create an Iterable from a traverser, tied to a NodeBacked entity. Creates NodeEntities on the fly
+ * while iterating the Iterator from the traverersal result.
  * @author Michael Hunger
  * @since 14.09.2010
  */

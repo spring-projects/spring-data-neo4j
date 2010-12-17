@@ -25,6 +25,8 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 
 /**
+ * Entity instantiator for Node entities that takes into account that the entity is persisted in a JPA store as well.
+ *
  * @author Michael Hunger
  * @since 02.10.2010
  */
@@ -42,6 +44,15 @@ public class PartialNeo4jEntityInstantiator implements EntityInstantiator<NodeBa
 		this.delegate = delegate;
 	}
 
+    /**
+     * Takes the JPA id stored in the "FOREIGN_ID" property of the node for a {@link EntityManager#find(Class, Object)} operation.
+     * If the entity is found its instance is associated with the graph node and returned otherwise a new node entity instance for
+     * this node is created by the original {@link EntityInstantiator}.
+     * @param n Node to instantiate an entity for
+     * @param entityClass type of the entity
+     * @param <T> generic type of the entity
+     * @return
+     */
 	public <T extends NodeBacked> T createEntityFromState(Node n, Class<T> entityClass) {
         if (n.hasProperty(PartialNodeEntityStateAccessors.FOREIGN_ID)) {
             final Object foreignId = n.getProperty(PartialNodeEntityStateAccessors.FOREIGN_ID);

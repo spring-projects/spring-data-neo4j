@@ -21,8 +21,9 @@ import org.springframework.data.graph.core.NodeBacked;
 import org.springframework.persistence.support.AbstractConstructorEntityInstantiator;
 
 /**
- * Try for a constructor taking a Neo4j Node: failing that, try a no-arg
- * constructor and then setUnderlyingState().
+ * Implementation of an entity instantiator for neo4j graphdb nodes, binding the entity type to a NodeBacked and the
+ * underlying state to a neo4j {@link Node}.
+ * Part of the SPI, not intended for public use.
  * 
  * @author Rod Johnson
  */

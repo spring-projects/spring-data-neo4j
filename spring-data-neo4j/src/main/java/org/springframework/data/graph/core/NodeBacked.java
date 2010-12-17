@@ -19,16 +19,12 @@ package org.springframework.data.graph.core;
 import org.neo4j.graphdb.Node;
 
 /**
- * Interface introduced to objects annotated with GraphEntity 
+ * Interface introduced to objects annotated with &#64;NodeEntity by the {@link org.springframework.data.graph.neo4j.support.node.Neo4jNodeBacking} aspect.
  * annotation, to hold underlying Neo4j Node state.
  * @author Rod Johnson
  */
 public interface NodeBacked extends GraphBacked<Node> {
-	
-	Node getUnderlyingState();
-	
-	void setUnderlyingState(Node n);
-	
+
 	// Relationship relateTo(NodeBacked nb, RelationshipType type);
 
 }

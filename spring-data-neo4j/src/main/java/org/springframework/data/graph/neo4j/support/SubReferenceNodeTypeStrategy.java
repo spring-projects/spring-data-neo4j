@@ -28,6 +28,11 @@ import org.springframework.data.graph.core.NodeTypeStrategy;
 import java.util.*;
 
 /**
+ * A {@link NodeTypeStrategy} that uses a hierarchy of reference nodes to represent the java type of the entity in the
+ * graph database. Entity nodes are related to their concrete type via an INSTANCE_OF relationship, the type hierarchy is
+ * related to supertypes via SUBCLASS_OF relationships. Each concrete subreference node keeps a count property with the number of
+ * instances of this class in the graph.
+ *
  * @author Michael Hunger
  * @since 13.09.2010
  */
