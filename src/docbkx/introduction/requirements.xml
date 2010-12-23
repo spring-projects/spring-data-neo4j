@@ -6,9 +6,10 @@
       3.0.x and above.</para>
       <para>
       In terms of graph databases, <ulink url="http://www.neo4j.org/">Neo4j</ulink> version 1.2 and above.
-	  Neo4j has a dependency on Apache Lucene for indexing.
+	  Neo4j has a dependency on Apache Lucene for indexing. Users are encouraged to use the latest version of Neo4j
+        available.
       </para>
 	  <para>
-		For building the project Apache Maven (version 2.10 and above) is recommended.
+		For building the project, Apache Maven (version 2.10 and above) is strongly recommended.
 	  </para>
   </chapter>

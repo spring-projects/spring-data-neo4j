@@ -7,17 +7,17 @@
     <para><ulink url="http://en.wikipedia.org/wiki/NoSQL">NoSQL</ulink>
     stores provide alternative storage solutions that are more tailored to the needs of
 	the data structure requirements that are specific to each project than just using a relational
-	as a "one-size-fits-all" solution. 
+	database as a "one-size-fits-all" solution.
 	</para>
 	<para>
-	Graph databases provide excellent support for network data, i.e. data that can easily be structured
-	as connected nodes. Property Graphs like Neo4j support arbitrary number of named properties on both
-	nodes and relationship. Graph databases perform very fast when traversing large, complex datasets with
-	millions of nodes and relationships even on commodity hardware.
+	Graph databases provide excellent support for network data, i.e. data that easily can be structured
+	as connected nodes. Property graph databases like Neo4j support arbitrary numbers of named properties on both
+	nodes and relationships. They are highly performant when traversing large, complex datasets with
+	millions of nodes and relationships, even on commodity hardware.
 	</para>
 	<para>
-		Neo4j is an open source graph database written in Java. It has high performance characteristics while providing ACID
-		semantics and transactional support (both JTA and XA-Transactions). Neo4j can run as lightweight embedded database as well as standalone
+		Neo4j is an open source graph database written in Java. It has excellent performance characteristics while providing ACID
+		semantics and transactional support (both JTA and XA transactions). Neo4j can run as a lightweight embedded database as well as a standalone
 		server that exposes the API via a rich REST interface.
 	</para>
 	
@@ -31,6 +31,6 @@
 	<para>
 	A special use case of Spring Data Graph is the cross store solution that can extend existing JPA data models with new parts
 	(properties, entities, relationships) that are stored exclusively in the graph while being transparently integrated with the JPA
-	entities.
+	entities. This enables for easy and seamless addition of new features that were not available before to JPA-based applications.
 	</para>
 </chapter>
