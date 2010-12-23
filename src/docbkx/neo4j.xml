@@ -1,44 +1,76 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN"
-"http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
+<!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
 <chapter id="neo4j-intro">
-  <title>Introduction to Neo4j graph database</title>
+	<title>Introduction to the Neo4j Graph Database</title>
+	<para>
+  	<ulink url="http://neo4j.org/">Neo4j</ulink> is a graph database, a fully transactional database that stores data structured as graphs. A graph is a flexible data structure that allows for a more agile and rapid style of development.
+</para>
+	<para>
+	Neo4j has been in commercial development for 10 years and in production for over 7 years. It is a mature and robust graph database that provides:
+	<itemizedlist><listitem>
+	an intuitive graph-oriented model for data representation. Instead of static and rigid tables, rows and columns, you work with a flexible graph network consisting of <ulink url="http://wiki.neo4j.org/content/Getting_Started_Guide">nodes, relationships and properties</ulink>.
+</listitem><listitem>	a disk-based, native storage manager completely optimized for storing graph structures for maximum performance and scalability.
+</listitem><listitem>	massive scalability. Neo4j can handle graphs of several billion nodes/relationships/properties on a single machine and can be sharded to scale out across multiple machines.
+</listitem><listitem>	a powerful traversal framework for high-speed traversals in the node space.
+</listitem><listitem>	can be deployed as a full server or a very slim database with a small
+	footprint (~500k jar).
+</listitem><listitem>	a simple and convenient object-oriented <ulink url="http://api.neo4j.org/">API</ulink>.
+</listitem></itemizedlist>
+</para>
+	<para>
+	In addition, Neo4j includes the usual database features: ACID transactions, durable persistence, concurrency control, transaction recovery, high availability and everything else you’d expect from an enterprise-strength database. Neo4j is released under a dual free software/commercial license model.</para>
+	<section>
+		<title>What is a graph database?</title>
+		<para>A graph database is a storage engine that is specialized in storing and retrieving vast networks of data. It efficiently stores nodes and relationship and allows high performance traversal of those structures. With property graphs it is possible to add an arbitrary number properties to nodes
+			and relationships which can be used directly or during traversals.</para>
+	</section>
+	<section>
+		<title>GraphDatabaseService</title>
+		<para>The GraphDatabaseService is the API interface to the storage engine. It provides access to create and retrieve Nodes and Relationships, an IndexManager, lifecycle and transactional methods and more.
+		</para>
+		<para>
+			The EmbeddedGraphDatabaseService is running within the current Java application for highest performance and tightest integration. There are other,
+			 remote implementations that provide access to Neo4j stores via REST or RMI.</para>
+	</section>
+	<section>
+		<title>Creating Nodes and Relationships</title>
+		<para>Using the API of GraphDatabaseService it is easy to create nodes and relate them to each other. Relationships are named. Both nodes and relationship can have properties. Property values can be of primitive Java types and Strings as well as byte arrays for binary data.
+			Node creation and modification has to happen within a transaction, reading from the graph store can also be done without transactions.
+			<programlisting language="JAVA" ><![CDATA[
+GraphDatabaseService graphDb = new EmbeddedGraphDatabase( "helloworld" );
+Transaction tx = graphDb.beginTx();
+try {
 
-  <para>The Neo4j database ...</para>
+	Node firstNode = graphDb.createNode();
+	Node secondNode = graphDb.createNode();
+	firstNode.setProperty( "message", "Hello, " );
+	secondNode.setProperty( "message", "world!" );
 
-  <section>
-    <title>What is a graph database?</title>
-
-    <para>..</para>
-  </section>
-
-  <section>
-    <title>GraphDatabaseService</title>
-
-    <para>..</para>
-  </section>
-
-  <section>
-    <title>Creating a Node</title>
-
-    <para>..</para>
-  </section>
-
-  <section>
-    <title>Creating a relationship</title>
-
-    <para>..</para>
-  </section>
-
-  <section>
-    <title>Adding attributes to a relationship</title>
-
-    <para>..</para>
-  </section>
-
-  <section>
-    <title>Graph traversal</title>
-
-    <para>..</para>
-  </section>
+	Relationship relationship = firstNode.createRelationshipTo( secondNode, 
+		DynamicRelationshipType.of("KNOWS") );
+	relationship.setProperty( "message", "brave Neo4j " );
+	tx.success();
+} finally {
+	tx.finish();
+}
+			]]></programlisting>
+		</para>
+	</section>
+	<section>
+		<title>Graph traversal</title>
+		<para>Getting a single nodes or relationship and reading from is not the main use case of a graph database. Fast graph traversal and
+			application of graph algorithms are. Neo4j provides means via a concise DSL to define TraversalDescriptions that can then be applied
+			to a start node and will produce a stream of nodes and/or relationships as a lazy result using an Iterable.
+			<programlisting language="JAVA" ><![CDATA[
+TraversalDescription traversalDescription = Traversal.description()
+          .depthFirst()
+          .relationships( KNOWS )
+          .relationships( LIKES, Direction.INCOMING )
+          .prune( Traversal.pruneAfterDepth( 5 ) );
+for ( Path position : traversalDescription.traverse( myStartNode )) {
+    System.out.println( "Path from start node to current position is " + position );
+}
+]]></programlisting>
+		</para>
+	</section>
 </chapter>

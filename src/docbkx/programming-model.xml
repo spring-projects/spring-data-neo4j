@@ -1,74 +1,144 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN"
-"http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
+<!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
 <chapter id="programming-model">
-  <title>Programming model for a graph database</title>
-
-  <para>This chapter ...</para>
-
-  <section>
-    <title>Overview of the AspectJ support</title>
-
-    <para>..</para>
-  </section>
-
-  <section>
-    <title>Using annotations to define POJO entities and relationships</title>
-
-    <para>..</para>
-
-    <section>
-      <title>@NodeEntity</title>
-
-      <para>..</para>
-    </section>
-
-    <section>
-      <title>@RelationshipEntity</title>
-
-      <para>..</para>
-    </section>
-
-    <section>
-      <title>@RelatedTo</title>
-
-      <para>..</para>
-    </section>
-
-    <section>
-      <title>@RelatedToVia</title>
-
-      <para>..</para>
-    </section>
-
-    <section>
-      <title>@StartNode</title>
-
-      <para>..</para>
-    </section>
-
-    <section>
-      <title>@EndNode</title>
-
-      <para>..</para>
-    </section>
-
-    <section>
-      <title>@Indexed</title>
-
-      <para>..</para>
-    </section>
-
-    <section>
-      <title>@GraphTraversal</title>
-
-      <para>..</para>
-    </section>
-  </section>
-
-  <section>
-    <title>Configuration</title>
-
-    <para>..</para>
-  </section>
+	<title>Programming model for Spring Data Graph</title>
+	<para>This chapter covers the fundamentals of the programming model behind Spring Data Graph. It discusses the AspectJ features used and the annotations
+	provided by SDGRAPH and how to use them.
+</para>
+	<section>
+		<title>Overview of the AspectJ support</title>
+		<para>Behind the scenes SDGRAPH leverages AspectJ aspects to modify the behavior of simple POJO entities to be able to be backed by a graph store. Behind  each entity lies a backing node that holds the properties and relationships to other entities. AspectJ is used to intercept field access and to reroute it to the backing state (either its properties or relationships). For relationship entities the fields are similarly mapped to properties. There are two specially annotated fields for the start and the end node of the relationship. 
+</para>
+		<para>	
+	The aspect introduces some internal fields and some public methods to the entities for accessing the backing state via <code>getUnderlyingState()</code> and creating relationships with <code>relateTo</code> and retrieving relationship entities via <code>getRelationshipTo</code>. It also introduces finder methods like <code>find(Class&lt;? extends NodeEntity&gt;, TraversalDescription)</code> and equals and hashCode delegation.
+</para>
+		<para>
+	Spring Data Graph internally uses an abstraction called EntityStateAccessors that the field access and instantiation advices of the aspect delegate to, keeping the aspect code very small and focused to the pointcuts and delegation code. The EntityStateAccessors then use a number of FieldAccessor factories to create a FieldAccessor instance per field that does the specific handling needed for the concrete field.
+</para>
+	</section>
+	<section>
+		<title>Using annotations to define POJO entities and relationships</title>
+		<para>Entities are declared using the <code>@NodeEntity</code> annotation. Relationship entities use the <code>@RelationshipEntity</code> annotation instead.</para>
+		<section>
+			<title>Entities with @NodeEntity</title>
+			<para>This annotation is used to declare a POJO entity to be backed by a node in the graph store. Its field are mapped by default to either properties of the node. Fields pointing to other NodeEntities or Collections thereof are mapped via relationships. If the annotation field <code>useShortNames</code> is set to false the properties and relationship names used will be prepended with the class name of the entity. If the field <code>fullIndex</code> is set to true, all fields of the entity will be indexed. If the <code>partial</code> field is set to true, this entity takes part in a cross-store setting where only the parts of the entity are mapped to the graph store that are not handled by JPA.</para>
+			<para>Entity fields can be annotated with @GraphProperty, @RelatedTo, @RelatedToVia, @Indexed and @GraphId</para>
+<programlisting language="JAVA" ><![CDATA[
+@NodeEntity
+public class Movie { 
+	String title;
+}
+]]></programlisting>
+		</section>
+		<section>
+			<title>RelationshipEntities with @RelationshipEntity</title>
+			<para>To access the rich datamodel of graph relationship POJOs can also be annotated with @RelationshipEntity. Relationship entities can't be instantiated directly but are rather accessed via node entities, either by @RelatedToVia fields or by the <code>relateTo</code> or <code>getRelationshipTo</code> methods.
+Relationship entities may contain fields that are mapped to properties and two special fields that are annotated with @StartNode and @EndNode which point to the start and end node entities respectively (and are read only).
+ </para>
+<programlisting language="JAVA" ><![CDATA[
+@RelationshipEntity
+public class Role { 
+	@StartNode
+	private Actor actor;
+	@EndNode
+	private Movie movie;
+]]></programlisting>
+		</section>
+		<section>
+			<title>Fields with @RelatedTo pointing to other NodeEntities</title>
+			<para>
+		Relationships to other NodeEntities are mapped to graph relationships. Those can either be single relationships (1:1) or multiple relationships (1:n). In most cases the simple relationships to other node entities don't have to be annotated as SDGRAPH can extract all needed information from the field using reflection. In the case of multi-relationships at least the target node entity java class defined in the <code>elementClass</code> field of the @RelatedTo annotation is needed. The <code>direction</code> (default OUTGOING) and <code>type</code> (inferred from field name) attributes of the annotation are optional. 
+      </para>
+<para>Relationships to single node entities are created on setting the field and deleted on setting it to null. For multi-relationships the field provides a managed collection (Set) that handles addition and removal of node entities and reflects those in the graph relationships.</para>
+<programlisting language="JAVA" ><![CDATA[
+@NodeEntity
+public class Movie { 
+	private Actor topActor;
+}
+@NodeEntity
+public class Person { 
+	@RelatedTo(type = ”topActor”, direction = Direction.INCOMING)
+	private Movie wasTopActorIn;
+}
+@NodeEntity
+public class Actor { 
+	@RelatedTo(type = "ACTS_IN", elementClass = Movie.class)
+	private Set<Movie> movies;
+}
+]]></programlisting>
+		</section>
+		<section>
+			<title>Fields with @RelatedToVia pointing to RelationshipEntities</title>
+			<para>To provide easy programmatic access to the richer relationship entities of the data model a different annotation @RelatedToVia can be
+				declared on fields of Iterables of the relationship entity type. These Iterables then provide read only access to instances of
+				the entity that backs the relationship of this relationship type. Those instances are initialized with the properties of the 
+				relationship and the start and end node.</para>
+<programlisting language="JAVA" ><![CDATA[
+@NodeEntity
+public class Actor { 
+	@RelatedToVia(type = "ACTS_IN", elementClass = Role.class) 
+	private Iterable<Role> roles;
+}
+]]></programlisting>
+		</section>
+		<section>
+			<title>@StartNode</title>
+			<para>Annotation for the start node of a relationship entity, read only.</para>
+		</section>
+		<section>
+			<title>@EndNode</title>
+			<para>Annotation for the end node of a relationship entity, read only.</para>
+		</section>
+		<section>
+			<title>@Indexed</title>
+			<para>The @Indexed annotation can be declared on fields that are intended to be indexed on modification by the Neo4J IndexManager.
+				The resulting index can be used to later retrieve nodes or sets of nodes that contain a certain property value, e.g. as start 
+				node for a traversal. The index access is available via a Finder instance created by a FinderFactory for a give node entity class.
+			</para>
+		</section>
+		<section>
+			<title>@GraphTraversal</title>
+			<para>The @GraphTraversal annotation leverages the delegation infrastructure used by the SDGRAPH aspects. It provides dynamic fields 
+				which on access return an Iterable of NodeEntities that are the result of a traversal starting at the current NodeEntity.
+				The TraversalDescription used for this is created by a TraversalDescriptionBuilder whose class is referred to by the <code>traversalBuilder</code> attribute of the annotation. The class of the expected NodeEntities is provided with the <code>elementClass</code> attribute.
+			</para>
+		</section>
+	</section>
+	<section>
+		<title>Finding Nodes with Finders</title>
+		<para>Spring Data Graph also comes with a type bound Repository like Finder implementation that provides methods for locating nodes 
+		<itemizedlist>
+			<listitem>using direct access (findById), </listitem>
+			<listitem>iterating over all nodes of a node entity type (findAll), </listitem>
+			<listitem>counting the instances of a node entity type (count), </listitem>
+			<listitem>iterating over all indexed instances with a certain property value (findAllByPropertyValue), </listitem>
+			<listitem>getting a single instances with a certain property value (findByPropertyValue), </listitem>
+			<listitem>iterating over a traversal result (findAllByTraversal), </listitem>
+		</itemizedlist>
+		The Finder instances are created via a FinderFactory to be bound to a concrete node entity class.
+		</para>
+	</section>
+	<section>
+		<title>Representing Java Types via NodeTypeStrategy</title>
+		<para>
+			
+		</para>
+	</section>
+	<section>
+		<title>Setting Up Spring Data Graph - Configuration</title>
+		<para>The concrete configuration for Spring Data Graph is quite verbose as there is no autowiring involved. It sets up the following parts.
+			<itemizedlist>
+				<listitem>GraphDatabaseService, IndexManager for the embedded Neo4J storage engine</listitem>
+				<listitem>Spring transaction manager, Neo4J transaction manager</listitem>
+				<listitem>aspects and instantiators for node and relationship entities</listitem>
+				<listitem>EntityStateAccessors and FieldAccessFactories needed for the different field handling</listitem>
+				<listitem>Conversion services</listitem>
+				<listitem>Finder factory</listitem>
+				<listitem>an appropriate NodeTypeStrategy</listitem>
+			</itemizedlist>
+			That's why SDGRAPH provides a Spring Java Config class (annotated with @Config) <code>AbstractNeo4jConfiguration</code> that takes care of all that. The only
+			thing that must be provided in the custom Spring config is the <code>GraphDatabaseService</code> configured with a datastore directory. This can be achieved
+			by extending that class and implementing the <code>graphDatabaseService</code> method.
+		</para>
+	</section>
 </chapter>

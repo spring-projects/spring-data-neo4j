@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE preface PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN"
+                 "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
+<chapter id="get-started">
+    <title>Getting Started</title>
+
+    <para>The focus on NoSQL datastores is a recent one, even if many of those stores have existed for some years now.
+	That's why this getting started document Learningwill not only guide you through the relevant parts of the SDGRAPH
+	API but also explain some concepts of graph stores. 
+	</para>
+	<para>
+		After reading this document, you should be able to integrate SDGRAPH in your own existing or new applications. 
+		If there are any issues that you don't understand or think are explained in a too complicated way, please report back any
+		problems or suggestions. This would also benefit future readers of this documentation.
+	</para>
+
+    <section id="get-started:first-steps">
+		<title>First Steps</title>
+		
+		<para>As explained in <xref linkend="why-sd-graph"/>, Spring Data Graph (SDGRAPH) provides integration 
+		between the Spring framework and graph stores. Familiarity with the Spring framework is assumed as stated in <xref linkend="introduction"/> and only
+		minimally cross referenced here. Graph Stores and Neo4J in particular are explained a bit more in detail as most readers won't know that much about them. 	
+		This document focuses mainly on explaining the steps needed to get a SDGRAPH backed application up and running.
+		</para>
+		  
+		<section id="get-started:first-steps:spring">
+			<title>Knowing Spring</title>
+			<para>Spring Data Graph uses heavily Spring framework's <ulink url="http://static.springframework.org/spring/docs/3.0.x/reference/spring-core.html">core</ulink> functionality, 
+			such as the <ulink url="http://static.springframework.org/spring/docs/3.0.x/reference/beans.html">IoC</ulink> container,
+			<ulink url="http://static.springsource.org/spring/docs/3.0.x/reference/validation.html#core-convert">converter</ulink> API and the 
+			<ulink url="http://static.springframework.org/spring/docs/3.0.x/reference/aop.html">AOP</ulink> infrastructure. While it is not as important
+			to know the Spring APIs, understanding the concepts behind them is. 
+			The Spring framework documenation
+			<ulink url="http://www.springsource.org/documentation">home page</ulink> should be a good starting point for 
+			developers wanting to try Spring Data Graph.</para>
+		</section>
+		<section id="get-started:first-steps:nosql">
+			<title>Knowing NoSQL and Graph stores</title>
+			<para>The recent interest in NoSQL datastores is mainly driven by the need of getting the best storage solution for data 
+				structured in a project specific way. It should fit the data, not the other way round. Another issue is the scalability of the
+				datastore, especially with todays fast growing user bases handling large amounts of data in a short time. There are many NoSQL stores
+				fit for different data formats and one should familiarize himself with the different concepts, advantages and disadvantages before choosing 
+				a solution. A problem with the NoSQL stores are the different data access API that are provided. Spring Data aims at easing this burden by
+				providing consistent abstractions over those APIs leveraging Springsource's experience in this area.
+			</para>
+			<para>
+				Graph stores are a particular good fit for vast networks of related information (objects). They map objects to nodes and connections to 
+				relationships. Examples for such data sets are social networks, geo (map) information, network layouts and hardware or dependency graphs.
+				Neo4J is the first graph datastore that is tightly integrated with Spring Data Graph.
+			</para>
+		</section>
+		<section id="get-started:first-steps:samples">
+			<title>Trying Out The Samples</title>
+			<para>Spring Data Graph comes with a number of samples and unit test cases (if you accessed the sources via 
+				<ulink url="http://github.com/SpringSource/spring-data-graph">github</ulink> or maven).
+			</para>
+			<para>The current distribution contains:</para>
+			<itemizedlist>
+				<listitem>
+					<para>Hello World Sample</para>
+					<para>The Hello World example that is used here is a simple console application that just
+					creates some entities (nodes) and relationships in a graph and then reads them back and prints them out.</para>
+				</listitem>
+				<listitem>
+					<para>IMDB Sample</para>
+					<para>A web application that imports datasets from the internet movie database (IMDB) into the graph store. It allows listings of movies with their actors and actors with their roles in different movies. It also uses graph traversal operations to calculate the Kevin Bacon number (distance to a actor that has acted with Kevin Bacon). This sample shows the basic usage of Spring Data Graph in a more complex setting with several annotated entities and relationships as well as usage of indices and graph traversal.</para>
+				</listitem>
+				<listitem>
+					<para>MyRestaurant Sample</para>
+					<para>Simple Webapp for managing users and restaurants having the ability to add a restaurants as favorites to a user.</para>
+				</listitem>
+				<listitem>
+					<para>MyRestaurant-Social Sample</para>
+					<para>An extended version of the MyRestaurant Sample that adds social network functionality to the previous sample. It is possible to have friends (and friends of friends) and to add rated relationships to restaurants. The relationships and some of the properties of the entities are transparently stored in the graph store. It also provides a graph traversal to create a recommendation based on your friends (and their friends) rating of restaurants.</para>
+				</listitem>
+			</itemizedlist> 
+			<para>Most of the samples are web applications that can easily built and run using maven jetty:run.</para>
+		</section>
+	</section>
+    
+    <section id="get-started:help">
+		<title>Need Help?</title>
+		
+		<para>If you encounter issues or you are just looking for an advice, feel free to use one of the links below:</para>
+		
+		<section id="get-started:help:community">
+			<title>Spring Data Homepage</title>
+			<para>The Spring Data <ulink url="http://www.springsource.org/spring-data">Homepage</ulink> provides all the necessary links for information, community forums and code repositories.
+			</para>
+		</section>
+		<section id="get-started:help:professional">
+  		    <title>Professional Support</title>
+			<para>Professional, from-the-source support, with guaranteed response time, is available from <ulink url="http://www.springsource.com">SpringSource</ulink>,
+			the company behind Spring Data and Spring.  
+			</para>
+		</section>
+    </section>
+    
+    <section id="get-started:up-to-date">
+		<title>Following Development</title>
+		
+		<para>For information on the Spring Data source code repository, nightly builds and snapshot artifacts please see the Spring Data home 
+		<ulink url="http://www.springsource.org/spring-data">page</ulink>.   
+		</para>
+		<para>You can help make Spring Data best serve the needs of the Spring community by interacting with developers through the Spring Community 
+		<ulink url="http://forum.springsource.org/forumdisplay.php?f=27">forums</ulink>.</para>
+		<para>If you encounter a bug or want to suggest an improvement, 
+		please create a ticket on the Spring Data issue <ulink url="https://jira.springframework.org/browse/DATAGRAPH">tracker</ulink>.</para>
+		<para>To stay up to date with the latest news and announcements in the Spring eco system, subscribe to the 
+		Spring Community <ulink url="http://www.springframework.org/">Portal</ulink>.</para>
+		<para>Lastly, you can follow the SpringSource Data <ulink url="http://blog.springsource.com/category/data-access/">blog</ulink> or the project team on Twitter 
+		(<ulink url="http://twitter.com/SpringData">SpringData</ulink>)</para>
+	</section>
+    
+</chapter>

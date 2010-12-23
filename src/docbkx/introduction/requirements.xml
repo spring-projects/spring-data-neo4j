@@ -1,0 +1,14 @@
+  <chapter id="requirements">
+      <title>Requirements</title>
+
+      <para>Spring Data Graph 1.x binaries requires JDK level 6.0 and above, 
+      and <ulink url="http://www.springsource.org/documentation">Spring Framework</ulink>
+      3.0.x and above.</para>
+      <para>
+      In terms of graph databases, <ulink url="http://www.neo4j.org/">Neo4J</ulink> version 1.2 and above.
+	  Neo4J has a dependency on Apache Lucene for indexing.
+      </para>
+	  <para>
+		For building the project Apache Maven (version 2.10 and above) is recommended.
+	  </para>
+  </chapter>

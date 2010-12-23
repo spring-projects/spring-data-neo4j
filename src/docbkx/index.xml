@@ -37,11 +37,21 @@
 
     <toc/>
 
-    <part>
+  <part id="introduction">
+    <title>Introduction</title>
+
+    <xi:include href="introduction/introduction.xml"/>
+    <xi:include href="introduction/why-sd-graph.xml"/>
+    <xi:include href="introduction/requirements.xml"/>
+    <xi:include href="introduction/getting-started.xml"/>
+  </part>
+
+    <part id="reference">
         <title>Reference</title>
         <partintro>
             <para>
-                This part of the reference documentation details the ...
+                This part of the reference documentation details the API, concepts, annotations, datastore, programming model and 
+				the cross-store approach of Spring Data Graph.
             </para>
         </partintro>
 	    <xi:include href="preface.xml"/>
