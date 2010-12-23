@@ -39,9 +39,16 @@ public @interface NodeEntity {
     boolean fullIndex() default false;
 
     /**
-     * @return true if the entity is only partially managed by the {@link org.springframework.data.graph.neo4j.support.node.Neo4jNodeBacking} aspect
-     * If partial is set, then construction of the node is delayed until the entity's id has been set by another persistent store. And only annotated fields
-     * will be handled by the graph storage.
+     * <p>
+     * If partial is set, then construction of the node is delayed until the entity's id has been set by another persistent store. Only
+     * {@link org.springframework.data.graph.annotation.GraphProperty} annotated fields will be handled by the graph storage.
+     * </p>
+     *
+     * <p>
+     * Currently, only JPA storage is supported for partial node entities.
+     * </p>
+     *
+     * @return true if the entity is only partially managed by the {@link org.springframework.data.graph.neo4j.support.node.Neo4jNodeBacking} aspect.
      */
     boolean partial() default false;
 }
