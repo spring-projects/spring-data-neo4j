@@ -4,7 +4,7 @@
 <chapter id="why-Spring Data-Document">
     <title>Why Spring Data Graph?</title>
    
-    <para><ulink url="http://en.wikipedia.org/wiki/NoSQL">NoSQL</ulink>
+    <para><ulink url="http://en.wikipedia.org/wiki/NoSQL">NOSQL</ulink>
     stores provide alternative storage solutions that are more tailored to the needs of
 	the data structure requirements that are specific to each project than just using a relational
 	database as a "one-size-fits-all" solution.
