@@ -1,33 +1,140 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN"
-"http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
+<!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
 <chapter id="cross-store">
-  <title>Cross-store persistence with a graph database</title>
+	<title>Cross-store persistence with a graph database</title>
+	<para>The Spring Data Graph project support cross-store persistence which allows parts of the data mode to be stored in a traditional
+	JPA datastore (RDBMS) and other parts of the data model (even partial entites, i.e. some properties or relationships) in the graph
+	store.
+  </para>
+	<para>
+	This allows to evolve existing applications that are based on JPA to embrace NoSQL data stores for certain parts of their model.
+	Possible use cases are adding social network or geospatial information to existing applications.
+  </para>
+	<section>
+		<title>Partial graph persistence</title>
+		<para>
+	This is achieved by allowing the SDGRAPH aspects only to handle those parts of the entities that are explicitely annotated with
+	SDGRAPH annotations. Those fields have to be made transient so that JPA ignores them and won't try to persist those attributes.
+	</para>
+		<para>
+		A backing node in the graph store is created when the entity has been assigned a JPA id. Only then the connection between the 
+		two stores can be kept. So until the entity has been persisted, its state is just kept inside the POJO and flushed to the 
+		backing graph store afterwards.
+	</para>
+		<para>
+		The connection between the two entities is kept via a FOREIGN_ID field in the node that contains the JPA id (currently only single
+		value ids are supported). The entity class can be resolved via the NodeTypeStrategy that makes the Java type hierarchy of the datamodel
+		accessible in the graph. So those pieces of information can be used to retrieve the appropriate JPA entity for a given node.
+	</para>
+		<para>
+		The other direction is handled by indexing the Node with the FOREIGN_ID index which contains a concatenation of the fully qualified class
+		name of the JPA entity and the id. So it is possible on instantiation of a JPA id via the entity manager (or some other means like creating
+		the POJO and setting its id manually) to find the matching node using the index facilities and reconnect them.
+	</para>
+		<para>
+		Using those mechanisms and the SDGRAPH aspects a single POJO can contain fields that are handled by JPA and other fields 
+		(which might be relationships as well) that are handled by SDGRAPH.
+	</para>
+		<section>
+			<title>@NodeEntity(partial = "true")</title>
+			<para>
+	When annotating an entity with partial true, SDGRAPH assumes that this is a cross-store entity. So it is only responsible for the fields
+	annotated with SDGRPAH annotations. JPA should not take care of those fields (they should be annotated with @Transient). In this mode of
+	operation SDGRAPH also handles the cross store connection via the content of the JPA id field.
+	</para>
+		</section>
+		<section>
+			<title>@GraphProperty</title>
+			<para>
+				For common fields containing primitive or convertible values that wouldn't have to be annotated in exclusive SDGRAPH operations this
+				explicit declaration is necessary to be sure that they are intended to be stored in the graph. Those fields should then be made transient
+				so that JPA doesn't try to take care of them as well.
+			</para>
+		</section>
+		<para>
+			The following example is taken from the <ulink url="http://github.com/SpringSource/spring-data-graph-examples">SDGRAPH examples</ulink>, 
+			it is contained in the myrestaurant-social project.
+		</para>
+<programlisting language="JAVA" ><![CDATA[
+	@Entity
+	@Table(name = "user_account")
+	@NodeEntity(partial = true)
+	public class UserAccount {
+	    private String userName;
+	    private String firstName;
+	    private String lastName;
 
-  <para>The Spring Data Graph project support cross-store persistence
-  ...</para>
+	    @GraphProperty
+	    @Transient
+	    String nickname;
 
-  <section>
-    <title>Partial graph persistence</title>
+	    @RelatedTo(type = "friends", elementClass = UserAccount.class)
+	    @Transient
+	    Set<UserAccount> friends;
 
-    <para>..</para>
+	    @RelatedToVia(type = "recommends", elementClass = Recommendation.class)
+	    @Transient
+	    Iterable<Recommendation> recommendations;
 
-    <section>
-      <title>@NodeEntity(partial = "true")</title>
+	    @Temporal(TemporalType.TIMESTAMP)
+	    @DateTimeFormat(style = "S-")
+	    private Date birthDate;
 
-      <para>..</para>
-    </section>
+		@ManyToMany(cascade = CascadeType.ALL)
+	    private Set<Restaurant> favorites;
 
-    <section>
-      <title>@GraphProperty</title>
+		@Id
+	    @GeneratedValue(strategy = GenerationType.AUTO)
+	    @Column(name = "id")
+	    private Long id;
 
-      <para>..</para>
-    </section>
-  </section>
+	    @Transactional
+	    public void knows(UserAccount friend) {
+	        relateTo(friend, DynamicRelationshipType.withName("friends"));
+	    }
 
-  <section>
-    <title>Configuring cross-store persistence</title>
+		@Transactional
+	    public Recommendation rate(Restaurant restaurant, int stars, String comment) {
+	        Recommendation recommendation = (Recommendation) relateTo(restaurant, 
+				Recommendation.class, "recommends");
+	        recommendation.rate(stars, comment);
+	        return recommendation;
+	    }
+	    public Iterable<Recommendation> getRecommendations() {
+	        return recommendations;
+	    }
+	}
 
-    <para>..</para>
-  </section>
+]]></programlisting>
+	</section>
+	<section>
+		<title>Configuring cross-store persistence</title>
+		<para>
+			Configuring cross store persistence is done similarly to the default SDGRAPH operations. The concise Spring Java Config configuration class
+			already contains a method <code>isUsingCrossStorePersistence</code>that must be implemented by a concrete configuration which controls 
+			the cross store mode of SDGRAPH.
+		</para>
+					<programlisting language="JAVA" ><![CDATA[
+public class MyRestaurantConfig extends AbstractNeo4jConfiguration {
+    @Override
+    public boolean isUsingCrossStorePersistence() {
+        return true;
+    }
+
+    @Bean(destroyMethod = "shutDown")
+    public GraphDatabaseService graphDatabaseService() {
+        return new EmbeddedGraphDatabase("target/myrestaurant-social");
+    }
+}			]]></programlisting>
+<programlisting language="XML" ><![CDATA[
+<beans>
+...
+	<tx:annotation-driven mode="aspectj" transaction-manager="transactionManager"/>
+	<bean class="com.springone.myrestaurants.config.MyRestaurantConfig"/>
+    <bean class="org.springframework.context.annotation.ConfigurationClassPostProcessor"/>
+...
+</beans>
+]]></programlisting>
+
+	</section>
 </chapter>

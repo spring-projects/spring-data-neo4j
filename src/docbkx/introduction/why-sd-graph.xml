@@ -11,13 +11,13 @@
 	</para>
 	<para>
 	Graph databases provide excellent support for network data, i.e. data that can easily be structured
-	as connected nodes. Property Graphs like Neo4J support arbitrary number of named properties on both
+	as connected nodes. Property Graphs like Neo4j support arbitrary number of named properties on both
 	nodes and relationship. Graph databases perform very fast when traversing large, complex datasets with
 	millions of nodes and relationships even on commodity hardware.
 	</para>
 	<para>
-		Neo4J is an open source graph database written in Java. It has high performance characteristics while providing ACID
-		semantics and transactional support (both JTA and XA-Transactions). Neo4J can run as lightweight embedded database as well as standalone
+		Neo4j is an open source graph database written in Java. It has high performance characteristics while providing ACID
+		semantics and transactional support (both JTA and XA-Transactions). Neo4j can run as lightweight embedded database as well as standalone
 		server that exposes the API via a rich REST interface.
 	</para>
 	

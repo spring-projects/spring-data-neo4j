@@ -19,7 +19,7 @@
 		
 		<para>As explained in <xref linkend="why-sd-graph"/>, Spring Data Graph (SDGRAPH) provides integration 
 		between the Spring framework and graph stores. Familiarity with the Spring framework is assumed as stated in <xref linkend="introduction"/> and only
-		minimally cross referenced here. Graph Stores and Neo4J in particular are explained a bit more in detail as most readers won't know that much about them. 	
+		minimally cross referenced here. Graph Stores and Neo4j in particular are explained a bit more in detail as most readers won't know that much about them. 	
 		This document focuses mainly on explaining the steps needed to get a SDGRAPH backed application up and running.
 		</para>
 		  
@@ -46,7 +46,7 @@
 			<para>
 				Graph stores are a particular good fit for vast networks of related information (objects). They map objects to nodes and connections to 
 				relationships. Examples for such data sets are social networks, geo (map) information, network layouts and hardware or dependency graphs.
-				Neo4J is the first graph datastore that is tightly integrated with Spring Data Graph.
+				Neo4j is the first graph datastore that is tightly integrated with Spring Data Graph.
 			</para>
 		</section>
 		<section id="get-started:first-steps:samples">

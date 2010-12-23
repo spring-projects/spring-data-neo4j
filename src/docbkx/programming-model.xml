@@ -4,6 +4,7 @@
 	<title>Programming model for Spring Data Graph</title>
 	<para>This chapter covers the fundamentals of the programming model behind Spring Data Graph. It discusses the AspectJ features used and the annotations
 	provided by SDGRAPH and how to use them.
+	Examples for this section are taken from the imdb project of <ulink url="http://github.com/SpringSource/spring-data-graph-examples">SDGRAPH examples</ulink>.
 </para>
 	<section>
 		<title>Overview of the AspectJ support</title>
@@ -91,7 +92,7 @@ public class Actor {
 		</section>
 		<section>
 			<title>@Indexed</title>
-			<para>The @Indexed annotation can be declared on fields that are intended to be indexed on modification by the Neo4J IndexManager.
+			<para>The @Indexed annotation can be declared on fields that are intended to be indexed on modification by the Neo4j IndexManager.
 				The resulting index can be used to later retrieve nodes or sets of nodes that contain a certain property value, e.g. as start 
 				node for a traversal. The index access is available via a Finder instance created by a FinderFactory for a give node entity class.
 			</para>
@@ -125,11 +126,30 @@ public class Actor {
 		</para>
 	</section>
 	<section>
+		<title>Transactions in Spring Data Graph</title>
+		<para>
+			Neo4j is a transactional datastore which only allows modifications within transaction boundaries and fullfills the ACID properties.
+			Reading from the store is also possible outside of transactions. Neo4j also provides a Spring compliant transaction manager that
+			allows it to participate in Spring managed transactions (also with @Transactional). This transaction manager is already configured
+			in the Spring Java config, class AbstractNeo4jConfiguration.
+		</para>
+		<para>
+			SDGRAPH is designed to work within transaction boundaries. So entity creation and modification should happen within transactional methods.
+			Due to the usage of POJO entities it is common to create and populate them also outside of a transaction (e.g. in the web layer). That's why
+			some housekeeping support was added to SDGRAPH. It is possible to create node entities outside of transactions and also to modify their fields.
+			Those values are then not stored within the backing node but instead only in the entity itself. When the entity reenters a transactional context
+			and its fields are read or written to, all the pending changes are flushed to the backing node first.
+		</para>
+		<para>By now there is no support for the creation of relationships outside of transactions and also more complex operations like creating whole
+			subgraphs is not supported.
+		</para>
+	</section>
+	<section>
 		<title>Setting Up Spring Data Graph - Configuration</title>
 		<para>The concrete configuration for Spring Data Graph is quite verbose as there is no autowiring involved. It sets up the following parts.
 			<itemizedlist>
-				<listitem>GraphDatabaseService, IndexManager for the embedded Neo4J storage engine</listitem>
-				<listitem>Spring transaction manager, Neo4J transaction manager</listitem>
+				<listitem>GraphDatabaseService, IndexManager for the embedded Neo4j storage engine</listitem>
+				<listitem>Spring transaction manager, Neo4j transaction manager</listitem>
 				<listitem>aspects and instantiators for node and relationship entities</listitem>
 				<listitem>EntityStateAccessors and FieldAccessFactories needed for the different field handling</listitem>
 				<listitem>Conversion services</listitem>
@@ -139,6 +159,28 @@ public class Actor {
 			That's why SDGRAPH provides a Spring Java Config class (annotated with @Config) <code>AbstractNeo4jConfiguration</code> that takes care of all that. The only
 			thing that must be provided in the custom Spring config is the <code>GraphDatabaseService</code> configured with a datastore directory. This can be achieved
 			by extending that class and implementing the <code>graphDatabaseService</code> method.
-		</para>
+			<programlisting language="JAVA" ><![CDATA[
+public class ImdbConfig extends AbstractNeo4jConfiguration {
+    @Override
+    public boolean isUsingCrossStorePersistence() {
+        return false;
+    }
+
+    @Bean(destroyMethod = "shutDown")
+    public GraphDatabaseService graphDatabaseService() {
+        return new EmbeddedGraphDatabase("target/neo4j-db");
+    }
+}			]]></programlisting>
+<programlisting language="XML" ><![CDATA[
+<beans>
+...
+
+	<tx:annotation-driven mode="aspectj" transaction-manager="transactionManager"/>
+	<bean class="org.neo4j.examples.imdb.util.ImdbConfig"/>
+    <bean class="org.springframework.context.annotation.ConfigurationClassPostProcessor"/>
+...
+</beans>    
+			]]></programlisting>
+			</para>
 	</section>
 </chapter>
