@@ -5,13 +5,13 @@
   <title>Preface</title>
 
   <para>The Spring Data Graph project applies core Spring concepts to the development of solutions using a graph style data store. 
-	 The basic approach is to mark simple POJO entities with SDGRAPH annotations. That enables the AspectJ aspects that are contained
+	 The basic approach is to mark simple POJO entities with DATAGRAPH annotations. That enables the AspectJ aspects that are contained
 	 with the framework to adapt the instantiation and field access to have them stored and retrieved from the graph store.
 	 Entities are mapped to nodes of the graph, relationships to other entities are represented by relationships. There are also
 	 special relationship entities that provide access to the properties of graph relationships.
   </para>
   <para>
-	For the developer of a SDGRAPH backed application only the public annotations are relevant, basic knowledge of graph stores is needed
+	For the developer of a DATAGRAPH backed application only the public annotations are relevant, basic knowledge of graph stores is needed
 	to access advanced functionality like traversals. Traversals results can also be mapped to fields of entities.
   </para>
 </preface>

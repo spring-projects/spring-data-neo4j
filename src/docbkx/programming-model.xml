@@ -3,12 +3,12 @@
 <chapter id="programming-model">
 	<title>Programming model for Spring Data Graph</title>
 	<para>This chapter covers the fundamentals of the programming model behind Spring Data Graph. It discusses the AspectJ features used and the annotations
-	provided by SDGRAPH and how to use them.
-	Examples for this section are taken from the imdb project of <ulink url="http://github.com/SpringSource/spring-data-graph-examples">SDGRAPH examples</ulink>.
+	provided by DATAGRAPH and how to use them.
+	Examples for this section are taken from the imdb project of <ulink url="http://github.com/SpringSource/spring-data-graph-examples">DATAGRAPH examples</ulink>.
 </para>
 	<section>
 		<title>Overview of the AspectJ support</title>
-		<para>Behind the scenes SDGRAPH leverages AspectJ aspects to modify the behavior of simple POJO entities to be able to be backed by a graph store. Behind  each entity lies a backing node that holds the properties and relationships to other entities. AspectJ is used to intercept field access and to reroute it to the backing state (either its properties or relationships). For relationship entities the fields are similarly mapped to properties. There are two specially annotated fields for the start and the end node of the relationship. 
+		<para>Behind the scenes DATAGRAPH leverages AspectJ aspects to modify the behavior of simple POJO entities to be able to be backed by a graph store. Behind  each entity lies a backing node that holds the properties and relationships to other entities. AspectJ is used to intercept field access and to reroute it to the backing state (either its properties or relationships). For relationship entities the fields are similarly mapped to properties. There are two specially annotated fields for the start and the end node of the relationship. 
 </para>
 		<para>	
 	The aspect introduces some internal fields and some public methods to the entities for accessing the backing state via <code>getUnderlyingState()</code> and creating relationships with <code>relateTo</code> and retrieving relationship entities via <code>getRelationshipTo</code>. It also introduces finder methods like <code>find(Class&lt;? extends NodeEntity&gt;, TraversalDescription)</code> and equals and hashCode delegation.
@@ -48,7 +48,7 @@ public class Role {
 		<section>
 			<title>Fields with @RelatedTo pointing to other NodeEntities</title>
 			<para>
-		Relationships to other NodeEntities are mapped to graph relationships. Those can either be single relationships (1:1) or multiple relationships (1:n). In most cases the simple relationships to other node entities don't have to be annotated as SDGRAPH can extract all needed information from the field using reflection. In the case of multi-relationships at least the target node entity java class defined in the <code>elementClass</code> field of the @RelatedTo annotation is needed. The <code>direction</code> (default OUTGOING) and <code>type</code> (inferred from field name) attributes of the annotation are optional. 
+		Relationships to other NodeEntities are mapped to graph relationships. Those can either be single relationships (1:1) or multiple relationships (1:n). In most cases the simple relationships to other node entities don't have to be annotated as DATAGRAPH can extract all needed information from the field using reflection. In the case of multi-relationships at least the target node entity java class defined in the <code>elementClass</code> field of the @RelatedTo annotation is needed. The <code>direction</code> (default OUTGOING) and <code>type</code> (inferred from field name) attributes of the annotation are optional. 
       </para>
 <para>Relationships to single node entities are created on setting the field and deleted on setting it to null. For multi-relationships the field provides a managed collection (Set) that handles addition and removal of node entities and reflects those in the graph relationships.</para>
 <programlisting language="JAVA" ><![CDATA[
@@ -99,7 +99,7 @@ public class Actor {
 		</section>
 		<section>
 			<title>@GraphTraversal</title>
-			<para>The @GraphTraversal annotation leverages the delegation infrastructure used by the SDGRAPH aspects. It provides dynamic fields 
+			<para>The @GraphTraversal annotation leverages the delegation infrastructure used by the DATAGRAPH aspects. It provides dynamic fields 
 				which on access return an Iterable of NodeEntities that are the result of a traversal starting at the current NodeEntity.
 				The TraversalDescription used for this is created by a TraversalDescriptionBuilder whose class is referred to by the <code>traversalBuilder</code> attribute of the annotation. The class of the expected NodeEntities is provided with the <code>elementClass</code> attribute.
 			</para>
@@ -144,9 +144,9 @@ public class Actor {
 			in the Spring Java config, class AbstractNeo4jConfiguration.
 		</para>
 		<para>
-			SDGRAPH is designed to work within transaction boundaries. So entity creation and modification should happen within transactional methods.
+			DATAGRAPH is designed to work within transaction boundaries. So entity creation and modification should happen within transactional methods.
 			Due to the usage of POJO entities it is common to create and populate them also outside of a transaction (e.g. in the web layer). That's why
-			some housekeeping support was added to SDGRAPH. It is possible to create node entities outside of transactions and also to modify their fields.
+			some housekeeping support was added to DATAGRAPH. It is possible to create node entities outside of transactions and also to modify their fields.
 			Those values are then not stored within the backing node but instead only in the entity itself. When the entity reenters a transactional context
 			and its fields are read or written to, all the pending changes are flushed to the backing node first.
 		</para>
@@ -166,7 +166,7 @@ public class Actor {
 				<listitem>Finder factory</listitem>
 				<listitem>an appropriate NodeTypeStrategy</listitem>
 			</itemizedlist>
-			That's why SDGRAPH provides a Spring Java Config class (annotated with @Config) <code>AbstractNeo4jConfiguration</code> that takes care of all that. The only
+			That's why DATAGRAPH provides a Spring Java Config class (annotated with @Config) <code>AbstractNeo4jConfiguration</code> that takes care of all that. The only
 			thing that must be provided in the custom Spring config is the <code>GraphDatabaseService</code> configured with a datastore directory. This can be achieved
 			by extending that class and implementing the <code>graphDatabaseService</code> method.
 			<programlisting language="JAVA" ><![CDATA[

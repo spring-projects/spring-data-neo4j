@@ -5,11 +5,11 @@
     <title>Getting Started</title>
 
     <para>The focus on NOSQL databases is a recent one, even if many of those stores have existed for some years now.
-	That's why this document will not only guide you through the relevant parts of the SDGRAPH
+	That's why this document will not only guide you through the relevant parts of the DATAGRAPH
 	API, but also explain some key concepts of graph databases.
 	</para>
 	<para>
-		After reading this document, you should be able to integrate SDGRAPH in your own existing or new applications.
+		After reading this document, you should be able to integrate DATAGRAPH in your own existing or new applications.
 		If there are any issues that you don't understand or think are explained in a too complicated way, please report back any
 		problems or suggestions. This would also benefit future readers of this documentation.
 	</para>
@@ -17,15 +17,15 @@
     <section id="get-started:first-steps">
 		<title>First Steps</title>
 		
-		<para>As explained in <xref linkend="why-sd-graph"/>, Spring Data Graph (SDGRAPH) provides integration 
+		<para>As explained in <xref linkend="why-sd-graph"/>, Spring Data Graph (DATAGRAPH) provides integration 
 		between the Spring framework and graph databases. Familiarity with the Spring framework is assumed as stated in <xref linkend="introduction"/>, and only
 		minimally cross referenced here. Graph databases and Neo4j in particular are explained in a bit more detail.
-		The main focus of this document is however on explaining the steps needed to get a SDGRAPH-backed application up and running.
+		The main focus of this document is however on explaining the steps needed to get a DATAGRAPH-backed application up and running.
 		</para>
 		  
 		<section id="get-started:first-steps:spring">
 			<title>Knowing Spring</title>
-			<para>SDGRAPH makes heavy use of Spring Framework's <ulink url="http://static.springframework.org/spring/docs/3.0.x/reference/spring-core.html">core</ulink> functionality,
+			<para>DATAGRAPH makes heavy use of Spring Framework's <ulink url="http://static.springframework.org/spring/docs/3.0.x/reference/spring-core.html">core</ulink> functionality,
 			such as the <ulink url="http://static.springframework.org/spring/docs/3.0.x/reference/beans.html">IoC</ulink> container,
 			<ulink url="http://static.springsource.org/spring/docs/3.0.x/reference/validation.html#core-convert">converter</ulink> API and the 
 			<ulink url="http://static.springframework.org/spring/docs/3.0.x/reference/aop.html">AOP</ulink> infrastructure. While it is less important
@@ -46,12 +46,12 @@
 			<para>
 				Graph databases are a particularly good fit for large networks of connected information (objects). They map objects to nodes and connections to
 				relationships. Examples of such datasets are social networks, geospatial information, network layouts, and hardware or dependency graphs.
-				Neo4j is the first graph database that is tightly integrated with the SDGRAPH project.
+				Neo4j is the first graph database that is tightly integrated with the DATAGRAPH project.
 			</para>
 		</section>
 		<section id="get-started:first-steps:samples">
 			<title>Trying Out The Samples</title>
-			<para>SDGRAPH comes with a number of samples (if you accessed the sources via
+			<para>DATAGRAPH comes with a number of samples (if you accessed the sources via
 				<ulink url="http://github.com/SpringSource/spring-data-graph">github</ulink> or maven).
 			</para>
 			<para>The current distribution contains:</para>
@@ -63,7 +63,7 @@
 				</listitem>
 				<listitem>
 					<para>IMDB sample</para>
-					<para>A web application that imports datasets from the Internet Movie Database (IMDB) into the graph database. It allows listings of movies with their actors and actors with their roles in different movies. It also uses graph traversal operations to calculate the Kevin Bacon number (distance to a actor that has acted with Kevin Bacon). This sample application shows the basic usage of SDGRAPH in a more complex setting with several annotated entities and relationships as well as usage of indices and graph traversal.</para>
+					<para>A web application that imports datasets from the Internet Movie Database (IMDB) into the graph database. It allows listings of movies with their actors and actors with their roles in different movies. It also uses graph traversal operations to calculate the Kevin Bacon number (distance to a actor that has acted with Kevin Bacon). This sample application shows the basic usage of DATAGRAPH in a more complex setting with several annotated entities and relationships as well as usage of indices and graph traversal.</para>
 				</listitem>
 				<listitem>
 					<para>MyRestaurant sample</para>
@@ -105,7 +105,7 @@
 		<para>You can help make Spring Data best serve the needs of the Spring community by interacting with developers through the
 		<ulink url="http://forum.springsource.org/forumdisplay.php?f=27">community forums</ulink>.</para>
 		<para>If you encounter a bug or want to suggest an improvement, 
-		please create a ticket on the <ulink url="https://jira.springframework.org/browse/DATAGRAPH">SDGRAPH issue tracker</ulink>.</para>
+		please create a ticket on the <ulink url="https://jira.springframework.org/browse/DATAGRAPH">DATAGRAPH issue tracker</ulink>.</para>
 		<para>To stay up to date with the latest news and announcements in the Spring eco system, subscribe to the 
 		<ulink url="http://www.springframework.org/">Spring Community Portal</ulink>.</para>
 		<para>Lastly, you can follow the <ulink url="http://blog.springsource.com/category/data-access/">SpringSource Data blog</ulink> or the project team on Twitter

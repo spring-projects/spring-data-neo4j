@@ -1,5 +1,14 @@
-Spring Data Graph 1.0.0 Milestone 1 (?, 2010)
+Spring Data Graph Changelog
 =============================================
 
-New Features
-   * Lot's of good stuff
+Changes in version 1.0.0.M1 (2010-12-24)
+----------------------------------------
+
+General
+* Simplified annotation driven programming model for Neo4j applications
+* Annotations for graph persistence
+* Strategy to handle representation of java types in the graph
+* Support for building traversal descriptions
+* finder method ITDs on domain objects
+* Support for cross-store persistence including basic transaction support
+* Abstract configuration class
