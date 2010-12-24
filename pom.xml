@@ -5,13 +5,13 @@
 	<groupId>org.springframework.data</groupId>
 	<artifactId>spring-data-graph-dist</artifactId>
 	<name>Spring Data Graph Distribution</name>
-	<version>1.0.0.BUILD-SNAPSHOT</version>
+	<version>1.0.0.M1</version>
 	<packaging>pom</packaging>
 	<modules>
 		<module>spring-data-graph-parent</module>
 		<module>spring-data-graph-core</module>
 		<module>spring-data-neo4j</module>
-		<module>spring-data-neo4j-roo</module>
+		<!--<module>spring-data-neo4j-roo</module>-->
 	</modules>
 
 	<developers>
@@ -93,7 +93,7 @@
 		<dist.name>Spring Data Graph</dist.name>
 		<dist.key>DATAGRAPH</dist.key>
 		<dist.version>${project.version}</dist.version>
-		<dist.releaseType>snapshot</dist.releaseType>
+		<dist.releaseType>milestone</dist.releaseType>
 		<dist.finalName>${dist.id}-${dist.version}</dist.finalName>
 		<dist.fileName>${dist.finalName}.zip</dist.fileName>
 		<dist.filePath>target/${dist.fileName}</dist.filePath>
@@ -296,8 +296,8 @@
 				</dependencies>
 			</plugin>
 		</plugins>
-		<!-- the name of this project is 'spring-amqp-dist';
-			 make sure the zip file is just 'spring-amqp'. -->
+		<!-- the name of this project is 'spring-data-graph-dist';
+			 make sure the zip file is just 'spring-data-graph'. -->
 		<finalName>${dist.finalName}</finalName>
 	</build>
 	<repositories>
