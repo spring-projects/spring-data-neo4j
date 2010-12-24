@@ -6,9 +6,9 @@ Changes in version 1.0.0.M1 (2010-12-24)
 
 General
 * Simplified annotation driven programming model for Neo4j applications
-* Annotations for graph persistence
 * Strategy to handle representation of java types in the graph
+* AspectJ ITD backed field mapping for plain Java objects
+* Annotations for graph persistence
 * Support for building traversal descriptions
-* finder method ITDs on domain objects
 * Support for cross-store persistence including basic transaction support
 * Abstract configuration class
