@@ -5,11 +5,17 @@ It provides an annotation-driven object-graph mapping library.
 Data-graph-neo4j is to Neo4j what Hibernate is to an RDBMS. It requires 
 AspectJ and Spring Framework.
 
+More examples using data-graph-neo4j can be found in this repository:
+http://github.com/SpringSource/spring-data-graph-examples
 
 Standalone setup of project using data-graph-neo4j
 ==================================================
 
-1. Include data-graph-neo4j in your pom.xml:
+
+1. Maven Dependency
+-------------------
+
+Include data-graph-neo4j in your pom.xml:
 
   <dependency>
     <groupId>org.springframework.data</groupId>
@@ -17,8 +23,11 @@ Standalone setup of project using data-graph-neo4j
     <version>1.0.0.BUILD-SNAPSHOT</version>
   </dependency> 
 
-2. Add the following plugin XML to your project's <plugins> config in pom.xml
-   to hook AspectJ into the build process:
+2. Aspect-J plugin build & library dependency
+---------------------------------------------
+
+Add the following plugin XML to your project's <plugins> config in pom.xml 
+to hook AspectJ into the build process:
 
    <plugin>
      <groupId>org.codehaus.mojo</groupId>
@@ -62,11 +71,16 @@ Standalone setup of project using data-graph-neo4j
    </plugin>
 
 
-3. This is a basic Spring XML context configuration to get started. It creates 
-   all dependencies required by the library. After this is set up, you can just
-   use the annotated POJOs and they will automatically be backed by Neo4j. The 
-   one thing that the user has to do is wrap any data-graph-neo4j usage 
-   in Neo4j transactions.
+3. Spring configuration
+-----------------------
+
+3.1. Spring XML Config
+----------------------
+
+This is a the full Spring XML context configuration to get started. It creates 
+all dependencies required by the library. 
+
+A simpler configuration approach is provided below the full config:
 
    <?xml version="1.0" encoding="UTF-8" standalone="no"?>
    <beans xmlns="http://www.springframework.org/schema/beans" 
@@ -137,6 +151,41 @@ Standalone setup of project using data-graph-neo4j
      </bean>
      <bean class="org.springframework.context.support.ConversionServiceFactoryBean" id="conversionService"/>
    </beans>
+
+
+3.2 Spring-Java-Config
+----------------------
+
+You can also derive from a provided abstract spring configuration class (spring-javaconfig) that already encapsulates all this
+configuration and just provide a directory for the graph database:
+
+public class MyConfig extends AbstractNeo4jConfiguration {
+    @Override
+    public boolean isUsingCrossStorePersistence() {
+        return false;
+    }
+
+    @Bean(destroyMethod = "shutDown")
+    public GraphDatabaseService graphDatabaseService() {
+        return new EmbeddedGraphDatabase("target/neo4j-db");
+    }
+}
+
+Then your spring xml configuration file gets much simpler:
+<beans>
+...
+
+	<tx:annotation-driven mode="aspectj" transaction-manager="transactionManager"/>
+	<bean class="com.example.config.MyConfig"/>
+    <bean class="org.springframework.context.annotation.ConfigurationClassPostProcessor"/>
+...
+</beans>    
+
+4. Setup done
+-------------
+
+After this is set up, you can just use the annotated POJOs and they will automatically be backed by Neo4j. 
+The one thing that the user has to do is wrap any data-graph-neo4j usage in Neo4j transactions. (or just use @Transactional)
 
 You should now be set up with the AspectJ configuration in your pom.xml, and 
 the necessary Spring configuration setting up the library with its

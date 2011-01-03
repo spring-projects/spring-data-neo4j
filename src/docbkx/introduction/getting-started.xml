@@ -51,7 +51,8 @@
 		</section>
 		<section id="get-started:first-steps:samples">
 			<title>Trying Out The Samples</title>
-			<para>DATAGRAPH comes with a number of samples (if you accessed the sources via
+			<para>DATAGRAPH comes with a number of <ulink url="http://github.com/SpringSource/spring-data-graph-examples">samples</ulink> 
+				and unit test cases (if you accessed the sources via 
 				<ulink url="http://github.com/SpringSource/spring-data-graph">github</ulink> or maven).
 			</para>
 			<para>The current distribution contains:</para>
