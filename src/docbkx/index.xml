@@ -43,7 +43,7 @@
     <xi:include href="introduction/introduction.xml"/>
     <xi:include href="introduction/why-sd-graph.xml"/>
     <xi:include href="introduction/requirements.xml"/>
-    <xi:include href="introduction/getting-started.xml"/>
+    <xi:include href="introduction/get-started.xml"/>
   </part>
 
     <part id="reference">
@@ -57,6 +57,7 @@
 	    <xi:include href="preface.xml"/>
 	    <xi:include href="neo4j.xml"/>
 	    <xi:include href="programming-model.xml"/>
+	    <xi:include href="setup.xml"/>
 	    <xi:include href="cross-store.xml"/>
     </part>
 </book>

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE preface PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN"
                  "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
-<chapter id="why-Spring Data-Document">
+<chapter id="why-sd-graph">
     <title>Why Spring Data Graph?</title>
    
     <para><ulink url="http://en.wikipedia.org/wiki/NoSQL">NOSQL</ulink>

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
-<chapter id="neo4j-intro">
+<chapter id="neo4j">
 	<title>Introduction to the Neo4j Graph Database</title>
 	<para>
   	<ulink url="http://neo4j.org/">Neo4j</ulink> is a graph database, a fully transactional database that stores data structured as graphs. A graph is a flexible data structure that allows for a more agile and rapid style of development.
@@ -36,7 +36,7 @@
 		<title>Creating Nodes and Relationships</title>
 		<para>Using the API of GraphDatabaseService it is easy to create nodes and relate them to each other. Relationships are named. Both nodes and relationship can have properties. Property values can be of primitive Java types and Strings as well as byte arrays for binary data.
 			Node creation and modification has to happen within a transaction, reading from the graph store can also be done without transactions.
-			<programlisting language="JAVA" ><![CDATA[
+			<programlisting lang="JAVA" ><![CDATA[
 GraphDatabaseService graphDb = new EmbeddedGraphDatabase( "helloworld" );
 Transaction tx = graphDb.beginTx();
 try {
@@ -61,7 +61,7 @@ try {
 		<para>Getting a single nodes or relationship and reading from is not the main use case of a graph database. Fast graph traversal and
 			application of graph algorithms are. Neo4j provides means via a concise DSL to define TraversalDescriptions that can then be applied
 			to a start node and will produce a stream of nodes and/or relationships as a lazy result using an Iterable.
-			<programlisting language="JAVA" ><![CDATA[
+			<programlisting lang="JAVA" ><![CDATA[
 TraversalDescription traversalDescription = Traversal.description()
           .depthFirst()
           .relationships( KNOWS )

@@ -55,7 +55,7 @@
 			The following example is taken from the <ulink url="http://github.com/SpringSource/spring-data-graph-examples">DATAGRAPH examples</ulink>, 
 			it is contained in the myrestaurant-social project.
 		</para>
-<programlisting language="JAVA" ><![CDATA[
+<programlisting lang="JAVA" ><![CDATA[
 	@Entity
 	@Table(name = "user_account")
 	@NodeEntity(partial = true)
@@ -114,7 +114,7 @@
 			already contains a method <code>isUsingCrossStorePersistence</code>that must be implemented by a concrete configuration which controls 
 			the cross store mode of DATAGRAPH.
 		</para>
-					<programlisting language="JAVA" ><![CDATA[
+					<programlisting lang="JAVA" ><![CDATA[
 public class MyRestaurantConfig extends AbstractNeo4jConfiguration {
     @Override
     public boolean isUsingCrossStorePersistence() {
@@ -126,7 +126,7 @@ public class MyRestaurantConfig extends AbstractNeo4jConfiguration {
         return new EmbeddedGraphDatabase("target/myrestaurant-social");
     }
 }			]]></programlisting>
-<programlisting language="XML" ><![CDATA[
+<programlisting lang="XML" ><![CDATA[
 <beans>
 ...
 	<tx:annotation-driven mode="aspectj" transaction-manager="transactionManager"/>

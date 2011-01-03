@@ -62,7 +62,7 @@
 <!-- Remove "Chapter" from the Chapter titles... -->
 	<xsl:param name="local.l10n.xml" select="document('')"/>
 	<l:i18n xmlns:l="http://docbook.sourceforge.net/xmlns/l10n/1.0">
-		<l:l10n language="en">
+		<l:l10n lang="en">
 			<l:context name="title-numbered">
 				<l:template name="chapter" text="%n.&#160;%t"/>
 				<l:template name="section" text="%n&#160;%t"/>
