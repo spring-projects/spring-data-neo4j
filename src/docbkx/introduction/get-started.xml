@@ -58,9 +58,13 @@
 			<para>The current distribution contains:</para>
 			<itemizedlist>
 				<listitem>
-					<para>Hello World sample</para>
-					<para>The Hello World sample application is a simple console application that
-					creates some entities (nodes) and relationships in a graph and then reads them back and prints them out.</para>
+					<para>Hello Worlds sample</para>
+					<para>The Hello Worlds sample application is a simple console application with unit tests, that
+					creates some Worlds (entities / nodes) and Rocket Routes (relationships) in a Galaxy (graph) and then 
+					reads them back and prints them out.</para>
+					<para>The unit tests demonstrate some other features of DATAGRAPH. The sample comes with a minimal config for
+						maven and spring to get up and running quickly.
+						</para>
 				</listitem>
 				<listitem>
 					<para>IMDB sample</para>
