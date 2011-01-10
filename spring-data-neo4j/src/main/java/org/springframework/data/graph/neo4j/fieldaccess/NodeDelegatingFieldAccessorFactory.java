@@ -37,7 +37,7 @@ public class NodeDelegatingFieldAccessorFactory extends DelegatingFieldAccessorF
     protected Collection<FieldAccessorListenerFactory<?>> createListenerFactories() {
         return Arrays.<FieldAccessorListenerFactory<?>>asList(
                 new IndexingNodePropertyFieldAccessorListenerFactory(
-                		graphDatabaseContext.getIndexService(),
+                		graphDatabaseContext.getIndexManager(),
                 		new PropertyFieldAccessorFactory(), 
                 		new ConvertingNodePropertyFieldAccessorFactory(graphDatabaseContext.getConversionService()))
         );

@@ -18,7 +18,6 @@ package org.springframework.data.graph.neo4j.fieldaccess;
 
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.NotInTransactionException;
-import org.springframework.core.convert.ConversionService;
 import org.springframework.dao.InvalidDataAccessResourceUsageException;
 import org.springframework.data.graph.annotation.GraphProperty;
 import org.springframework.data.graph.annotation.RelatedTo;
@@ -48,7 +47,7 @@ public class PartialNodeEntityStateAccessors<ENTITY extends NodeBacked> extends 
             protected Collection<FieldAccessorListenerFactory<?>> createListenerFactories() {
                 return Arrays.<FieldAccessorListenerFactory<?>>asList(
                         new IndexingNodePropertyFieldAccessorListenerFactory(
-                        		getGraphDatabaseContext().getIndexService(), 
+                        		getGraphDatabaseContext().getIndexManager(),
                         		newPropertyFieldAccessorFactory(),
                         		newConvertingNodePropertyFieldAccessorFactory()) {
 		                            @Override
