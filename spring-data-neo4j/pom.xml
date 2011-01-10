@@ -109,18 +109,11 @@
 		<!-- Neo4J -->
 		<dependency>
 			<groupId>org.neo4j</groupId>
-			<artifactId>neo4j-kernel</artifactId>
-			<version>1.1</version>
-		</dependency>
-		<dependency>
-			<groupId>org.neo4j</groupId>
-			<artifactId>neo4j-remote-graphdb</artifactId>
-			<version>0.7</version>
+			<artifactId>neo4j</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.neo4j</groupId>
 			<artifactId>neo4j-utils</artifactId>
-			<version>1.1</version>
 		</dependency>
 
 		<!-- JPA -->
