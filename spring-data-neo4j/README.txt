@@ -132,22 +132,15 @@ A simpler configuration approach is provided below the full config:
      </bean>
      <bean class="org.springframework.transaction.jta.JtaTransactionManager" id="transactionManager">
        <property name="transactionManager">
-         <bean class="org.neo4j.kernel.impl.transaction.SpringTransactionManager" id="neo4jTransactionManagerService">
+         <bean class="org.neo4j.kernel.impl.transaction.SpringTransactionManager">
            <constructor-arg index="0" ref="graphDbService"/>
          </bean>
        </property>
-     <property name="userTransaction">
-       <bean class="org.neo4j.kernel.impl.transaction.UserTransactionImpl" id="neo4jUserTransactionService">
-         <constructor-arg index="0" ref="graphDbService"/>
-       </bean>
-     </property>
-     </bean>
-     <bean class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean" id="entityManagerFactory">
-       <property name="persistenceUnitName" value="NEO4J"/>
-       <property name="persistenceProviderClass" value="org.springframework.data.graph.neo4j.jpa.Neo4jPersistenceProvider"/>
-       <property name="jpaDialect">
-         <bean class="org.springframework.data.graph.neo4j.jpa.Neo4jJpaDialect"/>
-       </property>
+		<property name="userTransaction">
+       		<bean class="org.neo4j.kernel.impl.transaction.UserTransactionImpl">
+       			<constructor-arg index="0" ref="graphDbService"/>
+       		</bean>
+     	</property>
      </bean>
      <bean class="org.springframework.context.support.ConversionServiceFactoryBean" id="conversionService"/>
    </beans>
