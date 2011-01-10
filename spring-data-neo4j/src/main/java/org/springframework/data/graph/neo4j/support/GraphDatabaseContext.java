@@ -19,7 +19,6 @@ package org.springframework.data.graph.neo4j.support;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.neo4j.graphdb.*;
-import org.neo4j.graphdb.index.IndexManager;
 import org.neo4j.index.IndexHits;
 import org.neo4j.index.IndexService;
 import org.neo4j.kernel.EmbeddedGraphDatabase;
@@ -87,16 +86,13 @@ public class GraphDatabaseContext {
 		this.relationshipEntityInstantiator = relationshipEntityInstantiator;
 	}
 
-	public IndexManager getIndexManager() {
-        return graphDatabaseService.index();
+	public IndexService getIndexService() {
+		return indexService;
 	}
 
-    /**
-     * @deprecated
-     */
-//	public void setIndexService(IndexService indexService) {
-//		this.indexService = indexService;
-//	}
+	public void setIndexService(IndexService indexService) {
+		this.indexService = indexService;
+	}
 
 	public ConversionService getConversionService() {
 		return conversionService;

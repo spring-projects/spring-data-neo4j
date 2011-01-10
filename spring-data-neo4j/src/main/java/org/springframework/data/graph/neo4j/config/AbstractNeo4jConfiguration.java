@@ -69,7 +69,7 @@ public abstract class AbstractNeo4jConfiguration {
 	public GraphDatabaseContext graphDatabaseContext(GraphDatabaseService graphDatabaseService, IndexService indexService) throws Exception {
 		GraphDatabaseContext gdc = new GraphDatabaseContext();
 		gdc.setGraphDatabaseService(graphDatabaseService);
-//		gdc.setIndexService(indexService);
+		gdc.setIndexService(indexService);
 		gdc.setRelationshipEntityInstantiator(new ConstructorBypassingGraphRelationshipInstantiator());
 		if (isUsingCrossStorePersistence()) {
 			gdc.setGraphEntityInstantiator(new PartialNeo4jEntityInstantiator(new Neo4jConstructorGraphEntityInstantiator()));
