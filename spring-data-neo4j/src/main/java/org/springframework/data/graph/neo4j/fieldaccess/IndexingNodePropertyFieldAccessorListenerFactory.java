@@ -48,9 +48,7 @@ class IndexingNodePropertyFieldAccessorListenerFactory implements FieldAccessorL
         final NodeEntity entityAnnotation = f.getDeclaringClass().getAnnotation(NodeEntity.class);
         if (entityAnnotation!=null && entityAnnotation.fullIndex()) return true;
 	    final Indexed indexedAnnotation = f.getAnnotation(Indexed.class);
-        if (indexedAnnotation != null) return true;
-        final GraphProperty propertyAnnotation = f.getAnnotation(GraphProperty.class);
-        return propertyAnnotation!=null && propertyAnnotation.index();
+        return indexedAnnotation != null;
     }
 
     private boolean isPropertyField(final Field f) {
@@ -64,7 +62,10 @@ class IndexingNodePropertyFieldAccessorListenerFactory implements FieldAccessorL
 
     private String getIndexName(Field field) {
         Indexed indexed = field.getAnnotation(Indexed.class);
-        return hasIndexName(indexed) ? indexed.name() : null;
+        if (hasIndexName(indexed)) return indexed.name();
+
+        final Indexed indexedEntity = field.getDeclaringClass().getAnnotation(Indexed.class);
+        return hasIndexName( indexedEntity ) ?  indexedEntity.name() : null;
     }
 
     private boolean hasIndexName(Indexed indexed) {

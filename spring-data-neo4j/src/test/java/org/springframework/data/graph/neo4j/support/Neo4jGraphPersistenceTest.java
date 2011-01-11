@@ -369,7 +369,7 @@ public class Neo4jGraphPersistenceTest {
 		Person spouse = new Person("Tina", 36);
 		me.setSpouse(spouse);
         final Finder<Person> personFinder = finderFactory.getFinderForClass(Person.class);
-        final Person foundMe = personFinder.findByPropertyValue(null, "Person.name", "Michael");
+        final Person foundMe = personFinder.findByPropertyValue( Person.NAME_INDEX, "Person.name", "Michael");
         assertEquals(spouse,foundMe.getSpouse());
 	}
 
@@ -481,7 +481,7 @@ public class Neo4jGraphPersistenceTest {
 	public void testFindAllPersonByIndexOnAnnotatedField() {
 		Person person = new Person("Michael",35);
         final Finder<Person> finder = finderFactory.getFinderForClass(Person.class);
-        final Person found = finder.findByPropertyValue(null, "Person.name", "Michael");
+        final Person found = finder.findByPropertyValue( Person.NAME_INDEX, "Person.name", "Michael");
 	    assertEquals(person, found);
     }
 

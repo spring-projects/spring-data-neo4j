@@ -1,6 +1,7 @@
 package org.springframework.data.graph.neo4j.partial;
 
 import org.neo4j.graphdb.DynamicRelationshipType;
+import org.springframework.data.annotation.Indexed;
 import org.springframework.data.graph.*;
 import org.springframework.data.graph.annotation.GraphProperty;
 import org.springframework.data.graph.annotation.NodeEntity;
@@ -26,6 +27,7 @@ public class User {
     int age;
 
     @GraphProperty
+    @Indexed
     @Transient
     String nickname;
 

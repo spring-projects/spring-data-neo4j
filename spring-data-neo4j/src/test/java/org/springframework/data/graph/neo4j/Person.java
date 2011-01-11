@@ -14,10 +14,11 @@ import java.util.Date;
 @NodeEntity(useShortNames = false)
 public class Person {
 
-	@GraphId
+    public static final String NAME_INDEX = "name_index";
+    @GraphId
 	private Long graphId;
 
-    @GraphProperty(index = true)
+    @Indexed(name = NAME_INDEX)
 	private String name;
 
 	@Indexed

@@ -32,8 +32,4 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
 public @interface GraphProperty {
-    /**
-     * @return true if the property should be indexed, false if not
-     */
-    boolean index() default true;
 }

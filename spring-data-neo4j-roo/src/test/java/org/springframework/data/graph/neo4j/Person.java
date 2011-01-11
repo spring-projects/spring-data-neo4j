@@ -12,151 +12,181 @@ import java.util.Date;
 
 
 @NodeEntity(useShortNames = false)
-public class Person {
+public class Person
+{
 
-	@GraphId
-	private Long graphId;
+    public static final String NAME_INDEX = "name_index";
+    @GraphId
+    private Long graphId;
 
-    @GraphProperty(index = true)
-	private String name;
+    @Indexed(name = NAME_INDEX)
+    private String name;
 
-	@Indexed
-	private String nickname;
+    @Indexed
+    private String nickname;
 
-	private int age;
+    private int age;
 
-	private Short height;
+    private Short height;
 
-	private transient String thought;
+    private transient String thought;
 
-	private Personality personality;
+    private Personality personality;
 
-	private Date birthdate;
+    private Date birthdate;
 
-	private Person spouse;
+    private Person spouse;
 
-	private Car car;
+    private Car car;
 
-	@RelatedTo(type = "mother", direction = Direction.OUTGOING)
-	private Person mother;
+    @RelatedTo(type = "mother", direction = Direction.OUTGOING)
+    private Person mother;
 
-	@RelatedTo(type = "boss", direction = Direction.INCOMING)
-	private Person boss;
+    @RelatedTo(type = "boss", direction = Direction.INCOMING)
+    private Person boss;
 
-	@RelatedToVia(type = "knows", elementClass = Friendship.class)
-	private Iterable<Friendship> friendships;
+    @RelatedToVia(type = "knows", elementClass = Friendship.class)
+    private Iterable<Friendship> friendships;
 
-    public Person() {
+    public Person()
+    {
     }
 
-    public Person(String name, int age) {
-		this.name = name;
-		this.age = age;
-	}
+    public Person( String name, int age )
+    {
+        this.name = name;
+        this.age = age;
+    }
 
-	public String getName() {
-		return name;
-	}
+    public String getName()
+    {
+        return name;
+    }
 
-	public void setName(String name) {
-		this.name = name;
-	}
+    public void setName( String name )
+    {
+        this.name = name;
+    }
 
-	public int getAge() {
-		return age;
-	}
+    public int getAge()
+    {
+        return age;
+    }
 
-	public void setAge(int age) {
-		this.age = age;
-	}
+    public void setAge( int age )
+    {
+        this.age = age;
+    }
 
-	public Short getHeight() {
-		return height;
-	}
+    public Short getHeight()
+    {
+        return height;
+    }
 
-	public void setHeight(Short height) {
-		this.height = height;
-	}
+    public void setHeight( Short height )
+    {
+        this.height = height;
+    }
 
 
-	public Person getSpouse() {
-		return spouse;
-	}
+    public Person getSpouse()
+    {
+        return spouse;
+    }
 
-	public void setSpouse(Person spouse) {
-		this.spouse = spouse;
-	}
+    public void setSpouse( Person spouse )
+    {
+        this.spouse = spouse;
+    }
 
-	public Person getMother() {
-		return mother;
-	}
+    public Person getMother()
+    {
+        return mother;
+    }
 
-	public void setMother(Person mother) {
-		this.mother = mother;
-	}
+    public void setMother( Person mother )
+    {
+        this.mother = mother;
+    }
 
-	public Person getBoss() {
-		return boss;
-	}
+    public Person getBoss()
+    {
+        return boss;
+    }
 
-	public void setBoss(Person boss) {
-		this.boss = boss;
-	}
+    public void setBoss( Person boss )
+    {
+        this.boss = boss;
+    }
 
-	@Override
-	public String toString() {
-		return name;
-	}
+    @Override
+    public String toString()
+    {
+        return name;
+    }
 
-	public Iterable<Friendship> getFriendships() {
-		return friendships;
-	}
+    public Iterable<Friendship> getFriendships()
+    {
+        return friendships;
+    }
 
-	public void setFriendships(Iterable<Friendship> f) {
-		friendships = f;
-	}
+    public void setFriendships( Iterable<Friendship> f )
+    {
+        friendships = f;
+    }
 
-	public Friendship knows(Person p) {
-        return (Friendship)relateTo(p, Friendship.class,"knows");
-	}
+    public Friendship knows( Person p )
+    {
+        return (Friendship) relateTo( p, Friendship.class, "knows" );
+    }
 
-	public void setPersonality(Personality personality) {
-		this.personality = personality;
-	}
+    public void setPersonality( Personality personality )
+    {
+        this.personality = personality;
+    }
 
-	public Personality getPersonality() {
-		return personality;
-	}
+    public Personality getPersonality()
+    {
+        return personality;
+    }
 
-	public void setThought(String thought) {
-		this.thought = thought;
-	}
+    public void setThought( String thought )
+    {
+        this.thought = thought;
+    }
 
-	public String getThought() {
-		return thought;
-	}
+    public String getThought()
+    {
+        return thought;
+    }
 
-	public Date getBirthdate() {
-		return birthdate;
-	}
+    public Date getBirthdate()
+    {
+        return birthdate;
+    }
 
-	public void setBirthdate(Date birthdate) {
-		this.birthdate = birthdate;
-	}
+    public void setBirthdate( Date birthdate )
+    {
+        this.birthdate = birthdate;
+    }
 
-	public long getId() {
-		return graphId;
-	}
+    public long getId()
+    {
+        return graphId;
+    }
 
-	public void setCar(Car car) {
-		this.car = car;
-	}
+    public void setCar( Car car )
+    {
+        this.car = car;
+    }
 
-	public Car getCar() {
-		return car;
-	}
+    public Car getCar()
+    {
+        return car;
+    }
 
-	public void setNickname(String nickname) {
-		this.nickname = nickname;
-	}
+    public void setNickname( String nickname )
+    {
+        this.nickname = nickname;
+    }
 }
