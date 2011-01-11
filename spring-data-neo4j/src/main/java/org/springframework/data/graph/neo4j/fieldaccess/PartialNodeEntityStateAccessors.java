@@ -18,7 +18,6 @@ package org.springframework.data.graph.neo4j.fieldaccess;
 
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.NotInTransactionException;
-import org.springframework.core.convert.ConversionService;
 import org.springframework.dao.InvalidDataAccessResourceUsageException;
 import org.springframework.data.graph.annotation.GraphProperty;
 import org.springframework.data.graph.annotation.RelatedTo;
@@ -108,7 +107,7 @@ public class PartialNodeEntityStateAccessors<ENTITY extends NodeBacked> extends 
             final Object id = getId(entity,type);
             if (id == null) return;
             final String foreignId = createForeignId(id);
-            Node node = graphDatabaseContext.getSingleIndexedNode(FOREIGN_ID, foreignId);
+            Node node = graphDatabaseContext.getSingleIndexedNode("node", FOREIGN_ID, foreignId);
             if (node == null) {
                 node = graphDatabaseContext.createNode();
                 persistForeignId(node, id);
@@ -129,7 +128,7 @@ public class PartialNodeEntityStateAccessors<ENTITY extends NodeBacked> extends 
         if (!node.hasProperty(FOREIGN_ID) && id != null) {
             final String foreignId = createForeignId(id);
             node.setProperty(FOREIGN_ID, id);
-            graphDatabaseContext.index(node, FOREIGN_ID, foreignId);
+            graphDatabaseContext.index("node", node, FOREIGN_ID, foreignId);
         }
     }
 

@@ -10,7 +10,6 @@ import org.junit.runner.RunWith;
 import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.traversal.TraversalDescription;
 import org.neo4j.helpers.collection.IteratorUtil;
-import org.neo4j.index.IndexService;
 import org.neo4j.kernel.Traversal;
 import org.neo4j.kernel.impl.traversal.TraversalDescriptionImpl;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,7 +17,6 @@ import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.graph.neo4j.*;
 import org.springframework.data.graph.neo4j.finder.Finder;
 import org.springframework.data.graph.neo4j.finder.FinderFactory;
-import org.springframework.data.graph.neo4j.support.GraphDatabaseContext;
 import org.springframework.data.graph.neo4j.support.node.Neo4jHelper;
 import org.springframework.data.graph.neo4j.Car;
 import org.springframework.data.graph.neo4j.Friendship;
@@ -432,9 +430,9 @@ public class Neo4jGraphPersistenceTest {
         Group group = new Group();
         group.setName("test");
         final Finder<Group> finder = finderFactory.getFinderForClass(Group.class);
-        graphDatabaseContext.removeIndex(group.getUnderlyingState(), "name");
+        graphDatabaseContext.removeIndex("node", group.getUnderlyingState(), "name");
         final Group found = finder.findByPropertyValue("name", "test");
-        assertNull("Group.name removed from index",found);
+        assertNull("Group.name removed from index", found);
     }
 	
 	@Test

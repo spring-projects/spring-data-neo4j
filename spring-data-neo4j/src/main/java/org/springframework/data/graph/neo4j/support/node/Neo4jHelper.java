@@ -33,7 +33,7 @@ public abstract class Neo4jHelper {
             }
         }
         for (String indexField : indexFieldsToRemove) {
-            graphDatabaseContext.removeIndex(indexField);
+            graphDatabaseContext.removeIndex("node", indexField);
         }
     }
 }

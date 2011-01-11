@@ -59,10 +59,15 @@ class IndexingNodePropertyFieldAccessorListenerFactory implements FieldAccessorL
 
     @Override
     public FieldAccessListener<NodeBacked,?> forField(final Field field) {
-        return new IndexingNodePropertyFieldAccessorListener(field, graphDatabaseContext);
+        return new IndexingNodePropertyFieldAccessorListener(field, graphDatabaseContext, getIndexName(field));
     }
 
-	/**
+    private String getIndexName(Field field) {
+        Indexed indexed = field.getAnnotation(Indexed.class);
+        return indexed != null ? indexed.name() : null;
+    }
+
+    /**
 	 * @author Michael Hunger
 	 * @since 12.09.2010
 	 */
@@ -72,16 +77,18 @@ class IndexingNodePropertyFieldAccessorListenerFactory implements FieldAccessorL
 
 	    protected final String indexKey;
 	    private final GraphDatabaseContext graphDatabaseContext;
+        private String indexName;
 
-	    public IndexingNodePropertyFieldAccessorListener(final Field field, final GraphDatabaseContext graphDatabaseContext) {
+        public IndexingNodePropertyFieldAccessorListener(final Field field, final GraphDatabaseContext graphDatabaseContext, final String indexName) {
 	        this.indexKey = DelegatingFieldAccessorFactory.getNeo4jPropertyName(field);
 	        this.graphDatabaseContext = graphDatabaseContext;
-	    }
+            this.indexName = indexName;
+        }
 
 	    @Override
 	    public void valueChanged(final NodeBacked nodeBacked, final Object oldVal, final Object newVal) {
-            if (newVal==null) graphDatabaseContext.removeIndex(nodeBacked.getUnderlyingState(), indexKey );
-	        else graphDatabaseContext.index(nodeBacked.getUnderlyingState(), indexKey, newVal.toString());
+            if (newVal==null) graphDatabaseContext.removeIndex(indexName, nodeBacked.getUnderlyingState(), indexKey);
+	        else graphDatabaseContext.index(indexName, nodeBacked.getUnderlyingState(), indexKey, newVal.toString());
 	    }
 
 	}

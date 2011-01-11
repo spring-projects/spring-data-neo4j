@@ -80,7 +80,7 @@ public class Finder<T extends NodeBacked> {
      */
     public T findByPropertyValue(final String property, final Object value) {
         try {
-            final Node node = graphDatabaseContext.getSingleIndexedNode(property, value);
+            final Node node = graphDatabaseContext.getSingleIndexedNode("node", property, value);
             if (node == null) return null;
             return graphDatabaseContext.createEntityFromState(node, clazz);
         } catch (NotFoundException e) {
@@ -97,7 +97,7 @@ public class Finder<T extends NodeBacked> {
      */
     public Iterable<T> findAllByPropertyValue(final String property, final Object value) {
         try {
-            final IndexHits<Node> nodes = graphDatabaseContext.getIndexedNodes(property, value);
+            final IndexHits<Node> nodes = graphDatabaseContext.getIndexedNodes("node", property, value);
             if (nodes == null) return Collections.emptyList();
             return new IterableWrapper<T, Node>(nodes) {
                 @Override

@@ -53,8 +53,6 @@ public class GraphDatabaseContext {
 
     public EntityInstantiator<RelationshipBacked, Relationship> relationshipEntityInstantiator;
 
-    private IndexManager indexManager;
-
     private ConversionService conversionService;
 
     private NodeTypeStrategy nodeTypeStrategy;
@@ -117,16 +115,16 @@ public class GraphDatabaseContext {
     private IndexManager getIndexManager() {
         return graphDatabaseService.index();
     }
-    public IndexHits<Node> getIndexedNodes(final String property, final Object value) {
-        return getNodeIndex().get(property, value.toString());
+    public IndexHits<Node> getIndexedNodes(final String indexName, final String property, final Object value) {
+        return getNodeIndex(indexName).get(property, value.toString());
     }
 
-    private Index<Node> getNodeIndex() {
-        return getIndexManager().forNodes("node");
+    private Index<Node> getNodeIndex(final String indexName) {
+        return getIndexManager().forNodes(indexName);
     }
 
-    public Node getSingleIndexedNode(final String property, final Object value) {
-        IndexHits<Node> indexHits = getIndexedNodes(property, value);
+    public Node getSingleIndexedNode(final String indexName, final String property, final Object value) {
+        IndexHits<Node> indexHits = getIndexedNodes(indexName, property, value);
         return indexHits.hasNext() ? indexHits.next() : null;
     }
 
@@ -172,16 +170,16 @@ public class GraphDatabaseContext {
         }
     }
 
-    public void removeIndex(final Node node, final String propName) {
-        getNodeIndex().remove(node, propName, null);
+    public void removeIndex(final String indexName, final Node node, final String propName) {
+        getNodeIndex(indexName).remove(node, propName, null);
     }
 
-    public void removeIndex(final String propName) {
-        removeIndex(null,propName);
+    public void removeIndex(final String indexName, final String propName) {
+        removeIndex(indexName, null,propName);
     }
 
-    public void index(final Node node, final String propName, final Object newVal) {
-        getNodeIndex().add(node, propName, newVal.toString());
+    public void index(final String indexName, final Node node, final String propName, final Object newVal) {
+        getNodeIndex(indexName).add(node, propName, newVal.toString());
     }
 
     public boolean canConvert(final Class<?> from, final Class<?> to) {
