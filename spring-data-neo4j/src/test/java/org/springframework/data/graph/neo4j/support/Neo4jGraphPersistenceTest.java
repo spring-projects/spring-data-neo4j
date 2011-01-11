@@ -430,7 +430,7 @@ public class Neo4jGraphPersistenceTest {
         Group group = new Group();
         group.setName("test");
         final Finder<Group> finder = finderFactory.getFinderForClass(Group.class);
-        graphDatabaseContext.removeIndex("node", group.getUnderlyingState(), "name");
+        graphDatabaseContext.getNodeIndex("node").remove(group.getUnderlyingState(), "name", null);
         final Group found = finder.findByPropertyValue(null, "name", "test");
         assertNull("Group.name removed from index", found);
     }

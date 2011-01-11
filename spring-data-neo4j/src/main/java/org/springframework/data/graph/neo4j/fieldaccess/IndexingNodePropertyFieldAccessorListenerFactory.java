@@ -18,8 +18,12 @@ package org.springframework.data.graph.neo4j.fieldaccess;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.data.graph.annotation.GraphProperty;
+import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.PropertyContainer;
+import org.neo4j.graphdb.Relationship;
+import org.neo4j.graphdb.index.Index;
 import org.springframework.data.graph.annotation.NodeEntity;
+import org.springframework.data.graph.core.GraphBacked;
 import org.springframework.data.graph.core.NodeBacked;
 import org.springframework.data.annotation.Indexed;
 import org.springframework.data.graph.neo4j.support.GraphDatabaseContext;
@@ -27,7 +31,7 @@ import org.springframework.data.graph.neo4j.support.GraphDatabaseContext;
 import java.lang.reflect.Field;
 
 
-class IndexingNodePropertyFieldAccessorListenerFactory implements FieldAccessorListenerFactory<NodeBacked> {
+class IndexingNodePropertyFieldAccessorListenerFactory<T extends GraphBacked<?>> implements FieldAccessorListenerFactory<T> {
 
     private final GraphDatabaseContext graphDatabaseContext;
     private final PropertyFieldAccessorFactory propertyFieldAccessorFactory;
@@ -56,8 +60,12 @@ class IndexingNodePropertyFieldAccessorListenerFactory implements FieldAccessorL
     }
 
     @Override
-    public FieldAccessListener<NodeBacked,?> forField(final Field field) {
-        return new IndexingNodePropertyFieldAccessorListener(field, graphDatabaseContext, getIndexName(field));
+    public FieldAccessListener<T, ?> forField(Field field) {
+        String indexName = getIndexName(field);
+        if (NodeBacked.class.isAssignableFrom(field.getDeclaringClass())) {
+            return (FieldAccessListener<T, ?>) new IndexingNodePropertyFieldAccessorListener<Node>(field, graphDatabaseContext.getNodeIndex(indexName));
+        }
+        return (FieldAccessListener<T, ?>) new IndexingNodePropertyFieldAccessorListener<Relationship>(field, graphDatabaseContext.getRelationshipIndex(indexName));
     }
 
     private String getIndexName(Field field) {
@@ -76,25 +84,22 @@ class IndexingNodePropertyFieldAccessorListenerFactory implements FieldAccessorL
 	 * @author Michael Hunger
 	 * @since 12.09.2010
 	 */
-	public static class IndexingNodePropertyFieldAccessorListener implements FieldAccessListener<NodeBacked, Object> {
+	public static class IndexingNodePropertyFieldAccessorListener<T extends PropertyContainer> implements FieldAccessListener<GraphBacked<T>, Object> {
 
 	    private final static Log log = LogFactory.getLog( IndexingNodePropertyFieldAccessorListener.class );
 
 	    protected final String indexKey;
-	    private final GraphDatabaseContext graphDatabaseContext;
-        private String indexName;
+        private final Index<T> index;
 
-        public IndexingNodePropertyFieldAccessorListener(final Field field, final GraphDatabaseContext graphDatabaseContext, final String indexName) {
+        public IndexingNodePropertyFieldAccessorListener(final Field field,  final Index<T> index) {
 	        this.indexKey = DelegatingFieldAccessorFactory.getNeo4jPropertyName(field);
-	        this.graphDatabaseContext = graphDatabaseContext;
-            this.indexName = indexName;
+            this.index = index;
         }
 
 	    @Override
-	    public void valueChanged(final NodeBacked nodeBacked, final Object oldVal, final Object newVal) {
-            if (newVal==null) graphDatabaseContext.removeIndex(indexName, nodeBacked.getUnderlyingState(), indexKey);
-	        else graphDatabaseContext.index(indexName, nodeBacked.getUnderlyingState(), indexKey, newVal.toString());
+        public void valueChanged(GraphBacked<T> nodeBacked, Object oldVal, Object newVal) {
+            if (newVal==null) index.remove(nodeBacked.getUnderlyingState(), indexKey, null);
+	        else index.add(nodeBacked.getUnderlyingState(), indexKey, newVal.toString());
 	    }
-
-	}
+    }
 }

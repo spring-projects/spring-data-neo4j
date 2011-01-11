@@ -129,7 +129,7 @@ public class PartialNodeEntityStateAccessors<ENTITY extends NodeBacked> extends 
         if (!node.hasProperty(FOREIGN_ID) && id != null) {
             final String foreignId = createForeignId(id);
             node.setProperty(FOREIGN_ID, id);
-            graphDatabaseContext.index(FOREIGN_ID_INDEX, node, FOREIGN_ID, foreignId);
+            graphDatabaseContext.getNodeIndex(FOREIGN_ID_INDEX).add(node, FOREIGN_ID, foreignId.toString());
         }
     }
 

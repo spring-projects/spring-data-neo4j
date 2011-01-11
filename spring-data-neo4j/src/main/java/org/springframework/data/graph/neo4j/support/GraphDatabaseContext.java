@@ -48,6 +48,7 @@ import javax.transaction.TransactionManager;
 public class GraphDatabaseContext {
 
     public static final String DEFAULT_NODE_INDEX_NAME = "node";
+    public static final String DEFAULT_RELATIONSHIP_INDEX_NAME = "relationship";
 
     private GraphDatabaseService graphDatabaseService;
 
@@ -117,24 +118,28 @@ public class GraphDatabaseContext {
     private IndexManager getIndexManager() {
         return graphDatabaseService.index();
     }
-    public IndexHits<Node> getIndexedNodes(final String indexName, final String property, final Object value) {
-        return getNodeIndex(indexName).get(property, value.toString());
-    }
 
-    private Index<Node> getNodeIndex(final String indexName) {
-        String indexNameToUse = indexNameOrDefault(indexName);
+    public Index<Node> getNodeIndex(final String indexName) {
+        String indexNameToUse = indexName == null ? DEFAULT_NODE_INDEX_NAME : indexName;
         // checkValidIndex(indexNameToUse); // check invalid index names
         return getIndexManager().forNodes(indexNameToUse);
     }
 
-    private String indexNameOrDefault(String indexName) {
-        return indexName==null ? DEFAULT_NODE_INDEX_NAME : indexName;  // todo take from neo4j config
+    public Index<Relationship> getRelationshipIndex(final String indexName) {
+        String indexNameToUse = indexName == null ? DEFAULT_RELATIONSHIP_INDEX_NAME : indexName;
+        // checkValidIndex(indexNameToUse); // check invalid index names
+        return getIndexManager().forRelationships(indexNameToUse);
+    }
+
+    public IndexHits<Node> getIndexedNodes(final String indexName, final String property, final Object value) {
+        return getNodeIndex(indexName).get(property, value.toString());
     }
 
     public Node getSingleIndexedNode(final String indexName, final String property, final Object value) {
         IndexHits<Node> indexHits = getIndexedNodes(indexName, property, value);
         return indexHits.hasNext() ? indexHits.next() : null;
     }
+
 
     public Node getNodeById(final long id) {
         return graphDatabaseService.getNodeById(id);
@@ -178,17 +183,6 @@ public class GraphDatabaseContext {
         }
     }
 
-    public void removeIndex(final String indexName, final Node node, final String propName) {
-        getNodeIndex(indexName).remove(node, propName, null);
-    }
-
-    public void removeIndex(final String indexName, final String propName) {
-        removeIndex(indexName, null, propName);
-    }
-
-    public void index(final String indexName, final Node node, final String propName, final Object newVal) {
-        getNodeIndex(indexName).add(node, propName, newVal.toString());
-    }
 
     public boolean canConvert(final Class<?> from, final Class<?> to) {
         return conversionService.canConvert(from, to);
