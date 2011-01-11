@@ -37,7 +37,8 @@ import java.util.Collection;
 public class PartialNodeEntityStateAccessors<ENTITY extends NodeBacked> extends DefaultEntityStateAccessors<ENTITY, Node> {
 
     public static final String FOREIGN_ID = "foreignId";
-    
+    public static final String FOREIGN_ID_INDEX = "foreign_id";
+
     private final GraphDatabaseContext graphDatabaseContext;
 
     public PartialNodeEntityStateAccessors(final Node underlyingState, final ENTITY entity, final Class<? extends ENTITY> type, final GraphDatabaseContext graphDatabaseContext, final FinderFactory finderFactory) {
@@ -107,7 +108,7 @@ public class PartialNodeEntityStateAccessors<ENTITY extends NodeBacked> extends 
             final Object id = getId(entity,type);
             if (id == null) return;
             final String foreignId = createForeignId(id);
-            Node node = graphDatabaseContext.getSingleIndexedNode("node", FOREIGN_ID, foreignId);
+            Node node = graphDatabaseContext.getSingleIndexedNode(FOREIGN_ID_INDEX, FOREIGN_ID, foreignId);
             if (node == null) {
                 node = graphDatabaseContext.createNode();
                 persistForeignId(node, id);
@@ -128,7 +129,7 @@ public class PartialNodeEntityStateAccessors<ENTITY extends NodeBacked> extends 
         if (!node.hasProperty(FOREIGN_ID) && id != null) {
             final String foreignId = createForeignId(id);
             node.setProperty(FOREIGN_ID, id);
-            graphDatabaseContext.index("node", node, FOREIGN_ID, foreignId);
+            graphDatabaseContext.index(FOREIGN_ID_INDEX, node, FOREIGN_ID, foreignId);
         }
     }
 

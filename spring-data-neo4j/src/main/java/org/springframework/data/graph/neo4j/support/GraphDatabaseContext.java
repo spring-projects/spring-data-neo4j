@@ -47,6 +47,8 @@ import javax.transaction.TransactionManager;
  */
 public class GraphDatabaseContext {
 
+    public static final String DEFAULT_NODE_INDEX_NAME = "node";
+
     private GraphDatabaseService graphDatabaseService;
 
     public EntityInstantiator<NodeBacked, Node> graphEntityInstantiator;
@@ -120,7 +122,13 @@ public class GraphDatabaseContext {
     }
 
     private Index<Node> getNodeIndex(final String indexName) {
-        return getIndexManager().forNodes(indexName);
+        String indexNameToUse = indexNameOrDefault(indexName);
+        // checkValidIndex(indexNameToUse); // check invalid index names
+        return getIndexManager().forNodes(indexNameToUse);
+    }
+
+    private String indexNameOrDefault(String indexName) {
+        return indexName==null ? DEFAULT_NODE_INDEX_NAME : indexName;  // todo take from neo4j config
     }
 
     public Node getSingleIndexedNode(final String indexName, final String property, final Object value) {
@@ -175,7 +183,7 @@ public class GraphDatabaseContext {
     }
 
     public void removeIndex(final String indexName, final String propName) {
-        removeIndex(indexName, null,propName);
+        removeIndex(indexName, null, propName);
     }
 
     public void index(final String indexName, final Node node, final String propName, final Object newVal) {
@@ -183,11 +191,11 @@ public class GraphDatabaseContext {
     }
 
     public boolean canConvert(final Class<?> from, final Class<?> to) {
-        return conversionService.canConvert(from,to);
+        return conversionService.canConvert(from, to);
     }
 
     public <T> T convert(final Object value, final Class<T> type) {
-        return conversionService.convert(value,type);
+        return conversionService.convert(value, type);
     }
 
     public Iterable<? extends Node> getAllNodes() {

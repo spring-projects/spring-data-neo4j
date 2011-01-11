@@ -29,7 +29,7 @@ import java.lang.reflect.Field;
 
 class IndexingNodePropertyFieldAccessorListenerFactory implements FieldAccessorListenerFactory<NodeBacked> {
 
-	private final GraphDatabaseContext graphDatabaseContext;
+    private final GraphDatabaseContext graphDatabaseContext;
     private final PropertyFieldAccessorFactory propertyFieldAccessorFactory;
     private final ConvertingNodePropertyFieldAccessorFactory convertingNodePropertyFieldAccessorFactory;
 
@@ -64,7 +64,11 @@ class IndexingNodePropertyFieldAccessorListenerFactory implements FieldAccessorL
 
     private String getIndexName(Field field) {
         Indexed indexed = field.getAnnotation(Indexed.class);
-        return indexed != null ? indexed.name() : null;
+        return hasIndexName(indexed) ? indexed.name() : null;
+    }
+
+    private boolean hasIndexName(Indexed indexed) {
+        return indexed!=null && !indexed.name().isEmpty();
     }
 
     /**

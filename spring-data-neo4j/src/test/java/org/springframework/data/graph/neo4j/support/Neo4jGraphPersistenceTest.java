@@ -369,7 +369,7 @@ public class Neo4jGraphPersistenceTest {
 		Person spouse = new Person("Tina", 36);
 		me.setSpouse(spouse);
         final Finder<Person> personFinder = finderFactory.getFinderForClass(Person.class);
-        final Person foundMe = personFinder.findByPropertyValue("Person.name", "Michael");
+        final Person foundMe = personFinder.findByPropertyValue(null, "Person.name", "Michael");
         assertEquals(spouse,foundMe.getSpouse());
 	}
 
@@ -431,7 +431,7 @@ public class Neo4jGraphPersistenceTest {
         group.setName("test");
         final Finder<Group> finder = finderFactory.getFinderForClass(Group.class);
         graphDatabaseContext.removeIndex("node", group.getUnderlyingState(), "name");
-        final Group found = finder.findByPropertyValue("name", "test");
+        final Group found = finder.findByPropertyValue(null, "name", "test");
         assertNull("Group.name removed from index", found);
     }
 	
@@ -441,7 +441,7 @@ public class Neo4jGraphPersistenceTest {
 		Group group = new Group();
         group.setName("test");
         final Finder<Group> finder = finderFactory.getFinderForClass(Group.class);
-        final Group found = finder.findByPropertyValue("name", "test");
+        final Group found = finder.findByPropertyValue(null, "name", "test");
         assertEquals(group,found);
 	}
 	@Test
@@ -450,7 +450,7 @@ public class Neo4jGraphPersistenceTest {
 		Group group = new Group();
         group.setUnindexedName("value-unindexedName");
         final Finder<Group> finder = finderFactory.getFinderForClass(Group.class);
-        final Group found = finder.findByPropertyValue("unindexedName", "value-unindexedName");
+        final Group found = finder.findByPropertyValue(null, "unindexedName", "value-unindexedName");
         assertNull(found);
 	}
 	@Test
@@ -459,7 +459,7 @@ public class Neo4jGraphPersistenceTest {
 		Group group = new Group();
         group.setUnindexedName2("value-unindexedName2");
         final Finder<Group> finder = finderFactory.getFinderForClass(Group.class);
-        final Group found = finder.findByPropertyValue("unindexedName2", "value-unindexedName2");
+        final Group found = finder.findByPropertyValue(null, "unindexedName2", "value-unindexedName2");
         assertNull(found);
 	}
 
@@ -471,7 +471,7 @@ public class Neo4jGraphPersistenceTest {
 		Group group2 = new Group();
         group2.setName("test");
         final Finder<Group> finder = finderFactory.getFinderForClass(Group.class);
-        final Iterable<Group> found = finder.findAllByPropertyValue("name", "test");
+        final Iterable<Group> found = finder.findAllByPropertyValue(null, "name", "test");
         final Collection<Group> result = IteratorUtil.addToCollection(found.iterator(), new HashSet<Group>());
         assertEquals(new HashSet<Group>(Arrays.asList(group,group2)), result);
 	}
@@ -481,7 +481,7 @@ public class Neo4jGraphPersistenceTest {
 	public void testFindAllPersonByIndexOnAnnotatedField() {
 		Person person = new Person("Michael",35);
         final Finder<Person> finder = finderFactory.getFinderForClass(Person.class);
-        final Person found = finder.findByPropertyValue("Person.name", "Michael");
+        final Person found = finder.findByPropertyValue(null, "Person.name", "Michael");
 	    assertEquals(person, found);
     }
 
@@ -491,7 +491,7 @@ public class Neo4jGraphPersistenceTest {
 		Person person = new Person("Michael", 35);
 		person.setNickname("Mike");
 		final Finder<Person> finder = finderFactory.getFinderForClass(Person.class);
-		final Person found = finder.findByPropertyValue("Person.nickname", "Mike");
+		final Person found = finder.findByPropertyValue(null, "Person.nickname", "Mike");
 		assertEquals(person, found);
 	}
 
