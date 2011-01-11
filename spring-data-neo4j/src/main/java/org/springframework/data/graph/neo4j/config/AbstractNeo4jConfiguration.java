@@ -19,8 +19,6 @@ package org.springframework.data.graph.neo4j.config;
 import javax.persistence.EntityManagerFactory;
 
 import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.index.IndexService;
-import org.neo4j.index.lucene.LuceneIndexService;
 import org.neo4j.kernel.impl.transaction.SpringTransactionManager;
 import org.neo4j.kernel.impl.transaction.UserTransactionImpl;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -59,17 +57,11 @@ public abstract class AbstractNeo4jConfiguration {
 
 	@Bean(destroyMethod="shutdown")
 	public abstract GraphDatabaseService graphDatabaseService();
-	
-	@Bean(destroyMethod="shutdown")
-	public LuceneIndexService indexService(GraphDatabaseService graphDatabaseService) {
-		return new LuceneIndexService(graphDatabaseService);
-	}
 
 	@Bean
-	public GraphDatabaseContext graphDatabaseContext(GraphDatabaseService graphDatabaseService, IndexService indexService) throws Exception {
+	public GraphDatabaseContext graphDatabaseContext(GraphDatabaseService graphDatabaseService) throws Exception {
 		GraphDatabaseContext gdc = new GraphDatabaseContext();
 		gdc.setGraphDatabaseService(graphDatabaseService);
-		gdc.setIndexService(indexService);
 		gdc.setRelationshipEntityInstantiator(new ConstructorBypassingGraphRelationshipInstantiator());
 		if (isUsingCrossStorePersistence()) {
 			gdc.setGraphEntityInstantiator(new PartialNeo4jEntityInstantiator(new Neo4jConstructorGraphEntityInstantiator()));

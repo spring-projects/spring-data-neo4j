@@ -115,9 +115,6 @@ A simpler configuration approach is provided below the full config:
      <bean class="org.neo4j.kernel.EmbeddedGraphDatabase" destroy-method="shutdown" id="graphDbService" scope="singleton">
        <constructor-arg index="0" value="${neo4j.location}"/>
      </bean>
-     <bean class="org.neo4j.index.lucene.LuceneIndexService" destroy-method="shutdown" id="indexService">
-       <constructor-arg index="0" ref="graphDbService"/>
-     </bean>
      <bean class="org.springframework.data.graph.neo4j.support.GraphDatabaseContext" id="graphDatabaseContext"/>
      <bean class="org.springframework.data.graph.neo4j.support.SubReferenceNodeTypeStrategy" id="nodeTypeStrategy">
        <constructor-arg index="0" ref="graphDatabaseContext"/>

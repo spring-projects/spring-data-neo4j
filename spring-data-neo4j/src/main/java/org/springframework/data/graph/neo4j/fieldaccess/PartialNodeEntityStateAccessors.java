@@ -48,7 +48,7 @@ public class PartialNodeEntityStateAccessors<ENTITY extends NodeBacked> extends 
             protected Collection<FieldAccessorListenerFactory<?>> createListenerFactories() {
                 return Arrays.<FieldAccessorListenerFactory<?>>asList(
                         new IndexingNodePropertyFieldAccessorListenerFactory(
-                        		getGraphDatabaseContext().getIndexService(), 
+                        		getGraphDatabaseContext(),
                         		newPropertyFieldAccessorFactory(),
                         		newConvertingNodePropertyFieldAccessorFactory()) {
 		                            @Override

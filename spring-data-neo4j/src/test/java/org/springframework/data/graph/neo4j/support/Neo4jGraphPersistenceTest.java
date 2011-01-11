@@ -45,9 +45,6 @@ public class Neo4jGraphPersistenceTest {
 	@Autowired
 	private FinderFactory finderFactory;
 
-    @Autowired
-    private IndexService indexService;
-
     @Test
 	public void testStuffWasAutowired() {
         Assert.assertNotNull(graphDatabaseContext);
@@ -427,6 +424,18 @@ public class Neo4jGraphPersistenceTest {
 		Group group = new Group();
 		group.setReadOnlyPersons(new HashSet<Person>());
 	}
+
+    @Test
+    @Transactional
+    @Ignore("Missing method to remove a node/property from index")
+    public void testRemovePropertyFromIndex() {
+        Group group = new Group();
+        group.setName("test");
+        final Finder<Group> finder = finderFactory.getFinderForClass(Group.class);
+        graphDatabaseContext.removeIndex(group.getUnderlyingState(), "name");
+        final Group found = finder.findByPropertyValue("name", "test");
+        assertNull("Group.name removed from index",found);
+    }
 	
 	@Test
 	@Transactional

@@ -88,13 +88,8 @@
 		 <constructor-arg index="0" value="target/data/recommendation" />
 	</bean>
 
-    <bean id="indexService" class="org.neo4j.index.lucene.LuceneIndexService" destroy-method="shutdown">
-        <constructor-arg index="0" ref="graphDatabaseService" />
-    </bean>
-
 	<bean id="graphDatabaseContext" class="org.springframework.data.graph.neo4j.support.GraphDatabaseContext">
 		<property name="graphDatabaseService" ref="graphDatabaseService"/>
-		<property name="indexService" ref="indexService"/>
 		<property name="relationshipEntityInstantiator">
 			<bean class="org.springframework.data.graph.neo4j.support.relationship.ConstructorBypassingGraphRelationshipInstantiator" />
 		</property>

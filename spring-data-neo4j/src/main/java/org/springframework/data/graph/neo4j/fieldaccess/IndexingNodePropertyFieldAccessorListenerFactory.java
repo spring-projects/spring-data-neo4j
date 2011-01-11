@@ -18,23 +18,23 @@ package org.springframework.data.graph.neo4j.fieldaccess;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.neo4j.index.IndexService;
 import org.springframework.data.graph.annotation.GraphProperty;
 import org.springframework.data.graph.annotation.NodeEntity;
 import org.springframework.data.graph.core.NodeBacked;
 import org.springframework.data.annotation.Indexed;
+import org.springframework.data.graph.neo4j.support.GraphDatabaseContext;
 
 import java.lang.reflect.Field;
 
 
 class IndexingNodePropertyFieldAccessorListenerFactory implements FieldAccessorListenerFactory<NodeBacked> {
 
-	private final IndexService indexService;
+	private final GraphDatabaseContext graphDatabaseContext;
     private final PropertyFieldAccessorFactory propertyFieldAccessorFactory;
     private final ConvertingNodePropertyFieldAccessorFactory convertingNodePropertyFieldAccessorFactory;
 
-    IndexingNodePropertyFieldAccessorListenerFactory(final IndexService indexService, final PropertyFieldAccessorFactory propertyFieldAccessorFactory, final ConvertingNodePropertyFieldAccessorFactory convertingNodePropertyFieldAccessorFactory) {
-    	this.indexService = indexService;
+    IndexingNodePropertyFieldAccessorListenerFactory(final GraphDatabaseContext graphDatabaseContext, final PropertyFieldAccessorFactory propertyFieldAccessorFactory, final ConvertingNodePropertyFieldAccessorFactory convertingNodePropertyFieldAccessorFactory) {
+    	this.graphDatabaseContext = graphDatabaseContext;
     	this.propertyFieldAccessorFactory = propertyFieldAccessorFactory;
         this.convertingNodePropertyFieldAccessorFactory = convertingNodePropertyFieldAccessorFactory;
     }
@@ -59,7 +59,7 @@ class IndexingNodePropertyFieldAccessorListenerFactory implements FieldAccessorL
 
     @Override
     public FieldAccessListener<NodeBacked,?> forField(final Field field) {
-        return new IndexingNodePropertyFieldAccessorListener(field,indexService);
+        return new IndexingNodePropertyFieldAccessorListener(field, graphDatabaseContext);
     }
 
 	/**
@@ -71,17 +71,17 @@ class IndexingNodePropertyFieldAccessorListenerFactory implements FieldAccessorL
 	    private final static Log log = LogFactory.getLog( IndexingNodePropertyFieldAccessorListener.class );
 
 	    protected final String indexKey;
-	    private final IndexService indexService;
+	    private final GraphDatabaseContext graphDatabaseContext;
 
-	    public IndexingNodePropertyFieldAccessorListener(final Field field, final IndexService indexService) {
+	    public IndexingNodePropertyFieldAccessorListener(final Field field, final GraphDatabaseContext graphDatabaseContext) {
 	        this.indexKey = DelegatingFieldAccessorFactory.getNeo4jPropertyName(field);
-	        this.indexService = indexService;
+	        this.graphDatabaseContext = graphDatabaseContext;
 	    }
 
 	    @Override
 	    public void valueChanged(final NodeBacked nodeBacked, final Object oldVal, final Object newVal) {
-            if (newVal==null) indexService.removeIndex(nodeBacked.getUnderlyingState(), indexKey );
-	        else indexService.index(nodeBacked.getUnderlyingState(), indexKey, newVal.toString());
+            if (newVal==null) graphDatabaseContext.removeIndex(nodeBacked.getUnderlyingState(), indexKey );
+	        else graphDatabaseContext.index(nodeBacked.getUnderlyingState(), indexKey, newVal.toString());
 	    }
 
 	}

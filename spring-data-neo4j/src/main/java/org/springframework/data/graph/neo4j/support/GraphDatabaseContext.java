@@ -19,7 +19,9 @@ package org.springframework.data.graph.neo4j.support;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.neo4j.graphdb.*;
-import org.neo4j.index.IndexHits;
+import org.neo4j.graphdb.index.Index;
+import org.neo4j.graphdb.index.IndexHits;
+import org.neo4j.graphdb.index.IndexManager;
 import org.neo4j.index.IndexService;
 import org.neo4j.kernel.EmbeddedGraphDatabase;
 import org.neo4j.util.GraphDatabaseUtil;
@@ -27,7 +29,6 @@ import org.springframework.core.convert.ConversionService;
 import org.springframework.data.graph.core.NodeBacked;
 import org.springframework.data.graph.core.NodeTypeStrategy;
 import org.springframework.data.graph.core.RelationshipBacked;
-import org.springframework.data.graph.neo4j.finder.FinderFactory;
 import org.springframework.persistence.support.EntityInstantiator;
 
 import javax.transaction.Status;
@@ -52,7 +53,7 @@ public class GraphDatabaseContext {
 
     public EntityInstantiator<RelationshipBacked, Relationship> relationshipEntityInstantiator;
 
-    private IndexService indexService;
+    private IndexManager indexManager;
 
     private ConversionService conversionService;
 
@@ -86,14 +87,6 @@ public class GraphDatabaseContext {
 		this.relationshipEntityInstantiator = relationshipEntityInstantiator;
 	}
 
-	public IndexService getIndexService() {
-		return indexService;
-	}
-
-	public void setIndexService(IndexService indexService) {
-		this.indexService = indexService;
-	}
-
 	public ConversionService getConversionService() {
 		return conversionService;
 	}
@@ -121,12 +114,20 @@ public class GraphDatabaseContext {
             return (T) relationshipEntityInstantiator.createEntityFromState((Relationship) state, (Class<? extends RelationshipBacked>) type);
     }
 
+    private IndexManager getIndexManager() {
+        return graphDatabaseService.index();
+    }
     public IndexHits<Node> getIndexedNodes(final String property, final Object value) {
-        return indexService.getNodes(property, value.toString());
+        return getNodeIndex().get(property, value.toString());
+    }
+
+    private Index<Node> getNodeIndex() {
+        return getIndexManager().forNodes("node");
     }
 
     public Node getSingleIndexedNode(final String property, final Object value) {
-        return indexService.getSingleNode(property, value.toString());
+        IndexHits<Node> indexHits = getIndexedNodes(property, value);
+        return indexHits.hasNext() ? indexHits.next() : null;
     }
 
     public Node getNodeById(final long id) {
@@ -172,15 +173,15 @@ public class GraphDatabaseContext {
     }
 
     public void removeIndex(final Node node, final String propName) {
-        indexService.removeIndex(node,propName);
+        getNodeIndex().remove(node, propName, null);
     }
 
     public void removeIndex(final String propName) {
-        indexService.removeIndex(propName);
+        removeIndex(null,propName);
     }
 
     public void index(final Node node, final String propName, final Object newVal) {
-        indexService.index(node,propName,newVal.toString());
+        getNodeIndex().add(node, propName, newVal.toString());
     }
 
     public boolean canConvert(final Class<?> from, final Class<?> to) {
