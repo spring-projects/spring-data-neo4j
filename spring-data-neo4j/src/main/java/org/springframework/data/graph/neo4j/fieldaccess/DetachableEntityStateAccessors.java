@@ -55,6 +55,16 @@ public class DetachableEntityStateAccessors<ENTITY extends GraphBacked<STATE>, S
     }
 
     @Override
+    public boolean hasUnderlyingState() {
+        return delegate.hasUnderlyingState();
+    }
+
+    @Override
+    public STATE getUnderlyingState() {
+        return delegate.getUnderlyingState();
+    }
+
+    @Override
     public Object getValue(final Field field) {
         if (!transactionIsRunning()) {
             if (getEntity().getUnderlyingState()==null || isDirty(field)) {

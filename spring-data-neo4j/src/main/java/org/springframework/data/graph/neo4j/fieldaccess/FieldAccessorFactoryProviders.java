@@ -39,7 +39,7 @@ public class FieldAccessorFactoryProviders<T> {
             this.fieldAccessorListenerFactories = fieldAccessorListenerFactories;
         }
 
-        public FieldAccessor<E, ?> accessor() {
+        public FieldAccessor<E> accessor() {
             if (fieldAccessorFactory == null) return null;
             return fieldAccessorFactory.forField(field);
         }
@@ -68,10 +68,10 @@ public class FieldAccessorFactoryProviders<T> {
         idFieldAccessorFactory = new IdFieldAccessorFactory();
     }
 
-    public Map<Field, FieldAccessor<T, ?>> getFieldAccessors() {
-        final Map<Field, FieldAccessor<T, ?>> result = new HashMap<Field, FieldAccessor<T, ?>>();
+    public Map<Field, FieldAccessor<T>> getFieldAccessors() {
+        final Map<Field, FieldAccessor<T>> result = new HashMap<Field, FieldAccessor<T>>();
         for (final FieldAccessorFactoryProvider<T> fieldAccessorFactoryProvider : fieldAccessorFactoryProviders) {
-            final FieldAccessor<T, ?> accessor = fieldAccessorFactoryProvider.accessor();
+            final FieldAccessor<T> accessor = fieldAccessorFactoryProvider.accessor();
             result.put(fieldAccessorFactoryProvider.getField(), accessor);
         }
         return result;

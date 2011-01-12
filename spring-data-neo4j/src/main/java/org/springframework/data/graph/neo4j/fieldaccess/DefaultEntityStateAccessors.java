@@ -29,10 +29,9 @@ import java.util.Map;
  * @since 12.09.2010
  */
 public abstract class DefaultEntityStateAccessors<ENTITY extends GraphBacked<STATE>, STATE> implements EntityStateAccessors<ENTITY,STATE> {
-    private final STATE underlyingState;
     protected final ENTITY entity;
     protected final Class<? extends ENTITY> type;
-    private final Map<Field, FieldAccessor<ENTITY, ?>> fieldAccessors;
+    private final Map<Field, FieldAccessor<ENTITY>> fieldAccessors;
     private final Map<Field,List<FieldAccessListener<ENTITY,?>>> fieldAccessorListeners;
     private STATE state;
     protected final static Log log= LogFactory.getLog(DefaultEntityStateAccessors.class);
@@ -40,7 +39,7 @@ public abstract class DefaultEntityStateAccessors<ENTITY extends GraphBacked<STA
 
 
     public DefaultEntityStateAccessors(final STATE underlyingState, final ENTITY entity, final Class<? extends ENTITY> type, final DelegatingFieldAccessorFactory delegatingFieldAccessorFactory) {
-        this.underlyingState = underlyingState;
+        this.state = underlyingState;
         this.entity = entity;
         this.type = type;
         fieldAccessorFactoryProviders = delegatingFieldAccessorFactory.accessorFactoriesFor(type);
@@ -62,27 +61,37 @@ public abstract class DefaultEntityStateAccessors<ENTITY extends GraphBacked<STA
     }
 
     @Override
+    public boolean hasUnderlyingState() {
+        return this.state!=null;
+    }
+
+    @Override
+    public STATE getUnderlyingState() {
+        return state;
+    }
+
+    @Override
     public boolean isWritable(Field field) {
-        final FieldAccessor<ENTITY, ?> accessor = accessorFor(field);
+        final FieldAccessor<ENTITY> accessor = accessorFor(field);
         if (accessor == null) return true;
         return accessor.isWriteable(entity);
     }
 
     @Override
     public Object getValue(final Field field) {
-        final FieldAccessor<ENTITY, ?> accessor = accessorFor(field);
+        final FieldAccessor<ENTITY> accessor = accessorFor(field);
         if (accessor == null) return null;
         else return accessor.getValue(entity);
     }
     @Override
     public Object setValue(final Field field, final Object newVal) {
-        final FieldAccessor<ENTITY, ?> accessor = accessorFor(field);
+        final FieldAccessor<ENTITY> accessor = accessorFor(field);
         final Object result=accessor!=null ? accessor.setValue(entity, newVal) : newVal;
         notifyListeners(field, result);
         return result;
     }
 
-    private FieldAccessor<ENTITY, ?> accessorFor(final Field field) {
+    private FieldAccessor<ENTITY> accessorFor(final Field field) {
         return fieldAccessors.get(field);
     }
 

@@ -45,7 +45,7 @@ public class OneToNRelationshipEntityFieldAccessorFactory implements FieldAccess
 	}
 
 	@Override
-	public FieldAccessor<NodeBacked, ?> forField(final Field field) {
+	public FieldAccessor<NodeBacked> forField(final Field field) {
 		final RelatedToVia relEntityAnnotation = getRelationshipAnnotation(field);
 		return new OneToNRelationshipEntityFieldAccessor(typeFrom(relEntityAnnotation), dirFrom(relEntityAnnotation), targetFrom(relEntityAnnotation), graphDatabaseContext);
 	}

@@ -29,7 +29,7 @@ public class TransientFieldAccessorFactory implements FieldAccessorFactory<Graph
     }
 
     @Override
-    public FieldAccessor<GraphBacked<PropertyContainer>, ?> forField(final Field field) {
+    public FieldAccessor<GraphBacked<PropertyContainer>> forField(final Field field) {
         return new TransientFieldAccessor(field);
     }
 
@@ -37,7 +37,7 @@ public class TransientFieldAccessorFactory implements FieldAccessorFactory<Graph
      * @author Michael Hunger
      * @since 12.09.2010
      */
-    public static class TransientFieldAccessor implements FieldAccessor<GraphBacked<PropertyContainer>, Object> {
+    public static class TransientFieldAccessor implements FieldAccessor<GraphBacked<PropertyContainer>> {
         protected final Field field;
 
         public TransientFieldAccessor(final Field field) {

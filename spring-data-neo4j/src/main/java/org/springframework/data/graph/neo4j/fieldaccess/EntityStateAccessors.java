@@ -55,4 +55,6 @@ public interface EntityStateAccessors<ENTITY extends GraphBacked<STATE>,STATE> {
      */
     void createAndAssignState();
 
+    boolean hasUnderlyingState();
+    STATE getUnderlyingState();
 }

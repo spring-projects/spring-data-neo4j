@@ -27,7 +27,7 @@ import java.util.Set;
 public class ManagedFieldAccessorSet<ENTITY,T> extends AbstractSet<T> {
 	private final ENTITY entity;
 	final Set<T> delegate;
-	private final FieldAccessor<ENTITY,T> fieldAccessor;
+	private final FieldAccessor<ENTITY> fieldAccessor;
 
 	public ManagedFieldAccessorSet(final ENTITY entity, final Object newVal, final FieldAccessor fieldAccessor) {
 		this.entity = entity;

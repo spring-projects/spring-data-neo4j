@@ -40,11 +40,11 @@ public class IdFieldAccessorFactory implements FieldAccessorFactory<NodeBacked> 
 	}
 
 	@Override
-	public FieldAccessor<NodeBacked,?> forField(final Field field) {
+	public FieldAccessor<NodeBacked> forField(final Field field) {
 	    return new IdFieldAccessor(field);
 	}
 
-	public static class IdFieldAccessor implements FieldAccessor<NodeBacked, Object> {
+	public static class IdFieldAccessor implements FieldAccessor<NodeBacked> {
 	    protected final Field field;
 
 	    public IdFieldAccessor(final Field field) {

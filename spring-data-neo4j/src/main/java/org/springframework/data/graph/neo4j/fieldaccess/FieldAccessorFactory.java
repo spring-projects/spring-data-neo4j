@@ -36,5 +36,5 @@ public interface FieldAccessorFactory<E> {
      * @param f the field to create an accessor for
      * @return a field accessor for the field or null if none can be created
      */
-    FieldAccessor<E,?> forField(Field f);
+    FieldAccessor<E> forField(Field f);
 }

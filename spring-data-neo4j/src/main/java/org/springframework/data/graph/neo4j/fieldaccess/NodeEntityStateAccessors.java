@@ -37,22 +37,20 @@ public class NodeEntityStateAccessors<ENTITY extends NodeBacked> extends Default
 
     @Override
     public void createAndAssignState() {
-        if (entity.getUnderlyingState()!=null) return;
+        if (hasUnderlyingState()) return;
         try {
             final Object id = getIdFromEntity();
             if (id instanceof Number) {
                 final Node node = graphDatabaseContext.getNodeById(((Number) id).longValue());
                 setUnderlyingState(node);
-                entity.setUnderlyingState(node);
                 if (log.isInfoEnabled())
-                    log.info("Entity reattached " + entity.getClass() + "; used Node [" + entity.getUnderlyingState() + "];");
+                    log.info("Entity reattached " + entity.getClass() + "; used Node [" + getUnderlyingState() + "];");
                 return;
             }
 
             final Node node = graphDatabaseContext.createNode();
             setUnderlyingState(node);
-            entity.setUnderlyingState(node);
-            if (log.isInfoEnabled()) log.info("User-defined constructor called on class " + entity.getClass() + "; created Node [" + entity.getUnderlyingState() + "]; Updating metamodel");
+            if (log.isInfoEnabled()) log.info("User-defined constructor called on class " + entity.getClass() + "; created Node [" + getUnderlyingState() + "]; Updating metamodel");
             graphDatabaseContext.postEntityCreation(entity);
         } catch (NotInTransactionException e) {
             throw new InvalidDataAccessResourceUsageException("Not in a Neo4j transaction.", e);

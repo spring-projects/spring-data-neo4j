@@ -30,7 +30,7 @@ import java.util.Set;
  * @author Michael Hunger
  * @since 11.09.2010
  */
-public abstract class AbstractNodeRelationshipFieldAccessor<ENTITY,STATE,TARGET,TSTATE> implements FieldAccessor<ENTITY,TARGET> {
+public abstract class AbstractNodeRelationshipFieldAccessor<ENTITY,STATE,TARGET,TSTATE> implements FieldAccessor<ENTITY> {
     protected final RelationshipType type;
     protected final Direction direction;
     protected final Class<? extends TARGET> relatedType;

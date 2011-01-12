@@ -74,7 +74,6 @@ public class RelationshipEntityStateAccessors<ENTITY extends RelationshipBacked>
             if (id instanceof Number) {
                 final Relationship relationship = graphDatabaseContext.getRelationshipById(((Number) id).longValue());
                 setUnderlyingState(relationship);
-                entity.setUnderlyingState(relationship);
                 if (log.isInfoEnabled())
                     log.info("Entity reattached " + entity.getClass() + "; used Relationship [" + entity.getUnderlyingState() + "];");
                 return;
@@ -82,8 +81,7 @@ public class RelationshipEntityStateAccessors<ENTITY extends RelationshipBacked>
 
             final Relationship relationship = null; // TODO graphDatabaseContext.create();
             setUnderlyingState(relationship);
-            entity.setUnderlyingState(relationship);
-            if (log.isInfoEnabled()) log.info("User-defined constructor called on class " + entity.getClass() + "; created Relationship [" + entity.getUnderlyingState() + "]; Updating metamodel");
+            if (log.isInfoEnabled()) log.info("User-defined constructor called on class " + entity.getClass() + "; created Relationship [" + getUnderlyingState() + "]; Updating metamodel");
         } catch (NotInTransactionException e) {
             throw new InvalidDataAccessResourceUsageException("Not in a Neo4j transaction.", e);
         }

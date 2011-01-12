@@ -22,9 +22,8 @@ package org.springframework.data.graph.neo4j.fieldaccess;
  * {@link org.springframework.data.graph.neo4j.support.node.Neo4jNodeBacking} {@link org.springframework.data.graph.neo4j.support.relationship.Neo4jRelationshipBacking}
  * aspects.
  * @param <ENTITY>
- * @param <TARGET>
  */
-public interface FieldAccessor<ENTITY, TARGET> {
+public interface FieldAccessor<ENTITY> {
 
     /**
      * handles field write modification.

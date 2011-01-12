@@ -56,7 +56,7 @@ public class RelationshipNodeFieldAccessorFactory implements FieldAccessorFactor
     }
 
     @Override
-    public FieldAccessor<RelationshipBacked, ?> forField(final Field f) {
+    public FieldAccessor<RelationshipBacked> forField(final Field f) {
         if (isStartNodeField(f)) {
             return new RelationshipNodeFieldAccessor(f, graphDatabaseContext) {
                 @Override
@@ -77,7 +77,7 @@ public class RelationshipNodeFieldAccessorFactory implements FieldAccessorFactor
         return null;
     }
 
-    public static abstract class RelationshipNodeFieldAccessor implements FieldAccessor<RelationshipBacked, Object> {
+    public static abstract class RelationshipNodeFieldAccessor implements FieldAccessor<RelationshipBacked> {
 
         private final Field field;
         private final GraphDatabaseContext graphDatabaseContext;

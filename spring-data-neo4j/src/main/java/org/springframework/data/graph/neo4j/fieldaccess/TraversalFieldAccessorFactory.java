@@ -21,7 +21,6 @@ import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.graph.annotation.GraphTraversal;
 import org.springframework.data.graph.core.FieldTraversalDescriptionBuilder;
 import org.springframework.data.graph.core.NodeBacked;
-import org.springframework.data.graph.neo4j.finder.Finder;
 import org.springframework.data.graph.neo4j.finder.FinderFactory;
 import org.springframework.data.graph.neo4j.finder.NodeFinder;
 
@@ -51,7 +50,7 @@ public class TraversalFieldAccessorFactory implements FieldAccessorFactory<NodeB
 
 
     @Override
-    public FieldAccessor<NodeBacked, ?> forField(final Field field) {
+    public FieldAccessor<NodeBacked> forField(final Field field) {
         return new TraversalFieldAccessor(field, finderFactory);
     }
 
@@ -59,7 +58,7 @@ public class TraversalFieldAccessorFactory implements FieldAccessorFactory<NodeB
 	 * @author Michael Hunger
 	 * @since 12.09.2010
 	 */
-	public static class TraversalFieldAccessor implements FieldAccessor<NodeBacked, Object> {
+	public static class TraversalFieldAccessor implements FieldAccessor<NodeBacked> {
 	    protected final Field field;
 	    private final FinderFactory finderFactory;
 	    private final FieldTraversalDescriptionBuilder fieldTraversalDescriptionBuilder;

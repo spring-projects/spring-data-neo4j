@@ -37,7 +37,7 @@ public class ReadOnlyOneToNRelationshipFieldAccessorFactory extends NodeRelation
 	}
 
 	@Override
-	public FieldAccessor<NodeBacked, ?> forField(final Field field) {
+	public FieldAccessor<NodeBacked> forField(final Field field) {
 	    final RelatedTo relAnnotation = getRelationshipAnnotation(field);
 	    return new ReadOnlyOneToNRelationshipFieldAccessor(typeFrom(relAnnotation), dirFrom(relAnnotation), targetFrom(relAnnotation), graphDatabaseContext);
 	}

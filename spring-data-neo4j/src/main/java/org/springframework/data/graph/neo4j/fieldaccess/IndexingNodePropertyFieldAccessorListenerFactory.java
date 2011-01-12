@@ -22,11 +22,10 @@ import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.PropertyContainer;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.index.Index;
+import org.springframework.data.annotation.Indexed;
 import org.springframework.data.graph.annotation.NodeEntity;
-import org.springframework.data.graph.annotation.RelationshipEntity;
 import org.springframework.data.graph.core.GraphBacked;
 import org.springframework.data.graph.core.NodeBacked;
-import org.springframework.data.annotation.Indexed;
 import org.springframework.data.graph.neo4j.support.GraphDatabaseContext;
 
 import java.lang.reflect.AnnotatedElement;
@@ -104,9 +103,6 @@ class IndexingNodePropertyFieldAccessorListenerFactory<T extends GraphBacked<?>>
 
 	    @Override
         public void valueChanged(GraphBacked<T> graphBacked, Object oldVal, Object newVal) {
-            if (indexKey.contains("years"))
-            System.out.println("index listener call on "+graphBacked+" "+graphBacked.getUnderlyingState()+"field = " + indexKey+" newVal "+newVal);
-
             if (newVal==null) index.remove(graphBacked.getUnderlyingState(), indexKey, null);
 	        else index.add(graphBacked.getUnderlyingState(), indexKey, newVal);
 	    }

@@ -46,7 +46,7 @@ public class ConvertingNodePropertyFieldAccessorFactory implements FieldAccessor
     }
 
     @Override
-    public FieldAccessor<GraphBacked<PropertyContainer>, ?> forField(final Field field) {
+    public FieldAccessor<GraphBacked<PropertyContainer>> forField(final Field field) {
         return new ConvertingNodePropertyFieldAccessor(field, conversionService);
     }
 

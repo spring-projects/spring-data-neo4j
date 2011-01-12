@@ -74,6 +74,7 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<NodeEnt
         if (entityStateAccessorsFactory == null) {
             log.error("entityStateAccessorsFactory not set, not creating accessors for " + entity.getClass());
         } else {
+            if (entity.stateAccessors != null) return;
             entity.stateAccessors = entityStateAccessorsFactory.getEntityStateAccessors(entity);
             Node node = StateProvider.retrieveState();
             if (node != null) {
@@ -85,15 +86,9 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<NodeEnt
                     log.warn("New Nodebacked created outside of transaction " + entity.getClass());
                 }
             }
-
         }
     }
 
-    /**
-     * Backing state
-     * @deprecated
-     */
-	private transient Node NodeBacked.underlyingNode;
     /**
      * State accessors that encapsulate the underlying state and the behaviour related to it (field access, creation)
      */
@@ -105,16 +100,14 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<NodeEnt
      * @param n the node to be the backing state of the entity
      */
 	public void NodeBacked.setUnderlyingState(Node n) {
-		this.underlyingNode = n;
         if (this.stateAccessors == null) {
             this.stateAccessors = Neo4jNodeBacking.aspectOf().entityStateAccessorsFactory.getEntityStateAccessors(this);
-        } else {
-            this.stateAccessors.setUnderlyingState(n);
         }
+        this.stateAccessors.setUnderlyingState(n);
 	}
 
 	public Node NodeBacked.getUnderlyingState() {
-		return underlyingNode;
+		return this.stateAccessors.getUnderlyingState();
 	}
 	
     public EntityStateAccessors NodeBacked.getStateAccessors() {
@@ -122,7 +115,7 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<NodeEnt
     }
 
     public boolean NodeBacked.hasUnderlyingNode() {
-        return underlyingNode!=null;
+        return this.stateAccessors.hasUnderlyingState();
     }
 
     /**
@@ -132,7 +125,7 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<NodeEnt
      * @return the newly created relationship to the target node
      */
 	public Relationship NodeBacked.relateTo(NodeBacked target, RelationshipType type) {
-		return this.underlyingNode.createRelationshipTo(target.getUnderlyingState(), type);
+		return this.getUnderlyingState().createRelationshipTo(target.getUnderlyingState(), type);
 	}
 
     /**
@@ -140,7 +133,7 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<NodeEnt
      */
 	public Long NodeBacked.getNodeId() {
         if (!hasUnderlyingNode()) return null;
-		return underlyingNode.getId();
+		return getUnderlyingState().getId();
 	}
 
     /**

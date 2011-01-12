@@ -671,13 +671,20 @@ public class Neo4jGraphPersistenceTest {
 	@Test
 	@Transactional
 	public void testCountSubclasses() {
-		log.debug("testCountSubclasses");
+		log.warn("testCountSubclasses");
 		new Volvo();
-		log.debug("Created volvo");
+		log.warn("Created volvo");
 		new Toyota();
-		log.debug("Created volvo");
-        assertEquals("Wrong count.", 1, finderFactory.createNodeEntityFinder(Volvo.class).count());
-        assertEquals("Wrong count.", 1, finderFactory.createNodeEntityFinder(Toyota.class).count());
-        assertEquals("Wrong count.", 2, finderFactory.createNodeEntityFinder(Car.class).count());
+		log.warn("Created volvo");
+        assertEquals("Wrong count for Volvo.", 1, finderFactory.createNodeEntityFinder(Volvo.class).count());
+        assertEquals("Wrong count for Toyota.", 1, finderFactory.createNodeEntityFinder(Toyota.class).count());
+        assertEquals("Wrong count for Car.", 2, finderFactory.createNodeEntityFinder(Car.class).count());
+	}
+	@Test
+	@Transactional
+	public void testCountClasses() {
+		new Person("Michael",36);
+		new Person("David",25);
+        assertEquals("Wrong Person instance count.", 2, finderFactory.createNodeEntityFinder(Person.class).count());
 	}
 }

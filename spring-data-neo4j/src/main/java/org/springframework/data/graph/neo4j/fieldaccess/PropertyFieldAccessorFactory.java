@@ -34,7 +34,7 @@ public class PropertyFieldAccessorFactory implements FieldAccessorFactory<GraphB
     }
 
     @Override
-    public FieldAccessor<GraphBacked<PropertyContainer>, ?> forField(final Field field) {
+    public FieldAccessor<GraphBacked<PropertyContainer>> forField(final Field field) {
         return new PropertyFieldAccessor(field);
     }
 
@@ -48,7 +48,7 @@ public class PropertyFieldAccessorFactory implements FieldAccessorFactory<GraphB
                 || (fieldType.isArray() && !fieldType.getComponentType().isArray() && isNeo4jPropertyType(fieldType.getComponentType()));
     }
 
-    public static class PropertyFieldAccessor implements FieldAccessor<GraphBacked<PropertyContainer>, Object> {
+    public static class PropertyFieldAccessor implements FieldAccessor<GraphBacked<PropertyContainer>> {
         protected final Field field;
 
         public PropertyFieldAccessor(final Field field) {

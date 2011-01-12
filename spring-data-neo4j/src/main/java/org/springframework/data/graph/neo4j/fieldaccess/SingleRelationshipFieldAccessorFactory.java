@@ -41,7 +41,7 @@ public class SingleRelationshipFieldAccessorFactory extends NodeRelationshipFiel
 	}
 
 	@Override
-	public FieldAccessor<NodeBacked, ?> forField(final Field field) {
+	public FieldAccessor<NodeBacked> forField(final Field field) {
 	    final RelatedTo relAnnotation = getRelationshipAnnotation(field);
 	    if (relAnnotation == null)
 	        return new SingleRelationshipFieldAccessor(typeFrom(field), Direction.OUTGOING, targetFrom(field), graphDatabaseContext);
