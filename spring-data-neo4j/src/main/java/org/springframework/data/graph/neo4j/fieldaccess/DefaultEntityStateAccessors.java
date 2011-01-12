@@ -88,7 +88,6 @@ public abstract class DefaultEntityStateAccessors<ENTITY extends GraphBacked<STA
 
     private void notifyListeners(final Field field, final Object result) {
         if (!fieldAccessorListeners.containsKey(field) || fieldAccessorListeners.get(field) == null) return;
-
         for (final FieldAccessListener<ENTITY, ?> listener : fieldAccessorListeners.get(field)) {
             listener.valueChanged(entity, null, result); // todo oldValue
         }

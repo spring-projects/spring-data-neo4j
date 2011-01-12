@@ -1,10 +1,10 @@
 package org.springframework.data.graph.neo4j;
 
 
+import org.springframework.data.annotation.Indexed;
 import org.springframework.data.graph.annotation.EndNode;
 import org.springframework.data.graph.annotation.RelationshipEntity;
 import org.springframework.data.graph.annotation.StartNode;
-import org.springframework.data.graph.neo4j.Person;
 
 import java.util.Date;
 
@@ -30,9 +30,10 @@ public class Friendship {
 	
 	@EndNode
 	private Person p2;
-	
+
+    @Indexed
 	private int years;
-    
+
 	private Date firstMeetingDate;
 
 	private transient String latestLocation;

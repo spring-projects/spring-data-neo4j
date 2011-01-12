@@ -23,6 +23,7 @@ import org.neo4j.graphdb.PropertyContainer;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.index.Index;
 import org.springframework.data.graph.annotation.NodeEntity;
+import org.springframework.data.graph.annotation.RelationshipEntity;
 import org.springframework.data.graph.core.GraphBacked;
 import org.springframework.data.graph.core.NodeBacked;
 import org.springframework.data.annotation.Indexed;
@@ -49,10 +50,10 @@ class IndexingNodePropertyFieldAccessorListenerFactory<T extends GraphBacked<?>>
     }
 
     private boolean isIndexed(final Field f) {
+        final Indexed indexedAnnotation = getIndexedAnnotation(f);
+        if (indexedAnnotation != null) return true;
         final NodeEntity entityAnnotation = f.getDeclaringClass().getAnnotation(NodeEntity.class);
-        if (entityAnnotation!=null && entityAnnotation.fullIndex()) return true;
-	    final Indexed indexedAnnotation = f.getAnnotation(Indexed.class);
-        return indexedAnnotation != null;
+        return (entityAnnotation!=null && entityAnnotation.fullIndex());
     }
 
     private boolean isPropertyField(final Field f) {
@@ -69,11 +70,15 @@ class IndexingNodePropertyFieldAccessorListenerFactory<T extends GraphBacked<?>>
     }
 
     private String getIndexName(Field field) {
-        Indexed indexed = field.getAnnotation(Indexed.class);
+        Indexed indexed = getIndexedAnnotation(field);
         if (hasIndexName(indexed)) return indexed.name();
 
         final Indexed indexedEntity = field.getDeclaringClass().getAnnotation(Indexed.class);
         return hasIndexName( indexedEntity ) ?  indexedEntity.name() : null;
+    }
+
+    private Indexed getIndexedAnnotation(Field field) {
+        return field.getAnnotation(Indexed.class);
     }
 
     private boolean hasIndexName(Indexed indexed) {
@@ -97,9 +102,12 @@ class IndexingNodePropertyFieldAccessorListenerFactory<T extends GraphBacked<?>>
         }
 
 	    @Override
-        public void valueChanged(GraphBacked<T> nodeBacked, Object oldVal, Object newVal) {
-            if (newVal==null) index.remove(nodeBacked.getUnderlyingState(), indexKey, null);
-	        else index.add(nodeBacked.getUnderlyingState(), indexKey, newVal.toString());
+        public void valueChanged(GraphBacked<T> graphBacked, Object oldVal, Object newVal) {
+            if (indexKey.contains("years"))
+            System.out.println("index listener call on "+graphBacked+" "+graphBacked.getUnderlyingState()+"field = " + indexKey+" newVal "+newVal);
+
+            if (newVal==null) index.remove(graphBacked.getUnderlyingState(), indexKey, null);
+	        else index.add(graphBacked.getUnderlyingState(), indexKey, newVal);
 	    }
     }
 }

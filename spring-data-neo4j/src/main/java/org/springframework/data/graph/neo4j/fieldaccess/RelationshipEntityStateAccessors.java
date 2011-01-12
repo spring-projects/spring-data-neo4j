@@ -28,6 +28,8 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 
+import static java.util.Arrays.asList;
+
 /**
  * @author Michael Hunger
  * @since 21.09.2010
@@ -42,7 +44,12 @@ public class RelationshipEntityStateAccessors<ENTITY extends RelationshipBacked>
         super(underlyingState, entity, type, new DelegatingFieldAccessorFactory(graphDatabaseContext, finderFactory) {
             @Override
             protected Collection<FieldAccessorListenerFactory<?>> createListenerFactories() {
-                return Collections.emptyList();
+                return Arrays.<FieldAccessorListenerFactory<?>>asList(
+                        new IndexingNodePropertyFieldAccessorListenerFactory(
+                		graphDatabaseContext,
+                		new PropertyFieldAccessorFactory(),
+                		new ConvertingNodePropertyFieldAccessorFactory(graphDatabaseContext.getConversionService())
+                ));
             }
 
             @Override

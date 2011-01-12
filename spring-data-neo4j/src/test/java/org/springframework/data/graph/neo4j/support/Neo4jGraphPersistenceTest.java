@@ -364,6 +364,16 @@ public class Neo4jGraphPersistenceTest {
 
 	@Test
 	@Transactional
+	public void testCanIndexIntFieldsOnRelationshipEntities() {
+		Person p = new Person("Michael", 35);
+		Person p2 = new Person("David", 25);
+		Friendship f = p.knows(p2);
+        f.setYears(1);
+        assertEquals(f.getUnderlyingState(),graphDatabaseContext.getRelationshipIndex(null).get("Friendship.years",1).next());
+	}
+
+	@Test
+	@Transactional
 	public void testGetRelationshipFromLookedUpNode() {
 		Person me = new Person("Michael", 35);
 		Person spouse = new Person("Tina", 36);
