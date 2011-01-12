@@ -17,6 +17,7 @@ import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.graph.neo4j.*;
 import org.springframework.data.graph.neo4j.finder.FinderFactory;
 import org.springframework.data.graph.neo4j.finder.NodeFinder;
+import org.springframework.data.graph.neo4j.finder.RelationshipFinder;
 import org.springframework.data.graph.neo4j.support.node.Neo4jHelper;
 import org.springframework.data.graph.neo4j.Car;
 import org.springframework.data.graph.neo4j.Friendship;
@@ -367,9 +368,10 @@ public class Neo4jGraphPersistenceTest {
 	public void testCanIndexIntFieldsOnRelationshipEntities() {
 		Person p = new Person("Michael", 35);
 		Person p2 = new Person("David", 25);
-		Friendship f = p.knows(p2);
-        f.setYears(1);
-        assertEquals(f.getUnderlyingState(),graphDatabaseContext.getRelationshipIndex(null).get("Friendship.years",1).next());
+		Friendship friendship = p.knows(p2);
+        friendship.setYears(1);
+        RelationshipFinder<Friendship> friendshipFinder = finderFactory.createRelationshipEntityFinder(Friendship.class);
+        assertEquals(friendship, friendshipFinder.findByPropertyValue(null, "Friendship.years", 1));
 	}
 
 	@Test
@@ -379,7 +381,7 @@ public class Neo4jGraphPersistenceTest {
 		Person spouse = new Person("Tina", 36);
 		me.setSpouse(spouse);
         final NodeFinder<Person> personFinder = finderFactory.createNodeEntityFinder(Person.class);
-        final Person foundMe = personFinder.findByPropertyValue( Person.NAME_INDEX, "Person.name", "Michael");
+        final Person foundMe = personFinder.findByPropertyValue(Person.NAME_INDEX, "Person.name", "Michael");
         assertEquals(spouse,foundMe.getSpouse());
 	}
 
@@ -483,7 +485,7 @@ public class Neo4jGraphPersistenceTest {
         final NodeFinder<Group> finder = finderFactory.createNodeEntityFinder(Group.class);
         final Iterable<Group> found = finder.findAllByPropertyValue(null, "name", "test");
         final Collection<Group> result = IteratorUtil.addToCollection(found.iterator(), new HashSet<Group>());
-        assertEquals(new HashSet<Group>(Arrays.asList(group,group2)), result);
+        assertEquals(new HashSet<Group>(Arrays.asList(group, group2)), result);
 	}
     
     @Test
