@@ -29,6 +29,7 @@ import org.springframework.data.graph.core.NodeBacked;
 import org.springframework.data.annotation.Indexed;
 import org.springframework.data.graph.neo4j.support.GraphDatabaseContext;
 
+import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Field;
 
 
@@ -71,18 +72,18 @@ class IndexingNodePropertyFieldAccessorListenerFactory<T extends GraphBacked<?>>
 
     private String getIndexName(Field field) {
         Indexed indexed = getIndexedAnnotation(field);
-        if (hasIndexName(indexed)) return indexed.name();
+        if (hasIndexName(indexed)) return indexed.indexName();
 
-        final Indexed indexedEntity = field.getDeclaringClass().getAnnotation(Indexed.class);
-        return hasIndexName( indexedEntity ) ?  indexedEntity.name() : null;
+        final Indexed indexedEntity = getIndexedAnnotation(field.getDeclaringClass());
+        return hasIndexName( indexedEntity ) ?  indexedEntity.indexName() : null;
     }
 
-    private Indexed getIndexedAnnotation(Field field) {
-        return field.getAnnotation(Indexed.class);
+    private Indexed getIndexedAnnotation(AnnotatedElement element) {
+        return element.getAnnotation(Indexed.class);
     }
 
     private boolean hasIndexName(Indexed indexed) {
-        return indexed!=null && !indexed.name().isEmpty();
+        return indexed!=null && !indexed.indexName().isEmpty();
     }
 
     /**

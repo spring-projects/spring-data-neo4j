@@ -19,7 +19,7 @@ public class Person
     @GraphId
     private Long graphId;
 
-    @Indexed(name = NAME_INDEX)
+    @Indexed(indexName = NAME_INDEX)
     private String name;
 
     @Indexed

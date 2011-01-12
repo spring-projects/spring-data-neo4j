@@ -45,6 +45,12 @@ public class Role {
 	private Movie movie;
 ]]></programlisting>
 		</section>
+        <section>
+            <title>Fields with @GraphProperty</title>
+            <para>It is not necessary to annotate fields as they are persisted by default, all fields that contain primitive values are persisted directly to the graph. All fields
+            convertible to String using the Spring conversion servcies will stored as a string. Transient fields are not persisted.
+             This annotation is mainly used for cross store persistence. Future uses can be specification of property names and such.</para>
+        </section>
 		<section>
 			<title>Fields with @RelatedTo pointing to other NodeEntities</title>
 			<para>
@@ -93,8 +99,13 @@ public class Actor {
 		<section>
 			<title>@Indexed</title>
 			<para>The @Indexed annotation can be declared on fields that are intended to be indexed on modification by the Neo4j IndexManager.
-				The resulting index can be used to later retrieve nodes or sets of nodes that contain a certain property value, e.g. as start 
-				node for a traversal. The index access is available via a Finder instance created by a FinderFactory for a give node entity class.
+				The resulting index can be used to later retrieve nodes or sets of nodes or relationships that contain a certain property value, e.g. as start
+				node for a traversal. The index access is available via a Finder instance created by a FinderFactory for a given node or relationship entity class.
+
+                DATAGRAPH supports only the _new_ index API introduced with Neo4j 1.2. GraphDatabaseContext exposes the Indexes for Nodes and Relationships. Indexes can
+                be named, for instance to keep separate domain concepts in separate indexes. Thats why it is possible to specifiy an index name with
+                the @Indexed annotation. It can also be specified at the entity level, this name is then the default for all fields of the entity.
+                If no index name is specified, they default to the ones configured with neo4j ("node" and "relationship").
 			</para>
 		</section>
 		<section>
