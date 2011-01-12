@@ -17,10 +17,11 @@
 package org.springframework.data.graph.neo4j.finder;
 
 import org.springframework.data.graph.core.NodeBacked;
+import org.springframework.data.graph.core.RelationshipBacked;
 import org.springframework.data.graph.neo4j.support.GraphDatabaseContext;
 
 /**
- * Simple Factory for {@link org.springframework.data.graph.neo4j.finder.Finder} instances.
+ * Simple Factory for {@link NodeFinder} instances.
  */
 public class FinderFactory {
 
@@ -30,7 +31,12 @@ public class FinderFactory {
         this.graphDatabaseContext = graphDatabaseContext;
     }
 
-    public <T extends NodeBacked> Finder<T> getFinderForClass(Class<T> clazz) {
-        return new Finder<T>(clazz, graphDatabaseContext);
+    public <T extends NodeBacked> NodeFinder<T> createNodeEntityFinder(Class<T> clazz) {
+        return new NodeFinder<T>(clazz, graphDatabaseContext);
     }
+
+    public <T extends RelationshipBacked> RelationshipFinder<T> createRelationshipEntityFinder(Class<T> clazz) {
+        return new RelationshipFinder<T>(clazz, graphDatabaseContext);
+    }
+
 }

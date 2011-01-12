@@ -19,6 +19,7 @@ package org.springframework.data.graph.neo4j.jpa;
 import org.springframework.data.graph.core.NodeBacked;
 import org.springframework.data.graph.neo4j.finder.Finder;
 import org.springframework.data.graph.neo4j.finder.FinderFactory;
+import org.springframework.data.graph.neo4j.finder.NodeFinder;
 import org.springframework.data.graph.neo4j.support.Tuple2;
 
 import javax.persistence.*;
@@ -55,7 +56,7 @@ public class Neo4JQuery<T> implements TypedQuery<T> {
     }
 
     private QueryExecutor<T> createExecutor(final String qlString) {
-        final Finder<?> finder = getFinderFromQuery(qlString);
+        final Finder<?,?> finder = getFinderFromQuery(qlString);
         if (qlString.contains(" count(")) {
             return new QueryExecutor<T>() {
                 @Override
@@ -72,12 +73,12 @@ public class Neo4JQuery<T> implements TypedQuery<T> {
         };
     }
 
-    private Finder<? extends NodeBacked> getFinderFromQuery(String qlString) {
+    private NodeFinder<? extends NodeBacked> getFinderFromQuery(String qlString) {
         final Matcher matcher = fromPattern.matcher(qlString);
         if (!matcher.matches()) throw new IllegalAccessError("Unable to parse query " + qlString);
         final String shortName = matcher.group(1);
         final Class<? extends NodeBacked> entityClass = getEntityClass(shortName);
-        return finderFactory.getFinderForClass(entityClass);
+        return finderFactory.createNodeEntityFinder(entityClass);
     }
 
     abstract static class QueryExecutor<T> {

@@ -15,8 +15,8 @@ import org.neo4j.kernel.impl.traversal.TraversalDescriptionImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.graph.neo4j.*;
-import org.springframework.data.graph.neo4j.finder.Finder;
 import org.springframework.data.graph.neo4j.finder.FinderFactory;
+import org.springframework.data.graph.neo4j.finder.NodeFinder;
 import org.springframework.data.graph.neo4j.support.node.Neo4jHelper;
 import org.springframework.data.graph.neo4j.Car;
 import org.springframework.data.graph.neo4j.Friendship;
@@ -212,7 +212,7 @@ public class Neo4jGraphPersistenceTest {
 
     @Test
 	public void testFindOutsideTransaction() {
-        final Finder<Person> finder = finderFactory.getFinderForClass(Person.class);
+        final NodeFinder<Person> finder = finderFactory.createNodeEntityFinder(Person.class);
         assertEquals(false,finder.findAll().iterator().hasNext());
 	}
 
@@ -280,7 +280,7 @@ public class Neo4jGraphPersistenceTest {
 	public void testFinderFindAll() {
 		Person p1 = new Person("Michael", 35);
 		Person p2 = new Person("David", 25);
-		Finder<Person> finder = finderFactory.getFinderForClass(Person.class);
+        NodeFinder<Person> finder = finderFactory.createNodeEntityFinder(Person.class);
 		Iterable<Person> allPersons = finder.findAll();
 		assertEquals(new HashSet<Person>(Arrays.asList(p1, p2)), IteratorUtil.addToCollection(allPersons.iterator(), new HashSet<Person>()));
 	}
@@ -289,7 +289,7 @@ public class Neo4jGraphPersistenceTest {
 	@Transactional
 	public void testFinderFindById() {
 		Person p = new Person("Michael", 35);
-		Finder<Person> finder = finderFactory.getFinderForClass(Person.class);
+        NodeFinder<Person> finder = finderFactory.createNodeEntityFinder(Person.class);
 		Person pById = finder.findById(p.getNodeId());
 		assertEquals(p, pById);
 	}
@@ -298,7 +298,7 @@ public class Neo4jGraphPersistenceTest {
 	@Transactional
 	public void testFinderFindByIdNonexistent() {
 		Person p = new Person("Michael", 35);
-		Finder<Person> finder = finderFactory.getFinderForClass(Person.class);
+        NodeFinder<Person> finder = finderFactory.createNodeEntityFinder(Person.class);
 		Person p2 = finder.findById(589736218);
 		Assert.assertNull(p2);
 	}
@@ -306,7 +306,7 @@ public class Neo4jGraphPersistenceTest {
 	@Test
 	@Transactional
 	public void testFinderCount() {
-		Finder<Person> finder = finderFactory.getFinderForClass(Person.class);
+        NodeFinder<Person> finder = finderFactory.createNodeEntityFinder(Person.class);
 		assertEquals(0, finder.count());
 		Person p = new Person("Michael", 35);
 		assertEquals(1, finder.count());
@@ -378,7 +378,7 @@ public class Neo4jGraphPersistenceTest {
 		Person me = new Person("Michael", 35);
 		Person spouse = new Person("Tina", 36);
 		me.setSpouse(spouse);
-        final Finder<Person> personFinder = finderFactory.getFinderForClass(Person.class);
+        final NodeFinder<Person> personFinder = finderFactory.createNodeEntityFinder(Person.class);
         final Person foundMe = personFinder.findByPropertyValue( Person.NAME_INDEX, "Person.name", "Michael");
         assertEquals(spouse,foundMe.getSpouse());
 	}
@@ -391,7 +391,7 @@ public class Neo4jGraphPersistenceTest {
         g.setName("test");
         Group g2=new Group();
         g.setName("test");
-        final Finder<Group> finder = finderFactory.getFinderForClass(Group.class);
+        final NodeFinder<Group> finder = finderFactory.createNodeEntityFinder(Group.class);
         Collection<Group> groups = IteratorUtil.addToCollection(finder.findAll().iterator(), new HashSet<Group>());
         Assert.assertEquals(2, groups.size());
 	    log.debug("FindAllOnGroup done");
@@ -439,7 +439,7 @@ public class Neo4jGraphPersistenceTest {
     public void testRemovePropertyFromIndex() {
         Group group = new Group();
         group.setName("test");
-        final Finder<Group> finder = finderFactory.getFinderForClass(Group.class);
+        final NodeFinder<Group> finder = finderFactory.createNodeEntityFinder(Group.class);
         graphDatabaseContext.getNodeIndex("node").remove(group.getUnderlyingState(), "name", null);
         final Group found = finder.findByPropertyValue(null, "name", "test");
         assertNull("Group.name removed from index", found);
@@ -450,7 +450,7 @@ public class Neo4jGraphPersistenceTest {
 	public void testFindGroupByIndex() {
 		Group group = new Group();
         group.setName("test");
-        final Finder<Group> finder = finderFactory.getFinderForClass(Group.class);
+        final NodeFinder<Group> finder = finderFactory.createNodeEntityFinder(Group.class);
         final Group found = finder.findByPropertyValue(null, "name", "test");
         assertEquals(group,found);
 	}
@@ -459,7 +459,7 @@ public class Neo4jGraphPersistenceTest {
 	public void testDontFindGroupByNonIndexedFieldWithAnnotation() {
 		Group group = new Group();
         group.setUnindexedName("value-unindexedName");
-        final Finder<Group> finder = finderFactory.getFinderForClass(Group.class);
+        final NodeFinder<Group> finder = finderFactory.createNodeEntityFinder(Group.class);
         final Group found = finder.findByPropertyValue(null, "unindexedName", "value-unindexedName");
         assertNull(found);
 	}
@@ -468,7 +468,7 @@ public class Neo4jGraphPersistenceTest {
 	public void testDontFindGroupByNonIndexedField() {
 		Group group = new Group();
         group.setUnindexedName2("value-unindexedName2");
-        final Finder<Group> finder = finderFactory.getFinderForClass(Group.class);
+        final NodeFinder<Group> finder = finderFactory.createNodeEntityFinder(Group.class);
         final Group found = finder.findByPropertyValue(null, "unindexedName2", "value-unindexedName2");
         assertNull(found);
 	}
@@ -480,7 +480,7 @@ public class Neo4jGraphPersistenceTest {
         group.setName("test");
 		Group group2 = new Group();
         group2.setName("test");
-        final Finder<Group> finder = finderFactory.getFinderForClass(Group.class);
+        final NodeFinder<Group> finder = finderFactory.createNodeEntityFinder(Group.class);
         final Iterable<Group> found = finder.findAllByPropertyValue(null, "name", "test");
         final Collection<Group> result = IteratorUtil.addToCollection(found.iterator(), new HashSet<Group>());
         assertEquals(new HashSet<Group>(Arrays.asList(group,group2)), result);
@@ -490,7 +490,7 @@ public class Neo4jGraphPersistenceTest {
 	@Transactional
 	public void testFindAllPersonByIndexOnAnnotatedField() {
 		Person person = new Person("Michael",35);
-        final Finder<Person> finder = finderFactory.getFinderForClass(Person.class);
+        final NodeFinder<Person> finder = finderFactory.createNodeEntityFinder(Person.class);
         final Person found = finder.findByPropertyValue( Person.NAME_INDEX, "Person.name", "Michael");
 	    assertEquals(person, found);
     }
@@ -500,7 +500,7 @@ public class Neo4jGraphPersistenceTest {
 	public void testFindAllPersonByIndexOnAnnotatedFieldWithAtIndexed() {
 		Person person = new Person("Michael", 35);
 		person.setNickname("Mike");
-		final Finder<Person> finder = finderFactory.getFinderForClass(Person.class);
+        final NodeFinder<Person> finder = finderFactory.createNodeEntityFinder(Person.class);
 		final Person found = finder.findByPropertyValue(null, "Person.nickname", "Mike");
 		assertEquals(person, found);
 	}
@@ -540,7 +540,7 @@ public class Neo4jGraphPersistenceTest {
 	@Test
 	@Transactional
 	public void testTraverseFromGroupToPeopleWithFinder() {
-        final Finder<Person> finder = finderFactory.getFinderForClass(Person.class);
+        final NodeFinder<Person> finder = finderFactory.createNodeEntityFinder(Person.class);
         Person p = new Person("Michael", 35);
 		Group group = new Group();
         group.setName("dev");
@@ -662,7 +662,7 @@ public class Neo4jGraphPersistenceTest {
 	public void testInstantiateConcreteClassWithFinder() {
 		log.debug("testInstantiateConcreteClassWithFinder");
 		new Volvo();
-		Finder<Car> finder = finderFactory.getFinderForClass(Car.class);
+        NodeFinder<Car> finder = finderFactory.createNodeEntityFinder(Car.class);
 		assertEquals("Wrong concrete class.", Volvo.class, finder.findAll().iterator().next().getClass());
 	}
 
@@ -674,8 +674,8 @@ public class Neo4jGraphPersistenceTest {
 		log.debug("Created volvo");
 		new Toyota();
 		log.debug("Created volvo");
-		assertEquals("Wrong count.", 1, finderFactory.getFinderForClass(Volvo.class).count());
-		assertEquals("Wrong count.", 1, finderFactory.getFinderForClass(Toyota.class).count());
-		assertEquals("Wrong count.", 2, finderFactory.getFinderForClass(Car.class).count());
+        assertEquals("Wrong count.", 1, finderFactory.createNodeEntityFinder(Volvo.class).count());
+        assertEquals("Wrong count.", 1, finderFactory.createNodeEntityFinder(Toyota.class).count());
+        assertEquals("Wrong count.", 2, finderFactory.createNodeEntityFinder(Car.class).count());
 	}
 }

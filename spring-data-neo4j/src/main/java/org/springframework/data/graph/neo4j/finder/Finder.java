@@ -1,128 +1,32 @@
-/*
- * Copyright 2010 the original author or authors.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package org.springframework.data.graph.neo4j.finder;
 
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.NotFoundException;
-import org.neo4j.graphdb.index.IndexHits;
+import org.neo4j.graphdb.PropertyContainer;
 import org.neo4j.graphdb.traversal.TraversalDescription;
-import org.neo4j.helpers.collection.IterableWrapper;
+import org.springframework.data.graph.core.GraphBacked;
 import org.springframework.data.graph.core.NodeBacked;
-import org.springframework.data.graph.neo4j.support.GraphDatabaseContext;
-
-import java.util.Collections;
 
 /**
- * Repository like finder for NodeEntities. Provides finder methods for direct access, access via {@link org.springframework.data.graph.core.NodeTypeStrategy}
- * and indexing.
- *
- * @param <T> NodeBacked target of this finder, enables the finder methods to return this concrete type
+ * @author mh
+ * @since 12.01.11
  */
-public class Finder<T extends NodeBacked> {
+public interface Finder<S extends PropertyContainer,T extends GraphBacked<S>> {
+    long count();
 
-    /**
-     * Target nodebacked type
-     */
-    private final Class<T> clazz;
+    Iterable<T> findAll();
 
-    private final GraphDatabaseContext graphDatabaseContext;
+    T findById(long id);
 
-    public Finder(final Class<T> clazz, final GraphDatabaseContext graphDatabaseContext) {
-        this.clazz = clazz;
-        this.graphDatabaseContext = graphDatabaseContext;
-    }
+    T findByPropertyValue(String indexName, String property, Object value);
 
-    /**
-     * @return Number of instances of the target type in the graph.
-     */
-    public long count() {
-        return graphDatabaseContext.count(clazz);
-    }
-
-    /**
-     * @return lazy Iterable over all instances of the target type.
-     */
-    public Iterable<T> findAll() {
-        return graphDatabaseContext.findAll(clazz);
-    }
-
-    /**
-     * @param id nodeId
-     * @return Node with the given id or null.
-     */
-    public T findById(final long id) {
-        try {
-            return graphDatabaseContext.createEntityFromState(graphDatabaseContext.getNodeById(id), clazz);
-        } catch (NotFoundException e) {
-            return null;
-        }
-    }
-
-    /**
-     * Index based single finder.
-     *
-     * @param indexName or null for default
-     * @param property
-     * @param value
-     * @return Single Node Entity with this property and value
-     */
-    public T findByPropertyValue(final String indexName, final String property, final Object value) {
-        try {
-            final Node node = graphDatabaseContext.getSingleIndexedNode(indexName, property, value);
-            if (node == null) return null;
-            return graphDatabaseContext.createEntityFromState(node, clazz);
-        } catch (NotFoundException e) {
-            return null;
-        }
-
-    }
-
-    /**
-     * Index based finder.
-     *
-     * @param indexName or null for default index
-     * @param property
-     * @param value
-     * @return Iterable over Node Entities with this property and value
-     */
-    public Iterable<T> findAllByPropertyValue(final String indexName, final String property, final Object value) {
-        try {
-            final IndexHits<Node> nodes = graphDatabaseContext.getIndexedNodes(indexName, property, value);
-            if (nodes == null) return Collections.emptyList();
-            return new IterableWrapper<T, Node>(nodes) {
-                @Override
-                protected T underlyingObjectToObject(final Node node) {
-                    return graphDatabaseContext.createEntityFromState(node, clazz);
-                }
-            };
-        } catch (NotFoundException e) {
-            return null;
-        }
-    }
+    Iterable<T> findAllByPropertyValue(String indexName, String property, Object value);
 
     /**
      * Traversal based finder that returns a lazy Iterable over the traversal results
-     * @param startNode the node to start the traversal from
+     *
+     * @param startNode            the node to start the traversal from
      * @param traversalDescription
-     * @param <N> Start node entity type
+     * @param <N>                  Start node entity type
      * @return Iterable over traversal result
      */
-    public <N extends NodeBacked> Iterable<T> findAllByTraversal(final N startNode, final TraversalDescription traversalDescription) {
-        return (Iterable<T>) startNode.find(clazz, traversalDescription);
-    }
+    <N extends NodeBacked> Iterable<T> findAllByTraversal(N startNode, TraversalDescription traversalDescription);
 }
-

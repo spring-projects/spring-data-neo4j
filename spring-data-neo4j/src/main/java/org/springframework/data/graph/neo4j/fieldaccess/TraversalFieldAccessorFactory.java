@@ -23,6 +23,7 @@ import org.springframework.data.graph.core.FieldTraversalDescriptionBuilder;
 import org.springframework.data.graph.core.NodeBacked;
 import org.springframework.data.graph.neo4j.finder.Finder;
 import org.springframework.data.graph.neo4j.finder.FinderFactory;
+import org.springframework.data.graph.neo4j.finder.NodeFinder;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
@@ -84,7 +85,7 @@ public class TraversalFieldAccessorFactory implements FieldAccessorFactory<NodeB
 
 	    @Override
 	    public Object getValue(final NodeBacked nodeBacked) {
-	        final Finder<? extends NodeBacked> finder = finderFactory.getFinderForClass(target);
+	        final NodeFinder<? extends NodeBacked> finder = finderFactory.createNodeEntityFinder(target);
 	        final TraversalDescription traversalDescription = fieldTraversalDescriptionBuilder.build(nodeBacked,field);
 	        return doReturn(finder.findAllByTraversal(nodeBacked, traversalDescription));
 	    }

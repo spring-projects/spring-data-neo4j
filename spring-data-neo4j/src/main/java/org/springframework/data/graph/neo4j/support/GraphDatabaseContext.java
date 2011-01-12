@@ -26,6 +26,7 @@ import org.neo4j.index.IndexService;
 import org.neo4j.kernel.EmbeddedGraphDatabase;
 import org.neo4j.util.GraphDatabaseUtil;
 import org.springframework.core.convert.ConversionService;
+import org.springframework.data.graph.core.GraphBacked;
 import org.springframework.data.graph.core.NodeBacked;
 import org.springframework.data.graph.core.NodeTypeStrategy;
 import org.springframework.data.graph.core.RelationshipBacked;
@@ -131,16 +132,6 @@ public class GraphDatabaseContext {
         return getIndexManager().forRelationships(indexNameToUse);
     }
 
-    public IndexHits<Node> getIndexedNodes(final String indexName, final String property, final Object value) {
-        return getNodeIndex(indexName).get(property, value.toString());
-    }
-
-    public Node getSingleIndexedNode(final String indexName, final String property, final Object value) {
-        IndexHits<Node> indexHits = getIndexedNodes(indexName, property, value);
-        return indexHits.hasNext() ? indexHits.next() : null;
-    }
-
-
     public Node getNodeById(final long id) {
         return graphDatabaseService.getNodeById(id);
     }
@@ -149,12 +140,18 @@ public class GraphDatabaseContext {
         nodeTypeStrategy.postEntityCreation(entity);
     }
 
-    public <T extends NodeBacked> Iterable<T> findAll(final Class<T> clazz) {
-        return nodeTypeStrategy.findAll(clazz);
+    public <T extends GraphBacked> Iterable<T> findAll(final Class<T> clazz) {
+        if (!checkIsNodeBacked(clazz)) throw new UnsupportedOperationException("No support for relationships");
+        return (Iterable<T>) nodeTypeStrategy.findAll((Class<NodeBacked>)clazz);
     }
 
-    public long count(final Class<? extends NodeBacked> entityClass) {
-        return nodeTypeStrategy.count(entityClass);
+    private boolean checkIsNodeBacked(Class<?> clazz) {
+        return NodeBacked.class.isAssignableFrom(clazz);
+    }
+
+    public long count(final Class<? extends GraphBacked> entityClass) {
+        if (!checkIsNodeBacked(entityClass)) throw new UnsupportedOperationException("No support for relationships");
+        return nodeTypeStrategy.count((Class<NodeBacked>)entityClass);
     }
 
 	public <T extends NodeBacked> Class<T> getJavaType(final Node node) {
