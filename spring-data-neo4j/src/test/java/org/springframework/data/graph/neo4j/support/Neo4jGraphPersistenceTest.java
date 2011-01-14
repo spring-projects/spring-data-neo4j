@@ -118,7 +118,42 @@ public class Neo4jGraphPersistenceTest {
 		Assert.assertNull(p.getUnderlyingState().getSingleRelationship(DynamicRelationshipType.withName("Person.spouse"), Direction.OUTGOING));
 		Assert.assertNull(p.getSpouse());
 	}
-	
+
+    // own transaction handling because of http://wiki.neo4j.org/content/Delete_Semantics
+    @Test(expected = NotFoundException.class)
+    public void testDeleteEntityFromGDC() {
+        Transaction tx = graphDatabaseContext.beginTx();
+        Person p = new Person("Michael", 35);
+        Person spouse = new Person("Tina", 36);
+        p.setSpouse(spouse);
+        long id = spouse.getId();
+        graphDatabaseContext.removeNodeEntity(spouse);
+        tx.success();
+        tx.finish();
+        Assert.assertNull("spouse removed " + p.getSpouse(), p.getSpouse());
+        NodeFinder<Person> finder = finderFactory.createNodeEntityFinder(Person.class);
+        Person spouseFromIndex = finder.findByPropertyValue(Person.NAME_INDEX, "name", "Tina");
+        Assert.assertNull("spouse not found in index",spouseFromIndex);
+        Assert.assertNull("node deleted " + id, graphDatabaseContext.getNodeById(id));
+    }
+
+    @Test(expected = NotFoundException.class)
+    public void testDeleteEntity() {
+        Transaction tx = graphDatabaseContext.beginTx();
+        Person p = new Person("Michael", 35);
+        Person spouse = new Person("Tina", 36);
+        p.setSpouse(spouse);
+        long id = spouse.getId();
+        spouse.remove();
+        tx.success();
+        tx.finish();
+        Assert.assertNull("spouse removed " + p.getSpouse(), p.getSpouse());
+        NodeFinder<Person> finder = finderFactory.createNodeEntityFinder(Person.class);
+        Person spouseFromIndex = finder.findByPropertyValue(Person.NAME_INDEX, "name", "Tina");
+        Assert.assertNull("spouse not found in index",spouseFromIndex);
+        Assert.assertNull("node deleted " + id, graphDatabaseContext.getNodeById(id));
+    }
+
 	@Test
 	@Transactional
 	public void testDeletePreviousRelationshipOnNewRelationship() {

@@ -56,4 +56,6 @@ public interface NodeTypeStrategy {
      * @return java type that of the node entity of this node
      */
 	<T extends NodeBacked> Class<T> getJavaType(Node node);
+
+    void preEntityRemoval(NodeBacked nodeBacked);
 }

@@ -19,8 +19,10 @@ package org.springframework.data.graph.neo4j.support;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.neo4j.graphdb.*;
+import org.neo4j.graphdb.traversal.TraversalDescription;
 import org.neo4j.helpers.collection.CombiningIterable;
 import org.neo4j.helpers.collection.IterableWrapper;
+import org.neo4j.kernel.impl.traversal.TraversalDescriptionImpl;
 import org.neo4j.util.GraphDatabaseUtil;
 import org.springframework.data.graph.core.NodeBacked;
 import org.springframework.data.graph.core.NodeTypeStrategy;
@@ -66,7 +68,24 @@ public class SubReferenceNodeTypeStrategy implements NodeTypeStrategy {
 	    updateSuperClassSubrefs(clazz, subReference);
     }
 
-	private void updateSuperClassSubrefs(Class<?> clazz, Node subReference) {
+    @Override
+    public void preEntityRemoval(NodeBacked entity) {
+        Class<? extends NodeBacked> clazz = entity.getClass();
+
+        final Node subReference = obtainSubreferenceNode(clazz);
+        Node subRefNode = entity.getUnderlyingState();
+        Relationship instanceOf = subRefNode.getSingleRelationship(INSTANCE_OF_RELATIONSHIP_TYPE, Direction.OUTGOING);
+        instanceOf.delete();
+        if (log.isDebugEnabled()) log.debug("Removed link to subref node: " + subReference + " with type: " + clazz.getName());
+        TraversalDescription traversal = new TraversalDescriptionImpl().depthFirst().relationships(SUBCLASS_OF_RELATIONSHIP_TYPE, Direction.OUTGOING);
+        for (Node node : traversal.traverse(subReference).nodes()) {
+            Integer count = (Integer) node.getProperty(SUBREFERENCE_NODE_COUNTER_KEY);
+            Integer newCount = GraphDatabaseUtil.decrementAndGetCounter(node, SUBREFERENCE_NODE_COUNTER_KEY, 0);
+            if (log.isDebugEnabled()) log.debug("count on ref " + node + " was " + count + " new " + newCount);
+        }
+    }
+
+    private void updateSuperClassSubrefs(Class<?> clazz, Node subReference) {
 	    Class<?> superClass = clazz.getSuperclass();
 	    if (superClass != null) {
 		    Node superClassSubref = obtainSubreferenceNode(superClass);

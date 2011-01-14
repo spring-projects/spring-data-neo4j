@@ -109,6 +109,39 @@ public class GraphDatabaseContext {
         return graphDatabaseService.createNode();
     }
 
+    private void removeRelationship(Relationship relationship) {
+        removeFromIndex(relationship);
+        relationship.delete();
+    }
+
+    private void removeFromIndex(Relationship relationship) {
+        for (String indexName : getIndexManager().relationshipIndexNames()) {
+            Index<Relationship> index = getRelationshipIndex(indexName);
+            for (String property : relationship.getPropertyKeys()) {
+                index.remove(relationship, property, relationship.getProperty(property));
+            }
+        }
+    }
+
+    public void removeNodeEntity(NodeBacked nodeBacked) {
+        this.nodeTypeStrategy.preEntityRemoval(nodeBacked);
+        Node node = nodeBacked.getUnderlyingState();
+        for (Relationship relationship : node.getRelationships()) {
+            removeRelationship(relationship);
+        }
+        removeFromIndex(node);
+        node.delete();
+    }
+
+    private void removeFromIndex(Node node) {
+        for (String property : node.getPropertyKeys()) {
+            for (String indexName : getIndexManager().nodeIndexNames()) {
+                Index<Node> index = getNodeIndex(indexName);
+                index.remove(node,property,node.getProperty(property));
+            }
+        }
+    }
+
     public <S, T> T createEntityFromState(final S state, final Class<T> type) {
         if (state instanceof Node)
             return (T) graphEntityInstantiator.createEntityFromState((Node) state, getJavaType((Node) state));
