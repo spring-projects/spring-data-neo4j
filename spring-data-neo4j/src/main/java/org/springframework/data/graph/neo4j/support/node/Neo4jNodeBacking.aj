@@ -174,6 +174,11 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<NodeEnt
         return Neo4jNodeBacking.aspectOf().graphDatabaseContext.createEntityFromState(rel, relationshipClass);
     }
 
+    /**
+     * removes the entity using @{link GraphDatabaseContext.removeNodeEntity}
+     * the entity and relationship are still accessible after removal but before transaction commit
+     * but all modifications will throw an exception
+     */
     public void NodeBacked.remove() {
         Neo4jNodeBacking.aspectOf().graphDatabaseContext.removeNodeEntity(this);
     }

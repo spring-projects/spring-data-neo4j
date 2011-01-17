@@ -20,7 +20,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.index.Index;
-import org.neo4j.graphdb.index.IndexHits;
 import org.neo4j.graphdb.index.IndexManager;
 import org.neo4j.index.IndexService;
 import org.neo4j.kernel.EmbeddedGraphDatabase;
@@ -109,12 +108,19 @@ public class GraphDatabaseContext {
         return graphDatabaseService.createNode();
     }
 
+    /**
+     * @param relationship to remove from indexes and to delete
+     */
     private void removeRelationship(Relationship relationship) {
-        removeFromIndex(relationship);
+        removeFromIndexes(relationship);
         relationship.delete();
     }
 
-    private void removeFromIndex(Relationship relationship) {
+    /**
+     * @param relationship to be removed from all indexes, all properties are removed from all indexes
+     * TODO remove only indexed properties
+     */
+    private void removeFromIndexes(Relationship relationship) {
         for (String indexName : getIndexManager().relationshipIndexNames()) {
             Index<Relationship> index = getRelationshipIndex(indexName);
             for (String property : relationship.getPropertyKeys()) {
@@ -123,17 +129,28 @@ public class GraphDatabaseContext {
         }
     }
 
-    public void removeNodeEntity(NodeBacked nodeBacked) {
-        this.nodeTypeStrategy.preEntityRemoval(nodeBacked);
-        Node node = nodeBacked.getUnderlyingState();
+    /**
+     * removes the entity by cleaning the relationships first and then removing the node
+     * it removes all of them from all indexes in advance
+     * the entity and relationship are still accessible after removal but before transaction commit
+     * but all modifications will throw an exception
+     * @param entity to remove
+     */
+    public void removeNodeEntity(NodeBacked entity) {
+        this.nodeTypeStrategy.preEntityRemoval(entity);
+        Node node = entity.getUnderlyingState();
         for (Relationship relationship : node.getRelationships()) {
             removeRelationship(relationship);
         }
-        removeFromIndex(node);
+        removeFromIndexes(node);
         node.delete();
     }
 
-    private void removeFromIndex(Node node) {
+    /**
+     * @param node to be removed from all indexes, all properties of the node are removed from all indexes
+     * TODO remove only indexed properties
+     */
+    private void removeFromIndexes(Node node) {
         for (String property : node.getPropertyKeys()) {
             for (String indexName : getIndexManager().nodeIndexNames()) {
                 Index<Node> index = getNodeIndex(indexName);
@@ -142,6 +159,12 @@ public class GraphDatabaseContext {
         }
     }
 
+    /**
+     * Creates either a node or relationship entity by delegating the creation to the appropriate @{link EntityInstantiator}
+     * @param state Node or Relationship
+     * @param type target entity type
+     * @return an instance of the entity type
+     */
     public <S, T> T createEntityFromState(final S state, final Class<T> type) {
         if (state instanceof Node)
             return (T) graphEntityInstantiator.createEntityFromState((Node) state, getJavaType((Node) state));
@@ -153,57 +176,111 @@ public class GraphDatabaseContext {
         return graphDatabaseService.index();
     }
 
+    /**
+     * @param indexName or null, "node" is assumed if null
+     * @return node index {@link Index}
+     */
     public Index<Node> getNodeIndex(final String indexName) {
         String indexNameToUse = indexName == null ? DEFAULT_NODE_INDEX_NAME : indexName;
         // checkValidIndex(indexNameToUse); // check invalid index names
         return getIndexManager().forNodes(indexNameToUse);
     }
 
+    /**
+     * @param indexName or null, "relationship" is assumed if null
+     * @return relationship index {@link Index}
+     */
     public Index<Relationship> getRelationshipIndex(final String indexName) {
         String indexNameToUse = indexName == null ? DEFAULT_RELATIONSHIP_INDEX_NAME : indexName;
         // checkValidIndex(indexNameToUse); // check invalid index names
         return getIndexManager().forRelationships(indexNameToUse);
     }
 
-    public Node getNodeById(final long id) {
-        return graphDatabaseService.getNodeById(id);
+    /**
+     * @param nodeId
+     * @return Node
+     * @throws NotFoundException
+     */
+    public Node getNodeById(final long nodeId) {
+        return graphDatabaseService.getNodeById(nodeId);
     }
 
+    /**
+     * delegates to the configured @{link NodeTypeStrategy} for after entity creation operations
+     * @param entity
+     */
     public void postEntityCreation(final NodeBacked entity) {
         nodeTypeStrategy.postEntityCreation(entity);
     }
 
+    /**
+     * delegates to the configured @{link NodeTypeStrategy} to iterate over all instances of this type
+     * @param clazz type of entity
+     * @param <T>
+     * @return
+     * TODO inheritance handling
+     */
     public <T extends GraphBacked> Iterable<T> findAll(final Class<T> clazz) {
         if (!checkIsNodeBacked(clazz)) throw new UnsupportedOperationException("No support for relationships");
         return (Iterable<T>) nodeTypeStrategy.findAll((Class<NodeBacked>)clazz);
     }
 
+    /**
+     * class base check for nodebacked subclasses
+     */
     private boolean checkIsNodeBacked(Class<?> clazz) {
         return NodeBacked.class.isAssignableFrom(clazz);
     }
 
+    /**
+     * delegates to the configured @{link NodeTypeStrategy} for a count of all instances of this type
+     * @param entityClass
+     * @return count of all instances
+     */
     public long count(final Class<? extends GraphBacked> entityClass) {
         if (!checkIsNodeBacked(entityClass)) throw new UnsupportedOperationException("No support for relationships");
         return nodeTypeStrategy.count((Class<NodeBacked>)entityClass);
     }
 
+    /**
+     * delegates to the configured @{link NodeTypeStrategy} to lookup the type information for the given node
+     * @param node
+     * @param <T>
+     * @return entity type of the node
+     * @throws IllegalStateException for nodes that are not instance backing nodes of a known type
+     */
 	public <T extends NodeBacked> Class<T> getJavaType(final Node node) {
 		return nodeTypeStrategy.getJavaType(node);
 	}
 
+    /**
+     * @return reference node of the graph database
+     */
 	public Node getReferenceNode() {
         return graphDatabaseService.getReferenceNode();
     }
 
 
+    /**
+     * @param relType
+     * @return
+     */
     public Node getOrCreateSubReferenceNode(final RelationshipType relType) {
         return new GraphDatabaseUtil(graphDatabaseService).getOrCreateSubReferenceNode(relType);
     }
 
+
+    /**
+     * @return Neo4j Transaction manager
+     */
     public TransactionManager getTxManager() {
+
         return ((EmbeddedGraphDatabase) graphDatabaseService).getConfig().getTxModule().getTxManager();
     }
 
+    /**
+     * @return true if a transaction manager is available and a transaction is currently running
+     */
     public boolean transactionIsRunning() {
         try {
             return getTxManager().getStatus() != Status.STATUS_NO_TRANSACTION;
@@ -213,23 +290,23 @@ public class GraphDatabaseContext {
         }
     }
 
-
-    public boolean canConvert(final Class<?> from, final Class<?> to) {
-        return conversionService.canConvert(from, to);
-    }
-
-    public <T> T convert(final Object value, final Class<T> type) {
-        return conversionService.convert(value, type);
-    }
-
+    /**
+     * delegates to @{link GraphDatabaseService}
+     */
     public Iterable<? extends Node> getAllNodes() {
         return graphDatabaseService.getAllNodes();
     }
 
+    /**
+     * delegates to @{link GraphDatabaseService}
+     */
     public Transaction beginTx() {
         return graphDatabaseService.beginTx();
     }
 
+    /**
+     * delegates to @{link GraphDatabaseService}
+     */
     public Relationship getRelationshipById(final long id) {
         return graphDatabaseService.getRelationshipById(id);
     }

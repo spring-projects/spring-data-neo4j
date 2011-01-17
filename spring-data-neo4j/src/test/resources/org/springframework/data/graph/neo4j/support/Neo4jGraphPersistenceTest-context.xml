@@ -61,14 +61,11 @@
 	-->
 	<context:component-scan base-package="org.springframework.data.graph.neo4j">
 		<context:exclude-filter expression=".*_Roo_.*" type="regex"/>
+        <context:exclude-filter expression="org.springframework.data.graph.neo4j.config.AbstractNeo4jConfiguration" type="regex"/>
 		<context:exclude-filter expression="org.springframework.stereotype.Controller" type="annotation"/>
 	</context:component-scan>
 	
 	
-	<!-- 
-	    Start datastore config
-    -->
-
 	<bean id="neo4jNodeBacking" class="org.springframework.data.graph.neo4j.support.node.Neo4jNodeBacking" factory-method="aspectOf">
 		<property name="graphDatabaseContext" ref="graphDatabaseContext"/>
 		<property name="nodeEntityStateAccessorsFactory" ref="nodeEntityStateAccessorsFactory"/>
@@ -79,11 +76,7 @@
 		<property name="relationshipEntityStateAccessorsFactory" ref="relationshipEntityStateAccessorsFactory"/>
 	</bean>
 
-	<!--
-		<bean class="org.springframework.persistence.graph.Neo4jSimpleNodePropertyStorageForeignStoreKeyManager"/>
-	-->
-	
-	<bean id="graphDatabaseService" class="org.neo4j.kernel.EmbeddedGraphDatabase" 
+	<bean id="graphDatabaseService" class="org.neo4j.kernel.EmbeddedGraphDatabase"
 			destroy-method="shutdown" scope="singleton">
 		 <constructor-arg index="0" value="${neo4j.databaseDirectory}" />
 	</bean>
@@ -121,27 +114,10 @@
     	<property name="graphDatabaseContext" ref="graphDatabaseContext"/>
 		<property name="finderFactory" ref="finderFactory"/>
     </bean>
-    
+
 	<bean id="finderFactory" class="org.springframework.data.graph.neo4j.finder.FinderFactory">
 		<constructor-arg ref="graphDatabaseContext" />
 	</bean>
-		
-	<!--
- 	-->
-	<!--bean id="transactionManager" class="org.springframework.persistence.transaction.NaiveDoubleTransactionManager" >
-		<constructor-arg>
-			 <bean class="org.springframework.jdbc.datasource.DataSourceTransactionManager" >
-			 	<property name="dataSource" ref="dataSource"/>
-			 </bean>
-		</constructor-arg>
-		<constructor-arg>
-			<bean 
-			    class="org.springframework.transaction.jta.JtaTransactionManager">
-			    <property name="transactionManager" ref="neo4jTransactionManagerService" />
-			    <property name="userTransaction" ref="neo4jUserTransactionService" />
-			</bean>
-		</constructor-arg>
-	</bean-->
 
     <bean id="transactionManager" class="org.springframework.transaction.jta.JtaTransactionManager">
                 <property name="transactionManager" ref="neo4jTransactionManagerService" />
@@ -151,18 +127,10 @@
 	<bean id="neo4jTransactionManagerService" class="org.neo4j.kernel.impl.transaction.SpringTransactionManager" >
 	  <constructor-arg index="0" ref="graphDatabaseService" />
 	</bean>
-	
+
 	<bean id="neo4jUserTransactionService" class="org.neo4j.kernel.impl.transaction.UserTransactionImpl">
 	    <constructor-arg index="0" ref="graphDatabaseService" />
 	</bean>
-	
-	<!--bean class="org.springframework.jdbc.datasource.DriverManagerDataSource" id="dataSource">
-        <property name="driverClassName" value="${database.driverClassName}"/>
-        <property name="url" value="${database.url}"/>
-        <property name="username" value="${database.username}"/>
-        <property name="password" value="${database.password}"/>
-    </bean-->
- 
-    <tx:annotation-driven mode="aspectj" transaction-manager="transactionManager"/>
 
+    <tx:annotation-driven mode="aspectj" transaction-manager="transactionManager"/>
 </beans>
