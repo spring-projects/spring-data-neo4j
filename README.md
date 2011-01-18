@@ -188,7 +188,7 @@ Spring Configuration:
                        
         }
 
-Please see the [Hello Worlds sample project[(https://github.com/SpringSource/spring-data-graph-examples/tree/master/hello-worlds) in the examples repository for more information.
+Please see the [Hello Worlds sample project](https://github.com/SpringSource/spring-data-graph-examples/tree/master/hello-worlds) in the examples repository for more information.
 
 
 Contributing to Spring Data
