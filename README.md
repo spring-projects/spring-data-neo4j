@@ -100,9 +100,95 @@ Spring Configuration:
           }
         }
 
-* Annotate your entity class
+* Annotate your entity class.  In this case it is a 'World' class that has a relationship to other worlds that are reachable by rocket travel:
 
-Please see the Hello Worlds project in the examples repository for more information.
+        @NodeEntity
+        public class World {
+      
+          @GraphProperty
+          private String name;            
+        
+          @GraphProperty
+          private int moons;
+        
+          @RelatedTo(type = "REACHABLE_BY_ROCKET", 
+                       elementClass = World.class, 
+                       direction = Direction.BOTH)
+          private Set<World> reachableByRocket;
+
+          public World( String name, int moons )
+          {
+              this.name = name;
+              this.moons = moons;
+          }
+
+          public String getName()  { return name; }
+
+          public int getMoons() { return moons; }
+
+          public void addRocketRouteTo( World otherWorld )
+          {
+              ((NodeBacked) this).relateTo( otherWorld, RelationshipTypes.REACHABLE_BY_ROCKET );
+          }
+        
+          public boolean canBeReachedFrom( World otherWorld )
+          {
+              return this.reachableByRocket.contains( otherWorld );
+          }
+        }
+
+* Create a repository to perform typical CRUD like data access.  The FinderFactory and Finder helper classes make searching easy for common use cases.  You can also use the introduce method find(Class class, TraversalDescription traversal) within the World class to perform traversals that start from a given 'World' instance location in the graph.
+
+        @Repository
+        public class WorldRepository {
+
+          @Autowired
+          private FinderFactory finderFactory;
+        
+          @Transactional
+          public Collection<World> makeSomeWorlds()  {
+            ArrayList<World> newWorlds = new ArrayList<World>();
+            newWorlds.add( new World( "Mercury", 0 ) );
+            newWorlds.add( new World( "Venus", 0 ) );
+            World earth = new World( "Earth", 1 );
+            newWorlds.add( earth );
+            World mars = new World( "Mars", 2 );
+            mars.addRocketRouteTo( earth );
+            newWorlds.add( mars );
+            newWorlds.add( new World( "Jupiter", 63 ) );
+            newWorlds.add( new World( "Saturn", 62 ) );
+            newWorlds.add( new World( "Uranus", 27 ) );
+            newWorlds.add( new World( "Neptune", 13 ) );
+            return newWorlds;
+          }
+        
+          public World findWorldIdentifiedBy( long id )  {
+             return (World) finderFactory.getFinderForClass( World.class ).findById( id );
+          }
+            
+          public Iterable<World> findAllWorlds()  {
+             return (Iterable<World>) finderFactory.getFinderForClass( World.class ).findAll();
+          }
+            
+          public long countWorlds()  {
+            return finderFactory.getFinderForClass( World.class ).count();
+          }
+            
+          public World findWorldNamed( String name ) {
+            return (World) finderFactory.getFinderForClass( World.class ).findByPropertyValue( "name", name );
+          }
+            
+          public World findWorldWithMoons( long moonCount ) {
+            return finderFactory.getFinderForClass( World.class ).findById( moonCount );
+          }
+          
+          public Iterable<World> findWorldsWithMoons( int moonCount )  {
+            return (Iterable<World>) finderFactory.getFinderForClass( World.class ).findAllByPropertyValue( "moons", moonCount );
+          }
+                       
+        }
+
+Please see the [Hello Worlds sample project[(https://github.com/SpringSource/spring-data-graph-examples/tree/master/hello-worlds) in the examples repository for more information.
 
 
 Contributing to Spring Data
