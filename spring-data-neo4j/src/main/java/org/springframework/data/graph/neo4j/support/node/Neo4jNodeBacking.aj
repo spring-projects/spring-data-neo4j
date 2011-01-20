@@ -118,6 +118,13 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<NodeEnt
         return this.stateAccessors.hasUnderlyingState();
     }
 
+    public NodeBacked NodeBacked.projectTo(Class<? extends NodeBacked> targetType) {
+        return Neo4jNodeBacking.aspectOf().graphDatabaseContext.projectTo(this, targetType);
+    }
+//    public <T extends NodeBacked> T NodeBacked.projectTo(Class<T> targetType) {
+//        return Neo4jNodeBacking.aspectOf().graphDatabaseContext.projectTo(this, targetType);
+//    }
+
     /**
      * creates a relationship to the target node entity with the given relationship type
      * @param target entity
@@ -239,6 +246,7 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<NodeEnt
      * delegates field reads to the state accessors instance
      */
     Object around(NodeBacked entity): entityFieldGet(entity) {
+		if (field(thisJoinPoint).getDeclaringClass().equals("Named")) log.warn("entityFieldGet "+field(thisJoinPoint));
         Object result=entity.stateAccessors.getValue(field(thisJoinPoint));
         if (result instanceof DoReturn) return unwrap(result);
         return proceed(entity);

@@ -66,7 +66,7 @@ public abstract class DelegatingFieldAccessorFactory<T> implements FieldAccessor
     }
 
     private <E> FieldAccessorFactory<E> factoryForField(final Field field) {
-        if (isAspectjField(field)) return null;
+        if (isSyntheticField(field)) return null;
         for (final FieldAccessorFactory<?> fieldAccessorFactory : fieldAccessorFactories) {
             if (fieldAccessorFactory.accept(field)) {
                 if (log.isInfoEnabled()) log.info("Factory " + fieldAccessorFactory + " used for field: " + field);
@@ -78,8 +78,8 @@ public abstract class DelegatingFieldAccessorFactory<T> implements FieldAccessor
         return null;
     }
 
-    private boolean isAspectjField(final Field field) {
-        return field.getName().startsWith("ajc");
+    private boolean isSyntheticField(final Field field) {
+        return field.getName().contains("$");
     }
 
     public static String getNeo4jPropertyName(final Field field) {

@@ -54,6 +54,11 @@ public class SubReferenceNodeTypeStrategy implements NodeTypeStrategy {
         this.graphDatabaseContext = graphDatabaseContext;
     }
 
+    /**
+     * lifecycle method, creates instanceof relationship to type node, creates the type nodes of the inheritance
+     * hierarchy if necessary and increments instance counters
+     * @param entity
+     */
     @Override
     public void postEntityCreation(final NodeBacked entity) {
 	    Class<? extends NodeBacked> clazz = entity.getClass();
@@ -68,6 +73,10 @@ public class SubReferenceNodeTypeStrategy implements NodeTypeStrategy {
 	    updateSuperClassSubrefs(clazz, subReference);
     }
 
+    /**
+     * removes instanceof relationship and decrements instance counters for type nodes
+     * @param entity
+     */
     @Override
     public void preEntityRemoval(NodeBacked entity) {
         Class<? extends NodeBacked> clazz = entity.getClass();
@@ -83,6 +92,13 @@ public class SubReferenceNodeTypeStrategy implements NodeTypeStrategy {
             Integer newCount = GraphDatabaseUtil.decrementAndGetCounter(node, SUBREFERENCE_NODE_COUNTER_KEY, 0);
             if (log.isDebugEnabled()) log.debug("count on ref " + node + " was " + count + " new " + newCount);
         }
+    }
+
+    @Override
+    public <T extends NodeBacked> Class<T> confirmType(Node node, Class<T> type) {
+        Class<T> nodeType = this.<T>getJavaType(node);
+        if (type.isAssignableFrom(nodeType)) return nodeType;
+        throw new IllegalArgumentException(String.format("%s does not correspond to the node type %s of node %s",type,nodeType,node));
     }
 
     private void updateSuperClassSubrefs(Class<?> clazz, Node subReference) {

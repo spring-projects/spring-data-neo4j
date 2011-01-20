@@ -87,6 +87,13 @@ public class SubReferenceNodeTypeStrategyTest {
 
     @Test
     @Transactional
+    public void testConfirmType() throws Exception {
+        Assert.assertEquals("class in graph is thing", Thing.class, nodeTypeStrategy.confirmType(thingNode,Thing.class));
+
+    }
+
+    @Test
+    @Transactional
     public void testFindAll() throws Exception {
         Collection<Thing> things = IteratorUtil.asCollection(nodeTypeStrategy.findAll(Thing.class));
         Assert.assertEquals("one thing created and found", 1, things.size());

@@ -165,9 +165,9 @@ public class GraphDatabaseContext {
      * @param type target entity type
      * @return an instance of the entity type
      */
-    public <S, T> T createEntityFromState(final S state, final Class<T> type) {
+    public <S, T extends GraphBacked> T createEntityFromState(final S state, final Class<T> type) {
         if (state instanceof Node)
-            return (T) graphEntityInstantiator.createEntityFromState((Node) state, getJavaType((Node) state));
+            return (T) graphEntityInstantiator.createEntityFromState((Node) state, nodeTypeStrategy.confirmType((Node)state, (Class<? extends NodeBacked>)type));
         else
             return (T) relationshipEntityInstantiator.createEntityFromState((Relationship) state, (Class<? extends RelationshipBacked>) type);
     }
@@ -309,6 +309,10 @@ public class GraphDatabaseContext {
      */
     public Relationship getRelationshipById(final long id) {
         return graphDatabaseService.getRelationshipById(id);
+    }
+
+    public <T extends NodeBacked> T projectTo(NodeBacked entity, Class<T> targetType) {
+        return graphEntityInstantiator.createEntityFromState(entity.getUnderlyingState(), targetType);
     }
 }
 

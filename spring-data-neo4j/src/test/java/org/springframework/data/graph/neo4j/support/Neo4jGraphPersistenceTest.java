@@ -86,6 +86,17 @@ public class Neo4jGraphPersistenceTest {
 		assertEquals("developers", group.getUnderlyingState().getProperty("name"));
 	}
 
+    @Test
+    @Transactional
+    public void testProjectGroupToNamed() {
+        Group group = new Group();
+        group.setName("developers");
+
+        Named named = (Named)group.projectTo(Named.class);
+        assertEquals("named.name","developers", named.name);
+        assertEquals("nameds node name property","developers", named.getUnderlyingState().getProperty("name"));
+    }
+
 	@Test
 	@Transactional
 	public void testCreateRelationshipWithoutAnnotationOnSet() {

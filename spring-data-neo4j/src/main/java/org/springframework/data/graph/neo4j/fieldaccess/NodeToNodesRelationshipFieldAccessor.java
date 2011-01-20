@@ -20,6 +20,7 @@ import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.RelationshipType;
+import org.springframework.data.graph.core.GraphBacked;
 import org.springframework.data.graph.core.NodeBacked;
 import org.springframework.data.graph.neo4j.support.GraphDatabaseContext;
 
@@ -30,7 +31,7 @@ import java.util.Set;
  * @author Michael Hunger
  * @since 12.09.2010
  */
-public abstract class NodeToNodesRelationshipFieldAccessor<TARGET> extends AbstractNodeRelationshipFieldAccessor<NodeBacked, Node, TARGET, Node> {
+public abstract class NodeToNodesRelationshipFieldAccessor<TARGET extends GraphBacked> extends AbstractNodeRelationshipFieldAccessor<NodeBacked, Node, TARGET, Node> {
     public NodeToNodesRelationshipFieldAccessor(final Class<? extends TARGET> clazz, final GraphDatabaseContext graphDatabaseContext, final Direction direction, final RelationshipType type) {
         super(clazz, graphDatabaseContext, direction, type);
     }

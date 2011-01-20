@@ -21,6 +21,7 @@ import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.RelationshipType;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
+import org.springframework.data.graph.core.GraphBacked;
 import org.springframework.data.graph.neo4j.support.GraphDatabaseContext;
 
 import java.util.HashSet;
@@ -30,7 +31,7 @@ import java.util.Set;
  * @author Michael Hunger
  * @since 11.09.2010
  */
-public abstract class AbstractNodeRelationshipFieldAccessor<ENTITY,STATE,TARGET,TSTATE> implements FieldAccessor<ENTITY> {
+public abstract class AbstractNodeRelationshipFieldAccessor<ENTITY extends GraphBacked,STATE,TARGET extends GraphBacked,TSTATE> implements FieldAccessor<ENTITY> {
     protected final RelationshipType type;
     protected final Direction direction;
     protected final Class<? extends TARGET> relatedType;

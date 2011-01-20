@@ -57,5 +57,11 @@ public interface NodeTypeStrategy {
      */
 	<T extends NodeBacked> Class<T> getJavaType(Node node);
 
-    void preEntityRemoval(NodeBacked nodeBacked);
+    /**
+     * callback for lifecycle management before node entity removal
+     * @param entity
+     */
+    void preEntityRemoval(NodeBacked entity);
+
+    <T extends NodeBacked> Class<T> confirmType(Node node, Class<T> type);
 }

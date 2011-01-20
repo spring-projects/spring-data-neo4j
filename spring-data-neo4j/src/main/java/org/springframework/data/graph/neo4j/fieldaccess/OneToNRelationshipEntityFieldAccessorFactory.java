@@ -97,7 +97,7 @@ public class OneToNRelationshipEntityFieldAccessorFactory implements FieldAccess
 	    private Set<RelationshipBacked> createEntitySetFromRelationships(final NodeBacked entity) {
 	        final Set<RelationshipBacked> result = new HashSet<RelationshipBacked>();
 	        for (final Relationship rel : getStatesFromEntity(entity)) {
-	            final RelationshipBacked relationshipEntity = (RelationshipBacked) graphDatabaseContext.createEntityFromState(rel, (Class<?>) relatedType);
+	            final RelationshipBacked relationshipEntity = graphDatabaseContext.createEntityFromState(rel, relatedType);
 	            result.add(relationshipEntity);
 	        }
 	        return result;
