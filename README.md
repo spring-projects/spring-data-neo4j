@@ -104,20 +104,17 @@ Spring Configuration:
 
         @NodeEntity
         public class World {
-      
-          @GraphProperty
-          private String name;            
-        
-          @GraphProperty
-          private int moons;
+
+          @Indexed private String name;
+
+          @Indexed private int moons;
         
           @RelatedTo(type = "REACHABLE_BY_ROCKET", 
                        elementClass = World.class, 
-                       direction = Direction.BOTH)
+                       direction = Direction.OUTGOING)
           private Set<World> reachableByRocket;
 
-          public World( String name, int moons )
-          {
+          public World( String name, int moons ) {
               this.name = name;
               this.moons = moons;
           }
@@ -126,13 +123,11 @@ Spring Configuration:
 
           public int getMoons() { return moons; }
 
-          public void addRocketRouteTo( World otherWorld )
-          {
+          public void addRocketRouteTo( World otherWorld ) {
               ((NodeBacked) this).relateTo( otherWorld, RelationshipTypes.REACHABLE_BY_ROCKET );
           }
         
-          public boolean canBeReachedFrom( World otherWorld )
-          {
+          public boolean canBeReachedFrom( World otherWorld ) {
               return this.reachableByRocket.contains( otherWorld );
           }
         }
@@ -147,7 +142,7 @@ Spring Configuration:
         
           @Transactional
           public Collection<World> makeSomeWorlds()  {
-            ArrayList<World> newWorlds = new ArrayList<World>();
+            List<World> newWorlds = new ArrayList<World>();
             newWorlds.add( new World( "Mercury", 0 ) );
             newWorlds.add( new World( "Venus", 0 ) );
             World earth = new World( "Earth", 1 );
@@ -161,29 +156,33 @@ Spring Configuration:
             newWorlds.add( new World( "Neptune", 13 ) );
             return newWorlds;
           }
-        
+
+          private NodeFinder<World> finder() {
+             return finderFactory.createNodeEntityFinder(World.class);
+
+}
           public World findWorldIdentifiedBy( long id )  {
-             return (World) finderFactory.getFinderForClass( World.class ).findById( id );
+             return finder().findById( id );
           }
             
           public Iterable<World> findAllWorlds()  {
-             return (Iterable<World>) finderFactory.getFinderForClass( World.class ).findAll();
+             return finder().findAll();
           }
             
           public long countWorlds()  {
-            return finderFactory.getFinderForClass( World.class ).count();
+            return finder().count();
           }
             
           public World findWorldNamed( String name ) {
-            return (World) finderFactory.getFinderForClass( World.class ).findByPropertyValue( "name", name );
+            return finder().findByPropertyValue( "name", name );
           }
             
           public World findWorldWithMoons( long moonCount ) {
-            return finderFactory.getFinderForClass( World.class ).findById( moonCount );
+            return finder().findByPropertyValue( "moons", moonCount );
           }
           
           public Iterable<World> findWorldsWithMoons( int moonCount )  {
-            return (Iterable<World>) finderFactory.getFinderForClass( World.class ).findAllByPropertyValue( "moons", moonCount );
+            return finder().findAllByPropertyValue( "moons", moonCount );
           }
                        
         }
