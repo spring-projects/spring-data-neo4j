@@ -7,24 +7,25 @@
 	store.
   </para>
 	<para>
-	This allows to evolve existing applications that are based on JPA to embrace NoSQL data stores for certain parts of their model.
+	This allows existing JPA-based applications to embrace NOSQL data stores to evolve certain parts of their model.
 	Possible use cases are adding social network or geospatial information to existing applications.
   </para>
 	<section>
 		<title>Partial graph persistence</title>
-		<para>
-	This is achieved by allowing the DATAGRAPH aspects only to handle those parts of the entities that are explicitely annotated with
-	DATAGRAPH annotations. Those fields have to be made transient so that JPA ignores them and won't try to persist those attributes.
-	</para>
-		<para>
-		A backing node in the graph store is created when the entity has been assigned a JPA id. Only then the connection between the 
-		two stores can be kept. So until the entity has been persisted, its state is just kept inside the POJO and flushed to the 
+        <para>
+            Partial graph persistence is achieved by restricting the DATAGRAPH aspects to explicitly annotated parts of
+            the entity. Those fields have to be made transient so that JPA ignores them and won't try to persist those
+            attributes.
+        </para>
+        <para>
+		A backing node in the graph store is created when the entity has been assigned a JPA id. Only then will the connection between the
+		two stores be kept. Until the entity has been persisted, its state is just kept inside the POJO and flushed to the
 		backing graph store afterwards.
 	</para>
 		<para>
 		The connection between the two entities is kept via a FOREIGN_ID field in the node that contains the JPA id (currently only single
-		value ids are supported). The entity class can be resolved via the NodeTypeStrategy that makes the Java type hierarchy of the datamodel
-		accessible in the graph. So those pieces of information can be used to retrieve the appropriate JPA entity for a given node.
+		value ids are supported). The entity class can be resolved via the NodeTypeStrategy that preserves the Java type hierarchy within the graph.
+        With the id and class, you can then retrieve the appropriate JPA entity for a given node.
 	</para>
 		<para>
 		The other direction is handled by indexing the Node with the FOREIGN_ID index which contains a concatenation of the fully qualified class
@@ -40,7 +41,7 @@
 			<para>
 	When annotating an entity with partial true, DATAGRAPH assumes that this is a cross-store entity. So it is only responsible for the fields
 	annotated with SDGRPAH annotations. JPA should not take care of those fields (they should be annotated with @Transient). In this mode of
-	operation DATAGRAPH also handles the cross store connection via the content of the JPA id field.
+	operation DATAGRAPH also handles the cross-store connection via the content of the JPA id field.
 	</para>
 		</section>
 		<section>
@@ -110,9 +111,9 @@
 	<section>
 		<title>Configuring cross-store persistence</title>
 		<para>
-			Configuring cross store persistence is done similarly to the default DATAGRAPH operations. The concise Spring Java Config configuration class
+			Configuring cross-store persistence is done similarly to the default DATAGRAPH operations. The concise Spring Java Config configuration class
 			already contains a method <code>isUsingCrossStorePersistence</code>that must be implemented by a concrete configuration which controls 
-			the cross store mode of DATAGRAPH.
+			the cross-store mode of DATAGRAPH.
 		</para>
 					<programlisting lang="JAVA" ><![CDATA[
 public class MyRestaurantConfig extends AbstractNeo4jConfiguration {

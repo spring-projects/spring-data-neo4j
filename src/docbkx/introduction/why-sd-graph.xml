@@ -24,12 +24,12 @@
     <para>The Spring Data Graph (or DATAGRAPH) framework makes it easy to 
     integrate graph databases in existing or new Spring applications by providing
 	infrastructure that reduces the amount of boilerplate data access code and uses
-	commonly known patterns and idioms that are well known in the Spring Framework community.
+	common patterns and idioms that are well known in the Spring Framework community.
 	Those practices are based on a simple POJO programming model that leverages annotations to add metadata and can be
-	integrated in any part of a spring application, like the web or service layers.
+	integrated in any part of a Spring application, like the web or service layers.
 	</para>
 	<para>
-	A special use case of Spring Data Graph is the cross store solution that can extend existing JPA data models with new parts
+	A special use case of Spring Data Graph is the cross-store solution that can extend existing JPA data models with new parts
 	(properties, entities, relationships) that are stored exclusively in the graph while being transparently integrated with the JPA
 	entities. This enables for easy and seamless addition of new features that were not available before to JPA-based applications.
 	</para>

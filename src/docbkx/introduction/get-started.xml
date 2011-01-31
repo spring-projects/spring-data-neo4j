@@ -19,7 +19,8 @@
 		
 		<para>As explained in <xref linkend="why-sd-graph"/>, Spring Data Graph (DATAGRAPH) provides integration 
 		between the Spring framework and graph databases. Familiarity with the Spring framework is assumed as stated in <xref linkend="introduction"/>, and only
-		minimally cross referenced here. Graph databases and Neo4j in particular are explained in a bit more detail.
+		minimally cross-referenced here. Graph databases and Neo4j in particular are explained in a bit more detail.
+		minimally cross-referenced here. Graph databases and Neo4j in particular are explained in a bit more detail.
 		The main focus of this document is however on explaining the steps needed to get a DATAGRAPH-backed application up and running.
 		</para>
 		  
@@ -53,17 +54,17 @@
 			<title>Trying Out The Samples</title>
 			<para>DATAGRAPH comes with a number of <ulink url="http://github.com/SpringSource/spring-data-graph-examples">samples</ulink> 
 				and unit test cases (if you accessed the sources via 
-				<ulink url="http://github.com/SpringSource/spring-data-graph">github</ulink> or maven).
+				<ulink url="http://github.com/SpringSource/spring-data-graph">github</ulink> or Maven).
 			</para>
 			<para>The current distribution contains:</para>
 			<itemizedlist>
 				<listitem>
 					<para>Hello Worlds sample</para>
 					<para>The Hello Worlds sample application is a simple console application with unit tests, that
-					creates some Worlds (entities / nodes) and Rocket Routes (relationships) in a Galaxy (graph) and then 
+					creates some Worlds (entities / nodes) and Rocket Routes (relationships) in a Galaxy (graph) and then
 					reads them back and prints them out.</para>
 					<para>The unit tests demonstrate some other features of DATAGRAPH. The sample comes with a minimal config for
-						maven and spring to get up and running quickly.
+						Maven and spring to get up and running quickly.
 						</para>
 				</listitem>
 				<listitem>

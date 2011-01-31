@@ -8,9 +8,13 @@
 </para>
 	<section>
 		<title>Overview of the AspectJ support</title>
-		<para>Behind the scenes DATAGRAPH leverages AspectJ aspects to modify the behavior of simple POJO entities to be able to be backed by a graph store. Behind  each entity lies a backing node that holds the properties and relationships to other entities. AspectJ is used to intercept field access and to reroute it to the backing state (either its properties or relationships). For relationship entities the fields are similarly mapped to properties. There are two specially annotated fields for the start and the end node of the relationship. 
-</para>
-		<para>	
+        <para>Behind the scenes DATAGRAPH leverages AspectJ aspects to modify the behavior of simple POJO entities to be
+            able to be backed by a graph store. Each entity is backed by a node that holds its properties and
+            relationships to other entities. AspectJ is used to intercept field access and to reroute it to the backing
+            state (either its properties or relationships). For relationship entities the fields are similarly mapped to
+            properties. There are two specially annotated fields for the start and the end node of the relationship.
+        </para>
+        <para>
 	The aspect introduces some internal fields and some public methods to the entities for accessing the backing state via <code>getUnderlyingState()</code> and creating relationships with <code>relateTo</code> and retrieving relationship entities via <code>getRelationshipTo</code>. It also introduces finder methods like <code>find(Class&lt;? extends NodeEntity&gt;, TraversalDescription)</code> and equals and hashCode delegation.
 </para>
 		<para>
@@ -22,8 +26,15 @@
 		<para>Entities are declared using the <code>@NodeEntity</code> annotation. Relationship entities use the <code>@RelationshipEntity</code> annotation instead.</para>
 		<section>
 			<title>Entities with @NodeEntity</title>
-			<para>This annotation is used to declare a POJO entity to be backed by a node in the graph store. Its field are mapped by default to either properties of the node. Fields pointing to other NodeEntities or Collections thereof are mapped via relationships. If the annotation field <code>useShortNames</code> is set to false the properties and relationship names used will be prepended with the class name of the entity. If the field <code>fullIndex</code> is set to true, all fields of the entity will be indexed. If the <code>partial</code> field is set to true, this entity takes part in a cross-store setting where only the parts of the entity are mapped to the graph store that are not handled by JPA.</para>
-			<para>Entity fields can be annotated with @GraphProperty, @RelatedTo, @RelatedToVia, @Indexed and @GraphId</para>
+            <para>This annotation is used to declare a POJO entity to be backed by a node in the graph store. Its simple fields
+                are mapped by default to properties of the node. Object references to other NodeEntities (whether single
+                or Collection) are mapped via relationships. If the annotation parameter <code>useShortNames</code>
+                is set to false the properties and relationship names used will be prepended with the class name of the
+                entity. If the parameter <code>fullIndex</code> is set to true, all fields of the entity will be indexed. If the
+                <code>partial</code> parameter is set to true, this entity takes part in a cross-store setting where only
+                the parts of the entity not handled by JPA will be mapped to the graph store.
+            </para>
+            <para>Entity fields can be annotated with @GraphProperty, @RelatedTo, @RelatedToVia, @Indexed and @GraphId</para>
 <programlisting lang="JAVA" ><![CDATA[
 @NodeEntity
 public class Movie { 
@@ -33,10 +44,15 @@ public class Movie {
 		</section>
 		<section>
 			<title>RelationshipEntities with @RelationshipEntity</title>
-			<para>To access the rich datamodel of graph relationship POJOs can also be annotated with @RelationshipEntity. Relationship entities can't be instantiated directly but are rather accessed via node entities, either by @RelatedToVia fields or by the <code>relateTo</code> or <code>getRelationshipTo</code> methods.
-Relationship entities may contain fields that are mapped to properties and two special fields that are annotated with @StartNode and @EndNode which point to the start and end node entities respectively (and are read only).
- </para>
-<programlisting lang="JAVA" ><![CDATA[
+            <para>To access the rich data model of graph relationships, POJOs can also be annotated with
+                @RelationshipEntity. Relationship entities can't be instantiated directly but are rather accessed via
+                node entities, either by @RelatedToVia fields or by the <code>relateTo</code>
+                or <code>getRelationshipTo</code> methods.
+                Relationship entities may contain fields that are mapped to properties and two special fields that are
+                annotated with @StartNode and @EndNode which point to the start and end node entities respectively (and
+                are read only).
+            </para>
+            <programlisting lang="JAVA" ><![CDATA[
 @RelationshipEntity
 public class Role { 
 	@StartNode
@@ -47,16 +63,22 @@ public class Role {
 		</section>
         <section>
             <title>Fields with @GraphProperty</title>
-            <para>It is not necessary to annotate fields as they are persisted by default, all fields that contain primitive values are persisted directly to the graph. All fields
-            convertible to String using the Spring conversion servcies will stored as a string. Transient fields are not persisted.
-             This annotation is mainly used for cross store persistence. Future uses can be specification of property names and such.</para>
+            <para>It is not necessary to annotate fields as they are persisted by default; all fields that contain primitive values are persisted directly to the graph. All fields
+            convertible to String using the Spring conversion services will be stored as a string. Transient fields are not persisted.
+             This annotation is mainly used for cross-store persistence. </para>
         </section>
 		<section>
 			<title>Fields with @RelatedTo pointing to other NodeEntities</title>
-			<para>
-		Relationships to other NodeEntities are mapped to graph relationships. Those can either be single relationships (1:1) or multiple relationships (1:n). In most cases the simple relationships to other node entities don't have to be annotated as DATAGRAPH can extract all needed information from the field using reflection. In the case of multi-relationships at least the target node entity java class defined in the <code>elementClass</code> field of the @RelatedTo annotation is needed. The <code>direction</code> (default OUTGOING) and <code>type</code> (inferred from field name) attributes of the annotation are optional. 
-      </para>
-<para>Relationships to single node entities are created on setting the field and deleted on setting it to null. For multi-relationships the field provides a managed collection (Set) that handles addition and removal of node entities and reflects those in the graph relationships.</para>
+            <para>
+                Relationships to other NodeEntities are mapped to graph relationships. Those can either be single
+                relationships (1:1) or multiple relationships (1:n). In most cases the simple relationships to other
+                node entities don't have to be annotated as DATAGRAPH can extract all needed information from the field
+                using reflection. In the case of
+                multi-relationships, the <code>elementClass</code> parameter of @RelatedTo must be specified because of type erasure.
+                The <code>direction</code> (default OUTGOING) and <code>type</code>
+                (inferred from field name) parameters of the annotation are optional.
+            </para>
+            <para>Relationships to single node entities are created when setting the field and deleted when setting it to null. For multi-relationships the field provides a managed collection (Set) that handles addition and removal of node entities and reflects those in the graph relationships.</para>
 <programlisting lang="JAVA" ><![CDATA[
 @NodeEntity
 public class Movie { 
@@ -76,11 +98,13 @@ public class Actor {
 		</section>
 		<section>
 			<title>Fields with @RelatedToVia pointing to RelationshipEntities</title>
-			<para>To provide easy programmatic access to the richer relationship entities of the data model a different annotation @RelatedToVia can be
-				declared on fields of Iterables of the relationship entity type. These Iterables then provide read only access to instances of
-				the entity that backs the relationship of this relationship type. Those instances are initialized with the properties of the 
-				relationship and the start and end node.</para>
-<programlisting lang="JAVA" ><![CDATA[
+            <para>To provide easy programmatic access to the richer relationship entities of the data model a different
+                annotation @RelatedToVia can be declared on fields of Iterables of the relationship entity type. These
+                Iterables then provide read only access to instances of the entity that backs the relationship of this
+                relationship type. Those instances are initialized with the properties of the relationship and the start
+                and end node.
+            </para>
+            <programlisting lang="JAVA" ><![CDATA[
 @NodeEntity
 public class Actor { 
 	@RelatedToVia(type = "ACTS_IN", elementClass = Role.class) 
@@ -98,27 +122,42 @@ public class Actor {
 		</section>
 		<section>
 			<title>@Indexed</title>
-			<para>The @Indexed annotation can be declared on fields that are intended to be indexed on modification by the Neo4j IndexManager.
-				The resulting index can be used to later retrieve nodes or sets of nodes or relationships that contain a certain property value, e.g. as start
-				node for a traversal. The index access is available via a Finder instance created by a FinderFactory for a given node or relationship entity class.
+            <para>The @Indexed annotation can be declared on fields that are intended to be indexed by the Neo4j
+                IndexManager,
+                triggered by value modification.
+                The resulting index can be used to later retrieve nodes or relationships that contain a certain property
+                value (e.g. a name),
+                often to establish the start node for a traversal.
+                Indexes are accessed by a Finder for a particular NodeEntity or RelationshipEntity, created via a FinderFactory.
 
-                DATAGRAPH supports only the _new_ index API introduced with Neo4j 1.2. GraphDatabaseContext exposes the indexes for Nodes and Relationships. Indexes can
-                be named, for instance to keep separate domain concepts in separate indexes. That's why it is possible to specifiy an index name with
-                the @Indexed annotation. It can also be specified at the entity level, this name is then the default index  name for
-                all fields of the entity. If no index name is specified, it defaults to the one configured with neo4j ("node" and "relationship").
-			</para>
-		</section>
+                GraphDatabaseContext exposes the
+                indexes for Nodes and Relationships. Indexes can
+                be named, for instance to keep separate domain concepts in separate indexes. That's why it is possible
+                to specifiy an index name with
+                the @Indexed annotation. It can also be specified at the entity level, this name is then the default
+                index name for
+                all fields of the entity. If no index name is specified, it defaults to the one configured with neo4j
+                ("node" and "relationship").
+            </para>
+        </section>
 		<section>
 			<title>@GraphTraversal</title>
-			<para>The @GraphTraversal annotation leverages the delegation infrastructure used by the DATAGRAPH aspects. It provides dynamic fields 
-				which on access return an Iterable of NodeEntities that are the result of a traversal starting at the current NodeEntity.
-				The TraversalDescription used for this is created by a TraversalDescriptionBuilder whose class is referred to by the <code>traversalBuilder</code> attribute of the annotation. The class of the expected NodeEntities is provided with the <code>elementClass</code> attribute.
-			</para>
-		</section>
+            <para>The @GraphTraversal annotation leverages the delegation infrastructure used by the DATAGRAPH aspects.
+                It provides dynamic fields
+                which, when accessed, return an Iterable of NodeEntities that are the result of a traversal starting at the
+                current NodeEntity.
+                The TraversalDescription used for this is created by a TraversalDescriptionBuilder whose class is
+                referred to by the
+                <code>traversalBuilder</code>
+                attribute of the annotation. The class of the expected NodeEntities is provided with the
+                <code>elementClass</code>
+                attribute.
+            </para>
+        </section>
 	</section>
 	<section>
 		<title>Finding Nodes with Finders</title>
-		<para>Spring Data Graph also comes with a type bound Repository like
+		<para>Spring Data Graph also comes with a type bound Repository-like
             Finder implementation that provides methods for locating nodes
             and relationships.
 		<itemizedlist>
@@ -155,12 +194,12 @@ Iterable<Person> davesFriends = finder.findAllByTraversal(dave,
 			creation. They also provide the repository methods that use this type information to perform their operations like findAll, count etc.
 		</para>
 		<para>
-			The current implementation uses nodes to represent the java type hierarchy which are connected via SUBCLASS_OF relationships to their superclass 
+			The current implementation uses nodes to represent the Java type hierarchy which are connected via SUBCLASS_OF relationships to their superclass
 			nodes and via INSTANCE_OF relationships to the concrete node entity instance node.
 		</para>
 		<para>
 			An alternative approach could use indexing operations to perform the same functionality. Or one could skip the NodeTypeStrategy altogether if no
-            strict checks on type conformity are needed that would allow for a much more flexible datamodel.
+            strict checks on type conformity are needed that would allow for a much more flexible data model.
 		</para>
 	</section>
 	<section>
@@ -178,7 +217,7 @@ Iterable<Person> davesFriends = finder.findAllByTraversal(dave,
 			Those values are then not stored within the backing node but instead only in the entity itself. When the entity reenters a transactional context
 			and its fields are read or written to, all the pending changes are flushed to the backing node first.
 		</para>
-		<para>By now there is no support for the creation of relationships outside of transactions and also more complex operations like creating whole
+		<para>At the moment there is no support for the creation of relationships outside of transactions and also more complex operations like creating whole
 			subgraphs is not supported.
 		</para>
 	</section>
@@ -186,7 +225,7 @@ Iterable<Person> davesFriends = finder.findAllByTraversal(dave,
         <title>Methods added to Entity Classes</title>
         <para>
             The node and relationship aspects introduce (via ITD - inter type declaration) several methods to the entities that
-            make common tasks easier. Unfortunately due to limitations in aspectj those methods are not generified yet. So the
+            make common tasks easier. Unfortunately those methods are not generified yet, so the
             results have to be casted to the correct return type.
             <variablelist>
                 <varlistentry>
@@ -254,7 +293,7 @@ Iterable<Person> davesFriends = finder.findAllByTraversal(dave,
             contexts.
         </para>
         <para>
-            For instance an order can be used in these contexts: customer, proecurement, logistics, billing, fulfillment and many more.
+            For instance an order can be used in these contexts: customer, procurement, logistics, billing, fulfillment and many more.
             Each of those contexts requires its distinct set of attributes and operations. As Java doesn't support Mixins one would put
             the sum of all of those into the entity class and thereby making it very big, brittle and hard to understand.
             Being able to take a basic order and project it to a different (not related in the inheritance hierarchy or even an interface)

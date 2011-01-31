@@ -4,12 +4,11 @@
 
 <partintro>
           <para>
-            <para>This document is the reference guide for Spring Data - Graph Support. 
-            It explains Spring Data Graph concepts, usage, infrastructure of the framework and underlying semantics for the underlying graph stores.</para>
+            This document is the reference guide for Spring Data Graph.
+            It explains the underlying concepts, usage, infrastructure of the framework and semantics for the used graph database.
+          </para>
 			
-			<para>For an introduction to graph stores or Spring, or Spring Data examples, please refer to
-			<xref linkend="get-started"/> - this documentation refers only to Spring Data Graph Support and 
+			<para>For an introduction to graph databases or Spring, or Spring Data examples, please refer to
+			<xref linkend="get-started"/> - this documentation refers only to Spring Data Graph and
 			assumes the reader is familiar with Spring concepts.</para>
-			</para>
-          
 </partintro>
