@@ -112,7 +112,7 @@ public aspect Neo4jRelationshipBacking extends AbstractTypeAnnotatingMixinFields
 	}
 
 	public void RelationshipBacked.remove() {
-		return Neo4jRelationshipBacking.aspectOf().graphDatabaseContext.removeRelationshipEntity(this);
+	     Neo4jRelationshipBacking.aspectOf().graphDatabaseContext.removeRelationshipEntity(this);
 	}
 
     public RelationshipBacked RelationshipBacked.projectTo(Class<? extends RelationshipBacked> targetType) {

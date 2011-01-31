@@ -41,7 +41,7 @@ public class NodeFinder<T extends GraphBacked<Node>> extends AbstractFinder<Node
 
     @Override
     public <N extends NodeBacked> Iterable<T> findAllByTraversal(final N startNode, final TraversalDescription traversalDescription) {
-        return (Iterable<T>) startNode.find((Class<? extends NodeBacked>) clazz, traversalDescription);
+        return (Iterable<T>) startNode.findAllByTraversal((Class<? extends NodeBacked>) clazz, traversalDescription);
     }
 }
 
