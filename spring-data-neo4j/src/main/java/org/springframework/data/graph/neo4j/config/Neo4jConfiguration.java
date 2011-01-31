@@ -50,23 +50,40 @@ import org.springframework.transaction.jta.JtaTransactionManager;
  * @author Thomas Risberg
  */
 @Configuration
-public abstract class AbstractNeo4jConfiguration {
-	
-	public abstract boolean isUsingCrossStorePersistence();
-	
-	@Autowired(required = false)
-	private EntityManagerFactory entityManagerFactory;
+public class Neo4jConfiguration {
+    private GraphDatabaseService graphDatabaseService;
 
-	@Bean(destroyMethod="shutdown")
-	public abstract GraphDatabaseService graphDatabaseService();
-	
-	@Bean(destroyMethod="shutdown")
-	public LuceneIndexService indexService(GraphDatabaseService graphDatabaseService) {
+    public GraphDatabaseService getGraphDatabaseService() {
+        return graphDatabaseService;
+    }
+
+    @Autowired
+    public void setGraphDatabaseService(GraphDatabaseService graphDatabaseService) {
+        this.graphDatabaseService = graphDatabaseService;
+    }
+
+    private EntityManagerFactory entityManagerFactory;
+
+    public EntityManagerFactory getEntityManagerFactory() {
+        return entityManagerFactory;
+    }
+
+    @Autowired(required = false)
+    public void setEntityManagerFactory(EntityManagerFactory entityManagerFactory) {
+        this.entityManagerFactory = entityManagerFactory;
+    }
+
+    public boolean isUsingCrossStorePersistence() {
+        return entityManagerFactory!=null;
+    }
+
+    @Bean(destroyMethod="shutdown")
+	public LuceneIndexService indexService() {
 		return new LuceneIndexService(graphDatabaseService);
 	}
 
 	@Bean
-	public GraphDatabaseContext graphDatabaseContext(GraphDatabaseService graphDatabaseService, IndexService indexService) throws Exception {
+	public GraphDatabaseContext graphDatabaseContext(IndexService indexService) throws Exception {
 		GraphDatabaseContext gdc = new GraphDatabaseContext();
 		gdc.setGraphDatabaseService(graphDatabaseService);
 		gdc.setIndexService(indexService);
@@ -99,7 +116,7 @@ public abstract class AbstractNeo4jConfiguration {
 	}
 
 	@Bean
-	public Neo4jNodeBacking neo4jNeo4jNodeBacking(GraphDatabaseContext graphDatabaseContext, FinderFactory finderFactory) {
+	public Neo4jNodeBacking neo4jNodeBacking(GraphDatabaseContext graphDatabaseContext, FinderFactory finderFactory) {
 		Neo4jNodeBacking aspect = Neo4jNodeBacking.aspectOf();
 		aspect.setGraphDatabaseContext(graphDatabaseContext);
 		NodeEntityStateAccessorsFactory entityStateAccessorsFactory = new NodeEntityStateAccessorsFactory();
@@ -112,7 +129,7 @@ public abstract class AbstractNeo4jConfiguration {
 	}
 	
 	@Bean
-	public PlatformTransactionManager transactionManager(GraphDatabaseService graphDatabaseService) {
+	public PlatformTransactionManager transactionManager() {
 		if (isUsingCrossStorePersistence()) {
 			JpaTransactionManager jpaTm = new JpaTransactionManager(entityManagerFactory);
 			JtaTransactionManager jtaTm = new JtaTransactionManager();
