@@ -102,10 +102,10 @@ public class Actor {
 				The resulting index can be used to later retrieve nodes or sets of nodes or relationships that contain a certain property value, e.g. as start
 				node for a traversal. The index access is available via a Finder instance created by a FinderFactory for a given node or relationship entity class.
 
-                DATAGRAPH supports only the _new_ index API introduced with Neo4j 1.2. GraphDatabaseContext exposes the Indexes for Nodes and Relationships. Indexes can
-                be named, for instance to keep separate domain concepts in separate indexes. Thats why it is possible to specifiy an index name with
-                the @Indexed annotation. It can also be specified at the entity level, this name is then the default for all fields of the entity.
-                If no index name is specified, they default to the ones configured with neo4j ("node" and "relationship").
+                DATAGRAPH supports only the _new_ index API introduced with Neo4j 1.2. GraphDatabaseContext exposes the indexes for Nodes and Relationships. Indexes can
+                be named, for instance to keep separate domain concepts in separate indexes. That's why it is possible to specifiy an index name with
+                the @Indexed annotation. It can also be specified at the entity level, this name is then the default index  name for
+                all fields of the entity. If no index name is specified, it defaults to the one configured with neo4j ("node" and "relationship").
 			</para>
 		</section>
 		<section>
@@ -118,16 +118,32 @@ public class Actor {
 	</section>
 	<section>
 		<title>Finding Nodes with Finders</title>
-		<para>Spring Data Graph also comes with a type bound Repository like Finder implementation that provides methods for locating nodes 
+		<para>Spring Data Graph also comes with a type bound Repository like
+            Finder implementation that provides methods for locating nodes
+            and relationships.
 		<itemizedlist>
-			<listitem>using direct access (findById), </listitem>
-			<listitem>iterating over all nodes of a node entity type (findAll), </listitem>
+			<listitem>using direct access <code>findById(id)</code> , </listitem>
+            <listitem>iterating over all nodes of a node entity type (findAll), </listitem>
 			<listitem>counting the instances of a node entity type (count), </listitem>
 			<listitem>iterating over all indexed instances with a certain property value (findAllByPropertyValue), </listitem>
 			<listitem>getting a single instances with a certain property value (findByPropertyValue), </listitem>
 			<listitem>iterating over a traversal result (findAllByTraversal), </listitem>
 		</itemizedlist>
-		The Finder instances are created via a FinderFactory to be bound to a concrete node entity class.
+		The Finder instances are created via a FinderFactory to be bound to a
+            concrete node or relationship entity class.
+        The FinderFactory is created in the Spring context and can be
+        injected.
+<programlisting lang="JAVA" ><![CDATA[
+NodeFinder<Person> finder = finderFactory.createNodeEntityFinder(Person.class);
+Person dave=finder.findById(123);
+int people = finder.count();
+Person mark = finder.findByPropertyValue("name", "mark");
+Iterable<Person> devs = finder.findAllByProperyValue("occupation","developer");
+Iterable<Person> davesFriends = finder.findAllByTraversal(dave,
+    Traversal.description().pruneAfterDepth(1)
+    .relationships(KNOWS).filter(returnAllButStartNode()));
+
+]]></programlisting>
 		</para>
 	</section>
 	<section>
@@ -143,7 +159,8 @@ public class Actor {
 			nodes and via INSTANCE_OF relationships to the concrete node entity instance node.
 		</para>
 		<para>
-			An alternative approach could use indexing operations to perform the same functionality.
+			An alternative approach could use indexing operations to perform the same functionality. Or one could skip the NodeTypeStrategy altogether if no
+            strict checks on type conformity are needed that would allow for a much more flexible datamodel.
 		</para>
 	</section>
 	<section>
@@ -165,4 +182,110 @@ public class Actor {
 			subgraphs is not supported.
 		</para>
 	</section>
+    <section>
+        <title>Methods added to Entity Classes</title>
+        <para>
+            The node and relationship aspects introduce (via ITD - inter type declaration) several methods to the entities that
+            make common tasks easier. Unfortunately due to limitations in aspectj those methods are not generified yet. So the
+            results have to be casted to the correct return type.
+            <variablelist>
+                <varlistentry>
+                    <term>accessing node and relationship ids</term>
+                    <listitem>
+                        <para><code>nodeEntity.getNodeId() and relationshipEntity.getRelationshipId()</code></para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>accessing the node or relationship backing the entity</term>
+                    <listitem>
+                        <para><code>entity.getUnderlyingState()</code></para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>equals and hashcode delegated to the underlying state</term>
+                    <listitem>
+                        <para><code>entity.equals() and entity.hashCode()</code></para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>creating relationships to a target node entity</term>
+                    <listitem>
+                        <para><code>nodeEntity.relateTo(targetEntity, relationshipClass, relationshipTyperelationshipType)</code></para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>retrieving a single relationship</term>
+                    <listitem>
+                        <para><code>nodeEntity.getRelationshipTo(targetEnttiy, relationshipClass, relationshipType)</code></para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>removing a single relationship</term>
+                    <listitem>
+                        <para><code>nodeEntity.removeRelationshipTo(targetEntity, relationshipTyp)</code></para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>remove the node entity, its relationship and index entries</term>
+                    <listitem>
+                        <para><code>entity.remove()</code></para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>projecting to a different target type</term>
+                    <listitem>
+                        <para><code>entity.projectTo(targetClass)</code></para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>traversing, starting at the current node</term>
+                    <listitem>
+                        <para><code>nodeEntity.findAllByTraversal(targetType, traversalDescription)</code></para>
+                    </listitem>
+                </varlistentry>
+            </variablelist>
+        </para>
+    </section>
+    <section>
+        <title>Dynamic Typing - Projection to unrelated, fitting types</title>
+        <para>
+            As the underlying data model of a graph database doesn't imply and enforce strict type constraints like a relational
+            model does, it offers much more flexibility on how to model your domain classes and which of those to use in different
+            contexts.
+        </para>
+        <para>
+            For instance an order can be used in these contexts: customer, proecurement, logistics, billing, fulfillment and many more.
+            Each of those contexts requires its distinct set of attributes and operations. As Java doesn't support Mixins one would put
+            the sum of all of those into the entity class and thereby making it very big, brittle and hard to understand.
+            Being able to take a basic order and project it to a different (not related in the inheritance hierarchy or even an interface)
+            order type that is valid in the current context and only offers the attributes and methods needed here would be very benefitial.
+        </para>
+        <para>DATAGRAPH offers initial support for projecting node and relationship entities to different target types.
+        All instances of this projected entity share the same backing node or relationship, so data changes are reflected
+        immediately.
+        </para>
+        <para>
+            This could for instance also be used to handle nodes of a traversal with a unified (simpler) type (e.g. for
+            reporting or auditing) and only project them to a concrete, more functional target type when the business
+            logic requires it.
+        </para>
+<programlisting lang="JAVA" ><![CDATA[
+// not related to Person at all
+@NodeEntity
+class Trainee {
+    String name;
+    @RelatedTo(elementClass=Training.class);
+    Set<Training> trainings;
+}
+
+for (Person person : finder.findAllByProperyValue("occupation","developer")) {
+    Developer developer=person.projectTo(Developer.class)
+    if (developer.isJavaDeveloper()) {
+        trainInSpringData(developer.projectTo(Trainee.class));
+    }
+}
+]]></programlisting>
+
+    </section>
+
 </chapter>

@@ -93,7 +93,7 @@ public class Neo4jGraphPersistenceTest {
         group.setName("developers");
 
         Named named = (Named)group.projectTo(Named.class);
-        assertEquals("named.name","developers", named.name);
+        assertEquals("named.name","developers", named.getName());
         assertEquals("nameds node name property","developers", named.getUnderlyingState().getProperty("name"));
     }
 

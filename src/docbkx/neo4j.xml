@@ -73,4 +73,26 @@ for ( Path position : traversalDescription.traverse( myStartNode )) {
 ]]></programlisting>
 		</para>
 	</section>
+	<section>
+		<title>Indexing</title>
+		<para>The best way for retrieving start nodes for traversals is
+            using Neo4j's index facilities. The GraphDatabaseService provides
+            access to the IndexManager which in turn retrieves named indexes
+            for nodes and relationships. Both can be index with property names
+            and values. Retrieval happens via IndexHits which are an Iterator
+            over the results.
+
+<programlisting lang="JAVA" ><![CDATA[
+IndexManager indexManager = graphDb.index();
+Index<Node> nodeIndex = indexManager.forNodes("a-node-index");
+nodeIndex.add(node, "property","value");
+for (Node foundNode = nodeIndex.get("property","value")) {
+    assert node.getProperty("property").equals("value");
+}
+]]></programlisting>
+            Currently indexing is a manual process, auto-indexes are a future
+            feature. (DATAGRAPH already provides auto-indexing via the
+            @Indexed annotation.)
+		</para>
+	</section>
 </chapter>

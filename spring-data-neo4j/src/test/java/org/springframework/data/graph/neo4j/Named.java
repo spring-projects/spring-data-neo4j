@@ -9,4 +9,8 @@ import org.springframework.data.graph.annotation.NodeEntity;
 @NodeEntity
 public class Named {
     public String name;
+
+    public String getName() {
+        return name;
+    }
 }

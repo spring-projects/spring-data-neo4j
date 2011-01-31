@@ -137,13 +137,19 @@ public class GraphDatabaseContext {
      * @param entity to remove
      */
     public void removeNodeEntity(NodeBacked entity) {
-        this.nodeTypeStrategy.preEntityRemoval(entity);
         Node node = entity.getUnderlyingState();
+        if (node==null) return;
+        this.nodeTypeStrategy.preEntityRemoval(entity);
         for (Relationship relationship : node.getRelationships()) {
             removeRelationship(relationship);
         }
         removeFromIndexes(node);
         node.delete();
+    }
+    public void removeRelationshipEntity(RelationshipBacked entity) {
+        Relationship relationship = entity.getUnderlyingState();
+        if (relationship==null) return;
+        removeRelationship(relationship);
     }
 
     /**
@@ -311,8 +317,8 @@ public class GraphDatabaseContext {
         return graphDatabaseService.getRelationshipById(id);
     }
 
-    public <T extends NodeBacked> T projectTo(NodeBacked entity, Class<T> targetType) {
-        return graphEntityInstantiator.createEntityFromState(entity.getUnderlyingState(), targetType);
+    public <T extends GraphBacked> T projectTo(GraphBacked entity, Class<T> targetType) {
+        return createEntityFromState(entity.getUnderlyingState(), targetType);
     }
 }
 

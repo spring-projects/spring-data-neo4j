@@ -117,12 +117,11 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<NodeEnt
     public boolean NodeBacked.hasUnderlyingNode() {
         return this.stateAccessors.hasUnderlyingState();
     }
-
     public NodeBacked NodeBacked.projectTo(Class<? extends NodeBacked> targetType) {
         return Neo4jNodeBacking.aspectOf().graphDatabaseContext.projectTo(this, targetType);
     }
 //    public <T extends NodeBacked> T NodeBacked.projectTo(Class<T> targetType) {
-//        return Neo4jNodeBacking.aspectOf().graphDatabaseContext.projectTo(this, targetType);
+//        return (T)Neo4jNodeBacking.aspectOf().graphDatabaseContext.projectTo( this, targetType);
 //    }
 
     /**
@@ -150,7 +149,7 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<NodeEnt
      * @param traversalDescription
      * @return lazy Iterable over the traversal results, converted to the expected node entity instances
      */
-    public  Iterable<? extends NodeBacked> NodeBacked.find(final Class<? extends NodeBacked> targetType, TraversalDescription traversalDescription) {
+    public  Iterable<? extends NodeBacked> NodeBacked.findAllByTraversal(final Class<? extends NodeBacked> targetType, TraversalDescription traversalDescription) {
         if (!hasUnderlyingNode()) throw new IllegalStateException("No node attached to " + this);
         final Traverser traverser = traversalDescription.traverse(this.getUnderlyingState());
         return new NodeBackedNodeIterableWrapper(traverser, targetType, Neo4jNodeBacking.aspectOf().graphDatabaseContext);
@@ -162,12 +161,10 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<NodeEnt
     }
     */
 
-    /* todo Andy Clement
-    public <R extends RelationshipBacked, N extends NodeBacked> R NodeBacked.relateTo(N node, Class<R> relationshipType, String type) {
-        Relationship rel = this.getUnderlyingState().createRelationshipTo(node.getUnderlyingState(), DynamicRelationshipType.withName(type));
-        Neo4jNodeBacking.aspectOf().relationshipEntityInstantiator.createEntityFromState(rel, relationshipType);
-    }
-    */
+//    public <R extends RelationshipBacked, N extends NodeBacked> R NodeBacked.relateTo(N target, Class<R> relationshipClass, String type) {
+//        Relationship rel = this.getUnderlyingState().createRelationshipTo( target.getUnderlyingState(), DynamicRelationshipType.withName(type));
+//        return (R)Neo4jNodeBacking.aspectOf().graphDatabaseContext.createEntityFromState(rel, relationshipClass);
+//    }
 
     /**
      * Creates a relationship to the target node  with the given relationship type.
@@ -212,6 +209,14 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<NodeEnt
      * @param type type of the graph relationship
      * @return and instance of the requested relationshipClass if the relationship was found, null otherwise
      */
+//    public <R extends RelationshipBacked> R NodeBacked.getRelationshipTo( NodeBacked node, Class<R> relationshipClass, String type) {
+//        Node myNode=this.getUnderlyingState();
+//        Node otherNode=node.getUnderlyingState();
+//        for (Relationship rel : this.getUnderlyingState().getRelationships(DynamicRelationshipType.withName(type))) {
+//            if (rel.getOtherNode(myNode).equals(otherNode)) return (R)Neo4jNodeBacking.aspectOf().graphDatabaseContext.createEntityFromState(rel, relationshipClass);
+//        }
+//        return null;
+//    }
     public RelationshipBacked NodeBacked.getRelationshipTo(NodeBacked node, Class<? extends RelationshipBacked> relationshipClass, String type) {
         Node myNode=this.getUnderlyingState();
         Node otherNode=node.getUnderlyingState();

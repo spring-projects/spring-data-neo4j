@@ -111,6 +111,13 @@ public aspect Neo4jRelationshipBacking extends AbstractTypeAnnotatingMixinFields
 		return getUnderlyingState().hashCode();
 	}
 
+	public void RelationshipBacked.remove() {
+		return Neo4jRelationshipBacking.aspectOf().graphDatabaseContext.removeRelationshipEntity(this);
+	}
+
+    public RelationshipBacked RelationshipBacked.projectTo(Class<? extends RelationshipBacked> targetType) {
+        return Neo4jRelationshipBacking.aspectOf().graphDatabaseContext.projectTo(this, targetType);
+    }
 
     Object around(RelationshipBacked entity): entityFieldGet(entity) {
         Object result=entity.stateAccessors.getValue(field(thisJoinPoint));
