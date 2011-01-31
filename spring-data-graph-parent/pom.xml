@@ -6,7 +6,7 @@
 	<artifactId>spring-data-graph-parent</artifactId>
 	<name>Spring Data Graph Parent</name>
 	<url>http://www.springsource.org/spring-data/data-graph</url>
-	<version>1.0.0.BUILD-SNAPSHOT</version>
+	<version>1.0.0.M2</version>
 	<packaging>pom</packaging>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -15,8 +15,8 @@
 		<log4j.version>1.2.15</log4j.version>
 		<org.mockito.version>1.8.4</org.mockito.version>
 		<org.slf4j.version>1.5.10</org.slf4j.version>
-		<org.springframework.version>3.0.4.RELEASE</org.springframework.version>
-		<data.commons.version>1.0.0.BUILD-SNAPSHOT</data.commons.version>
+		<org.springframework.version>3.0.5.RELEASE</org.springframework.version>
+		<data.commons.version>1.0.0.M2</data.commons.version>
     <neo4j.version>1.2</neo4j.version>
     <neo4j-utils.version>1.2-${neo4j.version}</neo4j-utils.version>
 	</properties>

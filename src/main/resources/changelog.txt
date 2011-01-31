@@ -1,6 +1,17 @@
 Spring Data Graph Changelog
 =============================================
 
+Changes in version 1.0.0.M2 (2011-01-31)
+----------------------------------------
+
+General
+* Improved indexing support - full, named index support for nodes and relationships
+* Now supporting removal of node and relationship entities
+* Added strict type checking on entity instantiation from framework methods (according to type strategy)
+* Added support for dynamic projection to arbitrary graph entities
+* Updated dependency to Neo4j 1.2
+
+
 Changes in version 1.0.0.M1 (2010-12-24)
 ----------------------------------------
 
