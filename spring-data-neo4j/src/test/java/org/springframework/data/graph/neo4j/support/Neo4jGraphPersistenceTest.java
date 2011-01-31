@@ -561,7 +561,7 @@ public class Neo4jGraphPersistenceTest {
         group.setName("dev");
         group.addPerson(p);
         final TraversalDescription traversalDescription = new TraversalDescriptionImpl().relationships(DynamicRelationshipType.withName("persons")).filter(Traversal.returnAllButStartNode());
-        Iterable<Person> people = (Iterable<Person>) group.find(Person.class, traversalDescription);
+        Iterable<Person> people = (Iterable<Person>) group.findAllByTraversal(Person.class, traversalDescription);
         final HashSet<Person> found = new HashSet<Person>();
         for (Person person : people) {
             found.add(person);

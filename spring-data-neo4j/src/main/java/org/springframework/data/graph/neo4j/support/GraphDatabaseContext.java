@@ -318,7 +318,11 @@ public class GraphDatabaseContext {
     }
 
     public <T extends GraphBacked> T projectTo(GraphBacked entity, Class<T> targetType) {
-        return createEntityFromState(entity.getUnderlyingState(), targetType);
+        final Object state = entity.getUnderlyingState();
+        if (state instanceof Node)
+            return (T) graphEntityInstantiator.createEntityFromState((Node) state, (Class<? extends NodeBacked>) targetType);
+        else
+            return (T) relationshipEntityInstantiator.createEntityFromState((Relationship) state, (Class<? extends RelationshipBacked>) targetType);
     }
 }
 
