@@ -1,5 +1,7 @@
 package org.springframework.data.graph.neo4j.support;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -12,12 +14,20 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.graph.annotation.NodeEntity;
 import org.springframework.data.graph.core.NodeBacked;
 import org.springframework.data.graph.core.NodeTypeStrategy;
+import org.springframework.data.graph.neo4j.Car;
+import org.springframework.data.graph.neo4j.Person;
+import org.springframework.data.graph.neo4j.Toyota;
+import org.springframework.data.graph.neo4j.Volvo;
+import org.springframework.data.graph.neo4j.finder.FinderFactory;
+import org.springframework.data.graph.neo4j.finder.NodeFinder;
 import org.springframework.data.graph.neo4j.support.node.Neo4jHelper;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
+
+import static org.junit.Assert.assertEquals;
 
 /**
  * @author mh
@@ -27,14 +37,18 @@ import java.util.Collection;
 @ContextConfiguration(locations = {"classpath:org/springframework/data/graph/neo4j/support/Neo4jGraphPersistenceTest-context.xml"})
 public class SubReferenceNodeTypeStrategyTest {
 
+    protected final Log log = LogFactory.getLog(getClass());
+
     @Autowired
     GraphDatabaseContext graphDatabaseContext;
+    @Autowired
+    private FinderFactory finderFactory;
+
     private NodeTypeStrategy nodeTypeStrategy;
     private Node thingNode;
     private Thing thing;
 
     @Before
-    @Transactional
     public void cleanDb() {
         Neo4jHelper.cleanDb(graphDatabaseContext);
         nodeTypeStrategy = graphDatabaseContext.getNodeTypeStrategy();
@@ -99,6 +113,46 @@ public class SubReferenceNodeTypeStrategyTest {
         Assert.assertEquals("one thing created and found", 1, things.size());
         Assert.assertTrue("result only contains Thing", things.iterator().next() instanceof Thing);
     }
+
+
+    @Test
+	@Transactional
+	public void testInstantiateConcreteClass() {
+		log.debug("testInstantiateConcreteClass");
+		Person p = new Person("Michael", 35);
+		Car c = new Volvo();
+		p.setCar(c);
+		assertEquals("Wrong concrete class.", Volvo.class, p.getCar().getClass());
+	}
+
+	@Test
+	@Transactional
+	public void testInstantiateConcreteClassWithFinder() {
+		log.debug("testInstantiateConcreteClassWithFinder");
+		new Volvo();
+        NodeFinder<Car> finder = finderFactory.createNodeEntityFinder(Car.class);
+		assertEquals("Wrong concrete class.", Volvo.class, finder.findAll().iterator().next().getClass());
+	}
+
+	@Test
+	@Transactional
+	public void testCountSubclasses() {
+		log.warn("testCountSubclasses");
+		new Volvo();
+		log.warn("Created volvo");
+		new Toyota();
+		log.warn("Created volvo");
+        assertEquals("Wrong count for Volvo.", 1, finderFactory.createNodeEntityFinder(Volvo.class).count());
+        assertEquals("Wrong count for Toyota.", 1, finderFactory.createNodeEntityFinder(Toyota.class).count());
+        assertEquals("Wrong count for Car.", 2, finderFactory.createNodeEntityFinder(Car.class).count());
+	}
+	@Test
+	@Transactional
+	public void testCountClasses() {
+		new Person("Michael",36);
+		new Person("David",25);
+        assertEquals("Wrong Person instance count.", 2, finderFactory.createNodeEntityFinder(Person.class).count());
+	}
 
     @NodeEntity
     public static class Thing {

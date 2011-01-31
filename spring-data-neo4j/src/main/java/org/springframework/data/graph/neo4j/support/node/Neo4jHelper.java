@@ -18,22 +18,29 @@ package org.springframework.data.graph.neo4j.support.node;
 
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
+import org.neo4j.graphdb.Transaction;
 import org.springframework.data.graph.neo4j.support.GraphDatabaseContext;
 
 public abstract class Neo4jHelper {
 
-    public static void cleanDb(GraphDatabaseContext graphDatabaseContext,String...indexFieldsToRemove) {
-        Node refNode = graphDatabaseContext.getReferenceNode();
-        for (Node node : graphDatabaseContext.getAllNodes()) {
-            for (Relationship rel : node.getRelationships()) {
-                rel.delete();
+    public static void cleanDb(GraphDatabaseContext graphDatabaseContext, String... indexFieldsToRemove) {
+        Transaction tx = graphDatabaseContext.beginTx();
+        try {
+            Node refNode = graphDatabaseContext.getReferenceNode();
+            for (Node node : graphDatabaseContext.getAllNodes()) {
+                for (Relationship rel : node.getRelationships()) {
+                    rel.delete();
+                }
+                if (!refNode.equals(node)) {
+                    node.delete();
+                }
             }
-            if (!refNode.equals(node)) {
-                node.delete();
+            for (String indexField : indexFieldsToRemove) {
+                graphDatabaseContext.getNodeIndex("node").remove(null, indexField, null);
             }
-        }
-        for (String indexField : indexFieldsToRemove) {
-            graphDatabaseContext.getNodeIndex("node").remove(null, indexField, null);
+            tx.success();
+        } finally {
+            tx.finish();
         }
     }
 }
