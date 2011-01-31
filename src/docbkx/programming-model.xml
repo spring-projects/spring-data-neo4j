@@ -64,7 +64,7 @@ public class Movie {
 }
 @NodeEntity
 public class Person { 
-	@RelatedTo(type = ”topActor”, direction = Direction.INCOMING)
+	@RelatedTo(type = "topActor", direction = Direction.INCOMING)
 	private Movie wasTopActorIn;
 }
 @NodeEntity
