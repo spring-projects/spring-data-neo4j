@@ -5,6 +5,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.kernel.EmbeddedGraphDatabase;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -42,14 +43,22 @@ public class DataGraphNamespaceHandlerTest {
     }
 
     @Test
-    @Ignore
+    public void injectionForCodeConfiguredExistingGraphDatabaseService() {
+        assertInjected("-code");
+    }
+
+    @Test
     public void injectionForCrossStore() {
         assertInjected("-cross-store");
     }
 
     private void assertInjected(String testCase) {
-        Config config = new ClassPathXmlApplicationContext("classpath:org/springframework/data/graph/neo4j/config/DataGraphNamespaceHandlerTest"+ testCase +"-context.xml").getBean("config",Config.class);
-        Assert.assertNotNull("graphDatabaseContext", config.graphDatabaseContext);
+        ClassPathXmlApplicationContext ctx = new ClassPathXmlApplicationContext("classpath:org/springframework/data/graph/neo4j/config/DataGraphNamespaceHandlerTest" + testCase + "-context.xml");
+        Config config = ctx.getBean("config", Config.class);
+        GraphDatabaseContext graphDatabaseContext = config.graphDatabaseContext;
+        Assert.assertNotNull("graphDatabaseContext", graphDatabaseContext);
+        EmbeddedGraphDatabase graphDatabaseService = (EmbeddedGraphDatabase) graphDatabaseContext.getGraphDatabaseService();
+        Assert.assertEquals("store-dir", "target/config-test", graphDatabaseService.getStoreDir());
         Assert.assertNotNull("finderFactory",config.finderFactory);
         Assert.assertNotNull("graphDatabaseService",config.graphDatabaseService);
         Assert.assertNotNull("transactionManager",config.transactionManager);

@@ -79,13 +79,13 @@ public class Neo4jConfiguration {
 
     @Bean(destroyMethod="shutdown")
 	public LuceneIndexService indexService() {
-		return new LuceneIndexService(graphDatabaseService);
+		return new LuceneIndexService(getGraphDatabaseService());
 	}
 
 	@Bean
 	public GraphDatabaseContext graphDatabaseContext(IndexService indexService) throws Exception {
 		GraphDatabaseContext gdc = new GraphDatabaseContext();
-		gdc.setGraphDatabaseService(graphDatabaseService);
+		gdc.setGraphDatabaseService(getGraphDatabaseService());
 		gdc.setIndexService(indexService);
 		gdc.setRelationshipEntityInstantiator(new ConstructorBypassingGraphRelationshipInstantiator());
 		if (isUsingCrossStorePersistence()) {
@@ -131,16 +131,16 @@ public class Neo4jConfiguration {
 	@Bean
 	public PlatformTransactionManager transactionManager() {
 		if (isUsingCrossStorePersistence()) {
-			JpaTransactionManager jpaTm = new JpaTransactionManager(entityManagerFactory);
+			JpaTransactionManager jpaTm = new JpaTransactionManager(getEntityManagerFactory());
 			JtaTransactionManager jtaTm = new JtaTransactionManager();
-			jtaTm.setTransactionManager(new SpringTransactionManager(graphDatabaseService));
-			jtaTm.setUserTransaction(new UserTransactionImpl(graphDatabaseService));
+			jtaTm.setTransactionManager(new SpringTransactionManager(getGraphDatabaseService()));
+			jtaTm.setUserTransaction(new UserTransactionImpl(getGraphDatabaseService()));
 			return new NaiveDoubleTransactionManager(jpaTm, jtaTm);
 		}
 		else {
 			PlatformTransactionManager transactionManager = new JtaTransactionManager();
-			((JtaTransactionManager)transactionManager).setTransactionManager(new SpringTransactionManager(graphDatabaseService));
-			((JtaTransactionManager)transactionManager).setUserTransaction(new UserTransactionImpl(graphDatabaseService));
+			((JtaTransactionManager)transactionManager).setTransactionManager(new SpringTransactionManager(getGraphDatabaseService()));
+			((JtaTransactionManager)transactionManager).setUserTransaction(new UserTransactionImpl(getGraphDatabaseService()));
 			return transactionManager;
 		}
 	}

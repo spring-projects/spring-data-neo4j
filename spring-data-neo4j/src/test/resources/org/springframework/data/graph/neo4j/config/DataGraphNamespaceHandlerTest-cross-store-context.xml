@@ -6,22 +6,14 @@
 	xsi:schemaLocation="
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
 		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd
-		http://www.springframework.org/schema/data/graph http://www.springframework.org/schema/data/graph/datagraph.xsd
+		http://www.springframework.org/schema/data/graph http://www.springframework.org/schema/data/graph/datagraph-1.0.xsd
 		">
 
-	<context:property-placeholder location="classpath*:META-INF/spring/*.properties"/>
-
-	<context:spring-configured/>
-
-	<context:component-scan base-package="org.springframework.data.graph.neo4j">
-		<context:exclude-filter expression=".*_Roo_.*" type="regex"/>
-		<context:exclude-filter expression="org.springframework.stereotype.Controller" type="annotation"/>
-	</context:component-scan>
+	<context:annotation-config/>
 
     <datagraph:config storeDirectory="target/config-test" entityManagerFactory="entityManagerFactory"/>
-    <bean id="config" class="org.springframework.data.graph.neo4j.config.DataGraphNamespaceHandlerTest$Config"/>
 
-    <bean class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean" id="entityManagerFactory" depends-on="neo4jNodeBacking">
+    <bean class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean" id="entityManagerFactory">
         <property name="dataSource" ref="dataSource"/>
         <property name="persistenceXmlLocation" value="classpath:META-INF/persistence.xml"/>
     </bean>
@@ -31,4 +23,7 @@
         <property name="username" value="${database.username}"/>
         <property name="password" value="${database.password}"/>
     </bean>
+
+    <bean id="config" class="org.springframework.data.graph.neo4j.config.DataGraphNamespaceHandlerTest$Config"/>
+
 </beans>

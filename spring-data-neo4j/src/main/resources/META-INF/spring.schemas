@@ -1,1 +1,1 @@
-http\://www.springframework.org/schema/data/graph/datagraph.xsd=org/springframework/data/graph/neo4j/config/datagraph.xsd
+http\://www.springframework.org/schema/data/graph/datagraph-1.0.xsd=org/springframework/data/graph/neo4j/config/datagraph.xsd
