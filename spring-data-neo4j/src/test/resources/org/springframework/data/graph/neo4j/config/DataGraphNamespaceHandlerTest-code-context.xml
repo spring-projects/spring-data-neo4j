@@ -9,9 +9,7 @@
 
 <context:annotation-config/>
 
-    <bean class="org.springframework.data.graph.neo4j.config.Neo4jConfiguration">
-        <property name="graphDatabaseService" ref="graphDatabaseService"/>
-    </bean>
+    <bean class="org.springframework.data.graph.neo4j.config.Neo4jConfiguration"/>
 
     <bean class="org.springframework.context.annotation.ConfigurationClassPostProcessor"/>
 
