@@ -9,8 +9,6 @@
 		http://www.springframework.org/schema/data/graph http://www.springframework.org/schema/data/graph/datagraph-1.0.xsd
 		">
 
-    <!--context:component-scan base-package="org.springframework.data.graph.neo4j"/-->
-
     <context:annotation-config/>
     <datagraph:config storeDirectory="target/config-test"/>
     <bean id="config" class="org.springframework.data.graph.neo4j.config.DataGraphNamespaceHandlerTest$Config"/>

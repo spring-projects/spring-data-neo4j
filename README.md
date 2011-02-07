@@ -84,21 +84,35 @@ Configure the Aspect-J maven plugin build & library dependency.  Add the followi
 
 Spring Configuration:
 
-* Configure Spring Data Graph for Neo4j in your application using Spring 3.0's [Java based bean metadata](http://static.springsource.org/spring/docs/3.0.x/spring-framework-reference/html/new-in-3.html#new-java-configuration)  For XML based configuration refer to the User Guide.
+* Configure Spring Data Graph for Neo4j in your application using the provided xml namespace.
 
-        @Configuration
-        public class MyConfig extends AbstractNeo4jConfiguration {
+    <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+    <beans xmlns="http://www.springframework.org/schema/beans"
+        xmlns:context="http://www.springframework.org/schema/context"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns:datagraph="http://www.springframework.org/schema/data/graph"
+        xsi:schemaLocation="
+            http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+            http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd
+            http://www.springframework.org/schema/data/graph http://www.springframework.org/schema/data/graph/datagraph-1.0.xsd
+            ">
 
-          @Override
-          public boolean isUsingCrossStorePersistence() {
-              return false;
-          }
+        <context:annotation-config/>
+        <datagraph:config storeDirectory="target/config-test"/>
 
-          @Override
-          public GraphDatabaseService graphDatabaseService() {
-            return new EmbeddedGraphDatabase("target/neo4j-db");
-          }
-        }
+    </beans>
+
+* You can also use the supplied Java @Configuration in Neo4jConfiguration. [Java based bean metadata](http://static.springsource.org/spring/docs/3.0.x/spring-framework-reference/html/new-in-3.html#new-java-configuration)
+
+    <context:annotation-config/>
+
+    <bean class="org.springframework.data.graph.neo4j.config.Neo4jConfiguration"/>
+
+    <bean class="org.springframework.context.annotation.ConfigurationClassPostProcessor"/>
+
+    <bean id="graphDatabaseService" class="org.neo4j.kernel.EmbeddedGraphDatabase" destroy-method="shutdown">
+        <constructor-arg index="0" value="target/config-test"/>
+    </bean>
 
 * Annotate your entity class.  In this case it is a 'World' class that has a relationship to other worlds that are reachable by rocket travel:
 

@@ -61,7 +61,7 @@
 	-->
 	<context:component-scan base-package="org.springframework.data.graph.neo4j">
 		<context:exclude-filter expression=".*_Roo_.*" type="regex"/>
-        <context:exclude-filter expression="org.springframework.data.graph.neo4j.config.AbstractNeo4jConfiguration" type="regex"/>
+        <context:exclude-filter expression="org.springframework.data.graph.neo4j.config.Neo4jConfiguration" type="regex"/>
 		<context:exclude-filter expression="org.springframework.stereotype.Controller" type="annotation"/>
 	</context:component-scan>
 	

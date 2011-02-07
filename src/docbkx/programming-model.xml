@@ -208,8 +208,8 @@ Iterable<Person> davesFriends = finder.findAllByTraversal(dave,
 			Neo4j is a transactional datastore which only allows modifications within transaction boundaries and fullfills the ACID properties.
 			Reading from the store is also possible outside of transactions. Neo4j also provides a Spring compliant transaction manager that
 			allows it to participate in Spring managed transactions (also with @Transactional). This transaction manager is already configured
-			in the Spring Java config, class AbstractNeo4jConfiguration.
-		</para>
+			in the Spring Java config class <code>Neo4jConfiguration</code>.
+        </para>
 		<para>
 			DATAGRAPH is designed to work within transaction boundaries. So entity creation and modification should happen within transactional methods.
 			Due to the usage of POJO entities it is common to create and populate them also outside of a transaction (e.g. in the web layer). That's why

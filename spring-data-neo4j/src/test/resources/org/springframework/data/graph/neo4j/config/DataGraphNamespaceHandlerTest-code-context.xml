@@ -7,14 +7,13 @@
        http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
        ">
 
-<context:annotation-config/>
+    <context:annotation-config/>
 
     <bean class="org.springframework.data.graph.neo4j.config.Neo4jConfiguration"/>
 
     <bean class="org.springframework.context.annotation.ConfigurationClassPostProcessor"/>
 
-    <bean id="graphDatabaseService" class="org.neo4j.kernel.EmbeddedGraphDatabase"
-          destroy-method="shutdown" scope="singleton">
+    <bean id="graphDatabaseService" class="org.neo4j.kernel.EmbeddedGraphDatabase" destroy-method="shutdown">
         <constructor-arg index="0" value="target/config-test"/>
     </bean>
 

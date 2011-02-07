@@ -129,31 +129,76 @@
                     <para>an appropriate NodeTypeStrategy</para>
                 </listitem>
             </itemizedlist>
-            That's why DATAGRAPH provides a Spring Java Config class (annotated with @Config) <code>AbstractNeo4jConfiguration</code> that takes care of all that. The only
-			thing that must be provided in the custom Spring config is the <code>GraphDatabaseService</code> configured with a datastore directory. This can be achieved
-			by extending that class and implementing the <code>graphDatabaseService</code> method.
-			<programlisting lang="JAVA"><![CDATA[
-public class MyConfig extends AbstractNeo4jConfiguration {
-    @Override
-    public boolean isUsingCrossStorePersistence() {
-        return false;
-    }
 
-    @Bean(destroyMethod = "shutDown")
-    public GraphDatabaseService graphDatabaseService() {
-        return new EmbeddedGraphDatabase("target/neo4j-db");
-    }
-}			]]></programlisting>
-<programlisting lang="XML"><![CDATA[
-<beans>
-...
+            </para>
+        <section>
+            <title>XML-Namespace</title>
+            <para>
+                To simplify the configuration we provide a xml namespace <code>datagraph</code> that allows configuration of any
+                DATAGRAPH project with a single line of xml code. There are three possible parameters. You can use <code>storeDirectory</code>
+                or the reference to <code>graphDatabaseService</code> alternatively. For cross-store configuration just refer
+                to an <code>entityManagerFactory</code>.
+            </para>
+            <programlisting lang="XML"><![CDATA[
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:datagraph="http://www.springframework.org/schema/data/graph"
+	xsi:schemaLocation="
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd
+		http://www.springframework.org/schema/data/graph http://www.springframework.org/schema/data/graph/datagraph-1.0.xsd
+		">
 
-	<tx:annotation-driven mode="aspectj" transaction-manager="transactionManager"/>
-	<bean class="org.springframework.data.graph.examples.config.MyConfig"/>
-    <bean class="org.springframework.context.annotation.ConfigurationClassPostProcessor"/>
-...
-</beans>    
-			]]></programlisting>
-			</para>
+    <context:annotation-config/>
+    <datagraph:config storeDirectory="target/config-test"/>
+
+</beans>
+                    ]]></programlisting>
+            <programlisting lang="XML"><![CDATA[
+    <context:annotation-config/>
+
+    <bean id="graphDatabaseService" class="org.neo4j.kernel.EmbeddedGraphDatabase" destroy-method="shutdown">
+         <constructor-arg index="0" value="target/config-test" />
+    </bean>
+
+    <datagraph:config graphDatabaseService="graphDatabaseService"/>
+                    ]]></programlisting>
+
+            <programlisting lang="XML"><![CDATA[
+	<context:annotation-config/>
+
+    <datagraph:config storeDirectory="target/config-test" entityManagerFactory="entityManagerFactory"/>
+
+    <bean class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean" id="entityManagerFactory">
+        <property name="dataSource" ref="dataSource"/>
+        <property name="persistenceXmlLocation" value="classpath:META-INF/persistence.xml"/>
+    </bean>
+                    ]]></programlisting>
+        </section>
+        <section>
+            <title>Java based Configuration</title>
+            <para>
+                That's why DATAGRAPH provides a Spring Java Config class (annotated with @Config) <code>Neo4jConfiguration</code> that takes care of all that. The only
+                thing that must be provided in the custom Spring config is the <code>GraphDatabaseService</code> configured with a datastore directory.
+    <programlisting lang="XML"><![CDATA[
+    <beans>
+    ...
+
+        <tx:annotation-driven mode="aspectj" transaction-manager="transactionManager"/>
+        <bean class="org.springframework.data.graph.neo4j.config.Neo4jConfiguration"/>
+
+        <bean class="org.springframework.context.annotation.ConfigurationClassPostProcessor"/>
+
+        <bean id="graphDatabaseService" class="org.neo4j.kernel.EmbeddedGraphDatabase"
+              destroy-method="shutdown" scope="singleton">
+            <constructor-arg index="0" value="target/config-test"/>
+        </bean>
+    ...
+    </beans>
+                ]]></programlisting>
+                </para>
+        </section>
 	</section>
 </chapter>

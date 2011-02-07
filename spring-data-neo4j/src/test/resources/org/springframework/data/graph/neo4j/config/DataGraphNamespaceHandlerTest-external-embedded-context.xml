@@ -13,7 +13,7 @@
 
     <bean id="graphDatabaseService" class="org.neo4j.kernel.EmbeddedGraphDatabase"
             destroy-method="shutdown" scope="singleton">
-         <constructor-arg index="0" value="target/config-test" />
+         <constructor-arg value="target/config-test" />
     </bean>
 
     <datagraph:config graphDatabaseService="graphDatabaseService"/>
