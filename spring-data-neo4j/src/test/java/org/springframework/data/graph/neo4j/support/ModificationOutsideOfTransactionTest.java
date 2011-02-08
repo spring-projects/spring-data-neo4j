@@ -6,8 +6,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.neo4j.graphdb.NotFoundException;
-import org.neo4j.graphdb.Transaction;
+import org.neo4j.graphdb.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.graph.neo4j.Group;
 import org.springframework.data.graph.neo4j.Person;
@@ -19,6 +18,9 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = {"classpath:org/springframework/data/graph/neo4j/support/Neo4jGraphPersistenceTest-context.xml"})
@@ -44,13 +46,31 @@ public class ModificationOutsideOfTransactionTest {
         }
     }
 
-	// @Test(expected = InvalidDataAccessResourceUsageException.class)
-	public void testCreateOutsideTransaction() {
+	@Test
+    public void testCreateOutsideTransaction() {
 		Person p = new Person("Michael", 35);
-        assertEquals(35,p.getAge());
+        assertEquals(35, p.getAge());
+        assertFalse(hasUnderlyingNode(p));
 	}
 
-	// @Test(expected = InvalidDataAccessResourceUsageException.class)
+    @Test
+	public void testCreateSubgraphOutsideOfTransaction() {
+		Person michael = new Person("Michael", 35);
+		Person emil = new Person("Emil", 35);
+        michael.setBoss(emil);
+        assertEquals(emil, michael.getBoss());
+        assertTrue(hasUnderlyingNode(michael));
+        assertNotNull(nodeFor(michael).getSingleRelationship(DynamicRelationshipType.withName("Person.boss"), Direction.INCOMING));
+	}
+
+    private boolean hasUnderlyingNode(Person person) {
+        return person.hasUnderlyingNode();
+    }
+
+    private Node nodeFor(Person person) {
+        return person.getUnderlyingState();
+    }
+
     @Test
 	public void testSetPropertyOutsideTransaction() {
 		Transaction tx = graphDatabaseContext.beginTx();
@@ -66,6 +86,7 @@ public class ModificationOutsideOfTransactionTest {
         tx = graphDatabaseContext.beginTx();
         try {
             assertEquals(25,p.getAge());
+            assertEquals(25, nodeFor(p).getProperty("Person.age"));
             p.setAge(20);
             tx.success();
         } finally {
@@ -92,6 +113,7 @@ public class ModificationOutsideOfTransactionTest {
         tx = graphDatabaseContext.beginTx();
         try {
             assertEquals(spouse,p.getSpouse());
+            assertNotNull(nodeFor(p).getSingleRelationship(DynamicRelationshipType.withName("Person.spouse"), Direction.OUTGOING));
             spouse2 = new Person("Rana", 5);
             p.setSpouse(spouse2);
             tx.success();
