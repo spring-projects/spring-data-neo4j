@@ -32,17 +32,14 @@ import javax.persistence.PersistenceContext;
  */
 public class PartialNeo4jEntityInstantiator implements EntityInstantiator<NodeBacked, Node> {
 
-	Neo4jConstructorGraphEntityInstantiator delegate;
+	private final Neo4jConstructorGraphEntityInstantiator delegate;
 
-    @PersistenceContext
-    EntityManager entityManager;
+    private final EntityManager entityManager;
 
-    public PartialNeo4jEntityInstantiator() {
-	}
-    
-    public PartialNeo4jEntityInstantiator(Neo4jConstructorGraphEntityInstantiator delegate) {
+    public PartialNeo4jEntityInstantiator(Neo4jConstructorGraphEntityInstantiator delegate, EntityManager entityManager) {
 		this.delegate = delegate;
-	}
+        this.entityManager = entityManager;
+    }
 
     /**
      * Takes the JPA id stored in the "FOREIGN_ID" property of the node for a {@link EntityManager#find(Class, Object)} operation.
@@ -61,9 +58,5 @@ public class PartialNeo4jEntityInstantiator implements EntityInstantiator<NodeBa
             return result;
         }
         return delegate.createEntityFromState(n, entityClass);
-    }
-
-    public void setEntityInstantiator(Neo4jConstructorGraphEntityInstantiator delegate) {
-        this.delegate = delegate;
     }
 }

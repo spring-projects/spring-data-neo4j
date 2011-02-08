@@ -81,7 +81,7 @@ public class Neo4jConfiguration {
 		gdc.setGraphDatabaseService(getGraphDatabaseService());
 		gdc.setRelationshipEntityInstantiator(new ConstructorBypassingGraphRelationshipInstantiator());
 		if (isUsingCrossStorePersistence()) {
-			gdc.setGraphEntityInstantiator(new PartialNeo4jEntityInstantiator(new Neo4jConstructorGraphEntityInstantiator()));
+			gdc.setGraphEntityInstantiator(new PartialNeo4jEntityInstantiator(new Neo4jConstructorGraphEntityInstantiator(), getEntityManagerFactory().createEntityManager()));
 		}
 		else {
 			gdc.setGraphEntityInstantiator(new Neo4jConstructorGraphEntityInstantiator());
