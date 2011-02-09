@@ -2,12 +2,9 @@ package org.springframework.data.graph.neo4j.support;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hamcrest.Matcher;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.neo4j.graphdb.Direction;
-import org.neo4j.graphdb.DynamicRelationshipType;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Transaction;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -68,17 +65,7 @@ public class ModificationOutsideOfTransactionTest
 
         assertEquals( emil, michael.getBoss() );
         assertTrue( hasUnderlyingNode( michael ) );
-        assertNotNull( nodeFor( michael ).getSingleRelationship( DynamicRelationshipType.withName( "boss" ), Direction.INCOMING ) );
-    }
-
-    private boolean hasUnderlyingNode( Person person )
-    {
-        return person.hasUnderlyingNode();
-    }
-
-    private Node nodeFor( Person person )
-    {
-        return person.getUnderlyingState();
+        assertThat( nodeFor( michael ), hasRelationship( "boss" ) );
     }
 
     @Test
@@ -88,21 +75,6 @@ public class ModificationOutsideOfTransactionTest
         p.setAge( 25 );
         assertEquals( 25, p.getAge() );
         assertEquals( 25, nodeFor( p ).getProperty( "Person.age" ) );
-    }
-
-    private Person createPersonInTransaction( String name, int age )
-    {
-        Transaction tx = graphDatabaseContext.beginTx();
-        Person p = null;
-        try
-        {
-            p = new Person( name, age );
-            tx.success();
-        } finally
-        {
-            tx.finish();
-        }
-        return p;
     }
 
     @Test
@@ -122,22 +94,36 @@ public class ModificationOutsideOfTransactionTest
         assertEquals( spouse2, p.getSpouse() );
     }
 
-
-
-    @Test
-    public void testGetPropertyOutsideTransaction()
+    private Person createPersonInTransaction( String name, int age )
     {
         Transaction tx = graphDatabaseContext.beginTx();
         Person p = null;
         try
         {
-            p = new Person( "Michael", 35 );
+            p = new Person( name, age );
             tx.success();
         } finally
         {
             tx.finish();
         }
-        assertEquals( "Wrong age.", (int)35, (int)p.getAge() );
+        return p;
+    }
+
+    private boolean hasUnderlyingNode( Person person )
+    {
+        return person.hasUnderlyingNode();
+    }
+
+    private Node nodeFor( Person person )
+    {
+        return person.getUnderlyingState();
+    }
+
+    @Test
+    public void testGetPropertyOutsideTransaction()
+    {
+        Person p = createPersonInTransaction( "Michael", 35 );
+        assertEquals( "Wrong age.", 35, p.getAge() );
     }
 
     @Test
