@@ -17,7 +17,6 @@
 package org.springframework.data.graph.neo4j.fieldaccess;
 
 import org.neo4j.graphdb.Node;
-import org.springframework.core.convert.ConversionService;
 import org.springframework.data.graph.annotation.NodeEntity;
 import org.springframework.data.graph.core.NodeBacked;
 import org.springframework.data.graph.neo4j.finder.FinderFactory;
@@ -44,7 +43,7 @@ public class NodeEntityStateAccessorsFactory {
                 }
             };
         } else {
-            return new DetachableEntityStateAccessors<NodeBacked, Node>(
+            return new NestedTransactionEntityStateAccessors<NodeBacked, Node>(
                     new NodeEntityStateAccessors<NodeBacked>(null,entity,entity.getClass(), graphDatabaseContext, nodeDelegatingFieldAccessorFactory),graphDatabaseContext);
         }
     }

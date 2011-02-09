@@ -110,7 +110,11 @@ public class DetachableEntityStateAccessors<ENTITY extends GraphBacked<STATE>, S
 
     @Override
     public void createAndAssignState() {
-        delegate.createAndAssignState();
+        if (graphDatabaseContext.transactionIsRunning()) {
+            delegate.createAndAssignState();
+        } else {
+            log.warn("New Nodebacked created outside of transaction " + delegate.getEntity().getClass());
+        }
     }
 
     /**
