@@ -25,6 +25,7 @@ import org.springframework.data.graph.annotation.RelatedTo;
 import org.springframework.data.graph.core.NodeBacked;
 import org.springframework.data.graph.neo4j.finder.FinderFactory;
 import org.springframework.data.graph.neo4j.support.GraphDatabaseContext;
+import org.springframework.persistence.support.StateProvider;
 
 import javax.persistence.Id;
 import java.lang.reflect.Field;
@@ -109,7 +110,7 @@ public class PartialNodeEntityStateAccessors<ENTITY extends NodeBacked> extends 
             final Object id = getId(entity,type);
             if (id == null) return;
             final String foreignId = createForeignId(id);
-            IndexHits<Node> indexHits = graphDatabaseContext.getNodeIndex(FOREIGN_ID_INDEX).get(FOREIGN_ID, foreignId.toString());
+            IndexHits<Node> indexHits = graphDatabaseContext.getNodeIndex(FOREIGN_ID_INDEX).get(FOREIGN_ID, foreignId);
             Node node = indexHits.hasNext() ? indexHits.next() : null;
             if (node == null) {
                 node = graphDatabaseContext.createNode();
@@ -125,6 +126,17 @@ public class PartialNodeEntityStateAccessors<ENTITY extends NodeBacked> extends 
         } catch (NotInTransactionException e) {
             throw new InvalidDataAccessResourceUsageException("Not in a Neo4j transaction.", e);
         }
+    }
+
+    @Override
+    public ENTITY attach() {
+        Node node = StateProvider.retrieveState();
+        if (node != null) {
+            setUnderlyingState(node);
+        } else {
+            createAndAssignState();
+        }
+        return entity;
     }
 
     private void persistForeignId(Node node, Object id) {

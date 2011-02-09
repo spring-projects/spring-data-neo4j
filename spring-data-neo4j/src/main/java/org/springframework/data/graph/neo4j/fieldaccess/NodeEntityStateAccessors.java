@@ -21,6 +21,7 @@ import org.neo4j.graphdb.NotInTransactionException;
 import org.springframework.dao.InvalidDataAccessResourceUsageException;
 import org.springframework.data.graph.core.NodeBacked;
 import org.springframework.data.graph.neo4j.support.GraphDatabaseContext;
+import org.springframework.persistence.support.StateProvider;
 
 /**
  * @author Michael Hunger
@@ -55,5 +56,17 @@ public class NodeEntityStateAccessors<ENTITY extends NodeBacked> extends Default
         } catch (NotInTransactionException e) {
             throw new InvalidDataAccessResourceUsageException("Not in a Neo4j transaction.", e);
         }
+    }
+
+    @Override
+    public ENTITY attach() {
+        Node node = StateProvider.retrieveState();
+        if (node != null) {
+            setUnderlyingState(node);
+        } else {
+            createAndAssignState();
+        }
+        return entity;
+
     }
 }

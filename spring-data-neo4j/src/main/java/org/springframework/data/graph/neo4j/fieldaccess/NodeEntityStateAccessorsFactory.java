@@ -33,18 +33,19 @@ public class NodeEntityStateAccessorsFactory {
 	private NodeDelegatingFieldAccessorFactory nodeDelegatingFieldAccessorFactory;
 
 	public EntityStateAccessors<NodeBacked,Node> getEntityStateAccessors(final NodeBacked entity) {
-        final NodeEntity graphEntityAnnotation = entity.getClass().getAnnotation(NodeEntity.class);
-        if (graphEntityAnnotation!=null && graphEntityAnnotation.partial()) {
-            return new DetachableEntityStateAccessors<NodeBacked, Node>(
-                    new PartialNodeEntityStateAccessors<NodeBacked>(null, entity, entity.getClass(), graphDatabaseContext, finderFactory), graphDatabaseContext) {
+        final NodeEntity graphEntityAnnotation = entity.getClass().getAnnotation(NodeEntity.class); // todo cache ??
+        boolean autoAttach = graphEntityAnnotation.autoAttach();
+        if (graphEntityAnnotation.partial()) {
+            PartialNodeEntityStateAccessors<NodeBacked> partialNodeEntityStateAccessors = new PartialNodeEntityStateAccessors<NodeBacked>(null, entity, entity.getClass(), graphDatabaseContext, finderFactory);
+            return new DetachableEntityStateAccessors<NodeBacked, Node>(partialNodeEntityStateAccessors, graphDatabaseContext) {
                 @Override
                 protected boolean transactionIsRunning() {
                     return super.transactionIsRunning() && getId(entity, entity.getClass()) != null;
                 }
             };
         } else {
-            return new NestedTransactionEntityStateAccessors<NodeBacked, Node>(
-                    new NodeEntityStateAccessors<NodeBacked>(null,entity,entity.getClass(), graphDatabaseContext, nodeDelegatingFieldAccessorFactory),graphDatabaseContext);
+            NodeEntityStateAccessors<NodeBacked> nodeEntityStateAccessors = new NodeEntityStateAccessors<NodeBacked>(null, entity, entity.getClass(), graphDatabaseContext, nodeDelegatingFieldAccessorFactory);
+            return new NestedTransactionEntityStateAccessors<NodeBacked, Node>(nodeEntityStateAccessors,graphDatabaseContext);
         }
     }
 

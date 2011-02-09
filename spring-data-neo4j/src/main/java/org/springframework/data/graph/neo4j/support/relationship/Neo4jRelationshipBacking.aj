@@ -55,10 +55,6 @@ public aspect Neo4jRelationshipBacking extends AbstractTypeAnnotatingMixinFields
     }
 
     /**
-     * field for underlying relationship
-     */
-	private Relationship RelationshipBacked.underlyingRelationship;
-    /**
      * field for {@link EntityStateAccessors} that takes care of all entity operations
      */
     private EntityStateAccessors<RelationshipBacked,Relationship> RelationshipBacked.stateAccessors;
@@ -68,20 +64,18 @@ public aspect Neo4jRelationshipBacking extends AbstractTypeAnnotatingMixinFields
      * @param r
      */
 	public void RelationshipBacked.setUnderlyingState(Relationship r) {
-        this.underlyingRelationship = r;
         if (this.stateAccessors == null) {
             this.stateAccessors = Neo4jRelationshipBacking.aspectOf().entityStateAccessorsFactory.getEntityStateAccessors(this);
-        } else {
-            this.stateAccessors.setUnderlyingState(r);
         }
+        this.stateAccessors.setUnderlyingState(r);
 	}
 	
 	public Relationship RelationshipBacked.getUnderlyingState() {
-		return underlyingRelationship;
+		return this.stateAccessors.getUnderlyingState();
 	}
 
 	public boolean RelationshipBacked.hasUnderlyingRelationship() {
-		return underlyingRelationship!=null;
+		return this.stateAccessors.hasUnderlyingState();
 	}
 
     /**
@@ -89,7 +83,7 @@ public aspect Neo4jRelationshipBacking extends AbstractTypeAnnotatingMixinFields
      */
 	public Long RelationshipBacked.getId() {
         if (!hasUnderlyingRelationship()) return null;
-		return underlyingRelationship.getId();
+		return getUnderlyingState().getId();
 	}
 
 

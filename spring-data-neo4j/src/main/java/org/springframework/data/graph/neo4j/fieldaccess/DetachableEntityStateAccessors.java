@@ -182,6 +182,17 @@ public class DetachableEntityStateAccessors<ENTITY extends GraphBacked<STATE>, S
     public GraphDatabaseContext getGraphDatabaseContext() {
         return graphDatabaseContext;
     }
+
+    @Override
+    public ENTITY attach() {
+        if (graphDatabaseContext.transactionIsRunning()) {
+            return delegate.attach();
+        } else {
+            log.warn("New Nodebacked tried to attach outside of transaction " + delegate.getEntity().getClass());
+            return getEntity();
+        }
+    }
+
 }
 
 

@@ -76,15 +76,13 @@ public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<NodeEnt
         } else {
             if (entity.stateAccessors != null) return;
             entity.stateAccessors = entityStateAccessorsFactory.getEntityStateAccessors(entity);
-            Node node = StateProvider.retrieveState();
-            if (node != null) {
-                entity.setUnderlyingState(node);
-            } else {
-                entity.stateAccessors.createAndAssignState();
-            }
+            entity.attach();
         }
     }
 
+    public NodeBacked NodeBacked.attach() {
+        return this.stateAccessors.attach();
+    }
     /**
      * State accessors that encapsulate the underlying state and the behaviour related to it (field access, creation)
      */

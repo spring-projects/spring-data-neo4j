@@ -51,4 +51,11 @@ public @interface NodeEntity {
      * @return true if the entity is only partially managed by the {@link org.springframework.data.graph.neo4j.support.node.Neo4jNodeBacking} aspect.
      */
     boolean partial() default false;
+
+
+    /**
+     * if set the entity will be attached to the graph store at creation time, otherwise entity.attach() has to be called manually.
+     * @return
+     */
+    boolean autoAttach() default false;
 }

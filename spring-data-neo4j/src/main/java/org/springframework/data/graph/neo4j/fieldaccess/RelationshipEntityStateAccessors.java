@@ -86,4 +86,11 @@ public class RelationshipEntityStateAccessors<ENTITY extends RelationshipBacked>
             throw new InvalidDataAccessResourceUsageException("Not in a Neo4j transaction.", e);
         }
     }
+
+    @Override
+    public ENTITY attach() {
+        createAndAssignState();
+        return entity;
+    }
+
 }
