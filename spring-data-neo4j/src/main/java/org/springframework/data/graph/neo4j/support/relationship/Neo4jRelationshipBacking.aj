@@ -16,10 +16,14 @@
 
 package org.springframework.data.graph.neo4j.support.relationship;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.reflect.FieldSignature;
 import org.neo4j.graphdb.Relationship;
+import org.springframework.beans.factory.annotation.Configurable;
 import org.springframework.data.graph.annotation.RelationshipEntity;
+import org.springframework.data.graph.core.NodeBacked;
 import org.springframework.data.graph.core.RelationshipBacked;
 import org.springframework.data.graph.neo4j.fieldaccess.*;
 import org.springframework.data.graph.neo4j.support.GraphDatabaseContext;
@@ -34,14 +38,26 @@ import static org.springframework.data.graph.neo4j.fieldaccess.DoReturn.unwrap;
  * puts the underlying state into and delegates field access to an {@link EntityStateAccessors} instance,
  * created by a configured {@link RelationshipEntityStateAccessorsFactory}
  */
-public aspect Neo4jRelationshipBacking extends AbstractTypeAnnotatingMixinFields<RelationshipEntity,RelationshipBacked> {
+public aspect Neo4jRelationshipBacking {
 	
-	//-------------------------------------------------------------------------
-	// Configure aspect for whole system.
-	// init() method can be invoked automatically if the aspect is a Spring
-	// bean, or called in user code.
-	//-------------------------------------------------------------------------
-	// Aspect shared Neo4J Graph Database Service
+    protected final Log log = LogFactory.getLog(getClass());
+
+    declare parents : (@RelationshipEntity *) implements RelationshipBacked;
+    declare @type: RelationshipBacked+: @Configurable;
+
+
+    protected pointcut entityFieldGet(RelationshipBacked entity) :
+            get(* RelationshipBacked+.*) &&
+            this(entity) &&
+            !get(* RelationshipBacked.*);
+
+
+    protected pointcut entityFieldSet(RelationshipBacked entity, Object newVal) :
+            set(* RelationshipBacked+.*) &&
+            this(entity) &&
+            args(newVal) &&
+            !set(* RelationshipBacked.*);
+
 	private GraphDatabaseContext graphDatabaseContext;
     private RelationshipEntityStateAccessorsFactory entityStateAccessorsFactory;
 

@@ -16,6 +16,8 @@
 
 package org.springframework.data.graph.neo4j.support.node;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.reflect.FieldSignature;
 import org.neo4j.graphdb.DynamicRelationshipType;
@@ -24,6 +26,7 @@ import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.graphdb.traversal.TraversalDescription;
 import org.neo4j.graphdb.traversal.Traverser;
+import org.springframework.beans.factory.annotation.Configurable;
 import org.springframework.data.graph.annotation.NodeEntity;
 import org.springframework.data.graph.core.NodeBacked;
 import org.springframework.data.graph.core.RelationshipBacked;
@@ -44,7 +47,27 @@ import org.springframework.persistence.support.StateProvider;
  *
  * Handles constructor invocation and partial entities as well.
  */
-public aspect Neo4jNodeBacking extends AbstractTypeAnnotatingMixinFields<NodeEntity, NodeBacked> {
+public aspect Neo4jNodeBacking { // extends AbstractTypeAnnotatingMixinFields<NodeEntity, NodeBacked> {
+
+    protected final Log log = LogFactory.getLog(getClass());
+
+    declare parents : (@NodeEntity *) implements NodeBacked;
+    declare @type: NodeBacked+: @Configurable;
+
+
+    protected pointcut entityFieldGet(NodeBacked entity) :
+            get(* NodeBacked+.*) &&
+            this(entity) &&
+            !get(* NodeBacked.*);
+
+
+    protected pointcut entityFieldSet(NodeBacked entity, Object newVal) :
+            set(* NodeBacked+.*) &&
+            this(entity) &&
+            args(newVal) &&
+            !set(* NodeBacked.*);
+
+
     private GraphDatabaseContext graphDatabaseContext;
     private NodeEntityStateAccessorsFactory entityStateAccessorsFactory;
 
