@@ -22,6 +22,7 @@ import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.PropertyContainer;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.index.Index;
+import org.neo4j.index.impl.lucene.ValueContext;
 import org.springframework.data.annotation.Indexed;
 import org.springframework.data.graph.annotation.NodeEntity;
 import org.springframework.data.graph.core.GraphBacked;
@@ -103,6 +104,8 @@ class IndexingNodePropertyFieldAccessorListenerFactory<T extends GraphBacked<?>>
 
 	    @Override
         public void valueChanged(GraphBacked<T> graphBacked, Object oldVal, Object newVal) {
+            if (newVal instanceof Number) newVal = ValueContext.numeric((Number) newVal);
+
             if (newVal==null) index.remove(graphBacked.getUnderlyingState(), indexKey, null);
 	        else index.add(graphBacked.getUnderlyingState(), indexKey, newVal);
 	    }

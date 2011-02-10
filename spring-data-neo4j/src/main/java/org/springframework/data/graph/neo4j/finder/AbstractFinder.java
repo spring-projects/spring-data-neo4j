@@ -6,6 +6,7 @@ import org.neo4j.graphdb.PropertyContainer;
 import org.neo4j.graphdb.index.Index;
 import org.neo4j.graphdb.index.IndexHits;
 import org.neo4j.helpers.collection.IterableWrapper;
+import org.neo4j.index.impl.lucene.ValueContext;
 import org.springframework.data.graph.core.GraphBacked;
 import org.springframework.data.graph.core.NodeBacked;
 import org.springframework.data.graph.neo4j.support.GraphDatabaseContext;
@@ -71,8 +72,7 @@ public abstract class AbstractFinder<S extends PropertyContainer, T extends Grap
     @Override
     public T findByPropertyValue(final String indexName, final String property, final Object value) {
         try {
-            IndexHits<S> indexHits = getIndexHits(indexName, property, value);
-            final S result = indexHits.hasNext() ? indexHits.next() : null;
+            S result = getIndexHits(indexName, property, value).getSingle();
             if (result == null) return null;
             return createEntity(result);
         } catch (NotFoundException e) {
@@ -82,6 +82,7 @@ public abstract class AbstractFinder<S extends PropertyContainer, T extends Grap
     }
 
     private IndexHits<S> getIndexHits(String indexName, String property, Object value) {
+        if (value instanceof Number) value = ValueContext.numeric((Number) value);
         return getIndex(indexName).get(property, value);
     }
 
