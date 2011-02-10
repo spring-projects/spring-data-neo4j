@@ -8,6 +8,9 @@ import org.springframework.data.graph.neo4j.Friendship;
 import org.springframework.data.graph.neo4j.Person;
 import org.springframework.data.graph.neo4j.Personality;
 
+import javax.validation.constraints.Max;
+import javax.validation.constraints.Min;
+import javax.validation.constraints.Size;
 import java.util.Date;
 
 
@@ -19,12 +22,15 @@ public class Person {
 	private Long graphId;
 
     @Indexed(indexName = NAME_INDEX)
+    @Size(min = 3, max = 20)
 	private String name;
 
 	@Indexed
 	private String nickname;
 
-	private int age;
+	@Max(100)
+	@Min(0)
+    private int age;
 
 	private Short height;
 

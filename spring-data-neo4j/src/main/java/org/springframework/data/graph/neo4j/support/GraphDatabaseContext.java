@@ -33,6 +33,7 @@ import org.springframework.persistence.support.EntityInstantiator;
 import javax.transaction.Status;
 import javax.transaction.SystemException;
 import javax.transaction.TransactionManager;
+import javax.validation.Validator;
 
 /**
  * Mediator class for the graph related services like the {@link GraphDatabaseService}, the used
@@ -58,7 +59,9 @@ public class GraphDatabaseContext {
     private ConversionService conversionService;
 
     private NodeTypeStrategy nodeTypeStrategy;
-    
+
+    private Validator validator;
+
     private final static Log log = LogFactory.getLog(GraphDatabaseContext.class);
 
     public GraphDatabaseService getGraphDatabaseService() {
@@ -322,6 +325,14 @@ public class GraphDatabaseContext {
             return (T) graphEntityInstantiator.createEntityFromState((Node) state, (Class<? extends NodeBacked>) targetType);
         else
             return (T) relationshipEntityInstantiator.createEntityFromState((Relationship) state, (Class<? extends RelationshipBacked>) targetType);
+    }
+
+    public Validator getValidator() {
+        return validator;
+    }
+
+    public void setValidator(Validator validatorFactory) {
+        this.validator = validatorFactory;
     }
 }
 

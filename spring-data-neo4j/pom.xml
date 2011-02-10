@@ -136,8 +136,21 @@
             <version>1.8.0.10</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>javax.validation</groupId>
+            <artifactId>validation-api</artifactId>
+            <version>1.0.0.GA</version>
+        </dependency>
+        <dependency>
+            <groupId>org.hibernate</groupId>
+            <artifactId>hibernate-validator</artifactId>
+            <version>4.0.2.GA</version>
+            <scope>test</scope>
+        </dependency>
 
-	</dependencies>
+
+
+    </dependencies>
 	<repositories>
 		<repository>
 			<id>neo4j-public-repository</id>

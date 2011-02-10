@@ -97,6 +97,9 @@
 			    <constructor-arg index="0" ref="graphDatabaseContext"/>
 			</bean>
 		</property>
+        <property name="validator">
+            <bean class="org.springframework.validation.beanvalidation.LocalValidatorFactoryBean"/>
+        </property>
 	</bean>
 
     <bean id="nodeEntityStateAccessorsFactory" class="org.springframework.data.graph.neo4j.fieldaccess.NodeEntityStateAccessorsFactory">
