@@ -30,6 +30,7 @@ public class Person {
 
 	@Max(100)
 	@Min(0)
+    @Indexed
     private int age;
 
 	private Short height;

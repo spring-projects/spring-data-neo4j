@@ -1,5 +1,6 @@
 package org.springframework.data.graph.neo4j.finder;
 
+import org.apache.lucene.search.NumericRangeQuery;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.NotFoundException;
 import org.neo4j.graphdb.PropertyContainer;
@@ -12,6 +13,9 @@ import org.springframework.data.graph.core.NodeBacked;
 import org.springframework.data.graph.neo4j.support.GraphDatabaseContext;
 
 import java.util.Collections;
+import java.util.concurrent.Callable;
+
+import static org.apache.lucene.search.NumericRangeQuery.*;
 
 /**
  * Repository like finder for Node and Relationship-Entities. Provides finder methods for direct access, access via {@link org.springframework.data.graph.core.NodeTypeStrategy}
@@ -102,11 +106,21 @@ public abstract class AbstractFinder<S extends PropertyContainer, T extends Grap
      */
     @Override
     public Iterable<T> findAllByPropertyValue(final String indexName, final String property, final Object value) {
+        return query(indexName, new Query<S>() {
+            public IndexHits<S> query(Index<S> index) {
+                return getIndexHits(indexName, property, value);
+            }
+        });
+    }
+
+    interface Query<S extends PropertyContainer> {
+        IndexHits<S> query(Index<S> index);
+    }
+    private Iterable<T> query(String indexName, Query<S> query) {
         try {
-            final IndexHits<S> indexHits = getIndexHits(indexName, property, value);
+            final IndexHits<S> indexHits = query.query(getIndex(indexName));
             if (indexHits == null) return Collections.emptyList();
             return new IterableWrapper<T, S>(indexHits) {
-                @Override
                 protected T underlyingObjectToObject(final S result) {
                     return createEntity(result);
                 }
@@ -114,6 +128,22 @@ public abstract class AbstractFinder<S extends PropertyContainer, T extends Grap
         } catch (NotFoundException e) {
             return null;
         }
+    }
+    @Override
+    public Iterable<T> findAllByRange(final String indexName, final String property, final Number from, final Number to) {
+        return query(indexName, new Query<S>() {
+            public IndexHits<S> query(Index<S> index) {
+                return index.query(property, createRangeQuery(property, from, to));
+            }
+        });
+    }
+
+    protected <T extends Number> NumericRangeQuery<T> createRangeQuery(String property, Number from, Number to) {
+        if (from instanceof Long) return (NumericRangeQuery<T>) NumericRangeQuery.newLongRange(property, from.longValue(),to.longValue(),true,true);
+        if (from instanceof Integer) return (NumericRangeQuery<T>) NumericRangeQuery.newIntRange(property, from.intValue(), to.intValue(), true, true);
+        if (from instanceof Double) return (NumericRangeQuery<T>) NumericRangeQuery.newDoubleRange(property, from.doubleValue(), to.doubleValue(), true, true);
+        if (from instanceof Float) return (NumericRangeQuery<T>) NumericRangeQuery.newFloatRange(property, from.floatValue(), to.floatValue(), true, true);
+        return (NumericRangeQuery<T>) NumericRangeQuery.newIntRange(property, from.intValue(), to.intValue(), true, true);
     }
 
     protected abstract S getById(long id);

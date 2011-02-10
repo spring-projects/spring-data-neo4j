@@ -27,6 +27,7 @@ import java.util.Collection;
 import java.util.HashSet;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -132,6 +133,22 @@ public class IndexTest {
         final NodeFinder<Person> finder = finderFactory.createNodeEntityFinder(Person.class);
         final Person found = finder.findByPropertyValue( Person.NAME_INDEX, "Person.name", NAME_VALUE);
 	    assertEquals(person, found);
+    }
+    @Test
+	@Transactional
+	public void testRangeQueryPersonByIndexOnAnnotatedField() {
+		Person person = new Person(NAME_VALUE,35);
+        final NodeFinder<Person> finder = finderFactory.createNodeEntityFinder(Person.class);
+        final Person found = finder.findAllByRange(null, "Person.age", 10,40).iterator().next();
+	    assertEquals("person found inside range",person, found);
+    }
+    @Test
+	@Transactional
+	public void testOutsideRangeQueryPersonByIndexOnAnnotatedField() {
+		Person person = new Person(NAME_VALUE,35);
+        final NodeFinder<Person> finder = finderFactory.createNodeEntityFinder(Person.class);
+        Iterable<Person> emptyResult = finder.findAllByRange(null, "Person.age", 0, 34);
+	    assertFalse("nothing found outside range", emptyResult.iterator().hasNext());
     }
 
 	@Test

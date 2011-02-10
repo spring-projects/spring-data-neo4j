@@ -19,6 +19,7 @@ public interface Finder<S extends PropertyContainer,T extends GraphBacked<S>> {
     T findByPropertyValue(String indexName, String property, Object value);
 
     Iterable<T> findAllByPropertyValue(String indexName, String property, Object value);
+    Iterable<T> findAllByRange(final String indexName, final String property, final Number from, final Number to);
 
     /**
      * Traversal based finder that returns a lazy Iterable over the traversal results
