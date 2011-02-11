@@ -28,18 +28,18 @@ import org.springframework.data.graph.neo4j.support.GraphDatabaseContext;
  * @author Michael Hunger
  * @since 14.09.2010
  */
-public class NodeBackedNodeIterableWrapper extends IterableWrapper<NodeBacked, Node> {
-    private final Class<? extends NodeBacked> targetType;
+public class NodeBackedNodeIterableWrapper<T extends NodeBacked> extends IterableWrapper<T, Node> {
+    private final Class<T> targetType;
     private final GraphDatabaseContext graphDatabaseContext;
 
-    public NodeBackedNodeIterableWrapper(Traverser traverser, Class<? extends NodeBacked> targetType, final GraphDatabaseContext graphDatabaseContext) {
+    public NodeBackedNodeIterableWrapper(Traverser traverser, Class<T> targetType, final GraphDatabaseContext graphDatabaseContext) {
         super(traverser.nodes());
         this.targetType = targetType;
         this.graphDatabaseContext = graphDatabaseContext;
     }
 
     @Override
-    protected NodeBacked underlyingObjectToObject(Node node) {
+    protected T underlyingObjectToObject(Node node) {
         return graphDatabaseContext.createEntityFromState(node, targetType);
     }
 }
