@@ -134,9 +134,7 @@ public aspect Neo4jNodeBacking { // extends AbstractTypeAnnotatingMixinFields<No
     public boolean NodeBacked.hasUnderlyingNode() {
         return this.stateAccessors.hasUnderlyingState();
     }
-//    public NodeBacked NodeBacked.projectTo(Class<? extends NodeBacked> targetType) {
-//        return Neo4jNodeBacking.aspectOf().graphDatabaseContext.projectTo(this, targetType);
-//    }
+
     public <T extends NodeBacked> T NodeBacked.projectTo(Class<T> targetType) {
         return (T)Neo4jNodeBacking.aspectOf().graphDatabaseContext.projectTo( this, targetType);
     }
@@ -166,17 +164,12 @@ public aspect Neo4jNodeBacking { // extends AbstractTypeAnnotatingMixinFields<No
      * @param traversalDescription
      * @return lazy Iterable over the traversal results, converted to the expected node entity instances
      */
-//    public  <T extends NodeBacked> Iterable<T> NodeBacked.findAllByTraversal(final Class<T> targetType, TraversalDescription traversalDescription) {
-//        if (!hasUnderlyingNode()) throw new IllegalStateException("No node attached to " + this);
-//        final Traverser traverser = traversalDescription.traverse(this.getUnderlyingState());
-//        return new NodeBackedNodeIterableWrapper<T>(traverser, targetType, Neo4jNodeBacking.aspectOf().graphDatabaseContext);
-//    }
-
-    public  Iterable<? extends NodeBacked> NodeBacked.findAllByTraversal(final Class<? extends NodeBacked> targetType, TraversalDescription traversalDescription) {
+    public  <T extends NodeBacked> Iterable<T> NodeBacked.findAllByTraversal(final Class<T> targetType, TraversalDescription traversalDescription) {
         if (!hasUnderlyingNode()) throw new IllegalStateException("No node attached to " + this);
         final Traverser traverser = traversalDescription.traverse(this.getUnderlyingState());
-        return (Iterable<? extends NodeBacked>)new NodeBackedNodeIterableWrapper(traverser, targetType, Neo4jNodeBacking.aspectOf().graphDatabaseContext);
+        return new NodeBackedNodeIterableWrapper<T>(traverser, targetType, Neo4jNodeBacking.aspectOf().graphDatabaseContext);
     }
+
 
 //    public Iterable<? extends NodeBacked> NodeBacked.traverse(TraversalDescription traversalDescription) {
 //        final Class<? extends NodeBacked> target = this.getClass();
@@ -195,10 +188,6 @@ public aspect Neo4jNodeBacking { // extends AbstractTypeAnnotatingMixinFields<No
         Relationship rel = this.getUnderlyingState().createRelationshipTo( target.getUnderlyingState(), DynamicRelationshipType.withName(relationshipType));
         return (R)Neo4jNodeBacking.aspectOf().graphDatabaseContext.createEntityFromState(rel, relationshipClass);
     }
-//    public RelationshipBacked NodeBacked.relateTo(NodeBacked target, Class<? extends RelationshipBacked> relationshipClass, String relationshipType) {
-//        Relationship rel = this.getUnderlyingState().createRelationshipTo(target.getUnderlyingState(), DynamicRelationshipType.withName(relationshipType));
-//        return Neo4jNodeBacking.aspectOf().graphDatabaseContext.createEntityFromState(rel, relationshipClass);
-//    }
 
     /**
      * removes the entity using @{link GraphDatabaseContext.removeNodeEntity}
@@ -239,14 +228,6 @@ public aspect Neo4jNodeBacking { // extends AbstractTypeAnnotatingMixinFields<No
         }
         return null;
     }
-//    public RelationshipBacked NodeBacked.getRelationshipTo(NodeBacked node, Class<? extends RelationshipBacked> relationshipClass, String type) {
-//        Node myNode=this.getUnderlyingState();
-//        Node otherNode=node.getUnderlyingState();
-//        for (Relationship rel : this.getUnderlyingState().getRelationships(DynamicRelationshipType.withName(type))) {
-//            if (rel.getOtherNode(myNode).equals(otherNode)) return Neo4jNodeBacking.aspectOf().graphDatabaseContext.createEntityFromState(rel, relationshipClass);
-//        }
-//        return null;
-//    }
 
     /**
      * @param obj

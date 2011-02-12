@@ -125,8 +125,8 @@ public aspect Neo4jRelationshipBacking {
 	     Neo4jRelationshipBacking.aspectOf().graphDatabaseContext.removeRelationshipEntity(this);
 	}
 
-    public RelationshipBacked RelationshipBacked.projectTo(Class<? extends RelationshipBacked> targetType) {
-        return Neo4jRelationshipBacking.aspectOf().graphDatabaseContext.projectTo(this, targetType);
+    public <R extends RelationshipBacked> R  RelationshipBacked.projectTo(Class<R> targetType) {
+        return (R)Neo4jRelationshipBacking.aspectOf().graphDatabaseContext.projectTo(this, targetType);
     }
 
     Object around(RelationshipBacked entity): entityFieldGet(entity) {
