@@ -20,6 +20,7 @@ import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.kernel.impl.transaction.SpringTransactionManager;
 import org.neo4j.kernel.impl.transaction.UserTransactionImpl;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.graph.neo4j.fieldaccess.Neo4jConversionServiceFactoryBean;
@@ -55,6 +56,7 @@ public class Neo4jConfiguration {
         return graphDatabaseService;
     }
 
+
     @Autowired
     public void setGraphDatabaseService(GraphDatabaseService graphDatabaseService) {
         this.graphDatabaseService = graphDatabaseService;
@@ -66,6 +68,7 @@ public class Neo4jConfiguration {
         return entityManagerFactory;
     }
 
+    @Qualifier("&entityManagerFactory")
     @Autowired(required = false)
     public void setEntityManagerFactory(EntityManagerFactory entityManagerFactory) {
         this.entityManagerFactory = entityManagerFactory;

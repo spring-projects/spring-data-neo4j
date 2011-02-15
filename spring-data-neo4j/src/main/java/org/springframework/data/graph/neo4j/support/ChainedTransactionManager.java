@@ -9,39 +9,35 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
+import static java.util.Arrays.asList;
+
 /**
  * @author mh
  * @since 14.02.11
  */
 public class ChainedTransactionManager implements PlatformTransactionManager {
 
-    protected Log logger = LogFactory.getLog(getClass());
+    private final static Log logger = LogFactory.getLog(ChainedTransactionManager.class);
 
-    private final List<PlatformTransactionManager> transactionManagers = new ArrayList<PlatformTransactionManager>();
-    private SynchronizationManager sychronizationManager ;
+    private final List<PlatformTransactionManager> transactionManagers;
+    private final SynchronizationManager synchronizationManager;
 
-    ChainedTransactionManager(SynchronizationManager sychronizationManager) {
-        this.sychronizationManager = sychronizationManager;
+    public ChainedTransactionManager(PlatformTransactionManager... transactionManagers) {
+        this(new DefaultSynchronizationManager(),transactionManagers);
     }
 
-    public ChainedTransactionManager() {
-        this(new DefaultSynchronizationManager());
+    public ChainedTransactionManager(SynchronizationManager synchronizationManager, PlatformTransactionManager... transactionManagers) {
+        this.synchronizationManager = synchronizationManager;
+        this.transactionManagers=asList(transactionManagers);
     }
-
-    public void setTransactionManagers(List<PlatformTransactionManager> transactionManagers) {
-	    this.transactionManagers.addAll(transactionManagers);
-    }
-
-
-
 
     @Override
     public MultiTransactionStatus getTransaction(TransactionDefinition definition) throws TransactionException {
 
         MultiTransactionStatus mts = new MultiTransactionStatus(transactionManagers.get(0)/*First TM is main TM*/);
 
-        if (!sychronizationManager.isSynchronizationActive()) {
-            sychronizationManager.initSynchronization();
+        if (!synchronizationManager.isSynchronizationActive()) {
+            synchronizationManager.initSynchronization();
             mts.setNewSynchonization();
         }
 
@@ -81,7 +77,7 @@ public class ChainedTransactionManager implements PlatformTransactionManager {
         }
 
         if (multiTransactionStatus.isNewSynchonization()){
-            sychronizationManager.clearSynchronization();
+            synchronizationManager.clearSynchronization();
         }
 
         if (commitException != null) {
@@ -115,7 +111,7 @@ public class ChainedTransactionManager implements PlatformTransactionManager {
         }
 
         if (multiTransactionStatus.isNewSynchonization()){
-            sychronizationManager.clearSynchronization();
+            synchronizationManager.clearSynchronization();
         }
 
         if (rollbackException != null) {
@@ -124,7 +120,7 @@ public class ChainedTransactionManager implements PlatformTransactionManager {
         }
     }
 
-        private <T> Iterable<T> reverse(Collection<T> collection) {
+    private <T> Iterable<T> reverse(Collection<T> collection) {
         List<T> list = new ArrayList<T>(collection);
         Collections.reverse(list);
         return list;

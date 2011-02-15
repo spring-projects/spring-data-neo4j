@@ -73,7 +73,6 @@ public class PropertyFieldAccessorFactory implements FieldAccessorFactory<GraphB
 
         @Override
         public final Object getValue(final GraphBacked<PropertyContainer> graphBacked) {
-            System.out.println("### getValue "+field.getDeclaringClass().getSimpleName()+"."+field.getName());
             return doReturn(doGetValue(graphBacked));
         }
 

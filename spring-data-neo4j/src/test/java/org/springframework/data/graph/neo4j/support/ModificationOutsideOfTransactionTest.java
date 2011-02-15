@@ -12,6 +12,7 @@ import org.springframework.data.graph.neo4j.Person;
 import org.springframework.data.graph.neo4j.finder.FinderFactory;
 import org.springframework.data.graph.neo4j.finder.NodeFinder;
 import org.springframework.data.graph.neo4j.support.node.Neo4jHelper;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,6 +22,7 @@ import static org.springframework.data.graph.neo4j.support.HasRelationshipMatche
 
 @RunWith( SpringJUnit4ClassRunner.class )
 @ContextConfiguration( locations = {"classpath:org/springframework/data/graph/neo4j/support/Neo4jGraphPersistenceTest-context.xml"} )
+@DirtiesContext
 public class ModificationOutsideOfTransactionTest
 {
 

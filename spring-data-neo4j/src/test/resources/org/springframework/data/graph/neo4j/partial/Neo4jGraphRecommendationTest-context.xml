@@ -99,7 +99,7 @@
 		        <constructor-arg>
 		            <bean class="org.springframework.data.graph.neo4j.support.node.Neo4jConstructorGraphEntityInstantiator"/>
                 </constructor-arg>
-		        <constructor-arg ref="entityManagerFactory"/>
+		        <constructor-arg ref="entityManager"/>
 		    </bean>
 		</property>
 		<property name="conversionService">
@@ -137,21 +137,21 @@
 	
 
 
-    <bean id="transactionManager" class="org.springframework.persistence.transaction.NaiveDoubleTransactionManager" >
+    <bean id="transactionManager" class="org.springframework.data.graph.neo4j.support.ChainedTransactionManager" >
 		<constructor-arg>
+            <list>
             <bean class="org.springframework.orm.jpa.JpaTransactionManager" id="jpaTransactionManager">
                 <property name="entityManagerFactory" ref="entityManagerFactory"/>
             </bean>
 			 <!--bean class="org.springframework.jdbc.datasource.DataSourceTransactionManager" >
 			 	<property name="dataSource" ref="dataSource"/>
 			 </bean-->
-		</constructor-arg>
-		<constructor-arg>
-			<bean 
+			<bean
 			    class="org.springframework.transaction.jta.JtaTransactionManager">
 			    <property name="transactionManager" ref="neo4jTransactionManagerService" />
 			    <property name="userTransaction" ref="neo4jUserTransactionService" />
 			</bean>
+            </list>
 		</constructor-arg>
 	</bean>
 
@@ -177,5 +177,7 @@
         <property name="persistenceXmlLocation" value="classpath:META-INF/persistence.xml"/>
     </bean>
 
-    <!--bean id="neoEntityManager"  class="org.springframework.persistence.graph.neo4j.Neo4jEntityManager" scope="prototype"/-->
+    <bean id="entityManager" class="org.springframework.orm.jpa.SharedEntityManagerCreator" factory-method="createSharedEntityManager">
+        <constructor-arg ref="entityManagerFactory"/>
+    </bean>
 </beans>

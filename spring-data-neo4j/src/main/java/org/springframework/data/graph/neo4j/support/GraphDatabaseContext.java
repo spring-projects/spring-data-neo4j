@@ -174,6 +174,7 @@ public class GraphDatabaseContext {
      * @return an instance of the entity type
      */
     public <S, T extends GraphBacked> T createEntityFromState(final S state, final Class<T> type) {
+        if (state==null) throw new IllegalArgumentException("state has to be either a Node or Relationship, not null");
         if (state instanceof Node)
             return (T) graphEntityInstantiator.createEntityFromState((Node) state, nodeTypeStrategy.confirmType((Node)state, (Class<? extends NodeBacked>)type));
         else
@@ -274,7 +275,20 @@ public class GraphDatabaseContext {
      * @return
      */
     public Node getOrCreateSubReferenceNode(final RelationshipType relType) {
-        return new GraphDatabaseUtil(graphDatabaseService).getOrCreateSubReferenceNode(relType);
+        return getOrCreateSingleOtherNode(graphDatabaseService.getReferenceNode(), relType, Direction.OUTGOING);
+    }
+
+    private Node getOrCreateSingleOtherNode(Node fromNode, RelationshipType type,
+                                                   Direction direction) {
+        Relationship singleRelationship = fromNode.getSingleRelationship(type, direction);
+        if (singleRelationship != null) {
+            return singleRelationship.getOtherNode(fromNode);
+        }
+
+        Node otherNode = graphDatabaseService.createNode();
+        fromNode.createRelationshipTo(otherNode, type);
+        return otherNode;
+
     }
 
 
