@@ -12,6 +12,6 @@
   </para>
   <para>
 	For the developer of a DATAGRAPH backed application only the public annotations are relevant, basic knowledge of graph stores is needed
-	to access advanced functionality like traversals. Traversals results can also be mapped to fields of entities.
+	to access advanced functionality like traversals. Traversal results can also be mapped to fields of entities.
   </para>
 </preface>

@@ -3,31 +3,25 @@
 <chapter id="setup">
 	<title>Setup required for Spring Data Graph</title>
 	<para>To use DATAGRAPH in your application, some setup is required. For building the application the necessary Maven dependencies must be included and
-		for the aspectj weaving some extensions of the compile goal are necessary. This chapter also discusses the Spring configuration needed to set up
+		for the AspectJ weaving some extensions of the compile goal are necessary. This chapter also discusses the Spring configuration needed to set up
 		DATAGRAPH. Examples for this setup can be found in the <ulink url="http://github.com/SpringSource/spring-data-graph-examples">DATAGRAPH examples</ulink>.
     </para>
 	<section>
 		<title>Maven Configuration</title>
 		<para>
-			As stated in the requirements chapter, DATAGRAPH projects are easiest to build with Apache Maven. The main dependencies are DATAGRAPH itself, Spring Data Commons, some parts of the Spring-Framework and of course the Neo4j graph database.
+			As stated in the requirements chapter, DATAGRAPH projects are easiest to build with Apache Maven. The main dependencies are DATAGRAPH itself, Spring Data Commons, some parts of the Spring Framework and of course the Neo4j graph database.
 		</para>
         <section>
 		<title>Repositories</title>
             <para>
                 The milestone releases of DATAGRAPH are available from the dedicated milestone repository. Neo4j
-                releases are available from Maven Central, while snapshots are available from the Neo4j repository.
+                releases and milestones are available from Maven Central.
             </para>
             <programlisting lang="XML"><![CDATA[
 <repository>
   <id>spring-maven-milestone</id>
   <name>Springframework Maven Repository</name>
   <url>http://maven.springframework.org/milestone</url>
-</repository>
-
-<repository>
-	<id>neo4j-public-repository</id>
-	<name>Publically available Maven 2 repository for Neo4j</name>
-	<url>http://m2.neo4j.org</url>
 </repository>
 				]]></programlisting>
             </section>
@@ -46,9 +40,9 @@
 </dependency> 
 
 <dependency>
-	<groupId>org.aspectj</groupId>
-	<artifactId>aspectjrt</artifactId>
-	<version>1.6.10.RELEASE</version>
+  <groupId>org.aspectj</groupId>
+  <artifactId>aspectjrt</artifactId>
+  <version>1.6.10.RELEASE</version>
 </dependency>
 						]]></programlisting>
 
@@ -56,48 +50,48 @@
     <section>
 
 		<title>AspectJ build configuration</title>
-		<para>As DATAGRAPH uses uses AspectJ for built time aspect weaving of your entities, it is necessary to add the aspectj-plugin to the build phases. The plugin has its own dependencies. You also need to explicitely specifiy libraries containing aspects (spring-aspects and spring-data-neo4j)</para>
+		<para>As DATAGRAPH uses AspectJ for build time aspect weaving of your entities, it is necessary to add the aspectj-plugin to the build phases. The plugin has its own dependencies. You also need to explicitely specifiy libraries containing aspects (spring-aspects and spring-data-neo4j)</para>
 		<programlisting lang="XML"><![CDATA[
 <plugin>
-	<groupId>org.codehaus.mojo</groupId>
-	<artifactId>aspectj-maven-plugin</artifactId>
-	<version>1.0</version>
-	<dependencies>
-		<!-- NB: You must use Maven 2.0.9 or above or these are ignored (see MNG-2972) -->
-		<dependency>
-			<groupId>org.aspectj</groupId>
-			<artifactId>aspectjrt</artifactId>
-			<version>1.6.10.RELEASE</version>
-		</dependency>
-		<dependency>
-			<groupId>org.aspectj</groupId>
-			<artifactId>aspectjtools</artifactId>
-			<version>1.6.10.RELEASE</version>
-		</dependency>
-	</dependencies>
-	<executions>
-		<execution>
-			<goals>
-				<goal>compile</goal>
-				<goal>test-compile</goal>
-			</goals>
-		</execution>
-	</executions>
-	<configuration>
-		<outxml>true</outxml>
-		<aspectLibraries>
-			<aspectLibrary>
-				<groupId>org.springframework</groupId>
-				<artifactId>spring-aspects</artifactId>
-			</aspectLibrary>
-			<aspectLibrary>
-				<groupId>org.springframework.data</groupId>
-				<artifactId>spring-datastore-neo4j</artifactId>
-			</aspectLibrary>
-		</aspectLibraries>
-		<source>1.6</source>
-		<target>1.6</target>
-	</configuration>
+  <groupId>org.codehaus.mojo</groupId>
+  <artifactId>aspectj-maven-plugin</artifactId>
+  <version>1.0</version>
+  <dependencies>
+    <!-- NB: You must use Maven 2.0.9 or above or these are ignored (see MNG-2972) -->
+    <dependency>
+      <groupId>org.aspectj</groupId>
+      <artifactId>aspectjrt</artifactId>
+      <version>1.6.10.RELEASE</version>
+    </dependency>
+    <dependency>
+      <groupId>org.aspectj</groupId>
+      <artifactId>aspectjtools</artifactId>
+      <version>1.6.10.RELEASE</version>
+    </dependency>
+  </dependencies>
+  <executions>
+    <execution>
+      <goals>
+        <goal>compile</goal>
+        <goal>test-compile</goal>
+      </goals>
+    </execution>
+  </executions>
+  <configuration>
+    <outxml>true</outxml>
+    <aspectLibraries>
+      <aspectLibrary>
+        <groupId>org.springframework</groupId>
+        <artifactId>spring-aspects</artifactId>
+      </aspectLibrary>
+      <aspectLibrary>
+        <groupId>org.springframework.data</groupId>
+        <artifactId>spring-datastore-neo4j</artifactId>
+      </aspectLibrary>
+    </aspectLibraries>
+    <source>1.6</source>
+    <target>1.6</target>
+  </configuration>
 </plugin>
 						]]></programlisting>
     </section>
@@ -142,14 +136,17 @@
             <programlisting lang="XML"><![CDATA[
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
-	xmlns:context="http://www.springframework.org/schema/context"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:context="http://www.springframework.org/schema/context"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xmlns:datagraph="http://www.springframework.org/schema/data/graph"
-	xsi:schemaLocation="
-		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
-		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd
-		http://www.springframework.org/schema/data/graph http://www.springframework.org/schema/data/graph/datagraph-1.0.xsd
-		">
+  xsi:schemaLocation="
+    http://www.springframework.org/schema/beans 
+    http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+    http://www.springframework.org/schema/context 
+    http://www.springframework.org/schema/context/spring-context-3.0.xsd
+    http://www.springframework.org/schema/data/graph 
+    http://www.springframework.org/schema/data/graph/datagraph-1.0.xsd
+    ">
 
     <context:annotation-config/>
     <datagraph:config storeDirectory="target/config-test"/>
@@ -159,7 +156,8 @@
             <programlisting lang="XML"><![CDATA[
     <context:annotation-config/>
 
-    <bean id="graphDatabaseService" class="org.neo4j.kernel.EmbeddedGraphDatabase" destroy-method="shutdown">
+    <bean id="graphDatabaseService" class="org.neo4j.kernel.EmbeddedGraphDatabase" 
+      destroy-method="shutdown">
          <constructor-arg index="0" value="target/config-test" />
     </bean>
 
@@ -167,11 +165,13 @@
                     ]]></programlisting>
 
             <programlisting lang="XML"><![CDATA[
-	<context:annotation-config/>
+  <context:annotation-config/>
 
-    <datagraph:config storeDirectory="target/config-test" entityManagerFactory="entityManagerFactory"/>
+    <datagraph:config storeDirectory="target/config-test"
+      entityManagerFactory="entityManagerFactory"/>
 
-    <bean class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean" id="entityManagerFactory">
+    <bean class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean"
+      id="entityManagerFactory">
         <property name="dataSource" ref="dataSource"/>
         <property name="persistenceXmlLocation" value="classpath:META-INF/persistence.xml"/>
     </bean>

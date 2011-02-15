@@ -93,7 +93,7 @@
 		<dist.name>Spring Data Graph</dist.name>
 		<dist.key>DATAGRAPH</dist.key>
 		<dist.version>${project.version}</dist.version>
-		<dist.releaseType>milestone</dist.releaseType>
+		<dist.releaseType>snapshot</dist.releaseType>
 		<dist.finalName>${dist.id}-${dist.version}</dist.finalName>
 		<dist.fileName>${dist.finalName}.zip</dist.fileName>
 		<dist.filePath>target/${dist.fileName}</dist.filePath>
