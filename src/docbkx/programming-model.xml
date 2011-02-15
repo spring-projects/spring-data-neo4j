@@ -59,6 +59,7 @@ public class Role {
 	private Actor actor;
 	@EndNode
 	private Movie movie;
+}
 ]]></programlisting>
 		</section>
         <section>
@@ -71,10 +72,10 @@ public class Role {
 			<title>Fields with @RelatedTo pointing to other NodeEntities</title>
             <para>
                 Relationships to other NodeEntities are mapped to graph relationships. Those can either be single
-                relationships (1:1) or multiple relationships (1:n). In most cases the simple relationships to other
+                relationships (1:1) or multiple relationships (1:n). In most cases single relationships to other
                 node entities don't have to be annotated as DATAGRAPH can extract all needed information from the field
                 using reflection. In the case of
-                multi-relationships, the <code>elementClass</code> parameter of @RelatedTo must be specified because of type erasure.
+                multiple relationships, the <code>elementClass</code> parameter of @RelatedTo must be specified because of type erasure.
                 The <code>direction</code> (default OUTGOING) and <code>type</code>
                 (inferred from field name) parameters of the annotation are optional.
             </para>
@@ -126,17 +127,17 @@ public class Actor {
                 IndexManager,
                 triggered by value modification.
                 The resulting index can be used to later retrieve nodes or relationships that contain a certain property
-                value (e.g. a name),
-                often to establish the start node for a traversal.
+                value (for example a name). Often an index is used to establish the start node for a traversal.
                 Indexes are accessed by a Finder for a particular NodeEntity or RelationshipEntity, created via a FinderFactory.
-
+            </para>
+            <para>
                 GraphDatabaseContext exposes the
                 indexes for Nodes and Relationships. Indexes can
                 be named, for instance to keep separate domain concepts in separate indexes. That's why it is possible
                 to specifiy an index name with
                 the @Indexed annotation. It can also be specified at the entity level, this name is then the default
                 index name for
-                all fields of the entity. If no index name is specified, it defaults to the one configured with neo4j
+                all fields of the entity. If no index name is specified, it defaults to the one configured with Neo4j
                 ("node" and "relationship").
             </para>
         </section>
@@ -159,14 +160,14 @@ public class Actor {
 		<title>Finding Nodes with Finders</title>
 		<para>Spring Data Graph also comes with a type bound Repository-like
             Finder implementation that provides methods for locating nodes
-            and relationships.
+            and relationships:
 		<itemizedlist>
 			<listitem>using direct access <code>findById(id)</code> , </listitem>
-            <listitem>iterating over all nodes of a node entity type (findAll), </listitem>
+      <listitem>iterating over all nodes of a node entity type (findAll), </listitem>
 			<listitem>counting the instances of a node entity type (count), </listitem>
 			<listitem>iterating over all indexed instances with a certain property value (findAllByPropertyValue), </listitem>
-			<listitem>getting a single instances with a certain property value (findByPropertyValue), </listitem>
-			<listitem>iterating over a traversal result (findAllByTraversal), </listitem>
+			<listitem>getting a single instance with a certain property value (findByPropertyValue), </listitem>
+			<listitem>iterating over a traversal result (findAllByTraversal). </listitem>
 		</itemizedlist>
 		The Finder instances are created via a FinderFactory to be bound to a
             concrete node or relationship entity class.
@@ -199,7 +200,7 @@ Iterable<Person> davesFriends = finder.findAllByTraversal(dave,
 		</para>
 		<para>
 			An alternative approach could use indexing operations to perform the same functionality. Or one could skip the NodeTypeStrategy altogether if no
-            strict checks on type conformity are needed that would allow for a much more flexible data model.
+            strict checks on type conformity are needed, which would allow for a much more flexible data model.
 		</para>
 	</section>
 	<section>
@@ -212,9 +213,9 @@ Iterable<Person> davesFriends = finder.findAllByTraversal(dave,
         </para>
 		<para>
 			DATAGRAPH is designed to work within transaction boundaries. So entity creation and modification should happen within transactional methods.
-			Due to the usage of POJO entities it is common to create and populate them also outside of a transaction (e.g. in the web layer). That's why
+			Due to the usage of POJO entities it is common to create and populate them also outside of a transaction (for example in the web layer). That's why
 			some housekeeping support was added to DATAGRAPH. It is possible to create node entities outside of transactions and also to modify their fields.
-			Those values are then not stored within the backing node but instead only in the entity itself. When the entity reenters a transactional context
+			The values are then not stored within the backing node but instead only in the entity itself. When the entity reenters a transactional context
 			and its fields are read or written to, all the pending changes are flushed to the backing node first.
 		</para>
 		<para>At the moment there is no support for the creation of relationships outside of transactions and also more complex operations like creating whole
@@ -225,7 +226,7 @@ Iterable<Person> davesFriends = finder.findAllByTraversal(dave,
         <title>Methods added to Entity Classes</title>
         <para>
             The node and relationship aspects introduce (via ITD - inter type declaration) several methods to the entities that
-            make common tasks easier. Unfortunately those methods are not generified yet, so the
+            make common tasks easier. Unfortunately these methods are not generified yet, so the
             results have to be casted to the correct return type.
             <variablelist>
                 <varlistentry>
@@ -241,7 +242,7 @@ Iterable<Person> davesFriends = finder.findAllByTraversal(dave,
                     </listitem>
                 </varlistentry>
                 <varlistentry>
-                    <term>equals and hashcode delegated to the underlying state</term>
+                    <term>equals and hashcode are delegated to the underlying state</term>
                     <listitem>
                         <para><code>entity.equals() and entity.hashCode()</code></para>
                     </listitem>
@@ -249,7 +250,7 @@ Iterable<Person> davesFriends = finder.findAllByTraversal(dave,
                 <varlistentry>
                     <term>creating relationships to a target node entity</term>
                     <listitem>
-                        <para><code>nodeEntity.relateTo(targetEntity, relationshipClass, relationshipTyperelationshipType)</code></para>
+                        <para><code>nodeEntity.relateTo(targetEntity, relationshipClass, relationshipType)</code></para>
                     </listitem>
                 </varlistentry>
                 <varlistentry>
@@ -261,7 +262,7 @@ Iterable<Person> davesFriends = finder.findAllByTraversal(dave,
                 <varlistentry>
                     <term>removing a single relationship</term>
                     <listitem>
-                        <para><code>nodeEntity.removeRelationshipTo(targetEntity, relationshipTyp)</code></para>
+                        <para><code>nodeEntity.removeRelationshipTo(targetEntity, relationshipType)</code></para>
                     </listitem>
                 </varlistentry>
                 <varlistentry>
@@ -294,7 +295,7 @@ Iterable<Person> davesFriends = finder.findAllByTraversal(dave,
         </para>
         <para>
             For instance an order can be used in these contexts: customer, procurement, logistics, billing, fulfillment and many more.
-            Each of those contexts requires its distinct set of attributes and operations. As Java doesn't support Mixins one would put
+            Each of those contexts requires its distinct set of attributes and operations. As Java doesn't support mixins one would put
             the sum of all of those into the entity class and thereby making it very big, brittle and hard to understand.
             Being able to take a basic order and project it to a different (not related in the inheritance hierarchy or even an interface)
             order type that is valid in the current context and only offers the attributes and methods needed here would be very benefitial.

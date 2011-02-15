@@ -3,7 +3,7 @@
 <chapter id="cross-store">
 	<title>Cross-store persistence with a graph database</title>
 	<para>The Spring Data Graph project support cross-store persistence which allows parts of the data mode to be stored in a traditional
-	JPA datastore (RDBMS) and other parts of the data model (even partial entites, i.e. some properties or relationships) in the graph
+	JPA datastore (RDBMS) and other parts of the data model (even partial entites, that is some properties or relationships) in a graph
 	store.
   </para>
 	<para>
@@ -40,7 +40,7 @@
 			<title>@NodeEntity(partial = "true")</title>
 			<para>
 	When annotating an entity with partial true, DATAGRAPH assumes that this is a cross-store entity. So it is only responsible for the fields
-	annotated with SDGRPAH annotations. JPA should not take care of those fields (they should be annotated with @Transient). In this mode of
+	annotated with DATAGRAPH annotations. JPA should not take care of these fields (they should be annotated with @Transient). In this mode of
 	operation DATAGRAPH also handles the cross-store connection via the content of the JPA id field.
 	</para>
 		</section>
@@ -48,7 +48,7 @@
 			<title>@GraphProperty</title>
 			<para>
 				For common fields containing primitive or convertible values that wouldn't have to be annotated in exclusive DATAGRAPH operations this
-				explicit declaration is necessary to be sure that they are intended to be stored in the graph. Those fields should then be made transient
+				explicit declaration is necessary to be sure that they are intended to be stored in the graph. These fields should then be made transient
 				so that JPA doesn't try to take care of them as well.
 			</para>
 		</section>
@@ -120,16 +120,21 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xmlns:datagraph="http://www.springframework.org/schema/data/graph"
 	xsi:schemaLocation="
-		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
-		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd
-		http://www.springframework.org/schema/data/graph http://www.springframework.org/schema/data/graph/datagraph-1.0.xsd
+		http://www.springframework.org/schema/beans 
+		http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+		http://www.springframework.org/schema/context 
+		http://www.springframework.org/schema/context/spring-context-3.0.xsd
+		http://www.springframework.org/schema/data/graph 
+		http://www.springframework.org/schema/data/graph/datagraph-1.0.xsd
 		">
 
 	<context:annotation-config/>
 
-    <datagraph:config storeDirectory="target/config-test" entityManagerFactory="entityManagerFactory"/>
+    <datagraph:config storeDirectory="target/config-test" 
+      entityManagerFactory="entityManagerFactory"/>
 
-    <bean class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean" id="entityManagerFactory">
+    <bean class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean"
+      id="entityManagerFactory">
         <property name="dataSource" ref="dataSource"/>
         <property name="persistenceXmlLocation" value="classpath:META-INF/persistence.xml"/>
     </bean>

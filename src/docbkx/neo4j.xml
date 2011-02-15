@@ -8,7 +8,7 @@
 	<para>
 	Neo4j has been in commercial development for 10 years and in production for over 7 years. It is a mature and robust graph database that provides:
 	<itemizedlist><listitem>
-	an intuitive graph-oriented model for data representation. Instead of static and rigid tables, rows and columns, you work with a flexible graph network consisting of <ulink url="http://wiki.neo4j.org/content/Getting_Started_Guide">nodes, relationships and properties</ulink>.
+	an intuitive graph-oriented model for data representation. Instead of static and rigid tables, rows and columns, you work with a flexible graph network consisting of <ulink url="http://wiki.neo4j.org/content/Getting_Started">nodes, relationships and properties</ulink>.
 </listitem><listitem>	a disk-based, native storage manager completely optimized for storing graph structures for maximum performance and scalability.
 </listitem><listitem>	massive scalability. Neo4j can handle graphs of several billion nodes/relationships/properties on a single machine and can be sharded to scale out across multiple machines.
 </listitem><listitem>	a powerful traversal framework for high-speed traversals in the node space.
@@ -30,11 +30,11 @@
 		</para>
 		<para>
 			The EmbeddedGraphDatabaseService is running within the current Java application for highest performance and tightest integration. There are other,
-			 remote implementations that provide access to Neo4j stores via REST or RMI.</para>
+			 remote implementations that provide access to Neo4j stores via REST.</para>
 	</section>
 	<section>
 		<title>Creating Nodes and Relationships</title>
-		<para>Using the API of GraphDatabaseService it is easy to create nodes and relate them to each other. Relationships are named. Both nodes and relationships can have properties. Property values can be of primitive Java types and Strings as well as byte arrays for binary data.
+		<para>Using the API of GraphDatabaseService it is easy to create nodes and relate them to each other. Relationships are named. Both nodes and relationships can have properties. Property values can be of primitive Java types and Strings as well as byte arrays for binary data or arrays of other Java primitives or Strings.
 			Node creation and modification has to happen within a transaction, while reading from the graph store can be done without a transaction.
 			<programlisting lang="JAVA" ><![CDATA[
 GraphDatabaseService graphDb = new EmbeddedGraphDatabase( "helloworld" );
@@ -79,7 +79,7 @@ for ( Path position : traversalDescription.traverse( myStartNode )) {
             using Neo4j's index facilities. The GraphDatabaseService provides
             access to the IndexManager which in turn retrieves named indexes
             for nodes and relationships. Both can be indexed with property names
-            and values. Retrieval happens via IndexHits which are an Iterator
+            and values. Retrieval happens via IndexHits which is an Iterator
             over the results.
 
 <programlisting lang="JAVA" ><![CDATA[
@@ -90,9 +90,9 @@ for (Node foundNode = nodeIndex.get("property","value")) {
     assert node.getProperty("property").equals("value");
 }
 ]]></programlisting>
-            Currently indexing is a manual process; auto-indexes are a future
-            feature. (DATAGRAPH already provides auto-indexing via the
-            @Indexed annotation.)
+            DATAGRAPH provides auto-indexing via the
+            @Indexed annotation, while this still is a
+            manual process when using the Neo4j API.
 		</para>
 	</section>
 </chapter>
