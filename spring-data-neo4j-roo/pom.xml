@@ -111,10 +111,6 @@
 			<groupId>org.neo4j</groupId>
 			<artifactId>neo4j</artifactId>
 		</dependency>
-		<dependency>
-			<groupId>org.neo4j</groupId>
-			<artifactId>neo4j-utils</artifactId>
-		</dependency>
 
 		<!-- JPA -->
         <dependency>

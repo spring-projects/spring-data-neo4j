@@ -23,7 +23,6 @@ import org.neo4j.graphdb.traversal.TraversalDescription;
 import org.neo4j.helpers.collection.CombiningIterable;
 import org.neo4j.helpers.collection.IterableWrapper;
 import org.neo4j.kernel.impl.traversal.TraversalDescriptionImpl;
-import org.neo4j.util.GraphDatabaseUtil;
 import org.springframework.data.graph.core.NodeBacked;
 import org.springframework.data.graph.core.NodeTypeStrategy;
 
@@ -54,6 +53,35 @@ public class SubReferenceNodeTypeStrategy implements NodeTypeStrategy {
         this.graphDatabaseContext = graphDatabaseContext;
     }
 
+    public static Node getSingleOtherNode(Node node, RelationshipType type,
+                                          Direction direction) {
+        Relationship rel = node.getSingleRelationship(type, direction);
+        return rel == null ? null : rel.getOtherNode(node);
+    }
+
+    public static Integer incrementAndGetCounter(Node node, String propertyKey) {
+        acquireWriteLock(node);
+        int value = (Integer) node.getProperty(propertyKey, 0);
+        value++;
+        node.setProperty(propertyKey, value);
+        return value;
+    }
+
+    public static Integer decrementAndGetCounter(Node node, String propertyKey,
+                                                 int notLowerThan) {
+        int value = (Integer) node.getProperty(propertyKey, 0);
+        value--;
+        value = value < notLowerThan ? notLowerThan : value;
+        node.setProperty(propertyKey, value);
+        return value;
+    }
+
+    public static void acquireWriteLock(PropertyContainer entity) {
+        // TODO At the moment this is the best way of doing it, if you don't want to use
+        // the LockManager (and release the lock yourself)
+        entity.removeProperty("___dummy_property_for_locking___");
+    }
+
     /**
      * lifecycle method, creates instanceof relationship to type node, creates the type nodes of the inheritance
      * hierarchy if necessary and increments instance counters
@@ -68,7 +96,7 @@ public class SubReferenceNodeTypeStrategy implements NodeTypeStrategy {
 	    subReference.setProperty(SUBREF_CLASS_KEY, clazz.getName());
 	    if (log.isDebugEnabled()) log.debug("Created link to subref node: " + subReference + " with type: " + clazz.getName());
 
-        GraphDatabaseUtil.incrementAndGetCounter(subReference, SUBREFERENCE_NODE_COUNTER_KEY);
+        incrementAndGetCounter(subReference, SUBREFERENCE_NODE_COUNTER_KEY);
 
 	    updateSuperClassSubrefs(clazz, subReference);
     }
@@ -89,7 +117,7 @@ public class SubReferenceNodeTypeStrategy implements NodeTypeStrategy {
         TraversalDescription traversal = new TraversalDescriptionImpl().depthFirst().relationships(SUBCLASS_OF_RELATIONSHIP_TYPE, Direction.OUTGOING);
         for (Node node : traversal.traverse(subReference).nodes()) {
             Integer count = (Integer) node.getProperty(SUBREFERENCE_NODE_COUNTER_KEY);
-            Integer newCount = GraphDatabaseUtil.decrementAndGetCounter(node, SUBREFERENCE_NODE_COUNTER_KEY, 0);
+            Integer newCount = decrementAndGetCounter(node, SUBREFERENCE_NODE_COUNTER_KEY, 0);
             if (log.isDebugEnabled()) log.debug("count on ref " + node + " was " + count + " new " + newCount);
         }
     }
@@ -105,11 +133,11 @@ public class SubReferenceNodeTypeStrategy implements NodeTypeStrategy {
 	    Class<?> superClass = clazz.getSuperclass();
 	    if (superClass != null) {
 		    Node superClassSubref = obtainSubreferenceNode(superClass);
-		    if (GraphDatabaseUtil.getSingleOtherNode(subReference, SUBCLASS_OF_RELATIONSHIP_TYPE, Direction.OUTGOING) == null) {
+		    if (getSingleOtherNode(subReference, SUBCLASS_OF_RELATIONSHIP_TYPE, Direction.OUTGOING) == null) {
 			    subReference.createRelationshipTo(superClassSubref, SUBCLASS_OF_RELATIONSHIP_TYPE);
 		    }
 		    superClassSubref.setProperty(SUBREF_CLASS_KEY, superClass.getName());
-		    Integer count = GraphDatabaseUtil.incrementAndGetCounter(superClassSubref, SUBREFERENCE_NODE_COUNTER_KEY);
+		    Integer count = incrementAndGetCounter(superClassSubref, SUBREFERENCE_NODE_COUNTER_KEY);
 		    if (log.isDebugEnabled()) log.debug("count on ref " + superClassSubref + " for class " + superClass.getSimpleName() + " = " + count);
 		    updateSuperClassSubrefs(superClass, superClassSubref);
 	    }
