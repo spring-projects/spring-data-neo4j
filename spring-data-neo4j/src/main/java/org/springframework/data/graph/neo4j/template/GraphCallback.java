@@ -16,17 +16,8 @@
 
 package org.springframework.data.graph.neo4j.template;
 
-public interface NeoCallback
-{
-    void neo(final Status status, final Graph graph) throws Exception;
+import org.neo4j.graphdb.GraphDatabaseService;
 
-
-    public static interface Status
-    {
-        void mustRollback();
-
-        void interimCommit();
-    }
-
-
+public interface GraphCallback {
+    void doWithGraph(final GraphDatabaseService graph) throws Exception;
 }

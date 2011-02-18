@@ -2,22 +2,19 @@ package org.springframework.data.graph.neo4j.template;
 
 import org.junit.Ignore;
 import org.junit.Test;
+import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.RelationshipType;
-import org.neo4j.graphdb.StopEvaluator;
+import org.neo4j.graphdb.traversal.TraversalDescription;
+import org.neo4j.helpers.collection.IteratorUtil;
+import org.neo4j.kernel.Traversal;
 import org.springframework.core.convert.converter.Converter;
-import org.springframework.data.graph.neo4j.template.Graph;
-import org.springframework.data.graph.neo4j.template.NeoCallback;
-import org.springframework.data.graph.neo4j.template.NeoTemplate;
-import org.springframework.data.graph.neo4j.template.traversal.Traversal;
 
-import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Iterator;
 
 import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
 import static org.springframework.data.graph.neo4j.template.NeoTraversalTest.Type.HAS;
-import static org.springframework.data.graph.neo4j.template.traversal.Traversal.walk;
 
 public class NeoTraversalTest extends NeoApiTest {
 
@@ -27,36 +24,33 @@ public class NeoTraversalTest extends NeoApiTest {
 
     @Test
     public void testSimpleTraverse() {
-        runAndCheckTraverse(walk().both(HAS), "wife", "man","son","daughter", "grandma","grandpa" );
+        runAndCheckTraverse(Traversal.description().relationships(HAS), "wife", "man","son","daughter", "grandma","grandpa" );
     }
 
 
     @Ignore
     @Test
     public void testComplexTraversal() {
-        final Traversal traversal = walk().breadthFirst().depthFirst()
-                .stopOn(StopEvaluator.DEPTH_ONE).first().all()
-                .incoming(HAS).outgoing(HAS).twoway(HAS);
+        final TraversalDescription traversal = Traversal.description().depthFirst().relationships(HAS).prune(Traversal.pruneAfterDepth(1));
         runAndCheckTraverse(traversal, "grandpa", "grandma", "daughter", "son", "man", "wife");
     }
 
-    private void runAndCheckTraverse(final Traversal traversal, final String... names) {
-        final NeoTemplate template = new NeoTemplate(neo);
-        template.execute(new NeoCallback() {
-            public void neo(final Status status, final Graph graph) throws Exception {
+    private void runAndCheckTraverse(final TraversalDescription traversal, final String... names) {
+        final Neo4jTemplate template = new Neo4jTemplate(neo);
+        template.doInTransaction(new GraphCallback() {
+            public void doWithGraph(GraphDatabaseService graph) throws Exception {
                 createFamily(graph);
-                assertEquals("all members",asList(names) ,
-                        graph.traverse(graph.getReferenceNode(), traversal,
-                                new Converter<Node, String>() {
-                                    public String convert(Node node) {
-                                        return (String) node.getProperty("name", "");
-                                    }
-                                }));
-            }
-        });
+            }});
+        Iterator<String> result=template.traverseNodes(template.getReferenceNode(), traversal,
+                new Converter<Node, String>() {
+                    public String convert(Node node) {
+                        return (String) node.getProperty("name", "");
+                    }
+                });
+        assertEquals("all members", asList(names), IteratorUtil.<String>asCollection(IteratorUtil.asIterable(result)));
     }
 
-    private void createFamily(final Graph graph) {
+    private void createFamily(final GraphDatabaseService graph) {
         final GraphDescription family = new GraphDescription();
         family.add("family", "type", "small");
         family.relate("family", HAS, "wife");
@@ -95,7 +89,6 @@ public class NeoTraversalTest extends NeoApiTest {
         family.relate("grandpa", Type.GRANDDAUGHTER, "daughter");
         family.relate("grandma", Type.GRANDDAUGHTER, "daughter");
 
-        // todo even more relationships
-        graph.load(family);
+        family.addToGraph(graph);
     }
 }

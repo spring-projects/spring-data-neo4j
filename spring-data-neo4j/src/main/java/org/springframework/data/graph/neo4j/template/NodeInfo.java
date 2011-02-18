@@ -16,6 +16,7 @@
 
 package org.springframework.data.graph.neo4j.template;
 
+import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.RelationshipType;
 
@@ -69,7 +70,7 @@ class NodeInfo
         setId(node.getId());
     }
 
-    void updateRelations(final Node from, final Graph nodeService)
+    void updateRelations(final Node from, final GraphDatabaseService nodeService)
     {
         for (RelationShipNodeInfo relation : relations)
         {

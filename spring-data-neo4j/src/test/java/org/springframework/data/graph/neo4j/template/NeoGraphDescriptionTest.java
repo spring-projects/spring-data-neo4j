@@ -2,11 +2,9 @@ package org.springframework.data.graph.neo4j.template;
 
 import org.junit.Test;
 import org.neo4j.graphdb.Direction;
+import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.RelationshipType;
-import org.springframework.data.graph.neo4j.template.Graph;
-import org.springframework.data.graph.neo4j.template.NeoCallback;
-import org.springframework.data.graph.neo4j.template.NeoTemplate;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -24,21 +22,21 @@ public class NeoGraphDescriptionTest extends NeoApiTest {
 
     @Test
     public void testLoadGraph() {
-        final NeoTemplate template = new NeoTemplate(neo);
-        template.execute(new NeoCallback() {
-            public void neo(final Status status, final Graph graph) throws Exception {
+        final Neo4jTemplate template = new Neo4jTemplate(neo);
+        template.doInTransaction(new GraphCallback() {
+            @Override
+            public void doWithGraph(GraphDatabaseService graph) throws Exception {
                 final GraphDescription heaven = new GraphDescription();
                 heaven.add("adam", "age", 1);
                 heaven.add("eve", "age", 0);
                 heaven.relate("adam", HAS, "eve");
-                graph.load(heaven);
-
+                heaven.addToGraph(graph);
                 checkHeaven(graph);
             }
         });
     }
 
-    private void checkHeaven(final Graph graph) {
+    private void checkHeaven(final GraphDatabaseService graph) {
         final Node adam = graph.getReferenceNode();
         assertEquals("adam", adam.getProperty("name"));
         assertEquals(1, adam.getProperty("age"));
@@ -49,11 +47,11 @@ public class NeoGraphDescriptionTest extends NeoApiTest {
 
     @Test
     public void testLoadGraphProps() {
-        final NeoTemplate template = new NeoTemplate(neo);
-        template.execute(new NeoCallback() {
-            public void neo(final Status status, final Graph graph) throws Exception {
+        final Neo4jTemplate template = new Neo4jTemplate(neo);
+        template.doInTransaction(new GraphCallback() {
+            public void doWithGraph(GraphDatabaseService graph) throws Exception {
                 final GraphDescription heaven = new GraphDescription(createGraphProperties());
-                graph.load(heaven);
+                heaven.addToGraph(graph);
                 checkHeaven(graph);
             }
         });

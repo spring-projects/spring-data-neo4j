@@ -4,10 +4,6 @@ import org.junit.After;
 import org.junit.Before;
 import org.neo4j.graphdb.*;
 import org.neo4j.kernel.EmbeddedGraphDatabase;
-import org.springframework.data.graph.neo4j.template.Graph;
-import org.springframework.data.graph.neo4j.template.NeoCallback;
-import org.springframework.data.graph.neo4j.template.NeoTemplate;
-import org.springframework.data.graph.neo4j.template.traversal.Traversal;
 
 public abstract class NeoApiTest {
     protected GraphDatabaseService neo;
@@ -26,11 +22,12 @@ public abstract class NeoApiTest {
     }
 
     private void clear() {
-        new NeoTemplate(neo).execute(new NeoCallback() {
-            public void neo(final Status status, final Graph graph) throws Exception {
-                final DynamicRelationshipType relationshipType = DynamicRelationshipType.withName("HAS");
-                final Traverser allNodes = graph.traverse(Traversal.walk().both(relationshipType));
-                for (Node node : allNodes) {
+        new Neo4jTemplate(neo).doInTransaction(new GraphCallback() {
+            @Override
+            public void doWithGraph(GraphDatabaseService graph) throws Exception {
+                final DynamicRelationshipType HAS = DynamicRelationshipType.withName("HAS");
+                Node startNode = graph.getReferenceNode();
+                for (Node node : org.neo4j.kernel.Traversal.description().breadthFirst().relationships(HAS).traverse(startNode).nodes()) {
                     for (Relationship relationship : node.getRelationships()) {
                         relationship.delete();
                     }
