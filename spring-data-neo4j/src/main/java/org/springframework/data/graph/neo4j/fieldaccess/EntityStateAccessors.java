@@ -58,5 +58,5 @@ public interface EntityStateAccessors<ENTITY extends GraphBacked<STATE>,STATE> {
     boolean hasUnderlyingState();
     STATE getUnderlyingState();
 
-    ENTITY attach();
+    ENTITY attach(boolean isOnCreate);
 }

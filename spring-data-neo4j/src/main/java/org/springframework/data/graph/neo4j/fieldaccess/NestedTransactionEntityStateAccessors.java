@@ -70,10 +70,10 @@ public class NestedTransactionEntityStateAccessors<ENTITY extends GraphBacked<ST
     }
 
     @Override
-    public ENTITY attach() {
+    public ENTITY attach(final boolean isOnCreate) {
         return doInTransaction(new Callable<ENTITY>() {
             public ENTITY call() throws Exception {
-                return delegate.attach();
+                return delegate.attach(isOnCreate);
             }
         });
     }

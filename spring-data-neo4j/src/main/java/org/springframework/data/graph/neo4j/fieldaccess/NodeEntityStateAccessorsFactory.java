@@ -37,7 +37,7 @@ public class NodeEntityStateAccessorsFactory {
         boolean autoAttach = graphEntityAnnotation.autoAttach();
         if (graphEntityAnnotation.partial()) {
             PartialNodeEntityStateAccessors<NodeBacked> partialNodeEntityStateAccessors = new PartialNodeEntityStateAccessors<NodeBacked>(null, entity, entity.getClass(), graphDatabaseContext, finderFactory);
-            return new DetachableEntityStateAccessors<NodeBacked, Node>(partialNodeEntityStateAccessors, graphDatabaseContext) {
+            return new DetachableEntityStateAccessors<NodeBacked, Node>(partialNodeEntityStateAccessors, graphDatabaseContext, false) {
                 @Override
                 protected boolean transactionIsRunning() {
                     return super.transactionIsRunning() && getId(entity, entity.getClass()) != null;
@@ -45,7 +45,11 @@ public class NodeEntityStateAccessorsFactory {
             };
         } else {
             NodeEntityStateAccessors<NodeBacked> nodeEntityStateAccessors = new NodeEntityStateAccessors<NodeBacked>(null, entity, entity.getClass(), graphDatabaseContext, nodeDelegatingFieldAccessorFactory);
-            return new NestedTransactionEntityStateAccessors<NodeBacked, Node>(nodeEntityStateAccessors,graphDatabaseContext);
+            if (autoAttach) {
+                return new NestedTransactionEntityStateAccessors<NodeBacked, Node>(nodeEntityStateAccessors,graphDatabaseContext);
+            } else {
+                return new DetachableEntityStateAccessors<NodeBacked, Node>(nodeEntityStateAccessors, graphDatabaseContext, autoAttach);
+            }
         }
     }
 

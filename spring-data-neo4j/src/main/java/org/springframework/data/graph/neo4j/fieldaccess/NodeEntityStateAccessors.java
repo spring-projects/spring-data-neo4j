@@ -19,6 +19,7 @@ package org.springframework.data.graph.neo4j.fieldaccess;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.NotInTransactionException;
 import org.springframework.dao.InvalidDataAccessResourceUsageException;
+import org.springframework.data.graph.annotation.NodeEntity;
 import org.springframework.data.graph.core.NodeBacked;
 import org.springframework.data.graph.neo4j.support.GraphDatabaseContext;
 import org.springframework.persistence.support.StateProvider;
@@ -59,7 +60,7 @@ public class NodeEntityStateAccessors<ENTITY extends NodeBacked> extends Default
     }
 
     @Override
-    public ENTITY attach() {
+    public ENTITY attach(boolean isOnCreate) {
         Node node = StateProvider.retrieveState();
         if (node != null) {
             setUnderlyingState(node);

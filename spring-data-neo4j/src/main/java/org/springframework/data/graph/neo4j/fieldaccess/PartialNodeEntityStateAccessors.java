@@ -129,7 +129,7 @@ public class PartialNodeEntityStateAccessors<ENTITY extends NodeBacked> extends 
     }
 
     @Override
-    public ENTITY attach() {
+    public ENTITY attach(boolean isOnCreate) {
         Node node = StateProvider.retrieveState();
         if (node != null) {
             setUnderlyingState(node);

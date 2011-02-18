@@ -18,7 +18,6 @@ package org.springframework.data.graph.neo4j.fieldaccess;
 
 import org.neo4j.graphdb.NotInTransactionException;
 import org.neo4j.graphdb.Relationship;
-import org.springframework.core.convert.ConversionService;
 import org.springframework.dao.InvalidDataAccessResourceUsageException;
 import org.springframework.data.graph.core.RelationshipBacked;
 import org.springframework.data.graph.neo4j.finder.FinderFactory;
@@ -26,9 +25,6 @@ import org.springframework.data.graph.neo4j.support.GraphDatabaseContext;
 
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
-
-import static java.util.Arrays.asList;
 
 /**
  * @author Michael Hunger
@@ -88,7 +84,7 @@ public class RelationshipEntityStateAccessors<ENTITY extends RelationshipBacked>
     }
 
     @Override
-    public ENTITY attach() {
+    public ENTITY attach(boolean isOnCreate) {
         createAndAssignState();
         return entity;
     }

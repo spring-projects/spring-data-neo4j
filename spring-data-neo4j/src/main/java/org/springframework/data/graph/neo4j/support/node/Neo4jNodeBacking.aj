@@ -98,13 +98,14 @@ public aspect Neo4jNodeBacking { // extends AbstractTypeAnnotatingMixinFields<No
             log.error("entityStateAccessorsFactory not set, not creating accessors for " + entity.getClass());
         } else {
             if (entity.stateAccessors != null) return;
-            entity.stateAccessors = entityStateAccessorsFactory.getEntityStateAccessors(entity);
-            entity.attach();
+            EntityStateAccessors<NodeBacked, Node> stateAccessors = entityStateAccessorsFactory.getEntityStateAccessors(entity);
+            entity.stateAccessors = stateAccessors;
+            stateAccessors.attach(true);
         }
     }
 
     public NodeBacked NodeBacked.attach() {
-        return this.stateAccessors.attach();
+        return this.stateAccessors.attach(false);
     }
     /**
      * State accessors that encapsulate the underlying state and the behaviour related to it (field access, creation)

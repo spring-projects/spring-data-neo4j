@@ -18,6 +18,7 @@ package org.springframework.data.graph.neo4j.fieldaccess;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.data.graph.annotation.NodeEntity;
 import org.springframework.data.graph.core.GraphBacked;
 import org.springframework.data.graph.neo4j.support.GraphDatabaseContext;
 import org.springframework.util.ObjectUtils;
@@ -38,10 +39,12 @@ public class DetachableEntityStateAccessors<ENTITY extends GraphBacked<STATE>, S
     protected final EntityStateAccessors<ENTITY,STATE> delegate;
     private final static Log log = LogFactory.getLog(DetachableEntityStateAccessors.class);
     private GraphDatabaseContext graphDatabaseContext;
+    private final boolean autoAttach;
 
-    public DetachableEntityStateAccessors(final EntityStateAccessors<ENTITY, STATE> delegate, GraphDatabaseContext graphDatabaseContext) {
+    public DetachableEntityStateAccessors(final EntityStateAccessors<ENTITY, STATE> delegate, GraphDatabaseContext graphDatabaseContext, boolean autoAttach) {
         this.delegate = delegate;
         this.graphDatabaseContext = graphDatabaseContext;
+        this.autoAttach = autoAttach;
     }
 
     @Override
@@ -184,13 +187,17 @@ public class DetachableEntityStateAccessors<ENTITY extends GraphBacked<STATE>, S
     }
 
     @Override
-    public ENTITY attach() {
-        if (graphDatabaseContext.transactionIsRunning()) {
-            return delegate.attach();
-        } else {
-            log.warn("New Nodebacked tried to attach outside of transaction " + delegate.getEntity().getClass());
+    public ENTITY attach(boolean isOnCreate) {
+        if (!autoAttach && isOnCreate) {
+            log.warn("Not automatically attaching entity " + getEntity().getClass());
             return getEntity();
         }
+        if (graphDatabaseContext.transactionIsRunning()) {
+            ENTITY result = delegate.attach(isOnCreate);
+            flushDirty();
+            return result;
+        }
+        throw new IllegalStateException("Tried to attach entity outside of transaction "+getEntity().getClass());
     }
 
 }
