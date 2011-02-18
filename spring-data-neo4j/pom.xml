@@ -117,6 +117,13 @@
 			<artifactId>neo4j</artifactId>
 		</dependency>
 
+        <dependency>
+          <groupId>org.neo4j</groupId>
+          <artifactId>neo4j-kernel</artifactId>
+          <classifier>test</classifier>
+          <scope>test</scope>
+        </dependency>
+
 		<!-- JPA -->
         <dependency>
             <groupId>org.hibernate.javax.persistence</groupId>

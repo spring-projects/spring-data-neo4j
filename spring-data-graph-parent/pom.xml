@@ -212,6 +212,13 @@
         <artifactId>neo4j</artifactId>
         <version>${neo4j.version}</version>
       </dependency>
+      <dependency>
+        <groupId>org.neo4j</groupId>
+        <artifactId>neo4j-kernel</artifactId>
+        <version>${neo4j.version}</version>
+        <classifier>test</classifier>
+        <scope>test</scope>
+      </dependency>
 
 		</dependencies>
 	</dependencyManagement>
