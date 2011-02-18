@@ -133,7 +133,7 @@ public aspect Neo4jNodeBacking { // extends AbstractTypeAnnotatingMixinFields<No
     }
 
     public boolean NodeBacked.hasUnderlyingNode() {
-        return this.stateAccessors.hasUnderlyingState();
+        return this.stateAccessors!=null && this.stateAccessors.hasUnderlyingState();
     }
 
     public <T extends NodeBacked> T NodeBacked.projectTo(Class<T> targetType) {
@@ -255,7 +255,7 @@ public aspect Neo4jNodeBacking { // extends AbstractTypeAnnotatingMixinFields<No
      * delegates field reads to the state accessors instance
      */
     Object around(NodeBacked entity): entityFieldGet(entity) {
-		if (field(thisJoinPoint).getDeclaringClass().equals("Named")) log.warn("entityFieldGet "+field(thisJoinPoint));
+        if (entity.stateAccessors==null) return proceed(entity);
         Object result=entity.stateAccessors.getValue(field(thisJoinPoint));
         if (result instanceof DoReturn) return unwrap(result);
         return proceed(entity);
@@ -265,6 +265,7 @@ public aspect Neo4jNodeBacking { // extends AbstractTypeAnnotatingMixinFields<No
      * delegates field writes to the state accessors instance
      */
     Object around(NodeBacked entity, Object newVal) : entityFieldSet(entity, newVal) {
+        if (entity.stateAccessors==null) return proceed(entity,newVal);
         Object result=entity.stateAccessors.setValue(field(thisJoinPoint),newVal);
         if (result instanceof DoReturn) return unwrap(result);
         return proceed(entity,result);
