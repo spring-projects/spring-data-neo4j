@@ -10,7 +10,7 @@ public abstract class NeoApiTest {
 
     @Before
     public void setUp() {
-        neo = new EmbeddedGraphDatabase("target/var/neo");
+        neo = new EmbeddedGraphDatabase("target/template-db");
     }
 
     @After
@@ -22,18 +22,24 @@ public abstract class NeoApiTest {
     }
 
     private void clear() {
-        new Neo4jTemplate(neo).doInTransaction(new GraphCallback() {
-            @Override
-            public void doWithGraph(GraphDatabaseService graph) throws Exception {
-                final DynamicRelationshipType HAS = DynamicRelationshipType.withName("HAS");
-                Node startNode = graph.getReferenceNode();
-                for (Node node : org.neo4j.kernel.Traversal.description().breadthFirst().relationships(HAS).traverse(startNode).nodes()) {
+        try {
+        new Neo4jTemplate(neo).doInTransaction(new TransactionGraphCallback() {
+            public void doWithGraph(Status status, GraphDatabaseService graph) throws Exception {
+                for (Node node : graph.getAllNodes()) {
                     for (Relationship relationship : node.getRelationships()) {
                         relationship.delete();
                     }
+                }
+                Node referenceNode = graph.getReferenceNode();
+                for (Node node : graph.getAllNodes()) {
+                    if (node.equals(referenceNode)) continue;
                     node.delete();
                 }
             }
         });
+        } catch(Exception e) {
+            e.printStackTrace();
+            // ignore
+        }
     }
 }

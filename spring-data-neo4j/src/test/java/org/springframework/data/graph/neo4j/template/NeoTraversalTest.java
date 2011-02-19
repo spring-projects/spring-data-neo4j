@@ -24,7 +24,7 @@ public class NeoTraversalTest extends NeoApiTest {
 
     @Test
     public void testSimpleTraverse() {
-        runAndCheckTraverse(Traversal.description().relationships(HAS), "wife", "man","son","daughter", "grandma","grandpa" );
+        runAndCheckTraverse(Traversal.description().depthFirst().relationships(HAS), "wife", "man","son","daughter", "grandma","grandpa" );
     }
 
 
@@ -37,8 +37,8 @@ public class NeoTraversalTest extends NeoApiTest {
 
     private void runAndCheckTraverse(final TraversalDescription traversal, final String... names) {
         final Neo4jTemplate template = new Neo4jTemplate(neo);
-        template.doInTransaction(new GraphCallback() {
-            public void doWithGraph(GraphDatabaseService graph) throws Exception {
+        template.doInTransaction(new TransactionGraphCallback() {
+            public void doWithGraph(Status status, GraphDatabaseService graph) throws Exception {
                 createFamily(graph);
             }});
         Iterator<String> result=template.traverseNodes(template.getReferenceNode(), traversal,

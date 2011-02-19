@@ -37,15 +37,10 @@ public class Neo4jTemplate {
         this.graphDatabaseService = graphDatabaseService;
     }
 
-    public void doInTransaction(final GraphCallback callback) {
+    public void doInTransaction(final TransactionGraphCallback callback) {
         if (callback == null)
             throw new IllegalArgumentException("Callback must not be null");
-        execute(new TransactionGraphCallback() {
-            @Override
-            public void doWithGraph(Status status, GraphDatabaseService graph) throws Exception {
-                callback.doWithGraph(graph);
-            }
-        });
+        execute(callback);
     }
 
 
