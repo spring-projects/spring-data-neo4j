@@ -39,7 +39,6 @@ public class NodeEntityRelationshipTest {
 	private FinderFactory finderFactory;
 
 	@Before
-	@Transactional
 	public void cleanDb() {
 		Neo4jHelper.cleanDb(graphDatabaseContext);
     }

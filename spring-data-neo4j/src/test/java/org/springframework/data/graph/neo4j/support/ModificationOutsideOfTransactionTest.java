@@ -35,18 +35,9 @@ public class ModificationOutsideOfTransactionTest
     private FinderFactory finderFactory;
 
     @Before
-    @Transactional
     public void cleanDb()
     {
-        Transaction tx = graphDatabaseContext.beginTx();
-        try
-        {
-            Neo4jHelper.cleanDb( graphDatabaseContext );
-            tx.success();
-        } finally
-        {
-            tx.finish();
-        }
+       Neo4jHelper.cleanDb( graphDatabaseContext );
     }
 
     @Test

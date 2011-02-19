@@ -39,7 +39,6 @@ public class EntityPropertyValidationTest {
 	private GraphDatabaseContext graphDatabaseContext;
 
 	@Before
-	@Transactional
 	public void cleanDb() {
 		Neo4jHelper.cleanDb(graphDatabaseContext);
     }
