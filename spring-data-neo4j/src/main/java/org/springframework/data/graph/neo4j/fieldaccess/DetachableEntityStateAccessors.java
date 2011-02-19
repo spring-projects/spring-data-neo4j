@@ -69,7 +69,7 @@ public class DetachableEntityStateAccessors<ENTITY extends GraphBacked<STATE>, S
 
     @Override
     public Object getValue(final Field field) {
-        if (!transactionIsRunning()) {
+        if (!transactionIsRunning() || !hasUnderlyingState()) {
             if (getEntity().getUnderlyingState()==null || isDirty(field)) {
                 if (log.isDebugEnabled()) log.debug("Outside of transaction, GET value from field " + field);
                 return null;
@@ -86,7 +86,7 @@ public class DetachableEntityStateAccessors<ENTITY extends GraphBacked<STATE>, S
 
     @Override
     public Object setValue(final Field field, final Object newVal) {
-        if (!transactionIsRunning()) {
+        if (!transactionIsRunning() || !hasUnderlyingState()) {
             final ENTITY entity = getEntity();
             if (!isDirty(field) && isWritable(field)) {
                 Object existingValue;
@@ -127,7 +127,8 @@ public class DetachableEntityStateAccessors<ENTITY extends GraphBacked<STATE>, S
         final ENTITY entity = getEntity();
         final boolean newState = entity.getUnderlyingState()==null;
         if (newState) {
-            createAndAssignState();
+            return;
+            // createAndAssignState();
         }
         if (isDirty()) {
             for (final Map.Entry<Field, Object> entry : dirty.entrySet()) {
