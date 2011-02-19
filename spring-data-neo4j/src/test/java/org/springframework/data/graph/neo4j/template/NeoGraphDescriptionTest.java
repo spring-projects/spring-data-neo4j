@@ -22,9 +22,9 @@ public class NeoGraphDescriptionTest extends NeoApiTest {
 
     @Test
     public void testLoadGraph() {
-        final Neo4jTemplate template = new Neo4jTemplate(neo);
-        template.doInTransaction(new TransactionGraphCallback() {
-            public void doWithGraph(Status status, GraphDatabaseService graph) throws Exception {
+        final Neo4jOperations template = new Neo4jTemplate(graph);
+        template.doInTransaction(new GraphTransactionCallback.WithoutResult() {
+            public void doWithGraphWithoutResult(Status status, GraphDatabaseService graph) throws Exception {
                 final GraphDescription heaven = new GraphDescription();
                 heaven.add("adam", "age", 1);
                 heaven.add("eve", "age", 0);
@@ -46,9 +46,9 @@ public class NeoGraphDescriptionTest extends NeoApiTest {
 
     @Test
     public void testLoadGraphProps() {
-        final Neo4jTemplate template = new Neo4jTemplate(neo);
-        template.doInTransaction(new TransactionGraphCallback() {
-            public void doWithGraph(Status status, GraphDatabaseService graph) throws Exception {
+        final Neo4jOperations template = new Neo4jTemplate(graph);
+        template.doInTransaction(new GraphTransactionCallback.WithoutResult() {
+            public void doWithGraphWithoutResult(Status status, GraphDatabaseService graph) throws Exception {
                 final GraphDescription heaven = new GraphDescription(createGraphProperties());
                 heaven.addToGraph(graph);
                 checkHeaven(graph);

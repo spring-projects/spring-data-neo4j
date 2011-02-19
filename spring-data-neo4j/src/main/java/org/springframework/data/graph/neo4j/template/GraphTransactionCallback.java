@@ -9,21 +9,21 @@ import org.springframework.data.graph.UncategorizedGraphStoreException;
  * @author mh
  * @since 18.02.11
  */
-public abstract class TransactionGraphCallback implements GraphCallback {
+public abstract class GraphTransactionCallback<T> implements GraphCallback<T> {
 
-    public static interface Status {
+    public interface Status {
         void mustRollback();
 
         void interimCommit();
     }
 
-    public abstract void doWithGraph(Status status, GraphDatabaseService graph) throws Exception;
+    public abstract T doWithGraph(Status status, GraphDatabaseService graph) throws Exception;
 
     @Override
-    public void doWithGraph(GraphDatabaseService graph) throws Exception {
+    public T doWithGraph(GraphDatabaseService graph) throws Exception {
         final TransactionStatus status = new TransactionStatus(graph);
         try {
-            doWithGraph(status, graph);
+            return doWithGraph(status, graph);
         } catch (Exception e) {
             status.mustRollback();
             if (e instanceof DataAccessException) throw (DataAccessException) e;
@@ -71,4 +71,17 @@ public abstract class TransactionGraphCallback implements GraphCallback {
         }
     }
 
+    /**
+     * @author mh
+     * @since 19.02.11
+     */
+    public abstract static class WithoutResult extends GraphTransactionCallback<Void> {
+        @Override
+        public Void doWithGraph(Status status, GraphDatabaseService graph) throws Exception {
+            doWithGraphWithoutResult(status,graph);
+            return null;
+        }
+
+        public abstract void doWithGraphWithoutResult(Status status, GraphDatabaseService graph) throws Exception;
+    }
 }

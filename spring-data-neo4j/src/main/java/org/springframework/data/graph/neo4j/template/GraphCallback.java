@@ -18,6 +18,6 @@ package org.springframework.data.graph.neo4j.template;
 
 import org.neo4j.graphdb.GraphDatabaseService;
 
-public interface GraphCallback {
-    void doWithGraph(final GraphDatabaseService graph) throws Exception;
+public interface GraphCallback<T> {
+    T doWithGraph(final GraphDatabaseService graph) throws Exception;
 }

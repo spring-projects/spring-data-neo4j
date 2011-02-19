@@ -16,19 +16,14 @@
 
 package org.springframework.data.graph.neo4j.template;
 
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.PropertyContainer;
-import org.neo4j.graphdb.Relationship;
-import org.neo4j.graphdb.traversal.TraversalDescription;
-import org.neo4j.helpers.collection.IteratorWrapper;
-import org.springframework.core.convert.converter.Converter;
+import org.neo4j.graphdb.*;
+import org.neo4j.graphdb.index.Index;
+import org.neo4j.graphdb.index.RelationshipIndex;
+import org.neo4j.graphdb.traversal.*;
+import org.neo4j.helpers.collection.IterableWrapper;
 import org.springframework.data.graph.UncategorizedGraphStoreException;
 
-import java.util.Iterator;
-import java.util.List;
-
-public class Neo4jTemplate {
+public class Neo4jTemplate implements Neo4jOperations {
     private final GraphDatabaseService graphDatabaseService;
 
     public Neo4jTemplate(final GraphDatabaseService graphDatabaseService) {
@@ -37,52 +32,147 @@ public class Neo4jTemplate {
         this.graphDatabaseService = graphDatabaseService;
     }
 
-    public void doInTransaction(final TransactionGraphCallback callback) {
+    @Override
+    public <T> T doInTransaction(final GraphTransactionCallback<T> callback) {
         if (callback == null)
             throw new IllegalArgumentException("Callback must not be null");
-        execute(callback);
+        return execute(callback);
     }
 
 
-    public void execute(final GraphCallback callback) {
+    @Override
+    public <T> T execute(final GraphCallback<T> callback) {
         if (callback == null)
             throw new IllegalArgumentException("Callback must not be null");
         try {
-            callback.doWithGraph(graphDatabaseService);
+            return callback.doWithGraph(graphDatabaseService);
         } catch (Exception e) {
             throw new UncategorizedGraphStoreException("Error executing callback", e);
             // todo exception translation
         }
     }
 
+    @Override
     public Node getReferenceNode() {
         return graphDatabaseService.getReferenceNode();
     }
-    public Node createNode() {
-        return graphDatabaseService.createNode();
+    @Override
+    public Node createNode(final Property... props) {
+        return doInTransaction(new GraphTransactionCallback<Node>(){
+            @Override
+            public Node doWithGraph(Status status, GraphDatabaseService graph) throws Exception {
+               return setProperties(graphDatabaseService.createNode(),props);
+            }
+        });
     }
+    @Override
     public Node getNode(long id) {
         return graphDatabaseService.getNodeById(id);
     }
 
+    @Override
+    public Relationship getRelationship(long id) {
+        return graphDatabaseService.getRelationshipById(id);
+    }
+
+    @Override
     public void index(PropertyContainer primitive, String indexName, String field, Object value) {
         if (primitive instanceof Node)
-            graphDatabaseService.index().forNodes(indexName == null ? "node" : indexName).add((Node) primitive, field,value);
+            nodeIndex(indexName).add((Node) primitive, field, value);
         if (primitive instanceof Relationship)
-            graphDatabaseService.index().forRelationships(indexName == null ? "relationship" : indexName).add((Relationship) primitive, field,value);
+            relationshipIndex(indexName).add((Relationship) primitive, field, value);
         throw new IllegalArgumentException("Supplied graph primitive is null");
     }
 
+    private RelationshipIndex relationshipIndex(String indexName) {
+        return graphDatabaseService.index().forRelationships(indexName == null ? "relationship" : indexName);
+    }
+
+    @Override
     public void index(PropertyContainer primitive, String field, Object value) {
         index(primitive,null,field,value);
     }
 
-    public <T> Iterator<T> traverseNodes(Node startNode, TraversalDescription traversal, final Converter<Node, T> converter) {
-        return new IteratorWrapper<T, Node>(traversal.traverse(startNode).nodes().iterator()) {
+    @Override
+    public <T> Iterable<T> queryNodes(String indexName, Object queryOrQueryObject, final PathMapper<T> pathMapper) {
+        return mapNodes(nodeIndex(indexName).query(queryOrQueryObject), pathMapper);
+    }
+    @Override
+    public <T> Iterable<T> retrieveNodes(String indexName, String field, String value, final PathMapper<T> pathMapper) {
+        return mapNodes(nodeIndex(indexName).get(field, value), pathMapper);
+    }
+    @Override
+    public <T> Iterable<T> queryRelationships(String indexName, Object queryOrQueryObject, final PathMapper<T> pathMapper) {
+        return mapRelationships(relationshipIndex(indexName).query(queryOrQueryObject),pathMapper);
+    }
+    @Override
+    public <T> Iterable<T> retrieveRelationships(String indexName, String field, String value, final PathMapper<T> pathMapper) {
+        return mapRelationships(relationshipIndex(indexName).get(field, value),pathMapper);
+    }
+
+    private <T> Iterable<T> mapNodes(final Iterable<Node> nodes, final PathMapper<T> pathMapper) {
+        return new IterableWrapper<T,Node>(nodes) {
             @Override
             protected T underlyingObjectToObject(Node node) {
-                return converter.convert(node);
+                return pathMapper.mapPath(new NodePath(node));
             }
         };
+    }
+
+    private Index<Node> nodeIndex(String indexName) {
+        return graphDatabaseService.index().forNodes(indexName == null ? "node" : indexName);
+    }
+
+    @Override
+    public <T> Iterable<T> traverse(Node startNode, TraversalDescription traversal, final PathMapper<T> pathMapper) {
+        return mapPaths(traversal.traverse(startNode), pathMapper);
+    }
+
+    private <T> Iterable<T> mapPaths(final Iterable<Path> paths, final PathMapper<T> pathMapper) {
+        return new IterableWrapper<T, Path>(paths) {
+            @Override
+            protected T underlyingObjectToObject(Path path) {
+                return pathMapper.mapPath(path);
+            }
+        };
+    }
+
+    @Override
+    public <T> Iterable<T> traverseDirectRelationships(Node startNode, RelationshipType type, Direction direction, final PathMapper<T> pathMapper) {
+        return mapRelationships(startNode.getRelationships(type, direction), pathMapper);
+    }
+    @Override
+    public <T> Iterable<T> traverseDirectRelationships(Node startNode, final PathMapper<T> pathMapper, RelationshipType... type) {
+        return mapRelationships(startNode.getRelationships(type), pathMapper);
+    }
+    @Override
+    public <T> Iterable<T> traverseDirectRelationships(Node startNode, final PathMapper<T> pathMapper) {
+        return mapRelationships(startNode.getRelationships(), pathMapper);
+    }
+
+    private <T> Iterable<T> mapRelationships(final Iterable<Relationship> relationships, final PathMapper<T> pathMapper) {
+        return new IterableWrapper<T, Relationship>(relationships) {
+            @Override
+            protected T underlyingObjectToObject(Relationship relationship) {
+                return pathMapper.mapPath(new RelationshipPath(relationship));
+            }
+        };
+    }
+
+    @Override
+    public Relationship createRelationship(final Node startNode, final Node endNode, final RelationshipType type, final Property... props) {
+        return doInTransaction(new GraphTransactionCallback<Relationship>(){
+            @Override
+            public Relationship doWithGraph(Status status, GraphDatabaseService graph) throws Exception {
+                return setProperties(startNode.createRelationshipTo(endNode, type), props);
+            }
+        });
+    }
+
+    private <T extends PropertyContainer> T setProperties(T primitive, Property... props) {
+        for (Property prop : props) {
+            primitive.setProperty(prop.getName(), prop.getValue());
+        }
+        return primitive;
     }
 }

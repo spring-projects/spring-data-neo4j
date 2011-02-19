@@ -3,15 +3,11 @@ package org.springframework.data.graph.neo4j.template;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.Path;
 import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.graphdb.traversal.TraversalDescription;
 import org.neo4j.helpers.collection.IteratorUtil;
 import org.neo4j.kernel.Traversal;
-import org.neo4j.kernel.Uniqueness;
-import org.springframework.core.convert.converter.Converter;
-
-import java.util.Iterator;
 
 import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
@@ -37,18 +33,20 @@ public class NeoTraversalTest extends NeoApiTest {
     }
 
     private void runAndCheckTraverse(final TraversalDescription traversal, final String... names) {
-        final Neo4jTemplate template = new Neo4jTemplate(neo);
-        template.doInTransaction(new TransactionGraphCallback() {
-            public void doWithGraph(Status status, GraphDatabaseService graph) throws Exception {
+        final Neo4jOperations template = new Neo4jTemplate(graph);
+        template.doInTransaction(new GraphTransactionCallback<Void>() {
+            public Void doWithGraph(Status status, GraphDatabaseService graph) throws Exception {
                 createFamily(graph);
+                return null;
             }});
-        Iterator<String> result=template.traverseNodes(template.getReferenceNode(), traversal,
-                new Converter<Node, String>() {
-                    public String convert(Node node) {
-                        return (String) node.getProperty("name", "");
+        Iterable<String> result=template.traverse(template.getReferenceNode(), traversal,
+                new PathMapper<String>() {
+                    @Override
+                    public String mapPath(Path path) {
+                        return (String) path.endNode().getProperty("name", "");
                     }
                 });
-        assertEquals("all members", asList(names), IteratorUtil.<String>asCollection(IteratorUtil.asIterable(result)));
+        assertEquals("all members", asList(names), IteratorUtil.<String>asCollection(result));
     }
 
     private void createFamily(final GraphDatabaseService graph) {

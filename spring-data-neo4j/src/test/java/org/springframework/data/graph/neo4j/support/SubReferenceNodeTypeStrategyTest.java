@@ -9,6 +9,7 @@ import org.junit.runner.RunWith;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
+import org.neo4j.graphdb.Transaction;
 import org.neo4j.helpers.collection.IteratorUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.graph.annotation.NodeEntity;
@@ -67,10 +68,17 @@ public class SubReferenceNodeTypeStrategyTest {
     }
 
     private Node createThing() {
-        Node node = graphDatabaseContext.createNode();
-        thing = new Thing(node);
-        nodeTypeStrategy.postEntityCreation(thing);
-        return node;
+        Transaction tx = graphDatabaseContext.beginTx();
+        try {
+            Node node = graphDatabaseContext.createNode();
+            thing = new Thing(node);
+            nodeTypeStrategy.postEntityCreation(thing);
+            tx.success();
+            return node;
+        } finally {
+            tx.finish();
+        }
+
     }
 
     @Test

@@ -6,25 +6,25 @@ import org.neo4j.graphdb.*;
 import org.neo4j.kernel.EmbeddedGraphDatabase;
 
 public abstract class NeoApiTest {
-    protected GraphDatabaseService neo;
+    protected GraphDatabaseService graph;
 
     @Before
     public void setUp() {
-        neo = new EmbeddedGraphDatabase("target/template-db");
+        graph = new EmbeddedGraphDatabase("target/template-db");
     }
 
     @After
     public void tearDown() {
-        if (neo != null) {
+        if (graph != null) {
             clear();
-            neo.shutdown();
+            graph.shutdown();
         }
     }
 
     private void clear() {
         try {
-        new Neo4jTemplate(neo).doInTransaction(new TransactionGraphCallback() {
-            public void doWithGraph(Status status, GraphDatabaseService graph) throws Exception {
+        new Neo4jTemplate(graph).doInTransaction(new GraphTransactionCallback<Void>() {
+            public Void doWithGraph(Status status, GraphDatabaseService graph) throws Exception {
                 for (Node node : graph.getAllNodes()) {
                     for (Relationship relationship : node.getRelationships()) {
                         relationship.delete();
@@ -35,6 +35,7 @@ public abstract class NeoApiTest {
                     if (node.equals(referenceNode)) continue;
                     node.delete();
                 }
+                return null;
             }
         });
         } catch(Exception e) {
