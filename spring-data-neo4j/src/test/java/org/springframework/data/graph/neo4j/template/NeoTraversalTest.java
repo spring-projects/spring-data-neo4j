@@ -11,6 +11,7 @@ import org.neo4j.kernel.Traversal;
 
 import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
+import static org.neo4j.kernel.Traversal.returnAllButStartNode;
 import static org.springframework.data.graph.neo4j.template.NeoTraversalTest.Type.HAS;
 
 public class NeoTraversalTest extends NeoApiTest {
@@ -21,7 +22,7 @@ public class NeoTraversalTest extends NeoApiTest {
 
     @Test
     public void testSimpleTraverse() {
-        runAndCheckTraverse(Traversal.description().filter(Traversal.returnAllButStartNode()).relationships(HAS),  "grandpa", "grandma","daughter","son","man","wife" );
+        runAndCheckTraverse(Traversal.description().filter(returnAllButStartNode()).relationships(HAS),  "grandpa", "grandma","daughter","son","man","wife" );
     }
 
 

@@ -20,4 +20,13 @@ import org.neo4j.graphdb.GraphDatabaseService;
 
 public interface GraphCallback<T> {
     T doWithGraph(final GraphDatabaseService graph) throws Exception;
+
+    public abstract class WithoutResult implements GraphCallback<Void> {
+        @Override
+        public Void doWithGraph(GraphDatabaseService graph) throws Exception {
+            doWithGraphWithoutResult(graph);
+            return null;
+        }
+        public abstract void doWithGraphWithoutResult(GraphDatabaseService graph) throws Exception;
+    }
 }

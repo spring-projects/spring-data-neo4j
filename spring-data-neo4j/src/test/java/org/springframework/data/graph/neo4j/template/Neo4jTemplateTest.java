@@ -58,21 +58,19 @@ public class Neo4jTemplateTest extends NeoApiTest {
     @Test
     public void testRollback() {
         final Neo4jOperations template = new Neo4jTemplate(graph);
-        template.doInTransaction(new GraphTransactionCallback<Void>() {
+        template.doInTransaction(new GraphTransactionCallback.WithoutResult() {
             @Override
-            public Void doWithGraph(Status status, GraphDatabaseService graph) throws Exception {
+            public void doWithGraphWithoutResult(Status status, GraphDatabaseService graph) throws Exception {
                 Node node = graph.getReferenceNode();
                 node.setProperty("test", "test");
                 assertEquals("test", node.getProperty("test"));
                 status.mustRollback();
-                return null;
             }
         });
-        template.execute(new GraphCallback<Void>() {
-            public Void doWithGraph(final GraphDatabaseService graph) throws Exception {
+        template.execute(new GraphCallback.WithoutResult() {
+            public void doWithGraphWithoutResult(final GraphDatabaseService graph) throws Exception {
                 Node node = graph.getReferenceNode();
                 assertFalse(node.hasProperty("test"));
-                return null;
             }
         });
     }
