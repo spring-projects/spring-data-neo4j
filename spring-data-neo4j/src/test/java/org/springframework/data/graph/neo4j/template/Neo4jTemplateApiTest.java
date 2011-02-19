@@ -13,6 +13,7 @@ import org.neo4j.graphdb.PropertyContainer;
 import org.neo4j.kernel.ImpermanentGraphDatabase;
 import org.springframework.dao.DataAccessException;
 
+import static org.hamcrest.CoreMatchers.not;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.springframework.data.graph.neo4j.template.Property._;
@@ -65,7 +66,19 @@ public class Neo4jTemplateApiTest {
         } catch(DataAccessException dae){
             //ignore
         }
-        Assert.assertThat((String)graphDatabase.getReferenceNode().getProperty("test"), CoreMatchers.not("shouldRollbackTransactionOnException"));
+        Assert.assertThat((String)graphDatabase.getReferenceNode().getProperty("test","not set"), not("shouldRollbackTransactionOnException"));
+    }
+
+    @Test
+    public void shouldRollbackViaStatus() throws Exception {
+        template.doInTransaction(new GraphTransactionCallback.WithoutResult() {
+            @Override
+            public void doWithGraphWithoutResult(Status status, GraphDatabaseService graph) throws Exception {
+                graph.getReferenceNode().setProperty("test","shouldRollbackTransactionOnException");
+                status.mustRollback();
+            }
+        });
+        Assert.assertThat((String) graphDatabase.getReferenceNode().getProperty("test","not set"), not("shouldRollbackTransactionOnException"));
     }
 
     // testDoInTransaction rollback
@@ -92,7 +105,7 @@ public class Neo4jTemplateApiTest {
     }
 
     private void assertTestPropertySet(Node node, String testName) {
-        assertEquals(testName, node.getProperty("test"));
+        assertEquals(testName, node.getProperty("test","not set"));
     }
 
     @Test
