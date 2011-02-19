@@ -120,7 +120,7 @@
         <dependency>
           <groupId>org.neo4j</groupId>
           <artifactId>neo4j-kernel</artifactId>
-          <classifier>test</classifier>
+          <classifier>tests</classifier>
           <scope>test</scope>
         </dependency>
 

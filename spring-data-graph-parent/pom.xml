@@ -216,7 +216,7 @@
         <groupId>org.neo4j</groupId>
         <artifactId>neo4j-kernel</artifactId>
         <version>${neo4j.version}</version>
-        <classifier>test</classifier>
+        <classifier>tests</classifier>
         <scope>test</scope>
       </dependency>
 

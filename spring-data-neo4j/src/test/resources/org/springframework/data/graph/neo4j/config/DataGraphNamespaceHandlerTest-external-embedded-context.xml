@@ -11,8 +11,9 @@
 
     <context:annotation-config/>
 
-    <bean id="graphDatabaseService" class="org.neo4j.kernel.ImpermanentGraphDatabase"
+    <bean id="graphDatabaseService" class="org.neo4j.kernel.EmbeddedGraphDatabase"
             destroy-method="shutdown" scope="singleton">
+        <constructor-arg value="target/config-test"/>
     </bean>
 
     <datagraph:config graphDatabaseService="graphDatabaseService"/>
