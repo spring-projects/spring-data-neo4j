@@ -8,6 +8,7 @@ import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.graphdb.traversal.TraversalDescription;
 import org.neo4j.helpers.collection.IteratorUtil;
 import org.neo4j.kernel.Traversal;
+import org.neo4j.kernel.Uniqueness;
 import org.springframework.core.convert.converter.Converter;
 
 import java.util.Iterator;
@@ -24,14 +25,14 @@ public class NeoTraversalTest extends NeoApiTest {
 
     @Test
     public void testSimpleTraverse() {
-        runAndCheckTraverse(Traversal.description().depthFirst().relationships(HAS), "wife", "man","son","daughter", "grandma","grandpa" );
+        runAndCheckTraverse(Traversal.description().filter(Traversal.returnAllButStartNode()).relationships(HAS),  "grandpa", "grandma","daughter","son","man","wife" );
     }
 
 
     @Ignore
     @Test
     public void testComplexTraversal() {
-        final TraversalDescription traversal = Traversal.description().depthFirst().relationships(HAS).prune(Traversal.pruneAfterDepth(1));
+        final TraversalDescription traversal = Traversal.description().relationships(HAS).prune(Traversal.pruneAfterDepth(1));
         runAndCheckTraverse(traversal, "grandpa", "grandma", "daughter", "son", "man", "wife");
     }
 
