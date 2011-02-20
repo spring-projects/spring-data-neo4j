@@ -19,41 +19,27 @@ package org.springframework.data.graph.neo4j.template;
 import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.index.Index;
 import org.neo4j.graphdb.index.RelationshipIndex;
-import org.neo4j.graphdb.traversal.*;
+import org.neo4j.graphdb.traversal.TraversalDescription;
 import org.neo4j.helpers.collection.IterableWrapper;
 import org.springframework.dao.DataAccessException;
-import org.springframework.dao.DataRetrievalFailureException;
-import org.springframework.data.graph.UncategorizedGraphStoreException;
+import org.springframework.dao.support.PersistenceExceptionTranslator;
 
 import java.util.Arrays;
 
-public class Neo4jTemplate implements Neo4jOperations {
+public class Neo4jTemplate implements Neo4jOperations, PersistenceExceptionTranslator {
 
     private final GraphDatabaseService graphDatabaseService;
 
+    private final Neo4jExceptionTranslator exceptionTranslator = new Neo4jExceptionTranslator();
     public Neo4jTemplate(final GraphDatabaseService graphDatabaseService) {
         if (graphDatabaseService == null)
             throw new IllegalArgumentException("GraphDatabaseService must not be null");
         this.graphDatabaseService = graphDatabaseService;
     }
 
-    public DataAccessException translateExceptionIfPossible(Exception ex) {
-        // todo delete, duplicate semantics
-        try {
-            throw ex;
-        } catch(IllegalArgumentException iae) {
-            throw iae;
-        } catch(DataAccessException dae) {
-            throw dae;
-        } catch(NotInTransactionException nit) {
-            throw new UncategorizedGraphStoreException("Not in transaction", nit);
-        } catch(TransactionFailureException tfe) {
-            throw new UncategorizedGraphStoreException("Transaction Failure", tfe);
-        } catch(NotFoundException nfe) {
-            throw new DataRetrievalFailureException("Not Found", nfe);
-        } catch(Exception e) {
-            throw new UncategorizedGraphStoreException("Error executing graph operation", ex);
-        }
+    @Override
+    public DataAccessException translateExceptionIfPossible(RuntimeException ex) {
+        return exceptionTranslator.translateExceptionIfPossible(ex);
     }
 
     @Override
@@ -70,8 +56,10 @@ public class Neo4jTemplate implements Neo4jOperations {
             throw new IllegalArgumentException("Callback must not be null");
         try {
             return callback.doWithGraph(graphDatabaseService);
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             throw translateExceptionIfPossible(e);
+        } catch(Exception e) {
+            throw new RuntimeException(e);
         }
     }
 
@@ -79,7 +67,7 @@ public class Neo4jTemplate implements Neo4jOperations {
     public Node getReferenceNode() {
         try {
             return graphDatabaseService.getReferenceNode();
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             throw translateExceptionIfPossible(e);
         }
     }
@@ -98,7 +86,7 @@ public class Neo4jTemplate implements Neo4jOperations {
     public Node getNode(long id) {
         try {
             return graphDatabaseService.getNodeById(id);
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             throw translateExceptionIfPossible(e);
         }
     }
@@ -107,7 +95,7 @@ public class Neo4jTemplate implements Neo4jOperations {
     public Relationship getRelationship(long id) {
         try {
             return graphDatabaseService.getRelationshipById(id);
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             throw translateExceptionIfPossible(e);
         }
     }
@@ -138,7 +126,7 @@ public class Neo4jTemplate implements Neo4jOperations {
     public void index(PropertyContainer primitive, String field, Object value) {
         try {
             index(primitive,null,field,value);
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             throw translateExceptionIfPossible(e);
         }
     }
@@ -147,7 +135,7 @@ public class Neo4jTemplate implements Neo4jOperations {
     public <T> Iterable<T> queryNodes(String indexName, Object queryOrQueryObject, final PathMapper<T> pathMapper) {
         try {
             return mapNodes(nodeIndex(indexName).query(queryOrQueryObject), pathMapper);
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             throw translateExceptionIfPossible(e);
         }
     }
@@ -155,23 +143,23 @@ public class Neo4jTemplate implements Neo4jOperations {
     public <T> Iterable<T> retrieveNodes(String indexName, String field, String value, final PathMapper<T> pathMapper) {
         try {
             return mapNodes(nodeIndex(indexName).get(field, value), pathMapper);
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             throw translateExceptionIfPossible(e);
         }
     }
     @Override
     public <T> Iterable<T> queryRelationships(String indexName, Object queryOrQueryObject, final PathMapper<T> pathMapper) {
         try {
-            return mapRelationships(relationshipIndex(indexName).query(queryOrQueryObject),pathMapper);
-        } catch (Exception e) {
+            return mapRelationships(relationshipIndex(indexName).query(queryOrQueryObject), pathMapper);
+        } catch (RuntimeException e) {
             throw translateExceptionIfPossible(e);
         }
     }
     @Override
     public <T> Iterable<T> retrieveRelationships(String indexName, String field, String value, final PathMapper<T> pathMapper) {
         try {
-            return mapRelationships(relationshipIndex(indexName).get(field, value),pathMapper);
-        } catch (Exception e) {
+            return mapRelationships(relationshipIndex(indexName).get(field, value), pathMapper);
+        } catch (RuntimeException e) {
             throw translateExceptionIfPossible(e);
         }
     }
@@ -193,7 +181,7 @@ public class Neo4jTemplate implements Neo4jOperations {
     public <T> Iterable<T> traverse(Node startNode, TraversalDescription traversal, final PathMapper<T> pathMapper) {
         try {
             return mapPaths(traversal.traverse(startNode), pathMapper);
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             throw translateExceptionIfPossible(e);
         }
     }
@@ -211,7 +199,7 @@ public class Neo4jTemplate implements Neo4jOperations {
     public <T> Iterable<T> traverseDirectRelationships(Node startNode, RelationshipType type, Direction direction, final PathMapper<T> pathMapper) {
         try {
             return mapRelationships(startNode.getRelationships(type, direction), pathMapper);
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             throw translateExceptionIfPossible(e);
         }
     }
@@ -219,7 +207,7 @@ public class Neo4jTemplate implements Neo4jOperations {
     public <T> Iterable<T> traverseDirectRelationships(Node startNode, final PathMapper<T> pathMapper, RelationshipType... type) {
         try {
             return mapRelationships(startNode.getRelationships(type), pathMapper);
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             throw translateExceptionIfPossible(e);
         }
     }
@@ -227,7 +215,7 @@ public class Neo4jTemplate implements Neo4jOperations {
     public <T> Iterable<T> traverseDirectRelationships(Node startNode, final PathMapper<T> pathMapper) {
         try {
             return mapRelationships(startNode.getRelationships(), pathMapper);
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             throw translateExceptionIfPossible(e);
         }
     }

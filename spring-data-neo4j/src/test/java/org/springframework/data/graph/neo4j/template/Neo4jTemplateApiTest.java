@@ -12,6 +12,7 @@ import org.neo4j.graphdb.*;
 import org.neo4j.kernel.ImpermanentGraphDatabase;
 import org.neo4j.kernel.Traversal;
 import org.springframework.dao.DataAccessException;
+import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.graph.neo4j.support.node.Neo4jHelper;
 
 import javax.print.attribute.HashAttributeSet;
@@ -107,7 +108,7 @@ public class Neo4jTemplateApiTest {
                 throw new RuntimeException("please rollback");
             }
         });
-        } catch(DataAccessException dae){
+        } catch(RuntimeException re){
             //ignore
         }
         Assert.assertThat((String)graphDatabase.getReferenceNode().getProperty("test","not set"), not("shouldRollbackTransactionOnException"));
@@ -123,6 +124,39 @@ public class Neo4jTemplateApiTest {
             }
         });
         Assert.assertThat((String) graphDatabase.getReferenceNode().getProperty("test","not set"), not("shouldRollbackTransactionOnException"));
+    }
+
+    @Test(expected = RuntimeException.class)
+    public void shouldNotConvertUserRuntimeExceptionToDataAccessException() {
+        template.execute(new GraphCallback.WithoutResult() {
+            @Override
+            public void doWithGraphWithoutResult(GraphDatabaseService graph) throws Exception {
+                throw new RuntimeException();
+            }
+        });
+    }
+
+    @Test(expected = DataAccessException.class)
+    public void shouldConvertMissingTransactionExceptionToDataAccessException() {
+        template.execute(new GraphCallback.WithoutResult() {
+            @Override
+            public void doWithGraphWithoutResult(GraphDatabaseService graph) throws Exception {
+                graph.createNode();
+            }
+        });
+    }
+    @Test(expected = DataAccessException.class)
+    public void shouldConvertNotFoundExceptionToDataAccessException() {
+        template.execute(new GraphCallback.WithoutResult() {
+            @Override
+            public void doWithGraphWithoutResult(GraphDatabaseService graph) throws Exception {
+                graph.getNodeById(Long.MAX_VALUE);
+            }
+        });
+    }
+    @Test(expected = DataAccessException.class)
+    public void shouldConvertTemplateNotFoundExceptionToDataAccessException() {
+        template.getNode(Long.MAX_VALUE);
     }
 
     @Test
@@ -147,7 +181,7 @@ public class Neo4jTemplateApiTest {
         assertNotNull("created node",node);
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test(expected = InvalidDataAccessApiUsageException.class)
     public void shouldFailForNullProperties() throws Exception {
         template.createNode(null);
     }
@@ -180,7 +214,7 @@ public class Neo4jTemplateApiTest {
         assertThat("same relationship from index",lookedUpRelationship,is(relationship1));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test(expected = InvalidDataAccessApiUsageException.class)
     public void testIndexInvalidPrimitive() throws Exception {
         template.index(Mockito.mock(PropertyContainer.class),"index","field",1);
     }

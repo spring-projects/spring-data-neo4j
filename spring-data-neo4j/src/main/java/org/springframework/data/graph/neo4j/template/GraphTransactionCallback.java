@@ -26,9 +26,7 @@ public abstract class GraphTransactionCallback<T> implements GraphCallback<T> {
             return doWithGraph(status, graph);
         } catch (Exception e) {
             status.mustRollback();
-            if (e instanceof IllegalArgumentException) throw (IllegalArgumentException) e;
-            if (e instanceof DataAccessException) throw (DataAccessException) e;
-            throw new UncategorizedGraphStoreException("Error transactionally executing callback", e);
+            throw e;
         } finally {
             status.finish();
         }
