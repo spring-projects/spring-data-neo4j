@@ -21,15 +21,39 @@ import org.neo4j.graphdb.index.Index;
 import org.neo4j.graphdb.index.RelationshipIndex;
 import org.neo4j.graphdb.traversal.*;
 import org.neo4j.helpers.collection.IterableWrapper;
+import org.springframework.dao.DataAccessException;
+import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.data.graph.UncategorizedGraphStoreException;
 
+import java.util.Arrays;
+
 public class Neo4jTemplate implements Neo4jOperations {
+
     private final GraphDatabaseService graphDatabaseService;
 
     public Neo4jTemplate(final GraphDatabaseService graphDatabaseService) {
         if (graphDatabaseService == null)
             throw new IllegalArgumentException("GraphDatabaseService must not be null");
         this.graphDatabaseService = graphDatabaseService;
+    }
+
+    public DataAccessException translateExceptionIfPossible(Exception ex) {
+        // todo delete, duplicate semantics
+        try {
+            throw ex;
+        } catch(IllegalArgumentException iae) {
+            throw iae;
+        } catch(DataAccessException dae) {
+            throw dae;
+        } catch(NotInTransactionException nit) {
+            throw new UncategorizedGraphStoreException("Not in transaction", nit);
+        } catch(TransactionFailureException tfe) {
+            throw new UncategorizedGraphStoreException("Transaction Failure", tfe);
+        } catch(NotFoundException nfe) {
+            throw new DataRetrievalFailureException("Not Found", nfe);
+        } catch(Exception e) {
+            throw new UncategorizedGraphStoreException("Error executing graph operation", ex);
+        }
     }
 
     @Override
@@ -47,15 +71,19 @@ public class Neo4jTemplate implements Neo4jOperations {
         try {
             return callback.doWithGraph(graphDatabaseService);
         } catch (Exception e) {
-            throw new UncategorizedGraphStoreException("Error executing callback", e);
-            // todo exception translation
+            throw translateExceptionIfPossible(e);
         }
     }
 
     @Override
     public Node getReferenceNode() {
-        return graphDatabaseService.getReferenceNode();
+        try {
+            return graphDatabaseService.getReferenceNode();
+        } catch (Exception e) {
+            throw translateExceptionIfPossible(e);
+        }
     }
+
     @Override
     public Node createNode(final Property... props) {
         return doInTransaction(new GraphTransactionCallback<Node>(){
@@ -65,23 +93,41 @@ public class Neo4jTemplate implements Neo4jOperations {
             }
         });
     }
+
     @Override
     public Node getNode(long id) {
-        return graphDatabaseService.getNodeById(id);
+        try {
+            return graphDatabaseService.getNodeById(id);
+        } catch (Exception e) {
+            throw translateExceptionIfPossible(e);
+        }
     }
 
     @Override
     public Relationship getRelationship(long id) {
-        return graphDatabaseService.getRelationshipById(id);
+        try {
+            return graphDatabaseService.getRelationshipById(id);
+        } catch (Exception e) {
+            throw translateExceptionIfPossible(e);
+        }
     }
 
     @Override
-    public void index(PropertyContainer primitive, String indexName, String field, Object value) {
-        if (primitive instanceof Node)
-            nodeIndex(indexName).add((Node) primitive, field, value);
-        if (primitive instanceof Relationship)
-            relationshipIndex(indexName).add((Relationship) primitive, field, value);
-        throw new IllegalArgumentException("Supplied graph primitive is null");
+    public void index(final PropertyContainer primitive, final String indexName, final String field, final Object value) {
+        doInTransaction(new GraphTransactionCallback.WithoutResult() {
+            @Override
+            public void doWithGraphWithoutResult(Status status, GraphDatabaseService graph) throws Exception {
+                if (primitive instanceof Node) {
+                    nodeIndex(indexName).add((Node) primitive, field, value);
+                    return;
+                }
+                if (primitive instanceof Relationship) {
+                    relationshipIndex(indexName).add((Relationship) primitive, field, value);
+                    return;
+                }
+                throw new IllegalArgumentException("Supplied graph primitive is invalid");
+            }
+        });
     }
 
     private RelationshipIndex relationshipIndex(String indexName) {
@@ -90,24 +136,44 @@ public class Neo4jTemplate implements Neo4jOperations {
 
     @Override
     public void index(PropertyContainer primitive, String field, Object value) {
-        index(primitive,null,field,value);
+        try {
+            index(primitive,null,field,value);
+        } catch (Exception e) {
+            throw translateExceptionIfPossible(e);
+        }
     }
 
     @Override
     public <T> Iterable<T> queryNodes(String indexName, Object queryOrQueryObject, final PathMapper<T> pathMapper) {
-        return mapNodes(nodeIndex(indexName).query(queryOrQueryObject), pathMapper);
+        try {
+            return mapNodes(nodeIndex(indexName).query(queryOrQueryObject), pathMapper);
+        } catch (Exception e) {
+            throw translateExceptionIfPossible(e);
+        }
     }
     @Override
     public <T> Iterable<T> retrieveNodes(String indexName, String field, String value, final PathMapper<T> pathMapper) {
-        return mapNodes(nodeIndex(indexName).get(field, value), pathMapper);
+        try {
+            return mapNodes(nodeIndex(indexName).get(field, value), pathMapper);
+        } catch (Exception e) {
+            throw translateExceptionIfPossible(e);
+        }
     }
     @Override
     public <T> Iterable<T> queryRelationships(String indexName, Object queryOrQueryObject, final PathMapper<T> pathMapper) {
-        return mapRelationships(relationshipIndex(indexName).query(queryOrQueryObject),pathMapper);
+        try {
+            return mapRelationships(relationshipIndex(indexName).query(queryOrQueryObject),pathMapper);
+        } catch (Exception e) {
+            throw translateExceptionIfPossible(e);
+        }
     }
     @Override
     public <T> Iterable<T> retrieveRelationships(String indexName, String field, String value, final PathMapper<T> pathMapper) {
-        return mapRelationships(relationshipIndex(indexName).get(field, value),pathMapper);
+        try {
+            return mapRelationships(relationshipIndex(indexName).get(field, value),pathMapper);
+        } catch (Exception e) {
+            throw translateExceptionIfPossible(e);
+        }
     }
 
     private <T> Iterable<T> mapNodes(final Iterable<Node> nodes, final PathMapper<T> pathMapper) {
@@ -125,7 +191,11 @@ public class Neo4jTemplate implements Neo4jOperations {
 
     @Override
     public <T> Iterable<T> traverse(Node startNode, TraversalDescription traversal, final PathMapper<T> pathMapper) {
-        return mapPaths(traversal.traverse(startNode), pathMapper);
+        try {
+            return mapPaths(traversal.traverse(startNode), pathMapper);
+        } catch (Exception e) {
+            throw translateExceptionIfPossible(e);
+        }
     }
 
     private <T> Iterable<T> mapPaths(final Iterable<Path> paths, final PathMapper<T> pathMapper) {
@@ -139,15 +209,27 @@ public class Neo4jTemplate implements Neo4jOperations {
 
     @Override
     public <T> Iterable<T> traverseDirectRelationships(Node startNode, RelationshipType type, Direction direction, final PathMapper<T> pathMapper) {
-        return mapRelationships(startNode.getRelationships(type, direction), pathMapper);
+        try {
+            return mapRelationships(startNode.getRelationships(type, direction), pathMapper);
+        } catch (Exception e) {
+            throw translateExceptionIfPossible(e);
+        }
     }
     @Override
     public <T> Iterable<T> traverseDirectRelationships(Node startNode, final PathMapper<T> pathMapper, RelationshipType... type) {
-        return mapRelationships(startNode.getRelationships(type), pathMapper);
+        try {
+            return mapRelationships(startNode.getRelationships(type), pathMapper);
+        } catch (Exception e) {
+            throw translateExceptionIfPossible(e);
+        }
     }
     @Override
     public <T> Iterable<T> traverseDirectRelationships(Node startNode, final PathMapper<T> pathMapper) {
-        return mapRelationships(startNode.getRelationships(), pathMapper);
+        try {
+            return mapRelationships(startNode.getRelationships(), pathMapper);
+        } catch (Exception e) {
+            throw translateExceptionIfPossible(e);
+        }
     }
 
     private <T> Iterable<T> mapRelationships(final Iterable<Relationship> relationships, final PathMapper<T> pathMapper) {
@@ -170,7 +252,9 @@ public class Neo4jTemplate implements Neo4jOperations {
     }
 
     private <T extends PropertyContainer> T setProperties(T primitive, Property... props) {
+        if (props==null) throw new IllegalArgumentException("props array is null");
         for (Property prop : props) {
+            if (prop==null) throw new IllegalArgumentException("at least one Property is null: "+ Arrays.toString(props));
             primitive.setProperty(prop.getName(), prop.getValue());
         }
         return primitive;
