@@ -214,15 +214,11 @@ public class Neo4jTemplateApiTest {
         assertThat("same relationship from index",lookedUpRelationship,is(relationship1));
     }
 
-    @Test(expected = InvalidDataAccessApiUsageException.class)
-    public void testIndexInvalidPrimitive() throws Exception {
-        template.index(Mockito.mock(PropertyContainer.class),"index","field",1);
-    }
-
     @Test
     public void testIndexNode() throws Exception {
-        template.index(node1,"name","node1");
-
+        template.index(node1,null,"name","node1");
+        Node lookedUpNode=graphDatabase.index().forNodes("node").get("name","node1").getSingle();
+        assertThat("same node from index",lookedUpNode,is(node1));
     }
 
     @Test

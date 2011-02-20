@@ -22,10 +22,6 @@ public interface Neo4jOperations {
 
     Relationship createRelationship(Node startNode, Node endNode, RelationshipType type, Property... props);
 
-    void index(PropertyContainer primitive, String indexName, String field, Object value);
-
-    void index(PropertyContainer primitive, String field, Object value);
-
     <T> Iterable<T> queryNodes(String indexName, Object queryOrQueryObject, PathMapper<T> pathMapper);
 
     <T> Iterable<T> retrieveNodes(String indexName, String field, String value, PathMapper<T> pathMapper);
@@ -42,4 +38,7 @@ public interface Neo4jOperations {
 
     <T> Iterable<T> traverseDirectRelationships(Node startNode, PathMapper<T> pathMapper);
 
+    void index(Relationship relationship, String indexName, String field, Object value);
+
+    void index(Node node, String indexName, String field, Object value);
 }
