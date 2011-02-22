@@ -27,6 +27,12 @@ public class PathMappingIterator {
                     result.add(mapped);
                 }
                 return result;
+
+            case EAGER_IGNORE_RESULTS:
+                for (Path path : paths) {
+                    pathMapper.mapPath(path);
+                }
+                return null;
             case LAZY:
                 return new IterableWrapper<T, Path>(paths) {
                     @Override

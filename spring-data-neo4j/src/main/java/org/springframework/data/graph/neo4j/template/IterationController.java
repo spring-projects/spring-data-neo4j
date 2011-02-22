@@ -6,7 +6,7 @@ package org.springframework.data.graph.neo4j.template;
 */
 public interface IterationController {
     public enum IterationMode {
-        LAZY, EAGER, EAGER_STOP_ON_NULL
+        LAZY, EAGER, EAGER_STOP_ON_NULL, EAGER_IGNORE_RESULTS
     }
     IterationMode getIterationMode();
 }
