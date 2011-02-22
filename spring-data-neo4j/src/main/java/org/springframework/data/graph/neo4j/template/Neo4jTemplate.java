@@ -25,11 +25,7 @@ import org.neo4j.helpers.collection.IterableWrapper;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
-
-import static org.springframework.data.graph.neo4j.template.IterationController.IterationMode.EAGER_STOP_ON_NULL;
 
 public class Neo4jTemplate implements Neo4jOperations {
 
@@ -142,7 +138,7 @@ public class Neo4jTemplate implements Neo4jOperations {
         update(new GraphCallback.WithoutResult() {
             @Override
             public void doWithGraphWithoutResult(GraphDatabaseService graph) throws Exception {
-                RelationshipIndex relationshipIndex = relationshipIndex(indexName);
+                RelationshipIndex relationshipIndex = relationshipIndexAllowsNull(indexName);
                 if (relationshipIndex != null && element instanceof Relationship) {
                     relationshipIndex.add((Relationship) element, field, value);
                 } else if (element instanceof Node) {
@@ -153,6 +149,13 @@ public class Neo4jTemplate implements Neo4jOperations {
             }
         });
         return element;
+    }
+
+    private RelationshipIndex relationshipIndexAllowsNull(String indexName) {
+        if (indexName == null) {
+            return relationshipIndex("relationship");
+        }
+        return relationshipIndex(indexName);
     }
 
     private RelationshipIndex relationshipIndex(String indexName) {
