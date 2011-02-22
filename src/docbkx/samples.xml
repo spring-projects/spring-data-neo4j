@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE preface PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN"
+                 "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
+<chapter id="samples">
+  <title>Samples</title>
+
+  <section id="samples:introduction">
+    <title>Introduction</title>
+    <para>
+      DATAGRAPH comes with a number of samples.
+      The source code of the samples is found on
+      <ulink url="http://github.com/SpringSource/spring-data-graph-examples">GitHub</ulink>.
+      The different sample projects are introduced below.
+    </para>
+  </section>
+
+  <section id="samples:hello-worlds">
+    <title>Hello Worlds sample</title>
+    <para>The Hello Worlds sample application is a simple console application with unit tests, that
+      creates some Worlds (entities / nodes) and Rocket Routes (relationships) in a Galaxy (graph)
+      and then reads them back and prints them out.</para>
+    <para>The unit tests demonstrate some other features of DATAGRAPH. The sample comes with a
+      minimal configuration for Maven and spring to get up and running quickly.</para>
+    <para>Executing the application creates the following graph in the Graph Database:</para>
+    <mediaobject>
+      <imageobject>
+        <imagedata fileref="images/helloworlds.png" />
+      </imageobject>
+    </mediaobject>
+  </section>
+
+  <section id="samples:imdb">
+    <title>IMDB sample</title>
+    <para>A web application that imports datasets from the Internet Movie Database (IMDB) into
+      the
+      graph database. It allows listings of movies with their actors and actors with their roles in
+      different movies. It also uses graph traversal operations to calculate the Kevin Bacon number
+      (distance to an actor that has acted with Kevin Bacon). This sample application shows the
+      basic usage of DATAGRAPH in a more complex setting with several annotated entities and
+      relationships as well as usage of indices and graph traversal.</para>
+    <para>See the readme file for instruction on how to compile and run the application.</para>
+    <para>An excerpt of the data stored in the Graph Database after executing the application:
+    </para>
+    <mediaobject>
+      <imageobject>
+        <imagedata fileref="images/imdb.png" />
+      </imageobject>
+    </mediaobject>
+  </section>
+
+  <!--
+  <section id="samples:myrestaurant-original">
+    <title>MyRestaurant sample</title>
+    <para>Simple web application for managing users and restaurants, with the ability to add
+      restaurants as
+      favorites to a user.</para>
+    <para>An excerpt of the data stored in the Graph Database after executing the application:
+    </para>
+    <mediaobject>
+      <imageobject>
+        <imagedata fileref="images/restaurant.png" />
+      </imageobject>
+    </mediaobject>
+  </section>
+
+  <section id="samples:myrestaurant-social">
+    <title>MyRestaurant-Social sample</title>
+    <para>An extended version of the MyRestaurant sample application that adds social networking
+      functionality to it. It is possible to have friends and to add rated relationships to
+      restaurants. The relationships and some of the properties of the entities are transparently
+      stored in the graph database. There is also a graph traversal that provides a recommendation
+      based on your friends' (and their friends') rating of restaurants. </para>
+    <para>An excerpt of the data stored in the Graph Database after executing the application:
+    </para>
+    <mediaobject>
+      <imageobject>
+        <imagedata fileref="images/restaurant-social.png" />
+      </imageobject>
+    </mediaobject>
+  </section>
+
+   -->
+</chapter>

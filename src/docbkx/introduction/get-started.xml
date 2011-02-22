@@ -4,14 +4,15 @@
 <chapter id="get-started">
     <title>Getting Started</title>
 
-    <para>The focus on NOSQL databases is a recent one, even if many of those stores have existed for some years now.
+    <para>NOSQL databases has come into focus only recently, even if some of them have existed for a few years by now.
 	That's why this document will not only guide you through the relevant parts of the DATAGRAPH
 	API, but also explain some key concepts of graph databases.
 	</para>
 	<para>
-		After reading this document, you should be able to integrate DATAGRAPH in your own existing or new applications.
+		After reading this document, you should be able to integrate DATAGRAPH into your existing or future applications.
 		If there are any issues that you don't understand or think are explained in a too complicated way, please report back any
-		problems or suggestions. This would also benefit future readers of this documentation.
+		problems or suggestions. Your input will also benefit future readers of this documentation. For details on how to get help
+		and provide feedback, see <xref linkend="get-started:help"/>.
 	</para>
 
     <section id="get-started:first-steps">
@@ -32,13 +33,13 @@
 			to know the Spring APIs, understanding the concepts behind them is essential.
 			The Spring Framework documentation
 			<ulink url="http://www.springsource.org/documentation">home page</ulink> is a good starting point for
-			developers wanting become more familiar with Spring Framework.</para>
+			developers who want to become more familiar with Spring Framework.</para>
 		</section>
 		<section id="get-started:first-steps:nosql">
 			<title>Knowing NOSQL and graph databases</title>
-			<para>The recent interest in NOSQL databases is mainly driven by the need for finding the best suited storage solution for data
+			<para>The recent interest in NOSQL databases is mainly driven by the need to find the best suited storage solution for data
 				structured in a specific way. It should fit the data, not the other way round. Another issue is the scalability of the
-				database, especially with today's fast growing user bases handling large amounts of data in a short time. There are many NOSQL databases,
+				database, especially with today's fast growing user bases. There are many NOSQL databases,
 				and one should become familiar with the different concepts, advantages, and disadvantages before choosing
 				a solution. A problem with the NOSQL databases is the different data access APIs that are provided. Spring Data aims at easing this burden by
 				providing consistent abstractions over those APIs, leveraging SpringSource's experience and good reputation in this area.
@@ -55,31 +56,7 @@
 				and unit test cases (if you accessed the sources via 
 				<ulink url="http://github.com/SpringSource/spring-data-graph">github</ulink> or Maven).
 			</para>
-			<para>The current distribution contains:</para>
-			<itemizedlist>
-				<listitem>
-					<para>Hello Worlds sample</para>
-					<para>The Hello Worlds sample application is a simple console application with unit tests, that
-					creates some Worlds (entities / nodes) and Rocket Routes (relationships) in a Galaxy (graph) and then
-					reads them back and prints them out.</para>
-					<para>The unit tests demonstrate some other features of DATAGRAPH. The sample comes with a minimal config for
-						Maven and spring to get up and running quickly.
-						</para>
-				</listitem>
-				<listitem>
-					<para>IMDB sample</para>
-					<para>A web application that imports datasets from the Internet Movie Database (IMDB) into the graph database. It allows listings of movies with their actors and actors with their roles in different movies. It also uses graph traversal operations to calculate the Kevin Bacon number (distance to an actor that has acted with Kevin Bacon). This sample application shows the basic usage of DATAGRAPH in a more complex setting with several annotated entities and relationships as well as usage of indices and graph traversal.</para>
-				</listitem>
-				<listitem>
-					<para>MyRestaurant sample</para>
-					<para>Simple webapp for managing users and restaurants, with the ability to add restaurants as favorites to a user.</para>
-				</listitem>
-				<listitem>
-					<para>MyRestaurant-Social sample</para>
-					<para>An extended version of the MyRestaurant sample application that adds social networking functionality to it. It is possible to have friends and to add rated relationships to restaurants. The relationships and some of the properties of the entities are transparently stored in the graph database. There is also a graph traversal that provides a recommendation based on your friends' (and their friends') rating of restaurants.</para>
-				</listitem>
-			</itemizedlist> 
-			<para>Most of the samples are web applications that can be easily built and run using mvn jetty:run.</para>
+			<para>For more information on the samples, see <xref linkend="samples"/>.</para>
 		</section>
 	</section>
     
