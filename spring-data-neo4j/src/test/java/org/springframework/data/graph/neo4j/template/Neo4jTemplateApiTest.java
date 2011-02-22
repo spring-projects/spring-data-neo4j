@@ -1,30 +1,24 @@
 package org.springframework.data.graph.neo4j.template;
 
 import org.apache.lucene.index.Term;
-import org.apache.lucene.search.NumericRangeQuery;
 import org.apache.lucene.search.TermQuery;
-import org.hamcrest.CoreMatchers;
-import org.hibernate.ejb.criteria.ParameterContainer;
-import org.jboss.netty.util.HashedWheelTimer;
 import org.junit.*;
-import org.mockito.Mockito;
 import org.neo4j.graphdb.*;
 import org.neo4j.kernel.ImpermanentGraphDatabase;
 import org.neo4j.kernel.Traversal;
 import org.springframework.dao.DataAccessException;
-import org.springframework.dao.InvalidDataAccessApiUsageException;
-import org.springframework.data.graph.neo4j.support.node.Neo4jHelper;
-
-import javax.print.attribute.HashAttributeSet;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.support.TransactionCallbackWithoutResult;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.util.Iterator;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
-import static org.springframework.data.graph.neo4j.template.Property._;
+import static org.junit.Assert.*;
+import static org.springframework.data.graph.neo4j.template.PropertyMap._;
+import static org.springframework.data.graph.neo4j.template.PropertyMap.props;
 
 /**
  * @author mh
@@ -34,14 +28,17 @@ public class Neo4jTemplateApiTest {
     private static final DynamicRelationshipType KNOWS = DynamicRelationshipType.withName("knows");
     private static final DynamicRelationshipType HAS = DynamicRelationshipType.withName("has");
     private Neo4jTemplate template;
-    private static ImpermanentGraphDatabase graphDatabase;
+    private static GraphDatabaseService graphDatabase;
+    private static PlatformTransactionManager tm;
     private Node referenceNode;
     private Relationship relationship1;
     private Node node1;
 
+
     @BeforeClass
     public static void startDb() throws Exception {
         graphDatabase = new ImpermanentGraphDatabase();
+//        tm = new JtaTransactionManager(new SpringTransactionManager(graphDatabase));
     }
 
     @Before
@@ -86,9 +83,9 @@ public class Neo4jTemplateApiTest {
 
     @Test
     public void shouldExecuteCallbackInTransaction() throws Exception {
-        Node refNode = template.doInTransaction(new GraphTransactionCallback<Node>() {
+        Node refNode = template.update(new GraphCallback<Node>() {
             @Override
-            public Node doWithGraph(Status status, GraphDatabaseService graph) throws Exception {
+            public Node doWithGraph(GraphDatabaseService graph) throws Exception {
                 Node referenceNode = graph.getReferenceNode();
                 referenceNode.setProperty("test", "testDoInTransaction");
                 return referenceNode;
@@ -101,10 +98,10 @@ public class Neo4jTemplateApiTest {
     @Test
     public void shouldRollbackTransactionOnException() {
         try {
-        template.doInTransaction(new GraphTransactionCallback.WithoutResult() {
+        template.update(new GraphCallback.WithoutResult() {
             @Override
-            public void doWithGraphWithoutResult(Status status, GraphDatabaseService graph) throws Exception {
-                graph.getReferenceNode().setProperty("test","shouldRollbackTransactionOnException");
+            public void doWithGraphWithoutResult(GraphDatabaseService graph) throws Exception {
+                graph.getReferenceNode().setProperty("test", "shouldRollbackTransactionOnException");
                 throw new RuntimeException("please rollback");
             }
         });
@@ -115,12 +112,18 @@ public class Neo4jTemplateApiTest {
     }
 
     @Test
+    @Ignore("until the ImpermanentGraphDatabase cast issue is resolved in neo4j")
     public void shouldRollbackViaStatus() throws Exception {
-        template.doInTransaction(new GraphTransactionCallback.WithoutResult() {
+        new TransactionTemplate(tm).execute(new TransactionCallbackWithoutResult() {
             @Override
-            public void doWithGraphWithoutResult(Status status, GraphDatabaseService graph) throws Exception {
-                graph.getReferenceNode().setProperty("test","shouldRollbackTransactionOnException");
-                status.mustRollback();
+            protected void doInTransactionWithoutResult(final TransactionStatus status) {
+                template.update(new GraphCallback.WithoutResult() {
+                    @Override
+                    public void doWithGraphWithoutResult(GraphDatabaseService graph) throws Exception {
+                        graph.getReferenceNode().setProperty("test", "shouldRollbackTransactionOnException");
+                        status.setRollbackOnly();
+                    }
+                });
             }
         });
         Assert.assertThat((String) graphDatabase.getReferenceNode().getProperty("test","not set"), not("shouldRollbackTransactionOnException"));
@@ -128,7 +131,7 @@ public class Neo4jTemplateApiTest {
 
     @Test(expected = RuntimeException.class)
     public void shouldNotConvertUserRuntimeExceptionToDataAccessException() {
-        template.execute(new GraphCallback.WithoutResult() {
+        template.exec(new GraphCallback.WithoutResult() {
             @Override
             public void doWithGraphWithoutResult(GraphDatabaseService graph) throws Exception {
                 throw new RuntimeException();
@@ -138,7 +141,7 @@ public class Neo4jTemplateApiTest {
 
     @Test(expected = DataAccessException.class)
     public void shouldConvertMissingTransactionExceptionToDataAccessException() {
-        template.execute(new GraphCallback.WithoutResult() {
+        template.exec(new GraphCallback.WithoutResult() {
             @Override
             public void doWithGraphWithoutResult(GraphDatabaseService graph) throws Exception {
                 graph.createNode();
@@ -147,7 +150,7 @@ public class Neo4jTemplateApiTest {
     }
     @Test(expected = DataAccessException.class)
     public void shouldConvertNotFoundExceptionToDataAccessException() {
-        template.execute(new GraphCallback.WithoutResult() {
+        template.exec(new GraphCallback.WithoutResult() {
             @Override
             public void doWithGraphWithoutResult(GraphDatabaseService graph) throws Exception {
                 graph.getNodeById(Long.MAX_VALUE);
@@ -161,7 +164,7 @@ public class Neo4jTemplateApiTest {
 
     @Test
     public void shouldExecuteCallback() throws Exception {
-        Long refNodeId = template.execute(new GraphCallback<Long>() {
+        Long refNodeId = template.exec(new GraphCallback<Long>() {
             @Override
             public Long doWithGraph(GraphDatabaseService graph) throws Exception {
                 return graph.getReferenceNode().getId();
@@ -177,17 +180,13 @@ public class Neo4jTemplateApiTest {
 
     @Test
     public void testCreateNode() throws Exception {
-        Node node=template.createNode();
+        Node node=template.createNode(null);
         assertNotNull("created node",node);
     }
 
-    @Test(expected = InvalidDataAccessApiUsageException.class)
-    public void shouldFailForNullProperties() throws Exception {
-        template.createNode(null);
-    }
     @Test
     public void testCreateNodeWithProperties() throws Exception {
-        Node node=template.createNode(_("test", "testCreateNodeWithProperties"));
+        Node node=template.createNode(props().set("test", "testCreateNodeWithProperties").toMap());
         assertTestPropertySet(node, "testCreateNodeWithProperties");
     }
 
@@ -216,47 +215,47 @@ public class Neo4jTemplateApiTest {
 
     @Test
     public void testIndexNode() throws Exception {
-        template.index(node1,null,"name","node1");
+        template.index(null, node1, "name","node1");
         Node lookedUpNode=graphDatabase.index().forNodes("node").get("name","node1").getSingle();
         assertThat("same node from index",lookedUpNode,is(node1));
     }
 
     @Test
     public void testQueryNodes() throws Exception {
-        assertSingleResult("node0", template.queryNodes(null, new TermQuery(new Term("name", "node0")), new NodeNameMapper()));
+        assertSingleResult("node0", template.query(null, new NodeNameMapper(), new TermQuery(new Term("name", "node0"))));
     }
 
     @Test
     public void testRetrieveNodes() throws Exception {
-        assertSingleResult("node0", template.retrieveNodes(null, "name", "node0", new NodeNameMapper()));
+        assertSingleResult("node0", template.query(null, new NodeNameMapper(), "name", "node0"));
     }
 
     @Test
     public void testQueryRelationships() throws Exception {
-        assertSingleResult("rel1", template.queryRelationships(null, new TermQuery(new Term("name", "rel1")), new RelationshipNameMapper()));
+        assertSingleResult("rel1", template.query("relationship", new RelationshipNameMapper(), new TermQuery(new Term("name", "rel1"))));
     }
 
     @Test
     public void testRetrieveRelationships() throws Exception {
-        assertSingleResult("rel1",template.retrieveRelationships(null, "name", "rel1", new RelationshipNameMapper()));
+        assertSingleResult("rel1",template.query("relationship", new RelationshipNameMapper(), "name", "rel1"));
     }
 
     @Test
     public void testTraverse() throws Exception {
-        assertSingleResult("node1",template.traverse(referenceNode, Traversal.description().relationships(KNOWS).prune(Traversal.pruneAfterDepth(1)).filter(Traversal.returnAllButStartNode()), new NodeNameMapper()));
+        assertSingleResult("node1",template.traverseGraph(referenceNode, new NodeNameMapper(), Traversal.description().relationships(KNOWS).prune(Traversal.pruneAfterDepth(1)).filter(Traversal.returnAllButStartNode())));
     }
 
     @Test
     public void shouldGetDirectRelationship() throws Exception {
-        assertSingleResult("rel1", template.traverseDirectRelationships(referenceNode, new RelationshipNameMapper()));
+        assertSingleResult("rel1", template.traverseNext(referenceNode, new RelationshipNameMapper()));
     }
     @Test
     public void shouldGetDirectRelationshipForType() throws Exception {
-        assertSingleResult("rel1", template.traverseDirectRelationships(referenceNode, new RelationshipNameMapper(),KNOWS));
+        assertSingleResult("rel1", template.traverseNext(referenceNode, new RelationshipNameMapper(), KNOWS));
     }
     @Test
     public void shouldGetDirectRelationshipForTypeAndDirection() throws Exception {
-        assertSingleResult("rel1", template.traverseDirectRelationships(referenceNode, KNOWS, Direction.OUTGOING, new RelationshipNameMapper()));
+        assertSingleResult("rel1", template.traverseNext(referenceNode, new RelationshipNameMapper(), KNOWS, Direction.OUTGOING));
     }
 
     private <T> void assertSingleResult(T expected, Iterable<T> iterable) {

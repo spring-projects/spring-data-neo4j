@@ -7,10 +7,13 @@ import org.neo4j.kernel.EmbeddedGraphDatabase;
 
 public abstract class NeoApiTest {
     protected GraphDatabaseService graph;
+    protected Neo4jTemplate template;
+
 
     @Before
     public void setUp() {
         graph = new EmbeddedGraphDatabase("target/template-db");
+        template = new Neo4jTemplate(graph);
     }
 
     @After
@@ -23,8 +26,8 @@ public abstract class NeoApiTest {
 
     private void clear() {
         try {
-        new Neo4jTemplate(graph).doInTransaction(new GraphTransactionCallback<Void>() {
-            public Void doWithGraph(Status status, GraphDatabaseService graph) throws Exception {
+        template.update(new GraphCallback<Void>() {
+            public Void doWithGraph(GraphDatabaseService graph) throws Exception {
                 for (Node node : graph.getAllNodes()) {
                     for (Relationship relationship : node.getRelationships()) {
                         relationship.delete();

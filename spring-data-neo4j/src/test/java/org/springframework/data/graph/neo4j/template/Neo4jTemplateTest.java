@@ -15,7 +15,7 @@ public class Neo4jTemplateTest extends NeoApiTest {
 
     @Test
     public void testRefNode() {
-        Node refNodeById = new Neo4jTemplate(graph).execute(new GraphCallback<Node>() {
+        Node refNodeById = new Neo4jTemplate(graph).exec(new GraphCallback<Node>() {
             public Node doWithGraph(GraphDatabaseService graph) throws Exception {
                 Node refNode = graph.getReferenceNode();
                 return graph.getNodeById(refNode.getId());
@@ -27,8 +27,8 @@ public class Neo4jTemplateTest extends NeoApiTest {
     @Test
     public void testSingleNode() {
         final Neo4jOperations template = new Neo4jTemplate(graph);
-        template.doInTransaction(new GraphTransactionCallback<Void>() {
-            public Void doWithGraph(Status status, GraphDatabaseService graph) throws Exception {
+        template.update(new GraphCallback<Void>() {
+            public Void doWithGraph(GraphDatabaseService graph) throws Exception {
                 Node refNode = graph.getReferenceNode();
                 // TODO easy API Node node = graph.createNode(Property._("name", "Test"), Property._("size", 100));
                 Node node = graph.createNode();
@@ -43,8 +43,8 @@ public class Neo4jTemplateTest extends NeoApiTest {
                 return null;
             }
         });
-        template.doInTransaction(new GraphTransactionCallback<Void>() {
-            public Void doWithGraph(Status status, GraphDatabaseService graph) throws Exception {
+        template.update(new GraphCallback<Void>() {
+            public Void doWithGraph(GraphDatabaseService graph) throws Exception {
                 Node refNode = graph.getReferenceNode();
                 final Relationship toTestNode = refNode.getSingleRelationship(HAS, Direction.OUTGOING);
                 final Node nodeByRelationship = toTestNode.getEndNode();
@@ -58,16 +58,18 @@ public class Neo4jTemplateTest extends NeoApiTest {
     @Test
     public void testRollback() {
         final Neo4jOperations template = new Neo4jTemplate(graph);
-        template.doInTransaction(new GraphTransactionCallback.WithoutResult() {
+        try {
+        template.update(new GraphCallback.WithoutResult() {
             @Override
-            public void doWithGraphWithoutResult(Status status, GraphDatabaseService graph) throws Exception {
+            public void doWithGraphWithoutResult(GraphDatabaseService graph) throws Exception {
                 Node node = graph.getReferenceNode();
                 node.setProperty("test", "test");
                 assertEquals("test", node.getProperty("test"));
-                status.mustRollback();
+                throw new RuntimeException();
             }
         });
-        template.execute(new GraphCallback.WithoutResult() {
+        } catch(RuntimeException ignore) {}
+        template.exec(new GraphCallback.WithoutResult() {
             public void doWithGraphWithoutResult(final GraphDatabaseService graph) throws Exception {
                 Node node = graph.getReferenceNode();
                 assertFalse(node.hasProperty("test"));

@@ -16,33 +16,28 @@
 
 package org.springframework.data.graph.neo4j.template;
 
-public class Property
-{
-    private final String name;
-    private final Object value;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
-    private Property(final String name, final Object value)
-    {
-        if (name == null)
-            throw new IllegalArgumentException("Name must not be null");
-        if (value == null)
-            throw new IllegalArgumentException("Value must not be null");
-        this.name = name;
-        this.value = value;
+public class PropertyMap {
+
+    private final Map<String, Object> properties = new HashMap<String, Object>();
+
+    public PropertyMap set(String name, Object value) {
+        properties.put(name, value);
+        return this;
     }
 
-    public static Property _(String name, Object value)
-    {
-        return new Property(name, value);
+    public static PropertyMap props() {
+        return new PropertyMap();
     }
 
-    public Object getValue()
-    {
-        return value;
+    public Map<String, Object> toMap() {
+        return properties;
     }
 
-    public String getName()
-    {
-        return name;
+    public static Map<String, Object> _(String name, Object value) {
+        return Collections.singletonMap(name,value);
     }
 }

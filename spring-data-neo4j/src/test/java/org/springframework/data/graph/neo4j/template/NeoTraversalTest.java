@@ -1,18 +1,20 @@
 package org.springframework.data.graph.neo4j.template;
 
-import org.junit.Ignore;
 import org.junit.Test;
 import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Path;
 import org.neo4j.graphdb.RelationshipType;
-import org.neo4j.graphdb.traversal.TraversalDescription;
-import org.neo4j.helpers.collection.IteratorUtil;
 import org.neo4j.kernel.Traversal;
+
+import java.util.HashSet;
+import java.util.Set;
 
 import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
 import static org.neo4j.kernel.Traversal.returnAllButStartNode;
 import static org.springframework.data.graph.neo4j.template.NeoTraversalTest.Type.HAS;
+import static org.springframework.data.graph.neo4j.template.PropertyMap._;
 
 public class NeoTraversalTest extends NeoApiTest {
 
@@ -22,73 +24,56 @@ public class NeoTraversalTest extends NeoApiTest {
 
     @Test
     public void testSimpleTraverse() {
-        runAndCheckTraverse(Traversal.description().filter(returnAllButStartNode()).relationships(HAS),  "grandpa", "grandma","daughter","son","man","wife" );
-    }
-
-
-    @Ignore
-    @Test
-    public void testComplexTraversal() {
-        final TraversalDescription traversal = Traversal.description().relationships(HAS).prune(Traversal.pruneAfterDepth(1));
-        runAndCheckTraverse(traversal, "grandpa", "grandma", "daughter", "son", "man", "wife");
-    }
-
-    private void runAndCheckTraverse(final TraversalDescription traversal, final String... names) {
-        final Neo4jOperations template = new Neo4jTemplate(graph);
-        template.doInTransaction(new GraphTransactionCallback<Void>() {
-            public Void doWithGraph(Status status, GraphDatabaseService graph) throws Exception {
-                createFamily(graph);
+        template.update(new GraphCallback<Void>() {
+            public Void doWithGraph(GraphDatabaseService graph) throws Exception {
+                createFamily();
                 return null;
-            }});
-        Iterable<String> result=template.traverse(template.getReferenceNode(), traversal,
-                new PathMapper<String>() {
-                    @Override
-                    public String mapPath(Path path) {
-                        return (String) path.endNode().getProperty("name", "");
-                    }
-                });
-        assertEquals("all members", asList(names), IteratorUtil.<String>asCollection(result));
+            }
+        });
+
+        final Set<String> resultSet = new HashSet<String>();
+        template.traverseGraph(template.getReferenceNode(), new PathMapper.WithoutResult() {
+            @Override
+            public void eachPath(Path path) {
+                String nodeName = (String) path.endNode().getProperty("name", "");
+                resultSet.add(nodeName);
+            }
+        }, Traversal.description().filter(returnAllButStartNode()).relationships(HAS));
+        assertEquals("all members", new HashSet<String>(asList("grandpa", "grandma", "daughter", "son", "man", "wife", "family")), resultSet);
     }
 
-    private void createFamily(final GraphDatabaseService graph) {
-        final GraphDescription family = new GraphDescription();
-        family.add("family", "type", "small");
-        family.relate("family", HAS, "wife");
-        family.relate("family", HAS, "man");
 
+    private void createFamily() {
 
-        family.add("man", "age", 35);
-        family.add("wife", "age", 30);
-        family.relate("man", Type.MARRIED, "wife");
-        family.relate("wife", Type.MARRIED, "man");
-        family.relate("man", Type.WIFE, "wife");
-        family.relate("wife", Type.HUSBAND, "man");
+        Node family = template.createNode(_("name", "family"));
+        Node man = template.createNode(_("name", "wife"));
+        Node wife = template.createNode(_("name", "man"));
+        family.createRelationshipTo(man, HAS);
+        family.createRelationshipTo(wife, HAS);
 
-        family.add("daughter", "age", 10);
-        family.add("son", "age", 8);
+        Node daughter = template.createNode(_("name", "daughter"));
+        family.createRelationshipTo(daughter, HAS);
+        Node son = template.createNode(_("name", "son"));
+        family.createRelationshipTo(son, HAS);
+        man.createRelationshipTo(son, Type.CHILD);
+        wife.createRelationshipTo(son, Type.CHILD);
+        man.createRelationshipTo(daughter, Type.CHILD);
+        wife.createRelationshipTo(daughter, Type.CHILD);
 
-        family.relate("family", HAS, "son");
-        family.relate("family", HAS, "daughter");
+        Node grandma = template.createNode(_("name", "grandma"));
+        Node grandpa = template.createNode(_("name", "grandpa"));
 
-        family.relate("man", Type.CHILD, "son");
-        family.relate("wife", Type.CHILD, "son");
-        family.relate("man", Type.CHILD, "daughter");
-        family.relate("wife", Type.CHILD, "daughter");
+        family.createRelationshipTo(grandma, HAS);
+        family.createRelationshipTo(grandpa, HAS);
 
-        family.add("grandma", "age", 60);
-        family.add("grandpa", "age", 75);
+        grandma.createRelationshipTo(man, Type.CHILD);
+        grandpa.createRelationshipTo(man, Type.CHILD);
 
-        family.relate("family", HAS, "grandma");
-        family.relate("family", HAS, "grandpa");
+        grandma.createRelationshipTo(son, Type.GRANDSON);
+        grandpa.createRelationshipTo(son, Type.GRANDSON);
+        grandma.createRelationshipTo(daughter, Type.GRANDDAUGHTER);
+        grandpa.createRelationshipTo(daughter, Type.GRANDDAUGHTER);
 
-        family.relate("grandpa", Type.CHILD, "man");
-        family.relate("grandma", Type.CHILD, "man");
-
-        family.relate("grandpa", Type.GRANDSON, "son");
-        family.relate("grandma", Type.GRANDSON, "son");
-        family.relate("grandpa", Type.GRANDDAUGHTER, "daughter");
-        family.relate("grandma", Type.GRANDDAUGHTER, "daughter");
-
-        family.addToGraph(graph);
+        graph.getReferenceNode().createRelationshipTo(family,HAS);
     }
 }

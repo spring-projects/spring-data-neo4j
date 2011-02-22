@@ -18,20 +18,21 @@ package org.springframework.data.graph.neo4j.template;
 
 import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.index.Index;
+import org.neo4j.graphdb.index.IndexManager;
 import org.neo4j.graphdb.index.RelationshipIndex;
 import org.neo4j.graphdb.traversal.TraversalDescription;
 import org.neo4j.helpers.collection.IterableWrapper;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
-import org.springframework.dao.support.PersistenceExceptionTranslator;
 
-import java.util.Arrays;
+import java.util.Map;
 
-public class Neo4jTemplate implements Neo4jOperations, PersistenceExceptionTranslator {
+public class Neo4jTemplate implements Neo4jOperations {
 
     private final GraphDatabaseService graphDatabaseService;
 
     private final Neo4jExceptionTranslator exceptionTranslator = new Neo4jExceptionTranslator();
+    private final IndexManager index;
 
     private static void notNull(Object... pairs) {
         assert pairs.length % 2 == 0 : "wrong number of pairs to check";
@@ -45,22 +46,32 @@ public class Neo4jTemplate implements Neo4jOperations, PersistenceExceptionTrans
     public Neo4jTemplate(final GraphDatabaseService graphDatabaseService) {
         notNull(graphDatabaseService, "graphDatabaseService");
         this.graphDatabaseService = graphDatabaseService;
+        index = this.graphDatabaseService.index();
     }
 
-    @Override
     public DataAccessException translateExceptionIfPossible(RuntimeException ex) {
         return exceptionTranslator.translateExceptionIfPossible(ex);
     }
 
     @Override
-    public <T> T doInTransaction(final GraphTransactionCallback<T> callback) {
+    public <T> T update(final GraphCallback<T> callback) {
         notNull(callback, "callback");
-        return execute(callback);
+        Transaction tx = graphDatabaseService.beginTx();
+        try {
+            T result = exec(callback);
+            tx.success();
+            return result;
+        } catch (RuntimeException e) {
+            tx.failure();
+            throw e;
+        } finally {
+            tx.finish();
+        }
     }
 
 
     @Override
-    public <T> T execute(final GraphCallback<T> callback) {
+    public <T> T exec(final GraphCallback<T> callback) {
         notNull(callback, "callback");
         try {
             return callback.doWithGraph(graphDatabaseService);
@@ -81,12 +92,13 @@ public class Neo4jTemplate implements Neo4jOperations, PersistenceExceptionTrans
     }
 
     @Override
-    public Node createNode(final Property... properties) {
-        notNull(properties, "properties");
-        return doInTransaction(new GraphTransactionCallback<Node>() {
+    public Node createNode(final Map<String, Object> properties, final String... indexFields) {
+        return update(new GraphCallback<Node>() {
             @Override
-            public Node doWithGraph(Status status, GraphDatabaseService graph) throws Exception {
-                return setProperties(graphDatabaseService.createNode(), properties);
+            public Node doWithGraph(GraphDatabaseService graph) throws Exception {
+                Node node = graphDatabaseService.createNode();
+                if (properties == null) return node;
+                return autoIndex(null, setProperties(node, properties), indexFields);
             }
         });
     }
@@ -112,35 +124,48 @@ public class Neo4jTemplate implements Neo4jOperations, PersistenceExceptionTrans
     }
 
     @Override
-    public void index(final Relationship relationship, final String indexName, final String field, final Object value) {
-        notNull(relationship, "relationship", field, "field", value, "value");
-        doInTransaction(new GraphTransactionCallback.WithoutResult() {
-            @Override
-            public void doWithGraphWithoutResult(Status status, GraphDatabaseService graph) throws Exception {
-                relationshipIndex(indexName).add(relationship, field, value);
-            }
-        });
+    public <T extends PropertyContainer> T autoIndex(String indexName, T element, String... indexFields) {
+        for (String indexField : indexFields) {
+            if (!element.hasProperty(indexField)) continue;
+            index(indexName,element, indexField,element.getProperty(indexField));
+        }
+        return element;
     }
 
     @Override
-    public void index(final Node node, final String indexName, final String field, final Object value) {
-        notNull(node, "node", field, "field", value, "value");
-        doInTransaction(new GraphTransactionCallback.WithoutResult() {
+    public <T extends PropertyContainer> T index(final String indexName, final T element, final String field, final Object value) {
+        notNull(element, "element", field, "field", value, "value");
+        update(new GraphCallback.WithoutResult() {
             @Override
-            public void doWithGraphWithoutResult(Status status, GraphDatabaseService graph) throws Exception {
-                nodeIndex(indexName).add(node, field, value);
+            public void doWithGraphWithoutResult(GraphDatabaseService graph) throws Exception {
+                RelationshipIndex relationshipIndex = relationshipIndex(indexName);
+                if (relationshipIndex != null && element instanceof Relationship) {
+                    relationshipIndex.add((Relationship) element, field, value);
+                } else if (element instanceof Node) {
+                    nodeIndex(indexName).add((Node) element, field, value);
+                } else {
+                    throw new IllegalArgumentException("Provided element is neither node nor relationship " + element);
+                }
             }
         });
+        return element;
     }
 
     private RelationshipIndex relationshipIndex(String indexName) {
-        return graphDatabaseService.index().forRelationships(indexName == null ? "relationship" : indexName);
+        if (indexName != null && index.existsForRelationships(indexName)) {
+            return index.forRelationships(indexName);
+        }
+        return null;
     }
 
     @Override
-    public <T> Iterable<T> queryNodes(String indexName, Object queryOrQueryObject, final PathMapper<T> pathMapper) {
+    public <T> Iterable<T> query(String indexName, final PathMapper<T> pathMapper, Object queryOrQueryObject) {
         notNull(queryOrQueryObject, "queryOrQueryObject", pathMapper, "pathMapper");
         try {
+            RelationshipIndex relationshipIndex = relationshipIndex(indexName);
+            if (relationshipIndex!=null) {
+                return mapRelationships(relationshipIndex.query(queryOrQueryObject), pathMapper);
+            }
             return mapNodes(nodeIndex(indexName).query(queryOrQueryObject), pathMapper);
         } catch (RuntimeException e) {
             throw translateExceptionIfPossible(e);
@@ -148,30 +173,14 @@ public class Neo4jTemplate implements Neo4jOperations, PersistenceExceptionTrans
     }
 
     @Override
-    public <T> Iterable<T> retrieveNodes(String indexName, String field, String value, final PathMapper<T> pathMapper) {
+    public <T> Iterable<T> query(String indexName, final PathMapper<T> pathMapper, String field, String value) {
         notNull(field, "field", value, "value", pathMapper, "pathMapper");
         try {
+            RelationshipIndex relationshipIndex = relationshipIndex(indexName);
+            if (relationshipIndex!=null) {
+                return mapRelationships(relationshipIndex.get(field, value), pathMapper);
+            }
             return mapNodes(nodeIndex(indexName).get(field, value), pathMapper);
-        } catch (RuntimeException e) {
-            throw translateExceptionIfPossible(e);
-        }
-    }
-
-    @Override
-    public <T> Iterable<T> queryRelationships(String indexName, Object queryOrQueryObject, final PathMapper<T> pathMapper) {
-        notNull(queryOrQueryObject, "queryOrQueryObject", pathMapper, "pathMapper");
-        try {
-            return mapRelationships(relationshipIndex(indexName).query(queryOrQueryObject), pathMapper);
-        } catch (RuntimeException e) {
-            throw translateExceptionIfPossible(e);
-        }
-    }
-
-    @Override
-    public <T> Iterable<T> retrieveRelationships(String indexName, String field, String value, final PathMapper<T> pathMapper) {
-        notNull(field, "field", value, "value", pathMapper, "pathMapper");
-        try {
-            return mapRelationships(relationshipIndex(indexName).get(field, value), pathMapper);
         } catch (RuntimeException e) {
             throw translateExceptionIfPossible(e);
         }
@@ -189,11 +198,11 @@ public class Neo4jTemplate implements Neo4jOperations, PersistenceExceptionTrans
     }
 
     private Index<Node> nodeIndex(String indexName) {
-        return graphDatabaseService.index().forNodes(indexName == null ? "node" : indexName);
+        return index.forNodes(indexName == null ? "node" : indexName);
     }
 
     @Override
-    public <T> Iterable<T> traverse(Node startNode, TraversalDescription traversal, final PathMapper<T> pathMapper) {
+    public <T> Iterable<T> traverseGraph(Node startNode, final PathMapper<T> pathMapper, TraversalDescription traversal) {
         notNull(startNode, "startNode", traversal, "traversal", pathMapper, "pathMapper");
         try {
             return mapPaths(traversal.traverse(startNode), pathMapper);
@@ -214,7 +223,7 @@ public class Neo4jTemplate implements Neo4jOperations, PersistenceExceptionTrans
     }
 
     @Override
-    public <T> Iterable<T> traverseDirectRelationships(Node startNode, RelationshipType relationshipType, Direction direction, final PathMapper<T> pathMapper) {
+    public <T> Iterable<T> traverseNext(Node startNode, final PathMapper<T> pathMapper, RelationshipType relationshipType, Direction direction) {
         notNull(startNode, "startNode", relationshipType, "relationshipType", direction, "direction", pathMapper, "pathMapper");
         try {
             return mapRelationships(startNode.getRelationships(relationshipType, direction), pathMapper);
@@ -224,7 +233,7 @@ public class Neo4jTemplate implements Neo4jOperations, PersistenceExceptionTrans
     }
 
     @Override
-    public <T> Iterable<T> traverseDirectRelationships(Node startNode, final PathMapper<T> pathMapper, RelationshipType... relationshipTypes) {
+    public <T> Iterable<T> traverseNext(Node startNode, final PathMapper<T> pathMapper, RelationshipType... relationshipTypes) {
         notNull(startNode, "startNode", relationshipTypes, "relationshipType", pathMapper, "pathMapper");
         try {
             return mapRelationships(startNode.getRelationships(relationshipTypes), pathMapper);
@@ -234,7 +243,7 @@ public class Neo4jTemplate implements Neo4jOperations, PersistenceExceptionTrans
     }
 
     @Override
-    public <T> Iterable<T> traverseDirectRelationships(Node startNode, final PathMapper<T> pathMapper) {
+    public <T> Iterable<T> traverseNext(Node startNode, final PathMapper<T> pathMapper) {
         notNull(startNode, "startNode", pathMapper, "pathMapper");
         try {
             return mapRelationships(startNode.getRelationships(), pathMapper);
@@ -255,23 +264,27 @@ public class Neo4jTemplate implements Neo4jOperations, PersistenceExceptionTrans
     }
 
     @Override
-    public Relationship createRelationship(final Node startNode, final Node endNode, final RelationshipType relationshipType, final Property... properties) {
+    public Relationship createRelationship(final Node startNode, final Node endNode, final RelationshipType relationshipType, final Map<String, Object> properties, final String... indexFields) {
         notNull(startNode, "startNode", endNode, "endNode", relationshipType, "relationshipType", properties, "properties");
-        return doInTransaction(new GraphTransactionCallback<Relationship>() {
+        return update(new GraphCallback<Relationship>() {
             @Override
-            public Relationship doWithGraph(Status status, GraphDatabaseService graph) throws Exception {
-                return setProperties(startNode.createRelationshipTo(endNode, relationshipType), properties);
+            public Relationship doWithGraph(GraphDatabaseService graph) throws Exception {
+                Relationship relationship = startNode.createRelationshipTo(endNode, relationshipType);
+                if (properties == null) return relationship;
+                return autoIndex("relationship", setProperties(relationship, properties), indexFields);
             }
         });
     }
 
-    private <T extends PropertyContainer> T setProperties(T primitive, Property... properties) {
+    private <T extends PropertyContainer> T setProperties(T primitive, Map<String, Object> properties) {
         assert primitive != null;
-        assert properties != null;
-        for (Property prop : properties) {
-            if (prop == null)
-                throw new IllegalArgumentException("at least one Property is null: " + Arrays.toString(properties));
-            primitive.setProperty(prop.getName(), prop.getValue());
+        if (properties==null) return primitive;
+        for (Map.Entry<String, Object> prop : properties.entrySet()) {
+            if (prop.getValue()==null) {
+                primitive.removeProperty(prop.getKey());
+            } else {
+                primitive.setProperty(prop.getKey(), prop.getValue());
+            }
         }
         return primitive;
     }
