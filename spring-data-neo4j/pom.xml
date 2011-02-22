@@ -10,9 +10,6 @@
 	<artifactId>spring-data-neo4j</artifactId>
 	<packaging>jar</packaging>
 	<name>Spring Data Neo4J Support</name>
-	<properties>
-		<aspectj.version>1.6.11.BUILD-SNAPSHOT</aspectj.version>
-	</properties>
 	<dependencies>
 
 		<!--  Spring -->
@@ -27,7 +24,6 @@
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-orm</artifactId>
-			<version>${org.springframework.version}</version>
 		</dependency>
 
 		<!--  Spring Data -->
@@ -43,6 +39,18 @@
 			<groupId>org.springframework.data</groupId>
 			<artifactId>spring-data-graph-core</artifactId>
 		</dependency>
+
+
+        <dependency>
+            <groupId>org.ow2.jotm</groupId>
+            <artifactId>jotm-core</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.ow2.spec.ee</groupId>
+            <artifactId>ow2-connector-1.5-spec</artifactId>
+            <scope>provided</scope>
+        </dependency>
 
 		<!-- Logging -->
 		<dependency>
@@ -215,10 +223,6 @@
 					<source>1.6</source>
 					<target>1.6</target>
 				</configuration>
-			</plugin>
-			<plugin>
-				<groupId>com.springsource.bundlor</groupId>
-				<artifactId>com.springsource.bundlor.maven</artifactId>
 			</plugin>
 		</plugins>
 	</build>

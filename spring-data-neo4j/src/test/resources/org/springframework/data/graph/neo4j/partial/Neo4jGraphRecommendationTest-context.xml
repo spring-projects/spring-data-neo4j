@@ -137,7 +137,7 @@
 	
 
 
-    <bean id="transactionManager" class="org.springframework.data.graph.neo4j.support.ChainedTransactionManager" >
+    <bean id="transactionManager" class="org.springframework.data.graph.neo4j.transaction.ChainedTransactionManager" >
 		<constructor-arg>
             <list>
             <bean class="org.springframework.orm.jpa.JpaTransactionManager" id="jpaTransactionManager">

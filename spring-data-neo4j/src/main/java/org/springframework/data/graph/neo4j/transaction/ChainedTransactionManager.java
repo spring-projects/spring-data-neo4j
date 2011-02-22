@@ -1,4 +1,4 @@
-package org.springframework.data.graph.neo4j.support;
+package org.springframework.data.graph.neo4j.transaction;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;

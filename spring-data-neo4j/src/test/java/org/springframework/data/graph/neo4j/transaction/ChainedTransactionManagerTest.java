@@ -1,4 +1,4 @@
-package org.springframework.data.graph.neo4j.support;
+package org.springframework.data.graph.neo4j.transaction;
 
 import org.hamcrest.Description;
 import org.hamcrest.Factory;
@@ -9,10 +9,10 @@ import org.springframework.transaction.support.DefaultTransactionDefinition;
 
 import static junit.framework.Assert.*;
 import static org.junit.Assert.assertThat;
-import static org.springframework.data.graph.neo4j.support.ChainedTransactionManagerTest.TestPlatformTransactionManager.createFailingTransactionManager;
-import static org.springframework.data.graph.neo4j.support.ChainedTransactionManagerTest.TestPlatformTransactionManager.createNonFailingTransactionManager;
-import static org.springframework.data.graph.neo4j.support.ChainedTransactionManagerTest.TransactionManagerMatcher.isCommitted;
-import static org.springframework.data.graph.neo4j.support.ChainedTransactionManagerTest.TransactionManagerMatcher.wasRolledback;
+import static org.springframework.data.graph.neo4j.transaction.ChainedTransactionManagerTest.TestPlatformTransactionManager.createFailingTransactionManager;
+import static org.springframework.data.graph.neo4j.transaction.ChainedTransactionManagerTest.TestPlatformTransactionManager.createNonFailingTransactionManager;
+import static org.springframework.data.graph.neo4j.transaction.ChainedTransactionManagerTest.TransactionManagerMatcher.isCommitted;
+import static org.springframework.data.graph.neo4j.transaction.ChainedTransactionManagerTest.TransactionManagerMatcher.wasRolledback;
 import static org.springframework.transaction.HeuristicCompletionException.getStateString;
 
 /**
