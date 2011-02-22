@@ -15,6 +15,11 @@ import org.neo4j.graphdb.Path;
  */
 public interface PathMapper<T> {
 
+    /**
+     * map operation, converts the path to any other, specified type instance
+     * @param path given path
+     * @return mapped type instance
+     */
     T mapPath(Path path);
 
     /**
