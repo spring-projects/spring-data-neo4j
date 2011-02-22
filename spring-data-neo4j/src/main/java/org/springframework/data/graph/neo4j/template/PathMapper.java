@@ -20,8 +20,8 @@ public interface PathMapper<T> {
         }
 
         @Override
-        public IterationControl iterateAs() {
-            return IterationController.IterationControl.EAGER;
+        public IterationMode getIterationMode() {
+            return IterationMode.EAGER;
         }
     }
 }
