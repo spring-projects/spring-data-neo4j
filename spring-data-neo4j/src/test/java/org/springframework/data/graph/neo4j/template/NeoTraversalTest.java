@@ -38,7 +38,7 @@ public class NeoTraversalTest extends NeoApiTest {
                 String nodeName = (String) path.endNode().getProperty("name", "");
                 resultSet.add(nodeName);
             }
-        }, Traversal.description().filter(returnAllButStartNode()).relationships(HAS));
+        }, Traversal.description().relationships(HAS).filter(returnAllButStartNode()).prune(Traversal.pruneAfterDepth(2)));
         assertEquals("all members", new HashSet<String>(asList("grandpa", "grandma", "daughter", "son", "man", "wife", "family")), resultSet);
     }
 

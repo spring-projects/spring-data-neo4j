@@ -25,7 +25,11 @@ import org.neo4j.helpers.collection.IterableWrapper;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
+
+import static org.springframework.data.graph.neo4j.template.IterationController.IterationControl.EAGER_STOP_ON_NULL;
 
 public class Neo4jTemplate implements Neo4jOperations {
 
@@ -214,12 +218,34 @@ public class Neo4jTemplate implements Neo4jOperations {
     private <T> Iterable<T> mapPaths(final Iterable<Path> paths, final PathMapper<T> pathMapper) {
         assert paths != null;
         assert pathMapper != null;
-        return new IterableWrapper<T, Path>(paths) {
-            @Override
-            protected T underlyingObjectToObject(Path path) {
-                return pathMapper.mapPath(path);
-            }
-        };
+        IterationController.IterationControl control = getIterationControl(pathMapper);
+        switch (control) {
+            case EAGER:
+            case EAGER_STOP_ON_NULL:
+                List<T> result=new ArrayList<T>();
+                for (Path path : paths) {
+                    T mapped = pathMapper.mapPath(path);
+                    if (mapped==null && control== EAGER_STOP_ON_NULL) break;
+                    result.add(mapped);
+                }
+                return result;
+            case LAZY:
+                return new IterableWrapper<T, Path>(paths) {
+                    @Override
+                    protected T underlyingObjectToObject(Path path) {
+                        return pathMapper.mapPath(path);
+                    }
+                };
+            default: throw new IllegalStateException("Unknown IterationControl "+control);
+        }
+    }
+
+    private <T> IterationController.IterationControl getIterationControl(PathMapper<T> pathMapper) {
+        if (pathMapper instanceof IterationController) {
+            IterationController.IterationControl result = ((IterationController) pathMapper).iterateAs();
+            if (result!=null) return result;
+        }
+        return IterationController.IterationControl.LAZY;
     }
 
     @Override
