@@ -5,14 +5,15 @@
     <title>Why Spring Data Graph?</title>
    
     <para><ulink url="http://en.wikipedia.org/wiki/NoSQL">NOSQL</ulink>
-    stores provide alternative storage solutions that are more tailored to the needs of
-	the data structure requirements that are specific to each project than just using a relational
+    stores provide storage solutions that are more tailored to the specific
+	data storage requirements of each project than just using a relational
 	database as a "one-size-fits-all" solution.
 	</para>
 	<para>
-	Graph databases provide excellent support for network data, i.e. data that easily can be structured
-	as connected nodes. Property graph databases like Neo4j support arbitrary numbers of named properties on both
-	nodes and relationships. They are highly performant when traversing large, complex datasets with
+	Graph databases provide excellent support for graph-like data (networks); that is data that easily can
+	be structured as connected nodes.
+	Property graph databases like Neo4j support an arbitrary number of named properties on both
+	nodes and relationships. Neo4j is highly performant when traversing large, complex datasets with
 	millions of nodes and relationships, even on commodity hardware.
 	</para>
 	<para>
@@ -22,15 +23,18 @@
 	</para>
 	
     <para>The Spring Data Graph (or DATAGRAPH) framework makes it easy to 
-    integrate graph databases in existing or new Spring applications by providing
+    integrate graph databases in existing or new Spring applications. It provides
 	infrastructure that reduces the amount of boilerplate data access code and uses
 	common patterns and idioms that are well known in the Spring Framework community.
-	Those practices are based on a simple POJO programming model that leverages annotations to add metadata and can be
-	integrated in any part of a Spring application, like the web or service layers.
+	Those practices are based on a simple POJO programming model that leverages
+    annotations to add metadata. It can be integrated in any part of a Spring application,
+    like the web or service layers.
 	</para>
 	<para>
-	A special use case of Spring Data Graph is the cross-store solution that can extend existing JPA data models with new parts
-	(properties, entities, relationships) that are stored exclusively in the graph while being transparently integrated with the JPA
-	entities. This enables for easy and seamless addition of new features that were not available before to JPA-based applications.
+	A special use case of Spring Data Graph is the cross-store solution that can extend
+    existing JPA data models with new, graph database backed parts (properties, entities, relationships).
+	These parts are stored exclusively in the graph database while being transparently
+    integrated with the JPA entities. This enables easy and seamless addition of new features
+    that have not been available to JPA-based applications previously.
 	</para>
 </chapter>

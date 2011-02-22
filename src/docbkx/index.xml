@@ -59,5 +59,6 @@
 	    <xi:include href="programming-model.xml"/>
 	    <xi:include href="setup.xml"/>
 	    <xi:include href="cross-store.xml"/>
+        <xi:include href="samples.xml"/>
     </part>
 </book>
