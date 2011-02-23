@@ -27,8 +27,9 @@ public class Neo4jTemplateTest extends NeoApiTest {
     @Test
     public void testSingleNode() {
         final Neo4jOperations template = new Neo4jTemplate(graph);
-        template.update(new GraphCallback<Void>() {
-            public Void doWithGraph(GraphDatabaseService graph) throws Exception {
+        template.exec(new GraphCallback.WithoutResult() {
+            @Override
+            public void doWithGraphWithoutResult(GraphDatabaseService graph) throws Exception {
                 Node refNode = graph.getReferenceNode();
                 // TODO easy API Node node = graph.createNode(Property._("name", "Test"), Property._("size", 100));
                 Node node = graph.createNode();
@@ -40,17 +41,15 @@ public class Neo4jTemplateTest extends NeoApiTest {
                 final Node nodeByRelationship = toTestNode.getEndNode();
                 assertEquals("Test", nodeByRelationship.getProperty("name"));
                 assertEquals(100, nodeByRelationship.getProperty("size"));
-                return null;
             }
         });
-        template.update(new GraphCallback<Void>() {
-            public Void doWithGraph(GraphDatabaseService graph) throws Exception {
+        template.exec(new GraphCallback.WithoutResult() {
+            public void doWithGraphWithoutResult(GraphDatabaseService graph) throws Exception {
                 Node refNode = graph.getReferenceNode();
                 final Relationship toTestNode = refNode.getSingleRelationship(HAS, Direction.OUTGOING);
                 final Node nodeByRelationship = toTestNode.getEndNode();
                 assertEquals("Test", nodeByRelationship.getProperty("name"));
                 assertEquals(100, nodeByRelationship.getProperty("size"));
-                return null;
             }
         });
     }
@@ -59,7 +58,7 @@ public class Neo4jTemplateTest extends NeoApiTest {
     public void testRollback() {
         final Neo4jOperations template = new Neo4jTemplate(graph);
         try {
-        template.update(new GraphCallback.WithoutResult() {
+        template.exec(new GraphCallback.WithoutResult() {
             @Override
             public void doWithGraphWithoutResult(GraphDatabaseService graph) throws Exception {
                 Node node = graph.getReferenceNode();

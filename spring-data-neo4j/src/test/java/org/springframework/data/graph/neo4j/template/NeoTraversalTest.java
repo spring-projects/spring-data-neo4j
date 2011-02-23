@@ -24,7 +24,7 @@ public class NeoTraversalTest extends NeoApiTest {
 
     @Test
     public void testSimpleTraverse() {
-        template.update(new GraphCallback<Void>() {
+        template.exec(new GraphCallback<Void>() {
             public Void doWithGraph(GraphDatabaseService graph) throws Exception {
                 createFamily();
                 return null;

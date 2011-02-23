@@ -24,10 +24,13 @@ import org.neo4j.graphdb.traversal.TraversalDescription;
 import org.neo4j.helpers.collection.IterableWrapper;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
+import org.springframework.data.graph.UncategorizedGraphStoreException;
 
 import java.util.Map;
 
 public class Neo4jTemplate implements Neo4jOperations {
+
+    private final boolean useExplictTransactions;
 
     private final GraphDatabaseService graphDatabaseService;
 
@@ -43,8 +46,33 @@ public class Neo4jTemplate implements Neo4jOperations {
         }
     }
 
+    /**
+     * creates a template that only participates in outside transactions, no implicit transactions are started
+     * @param graphDatabaseService the neo4j graph database
+     * @return a Neo4jTemplate instance
+     */
+    public static Neo4jTemplate templateWithExplictTransactions(GraphDatabaseService graphDatabaseService) {
+        return new Neo4jTemplate(graphDatabaseService,true);
+    }
+
+    /**
+     * creates a template that creates implicit transactions for its methods, including exec. If an outside transaction
+     * is running those participate in the outside transaction.
+     * @param graphDatabaseService the neo4j graph database
+     */
     public Neo4jTemplate(final GraphDatabaseService graphDatabaseService) {
+        this(graphDatabaseService,false);
+    }
+
+    /**
+     * @param graphDatabaseService the neo4j graph database
+     * @param useExplictTransactions if set the template only participates in outside transactions,
+     * no internal implicit transactions are started
+     * @return a Neo4jTemplate instance
+     */
+    public Neo4jTemplate(final GraphDatabaseService graphDatabaseService, boolean useExplictTransactions) {
         notNull(graphDatabaseService, "graphDatabaseService");
+        this.useExplictTransactions = useExplictTransactions;
         this.graphDatabaseService = graphDatabaseService;
         index = this.graphDatabaseService.index();
     }
@@ -53,32 +81,29 @@ public class Neo4jTemplate implements Neo4jOperations {
         return exceptionTranslator.translateExceptionIfPossible(ex);
     }
 
-    @Override
-    public <T> T update(final GraphCallback<T> callback) {
-        notNull(callback, "callback");
-        Transaction tx = graphDatabaseService.beginTx();
-        try {
-            T result = exec(callback);
-            tx.success();
-            return result;
-        } catch (RuntimeException e) {
-            tx.failure();
-            throw e;
-        } finally {
-            tx.finish();
+    private Transaction beginTx() {
+        if (useExplictTransactions) {
+            return new NullTransaction();
         }
+        return graphDatabaseService.beginTx();
     }
 
 
     @Override
     public <T> T exec(final GraphCallback<T> callback) {
         notNull(callback, "callback");
+        Transaction tx = beginTx();
         try {
-            return callback.doWithGraph(graphDatabaseService);
+            T result = callback.doWithGraph(graphDatabaseService);
+            tx.success();
+            return result;
         } catch (RuntimeException e) {
+            tx.failure();
             throw translateExceptionIfPossible(e);
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw new UncategorizedGraphStoreException("Error executing callback",e);
+        } finally {
+            tx.finish();
         }
     }
 
@@ -93,7 +118,7 @@ public class Neo4jTemplate implements Neo4jOperations {
 
     @Override
     public Node createNode(final Map<String, Object> properties, final String... indexFields) {
-        return update(new GraphCallback<Node>() {
+        return exec(new GraphCallback<Node>() {
             @Override
             public Node doWithGraph(GraphDatabaseService graph) throws Exception {
                 Node node = graphDatabaseService.createNode();
@@ -135,11 +160,11 @@ public class Neo4jTemplate implements Neo4jOperations {
     @Override
     public <T extends PropertyContainer> T index(final String indexName, final T element, final String field, final Object value) {
         notNull(element, "element", field, "field", value, "value");
-        update(new GraphCallback.WithoutResult() {
+        exec(new GraphCallback.WithoutResult() {
             @Override
             public void doWithGraphWithoutResult(GraphDatabaseService graph) throws Exception {
-                RelationshipIndex relationshipIndex = relationshipIndexAllowsNull(indexName);
-                if (relationshipIndex != null && element instanceof Relationship) {
+                if (element instanceof Relationship) {
+                    RelationshipIndex relationshipIndex = relationshipWriteIndex(indexName);
                     relationshipIndex.add((Relationship) element, field, value);
                 } else if (element instanceof Node) {
                     nodeIndex(indexName).add((Node) element, field, value);
@@ -151,11 +176,11 @@ public class Neo4jTemplate implements Neo4jOperations {
         return element;
     }
 
-    private RelationshipIndex relationshipIndexAllowsNull(String indexName) {
+    private RelationshipIndex relationshipWriteIndex(String indexName) {
         if (indexName == null) {
-            return relationshipIndex("relationship");
+            return index.forRelationships("relationship");
         }
-        return relationshipIndex(indexName);
+        return index.forRelationships(indexName);
     }
 
     private RelationshipIndex relationshipIndex(String indexName) {
@@ -267,7 +292,7 @@ public class Neo4jTemplate implements Neo4jOperations {
     @Override
     public Relationship createRelationship(final Node startNode, final Node endNode, final RelationshipType relationshipType, final Map<String, Object> properties, final String... indexFields) {
         notNull(startNode, "startNode", endNode, "endNode", relationshipType, "relationshipType", properties, "properties");
-        return update(new GraphCallback<Relationship>() {
+        return exec(new GraphCallback<Relationship>() {
             @Override
             public Relationship doWithGraph(GraphDatabaseService graph) throws Exception {
                 Relationship relationship = startNode.createRelationshipTo(endNode, relationshipType);
@@ -288,5 +313,22 @@ public class Neo4jTemplate implements Neo4jOperations {
             }
         }
         return primitive;
+    }
+
+    private static class NullTransaction implements Transaction {
+        @Override
+        public void failure() {
+
+        }
+
+        @Override
+        public void success() {
+
+        }
+
+        @Override
+        public void finish() {
+
+        }
     }
 }

@@ -11,15 +11,6 @@ import java.util.Map;
  * @since 19.02.11
  */
 public interface Neo4jOperations {
-    /**
-     * Executes the callback in a transactional context, throwing an exception in the callback will cause the transaction to be rolled back
-     * The callback is passed a GraphDatabaseService.
-     * @param callback for executing graph operations transactionally, not null
-     * @param <T> return type
-     * @return whatever the callback chooses to return
-     * @throws org.springframework.dao.DataAccessException subclasses
-     */
-    <T> T update(GraphCallback<T> callback);
 
     /**
      * Executes the callback in a NON-transactional context.

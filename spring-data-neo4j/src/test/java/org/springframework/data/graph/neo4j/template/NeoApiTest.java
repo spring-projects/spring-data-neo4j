@@ -26,21 +26,21 @@ public abstract class NeoApiTest {
 
     private void clear() {
         try {
-        template.update(new GraphCallback<Void>() {
-            public Void doWithGraph(GraphDatabaseService graph) throws Exception {
-                for (Node node : graph.getAllNodes()) {
-                    for (Relationship relationship : node.getRelationships()) {
-                        relationship.delete();
+            template.exec(new GraphCallback<Void>() {
+                public Void doWithGraph(GraphDatabaseService graph) throws Exception {
+                    for (Node node : graph.getAllNodes()) {
+                        for (Relationship relationship : node.getRelationships()) {
+                            relationship.delete();
+                        }
                     }
+                    Node referenceNode = graph.getReferenceNode();
+                    for (Node node : graph.getAllNodes()) {
+                        if (node.equals(referenceNode)) continue;
+                        node.delete();
+                    }
+                    return null;
                 }
-                Node referenceNode = graph.getReferenceNode();
-                for (Node node : graph.getAllNodes()) {
-                    if (node.equals(referenceNode)) continue;
-                    node.delete();
-                }
-                return null;
-            }
-        });
+            });
         } catch(Exception e) {
             e.printStackTrace();
             // ignore

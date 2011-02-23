@@ -83,7 +83,7 @@ public class Neo4jTemplateApiTest {
 
     @Test
     public void shouldExecuteCallbackInTransaction() throws Exception {
-        Node refNode = template.update(new GraphCallback<Node>() {
+        Node refNode = template.exec(new GraphCallback<Node>() {
             @Override
             public Node doWithGraph(GraphDatabaseService graph) throws Exception {
                 Node referenceNode = graph.getReferenceNode();
@@ -98,13 +98,13 @@ public class Neo4jTemplateApiTest {
     @Test
     public void shouldRollbackTransactionOnException() {
         try {
-        template.update(new GraphCallback.WithoutResult() {
-            @Override
-            public void doWithGraphWithoutResult(GraphDatabaseService graph) throws Exception {
-                graph.getReferenceNode().setProperty("test", "shouldRollbackTransactionOnException");
-                throw new RuntimeException("please rollback");
-            }
-        });
+            template.exec(new GraphCallback.WithoutResult() {
+                @Override
+                public void doWithGraphWithoutResult(GraphDatabaseService graph) throws Exception {
+                    graph.getReferenceNode().setProperty("test", "shouldRollbackTransactionOnException");
+                    throw new RuntimeException("please rollback");
+                }
+            });
         } catch(RuntimeException re){
             //ignore
         }
@@ -117,7 +117,7 @@ public class Neo4jTemplateApiTest {
         new TransactionTemplate(tm).execute(new TransactionCallbackWithoutResult() {
             @Override
             protected void doInTransactionWithoutResult(final TransactionStatus status) {
-                template.update(new GraphCallback.WithoutResult() {
+                template.exec(new GraphCallback.WithoutResult() {
                     @Override
                     public void doWithGraphWithoutResult(GraphDatabaseService graph) throws Exception {
                         graph.getReferenceNode().setProperty("test", "shouldRollbackTransactionOnException");
@@ -141,6 +141,7 @@ public class Neo4jTemplateApiTest {
 
     @Test(expected = DataAccessException.class)
     public void shouldConvertMissingTransactionExceptionToDataAccessException() {
+        Neo4jTemplate template = new Neo4jTemplate(graphDatabase, true);
         template.exec(new GraphCallback.WithoutResult() {
             @Override
             public void doWithGraphWithoutResult(GraphDatabaseService graph) throws Exception {
@@ -150,6 +151,7 @@ public class Neo4jTemplateApiTest {
     }
     @Test(expected = DataAccessException.class)
     public void shouldConvertNotFoundExceptionToDataAccessException() {
+        Neo4jTemplate template = new Neo4jTemplate(graphDatabase, true);
         template.exec(new GraphCallback.WithoutResult() {
             @Override
             public void doWithGraphWithoutResult(GraphDatabaseService graph) throws Exception {
