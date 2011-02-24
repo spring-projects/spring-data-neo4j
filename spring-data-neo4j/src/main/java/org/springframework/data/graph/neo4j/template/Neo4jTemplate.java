@@ -30,7 +30,7 @@ import java.util.Map;
 
 public class Neo4jTemplate implements Neo4jOperations {
 
-    private final boolean useExplictTransactions;
+    private final boolean useExplicitTransactions;
 
     private final GraphDatabaseService graphDatabaseService;
 
@@ -51,7 +51,7 @@ public class Neo4jTemplate implements Neo4jOperations {
      * @param graphDatabaseService the neo4j graph database
      * @return a Neo4jTemplate instance
      */
-    public static Neo4jTemplate templateWithExplictTransactions(GraphDatabaseService graphDatabaseService) {
+    public static Neo4jTemplate templateWithExplicitTransactions(GraphDatabaseService graphDatabaseService) {
         return new Neo4jTemplate(graphDatabaseService,true);
     }
 
@@ -66,13 +66,13 @@ public class Neo4jTemplate implements Neo4jOperations {
 
     /**
      * @param graphDatabaseService the neo4j graph database
-     * @param useExplictTransactions if set the template only participates in outside transactions,
+     * @param useExplicitTransactions if set the template only participates in outside transactions,
      * no internal implicit transactions are started
      * @return a Neo4jTemplate instance
      */
-    public Neo4jTemplate(final GraphDatabaseService graphDatabaseService, boolean useExplictTransactions) {
+    public Neo4jTemplate(final GraphDatabaseService graphDatabaseService, boolean useExplicitTransactions) {
         notNull(graphDatabaseService, "graphDatabaseService");
-        this.useExplictTransactions = useExplictTransactions;
+        this.useExplicitTransactions = useExplicitTransactions;
         this.graphDatabaseService = graphDatabaseService;
         index = this.graphDatabaseService.index();
     }
@@ -82,7 +82,7 @@ public class Neo4jTemplate implements Neo4jOperations {
     }
 
     private Transaction beginTx() {
-        if (useExplictTransactions) {
+        if (useExplicitTransactions) {
             return new NullTransaction();
         }
         return graphDatabaseService.beginTx();
