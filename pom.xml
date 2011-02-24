@@ -314,5 +314,10 @@
 			<name>SpringSource Maven Release Repository</name>
 			<url>http://repository.springsource.com/maven/bundles/release</url>
 		</repository>
+        <repository>
+            <id>jboss-repository</id>
+            <name>JBoss Public Repository</name>
+            <url>http://repository.jboss.org/nexus/content/groups/public-jboss</url>
+        </repository>
 	</repositories>
 </project>
