@@ -162,12 +162,12 @@ public class Actor {
             Finder implementation that provides methods for locating nodes
             and relationships:
 		<itemizedlist>
-			<listitem>using direct access <code>findById(id)</code> , </listitem>
-      <listitem>iterating over all nodes of a node entity type (findAll), </listitem>
-			<listitem>counting the instances of a node entity type (count), </listitem>
-			<listitem>iterating over all indexed instances with a certain property value (findAllByPropertyValue), </listitem>
-			<listitem>getting a single instance with a certain property value (findByPropertyValue), </listitem>
-			<listitem>iterating over a traversal result (findAllByTraversal). </listitem>
+			<listitem><para>using direct access <code>findById(id)</code> , </para></listitem>
+            <listitem><para>iterating over all nodes of a node entity type (findAll), </para></listitem>
+			<listitem><para>counting the instances of a node entity type (count), </para></listitem>
+			<listitem><para>iterating over all indexed instances with a certain property value (findAllByPropertyValue), </para></listitem>
+			<listitem><para>getting a single instance with a certain property value (findByPropertyValue), </para></listitem>
+			<listitem><para>iterating over a traversal result (findAllByTraversal). </para></listitem>
 		</itemizedlist>
 		The Finder instances are created via a FinderFactory to be bound to a
             concrete node or relationship entity class.
@@ -325,6 +325,7 @@ for (Person person : finder.findAllByProperyValue("occupation","developer")) {
     }
 }
 ]]></programlisting>
+    </section>
 <section>
         <title>Dynamic Typing - Projection to unrelated, fitting types</title>
         <para>
@@ -368,13 +369,42 @@ for (Person person : finder.findAllByProperyValue("occupation","developer")) {
     </section>
 <section>
         <title>Neo4jTemplate</title>
-        <para></para>
+        <para>The Neo4jTemplate offers the convenient API of Spring templates for the Neo4j graph database.
+
+            There are methods for creating nodes and relationships that automatically set provided properties and optionally
+            index certain fields. Other methods (index, autoindex) will index them.
+
+            For the querying operations Neo4jTemplate unifies the result with the Path abstraction that comes from Neo4j.
+            Much like a resultset a path contains <code>nodes()</code> and <code>relationships()
+            </code> starting at a <code>startNode()</code> and
+            ending with a <code>endNode()</code>, the <code>lastRelationship()</code> is also available separately.
+            Using this Path abstraction also wraps results that contain just nodes or relationships.
+            Using implementations of PathMapper&lt;T&gt; and PathMapper.WithoutResult (comparable with RowMapper and
+            RowCallbackHandler) the paths can be converted to other Java or domain objects.
+
+            Query methods either take a field / value combination to look for exact matches in the index or a lucene query
+            object or string to handle more complex queries.
+
+            Traversal methods are the bread and butter of graph operations. So they are fully supported in the Neo4jTemplate.
+            The traverseNext method traverses to the direct neighbours of the start node filtering the relationships according
+            to its parameters.
+
+            The traverse method covers the full fledged traversal operation that takes a powerful TraversalDescription
+            (most probably built from the Traversal.description() DSL) and
+
+            The Neo4jTemplate provides configurable implicit transactions for all its methods. By default it creates a transaction
+            for each call (which is a no-op if there is already a transaction running). If you call the constructor
+            with the useExplicitTransactions parameter set to true, it won't create any transactions so you have to
+            provide them using @Transactional or the TransactionTemplate.
+        </para>
 <programlisting lang="JAVA" ><![CDATA[
  Neo4jOperations neo = new Neo4jTemplate(grapDatabase);
+ Node michael = neo.createNode(_("name","Michael"),"name");
  Node mark = neo.createNode(_("name","Mark"));
  Node thomas = neo.createNode(_("name","Thomas"));
- neo.createRelationship(mark,thomas, WORKS_WITH);
- neo.index("devs","name","Mark",mark);
+ neo.createRelationship(mark,thomas, WORKS_WITH, _("project","spring-data"));
+ neo.index("devs",thomas, "name","Thomas");
+ neo.autoIndex("devs",mark, "name");
  assert "Mark".equals(neo.query("devs","name","Mark",new NodeNamePathMapper()));
 ]]></programlisting>
 
