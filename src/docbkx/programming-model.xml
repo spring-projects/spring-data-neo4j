@@ -311,33 +311,33 @@ for (Person person : finder.findAllByProperyValue("occupation","developer")) {
     </section>
     <section>
             <title>Neo4jTemplate</title>
-            <para>The Neo4jTemplate offers the convenient API of Spring templates for the Neo4j graph database.
+            <para>The <code>Neo4jTemplate</code> offers the convenient API of Spring templates for the Neo4j graph database.
 
                 There are methods for creating nodes and relationships that automatically set provided properties and optionally
-                index certain fields. Other methods (index, autoindex) will index them.
+                index certain fields. Other methods ( <code>index</code> , <code>autoindex</code>) will index them.
             </para><para>
-                For the querying operations Neo4jTemplate unifies the result with the Path abstraction that comes from Neo4j.
+                For the querying operations Neo4jTemplate unifies the result with the <code>Path</code> abstraction that comes from Neo4j.
                 Much like a resultset a path contains <code>nodes()</code> and <code>relationships()
                 </code> starting at a <code>startNode()</code> and
                 ending with a <code>endNode()</code>, the <code>lastRelationship()</code> is also available separately.
                 Using this Path abstraction also wraps results that contain just nodes or relationships.
-                Using implementations of PathMapper&lt;T&gt; and PathMapper.WithoutResult (comparable with RowMapper and
-                RowCallbackHandler) the paths can be converted to other Java or domain objects.
+                Using implementations of <code>PathMapper&lt;T&gt;</code> and <code>PathMapper.WithoutResult</code> (comparable with <code>RowMapper</code> and
+                <code>RowCallbackHandler</code>) the paths can be converted to other Java or domain objects.
             </para><para>
                 Query methods either take a field / value combination to look for exact matches in the index or a lucene query
                 object or string to handle more complex queries.
             </para><para>
-                Traversal methods are the bread and butter of graph operations. So they are fully supported in the Neo4jTemplate.
-                The traverseNext method traverses to the direct neighbours of the start node filtering the relationships according
+                Traversal methods are the bread and butter of graph operations. So they are fully supported in the <code>Neo4jTemplate</code>.
+                The <code>traverseNext</code> method traverses to the direct neighbours of the start node filtering the relationships according
                 to its parameters.
             </para><para>
-                The traverse method covers the full fledged traversal operation that takes a powerful TraversalDescription
-                (most probably built from the Traversal.description() DSL) and runs it from the start node. Each path that is returned
-                via the traversal is passed to the PathMapper to be processed accordingly.
+                The <code>traverse</code> method covers the full fledged traversal operation that takes a powerful <code>TraversalDescription</code>
+                (most probably built from the <code>Traversal.description()</code> DSL) and runs it from the start node. Each path that is returned
+                via the traversal is passed to the <code>PathMapper</code> to be processed accordingly.
             </para><para>
-                The Neo4jTemplate provides configurable implicit transactions for all its methods. By default it creates a transaction
+                The <code>Neo4jTemplate</code> provides configurable implicit transactions for all its methods. By default it creates a transaction
                 for each call (which is a no-op if there is already a transaction running). If you call the constructor
-                with the useExplicitTransactions parameter set to true, it won't create any transactions so you have to
+                with the <code>useExplicitTransactions</code> parameter set to true, it won't create any transactions so you have to
                 provide them using @Transactional or the TransactionTemplate.
             </para>
     <programlisting language="java" ><![CDATA[
@@ -362,17 +362,17 @@ for (Person person : finder.findAllByProperyValue("occupation","developer")) {
             have to be added manually to the appropriate index.
         </para>
         <para>
-            Within Spring Data Graph this is eased by having an @Indexed annotation on Entity fields that updates the index on
+            Within Spring Data Graph this is eased by having an <code>@Indexed</code> annotation on entity fields that updates the index on
             every change. Numerical fields are indexed numerically so that they are available for range queries. All other
             fields are indexed with their string representation. The @Indexed annotation can also set the index-name to be used.
             If it is put on top of the entity class the index-name for the whole entity is preset to that value. Not providing
             index names defaults them to "node" and "relationship" respectively.
         </para>
         <para>
-            Query access to the index happens with the Node- and RelationshipFinders that are created via the FinderFactory.
+            Query access to the index happens with the Node- and RelationshipFinders that are created via the <code>FinderFactory</code>.
 
-            The methods findByPropertyValue and findAllByPropertyValue work on the exact indexes and return the first or all
-            matches. To do range queries, use findAllByRange (please note that currently both values are inclusive).
+            The methods <code>findByPropertyValue</code> and <code>findAllByPropertyValue</code> work on the exact indexes and return the first or all
+            matches. To do range queries, use <code>findAllByRange</code> (please note that currently both values are inclusive).
         </para>
 <programlisting language="java" ><![CDATA[
 @NodeEntity
@@ -408,11 +408,11 @@ for (Person middleAgedDeveloper : finder.findAllByRange(null, "age", 20, 40)) {
 ]]></programlisting>
     <para>
         Neo4jTemplate also offers index support, providing auto-indexing for fields at creation time of nodes and relationships.
-        There is an autoIndex method that can also add indexes for a set of fields in one go.
+        There is an <code>autoIndex</code> method that can also add indexes for a set of fields in one go.
     </para>
     <para>
         For querying the index, the template offers query-methods that take either the exact match parameters or a query object /
-        query expression and push the results wrapped uniformly as Paths to the supplied PathMapper to be converted or collected.
+        query expression and push the results wrapped uniformly as Paths to the supplied <code>PathMapper</code> to be converted or collected.
     </para>
     </section>
         <section>
@@ -535,7 +535,7 @@ class Person {
         </para>
         <para>
             For certain contexts (e.g. web layer) it is required that entities are created in a detached mode (it is possible that those entities
-            are never persisted at all). That is achieved by annotating the entities with the autoAttach attribute set to false.
+            are never persisted at all). That is achieved by annotating the entities with the <code>autoAttach</code> attribute set to false.
             All node entities are equipped with an additional <code>attach()</code> method that will attach the entity to the graph
             database (if that has not already happend) and also flush the state changes to the graph. The flush operation checks for
             concurrent modifications of the data and fails if a conflict is detected.
@@ -550,6 +550,7 @@ class Person {
 class Person {
     String name;
 }
+Person p = new Person().attach();
 ]]></programlisting>
     </section>
 
