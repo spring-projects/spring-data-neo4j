@@ -90,7 +90,7 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<!-- dist.* properties are used by the antrun tasks below -->
 		<dist.id>spring-data-graph</dist.id>
-		<dist.name>Spring Data Graph</dist.name>
+		<dist.name>Spring Data</dist.name>
 		<dist.key>DATAGRAPH</dist.key>
 		<dist.version>${project.version}</dist.version>
 		<dist.releaseType>snapshot</dist.releaseType>
