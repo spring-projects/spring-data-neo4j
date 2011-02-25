@@ -2,6 +2,7 @@ package org.springframework.data.graph.neo4j.support;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -21,6 +22,7 @@ import org.springframework.data.graph.neo4j.support.node.Neo4jHelper;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.transaction.AfterTransaction;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Arrays;
@@ -51,6 +53,26 @@ public class IndexTest {
     @Before
 	public void cleanDb() {
 		Neo4jHelper.cleanDb(graphDatabaseContext);
+    }
+
+    @AfterTransaction
+    public void tearDown() throws Exception {
+    	GraphDatabaseService gds = graphDatabaseContext.getGraphDatabaseService();
+        if (gds != null) {
+            clearIndex(gds);
+        }
+    }
+    
+    private void clearIndex(GraphDatabaseService gds) {
+    	org.neo4j.graphdb.Transaction tx = gds.beginTx();
+    	try {
+			for (String ix : gds.index().nodeIndexNames()) {
+				gds.index().forNodes(ix).delete();
+			}
+			tx.success();
+		} finally {
+	        tx.finish();
+		}
     }
 
     @Test

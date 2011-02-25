@@ -6,6 +6,7 @@ import org.junit.Test;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.NotFoundException;
+import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.index.IndexHits;
 import org.neo4j.kernel.Config;
 import org.neo4j.kernel.EmbeddedGraphDatabase;
@@ -40,7 +41,33 @@ public class JOTMIntegrationTest {
 
     @After
     public void tearDown() throws Exception {
+        if (gds != null) {
+            clear(gds);
+        }
         if (ctx != null) ctx.close();
+    }
+    
+    private void clear(GraphDatabaseService gds) {
+    	org.neo4j.graphdb.Transaction tx = gds.beginTx();
+    	try {
+			for (String ix : gds.index().nodeIndexNames()) {
+				gds.index().forNodes(ix).delete();
+			}
+			for (Node node : gds.getAllNodes()) {
+				for (Relationship relationship : node.getRelationships()) {
+					relationship.delete();
+				}
+			}
+			Node referenceNode = gds.getReferenceNode();
+			for (Node node : gds.getAllNodes()) {
+				if (node.equals(referenceNode))
+					continue;
+				node.delete();
+			}
+			tx.success();
+		} finally {
+	        tx.finish();
+		}
     }
 
     @Test
