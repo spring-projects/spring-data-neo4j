@@ -28,7 +28,7 @@ Download the jar though Maven:
        <dependency>
          <groupId>org.springframework.data</groupId>
          <artifactId>spring-data-neo4j</artifactId>
-         <version>1.0.0.M2</version>
+         <version>1.0.0.M3</version>
        </dependency> 
        
        <repository>
@@ -71,12 +71,12 @@ Configure the Aspect-J maven plugin build & library dependency.  Add the followi
           <dependency>
             <groupId>org.aspectj</groupId>
             <artifactId>aspectjrt</artifactId>
-            <version>1.6.10.RELEASE</version>
+            <version>1.6.11.M2</version>
           </dependency>
           <dependency>
             <groupId>org.aspectj</groupId>
             <artifactId>aspectjtools</artifactId>
-            <version>1.6.10.RELEASE</version>
+            <version>1.6.11.M2</version>
           </dependency>
         </dependencies>
       </plugin>

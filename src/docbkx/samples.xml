@@ -7,7 +7,7 @@
   <section id="samples:introduction">
     <title>Introduction</title>
     <para>
-      DATAGRAPH comes with a number of samples.
+      Spring Data Graph comes with a number of samples.
       The source code of the samples is found on
       <ulink url="http://github.com/SpringSource/spring-data-graph-examples">GitHub</ulink>.
       The different sample projects are introduced below.
@@ -19,7 +19,7 @@
     <para>The Hello Worlds sample application is a simple console application with unit tests, that
       creates some Worlds (entities / nodes) and Rocket Routes (relationships) in a Galaxy (graph)
       and then reads them back and prints them out.</para>
-    <para>The unit tests demonstrate some other features of DATAGRAPH. The sample comes with a
+    <para>The unit tests demonstrate some other features of Spring Data Graph. The sample comes with a
       minimal configuration for Maven and spring to get up and running quickly.</para>
     <para>Executing the application creates the following graph in the Graph Database:</para>
     <mediaobject>
@@ -36,7 +36,7 @@
       graph database. It allows listings of movies with their actors and actors with their roles in
       different movies. It also uses graph traversal operations to calculate the Kevin Bacon number
       (distance to an actor that has acted with Kevin Bacon). This sample application shows the
-      basic usage of DATAGRAPH in a more complex setting with several annotated entities and
+      basic usage of Spring Data Graph in a more complex setting with several annotated entities and
       relationships as well as usage of indices and graph traversal.</para>
     <para>See the readme file for instruction on how to compile and run the application.</para>
     <para>An excerpt of the data stored in the Graph Database after executing the application:

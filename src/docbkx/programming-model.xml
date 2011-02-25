@@ -3,12 +3,12 @@
 <chapter id="programming-model">
 	<title>Programming model for Spring Data Graph</title>
 	<para>This chapter covers the fundamentals of the programming model behind Spring Data Graph. It discusses the AspectJ features used and the annotations
-	provided by DATAGRAPH and how to use them.
-	Examples for this section are taken from the imdb project of <ulink url="http://github.com/SpringSource/spring-data-graph-examples">DATAGRAPH examples</ulink>.
+	provided by Spring Data Graph and how to use them.
+	Examples for this section are taken from the imdb project of <ulink url="http://github.com/SpringSource/spring-data-graph-examples">Spring Data Graph examples</ulink>.
 </para>
 	<section>
 		<title>Overview of the AspectJ support</title>
-        <para>Behind the scenes DATAGRAPH leverages AspectJ aspects to modify the behavior of simple POJO entities to be
+        <para>Behind the scenes Spring Data Graph leverages AspectJ aspects to modify the behavior of simple POJO entities to be
             able to be backed by a graph store. Each entity is backed by a node that holds its properties and
             relationships to other entities. AspectJ is used to intercept field access and to reroute it to the backing
             state (either its properties or relationships). For relationship entities the fields are similarly mapped to
@@ -35,7 +35,7 @@
                 the parts of the entity not handled by JPA will be mapped to the graph store.
             </para>
             <para>Entity fields can be annotated with @GraphProperty, @RelatedTo, @RelatedToVia, @Indexed and @GraphId</para>
-<programlisting lang="JAVA" ><![CDATA[
+<programlisting language="java" ><![CDATA[
 @NodeEntity
 public class Movie { 
 	String title;
@@ -52,7 +52,7 @@ public class Movie {
                 annotated with @StartNode and @EndNode which point to the start and end node entities respectively (and
                 are read only).
             </para>
-            <programlisting lang="JAVA" ><![CDATA[
+            <programlisting language="java" ><![CDATA[
 @RelationshipEntity
 public class Role { 
 	@StartNode
@@ -73,14 +73,14 @@ public class Role {
             <para>
                 Relationships to other NodeEntities are mapped to graph relationships. Those can either be single
                 relationships (1:1) or multiple relationships (1:n). In most cases single relationships to other
-                node entities don't have to be annotated as DATAGRAPH can extract all needed information from the field
+                node entities don't have to be annotated as Spring Data Graph can extract all needed information from the field
                 using reflection. In the case of
                 multiple relationships, the <code>elementClass</code> parameter of @RelatedTo must be specified because of type erasure.
                 The <code>direction</code> (default OUTGOING) and <code>type</code>
                 (inferred from field name) parameters of the annotation are optional.
             </para>
             <para>Relationships to single node entities are created when setting the field and deleted when setting it to null. For multi-relationships the field provides a managed collection (Set) that handles addition and removal of node entities and reflects those in the graph relationships.</para>
-<programlisting lang="JAVA" ><![CDATA[
+<programlisting language="java" ><![CDATA[
 @NodeEntity
 public class Movie { 
 	private Actor topActor;
@@ -105,7 +105,7 @@ public class Actor {
                 relationship type. Those instances are initialized with the properties of the relationship and the start
                 and end node.
             </para>
-            <programlisting lang="JAVA" ><![CDATA[
+            <programlisting language="java" ><![CDATA[
 @NodeEntity
 public class Actor { 
 	@RelatedToVia(type = "ACTS_IN", elementClass = Role.class) 
@@ -143,7 +143,7 @@ public class Actor {
         </section>
 		<section>
 			<title>@GraphTraversal</title>
-            <para>The @GraphTraversal annotation leverages the delegation infrastructure used by the DATAGRAPH aspects.
+            <para>The @GraphTraversal annotation leverages the delegation infrastructure used by the Spring Data Graph aspects.
                 It provides dynamic fields
                 which, when accessed, return an Iterable of NodeEntities that are the result of a traversal starting at the
                 current NodeEntity.
@@ -167,13 +167,14 @@ public class Actor {
 			<listitem><para>counting the instances of a node entity type (count), </para></listitem>
 			<listitem><para>iterating over all indexed instances with a certain property value (findAllByPropertyValue), </para></listitem>
 			<listitem><para>getting a single instance with a certain property value (findByPropertyValue), </para></listitem>
-			<listitem><para>iterating over a traversal result (findAllByTraversal). </para></listitem>
+            <listitem><para>iterating over all indexed instances within a certain numerical range (inclusive) (findAllByRange), </para></listitem>
+            <listitem><para>iterating over a traversal result (findAllByTraversal). </para></listitem>
 		</itemizedlist>
 		The Finder instances are created via a FinderFactory to be bound to a
             concrete node or relationship entity class.
         The FinderFactory is created in the Spring context and can be
         injected.
-<programlisting lang="JAVA" ><![CDATA[
+<programlisting language="java" ><![CDATA[
 NodeFinder<Person> finder = finderFactory.createNodeEntityFinder(Person.class);
 Person dave=finder.findById(123);
 int people = finder.count();
@@ -201,25 +202,6 @@ Iterable<Person> davesFriends = finder.findAllByTraversal(dave,
 		<para>
 			An alternative approach could use indexing operations to perform the same functionality. Or one could skip the NodeTypeStrategy altogether if no
             strict checks on type conformity are needed, which would allow for a much more flexible data model.
-		</para>
-	</section>
-	<section>
-		<title>Transactions in Spring Data Graph</title>
-		<para>
-			Neo4j is a transactional datastore which only allows modifications within transaction boundaries and fullfills the ACID properties.
-			Reading from the store is also possible outside of transactions. Neo4j also provides a Spring compliant transaction manager that
-			allows it to participate in Spring managed transactions (also with @Transactional). This transaction manager is already configured
-			in the Spring Java config class <code>Neo4jConfiguration</code>.
-        </para>
-		<para>
-			DATAGRAPH is designed to work within transaction boundaries. So entity creation and modification should happen within transactional methods.
-			Due to the usage of POJO entities it is common to create and populate them also outside of a transaction (for example in the web layer). That's why
-			some housekeeping support was added to DATAGRAPH. It is possible to create node entities outside of transactions and also to modify their fields.
-			The values are then not stored within the backing node but instead only in the entity itself. When the entity reenters a transactional context
-			and its fields are read or written to, all the pending changes are flushed to the backing node first.
-		</para>
-		<para>At the moment there is no support for the creation of relationships outside of transactions and also more complex operations like creating whole
-			subgraphs is not supported.
 		</para>
 	</section>
     <section>
@@ -300,7 +282,7 @@ Iterable<Person> davesFriends = finder.findAllByTraversal(dave,
             Being able to take a basic order and project it to a different (not related in the inheritance hierarchy or even an interface)
             order type that is valid in the current context and only offers the attributes and methods needed here would be very benefitial.
         </para>
-        <para>DATAGRAPH offers initial support for projecting node and relationship entities to different target types.
+        <para>Spring Data Graph offers initial support for projecting node and relationship entities to different target types.
         All instances of this projected entity share the same backing node or relationship, so data changes are reflected
         immediately.
         </para>
@@ -309,7 +291,7 @@ Iterable<Person> davesFriends = finder.findAllByTraversal(dave,
             reporting or auditing) and only project them to a concrete, more functional target type when the business
             logic requires it.
         </para>
-<programlisting lang="JAVA" ><![CDATA[
+<programlisting language="java" ><![CDATA[
 // not related to Person at all
 @NodeEntity
 class Trainee {
@@ -324,100 +306,128 @@ for (Person person : finder.findAllByProperyValue("occupation","developer")) {
         trainInSpringData(developer.projectTo(Trainee.class));
     }
 }
-]]></programlisting>
-    </section>
-<section>
-        <title>Dynamic Typing - Projection to unrelated, fitting types</title>
-        <para>
-            As the underlying data model of a graph database doesn't imply and enforce strict type constraints like a relational
-            model does, it offers much more flexibility on how to model your domain classes and which of those to use in different
-            contexts.
-        </para>
-        <para>
-            For instance an order can be used in these contexts: customer, procurement, logistics, billing, fulfillment and many more.
-            Each of those contexts requires its distinct set of attributes and operations. As Java doesn't support mixins one would put
-            the sum of all of those into the entity class and thereby making it very big, brittle and hard to understand.
-            Being able to take a basic order and project it to a different (not related in the inheritance hierarchy or even an interface)
-            order type that is valid in the current context and only offers the attributes and methods needed here would be very benefitial.
-        </para>
-        <para>DATAGRAPH offers initial support for projecting node and relationship entities to different target types.
-        All instances of this projected entity share the same backing node or relationship, so data changes are reflected
-        immediately.
-        </para>
-        <para>
-            This could for instance also be used to handle nodes of a traversal with a unified (simpler) type (e.g. for
-            reporting or auditing) and only project them to a concrete, more functional target type when the business
-            logic requires it.
-        </para>
-<programlisting lang="JAVA" ><![CDATA[
-// not related to Person at all
-@NodeEntity
-class Trainee {
-    String name;
-    @RelatedTo(elementClass=Training.class);
-    Set<Training> trainings;
-}
-
-for (Person person : finder.findAllByProperyValue("occupation","developer")) {
-    Developer developer=person.projectTo(Developer.class)
-    if (developer.isJavaDeveloper()) {
-        trainInSpringData(developer.projectTo(Trainee.class));
-    }
-}
-]]></programlisting>
-
-    </section>
-<section>
-        <title>Neo4jTemplate</title>
-        <para>The Neo4jTemplate offers the convenient API of Spring templates for the Neo4j graph database.
-
-            There are methods for creating nodes and relationships that automatically set provided properties and optionally
-            index certain fields. Other methods (index, autoindex) will index them.
-
-            For the querying operations Neo4jTemplate unifies the result with the Path abstraction that comes from Neo4j.
-            Much like a resultset a path contains <code>nodes()</code> and <code>relationships()
-            </code> starting at a <code>startNode()</code> and
-            ending with a <code>endNode()</code>, the <code>lastRelationship()</code> is also available separately.
-            Using this Path abstraction also wraps results that contain just nodes or relationships.
-            Using implementations of PathMapper&lt;T&gt; and PathMapper.WithoutResult (comparable with RowMapper and
-            RowCallbackHandler) the paths can be converted to other Java or domain objects.
-
-            Query methods either take a field / value combination to look for exact matches in the index or a lucene query
-            object or string to handle more complex queries.
-
-            Traversal methods are the bread and butter of graph operations. So they are fully supported in the Neo4jTemplate.
-            The traverseNext method traverses to the direct neighbours of the start node filtering the relationships according
-            to its parameters.
-
-            The traverse method covers the full fledged traversal operation that takes a powerful TraversalDescription
-            (most probably built from the Traversal.description() DSL) and runs it from the start node. Each path that is returned
-            via the traversal is passed to the PathMapper to be processed accordingly.
-
-            The Neo4jTemplate provides configurable implicit transactions for all its methods. By default it creates a transaction
-            for each call (which is a no-op if there is already a transaction running). If you call the constructor
-            with the useExplicitTransactions parameter set to true, it won't create any transactions so you have to
-            provide them using @Transactional or the TransactionTemplate.
-        </para>
-<programlisting lang="JAVA" ><![CDATA[
- Neo4jOperations neo = new Neo4jTemplate(grapDatabase);
- Node michael = neo.createNode(_("name","Michael"),"name");
- Node mark = neo.createNode(_("name","Mark"));
- Node thomas = neo.createNode(_("name","Thomas"));
- neo.createRelationship(mark,thomas, WORKS_WITH, _("project","spring-data"));
- neo.index("devs",thomas, "name","Thomas");
- neo.autoIndex("devs",mark, "name");
- assert "Mark".equals(neo.query("devs","name","Mark",new NodeNamePathMapper()));
 ]]></programlisting>
 
     </section>
     <section>
-            <title>Transaction Manager Support</title>
+            <title>Neo4jTemplate</title>
+            <para>The Neo4jTemplate offers the convenient API of Spring templates for the Neo4j graph database.
+
+                There are methods for creating nodes and relationships that automatically set provided properties and optionally
+                index certain fields. Other methods (index, autoindex) will index them.
+            </para><para>
+                For the querying operations Neo4jTemplate unifies the result with the Path abstraction that comes from Neo4j.
+                Much like a resultset a path contains <code>nodes()</code> and <code>relationships()
+                </code> starting at a <code>startNode()</code> and
+                ending with a <code>endNode()</code>, the <code>lastRelationship()</code> is also available separately.
+                Using this Path abstraction also wraps results that contain just nodes or relationships.
+                Using implementations of PathMapper&lt;T&gt; and PathMapper.WithoutResult (comparable with RowMapper and
+                RowCallbackHandler) the paths can be converted to other Java or domain objects.
+            </para><para>
+                Query methods either take a field / value combination to look for exact matches in the index or a lucene query
+                object or string to handle more complex queries.
+            </para><para>
+                Traversal methods are the bread and butter of graph operations. So they are fully supported in the Neo4jTemplate.
+                The traverseNext method traverses to the direct neighbours of the start node filtering the relationships according
+                to its parameters.
+            </para><para>
+                The traverse method covers the full fledged traversal operation that takes a powerful TraversalDescription
+                (most probably built from the Traversal.description() DSL) and runs it from the start node. Each path that is returned
+                via the traversal is passed to the PathMapper to be processed accordingly.
+            </para><para>
+                The Neo4jTemplate provides configurable implicit transactions for all its methods. By default it creates a transaction
+                for each call (which is a no-op if there is already a transaction running). If you call the constructor
+                with the useExplicitTransactions parameter set to true, it won't create any transactions so you have to
+                provide them using @Transactional or the TransactionTemplate.
+            </para>
+    <programlisting language="java" ><![CDATA[
+     Neo4jOperations neo = new Neo4jTemplate(grapDatabase);
+     Node michael = neo.createNode(_("name","Michael"),"name");
+     Node mark = neo.createNode(_("name","Mark"));
+     Node thomas = neo.createNode(_("name","Thomas"));
+     neo.createRelationship(mark,thomas, WORKS_WITH, _("project","spring-data"));
+     neo.index("devs",thomas, "name","Thomas");
+     neo.autoIndex("devs",mark, "name");
+     assert "Mark".equals(neo.query("devs","name","Mark",new NodeNamePathMapper()));
+    ]]></programlisting>
+
+        </section>
+
+<section>
+        <title>Indexing</title>
+        <para>
+            The Neo4j graph database can use different index provides for exact lookups and fulltext searches. By now
+            lucene is used as a index provider implementation. There is support for distinct indexes for nodes and relationships
+            which can be configured to be of fulltext or exact types. Nodes and Relationships and the indexed field-value combinations
+            have to be added manually to the appropriate index.
+        </para>
+        <para>
+            Within Spring Data Graph this is eased by having an @Indexed annotation on Entity fields that updates the index on
+            every change. Numerical fields are indexed numerically so that they are available for range queries. All other
+            fields are indexed with their string representation. The @Indexed annotation can also set the index-name to be used.
+            If it is put on top of the entity class the index-name for the whole entity is preset to that value. Not providing
+            index names defaults them to "node" and "relationship" respectively.
+        </para>
+        <para>
+            Query access to the index happens with the Node- and RelationshipFinders that are created via the FinderFactory.
+
+            The methods findByPropertyValue and findAllByPropertyValue work on the exact indexes and return the first or all
+            matches. To do range queries, use findAllByRange (please note that currently both values are inclusive).
+        </para>
+<programlisting language="java" ><![CDATA[
+@NodeEntity
+class Person {
+    @Indexed(indexName = "people")
+    String name;
+
+    // automatically indexed numerically
+    @Indexed
+    int age;
+
+}
+
+@NodeEntity
+@Indexed(indexName="groups")
+class Group {
+    @Indexed
+    String name;
+
+    @RelatedTo(elementClass = Person.class, type = "people" )
+    Set<Person> people;
+}
+
+NodeFinder<Person> finder = finderFactory.createNodeEntityFinder(Person.class);
+
+// exact finder
+Person mark = finder.findByProperyValue("people","name","mark");
+
+// numeric range queries
+for (Person middleAgedDeveloper : finder.findAllByRange(null, "age", 20, 40)) {
+    Developer developer=middleAgedDeveloper.projectTo(Developer.class);
+}
+]]></programlisting>
+    <para>
+        Neo4jTemplate also offers index support, providing auto-indexing for fields at creation time of nodes and relationships.
+        There is an autoIndex method that can also add indexes for a set of fields in one go.
+    </para>
+    <para>
+        For querying the index, the template offers query-methods that take either the exact match parameters or a query object /
+        query expression and push the results wrapped uniformly as Paths to the supplied PathMapper to be converted or collected.
+    </para>
+    </section>
+        <section>
+            <title>Transactions in Spring Data Graph</title>
+            <para>
+                Neo4j is a transactional datastore which only allows modifications within transaction boundaries and fullfills the ACID properties.
+                Reading from the store is also possible outside of transactions.
+            </para>
+
             <para>Spring Data Graph integrates with transaction managers configured using Spring. The simplest scenario of
             just running the graph database uses a SpringTransactionManager provided by the Neo4j kernel to be used
-            with Spring's JtaTransactionManager. The explicit configuration given below is encoded in the Neo4jConfiguration
+            with Spring's JtaTransactionManager. The explicit configuration given below is encoded in the <code>Neo4jConfiguration</code>
             configuration bean so as a user one doesn't have to provide it.
-
-                <programlisting lang="XML" ><![CDATA[
+            </para>
+                <programlisting language="xml" ><![CDATA[
     <bean id="transactionManager" class="org.springframework.transaction.jta.JtaTransactionManager">
         <property name="transactionManager">
             <bean class="org.neo4j.kernel.impl.transaction.SpringTransactionManager">
@@ -433,13 +443,13 @@ for (Person person : finder.findAllByProperyValue("occupation","developer")) {
 
     <tx:annotation-driven mode="aspectj" transaction-manager="transactionManager"/>
                         ]]></programlisting>
-
+                <para>
                 For scenarios running multiple transactional resources there are two options.
                 First of all you can have Neo4j participate in the externally set up transaction manager using the new
                 SpringProvider by enabling the configuration parameter for your graph database. Either via the spring config
                 or the configuration file (neo4j.properties).
-
-                <programlisting lang="XML" ><![CDATA[
+                </para>
+                <programlisting language="xml" ><![CDATA[
     <context:annotation-config />
     <context:spring-configured/>
 
@@ -460,36 +470,37 @@ for (Person person : finder.findAllByProperyValue("occupation","developer")) {
 
     <tx:annotation-driven mode="aspectj" transaction-manager="transactionManager"/>
                         ]]></programlisting>
-
+                <para>
                 You can configure a stock XA transaction manager to be used with Neo4j and the other resources (e.g. Atomikos, JOTM,
                 App-Server-TM). For a bit less secure but fast 1 phase commit best effort, use the implementation coming
-                with Spring Data Graph (<code>org.springframework.data.graph.neo4j.transaction.ChainedTransactionManager</code>).
+                with Spring Data Graph (<code>ChainedTransactionManager</code>).
                 It takes a list of transaction-managers as constructor params and will handle them in order for transaction
                 start and commit (or rollback) in the reverse order.
                 </para>
-    <programlisting lang="XML" ><![CDATA[
-    <bean id="transactionManager" class="org.springframework.data.graph.neo4j.transaction.ChainedTransactionManager" >
-		<constructor-arg>
+    <programlisting language="xml" ><![CDATA[
+    <bean id="transactionManager" class="org.springframework.data.graph.neo4j
+    .transaction.ChainedTransactionManager" >
+        <constructor-arg>
             <list>
             <bean class="org.springframework.orm.jpa.JpaTransactionManager" id="jpaTransactionManager">
                 <property name="entityManagerFactory" ref="entityManagerFactory"/>
             </bean>
-			<bean
-			    class="org.springframework.transaction.jta.JtaTransactionManager">
-			    <property name="transactionManager">
+            <bean
+                class="org.springframework.transaction.jta.JtaTransactionManager">
+                <property name="transactionManager">
                     <bean class="org.neo4j.kernel.impl.transaction.SpringTransactionManager">
                         <constructor-arg ref="graphDatabaseService" />
                     </bean>
-			    </property>
-			    <property name="userTransaction">
+                </property>
+                <property name="userTransaction">
                     <bean  class="org.neo4j.kernel.impl.transaction.UserTransactionImpl">
                         <constructor-arg ref="graphDatabaseService" />
                     </bean>
-			    </property>
-			</bean>
+                </property>
+            </bean>
             </list>
-		</constructor-arg>
-	</bean>
+        </constructor-arg>
+    </bean>
             ]]></programlisting>
         </section>
     <section>
@@ -501,7 +512,7 @@ for (Person person : finder.findAllByProperyValue("occupation","developer")) {
         no validation will be performed (any registered Validator or (Local)ValidatorFactoryBean will be used).
 
         </para>
-<programlisting lang="JAVA" ><![CDATA[
+<programlisting language="java" ><![CDATA[
 @NodeEntity
 class Person {
     @Size(min = 3, max = 20)
@@ -511,12 +522,33 @@ class Person {
     @Max(100)
     int age;
 }
-
-for (Person person : finder.findAllByProperyValue("occupation","developer")) {
-    Developer developer=person.projectTo(Developer.class)
-    if (developer.isJavaDeveloper()) {
-        trainInSpringData(developer.projectTo(Trainee.class));
-    }
+]]></programlisting>
+    </section>
+    <section>
+        <title>Session handling - detached Entities</title>
+        <para>
+            By default node entities that are created in a transaction are immediately attached to the graph database. All subsequent
+            write operation will be instantly reflected on the node and its relationships. This is also the default behaviour
+            for entities created outside of transactions. This is achieved by running implicit transactions for modifying operations.
+            Those transactions participate in existing transactions with no additional cost but create a transactional context
+            otherwise (like the "required" propagation mode).
+        </para>
+        <para>
+            For certain contexts (e.g. web layer) it is required that entities are created in a detached mode (it is possible that those entities
+            are never persisted at all). That is achieved by annotating the entities with the autoAttach attribute set to false.
+            All node entities are equipped with an additional <code>attach()</code> method that will attach the entity to the graph
+            database (if that has not already happend) and also flush the state changes to the graph. The flush operation checks for
+            concurrent modifications of the data and fails if a conflict is detected.
+        </para>
+        <para>
+            Please keep in mind that the session handling behaviour is still heavily developed. The defaults and also other
+            aspects of the behaviour are likely to change in subsequent releases. At the moment there is no support for the creation
+            of relationships outside of transactions and also more complex operations like creating whole subgraphs is not supported.
+        </para>
+<programlisting language="java" ><![CDATA[
+@NodeEntity(autoAttach = false)
+class Person {
+    String name;
 }
 ]]></programlisting>
     </section>

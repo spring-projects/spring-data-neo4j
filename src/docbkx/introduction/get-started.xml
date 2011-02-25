@@ -5,11 +5,11 @@
     <title>Getting Started</title>
 
     <para>NOSQL databases has come into focus only recently, even if some of them have existed for a few years by now.
-	That's why this document will not only guide you through the relevant parts of the DATAGRAPH
+	That's why this document will not only guide you through the relevant parts of the Spring Data Graph
 	API, but also explain some key concepts of graph databases.
 	</para>
 	<para>
-		After reading this document, you should be able to integrate DATAGRAPH into your existing or future applications.
+		After reading this document, you should be able to integrate Spring Data Graph into your existing or future applications.
 		If there are any issues that you don't understand or think are explained in a too complicated way, please report back any
 		problems or suggestions. Your input will also benefit future readers of this documentation. For details on how to get help
 		and provide feedback, see <xref linkend="get-started:help"/>.
@@ -18,15 +18,15 @@
     <section id="get-started:first-steps">
 		<title>First Steps</title>
 		
-		<para>As explained in <xref linkend="why-sd-graph"/>, Spring Data Graph (DATAGRAPH) provides integration 
+		<para>As explained in <xref linkend="why-sd-graph"/>, Spring Data Graph (Spring Data Graph) provides integration
 		between the Spring framework and graph databases. Familiarity with the Spring framework is assumed as stated in <xref linkend="introduction"/>, and only
 		minimally cross-referenced here. Graph databases and Neo4j in particular are explained in a bit more detail.
-		The main focus of this document is however on explaining the steps needed to get a DATAGRAPH-backed application up and running.
+		The main focus of this document is however on explaining the steps needed to get a Spring Data Graph-backed application up and running.
 		</para>
 		  
 		<section id="get-started:first-steps:spring">
 			<title>Knowing Spring</title>
-			<para>DATAGRAPH makes heavy use of Spring Framework's <ulink url="http://static.springframework.org/spring/docs/3.0.x/reference/spring-core.html">core</ulink> functionality,
+			<para>Spring Data Graph makes heavy use of Spring Framework's <ulink url="http://static.springframework.org/spring/docs/3.0.x/reference/spring-core.html">core</ulink> functionality,
 			such as the <ulink url="http://static.springframework.org/spring/docs/3.0.x/reference/beans.html">IoC</ulink> container,
 			<ulink url="http://static.springsource.org/spring/docs/3.0.x/reference/validation.html#core-convert">converter</ulink> API and the 
 			<ulink url="http://static.springframework.org/spring/docs/3.0.x/reference/aop.html">AOP</ulink> infrastructure. While it is less important
@@ -47,12 +47,12 @@
 			<para>
 				Graph databases are a particularly good fit for large networks of connected information (objects). They map objects to nodes and connections to
 				relationships. Examples of such datasets are social networks, geospatial information, network layouts, and hardware or dependency graphs.
-				Neo4j is the first graph database that is tightly integrated with the DATAGRAPH project.
+				Neo4j is the first graph database that is tightly integrated with the Spring Data Graph project.
 			</para>
 		</section>
 		<section id="get-started:first-steps:samples">
 			<title>Trying Out The Samples</title>
-			<para>DATAGRAPH comes with a number of <ulink url="http://github.com/SpringSource/spring-data-graph-examples">samples</ulink> 
+			<para>Spring Data Graph comes with a number of <ulink url="http://github.com/SpringSource/spring-data-graph-examples">samples</ulink>
 				and unit test cases (if you accessed the sources via 
 				<ulink url="http://github.com/SpringSource/spring-data-graph">github</ulink> or Maven).
 			</para>
@@ -87,7 +87,7 @@
 		<para>You can help make Spring Data best serve the needs of the Spring community by interacting with developers through the
 		<ulink url="http://forum.springsource.org/forumdisplay.php?f=27">community forums</ulink>.</para>
 		<para>If you encounter a bug or want to suggest an improvement, 
-		please create a ticket on the <ulink url="https://jira.springframework.org/browse/DATAGRAPH">DATAGRAPH issue tracker</ulink>.</para>
+		please create a ticket on the <ulink url="https://jira.springframework.org/browse/Spring Data Graph">Spring Data Graph issue tracker</ulink>.</para>
 		<para>To stay up to date with the latest news and announcements in the Spring eco system, subscribe to the 
 		<ulink url="http://www.springframework.org/">Spring Community Portal</ulink>.</para>
 		<para>Lastly, you can follow the <ulink url="http://blog.springsource.com/category/data-access/">SpringSource Data blog</ulink> or the project team on Twitter

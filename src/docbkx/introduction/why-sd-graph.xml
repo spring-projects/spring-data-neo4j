@@ -22,7 +22,7 @@
 		server that exposes the API via a rich REST interface.
 	</para>
 	
-    <para>The Spring Data Graph (or DATAGRAPH) framework makes it easy to 
+    <para>The Spring Data Graph (or Spring Data Graph) framework makes it easy to
     integrate graph databases in existing or new Spring applications. It provides
 	infrastructure that reduces the amount of boilerplate data access code and uses
 	common patterns and idioms that are well known in the Spring Framework community.

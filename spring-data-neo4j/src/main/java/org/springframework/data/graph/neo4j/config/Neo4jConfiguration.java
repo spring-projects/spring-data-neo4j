@@ -95,7 +95,9 @@ public class Neo4jConfiguration {
 		}
 		gdc.setConversionService(new Neo4jConversionServiceFactoryBean().getObject());
 		gdc.setNodeTypeStrategy(new SubReferenceNodeTypeStrategy(gdc));
-        gdc.setValidator(validator);
+        if (validator!=null) {
+            gdc.setValidator(validator);
+        }
 		return gdc;
 	}
 

@@ -36,7 +36,7 @@
 		<title>Creating Nodes and Relationships</title>
 		<para>Using the API of GraphDatabaseService it is easy to create nodes and relate them to each other. Relationships are named. Both nodes and relationships can have properties. Property values can be of primitive Java types and Strings as well as byte arrays for binary data or arrays of other Java primitives or Strings.
 			Node creation and modification has to happen within a transaction, while reading from the graph store can be done without a transaction.
-			<programlisting lang="JAVA" ><![CDATA[
+			<programlisting language="java" ><![CDATA[
 GraphDatabaseService graphDb = new EmbeddedGraphDatabase( "helloworld" );
 Transaction tx = graphDb.beginTx();
 try {
@@ -61,7 +61,7 @@ try {
 		<para>Getting a single node or relationship and examining it is not the main use case of a graph database. Fast graph traversal and
 			application of graph algorithms are. Neo4j provides means via a concise DSL to define TraversalDescriptions that can then be applied
 			to a start node and will produce a stream of nodes and/or relationships as a lazy result using an Iterable.
-			<programlisting lang="JAVA" ><![CDATA[
+			<programlisting language="java" ><![CDATA[
 TraversalDescription traversalDescription = Traversal.description()
           .depthFirst()
           .relationships( KNOWS )
@@ -82,7 +82,7 @@ for ( Path position : traversalDescription.traverse( myStartNode )) {
             and values. Retrieval happens via IndexHits which is an Iterator
             over the results.
 
-<programlisting lang="JAVA" ><![CDATA[
+<programlisting language="java" ><![CDATA[
 IndexManager indexManager = graphDb.index();
 Index<Node> nodeIndex = indexManager.forNodes("a-node-index");
 nodeIndex.add(node, "property","value");
@@ -90,7 +90,7 @@ for (Node foundNode = nodeIndex.get("property","value")) {
     assert node.getProperty("property").equals("value");
 }
 ]]></programlisting>
-            DATAGRAPH provides auto-indexing via the
+            Spring Data Graph provides auto-indexing via the
             @Indexed annotation, while this still is a
             manual process when using the Neo4j API.
 		</para>

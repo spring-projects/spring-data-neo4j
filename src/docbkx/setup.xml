@@ -2,22 +2,22 @@
 <!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
 <chapter id="setup">
 	<title>Setup required for Spring Data Graph</title>
-	<para>To use DATAGRAPH in your application, some setup is required. For building the application the necessary Maven dependencies must be included and
+	<para>To use Spring Data Graph in your application, some setup is required. For building the application the necessary Maven dependencies must be included and
 		for the AspectJ weaving some extensions of the compile goal are necessary. This chapter also discusses the Spring configuration needed to set up
-		DATAGRAPH. Examples for this setup can be found in the <ulink url="http://github.com/SpringSource/spring-data-graph-examples">DATAGRAPH examples</ulink>.
+		Spring Data Graph. Examples for this setup can be found in the <ulink url="http://github.com/SpringSource/spring-data-graph-examples">Spring Data Graph examples</ulink>.
     </para>
 	<section>
 		<title>Maven Configuration</title>
 		<para>
-			As stated in the requirements chapter, DATAGRAPH projects are easiest to build with Apache Maven. The main dependencies are DATAGRAPH itself, Spring Data Commons, some parts of the Spring Framework and of course the Neo4j graph database.
+			As stated in the requirements chapter, Spring Data Graph projects are easiest to build with Apache Maven. The main dependencies are Spring Data Graph itself, Spring Data Commons, some parts of the Spring Framework and of course the Neo4j graph database.
 		</para>
         <section>
 		<title>Repositories</title>
             <para>
-                The milestone releases of DATAGRAPH are available from the dedicated milestone repository. Neo4j
+                The milestone releases of Spring Data Graph are available from the dedicated milestone repository. Neo4j
                 releases and milestones are available from Maven Central.
             </para>
-            <programlisting lang="XML"><![CDATA[
+            <programlisting language="xml"><![CDATA[
 <repository>
   <id>spring-maven-milestone</id>
   <name>Springframework Maven Repository</name>
@@ -32,17 +32,17 @@
                 aspects, tx), Aspectj, Neo4j and Spring Data Commons. If you already use these (or different versions of
                 these) in your project, then include those dependencies on your own.
             </para>
-		<programlisting lang="XML"><![CDATA[
+		<programlisting language="xml"><![CDATA[
 <dependency>
   <groupId>org.springframework.data</groupId>
   <artifactId>spring-data-neo4j</artifactId>
-  <version>1.0.0.M2</version>
+  <version>1.0.0.M3</version>
 </dependency> 
 
 <dependency>
   <groupId>org.aspectj</groupId>
   <artifactId>aspectjrt</artifactId>
-  <version>1.6.10.RELEASE</version>
+  <version>1.6.11.M2</version>
 </dependency>
 						]]></programlisting>
 
@@ -50,8 +50,8 @@
     <section>
 
 		<title>AspectJ build configuration</title>
-		<para>As DATAGRAPH uses AspectJ for build time aspect weaving of your entities, it is necessary to add the aspectj-plugin to the build phases. The plugin has its own dependencies. You also need to explicitely specifiy libraries containing aspects (spring-aspects and spring-data-neo4j)</para>
-		<programlisting lang="XML"><![CDATA[
+		<para>As Spring Data Graph uses AspectJ for build time aspect weaving of your entities, it is necessary to add the aspectj-plugin to the build phases. The plugin has its own dependencies. You also need to explicitely specifiy libraries containing aspects (spring-aspects and spring-data-neo4j)</para>
+		<programlisting language="xml"><![CDATA[
 <plugin>
   <groupId>org.codehaus.mojo</groupId>
   <artifactId>aspectj-maven-plugin</artifactId>
@@ -61,12 +61,12 @@
     <dependency>
       <groupId>org.aspectj</groupId>
       <artifactId>aspectjrt</artifactId>
-      <version>1.6.10.RELEASE</version>
+      <version>1.6.11.M2</version>
     </dependency>
     <dependency>
       <groupId>org.aspectj</groupId>
       <artifactId>aspectjtools</artifactId>
-      <version>1.6.10.RELEASE</version>
+      <version>1.6.11.M2</version>
     </dependency>
   </dependencies>
   <executions>
@@ -129,11 +129,11 @@
             <title>XML-Namespace</title>
             <para>
                 To simplify the configuration we provide a xml namespace <code>datagraph</code> that allows configuration of any
-                DATAGRAPH project with a single line of xml code. There are three possible parameters. You can use <code>storeDirectory</code>
+                Spring Data Graph project with a single line of xml code. There are three possible parameters. You can use <code>storeDirectory</code>
                 or the reference to <code>graphDatabaseService</code> alternatively. For cross-store configuration just refer
                 to an <code>entityManagerFactory</code>.
             </para>
-            <programlisting lang="XML"><![CDATA[
+            <programlisting language="xml"><![CDATA[
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
   xmlns:context="http://www.springframework.org/schema/context"
@@ -153,7 +153,7 @@
 
 </beans>
                     ]]></programlisting>
-            <programlisting lang="XML"><![CDATA[
+            <programlisting language="xml"><![CDATA[
     <context:annotation-config/>
 
     <bean id="graphDatabaseService" class="org.neo4j.kernel.EmbeddedGraphDatabase" 
@@ -164,7 +164,7 @@
     <datagraph:config graphDatabaseService="graphDatabaseService"/>
                     ]]></programlisting>
 
-            <programlisting lang="XML"><![CDATA[
+            <programlisting language="xml"><![CDATA[
   <context:annotation-config/>
 
     <datagraph:config storeDirectory="target/config-test"
@@ -180,9 +180,9 @@
         <section>
             <title>Java based Configuration</title>
             <para>
-                That's why DATAGRAPH provides a Spring Java Config class (annotated with @Config) <code>Neo4jConfiguration</code> that takes care of all that. The only
+                That's why Spring Data Graph provides a Spring Java Config class (annotated with @Config) <code>Neo4jConfiguration</code> that takes care of all that. The only
                 thing that must be provided in the custom Spring config is the <code>GraphDatabaseService</code> configured with a datastore directory.
-    <programlisting lang="XML"><![CDATA[
+    <programlisting language="xml"><![CDATA[
     <beans>
     ...
 
