@@ -124,17 +124,17 @@
 	</bean>
 
     <bean id="transactionManager" class="org.springframework.transaction.jta.JtaTransactionManager">
-                <property name="transactionManager" ref="neo4jTransactionManagerService" />
-                <property name="userTransaction" ref="neo4jUserTransactionService" />
+        <property name="transactionManager">
+            <bean class="org.neo4j.kernel.impl.transaction.SpringTransactionManager">
+                <constructor-arg ref="graphDatabaseService"/>
+            </bean>
+        </property>
+        <property name="userTransaction">
+            <bean class="org.neo4j.kernel.impl.transaction.UserTransactionImpl">
+                <constructor-arg ref="graphDatabaseService"/>
+            </bean>
+        </property>
     </bean>
-
-	<bean id="neo4jTransactionManagerService" class="org.neo4j.kernel.impl.transaction.SpringTransactionManager" >
-	  <constructor-arg index="0" ref="graphDatabaseService" />
-	</bean>
-
-	<bean id="neo4jUserTransactionService" class="org.neo4j.kernel.impl.transaction.UserTransactionImpl">
-	    <constructor-arg index="0" ref="graphDatabaseService" />
-	</bean>
 
     <tx:annotation-driven mode="aspectj" transaction-manager="transactionManager"/>
 </beans>

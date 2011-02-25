@@ -41,6 +41,7 @@ import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.jta.JtaTransactionManager;
 
 import javax.persistence.EntityManagerFactory;
+import javax.validation.Validator;
 
 /**
  * Abstract base class for code based configuration of Spring managed Neo4j infrastructure.
@@ -51,6 +52,9 @@ import javax.persistence.EntityManagerFactory;
 @Configuration
 public class Neo4jConfiguration {
     private GraphDatabaseService graphDatabaseService;
+
+    @Autowired(required = false)
+    private Validator validator;
 
     public GraphDatabaseService getGraphDatabaseService() {
         return graphDatabaseService;
@@ -91,6 +95,7 @@ public class Neo4jConfiguration {
 		}
 		gdc.setConversionService(new Neo4jConversionServiceFactoryBean().getObject());
 		gdc.setNodeTypeStrategy(new SubReferenceNodeTypeStrategy(gdc));
+        gdc.setValidator(validator);
 		return gdc;
 	}
 

@@ -390,7 +390,8 @@ for (Person person : finder.findAllByProperyValue("occupation","developer")) {
             to its parameters.
 
             The traverse method covers the full fledged traversal operation that takes a powerful TraversalDescription
-            (most probably built from the Traversal.description() DSL) and
+            (most probably built from the Traversal.description() DSL) and runs it from the start node. Each path that is returned
+            via the traversal is passed to the PathMapper to be processed accordingly.
 
             The Neo4jTemplate provides configurable implicit transactions for all its methods. By default it creates a transaction
             for each call (which is a no-op if there is already a transaction running). If you call the constructor
@@ -408,6 +409,116 @@ for (Person person : finder.findAllByProperyValue("occupation","developer")) {
  assert "Mark".equals(neo.query("devs","name","Mark",new NodeNamePathMapper()));
 ]]></programlisting>
 
+    </section>
+    <section>
+            <title>Transaction Manager Support</title>
+            <para>Spring Data Graph integrates with transaction managers configured using Spring. The simplest scenario of
+            just running the graph database uses a SpringTransactionManager provided by the Neo4j kernel to be used
+            with Spring's JtaTransactionManager. The explicit configuration given below is encoded in the Neo4jConfiguration
+            configuration bean so as a user one doesn't have to provide it.
+
+                <programlisting lang="XML" ><![CDATA[
+    <bean id="transactionManager" class="org.springframework.transaction.jta.JtaTransactionManager">
+        <property name="transactionManager">
+            <bean class="org.neo4j.kernel.impl.transaction.SpringTransactionManager">
+                <constructor-arg ref="graphDatabaseService"/>
+            </bean>
+        </property>
+        <property name="userTransaction">
+            <bean class="org.neo4j.kernel.impl.transaction.UserTransactionImpl">
+                <constructor-arg ref="graphDatabaseService"/>
+            </bean>
+        </property>
+    </bean>
+
+    <tx:annotation-driven mode="aspectj" transaction-manager="transactionManager"/>
+                        ]]></programlisting>
+
+                For scenarios running multiple transactional resources there are two options.
+                First of all you can have Neo4j participate in the externally set up transaction manager using the new
+                SpringProvider by enabling the configuration parameter for your graph database. Either via the spring config
+                or the configuration file (neo4j.properties).
+
+                <programlisting lang="XML" ><![CDATA[
+    <context:annotation-config />
+    <context:spring-configured/>
+
+    <bean id="transactionManager" class="org.springframework.transaction.jta.JtaTransactionManager">
+        <property name="transactionManager">
+            <bean id="jotm" class="org.springframework.data.graph.neo4j.transaction.JotmFactoryBean"/>
+        </property>
+    </bean>
+
+    <bean class="org.neo4j.kernel.EmbeddedGraphDatabase" destroy-method="shutdown">
+        <constructor-arg value="target/test-db"/>
+        <constructor-arg>
+            <map>
+               <entry key="tx_manager_impl" value="spring-jta"/>
+            </map>
+        </constructor-arg>
+    </bean>
+
+    <tx:annotation-driven mode="aspectj" transaction-manager="transactionManager"/>
+                        ]]></programlisting>
+
+                You can configure a stock XA transaction manager to be used with Neo4j and the other resources (e.g. Atomikos, JOTM,
+                App-Server-TM). For a bit less secure but fast 1 phase commit best effort, use the implementation coming
+                with Spring Data Graph (<code>org.springframework.data.graph.neo4j.transaction.ChainedTransactionManager</code>).
+                It takes a list of transaction-managers as constructor params and will handle them in order for transaction
+                start and commit (or rollback) in the reverse order.
+                </para>
+    <programlisting lang="XML" ><![CDATA[
+    <bean id="transactionManager" class="org.springframework.data.graph.neo4j.transaction.ChainedTransactionManager" >
+		<constructor-arg>
+            <list>
+            <bean class="org.springframework.orm.jpa.JpaTransactionManager" id="jpaTransactionManager">
+                <property name="entityManagerFactory" ref="entityManagerFactory"/>
+            </bean>
+			<bean
+			    class="org.springframework.transaction.jta.JtaTransactionManager">
+			    <property name="transactionManager">
+                    <bean class="org.neo4j.kernel.impl.transaction.SpringTransactionManager">
+                        <constructor-arg ref="graphDatabaseService" />
+                    </bean>
+			    </property>
+			    <property name="userTransaction">
+                    <bean  class="org.neo4j.kernel.impl.transaction.UserTransactionImpl">
+                        <constructor-arg ref="graphDatabaseService" />
+                    </bean>
+			    </property>
+			</bean>
+            </list>
+		</constructor-arg>
+	</bean>
+            ]]></programlisting>
+        </section>
+    <section>
+        <title>Bean Validation - JSR-303</title>
+        <para>Spring Data Graph supports property based validation support. So whenever a property is changed, it is
+        checked against the annotated constraints (.e.g @Min, @Max, @Size, etc).
+        Validation errors throw a ValidationException. For evaluating the constraints the validation support that comes
+        with Spring is used. To use it a validator has to be registered with the GraphDatabaseContext, if there is none,
+        no validation will be performed (any registered Validator or (Local)ValidatorFactoryBean will be used).
+
+        </para>
+<programlisting lang="JAVA" ><![CDATA[
+@NodeEntity
+class Person {
+    @Size(min = 3, max = 20)
+    String name;
+
+    @Min(0)
+    @Max(100)
+    int age;
+}
+
+for (Person person : finder.findAllByProperyValue("occupation","developer")) {
+    Developer developer=person.projectTo(Developer.class)
+    if (developer.isJavaDeveloper()) {
+        trainInSpringData(developer.projectTo(Trainee.class));
+    }
+}
+]]></programlisting>
     </section>
 
 </chapter>
