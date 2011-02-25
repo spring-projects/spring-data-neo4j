@@ -26,16 +26,16 @@
 	</section>
 	<section>
 		<title>GraphDatabaseService</title>
-		<para>The GraphDatabaseService is the API interface to the storage engine. It provides access to create and retrieve Nodes and Relationships, an IndexManager, lifecycle and transactional methods and more.
+		<para>The interface org.neo4j.graphdb.GraphDatabaseService provides access to the storage engine.  Its features include creating and retrieving Nodes and Relationships, managing indexes, via an IndexManager, database lifecycle callbacks, transation management and more.
 		</para>
 		<para>
-			The EmbeddedGraphDatabaseService is running within the current Java application for highest performance and tightest integration. There are other,
+			The EmbeddedGraphDatabaseService is an implementation of GraphDatabaseService that is used to embed Neo4j in a Java application.  This implmentation is used so as to provide the highest and tightest integration. There are other,
 			 remote implementations that provide access to Neo4j stores via REST.</para>
 	</section>
 	<section>
 		<title>Creating Nodes and Relationships</title>
-		<para>Using the API of GraphDatabaseService it is easy to create nodes and relate them to each other. Relationships are named. Both nodes and relationships can have properties. Property values can be of primitive Java types and Strings as well as byte arrays for binary data or arrays of other Java primitives or Strings.
-			Node creation and modification has to happen within a transaction, while reading from the graph store can be done without a transaction.
+		<para>Using the API of GraphDatabaseService it is easy to create nodes and relate them to each other. Relationships are named. Both nodes and relationships can have properties. Property values can be primitive Java types and Strings, byte arrays for binary data, or arrays of other Java primitives or Strings.
+			Node creation and modification has to happen within a transaction, while reading from the graph store can be done with or without a transaction.
 			<programlisting language="java" ><![CDATA[
 GraphDatabaseService graphDb = new EmbeddedGraphDatabase( "helloworld" );
 Transaction tx = graphDb.beginTx();
@@ -79,8 +79,7 @@ for ( Path position : traversalDescription.traverse( myStartNode )) {
             using Neo4j's index facilities. The GraphDatabaseService provides
             access to the IndexManager which in turn retrieves named indexes
             for nodes and relationships. Both can be indexed with property names
-            and values. Retrieval happens via IndexHits which is an Iterator
-            over the results.
+            and values. Retrieval is done by query methods on Index to return an IndexHits iterator.
 
 <programlisting language="java" ><![CDATA[
 IndexManager indexManager = graphDb.index();
@@ -90,7 +89,7 @@ for (Node foundNode = nodeIndex.get("property","value")) {
     assert node.getProperty("property").equals("value");
 }
 ]]></programlisting>
-            Spring Data Graph provides auto-indexing via the
+            Note: Spring Data Graph provides auto-indexing via the
             @Indexed annotation, while this still is a
             manual process when using the Neo4j API.
 		</para>

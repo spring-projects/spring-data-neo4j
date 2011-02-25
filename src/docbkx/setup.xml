@@ -180,8 +180,16 @@
         <section>
             <title>Java based Configuration</title>
             <para>
-                That's why Spring Data Graph provides a Spring Java Config class (annotated with @Config) <code>Neo4jConfiguration</code> that takes care of all that. The only
-                thing that must be provided in the custom Spring config is the <code>GraphDatabaseService</code> configured with a datastore directory.
+                You can also configure Spring Data Graph using Java based bean metadata.<note>
+        <para>For those not familiar with how to configure the Spring
+        container using Java based bean metadata instead of XML based metadata
+        see the high level introduction in the reference docs <ulink
+        url="http://static.springsource.org/spring/docs/3.0.x/spring-framework-reference/html/new-in-3.html#new-java-configuration"
+        userlevel="">here</ulink> as well as the detailed documentation <ulink
+        url="http://static.springsource.org/spring/docs/3.0.x/spring-framework-reference/html/beans.html#beans-java-instantiating-container">here</ulink>.</para>
+      </note>
+
+To help configure Spring Data Graph using Java based bean metadata the class <code>Neo4jConfiguration</code> is registerd with the context either explicitly in the XML config or via classpath scanning for classes that have the @Configuration annotation.  The only thing that must be provided in addition is the <code>GraphDatabaseService</code> configured with a datastore directory.  The example below shows using XML to register the <code>Neo4jConfiguration</code> @Configuration class as well as Spring's <code>ConfigurationClassPostProcessor</code> that transforms the @Configuration class to bean definitions.
     <programlisting language="xml"><![CDATA[
     <beans>
     ...

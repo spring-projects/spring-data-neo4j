@@ -23,13 +23,13 @@
 	</section>
 	<section>
 		<title>Using annotations to define POJO entities and relationships</title>
-		<para>Entities are declared using the <code>@NodeEntity</code> annotation. Relationship entities use the <code>@RelationshipEntity</code> annotation instead.</para>
+		<para>Entities are declared using the <code>@NodeEntity</code> annotation. Relationship entities use the <code>@RelationshipEntity</code> annotation.</para>
 		<section>
 			<title>Entities with @NodeEntity</title>
-            <para>This annotation is used to declare a POJO entity to be backed by a node in the graph store. Its simple fields
+            <para>The <code>@NodeEntity</code> annotation is used to declare a POJO entity to be backed by a node in the graph store. Simple fields on the entity
                 are mapped by default to properties of the node. Object references to other NodeEntities (whether single
                 or Collection) are mapped via relationships. If the annotation parameter <code>useShortNames</code>
-                is set to false the properties and relationship names used will be prepended with the class name of the
+                is set to false, the properties and relationship names used will be prepended with the class name of the
                 entity. If the parameter <code>fullIndex</code> is set to true, all fields of the entity will be indexed. If the
                 <code>partial</code> parameter is set to true, this entity takes part in a cross-store setting where only
                 the parts of the entity not handled by JPA will be mapped to the graph store.
@@ -49,8 +49,7 @@ public class Movie {
                 node entities, either by @RelatedToVia fields or by the <code>relateTo</code>
                 or <code>getRelationshipTo</code> methods.
                 Relationship entities may contain fields that are mapped to properties and two special fields that are
-                annotated with @StartNode and @EndNode which point to the start and end node entities respectively (and
-                are read only).
+                annotated with @StartNode and @EndNode which point to the start and end node entities respectively.  These fields are treated as read only fields.
             </para>
             <programlisting language="java" ><![CDATA[
 @RelationshipEntity
@@ -73,7 +72,7 @@ public class Role {
             <para>
                 Relationships to other NodeEntities are mapped to graph relationships. Those can either be single
                 relationships (1:1) or multiple relationships (1:n). In most cases single relationships to other
-                node entities don't have to be annotated as Spring Data Graph can extract all needed information from the field
+                node entities don't have to be annotated as Spring Data Graph can extract all necessary information from the field
                 using reflection. In the case of
                 multiple relationships, the <code>elementClass</code> parameter of @RelatedTo must be specified because of type erasure.
                 The <code>direction</code> (default OUTGOING) and <code>type</code>
@@ -320,14 +319,14 @@ for (Person person : finder.findAllByProperyValue("occupation","developer")) {
                 Much like a resultset a path contains <code>nodes()</code> and <code>relationships()
                 </code> starting at a <code>startNode()</code> and
                 ending with a <code>endNode()</code>, the <code>lastRelationship()</code> is also available separately.
-                Using this Path abstraction also wraps results that contain just nodes or relationships.
+                The <code>Path</code> abstraction also wraps results that contain just nodes or relationships.
                 Using implementations of <code>PathMapper&lt;T&gt;</code> and <code>PathMapper.WithoutResult</code> (comparable with <code>RowMapper</code> and
-                <code>RowCallbackHandler</code>) the paths can be converted to other Java or domain objects.
+                <code>RowCallbackHandler</code>) the paths can be converted to Java objects.
             </para><para>
                 Query methods either take a field / value combination to look for exact matches in the index or a lucene query
                 object or string to handle more complex queries.
             </para><para>
-                Traversal methods are the bread and butter of graph operations. So they are fully supported in the <code>Neo4jTemplate</code>.
+                Traversal methods are the bread and butter of graph operations. As such, they are fully supported in the <code>Neo4jTemplate</code>.
                 The <code>traverseNext</code> method traverses to the direct neighbours of the start node filtering the relationships according
                 to its parameters.
             </para><para>
@@ -356,20 +355,19 @@ for (Person person : finder.findAllByProperyValue("occupation","developer")) {
 <section>
         <title>Indexing</title>
         <para>
-            The Neo4j graph database can use different index provides for exact lookups and fulltext searches. By now
-            lucene is used as a index provider implementation. There is support for distinct indexes for nodes and relationships
-            which can be configured to be of fulltext or exact types. Nodes and Relationships and the indexed field-value combinations
-            have to be added manually to the appropriate index.
+            The Neo4j graph database can use different index providers for exact lookups and fulltext searches. Lucene is used as a index provider implementation. There is support for distinct indexes for nodes and relationships
+            which can be configured to be of fulltext or exact types.
         </para>
         <para>
-            Within Spring Data Graph this is eased by having an <code>@Indexed</code> annotation on entity fields that updates the index on
+            Using the standard Neo4j API, Nodes and Relationships and their indexed field-value combinations
+            have to be added manually to the appropriate index.  When using Spring Data Graph, this task is simplified by eased by applying an <code>@Indexed</code> annotation on entity fields.  This will result in updates to the index on
             every change. Numerical fields are indexed numerically so that they are available for range queries. All other
             fields are indexed with their string representation. The @Indexed annotation can also set the index-name to be used.
-            If it is put on top of the entity class the index-name for the whole entity is preset to that value. Not providing
+            If @Indexed annotates the entity class, the index-name for the whole entity is preset to that value. Not providing
             index names defaults them to "node" and "relationship" respectively.
         </para>
         <para>
-            Query access to the index happens with the Node- and RelationshipFinders that are created via the <code>FinderFactory</code>.
+            Query access to the index happens with the Node- and RelationshipFinders that are created via an instance of <code>org.springframework.data.graph.neo4j.finder.FinderFactory</code>.
 
             The methods <code>findByPropertyValue</code> and <code>findAllByPropertyValue</code> work on the exact indexes and return the first or all
             matches. To do range queries, use <code>findAllByRange</code> (please note that currently both values are inclusive).
@@ -424,8 +422,9 @@ for (Person middleAgedDeveloper : finder.findAllByRange(null, "age", 20, 40)) {
 
             <para>Spring Data Graph integrates with transaction managers configured using Spring. The simplest scenario of
             just running the graph database uses a SpringTransactionManager provided by the Neo4j kernel to be used
-            with Spring's JtaTransactionManager. The explicit configuration given below is encoded in the <code>Neo4jConfiguration</code>
-            configuration bean so as a user one doesn't have to provide it.
+            with Spring's JtaTransactionManager. 
+
+Note: The explicit XML configuration given below is encoded in the <code>Neo4jConfiguration</code> configuration bean that uses Spring's @Configuration functioanlity.  This simplifies the configuration.  An example is shown further below.
             </para>
                 <programlisting language="xml" ><![CDATA[
     <bean id="transactionManager" class="org.springframework.transaction.jta.JtaTransactionManager">
