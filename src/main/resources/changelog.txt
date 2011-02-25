@@ -4,7 +4,16 @@ Spring Data Graph Changelog
 Changes in version 1.0.0.M3 (2011-02-25)
 ----------------------------------------
 
-*
+* update to Neo4j-1.3.M03, AspectJ 1.6.11.M2
+* added explicit support for detachable entities
+* added bean validation support for property changes
+* added external transaction manager support (XA and one phase commit best effort)
+* added xml namespace configuration
+* simplified Spring Java Config configuration class
+* added automatic numerical indexing and range queries
+* added full featured Neo4jTemplate
+* all methods introduced to entities are now generified
+
 
 Changes in version 1.0.0.M2 (2011-01-31)
 ----------------------------------------
