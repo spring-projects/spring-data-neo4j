@@ -10,7 +10,7 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.graph.neo4j.support.GraphDatabaseContext;
 import org.springframework.data.graph.neo4j.support.node.Neo4jHelper;
-import org.springframework.test.annotation.DirtiesContext;
+
 import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -25,7 +25,7 @@ import javax.sql.DataSource;
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = {"classpath:org/springframework/data/graph/neo4j/partial/Neo4jGraphRecommendationTest-context.xml"})
 @Ignore("seems to break things in the graph store")
-@DirtiesContext
+
 public class RecommendationTest {
 
     protected final Log log = LogFactory.getLog(getClass());
