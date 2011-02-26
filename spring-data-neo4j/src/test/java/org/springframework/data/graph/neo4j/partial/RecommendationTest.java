@@ -14,6 +14,7 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.transaction.BeforeTransaction;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -41,7 +42,7 @@ public class RecommendationTest {
     @Autowired
     DataSource dataSource;
 
-    @Before
+    @BeforeTransaction
     public void cleanDb() {
         Neo4jHelper.cleanDb(graphDatabaseContext);
     }

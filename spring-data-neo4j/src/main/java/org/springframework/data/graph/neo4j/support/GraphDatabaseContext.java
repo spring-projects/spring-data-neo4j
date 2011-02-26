@@ -21,7 +21,7 @@ import org.apache.commons.logging.LogFactory;
 import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.index.Index;
 import org.neo4j.graphdb.index.IndexManager;
-import org.neo4j.kernel.EmbeddedGraphDatabase;
+import org.neo4j.kernel.AbstractGraphDatabase;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.data.graph.core.GraphBacked;
 import org.springframework.data.graph.core.NodeBacked;
@@ -296,7 +296,7 @@ public class GraphDatabaseContext {
      */
     public TransactionManager getTxManager() {
 
-        return ((EmbeddedGraphDatabase) graphDatabaseService).getConfig().getTxModule().getTxManager();
+        return ((AbstractGraphDatabase) graphDatabaseService).getConfig().getTxModule().getTxManager();
     }
 
     /**

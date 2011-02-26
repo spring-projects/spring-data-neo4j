@@ -25,6 +25,7 @@ import org.springframework.data.graph.neo4j.support.node.Neo4jHelper;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.transaction.BeforeTransaction;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
@@ -51,9 +52,14 @@ public class SubReferenceNodeTypeStrategyTest {
     private Node thingNode;
     private Thing thing;
 
-    @Before
+
+    @BeforeTransaction
     public void cleanDb() {
         Neo4jHelper.cleanDb(graphDatabaseContext);
+    }
+
+    @Before
+    public void setUp() {
         nodeTypeStrategy = graphDatabaseContext.getNodeTypeStrategy();
         thingNode = createThing();
     }

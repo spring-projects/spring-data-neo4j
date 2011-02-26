@@ -77,7 +77,7 @@
 		<property name="relationshipEntityStateAccessorsFactory" ref="relationshipEntityStateAccessorsFactory"/>
 	</bean>
 
-	<bean id="graphDatabaseService" class="org.neo4j.kernel.EmbeddedGraphDatabase"
+	<bean id="graphDatabaseService" class="org.neo4j.kernel.ImpermanentGraphDatabase"
 			destroy-method="shutdown" scope="singleton">
 		 <constructor-arg index="0" value="${neo4j.databaseDirectory}" />
 	</bean>

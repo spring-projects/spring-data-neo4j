@@ -6,8 +6,6 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.neo4j.graphdb.NotFoundException;
-import org.neo4j.graphdb.Transaction;
 import org.neo4j.helpers.collection.IteratorUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.graph.neo4j.Group;
@@ -18,6 +16,7 @@ import org.springframework.data.graph.neo4j.support.node.Neo4jHelper;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.transaction.BeforeTransaction;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Arrays;
@@ -39,10 +38,11 @@ public class FinderTest {
 	@Autowired
 	private FinderFactory finderFactory;
 
-	@Before
-	public void cleanDb() {
-		Neo4jHelper.cleanDb(graphDatabaseContext);
+    @BeforeTransaction
+    public void cleanDb() {
+        Neo4jHelper.cleanDb(graphDatabaseContext);
     }
+
     @Test
     @Transactional
     public void testFinderFindAll() {

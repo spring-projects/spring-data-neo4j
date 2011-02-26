@@ -83,7 +83,7 @@
 		<bean class="org.springframework.persistence.graph.Neo4jSimpleNodePropertyStorageForeignStoreKeyManager"/>
 	-->
 	
-	<bean id="graphDatabaseService" class="org.neo4j.kernel.EmbeddedGraphDatabase" 
+	<bean id="graphDatabaseService" class="org.neo4j.kernel.ImpermanentGraphDatabase"
 			destroy-method="shutdown" scope="singleton">
 		 <constructor-arg index="0" value="target/data/emtest" />
 	</bean>

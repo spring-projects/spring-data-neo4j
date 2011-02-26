@@ -2,29 +2,19 @@ package org.springframework.data.graph.neo4j.support;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.neo4j.graphdb.Direction;
-import org.neo4j.graphdb.DynamicRelationshipType;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Relationship;
-import org.neo4j.helpers.collection.IteratorUtil;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.InvalidDataAccessApiUsageException;
-import org.springframework.data.graph.neo4j.Friendship;
-import org.springframework.data.graph.neo4j.Group;
 import org.springframework.data.graph.neo4j.Person;
-import org.springframework.data.graph.neo4j.finder.FinderFactory;
 import org.springframework.data.graph.neo4j.support.node.Neo4jHelper;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.transaction.BeforeTransaction;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.validation.ValidationException;
-import java.util.*;
 
 import static org.junit.Assert.assertEquals;
 
@@ -38,7 +28,7 @@ public class EntityPropertyValidationTest {
 	@Autowired
 	private GraphDatabaseContext graphDatabaseContext;
 
-	@Before
+	@BeforeTransaction
 	public void cleanDb() {
 		Neo4jHelper.cleanDb(graphDatabaseContext);
     }

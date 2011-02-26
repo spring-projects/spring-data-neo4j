@@ -2,21 +2,19 @@ package org.springframework.data.graph.neo4j.support;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.neo4j.graphdb.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.graph.neo4j.Friendship;
-import org.springframework.data.graph.neo4j.Group;
 import org.springframework.data.graph.neo4j.Person;
 import org.springframework.data.graph.neo4j.finder.FinderFactory;
-import org.springframework.data.graph.neo4j.finder.NodeFinder;
 import org.springframework.data.graph.neo4j.support.node.Neo4jHelper;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.transaction.BeforeTransaction;
 import org.springframework.transaction.annotation.Transactional;
 
 import static org.junit.Assert.assertEquals;
@@ -34,9 +32,9 @@ public class RelationshipEntityTest {
 	@Autowired
 	private FinderFactory finderFactory;
 
-	@Before
-	public void cleanDb() {
-		Neo4jHelper.cleanDb(graphDatabaseContext);
+    @BeforeTransaction
+    public void cleanDb() {
+        Neo4jHelper.cleanDb(graphDatabaseContext);
     }
 
     @Test

@@ -6,28 +6,21 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.neo4j.graphdb.DynamicRelationshipType;
 import org.neo4j.graphdb.NotFoundException;
-import org.neo4j.graphdb.traversal.TraversalDescription;
-import org.neo4j.kernel.Traversal;
-import org.neo4j.kernel.impl.traversal.TraversalDescriptionImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.graph.neo4j.Friendship;
-import org.springframework.data.graph.neo4j.Group;
 import org.springframework.data.graph.neo4j.Person;
 import org.springframework.data.graph.neo4j.Personality;
 import org.springframework.data.graph.neo4j.finder.FinderFactory;
-import org.springframework.data.graph.neo4j.finder.NodeFinder;
 import org.springframework.data.graph.neo4j.support.node.Neo4jHelper;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.transaction.BeforeTransaction;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Collections;
 import java.util.Date;
-import java.util.HashSet;
 
 import static org.junit.Assert.assertEquals;
 
@@ -44,9 +37,9 @@ public class PropertyTest {
 	@Autowired
 	private FinderFactory finderFactory;
 
-	@Before
-	public void cleanDb() {
-		Neo4jHelper.cleanDb(graphDatabaseContext);
+    @BeforeTransaction
+    public void cleanDb() {
+        Neo4jHelper.cleanDb(graphDatabaseContext);
     }
     @Test
     @Transactional

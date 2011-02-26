@@ -12,6 +12,7 @@ import org.neo4j.kernel.Config;
 import org.neo4j.kernel.EmbeddedGraphDatabase;
 import org.objectweb.jotm.Current;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.data.graph.neo4j.support.node.Neo4jHelper;
 import org.springframework.transaction.jta.JtaTransactionManager;
 import org.springframework.transaction.jta.ManagedTransactionAdapter;
 
@@ -37,37 +38,12 @@ public class JOTMIntegrationTest {
     public void setUp() throws Exception {
         ctx = new ClassPathXmlApplicationContext("classpath:spring-tx-text-context.xml");
         gds = ctx.getBean(GraphDatabaseService.class);
+        Neo4jHelper.cleanDb(gds);
     }
 
     @After
     public void tearDown() throws Exception {
-        if (gds != null) {
-            clear(gds);
-        }
         if (ctx != null) ctx.close();
-    }
-    
-    private void clear(GraphDatabaseService gds) {
-    	org.neo4j.graphdb.Transaction tx = gds.beginTx();
-    	try {
-			for (String ix : gds.index().nodeIndexNames()) {
-				gds.index().forNodes(ix).delete();
-			}
-			for (Node node : gds.getAllNodes()) {
-				for (Relationship relationship : node.getRelationships()) {
-					relationship.delete();
-				}
-			}
-			Node referenceNode = gds.getReferenceNode();
-			for (Node node : gds.getAllNodes()) {
-				if (node.equals(referenceNode))
-					continue;
-				node.delete();
-			}
-			tx.success();
-		} finally {
-	        tx.finish();
-		}
     }
 
     @Test

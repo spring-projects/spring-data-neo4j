@@ -16,31 +16,50 @@
 
 package org.springframework.data.graph.neo4j.support.node;
 
+import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.Transaction;
+import org.neo4j.graphdb.index.IndexManager;
 import org.springframework.data.graph.neo4j.support.GraphDatabaseContext;
 
 public abstract class Neo4jHelper {
 
-    public static void cleanDb(GraphDatabaseContext graphDatabaseContext, String... indexFieldsToRemove) {
-        Transaction tx = graphDatabaseContext.beginTx();
+    public static void cleanDb(GraphDatabaseContext graphDatabaseContext) {
+        cleanDb(graphDatabaseContext.getGraphDatabaseService());
+    }
+
+    public static void cleanDb(GraphDatabaseService graphDatabaseService) {
+
+        Transaction tx = graphDatabaseService.beginTx();
         try {
-            Node refNode = graphDatabaseContext.getReferenceNode();
-            for (Node node : graphDatabaseContext.getAllNodes()) {
-                for (Relationship rel : node.getRelationships()) {
-                    rel.delete();
-                }
-                if (!refNode.equals(node)) {
-                    node.delete();
-                }
-            }
-            for (String indexField : indexFieldsToRemove) {
-                graphDatabaseContext.getNodeIndex("node").remove(null, indexField, null);
-            }
+            removeNodes(graphDatabaseService);
+            clearIndex(graphDatabaseService);
             tx.success();
         } finally {
             tx.finish();
+        }
+    }
+
+    private static void removeNodes(GraphDatabaseService graphDatabaseService) {
+        Node refNode = graphDatabaseService.getReferenceNode();
+        for (Node node : graphDatabaseService.getAllNodes()) {
+            for (Relationship rel : node.getRelationships()) {
+                rel.delete();
+            }
+            if (!refNode.equals(node)) {
+                node.delete();
+            }
+        }
+    }
+
+    private static void clearIndex(GraphDatabaseService gds) {
+        IndexManager indexManager = gds.index();
+        for (String ix : indexManager.nodeIndexNames()) {
+            indexManager.forNodes(ix).delete();
+        }
+        for (String ix : indexManager.relationshipIndexNames()) {
+            indexManager.forRelationships(ix).delete();
         }
     }
 }

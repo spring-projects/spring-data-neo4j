@@ -15,7 +15,7 @@ import org.springframework.data.graph.neo4j.support.node.Neo4jHelper;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.test.context.transaction.BeforeTransaction;
 
 import static org.junit.Assert.*;
 import static org.springframework.data.graph.neo4j.support.HasRelationshipMatcher.hasRelationship;
@@ -35,9 +35,8 @@ public class ModificationOutsideOfTransactionTest
     private FinderFactory finderFactory;
 
     @Before
-    public void cleanDb()
-    {
-       Neo4jHelper.cleanDb( graphDatabaseContext );
+    public void cleanDb() {
+        Neo4jHelper.cleanDb(graphDatabaseContext);
     }
 
     @Test
