@@ -9,7 +9,7 @@ The Spring Data Graph project provides a simplified POJO based programming model
 Getting Help
 ------------
 
-This README and the [User Guide](http://static.springsource.org/spring-data/datastore-graph/snapshot-site/reference/html/) are the best places to start learning about Spring Data Graph.  There are also [three sample appilcations](https://github.com/SpringSource/spring-data-graph-examples) briefly described in the reference documentation.
+This README and the [User Guide](http://static.springsource.org/spring-data/data-document/snapshot-site/reference/html/) are the best places to start learning about Spring Data Graph.  There are also [three sample appilcations](https://github.com/SpringSource/spring-data-graph-examples) briefly described in the reference documentation.
 
 The main project [website](http://www.springsource.org/spring-data) contains links to basic project information such as source code, JavaDocs, Issue tracking, etc.
 
@@ -119,9 +119,11 @@ Spring Configuration:
         @NodeEntity
         public class World {
 
-          @Indexed private String name;
+          @Indexed
+          private String name;
 
-          @Indexed private int moons;
+          @Indexed(indexName="moons") 
+		  private int moons;
         
           @RelatedTo(type = "REACHABLE_BY_ROCKET", 
                        elementClass = World.class, 
@@ -138,11 +140,11 @@ Spring Configuration:
           public int getMoons() { return moons; }
 
           public void addRocketRouteTo( World otherWorld ) {
-              ((NodeBacked) this).relateTo( otherWorld, RelationshipTypes.REACHABLE_BY_ROCKET );
+             reachableByRocket.add(otherWorld)
           }
         
           public boolean canBeReachedFrom( World otherWorld ) {
-              return this.reachableByRocket.contains( otherWorld );
+              return reachableByRocket.contains( otherWorld );
           }
         }
 
@@ -156,25 +158,20 @@ Spring Configuration:
         
           @Transactional
           public Collection<World> makeSomeWorlds()  {
-            List<World> newWorlds = new ArrayList<World>();
-            newWorlds.add( new World( "Mercury", 0 ) );
-            newWorlds.add( new World( "Venus", 0 ) );
             World earth = new World( "Earth", 1 );
-            newWorlds.add( earth );
             World mars = new World( "Mars", 2 );
             mars.addRocketRouteTo( earth );
-            newWorlds.add( mars );
-            newWorlds.add( new World( "Jupiter", 63 ) );
-            newWorlds.add( new World( "Saturn", 62 ) );
-            newWorlds.add( new World( "Uranus", 27 ) );
-            newWorlds.add( new World( "Neptune", 13 ) );
-            return newWorlds;
+
+	        return Arrays.asList(
+			  new World( "Mercury", 0 ), new World( "Venus", 0 ) ,
+			 	earth, mars,
+			  new World( "Jupiter", 63 ), new World( "Saturn", 62 ) ,
+			  new World( "Uranus", 27 ) , new World( "Neptune", 13 ) );
           }
 
           private NodeFinder<World> finder() {
              return finderFactory.createNodeEntityFinder(World.class);
-
-}
+		  }
           public World findWorldIdentifiedBy( long id )  {
              return finder().findById( id );
           }
@@ -188,15 +185,15 @@ Spring Configuration:
           }
             
           public World findWorldNamed( String name ) {
-            return finder().findByPropertyValue( "name", name );
+            return finder().findByPropertyValue( null, "name", name );
           }
             
           public World findWorldWithMoons( long moonCount ) {
-            return finder().findByPropertyValue( "moons", moonCount );
+            return finder().findByPropertyValue( "moons", "moons", moonCount );
           }
           
           public Iterable<World> findWorldsWithMoons( int moonCount )  {
-            return finder().findAllByPropertyValue( "moons", moonCount );
+            return finder().findAllByPropertyValue( "moons", "moons", moonCount );
           }
                        
         }
