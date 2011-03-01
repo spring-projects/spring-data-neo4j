@@ -40,6 +40,7 @@ For more detailed questions, use the [forum](http://forum.springsource.org/forum
 
 * Configure Spring Data Graph for Neo4j in your application using the provided xml namespace.
 
+
     <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
     <beans xmlns="http://www.springframework.org/schema/beans"
         xmlns:context="http://www.springframework.org/schema/context"
@@ -69,9 +70,7 @@ For more detailed questions, use the [forum](http://forum.springsource.org/forum
           @Indexed(indexName="moons") 
 		  private int moons;
         
-          @RelatedTo(type = "REACHABLE_BY_ROCKET", 
-                       elementClass = World.class, 
-                       direction = Direction.OUTGOING)
+          @RelatedTo(type = "REACHABLE_BY_ROCKET", elementClass = World.class, direction = Direction.OUTGOING)
           private Set<World> reachableByRocket;
 
           public World( String name, int moons ) {
@@ -84,7 +83,7 @@ For more detailed questions, use the [forum](http://forum.springsource.org/forum
           public int getMoons() { return moons; }
 
           public void addRocketRouteTo( World otherWorld ) {
-             reachableByRocket.add(otherWorld)
+             reachableByRocket.add(otherWorld);
           }
         
           public boolean canBeReachedFrom( World otherWorld ) {
@@ -109,10 +108,9 @@ For more detailed questions, use the [forum](http://forum.springsource.org/forum
             mars.addRocketRouteTo( earth );
 
 	        return Arrays.asList(
-			  new World( "Mercury", 0 ), new World( "Venus", 0 ) ,
-			 	earth, mars,
-			  new World( "Jupiter", 63 ), new World( "Saturn", 62 ) ,
-			  new World( "Uranus", 27 ) , new World( "Neptune", 13 ) );
+			  new World( "Mercury", 0 ), new World( "Venus", 0 ), earth, mars,
+			  new World( "Jupiter", 63 ), new World( "Saturn", 62 ),
+			  new World( "Uranus", 27 ), new World( "Neptune", 13 ));
           }
 
           private NodeFinder<World> finder() {
