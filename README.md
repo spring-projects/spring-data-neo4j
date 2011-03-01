@@ -52,10 +52,10 @@ Spring Configuration:
             http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd
             http://www.springframework.org/schema/data/graph http://www.springframework.org/schema/data/graph/datagraph-1.0.xsd
             ">
-
+    
         <context:annotation-config/>
         <datagraph:config storeDirectory="target/config-test"/>
-
+    
     </beans>
 
 * Annotate your entity class.  In this case it is a 'World' class that has a relationship to other worlds that are reachable by rocket travel:
