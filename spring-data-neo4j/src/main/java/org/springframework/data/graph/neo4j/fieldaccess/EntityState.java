@@ -52,6 +52,7 @@ public interface EntityState<ENTITY extends GraphBacked<STATE>,STATE> {
 
     /**
      * callback for creating and initializing an initial state
+     * TODO will be internal implementation detail of persist
      */
     @Deprecated
     void createAndAssignState();
@@ -59,5 +60,5 @@ public interface EntityState<ENTITY extends GraphBacked<STATE>,STATE> {
     boolean hasPersistentState();
     STATE getPersistentState();
 
-    ENTITY persist(boolean isOnCreate);
+    ENTITY persist();
 }

@@ -129,7 +129,7 @@ public class PartialNodeEntityState<ENTITY extends NodeBacked> extends DefaultEn
     }
 
     @Override
-    public ENTITY persist(boolean isOnCreate) {
+    public ENTITY persist() {
         Node node = StateProvider.retrieveState();
         if (node != null) {
             setPersistentState(node);

@@ -44,7 +44,7 @@ public class PropertyTest {
     @Test
     @Transactional
     public void testSetPropertyEnum() {
-        Person p = new Person("Michael", 35);
+        Person p = new Person("Michael", 35).persist();
         p.setPersonality(Personality.EXTROVERT);
         assertEquals("Wrong enum serialization.", "EXTROVERT", p.getPersistentState().getProperty("Person.personality"));
     }
@@ -52,7 +52,7 @@ public class PropertyTest {
     @Test
     @Transactional
     public void testGetPropertyEnum() {
-        Person p = new Person("Michael", 35);
+        Person p = new Person("Michael", 35).persist();
         p.getPersistentState().setProperty("Person.personality", "EXTROVERT");
         assertEquals("Did not deserialize property value properly.", Personality.EXTROVERT, p.getPersonality());
     }
@@ -60,7 +60,7 @@ public class PropertyTest {
     @Test(expected = NotFoundException.class)
     @Transactional
     public void testSetTransientPropertyFieldNotManaged() {
-        Person p = new Person("Michael", 35);
+        Person p = new Person("Michael", 35).persist();
         p.setThought("food");
         p.getPersistentState().getProperty("Person.thought");
     }
@@ -68,7 +68,7 @@ public class PropertyTest {
     @Test
     @Transactional
     public void testGetTransientPropertyFieldNotManaged() {
-        Person p = new Person("Michael", 35);
+        Person p = new Person("Michael", 35).persist();
         p.setThought("food");
         p.getPersistentState().setProperty("Person.thought", "sleep");
         assertEquals("Should not have read transient value from graph.", "food", p.getThought());
@@ -77,8 +77,8 @@ public class PropertyTest {
     @Transactional
     @Rollback(false)
     public void testRelationshipSetPropertyDate() {
-        Person p = new Person("Michael", 35);
-        Person p2 = new Person("David", 25);
+        Person p = new Person("Michael", 35).persist();
+        Person p2 = new Person("David", 25).persist();
         Friendship f = p.knows(p2);
         f.setFirstMeetingDate(new Date(3));
         assertEquals("Date not serialized properly.", "3", f.getPersistentState().getProperty("Friendship.firstMeetingDate"));
@@ -87,8 +87,8 @@ public class PropertyTest {
     @Test
     @Transactional
     public void testRelationshipGetPropertyDate() {
-        Person p = new Person("Michael", 35);
-        Person p2 = new Person("David", 25);
+        Person p = new Person("Michael", 35).persist();
+        Person p2 = new Person("David", 25).persist();
         Friendship f = p.knows(p2);
         f.getPersistentState().setProperty("Friendship.firstMeetingDate", "3");
         assertEquals("Date not deserialized properly.", new Date(3), f.getFirstMeetingDate());
@@ -97,8 +97,8 @@ public class PropertyTest {
     @Test(expected = NotFoundException.class)
     @Transactional
     public void testRelationshipSetTransientPropertyFieldNotManaged() {
-        Person p = new Person("Michael", 35);
-        Person p2 = new Person("David", 25);
+        Person p = new Person("Michael", 35).persist();
+        Person p2 = new Person("David", 25).persist();
         Friendship f = p.knows(p2);
         f.setLatestLocation("Menlo Park");
         f.getPersistentState().getProperty("Friendship.latestLocation");
@@ -107,8 +107,8 @@ public class PropertyTest {
     @Test
     @Transactional
     public void testRelationshipGetTransientPropertyFieldNotManaged() {
-        Person p = new Person("Michael", 35);
-        Person p2 = new Person("David", 25);
+        Person p = new Person("Michael", 35).persist();
+        Person p2 = new Person("David", 25).persist();
         Friendship f = p.knows(p2);
         f.setLatestLocation("Menlo Park");
         f.getPersistentState().setProperty("Friendship.latestLocation", "Palo Alto");
@@ -118,15 +118,15 @@ public class PropertyTest {
     @Test
     @Transactional
     public void testEntityIdField() {
-        Person p = new Person("Michael", 35);
+        Person p = new Person("Michael", 35).persist();
         assertEquals("Wrong ID.", p.getPersistentState().getId(), p.getId());
     }
 
     @Test
     @Transactional
     public void testRelationshipIdField() {
-        Person p = new Person("Michael", 35);
-        Person p2 = new Person("David", 25);
+        Person p = new Person("Michael", 35).persist();
+        Person p2 = new Person("David", 25).persist();
         Friendship f = p.knows(p2);
 		assertEquals("Wrong ID.", (Long)f.getPersistentState().getId(), f.getRelationshipId());
     }

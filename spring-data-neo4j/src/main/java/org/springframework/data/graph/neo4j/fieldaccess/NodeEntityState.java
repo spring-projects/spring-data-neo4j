@@ -38,7 +38,10 @@ public class NodeEntityState<ENTITY extends NodeBacked> extends DefaultEntitySta
 
     @Override
     public void createAndAssignState() {
-        if (hasPersistentState()) return;
+        if (hasPersistentState()) {
+            if (log.isInfoEnabled()) log.info("Entity "+entity.getClass()+" already has persistent state "+getPersistentState());
+            return;
+        }
         try {
             final Object id = getIdFromEntity();
             if (id instanceof Number) {
@@ -59,7 +62,7 @@ public class NodeEntityState<ENTITY extends NodeBacked> extends DefaultEntitySta
     }
 
     @Override
-    public ENTITY persist(boolean isOnCreate) {
+    public ENTITY persist() {
         Node node = StateProvider.retrieveState();
         if (node != null) {
             setPersistentState(node);
@@ -67,6 +70,5 @@ public class NodeEntityState<ENTITY extends NodeBacked> extends DefaultEntitySta
             createAndAssignState();
         }
         return entity;
-
     }
 }

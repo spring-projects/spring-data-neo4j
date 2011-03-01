@@ -52,7 +52,7 @@ public class Neo4jEntityManagerTest {
 
     @Before
     public void setUp() {
-        person = new Person("Michael",35);
+        person = new Person("Michael", 35).persist();
         node = person.getPersistentState();
     }
 
@@ -94,7 +94,7 @@ public class Neo4jEntityManagerTest {
 
     @Test
     public void testFindAll2() throws Exception {
-        final Person person2 = new Person("Rod", 39);
+        final Person person2 = new Person("Rod", 39).persist();
         final Query query = entityManager.createQuery("select o from Person o");
         Collection<Person> people=query.getResultList();
     	Assert.assertEquals(new HashSet<Person>(asList(person,person2)),new HashSet<Person>(people));
@@ -113,7 +113,7 @@ public class Neo4jEntityManagerTest {
     }
     @Test
     public void testFindAllStartEnd() throws Exception {
-        new Person("Rod", 39);
+        new Person("Rod", 39).persist();
         final Query query = entityManager.createQuery("select o from Person o").setMaxResults(1).setFirstResult(1);
         Collection<Person> people=query.getResultList();
     	Assert.assertEquals(1,people.size());
@@ -157,7 +157,7 @@ public class Neo4jEntityManagerTest {
     
     @Test
     public void testContains() throws Exception {
-    	final Person p2 = new Person("Rod",39);
+        final Person p2 = new Person("Rod", 39).persist();
         assertTrue(entityManager.contains(person));
         assertTrue(entityManager.contains(p2));
     	assertFalse(entityManager.contains(new Object()));

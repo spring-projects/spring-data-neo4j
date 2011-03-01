@@ -40,7 +40,7 @@ public class ProjectionTest {
     @Test
     @Transactional
     public void testProjectGroupToNamed() {
-        Group group = new Group();
+        Group group = new Group().persist();
         group.setName("developers");
 
         Named named = (Named)group.projectTo(Named.class);

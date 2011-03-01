@@ -30,7 +30,6 @@ public class AttachEntityTest {
     @Test
     @Transactional
     public void entityShouldHaveNoNode() {
-
         Developer dev = new Developer("Michael");
         assertFalse(hasUnderlyingNode(dev));
         assertNull(nodeFor(dev));

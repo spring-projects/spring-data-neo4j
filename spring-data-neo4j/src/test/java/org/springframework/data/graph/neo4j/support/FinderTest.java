@@ -46,8 +46,8 @@ public class FinderTest {
     @Test
     @Transactional
     public void testFinderFindAll() {
-        Person p1 = new Person("Michael", 35);
-        Person p2 = new Person("David", 25);
+        Person p1 = new Person("Michael", 35).persist();
+        Person p2 = new Person("David", 25).persist();
         NodeFinder<Person> finder = finderFactory.createNodeEntityFinder(Person.class);
         Iterable<Person> allPersons = finder.findAll();
         assertEquals(new HashSet<Person>(Arrays.asList(p1, p2)), IteratorUtil.addToCollection(allPersons.iterator(), new HashSet<Person>()));
@@ -56,7 +56,7 @@ public class FinderTest {
     @Test
     @Transactional
     public void testFinderFindById() {
-        Person p = new Person("Michael", 35);
+        Person p = new Person("Michael", 35).persist();
         NodeFinder<Person> finder = finderFactory.createNodeEntityFinder(Person.class);
         Person pById = finder.findById(p.getNodeId());
         assertEquals(p, pById);
@@ -65,7 +65,7 @@ public class FinderTest {
     @Test
     @Transactional
     public void testFinderFindByIdNonexistent() {
-        Person p = new Person("Michael", 35);
+        Person p = new Person("Michael", 35).persist();
         NodeFinder<Person> finder = finderFactory.createNodeEntityFinder(Person.class);
         Person p2 = finder.findById(589736218);
         Assert.assertNull(p2);
@@ -76,16 +76,16 @@ public class FinderTest {
     public void testFinderCount() {
         NodeFinder<Person> finder = finderFactory.createNodeEntityFinder(Person.class);
         assertEquals(0, finder.count());
-        Person p = new Person("Michael", 35);
+        Person p = new Person("Michael", 35).persist();
         assertEquals(1, finder.count());
     }
     @Test
 	@Transactional
 	public void testFindAllOnGroup() {
 	    log.debug("FindAllOnGroup start");
-        Group g=new Group();
+        Group g = new Group().persist();
         g.setName("test");
-        Group g2=new Group();
+        Group g2 = new Group().persist();
         g.setName("test");
         final NodeFinder<Group> finder = finderFactory.createNodeEntityFinder(Group.class);
         Collection<Group> groups = IteratorUtil.addToCollection(finder.findAll().iterator(), new HashSet<Group>());

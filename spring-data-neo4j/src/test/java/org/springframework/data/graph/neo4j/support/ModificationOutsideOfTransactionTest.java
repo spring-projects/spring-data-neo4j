@@ -19,6 +19,7 @@ import org.springframework.test.context.transaction.BeforeTransaction;
 
 import static org.junit.Assert.*;
 import static org.springframework.data.graph.neo4j.support.HasRelationshipMatcher.hasRelationship;
+import static org.springframework.data.graph.neo4j.support.HasRelationshipMatcher.hasNoRelationship;
 
 @RunWith( SpringJUnit4ClassRunner.class )
 @ContextConfiguration( locations = {"classpath:org/springframework/data/graph/neo4j/support/Neo4jGraphPersistenceTest-context.xml"} )
@@ -42,22 +43,22 @@ public class ModificationOutsideOfTransactionTest
     @Test
     public void testCreateOutsideTransaction()
     {
-        Person p = new Person( "Michael", 35 );
+        Person p = new Person("Michael", 35).persist();
         assertEquals( 35, p.getAge() );
         assertTrue( hasUnderlyingNode( p ) );
     }
 
     @Test
-    public void testCreateSubgraphOutsideOfTransaction()
+    public void subgraphCreatedOutsideOfTransactionShouldNotBePersisted()
     {
-        Person michael = new Person( "Michael", 35 );
-        Person emil = new Person( "Emil", 35 );
+        Person michael = new Person("Michael", 35).persist();
+        Person emil = new Person("Emil", 35).persist();
 
         michael.setBoss( emil );
 
         assertEquals( emil, michael.getBoss() );
         assertTrue( hasUnderlyingNode( michael ) );
-        assertThat( nodeFor( michael ), hasRelationship( "boss" ) );
+        assertThat( nodeFor( michael ), hasNoRelationship( "boss", emil.getPersistentState() ) );
     }
 
     @Test
@@ -66,16 +67,34 @@ public class ModificationOutsideOfTransactionTest
         Person p = createPersonInTransaction( "Michael", 35 );
         p.setAge( 25 );
         assertEquals( 25, p.getAge() );
-        assertEquals( 25, nodeFor( p ).getProperty( "Person.age" ) );
+        assertEquals( 35, nodeFor( p ).getProperty( "Person.age" ) );
     }
 
     @Test
-    public void testCreateRelationshipOutsideTransaction()
+    public void shouldNotCreateGraphRelationshipOutsideTransaction()
     {
         Person p = createPersonInTransaction( "Michael", 35 );
         Person spouse = createPersonInTransaction( "Tina", 36 );
 
         p.setSpouse( spouse );
+
+        assertEquals( spouse, p.getSpouse() );
+        assertThat( nodeFor( p ), hasNoRelationship( "Person.spouse",spouse.getPersistentState() ) );
+
+
+        Person spouse2 = createPersonInTransaction( "Rana", 5 );
+        p.setSpouse( spouse2 );
+        assertEquals( spouse2, p.getSpouse() );
+    }
+
+    @Test
+    public void testCreateRelationshipOutsideTransactionAndPersist()
+    {
+        Person p = createPersonInTransaction( "Michael", 35 );
+        Person spouse = createPersonInTransaction( "Tina", 36 );
+
+        p.setSpouse( spouse );
+        p.persist();
 
         assertEquals( spouse, p.getSpouse() );
         assertThat( nodeFor( p ), hasRelationship( "Person.spouse" ) );
@@ -92,7 +111,7 @@ public class ModificationOutsideOfTransactionTest
         Person p = null;
         try
         {
-            p = new Person( name, age );
+            p = new Person(name, age).persist();
             tx.success();
         } finally
         {

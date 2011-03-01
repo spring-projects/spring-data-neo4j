@@ -36,17 +36,17 @@ public class EntityPropertyValidationTest {
     @Test(expected = ValidationException.class)
     @Transactional
     public void shouldFailValidationOnTooLongName() {
-        new Person("Michael.........................", 35);
+        new Person("Michael.........................", 35).persist();
     }
 
     @Test(expected = ValidationException.class)
     @Transactional
     public void shouldFailValidationOnNegativeAge() {
-        new Person("Michael", -1);
+        new Person("Michael", -1).persist();
     }
     @Test(expected = ValidationException.class)
     @Transactional
     public void shouldFailValidationOnBigAge() {
-        new Person("Michael", 110);
+        new Person("Michael", 110).persist();
     }
 }

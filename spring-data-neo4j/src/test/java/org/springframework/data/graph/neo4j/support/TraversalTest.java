@@ -48,8 +48,8 @@ public class TraversalTest {
     @Test
     @Transactional
     public void testTraverseFromGroupToPeople() {
-        Person p = new Person("Michael", 35);
-        Group group = new Group();
+        Person p = new Person("Michael", 35).persist();
+        Group group = new Group().persist();
         group.setName("dev");
         group.addPerson(p);
         final TraversalDescription traversalDescription = new TraversalDescriptionImpl().relationships(DynamicRelationshipType.withName("persons")).filter(Traversal.returnAllButStartNode());
@@ -65,8 +65,8 @@ public class TraversalTest {
     @Transactional
     @Rollback(false)
     public void testTraverseFieldFromGroupToPeople() {
-        Person p = new Person("Michael", 35);
-        Group group = new Group();
+        Person p = new Person("Michael", 35).persist();
+        Group group = new Group().persist();
         group.setName("dev");
         group.addPerson(p);
         Iterable<Person> people = group.getPeople();
@@ -81,8 +81,8 @@ public class TraversalTest {
     @Transactional
     public void testTraverseFromGroupToPeopleWithFinder() {
         final NodeFinder<Person> finder = finderFactory.createNodeEntityFinder(Person.class);
-        Person p = new Person("Michael", 35);
-        Group group = new Group();
+        Person p = new Person("Michael", 35).persist();
+        Group group = new Group().persist();
         group.setName("dev");
         group.addPerson(p);
         final TraversalDescription traversalDescription = new TraversalDescriptionImpl().relationships(DynamicRelationshipType.withName("persons")).filter(Traversal.returnAllButStartNode());

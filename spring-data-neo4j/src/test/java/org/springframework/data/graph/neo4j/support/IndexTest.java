@@ -35,7 +35,6 @@ import static org.junit.Assert.assertNull;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = {"classpath:org/springframework/data/graph/neo4j/support/Neo4jGraphPersistenceTest-context.xml"})
-
 public class IndexTest {
 
     private static final String NAME = "name";
@@ -58,8 +57,8 @@ public class IndexTest {
     @Test
     @Transactional
     public void testCanIndexIntFieldsOnRelationshipEntities() {
-        Person p = new Person(NAME_VALUE, 35);
-        Person p2 = new Person(NAME_VALUE2, 25);
+        Person p = new Person(NAME_VALUE, 35).persist();
+        Person p2 = new Person(NAME_VALUE2, 25).persist();
         Friendship friendship = p.knows(p2);
         friendship.setYears(1);
         RelationshipFinder<Friendship> friendshipFinder = finderFactory.createRelationshipEntityFinder(Friendship.class);
@@ -69,19 +68,18 @@ public class IndexTest {
     @Test
     @Transactional
     public void testGetRelationshipFromLookedUpNode() {
-        Person me = new Person(NAME_VALUE, 35);
-        Person spouse = new Person(NAME_VALUE3, 36);
+        Person me = new Person(NAME_VALUE, 35).persist();
+        Person spouse = new Person(NAME_VALUE3, 36).persist();
         me.setSpouse(spouse);
         final NodeFinder<Person> personFinder = finderFactory.createNodeEntityFinder(Person.class);
         final Person foundMe = personFinder.findByPropertyValue(Person.NAME_INDEX, "Person.name", NAME_VALUE);
         assertEquals(spouse,foundMe.getSpouse());
     }
-
     @Test
     @Transactional
     @Ignore("remove property from index not workin")
     public void testRemovePropertyFromIndex() {
-        Group group = new Group();
+        Group group = new Group().persist();
         group.setName(NAME_VALUE);
         final NodeFinder<Group> finder = finderFactory.createNodeEntityFinder(Group.class);
         graphDatabaseContext.getNodeIndex("node").remove(group.getPersistentState(), NAME);
@@ -93,27 +91,28 @@ public class IndexTest {
     @Transactional
     @Ignore("remove property from index not workin")
     public void testRemoveNodeFromIndex() {
-        Group group = new Group();
+        Group group = new Group().persist();
         group.setName(NAME_VALUE);
         final NodeFinder<Group> finder = finderFactory.createNodeEntityFinder(Group.class);
         graphDatabaseContext.getNodeIndex("node").remove(group.getPersistentState());
         final Group found = finder.findByPropertyValue(null, NAME, NAME_VALUE);
         assertNull("Group.name removed from index", found);
     }
-
 	@Test
 	@Transactional
 	public void testFindGroupByIndex() {
-		Group group = new Group();
+        Group group = new Group().persist();
         group.setName(NAME_VALUE);
         final NodeFinder<Group> finder = finderFactory.createNodeEntityFinder(Group.class);
         final Group found = finder.findByPropertyValue(null, NAME, NAME_VALUE);
         assertEquals(group,found);
 	}
+
+
 	@Test
 	@Transactional
 	public void testDontFindGroupByNonIndexedFieldWithAnnotation() {
-		Group group = new Group();
+        Group group = new Group().persist();
         group.setUnindexedName("value-unindexedName");
         final NodeFinder<Group> finder = finderFactory.createNodeEntityFinder(Group.class);
         final Group found = finder.findByPropertyValue(null, "unindexedName", "value-unindexedName");
@@ -122,19 +121,18 @@ public class IndexTest {
 	@Test
 	@Transactional
 	public void testDontFindGroupByNonIndexedField() {
-		Group group = new Group();
+        Group group = new Group().persist();
         group.setUnindexedName2("value-unindexedName2");
         final NodeFinder<Group> finder = finderFactory.createNodeEntityFinder(Group.class);
         final Group found = finder.findByPropertyValue(null, "unindexedName2", "value-unindexedName2");
         assertNull(found);
 	}
-
     @Test
 	@Transactional
 	public void testFindAllGroupsByIndex() {
-		Group group = new Group();
+        Group group = new Group().persist();
         group.setName(NAME_VALUE);
-		Group group2 = new Group();
+        Group group2 = new Group().persist();
         group2.setName(NAME_VALUE);
         final NodeFinder<Group> finder = finderFactory.createNodeEntityFinder(Group.class);
         final Iterable<Group> found = finder.findAllByPropertyValue(null, NAME, NAME_VALUE);
@@ -145,15 +143,16 @@ public class IndexTest {
     @Test
 	@Transactional
 	public void testFindAllPersonByIndexOnAnnotatedField() {
-		Person person = new Person(NAME_VALUE,35);
+        Person person = new Person(NAME_VALUE, 35).persist();
         final NodeFinder<Person> finder = finderFactory.createNodeEntityFinder(Person.class);
         final Person found = finder.findByPropertyValue( Person.NAME_INDEX, "Person.name", NAME_VALUE);
 	    assertEquals(person, found);
     }
+
     @Test
 	@Transactional
 	public void testRangeQueryPersonByIndexOnAnnotatedField() {
-		Person person = new Person(NAME_VALUE,35);
+        Person person = new Person(NAME_VALUE, 35).persist();
         final NodeFinder<Person> finder = finderFactory.createNodeEntityFinder(Person.class);
         final Person found = finder.findAllByRange(null, "Person.age", 10,40).iterator().next();
 	    assertEquals("person found inside range",person, found);
@@ -161,7 +160,7 @@ public class IndexTest {
     @Test
 	@Transactional
 	public void testOutsideRangeQueryPersonByIndexOnAnnotatedField() {
-		Person person = new Person(NAME_VALUE,35);
+        Person person = new Person(NAME_VALUE, 35).persist();
         final NodeFinder<Person> finder = finderFactory.createNodeEntityFinder(Person.class);
         Iterable<Person> emptyResult = finder.findAllByRange(null, "Person.age", 0, 34);
 	    assertFalse("nothing found outside range", emptyResult.iterator().hasNext());
@@ -170,7 +169,7 @@ public class IndexTest {
 	@Test
 	@Transactional
 	public void testFindAllPersonByIndexOnAnnotatedFieldWithAtIndexed() {
-		Person person = new Person(NAME_VALUE, 35);
+        Person person = new Person(NAME_VALUE, 35).persist();
 		person.setNickname("Mike");
         final NodeFinder<Person> finder = finderFactory.createNodeEntityFinder(Person.class);
 		final Person found = finder.findByPropertyValue(null, "Person.nickname", "Mike");
@@ -197,5 +196,4 @@ public class IndexTest {
         relationshipIndex.add(indexedRelationship, NAME, NAME_VALUE);
         Assert.assertEquals("indexed relationship found", indexedRelationship, relationshipIndex.get(NAME, NAME_VALUE).next());
     }
-
 }

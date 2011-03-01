@@ -53,9 +53,4 @@ public @interface NodeEntity {
     boolean partial() default false;
 
 
-    /**
-     * if set the entity will be attached to the graph store at creation time, otherwise entity.attach() has to be called manually.
-     * @return
-     */
-    boolean autoAttach() default true;
 }

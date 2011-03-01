@@ -16,10 +16,7 @@
 
 package org.springframework.data.graph.neo4j.support.node;
 
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Relationship;
-import org.neo4j.graphdb.Transaction;
+import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.index.IndexManager;
 import org.springframework.data.graph.neo4j.support.GraphDatabaseContext;
 
@@ -44,9 +41,11 @@ public abstract class Neo4jHelper {
     private static void removeNodes(GraphDatabaseService graphDatabaseService) {
         Node refNode = graphDatabaseService.getReferenceNode();
         for (Node node : graphDatabaseService.getAllNodes()) {
-            for (Relationship rel : node.getRelationships()) {
+            for (Relationship rel : node.getRelationships(Direction.OUTGOING)) {
                 rel.delete();
             }
+        }
+        for (Node node : graphDatabaseService.getAllNodes()) {
             if (!refNode.equals(node)) {
                 node.delete();
             }

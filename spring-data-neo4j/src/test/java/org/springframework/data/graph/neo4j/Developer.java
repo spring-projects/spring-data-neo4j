@@ -6,7 +6,7 @@ import org.springframework.data.graph.annotation.NodeEntity;
  * @author mh
  * @since 18.02.11
  */
-@NodeEntity(autoAttach = false)
+@NodeEntity
 public class Developer {
     String name;
 

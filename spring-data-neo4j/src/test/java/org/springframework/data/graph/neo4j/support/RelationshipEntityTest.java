@@ -40,8 +40,8 @@ public class RelationshipEntityTest {
     @Test
     @Transactional
     public void testRelationshipCreate() {
-        Person p = new Person("Michael", 35);
-        Person p2 = new Person("David", 25);
+        Person p = new Person("Michael", 35).persist();
+        Person p2 = new Person("David", 25).persist();
         Friendship f = p.knows(p2);
         Relationship rel = p.getPersistentState().getSingleRelationship(DynamicRelationshipType.withName("knows"), Direction.OUTGOING);
         assertEquals(f.getPersistentState(), rel);
@@ -51,8 +51,8 @@ public class RelationshipEntityTest {
     @Test
     @Transactional
     public void testRelationshipSetProperty() {
-        Person p = new Person("Michael", 35);
-        Person p2 = new Person("David", 25);
+        Person p = new Person("Michael", 35).persist();
+        Person p2 = new Person("David", 25).persist();
         Friendship f = p.knows(p2);
         f.setYears(1);
         assertEquals(1, f.getPersistentState().getProperty("Friendship.years"));
@@ -61,8 +61,8 @@ public class RelationshipEntityTest {
     @Test
     @Transactional
     public void testRelationshipGetProperty() {
-        Person p = new Person("Michael", 35);
-        Person p2 = new Person("David", 25);
+        Person p = new Person("Michael", 35).persist();
+        Person p2 = new Person("David", 25).persist();
         Friendship f = p.knows(p2);
         f.getPersistentState().setProperty("Friendship.years", 1);
         assertEquals(1, f.getYears());
@@ -71,8 +71,8 @@ public class RelationshipEntityTest {
     @Test
     @Transactional
     public void testRelationshipGetStartNodeAndEndNode() {
-        Person p = new Person("Michael", 35);
-        Person p2 = new Person("David", 25);
+        Person p = new Person("Michael", 35).persist();
+        Person p2 = new Person("David", 25).persist();
         Friendship f = p.knows(p2);
         assertEquals(p, f.getPerson1());
         assertEquals(p2, f.getPerson2());
@@ -81,8 +81,8 @@ public class RelationshipEntityTest {
     @Test
     @Transactional
     public void testGetRelationshipToReturnsRelationship() {
-        Person p = new Person("Michael", 35);
-        Person p2 = new Person("David", 25);
+        Person p = new Person("Michael", 35).persist();
+        Person p2 = new Person("David", 25).persist();
         Friendship f = p.knows(p2);
         assertEquals(f,p.getRelationshipTo(p2,Friendship.class, "knows"));
     }

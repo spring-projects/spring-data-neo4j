@@ -96,12 +96,12 @@ public aspect Neo4jNodeBacking { // extends AbstractTypeAnnotatingMixinFields<No
             if (entity.entityState != null) return;
             EntityState<NodeBacked, Node> entityState = entityStateFactory.getEntityState(entity);
             entity.entityState = entityState;
-            entityState.persist(true);
+            // entityState.persist(true);
         }
     }
 
-    public NodeBacked NodeBacked.attach() {
-        return this.entityState.persist(false);
+    public <T extends NodeBacked> T NodeBacked.persist() {
+        return (T)this.entityState.persist();
     }
     /**
      * State accessors that encapsulate the underlying state and the behaviour related to it (field access, creation)

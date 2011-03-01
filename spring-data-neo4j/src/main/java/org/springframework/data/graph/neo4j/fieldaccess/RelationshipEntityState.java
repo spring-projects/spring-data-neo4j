@@ -84,7 +84,7 @@ public class RelationshipEntityState<ENTITY extends RelationshipBacked> extends 
     }
 
     @Override
-    public ENTITY persist(boolean isOnCreate) {
+    public ENTITY persist() {
         createAndAssignState();
         return entity;
     }

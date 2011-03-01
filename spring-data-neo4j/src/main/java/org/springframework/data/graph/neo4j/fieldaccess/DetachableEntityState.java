@@ -18,6 +18,7 @@ package org.springframework.data.graph.neo4j.fieldaccess;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.neo4j.graphdb.Transaction;
 import org.springframework.data.graph.core.GraphBacked;
 import org.springframework.data.graph.neo4j.support.GraphDatabaseContext;
 import org.springframework.util.ObjectUtils;
@@ -38,12 +39,10 @@ public class DetachableEntityState<ENTITY extends GraphBacked<STATE>, STATE> imp
     protected final EntityState<ENTITY,STATE> delegate;
     private final static Log log = LogFactory.getLog(DetachableEntityState.class);
     private GraphDatabaseContext graphDatabaseContext;
-    private final boolean autoAttach;
 
-    public DetachableEntityState(final EntityState<ENTITY, STATE> delegate, GraphDatabaseContext graphDatabaseContext, boolean autoAttach) {
+    public DetachableEntityState(final EntityState<ENTITY, STATE> delegate, GraphDatabaseContext graphDatabaseContext) {
         this.delegate = delegate;
         this.graphDatabaseContext = graphDatabaseContext;
-        this.autoAttach = autoAttach;
     }
 
     @Override
@@ -68,15 +67,19 @@ public class DetachableEntityState<ENTITY extends GraphBacked<STATE>, STATE> imp
 
     @Override
     public Object getValue(final Field field) {
-        if (!transactionIsRunning() || !hasPersistentState()) {
+        if (isDetached()) {
             if (getEntity().getPersistentState()==null || isDirty(field)) {
                 if (log.isDebugEnabled()) log.debug("Outside of transaction, GET value from field " + field);
                 return null;
             }
         } else {
-            flushDirty();
+//            flushDirty();
         }
         return delegate.getValue(field);
+    }
+
+    private boolean isDetached() {
+        return !transactionIsRunning() || !hasPersistentState() || isDirty();
     }
 
     protected boolean transactionIsRunning() {
@@ -85,7 +88,7 @@ public class DetachableEntityState<ENTITY extends GraphBacked<STATE>, STATE> imp
 
     @Override
     public Object setValue(final Field field, final Object newVal) {
-        if (!transactionIsRunning() || !hasPersistentState()) {
+        if (isDetached()) {
             final ENTITY entity = getEntity();
             if (!isDirty(field) && isWritable(field)) {
                 Object existingValue;
@@ -98,7 +101,7 @@ public class DetachableEntityState<ENTITY extends GraphBacked<STATE>, STATE> imp
             }
             return newVal;
         }
-        flushDirty();
+        // flushDirty();
         return delegate.setValue(field, newVal);
     }
 
@@ -124,18 +127,15 @@ public class DetachableEntityState<ENTITY extends GraphBacked<STATE>, STATE> imp
      */
     private void flushDirty() {
         final ENTITY entity = getEntity();
-        final boolean newState = entity.getPersistentState()==null;
-        if (newState) {
-            return;
+        if (!hasPersistentState()) {
             // createAndAssignState();
+            throw new IllegalStateException("Flushing detached entity without a persistent state, this had to be created first.");
         }
         if (isDirty()) {
             for (final Map.Entry<Field, Object> entry : dirty.entrySet()) {
                 final Field field = entry.getKey();
-                if (log.isDebugEnabled()) log.debug("Flushing dirty Entity new node " + newState + " field " + field);
-                if (!newState) {
-                    checkConcurrentModification(entity, entry, field);
-                }
+                if (log.isDebugEnabled()) log.debug("Flushing dirty Entity new node " + entity.getPersistentState() + " field " + field+ " with value "+getValueFromEntity(field));
+                checkConcurrentModification(entity, entry, field);
                 delegate.setValue(field, getValueFromEntity(field));
             }
             clearDirty();
@@ -186,18 +186,18 @@ public class DetachableEntityState<ENTITY extends GraphBacked<STATE>, STATE> imp
         return graphDatabaseContext;
     }
 
+    // todo always create an transaction for persist, atomic operation when no outside tx exists
     @Override
-    public ENTITY persist(boolean isOnCreate) {
-        if (!autoAttach && isOnCreate) {
-            log.warn("Not automatically attaching entity " + getEntity().getClass());
-            return getEntity();
-        }
-        if (graphDatabaseContext.transactionIsRunning()) {
-            ENTITY result = delegate.persist(isOnCreate);
+    public ENTITY persist() {
+        Transaction tx = graphDatabaseContext.beginTx();
+        try {
+            ENTITY result = delegate.persist();
             flushDirty();
+            tx.success();
             return result;
+        } finally {
+            tx.finish();
         }
-        throw new IllegalStateException("Tried to attach entity outside of transaction "+getEntity().getClass());
     }
 
 }

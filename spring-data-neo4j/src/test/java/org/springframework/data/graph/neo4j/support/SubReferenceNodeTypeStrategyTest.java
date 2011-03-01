@@ -23,6 +23,7 @@ import org.springframework.data.graph.neo4j.finder.FinderFactory;
 import org.springframework.data.graph.neo4j.finder.NodeFinder;
 import org.springframework.data.graph.neo4j.support.node.Neo4jHelper;
 
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.transaction.BeforeTransaction;
@@ -38,7 +39,6 @@ import static org.junit.Assert.assertEquals;
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = {"classpath:org/springframework/data/graph/neo4j/support/Neo4jGraphPersistenceTest-context.xml"})
-
 public class SubReferenceNodeTypeStrategyTest {
 
     protected final Log log = LogFactory.getLog(getClass());
@@ -135,8 +135,8 @@ public class SubReferenceNodeTypeStrategyTest {
 	@Transactional
 	public void testInstantiateConcreteClass() {
 		log.debug("testInstantiateConcreteClass");
-		Person p = new Person("Michael", 35);
-		Car c = new Volvo();
+        Person p = new Person("Michael", 35).persist();
+		Car c = new Volvo().persist();
 		p.setCar(c);
 		assertEquals("Wrong concrete class.", Volvo.class, p.getCar().getClass());
 	}
@@ -145,7 +145,7 @@ public class SubReferenceNodeTypeStrategyTest {
 	@Transactional
 	public void testInstantiateConcreteClassWithFinder() {
 		log.debug("testInstantiateConcreteClassWithFinder");
-		new Volvo();
+		Volvo v=new Volvo().persist();
         NodeFinder<Car> finder = finderFactory.createNodeEntityFinder(Car.class);
 		assertEquals("Wrong concrete class.", Volvo.class, finder.findAll().iterator().next().getClass());
 	}
@@ -154,9 +154,9 @@ public class SubReferenceNodeTypeStrategyTest {
 	@Transactional
 	public void testCountSubclasses() {
 		log.warn("testCountSubclasses");
-		new Volvo();
+		new Volvo().persist();
 		log.warn("Created volvo");
-		new Toyota();
+		new Toyota().persist();
 		log.warn("Created volvo");
         assertEquals("Wrong count for Volvo.", 1, finderFactory.createNodeEntityFinder(Volvo.class).count());
         assertEquals("Wrong count for Toyota.", 1, finderFactory.createNodeEntityFinder(Toyota.class).count());
@@ -165,8 +165,8 @@ public class SubReferenceNodeTypeStrategyTest {
 	@Test
 	@Transactional
 	public void testCountClasses() {
-		new Person("Michael",36);
-		new Person("David",25);
+        new Person("Michael", 36).persist();
+        new Person("David", 25).persist();
         assertEquals("Wrong Person instance count.", 2, finderFactory.createNodeEntityFinder(Person.class).count());
 	}
 

@@ -70,10 +70,10 @@ public class NestedTransactionEntityState<ENTITY extends GraphBacked<STATE>, STA
     }
 
     @Override
-    public ENTITY persist(final boolean isOnCreate) {
+    public ENTITY persist() {
         return doInTransaction(new Callable<ENTITY>() {
             public ENTITY call() throws Exception {
-                return delegate.persist(isOnCreate);
+                return delegate.persist();
             }
         });
     }

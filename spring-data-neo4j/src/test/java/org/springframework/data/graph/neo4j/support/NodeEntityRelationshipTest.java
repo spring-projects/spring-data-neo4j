@@ -46,8 +46,8 @@ public class NodeEntityRelationshipTest {
     @Test
     @Transactional
     public void testCreateRelationshipWithoutAnnotationOnSet() {
-        Person p = new Person("Michael", 35);
-        Person spouse = new Person("Tina",36);
+        Person p = new Person("Michael", 35).persist();
+        Person spouse = new Person("Tina", 36).persist();
         p.setSpouse(spouse);
         Node spouseNode=p.getPersistentState().getSingleRelationship(DynamicRelationshipType.withName("Person.spouse"), Direction.OUTGOING).getEndNode();
         assertEquals(spouse.getPersistentState(), spouseNode);
@@ -57,8 +57,8 @@ public class NodeEntityRelationshipTest {
     @Test
     @Transactional
     public void testCreateRelationshipWithAnnotationOnSet() {
-        Person p = new Person("Michael", 35);
-        Person mother = new Person("Gabi",60);
+        Person p = new Person("Michael", 35).persist();
+        Person mother = new Person("Gabi", 60).persist();
         p.setMother(mother);
         Node motherNode = p.getPersistentState().getSingleRelationship(DynamicRelationshipType.withName("mother"), Direction.OUTGOING).getEndNode();
         assertEquals(mother.getPersistentState(), motherNode);
@@ -68,8 +68,8 @@ public class NodeEntityRelationshipTest {
     @Test
     @Transactional
     public void testDeleteRelationship() {
-        Person p = new Person("Michael", 35);
-        Person spouse = new Person("Tina", 36);
+        Person p = new Person("Michael", 35).persist();
+        Person spouse = new Person("Tina", 36).persist();
         p.setSpouse(spouse);
         p.setSpouse(null);
         Assert.assertNull(p.getPersistentState().getSingleRelationship(DynamicRelationshipType.withName("Person.spouse"), Direction.OUTGOING));
@@ -79,9 +79,9 @@ public class NodeEntityRelationshipTest {
     @Test
     @Transactional
     public void testDeletePreviousRelationshipOnNewRelationship() {
-        Person p = new Person("Michael", 35);
-        Person spouse = new Person("Tina", 36);
-        Person friend = new Person("Helga", 34);
+        Person p = new Person("Michael", 35).persist();
+        Person spouse = new Person("Tina", 36).persist();
+        Person friend = new Person("Helga", 34).persist();
         p.setSpouse(spouse);
         p.setSpouse(friend);
         assertEquals(friend.getPersistentState(), p.getPersistentState().getSingleRelationship(DynamicRelationshipType.withName("Person.spouse"), Direction.OUTGOING).getEndNode());
@@ -91,8 +91,8 @@ public class NodeEntityRelationshipTest {
     @Test
     @Transactional
     public void testCreateIncomingRelationshipWithAnnotationOnSet() {
-        Person p = new Person("David", 25);
-        Person boss = new Person("Emil", 32);
+        Person p = new Person("David", 25).persist();
+        Person boss = new Person("Emil", 32).persist();
         p.setBoss(boss);
         assertEquals(boss.getPersistentState(), p.getPersistentState().getSingleRelationship(DynamicRelationshipType.withName("boss"), Direction.INCOMING).getStartNode());
         assertEquals(boss, p.getBoss());
@@ -101,15 +101,15 @@ public class NodeEntityRelationshipTest {
     @Test(expected = InvalidDataAccessApiUsageException.class)
     @Transactional
     public void testCircularRelationship() {
-        Person p = new Person("Michael", 35);
+        Person p = new Person("Michael", 35).persist();
         p.setSpouse(p);
     }
     @Test
     @Transactional
     public void testSetOneToManyRelationship() {
-        Person michael = new Person("Michael", 35);
-        Person david = new Person("David", 25);
-        Group group = new Group();
+        Person michael = new Person("Michael", 35).persist();
+        Person david = new Person("David", 25).persist();
+        Group group = new Group().persist();
         Set<Person> persons = new HashSet<Person>(Arrays.asList(michael, david));
         group.setPersons(persons);
         Relationship michaelRel = michael.getPersistentState().getSingleRelationship(DynamicRelationshipType.withName("persons"), Direction.INCOMING);
@@ -121,9 +121,9 @@ public class NodeEntityRelationshipTest {
     @Test
     @Transactional
     public void testGetOneToManyRelationship() {
-        Person michael = new Person("Michael", 35);
-        Person david = new Person("David", 25);
-        Group group = new Group();
+        Person michael = new Person("Michael", 35).persist();
+        Person david = new Person("David", 25).persist();
+        Group group = new Group().persist();
         Set<Person> persons = new HashSet<Person>(Arrays.asList(michael, david));
         group.setPersons(persons);
         Collection<Person> personsFromGet = group.getPersons();
@@ -134,9 +134,9 @@ public class NodeEntityRelationshipTest {
     @Test
     @Transactional
     public void testAddToOneToManyRelationship() {
-        Person michael = new Person("Michael", 35);
-        Person david = new Person("David", 25);
-        Group group = new Group();
+        Person michael = new Person("Michael", 35).persist();
+        Person david = new Person("David", 25).persist();
+        Group group = new Group().persist();
         group.setPersons(new HashSet<Person>());
         group.getPersons().add(michael);
         group.getPersons().add(david);
@@ -148,9 +148,9 @@ public class NodeEntityRelationshipTest {
     @Test
     @Transactional
     public void testRemoveFromOneToManyRelationship() {
-        Person michael = new Person("Michael", 35);
-        Person david = new Person("David", 25);
-        Group group = new Group();
+        Person michael = new Person("Michael", 35).persist();
+        Person david = new Person("David", 25).persist();
+        Group group = new Group().persist();
         group.setPersons(new HashSet<Person>(Arrays.asList(michael, david)));
         group.getPersons().remove(david);
         assertEquals(Collections.singleton(michael), group.getPersons());
@@ -159,9 +159,9 @@ public class NodeEntityRelationshipTest {
     @Test
     @Transactional
     public void testRelationshipGetEntities() {
-        Person p = new Person("Michael", 35);
-        Person p2 = new Person("David", 25);
-        Person p3 = new Person("Emil", 32);
+        Person p = new Person("Michael", 35).persist();
+        Person p2 = new Person("David", 25).persist();
+        Person p3 = new Person("Emil", 32).persist();
         Friendship f2 = p.knows(p2);
         Friendship f3 = p.knows(p3);
         assertEquals(new HashSet<Friendship>(Arrays.asList(f2, f3)), IteratorUtil.addToCollection(p.getFriendships().iterator(), new HashSet<Friendship>()));
@@ -170,16 +170,16 @@ public class NodeEntityRelationshipTest {
     @Test(expected = InvalidDataAccessApiUsageException.class)
     @Transactional
     public void testRelationshipSetEntitiesShouldThrowException() {
-        Person p = new Person("Michael", 35);
+        Person p = new Person("Michael", 35).persist();
         p.setFriendships(new HashSet<Friendship>());
     }
 
     @Test
     @Transactional
     public void testOneToManyReadOnly() {
-        Person michael = new Person("Michael", 35);
-        Person david = new Person("David", 25);
-        Group group = new Group();
+        Person michael = new Person("Michael", 35).persist();
+        Person david = new Person("David", 25).persist();
+        Group group = new Group().persist();
         Set<Person> persons = new HashSet<Person>(Arrays.asList(michael, david));
         group.setPersons(persons);
         assertEquals(persons, IteratorUtil.addToCollection(group.getReadOnlyPersons().iterator(), new HashSet<Person>()));
@@ -188,7 +188,7 @@ public class NodeEntityRelationshipTest {
     @Test(expected = InvalidDataAccessApiUsageException.class)
     @Transactional
     public void testOneToManyReadOnlyShouldThrowExceptionOnSet() {
-        Group group = new Group();
+        Group group = new Group().persist();
         group.setReadOnlyPersons(new HashSet<Person>());
     }
 

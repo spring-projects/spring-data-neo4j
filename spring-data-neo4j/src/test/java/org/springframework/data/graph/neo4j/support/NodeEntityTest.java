@@ -43,7 +43,7 @@ import static org.junit.Assert.assertNull;
     @Test
     @Transactional
     public void testUserConstructor() {
-        Person p = new Person("Rod", 39);
+        Person p = new Person("Rod", 39).persist();
         assertEquals(p.getName(), p.getPersistentState().getProperty("Person.name"));
         assertEquals(p.getAge(), p.getPersistentState().getProperty("Person.age"));
         Person found = graphDatabaseContext.createEntityFromState(graphDatabaseContext.getNodeById(p.getNodeId()), Person.class);
@@ -54,7 +54,7 @@ import static org.junit.Assert.assertNull;
     @Test
     @Transactional
     public void testSetProperties() {
-        Person p = new Person("Foo", 2);
+        Person p = new Person("Foo", 2).persist();
         p.setName("Michael");
         p.setAge(35);
         p.setHeight((short)182);
@@ -66,7 +66,7 @@ import static org.junit.Assert.assertNull;
     @Test
     @Transactional
     public void testSetShortProperty() {
-        Group group = new Group();
+        Group group = new Group().persist();
         group.setName("developers");
         assertEquals("developers", group.getPersistentState().getProperty("name"));
     }
@@ -74,8 +74,8 @@ import static org.junit.Assert.assertNull;
     @Test(expected = NotFoundException.class)
     public void testDeleteEntityFromGDC() {
         Transaction tx = graphDatabaseContext.beginTx();
-        Person p = new Person("Michael", 35);
-        Person spouse = new Person("Tina", 36);
+        Person p = new Person("Michael", 35).persist();
+        Person spouse = new Person("Tina", 36).persist();
         p.setSpouse(spouse);
         long id = spouse.getId();
         graphDatabaseContext.removeNodeEntity(spouse);
@@ -91,8 +91,8 @@ import static org.junit.Assert.assertNull;
     @Test(expected = NotFoundException.class)
     public void testDeleteEntity() {
         Transaction tx = graphDatabaseContext.beginTx();
-        Person p = new Person("Michael", 35);
-        Person spouse = new Person("Tina", 36);
+        Person p = new Person("Michael", 35).persist();
+        Person spouse = new Person("Tina", 36).persist();
         p.setSpouse(spouse);
         long id = spouse.getId();
         spouse.remove();
