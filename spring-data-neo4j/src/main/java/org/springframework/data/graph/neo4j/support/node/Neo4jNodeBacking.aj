@@ -27,23 +27,19 @@ import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.graphdb.traversal.TraversalDescription;
 import org.neo4j.graphdb.traversal.Traverser;
 import org.springframework.beans.factory.annotation.Configurable;
-import org.springframework.data.graph.annotation.NodeEntity;
 import org.springframework.data.graph.core.NodeBacked;
 import org.springframework.data.graph.core.RelationshipBacked;
 import org.springframework.data.graph.neo4j.fieldaccess.*;
 import org.springframework.data.graph.neo4j.support.GraphDatabaseContext;
-import org.springframework.persistence.support.AbstractTypeAnnotatingMixinFields;
-
+import org.springframework.data.graph.annotation.*;
 import java.lang.reflect.Field;
 
 import static org.springframework.data.graph.neo4j.fieldaccess.DoReturn.unwrap;
 
-import org.springframework.persistence.support.StateProvider;
-
 /**
  * Aspect for handling node entity creation and field access (read & write)
- * puts the underlying state (Node) into and delegates field access to an {@link EntityStateAccessors} instance,
- * created by a configured {@link NodeEntityStateAccessorsFactory}.
+ * puts the underlying state (Node) into and delegates field access to an {@link org.springframework.data.graph.neo4j.fieldaccess.EntityState} instance,
+ * created by a configured {@link org.springframework.data.graph.neo4j.fieldaccess.NodeEntityStateFactory}.
  *
  * Handles constructor invocation and partial entities as well.
  */
@@ -69,16 +65,16 @@ public aspect Neo4jNodeBacking { // extends AbstractTypeAnnotatingMixinFields<No
 
 
     private GraphDatabaseContext graphDatabaseContext;
-    private NodeEntityStateAccessorsFactory entityStateAccessorsFactory;
+    private NodeEntityStateFactory entityStateFactory;
 
     public void setGraphDatabaseContext(GraphDatabaseContext graphDatabaseContext) {
         this.graphDatabaseContext = graphDatabaseContext;
     }
-    public void setNodeEntityStateAccessorsFactory(NodeEntityStateAccessorsFactory entityStateAccessorsFactory) {
-        this.entityStateAccessorsFactory = entityStateAccessorsFactory;
+    public void setNodeEntityStateFactory(NodeEntityStateFactory entityStateFactory) {
+        this.entityStateFactory = entityStateFactory;
     }
     /**
-     * pointcut for constructors not taking a node to be handled by the aspect and the {@link EntityStateAccessors}
+     * pointcut for constructors not taking a node to be handled by the aspect and the {@link org.springframework.data.graph.neo4j.fieldaccess.EntityState}
      */
 	pointcut arbitraryUserConstructorOfNodeBackedObject(NodeBacked entity) :
 		execution((@NodeEntity *).new(..)) &&
@@ -89,51 +85,51 @@ public aspect Neo4jNodeBacking { // extends AbstractTypeAnnotatingMixinFields<No
     /**
      * Handle outside entity instantiation by either creating an appropriate backing node in the graph or in the case
      * of a reinstantiated partial entity by assigning the original node to the entity, the concrete behaviour is delegated
-     * to the {@link EntityStateAccessors}. Also handles the java type representation in the graph.
+     * to the {@link org.springframework.data.graph.neo4j.fieldaccess.EntityState}. Also handles the java type representation in the graph.
      * When running outside of a transaction, no node is created, this is handled later when the entity is accessed within
      * a transaction again.
      */
     before(NodeBacked entity): arbitraryUserConstructorOfNodeBackedObject(entity) {
-        if (entityStateAccessorsFactory == null) {
-            log.error("entityStateAccessorsFactory not set, not creating accessors for " + entity.getClass());
+        if (entityStateFactory == null) {
+            log.error("entityStateFactory not set, not creating accessors for " + entity.getClass());
         } else {
-            if (entity.stateAccessors != null) return;
-            EntityStateAccessors<NodeBacked, Node> stateAccessors = entityStateAccessorsFactory.getEntityStateAccessors(entity);
-            entity.stateAccessors = stateAccessors;
-            stateAccessors.attach(true);
+            if (entity.entityState != null) return;
+            EntityState<NodeBacked, Node> entityState = entityStateFactory.getEntityState(entity);
+            entity.entityState = entityState;
+            entityState.persist(true);
         }
     }
 
     public NodeBacked NodeBacked.attach() {
-        return this.stateAccessors.attach(false);
+        return this.entityState.persist(false);
     }
     /**
      * State accessors that encapsulate the underlying state and the behaviour related to it (field access, creation)
      */
-    private transient EntityStateAccessors<NodeBacked,Node> NodeBacked.stateAccessors;
+    private transient EntityState<NodeBacked,Node> NodeBacked.entityState;
 
     /**
-     * sets the underlying state to the given node, creates an {@link EntityStateAccessors} instance on demand for delegating
+     * sets the underlying state to the given node, creates an {@link org.springframework.data.graph.neo4j.fieldaccess.EntityState} instance on demand for delegating
      * the behaviour, otherwise just updates the backing state
      * @param n the node to be the backing state of the entity
      */
-	public void NodeBacked.setUnderlyingState(Node n) {
-        if (this.stateAccessors == null) {
-            this.stateAccessors = Neo4jNodeBacking.aspectOf().entityStateAccessorsFactory.getEntityStateAccessors(this);
+	public void NodeBacked.setPersistentState(Node n) {
+        if (this.entityState == null) {
+            this.entityState = Neo4jNodeBacking.aspectOf().entityStateFactory.getEntityState(this);
         }
-        this.stateAccessors.setUnderlyingState(n);
+        this.entityState.setPersistentState(n);
 	}
 
-	public Node NodeBacked.getUnderlyingState() {
-		return this.stateAccessors.getUnderlyingState();
+	public Node NodeBacked.getPersistentState() {
+		return this.entityState.getPersistentState();
 	}
 	
-    public EntityStateAccessors NodeBacked.getStateAccessors() {
-        return stateAccessors;
+    public EntityState NodeBacked.getEntityState() {
+        return entityState;
     }
 
     public boolean NodeBacked.hasUnderlyingNode() {
-        return this.stateAccessors!=null && this.stateAccessors.hasUnderlyingState();
+        return this.entityState!=null && this.entityState.hasPersistentState();
     }
 
     public <T extends NodeBacked> T NodeBacked.projectTo(Class<T> targetType) {
@@ -147,7 +143,7 @@ public aspect Neo4jNodeBacking { // extends AbstractTypeAnnotatingMixinFields<No
      * @return the newly created relationship to the target node
      */
 	public Relationship NodeBacked.relateTo(NodeBacked target, RelationshipType type) {
-		return this.getUnderlyingState().createRelationshipTo(target.getUnderlyingState(), type);
+		return this.getPersistentState().createRelationshipTo(target.getPersistentState(), type);
 	}
 
     /**
@@ -155,7 +151,7 @@ public aspect Neo4jNodeBacking { // extends AbstractTypeAnnotatingMixinFields<No
      */
 	public Long NodeBacked.getNodeId() {
         if (!hasUnderlyingNode()) return null;
-		return getUnderlyingState().getId();
+		return getPersistentState().getId();
 	}
 
     /**
@@ -167,7 +163,7 @@ public aspect Neo4jNodeBacking { // extends AbstractTypeAnnotatingMixinFields<No
      */
     public  <T extends NodeBacked> Iterable<T> NodeBacked.findAllByTraversal(final Class<T> targetType, TraversalDescription traversalDescription) {
         if (!hasUnderlyingNode()) throw new IllegalStateException("No node attached to " + this);
-        final Traverser traverser = traversalDescription.traverse(this.getUnderlyingState());
+        final Traverser traverser = traversalDescription.traverse(this.getPersistentState());
         return new NodeBackedNodeIterableWrapper<T>(traverser, targetType, Neo4jNodeBacking.aspectOf().graphDatabaseContext);
     }
 
@@ -186,7 +182,7 @@ public aspect Neo4jNodeBacking { // extends AbstractTypeAnnotatingMixinFields<No
      * @return relationship entity, instance of the provided relationshipClass
      */
     public <R extends RelationshipBacked, N extends NodeBacked> R NodeBacked.relateTo(N target, Class<R> relationshipClass, String relationshipType) {
-        Relationship rel = this.getUnderlyingState().createRelationshipTo( target.getUnderlyingState(), DynamicRelationshipType.withName(relationshipType));
+        Relationship rel = this.getPersistentState().createRelationshipTo( target.getPersistentState(), DynamicRelationshipType.withName(relationshipType));
         return (R)Neo4jNodeBacking.aspectOf().graphDatabaseContext.createEntityFromState(rel, relationshipClass);
     }
 
@@ -204,9 +200,9 @@ public aspect Neo4jNodeBacking { // extends AbstractTypeAnnotatingMixinFields<No
      * @param relationshipType
      */
     public void NodeBacked.removeRelationshipTo(NodeBacked target, String relationshipType) {
-        Node myNode=this.getUnderlyingState();
-        Node otherNode=target.getUnderlyingState();
-        for (Relationship rel : this.getUnderlyingState().getRelationships(DynamicRelationshipType.withName(relationshipType))) {
+        Node myNode=this.getPersistentState();
+        Node otherNode=target.getPersistentState();
+        for (Relationship rel : this.getPersistentState().getRelationships(DynamicRelationshipType.withName(relationshipType))) {
             if (rel.getOtherNode(myNode).equals(otherNode)) {
                 rel.delete();
                 return;
@@ -222,9 +218,9 @@ public aspect Neo4jNodeBacking { // extends AbstractTypeAnnotatingMixinFields<No
      * @return and instance of the requested relationshipClass if the relationship was found, null otherwise
      */
     public <R extends RelationshipBacked> R NodeBacked.getRelationshipTo( NodeBacked node, Class<R> relationshipClass, String type) {
-        Node myNode=this.getUnderlyingState();
-        Node otherNode=node.getUnderlyingState();
-        for (Relationship rel : this.getUnderlyingState().getRelationships(DynamicRelationshipType.withName(type))) {
+        Node myNode=this.getPersistentState();
+        Node otherNode=node.getPersistentState();
+        for (Relationship rel : this.getPersistentState().getRelationships(DynamicRelationshipType.withName(type))) {
             if (rel.getOtherNode(myNode).equals(otherNode)) return (R)Neo4jNodeBacking.aspectOf().graphDatabaseContext.createEntityFromState(rel, relationshipClass);
         }
         return null;
@@ -238,7 +234,7 @@ public aspect Neo4jNodeBacking { // extends AbstractTypeAnnotatingMixinFields<No
         if (obj == this) return true;
         if (!hasUnderlyingNode()) return false;
 		if (obj instanceof NodeBacked) {
-			return this.getUnderlyingState().equals(((NodeBacked) obj).getUnderlyingState());
+			return this.getPersistentState().equals(((NodeBacked) obj).getPersistentState());
 		}
 		return false;
 	}
@@ -248,15 +244,15 @@ public aspect Neo4jNodeBacking { // extends AbstractTypeAnnotatingMixinFields<No
      */
 	public final int NodeBacked.hashCode() {
         if (!hasUnderlyingNode()) return System.identityHashCode(this);
-		return getUnderlyingState().hashCode();
+		return getPersistentState().hashCode();
 	}
 
     /**
      * delegates field reads to the state accessors instance
      */
     Object around(NodeBacked entity): entityFieldGet(entity) {
-        if (entity.stateAccessors==null) return proceed(entity);
-        Object result=entity.stateAccessors.getValue(field(thisJoinPoint));
+        if (entity.entityState==null) return proceed(entity);
+        Object result=entity.entityState.getValue(field(thisJoinPoint));
         if (result instanceof DoReturn) return unwrap(result);
         return proceed(entity);
     }
@@ -265,8 +261,8 @@ public aspect Neo4jNodeBacking { // extends AbstractTypeAnnotatingMixinFields<No
      * delegates field writes to the state accessors instance
      */
     Object around(NodeBacked entity, Object newVal) : entityFieldSet(entity, newVal) {
-        if (entity.stateAccessors==null) return proceed(entity,newVal);
-        Object result=entity.stateAccessors.setValue(field(thisJoinPoint),newVal);
+        if (entity.entityState==null) return proceed(entity,newVal);
+        Object result=entity.entityState.setValue(field(thisJoinPoint),newVal);
         if (result instanceof DoReturn) return unwrap(result);
         return proceed(entity,result);
 	}

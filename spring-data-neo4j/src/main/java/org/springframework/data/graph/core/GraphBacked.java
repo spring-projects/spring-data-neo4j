@@ -29,10 +29,10 @@ public interface GraphBacked<STATE> {
      * internal setter used for initializing the graph-db state on existing or newly created entities
      * @param state (Node or Relationship)
      */
-    void setUnderlyingState(STATE state);
+    void setPersistentState(STATE state);
 
     /**
      * @return the underlying graph-db state or null if the current entity is not related to the graph-store (possible with unsaved or partial entities)
      */
-    STATE getUnderlyingState();
+    STATE getPersistentState();
 }

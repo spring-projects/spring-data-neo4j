@@ -41,7 +41,7 @@ public class AttachEntityTest {
     }
 
     private Node nodeFor(NodeBacked nodeBacked) {
-        return nodeBacked.getUnderlyingState();
+        return nodeBacked.getPersistentState();
     }
 
 

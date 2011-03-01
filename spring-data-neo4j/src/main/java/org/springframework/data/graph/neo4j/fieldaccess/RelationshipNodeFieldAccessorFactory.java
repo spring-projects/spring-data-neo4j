@@ -94,7 +94,7 @@ public class RelationshipNodeFieldAccessorFactory implements FieldAccessorFactor
 
         @Override
         public Object getValue(final RelationshipBacked relationshipBacked) {
-            final Relationship relationship = relationshipBacked.getUnderlyingState();
+            final Relationship relationship = relationshipBacked.getPersistentState();
             final Node node = getNode(relationship);
             if (node == null) {
                 return null;

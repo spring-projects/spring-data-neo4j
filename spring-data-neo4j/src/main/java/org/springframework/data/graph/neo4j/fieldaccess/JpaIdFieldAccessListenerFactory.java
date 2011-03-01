@@ -46,8 +46,8 @@ public class JpaIdFieldAccessListenerFactory implements FieldAccessorListenerFac
         @Override
         public void valueChanged(NodeBacked nodeBacked, Object oldVal, Object newVal) {
             if (newVal != null) {
-                EntityStateAccessors stateAccessors=nodeBacked.getStateAccessors();
-                stateAccessors.attach(false);
+                EntityState entityState =nodeBacked.getEntityState();
+                entityState.persist(false);
             }
         }
     }

@@ -49,8 +49,8 @@ public class NodeEntityRelationshipTest {
         Person p = new Person("Michael", 35);
         Person spouse = new Person("Tina",36);
         p.setSpouse(spouse);
-        Node spouseNode=p.getUnderlyingState().getSingleRelationship(DynamicRelationshipType.withName("Person.spouse"), Direction.OUTGOING).getEndNode();
-        assertEquals(spouse.getUnderlyingState(), spouseNode);
+        Node spouseNode=p.getPersistentState().getSingleRelationship(DynamicRelationshipType.withName("Person.spouse"), Direction.OUTGOING).getEndNode();
+        assertEquals(spouse.getPersistentState(), spouseNode);
         assertEquals(spouse, p.getSpouse());
     }
 
@@ -60,8 +60,8 @@ public class NodeEntityRelationshipTest {
         Person p = new Person("Michael", 35);
         Person mother = new Person("Gabi",60);
         p.setMother(mother);
-        Node motherNode = p.getUnderlyingState().getSingleRelationship(DynamicRelationshipType.withName("mother"), Direction.OUTGOING).getEndNode();
-        assertEquals(mother.getUnderlyingState(), motherNode);
+        Node motherNode = p.getPersistentState().getSingleRelationship(DynamicRelationshipType.withName("mother"), Direction.OUTGOING).getEndNode();
+        assertEquals(mother.getPersistentState(), motherNode);
         assertEquals(mother, p.getMother());
     }
 
@@ -72,7 +72,7 @@ public class NodeEntityRelationshipTest {
         Person spouse = new Person("Tina", 36);
         p.setSpouse(spouse);
         p.setSpouse(null);
-        Assert.assertNull(p.getUnderlyingState().getSingleRelationship(DynamicRelationshipType.withName("Person.spouse"), Direction.OUTGOING));
+        Assert.assertNull(p.getPersistentState().getSingleRelationship(DynamicRelationshipType.withName("Person.spouse"), Direction.OUTGOING));
         Assert.assertNull(p.getSpouse());
     }
 
@@ -84,7 +84,7 @@ public class NodeEntityRelationshipTest {
         Person friend = new Person("Helga", 34);
         p.setSpouse(spouse);
         p.setSpouse(friend);
-        assertEquals(friend.getUnderlyingState(), p.getUnderlyingState().getSingleRelationship(DynamicRelationshipType.withName("Person.spouse"), Direction.OUTGOING).getEndNode());
+        assertEquals(friend.getPersistentState(), p.getPersistentState().getSingleRelationship(DynamicRelationshipType.withName("Person.spouse"), Direction.OUTGOING).getEndNode());
         assertEquals(friend, p.getSpouse());
     }
 
@@ -94,7 +94,7 @@ public class NodeEntityRelationshipTest {
         Person p = new Person("David", 25);
         Person boss = new Person("Emil", 32);
         p.setBoss(boss);
-        assertEquals(boss.getUnderlyingState(), p.getUnderlyingState().getSingleRelationship(DynamicRelationshipType.withName("boss"), Direction.INCOMING).getStartNode());
+        assertEquals(boss.getPersistentState(), p.getPersistentState().getSingleRelationship(DynamicRelationshipType.withName("boss"), Direction.INCOMING).getStartNode());
         assertEquals(boss, p.getBoss());
     }
 
@@ -112,10 +112,10 @@ public class NodeEntityRelationshipTest {
         Group group = new Group();
         Set<Person> persons = new HashSet<Person>(Arrays.asList(michael, david));
         group.setPersons(persons);
-        Relationship michaelRel = michael.getUnderlyingState().getSingleRelationship(DynamicRelationshipType.withName("persons"), Direction.INCOMING);
-        Relationship davidRel = david.getUnderlyingState().getSingleRelationship(DynamicRelationshipType.withName("persons"), Direction.INCOMING);
-        assertEquals(group.getUnderlyingState(), michaelRel.getStartNode());
-        assertEquals(group.getUnderlyingState(), davidRel.getStartNode());
+        Relationship michaelRel = michael.getPersistentState().getSingleRelationship(DynamicRelationshipType.withName("persons"), Direction.INCOMING);
+        Relationship davidRel = david.getPersistentState().getSingleRelationship(DynamicRelationshipType.withName("persons"), Direction.INCOMING);
+        assertEquals(group.getPersistentState(), michaelRel.getStartNode());
+        assertEquals(group.getPersistentState(), davidRel.getStartNode());
     }
 
     @Test

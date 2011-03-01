@@ -105,7 +105,7 @@ public class OneToNRelationshipEntityFieldAccessorFactory implements FieldAccess
 
 	    @Override
 	    protected Iterable<Relationship> getStatesFromEntity(final NodeBacked entity) {
-	        return entity.getUnderlyingState().getRelationships(type, direction);
+	        return entity.getPersistentState().getRelationships(type, direction);
 	    }
 
 	    @Override
@@ -115,7 +115,7 @@ public class OneToNRelationshipEntityFieldAccessorFactory implements FieldAccess
 
 	    @Override
 	    protected Node getState(final NodeBacked nodeBacked) {
-	        return nodeBacked.getUnderlyingState();
+	        return nodeBacked.getPersistentState();
 	    }
 
 	}

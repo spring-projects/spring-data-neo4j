@@ -62,7 +62,7 @@ public class PropertyFieldAccessorFactory implements FieldAccessorFactory<GraphB
 
         @Override
         public Object setValue(final GraphBacked<PropertyContainer> graphBacked, final Object newVal) {
-            final PropertyContainer propertyContainer = graphBacked.getUnderlyingState();
+            final PropertyContainer propertyContainer = graphBacked.getPersistentState();
             if (newVal==null) {
                 propertyContainer.removeProperty(getPropertyName());
             } else {
@@ -77,7 +77,7 @@ public class PropertyFieldAccessorFactory implements FieldAccessorFactory<GraphB
         }
 
         protected Object doGetValue(final GraphBacked<PropertyContainer> graphBacked) {
-            return graphBacked.getUnderlyingState().getProperty(getPropertyName(), getDefaultValue(field.getType()));
+            return graphBacked.getPersistentState().getProperty(getPropertyName(), getDefaultValue(field.getType()));
         }
 
         private String getPropertyName() {

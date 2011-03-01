@@ -69,12 +69,12 @@
 	
 	<bean id="neo4jNodeBacking" class="org.springframework.data.graph.neo4j.support.node.Neo4jNodeBacking" factory-method="aspectOf">
 		<property name="graphDatabaseContext" ref="graphDatabaseContext"/>
-		<property name="nodeEntityStateAccessorsFactory" ref="nodeEntityStateAccessorsFactory"/>
+		<property name="nodeEntityStateFactory" ref="nodeEntityStateFactory"/>
 	</bean>
 
 	<bean class="org.springframework.data.graph.neo4j.support.relationship.Neo4jRelationshipBacking" factory-method="aspectOf">
 		<property name="graphDatabaseContext" ref="graphDatabaseContext"/>
-		<property name="relationshipEntityStateAccessorsFactory" ref="relationshipEntityStateAccessorsFactory"/>
+		<property name="relationshipEntityStateFactory" ref="relationshipEntityStateFactory"/>
 	</bean>
 
 	<bean id="graphDatabaseService" class="org.neo4j.kernel.ImpermanentGraphDatabase"
@@ -103,7 +103,7 @@
         </property>
 	</bean>
 
-    <bean id="nodeEntityStateAccessorsFactory" class="org.springframework.data.graph.neo4j.fieldaccess.NodeEntityStateAccessorsFactory">
+    <bean id="nodeEntityStateFactory" class="org.springframework.data.graph.neo4j.fieldaccess.NodeEntityStateFactory">
     	<property name="nodeDelegatingFieldAccessorFactory">
 		    <bean class="org.springframework.data.graph.neo4j.fieldaccess.NodeDelegatingFieldAccessorFactory">
 		        <constructor-arg ref="graphDatabaseContext"/>
@@ -114,7 +114,7 @@
 		<property name="finderFactory" ref="finderFactory"/>
     </bean>
 
-    <bean id="relationshipEntityStateAccessorsFactory" class="org.springframework.data.graph.neo4j.fieldaccess.RelationshipEntityStateAccessorsFactory">
+    <bean id="relationshipEntityStateFactory" class="org.springframework.data.graph.neo4j.fieldaccess.RelationshipEntityStateFactory">
     	<property name="graphDatabaseContext" ref="graphDatabaseContext"/>
 		<property name="finderFactory" ref="finderFactory"/>
     </bean>

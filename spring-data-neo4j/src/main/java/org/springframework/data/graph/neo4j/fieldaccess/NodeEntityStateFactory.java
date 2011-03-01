@@ -22,9 +22,9 @@ import org.springframework.data.graph.core.NodeBacked;
 import org.springframework.data.graph.neo4j.finder.FinderFactory;
 import org.springframework.data.graph.neo4j.support.GraphDatabaseContext;
 
-import static org.springframework.data.graph.neo4j.fieldaccess.PartialNodeEntityStateAccessors.getId;
+import static org.springframework.data.graph.neo4j.fieldaccess.PartialNodeEntityState.getId;
 
-public class NodeEntityStateAccessorsFactory {
+public class NodeEntityStateFactory {
 
 	private GraphDatabaseContext graphDatabaseContext;
 	
@@ -32,23 +32,23 @@ public class NodeEntityStateAccessorsFactory {
 
 	private NodeDelegatingFieldAccessorFactory nodeDelegatingFieldAccessorFactory;
 
-	public EntityStateAccessors<NodeBacked,Node> getEntityStateAccessors(final NodeBacked entity) {
+	public EntityState<NodeBacked,Node> getEntityState(final NodeBacked entity) {
         final NodeEntity graphEntityAnnotation = entity.getClass().getAnnotation(NodeEntity.class); // todo cache ??
         boolean autoAttach = graphEntityAnnotation.autoAttach();
         if (graphEntityAnnotation.partial()) {
-            PartialNodeEntityStateAccessors<NodeBacked> partialNodeEntityStateAccessors = new PartialNodeEntityStateAccessors<NodeBacked>(null, entity, entity.getClass(), graphDatabaseContext, finderFactory);
-            return new DetachableEntityStateAccessors<NodeBacked, Node>(partialNodeEntityStateAccessors, graphDatabaseContext, false) {
+            PartialNodeEntityState<NodeBacked> partialNodeEntityState = new PartialNodeEntityState<NodeBacked>(null, entity, entity.getClass(), graphDatabaseContext, finderFactory);
+            return new DetachableEntityState<NodeBacked, Node>(partialNodeEntityState, graphDatabaseContext, false) {
                 @Override
                 protected boolean transactionIsRunning() {
                     return super.transactionIsRunning() && getId(entity, entity.getClass()) != null;
                 }
             };
         } else {
-            NodeEntityStateAccessors<NodeBacked> nodeEntityStateAccessors = new NodeEntityStateAccessors<NodeBacked>(null, entity, entity.getClass(), graphDatabaseContext, nodeDelegatingFieldAccessorFactory);
+            NodeEntityState<NodeBacked> nodeEntityState = new NodeEntityState<NodeBacked>(null, entity, entity.getClass(), graphDatabaseContext, nodeDelegatingFieldAccessorFactory);
             if (autoAttach) {
-                return new NestedTransactionEntityStateAccessors<NodeBacked, Node>(nodeEntityStateAccessors,graphDatabaseContext);
+                return new NestedTransactionEntityState<NodeBacked, Node>(nodeEntityState,graphDatabaseContext);
             } else {
-                return new DetachableEntityStateAccessors<NodeBacked, Node>(nodeEntityStateAccessors, graphDatabaseContext, autoAttach);
+                return new DetachableEntityState<NodeBacked, Node>(nodeEntityState, graphDatabaseContext, autoAttach);
             }
         }
     }

@@ -92,7 +92,7 @@ public class SubReferenceNodeTypeStrategy implements NodeTypeStrategy {
 	    Class<? extends NodeBacked> clazz = entity.getClass();
 
 	    final Node subReference = obtainSubreferenceNode(clazz);
-        entity.getUnderlyingState().createRelationshipTo(subReference, INSTANCE_OF_RELATIONSHIP_TYPE);
+        entity.getPersistentState().createRelationshipTo(subReference, INSTANCE_OF_RELATIONSHIP_TYPE);
 	    subReference.setProperty(SUBREF_CLASS_KEY, clazz.getName());
 	    if (log.isDebugEnabled()) log.debug("Created link to subref node: " + subReference + " with type: " + clazz.getName());
 
@@ -110,7 +110,7 @@ public class SubReferenceNodeTypeStrategy implements NodeTypeStrategy {
         Class<? extends NodeBacked> clazz = entity.getClass();
 
         final Node subReference = obtainSubreferenceNode(clazz);
-        Node subRefNode = entity.getUnderlyingState();
+        Node subRefNode = entity.getPersistentState();
         Relationship instanceOf = subRefNode.getSingleRelationship(INSTANCE_OF_RELATIONSHIP_TYPE, Direction.OUTGOING);
         instanceOf.delete();
         if (log.isDebugEnabled()) log.debug("Removed link to subref node: " + subReference + " with type: " + clazz.getName());

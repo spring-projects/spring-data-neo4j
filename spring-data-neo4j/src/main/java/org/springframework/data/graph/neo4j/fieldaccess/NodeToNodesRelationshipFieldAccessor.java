@@ -57,6 +57,6 @@ public abstract class NodeToNodesRelationshipFieldAccessor<TARGET extends GraphB
 
     @Override
     protected Node getState(final NodeBacked entity) {
-        return entity.getUnderlyingState();
+        return entity.getPersistentState();
     }
 }

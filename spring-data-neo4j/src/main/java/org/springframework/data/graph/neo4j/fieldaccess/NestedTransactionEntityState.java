@@ -9,14 +9,14 @@ import org.springframework.data.graph.neo4j.support.GraphDatabaseContext;
 import java.lang.reflect.Field;
 import java.util.concurrent.Callable;
 
-public class NestedTransactionEntityStateAccessors<ENTITY extends GraphBacked<STATE>, STATE> implements
-        EntityStateAccessors<ENTITY, STATE> {
-    protected final EntityStateAccessors<ENTITY, STATE> delegate;
-    private final static Log log = LogFactory.getLog(NestedTransactionEntityStateAccessors.class);
+public class NestedTransactionEntityState<ENTITY extends GraphBacked<STATE>, STATE> implements
+        EntityState<ENTITY, STATE> {
+    protected final EntityState<ENTITY, STATE> delegate;
+    private final static Log log = LogFactory.getLog(NestedTransactionEntityState.class);
     private GraphDatabaseContext graphDatabaseContext;
 
-    public NestedTransactionEntityStateAccessors(final EntityStateAccessors<ENTITY, STATE> delegate,
-                                                 GraphDatabaseContext graphDatabaseContext) {
+    public NestedTransactionEntityState(final EntityState<ENTITY, STATE> delegate,
+                                        GraphDatabaseContext graphDatabaseContext) {
         this.delegate = delegate;
         this.graphDatabaseContext = graphDatabaseContext;
     }
@@ -26,8 +26,8 @@ public class NestedTransactionEntityStateAccessors<ENTITY extends GraphBacked<ST
         return delegate.getEntity();
     }
 
-    public void setUnderlyingState(STATE state) {
-        delegate.setUnderlyingState(state);
+    public void setPersistentState(STATE state) {
+        delegate.setPersistentState(state);
     }
 
     @Override
@@ -60,20 +60,20 @@ public class NestedTransactionEntityStateAccessors<ENTITY extends GraphBacked<ST
     }
 
     @Override
-    public boolean hasUnderlyingState() {
-        return delegate.hasUnderlyingState();
+    public boolean hasPersistentState() {
+        return delegate.hasPersistentState();
     }
 
     @Override
-    public STATE getUnderlyingState() {
-        return delegate.getUnderlyingState();
+    public STATE getPersistentState() {
+        return delegate.getPersistentState();
     }
 
     @Override
-    public ENTITY attach(final boolean isOnCreate) {
+    public ENTITY persist(final boolean isOnCreate) {
         return doInTransaction(new Callable<ENTITY>() {
             public ENTITY call() throws Exception {
-                return delegate.attach(isOnCreate);
+                return delegate.persist(isOnCreate);
             }
         });
     }

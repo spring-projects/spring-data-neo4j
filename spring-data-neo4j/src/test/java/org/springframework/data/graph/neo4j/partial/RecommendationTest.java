@@ -52,16 +52,16 @@ public class RecommendationTest {
     public void jpaUserHasNodeAndId() {
         User user = user("John");
         Assert.assertNotNull("jpa-id",user.getId());
-        Assert.assertNotNull("node",user.getUnderlyingState());
+        Assert.assertNotNull("node",user.getPersistentState());
     }
     @Test
     @Transactional
     public void jpaUserCanHaveGraphProperties() {
         User user = user("John");
         Assert.assertNotNull("jpa-id",user.getId());
-        Assert.assertNotNull("node",user.getUnderlyingState());
+        Assert.assertNotNull("node",user.getPersistentState());
         Assert.assertNotNull("nickname in entity",user.getNickname());
-        Assert.assertEquals("nickname in graph","John",user.getUnderlyingState().getProperty("nickname"));
+        Assert.assertEquals("nickname in graph","John",user.getPersistentState().getProperty("nickname"));
     }
 
     private User user(final String name) {
@@ -79,7 +79,7 @@ public class RecommendationTest {
     public void jpaUserCanHaveGraphRelationships() {
         User user = user("John");
         Assert.assertNotNull("jpa-id",user.getId());
-        Assert.assertNotNull("node",user.getUnderlyingState());
+        Assert.assertNotNull("node",user.getPersistentState());
         User user2 = user("Jane");
         user.knows(user2);
         Assert.assertEquals(user2, user.getFriends().iterator().next());

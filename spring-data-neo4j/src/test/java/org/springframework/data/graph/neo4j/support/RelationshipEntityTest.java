@@ -43,9 +43,9 @@ public class RelationshipEntityTest {
         Person p = new Person("Michael", 35);
         Person p2 = new Person("David", 25);
         Friendship f = p.knows(p2);
-        Relationship rel = p.getUnderlyingState().getSingleRelationship(DynamicRelationshipType.withName("knows"), Direction.OUTGOING);
-        assertEquals(f.getUnderlyingState(), rel);
-        assertEquals(p2.getUnderlyingState(), rel.getEndNode());
+        Relationship rel = p.getPersistentState().getSingleRelationship(DynamicRelationshipType.withName("knows"), Direction.OUTGOING);
+        assertEquals(f.getPersistentState(), rel);
+        assertEquals(p2.getPersistentState(), rel.getEndNode());
     }
 
     @Test
@@ -55,7 +55,7 @@ public class RelationshipEntityTest {
         Person p2 = new Person("David", 25);
         Friendship f = p.knows(p2);
         f.setYears(1);
-        assertEquals(1, f.getUnderlyingState().getProperty("Friendship.years"));
+        assertEquals(1, f.getPersistentState().getProperty("Friendship.years"));
     }
 
     @Test
@@ -64,7 +64,7 @@ public class RelationshipEntityTest {
         Person p = new Person("Michael", 35);
         Person p2 = new Person("David", 25);
         Friendship f = p.knows(p2);
-        f.getUnderlyingState().setProperty("Friendship.years", 1);
+        f.getPersistentState().setProperty("Friendship.years", 1);
         assertEquals(1, f.getYears());
     }
 

@@ -46,14 +46,14 @@ public class PropertyTest {
     public void testSetPropertyEnum() {
         Person p = new Person("Michael", 35);
         p.setPersonality(Personality.EXTROVERT);
-        assertEquals("Wrong enum serialization.", "EXTROVERT", p.getUnderlyingState().getProperty("Person.personality"));
+        assertEquals("Wrong enum serialization.", "EXTROVERT", p.getPersistentState().getProperty("Person.personality"));
     }
 
     @Test
     @Transactional
     public void testGetPropertyEnum() {
         Person p = new Person("Michael", 35);
-        p.getUnderlyingState().setProperty("Person.personality", "EXTROVERT");
+        p.getPersistentState().setProperty("Person.personality", "EXTROVERT");
         assertEquals("Did not deserialize property value properly.", Personality.EXTROVERT, p.getPersonality());
     }
 
@@ -62,7 +62,7 @@ public class PropertyTest {
     public void testSetTransientPropertyFieldNotManaged() {
         Person p = new Person("Michael", 35);
         p.setThought("food");
-        p.getUnderlyingState().getProperty("Person.thought");
+        p.getPersistentState().getProperty("Person.thought");
     }
 
     @Test
@@ -70,7 +70,7 @@ public class PropertyTest {
     public void testGetTransientPropertyFieldNotManaged() {
         Person p = new Person("Michael", 35);
         p.setThought("food");
-        p.getUnderlyingState().setProperty("Person.thought", "sleep");
+        p.getPersistentState().setProperty("Person.thought", "sleep");
         assertEquals("Should not have read transient value from graph.", "food", p.getThought());
     }
     @Test
@@ -81,7 +81,7 @@ public class PropertyTest {
         Person p2 = new Person("David", 25);
         Friendship f = p.knows(p2);
         f.setFirstMeetingDate(new Date(3));
-        assertEquals("Date not serialized properly.", "3", f.getUnderlyingState().getProperty("Friendship.firstMeetingDate"));
+        assertEquals("Date not serialized properly.", "3", f.getPersistentState().getProperty("Friendship.firstMeetingDate"));
     }
 
     @Test
@@ -90,7 +90,7 @@ public class PropertyTest {
         Person p = new Person("Michael", 35);
         Person p2 = new Person("David", 25);
         Friendship f = p.knows(p2);
-        f.getUnderlyingState().setProperty("Friendship.firstMeetingDate", "3");
+        f.getPersistentState().setProperty("Friendship.firstMeetingDate", "3");
         assertEquals("Date not deserialized properly.", new Date(3), f.getFirstMeetingDate());
     }
 
@@ -101,7 +101,7 @@ public class PropertyTest {
         Person p2 = new Person("David", 25);
         Friendship f = p.knows(p2);
         f.setLatestLocation("Menlo Park");
-        f.getUnderlyingState().getProperty("Friendship.latestLocation");
+        f.getPersistentState().getProperty("Friendship.latestLocation");
     }
 
     @Test
@@ -111,7 +111,7 @@ public class PropertyTest {
         Person p2 = new Person("David", 25);
         Friendship f = p.knows(p2);
         f.setLatestLocation("Menlo Park");
-        f.getUnderlyingState().setProperty("Friendship.latestLocation", "Palo Alto");
+        f.getPersistentState().setProperty("Friendship.latestLocation", "Palo Alto");
         assertEquals("Should not have read transient value from graph.", "Menlo Park", f.getLatestLocation());
     }
 
@@ -119,17 +119,15 @@ public class PropertyTest {
     @Transactional
     public void testEntityIdField() {
         Person p = new Person("Michael", 35);
-        assertEquals("Wrong ID.", p.getUnderlyingState().getId(), p.getId());
+        assertEquals("Wrong ID.", p.getPersistentState().getId(), p.getId());
     }
 
-    // Would like to have this working.
-    @Ignore
     @Test
     @Transactional
     public void testRelationshipIdField() {
         Person p = new Person("Michael", 35);
         Person p2 = new Person("David", 25);
         Friendship f = p.knows(p2);
-//		assertEquals("Wrong ID.", f.getUnderlyingState().getId(), f.getId());
+		assertEquals("Wrong ID.", (Long)f.getPersistentState().getId(), f.getRelationshipId());
     }
 }

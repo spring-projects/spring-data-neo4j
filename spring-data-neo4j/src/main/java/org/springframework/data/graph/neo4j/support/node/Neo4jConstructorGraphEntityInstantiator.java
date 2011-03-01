@@ -31,7 +31,7 @@ public class Neo4jConstructorGraphEntityInstantiator extends AbstractConstructor
 	
 	@Override
 	protected void setState(NodeBacked entity, Node s) {
-		entity.setUnderlyingState(s);
+		entity.setPersistentState(s);
 	}
 
 }

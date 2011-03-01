@@ -178,7 +178,7 @@ public class SubReferenceNodeTypeStrategyTest {
         }
 
         public Thing(Node n) {
-            setUnderlyingState(n);
+            setPersistentState(n);
         }
     }
 }

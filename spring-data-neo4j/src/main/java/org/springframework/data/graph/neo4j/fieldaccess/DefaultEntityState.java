@@ -28,17 +28,17 @@ import java.util.Map;
  * @author Michael Hunger
  * @since 12.09.2010
  */
-public abstract class DefaultEntityStateAccessors<ENTITY extends GraphBacked<STATE>, STATE> implements EntityStateAccessors<ENTITY,STATE> {
+public abstract class DefaultEntityState<ENTITY extends GraphBacked<STATE>, STATE> implements EntityState<ENTITY,STATE> {
     protected final ENTITY entity;
     protected final Class<? extends ENTITY> type;
     private final Map<Field, FieldAccessor<ENTITY>> fieldAccessors;
     private final Map<Field,List<FieldAccessListener<ENTITY,?>>> fieldAccessorListeners;
     private STATE state;
-    protected final static Log log= LogFactory.getLog(DefaultEntityStateAccessors.class);
+    protected final static Log log= LogFactory.getLog(DefaultEntityState.class);
     private final FieldAccessorFactoryProviders<ENTITY> fieldAccessorFactoryProviders;
 
 
-    public DefaultEntityStateAccessors(final STATE underlyingState, final ENTITY entity, final Class<? extends ENTITY> type, final DelegatingFieldAccessorFactory delegatingFieldAccessorFactory) {
+    public DefaultEntityState(final STATE underlyingState, final ENTITY entity, final Class<? extends ENTITY> type, final DelegatingFieldAccessorFactory delegatingFieldAccessorFactory) {
         this.state = underlyingState;
         this.entity = entity;
         this.type = type;
@@ -56,17 +56,17 @@ public abstract class DefaultEntityStateAccessors<ENTITY extends GraphBacked<STA
     }
 
     @Override
-    public void setUnderlyingState(final STATE state) {
+    public void setPersistentState(final STATE state) {
         this.state = state;
     }
 
     @Override
-    public boolean hasUnderlyingState() {
+    public boolean hasPersistentState() {
         return this.state!=null;
     }
 
     @Override
-    public STATE getUnderlyingState() {
+    public STATE getPersistentState() {
         return state;
     }
 

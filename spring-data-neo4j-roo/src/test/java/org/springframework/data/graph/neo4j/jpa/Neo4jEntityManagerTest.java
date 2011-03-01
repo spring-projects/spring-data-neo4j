@@ -53,7 +53,7 @@ public class Neo4jEntityManagerTest {
     @Before
     public void setUp() {
         person = new Person("Michael",35);
-        node = person.getUnderlyingState();
+        node = person.getPersistentState();
     }
 
     @Test
@@ -144,7 +144,7 @@ public class Neo4jEntityManagerTest {
     @Test
     public void testRefresh() throws Exception {
     	entityManager.refresh(person);
-    	assertEquals(node, person.getUnderlyingState());
+    	assertEquals(node, person.getPersistentState());
     }
     @Test
     public void testClear() throws Exception {

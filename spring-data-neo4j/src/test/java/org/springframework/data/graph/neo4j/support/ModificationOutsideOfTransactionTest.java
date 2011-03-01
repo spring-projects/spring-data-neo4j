@@ -108,7 +108,7 @@ public class ModificationOutsideOfTransactionTest
 
     private Node nodeFor( Person person )
     {
-        return person.getUnderlyingState();
+        return person.getPersistentState();
     }
 
     @Test

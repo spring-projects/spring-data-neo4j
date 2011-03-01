@@ -30,13 +30,13 @@ import java.util.Collection;
  * @author Michael Hunger
  * @since 21.09.2010
  */
-public class RelationshipEntityStateAccessors<ENTITY extends RelationshipBacked> extends DefaultEntityStateAccessors<ENTITY, Relationship> {
+public class RelationshipEntityState<ENTITY extends RelationshipBacked> extends DefaultEntityState<ENTITY, Relationship> {
 
     private final GraphDatabaseContext graphDatabaseContext;
     
     private final FinderFactory finderFactory;
 
-    public RelationshipEntityStateAccessors(final Relationship underlyingState, final ENTITY entity, final Class<? extends ENTITY> type, final GraphDatabaseContext graphDatabaseContext, final FinderFactory finderFactory) {
+    public RelationshipEntityState(final Relationship underlyingState, final ENTITY entity, final Class<? extends ENTITY> type, final GraphDatabaseContext graphDatabaseContext, final FinderFactory finderFactory) {
         super(underlyingState, entity, type, new DelegatingFieldAccessorFactory(graphDatabaseContext, finderFactory) {
             @Override
             protected Collection<FieldAccessorListenerFactory<?>> createListenerFactories() {
@@ -64,27 +64,27 @@ public class RelationshipEntityStateAccessors<ENTITY extends RelationshipBacked>
 
     @Override
     public void createAndAssignState() {
-        if (entity.getUnderlyingState()!=null) return;
+        if (entity.getPersistentState()!=null) return;
         try {
             final Object id = getIdFromEntity();
             if (id instanceof Number) {
                 final Relationship relationship = graphDatabaseContext.getRelationshipById(((Number) id).longValue());
-                setUnderlyingState(relationship);
+                setPersistentState(relationship);
                 if (log.isInfoEnabled())
-                    log.info("Entity reattached " + entity.getClass() + "; used Relationship [" + entity.getUnderlyingState() + "];");
+                    log.info("Entity reattached " + entity.getClass() + "; used Relationship [" + entity.getPersistentState() + "];");
                 return;
             }
 
             final Relationship relationship = null; // TODO graphDatabaseContext.create();
-            setUnderlyingState(relationship);
-            if (log.isInfoEnabled()) log.info("User-defined constructor called on class " + entity.getClass() + "; created Relationship [" + getUnderlyingState() + "]; Updating metamodel");
+            setPersistentState(relationship);
+            if (log.isInfoEnabled()) log.info("User-defined constructor called on class " + entity.getClass() + "; created Relationship [" + getPersistentState() + "]; Updating metamodel");
         } catch (NotInTransactionException e) {
             throw new InvalidDataAccessResourceUsageException("Not in a Neo4j transaction.", e);
         }
     }
 
     @Override
-    public ENTITY attach(boolean isOnCreate) {
+    public ENTITY persist(boolean isOnCreate) {
         createAndAssignState();
         return entity;
     }

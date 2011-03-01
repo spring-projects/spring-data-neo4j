@@ -22,12 +22,10 @@ import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.reflect.FieldSignature;
 import org.neo4j.graphdb.Relationship;
 import org.springframework.beans.factory.annotation.Configurable;
-import org.springframework.data.graph.annotation.RelationshipEntity;
-import org.springframework.data.graph.core.NodeBacked;
 import org.springframework.data.graph.core.RelationshipBacked;
 import org.springframework.data.graph.neo4j.fieldaccess.*;
 import org.springframework.data.graph.neo4j.support.GraphDatabaseContext;
-import org.springframework.persistence.support.AbstractTypeAnnotatingMixinFields;
+import org.springframework.data.graph.annotation.*;
 
 import java.lang.reflect.Field;
 
@@ -35,8 +33,8 @@ import static org.springframework.data.graph.neo4j.fieldaccess.DoReturn.unwrap;
 
 /**
  * Aspect for handling relationship entity creation and field access (read & write)
- * puts the underlying state into and delegates field access to an {@link EntityStateAccessors} instance,
- * created by a configured {@link RelationshipEntityStateAccessorsFactory}
+ * puts the underlying state into and delegates field access to an {@link org.springframework.data.graph.neo4j.fieldaccess.EntityState} instance,
+ * created by a configured {@link org.springframework.data.graph.neo4j.fieldaccess.RelationshipEntityStateFactory}
  */
 public aspect Neo4jRelationshipBacking {
 	
@@ -59,47 +57,47 @@ public aspect Neo4jRelationshipBacking {
             !set(* RelationshipBacked.*);
 
 	private GraphDatabaseContext graphDatabaseContext;
-    private RelationshipEntityStateAccessorsFactory entityStateAccessorsFactory;
+    private RelationshipEntityStateFactory entityStateFactory;
 
 
     public void setGraphDatabaseContext(GraphDatabaseContext graphDatabaseContext) {
         this.graphDatabaseContext = graphDatabaseContext;
     }
 
-    public void setRelationshipEntityStateAccessorsFactory(RelationshipEntityStateAccessorsFactory entityStateAccessorsFactory) {
-        this.entityStateAccessorsFactory = entityStateAccessorsFactory;
+    public void setRelationshipEntityStateFactory(RelationshipEntityStateFactory entityStateFactory) {
+        this.entityStateFactory = entityStateFactory;
     }
 
     /**
-     * field for {@link EntityStateAccessors} that takes care of all entity operations
+     * field for {@link org.springframework.data.graph.neo4j.fieldaccess.EntityState} that takes care of all entity operations
      */
-    private EntityStateAccessors<RelationshipBacked,Relationship> RelationshipBacked.stateAccessors;
+    private EntityState<RelationshipBacked,Relationship> RelationshipBacked.entityState;
 
     /**
-     * creates a new {@link EntityStateAccessors} instance with the relationship parameter or updates an existing one
+     * creates a new {@link org.springframework.data.graph.neo4j.fieldaccess.EntityState} instance with the relationship parameter or updates an existing one
      * @param r
      */
-	public void RelationshipBacked.setUnderlyingState(Relationship r) {
-        if (this.stateAccessors == null) {
-            this.stateAccessors = Neo4jRelationshipBacking.aspectOf().entityStateAccessorsFactory.getEntityStateAccessors(this);
+	public void RelationshipBacked.setPersistentState(Relationship r) {
+        if (this.entityState == null) {
+            this.entityState = Neo4jRelationshipBacking.aspectOf().entityStateFactory.getEntityState(this);
         }
-        this.stateAccessors.setUnderlyingState(r);
+        this.entityState.setPersistentState(r);
 	}
 	
-	public Relationship RelationshipBacked.getUnderlyingState() {
-		return this.stateAccessors.getUnderlyingState();
+	public Relationship RelationshipBacked.getPersistentState() {
+		return this.entityState.getPersistentState();
 	}
 
 	public boolean RelationshipBacked.hasUnderlyingRelationship() {
-		return this.stateAccessors.hasUnderlyingState();
+		return this.entityState.hasPersistentState();
 	}
 
     /**
      * @return relationship id if there is an underlying relationship
      */
-	public Long RelationshipBacked.getId() {
+	public Long RelationshipBacked.getRelationshipId() {
         if (!hasUnderlyingRelationship()) return null;
-		return getUnderlyingState().getId();
+		return getPersistentState().getId();
 	}
 
 
@@ -109,7 +107,7 @@ public aspect Neo4jRelationshipBacking {
      */
 	public final boolean RelationshipBacked.equals(Object obj) {
 		if (obj instanceof RelationshipBacked) {
-			return this.getUnderlyingState().equals(((RelationshipBacked) obj).getUnderlyingState());
+			return this.getPersistentState().equals(((RelationshipBacked) obj).getPersistentState());
 		}
 		return false;
 	}
@@ -118,7 +116,7 @@ public aspect Neo4jRelationshipBacking {
      * @return hashCode of the underlying relationship
      */
 	public final int RelationshipBacked.hashCode() {
-		return getUnderlyingState().hashCode();
+		return getPersistentState().hashCode();
 	}
 
 	public void RelationshipBacked.remove() {
@@ -130,13 +128,13 @@ public aspect Neo4jRelationshipBacking {
     }
 
     Object around(RelationshipBacked entity): entityFieldGet(entity) {
-        Object result=entity.stateAccessors.getValue(field(thisJoinPoint));
+        Object result=entity.entityState.getValue(field(thisJoinPoint));
         if (result instanceof DoReturn) return unwrap(result);
         return proceed(entity);
     }
 
     Object around(RelationshipBacked entity, Object newVal) : entityFieldSet(entity, newVal) {
-        Object result=entity.stateAccessors.setValue(field(thisJoinPoint),newVal);
+        Object result=entity.entityState.setValue(field(thisJoinPoint),newVal);
         if (result instanceof DoReturn) return unwrap(result);
         return proceed(entity,result);
 	}

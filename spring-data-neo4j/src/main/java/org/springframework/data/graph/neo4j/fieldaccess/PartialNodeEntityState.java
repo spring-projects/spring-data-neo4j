@@ -36,14 +36,14 @@ import java.util.Collection;
  * @author Michael Hunger
  * @since 21.09.2010
  */
-public class PartialNodeEntityStateAccessors<ENTITY extends NodeBacked> extends DefaultEntityStateAccessors<ENTITY, Node> {
+public class PartialNodeEntityState<ENTITY extends NodeBacked> extends DefaultEntityState<ENTITY, Node> {
 
     public static final String FOREIGN_ID = "foreignId";
     public static final String FOREIGN_ID_INDEX = "foreign_id";
 
     private final GraphDatabaseContext graphDatabaseContext;
 
-    public PartialNodeEntityStateAccessors(final Node underlyingState, final ENTITY entity, final Class<? extends ENTITY> type, final GraphDatabaseContext graphDatabaseContext, final FinderFactory finderFactory) {
+    public PartialNodeEntityState(final Node underlyingState, final ENTITY entity, final Class<? extends ENTITY> type, final GraphDatabaseContext graphDatabaseContext, final FinderFactory finderFactory) {
     	super(underlyingState, entity, type, new DelegatingFieldAccessorFactory(graphDatabaseContext, finderFactory) {
         	
             @Override
@@ -105,7 +105,7 @@ public class PartialNodeEntityStateAccessors<ENTITY extends NodeBacked> extends 
     // TODO handle non persisted Entity like running outside of an transaction
     @Override
     public void createAndAssignState() {
-        if (entity.getUnderlyingState() != null) return;
+        if (entity.getPersistentState() != null) return;
         try {
             final Object id = getId(entity,type);
             if (id == null) return;
@@ -115,13 +115,13 @@ public class PartialNodeEntityStateAccessors<ENTITY extends NodeBacked> extends 
             if (node == null) {
                 node = graphDatabaseContext.createNode();
                 persistForeignId(node, id);
-                setUnderlyingState(node);
-                entity.setUnderlyingState(node);
-                log.info("User-defined constructor called on class " + entity.getClass() + "; created Node [" + entity.getUnderlyingState() + "]; Updating metamodel");
+                setPersistentState(node);
+                entity.setPersistentState(node);
+                log.info("User-defined constructor called on class " + entity.getClass() + "; created Node [" + entity.getPersistentState() + "]; Updating metamodel");
                 graphDatabaseContext.postEntityCreation(entity);
             } else {
-                setUnderlyingState(node);
-                entity.setUnderlyingState(node);
+                setPersistentState(node);
+                entity.setPersistentState(node);
             }
         } catch (NotInTransactionException e) {
             throw new InvalidDataAccessResourceUsageException("Not in a Neo4j transaction.", e);
@@ -129,10 +129,10 @@ public class PartialNodeEntityStateAccessors<ENTITY extends NodeBacked> extends 
     }
 
     @Override
-    public ENTITY attach(boolean isOnCreate) {
+    public ENTITY persist(boolean isOnCreate) {
         Node node = StateProvider.retrieveState();
         if (node != null) {
-            setUnderlyingState(node);
+            setPersistentState(node);
         } else {
             createAndAssignState();
         }

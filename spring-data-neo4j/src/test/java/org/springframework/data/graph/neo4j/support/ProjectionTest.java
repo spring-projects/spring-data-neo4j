@@ -45,7 +45,7 @@ public class ProjectionTest {
 
         Named named = (Named)group.projectTo(Named.class);
         assertEquals("named.name","developers", named.getName());
-        assertEquals("nameds node name property","developers", named.getUnderlyingState().getProperty("name"));
+        assertEquals("nameds node name property","developers", named.getPersistentState().getProperty("name"));
     }
 
 }

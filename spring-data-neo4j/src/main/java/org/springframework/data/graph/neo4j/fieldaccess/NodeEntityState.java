@@ -19,7 +19,6 @@ package org.springframework.data.graph.neo4j.fieldaccess;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.NotInTransactionException;
 import org.springframework.dao.InvalidDataAccessResourceUsageException;
-import org.springframework.data.graph.annotation.NodeEntity;
 import org.springframework.data.graph.core.NodeBacked;
 import org.springframework.data.graph.neo4j.support.GraphDatabaseContext;
 import org.springframework.persistence.support.StateProvider;
@@ -28,31 +27,31 @@ import org.springframework.persistence.support.StateProvider;
  * @author Michael Hunger
  * @since 21.09.2010
  */
-public class NodeEntityStateAccessors<ENTITY extends NodeBacked> extends DefaultEntityStateAccessors<ENTITY, Node> {
+public class NodeEntityState<ENTITY extends NodeBacked> extends DefaultEntityState<ENTITY, Node> {
 
     private final GraphDatabaseContext graphDatabaseContext;
 
-    public NodeEntityStateAccessors(final Node underlyingState, final ENTITY entity, final Class<? extends ENTITY> type, final GraphDatabaseContext graphDatabaseContext, final NodeDelegatingFieldAccessorFactory nodeDelegatingFieldAccessorFactory) {
+    public NodeEntityState(final Node underlyingState, final ENTITY entity, final Class<? extends ENTITY> type, final GraphDatabaseContext graphDatabaseContext, final NodeDelegatingFieldAccessorFactory nodeDelegatingFieldAccessorFactory) {
         super(underlyingState, entity, type, nodeDelegatingFieldAccessorFactory);
         this.graphDatabaseContext = graphDatabaseContext;
     }
 
     @Override
     public void createAndAssignState() {
-        if (hasUnderlyingState()) return;
+        if (hasPersistentState()) return;
         try {
             final Object id = getIdFromEntity();
             if (id instanceof Number) {
                 final Node node = graphDatabaseContext.getNodeById(((Number) id).longValue());
-                setUnderlyingState(node);
+                setPersistentState(node);
                 if (log.isInfoEnabled())
-                    log.info("Entity reattached " + entity.getClass() + "; used Node [" + getUnderlyingState() + "];");
+                    log.info("Entity reattached " + entity.getClass() + "; used Node [" + getPersistentState() + "];");
                 return;
             }
 
             final Node node = graphDatabaseContext.createNode();
-            setUnderlyingState(node);
-            if (log.isInfoEnabled()) log.info("User-defined constructor called on class " + entity.getClass() + "; created Node [" + getUnderlyingState() + "]; Updating metamodel");
+            setPersistentState(node);
+            if (log.isInfoEnabled()) log.info("User-defined constructor called on class " + entity.getClass() + "; created Node [" + getPersistentState() + "]; Updating metamodel");
             graphDatabaseContext.postEntityCreation(entity);
         } catch (NotInTransactionException e) {
             throw new InvalidDataAccessResourceUsageException("Not in a Neo4j transaction.", e);
@@ -60,10 +59,10 @@ public class NodeEntityStateAccessors<ENTITY extends NodeBacked> extends Default
     }
 
     @Override
-    public ENTITY attach(boolean isOnCreate) {
+    public ENTITY persist(boolean isOnCreate) {
         Node node = StateProvider.retrieveState();
         if (node != null) {
-            setUnderlyingState(node);
+            setPersistentState(node);
         } else {
             createAndAssignState();
         }

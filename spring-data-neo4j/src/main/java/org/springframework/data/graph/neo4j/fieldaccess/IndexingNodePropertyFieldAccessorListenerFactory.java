@@ -106,8 +106,8 @@ class IndexingNodePropertyFieldAccessorListenerFactory<T extends GraphBacked<?>>
         public void valueChanged(GraphBacked<T> graphBacked, Object oldVal, Object newVal) {
             if (newVal instanceof Number) newVal = ValueContext.numeric((Number) newVal);
 
-            if (newVal==null) index.remove(graphBacked.getUnderlyingState(), indexKey, null);
-	        else index.add(graphBacked.getUnderlyingState(), indexKey, newVal);
+            if (newVal==null) index.remove(graphBacked.getPersistentState(), indexKey, null);
+	        else index.add(graphBacked.getPersistentState(), indexKey, newVal);
 	    }
     }
 }

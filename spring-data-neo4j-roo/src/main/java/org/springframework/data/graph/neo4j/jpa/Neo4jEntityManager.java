@@ -65,7 +65,7 @@ public class Neo4jEntityManager implements EntityManager {
     private Node nodeFor(final Object entity) {
         checkClosed();
         if (!(entity instanceof NodeBacked)) throw new IllegalArgumentException("Not a nodebacked entity " + entity);
-        final Node node = ((NodeBacked) entity).getUnderlyingState();
+        final Node node = ((NodeBacked) entity).getPersistentState();
         if (node == null) throw new IllegalArgumentException("Node of entity " + entity + " is null");
         return node;
     }

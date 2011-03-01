@@ -110,7 +110,7 @@
                     <para>aspects and instantiators for node and relationship entities</para>
                 </listitem>
                 <listitem>
-                    <para>EntityStateAccessors and FieldAccessFactories needed for the different field handling
+                    <para>EntityState and FieldAccessFactories needed for the different field handling
                     </para>
                 </listitem>
                 <listitem>

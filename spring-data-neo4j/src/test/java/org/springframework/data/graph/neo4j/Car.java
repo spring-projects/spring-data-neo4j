@@ -9,6 +9,6 @@ public abstract class Car {
 	}
 
 	public Car(Node n) {
-		setUnderlyingState(n);
+		setPersistentState(n);
 	}
 }

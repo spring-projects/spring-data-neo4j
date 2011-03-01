@@ -21,14 +21,14 @@ import org.springframework.data.graph.core.RelationshipBacked;
 import org.springframework.data.graph.neo4j.finder.FinderFactory;
 import org.springframework.data.graph.neo4j.support.GraphDatabaseContext;
 
-public class RelationshipEntityStateAccessorsFactory {
+public class RelationshipEntityStateFactory {
 
 	private GraphDatabaseContext graphDatabaseContext;
 	
 	private FinderFactory finderFactory;
 
-	public EntityStateAccessors<RelationshipBacked, Relationship> getEntityStateAccessors(final RelationshipBacked entity) {
-		return new RelationshipEntityStateAccessors<RelationshipBacked>(null,entity,entity.getClass(), graphDatabaseContext, finderFactory);
+	public EntityState<RelationshipBacked, Relationship> getEntityState(final RelationshipBacked entity) {
+		return new RelationshipEntityState<RelationshipBacked>(null,entity,entity.getClass(), graphDatabaseContext, finderFactory);
 	}
 
 	public void setGraphDatabaseContext(GraphDatabaseContext graphDatabaseContext) {

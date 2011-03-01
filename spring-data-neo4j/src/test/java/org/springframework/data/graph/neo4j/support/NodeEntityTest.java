@@ -44,11 +44,11 @@ import static org.junit.Assert.assertNull;
     @Transactional
     public void testUserConstructor() {
         Person p = new Person("Rod", 39);
-        assertEquals(p.getName(), p.getUnderlyingState().getProperty("Person.name"));
-        assertEquals(p.getAge(), p.getUnderlyingState().getProperty("Person.age"));
+        assertEquals(p.getName(), p.getPersistentState().getProperty("Person.name"));
+        assertEquals(p.getAge(), p.getPersistentState().getProperty("Person.age"));
         Person found = graphDatabaseContext.createEntityFromState(graphDatabaseContext.getNodeById(p.getNodeId()), Person.class);
-        assertEquals("Rod", found.getUnderlyingState().getProperty("Person.name"));
-        assertEquals(39, found.getUnderlyingState().getProperty("Person.age"));
+        assertEquals("Rod", found.getPersistentState().getProperty("Person.name"));
+        assertEquals(39, found.getPersistentState().getProperty("Person.age"));
     }
 
     @Test
@@ -58,9 +58,9 @@ import static org.junit.Assert.assertNull;
         p.setName("Michael");
         p.setAge(35);
         p.setHeight((short)182);
-        assertEquals("Michael", p.getUnderlyingState().getProperty("Person.name"));
-        assertEquals(35, p.getUnderlyingState().getProperty("Person.age"));
-        assertEquals((short)182, p.getUnderlyingState().getProperty("Person.height"));
+        assertEquals("Michael", p.getPersistentState().getProperty("Person.name"));
+        assertEquals(35, p.getPersistentState().getProperty("Person.age"));
+        assertEquals((short)182, p.getPersistentState().getProperty("Person.height"));
         assertEquals((short)182, (short)p.getHeight());
     }
     @Test
@@ -68,7 +68,7 @@ import static org.junit.Assert.assertNull;
     public void testSetShortProperty() {
         Group group = new Group();
         group.setName("developers");
-        assertEquals("developers", group.getUnderlyingState().getProperty("name"));
+        assertEquals("developers", group.getPersistentState().getProperty("name"));
     }
     // own transaction handling because of http://wiki.neo4j.org/content/Delete_Semantics
     @Test(expected = NotFoundException.class)

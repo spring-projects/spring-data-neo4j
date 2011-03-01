@@ -6,9 +6,11 @@ import org.junit.*;
 import org.neo4j.graphdb.*;
 import org.neo4j.kernel.ImpermanentGraphDatabase;
 import org.neo4j.kernel.Traversal;
+import org.neo4j.kernel.impl.transaction.SpringTransactionManager;
 import org.springframework.dao.DataAccessException;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.jta.JtaTransactionManager;
 import org.springframework.transaction.support.TransactionCallbackWithoutResult;
 import org.springframework.transaction.support.TransactionTemplate;
 
@@ -38,7 +40,7 @@ public class Neo4jTemplateApiTest {
     @BeforeClass
     public static void startDb() throws Exception {
         graphDatabase = new ImpermanentGraphDatabase();
-//        tm = new JtaTransactionManager(new SpringTransactionManager(graphDatabase));
+        tm = new JtaTransactionManager(new SpringTransactionManager(graphDatabase));
     }
 
     @Before
@@ -112,7 +114,6 @@ public class Neo4jTemplateApiTest {
     }
 
     @Test
-    @Ignore("until the ImpermanentGraphDatabase cast issue is resolved in neo4j")
     public void shouldRollbackViaStatus() throws Exception {
         new TransactionTemplate(tm).execute(new TransactionCallbackWithoutResult() {
             @Override

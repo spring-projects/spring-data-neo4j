@@ -18,7 +18,6 @@ package org.springframework.data.graph.neo4j.fieldaccess;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.data.graph.annotation.NodeEntity;
 import org.springframework.data.graph.core.GraphBacked;
 import org.springframework.data.graph.neo4j.support.GraphDatabaseContext;
 import org.springframework.util.ObjectUtils;
@@ -34,14 +33,14 @@ import static org.springframework.data.graph.neo4j.fieldaccess.DoReturn.unwrap;
  * @author Michael Hunger
  * @since 15.09.2010
  */
-public class DetachableEntityStateAccessors<ENTITY extends GraphBacked<STATE>, STATE> implements EntityStateAccessors<ENTITY,STATE> {
+public class DetachableEntityState<ENTITY extends GraphBacked<STATE>, STATE> implements EntityState<ENTITY,STATE> {
     private final Map<Field, Object> dirty = new HashMap<Field, Object>();
-    protected final EntityStateAccessors<ENTITY,STATE> delegate;
-    private final static Log log = LogFactory.getLog(DetachableEntityStateAccessors.class);
+    protected final EntityState<ENTITY,STATE> delegate;
+    private final static Log log = LogFactory.getLog(DetachableEntityState.class);
     private GraphDatabaseContext graphDatabaseContext;
     private final boolean autoAttach;
 
-    public DetachableEntityStateAccessors(final EntityStateAccessors<ENTITY, STATE> delegate, GraphDatabaseContext graphDatabaseContext, boolean autoAttach) {
+    public DetachableEntityState(final EntityState<ENTITY, STATE> delegate, GraphDatabaseContext graphDatabaseContext, boolean autoAttach) {
         this.delegate = delegate;
         this.graphDatabaseContext = graphDatabaseContext;
         this.autoAttach = autoAttach;
@@ -58,19 +57,19 @@ public class DetachableEntityStateAccessors<ENTITY extends GraphBacked<STATE>, S
     }
 
     @Override
-    public boolean hasUnderlyingState() {
-        return delegate.hasUnderlyingState();
+    public boolean hasPersistentState() {
+        return delegate.hasPersistentState();
     }
 
     @Override
-    public STATE getUnderlyingState() {
-        return delegate.getUnderlyingState();
+    public STATE getPersistentState() {
+        return delegate.getPersistentState();
     }
 
     @Override
     public Object getValue(final Field field) {
-        if (!transactionIsRunning() || !hasUnderlyingState()) {
-            if (getEntity().getUnderlyingState()==null || isDirty(field)) {
+        if (!transactionIsRunning() || !hasPersistentState()) {
+            if (getEntity().getPersistentState()==null || isDirty(field)) {
                 if (log.isDebugEnabled()) log.debug("Outside of transaction, GET value from field " + field);
                 return null;
             }
@@ -86,11 +85,11 @@ public class DetachableEntityStateAccessors<ENTITY extends GraphBacked<STATE>, S
 
     @Override
     public Object setValue(final Field field, final Object newVal) {
-        if (!transactionIsRunning() || !hasUnderlyingState()) {
+        if (!transactionIsRunning() || !hasPersistentState()) {
             final ENTITY entity = getEntity();
             if (!isDirty(field) && isWritable(field)) {
                 Object existingValue;
-                if (entity.getUnderlyingState()!=null) existingValue = unwrap(delegate.getValue(field));
+                if (entity.getPersistentState()!=null) existingValue = unwrap(delegate.getValue(field));
                 else {
                     existingValue = getValueFromEntity(field);
                     if (existingValue == null) existingValue = getDefaultValue(field.getType());
@@ -125,7 +124,7 @@ public class DetachableEntityStateAccessors<ENTITY extends GraphBacked<STATE>, S
      */
     private void flushDirty() {
         final ENTITY entity = getEntity();
-        final boolean newState = entity.getUnderlyingState()==null;
+        final boolean newState = entity.getPersistentState()==null;
         if (newState) {
             return;
             // createAndAssignState();
@@ -144,8 +143,8 @@ public class DetachableEntityStateAccessors<ENTITY extends GraphBacked<STATE>, S
     }
 
     @Override
-    public void setUnderlyingState(final STATE state) {
-        delegate.setUnderlyingState(state);
+    public void setPersistentState(final STATE state) {
+        delegate.setPersistentState(state);
     }
 
 
@@ -163,7 +162,7 @@ public class DetachableEntityStateAccessors<ENTITY extends GraphBacked<STATE>, S
         final Object nodeValue = unwrap(delegate.getValue(field));
         final Object previousValue = entry.getValue();
         if (!ObjectUtils.nullSafeEquals(nodeValue, previousValue)) {
-            throw new ConcurrentModificationException("Node " + entity.getUnderlyingState() + " field " + field + " changed in between previous " + previousValue + " current " + nodeValue); // todo or just overwrite
+            throw new ConcurrentModificationException("Node " + entity.getPersistentState() + " field " + field + " changed in between previous " + previousValue + " current " + nodeValue); // todo or just overwrite
         }
     }
 
@@ -188,13 +187,13 @@ public class DetachableEntityStateAccessors<ENTITY extends GraphBacked<STATE>, S
     }
 
     @Override
-    public ENTITY attach(boolean isOnCreate) {
+    public ENTITY persist(boolean isOnCreate) {
         if (!autoAttach && isOnCreate) {
             log.warn("Not automatically attaching entity " + getEntity().getClass());
             return getEntity();
         }
         if (graphDatabaseContext.transactionIsRunning()) {
-            ENTITY result = delegate.attach(isOnCreate);
+            ENTITY result = delegate.persist(isOnCreate);
             flushDirty();
             return result;
         }

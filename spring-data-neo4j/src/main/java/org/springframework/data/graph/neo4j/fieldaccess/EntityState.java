@@ -26,10 +26,10 @@ import java.lang.reflect.Field;
  * @author Michael Hunger
  * @since 15.09.2010
  */
-public interface EntityStateAccessors<ENTITY extends GraphBacked<STATE>,STATE> {
+public interface EntityState<ENTITY extends GraphBacked<STATE>,STATE> {
     ENTITY getEntity();
 
-    void setUnderlyingState(STATE state);
+    void setPersistentState(STATE state);
 
     /**
      * @param field
@@ -53,10 +53,11 @@ public interface EntityStateAccessors<ENTITY extends GraphBacked<STATE>,STATE> {
     /**
      * callback for creating and initializing an initial state
      */
+    @Deprecated
     void createAndAssignState();
 
-    boolean hasUnderlyingState();
-    STATE getUnderlyingState();
+    boolean hasPersistentState();
+    STATE getPersistentState();
 
-    ENTITY attach(boolean isOnCreate);
+    ENTITY persist(boolean isOnCreate);
 }

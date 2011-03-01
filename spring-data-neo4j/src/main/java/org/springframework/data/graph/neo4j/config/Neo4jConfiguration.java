@@ -25,8 +25,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.graph.neo4j.fieldaccess.Neo4jConversionServiceFactoryBean;
 import org.springframework.data.graph.neo4j.fieldaccess.NodeDelegatingFieldAccessorFactory;
-import org.springframework.data.graph.neo4j.fieldaccess.NodeEntityStateAccessorsFactory;
-import org.springframework.data.graph.neo4j.fieldaccess.RelationshipEntityStateAccessorsFactory;
+import org.springframework.data.graph.neo4j.fieldaccess.NodeEntityStateFactory;
+import org.springframework.data.graph.neo4j.fieldaccess.RelationshipEntityStateFactory;
 import org.springframework.data.graph.neo4j.finder.FinderFactory;
 import org.springframework.data.graph.neo4j.support.GraphDatabaseContext;
 import org.springframework.data.graph.neo4j.support.SubReferenceNodeTypeStrategy;
@@ -110,10 +110,10 @@ public class Neo4jConfiguration {
 	public Neo4jRelationshipBacking neo4jRelationshipBacking(GraphDatabaseContext graphDatabaseContext, FinderFactory finderFactory) {
 		Neo4jRelationshipBacking aspect = Neo4jRelationshipBacking.aspectOf();
 		aspect.setGraphDatabaseContext(graphDatabaseContext);
-		RelationshipEntityStateAccessorsFactory entityStateAccessorsFactory = new RelationshipEntityStateAccessorsFactory();
-		entityStateAccessorsFactory.setGraphDatabaseContext(graphDatabaseContext);
-		entityStateAccessorsFactory.setFinderFactory(finderFactory);
-		aspect.setRelationshipEntityStateAccessorsFactory(entityStateAccessorsFactory);
+		RelationshipEntityStateFactory entityStateFactory = new RelationshipEntityStateFactory();
+		entityStateFactory.setGraphDatabaseContext(graphDatabaseContext);
+		entityStateFactory.setFinderFactory(finderFactory);
+		aspect.setRelationshipEntityStateFactory(entityStateFactory);
 		return aspect;
 	}
 
@@ -121,12 +121,12 @@ public class Neo4jConfiguration {
 	public Neo4jNodeBacking neo4jNodeBacking(GraphDatabaseContext graphDatabaseContext, FinderFactory finderFactory) {
 		Neo4jNodeBacking aspect = Neo4jNodeBacking.aspectOf();
 		aspect.setGraphDatabaseContext(graphDatabaseContext);
-		NodeEntityStateAccessorsFactory entityStateAccessorsFactory = new NodeEntityStateAccessorsFactory();
-		entityStateAccessorsFactory.setGraphDatabaseContext(graphDatabaseContext);
-		entityStateAccessorsFactory.setFinderFactory(finderFactory);
-		entityStateAccessorsFactory.setNodeDelegatingFieldAccessorFactory(
+		NodeEntityStateFactory entityStateFactory = new NodeEntityStateFactory();
+		entityStateFactory.setGraphDatabaseContext(graphDatabaseContext);
+		entityStateFactory.setFinderFactory(finderFactory);
+		entityStateFactory.setNodeDelegatingFieldAccessorFactory(
 				new NodeDelegatingFieldAccessorFactory(graphDatabaseContext, finderFactory));
-		aspect.setNodeEntityStateAccessorsFactory(entityStateAccessorsFactory);
+		aspect.setNodeEntityStateFactory(entityStateFactory);
 		return aspect;
 	}
 	

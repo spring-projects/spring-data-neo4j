@@ -76,14 +76,27 @@ public class IndexTest {
         final Person foundMe = personFinder.findByPropertyValue(Person.NAME_INDEX, "Person.name", NAME_VALUE);
         assertEquals(spouse,foundMe.getSpouse());
     }
+
     @Test
     @Transactional
-    @Ignore("Missing method to remove a node/property from index")
+    @Ignore("remove property from index not workin")
     public void testRemovePropertyFromIndex() {
         Group group = new Group();
         group.setName(NAME_VALUE);
         final NodeFinder<Group> finder = finderFactory.createNodeEntityFinder(Group.class);
-        graphDatabaseContext.getNodeIndex("node").remove(group.getUnderlyingState(), NAME, null);
+        graphDatabaseContext.getNodeIndex("node").remove(group.getPersistentState(), NAME);
+        final Group found = finder.findByPropertyValue(null, NAME, NAME_VALUE);
+        assertNull("Group.name removed from index", found);
+    }
+
+    @Test
+    @Transactional
+    @Ignore("remove property from index not workin")
+    public void testRemoveNodeFromIndex() {
+        Group group = new Group();
+        group.setName(NAME_VALUE);
+        final NodeFinder<Group> finder = finderFactory.createNodeEntityFinder(Group.class);
+        graphDatabaseContext.getNodeIndex("node").remove(group.getPersistentState());
         final Group found = finder.findByPropertyValue(null, NAME, NAME_VALUE);
         assertNull("Group.name removed from index", found);
     }

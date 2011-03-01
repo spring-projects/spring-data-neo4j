@@ -138,7 +138,7 @@ public class GraphDatabaseContext {
      * @param entity to remove
      */
     public void removeNodeEntity(NodeBacked entity) {
-        Node node = entity.getUnderlyingState();
+        Node node = entity.getPersistentState();
         if (node==null) return;
         this.nodeTypeStrategy.preEntityRemoval(entity);
         for (Relationship relationship : node.getRelationships()) {
@@ -148,7 +148,7 @@ public class GraphDatabaseContext {
         node.delete();
     }
     public void removeRelationshipEntity(RelationshipBacked entity) {
-        Relationship relationship = entity.getUnderlyingState();
+        Relationship relationship = entity.getPersistentState();
         if (relationship==null) return;
         removeRelationship(relationship);
     }
@@ -333,7 +333,7 @@ public class GraphDatabaseContext {
     }
 
     public <T extends GraphBacked> T projectTo(GraphBacked entity, Class<T> targetType) {
-        final Object state = entity.getUnderlyingState();
+        final Object state = entity.getPersistentState();
         if (state instanceof Node)
             return (T) graphEntityInstantiator.createEntityFromState((Node) state, (Class<? extends NodeBacked>) targetType);
         else
