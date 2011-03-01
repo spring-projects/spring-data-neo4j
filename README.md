@@ -108,7 +108,7 @@ Spring Configuration:
     <bean class="org.springframework.data.graph.neo4j.config.Neo4jConfiguration"/>
     <bean class="org.springframework.context.annotation.ConfigurationClassPostProcessor"/>
     <bean id="graphDatabaseService" class="org.neo4j.kernel.EmbeddedGraphDatabase" destroy-method="shutdown">
-        <constructor-arg index="0" value="target/config-test"/>
+    	<constructor-arg index="0" value="target/config-test"/>
     </bean>
 
 * Annotate your entity class.  In this case it is a 'World' class that has a relationship to other worlds that are reachable by rocket travel:
