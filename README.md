@@ -41,8 +41,8 @@ For more detailed questions, use the [forum](http://forum.springsource.org/forum
 * Configure Spring Data Graph for Neo4j in your application using the provided xml namespace.
 
 
-    <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-    <beans xmlns="http://www.springframework.org/schema/beans"
+    <?xml version="1.0" encoding="UTF-8" standalone="yes"?> 
+    <beans xmlns="http://www.springframework.org/schema/beans" 
         xmlns:context="http://www.springframework.org/schema/context"
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xmlns:datagraph="http://www.springframework.org/schema/data/graph"
