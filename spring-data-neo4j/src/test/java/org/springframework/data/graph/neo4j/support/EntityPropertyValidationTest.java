@@ -7,6 +7,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.graph.neo4j.Person;
+import static org.springframework.data.graph.neo4j.Person.persistedPerson;
 import org.springframework.data.graph.neo4j.support.node.Neo4jHelper;
 
 import org.springframework.test.context.ContextConfiguration;
@@ -36,17 +37,17 @@ public class EntityPropertyValidationTest {
     @Test(expected = ValidationException.class)
     @Transactional
     public void shouldFailValidationOnTooLongName() {
-        new Person("Michael.........................", 35).persist();
+        persistedPerson("Michael.........................", 35);
     }
 
     @Test(expected = ValidationException.class)
     @Transactional
     public void shouldFailValidationOnNegativeAge() {
-        new Person("Michael", -1).persist();
+        persistedPerson("Michael", -1);
     }
     @Test(expected = ValidationException.class)
     @Transactional
     public void shouldFailValidationOnBigAge() {
-        new Person("Michael", 110).persist();
+        persistedPerson("Michael", 110);
     }
 }

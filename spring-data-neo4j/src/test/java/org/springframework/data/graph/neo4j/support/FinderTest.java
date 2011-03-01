@@ -10,6 +10,7 @@ import org.neo4j.helpers.collection.IteratorUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.graph.neo4j.Group;
 import org.springframework.data.graph.neo4j.Person;
+import static org.springframework.data.graph.neo4j.Person.persistedPerson;
 import org.springframework.data.graph.neo4j.finder.FinderFactory;
 import org.springframework.data.graph.neo4j.finder.NodeFinder;
 import org.springframework.data.graph.neo4j.support.node.Neo4jHelper;
@@ -46,8 +47,8 @@ public class FinderTest {
     @Test
     @Transactional
     public void testFinderFindAll() {
-        Person p1 = new Person("Michael", 35).persist();
-        Person p2 = new Person("David", 25).persist();
+        Person p1 = persistedPerson("Michael", 35);
+        Person p2 = persistedPerson("David", 25);
         NodeFinder<Person> finder = finderFactory.createNodeEntityFinder(Person.class);
         Iterable<Person> allPersons = finder.findAll();
         assertEquals(new HashSet<Person>(Arrays.asList(p1, p2)), IteratorUtil.addToCollection(allPersons.iterator(), new HashSet<Person>()));
@@ -56,7 +57,7 @@ public class FinderTest {
     @Test
     @Transactional
     public void testFinderFindById() {
-        Person p = new Person("Michael", 35).persist();
+        Person p = persistedPerson("Michael", 35);
         NodeFinder<Person> finder = finderFactory.createNodeEntityFinder(Person.class);
         Person pById = finder.findById(p.getNodeId());
         assertEquals(p, pById);
@@ -65,7 +66,7 @@ public class FinderTest {
     @Test
     @Transactional
     public void testFinderFindByIdNonexistent() {
-        Person p = new Person("Michael", 35).persist();
+        Person p = persistedPerson("Michael", 35);
         NodeFinder<Person> finder = finderFactory.createNodeEntityFinder(Person.class);
         Person p2 = finder.findById(589736218);
         Assert.assertNull(p2);
@@ -76,7 +77,7 @@ public class FinderTest {
     public void testFinderCount() {
         NodeFinder<Person> finder = finderFactory.createNodeEntityFinder(Person.class);
         assertEquals(0, finder.count());
-        Person p = new Person("Michael", 35).persist();
+        Person p = persistedPerson("Michael", 35);
         assertEquals(1, finder.count());
     }
     @Test

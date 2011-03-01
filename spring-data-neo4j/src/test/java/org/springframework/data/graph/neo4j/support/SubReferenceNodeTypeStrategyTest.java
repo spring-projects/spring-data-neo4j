@@ -17,6 +17,7 @@ import org.springframework.data.graph.core.NodeBacked;
 import org.springframework.data.graph.core.NodeTypeStrategy;
 import org.springframework.data.graph.neo4j.Car;
 import org.springframework.data.graph.neo4j.Person;
+import static org.springframework.data.graph.neo4j.Person.persistedPerson;
 import org.springframework.data.graph.neo4j.Toyota;
 import org.springframework.data.graph.neo4j.Volvo;
 import org.springframework.data.graph.neo4j.finder.FinderFactory;
@@ -135,7 +136,7 @@ public class SubReferenceNodeTypeStrategyTest {
 	@Transactional
 	public void testInstantiateConcreteClass() {
 		log.debug("testInstantiateConcreteClass");
-        Person p = new Person("Michael", 35).persist();
+        Person p = persistedPerson("Michael", 35);
 		Car c = new Volvo().persist();
 		p.setCar(c);
 		assertEquals("Wrong concrete class.", Volvo.class, p.getCar().getClass());
@@ -165,8 +166,8 @@ public class SubReferenceNodeTypeStrategyTest {
 	@Test
 	@Transactional
 	public void testCountClasses() {
-        new Person("Michael", 36).persist();
-        new Person("David", 25).persist();
+        persistedPerson("Michael", 36);
+        persistedPerson("David", 25);
         assertEquals("Wrong Person instance count.", 2, finderFactory.createNodeEntityFinder(Person.class).count());
 	}
 

@@ -17,6 +17,8 @@ import org.junit.runner.RunWith;
 import org.neo4j.graphdb.Node;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.graph.neo4j.Person;
+import static org.springframework.data.graph.neo4j.Person.persistedPerson;
+import static org.springframework.data.graph.neo4j.Person.persistedPerson;
 import org.springframework.data.graph.neo4j.support.GraphDatabaseContext;
 import org.springframework.data.graph.neo4j.support.node.Neo4jHelper;
 import org.springframework.test.context.ContextConfiguration;
@@ -52,7 +54,7 @@ public class Neo4jEntityManagerTest {
 
     @Before
     public void setUp() {
-        person = new Person("Michael", 35).persist();
+        person = persistedPerson("Michael", 35);
         node = person.getPersistentState();
     }
 
@@ -94,7 +96,7 @@ public class Neo4jEntityManagerTest {
 
     @Test
     public void testFindAll2() throws Exception {
-        final Person person2 = new Person("Rod", 39).persist();
+        final Person person2 = persistedPerson("Rod", 39);
         final Query query = entityManager.createQuery("select o from Person o");
         Collection<Person> people=query.getResultList();
     	Assert.assertEquals(new HashSet<Person>(asList(person,person2)),new HashSet<Person>(people));
@@ -113,7 +115,7 @@ public class Neo4jEntityManagerTest {
     }
     @Test
     public void testFindAllStartEnd() throws Exception {
-        new Person("Rod", 39).persist();
+        persistedPerson("Rod", 39);
         final Query query = entityManager.createQuery("select o from Person o").setMaxResults(1).setFirstResult(1);
         Collection<Person> people=query.getResultList();
     	Assert.assertEquals(1,people.size());
@@ -157,7 +159,7 @@ public class Neo4jEntityManagerTest {
     
     @Test
     public void testContains() throws Exception {
-        final Person p2 = new Person("Rod", 39).persist();
+        final Person p2 = persistedPerson("Rod", 39);
         assertTrue(entityManager.contains(person));
         assertTrue(entityManager.contains(p2));
     	assertFalse(entityManager.contains(new Object()));

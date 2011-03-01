@@ -3,24 +3,23 @@ package org.springframework.data.graph.neo4j.support;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.neo4j.graphdb.*;
+import org.neo4j.graphdb.NotFoundException;
+import org.neo4j.graphdb.Transaction;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.graph.neo4j.*;
+import org.springframework.data.graph.neo4j.Group;
+import org.springframework.data.graph.neo4j.Person;
 import org.springframework.data.graph.neo4j.finder.FinderFactory;
 import org.springframework.data.graph.neo4j.finder.NodeFinder;
 import org.springframework.data.graph.neo4j.support.node.Neo4jHelper;
-
-import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.transaction.BeforeTransaction;
 import org.springframework.transaction.annotation.Transactional;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import static org.springframework.data.graph.neo4j.Person.persistedPerson;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = {"classpath:org/springframework/data/graph/neo4j/support/Neo4jGraphPersistenceTest-context.xml"})
@@ -43,7 +42,7 @@ import static org.junit.Assert.assertNull;
     @Test
     @Transactional
     public void testUserConstructor() {
-        Person p = new Person("Rod", 39).persist();
+        Person p = persistedPerson("Rod", 39);
         assertEquals(p.getName(), p.getPersistentState().getProperty("Person.name"));
         assertEquals(p.getAge(), p.getPersistentState().getProperty("Person.age"));
         Person found = graphDatabaseContext.createEntityFromState(graphDatabaseContext.getNodeById(p.getNodeId()), Person.class);
@@ -54,7 +53,7 @@ import static org.junit.Assert.assertNull;
     @Test
     @Transactional
     public void testSetProperties() {
-        Person p = new Person("Foo", 2).persist();
+        Person p = persistedPerson("Foo", 2);
         p.setName("Michael");
         p.setAge(35);
         p.setHeight((short)182);
@@ -74,8 +73,8 @@ import static org.junit.Assert.assertNull;
     @Test(expected = NotFoundException.class)
     public void testDeleteEntityFromGDC() {
         Transaction tx = graphDatabaseContext.beginTx();
-        Person p = new Person("Michael", 35).persist();
-        Person spouse = new Person("Tina", 36).persist();
+        Person p = persistedPerson("Michael", 35);
+        Person spouse = persistedPerson("Tina", 36);
         p.setSpouse(spouse);
         long id = spouse.getId();
         graphDatabaseContext.removeNodeEntity(spouse);
@@ -91,8 +90,8 @@ import static org.junit.Assert.assertNull;
     @Test(expected = NotFoundException.class)
     public void testDeleteEntity() {
         Transaction tx = graphDatabaseContext.beginTx();
-        Person p = new Person("Michael", 35).persist();
-        Person spouse = new Person("Tina", 36).persist();
+        Person p = persistedPerson("Michael", 35);
+        Person spouse = persistedPerson("Tina", 36);
         p.setSpouse(spouse);
         long id = spouse.getId();
         spouse.remove();

@@ -5,6 +5,8 @@ import org.springframework.data.graph.annotation.EndNode;
 import org.springframework.data.graph.annotation.RelationshipEntity;
 import org.springframework.data.graph.annotation.StartNode;
 import org.springframework.data.graph.neo4j.Person;
+import static org.springframework.data.graph.neo4j.Person.persistedPerson;
+import static org.springframework.data.graph.neo4j.Person.persistedPerson;
 
 import java.util.Date;
 

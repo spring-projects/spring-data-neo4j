@@ -14,6 +14,8 @@ import org.springframework.data.graph.core.Direction;
 import org.springframework.data.graph.core.FieldTraversalDescriptionBuilder;
 import org.springframework.data.graph.core.NodeBacked;
 import org.springframework.data.graph.neo4j.Person;
+import static org.springframework.data.graph.neo4j.Person.persistedPerson;
+import static org.springframework.data.graph.neo4j.Person.persistedPerson;
 
 import java.lang.reflect.Field;
 import java.util.Collection;

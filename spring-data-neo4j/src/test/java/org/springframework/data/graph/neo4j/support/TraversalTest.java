@@ -12,6 +12,7 @@ import org.neo4j.kernel.impl.traversal.TraversalDescriptionImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.graph.neo4j.Group;
 import org.springframework.data.graph.neo4j.Person;
+import static org.springframework.data.graph.neo4j.Person.persistedPerson;
 import org.springframework.data.graph.neo4j.finder.FinderFactory;
 import org.springframework.data.graph.neo4j.finder.NodeFinder;
 import org.springframework.data.graph.neo4j.support.node.Neo4jHelper;
@@ -48,7 +49,7 @@ public class TraversalTest {
     @Test
     @Transactional
     public void testTraverseFromGroupToPeople() {
-        Person p = new Person("Michael", 35).persist();
+        Person p = persistedPerson("Michael", 35);
         Group group = new Group().persist();
         group.setName("dev");
         group.addPerson(p);
@@ -65,7 +66,7 @@ public class TraversalTest {
     @Transactional
     @Rollback(false)
     public void testTraverseFieldFromGroupToPeople() {
-        Person p = new Person("Michael", 35).persist();
+        Person p = persistedPerson("Michael", 35);
         Group group = new Group().persist();
         group.setName("dev");
         group.addPerson(p);
@@ -81,7 +82,7 @@ public class TraversalTest {
     @Transactional
     public void testTraverseFromGroupToPeopleWithFinder() {
         final NodeFinder<Person> finder = finderFactory.createNodeEntityFinder(Person.class);
-        Person p = new Person("Michael", 35).persist();
+        Person p = persistedPerson("Michael", 35);
         Group group = new Group().persist();
         group.setName("dev");
         group.addPerson(p);

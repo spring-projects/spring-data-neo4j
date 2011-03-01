@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.graph.neo4j.Friendship;
 import org.springframework.data.graph.neo4j.Group;
 import org.springframework.data.graph.neo4j.Person;
+import static org.springframework.data.graph.neo4j.Person.persistedPerson;
 import org.springframework.data.graph.neo4j.finder.FinderFactory;
 import org.springframework.data.graph.neo4j.finder.NodeFinder;
 import org.springframework.data.graph.neo4j.finder.RelationshipFinder;
@@ -57,8 +58,8 @@ public class IndexTest {
     @Test
     @Transactional
     public void testCanIndexIntFieldsOnRelationshipEntities() {
-        Person p = new Person(NAME_VALUE, 35).persist();
-        Person p2 = new Person(NAME_VALUE2, 25).persist();
+        Person p = persistedPerson(NAME_VALUE, 35);
+        Person p2 = persistedPerson(NAME_VALUE2, 25);
         Friendship friendship = p.knows(p2);
         friendship.setYears(1);
         RelationshipFinder<Friendship> friendshipFinder = finderFactory.createRelationshipEntityFinder(Friendship.class);
@@ -68,8 +69,8 @@ public class IndexTest {
     @Test
     @Transactional
     public void testGetRelationshipFromLookedUpNode() {
-        Person me = new Person(NAME_VALUE, 35).persist();
-        Person spouse = new Person(NAME_VALUE3, 36).persist();
+        Person me = persistedPerson(NAME_VALUE, 35);
+        Person spouse = persistedPerson(NAME_VALUE3, 36);
         me.setSpouse(spouse);
         final NodeFinder<Person> personFinder = finderFactory.createNodeEntityFinder(Person.class);
         final Person foundMe = personFinder.findByPropertyValue(Person.NAME_INDEX, "Person.name", NAME_VALUE);
@@ -143,7 +144,7 @@ public class IndexTest {
     @Test
 	@Transactional
 	public void testFindAllPersonByIndexOnAnnotatedField() {
-        Person person = new Person(NAME_VALUE, 35).persist();
+        Person person = persistedPerson(NAME_VALUE, 35);
         final NodeFinder<Person> finder = finderFactory.createNodeEntityFinder(Person.class);
         final Person found = finder.findByPropertyValue( Person.NAME_INDEX, "Person.name", NAME_VALUE);
 	    assertEquals(person, found);
@@ -152,7 +153,7 @@ public class IndexTest {
     @Test
 	@Transactional
 	public void testRangeQueryPersonByIndexOnAnnotatedField() {
-        Person person = new Person(NAME_VALUE, 35).persist();
+        Person person = persistedPerson(NAME_VALUE, 35);
         final NodeFinder<Person> finder = finderFactory.createNodeEntityFinder(Person.class);
         final Person found = finder.findAllByRange(null, "Person.age", 10,40).iterator().next();
 	    assertEquals("person found inside range",person, found);
@@ -160,7 +161,7 @@ public class IndexTest {
     @Test
 	@Transactional
 	public void testOutsideRangeQueryPersonByIndexOnAnnotatedField() {
-        Person person = new Person(NAME_VALUE, 35).persist();
+        Person person = persistedPerson(NAME_VALUE, 35);
         final NodeFinder<Person> finder = finderFactory.createNodeEntityFinder(Person.class);
         Iterable<Person> emptyResult = finder.findAllByRange(null, "Person.age", 0, 34);
 	    assertFalse("nothing found outside range", emptyResult.iterator().hasNext());
@@ -169,7 +170,7 @@ public class IndexTest {
 	@Test
 	@Transactional
 	public void testFindAllPersonByIndexOnAnnotatedFieldWithAtIndexed() {
-        Person person = new Person(NAME_VALUE, 35).persist();
+        Person person = persistedPerson(NAME_VALUE, 35);
 		person.setNickname("Mike");
         final NodeFinder<Person> finder = finderFactory.createNodeEntityFinder(Person.class);
 		final Person found = finder.findByPropertyValue(null, "Person.nickname", "Mike");

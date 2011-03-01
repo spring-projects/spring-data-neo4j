@@ -9,6 +9,7 @@ import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Transaction;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.graph.neo4j.Person;
+import static org.springframework.data.graph.neo4j.Person.persistedPerson;
 import org.springframework.data.graph.neo4j.finder.FinderFactory;
 import org.springframework.data.graph.neo4j.finder.NodeFinder;
 import org.springframework.data.graph.neo4j.support.node.Neo4jHelper;
@@ -43,7 +44,7 @@ public class ModificationOutsideOfTransactionTest
     @Test
     public void testCreateOutsideTransaction()
     {
-        Person p = new Person("Michael", 35).persist();
+        Person p = persistedPerson("Michael", 35);
         assertEquals( 35, p.getAge() );
         assertTrue( hasUnderlyingNode( p ) );
     }
@@ -51,8 +52,8 @@ public class ModificationOutsideOfTransactionTest
     @Test
     public void subgraphCreatedOutsideOfTransactionShouldNotBePersisted()
     {
-        Person michael = new Person("Michael", 35).persist();
-        Person emil = new Person("Emil", 35).persist();
+        Person michael = persistedPerson("Michael", 35);
+        Person emil = persistedPerson("Emil", 35);
 
         michael.setBoss( emil );
 
@@ -111,7 +112,7 @@ public class ModificationOutsideOfTransactionTest
         Person p = null;
         try
         {
-            p = new Person(name, age).persist();
+            p = persistedPerson(name, age);
             tx.success();
         } finally
         {
