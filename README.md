@@ -105,11 +105,8 @@ Spring Configuration:
 * You can also use the supplied Java @Configuration in Neo4jConfiguration. [Java based bean metadata](http://static.springsource.org/spring/docs/3.0.x/spring-framework-reference/html/new-in-3.html#new-java-configuration)
 
     <context:annotation-config/>
-
     <bean class="org.springframework.data.graph.neo4j.config.Neo4jConfiguration"/>
-
     <bean class="org.springframework.context.annotation.ConfigurationClassPostProcessor"/>
-
     <bean id="graphDatabaseService" class="org.neo4j.kernel.EmbeddedGraphDatabase" destroy-method="shutdown">
         <constructor-arg index="0" value="target/config-test"/>
     </bean>
