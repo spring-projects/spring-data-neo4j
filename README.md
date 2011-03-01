@@ -9,7 +9,7 @@ The Spring Data Graph project provides a simplified POJO based programming model
 Getting Help
 ------------
 
-This README and the [User Guide](http://static.springsource.org/spring-data/data-document/snapshot-site/reference/html/) are the best places to start learning about Spring Data Graph.  There are also [three sample appilcations](https://github.com/SpringSource/spring-data-graph-examples) briefly described in the reference documentation.
+This README and the [User Guide](http://static.springsource.org/spring-data/data-graph/docs/current/reference/html/) are the best places to start learning about Spring Data Graph.  There are also [three sample appilcations](https://github.com/SpringSource/spring-data-graph-examples) briefly described in the reference documentation.
 
 The main project [website](http://www.springsource.org/spring-data) contains links to basic project information such as source code, JavaDocs, Issue tracking, etc.
 
@@ -22,7 +22,7 @@ For more detailed questions, use the [forum](http://forum.springsource.org/forum
 
 Maven configuration:
 
-Download the jar though Maven:
+*  Add the maven repository and dependency 
 
 
        <dependency>
@@ -37,50 +37,6 @@ Download the jar though Maven:
          <name>Springframework Maven MILESTONE Repository</name>
          <url>http://maven.springframework.org/milestone</url>
        </repository> 
-
-Configure the Aspect-J maven plugin build & library dependency.  Add the following plugin XML to your project's <plugins> config in pom.xml to hook AspectJ into the build process:
-
-      <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>aspectj-maven-plugin</artifactId>
-        <version>1.0</version>
-        <configuration>
-          <outxml>true</outxml>
-          <aspectLibraries>
-            <aspectLibrary>
-              <groupId>org.springframework</groupId>
-              <artifactId>spring-aspects</artifactId>
-            </aspectLibrary>
-            <aspectLibrary>
-              <groupId>org.springframework.data</groupId>
-              <artifactId>spring-data-neo4j</artifactId>
-            </aspectLibrary>
-          </aspectLibraries>
-          <source>1.6</source>
-          <target>1.6</target>
-        </configuration>
-        <executions>
-          <execution>
-            <goals>
-              <goal>compile</goal>
-              <goal>test-compile</goal>
-            </goals>
-          </execution>
-        </executions>
-        <dependencies>
-          <dependency>
-            <groupId>org.aspectj</groupId>
-            <artifactId>aspectjrt</artifactId>
-            <version>1.6.11.M2</version>
-          </dependency>
-          <dependency>
-            <groupId>org.aspectj</groupId>
-            <artifactId>aspectjtools</artifactId>
-            <version>1.6.11.M2</version>
-          </dependency>
-        </dependencies>
-      </plugin>
-
 
 Spring Configuration:
 
@@ -101,15 +57,6 @@ Spring Configuration:
         <datagraph:config storeDirectory="target/config-test"/>
 
     </beans>
-
-* You can also use the supplied Java @Configuration in Neo4jConfiguration. [Java based bean metadata](http://static.springsource.org/spring/docs/3.0.x/spring-framework-reference/html/new-in-3.html#new-java-configuration)
-
-    <context:annotation-config/>
-    <bean class="org.springframework.data.graph.neo4j.config.Neo4jConfiguration"/>
-    <bean class="org.springframework.context.annotation.ConfigurationClassPostProcessor"/>
-    <bean id="graphDatabaseService" class="org.neo4j.kernel.EmbeddedGraphDatabase" destroy-method="shutdown">
-    	<constructor-arg index="0" value="target/config-test"/>
-    </bean>
 
 * Annotate your entity class.  In this case it is a 'World' class that has a relationship to other worlds that are reachable by rocket travel:
 
@@ -145,7 +92,7 @@ Spring Configuration:
           }
         }
 
-* Create a repository to perform typical CRUD like data access.  The FinderFactory and Finder helper classes make searching easy for common use cases.  You can also use the introduce method find(Class class, TraversalDescription traversal) within the World class to perform traversals that start from a given 'World' instance location in the graph.
+* Create a repository or service to perform typical operations on your entities.  The FinderFactory and Finder helper classes make searching easy for common use cases. The complete functionality is covered in the [reference manual](http://static.springsource.org/spring-data/data-graph/docs/current/reference/html/#programming-model).
 
         @Repository
         public class WorldRepository {
@@ -194,6 +141,49 @@ Spring Configuration:
           }
                        
         }
+
+*  Configure the Aspect-J maven plugin build & library dependency.  Add the following plugin XML to your project's <plugins> config in pom.xml to hook AspectJ into the build process:
+
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>aspectj-maven-plugin</artifactId>
+        <version>1.0</version>
+        <configuration>
+          <outxml>true</outxml>
+          <aspectLibraries>
+            <aspectLibrary>
+              <groupId>org.springframework</groupId>
+              <artifactId>spring-aspects</artifactId>
+            </aspectLibrary>
+            <aspectLibrary>
+              <groupId>org.springframework.data</groupId>
+              <artifactId>spring-data-neo4j</artifactId>
+            </aspectLibrary>
+          </aspectLibraries>
+          <source>1.6</source>
+          <target>1.6</target>
+        </configuration>
+        <executions>
+          <execution>
+            <goals>
+              <goal>compile</goal>
+              <goal>test-compile</goal>
+            </goals>
+          </execution>
+        </executions>
+        <dependencies>
+          <dependency>
+            <groupId>org.aspectj</groupId>
+            <artifactId>aspectjrt</artifactId>
+            <version>1.6.11.M2</version>
+          </dependency>
+          <dependency>
+            <groupId>org.aspectj</groupId>
+            <artifactId>aspectjtools</artifactId>
+            <version>1.6.11.M2</version>
+          </dependency>
+        </dependencies>
+      </plugin>
 
 Please see the [Hello Worlds sample project](https://github.com/SpringSource/spring-data-graph-examples/tree/master/hello-worlds) in the examples repository for more information.
 
