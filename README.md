@@ -18,9 +18,7 @@ For more detailed questions, use the [forum](http://forum.springsource.org/forum
 
 # Quick Start
 
-## Neo4j
-
-Maven configuration:
+## Maven configuration:
 
 *  Add the maven repository and dependency 
 
@@ -38,7 +36,7 @@ Maven configuration:
          <url>http://maven.springframework.org/milestone</url>
        </repository> 
 
-Spring Configuration:
+## Spring Configuration:
 
 * Configure Spring Data Graph for Neo4j in your application using the provided xml namespace.
 
@@ -57,6 +55,8 @@ Spring Configuration:
         <datagraph:config storeDirectory="target/config-test"/>
     
     </beans>
+
+## Graph-Entities
 
 * Annotate your entity class.  In this case it is a 'World' class that has a relationship to other worlds that are reachable by rocket travel:
 
@@ -91,6 +91,8 @@ Spring Configuration:
               return reachableByRocket.contains( otherWorld );
           }
         }
+
+## Transactional Services
 
 * Create a repository or service to perform typical operations on your entities.  The FinderFactory and Finder helper classes make searching easy for common use cases. The complete functionality is covered in the [reference manual](http://static.springsource.org/spring-data/data-graph/docs/current/reference/html/#programming-model).
 
@@ -141,6 +143,8 @@ Spring Configuration:
           }
                        
         }
+
+## Aspectj Compile Step
 
 *  Configure the Aspect-J maven plugin build & library dependency.  Add the following plugin XML to your project's <plugins> config in pom.xml to hook AspectJ into the build process:
 
