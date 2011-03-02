@@ -524,20 +524,23 @@ class Person {
 ]]></programlisting>
     </section>
     <section>
-        <title>Session handling - detached Entities</title>
+        <title>Session handling - attached and detached Entities</title>
         <para>
-            By default node entities that are created in a transaction are immediately attached to the graph database. All subsequent
-            write operation will be instantly reflected on the node and its relationships. This is also the default behaviour
-            for entities created outside of transactions. This is achieved by running implicit transactions for modifying operations.
-            Those transactions participate in existing transactions with no additional cost but create a transactional context
-            otherwise (like the "required" propagation mode).
+            By default newly created node entities are in a detached state. When <code>persist()</code> is called on the entity
+            it is attached to the graph store and its properties and relationships are persisted as well. Changing an attached
+            entity inside a transaction will write through the changes to the datastore. Whenever an entity is changed outside
+            of a transaction it will be considered detached. The changed data is stored in the entity itself and not written
+            back to the datastore.
         </para>
         <para>
-            For certain contexts (e.g. web layer) it is required that entities are created in a detached mode (it is possible that those entities
-            are never persisted at all). That is achieved by annotating the entities with the <code>autoAttach</code> attribute set to false.
-            All node entities are equipped with an additional <code>attach()</code> method that will attach the entity to the graph
-            database (if that has not already happend) and also flush the state changes to the graph. The flush operation checks for
-            concurrent modifications of the data and fails if a conflict is detected.
+            All entities that are returned by library functions are initially in an attached state. Changing them outside of a
+            transaction detaches them. For writing the changes back it is necessary to <code>persist()</code> them again.
+        </para>
+        <para>
+            Persisting an entity not only persists that single entity but will traverse its existing and new relationships and
+            persist the cluster of detached entities that it is part of. The borders of this cluster are formed by attached entities.
+            The persist operation creates its own, implicit transaction. When it is called withina external transaction it participates
+            otherwise it is an atomic operation.
         </para>
         <para>
             Please keep in mind that the session handling behaviour is still heavily developed. The defaults and also other
@@ -545,11 +548,11 @@ class Person {
             of relationships outside of transactions and also more complex operations like creating whole subgraphs is not supported.
         </para>
 <programlisting language="java" ><![CDATA[
-@NodeEntity(autoAttach = false)
+@NodeEntity
 class Person {
     String name;
 }
-Person p = new Person().attach();
+Person p = new Person().persist();
 ]]></programlisting>
     </section>
 

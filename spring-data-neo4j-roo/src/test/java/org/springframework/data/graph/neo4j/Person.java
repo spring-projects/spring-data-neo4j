@@ -1,14 +1,11 @@
 package org.springframework.data.graph.neo4j;
 
-import org.springframework.data.graph.annotation.*;
-import org.springframework.data.graph.core.Direction;
-import org.springframework.data.graph.neo4j.Car;
-import org.springframework.data.graph.neo4j.Friendship;
-import org.springframework.data.graph.neo4j.Person;
-import static org.springframework.data.graph.neo4j.Person.persistedPerson;
-import static org.springframework.data.graph.neo4j.Person.persistedPerson;
-import org.springframework.data.graph.neo4j.Personality;
 import org.springframework.data.annotation.Indexed;
+import org.springframework.data.graph.annotation.GraphId;
+import org.springframework.data.graph.annotation.NodeEntity;
+import org.springframework.data.graph.annotation.RelatedTo;
+import org.springframework.data.graph.annotation.RelatedToVia;
+import org.springframework.data.graph.core.Direction;
 
 import java.util.Date;
 
@@ -190,5 +187,9 @@ public class Person
     public void setNickname( String nickname )
     {
         this.nickname = nickname;
+    }
+
+    public static Person persistedPerson(String name, int age) {
+        return new Person(name,age).persist();
     }
 }

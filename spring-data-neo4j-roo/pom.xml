@@ -189,10 +189,6 @@
 						</aspectLibrary>
 						<aspectLibrary>
 							<groupId>org.springframework.data</groupId>
-							<artifactId>spring-data-commons-aspects</artifactId>
-						</aspectLibrary>
-						<aspectLibrary>
-							<groupId>org.springframework.data</groupId>
 							<artifactId>spring-data-neo4j</artifactId>
 						</aspectLibrary>
 					</aspectLibraries>

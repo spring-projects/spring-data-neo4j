@@ -28,6 +28,7 @@ import org.neo4j.graphdb.traversal.TraversalDescription;
 import org.neo4j.graphdb.traversal.Traverser;
 import org.springframework.beans.factory.annotation.Configurable;
 import org.springframework.data.graph.core.NodeBacked;
+import org.springframework.data.graph.core.GraphBacked;
 import org.springframework.data.graph.core.RelationshipBacked;
 import org.springframework.data.graph.neo4j.fieldaccess.*;
 import org.springframework.data.graph.neo4j.support.GraphDatabaseContext;
@@ -94,14 +95,15 @@ public aspect Neo4jNodeBacking { // extends AbstractTypeAnnotatingMixinFields<No
             log.error("entityStateFactory not set, not creating accessors for " + entity.getClass());
         } else {
             if (entity.entityState != null) return;
-            EntityState<NodeBacked, Node> entityState = entityStateFactory.getEntityState(entity);
-            entity.entityState = entityState;
-            // entityState.persist(true);
+            entity.entityState = entityStateFactory.getEntityState(entity);
         }
     }
 
     public <T extends NodeBacked> T NodeBacked.persist() {
         return (T)this.entityState.persist();
+    }
+    public boolean NodeBacked.refersTo(GraphBacked target) {
+        return this.entityState.refersTo(target);
     }
     /**
      * State accessors that encapsulate the underlying state and the behaviour related to it (field access, creation)

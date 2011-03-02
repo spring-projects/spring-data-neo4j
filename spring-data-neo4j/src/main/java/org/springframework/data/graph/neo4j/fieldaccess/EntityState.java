@@ -17,6 +17,7 @@
 package org.springframework.data.graph.neo4j.fieldaccess;
 
 import org.springframework.data.graph.core.GraphBacked;
+import org.springframework.data.graph.core.NodeBacked;
 
 import java.lang.reflect.Field;
 
@@ -61,4 +62,6 @@ public interface EntityState<ENTITY extends GraphBacked<STATE>,STATE> {
     STATE getPersistentState();
 
     ENTITY persist();
+
+    boolean refersTo(GraphBacked target);
 }

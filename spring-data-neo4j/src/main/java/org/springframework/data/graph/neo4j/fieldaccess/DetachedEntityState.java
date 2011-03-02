@@ -19,14 +19,14 @@ package org.springframework.data.graph.neo4j.fieldaccess;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.neo4j.graphdb.Transaction;
+import org.springframework.data.graph.annotation.RelatedTo;
 import org.springframework.data.graph.core.GraphBacked;
+import org.springframework.data.graph.core.NodeBacked;
 import org.springframework.data.graph.neo4j.support.GraphDatabaseContext;
 import org.springframework.util.ObjectUtils;
 
 import java.lang.reflect.Field;
-import java.util.ConcurrentModificationException;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 import static org.springframework.data.graph.neo4j.fieldaccess.DoReturn.unwrap;
 
@@ -34,13 +34,14 @@ import static org.springframework.data.graph.neo4j.fieldaccess.DoReturn.unwrap;
  * @author Michael Hunger
  * @since 15.09.2010
  */
-public class DetachableEntityState<ENTITY extends GraphBacked<STATE>, STATE> implements EntityState<ENTITY,STATE> {
+public class DetachedEntityState<ENTITY extends GraphBacked<STATE>, STATE> implements EntityState<ENTITY,STATE> {
     private final Map<Field, Object> dirty = new HashMap<Field, Object>();
+    private final Set<NodeBacked> backrefs = new HashSet<NodeBacked>();
     protected final EntityState<ENTITY,STATE> delegate;
-    private final static Log log = LogFactory.getLog(DetachableEntityState.class);
+    private final static Log log = LogFactory.getLog(DetachedEntityState.class);
     private GraphDatabaseContext graphDatabaseContext;
 
-    public DetachableEntityState(final EntityState<ENTITY, STATE> delegate, GraphDatabaseContext graphDatabaseContext) {
+    public DetachedEntityState(final EntityState<ENTITY, STATE> delegate, GraphDatabaseContext graphDatabaseContext) {
         this.delegate = delegate;
         this.graphDatabaseContext = graphDatabaseContext;
     }
@@ -182,6 +183,53 @@ public class DetachableEntityState<ENTITY extends GraphBacked<STATE>, STATE> imp
         this.dirty.put(f, previousValue);
     }
 
+    public void addBackReferences(Collection<NodeBacked> backReference) {
+        this.backrefs.addAll(backReference);
+    }
+
+
+    private Set<NodeBacked> getOutboundDirtyNodeEntities() {
+        HashSet<NodeBacked> result = new HashSet<NodeBacked>();
+        for (Field field : dirty.keySet()) {
+            if (handleSingleField(result, field)) continue;
+            handleOneToMany(result, field);
+        }
+        return result;
+    }
+
+    private boolean handleOneToMany(HashSet<NodeBacked> result, Field field) {
+        if ((Collection.class.isAssignableFrom(field.getType())) && field.isAnnotationPresent(RelatedTo.class)) {
+            result.addAll((Collection) getValueFromEntity(field));
+            return true;
+        }
+        return false;
+    }
+
+
+    private boolean handleSingleField(HashSet<NodeBacked> result, Field field) {
+        if (NodeBacked.class.isAssignableFrom(field.getType())) {
+            Object value = getValueFromEntity(field);
+            if (value!=null) {
+                result.add((NodeBacked) value);
+            }
+            return true;
+        }
+        return false;
+    }
+
+    private void pruneInvalidBackRefs() {
+        for (Iterator<NodeBacked> it = backrefs.iterator(); it.hasNext();) {
+            NodeBacked backRef = it.next();
+            GraphBacked entity = getEntity();
+            if (backRef.refersTo(entity)) continue;
+            it.remove();
+        }
+    }
+
+    public boolean refersTo(GraphBacked target) {
+        return getOutboundDirtyNodeEntities().contains(target);
+    }
+
     public GraphDatabaseContext getGraphDatabaseContext() {
         return graphDatabaseContext;
     }
@@ -189,14 +237,26 @@ public class DetachableEntityState<ENTITY extends GraphBacked<STATE>, STATE> imp
     // todo always create an transaction for persist, atomic operation when no outside tx exists
     @Override
     public ENTITY persist() {
+        if (!isDetached()) return getEntity();
         Transaction tx = graphDatabaseContext.beginTx();
         try {
             ENTITY result = delegate.persist();
+            persistNeighbours();
             flushDirty();
             tx.success();
             return result;
         } finally {
             tx.finish();
+        }
+    }
+
+    private void persistNeighbours() {
+        pruneInvalidBackRefs();
+        for (NodeBacked backref : backrefs) {
+            backref.persist();
+        }
+        for (NodeBacked nodeBacked : getOutboundDirtyNodeEntities()) {
+            nodeBacked.persist();
         }
     }
 

@@ -24,6 +24,7 @@ import org.springframework.data.graph.core.NodeBacked;
 import org.springframework.data.graph.neo4j.support.GraphDatabaseContext;
 
 import java.lang.reflect.Field;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Set;
 

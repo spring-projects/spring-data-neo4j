@@ -36,7 +36,7 @@ public class NodeEntityStateFactory {
         final NodeEntity graphEntityAnnotation = entity.getClass().getAnnotation(NodeEntity.class); // todo cache ??
         if (graphEntityAnnotation.partial()) {
             PartialNodeEntityState<NodeBacked> partialNodeEntityState = new PartialNodeEntityState<NodeBacked>(null, entity, entity.getClass(), graphDatabaseContext, finderFactory);
-            return new DetachableEntityState<NodeBacked, Node>(partialNodeEntityState, graphDatabaseContext) {
+            return new DetachedEntityState<NodeBacked, Node>(partialNodeEntityState, graphDatabaseContext) {
                 @Override
                 protected boolean transactionIsRunning() {
                     return super.transactionIsRunning() && getId(entity, entity.getClass()) != null;
@@ -45,7 +45,7 @@ public class NodeEntityStateFactory {
         } else {
             NodeEntityState<NodeBacked> nodeEntityState = new NodeEntityState<NodeBacked>(null, entity, entity.getClass(), graphDatabaseContext, nodeDelegatingFieldAccessorFactory);
             // alternative was return new NestedTransactionEntityState<NodeBacked, Node>(nodeEntityState,graphDatabaseContext);
-            return new DetachableEntityState<NodeBacked, Node>(nodeEntityState, graphDatabaseContext);
+            return new DetachedEntityState<NodeBacked, Node>(nodeEntityState, graphDatabaseContext);
         }
     }
 
