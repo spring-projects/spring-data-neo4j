@@ -348,5 +348,8 @@ public class GraphDatabaseContext {
         this.validator = validatorFactory;
     }
 
+    public <T extends NodeBacked> T createEntityFromStoredType(Node node) {
+        return (T)graphEntityInstantiator.createEntityFromState(node,nodeTypeStrategy.<NodeBacked>getJavaType(node));
+    }
 }
 
