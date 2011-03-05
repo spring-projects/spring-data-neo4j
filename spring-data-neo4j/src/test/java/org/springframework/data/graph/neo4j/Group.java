@@ -23,6 +23,9 @@ import java.util.Collection;
 @NodeEntity
 public class Group {
 
+    public final static String OTHER_NAME_INDEX="other_name";
+    public static final String SEARCH_GROUPS_INDEX = "search-groups";
+
     @RelatedTo(type = "persons", direction = Direction.OUTGOING, elementClass = Person.class)
     private Collection<Person> persons;
 
@@ -40,6 +43,21 @@ public class Group {
     private String unindexedName;
 
     private String unindexedName2;
+
+    @GraphProperty
+    @Indexed(indexName = SEARCH_GROUPS_INDEX, fulltext = true)
+    private String fullTextName;
+
+    @Indexed(fieldName = OTHER_NAME_INDEX)
+    private String otherName;
+
+    public String getFullTextName() {
+        return fullTextName;
+    }
+
+    public void setFullTextName(String fullTextName) {
+        this.fullTextName = fullTextName;
+    }
 
     public String getName() {
         return name;
@@ -71,6 +89,10 @@ public class Group {
 
     public Iterable<Person> getPeople() {
         return people;
+    }
+
+    public void setOtherName(String otherName) {
+        this.otherName = otherName;
     }
 
     private static class PeopleTraversalBuilder implements FieldTraversalDescriptionBuilder {

@@ -21,8 +21,10 @@ import org.apache.commons.logging.LogFactory;
 import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.index.Index;
 import org.neo4j.graphdb.index.IndexManager;
+import org.neo4j.index.impl.lucene.LuceneIndexImplementation;
 import org.neo4j.kernel.AbstractGraphDatabase;
 import org.springframework.core.convert.ConversionService;
+import org.springframework.data.annotation.Indexed;
 import org.springframework.data.graph.core.GraphBacked;
 import org.springframework.data.graph.core.NodeBacked;
 import org.springframework.data.graph.core.NodeTypeStrategy;
@@ -33,13 +35,13 @@ import javax.transaction.Status;
 import javax.transaction.SystemException;
 import javax.transaction.TransactionManager;
 import javax.validation.Validator;
+import java.util.Map;
 
 /**
  * Mediator class for the graph related services like the {@link GraphDatabaseService}, the used
  * {@link NodeTypeStrategy}, entity instantiators for nodes and relationships as well as a spring conversion service.
  *
  * It delegates the appropriate methods to those services. The services are not intended to be accessible from outside.
- * TODO constructor injection
  *
  * @author Michael Hunger
  * @since 13.09.2010
@@ -119,14 +121,11 @@ public class GraphDatabaseContext {
 
     /**
      * @param relationship to be removed from all indexes, all properties are removed from all indexes
-     * TODO remove only indexed properties
      */
     private void removeFromIndexes(Relationship relationship) {
+        IndexManager indexManager = graphDatabaseService.index();
         for (String indexName : getIndexManager().relationshipIndexNames()) {
-            Index<Relationship> index = getRelationshipIndex(indexName);
-            for (String property : relationship.getPropertyKeys()) {
-                index.remove(relationship, property, relationship.getProperty(property));
-            }
+            indexManager.forRelationships(indexName).remove(relationship);
         }
     }
 
@@ -155,14 +154,11 @@ public class GraphDatabaseContext {
 
     /**
      * @param node to be removed from all indexes, all properties of the node are removed from all indexes
-     * TODO remove only indexed properties
      */
     private void removeFromIndexes(Node node) {
-        for (String property : node.getPropertyKeys()) {
-            for (String indexName : getIndexManager().nodeIndexNames()) {
-                Index<Node> index = getNodeIndex(indexName);
-                index.remove(node,property,node.getProperty(property));
-            }
+        IndexManager indexManager = graphDatabaseService.index();
+        for (String indexName : getIndexManager().nodeIndexNames()) {
+            indexManager.forNodes(indexName).remove(node);
         }
     }
 
@@ -188,20 +184,24 @@ public class GraphDatabaseContext {
      * @param indexName or null, "node" is assumed if null
      * @return node index {@link Index}
      */
-    public Index<Node> getNodeIndex(final String indexName) {
-        String indexNameToUse = indexName == null ? DEFAULT_NODE_INDEX_NAME : indexName;
-        // checkValidIndex(indexNameToUse); // check invalid index names
-        return getIndexManager().forNodes(indexNameToUse);
+    public <T extends PropertyContainer,N extends GraphBacked<T>> Index<T> getIndex(Class<N> type, String indexName) {
+        if (indexName==null) indexName = Indexed.Name.get(type);
+        if (NodeBacked.class.isAssignableFrom(type)) return (Index<T>) getIndexManager().forNodes(indexName);
+        if (RelationshipBacked.class.isAssignableFrom(type)) return (Index<T>) getIndexManager().forRelationships(indexName);
+        throw new IllegalArgumentException("Wrong index type supplied "+type);
     }
-
     /**
-     * @param indexName or null, "relationship" is assumed if null
-     * @return relationship index {@link Index}
+     * @param type type of index requested - either Node.class or Relationship.class
+     * @param indexName or null, "node" is assumed if null
+     * @param fullText true if a fulltext queryable index is needed, false for exact match
+     * @return node index {@link Index}
      */
-    public Index<Relationship> getRelationshipIndex(final String indexName) {
-        String indexNameToUse = indexName == null ? DEFAULT_RELATIONSHIP_INDEX_NAME : indexName;
-        // checkValidIndex(indexNameToUse); // check invalid index names
-        return getIndexManager().forRelationships(indexNameToUse);
+    public <T extends PropertyContainer,N extends GraphBacked<T>> Index<T> getIndex(Class<N> type, String indexName, boolean fullText) {
+        if (indexName==null) indexName = Indexed.Name.get(type);
+        Map<String, String> config = fullText ? LuceneIndexImplementation.FULLTEXT_CONFIG : LuceneIndexImplementation.EXACT_CONFIG;
+        if (NodeBacked.class.isAssignableFrom(type)) return (Index<T>) getIndexManager().forNodes(indexName, config);
+        if (RelationshipBacked.class.isAssignableFrom(type)) return (Index<T>) getIndexManager().forRelationships(indexName, config);
+        throw new IllegalArgumentException("Wrong index type supplied "+type);
     }
 
     /**
@@ -347,5 +347,6 @@ public class GraphDatabaseContext {
     public void setValidator(Validator validatorFactory) {
         this.validator = validatorFactory;
     }
+
 }
 

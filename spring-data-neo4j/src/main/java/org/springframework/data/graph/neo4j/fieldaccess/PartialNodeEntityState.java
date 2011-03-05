@@ -18,6 +18,8 @@ package org.springframework.data.graph.neo4j.fieldaccess;
 
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.NotInTransactionException;
+import org.neo4j.graphdb.PropertyContainer;
+import org.neo4j.graphdb.index.Index;
 import org.neo4j.graphdb.index.IndexHits;
 import org.springframework.dao.InvalidDataAccessResourceUsageException;
 import org.springframework.data.graph.annotation.GraphProperty;
@@ -49,7 +51,7 @@ public class PartialNodeEntityState<ENTITY extends NodeBacked> extends DefaultEn
             @Override
             protected Collection<FieldAccessorListenerFactory<?>> createListenerFactories() {
                 return Arrays.<FieldAccessorListenerFactory<?>>asList(
-                        new IndexingNodePropertyFieldAccessorListenerFactory(
+                        new IndexingPropertyFieldAccessorListenerFactory(
                         		getGraphDatabaseContext(),
                         		newPropertyFieldAccessorFactory(),
                         		newConvertingNodePropertyFieldAccessorFactory()) {
@@ -110,7 +112,7 @@ public class PartialNodeEntityState<ENTITY extends NodeBacked> extends DefaultEn
             final Object id = getId(entity,type);
             if (id == null) return;
             final String foreignId = createForeignId(id);
-            IndexHits<Node> indexHits = graphDatabaseContext.getNodeIndex(FOREIGN_ID_INDEX).get(FOREIGN_ID, foreignId);
+            IndexHits<Node> indexHits = getForeignIdIndex().get(FOREIGN_ID, foreignId);
             Node node = indexHits.hasNext() ? indexHits.next() : null;
             if (node == null) {
                 node = graphDatabaseContext.createNode();
@@ -143,8 +145,12 @@ public class PartialNodeEntityState<ENTITY extends NodeBacked> extends DefaultEn
         if (!node.hasProperty(FOREIGN_ID) && id != null) {
             final String foreignId = createForeignId(id);
             node.setProperty(FOREIGN_ID, id);
-            graphDatabaseContext.getNodeIndex(FOREIGN_ID_INDEX).add(node, FOREIGN_ID, foreignId);
+            getForeignIdIndex().add(node, FOREIGN_ID, foreignId);
         }
+    }
+
+    private Index<Node> getForeignIdIndex() {
+        return graphDatabaseContext.getIndex(type,null);
     }
 
     private String createForeignId(Object id) {

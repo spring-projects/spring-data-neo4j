@@ -18,28 +18,25 @@ package org.springframework.data.graph.neo4j.fieldaccess;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.PropertyContainer;
-import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.index.Index;
 import org.neo4j.index.impl.lucene.ValueContext;
 import org.springframework.data.annotation.Indexed;
 import org.springframework.data.graph.annotation.NodeEntity;
 import org.springframework.data.graph.core.GraphBacked;
-import org.springframework.data.graph.core.NodeBacked;
 import org.springframework.data.graph.neo4j.support.GraphDatabaseContext;
 
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Field;
 
 
-class IndexingNodePropertyFieldAccessorListenerFactory<T extends GraphBacked<?>> implements FieldAccessorListenerFactory<T> {
+class IndexingPropertyFieldAccessorListenerFactory<S extends PropertyContainer, T extends GraphBacked<S>> implements FieldAccessorListenerFactory<T> {
 
     private final GraphDatabaseContext graphDatabaseContext;
     private final PropertyFieldAccessorFactory propertyFieldAccessorFactory;
     private final ConvertingNodePropertyFieldAccessorFactory convertingNodePropertyFieldAccessorFactory;
 
-    IndexingNodePropertyFieldAccessorListenerFactory(final GraphDatabaseContext graphDatabaseContext, final PropertyFieldAccessorFactory propertyFieldAccessorFactory, final ConvertingNodePropertyFieldAccessorFactory convertingNodePropertyFieldAccessorFactory) {
+    IndexingPropertyFieldAccessorListenerFactory(final GraphDatabaseContext graphDatabaseContext, final PropertyFieldAccessorFactory propertyFieldAccessorFactory, final ConvertingNodePropertyFieldAccessorFactory convertingNodePropertyFieldAccessorFactory) {
     	this.graphDatabaseContext = graphDatabaseContext;
     	this.propertyFieldAccessorFactory = propertyFieldAccessorFactory;
         this.convertingNodePropertyFieldAccessorFactory = convertingNodePropertyFieldAccessorFactory;
@@ -63,43 +60,52 @@ class IndexingNodePropertyFieldAccessorListenerFactory<T extends GraphBacked<?>>
 
     @Override
     public FieldAccessListener<T, ?> forField(Field field) {
-        String indexName = getIndexName(field);
-        if (NodeBacked.class.isAssignableFrom(field.getDeclaringClass())) {
-            return (FieldAccessListener<T, ?>) new IndexingNodePropertyFieldAccessorListener<Node>(field, graphDatabaseContext.getNodeIndex(indexName));
-        }
-        return (FieldAccessListener<T, ?>) new IndexingNodePropertyFieldAccessorListener<Relationship>(field, graphDatabaseContext.getRelationshipIndex(indexName));
+        Class<T> graphBacked = (Class<T>) field.getDeclaringClass();
+        Index<? extends PropertyContainer> index = getIndex(field,graphBacked);
+        String indexKey = getIndexKey(field);
+        return (FieldAccessListener<T, ?>) new IndexingPropertyFieldAccessorListener(field, index, indexKey);
     }
 
-    private String getIndexName(Field field) {
+    private String getIndexKey(Field field) {
         Indexed indexed = getIndexedAnnotation(field);
-        if (hasIndexName(indexed)) return indexed.indexName();
+        if (indexed==null || indexed.fieldName().isEmpty()) return DelegatingFieldAccessorFactory.getNeo4jPropertyName(field);
+        return indexed.fieldName();
+    }
 
-        final Indexed indexedEntity = getIndexedAnnotation(field.getDeclaringClass());
-        return hasIndexName( indexedEntity ) ?  indexedEntity.indexName() : null;
+    private Index<S> getIndex(Field field, Class<T> type) {
+        if (!isFulltextIndex(field)) {
+            return graphDatabaseContext.getIndex(type, Indexed.Name.get(field), false);
+        }
+        Indexed indexed = getIndexedAnnotation(field);
+        if (indexed.indexName()==null) throw new IllegalStateException("@Indexed(fullext=true) on "+field+" requires an indexName too ");
+        String defaultIndexName = Indexed.Name.getDefault(field);
+        if (indexed.indexName().equals(defaultIndexName)) throw new IllegalStateException("Full-index name for "+field+" must differ from the default name: "+defaultIndexName);
+        return graphDatabaseContext.getIndex(type, indexed.indexName(), true);
+    }
+
+    private boolean isFulltextIndex(Field field) {
+        Indexed indexed = getIndexedAnnotation(field);
+        return indexed!=null && indexed.fulltext();
     }
 
     private Indexed getIndexedAnnotation(AnnotatedElement element) {
         return element.getAnnotation(Indexed.class);
     }
 
-    private boolean hasIndexName(Indexed indexed) {
-        return indexed!=null && !indexed.indexName().isEmpty();
-    }
-
     /**
 	 * @author Michael Hunger
 	 * @since 12.09.2010
 	 */
-	public static class IndexingNodePropertyFieldAccessorListener<T extends PropertyContainer> implements FieldAccessListener<GraphBacked<T>, Object> {
+	public static class IndexingPropertyFieldAccessorListener<T extends PropertyContainer> implements FieldAccessListener<GraphBacked<T>, Object> {
 
-	    private final static Log log = LogFactory.getLog( IndexingNodePropertyFieldAccessorListener.class );
+	    private final static Log log = LogFactory.getLog( IndexingPropertyFieldAccessorListener.class );
 
 	    protected final String indexKey;
         private final Index<T> index;
 
-        public IndexingNodePropertyFieldAccessorListener(final Field field,  final Index<T> index) {
-	        this.indexKey = DelegatingFieldAccessorFactory.getNeo4jPropertyName(field);
+        public IndexingPropertyFieldAccessorListener(final Field field, final Index<T> index, final String indexKey) {
             this.index = index;
+            this.indexKey = indexKey;
         }
 
 	    @Override

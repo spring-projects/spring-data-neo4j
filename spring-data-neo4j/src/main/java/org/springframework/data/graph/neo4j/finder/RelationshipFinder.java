@@ -35,11 +35,6 @@ public class RelationshipFinder<T extends RelationshipBacked> extends AbstractFi
     }
 
     @Override
-    protected Index<Relationship> getIndex(String indexName) {
-        return graphDatabaseContext.getRelationshipIndex(indexName);
-    }
-
-    @Override
     public <N extends NodeBacked> Iterable<T> findAllByTraversal(final N startNode, final TraversalDescription traversalDescription) {
         throw new UnsupportedOperationException("Traversal not able to start at relationship");
     }

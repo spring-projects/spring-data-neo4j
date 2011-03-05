@@ -1,7 +1,6 @@
 package org.springframework.data.graph.neo4j.finder;
 
 import org.apache.lucene.search.NumericRangeQuery;
-import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.NotFoundException;
 import org.neo4j.graphdb.PropertyContainer;
 import org.neo4j.graphdb.index.Index;
@@ -9,13 +8,9 @@ import org.neo4j.graphdb.index.IndexHits;
 import org.neo4j.helpers.collection.IterableWrapper;
 import org.neo4j.index.impl.lucene.ValueContext;
 import org.springframework.data.graph.core.GraphBacked;
-import org.springframework.data.graph.core.NodeBacked;
 import org.springframework.data.graph.neo4j.support.GraphDatabaseContext;
 
 import java.util.Collections;
-import java.util.concurrent.Callable;
-
-import static org.apache.lucene.search.NumericRangeQuery.*;
 
 /**
  * Repository like finder for Node and Relationship-Entities. Provides finder methods for direct access, access via {@link org.springframework.data.graph.core.NodeTypeStrategy}
@@ -90,14 +85,16 @@ public abstract class AbstractFinder<S extends PropertyContainer, T extends Grap
         return getIndex(indexName).get(property, value);
     }
 
-    protected abstract Index<S> getIndex(String indexName);
+    protected Index<S> getIndex(String indexName) {
+        return graphDatabaseContext.getIndex(clazz,indexName);
+    }
 
     protected T createEntity(S node) {
         return graphDatabaseContext.createEntityFromState(node, clazz);
     }
 
     /**
-     * Index based finder.
+     * Index based exact finder.
      *
      * @param indexName or null for default index
      * @param property
@@ -109,6 +106,22 @@ public abstract class AbstractFinder<S extends PropertyContainer, T extends Grap
         return query(indexName, new Query<S>() {
             public IndexHits<S> query(Index<S> index) {
                 return getIndexHits(indexName, property, value);
+            }
+        });
+    }
+    /**
+     * Index based fulltext / query object finder.
+     *
+     *
+     * @param indexName or null for default index
+     * @param key key of the field to query
+     *@param query lucene query object or query-string  @return Iterable over Entities with this property and value
+     */
+    @Override
+    public Iterable<T> findAllByQuery(final String indexName, final String key, final Object query) {
+        return query(indexName, new Query<S>() {
+            public IndexHits<S> query(Index<S> index) {
+                return getIndex(indexName).query(key, query);
             }
         });
     }
