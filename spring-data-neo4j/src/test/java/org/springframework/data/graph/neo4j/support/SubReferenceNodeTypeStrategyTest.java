@@ -73,6 +73,22 @@ public class SubReferenceNodeTypeStrategyTest {
         Assert.assertEquals("type node has property of type Thing.class", Thing.class.getName(), typeNode.getProperty(SubReferenceNodeTypeStrategy.SUBREF_CLASS_KEY));
         Assert.assertEquals("one thing has been created", 1, typeNode.getProperty(SubReferenceNodeTypeStrategy.SUBREFERENCE_NODE_COUNTER_KEY));
     }
+    @Test(expected = IllegalArgumentException.class)
+    public void gettingTypeFromNonTypeNodeShouldThrowAnDescriptiveException() throws Exception {
+        Node referenceNode = graphDatabaseContext.getReferenceNode();
+        nodeTypeStrategy.getJavaType(referenceNode);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void confirmingTypeOfNonTypeNodeShouldThrowAnDescriptiveException() throws Exception {
+        Node referenceNode = graphDatabaseContext.getReferenceNode();
+        nodeTypeStrategy.confirmType(referenceNode,Thing.class);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void gettingTypeFromNullShouldFail() throws Exception {
+        nodeTypeStrategy.getJavaType(null);
+    }
 
     private Node createThing() {
         Transaction tx = graphDatabaseContext.beginTx();

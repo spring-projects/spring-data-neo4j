@@ -153,7 +153,10 @@ public class SubReferenceNodeTypeStrategy implements NodeTypeStrategy {
 	@Override
 	@SuppressWarnings("unchecked")
 	public <T extends NodeBacked> Class<T> getJavaType(Node node) {         
-		Node subrefNode = node.getSingleRelationship(INSTANCE_OF_RELATIONSHIP_TYPE, Direction.OUTGOING).getEndNode();
+        if (node==null) throw new IllegalArgumentException("Node is null");
+        Relationship instanceOfRelationship = node.getSingleRelationship(INSTANCE_OF_RELATIONSHIP_TYPE, Direction.OUTGOING);
+        if (instanceOfRelationship==null) throw new IllegalArgumentException("The node "+node+" is not attached to a type hierarchy.");
+        Node subrefNode = instanceOfRelationship.getEndNode();
 		try {
 			Class<T> clazz = (Class<T>) Class.forName((String) subrefNode.getProperty(SUBREF_CLASS_KEY)).asSubclass(NodeBacked.class);
 			if (log.isDebugEnabled()) log.debug("Found class " + clazz.getSimpleName() + " for node: " + node);
