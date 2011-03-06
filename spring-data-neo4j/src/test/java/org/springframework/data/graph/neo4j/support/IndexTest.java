@@ -9,6 +9,7 @@ import org.junit.runner.RunWith;
 import org.neo4j.graphdb.DynamicRelationshipType;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
+import org.neo4j.graphdb.Transaction;
 import org.neo4j.graphdb.index.Index;
 import org.neo4j.helpers.collection.IteratorUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -217,6 +218,14 @@ public class IndexTest {
         final NodeFinder<Person> finder = finderFactory.createNodeEntityFinder(Person.class);
         final Person found = finder.findByPropertyValue(Person.NAME_INDEX, "Person.name", NAME_VALUE);
         assertEquals(person, found);
+    }
+
+    @Test
+    public void findsPersonByIndexOnAnnotatedIntFieldInSeparateTransactions() {
+        Person person = persistedPerson(NAME_VALUE, 35);
+        final NodeFinder<Person> finder = finderFactory.createNodeEntityFinder(Person.class);
+        final Person found = finder.findByPropertyValue(null, "Person.age", 35);
+        assertEquals("person found inside range", person, found);
     }
 
     @Test

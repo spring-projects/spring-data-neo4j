@@ -81,7 +81,10 @@ public abstract class AbstractFinder<S extends PropertyContainer, T extends Grap
     }
 
     private IndexHits<S> getIndexHits(String indexName, String property, Object value) {
-        if (value instanceof Number) value = ValueContext.numeric((Number) value);
+        if (value instanceof Number) {
+            Number number = (Number) value;
+            return getIndex(indexName).query(createInclusiveRangeQuery(property, number,number));
+        }
         return getIndex(indexName).get(property, value);
     }
 
@@ -146,12 +149,12 @@ public abstract class AbstractFinder<S extends PropertyContainer, T extends Grap
     public Iterable<T> findAllByRange(final String indexName, final String property, final Number from, final Number to) {
         return query(indexName, new Query<S>() {
             public IndexHits<S> query(Index<S> index) {
-                return index.query(property, createRangeQuery(property, from, to));
+                return index.query(property, createInclusiveRangeQuery(property, from, to));
             }
         });
     }
 
-    protected <T extends Number> NumericRangeQuery<T> createRangeQuery(String property, Number from, Number to) {
+    protected <T extends Number> NumericRangeQuery<T> createInclusiveRangeQuery(String property, Number from, Number to) {
         if (from instanceof Long) return (NumericRangeQuery<T>) NumericRangeQuery.newLongRange(property, from.longValue(),to.longValue(),true,true);
         if (from instanceof Integer) return (NumericRangeQuery<T>) NumericRangeQuery.newIntRange(property, from.intValue(), to.intValue(), true, true);
         if (from instanceof Double) return (NumericRangeQuery<T>) NumericRangeQuery.newDoubleRange(property, from.doubleValue(), to.doubleValue(), true, true);
