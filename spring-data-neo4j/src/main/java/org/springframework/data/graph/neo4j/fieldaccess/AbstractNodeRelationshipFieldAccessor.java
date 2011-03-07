@@ -105,7 +105,8 @@ public abstract class AbstractNodeRelationshipFieldAccessor<ENTITY extends Graph
     protected void createSingleRelationship(STATE start, TSTATE end) {
         if (end==null) return;
         switch(direction) {
-            case OUTGOING : {
+            case OUTGOING :
+            case BOTH : { // TODO both should actually check in both directions, perhaps have the obtain method get the direction instead and figure out what to do itself
                 obtainSingleRelationship(start, end);
                 break;
             }

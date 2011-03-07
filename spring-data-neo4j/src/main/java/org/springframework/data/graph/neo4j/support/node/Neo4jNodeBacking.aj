@@ -20,10 +20,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.reflect.FieldSignature;
-import org.neo4j.graphdb.DynamicRelationshipType;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Relationship;
-import org.neo4j.graphdb.RelationshipType;
+import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.traversal.TraversalDescription;
 import org.neo4j.graphdb.traversal.Traverser;
 import org.springframework.beans.factory.annotation.Configurable;
@@ -33,6 +30,8 @@ import org.springframework.data.graph.core.RelationshipBacked;
 import org.springframework.data.graph.neo4j.fieldaccess.*;
 import org.springframework.data.graph.neo4j.support.GraphDatabaseContext;
 import org.springframework.data.graph.annotation.*;
+
+import javax.management.relation.Relation;
 import java.lang.reflect.Field;
 
 import static org.springframework.data.graph.neo4j.fieldaccess.DoReturn.unwrap;
@@ -145,8 +144,21 @@ public aspect Neo4jNodeBacking { // extends AbstractTypeAnnotatingMixinFields<No
      * @return the newly created relationship to the target node
      */
 	public Relationship NodeBacked.relateTo(NodeBacked target, RelationshipType type) {
-		return this.getPersistentState().createRelationshipTo(target.getPersistentState(), type);
+        Relationship relationship=getRelationshipTo(target,type);
+        if (relationship!=null) return relationship;
+        return this.getPersistentState().createRelationshipTo(target.getPersistentState(), type);
 	}
+
+    public Relationship NodeBacked.getRelationshipTo(NodeBacked target, RelationshipType type) {
+        Node node = this.getPersistentState();
+        Node targetNode = target.getPersistentState();
+        if (node==null || targetNode==null) return null;
+        Iterable<Relationship> relationships = node.getRelationships(type, org.neo4j.graphdb.Direction.OUTGOING);
+        for (Relationship relationship : relationships) {
+            if (relationship.getOtherNode(node).equals(targetNode)) return relationship;
+        }
+        return null;
+    }
 
     /**
      * @return node id or null if there is no underlying state
@@ -184,7 +196,8 @@ public aspect Neo4jNodeBacking { // extends AbstractTypeAnnotatingMixinFields<No
      * @return relationship entity, instance of the provided relationshipClass
      */
     public <R extends RelationshipBacked, N extends NodeBacked> R NodeBacked.relateTo(N target, Class<R> relationshipClass, String relationshipType) {
-        Relationship rel = this.getPersistentState().createRelationshipTo( target.getPersistentState(), DynamicRelationshipType.withName(relationshipType));
+        DynamicRelationshipType type = DynamicRelationshipType.withName(relationshipType);
+        Relationship rel = this.relateTo(target,type);
         return (R)Neo4jNodeBacking.aspectOf().graphDatabaseContext.createEntityFromState(rel, relationshipClass);
     }
 

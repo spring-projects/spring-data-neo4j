@@ -6,6 +6,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.neo4j.graphdb.*;
+import org.neo4j.helpers.collection.IteratorUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.graph.neo4j.Friendship;
 import org.springframework.data.graph.neo4j.Person;
@@ -47,6 +48,17 @@ public class RelationshipEntityTest {
         Relationship rel = p.getPersistentState().getSingleRelationship(DynamicRelationshipType.withName("knows"), Direction.OUTGOING);
         assertEquals(f.getPersistentState(), rel);
         assertEquals(p2.getPersistentState(), rel.getEndNode());
+    }
+
+    @Test
+    @Transactional
+    public void shouldNotCreateSameRelationshipTwice() {
+        Person p = persistedPerson("Michael", 35);
+        Person p2 = persistedPerson("David", 25);
+        Friendship f = p.knows(p2);
+        Friendship f2 = p.knows(p2);
+        assertEquals(f, f2);
+        assertEquals(1, IteratorUtil.count(p.getFriendships()));
     }
 
     @Test
