@@ -32,7 +32,7 @@ public class Group {
     @RelatedTo(type = "persons", elementClass = Person.class)
     private Iterable<Person> readOnlyPersons;
 
-    @GraphTraversal(traversalBuilder = PeopleTraversalBuilder.class, elementClass = Person.class)
+    @GraphTraversal(traversalBuilder = PeopleTraversalBuilder.class, elementClass = Person.class, params = "persons")
     private Iterable<Person> people;
 
     @GraphProperty
@@ -97,9 +97,9 @@ public class Group {
 
     private static class PeopleTraversalBuilder implements FieldTraversalDescriptionBuilder {
         @Override
-        public TraversalDescription build(NodeBacked start, Field field) {
+        public TraversalDescription build(NodeBacked start, Field field, String...params) {
             return new TraversalDescriptionImpl()
-                    .relationships(DynamicRelationshipType.withName("persons"))
+                    .relationships(DynamicRelationshipType.withName(params[0]))
                     .filter(Traversal.returnAllButStartNode());
 
         }

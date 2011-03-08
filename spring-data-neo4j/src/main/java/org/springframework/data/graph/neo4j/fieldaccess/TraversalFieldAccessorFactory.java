@@ -63,13 +63,15 @@ public class TraversalFieldAccessorFactory implements FieldAccessorFactory<NodeB
 	    private final FinderFactory finderFactory;
 	    private final FieldTraversalDescriptionBuilder fieldTraversalDescriptionBuilder;
 	    private Class<? extends NodeBacked> target;
+        protected String[] params;
 
-	    public TraversalFieldAccessor(final Field field, FinderFactory finderFactory) {
+        public TraversalFieldAccessor(final Field field, FinderFactory finderFactory) {
 	        this.field = field;
 	        this.finderFactory = finderFactory;
             final GraphTraversal graphEntityTraversal = field.getAnnotation(GraphTraversal.class);
 	        this.target = graphEntityTraversal.elementClass();
-	        this.fieldTraversalDescriptionBuilder = createTraversalDescription(graphEntityTraversal);
+            this.params = graphEntityTraversal.params();
+            this.fieldTraversalDescriptionBuilder = createTraversalDescription(graphEntityTraversal);
 	    }
 
 	    @Override
@@ -85,7 +87,7 @@ public class TraversalFieldAccessorFactory implements FieldAccessorFactory<NodeB
 	    @Override
 	    public Object getValue(final NodeBacked nodeBacked) {
 	        final NodeFinder<? extends NodeBacked> finder = finderFactory.createNodeEntityFinder(target);
-	        final TraversalDescription traversalDescription = fieldTraversalDescriptionBuilder.build(nodeBacked,field);
+	        final TraversalDescription traversalDescription = fieldTraversalDescriptionBuilder.build(nodeBacked,field,params);
 	        return doReturn(finder.findAllByTraversal(nodeBacked, traversalDescription));
 	    }
 

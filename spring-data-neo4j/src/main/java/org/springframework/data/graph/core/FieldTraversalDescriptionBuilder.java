@@ -35,5 +35,5 @@ public interface FieldTraversalDescriptionBuilder {
      * @param field the concrete field that will provide the traversal. Used for the parametrization of the traversal description.
      * @return the TraversalDescription to apply on fieldaccess, the start node is the current entity node
      */
-    TraversalDescription build(NodeBacked start, Field field);
+    TraversalDescription build(NodeBacked start, Field field, String...params);
 }

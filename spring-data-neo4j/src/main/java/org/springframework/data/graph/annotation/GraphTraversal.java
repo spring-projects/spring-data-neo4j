@@ -47,4 +47,9 @@ public @interface GraphTraversal {
      * @return target graph entity to be iterated over.
      */
     Class<? extends NodeBacked> elementClass() default NodeBacked.class;
+
+    /**
+     * @return parameters that are passed to the @see FieldTraversalDescriptionBuilder#build
+     */
+    String[] params() default {};
 }
