@@ -3,24 +3,27 @@ package org.springframework.data.graph.neo4j.support;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Transaction;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.graph.neo4j.Group;
 import org.springframework.data.graph.neo4j.Person;
-import static org.springframework.data.graph.neo4j.Person.persistedPerson;
 import org.springframework.data.graph.neo4j.finder.FinderFactory;
 import org.springframework.data.graph.neo4j.finder.NodeFinder;
 import org.springframework.data.graph.neo4j.support.node.Neo4jHelper;
-
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.springframework.test.context.transaction.BeforeTransaction;
+
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
 
 import static org.junit.Assert.*;
-import static org.springframework.data.graph.neo4j.support.HasRelationshipMatcher.hasRelationship;
+import static org.springframework.data.graph.neo4j.Person.persistedPerson;
 import static org.springframework.data.graph.neo4j.support.HasRelationshipMatcher.hasNoRelationship;
+import static org.springframework.data.graph.neo4j.support.HasRelationshipMatcher.hasRelationship;
 
 @RunWith( SpringJUnit4ClassRunner.class )
 @ContextConfiguration( locations = {"classpath:org/springframework/data/graph/neo4j/support/Neo4jGraphPersistenceTest-context.xml"} )
@@ -41,41 +44,90 @@ public class ModificationOutsideOfTransactionTest
         Neo4jHelper.cleanDb(graphDatabaseContext);
     }
 
-    @Test
-    public void testCreateOutsideTransaction()
-    {
-        Person p = persistedPerson("Michael", 35);
-        assertEquals( 35, p.getAge() );
-        assertTrue( hasUnderlyingNode( p ) );
-    }
+	public void testCreateOutsideTransaction() {
+		Person p = new Person("Michael", 35);
+		assertEquals(35, p.getAge());
+		p.setAge(36);
+		assertEquals(36, p.getAge());
+		assertFalse(hasUnderlyingNode(p));
+		p.persist();
+		assertEquals(36, nodeFor(p).getProperty("Person.age"));
+	}
 
-    @Test
-    public void subgraphCreatedOutsideOfTransactionShouldNotBePersisted()
-    {
-        Person michael = persistedPerson("Michael", 35);
-        Person emil = persistedPerson("Emil", 35);
+	@Test
+	public void testCreateSubgraphOutsideOfTransactionPersistInDirectionOfRel() {
+		Person michael = new Person("Michael", 35);
+		Person emil = new Person("Emil", 31);
 
-        michael.setBoss( emil );
+		michael.setBoss(emil);
 
-        assertEquals( emil, michael.getBoss() );
-        assertTrue( hasUnderlyingNode( michael ) );
-        assertThat( nodeFor( michael ), hasNoRelationship( "boss", emil.getPersistentState() ) );
-    }
+		assertEquals(emil, michael.getBoss());
+		assertFalse(hasUnderlyingNode(michael));
+		assertFalse(hasUnderlyingNode(emil));
+		michael.persist();
+		assertThat(nodeFor(michael), hasRelationship("boss", nodeFor(emil)));
+		assertThat(nodeFor(emil), hasRelationship("boss", nodeFor(michael)));
 
-    @Test
+	}
+
+	@Ignore
+	@Test
+	public void testCreateSubgraphOutsideOfTransactionPersistInReverseDirectionOfRel() {
+		Person michael = new Person("Michael", 35);
+		Person emil = new Person("Emil", 31);
+
+		michael.setBoss(emil);
+
+		assertEquals(emil, michael.getBoss());
+		assertFalse(hasUnderlyingNode(michael));
+		assertFalse(hasUnderlyingNode(emil));
+		emil.persist();
+		assertThat(nodeFor(michael), hasRelationship("boss", nodeFor(emil)));
+		assertThat(nodeFor(emil), hasRelationship("boss", nodeFor(michael)));
+	}
+
+	@Test
     public void testSetPropertyOutsideTransaction()
     {
-        Person p = createPersonInTransaction( "Michael", 35 );
+        Person p = persistedPerson( "Michael", 35 );
         p.setAge( 25 );
-        assertEquals( 25, p.getAge() );
-        assertEquals( 35, nodeFor( p ).getProperty( "Person.age" ) );
+        assertEquals(25, p.getAge());
+        assertEquals( 35, nodeFor( p ).getProperty("Person.age") );
+    }
+
+	@Ignore
+	@Test
+    public void shouldWorkWithUninitializedCollectionFieldWithoutUnderlyingState()
+    {
+        Group group = new Group();
+	    Collection<Person> people = group.getPersons();
+	    assertNotNull(people);
+
+	    Person p = new Person( "David", 27 );
+	    people.add(p);
+
+        assertEquals( Collections.singleton(p), group.getPersons() );
+    }
+
+	@Test
+    public void shouldWorkWithInitializedCollectionFieldWithoutUnderlyingState()
+    {
+        Group group = new Group();
+	    group.setPersons(new HashSet<Person>());
+	    Collection<Person> people = group.getPersons();
+	    assertNotNull(people);
+
+	    Person p = new Person( "David", 27 );
+	    people.add(p);
+
+        assertEquals( Collections.singleton(p), group.getPersons() );
     }
 
     @Test
     public void shouldNotCreateGraphRelationshipOutsideTransaction()
     {
-        Person p = createPersonInTransaction( "Michael", 35 );
-        Person spouse = createPersonInTransaction( "Tina", 36 );
+        Person p = persistedPerson( "Michael", 35 );
+        Person spouse = persistedPerson( "Tina", 36 );
 
         p.setSpouse( spouse );
 
@@ -83,7 +135,7 @@ public class ModificationOutsideOfTransactionTest
         assertThat( nodeFor( p ), hasNoRelationship( "Person.spouse",spouse.getPersistentState() ) );
 
 
-        Person spouse2 = createPersonInTransaction( "Rana", 5 );
+        Person spouse2 = persistedPerson( "Rana", 5 );
         p.setSpouse( spouse2 );
         assertEquals( spouse2, p.getSpouse() );
     }
@@ -91,8 +143,8 @@ public class ModificationOutsideOfTransactionTest
     @Test
     public void testCreateRelationshipOutsideTransactionAndPersist()
     {
-        Person p = createPersonInTransaction( "Michael", 35 );
-        Person spouse = createPersonInTransaction( "Tina", 36 );
+        Person p = persistedPerson( "Michael", 35 );
+        Person spouse = persistedPerson( "Tina", 36 );
 
         p.setSpouse( spouse );
         p.persist();
@@ -101,24 +153,9 @@ public class ModificationOutsideOfTransactionTest
         assertThat( nodeFor( p ), hasRelationship( "Person.spouse" ) );
 
 
-        Person spouse2 = createPersonInTransaction( "Rana", 5 );
+        Person spouse2 = persistedPerson( "Rana", 5 );
         p.setSpouse( spouse2 );
         assertEquals( spouse2, p.getSpouse() );
-    }
-
-    private Person createPersonInTransaction( String name, int age )
-    {
-        Transaction tx = graphDatabaseContext.beginTx();
-        Person p = null;
-        try
-        {
-            p = persistedPerson(name, age);
-            tx.success();
-        } finally
-        {
-            tx.finish();
-        }
-        return p;
     }
 
     private boolean hasUnderlyingNode( Person person )
@@ -134,7 +171,7 @@ public class ModificationOutsideOfTransactionTest
     @Test
     public void testGetPropertyOutsideTransaction()
     {
-        Person p = createPersonInTransaction( "Michael", 35 );
+        Person p = persistedPerson( "Michael", 35 );
         assertEquals( "Wrong age.", 35, p.getAge() );
     }
 
