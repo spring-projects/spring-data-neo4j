@@ -1,9 +1,9 @@
-<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN"
-        "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
 
     <bookinfo>
-        <title>Spring Data Graph - Reference Documentation</title>
+        <title>The Spring Data Graph Guidebook</title>
         <releaseinfo>&version;</releaseinfo>
 
         <authorgroup>
@@ -37,28 +37,60 @@
 
     <toc/>
 
-  <part id="introduction">
-    <title>Introduction</title>
+    <preface id="foreword:rod">
+        <title>Foreword: Rod Johnson, CEO of SpringSource</title>
+        <para>
+            Rod ...
+        </para>
+    </preface>
 
-    <xi:include href="introduction/introduction.xml"/>
-    <xi:include href="introduction/why-sd-graph.xml"/>
-    <xi:include href="introduction/requirements.xml"/>
-    <xi:include href="introduction/get-started.xml"/>
-  </part>
+    <preface id="foreword:emil">
+        <title>Foreword: Emil Eifrem, CEO of Neo Technology</title>
+        <para>
+            Emil ...
+        </para>
+    </preface>
+
+    <preface id="about-book">
+        <title>About this book</title>
+        <para>
+            Duplex book ...
+        </para>
+    </preface>
+
+    <part id="tutorial">
+        <title>Tutorial</title>
+        <partintro>
+            <para>
+                Tutorial intro ...
+            </para>
+        </partintro>
+
+        <xi:include href="tutorial/about-spring-data.xml"/>
+        <xi:include href="tutorial/about-tutorial.xml"/>
+        <xi:include href="tutorial/setup.xml"/>
+        <xi:include href="tutorial/domain.xml"/>
+        <xi:include href="tutorial/annotations.xml"/>
+        <xi:include href="tutorial/data-access.xml"/>
+        <xi:include href="tutorial/security.xml"/>
+        <xi:include href="tutorial/social.xml"/>
+        <xi:include href="tutorial/recommendations.xml"/>
+    </part>
 
     <part id="reference">
         <title>Reference</title>
         <partintro>
             <para>
-                This part of the reference documentation details the API, concepts, annotations, datastore, programming model and 
-				the cross-store approach of Spring Data Graph.
+                This is the reference part of the book. It has information about the programming model, APIs,
+                concepts, and annotations of Spring Data Graph.
             </para>
         </partintro>
-	    <xi:include href="preface.xml"/>
-	    <xi:include href="neo4j.xml"/>
-	    <xi:include href="programming-model.xml"/>
-	    <xi:include href="setup.xml"/>
-	    <xi:include href="cross-store.xml"/>
-        <xi:include href="samples.xml"/>
+
+        <xi:include href="reference/preface.xml"/>
+        <xi:include href="reference/neo4j.xml"/>
+        <xi:include href="reference/programming-model.xml"/>
+        <xi:include href="reference/setup.xml"/>
+        <xi:include href="reference/cross-store.xml"/>
+        <xi:include href="reference/samples.xml"/>
     </part>
 </book>
