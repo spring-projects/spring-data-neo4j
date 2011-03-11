@@ -2,5 +2,7 @@
 <!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
 <chapter id="tutorial:about-tutorial">
     <title>About this tutorial</title>
-    <para>foo</para>
+    <para>
+        * What is Cineasts.net
+    </para>
 </chapter>
