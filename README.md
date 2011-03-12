@@ -26,7 +26,7 @@ For more detailed questions, use the [forum](http://forum.springsource.org/forum
        <dependency>
          <groupId>org.springframework.data</groupId>
          <artifactId>spring-data-neo4j</artifactId>
-         <version>1.0.0.M3</version>
+         <version>1.0.0.M4</version>
        </dependency> 
        
        <repository>
@@ -103,14 +103,18 @@ For more detailed questions, use the [forum](http://forum.springsource.org/forum
         
           @Transactional
           public Collection<World> makeSomeWorlds()  {
-            World earth = new World( "Earth", 1 );
-            World mars = new World( "Mars", 2 );
+            World earth = world( "Earth", 1 );
+            World mars = world( "Mars", 2 );
             mars.addRocketRouteTo( earth );
 
 	        return Arrays.asList(
-			  new World( "Mercury", 0 ), new World( "Venus", 0 ), earth, mars,
-			  new World( "Jupiter", 63 ), new World( "Saturn", 62 ),
-			  new World( "Uranus", 27 ), new World( "Neptune", 13 ));
+			  world( "Mercury", 0 ), world( "Venus", 0 ), earth, mars,
+			  world( "Jupiter", 63 ), world( "Saturn", 62 ),
+			  world( "Uranus", 27 ), world( "Neptune", 13 ));
+          }
+
+          private World world(String name, int moons) {
+            return new World(name,moons).persist();
           }
 
           private NodeFinder<World> finder() {

@@ -55,6 +55,7 @@ public class ModificationOutsideOfTransactionTest
 	}
 
 	@Test
+    @Ignore("ignored until subgraph persisting is added")
 	public void testCreateSubgraphOutsideOfTransactionPersistInDirectionOfRel() {
 		Person michael = new Person("Michael", 35);
 		Person emil = new Person("Emil", 31);
@@ -70,7 +71,7 @@ public class ModificationOutsideOfTransactionTest
 
 	}
 
-	@Ignore
+	@Ignore("ignored until subgraph persisting is added")
 	@Test
 	public void testCreateSubgraphOutsideOfTransactionPersistInReverseDirectionOfRel() {
 		Person michael = new Person("Michael", 35);

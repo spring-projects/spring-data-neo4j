@@ -1,6 +1,22 @@
 Spring Data Graph Changelog
 =============================================
 
+Changes in version 1.0.0.M4 (2011-03-14)
+----------------------------------------
+
+* update to Neo4j-1.3.M04
+* simplification of detached/attached state
+* all node entities are detached at creation, must call persist()
+* attach() renamed to persist()
+* separate indices per domain class
+* support for fulltext indices
+* fixed direct lookup of numerically indexed values
+* relationships via relateTo are now also restricted to one per type,direction and target
+* added EntityPath/EntityPathMapper for entity based Neo4jTemplate callbacks
+* added EntityEvaluator for entity based path evaluation
+* error handling for node type strategy called on non type nodes
+* FieldTraversalDescriptionBuilder build method parametrization
+
 Changes in version 1.0.0.M3 (2011-02-25)
 ----------------------------------------
 

@@ -36,14 +36,14 @@ import static org.springframework.data.graph.neo4j.fieldaccess.DoReturn.unwrap;
  */
 public class DetachedEntityState<ENTITY extends GraphBacked<STATE>, STATE> implements EntityState<ENTITY,STATE> {
     private final Map<Field, Object> dirty = new HashMap<Field, Object>();
-    private final Set<NodeBacked> backrefs = new HashSet<NodeBacked>();
     protected final EntityState<ENTITY,STATE> delegate;
     private final static Log log = LogFactory.getLog(DetachedEntityState.class);
     private GraphDatabaseContext graphDatabaseContext;
-
+    private final BackReferences backReferences = null;
     public DetachedEntityState(final EntityState<ENTITY, STATE> delegate, GraphDatabaseContext graphDatabaseContext) {
         this.delegate = delegate;
         this.graphDatabaseContext = graphDatabaseContext;
+        //this.backReferences = new BackReferences(this);
     }
 
     @Override
@@ -183,10 +183,34 @@ public class DetachedEntityState<ENTITY extends GraphBacked<STATE>, STATE> imple
         this.dirty.put(f, previousValue);
     }
 
-    public void addBackReferences(Collection<NodeBacked> backReference) {
-        this.backrefs.addAll(backReference);
+
+    public GraphDatabaseContext getGraphDatabaseContext() {
+        return graphDatabaseContext;
     }
 
+    // todo always create an transaction for persist, atomic operation when no outside tx exists
+    @Override
+    public ENTITY persist() {
+        if (!isDetached()) return getEntity();
+        Transaction tx = graphDatabaseContext.beginTx();
+        try {
+            ENTITY result = delegate.persist();
+            //persistNeighbours();
+
+            flushDirty();
+            tx.success();
+            return result;
+        } finally {
+            tx.finish();
+        }
+    }
+
+    private void persistNeighbours() {
+        backReferences.persistNeighbours();
+        for (NodeBacked nodeBacked : getOutboundDirtyNodeEntities()) {
+            nodeBacked.persist();
+        }
+    }
 
     private Set<NodeBacked> getOutboundDirtyNodeEntities() {
         HashSet<NodeBacked> result = new HashSet<NodeBacked>();
@@ -216,50 +240,9 @@ public class DetachedEntityState<ENTITY extends GraphBacked<STATE>, STATE> imple
         }
         return false;
     }
-
-    private void pruneInvalidBackRefs() {
-        for (Iterator<NodeBacked> it = backrefs.iterator(); it.hasNext();) {
-            NodeBacked backRef = it.next();
-            GraphBacked entity = getEntity();
-            if (backRef.refersTo(entity)) continue;
-            it.remove();
-        }
-    }
-
     public boolean refersTo(GraphBacked target) {
         return getOutboundDirtyNodeEntities().contains(target);
     }
-
-    public GraphDatabaseContext getGraphDatabaseContext() {
-        return graphDatabaseContext;
-    }
-
-    // todo always create an transaction for persist, atomic operation when no outside tx exists
-    @Override
-    public ENTITY persist() {
-        if (!isDetached()) return getEntity();
-        Transaction tx = graphDatabaseContext.beginTx();
-        try {
-            ENTITY result = delegate.persist();
-            persistNeighbours();
-            flushDirty();
-            tx.success();
-            return result;
-        } finally {
-            tx.finish();
-        }
-    }
-
-    private void persistNeighbours() {
-        pruneInvalidBackRefs();
-        for (NodeBacked backref : backrefs) {
-            backref.persist();
-        }
-        for (NodeBacked nodeBacked : getOutboundDirtyNodeEntities()) {
-            nodeBacked.persist();
-        }
-    }
-
 }
 
 
