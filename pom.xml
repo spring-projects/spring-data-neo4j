@@ -172,9 +172,9 @@
 					</dependency>
                     <dependency>
                         <groupId>javax.media</groupId>
-                        <artifactId>jai_core</artifactId>
-                        <version>1.1.3</version>          
-                        <scope>runtime</scope>
+                        <artifactId>jai-core</artifactId>
+                        <version>1.1.3</version>
+                        <scope>compile</scope>
                     </dependency>
 				</dependencies>
 				<configuration>
@@ -297,12 +297,28 @@
 			 make sure the zip file is just 'spring-data-graph'. -->
 		<finalName>${dist.finalName}</finalName>
 	</build>
-	<repositories>
+    <pluginRepositories>
+        <pluginRepository>
+            <id>repository.source.maven.release</id>
+            <name>SpringSource Maven Release Repository</name>
+            <url>http://repository.springsource.com/maven/bundles/release</url>
+        </pluginRepository>
+        <pluginRepository>
+            <id>jboss-legacy-repository</id>
+            <name>Old JBoss Public Repository</name>
+            <url>http://repository.jboss.org/maven2/</url>
+        </pluginRepository>
+    </pluginRepositories>
+    <repositories>
 		<repository>
 			<id>central</id>
-			<name>Maven Central</name>
-			<url>http://uk.maven.org/maven2</url>
+            <url>http://uk.maven.org/maven2</url>
 		</repository>
+        <repository>
+            <id>jboss-legacy-repository</id>
+            <name>Old JBoss Public Repository</name>
+            <url>http://repository.jboss.org/maven2/</url>
+        </repository>
 		<repository>
 			<id>repository.springframework.maven.release</id>
 			<name>Spring Framework Maven Release Repository</name>
