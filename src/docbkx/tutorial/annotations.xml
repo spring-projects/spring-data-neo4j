@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
+<chapter id="tutorial:annotations">
+    <title>Annotating the domain model</title>
+    <para>
+        ...
+    </para>
+    <section>
+        <title>Persistent entities</title>
+        <para>
+            ...
+        </para>
+    </section>
+    <section>
+        <title>Indexing</title>
+        <para>
+            ...
+        </para>
+    </section>
+    <section>
+        <title>Relationships</title>
+        <para>
+            ...
+        </para>
+    </section>
+
+</chapter>
