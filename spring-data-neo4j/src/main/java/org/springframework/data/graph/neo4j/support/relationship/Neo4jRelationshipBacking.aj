@@ -106,7 +106,9 @@ public aspect Neo4jRelationshipBacking {
      * @return result of equality check of the underlying relationship
      */
 	public final boolean RelationshipBacked.equals(Object obj) {
-		if (obj instanceof RelationshipBacked) {
+		if (this==obj) return true;
+        if (!hasUnderlyingRelationship()) return false;
+        if (obj instanceof RelationshipBacked) {
 			return this.getPersistentState().equals(((RelationshipBacked) obj).getPersistentState());
 		}
 		return false;
@@ -116,6 +118,7 @@ public aspect Neo4jRelationshipBacking {
      * @return hashCode of the underlying relationship
      */
 	public final int RelationshipBacked.hashCode() {
+        if (!hasUnderlyingRelationship()) return System.identityHashCode(this);
 		return getPersistentState().hashCode();
 	}
 

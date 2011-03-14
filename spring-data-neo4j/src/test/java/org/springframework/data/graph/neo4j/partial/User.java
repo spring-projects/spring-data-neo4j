@@ -86,6 +86,6 @@ public class User {
 
 
     public void knows(User other) {
-        relateTo(other, DynamicRelationshipType.withName("friends"));
+        relateTo(other, "friends");
     }
 }
