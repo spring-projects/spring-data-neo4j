@@ -89,7 +89,7 @@ public aspect Neo4jRelationshipBacking {
 	}
 
 	public boolean RelationshipBacked.hasUnderlyingRelationship() {
-		return this.entityState.hasPersistentState();
+		return this.entityState!=null && this.entityState.hasPersistentState();
 	}
 
     /**
@@ -128,12 +128,14 @@ public aspect Neo4jRelationshipBacking {
     }
 
     Object around(RelationshipBacked entity): entityFieldGet(entity) {
-        Object result=entity.entityState.getValue(field(thisJoinPoint));
+        if (entity.entityState == null) return proceed(entity);
+        Object result = entity.entityState.getValue(field(thisJoinPoint));
         if (result instanceof DoReturn) return unwrap(result);
         return proceed(entity);
     }
 
     Object around(RelationshipBacked entity, Object newVal) : entityFieldSet(entity, newVal) {
+        if (entity.entityState == null) return proceed(entity,newVal);
         Object result=entity.entityState.setValue(field(thisJoinPoint),newVal);
         if (result instanceof DoReturn) return unwrap(result);
         return proceed(entity,result);
