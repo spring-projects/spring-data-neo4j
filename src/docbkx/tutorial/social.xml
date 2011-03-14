@@ -1,8 +1,79 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
 <chapter id="tutorial:social">
-    <title>Adding social</title>
+    <title>Movies 2.0 - Adding social</title>
     <para>
-        ...
+        But this was just a plain old movie database (POMD). My idea of socializing this business was not realized.
     </para>
+    <section>
+        <title>See, mom a Cineast! - Users</title>
+        <para>
+            So I took the User class that I already coded up before and made it a full fledged Spring Data Graph member.
+        </para>
+        <para>
+            <programlisting language="java" ><![CDATA[
+@NodeEntity
+class User {
+    @Indexed
+    String login;
+    String name;
+    String password;
+    @RelatedTo(elementClass=Movie.class, type="RATED")
+    Set<Rating> ratings;
+
+    @RelatedTo(elementClass=User.class, type="FRIEND")
+    Set<User> friends;
+
+    public Rating rate(Movie movie, int stars, String comment) {
+        return relateTo(movie, Rating.class, "RATED").rate(stars, comment);
+    }
+    public void befriend(User user) {
+        this.friends.add(user);
+    }
+}
+class Rating {
+    @StartNode User user;
+    @EndNode Movie movie;
+    int stars;
+    String comment;
+    public Rating rate(int stars, String comment) {
+       this.stars=stars; this.comment = comment;
+       return this;
+    }
+}
+            ]]></programlisting>
+
+        </para>
+    </section>
+    <section>
+        <title>Beware, Critics - Rating</title>
+        <para>
+            I also put a ratings field into the movie to be able to show its ratings. And a method to average the stars it got.
+        </para>
+        <para>
+            <programlisting language="java" ><![CDATA[
+class Movie {
+    @RelatedToVia(elementClass=Rating.class, type="RATED", direction = Direction.INCOMING)
+    Iterable<Rating> ratings;
+
+    public int getStars() {
+        int stars, int count;
+        for (Rating rating : ratings) {
+            stars += rating.getStars(); count++;
+        }
+        return count == 0 ? 0 : stars / count;
+    }
+}
+            ]]></programlisting>
+        </para>
+        <para>
+            Fortunately my tests showed my the division by zero error when calculating the stars for a movie without ratings. I also added a few user and ratings to the
+database population code. And three methods to rate movies, lookup users and add friends to the repository.
+        </para>
+        <para>
+            <programlisting language="java" ><![CDATA[
+TODO code
+            ]]></programlisting>
+        </para>
+    </section>
 </chapter>

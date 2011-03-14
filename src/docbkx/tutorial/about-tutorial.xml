@@ -1,8 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
 <chapter id="tutorial:about-tutorial">
-    <title>About this tutorial</title>
+    <title>Allow me to introduce - Cineasts.net</title>
     <para>
-        * What is Cineasts.net
+Once upon a time I wanted to build a social movie database myself. First things first - I had a name: "Cineasts" - the people
+crazy about movies. So I went ahead and bought the domain, cineasts.net. So, the project was almost done.
+</para><para>
+I had some ideas as well. Of course there should be Actors who play Roles in Movies. I needed the Cineast, too, someone
+had to rate the movies after all. And while they were there, they could also make friends. Find someone to accompany them to the cinema or share
+movie preferences. Even better, the engine behind all that could recommend new friends and movies to them, derived from their interests and
+existing friends.
+</para><para>
+    <mediaobject>
+        <imageobject>
+            <imagedata fileref="cineasts.png"/>
+        </imageobject>
+    </mediaobject>
+</para><para>I looked for possible sources for data, IMDB was my first stop, but they charge 15k for data usage. Fortunately I found themoviedb.org which has
+liberal terms and conditions and a nice API for fetching the data.
+</para><para>
+There were many more ideas but I wanted to get something done over the course of one day. So this was the scope I was going to tackle.        * What is Cineasts.net
     </para>
 </chapter>

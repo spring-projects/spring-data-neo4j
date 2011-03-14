@@ -1,27 +1,34 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
 <chapter id="tutorial:annotations">
-    <title>Annotating the domain model</title>
+    <title>Decorations - Annotated Domain</title>
     <para>
-        ...
-    </para>
-    <section>
-        <title>Persistent entities</title>
-        <para>
-            ...
-        </para>
-    </section>
-    <section>
-        <title>Indexing</title>
-        <para>
-            ...
-        </para>
-    </section>
-    <section>
-        <title>Relationships</title>
-        <para>
-            ...
-        </para>
-    </section>
+        I looked at the documentation again, found a simple Hello-World example and tried to understand it. The entities were annotated with @NodeEntity, that was simple, so
+        I added it too. Relationships got their own annotation named @RelationshipEntity. Property fields should be taken care of automatically.
+    </para><para>
+        Ok lets put this into a test. How to assure that a field was persisted to the graph store? There seemed to be two possibilities. First was to get a
+        GraphDatabaseContext injected and use its getById() method. The other one was a Finder approach which I ignored for new. Lets keep things simple.
+        How to persist an entity and how to get its id? No idea. So further study of the documentation revealed that there were a bunch of methods introduced to the
+        entities by the aspects. That was not obvious. But I found the two that would help me here - entity.persist() and entity.getNodeId().
+    </para><para>
+        So my test looked like this.
+    </para><para>
 
+    <programlisting language="java" ><![CDATA[
+        @Autowired GraphDatabaseContext graphDatabaseContext;
+
+        @Test public void persistedMovieShouldBeRetrievableFromGraphDb() {
+            Movie forestGump = new Movie("Forest Gump", 1994).persist();
+            Movie retrievedMovie = graphDatabaseContext.getById(forestGump.getNodeId());
+            assertEqual("retrieved movie matches persisted one",forestGump,retrievedMovie);
+            assertEqual("retrieved movie title matches","Forest Gump",retrievedMovie.getTitle());
+        }
+
+    ]]></programlisting>
+    </para><para>
+
+        That worked, cool. But what about transactions I didn't declare the test to be transactional? After further reading I learned that persist() creates an
+        implicit transaction - so that was like an EntityManager would behave. Ok for me. I also learned that for more complex operations on the entities I needed
+        external transactions.
+        </para>
 </chapter>

@@ -1,44 +1,46 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
 <chapter id="tutorial:setup">
-    <title>Project setup</title>
+    <title>Scope: Spring</title>
     <para>
-        ...
+        Being a Spring Developer, I would, of course, choose components of the Spring Framework to do most of the work. I'd already come up with the ideas -
+        that should be enough.
+    </para><para>
+        What database would fit both the complex network of cineasts, movies, actors, roles, ratings and friends? And also be able to support the
+        recommendation algorithms that I thought of? I had no idea.
+    </para><para>
+    But, wait, there was the new Spring Data project that started in 2010 bringing
+        the convenience of the Spring programming model to NoSQL databases. That should fit my experience and help me getting started. I looked
+        at the list of projects supporting the different NoSQL databases. Only one mentioned the kind of social network I was thinking of -
+        Spring Data Graph for Neo4j, a graph database. Neo4j's pitch of "value in relationships" and the accompanying docs looked like what I needed.
+        I decided to give it a try.
     </para>
     <section>
-        <title>Spring Data Graph</title>
+        <title>Preparations - Required Setup</title>
         <para>
-            ...
+            To setup the project I created a public github account and began setting up the infrastructure for a spring web project using maven as build
+            system. So I added the dependencies for the springframework libraries, put the web.xml for the DispatcherServlet and the applicationContext.xml
+            in the webapp directory.
+        </para><para>
+
+
+<programlisting language="xml" ><![CDATA[
+            TODO setup code?
+]]></programlisting>
+
+    </para><para>
+            With this setup I was ready for the first spike: creating a simple MovieController showing a static view. Check. Next was the setup for Spring Data Graph.
+            I looked at the README at github and then checked it with the manual. Quite a lot of maven setup for aspectj but otherwise not so much to add.
+            I added just a few lines to my spring configuration.
+    </para><para>
+
+
+<programlisting language="xml" ><![CDATA[
+            TODO config code?
+]]></programlisting>
+
+    </para><para>
+            I spun up jetty to see if there were any obvious issues with the config. Check.
         </para>
-        <section>
-            <title>Maven configuration</title>
-            <para>
-                ...
-            </para>
-        </section>
-        <section>
-            <title>Spring configuration</title>
-            <para>
-                ...
-            </para>
-        </section>
-    </section>
-    <section>
-        <title>Spring MVC</title>
-        <para>
-            ...
-        </para>
-        <section>
-            <title>Maven configuration</title>
-            <para>
-                ...
-            </para>
-        </section>
-        <section>
-            <title>Spring configuration</title>
-            <para>
-                ...
-            </para>
-        </section>
     </section>
 </chapter>

@@ -37,7 +37,7 @@
 
     <toc/>
 
-    <preface id="foreword:rod">
+    <!--preface id="foreword:rod">
         <title>Foreword: Rod Johnson, CEO of SpringSource</title>
         <para>
             Rod ...
@@ -49,7 +49,7 @@
         <para>
             Emil ...
         </para>
-    </preface>
+    </preface-->
 
     <preface id="about-book">
         <title>About this book</title>
@@ -69,14 +69,21 @@
             </para>
         </partintro>
 
-        <xi:include href="tutorial/about-spring-data.xml"/>
         <xi:include href="tutorial/about-tutorial.xml"/>
         <xi:include href="tutorial/setup.xml"/>
         <xi:include href="tutorial/domain.xml"/>
+        <xi:include href="tutorial/neo4j.xml"/>
+        <xi:include href="tutorial/spring-data-graph.xml"/>
         <xi:include href="tutorial/annotations.xml"/>
-        <xi:include href="tutorial/data-access.xml"/>
+        <xi:include href="tutorial/indexing.xml"/>
+        <xi:include href="tutorial/repository.xml"/>
+        <xi:include href="tutorial/relationships.xml"/>
+        <xi:include href="tutorial/running.xml"/>
+        <xi:include href="tutorial/webapp.xml"/>
         <xi:include href="tutorial/security.xml"/>
         <xi:include href="tutorial/social.xml"/>
+        <xi:include href="tutorial/user-experience.xml"/>
+        <xi:include href="tutorial/import.xml"/>
         <xi:include href="tutorial/recommendations.xml"/>
     </part>
 

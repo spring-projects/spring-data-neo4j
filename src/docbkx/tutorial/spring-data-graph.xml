@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
+<chapter id="tutorial:about-spring-data">
+    <title>Conjuring Magic - Spring Data Graph</title>
+    <para>
+        But that was the pure graph database. Using this in my domain would pollute my classes with lots of graph database details. I didn't want that. Spring Data Graph
+        promised to do the heavy lifting for me. So I checked that next. Obviously it heavily depended on aspectj magic. So there would be certain behavour that was
+        just observable without being visible in my code. But I was going to give it a try.
+      </para>
+</chapter>

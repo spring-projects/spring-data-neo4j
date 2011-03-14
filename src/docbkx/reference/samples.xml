@@ -24,7 +24,7 @@
     <para>Executing the application creates the following graph in the Graph Database:</para>
     <mediaobject>
       <imageobject>
-        <imagedata fileref="images/helloworlds.png" />
+        <imagedata fileref="helloworlds.png" format="PNG"/>
       </imageobject>
     </mediaobject>
   </section>
@@ -41,11 +41,15 @@
     <para>See the readme file for instruction on how to compile and run the application.</para>
     <para>An excerpt of the data stored in the Graph Database after executing the application:
     </para>
-    <mediaobject>
-      <imageobject>
-        <imagedata fileref="images/imdb.png" />
-      </imageobject>
-    </mediaobject>
+    <para>
+        <screenshot>
+            <mediaobject>
+                <imageobject>
+                    <imagedata fileref="imdb.png"/>
+                </imageobject>
+            </mediaobject>
+        </screenshot>
+    </para>
   </section>
 
   <!--
@@ -58,7 +62,7 @@
     </para>
     <mediaobject>
       <imageobject>
-        <imagedata fileref="images/restaurant.png" />
+        <imagedata fileref="restaurant.png" />
       </imageobject>
     </mediaobject>
   </section>
@@ -74,7 +78,7 @@
     </para>
     <mediaobject>
       <imageobject>
-        <imagedata fileref="images/restaurant-social.png" />
+        <imagedata fileref="restaurant-social.png" />
       </imageobject>
     </mediaobject>
   </section>

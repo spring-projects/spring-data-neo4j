@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
+<chapter id="tutorial:import">
+    <title>The dusty archives - Importing Data</title>
+    <para>
+        Now it was time to pull the data from themoviedb.org. Registering there and getting an API key was simple, using the API on the commandline with curl too.
+        Looking at the JSON returned for movies and people I decided to pimp my domain model and add some more fields so that the representation in the UI was worth
+        the effort.
+    </para><para>
+        For the import process I created a separate importer that used HttpClient and JSON to fetch and parse the data and then some transactional methods to actually
+        insert it as movies, roles and actors. User data was not available so I created an anonymous user called 'Cineast' that I attributed all the ratings and comments
+        to. I also created a version of the importer that read the json files from local disk, so that I didn't have to strain the remote API that much and that often.
+    </para>
+    <para>
+        <programlisting language="javascript" ><![CDATA[
+JSON sample for movie & actor
+        ]]></programlisting>
+        <programlisting language="java" ><![CDATA[
+Code for importer & mapper
+        ]]></programlisting>
+    </para>
+
+</chapter>

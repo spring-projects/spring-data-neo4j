@@ -1,8 +1,27 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
 <chapter id="tutorial:recommendations">
-    <title>Adding recommendations</title>
+    <title>Movies! Friends! Bargains! - Recommendations</title>
     <para>
-
+        In the last part of this exercise I wanted to add some recommendation algorithms to my app. One was the recommendation of movies that my friends liked very much
+        (and their friends in descending importance). The second was recommendations for new friends that also liked the movies that I liked most.
+</para><para>
+        Doing this kind of ranking algorithms is the real fun with graph databases. They are applied to the graph by traversing it in a certain order, collecting information
+        on the go and deciding which paths to follow and what to include in the results.
+</para><para>
+        Lets say I'm only interested in the top 10 recommendations each.
+</para><para>
+    <programlisting language="java" ><![CDATA[
+        // TODO Work In Progress 1/path.length()*stars
+        user.breathFirst().relationship(FRIEND, OUTGOING).relationship(RATED, OUTGOING).evaluate(new Evaluator(Path path) {
+            if (path.length > 5) return EXCLUDE_AND_STOP;
+            Relationship rating = path.lastRelationship();
+            if (rating.getType().equals(RATED)) {
+                rating.getProperty()
+                return INCLUDE_AND_STOP;
+            }
+            return INCLUDE_AND_CONTINUE;
+        })
+]]></programlisting>
     </para>
 </chapter>

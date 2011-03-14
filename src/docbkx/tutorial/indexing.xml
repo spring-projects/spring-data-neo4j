@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
+<chapter id="tutorial:indexing">
+    <title>Do I know you? - Indexing</title>
+    <para>
+        Then there was an @Indexed annotation for fields. I wanted to try this too. That would guide the next test. I added an @Indexed to the id field of the movie.
+        This field is intended to represent the external id that will be used in URIs and will stable over database imports and updates. This time I went with the
+        Finder to retrieve my indexed movie.
+
+    </para><para>
+
+<programlisting language="java" ><![CDATA[
+        @NodeEntity
+        class Movie {
+            @Indexed
+            int id;
+            String title;
+            int year;
+        }
+
+        @Autowired FinderFactory finderFactory;
+
+        @Test public void persistedMovieShouldBeRetrievableFromGraphDb() {
+            int id=1;
+            Movie forestGump = new Movie(id, "Forest Gump", 1994).persist();
+            NodeFinder<Movie> movieFinder = finderFactory.createNodeEntityFinder(Movie.class);
+            Movie retrievedMovie = movieFinder.getByPropertyValue(id);
+            assertEqual("retrieved movie matches persisted one",forestGump,retrievedMovie);
+            assertEqual("retrieved movie title matches","Forest Gump",retrievedMovie.getTitle());
+        }
+
+]]></programlisting>
+
+    </para><para>
+        TODO This failed with an exception about not being in a transaction. Oh, I forgot to add the @Transactional. So I added it to the test.
+        </para>
+</chapter>

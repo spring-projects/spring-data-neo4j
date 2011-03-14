@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
+<chapter id="tutorial:webapp">
+    <title>Showing off - Web views</title>
+    <para>
+        After I had the means to put some data in the graph database, I also wanted to show it. So adding the controller method to show a single movie with its attributes
+and cast in a jsp was straightforward. Actually just using the repository to look the movie up and add it to the model. Then forward to the /movies/show view and voilá.
+</para><para>
+    TODO screenshot of movie display
+    </para>
+
+    <section>
+        <title>What was his name? - Searching</title>
+        <para>
+            The next thing was to allow users to search for some movies. So I needed some fulltext-search capabilities. As the index provider implementation of Neo4j builds on
+lucene I was delighted to see that fulltext indexes are supported out of the box.
+        </para>
+        <para>
+            So I happily annotated the title field of my Movie class with @Index(fulltext=true) and was told with an exception that I have to specify a separate index name for that.
+So it became @Indexed(fulltext = true, indexName = "search"). The corresponding finder method is called findAllByQuery. So there was my second repository method for
+searching movies. To restrict the size of the returned set I just added a limit for now that cuts the result after that many entries.
+        </para>
+        <para>
+<programlisting language="java"><![CDATA[
+public void List<Movie> searchForMovie(String query, int count) {
+    List<Movie> movies=new ArrayList<Movie>(count);
+    for (Movie movie : movieFinder.findAllByQuery("title", query)) {
+        movies.add(movie);
+        if (count-- == 0) break;
+    }
+    return movies;
+}
+]]></programlisting>
+        </para>
+    </section>
+    <section>
+        <title>Look what i've found - Listing Results</title>
+
+        <para>
+            I then used this result in the controller to render a list of movies driven by a search box. The movie properties and the cast was accessed by the getters in the
+domain classes.
+        </para>
+        <para>
+            <programlisting language="jsp" ><![CDATA[
+TODO jsp fragment
+            ]]></programlisting>
+        </para>
+    </section>
+</chapter>

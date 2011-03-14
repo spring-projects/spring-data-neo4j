@@ -1,38 +1,63 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
 <chapter id="tutorial:domain">
-    <title>The domain</title>
+    <title>Setting the Stage - Movies Domain</title>
     <para>
-        ...
-    </para>
-    <section>
-        <title>Movie</title>
-        <para>
-            ...
+        The domain model was the next thing I planned to work on. I wanted to flesh it out first before diving into library details. Going along the ideas outlined before I
+        came up with this. I also peeked in the datamodel of my import data source themoviedb to confirm that it matched my expectations.
+
+<!--
+        http://yuml.me/diagram/scruffy;dir:lr/class/%23%20Cineasts.net%20Domain,%20%5BActor%7Cname;%7CplayedIn()%5D*-ACTS_IN-%3E%5BRole%7Cname;%5D,%20%5BRole%5D-ACTS_IN-%3E*%5BMovie%7Ctitle;year%5D,%20%5BUser%7Clogin;name;password;%7Crate();befriend();%5D*-RATED-%3E%5BRating%7Cstars;comment;%5D,%20%5BRating%5D-RATED-%3E*%5BMovie%5D,%20%5BUser%5D*-FRIEND-%3E*%5BUser%5D.png
+-->
+    </para><para>
+        <mediaobject>
+            <imageobject>
+                <imagedata fileref="domain.png"/>
+            </imageobject>
+        </mediaobject>
+
+</para><para>
+        In Java code this looked like. Pretty straightforward.
+</para><para>
+
+
+<programlisting language="java" ><![CDATA[
+        class Movie {
+            int id;
+            String title;
+            int year;
+            Set<Role> cast;
+        }
+
+        class Actor {
+            int id;
+            String name;
+            Set<Movie> filmography;
+            Role playedIn(Movie movie, String role);
+        }
+        class Role {
+            Movie movie;
+            Actor actor;
+            String role;
+        }
+        class User {
+            String login;
+            String name;
+            String password;
+            Set<Rating> ratings;
+            Set<User> friends;
+            Rating rate(Movie movie, int stars, String comment);
+            void befriend(User user);
+        }
+        class Rating {
+            User user;
+            Movie movie;
+            int stars;
+            String comment;
+        }
+]]></programlisting>
+
+        </para><para>
+            I wrote some basic tests to assure that the basic plumbing worked. Check.
         </para>
-    </section>
-    <section>
-        <title>Role</title>
-        <para>
-            ...
-        </para>
-    </section>
-    <section>
-        <title>Actor</title>
-        <para>
-            ...
-        </para>
-    </section>
-    <section>
-        <title>User</title>
-        <para>
-            ...
-        </para>
-    </section>
-    <section>
-        <title>Rating</title>
-        <para>
-            ...
-        </para>
-    </section>
 </chapter>
