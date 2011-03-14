@@ -30,8 +30,6 @@ import org.springframework.data.graph.core.RelationshipBacked;
 import org.springframework.data.graph.neo4j.fieldaccess.*;
 import org.springframework.data.graph.neo4j.support.GraphDatabaseContext;
 import org.springframework.data.graph.annotation.*;
-
-import javax.management.relation.Relation;
 import java.lang.reflect.Field;
 
 import static org.springframework.data.graph.neo4j.fieldaccess.DoReturn.unwrap;
@@ -122,7 +120,7 @@ public aspect Neo4jNodeBacking { // extends AbstractTypeAnnotatingMixinFields<No
 	}
 
 	public Node NodeBacked.getPersistentState() {
-		return this.entityState.getPersistentState();
+		return this.entityState!=null ? this.entityState.getPersistentState() : null;
 	}
 	
     public EntityState NodeBacked.getEntityState() {
@@ -143,17 +141,20 @@ public aspect Neo4jNodeBacking { // extends AbstractTypeAnnotatingMixinFields<No
      * @param type neo4j relationship type for the underlying relationship
      * @return the newly created relationship to the target node
      */
-	public Relationship NodeBacked.relateTo(NodeBacked target, RelationshipType type) {
+	public Relationship NodeBacked.relateTo(NodeBacked target, String type) {
+        if (target==null) throw new IllegalArgumentException("Target entity is null");
+        if (type==null) throw new IllegalArgumentException("Relationshiptype is null");
+
         Relationship relationship=getRelationshipTo(target,type);
         if (relationship!=null) return relationship;
-        return this.getPersistentState().createRelationshipTo(target.getPersistentState(), type);
+        return this.getPersistentState().createRelationshipTo(target.getPersistentState(), DynamicRelationshipType.withName(type));
 	}
 
-    public Relationship NodeBacked.getRelationshipTo(NodeBacked target, RelationshipType type) {
+    public Relationship NodeBacked.getRelationshipTo(NodeBacked target, String type) {
         Node node = this.getPersistentState();
         Node targetNode = target.getPersistentState();
         if (node==null || targetNode==null) return null;
-        Iterable<Relationship> relationships = node.getRelationships(type, org.neo4j.graphdb.Direction.OUTGOING);
+        Iterable<Relationship> relationships = node.getRelationships(DynamicRelationshipType.withName(type), org.neo4j.graphdb.Direction.OUTGOING);
         for (Relationship relationship : relationships) {
             if (relationship.getOtherNode(node).equals(targetNode)) return relationship;
         }
@@ -196,8 +197,11 @@ public aspect Neo4jNodeBacking { // extends AbstractTypeAnnotatingMixinFields<No
      * @return relationship entity, instance of the provided relationshipClass
      */
     public <R extends RelationshipBacked, N extends NodeBacked> R NodeBacked.relateTo(N target, Class<R> relationshipClass, String relationshipType) {
-        DynamicRelationshipType type = DynamicRelationshipType.withName(relationshipType);
-        Relationship rel = this.relateTo(target,type);
+        if (target==null) throw new IllegalArgumentException("Target entity is null");
+        if (relationshipClass==null) throw new IllegalArgumentException("Relationship class is null");
+        if (relationshipType==null) throw new IllegalArgumentException("Relationshiptype is null");
+
+        Relationship rel = this.relateTo(target,relationshipType);
         return (R)Neo4jNodeBacking.aspectOf().graphDatabaseContext.createEntityFromState(rel, relationshipClass);
     }
 
@@ -215,10 +219,14 @@ public aspect Neo4jNodeBacking { // extends AbstractTypeAnnotatingMixinFields<No
      * @param relationshipType
      */
     public void NodeBacked.removeRelationshipTo(NodeBacked target, String relationshipType) {
-        Node myNode=this.getPersistentState();
-        Node otherNode=target.getPersistentState();
+        if (target==null) throw new IllegalArgumentException("Target entity is null");
+        if (relationshipType==null) throw new IllegalArgumentException("Relationshiptype is null");
+
+        Node node=this.getPersistentState();
+        Node targetNode=target.getPersistentState();
+        if (node==null || targetNode==null) return;
         for (Relationship rel : this.getPersistentState().getRelationships(DynamicRelationshipType.withName(relationshipType))) {
-            if (rel.getOtherNode(myNode).equals(otherNode)) {
+            if (rel.getOtherNode(node).equals(targetNode)) {
                 rel.delete();
                 return;
             }
@@ -227,16 +235,22 @@ public aspect Neo4jNodeBacking { // extends AbstractTypeAnnotatingMixinFields<No
 
     /**
      * introduced method for accessing and Relationship Entity instance for the given start node and relationship type.
-     * @param node start node
+     * @param target start node
      * @param relationshipClass class of the relationship entity
      * @param type type of the graph relationship
      * @return and instance of the requested relationshipClass if the relationship was found, null otherwise
      */
-    public <R extends RelationshipBacked> R NodeBacked.getRelationshipTo( NodeBacked node, Class<R> relationshipClass, String type) {
-        Node myNode=this.getPersistentState();
-        Node otherNode=node.getPersistentState();
-        for (Relationship rel : this.getPersistentState().getRelationships(DynamicRelationshipType.withName(type))) {
-            if (rel.getOtherNode(myNode).equals(otherNode)) return (R)Neo4jNodeBacking.aspectOf().graphDatabaseContext.createEntityFromState(rel, relationshipClass);
+    public <R extends RelationshipBacked> R NodeBacked.getRelationshipTo( NodeBacked target, Class<R> relationshipClass, String type) {
+        if (target ==null) throw new IllegalArgumentException("Target entity is null");
+        if (relationshipClass==null) throw new IllegalArgumentException("Relationship class is null");
+        if (type==null) throw new IllegalArgumentException("Relationshiptype is null");
+        Node node=this.getPersistentState();
+        Node targetNode= target.getPersistentState();
+        if (node==null || targetNode==null) return null;
+        for (Relationship rel : node.getRelationships(DynamicRelationshipType.withName(type))) {
+            if (rel.getOtherNode(node).equals(targetNode)) {
+                return (R)Neo4jNodeBacking.aspectOf().graphDatabaseContext.createEntityFromState(rel, relationshipClass);
+            }
         }
         return null;
     }

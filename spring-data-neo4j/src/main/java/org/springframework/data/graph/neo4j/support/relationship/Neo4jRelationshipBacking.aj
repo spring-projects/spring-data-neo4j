@@ -85,11 +85,11 @@ public aspect Neo4jRelationshipBacking {
 	}
 	
 	public Relationship RelationshipBacked.getPersistentState() {
-		return this.entityState.getPersistentState();
+		return this.entityState!=null ? this.entityState.getPersistentState() : null;
 	}
 
 	public boolean RelationshipBacked.hasUnderlyingRelationship() {
-		return this.entityState.hasPersistentState();
+		return this.entityState!=null && this.entityState.hasPersistentState();
 	}
 
     /**
@@ -106,7 +106,9 @@ public aspect Neo4jRelationshipBacking {
      * @return result of equality check of the underlying relationship
      */
 	public final boolean RelationshipBacked.equals(Object obj) {
-		if (obj instanceof RelationshipBacked) {
+		if (this==obj) return true;
+        if (!hasUnderlyingRelationship()) return false;
+        if (obj instanceof RelationshipBacked) {
 			return this.getPersistentState().equals(((RelationshipBacked) obj).getPersistentState());
 		}
 		return false;
@@ -116,6 +118,7 @@ public aspect Neo4jRelationshipBacking {
      * @return hashCode of the underlying relationship
      */
 	public final int RelationshipBacked.hashCode() {
+        if (!hasUnderlyingRelationship()) return System.identityHashCode(this);
 		return getPersistentState().hashCode();
 	}
 
@@ -128,12 +131,14 @@ public aspect Neo4jRelationshipBacking {
     }
 
     Object around(RelationshipBacked entity): entityFieldGet(entity) {
-        Object result=entity.entityState.getValue(field(thisJoinPoint));
+        if (entity.entityState == null) return proceed(entity);
+        Object result = entity.entityState.getValue(field(thisJoinPoint));
         if (result instanceof DoReturn) return unwrap(result);
         return proceed(entity);
     }
 
     Object around(RelationshipBacked entity, Object newVal) : entityFieldSet(entity, newVal) {
+        if (entity.entityState == null) return proceed(entity,newVal);
         Object result=entity.entityState.setValue(field(thisJoinPoint),newVal);
         if (result instanceof DoReturn) return unwrap(result);
         return proceed(entity,result);
