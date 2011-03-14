@@ -120,7 +120,7 @@ public aspect Neo4jNodeBacking { // extends AbstractTypeAnnotatingMixinFields<No
 	}
 
 	public Node NodeBacked.getPersistentState() {
-		return this.entityState.getPersistentState();
+		return this.entityState!=null ? this.entityState.getPersistentState() : null;
 	}
 	
     public EntityState NodeBacked.getEntityState() {

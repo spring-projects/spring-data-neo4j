@@ -85,7 +85,7 @@ public aspect Neo4jRelationshipBacking {
 	}
 	
 	public Relationship RelationshipBacked.getPersistentState() {
-		return this.entityState.getPersistentState();
+		return this.entityState!=null ? this.entityState.getPersistentState() : null;
 	}
 
 	public boolean RelationshipBacked.hasUnderlyingRelationship() {
