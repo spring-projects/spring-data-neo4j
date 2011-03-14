@@ -22,7 +22,6 @@ import org.springframework.data.graph.neo4j.fieldaccess.PartialNodeEntityState;
 import org.springframework.persistence.support.EntityInstantiator;
 
 import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
 
 /**
  * Entity instantiator for Node entities that takes into account that the entity is persisted in a JPA store as well.

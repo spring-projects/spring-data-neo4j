@@ -327,6 +327,7 @@
 				<artifactId>maven-surefire-plugin</artifactId>
                 <version>2.6</version>
 				<configuration>
+                    <forkMode>always</forkMode>
 					<useFile>true</useFile>
 					<includes>
 						<include>**/*Tests.java</include>

@@ -18,7 +18,6 @@ package org.springframework.data.graph.neo4j.fieldaccess;
 
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.NotInTransactionException;
-import org.neo4j.graphdb.PropertyContainer;
 import org.neo4j.graphdb.index.Index;
 import org.neo4j.graphdb.index.IndexHits;
 import org.springframework.dao.InvalidDataAccessResourceUsageException;
@@ -139,6 +138,13 @@ public class PartialNodeEntityState<ENTITY extends NodeBacked> extends DefaultEn
             createAndAssignState();
         }
         return entity;
+    }
+
+    @Override
+    public boolean isWritable(Field field) {
+        final FieldAccessor<ENTITY> accessor = accessorFor(field);
+        if (accessor == null) return false; // difference to default behaviour, we don't care for non-managed fields here
+        return accessor.isWriteable(entity);
     }
 
     private void persistForeignId(Node node, Object id) {

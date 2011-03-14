@@ -30,6 +30,9 @@ import org.springframework.data.graph.core.RelationshipBacked;
 import org.springframework.data.graph.neo4j.fieldaccess.*;
 import org.springframework.data.graph.neo4j.support.GraphDatabaseContext;
 import org.springframework.data.graph.annotation.*;
+import javax.persistence.Transient;
+import javax.persistence.Entity;
+
 import java.lang.reflect.Field;
 
 import static org.springframework.data.graph.neo4j.fieldaccess.DoReturn.unwrap;
@@ -47,6 +50,13 @@ public aspect Neo4jNodeBacking { // extends AbstractTypeAnnotatingMixinFields<No
 
     declare parents : (@NodeEntity *) implements NodeBacked;
     declare @type: NodeBacked+: @Configurable;
+
+    declare @field: @GraphProperty * (@Entity @NodeEntity(partial=true) *).*:@Transient;
+    declare @field: @RelatedTo * (@Entity @NodeEntity(partial=true) *).*:@Transient;
+    declare @field: @RelatedToVia * (@Entity @NodeEntity(partial=true) *).*:@Transient;
+    declare @field: @GraphId * (@Entity @NodeEntity(partial=true) *).*:@Transient;
+    declare @field: @GraphTraversal * (@Entity @NodeEntity(partial=true) *).*:@Transient;
+
 
 
     protected pointcut entityFieldGet(NodeBacked entity) :

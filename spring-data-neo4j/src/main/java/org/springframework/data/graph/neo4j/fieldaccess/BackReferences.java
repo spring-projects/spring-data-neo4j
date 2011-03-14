@@ -1,10 +1,8 @@
 package org.springframework.data.graph.neo4j.fieldaccess;
 
-import org.springframework.data.graph.annotation.RelatedTo;
 import org.springframework.data.graph.core.GraphBacked;
 import org.springframework.data.graph.core.NodeBacked;
 
-import java.lang.reflect.Field;
 import java.util.*;
 
 /**

@@ -91,7 +91,7 @@ public abstract class DefaultEntityState<ENTITY extends GraphBacked<STATE>, STAT
         return result;
     }
 
-    private FieldAccessor<ENTITY> accessorFor(final Field field) {
+    protected FieldAccessor<ENTITY> accessorFor(final Field field) {
         return fieldAccessors.get(field);
     }
 

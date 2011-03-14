@@ -79,7 +79,7 @@ public class DetachedEntityState<ENTITY extends GraphBacked<STATE>, STATE> imple
         return delegate.getValue(field);
     }
 
-    private boolean isDetached() {
+    protected boolean isDetached() {
         return !transactionIsRunning() || !hasPersistentState() || isDirty();
     }
 

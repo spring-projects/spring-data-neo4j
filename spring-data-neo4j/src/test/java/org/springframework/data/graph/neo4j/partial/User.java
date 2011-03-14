@@ -28,15 +28,12 @@ public class User {
 
     @GraphProperty
     @Indexed
-    @Transient
     String nickname;
 
     @RelatedToVia(type = "recommends", elementClass = Recommendation.class)
-    @Transient
     Iterable<Recommendation> recommendations;
 
     @RelatedTo(type = "friends", elementClass = User.class)
-    @Transient
     Set<User> friends;
 
     public Recommendation rate(Restaurant restaurant, int stars, String comment) {

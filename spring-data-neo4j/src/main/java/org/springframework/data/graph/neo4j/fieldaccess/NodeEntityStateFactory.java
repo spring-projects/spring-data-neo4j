@@ -22,6 +22,8 @@ import org.springframework.data.graph.core.NodeBacked;
 import org.springframework.data.graph.neo4j.finder.FinderFactory;
 import org.springframework.data.graph.neo4j.support.GraphDatabaseContext;
 
+import java.lang.reflect.Field;
+
 import static org.springframework.data.graph.neo4j.fieldaccess.PartialNodeEntityState.getId;
 
 public class NodeEntityStateFactory {
@@ -38,8 +40,8 @@ public class NodeEntityStateFactory {
             PartialNodeEntityState<NodeBacked> partialNodeEntityState = new PartialNodeEntityState<NodeBacked>(null, entity, entity.getClass(), graphDatabaseContext, finderFactory);
             return new DetachedEntityState<NodeBacked, Node>(partialNodeEntityState, graphDatabaseContext) {
                 @Override
-                protected boolean transactionIsRunning() {
-                    return super.transactionIsRunning() && getId(entity, entity.getClass()) != null;
+                protected boolean isDetached() {
+                    return super.isDetached() || getId(entity, entity.getClass()) == null;
                 }
             };
         } else {
