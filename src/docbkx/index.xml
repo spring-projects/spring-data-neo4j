@@ -3,7 +3,8 @@
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
 
     <bookinfo>
-        <title>The Spring Data Graph Guidebook</title>
+        <title>Good Relationships</title>
+        <subtitle>The Spring Data Graph Guidebook</subtitle>
         <releaseinfo>&version;</releaseinfo>
 
         <authorgroup>
@@ -24,6 +25,13 @@
                 <surname>Risberg</surname>
             </author>
         </authorgroup>
+
+
+        <mediaobject>
+            <imageobject>
+                <imagedata fileref="springdatagraph.png"/>
+            </imageobject>
+        </mediaobject>
 
         <legalnotice>
             <para>
@@ -52,12 +60,33 @@
     </preface-->
 
     <preface id="about-book">
-        <title>About this book</title>
+        <title>About this Guide Book</title>
         <para>
-            Duplex book -> Fowler bliki
-
-            1. Narrative / Tutorial
-            2. Reference docs
+            Welcome to the Spring Data Graph Guide Book. Thank you for taking the time to get an in depth look into the
+            usage and workings of the <ulink url="https://github.com/SpringSource/spring-data-graph">Spring Data Graph Library</ulink>. Spring Data Graph is part of the <ulink url="http://springsource.org/spring-data">Spring Data project</ulink> which
+            aims to provide the convenient programming model of the Spring Framework to the big field modern datastores
+            (mostly NoSQL). Spring Data Graph in particular currently provides integration for the <ulink url="http://neo4j.org">Neo4j Graph Database</ulink>.
+        </para><para>
+            It was written by developers for developers. So hopefully we created a documentation that is well received by
+            our peers.
+        </para><para>
+            If you have any feedback to the Spring Data Graph Library or this book, please provide it via <ulink url="https://jira.springsource.org/browse/DATAGRAPH">SpringSource JIRA</ulink>,
+            the <ulink url="http://forum.springsource.org/forumdisplay.php?f=80">SpringSource NoSQL Forum</ulink>, <ulink
+            url="https://github.com/SpringSource/spring-data-graph/issues">github comments or issues</ulink> or the <ulink url="http://neo4j.org/community/list/">Neo4j mailing list</ulink>.
+        </para><para>
+            This book is presented as a <ulink url="http://martinfowler.com/bliki/DuplexBook.html">duplex book</ulink>, a term coined by Martin Fowler. A duplex book consists of at least two
+            parts. The first part is an easily accessible narrative, that gives the reader an overview of the topics contained
+            in the book. It contains lots of examples and more general discussion topics. This should be the only part of
+            the book that is required to be read cover-to-cover.
+        </para><para>
+        We chose a tutorial describing the creation of a web applicaton (cineasts.net) that allows movie enthusiasts to
+        find the favorites, rate them, connect with each other and enjoy social features. The application is running on
+        Neo4j using Spring Data Graph and the well known Spring Web Stack.
+    </para><para>
+            The second part is the classic reference documentation containing the detailed information about the library.
+            It discusses the programming model, the underlying assumptions, used toolset (like aspectj) as well as the APIs
+            for the object-graph mapping and the template approach. The reference docs should be mainly used to look up
+            concrete bits of information or to dig deeper into certain topics.
         </para>
     </preface>
 
@@ -65,7 +94,14 @@
         <title>Tutorial</title>
         <partintro>
             <para>
-                Tutorial intro ...
+                In this first part of the book we run a tutorial that creates a complete web application built on top of Spring Data Graph.
+                It uses a domain that should be familiar to most - movies. So for cineasts.net we decided to add a social
+                touch to the whole movie rating business, allowing friends to share their ratings and get recommendations
+                for new friends and movies.
+            </para><para>
+            The tutorial is presented as a colloquial description of the steps necessary to create the application.
+            It provides the configuration and code examples that are needed to understand what's happening. The complete
+            source code repository for running the app is available on <ulink url="http://github.com/jexp/cineasts">github</ulink>.
             </para>
         </partintro>
 
