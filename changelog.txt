@@ -18,6 +18,7 @@ Changes in version 1.0.0.M4 (2011-03-14)
 * FieldTraversalDescriptionBuilder build method parametrization
 * re-enabled cross-store persistence
 * removed the need to mark graph managed fields with @Transient for a cross store entity
+* changed documentation format to guidebook, added tutorial as first part
 
 Changes in version 1.0.0.M3 (2011-02-25)
 ----------------------------------------
