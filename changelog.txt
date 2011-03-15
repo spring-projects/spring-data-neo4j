@@ -16,7 +16,8 @@ Changes in version 1.0.0.M4 (2011-03-14)
 * added EntityEvaluator for entity based path evaluation
 * error handling for node type strategy called on non type nodes
 * FieldTraversalDescriptionBuilder build method parametrization
-* re-enabled cross-store persistence
+* re-enabled, updated and fixed cross-store persistence
+* graph managed fields no longer have to be annotated with @Transient (the aspect takes care of that)
 * removed the need to mark graph managed fields with @Transient for a cross store entity
 * changed documentation format to guidebook, added tutorial as first part
 
