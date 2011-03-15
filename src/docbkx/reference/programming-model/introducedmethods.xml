@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE section PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
+<section>
+    <title>Methods added to entity classes</title>
+    <para>
+        The node and relationship aspects introduce (via ITD - inter type declaration) several methods to the
+        entities that make common tasks easier. Unfortunately these methods are not generified yet, so the
+        results have to be casted to the correct return type.
+        <variablelist>
+            <varlistentry>
+                <term>accessing node and relationship ids</term>
+                <listitem>
+                    <para><code>nodeEntity.getNodeId() and relationshipEntity.getRelationshipId()</code></para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>accessing the node or relationship backing the entity</term>
+                <listitem>
+                    <para><code>entity.getPersistentState()</code></para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>equals and hashcode are delegated to the underlying state</term>
+                <listitem>
+                    <para><code>entity.equals() and entity.hashCode()</code></para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>creating relationships to a target node entity</term>
+                <listitem>
+                    <para><code>nodeEntity.relateTo(targetEntity, relationshipClass, relationshipType)</code></para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>retrieving a single relationship</term>
+                <listitem>
+                    <para><code>nodeEntity.getRelationshipTo(targetEnttiy, relationshipClass, relationshipType)</code></para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>removing a single relationship</term>
+                <listitem>
+                    <para><code>nodeEntity.removeRelationshipTo(targetEntity, relationshipType)</code></para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>remove the node entity, its relationship and index entries</term>
+                <listitem>
+                    <para><code>entity.remove()</code></para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>projecting to a different target type</term>
+                <listitem>
+                    <para><code>entity.projectTo(targetClass)</code></para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>traversing, starting at the current node</term>
+                <listitem>
+                    <para><code>nodeEntity.findAllByTraversal(targetType, traversalDescription)</code></para>
+                </listitem>
+            </varlistentry>
+        </variablelist>
+    </para>
+</section>

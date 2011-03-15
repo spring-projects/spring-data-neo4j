@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE section PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
+<section>
+    <title>Finding nodes with finders</title>
+    <para>Spring Data Graph also comes with a type bound Repository-like
+        Finder implementation that provides methods for locating nodes
+        and relationships:
+        <itemizedlist>
+            <listitem>
+                <para>using direct access <code>findById(id)</code>,</para>
+            </listitem>
+            <listitem>
+                <para>iterating over all nodes of a node entity type (findAll),</para>
+            </listitem>
+            <listitem>
+                <para>counting the instances of a node entity type (count),</para>
+            </listitem>
+            <listitem>
+                <para>iterating over all indexed instances with a certain property value (findAllByPropertyValue),
+                </para>
+            </listitem>
+            <listitem>
+                <para>getting a single instance with a certain property value (findByPropertyValue),</para>
+            </listitem>
+            <listitem>
+                <para>iterating over all indexed instances within a certain numerical range (inclusive)
+                    (findAllByRange),
+                </para>
+            </listitem>
+            <listitem>
+                <para>iterating over a traversal result (findAllByTraversal).</para>
+            </listitem>
+        </itemizedlist>
+        The Finder instances are created via a FinderFactory to be bound to a
+        concrete node or relationship entity class.
+        The FinderFactory is created in the Spring context and can be
+        injected.
+        <programlisting language="java"><![CDATA[
+NodeFinder<Person> finder = finderFactory.createNodeEntityFinder(Person.class);
+Person dave=finder.findById(123);
+int people = finder.count();
+Person mark = finder.findByPropertyValue("name", "mark");
+Iterable<Person> devs = finder.findAllByProperyValue("occupation","developer");
+Iterable<Person> davesFriends = finder.findAllByTraversal(dave,
+    Traversal.description().pruneAfterDepth(1)
+    .relationships(KNOWS).filter(returnAllButStartNode()));
+
+]]></programlisting>
+    </para>
+</section>

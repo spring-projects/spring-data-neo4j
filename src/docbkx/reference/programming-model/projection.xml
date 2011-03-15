@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE section PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
+<section>
+    <title>Dynamic typing - Projection to unrelated, fitting types</title>
+    <para>
+        As the underlying data model of a graph database doesn't imply and enforce strict type constraints like a
+        relational model does, it offers much more flexibility on how to model your domain classes and which of
+        those to use in different contexts.
+    </para>
+    <para>
+        For instance an order can be used in these contexts: customer, procurement, logistics, billing, fulfillment
+        and many more. Each of those contexts requires its distinct set of attributes and operations. As Java
+        doesn't support mixins one would put the sum of all of those into the entity class and thereby making it
+        very big, brittle and hard to understand. Being able to take a basic order and project it to a different
+        (not related in the inheritance hierarchy or even an interface) order type that is valid in the current
+        context and only offers the attributes and methods needed here would be very benefitial.
+    </para>
+    <para>Spring Data Graph offers initial support for projecting node and relationship entities to different target
+        types. All instances of this projected entity share the same backing node or relationship, so data changes are
+        reflected immediately.
+    </para>
+    <para>
+        This could for instance also be used to handle nodes of a traversal with a unified (simpler) type (e.g. for
+        reporting or auditing) and only project them to a concrete, more functional target type when the business
+        logic requires it.
+    </para>
+    <programlisting language="java"><![CDATA[
+// not related to Person at all
+@NodeEntity
+class Trainee {
+    String name;
+    @RelatedTo(elementClass=Training.class);
+    Set<Training> trainings;
+}
+
+for (Person person : finder.findAllByProperyValue("occupation","developer")) {
+    Developer developer = person.projectTo(Developer.class);
+    if (developer.isJavaDeveloper()) {
+        trainInSpringData(developer.projectTo(Trainee.class));
+    }
+}
+]]></programlisting>
+
+</section>

@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE section PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
+<section>
+    <title>Session handling - attached and detached entities</title>
+    <para>
+        By default newly created node entities are in a detached state. When <code>persist()</code> is called on the
+        entity it is attached to the graph store and its properties and relationships are persisted as well. Changing
+        an attached entity inside a transaction will write through the changes to the datastore. Whenever an entity
+        is changed outside of a transaction it will be considered detached. The changed data is stored in the entity
+        itself and not written back to the datastore.
+    </para>
+    <para>
+        All entities that are returned by library functions are initially in an attached state. Changing them outside
+        of a transaction detaches them. For writing the changes back it is necessary to <code>persist()</code> them
+        again.
+    </para>
+    <para>
+        Persisting an entity not only persists that single entity but will traverse its existing and new relationships
+        and persist the cluster of detached entities that it is part of. The borders of this cluster are formed by
+        attached entities. The persist operation creates its own, implicit transaction. When it is called withina
+        external transaction it participates otherwise it is an atomic operation.
+    </para>
+    <para>
+        Please keep in mind that the session handling behaviour is still heavily developed. The defaults and also
+        other aspects of the behaviour are likely to change in subsequent releases. At the moment there is no support
+        for the creation of relationships outside of transactions and also more complex operations like creating
+        whole subgraphs outside of transactions is not supported.
+    </para>
+    <programlisting language="java"><![CDATA[
+@NodeEntity
+class Person {
+    String name;
+}
+Person p = new Person().persist();
+]]></programlisting>
+</section>
