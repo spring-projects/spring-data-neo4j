@@ -35,7 +35,7 @@ import static org.springframework.data.graph.neo4j.fieldaccess.DoReturn.unwrap;
  * @since 15.09.2010
  */
 public class DetachedEntityState<ENTITY extends GraphBacked<STATE>, STATE> implements EntityState<ENTITY,STATE> {
-    private final Map<Field, Object> dirty = new HashMap<Field, Object>();
+    private final Map<Field, ExistingValue> dirty = new HashMap<Field, ExistingValue>();
     protected final EntityState<ENTITY,STATE> delegate;
     private final static Log log = LogFactory.getLog(DetachedEntityState.class);
     private GraphDatabaseContext graphDatabaseContext;
@@ -87,18 +87,37 @@ public class DetachedEntityState<ENTITY extends GraphBacked<STATE>, STATE> imple
         return getGraphDatabaseContext().transactionIsRunning();
     }
 
+    static class ExistingValue {
+        public final Object value;
+        private final boolean fromGraph;
+
+        ExistingValue(Object value, boolean fromGraph) {
+            this.value = value;
+            this.fromGraph = fromGraph;
+        }
+
+        @Override
+        public String toString() {
+            return String.format("ExistingValue{value=%s, fromGraph=%s}", value, fromGraph);
+        }
+
+        private boolean mustCheckConcurrentModification() {
+            return fromGraph;
+        }
+    }
     @Override
     public Object setValue(final Field field, final Object newVal) {
         if (isDetached()) {
-            final ENTITY entity = getEntity();
             if (!isDirty(field) && isWritable(field)) {
                 Object existingValue;
-                if (entity.getPersistentState()!=null) existingValue = unwrap(delegate.getValue(field));
-                else {
-                    existingValue = getValueFromEntity(field);
-                    if (existingValue == null) existingValue = getDefaultValue(field.getType());
+                if (hasPersistentState()) {
+                    addDirty(field, unwrap(delegate.getValue(field)), true);
                 }
-                addDirty(field, existingValue);
+                else {
+                    // existingValue = getValueFromEntity(field);
+                    // if (existingValue == null) existingValue = getDefaultValue(field.getType());
+                    addDirty(field, newVal, false);
+                }
             }
             return newVal;
         }
@@ -133,7 +152,7 @@ public class DetachedEntityState<ENTITY extends GraphBacked<STATE>, STATE> imple
             throw new IllegalStateException("Flushing detached entity without a persistent state, this had to be created first.");
         }
         if (isDirty()) {
-            for (final Map.Entry<Field, Object> entry : dirty.entrySet()) {
+            for (final Map.Entry<Field, ExistingValue> entry : dirty.entrySet()) {
                 final Field field = entry.getKey();
                 if (log.isDebugEnabled()) log.debug("Flushing dirty Entity new node " + entity.getPersistentState() + " field " + field+ " with value "+getValueFromEntity(field));
                 checkConcurrentModification(entity, entry, field);
@@ -159,11 +178,13 @@ public class DetachedEntityState<ENTITY extends GraphBacked<STATE>, STATE> imple
         }
     }
 
-    private void checkConcurrentModification(final ENTITY entity, final Map.Entry<Field, Object> entry, final Field field) {
-        final Object nodeValue = unwrap(delegate.getValue(field));
-        final Object previousValue = entry.getValue();
-        if (!ObjectUtils.nullSafeEquals(nodeValue, previousValue)) {
-            throw new ConcurrentModificationException("Node " + entity.getPersistentState() + " field " + field + " changed in between previous " + previousValue + " current " + nodeValue); // todo or just overwrite
+    private void checkConcurrentModification(final ENTITY entity, final Map.Entry<Field, ExistingValue> entry, final Field field) {
+        final ExistingValue previousValue = entry.getValue();
+        if (previousValue.mustCheckConcurrentModification()) {
+            final Object nodeValue = unwrap(delegate.getValue(field));
+            if (!ObjectUtils.nullSafeEquals(nodeValue, previousValue.value)) {
+                throw new ConcurrentModificationException("Node " + entity.getPersistentState() + " field " + field + " changed in between previous " + previousValue + " current " + nodeValue); // todo or just overwrite
+            }
         }
     }
 
@@ -179,8 +200,8 @@ public class DetachedEntityState<ENTITY extends GraphBacked<STATE>, STATE> imple
         this.dirty.clear();
     }
 
-    private void addDirty(final Field f, final Object previousValue) {
-        this.dirty.put(f, previousValue);
+    private void addDirty(final Field f, final Object previousValue, boolean fromGraph) {
+        this.dirty.put(f, new ExistingValue(previousValue,fromGraph));
     }
 
 
