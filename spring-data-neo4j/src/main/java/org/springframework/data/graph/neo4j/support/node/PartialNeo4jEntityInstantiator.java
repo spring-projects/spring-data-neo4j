@@ -19,9 +19,11 @@ package org.springframework.data.graph.neo4j.support.node;
 import org.neo4j.graphdb.Node;
 import org.springframework.data.graph.core.NodeBacked;
 import org.springframework.data.graph.neo4j.fieldaccess.PartialNodeEntityState;
+import org.springframework.orm.jpa.EntityManagerFactoryUtils;
 import org.springframework.persistence.support.EntityInstantiator;
 
 import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
 
 /**
  * Entity instantiator for Node entities that takes into account that the entity is persisted in a JPA store as well.
@@ -32,12 +34,12 @@ import javax.persistence.EntityManager;
 public class PartialNeo4jEntityInstantiator implements EntityInstantiator<NodeBacked, Node> {
 
 	private final Neo4jConstructorGraphEntityInstantiator delegate;
+    private EntityManagerFactory entityManagerFactory;
 
-    private final EntityManager entityManager;
 
-    public PartialNeo4jEntityInstantiator(Neo4jConstructorGraphEntityInstantiator delegate, EntityManager entityManager) {
+    public PartialNeo4jEntityInstantiator(Neo4jConstructorGraphEntityInstantiator delegate, EntityManagerFactory entityManagerFactory) {
 		this.delegate = delegate;
-        this.entityManager = entityManager;
+        this.entityManagerFactory = entityManagerFactory;
     }
 
     /**
@@ -52,10 +54,14 @@ public class PartialNeo4jEntityInstantiator implements EntityInstantiator<NodeBa
 	public <T extends NodeBacked> T createEntityFromState(Node n, Class<T> entityClass) {
         if (n.hasProperty(PartialNodeEntityState.FOREIGN_ID)) {
             final Object foreignId = n.getProperty(PartialNodeEntityState.FOREIGN_ID);
-            final T result = entityManager.find(entityClass, foreignId);
+            final T result = entityManager().find(entityClass, foreignId);
             result.setPersistentState(n);
             return result;
         }
         return delegate.createEntityFromState(n, entityClass);
+    }
+
+    private EntityManager entityManager() {
+        return EntityManagerFactoryUtils.getTransactionalEntityManager(entityManagerFactory);
     }
 }

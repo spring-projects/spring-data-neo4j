@@ -81,7 +81,8 @@ public class RecommendationTest {
         Assert.assertNotNull("jpa-id",user.getId());
         Assert.assertNotNull("node",user.getPersistentState());
         User user2 = user("Jane");
-        user.knows(user2);
+        user.getFriends().add(user2);
+        //user.knows(user2);
         Assert.assertEquals(user2, user.getFriends().iterator().next());
     }
 }

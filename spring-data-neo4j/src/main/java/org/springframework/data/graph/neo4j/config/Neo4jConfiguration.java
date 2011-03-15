@@ -35,11 +35,14 @@ import org.springframework.data.graph.neo4j.support.node.Neo4jNodeBacking;
 import org.springframework.data.graph.neo4j.support.node.PartialNeo4jEntityInstantiator;
 import org.springframework.data.graph.neo4j.support.relationship.ConstructorBypassingGraphRelationshipInstantiator;
 import org.springframework.data.graph.neo4j.support.relationship.Neo4jRelationshipBacking;
+import org.springframework.data.graph.neo4j.transaction.ChainedTransactionManager;
+import org.springframework.orm.jpa.EntityManagerFactoryUtils;
 import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.persistence.transaction.NaiveDoubleTransactionManager;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.jta.JtaTransactionManager;
 
+import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.validation.Validator;
 
@@ -88,7 +91,7 @@ public class Neo4jConfiguration {
 		gdc.setGraphDatabaseService(getGraphDatabaseService());
 		gdc.setRelationshipEntityInstantiator(new ConstructorBypassingGraphRelationshipInstantiator());
 		if (isUsingCrossStorePersistence()) {
-			gdc.setGraphEntityInstantiator(new PartialNeo4jEntityInstantiator(new Neo4jConstructorGraphEntityInstantiator(), getEntityManagerFactory().createEntityManager()));
+			gdc.setGraphEntityInstantiator(new PartialNeo4jEntityInstantiator(new Neo4jConstructorGraphEntityInstantiator(), entityManagerFactory));
 		}
 		else {
 			gdc.setGraphEntityInstantiator(new Neo4jConstructorGraphEntityInstantiator());
@@ -137,7 +140,7 @@ public class Neo4jConfiguration {
 			JtaTransactionManager jtaTm = new JtaTransactionManager();
 			jtaTm.setTransactionManager(new SpringTransactionManager(getGraphDatabaseService()));
 			jtaTm.setUserTransaction(new UserTransactionImpl(getGraphDatabaseService()));
-			return new NaiveDoubleTransactionManager(jpaTm, jtaTm);
+			return new ChainedTransactionManager(jpaTm, jtaTm);
 		}
 		else {
 			PlatformTransactionManager transactionManager = new JtaTransactionManager();

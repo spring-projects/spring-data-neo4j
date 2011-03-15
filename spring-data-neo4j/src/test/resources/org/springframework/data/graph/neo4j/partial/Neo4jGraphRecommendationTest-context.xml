@@ -80,9 +80,6 @@
 		<property name="relationshipEntityStateFactory" ref="relationshipEntityStateFactory"/>
 	</bean>
 
-	<!--
-		<bean class="org.springframework.persistence.graph.Neo4jSimpleNodePropertyStorageForeignStoreKeyManager"/>
-	-->
 	
 	<bean id="graphDatabaseService" class="org.neo4j.kernel.ImpermanentGraphDatabase"
 			destroy-method="shutdown" scope="singleton">
@@ -99,7 +96,7 @@
 		        <constructor-arg>
 		            <bean class="org.springframework.data.graph.neo4j.support.node.Neo4jConstructorGraphEntityInstantiator"/>
                 </constructor-arg>
-		        <constructor-arg ref="entityManager"/>
+		        <constructor-arg ref="entityManagerFactory"/>
 		    </bean>
 		</property>
 		<property name="conversionService">
