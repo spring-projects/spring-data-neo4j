@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE section PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
+<section>
+    <title>Reified types for entities</title>
+    <para>
+        There are several ways to represent the Java type hierarchy of the data model in the graph. In general for all
+        node and relationship entities type information is needed to perform certain repository operations. That's
+        why the hierarchy up to <code>java.lang.Object</code> of all these classes will be persisted in the graph.
+        Implementations of NodeTypeStrategy take care of persisting this information on entity instance
+        creation. They also provide the repository methods that use this type information to perform their operations
+        like findAll, count etc.
+    </para>
+    <para>
+        The current implementation uses nodes to represent the Java type hierarchy which are connected via SUBCLASS_OF
+        relationships to their superclass nodes and via INSTANCE_OF relationships to the concrete node entity
+        instance node.
+    </para>
+    <para>
+        An alternative approach could use indexing operations to perform the same functionality. Or one could skip the
+        NodeTypeStrategy altogether if no strict checks on type conformity are needed, which would allow for a much
+        more flexible data model.
+    </para>
+</section>

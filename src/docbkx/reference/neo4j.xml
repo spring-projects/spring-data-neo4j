@@ -1,29 +1,47 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
 <chapter id="neo4j">
-	<title>Introduction to the Neo4j Graph Database</title>
+	<title>Introduction to Neo4j</title>
 	<para>
-  	<ulink url="http://neo4j.org/">Neo4j</ulink> is a graph database, a fully transactional database that stores data structured as graphs. A graph is a flexible data structure that allows for a more agile and rapid style of development.
-</para>
+  	    <ulink url="http://neo4j.org/">Neo4j</ulink> is a graph database. It is a fully transactional database that
+        stores data structured as graphs. A graph consists of nodes, connected by relationships. It is a flexible
+        data structure that allows for high query performance on complex data, while being intuitive for the
+        developer.
+    </para>
 	<para>
-	Neo4j has been in commercial development for 10 years and in production for over 7 years. It is a mature and robust graph database that provides:
-	<itemizedlist><listitem>
-	an intuitive graph-oriented model for data representation. Instead of static and rigid tables, rows and columns, you work with a flexible graph network consisting of <ulink url="http://wiki.neo4j.org/content/Getting_Started">nodes, relationships and properties</ulink>.
-</listitem><listitem>	a disk-based, native storage manager completely optimized for storing graph structures for maximum performance and scalability.
-</listitem><listitem>	massive scalability. Neo4j can handle graphs of several billion nodes/relationships/properties on a single machine and can be sharded to scale out across multiple machines.
-</listitem><listitem>	a powerful traversal framework for high-speed traversals in the node space.
-</listitem><listitem>	can be deployed as a full server or a very slim database with a small
-	footprint (~500k jar).
-</listitem><listitem>	a simple and convenient object-oriented <ulink url="http://api.neo4j.org/">API</ulink>.
-</listitem></itemizedlist>
-</para>
+	    Neo4j has been in commercial development for 10 years and in production for over 7 years. It is a mature and
+        robust graph database that:
+	    <itemizedlist>
+        <listitem>has an intuitive graph-oriented model for data representation. Instead of tables, rows, and columns,
+            you work with a flexible graph network consisting of
+            <ulink url="http://wiki.neo4j.org/content/Getting_Started">nodes, relationships, and properties</ulink>.
+        </listitem>
+        <listitem>has a disk-based, native storage manager completely optimized for storing graph structures for maximum
+            performance and scalability.
+        </listitem>
+        <listitem>is scalable. Neo4j can handle graphs of several billion nodes/relationships/properties on
+            a single machine, but can also be scaled out across multiple machines for high availability.
+        </listitem>
+        <listitem>has a powerful traversal framework for fast traversals in the node space.
+        </listitem>
+        <listitem>can be deployed as a standalone server or an embedded database with a very small footprint
+            (~700k jar).
+        </listitem>
+        <listitem>has a simple and convenient <ulink url="http://api.neo4j.org/">API</ulink>.
+        </listitem>
+        </itemizedlist>
+    </para>
 	<para>
-	In addition, Neo4j includes the usual database features: ACID transactions, durable persistence, concurrency control, transaction recovery, high availability and everything else you’d expect from an enterprise-strength database. Neo4j is released under a dual free software/commercial license model.</para>
-	<section>
-		<title>What is a graph database?</title>
-		<para>A graph database is a storage engine that is specialized in storing and retrieving vast networks of data. It efficiently stores nodes and relationship and allows high performance traversal of those structures. With property graphs it is possible to add an arbitrary number of properties to nodes
-			and relationships which can be used directly or during traversals.</para>
-	</section>
+    In addition, Neo4j includes the usual database features: ACID transactions, durable persistence,
+    concurrency control, transaction recovery, high availability and everything else you’d expect from an
+    enterprise database. Neo4j is released under a dual free software/commercial license model.</para>
+    <section>
+        <title>What is a graph database?</title>
+        <para>A graph database is a storage engine that is specialized in storing and retrieving vast networks of
+            data. It efficiently stores nodes and relationship and allows high performance traversal of those
+            structures. With property graphs it is possible to add an arbitrary number of properties to nodes
+            and relationships.</para>
+    </section>
 	<section>
 		<title>GraphDatabaseService</title>
 		<para>The interface org.neo4j.graphdb.GraphDatabaseService provides access to the storage engine.  Its features include creating and retrieving Nodes and Relationships, managing indexes, via an IndexManager, database lifecycle callbacks, transation management and more.

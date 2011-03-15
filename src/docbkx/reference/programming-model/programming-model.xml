@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
+<chapter id="programming-model" xmlns:xi="http://www.w3.org/2001/XInclude">
+    <title>Programming model for Spring Data Graph</title>
+    <para>
+        This chapter covers the fundamentals of the programming model behind Spring Data Graph. It discusses the
+        AspectJ features used and the annotations provided by Spring Data Graph and how to use them.
+        Examples for this section are taken from the imdb project of
+        <ulink url="http://github.com/SpringSource/spring-data-graph-examples">Spring Data Graph examples</ulink>.
+    </para>
+    <xi:include href="aspectj.xml"/>
+    <xi:include href="annotations.xml"/>
+    <xi:include href="indexing.xml"/>
+    <xi:include href="finders.xml"/>
+    <xi:include href="transactions.xml"/>
+    <xi:include href="attachdetach.xml"/>
+    <xi:include href="nodetypestrategy.xml"/>
+    <xi:include href="introducedmethods.xml"/>
+    <xi:include href="projection.xml"/>
+    <xi:include href="neo4jtemplate.xml"/>
+    <xi:include href="beanvalidation.xml"/>
+</chapter>
