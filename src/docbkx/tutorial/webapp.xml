@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
-<chapter id="tutorial:webapp">
+<chapter id="tutorial_webapp">
     <title>Showing off - Web views</title>
     <para>
         After I had the means to put some data in the graph database, I also wanted to show it. So adding the controller method to show a single movie with its attributes

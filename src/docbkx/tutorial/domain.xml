@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
-<chapter id="tutorial:domain">
+<chapter id="tutorial_domain">
     <title>Setting the Stage - Movies Domain</title>
     <para>
         The domain model was the next thing I planned to work on. I wanted to flesh it out first before diving into library details. Going along the ideas outlined before I

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
-<chapter id="tutorial:setup">
+<chapter id="tutorial_setup">
     <title>Scope: Spring</title>
     <para>
         Being a Spring Developer, I would, of course, choose components of the Spring Framework to do most of the work. I'd already come up with the ideas -
@@ -23,10 +23,16 @@
             in the webapp directory.
         </para><para>
 
-
-<programlisting language="xml" ><![CDATA[
-            TODO setup code?
-]]></programlisting>
+<informalexample>
+    <mediaobject>
+        <textobject>
+            <programlisting language="xml"><![CDATA[
+                        TODO setup code?
+            ]]></programlisting>
+        </textobject>
+        <caption>pom.xml</caption>
+    </mediaobject>
+</informalexample>
 
     </para><para>
             With this setup I was ready for the first spike: creating a simple MovieController showing a static view. Check. Next was the setup for Spring Data Graph.
@@ -35,9 +41,12 @@
     </para><para>
 
 
-<programlisting language="xml" ><![CDATA[
-            TODO config code?
-]]></programlisting>
+<example>
+    <title>applicationContext.xml</title>
+        <programlisting language="xml"><![CDATA[
+                    TODO setup code?
+        ]]><filename path="pom.xml"/></programlisting>
+</example>
 
     </para><para>
             I spun up jetty to see if there were any obvious issues with the config. Check.

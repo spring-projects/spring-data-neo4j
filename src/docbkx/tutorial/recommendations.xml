@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
-<chapter id="tutorial:recommendations">
+<chapter id="tutorial_recommendations">
     <title>Movies! Friends! Bargains! - Recommendations</title>
     <para>
         In the last part of this exercise I wanted to add some recommendation algorithms to my app. One was the recommendation of movies that my friends liked very much

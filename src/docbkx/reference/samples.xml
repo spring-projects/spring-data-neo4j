@@ -4,7 +4,7 @@
 <chapter id="samples">
   <title>Samples</title>
 
-  <section id="samples:introduction">
+  <section id="samples_introduction">
     <title>Introduction</title>
     <para>
       Spring Data Graph comes with a number of samples.
@@ -14,7 +14,7 @@
     </para>
   </section>
 
-  <section id="samples:hello-worlds">
+  <section id="samples_hello-worlds">
     <title>Hello Worlds sample</title>
     <para>The Hello Worlds sample application is a simple console application with unit tests, that
       creates some Worlds (entities / nodes) and Rocket Routes (relationships) in a Galaxy (graph)
@@ -29,7 +29,7 @@
     </mediaobject>
   </section>
 
-  <section id="samples:imdb">
+  <section id="samples_imdb">
     <title>IMDB sample</title>
     <para>A web application that imports datasets from the Internet Movie Database (IMDB) into
       the
@@ -53,7 +53,7 @@
   </section>
 
   <!--
-  <section id="samples:myrestaurant-original">
+  <section id="samples_myrestaurant-original">
     <title>MyRestaurant sample</title>
     <para>Simple web application for managing users and restaurants, with the ability to add
       restaurants as
@@ -67,7 +67,7 @@
     </mediaobject>
   </section>
 
-  <section id="samples:myrestaurant-social">
+  <section id="samples_myrestaurant-social">
     <title>MyRestaurant-Social sample</title>
     <para>An extended version of the MyRestaurant sample application that adds social networking
       functionality to it. It is possible to have friends and to add rated relationships to

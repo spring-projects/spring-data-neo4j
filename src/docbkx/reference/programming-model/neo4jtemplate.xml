@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE section PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
-<section id="reference:programming-model:neo4jtemplate">
+<section id="reference_programming-model:neo4jtemplate">
     <title>Neo4jTemplate</title>
     <para>
         The <code>Neo4jTemplate</code> offers the convenient API of Spring templates for the Neo4j graph database.

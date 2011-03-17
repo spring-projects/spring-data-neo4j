@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
-<chapter id="tutorial:security">
+<chapter id="tutorial_security">
     <title>Protecting Assets - Adding Security</title>
     <para>
        To use the user in the webapp I had to put it in the session and add login and registration pages. Of course the pages that only worked with a valid user

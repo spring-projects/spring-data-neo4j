@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
-<chapter id="tutorial:repository">
+<chapter id="tutorial_repository">
         <title>Serving a good cause - Repository</title>
         <para>
             That was the first method to add to the repository. So I created a repository for my application, annotated

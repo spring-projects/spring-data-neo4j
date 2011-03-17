@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
-<chapter id="tutorial:indexing">
+<chapter id="tutorial_indexing">
     <title>Do I know you? - Indexing</title>
     <para>
         Then there was an @Indexed annotation for fields. I wanted to try this too. That would guide the next test. I added an @Indexed to the id field of the movie.

@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE preface PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN"
+                 "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
+
+
+<!--preface id="foreword_rod">
+    <title>Foreword: Rod Johnson, CEO of SpringSource</title>
+    <para>
+        Rod ...
+    </para>
+</preface>
+
+<preface id="foreword_emil">
+    <title>Foreword: Emil Eifrem, CEO of Neo Technology</title>
+    <para>
+        Emil ...
+    </para>
+</preface-->
+
+<preface id="about-book">
+    <title>About this Guide Book</title>
+    <para>
+        Welcome to the Spring Data Graph Guide Book. Thank you for taking the time to get an in depth look into the
+        usage and workings of the <ulink url="https://github.com/SpringSource/spring-data-graph">Spring Data Graph Library</ulink>. Spring Data Graph is part of the <ulink url="http://springsource.org/spring-data">Spring Data project</ulink> which
+        aims to provide the convenient programming model of the Spring Framework to the big field modern datastores
+        (mostly NoSQL). Spring Data Graph in particular currently provides integration for the <ulink url="http://neo4j.org">Neo4j Graph Database</ulink>.
+    </para><para>
+        It was written by developers for developers. So hopefully we created a documentation that is well received by
+        our peers.
+    </para><para>
+        If you have any feedback to the Spring Data Graph Library or this book, please provide it via <ulink url="https://jira.springsource.org/browse/DATAGRAPH">SpringSource JIRA</ulink>,
+        the <ulink url="http://forum.springsource.org/forumdisplay.php?f=80">SpringSource NoSQL Forum</ulink>, <ulink
+        url="https://github.com/SpringSource/spring-data-graph/issues">github comments or issues</ulink> or the <ulink url="http://neo4j.org/community/list/">Neo4j mailing list</ulink>.
+    </para><para>
+        This book is presented as a <ulink url="http://martinfowler.com/bliki/DuplexBook.html">duplex book</ulink>, a term coined by Martin Fowler. A duplex book consists of at least two
+        parts. The first part is an easily accessible narrative, that gives the reader an overview of the topics contained
+        in the book. It contains lots of examples and more general discussion topics. This should be the only part of
+        the book that is required to be read cover-to-cover.
+    </para><para>
+    We chose a tutorial describing the creation of a web applicaton (cineasts.net) that allows movie enthusiasts to
+    find the favorites, rate them, connect with each other and enjoy social features. The application is running on
+    Neo4j using Spring Data Graph and the well known Spring Web Stack.
+</para><para>
+        The second part is the classic reference documentation containing the detailed information about the library.
+        It discusses the programming model, the underlying assumptions, used toolset (like aspectj) as well as the APIs
+        for the object-graph mapping and the template approach. The reference docs should be mainly used to look up
+        concrete bits of information or to dig deeper into certain topics.
+    </para>
+</preface>

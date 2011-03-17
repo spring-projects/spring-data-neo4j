@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
-<chapter id="tutorial:neo4j">
+<chapter id="tutorial_neo4j">
     <title>Graphs ahead - Learning Neo4j</title>
     <para>
         Then came the unknown - how to put these domain objects into the graph. First I read up about graph databases, especially Neo4j. Their datamodel consists

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
-<chapter id="tutorial:import">
+<chapter id="tutorial_import">
     <title>The dusty archives - Importing Data</title>
     <para>
         Now it was time to pull the data from themoviedb.org. Registering there and getting an API key was simple, using the API on the commandline with curl too.

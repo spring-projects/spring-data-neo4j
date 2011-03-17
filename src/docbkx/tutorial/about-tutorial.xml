@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
-<chapter id="tutorial:about-tutorial">
+<chapter id="tutorial_about-tutorial">
     <title>Allow me to introduce - Cineasts.net</title>
     <para>
 Once upon a time I wanted to build a social movie database myself. First things first - I had a name: "Cineasts" - the people
@@ -13,7 +13,7 @@ existing friends.
 </para><para>
     <mediaobject>
         <imageobject>
-            <imagedata fileref="cineasts.png"/>
+            <imagedata fileref="cineasts.png" scalefit="true" align="center"/>
         </imageobject>
     </mediaobject>
 </para><para>I looked for possible sources for data, IMDB was my first stop, but they charge 15k USD for data usage. Fortunately I found <ulink url="http://themoviedb.org">TheMoviedb.org</ulink> which has
@@ -24,7 +24,7 @@ There were many more ideas but I wanted to get something done over the course of
     </para>
     <mediaobject>
         <imageobject>
-            <imagedata fileref="cineasts_main.png"/>
+            <imagedata fileref="cineasts_main.png" scalefit="true" align="center"/>
         </imageobject>
     </mediaobject>
 
