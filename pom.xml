@@ -198,7 +198,7 @@
                             <admonGraphicsPath>${basedir}/src/docbkx/resources/images/</admonGraphicsPath>
                             <postProcess>
                                 <copy file="${basedir}/target/docbkx/pdf/index.pdf"
-                                      tofile="${basedir}/target/site/reference/pdf/spring-data-graph.pdf"
+                                      tofile="${basedir}/target/site/reference/pdf/spring-data-graph-reference.pdf"
                                       failonerror="false"/>
                             </postProcess>
                         </configuration>
