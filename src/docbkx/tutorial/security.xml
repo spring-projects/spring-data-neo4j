@@ -1,40 +1,91 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
+<!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" "http://www.docbook.org/xml/4.4/docbookx.dtd">
 <chapter id="tutorial_security">
     <title>Protecting Assets - Adding Security</title>
     <para>
-       To use the user in the webapp I had to put it in the session and add login and registration pages. Of course the pages that only worked with a valid user
+       To have a user in the webapp I had to put it in the session and add login and registration pages. Of course the pages that only worked with a valid user
 account had to be secured as well.
 </para><para>
-I used Spring Security to that, writing a simple UserDetailsService that used my repository for looking up the users and validating their credentials. The config is located
-in a separate applicationContext-security.xml.
+I used Spring Security to that, writing a simple UserDetailsService that used a repository for looking up the users and validating their credentials. The config is located
+in a separate applicationContext-security.xml. But first, as always, maven and web.xml setup.
     </para>
     <para>
+<example>
+    <title>pom.xml for spring-security</title>
+        <programlisting language="xml" ><![CDATA[
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-web</artifactId>
+            <version>${spring.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-config</artifactId>
+            <version>${spring.version}</version>
+        </dependency>
+                ]]></programlisting>
+</example>
+    </para>
+    <para>
+<example>
+    <title>web.xml</title>
+        <programlisting language="xml" ><![CDATA[
+    <context-param>
+        <param-name>contextConfigLocation</param-name>
+        <param-value>
+            /WEB-INF/applicatioContext-security.xml
+            /WEB-INF/applicationContext.xml
+        </param-value>
+    </context-param>
+
+    <listener>
+        <listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
+    </listener>
+
+    <filter>
+        <filter-name>springSecurityFilterChain</filter-name>
+        <filter-class>org.springframework.web.filter.DelegatingFilterProxy</filter-class>
+    </filter>
+
+    <filter-mapping>
+        <filter-name>springSecurityFilterChain</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+                ]]></programlisting>
+</example>
+    </para>
+    <para>
+<example>
+    <title> applicationContext-security.xml</title>
         <programlisting language="xml" ><![CDATA[
 <security:global-method-security secured-annotations="enabled">
-    </security:global-method-security>
+</security:global-method-security>
 
-    <security:http auto-config="true" access-denied-page="/auth/denied"> <!-- use-expressions="true" -->
-        <security:intercept-url pattern="/admin/*" access="ROLE_ADMIN"/>
-        <security:intercept-url pattern="/import/*" access="ROLE_ADMIN"/>
-        <security:intercept-url pattern="/user/*" access="ROLE_USER"/>
-        <security:intercept-url pattern="/auth/login" access="IS_AUTHENTICATED_ANONYMOUSLY"/>
-        <security:intercept-url pattern="/auth/register" access="IS_AUTHENTICATED_ANONYMOUSLY"/>
-        <security:intercept-url pattern="/**" access="IS_AUTHENTICATED_ANONYMOUSLY"/>
-        <security:form-login login-page="/auth/login" authentication-failure-url="/auth/login?login_error=true"
-        default-target-url="/user"/>
-        <security:logout logout-url="/auth/logout" logout-success-url="/" invalidate-session="true"/>
-    </security:http>
+<security:http auto-config="true" access-denied-page="/auth/denied"> <!-- use-expressions="true" -->
+    <security:intercept-url pattern="/admin/*" access="ROLE_ADMIN"/>
+    <security:intercept-url pattern="/import/*" access="ROLE_ADMIN"/>
+    <security:intercept-url pattern="/user/*" access="ROLE_USER"/>
+    <security:intercept-url pattern="/auth/login" access="IS_AUTHENTICATED_ANONYMOUSLY"/>
+    <security:intercept-url pattern="/auth/register" access="IS_AUTHENTICATED_ANONYMOUSLY"/>
+    <security:intercept-url pattern="/**" access="IS_AUTHENTICATED_ANONYMOUSLY"/>
+    <security:form-login login-page="/auth/login" authentication-failure-url="/auth/login?login_error=true"
+    default-target-url="/user"/>
+    <security:logout logout-url="/auth/logout" logout-success-url="/" invalidate-session="true"/>
+</security:http>
 
-    <security:authentication-manager>
-        <security:authentication-provider user-service-ref="userDetailsService">
-            <security:password-encoder hash="md5">
-                <security:salt-source system-wide="cewuiqwzie"/>
-            </security:password-encoder>
-        </security:authentication-provider>
-    </security:authentication-manager>
+<security:authentication-manager>
+    <security:authentication-provider user-service-ref="userDetailsService">
+        <security:password-encoder hash="md5">
+            <security:salt-source system-wide="cewuiqwzie"/>
+        </security:password-encoder>
+    </security:authentication-provider>
+</security:authentication-manager>
 
-    <bean id="userDetailsService" class="org.neo4j.movies.service.CineastsUserDetailsService"/>        ]]></programlisting>
+<bean id="userDetailsService" class="org.neo4j.movies.service.CineastsUserDetailsService"/>
+]]></programlisting>
+</example>
+<example>
+    <title>UserDetailsService and UserDetails implementation</title>
         <programlisting language="java" ><![CDATA[
 @Service
 public class CineastsUserDetailsService implements UserDetailsService, InitializingBean {
@@ -56,6 +107,16 @@ public class CineastsUserDetailsService implements UserDetailsService, Initializ
 
     public User findUser(String login) {
         return userFinder.findByPropertyValue("users","login",login);
+    }
+    public User getUserFromSession() {
+        SecurityContext context = SecurityContextHolder.getContext();
+        Authentication authentication = context.getAuthentication();
+        Object principal = authentication.getPrincipal();
+        if (principal instanceof CineastsUserDetails) {
+            CineastsUserDetails userDetails = (CineastsUserDetails) principal;
+            return userDetails.getUser();
+        }
+        return null;
     }
 }
 
@@ -90,9 +151,16 @@ public class CineastsUserDetails implements UserDetails {
 }
 
         ]]></programlisting>
+</example>
     </para>
     <para>
         After that a logged in user was available in the session and could so be used for all the social interactions. Most of the work done next was adding controller methods
-and JSPs for the views.
+and JSPs for the views. I used the helper method <code>getUserFromSession()</code> in the controllers to access the logged in user and put it in the model for rendering.
+        As a teaser I'd like to show off the user profile page, as it will be rendered after heavy UX lifting.
     </para>
+    <mediaobject>
+        <imageobject>
+            <imagedata fileref="cineasts_user.png" scalefit="1" contentwidth="15cm"/>
+        </imageobject>
+    </mediaobject>
 </chapter>

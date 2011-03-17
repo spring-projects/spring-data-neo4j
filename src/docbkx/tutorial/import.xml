@@ -1,23 +1,135 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
+<!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" "http://www.docbook.org/xml/4.4/docbookx.dtd">
 <chapter id="tutorial_import">
     <title>The dusty archives - Importing Data</title>
     <para>
-        Now it was time to pull the data from themoviedb.org. Registering there and getting an API key was simple, using the API on the commandline with curl too.
+        Now it was time to pull the data from <ulink url="http://themoviedb.org">themoviedb.org</ulink>. Registering there and getting an API key was simple, using the API on the commandline with curl too.
         Looking at the JSON returned for movies and people I decided to pimp my domain model and add some more fields so that the representation in the UI was worth
         the effort.
     </para><para>
-        For the import process I created a separate importer that used HttpClient and JSON to fetch and parse the data and then some transactional methods to actually
-        insert it as movies, roles and actors. User data was not available so I created an anonymous user called 'Cineast' that I attributed all the ratings and comments
-        to. I also created a version of the importer that read the json files from local disk, so that I didn't have to strain the remote API that much and that often.
+    <programlisting language="javascript" ><![CDATA[
+   [{"popularity":3,
+"translated":true, "adult":false, "language":"en",
+"original_name":"[Rec]", "name":"[Rec]", "alternative_name":"[REC]",
+"movie_type":"movie",
+"id":8329, "imdb_id":"tt1038988", "url":"http://www.themoviedb.org/movie/8329",
+"votes":11, "rating":7.2,
+"status":"Released",
+"tagline":"One Witness. One Camera",
+"certification":"R",
+"overview":"\"REC\" turns on a young TV reporter and her cameraman who cover the night shift at the local fire station...
+"keywords":["terror", "lebende leichen", "obsession", "camcorder", "firemen", "reality tv ", "bite", "cinematographer",
+"attempt to escape", "virus", "lodger", "live-reportage", "schwerverletzt"],
+"released":"2007-08-29",
+"runtime":78,
+"budget":0,
+"revenue":0,
+"homepage":"http://www.3l-filmverleih.de/rec",
+"trailer":"http://www.youtube.com/watch?v=YQUkX_XowqI",
+"genres":[{"type":"genre",
+"url":"http://themoviedb.org/genre/horror",
+"name":"Horror",
+"id":27}],
+"studios":[{"url":"http://www.themoviedb.org/company/2270", "name":"Filmax Group", "id":2270}],
+"languages_spoken":[{"code":"es", "name":"Spanish", "native_name":"Espa\u00f1ol"}],
+"countries":[{"code":"ES", "name":"Spain", "url":"http://www.themoviedb.org/country/es"}],
+"posters":[{"image":{"type":"poster",
+"size":"original", "height":1000, "width":706,
+"url":"http://cf1.imgobject.com/posters/3a0/4cc8df415e73d650240003a0/rec-original.jpg", "id":"4cc8df415e73d650240003a0"}},
+....
+"cast":[{"name":"Manuela Velasco",
+"job":"Actor", "department":"Actors",
+"character":"Angela Vidal",
+"id":34793, "order":0, "cast_id":1,
+"url":"http://www.themoviedb.org/person/34793",
+"profile":"http://cf1.imgobject.com/profiles/390/4c0157fa017a3c702d001390/manuela-velasco-thumb.jpg"},
+...
+{"name":"Gl\u00f2ria Viguer",
+"job":"Costume Design", "department":"Costume \u0026 Make-Up",
+"character":"",
+"id":54531, "order":0, "cast_id":21,
+"url":"http://www.themoviedb.org/person/54531",
+"profile":""}],
+"version":150, "last_modified_at":"2011-02-20 23:16:57"}]
+    ]]></programlisting>
+    <programlisting language="javascript" ><![CDATA[
+    [{"popularity":3,
+"name":"Glenn Strange", "known_as":[{"name":"George Glenn Strange"}, {"name":"Glen Strange"},
+{"name":"Glen 'Peewee' Strange"}, {"name":"Peewee Strange"}, {"name":"'Peewee' Strange"}],
+"id":30112,
+"biography":"",
+"known_movies":4,
+"birthday":"1899-08-16", "birthplace":"Weed, New Mexico, USA",
+"url":"http://www.themoviedb.org/person/30112",
+"filmography":[{"name":"Bud Abbott Lou Costello Meet Frankenstein",
+"id":3073,
+"job":"Actor", "department":"Actors",
+"character":"The Frankenstein Monster",
+"cast_id":23,
+"url":"http://www.themoviedb.org/movie/3073",
+"poster":"http://cf1.imgobject.com/posters/4ca/4bc9185d017a3c57fe0094ca/bud-abbott-lou-costello-meet-frankenstein-cover.jpg",
+"adult":false, "release":"1948-06-15"},
+...],
+"profile":[],
+"version":19, "last_modified_at":"2011-03-07 13:02:35"}]
+    ]]></programlisting>
+    </para><para>
+        For the import process I created a separate importer that used Jackson to fetch and parse the data and then some transactional methods in the MovieDbImportService to actually
+        insert it as movies, roles and actors.
+        <!--User data was not available so I created an anonymous user called 'Cineast' that I attributed all the ratings and comments to.-->
+        The importer used a simple caching mechanism, to keep downloaded actor and movie data on the filesystem, so that I didn't have to strain the remote API that much and that often.
+        In the code below you can see, that I changed the actor to a person so that I can also accomodate for all the other
+        people that contribute in movie making.
     </para>
     <para>
-        <programlisting language="javascript" ><![CDATA[
-JSON sample for movie & actor
-        ]]></programlisting>
         <programlisting language="java" ><![CDATA[
-Code for importer & mapper
+@Transactional
+public Movie importMovie(String movieId) {
+    Movie movie = moviesRepository.getMovie(movieId);
+    if (movie == null) { // Not found: Create fresh
+        movie = new Movie(movieId,null);
+    }
+
+    Map data = loadMovieData(movieId);
+    if (data.containsKey("not_found")) throw new RuntimeException("Data for Movie "+movieId+" not found.");
+    movieDbJsonMapper.mapToMovie(data, movie);
+    movie.persist();
+    relatePersonsToMovie(movie, data);
+    return movie;
+}
+
+private void relatePersonsToMovie(Movie movie, Map data) {
+    Collection<Map> cast = (Collection<Map>) data.get("cast");
+    for (Map entry : cast) {
+        String id = entry.get("id");
+        Roles job = entry.get("job");
+        Person person = importPerson(id);
+        switch (job) {
+            case DIRECTED:
+                person.directed(movie);
+                break;
+            case ACTS_IN:
+                person.playedIn(movie, (String) entry.get("character"));
+                break;
+        }
+    }
+}
+
+public void mapToMovie(Map data, Movie movie) {
+   movie.setTitle((String) data.get("name"));
+   movie.setLanguage((String) data.get("language"));
+   movie.setTagline((String) data.get("tagline"));
+   movie.setReleaseDate(toDate(data, "released", "yyyy-MM-dd"));
+...
+   movie.setImageUrl(selectImageUrl((List<Map>) data.get("posters"), "poster", "mid"));
+}
+
         ]]></programlisting>
+</para>
+    <para>
+        The last part was adding some protected URI to the MovieController to allow to import ranges of movies.
+        During testing it became obvious that the calls to themoviedb where the limiting factor. As soon as
+        the data was stored locally it took only subseconds to create the data in the Neo4j graph database.
     </para>
 
 </chapter>

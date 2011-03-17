@@ -8,6 +8,14 @@
         results have to be casted to the correct return type.
         <variablelist>
             <varlistentry>
+                <term>persisting the node-entity initially and after changes outside of a transaction,
+                persist participates in a transaction or creates its own implict transaction.
+                </term>
+                <listitem>
+                    <para><code>nodeEntity.persist()</code></para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
                 <term>accessing node and relationship ids</term>
                 <listitem>
                     <para><code>nodeEntity.getNodeId() and relationshipEntity.getRelationshipId()</code></para>
@@ -26,15 +34,27 @@
                 </listitem>
             </varlistentry>
             <varlistentry>
-                <term>creating relationships to a target node entity</term>
+                <term>creating relationships to a target node entity and returning the relationship-entity instance</term>
                 <listitem>
                     <para><code>nodeEntity.relateTo(targetEntity, relationshipClass, relationshipType)</code></para>
                 </listitem>
             </varlistentry>
             <varlistentry>
-                <term>retrieving a single relationship</term>
+                <term>retrieving a single relationship-entity</term>
                 <listitem>
                     <para><code>nodeEntity.getRelationshipTo(targetEnttiy, relationshipClass, relationshipType)</code></para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>creating relationships to a target node entity and returning the relationship</term>
+                <listitem>
+                    <para><code>nodeEntity.relateTo(targetEntity, relationshipType)</code></para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>retrieving a single relationship</term>
+                <listitem>
+                    <para><code>nodeEntity.getRelationshipTo(targetEnttiy, relationshipType)</code></para>
                 </listitem>
             </varlistentry>
             <varlistentry>

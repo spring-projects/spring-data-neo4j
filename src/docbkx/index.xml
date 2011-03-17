@@ -34,8 +34,8 @@
         <xi:include href="tutorial/relationships.xml"/>
         <xi:include href="tutorial/running.xml"/>
         <xi:include href="tutorial/webapp.xml"/>
-        <xi:include href="tutorial/security.xml"/>
         <xi:include href="tutorial/social.xml"/>
+        <xi:include href="tutorial/security.xml"/>
         <xi:include href="tutorial/user-experience.xml"/>
         <xi:include href="tutorial/import.xml"/>
         <xi:include href="tutorial/recommendations.xml"/>

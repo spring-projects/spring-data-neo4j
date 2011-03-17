@@ -1,37 +1,49 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
+<!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" "http://www.docbook.org/xml/4.4/docbookx.dtd">
 <chapter id="tutorial_neo4j">
     <title>Graphs ahead - Learning Neo4j</title>
     <para>
-        Then came the unknown - how to put these domain objects into the graph. First I read up about graph databases, especially Neo4j. Their datamodel consists
-        of nodes and relationships all of which can have properties. Relationships as first class citizens - I liked that. Then there was the possibility to index
-        both by field, value pairs to quickly get hold of them as starting points for further processing. Other useful operations were manual traversal of relationships
-        and a powerful traversal based on a query like Traversal Description. That all seemed pretty easy.
+        Then came the unknown - how to put these domain objects into the graph. First I read up about graph databases, especially <ulink url="http://neo4j.org">Neo4j</ulink>.
+        Their datamodel consists of nodes and relationships all of which can have properties. Relationships as first class citizens - I liked that.
+        Then there was the possibility to <ulink url="http://wiki.neo4j.org/content/Index_Framework">index nodes and relationships</ulink> by field, value pairs to quickly get hold of them.
+        Those could then be the starting points for further processing. Other useful operations were manual traversal of relationships
+        and a powerful traversal based on a query-like <ulink url="http://wiki.neo4j.org/content/Traversal_Framework">Traversal Description</ulink>. That all seemed pretty easy.
     </para><para>
         I also learned that Neo4j was transactional and provided the known ACID guarantees for my data. This was unsual for a NoSQL database but easier for me to get
         my head around than non-transactional eventual persistence. That also meant that I had to manage transactions somehow. Keep that in mind.
     </para><para>
-        <programlisting language="java" ><![CDATA[
-        enum RelationshipTypes implements RelationshipType { ACTS_IN };
-
-        GraphDatabaseService gds = new EmbeddedGraphDatabase("/path/to/store");
-        Node forest=gds.createNode();
-        forest.setProperty("title","Forest Gump");
-        forest.setProperty("year",1994);
-        gds.index().forNodes("movies").add(forest,"id",1);
-
-        Node tom=gds.createNode();
-        tom.setProperty("Tom Hanks");
-
-        Relationship role=tom.createRelationshipTo(forest,ACTS_IN);
-        role.setProperty("role","Forest Gump");
-
-        Node movie=gds.index().forNodes("movies").get("id",1).getSingle();
-        print(movie.getProperty("title"));
-        for (Relationship role : movie.getRelationships(ACTS_IN,INCOMING)) {
-            Node actor=role.getOtherNode(movie);
-            print(actor.getProperty("name") +" as " + role.getProperty("role"));
-        }
+        So I tried to use the raw Neo4j-API so get a feeling for that. And also see, how (probably) the domain would end up in the graph store. After adding the maven
+        dependency, it was ready to go.
+    </para><para>
+        <programlisting language="xnk" ><![CDATA[
+<dependency>
+    <groupId>org.neo4j</groupId>
+    <artifactId>neo4j</artifactId>
+    <version>1.3.M04</version>
+</dependency>
         ]]></programlisting>
+    </para><para>
+        <programlisting language="java" ><![CDATA[
+enum RelationshipTypes implements RelationshipType { ACTS_IN };
+
+GraphDatabaseService gds = new EmbeddedGraphDatabase("/path/to/store");
+Node forrest=gds.createNode();
+forrest.setProperty("title","Forrest Gump");
+forrest.setProperty("year",1994);
+gds.index().forNodes("movies").add(forrest,"id",1);
+
+Node tom=gds.createNode();
+tom.setProperty("Tom Hanks");
+
+Relationship role=tom.createRelationshipTo(forrest,ACTS_IN);
+role.setProperty("role","Forrest Gump");
+
+Node movie=gds.index().forNodes("movies").get("id",1).getSingle();
+print(movie.getProperty("title"));
+for (Relationship role : movie.getRelationships(ACTS_IN,INCOMING)) {
+    Node actor=role.getOtherNode(movie);
+    print(actor.getProperty("name") +" as " + role.getProperty("role"));
+}
+]]></programlisting>
     </para>
 </chapter>

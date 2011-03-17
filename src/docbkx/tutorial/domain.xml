@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
+<!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" "http://www.docbook.org/xml/4.4/docbookx.dtd">
 <chapter id="tutorial_domain">
     <title>Setting the Stage - Movies Domain</title>
     <para>
@@ -21,40 +21,40 @@
 </para><para>
 
 
-<programlisting language="java" ><![CDATA[
-        class Movie {
-            int id;
-            String title;
-            int year;
-            Set<Role> cast;
-        }
+<programlisting lang="java" language="java" role="java" ><![CDATA[
+class Movie {
+    int id;
+    String title;
+    int year;
+    Set<Role> cast;
+}
 
-        class Actor {
-            int id;
-            String name;
-            Set<Movie> filmography;
-            Role playedIn(Movie movie, String role);
-        }
-        class Role {
-            Movie movie;
-            Actor actor;
-            String role;
-        }
-        class User {
-            String login;
-            String name;
-            String password;
-            Set<Rating> ratings;
-            Set<User> friends;
-            Rating rate(Movie movie, int stars, String comment);
-            void befriend(User user);
-        }
-        class Rating {
-            User user;
-            Movie movie;
-            int stars;
-            String comment;
-        }
+class Actor {
+    int id;
+    String name;
+    Set<Movie> filmography;
+    Role playedIn(Movie movie, String role);
+}
+class Role {
+    Movie movie;
+    Actor actor;
+    String role;
+}
+class User {
+    String login;
+    String name;
+    String password;
+    Set<Rating> ratings;
+    Set<User> friends;
+    Rating rate(Movie movie, int stars, String comment);
+    void befriend(User user);
+}
+class Rating {
+    User user;
+    Movie movie;
+    int stars;
+    String comment;
+}
 ]]></programlisting>
 
         </para><para>

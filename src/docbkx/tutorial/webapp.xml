@@ -1,14 +1,32 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
+<!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" "http://www.docbook.org/xml/4.4/docbookx.dtd">
 <chapter id="tutorial_webapp">
     <title>Showing off - Web views</title>
     <para>
         After I had the means to put some data in the graph database, I also wanted to show it. So adding the controller method to show a single movie with its attributes
 and cast in a jsp was straightforward. Actually just using the repository to look the movie up and add it to the model. Then forward to the /movies/show view and voilá.
 </para><para>
-    TODO screenshot of movie display
-    </para>
-
+    <programlisting language="java"><![CDATA[
+@RequestMapping(value = "/movies/{movieId}", method = RequestMethod.GET, headers = "Accept=text/html")
+public String singleMovieView(final Model model, @PathVariable String movieId) {
+    Movie movie = moviesRepository.getMovie(movieId);
+    model.addAttribute("id", movieId);
+    if (movie != null) {
+        model.addAttribute("movie", movie);
+        model.addAttribute("stars", movie.getStars());
+    }
+    return "/movies/show";
+}
+]]></programlisting>
+</para>
+<para>
+    Later the nice UI would look like that:
+    <mediaobject>
+        <imageobject>
+            <imagedata fileref="cineasts_movie.png" contentwidth="15cm" scalefit="1" align="center"/>
+        </imageobject>
+    </mediaobject>
+</para>
     <section>
         <title>What was his name? - Searching</title>
         <para>
@@ -41,9 +59,46 @@ public void List<Movie> searchForMovie(String query, int count) {
 domain classes.
         </para>
         <para>
+            <programlisting language="java"><![CDATA[
+@RequestMapping(value = "/movies", method = RequestMethod.GET, headers = "Accept=text/html")
+public String findMovies(Model model, @RequestParam("q") String query) {
+    List<Movie> movies = moviesRepository.findMovies(query, 20);
+    model.addAttribute("movies", movies);
+    model.addAttribute("query", query);
+    return "/movies/list";
+}
+]]></programlisting>
+        </para>
+        <para>
             <programlisting language="jsp" ><![CDATA[
-TODO jsp fragment
+<h2>Movies</h2>
+
+<c:choose>
+    <c:when test="${not empty movies}">
+        <dl class="listings">
+        <c:forEach items="${movies}" var="movie">
+            <dt>
+                <a href="/movies/${movie.id}"><c:out value="${movie.title}" /></a><br/>
+            </dt>
+            <dd>
+                <c:out value="${movie.description}" escapeXml="true" />
+            </dd>
+        </c:forEach>
+        </dl>
+    </c:when>
+    <c:otherwise>
+        No movies found for query &quot;${query}&quot;.
+    </c:otherwise>
+</c:choose>
             ]]></programlisting>
         </para>
+<para>
+    Here is another teaser, what the final UX would look like for that:
+    <mediaobject>
+        <imageobject>
+            <imagedata fileref="cineasts_results.png" contentwidth="15cm" scalefit="1" align="center"/>
+        </imageobject>
+    </mediaobject>
+</para>
     </section>
 </chapter>

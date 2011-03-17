@@ -14,12 +14,12 @@
 		<title>Partial graph persistence</title>
         <para>
             Partial graph persistence is achieved by restricting the Spring Data Graph aspects to explicitly annotated parts of
-            the entity. Those fields have to be made transient so that JPA ignores them and won't try to persist those
+            the entity. Those fields will be made transient by the aspect so that JPA ignores them and won't try to persist those
             attributes.
         </para>
         <para>
-		A backing node in the graph store is created when the entity has been assigned a JPA id. Only then will the connection between the
-		two stores be kept. Until the entity has been persisted, its state is just kept inside the POJO and flushed to the
+		A backing node in the graph store is only created when the entity has been assigned a JPA id. Only then will the connection between the
+		two stores be kept. Until the entity has been persisted, its state is just kept inside the POJO (detached state) and flushed to the
 		backing graph store afterwards.
 	</para>
 		<para>
@@ -66,15 +66,12 @@
 	    private String lastName;
 
 	    @GraphProperty
-	    @Transient
 	    String nickname;
 
 	    @RelatedTo(type = "friends", elementClass = UserAccount.class)
-	    @Transient
 	    Set<UserAccount> friends;
 
 	    @RelatedToVia(type = "recommends", elementClass = Recommendation.class)
-	    @Transient
 	    Iterable<Recommendation> recommendations;
 
 	    @Temporal(TemporalType.TIMESTAMP)
@@ -91,13 +88,12 @@
 
 	    @Transactional
 	    public void knows(UserAccount friend) {
-	        relateTo(friend, DynamicRelationshipType.withName("friends"));
+	        relateTo(friend, "friends");
 	    }
 
 		@Transactional
 	    public Recommendation rate(Restaurant restaurant, int stars, String comment) {
-	        Recommendation recommendation = (Recommendation) relateTo(restaurant, 
-				Recommendation.class, "recommends");
+	        Recommendation recommendation = relateTo(restaurant, Recommendation.class, "recommends");
 	        recommendation.rate(stars, comment);
 	        return recommendation;
 	    }
@@ -130,8 +126,8 @@
 
 	<context:annotation-config/>
 
-    <datagraph:config storeDirectory="target/config-test" 
-      entityManagerFactory="entityManagerFactory"/>
+    <datagraph:config storeDirectory="target/config-test"
+        entityManagerFactory="entityManagerFactory"/>
 
     <bean class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean"
       id="entityManagerFactory">

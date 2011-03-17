@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
+<!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" "http://www.docbook.org/xml/4.4/docbookx.dtd">
 <chapter id="tutorial_setup">
     <title>Scope: Spring</title>
     <para>
@@ -23,16 +23,64 @@
             in the webapp directory.
         </para><para>
 
-<informalexample>
-    <mediaobject>
-        <textobject>
+        <example>
+            <title>pom.xml</title>
             <programlisting language="xml"><![CDATA[
-                        TODO setup code?
+<properties>
+    <spring.version>3.0.5.RELEASE</spring.version>
+</properties>
+
+<dependencies>
+<dependency>
+    <groupId>org.springframework</groupId>
+    <!-- abbreviated for all the dependencies -->
+    <artifactId>spring-(core,context,aop,aspects,tx,webmvc)</artifactId>
+    <version>${spring.version}</version>
+</dependency>
+<dependency>
+    <groupId>org.springframework</groupId>
+    <artifactId>spring-test</artifactId>
+    <version>${spring.version}</version>
+    <scope>test</scope>
+</dependency>
+</dependencies>
+
+<build><plugins>
+	<plugin>
+		<groupId>org.mortbay.jetty</groupId>
+		<artifactId>jetty-maven-plugin</artifactId>
+		<version>7.1.2.v20100523</version>
+		<configuration>
+		   <webAppConfig>
+		     <contextPath>/</contextPath>
+		   </webAppConfig>
+		   <!--scanIntervalSeconds>1</scanIntervalSeconds-->
+		</configuration>
+	</plugin>
+</plugins></build>
+
             ]]></programlisting>
-        </textobject>
-        <caption>pom.xml</caption>
-    </mediaobject>
-</informalexample>
+        </example>
+
+        <example>
+            <title>web.xml</title>
+            <programlisting language="xml"><![CDATA[
+<listener>
+    <listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
+</listener>
+
+<servlet>
+    <servlet-name>dispatcherServlet</servlet-name>
+    <servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
+    <load-on-startup>1</load-on-startup>
+</servlet>
+
+<servlet-mapping>
+    <servlet-name>dispatcherServlet</servlet-name>
+    <url-pattern>/</url-pattern>
+</servlet-mapping>
+        ]]></programlisting>
+        </example>
 
     </para><para>
             With this setup I was ready for the first spike: creating a simple MovieController showing a static view. Check. Next was the setup for Spring Data Graph.
@@ -44,8 +92,44 @@
 <example>
     <title>applicationContext.xml</title>
         <programlisting language="xml"><![CDATA[
-                    TODO setup code?
-        ]]><filename path="pom.xml"/></programlisting>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:aop="http://www.springframework.org/schema/aop"
+    xmlns:context="http://www.springframework.org/schema/context"
+    xmlns:jee="http://www.springframework.org/schema/jee"
+    xmlns:tx="http://www.springframework.org/schema/tx"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:task="http://www.springframework.org/schema/task"
+    xmlns:p="http://www.springframework.org/schema/p"
+    xsi:schemaLocation="http://www.springframework.org/schema/jee http://www.springframework.org/schema/jee/spring-jee-3.0.xsd
+		http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-3.0.xsd
+		http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-3.0.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+		http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-3.0.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd">
+
+ <context:annotation-config/>
+ <context:spring-configured/>
+ <context:component-scan base-package="org.neo4j.cineasts">
+     <context:exclude-filter type="annotation" expression="org.springframework.stereotype.Controller"/>
+ </context:component-scan>
+
+ <tx:annotation-driven mode="aspectj"/>
+</beans>
+]]></programlisting>
+</example>
+<example>
+    <title>dispatcherServlet-servlet.xml</title>
+        <programlisting language="xml"><![CDATA[
+<mvc:annotation-driven/>
+<mvc:resources mapping="/images/**" location="/images/"/>
+<mvc:resources mapping="/resources/**" location="/resources/"/>
+<context:component-scan base-package="org.neo4j.cineasts.controller"/>
+
+<bean id="viewResolver" class="org.springframework.web.servlet.view.InternalResourceViewResolver" p:prefix="/WEB-INF/views/" p:suffix=".jsp"/>
+
+<tx:annotation-driven mode="aspectj"/>
+]]></programlisting>
 </example>
 
     </para><para>

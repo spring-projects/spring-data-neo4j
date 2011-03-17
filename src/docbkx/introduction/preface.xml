@@ -2,22 +2,24 @@
 <!DOCTYPE preface PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN"
                  "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
 
-
-<!--preface id="foreword_rod">
-    <title>Foreword: Rod Johnson, CEO of SpringSource</title>
-    <para>
-        Rod ...
-    </para>
-</preface>
-
-<preface id="foreword_emil">
-    <title>Foreword: Emil Eifrem, CEO of Neo Technology</title>
-    <para>
-        Emil ...
-    </para>
-</preface-->
-
 <preface id="about-book">
+    <title>Preface</title>
+    <para>
+        <mediaobject>
+            <imageobject>
+                <imagedata fileref="springdatagraph.png" contentwidth="15cm" scalefit="1"/>
+            </imageobject>
+        </mediaobject>
+    </para>
+    <section>
+    <title>Foreword: Rod Johnson, CEO of SpringSource</title>
+        <para></para>
+    </section>
+    <section>
+    <title>Foreword: Emil Eifrem, CEO of Neo Technology</title>
+        <para></para>
+    </section>
+    <section>
     <title>About this Guide Book</title>
     <para>
         Welcome to the Spring Data Graph Guide Book. Thank you for taking the time to get an in depth look into the
@@ -46,4 +48,5 @@
         for the object-graph mapping and the template approach. The reference docs should be mainly used to look up
         concrete bits of information or to dig deeper into certain topics.
     </para>
+    </section>
 </preface>

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
+<!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" "http://www.docbook.org/xml/4.4/docbookx.dtd">
 <chapter id="tutorial_social">
     <title>Movies 2.0 - Adding social</title>
     <para>
@@ -9,6 +9,8 @@
         <title>See, mom a Cineast! - Users</title>
         <para>
             So I took the User class that I already coded up before and made it a full fledged Spring Data Graph member.
+            Added the ability to make friends and to rate movies. With that there was also a simple UserRepository that
+            was able to look up users by id.
         </para>
         <para>
             <programlisting language="java" ><![CDATA[
@@ -31,6 +33,7 @@ class User {
         this.friends.add(user);
     }
 }
+@RelationshipEntity
 class Rating {
     @StartNode User user;
     @EndNode Movie movie;
@@ -43,6 +46,27 @@ class Rating {
 }
             ]]></programlisting>
 
+        </para>
+        <para>
+            I extended my DatabasePopulator to add some users and ratings to the initial setup.
+        </para>
+        <para>
+            <programlisting language="java" ><![CDATA[
+@Transactional
+public List<Movie> populateDatabase() {
+    Actor tomHanks = new Actor("1", "Tom Hanks").persist();
+    Movie forestGump = new Movie("1", "Forrest Gump").persist();
+    tomHanks.playedIn(forestGump,"Forrest");
+
+    User me = new User("micha", "Micha", "password", User.Roles.ROLE_ADMIN,User.Roles.ROLE_USER).persist();
+    Rating awesome = me.rate(forestGump, 5, "Awesome");
+
+    User ollie = new User("ollie", "Olliver", "password",User.Roles.ROLE_USER).persist();
+    ollie.rate(forestGump, 2, "ok");
+    me.addFriend(ollie);
+    return asList(forestGump);
+}
+            ]]></programlisting>
         </para>
     </section>
     <section>
@@ -67,13 +91,9 @@ class Movie {
             ]]></programlisting>
         </para>
         <para>
-            Fortunately my tests showed my the division by zero error when calculating the stars for a movie without ratings. I also added a few user and ratings to the
-database population code. And three methods to rate movies, lookup users and add friends to the repository.
-        </para>
-        <para>
-            <programlisting language="java" ><![CDATA[
-TODO code
-            ]]></programlisting>
+            Fortunately my tests showed my the division by zero error when calculating the stars for a movie without ratings.
+            Next steps were to add this information to the UI of movie and create a user profile page. But for that to happen
+            they must be able to log in.
         </para>
     </section>
 </chapter>

@@ -1,25 +1,25 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
+<!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" "http://www.docbook.org/xml/4.4/docbookx.dtd">
 <chapter id="tutorial_repository">
         <title>Serving a good cause - Repository</title>
         <para>
-            That was the first method to add to the repository. So I created a repository for my application, annotated
-            it with @Repository and @Transactional.
+            That was the first method to add to the brand new repository. So I created a repository for my application, annotated
+            it with @Repository and @Transactional. I did the same for the Actor.
         </para>
         <para>
             <programlisting language="java"><![CDATA[
 @Repository @Transactional
 public class CineastsRepostory {
-    FinderFactory finderFactory;
-    Finder<Movie> movieFinder;
-    @Autowired
-    public CineastsRepostory(FinderFactory finderFactory) {
-        this.finderFactory = finderFactory;
-        this.movieFinder = finderFactory.createNodeEntityFinder(Movie.class);
-    }
-    public Movie getMovie(int id) {
-        return movieFinder.getById(id);
-    }
+  FinderFactory finderFactory;
+  Finder<Movie> movieFinder;
+  @Autowired
+  public CineastsRepostory(FinderFactory finderFactory) {
+      this.finderFactory = finderFactory;
+      this.movieFinder = finderFactory.createNodeEntityFinder(Movie.class);
+  }
+  public Movie getMovie(int id) {
+      return movieFinder.findByPropertyValue(null,"id", id);
+  }
 }
     ]]></programlisting>
         </para>

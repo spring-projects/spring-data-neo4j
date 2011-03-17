@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
+<!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" "http://www.docbook.org/xml/4.4/docbookx.dtd">
 <chapter id="tutorial_running">
     <title>Curtains Up! - Get it running</title>
     <section>
@@ -11,8 +11,67 @@
         </para>
         <para>
 <programlisting language="java"><![CDATA[
-            TODO code
-]]></programlisting>
+@Service
+public class DatabasePopulator {
+
+  @Autowired GraphDatabaseContext ctx;
+  @Autowired MoviesRepository repository;
+
+  @Transactional
+  public List<Movie> populateDatabase() {
+      Actor tomHanks = new Actor("1", "Tom Hanks").persist();
+      Movie forestGump = new Movie("1", "Forrest Gump").persist();
+      forestGump.setYear(1994);
+      tomHanks.playedIn(forestGump,"Forrest");
+      return asList(forestGump);
+  }}
+
+@Controller
+public class MovieController {
+
+  private DatabasePopulator populator;
+
+  @Autowired
+  public MovieController(DatabasePopulator populator) {
+      this.populator = populator;
+  }
+
+  @RequestMapping(value = "/populate", method = RequestMethod.GET)
+  public String populateDatabase(Model model) {
+      Collection<Movie> movies=populator.populateDatabase();
+      model.addAttribute("movies",movies);
+      return "/movies/list";
+  }
+}
+
+        ]]></programlisting>
+            <programlisting language="jsp"><![CDATA[
+<%@ page session="false" %>
+<%@ taglib uri="http://www.springframework.org/tags" prefix="s" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+
+<c:choose>
+  <c:when test="${not empty movie}">
+    <h2>${movie.title}</h2>
+    <c:if test="${not empty movie.roles}">
+    <ul>
+    <c:forEach items="${movie.roles}" var="role">
+      <li>
+        <a href="/actors/${role.actor.id}"><c:out value="${role.actor.name}" /> as <c:out value="${role.name}" /></a><br/>
+      </li>
+    </c:forEach>
+    </ul>
+    </c:if>
+  </c:when>
+  <c:otherwise>
+      No Movie with id ${id} found!
+  </c:otherwise>
+</c:choose>
+            ]]></programlisting>
+        </para><para>
+        See the misused GET parameter for that (don't do this at home). This is only for running it from the browser
+        address line. Better use POST and curl for the call. So I called the URI and it showed the single added movie
+        on screen.
         </para>
     </section>
     <section>
@@ -25,7 +84,12 @@
             eclipse RCP application or plugin that connects to existing graph stores and visualizes their content. After getting an exception about concurrent access, I learned
             that I have to use Neoclipse in readonly mode when my webapp had an active connection to the store. Good to know.
             </para><para>
-            TODO neoclipse image
+
+            <mediaobject>
+                <imageobject>
+                    <imagedata fileref="neoclipse.png" scalefit="1" contentwidth="15cm" align="center"/>
+                </imageobject>
+            </mediaobject>
             </para>
         </section>
         <section>
@@ -40,14 +104,50 @@
             </para><para>
 
             <programlisting language="shell" ><![CDATA[
-            neo4j-shell -readonly -path /path/to/my/graphdb
+neo4j-shell -readonly -path data/graph.db
             ]]></programlisting>
             </para><para>
             It uses some shell metaphors like cd and ls to navigate the graph. There are also more advanced commands like using indexes and traversals. I tried to play around with them
             in this shell sesson.
             </para><para>
             <programlisting language="shell" ><![CDATA[
-            TODO shell session
+neo4j-sh[readonly] (0)$ ls
+(me) --[SUBREF_java.lang.Object]-> (3)
+(me) --[SUBREF_org.neo4j.cineasts.domain.Movie]-> (6)
+(me) --[SUBREF_org.neo4j.cineasts.domain.Person]-> (8)
+(me) --[SUBREF_org.neo4j.cineasts.domain.User]-> (2)
+neo4j-sh[readonly] (0)$ cd 6
+neo4j-sh[readonly] (6)$ ls
+*class =[org.neo4j.cineasts.domain.Movie]
+*count =[39]
+(me) <-[INSTANCE_OF]-- (The Matrix Revolutions,123)
+(me) <-[INSTANCE_OF]-- (The Matrix Reloaded,110)
+(me) <-[INSTANCE_OF]-- (The Matrix,93)
+...
+neo4j-sh[readonly] (6)$ cd 93
+neo4j-sh[readonly] (The Matrix,93)$ ls
+*description  =[Neo is a young software engineer and part-time hacker who is singled out by some mysterious...]
+*genre        =[Action]
+*homepage     =[http://whatisthematrix.warnerbros.com/]
+*id           =[603]
+*imageUrl     =[http://cf1.imgobject.com/posters/606/4bc909d0017a3c57fe003606/the-matrix-mid.jpg]
+*imdbId       =[tt0133093]
+*language     =[en]
+*lastModified =[1299968642000]
+*releaseDate  =[922831200000]
+*runtime      =[136]
+*studio       =[Warner Bros. Pictures]
+*tagline      =[Welcome to the Real World.]
+*title        =[The Matrix]
+*trailer      =[http://www.youtube.com/watch?v=UM5yepZ21pI]
+*version      =[324]
+(me) <-[ACTS_IN]-- (Marc Aden,109)
+...
+(me) <-[ACTS_IN]-- (Keanu Reeves,96)
+(me) <-[DIRECTED]-- (Andy Wachowski,95)
+(me) <-[DIRECTED]-- (Lana Wachowski,94)
+(me) --[INSTANCE_OF]-> (6)
+(me) <-[RATED]-- (Micha,1)
             ]]></programlisting>
             </para>
         </section>

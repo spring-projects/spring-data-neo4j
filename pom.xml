@@ -150,80 +150,126 @@
 			</extension>
 		</extensions>
 		<plugins>
-			<plugin>
-				<groupId>com.agilejava.docbkx</groupId>
-				<artifactId>docbkx-maven-plugin</artifactId>
-				<version>2.0.7</version>
-				<executions>
-					<execution>
-						<goals>
-							<goal>generate-html</goal>
-							<goal>generate-pdf</goal>
-						</goals>
-						<phase>pre-site</phase>
-					</execution>
-				</executions>
-				<dependencies>
-					<dependency>
-						<groupId>org.docbook</groupId>
-						<artifactId>docbook-xml</artifactId>
-						<version>4.4</version>
-						<scope>runtime</scope>
-					</dependency>
-                    <!--dependency>
+            <plugin>
+                <groupId>com.agilejava.docbkx</groupId>
+                <artifactId>docbkx-maven-plugin</artifactId>
+                <version>2.0.8</version>
+                <executions>
+                    <execution>
+                        <id>single-page</id>
+                        <goals>
+                            <goal>generate-html</goal>
+                        </goals>
+                        <configuration>
+                            <keepRelativeImageUris>true</keepRelativeImageUris>
+                            <htmlCustomization>${basedir}/src/docbkx/resources/xsl/html.xsl</htmlCustomization>
+                            <postProcess>
+                                <move tofile="${basedir}/target/site/reference/html/index.html"
+                                      file="${basedir}/target/docbkx/html/index.html"/>
+
+                                <copy todir="${basedir}/target/site/reference/html" flatten="true">
+                                    <fileset dir="${basedir}/src/docbkx/">
+                                        <exclude name="${basedir}/src/docbkx/resources/*"/>
+                                        <include name="**/*.png"/>
+                                        <include name="**/*.gif"/>
+                                        <include name="**/*.jpg"/>
+                                    </fileset>
+                                </copy>
+
+                                <copy todir="${basedir}/target/site/reference/html">
+                                    <fileset dir="${basedir}/src/docbkx/resources">
+                                        <include name="**/*.css"/>
+                                        <include name="**/*.png"/>
+                                        <include name="**/*.gif"/>
+                                        <include name="**/*.jpg"/>
+                                    </fileset>
+                                </copy>
+                            </postProcess>
+                        </configuration>
+                        <phase>pre-site</phase>
+                    </execution>
+                    <execution>
+                        <id>single-pdf</id>
+                        <goals>
+                            <goal>generate-pdf</goal>
+                        </goals>
+                        <configuration>
+                            <imgSrcPath>${basedir}/src/docbkx/</imgSrcPath>
+                            <admonGraphicsPath>${basedir}/src/docbkx/resources/images/</admonGraphicsPath>
+                            <postProcess>
+                                <copy file="${basedir}/target/docbkx/pdf/index.pdf"
+                                      tofile="${basedir}/target/site/reference/pdf/spring-data-graph.pdf"
+                                      failonerror="false"/>
+                            </postProcess>
+                        </configuration>
+                        <phase>pre-site</phase>
+                    </execution>
+                    <execution>
+                        <id>multi-page</id>
+                        <goals>
+                            <goal>generate-html</goal>
+                        </goals>
+                        <configuration>
+                            <keepRelativeImageUris>true</keepRelativeImageUris>
+                            <chunkedOutput>true</chunkedOutput>
+                            <htmlCustomization>${basedir}/src/docbkx/resources/xsl/html_chunk.xsl</htmlCustomization>
+                            <targetDirectory>${basedir}/target/docbkx/multi/</targetDirectory>
+                            <postProcess>
+                                <move todir="${basedir}/target/site/reference/multi">
+                                    <fileset dir="${basedir}/target/docbkx/multi">
+                                        <include name="**/*.html"/>
+                                    </fileset>
+                                </move>
+                                <copy todir="${basedir}/target/site/reference/multi">
+                                    <fileset dir="${basedir}/src/docbkx/resources">
+                                        <include name="**/*.png"/>
+                                        <include name="**/*.gif"/>
+                                        <include name="**/*.jpg"/>
+                                    </fileset>
+                                </copy>
+                                <copy todir="${basedir}/target/site/reference/multi" flatten="true">
+                                    <fileset dir="${basedir}/src/docbkx">
+                                        <exclude name="${basedir}/src/docbkx/resources/*"/>
+                                        <include name="**/*.css"/>
+                                        <include name="**/*.png"/>
+                                        <include name="**/*.gif"/>
+                                        <include name="**/*.jpg"/>
+                                    </fileset>
+                                </copy>
+                            </postProcess>
+                        </configuration>
+                        <phase>pre-site</phase>
+                    </execution>
+                </executions>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.docbook</groupId>
+                        <artifactId>docbook-xml</artifactId>
+                        <version>4.4</version>
+                        <scope>runtime</scope>
+                    </dependency>
+                    <dependency>
                         <groupId>org.apache.xmlgraphics</groupId>
                         <artifactId>fop</artifactId>
                         <version>0.93</version>
-                    </dependency-->
-                    <dependency>
-                        <groupId>javax.media</groupId>
-                        <artifactId>jai-core</artifactId>
-                        <version>1.1.3</version>
-                        <scope>compile</scope>
                     </dependency>
-				</dependencies>
-				<configuration>
-					<includes>index.xml</includes>
-					<xincludeSupported>true</xincludeSupported>
-					<foCustomization>${project.basedir}/src/docbkx/resources/xsl/fopdf.xsl</foCustomization>
-					<!-- original spring-build fopdf xsl
-					<foCustomization>src/docbkx/resources/xsl/pdf/fopdf.xsl</foCustomization> -->
-					<htmlStylesheet>${project.basedir}/src/docbkx/resources/css/html.css</htmlStylesheet>
-                    <imgSrcPath>${project.basedir}/src/docbkx/resources/images/</imgSrcPath>
-                    <admonGraphicsPath>${project.basedir}/src/docbkx/resources/images/</admonGraphicsPath>
-					<!-- produce single-page html output -->
-					<chunkedOutput>false</chunkedOutput>
-					<htmlCustomization>${project.basedir}/src/docbkx/resources/xsl/html.xsl</htmlCustomization>
-					<!-- produce multi-page html output
-					<chunkedOutput>false</chunkedOutput>
-					<htmlCustomization>${project.basedir}/src/docbkx/resources/xsl/html_chunk.xsl</htmlCustomization> -->
-					<entities>
-						<entity>
-							<name>version</name>
-							<value>${pom.version}</value>
-						</entity>
-					</entities>
-					<postProcess>
-						<copy todir="${project.basedir}/target/site/reference">
-							<fileset dir="${project.basedir}/target/docbkx">
-								<include name="**/*.html" />
-								<include name="**/*.pdf" />
-							</fileset>
-						</copy>
-						<copy todir="${project.basedir}/target/site/reference/html">
-							<fileset dir="${project.basedir}/src/docbkx/resources">
-								<include name="**/*.css" />
-								<include name="**/*.png" />
-								<include name="**/*.gif" />
-								<include name="**/*.jpg" />
-							</fileset>
-						</copy>
-						<move file="${project.basedir}/target/site/reference/pdf/index.pdf"
-							tofile="${project.basedir}/target/site/reference/pdf/spring-data-graph-reference.pdf"
-							failonerror="false" />
-					</postProcess>
-				</configuration>
-			</plugin>
+                </dependencies>
+                <configuration>
+                    <includes>index.xml</includes>
+                    <chunkedOutput>false</chunkedOutput>
+                    <draftWatermarkImage/>
+                    <htmlStylesheet>css/html.css</htmlStylesheet>
+                    <sourceDirectory>${basedir}/src/docbkx/</sourceDirectory>
+                    <foCustomization>${basedir}/src/docbkx/resources/xsl/fopdf.xsl</foCustomization>
+                    <xincludeSupported>true</xincludeSupported>
+                    <entities>
+                        <entity>
+                            <name>version</name>
+                            <value>${project.version}</value>
+                        </entity>
+                    </entities>
+                </configuration>
+            </plugin>
 			<plugin>
 				<artifactId>maven-javadoc-plugin</artifactId>
 				<version>2.5</version>

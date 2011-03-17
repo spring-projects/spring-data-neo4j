@@ -27,8 +27,11 @@
         </author>
     </authorgroup>
 
-    <graphic fileref="springdatagraph.png" scalefit="true"/>
-
+    <mediaobject>
+        <imageobject>
+            <imagedata fileref="springdatagraph.png" scalefit="1" contentwidth="15cm"/>
+        </imageobject>
+    </mediaobject>
     <legalnotice>
         <para>
             Copies of this document may be made for your own use and for distribution
