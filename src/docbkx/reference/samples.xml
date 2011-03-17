@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE preface PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN"
+<!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN"
                  "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
 <chapter id="samples">
   <title>Samples</title>
@@ -20,11 +20,11 @@
       creates some Worlds (entities / nodes) and Rocket Routes (relationships) in a Galaxy (graph)
       and then reads them back and prints them out.</para>
     <para>The unit tests demonstrate some other features of Spring Data Graph. The sample comes with a
-      minimal configuration for Maven and spring to get up and running quickly.</para>
+      minimal configuration for Maven and Spring to get up and running quickly.</para>
     <para>Executing the application creates the following graph in the Graph Database:</para>
     <mediaobject>
       <imageobject>
-        <imagedata fileref="helloworlds.png" format="PNG"/>
+        <imagedata fileref="helloworlds.png" contentwidth="15cm" scalefit="1"/>
       </imageobject>
     </mediaobject>
   </section>
@@ -45,24 +45,20 @@
         <screenshot>
             <mediaobject>
                 <imageobject>
-                    <imagedata fileref="imdb.png"/>
+                    <imagedata fileref="imdb.png" contentwidth="15cm" scalefit="1"/>
                 </imageobject>
             </mediaobject>
         </screenshot>
     </para>
   </section>
 
-  <!--
   <section id="samples_myrestaurant-original">
     <title>MyRestaurant sample</title>
-    <para>Simple web application for managing users and restaurants, with the ability to add
-      restaurants as
-      favorites to a user.</para>
-    <para>An excerpt of the data stored in the Graph Database after executing the application:
-    </para>
+    <para>Simple, JPA based web application for managing users and restaurants, with the ability to add
+      restaurants as favorites to a user.</para>
     <mediaobject>
       <imageobject>
-        <imagedata fileref="restaurant.png" />
+        <imagedata fileref="restaurant.png" contentwidth="15cm" scalefit="1"/>
       </imageobject>
     </mediaobject>
   </section>
@@ -78,10 +74,14 @@
     </para>
     <mediaobject>
       <imageobject>
-        <imagedata fileref="restaurant-social.png" />
+        <imagedata fileref="restaurant-social.png" contentwidth="15cm" scalefit="1"/>
+      </imageobject>
+    </mediaobject>
+    <mediaobject>
+      <imageobject>
+        <imagedata fileref="restaurant-social-graph.png" contentwidth="15cm" scalefit="1"/>
       </imageobject>
     </mediaobject>
   </section>
 
-   -->
 </chapter>
