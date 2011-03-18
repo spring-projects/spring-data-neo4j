@@ -3,6 +3,34 @@
 <chapter id="reference_aspectj-intro">
     <title>AspectJ introduction</title>
     <para>
-        ...
+        The object graph mapper of Spring Data Graph relies heavily on AspectJ. AspectJ is the Java implementation of
+        the Aspect Oriented Programming paradigm that allows easy extraction and controlled application of so called
+        cross cutting concerns. Cross cutting concerns are repetitive tasks in a system (e.g. logging, security,
+        auditing, caching, transaction scoping) that are difficult to extract using the normal OO paradigms. The means
+        of the OO paradigm, of subclassing, polymorphism, overriding and delegation are still very cumbersome to use
+        with many of those concerns applied in the codebase. Also the flexibility is limited or would add quite a number
+        of configuration options or parameters.
+    </para>
+    <para>
+        The learning curve for the aspectj pointcut language is quite steep but the developer who uses Spring Data Graph
+        will not be confronted with that. They will just reap the benefits of not having to hook into some framework
+        mechanism and not being required to extend some framework superclass using up the only inheritance link that Java
+        offers.
+    </para>
+    <para>
+        That's why aspectj uses a declarative approach, defining the concrete concern as an advice, which is just
+        the piece of code that contains the implementation of the concern. An advice can  for instance
+        be applied before, after, instead a method or constructor call or a variable access. The point of application
+        is declared using AspectJ's expressive "pointcut" language that is able to express any place within a code structure
+        or flow.
+    </para>
+    <para>
+        AspectJ has even more features. It is able to introduce new methods, fields, annotations, interfaces and superclasses
+        to existing classes and then even apply the classic AOP advices to those introduced elements. This process is called &quot;Inter Type
+        Declaration (ITD)&quot;. The keyword used for that is "declare".
+    </para>
+    <para>
+        Spring Data Graph uses both mechanisms internally. First, when encountering <code>@NodeEntity</code> or <code>@RelationshipEntity</code>
+        annotations it introduces a new interface <code>NodeBacked</code>.
     </para>
 </chapter>

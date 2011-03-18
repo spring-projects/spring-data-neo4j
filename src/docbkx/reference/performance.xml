@@ -29,7 +29,8 @@
             use (method, class or jsp for example).
         </para>
         <para>
-            Most of the overhead comes from the use of the Java Reflection API, which is leveraged to provide information about Annotations, Fields and Constructors.
+            Most of the overhead comes from the use of the Java Reflection API, which is leveraged to provide
+            information about Annotations, Fields and Constructors.
             Some of the information is already cached by the JVM and the library, so that only the first access gets a
             performance penalty.
         </para>
