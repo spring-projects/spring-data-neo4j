@@ -14,13 +14,13 @@ import static org.junit.Assert.assertEquals;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = {"classpath:org/springframework/data/graph/neo4j/support/Neo4jGraphPersistenceTest-context.xml",
-"classpath:org/springframework/data/graph/neo4j/support/NoopNodeTypeStrategyOverride-context.xml"})
+		"classpath:org/springframework/data/graph/neo4j/support/NoopNodeTypeStrategyOverride-context.xml"})
 public class NoopNodeTypeStrategyTest {
 
-    @Autowired
-    GraphDatabaseContext graphDatabaseContext;
 	@Autowired
-	NoopNodeTypeStrategy nodeTypeStrategy;
+	private GraphDatabaseContext graphDatabaseContext;
+	@Autowired
+	private NoopNodeTypeStrategy nodeTypeStrategy;
 
 	private Thing thing;
 
@@ -62,28 +62,28 @@ public class NoopNodeTypeStrategyTest {
 		return thing.getPersistentState();
 	}
 
-    private Thing createThing() {
-        Transaction tx = graphDatabaseContext.beginTx();
-        try {
-            Node node = graphDatabaseContext.createNode();
-	        Thing thing = new Thing(node);
+	private Thing createThing() {
+		Transaction tx = graphDatabaseContext.beginTx();
+		try {
+			Node node = graphDatabaseContext.createNode();
+			Thing thing = new Thing(node);
 			nodeTypeStrategy.postEntityCreation(thing);
-            tx.success();
-	        return thing;
-        } finally {
-            tx.finish();
-        }
-    }
+			tx.success();
+			return thing;
+		} finally {
+			tx.finish();
+		}
+	}
 
-    @NodeEntity
-    public static class Thing {
-        String name;
+	@NodeEntity
+	public static class Thing {
+		String name;
 
-        public Thing() {
-        }
+		public Thing() {
+		}
 
-        public Thing(Node n) {
-            setPersistentState(n);
-        }
-    }
+		public Thing(Node n) {
+			setPersistentState(n);
+		}
+	}
 }
