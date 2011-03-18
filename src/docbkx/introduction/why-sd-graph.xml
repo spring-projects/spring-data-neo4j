@@ -5,30 +5,29 @@
     <title>Why Spring Data Graph?</title>
    
     <para><ulink url="http://en.wikipedia.org/wiki/NoSQL">NOSQL</ulink>
-    stores provide storage solutions that are more tailored to the specific
-	data storage requirements of each project than just using a relational
-	database as a "one-size-fits-all" solution.
+    stores provide novel storage solutions to suit the  
+	data storage requirements of modern applications.
 	</para>
 	<para>
-	Graph databases provide excellent support for graph-like data (networks); that is data that easily can
-	be structured as connected nodes.
-	Property graph databases like Neo4j support an arbitrary number of named properties on both
-	nodes and relationships. Neo4j is highly performant when traversing large, complex datasets with
+	Graph databases provide excellent support for connected data - that is data that easily can
+	be structured as connected nodes in a network.
+	Property graph databases like Neo4j support an arbitrary number of named properties on
+	nodes and relationships. Neo4j is highly performant when traversing large, highly-connected datasets with
 	millions of nodes and relationships, even on commodity hardware.
 	</para>
 	<para>
 		Neo4j is an open source graph database written in Java. It has excellent performance characteristics while providing ACID
-		semantics and transactional support (both JTA and XA transactions). Neo4j can run as a lightweight embedded database as well as a standalone
+		semantics and full transactional support (both JTA and XA transactions). Neo4j can run as a lightweight embedded database as well as a standalone
 		server that exposes the API via a rich REST interface.
 	</para>
 	
-    <para>The Spring Data Graph (or Spring Data Graph) framework makes it easy to
+    <para>The Spring Data Graph framework makes it easy to
     integrate graph databases in existing or new Spring applications. It provides
-	infrastructure that reduces the amount of boilerplate data access code and uses
-	common patterns and idioms that are well known in the Spring Framework community such as declarative transaction managment.
+	infrastructure that reduces boilerplate data access code and uses
+	common patterns and idioms that are well-known in the Spring community, such as declarative transaction management.
 	Those practices are based on a simple POJO programming model that leverages
     annotations to add metadata. It can be integrated in any part of a Spring application,
-    like the web or service layers.
+    including the Web or service layers.
 	</para>
 	<para>
 	A special use case of Spring Data Graph is the cross-store functionality that can extend

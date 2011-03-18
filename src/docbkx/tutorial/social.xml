@@ -3,13 +3,13 @@
 <chapter id="tutorial_social">
     <title>Movies 2.0 - Adding social</title>
     <para>
-        But this was just a plain old movie database (POMD). My idea of socializing this business was not realized.
+        But this was just a plain old movie database (POMD). Our idea of socializing this business wasn't yet realized.
     </para>
     <section>
-        <title>See, mom a Cineast! - Users</title>
+        <title>Look, mom a Cineast! - Users</title>
         <para>
-            So I took the User class that I already coded up before and made it a full fledged Spring Data Graph member.
-            Added the ability to make friends and to rate movies. With that there was also a simple UserRepository that
+            So we took the User class that we'd already coded and made it a full fledged Spring Data Graph member.
+            We added the ability to make friends and to rate movies. With that there was also a simple UserRepository that
             was able to look up users by id.
         </para>
         <para>
@@ -48,7 +48,7 @@ class Rating {
 
         </para>
         <para>
-            I extended my DatabasePopulator to add some users and ratings to the initial setup.
+            We extended my DatabasePopulator to add some users and ratings to the initial setup.
         </para>
         <para>
             <programlisting language="java" ><![CDATA[
@@ -72,7 +72,7 @@ public List<Movie> populateDatabase() {
     <section>
         <title>Beware, Critics - Rating</title>
         <para>
-            I also put a ratings field into the movie to be able to show its ratings. And a method to average the stars it got.
+            We also put a ratings field into the movie to be able to show its ratings. And a method to average its star rating.
         </para>
         <para>
             <programlisting language="java" ><![CDATA[
@@ -91,7 +91,7 @@ class Movie {
             ]]></programlisting>
         </para>
         <para>
-            Fortunately my tests showed my the division by zero error when calculating the stars for a movie without ratings.
+            Fortunately our tests highlighted the division by zero error when calculating the stars for a movie without ratings.
             Next steps were to add this information to the UI of movie and create a user profile page. But for that to happen
             they must be able to log in.
         </para>

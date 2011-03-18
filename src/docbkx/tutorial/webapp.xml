@@ -3,7 +3,7 @@
 <chapter id="tutorial_webapp">
     <title>Showing off - Web views</title>
     <para>
-        After I had the means to put some data in the graph database, I also wanted to show it. So adding the controller method to show a single movie with its attributes
+        After we had the means to put some data in the graph database, we also wanted to show it. So adding the controller method to show a single movie with its attributes
 and cast in a jsp was straightforward. Actually just using the repository to look the movie up and add it to the model. Then forward to the /movies/show view and voilá.
 </para><para>
     <programlisting language="java"><![CDATA[
@@ -30,13 +30,13 @@ public String singleMovieView(final Model model, @PathVariable String movieId) {
     <section>
         <title>What was his name? - Searching</title>
         <para>
-            The next thing was to allow users to search for some movies. So I needed some fulltext-search capabilities. As the index provider implementation of Neo4j builds on
-lucene I was delighted to see that fulltext indexes are supported out of the box.
+            The next thing was to allow users to search for some movies. So we needed some fulltext-search capabilities. As the index provider implementation of Neo4j builds on
+lucene we were delighted to see that fulltext indexes are supported out of the box.
         </para>
         <para>
-            So I happily annotated the title field of my Movie class with @Index(fulltext=true) and was told with an exception that I have to specify a separate index name for that.
-So it became @Indexed(fulltext = true, indexName = "search"). The corresponding finder method is called findAllByQuery. So there was my second repository method for
-searching movies. To restrict the size of the returned set I just added a limit for now that cuts the result after that many entries.
+            We happily annotated the title field of my Movie class with @Index(fulltext=true) and was told with an exception that we have to specify a separate index name for that.
+So it became @Indexed(fulltext = true, indexName = "search"). The corresponding finder method is called findAllByQuery. So there was our second repository method for
+searching movies. To restrict the size of the returned set we just added a limit for now that truncates the result after so many entries.
         </para>
         <para>
 <programlisting language="java"><![CDATA[
@@ -52,10 +52,10 @@ public void List<Movie> searchForMovie(String query, int count) {
         </para>
     </section>
     <section>
-        <title>Look what i've found - Listing Results</title>
+        <title>Look what we've found - Listing Results</title>
 
         <para>
-            I then used this result in the controller to render a list of movies driven by a search box. The movie properties and the cast was accessed by the getters in the
+            We then used this result in the controller to render a list of movies driven by a search box. The movie properties and the cast was accessed by the getters in the
 domain classes.
         </para>
         <para>

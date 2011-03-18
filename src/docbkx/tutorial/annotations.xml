@@ -3,16 +3,16 @@
 <chapter id="tutorial_annotations">
     <title>Decorations - Annotated Domain</title>
     <para>
-        I looked at the documentation again, found a simple <ulink url="http://github.com/SpringSource/spring-data-graph-examples/tree/master/hello-worlds">Hello-World example</ulink> and tried to understand it.
-        The entities were annotated with @NodeEntity, that was simple, so I added the annotation to my domain classes too.
-        Relationships got their own annotation named @RelationshipEntity. Property fields should be taken care of automatically.
+        Looking at the documentation again, we found a simple <ulink url="http://github.com/SpringSource/spring-data-graph-examples/tree/master/hello-worlds">Hello-World example</ulink> and tried to understand it.
+        The entities were annotated with @NodeEntity, that was simple, so we added the annotation to our domain classes too.
+        Relationships got their own annotation named @RelationshipEntity. Property fields are taken care of automatically.
     </para><para>
-        Ok lets put this into a test. How to assure that a field was persisted to the graph store? There seemed to be two possibilities. First was to get a
-        GraphDatabaseContext injected and use its getById() method. The other one was a Finder approach which I ignored for now. Let's keep things simple.
-        How to persist an entity and how to get its id? No idea. So further study of the documentation revealed that there were a bunch of methods introduced to the
-        entities by the aspects. That was not obvious. But I found the two that would help me here - entity.persist() and entity.getNodeId().
+        It's time to put this to a test. How can we be assured that a field is persisted to the graph store? There seemed to be two possibilities. First was to get a
+        GraphDatabaseContext injected and use its getById() method. The other one was a Finder approach. But let's try to keep things simple.
+        How can we persist an entity and how to get its id? No idea, so time to hit the documentation again, revealing that there are a bunch of methods introduced to the
+        entities by the aspects. That's not obvious, but we found the two that would help here - entity.persist() and entity.getNodeId().
     </para><para>
-        So my test looked like this.
+        So our test looked like this.
     </para><para>
 
     <programlisting language="java" ><![CDATA[
@@ -28,8 +28,8 @@
     ]]></programlisting>
     </para><para>
 
-        That worked, cool. But what about transactions I didn't declare the test to be transactional? After further reading I learned that persist() creates an
-        implicit transaction - so that was like an EntityManager would behave. Ok for me. I also learned that for more complex operations on the entities I needed
+        That worked! But what about transactions? We didn't declare the test to be transactional. After further reading we learned that persist() creates an
+        implicit transaction - so that was like an EntityManager would behave. Ok, now we're getting somewhere. We also learned that for more complex operations on the entities we'd need
         external transactions.
         </para>
 </chapter>

@@ -3,13 +3,13 @@
 <chapter id="tutorial_user-experience">
     <title>Oh the Glamour - More UI</title>
     <para>
-        To create a nice user experience, I wanted to have a nice looking app, not something that looked like a developer
-        made it. So I got some UX people involved and the results were impressive. This sections presents some of the
+        To create a nice user experience, we wanted to have a nice looking app, not something that looked like a toddler
+        made it. So we got some UX people involved and the results were impressive. This sections presents some of the
         remaining screenshots of cineasts.net.
     </para>
     <para>
         Some of the noteworthy things. As Spring Data Graph does a read-through to the datastore for property and relationship
-        access I tried to minimize that by using <code>&lt;c:var/&gt;</code> several times.
+        access we tried to minimize that by using <code>&lt;c:var/&gt;</code> several times.
         The app contains very little javascript / ajax code right now, that will change when it moves ahead.
     </para>
     <para>

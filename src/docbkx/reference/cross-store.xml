@@ -39,7 +39,7 @@
 		<section>
 			<title>@NodeEntity(partial = "true")</title>
 			<para>
-	When annotating an entity with partial true, Spring Data Graph assumes that this is a cross-store entity. So it is only responsible for the fields
+	When annotating an entity with partial true, Spring Data Graph assumes that this is a cross-store entity. So its only responsibility is for the fields
 	annotated with Spring Data Graph annotations. JPA should not take care of these fields (they should be annotated with @Transient). In this mode of
 	operation Spring Data Graph also handles the cross-store connection via the content of the JPA id field.
 	</para>

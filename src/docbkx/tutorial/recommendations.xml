@@ -3,10 +3,10 @@
 <chapter id="tutorial_recommendations">
     <title>Movies! Friends! Bargains! - Recommendations</title>
     <para>
-        In the last part of this exercise I wanted to add some recommendation algorithms to my app. One was the recommendation of movies that my friends liked very much
-        (and their friends in descending importance). The second was recommendations for new friends that also liked the movies that I liked most.
+        In the last part of this exercise we wanted to add recommendations to the app. One obvious recommendation is movies that our friends liked
+        (and their friends too, but with less importance). The second was recommendations for new friends that also liked the movies that we liked most.
 </para><para>
-        Doing this kind of ranking algorithms is the real fun with graph databases. They are applied to the graph by traversing it in a certain order, collecting information
+        Doing this kind of ranking algorithms is really fun with graph databases. They are applied to the graph by traversing it in a certain order, collecting information
         on the go and deciding which paths to follow and what to include in the results.
 </para><para>
         Lets say I'm only interested in the top 10 recommendations each.

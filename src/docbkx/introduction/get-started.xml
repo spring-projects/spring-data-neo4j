@@ -4,24 +4,23 @@
 <chapter id="get-started">
     <title>Getting Started</title>
 
-    <para>NOSQL databases has come into focus only recently, even if some of them have existed for a few years by now.
+    <para>NOSQL databases have only recently come to prominence, even though some of them have existed for a few years now.
 	That's why this document will not only guide you through the relevant parts of the Spring Data Graph
 	API, but also explain some key concepts of graph databases.
 	</para>
 	<para>
-		After reading this document, you should be able to integrate Spring Data Graph into your existing or future applications.
-		If there are any issues that you don't understand or think are explained in a too complicated way, please report back any
-		problems or suggestions. Your input will also benefit future readers of this documentation. For details on how to get help
+		After reading this document, you should be able to integrate Spring Data Graph into your applications.
+		If there are any inaccuracies, issues or if you just think the explanations are too complicated, please feed that back to us. Your input will also benefit future readers of this documentation. For details on how to get help
 		and provide feedback, see <xref linkend="get-started:help"/>.
 	</para>
 
     <section id="get-started:first-steps">
 		<title>First Steps</title>
 		
-		<para>As explained in <xref linkend="why-sd-graph"/>, Spring Data Graph (Spring Data Graph) provides integration
-		between the Spring framework and graph databases. Familiarity with the Spring framework is assumed as stated in <xref linkend="introduction"/>, and only
-		minimally cross-referenced here. Graph databases and Neo4j in particular are explained in a bit more detail.
-		The main focus of this document is however on explaining the steps needed to get a Spring Data Graph-backed application up and running.
+		<para>As explained in <xref linkend="why-sd-graph"/>, Spring Data Graph provides integration
+		between the Spring framework and graph databases. As we said in the introduction <xref linkend="introduction"/>, familiarity with the Spring framework is assumed to get the most out of this book.
+		But we will explain graph databases and Neo4j in particular in a little more detail.
+		The main focus of this document is to explain the steps needed to get an interesting Spring Data Graph application up and running.
 		</para>
 		  
 		<section id="get-started:first-steps:spring">
@@ -33,16 +32,13 @@
 			to know the Spring APIs, understanding the concepts behind them is essential.
 			The Spring Framework documentation
 			<ulink url="http://www.springsource.org/documentation">home page</ulink> is a good starting point for
-			developers who want to become more familiar with Spring Framework.</para>
+			developers who want to become more familiar with the Spring Framework.</para>
 		</section>
 		<section id="get-started:first-steps:nosql">
 			<title>Knowing NOSQL and graph databases</title>
-			<para>The recent interest in NOSQL databases is mainly driven by the need to find the best suited storage solution for data
-				structured in a specific way. It should fit the data, not the other way round. Another issue is the scalability of the
-				database, especially with today's fast growing user bases. There are many NOSQL databases,
-				and one should become familiar with the different concepts, advantages, and disadvantages before choosing
-				a solution. A problem with the NOSQL databases is the different data access APIs that are provided. Spring Data aims at easing this burden by
-				providing consistent abstractions over those APIs, leveraging SpringSource's experience and good reputation in this area.
+			<para>The recent interest in NOSQL databases has been driven by the need to find the better storage solutions for different kinds of data and access patterns. The NOSQL mantra is that databases should fit the data, not the other way round. 
+				The NOSQL space is overflowing with interesting and useful technology. But as a consequence, each store tends to implement its own data access API, leading to a steep learning curve for developers intent on using polyglot persistence. Spring Data aims to ease this burden by
+				providing consistent abstractions over those underlying data access APIs.
 			</para>
 			<para>
 				Graph databases are a particularly good fit for large networks of connected information (objects). They map objects to nodes and connections to
@@ -63,7 +59,7 @@
     <section id="get-started:help">
 		<title>Need Help?</title>
 		
-		<para>If you encounter issues or you are just looking for an advice, feel free to use one of the links below:</para>
+		<para>If you encounter issues or you are just looking for advice, feel free to use one of the links below:</para>
 		
 		<section id="get-started:help:community">
 			<title>Spring Data homepage</title>
@@ -73,7 +69,7 @@
 		<section id="get-started:help:professional">
   		    <title>Professional Support</title>
 			<para>Professional, from-the-source support, with guaranteed response time, is available from <ulink url="http://www.springsource.com">SpringSource</ulink>,
-			the company behind Spring Data and Spring.  
+			the company behind Spring Data and the Spring Framework.  
 			</para>
 		</section>
     </section>
@@ -84,9 +80,9 @@
 		<para>For information on the Spring Data source code repository, nightly builds and snapshot artifacts please see the Spring Data home 
 		<ulink url="http://www.springsource.org/spring-data">page</ulink>.   
 		</para>
-		<para>You can help make Spring Data best serve the needs of the Spring community by interacting with developers through the
+		<para>You can help make Spring Data better serve the needs of the Spring community by interacting with developers through the
 		<ulink url="http://forum.springsource.org/forumdisplay.php?f=27">community forums</ulink>.</para>
-		<para>If you encounter a bug or want to suggest an improvement, 
+		<para>If you find a bug or want to suggest an improvement, 
 		please create a ticket on the <ulink url="https://jira.springframework.org/browse/Spring Data Graph">Spring Data Graph issue tracker</ulink>.</para>
 		<para>To stay up to date with the latest news and announcements in the Spring eco system, subscribe to the 
 		<ulink url="http://www.springframework.org/">Spring Community Portal</ulink>.</para>

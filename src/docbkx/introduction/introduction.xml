@@ -5,7 +5,7 @@
 <partintro>
           <para>
             This document is the reference guide for Spring Data Graph.
-            It explains the underlying concepts, usage, infrastructure of the framework and the semantics for the used graph database.
+            It explains the underlying concepts, usage, infrastructure of the framework and the behaviour of the underlying graph database.
           </para>
 			
 			<para>For an introduction to graph databases, Spring, or Spring Data examples, please refer to

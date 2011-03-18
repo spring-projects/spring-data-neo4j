@@ -3,8 +3,8 @@
 <chapter id="tutorial_repository">
         <title>Serving a good cause - Repository</title>
         <para>
-            That was the first method to add to the brand new repository. So I created a repository for my application, annotated
-            it with @Repository and @Transactional. I did the same for the Actor.
+            That was the first method to add to the brand new repository. So we created a repository for the application, annotated
+            it with @Repository and @Transactional. We did the same for the Actor.
         </para>
         <para>
             <programlisting language="java"><![CDATA[

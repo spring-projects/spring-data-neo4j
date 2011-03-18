@@ -3,9 +3,9 @@
 <chapter id="tutorial_indexing">
     <title>Do I know you? - Indexing</title>
     <para>
-        Then there was an @Indexed annotation for fields. I wanted to try this too. That would guide the next test. I added an @Indexed to the id field of the movie.
-        This field is intended to represent the external id that will be used in URIs and will stable over database imports and updates. This time I went with the
-        Finder to retrieve my indexed movie.
+        There an @Indexed annotation for fields. We wanted to try this out, and use it to guide the next test. We added an @Indexed to the id field of the movie.
+        This field is intended to represent the external id that will be used in URIs and will stable over database imports and updates. This time we went with the
+        Finder to retrieve the indexed movie.
 
     </para><para>
 
@@ -33,6 +33,6 @@ class Movie {
 ]]></programlisting>
 
     </para><para>
-        TODO This failed with an exception about not being in a transaction. Oh, I forgot to add the @Transactional. So I added it to the test.
+        Surprisingly, this failed with an exception about not being in a transaction, which means we forgot to add the @Transactional annotation. That's easy enough to add to the test, and resume the test/code cycle.
         </para>
 </chapter>

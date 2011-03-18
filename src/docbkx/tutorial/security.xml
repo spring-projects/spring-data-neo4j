@@ -3,10 +3,10 @@
 <chapter id="tutorial_security">
     <title>Protecting Assets - Adding Security</title>
     <para>
-       To have a user in the webapp I had to put it in the session and add login and registration pages. Of course the pages that only worked with a valid user
+       To have a user in the webapp we had to put it in the session and add login and registration pages. Of course the pages that only worked with a valid user
 account had to be secured as well.
 </para><para>
-I used Spring Security to that, writing a simple UserDetailsService that used a repository for looking up the users and validating their credentials. The config is located
+We used Spring Security for that, writing a simple UserDetailsService that used a repository for looking up the users and validating their credentials. The config is located
 in a separate applicationContext-security.xml. But first, as always, maven and web.xml setup.
     </para>
     <para>
@@ -155,8 +155,8 @@ public class CineastsUserDetails implements UserDetails {
     </para>
     <para>
         After that a logged in user was available in the session and could so be used for all the social interactions. Most of the work done next was adding controller methods
-and JSPs for the views. I used the helper method <code>getUserFromSession()</code> in the controllers to access the logged in user and put it in the model for rendering.
-        As a teaser I'd like to show off the user profile page, as it will be rendered after heavy UX lifting.
+and JSPs for the views. We used the helper method <code>getUserFromSession()</code> in the controllers to access the logged in user and put it in the model for rendering.
+        As a teaser we'd like to show off the user profile page, as it will be rendered after UX heavy lifting.
     </para>
     <mediaobject>
         <imageobject>

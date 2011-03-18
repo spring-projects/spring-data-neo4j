@@ -3,7 +3,7 @@
 <chapter id="neo4j">
 	<title>Introduction to Neo4j</title>
 	<para>
-  	    <ulink url="http://neo4j.org/">Neo4j</ulink> is a graph database. It is a fully transactional database that
+  	    <ulink url="http://neo4j.org/">Neo4j</ulink> is a graph database. It is a fully ACID transactional database that
         stores data structured as graphs. A graph consists of nodes, connected by relationships. It is a flexible
         data structure that allows for high query performance on complex data, while being intuitive for the
         developer.

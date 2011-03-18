@@ -3,8 +3,8 @@
 <chapter id="tutorial_domain">
     <title>Setting the Stage - Movies Domain</title>
     <para>
-        The domain model was the next thing I planned to work on. I wanted to flesh it out first before diving into library details. Going along the ideas outlined before I
-        came up with this. I also peeked in the datamodel of my import data source themoviedb to confirm that it matched my expectations.
+        The domain model was the next thing we planned to work on. We wanted to sketch it out first before diving into library details. We  also looked at the datamodel of core themoviedb data to 
+		confirm that it matched our expectations.
 
 <!--
         http://yuml.me/diagram/scruffy;dir:lr/class/%23%20Cineasts.net%20Domain,%20%5BActor%7Cname;%7CplayedIn()%5D*-ACTS_IN-%3E%5BRole%7Cname;%5D,%20%5BRole%5D-ACTS_IN-%3E*%5BMovie%7Ctitle;year%5D,%20%5BUser%7Clogin;name;password;%7Crate();befriend();%5D*-RATED-%3E%5BRating%7Cstars;comment;%5D,%20%5BRating%5D-RATED-%3E*%5BMovie%5D,%20%5BUser%5D*-FRIEND-%3E*%5BUser%5D.png
@@ -17,7 +17,7 @@
         </mediaobject>
 
 </para><para>
-        In Java code this looked like. Pretty straightforward.
+        In Java code this looks pretty straightforward:
 </para><para>
 
 
@@ -58,6 +58,6 @@ class Rating {
 ]]></programlisting>
 
         </para><para>
-            I wrote some basic tests to assure that the basic plumbing worked. Check.
+            We then wrote some tests to show the basic plumbing works.
         </para>
 </chapter>

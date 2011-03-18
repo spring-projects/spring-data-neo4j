@@ -3,12 +3,12 @@
 <chapter id="tutorial_about-tutorial">
     <title>Allow me to introduce - Cineasts.net</title>
     <para>
-Once upon a time I wanted to build a social movie database myself. First things first - I had a name: "Cineasts" - the people
-crazy about movies. So I went ahead and got the domain, cineasts.net. So, the project was almost done.
+Once upon a time we wanted to build a social movie database. First things first - we had a name: "Cineasts" - the cinema enthusiasts who are
+crazy about movies. So we went ahead and got the domain, cineasts.net and the project was almost complete.
 </para><para>
-I had some ideas as well. Of course there should be Actors who play Roles in Movies. I needed the Cineast, too, someone
-had to rate the movies after all. And while they were there, they could also make friends. Find someone to accompany them to the cinema or share
-movie preferences. Even better, the engine behind all that could recommend new friends and movies to them, derived from their interests and
+We had some ideas about the domain too. Of course there should be actors who play roles in movies. We needed the Cineast, too, someone
+to rate the movies. And while they were there, they could also make friends. Find someone to accompany them to the cinema or share
+movie preferences. Even better, the engine behind all that should recommend new friends and movies to cineasts, based on their interests and
 existing friends.
 </para><para>
     <mediaobject>
@@ -16,11 +16,9 @@ existing friends.
             <imagedata fileref="cineasts.png" scale="80" align="center"/>
         </imageobject>
     </mediaobject>
-</para><para>I looked for possible sources for data, IMDB was my first stop, but they charge 15k USD for data usage. Fortunately I found <ulink url="http://themoviedb.org">TheMoviedb.org</ulink> which has
-    built its data independently by users and provides the data for free for any usecase. The also have liberal terms and conditions and a nice API for fetching the data.
+</para><para>When we looked for possible sources for data, IMDB was our first stop, but they're a little expensive for our tastes, charging 15k USD for data access. Fortunately we found <ulink url="http://themoviedb.org">TheMoviedb.org</ulink> which provides user-generated data for free. The also have liberal terms and conditions and a nice API for fetching the data.
 </para><para>
-There were many more ideas but I wanted to get something done over the course of one day. So this was the scope I was going to tackle. And this is how it should look
-    like.
+There were many more ideas but we wanted to get something done quickly. And this is how it should look.
     </para>
     <mediaobject>
         <imageobject>

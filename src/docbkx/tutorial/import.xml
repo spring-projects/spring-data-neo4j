@@ -3,9 +3,8 @@
 <chapter id="tutorial_import">
     <title>The dusty archives - Importing Data</title>
     <para>
-        Now it was time to pull the data from <ulink url="http://themoviedb.org">themoviedb.org</ulink>. Registering there and getting an API key was simple, using the API on the commandline with curl too.
-        Looking at the JSON returned for movies and people I decided to pimp my domain model and add some more fields so that the representation in the UI was worth
-        the effort.
+        Then it was time to pull the data from <ulink url="http://themoviedb.org">themoviedb.org</ulink>. Registering there and getting an API key was simple, using the API on the command line with curl too.
+        Looking at the JSON returned for movies and people we decided to enhance our domain model and add some more fields to enrich the UI.
     </para><para>
     <programlisting language="javascript" ><![CDATA[
    [{"popularity":3,
@@ -74,12 +73,11 @@
 "version":19, "last_modified_at":"2011-03-07 13:02:35"}]
     ]]></programlisting>
     </para><para>
-        For the import process I created a separate importer that used Jackson to fetch and parse the data and then some transactional methods in the MovieDbImportService to actually
+        For the import process we created a separate importer using Jackson (a JSON library) to fetch and parse the data and then some transactional methods in the MovieDbImportService to actually
         insert it as movies, roles and actors.
         <!--User data was not available so I created an anonymous user called 'Cineast' that I attributed all the ratings and comments to.-->
-        The importer used a simple caching mechanism, to keep downloaded actor and movie data on the filesystem, so that I didn't have to strain the remote API that much and that often.
-        In the code below you can see, that I changed the actor to a person so that I can also accomodate for all the other
-        people that contribute in movie making.
+        The importer used a simple caching mechanism, to keep downloaded actor and movie data on the filesystem, so that we didn't have to overload the remote API.
+        In the code below you can see, that we've changed the actor to a person so that we can also accommodate the other folks that participate in movie production.
     </para>
     <para>
         <programlisting language="java" ><![CDATA[
@@ -127,8 +125,8 @@ public void mapToMovie(Map data, Movie movie) {
         ]]></programlisting>
 </para>
     <para>
-        The last part was adding some protected URI to the MovieController to allow to import ranges of movies.
-        During testing it became obvious that the calls to themoviedb where the limiting factor. As soon as
+        The last part involved adding a protected URI to the MovieController to allow importing ranges of movies.
+        During testing it became obvious that the calls to themoviedb were a limiting factor. As soon as
         the data was stored locally it took only subseconds to create the data in the Neo4j graph database.
     </para>
 

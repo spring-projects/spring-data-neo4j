@@ -3,11 +3,11 @@
 <chapter id="tutorial_about-spring-data">
     <title>Conjuring Magic - Spring Data Graph</title>
     <para>
-        But that was the pure graph database. Using this in my domain would pollute my classes with lots of graph
-        database details. I didn't want that. Spring Data Graph
-        promised to do the heavy lifting for me. So I checked that next. Obviously it heavily depended on aspectj magic.
-        So there would be certain behavour that was
-        just observable without being visible in my code. But I was going to give it a try.
+        But that was the pure graph database. Using this in our domain would pollute my classes with lots of graph
+        database details. We don't want that. Spring Data Graph
+        promised to do the heavy lifting for us. So we checked that next. Obviously it heavily depended on aspectj magic.
+        So there would be certain behavior that was
+        just observable without being visible in our code, but we were going to give it a try.
     </para>
     <para>
         First step was lots of maven configuration.
