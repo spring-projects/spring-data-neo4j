@@ -45,7 +45,9 @@ public class IndexingNodeTypeStrategyTest {
 
 	@Before
 	public void setUp() throws Exception {
-		createThings();
+		if (thing == null) {
+			createThings();
+		}
 	}
 
 	@Test
