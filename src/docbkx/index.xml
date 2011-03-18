@@ -41,7 +41,7 @@
         <xi:include href="tutorial/recommendations.xml"/>
     </part>
 
-    <part id="reference">
+
         <title>Reference</title>
         <partintro>
             <para>
@@ -56,12 +56,12 @@
         <xi:include href="reference/setup.xml"/>
         <xi:include href="reference/cross-store.xml"/>
         <xi:include href="reference/samples.xml"/>
-        <!--<xi:include href="reference/performance.xml" />-->
-        <!--<xi:include href="reference/template.xml" />-->
-        <!--<xi:include href="reference/annotations.xml" />-->
-        <!--<xi:include href="reference/aspectj-intro.xml" />-->
-        <!--<xi:include href="reference/neo4j-intro.xml" />-->
-        <!--<xi:include href="reference/spring-data.xml" />-->
-        <!--<xi:include href="reference/neo4j-server.xml" />-->
-    </part>
+        <xi:include href="reference/performance.xml" />
+        <xi:include href="reference/template.xml" />
+        <xi:include href="reference/annotations.xml" />
+        <xi:include href="reference/aspectj-intro.xml" />
+        <xi:include href="reference/neo4j-intro.xml" />
+        <xi:include href="reference/spring-data.xml" />
+        <xi:include href="reference/neo4j-server.xml" />
+
 </book>
