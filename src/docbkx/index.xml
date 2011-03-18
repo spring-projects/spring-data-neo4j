@@ -42,6 +42,7 @@
     </part>
 
 
+    <part id="reference">
         <title>Reference</title>
         <partintro>
             <para>
@@ -63,5 +64,5 @@
         <xi:include href="reference/neo4j-intro.xml" />
         <xi:include href="reference/spring-data.xml" />
         <xi:include href="reference/neo4j-server.xml" />
-
+    </part>
 </book>
