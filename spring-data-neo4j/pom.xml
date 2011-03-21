@@ -169,6 +169,14 @@
     </dependencies>
 	<repositories>
 		<repository>
+			<id>neo4j-public-repository</id>
+			<name>Neo4J Public Repository</name>
+			<url>http://m2.neo4j.org</url>
+			<snapshots>
+				<enabled>true</enabled>
+			</snapshots>
+        </repository>
+		<repository>
 			<id>jboss-repository</id>
 			<name>JBoss Public Repository</name>
 			<url>http://repository.jboss.org/nexus/content/groups/public-jboss</url>
