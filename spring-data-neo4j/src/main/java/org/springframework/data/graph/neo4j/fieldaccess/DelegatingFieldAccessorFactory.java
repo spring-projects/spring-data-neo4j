@@ -119,11 +119,11 @@ public abstract class DelegatingFieldAccessorFactory<T> implements FieldAccessor
 
 
 
-    private final Map<Class<?>, FieldAccessorFactoryProviders> acessorFactoryProviderCache = new HashMap<Class<?>, FieldAccessorFactoryProviders>();
+    private final Map<Class<?>, FieldAccessorFactoryProviders> accessorFactoryProviderCache = new HashMap<Class<?>, FieldAccessorFactoryProviders>();
 
     public <T> FieldAccessorFactoryProviders<T> accessorFactoriesFor(final Class<T> type) {
         synchronized (this) {
-            final FieldAccessorFactoryProviders<T> fieldAccessorFactoryProviders = acessorFactoryProviderCache.get(type);
+            final FieldAccessorFactoryProviders<T> fieldAccessorFactoryProviders = accessorFactoryProviderCache.get(type);
             if (fieldAccessorFactoryProviders != null) return fieldAccessorFactoryProviders;
             final FieldAccessorFactoryProviders<T> newFieldAccessorFactories = new FieldAccessorFactoryProviders<T>(type);
             ReflectionUtils.doWithFields(type, new ReflectionUtils.FieldCallback() {
@@ -133,7 +133,7 @@ public abstract class DelegatingFieldAccessorFactory<T> implements FieldAccessor
                     newFieldAccessorFactories.add(field, factory, listenerFactories);
                 }
             });
-            acessorFactoryProviderCache.put(type, newFieldAccessorFactories);
+            accessorFactoryProviderCache.put(type, newFieldAccessorFactories);
             return newFieldAccessorFactories;
         }
     }

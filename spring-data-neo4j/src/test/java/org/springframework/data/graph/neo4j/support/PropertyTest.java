@@ -2,19 +2,14 @@ package org.springframework.data.graph.neo4j.support;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.neo4j.graphdb.NotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.graph.neo4j.Friendship;
-import org.springframework.data.graph.neo4j.Person;
-import static org.springframework.data.graph.neo4j.Person.persistedPerson;
-import org.springframework.data.graph.neo4j.Personality;
+import org.springframework.dao.InvalidDataAccessApiUsageException;
+import org.springframework.data.graph.neo4j.*;
 import org.springframework.data.graph.neo4j.finder.FinderFactory;
 import org.springframework.data.graph.neo4j.support.node.Neo4jHelper;
-
 import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -24,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Date;
 
 import static org.junit.Assert.assertEquals;
+import static org.springframework.data.graph.neo4j.Person.persistedPerson;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = {"classpath:org/springframework/data/graph/neo4j/support/Neo4jGraphPersistenceTest-context.xml"})
@@ -131,4 +127,16 @@ public class PropertyTest {
         Friendship f = p.knows(p2);
 		assertEquals("Wrong ID.", (Long)f.getPersistentState().getId(), f.getRelationshipId());
     }
+
+	@Test(expected = InvalidDataAccessApiUsageException.class)
+	@Transactional
+	public void testFailFastOnMisconfiguredOneToNProperty() {
+	    new InvalidOneToNEntity();
+	}
+
+	@Test(expected = InvalidDataAccessApiUsageException.class)
+	@Transactional
+	public void testFailFastOnMisconfiguredReadOnlyOneToNProperty() {
+	    new InvalidReadOnlyOneToNEntity();
+	}
 }
