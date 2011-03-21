@@ -61,7 +61,7 @@ public class NodeEntityRelationshipTest {
         Person p = persistedPerson("Michael", 35);
         Person mother = persistedPerson("Gabi", 60);
         p.setMother(mother);
-        Node motherNode = p.getPersistentState().getSingleRelationship(DynamicRelationshipType.withName("mother"), Direction.OUTGOING).getEndNode();
+        Node motherNode = p.getPersistentState().getSingleRelationship(DynamicRelationshipType.withName("Person.mother"), Direction.OUTGOING).getEndNode();
         assertEquals(mother.getPersistentState(), motherNode);
         assertEquals(mother, p.getMother());
     }

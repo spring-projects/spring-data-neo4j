@@ -44,7 +44,7 @@ public class Person {
 
 	private Car car;
 
-	@RelatedTo(type = "mother", direction = Direction.OUTGOING)
+	@RelatedTo
 	private Person mother;
 
 	@RelatedTo(type = "boss", direction = Direction.INCOMING)

@@ -58,6 +58,10 @@ abstract class NodeRelationshipFieldAccessorFactory implements FieldAccessorFact
         return DynamicRelationshipType.withName(relAnnotation.type());
     }
 
+    protected DynamicRelationshipType typeFrom(Field field, RelatedTo relAnnotation) {
+	    return "".equals(relAnnotation.type()) ? typeFrom(field) : typeFrom(relAnnotation);
+    }
+
     protected RelatedTo getRelationshipAnnotation(Field field) {
         return field.getAnnotation(RelatedTo.class);
     }
