@@ -82,7 +82,7 @@ public class IndexingNodeTypeStrategy implements NodeTypeStrategy {
 
 	@Override
 	public void preEntityRemoval(NodeBacked entity) {
-		getTypesIndex().remove(entity.getPersistentState(), "className", entity.getClass().getName());
+		getTypesIndex().remove(entity.getPersistentState());
 	}
 
 	@Override

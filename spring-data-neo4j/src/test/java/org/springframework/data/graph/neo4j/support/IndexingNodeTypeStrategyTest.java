@@ -28,7 +28,7 @@ import static org.junit.Assert.assertEquals;
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = {"classpath:org/springframework/data/graph/neo4j/support/Neo4jGraphPersistenceTest-context.xml",
 		"classpath:org/springframework/data/graph/neo4j/support/IndexingNodeTypeStrategyOverride-context.xml"})
-@Ignore
+//@Ignore
 public class IndexingNodeTypeStrategyTest {
 
 	@Autowired
@@ -81,18 +81,34 @@ public class IndexingNodeTypeStrategyTest {
 	@Test
 	public void testPreEntityRemoval() throws Exception {
 		manualCleanDb();
+		createThings();
+		Index<Node> typesIndex = graphDatabaseService.index().forNodes("__types__");
 		Transaction tx;
 		tx = graphDatabaseService.beginTx();
 		try {
 			nodeTypeStrategy.preEntityRemoval(thing);
+			tx.success();
+		} finally {
+			tx.finish();
+		}
+
+		IndexHits<Node> thingHits = typesIndex.get("className", thing.getClass().getName());
+		assertEquals(1, thingHits.size());
+		IndexHits<Node> subThingHits = typesIndex.get("className", subThing.getClass().getName());
+		assertEquals(1, subThingHits.size());
+
+		tx = graphDatabaseService.beginTx();
+		try {
 			nodeTypeStrategy.preEntityRemoval(subThing);
 			tx.success();
 		} finally {
 			tx.finish();
 		}
-		Index<Node> typesIndex = graphDatabaseService.index().forNodes("__types__");
-		IndexHits<Node> thingHits = typesIndex.get("className", thing.getClass().getName());
+
+		thingHits = typesIndex.get("className", thing.getClass().getName());
 		assertEquals(0, thingHits.size());
+		subThingHits = typesIndex.get("className", subThing.getClass().getName());
+		assertEquals(0, subThingHits.size());
 	}
 
 	@Test

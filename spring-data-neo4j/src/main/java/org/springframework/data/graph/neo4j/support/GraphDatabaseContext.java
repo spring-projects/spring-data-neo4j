@@ -270,28 +270,6 @@ public class GraphDatabaseContext {
 
 
     /**
-     * @param relType
-     * @return
-     */
-    public Node getOrCreateSubReferenceNode(final RelationshipType relType) {
-        return getOrCreateSingleOtherNode(graphDatabaseService.getReferenceNode(), relType, Direction.OUTGOING);
-    }
-
-    private Node getOrCreateSingleOtherNode(Node fromNode, RelationshipType type,
-                                                   Direction direction) {
-        Relationship singleRelationship = fromNode.getSingleRelationship(type, direction);
-        if (singleRelationship != null) {
-            return singleRelationship.getOtherNode(fromNode);
-        }
-
-        Node otherNode = graphDatabaseService.createNode();
-        fromNode.createRelationshipTo(otherNode, type);
-        return otherNode;
-
-    }
-
-
-    /**
      * @return Neo4j Transaction manager
      */
     public TransactionManager getTxManager() {
