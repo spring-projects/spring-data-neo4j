@@ -4,20 +4,44 @@
     <title>Reified types for entities</title>
     <para>
         There are several ways to represent the Java type hierarchy of the data model in the graph. In general for all
-        node and relationship entities type information is needed to perform certain repository operations. That's
-        why the hierarchy up to <code>java.lang.Object</code> of all these classes will be persisted in the graph.
-        Implementations of NodeTypeStrategy take care of persisting this information on entity instance
+        node and relationship entities type information is needed to perform certain repository operations. Some of
+        this type information is saved in the graph database.
+    </para>
+    <para>
+        Implementations of <code>NodeTypeStrategy</code> take care of persisting this information on entity instance
         creation. They also provide the repository methods that use this type information to perform their operations
-        like findAll, count etc.
+        like findAll, count, etc.
     </para>
     <para>
-        The current implementation uses nodes to represent the Java type hierarchy which are connected via SUBCLASS_OF
-        relationships to their superclass nodes and via INSTANCE_OF relationships to the concrete node entity
-        instance node.
+        There are three available implementations to choose from.
+        <itemizedlist>
+            <listitem>
+                <para><code>SubReferenceNodeTypeStrategy</code></para>
+                <para>
+                    Stores entity types in a tree in the graph representing the type hierarchy. Each entity
+                    has a INSTANCE_OF relationship to a type node representing that entity's type. The type may or
+                    may not have a SUBCLASS_OF relationship to another type node.
+                </para>
+            </listitem>
+            <listitem>
+                <para><code>IndexingNodeTypeStrategy</code></para>
+                <para>
+                    Stores entity types in the integrated index. Each entity node gets indexed with its type and
+                    any supertypes that are also <code>@NodeEntity</code>-annotated. The special index used for this
+                    is called <code>__types__</code>. Additionally, in order to get the type of an entity node, each
+                    node has a property <code>__type__</code> with the type of that entity.
+                </para>
+            </listitem>
+            <listitem>
+                <para><code>NoopNodeTypeStrategy</code></para>
+                <para>
+                    Does not store any type information, and does hence not support finding by type, counting by type,
+                    or retrieving the type of any entity.
+                </para>
+            </listitem>
+        </itemizedlist>
     </para>
     <para>
-        An alternative approach could use indexing operations to perform the same functionality. Or one could skip the
-        NodeTypeStrategy altogether if no strict checks on type conformity are needed, which would allow for a much
-        more flexible data model.
+        The default implementation is <code>SubReferenceNodeTypeStrategy</code>.
     </para>
 </section>
