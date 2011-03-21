@@ -1,7 +1,6 @@
 package org.springframework.data.graph.neo4j.support;
 
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.neo4j.graphdb.GraphDatabaseService;
@@ -24,7 +23,6 @@ import java.util.HashSet;
 import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -90,6 +88,7 @@ public class IndexingNodeTypeStrategyTest {
 	}
 
 	@Test
+	@Transactional
 	public void testFindAll() throws Exception {
 		assertEquals("Did not find all things.",
 				Arrays.asList(thing, subThing),
@@ -97,17 +96,20 @@ public class IndexingNodeTypeStrategyTest {
 	}
 
 	@Test
+	@Transactional
 	public void testCount() throws Exception {
 		assertEquals(2, nodeTypeStrategy.count(Thing.class));
 	}
 
 	@Test
+	@Transactional
 	public void testGetJavaType() throws Exception {
 		assertEquals(Thing.class, nodeTypeStrategy.getJavaType(node(thing)));
 		assertEquals(SubThing.class, nodeTypeStrategy.getJavaType(node(subThing)));
 	}
 
 	@Test
+	@Transactional
 	public void testConfirmType() throws Exception {
 		assertEquals(Thing.class, nodeTypeStrategy.confirmType(node(thing), Thing.class));
 		assertEquals(SubThing.class, nodeTypeStrategy.confirmType(node(subThing), Thing.class));
