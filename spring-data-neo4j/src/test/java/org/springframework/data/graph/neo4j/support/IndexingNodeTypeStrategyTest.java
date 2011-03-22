@@ -24,12 +24,11 @@ import java.util.HashSet;
 import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertNull;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = {"classpath:org/springframework/data/graph/neo4j/support/Neo4jGraphPersistenceTest-context.xml",
 		"classpath:org/springframework/data/graph/neo4j/support/IndexingNodeTypeStrategyOverride-context.xml"})
-//@Ignore
 public class IndexingNodeTypeStrategyTest {
 
 	@Autowired
@@ -65,28 +64,44 @@ public class IndexingNodeTypeStrategyTest {
 	}
 
 	@Test
-	@Ignore // TODO: Enable when indexing works properly.
-	@Transactional
 	public void testPreEntityRemoval() throws Exception {
+        manualCleanDb();
+        createThings();
 		Index<Node> typesIndex = graphDatabaseService.index().forNodes("__types__");
 		IndexHits<Node> thingHits;
 		IndexHits<Node> subThingHits;
 
-		nodeTypeStrategy.preEntityRemoval(thing);
+        Transaction tx = graphDatabaseService.beginTx();
+        try
+        {
+            nodeTypeStrategy.preEntityRemoval(thing);
+            tx.success();
+        }
+        finally
+        {
+            tx.finish();
+        }
 
 		thingHits = typesIndex.get("className", thing.getClass().getName());
-//		assertEquals(node(subThing), thingHits.getSingle());  // TODO: enable this when Neo4j indexing bug is fixed.
-		assertEquals(1, thingHits.size());
+		assertEquals(node(subThing), thingHits.getSingle());
 		subThingHits = typesIndex.get("className", subThing.getClass().getName());
 		assertEquals(node(subThing), subThingHits.getSingle());
 
-		nodeTypeStrategy.preEntityRemoval(subThing);
+        tx = graphDatabaseService.beginTx();
+        try
+        {
+            nodeTypeStrategy.preEntityRemoval(subThing);
+            tx.success();
+        }
+        finally
+        {
+            tx.finish();
+        }
 
 		thingHits = typesIndex.get("className", thing.getClass().getName());
-		assertEquals( 0, thingHits.size());
+        assertNull(thingHits.getSingle());
 		subThingHits = typesIndex.get("className", subThing.getClass().getName());
-//		assertEquals( 0, subThingHits.size());  // TODO: enable this when Neo4j indexing bug is fixed.
-		assertTrue(subThingHits.size() <= 0);
+        assertNull(subThingHits.getSingle());
 	}
 
 	@Test
