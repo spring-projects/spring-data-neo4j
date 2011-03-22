@@ -31,7 +31,7 @@ import org.springframework.data.graph.neo4j.fieldaccess.NodeEntityStateFactory;
 import org.springframework.data.graph.neo4j.fieldaccess.RelationshipEntityStateFactory;
 import org.springframework.data.graph.neo4j.finder.FinderFactory;
 import org.springframework.data.graph.neo4j.support.GraphDatabaseContext;
-import org.springframework.data.graph.neo4j.support.SubReferenceNodeTypeStrategy;
+import org.springframework.data.graph.neo4j.support.NodeTypeStrategyFactoryBean;
 import org.springframework.data.graph.neo4j.support.node.Neo4jConstructorGraphEntityInstantiator;
 import org.springframework.data.graph.neo4j.support.node.Neo4jNodeBacking;
 import org.springframework.data.graph.neo4j.support.node.PartialNeo4jEntityInstantiator;
@@ -93,7 +93,8 @@ public class Neo4jConfiguration {
 		EntityInstantiator<NodeBacked, Node> graphEntityInstantiator = getGraphEntityInstantiator();
 		gdc.setGraphEntityInstantiator(graphEntityInstantiator);
 		gdc.setConversionService(new Neo4jConversionServiceFactoryBean().getObject());
-		gdc.setNodeTypeStrategy(new SubReferenceNodeTypeStrategy(graphDatabaseService, graphEntityInstantiator));
+        NodeTypeStrategyFactoryBean nodeTypeStrategyFactoryBean = new NodeTypeStrategyFactoryBean(graphDatabaseService, graphEntityInstantiator);
+        gdc.setNodeTypeStrategy(nodeTypeStrategyFactoryBean.getObject());
         if (validator!=null) {
             gdc.setValidator(validator);
         }
