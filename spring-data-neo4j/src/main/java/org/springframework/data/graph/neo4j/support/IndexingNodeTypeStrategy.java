@@ -15,7 +15,10 @@ import org.springframework.persistence.support.EntityInstantiator;
 
 public class IndexingNodeTypeStrategy implements NodeTypeStrategy {
 
-	private EntityInstantiator<NodeBacked, Node> graphEntityInstantiator;
+    public static final String NODE_INDEX_NAME = "__types__";
+    public static final String TYPE_PROPERTY_NAME = "__type__";
+    public static final String INDEX_KEY = "className";
+    private EntityInstantiator<NodeBacked, Node> graphEntityInstantiator;
 	private GraphDatabaseService graphDb;
 
 	public IndexingNodeTypeStrategy(GraphDatabaseService graphDb, EntityInstantiator<NodeBacked, Node> graphEntityInstantiator) {
@@ -24,7 +27,7 @@ public class IndexingNodeTypeStrategy implements NodeTypeStrategy {
 	}
 
 	private Index<Node> getTypesIndex() {
-		return graphDb.index().forNodes("__types__");
+		return graphDb.index().forNodes(NODE_INDEX_NAME);
 	}
 
 	@Override
@@ -32,20 +35,20 @@ public class IndexingNodeTypeStrategy implements NodeTypeStrategy {
 		Node node = entity.getPersistentState();
 		Class<? extends NodeBacked> entityClass = entity.getClass();
 		addToTypesIndex(node, entityClass);
-		node.setProperty("__type__", entityClass.getName());
+		node.setProperty(TYPE_PROPERTY_NAME, entityClass.getName());
 	}
 
 	private void addToTypesIndex(Node node, Class<? extends NodeBacked> entityClass) {
 		Class<?> klass = entityClass;
 		while (klass.getAnnotation(NodeEntity.class) != null) {
-			getTypesIndex().add(node, "className", klass.getName());
+			getTypesIndex().add(node, INDEX_KEY, klass.getName());
 			klass = klass.getSuperclass();
 		}
 	}
 
 	@Override
 	public <ENTITY extends NodeBacked> Iterable<ENTITY> findAll(Class<ENTITY> clazz) {
-		final IndexHits<Node> allEntitiesOfType = getTypesIndex().get("className", clazz.getName());
+		final IndexHits<Node> allEntitiesOfType = getTypesIndex().get(INDEX_KEY, clazz.getName());
 		return new FilteringIterable<ENTITY>(new IterableWrapper<ENTITY, Node>(allEntitiesOfType) {
 			@Override
 			@SuppressWarnings("unchecked")
@@ -64,7 +67,11 @@ public class IndexingNodeTypeStrategy implements NodeTypeStrategy {
 
 	@Override
 	public long count(Class<? extends NodeBacked> entityClass) {
-		return getTypesIndex().get("className", entityClass.getName()).size();
+        long count = 0;
+        for (Node node : getTypesIndex().get(INDEX_KEY, entityClass.getName())) {
+            count += 1;
+        }
+		return count;
 	}
 
 	@Override
@@ -72,7 +79,7 @@ public class IndexingNodeTypeStrategy implements NodeTypeStrategy {
 	public <ENTITY extends NodeBacked> Class<ENTITY> getJavaType(Node node) {
 		if (node == null) throw new IllegalArgumentException("Node is null");
 		try {
-			return (Class<ENTITY>) Class.forName((String) node.getProperty("__type__"));
+			return (Class<ENTITY>) Class.forName((String) node.getProperty(TYPE_PROPERTY_NAME));
 		} catch (NotFoundException e) {
 			return null;
 		} catch (ClassNotFoundException e) {
