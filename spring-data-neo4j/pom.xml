@@ -135,6 +135,7 @@
         <dependency>
           <groupId>org.neo4j</groupId>
           <artifactId>server-api</artifactId>
+		 <scope>provided</scope>
         </dependency>
 
         <dependency>
