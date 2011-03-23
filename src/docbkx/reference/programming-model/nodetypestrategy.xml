@@ -16,20 +16,20 @@
         There are three available implementations to choose from.
         <itemizedlist>
             <listitem>
-                <para><code>SubReferenceNodeTypeStrategy</code></para>
-                <para>
-                    Stores entity types in a tree in the graph representing the type hierarchy. Each entity
-                    has a INSTANCE_OF relationship to a type node representing that entity's type. The type may or
-                    may not have a SUBCLASS_OF relationship to another type node.
-                </para>
-            </listitem>
-            <listitem>
                 <para><code>IndexingNodeTypeStrategy</code></para>
                 <para>
                     Stores entity types in the integrated index. Each entity node gets indexed with its type and
                     any supertypes that are also <code>@NodeEntity</code>-annotated. The special index used for this
                     is called <code>__types__</code>. Additionally, in order to get the type of an entity node, each
                     node has a property <code>__type__</code> with the type of that entity.
+                </para>
+            </listitem>
+            <listitem>
+                <para><code>SubReferenceNodeTypeStrategy</code></para>
+                <para>
+                    Stores entity types in a tree in the graph representing the type hierarchy. Each entity
+                    has a INSTANCE_OF relationship to a type node representing that entity's type. The type may or
+                    may not have a SUBCLASS_OF relationship to another type node.
                 </para>
             </listitem>
             <listitem>
@@ -42,6 +42,7 @@
         </itemizedlist>
     </para>
     <para>
-        The default implementation is <code>SubReferenceNodeTypeStrategy</code>.
+        The default implementation is <code>IndexingNodeTypeStrategy</code> for new graphs. If using an existing
+        graph, Spring Data Graph will default to the strategy first used when the graph was created.
     </para>
 </section>
