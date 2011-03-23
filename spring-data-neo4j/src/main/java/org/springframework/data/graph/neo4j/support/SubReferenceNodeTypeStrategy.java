@@ -25,7 +25,7 @@ import org.neo4j.helpers.collection.IterableWrapper;
 import org.neo4j.kernel.impl.traversal.TraversalDescriptionImpl;
 import org.springframework.data.graph.core.NodeBacked;
 import org.springframework.data.graph.core.NodeTypeStrategy;
-import org.springframework.data.persistence.EntityInstantiator;
+import org.springframework.persistence.support.EntityInstantiator;
 
 import java.util.*;
 
