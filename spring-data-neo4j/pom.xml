@@ -132,6 +132,16 @@
           <scope>test</scope>
         </dependency>
 
+        <dependency>
+          <groupId>org.neo4j</groupId>
+          <artifactId>server-api</artifactId>
+        </dependency>
+
+        <dependency>
+          <groupId>commons-configuration</groupId>
+          <artifactId>commons-configuration</artifactId>
+        </dependency>
+
 		<!-- JPA -->
         <dependency>
             <groupId>org.hibernate.javax.persistence</groupId>
