@@ -6,7 +6,7 @@ import org.neo4j.graphdb.Relationship;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.data.graph.core.NodeBacked;
 import org.springframework.data.graph.core.NodeTypeStrategy;
-import org.springframework.persistence.support.EntityInstantiator;
+import org.springframework.data.persistence.EntityInstantiator;
 
 public class NodeTypeStrategyFactoryBean implements FactoryBean<NodeTypeStrategy> {
     private GraphDatabaseService graphDatabaseService;
