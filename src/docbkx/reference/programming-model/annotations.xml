@@ -7,8 +7,9 @@
         annotation.
     </para>
     <section>
-        <title>Entities with @NodeEntity</title>
-        <para>The <code>@NodeEntity</code> annotation is used to declare a POJO entity to be backed by a node in the
+        <title>@NodeEntity: The basic building block</title>
+        <para>
+            The <code>@NodeEntity</code> annotation is used to declare a POJO entity to be backed by a node in the
             graph store. Simple fields on the entity are mapped by default to properties of the node. Object
             references to other NodeEntities (whether single or Collection) are mapped via relationships. If
             the annotation parameter <code>useShortNames</code> is set to false, the properties and relationship
@@ -26,47 +27,20 @@ public class Movie {
 }
 ]]></programlisting>
     </section>
+
     <section>
-        <title>RelationshipEntities with @RelationshipEntity</title>
-        <para>To access the rich data model of graph relationships, POJOs can also be annotated with
-            @RelationshipEntity. Relationship entities can't be instantiated directly but are rather accessed via
-            node entities, either by @RelatedToVia fields or by the <code>relateTo</code> or
-            <code>getRelationshipTo</code> methods.
-            Relationship entities may contain fields that are mapped to properties and two special fields that are
-            annotated with @StartNode and @EndNode which point to the start and end node entities respectively. These
-            fields are treated as read only fields.
-        </para>
-        <programlisting language="java"><![CDATA[
-@RelationshipEntity
-public class Role {
-	@StartNode
-	private Actor actor;
-	@EndNode
-	private Movie movie;
-}
-]]></programlisting>
-    </section>
-    <section>
-        <title>Fields with @GraphProperty</title>
-        <para>It is not necessary to annotate fields as they are persisted by default; all fields that contain primitive
-            values are persisted directly to the graph. All fields
-            convertible to String using the Spring conversion services will be stored as a string. Transient fields are
-            not persisted.
-            This annotation is mainly used for cross-store persistence.
-        </para>
-    </section>
-    <section>
-        <title>Fields with @RelatedTo pointing to other NodeEntities</title>
+        <title>@RelatedTo: Connecting NodeEntities</title>
         <para>
             Relationships to other NodeEntities are mapped to graph relationships. Those can either be single
-            relationships (1:1) or multiple relationships (1:n). In most cases single relationships to other
+            relationships (1:1) or multiple relationships (1:N). In most cases single relationships to other
             node entities don't have to be annotated as Spring Data Graph can extract all necessary information
             from the field using reflection. In the case of multiple relationships, the <code>elementClass</code>
             parameter of @RelatedTo must be specified because of type erasure. The <code>direction</code>
             (default OUTGOING) and <code>type</code> (inferred from field name) parameters of the annotation are
             optional.
         </para>
-        <para>Relationships to single node entities are created when setting the field and deleted when setting it to
+        <para>
+            Relationships to single node entities are created when setting the field and deleted when setting it to
             null. For multi-relationships the field provides a managed collection (Set) that handles addition and
             removal of node entities and reflects those in the graph relationships.
         </para>
@@ -87,9 +61,33 @@ public class Actor {
 }
 ]]></programlisting>
     </section>
+
     <section>
-        <title>Fields with @RelatedToVia pointing to RelationshipEntities</title>
-        <para>To provide easy programmatic access to the richer relationship entities of the data model a different
+        <title>@RelationshipEntity: Rich relationships</title>
+        <para>
+            To access the full data model of graph relationships, POJOs can also be annotated with
+            @RelationshipEntity. Relationship entities can't be instantiated directly but are rather accessed via
+            node entities, either by @RelatedToVia fields or by the <code>relateTo</code> or
+            <code>getRelationshipTo</code> methods.
+            Relationship entities may contain fields that are mapped to properties and two special fields that are
+            annotated with @StartNode and @EndNode which point to the start and end node entities respectively. These
+            fields are treated as read only fields.
+        </para>
+        <programlisting language="java"><![CDATA[
+@RelationshipEntity
+public class Role {
+	@StartNode
+	private Actor actor;
+	@EndNode
+	private Movie movie;
+}
+]]></programlisting>
+    </section>
+
+    <section>
+        <title>@RelatedToVia: Connecting NodeEntitites via RelationshipEntities</title>
+        <para>
+            To provide easy programmatic access to the richer relationship entities of the data model a different
             annotation @RelatedToVia can be declared on fields of Iterables of the relationship entity type. These
             Iterables then provide read only access to instances of the entity that backs the relationship of this
             relationship type. Those instances are initialized with the properties of the relationship and the start
@@ -104,15 +102,16 @@ public class Actor {
 ]]></programlisting>
     </section>
     <section>
-        <title>@StartNode</title>
+        <title>@StartNode: Starting NodeEntity of RelationshipEntity</title>
         <para>Annotation for the start node of a relationship entity, read only.</para>
     </section>
     <section>
-        <title>@EndNode</title>
+        <title>@EndNode: Ending NodeEntity of RelationshipEntity</title>
         <para>Annotation for the end node of a relationship entity, read only.</para>
     </section>
+
     <section>
-        <title>@Indexed</title>
+        <title>@Indexed: Making entities searchable by field value</title>
         <para>The @Indexed annotation can be declared on fields that are intended to be indexed by the Neo4j
             IndexManager, triggered by value modification.
             The resulting index can be used to later retrieve nodes or relationships that contain a certain property
@@ -128,6 +127,7 @@ public class Actor {
             it defaults to the one configured with Neo4j ("node" and "relationship").
         </para>
     </section>
+
     <section>
         <title>@GraphTraversal</title>
         <para>The @GraphTraversal annotation leverages the delegation infrastructure used by the Spring Data Graph
@@ -138,4 +138,15 @@ public class Actor {
             <code>elementClass</code> attribute.
         </para>
     </section>
+
+    <section>
+        <title>@GraphProperty: Cross-store persisted fields</title>
+        <para>It is not necessary to annotate fields as they are persisted by default; all fields that contain primitive
+            values are persisted directly to the graph. All fields
+            convertible to String using the Spring conversion services will be stored as a string. Transient fields are
+            not persisted.
+            This annotation is mainly used for cross-store persistence.
+        </para>
+    </section>
+
 </section>

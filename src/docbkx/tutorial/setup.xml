@@ -7,19 +7,19 @@
         that should be enough.
     </para><para>
         What database would fit both the complex network of cineasts, movies, actors, roles, ratings and friends? And also be able to support the
-        recommendation algorithms that I thought of? I had no idea.
+        recommendation algorithms that we had in mind? We had no idea.
     </para><para>
     But, wait, there is the new Spring Data project, started in 2010,  which brings
         the convenience of the Spring programming model to NoSQL databases. That should fit our experience and help us to get started. We looked
         at the list of projects supporting the different NoSQL databases. Only one mentioned the kind of social network we were thinking of -
         Spring Data Graph for Neo4j, a graph database. Neo4j's pitch of "value in relationships" and the accompanying docs looked like what we needed.
-        So we decided to give it a try.
+        We decided to give it a try.
     </para>
     <section>
         <title>Preparations - Required Setup</title>
         <para>
-            To setup the project we created a public github account and began setting up the infrastructure for a spring web project using maven as build
-            system. So we added the dependencies for the springframework libraries, put the web.xml for the DispatcherServlet and the applicationContext.xml
+            To setup the project we created a public github account and began setting up the infrastructure for a spring web project using Maven as build
+            system. So we added the dependencies for the Spring Framework libraries, put the web.xml for the DispatcherServlet and the applicationContext.xml
             in the webapp directory.
         </para><para>
 
@@ -54,7 +54,6 @@
 		   <webAppConfig>
 		     <contextPath>/</contextPath>
 		   </webAppConfig>
-		   <!--scanIntervalSeconds>1</scanIntervalSeconds-->
 		</configuration>
 	</plugin>
 </plugins></build>
@@ -84,8 +83,8 @@
 
     </para><para>
             With this setup we were ready for the first spike: creating a simple MovieController showing a static view. Check. Next was the setup for Spring Data Graph.
-            We looked at the README at github and then checked it with the manual. Quite a lot of maven setup for aspectj but otherwise not so much to add.
-            Time to add a few lines to our spring configuration.
+            We looked at the README at github and then checked it with the manual. Quite a lot of Maven setup for AspectJ but otherwise not so much to add.
+            Time to add a few lines to our Spring configuration.
     </para><para>
 
 
@@ -129,7 +128,7 @@
 </example>
 
     </para><para>
-            We spun up jetty to see if there were any obvious issues with the config. Check.
+            We spun up Jetty to see if there were any obvious issues with the config. It all seemed to work just fine. Check.
         </para>
     </section>
 </chapter>

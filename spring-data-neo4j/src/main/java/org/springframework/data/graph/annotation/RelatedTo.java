@@ -16,13 +16,13 @@
 
 package org.springframework.data.graph.annotation;
 
+import org.springframework.data.graph.core.Direction;
+import org.springframework.data.graph.core.NodeBacked;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-
-import org.springframework.data.graph.core.Direction;
-import org.springframework.data.graph.core.NodeBacked;
 
 /**
  * Annotation for {@link org.springframework.data.graph.annotation.NodeEntity} fields that relate to other entities via
@@ -31,10 +31,11 @@ import org.springframework.data.graph.core.NodeBacked;
  *
  * Collection based one-to-many relationships return managed collections that reflect addition and removal to the underlying relationships.
  *
+ * Examples:
  * <pre>
- * &#64;RelatedTo([type=&quot;friends&quot;], elementClass=Person.class)
+ * &#64;RelatedTo(elementClass=Person.class)
  * Collection&lt;Person&gt; friends;
- * &#64;RelatedTo([type=&quot;spouse&quot;], [elementClass=Person.class])
+ * &#64;RelatedTo(type=&quot;partner&quot;)
  * Person spouse;
  * </pre>
 
@@ -47,7 +48,7 @@ public @interface RelatedTo {
     /**
      * @return name of the relationship type, optional, can be inferred from the field name
      */
-    String type();
+    String type() default "";
 
     /**
      * @return direction for the relationship, by default outgoing

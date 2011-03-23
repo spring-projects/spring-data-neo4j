@@ -44,7 +44,7 @@ public class OneToNRelationshipFieldAccessorFactory extends NodeRelationshipFiel
 	@Override
 	public FieldAccessor<NodeBacked> forField(final Field field) {
 	    final RelatedTo relAnnotation = getRelationshipAnnotation(field);
-	    return new OneToNRelationshipFieldAccessor(typeFrom(relAnnotation), dirFrom(relAnnotation), targetFrom(relAnnotation), graphDatabaseContext);
+	    return new OneToNRelationshipFieldAccessor(typeFrom(field, relAnnotation), dirFrom(relAnnotation), targetFrom(relAnnotation), graphDatabaseContext);
 	}
 
 	public static class OneToNRelationshipFieldAccessor extends NodeToNodesRelationshipFieldAccessor<NodeBacked> {

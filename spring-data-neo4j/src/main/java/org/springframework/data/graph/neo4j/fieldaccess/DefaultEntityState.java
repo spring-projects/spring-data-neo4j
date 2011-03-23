@@ -43,8 +43,8 @@ public abstract class DefaultEntityState<ENTITY extends GraphBacked<STATE>, STAT
         this.entity = entity;
         this.type = type;
         fieldAccessorFactoryProviders = delegatingFieldAccessorFactory.accessorFactoriesFor(type);
-        this.fieldAccessors= fieldAccessorFactoryProviders.getFieldAccessors();
-        this.fieldAccessorListeners= fieldAccessorFactoryProviders.getFieldAccessListeners();
+        this.fieldAccessors = fieldAccessorFactoryProviders.getFieldAccessors();
+        this.fieldAccessorListeners = fieldAccessorFactoryProviders.getFieldAccessListeners();
     }
 
     @Override

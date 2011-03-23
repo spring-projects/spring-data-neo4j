@@ -18,7 +18,7 @@ package org.springframework.data.graph.neo4j.support.node;
 
 import org.neo4j.graphdb.Node;
 import org.springframework.data.graph.core.NodeBacked;
-import org.springframework.persistence.support.AbstractConstructorEntityInstantiator;
+import org.springframework.data.persistence.AbstractConstructorEntityInstantiator;
 
 /**
  * Implementation of an entity instantiator for neo4j graphdb nodes, binding the entity type to a NodeBacked and the

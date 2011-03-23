@@ -50,9 +50,15 @@ public class OneToNRelationshipEntityFieldAccessorFactory implements FieldAccess
 		return new OneToNRelationshipEntityFieldAccessor(typeFrom(relEntityAnnotation), dirFrom(relEntityAnnotation), targetFrom(relEntityAnnotation), graphDatabaseContext);
 	}
 
-	private boolean hasValidRelationshipAnnotation(final Field f) {
-		final RelatedToVia relEntityAnnotation = getRelationshipAnnotation(f);
-		return relEntityAnnotation != null && !RelationshipBacked.class.equals(relEntityAnnotation.elementClass());
+	private boolean hasValidRelationshipAnnotation(final Field field) {
+		final RelatedToVia relEntityAnnotation = getRelationshipAnnotation(field);
+		if (relEntityAnnotation == null) return false;
+		Class<? extends RelationshipBacked> elementClass = relEntityAnnotation.elementClass();
+		boolean hasElementClass = elementClass != null && !RelationshipBacked.class.equals(elementClass);
+        if (!hasElementClass) throw new InvalidDataAccessApiUsageException(String.format(
+                "Missing mandatory attribute @RelatedTo.elementClass for one-to-N relationship field %s in class: %s",
+                field.getName(), field.getDeclaringClass().getName()));
+        return hasElementClass;
 	}
 
 	private RelatedToVia getRelationshipAnnotation(final Field field) {
