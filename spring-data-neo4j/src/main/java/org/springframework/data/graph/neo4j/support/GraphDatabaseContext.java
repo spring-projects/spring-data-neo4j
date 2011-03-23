@@ -29,7 +29,7 @@ import org.springframework.data.graph.core.GraphBacked;
 import org.springframework.data.graph.core.NodeBacked;
 import org.springframework.data.graph.core.NodeTypeStrategy;
 import org.springframework.data.graph.core.RelationshipBacked;
-import org.springframework.persistence.support.EntityInstantiator;
+import org.springframework.data.persistence.EntityInstantiator;
 
 import javax.transaction.Status;
 import javax.transaction.SystemException;

@@ -11,7 +11,7 @@ import org.neo4j.helpers.collection.IterableWrapper;
 import org.springframework.data.graph.annotation.NodeEntity;
 import org.springframework.data.graph.core.NodeBacked;
 import org.springframework.data.graph.core.NodeTypeStrategy;
-import org.springframework.persistence.support.EntityInstantiator;
+import org.springframework.data.persistence.EntityInstantiator;
 
 public class IndexingNodeTypeStrategy implements NodeTypeStrategy {
 
