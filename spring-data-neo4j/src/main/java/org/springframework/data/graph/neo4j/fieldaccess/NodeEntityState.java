@@ -21,7 +21,7 @@ import org.neo4j.graphdb.NotInTransactionException;
 import org.springframework.dao.InvalidDataAccessResourceUsageException;
 import org.springframework.data.graph.core.NodeBacked;
 import org.springframework.data.graph.neo4j.support.GraphDatabaseContext;
-import org.springframework.data.persistence.StateProvider;
+import org.springframework.persistence.support.StateProvider;
 
 /**
  * @author Michael Hunger
