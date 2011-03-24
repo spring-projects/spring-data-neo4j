@@ -31,6 +31,24 @@
     </para>
     <para>
         Spring Data Graph uses both mechanisms internally. First, when encountering <code>@NodeEntity</code> or <code>@RelationshipEntity</code>
-        annotations it introduces a new interface <code>NodeBacked</code>.
+        annotations it introduces a new interface <code>NodeBacked</code> and <code>RelationshipBacked</code>. Secondly it introduces a few
+        fields and even more methods <xref linkend="introduced-methods"/> to the annotated class. These methods range from <code>getNodeId()</code>
+        to <code>relateTo</code>.
+    </para>
+    <para>
+        The even more important aspect are the advices that are put before the constructor call and around all field accesses (read and write).
+        The before-constructor advice is used to wire up the entity. The advices around all fields are used to intercept all reads and writes
+        and delegates them to the graph (setting properties, creating relationships, returning ids).
+    </para>
+    <para>
+        How is an aspect attached to a concrete class? This can be either achieved by the aspectj-compiler (ajc), that takes
+        source files and a number of aspects (probably packaged in libraries - like spring-aspects) and while and after compiling
+        the source files injects the advices at the places designated by the pointcuts. This compile-time weaving produces classes
+        that can perform on their own (with a small aspectj-runtime library) after being compiled.
+    </para>
+    <para>
+        There is also the possibility of load-time weaving when the merge of aspects and class files is done when the
+        classloader loads the class. This uses java-agent instrumentation and is currently not used and tested with Spring
+        Data Graph.
     </para>
 </chapter>
