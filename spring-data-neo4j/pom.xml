@@ -132,6 +132,17 @@
           <scope>test</scope>
         </dependency>
 
+        <dependency>
+          <groupId>org.neo4j</groupId>
+          <artifactId>server-api</artifactId>
+		 <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+          <groupId>commons-configuration</groupId>
+          <artifactId>commons-configuration</artifactId>
+        </dependency>
+
 		<!-- JPA -->
         <dependency>
             <groupId>org.hibernate.javax.persistence</groupId>
@@ -168,6 +179,14 @@
 
     </dependencies>
 	<repositories>
+		<repository>
+			<id>neo4j-public-repository</id>
+			<name>Neo4J Public Repository</name>
+			<url>http://m2.neo4j.org</url>
+			<snapshots>
+				<enabled>true</enabled>
+			</snapshots>
+        </repository>
 		<repository>
 			<id>jboss-repository</id>
 			<name>JBoss Public Repository</name>

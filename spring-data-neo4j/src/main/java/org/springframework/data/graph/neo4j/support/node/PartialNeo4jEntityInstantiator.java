@@ -20,7 +20,7 @@ import org.neo4j.graphdb.Node;
 import org.springframework.data.graph.core.NodeBacked;
 import org.springframework.data.graph.neo4j.fieldaccess.PartialNodeEntityState;
 import org.springframework.orm.jpa.EntityManagerFactoryUtils;
-import org.springframework.persistence.support.EntityInstantiator;
+import org.springframework.data.persistence.EntityInstantiator;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;

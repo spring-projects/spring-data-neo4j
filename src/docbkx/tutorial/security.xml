@@ -7,7 +7,7 @@
 account had to be secured as well.
 </para><para>
 We used Spring Security for that, writing a simple UserDetailsService that used a repository for looking up the users and validating their credentials. The config is located
-in a separate applicationContext-security.xml. But first, as always, maven and web.xml setup.
+in a separate applicationContext-security.xml. But first, as always, Maven and web.xml setup.
     </para>
     <para>
 <example>

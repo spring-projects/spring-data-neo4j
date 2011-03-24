@@ -3,7 +3,7 @@
 <chapter id="tutorial_domain">
     <title>Setting the Stage - Movies Domain</title>
     <para>
-        The domain model was the next thing we planned to work on. We wanted to sketch it out first before diving into library details. We  also looked at the datamodel of core themoviedb data to 
+        The domain model was the next thing we planned to work on. We wanted to sketch it out first before diving into library details. We also looked at the datamodel of core themoviedb data to 
 		confirm that it matched our expectations.
 
 <!--
@@ -35,11 +35,13 @@ class Actor {
     Set<Movie> filmography;
     Role playedIn(Movie movie, String role);
 }
+
 class Role {
     Movie movie;
     Actor actor;
     String role;
 }
+
 class User {
     String login;
     String name;
@@ -49,6 +51,7 @@ class User {
     Rating rate(Movie movie, int stars, String comment);
     void befriend(User user);
 }
+
 class Rating {
     User user;
     Movie movie;

@@ -9,7 +9,7 @@
     </para><para>
         It's time to put this to a test. How can we be assured that a field is persisted to the graph store? There seemed to be two possibilities. First was to get a
         GraphDatabaseContext injected and use its getById() method. The other one was a Finder approach. But let's try to keep things simple.
-        How can we persist an entity and how to get its id? No idea, so time to hit the documentation again, revealing that there are a bunch of methods introduced to the
+        How can we persist an entity and how to get its id? Looking at the documentation revealed that there are a bunch of methods introduced to the
         entities by the aspects. That's not obvious, but we found the two that would help here - entity.persist() and entity.getNodeId().
     </para><para>
         So our test looked like this.

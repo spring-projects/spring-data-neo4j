@@ -39,7 +39,8 @@ import static org.junit.Assert.assertEquals;
  * @since 20.01.11
  */
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(locations = {"classpath:org/springframework/data/graph/neo4j/support/Neo4jGraphPersistenceTest-context.xml"})
+@ContextConfiguration(locations = {"classpath:org/springframework/data/graph/neo4j/support/Neo4jGraphPersistenceTest-context.xml",
+		"classpath:org/springframework/data/graph/neo4j/support/SubReferenceNodeTypeStrategyOverride-context.xml"})
 public class SubReferenceNodeTypeStrategyTest {
 
     protected final Log log = LogFactory.getLog(getClass());
@@ -48,8 +49,8 @@ public class SubReferenceNodeTypeStrategyTest {
     GraphDatabaseContext graphDatabaseContext;
     @Autowired
     private FinderFactory finderFactory;
-
-    private NodeTypeStrategy nodeTypeStrategy;
+	@Autowired
+    private SubReferenceNodeTypeStrategy nodeTypeStrategy;
     private Node thingNode;
     private Thing thing;
 
@@ -61,7 +62,6 @@ public class SubReferenceNodeTypeStrategyTest {
 
     @Before
     public void setUp() {
-        nodeTypeStrategy = graphDatabaseContext.getNodeTypeStrategy();
         thingNode = createThing();
     }
 

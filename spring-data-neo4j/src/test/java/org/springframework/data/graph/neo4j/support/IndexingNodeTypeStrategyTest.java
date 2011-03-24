@@ -24,11 +24,11 @@ import java.util.HashSet;
 import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = {"classpath:org/springframework/data/graph/neo4j/support/Neo4jGraphPersistenceTest-context.xml",
 		"classpath:org/springframework/data/graph/neo4j/support/IndexingNodeTypeStrategyOverride-context.xml"})
-@Ignore
 public class IndexingNodeTypeStrategyTest {
 
 	@Autowired
@@ -57,45 +57,76 @@ public class IndexingNodeTypeStrategyTest {
 		Index<Node> typesIndex = graphDatabaseService.index().forNodes("__types__");
 		IndexHits<Node> thingHits = typesIndex.get("className", thing.getClass().getName());
 		assertEquals(set(node(thing), node(subThing)), IteratorUtil.addToCollection((Iterable<Node>)thingHits, new HashSet<Node>()));
+		IndexHits<Node> subThingHits = typesIndex.get("className", subThing.getClass().getName());
+		assertEquals(node(subThing), subThingHits.getSingle());
 		assertEquals(thing.getClass().getName(), node(thing).getProperty("__type__"));
 		assertEquals(subThing.getClass().getName(), node(subThing).getProperty("__type__"));
 	}
 
 	@Test
-	public void testFindAll() throws Exception {
-		assertEquals("Did not find all things.",
-				Arrays.asList(thing, subThing), IteratorUtil.addToCollection(nodeTypeStrategy.findAll(Thing.class), new ArrayList<Thing>()));
+	public void testPreEntityRemoval() throws Exception {
+        manualCleanDb();
+        createThings();
+		Index<Node> typesIndex = graphDatabaseService.index().forNodes("__types__");
+		IndexHits<Node> thingHits;
+		IndexHits<Node> subThingHits;
+
+        Transaction tx = graphDatabaseService.beginTx();
+        try
+        {
+            nodeTypeStrategy.preEntityRemoval(thing);
+            tx.success();
+        }
+        finally
+        {
+            tx.finish();
+        }
+
+		thingHits = typesIndex.get("className", thing.getClass().getName());
+		assertEquals(node(subThing), thingHits.getSingle());
+		subThingHits = typesIndex.get("className", subThing.getClass().getName());
+		assertEquals(node(subThing), subThingHits.getSingle());
+
+        tx = graphDatabaseService.beginTx();
+        try
+        {
+            nodeTypeStrategy.preEntityRemoval(subThing);
+            tx.success();
+        }
+        finally
+        {
+            tx.finish();
+        }
+
+		thingHits = typesIndex.get("className", thing.getClass().getName());
+        assertNull(thingHits.getSingle());
+		subThingHits = typesIndex.get("className", subThing.getClass().getName());
+        assertNull(subThingHits.getSingle());
 	}
 
 	@Test
+	@Transactional
+	public void testFindAll() throws Exception {
+		assertEquals("Did not find all things.",
+				Arrays.asList(thing, subThing),
+				IteratorUtil.addToCollection(nodeTypeStrategy.findAll(Thing.class), new ArrayList<Thing>()));
+	}
+
+	@Test
+	@Transactional
 	public void testCount() throws Exception {
 		assertEquals(2, nodeTypeStrategy.count(Thing.class));
 	}
 
 	@Test
+	@Transactional
 	public void testGetJavaType() throws Exception {
 		assertEquals(Thing.class, nodeTypeStrategy.getJavaType(node(thing)));
 		assertEquals(SubThing.class, nodeTypeStrategy.getJavaType(node(subThing)));
 	}
 
 	@Test
-	public void testPreEntityRemoval() throws Exception {
-		manualCleanDb();
-		Transaction tx;
-		tx = graphDatabaseService.beginTx();
-		try {
-			nodeTypeStrategy.preEntityRemoval(thing);
-			nodeTypeStrategy.preEntityRemoval(subThing);
-			tx.success();
-		} finally {
-			tx.finish();
-		}
-		Index<Node> typesIndex = graphDatabaseService.index().forNodes("__types__");
-		IndexHits<Node> thingHits = typesIndex.get("className", thing.getClass().getName());
-		assertEquals(0, thingHits.size());
-	}
-
-	@Test
+	@Transactional
 	public void testConfirmType() throws Exception {
 		assertEquals(Thing.class, nodeTypeStrategy.confirmType(node(thing), Thing.class));
 		assertEquals(SubThing.class, nodeTypeStrategy.confirmType(node(subThing), Thing.class));

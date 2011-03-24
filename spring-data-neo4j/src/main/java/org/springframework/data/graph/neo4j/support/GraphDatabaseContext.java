@@ -29,7 +29,7 @@ import org.springframework.data.graph.core.GraphBacked;
 import org.springframework.data.graph.core.NodeBacked;
 import org.springframework.data.graph.core.NodeTypeStrategy;
 import org.springframework.data.graph.core.RelationshipBacked;
-import org.springframework.persistence.support.EntityInstantiator;
+import org.springframework.data.persistence.EntityInstantiator;
 
 import javax.transaction.Status;
 import javax.transaction.SystemException;
@@ -266,28 +266,6 @@ public class GraphDatabaseContext {
      */
 	public Node getReferenceNode() {
         return graphDatabaseService.getReferenceNode();
-    }
-
-
-    /**
-     * @param relType
-     * @return
-     */
-    public Node getOrCreateSubReferenceNode(final RelationshipType relType) {
-        return getOrCreateSingleOtherNode(graphDatabaseService.getReferenceNode(), relType, Direction.OUTGOING);
-    }
-
-    private Node getOrCreateSingleOtherNode(Node fromNode, RelationshipType type,
-                                                   Direction direction) {
-        Relationship singleRelationship = fromNode.getSingleRelationship(type, direction);
-        if (singleRelationship != null) {
-            return singleRelationship.getOtherNode(fromNode);
-        }
-
-        Node otherNode = graphDatabaseService.createNode();
-        fromNode.createRelationshipTo(otherNode, type);
-        return otherNode;
-
     }
 
 

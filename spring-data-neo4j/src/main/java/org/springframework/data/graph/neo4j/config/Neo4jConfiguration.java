@@ -17,32 +17,32 @@
 package org.springframework.data.graph.neo4j.config;
 
 import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.Node;
 import org.neo4j.kernel.impl.transaction.SpringTransactionManager;
 import org.neo4j.kernel.impl.transaction.UserTransactionImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.graph.core.NodeBacked;
 import org.springframework.data.graph.neo4j.fieldaccess.Neo4jConversionServiceFactoryBean;
 import org.springframework.data.graph.neo4j.fieldaccess.NodeDelegatingFieldAccessorFactory;
 import org.springframework.data.graph.neo4j.fieldaccess.NodeEntityStateFactory;
 import org.springframework.data.graph.neo4j.fieldaccess.RelationshipEntityStateFactory;
 import org.springframework.data.graph.neo4j.finder.FinderFactory;
 import org.springframework.data.graph.neo4j.support.GraphDatabaseContext;
-import org.springframework.data.graph.neo4j.support.SubReferenceNodeTypeStrategy;
+import org.springframework.data.graph.neo4j.support.NodeTypeStrategyFactoryBean;
 import org.springframework.data.graph.neo4j.support.node.Neo4jConstructorGraphEntityInstantiator;
 import org.springframework.data.graph.neo4j.support.node.Neo4jNodeBacking;
 import org.springframework.data.graph.neo4j.support.node.PartialNeo4jEntityInstantiator;
 import org.springframework.data.graph.neo4j.support.relationship.ConstructorBypassingGraphRelationshipInstantiator;
 import org.springframework.data.graph.neo4j.support.relationship.Neo4jRelationshipBacking;
 import org.springframework.data.graph.neo4j.transaction.ChainedTransactionManager;
-import org.springframework.orm.jpa.EntityManagerFactoryUtils;
 import org.springframework.orm.jpa.JpaTransactionManager;
-import org.springframework.persistence.transaction.NaiveDoubleTransactionManager;
+import org.springframework.data.persistence.EntityInstantiator;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.jta.JtaTransactionManager;
 
-import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.validation.Validator;
 
@@ -82,7 +82,7 @@ public class Neo4jConfiguration {
     }
 
     public boolean isUsingCrossStorePersistence() {
-        return entityManagerFactory!=null;
+        return entityManagerFactory != null;
     }
 
 	@Bean
@@ -90,18 +90,23 @@ public class Neo4jConfiguration {
 		GraphDatabaseContext gdc = new GraphDatabaseContext();
 		gdc.setGraphDatabaseService(getGraphDatabaseService());
 		gdc.setRelationshipEntityInstantiator(new ConstructorBypassingGraphRelationshipInstantiator());
-		if (isUsingCrossStorePersistence()) {
-			gdc.setGraphEntityInstantiator(new PartialNeo4jEntityInstantiator(new Neo4jConstructorGraphEntityInstantiator(), entityManagerFactory));
-		}
-		else {
-			gdc.setGraphEntityInstantiator(new Neo4jConstructorGraphEntityInstantiator());
-		}
+		EntityInstantiator<NodeBacked, Node> graphEntityInstantiator = getGraphEntityInstantiator();
+		gdc.setGraphEntityInstantiator(graphEntityInstantiator);
 		gdc.setConversionService(new Neo4jConversionServiceFactoryBean().getObject());
-		gdc.setNodeTypeStrategy(new SubReferenceNodeTypeStrategy(gdc));
+        NodeTypeStrategyFactoryBean nodeTypeStrategyFactoryBean = new NodeTypeStrategyFactoryBean(graphDatabaseService, graphEntityInstantiator);
+        gdc.setNodeTypeStrategy(nodeTypeStrategyFactoryBean.getObject());
         if (validator!=null) {
             gdc.setValidator(validator);
         }
 		return gdc;
+	}
+
+	private EntityInstantiator<NodeBacked, Node> getGraphEntityInstantiator() {
+		if (isUsingCrossStorePersistence()) {
+			return new PartialNeo4jEntityInstantiator(new Neo4jConstructorGraphEntityInstantiator(), entityManagerFactory);
+		} else {
+			return new Neo4jConstructorGraphEntityInstantiator();
+		}
 	}
 
 	@Bean
@@ -149,4 +154,9 @@ public class Neo4jConfiguration {
 			return transactionManager;
 		}
 	}
+
+    @Bean
+    public ConfigurationCheck configurationCheck() throws Exception {
+        return new ConfigurationCheck(graphDatabaseContext(),transactionManager());
+    }
 }

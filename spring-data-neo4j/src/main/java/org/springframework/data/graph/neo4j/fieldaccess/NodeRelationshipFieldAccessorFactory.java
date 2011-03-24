@@ -18,6 +18,7 @@ package org.springframework.data.graph.neo4j.fieldaccess;
 
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.DynamicRelationshipType;
+import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.graph.annotation.RelatedTo;
 import org.springframework.data.graph.core.NodeBacked;
 import org.springframework.data.graph.neo4j.support.GraphDatabaseContext;
@@ -58,12 +59,21 @@ abstract class NodeRelationshipFieldAccessorFactory implements FieldAccessorFact
         return DynamicRelationshipType.withName(relAnnotation.type());
     }
 
+    protected DynamicRelationshipType typeFrom(Field field, RelatedTo relAnnotation) {
+        return "".equals(relAnnotation.type()) ? typeFrom(field) : typeFrom(relAnnotation);
+    }
+
     protected RelatedTo getRelationshipAnnotation(Field field) {
         return field.getAnnotation(RelatedTo.class);
     }
 
     protected boolean hasValidRelationshipAnnotation(Field field) {
         final RelatedTo relAnnotation = getRelationshipAnnotation(field);
-        return relAnnotation != null && !relAnnotation.elementClass().equals(NodeBacked.class);
+        if (relAnnotation == null) return false;
+        boolean hasElementClass = !relAnnotation.elementClass().equals(NodeBacked.class);
+        if (!hasElementClass) throw new InvalidDataAccessApiUsageException(String.format(
+                "Missing mandatory attribute @RelatedTo.elementClass for one-to-N relationship field %s in class: %s",
+                field.getName(), field.getDeclaringClass().getName()));
+        return true;
     }
 }

@@ -25,6 +25,7 @@ import org.neo4j.helpers.collection.IterableWrapper;
 import org.neo4j.kernel.impl.traversal.TraversalDescriptionImpl;
 import org.springframework.data.graph.core.NodeBacked;
 import org.springframework.data.graph.core.NodeTypeStrategy;
+import org.springframework.data.persistence.EntityInstantiator;
 
 import java.util.*;
 
@@ -47,11 +48,13 @@ public class SubReferenceNodeTypeStrategy implements NodeTypeStrategy {
     public static final String SUBREF_PREFIX = "SUBREF_";
 	public static final String SUBREF_CLASS_KEY = "class";
 
-    private final GraphDatabaseContext graphDatabaseContext;
+	private GraphDatabaseService graphDatabaseService;
+	private EntityInstantiator<NodeBacked, Node> entityInstantiator;
 
-    public SubReferenceNodeTypeStrategy(final GraphDatabaseContext graphDatabaseContext) {
-        this.graphDatabaseContext = graphDatabaseContext;
-    }
+	public SubReferenceNodeTypeStrategy(GraphDatabaseService graphDatabaseService, EntityInstantiator<NodeBacked, Node> entityInstantiator) {
+		this.graphDatabaseService = graphDatabaseService;
+		this.entityInstantiator = entityInstantiator;
+	}
 
     public static Node getSingleOtherNode(Node node, RelationshipType type,
                                           Direction direction) {
@@ -184,7 +187,7 @@ public class SubReferenceNodeTypeStrategy implements NodeTypeStrategy {
             @Override
             protected T underlyingObjectToObject(final Relationship rel) {
                 final Node node = rel.getStartNode();
-	            T entity = (T) graphDatabaseContext.createEntityFromState(node, getJavaType(node));
+	            T entity = (T) entityInstantiator.createEntityFromState(node, getJavaType(node));
 	            if (log.isDebugEnabled()) log.debug("Converting node: " + node + " to entity: " + entity);
 	            return entity;
             }
@@ -195,15 +198,33 @@ public class SubReferenceNodeTypeStrategy implements NodeTypeStrategy {
 
 
 	public Node obtainSubreferenceNode(final Class<?> entityClass) {
-        return graphDatabaseContext.getOrCreateSubReferenceNode(subRefRelationshipType(entityClass));
+        return getOrCreateSubReferenceNode(subRefRelationshipType(entityClass));
     }
 
     public Node findSubreferenceNode(final Class<? extends NodeBacked> entityClass) {
-        final Relationship subrefRelationship = graphDatabaseContext.getReferenceNode().getSingleRelationship(subRefRelationshipType(entityClass), Direction.OUTGOING);
+        final Relationship subrefRelationship = graphDatabaseService.getReferenceNode().getSingleRelationship(subRefRelationshipType(entityClass), Direction.OUTGOING);
         return subrefRelationship != null ? subrefRelationship.getEndNode() : null;
     }
 
     private DynamicRelationshipType subRefRelationshipType(Class<?> clazz) {
         return DynamicRelationshipType.withName(SUBREF_PREFIX + clazz.getName());
     }
+
+	public Node getOrCreateSubReferenceNode(final RelationshipType relType) {
+	    return getOrCreateSingleOtherNode(graphDatabaseService.getReferenceNode(), relType, Direction.OUTGOING);
+	}
+
+	private Node getOrCreateSingleOtherNode(Node fromNode, RelationshipType type,
+	                                               Direction direction) {
+	    Relationship singleRelationship = fromNode.getSingleRelationship(type, direction);
+	    if (singleRelationship != null) {
+	        return singleRelationship.getOtherNode(fromNode);
+	    }
+
+	    Node otherNode = graphDatabaseService.createNode();
+	    fromNode.createRelationshipTo(otherNode, type);
+	    return otherNode;
+
+	}
+
 }

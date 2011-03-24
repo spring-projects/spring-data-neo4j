@@ -24,7 +24,6 @@ import org.springframework.data.graph.core.NodeBacked;
 import org.springframework.data.graph.neo4j.support.GraphDatabaseContext;
 
 import java.lang.reflect.Field;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Set;
 
@@ -46,7 +45,7 @@ public class SingleRelationshipFieldAccessorFactory extends NodeRelationshipFiel
 	    final RelatedTo relAnnotation = getRelationshipAnnotation(field);
 	    if (relAnnotation == null)
 	        return new SingleRelationshipFieldAccessor(typeFrom(field), Direction.OUTGOING, targetFrom(field), graphDatabaseContext);
-	    return new SingleRelationshipFieldAccessor(typeFrom(relAnnotation), dirFrom(relAnnotation), targetFrom(field), graphDatabaseContext);
+	    return new SingleRelationshipFieldAccessor(typeFrom(field, relAnnotation), dirFrom(relAnnotation), targetFrom(field), graphDatabaseContext);
 	}
 
 	public static class SingleRelationshipFieldAccessor extends NodeToNodesRelationshipFieldAccessor<NodeBacked> {

@@ -1,16 +1,17 @@
-<?xml version="1.0" encoding="UTF-8"?>
+x<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" "http://www.docbook.org/xml/4.4/docbookx.dtd">
 <chapter id="tutorial_about-spring-data">
     <title>Conjuring Magic - Spring Data Graph</title>
     <para>
-        But that was the pure graph database. Using this in our domain would pollute my classes with lots of graph
+        That was the pure graph database. Using this in our domain would pollute our classes with lots of graph
         database details. We don't want that. Spring Data Graph
-        promised to do the heavy lifting for us. So we checked that next. Obviously it heavily depended on aspectj magic.
-        So there would be certain behavior that was
-        just observable without being visible in our code, but we were going to give it a try.
+        promised to do the heavy lifting for us. So we checked that next.
+        
+        Spring Data Graph depends heavily on AspectJ magic. Some parts of our classes would behave differently,
+        but it would not be visible in our code. We were going to give it a try.
     </para>
     <para>
-        First step was lots of maven configuration.
+        First step was lots of Maven configuration.
         <programlisting language="xml"><![CDATA[
 
 <properties>
@@ -71,7 +72,7 @@
 </plugin> </plugins> </build>
             ]]></programlisting>
         </para><para>
-        The spring configuration was much easier, thanks to a provided namespace.
+        The Spring configuration was much easier, thanks to a provided namespace.
         </para><para>
         <programlisting language="xml"><![CDATA[
 <beans xmlns="http://www.springframework.org/schema/beans" ...

@@ -26,7 +26,7 @@ import org.springframework.data.graph.annotation.RelatedTo;
 import org.springframework.data.graph.core.NodeBacked;
 import org.springframework.data.graph.neo4j.finder.FinderFactory;
 import org.springframework.data.graph.neo4j.support.GraphDatabaseContext;
-import org.springframework.persistence.support.StateProvider;
+import org.springframework.data.persistence.StateProvider;
 
 import javax.persistence.Id;
 import java.lang.reflect.Field;
