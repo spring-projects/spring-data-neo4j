@@ -154,4 +154,9 @@ public class Neo4jConfiguration {
 			return transactionManager;
 		}
 	}
+
+    @Bean
+    public ConfigurationCheck configurationCheck() throws Exception {
+        return new ConfigurationCheck(graphDatabaseContext(),transactionManager());
+    }
 }
