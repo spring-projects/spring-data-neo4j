@@ -49,7 +49,7 @@ public aspect Neo4jNodeBacking { // extends AbstractTypeAnnotatingMixinFields<No
     protected final Log log = LogFactory.getLog(getClass());
 
     declare parents : (@NodeEntity *) implements NodeBacked;
-    declare @type: NodeBacked+: @Configurable;
+    //declare @type: NodeBacked+: @Configurable;
 
     declare @field: @GraphProperty * (@Entity @NodeEntity(partial=true) *).*:@Transient;
     declare @field: @RelatedTo * (@Entity @NodeEntity(partial=true) *).*:@Transient;
