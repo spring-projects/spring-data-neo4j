@@ -89,8 +89,8 @@ public class Neo4jConfiguration {
 	public GraphDatabaseContext graphDatabaseContext() throws Exception {
 		GraphDatabaseContext gdc = new GraphDatabaseContext();
 		gdc.setGraphDatabaseService(getGraphDatabaseService());
-		gdc.setRelationshipEntityInstantiator(new ConstructorBypassingGraphRelationshipInstantiator());
-		EntityInstantiator<NodeBacked, Node> graphEntityInstantiator = getGraphEntityInstantiator();
+		gdc.setRelationshipEntityInstantiator(graphRelationshipInstantiator());
+		EntityInstantiator<NodeBacked, Node> graphEntityInstantiator = graphEntityInstantiator();
 		gdc.setGraphEntityInstantiator(graphEntityInstantiator);
 		gdc.setConversionService(new Neo4jConversionServiceFactoryBean().getObject());
         NodeTypeStrategyFactoryBean nodeTypeStrategyFactoryBean = new NodeTypeStrategyFactoryBean(graphDatabaseService, graphEntityInstantiator);
@@ -101,7 +101,13 @@ public class Neo4jConfiguration {
 		return gdc;
 	}
 
-	private EntityInstantiator<NodeBacked, Node> getGraphEntityInstantiator() {
+    @Bean
+    protected ConstructorBypassingGraphRelationshipInstantiator graphRelationshipInstantiator() {
+        return new ConstructorBypassingGraphRelationshipInstantiator();
+    }
+
+    @Bean
+	protected EntityInstantiator<NodeBacked, Node> graphEntityInstantiator() {
 		if (isUsingCrossStorePersistence()) {
 			return new PartialNeo4jEntityInstantiator(new Neo4jConstructorGraphEntityInstantiator(), entityManagerFactory);
 		} else {
