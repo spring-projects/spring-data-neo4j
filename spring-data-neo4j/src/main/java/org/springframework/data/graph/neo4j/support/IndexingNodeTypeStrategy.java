@@ -13,6 +13,9 @@ import org.springframework.data.graph.core.NodeBacked;
 import org.springframework.data.graph.core.NodeTypeStrategy;
 import org.springframework.data.persistence.EntityInstantiator;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class IndexingNodeTypeStrategy implements NodeTypeStrategy {
 
     public static final String NODE_INDEX_NAME = "__types__";
@@ -20,8 +23,9 @@ public class IndexingNodeTypeStrategy implements NodeTypeStrategy {
     public static final String INDEX_KEY = "className";
     private EntityInstantiator<NodeBacked, Node> graphEntityInstantiator;
 	private GraphDatabaseService graphDb;
+    private final Map<String,Class<?>> cache=new HashMap<String, Class<?>>();
 
-	public IndexingNodeTypeStrategy(GraphDatabaseService graphDb, EntityInstantiator<NodeBacked, Node> graphEntityInstantiator) {
+    public IndexingNodeTypeStrategy(GraphDatabaseService graphDb, EntityInstantiator<NodeBacked, Node> graphEntityInstantiator) {
 		this.graphDb = graphDb;
 		this.graphEntityInstantiator = graphEntityInstantiator;
 	}
@@ -78,16 +82,30 @@ public class IndexingNodeTypeStrategy implements NodeTypeStrategy {
 	@SuppressWarnings("unchecked")
 	public <ENTITY extends NodeBacked> Class<ENTITY> getJavaType(Node node) {
 		if (node == null) throw new IllegalArgumentException("Node is null");
-		try {
-			return (Class<ENTITY>) Class.forName((String) node.getProperty(TYPE_PROPERTY_NAME));
+        String className = (String) node.getProperty(TYPE_PROPERTY_NAME);
+        return getClassForName(className);
+    }
+
+    @SuppressWarnings({"unchecked"})
+    private <ENTITY extends NodeBacked> Class<ENTITY> getClassForName(String className) {
+        try {
+            Class<ENTITY> result= (Class<ENTITY>) cache.get(className);
+            if (result!=null) return result;
+            synchronized (cache) {
+                result= (Class<ENTITY>) cache.get(className);
+                if (result!=null) return result;
+                result = (Class<ENTITY>) Class.forName(className);
+                cache.put(className,result);
+                return result;
+            }
 		} catch (NotFoundException e) {
 			return null;
 		} catch (ClassNotFoundException e) {
 			return null;
 		}
-	}
+    }
 
-	@Override
+    @Override
 	public void preEntityRemoval(NodeBacked entity) {
 		getTypesIndex().remove(entity.getPersistentState());
 	}
