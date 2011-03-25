@@ -79,7 +79,7 @@
 
 	<bean id="graphDatabaseService" class="org.neo4j.kernel.ImpermanentGraphDatabase"
 			destroy-method="shutdown" scope="singleton">
-		 <constructor-arg index="0" value="${neo4j.databaseDirectory}" />
+		 <!--constructor-arg index="0" value="${neo4j.databaseDirectory}" /-->
 	</bean>
 
     <bean id="graphDatabaseContext" class="org.springframework.data.graph.neo4j.support.GraphDatabaseContext">
