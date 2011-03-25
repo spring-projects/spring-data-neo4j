@@ -4,14 +4,14 @@
 	<parent>
 		<groupId>org.springframework.data</groupId>
 		<artifactId>spring-data-graph-parent</artifactId>
-		<version>1.0.0.BUILD-SNAPSHOT</version>
+		<version>1.0.0.M5</version>
 		<relativePath>../spring-data-graph-parent/pom.xml</relativePath>
 	</parent>
 	<artifactId>spring-data-neo4j-roo</artifactId>
 	<packaging>jar</packaging>
 	<name>Spring Data Neo4J Roo Support</name>
 	<properties>
-		<aspectj.version>1.6.11.M2</aspectj.version>
+		<aspectj.version>1.6.11.RELEASE</aspectj.version>
 	</properties>
 	<dependencies>
 

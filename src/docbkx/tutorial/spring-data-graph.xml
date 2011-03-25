@@ -15,7 +15,7 @@ x<?xml version="1.0" encoding="UTF-8"?>
         <programlisting language="xml"><![CDATA[
 
 <properties>
-    <aspectj.version>1.6.11.M2</aspectj.version>
+    <aspectj.version>1.6.11.RELEASE</aspectj.version>
 </properties>
 
 <dependency>
