@@ -1,6 +1,23 @@
 Spring Data Graph Changelog
 =============================================
 
+Changes in version 1.0.0.M5 (2011-03-25)
+----------------------------------------
+
+* fixed docbook build to include images
+* added tutorial section to book
+* clarified in documentation what AspectJ does
+* fail on startup if transaction manager is misconfigured
+* fail early at runtime if 1:N field is missing the RelatedTo.elementClass
+* added new default NodeTypeStrategy based on indexing
+* fixed Bacon path issue in IMDB example
+* fixed bug with stale EntityManagers in a cross-store scenario
+* @NodeEntities are no longer @Configurable
+* update to Neo4j 1.3.M05
+* better integration support for Neo4j Server unmanaged extensions
+* made type attribute of @RelatedTo optional
+
+
 Changes in version 1.0.0.M4 (2011-03-15)
 ----------------------------------------
 
@@ -20,6 +37,7 @@ Changes in version 1.0.0.M4 (2011-03-15)
 * graph managed fields no longer have to be annotated with @Transient (the aspect takes care of that)
 * removed the need to mark graph managed fields with @Transient for a cross store entity
 * changed documentation format to guidebook, added tutorial as first part
+
 
 Changes in version 1.0.0.M3 (2011-02-25)
 ----------------------------------------
