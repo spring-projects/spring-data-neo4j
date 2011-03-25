@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE section PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
-<section id="introduced-methods">
+<section id="reference:programming-model:introduced-methods">
     <title>Methods added to entity classes</title>
     <para>
         The node and relationship aspects introduce (via ITD - inter type declaration) several methods to the
