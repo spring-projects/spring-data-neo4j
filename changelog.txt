@@ -13,7 +13,7 @@ Changes in version 1.0.0.M5 (2011-03-25)
 * fixed Bacon path issue in IMDB example
 * fixed bug with stale EntityManagers in a cross-store scenario
 * @NodeEntities are no longer @Configurable
-* update to Neo4j 1.3.M05
+* update to Neo4j 1.3.M05, AspectJ 1.6.11.RELEASE
 * better integration support for Neo4j Server unmanaged extensions
 * made type attribute of @RelatedTo optional
 * many performance improvements

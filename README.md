@@ -181,12 +181,12 @@ For more detailed questions, use the [forum](http://forum.springsource.org/forum
           <dependency>
             <groupId>org.aspectj</groupId>
             <artifactId>aspectjrt</artifactId>
-            <version>1.6.11.M2</version>
+            <version>1.6.11.RELEASE</version>
           </dependency>
           <dependency>
             <groupId>org.aspectj</groupId>
             <artifactId>aspectjtools</artifactId>
-            <version>1.6.11.M2</version>
+            <version>1.6.11.RELEASE</version>
           </dependency>
         </dependencies>
       </plugin>
