@@ -46,7 +46,7 @@ public class FieldAccessorFactoryProviders<T> {
 
         public List<FieldAccessListener<E, ?>> listeners() {
             if (fieldAccessorListenerFactories == null) return null;
-            final List<FieldAccessListener<E, ?>> listeners = new ArrayList<FieldAccessListener<E, ?>>();
+            final List<FieldAccessListener<E, ?>> listeners = new ArrayList<FieldAccessListener<E, ?>>(fieldAccessorListenerFactories.size());
             for (final FieldAccessorListenerFactory<E> fieldAccessorListenerFactory : fieldAccessorListenerFactories) {
                 listeners.add(fieldAccessorListenerFactory.forField(field));
             }
@@ -69,7 +69,7 @@ public class FieldAccessorFactoryProviders<T> {
     }
 
     public Map<Field, FieldAccessor<T>> getFieldAccessors() {
-        final Map<Field, FieldAccessor<T>> result = new HashMap<Field, FieldAccessor<T>>();
+        final Map<Field, FieldAccessor<T>> result = new HashMap<Field, FieldAccessor<T>>(fieldAccessorFactoryProviders.size(),1);
         for (final FieldAccessorFactoryProvider<T> fieldAccessorFactoryProvider : fieldAccessorFactoryProviders) {
             final FieldAccessor<T> accessor = fieldAccessorFactoryProvider.accessor();
             result.put(fieldAccessorFactoryProvider.getField(), accessor);
@@ -78,7 +78,7 @@ public class FieldAccessorFactoryProviders<T> {
     }
 
     public Map<Field, List<FieldAccessListener<T,?>>> getFieldAccessListeners() {
-        final Map<Field, List<FieldAccessListener<T,?>>> result = new HashMap<Field, List<FieldAccessListener<T,?>>>();
+        final Map<Field, List<FieldAccessListener<T,?>>> result = new HashMap<Field, List<FieldAccessListener<T,?>>>(fieldAccessorFactoryProviders.size(),1);
         for (final FieldAccessorFactoryProvider<T> fieldAccessorFactoryProvider : fieldAccessorFactoryProviders) {
             final List<FieldAccessListener<T,?>> listeners = (List<FieldAccessListener<T,?>>) fieldAccessorFactoryProvider.listeners();
             result.put(fieldAccessorFactoryProvider.getField(), listeners);
