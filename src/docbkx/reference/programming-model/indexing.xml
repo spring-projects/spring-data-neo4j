@@ -2,19 +2,28 @@
 <!DOCTYPE section PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
 <section id="reference_programming-model:indexing">
     <title>Indexing</title>
+
     <para>
         The Neo4j graph database can use different index providers for exact lookups and fulltext searches. Lucene is
         used as a index provider implementation. There is support for distinct indexes for nodes and relationships
         which can be configured to be of fulltext or exact types.
     </para>
+
+    <section>
+        <title>Exact and Numeric Index</title>
     <para>
         Using the standard Neo4j API, Nodes and Relationships and their indexed field-value combinations
         have to be added manually to the appropriate index. When using Spring Data Graph, this task is simplified by
         eased by applying an <code>@Indexed</code> annotation on entity fields. This will result in updates to the
-        index on every change. Numerical fields are indexed numerically so that they are available for range queries.
-        All other fields are indexed with their string representation. The @Indexed annotation can also set the
-        index-name to be used. If @Indexed annotates the entity class, the index-name for the whole entity is preset
-        to that value. Not providing index names defaults them to "node" and "relationship" respectively.
+        index on every change.
+    </para><para>
+        Numerical fields are indexed numerically so that they are available for range queries.
+        All other fields are indexed with their string representation.
+    </para><para>
+        The @Indexed annotation can also set the
+        index-name to be used the default index name is the simple class name of the entity. So the same field names
+        from different classes don't end up in the same index by default. That would return different domain objects
+        for a single index query.
     </para>
     <para>
         Query access to the index happens with the Node- and RelationshipFinders that are created via an instance of
@@ -35,16 +44,6 @@ class Person {
 
 }
 
-@NodeEntity
-@Indexed(indexName="groups")
-class Group {
-    @Indexed
-    String name;
-
-    @RelatedTo(elementClass = Person.class, type = "people" )
-    Set<Person> people;
-}
-
 NodeFinder<Person> finder = finderFactory.createNodeEntityFinder(Person.class);
 
 // exact finder
@@ -55,14 +54,82 @@ for (Person middleAgedDeveloper : finder.findAllByRange(null, "age", 20, 40)) {
     Developer developer=middleAgedDeveloper.projectTo(Developer.class);
 }
 ]]></programlisting>
-    <para>
-        Neo4jTemplate also offers index support, providing auto-indexing for fields at creation time of nodes and
-        relationships. There is an <code>autoIndex</code> method that can also add indexes for a set of fields in one
-        go.
-    </para>
-    <para>
-        For querying the index, the template offers query-methods that take either the exact match parameters or a query
-        object / query expression and push the results wrapped uniformly as Paths to the supplied
-        <code>PathMapper</code> to be converted or collected.
-    </para>
+        </section>
+    <section>
+        <title>Fulltext Indexes</title>
+        <para>
+            Spring Data Graph also supports full-text indexes. By default indexed fields are stored in an exact-lookup
+            index. To have them analyzed and prepared for fulltext search, the <code>@Indexed</code> annotation has
+            the boolean <code>fulltext</code> attribute. Please note that fulltext-indexes require a separate index name
+            as the fulltext-configuration is stored in the index itself.
+        </para>
+        <para>
+            Access to the fulltext index is provided by the <code>findAllByQuery</code> method of the finders. Wildcard
+            like * are allowed. Otherwise the fulltext querying rules of the underlying index provider apply. (In most
+            cases this will be lucene.
+        </para>
+        <para>
+<programlisting language="java"><![CDATA[
+@NodeEntity
+class Person {
+    @Indexed(indexName = "person-name", fulltext=true)
+    String name;
+}
+
+NodeFinder<Person> finder = finderFactory.createNodeEntityFinder(Person.class);
+
+// exact finder
+Person mark = finder.findAllByQuery("people-search","name","ma*");
+]]></programlisting>
+        </para>
+        <note>
+            <para>
+                Please note that indexes are currently created on demand, so whenever an index that doesn't exist
+                is requested from a query or get operation it is created. This is subject to change but has currently
+                the implication that those indexes won't be configured as fulltext which causes subsequent fulltext-
+                updates to those indexes to fail.
+            </para>
+        </note>
+    </section>
+    <section>
+        <title>Raw Index Access</title>
+        <para>The raw index for a domain class is also available from <code>GraphDatabaseContext</code> via the
+        <code>getIndex</code> method. The second parameter is optional and takes the index-name if it doesn't default
+            to the simple domain class name. It returns the Index implementation that is provided by Neo4j.
+            <programlisting language="java"><![CDATA[
+@Autowired GraphDatabaseContext gdc;
+
+// exact index
+Index<Node> personIndex=gdc.getIndex(Person.class,null);
+personIndex.add(node,"name","Mark");
+
+Index<Node> namedPersonIndex=gdc.getIndex(Person.class,"people");
+namedPersonIndex.get("name","Mark");
+
+// complex range & sort query
+namedPersonIndex.query( new QueryContext( NumericRangeQuery.newÍntRange( "age", 20, 40, true, true ) )
+                        .sort( new Sort( new SortField( "age", SortField.INT, false ) ) ) );
+
+// fulltext index
+Index<Node> personFulltextIndex=gdc.getIndex(Person.class,"person-name",true);
+namedPersonIndex.query("name","Ma*");
+namedPersonIndex.query("{name:Ma*}");
+
+            ]]></programlisting>
+
+        </para>
+    </section>
+    <section>
+        <title>Indexing in Neo4jTemplate</title>
+        <para>
+            Neo4jTemplate also offers index support, providing auto-indexing for fields at creation time of nodes and
+            relationships. There is an <code>autoIndex</code> method that can also add indexes for a set of fields in one
+            go.
+        </para>
+        <para>
+            For querying the index, the template offers query-methods that take either the exact match parameters or a query
+            object / query expression and push the results wrapped uniformly as Paths to the supplied
+            <code>PathMapper</code> to be converted or collected.
+        </para>
+    </section>
 </section>

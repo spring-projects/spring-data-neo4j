@@ -3,6 +3,77 @@
 <chapter id="reference_neo4j-server">
     <title>Neo4j Server</title>
     <para>
-        ...
+        Neo4j is not only available in embedded mode, it can also be installed and run as a server that is accessed
+        via a REST API. Spring Data Graph provides two-fold integration for infrastructure.
     </para>
+    <section>
+        <title>Server Extension</title>
+        <para>
+            What is the use-case for writing server extensions? The REST API is a pretty generic representation of the
+            Neo4j core API. It is nice for getting started and simple scenarios. For more involved solutions that require
+            high speed and high volume access to the embedded graph database, writing a server extension that is able to
+            process external parameters and return just the relevant information to the calling client is preferrable.
+        </para>
+        <para>
+            The Neo4j server has two built in extension mechanisms.
+            It is possible to add extensions to existing endpoints
+            like the graph database, nodes or relationships - add new URIs or methods to those. This is achieved by
+            writing <ulink url="http://docs.neo4j.org/chunked/milestone/server-plugins.html">Server Plugins</ulink>.
+        </para>
+        <para>
+            For complete freedom in your implementation an <ulink
+                url="http://docs.neo4j.org/chunked/milestone/server-unmanaged-extensions.html">unmanaged extension</ulink>
+            might be the right solution. Unmanaged
+            extensions are <ulink url="http://jersey.java.net/">jersey</ulink> resource implementations.
+            The resources constructors or methods can get the <code>GraphDatabaseService</code> injected to execute the 
+            necessary operations and return appropriate Representations.   
+        </para>
+        <para>
+            Both kinds of extensions have to be packaged as a jar and added to the Neo4j-Server's plugin directory.
+            Server Plugins are picked up at server startup when they provide the necessary 
+            <code>META-INF.services/org.neo4j.server.plugins.ServerPlugin</code> file for Javas service loader mechanism.
+            Unmanaged extensions have to be registered with the neo4j-server configuration.
+            <programlisting language="ini"><![CDATA[
+org.neo4j.server.thirdparty_jaxrs_classes=com.example.mypackage=/my-context
+        ]]></programlisting>
+        </para>
+        <para>
+            Integrating Spring Data Graph into this setup is not so trivial because the graph database is not created
+            by the spring context but already provided by the Neo4j-server. But a correctly set up and loaded
+            spring context ist the requirement for spring data graph to work. By using the lifecycle support of
+            Neo4j server extendsions it is possible to register the provided graph database with the
+            spring configuration and also to expose certain spring beans (e.g. finderFactory, graphDatabaseContext) to be
+            injected via jersey into subsequent resources.
+        </para>
+        <para>
+            This can be achieved by subclassing SpringPluginInitializer and providing the context-locations and the
+            beans that should be exposed. The <code>SpringPluginInitializer</code> merges the graph database service
+            with the spring configuration and registers the named beans as jersey Injectables.
+        <programlisting language="java"><![CDATA[
+public class HelloWorldInitializer extends SpringPluginInitializer {
+    public HelloWorldInitializer() {
+        super(new String[]{"spring/helloWorldServer-Context.xml"}, "worldRepository","finderFactory");
+    }
+}
+    ]]></programlisting>
+            It is still necessary to list the initializer fully qualified class name in a
+            file named META-INF/services/org.neo4j.server.plugins.PluginLifecycle. Then the Neo4j Server can pick up
+            and run the initialization classes before the the extensions are loaded.
+    </para>
+
+    </section>
+    <section>
+        <title>Using Spring Data Graph as a REST-Client</title>
+        <para>
+            Spring Data Graph can use the Java Rest Bindings which come as a drop in replacement for the
+            GraphDatabaseService API. Just by configuring the <code>graphDatabaseService</code> to be a
+            <code>RestGraphDatabaseService</code> pointing to the correct URL, a Neo4j-REST server can be used.
+        </para>
+        <note>
+            <para>
+                The Java REST Driver is still under development, so performance and functionality might not be en
+                par with Spring Data Graph.
+            </para>
+        </note>
+    </section>
 </chapter>
