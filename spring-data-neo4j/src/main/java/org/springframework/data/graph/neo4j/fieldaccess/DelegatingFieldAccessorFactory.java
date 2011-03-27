@@ -73,8 +73,7 @@ public abstract class DelegatingFieldAccessorFactory<T> implements FieldAccessor
                 return (FieldAccessorFactory<E>) fieldAccessorFactory;
             }
         }
-        //throw new RuntimeException("No FieldAccessor configured for field: " + field);
-        if (log.isInfoEnabled()) log.info("No FieldAccessor configured for field: " + field);
+        if (log.isWarnEnabled()) log.warn("No FieldAccessor configured for field: " + field);
         return null;
     }
 

@@ -24,6 +24,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.convert.ConversionService;
 import org.springframework.data.graph.core.NodeBacked;
 import org.springframework.data.graph.neo4j.fieldaccess.Neo4jConversionServiceFactoryBean;
 import org.springframework.data.graph.neo4j.fieldaccess.NodeDelegatingFieldAccessorFactory;
@@ -92,7 +93,7 @@ public class Neo4jConfiguration {
 		gdc.setRelationshipEntityInstantiator(graphRelationshipInstantiator());
 		EntityInstantiator<NodeBacked, Node> graphEntityInstantiator = graphEntityInstantiator();
 		gdc.setGraphEntityInstantiator(graphEntityInstantiator);
-		gdc.setConversionService(new Neo4jConversionServiceFactoryBean().getObject());
+		gdc.setConversionService(conversionService());
         NodeTypeStrategyFactoryBean nodeTypeStrategyFactoryBean = new NodeTypeStrategyFactoryBean(graphDatabaseService, graphEntityInstantiator);
         gdc.setNodeTypeStrategy(nodeTypeStrategyFactoryBean.getObject());
         if (validator!=null) {
@@ -100,6 +101,11 @@ public class Neo4jConfiguration {
         }
 		return gdc;
 	}
+
+    @Bean
+    protected ConversionService conversionService() throws Exception {
+        return new Neo4jConversionServiceFactoryBean().getObject();
+    }
 
     @Bean
     protected ConstructorBypassingGraphRelationshipInstantiator graphRelationshipInstantiator() {
