@@ -8,7 +8,6 @@ import org.neo4j.rest.graphdb.JsonHelper;
 import org.neo4j.rest.graphdb.RestEntity;
 import org.neo4j.rest.graphdb.RestGraphDatabase;
 import org.neo4j.rest.graphdb.RestRequest;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import javax.ws.rs.core.Response;
 import java.util.Collection;
@@ -75,12 +74,12 @@ public abstract class RestIndex<T extends PropertyContainer> implements Index<T>
         restRequest.delete( indexPath( ));
     }
 
-    public org.neo4j.graphdb.index.IndexHits<T> get( String key, Object value ) {
+    public IndexHits<T> get( String key, Object value ) {
         return query( key, value );
     }
 
     public IndexHits<T> query( String key, Object value ) {
-        ClientResponse response = restRequest.get( indexPath( key, value ) );
+        ClientResponse response = restRequest.get( indexPath( key ) + "?query=" +  RestRequest.encode( value ) );
         if ( restRequest.statusIs( response, Response.Status.OK ) ) {
             Collection hits = (Collection) restRequest.toEntity( response );
             return new SimpleIndexHits<T>( hits, hits.size() );
@@ -91,7 +90,7 @@ public abstract class RestIndex<T extends PropertyContainer> implements Index<T>
 
     protected abstract T createEntity( Map<?, ?> item );
 
-    public org.neo4j.graphdb.index.IndexHits<T> query( Object value ) {
+    public IndexHits<T> query( Object value ) {
         throw new UnsupportedOperationException();
     }
 

@@ -82,7 +82,7 @@ public abstract class AbstractFinder<S extends PropertyContainer, T extends Grap
     private IndexHits<S> getIndexHits(String indexName, String property, Object value) {
         if (value instanceof Number) {
             Number number = (Number) value;
-            return getIndex(indexName).query(createInclusiveRangeQuery(property, number,number));
+            return getIndex(indexName).query(property, createInclusiveRangeQuery(property, number,number));
         }
         return getIndex(indexName).get(property, value);
     }
