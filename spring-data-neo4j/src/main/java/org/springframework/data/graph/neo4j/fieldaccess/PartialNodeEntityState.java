@@ -165,6 +165,6 @@ public class PartialNodeEntityState<ENTITY extends NodeBacked> extends DefaultEn
     }
 
     public Object getId(final Object entity) {
-        return persistenceUnitUtil.getIdentifier(entity);
+        return persistenceUnitUtil!=null ? persistenceUnitUtil.getIdentifier(entity) : null;
     }
 }

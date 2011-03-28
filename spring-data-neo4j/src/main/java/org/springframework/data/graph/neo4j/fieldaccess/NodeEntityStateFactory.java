@@ -23,6 +23,7 @@ import org.springframework.data.graph.neo4j.finder.FinderFactory;
 import org.springframework.data.graph.neo4j.support.GraphDatabaseContext;
 
 import javax.persistence.EntityManagerFactory;
+import javax.persistence.PersistenceUnitUtil;
 
 public class NodeEntityStateFactory {
 
@@ -37,7 +38,7 @@ public class NodeEntityStateFactory {
 	public EntityState<NodeBacked,Node> getEntityState(final NodeBacked entity) {
         final NodeEntity graphEntityAnnotation = entity.getClass().getAnnotation(NodeEntity.class); // todo cache ??
         if (graphEntityAnnotation.partial()) {
-            final PartialNodeEntityState<NodeBacked> partialNodeEntityState = new PartialNodeEntityState<NodeBacked>(null, entity, entity.getClass(), graphDatabaseContext, finderFactory,entityManagerFactory.getPersistenceUnitUtil());
+            final PartialNodeEntityState<NodeBacked> partialNodeEntityState = new PartialNodeEntityState<NodeBacked>(null, entity, entity.getClass(), graphDatabaseContext, finderFactory, getPersistenceUnitUtils());
             return new DetachedEntityState<NodeBacked, Node>(partialNodeEntityState, graphDatabaseContext) {
                 @Override
                 protected boolean isDetached() {
@@ -51,7 +52,12 @@ public class NodeEntityStateFactory {
         }
     }
 
-	public void setNodeDelegatingFieldAccessorFactory(
+    private PersistenceUnitUtil getPersistenceUnitUtils() {
+        if (entityManagerFactory == null) return null;
+        return entityManagerFactory.getPersistenceUnitUtil();
+    }
+
+    public void setNodeDelegatingFieldAccessorFactory(
 			NodeDelegatingFieldAccessorFactory nodeDelegatingFieldAccessorFactory) {
 		this.nodeDelegatingFieldAccessorFactory = nodeDelegatingFieldAccessorFactory;
 	}
