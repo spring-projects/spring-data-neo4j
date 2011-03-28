@@ -1,6 +1,5 @@
 package org.neo4j.rest.graphdb;
 
-import com.sun.jersey.api.NotFoundException;
 import com.sun.jersey.api.client.ClientResponse;
 import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.event.KernelEventHandler;
