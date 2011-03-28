@@ -29,7 +29,7 @@ import java.lang.reflect.Field;
  * @author Michael Hunger
  * @since 12.09.2010
  */
-abstract class NodeRelationshipFieldAccessorFactory implements FieldAccessorFactory<NodeBacked> {
+public abstract class NodeRelationshipFieldAccessorFactory implements FieldAccessorFactory<NodeBacked> {
 
     protected GraphDatabaseContext graphDatabaseContext;
     

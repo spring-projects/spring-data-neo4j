@@ -43,7 +43,7 @@ public class RelationshipEntityState<ENTITY extends RelationshipBacked> extends 
                 return Arrays.<FieldAccessorListenerFactory<?>>asList(
                         new IndexingPropertyFieldAccessorListenerFactory(
                 		graphDatabaseContext,
-                		new PropertyFieldAccessorFactory(),
+                		new PropertyFieldAccessorFactory(graphDatabaseContext.getConversionService()),
                 		new ConvertingNodePropertyFieldAccessorFactory(graphDatabaseContext.getConversionService())
                 ));
             }
@@ -53,7 +53,7 @@ public class RelationshipEntityState<ENTITY extends RelationshipBacked> extends 
                 return Arrays.<FieldAccessorFactory<?>>asList(
                         new TransientFieldAccessorFactory(),
                         new RelationshipNodeFieldAccessorFactory(graphDatabaseContext),
-                        new PropertyFieldAccessorFactory(),
+                        new PropertyFieldAccessorFactory(graphDatabaseContext.getConversionService()),
                         new ConvertingNodePropertyFieldAccessorFactory(graphDatabaseContext.getConversionService())
                 );
             }

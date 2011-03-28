@@ -17,6 +17,7 @@
 package org.springframework.data.graph.neo4j.fieldaccess;
 
 import org.neo4j.graphdb.PropertyContainer;
+import org.springframework.core.convert.ConversionService;
 import org.springframework.data.graph.core.GraphBacked;
 
 import java.lang.reflect.Field;
@@ -28,6 +29,13 @@ import static org.springframework.data.graph.neo4j.fieldaccess.DoReturn.doReturn
  * @since 12.09.2010
  */
 public class PropertyFieldAccessorFactory implements FieldAccessorFactory<GraphBacked<PropertyContainer>> {
+
+    private final ConversionService conversionService;
+
+    public PropertyFieldAccessorFactory(ConversionService conversionService) {
+        this.conversionService = conversionService;
+    }
+
     @Override
     public boolean accept(final Field f) {
         return isNeo4jPropertyType(f.getType());
@@ -35,7 +43,7 @@ public class PropertyFieldAccessorFactory implements FieldAccessorFactory<GraphB
 
     @Override
     public FieldAccessor<GraphBacked<PropertyContainer>> forField(final Field field) {
-        return new PropertyFieldAccessor(field);
+        return new PropertyFieldAccessor(field,conversionService);
     }
 
     private boolean isNeo4jPropertyType(final Class<?> fieldType) {
@@ -50,9 +58,11 @@ public class PropertyFieldAccessorFactory implements FieldAccessorFactory<GraphB
 
     public static class PropertyFieldAccessor implements FieldAccessor<GraphBacked<PropertyContainer>> {
         protected final Field field;
+        private final ConversionService conversionService;
 
-        public PropertyFieldAccessor(final Field field) {
+        public PropertyFieldAccessor(final Field field, ConversionService conversionService) {
             this.field = field;
+            this.conversionService = conversionService;
         }
 
         @Override
@@ -77,7 +87,13 @@ public class PropertyFieldAccessorFactory implements FieldAccessorFactory<GraphB
         }
 
         protected Object doGetValue(final GraphBacked<PropertyContainer> graphBacked) {
-            return graphBacked.getPersistentState().getProperty(getPropertyName(), getDefaultValue(field.getType()));
+            Class<?> type = field.getType();
+            Object value = graphBacked.getPersistentState().getProperty(getPropertyName(), getDefaultValue(type));
+            if (value == null || type.isInstance(value)) return value;
+            if (conversionService!=null) {
+                return conversionService.convert(value,type);
+            }
+            return value;
         }
 
         private String getPropertyName() {

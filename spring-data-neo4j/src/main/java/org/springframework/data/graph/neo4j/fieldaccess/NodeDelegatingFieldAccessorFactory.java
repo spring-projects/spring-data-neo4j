@@ -38,7 +38,7 @@ public class NodeDelegatingFieldAccessorFactory extends DelegatingFieldAccessorF
         return Arrays.<FieldAccessorListenerFactory<?>>asList(
                 new IndexingPropertyFieldAccessorListenerFactory(
                 		graphDatabaseContext,
-                		new PropertyFieldAccessorFactory(), 
+                		new PropertyFieldAccessorFactory(graphDatabaseContext.getConversionService()),
                 		new ConvertingNodePropertyFieldAccessorFactory(graphDatabaseContext.getConversionService())),
                 new ValidatingNodePropertyFieldAccessorListenerFactory(graphDatabaseContext)
         );
@@ -49,7 +49,7 @@ public class NodeDelegatingFieldAccessorFactory extends DelegatingFieldAccessorF
         return Arrays.<FieldAccessorFactory<?>>asList(
                 new IdFieldAccessorFactory(),
                 new TransientFieldAccessorFactory(),
-                new PropertyFieldAccessorFactory(),
+                new PropertyFieldAccessorFactory(graphDatabaseContext.getConversionService()),
                 new ConvertingNodePropertyFieldAccessorFactory(graphDatabaseContext.getConversionService()),
                 new SingleRelationshipFieldAccessorFactory(graphDatabaseContext),
                 new OneToNRelationshipFieldAccessorFactory(graphDatabaseContext),

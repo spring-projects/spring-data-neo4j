@@ -35,7 +35,6 @@ public class ConvertingNodePropertyFieldAccessorFactory implements FieldAccessor
 	ConversionService conversionService;
 	
     public ConvertingNodePropertyFieldAccessorFactory(ConversionService conversionService) {
-		super();
 		this.conversionService = conversionService;
 	}
 
@@ -69,7 +68,7 @@ public class ConvertingNodePropertyFieldAccessorFactory implements FieldAccessor
         private final ConversionService conversionService;
 
         public ConvertingNodePropertyFieldAccessor(final Field field, final ConversionService conversionService) {
-            super(field);
+            super(field, conversionService);
             this.conversionService = conversionService;
         }
 

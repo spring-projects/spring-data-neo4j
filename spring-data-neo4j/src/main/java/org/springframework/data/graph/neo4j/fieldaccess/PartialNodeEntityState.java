@@ -92,7 +92,7 @@ public class PartialNodeEntityState<ENTITY extends NodeBacked> extends DefaultEn
             }
 
             private PropertyFieldAccessorFactory newPropertyFieldAccessorFactory() {
-                return new PropertyFieldAccessorFactory() {
+                return new PropertyFieldAccessorFactory(getGraphDatabaseContext().getConversionService()) {
                     @Override
                     public boolean accept(Field f) {
                         return f.isAnnotationPresent(GraphProperty.class) && super.accept(f);

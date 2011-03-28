@@ -59,12 +59,20 @@ import static org.springframework.data.graph.neo4j.Person.persistedPerson;
         p.setHeight((short)182);
         assertEquals("Michael", p.getPersistentState().getProperty("Person.name"));
         assertEquals(35, p.getPersistentState().getProperty("Person.age"));
-        assertEquals((short)182, p.getPersistentState().getProperty("Person.height"));
-        assertEquals((short)182, (short)p.getHeight());
+        assertEquals((Short)(short)182, p.getHeight());
     }
+
     @Test
     @Transactional
     public void testSetShortProperty() {
+        Person p = persistedPerson("Foo", 2);
+        p.setHeight((short)182);
+        assertEquals((Short)(short)182, p.getHeight());
+        assertEquals((short)182, p.getPersistentState().getProperty("Person.height"));
+    }
+    @Test
+    @Transactional
+    public void testSetShortNameProperty() {
         Group group = new Group().persist();
         group.setName("developers");
         assertEquals("developers", group.getPersistentState().getProperty("name"));
