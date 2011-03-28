@@ -3,18 +3,15 @@ package org.springframework.data.graph.neo4j.support;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.neo4j.helpers.collection.IteratorUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.graph.neo4j.Group;
+import org.springframework.data.graph.neo4j.GroupRepository;
 import org.springframework.data.graph.neo4j.Person;
-import static org.springframework.data.graph.neo4j.Person.persistedPerson;
-import org.springframework.data.graph.neo4j.finder.FinderFactory;
-import org.springframework.data.graph.neo4j.finder.NodeFinder;
+import org.springframework.data.graph.neo4j.PersonRepository;
 import org.springframework.data.graph.neo4j.support.node.Neo4jHelper;
-
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.transaction.BeforeTransaction;
@@ -25,6 +22,7 @@ import java.util.Collection;
 import java.util.HashSet;
 
 import static org.junit.Assert.assertEquals;
+import static org.springframework.data.graph.neo4j.Person.persistedPerson;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = {"classpath:org/springframework/data/graph/neo4j/support/Neo4jGraphPersistenceTest-context.xml"})
@@ -36,8 +34,10 @@ public class FinderTest {
 	@Autowired
 	private GraphDatabaseContext graphDatabaseContext;
 
-	@Autowired
-	private FinderFactory finderFactory;
+    @Autowired
+    private PersonRepository personRepository;
+    @Autowired
+    private GroupRepository groupRepository;
 
     @BeforeTransaction
     public void cleanDb() {
@@ -49,8 +49,7 @@ public class FinderTest {
     public void testFinderFindAll() {
         Person p1 = persistedPerson("Michael", 35);
         Person p2 = persistedPerson("David", 25);
-        NodeFinder<Person> finder = finderFactory.createNodeEntityFinder(Person.class);
-        Iterable<Person> allPersons = finder.findAll();
+        Iterable<Person> allPersons = personRepository.findAll();
         assertEquals(new HashSet<Person>(Arrays.asList(p1, p2)), IteratorUtil.addToCollection(allPersons.iterator(), new HashSet<Person>()));
     }
 
@@ -58,8 +57,7 @@ public class FinderTest {
     @Transactional
     public void testFinderFindById() {
         Person p = persistedPerson("Michael", 35);
-        NodeFinder<Person> finder = finderFactory.createNodeEntityFinder(Person.class);
-        Person pById = finder.findById(p.getNodeId());
+        Person pById = personRepository.findOne(p.getNodeId());
         assertEquals(p, pById);
     }
 
@@ -67,19 +65,18 @@ public class FinderTest {
     @Transactional
     public void testFinderFindByIdNonexistent() {
         Person p = persistedPerson("Michael", 35);
-        NodeFinder<Person> finder = finderFactory.createNodeEntityFinder(Person.class);
-        Person p2 = finder.findById(589736218);
+        Person p2 = personRepository.findOne(589736218L);
         Assert.assertNull(p2);
     }
 
     @Test
     @Transactional
     public void testFinderCount() {
-        NodeFinder<Person> finder = finderFactory.createNodeEntityFinder(Person.class);
-        assertEquals(0, finder.count());
+        assertEquals((Long)0L, personRepository.count());
         Person p = persistedPerson("Michael", 35);
-        assertEquals(1, finder.count());
+        assertEquals((Long)1L, personRepository.count());
     }
+
     @Test
 	@Transactional
 	public void testFindAllOnGroup() {
@@ -88,8 +85,7 @@ public class FinderTest {
         g.setName("test");
         Group g2 = new Group().persist();
         g.setName("test");
-        final NodeFinder<Group> finder = finderFactory.createNodeEntityFinder(Group.class);
-        Collection<Group> groups = IteratorUtil.addToCollection(finder.findAll().iterator(), new HashSet<Group>());
+        Collection<Group> groups = IteratorUtil.addToCollection(groupRepository.findAll().iterator(), new HashSet<Group>());
         Assert.assertEquals(2, groups.size());
 	    log.debug("FindAllOnGroup done");
 	}

@@ -1,18 +1,13 @@
 package org.springframework.data.graph.neo4j.config;
 
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.kernel.EmbeddedGraphDatabase;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Configurable;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.data.graph.neo4j.finder.FinderFactory;
+import org.springframework.data.graph.neo4j.repository.DirectGraphRepositoryFactory;
 import org.springframework.data.graph.neo4j.support.GraphDatabaseContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.PlatformTransactionManager;
 
 /**
@@ -26,7 +21,7 @@ public class DataGraphNamespaceHandlerTest {
         @Autowired
         GraphDatabaseService graphDatabaseService;
         @Autowired
-        FinderFactory finderFactory;
+        DirectGraphRepositoryFactory graphRepositoryFactory;
         @Autowired
         GraphDatabaseContext graphDatabaseContext;
         @Autowired
@@ -59,7 +54,7 @@ public class DataGraphNamespaceHandlerTest {
         Assert.assertNotNull("graphDatabaseContext", graphDatabaseContext);
         EmbeddedGraphDatabase graphDatabaseService = (EmbeddedGraphDatabase) graphDatabaseContext.getGraphDatabaseService();
         Assert.assertEquals("store-dir", "target/config-test", graphDatabaseService.getStoreDir());
-        Assert.assertNotNull("finderFactory",config.finderFactory);
+        Assert.assertNotNull("graphRepositoryFactory",config.graphRepositoryFactory);
         Assert.assertNotNull("graphDatabaseService",config.graphDatabaseService);
         Assert.assertNotNull("transactionManager",config.transactionManager);
         config.graphDatabaseService.shutdown();

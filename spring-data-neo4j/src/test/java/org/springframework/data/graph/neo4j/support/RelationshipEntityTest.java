@@ -2,7 +2,6 @@ package org.springframework.data.graph.neo4j.support;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.neo4j.graphdb.*;
@@ -11,7 +10,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.graph.neo4j.Friendship;
 import org.springframework.data.graph.neo4j.Person;
 import static org.springframework.data.graph.neo4j.Person.persistedPerson;
-import org.springframework.data.graph.neo4j.finder.FinderFactory;
+
+import org.springframework.data.graph.neo4j.repository.DirectGraphRepositoryFactory;
 import org.springframework.data.graph.neo4j.support.node.Neo4jHelper;
 
 import org.springframework.test.context.ContextConfiguration;
@@ -32,7 +32,7 @@ public class RelationshipEntityTest {
 	private GraphDatabaseContext graphDatabaseContext;
 
 	@Autowired
-	private FinderFactory finderFactory;
+	private DirectGraphRepositoryFactory graphRepositoryFactory;
 
     @BeforeTransaction
     public void cleanDb() {

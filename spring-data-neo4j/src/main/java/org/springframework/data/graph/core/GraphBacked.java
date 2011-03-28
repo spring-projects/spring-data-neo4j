@@ -35,4 +35,8 @@ public interface GraphBacked<STATE> {
      * @return the underlying graph-db state or null if the current entity is not related to the graph-store (possible with unsaved or partial entities)
      */
     STATE getPersistentState();
+
+    boolean hasPersistentState();
+
+    void remove();
 }

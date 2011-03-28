@@ -17,9 +17,9 @@
 package org.springframework.data.graph.neo4j.jpa;
 
 import org.springframework.data.graph.core.NodeBacked;
-import org.springframework.data.graph.neo4j.finder.Finder;
-import org.springframework.data.graph.neo4j.finder.FinderFactory;
-import org.springframework.data.graph.neo4j.finder.NodeFinder;
+import org.springframework.data.graph.neo4j.repository.GraphRepository;
+import org.springframework.data.graph.neo4j.repository.DirectGraphRepositoryFactory;
+import org.springframework.data.graph.neo4j.repository.NodeGraphRepository;
 import org.springframework.data.graph.neo4j.support.Tuple2;
 
 import javax.persistence.*;
@@ -39,7 +39,7 @@ import static org.springframework.util.ObjectUtils.nullSafeEquals;
 public class Neo4JQuery<T> implements TypedQuery<T> {
     protected final Class<T> resultClass;
     protected final String qlString;
-    private final FinderFactory finderFactory;
+    private final DirectGraphRepositoryFactory graphRepositoryFactory;
     private final PersistenceUnitInfo info;
     private final Pattern fromPattern = Pattern.compile("^.*\\bfrom\\s+([A-Z][A-Za-z0-9]+)\\b.*");
     private int startPosition = 0;
@@ -47,38 +47,38 @@ public class Neo4JQuery<T> implements TypedQuery<T> {
     private QueryExecutor<?> queryExecutor;
     private Map<Parameter<?>, Tuple2<?, TemporalType>> parameters = new HashMap<Parameter<?>, Tuple2<?, TemporalType>>();
 
-    public Neo4JQuery(final String qlString, final FinderFactory finderFactory, final PersistenceUnitInfo info, Class<T> resultClass) {
+    public Neo4JQuery(final String qlString, final DirectGraphRepositoryFactory graphRepositoryFactory, final PersistenceUnitInfo info, Class<T> resultClass) {
         this.qlString = qlString;
-        this.finderFactory = finderFactory;
+        this.graphRepositoryFactory = graphRepositoryFactory;
         this.info = info;
         this.resultClass = resultClass;
         queryExecutor = createExecutor(qlString);
     }
 
     private QueryExecutor<T> createExecutor(final String qlString) {
-        final Finder<?,?> finder = getFinderFromQuery(qlString);
+        final GraphRepository<?,?> graphRepository = getFinderFromQuery(qlString);
         if (qlString.contains(" count(")) {
             return new QueryExecutor<T>() {
                 @Override
                 protected T findObject() {
-                    return (T)Long.valueOf(finder.count());
+                    return (T)Long.valueOf(graphRepository.count());
                 }
             };
         }
         return new QueryExecutor<T>() {
             @Override
             protected Iterable<T> findList() {
-                return (Iterable<T>) finder.findAll();
+                return (Iterable<T>) graphRepository.findAll();
             }
         };
     }
 
-    private NodeFinder<? extends NodeBacked> getFinderFromQuery(String qlString) {
+    private NodeGraphRepository<? extends NodeBacked> getFinderFromQuery(String qlString) {
         final Matcher matcher = fromPattern.matcher(qlString);
         if (!matcher.matches()) throw new IllegalAccessError("Unable to parse query " + qlString);
         final String shortName = matcher.group(1);
         final Class<? extends NodeBacked> entityClass = getEntityClass(shortName);
-        return finderFactory.createNodeEntityFinder(entityClass);
+        return graphRepositoryFactory.createNodeEntityRepository(entityClass);
     }
 
     abstract static class QueryExecutor<T> {

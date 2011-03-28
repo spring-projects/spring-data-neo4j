@@ -115,21 +115,21 @@
     	<property name="nodeDelegatingFieldAccessorFactory">
 		    <bean class="org.springframework.data.graph.neo4j.fieldaccess.NodeDelegatingFieldAccessorFactory">
 		        <constructor-arg ref="graphDatabaseContext"/>
-		   		<constructor-arg ref="finderFactory"/>
+		   		<constructor-arg ref="graphRepositoryFactory"/>
 		    </bean>
     	</property>
     	<property name="graphDatabaseContext" ref="graphDatabaseContext"/>
-		<property name="finderFactory" ref="finderFactory"/>
+		<property name="graphRepositoryFactory" ref="graphRepositoryFactory"/>
 		<property name="entityManagerFactory" ref="entityManagerFactory"/>
     </bean>
 
     <bean id="relationshipEntityStateFactory" class="org.springframework.data.graph.neo4j.fieldaccess.RelationshipEntityStateFactory">
     	<property name="graphDatabaseContext" ref="graphDatabaseContext"/>
-		<property name="finderFactory" ref="finderFactory"/>
+		<property name="graphRepositoryFactory" ref="graphRepositoryFactory"/>
     </bean>
     
 
-	<bean id="finderFactory" class="org.springframework.data.graph.neo4j.finder.FinderFactory">
+	<bean id="graphRepositoryFactory" class="org.springframework.data.graph.neo4j.repository.DirectGraphRepositoryFactory">
 		<constructor-arg ref="graphDatabaseContext" />
 	</bean>
 	

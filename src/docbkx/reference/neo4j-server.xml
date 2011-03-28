@@ -42,7 +42,7 @@ org.neo4j.server.thirdparty_jaxrs_classes=com.example.mypackage=/my-context
             by the spring context but already provided by the Neo4j-server. But a correctly set up and loaded
             spring context ist the requirement for spring data graph to work. By using the lifecycle support of
             Neo4j server extendsions it is possible to register the provided graph database with the
-            spring configuration and also to expose certain spring beans (e.g. finderFactory, graphDatabaseContext) to be
+            spring configuration and also to expose certain spring beans (e.g. graphRepositoryFactory, graphDatabaseContext) to be
             injected via jersey into subsequent resources.
         </para>
         <para>
@@ -52,7 +52,7 @@ org.neo4j.server.thirdparty_jaxrs_classes=com.example.mypackage=/my-context
         <programlisting language="java"><![CDATA[
 public class HelloWorldInitializer extends SpringPluginInitializer {
     public HelloWorldInitializer() {
-        super(new String[]{"spring/helloWorldServer-Context.xml"}, "worldRepository","finderFactory");
+        super(new String[]{"spring/helloWorldServer-Context.xml"}, "worldRepository","graphRepositoryFactory");
     }
 }
     ]]></programlisting>

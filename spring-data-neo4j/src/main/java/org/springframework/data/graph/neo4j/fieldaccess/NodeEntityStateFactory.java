@@ -19,7 +19,7 @@ package org.springframework.data.graph.neo4j.fieldaccess;
 import org.neo4j.graphdb.Node;
 import org.springframework.data.graph.annotation.NodeEntity;
 import org.springframework.data.graph.core.NodeBacked;
-import org.springframework.data.graph.neo4j.finder.FinderFactory;
+import org.springframework.data.graph.neo4j.repository.DirectGraphRepositoryFactory;
 import org.springframework.data.graph.neo4j.support.GraphDatabaseContext;
 
 import javax.persistence.EntityManagerFactory;
@@ -28,7 +28,7 @@ public class NodeEntityStateFactory {
 
 	private GraphDatabaseContext graphDatabaseContext;
 	
-	private FinderFactory finderFactory;
+	private DirectGraphRepositoryFactory graphRepositoryFactory;
 
     private EntityManagerFactory entityManagerFactory;
 
@@ -37,7 +37,7 @@ public class NodeEntityStateFactory {
 	public EntityState<NodeBacked,Node> getEntityState(final NodeBacked entity) {
         final NodeEntity graphEntityAnnotation = entity.getClass().getAnnotation(NodeEntity.class); // todo cache ??
         if (graphEntityAnnotation.partial()) {
-            final PartialNodeEntityState<NodeBacked> partialNodeEntityState = new PartialNodeEntityState<NodeBacked>(null, entity, entity.getClass(), graphDatabaseContext, finderFactory,entityManagerFactory.getPersistenceUnitUtil());
+            final PartialNodeEntityState<NodeBacked> partialNodeEntityState = new PartialNodeEntityState<NodeBacked>(null, entity, entity.getClass(), graphDatabaseContext, graphRepositoryFactory,entityManagerFactory!=null ? entityManagerFactory.getPersistenceUnitUtil() : null);
             return new DetachedEntityState<NodeBacked, Node>(partialNodeEntityState, graphDatabaseContext) {
                 @Override
                 protected boolean isDetached() {
@@ -60,8 +60,8 @@ public class NodeEntityStateFactory {
 		this.graphDatabaseContext = graphDatabaseContext;
 	}
 
-	public void setFinderFactory(FinderFactory finderFactory) {
-		this.finderFactory = finderFactory;
+	public void setGraphRepositoryFactory(DirectGraphRepositoryFactory graphRepositoryFactory) {
+		this.graphRepositoryFactory = graphRepositoryFactory;
 	}
 
     public void setEntityManagerFactory(EntityManagerFactory entityManagerFactory) {

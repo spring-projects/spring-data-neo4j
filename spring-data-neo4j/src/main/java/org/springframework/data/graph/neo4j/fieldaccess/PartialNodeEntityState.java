@@ -24,7 +24,7 @@ import org.springframework.dao.InvalidDataAccessResourceUsageException;
 import org.springframework.data.graph.annotation.GraphProperty;
 import org.springframework.data.graph.annotation.RelatedTo;
 import org.springframework.data.graph.core.NodeBacked;
-import org.springframework.data.graph.neo4j.finder.FinderFactory;
+import org.springframework.data.graph.neo4j.repository.DirectGraphRepositoryFactory;
 import org.springframework.data.graph.neo4j.support.GraphDatabaseContext;
 import org.springframework.data.persistence.StateProvider;
 
@@ -45,8 +45,8 @@ public class PartialNodeEntityState<ENTITY extends NodeBacked> extends DefaultEn
     private final GraphDatabaseContext graphDatabaseContext;
     private PersistenceUnitUtil persistenceUnitUtil;
 
-    public PartialNodeEntityState(final Node underlyingState, final ENTITY entity, final Class<? extends ENTITY> type, final GraphDatabaseContext graphDatabaseContext, final FinderFactory finderFactory, PersistenceUnitUtil persistenceUnitUtil) {
-    	super(underlyingState, entity, type, new DelegatingFieldAccessorFactory(graphDatabaseContext, finderFactory) {
+    public PartialNodeEntityState(final Node underlyingState, final ENTITY entity, final Class<? extends ENTITY> type, final GraphDatabaseContext graphDatabaseContext, final DirectGraphRepositoryFactory graphRepositoryFactory, PersistenceUnitUtil persistenceUnitUtil) {
+    	super(underlyingState, entity, type, new DelegatingFieldAccessorFactory(graphDatabaseContext, graphRepositoryFactory) {
         	
             @Override
             protected Collection<FieldAccessorListenerFactory<?>> createListenerFactories() {
@@ -78,7 +78,7 @@ public class PartialNodeEntityState<ENTITY extends NodeBacked> extends DefaultEn
                         },
                         new OneToNRelationshipFieldAccessorFactory(getGraphDatabaseContext()),
                         new ReadOnlyOneToNRelationshipFieldAccessorFactory(getGraphDatabaseContext()),
-                        new TraversalFieldAccessorFactory(finderFactory),
+                        new TraversalFieldAccessorFactory(this.graphRepositoryFactory),
                         new OneToNRelationshipEntityFieldAccessorFactory(getGraphDatabaseContext())
                 );
             }
@@ -165,6 +165,6 @@ public class PartialNodeEntityState<ENTITY extends NodeBacked> extends DefaultEn
     }
 
     public Object getId(final Object entity) {
-        return persistenceUnitUtil.getIdentifier(entity);
+        return persistenceUnitUtil!=null ? persistenceUnitUtil.getIdentifier(entity) : null;
     }
 }

@@ -90,12 +90,12 @@ in a separate applicationContext-security.xml. But first, as always, Maven and w
 @Service
 public class CineastsUserDetailsService implements UserDetailsService, InitializingBean {
 
-    @Autowired private FinderFactory finderFactory;
+    @Autowired private FinderFactory graphRepositoryFactory;
     private NodeFinder<User> userFinder;
 
     @Override
     public void afterPropertiesSet() throws Exception {
-        userFinder = finderFactory.createNodeEntityFinder(User.class);
+        userFinder = graphRepositoryFactory.createNodeEntityFinder(User.class);
     }
 
     @Override

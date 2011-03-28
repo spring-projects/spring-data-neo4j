@@ -10,8 +10,8 @@ import org.neo4j.graphdb.Transaction;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.graph.neo4j.Group;
 import org.springframework.data.graph.neo4j.Person;
-import org.springframework.data.graph.neo4j.finder.FinderFactory;
-import org.springframework.data.graph.neo4j.finder.NodeFinder;
+import org.springframework.data.graph.neo4j.repository.DirectGraphRepositoryFactory;
+import org.springframework.data.graph.neo4j.repository.NodeGraphRepository;
 import org.springframework.data.graph.neo4j.support.node.Neo4jHelper;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -32,7 +32,7 @@ import static org.springframework.data.graph.neo4j.Person.persistedPerson;
 	private GraphDatabaseContext graphDatabaseContext;
 
 	@Autowired
-	private FinderFactory finderFactory;
+	private DirectGraphRepositoryFactory graphRepositoryFactory;
 
     @BeforeTransaction
     public void cleanDb() {
@@ -81,7 +81,7 @@ import static org.springframework.data.graph.neo4j.Person.persistedPerson;
         tx.success();
         tx.finish();
         Assert.assertNull("spouse removed " + p.getSpouse(), p.getSpouse());
-        NodeFinder<Person> finder = finderFactory.createNodeEntityFinder(Person.class);
+        NodeGraphRepository<Person> finder = graphRepositoryFactory.createNodeEntityRepository(Person.class);
         Person spouseFromIndex = finder.findByPropertyValue(Person.NAME_INDEX, "name", "Tina");
         Assert.assertNull("spouse not found in index",spouseFromIndex);
         Assert.assertNull("node deleted " + id, graphDatabaseContext.getNodeById(id));
@@ -98,7 +98,7 @@ import static org.springframework.data.graph.neo4j.Person.persistedPerson;
         tx.success();
         tx.finish();
         Assert.assertNull("spouse removed " + p.getSpouse(), p.getSpouse());
-        NodeFinder<Person> finder = finderFactory.createNodeEntityFinder(Person.class);
+        NodeGraphRepository<Person> finder = graphRepositoryFactory.createNodeEntityRepository(Person.class);
         Person spouseFromIndex = finder.findByPropertyValue(Person.NAME_INDEX, "name", "Tina");
         Assert.assertNull("spouse not found in index", spouseFromIndex);
         Assert.assertNull("node deleted " + id, graphDatabaseContext.getNodeById(id));

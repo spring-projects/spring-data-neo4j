@@ -16,7 +16,7 @@
         The aspect introduces some internal fields and some public methods (<xref linkend="reference:programming-model:introduced-methods"/>)
         to the entities for accessing the backing
         state via <code>getPersistentState()</code> and creating relationships with <code>relateTo</code>
-        and retrieving relationship entities via <code>getRelationshipTo</code>. It also introduces finder methods like
+        and retrieving relationship entities via <code>getRelationshipTo</code>. It also introduces graphRepository methods like
         <code>find(Class&lt;? extends NodeEntity&gt;, TraversalDescription)</code>
         and equals and hashCode delegation.
     </para>

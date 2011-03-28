@@ -43,21 +43,21 @@
         The <code>Finder</code> instances are created via a FinderFactory to be bound to a concrete node or relationship entity class.
         The <code>FinderFactory</code> is configured in the Spring context and can be injected.
         <programlisting language="java"><![CDATA[
-NodeFinder<Person> finder = finderFactory.createNodeEntityFinder(Person.class);
+NodeFinder<Person> graphRepository = graphRepositoryFactory.createNodeEntityFinder(Person.class);
 
-Person dave=finder.findById(123);
+Person dave=graphRepository.findById(123);
 
-long numberOfPeople = finder.count();
+long numberOfPeople = graphRepository.count();
 
-Person mark = finder.findByPropertyValue(null,"name", "mark");
+Person mark = graphRepository.findByPropertyValue(null,"name", "mark");
 
-Iterable<Person> devs = finder.findAllByProperyValue(null, "occupation","developer");
+Iterable<Person> devs = graphRepository.findAllByProperyValue(null, "occupation","developer");
 
-Iterable<Person> middleAgedPeople = finder.findAllByRange(null, "age",20,40);
+Iterable<Person> middleAgedPeople = graphRepository.findAllByRange(null, "age",20,40);
 
-Iterable<Person> aTeam = finder.findAllByQuery(null, "name","A*");
+Iterable<Person> aTeam = graphRepository.findAllByQuery(null, "name","A*");
 
-Iterable<Person> davesFriends = finder.findAllByTraversal(dave,
+Iterable<Person> davesFriends = graphRepository.findAllByTraversal(dave,
     Traversal.description().pruneAfterDepth(1)
     .relationships(KNOWS).filter(returnAllButStartNode()));
 ]]></programlisting>

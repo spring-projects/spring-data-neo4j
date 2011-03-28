@@ -88,7 +88,7 @@ public aspect Neo4jRelationshipBacking {
 		return this.entityState!=null ? this.entityState.getPersistentState() : null;
 	}
 
-	public boolean RelationshipBacked.hasUnderlyingRelationship() {
+	public boolean RelationshipBacked.hasPersistentState() {
 		return this.entityState!=null && this.entityState.hasPersistentState();
 	}
 
@@ -96,7 +96,7 @@ public aspect Neo4jRelationshipBacking {
      * @return relationship id if there is an underlying relationship
      */
 	public Long RelationshipBacked.getRelationshipId() {
-        if (!hasUnderlyingRelationship()) return null;
+        if (!hasPersistentState()) return null;
 		return getPersistentState().getId();
 	}
 
@@ -107,7 +107,7 @@ public aspect Neo4jRelationshipBacking {
      */
 	public final boolean RelationshipBacked.equals(Object obj) {
 		if (this==obj) return true;
-        if (!hasUnderlyingRelationship()) return false;
+        if (!hasPersistentState()) return false;
         if (obj instanceof RelationshipBacked) {
 			return this.getPersistentState().equals(((RelationshipBacked) obj).getPersistentState());
 		}
@@ -118,7 +118,7 @@ public aspect Neo4jRelationshipBacking {
      * @return hashCode of the underlying relationship
      */
 	public final int RelationshipBacked.hashCode() {
-        if (!hasUnderlyingRelationship()) return System.identityHashCode(this);
+        if (!hasPersistentState()) return System.identityHashCode(this);
 		return getPersistentState().hashCode();
 	}
 

@@ -35,7 +35,7 @@ lucene we were delighted to see that fulltext indexes are supported out of the b
         </para>
         <para>
             We happily annotated the title field of my Movie class with @Index(fulltext=true) and was told with an exception that we have to specify a separate index name for that.
-So it became @Indexed(fulltext = true, indexName = "search"). The corresponding finder method is called findAllByQuery. So there was our second repository method for
+So it became @Indexed(fulltext = true, indexName = "search"). The corresponding graphRepository method is called findAllByQuery. So there was our second repository method for
 searching movies. To restrict the size of the returned set we just added a limit for now that truncates the result after so many entries.
         </para>
         <para>

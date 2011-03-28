@@ -2,7 +2,6 @@ package org.springframework.data.graph.neo4j.support;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.neo4j.graphdb.DynamicRelationshipType;
@@ -13,8 +12,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.graph.neo4j.Group;
 import org.springframework.data.graph.neo4j.Person;
 import static org.springframework.data.graph.neo4j.Person.persistedPerson;
-import org.springframework.data.graph.neo4j.finder.FinderFactory;
-import org.springframework.data.graph.neo4j.finder.NodeFinder;
+
+import org.springframework.data.graph.neo4j.repository.DirectGraphRepositoryFactory;
+import org.springframework.data.graph.neo4j.repository.NodeGraphRepository;
 import org.springframework.data.graph.neo4j.support.node.Neo4jHelper;
 
 import org.springframework.test.annotation.Rollback;
@@ -39,7 +39,7 @@ public class TraversalTest {
 	private GraphDatabaseContext graphDatabaseContext;
 
 	@Autowired
-	private FinderFactory finderFactory;
+	private DirectGraphRepositoryFactory graphRepositoryFactory;
 
     @BeforeTransaction
     public void cleanDb() {
@@ -81,7 +81,7 @@ public class TraversalTest {
     @Test
     @Transactional
     public void testTraverseFromGroupToPeopleWithFinder() {
-        final NodeFinder<Person> finder = finderFactory.createNodeEntityFinder(Person.class);
+        final NodeGraphRepository<Person> finder = graphRepositoryFactory.createNodeEntityRepository(Person.class);
         Person p = persistedPerson("Michael", 35);
         Group group = new Group().persist();
         group.setName("dev");

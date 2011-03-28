@@ -8,7 +8,7 @@ import org.neo4j.graphdb.Node;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.graph.core.NodeBacked;
 import org.springframework.data.graph.neo4j.Developer;
-import org.springframework.data.graph.neo4j.finder.FinderFactory;
+import org.springframework.data.graph.neo4j.repository.DirectGraphRepositoryFactory;
 
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -25,18 +25,18 @@ public class AttachEntityTest {
     protected final Log log = LogFactory.getLog(getClass());
 
     @Autowired
-    private FinderFactory finderFactory;
+    private DirectGraphRepositoryFactory graphRepositoryFactory;
 
     @Test
     @Transactional
     public void entityShouldHaveNoNode() {
         Developer dev = new Developer("Michael");
-        assertFalse(hasUnderlyingNode(dev));
+        assertFalse(hasPersistentState(dev));
         assertNull(nodeFor(dev));
     }
 
-    private boolean hasUnderlyingNode(NodeBacked nodeBacked) {
-        return nodeBacked.hasUnderlyingNode();
+    private boolean hasPersistentState(NodeBacked nodeBacked) {
+        return nodeBacked.hasPersistentState();
     }
 
     private Node nodeFor(NodeBacked nodeBacked) {

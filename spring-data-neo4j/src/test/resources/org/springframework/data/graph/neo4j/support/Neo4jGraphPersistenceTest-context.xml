@@ -109,19 +109,19 @@
     	<property name="nodeDelegatingFieldAccessorFactory">
 		    <bean class="org.springframework.data.graph.neo4j.fieldaccess.NodeDelegatingFieldAccessorFactory">
 		        <constructor-arg ref="graphDatabaseContext"/>
-		   		<constructor-arg ref="finderFactory"/>
+		   		<constructor-arg ref="graphRepositoryFactory"/>
 		    </bean>
     	</property>
     	<property name="graphDatabaseContext" ref="graphDatabaseContext"/>
-		<property name="finderFactory" ref="finderFactory"/>
+		<property name="graphRepositoryFactory" ref="graphRepositoryFactory"/>
     </bean>
 
     <bean id="relationshipEntityStateFactory" class="org.springframework.data.graph.neo4j.fieldaccess.RelationshipEntityStateFactory">
     	<property name="graphDatabaseContext" ref="graphDatabaseContext"/>
-		<property name="finderFactory" ref="finderFactory"/>
+		<property name="graphRepositoryFactory" ref="graphRepositoryFactory"/>
     </bean>
 
-	<bean id="finderFactory" class="org.springframework.data.graph.neo4j.finder.FinderFactory">
+	<bean id="graphRepositoryFactory" class="org.springframework.data.graph.neo4j.repository.DirectGraphRepositoryFactory">
 		<constructor-arg ref="graphDatabaseContext" />
 	</bean>
 
@@ -139,4 +139,21 @@
     </bean>
 
     <tx:annotation-driven mode="aspectj" transaction-manager="transactionManager"/>
+
+    <bean id="personRepository" class="org.springframework.data.graph.neo4j.repository.GraphRepositoryFactoryBean">
+        <property name="repositoryInterface" value="org.springframework.data.graph.neo4j.PersonRepository" />
+        <property name="graphDatabaseContext" ref="graphDatabaseContext"/>
+    </bean>
+    <bean id="groupRepository" class="org.springframework.data.graph.neo4j.repository.GraphRepositoryFactoryBean">
+        <property name="repositoryInterface" value="org.springframework.data.graph.neo4j.GroupRepository" />
+        <property name="graphDatabaseContext" ref="graphDatabaseContext"/>
+    </bean>
+
+    <!-- Adds transaparent exception translation to the DAOs -->
+    <bean class="org.springframework.dao.annotation.PersistenceExceptionTranslationPostProcessor" />
+
+    <!-- Adds dependency checks for setters annotated with @Required -->
+    <bean class="org.springframework.beans.factory.annotation.RequiredAnnotationBeanPostProcessor" />
+
+    <bean class="org.springframework.data.graph.neo4j.template.Neo4jExceptionTranslator"/>
 </beans>

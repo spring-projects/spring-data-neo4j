@@ -1,4 +1,4 @@
-package org.springframework.data.graph.neo4j.finder;
+package org.springframework.data.graph.neo4j.repository;
 
 import org.neo4j.graphdb.PropertyContainer;
 import org.neo4j.graphdb.traversal.TraversalDescription;
@@ -7,21 +7,9 @@ import org.springframework.data.graph.core.NodeBacked;
 
 /**
  * @author mh
- * @since 12.01.11
+ * @since 29.03.11
  */
-public interface Finder<S extends PropertyContainer,T extends GraphBacked<S>> {
-    long count();
-
-    Iterable<T> findAll();
-
-    T findById(long id);
-
-    T findByPropertyValue(String indexName, String property, Object value);
-
-    Iterable<T> findAllByPropertyValue(String indexName, String property, Object value);
-    Iterable<T> findAllByQuery(final String indexName, String key, final Object query);
-    Iterable<T> findAllByRange(final String indexName, final String property, final Number from, final Number to);
-
+public interface TraversalQueryExecutor<S extends PropertyContainer,T extends GraphBacked<S>> {
     /**
      * Traversal based finder that returns a lazy Iterable over the traversal results
      *

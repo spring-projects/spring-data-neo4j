@@ -137,7 +137,7 @@ public aspect Neo4jNodeBacking { // extends AbstractTypeAnnotatingMixinFields<No
         return entityState;
     }
 
-    public boolean NodeBacked.hasUnderlyingNode() {
+    public boolean NodeBacked.hasPersistentState() {
         return this.entityState!=null && this.entityState.hasPersistentState();
     }
 
@@ -175,7 +175,7 @@ public aspect Neo4jNodeBacking { // extends AbstractTypeAnnotatingMixinFields<No
      * @return node id or null if there is no underlying state
      */
 	public Long NodeBacked.getNodeId() {
-        if (!hasUnderlyingNode()) return null;
+        if (!hasPersistentState()) return null;
 		return getPersistentState().getId();
 	}
 
@@ -187,7 +187,7 @@ public aspect Neo4jNodeBacking { // extends AbstractTypeAnnotatingMixinFields<No
      * @return lazy Iterable over the traversal results, converted to the expected node entity instances
      */
     public  <T extends NodeBacked> Iterable<T> NodeBacked.findAllByTraversal(final Class<T> targetType, TraversalDescription traversalDescription) {
-        if (!hasUnderlyingNode()) throw new IllegalStateException("No node attached to " + this);
+        if (!hasPersistentState()) throw new IllegalStateException("No node attached to " + this);
         final Traverser traverser = traversalDescription.traverse(this.getPersistentState());
         return new NodeBackedNodeIterableWrapper<T>(traverser, targetType, Neo4jNodeBacking.aspectOf().graphDatabaseContext);
     }
@@ -271,7 +271,7 @@ public aspect Neo4jNodeBacking { // extends AbstractTypeAnnotatingMixinFields<No
      */
 	public final boolean NodeBacked.equals(Object obj) {
         if (obj == this) return true;
-        if (!hasUnderlyingNode()) return false;
+        if (!hasPersistentState()) return false;
 		if (obj instanceof NodeBacked) {
 			return this.getPersistentState().equals(((NodeBacked) obj).getPersistentState());
 		}
@@ -282,7 +282,7 @@ public aspect Neo4jNodeBacking { // extends AbstractTypeAnnotatingMixinFields<No
      * @return result of the hashCode of the underlying node (if any, otherwise identityHashCode)
      */
 	public final int NodeBacked.hashCode() {
-        if (!hasUnderlyingNode()) return System.identityHashCode(this);
+        if (!hasPersistentState()) return System.identityHashCode(this);
 		return getPersistentState().hashCode();
 	}
 
