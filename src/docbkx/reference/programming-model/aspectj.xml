@@ -2,24 +2,28 @@
 <!DOCTYPE section PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
 <section>
     <title>Overview of the AspectJ support</title>
-    <para>Behind the scenes Spring Data Graph leverages AspectJ aspects to modify the behavior of simple POJO entities
-        to be
-        able to be backed by a graph store. Each entity is backed by a node that holds its properties and
-        relationships to other entities. AspectJ is used to intercept field access and to reroute it to the backing
-        state (either its properties or relationships). For relationship entities the fields are similarly mapped to
-        properties. There are two specially annotated fields for the start and the end node of the relationship.
+    <para>Behind the scenes Spring Data Graph leverages <ulink url="http://www.eclipse.org/aspectj/">AspectJ</ulink>
+        (<xref linkend="reference_aspectj-intro"/>)
+        aspects to modify the behavior of simple POJO entities to be able to be backed by a graph store.
+        Each node entity is backed by a graph node that holds its properties and relationships to other entities.
+        AspectJ is used to intercept field access and to retrieve the information from the backing node
+        (either its properties or relationships or dynamic traversals starting from the node).
+
+        For relationship entities the fields are similarly mapped to properties.
+        There are two specially annotated fields for the start and the end node of the relationship.
     </para>
     <para>
-        The aspect introduces some internal fields and some public methods to the entities for accessing the backing
+        The aspect introduces some internal fields and some public methods (<xref linkend="reference:programming-model:introduced-methods"/>)
+        to the entities for accessing the backing
         state via <code>getPersistentState()</code> and creating relationships with <code>relateTo</code>
-        and retrieving relationship entities via<code>getRelationshipTo</code>. It also introduces finder methods like
+        and retrieving relationship entities via <code>getRelationshipTo</code>. It also introduces finder methods like
         <code>find(Class&lt;? extends NodeEntity&gt;, TraversalDescription)</code>
         and equals and hashCode delegation.
     </para>
     <para>
-        Spring Data Graph internally uses an abstraction called EntityState that the field access and instantiation
+        Spring Data Graph internally uses an abstraction called <code>EntityState</code> that the field access and instantiation
         advices of the aspect delegate to, keeping the aspect code very small and focused to the pointcuts and
-        delegation code. The EntityState then uses a number of FieldAccessor factories to create a FieldAccessor
-        instance per field that does the specific handling needed for the concrete field.
+        delegation code. The <code>EntityState</code> then uses a number of <code>FieldAccessorFactories</code>
+        to create a <code>FieldAccessor</code> instance per field that does the specific handling needed for the concrete field type.
     </para>
 </section>

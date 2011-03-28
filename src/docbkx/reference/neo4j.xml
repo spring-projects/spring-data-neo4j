@@ -2,6 +2,25 @@
 <!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
 <chapter id="neo4j">
 	<title>Introduction to Neo4j</title>
+
+    <section>
+        <title>What is a graph database?</title>
+        <para>A graph database is a storage engine that is specialized in storing and retrieving vast networks of
+            data. It efficiently stores nodes and relationships and allows high performance traversal of those
+            structures. With property graphs it is possible to add an arbitrary number of properties to nodes
+            and relationships.</para>
+        <para>
+            Graph databases are well suited to model most kinds of domains. In almost all domains there are certain
+            things connected to other things. The classes of things are not the most important aspect, rather that each
+            invidual instance is represented correctly (with all its necessary properties) in the domain model. In most
+            other modelling approaches the relationships between things are reduced to a single link without identity
+            and attributes. Graph databases allow to keep the rich relationshiops that originate from the domain equally
+            well represented in the model without resorting to model relationships as "things". So there is no impedance
+            mismatch when putting real life domains into graph databases.
+        </para>
+    </section>
+    <section>
+        <title>About Neo4j</title>
 	<para>
   	    <ulink url="http://neo4j.org/">Neo4j</ulink> is a graph database. It is a fully ACID transactional database that
         stores data structured as graphs. A graph consists of nodes, connected by relationships. It is a flexible
@@ -32,28 +51,30 @@
         </itemizedlist>
     </para>
 	<para>
-    In addition, Neo4j includes the usual database features: ACID transactions, durable persistence,
+    In addition, Neo4j includes the usual database characteristics: ACID transactions, durable persistence,
     concurrency control, transaction recovery, high availability and everything else you’d expect from an
     enterprise database. Neo4j is released under a dual free software/commercial license model.</para>
-    <section>
-        <title>What is a graph database?</title>
-        <para>A graph database is a storage engine that is specialized in storing and retrieving vast networks of
-            data. It efficiently stores nodes and relationship and allows high performance traversal of those
-            structures. With property graphs it is possible to add an arbitrary number of properties to nodes
-            and relationships.</para>
     </section>
 	<section>
 		<title>GraphDatabaseService</title>
-		<para>The interface org.neo4j.graphdb.GraphDatabaseService provides access to the storage engine.  Its features include creating and retrieving Nodes and Relationships, managing indexes, via an IndexManager, database lifecycle callbacks, transation management and more.
+		<para>The interface org.neo4j.graphdb.GraphDatabaseService provides access to the storage engine.  Its features
+            include creating and retrieving Nodes and Relationships, managing indexes, via an IndexManager, database
+            lifecycle callbacks, transation management and more.
 		</para>
 		<para>
-			The EmbeddedGraphDatabaseService is an implementation of GraphDatabaseService that is used to embed Neo4j in a Java application.  This implmentation is used so as to provide the highest and tightest integration. There are other,
-			 remote implementations that provide access to Neo4j stores via REST.</para>
+			The EmbeddedGraphDatabaseService is an implementation of GraphDatabaseService that is used to embed Neo4j in
+            a Java application.  This implmentation is used so as to provide the highest and tightest integration. Besides
+            the embedded mode, the
+            <ulink url="http://wiki.neo4j.org/content/Getting_Started_With_Neo4j_Server">Neo4j server</ulink> provides
+            access to the graph database via a convenient REST-API.</para>
 	</section>
 	<section>
 		<title>Creating Nodes and Relationships</title>
-		<para>Using the API of GraphDatabaseService it is easy to create nodes and relate them to each other. Relationships are named. Both nodes and relationships can have properties. Property values can be primitive Java types and Strings, byte arrays for binary data, or arrays of other Java primitives or Strings.
-			Node creation and modification has to happen within a transaction, while reading from the graph store can be done with or without a transaction.
+		<para>Using the API of GraphDatabaseService it is easy to create nodes and relate them to each other. Relationships
+            are named. Both nodes and relationships can have properties. Property values can be primitive Java types and
+            Strings, byte arrays for binary data, or arrays of other Java primitives or Strings.
+			Node creation and modification has to happen within a transaction, while reading from the graph store can be
+            achieved with or without a transaction.
 			<programlisting language="java" ><![CDATA[
 GraphDatabaseService graphDb = new EmbeddedGraphDatabase( "helloworld" );
 Transaction tx = graphDb.beginTx();

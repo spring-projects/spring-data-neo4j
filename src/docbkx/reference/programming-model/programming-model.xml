@@ -17,6 +17,5 @@
     <xi:include href="nodetypestrategy.xml"/>
     <xi:include href="introducedmethods.xml"/>
     <xi:include href="projection.xml"/>
-    <xi:include href="neo4jtemplate.xml"/>
     <xi:include href="beanvalidation.xml"/>
 </chapter>

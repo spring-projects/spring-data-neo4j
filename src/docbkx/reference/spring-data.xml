@@ -3,6 +3,9 @@
 <chapter id="reference_spring-data">
     <title>Spring Data</title>
     <para>
-        ...
+        <ulink url="http://springsource.org/spring-data">Spring Data</ulink> is a SpringSource project that aims to
+        provide Spring's convenient programming model and well known conventions for NoSQL databases. Currently there
+        is support for Graph (e.g. Neo4j), Key-Value (e.g. Redis), Document (e.g. MongoDB) and Relational (e.g. Oracle)
+        databases. Mark Pollack, the author of Spring.NET is the project lead for the Spring Data project.
     </para>
 </chapter>

@@ -3,7 +3,7 @@
 <section>
     <title>Bean Validation - JSR-303</title>
     <para>
-        Spring Data Graph supports property based validation support. So whenever a property is changed, it is
+        Spring Data Graph supports property based validation support. So, whenever a property is changed, it is
         checked against the annotated constraints (.e.g @Min, @Max, @Size, etc).
         Validation errors throw a ValidationException. For evaluating the constraints the validation support that
         comes with Spring is used. To use it a validator has to be registered with the GraphDatabaseContext, if there

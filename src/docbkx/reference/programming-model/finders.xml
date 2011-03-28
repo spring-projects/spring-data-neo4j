@@ -2,49 +2,81 @@
 <!DOCTYPE section PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
 <section>
     <title>Finding nodes with finders</title>
-    <para>Spring Data Graph also comes with a type bound Repository-like
-        Finder implementation that provides methods for locating nodes
-        and relationships:
-        <itemizedlist>
-            <listitem>
-                <para>using direct access <code>findById(id)</code>,</para>
-            </listitem>
-            <listitem>
-                <para>iterating over all nodes of a node entity type (findAll),</para>
-            </listitem>
-            <listitem>
-                <para>counting the instances of a node entity type (count),</para>
-            </listitem>
-            <listitem>
-                <para>iterating over all indexed instances with a certain property value (findAllByPropertyValue),
-                </para>
-            </listitem>
-            <listitem>
-                <para>getting a single instance with a certain property value (findByPropertyValue),</para>
-            </listitem>
-            <listitem>
-                <para>iterating over all indexed instances within a certain numerical range (inclusive)
-                    (findAllByRange),
-                </para>
-            </listitem>
-            <listitem>
-                <para>iterating over a traversal result (findAllByTraversal).</para>
-            </listitem>
-        </itemizedlist>
-        The Finder instances are created via a FinderFactory to be bound to a
-        concrete node or relationship entity class.
-        The FinderFactory is created in the Spring context and can be
-        injected.
+    <para>Spring Data Graph also comes with a typed, repository-like Finder implementation that provides methods for
+        locating nodes and relationships. Those methods return instances of the node and relationship entities,
+        not the graph primitives from Neo4j. Finders delegate to the configured <code>NodeTypeStrategy</code> for type
+        based queries.
+        <variablelist>
+            <varlistentry>
+                <term>loading an instance via the Neo4j node id</term>
+                <listitem> <para> <code>T findById(id)</code></para> </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>iterating over all nodes of a node entity type</term>
+                <listitem> <para> <code>Iterable&lt;T&gt;findAll()</code> </para> </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>counting the instances of a node entity type</term>
+                <listitem> <para> <code>long count()</code> </para> </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>iterating over all indexed instances with a certain property value</term>
+                <listitem> <para> <code>Iterable&lt;T&gt; findAllByPropertyValue(indexName, keyName, value)</code> </para> </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>getting a single instance with a certain property value</term>
+                <listitem> <para> <code>T findByPropertyValue(indexName, keyName, value)</code> </para> </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>iterating over all indexed instances within a certain numerical range (inclusive)</term>
+                <listitem> <para> <code>Iterable&lt;T&gt; findAllByRange(indexName, keyName, from, to)</code> </para> </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>iterating over all indexed instances matching the given fulltext (or QueryContext query)</term>
+                <listitem> <para> <code>Iterable&lt;T&gt; findAllByQuery(indexName, keyName, queryOrQueryContext)</code> </para> </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>iterating over a traversal result</term>
+                <listitem> <para> <code>Iterable&lt;T&gt; findAllByTraversal(startNode, traversalDescription)</code> </para> </listitem>
+            </varlistentry>
+        </variablelist>
+        The <code>Finder</code> instances are created via a FinderFactory to be bound to a concrete node or relationship entity class.
+        The <code>FinderFactory</code> is configured in the Spring context and can be injected.
         <programlisting language="java"><![CDATA[
 NodeFinder<Person> finder = finderFactory.createNodeEntityFinder(Person.class);
+
 Person dave=finder.findById(123);
-int people = finder.count();
-Person mark = finder.findByPropertyValue("name", "mark");
-Iterable<Person> devs = finder.findAllByProperyValue("occupation","developer");
+
+long numberOfPeople = finder.count();
+
+Person mark = finder.findByPropertyValue(null,"name", "mark");
+
+Iterable<Person> devs = finder.findAllByProperyValue(null, "occupation","developer");
+
+Iterable<Person> middleAgedPeople = finder.findAllByRange(null, "age",20,40);
+
+Iterable<Person> aTeam = finder.findAllByQuery(null, "name","A*");
+
 Iterable<Person> davesFriends = finder.findAllByTraversal(dave,
     Traversal.description().pruneAfterDepth(1)
     .relationships(KNOWS).filter(returnAllButStartNode()));
-
 ]]></programlisting>
     </para>
+    <section>
+        <title>NodeTypeStrategies: Storing Type Information in the Graph</title>
+    <para>
+        Internally the mapping from java types to the graph is handled by a <code>NodeTypeStrategy</code> instance
+        that is configured with the <code>GraphDatabaseContext</code>. The strategy is called on entity creation and
+        removal and provides methods for retrieving entities based on type. It also comes with methods confirming or
+        retrieving java types from the actual graph node. (see also <xref linkend="nodetypestrategy"/>)
+    </para>
+    <para>
+        The default strategy (<code>IndexingNodeTypeStrategy</code>)
+        uses indexing (index "__types__") and node properties ("__type__") to store the type information in the graph.
+
+        The second strategy uses an in graph structure to represent the inheritance hierarchy links the actual node
+        entity nodes to their concrete class nodes. Instance counts are updated on each of the class nodes in the hierarchy.
+        The last provided strategy is a No-Op strategy that doesn't care about type information.
+    </para>
+    </section>
 </section>

@@ -5,7 +5,7 @@
 
     <para>
         The Neo4j graph database can use different index providers for exact lookups and fulltext searches. Lucene is
-        used as a index provider implementation. There is support for distinct indexes for nodes and relationships
+        used as default index provider implementation. There is support for distinct indexes for nodes and relationships
         which can be configured to be of fulltext or exact types.
     </para>
 
