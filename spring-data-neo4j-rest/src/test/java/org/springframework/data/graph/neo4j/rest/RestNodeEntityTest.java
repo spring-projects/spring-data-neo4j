@@ -1,9 +1,10 @@
 package org.springframework.data.graph.neo4j.rest;
 
-import org.apache.log4j.BasicConfigurator;
-import org.junit.*;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.runner.RunWith;
-import org.neo4j.rest.graphdb.RestGraphDatabase;
 import org.neo4j.rest.graphdb.RestTestBase;
 import org.springframework.data.graph.neo4j.support.NodeEntityTest;
 import org.springframework.test.context.CleanContextCacheTestExecutionListener;
@@ -12,9 +13,6 @@ import org.springframework.test.context.TestExecutionListeners;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
 import org.springframework.test.context.transaction.TransactionalTestExecutionListener;
-
-import java.net.URI;
-import java.net.URISyntaxException;
 
 /**
 * @author mh

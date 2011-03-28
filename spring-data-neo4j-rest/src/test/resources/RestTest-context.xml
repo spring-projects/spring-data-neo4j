@@ -15,6 +15,6 @@
 		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd">
 
     <bean id="graphDatabaseService" class="org.neo4j.rest.graphdb.RestGraphDatabase" scope="singleton">
-         <constructor-arg index="0" value="http://localhost:7475/db/data" />
+         <constructor-arg index="0" value="http://localhost:7473/db/data" />
     </bean>
 </beans>

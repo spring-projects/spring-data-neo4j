@@ -21,7 +21,7 @@ import java.util.Map;
  * @since 24.01.11
  */
 public abstract class RestIndex<T extends PropertyContainer> implements Index<T> {
-    private final RestRequest restRequest;
+    protected final RestRequest restRequest;
     private final String indexName;
     protected final RestGraphDatabase restGraphDatabase;
 
@@ -44,13 +44,20 @@ public abstract class RestIndex<T extends PropertyContainer> implements Index<T>
         restRequest.post( indexPath( key, value ), JsonHelper.createJsonFrom( uri ) );
     }
 
-    private String indexPath( String key, Object value ) {
-        return "index/" + getTypeName() + "/" + indexName + "/" + RestRequest.encode( key ) + "/" + RestRequest.encode( value );
+    protected String indexPath( ) {
+        return "index/" + getTypeName() + "/" + indexName;
+    }
+
+    protected String indexPath( String key ) {
+        return indexPath() + "/" + RestRequest.encode( key );
+    }
+
+    protected String indexPath( String key, Object value ) {
+        return indexPath( key ) + "/" + RestRequest.encode( value );
     }
 
     public void remove( T entity, String key, Object value ) {
         restRequest.delete( indexPath( key, value ) + "/" + ( (RestEntity) entity ).getId() );
-
     }
 
     public void remove(T entity, String key) {

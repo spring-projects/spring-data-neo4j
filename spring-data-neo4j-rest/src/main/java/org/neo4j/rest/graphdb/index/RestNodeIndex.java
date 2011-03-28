@@ -9,26 +9,33 @@ import java.util.Map;
 
 /**
  * @author mh
+ * @author Andres Taylor <andres@neotechnology.com>
  * @since 24.01.11
  */
-public class RestNodeIndex extends RestIndex<Node> {
-    public RestNodeIndex( RestRequest restRequest, String indexName, RestGraphDatabase restGraphDatabase ) {
+public class RestNodeIndex extends RestIndex<Node>
+{
+    public RestNodeIndex( RestRequest restRequest, String indexName, RestGraphDatabase restGraphDatabase )
+    {
         super( restRequest, indexName, restGraphDatabase );
     }
 
-    public Class<Node> getEntityType() {
+    public Class<Node> getEntityType()
+    {
         return Node.class;
     }
 
-    public void remove(Node entity, String key) {
-        throw new UnsupportedOperationException();
+    public void remove( Node entity, String key )
+    {
+        restRequest.delete( indexPath( key ) );
     }
 
-    public void remove(Node entity) {
-        throw new UnsupportedOperationException();
+    public void remove( Node entity )
+    {
+        restRequest.delete( indexPath() );
     }
 
-    protected Node createEntity(Map<?, ?> item) {
-        return new RestNode((Map<?, ?>) item, restGraphDatabase);
+    protected Node createEntity( Map<?, ?> item )
+    {
+        return new RestNode( (Map<?, ?>)item, restGraphDatabase );
     }
 }
