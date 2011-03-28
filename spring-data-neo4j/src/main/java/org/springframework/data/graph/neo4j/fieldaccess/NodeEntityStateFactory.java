@@ -22,9 +22,7 @@ import org.springframework.data.graph.core.NodeBacked;
 import org.springframework.data.graph.neo4j.finder.FinderFactory;
 import org.springframework.data.graph.neo4j.support.GraphDatabaseContext;
 
-import java.lang.reflect.Field;
-
-import static org.springframework.data.graph.neo4j.fieldaccess.PartialNodeEntityState.getId;
+import javax.persistence.EntityManagerFactory;
 
 public class NodeEntityStateFactory {
 
@@ -32,16 +30,18 @@ public class NodeEntityStateFactory {
 	
 	private FinderFactory finderFactory;
 
+    private EntityManagerFactory entityManagerFactory;
+
 	private NodeDelegatingFieldAccessorFactory nodeDelegatingFieldAccessorFactory;
 
 	public EntityState<NodeBacked,Node> getEntityState(final NodeBacked entity) {
         final NodeEntity graphEntityAnnotation = entity.getClass().getAnnotation(NodeEntity.class); // todo cache ??
         if (graphEntityAnnotation.partial()) {
-            PartialNodeEntityState<NodeBacked> partialNodeEntityState = new PartialNodeEntityState<NodeBacked>(null, entity, entity.getClass(), graphDatabaseContext, finderFactory);
+            final PartialNodeEntityState<NodeBacked> partialNodeEntityState = new PartialNodeEntityState<NodeBacked>(null, entity, entity.getClass(), graphDatabaseContext, finderFactory,entityManagerFactory.getPersistenceUnitUtil());
             return new DetachedEntityState<NodeBacked, Node>(partialNodeEntityState, graphDatabaseContext) {
                 @Override
                 protected boolean isDetached() {
-                    return super.isDetached() || getId(entity, entity.getClass()) == null;
+                    return super.isDetached() || partialNodeEntityState.getId(entity) == null;
                 }
             };
         } else {
@@ -64,4 +64,7 @@ public class NodeEntityStateFactory {
 		this.finderFactory = finderFactory;
 	}
 
+    public void setEntityManagerFactory(EntityManagerFactory entityManagerFactory) {
+        this.entityManagerFactory = entityManagerFactory;
+    }
 }

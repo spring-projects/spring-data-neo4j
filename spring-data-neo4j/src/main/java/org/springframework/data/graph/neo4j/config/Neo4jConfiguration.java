@@ -144,6 +144,7 @@ public class Neo4jConfiguration {
 		NodeEntityStateFactory entityStateFactory = new NodeEntityStateFactory();
 		entityStateFactory.setGraphDatabaseContext(graphDatabaseContext);
 		entityStateFactory.setFinderFactory(finderFactory);
+		entityStateFactory.setEntityManagerFactory(entityManagerFactory);
 		entityStateFactory.setNodeDelegatingFieldAccessorFactory(
 				new NodeDelegatingFieldAccessorFactory(graphDatabaseContext, finderFactory));
 		aspect.setNodeEntityStateFactory(entityStateFactory);

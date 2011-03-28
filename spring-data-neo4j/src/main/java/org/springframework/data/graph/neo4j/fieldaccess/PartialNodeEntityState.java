@@ -28,7 +28,7 @@ import org.springframework.data.graph.neo4j.finder.FinderFactory;
 import org.springframework.data.graph.neo4j.support.GraphDatabaseContext;
 import org.springframework.data.persistence.StateProvider;
 
-import javax.persistence.Id;
+import javax.persistence.PersistenceUnitUtil;
 import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.Collection;
@@ -43,8 +43,9 @@ public class PartialNodeEntityState<ENTITY extends NodeBacked> extends DefaultEn
     public static final String FOREIGN_ID_INDEX = "foreign_id";
 
     private final GraphDatabaseContext graphDatabaseContext;
+    private PersistenceUnitUtil persistenceUnitUtil;
 
-    public PartialNodeEntityState(final Node underlyingState, final ENTITY entity, final Class<? extends ENTITY> type, final GraphDatabaseContext graphDatabaseContext, final FinderFactory finderFactory) {
+    public PartialNodeEntityState(final Node underlyingState, final ENTITY entity, final Class<? extends ENTITY> type, final GraphDatabaseContext graphDatabaseContext, final FinderFactory finderFactory, PersistenceUnitUtil persistenceUnitUtil) {
     	super(underlyingState, entity, type, new DelegatingFieldAccessorFactory(graphDatabaseContext, finderFactory) {
         	
             @Override
@@ -101,6 +102,7 @@ public class PartialNodeEntityState<ENTITY extends NodeBacked> extends DefaultEn
             }
         });
         this.graphDatabaseContext = graphDatabaseContext;
+        this.persistenceUnitUtil = persistenceUnitUtil;
     }
 
     // TODO handle non persisted Entity like running outside of an transaction
@@ -108,7 +110,7 @@ public class PartialNodeEntityState<ENTITY extends NodeBacked> extends DefaultEn
     public void createAndAssignState() {
         if (entity.getPersistentState() != null) return;
         try {
-            final Object id = getId(entity,type);
+            final Object id = getId(entity);
             if (id == null) return;
             final String foreignId = createForeignId(id);
             IndexHits<Node> indexHits = getForeignIdIndex().get(FOREIGN_ID, foreignId);
@@ -162,21 +164,7 @@ public class PartialNodeEntityState<ENTITY extends NodeBacked> extends DefaultEn
         return type.getName() + ":" + id;
     }
 
-    public static Object getId(final Object entity, Class type) {
-        Class clazz = type;
-        while (clazz != null) {
-            for (Field field : clazz.getDeclaredFields()) {
-                if (field.isAnnotationPresent(Id.class)) {
-                    try {
-                        field.setAccessible(true);
-                        return field.get(entity);
-                    } catch (IllegalAccessException e) {
-                        throw new RuntimeException(e);
-                    }
-                }
-            }
-            clazz = clazz.getSuperclass();
-        }
-        return null;
+    public Object getId(final Object entity) {
+        return persistenceUnitUtil.getIdentifier(entity);
     }
 }

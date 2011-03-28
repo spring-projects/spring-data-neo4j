@@ -120,6 +120,7 @@
     	</property>
     	<property name="graphDatabaseContext" ref="graphDatabaseContext"/>
 		<property name="finderFactory" ref="finderFactory"/>
+		<property name="entityManagerFactory" ref="entityManagerFactory"/>
     </bean>
 
     <bean id="relationshipEntityStateFactory" class="org.springframework.data.graph.neo4j.fieldaccess.RelationshipEntityStateFactory">
