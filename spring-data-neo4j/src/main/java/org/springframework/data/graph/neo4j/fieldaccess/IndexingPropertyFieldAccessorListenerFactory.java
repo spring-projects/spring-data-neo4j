@@ -49,9 +49,7 @@ class IndexingPropertyFieldAccessorListenerFactory<S extends PropertyContainer, 
 
     private boolean isIndexed(final Field f) {
         final Indexed indexedAnnotation = getIndexedAnnotation(f);
-        if (indexedAnnotation != null) return true;
-        final NodeEntity entityAnnotation = f.getDeclaringClass().getAnnotation(NodeEntity.class);
-        return (entityAnnotation!=null && entityAnnotation.fullIndex());
+        return indexedAnnotation != null;
     }
 
     private boolean isPropertyField(final Field f) {

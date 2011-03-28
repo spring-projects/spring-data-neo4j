@@ -34,11 +34,6 @@ public @interface NodeEntity {
     boolean useShortNames() default true;
 
     /**
-     * @return true if all fields of the entity will be indexed by default
-     */
-    boolean fullIndex() default false;
-
-    /**
      * <p>
      * If partial is set, then construction of the node is delayed until the entity's id has been set by another persistent store. Only
      * {@link org.springframework.data.graph.annotation.GraphProperty} annotated fields will be handled by the graph storage.
