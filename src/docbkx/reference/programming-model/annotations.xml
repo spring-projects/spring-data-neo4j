@@ -26,7 +26,7 @@
 // simplest example
 @NodeEntity
 public class Movie {
-	String title;
+    String title;
 }
 ]]></programlisting>
     </section>
@@ -47,20 +47,26 @@ public class Movie {
             null. For multi-relationships the field provides a managed collection (Set) that handles addition and
             removal of node entities and reflects those in the graph relationships.
         </para>
+        <note>
+            By setting direction to BOTH, relationships are created in the outgoing direction, but when the 1:N field
+            is read, it will include relationships in both directions.
+        </note>
         <programlisting language="java"><![CDATA[
 @NodeEntity
 public class Movie {
-	private Actor topActor;
+    private Actor topActor;
 }
+
 @NodeEntity
 public class Person {
-	@RelatedTo(type = "topActor", direction = Direction.INCOMING)
-	private Movie wasTopActorIn;
+    @RelatedTo(type = "topActor", direction = Direction.INCOMING)
+    private Movie wasTopActorIn;
 }
+
 @NodeEntity
 public class Actor {
-	@RelatedTo(type = "ACTS_IN", elementClass = Movie.class)
-	private Set<Movie> movies;
+    @RelatedTo(type = "ACTS_IN", elementClass = Movie.class)
+    private Set<Movie> movies;
 }
 ]]></programlisting>
     </section>
@@ -82,8 +88,8 @@ public class Actor {
 public class Role {
     String title;
 
-	@StartNode private Actor actor;
-	@EndNode private Movie movie;
+    @StartNode private Actor actor;
+    @EndNode private Movie movie;
 }
 ]]></programlisting>
     </section>
@@ -100,13 +106,13 @@ public class Role {
         <programlisting language="java"><![CDATA[
 @NodeEntity
 public class Actor {
-	@RelatedToVia(type = "ACTS_IN", elementClass = Role.class)
-	private Iterable<Role> roles;
+    @RelatedToVia(type = "ACTS_IN", elementClass = Role.class)
+    private Iterable<Role> roles;
 
-	public Role playedIn(Movie movie, String title) {
-	    Role role=relateTo(movie,Role.class,"ACTS_IN");
-	    role.setTitle(title);
-	    return role;
+    public Role playedIn(Movie movie, String title) {
+        Role role=relateTo(movie,Role.class,"ACTS_IN");
+        role.setTitle(title);
+        return role;
 	}
 }
 ]]></programlisting>
@@ -153,21 +159,19 @@ public class Actor {
         <programlisting language="java"><![CDATA[
 @NodeEntity
 public class Group {
-  @GraphTraversal(traversalBuilder = PeopleTraversalBuilder.class,
-                  elementClass = Person.class, params = "persons")
-  private Iterable<Person> people;
+    @GraphTraversal(traversalBuilder = PeopleTraversalBuilder.class,
+        elementClass = Person.class, params = "persons")
+    private Iterable<Person> people;
 
-  private static class PeopleTraversalBuilder implements FieldTraversalDescriptionBuilder {
-      @Override
-      public TraversalDescription build(NodeBacked start, Field field, String...params) {
-          return new TraversalDescriptionImpl()
-                  .relationships(DynamicRelationshipType.withName(params[0]))
-                  .filter(Traversal.returnAllButStartNode());
-
-      }
-  }
+    private static class PeopleTraversalBuilder implements FieldTraversalDescriptionBuilder {
+        @Override
+        public TraversalDescription build(NodeBacked start, Field field, String...params) {
+            return new TraversalDescriptionImpl()
+                    .relationships(DynamicRelationshipType.withName(params[0]))
+                    .filter(Traversal.returnAllButStartNode());
+        }
+    }
 }
-
 ]]></programlisting>
         </para>
     </section>
