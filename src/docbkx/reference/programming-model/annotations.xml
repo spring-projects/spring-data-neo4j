@@ -47,6 +47,10 @@ public class Movie {
             null. For multi-relationships the field provides a managed collection (Set) that handles addition and
             removal of node entities and reflects those in the graph relationships.
         </para>
+        <para>
+            <code>@RelatedTo</code> also ensures that there is only one relationship of the given type between two
+            given entities.
+        </para>
         <note>
             By setting direction to BOTH, relationships are created in the outgoing direction, but when the 1:N field
             is read, it will include relationships in both directions.
