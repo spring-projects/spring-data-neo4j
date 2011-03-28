@@ -59,13 +59,12 @@ public abstract class RestIndex<T extends PropertyContainer> implements Index<T>
     public void remove( T entity, String key, Object value ) {
         restRequest.delete( indexPath( key, value ) + "/" + ( (RestEntity) entity ).getId() );
     }
-
-    public void remove(T entity, String key) {
-        throw new NotImplementedException();
+    public void remove( T entity ) {
+        restRequest.delete( indexPath( ) + "/" + ( (RestEntity) entity ).getId() );
     }
 
-    public void remove(T entity) {
-        throw new NotImplementedException();
+    public void remove(T entity, String key) {
+        restRequest.delete( indexPath( key ) );
     }
 
     public void delete() {

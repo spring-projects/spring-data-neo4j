@@ -24,16 +24,6 @@ public class RestNodeIndex extends RestIndex<Node>
         return Node.class;
     }
 
-    public void remove( Node entity, String key )
-    {
-        restRequest.delete( indexPath( key ) );
-    }
-
-    public void remove( Node entity )
-    {
-        restRequest.delete( indexPath() );
-    }
-
     protected Node createEntity( Map<?, ?> item )
     {
         return new RestNode( (Map<?, ?>)item, restGraphDatabase );
