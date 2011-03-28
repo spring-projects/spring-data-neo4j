@@ -57,18 +57,22 @@ public abstract class RestIndex<T extends PropertyContainer> implements Index<T>
     }
 
     public void remove( T entity, String key, Object value ) {
-        restRequest.delete( indexPath( key, value ) + "/" + ( (RestEntity) entity ).getId() );
+        restRequest.delete( entityIndexPath(indexPath( key, value ) , entity ) );
     }
     public void remove( T entity ) {
-        restRequest.delete( indexPath( ) + "/" + ( (RestEntity) entity ).getId() );
+        restRequest.delete( entityIndexPath(indexPath( ) , entity ) );
     }
 
     public void remove(T entity, String key) {
-        restRequest.delete( indexPath( key ) );
+        restRequest.delete(entityIndexPath(indexPath(key), entity));
+    }
+
+    private String entityIndexPath(String indexPath, T entity) {
+        return indexPath + "/" + ( (RestEntity) entity ).getId();
     }
 
     public void delete() {
-        throw new NotImplementedException();
+        restRequest.delete( indexPath( ));
     }
 
     public org.neo4j.graphdb.index.IndexHits<T> get( String key, Object value ) {
