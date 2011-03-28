@@ -27,10 +27,9 @@ public class RestTestBase {
 
     protected GraphDatabaseService graphDb;
     private static final String HOSTNAME = "localhost";
-    private static final int PORT = 7474;
+    private static final int PORT = 7473;
     private static LocalTestServer neoServer = new LocalTestServer(HOSTNAME,PORT).withPropertiesFile("test-db.properties");
     private static final String SERVER_ROOT_URI = "http://" + HOSTNAME + ":" + PORT + "/db/data/";
-    private static final String SERVER_CLEANDB_URI = "http://" + HOSTNAME + ":" + PORT + "/cleandb/secret-key";
 
     @BeforeClass
     public static void startDb() throws Exception {
@@ -44,7 +43,7 @@ public class RestTestBase {
         graphDb = new RestGraphDatabase(new URI(SERVER_ROOT_URI));
     }
 
-    private void cleanDb() {
+    public static void cleanDb() {
         neoServer.cleanDb();
     }
 

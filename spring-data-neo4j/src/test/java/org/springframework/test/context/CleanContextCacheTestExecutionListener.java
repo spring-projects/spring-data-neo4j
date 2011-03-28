@@ -1,10 +1,12 @@
 package org.springframework.test.context;
 
+import org.springframework.test.context.support.AbstractTestExecutionListener;
+
 import java.applet.AppletContext;
 import java.lang.reflect.Field;
 import java.util.Map;
 
-public class CleanContextCacheTestExecutionListener implements TestExecutionListener {
+public class CleanContextCacheTestExecutionListener extends AbstractTestExecutionListener {
 
     @Override
     public void afterTestClass(TestContext testContext) throws Exception {
@@ -19,25 +21,5 @@ public class CleanContextCacheTestExecutionListener implements TestExecutionList
         for (String key : keys) {
             cache.setDirty(key);
         }
-    }
-
-    @Override
-    public void beforeTestClass(TestContext testContext) throws Exception {
-
-    }
-
-    @Override
-    public void prepareTestInstance(TestContext testContext) throws Exception {
-
-    }
-
-    @Override
-    public void beforeTestMethod(TestContext testContext) throws Exception {
-
-    }
-
-    @Override
-    public void afterTestMethod(TestContext testContext) throws Exception {
-
     }
 }

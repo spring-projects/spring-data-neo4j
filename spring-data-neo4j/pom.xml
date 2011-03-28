@@ -11,7 +11,6 @@
 	<packaging>jar</packaging>
 	<name>Spring Data Neo4J Support</name>
 	<dependencies>
-
 		<!--  Spring -->
 		<dependency>
 			<groupId>org.springframework</groupId>
@@ -239,6 +238,18 @@
 					<target>1.6</target>
 				</configuration>
 			</plugin>
+            <plugin>
+                   <groupId>org.apache.maven.plugins</groupId>
+                   <artifactId>maven-jar-plugin</artifactId>
+                   <version>2.2</version>
+                   <executions>
+                     <execution>
+                       <goals>
+                         <goal>test-jar</goal>
+                       </goals>
+                     </execution>
+                   </executions>
+                 </plugin>
 		</plugins>
 	</build>
 </project>
