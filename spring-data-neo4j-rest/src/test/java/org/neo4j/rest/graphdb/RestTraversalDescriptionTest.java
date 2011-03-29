@@ -3,7 +3,6 @@ package org.neo4j.rest.graphdb;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.neo4j.graphdb.traversal.TraversalDescription;
 import org.neo4j.kernel.Uniqueness;
 
 import java.util.Map;
@@ -12,7 +11,8 @@ import java.util.Map;
  * @author Michael Hunger
  * @since 03.02.11
  */
-public class RestTraversalTest {
+public class RestTraversalDescriptionTest
+{
     private RestTraversal traversalDescription;
 
     @Before
