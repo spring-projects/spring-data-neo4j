@@ -33,7 +33,7 @@ import static org.junit.Assert.assertNull;
 @ContextConfiguration(locations = {"classpath:org/springframework/data/graph/neo4j/support/Neo4jGraphPersistenceTest-context.xml",
 		"classpath:org/springframework/data/graph/neo4j/support/IndexingNodeTypeStrategyOverride-context.xml"})
 @TestExecutionListeners({CleanContextCacheTestExecutionListener.class, DependencyInjectionTestExecutionListener.class, TransactionalTestExecutionListener.class})
-public class IndexingNodeTypeStrategyTest {
+public class IndexingTypeRepresentationStrategyTest {
 
 	@Autowired
 	private GraphDatabaseService graphDatabaseService;
