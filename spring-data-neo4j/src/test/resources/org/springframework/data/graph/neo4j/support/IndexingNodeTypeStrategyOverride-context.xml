@@ -17,5 +17,6 @@
     <bean id="typeRepresentationStrategy" class="org.springframework.data.graph.neo4j.support.IndexingTypeRepresentationStrategy">
         <constructor-arg ref="graphDatabaseService" />
         <constructor-arg ref="graphEntityInstantiator" />
+        <constructor-arg ref="relationshipEntityInstantiator" />
     </bean>
 </beans>

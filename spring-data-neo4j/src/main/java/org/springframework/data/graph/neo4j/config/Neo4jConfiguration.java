@@ -32,7 +32,7 @@ import org.springframework.data.graph.neo4j.fieldaccess.NodeEntityStateFactory;
 import org.springframework.data.graph.neo4j.fieldaccess.RelationshipEntityStateFactory;
 import org.springframework.data.graph.neo4j.repository.DirectGraphRepositoryFactory;
 import org.springframework.data.graph.neo4j.support.GraphDatabaseContext;
-import org.springframework.data.graph.neo4j.support.NodeTypeStrategyFactoryBean;
+import org.springframework.data.graph.neo4j.support.TypeRepresentationStrategyFactoryBean;
 import org.springframework.data.graph.neo4j.support.node.Neo4jConstructorGraphEntityInstantiator;
 import org.springframework.data.graph.neo4j.support.node.Neo4jNodeBacking;
 import org.springframework.data.graph.neo4j.support.node.PartialNeo4jEntityInstantiator;
@@ -90,12 +90,14 @@ public class Neo4jConfiguration {
 	public GraphDatabaseContext graphDatabaseContext() throws Exception {
 		GraphDatabaseContext gdc = new GraphDatabaseContext();
 		gdc.setGraphDatabaseService(getGraphDatabaseService());
-		gdc.setRelationshipEntityInstantiator(graphRelationshipInstantiator());
+        ConstructorBypassingGraphRelationshipInstantiator relationshipEntityInstantiator = graphRelationshipInstantiator();
+        gdc.setRelationshipEntityInstantiator(relationshipEntityInstantiator);
 		EntityInstantiator<NodeBacked, Node> graphEntityInstantiator = graphEntityInstantiator();
 		gdc.setGraphEntityInstantiator(graphEntityInstantiator);
 		gdc.setConversionService(conversionService());
-        NodeTypeStrategyFactoryBean nodeTypeStrategyFactoryBean = new NodeTypeStrategyFactoryBean(graphDatabaseService, graphEntityInstantiator);
-        gdc.setTypeRepresentationStrategy(nodeTypeStrategyFactoryBean.getObject());
+        TypeRepresentationStrategyFactoryBean typeRepresentationStrategyFactoryBean =
+                new TypeRepresentationStrategyFactoryBean(graphDatabaseService, graphEntityInstantiator, relationshipEntityInstantiator);
+        gdc.setTypeRepresentationStrategy(typeRepresentationStrategyFactoryBean.getObject());
         if (validator!=null) {
             gdc.setValidator(validator);
         }

@@ -4,6 +4,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.neo4j.graphdb.Direction;
@@ -16,13 +17,11 @@ import org.springframework.data.graph.annotation.NodeEntity;
 import org.springframework.data.graph.core.NodeBacked;
 import org.springframework.data.graph.neo4j.Car;
 import org.springframework.data.graph.neo4j.Person;
-import static org.springframework.data.graph.neo4j.Person.persistedPerson;
 import org.springframework.data.graph.neo4j.Toyota;
 import org.springframework.data.graph.neo4j.Volvo;
 import org.springframework.data.graph.neo4j.repository.DirectGraphRepositoryFactory;
 import org.springframework.data.graph.neo4j.repository.NodeGraphRepository;
 import org.springframework.data.graph.neo4j.support.node.Neo4jHelper;
-
 import org.springframework.test.context.CleanContextCacheTestExecutionListener;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestExecutionListeners;
@@ -35,6 +34,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Collection;
 
 import static org.junit.Assert.assertEquals;
+import static org.springframework.data.graph.neo4j.Person.persistedPerson;
 
 /**
  * @author mh
@@ -44,6 +44,7 @@ import static org.junit.Assert.assertEquals;
 @ContextConfiguration(locations = {"classpath:org/springframework/data/graph/neo4j/support/Neo4jGraphPersistenceTest-context.xml",
 		"classpath:org/springframework/data/graph/neo4j/support/SubReferenceNodeTypeStrategyOverride-context.xml"})
 @TestExecutionListeners({CleanContextCacheTestExecutionListener.class, DependencyInjectionTestExecutionListener.class, TransactionalTestExecutionListener.class})
+@Ignore
 public class SubReferenceTypeRepresentationStrategyTest {
 
     protected final Log log = LogFactory.getLog(getClass());
@@ -85,7 +86,7 @@ public class SubReferenceTypeRepresentationStrategyTest {
     @Test(expected = IllegalArgumentException.class)
     public void confirmingTypeOfNonTypeNodeShouldThrowAnDescriptiveException() throws Exception {
         Node referenceNode = graphDatabaseContext.getReferenceNode();
-        nodeTypeStrategy.confirmType(referenceNode,Thing.class);
+        nodeTypeStrategy.confirmType(referenceNode, Thing.class);
     }
 
     @Test(expected = IllegalArgumentException.class)

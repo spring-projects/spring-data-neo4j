@@ -16,7 +16,7 @@
 
 package org.springframework.data.graph.core;
 
-import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.PropertyContainer;
 
 /**
  * Strategy to handle representation of java types in the graph. Possible implementation are type/class nodes
@@ -34,33 +34,42 @@ public interface TypeRepresentationStrategy {
      * callback on entity creation for setting up type representation
      * @param entity
      */
-    void postEntityCreation(NodeBacked entity);
+    void postEntityCreation(GraphBacked<?> entity);
 
     /**
      * @param clazz Type whose instances should be iterated over
      * @param <T> Type parameter for generified return value
      * @return lazy Iterable over all instances of the given type
      */
-    <T extends NodeBacked> Iterable<T> findAll(final Class<T> clazz);
+    <T extends GraphBacked<?>> Iterable<T> findAll(final Class<T> clazz);
 
     /**
      * @param entityClass
      * @return number of instances of this class contained in the graph
      */
-    long count(final Class<? extends NodeBacked> entityClass);
+    long count(final Class<? extends GraphBacked<?>> entityClass);
 
     /**
-     * @param node
+     * @param primitive
      * @param <T>
      * @return java type that of the node entity of this node
      */
-	<T extends NodeBacked> Class<T> getJavaType(Node node);
+	<T extends GraphBacked<?>> Class<T> getJavaType(PropertyContainer primitive);
 
     /**
      * callback for lifecycle management before node entity removal
      * @param entity
      */
-    void preEntityRemoval(NodeBacked entity);
+    void preEntityRemoval(GraphBacked<?> entity);
 
-    <T extends NodeBacked> Class<T> confirmType(Node node, Class<T> type);
+    /**
+     *
+     * @param node
+     * @param type
+     * @param <T>
+ *     @throws IllegalArgumentException if the specified type did not match the stored one
+ *     @throws IllegalStateException if the primitive has no type stored
+     * @return Concrete type for primitive, or throws exception
+     */
+    <T extends GraphBacked<?>> Class<T> confirmType(PropertyContainer node, Class<T> type);
 }

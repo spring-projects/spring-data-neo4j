@@ -88,9 +88,7 @@
 
     <bean id="graphDatabaseContext" class="org.springframework.data.graph.neo4j.support.GraphDatabaseContext">
         <property name="graphDatabaseService" ref="graphDatabaseService"/>
-        <property name="relationshipEntityInstantiator">
-            <bean class="org.springframework.data.graph.neo4j.support.relationship.ConstructorBypassingGraphRelationshipInstantiator"/>
-        </property>
+        <property name="relationshipEntityInstantiator" ref="relationshipEntityInstantiator"/>
         <property name="graphEntityInstantiator">
             <bean class="org.springframework.data.graph.neo4j.support.node.PartialNeo4jEntityInstantiator">
                 <constructor-arg ref="graphEntityInstantiator"/>
@@ -102,10 +100,13 @@
         </property>
         <property name="typeRepresentationStrategy" ref="typeRepresentationStrategy"/>
     </bean>
+    <bean id="relationshipEntityInstantiator"
+          class="org.springframework.data.graph.neo4j.support.relationship.ConstructorBypassingGraphRelationshipInstantiator"/>
 
-    <bean id="typeRepresentationStrategy" class="org.springframework.data.graph.neo4j.support.NodeTypeStrategyFactoryBean">
+    <bean id="typeRepresentationStrategy" class="org.springframework.data.graph.neo4j.support.TypeRepresentationStrategyFactoryBean">
         <constructor-arg ref="graphDatabaseService"/>
         <constructor-arg ref="graphEntityInstantiator"/>
+        <constructor-arg ref="relationshipEntityInstantiator"/>
     </bean>
 
     <bean id="graphEntityInstantiator"
