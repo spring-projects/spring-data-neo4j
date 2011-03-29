@@ -2,19 +2,12 @@ package org.neo4j.rest.graphdb;
 
 import com.sun.jersey.api.client.ClientResponse;
 import org.neo4j.graphdb.*;
-import org.neo4j.graphdb.event.KernelEventHandler;
-import org.neo4j.graphdb.event.TransactionEventHandler;
 import org.neo4j.graphdb.index.Index;
-import org.neo4j.graphdb.index.IndexManager;
 import org.neo4j.graphdb.traversal.TraversalDescription;
-import org.neo4j.kernel.AbstractGraphDatabase;
-import org.neo4j.kernel.Config;
-import org.neo4j.kernel.RestConfig;
 import org.neo4j.rest.graphdb.index.RestIndexManager;
 import org.springframework.data.graph.core.GraphDatabase;
 
 import javax.ws.rs.core.Response.Status;
-import java.io.Serializable;
 import java.net.URI;
 import java.util.Map;
 

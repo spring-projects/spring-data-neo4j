@@ -25,7 +25,7 @@ import java.util.Iterator;
 
 public class RestTestBase {
 
-    protected GraphDatabaseService graphDb;
+    protected RestGraphDatabase graphDb;
     private static final String HOSTNAME = "localhost";
     private static final int PORT = 7473;
     private static LocalTestServer neoServer = new LocalTestServer(HOSTNAME,PORT).withPropertiesFile("test-db.properties");
@@ -47,11 +47,6 @@ public class RestTestBase {
         neoServer.cleanDb();
     }
 
-    @After
-    public void tearDown() throws Exception {
-        graphDb.shutdown();
-    }
-
     @AfterClass
     public static void shutdownDb() {
         neoServer.stop();
@@ -61,7 +56,7 @@ public class RestTestBase {
     protected Relationship relationship() {
         Iterator<Relationship> it = node().getRelationships(Direction.OUTGOING).iterator();
         if (it.hasNext()) return it.next();
-        return node().createRelationshipTo(graphDb.createNode(), Type.TEST);
+        return node().createRelationshipTo(graphDb.createNode(null), Type.TEST);
     }
 
     protected Node node() {
