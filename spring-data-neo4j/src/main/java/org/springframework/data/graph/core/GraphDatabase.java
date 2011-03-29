@@ -5,6 +5,7 @@ import org.neo4j.graphdb.PropertyContainer;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.graphdb.index.Index;
+import org.neo4j.graphdb.traversal.TraversalDescription;
 
 import java.util.Map;
 
@@ -72,4 +73,10 @@ public interface GraphDatabase {
      * @return node index {@link Index}
      */
     <T extends PropertyContainer> Index<T> createIndex(Class<T> type, String indexName, boolean fullText);
+
+
+    /**
+     * @return a TraversalDescription as starting point for defining a traversal
+     */
+    TraversalDescription createTraversalDescription();
 }
