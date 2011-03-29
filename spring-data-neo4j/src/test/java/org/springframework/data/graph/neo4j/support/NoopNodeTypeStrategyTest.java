@@ -25,7 +25,7 @@ public class NoopNodeTypeStrategyTest {
 	@Autowired
 	private GraphDatabaseContext graphDatabaseContext;
 	@Autowired
-	private NoopNodeTypeStrategy nodeTypeStrategy;
+	private NoopTypeRepresentationStrategy nodeTypeStrategy;
 
 	private Thing thing;
 

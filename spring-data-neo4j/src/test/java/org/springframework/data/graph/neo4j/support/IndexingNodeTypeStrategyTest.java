@@ -1,7 +1,6 @@
 package org.springframework.data.graph.neo4j.support;
 
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.neo4j.graphdb.GraphDatabaseService;
@@ -39,7 +38,7 @@ public class IndexingNodeTypeStrategyTest {
 	@Autowired
 	private GraphDatabaseService graphDatabaseService;
 	@Autowired
-	private IndexingNodeTypeStrategy nodeTypeStrategy;
+	private IndexingTypeRepresentationStrategy nodeTypeStrategy;
 
 	private Thing thing;
 	private SubThing subThing;

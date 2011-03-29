@@ -17,7 +17,6 @@
 package org.springframework.data.graph.core;
 
 import org.neo4j.graphdb.Node;
-import org.springframework.data.graph.core.NodeBacked;
 
 /**
  * Strategy to handle representation of java types in the graph. Possible implementation are type/class nodes
@@ -30,7 +29,7 @@ import org.springframework.data.graph.core.NodeBacked;
 * @author Michael Hunger
 * @since 13.09.2010
 */
-public interface NodeTypeStrategy {
+public interface TypeRepresentationStrategy {
     /**
      * callback on entity creation for setting up type representation
      * @param entity

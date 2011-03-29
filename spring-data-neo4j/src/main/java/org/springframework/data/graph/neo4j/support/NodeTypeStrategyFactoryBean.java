@@ -5,10 +5,10 @@ import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.data.graph.core.NodeBacked;
-import org.springframework.data.graph.core.NodeTypeStrategy;
+import org.springframework.data.graph.core.TypeRepresentationStrategy;
 import org.springframework.data.persistence.EntityInstantiator;
 
-public class NodeTypeStrategyFactoryBean implements FactoryBean<NodeTypeStrategy> {
+public class NodeTypeStrategyFactoryBean implements FactoryBean<TypeRepresentationStrategy> {
     private GraphDatabaseService graphDatabaseService;
     private EntityInstantiator<NodeBacked, Node> graphEntityInstantiator;
     private Strategy strategy;
@@ -26,12 +26,12 @@ public class NodeTypeStrategyFactoryBean implements FactoryBean<NodeTypeStrategy
     }
 
     private boolean isAlreadyIndexed() {
-        return graphDatabaseService.index().existsForNodes(IndexingNodeTypeStrategy.NODE_INDEX_NAME);
+        return graphDatabaseService.index().existsForNodes(IndexingTypeRepresentationStrategy.NODE_INDEX_NAME);
     }
 
     private boolean isAlreadySubRef() {
         for (Relationship rel : graphDatabaseService.getReferenceNode().getRelationships()) {
-            if (rel.getType().name().startsWith(SubReferenceNodeTypeStrategy.SUBREF_PREFIX)) {
+            if (rel.getType().name().startsWith(SubReferenceTypeRepresentationStrategy.SUBREF_PREFIX)) {
                 return true;
             }
         }
@@ -39,7 +39,7 @@ public class NodeTypeStrategyFactoryBean implements FactoryBean<NodeTypeStrategy
     }
 
     @Override
-    public NodeTypeStrategy getObject() throws Exception {
+    public TypeRepresentationStrategy getObject() throws Exception {
         return strategy.getObject(graphDatabaseService, graphEntityInstantiator);
     }
 
@@ -56,38 +56,38 @@ public class NodeTypeStrategyFactoryBean implements FactoryBean<NodeTypeStrategy
     private enum Strategy {
         SubRef {
             @Override
-            NodeTypeStrategy getObject(GraphDatabaseService graphDatabaseService, EntityInstantiator<NodeBacked, Node> graphEntityInstantiator) {
-                return new SubReferenceNodeTypeStrategy(graphDatabaseService, graphEntityInstantiator);
+            TypeRepresentationStrategy getObject(GraphDatabaseService graphDatabaseService, EntityInstantiator<NodeBacked, Node> graphEntityInstantiator) {
+                return new SubReferenceTypeRepresentationStrategy(graphDatabaseService, graphEntityInstantiator);
             }
 
             @Override
-            Class<? extends NodeTypeStrategy> getObjectType() {
-                return SubReferenceNodeTypeStrategy.class;
+            Class<? extends TypeRepresentationStrategy> getObjectType() {
+                return SubReferenceTypeRepresentationStrategy.class;
             }
         },
         Indexed {
             @Override
-            NodeTypeStrategy getObject(GraphDatabaseService graphDatabaseService, EntityInstantiator<NodeBacked, Node> graphEntityInstantiator) {
-                return new IndexingNodeTypeStrategy(graphDatabaseService, graphEntityInstantiator);
+            TypeRepresentationStrategy getObject(GraphDatabaseService graphDatabaseService, EntityInstantiator<NodeBacked, Node> graphEntityInstantiator) {
+                return new IndexingTypeRepresentationStrategy(graphDatabaseService, graphEntityInstantiator);
             }
 
             @Override
-            Class<? extends NodeTypeStrategy> getObjectType() {
-                return IndexingNodeTypeStrategy.class;
+            Class<? extends TypeRepresentationStrategy> getObjectType() {
+                return IndexingTypeRepresentationStrategy.class;
             }
         },
         Noop {
             @Override
-            NodeTypeStrategy getObject(GraphDatabaseService graphDatabaseService, EntityInstantiator<NodeBacked, Node> graphEntityInstantiator) {
-                return new NoopNodeTypeStrategy();
+            TypeRepresentationStrategy getObject(GraphDatabaseService graphDatabaseService, EntityInstantiator<NodeBacked, Node> graphEntityInstantiator) {
+                return new NoopTypeRepresentationStrategy();
             }
 
             @Override
-            Class<? extends NodeTypeStrategy> getObjectType() {
-                return NoopNodeTypeStrategy.class;
+            Class<? extends TypeRepresentationStrategy> getObjectType() {
+                return NoopTypeRepresentationStrategy.class;
             }
         };
-        abstract NodeTypeStrategy getObject(GraphDatabaseService graphDatabaseService, EntityInstantiator<NodeBacked, Node> graphEntityInstantiator);
-        abstract Class<? extends NodeTypeStrategy> getObjectType();
+        abstract TypeRepresentationStrategy getObject(GraphDatabaseService graphDatabaseService, EntityInstantiator<NodeBacked, Node> graphEntityInstantiator);
+        abstract Class<? extends TypeRepresentationStrategy> getObjectType();
     }
 }
