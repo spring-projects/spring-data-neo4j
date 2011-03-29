@@ -36,7 +36,7 @@ public class AttachEntityTest {
     }
 
     private boolean hasUnderlyingNode(NodeBacked nodeBacked) {
-        return nodeBacked.hasUnderlyingNode();
+        return nodeBacked.hasPersistentState();
     }
 
     private Node nodeFor(NodeBacked nodeBacked) {

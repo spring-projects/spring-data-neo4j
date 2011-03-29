@@ -73,10 +73,6 @@ public aspect Neo4jRelationshipBacking {
      */
     private EntityState<RelationshipBacked,Relationship> RelationshipBacked.entityState;
 
-    /**
-     * creates a new {@link org.springframework.data.graph.neo4j.fieldaccess.EntityState} instance with the relationship parameter or updates an existing one
-     * @param r
-     */
 	public void RelationshipBacked.setPersistentState(Relationship r) {
         if (this.entityState == null) {
             this.entityState = Neo4jRelationshipBacking.aspectOf().entityStateFactory.getEntityState(this);
@@ -88,15 +84,12 @@ public aspect Neo4jRelationshipBacking {
 		return this.entityState!=null ? this.entityState.getPersistentState() : null;
 	}
 
-	public boolean RelationshipBacked.hasUnderlyingRelationship() {
+	public boolean RelationshipBacked.hasPersistentState() {
 		return this.entityState!=null && this.entityState.hasPersistentState();
 	}
 
-    /**
-     * @return relationship id if there is an underlying relationship
-     */
 	public Long RelationshipBacked.getRelationshipId() {
-        if (!hasUnderlyingRelationship()) return null;
+        if (!hasPersistentState()) return null;
 		return getPersistentState().getId();
 	}
 
@@ -107,7 +100,7 @@ public aspect Neo4jRelationshipBacking {
      */
 	public final boolean RelationshipBacked.equals(Object obj) {
 		if (this==obj) return true;
-        if (!hasUnderlyingRelationship()) return false;
+        if (!hasPersistentState()) return false;
         if (obj instanceof RelationshipBacked) {
 			return this.getPersistentState().equals(((RelationshipBacked) obj).getPersistentState());
 		}
@@ -118,7 +111,7 @@ public aspect Neo4jRelationshipBacking {
      * @return hashCode of the underlying relationship
      */
 	public final int RelationshipBacked.hashCode() {
-        if (!hasUnderlyingRelationship()) return System.identityHashCode(this);
+        if (!hasPersistentState()) return System.identityHashCode(this);
 		return getPersistentState().hashCode();
 	}
 

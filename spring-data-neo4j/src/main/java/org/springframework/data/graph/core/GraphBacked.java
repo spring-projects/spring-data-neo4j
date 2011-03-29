@@ -27,6 +27,7 @@ package org.springframework.data.graph.core;
 public interface GraphBacked<STATE> {
     /**
      * internal setter used for initializing the graph-db state on existing or newly created entities
+     *
      * @param state (Node or Relationship)
      */
     void setPersistentState(STATE state);
@@ -35,4 +36,13 @@ public interface GraphBacked<STATE> {
      * @return the underlying graph-db state or null if the current entity is not related to the graph-store (possible with unsaved or partial entities)
      */
     STATE getPersistentState();
+
+    boolean hasPersistentState();
+
+    /**
+     * removes the entity using @{link GraphDatabaseContext.removeNodeEntity}
+     * the entity and relationship are still accessible after removal but before transaction commit
+     * but all modifications will throw an exception
+     */
+    void remove();
 }
