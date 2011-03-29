@@ -27,7 +27,7 @@
     </para>
     <para>
         Query access to the index happens with the Node- and RelationshipFinders that are created via an instance of
-        <code>org.springframework.data.graph.neo4j.finder.FinderFactory</code>. The methods
+        <code>org.springframework.data.graph.neo4j.repository.DirectGraphRepositoryFactory</code>. The methods
         <code>findByPropertyValue</code> and <code>findAllByPropertyValue</code> work on the exact indexes and
         return the first or all matches. To do range queries, use <code>findAllByRange</code> (please note that
         currently both values are inclusive).
@@ -44,13 +44,13 @@ class Person {
 
 }
 
-NodeFinder<Person> finder = finderFactory.createNodeEntityFinder(Person.class);
+NodeFinder<Person> graphRepository = graphRepositoryFactory.createNodeEntityFinder(Person.class);
 
-// exact finder
-Person mark = finder.findByProperyValue("people","name","mark");
+// exact graphRepository
+Person mark = graphRepository.findByProperyValue("people","name","mark");
 
 // numeric range queries
-for (Person middleAgedDeveloper : finder.findAllByRange(null, "age", 20, 40)) {
+for (Person middleAgedDeveloper : graphRepository.findAllByRange(null, "age", 20, 40)) {
     Developer developer=middleAgedDeveloper.projectTo(Developer.class);
 }
 ]]></programlisting>
@@ -76,10 +76,10 @@ class Person {
     String name;
 }
 
-NodeFinder<Person> finder = finderFactory.createNodeEntityFinder(Person.class);
+NodeFinder<Person> graphRepository = graphRepositoryFactory.createNodeEntityFinder(Person.class);
 
-// exact finder
-Person mark = finder.findAllByQuery("people-search","name","ma*");
+// exact graphRepository
+Person mark = graphRepository.findAllByQuery("people-search","name","ma*");
 ]]></programlisting>
         </para>
         <note>

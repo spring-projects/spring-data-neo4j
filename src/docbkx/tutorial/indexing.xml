@@ -18,12 +18,12 @@ class Movie {
     int year;
 }
 
-@Autowired FinderFactory finderFactory;
+@Autowired FinderFactory graphRepositoryFactory;
 
 @Test [@Transactional] public void persistedMovieShouldBeRetrievableFromGraphDb() {
     int id=1;
     Movie forrestGump = new Movie(id, "Forrest Gump", 1994).persist();
-    NodeFinder<Movie> movieFinder = finderFactory.createNodeEntityFinder(Movie.class);
+    NodeFinder<Movie> movieFinder = graphRepositoryFactory.createNodeEntityFinder(Movie.class);
     // REMINDER, the "null" stands for an optional index name
     Movie retrievedMovie = movieFinder.findByPropertyValue(null, "id",id);
     assertEqual("retrieved movie matches persisted one",forrestGump,retrievedMovie);

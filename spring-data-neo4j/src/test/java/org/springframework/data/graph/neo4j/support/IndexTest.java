@@ -4,7 +4,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.neo4j.graphdb.DynamicRelationshipType;
@@ -19,9 +18,9 @@ import org.springframework.data.graph.annotation.NodeEntity;
 import org.springframework.data.graph.neo4j.Friendship;
 import org.springframework.data.graph.neo4j.Group;
 import org.springframework.data.graph.neo4j.Person;
-import org.springframework.data.graph.neo4j.finder.FinderFactory;
-import org.springframework.data.graph.neo4j.finder.NodeFinder;
-import org.springframework.data.graph.neo4j.finder.RelationshipFinder;
+import org.springframework.data.graph.neo4j.repository.DirectGraphRepositoryFactory;
+import org.springframework.data.graph.neo4j.repository.NodeGraphRepository;
+import org.springframework.data.graph.neo4j.repository.RelationshipGraphRepository;
 import org.springframework.data.graph.neo4j.support.node.Neo4jHelper;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -49,14 +48,14 @@ public class IndexTest {
     private GraphDatabaseContext graphDatabaseContext;
 
     @Autowired
-    private FinderFactory finderFactory;
-    protected NodeFinder<Group> groupFinder;
-    protected NodeFinder<Person> personFinder;
+    private DirectGraphRepositoryFactory graphRepositoryFactory;
+    protected NodeGraphRepository<Group> groupFinder;
+    protected NodeGraphRepository<Person> personFinder;
 
     @Before
     public void setUp() throws Exception {
-        groupFinder = finderFactory.createNodeEntityFinder(Group.class);
-        personFinder = finderFactory.createNodeEntityFinder(Person.class);
+        groupFinder = graphRepositoryFactory.createNodeEntityRepository(Group.class);
+        personFinder = graphRepositoryFactory.createNodeEntityRepository(Person.class);
     }
 
     @BeforeTransaction
@@ -71,7 +70,7 @@ public class IndexTest {
         Person p2 = persistedPerson(NAME_VALUE2, 25);
         Friendship friendship = p.knows(p2);
         friendship.setYears(1);
-        RelationshipFinder<Friendship> friendshipFinder = finderFactory.createRelationshipEntityFinder(Friendship.class);
+        RelationshipGraphRepository<Friendship> friendshipFinder = graphRepositoryFactory.createRelationshipEntityRepository(Friendship.class);
         assertEquals(friendship, friendshipFinder.findByPropertyValue(null, "Friendship.years", 1));
     }
 

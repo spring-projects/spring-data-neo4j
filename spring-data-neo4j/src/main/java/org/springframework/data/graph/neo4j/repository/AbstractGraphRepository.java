@@ -1,4 +1,4 @@
-package org.springframework.data.graph.neo4j.finder;
+package org.springframework.data.graph.neo4j.repository;
 
 import org.apache.lucene.search.NumericRangeQuery;
 import org.neo4j.graphdb.NotFoundException;
@@ -6,10 +6,16 @@ import org.neo4j.graphdb.PropertyContainer;
 import org.neo4j.graphdb.index.Index;
 import org.neo4j.graphdb.index.IndexHits;
 import org.neo4j.helpers.collection.IterableWrapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.graph.core.GraphBacked;
 import org.springframework.data.graph.neo4j.support.GraphDatabaseContext;
 
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 
 /**
  * Repository like finder for Node and Relationship-Entities. Provides finder methods for direct access, access via {@link org.springframework.data.graph.core.TypeRepresentationStrategy}
@@ -18,14 +24,15 @@ import java.util.Collections;
  * @param <T> GraphBacked target of this finder, enables the finder methods to return this concrete type
  * @param <S> Type of backing state, either Node or Relationship
  */
-public abstract class AbstractFinder<S extends PropertyContainer, T extends GraphBacked<S>> implements Finder<S, T> {
+@org.springframework.stereotype.Repository
+public abstract class AbstractGraphRepository<S extends PropertyContainer, T extends GraphBacked<S>> implements GraphRepository<S, T>, CRUDGraphRepository<S,T> {
     /**
      * Target graphbacked type
      */
     protected final Class<T> clazz;
     protected final GraphDatabaseContext graphDatabaseContext;
 
-    public AbstractFinder(final GraphDatabaseContext graphDatabaseContext, final Class<T> clazz) {
+    public AbstractGraphRepository(final GraphDatabaseContext graphDatabaseContext, final Class<T> clazz) {
         this.graphDatabaseContext = graphDatabaseContext;
         this.clazz = clazz;
     }
@@ -34,7 +41,7 @@ public abstract class AbstractFinder<S extends PropertyContainer, T extends Grap
      * @return Number of instances of the target type in the graph.
      */
     @Override
-    public long count() {
+    public Long count() {
         return graphDatabaseContext.count(clazz);
     }
 
@@ -47,11 +54,12 @@ public abstract class AbstractFinder<S extends PropertyContainer, T extends Grap
     }
 
     /**
+     *
      * @param id id
      * @return Entity with the given id or null.
      */
     @Override
-    public T findById(final long id) {
+    public T findOne(final Long id) {
         try {
             return createEntity(getById(id));
         } catch (NotFoundException e) {
@@ -162,4 +170,44 @@ public abstract class AbstractFinder<S extends PropertyContainer, T extends Grap
     }
 
     protected abstract S getById(long id);
+
+    @Override
+    public boolean exists(Long id) {
+        return getById(id)!=null;
+    }
+
+    @Override
+    public void delete(T entity) {
+       entity.remove();
+    }
+
+    @Override
+    public void delete(Iterable<? extends T> entities) {
+        for (T entity : entities) {
+            entity.remove();
+        }
+    }
+
+    @Override
+    public void deleteAll() {
+        delete(findAll());
+    }
+
+    @Override
+    public Iterable<T> findAll(Sort sort) {
+        return findAll(); // todo
+    }
+
+    @Override
+    public Page<T> findAll(final Pageable pageable) {
+        int count = pageable.getOffset()+pageable.getPageSize();
+        Iterable<T> all = findAll(pageable.getSort());
+        List<T> result=new ArrayList<T>(count);
+        for (T t : all) {
+            if (count == 0) break;
+            result.add(t);
+            count--;
+        }
+        return new PageImpl<T>(result,pageable,result.size());
+    }
 }

@@ -18,7 +18,7 @@ import java.util.Collection;
  * <pre>
  * class MyInitializer extends SpringPluginInitializer {
  *     public MyInitializer() {
- *         super(new String[]{"myContext.xml"},"finderFactory","myRepository");
+ *         super(new String[]{"myContext.xml"},"graphRepositoryFactory","myRepository");
  *     }
  * }
  * </pre>

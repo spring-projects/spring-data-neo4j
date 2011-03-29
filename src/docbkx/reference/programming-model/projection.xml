@@ -33,7 +33,7 @@ class Trainee {
     Set<Training> trainings;
 }
 
-for (Person person : finder.findAllByProperyValue("occupation","developer")) {
+for (Person person : graphRepository.findAllByProperyValue("occupation","developer")) {
     Developer developer = person.projectTo(Developer.class);
     if (developer.isJavaDeveloper()) {
         trainInSpringData(developer.projectTo(Trainee.class));

@@ -10,8 +10,8 @@ import org.neo4j.graphdb.Node;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.graph.neo4j.Group;
 import org.springframework.data.graph.neo4j.Person;
-import org.springframework.data.graph.neo4j.finder.FinderFactory;
-import org.springframework.data.graph.neo4j.finder.NodeFinder;
+import org.springframework.data.graph.neo4j.repository.DirectGraphRepositoryFactory;
+import org.springframework.data.graph.neo4j.repository.NodeGraphRepository;
 import org.springframework.data.graph.neo4j.support.node.Neo4jHelper;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -37,7 +37,7 @@ public class ModificationOutsideOfTransactionTest
     private GraphDatabaseContext graphDatabaseContext;
 
     @Autowired
-    private FinderFactory finderFactory;
+    private DirectGraphRepositoryFactory graphRepositoryFactory;
 
     @Before
     public void cleanDb() {
@@ -49,7 +49,7 @@ public class ModificationOutsideOfTransactionTest
 		assertEquals(35, p.getAge());
 		p.setAge(36);
 		assertEquals(36, p.getAge());
-		assertFalse(hasUnderlyingNode(p));
+		assertFalse(hasPersistentState(p));
 		p.persist();
 		assertEquals(36, nodeFor(p).getProperty("Person.age"));
 	}
@@ -63,8 +63,8 @@ public class ModificationOutsideOfTransactionTest
 		michael.setBoss(emil);
 
 		assertEquals(emil, michael.getBoss());
-		assertFalse(hasUnderlyingNode(michael));
-		assertFalse(hasUnderlyingNode(emil));
+		assertFalse(hasPersistentState(michael));
+		assertFalse(hasPersistentState(emil));
 		michael.persist();
 		assertThat(nodeFor(michael), hasRelationship("boss", nodeFor(emil)));
 		assertThat(nodeFor(emil), hasRelationship("boss", nodeFor(michael)));
@@ -80,8 +80,8 @@ public class ModificationOutsideOfTransactionTest
 		michael.setBoss(emil);
 
 		assertEquals(emil, michael.getBoss());
-		assertFalse(hasUnderlyingNode(michael));
-		assertFalse(hasUnderlyingNode(emil));
+		assertFalse(hasPersistentState(michael));
+		assertFalse(hasPersistentState(emil));
 		emil.persist();
 		assertThat(nodeFor(michael), hasRelationship("boss", nodeFor(emil)));
 		assertThat(nodeFor(emil), hasRelationship("boss", nodeFor(michael)));
@@ -159,7 +159,7 @@ public class ModificationOutsideOfTransactionTest
         assertEquals( spouse2, p.getSpouse() );
     }
 
-    private boolean hasUnderlyingNode( Person person )
+    private boolean hasPersistentState( Person person )
     {
         return person.hasPersistentState();
     }
@@ -179,7 +179,7 @@ public class ModificationOutsideOfTransactionTest
     @Test
     public void testFindOutsideTransaction()
     {
-        final NodeFinder<Person> finder = finderFactory.createNodeEntityFinder( Person.class );
+        final NodeGraphRepository<Person> finder = graphRepositoryFactory.createNodeEntityRepository(Person.class);
         assertEquals( false, finder.findAll().iterator().hasNext() );
     }
 

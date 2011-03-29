@@ -19,8 +19,8 @@ import org.springframework.data.graph.neo4j.Person;
 import static org.springframework.data.graph.neo4j.Person.persistedPerson;
 import org.springframework.data.graph.neo4j.Toyota;
 import org.springframework.data.graph.neo4j.Volvo;
-import org.springframework.data.graph.neo4j.finder.FinderFactory;
-import org.springframework.data.graph.neo4j.finder.NodeFinder;
+import org.springframework.data.graph.neo4j.repository.DirectGraphRepositoryFactory;
+import org.springframework.data.graph.neo4j.repository.NodeGraphRepository;
 import org.springframework.data.graph.neo4j.support.node.Neo4jHelper;
 
 import org.springframework.test.context.CleanContextCacheTestExecutionListener;
@@ -51,7 +51,7 @@ public class SubReferenceNodeTypeStrategyTest {
     @Autowired
     GraphDatabaseContext graphDatabaseContext;
     @Autowired
-    private FinderFactory finderFactory;
+    private DirectGraphRepositoryFactory graphRepositoryFactory;
 	@Autowired
     private SubReferenceTypeRepresentationStrategy nodeTypeStrategy;
     private Node thingNode;
@@ -166,7 +166,7 @@ public class SubReferenceNodeTypeStrategyTest {
 	public void testInstantiateConcreteClassWithFinder() {
 		log.debug("testInstantiateConcreteClassWithFinder");
 		Volvo v=new Volvo().persist();
-        NodeFinder<Car> finder = finderFactory.createNodeEntityFinder(Car.class);
+        NodeGraphRepository<Car> finder = graphRepositoryFactory.createNodeEntityRepository(Car.class);
 		assertEquals("Wrong concrete class.", Volvo.class, finder.findAll().iterator().next().getClass());
 	}
 
@@ -178,16 +178,16 @@ public class SubReferenceNodeTypeStrategyTest {
 		log.warn("Created volvo");
 		new Toyota().persist();
 		log.warn("Created volvo");
-        assertEquals("Wrong count for Volvo.", 1, finderFactory.createNodeEntityFinder(Volvo.class).count());
-        assertEquals("Wrong count for Toyota.", 1, finderFactory.createNodeEntityFinder(Toyota.class).count());
-        assertEquals("Wrong count for Car.", 2, finderFactory.createNodeEntityFinder(Car.class).count());
+        assertEquals("Wrong count for Volvo.", (Long)1L, graphRepositoryFactory.createNodeEntityRepository(Volvo.class).count());
+        assertEquals("Wrong count for Toyota.", (Long)1L, graphRepositoryFactory.createNodeEntityRepository(Toyota.class).count());
+        assertEquals("Wrong count for Car.", (Long)2L, graphRepositoryFactory.createNodeEntityRepository(Car.class).count());
 	}
 	@Test
 	@Transactional
 	public void testCountClasses() {
         persistedPerson("Michael", 36);
         persistedPerson("David", 25);
-        assertEquals("Wrong Person instance count.", 2, finderFactory.createNodeEntityFinder(Person.class).count());
+        assertEquals("Wrong Person instance count.", (Long)2L, graphRepositoryFactory.createNodeEntityRepository(Person.class).count());
 	}
 
     @NodeEntity

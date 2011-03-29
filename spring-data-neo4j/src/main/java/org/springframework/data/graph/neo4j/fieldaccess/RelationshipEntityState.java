@@ -20,7 +20,7 @@ import org.neo4j.graphdb.NotInTransactionException;
 import org.neo4j.graphdb.Relationship;
 import org.springframework.dao.InvalidDataAccessResourceUsageException;
 import org.springframework.data.graph.core.RelationshipBacked;
-import org.springframework.data.graph.neo4j.finder.FinderFactory;
+import org.springframework.data.graph.neo4j.repository.DirectGraphRepositoryFactory;
 import org.springframework.data.graph.neo4j.support.GraphDatabaseContext;
 
 import java.util.Arrays;
@@ -34,10 +34,10 @@ public class RelationshipEntityState<ENTITY extends RelationshipBacked> extends 
 
     private final GraphDatabaseContext graphDatabaseContext;
     
-    private final FinderFactory finderFactory;
+    private final DirectGraphRepositoryFactory graphRepositoryFactory;
 
-    public RelationshipEntityState(final Relationship underlyingState, final ENTITY entity, final Class<? extends ENTITY> type, final GraphDatabaseContext graphDatabaseContext, final FinderFactory finderFactory) {
-        super(underlyingState, entity, type, new DelegatingFieldAccessorFactory(graphDatabaseContext, finderFactory) {
+    public RelationshipEntityState(final Relationship underlyingState, final ENTITY entity, final Class<? extends ENTITY> type, final GraphDatabaseContext graphDatabaseContext, final DirectGraphRepositoryFactory graphRepositoryFactory) {
+        super(underlyingState, entity, type, new DelegatingFieldAccessorFactory(graphDatabaseContext, graphRepositoryFactory) {
             @Override
             protected Collection<FieldAccessorListenerFactory<?>> createListenerFactories() {
                 return Arrays.<FieldAccessorListenerFactory<?>>asList(
@@ -59,7 +59,7 @@ public class RelationshipEntityState<ENTITY extends RelationshipBacked> extends 
             }
         });
         this.graphDatabaseContext = graphDatabaseContext;
-        this.finderFactory = finderFactory;
+        this.graphRepositoryFactory = graphRepositoryFactory;
     }
 
     @Override

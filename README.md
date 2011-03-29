@@ -99,7 +99,7 @@ For more detailed questions, use the [forum](http://forum.springsource.org/forum
         public class WorldRepository {
 
           @Autowired
-          private FinderFactory finderFactory;
+          private FinderFactory graphRepositoryFactory;
         
           @Transactional
           public Collection<World> makeSomeWorlds()  {
@@ -117,31 +117,31 @@ For more detailed questions, use the [forum](http://forum.springsource.org/forum
             return new World(name,moons).persist();
           }
 
-          private NodeFinder<World> finder() {
-             return finderFactory.createNodeEntityFinder(World.class);
+          private NodeFinder<World> graphRepository() {
+             return graphRepositoryFactory.createNodeEntityFinder(World.class);
 		  }
           public World findWorldIdentifiedBy( long id )  {
-             return finder().findById( id );
+             return graphRepository().findById( id );
           }
             
           public Iterable<World> findAllWorlds()  {
-             return finder().findAll();
+             return graphRepository().findAll();
           }
             
           public long countWorlds()  {
-            return finder().count();
+            return graphRepository().count();
           }
             
           public World findWorldNamed( String name ) {
-            return finder().findByPropertyValue( null, "name", name );
+            return graphRepository().findByPropertyValue( null, "name", name );
           }
             
           public World findWorldWithMoons( long moonCount ) {
-            return finder().findByPropertyValue( "moons", "moons", moonCount );
+            return graphRepository().findByPropertyValue( "moons", "moons", moonCount );
           }
           
           public Iterable<World> findWorldsWithMoons( int moonCount )  {
-            return finder().findAllByPropertyValue( "moons", "moons", moonCount );
+            return graphRepository().findAllByPropertyValue( "moons", "moons", moonCount );
           }
                        
         }

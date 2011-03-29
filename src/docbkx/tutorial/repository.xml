@@ -10,12 +10,12 @@
             <programlisting language="java"><![CDATA[
 @Repository @Transactional
 public class CineastsRepostory {
-  FinderFactory finderFactory;
+  FinderFactory graphRepositoryFactory;
   Finder<Movie> movieFinder;
   @Autowired
-  public CineastsRepostory(FinderFactory finderFactory) {
-      this.finderFactory = finderFactory;
-      this.movieFinder = finderFactory.createNodeEntityFinder(Movie.class);
+  public CineastsRepostory(FinderFactory graphRepositoryFactory) {
+      this.graphRepositoryFactory = graphRepositoryFactory;
+      this.movieFinder = graphRepositoryFactory.createNodeEntityFinder(Movie.class);
   }
   public Movie getMovie(int id) {
       return movieFinder.findByPropertyValue(null,"id", id);

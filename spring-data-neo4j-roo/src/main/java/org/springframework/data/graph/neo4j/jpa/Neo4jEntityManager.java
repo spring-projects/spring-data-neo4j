@@ -19,7 +19,7 @@ package org.springframework.data.graph.neo4j.jpa;
 import org.neo4j.graphdb.*;
 import org.springframework.beans.factory.annotation.Configurable;
 import org.springframework.data.graph.core.NodeBacked;
-import org.springframework.data.graph.neo4j.finder.FinderFactory;
+import org.springframework.data.graph.neo4j.repository.DirectGraphRepositoryFactory;
 import org.springframework.data.graph.neo4j.support.GraphDatabaseContext;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -46,7 +46,7 @@ public class Neo4jEntityManager implements EntityManager {
 
     private Map params;
     private volatile boolean closed;
-    private final FinderFactory finderFactory;
+    private final DirectGraphRepositoryFactory graphRepositoryFactory;
 
     @Resource
     private EntityManagerFactory entityManagerFactory;
@@ -55,11 +55,11 @@ public class Neo4jEntityManager implements EntityManager {
         this.graphDatabaseContext = graphDatabaseContext;
         this.info = info;
         this.params = params;
-        finderFactory = new FinderFactory(graphDatabaseContext);
+        graphRepositoryFactory = new DirectGraphRepositoryFactory(graphDatabaseContext);
     }
 
     public Neo4jEntityManager() {
-        finderFactory = new FinderFactory(graphDatabaseContext);
+        graphRepositoryFactory = new DirectGraphRepositoryFactory(graphDatabaseContext);
     }
 
     private Node nodeFor(final Object entity) {
@@ -230,7 +230,7 @@ public class Neo4jEntityManager implements EntityManager {
     }
 
     public <T> TypedQuery<T> createNeo4jQuery(final String qlString, final Class<T> entityClass) {
-        return new Neo4JQuery<T>(qlString, finderFactory,info,entityClass);
+        return new Neo4JQuery<T>(qlString, graphRepositoryFactory,info,entityClass);
     }
 
     /*

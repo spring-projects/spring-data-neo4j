@@ -2,18 +2,13 @@ package org.springframework.data.graph.neo4j.support;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.NotFoundException;
-import org.neo4j.graphdb.Transaction;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.graph.core.NodeBacked;
-import org.springframework.data.graph.neo4j.Group;
 import org.springframework.data.graph.neo4j.Person;
-import org.springframework.data.graph.neo4j.finder.FinderFactory;
-import org.springframework.data.graph.neo4j.finder.NodeFinder;
+import org.springframework.data.graph.neo4j.repository.DirectGraphRepositoryFactory;
+import org.springframework.data.graph.neo4j.repository.NodeGraphRepository;
 import org.springframework.data.graph.neo4j.support.node.Neo4jHelper;
 import org.springframework.test.context.CleanContextCacheTestExecutionListener;
 import org.springframework.test.context.ContextConfiguration;
@@ -41,7 +36,7 @@ import static org.springframework.data.graph.neo4j.Person.persistedPerson;
 	private GraphDatabaseContext graphDatabaseContext;
 
 	@Autowired
-	private FinderFactory finderFactory;
+	private DirectGraphRepositoryFactory graphRepositoryFactory;
 
     @BeforeTransaction
     public void cleanDb() {
@@ -60,8 +55,8 @@ import static org.springframework.data.graph.neo4j.Person.persistedPerson;
         Person person2 = graphDatabaseContext.createEntityFromState(node,Person.class);
         assertEquals("Rod", person2.getName());
 
-        NodeFinder<Person> finder = finderFactory.createNodeEntityFinder(Person.class);
-        Person found = finder.findById(nodeId);
+        NodeGraphRepository<Person> finder = graphRepositoryFactory.createNodeEntityRepository(Person.class);
+        Person found = finder.findOne(nodeId);
         assertEquals("Rod", found.getName());
     }
 }

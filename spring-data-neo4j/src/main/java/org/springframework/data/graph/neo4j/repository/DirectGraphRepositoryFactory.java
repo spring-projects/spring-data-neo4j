@@ -14,29 +14,29 @@
  * limitations under the License.
  */
 
-package org.springframework.data.graph.neo4j.finder;
+package org.springframework.data.graph.neo4j.repository;
 
 import org.springframework.data.graph.core.NodeBacked;
 import org.springframework.data.graph.core.RelationshipBacked;
 import org.springframework.data.graph.neo4j.support.GraphDatabaseContext;
 
 /**
- * Simple Factory for {@link NodeFinder} instances.
+ * Simple Factory for {@link DefaultNodeGraphRepository} instances.
  */
-public class FinderFactory {
+public class DirectGraphRepositoryFactory {
 
     private final GraphDatabaseContext graphDatabaseContext;
 
-    public FinderFactory(final GraphDatabaseContext graphDatabaseContext) {
+    public DirectGraphRepositoryFactory(final GraphDatabaseContext graphDatabaseContext) {
         this.graphDatabaseContext = graphDatabaseContext;
     }
 
-    public <T extends NodeBacked> NodeFinder<T> createNodeEntityFinder(Class<T> clazz) {
-        return new NodeFinder<T>(clazz, graphDatabaseContext);
+    public <T extends NodeBacked> NodeGraphRepository<T> createNodeEntityRepository(Class<T> clazz) {
+        return new DefaultNodeGraphRepository<T>(clazz, graphDatabaseContext);
     }
 
-    public <T extends RelationshipBacked> RelationshipFinder<T> createRelationshipEntityFinder(Class<T> clazz) {
-        return new RelationshipFinder<T>(clazz, graphDatabaseContext);
+    public <T extends RelationshipBacked> RelationshipGraphRepository<T> createRelationshipEntityRepository(Class<T> clazz) {
+        return new DefaultRelationshipGraphRepository<T>(clazz, graphDatabaseContext);
     }
 
 }
