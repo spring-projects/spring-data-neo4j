@@ -23,17 +23,18 @@ import org.aspectj.lang.reflect.FieldSignature;
 import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.traversal.TraversalDescription;
 import org.neo4j.graphdb.traversal.Traverser;
-import org.springframework.beans.factory.annotation.Configurable;
 import org.springframework.data.graph.core.NodeBacked;
 import org.springframework.data.graph.core.GraphBacked;
 import org.springframework.data.graph.core.RelationshipBacked;
 import org.springframework.data.graph.neo4j.fieldaccess.*;
 import org.springframework.data.graph.neo4j.support.GraphDatabaseContext;
+
+import java.lang.reflect.Field;
 import org.springframework.data.graph.annotation.*;
 import javax.persistence.Transient;
 import javax.persistence.Entity;
+import org.springframework.beans.factory.annotation.Configurable;
 
-import java.lang.reflect.Field;
 
 import static org.springframework.data.graph.neo4j.fieldaccess.DoReturn.unwrap;
 
@@ -106,22 +107,18 @@ public aspect Neo4jNodeBacking { // extends AbstractTypeAnnotatingMixinFields<No
         }
     }
 
+    /**
+     * State accessors that encapsulate the underlying state and the behaviour related to it (field access, creation)
+     */
+    private transient EntityState<NodeBacked,Node> NodeBacked.entityState;
+
     public <T extends NodeBacked> T NodeBacked.persist() {
         return (T)this.entityState.persist();
     }
     public boolean NodeBacked.refersTo(GraphBacked target) {
         return this.entityState.refersTo(target);
     }
-    /**
-     * State accessors that encapsulate the underlying state and the behaviour related to it (field access, creation)
-     */
-    private transient EntityState<NodeBacked,Node> NodeBacked.entityState;
 
-    /**
-     * sets the underlying state to the given node, creates an {@link org.springframework.data.graph.neo4j.fieldaccess.EntityState} instance on demand for delegating
-     * the behaviour, otherwise just updates the backing state
-     * @param n the node to be the backing state of the entity
-     */
 	public void NodeBacked.setPersistentState(Node n) {
         if (this.entityState == null) {
             this.entityState = Neo4jNodeBacking.aspectOf().entityStateFactory.getEntityState(this);
@@ -133,11 +130,11 @@ public aspect Neo4jNodeBacking { // extends AbstractTypeAnnotatingMixinFields<No
 		return this.entityState!=null ? this.entityState.getPersistentState() : null;
 	}
 	
-    public EntityState NodeBacked.getEntityState() {
+    public EntityState<NodeBacked, Node> NodeBacked.getEntityState() {
         return entityState;
     }
 
-    public boolean NodeBacked.hasUnderlyingNode() {
+    public boolean NodeBacked.hasPersistentState() {
         return this.entityState!=null && this.entityState.hasPersistentState();
     }
 
@@ -145,12 +142,6 @@ public aspect Neo4jNodeBacking { // extends AbstractTypeAnnotatingMixinFields<No
         return (T)Neo4jNodeBacking.aspectOf().graphDatabaseContext.projectTo( this, targetType);
     }
 
-    /**
-     * creates a relationship to the target node entity with the given relationship type
-     * @param target entity
-     * @param type neo4j relationship type for the underlying relationship
-     * @return the newly created relationship to the target node
-     */
 	public Relationship NodeBacked.relateTo(NodeBacked target, String type) {
         if (target==null) throw new IllegalArgumentException("Target entity is null");
         if (type==null) throw new IllegalArgumentException("Relationshiptype is null");
@@ -171,41 +162,17 @@ public aspect Neo4jNodeBacking { // extends AbstractTypeAnnotatingMixinFields<No
         return null;
     }
 
-    /**
-     * @return node id or null if there is no underlying state
-     */
 	public Long NodeBacked.getNodeId() {
-        if (!hasUnderlyingNode()) return null;
+        if (!hasPersistentState()) return null;
 		return getPersistentState().getId();
 	}
 
-    /**
-     * handles traversal from the current node with the given traversal description, the entities returned must be instances of the
-     * provided target type
-     * @param targetType node entity java types of the traversal results
-     * @param traversalDescription
-     * @return lazy Iterable over the traversal results, converted to the expected node entity instances
-     */
     public  <T extends NodeBacked> Iterable<T> NodeBacked.findAllByTraversal(final Class<T> targetType, TraversalDescription traversalDescription) {
-        if (!hasUnderlyingNode()) throw new IllegalStateException("No node attached to " + this);
+        if (!hasPersistentState()) throw new IllegalStateException("No node attached to " + this);
         final Traverser traverser = traversalDescription.traverse(this.getPersistentState());
         return new NodeBackedNodeIterableWrapper<T>(traverser, targetType, Neo4jNodeBacking.aspectOf().graphDatabaseContext);
     }
 
-
-//    public Iterable<? extends NodeBacked> NodeBacked.traverse(TraversalDescription traversalDescription) {
-//        final Class<? extends NodeBacked> target = this.getClass();
-//        return this.traverse(target,traversalDescription);
-//    }
-
-
-    /**
-     * Creates a relationship to the target node  with the given relationship type.
-     * @param target node
-     * @param relationshipClass  expected relationship class of the resulting relationship entity
-     * @param relationshipType
-     * @return relationship entity, instance of the provided relationshipClass
-     */
     public <R extends RelationshipBacked, N extends NodeBacked> R NodeBacked.relateTo(N target, Class<R> relationshipClass, String relationshipType) {
         if (target==null) throw new IllegalArgumentException("Target entity is null");
         if (relationshipClass==null) throw new IllegalArgumentException("Relationship class is null");
@@ -215,19 +182,10 @@ public aspect Neo4jNodeBacking { // extends AbstractTypeAnnotatingMixinFields<No
         return (R)Neo4jNodeBacking.aspectOf().graphDatabaseContext.createEntityFromState(rel, relationshipClass);
     }
 
-    /**
-     * removes the entity using @{link GraphDatabaseContext.removeNodeEntity}
-     * the entity and relationship are still accessible after removal but before transaction commit
-     * but all modifications will throw an exception
-     */
     public void NodeBacked.remove() {
         Neo4jNodeBacking.aspectOf().graphDatabaseContext.removeNodeEntity(this);
     }
-    /**
-     * removes the relationship to the target node entity with the given relationship type
-     * @param target node entity
-     * @param relationshipType
-     */
+
     public void NodeBacked.removeRelationshipTo(NodeBacked target, String relationshipType) {
         if (target==null) throw new IllegalArgumentException("Target entity is null");
         if (relationshipType==null) throw new IllegalArgumentException("Relationshiptype is null");
@@ -243,13 +201,6 @@ public aspect Neo4jNodeBacking { // extends AbstractTypeAnnotatingMixinFields<No
         }
     }
 
-    /**
-     * introduced method for accessing and Relationship Entity instance for the given start node and relationship type.
-     * @param target start node
-     * @param relationshipClass class of the relationship entity
-     * @param type type of the graph relationship
-     * @return and instance of the requested relationshipClass if the relationship was found, null otherwise
-     */
     public <R extends RelationshipBacked> R NodeBacked.getRelationshipTo( NodeBacked target, Class<R> relationshipClass, String type) {
         if (target ==null) throw new IllegalArgumentException("Target entity is null");
         if (relationshipClass==null) throw new IllegalArgumentException("Relationship class is null");
@@ -271,7 +222,7 @@ public aspect Neo4jNodeBacking { // extends AbstractTypeAnnotatingMixinFields<No
      */
 	public final boolean NodeBacked.equals(Object obj) {
         if (obj == this) return true;
-        if (!hasUnderlyingNode()) return false;
+        if (!hasPersistentState()) return false;
 		if (obj instanceof NodeBacked) {
 			return this.getPersistentState().equals(((NodeBacked) obj).getPersistentState());
 		}
@@ -282,7 +233,7 @@ public aspect Neo4jNodeBacking { // extends AbstractTypeAnnotatingMixinFields<No
      * @return result of the hashCode of the underlying node (if any, otherwise identityHashCode)
      */
 	public final int NodeBacked.hashCode() {
-        if (!hasUnderlyingNode()) return System.identityHashCode(this);
+        if (!hasPersistentState()) return System.identityHashCode(this);
 		return getPersistentState().hashCode();
 	}
 

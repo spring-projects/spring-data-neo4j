@@ -10,13 +10,13 @@ import org.neo4j.helpers.collection.FilteringIterable;
 import org.neo4j.helpers.collection.IterableWrapper;
 import org.springframework.data.graph.annotation.NodeEntity;
 import org.springframework.data.graph.core.NodeBacked;
-import org.springframework.data.graph.core.NodeTypeStrategy;
+import org.springframework.data.graph.core.TypeRepresentationStrategy;
 import org.springframework.data.persistence.EntityInstantiator;
 
 import java.util.HashMap;
 import java.util.Map;
 
-public class IndexingNodeTypeStrategy implements NodeTypeStrategy {
+public class IndexingTypeRepresentationStrategy implements TypeRepresentationStrategy {
 
     public static final String NODE_INDEX_NAME = "__types__";
     public static final String TYPE_PROPERTY_NAME = "__type__";
@@ -25,7 +25,7 @@ public class IndexingNodeTypeStrategy implements NodeTypeStrategy {
 	private GraphDatabaseService graphDb;
     private final Map<String,Class<?>> cache=new HashMap<String, Class<?>>();
 
-    public IndexingNodeTypeStrategy(GraphDatabaseService graphDb, EntityInstantiator<NodeBacked, Node> graphEntityInstantiator) {
+    public IndexingTypeRepresentationStrategy(GraphDatabaseService graphDb, EntityInstantiator<NodeBacked, Node> graphEntityInstantiator) {
 		this.graphDb = graphDb;
 		this.graphEntityInstantiator = graphEntityInstantiator;
 	}

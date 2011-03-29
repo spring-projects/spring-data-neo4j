@@ -14,7 +14,6 @@ import org.neo4j.helpers.collection.IteratorUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.graph.annotation.NodeEntity;
 import org.springframework.data.graph.core.NodeBacked;
-import org.springframework.data.graph.core.NodeTypeStrategy;
 import org.springframework.data.graph.neo4j.Car;
 import org.springframework.data.graph.neo4j.Person;
 import static org.springframework.data.graph.neo4j.Person.persistedPerson;
@@ -24,7 +23,6 @@ import org.springframework.data.graph.neo4j.finder.FinderFactory;
 import org.springframework.data.graph.neo4j.finder.NodeFinder;
 import org.springframework.data.graph.neo4j.support.node.Neo4jHelper;
 
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.CleanContextCacheTestExecutionListener;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestExecutionListeners;
@@ -55,7 +53,7 @@ public class SubReferenceNodeTypeStrategyTest {
     @Autowired
     private FinderFactory finderFactory;
 	@Autowired
-    private SubReferenceNodeTypeStrategy nodeTypeStrategy;
+    private SubReferenceTypeRepresentationStrategy nodeTypeStrategy;
     private Node thingNode;
     private Thing thing;
 
@@ -75,8 +73,8 @@ public class SubReferenceNodeTypeStrategyTest {
     public void testPostEntityCreation() throws Exception {
         Node typeNode = getInstanceofRelationship().getOtherNode(thingNode);
         Assert.assertNotNull("type node for thing exists", typeNode);
-        Assert.assertEquals("type node has property of type Thing.class", Thing.class.getName(), typeNode.getProperty(SubReferenceNodeTypeStrategy.SUBREF_CLASS_KEY));
-        Assert.assertEquals("one thing has been created", 1, typeNode.getProperty(SubReferenceNodeTypeStrategy.SUBREFERENCE_NODE_COUNTER_KEY));
+        Assert.assertEquals("type node has property of type Thing.class", Thing.class.getName(), typeNode.getProperty(SubReferenceTypeRepresentationStrategy.SUBREF_CLASS_KEY));
+        Assert.assertEquals("one thing has been created", 1, typeNode.getProperty(SubReferenceTypeRepresentationStrategy.SUBREFERENCE_NODE_COUNTER_KEY));
     }
     @Test(expected = IllegalArgumentException.class)
     public void gettingTypeFromNonTypeNodeShouldThrowAnDescriptiveException() throws Exception {
@@ -115,13 +113,13 @@ public class SubReferenceNodeTypeStrategyTest {
         Node typeNode = getInstanceofRelationship().getOtherNode(thingNode);
         nodeTypeStrategy.preEntityRemoval(thing);
         Assert.assertNull("instanceof relationship was removed", getInstanceofRelationship());
-        Assert.assertEquals("no things left after removal", 0, typeNode.getProperty(SubReferenceNodeTypeStrategy.SUBREFERENCE_NODE_COUNTER_KEY));
+        Assert.assertEquals("no things left after removal", 0, typeNode.getProperty(SubReferenceTypeRepresentationStrategy.SUBREFERENCE_NODE_COUNTER_KEY));
 
     }
 
     @Transactional
     private Relationship getInstanceofRelationship() {
-        return thingNode.getSingleRelationship(SubReferenceNodeTypeStrategy.INSTANCE_OF_RELATIONSHIP_TYPE, Direction.OUTGOING);
+        return thingNode.getSingleRelationship(SubReferenceTypeRepresentationStrategy.INSTANCE_OF_RELATIONSHIP_TYPE, Direction.OUTGOING);
     }
 
     @Test

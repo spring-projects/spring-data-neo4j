@@ -27,7 +27,7 @@ import org.springframework.core.convert.ConversionService;
 import org.springframework.data.annotation.Indexed;
 import org.springframework.data.graph.core.GraphBacked;
 import org.springframework.data.graph.core.NodeBacked;
-import org.springframework.data.graph.core.NodeTypeStrategy;
+import org.springframework.data.graph.core.TypeRepresentationStrategy;
 import org.springframework.data.graph.core.RelationshipBacked;
 import org.springframework.data.persistence.EntityInstantiator;
 
@@ -39,7 +39,7 @@ import java.util.Map;
 
 /**
  * Mediator class for the graph related services like the {@link GraphDatabaseService}, the used
- * {@link NodeTypeStrategy}, entity instantiators for nodes and relationships as well as a spring conversion service.
+ * {@link org.springframework.data.graph.core.TypeRepresentationStrategy}, entity instantiators for nodes and relationships as well as a spring conversion service.
  *
  * It delegates the appropriate methods to those services. The services are not intended to be accessible from outside.
  *
@@ -59,7 +59,7 @@ public class GraphDatabaseContext {
 
     private ConversionService conversionService;
 
-    private NodeTypeStrategy nodeTypeStrategy;
+    private TypeRepresentationStrategy typeRepresentationStrategy;
 
     private Validator validator;
 
@@ -99,12 +99,12 @@ public class GraphDatabaseContext {
 		this.conversionService = conversionService;
 	}
 
-	public NodeTypeStrategy getNodeTypeStrategy() {
-		return nodeTypeStrategy;
+	public TypeRepresentationStrategy getTypeRepresentationStrategy() {
+		return typeRepresentationStrategy;
 	}
 
-	public void setNodeTypeStrategy(NodeTypeStrategy nodeTypeStrategy) {
-		this.nodeTypeStrategy = nodeTypeStrategy;
+	public void setTypeRepresentationStrategy(TypeRepresentationStrategy typeRepresentationStrategy) {
+		this.typeRepresentationStrategy = typeRepresentationStrategy;
 	}
 
 	public Node createNode() {
@@ -139,7 +139,7 @@ public class GraphDatabaseContext {
     public void removeNodeEntity(NodeBacked entity) {
         Node node = entity.getPersistentState();
         if (node==null) return;
-        this.nodeTypeStrategy.preEntityRemoval(entity);
+        this.typeRepresentationStrategy.preEntityRemoval(entity);
         for (Relationship relationship : node.getRelationships()) {
             removeRelationship(relationship);
         }
@@ -171,7 +171,7 @@ public class GraphDatabaseContext {
     public <S, T extends GraphBacked> T createEntityFromState(final S state, final Class<T> type) {
         if (state==null) throw new IllegalArgumentException("state has to be either a Node or Relationship, not null");
         if (state instanceof Node)
-            return (T) graphEntityInstantiator.createEntityFromState((Node) state, nodeTypeStrategy.confirmType((Node)state, (Class<? extends NodeBacked>)type));
+            return (T) graphEntityInstantiator.createEntityFromState((Node) state, typeRepresentationStrategy.confirmType((Node)state, (Class<? extends NodeBacked>)type));
         else
             return (T) relationshipEntityInstantiator.createEntityFromState((Relationship) state, (Class<? extends RelationshipBacked>) type);
     }
@@ -214,15 +214,15 @@ public class GraphDatabaseContext {
     }
 
     /**
-     * delegates to the configured @{link NodeTypeStrategy} for after entity creation operations
+     * delegates to the configured @{link TypeRepresentationStrategy} for after entity creation operations
      * @param entity
      */
     public void postEntityCreation(final NodeBacked entity) {
-        nodeTypeStrategy.postEntityCreation(entity);
+        typeRepresentationStrategy.postEntityCreation(entity);
     }
 
     /**
-     * delegates to the configured @{link NodeTypeStrategy} to iterate over all instances of this type
+     * delegates to the configured @{link TypeRepresentationStrategy} to iterate over all instances of this type
      * @param clazz type of entity
      * @param <T>
      * @return
@@ -230,7 +230,7 @@ public class GraphDatabaseContext {
      */
     public <T extends GraphBacked> Iterable<T> findAll(final Class<T> clazz) {
         if (!checkIsNodeBacked(clazz)) throw new UnsupportedOperationException("No support for relationships");
-        return (Iterable<T>) nodeTypeStrategy.findAll((Class<NodeBacked>)clazz);
+        return (Iterable<T>) typeRepresentationStrategy.findAll((Class<NodeBacked>)clazz);
     }
 
     /**
@@ -241,24 +241,24 @@ public class GraphDatabaseContext {
     }
 
     /**
-     * delegates to the configured @{link NodeTypeStrategy} for a count of all instances of this type
+     * delegates to the configured @{link TypeRepresentationStrategy} for a count of all instances of this type
      * @param entityClass
      * @return count of all instances
      */
     public long count(final Class<? extends GraphBacked> entityClass) {
         if (!checkIsNodeBacked(entityClass)) throw new UnsupportedOperationException("No support for relationships");
-        return nodeTypeStrategy.count((Class<NodeBacked>)entityClass);
+        return typeRepresentationStrategy.count((Class<NodeBacked>)entityClass);
     }
 
     /**
-     * delegates to the configured @{link NodeTypeStrategy} to lookup the type information for the given node
+     * delegates to the configured @{link TypeRepresentationStrategy} to lookup the type information for the given node
      * @param node
      * @param <T>
      * @return entity type of the node
      * @throws IllegalStateException for nodes that are not instance backing nodes of a known type
      */
 	public <T extends NodeBacked> Class<T> getJavaType(final Node node) {
-		return nodeTypeStrategy.getJavaType(node);
+		return typeRepresentationStrategy.getJavaType(node);
 	}
 
     /**
@@ -327,7 +327,7 @@ public class GraphDatabaseContext {
     }
 
     public <T extends NodeBacked> T createEntityFromStoredType(Node node) {
-        return (T)graphEntityInstantiator.createEntityFromState(node,nodeTypeStrategy.<NodeBacked>getJavaType(node));
+        return (T)graphEntityInstantiator.createEntityFromState(node, typeRepresentationStrategy.<NodeBacked>getJavaType(node));
     }
 }
 

@@ -97,10 +97,10 @@
         <property name="conversionService">
             <bean class="org.springframework.data.graph.neo4j.fieldaccess.Neo4jConversionServiceFactoryBean"/>
         </property>
-        <property name="nodeTypeStrategy" ref="nodeTypeStrategy"/>
+        <property name="typeRepresentationStrategy" ref="typeRepresentationStrategy"/>
     </bean>
 
-    <bean id="nodeTypeStrategy" class="org.springframework.data.graph.neo4j.support.NodeTypeStrategyFactoryBean">
+    <bean id="typeRepresentationStrategy" class="org.springframework.data.graph.neo4j.support.NodeTypeStrategyFactoryBean">
         <constructor-arg ref="graphDatabaseService"/>
         <constructor-arg ref="graphEntityInstantiator"/>
     </bean>

@@ -12,7 +12,7 @@ import org.springframework.data.graph.neo4j.support.GraphDatabaseContext;
 import java.util.Collections;
 
 /**
- * Repository like finder for Node and Relationship-Entities. Provides finder methods for direct access, access via {@link org.springframework.data.graph.core.NodeTypeStrategy}
+ * Repository like finder for Node and Relationship-Entities. Provides finder methods for direct access, access via {@link org.springframework.data.graph.core.TypeRepresentationStrategy}
  * and indexing.
  *
  * @param <T> GraphBacked target of this finder, enables the finder methods to return this concrete type

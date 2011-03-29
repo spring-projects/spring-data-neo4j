@@ -161,7 +161,7 @@ public class ModificationOutsideOfTransactionTest
 
     private boolean hasUnderlyingNode( Person person )
     {
-        return person.hasUnderlyingNode();
+        return person.hasPersistentState();
     }
 
     private Node nodeFor( Person person )

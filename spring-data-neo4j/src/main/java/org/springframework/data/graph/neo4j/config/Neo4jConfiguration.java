@@ -95,7 +95,7 @@ public class Neo4jConfiguration {
 		gdc.setGraphEntityInstantiator(graphEntityInstantiator);
 		gdc.setConversionService(conversionService());
         NodeTypeStrategyFactoryBean nodeTypeStrategyFactoryBean = new NodeTypeStrategyFactoryBean(graphDatabaseService, graphEntityInstantiator);
-        gdc.setNodeTypeStrategy(nodeTypeStrategyFactoryBean.getObject());
+        gdc.setTypeRepresentationStrategy(nodeTypeStrategyFactoryBean.getObject());
         if (validator!=null) {
             gdc.setValidator(validator);
         }
@@ -144,6 +144,7 @@ public class Neo4jConfiguration {
 		NodeEntityStateFactory entityStateFactory = new NodeEntityStateFactory();
 		entityStateFactory.setGraphDatabaseContext(graphDatabaseContext);
 		entityStateFactory.setFinderFactory(finderFactory);
+		entityStateFactory.setEntityManagerFactory(entityManagerFactory);
 		entityStateFactory.setNodeDelegatingFieldAccessorFactory(
 				new NodeDelegatingFieldAccessorFactory(graphDatabaseContext, finderFactory));
 		aspect.setNodeEntityStateFactory(entityStateFactory);
