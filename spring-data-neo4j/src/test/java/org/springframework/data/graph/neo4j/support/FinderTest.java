@@ -2,11 +2,14 @@ package org.springframework.data.graph.neo4j.support;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hamcrest.Matcher;
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.internal.matchers.IsCollectionContaining;
 import org.junit.runner.RunWith;
 import org.neo4j.helpers.collection.IteratorUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.graph.neo4j.Group;
 import org.springframework.data.graph.neo4j.GroupRepository;
 import org.springframework.data.graph.neo4j.Person;
@@ -21,7 +24,12 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 
+import static java.util.Arrays.asList;
+import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
+import static org.junit.internal.matchers.IsCollectionContaining.hasItems;
+import static org.neo4j.helpers.collection.IteratorUtil.asCollection;
 import static org.springframework.data.graph.neo4j.Person.persistedPerson;
 
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -50,7 +58,40 @@ public class FinderTest {
         Person p1 = persistedPerson("Michael", 35);
         Person p2 = persistedPerson("David", 25);
         Iterable<Person> allPersons = personRepository.findAll();
-        assertEquals(new HashSet<Person>(Arrays.asList(p1, p2)), IteratorUtil.addToCollection(allPersons.iterator(), new HashSet<Person>()));
+        assertThat(asCollection(allPersons), hasItems(p1, p2));
+    }
+
+    @Test
+    @Transactional
+    public void testSaveManyPeople() {
+        Person p1 = new Person("Michael", 35);
+        Person p2 = new Person("David", 25);
+        personRepository.save(asList(p1,p2));
+        assertEquals("persisted person 1",true,p1.hasPersistentState());
+        assertEquals("persisted person 2",true,p2.hasPersistentState());
+        assertThat(asCollection(personRepository.findAll()), hasItems(p2, p1));
+    }
+
+    @Test
+    @Transactional
+    public void testSavePerson() {
+        Person p1 = new Person("Michael", 35);
+        personRepository.save(p1);
+        assertEquals("persisted person",true,p1.hasPersistentState());
+        assertThat(personRepository.findOne(p1.getId()),is(p1));
+    }
+    @Test
+    public void testDeletePerson() {
+        Person p1 = persistedPerson("Michael", 35);
+        personRepository.delete(p1);
+        assertEquals("people deleted", false, personRepository.findAll().iterator().hasNext());
+    }
+    @Test
+    public void testDeletePeople() {
+        Person p1 = persistedPerson("Michael", 35);
+        Person p2 = persistedPerson("David", 26);
+        personRepository.delete(asList(p1,p2));
+        assertEquals("people deleted", false, personRepository.findAll().iterator().hasNext());
     }
 
     @Test
