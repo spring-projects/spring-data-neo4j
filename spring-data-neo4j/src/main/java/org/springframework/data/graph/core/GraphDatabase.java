@@ -1,8 +1,10 @@
 package org.springframework.data.graph.core;
 
 import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.PropertyContainer;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.RelationshipType;
+import org.neo4j.graphdb.index.Index;
 
 import java.util.Map;
 
@@ -35,7 +37,6 @@ public interface GraphDatabase {
     Node createNode(Map<String, Object> props, String... indexFields);
 
     /**
-     * Delegates to the GraphDatabaseService
      * @param id relationship id
      * @return the requested relationship of the underlying graph database
      * @throws org.neo4j.graphdb.NotFoundException
@@ -56,4 +57,19 @@ public interface GraphDatabase {
      */
     Relationship createRelationship(Node startNode, Node endNode, RelationshipType type, Map<String, Object> props, String... indexFields);
 
+    /**
+     * @param indexName existing index name, not null
+     * @return existing index {@link Index}
+     * @throws IllegalArgumentException if the index doesn't exist
+     */
+    <T extends PropertyContainer> Index<T> getIndex(String indexName);
+
+    /**
+     * creates a index
+     * @param type type of index requested - either Node.class or Relationship.class
+     * @param indexName, not null
+     * @param fullText true if a fulltext queryable index is needed, false for exact match
+     * @return node index {@link Index}
+     */
+    <T extends PropertyContainer> Index<T> createIndex(Class<T> type, String indexName, boolean fullText);
 }
