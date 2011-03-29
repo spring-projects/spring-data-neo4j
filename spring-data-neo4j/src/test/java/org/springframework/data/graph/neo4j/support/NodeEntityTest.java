@@ -53,13 +53,17 @@ import static org.springframework.data.graph.neo4j.Person.persistedPerson;
     @Test
     @Transactional
     public void testSetProperties() {
+        String name = "Michael";
+        int age = 35;
+        short height = 182;
+
         Person p = persistedPerson("Foo", 2);
-        p.setName("Michael");
-        p.setAge(35);
-        p.setHeight((short)182);
-        assertEquals("Michael", p.getPersistentState().getProperty("Person.name"));
-        assertEquals(35, p.getPersistentState().getProperty("Person.age"));
-        assertEquals((Short)(short)182, p.getHeight());
+        p.setName( name );
+        p.setAge( age );
+        p.setHeight( height );
+        assertEquals( name, p.getPersistentState().getProperty( "Person.name" ) );
+        assertEquals( age, p.getPersistentState().getProperty("Person.age"));
+        assertEquals((Short)height, p.getHeight());
     }
 
     @Test
