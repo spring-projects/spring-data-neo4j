@@ -23,20 +23,20 @@ import org.springframework.test.context.transaction.TransactionalTestExecutionLi
 @TestExecutionListeners({CleanContextCacheTestExecutionListener.class, DependencyInjectionTestExecutionListener.class, TransactionalTestExecutionListener.class})
 public class RestFinderTest extends GraphRepositoryTest {
 
-@BeforeClass
-public static void startDb() throws Exception {
-    RestTestBase.startDb();
-}
+    @BeforeClass
+    public static void startDb() throws Exception {
+        RestTestBase.startDb();
+    }
 
-@Before
-public void cleanDb() {
-    RestTestBase.cleanDb();
-}
+    @Before
+    public void cleanDb() {
+        RestTestBase.cleanDb();
+    }
 
-@AfterClass
-public static void shutdownDb() {
-    RestTestBase.shutdownDb();
+    @AfterClass
+    public static void shutdownDb() {
+        RestTestBase.shutdownDb();
 
-}
+    }
 
 }

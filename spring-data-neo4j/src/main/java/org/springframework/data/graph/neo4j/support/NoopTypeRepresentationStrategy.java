@@ -16,26 +16,26 @@ public class NoopTypeRepresentationStrategy {
 
         @Override
         public <U extends NodeBacked> Iterable<U> findAll(Class<U> clazz) {
-            throw new UnsupportedOperationException("findAll not supported by NoopTypeRepresentationStrategy.");
+            throw new UnsupportedOperationException("findAll not supported.");
         }
 
         @Override
         public long count(Class<? extends NodeBacked> entityClass) {
-            throw new UnsupportedOperationException("count not supported by NoopTypeRepresentationStrategy.");
+            throw new UnsupportedOperationException("count not supported.");
+        }
+
+        @Override
+        public void preEntityRemoval(Node state) {
         }
 
         @Override
         public Class<? extends NodeBacked> getJavaType(Node state) {
-            throw new UnsupportedOperationException("getJavaType not supported by NoopTypeRepresentationStrategy.");
-        }
-
-        @Override
-        public void preEntityRemoval(NodeBacked entity) {
+            throw new UnsupportedOperationException("getJavaType not supported.");
         }
 
         @Override
         public <U extends NodeBacked> U createEntity(Node state) {
-            throw new UnsupportedOperationException("Creation with stored type not supported by NoopTypeRepresentationStrategy.");
+            throw new UnsupportedOperationException("Creation with stored type not supported.");
         }
 
         @Override
@@ -57,26 +57,26 @@ public class NoopTypeRepresentationStrategy {
 
         @Override
         public <U extends RelationshipBacked> Iterable<U> findAll(Class<U> clazz) {
-            throw new UnsupportedOperationException("findAll not supported by NoopTypeRepresentationStrategy.");
+            throw new UnsupportedOperationException("findAll not supported.");
         }
 
         @Override
         public long count(Class<? extends RelationshipBacked> entityClass) {
-            throw new UnsupportedOperationException("count not supported by NoopTypeRepresentationStrategy.");
+            throw new UnsupportedOperationException("count not supported.");
+        }
+
+        @Override
+        public void preEntityRemoval(Relationship state) {
         }
 
         @Override
         public Class<? extends RelationshipBacked> getJavaType(Relationship state) {
-            throw new UnsupportedOperationException("getJavaType not supported by NoopTypeRepresentationStrategy.");
-        }
-
-        @Override
-        public void preEntityRemoval(RelationshipBacked entity) {
+            throw new UnsupportedOperationException("getJavaType not supported.");
         }
 
         @Override
         public <U extends RelationshipBacked> U createEntity(Relationship state) {
-            throw new UnsupportedOperationException("Creation with stored type not supported by NoopTypeRepresentationStrategy.");
+            throw new UnsupportedOperationException("Creation with stored type not supported.");
         }
 
         @Override

@@ -22,13 +22,13 @@ public class RestRelationshipIndex extends RestIndex<Relationship> implements Re
         return Relationship.class;
     }
 
-    public void remove(Relationship entity, String key) {
-        throw new UnsupportedOperationException();
-    }
-
-    public void remove(Relationship entity) {
-        throw new UnsupportedOperationException();
-    }
+//    public void remove(Relationship entity, String key) {
+//        throw new UnsupportedOperationException();
+//    }
+//
+//    public void remove(Relationship entity) {
+//        throw new UnsupportedOperationException();
+//    }
 
     protected Relationship createEntity( Map<?, ?> item ) {
         return new RestRelationship( (Map<?, ?>) item, restGraphDatabase );

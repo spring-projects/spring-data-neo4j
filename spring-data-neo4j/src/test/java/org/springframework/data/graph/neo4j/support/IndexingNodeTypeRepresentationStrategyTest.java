@@ -78,7 +78,7 @@ public class IndexingNodeTypeRepresentationStrategyTest {
         Transaction tx = graphDatabaseService.beginTx();
         try
         {
-            nodeTypeRepresentationStrategy.preEntityRemoval(thing);
+            nodeTypeRepresentationStrategy.preEntityRemoval(node(thing));
             tx.success();
         }
         finally
@@ -92,9 +92,8 @@ public class IndexingNodeTypeRepresentationStrategyTest {
 		assertEquals(node(subThing), subThingHits.getSingle());
 
         tx = graphDatabaseService.beginTx();
-        try
-        {
-            nodeTypeRepresentationStrategy.preEntityRemoval(subThing);
+        try {
+            nodeTypeRepresentationStrategy.preEntityRemoval(node(subThing));
             tx.success();
         }
         finally

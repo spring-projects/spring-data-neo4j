@@ -84,7 +84,6 @@ public class IndexingNodeTypeRepresentationStrategy implements NodeTypeRepresent
 		return count;
 	}
 
-
     @Override
     public Class<? extends NodeBacked> getJavaType(Node node) {
 		if (node == null) throw new IllegalArgumentException("Node is null");
@@ -112,8 +111,8 @@ public class IndexingNodeTypeRepresentationStrategy implements NodeTypeRepresent
     }
 
     @Override
-	public void preEntityRemoval(NodeBacked entity) {
-        getNodeTypesIndex().remove(entity.getPersistentState());
+	public void preEntityRemoval(Node state) {
+        getNodeTypesIndex().remove(state);
 	}
 
     @Override

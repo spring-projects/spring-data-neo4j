@@ -100,34 +100,6 @@ public class SubReferenceNodeTypeRepresentationStrategy implements NodeTypeRepre
 	    updateSuperClassSubrefs(type, subReference);
     }
 
-    /**
-     * removes instanceof relationship and decrements instance counters for type nodes
-     * @param entity
-     */
-    @Override
-    public void preEntityRemoval(NodeBacked entity) {
-        Class<? extends NodeBacked> clazz = entity.getClass();
-
-        final Node subReference = obtainSubreferenceNode(clazz);
-        Node subRefNode = entity.getPersistentState();
-        Relationship instanceOf = subRefNode.getSingleRelationship(INSTANCE_OF_RELATIONSHIP_TYPE, Direction.OUTGOING);
-        instanceOf.delete();
-        if (log.isDebugEnabled()) log.debug("Removed link to subref node: " + subReference + " with type: " + clazz.getName());
-        TraversalDescription traversal = Traversal.description().depthFirst().relationships(SUBCLASS_OF_RELATIONSHIP_TYPE, Direction.OUTGOING);
-        for (Node node : traversal.traverse(subReference).nodes()) {
-            Integer count = (Integer) node.getProperty(SUBREFERENCE_NODE_COUNTER_KEY);
-            Integer newCount = decrementAndGetCounter(node, SUBREFERENCE_NODE_COUNTER_KEY, 0);
-            if (log.isDebugEnabled()) log.debug("count on ref " + node + " was " + count + " new " + newCount);
-        }
-    }
-
-//    @Override
-//    public <T extends NodeBacked> Class<T> confirmType(Node node, Class<T> type) {
-//        Class<T> nodeType = this.<T>getJavaType(node);
-//        if (type.isAssignableFrom(nodeType)) return nodeType;
-//        throw new IllegalArgumentException(String.format("%s does not correspond to the node type %s of node %s",type,nodeType,node));
-//    }
-
     private void updateSuperClassSubrefs(Class<?> clazz, Node subReference) {
 	    Class<?> superClass = clazz.getSuperclass();
 	    if (superClass != null) {
@@ -165,7 +137,24 @@ public class SubReferenceNodeTypeRepresentationStrategy implements NodeTypeRepre
 		}
 	}
 
-	@Override
+    @Override
+    public void preEntityRemoval(Node state) {
+        Class<? extends NodeBacked> clazz = getJavaType(state);
+        if (clazz == null) return;
+        final Node subReference = obtainSubreferenceNode(clazz);
+        Relationship instanceOf = state.getSingleRelationship(INSTANCE_OF_RELATIONSHIP_TYPE, Direction.OUTGOING);
+        instanceOf.delete();
+        if (log.isDebugEnabled())
+            log.debug("Removed link to subref node: " + subReference + " with type: " + clazz.getName());
+        TraversalDescription traversal = Traversal.description().depthFirst().relationships(SUBCLASS_OF_RELATIONSHIP_TYPE, Direction.OUTGOING);
+        for (Node node : traversal.traverse(subReference).nodes()) {
+            Integer count = (Integer) node.getProperty(SUBREFERENCE_NODE_COUNTER_KEY);
+            Integer newCount = decrementAndGetCounter(node, SUBREFERENCE_NODE_COUNTER_KEY, 0);
+            if (log.isDebugEnabled()) log.debug("count on ref " + node + " was " + count + " new " + newCount);
+        }
+    }
+
+    @Override
     public <T extends NodeBacked> Iterable<T> findAll(final Class<T> clazz) {
         final Node subrefNode = findSubreferenceNode(clazz);
 		if (log.isDebugEnabled()) log.debug("Subref: " + subrefNode);

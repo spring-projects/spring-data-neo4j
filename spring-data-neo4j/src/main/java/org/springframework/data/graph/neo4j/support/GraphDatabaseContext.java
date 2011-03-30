@@ -116,18 +116,10 @@ public class GraphDatabaseContext {
     }
 
 
-    /**
-     * removes the entity by cleaning the relationships first and then removing the node
-     * it removes all of them from all indexes in advance
-     * the entity and relationship are still accessible after removal but before transaction commit
-     * but all modifications will throw an exception
-     * @param entity to remove
-     */
-    // TODO: What about connected relationship entities?
     public void removeNodeEntity(NodeBacked entity) {
         Node node = entity.getPersistentState();
-        if (node==null) return;
-        nodeTypeRepresentationStrategy.preEntityRemoval(entity);
+        if (node == null) return;
+        nodeTypeRepresentationStrategy.preEntityRemoval(node);
         for (Relationship relationship : node.getRelationships()) {
             removeRelationship(relationship);
         }
@@ -135,23 +127,23 @@ public class GraphDatabaseContext {
         node.delete();
     }
 
+    public void removeRelationshipEntity(RelationshipBacked entity) {
+        Relationship relationship = entity.getPersistentState();
+        if (relationship == null) return;
+        removeRelationship(relationship);
+    }
+
+    private void removeRelationship(Relationship relationship) {
+        relationshipTypeRepresentationStrategy.preEntityRemoval(relationship);
+        removeFromIndexes(relationship);
+        relationship.delete();
+    }
+
     private void removeFromIndexes(Node node) {
         IndexManager indexManager = getIndexManager();
         for (String indexName : indexManager.nodeIndexNames()) {
             indexManager.forNodes(indexName).remove(node);
         }
-    }
-
-    //
-    public void removeRelationshipEntity(RelationshipBacked entity) {
-        Relationship relationship = entity.getPersistentState();
-        if (relationship==null) return;
-        removeRelationship(relationship);
-    }
-
-    private void removeRelationship(Relationship relationship) {
-        removeFromIndexes(relationship);
-        relationship.delete();
     }
 
     private void removeFromIndexes(Relationship relationship) {
