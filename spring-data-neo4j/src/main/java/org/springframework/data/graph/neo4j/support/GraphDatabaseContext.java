@@ -44,55 +44,17 @@ import java.util.Map;
  */
 public class GraphDatabaseContext {
 
+    private static final Log log = LogFactory.getLog(GraphDatabaseContext.class);
     public static final String DEFAULT_NODE_INDEX_NAME = "node";
     public static final String DEFAULT_RELATIONSHIP_INDEX_NAME = "relationship";
 
     private GraphDatabaseService graphDatabaseService;
-
     private ConversionService conversionService;
 
-    private NodeTypeRepresentationStrategy nodeTypeRepresentationStrategy;
-    private RelationshipTypeRepresentationStrategy relationshipTypeRepresentationStrategy;
-
     private Validator validator;
+    private NodeTypeRepresentationStrategy nodeTypeRepresentationStrategy;
 
-    private final static Log log = LogFactory.getLog(GraphDatabaseContext.class);
-
-    public GraphDatabaseService getGraphDatabaseService() {
-		return graphDatabaseService;
-	}
-
-	public void setGraphDatabaseService(GraphDatabaseService graphDatabaseService) {
-		this.graphDatabaseService = graphDatabaseService;
-	}
-
-    public NodeTypeRepresentationStrategy getNodeTypeRepresentationStrategy() {
-        return nodeTypeRepresentationStrategy;
-    }
-
-    public void setNodeTypeRepresentationStrategy(NodeTypeRepresentationStrategy nodeTypeRepresentationStrategy) {
-        this.nodeTypeRepresentationStrategy = nodeTypeRepresentationStrategy;
-    }
-
-    public RelationshipTypeRepresentationStrategy getRelationshipTypeRepresentationStrategy() {
-        return relationshipTypeRepresentationStrategy;
-    }
-
-    public void setRelationshipTypeRepresentationStrategy(RelationshipTypeRepresentationStrategy relationshipTypeRepresentationStrategy) {
-        this.relationshipTypeRepresentationStrategy = relationshipTypeRepresentationStrategy;
-    }
-
-    public ConversionService getConversionService() {
-		return conversionService;
-	}
-
-	public void setConversionService(ConversionService conversionService) {
-		this.conversionService = conversionService;
-	}
-
-	public Node createNode() {
-        return graphDatabaseService.createNode();
-    }
+    private RelationshipTypeRepresentationStrategy relationshipTypeRepresentationStrategy;
 
     /**
      * @param relationship to remove from indexes and to delete
@@ -147,22 +109,6 @@ public class GraphDatabaseContext {
         }
     }
 
-    /**
-     * Creates either a node or relationship entity by delegating the creation to the appropriate @{link EntityInstantiator}
-     * @param state Node or Relationship
-     * @param type target entity type
-     * @return an instance of the entity type
-     */
-    public <S, T extends GraphBacked> T createEntityFromState(final S state, final Class<T> type) {
-        if (state==null) throw new IllegalArgumentException("state has to be either a Node or Relationship, not null");
-        if (state instanceof Node && NodeBacked.class.isAssignableFrom(type))
-            return (T) nodeTypeRepresentationStrategy.createEntity((Node) state, (Class<NodeBacked>) type);
-//            return (T) graphEntityInstantiator.createEntityFromState((Node) state, typeRepresentationStrategy.confirmType((Node)state, (Class<? extends NodeBacked>)type));
-        else
-            return (T) relationshipTypeRepresentationStrategy.createEntity((Relationship) state, (Class<RelationshipBacked>) type);
-//            return (T) relationshipEntityInstantiator.createEntityFromState((Relationship) state, (Class<? extends RelationshipBacked>) type);
-    }
-
     private IndexManager getIndexManager() {
         return graphDatabaseService.index();
     }
@@ -192,50 +138,14 @@ public class GraphDatabaseContext {
     }
 
     /**
-     * @param nodeId
-     * @return Node
-     * @throws NotFoundException
-     */
-    public Node getNodeById(final long nodeId) {
-        return graphDatabaseService.getNodeById(nodeId);
-    }
-
-    /**
-     * delegates to the configured @{link TypeRepresentationStrategy} for after entity creation operations
-     * @param node
-     * @param entityClass
-     */
-    public void postEntityCreation(Node node, final Class<? extends NodeBacked> entityClass) {
-        nodeTypeRepresentationStrategy.postEntityCreation(node, entityClass);
-    }
-    /**
-     * delegates to the configured @{link TypeRepresentationStrategy} for after entity creation operations
-     * @param relationship
-     * @param entityClass
-     */
-    public void postEntityCreation(Relationship relationship, final Class<? extends RelationshipBacked> entityClass) {
-        relationshipTypeRepresentationStrategy.postEntityCreation(relationship, entityClass);
-    }
-
-    /**
      * delegates to the configured @{link TypeRepresentationStrategy} to iterate over all instances of this type
-     * @param clazz type of entity
+     * @param entityClass type of entity
      * @param <T>
      * @return
      * TODO inheritance handling
      */
-    public <T extends GraphBacked> Iterable<T> findAll(final Class<T> clazz) {
-        if (checkIsNodeBacked(clazz)) {
-            return (Iterable<T>) nodeTypeRepresentationStrategy.findAll((Class<NodeBacked>) clazz);
-        }
-        return (Iterable<T>) relationshipTypeRepresentationStrategy.findAll((Class<RelationshipBacked>) clazz);
-    }
-
-    /**
-     * class base check for nodebacked subclasses
-     */
-    private boolean checkIsNodeBacked(Class<?> clazz) {
-        return NodeBacked.class.isAssignableFrom(clazz);
+    public <T extends GraphBacked> Iterable<T> findAll(final Class<T> entityClass) {
+        return getTypeRepresentationStrategy(entityClass).findAll(entityClass);
     }
 
     /**
@@ -243,38 +153,8 @@ public class GraphDatabaseContext {
      * @param entityClass
      * @return count of all instances
      */
-    public long count(final Class<? extends GraphBacked> entityClass) {
-        if (checkIsNodeBacked(entityClass)) {
-            return nodeTypeRepresentationStrategy.count((Class<NodeBacked>)entityClass);
-        }
-        return relationshipTypeRepresentationStrategy.count((Class<RelationshipBacked>) entityClass);
-    }
-
-    /**
-     * delegates to the configured @{link TypeRepresentationStrategy} to lookup the type information for the given node
-     * @param node
-     * @param <T>
-     * @return entity type of the node
-     * @throws IllegalStateException for nodes that are not instance backing nodes of a known type
-     */
-	public <T extends NodeBacked> Class<T> getJavaType(final Node node) {
-		return nodeTypeRepresentationStrategy.getJavaType(node);
-	}
-
-    /**
-     * @return reference node of the graph database
-     */
-	public Node getReferenceNode() {
-        return graphDatabaseService.getReferenceNode();
-    }
-
-
-    /**
-     * @return Neo4j Transaction manager
-     */
-    public TransactionManager getTxManager() {
-
-        return ((AbstractGraphDatabase) graphDatabaseService).getConfig().getTxModule().getTxManager();
+    public <T extends GraphBacked> long count(final Class<T> entityClass) {
+        return getTypeRepresentationStrategy(entityClass).count(entityClass);
     }
 
     /**
@@ -289,34 +169,145 @@ public class GraphDatabaseContext {
         }
     }
 
+
+
+    public <S extends PropertyContainer, T extends GraphBacked<S>> T createEntityFromState(S state, Class<T> type) {
+        if (state==null) throw new IllegalArgumentException("state has to be either a Node or Relationship, not null");
+        return getTypeRepresentationStrategy(state, type).createEntity(state, type);
+    }
+
+    public <S extends PropertyContainer, T extends GraphBacked<S>> T projectTo(GraphBacked<S> entity, Class<T> targetType) {
+        S state = entity.getPersistentState();
+        return getTypeRepresentationStrategy(state, targetType).projectEntity(state, targetType);
+    }
+
+    public <T extends NodeBacked> T createEntityFromStoredType(Node node) {
+        return nodeTypeRepresentationStrategy.createEntity(node);
+    }
+
+    public <S extends PropertyContainer, T extends GraphBacked<S>> void postEntityCreation(S node, Class<T> entityClass) {
+        getTypeRepresentationStrategy(node, entityClass).postEntityCreation(node, entityClass);
+    }
+
+
+
+    @SuppressWarnings("unchecked")
+    private <T extends GraphBacked<? extends PropertyContainer>>
+        TypeRepresentationStrategy<?, T> getTypeRepresentationStrategy(Class<T> type) {
+        if (NodeBacked.class.isAssignableFrom(type)) {
+            return (TypeRepresentationStrategy<?, T>) nodeTypeRepresentationStrategy;
+        } else if (RelationshipBacked.class.isAssignableFrom(type)) {
+            return (TypeRepresentationStrategy<?, T>) relationshipTypeRepresentationStrategy;
+        }
+        throw new IllegalArgumentException("Type is not NodeBacked nor RelationshipBacked.");
+    }
+
+    @SuppressWarnings("unchecked")
+    private <S extends PropertyContainer, T extends GraphBacked<S>>
+        TypeRepresentationStrategy<S, T> getTypeRepresentationStrategy(S state, Class<T> type) {
+        if (state instanceof Node && NodeBacked.class.isAssignableFrom(type)) {
+            return (TypeRepresentationStrategy<S, T>) nodeTypeRepresentationStrategy;
+        } else if (state instanceof Relationship && RelationshipBacked.class.isAssignableFrom(type)) {
+            return (TypeRepresentationStrategy<S, T>) relationshipTypeRepresentationStrategy;
+        }
+        throw new IllegalArgumentException("Type is not NodeBacked nor RelationshipBacked.");
+    }
+
+    @SuppressWarnings("unchecked")
+    private <S extends PropertyContainer, T extends GraphBacked<S>>
+        TypeRepresentationStrategy<S, T> getTypeRepresentationStrategy(S state) {
+        if (state instanceof Node) {
+            return (TypeRepresentationStrategy<S, T>) nodeTypeRepresentationStrategy;
+        } else if (state instanceof Relationship) {
+            return (TypeRepresentationStrategy<S, T>) relationshipTypeRepresentationStrategy;
+        }
+        throw new IllegalArgumentException("Type is not NodeBacked nor RelationshipBacked.");
+    }
+
+
+
     /**
-     * delegates to @{link GraphDatabaseService}
+     * @return Neo4j Transaction manager
+     */
+    public TransactionManager getTxManager() {
+        return ((AbstractGraphDatabase) graphDatabaseService).getConfig().getTxModule().getTxManager();
+    }
+
+    /**
+     * Delegates to {@link GraphDatabaseService}
+     */
+    public Node createNode() {
+        return graphDatabaseService.createNode();
+    }
+
+    /**
+     * Delegates to {@link GraphDatabaseService}
+     */
+    public Node getNodeById(final long nodeId) {
+        return graphDatabaseService.getNodeById(nodeId);
+    }
+
+    /**
+     * Delegates to {@link GraphDatabaseService}
+     */
+	public Node getReferenceNode() {
+        return graphDatabaseService.getReferenceNode();
+    }
+
+    /**
+     * Delegates to {@link GraphDatabaseService}
      */
     public Iterable<? extends Node> getAllNodes() {
         return graphDatabaseService.getAllNodes();
     }
 
     /**
-     * delegates to @{link GraphDatabaseService}
+     * Delegates to {@link GraphDatabaseService}
      */
     public Transaction beginTx() {
         return graphDatabaseService.beginTx();
     }
 
     /**
-     * delegates to @{link GraphDatabaseService}
+     * Delegates to {@link GraphDatabaseService}
      */
     public Relationship getRelationshipById(final long id) {
         return graphDatabaseService.getRelationshipById(id);
     }
 
-    public <T extends GraphBacked> T projectTo(GraphBacked entity, Class<T> targetType) {
-        final Object state = entity.getPersistentState();
-        if (state instanceof Node)
-            return (T) nodeTypeRepresentationStrategy.projectEntity((Node) state, (Class<NodeBacked>) targetType);
-        else
-            return (T) relationshipTypeRepresentationStrategy.projectEntity((Relationship) state, (Class<RelationshipBacked>) targetType);
+
+
+    public GraphDatabaseService getGraphDatabaseService() {
+		return graphDatabaseService;
+	}
+
+	public void setGraphDatabaseService(GraphDatabaseService graphDatabaseService) {
+		this.graphDatabaseService = graphDatabaseService;
+	}
+
+    public NodeTypeRepresentationStrategy getNodeTypeRepresentationStrategy() {
+        return nodeTypeRepresentationStrategy;
     }
+
+    public void setNodeTypeRepresentationStrategy(NodeTypeRepresentationStrategy nodeTypeRepresentationStrategy) {
+        this.nodeTypeRepresentationStrategy = nodeTypeRepresentationStrategy;
+    }
+
+    public RelationshipTypeRepresentationStrategy getRelationshipTypeRepresentationStrategy() {
+        return relationshipTypeRepresentationStrategy;
+    }
+
+    public void setRelationshipTypeRepresentationStrategy(RelationshipTypeRepresentationStrategy relationshipTypeRepresentationStrategy) {
+        this.relationshipTypeRepresentationStrategy = relationshipTypeRepresentationStrategy;
+    }
+
+    public ConversionService getConversionService() {
+		return conversionService;
+	}
+
+	public void setConversionService(ConversionService conversionService) {
+		this.conversionService = conversionService;
+	}
 
     public Validator getValidator() {
         return validator;
@@ -326,8 +317,7 @@ public class GraphDatabaseContext {
         this.validator = validatorFactory;
     }
 
-    public <T extends NodeBacked> T createEntityFromStoredType(Node node) {
-        return nodeTypeRepresentationStrategy.createEntity(node);
-    }
+
+
 }
 
