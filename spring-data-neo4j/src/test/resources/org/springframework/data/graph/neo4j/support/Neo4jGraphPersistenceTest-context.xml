@@ -152,6 +152,10 @@
         <property name="repositoryInterface" value="org.springframework.data.graph.neo4j.GroupRepository" />
         <property name="graphDatabaseContext" ref="graphDatabaseContext"/>
     </bean>
+    <bean id="friendshipRepository" class="org.springframework.data.graph.neo4j.repository.GraphRepositoryFactoryBean">
+        <property name="repositoryInterface" value="org.springframework.data.graph.neo4j.FriendshipRepository" />
+        <property name="graphDatabaseContext" ref="graphDatabaseContext"/>
+    </bean>
 
     <!-- Adds transaparent exception translation to the DAOs -->
     <bean class="org.springframework.dao.annotation.PersistenceExceptionTranslationPostProcessor" />

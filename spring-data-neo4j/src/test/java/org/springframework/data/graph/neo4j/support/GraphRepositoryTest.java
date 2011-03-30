@@ -2,26 +2,20 @@ package org.springframework.data.graph.neo4j.support;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hamcrest.Matcher;
 import org.junit.Assert;
 import org.junit.Test;
-import org.junit.internal.matchers.IsCollectionContaining;
 import org.junit.runner.RunWith;
 import org.neo4j.helpers.collection.IteratorUtil;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.graph.neo4j.Group;
-import org.springframework.data.graph.neo4j.GroupRepository;
-import org.springframework.data.graph.neo4j.Person;
-import org.springframework.data.graph.neo4j.PersonRepository;
+import org.springframework.data.graph.neo4j.*;
 import org.springframework.data.graph.neo4j.support.node.Neo4jHelper;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.transaction.BeforeTransaction;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 
 import static java.util.Arrays.asList;
@@ -34,8 +28,7 @@ import static org.springframework.data.graph.neo4j.Person.persistedPerson;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = {"classpath:org/springframework/data/graph/neo4j/support/Neo4jGraphPersistenceTest-context.xml"})
-
-public class FinderTest {
+public class GraphRepositoryTest {
 
 	protected final Log log = LogFactory.getLog(getClass());
 
@@ -46,6 +39,8 @@ public class FinderTest {
     private PersonRepository personRepository;
     @Autowired
     private GroupRepository groupRepository;
+    @Autowired
+    private FriendshipRepository friendshipRepository;
 
     @BeforeTransaction
     public void cleanDb() {
@@ -78,7 +73,7 @@ public class FinderTest {
         Person p1 = new Person("Michael", 35);
         personRepository.save(p1);
         assertEquals("persisted person",true,p1.hasPersistentState());
-        assertThat(personRepository.findOne(p1.getId()),is(p1));
+        assertThat(personRepository.findOne(p1.getId()), is(p1));
     }
     @Test
     public void testDeletePerson() {
@@ -92,6 +87,17 @@ public class FinderTest {
         Person p2 = persistedPerson("David", 26);
         personRepository.delete(asList(p1,p2));
         assertEquals("people deleted", false, personRepository.findAll().iterator().hasNext());
+    }
+
+    @Test
+    @Transactional
+    public void testFindRelationshipEntity() {
+        Person p1 = persistedPerson("Michael", 35);
+        Person p2 = persistedPerson("David", 27);
+        Friendship friendship = p1.knows(p2);
+        assertEquals("Wrong friendship count.", 1L, (long) friendshipRepository.count());
+        assertEquals("Did not find friendship.", Collections.singleton(friendship), new HashSet<Friendship>(IteratorUtil.asCollection(friendshipRepository.findAll())));
+        assertEquals(friendship, friendshipRepository.findOne(friendship.getRelationshipId()));
     }
 
     @Test

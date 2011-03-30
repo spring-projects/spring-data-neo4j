@@ -225,8 +225,10 @@ public class GraphDatabaseContext {
      * TODO inheritance handling
      */
     public <T extends GraphBacked> Iterable<T> findAll(final Class<T> clazz) {
-        if (!checkIsNodeBacked(clazz)) throw new UnsupportedOperationException("No support for relationships");
-        return (Iterable<T>) nodeTypeRepresentationStrategy.findAll((Class<NodeBacked>)clazz);
+        if (checkIsNodeBacked(clazz)) {
+            return (Iterable<T>) nodeTypeRepresentationStrategy.findAll((Class<NodeBacked>) clazz);
+        }
+        return (Iterable<T>) relationshipTypeRepresentationStrategy.findAll((Class<RelationshipBacked>) clazz);
     }
 
     /**
@@ -242,8 +244,10 @@ public class GraphDatabaseContext {
      * @return count of all instances
      */
     public long count(final Class<? extends GraphBacked> entityClass) {
-        if (!checkIsNodeBacked(entityClass)) throw new UnsupportedOperationException("No support for relationships");
-        return nodeTypeRepresentationStrategy.count((Class<NodeBacked>)entityClass);
+        if (checkIsNodeBacked(entityClass)) {
+            return nodeTypeRepresentationStrategy.count((Class<NodeBacked>)entityClass);
+        }
+        return relationshipTypeRepresentationStrategy.count((Class<RelationshipBacked>) entityClass);
     }
 
     /**
