@@ -88,29 +88,29 @@
 
     <bean id="graphDatabaseContext" class="org.springframework.data.graph.neo4j.support.GraphDatabaseContext">
         <property name="graphDatabaseService" ref="graphDatabaseService"/>
-        <property name="relationshipEntityInstantiator" ref="relationshipEntityInstantiator"/>
-        <property name="graphEntityInstantiator">
-            <bean class="org.springframework.data.graph.neo4j.support.node.PartialNeo4jEntityInstantiator">
-                <constructor-arg ref="graphEntityInstantiator"/>
-                <constructor-arg ref="entityManagerFactory"/>
-            </bean>
-        </property>
         <property name="conversionService">
             <bean class="org.springframework.data.graph.neo4j.fieldaccess.Neo4jConversionServiceFactoryBean"/>
         </property>
-        <property name="typeRepresentationStrategy" ref="typeRepresentationStrategy"/>
+        <property name="nodeTypeRepresentationStrategy" ref="nodeTypeRepresentationStrategy"/>
+        <property name="relationshipTypeRepresentationStrategy" ref="relationshipTypeRepresentationStrategy"/>
+    </bean>
+    <bean id="graphEntityInstantiator" class="org.springframework.data.graph.neo4j.support.node.PartialNeo4jEntityInstantiator">
+        <constructor-arg>
+            <bean class="org.springframework.data.graph.neo4j.support.node.Neo4jConstructorGraphEntityInstantiator" />
+        </constructor-arg>
+        <constructor-arg ref="entityManagerFactory"/>
     </bean>
     <bean id="relationshipEntityInstantiator"
           class="org.springframework.data.graph.neo4j.support.relationship.ConstructorBypassingGraphRelationshipInstantiator"/>
 
-    <bean id="typeRepresentationStrategy" class="org.springframework.data.graph.neo4j.support.TypeRepresentationStrategyFactoryBean">
+    <bean id="typeRepresentationStrategyFactory" class="org.springframework.data.graph.neo4j.support.TypeRepresentationStrategyFactory">
         <constructor-arg ref="graphDatabaseService"/>
         <constructor-arg ref="graphEntityInstantiator"/>
         <constructor-arg ref="relationshipEntityInstantiator"/>
     </bean>
 
-    <bean id="graphEntityInstantiator"
-          class="org.springframework.data.graph.neo4j.support.node.Neo4jConstructorGraphEntityInstantiator"/>
+    <bean id="nodeTypeRepresentationStrategy" factory-bean="typeRepresentationStrategyFactory" factory-method="getNodeTypeRepresentationStrategy" />
+    <bean id="relationshipTypeRepresentationStrategy" factory-bean="typeRepresentationStrategyFactory" factory-method="getRelationshipTypeRepresentationStrategy"/>
 
     <bean id="nodeEntityStateFactory" class="org.springframework.data.graph.neo4j.fieldaccess.NodeEntityStateFactory">
     	<property name="nodeDelegatingFieldAccessorFactory">

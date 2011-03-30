@@ -1,36 +1,92 @@
 package org.springframework.data.graph.neo4j.support;
 
-import org.neo4j.graphdb.PropertyContainer;
-import org.springframework.data.graph.core.GraphBacked;
-import org.springframework.data.graph.core.TypeRepresentationStrategy;
+import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.Relationship;
+import org.springframework.data.graph.core.NodeBacked;
+import org.springframework.data.graph.core.NodeTypeRepresentationStrategy;
+import org.springframework.data.graph.core.RelationshipBacked;
+import org.springframework.data.graph.core.RelationshipTypeRepresentationStrategy;
 
-public class NoopTypeRepresentationStrategy implements TypeRepresentationStrategy {
+public class NoopTypeRepresentationStrategy {
+    public static class NoopNodeStrategy implements NodeTypeRepresentationStrategy {
 
-    @Override
-    public void postEntityCreation(GraphBacked<?> entity) {
+        @Override
+        public void postEntityCreation(Node state, Class<? extends NodeBacked> type) {
+        }
+
+        @Override
+        public <U extends NodeBacked> Iterable<U> findAll(Class<U> clazz) {
+            throw new UnsupportedOperationException("findAll not supported by NoopTypeRepresentationStrategy.");
+        }
+
+        @Override
+        public long count(Class<? extends NodeBacked> entityClass) {
+            throw new UnsupportedOperationException("count not supported by NoopTypeRepresentationStrategy.");
+        }
+
+        @Override
+        public Class<? extends NodeBacked> getJavaType(Node state) {
+            throw new UnsupportedOperationException("getJavaType not supported by NoopTypeRepresentationStrategy.");
+        }
+
+        @Override
+        public void preEntityRemoval(NodeBacked entity) {
+        }
+
+        @Override
+        public <U extends NodeBacked> U createEntity(Node state) {
+            throw new UnsupportedOperationException("Creation with stored type not supported by NoopTypeRepresentationStrategy.");
+        }
+
+        @Override
+        public <U extends NodeBacked> U createEntity(Node state, Class<U> type) {
+            return projectEntity(state, type);
+        }
+
+        @Override
+        public <U extends NodeBacked> U projectEntity(Node state, Class<U> type) {
+            return null;
+        }
     }
 
-    @Override
-    public <T extends GraphBacked<?>> Iterable<T> findAll(Class<T> clazz) {
-        throw new UnsupportedOperationException("findAll not supported by NoopTypeRepresentationStrategy.");
-    }
+    public static class NoopRelationshipStrategy implements RelationshipTypeRepresentationStrategy {
 
-    @Override
-    public long count(Class<? extends GraphBacked<?>> entityClass) {
-        throw new UnsupportedOperationException("count not supported by NoopTypeRepresentationStrategy.");
-    }
+        @Override
+        public void postEntityCreation(Relationship state, Class<? extends RelationshipBacked> type) {
+        }
 
-    @Override
-    public <T extends GraphBacked<?>> Class<T> getJavaType(PropertyContainer primitive) {
-        throw new UnsupportedOperationException("getJavaType not supported NoopTypeRepresentationStrategy.");
-    }
+        @Override
+        public <U extends RelationshipBacked> Iterable<U> findAll(Class<U> clazz) {
+            throw new UnsupportedOperationException("findAll not supported by NoopTypeRepresentationStrategy.");
+        }
 
-    @Override
-    public void preEntityRemoval(GraphBacked<?> entity) {
-    }
+        @Override
+        public long count(Class<? extends RelationshipBacked> entityClass) {
+            throw new UnsupportedOperationException("count not supported by NoopTypeRepresentationStrategy.");
+        }
 
-    @Override
-    public <T extends GraphBacked<?>> Class<T> confirmType(PropertyContainer node, Class<T> type) {
-        return type;
+        @Override
+        public Class<? extends RelationshipBacked> getJavaType(Relationship state) {
+            throw new UnsupportedOperationException("getJavaType not supported by NoopTypeRepresentationStrategy.");
+        }
+
+        @Override
+        public void preEntityRemoval(RelationshipBacked entity) {
+        }
+
+        @Override
+        public <U extends RelationshipBacked> U createEntity(Relationship state) {
+            throw new UnsupportedOperationException("Creation with stored type not supported by NoopTypeRepresentationStrategy.");
+        }
+
+        @Override
+        public <U extends RelationshipBacked> U createEntity(Relationship state, Class<U> type) {
+            return projectEntity(state, type);
+        }
+
+        @Override
+        public <U extends RelationshipBacked> U projectEntity(Relationship state, Class<U> type) {
+            return null;
+        }
     }
 }

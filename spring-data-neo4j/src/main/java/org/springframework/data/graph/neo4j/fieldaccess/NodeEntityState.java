@@ -54,7 +54,7 @@ public class NodeEntityState<ENTITY extends NodeBacked> extends DefaultEntitySta
             final Node node = graphDatabaseContext.createNode();
             setPersistentState(node);
             if (log.isInfoEnabled()) log.info("User-defined constructor called on class " + entity.getClass() + "; created Node [" + getPersistentState() + "]; Updating metamodel");
-            graphDatabaseContext.postEntityCreation(entity);
+            graphDatabaseContext.postEntityCreation(node, type);
         } catch (NotInTransactionException e) {
             throw new InvalidDataAccessResourceUsageException("Not in a Neo4j transaction.", e);
         }

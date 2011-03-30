@@ -18,6 +18,7 @@ package org.springframework.data.graph.neo4j.config;
 
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.Relationship;
 import org.neo4j.kernel.impl.transaction.SpringTransactionManager;
 import org.neo4j.kernel.impl.transaction.UserTransactionImpl;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,21 +27,22 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.data.graph.core.NodeBacked;
+import org.springframework.data.graph.core.RelationshipBacked;
 import org.springframework.data.graph.neo4j.fieldaccess.Neo4jConversionServiceFactoryBean;
 import org.springframework.data.graph.neo4j.fieldaccess.NodeDelegatingFieldAccessorFactory;
 import org.springframework.data.graph.neo4j.fieldaccess.NodeEntityStateFactory;
 import org.springframework.data.graph.neo4j.fieldaccess.RelationshipEntityStateFactory;
 import org.springframework.data.graph.neo4j.repository.DirectGraphRepositoryFactory;
 import org.springframework.data.graph.neo4j.support.GraphDatabaseContext;
-import org.springframework.data.graph.neo4j.support.TypeRepresentationStrategyFactoryBean;
+import org.springframework.data.graph.neo4j.support.TypeRepresentationStrategyFactory;
 import org.springframework.data.graph.neo4j.support.node.Neo4jConstructorGraphEntityInstantiator;
 import org.springframework.data.graph.neo4j.support.node.Neo4jNodeBacking;
 import org.springframework.data.graph.neo4j.support.node.PartialNeo4jEntityInstantiator;
 import org.springframework.data.graph.neo4j.support.relationship.ConstructorBypassingGraphRelationshipInstantiator;
 import org.springframework.data.graph.neo4j.support.relationship.Neo4jRelationshipBacking;
 import org.springframework.data.graph.neo4j.transaction.ChainedTransactionManager;
-import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.data.persistence.EntityInstantiator;
+import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.jta.JtaTransactionManager;
 
@@ -88,16 +90,17 @@ public class Neo4jConfiguration {
 
 	@Bean
 	public GraphDatabaseContext graphDatabaseContext() throws Exception {
-		GraphDatabaseContext gdc = new GraphDatabaseContext();
-		gdc.setGraphDatabaseService(getGraphDatabaseService());
-        ConstructorBypassingGraphRelationshipInstantiator relationshipEntityInstantiator = graphRelationshipInstantiator();
-        gdc.setRelationshipEntityInstantiator(relationshipEntityInstantiator);
-		EntityInstantiator<NodeBacked, Node> graphEntityInstantiator = graphEntityInstantiator();
-		gdc.setGraphEntityInstantiator(graphEntityInstantiator);
-		gdc.setConversionService(conversionService());
-        TypeRepresentationStrategyFactoryBean typeRepresentationStrategyFactoryBean =
-                new TypeRepresentationStrategyFactoryBean(graphDatabaseService, graphEntityInstantiator, relationshipEntityInstantiator);
-        gdc.setTypeRepresentationStrategy(typeRepresentationStrategyFactoryBean.getObject());
+        EntityInstantiator<RelationshipBacked, Relationship> relationshipEntityInstantiator = graphRelationshipInstantiator();
+        EntityInstantiator<NodeBacked, Node> graphEntityInstantiator = graphEntityInstantiator();
+
+        TypeRepresentationStrategyFactory typeRepresentationStrategyFactory =
+                new TypeRepresentationStrategyFactory(graphDatabaseService, graphEntityInstantiator, relationshipEntityInstantiator);
+
+        GraphDatabaseContext gdc = new GraphDatabaseContext();
+        gdc.setGraphDatabaseService(getGraphDatabaseService());
+        gdc.setConversionService(conversionService());
+        gdc.setNodeTypeRepresentationStrategy(typeRepresentationStrategyFactory.getNodeTypeRepresentationStrategy());
+        gdc.setRelationshipTypeRepresentationStrategy(typeRepresentationStrategyFactory.getRelationshipTypeRepresentationStrategy());
         if (validator!=null) {
             gdc.setValidator(validator);
         }

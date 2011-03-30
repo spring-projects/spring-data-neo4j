@@ -29,47 +29,70 @@ import org.neo4j.graphdb.PropertyContainer;
 * @author Michael Hunger
 * @since 13.09.2010
 */
-public interface TypeRepresentationStrategy {
+public interface TypeRepresentationStrategy<S extends PropertyContainer, T extends GraphBacked<S>> {
     /**
      * callback on entity creation for setting up type representation
-     * @param entity
+     * @param state
+     * @param type
      */
-    void postEntityCreation(GraphBacked<?> entity);
+    void postEntityCreation(S state, Class<? extends T> type);
 
     /**
      * @param clazz Type whose instances should be iterated over
-     * @param <T> Type parameter for generified return value
+     * @param <U> Type parameter for generified return value
      * @return lazy Iterable over all instances of the given type
      */
-    <T extends GraphBacked<?>> Iterable<T> findAll(final Class<T> clazz);
+    <U extends T> Iterable<U> findAll(final Class<U> clazz);
 
     /**
      * @param entityClass
      * @return number of instances of this class contained in the graph
      */
-    long count(final Class<? extends GraphBacked<?>> entityClass);
+    long count(final Class<? extends T> entityClass);
 
     /**
-     * @param primitive
-     * @param <T>
+     * @param state
      * @return java type that of the node entity of this node
      */
-	<T extends GraphBacked<?>> Class<T> getJavaType(PropertyContainer primitive);
+	<U extends T> Class<U> getJavaType(S state);
 
     /**
      * callback for lifecycle management before node entity removal
      * @param entity
      */
-    void preEntityRemoval(GraphBacked<?> entity);
+    void preEntityRemoval(T entity);
 
     /**
+     * Instantiate the entity given its state. The type of the entity is inferred by the strategy
+     * from the state.
      *
-     * @param node
-     * @param type
-     * @param <T>
- *     @throws IllegalArgumentException if the specified type did not match the stored one
- *     @throws IllegalStateException if the primitive has no type stored
-     * @return Concrete type for primitive, or throws exception
+     * @param state Backing state of entity to be instantiated
+     * @param <U> Helper parameter for castless use
+     * @throws IllegalStateException If the strategy is unable to infer any type from the state
+     * @return Entity instance
      */
-    <T extends GraphBacked<?>> Class<T> confirmType(PropertyContainer node, Class<T> type);
+    <U extends T> U createEntity(S state) throws IllegalStateException;
+
+    /**
+     * Instantiate the entity given its state. The type of the desired entity is also specified.
+     * If the type is not compatible with what the strategy can infer from the state,
+     * {@link java.lang.IllegalArgumentException} is thrown.
+     *
+     * @param state Backing state of entity to be instantiated
+     * @param type Type of entity to be instantiated
+     * @throws IllegalStateException If the strategy is unable to infer any type from the state
+     * @throws IllegalArgumentException If the specified type does not match the inferred type
+     * @return Entity instance
+     */
+    <U extends T> U createEntity(S state, Class<U> type) throws IllegalStateException, IllegalArgumentException;
+
+    /**
+     * Instantiate the entity of the given type, with the given state as backing state. No checking
+     * is done by the strategy.
+     *
+     * @param state Backing state of entity to be instantiated
+     * @param type Type of entity to be instantiated
+     * @return Entity instance.
+     */
+    <U extends T> U projectEntity(S state, Class<U> type);
 }

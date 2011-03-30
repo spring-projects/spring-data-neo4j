@@ -119,7 +119,7 @@ public class PartialNodeEntityState<ENTITY extends NodeBacked> extends DefaultEn
                 persistForeignId(node, id);
                 setPersistentState(node);
                 log.info("User-defined constructor called on class " + entity.getClass() + "; created Node [" + entity.getPersistentState() + "]; Updating metamodel");
-                graphDatabaseContext.postEntityCreation(entity);
+                graphDatabaseContext.postEntityCreation(node, type);
             } else {
                 setPersistentState(node);
                 entity.setPersistentState(node);

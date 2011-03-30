@@ -179,7 +179,10 @@ public aspect Neo4jNodeBacking { // extends AbstractTypeAnnotatingMixinFields<No
         if (relationshipType==null) throw new IllegalArgumentException("Relationshiptype is null");
 
         Relationship rel = this.relateTo(target,relationshipType);
-        return (R)Neo4jNodeBacking.aspectOf().graphDatabaseContext.createEntityFromState(rel, relationshipClass);
+
+        GraphDatabaseContext gdc = Neo4jNodeBacking.aspectOf().graphDatabaseContext;
+        gdc.postEntityCreation(rel, relationshipClass);
+        return (R) gdc.createEntityFromState(rel, relationshipClass);
     }
 
     public void NodeBacked.remove() {
