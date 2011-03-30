@@ -21,7 +21,6 @@ import org.neo4j.graphdb.NotInTransactionException;
 import org.springframework.dao.InvalidDataAccessResourceUsageException;
 import org.springframework.data.graph.core.NodeBacked;
 import org.springframework.data.graph.neo4j.support.GraphDatabaseContext;
-import org.springframework.data.persistence.StateProvider;
 
 /**
  * @author Michael Hunger
@@ -63,10 +62,7 @@ public class NodeEntityState<ENTITY extends NodeBacked> extends DefaultEntitySta
 
     @Override
     public ENTITY persist() {
-        Node node = StateProvider.retrieveState();
-        if (node != null) {
-            setPersistentState(node);
-        } else {
+        if (getPersistentState() == null) {
             createAndAssignState();
         }
         return entity;

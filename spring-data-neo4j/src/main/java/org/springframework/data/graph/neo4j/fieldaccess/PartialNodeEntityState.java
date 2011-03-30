@@ -26,7 +26,6 @@ import org.springframework.data.graph.annotation.RelatedTo;
 import org.springframework.data.graph.core.NodeBacked;
 import org.springframework.data.graph.neo4j.repository.DirectGraphRepositoryFactory;
 import org.springframework.data.graph.neo4j.support.GraphDatabaseContext;
-import org.springframework.data.persistence.StateProvider;
 
 import javax.persistence.PersistenceUnitUtil;
 import java.lang.reflect.Field;
@@ -132,10 +131,7 @@ public class PartialNodeEntityState<ENTITY extends NodeBacked> extends DefaultEn
 
     @Override
     public ENTITY persist() {
-        Node node = StateProvider.retrieveState();
-        if (node != null) {
-            setPersistentState(node);
-        } else {
+        if (getPersistentState() == null) {
             createAndAssignState();
         }
         return entity;
