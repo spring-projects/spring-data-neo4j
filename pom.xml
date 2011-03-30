@@ -62,6 +62,17 @@
 			</roles>
 			<timezone>-7</timezone>
 		</developer>
+        <developer>
+			<id>systay</id>
+			<name>Andres Taylor</name>
+			<email>andres at neotechnology.com</email>
+			<organization>Neo Technology</organization>
+			<organizationUrl>http://www.neotechnology.com</organizationUrl>
+			<roles>
+				<role>Developer</role>
+			</roles>
+			<timezone>+1</timezone>
+		</developer>
 	</developers>
 
 	<licenses>
