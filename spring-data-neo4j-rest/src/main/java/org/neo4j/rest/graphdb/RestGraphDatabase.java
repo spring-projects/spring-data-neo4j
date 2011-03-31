@@ -4,18 +4,22 @@ import com.sun.jersey.api.client.ClientResponse;
 import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.event.KernelEventHandler;
 import org.neo4j.graphdb.event.TransactionEventHandler;
-import org.neo4j.graphdb.index.IndexManager;
+import org.neo4j.graphdb.index.Index;
+import org.neo4j.graphdb.traversal.TraversalDescription;
 import org.neo4j.kernel.AbstractGraphDatabase;
 import org.neo4j.kernel.Config;
 import org.neo4j.kernel.RestConfig;
 import org.neo4j.rest.graphdb.index.RestIndexManager;
+import org.springframework.data.graph.core.GraphDatabase;
+import org.springframework.data.graph.core.Property;
 
 import javax.ws.rs.core.Response.Status;
 import java.io.Serializable;
 import java.net.URI;
 import java.util.Map;
 
-public class RestGraphDatabase extends AbstractGraphDatabase {
+public class RestGraphDatabase extends AbstractGraphDatabase implements GraphDatabase {
+
     private RestRequest restRequest;
     private long propertyRefetchTimeInMillis = 1000;
 
@@ -28,86 +32,62 @@ public class RestGraphDatabase extends AbstractGraphDatabase {
         restRequest = new RestRequest( uri, user, password );
     }
 
-    public Transaction beginTx() {
-        return new Transaction() {
-            public void success() {
-            }
-
-            public void finish() {
-
-            }
-
-            public void failure() {
-            }
-        };
+    @Override
+    public Node getNodeById(long id) {
+        ClientResponse response = restRequest.get("node/" + id);
+        if ( restRequest.statusIs(response, Status.NOT_FOUND) ) {
+            throw new NotFoundException( "" + id );
+        }
+        return new RestNode( restRequest.toMap(response), this );
     }
 
-    public <T> TransactionEventHandler<T> registerTransactionEventHandler( TransactionEventHandler<T> tTransactionEventHandler ) {
-        throw new UnsupportedOperationException();
-    }
-
-    public <T> TransactionEventHandler<T> unregisterTransactionEventHandler( TransactionEventHandler<T> tTransactionEventHandler ) {
-        throw new UnsupportedOperationException();
-    }
-
-    public KernelEventHandler registerKernelEventHandler( KernelEventHandler kernelEventHandler ) {
-        throw new UnsupportedOperationException();
-    }
-
-    public KernelEventHandler unregisterKernelEventHandler( KernelEventHandler kernelEventHandler ) {
-        throw new UnsupportedOperationException();
-    }
-
-    public IndexManager index() {
-        return new RestIndexManager( restRequest, this );
-    }
-
-    public Node createNode() {
-        ClientResponse response = restRequest.post( "node", null );
-        if ( restRequest.statusOtherThan( response, Status.CREATED ) ) {
+    @Override
+    public Node createNode(Property... props) {
+        ClientResponse response = restRequest.post("node", null);
+        if ( restRequest.statusOtherThan(response, Status.CREATED) ) {
             throw new RuntimeException( "" + response.getStatus() );
         }
         return new RestNode( response.getLocation(), this );
     }
 
-    public boolean enableRemoteShell() {
-        throw new UnsupportedOperationException();
-    }
-
-    public boolean enableRemoteShell( Map<String, Serializable> config ) {
-        throw new UnsupportedOperationException();
-    }
-
-    public Iterable<Node> getAllNodes() {
-        throw new UnsupportedOperationException();
-    }
-
-    public Node getNodeById( long id ) {
-        ClientResponse response = restRequest.get( "node/" + id );
-        if ( restRequest.statusIs( response, Status.NOT_FOUND ) ) {
-            throw new NotFoundException( "" + id );
-        }
-        return new RestNode( restRequest.toMap( response ), this );
-    }
-
-    public Node getReferenceNode() {
-        Map<?, ?> map = restRequest.toMap( restRequest.get( "" ) );
-        return new RestNode( (String) map.get( "reference_node" ), this );
-    }
-
-    public Relationship getRelationshipById( long id ) {
-        ClientResponse response = restRequest.get( "relationship/" + id );
+    @Override
+    public Relationship getRelationshipById(long id) {
+        ClientResponse response = restRequest.get("relationship/" + id);
         if ( restRequest.statusIs( response, Status.NOT_FOUND ) ) {
             throw new NotFoundException( "" + id );
         }
         return new RestRelationship( restRequest.toMap( response ), this );
     }
 
-    public Iterable<RelationshipType> getRelationshipTypes() {
-        throw new UnsupportedOperationException();
+    @Override
+    public Relationship createRelationship(Node startNode, Node endNode, RelationshipType type, Property... props) {
+        Relationship relationship = startNode.createRelationshipTo(endNode, type);
+        return relationship;
     }
 
-    public void shutdown() {
+    @Override
+    public <T extends PropertyContainer> Index<T> getIndex(String indexName) {
+        return (Index<T>) index().forNodes(indexName); // todo
+    }
+
+    @Override
+    public <T extends PropertyContainer> Index<T> createIndex(Class<T> type, String indexName, boolean fullText) {
+        return (Index<T>) index().forNodes(indexName); // todo
+    }
+
+    @Override
+    public TraversalDescription createTraversalDescription() {
+        return new RestTraversal();
+    }
+
+    public RestIndexManager index() {
+        return new RestIndexManager( restRequest, this );
+    }
+
+    @Override
+    public Node getReferenceNode() {
+        Map<?, ?> map = restRequest.toMap( restRequest.get( "" ) );
+        return new RestNode( (String) map.get( "reference_node" ), this );
     }
 
     public RestRequest getRestRequest() {
@@ -117,9 +97,77 @@ public class RestGraphDatabase extends AbstractGraphDatabase {
     public long getPropertyRefetchTimeInMillis() {
         return propertyRefetchTimeInMillis;
 	}
+
+    @Override
+    public Node createNode() {
+        return createNode((Property[])null);
+    }
+
+    @Override
+    public Iterable<Node> getAllNodes() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Iterable<RelationshipType> getRelationshipTypes() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void shutdown() {
+
+    }
+
+    @Override
+    public boolean enableRemoteShell() {
+        return false;
+    }
+
+    @Override
+    public boolean enableRemoteShell(Map<String, Serializable> initialProperties) {
+        return false;
+    }
+
+    @Override
+    public Transaction beginTx() {
+        return new Transaction() {
+            @Override
+            public void failure() {
+            }
+
+            @Override
+            public void success() {
+            }
+
+            @Override
+            public void finish() {
+            }
+        };
+    }
+
+    @Override
+    public <T> TransactionEventHandler<T> registerTransactionEventHandler(TransactionEventHandler<T> handler) {
+        return handler;
+    }
+
+    @Override
+    public <T> TransactionEventHandler<T> unregisterTransactionEventHandler(TransactionEventHandler<T> handler) {
+        return handler;
+    }
+
+    @Override
+    public KernelEventHandler registerKernelEventHandler(KernelEventHandler handler) {
+        return handler;
+    }
+
+    @Override
+    public KernelEventHandler unregisterKernelEventHandler(KernelEventHandler handler) {
+        return handler;
+    }
+
     @Override
     public String getStoreDir() {
-        return restRequest.getUri().toString();
+        return getRestRequest().getUri().toString();
     }
 
     @Override

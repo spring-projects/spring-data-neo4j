@@ -1,8 +1,6 @@
 package org.neo4j.kernel;
 
 import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.kernel.Config;
-import org.neo4j.kernel.IdGeneratorFactory;
 import org.neo4j.kernel.impl.core.*;
 import org.neo4j.kernel.impl.nioneo.store.FileSystemAbstraction;
 import org.neo4j.kernel.impl.nioneo.store.StoreId;
@@ -48,7 +46,7 @@ public class RestConfig extends Config {
     }
 
     private static class NullTransactionManager implements TransactionManager {
-        private static final Transaction TRANSACTION = new Transaction() {
+        private static final Transaction NULL_JAVA_TRANSACTION = new Transaction() {
             @Override
             public void commit() throws HeuristicMixedException, HeuristicRollbackException, RollbackException, SecurityException, SystemException {
 
@@ -102,7 +100,7 @@ public class RestConfig extends Config {
 
         @Override
         public Transaction getTransaction() throws SystemException {
-            return TRANSACTION;
+            return NULL_JAVA_TRANSACTION;
         }
 
         @Override
@@ -127,7 +125,7 @@ public class RestConfig extends Config {
 
         @Override
         public Transaction suspend() throws SystemException {
-            return TRANSACTION;
+            return NULL_JAVA_TRANSACTION;
         }
     }
 }

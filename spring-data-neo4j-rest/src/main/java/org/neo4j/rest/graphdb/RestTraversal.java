@@ -207,7 +207,7 @@ public class RestTraversal implements RestTraversalDescription
         {
             throw new RuntimeException( String.format( "Unexpected traversal result, %s instead of collection", col != null ? col.getClass() : null ) );
         }
-        return new RestTraverser( (Collection)col, restNode.getGraphDatabase() );
+        return new RestTraverser( (Collection)col, restNode.getRestGraphDatabase() );
     }
 
     public static RestTraversalDescription description()

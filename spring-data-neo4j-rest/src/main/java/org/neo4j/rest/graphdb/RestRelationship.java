@@ -44,7 +44,7 @@ public class RestRelationship extends RestEntity implements Relationship {
     }
 
     private RestNode node( String uri ) {
-        return new RestNode( uri, getGraphDatabase() );
+        return new RestNode( uri, getRestGraphDatabase() );
     }
 
     public Node getStartNode() {
