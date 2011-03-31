@@ -46,7 +46,7 @@ public class ConvertingNodePropertyFieldAccessorFactory implements FieldAccessor
 
     @Override
     public FieldAccessor<GraphBacked<PropertyContainer>> forField(final Field field) {
-        return new ConvertingNodePropertyFieldAccessor(field, conversionService);
+        return new ConvertingNodePropertyFieldAccessor(conversionService, DelegatingFieldAccessorFactory.getNeo4jPropertyName(field),field.getType());
     }
 
     private boolean isSerializableField(final Field field) {
@@ -67,8 +67,8 @@ public class ConvertingNodePropertyFieldAccessorFactory implements FieldAccessor
     public static class ConvertingNodePropertyFieldAccessor extends PropertyFieldAccessorFactory.PropertyFieldAccessor {
         private final ConversionService conversionService;
 
-        public ConvertingNodePropertyFieldAccessor(final Field field, final ConversionService conversionService) {
-            super(field, conversionService);
+        public ConvertingNodePropertyFieldAccessor(ConversionService conversionService, String propertyName, Class fieldType) {
+            super(conversionService,propertyName,fieldType);
             this.conversionService = conversionService;
         }
 
@@ -88,7 +88,7 @@ public class ConvertingNodePropertyFieldAccessorFactory implements FieldAccessor
         }
 
         private Object deserializePropertyValue(final Object value) {
-            return conversionService.convert(value, field.getType());
+            return conversionService.convert(value, fieldType);
         }
 
     }
