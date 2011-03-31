@@ -2,6 +2,7 @@
 <!DOCTYPE section PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
 <section>
     <title>Finding nodes with finders</title>
+    <note>TODO: rewrite to repositories</note>
     <para>Spring Data Graph also comes with a typed, repository-like Finder implementation that provides methods for
         locating nodes and relationships. Those methods return instances of the node and relationship entities,
         not the graph primitives from Neo4j. Finders delegate to the configured <code>NodeTypeStrategy</code> for type
@@ -68,15 +69,8 @@ Iterable<Person> davesFriends = graphRepository.findAllByTraversal(dave,
         Internally the mapping from java types to the graph is handled by a <code>NodeTypeStrategy</code> instance
         that is configured with the <code>GraphDatabaseContext</code>. The strategy is called on entity creation and
         removal and provides methods for retrieving entities based on type. It also comes with methods confirming or
-        retrieving java types from the actual graph node. (see also <xref linkend="nodetypestrategy"/>)
-    </para>
-    <para>
-        The default strategy (<code>IndexingNodeTypeStrategy</code>)
-        uses indexing (index "__types__") and node properties ("__type__") to store the type information in the graph.
-
-        The second strategy uses an in graph structure to represent the inheritance hierarchy links the actual node
-        entity nodes to their concrete class nodes. Instance counts are updated on each of the class nodes in the hierarchy.
-        The last provided strategy is a No-Op strategy that doesn't care about type information.
+        retrieving java types from the actual graph node. (see also
+        <xref linkend="reference:programming-model:typerepresentationstrategy"/>)
     </para>
     </section>
 </section>

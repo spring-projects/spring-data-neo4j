@@ -14,7 +14,7 @@
     <xi:include href="finders.xml"/>
     <xi:include href="transactions.xml"/>
     <xi:include href="attachdetach.xml"/>
-    <xi:include href="nodetypestrategy.xml"/>
+    <xi:include href="typerepresentationstrategy.xml"/>
     <xi:include href="introducedmethods.xml"/>
     <xi:include href="projection.xml"/>
     <xi:include href="beanvalidation.xml"/>
