@@ -1,8 +1,9 @@
 package org.springframework.data.graph.core;
 
 import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.kernel.EmbeddedGraphDatabase;
 import org.springframework.beans.factory.FactoryBean;
-import org.springframework.data.graph.neo4j.support.LocalGraphDatabase;
+import org.springframework.data.graph.neo4j.support.DelegatingGraphDatabase;
 
 import javax.annotation.PreDestroy;
 import java.io.File;
@@ -54,7 +55,7 @@ public class GraphDatabaseFactory implements FactoryBean<GraphDatabase> {
         }
         File file = new File( path );
         // if (!file.isDirectory()) file=file.getParentFile();
-        return new LocalGraphDatabase(file);
+        return new DelegatingGraphDatabase(new EmbeddedGraphDatabase(file.getAbsolutePath()));
     }
 
     private GraphDatabase createRestGraphDatabase(String url, String username, String password) throws Exception {
@@ -71,8 +72,8 @@ public class GraphDatabaseFactory implements FactoryBean<GraphDatabase> {
 
     @PreDestroy
     public void shutdown() {
-        if (graphDatabase instanceof LocalGraphDatabase) {
-           ((LocalGraphDatabase)graphDatabase).shutdown();
+        if (graphDatabase instanceof DelegatingGraphDatabase) {
+           ((DelegatingGraphDatabase)graphDatabase).shutdown();
         }
     }
 

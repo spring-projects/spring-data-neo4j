@@ -1,23 +1,13 @@
 package org.neo4j.rest.graphdb;
 
 
-import com.sun.jersey.api.client.Client;
-import com.sun.jersey.api.client.ClientResponse;
 import org.apache.log4j.BasicConfigurator;
-import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.neo4j.graphdb.Direction;
-import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
-import org.neo4j.server.AddressResolver;
-import org.neo4j.server.NeoServerWithEmbeddedWebServer;
-import org.neo4j.server.modules.RESTApiModule;
-import org.neo4j.server.modules.ThirdPartyJAXRSModule;
-import org.neo4j.server.startup.healthcheck.StartupHealthCheck;
-import org.neo4j.server.web.Jetty6WebServer;
 
 import java.net.URI;
 import java.net.URISyntaxException;

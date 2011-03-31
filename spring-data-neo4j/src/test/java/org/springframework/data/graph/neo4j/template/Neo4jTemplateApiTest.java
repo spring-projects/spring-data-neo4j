@@ -19,8 +19,7 @@ import java.util.Iterator;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
 import static org.junit.Assert.*;
-import static org.springframework.data.graph.neo4j.template.PropertyMap._;
-import static org.springframework.data.graph.neo4j.template.PropertyMap.props;
+import static org.springframework.data.graph.core.Property._;
 
 /**
  * @author mh
@@ -189,7 +188,7 @@ public class Neo4jTemplateApiTest {
 
     @Test
     public void testCreateNodeWithProperties() throws Exception {
-        Node node=template.createNode(props().set("test", "testCreateNodeWithProperties").toMap());
+        Node node=template.createNode(_("test", "testCreateNodeWithProperties"));
         assertTestPropertySet(node, "testCreateNodeWithProperties");
     }
 

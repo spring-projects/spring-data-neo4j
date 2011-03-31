@@ -25,8 +25,7 @@ import org.neo4j.helpers.collection.IterableWrapper;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.graph.UncategorizedGraphStoreException;
-
-import java.util.Map;
+import org.springframework.data.graph.core.Property;
 
 public class Neo4jTemplate implements Neo4jOperations {
 
@@ -117,13 +116,13 @@ public class Neo4jTemplate implements Neo4jOperations {
     }
 
     @Override
-    public Node createNode(final Map<String, Object> properties, final String... indexFields) {
+    public Node createNode(final Property... properties) {
         return exec(new GraphCallback<Node>() {
             @Override
             public Node doWithGraph(GraphDatabaseService graph) throws Exception {
                 Node node = graphDatabaseService.createNode();
                 if (properties == null) return node;
-                return autoIndex(null, setProperties(node, properties), indexFields);
+                return setProperties(node, properties);
             }
         });
     }
@@ -146,15 +145,6 @@ public class Neo4jTemplate implements Neo4jOperations {
         } catch (RuntimeException e) {
             throw translateExceptionIfPossible(e);
         }
-    }
-
-    @Override
-    public <T extends PropertyContainer> T autoIndex(String indexName, T element, String... indexFields) {
-        for (String indexField : indexFields) {
-            if (!element.hasProperty(indexField)) continue;
-            index(indexName,element, indexField,element.getProperty(indexField));
-        }
-        return element;
     }
 
     @Override
@@ -290,26 +280,26 @@ public class Neo4jTemplate implements Neo4jOperations {
     }
 
     @Override
-    public Relationship createRelationship(final Node startNode, final Node endNode, final RelationshipType relationshipType, final Map<String, Object> properties, final String... indexFields) {
+    public Relationship createRelationship(final Node startNode, final Node endNode, final RelationshipType relationshipType, final Property... properties) {
         notNull(startNode, "startNode", endNode, "endNode", relationshipType, "relationshipType", properties, "properties");
         return exec(new GraphCallback<Relationship>() {
             @Override
             public Relationship doWithGraph(GraphDatabaseService graph) throws Exception {
                 Relationship relationship = startNode.createRelationshipTo(endNode, relationshipType);
                 if (properties == null) return relationship;
-                return autoIndex("relationship", setProperties(relationship, properties), indexFields);
+                return setProperties(relationship, properties);
             }
         });
     }
 
-    private <T extends PropertyContainer> T setProperties(T primitive, Map<String, Object> properties) {
+    private <T extends PropertyContainer> T setProperties(T primitive, Property... properties) {
         assert primitive != null;
         if (properties==null) return primitive;
-        for (Map.Entry<String, Object> prop : properties.entrySet()) {
-            if (prop.getValue()==null) {
-                primitive.removeProperty(prop.getKey());
+        for (Property prop : properties) {
+            if (prop.value==null) {
+                primitive.removeProperty(prop.name);
             } else {
-                primitive.setProperty(prop.getKey(), prop.getValue());
+                primitive.setProperty(prop.name, prop.value);
             }
         }
         return primitive;

@@ -2,7 +2,7 @@ package org.springframework.data.graph.core;
 
 import org.junit.Test;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.data.graph.neo4j.support.LocalGraphDatabase;
+import org.springframework.data.graph.neo4j.support.DelegatingGraphDatabase;
 
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsInstanceOf.instanceOf;
@@ -22,7 +22,7 @@ public class GraphDatabaseFactoryTest {
         try {
             GraphDatabase graphDatabase = ctx.getBean("graphDatabase", GraphDatabase.class);
             assertThat(graphDatabase, is(not(nullValue())));
-            assertThat(graphDatabase, is(instanceOf(LocalGraphDatabase.class)));
+            assertThat(graphDatabase, is(instanceOf(DelegatingGraphDatabase.class)));
         } finally {
             ctx.close();
         }
@@ -35,7 +35,7 @@ public class GraphDatabaseFactoryTest {
             factory.setStoreLocation("target/test-db");
             GraphDatabase graphDatabase = factory.getObject();
             assertThat(graphDatabase, is(not(nullValue())));
-            assertThat(graphDatabase,is(instanceOf(LocalGraphDatabase.class)));
+            assertThat(graphDatabase,is(instanceOf(DelegatingGraphDatabase.class)));
         } finally {
             factory.shutdown();
         }

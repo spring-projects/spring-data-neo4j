@@ -41,12 +41,17 @@ public class DelegatingGraphDatabase implements GraphDatabase {
         return setProperties(delegate.createNode(), props);
     }
 
-    private <T extends PropertyContainer> T setProperties(T element, Property[] props) {
-        if (props==null || props.length==0) return element;
-        for (Property prop : props) {
-            element.setProperty(prop.name, prop.value);
+    private <T extends PropertyContainer> T setProperties(T primitive, Property... properties) {
+        assert primitive != null;
+        if (properties==null || properties.length==0) return primitive;
+        for (Property prop : properties) {
+            if (prop.value==null) {
+                primitive.removeProperty(prop.name);
+            } else {
+                primitive.setProperty(prop.name, prop.value);
+            }
         }
-        return element;
+        return primitive;
     }
 
     @Override

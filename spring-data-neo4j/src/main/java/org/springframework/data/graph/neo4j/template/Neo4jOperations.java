@@ -2,6 +2,7 @@ package org.springframework.data.graph.neo4j.template;
 
 import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.traversal.TraversalDescription;
+import org.springframework.data.graph.core.Property;
 
 import java.util.Map;
 
@@ -40,11 +41,12 @@ public interface Neo4jOperations {
      * Two shortcut means of providing the properties (very short with static imports)
      * <code>template.createNode(PropertyMap._("name","value"));</code>
      * <code>template.createNode(PropertyMap.props().set("name","value").set("prop","anotherValue").toMap(), "name", "prop");</code>
+     *
+     *
      * @param props properties to be set at node creation might be null
-     * @param indexFields fields that are automatically indexed from the given properties for the newly created ndoe
      * @return the newly created node
      */
-    Node createNode(Map<String, Object> props, String... indexFields);
+    Node createNode(Property... props);
 
     /**
      * Delegates to the GraphDatabaseService
@@ -59,14 +61,15 @@ public interface Neo4jOperations {
      * Two shortcut means of providing the properties (very short with static imports)
      * <code>template.createRelationship(from,to,TYPE, PropertyMap._("name","value"));</code>
      * <code>template.createRelationship(from,to,TYPE, PropertyMap.props().set("name","value").set("prop","anotherValue").toMap(), "name", "prop");</code>
+     *
+     *
      * @param startNode start-node of relationship
      * @param endNode end-node of relationship
      * @param type relationship type, might by an enum implementing RelationshipType or a DynamicRelationshipType.withName("name")
      * @param props optional initial properties
-     * @param indexFields optional indexed fields
      * @return  the newly created relationship
      */
-    Relationship createRelationship(Node startNode, Node endNode, RelationshipType type, Map<String, Object> props, String... indexFields);
+    Relationship createRelationship(Node startNode, Node endNode, RelationshipType type, Property... props);
 
     /**
      * Queries the supplied index with a lucene query string or query object (if the neo4j-index provider is lucene)
@@ -144,14 +147,4 @@ public interface Neo4jOperations {
      * @return the provided element for convenience
      */
     <T extends PropertyContainer> T index(String indexName, T element, String field, Object value);
-    /**
-     * Auto-indexes all indexFields for the given element's properties if they exist
-     * @param indexName Name of the index, will be checked against existing indexes according to the given element
-     * assumes a "node" node index  or "relationship" relationship index for a null value
-     * @param element node or relationship to auto-index
-     * @param indexProperties property names to index
-     * @param <T> the provided element type
-     * @return the provided element for convenience
-     */
-    <T extends PropertyContainer> T autoIndex(String indexName, T element, String... indexProperties);
 }
