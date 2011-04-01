@@ -18,23 +18,27 @@ package org.springframework.data.graph.neo4j.template;
 
 import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.index.Index;
-import org.neo4j.graphdb.index.IndexManager;
-import org.neo4j.graphdb.index.RelationshipIndex;
 import org.neo4j.graphdb.traversal.TraversalDescription;
 import org.neo4j.helpers.collection.IterableWrapper;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.graph.UncategorizedGraphStoreException;
+import org.springframework.data.graph.core.GraphDatabase;
 import org.springframework.data.graph.core.Property;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.support.TransactionCallback;
+import org.springframework.transaction.support.TransactionTemplate;
+
+import java.util.Map;
 
 public class Neo4jTemplate implements Neo4jOperations {
 
-    private final boolean useExplicitTransactions;
+    private final GraphDatabase graphDatabase;
 
-    private final GraphDatabaseService graphDatabaseService;
+    private final PlatformTransactionManager transactionManager;
 
     private final Neo4jExceptionTranslator exceptionTranslator = new Neo4jExceptionTranslator();
-    private final IndexManager index;
 
     private static void notNull(Object... pairs) {
         assert pairs.length % 2 == 0 : "wrong number of pairs to check";
@@ -46,70 +50,48 @@ public class Neo4jTemplate implements Neo4jOperations {
     }
 
     /**
-     * creates a template that only participates in outside transactions, no implicit transactions are started
-     * @param graphDatabaseService the neo4j graph database
+     * @param graphDatabase the neo4j graph database
+     * @param transactionManager if passed in, will be used to create implicit transactions whenever needed
      * @return a Neo4jTemplate instance
      */
-    public static Neo4jTemplate templateWithExplicitTransactions(GraphDatabaseService graphDatabaseService) {
-        return new Neo4jTemplate(graphDatabaseService,true);
-    }
-
-    /**
-     * creates a template that creates implicit transactions for its methods, including exec. If an outside transaction
-     * is running those participate in the outside transaction.
-     * @param graphDatabaseService the neo4j graph database
-     */
-    public Neo4jTemplate(final GraphDatabaseService graphDatabaseService) {
-        this(graphDatabaseService,false);
-    }
-
-    /**
-     * @param graphDatabaseService the neo4j graph database
-     * @param useExplicitTransactions if set the template only participates in outside transactions,
-     * no internal implicit transactions are started
-     * @return a Neo4jTemplate instance
-     */
-    public Neo4jTemplate(final GraphDatabaseService graphDatabaseService, boolean useExplicitTransactions) {
-        notNull(graphDatabaseService, "graphDatabaseService");
-        this.useExplicitTransactions = useExplicitTransactions;
-        this.graphDatabaseService = graphDatabaseService;
-        index = this.graphDatabaseService.index();
+    public Neo4jTemplate(final GraphDatabase graphDatabase, PlatformTransactionManager transactionManager) {
+        notNull(graphDatabase, "graphDatabase");
+        this.transactionManager = transactionManager;
+        this.graphDatabase = graphDatabase;
     }
 
     public DataAccessException translateExceptionIfPossible(RuntimeException ex) {
         return exceptionTranslator.translateExceptionIfPossible(ex);
     }
 
-    private Transaction beginTx() {
-        if (useExplicitTransactions) {
-            return new NullTransaction();
-        }
-        return graphDatabaseService.beginTx();
-    }
 
-
-    @Override
-    public <T> T exec(final GraphCallback<T> callback) {
+    private <T> T doExecute(final GraphCallback<T> callback) {
         notNull(callback, "callback");
-        Transaction tx = beginTx();
         try {
-            T result = callback.doWithGraph(graphDatabaseService);
-            tx.success();
-            return result;
+            return callback.doWithGraph(graphDatabase);
         } catch (RuntimeException e) {
-            tx.failure();
             throw translateExceptionIfPossible(e);
         } catch (Exception e) {
             throw new UncategorizedGraphStoreException("Error executing callback",e);
-        } finally {
-            tx.finish();
         }
+    }
+
+    @Override
+    public <T> T exec(final GraphCallback<T> callback) {
+        if (transactionManager == null) return doExecute(callback);
+
+        TransactionTemplate template = new TransactionTemplate(transactionManager);
+        return template.execute(new TransactionCallback<T>() {
+            public T doInTransaction(TransactionStatus status) {
+                return doExecute(callback);
+            }
+        });
     }
 
     @Override
     public Node getReferenceNode() {
         try {
-            return graphDatabaseService.getReferenceNode();
+            return graphDatabase.getReferenceNode();
         } catch (RuntimeException e) {
             throw translateExceptionIfPossible(e);
         }
@@ -119,10 +101,8 @@ public class Neo4jTemplate implements Neo4jOperations {
     public Node createNode(final Property... properties) {
         return exec(new GraphCallback<Node>() {
             @Override
-            public Node doWithGraph(GraphDatabaseService graph) throws Exception {
-                Node node = graphDatabaseService.createNode();
-                if (properties == null) return node;
-                return setProperties(node, properties);
+            public Node doWithGraph(GraphDatabase graph) throws Exception {
+                return graphDatabase.createNode(properties);
             }
         });
     }
@@ -131,7 +111,7 @@ public class Neo4jTemplate implements Neo4jOperations {
     public Node getNode(long id) {
         if (id < 0) throw new InvalidDataAccessApiUsageException("id is negative");
         try {
-            return graphDatabaseService.getNodeById(id);
+            return graphDatabase.getNodeById(id);
         } catch (RuntimeException e) {
             throw translateExceptionIfPossible(e);
         }
@@ -141,7 +121,7 @@ public class Neo4jTemplate implements Neo4jOperations {
     public Relationship getRelationship(long id) {
         if (id < 0) throw new InvalidDataAccessApiUsageException("id is negative");
         try {
-            return graphDatabaseService.getRelationshipById(id);
+            return graphDatabase.getRelationshipById(id);
         } catch (RuntimeException e) {
             throw translateExceptionIfPossible(e);
         }
@@ -149,15 +129,15 @@ public class Neo4jTemplate implements Neo4jOperations {
 
     @Override
     public <T extends PropertyContainer> T index(final String indexName, final T element, final String field, final Object value) {
-        notNull(element, "element", field, "field", value, "value");
+        notNull(element, "element", field, "field", value, "value",indexName,"indexName");
         exec(new GraphCallback.WithoutResult() {
             @Override
-            public void doWithGraphWithoutResult(GraphDatabaseService graph) throws Exception {
+            public void doWithGraphWithoutResult(GraphDatabase graph) throws Exception {
                 if (element instanceof Relationship) {
-                    RelationshipIndex relationshipIndex = relationshipWriteIndex(indexName);
+                    Index<Relationship> relationshipIndex = graphDatabase.createIndex(Relationship.class, indexName, false);
                     relationshipIndex.add((Relationship) element, field, value);
                 } else if (element instanceof Node) {
-                    nodeIndex(indexName).add((Node) element, field, value);
+                    graphDatabase.createIndex(Node.class, indexName, false).add((Node) element, field, value);
                 } else {
                     throw new IllegalArgumentException("Provided element is neither node nor relationship " + element);
                 }
@@ -166,29 +146,15 @@ public class Neo4jTemplate implements Neo4jOperations {
         return element;
     }
 
-    private RelationshipIndex relationshipWriteIndex(String indexName) {
-        if (indexName == null) {
-            return index.forRelationships("relationship");
-        }
-        return index.forRelationships(indexName);
-    }
-
-    private RelationshipIndex relationshipIndex(String indexName) {
-        if (indexName != null && index.existsForRelationships(indexName)) {
-            return index.forRelationships(indexName);
-        }
-        return null;
-    }
-
     @Override
     public <T> Iterable<T> query(String indexName, final PathMapper<T> pathMapper, Object queryOrQueryObject) {
-        notNull(queryOrQueryObject, "queryOrQueryObject", pathMapper, "pathMapper");
+        notNull(queryOrQueryObject, "queryOrQueryObject", pathMapper, "pathMapper",indexName,"indexName");
         try {
-            RelationshipIndex relationshipIndex = relationshipIndex(indexName);
-            if (relationshipIndex!=null) {
-                return mapRelationships(relationshipIndex.query(queryOrQueryObject), pathMapper);
+            Index<? extends PropertyContainer> index = graphDatabase.getIndex(indexName);
+            if (Relationship.class.isAssignableFrom(index.getEntityType())) {
+                return mapRelationships(((Index<Relationship>)index).query(queryOrQueryObject), pathMapper);
             }
-            return mapNodes(nodeIndex(indexName).query(queryOrQueryObject), pathMapper);
+            return mapNodes(((Index<Node>)index).query(queryOrQueryObject), pathMapper);
         } catch (RuntimeException e) {
             throw translateExceptionIfPossible(e);
         }
@@ -196,13 +162,13 @@ public class Neo4jTemplate implements Neo4jOperations {
 
     @Override
     public <T> Iterable<T> query(String indexName, final PathMapper<T> pathMapper, String field, String value) {
-        notNull(field, "field", value, "value", pathMapper, "pathMapper");
+        notNull(field, "field", value, "value", pathMapper, "pathMapper",indexName,"indexName");
         try {
-            RelationshipIndex relationshipIndex = relationshipIndex(indexName);
-            if (relationshipIndex!=null) {
-                return mapRelationships(relationshipIndex.get(field, value), pathMapper);
+            Index<? extends PropertyContainer> index = graphDatabase.getIndex(indexName);
+            if (Relationship.class.isAssignableFrom(index.getEntityType())) {
+                return mapRelationships(((Index<Relationship>)index).get(field, value), pathMapper);
             }
-            return mapNodes(nodeIndex(indexName).get(field, value), pathMapper);
+            return mapNodes(((Index<Node>)index).get(field, value), pathMapper);
         } catch (RuntimeException e) {
             throw translateExceptionIfPossible(e);
         }
@@ -217,10 +183,6 @@ public class Neo4jTemplate implements Neo4jOperations {
                 return pathMapper.mapPath(new NodePath(node));
             }
         };
-    }
-
-    private Index<Node> nodeIndex(String indexName) {
-        return index.forNodes(indexName == null ? "node" : indexName);
     }
 
     @Override
@@ -284,41 +246,23 @@ public class Neo4jTemplate implements Neo4jOperations {
         notNull(startNode, "startNode", endNode, "endNode", relationshipType, "relationshipType", properties, "properties");
         return exec(new GraphCallback<Relationship>() {
             @Override
-            public Relationship doWithGraph(GraphDatabaseService graph) throws Exception {
-                Relationship relationship = startNode.createRelationshipTo(endNode, relationshipType);
-                if (properties == null) return relationship;
-                return setProperties(relationship, properties);
+            public Relationship doWithGraph(GraphDatabase graph) throws Exception {
+                return graph.createRelationship(startNode, endNode, relationshipType, properties);
             }
         });
     }
 
-    private <T extends PropertyContainer> T setProperties(T primitive, Property... properties) {
+    private <T extends PropertyContainer> T setProperties(T primitive, Map<String, Object> properties) {
         assert primitive != null;
         if (properties==null) return primitive;
-        for (Property prop : properties) {
-            if (prop.value==null) {
-                primitive.removeProperty(prop.name);
+        for (Map.Entry<String, Object> prop : properties.entrySet()) {
+            if (prop.getValue()==null) {
+                primitive.removeProperty(prop.getKey());
             } else {
-                primitive.setProperty(prop.name, prop.value);
+                primitive.setProperty(prop.getKey(), prop.getValue());
             }
         }
         return primitive;
     }
 
-    private static class NullTransaction implements Transaction {
-        @Override
-        public void failure() {
-
-        }
-
-        @Override
-        public void success() {
-
-        }
-
-        @Override
-        public void finish() {
-
-        }
-    }
 }

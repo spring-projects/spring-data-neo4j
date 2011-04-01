@@ -16,7 +16,10 @@
 
 package org.springframework.data.graph.neo4j.support;
 
-import org.neo4j.graphdb.*;
+import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.PropertyContainer;
+import org.neo4j.graphdb.Relationship;
+import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.graphdb.index.Index;
 import org.neo4j.graphdb.index.IndexManager;
 import org.neo4j.graphdb.traversal.TraversalDescription;
@@ -24,9 +27,7 @@ import org.neo4j.index.impl.lucene.LuceneIndexImplementation;
 import org.neo4j.kernel.AbstractGraphDatabase;
 import org.neo4j.kernel.Traversal;
 import org.springframework.data.graph.core.GraphDatabase;
-import org.springframework.data.graph.core.NodeBacked;
 import org.springframework.data.graph.core.Property;
-import org.springframework.data.graph.core.RelationshipBacked;
 
 import java.util.Map;
 

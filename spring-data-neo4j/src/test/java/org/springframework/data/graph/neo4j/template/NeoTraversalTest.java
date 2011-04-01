@@ -17,7 +17,7 @@
 package org.springframework.data.graph.neo4j.template;
 
 import org.junit.Test;
-import org.neo4j.graphdb.GraphDatabaseService;
+import org.springframework.data.graph.core.GraphDatabase;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Path;
 import org.neo4j.graphdb.RelationshipType;
@@ -41,7 +41,7 @@ public class NeoTraversalTest extends NeoApiTest {
     @Test
     public void testSimpleTraverse() {
         template.exec(new GraphCallback<Void>() {
-            public Void doWithGraph(GraphDatabaseService graph) throws Exception {
+            public Void doWithGraph(GraphDatabase graph) throws Exception {
                 createFamily();
                 return null;
             }

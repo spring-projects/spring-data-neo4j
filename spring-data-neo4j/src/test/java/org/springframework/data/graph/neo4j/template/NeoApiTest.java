@@ -18,48 +18,33 @@ package org.springframework.data.graph.neo4j.template;
 
 import org.junit.After;
 import org.junit.Before;
-import org.neo4j.graphdb.*;
-import org.neo4j.kernel.EmbeddedGraphDatabase;
+import org.neo4j.kernel.AbstractGraphDatabase;
+import org.neo4j.kernel.ImpermanentGraphDatabase;
+import org.neo4j.kernel.impl.transaction.SpringTransactionManager;
+import org.springframework.data.graph.core.GraphDatabase;
+import org.springframework.data.graph.neo4j.support.DelegatingGraphDatabase;
+import org.springframework.transaction.jta.JtaTransactionManager;
 
 public abstract class NeoApiTest {
-    protected GraphDatabaseService graph;
+    protected GraphDatabase graph;
     protected Neo4jTemplate template;
+    protected JtaTransactionManager transactionManager;
+    private AbstractGraphDatabase graphDatabaseService;
 
 
     @Before
-    public void setUp() {
-        graph = new EmbeddedGraphDatabase("target/template-db");
-        template = new Neo4jTemplate(graph);
+    public void setUp() throws Exception
+    {
+        graphDatabaseService = new ImpermanentGraphDatabase( );
+        graph = new DelegatingGraphDatabase(graphDatabaseService);
+        transactionManager = new JtaTransactionManager(new SpringTransactionManager(graphDatabaseService));
+        template = new Neo4jTemplate(graph, transactionManager);
     }
 
     @After
     public void tearDown() {
-        if (graph != null) {
-            clear();
-            graph.shutdown();
-        }
-    }
-
-    private void clear() {
-        try {
-            template.exec(new GraphCallback<Void>() {
-                public Void doWithGraph(GraphDatabaseService graph) throws Exception {
-                    for (Node node : graph.getAllNodes()) {
-                        for (Relationship relationship : node.getRelationships()) {
-                            relationship.delete();
-                        }
-                    }
-                    Node referenceNode = graph.getReferenceNode();
-                    for (Node node : graph.getAllNodes()) {
-                        if (node.equals(referenceNode)) continue;
-                        node.delete();
-                    }
-                    return null;
-                }
-            });
-        } catch(Exception e) {
-            e.printStackTrace();
-            // ignore
+        if (graphDatabaseService != null) {
+            graphDatabaseService.shutdown();
         }
     }
 }

@@ -16,17 +16,17 @@
 
 package org.springframework.data.graph.neo4j.template;
 
-import org.neo4j.graphdb.GraphDatabaseService;
+import org.springframework.data.graph.core.GraphDatabase;
 
 public interface GraphCallback<T> {
-    T doWithGraph(final GraphDatabaseService graph) throws Exception;
+    T doWithGraph(final GraphDatabase graph) throws Exception;
 
     public abstract class WithoutResult implements GraphCallback<Void> {
         @Override
-        public Void doWithGraph(GraphDatabaseService graph) throws Exception {
+        public Void doWithGraph(GraphDatabase graph) throws Exception {
             doWithGraphWithoutResult(graph);
             return null;
         }
-        public abstract void doWithGraphWithoutResult(GraphDatabaseService graph) throws Exception;
+        public abstract void doWithGraphWithoutResult(GraphDatabase graph) throws Exception;
     }
 }

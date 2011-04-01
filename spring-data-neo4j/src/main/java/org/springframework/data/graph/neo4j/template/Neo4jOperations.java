@@ -20,8 +20,6 @@ import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.traversal.TraversalDescription;
 import org.springframework.data.graph.core.Property;
 
-import java.util.Map;
-
 /**
  * A template with convenience operations, exception translation and implicit transaction for modifying methods
  * @author mh
@@ -39,13 +37,13 @@ public interface Neo4jOperations {
     <T> T exec(GraphCallback<T> callback);
 
     /**
-     * Delegates to the GraphDatabaseService
+     * Delegates to the GraphDatabase
      * @return the reference node of the underlying graph database
      */
     Node getReferenceNode();
 
     /**
-     * Delegates to the GraphDatabaseService
+     * Delegates to the GraphDatabase
      * @param id node id
      * @return the requested node of the underlying graph database
      * @throws NotFoundException
@@ -55,8 +53,8 @@ public interface Neo4jOperations {
     /**
      * Transactionally creates the node, sets the properties (if any) and indexes the given fields (if any).
      * Two shortcut means of providing the properties (very short with static imports)
-     * <code>template.createNode(PropertyMap._("name","value"));</code>
-     * <code>template.createNode(PropertyMap.props().set("name","value").set("prop","anotherValue").toMap(), "name", "prop");</code>
+     * <code>template.createNode(Property._("name","value"));</code>
+     * <code>template.createNode(Property._("name","value","prop","anotherValue"));</code>
      *
      *
      * @param props properties to be set at node creation might be null
@@ -65,7 +63,7 @@ public interface Neo4jOperations {
     Node createNode(Property... props);
 
     /**
-     * Delegates to the GraphDatabaseService
+     * Delegates to the GraphDatabase
      * @param id relationship id
      * @return the requested relationship of the underlying graph database
      * @throws NotFoundException
@@ -75,9 +73,8 @@ public interface Neo4jOperations {
     /**
      * Transactionally creates the relationship, sets the properties (if any) and indexes the given fielss (if any)
      * Two shortcut means of providing the properties (very short with static imports)
-     * <code>template.createRelationship(from,to,TYPE, PropertyMap._("name","value"));</code>
-     * <code>template.createRelationship(from,to,TYPE, PropertyMap.props().set("name","value").set("prop","anotherValue").toMap(), "name", "prop");</code>
-     *
+     * <code>template.createRelationship(from,to,TYPE, Property._("name","value"));</code>
+     * <code>template.createRelationship(from,to,TYPE, Property._("name","value","prop","anotherValue"));</code>
      *
      * @param startNode start-node of relationship
      * @param endNode end-node of relationship
@@ -163,4 +160,5 @@ public interface Neo4jOperations {
      * @return the provided element for convenience
      */
     <T extends PropertyContainer> T index(String indexName, T element, String field, Object value);
+
 }

@@ -18,12 +18,23 @@ package org.springframework.data.graph.neo4j.template;
 
 import org.apache.lucene.index.Term;
 import org.apache.lucene.search.TermQuery;
-import org.junit.*;
-import org.neo4j.graphdb.*;
+import org.junit.AfterClass;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
+import org.neo4j.graphdb.Direction;
+import org.neo4j.graphdb.DynamicRelationshipType;
+import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.Path;
+import org.neo4j.graphdb.Relationship;
+import org.neo4j.graphdb.index.Index;
+import org.neo4j.kernel.AbstractGraphDatabase;
 import org.neo4j.kernel.ImpermanentGraphDatabase;
 import org.neo4j.kernel.Traversal;
 import org.neo4j.kernel.impl.transaction.SpringTransactionManager;
 import org.springframework.dao.DataAccessException;
+import org.springframework.data.graph.core.GraphDatabase;
+import org.springframework.data.graph.neo4j.support.DelegatingGraphDatabase;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.jta.JtaTransactionManager;
@@ -37,72 +48,56 @@ import static org.hamcrest.CoreMatchers.not;
 import static org.junit.Assert.*;
 import static org.springframework.data.graph.core.Property._;
 
-/**
- * @author mh
- * @since 19.02.11
- */
+
 public class Neo4jTemplateApiTest {
     private static final DynamicRelationshipType KNOWS = DynamicRelationshipType.withName("knows");
     private static final DynamicRelationshipType HAS = DynamicRelationshipType.withName("has");
     private Neo4jTemplate template;
-    private static GraphDatabaseService graphDatabase;
-    private static PlatformTransactionManager tm;
+    private static GraphDatabase graphDatabase;
     private Node referenceNode;
     private Relationship relationship1;
     private Node node1;
+    private static PlatformTransactionManager transactionManager;
+    private static AbstractGraphDatabase graphDatabaseService;
 
 
-    @BeforeClass
-    public static void startDb() throws Exception {
-        graphDatabase = new ImpermanentGraphDatabase();
-        tm = new JtaTransactionManager(new SpringTransactionManager(graphDatabase));
-    }
 
     @Before
-    public void setUp() {
+    public void setUp() throws Exception
+    {
+        graphDatabaseService = new ImpermanentGraphDatabase();
+        graphDatabase = new DelegatingGraphDatabase(graphDatabaseService);
+        transactionManager =new JtaTransactionManager(new SpringTransactionManager(graphDatabaseService));
         referenceNode = graphDatabase.getReferenceNode();
-        template = new Neo4jTemplate(graphDatabase);
+        template = new Neo4jTemplate(graphDatabase, transactionManager);
         createData();
     }
     private void createData() {
-        Transaction tx = graphDatabase.beginTx();
-        try {
-            cleanDb(graphDatabase);
-            referenceNode.setProperty("name", "node0");
-            graphDatabase.index().forNodes("node").add(referenceNode,"name","node0");
-            node1 = graphDatabase.createNode();
-            node1.setProperty("name", "node1");
-            relationship1 = referenceNode.createRelationshipTo(node1,KNOWS);
-            relationship1.setProperty("name", "rel1");
-            graphDatabase.index().forRelationships("relationship").add(relationship1, "name", "rel1");
-            tx.success();
-        } finally {
-            tx.finish();
-        }
-    }
 
-    private void cleanDb(GraphDatabaseService graphDatabase) {
-        Node refNode = graphDatabase.getReferenceNode();
-        for (Node node : graphDatabase.getAllNodes()) {
-            for (Relationship rel : node.getRelationships()) {
-                rel.delete();
+        new TransactionTemplate(Neo4jTemplateApiTest.transactionManager).execute(new TransactionCallbackWithoutResult() {
+            @Override
+            protected void doInTransactionWithoutResult(TransactionStatus status) {
+                referenceNode.setProperty("name", "node0");
+                graphDatabase.createIndex(Node.class, "node", false).add(referenceNode, "name", "node0");
+                node1 = graphDatabase.createNode();
+                node1.setProperty("name", "node1");
+                relationship1 = referenceNode.createRelationshipTo(node1, KNOWS);
+                relationship1.setProperty("name", "rel1");
+                graphDatabase.createIndex(Relationship.class, "relationship", false).add(relationship1, "name", "rel1");
             }
-            if (!refNode.equals(node)) {
-                node.delete();
-            }
-        }
+        });
     }
 
     @AfterClass
     public static void tearDown() throws Exception {
-        graphDatabase.shutdown();
+        graphDatabaseService.shutdown();
     }
 
     @Test
     public void shouldExecuteCallbackInTransaction() throws Exception {
         Node refNode = template.exec(new GraphCallback<Node>() {
             @Override
-            public Node doWithGraph(GraphDatabaseService graph) throws Exception {
+            public Node doWithGraph(GraphDatabase graph) throws Exception {
                 Node referenceNode = graph.getReferenceNode();
                 referenceNode.setProperty("test", "testDoInTransaction");
                 return referenceNode;
@@ -117,7 +112,7 @@ public class Neo4jTemplateApiTest {
         try {
             template.exec(new GraphCallback.WithoutResult() {
                 @Override
-                public void doWithGraphWithoutResult(GraphDatabaseService graph) throws Exception {
+                public void doWithGraphWithoutResult(GraphDatabase graph) throws Exception {
                     graph.getReferenceNode().setProperty("test", "shouldRollbackTransactionOnException");
                     throw new RuntimeException("please rollback");
                 }
@@ -130,12 +125,12 @@ public class Neo4jTemplateApiTest {
 
     @Test
     public void shouldRollbackViaStatus() throws Exception {
-        new TransactionTemplate(tm).execute(new TransactionCallbackWithoutResult() {
+        new TransactionTemplate(Neo4jTemplateApiTest.transactionManager).execute(new TransactionCallbackWithoutResult() {
             @Override
             protected void doInTransactionWithoutResult(final TransactionStatus status) {
                 template.exec(new GraphCallback.WithoutResult() {
                     @Override
-                    public void doWithGraphWithoutResult(GraphDatabaseService graph) throws Exception {
+                    public void doWithGraphWithoutResult(GraphDatabase graph) throws Exception {
                         graph.getReferenceNode().setProperty("test", "shouldRollbackTransactionOnException");
                         status.setRollbackOnly();
                     }
@@ -149,7 +144,7 @@ public class Neo4jTemplateApiTest {
     public void shouldNotConvertUserRuntimeExceptionToDataAccessException() {
         template.exec(new GraphCallback.WithoutResult() {
             @Override
-            public void doWithGraphWithoutResult(GraphDatabaseService graph) throws Exception {
+            public void doWithGraphWithoutResult(GraphDatabase graph) throws Exception {
                 throw new RuntimeException();
             }
         });
@@ -157,21 +152,21 @@ public class Neo4jTemplateApiTest {
 
     @Test(expected = DataAccessException.class)
     public void shouldConvertMissingTransactionExceptionToDataAccessException() {
-        Neo4jTemplate template = new Neo4jTemplate(graphDatabase, true);
+        Neo4jTemplate template = new Neo4jTemplate(graphDatabase, null);
         template.exec(new GraphCallback.WithoutResult() {
             @Override
-            public void doWithGraphWithoutResult(GraphDatabaseService graph) throws Exception {
-                graph.createNode();
+            public void doWithGraphWithoutResult(GraphDatabase graph) throws Exception {
+                graph.createNode(null);
             }
         });
     }
     @Test(expected = DataAccessException.class)
     public void shouldConvertNotFoundExceptionToDataAccessException() {
-        Neo4jTemplate template = new Neo4jTemplate(graphDatabase, true);
+        Neo4jTemplate template = new Neo4jTemplate(graphDatabase, Neo4jTemplateApiTest.transactionManager);
         template.exec(new GraphCallback.WithoutResult() {
             @Override
-            public void doWithGraphWithoutResult(GraphDatabaseService graph) throws Exception {
-                graph.getNodeById(Long.MAX_VALUE);
+            public void doWithGraphWithoutResult(GraphDatabase graph) throws Exception {
+                graph.getNodeById( Long.MAX_VALUE );
             }
         });
     }
@@ -184,7 +179,7 @@ public class Neo4jTemplateApiTest {
     public void shouldExecuteCallback() throws Exception {
         Long refNodeId = template.exec(new GraphCallback<Long>() {
             @Override
-            public Long doWithGraph(GraphDatabaseService graph) throws Exception {
+            public Long doWithGraph(GraphDatabase graph) throws Exception {
                 return graph.getReferenceNode().getId();
             }
         });
@@ -198,7 +193,7 @@ public class Neo4jTemplateApiTest {
 
     @Test
     public void testCreateNode() throws Exception {
-        Node node=template.createNode(null);
+        Node node=template.createNode();
         assertNotNull("created node",node);
     }
 
@@ -227,25 +222,27 @@ public class Neo4jTemplateApiTest {
 
     @Test
     public void testIndexRelationship() throws Exception {
-        Relationship lookedUpRelationship = graphDatabase.index().forRelationships("relationship").get("name", "rel1").getSingle();
+        Index<Relationship> index = graphDatabase.getIndex("relationship");
+        Relationship lookedUpRelationship = index.get( "name", "rel1" ).getSingle();
         assertThat("same relationship from index",lookedUpRelationship,is(relationship1));
     }
 
     @Test
     public void testIndexNode() throws Exception {
-        template.index(null, node1, "name","node1");
-        Node lookedUpNode=graphDatabase.index().forNodes("node").get("name","node1").getSingle();
+        template.index("node", node1, "name","node1");
+        Index<Node> index = graphDatabase.getIndex("node");
+        Node lookedUpNode= index.get( "name", "node1" ).getSingle();
         assertThat("same node from index",lookedUpNode,is(node1));
     }
 
     @Test
     public void testQueryNodes() throws Exception {
-        assertSingleResult("node0", template.query(null, new NodeNameMapper(), new TermQuery(new Term("name", "node0"))));
+        assertSingleResult("node0", template.query("node", new NodeNameMapper(), new TermQuery(new Term("name", "node0"))));
     }
 
     @Test
     public void testRetrieveNodes() throws Exception {
-        assertSingleResult("node0", template.query(null, new NodeNameMapper(), "name", "node0"));
+        assertSingleResult("node0", template.query("node", new NodeNameMapper(), "name", "node0"));
     }
 
     @Test
@@ -285,7 +282,7 @@ public class Neo4jTemplateApiTest {
 
     @Test
     public void shouldCreateRelationshipWithProperty() throws Exception {
-        Relationship relationship = template.createRelationship(referenceNode, node1, HAS, _("name", "rel2"));
+        Relationship relationship = template.createRelationship(referenceNode, node1, HAS,_("name","rel2"));
         assertNotNull(relationship);
         assertEquals(referenceNode, relationship.getStartNode());
         assertEquals(node1,relationship.getEndNode());

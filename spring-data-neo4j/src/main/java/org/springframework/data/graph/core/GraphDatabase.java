@@ -23,10 +23,7 @@ import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.graphdb.index.Index;
 import org.neo4j.graphdb.traversal.TraversalDescription;
 
-/**
- * @author mh
- * @since 29.03.11
- */
+
 public interface GraphDatabase {
     /**
      * @return the reference node of the underlying graph database
@@ -94,5 +91,4 @@ public interface GraphDatabase {
      * @return a TraversalDescription as starting point for defining a traversal
      */
     TraversalDescription createTraversalDescription();
-
 }
