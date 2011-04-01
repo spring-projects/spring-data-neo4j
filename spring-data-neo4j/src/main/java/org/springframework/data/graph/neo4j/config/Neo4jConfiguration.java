@@ -26,6 +26,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.convert.ConversionService;
+import org.springframework.dao.support.PersistenceExceptionTranslator;
 import org.springframework.data.graph.core.NodeBacked;
 import org.springframework.data.graph.core.RelationshipBacked;
 import org.springframework.data.graph.neo4j.fieldaccess.Neo4jConversionServiceFactoryBean;
@@ -40,6 +41,7 @@ import org.springframework.data.graph.neo4j.support.node.Neo4jNodeBacking;
 import org.springframework.data.graph.neo4j.support.node.PartialNeo4jEntityInstantiator;
 import org.springframework.data.graph.neo4j.support.relationship.ConstructorBypassingGraphRelationshipInstantiator;
 import org.springframework.data.graph.neo4j.support.relationship.Neo4jRelationshipBacking;
+import org.springframework.data.graph.neo4j.template.Neo4jExceptionTranslator;
 import org.springframework.data.graph.neo4j.transaction.ChainedTransactionManager;
 import org.springframework.data.persistence.EntityInstantiator;
 import org.springframework.orm.jpa.JpaTransactionManager;
@@ -127,8 +129,8 @@ public class Neo4jConfiguration {
 	}
 
 	@Bean
-	public DirectGraphRepositoryFactory finderFactory(GraphDatabaseContext graphDatabaseContext) throws Exception {
-		return new DirectGraphRepositoryFactory(graphDatabaseContext);
+	public DirectGraphRepositoryFactory directGraphRepositoryFactory() throws Exception {
+		return new DirectGraphRepositoryFactory(graphDatabaseContext());
 	}
 	
 	@Bean
@@ -176,5 +178,10 @@ public class Neo4jConfiguration {
     @Bean
     public ConfigurationCheck configurationCheck() throws Exception {
         return new ConfigurationCheck(graphDatabaseContext(),transactionManager());
+    }
+
+    @Bean
+    public PersistenceExceptionTranslator persistenceExceptionTranslator() {
+        return new Neo4jExceptionTranslator();
     }
 }

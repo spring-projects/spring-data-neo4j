@@ -13,4 +13,5 @@
     <datagraph:config storeDirectory="target/config-test"/>
     <bean id="config" class="org.springframework.data.graph.neo4j.config.DataGraphNamespaceHandlerTest$Config"/>
 
+    <datagraph:repositories base-package="org.springframework.data.graph.neo4j" graph-database-context-ref="graphDatabaseContext"/>
 </beans>
