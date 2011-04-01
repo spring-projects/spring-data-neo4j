@@ -31,13 +31,13 @@ import javax.persistence.EntityManagerFactory;
  * @author Michael Hunger
  * @since 02.10.2010
  */
-public class PartialNeo4jEntityInstantiator implements EntityInstantiator<NodeBacked, Node> {
+public class PartialNodeEntityInstantiator implements EntityInstantiator<NodeBacked, Node> {
 
-	private final Neo4jConstructorGraphEntityInstantiator delegate;
+	private final NodeEntityInstantiator delegate;
     private EntityManagerFactory entityManagerFactory;
 
 
-    public PartialNeo4jEntityInstantiator(Neo4jConstructorGraphEntityInstantiator delegate, EntityManagerFactory entityManagerFactory) {
+    public PartialNodeEntityInstantiator(NodeEntityInstantiator delegate, EntityManagerFactory entityManagerFactory) {
 		this.delegate = delegate;
         this.entityManagerFactory = entityManagerFactory;
     }

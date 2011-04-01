@@ -34,7 +34,7 @@ import sun.reflect.ReflectionFactory;
  * Part of the SPI, not intended for public use.
  */
 
-public class ConstructorBypassingGraphRelationshipInstantiator extends AbstractConstructorEntityInstantiator<RelationshipBacked, Relationship> {
+public class RelationshipEntityInstantiator extends AbstractConstructorEntityInstantiator<RelationshipBacked, Relationship> {
 
     @Override
     protected void setState(RelationshipBacked entity, Relationship relationship) {

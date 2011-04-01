@@ -27,7 +27,7 @@ import org.springframework.data.persistence.AbstractConstructorEntityInstantiato
  * 
  * @author Rod Johnson
  */
-public class Neo4jConstructorGraphEntityInstantiator extends AbstractConstructorEntityInstantiator<NodeBacked, Node>{
+public class NodeEntityInstantiator extends AbstractConstructorEntityInstantiator<NodeBacked, Node>{
 	
 	@Override
 	protected void setState(NodeBacked entity, Node s) {
