@@ -366,6 +366,38 @@
 					</execution>
 				</executions>
 			</plugin>
+            <plugin>
+                <groupId>com.mycila.maven-license-plugin</groupId>
+                <artifactId>maven-license-plugin</artifactId>                
+                <executions>
+                  <execution>
+                    <id>check-licenses</id>
+                    <!-- fail as early as possible -->
+                    <phase>initialize</phase>
+                    <goals>
+                      <goal>format</goal>
+                    </goals>
+                  </execution>
+                </executions>
+                <configuration>
+                  <strictCheck>true</strictCheck>
+                  <header>${basedir}/../spring-data-graph-parent/license-header.txt</header>
+                  <includes>
+                    <include>src/**/*.java</include>
+                    <include>src/**/*.js</include>
+                    <include>src/**/*.scala</include>
+                    <!--<include>src/**/*.xml</include>-->
+                  </includes>
+                  <excludes>
+                    <exclude>**/lib/*.js</exclude>
+                    <exclude>**/lib/**/*.js</exclude>
+                    <exclude>**/javascript/vend/**</exclude>
+                  </excludes>
+                  <mapping>
+                    <scala>JAVADOC_STYLE</scala>
+                  </mapping>
+                </configuration>
+            </plugin>
 		</plugins>
 	</build>
 	<pluginRepositories>
