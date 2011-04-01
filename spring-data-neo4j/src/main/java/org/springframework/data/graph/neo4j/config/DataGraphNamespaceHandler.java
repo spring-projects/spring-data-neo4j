@@ -21,11 +21,94 @@ package org.springframework.data.graph.neo4j.config;
  * @since 31.01.11
  */
 
+import org.springframework.beans.factory.support.BeanDefinitionBuilder;
+import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.xml.NamespaceHandlerSupport;
+import org.springframework.data.graph.neo4j.repository.CRUDGraphRepository;
+import org.springframework.data.graph.neo4j.repository.GraphRepositoryFactoryBean;
+import org.springframework.data.repository.config.*;
+import org.springframework.util.StringUtils;
+import org.w3c.dom.Element;
 
 public class DataGraphNamespaceHandler extends NamespaceHandlerSupport {
 
     public void init() {
         registerBeanDefinitionParser("config", new DataGraphBeanDefinitionParser());
+        registerBeanDefinitionParser("repositories", new DataGraphRepositoryConfigDefinitionParser());
+    }
+
+
+    private static class DataGraphRepositoryConfigDefinitionParser extends AbstractRepositoryConfigDefinitionParser<DataGraphRepositoryConfigDefinitionParser.SimpleDataGraphRepositoryConfiguration, DataGraphRepositoryConfigDefinitionParser.DataGraphRepositoryConfiguration> {
+
+        @Override
+        protected SimpleDataGraphRepositoryConfiguration getGlobalRepositoryConfigInformation(Element element) {
+            return new SimpleDataGraphRepositoryConfiguration(element);
+        }
+
+        @Override
+        protected void postProcessBeanDefinition(DataGraphRepositoryConfiguration context, BeanDefinitionBuilder builder, BeanDefinitionRegistry registry, Object beanSource) {
+            builder.addPropertyReference("graphDatabaseContext", context.getGraphDatabaseContextRef());
+        }
+
+
+        public interface DataGraphRepositoryConfiguration extends SingleRepositoryConfigInformation<SimpleDataGraphRepositoryConfiguration> {
+            String GRAPH_DATABASE_CONTEXT_REF = "graph-database-context-ref";
+            String DEFAULT_GRAPH_DATABASE_CONTEXT_REF = "graphDatabaseContext";
+
+            String getGraphDatabaseContextRef();
+        }
+
+        public static class SimpleDataGraphRepositoryConfiguration extends RepositoryConfig<DataGraphRepositoryConfiguration, SimpleDataGraphRepositoryConfiguration> {
+
+            protected SimpleDataGraphRepositoryConfiguration(Element repositoriesElement) {
+                super(repositoriesElement, GraphRepositoryFactoryBean.class.getName());
+            }
+
+            @Override
+            protected DataGraphRepositoryConfiguration createSingleRepositoryConfigInformationFor(Element element) {
+                return new ManualDataGraphRepositoryConfiguration(element, this);
+            }
+
+            @Override
+            public DataGraphRepositoryConfiguration getAutoconfigRepositoryInformation(String interfaceName) {
+                return new AutomaticDataGraphRepositoryConfiguration(interfaceName, this);
+            }
+
+            @Override
+            public Class<?> getRepositoryBaseInterface() {
+                return CRUDGraphRepository.class;
+            }
+
+            public String getGraphDatabaseContextRef() {
+
+                String contextRef = getSource().getAttribute(DataGraphRepositoryConfiguration.GRAPH_DATABASE_CONTEXT_REF);
+                return StringUtils.hasText(contextRef) ? contextRef : DataGraphRepositoryConfiguration.DEFAULT_GRAPH_DATABASE_CONTEXT_REF;
+            }
+
+            private static class ManualDataGraphRepositoryConfiguration extends ManualRepositoryConfigInformation<SimpleDataGraphRepositoryConfiguration> implements DataGraphRepositoryConfiguration {
+
+                public ManualDataGraphRepositoryConfiguration(Element element, SimpleDataGraphRepositoryConfiguration parent) {
+                    super(element, parent);
+                }
+
+                @Override
+                public String getGraphDatabaseContextRef() {
+                    return getAttribute(DataGraphRepositoryConfiguration.GRAPH_DATABASE_CONTEXT_REF);
+                }
+            }
+
+            private static class AutomaticDataGraphRepositoryConfiguration extends AutomaticRepositoryConfigInformation<SimpleDataGraphRepositoryConfiguration> implements DataGraphRepositoryConfiguration {
+
+                public AutomaticDataGraphRepositoryConfiguration(String interfaceName, SimpleDataGraphRepositoryConfiguration parent) {
+                    super(interfaceName, parent);
+                }
+
+                @Override
+                public String getGraphDatabaseContextRef() {
+                    return getParent().getGraphDatabaseContextRef();
+                }
+            }
+        }
+
     }
 }

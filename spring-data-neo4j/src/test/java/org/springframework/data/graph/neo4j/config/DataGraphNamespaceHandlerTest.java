@@ -22,6 +22,7 @@ import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.kernel.EmbeddedGraphDatabase;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.data.graph.neo4j.PersonRepository;
 import org.springframework.data.graph.neo4j.repository.DirectGraphRepositoryFactory;
 import org.springframework.data.graph.neo4j.support.GraphDatabaseContext;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -42,11 +43,14 @@ public class DataGraphNamespaceHandlerTest {
         GraphDatabaseContext graphDatabaseContext;
         @Autowired
         PlatformTransactionManager transactionManager;
+        @Autowired(required = false)
+        PersonRepository personRepository;
     }
 
     @Test
     public void injectionForJustStoreDir() {
-        assertInjected("");
+        final Config config = assertInjected("");
+        Assert.assertNotNull(config.personRepository);
     }
     @Test
     public void injectionForExistingGraphDatabaseService() {
@@ -63,7 +67,7 @@ public class DataGraphNamespaceHandlerTest {
         assertInjected("-cross-store");
     }
 
-    private void assertInjected(String testCase) {
+    private Config assertInjected(String testCase) {
         ClassPathXmlApplicationContext ctx = new ClassPathXmlApplicationContext("classpath:org/springframework/data/graph/neo4j/config/DataGraphNamespaceHandlerTest" + testCase + "-context.xml");
         Config config = ctx.getBean("config", Config.class);
         GraphDatabaseContext graphDatabaseContext = config.graphDatabaseContext;
@@ -74,6 +78,7 @@ public class DataGraphNamespaceHandlerTest {
         Assert.assertNotNull("graphDatabaseService",config.graphDatabaseService);
         Assert.assertNotNull("transactionManager",config.transactionManager);
         config.graphDatabaseService.shutdown();
+        return config;
     }
 
 }
