@@ -138,6 +138,12 @@
             <artifactId>jersey-client</artifactId>
             <version>${jersey.version}</version>
         </dependency>
+        <dependency>
+          <groupId>org.neo4j</groupId>
+          <artifactId>neo4j-kernel</artifactId>
+          <classifier>tests</classifier>
+          <scope>test</scope>
+        </dependency>
     </dependencies>
     <build>
         <plugins>

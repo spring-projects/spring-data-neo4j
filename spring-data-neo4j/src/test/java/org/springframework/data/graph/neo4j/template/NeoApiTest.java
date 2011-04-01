@@ -35,10 +35,15 @@ public abstract class NeoApiTest {
     @Before
     public void setUp() throws Exception
     {
-        graphDatabaseService = new ImpermanentGraphDatabase( );
-        graph = new DelegatingGraphDatabase(graphDatabaseService);
+        graph = createGraphDatabase();
         transactionManager = new JtaTransactionManager(new SpringTransactionManager(graphDatabaseService));
         template = new Neo4jTemplate(graph, transactionManager);
+    }
+
+    protected GraphDatabase createGraphDatabase() throws Exception
+    {
+        graphDatabaseService = new ImpermanentGraphDatabase( );
+        return new DelegatingGraphDatabase(graphDatabaseService);
     }
 
     @After
