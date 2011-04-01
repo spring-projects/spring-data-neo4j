@@ -60,6 +60,17 @@ public class Neo4jTemplate implements Neo4jOperations {
         this.graphDatabase = graphDatabase;
     }
 
+    /**
+     * @param graphDatabase the neo4j graph database
+     * @return a Neo4jTemplate instance
+     */
+    public Neo4jTemplate(final GraphDatabase graphDatabase) {
+        notNull(graphDatabase, "graphDatabase");
+        transactionManager = null;
+        this.graphDatabase = graphDatabase;
+    }
+
+
     public DataAccessException translateExceptionIfPossible(RuntimeException ex) {
         return exceptionTranslator.translateExceptionIfPossible(ex);
     }

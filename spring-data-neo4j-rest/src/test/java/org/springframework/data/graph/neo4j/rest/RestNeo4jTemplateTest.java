@@ -16,10 +16,12 @@
 
 package org.springframework.data.graph.neo4j.rest;
 
+import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.neo4j.rest.graphdb.RestTestHelper;
 import org.springframework.data.graph.core.GraphDatabase;
 import org.springframework.data.graph.neo4j.template.Neo4jTemplateTest;
+import org.springframework.transaction.PlatformTransactionManager;
 
 public class RestNeo4jTemplateTest extends Neo4jTemplateTest
 {
@@ -30,6 +32,18 @@ public class RestNeo4jTemplateTest extends Neo4jTemplateTest
     {
         testHelper = new RestTestHelper();
         testHelper.startServer();
+    }
+
+    @AfterClass
+    public static void stopServer() throws Exception
+    {
+        testHelper.shutdownServer();
+    }
+
+    @Override
+    protected PlatformTransactionManager createTransactionManager()
+    {
+        return null;
     }
 
     @Override

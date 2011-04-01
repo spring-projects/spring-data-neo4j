@@ -23,12 +23,13 @@ import org.neo4j.kernel.ImpermanentGraphDatabase;
 import org.neo4j.kernel.impl.transaction.SpringTransactionManager;
 import org.springframework.data.graph.core.GraphDatabase;
 import org.springframework.data.graph.neo4j.support.DelegatingGraphDatabase;
+import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.jta.JtaTransactionManager;
 
 public abstract class NeoApiTest {
     protected GraphDatabase graph;
     protected Neo4jTemplate template;
-    protected JtaTransactionManager transactionManager;
+    protected PlatformTransactionManager transactionManager;
     private AbstractGraphDatabase graphDatabaseService;
 
 
@@ -36,8 +37,13 @@ public abstract class NeoApiTest {
     public void setUp() throws Exception
     {
         graph = createGraphDatabase();
-        transactionManager = new JtaTransactionManager(new SpringTransactionManager(graphDatabaseService));
+        transactionManager = createTransactionManager();
         template = new Neo4jTemplate(graph, transactionManager);
+    }
+
+    protected PlatformTransactionManager createTransactionManager()
+    {
+        return new JtaTransactionManager(new SpringTransactionManager(graphDatabaseService));
     }
 
     protected GraphDatabase createGraphDatabase() throws Exception
