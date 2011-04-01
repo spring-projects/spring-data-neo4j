@@ -98,6 +98,7 @@
 	</section>
 	<section>
 		<title>Setting Up Spring Data Graph - Spring Configuration</title>
+        <note>Out of date - should we even have this section?</note>
 		<para>The concrete configuration for Spring Data Graph is quite verbose as there is no autowiring involved. It sets up the following parts.
             <itemizedlist>
                 <listitem>
@@ -120,7 +121,7 @@
                     <para>Finder factory</para>
                 </listitem>
                 <listitem>
-                    <para>an appropriate NodeTypeStrategy</para>
+                    <para>TypeRepresentationStrategies</para>
                 </listitem>
             </itemizedlist>
 

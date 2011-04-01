@@ -35,7 +35,7 @@ public class RestNode extends RestEntity implements Node {
         if ( restRequest.statusOtherThan( response, Status.CREATED ) ) {
             throw new RuntimeException( "" + response.getStatus() );
         }
-        return new RestRelationship( response.getLocation(), getGraphDatabase() );
+        return new RestRelationship( response.getLocation(), getRestGraphDatabase() );
     }
 
     public Iterable<Relationship> getRelationships() {
@@ -48,7 +48,7 @@ public class RestNode extends RestEntity implements Node {
                 (Collection<Object>) restRequest.toEntity( response ) ) {
             @Override
             protected Relationship underlyingObjectToObject( Object data ) {
-                return new RestRelationship( (Map<?, ?>) data, getGraphDatabase() );
+                return new RestRelationship( (Map<?, ?>) data, getRestGraphDatabase() );
             }
         };
     }

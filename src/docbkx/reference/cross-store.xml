@@ -23,10 +23,11 @@
 		backing graph store afterwards.
 	</para>
 		<para>
-		The connection between the two entities is kept via a FOREIGN_ID field in the node that contains the JPA id (currently only single
-		value ids are supported). The entity class can be resolved via the NodeTypeStrategy that preserves the Java type hierarchy within the graph.
-        With the id and class, you can then retrieve the appropriate JPA entity for a given node.
-	</para>
+            The connection between the two entities is kept via a FOREIGN_ID field in the node that contains the JPA id
+            (currently only single value ids are supported). The entity class can be resolved via the
+            TypeRepresentationStrategy that manages the Java type hierarchy within the graph. With the id and class,
+            you can then retrieve the appropriate JPA entity for a given node.
+        </para>
 		<para>
 		The other direction is handled by indexing the Node with the FOREIGN_ID index which contains a concatenation of the fully qualified class
 		name of the JPA entity and the id. So it is possible on instantiation of a JPA id via the entity manager (or some other means like creating

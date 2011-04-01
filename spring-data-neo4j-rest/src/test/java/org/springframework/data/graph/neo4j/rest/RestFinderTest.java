@@ -5,8 +5,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.runner.RunWith;
 import org.neo4j.rest.graphdb.RestTestBase;
-import org.springframework.data.graph.neo4j.support.FinderTest;
-import org.springframework.data.graph.neo4j.support.IndexTest;
+import org.springframework.data.graph.neo4j.support.GraphRepositoryTest;
 import org.springframework.test.context.CleanContextCacheTestExecutionListener;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestExecutionListeners;
@@ -22,22 +21,22 @@ import org.springframework.test.context.transaction.TransactionalTestExecutionLi
 @ContextConfiguration(locations = {"classpath:org/springframework/data/graph/neo4j/support/Neo4jGraphPersistenceTest-context.xml",
     "classpath:RestTest-context.xml"})
 @TestExecutionListeners({CleanContextCacheTestExecutionListener.class, DependencyInjectionTestExecutionListener.class, TransactionalTestExecutionListener.class})
-public class RestFinderTest extends FinderTest {
+public class RestFinderTest extends GraphRepositoryTest {
 
-@BeforeClass
-public static void startDb() throws Exception {
-    RestTestBase.startDb();
-}
+    @BeforeClass
+    public static void startDb() throws Exception {
+        RestTestBase.startDb();
+    }
 
-@Before
-public void cleanDb() {
-    RestTestBase.cleanDb();
-}
+    @Before
+    public void cleanDb() {
+        RestTestBase.cleanDb();
+    }
 
-@AfterClass
-public static void shutdownDb() {
-    RestTestBase.shutdownDb();
+    @AfterClass
+    public static void shutdownDb() {
+        RestTestBase.shutdownDb();
 
-}
+    }
 
 }

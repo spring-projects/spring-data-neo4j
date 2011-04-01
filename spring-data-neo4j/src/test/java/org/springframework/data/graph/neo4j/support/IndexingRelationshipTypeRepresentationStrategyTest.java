@@ -74,7 +74,7 @@ public class IndexingRelationshipTypeRepresentationStrategyTest {
         Transaction tx = graphDatabaseService.beginTx();
         try
         {
-            relationshipTypeRepresentationStrategy.preEntityRemoval(link);
+            relationshipTypeRepresentationStrategy.preEntityRemoval(rel(link));
             tx.success();
         }
         finally

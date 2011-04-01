@@ -31,9 +31,10 @@ import org.neo4j.graphdb.PropertyContainer;
 */
 public interface TypeRepresentationStrategy<S extends PropertyContainer, T extends GraphBacked<S>> {
     /**
-     * callback on entity creation for setting up type representation
-     * @param state
-     * @param type
+     * Callback for setting up and/or storing type information after creation.
+     *
+     * @param state Backing state of entity being created
+     * @param type Type of entity being created
      */
     void postEntityCreation(S state, Class<? extends T> type);
 
@@ -57,10 +58,12 @@ public interface TypeRepresentationStrategy<S extends PropertyContainer, T exten
 	<U extends T> Class<U> getJavaType(S state);
 
     /**
-     * callback for lifecycle management before node entity removal
-     * @param entity
+     * Callback for cleaning up type information before removal. If state does not have any
+     * state associated, doesn't do anything.
+     *
+     * @param state Backing state of entity being removed
      */
-    void preEntityRemoval(T entity);
+    void preEntityRemoval(S state);
 
     /**
      * Instantiate the entity given its state. The type of the entity is inferred by the strategy

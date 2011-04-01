@@ -44,19 +44,206 @@ import java.util.Map;
  */
 public class GraphDatabaseContext {
 
+    private static final Log log = LogFactory.getLog(GraphDatabaseContext.class);
     public static final String DEFAULT_NODE_INDEX_NAME = "node";
     public static final String DEFAULT_RELATIONSHIP_INDEX_NAME = "relationship";
 
     private GraphDatabaseService graphDatabaseService;
-
     private ConversionService conversionService;
 
+    private Validator validator;
     private NodeTypeRepresentationStrategy nodeTypeRepresentationStrategy;
+
     private RelationshipTypeRepresentationStrategy relationshipTypeRepresentationStrategy;
 
-    private Validator validator;
 
-    private final static Log log = LogFactory.getLog(GraphDatabaseContext.class);
+
+    public <S extends PropertyContainer, T extends GraphBacked<S>> Index<S> getIndex(Class<T> type) {
+        return getIndex(type, null);
+    }
+
+    public <S extends PropertyContainer, T extends GraphBacked<S>> Index<S> getIndex(Class<T> type, String indexName) {
+        return getIndex(type, indexName, false);
+    }
+
+
+    public <S extends PropertyContainer, T extends GraphBacked<S>> Index<S> getIndex(Class<T> type, String indexName, boolean fullText) {
+        if (indexName==null) indexName = Indexed.Name.get(type);
+        Map<String, String> config = fullText ? LuceneIndexImplementation.FULLTEXT_CONFIG : null;
+        if (NodeBacked.class.isAssignableFrom(type)) return (Index<S>) getIndexManager().forNodes(indexName, config);
+        if (RelationshipBacked.class.isAssignableFrom(type)) return (Index<S>) getIndexManager().forRelationships(indexName, config);
+        throw new IllegalArgumentException("Wrong index type supplied: " + type);
+    }
+
+    /**
+     * @return true if a transaction manager is available and a transaction is currently running
+     */
+    public boolean transactionIsRunning() {
+        try {
+            return getTxManager().getStatus() != Status.STATUS_NO_TRANSACTION;
+        } catch (SystemException e) {
+            log.error("Error accessing TransactionManager", e);
+            return false;
+        }
+    }
+
+    public <T extends GraphBacked<? extends PropertyContainer>> Iterable<T> findAll(final Class<T> entityClass) {
+        return getTypeRepresentationStrategy(entityClass).findAll(entityClass);
+    }
+
+    public <T extends GraphBacked<? extends PropertyContainer>> long count(final Class<T> entityClass) {
+        return getTypeRepresentationStrategy(entityClass).count(entityClass);
+    }
+
+
+
+    public <S extends PropertyContainer, T extends GraphBacked<S>> T createEntityFromStoredType(S state) {
+        return getTypeRepresentationStrategy(state).createEntity(state);
+    }
+
+    public <S extends PropertyContainer, T extends GraphBacked<S>> T createEntityFromState(S state, Class<T> type) {
+        if (state==null) throw new IllegalArgumentException("state has to be either a Node or Relationship, not null");
+        return getTypeRepresentationStrategy(state, type).createEntity(state, type);
+    }
+
+    public <S extends PropertyContainer, T extends GraphBacked<S>> T projectTo(GraphBacked<S> entity, Class<T> targetType) {
+        S state = entity.getPersistentState();
+        return getTypeRepresentationStrategy(state, targetType).projectEntity(state, targetType);
+    }
+
+    public <S extends PropertyContainer, T extends GraphBacked<S>> void postEntityCreation(S node, Class<T> entityClass) {
+        getTypeRepresentationStrategy(node, entityClass).postEntityCreation(node, entityClass);
+    }
+
+
+    public void removeNodeEntity(NodeBacked entity) {
+        Node node = entity.getPersistentState();
+        if (node == null) return;
+        nodeTypeRepresentationStrategy.preEntityRemoval(node);
+        for (Relationship relationship : node.getRelationships()) {
+            removeRelationship(relationship);
+        }
+        removeFromIndexes(node);
+        node.delete();
+    }
+
+    public void removeRelationshipEntity(RelationshipBacked entity) {
+        Relationship relationship = entity.getPersistentState();
+        if (relationship == null) return;
+        removeRelationship(relationship);
+    }
+
+    private void removeRelationship(Relationship relationship) {
+        relationshipTypeRepresentationStrategy.preEntityRemoval(relationship);
+        removeFromIndexes(relationship);
+        relationship.delete();
+    }
+
+    private void removeFromIndexes(Node node) {
+        IndexManager indexManager = getIndexManager();
+        for (String indexName : indexManager.nodeIndexNames()) {
+            indexManager.forNodes(indexName).remove(node);
+        }
+    }
+
+    private void removeFromIndexes(Relationship relationship) {
+        IndexManager indexManager = getIndexManager();
+        for (String indexName : indexManager.relationshipIndexNames()) {
+            indexManager.forRelationships(indexName).remove(relationship);
+        }
+    }
+
+    private IndexManager getIndexManager() {
+        return graphDatabaseService.index();
+    }
+
+
+
+    @SuppressWarnings("unchecked")
+    private <T extends GraphBacked<? extends PropertyContainer>>
+        TypeRepresentationStrategy<?, T> getTypeRepresentationStrategy(Class<T> type) {
+        if (NodeBacked.class.isAssignableFrom(type)) {
+            return (TypeRepresentationStrategy<?, T>) nodeTypeRepresentationStrategy;
+        } else if (RelationshipBacked.class.isAssignableFrom(type)) {
+            return (TypeRepresentationStrategy<?, T>) relationshipTypeRepresentationStrategy;
+        }
+        throw new IllegalArgumentException("Type is not NodeBacked nor RelationshipBacked.");
+    }
+
+    @SuppressWarnings("unchecked")
+    private <S extends PropertyContainer, T extends GraphBacked<S>>
+        TypeRepresentationStrategy<S, T> getTypeRepresentationStrategy(S state, Class<T> type) {
+        if (state instanceof Node && NodeBacked.class.isAssignableFrom(type)) {
+            return (TypeRepresentationStrategy<S, T>) nodeTypeRepresentationStrategy;
+        } else if (state instanceof Relationship && RelationshipBacked.class.isAssignableFrom(type)) {
+            return (TypeRepresentationStrategy<S, T>) relationshipTypeRepresentationStrategy;
+        }
+        throw new IllegalArgumentException("Type is not NodeBacked nor RelationshipBacked.");
+    }
+
+    @SuppressWarnings("unchecked")
+    private <S extends PropertyContainer, T extends GraphBacked<S>>
+        TypeRepresentationStrategy<S, T> getTypeRepresentationStrategy(S state) {
+        if (state instanceof Node) {
+            return (TypeRepresentationStrategy<S, T>) nodeTypeRepresentationStrategy;
+        } else if (state instanceof Relationship) {
+            return (TypeRepresentationStrategy<S, T>) relationshipTypeRepresentationStrategy;
+        }
+        throw new IllegalArgumentException("Type is not NodeBacked nor RelationshipBacked.");
+    }
+
+
+
+    /**
+     * @return Neo4j Transaction manager
+     */
+    public TransactionManager getTxManager() {
+        return ((AbstractGraphDatabase) graphDatabaseService).getConfig().getTxModule().getTxManager();
+    }
+
+    /**
+     * Delegates to {@link GraphDatabaseService}
+     */
+    public Node createNode() {
+        return graphDatabaseService.createNode();
+    }
+
+    /**
+     * Delegates to {@link GraphDatabaseService}
+     */
+    public Node getNodeById(final long nodeId) {
+        return graphDatabaseService.getNodeById(nodeId);
+    }
+
+    /**
+     * Delegates to {@link GraphDatabaseService}
+     */
+	public Node getReferenceNode() {
+        return graphDatabaseService.getReferenceNode();
+    }
+
+    /**
+     * Delegates to {@link GraphDatabaseService}
+     */
+    public Iterable<? extends Node> getAllNodes() {
+        return graphDatabaseService.getAllNodes();
+    }
+
+    /**
+     * Delegates to {@link GraphDatabaseService}
+     */
+    public Transaction beginTx() {
+        return graphDatabaseService.beginTx();
+    }
+
+    /**
+     * Delegates to {@link GraphDatabaseService}
+     */
+    public Relationship getRelationshipById(final long id) {
+        return graphDatabaseService.getRelationshipById(id);
+    }
+
+
 
     public GraphDatabaseService getGraphDatabaseService() {
 		return graphDatabaseService;
@@ -90,230 +277,6 @@ public class GraphDatabaseContext {
 		this.conversionService = conversionService;
 	}
 
-	public Node createNode() {
-        return graphDatabaseService.createNode();
-    }
-
-    /**
-     * @param relationship to remove from indexes and to delete
-     */
-    private void removeRelationship(Relationship relationship) {
-        removeFromIndexes(relationship);
-        relationship.delete();
-    }
-
-    /**
-     * @param relationship to be removed from all indexes, all properties are removed from all indexes
-     */
-    private void removeFromIndexes(Relationship relationship) {
-        IndexManager indexManager = graphDatabaseService.index();
-        for (String indexName : getIndexManager().relationshipIndexNames()) {
-            indexManager.forRelationships(indexName).remove(relationship);
-        }
-    }
-
-    /**
-     * removes the entity by cleaning the relationships first and then removing the node
-     * it removes all of them from all indexes in advance
-     * the entity and relationship are still accessible after removal but before transaction commit
-     * but all modifications will throw an exception
-     * @param entity to remove
-     */
-    // TODO: What about connected relationship entities?
-    public void removeNodeEntity(NodeBacked entity) {
-        Node node = entity.getPersistentState();
-        if (node==null) return;
-        nodeTypeRepresentationStrategy.preEntityRemoval(entity);
-        for (Relationship relationship : node.getRelationships()) {
-            removeRelationship(relationship);
-        }
-        removeFromIndexes(node);
-        node.delete();
-    }
-
-    public void removeRelationshipEntity(RelationshipBacked entity) {
-        Relationship relationship = entity.getPersistentState();
-        if (relationship==null) return;
-        removeRelationship(relationship);
-    }
-
-    /**
-     * @param node to be removed from all indexes, all properties of the node are removed from all indexes
-     */
-    private void removeFromIndexes(Node node) {
-        IndexManager indexManager = graphDatabaseService.index();
-        for (String indexName : getIndexManager().nodeIndexNames()) {
-            indexManager.forNodes(indexName).remove(node);
-        }
-    }
-
-    /**
-     * Creates either a node or relationship entity by delegating the creation to the appropriate @{link EntityInstantiator}
-     * @param state Node or Relationship
-     * @param type target entity type
-     * @return an instance of the entity type
-     */
-    public <S, T extends GraphBacked> T createEntityFromState(final S state, final Class<T> type) {
-        if (state==null) throw new IllegalArgumentException("state has to be either a Node or Relationship, not null");
-        if (state instanceof Node && NodeBacked.class.isAssignableFrom(type))
-            return (T) nodeTypeRepresentationStrategy.createEntity((Node) state, (Class<NodeBacked>) type);
-//            return (T) graphEntityInstantiator.createEntityFromState((Node) state, typeRepresentationStrategy.confirmType((Node)state, (Class<? extends NodeBacked>)type));
-        else
-            return (T) relationshipTypeRepresentationStrategy.createEntity((Relationship) state, (Class<RelationshipBacked>) type);
-//            return (T) relationshipEntityInstantiator.createEntityFromState((Relationship) state, (Class<? extends RelationshipBacked>) type);
-    }
-
-    private IndexManager getIndexManager() {
-        return graphDatabaseService.index();
-    }
-
-    /**
-     * @param indexName or null, "node" is assumed if null
-     * @return node index {@link Index}
-     */
-    public <T extends PropertyContainer,N extends GraphBacked<T>> Index<T> getIndex(Class<N> type, String indexName) {
-        if (indexName==null) indexName = Indexed.Name.get(type);
-        if (NodeBacked.class.isAssignableFrom(type)) return (Index<T>) getIndexManager().forNodes(indexName);
-        if (RelationshipBacked.class.isAssignableFrom(type)) return (Index<T>) getIndexManager().forRelationships(indexName);
-        throw new IllegalArgumentException("Wrong index type supplied "+type);
-    }
-    /**
-     * @param type type of index requested - either Node.class or Relationship.class
-     * @param indexName or null, "node" is assumed if null
-     * @param fullText true if a fulltext queryable index is needed, false for exact match
-     * @return node index {@link Index}
-     */
-    public <T extends PropertyContainer,N extends GraphBacked<T>> Index<T> getIndex(Class<N> type, String indexName, boolean fullText) {
-        if (indexName==null) indexName = Indexed.Name.get(type);
-        Map<String, String> config = fullText ? LuceneIndexImplementation.FULLTEXT_CONFIG : LuceneIndexImplementation.EXACT_CONFIG;
-        if (NodeBacked.class.isAssignableFrom(type)) return (Index<T>) getIndexManager().forNodes(indexName, config);
-        if (RelationshipBacked.class.isAssignableFrom(type)) return (Index<T>) getIndexManager().forRelationships(indexName, config);
-        throw new IllegalArgumentException("Wrong index type supplied "+type);
-    }
-
-    /**
-     * @param nodeId
-     * @return Node
-     * @throws NotFoundException
-     */
-    public Node getNodeById(final long nodeId) {
-        return graphDatabaseService.getNodeById(nodeId);
-    }
-
-    /**
-     * delegates to the configured @{link TypeRepresentationStrategy} for after entity creation operations
-     * @param node
-     * @param entityClass
-     */
-    public void postEntityCreation(Node node, final Class<? extends NodeBacked> entityClass) {
-        nodeTypeRepresentationStrategy.postEntityCreation(node, entityClass);
-    }
-    /**
-     * delegates to the configured @{link TypeRepresentationStrategy} for after entity creation operations
-     * @param relationship
-     * @param entityClass
-     */
-    public void postEntityCreation(Relationship relationship, final Class<? extends RelationshipBacked> entityClass) {
-        relationshipTypeRepresentationStrategy.postEntityCreation(relationship, entityClass);
-    }
-
-    /**
-     * delegates to the configured @{link TypeRepresentationStrategy} to iterate over all instances of this type
-     * @param clazz type of entity
-     * @param <T>
-     * @return
-     * TODO inheritance handling
-     */
-    public <T extends GraphBacked> Iterable<T> findAll(final Class<T> clazz) {
-        if (!checkIsNodeBacked(clazz)) throw new UnsupportedOperationException("No support for relationships");
-        return (Iterable<T>) nodeTypeRepresentationStrategy.findAll((Class<NodeBacked>)clazz);
-    }
-
-    /**
-     * class base check for nodebacked subclasses
-     */
-    private boolean checkIsNodeBacked(Class<?> clazz) {
-        return NodeBacked.class.isAssignableFrom(clazz);
-    }
-
-    /**
-     * delegates to the configured @{link TypeRepresentationStrategy} for a count of all instances of this type
-     * @param entityClass
-     * @return count of all instances
-     */
-    public long count(final Class<? extends GraphBacked> entityClass) {
-        if (!checkIsNodeBacked(entityClass)) throw new UnsupportedOperationException("No support for relationships");
-        return nodeTypeRepresentationStrategy.count((Class<NodeBacked>)entityClass);
-    }
-
-    /**
-     * delegates to the configured @{link TypeRepresentationStrategy} to lookup the type information for the given node
-     * @param node
-     * @param <T>
-     * @return entity type of the node
-     * @throws IllegalStateException for nodes that are not instance backing nodes of a known type
-     */
-	public <T extends NodeBacked> Class<T> getJavaType(final Node node) {
-		return nodeTypeRepresentationStrategy.getJavaType(node);
-	}
-
-    /**
-     * @return reference node of the graph database
-     */
-	public Node getReferenceNode() {
-        return graphDatabaseService.getReferenceNode();
-    }
-
-
-    /**
-     * @return Neo4j Transaction manager
-     */
-    public TransactionManager getTxManager() {
-
-        return ((AbstractGraphDatabase) graphDatabaseService).getConfig().getTxModule().getTxManager();
-    }
-
-    /**
-     * @return true if a transaction manager is available and a transaction is currently running
-     */
-    public boolean transactionIsRunning() {
-        try {
-            return getTxManager().getStatus() != Status.STATUS_NO_TRANSACTION;
-        } catch (SystemException e) {
-            log.error("Error accessing TransactionManager", e);
-            return false;
-        }
-    }
-
-    /**
-     * delegates to @{link GraphDatabaseService}
-     */
-    public Iterable<? extends Node> getAllNodes() {
-        return graphDatabaseService.getAllNodes();
-    }
-
-    /**
-     * delegates to @{link GraphDatabaseService}
-     */
-    public Transaction beginTx() {
-        return graphDatabaseService.beginTx();
-    }
-
-    /**
-     * delegates to @{link GraphDatabaseService}
-     */
-    public Relationship getRelationshipById(final long id) {
-        return graphDatabaseService.getRelationshipById(id);
-    }
-
-    public <T extends GraphBacked> T projectTo(GraphBacked entity, Class<T> targetType) {
-        final Object state = entity.getPersistentState();
-        if (state instanceof Node)
-            return (T) nodeTypeRepresentationStrategy.projectEntity((Node) state, (Class<NodeBacked>) targetType);
-        else
-            return (T) relationshipTypeRepresentationStrategy.projectEntity((Relationship) state, (Class<RelationshipBacked>) targetType);
-    }
-
     public Validator getValidator() {
         return validator;
     }
@@ -322,8 +285,7 @@ public class GraphDatabaseContext {
         this.validator = validatorFactory;
     }
 
-    public <T extends NodeBacked> T createEntityFromStoredType(Node node) {
-        return nodeTypeRepresentationStrategy.createEntity(node);
-    }
+
+
 }
 

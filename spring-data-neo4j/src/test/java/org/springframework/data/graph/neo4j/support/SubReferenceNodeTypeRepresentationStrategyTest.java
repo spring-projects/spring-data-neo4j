@@ -113,11 +113,11 @@ public class SubReferenceNodeTypeRepresentationStrategyTest {
     @Transactional
     public void testPreEntityRemoval() throws Exception {
         Node typeNode = getInstanceofRelationship(thingNode).getOtherNode(thingNode);
-        nodeTypeRepresentationStrategy.preEntityRemoval(thing);
+        nodeTypeRepresentationStrategy.preEntityRemoval(node(thing));
         assertNull("instanceof relationship was removed", getInstanceofRelationship(thingNode));
         assertNotNull("instanceof relationship was removed", getInstanceofRelationship(subThingNode));
         assertEquals("no things left after removal", 1, typeNode.getProperty(SubReferenceNodeTypeRepresentationStrategy.SUBREFERENCE_NODE_COUNTER_KEY));
-        nodeTypeRepresentationStrategy.preEntityRemoval(subThing);
+        nodeTypeRepresentationStrategy.preEntityRemoval(node(subThing));
         assertNull("instanceof relationship was removed", getInstanceofRelationship(subThingNode));
         assertEquals("no things left after removal", 0, typeNode.getProperty(SubReferenceNodeTypeRepresentationStrategy.SUBREFERENCE_NODE_COUNTER_KEY));
 

@@ -43,7 +43,7 @@ public class PropertyFieldAccessorFactory implements FieldAccessorFactory<GraphB
 
     @Override
     public FieldAccessor<GraphBacked<PropertyContainer>> forField(final Field field) {
-        return new PropertyFieldAccessor(field,conversionService);
+        return new PropertyFieldAccessor(conversionService,DelegatingFieldAccessorFactory.getNeo4jPropertyName(field),field.getType());
     }
 
     private boolean isNeo4jPropertyType(final Class<?> fieldType) {
@@ -57,12 +57,14 @@ public class PropertyFieldAccessorFactory implements FieldAccessorFactory<GraphB
     }
 
     public static class PropertyFieldAccessor implements FieldAccessor<GraphBacked<PropertyContainer>> {
-        protected final Field field;
         private final ConversionService conversionService;
+        protected final String propertyName;
+        protected final Class<?> fieldType;
 
-        public PropertyFieldAccessor(final Field field, ConversionService conversionService) {
-            this.field = field;
+        public PropertyFieldAccessor(ConversionService conversionService, String propertyName, Class fieldType) {
             this.conversionService = conversionService;
+            this.propertyName = propertyName;
+            this.fieldType = fieldType;
         }
 
         @Override
@@ -74,9 +76,9 @@ public class PropertyFieldAccessorFactory implements FieldAccessorFactory<GraphB
         public Object setValue(final GraphBacked<PropertyContainer> graphBacked, final Object newVal) {
             final PropertyContainer propertyContainer = graphBacked.getPersistentState();
             if (newVal==null) {
-                propertyContainer.removeProperty(getPropertyName());
+                propertyContainer.removeProperty(propertyName);
             } else {
-                propertyContainer.setProperty(getPropertyName(), newVal);
+                propertyContainer.setProperty(propertyName, newVal);
             }
             return newVal;
         }
@@ -87,17 +89,16 @@ public class PropertyFieldAccessorFactory implements FieldAccessorFactory<GraphB
         }
 
         protected Object doGetValue(final GraphBacked<PropertyContainer> graphBacked) {
-            Class<?> type = field.getType();
-            Object value = graphBacked.getPersistentState().getProperty(getPropertyName(), getDefaultValue(type));
-            if (value == null || type.isInstance(value)) return value;
-            if (conversionService!=null) {
-                return conversionService.convert(value,type);
+            PropertyContainer element = graphBacked.getPersistentState();
+            if (element.hasProperty(propertyName)) {
+                Object value = element.getProperty(propertyName);
+                if (value == null || fieldType.isInstance(value)) return value;
+                if (conversionService!=null) {
+                    return conversionService.convert(value, fieldType);
+                }
+                return value;
             }
-            return value;
-        }
-
-        private String getPropertyName() {
-            return DelegatingFieldAccessorFactory.getNeo4jPropertyName(field);
+            return getDefaultValue(fieldType);
         }
 
         private Object getDefaultValue(final Class<?> type) {

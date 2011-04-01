@@ -27,20 +27,20 @@ import java.net.NoRouteToHostException;
 @TestExecutionListeners({CleanContextCacheTestExecutionListener.class, DependencyInjectionTestExecutionListener.class, TransactionalTestExecutionListener.class})
 public class RestNodeEntityRelationshipTest extends NodeEntityRelationshipTest {
 
-@BeforeClass
-public static void startDb() throws Exception {
-    RestTestBase.startDb();
-}
+    @BeforeClass
+    public static void startDb() throws Exception {
+        RestTestBase.startDb();
+    }
 
-@Before
-public void cleanDb() {
-    RestTestBase.cleanDb();
-}
+    @Before
+    public void cleanDb() {
+        RestTestBase.cleanDb();
+    }
 
-@AfterClass
-public static void shutdownDb() {
-    RestTestBase.shutdownDb();
+    @AfterClass
+    public static void shutdownDb() {
+        RestTestBase.shutdownDb();
 
-}
+    }
 
 }

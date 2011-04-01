@@ -57,7 +57,7 @@ public class TypeRepresentationStrategyFactory {
 
             @Override
             public RelationshipTypeRepresentationStrategy getRelationshipTypeRepresentationStrategy(GraphDatabaseService graphDatabaseService, EntityInstantiator<RelationshipBacked, Relationship> relationshipEntityInstantiator) {
-                return new NoopTypeRepresentationStrategy.NoopRelationshipStrategy();
+                return new NoopRelationshipTypeRepresentationStrategy();
             }
         },
         Indexed {
@@ -74,12 +74,12 @@ public class TypeRepresentationStrategyFactory {
         Noop {
             @Override
             public NodeTypeRepresentationStrategy getNodeTypeRepresentationStrategy(GraphDatabaseService graphDatabaseService, EntityInstantiator<NodeBacked, Node> graphEntityInstantiator) {
-                return new NoopTypeRepresentationStrategy.NoopNodeStrategy();
+                return new NoopNodeTypeRepresentationStrategy();
             }
 
             @Override
             public RelationshipTypeRepresentationStrategy getRelationshipTypeRepresentationStrategy(GraphDatabaseService graphDatabaseService, EntityInstantiator<RelationshipBacked, Relationship> relationshipEntityInstantiator) {
-                return new NoopTypeRepresentationStrategy.NoopRelationshipStrategy();
+                return new NoopRelationshipTypeRepresentationStrategy();
             }
         };
 

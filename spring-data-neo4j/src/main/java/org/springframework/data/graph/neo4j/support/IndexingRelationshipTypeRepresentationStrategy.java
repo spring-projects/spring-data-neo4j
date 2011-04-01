@@ -116,10 +116,11 @@ public class IndexingRelationshipTypeRepresentationStrategy implements Relations
 		}
     }
 
+
     @Override
-	public void preEntityRemoval(RelationshipBacked entity) {
-        getRelTypesIndex().remove(entity.getPersistentState());
-	}
+    public void preEntityRemoval(Relationship state) {
+        getRelTypesIndex().remove(state);
+    }
 
     @Override
     @SuppressWarnings("unchecked")

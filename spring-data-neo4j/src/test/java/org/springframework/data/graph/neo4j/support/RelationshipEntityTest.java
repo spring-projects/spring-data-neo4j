@@ -8,7 +8,10 @@ import org.neo4j.graphdb.*;
 import org.neo4j.helpers.collection.IteratorUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.graph.neo4j.Friendship;
+import org.springframework.data.graph.neo4j.FriendshipRepository;
 import org.springframework.data.graph.neo4j.Person;
+
+import static org.junit.Assert.assertFalse;
 import static org.springframework.data.graph.neo4j.Person.persistedPerson;
 
 import org.springframework.data.graph.neo4j.repository.DirectGraphRepositoryFactory;
@@ -30,6 +33,10 @@ public class RelationshipEntityTest {
 
 	@Autowired
 	private GraphDatabaseContext graphDatabaseContext;
+	@Autowired
+	private GraphDatabaseService graphDatabaseService;
+    @Autowired
+    private FriendshipRepository friendshipRepository;
 
 	@Autowired
 	private DirectGraphRepositoryFactory graphRepositoryFactory;
@@ -97,6 +104,64 @@ public class RelationshipEntityTest {
         Person p = persistedPerson("Michael", 35);
         Person p2 = persistedPerson("David", 25);
         Friendship f = p.knows(p2);
-        assertEquals(f,p.getRelationshipTo(p2,Friendship.class, "knows"));
+        assertEquals(f,p.getRelationshipTo(p2, Friendship.class, "knows"));
+    }
+
+    @Test
+    public void testRemoveRelationshipEntity() {
+        cleanDb();
+        Friendship f;
+        Transaction tx = graphDatabaseService.beginTx();
+        try
+        {
+            Person p = persistedPerson("Michael", 35);
+            Person p2 = persistedPerson("David", 25);
+            f = p.knows(p2);
+            tx.success();
+        }
+        finally
+        {
+            tx.finish();
+        }
+        Transaction tx2 = graphDatabaseService.beginTx();
+        try
+        {
+            f.remove();
+            tx2.success();
+        }
+        finally
+        {
+            tx2.finish();
+        }
+        assertFalse("Unexpected relationship entity found.", friendshipRepository.findAll().iterator().hasNext());
+    }
+
+    @Test
+    public void testRemoveRelationshipEntityIfNodeEntityIsRemoved() {
+        cleanDb();
+        Person p;
+        Transaction tx = graphDatabaseService.beginTx();
+        try
+        {
+            p = persistedPerson("Michael", 35);
+            Person p2 = persistedPerson("David", 25);
+            p.knows(p2);
+            tx.success();
+        }
+        finally
+        {
+            tx.finish();
+        }
+        Transaction tx2 = graphDatabaseService.beginTx();
+        try
+        {
+            p.remove();
+            tx2.success();
+        }
+        finally
+        {
+            tx2.finish();
+        }
+        assertFalse("Unexpected relationship entity found.", friendshipRepository.findAll().iterator().hasNext());
     }
 }
