@@ -112,8 +112,8 @@ public class GraphRepositoryTest {
         Person p2 = persistedPerson("David", 27);
         Friendship friendship = p1.knows(p2);
         assertEquals("Wrong friendship count.", 1L, (long) friendshipRepository.count());
-        assertEquals("Did not find friendship.", Collections.singleton(friendship), new HashSet<Friendship>(IteratorUtil.asCollection(friendshipRepository.findAll())));
         assertEquals(friendship, friendshipRepository.findOne(friendship.getRelationshipId()));
+        assertEquals("Did not find friendship.", Collections.singleton(friendship), new HashSet<Friendship>(IteratorUtil.asCollection(friendshipRepository.findAll())));
     }
 
     @Test

@@ -17,11 +17,15 @@
 package org.springframework.data.graph.neo4j.support.relationship;
 
 import java.lang.reflect.Constructor;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.neo4j.graphdb.Relationship;
 import org.springframework.data.graph.core.RelationshipBacked;
+import org.springframework.data.persistence.AbstractConstructorEntityInstantiator;
 import org.springframework.data.persistence.EntityInstantiator;
 
+import org.springframework.data.persistence.StateBackedCreator;
 import sun.reflect.ReflectionFactory;
 
 /**
@@ -30,32 +34,17 @@ import sun.reflect.ReflectionFactory;
  * Part of the SPI, not intended for public use.
  */
 
-public class ConstructorBypassingGraphRelationshipInstantiator implements EntityInstantiator<RelationshipBacked, Relationship> {
-	
-	protected static <T> T createWithoutConstructorInvocation(Class<T> clazz) {
-		return createWithoutConstructorInvocation(clazz, Object.class);
-	}
+public class ConstructorBypassingGraphRelationshipInstantiator extends AbstractConstructorEntityInstantiator<RelationshipBacked, Relationship> {
 
-	@SuppressWarnings("unchecked")
-	protected static <T> T createWithoutConstructorInvocation(Class<T> clazz, Class<? super T> parent) {
-		try {
-			ReflectionFactory rf = ReflectionFactory.getReflectionFactory();
-			Constructor<?> objDef = parent.getDeclaredConstructor();
-			Constructor<?> intConstr = rf.newConstructorForSerialization(clazz,
-					objDef);
-			return clazz.cast(intConstr.newInstance());
-		} catch (RuntimeException e) {
-			throw e;
-		} catch (Exception e) {
-			throw new IllegalStateException("Cannot create object", e);
-		}
-	}
-	
-	@Override
-	public <T extends RelationshipBacked> T createEntityFromState(Relationship r, Class<T> c) {
-		T t = createWithoutConstructorInvocation(c);
-		t.setPersistentState(r);
-		return t; 
-	}
-
+    @Override
+    protected void setState(RelationshipBacked entity, Relationship relationship) {
+        entity.setPersistentState(relationship);
+    }
+    /*
+    protected <T extends RelationshipBacked> StateBackedCreator<T, Relationship> createInstantiator(Class<T> type, final Class<Relationship> stateType) {
+        StateBackedCreator<T,Relationship> creator = createWithoutConstructorInvocation(type,stateType);
+        if (creator !=null) return creator;
+        return createFailingInstantiator(stateType);
+    }
+    */
 }
