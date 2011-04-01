@@ -250,6 +250,11 @@
                      </execution>
                    </executions>
                  </plugin>
+                    <plugin>
+                        <groupId>com.springsource.bundlor</groupId>
+                        <artifactId>com.springsource.bundlor.maven</artifactId>
+                    </plugin>
+
 		</plugins>
 	</build>
 </project>

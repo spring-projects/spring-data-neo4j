@@ -398,6 +398,35 @@
                   </mapping>
                 </configuration>
             </plugin>
+                    <plugin>
+                        <!--
+                            configures the springsource bundlor plugin, which generates
+                            OSGI-compatible MANIFEST.MF files during the 'compile' phase of
+                            the maven build. this plugin is declared within the
+                            pluginManagement section because not every module that inherits
+                            from this pom needs bundlor's services, e.g.:
+                            spring-integration-samples and all its children. for this reason,
+                            all modules that wish to use bundlor must declare it explicitly.
+                            it is not necessary to specify the <version> or <configuration>
+                            sections, but groupId and artifactId are required. see
+                            http://static.springsource.org/s2-bundlor/1.0.x/user-guide/html/ch04s03.html
+                            for more info
+                        -->
+                        <groupId>com.springsource.bundlor</groupId>
+                        <artifactId>com.springsource.bundlor.maven</artifactId>
+                        <version>1.0.0.RELEASE</version>
+                        <configuration>
+                            <failOnWarnings>true</failOnWarnings>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <id>bundlor</id>
+                                <goals>
+                                    <goal>bundlor</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
 		</plugins>
 	</build>
 	<pluginRepositories>
