@@ -8,9 +8,7 @@
         this type information is saved in the graph database.
     </para>
     <para>
-        Implementations of
-        <code>TypeRepresentationStrategy</code>
-        take care of persisting this information on entity instance
+        Implementations of <code>TypeRepresentationStrategy</code> take care of persisting this information on entity instance
         creation. They also provide the repository methods that use this type information to perform their operations,
         like findAll and count.
     </para>

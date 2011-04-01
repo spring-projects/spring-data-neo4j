@@ -1,6 +1,22 @@
 Spring Data Graph Changelog
 =============================================
 
+Changes in version 1.0.0.RC1 (2011-04-01)
+----------------------------------------
+
+* replaced finders with composable spring-data-commons repositories
+* added rest-client support for consuming Neo4j-REST servier with Spring Data Graph
+* relationship entity creation aligned to node entity creation
+* added TypeRepresentation Strategies for Relationships, enabling RelationshipEntity-Repositories
+* lots of performance improvements
+* fixed removal of relationship entities
+* added a GraphDatabase abstraction to be used with Neo4jTemplate
+* Neo4jTemplate API udpates
+* added aspect-introduced methods to NodeBacked and RelationshipBacked interfaces (with javadocs)
+* removed fullIndex annotation attribute
+* many documentation updates
+
+
 Changes in version 1.0.0.M5 (2011-03-25)
 ----------------------------------------
 

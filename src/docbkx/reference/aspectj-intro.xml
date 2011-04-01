@@ -45,9 +45,11 @@
         classes has already been rewritten to delegate appropriate calls via the declared advice in the aspects.
     </para>
     <note>
+        <para>
         A caveat of using compile-time weaving is that all source files that should be part of the weaving process must
         be compiled with the AspectJ compiler. Fortunately, this is all taken care of seamlessly by the AspectJ Maven
         plugin.
+        </para>
     </note>
     <para>
         AspectJ also supports other types of weaving, for example load-time weaving and runtime weaving. These are

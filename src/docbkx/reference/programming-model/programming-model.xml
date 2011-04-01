@@ -11,7 +11,7 @@
     <xi:include href="aspectj.xml"/>
     <xi:include href="annotations.xml"/>
     <xi:include href="indexing.xml"/>
-    <xi:include href="finders.xml"/>
+    <xi:include href="repositories.xml"/>
     <xi:include href="transactions.xml"/>
     <xi:include href="attachdetach.xml"/>
     <xi:include href="typerepresentationstrategy.xml"/>

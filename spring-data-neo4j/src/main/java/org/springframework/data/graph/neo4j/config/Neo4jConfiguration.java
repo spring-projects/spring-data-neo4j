@@ -36,10 +36,10 @@ import org.springframework.data.graph.neo4j.fieldaccess.RelationshipEntityStateF
 import org.springframework.data.graph.neo4j.repository.DirectGraphRepositoryFactory;
 import org.springframework.data.graph.neo4j.support.GraphDatabaseContext;
 import org.springframework.data.graph.neo4j.support.TypeRepresentationStrategyFactory;
-import org.springframework.data.graph.neo4j.support.node.Neo4jConstructorGraphEntityInstantiator;
+import org.springframework.data.graph.neo4j.support.node.NodeEntityInstantiator;
 import org.springframework.data.graph.neo4j.support.node.Neo4jNodeBacking;
-import org.springframework.data.graph.neo4j.support.node.PartialNeo4jEntityInstantiator;
-import org.springframework.data.graph.neo4j.support.relationship.ConstructorBypassingGraphRelationshipInstantiator;
+import org.springframework.data.graph.neo4j.support.node.PartialNodeEntityInstantiator;
+import org.springframework.data.graph.neo4j.support.relationship.RelationshipEntityInstantiator;
 import org.springframework.data.graph.neo4j.support.relationship.Neo4jRelationshipBacking;
 import org.springframework.data.graph.neo4j.template.Neo4jExceptionTranslator;
 import org.springframework.data.graph.neo4j.transaction.ChainedTransactionManager;
@@ -115,16 +115,16 @@ public class Neo4jConfiguration {
     }
 
     @Bean
-    protected ConstructorBypassingGraphRelationshipInstantiator graphRelationshipInstantiator() {
-        return new ConstructorBypassingGraphRelationshipInstantiator();
+    protected RelationshipEntityInstantiator graphRelationshipInstantiator() {
+        return new RelationshipEntityInstantiator();
     }
 
     @Bean
 	protected EntityInstantiator<NodeBacked, Node> graphEntityInstantiator() {
 		if (isUsingCrossStorePersistence()) {
-			return new PartialNeo4jEntityInstantiator(new Neo4jConstructorGraphEntityInstantiator(), entityManagerFactory);
+			return new PartialNodeEntityInstantiator(new NodeEntityInstantiator(), entityManagerFactory);
 		} else {
-			return new Neo4jConstructorGraphEntityInstantiator();
+			return new NodeEntityInstantiator();
 		}
 	}
 

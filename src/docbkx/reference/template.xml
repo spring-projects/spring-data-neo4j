@@ -20,14 +20,13 @@
 <programlisting language="java"><![CDATA[
 Neo4jOperations neo = new Neo4jTemplate(grapDatabase);
 
-Node michael = neo.createNode(_("name","Michael"),"name");
+Node michael = neo.createNode(_("name","Michael"));
 Node mark = neo.createNode(_("name","Mark"));
 Node thomas = neo.createNode(_("name","Thomas"));
 
 neo.createRelationship(mark,thomas, WORKS_WITH, _("project","spring-data"));
 
 neo.index("devs",thomas, "name","Thomas");
-neo.autoIndex("devs",mark, "name");
 
 assert "Mark".equals(neo.query("devs","name","Mark",new NodeNamePathMapper()));
 ]]></programlisting>
@@ -36,8 +35,7 @@ assert "Mark".equals(neo.query("devs","name","Mark",new NodeNamePathMapper()));
     <section>
         <title>Indexing</title>
         <para>
-            Adding nodes and relationships to an index is achieved using the <code>index</code> and <code>autoindex</code>)
-            methods.
+            Adding nodes and relationships to an index is achieved using the <code>index</code> method.
         </para>
         <para>
             <code>Query</code> methods either take a field / value combination to look for exact matches in the index or

@@ -15,7 +15,7 @@
 		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd">
 
     <bean id="graphEntityInstantiator"
-          class="org.springframework.data.graph.neo4j.support.node.Neo4jConstructorGraphEntityInstantiator">
+          class="org.springframework.data.graph.neo4j.support.node.NodeEntityInstantiator">
         <property name="instantiators">
             <map>
                 <entry key="org.springframework.data.graph.neo4j.Person">

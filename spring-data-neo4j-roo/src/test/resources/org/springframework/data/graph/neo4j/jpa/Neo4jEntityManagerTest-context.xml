@@ -97,7 +97,7 @@
         <property name="relationshipTypeRepresentationStrategy" ref="relationshipTypeRepresentationStrategy" />
     </bean>
     <bean id="relationshipEntityInstantiator"
-          class="org.springframework.data.graph.neo4j.support.relationship.ConstructorBypassingGraphRelationshipInstantiator"/>
+          class="org.springframework.data.graph.neo4j.support.relationship.RelationshipEntityInstantiator"/>
 
     <bean id="typeRepresentationStrategyFactory" class="org.springframework.data.graph.neo4j.support.TypeRepresentationStrategyFactory">
         <constructor-arg ref="graphDatabaseService"/>
@@ -109,7 +109,7 @@
     <bean id="relationshipTypeRepresentationStrategy" factory-bean="typeRepresentationStrategyFactory" factory-method="getRelationshipTypeRepresentationStrategy"/>
 
     <bean id="graphEntityInstantiator"
-          class="org.springframework.data.graph.neo4j.support.node.Neo4jConstructorGraphEntityInstantiator"/>
+          class="org.springframework.data.graph.neo4j.support.node.NodeEntityInstantiator"/>
 
     <bean id="nodeEntityStateFactory" class="org.springframework.data.graph.neo4j.fieldaccess.NodeEntityStateFactory">
     	<property name="nodeDelegatingFieldAccessorFactory">

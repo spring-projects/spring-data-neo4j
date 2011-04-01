@@ -95,10 +95,10 @@
     </bean>
 
     <bean id="relationshipEntityInstantiator"
-          class="org.springframework.data.graph.neo4j.support.relationship.ConstructorBypassingGraphRelationshipInstantiator"/>
+          class="org.springframework.data.graph.neo4j.support.relationship.RelationshipEntityInstantiator"/>
 
     <bean id="graphEntityInstantiator"
-          class="org.springframework.data.graph.neo4j.support.node.Neo4jConstructorGraphEntityInstantiator"/>
+          class="org.springframework.data.graph.neo4j.support.node.NodeEntityInstantiator"/>
 
     <bean id="typeRepresentationStrategyFactory" class="org.springframework.data.graph.neo4j.support.TypeRepresentationStrategyFactory">
         <constructor-arg ref="graphDatabaseService"/>

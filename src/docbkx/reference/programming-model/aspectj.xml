@@ -26,4 +26,22 @@
         delegation code. The <code>EntityState</code> then uses a number of <code>FieldAccessorFactories</code>
         to create a <code>FieldAccessor</code> instance per field that does the specific handling needed for the concrete field type.
     </para>
+    <section>
+        <title>IDE-AspectJ Support</title>
+        <para>
+            As Spring Data Graph uses some advanced aspects of AspectJ, there might be issues with IDE reporting errors
+            where there are none. Features that might be reported are: introduction of methods to interfaces, declaration
+            of additional interfaces for annotated classes, generified introduced methods.
+        </para>
+        <para>
+            Eclipse and STS support AspectJ via the AJDT plugin which can be installed from the update-site:
+
+        </para>
+        <para>
+            The AspectJ support in IntelliJ IDEA lacks some of the features. JetBrains is working to improve the situation
+            with the upcoming 10.5 release of the IDE (which is currently available as EAP). Building the project with
+            <code>Ajc</code> works in the IDE (Options -> Compiler -> Java-Compiler should show Ajc, please add
+            512 MB RAM for the compiler to run).
+        </para>
+    </section>
 </section>
