@@ -52,4 +52,9 @@ public class RestNeo4jTemplateTest extends Neo4jTemplateTest
         testHelper.cleanDb();
         return testHelper.createGraphDatabase();
     }
+
+    @Override
+    public void testRollback()
+    {
+    }
 }
