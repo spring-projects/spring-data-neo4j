@@ -75,5 +75,30 @@ public class HelloWorldInitializer extends SpringPluginInitializer {
                 par with Spring Data Graph.
             </para>
         </note>
+
+        <para>
+<example>
+    <title>REST-Client configuration - pom.xml</title>
+    <programlisting language="xml"><![CDATA[
+<dependency>
+  <groupId>org.springframework.data</groupId>
+  <artifactId>spring-data-neo4j-rest</artifactId>
+  <version>1.0.0.RC1</version>
+</dependency>
+]]></programlisting>
+</example>
+<example>
+    <title>REST-Client configuration - application context</title>
+    <programlisting language="xml"><![CDATA[
+<datagraph:config graphDatabaseService="graphDatabaseService"/>
+
+<bean id="graphDatabaseService" class="org.neo4j.rest.graphdb.RestGraphDatabase">
+    <constructor-arg value="http://localhost:7474/db/data/"/>
+</bean>
+]]></programlisting>
+</example>
+
+
+        </para>
     </section>
 </chapter>
