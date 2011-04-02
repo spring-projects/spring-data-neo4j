@@ -21,14 +21,17 @@ import org.springframework.data.graph.core.RelationshipBacked;
 import org.springframework.data.graph.neo4j.repository.DirectGraphRepositoryFactory;
 import org.springframework.data.graph.neo4j.support.GraphDatabaseContext;
 
+import javax.annotation.PostConstruct;
+
 public class RelationshipEntityStateFactory {
 
 	private GraphDatabaseContext graphDatabaseContext;
 	
-	private DirectGraphRepositoryFactory graphRepositoryFactory;
+    private DirectGraphRepositoryFactory graphRepositoryFactory;
+    private RelationshipEntityState.RelationshipStateDelegatingFieldAccessorFactory delegatingFieldAccessorFactory;
 
-	public EntityState<RelationshipBacked, Relationship> getEntityState(final RelationshipBacked entity) {
-		return new RelationshipEntityState<RelationshipBacked>(null,entity,entity.getClass(), graphDatabaseContext, graphRepositoryFactory);
+    public EntityState<RelationshipBacked, Relationship> getEntityState(final RelationshipBacked entity) {
+		return new RelationshipEntityState<RelationshipBacked>(null,entity,entity.getClass(), graphDatabaseContext, graphRepositoryFactory, delegatingFieldAccessorFactory);
 	}
 
 	public void setGraphDatabaseContext(GraphDatabaseContext graphDatabaseContext) {
@@ -38,5 +41,10 @@ public class RelationshipEntityStateFactory {
 	public void setGraphRepositoryFactory(DirectGraphRepositoryFactory graphRepositoryFactory) {
 		this.graphRepositoryFactory = graphRepositoryFactory;
 	}
+
+    @PostConstruct
+    private void setUp() {
+       this.delegatingFieldAccessorFactory =  new RelationshipEntityState.RelationshipStateDelegatingFieldAccessorFactory(graphDatabaseContext, graphRepositoryFactory);
+    }
 
 }

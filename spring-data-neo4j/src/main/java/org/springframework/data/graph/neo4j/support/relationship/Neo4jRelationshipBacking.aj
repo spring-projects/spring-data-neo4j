@@ -41,8 +41,6 @@ public aspect Neo4jRelationshipBacking {
     protected final Log log = LogFactory.getLog(getClass());
 
     declare parents : (@RelationshipEntity *) implements RelationshipBacked;
-    declare @type: RelationshipBacked+: @Configurable;
-
 
     protected pointcut entityFieldGet(RelationshipBacked entity) :
             get(* RelationshipBacked+.*) &&

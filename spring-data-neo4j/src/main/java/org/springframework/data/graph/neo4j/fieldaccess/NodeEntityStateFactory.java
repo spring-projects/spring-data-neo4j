@@ -22,6 +22,7 @@ import org.springframework.data.graph.core.NodeBacked;
 import org.springframework.data.graph.neo4j.repository.DirectGraphRepositoryFactory;
 import org.springframework.data.graph.neo4j.support.GraphDatabaseContext;
 
+import javax.annotation.PostConstruct;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.PersistenceUnitUtil;
 
@@ -33,12 +34,14 @@ public class NodeEntityStateFactory {
 
     private EntityManagerFactory entityManagerFactory;
 
-	private NodeDelegatingFieldAccessorFactory nodeDelegatingFieldAccessorFactory;
+    private NodeDelegatingFieldAccessorFactory nodeDelegatingFieldAccessorFactory;
 
-	public EntityState<NodeBacked,Node> getEntityState(final NodeBacked entity) {
+    private PartialNodeEntityState.PartialNodeDelegatingFieldAccessorFactory delegatingFieldAccessorFactory;
+
+    public EntityState<NodeBacked,Node> getEntityState(final NodeBacked entity) {
         final NodeEntity graphEntityAnnotation = entity.getClass().getAnnotation(NodeEntity.class); // todo cache ??
         if (graphEntityAnnotation.partial()) {
-            final PartialNodeEntityState<NodeBacked> partialNodeEntityState = new PartialNodeEntityState<NodeBacked>(null, entity, entity.getClass(), graphDatabaseContext, graphRepositoryFactory,getPersistenceUnitUtils());
+            final PartialNodeEntityState<NodeBacked> partialNodeEntityState = new PartialNodeEntityState<NodeBacked>(null, entity, entity.getClass(), graphDatabaseContext, getPersistenceUnitUtils(), delegatingFieldAccessorFactory);
             return new DetachedEntityState<NodeBacked, Node>(partialNodeEntityState, graphDatabaseContext) {
                 @Override
                 protected boolean isDetached() {
@@ -72,5 +75,10 @@ public class NodeEntityStateFactory {
 
     public void setEntityManagerFactory(EntityManagerFactory entityManagerFactory) {
         this.entityManagerFactory = entityManagerFactory;
+    }
+
+    @PostConstruct
+    private void setUp() {
+         this.delegatingFieldAccessorFactory = new PartialNodeEntityState.PartialNodeDelegatingFieldAccessorFactory(graphDatabaseContext, graphRepositoryFactory);
     }
 }

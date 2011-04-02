@@ -44,62 +44,8 @@ public class PartialNodeEntityState<ENTITY extends NodeBacked> extends DefaultEn
     private final GraphDatabaseContext graphDatabaseContext;
     private PersistenceUnitUtil persistenceUnitUtil;
 
-    public PartialNodeEntityState(final Node underlyingState, final ENTITY entity, final Class<? extends ENTITY> type, final GraphDatabaseContext graphDatabaseContext, final DirectGraphRepositoryFactory graphRepositoryFactory, PersistenceUnitUtil persistenceUnitUtil) {
-    	super(underlyingState, entity, type, new DelegatingFieldAccessorFactory(graphDatabaseContext, graphRepositoryFactory) {
-        	
-            @Override
-            protected Collection<FieldAccessorListenerFactory<?>> createListenerFactories() {
-                return Arrays.<FieldAccessorListenerFactory<?>>asList(
-                        new IndexingPropertyFieldAccessorListenerFactory(
-                        		getGraphDatabaseContext(),
-                        		newPropertyFieldAccessorFactory(),
-                        		newConvertingNodePropertyFieldAccessorFactory()) {
-		                            @Override
-		                            public boolean accept(Field f) {
-		                                return f.isAnnotationPresent(GraphProperty.class) && super.accept(f);
-		                            }
-		                        },
-		                        new JpaIdFieldAccessListenerFactory());
-            }
-
-            @Override
-            protected Collection<? extends FieldAccessorFactory<?>> createAccessorFactories() {
-                return Arrays.<FieldAccessorFactory<?>>asList(
-                        //new IdFieldAccessorFactory(),
-                        //new TransientFieldAccessorFactory(),
-                        newPropertyFieldAccessorFactory(),
-                        newConvertingNodePropertyFieldAccessorFactory(),
-                        new SingleRelationshipFieldAccessorFactory(getGraphDatabaseContext()) {
-                            @Override
-                            public boolean accept(Field f) {
-                                return f.isAnnotationPresent(RelatedTo.class) && super.accept(f);
-                            }
-                        },
-                        new OneToNRelationshipFieldAccessorFactory(getGraphDatabaseContext()),
-                        new ReadOnlyOneToNRelationshipFieldAccessorFactory(getGraphDatabaseContext()),
-                        new TraversalFieldAccessorFactory(this.graphRepositoryFactory),
-                        new OneToNRelationshipEntityFieldAccessorFactory(getGraphDatabaseContext())
-                );
-            }
-
-            private ConvertingNodePropertyFieldAccessorFactory newConvertingNodePropertyFieldAccessorFactory() {
-                return new ConvertingNodePropertyFieldAccessorFactory(getGraphDatabaseContext().getConversionService()) {
-                    @Override
-                    public boolean accept(Field f) {
-                        return f.isAnnotationPresent(GraphProperty.class) && super.accept(f);
-                    }
-                };
-            }
-
-            private PropertyFieldAccessorFactory newPropertyFieldAccessorFactory() {
-                return new PropertyFieldAccessorFactory(getGraphDatabaseContext().getConversionService()) {
-                    @Override
-                    public boolean accept(Field f) {
-                        return f.isAnnotationPresent(GraphProperty.class) && super.accept(f);
-                    }
-                };
-            }
-        });
+    public PartialNodeEntityState(final Node underlyingState, final ENTITY entity, final Class<? extends ENTITY> type, final GraphDatabaseContext graphDatabaseContext, PersistenceUnitUtil persistenceUnitUtil, final PartialNodeDelegatingFieldAccessorFactory delegatingFieldAccessorFactory) {
+    	super(underlyingState, entity, type, delegatingFieldAccessorFactory);
         this.graphDatabaseContext = graphDatabaseContext;
         this.persistenceUnitUtil = persistenceUnitUtil;
     }
@@ -162,5 +108,65 @@ public class PartialNodeEntityState<ENTITY extends NodeBacked> extends DefaultEn
 
     public Object getId(final Object entity) {
         return persistenceUnitUtil!=null ? persistenceUnitUtil.getIdentifier(entity) : null;
+    }
+
+    public static class PartialNodeDelegatingFieldAccessorFactory extends DelegatingFieldAccessorFactory {
+
+        public PartialNodeDelegatingFieldAccessorFactory(GraphDatabaseContext graphDatabaseContext, DirectGraphRepositoryFactory graphRepositoryFactory) {
+            super(graphDatabaseContext, graphRepositoryFactory);
+        }
+
+        @Override
+        protected Collection<FieldAccessorListenerFactory<?>> createListenerFactories() {
+            return Arrays.<FieldAccessorListenerFactory<?>>asList(
+                    new IndexingPropertyFieldAccessorListenerFactory(
+                            getGraphDatabaseContext(),
+                            newPropertyFieldAccessorFactory(),
+                            newConvertingNodePropertyFieldAccessorFactory()) {
+                        @Override
+                        public boolean accept(Field f) {
+                            return f.isAnnotationPresent(GraphProperty.class) && super.accept(f);
+                        }
+                    },
+                    new JpaIdFieldAccessListenerFactory());
+        }
+
+        @Override
+        protected Collection<? extends FieldAccessorFactory<?>> createAccessorFactories() {
+            return Arrays.<FieldAccessorFactory<?>>asList(
+                    //new IdFieldAccessorFactory(),
+                    //new TransientFieldAccessorFactory(),
+                    newPropertyFieldAccessorFactory(),
+                    newConvertingNodePropertyFieldAccessorFactory(),
+                    new SingleRelationshipFieldAccessorFactory(getGraphDatabaseContext()) {
+                        @Override
+                        public boolean accept(Field f) {
+                            return f.isAnnotationPresent(RelatedTo.class) && super.accept(f);
+                        }
+                    },
+                    new OneToNRelationshipFieldAccessorFactory(getGraphDatabaseContext()),
+                    new ReadOnlyOneToNRelationshipFieldAccessorFactory(getGraphDatabaseContext()),
+                    new TraversalFieldAccessorFactory(this.graphRepositoryFactory),
+                    new OneToNRelationshipEntityFieldAccessorFactory(getGraphDatabaseContext())
+            );
+        }
+
+        private ConvertingNodePropertyFieldAccessorFactory newConvertingNodePropertyFieldAccessorFactory() {
+            return new ConvertingNodePropertyFieldAccessorFactory(getGraphDatabaseContext().getConversionService()) {
+                @Override
+                public boolean accept(Field f) {
+                    return f.isAnnotationPresent(GraphProperty.class) && super.accept(f);
+                }
+            };
+        }
+
+        private PropertyFieldAccessorFactory newPropertyFieldAccessorFactory() {
+            return new PropertyFieldAccessorFactory(getGraphDatabaseContext().getConversionService()) {
+                @Override
+                public boolean accept(Field f) {
+                    return f.isAnnotationPresent(GraphProperty.class) && super.accept(f);
+                }
+            };
+        }
     }
 }

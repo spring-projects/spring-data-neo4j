@@ -34,32 +34,9 @@ public class RelationshipEntityState<ENTITY extends RelationshipBacked> extends 
 
     private final GraphDatabaseContext graphDatabaseContext;
     
-    private final DirectGraphRepositoryFactory graphRepositoryFactory;
-
-    public RelationshipEntityState(final Relationship underlyingState, final ENTITY entity, final Class<? extends ENTITY> type, final GraphDatabaseContext graphDatabaseContext, final DirectGraphRepositoryFactory graphRepositoryFactory) {
-        super(underlyingState, entity, type, new DelegatingFieldAccessorFactory(graphDatabaseContext, graphRepositoryFactory) {
-            @Override
-            protected Collection<FieldAccessorListenerFactory<?>> createListenerFactories() {
-                return Arrays.<FieldAccessorListenerFactory<?>>asList(
-                        new IndexingPropertyFieldAccessorListenerFactory(
-                		graphDatabaseContext,
-                		new PropertyFieldAccessorFactory(graphDatabaseContext.getConversionService()),
-                		new ConvertingNodePropertyFieldAccessorFactory(graphDatabaseContext.getConversionService())
-                ));
-            }
-
-            @Override
-            protected Collection<? extends FieldAccessorFactory<?>> createAccessorFactories() {
-                return Arrays.<FieldAccessorFactory<?>>asList(
-                        new TransientFieldAccessorFactory(),
-                        new RelationshipNodeFieldAccessorFactory(graphDatabaseContext),
-                        new PropertyFieldAccessorFactory(graphDatabaseContext.getConversionService()),
-                        new ConvertingNodePropertyFieldAccessorFactory(graphDatabaseContext.getConversionService())
-                );
-            }
-        });
+    public RelationshipEntityState(final Relationship underlyingState, final ENTITY entity, final Class<? extends ENTITY> type, final GraphDatabaseContext graphDatabaseContext, final DirectGraphRepositoryFactory graphRepositoryFactory, final RelationshipStateDelegatingFieldAccessorFactory delegatingFieldAccessorFactory) {
+        super(underlyingState, entity, type, delegatingFieldAccessorFactory);
         this.graphDatabaseContext = graphDatabaseContext;
-        this.graphRepositoryFactory = graphRepositoryFactory;
     }
 
     @Override
@@ -89,4 +66,29 @@ public class RelationshipEntityState<ENTITY extends RelationshipBacked> extends 
         return entity;
     }
 
+    public static class RelationshipStateDelegatingFieldAccessorFactory extends DelegatingFieldAccessorFactory {
+        public RelationshipStateDelegatingFieldAccessorFactory(GraphDatabaseContext graphDatabaseContext, DirectGraphRepositoryFactory graphRepositoryFactory) {
+            super(graphDatabaseContext, graphRepositoryFactory);
+        }
+
+        @Override
+        protected Collection<FieldAccessorListenerFactory<?>> createListenerFactories() {
+            return Arrays.<FieldAccessorListenerFactory<?>>asList(
+                    new IndexingPropertyFieldAccessorListenerFactory(
+                            graphDatabaseContext,
+                            new PropertyFieldAccessorFactory(graphDatabaseContext.getConversionService()),
+                            new ConvertingNodePropertyFieldAccessorFactory(graphDatabaseContext.getConversionService())
+                    ));
+        }
+
+        @Override
+        protected Collection<? extends FieldAccessorFactory<?>> createAccessorFactories() {
+            return Arrays.<FieldAccessorFactory<?>>asList(
+                    new TransientFieldAccessorFactory(),
+                    new RelationshipNodeFieldAccessorFactory(graphDatabaseContext),
+                    new PropertyFieldAccessorFactory(graphDatabaseContext.getConversionService()),
+                    new ConvertingNodePropertyFieldAccessorFactory(graphDatabaseContext.getConversionService())
+            );
+        }
+    }
 }

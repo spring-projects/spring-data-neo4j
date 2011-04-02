@@ -21,6 +21,7 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.data.graph.core.GraphBacked;
 
 import java.lang.reflect.Field;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -31,8 +32,8 @@ import java.util.Map;
 public abstract class DefaultEntityState<ENTITY extends GraphBacked<STATE>, STATE> implements EntityState<ENTITY,STATE> {
     protected final ENTITY entity;
     protected final Class<? extends ENTITY> type;
-    private final Map<Field, FieldAccessor<ENTITY>> fieldAccessors;
-    private final Map<Field,List<FieldAccessListener<ENTITY,?>>> fieldAccessorListeners;
+    private final Map<Field, FieldAccessor<ENTITY>> fieldAccessors = new HashMap<Field, FieldAccessor<ENTITY>>();
+    private final Map<Field,List<FieldAccessListener<ENTITY,?>>> fieldAccessorListeners = new HashMap<Field, List<FieldAccessListener<ENTITY, ?>>>();
     private STATE state;
     protected final static Log log= LogFactory.getLog(DefaultEntityState.class);
     private final FieldAccessorFactoryProviders<ENTITY> fieldAccessorFactoryProviders;
@@ -42,9 +43,13 @@ public abstract class DefaultEntityState<ENTITY extends GraphBacked<STATE>, STAT
         this.state = underlyingState;
         this.entity = entity;
         this.type = type;
-        fieldAccessorFactoryProviders = delegatingFieldAccessorFactory.accessorFactoriesFor(type);
-        this.fieldAccessors = fieldAccessorFactoryProviders.getFieldAccessors();
-        this.fieldAccessorListeners = fieldAccessorFactoryProviders.getFieldAccessListeners();
+        if (delegatingFieldAccessorFactory!=null) {
+            fieldAccessorFactoryProviders = delegatingFieldAccessorFactory.accessorFactoriesFor(type);
+            this.fieldAccessors.putAll(fieldAccessorFactoryProviders.getFieldAccessors());
+            this.fieldAccessorListeners.putAll(fieldAccessorFactoryProviders.getFieldAccessListeners());
+        } else {
+            fieldAccessorFactoryProviders = null; // todo
+        }
     }
 
     @Override
