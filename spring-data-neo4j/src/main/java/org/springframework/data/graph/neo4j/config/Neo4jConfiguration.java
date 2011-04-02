@@ -36,11 +36,11 @@ import org.springframework.data.graph.neo4j.fieldaccess.RelationshipEntityStateF
 import org.springframework.data.graph.neo4j.repository.DirectGraphRepositoryFactory;
 import org.springframework.data.graph.neo4j.support.GraphDatabaseContext;
 import org.springframework.data.graph.neo4j.support.TypeRepresentationStrategyFactory;
-import org.springframework.data.graph.neo4j.support.node.NodeEntityInstantiator;
 import org.springframework.data.graph.neo4j.support.node.Neo4jNodeBacking;
+import org.springframework.data.graph.neo4j.support.node.NodeEntityInstantiator;
 import org.springframework.data.graph.neo4j.support.node.PartialNodeEntityInstantiator;
-import org.springframework.data.graph.neo4j.support.relationship.RelationshipEntityInstantiator;
 import org.springframework.data.graph.neo4j.support.relationship.Neo4jRelationshipBacking;
+import org.springframework.data.graph.neo4j.support.relationship.RelationshipEntityInstantiator;
 import org.springframework.data.graph.neo4j.template.Neo4jExceptionTranslator;
 import org.springframework.data.graph.neo4j.transaction.ChainedTransactionManager;
 import org.springframework.data.persistence.EntityInstantiator;
@@ -134,31 +134,46 @@ public class Neo4jConfiguration {
 	}
 	
 	@Bean
-	public Neo4jRelationshipBacking neo4jRelationshipBacking(GraphDatabaseContext graphDatabaseContext, DirectGraphRepositoryFactory graphRepositoryFactory) {
+	public Neo4jRelationshipBacking neo4jRelationshipBacking() throws Exception {
 		Neo4jRelationshipBacking aspect = Neo4jRelationshipBacking.aspectOf();
-		aspect.setGraphDatabaseContext(graphDatabaseContext);
-		RelationshipEntityStateFactory entityStateFactory = new RelationshipEntityStateFactory();
-		entityStateFactory.setGraphDatabaseContext(graphDatabaseContext);
-		entityStateFactory.setGraphRepositoryFactory(graphRepositoryFactory);
+		aspect.setGraphDatabaseContext(graphDatabaseContext());
+        RelationshipEntityStateFactory entityStateFactory = relationshipEntityStateFactory();
 		aspect.setRelationshipEntityStateFactory(entityStateFactory);
 		return aspect;
 	}
 
-	@Bean
-	public Neo4jNodeBacking neo4jNodeBacking(GraphDatabaseContext graphDatabaseContext, DirectGraphRepositoryFactory graphRepositoryFactory) {
+    @Bean
+    public RelationshipEntityStateFactory relationshipEntityStateFactory() throws Exception {
+        RelationshipEntityStateFactory entityStateFactory = new RelationshipEntityStateFactory();
+        entityStateFactory.setGraphDatabaseContext(graphDatabaseContext());
+        entityStateFactory.setGraphRepositoryFactory(directGraphRepositoryFactory());
+        return entityStateFactory;
+    }
+
+    @Bean
+	public Neo4jNodeBacking neo4jNodeBacking() throws Exception {
 		Neo4jNodeBacking aspect = Neo4jNodeBacking.aspectOf();
-		aspect.setGraphDatabaseContext(graphDatabaseContext);
-		NodeEntityStateFactory entityStateFactory = new NodeEntityStateFactory();
-		entityStateFactory.setGraphDatabaseContext(graphDatabaseContext);
-		entityStateFactory.setGraphRepositoryFactory(graphRepositoryFactory);
-		entityStateFactory.setEntityManagerFactory(entityManagerFactory);
-		entityStateFactory.setNodeDelegatingFieldAccessorFactory(
-				new NodeDelegatingFieldAccessorFactory(graphDatabaseContext, graphRepositoryFactory));
+		aspect.setGraphDatabaseContext(graphDatabaseContext());
+        NodeEntityStateFactory entityStateFactory = nodeEntityStateFactory();
 		aspect.setNodeEntityStateFactory(entityStateFactory);
 		return aspect;
 	}
-	
-	@Bean
+
+    @Bean
+    public NodeEntityStateFactory nodeEntityStateFactory() throws Exception {
+        final GraphDatabaseContext graphDatabaseContext = graphDatabaseContext();
+        final DirectGraphRepositoryFactory graphRepositoryFactory = directGraphRepositoryFactory();
+
+        NodeEntityStateFactory entityStateFactory = new NodeEntityStateFactory();
+        entityStateFactory.setGraphDatabaseContext(graphDatabaseContext);
+        entityStateFactory.setGraphRepositoryFactory(graphRepositoryFactory);
+        entityStateFactory.setEntityManagerFactory(entityManagerFactory);
+        final NodeDelegatingFieldAccessorFactory nodeDelegatingFieldAccessorFactory = new NodeDelegatingFieldAccessorFactory(graphDatabaseContext, graphRepositoryFactory);
+        entityStateFactory.setNodeDelegatingFieldAccessorFactory(nodeDelegatingFieldAccessorFactory);
+        return entityStateFactory;
+    }
+
+    @Bean
 	public PlatformTransactionManager transactionManager() {
 		if (isUsingCrossStorePersistence()) {
 			JpaTransactionManager jpaTm = new JpaTransactionManager(getEntityManagerFactory());
