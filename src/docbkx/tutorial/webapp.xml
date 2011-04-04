@@ -9,7 +9,7 @@ and cast in a jsp was straightforward. Actually just using the repository to loo
     <programlisting language="java"><![CDATA[
 @RequestMapping(value = "/movies/{movieId}", method = RequestMethod.GET, headers = "Accept=text/html")
 public String singleMovieView(final Model model, @PathVariable String movieId) {
-    Movie movie = moviesRepository.getMovie(movieId);
+    Movie movie = repository.getMovie(movieId);
     model.addAttribute("id", movieId);
     if (movie != null) {
         model.addAttribute("movie", movie);
@@ -40,9 +40,9 @@ searching movies. To restrict the size of the returned set we just added a limit
         </para>
         <para>
 <programlisting language="java"><![CDATA[
-public void List<Movie> searchForMovie(String query, int count) {
+public void List<Movie> findMovies(String query, int count) {
     List<Movie> movies=new ArrayList<Movie>(count);
-    for (Movie movie : movieFinder.findAllByQuery("title", query)) {
+    for (Movie movie : movieRepository.findAllByQuery("title", query)) {
         movies.add(movie);
         if (count-- == 0) break;
     }
@@ -62,7 +62,7 @@ domain classes.
             <programlisting language="java"><![CDATA[
 @RequestMapping(value = "/movies", method = RequestMethod.GET, headers = "Accept=text/html")
 public String findMovies(Model model, @RequestParam("q") String query) {
-    List<Movie> movies = moviesRepository.findMovies(query, 20);
+    List<Movie> movies = repository.findMovies(query, 20);
     model.addAttribute("movies", movies);
     model.addAttribute("query", query);
     return "/movies/list";

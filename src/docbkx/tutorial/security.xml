@@ -90,13 +90,7 @@ in a separate applicationContext-security.xml. But first, as always, Maven and w
 @Service
 public class CineastsUserDetailsService implements UserDetailsService, InitializingBean {
 
-    @Autowired private FinderFactory graphRepositoryFactory;
-    private NodeFinder<User> userFinder;
-
-    @Override
-    public void afterPropertiesSet() throws Exception {
-        userFinder = graphRepositoryFactory.createNodeEntityFinder(User.class);
-    }
+    @Autowired private UserRepository userRepository;
 
     @Override
     public UserDetails loadUserByUsername(String login) throws UsernameNotFoundException, DataAccessException {
@@ -106,7 +100,7 @@ public class CineastsUserDetailsService implements UserDetailsService, Initializ
     }
 
     public User findUser(String login) {
-        return userFinder.findByPropertyValue("users","login",login);
+        return userRepository.findByPropertyValue(null,"login",login);
     }
     public User getUserFromSession() {
         SecurityContext context = SecurityContextHolder.getContext();

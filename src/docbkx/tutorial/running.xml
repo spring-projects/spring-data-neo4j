@@ -15,13 +15,12 @@
 public class DatabasePopulator {
 
   @Autowired GraphDatabaseContext ctx;
-  @Autowired MoviesRepository repository;
+  @Autowired CineastsRepository repository;
 
   @Transactional
   public List<Movie> populateDatabase() {
       Actor tomHanks = new Actor("1", "Tom Hanks").persist();
       Movie forestGump = new Movie("1", "Forrest Gump").persist();
-      forestGump.setYear(1994);
       tomHanks.playedIn(forestGump,"Forrest");
       return asList(forestGump);
   }}

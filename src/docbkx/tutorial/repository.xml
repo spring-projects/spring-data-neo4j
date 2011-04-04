@@ -3,22 +3,26 @@
 <chapter id="tutorial_repository">
         <title>Serving a good cause - Repository</title>
         <para>
-            That was the first method to add to the brand new repository. So we created a repository for the application, annotated
-            it with @Repository and @Transactional. We did the same for the Actor.
+            That was the first method to add to the brand new cineasts repository.
+            First step was to create an (still empty) repository interface for Movie (and Actor). We added the repository configuration
+            to our application context.
+            Then we created a repository for the application, annotated it with @Repository and @Transactional and injected the movie repository.
+            We did the same for the Actor.
         </para>
         <para>
             <programlisting language="java"><![CDATA[
+public interface MovieRepository extends NodeGraphRepository<Movie> {
+   // findById(String id) - automatic derived finder for a future SDG release
+}
+
+<datagraph:repositories base-package="org.neo4j.cineasts.repository"/>
+
 @Repository @Transactional
 public class CineastsRepostory {
-  FinderFactory graphRepositoryFactory;
-  Finder<Movie> movieFinder;
-  @Autowired
-  public CineastsRepostory(FinderFactory graphRepositoryFactory) {
-      this.graphRepositoryFactory = graphRepositoryFactory;
-      this.movieFinder = graphRepositoryFactory.createNodeEntityFinder(Movie.class);
-  }
+  @Autowired MovieRepository movieRepository;
+
   public Movie getMovie(int id) {
-      return movieFinder.findByPropertyValue(null,"id", id);
+      return movieRepository.findByPropertyValue(null,"id", id);
   }
 }
     ]]></programlisting>

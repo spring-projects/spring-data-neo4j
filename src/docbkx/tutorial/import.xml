@@ -83,7 +83,7 @@
         <programlisting language="java" ><![CDATA[
 @Transactional
 public Movie importMovie(String movieId) {
-    Movie movie = moviesRepository.getMovie(movieId);
+    Movie movie = repository.getMovie(movieId);
     if (movie == null) { // Not found: Create fresh
         movie = new Movie(movieId,null);
     }

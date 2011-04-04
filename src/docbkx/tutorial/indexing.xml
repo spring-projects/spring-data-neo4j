@@ -5,7 +5,7 @@
     <para>
         There an @Indexed annotation for fields. We wanted to try this out, and use it to guide the next test. We added an @Indexed to the id field of the movie.
         This field is intended to represent the external id that will be used in URIs and will stable over database imports and updates. This time we went with the
-        Finder to retrieve the indexed movie.
+        default NodeGraphRepository (previously Finder) to retrieve the indexed movie.
 
     </para><para>
 
@@ -18,12 +18,12 @@ class Movie {
     int year;
 }
 
-@Autowired FinderFactory graphRepositoryFactory;
+@Autowired DirectGraphRepositoryFactory graphRepositoryFactory;
 
 @Test [@Transactional] public void persistedMovieShouldBeRetrievableFromGraphDb() {
     int id=1;
     Movie forrestGump = new Movie(id, "Forrest Gump", 1994).persist();
-    NodeFinder<Movie> movieFinder = graphRepositoryFactory.createNodeEntityFinder(Movie.class);
+    NodeGraphRepository<Movie> movieFinder = graphRepositoryFactory.createNodeEntityRepository(Movie.class);
     // REMINDER, the "null" stands for an optional index name
     Movie retrievedMovie = movieFinder.findByPropertyValue(null, "id",id);
     assertEqual("retrieved movie matches persisted one",forrestGump,retrievedMovie);
