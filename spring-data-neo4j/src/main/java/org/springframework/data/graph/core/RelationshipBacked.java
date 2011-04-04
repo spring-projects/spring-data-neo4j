@@ -25,7 +25,7 @@ import org.neo4j.graphdb.Relationship;
 public interface RelationshipBacked extends GraphBacked<Relationship>{
 
     /**
-     * @return relationship id if there is an underlying relationship
+     * @return the id of the underlying relationship or null if there is none
      */
 	Long getRelationshipId();
 
@@ -40,8 +40,4 @@ public interface RelationshipBacked extends GraphBacked<Relationship>{
     <R extends RelationshipBacked> R projectTo(Class<R> targetType);
 
 
-    /**
-     * @return the id of the underlying relationship or null if there is none
-     */
-    Long getRelationshipId();
 }

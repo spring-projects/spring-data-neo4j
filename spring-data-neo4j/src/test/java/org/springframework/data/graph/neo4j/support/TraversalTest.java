@@ -20,7 +20,9 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.DynamicRelationshipType;
+import org.neo4j.graphdb.traversal.Evaluators;
 import org.neo4j.graphdb.traversal.TraversalDescription;
 import org.neo4j.kernel.Traversal;
 import org.neo4j.kernel.impl.traversal.TraversalDescriptionImpl;
@@ -69,13 +71,28 @@ public class TraversalTest {
         Group group = new Group().persist();
         group.setName("dev");
         group.addPerson(p);
-        final TraversalDescription traversalDescription = new TraversalDescriptionImpl().relationships(DynamicRelationshipType.withName("persons")).filter(Traversal.returnAllButStartNode());
+        final TraversalDescription traversalDescription = Traversal.description().relationships(DynamicRelationshipType.withName("persons")).evaluator(Evaluators.excludeStartPosition());
         Iterable<Person> people = (Iterable<Person>) group.findAllByTraversal(Person.class, traversalDescription);
         final HashSet<Person> found = new HashSet<Person>();
         for (Person person : people) {
             found.add(person);
         }
         assertEquals(Collections.singleton(p),found);
+    }
+    @Test
+    @Transactional
+    public void testTraverseFromGroupToPeoplePaths() {
+        Person p = persistedPerson("Michael", 35);
+        Group group = new Group().persist();
+        group.setName("dev");
+        group.addPerson(p);
+        final TraversalDescription traversalDescription = Traversal.description().relationships(DynamicRelationshipType.withName("persons"), Direction.OUTGOING).evaluator(Evaluators.excludeStartPosition());
+        Iterable<EntityPath<Group,Person>> paths = group.<Group,Person>findAllPathsByTraversal(traversalDescription);
+        for (EntityPath<Group, Person> path : paths) {
+            assertEquals(group, path.startEntity());
+            assertEquals(p, path.endEntity());
+            assertEquals(1,path.length());
+        }
     }
 
     @Test

@@ -27,13 +27,14 @@ import org.springframework.data.graph.core.NodeBacked;
 import org.springframework.data.graph.core.GraphBacked;
 import org.springframework.data.graph.core.RelationshipBacked;
 import org.springframework.data.graph.neo4j.fieldaccess.*;
+import org.springframework.data.graph.neo4j.support.EntityPath;
 import org.springframework.data.graph.neo4j.support.GraphDatabaseContext;
 
-import java.lang.reflect.Field;
 import org.springframework.data.graph.annotation.*;
 import javax.persistence.Transient;
 import javax.persistence.Entity;
-import org.springframework.beans.factory.annotation.Configurable;
+
+import java.lang.reflect.Field;
 
 
 import static org.springframework.data.graph.neo4j.fieldaccess.DoReturn.unwrap;
@@ -173,6 +174,12 @@ public aspect Neo4jNodeBacking { // extends AbstractTypeAnnotatingMixinFields<No
         return new NodeBackedNodeIterableWrapper<T>(traverser, targetType, Neo4jNodeBacking.aspectOf().graphDatabaseContext);
     }
 
+    public <S extends NodeBacked, E extends NodeBacked> Iterable<EntityPath<S,E>> NodeBacked.findAllPathsByTraversal(TraversalDescription traversalDescription) {
+        if (!hasPersistentState()) throw new IllegalStateException("No node attached to " + this);
+        final Traverser traverser = traversalDescription.traverse(this.getPersistentState());
+        return new EntityPathPathIterableWrapper<S, E>(traverser, Neo4jNodeBacking.aspectOf().graphDatabaseContext);
+    }
+
     public <R extends RelationshipBacked, N extends NodeBacked> R NodeBacked.relateTo(N target, Class<R> relationshipClass, String relationshipType) {
         if (target==null) throw new IllegalArgumentException("Target entity is null");
         if (relationshipClass==null) throw new IllegalArgumentException("Relationship class is null");
@@ -264,4 +271,5 @@ public aspect Neo4jNodeBacking { // extends AbstractTypeAnnotatingMixinFields<No
         FieldSignature fieldSignature = (FieldSignature)joinPoint.getSignature();
         return fieldSignature.getField();
     }
+
 }

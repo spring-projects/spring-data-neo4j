@@ -20,6 +20,7 @@ import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.traversal.TraversalDescription;
 import org.springframework.data.graph.neo4j.fieldaccess.EntityState;
+import org.springframework.data.graph.neo4j.support.EntityPath;
 
 /**
  * Interface introduced to objects annotated with &#64;NodeEntity by the {@link org.springframework.data.graph.neo4j.support.node.Neo4jNodeBacking} aspect.
@@ -92,6 +93,15 @@ public interface NodeBacked extends GraphBacked<Node> {
      */
     <T extends NodeBacked> Iterable<T> findAllByTraversal(final Class<T> targetType, TraversalDescription traversalDescription);
 
+    /**
+     * Perform a traversal from this entity's underlying node with the given traversal description. The found paths
+     * are used to create the wrapping entity paths.
+     *
+     * @param traversalDescription traversal description used
+     * @return Lazy {@link java.lang.Iterable} over the traversal result paths, wrapped as entity paths @{link EntityPath}
+     * entity instances
+     */
+    <S extends NodeBacked, E extends NodeBacked> Iterable<EntityPath<S,E>> findAllPathsByTraversal(TraversalDescription traversalDescription);
 
     /**
      * Removes the all relationships of the given type between this entity's underlying node and the target

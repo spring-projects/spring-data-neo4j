@@ -75,9 +75,17 @@
                 </listitem>
             </varlistentry>
             <varlistentry>
-                <term>traversing, starting at the current node</term>
+                <term>traversing, starting at the current node, returns end-nodes of traversal converted to provided type</term>
                 <listitem>
                     <para><code>nodeEntity.findAllByTraversal(targetType, traversalDescription)</code></para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>traversing, starting at the current node, returns <code>EntityPath</code>'s of the traversal result
+                bound to the provided start and end-node-entity types
+                </term>
+                <listitem>
+                    <para><code>Iterable&lt;EntityPath&gt; findAllPathsByTraversal(traversalDescription)</code></para>
                 </listitem>
             </varlistentry>
         </variablelist>
