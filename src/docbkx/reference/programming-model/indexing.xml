@@ -26,7 +26,7 @@
         for a single index query.
     </para>
     <para>
-        Query access to the index happens with the Node- and RelationshipFinders that are created via an instance of
+        Query access to the index happens with the Node- and Relationship-Repostories that are created via an instance of
         <code>org.springframework.data.graph.neo4j.repository.DirectGraphRepositoryFactory</code>. The methods
         <code>findByPropertyValue</code> and <code>findAllByPropertyValue</code> work on the exact indexes and
         return the first or all matches. To do range queries, use <code>findAllByRange</code> (please note that
@@ -44,7 +44,7 @@ class Person {
 
 }
 
-NodeFinder<Person> graphRepository = graphRepositoryFactory.createNodeEntityFinder(Person.class);
+NodeGraphRepository<Person> graphRepository = graphRepositoryFactory.createNodeEntityRepository(Person.class);
 
 // exact graphRepository
 Person mark = graphRepository.findByProperyValue("people","name","mark");
@@ -64,7 +64,7 @@ for (Person middleAgedDeveloper : graphRepository.findAllByRange(null, "age", 20
             as the fulltext-configuration is stored in the index itself.
         </para>
         <para>
-            Access to the fulltext index is provided by the <code>findAllByQuery</code> method of the finders. Wildcard
+            Access to the fulltext index is provided by the <code>findAllByQuery</code> method of the repositories. Wildcard
             like * are allowed. Otherwise the fulltext querying rules of the underlying index provider apply. (In most
             cases this will be lucene.
         </para>
@@ -76,7 +76,7 @@ class Person {
     String name;
 }
 
-NodeFinder<Person> graphRepository = graphRepositoryFactory.createNodeEntityFinder(Person.class);
+NodeGraphRepository<Person> graphRepository = graphRepositoryFactory.createNodeEntityRepository(Person.class);
 
 // exact graphRepository
 Person mark = graphRepository.findAllByQuery("people-search","name","ma*");

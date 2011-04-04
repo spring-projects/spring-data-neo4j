@@ -9,7 +9,8 @@
         <ulink url="http://github.com/SpringSource/spring-data-graph-examples">Spring Data Graph examples</ulink>.
     </para>
     <xi:include href="aspectj.xml"/>
-    <xi:include href="annotations.xml"/>
+    <xi:include href="node-entities.xml"/>
+    <xi:include href="relationships.xml"/>
     <xi:include href="indexing.xml"/>
     <xi:include href="repositories.xml"/>
     <xi:include href="transactions.xml"/>

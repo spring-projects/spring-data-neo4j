@@ -1,11 +1,12 @@
 Spring Data Graph Changelog
-=============================================
+===========================
 
-Changes in version 1.0.0.RC1 (2011-04-01)
+Changes in version 1.0.0.RC1 (2011-04-04)
 ----------------------------------------
 
 * replaced finders with composable spring-data-commons repositories
-* added rest-client support for consuming Neo4j-REST servier with Spring Data Graph
+* added rest-client support for consuming Neo4j-REST server with Spring Data Graph
+* re-added OSGi bundlor metainformation
 * relationship entity creation aligned to node entity creation
 * added TypeRepresentation Strategies for Relationships, enabling RelationshipEntity-Repositories
 * lots of performance improvements

@@ -36,7 +36,7 @@
 <dependency>
   <groupId>org.springframework.data</groupId>
   <artifactId>spring-data-neo4j</artifactId>
-  <version>1.0.0.M5</version>
+  <version>1.0.0.RC1</version>
 </dependency> 
 
 <dependency>
@@ -98,11 +98,10 @@
 	</section>
 	<section>
 		<title>Setting Up Spring Data Graph - Spring Configuration</title>
-        <note>Out of date - should we even have this section?</note>
 		<para>The concrete configuration for Spring Data Graph is quite verbose as there is no autowiring involved. It sets up the following parts.
             <itemizedlist>
                 <listitem>
-                    <para>GraphDatabaseService, IndexManager for the embedded Neo4j storage engine</para>
+                    <para>GraphDatabaseService for the embedded Neo4j storage engine</para>
                 </listitem>
                 <listitem>
                     <para>Spring transaction manager, Neo4j transaction manager</para>
@@ -111,14 +110,13 @@
                     <para>aspects and instantiators for node and relationship entities</para>
                 </listitem>
                 <listitem>
-                    <para>EntityState and FieldAccessFactories needed for the different field handling
-                    </para>
+                    <para>EntityState and FieldAccessFactories needed for the different field handling</para>
                 </listitem>
                 <listitem>
                     <para>Conversion services</para>
                 </listitem>
                 <listitem>
-                    <para>Finder factory</para>
+                    <para>Repository support</para>
                 </listitem>
                 <listitem>
                     <para>TypeRepresentationStrategies</para>
