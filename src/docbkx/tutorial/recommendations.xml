@@ -3,25 +3,60 @@
 <chapter id="tutorial_recommendations">
     <title>Movies! Friends! Bargains! - Recommendations</title>
     <para>
-        In the last part of this exercise we wanted to add recommendations to the app. One obvious recommendation is movies that our friends liked
-        (and their friends too, but with less importance). The second was recommendations for new friends that also liked the movies that we liked most.
-</para><para>
-        Doing this kind of ranking algorithms is really fun with graph databases. They are applied to the graph by traversing it in a certain order, collecting information
-        on the go and deciding which paths to follow and what to include in the results.
-</para><para>
-        Lets say I'm only interested in the top 10 recommendations each.
-</para><para>
-    <programlisting language="java" ><![CDATA[
-        // TODO Work In Progress 1/path.length()*stars
-        user.breathFirst().relationship(FRIEND, OUTGOING).relationship(RATED, OUTGOING).evaluate(new Evaluator(Path path) {
-            if (path.length > 5) return EXCLUDE_AND_STOP;
-            Relationship rating = path.lastRelationship();
-            if (rating.getType().equals(RATED)) {
-                rating.getProperty()
-                return INCLUDE_AND_STOP;
-            }
-            return INCLUDE_AND_CONTINUE;
-        })
-]]></programlisting>
+        In the last part of this exercise we wanted to add recommendations to the app. One obvious recommendation is
+        movies that our friends liked
+        (and their friends too, but with less importance). The second was recommendations for new friends that also
+        liked the movies that we liked most.
+    </para>
+    <para>
+        Doing this kind of ranking algorithms is really fun with graph databases. They are applied to the graph by
+        traversing it in a certain order, collecting information on the go and deciding which paths to follow and what
+        to include in the results.
+    </para>
+    <para>
+        Lets say we're only interested in the recommendations of a certain degree of friends.
+    </para>
+    <para>
+        <programlisting language="java"><![CDATA[
+public Map<Movie,Integer> recommendMovies(User user, final int ratingDistance) {
+  final DynamicRelationshipType RATED = withName(User.RATED);
+  final Map<Long,int[]> ratings=new HashMap<Long, int[]>();
+  TraversalDescription traversal= Traversal.description().breadthFirst()
+        .relationships(withName(User.FRIEND)).relationships(RATED, OUTGOING).evaluator(new Evaluator() {
+
+      public Evaluation evaluate(Path path) {
+          final int length = path.length() - 1;
+          if (length > ratingDistance) return Evaluation.EXCLUDE_AND_PRUNE; // only as far as requested
+          Relationship rating = path.lastRelationship();
+          if (rating != null && rating.getType().equals(RATED)) { // process RATED relationships, not FRIEND
+              if (length == 0) return Evaluation.EXCLUDE_AND_PRUNE; // my rated movies
+              final long movieId = rating.getEndNode().getId();
+              int[] stars = ratings.get(movieId);
+              if (stars == null) {
+                  stars = new int[2];
+                  ratings.put(movieId, stars);
+              }
+              int weight = ratingDistance - length; // aggregate for averaging, inverse to distance
+              stars[0] += weight * (Integer) rating.getProperty("stars", 0);
+              stars[1] += weight;
+              return Evaluation.INCLUDE_AND_PRUNE;
+          }
+          return Evaluation.EXCLUDE_AND_CONTINUE;
+      }
+  });
+
+  Map<Movie,Integer> result=new HashMap<Movie, Integer>();
+  final Iterable<Movie> movies = movieRepository.findAllByTraversal(user, traversal); // lazy traversal results
+  for (Movie movie : movies) { // assign movie to averaged rating
+      final int[] stars = ratings.get(movie.getNodeId());
+      result.put(movie, stars[0]/stars[1]);
+  }
+  return result;
+}
+   ]]></programlisting>
+    </para>
+    <para>
+        The UserController just calls this method, adds it's results to the the model and the view renders the
+        recommendation alongside with your own ratings.
     </para>
 </chapter>

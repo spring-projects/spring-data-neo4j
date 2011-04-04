@@ -35,7 +35,9 @@
         </para>
         <para>
             Eclipse and STS support AspectJ via the AJDT plugin which can be installed from the update-site:
-
+            <ulink url="http://download.eclipse.org/tools/ajdt/36/update/">http://download.eclipse.org/tools/ajdt/36/update/</ulink>
+            (or for the latest development snapshot of the plugin
+            <ulink url="http://download.eclipse.org/tools/ajdt/36/dev/update">http://download.eclipse.org/tools/ajdt/36/dev/update</ulink>).
         </para>
         <para>
             The AspectJ support in IntelliJ IDEA lacks some of the features. JetBrains is working to improve the situation
