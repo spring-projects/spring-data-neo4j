@@ -31,11 +31,17 @@ public interface RelationshipBacked extends GraphBacked<Relationship>{
 
 
     /**
-     * Reify this relationship entity as another relationship backed type. The same underlying relationship will be
+     * Project this relationship entity as another relationship backed type. The same underlying relationship will be
      * used for the new entity.
      *
      * @param targetType type to project to
      * @return new instance of specified type, sharing the same underlying relationship with this entity
      */
     <R extends RelationshipBacked> R projectTo(Class<R> targetType);
+
+
+    /**
+     * @return the id of the underlying relationship or null if there is none
+     */
+    Long getRelationshipId();
 }

@@ -50,7 +50,7 @@ public interface NodeBacked extends GraphBacked<Node> {
      * public class Person {
      *     ...
      *     public Friendship knows(Person p) {
-     *         return (Friendship) relateTo(p, Friendship.class, "knows");
+     *         return relateTo(p, Friendship.class, "knows");
      *     }
      *     ...
      * }
@@ -75,8 +75,6 @@ public interface NodeBacked extends GraphBacked<Node> {
 
 
     /**
-     * Get the ID of the entity.
-     *
      * @return underlying node ID, or null if there is no underlying node
      */
     Long getNodeId();
@@ -122,6 +120,14 @@ public interface NodeBacked extends GraphBacked<Node> {
 
 
 
+    /**
+     * Finds the relationship of the specified type, from this entity's underlying node to the target entity's
+     * underlying node.
+     *
+     * @param target            end node of relationship
+     * @param type              type of the sought relationship
+     * @return requested relationship if it was found, null otherwise
+     */
     Relationship getRelationshipTo(NodeBacked target, String type);
 
     /**
