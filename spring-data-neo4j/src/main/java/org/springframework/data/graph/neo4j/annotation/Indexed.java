@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.data.annotation;
+package org.springframework.data.graph.neo4j.annotation;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

@@ -16,12 +16,12 @@
 
 package org.springframework.data.graph.neo4j;
 
-import org.springframework.data.annotation.Indexed;
 import org.springframework.data.graph.annotation.GraphId;
 import org.springframework.data.graph.annotation.NodeEntity;
 import org.springframework.data.graph.annotation.RelatedTo;
 import org.springframework.data.graph.annotation.RelatedToVia;
 import org.springframework.data.graph.core.Direction;
+import org.springframework.data.graph.neo4j.annotation.Indexed;
 
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;

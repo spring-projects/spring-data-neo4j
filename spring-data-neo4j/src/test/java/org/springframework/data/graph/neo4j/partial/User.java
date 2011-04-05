@@ -17,12 +17,12 @@
 package org.springframework.data.graph.neo4j.partial;
 
 import org.neo4j.graphdb.DynamicRelationshipType;
-import org.springframework.data.annotation.Indexed;
 import org.springframework.data.graph.*;
 import org.springframework.data.graph.annotation.GraphProperty;
 import org.springframework.data.graph.annotation.NodeEntity;
 import org.springframework.data.graph.annotation.RelatedTo;
 import org.springframework.data.graph.annotation.RelatedToVia;
+import org.springframework.data.graph.neo4j.annotation.Indexed;
 
 import javax.persistence.*;
 import java.util.Set;
