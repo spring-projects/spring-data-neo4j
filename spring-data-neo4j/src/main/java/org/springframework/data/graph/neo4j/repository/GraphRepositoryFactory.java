@@ -95,9 +95,9 @@ public class GraphRepositoryFactory extends RepositoryFactorySupport {
 
     @Override
     protected QueryLookupStrategy getQueryLookupStrategy(QueryLookupStrategy.Key key) {
-        return new QueryLookupStrategy(){
+        return new QueryLookupStrategy() {
             @Override
-            public RepositoryQuery resolveQuery(Method method, Class<?> domainClass) {
+            public RepositoryQuery resolveQuery(Method method, RepositoryMetadata metadata) {
                 return null;
             }
         };
