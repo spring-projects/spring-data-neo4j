@@ -42,13 +42,21 @@ public class SpringPluginInitializerTest extends SpringPluginInitializer impleme
     private static int touched = 0;
     private static final String HOSTNAME = "localhost";
     private static final int PORT = 7473;
-//
-//    @Path( "/testInterface" )
-//    @POST
-//    @Produces( MediaType.APPLICATION_JSON )
-//    public void runThis( @Context TestInterface test ) {
-//        test.thisIsARecording();
-//    }
+
+    @Path( "/testInterface" )
+    @POST
+    @Produces( MediaType.APPLICATION_JSON )
+    public void runThis( @Context TestInterface test ) {
+        test.thisIsARecording();
+    }
+
+    @Test
+    public void shouldInjectInterface() throws Exception {
+        ClientResponse response = sendRequest( "testInterface" );
+
+        Assert.assertEquals( 204, response.getStatus() );
+        Assert.assertEquals( 1, touched );
+    }
 
     @Path( "/testConcrete" )
     @POST
@@ -87,15 +95,6 @@ public class SpringPluginInitializerTest extends SpringPluginInitializer impleme
     @Test
     public void shouldInjectConcreteClass() throws Exception {
         ClientResponse response = sendRequest( "testConcrete" );
-
-        Assert.assertEquals( 204, response.getStatus() );
-        Assert.assertEquals( 1, touched );
-    }
-
-
-    @Test
-    public void shouldInjectInterface() throws Exception {
-        ClientResponse response = sendRequest( "testInterface" );
 
         Assert.assertEquals( 204, response.getStatus() );
         Assert.assertEquals( 1, touched );

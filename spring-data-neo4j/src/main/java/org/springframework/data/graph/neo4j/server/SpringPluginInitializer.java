@@ -17,14 +17,14 @@
 package org.springframework.data.graph.neo4j.server;
 
 import org.apache.commons.configuration.Configuration;
-import org.apache.commons.configuration.beanutils.BeanFactory;
 import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.server.plugins.PluginLifecycle;
 import org.neo4j.server.plugins.Injectable;
+import org.neo4j.server.plugins.PluginLifecycle;
 import org.springframework.context.ApplicationContext;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 /**
  * Initializer to run Spring Data Graph based Server Plugins in a Neo4j REST-server. It takes the list of
@@ -44,7 +44,7 @@ public abstract class SpringPluginInitializer implements PluginLifecycle {
     private String[] exposedBeans;
     protected ProvidedClassPathXmlApplicationContext ctx;
 
-    public SpringPluginInitializer(String[] contextLocations, String... exposedBeans) {
+    public SpringPluginInitializer( String[] contextLocations, String... exposedBeans ) {
         this.contextLocations = contextLocations;
         this.exposedBeans = exposedBeans;
     }
@@ -52,16 +52,31 @@ public abstract class SpringPluginInitializer implements PluginLifecycle {
     /**
      * Binds the provided graph database to the spring contexts so that spring beans that consume a
      * graph database can be populated.<br/>
+     *
      * @param graphDatabaseService of the Neo4j server
-     * @param config of the Neo4j Server
+     * @param config               of the Neo4j Server
      * @return Exposes the requested Spring beans as @{see Injectable}s
      */
     @Override
-    public Collection<Injectable<?>> start(GraphDatabaseService graphDatabaseService, Configuration config) {
-        ctx = new ProvidedClassPathXmlApplicationContext(graphDatabaseService, contextLocations);
-        Collection<Injectable<?>> result = new ArrayList<Injectable<?>>(exposedBeans.length);
-        for (final String exposedBean : exposedBeans) {
-            result.add(new SpringBeanInjectable(SpringPluginInitializer.this.ctx, exposedBean));
+    public Collection<Injectable<?>> start( GraphDatabaseService graphDatabaseService, Configuration config ) {
+        ctx = new ProvidedClassPathXmlApplicationContext( graphDatabaseService, contextLocations );
+        Collection<Injectable<?>> result = new ArrayList<Injectable<?>>( exposedBeans.length );
+        ProvidedClassPathXmlApplicationContext appCtx = SpringPluginInitializer.this.ctx;
+        for ( final String exposedBean : exposedBeans ) {
+            Class<?> concreteType = ctx.getType( exposedBean );
+            result.add( new SpringBeanInjectable( appCtx, exposedBean, concreteType ) );
+            result.addAll( getInjectablesForInterfaces( appCtx, exposedBean, concreteType ) );
+        }
+        return result;
+    }
+
+    private List<Injectable<?>> getInjectablesForInterfaces( ProvidedClassPathXmlApplicationContext appCtx,
+                                                             String exposedBean,
+                                                             Class<?> concreteType ) {
+
+        ArrayList<Injectable<?>> result = new ArrayList<Injectable<?>>();
+        for ( Class<?> iface : concreteType.getInterfaces() ) {
+            result.add( new SpringBeanInjectable( appCtx, exposedBean, iface ) );
         }
         return result;
     }
@@ -70,31 +85,34 @@ public abstract class SpringPluginInitializer implements PluginLifecycle {
      * closes the spring context
      */
     public void stop() {
-        if (ctx!=null) {
+        if ( ctx != null ) {
             ctx.close();
         }
     }
 
     /**
      * provides access to the Spring bean, proxying the @{see Injectable}
+     *
      * @param <T> optional type of the bean
      */
     private static class SpringBeanInjectable<T extends Object> implements Injectable<T> {
         private final String exposedBean;
         protected ApplicationContext ctx;
+        private final Class<T> clazz;
 
-        public SpringBeanInjectable(final ApplicationContext ctx, String exposedBean) {
+        public SpringBeanInjectable( final ApplicationContext ctx, String exposedBean, Class<T> clazz ) {
             this.exposedBean = exposedBean;
             this.ctx = ctx;
+            this.clazz = clazz;
         }
 
         public T getValue() {
-            return (T) ctx.getBean(exposedBean);
+            return (T)ctx.getBean( exposedBean );
 
         }
 
         public Class<T> getType() {
-            return (Class<T>) ctx.getType(exposedBean);
+            return clazz;
         }
     }
 }
