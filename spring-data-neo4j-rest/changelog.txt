@@ -1,0 +1,8 @@
+Spring Data Graph Neo4j REST Changelog
+======================================
+
+Changes in version 1.0.0.RC1 (2011-04-05)
+----------------------------------------
+
+* added support for Neo4j-REST server with Spring Data Graph
+

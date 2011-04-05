@@ -5,13 +5,13 @@
 	<groupId>org.springframework.data</groupId>
 	<artifactId>spring-data-graph-dist</artifactId>
 	<name>Spring Data Graph Distribution</name>
-	<version>1.0.0.BUILD-SNAPSHOT</version>
+	<version>1.0.0.RC1</version>
 	<packaging>pom</packaging>
 	<modules>
 		<module>spring-data-graph-parent</module>
 		<module>spring-data-graph-core</module>
 		<module>spring-data-neo4j</module>
-		<module>spring-data-neo4j-rest</module>
+		<!-- <module>spring-data-neo4j-rest</module> -->
 	</modules>
 
 	<developers>

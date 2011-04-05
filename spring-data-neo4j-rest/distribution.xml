@@ -16,20 +16,12 @@
 			<!-- adds readme and other textfiles to the root of the distribution archive -->
 			<directory>.</directory>
 			<includes>
-				<include>README.md</include>
 				<include>license.txt</include>
 				<include>notice.txt</include>
 				<include>changelog.txt</include>
 			</includes>
 			<outputDirectory/>
 			<lineEnding>dos</lineEnding>
-		</fileSet>
-		<fileSet>
-			<!-- adds reference manual (html and pdf) to the distribution archive under the
-				 'docs/reference' directory
-				 see pom.xml 'maven-javadoc-plugin' declaration -->
-			<directory>target/site/reference</directory>
-			<outputDirectory>docs/reference</outputDirectory>
 		</fileSet>
 		<fileSet>
 			<!-- adds javadoc html to the distribution archive under the 'docs/javadoc' directory
@@ -42,8 +34,7 @@
 		<moduleSet>
 			<!-- adds module jars to the distribution archive under the 'dist' directory -->
 			<includes>
-				<include>org.springframework.data:spring-data-graph-core</include>
-				<include>org.springframework.data:spring-data-neo4j</include>
+				<include>org.springframework.data:spring-data-neo4j-rest</include>
 			</includes>
 			<binaries>
 				<outputDirectory>dist</outputDirectory>
@@ -55,8 +46,7 @@
 			<!-- adds module source jars to the distribution archive under the 'src' directory
 				 see pom.xml 'maven-source-plugin' declaration -->
 			<includes>
-				<include>org.springframework.data:spring-data-graph-core</include>
-				<include>org.springframework.data:spring-data-neo4j</include>
+				<include>org.springframework.data:spring-data-neo4j-rest</include>
 			</includes>
 			<binaries>
 				<attachmentClassifier>sources</attachmentClassifier>
