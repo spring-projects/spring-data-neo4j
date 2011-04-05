@@ -37,7 +37,7 @@ public class SpringPluginInitializerTest extends SpringPluginInitializer impleme
     private LocalTestServer neoServer;
 
     public SpringPluginInitializerTest() {
-        super( new String[]{"ServerTest-context.xml"}, Pair.of("testObject", TestInterface.class) );
+        super( new String[]{"ServerTest-context.xml"}, expose("testObject", TestInterface.class) );
     }
 
     private static int touched = 0;

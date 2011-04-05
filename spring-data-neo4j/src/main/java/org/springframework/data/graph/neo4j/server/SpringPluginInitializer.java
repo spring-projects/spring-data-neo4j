@@ -39,16 +39,19 @@ import java.util.Collection;
  * }
  * </pre>
  */
-public abstract class SpringPluginInitializer<T extends Object> implements PluginLifecycle {
+public abstract class SpringPluginInitializer implements PluginLifecycle {
     private String[] contextLocations;
-    private Pair<String, Class<T>>[] exposedBeans;
+    private Pair<String, Class>[] exposedBeans;
     protected ProvidedClassPathXmlApplicationContext ctx;
 
-    public  SpringPluginInitializer( String[] contextLocations, Pair<String, Class<T>>... exposedBeans) {
+    public  SpringPluginInitializer( String[] contextLocations, Pair<String, Class>... exposedBeans) {
         this.contextLocations = contextLocations;
         this.exposedBeans = exposedBeans;
     }
 
+    protected static Pair<String,Class> expose(String name, Class<?> type) {
+        return Pair.of(name,(Class)type);
+    }
     /**
      * Binds the provided graph database to the spring contexts so that spring beans that consume a
      * graph database can be populated.<br/>
@@ -62,7 +65,7 @@ public abstract class SpringPluginInitializer<T extends Object> implements Plugi
         ctx = new ProvidedClassPathXmlApplicationContext( graphDatabaseService, contextLocations );
         Collection<Injectable<?>> result = new ArrayList<Injectable<?>>( exposedBeans.length );
         ProvidedClassPathXmlApplicationContext appCtx = SpringPluginInitializer.this.ctx;
-        for ( final Pair<String, Class<T>> exposedBean : exposedBeans ) {
+        for ( final Pair<String, Class> exposedBean : exposedBeans ) {
 //            Class<?> concreteType = ctx.getType( exposedBean );
             result.add( new SpringBeanInjectable( appCtx, exposedBean.first(), exposedBean.other() ) );
         }
