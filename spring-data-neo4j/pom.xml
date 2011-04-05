@@ -39,17 +39,16 @@
 			<artifactId>spring-data-graph-core</artifactId>
 		</dependency>
 
-
-        <dependency>
-            <groupId>org.ow2.jotm</groupId>
-            <artifactId>jotm-core</artifactId>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.ow2.spec.ee</groupId>
-            <artifactId>ow2-connector-1.5-spec</artifactId>
-            <scope>provided</scope>
-        </dependency>
+		<dependency>
+			<groupId>org.ow2.jotm</groupId>
+			<artifactId>jotm-core</artifactId>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.ow2.spec.ee</groupId>
+			<artifactId>ow2-connector-1.5-spec</artifactId>
+			<scope>provided</scope>
+		</dependency>
 
 		<!-- Logging -->
 		<dependency>
@@ -124,59 +123,57 @@
 			<artifactId>neo4j</artifactId>
 		</dependency>
 
-        <dependency>
-          <groupId>org.neo4j</groupId>
-          <artifactId>neo4j-kernel</artifactId>
-          <classifier>tests</classifier>
-          <scope>test</scope>
-        </dependency>
+		<dependency>
+			<groupId>org.neo4j</groupId>
+			<artifactId>neo4j-kernel</artifactId>
+			<classifier>tests</classifier>
+			<scope>test</scope>
+		</dependency>
 
-        <dependency>
-          <groupId>org.neo4j</groupId>
-          <artifactId>server-api</artifactId>
+		<dependency>
+			<groupId>org.neo4j</groupId>
+			<artifactId>server-api</artifactId>
 		 <scope>provided</scope>
-        </dependency>
+		</dependency>
 
-        <dependency>
-          <groupId>commons-configuration</groupId>
-          <artifactId>commons-configuration</artifactId>
-        </dependency>
+		<dependency>
+			<groupId>commons-configuration</groupId>
+			<artifactId>commons-configuration</artifactId>
+		</dependency>
 
 		<!-- JPA -->
-        <dependency>
-            <groupId>org.hibernate.javax.persistence</groupId>
-            <artifactId>hibernate-jpa-2.0-api</artifactId>
-            <version>1.0.0.Final</version>
-        </dependency>
+		<dependency>
+			<groupId>org.hibernate.javax.persistence</groupId>
+			<artifactId>hibernate-jpa-2.0-api</artifactId>
+			<version>1.0.0.Final</version>
+		</dependency>
 
 		<!-- For Tests -->
-        <dependency>
-            <groupId>org.hibernate</groupId>
-            <artifactId>hibernate-entitymanager</artifactId>
-            <version>3.5.5-Final</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>hsqldb</groupId>
-            <artifactId>hsqldb</artifactId>
-            <version>1.8.0.10</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>javax.validation</groupId>
-            <artifactId>validation-api</artifactId>
-            <version>1.0.0.GA</version>
-        </dependency>
-        <dependency>
-            <groupId>org.hibernate</groupId>
-            <artifactId>hibernate-validator</artifactId>
-            <version>4.0.2.GA</version>
-            <scope>test</scope>
-        </dependency>
+		<dependency>
+			<groupId>org.hibernate</groupId>
+			<artifactId>hibernate-entitymanager</artifactId>
+			<version>3.5.5-Final</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>hsqldb</groupId>
+			<artifactId>hsqldb</artifactId>
+			<version>1.8.0.10</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>javax.validation</groupId>
+			<artifactId>validation-api</artifactId>
+			<version>1.0.0.GA</version>
+		</dependency>
+		<dependency>
+			<groupId>org.hibernate</groupId>
+			<artifactId>hibernate-validator</artifactId>
+			<version>4.0.2.GA</version>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
 
-
-
-    </dependencies>
 	<repositories>
 		<repository>
 			<id>neo4j-public-repository</id>
@@ -185,7 +182,7 @@
 			<snapshots>
 				<enabled>true</enabled>
 			</snapshots>
-        </repository>
+		</repository>
 		<repository>
 			<id>jboss-repository</id>
 			<name>JBoss Public Repository</name>
@@ -198,7 +195,7 @@
 			</snapshots>
 			<name>Springframework Maven SNAPSHOT Repository</name>
 			<url>http://maven.springframework.org/snapshot</url>
-        </repository>
+		</repository>
 	</repositories>
 	<build>
 		<plugins>
@@ -238,22 +235,21 @@
 					<target>1.6</target>
 				</configuration>
 			</plugin>
-            <plugin>
-                   <groupId>org.apache.maven.plugins</groupId>
-                   <artifactId>maven-jar-plugin</artifactId>
-                   <version>2.2</version>
-                   <executions>
-                     <execution>
-                       <goals>
-                         <goal>test-jar</goal>
-                       </goals>
-                     </execution>
-                   </executions>
-                 </plugin>
-                    <plugin>
-                        <groupId>com.springsource.bundlor</groupId>
-                        <artifactId>com.springsource.bundlor.maven</artifactId>
-                    </plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<executions>
+					<execution>
+						<goals>
+							<goal>test-jar</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>com.springsource.bundlor</groupId>
+				<artifactId>com.springsource.bundlor.maven</artifactId>
+			</plugin>
 
 		</plugins>
 	</build>
