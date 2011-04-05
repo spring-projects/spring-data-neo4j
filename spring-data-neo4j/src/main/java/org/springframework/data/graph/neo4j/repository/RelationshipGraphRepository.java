@@ -18,10 +18,12 @@ package org.springframework.data.graph.neo4j.repository;
 
 import org.neo4j.graphdb.Relationship;
 import org.springframework.data.graph.core.RelationshipBacked;
+import org.springframework.data.repository.NoRepositoryBean;
 
 /**
  * @author mh
  * @since 29.03.11
  */
+@NoRepositoryBean
 public interface RelationshipGraphRepository<T extends RelationshipBacked> extends GraphRepository<Relationship, T> {
 }
