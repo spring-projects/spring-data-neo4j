@@ -23,6 +23,7 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.neo4j.helpers.Pair;
 import org.springframework.data.graph.neo4j.server.SpringPluginInitializer;
 
 import javax.ws.rs.POST;
@@ -36,7 +37,7 @@ public class SpringPluginInitializerTest extends SpringPluginInitializer impleme
     private LocalTestServer neoServer;
 
     public SpringPluginInitializerTest() {
-        super( new String[]{"ServerTest-context.xml"}, "testObject" );
+        super( new String[]{"ServerTest-context.xml"}, Pair.of("testObject", TestInterface.class) );
     }
 
     private static int touched = 0;
@@ -47,21 +48,6 @@ public class SpringPluginInitializerTest extends SpringPluginInitializer impleme
     @POST
     @Produces( MediaType.APPLICATION_JSON )
     public void runThis( @Context TestInterface test ) {
-        test.thisIsARecording();
-    }
-
-    @Test
-    public void shouldInjectInterface() throws Exception {
-        ClientResponse response = sendRequest( "testInterface" );
-
-        Assert.assertEquals( 204, response.getStatus() );
-        Assert.assertEquals( 1, touched );
-    }
-
-    @Path( "/testConcrete" )
-    @POST
-    @Produces( MediaType.APPLICATION_JSON )
-    public void runThis( @Context SpringPluginInitializerTest test ) {
         test.thisIsARecording();
     }
 
@@ -85,19 +71,18 @@ public class SpringPluginInitializerTest extends SpringPluginInitializer impleme
     }
 
     @Test
+    public void shouldInjectInterface() throws Exception {
+        ClientResponse response = sendRequest( "testInterface" );
+
+        Assert.assertEquals( 204, response.getStatus() );
+        Assert.assertEquals( 1, touched );
+    }
+
+    @Test
     public void shouldWorkWithThirdPartyJaxrs() throws Exception {
         ClientResponse response = sendRequest( "testNoContext" );
 
         Assert.assertEquals( 204, response.getStatus() );
-    }
-
-
-    @Test
-    public void shouldInjectConcreteClass() throws Exception {
-        ClientResponse response = sendRequest( "testConcrete" );
-
-        Assert.assertEquals( 204, response.getStatus() );
-        Assert.assertEquals( 1, touched );
     }
 
     private ClientResponse sendRequest( String method ) {

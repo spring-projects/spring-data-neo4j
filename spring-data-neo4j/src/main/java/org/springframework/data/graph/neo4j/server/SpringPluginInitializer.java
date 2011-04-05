@@ -18,13 +18,13 @@ package org.springframework.data.graph.neo4j.server;
 
 import org.apache.commons.configuration.Configuration;
 import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.helpers.Pair;
 import org.neo4j.server.plugins.Injectable;
 import org.neo4j.server.plugins.PluginLifecycle;
 import org.springframework.context.ApplicationContext;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 
 /**
  * Initializer to run Spring Data Graph based Server Plugins in a Neo4j REST-server. It takes the list of
@@ -39,12 +39,12 @@ import java.util.List;
  * }
  * </pre>
  */
-public abstract class SpringPluginInitializer implements PluginLifecycle {
+public abstract class SpringPluginInitializer<T extends Object> implements PluginLifecycle {
     private String[] contextLocations;
-    private String[] exposedBeans;
+    private Pair<String, Class<T>>[] exposedBeans;
     protected ProvidedClassPathXmlApplicationContext ctx;
 
-    public SpringPluginInitializer( String[] contextLocations, String... exposedBeans ) {
+    public  SpringPluginInitializer( String[] contextLocations, Pair<String, Class<T>>... exposedBeans) {
         this.contextLocations = contextLocations;
         this.exposedBeans = exposedBeans;
     }
@@ -62,21 +62,9 @@ public abstract class SpringPluginInitializer implements PluginLifecycle {
         ctx = new ProvidedClassPathXmlApplicationContext( graphDatabaseService, contextLocations );
         Collection<Injectable<?>> result = new ArrayList<Injectable<?>>( exposedBeans.length );
         ProvidedClassPathXmlApplicationContext appCtx = SpringPluginInitializer.this.ctx;
-        for ( final String exposedBean : exposedBeans ) {
-            Class<?> concreteType = ctx.getType( exposedBean );
-            result.add( new SpringBeanInjectable( appCtx, exposedBean, concreteType ) );
-            result.addAll( getInjectablesForInterfaces( appCtx, exposedBean, concreteType ) );
-        }
-        return result;
-    }
-
-    private List<Injectable<?>> getInjectablesForInterfaces( ProvidedClassPathXmlApplicationContext appCtx,
-                                                             String exposedBean,
-                                                             Class<?> concreteType ) {
-
-        ArrayList<Injectable<?>> result = new ArrayList<Injectable<?>>();
-        for ( Class<?> iface : concreteType.getInterfaces() ) {
-            result.add( new SpringBeanInjectable( appCtx, exposedBean, iface ) );
+        for ( final Pair<String, Class<T>> exposedBean : exposedBeans ) {
+//            Class<?> concreteType = ctx.getType( exposedBean );
+            result.add( new SpringBeanInjectable( appCtx, exposedBean.first(), exposedBean.other() ) );
         }
         return result;
     }

@@ -39,16 +39,26 @@ org.neo4j.server.thirdparty_jaxrs_classes=com.example.mypackage=/my-context
         </para>
         <para>
         	   Running Spring Data Graph on the server is easy. You need to tell the server where to find the Spring Context
-        	   file, and which beans from it to expose:
+        	   file, and which beans from it to expose, using what type:
         <programlisting language="java"><![CDATA[
 public class HelloWorldInitializer extends SpringPluginInitializer {
     public HelloWorldInitializer() {
         super(new String[]{"spring/helloWorldServer-Context.xml"}, 
-        		"worldRepository",
-        		"graphRepositoryFactory");
+        		Pair.of("worldRepository", WorldRepository.class),
+        		Pair.of("graphRepositoryFactory", GraphRepositoryFactory.class));
     }
 }
     ]]></programlisting>
+    		   Now, your resources can be annotated with the beans they need, like this:
+<programlisting language="java"><![CDATA[
+	@Path( "/path" )
+	@POST
+	@Produces( MediaType.APPLICATION_JSON )
+	public void foo( @Context WorldRepository repo ) {
+		...
+	}
+]]></programlisting>
+    
             The <code>SpringPluginInitializer</code> merges the graph database service
             with the spring configuration and registers the named beans as jersey Injectables.
             It is still necessary to list the initializer fully qualified class name in a
