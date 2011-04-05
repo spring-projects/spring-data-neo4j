@@ -18,7 +18,6 @@ package org.neo4j.rest.graphdb;
 
 import org.junit.Assert;
 import org.junit.Test;
-import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.index.Index;
@@ -26,7 +25,6 @@ import org.neo4j.graphdb.index.IndexHits;
 import org.neo4j.graphdb.index.RelationshipIndex;
 
 import java.util.Arrays;
-import java.util.Iterator;
 
 public class RestIndexTest extends RestTestBase {
 
@@ -37,6 +35,22 @@ public class RestIndexTest extends RestTestBase {
     public void testAddToNodeIndex() {
         nodeIndex().add(node(), "name", "test");
         IndexHits<Node> hits = nodeIndex().get("name", "test");
+        Assert.assertEquals("index results", true, hits.hasNext());
+        Assert.assertEquals(node(), hits.next());
+    }
+
+    @Test
+    public void testAdvancedQuery() {
+        nodeIndex().add(node(), "name", "test");
+        IndexHits<Node> hits = nodeIndex().query("name", "tes*");
+        Assert.assertEquals("index results", true, hits.hasNext());
+        Assert.assertEquals(node(), hits.next());
+    }
+
+        @Test
+    public void testRangeQuery() {
+        nodeIndex().add(node(), "age", 35);
+        IndexHits<Node> hits = nodeIndex().query("age", "age:[30 TO 40]");
         Assert.assertEquals("index results", true, hits.hasNext());
         Assert.assertEquals(node(), hits.next());
     }
