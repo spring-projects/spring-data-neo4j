@@ -43,7 +43,9 @@ org.neo4j.server.thirdparty_jaxrs_classes=com.example.mypackage=/my-context
         <programlisting language="java"><![CDATA[
 public class HelloWorldInitializer extends SpringPluginInitializer {
     public HelloWorldInitializer() {
-        super(new String[]{"spring/helloWorldServer-Context.xml"}, "worldRepository","graphRepositoryFactory");
+        super(new String[]{"spring/helloWorldServer-Context.xml"}, 
+        		"worldRepository",
+        		"graphRepositoryFactory");
     }
 }
     ]]></programlisting>
@@ -63,12 +65,13 @@ public class HelloWorldInitializer extends SpringPluginInitializer {
         </para>
         <note>
             <para>
-                The Java REST Driver is still under development, so performance and functionality might not be en
-                par with Spring Data Graph.
+                The Neo4j REST API does not allow keeping transactions open, which means that SDG is not transactional
+                when running against REST.
             </para>
         </note>
 
         <para>
+        To set up your project to use the REST bindings, add this dependency to your pom.xml:
 <example>
     <title>REST-Client configuration - pom.xml</title>
     <programlisting language="xml"><![CDATA[
@@ -79,7 +82,8 @@ public class HelloWorldInitializer extends SpringPluginInitializer {
 </dependency>
 ]]></programlisting>
 </example>
-<example>
+        Now, you set up the normal SDG configuration, but point the database to an URL instead of a local file, like this:
+        <example>
     <title>REST-Client configuration - application context</title>
     <programlisting language="xml"><![CDATA[
 <datagraph:config graphDatabaseService="graphDatabaseService"/>
@@ -89,8 +93,7 @@ public class HelloWorldInitializer extends SpringPluginInitializer {
 </bean>
 ]]></programlisting>
 </example>
-
-
+        Your project is now set up to work against a remote Neo4j Server.
         </para>
     </section>
 </chapter>
