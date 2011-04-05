@@ -4,13 +4,13 @@
     <groupId>org.springframework.data</groupId>
     <artifactId>spring-data-neo4j-rest</artifactId>
     <packaging>jar</packaging>
-    <version>1.0.0.RC1</version>
+    <version>1.0.0.BUILD-SNAPSHOT</version>
     <name>Spring Data Graph REST Wrapper</name>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <org.slf4j.version>1.5.10</org.slf4j.version>
         <jersey.version>1.4</jersey.version>
-        <spring-data-neo4j.version>1.0.0.RC1</spring-data-neo4j.version>
+        <spring-data-neo4j.version>1.0.0.BUILD-SNAPSHOT</spring-data-neo4j.version>
         <neo4j.version>1.3.M05</neo4j.version>
 		<junit.version>4.8.1</junit.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
