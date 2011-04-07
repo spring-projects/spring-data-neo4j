@@ -56,10 +56,12 @@ public class CineastRepository {
     ....
     public void List<Movie> findMovies(String query, int count) {
         List<Movie> movies=new ArrayList<Movie>(count);
-        for (Movie movie : movieRepository.findAllByQuery("title", query)) {
+        ClosableIterable<Movie> searchResults = movieRepository.findAllByQuery("title", query);
+        for (Movie movie : searchResults) {
             movies.add(movie);
             if (count-- == 0) break;
         }
+        searchResults.close();
         return movies;
     }
 }
@@ -90,7 +92,7 @@ public String findMovies(Model model, @RequestParam("q") String query) {
         </para>
         <para>
             <example>
-                <title></title>
+                <title>Search Results JSP</title>
                 <programlisting language="jsp" ><![CDATA[
 <h2>Movies</h2>
 

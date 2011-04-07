@@ -133,42 +133,47 @@ neo4j-shell -readonly -path data/graph.db
                 <example>
                     <title>Neo4j Shell usage</title>
                     <programlisting language="shell" ><![CDATA[
-neo4j-sh[readonly] (0)$ ls
-(me) --[SUBREF_java.lang.Object]-> (3)
-(me) --[SUBREF_org.neo4j.cineasts.domain.Movie]-> (6)
-(me) --[SUBREF_org.neo4j.cineasts.domain.Person]-> (8)
-(me) --[SUBREF_org.neo4j.cineasts.domain.User]-> (2)
-neo4j-sh[readonly] (0)$ cd 6
-neo4j-sh[readonly] (6)$ ls
-*class =[org.neo4j.cineasts.domain.Movie]
-*count =[39]
-(me) <-[INSTANCE_OF]-- (The Matrix Revolutions,123)
-(me) <-[INSTANCE_OF]-- (The Matrix Reloaded,110)
-(me) <-[INSTANCE_OF]-- (The Matrix,93)
-...
-neo4j-sh[readonly] (6)$ cd 93
-neo4j-sh[readonly] (The Matrix,93)$ ls
-*description  =[Neo is a young software engineer and part-time hacker who is singled out by some mysterious...]
+neo4j-sh[readonly] (0)$ help
+Available commands: index dbinfo ls rm alias set eval mv gsh env rmrel mkrel
+                    trav help pwd paths ... man cd
+Use man <command> for info about each command.
+
+neo4j-sh[readonly] (0)$ index --cd -g User login micha
+
+neo4j-sh[readonly] (Micha,1)$ ls
+*__type__ =[org.neo4j.cineasts.domain.User]
+*login    =[micha]
+*name     =[Micha]
+*roles    =[ROLE_ADMIN,ROLE_USER]
+(me) --[FRIEND]-> (Olliver,2)
+(me) --[RATED]-> (The Matrix,3)
+
+neo4j-sh[readonly] (Micha,1)$ ls 2
+*__type__ =[org.neo4j.cineasts.domain.User]
+*login    =[ollie]
+*name     =[Olliver]
+*roles    =[ROLE_USER]
+(Olliver,2) <-[FRIEND]-- (me)
+
+neo4j-sh[readonly] (Micha,1)$ cd 3
+
+neo4j-sh[readonly] (The Matrix,3)$ ls
+*__type__     =[org.neo4j.cineasts.domain.Movie]
+*description  =[Neo is a young software engineer and part-time hacker who is singled  ...]
 *genre        =[Action]
 *homepage     =[http://whatisthematrix.warnerbros.com/]
-*id           =[603]
-*imageUrl     =[http://cf1.imgobject.com/posters/606/4bc909d0017a3c57fe003606/the-matrix-mid.jpg]
-*imdbId       =[tt0133093]
-*language     =[en]
-*lastModified =[1299968642000]
-*releaseDate  =[922831200000]
-*runtime      =[136]
+...
 *studio       =[Warner Bros. Pictures]
 *tagline      =[Welcome to the Real World.]
 *title        =[The Matrix]
 *trailer      =[http://www.youtube.com/watch?v=UM5yepZ21pI]
 *version      =[324]
-(me) <-[ACTS_IN]-- (Marc Aden,109)
+(me) <-[ACTS_IN]-- (Marc Aden,19)
+(me) <-[ACTS_IN]-- (David Aston,18)
 ...
-(me) <-[ACTS_IN]-- (Keanu Reeves,96)
-(me) <-[DIRECTED]-- (Andy Wachowski,95)
-(me) <-[DIRECTED]-- (Lana Wachowski,94)
-(me) --[INSTANCE_OF]-> (6)
+(me) <-[ACTS_IN]-- (Keanu Reeves,6)
+(me) <-[DIRECTED]-- (Andy Wachowski,5)
+(me) <-[DIRECTED]-- (Lana Wachowski,4)
 (me) <-[RATED]-- (Micha,1)
             ]]></programlisting>
                 </example>

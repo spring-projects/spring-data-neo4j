@@ -11,7 +11,7 @@
     </para>
     <para>
         <example>
-            <title></title>
+            <title>Exact Indexing for Movie id</title>
             <programlisting language="java" ><![CDATA[
 @NodeEntity class Movie {
     @Indexed int id;
