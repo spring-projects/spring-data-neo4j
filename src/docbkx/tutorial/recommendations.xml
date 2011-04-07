@@ -1,27 +1,30 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" "http://www.docbook.org/xml/4.4/docbookx.dtd">
 <chapter id="tutorial_recommendations">
-    <title>Movies! Friends! Bargains! - Recommendations</title>
+    <title>Recommendations</title>
+    <subtitle>"- Suitable quote"</subtitle>
     <para>
-        In the last part of this exercise we wanted to add recommendations to the app. One obvious recommendation is
-        movies that our friends liked
-        (and their friends too, but with less importance). The second was recommendations for new friends that also
-        liked the movies that we liked most.
+        In the last part of this exercise we wanted to add recommendations to the app. One
+        obvious recommendation was movies that our friends liked (and their friends too, but
+        with less importance). The second recommendation was for new friends that also liked
+        the movies that we liked most.
     </para>
     <para>
-        Doing this kind of ranking algorithms is really fun with graph databases. They are applied to the graph by
-        traversing it in a certain order, collecting information on the go and deciding which paths to follow and what
-        to include in the results.
+        Doing these kinds of ranking algorithms is a lot of fun with graph databases. The algorithms
+        are implemented by traversing the graph in a certain order, collecting information on the go,
+        and deciding which paths to follow and what to include in the results.
     </para>
     <para>
-        Lets say we're only interested in the recommendations of a certain degree of friends.
+        We were only interested in recommendations of a certain degree of friends.
     </para>
     <para>
-        <programlisting language="java"><![CDATA[
+        <example>
+            <title>Recommendations</title>
+            <programlisting language="java"><![CDATA[
 public Map<Movie,Integer> recommendMovies(User user, final int ratingDistance) {
-  final DynamicRelationshipType RATED = withName(User.RATED);
-  final Map<Long,int[]> ratings=new HashMap<Long, int[]>();
-  TraversalDescription traversal= Traversal.description().breadthFirst()
+    final DynamicRelationshipType RATED = withName(User.RATED);
+    final Map<Long,int[]> ratings=new HashMap<Long, int[]>();
+    TraversalDescription traversal= Traversal.description().breadthFirst()
         .relationships(withName(User.FRIEND)).relationships(RATED, OUTGOING).evaluator(new Evaluator() {
 
       public Evaluation evaluate(Path path) {
@@ -43,20 +46,21 @@ public Map<Movie,Integer> recommendMovies(User user, final int ratingDistance) {
           }
           return Evaluation.EXCLUDE_AND_CONTINUE;
       }
-  });
+    });
 
-  Map<Movie,Integer> result=new HashMap<Movie, Integer>();
-  final Iterable<Movie> movies = movieRepository.findAllByTraversal(user, traversal); // lazy traversal results
-  for (Movie movie : movies) { // assign movie to averaged rating
+    Map<Movie,Integer> result=new HashMap<Movie, Integer>();
+    final Iterable<Movie> movies = movieRepository.findAllByTraversal(user, traversal); // lazy traversal results
+    for (Movie movie : movies) { // assign movie to averaged rating
       final int[] stars = ratings.get(movie.getNodeId());
       result.put(movie, stars[0]/stars[1]);
-  }
-  return result;
+    }
+    return result;
 }
-   ]]></programlisting>
+]]></programlisting>
+        </example>
     </para>
     <para>
-        The UserController just calls this method, adds it's results to the the model and the view renders the
-        recommendation alongside with your own ratings.
+        The UserController simply called this method, added its results to the model, and the
+        view rendered the recommendation alongside the user's own ratings.
     </para>
 </chapter>

@@ -1,27 +1,30 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" "http://www.docbook.org/xml/4.4/docbookx.dtd">
 <chapter id="tutorial_domain">
-    <title>Setting the Stage - Movies Domain</title>
+    <title>The domain model</title>
+    <subtitle>"- Suitable quote"</subtitle>
     <para>
-        The domain model was the next thing we planned to work on. We wanted to sketch it out first before diving into library details. We also looked at the datamodel of core themoviedb data to 
-		confirm that it matched our expectations.
-
-<!--
-        http://yuml.me/diagram/scruffy;dir:lr/class/%23%20Cineasts.net%20Domain,%20%5BActor%7Cname;%7CplayedIn()%5D*-ACTS_IN-%3E%5BRole%7Cname;%5D,%20%5BRole%5D-ACTS_IN-%3E*%5BMovie%7Ctitle;year%5D,%20%5BUser%7Clogin;name;password;%7Crate();befriend();%5D*-RATED-%3E%5BRating%7Cstars;comment;%5D,%20%5BRating%5D-RATED-%3E*%5BMovie%5D,%20%5BUser%5D*-FRIEND-%3E*%5BUser%5D.png
--->
-    </para><para>
+        We wanted to outline the domain model before diving into library details. We also looked at the
+        data model of the TheMoviedb.org data to confirm that it matched our expectations.
+    </para>
+    <para>
         <mediaobject>
             <imageobject>
+                <!--
+                        http://yuml.me/diagram/scruffy;dir:lr/class/%23%20Cineasts.net%20Domain,%20%5BActor%7Cname;%7CplayedIn()%5D*-ACTS_IN-%3E%5BRole%7Cname;%5D,%20%5BRole%5D-ACTS_IN-%3E*%5BMovie%7Ctitle;year%5D,%20%5BUser%7Clogin;name;password;%7Crate();befriend();%5D*-RATED-%3E%5BRating%7Cstars;comment;%5D,%20%5BRating%5D-RATED-%3E*%5BMovie%5D,%20%5BUser%5D*-FRIEND-%3E*%5BUser%5D.png
+                -->
                 <imagedata fileref="domain.png"/>
             </imageobject>
         </mediaobject>
 
-</para><para>
+    </para>
+    <para>
         In Java code this looks pretty straightforward:
-</para><para>
-
-
-<programlisting lang="java" language="java" role="java" ><![CDATA[
+    </para>
+    <para>
+        <example>
+            <title>Domain model</title>
+            <programlisting lang="java" language="java" role="java" ><![CDATA[
 class Movie {
     int id;
     String title;
@@ -33,7 +36,7 @@ class Actor {
     int id;
     String name;
     Set<Movie> filmography;
-    Role playedIn(Movie movie, String role);
+    Role playedIn(Movie movie, String role) { ... }
 }
 
 class Role {
@@ -48,8 +51,8 @@ class User {
     String password;
     Set<Rating> ratings;
     Set<User> friends;
-    Rating rate(Movie movie, int stars, String comment);
-    void befriend(User user);
+    Rating rate(Movie movie, int stars, String comment) { ... }
+    void befriend(User user) { ... }
 }
 
 class Rating {
@@ -59,8 +62,9 @@ class Rating {
     String comment;
 }
 ]]></programlisting>
-
-        </para><para>
-            We then wrote some tests to show the basic plumbing works.
-        </para>
+        </example>
+    </para>
+    <para>
+        Then we wrote some tests to show how the basic plumbing works.
+    </para>
 </chapter>

@@ -1,63 +1,66 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" "http://www.docbook.org/xml/4.4/docbookx.dtd">
 <chapter id="tutorial_security">
-    <title>Protecting Assets - Adding Security</title>
+    <title>Adding Security</title>
+    <subtitle>"- I love the smell of napalm in the morning."</subtitle>
     <para>
-       To have a user in the webapp we had to put it in the session and add login and registration pages. Of course the pages that only worked with a valid user
-account had to be secured as well.
-</para><para>
-We used Spring Security for that, writing a simple UserDetailsService that used a repository for looking up the users and validating their credentials. The config is located
-in a separate applicationContext-security.xml. But first, as always, Maven and web.xml setup.
+        To have a user in the webapp we had to put it in the session and add login and registration
+        pages. Of course the pages that were only meant for logged-in users had to be secured as well.
     </para>
     <para>
-<example>
-    <title>pom.xml for spring-security</title>
-        <programlisting language="xml" ><![CDATA[
-        <dependency>
-            <groupId>org.springframework.security</groupId>
-            <artifactId>spring-security-web</artifactId>
-            <version>${spring.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.security</groupId>
-            <artifactId>spring-security-config</artifactId>
-            <version>${spring.version}</version>
-        </dependency>
-                ]]></programlisting>
-</example>
+        Being Spring users, we naturally used Spring Security for this. We wrote  a simple UserDetailsService
+        that used a repository for looking up the users and validating their credentials. The config is located
+        in a separate applicationContext-security.xml. But first, as always, Maven and web.xml setup.
     </para>
     <para>
-<example>
-    <title>web.xml</title>
-        <programlisting language="xml" ><![CDATA[
-    <context-param>
-        <param-name>contextConfigLocation</param-name>
-        <param-value>
-            /WEB-INF/applicatioContext-security.xml
-            /WEB-INF/applicationContext.xml
-        </param-value>
-    </context-param>
-
-    <listener>
-        <listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
-    </listener>
-
-    <filter>
-        <filter-name>springSecurityFilterChain</filter-name>
-        <filter-class>org.springframework.web.filter.DelegatingFilterProxy</filter-class>
-    </filter>
-
-    <filter-mapping>
-        <filter-name>springSecurityFilterChain</filter-name>
-        <url-pattern>/*</url-pattern>
-    </filter-mapping>
-                ]]></programlisting>
-</example>
+        <example>
+            <title>Spring Security pom.xml</title>
+            <programlisting language="xml" ><![CDATA[
+<dependency>
+    <groupId>org.springframework.security</groupId>
+    <artifactId>spring-security-web</artifactId>
+    <version>${spring.version}</version>
+</dependency>
+<dependency>
+    <groupId>org.springframework.security</groupId>
+    <artifactId>spring-security-config</artifactId>
+    <version>${spring.version}</version>
+</dependency>
+]]></programlisting>
+        </example>
     </para>
     <para>
-<example>
-    <title> applicationContext-security.xml</title>
-        <programlisting language="xml" ><![CDATA[
+        <example>
+            <title>Spring Security web.xml</title>
+            <programlisting language="xml" ><![CDATA[
+<context-param>
+    <param-name>contextConfigLocation</param-name>
+    <param-value>
+        /WEB-INF/applicationContext-security.xml
+        /WEB-INF/applicationContext.xml
+    </param-value>
+</context-param>
+
+<listener>
+    <listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
+</listener>
+
+<filter>
+    <filter-name>springSecurityFilterChain</filter-name>
+    <filter-class>org.springframework.web.filter.DelegatingFilterProxy</filter-class>
+</filter>
+
+<filter-mapping>
+    <filter-name>springSecurityFilterChain</filter-name>
+    <url-pattern>/*</url-pattern>
+</filter-mapping>
+]]></programlisting>
+        </example>
+    </para>
+    <para>
+        <example>
+            <title>Spring Security applicationContext-security.xml</title>
+            <programlisting language="xml" ><![CDATA[
 <security:global-method-security secured-annotations="enabled">
 </security:global-method-security>
 
@@ -83,10 +86,10 @@ in a separate applicationContext-security.xml. But first, as always, Maven and w
 
 <bean id="userDetailsService" class="org.neo4j.movies.service.CineastsUserDetailsService"/>
 ]]></programlisting>
-</example>
-<example>
-    <title>UserDetailsService and UserDetails implementation</title>
-        <programlisting language="java" ><![CDATA[
+        </example>
+        <example>
+            <title>UserDetailsService and UserDetails implementation</title>
+            <programlisting language="java" ><![CDATA[
 @Service
 public class CineastsUserDetailsService implements UserDetailsService, InitializingBean {
 
@@ -138,19 +141,20 @@ public class CineastsUserDetails implements UserDetails {
         return user.getLogin();
     }
 
-....
+    ...
     public User getUser() {
         return user;
     }
 }
-
-        ]]></programlisting>
-</example>
+]]></programlisting>
+        </example>
     </para>
     <para>
-        After that a logged in user was available in the session and could so be used for all the social interactions. Most of the work done next was adding controller methods
-and JSPs for the views. We used the helper method <code>getUserFromSession()</code> in the controllers to access the logged in user and put it in the model for rendering.
-        As a teaser we'd like to show off the user profile page, as it will be rendered after UX heavy lifting.
+        Any logged-in user was now available in the session, and could be used for all the social
+        interactions. The remaining work for this was mainly adding controller methods and JSPs
+        for the views. We used the helper method <code>getUserFromSession()</code> in the controllers
+        to access the logged-in user and put it in the model for rendering.
+        Here's what the UI had evolved to:
     </para>
     <mediaobject>
         <imageobject>

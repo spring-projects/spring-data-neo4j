@@ -1,24 +1,36 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" "http://www.docbook.org/xml/4.4/docbookx.dtd">
 <chapter id="tutorial_about-tutorial">
-    <title>Allow me to introduce - Cineasts.net</title>
+    <title>Introducing Cineasts.net</title>
+    <subtitle>"- In a galaxy, far, far away..."</subtitle>
     <para>
-Once upon a time we wanted to build a social movie database. First things first - we had a name: "Cineasts" - the cinema enthusiasts who are
-crazy about movies. So we went ahead and got the domain, cineasts.net and the project was almost complete.
-</para><para>
-We had some ideas about the domain too. Of course there should be actors who play roles in movies. We needed the Cineast, too, someone
-to rate the movies. And while they were there, they could also make friends. Find someone to accompany them to the cinema or share
-movie preferences. Even better, the engine behind all that should recommend new friends and movies to cineasts, based on their interests and
-existing friends.
-</para><para>
-    <mediaobject>
-        <imageobject>
-            <imagedata fileref="cineasts.png" scale="80" align="center"/>
-        </imageobject>
-    </mediaobject>
-</para><para>When we looked for possible sources for data, IMDB was our first stop, but they're a little expensive for our tastes, charging 15k USD for data access. Fortunately we found <ulink url="http://themoviedb.org">TheMoviedb.org</ulink> which provides user-generated data for free. The also have liberal terms and conditions and a nice API for fetching the data.
-</para><para>
-There were many more ideas but we wanted to get something done quickly. And this is how it should look.
+        Once upon a time we wanted to build a social movie database. At first there was only the name: Cineasts,
+        the cinema enthusiasts who have a burning passion for movies. So we went ahead and bought the domain
+        cineasts.net, and the project was almost complete.
+    </para>
+    <para>
+        We had some ideas about the domain model too. There would obviously be actors playing roles in movies.
+        We also needed someone to rate the movies - enter the cineast. And cineasts being the social people they are,
+        they wanted to make friends with other fellow cineasts. Imagine instantly finding someone to watch a movie
+        with, or share movie preferences with. Even better, finding new friends and movies based on what you and
+        your friends like.
+    </para>
+    <para>
+        <mediaobject>
+            <imageobject>
+                <imagedata fileref="cineasts.png" scale="80" align="center"/>
+            </imageobject>
+        </mediaobject>
+    </para>
+    <para>
+        When we looked for possible sources of data, IMDB was our first stop. But they're a bit expensive
+        for our taste, charging $15k USD for data access. Fortunately, we found
+        <ulink url="http://themoviedb.org">TheMoviedb.org</ulink> which provides user-generated data for free.
+        They also have liberal terms and conditions, and a nice API for retrieving the data.
+    </para>
+    <para>
+        We had many more ideas, but we wanted to get something out there quickly. Here is how we envisioned
+        the final website:
     </para>
     <mediaobject>
         <imageobject>

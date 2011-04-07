@@ -51,14 +51,17 @@
         <title>Tutorial</title>
         <partintro>
             <para>
-                The first part of the book provides a tutorial that walks through the creation of a complete Web application 
-				called cineasts.net built with Spring Data Graph and Neo4j.
-                It uses a domain that should be familiar - movies. So for cineasts.net we decided to add a social
-                touch to rating movies, allowing friends to share their scores and get recommendations
-                for new friends and movies.
-            </para><para>
-            The tutorial walks the steps necessary to create the application.
-            It provides the configuration and code examples that are needed to understand what's happening in Spring Data Graph. Of course the complete source code for the app is available at <ulink url="http://github.com/jexp/cineasts">github</ulink>.
+                The first part of the book provides a tutorial that walks through the creation of a complete web
+                application called cineasts.net, built with Spring Data Graph and Neo4j.
+                Cineasts are people who love movies, and the site is a gathering place for these people. For
+                cineasts.net we decided to add a social aspect to the rating of movies, allowing friends to
+                share their scores and get recommendations for new friends and movies.
+            </para>
+            <para>
+                The tutorial takes the reader through the steps necessary to create the application.
+                It provides the configuration and code examples that are needed to understand what's
+                happening in Spring Data Graph. The complete source code for the app is available on
+                <ulink url="http://github.com/jexp/cineasts">Github</ulink>.
             </para>
         </partintro>
 

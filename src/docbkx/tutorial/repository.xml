@@ -1,22 +1,33 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" "http://www.docbook.org/xml/4.4/docbookx.dtd">
 <chapter id="tutorial_repository">
-        <title>Serving a good cause - Repository</title>
-        <para>
-            That was the first method to add to the brand new cineasts repository.
-            First step was to create an (still empty) repository interface for Movie (and Actor). We added the repository configuration
-            to our application context.
-            Then we created a repository for the application, annotated it with @Repository and @Transactional and injected the movie repository.
-            We did the same for the Actor.
-        </para>
-        <para>
-            <programlisting language="java"><![CDATA[
-public interface MovieRepository extends NodeGraphRepository<Movie> {
-   // findById(String id) - automatic derived finder for a future SDG release
-}
-
+    <title>Repositories</title>
+    <subtitle>"- Suitable quote"</subtitle>
+    <para>
+        We wanted to add repositories with domain-specific operations. We started by creating a
+        movie-specific repository, simply by creating an empty interface. It is more convenient to
+        work with a named interface rather than different versions of a generic one.
+        <example>
+            <title>Movie repository</title>
+        <programlisting language="java"><![CDATA[
+package org.neo4j.cineasts.repository;
+public interface MovieRepository extends NodeGraphRepository<Movie> {}
+]]></programlisting>
+        </example>
+        Then we added it to the Spring context configuration by simply adding:
+        <example>
+            <title>Repository context configuration</title>
+        <programlisting language="xml"><![CDATA[
 <datagraph:repositories base-package="org.neo4j.cineasts.repository"/>
-
+]]></programlisting>
+        </example>
+        We then created the domain-specific repository class, annotating it with <code>@Repository</code> and
+        <code>@Transactional</code>, and injected the movie repository.
+    </para>
+    <para>
+        <example>
+            <title>Domain-specific repository</title>
+            <programlisting language="java"><![CDATA[
 @Repository @Transactional
 public class CineastsRepostory {
   @Autowired MovieRepository movieRepository;
@@ -25,6 +36,10 @@ public class CineastsRepostory {
       return movieRepository.findByPropertyValue(null,"id", id);
   }
 }
-    ]]></programlisting>
-        </para>
+]]></programlisting>
+        </example>
+    </para>
+    <para>
+        We did the same for the actors and users.
+    </para>
 </chapter>

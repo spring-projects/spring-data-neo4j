@@ -23,14 +23,14 @@
     <title>About this Guide Book</title>
     <para>
         Welcome to the Spring Data Graph Guide Book. Thank you for taking the time to get an in depth look into <ulink url="https://github.com/SpringSource/spring-data-graph">Spring Data Graph Library</ulink>. Spring Data Graph is part of the <ulink url="http://springsource.org/spring-data">Spring Data project</ulink> which
-        brings the convenient programming model of the Spring Framework to modern (mainly NoSQL) datastores.
+        brings the convenient programming model of the Spring Framework to modern (mainly NOSQL) datastores.
  		Spring Data Graph currently provides integration for the <ulink url="http://neo4j.org">Neo4j Graph Database</ulink>.
     </para><para>
         It was written by developers for developers. So hopefully we've created a documentation that is well received by
         our peers.
     </para><para>
         If you have any feedback to the Spring Data Graph Library or this book, please provide it via <ulink url="https://jira.springsource.org/browse/DATAGRAPH">SpringSource JIRA</ulink>,
-        the <ulink url="http://forum.springsource.org/forumdisplay.php?f=80">SpringSource NoSQL Forum</ulink>, <ulink
+        the <ulink url="http://forum.springsource.org/forumdisplay.php?f=80">SpringSource NOSQL Forum</ulink>, <ulink
         url="https://github.com/SpringSource/spring-data-graph/issues">github comments or issues</ulink> or the <ulink url="http://neo4j.org/community/list/">Neo4j mailing list</ulink>.
     </para><para>
         This book is presented as a <ulink url="http://martinfowler.com/bliki/DuplexBook.html">duplex book</ulink>, a term coined by <ulink url="http://martinfowler.com/bliki/DuplexBook.html">Martin Fowler</ulink>. A duplex book consists of at least two

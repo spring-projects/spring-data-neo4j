@@ -1,54 +1,74 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" "http://www.docbook.org/xml/4.4/docbookx.dtd">
 <chapter id="tutorial_relationships">
-    <title>A convincing act - Relationships</title>
+    <title>Relationships</title>
+    <subtitle>"- Suitable quote"</subtitle>
+    <para>
+        Our application was not yet very much fun, just storing movies and actors. After all,
+        the power is in the relationships between them.
+    </para>
     <section>
-        <title>Value in Relationships - Creating them</title>
+        <title>Creating relationships</title>
         <para>
-            Next were relationships. Direct relationships didn't require any annotation. Unfortunately we had none of those, because ours had more semantics.
-            So we went for the Role relationship between Movie and Actor.
-            It had to be annotated with @RelationshipEntity and the @StartNode and @EndNode had to be marked. So our Role looked like this:
+            Relationships without properties ("anonymous" relationships) don't require any @RelationshipEntity
+            classes. Unfortunately we had none of those, because our relationships were richer.
+            Therefore we went with the Role relationship between Movie and Actor.
+            It had to be annotated with @RelationshipEntity and the @StartNode and @EndNode had to be marked.
+            So our Role looked like this:
         </para>
         <para>
-            <programlisting language="java"><![CDATA[
+            <example>
+                <title>Role class</title>
+                <programlisting language="java"><![CDATA[
 @RelationshipEntity
 class Role {
     @StartNode Actor actor;
     @EndNode Movie movie;
     String role;
 }
-    ]]></programlisting>
-        </para><para>
-        When writing a test for that we tried to create the relationship entity with new, but got an exception saying that this is not allowed. This must be a strange restriction
-about having only correctly constructed RelationshipEntities. To fix it, we had to recall the relateTo method from the introduced methods on the NodeEntities. After
-checking it turned out to be exactly what we needed. We then added the method for connecting movies and actors to the actor - which seems a more natural fit.
+]]></programlisting>
+            </example>
         </para>
         <para>
-            <programlisting language="java" ><![CDATA[
+            When writing a test for that we tried to create the relationship entity with the <code>new</code>
+            keyword, but we got an exception saying that it was not allowed. At first this surprised us, but
+            then we realized that a relationship entity must have a starting entity and ending entity. It
+            turned out that the aspect had introduced a <code>entity.relateTo</code> method in the node entities.
+            It turned out to be exactly what we needed. We simply added a method to the Actor class, connecting
+            it to movies.
+        </para>
+        <para>
+            <example>
+                <title>Relating actors to movies</title>
+                <programlisting language="java" ><![CDATA[
 class Actor {
 ...
-public Role playedIn(Movie movie, String roleName) {
-    Role role = relateTo(movie, Role.class, "ACTS_IN");
-    role.setRole(roleName);
-    return role;
-}}
-            ]]></programlisting>
+    public Role playedIn(Movie movie, String roleName) {
+        Role role = relateTo(movie, Role.class, "ACTS_IN");
+        role.setRole(roleName);
+        return role;
+    }
+}
+]]></programlisting>
+            </example>
         </para>
     </section>
     <section>
-        <title>Who's there ? - Accessing related entities</title>
+        <title>Accessing related entities</title>
         <para>
-            What was left? Accessing those relationships. We already had the appropriate fields in both classes. Time to annotate them correctly. For the fields providing
-access to the entities on the each side of the relationship this was straightforward. Providing the target type again (thanks to Java's type erasure) and the
-relationship type (learned from the Neo4j lesson before) there was only the direction left. Which defaults to OUTGOING so only for the movie we had to
-specify it.
+            Now we wanted to find connected entities.
+            We already had fields for the relationships in both classes. Now it was time to annotate them
+            correctly. It turned out that we needed to provide the target type of the fields again, due to
+            Java's type erasure. The Neo4j relationship type and direction were easy to figure out.
+            The direction even defaulted to outgoing, so we only had to specify it for the movie.
         </para>
         <para>
-            <programlisting language="java" ><![CDATA[
+            <example>
+                <title>@RelatedTo usage</title>
+                <programlisting language="java" ><![CDATA[
 @NodeEntity
 class Movie {
-    @Indexed
-    int id;
+    @Indexed int id;
     String title;
     int year;
     @RelatedTo(elementClass = Actor.class, type = "ACTS_IN", direction = Direction.INCOMING)
@@ -57,8 +77,7 @@ class Movie {
 
 @NodeEntity
 class Actor {
-    @Indexed
-    int id;
+    @Indexed int id;
     String name;
     @RelatedTo(elementClass = Movie.class, type = "ACTS_IN")
     Set<Movie> cast;
@@ -69,41 +88,51 @@ class Actor {
         return role;
     }
 }
-            ]]></programlisting>
+]]></programlisting>
+            </example>
         </para>
         <para>
-            While reading about those relationship-sets we learned that they are handled by managed collections of Spring Data Graph. So whenever we add something to the
-            set or remove it, it automatically reflects that in the underlying relationships. Neat. But this also meant we mustn't initialize the fields. Something we will
-            certainly forget not to do in the future, so watch out for it.
+            While reading about these relationship collections, we learned that they are actually
+            Spring Data Graph-managed sets. So whenever we add or remove something from the set,
+            it automatically gets reflected in the underlying relationships. That's neat! But this
+            also meant we did not need to initialize the fields. That could be easy to forget.
         </para>
         <para>
-            We made sure to add a test for those, so are assured that the collections worked as advertised (and also ran into the intialization problem above).
+            We made sure to add a test for those, so we were assured that the collections worked as
+            advertised.
         </para>
     </section>
     <section>
-        <title>May I introduce ? - Accessing Relationships themselves</title>
-            <para>
-            But we still couldn't access the Role relationships. There was more to read about this. For accessing the relationship in between the nodes there was a separate
-            annotation @RelatedToVia. And we had to declare the field as readonly Iterable&lt;Role&gt;. That should make sure that we never tried to add Roles (which I couldn't create on my own anyway)
-            to this field. Otherwise the annotation attributes were similar to those used for @RelatedTo. So off we went, creating our first real relationship (just kidding).
-</para><para>
-        <programlisting language="java" ><![CDATA[
+        <title>Accessing the relationship entities</title>
+        <para>
+            But we still couldn't access the Role relationships. It turned out that there was a separate
+            annotation <code>@RelatedToVia</code> for accessing the actual relationship entities . And we had
+            to declare the field as an Iterable&lt;Role&gt;, with read-only semantics. This appeared to mean
+            that we were not able to add new roles though the field. Adding relationship entities seemed like
+            it had to be done by using <code>entity.relateTo()</code>. The annotation attributes were similar to
+            those used for <code>@RelatedTo</code>. So off we went, creating our first real relationship (just kidding).
+        </para>
+        <para>
+            <example>
+                <title>@RelatedToVia usage</title>
+                <programlisting language="java" ><![CDATA[
 @NodeEntity
 class Movie {
-    @Indexed
-    int id;
+    @Indexed int id;
     String title;
     int year;
     @RelatedTo(elementClass = Actor.class, type = "ACTS_IN", direction = Direction.INCOMING)
-     Set<Actor> cast;
+    Set<Actor> cast;
 
     @RelatedToVia(elementClass = Role.class, type = "ACTS_IN", direction = Direction.INCOMING)
     Iterable<Roles> roles;
 }
-        ]]></programlisting>
-</para><para>
-            After the tests proved that those relationship fields really mirrored the underlying relationships in the graph and instantly reflected additions and removals we were
-            pretty satisfied with our domain.
+]]></programlisting>
+            </example>
+        </para>
+        <para>
+            After watching the tests pass, we were confident that the relationship fields really mirrored
+            the underlying relationships in the graph. We were pretty satisfied with our domain.
         </para>
     </section>
 </chapter>

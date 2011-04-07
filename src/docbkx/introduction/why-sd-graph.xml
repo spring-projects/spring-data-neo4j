@@ -4,7 +4,7 @@
 <chapter id="why-sd-graph">
     <title>Why Spring Data Graph?</title>
    
-    <para><ulink url="http://en.wikipedia.org/wiki/NoSQL">NOSQL</ulink>
+    <para><ulink url="http://en.wikipedia.org/wiki/NOSQL">NOSQL</ulink>
     stores provide novel storage solutions to suit the  
 	data storage requirements of modern applications.
 	</para>

@@ -1,38 +1,36 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" "http://www.docbook.org/xml/4.4/docbookx.dtd">
 <chapter id="tutorial_indexing">
-    <title>Do I know you? - Indexing</title>
+    <title>Indexing</title>
+    <subtitle>"- Find them and destroy them."</subtitle>
     <para>
-        There an @Indexed annotation for fields. We wanted to try this out, and use it to guide the next test. We added an @Indexed to the id field of the movie.
-        This field is intended to represent the external id that will be used in URIs and will stable over database imports and updates. This time we went with the
-        default NodeGraphRepository (previously Finder) to retrieve the indexed movie.
-
-    </para><para>
-
-<programlisting language="java" ><![CDATA[
-@NodeEntity
-class Movie {
-    @Indexed
-    int id;
+        There is an @Indexed annotation for fields. We wanted to try this out, and use it to guide the
+        next test. We added @Indexed to the ID field of the Movie class. This field is intended to represent
+        the external ID that will be used in URIs and will be stable across database imports and updates.
+        This time we went with the default NodeGraphRepository (previously Finder) to retrieve the indexed movie.
+    </para>
+    <para>
+        <example>
+            <title></title>
+            <programlisting language="java" ><![CDATA[
+@NodeEntity class Movie {
+    @Indexed int id;
     String title;
     int year;
 }
 
 @Autowired DirectGraphRepositoryFactory graphRepositoryFactory;
 
-@Test [@Transactional] public void persistedMovieShouldBeRetrievableFromGraphDb() {
-    int id=1;
+@Test public void persistedMovieShouldBeRetrievableFromGraphDb() {
+    int id = 1;
     Movie forrestGump = new Movie(id, "Forrest Gump", 1994).persist();
     NodeGraphRepository<Movie> movieRepository = graphRepositoryFactory.createNodeEntityRepository(Movie.class);
     // REMINDER, the "null" stands for an optional index name
-    Movie retrievedMovie = movieRepository.findByPropertyValue(null, "id",id);
-    assertEqual("retrieved movie matches persisted one",forrestGump,retrievedMovie);
-    assertEqual("retrieved movie title matches","Forrest Gump",retrievedMovie.getTitle());
+    Movie retrievedMovie = movieRepository.findByPropertyValue(null, "id", id);
+    assertEqual("retrieved movie matches persisted one", forrestGump, retrievedMovie);
+    assertEqual("retrieved movie title matches", "Forrest Gump", retrievedMovie.getTitle());
 }
-
 ]]></programlisting>
-
-    </para><para>
-        Surprisingly, this failed with an exception about not being in a transaction, which means we forgot to add the @Transactional annotation. That's easy enough to add to the test, and resume the test/code cycle.
-        </para>
+        </example>
+    </para>
 </chapter>

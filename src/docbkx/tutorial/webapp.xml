@@ -1,12 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" "http://www.docbook.org/xml/4.4/docbookx.dtd">
 <chapter id="tutorial_webapp">
-    <title>Showing off - Web views</title>
+    <title>Web views</title>
+    <subtitle>"- Suitable quote"</subtitle>
     <para>
-        After we had the means to put some data in the graph database, we also wanted to show it. So adding the controller method to show a single movie with its attributes
-and cast in a jsp was straightforward. Actually just using the repository to look the movie up and add it to the model. Then forward to the /movies/show view and voilá.
-</para><para>
-    <programlisting language="java"><![CDATA[
+        After having put some data in the graph database, we also wanted to show it to the user. Adding
+        the controller method to show a single movie with its attributes and cast in a JSP was
+        straightforward. It basically just involved using the repository to look the movie up and add
+        it to the model, and then forwarding to the /movies/show view and voilá.
+    </para>
+    <para>
+        <example>
+            <title>Controller for showing movies</title>
+            <programlisting language="java"><![CDATA[
 @RequestMapping(value = "/movies/{movieId}", method = RequestMethod.GET, headers = "Accept=text/html")
 public String singleMovieView(final Model model, @PathVariable String movieId) {
     Movie movie = repository.getMovie(movieId);
@@ -18,48 +24,60 @@ public String singleMovieView(final Model model, @PathVariable String movieId) {
     return "/movies/show";
 }
 ]]></programlisting>
-</para>
-<para>
-    Later the nice UI would look like that:
-    <mediaobject>
-        <imageobject>
-            <imagedata fileref="cineasts_movie.png" contentwidth="15cm" scalefit="1" align="center"/>
-        </imageobject>
-    </mediaobject>
-</para>
+        </example>
+    </para>
+    <para>
+        The UI had now evolved to this:
+        <mediaobject>
+            <imageobject>
+                <imagedata fileref="cineasts_movie.png" contentwidth="15cm" scalefit="1" align="center"/>
+            </imageobject>
+        </mediaobject>
+    </para>
     <section>
-        <title>What was his name? - Searching</title>
+        <title>Searching</title>
         <para>
-            The next thing was to allow users to search for some movies. So we needed some fulltext-search capabilities. As the index provider implementation of Neo4j builds on
-lucene we were delighted to see that fulltext indexes are supported out of the box.
+            The next thing was to allow users to search for movies, so we needed some fulltext search
+            capabilities. As the index provider implementation of Neo4j is based on Apache Lucene,
+            we were delighted to see that fulltext indexes were supported out of the box.
         </para>
         <para>
-            We happily annotated the title field of my Movie class with @Index(fulltext=true) and was told with an exception that we have to specify a separate index name for that.
-So it became @Indexed(fulltext = true, indexName = "search"). The corresponding graphRepository method is called findAllByQuery. So there was our second repository method for
-searching movies. To restrict the size of the returned set we just added a limit for now that truncates the result after so many entries.
+            We happily annotated the title field of the Movie class with @Indexed(fulltext = true).
+            We got an exception back telling us that we have to specify a separate index name.
+            So we simply changed it to @Indexed(fulltext = true, indexName = "search"). The corresponding
+            repository method is called findAllByQuery. To restrict the size of the returned set we simply
+            added a limit that truncates the result.
         </para>
         <para>
-<programlisting language="java"><![CDATA[
-public void List<Movie> findMovies(String query, int count) {
-    List<Movie> movies=new ArrayList<Movie>(count);
-    for (Movie movie : movieRepository.findAllByQuery("title", query)) {
-        movies.add(movie);
-        if (count-- == 0) break;
+            <example>
+                <title>Searching for movies</title>
+                <programlisting language="java"><![CDATA[
+public class CineastRepository {
+    ....
+    public void List<Movie> findMovies(String query, int count) {
+        List<Movie> movies=new ArrayList<Movie>(count);
+        for (Movie movie : movieRepository.findAllByQuery("title", query)) {
+            movies.add(movie);
+            if (count-- == 0) break;
+        }
+        return movies;
     }
-    return movies;
 }
 ]]></programlisting>
+            </example>
         </para>
     </section>
     <section>
-        <title>Look what we've found - Listing Results</title>
-
+        <title>Listing results</title>
         <para>
-            We then used this result in the controller to render a list of movies driven by a search box. The movie properties and the cast was accessed by the getters in the
-domain classes.
+            We then used this result in the controller to render a list of movies, driven by a
+            search box. The movie properties and the cast were accessible through the getters
+            in the domain classes.
         </para>
         <para>
-            <programlisting language="java"><![CDATA[
+            <example>
+                <title>Search controller</title>
+                <programlisting language="java"><![CDATA[
 @RequestMapping(value = "/movies", method = RequestMethod.GET, headers = "Accept=text/html")
 public String findMovies(Model model, @RequestParam("q") String query) {
     List<Movie> movies = repository.findMovies(query, 20);
@@ -68,9 +86,12 @@ public String findMovies(Model model, @RequestParam("q") String query) {
     return "/movies/list";
 }
 ]]></programlisting>
+            </example>
         </para>
         <para>
-            <programlisting language="jsp" ><![CDATA[
+            <example>
+                <title></title>
+                <programlisting language="jsp" ><![CDATA[
 <h2>Movies</h2>
 
 <c:choose>
@@ -91,14 +112,15 @@ public String findMovies(Model model, @RequestParam("q") String query) {
     </c:otherwise>
 </c:choose>
             ]]></programlisting>
+            </example>
         </para>
-<para>
-    Here is another teaser, what the final UX would look like for that:
-    <mediaobject>
-        <imageobject>
-            <imagedata fileref="cineasts_results.png" contentwidth="15cm" scalefit="1" align="center"/>
-        </imageobject>
-    </mediaobject>
-</para>
+        <para>
+            The UI now looked like this:
+            <mediaobject>
+                <imageobject>
+                    <imagedata fileref="cineasts_results.png" contentwidth="15cm" scalefit="1" align="center"/>
+                </imageobject>
+            </mediaobject>
+        </para>
     </section>
 </chapter>

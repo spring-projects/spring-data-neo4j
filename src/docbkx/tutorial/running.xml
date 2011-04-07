@@ -1,50 +1,60 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" "http://www.docbook.org/xml/4.4/docbookx.dtd">
 <chapter id="tutorial_running">
-    <title>Curtains Up! - Get it running</title>
+    <title>Get it running</title>
+    <subtitle>"- Suitable quote"</subtitle>
+    <para>
+        Now we had a pretty complete application. It was time to put it to the test.
+    </para>
     <section>
-        <title>Requisites - Populating the database</title>
+        <title>Populating the database</title>
         <para>
-            Time to put this on display. But we needed some test data first. So we wrote a small class for populating the database which could be called from our controller.
-            To make it safe to call several times we added index lookups to check for existing entries. A simple /populate endpoint for the controller that called it would
-            be enough for now.
+            Before we opened the gates we needed to add some movie data. So we wrote a small class for
+            populating the database which could be called from our controller. To make it safe to call
+            several times we added index lookups to check for existing entries. A simple /populate endpoint
+            for the controller that called it would be enough for now.
         </para>
         <para>
-<programlisting language="java"><![CDATA[
+            <example>
+                <title>Populating the database - Controller</title>
+                <programlisting language="java"><![CDATA[
 @Service
 public class DatabasePopulator {
 
-  @Autowired GraphDatabaseContext ctx;
-  @Autowired CineastsRepository repository;
+    @Autowired GraphDatabaseContext ctx;
+    @Autowired CineastsRepository repository;
 
-  @Transactional
-  public List<Movie> populateDatabase() {
-      Actor tomHanks = new Actor("1", "Tom Hanks").persist();
-      Movie forestGump = new Movie("1", "Forrest Gump").persist();
-      tomHanks.playedIn(forestGump,"Forrest");
-      return asList(forestGump);
-  }}
+    @Transactional
+    public List<Movie> populateDatabase() {
+        Actor tomHanks = new Actor("1", "Tom Hanks").persist();
+        Movie forestGump = new Movie("1", "Forrest Gump").persist();
+        tomHanks.playedIn(forestGump,"Forrest");
+        return asList(forestGump);
+    }
+}
 
 @Controller
 public class MovieController {
 
-  private DatabasePopulator populator;
+    private DatabasePopulator populator;
 
-  @Autowired
-  public MovieController(DatabasePopulator populator) {
-      this.populator = populator;
-  }
+    @Autowired
+    public MovieController(DatabasePopulator populator) {
+        this.populator = populator;
+    }
 
-  @RequestMapping(value = "/populate", method = RequestMethod.GET)
-  public String populateDatabase(Model model) {
-      Collection<Movie> movies=populator.populateDatabase();
-      model.addAttribute("movies",movies);
-      return "/movies/list";
-  }
+    @RequestMapping(value = "/populate", method = RequestMethod.GET)
+    public String populateDatabase(Model model) {
+        Collection<Movie> movies = populator.populateDatabase();
+        model.addAttribute("movies",movies);
+        return "/movies/list";
+    }
 }
-
-        ]]></programlisting>
-            <programlisting language="jsp"><![CDATA[
+]]></programlisting>
+            </example>
+            <example>
+                <title>Populating the database - JSP</title>
+                <programlisting language="jsp"><![CDATA[
 <%@ page session="false" %>
 <%@ taglib uri="http://www.springframework.org/tags" prefix="s" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
@@ -66,50 +76,63 @@ public class MovieController {
       No Movie with id ${id} found!
   </c:otherwise>
 </c:choose>
-            ]]></programlisting>
-        </para><para>
-        See the misused GET parameter for that (don't do this at home, the <ulink url="http://restinpractice.com">REST guys</ulink> will be upset). This is only for running it from the browser
-        address line. Better use POST and curl for the call. So we called the URI and it showed the single added movie
-        on screen.
+]]></programlisting>
+            </example>
         </para>
+        <para>
+            Accessing the URI showed the single added movie on screen.
+        </para>
+        <note>
+            Pardon the misused GET parameter for that (don't try this at home, the
+            <ulink url="http://restinpractice.com">REST guys</ulink> will be hunt you down). This is only for
+            running it from the browser address line. The next iteration of this website would use a button
+            with POST.
+        </note>
     </section>
     <section>
-        <title>Behind the scenes - Peeking at the Datastore</title>
-
+        <title>Inspecting the datastore</title>
+        <para>
+            Being the geeks we are, we also wanted to inspect the raw data in the database. Reading the
+            Neo4j docs, there were a couple of different ways of going about this.
+        </para>
         <section>
-            <title>Eye candy - Neoclipse visualization</title>
+            <title>Neoclipse visualization</title>
             <para>
-                After filling the database we wanted to see what the graph looked like. So we checked out two tools that are available for inspecting the graph. First Neoclipse, an
-            eclipse RCP application or plugin that connects to existing graph stores and visualizes their content. After getting an exception about concurrent access, I learned
-            that I have to use Neoclipse in readonly mode when my webapp had an active connection to the store. Good to know.
-            </para><para>
-
-            <mediaobject>
-                <imageobject>
-                    <imagedata fileref="neoclipse.png" scalefit="1" contentwidth="15cm" align="center"/>
-                </imageobject>
-            </mediaobject>
+                First we tried Neoclipse, an Eclipse RCP application/plugin that opens an existing graph store
+                and visualizes its content. After getting an exception about concurrent access, we learned that
+                we have to use Neoclipse in read-only mode when our webapp was still running. Good to know.
+            </para>
+            <para>
+                <mediaobject>
+                    <imageobject>
+                        <imagedata fileref="neoclipse.png" scalefit="1" contentwidth="15cm" align="center"/>
+                    </imageobject>
+                </mediaobject>
             </para>
         </section>
         <section>
-            <title>Hardcore "Hacking" - Neo4j Shell</title>
+            <title>The Neo4j Shell</title>
             <para>
-            Besides our movies and actors connected by ACTS_IN relationships there were some other nodes. The reference node which is an automatically provided "root node" in Neo4j and can be used
-            to anchor subgraphs for easier access. And Spring Data Graph also represented the type hierarchy of my entities in the graph. Obviously for some internal housekeeping
-            and type checking.
-            </para><para>
-            For console junkies there is also a shell that can reach into a running neo4j store (if that one was started with enableRemoteShell) or provide readonly access
-            to a graph store directory.
-            </para><para>
-
-            <programlisting language="shell" ><![CDATA[
+                For console junkies there was also a shell that was able to connect to a running Neo4j instance
+                (if it was started with enable_remote_shell=true), or directly open an existing graph store.
+            </para>
+            <para>
+                <example>
+                    <title>Starting the Neo4j Shell</title>
+                    <programlisting language="shell" ><![CDATA[
 neo4j-shell -readonly -path data/graph.db
-            ]]></programlisting>
-            </para><para>
-            It uses some shell metaphors like cd and ls to navigate the graph. There are also more advanced commands like using indexes and traversals. I tried to play around with them
-            in this shell sesson.
-            </para><para>
-            <programlisting language="shell" ><![CDATA[
+]]></programlisting>
+                </example>
+            </para>
+            <para>
+                The shell was very similar to a standard Bash shell. We were able to <code>cd</code> to
+                between the nodes, and <code>ls</code> the relationships and properties. There were also
+                more advanced commands for indexing and traversals.
+            </para>
+            <para>
+                <example>
+                    <title>Neo4j Shell usage</title>
+                    <programlisting language="shell" ><![CDATA[
 neo4j-sh[readonly] (0)$ ls
 (me) --[SUBREF_java.lang.Object]-> (3)
 (me) --[SUBREF_org.neo4j.cineasts.domain.Movie]-> (6)
@@ -148,6 +171,7 @@ neo4j-sh[readonly] (The Matrix,93)$ ls
 (me) --[INSTANCE_OF]-> (6)
 (me) <-[RATED]-- (Micha,1)
             ]]></programlisting>
+                </example>
             </para>
         </section>
     </section>

@@ -1,12 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" "http://www.docbook.org/xml/4.4/docbookx.dtd">
 <chapter id="tutorial_import">
-    <title>The dusty archives - Importing Data</title>
+    <title>Importing Data</title>
+    <subtitle>"- Suitable quote"</subtitle>
     <para>
-        Then it was time to pull the data from <ulink url="http://themoviedb.org">themoviedb.org</ulink>. Registering there and getting an API key was simple, using the API on the command line with curl too.
-        Looking at the JSON returned for movies and people we decided to enhance our domain model and add some more fields to enrich the UI.
-    </para><para>
-    <programlisting language="javascript" ><![CDATA[
+        It was now time to pull the data from <ulink url="http://themoviedb.org">themoviedb.org</ulink>.
+        Registering there and getting an API key was simple, as was using the API on the command-line with
+        <code>curl</code>. Looking at the JSON returned for movies and people, we decided to enhance our
+        domain model and add some more fields to enrich the UI.
+    </para>
+    <para>
+        <example>
+            <title>JSON movie response</title>
+            <programlisting language="javascript" ><![CDATA[
    [{"popularity":3,
 "translated":true, "adult":false, "language":"en",
 "original_name":"[Rec]", "name":"[Rec]", "alternative_name":"[REC]",
@@ -51,7 +57,10 @@
 "profile":""}],
 "version":150, "last_modified_at":"2011-02-20 23:16:57"}]
     ]]></programlisting>
-    <programlisting language="javascript" ><![CDATA[
+        </example>
+        <example>
+            <title>JSON actor response</title>
+            <programlisting language="javascript" ><![CDATA[
     [{"popularity":3,
 "name":"Glenn Strange", "known_as":[{"name":"George Glenn Strange"}, {"name":"Glen Strange"},
 {"name":"Glen 'Peewee' Strange"}, {"name":"Peewee Strange"}, {"name":"'Peewee' Strange"}],
@@ -72,15 +81,22 @@
 "profile":[],
 "version":19, "last_modified_at":"2011-03-07 13:02:35"}]
     ]]></programlisting>
-    </para><para>
-        For the import process we created a separate importer using Jackson (a JSON library) to fetch and parse the data and then some transactional methods in the MovieDbImportService to actually
-        insert it as movies, roles and actors.
-        <!--User data was not available so I created an anonymous user called 'Cineast' that I attributed all the ratings and comments to.-->
-        The importer used a simple caching mechanism, to keep downloaded actor and movie data on the filesystem, so that we didn't have to overload the remote API.
-        In the code below you can see, that we've changed the actor to a person so that we can also accommodate the other folks that participate in movie production.
+        </example>
     </para>
     <para>
-        <programlisting language="java" ><![CDATA[
+        For the import process we created a separate importer using Jackson (a JSON library) to fetch
+        and parse the data, and then some transactional methods in the MovieDbImportService to actually
+        import it as movies, roles, and actors.
+        <!--User data was not available so I created an anonymous user called 'Cineast' that I attributed all the ratings and comments to.-->
+        The importer used a simple caching mechanism to keep downloaded actor and movie data on the
+        filesystem, so that we didn't have to overload the remote API.
+        In the code below you can see that we've changed the actor to a person so that we can also accommodate
+        the other folks that participate in movie production.
+    </para>
+    <para>
+        <example>
+            <title>Importing the data</title>
+            <programlisting language="java" ><![CDATA[
 @Transactional
 public Movie importMovie(String movieId) {
     Movie movie = repository.getMovie(movieId);
@@ -123,11 +139,11 @@ public void mapToMovie(Map data, Movie movie) {
 }
 
         ]]></programlisting>
-</para>
-    <para>
-        The last part involved adding a protected URI to the MovieController to allow importing ranges of movies.
-        During testing it became obvious that the calls to themoviedb were a limiting factor. As soon as
-        the data was stored locally it took only subseconds to create the data in the Neo4j graph database.
+        </example>
     </para>
-
+    <para>
+        The last part involved adding a protected URI to the MovieController to allow importing ranges
+        of movies. During testing, it became obvious that the calls to TheMoviedb.org were a limiting
+        factor. As soon as the data was stored locally, the Neo4j import was a sub-second deal.
+    </para>
 </chapter>

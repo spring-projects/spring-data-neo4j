@@ -1,29 +1,34 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" "http://www.docbook.org/xml/4.4/docbookx.dtd">
 <chapter id="tutorial_social">
-    <title>Movies 2.0 - Adding social</title>
+    <title>Adding social</title>
+    <subtitle>"- Suitable quote"</subtitle>
     <para>
-        But this was just a plain old movie database (POMD). Our idea of socializing this business wasn't yet realized.
+        So far, the website had only been a plain old movie database (POMD?). We now wanted to add
+        a touch of social to it.
     </para>
     <section>
-        <title>Look, mom a Cineast! - Users</title>
+        <title>Users</title>
         <para>
-            So we took the User class that we'd already coded and made it a full fledged Spring Data Graph member.
-            We added the ability to make friends and to rate movies. With that there was also a simple UserRepository that
-            was able to look up users by id.
+            So we started out by taking the User class that we'd already coded and made it a
+            full-fledged Spring Data Graph entity. We added the ability to make friends and to
+            rate movies. With that we also added a simple UserRepository that was able to look
+            up users by ID.
         </para>
         <para>
-            <programlisting language="java" ><![CDATA[
+            <example>
+                <title>Social entities</title>
+                <programlisting language="java" ><![CDATA[
 @NodeEntity
 class User {
-    @Indexed
-    String login;
+    @Indexed String login;
     String name;
     String password;
-    @RelatedTo(elementClass=Movie.class, type="RATED")
-    Set<Rating> ratings;
 
-    @RelatedTo(elementClass=User.class, type="FRIEND")
+    @RelatedToVia(elementClass = Rating.class, type = RATED)
+    Iterable<Rating> ratings;
+
+    @RelatedTo(elementClass = User.class, type = "FRIEND", direction=Direction.BOTH)
     Set<User> friends;
 
     public Rating rate(Movie movie, int stars, String comment) {
@@ -33,6 +38,7 @@ class User {
         this.friends.add(user);
     }
 }
+
 @RelationshipEntity
 class Rating {
     @StartNode User user;
@@ -40,60 +46,70 @@ class Rating {
     int stars;
     String comment;
     public Rating rate(int stars, String comment) {
-       this.stars=stars; this.comment = comment;
+       this.stars = stars; this.comment = comment;
        return this;
     }
 }
-            ]]></programlisting>
-
+]]></programlisting>
+            </example>
         </para>
         <para>
-            We extended my DatabasePopulator to add some users and ratings to the initial setup.
+            We extended the DatabasePopulator to add some users and ratings to the initial setup.
         </para>
         <para>
-            <programlisting language="java" ><![CDATA[
+            <example>
+                <title>Populate users and ratings</title>
+                <programlisting language="java" ><![CDATA[
 @Transactional
 public List<Movie> populateDatabase() {
     Actor tomHanks = new Actor("1", "Tom Hanks").persist();
     Movie forestGump = new Movie("1", "Forrest Gump").persist();
-    tomHanks.playedIn(forestGump,"Forrest");
+    tomHanks.playedIn(forestGump, "Forrest");
 
-    User me = new User("micha", "Micha", "password", User.Roles.ROLE_ADMIN,User.Roles.ROLE_USER).persist();
+    User me = new User("micha", "Micha", "password",
+        User.Roles.ROLE_ADMIN, User.Roles.ROLE_USER).persist();
     Rating awesome = me.rate(forestGump, 5, "Awesome");
 
-    User ollie = new User("ollie", "Olliver", "password",User.Roles.ROLE_USER).persist();
+    User ollie = new User("ollie", "Olliver", "password", User.Roles.ROLE_USER).persist();
     ollie.rate(forestGump, 2, "ok");
     me.addFriend(ollie);
     return asList(forestGump);
 }
-            ]]></programlisting>
+]]></programlisting>
+            </example>
         </para>
     </section>
     <section>
-        <title>Beware, Critics - Rating</title>
+        <title>Ratings for movies</title>
         <para>
-            We also put a ratings field into the movie to be able to show its ratings. And a method to average its star rating.
+            We also put a ratings field into the Movie class to be able to get a movie's ratings,
+            and also a method to average its star rating.
         </para>
         <para>
-            <programlisting language="java" ><![CDATA[
+            <example>
+                <title>Getting the rating of a movie</title>
+                <programlisting language="java" ><![CDATA[
 class Movie {
+    ...
+
     @RelatedToVia(elementClass=Rating.class, type="RATED", direction = Direction.INCOMING)
     Iterable<Rating> ratings;
 
     public int getStars() {
-        int stars, int count;
+        int stars = 0, count = 0;
         for (Rating rating : ratings) {
             stars += rating.getStars(); count++;
         }
         return count == 0 ? 0 : stars / count;
     }
 }
-            ]]></programlisting>
+]]></programlisting>
+            </example>
         </para>
         <para>
-            Fortunately our tests highlighted the division by zero error when calculating the stars for a movie without ratings.
-            Next steps were to add this information to the UI of movie and create a user profile page. But for that to happen
-            they must be able to log in.
+            Fortunately our tests highlighted the division by zero error when calculating the stars for
+            a movie without ratings. The next steps were to add this information to the movie presentation in
+            the UI, and creating a user profile page. But for that to happen, users must first be able to log in.
         </para>
     </section>
 </chapter>

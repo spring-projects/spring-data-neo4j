@@ -1,35 +1,70 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" "http://www.docbook.org/xml/4.4/docbookx.dtd">
 <chapter id="tutorial_annotations">
-    <title>Decorations - Annotated Domain</title>
+    <title>Annotating the domain</title>
+    <subtitle>"- Suitable quote"</subtitle>
     <para>
-        Looking at the documentation again, we found a simple <ulink url="http://github.com/SpringSource/spring-data-graph-examples/tree/master/hello-worlds">Hello-World example</ulink> and tried to understand it.
-        The entities were annotated with @NodeEntity, that was simple, so we added the annotation to our domain classes too.
-        Relationships got their own annotation named @RelationshipEntity. Property fields are taken care of automatically.
-    </para><para>
-        It's time to put this to a test. How can we be assured that a field is persisted to the graph store? There seemed to be two possibilities. First was to get a
-        GraphDatabaseContext injected and use its getById() method. The other one was a Repository approach. But let's try to keep things simple.
-        How can we persist an entity and how to get its id? Looking at the documentation revealed that there are a bunch of methods introduced to the
-        entities by the aspects. That's not obvious, but we found the two that would help here - entity.persist() and entity.getNodeId().
-    </para><para>
-        So our test looked like this.
-    </para><para>
+        Looking at the Spring Data Graph documentation, we found a simple
+        <ulink url="http://github.com/SpringSource/spring-data-graph-examples/tree/master/hello-worlds">Hello World example</ulink>
+        and tried to understand it. The entity classes were annotated with <code>@NodeEntity</code>.
+        That was simple, so we added the annotation to our domain classes too. Entity classes representing
+        relationships were instead annotated with <code>@RelationshipEntity</code>.
+        Property fields were taken care of automatically.
+    </para>
+    <para>
+        It was time to put our application to a test. First we needed to figure out how to persist our
+        entity to the database. It turns out that the aspect introduced new methods into the annotated
+        entities. For persisting the entity to the database, we used <code>entity.persist()</code>.
+    </para>
+    <para>
+        How could we now be assured that a field really was persisted to the graph store?
 
-    <programlisting language="java" ><![CDATA[
+        Well, either we could have a GraphDatabaseContext injected and use its <code>getById(entityId)</code>
+        method, or use a more versatile Repository. We decided to keep things simple for now. To get an
+        entity's ID, we simply used the aspect-introduced method <code>entity.getNodeId()</code>.
+
+        Looking at the documentation revealed that there are a bunch of methods introduced to the
+        entities by the aspects. It's not entirely obvious, but we found two that would do the job:
+        <code>entity.persist()</code> <code>entity.getNodeId()</code>.
+    </para>
+    <para>
+        So here's what our test ended up looking like:
+    </para>
+    <para>
+        <example>
+            <title>First test case</title>
+            <programlisting language="java" ><![CDATA[
 @Autowired GraphDatabaseContext graphDatabaseContext;
 
 @Test public void persistedMovieShouldBeRetrievableFromGraphDb() {
     Movie forrestGump = new Movie("Forrest Gump", 1994).persist();
     Movie retrievedMovie = graphDatabaseContext.getById(forrestGump.getNodeId());
-    assertEqual("retrieved movie matches persisted one",forrestGump,retrievedMovie);
-    assertEqual("retrieved movie title matches","Forrest Gump",retrievedMovie.getTitle());
+    assertEqual("retrieved movie matches persisted one", forrestGump, retrievedMovie);
+    assertEqual("retrieved movie title matches", "Forrest Gump", retrievedMovie.getTitle());
 }
-
-    ]]></programlisting>
-    </para><para>
-
-        That worked! But what about transactions? We didn't declare the test to be transactional. After further reading we learned that persist() creates an
-        implicit transaction - so that was like an EntityManager would behave. Ok, now we're getting somewhere. We also learned that for more complex operations on the entities we'd need
-        external transactions.
-        </para>
+]]></programlisting>
+        </example>
+    </para>
+    <para>
+        It worked! But hold on, what about transactions? After all, we had not declared the test to be
+        transactional. After some further reading we learned that calling <code>persist()</code> outside
+        of a transaction automatically creates an implicit transaction. Very much like an EntityManager
+        would behave. We also learned that when performing more complex operations on the entities we'd
+        need external transactions, but not for this simple test.
+    </para>
+    <para>
+        Our domain model had now evolved.
+        <example>
+            <title>Movie class</title>
+            <programlisting language="java"><![CDATA[
+@NodeEntity
+class Movie {
+    int id;
+    String title;
+    int year;
+    Set<Role> cast;
+}
+]]></programlisting>
+        </example>
+    </para>
 </chapter>

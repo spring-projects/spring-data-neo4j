@@ -1,15 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" "http://www.docbook.org/xml/4.4/docbookx.dtd">
 <chapter id="tutorial_user-experience">
-    <title>Oh the Glamour - More UI</title>
+    <title>More UI</title>
+    <subtitle>"- Suitable quote"</subtitle>
     <para>
-        To create a nice user experience, we wanted to have a nice looking app, not something that looked like a toddler
-        made it. So we got some UX people involved and the results were impressive. This sections presents some of the
-        remaining screenshots of cineasts.net.
+        To create a nice user experience, we wanted to have a nice looking app. Not something that
+        looked like a toddler made it. So we got some user experience people involved and the results
+        were impressive. This sections presents some of the remaining screen shots of Cineasts.net.
     </para>
     <para>
-        Some of the noteworthy things. As Spring Data Graph does a read-through to the datastore for property and relationship
-        access we tried to minimize that by using <code>&lt;c:var/&gt;</code> several times.
+        Some noteworthy things. Since Spring Data Graph reads through down to the database for property
+        and relationship access, we tried to minimize that by using <code>&lt;c:var/&gt;</code> several times.
         The app contains very little javascript / ajax code right now, that will change when it moves ahead.
     </para>
     <para>

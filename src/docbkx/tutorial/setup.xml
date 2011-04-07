@@ -1,31 +1,38 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" "http://www.docbook.org/xml/4.4/docbookx.dtd">
 <chapter id="tutorial_setup">
-    <title>Scope: Spring</title>
+    <title>The Spring stack</title>
+    <subtitle>"- a light from the shadows shall spring"</subtitle> <!-- lord of the rings -->
     <para>
-        Being Spring developers, we would, of course, choose components of the Spring Framework to do most of the work. We'd already come up with the ideas -
-        that should be enough.
-    </para><para>
-        What database would fit both the complex network of cineasts, movies, actors, roles, ratings and friends? And also be able to support the
-        recommendation algorithms that we had in mind? We had no idea.
-    </para><para>
-    But, wait, there is the new Spring Data project, started in 2010,  which brings
-        the convenience of the Spring programming model to NoSQL databases. That should fit our experience and help us to get started. We looked
-        at the list of projects supporting the different NoSQL databases. Only one mentioned the kind of social network we were thinking of -
-        Spring Data Graph for Neo4j, a graph database. Neo4j's pitch of "value in relationships" and the accompanying docs looked like what we needed.
+        Being Spring developers, we naturally choose components from the Spring stack to do all the
+        heavy lifting. After all, we have the concept etched out, so we're already halfway there.
+    </para>
+    <para>
+        What database would fit both the complex network of cineasts, movies, actors, roles, ratings,
+        and friends, while also being able to support the recommendation algorithms that we had in mind?
+        We had no idea.
+    </para>
+    <para>
+        But hold your horses, there is this new Spring Data project, started in 2010, which brings
+        the convenience of the Spring programming model to NOSQL databases. That should be in line with
+        what we already know, providing us with a quick start. We had a look at the list of projects
+        supporting the different NOSQL databases out there. Only one of them mentioned the kind of social
+        network we were thinking of - Spring Data Graph for Neo4j, a graph database. Neo4j's slogan of
+        "value in relationships" and the accompanying docs looked like what we needed.
         We decided to give it a try.
     </para>
     <section>
-        <title>Preparations - Required Setup</title>
+        <title>Required setup</title>
         <para>
-            To setup the project we created a public github account and began setting up the infrastructure for a spring web project using Maven as build
-            system. So we added the dependencies for the Spring Framework libraries, put the web.xml for the DispatcherServlet and the applicationContext.xml
-            in the webapp directory.
-        </para><para>
-
-        <example>
-            <title>pom.xml</title>
-            <programlisting language="xml"><![CDATA[
+            To set up the project we created a public github account and began setting up the
+            infrastructure for a spring web project using Maven as the build system. So we added
+            the dependencies for the Spring Framework libraries, added the web.xml for the DispatcherServlet,
+            and the applicationContext.xml in the webapp directory.
+        </para>
+        <para>
+            <example>
+                <title>Project pom.xml</title>
+                <programlisting language="xml"><![CDATA[
 <properties>
     <spring.version>3.0.5.RELEASE</spring.version>
 </properties>
@@ -57,13 +64,12 @@
 		</configuration>
 	</plugin>
 </plugins></build>
+]]></programlisting>
+            </example>
 
-            ]]></programlisting>
-        </example>
-
-        <example>
-            <title>web.xml</title>
-            <programlisting language="xml"><![CDATA[
+            <example>
+                <title>Project web.xml</title>
+                <programlisting language="xml"><![CDATA[
 <listener>
     <listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
 </listener>
@@ -78,19 +84,22 @@
     <servlet-name>dispatcherServlet</servlet-name>
     <url-pattern>/</url-pattern>
 </servlet-mapping>
-        ]]></programlisting>
-        </example>
-
-    </para><para>
-            With this setup we were ready for the first spike: creating a simple MovieController showing a static view. Check. Next was the setup for Spring Data Graph.
-            We looked at the README at github and then checked it with the manual. Quite a lot of Maven setup for AspectJ but otherwise not so much to add.
-            Time to add a few lines to our Spring configuration.
-    </para><para>
-
-
-<example>
-    <title>applicationContext.xml</title>
-        <programlisting language="xml"><![CDATA[
+]]></programlisting>
+            </example>
+        </para>
+        <para>
+            With this setup in place we were ready for the first spike: creating a simple MovieController
+            showing a static view. See the Spring Framework documentation for information on doing this.
+        </para>
+        <!--<para>-->
+            <!--Next was the setting up of Spring Data Graph. We looked at the README at the Spring Data Graph-->
+            <!--Github, and then checked the Spring Data Graph manual. There was a bit of Maven setup for AspectJ-->
+            <!--but apart from that, not much new stuff. Time to add a few lines to our Spring configuration.-->
+        <!--</para>-->
+        <para>
+            <example>
+                <title>Project applicationContext.xml</title>
+                <programlisting language="xml"><![CDATA[
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
     xmlns:context="http://www.springframework.org/schema/context"
@@ -112,10 +121,10 @@
  <tx:annotation-driven mode="aspectj"/>
 </beans>
 ]]></programlisting>
-</example>
-<example>
-    <title>dispatcherServlet-servlet.xml</title>
-        <programlisting language="xml"><![CDATA[
+            </example>
+            <example>
+                <title>Project dispatcherServlet-servlet.xml</title>
+                <programlisting language="xml"><![CDATA[
 <mvc:annotation-driven/>
 <mvc:resources mapping="/images/**" location="/images/"/>
 <mvc:resources mapping="/resources/**" location="/resources/"/>
@@ -125,10 +134,12 @@
 
 <tx:annotation-driven mode="aspectj"/>
 ]]></programlisting>
-</example>
+            </example>
 
-    </para><para>
-            We spun up Jetty to see if there were any obvious issues with the config. It all seemed to work just fine. Check.
+        </para>
+        <para>
+            We spun up Jetty by doing <code>mvn jetty:run</code> to see if there were any obvious
+            issues with the config. It all seemed to work just fine.
         </para>
     </section>
 </chapter>
