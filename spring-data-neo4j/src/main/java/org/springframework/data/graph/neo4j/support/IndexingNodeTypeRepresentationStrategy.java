@@ -20,6 +20,7 @@ import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.index.Index;
 import org.neo4j.graphdb.index.IndexHits;
 import org.neo4j.helpers.Predicate;
+import org.neo4j.helpers.collection.ClosableIterable;
 import org.neo4j.helpers.collection.FilteringIterable;
 import org.neo4j.helpers.collection.IterableWrapper;
 import org.springframework.data.graph.annotation.NodeEntity;
@@ -69,26 +70,13 @@ public class IndexingNodeTypeRepresentationStrategy implements NodeTypeRepresent
 	}
 
     @Override
-    public <U extends NodeBacked> Iterable<U> findAll(Class<U> clazz) {
+    public <U extends NodeBacked> ClosableIterable<U> findAll(Class<U> clazz) {
         return findAllNodeBacked(clazz);
     }
 
-    private <ENTITY extends NodeBacked> Iterable<ENTITY> findAllNodeBacked(Class<ENTITY> clazz) {
+    private <ENTITY extends NodeBacked> ClosableIterable<ENTITY> findAllNodeBacked(Class<ENTITY> clazz) {
 		final IndexHits<Node> allEntitiesOfType = getNodeTypesIndex().get(INDEX_KEY, clazz.getName());
-		return new FilteringIterable<ENTITY>(new IterableWrapper<ENTITY, Node>(allEntitiesOfType) {
-			@Override
-			@SuppressWarnings("unchecked")
-			protected ENTITY underlyingObjectToObject(Node node) {
-				Class<ENTITY> javaType = (Class<ENTITY>) getJavaType(node);
-				if (javaType == null) return null;
-				return graphEntityInstantiator.createEntityFromState(node, javaType);
-			}
-		}, new Predicate<ENTITY>() {
-			@Override
-			public boolean accept(ENTITY item) {
-				return item != null;
-			}
-		});
+        return new FilteringClosableIterable<ENTITY>(allEntitiesOfType);
 	}
 
     @Override
@@ -157,5 +145,32 @@ public class IndexingNodeTypeRepresentationStrategy implements NodeTypeRepresent
     @Override
     public <U extends NodeBacked> U projectEntity(Node state, Class<U> type) {
         return graphEntityInstantiator.createEntityFromState(state, type);
+    }
+
+    private class FilteringClosableIterable<ENTITY extends NodeBacked> extends FilteringIterable<ENTITY> implements ClosableIterable<ENTITY> {
+        private final IndexHits<Node> indexHits;
+
+        public FilteringClosableIterable(IndexHits<Node> indexHits) {
+            super(new IterableWrapper<ENTITY, Node>(indexHits) {
+                        @Override
+                        @SuppressWarnings("unchecked")
+                        protected ENTITY underlyingObjectToObject(Node node) {
+                            Class<ENTITY> javaType = (Class<ENTITY>) getJavaType(node);
+                            if (javaType == null) return null;
+                            return graphEntityInstantiator.createEntityFromState(node, javaType);
+                        }
+                    }, new Predicate<ENTITY>() {
+                        @Override
+                        public boolean accept(ENTITY item) {
+                            return item != null;
+                        }
+                    });
+            this.indexHits = indexHits;
+        }
+
+        @Override
+        public void close() {
+            indexHits.close();
+        }
     }
 }

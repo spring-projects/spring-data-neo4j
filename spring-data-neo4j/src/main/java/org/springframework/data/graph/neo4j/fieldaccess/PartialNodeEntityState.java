@@ -99,7 +99,7 @@ public class PartialNodeEntityState<ENTITY extends NodeBacked> extends DefaultEn
     }
 
     private Index<Node> getForeignIdIndex() {
-        return graphDatabaseContext.getIndex(type,null);
+        return graphDatabaseContext.getIndex(type);
     }
 
     private String createForeignId(Object id) {

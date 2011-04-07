@@ -22,7 +22,7 @@ import org.springframework.data.graph.annotation.GraphTraversal;
 import org.springframework.data.graph.core.FieldTraversalDescriptionBuilder;
 import org.springframework.data.graph.core.NodeBacked;
 import org.springframework.data.graph.neo4j.repository.DirectGraphRepositoryFactory;
-import org.springframework.data.graph.neo4j.repository.NodeGraphRepository;
+import org.springframework.data.graph.neo4j.repository.GraphRepository;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
@@ -86,7 +86,7 @@ public class TraversalFieldAccessorFactory implements FieldAccessorFactory<NodeB
 
 	    @Override
 	    public Object getValue(final NodeBacked nodeBacked) {
-	        final NodeGraphRepository<? extends NodeBacked> finder = graphRepositoryFactory.createNodeEntityRepository(target);
+	        final GraphRepository<? extends NodeBacked> finder = graphRepositoryFactory.createNodeEntityRepository(target);
 	        final TraversalDescription traversalDescription = fieldTraversalDescriptionBuilder.build(nodeBacked,field,params);
 	        return doReturn(finder.findAllByTraversal(nodeBacked, traversalDescription));
 	    }

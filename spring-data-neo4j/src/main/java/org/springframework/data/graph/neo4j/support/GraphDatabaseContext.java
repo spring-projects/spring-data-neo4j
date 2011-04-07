@@ -21,6 +21,7 @@ import org.apache.commons.logging.LogFactory;
 import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.index.Index;
 import org.neo4j.graphdb.index.IndexManager;
+import org.neo4j.helpers.collection.ClosableIterable;
 import org.neo4j.index.impl.lucene.LuceneIndexImplementation;
 import org.neo4j.kernel.AbstractGraphDatabase;
 import org.springframework.core.convert.ConversionService;
@@ -87,7 +88,7 @@ public class GraphDatabaseContext {
         }
     }
 
-    public <T extends GraphBacked<? extends PropertyContainer>> Iterable<T> findAll(final Class<T> entityClass) {
+    public <T extends GraphBacked<? extends PropertyContainer>> ClosableIterable<T> findAll(final Class<T> entityClass) {
         return getTypeRepresentationStrategy(entityClass).findAll(entityClass);
     }
 

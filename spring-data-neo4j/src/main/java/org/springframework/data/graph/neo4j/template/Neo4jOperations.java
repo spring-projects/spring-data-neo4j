@@ -18,6 +18,7 @@ package org.springframework.data.graph.neo4j.template;
 
 import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.traversal.TraversalDescription;
+import org.neo4j.helpers.collection.ClosableIterable;
 import org.springframework.data.graph.core.Property;
 
 /**
@@ -86,28 +87,28 @@ public interface Neo4jOperations {
 
     /**
      * Queries the supplied index with a lucene query string or query object (if the neo4j-index provider is lucene)
+     *
      * @param indexName Name of the index, will be checked against existing indexes, first relationship-indexes, then node indexes
      * assumes a "node" node index for a null value
      * @param pathMapper a mapper that translates from the resulting paths into some domain object, might use PathMapper.WithoutResult for a callback behaviour
      * @param queryOrQueryObject a lucene query string or query object (if the neo4j-index provider is lucene)
-     * @param <T> expected type of result
      * @return a lazy (when mapped) or eagerly (when called back) iterable containing the results of the query result mapping
      * @see IterationController for controlling eagerness of iteration
      */
-    <T> Iterable<T> query(String indexName, PathMapper<T> pathMapper, Object queryOrQueryObject);
+    <T> ClosableIterable<T> query(String indexName, PathMapper<T> pathMapper, Object queryOrQueryObject);
 
     /**
      * Queries the supplied index with a field - value combination
+     *
      * @param indexName Name of the index, will be checked against existing indexes, first relationship-indexes, then node indexes
      * assumes a "node" node index for a null value
      * @param pathMapper a mapper that translates from the resulting paths into some domain object, might use PathMapper.WithoutResult for a callback behaviour
      * @param field field to query
      * @param value value to supply to index query
-     * @param <T> expected type of result
      * @return a lazy (when mapped) or eagerly (when called back) iterable containing the results of the query result mapping
      * @see IterationController for controlling eagerness of iteration
      */
-    <T> Iterable<T> query(String indexName, PathMapper<T> pathMapper, String field, String value);
+    <T> ClosableIterable<T> query(String indexName, PathMapper<T> pathMapper, String field, String value);
 
     /**
      * Traverses the whole path with the given traversal descripting starting at the start node.

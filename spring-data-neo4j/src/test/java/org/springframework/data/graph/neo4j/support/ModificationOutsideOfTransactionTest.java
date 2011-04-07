@@ -27,7 +27,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.graph.neo4j.Group;
 import org.springframework.data.graph.neo4j.Person;
 import org.springframework.data.graph.neo4j.repository.DirectGraphRepositoryFactory;
-import org.springframework.data.graph.neo4j.repository.NodeGraphRepository;
+import org.springframework.data.graph.neo4j.repository.GraphRepository;
 import org.springframework.data.graph.neo4j.support.node.Neo4jHelper;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -195,7 +195,7 @@ public class ModificationOutsideOfTransactionTest
     @Test
     public void testFindOutsideTransaction()
     {
-        final NodeGraphRepository<Person> finder = graphRepositoryFactory.createNodeEntityRepository(Person.class);
+        final GraphRepository<Person> finder = graphRepositoryFactory.createNodeEntityRepository(Person.class);
         assertEquals( false, finder.findAll().iterator().hasNext() );
     }
 

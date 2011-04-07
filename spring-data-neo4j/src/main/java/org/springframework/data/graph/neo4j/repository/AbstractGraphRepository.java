@@ -21,6 +21,7 @@ import org.neo4j.graphdb.NotFoundException;
 import org.neo4j.graphdb.PropertyContainer;
 import org.neo4j.graphdb.index.Index;
 import org.neo4j.graphdb.index.IndexHits;
+import org.neo4j.helpers.collection.ClosableIterable;
 import org.neo4j.helpers.collection.IterableWrapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -31,6 +32,7 @@ import org.springframework.data.graph.neo4j.support.GraphDatabaseContext;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -41,7 +43,17 @@ import java.util.List;
  * @param <S> Type of backing state, either Node or Relationship
  */
 @org.springframework.stereotype.Repository
-public abstract class AbstractGraphRepository<S extends PropertyContainer, T extends GraphBacked<S>> implements GraphRepository<S, T>, CRUDGraphRepository<S,T> {
+public abstract class AbstractGraphRepository<S extends PropertyContainer, T extends GraphBacked<S>> implements GraphRepository<T>, CRUDGraphRepository<T>, NamedIndexQueryExecutor<T> {
+    public static final ClosableIterable EMPTY_CLOSABLE_ITERABLE = new ClosableIterable() {
+        @Override
+        public void close() {
+        }
+
+        @Override
+        public Iterator<?> iterator() {
+            return Collections.emptyList().iterator();
+        }
+    };
     /**
      * Target graphbacked type
      */
@@ -65,7 +77,7 @@ public abstract class AbstractGraphRepository<S extends PropertyContainer, T ext
      * @return lazy Iterable over all instances of the target type.
      */
     @Override
-    public Iterable<T> findAll() {
+    public ClosableIterable<T> findAll() {
         return graphDatabaseContext.findAll(clazz);
     }
 
@@ -83,6 +95,17 @@ public abstract class AbstractGraphRepository<S extends PropertyContainer, T ext
         }
     }
 
+    /**
+     * Index based single finder, uses the default index name for this type (short class name).
+     *
+     * @param property
+     * @param value
+     * @return Single Entity with this property and value
+     */
+    @Override
+    public T findByPropertyValue(final String property, final Object value) {
+        return findByPropertyValue(null,property,value);
+    }
     /**
      * Index based single finder.
      *
@@ -128,7 +151,7 @@ public abstract class AbstractGraphRepository<S extends PropertyContainer, T ext
      * @return Iterable over Entities with this property and value
      */
     @Override
-    public Iterable<T> findAllByPropertyValue(final String indexName, final String property, final Object value) {
+    public ClosableIterable<T> findAllByPropertyValue(final String indexName, final String property, final Object value) {
         return query(indexName, new Query<S>() {
             public IndexHits<S> query(Index<S> index) {
                 return getIndexHits(indexName, property, value);
@@ -136,15 +159,35 @@ public abstract class AbstractGraphRepository<S extends PropertyContainer, T ext
         });
     }
     /**
-     * Index based fulltext / query object finder.
+     * Index based exact finder, uses the default index name for this type (short class name).
+     * @param property
+     * @param value
+     * @return Iterable over Entities with this property and value
+     */
+    @Override
+    public ClosableIterable<T> findAllByPropertyValue(final String property, final Object value) {
+        return findAllByPropertyValue(null, property, value);
+    }
+
+    /**
+     * Index based fulltext / query object finder, uses the default index name for this type (short class name).
      *
+     * @param key key of the field to query
+     *@param query lucene query object or query-string  @return Iterable over Entities with this property and value
+     */
+    @Override
+    public ClosableIterable<T> findAllByQuery(final String key, final Object query) {
+        return findAllByQuery(null, key,query);
+    }
+    /**
+     * Index based fulltext / query object finder.
      *
      * @param indexName or null for default index
      * @param key key of the field to query
      *@param query lucene query object or query-string  @return Iterable over Entities with this property and value
      */
     @Override
-    public Iterable<T> findAllByQuery(final String indexName, final String key, final Object query) {
+    public ClosableIterable<T> findAllByQuery(final String indexName, final String key, final Object query) {
         return query(indexName, new Query<S>() {
             public IndexHits<S> query(Index<S> index) {
                 return getIndex(indexName).query(key, query);
@@ -155,38 +198,32 @@ public abstract class AbstractGraphRepository<S extends PropertyContainer, T ext
     interface Query<S extends PropertyContainer> {
         IndexHits<S> query(Index<S> index);
     }
-    private Iterable<T> query(String indexName, Query<S> query) {
+    private ClosableIterable<T> query(String indexName, Query<S> query) {
         try {
             final IndexHits<S> indexHits = query.query(getIndex(indexName));
-            if (indexHits == null) return Collections.emptyList();
-            return new IterableWrapper<T, S>(indexHits) {
-                protected T underlyingObjectToObject(final S result) {
-                    return createEntity(result);
-                }
-            };
+            if (indexHits == null) return emptyClosableIterable();
+            return new IndexHitsWrapper(indexHits);
         } catch (NotFoundException e) {
             return null;
         }
     }
+
+    @SuppressWarnings({"unchecked"})
+    private ClosableIterable<T> emptyClosableIterable() {
+        return EMPTY_CLOSABLE_ITERABLE;
+    }
+
     @Override
-    public Iterable<T> findAllByRange(final String indexName, final String property, final Number from, final Number to) {
+    public ClosableIterable<T> findAllByRange(final String property, final Number from, final Number to) {
+        return findAllByRange(null,property,from,to);
+    }
+    @Override
+    public ClosableIterable<T> findAllByRange(final String indexName, final String property, final Number from, final Number to) {
         return query(indexName, new Query<S>() {
             public IndexHits<S> query(Index<S> index) {
                 return index.query(property, createInclusiveRangeQuery(property, from, to));
             }
         });
-    }
-
-    static class A { }
-
-    static class B extends A { }
-
-    static class C { }
-
-    static void foo(Class<? extends A> a) { }
-
-    {
-        foo(B.class);
     }
 
     protected <T extends Number> NumericRangeQuery<T> createInclusiveRangeQuery(String property, Number from, Number to) {
@@ -222,20 +259,41 @@ public abstract class AbstractGraphRepository<S extends PropertyContainer, T ext
     }
 
     @Override
-    public Iterable<T> findAll(Sort sort) {
+    public ClosableIterable<T> findAll(Sort sort) {
         return findAll(); // todo
     }
 
     @Override
     public Page<T> findAll(final Pageable pageable) {
-        int count = pageable.getOffset()+pageable.getPageSize();
-        Iterable<T> all = findAll(pageable.getSort());
+        final int count = pageable.getOffset()+pageable.getPageSize();
+        int counter=count;
+        ClosableIterable<T> all = findAll(pageable.getSort());
         List<T> result=new ArrayList<T>(count);
         for (T t : all) {
-            if (count == 0) break;
+            if (counter == 0) break;
             result.add(t);
-            count--;
+            counter--;
         }
-        return new PageImpl<T>(result,pageable,result.size());
+        all.close();
+        return new PageImpl<T>(result, pageable,count - counter);
+    }
+
+    private class IndexHitsWrapper extends IterableWrapper<T, S> implements ClosableIterable<T> {
+        private final IndexHits<S> indexHits;
+
+        public IndexHitsWrapper(IndexHits<S> indexHits) {
+            super(indexHits);
+            this.indexHits = indexHits;
+        }
+
+        @SuppressWarnings({"unchecked"})
+        protected T underlyingObjectToObject(final S result) {
+            return createEntity(result);
+        }
+
+        @Override
+        public void close() {
+           this.indexHits.close();
+        }
     }
 }

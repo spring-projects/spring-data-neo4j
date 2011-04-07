@@ -17,6 +17,7 @@
 package org.springframework.data.graph.neo4j.support;
 
 import org.neo4j.graphdb.Node;
+import org.neo4j.helpers.collection.ClosableIterable;
 import org.springframework.data.graph.core.NodeBacked;
 import org.springframework.data.graph.core.NodeTypeRepresentationStrategy;
 
@@ -27,7 +28,7 @@ public class NoopNodeTypeRepresentationStrategy implements NodeTypeRepresentatio
     }
 
     @Override
-    public <U extends NodeBacked> Iterable<U> findAll(Class<U> clazz) {
+    public <U extends NodeBacked> ClosableIterable<U> findAll(Class<U> clazz) {
         throw new UnsupportedOperationException("findAll not supported.");
     }
 

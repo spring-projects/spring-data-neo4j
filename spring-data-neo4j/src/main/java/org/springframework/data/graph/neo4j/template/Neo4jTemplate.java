@@ -18,7 +18,9 @@ package org.springframework.data.graph.neo4j.template;
 
 import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.index.Index;
+import org.neo4j.graphdb.index.IndexHits;
 import org.neo4j.graphdb.traversal.TraversalDescription;
+import org.neo4j.helpers.collection.ClosableIterable;
 import org.neo4j.helpers.collection.IterableWrapper;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
@@ -158,7 +160,7 @@ public class Neo4jTemplate implements Neo4jOperations {
     }
 
     @Override
-    public <T> Iterable<T> query(String indexName, final PathMapper<T> pathMapper, Object queryOrQueryObject) {
+    public <T> ClosableIterable<T> query(String indexName, final PathMapper<T> pathMapper, Object queryOrQueryObject) {
         notNull(queryOrQueryObject, "queryOrQueryObject", pathMapper, "pathMapper",indexName,"indexName");
         try {
             Index<? extends PropertyContainer> index = graphDatabase.getIndex(indexName);
@@ -172,7 +174,7 @@ public class Neo4jTemplate implements Neo4jOperations {
     }
 
     @Override
-    public <T> Iterable<T> query(String indexName, final PathMapper<T> pathMapper, String field, String value) {
+    public <T> ClosableIterable<T> query(String indexName, final PathMapper<T> pathMapper, String field, String value) {
         notNull(field, "field", value, "value", pathMapper, "pathMapper",indexName,"indexName");
         try {
             Index<? extends PropertyContainer> index = graphDatabase.getIndex(indexName);
@@ -185,13 +187,23 @@ public class Neo4jTemplate implements Neo4jOperations {
         }
     }
 
-    private <T> Iterable<T> mapNodes(final Iterable<Node> nodes, final PathMapper<T> pathMapper) {
+    private <T> ClosableIterable<T> mapNodes(final IndexHits<Node> nodes, final PathMapper<T> pathMapper) {
         assert nodes != null;
         assert pathMapper != null;
-        return new IterableWrapper<T, Node>(nodes) {
+        return new IndexHitsIterableWrapper<T,Node>(nodes, pathMapper) {
             @Override
-            protected T underlyingObjectToObject(Node node) {
-                return pathMapper.mapPath(new NodePath(node));
+            protected Path createPath(Node node) {
+                return new NodePath(node);
+            }
+        };
+    }
+    private <T> ClosableIterable<T> mapRelationships(final IndexHits<Relationship> relationships, final PathMapper<T> pathMapper) {
+        assert relationships != null;
+        assert pathMapper != null;
+        return new IndexHitsIterableWrapper<T,Relationship>(relationships, pathMapper) {
+            @Override
+            protected Path createPath(Relationship relationship) {
+                return new RelationshipPath(relationship);
             }
         };
     }
@@ -276,4 +288,26 @@ public class Neo4jTemplate implements Neo4jOperations {
         return primitive;
     }
 
+    private static abstract class IndexHitsIterableWrapper<T, S extends PropertyContainer> extends IterableWrapper<T, S> implements ClosableIterable<T> {
+        private final IndexHits<S> indexHits;
+        private final PathMapper<T> pathMapper;
+
+        public IndexHitsIterableWrapper(IndexHits<S> indexHits, PathMapper<T> pathMapper) {
+            super(indexHits);
+            this.indexHits = indexHits;
+            this.pathMapper = pathMapper;
+        }
+
+        @Override
+        protected T underlyingObjectToObject(S node) {
+            return pathMapper.mapPath(createPath(node));
+        }
+
+        protected abstract Path createPath(S element);
+
+        @Override
+        public void close() {
+           indexHits.close();
+        }
+    }
 }

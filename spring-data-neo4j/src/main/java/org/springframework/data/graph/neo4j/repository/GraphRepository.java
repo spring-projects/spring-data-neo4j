@@ -16,7 +16,6 @@
 
 package org.springframework.data.graph.neo4j.repository;
 
-import org.neo4j.graphdb.PropertyContainer;
 import org.springframework.data.graph.core.GraphBacked;
 import org.springframework.data.repository.NoRepositoryBean;
 
@@ -25,6 +24,6 @@ import org.springframework.data.repository.NoRepositoryBean;
  * @since 12.01.11
  */
 @NoRepositoryBean
-public interface GraphRepository<S extends PropertyContainer,T extends GraphBacked<S>> extends CRUDGraphRepository<S,T>, IndexQueryExecutor<S,T>, TraversalQueryExecutor<S,T> {
+public interface GraphRepository<T extends GraphBacked<?>> extends CRUDGraphRepository<T>, IndexQueryExecutor<T>, TraversalQueryExecutor<T> {
 
 }

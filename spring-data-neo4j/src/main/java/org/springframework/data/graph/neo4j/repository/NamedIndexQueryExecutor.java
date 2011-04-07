@@ -14,14 +14,22 @@
  * limitations under the License.
  */
 
-package org.springframework.data.graph.neo4j;
+package org.springframework.data.graph.neo4j.repository;
 
-import org.springframework.data.graph.neo4j.repository.NamedIndexQueryExecutor;
-import org.springframework.data.graph.neo4j.repository.GraphRepository;
+import org.neo4j.helpers.collection.ClosableIterable;
+import org.springframework.data.graph.core.GraphBacked;
 
 /**
  * @author mh
  * @since 29.03.11
  */
-public interface GroupRepository extends GraphRepository<Group>, NamedIndexQueryExecutor<Group> {
+public interface NamedIndexQueryExecutor<T extends GraphBacked<?>> {
+    T findByPropertyValue(String indexName, String property, Object value);
+
+    ClosableIterable<T> findAllByPropertyValue(String indexName, String property, Object value);
+
+    ClosableIterable<T> findAllByQuery(String indexName, String key, Object query);
+
+    ClosableIterable<T> findAllByRange(String indexName, String property, Number from, Number to);
+
 }

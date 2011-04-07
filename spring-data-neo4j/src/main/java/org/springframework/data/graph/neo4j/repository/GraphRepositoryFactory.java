@@ -16,11 +16,9 @@
 
 package org.springframework.data.graph.neo4j.repository;
 
-import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.data.graph.annotation.NodeEntity;
 import org.springframework.data.graph.annotation.RelationshipEntity;
 import org.springframework.data.graph.neo4j.support.GraphDatabaseContext;
-import org.springframework.data.repository.Repository;
 import org.springframework.data.repository.query.QueryLookupStrategy;
 import org.springframework.data.repository.query.RepositoryQuery;
 import org.springframework.data.repository.support.EntityInformation;
@@ -31,7 +29,6 @@ import org.springframework.util.Assert;
 import java.io.Serializable;
 import java.lang.reflect.Method;
 
-import static org.springframework.core.GenericTypeResolver.resolveTypeArguments;
 import static org.springframework.core.annotation.AnnotationUtils.findAnnotation;
 
 /**
@@ -68,9 +65,9 @@ public class GraphRepositoryFactory extends RepositoryFactorySupport {
         GraphEntityInformation entityInformation = (GraphEntityInformation)getEntityInformation(type);
 
         if (entityInformation.isNodeEntity()) {
-            return new DefaultNodeGraphRepository(type,graphDatabaseContext);
+            return new NodeGraphRepository(type,graphDatabaseContext);
         } else {
-            return new DefaultRelationshipGraphRepository(type,graphDatabaseContext);
+            return new RelationshipGraphRepository(type,graphDatabaseContext);
         }
     }
 
@@ -78,10 +75,10 @@ public class GraphRepositoryFactory extends RepositoryFactorySupport {
     protected Class<?> getRepositoryBaseClass(RepositoryMetadata repositoryMetadata) {
         Class<?> domainClass = repositoryMetadata.getDomainClass();
         if (findAnnotation(domainClass, NodeEntity.class) !=null) {
-            return DefaultNodeGraphRepository.class;
+            return NodeGraphRepository.class;
         }
         if (findAnnotation(domainClass, RelationshipEntity.class) !=null) {
-            return DefaultRelationshipGraphRepository.class;
+            return RelationshipGraphRepository.class;
         }
         throw new IllegalArgumentException("Invalid Domain Class "+ domainClass+" neither Node- nor RelationshipEntity");
     }

@@ -32,7 +32,7 @@ import org.springframework.data.graph.neo4j.Person;
 import static org.springframework.data.graph.neo4j.Person.persistedPerson;
 
 import org.springframework.data.graph.neo4j.repository.DirectGraphRepositoryFactory;
-import org.springframework.data.graph.neo4j.repository.NodeGraphRepository;
+import org.springframework.data.graph.neo4j.repository.GraphRepository;
 import org.springframework.data.graph.neo4j.support.node.Neo4jHelper;
 
 import org.springframework.test.annotation.Rollback;
@@ -114,7 +114,7 @@ public class TraversalTest {
     @Test
     @Transactional
     public void testTraverseFromGroupToPeopleWithFinder() {
-        final NodeGraphRepository<Person> finder = graphRepositoryFactory.createNodeEntityRepository(Person.class);
+        final GraphRepository<Person> finder = graphRepositoryFactory.createNodeEntityRepository(Person.class);
         Person p = persistedPerson("Michael", 35);
         Group group = new Group().persist();
         group.setName("dev");

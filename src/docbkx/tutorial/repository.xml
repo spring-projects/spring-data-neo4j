@@ -11,7 +11,7 @@
             <title>Movie repository</title>
         <programlisting language="java"><![CDATA[
 package org.neo4j.cineasts.repository;
-public interface MovieRepository extends NodeGraphRepository<Movie> {}
+public interface MovieRepository extends GraphRepository<Movie> {}
 ]]></programlisting>
         </example>
         Then we added it to the Spring context configuration by simply adding:

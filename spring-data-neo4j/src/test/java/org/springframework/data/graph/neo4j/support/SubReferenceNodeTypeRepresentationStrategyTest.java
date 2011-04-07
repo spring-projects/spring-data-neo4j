@@ -33,7 +33,7 @@ import org.springframework.data.graph.neo4j.Person;
 import org.springframework.data.graph.neo4j.Toyota;
 import org.springframework.data.graph.neo4j.Volvo;
 import org.springframework.data.graph.neo4j.repository.DirectGraphRepositoryFactory;
-import org.springframework.data.graph.neo4j.repository.NodeGraphRepository;
+import org.springframework.data.graph.neo4j.repository.GraphRepository;
 import org.springframework.data.graph.neo4j.support.node.Neo4jHelper;
 import org.springframework.test.context.CleanContextCacheTestExecutionListener;
 import org.springframework.test.context.ContextConfiguration;
@@ -187,7 +187,7 @@ public class SubReferenceNodeTypeRepresentationStrategyTest {
 	public void testInstantiateConcreteClassWithFinder() {
 		log.debug("testInstantiateConcreteClassWithFinder");
 		Volvo v=new Volvo().persist();
-        NodeGraphRepository<Car> finder = graphRepositoryFactory.createNodeEntityRepository(Car.class);
+        GraphRepository<Car> finder = graphRepositoryFactory.createNodeEntityRepository(Car.class);
 		assertEquals("Wrong concrete class.", Volvo.class, finder.findAll().iterator().next().getClass());
 	}
 

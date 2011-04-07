@@ -44,7 +44,7 @@ class Person {
 
 }
 
-NodeGraphRepository<Person> graphRepository = graphRepositoryFactory.createNodeEntityRepository(Person.class);
+GraphRepository<Person> graphRepository = graphRepositoryFactory.createNodeEntityRepository(Person.class);
 
 // exact graphRepository
 Person mark = graphRepository.findByProperyValue("people","name","mark");
@@ -76,7 +76,7 @@ class Person {
     String name;
 }
 
-NodeGraphRepository<Person> graphRepository = graphRepositoryFactory.createNodeEntityRepository(Person.class);
+GraphRepository<Person> graphRepository = graphRepositoryFactory.createNodeEntityRepository(Person.class);
 
 // exact graphRepository
 Person mark = graphRepository.findAllByQuery("people-search","name","ma*");

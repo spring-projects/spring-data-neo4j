@@ -17,6 +17,7 @@
 package org.springframework.data.graph.core;
 
 import org.neo4j.graphdb.PropertyContainer;
+import org.neo4j.helpers.collection.ClosableIterable;
 
 /**
  * Strategy to handle representation of java types in the graph. Possible implementation are type/class nodes
@@ -39,11 +40,11 @@ public interface TypeRepresentationStrategy<S extends PropertyContainer, T exten
     void postEntityCreation(S state, Class<? extends T> type);
 
     /**
+     *
      * @param clazz Type whose instances should be iterated over
-     * @param <U> Type parameter for generified return value
      * @return lazy Iterable over all instances of the given type
      */
-    <U extends T> Iterable<U> findAll(final Class<U> clazz);
+    <U extends T> ClosableIterable<U> findAll(final Class<U> clazz);
 
     /**
      * @param entityClass

@@ -23,6 +23,7 @@ import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.index.Index;
 import org.neo4j.graphdb.index.IndexHits;
 import org.neo4j.helpers.Predicate;
+import org.neo4j.helpers.collection.ClosableIterable;
 import org.neo4j.helpers.collection.FilteringIterable;
 import org.neo4j.helpers.collection.IterableWrapper;
 import org.springframework.data.graph.annotation.RelationshipEntity;
@@ -72,26 +73,13 @@ public class IndexingRelationshipTypeRepresentationStrategy implements Relations
 	}
 
     @Override
-    public <U extends RelationshipBacked> Iterable<U> findAll(Class<U> clazz) {
+    public <U extends RelationshipBacked> ClosableIterable<U> findAll(Class<U> clazz) {
         return findAllRelBacked(clazz);
     }
 
-    private <ENTITY extends RelationshipBacked> Iterable<ENTITY> findAllRelBacked(Class<ENTITY> clazz) {
+    private <ENTITY extends RelationshipBacked> ClosableIterable<ENTITY> findAllRelBacked(Class<ENTITY> clazz) {
         final IndexHits<Relationship> allEntitiesOfType = getRelTypesIndex().get(INDEX_KEY, clazz.getName());
-        return new FilteringIterable<ENTITY>(new IterableWrapper<ENTITY, Relationship>(allEntitiesOfType) {
-            @Override
-            @SuppressWarnings("unchecked")
-            protected ENTITY underlyingObjectToObject(Relationship rel) {
-                Class<ENTITY> javaType = (Class<ENTITY>) getJavaType(rel);
-                if (javaType == null) return null;
-                return relationshipEntityInstantiator.createEntityFromState(rel, javaType);
-            }
-        }, new Predicate<ENTITY>() {
-            @Override
-            public boolean accept(ENTITY item) {
-                return item != null;
-            }
-        });
+        return new FilteringClosableEntityIterable<ENTITY>(allEntitiesOfType);
 
     }
 
@@ -164,5 +152,32 @@ public class IndexingRelationshipTypeRepresentationStrategy implements Relations
     @Override
     public <U extends RelationshipBacked> U projectEntity(Relationship state, Class<U> type) {
         return relationshipEntityInstantiator.createEntityFromState(state, type);
+    }
+
+    private class FilteringClosableEntityIterable<ENTITY extends RelationshipBacked> extends FilteringIterable<ENTITY> implements ClosableIterable<ENTITY> {
+        private final IndexHits<Relationship> indexHits;
+
+        public FilteringClosableEntityIterable(IndexHits<Relationship> indexHits) {
+            super(new IterableWrapper<ENTITY, Relationship>(indexHits) {
+                        @Override
+                        @SuppressWarnings("unchecked")
+                        protected ENTITY underlyingObjectToObject(Relationship rel) {
+                            Class<ENTITY> javaType = (Class<ENTITY>) IndexingRelationshipTypeRepresentationStrategy.this.getJavaType(rel);
+                            if (javaType == null) return null;
+                            return IndexingRelationshipTypeRepresentationStrategy.this.relationshipEntityInstantiator.createEntityFromState(rel, javaType);
+                        }
+                    }, new Predicate<ENTITY>() {
+                        @Override
+                        public boolean accept(ENTITY item) {
+                            return item != null;
+                        }
+                    });
+            this.indexHits = indexHits;
+        }
+
+        @Override
+        public void close() {
+           this.indexHits.close();
+        }
     }
 }

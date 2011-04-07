@@ -24,7 +24,7 @@ import org.neo4j.graphdb.Node;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.graph.neo4j.Person;
 import org.springframework.data.graph.neo4j.repository.DirectGraphRepositoryFactory;
-import org.springframework.data.graph.neo4j.repository.NodeGraphRepository;
+import org.springframework.data.graph.neo4j.repository.GraphRepository;
 import org.springframework.data.graph.neo4j.support.node.Neo4jHelper;
 import org.springframework.test.context.CleanContextCacheTestExecutionListener;
 import org.springframework.test.context.ContextConfiguration;
@@ -71,7 +71,7 @@ import static org.springframework.data.graph.neo4j.Person.persistedPerson;
         Person person2 = graphDatabaseContext.createEntityFromState(node,Person.class);
         assertEquals("Rod", person2.getName());
 
-        NodeGraphRepository<Person> finder = graphRepositoryFactory.createNodeEntityRepository(Person.class);
+        GraphRepository<Person> finder = graphRepositoryFactory.createNodeEntityRepository(Person.class);
         Person found = finder.findOne(nodeId);
         assertEquals("Rod", found.getName());
     }

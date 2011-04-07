@@ -94,7 +94,7 @@
         <example>
             <title>Using GraphRepositories</title>
         <programlisting language="java"><![CDATA[
-NodeGraphRepository<Person> graphRepository = graphRepositoryFactory.createNodeEntityRepository(Person.class);
+GraphRepository<Person> graphRepository = graphRepositoryFactory.createNodeEntityRepository(Person.class);
 
 Person michael = graphRepository.save(new Person("Michael",36));
 
@@ -125,7 +125,7 @@ Iterable<Person> davesFriends = graphRepository.findAllByTraversal(dave,
         <example>
             <title>Composing Repositories</title>
             <programlisting language="java"><![CDATA[
-public interface PersonRepository extends NodeGraphRepository<Person>, PersonRepositoryExtension {
+public interface PersonRepository extends GraphRepository<Person>, PersonRepositoryExtension {
 }
 // alternatively select some of the required repositories individually
 public interface PersonRepository extends CRUDGraphRepository<Node,Person>, IndexQueryExecutor<Node,Person>,

@@ -21,7 +21,7 @@ import org.springframework.data.graph.core.RelationshipBacked;
 import org.springframework.data.graph.neo4j.support.GraphDatabaseContext;
 
 /**
- * Simple Factory for {@link DefaultNodeGraphRepository} instances.
+ * Simple Factory for {@link NodeGraphRepository} instances.
  */
 public class DirectGraphRepositoryFactory {
 
@@ -31,12 +31,12 @@ public class DirectGraphRepositoryFactory {
         this.graphDatabaseContext = graphDatabaseContext;
     }
 
-    public <T extends NodeBacked> NodeGraphRepository<T> createNodeEntityRepository(Class<T> clazz) {
-        return new DefaultNodeGraphRepository<T>(clazz, graphDatabaseContext);
+    public <T extends NodeBacked> GraphRepository<T> createNodeEntityRepository(Class<T> clazz) {
+        return new NodeGraphRepository<T>(clazz, graphDatabaseContext);
     }
 
-    public <T extends RelationshipBacked> RelationshipGraphRepository<T> createRelationshipEntityRepository(Class<T> clazz) {
-        return new DefaultRelationshipGraphRepository<T>(clazz, graphDatabaseContext);
+    public <T extends RelationshipBacked> GraphRepository<T> createRelationshipEntityRepository(Class<T> clazz) {
+        return new RelationshipGraphRepository<T>(clazz, graphDatabaseContext);
     }
 
 }

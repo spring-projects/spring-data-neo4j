@@ -16,7 +16,7 @@
 
 package org.springframework.data.graph.neo4j;
 
-import org.springframework.data.graph.neo4j.repository.RelationshipGraphRepository;
+import org.springframework.data.graph.neo4j.repository.GraphRepository;
 
-public interface FriendshipRepository extends RelationshipGraphRepository<Friendship> {
+public interface FriendshipRepository extends GraphRepository<Friendship> {
 }

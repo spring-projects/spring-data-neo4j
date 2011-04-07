@@ -17,6 +17,7 @@
 package org.springframework.data.graph.neo4j.support;
 
 import org.neo4j.graphdb.Relationship;
+import org.neo4j.helpers.collection.ClosableIterable;
 import org.springframework.data.graph.core.RelationshipBacked;
 import org.springframework.data.graph.core.RelationshipTypeRepresentationStrategy;
 
@@ -27,7 +28,7 @@ public class NoopRelationshipTypeRepresentationStrategy implements RelationshipT
     }
 
     @Override
-    public <U extends RelationshipBacked> Iterable<U> findAll(Class<U> clazz) {
+    public <U extends RelationshipBacked> ClosableIterable<U> findAll(Class<U> clazz) {
         throw new UnsupportedOperationException("findAll not supported.");
     }
 

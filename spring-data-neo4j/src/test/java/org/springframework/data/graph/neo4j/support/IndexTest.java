@@ -30,13 +30,10 @@ import org.neo4j.graphdb.index.Index;
 import org.neo4j.helpers.collection.IteratorUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.graph.annotation.NodeEntity;
-import org.springframework.data.graph.neo4j.Friendship;
-import org.springframework.data.graph.neo4j.Group;
-import org.springframework.data.graph.neo4j.Person;
+import org.springframework.data.graph.neo4j.*;
 import org.springframework.data.graph.neo4j.annotation.Indexed;
 import org.springframework.data.graph.neo4j.repository.DirectGraphRepositoryFactory;
-import org.springframework.data.graph.neo4j.repository.NodeGraphRepository;
-import org.springframework.data.graph.neo4j.repository.RelationshipGraphRepository;
+import org.springframework.data.graph.neo4j.repository.GraphRepository;
 import org.springframework.data.graph.neo4j.support.node.Neo4jHelper;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -65,8 +62,10 @@ public class IndexTest {
 
     @Autowired
     private DirectGraphRepositoryFactory graphRepositoryFactory;
-    protected NodeGraphRepository<Group> groupFinder;
-    protected NodeGraphRepository<Person> personFinder;
+    protected GraphRepository<Group> groupFinder;
+    protected GraphRepository<Person> personFinder;
+    @Autowired protected PersonRepository personRepository;
+    @Autowired protected GroupRepository groupRepository;
 
     @Before
     public void setUp() throws Exception {
@@ -86,8 +85,8 @@ public class IndexTest {
         Person p2 = persistedPerson(NAME_VALUE2, 25);
         Friendship friendship = p.knows(p2);
         friendship.setYears(1);
-        RelationshipGraphRepository<Friendship> friendshipFinder = graphRepositoryFactory.createRelationshipEntityRepository(Friendship.class);
-        assertEquals(friendship, friendshipFinder.findByPropertyValue(null, "Friendship.years", 1));
+        GraphRepository<Friendship> friendshipFinder = graphRepositoryFactory.createRelationshipEntityRepository(Friendship.class);
+        assertEquals(friendship, friendshipFinder.findByPropertyValue("Friendship.years", 1));
     }
 
     @Test
@@ -96,7 +95,7 @@ public class IndexTest {
         Person me = persistedPerson(NAME_VALUE, 35);
         Person spouse = persistedPerson(NAME_VALUE3, 36);
         me.setSpouse(spouse);
-        final Person foundMe = this.personFinder.findByPropertyValue(Person.NAME_INDEX, "Person.name", NAME_VALUE);
+        final Person foundMe = this.personRepository.findByPropertyValue(Person.NAME_INDEX, "Person.name", NAME_VALUE);
         assertEquals(spouse, foundMe.getSpouse());
     }
 
@@ -113,7 +112,7 @@ public class IndexTest {
         } finally {
             tx.finish();
         }
-        final Group found = groupFinder.findByPropertyValue(null, NAME, NAME_VALUE);
+        final Group found = groupFinder.findByPropertyValue( NAME, NAME_VALUE);
         assertNull("Group.name removed from index", found);
     }
 
@@ -130,12 +129,12 @@ public class IndexTest {
         } finally {
             tx.finish();
         }
-        final Group found = groupFinder.findByPropertyValue(null, NAME, NAME_VALUE);
+        final Group found = groupFinder.findByPropertyValue( NAME, NAME_VALUE);
         assertNull("Group.name removed from index", found);
     }
 
     private Index<Node> getGroupIndex() {
-        return graphDatabaseContext.getIndex(Group.class, null);
+        return graphDatabaseContext.getIndex(Group.class);
     }
 
     @Test
@@ -143,7 +142,7 @@ public class IndexTest {
     public void testFindGroupByIndex() {
         Group group = new Group().persist();
         group.setName(NAME_VALUE);
-        final Group found = groupFinder.findByPropertyValue(null, NAME, NAME_VALUE);
+        final Group found = groupFinder.findByPropertyValue(NAME, NAME_VALUE);
         assertEquals(group, found);
     }
 
@@ -152,7 +151,7 @@ public class IndexTest {
     public void testFindGroupByAlternativeFieldNameIndex() {
         Group group = new Group().persist();
         group.setOtherName(NAME_VALUE);
-        final Group found = groupFinder.findByPropertyValue(null, Group.OTHER_NAME_INDEX, NAME_VALUE);
+        final Group found = groupFinder.findByPropertyValue(Group.OTHER_NAME_INDEX, NAME_VALUE);
         assertEquals(group, found);
     }
 
@@ -203,7 +202,7 @@ public class IndexTest {
     public void testDontFindGroupByNonIndexedFieldWithAnnotation() {
         Group group = new Group().persist();
         group.setUnindexedName("value-unindexedName");
-        final Group found = groupFinder.findByPropertyValue(null, "unindexedName", "value-unindexedName");
+        final Group found = groupFinder.findByPropertyValue("unindexedName", "value-unindexedName");
         assertNull(found);
     }
 
@@ -212,7 +211,7 @@ public class IndexTest {
     public void testDontFindGroupByNonIndexedField() {
         Group group = new Group().persist();
         group.setUnindexedName2("value-unindexedName2");
-        final Group found = groupFinder.findByPropertyValue(null, "unindexedName2", "value-unindexedName2");
+        final Group found = groupFinder.findByPropertyValue( "unindexedName2", "value-unindexedName2");
         assertNull(found);
     }
 
@@ -223,7 +222,7 @@ public class IndexTest {
         group.setName(NAME_VALUE);
         Group group2 = new Group().persist();
         group2.setName(NAME_VALUE);
-        final Iterable<Group> found = groupFinder.findAllByPropertyValue(null, NAME, NAME_VALUE);
+        final Iterable<Group> found = groupFinder.findAllByPropertyValue(NAME, NAME_VALUE);
         final Collection<Group> result = IteratorUtil.addToCollection(found.iterator(), new HashSet<Group>());
         assertEquals(new HashSet<Group>(Arrays.asList(group, group2)), result);
     }
@@ -233,7 +232,7 @@ public class IndexTest {
     public void shouldFindGroupyByQueryString() {
         Group group = new Group().persist();
         group.setFullTextName("queryableName");
-        final Iterable<Group> found = groupFinder.findAllByQuery(Group.SEARCH_GROUPS_INDEX, "fullTextName", "queryable*");
+        final Iterable<Group> found = groupRepository.findAllByQuery(Group.SEARCH_GROUPS_INDEX, "fullTextName", "queryable*");
         final Collection<Group> result = IteratorUtil.addToCollection(found.iterator(), new HashSet<Group>());
         assertEquals(new HashSet<Group>(Arrays.asList(group)), result);
     }
@@ -242,14 +241,14 @@ public class IndexTest {
     @Transactional
     public void testFindAllPersonByIndexOnAnnotatedField() {
         Person person = persistedPerson(NAME_VALUE, 35);
-        final Person found = personFinder.findByPropertyValue(Person.NAME_INDEX, "Person.name", NAME_VALUE);
+        final Person found = personRepository.findByPropertyValue(Person.NAME_INDEX, "Person.name", NAME_VALUE);
         assertEquals(person, found);
     }
 
     @Test
     public void findsPersonByIndexOnAnnotatedIntFieldInSeparateTransactions() {
         Person person = persistedPerson(NAME_VALUE, 35);
-        final Person found = personFinder.findByPropertyValue(null, "Person.age", 35);
+        final Person found = personFinder.findByPropertyValue("Person.age", 35);
         assertEquals("person found inside range", person, found);
     }
 
@@ -257,7 +256,7 @@ public class IndexTest {
     @Transactional
     public void testRangeQueryPersonByIndexOnAnnotatedField() {
         Person person = persistedPerson(NAME_VALUE, 35);
-        final Person found = personFinder.findAllByRange(null, "Person.age", 10, 40).iterator().next();
+        final Person found = personFinder.findAllByRange("Person.age", 10, 40).iterator().next();
         assertEquals("person found inside range", person, found);
     }
 
@@ -265,7 +264,7 @@ public class IndexTest {
     @Transactional
     public void testOutsideRangeQueryPersonByIndexOnAnnotatedField() {
         Person person = persistedPerson(NAME_VALUE, 35);
-        Iterable<Person> emptyResult = personFinder.findAllByRange(null, "Person.age", 0, 34);
+        Iterable<Person> emptyResult = personFinder.findAllByRange("Person.age", 0, 34);
         assertFalse("nothing found outside range", emptyResult.iterator().hasNext());
     }
 
@@ -275,7 +274,7 @@ public class IndexTest {
     public void testFindAllPersonByIndexOnAnnotatedFieldWithAtIndexed() {
         Person person = persistedPerson(NAME_VALUE, 35);
         person.setNickname("Mike");
-        final Person found = personFinder.findByPropertyValue(null, "Person.nickname", "Mike");
+        final Person found = personFinder.findByPropertyValue( "Person.nickname", "Mike");
         assertEquals(person, found);
     }
 

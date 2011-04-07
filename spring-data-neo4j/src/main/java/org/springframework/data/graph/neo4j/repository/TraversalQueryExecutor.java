@@ -16,7 +16,6 @@
 
 package org.springframework.data.graph.neo4j.repository;
 
-import org.neo4j.graphdb.PropertyContainer;
 import org.neo4j.graphdb.traversal.TraversalDescription;
 import org.springframework.data.graph.core.GraphBacked;
 import org.springframework.data.graph.core.NodeBacked;
@@ -25,7 +24,7 @@ import org.springframework.data.graph.core.NodeBacked;
  * @author mh
  * @since 29.03.11
  */
-public interface TraversalQueryExecutor<S extends PropertyContainer,T extends GraphBacked<S>> {
+public interface TraversalQueryExecutor<T extends GraphBacked<?>> {
     /**
      * Traversal based finder that returns a lazy Iterable over the traversal results
      *

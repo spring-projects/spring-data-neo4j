@@ -20,6 +20,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.traversal.TraversalDescription;
+import org.neo4j.helpers.collection.ClosableIterable;
 import org.neo4j.helpers.collection.CombiningIterable;
 import org.neo4j.helpers.collection.IterableWrapper;
 import org.neo4j.kernel.Traversal;
@@ -155,11 +156,11 @@ public class SubReferenceNodeTypeRepresentationStrategy implements NodeTypeRepre
     }
 
     @Override
-    public <T extends NodeBacked> Iterable<T> findAll(final Class<T> clazz) {
+    public <T extends NodeBacked> ClosableIterable<T> findAll(final Class<T> clazz) {
         final Node subrefNode = findSubreferenceNode(clazz);
 		if (log.isDebugEnabled()) log.debug("Subref: " + subrefNode);
 		Iterable<Iterable<T>> relIterables = findEntityIterables(subrefNode);
-		return new CombiningIterable<T>(relIterables);
+		return new ClosableCombiningIterable<T>(relIterables);
     }
 
 	private <T extends NodeBacked> List<Iterable<T>> findEntityIterables(Node subrefNode) {
@@ -237,5 +238,23 @@ public class SubReferenceNodeTypeRepresentationStrategy implements NodeTypeRepre
     @Override
     public <U extends NodeBacked> U projectEntity(Node state, Class<U> type) {
         return entityInstantiator.createEntityFromState(state, type);
+    }
+
+    private static class ClosableCombiningIterable<T extends NodeBacked> extends CombiningIterable<T> implements ClosableIterable<T> {
+        private final Iterable<Iterable<T>> relIterables;
+
+        public ClosableCombiningIterable(Iterable<Iterable<T>> relIterables) {
+            super(relIterables);
+            this.relIterables = relIterables;
+        }
+
+        @Override
+        public void close() {
+            for (Iterable<T> it : relIterables) {
+                if (it instanceof ClosableIterable) {
+                    ((ClosableIterable) it).close();
+                }
+            }
+        }
     }
 }
