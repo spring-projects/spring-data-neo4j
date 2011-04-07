@@ -17,6 +17,7 @@
 package org.springframework.data.graph.neo4j.template;
 
 import org.neo4j.graphdb.Path;
+import org.neo4j.helpers.collection.ClosableIterable;
 import org.neo4j.helpers.collection.IterableWrapper;
 
 import java.util.ArrayList;
@@ -37,16 +38,24 @@ public class PathMappingIterator {
             case EAGER:
             case EAGER_STOP_ON_NULL:
                 List<T> result = new ArrayList<T>();
-                for (Path path : paths) {
-                    T mapped = pathMapper.mapPath(path);
-                    if (mapped == null && mode == EAGER_STOP_ON_NULL) break;
-                    result.add(mapped);
+                try {
+                    for (Path path : paths) {
+                        T mapped = pathMapper.mapPath(path);
+                        if (mapped == null && mode == EAGER_STOP_ON_NULL) break;
+                        result.add(mapped);
+                    }
+                } finally {
+                    close(paths);
                 }
                 return result;
 
             case EAGER_IGNORE_RESULTS:
-                for (Path path : paths) {
-                    pathMapper.mapPath(path);
+                try {
+                    for (Path path : paths) {
+                        pathMapper.mapPath(path);
+                    }
+                } finally {
+                    close(paths);
                 }
                 return null;
             case LAZY:
@@ -58,6 +67,12 @@ public class PathMappingIterator {
                 };
             default:
                 throw new IllegalStateException("Unknown IterationControl " + mode);
+        }
+    }
+
+    private void close(Iterable<Path> paths) {
+        if (paths instanceof ClosableIterable) {
+            ((ClosableIterable)paths).close();
         }
     }
 
