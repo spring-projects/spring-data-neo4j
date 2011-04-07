@@ -16,16 +16,9 @@
 
 package org.springframework.data.graph.neo4j.support.relationship;
 
-import java.lang.reflect.Constructor;
-import java.util.HashMap;
-import java.util.Map;
-
 import org.neo4j.graphdb.Relationship;
 import org.springframework.data.graph.core.RelationshipBacked;
 import org.springframework.data.persistence.AbstractConstructorEntityInstantiator;
-import org.springframework.data.persistence.EntityInstantiator;
-
-import org.springframework.data.persistence.StateBackedCreator;
 import sun.reflect.ReflectionFactory;
 
 /**
@@ -40,6 +33,13 @@ public class RelationshipEntityInstantiator extends AbstractConstructorEntityIns
     protected void setState(RelationshipBacked entity, Relationship relationship) {
         entity.setPersistentState(relationship);
     }
+
+    @Override
+    protected String getFailingMessageForClass(Class<?> entityClass, Class<Relationship> stateClass) {
+        return entityClass.getSimpleName() + ": entity must have a no-arg constructor.";
+    }
+
+
     /*
     protected <T extends RelationshipBacked> StateBackedCreator<T, Relationship> createInstantiator(Class<T> type, final Class<Relationship> stateType) {
         StateBackedCreator<T,Relationship> creator = createWithoutConstructorInvocation(type,stateType);

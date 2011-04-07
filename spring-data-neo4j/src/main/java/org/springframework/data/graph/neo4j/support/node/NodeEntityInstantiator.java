@@ -34,4 +34,8 @@ public class NodeEntityInstantiator extends AbstractConstructorEntityInstantiato
 		entity.setPersistentState(s);
 	}
 
+    @Override
+    protected String getFailingMessageForClass(Class<?> entityClass, Class<Node> stateClass) {
+        return entityClass.getSimpleName() + ": entity must have a no-arg constructor.";
+    }
 }
