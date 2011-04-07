@@ -2,7 +2,7 @@
 <!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" "http://www.docbook.org/xml/4.4/docbookx.dtd">
 <chapter id="tutorial_setup">
     <title>The Spring stack</title>
-    <subtitle>"- a light from the shadows shall spring"</subtitle> <!-- lord of the rings -->
+    <!--<subtitle></subtitle>-->
     <para>
         Being Spring developers, we naturally choose components from the Spring stack to do all the
         heavy lifting. After all, we have the concept etched out, so we're already halfway there.

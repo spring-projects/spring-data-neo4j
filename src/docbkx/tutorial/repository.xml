@@ -2,7 +2,7 @@
 <!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" "http://www.docbook.org/xml/4.4/docbookx.dtd">
 <chapter id="tutorial_repository">
     <title>Repositories</title>
-    <subtitle>"- Suitable quote"</subtitle>
+    <subtitle>Serving a good cause</subtitle>
     <para>
         We wanted to add repositories with domain-specific operations. We started by creating a
         movie-specific repository, simply by creating an empty interface. It is more convenient to

@@ -2,7 +2,7 @@
 <!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" "http://www.docbook.org/xml/4.4/docbookx.dtd">
 <chapter id="tutorial_social">
     <title>Adding social</title>
-    <subtitle>"- Suitable quote"</subtitle>
+    <subtitle>Movies 2.0</subtitle>
     <para>
         So far, the website had only been a plain old movie database (POMD?). We now wanted to add
         a touch of social to it.

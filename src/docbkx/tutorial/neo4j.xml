@@ -2,7 +2,7 @@
 <!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" "http://www.docbook.org/xml/4.4/docbookx.dtd">
 <chapter id="tutorial_neo4j">
     <title>Learning Neo4j</title>
-    <subtitle>"- Welcome, to the real world."</subtitle>
+    <subtitle>Graphs ahead</subtitle>
     <para>
         Now we needed to figure out how to store our chosen domain model in the chosen database.
         First we read up about graph databases, in particular our chosen one,

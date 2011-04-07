@@ -2,7 +2,7 @@
 <!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" "http://www.docbook.org/xml/4.4/docbookx.dtd">
 <chapter id="tutorial_import">
     <title>Importing Data</title>
-    <subtitle>"- Suitable quote"</subtitle>
+    <subtitle>The dusty archives</subtitle>
     <para>
         It was now time to pull the data from <ulink url="http://themoviedb.org">themoviedb.org</ulink>.
         Registering there and getting an API key was simple, as was using the API on the command-line with

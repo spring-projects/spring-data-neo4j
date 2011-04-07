@@ -2,7 +2,7 @@
 <!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" "http://www.docbook.org/xml/4.4/docbookx.dtd">
 <chapter id="tutorial_recommendations">
     <title>Recommendations</title>
-    <subtitle>"- Suitable quote"</subtitle>
+    <subtitle>Movies! Friends! Bargains!</subtitle>
     <para>
         In the last part of this exercise we wanted to add recommendations to the app. One
         obvious recommendation was movies that our friends liked (and their friends too, but

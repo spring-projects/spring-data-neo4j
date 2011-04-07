@@ -2,7 +2,7 @@
 <!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" "http://www.docbook.org/xml/4.4/docbookx.dtd">
 <chapter id="tutorial_annotations">
     <title>Annotating the domain</title>
-    <subtitle>"- Suitable quote"</subtitle>
+    <subtitle>Decorations</subtitle>
     <para>
         Looking at the Spring Data Graph documentation, we found a simple
         <ulink url="http://github.com/SpringSource/spring-data-graph-examples/tree/master/hello-worlds">Hello World example</ulink>

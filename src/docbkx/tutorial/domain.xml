@@ -2,7 +2,7 @@
 <!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" "http://www.docbook.org/xml/4.4/docbookx.dtd">
 <chapter id="tutorial_domain">
     <title>The domain model</title>
-    <subtitle>"- Suitable quote"</subtitle>
+    <subtitle>Setting the stage</subtitle>
     <para>
         We wanted to outline the domain model before diving into library details. We also looked at the
         data model of the TheMoviedb.org data to confirm that it matched our expectations.

@@ -2,7 +2,7 @@
 <!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" "http://www.docbook.org/xml/4.4/docbookx.dtd">
 <chapter id="tutorial_relationships">
     <title>Relationships</title>
-    <subtitle>"- Suitable quote"</subtitle>
+    <subtitle>A convincing act</subtitle>
     <para>
         Our application was not yet very much fun, just storing movies and actors. After all,
         the power is in the relationships between them.

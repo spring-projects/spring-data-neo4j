@@ -2,7 +2,7 @@
 <!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" "http://www.docbook.org/xml/4.4/docbookx.dtd">
 <chapter id="tutorial_security">
     <title>Adding Security</title>
-    <subtitle>"- I love the smell of napalm in the morning."</subtitle>
+    <subtitle>Protecting assets</subtitle>
     <para>
         To have a user in the webapp we had to put it in the session and add login and registration
         pages. Of course the pages that were only meant for logged-in users had to be secured as well.

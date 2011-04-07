@@ -2,7 +2,7 @@
 <!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" "http://www.docbook.org/xml/4.4/docbookx.dtd">
 <chapter id="tutorial_indexing">
     <title>Indexing</title>
-    <subtitle>"- Find them and destroy them."</subtitle>
+    <subtitle>Do I know you?</subtitle>
     <para>
         There is an @Indexed annotation for fields. We wanted to try this out, and use it to guide the
         next test. We added @Indexed to the ID field of the Movie class. This field is intended to represent
