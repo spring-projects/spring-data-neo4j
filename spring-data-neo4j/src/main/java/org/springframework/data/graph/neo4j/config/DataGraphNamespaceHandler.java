@@ -24,7 +24,7 @@ package org.springframework.data.graph.neo4j.config;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.xml.NamespaceHandlerSupport;
-import org.springframework.data.graph.neo4j.repository.CRUDGraphRepository;
+import org.springframework.data.graph.neo4j.repository.CRUDRepository;
 import org.springframework.data.graph.neo4j.repository.GraphRepositoryFactoryBean;
 import org.springframework.data.repository.config.*;
 import org.springframework.util.StringUtils;
@@ -76,7 +76,7 @@ public class DataGraphNamespaceHandler extends NamespaceHandlerSupport {
 
             @Override
             public Class<?> getRepositoryBaseInterface() {
-                return CRUDGraphRepository.class;
+                return CRUDRepository.class;
             }
 
             public String getGraphDatabaseContextRef() {

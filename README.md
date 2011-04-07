@@ -95,11 +95,13 @@ For more detailed questions, use the [forum](http://forum.springsource.org/forum
 
 * Create a repository or service to perform typical operations on your entities.  The FinderFactory and Finder helper classes make searching easy for common use cases. The complete functionality is covered in the [reference manual](http://static.springsource.org/spring-data/data-graph/docs/current/reference/html/#programming-model).
 
+        public interface WorldRepository extends GraphRepository<World>, NamedIndexRepository<World> {}
+
         @Repository
-        public class WorldRepository {
+        public class WorldRepositoryImpl implements WorldRepositoryExtension {
 
           @Autowired
-          private FinderFactory graphRepositoryFactory;
+          private WorldRepository worldRepository;
         
           @Transactional
           public Collection<World> makeSomeWorlds()  {
@@ -117,31 +119,28 @@ For more detailed questions, use the [forum](http://forum.springsource.org/forum
             return new World(name,moons).persist();
           }
 
-          private NodeFinder<World> graphRepository() {
-             return graphRepositoryFactory.createNodeEntityFinder(World.class);
-		  }
           public World findWorldIdentifiedBy( long id )  {
-             return graphRepository().findById( id );
+             return worldRepository.findById( id );
           }
             
           public Iterable<World> findAllWorlds()  {
-             return graphRepository().findAll();
+             return worldRepository.findAll();
           }
             
           public long countWorlds()  {
-            return graphRepository().count();
+            return worldRepository.count();
           }
             
           public World findWorldNamed( String name ) {
-            return graphRepository().findByPropertyValue( null, "name", name );
+            return worldRepository.findByPropertyValue( "name", name );
           }
             
           public World findWorldWithMoons( long moonCount ) {
-            return graphRepository().findByPropertyValue( "moons", "moons", moonCount );
+            return worldRepository.findByPropertyValue( "moons", "moons", moonCount );
           }
           
           public Iterable<World> findWorldsWithMoons( int moonCount )  {
-            return graphRepository().findAllByPropertyValue( "moons", "moons", moonCount );
+            return worldRepository.findAllByPropertyValue( "moons", "moons", moonCount );
           }
                        
         }

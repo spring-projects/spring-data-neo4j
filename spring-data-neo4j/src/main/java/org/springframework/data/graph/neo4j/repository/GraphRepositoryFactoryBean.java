@@ -27,7 +27,7 @@ import org.springframework.util.Assert;
  * @author mh
  * @since 28.03.11
  */
-public class GraphRepositoryFactoryBean<S extends PropertyContainer, R extends CRUDGraphRepository<T>, T extends GraphBacked<S>>
+public class GraphRepositoryFactoryBean<S extends PropertyContainer, R extends CRUDRepository<T>, T extends GraphBacked<S>>
         extends TransactionalRepositoryFactoryBeanSupport<R, T, Long> {
 
     private GraphDatabaseContext graphDatabaseContext;

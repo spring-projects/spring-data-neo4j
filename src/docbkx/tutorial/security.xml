@@ -103,7 +103,7 @@ public class CineastsUserDetailsService implements UserDetailsService, Initializ
     }
 
     public User findUser(String login) {
-        return userRepository.findByPropertyValue(null,"login",login);
+        return userRepository.findByPropertyValue("login",login);
     }
     public User getUserFromSession() {
         SecurityContext context = SecurityContextHolder.getContext();

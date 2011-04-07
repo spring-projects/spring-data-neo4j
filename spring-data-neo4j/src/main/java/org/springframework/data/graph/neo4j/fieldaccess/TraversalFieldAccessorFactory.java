@@ -86,7 +86,7 @@ public class TraversalFieldAccessorFactory implements FieldAccessorFactory<NodeB
 
 	    @Override
 	    public Object getValue(final NodeBacked nodeBacked) {
-	        final GraphRepository<? extends NodeBacked> finder = graphRepositoryFactory.createNodeEntityRepository(target);
+	        final GraphRepository<? extends NodeBacked> finder = graphRepositoryFactory.createGraphRepository(target);
 	        final TraversalDescription traversalDescription = fieldTraversalDescriptionBuilder.build(nodeBacked,field,params);
 	        return doReturn(finder.findAllByTraversal(nodeBacked, traversalDescription));
 	    }

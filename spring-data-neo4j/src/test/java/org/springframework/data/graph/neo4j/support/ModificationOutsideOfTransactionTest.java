@@ -195,7 +195,7 @@ public class ModificationOutsideOfTransactionTest
     @Test
     public void testFindOutsideTransaction()
     {
-        final GraphRepository<Person> finder = graphRepositoryFactory.createNodeEntityRepository(Person.class);
+        final GraphRepository<Person> finder = graphRepositoryFactory.createGraphRepository(Person.class);
         assertEquals( false, finder.findAll().iterator().hasNext() );
     }
 

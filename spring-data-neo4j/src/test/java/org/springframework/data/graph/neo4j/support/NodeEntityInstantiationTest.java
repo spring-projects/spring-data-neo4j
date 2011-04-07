@@ -71,7 +71,7 @@ import static org.springframework.data.graph.neo4j.Person.persistedPerson;
         Person person2 = graphDatabaseContext.createEntityFromState(node,Person.class);
         assertEquals("Rod", person2.getName());
 
-        GraphRepository<Person> finder = graphRepositoryFactory.createNodeEntityRepository(Person.class);
+        GraphRepository<Person> finder = graphRepositoryFactory.createGraphRepository(Person.class);
         Person found = finder.findOne(nodeId);
         assertEquals("Rod", found.getName());
     }

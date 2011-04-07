@@ -23,7 +23,7 @@ import org.springframework.data.graph.core.GraphBacked;
  * @author mh
  * @since 29.03.11
  */
-public interface NamedIndexQueryExecutor<T extends GraphBacked<?>> {
+public interface NamedIndexRepository<T extends GraphBacked<?>> {
     T findByPropertyValue(String indexName, String property, Object value);
 
     ClosableIterable<T> findAllByPropertyValue(String indexName, String property, Object value);

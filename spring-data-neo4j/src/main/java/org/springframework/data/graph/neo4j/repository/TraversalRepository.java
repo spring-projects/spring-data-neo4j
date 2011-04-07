@@ -24,7 +24,7 @@ import org.springframework.data.graph.core.NodeBacked;
  * @author mh
  * @since 29.03.11
  */
-public interface TraversalQueryExecutor<T extends GraphBacked<?>> {
+public interface TraversalRepository<T extends GraphBacked<?>> {
     /**
      * Traversal based finder that returns a lazy Iterable over the traversal results
      *

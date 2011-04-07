@@ -114,7 +114,7 @@ public class TraversalTest {
     @Test
     @Transactional
     public void testTraverseFromGroupToPeopleWithFinder() {
-        final GraphRepository<Person> finder = graphRepositoryFactory.createNodeEntityRepository(Person.class);
+        final GraphRepository<Person> finder = graphRepositoryFactory.createGraphRepository(Person.class);
         Person p = persistedPerson("Michael", 35);
         Group group = new Group().persist();
         group.setName("dev");

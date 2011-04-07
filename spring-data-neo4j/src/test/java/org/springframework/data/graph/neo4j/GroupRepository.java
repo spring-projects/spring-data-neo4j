@@ -16,12 +16,12 @@
 
 package org.springframework.data.graph.neo4j;
 
-import org.springframework.data.graph.neo4j.repository.NamedIndexQueryExecutor;
+import org.springframework.data.graph.neo4j.repository.NamedIndexRepository;
 import org.springframework.data.graph.neo4j.repository.GraphRepository;
 
 /**
  * @author mh
  * @since 29.03.11
  */
-public interface GroupRepository extends GraphRepository<Group>, NamedIndexQueryExecutor<Group> {
+public interface GroupRepository extends GraphRepository<Group>, NamedIndexRepository<Group> {
 }

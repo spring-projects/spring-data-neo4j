@@ -33,7 +33,7 @@ public class CineastsRepostory {
   @Autowired MovieRepository movieRepository;
 
   public Movie getMovie(int id) {
-      return movieRepository.findByPropertyValue(null,"id", id);
+      return movieRepository.findByPropertyValue("id", id);
   }
 }
 ]]></programlisting>

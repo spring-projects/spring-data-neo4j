@@ -69,8 +69,8 @@ public class IndexTest {
 
     @Before
     public void setUp() throws Exception {
-        groupFinder = graphRepositoryFactory.createNodeEntityRepository(Group.class);
-        personFinder = graphRepositoryFactory.createNodeEntityRepository(Person.class);
+        groupFinder = graphRepositoryFactory.createGraphRepository(Group.class);
+        personFinder = graphRepositoryFactory.createGraphRepository(Person.class);
     }
 
     @BeforeTransaction
@@ -85,7 +85,7 @@ public class IndexTest {
         Person p2 = persistedPerson(NAME_VALUE2, 25);
         Friendship friendship = p.knows(p2);
         friendship.setYears(1);
-        GraphRepository<Friendship> friendshipFinder = graphRepositoryFactory.createRelationshipEntityRepository(Friendship.class);
+        GraphRepository<Friendship> friendshipFinder = graphRepositoryFactory.createGraphRepository(Friendship.class);
         assertEquals(friendship, friendshipFinder.findByPropertyValue("Friendship.years", 1));
     }
 

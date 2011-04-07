@@ -43,7 +43,7 @@ import java.util.List;
  * @param <S> Type of backing state, either Node or Relationship
  */
 @org.springframework.stereotype.Repository
-public abstract class AbstractGraphRepository<S extends PropertyContainer, T extends GraphBacked<S>> implements GraphRepository<T>, CRUDGraphRepository<T>, NamedIndexQueryExecutor<T> {
+public abstract class AbstractGraphRepository<S extends PropertyContainer, T extends GraphBacked<S>> implements GraphRepository<T>, NamedIndexRepository<T> {
     public static final ClosableIterable EMPTY_CLOSABLE_ITERABLE = new ClosableIterable() {
         @Override
         public void close() {

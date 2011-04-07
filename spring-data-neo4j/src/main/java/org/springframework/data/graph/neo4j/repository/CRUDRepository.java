@@ -29,7 +29,7 @@ import org.springframework.transaction.annotation.Transactional;
  * CRUD interface for graph repositories, used as base repository for crud operations
  */
 @NoRepositoryBean
-public interface CRUDGraphRepository<T extends GraphBacked<?>> extends PagingAndSortingRepository<T, Long> {
+public interface CRUDRepository<T extends GraphBacked<?>> extends PagingAndSortingRepository<T, Long> {
 
     /**
      * persists an entity by forwarding to entity.persist()
