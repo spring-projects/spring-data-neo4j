@@ -11,7 +11,7 @@
 		<module>spring-data-graph-parent</module>
 		<module>spring-data-graph-core</module>
 		<module>spring-data-neo4j</module>
-		<!-- <module>spring-data-neo4j-rest</module> -->
+		<module>spring-data-neo4j-rest</module>
 	</modules>
 
 	<developers>

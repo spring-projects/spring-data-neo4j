@@ -20,7 +20,6 @@ import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.kernel.EmbeddedGraphDatabase;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.data.graph.core.GraphDatabase;
-import org.springframework.data.graph.neo4j.support.DelegatingGraphDatabase;
 
 import javax.annotation.PreDestroy;
 import java.io.File;

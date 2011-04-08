@@ -1,33 +1,17 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
+	<parent>
     <groupId>org.springframework.data</groupId>
+		<artifactId>spring-data-graph-parent</artifactId>
+		<version>1.0.0.BUILD-SNAPSHOT</version>
+		<relativePath>../spring-data-graph-parent/pom.xml</relativePath>
+	</parent>
     <artifactId>spring-data-neo4j-rest</artifactId>
     <packaging>jar</packaging>
-    <version>1.0.0.BUILD-SNAPSHOT</version>
     <name>Spring Data Graph REST Wrapper</name>
     <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <org.slf4j.version>1.5.10</org.slf4j.version>
         <jersey.version>1.4</jersey.version>
-        <spring-data-neo4j.version>1.0.0.BUILD-SNAPSHOT</spring-data-neo4j.version>
-        <neo4j.version>1.3.M05</neo4j.version>
-		<junit.version>4.8.1</junit.version>
-		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<!-- dist.* properties are used by the antrun tasks below -->
-		<dist.id>spring-data-graph-rest</dist.id>
-		<dist.name>Spring Data</dist.name>
-		<dist.key>DATAGRAPH</dist.key>
-		<dist.version>${project.version}</dist.version>
-		<dist.releaseType>snapshot</dist.releaseType>
-		<dist.finalName>${dist.id}-${dist.version}</dist.finalName>
-		<dist.fileName>${dist.finalName}.zip</dist.fileName>
-		<dist.filePath>target/${dist.fileName}</dist.filePath>
-		<dist.bucketName>dist.springframework.org</dist.bucketName>
-		<!-- these properties should be in ~/.m2/settings.xml
-		<dist.accessKey>s3 access key</dist.accessKey>
-		<dist.secretKey>s3 secret key</dist.secretKey>
-		-->
     </properties>
 
     <repositories>
@@ -41,17 +25,18 @@
         </repository>
     </repositories>
     <dependencies>
+
         <dependency>
             <groupId>org.springframework.data</groupId>
             <artifactId>spring-data-neo4j</artifactId>
-            <version>${spring-data-neo4j.version}</version>
+            <version>${project.version}</version>
             <scope>test</scope>
             <type>test-jar</type>
         </dependency>
         <dependency>
             <groupId>org.springframework.data</groupId>
             <artifactId>spring-data-neo4j</artifactId>
-            <version>${spring-data-neo4j.version}</version>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>org.hibernate</groupId>
@@ -63,13 +48,11 @@
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <version>${junit.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.neo4j</groupId>
-            <artifactId>neo4j</artifactId>
-            <version>${neo4j.version}</version>
+            <artifactId>neo4j-community</artifactId>
         </dependency>
         <dependency>
             <groupId>org.neo4j.app</groupId>
@@ -153,35 +136,11 @@
         <dependency>
           <groupId>org.neo4j</groupId>
           <artifactId>neo4j-kernel</artifactId>
-          <version>${neo4j.version}</version>
           <classifier>tests</classifier>
           <scope>test</scope>
         </dependency>
     </dependencies>
-	<distributionManagement>
-		<repository>
-			<id>spring-milestone</id>
-			<name>Spring Milestone Repository</name>
-			<url>s3://maven.springframework.org/milestone</url>
-		</repository>
-		<snapshotRepository>
-			<id>spring-snapshot</id>
-			<name>Spring Snapshot Repository</name>
-			<url>s3://maven.springframework.org/snapshot</url>
-		</snapshotRepository>
-	</distributionManagement>
     <build>
-		<extensions>
-			<extension>
-				<!--
-					available only in the springframework maven repository. see
-					<repositories> section below
-				-->
-				<groupId>org.springframework.build.aws</groupId>
-				<artifactId>org.springframework.build.aws.maven</artifactId>
-				<version>3.1.0.RELEASE</version>
-			</extension>
-		</extensions>
         <plugins>
             <plugin>
                 <artifactId>maven-compiler-plugin</artifactId>
@@ -191,19 +150,6 @@
                 </configuration>
             </plugin>
             <plugin>
-                <!--
-                    configures the springsource bundlor plugin, which generates
-                    OSGI-compatible MANIFEST.MF files during the 'compile' phase of
-                    the maven build. this plugin is declared within the
-                    pluginManagement section because not every module that inherits
-                    from this pom needs bundlor's services, e.g.:
-                    spring-integration-samples and all its children. for this reason,
-                    all modules that wish to use bundlor must declare it explicitly.
-                    it is not necessary to specify the <version> or <configuration>
-                    sections, but groupId and artifactId are required. see
-                    http://static.springsource.org/s2-bundlor/1.0.x/user-guide/html/ch04s03.html
-                    for more info
-                -->
                 <groupId>com.springsource.bundlor</groupId>
                 <artifactId>com.springsource.bundlor.maven</artifactId>
                 <version>1.0.0.RELEASE</version>
@@ -219,85 +165,6 @@
                     </execution>
                 </executions>
             </plugin>
-			<plugin>
-				<artifactId>maven-javadoc-plugin</artifactId>
-				<version>2.5</version>
-				<configuration>
-					<javadoc:aggregate>true</javadoc:aggregate>
-					<breakiterator>true</breakiterator>
-					<header>Spring Data Graph</header>
-					<source>1.5</source>
-					<quiet>true</quiet>
-					<javadocDirectory>${project.basedir}/../src/main/javadoc</javadocDirectory>
-					<overview>${project.basedir}/../src/main/javadoc/overview.html</overview>
-					<stylesheetfile>${project.basedir}/../src/main/javadoc/spring-javadoc.css</stylesheetfile>
-					<!-- copies doc-files subdirectory which contains image resources -->
-					<docfilessubdirs>true</docfilessubdirs>
-					<links>
-						<link>http://static.springframework.org/spring/docs/3.0.x/javadoc-api</link>
-						<link>http://java.sun.com/javase/6/docs/api</link>
-						<link>http://components.neo4j.org/neo4j/1.3.M05/apidocs</link>
-					</links>
-				</configuration>
-			</plugin>
-			<plugin><!--
-				run `mvn package assembly:assembly` to trigger assembly creation.
-				see http://www.sonatype.com/books/mvnref-book/reference/assemblies-set-dist-assemblies.html -->
-				<artifactId>maven-assembly-plugin</artifactId>
-				<version>2.2-beta-5</version>
-				<inherited>false</inherited>
-                <configuration>
-                    <descriptors>
-                        <descriptor>${project.basedir}/distribution.xml</descriptor>
-                    </descriptors>
-                    <appendAssemblyId>false</appendAssemblyId>
-                </configuration>
-				<executions>
-					<execution>
-						<id>distribution</id>
-						<goals>
-							<goal>single</goal>
-						</goals>
-						<phase>package</phase>
-					</execution>
-				</executions>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-antrun-plugin</artifactId>
-				<version>1.4</version>
-				<executions>
-					<execution>
-						<id>upload-dist</id>
-						<phase>deploy</phase>
-						<configuration>
-							<tasks>
-								<ant antfile="${basedir}/../src/ant/upload-dist.xml">
-									<target name="upload-dist"/>
-								</ant>
-							</tasks>
-						</configuration>
-						<goals>
-							<goal>run</goal>
-						</goals>
-					</execution>
-				</executions>
-				<dependencies>
-					<dependency>
-						<groupId>org.springframework.build</groupId>
-						<artifactId>org.springframework.build.aws.ant</artifactId>
-						<version>3.0.5.RELEASE</version>
-					</dependency>
-					<dependency>
-						<groupId>net.java.dev.jets3t</groupId>
-						<artifactId>jets3t</artifactId>
-						<version>0.7.2</version>
-					</dependency>
-				</dependencies>
-			</plugin>
         </plugins>
-		<!-- the name of this project is 'spring-data-graph-rest';
-			 make sure the zip file is just 'spring-data-rest'. -->
-		<finalName>${dist.finalName}</finalName>
     </build>
 </project>

@@ -135,16 +135,6 @@ public class RestGraphDatabase extends AbstractGraphDatabase implements GraphDat
     }
 
     @Override
-    public boolean enableRemoteShell() {
-        return false;
-    }
-
-    @Override
-    public boolean enableRemoteShell(Map<String, Serializable> initialProperties) {
-        return false;
-    }
-
-    @Override
     public Transaction beginTx() {
         return new Transaction() {
             @Override

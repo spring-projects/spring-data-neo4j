@@ -17,17 +17,22 @@
 package org.springframework.data.graph.neo4j.rest.support;
 
 import org.neo4j.kernel.AbstractGraphDatabase;
+import org.neo4j.kernel.ImpermanentGraphDatabase;
 import org.neo4j.server.AddressResolver;
 import org.neo4j.server.NeoServerWithEmbeddedWebServer;
 import org.neo4j.server.database.Database;
+import org.neo4j.server.database.GraphDatabaseFactory;
 import org.neo4j.server.modules.RESTApiModule;
 import org.neo4j.server.modules.ThirdPartyJAXRSModule;
 import org.neo4j.server.startup.healthcheck.StartupHealthCheck;
 import org.neo4j.server.web.Jetty6WebServer;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.URI;
 import java.net.URL;
+import java.util.Arrays;
+import java.util.Map;
 
 /**
  * @author mh
@@ -52,17 +57,21 @@ public class LocalTestServer {
         if (neoServer!=null) throw new IllegalStateException("Server already running");
         URL url = getClass().getResource("/" + propertiesFile);
         if (url==null) throw new IllegalArgumentException("Could not resolve properties file "+propertiesFile);
-        neoServer = new NeoServerWithEmbeddedWebServer(new AddressResolver() {
+        neoServer = new NeoServerWithEmbeddedWebServer(new GraphDatabaseFactory() {
+            @Override
+            public AbstractGraphDatabase createDatabase(String databaseStoreDirectory, Map<String, String> databaseProperties) {
+                try {
+                    return new ImpermanentGraphDatabase();
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        },new AddressResolver() {
             @Override
             public String getHostname() {
                 return hostname;
             }
-        }, new StartupHealthCheck(), new File(url.getPath()), new Jetty6WebServer()) {
-            protected void registerServerModules() {
-                registerModule(RESTApiModule.class);
-                registerModule(ThirdPartyJAXRSModule.class);
-            }
-
+        }, new StartupHealthCheck(), new File(url.getPath()), new Jetty6WebServer(), Arrays.asList(RESTApiModule.class, ThirdPartyJAXRSModule.class)) {
             @Override
             protected int getWebServerPort() {
                 return port;

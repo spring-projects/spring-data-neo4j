@@ -43,7 +43,7 @@ public class RestConfig extends Config {
                       TxIdGenerator txIdGenerator, LastCommittedTxIdSetter lastCommittedTxIdSetter,
                       FileSystemAbstraction fileSystem, LogBufferFactory logBufferFactory) {
         super(graphDb, storeDir, storeId,
-                inputParams, kpe, txModule, lockManager, lockReleaser, idGeneratorFactory, txSyncHookFactory, relTypeCreator, txIdGenerator, lastCommittedTxIdSetter, fileSystem, logBufferFactory);
+                inputParams, kpe, txModule, lockManager, lockReleaser, idGeneratorFactory, txSyncHookFactory, relTypeCreator, txIdGenerator, lastCommittedTxIdSetter, fileSystem);
     }
 
     public RestConfig(AbstractGraphDatabase restGraphDatabase) {
@@ -57,7 +57,7 @@ public class RestConfig extends Config {
                 },
                 null,null,
                 null,null,null,null,null,
-                null,null);
+                null);
     }
 
     private static class NullTransactionManager implements TransactionManager {
