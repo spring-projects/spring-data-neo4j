@@ -88,8 +88,8 @@
         <title>Reference</title>
         <partintro>
             <para>
-                This is the reference part of the book. It has information about the programming model, APIs,
-                concepts, and annotations of Spring Data Graph.
+                This is the reference part of the book. It has information about the
+                programming model, APIs, concepts, and annotations of Spring Data Graph.
             </para>
         </partintro>
 

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE section PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
-<section id="reference:programming_model:annotations">
+<section id="reference:programming-model:annotations">
     <title>Annotations define POJO node entities</title>
     <para>Entities are declared using the <code>@NodeEntity</code> annotation.
         Relationship entities use the <code>@RelationshipEntity</code> annotation.

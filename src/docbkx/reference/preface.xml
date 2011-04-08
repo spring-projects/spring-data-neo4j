@@ -2,19 +2,17 @@
 <!DOCTYPE preface PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN"
 "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
 <preface id="reference:preface">
-  <title>Preface</title>
-
-  <para>The Spring Data Graph project applies core Spring concepts to the development of solutions using a graph style data store. 
-	 The basic approach is to mark simple POJO entities with Spring Data Graph annotations. That enables the AspectJ aspects that are contained
-	 with the framework to adapt the instantiation and field access to have them stored and retrieved from the graph store.
-	 Entities are mapped to nodes of the graph, references to other entities are represented by relationships. There are also
-	 special relationship entities that provide access to the properties of graph relationships.
-  </para>
-  <para>
-	For the developer of a Spring Data Graph backed application only the public annotations
-      (<xref linkend="reference:programming_model:annotations"/>) and the additional,
-    added entity methods (<xref linkend="reference:programming-model:introduced-methods"/>) are relevant.
-    Basic knowledge of graph stores is needed to access advanced functionality like traversals.
-    Traversal results can also be mapped to fields of entities.
-  </para>
+    <title>Preface</title>
+    <para>
+        The Spring Data Graph project, as part of the Spring Data initiative, aims to simplify development
+        with graph databases. Like JPA, it uses annotations on simple POJO beans. The annotations activate
+        the AspectJ aspects in the Spring Data Graph framework, mapping the POJO entities and their fields
+        to nodes, relationships, and properties in the graph database.
+    </para>
+    <para>
+        To get started with a simple application, only the basic annotations
+        (see <xref linkend="reference:programming-model:annotations"/>) and the additional aspect-introduced
+        entity methods (see <xref linkend="reference:programming-model:introduced-methods"/>) are required.
+        Basic knowledge of graph stores is needed to access advanced functionality like traversals.
+    </para>
 </preface>
