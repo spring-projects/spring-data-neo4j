@@ -3,89 +3,114 @@
 <section id="reference:programming-model:introduced-methods">
     <title>Methods added to entity classes</title>
     <para>
-        The node and relationship aspects introduce (via ITD - inter type declaration) several methods to the
-        entities that make common tasks easier.
+        The node and relationship aspects introduce (via AspectJ ITD - inter type declaration) several
+        methods to the entities.
         <variablelist>
             <varlistentry>
-                <term>persisting the node-entity initially and after changes outside of a transaction,
-                persist participates in a transaction or creates its own implict transaction.
+                <term>
+                    Persisting the node entity after creation and after changes outside of a transaction.
+                    Participates in an open transaction, or creates its own implicit transaction otherwise.
                 </term>
                 <listitem>
                     <para><code>nodeEntity.persist()</code></para>
                 </listitem>
             </varlistentry>
             <varlistentry>
-                <term>accessing node and relationship ids</term>
+                <term>
+                    Accessing node and relationship IDs
+                </term>
                 <listitem>
-                    <para><code>nodeEntity.getNodeId() and relationshipEntity.getRelationshipId()</code></para>
+                    <para><code>nodeEntity.getNodeId()</code> and <code>relationshipEntity.getRelationshipId()</code></para>
                 </listitem>
             </varlistentry>
             <varlistentry>
-                <term>accessing the node or relationship backing the entity</term>
+                <term>
+                    Accessing the node or relationship backing the entity
+                </term>
                 <listitem>
                     <para><code>entity.getPersistentState()</code></para>
                 </listitem>
             </varlistentry>
             <varlistentry>
-                <term>equals and hashcode are delegated to the underlying state</term>
+                <term>
+                    equals() and hashCode() are delegated to the underlying state
+                </term>
                 <listitem>
-                    <para><code>entity.equals() and entity.hashCode()</code></para>
+                    <para><code>entity.equals()</code> and <code>entity.hashCode()</code></para>
                 </listitem>
             </varlistentry>
             <varlistentry>
-                <term>creating relationships to a target node entity and returning the relationship-entity instance</term>
+                <term>
+                    Creating relationships to a target node entity, and returning the relationship entity instance
+                </term>
                 <listitem>
                     <para><code>nodeEntity.relateTo(targetEntity, relationshipClass, relationshipType)</code></para>
                 </listitem>
             </varlistentry>
             <varlistentry>
-                <term>retrieving a single relationship-entity</term>
+                <term>
+                    Retrieving a single relationship entity
+                </term>
                 <listitem>
-                    <para><code>nodeEntity.getRelationshipTo(targetEnttiy, relationshipClass, relationshipType)</code></para>
+                    <para><code>nodeEntity.getRelationshipTo(targetEntity, relationshipClass, relationshipType)</code></para>
                 </listitem>
             </varlistentry>
             <varlistentry>
-                <term>creating relationships to a target node entity and returning the relationship</term>
+                <term>
+                    Creating relationships to a target node entity and returning the relationship
+                </term>
                 <listitem>
                     <para><code>nodeEntity.relateTo(targetEntity, relationshipType)</code></para>
                 </listitem>
             </varlistentry>
             <varlistentry>
-                <term>retrieving a single relationship</term>
+                <term>
+                    Retrieving a single relationship
+                </term>
                 <listitem>
                     <para><code>nodeEntity.getRelationshipTo(targetEnttiy, relationshipType)</code></para>
                 </listitem>
             </varlistentry>
             <varlistentry>
-                <term>removing a single relationship</term>
+                <term>
+                    Removing a single relationship
+                </term>
                 <listitem>
                     <para><code>nodeEntity.removeRelationshipTo(targetEntity, relationshipType)</code></para>
                 </listitem>
             </varlistentry>
             <varlistentry>
-                <term>remove the node entity, its relationships and index entries</term>
+                <term>
+                    Remove the node entity, its relationships, and all index entries for it
+                </term>
                 <listitem>
-                    <para><code>entity.remove()</code></para>
+                    <para><code>nodeEntity.remove()</code> and <code>relationshipEntity.remove()</code></para>
                 </listitem>
             </varlistentry>
             <varlistentry>
-                <term>projecting to a different target type</term>
+                <term>
+                    Project entity to a different target type, using the same backing state
+                </term>
                 <listitem>
                     <para><code>entity.projectTo(targetClass)</code></para>
                 </listitem>
             </varlistentry>
             <varlistentry>
-                <term>traversing, starting at the current node, returns end-nodes of traversal converted to provided type</term>
+                <term>
+                    Traverse, starting from the current node. Returns end nodes of traversal converted to
+                    the provided type.
+                </term>
                 <listitem>
                     <para><code>nodeEntity.findAllByTraversal(targetType, traversalDescription)</code></para>
                 </listitem>
             </varlistentry>
             <varlistentry>
-                <term>traversing, starting at the current node, returns <code>EntityPath</code>'s of the traversal result
-                bound to the provided start and end-node-entity types
+                <term>
+                    Traverse, starting from the current node. Returns <code>EntityPath</code>s of the traversal result
+                    bound to the provided start and end-node-entity types
                 </term>
                 <listitem>
-                    <para><code>Iterable&lt;EntityPath&gt; findAllPathsByTraversal(traversalDescription)</code></para>
+                    <para><code>Iterable&lt;EntityPath> findAllPathsByTraversal(traversalDescription)</code></para>
                 </listitem>
             </varlistentry>
         </variablelist>
