@@ -19,6 +19,7 @@ package org.springframework.data.graph.core;
 import org.junit.Test;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.data.graph.neo4j.support.DelegatingGraphDatabase;
+import org.springframework.data.graph.neo4j.support.GraphDatabaseFactory;
 
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsInstanceOf.instanceOf;

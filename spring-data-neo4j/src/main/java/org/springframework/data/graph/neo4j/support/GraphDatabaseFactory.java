@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
-package org.springframework.data.graph.core;
+package org.springframework.data.graph.neo4j.support;
 
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.kernel.EmbeddedGraphDatabase;
 import org.springframework.beans.factory.FactoryBean;
+import org.springframework.data.graph.core.GraphDatabase;
 import org.springframework.data.graph.neo4j.support.DelegatingGraphDatabase;
 
 import javax.annotation.PreDestroy;
