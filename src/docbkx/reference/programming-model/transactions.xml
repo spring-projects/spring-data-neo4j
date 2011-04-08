@@ -3,91 +3,111 @@
 <section>
     <title>Transactions in Spring Data Graph</title>
     <para>
-        Neo4j is a transactional datastore which only allows modifications within transaction boundaries and fullfills
-        the ACID properties. Reading from the store is also possible outside of transactions.
+        Neo4j is a transactional database, only allowing modifications to be performed within transaction
+        boundaries. Reading data does however not require transactions.
     </para>
-
-    <para>Spring Data Graph integrates with transaction managers configured using Spring. The simplest scenario of
-        just running the graph database uses a SpringTransactionManager provided by the Neo4j kernel to be used
-        with Spring's JtaTransactionManager.
-
-        Note: The explicit XML configuration given below is encoded in the <code>Neo4jConfiguration</code>
-        configuration bean that uses Spring's @Configuration functioanlity. This simplifies the configuration.
-        An example is shown further below.
+    <para>
+        Spring Data Graph integrates with transaction managers configured using Spring. The simplest
+        scenario of just running the graph database uses a SpringTransactionManager provided by the
+        Neo4j kernel to be used with Spring's JtaTransactionManager. That is, configuring Spring to
+        use Neo4j's transaction manager.
     </para>
-    <programlisting language="xml"><![CDATA[
+    <note>
+        <para>
+            The explicit XML configuration given below is encoded in the <code>Neo4jConfiguration</code>
+            configuration bean that uses Spring's <code>@Configuration</code> feature. This greatly
+            simplifies the configuration of Spring Data Graph.
+            <!--An example is shown further below.-->
+        </para>
+    </note>
+    <example>
+        <title>Simple transaction manager configuration</title>
+        <programlisting language="xml"><![CDATA[
 <bean id="transactionManager" class="org.springframework.transaction.jta.JtaTransactionManager">
-<property name="transactionManager">
-    <bean class="org.neo4j.kernel.impl.transaction.SpringTransactionManager">
-        <constructor-arg ref="graphDatabaseService"/>
-    </bean>
-</property>
-<property name="userTransaction">
-    <bean class="org.neo4j.kernel.impl.transaction.UserTransactionImpl">
-        <constructor-arg ref="graphDatabaseService"/>
-    </bean>
-</property>
+    <property name="transactionManager">
+        <bean class="org.neo4j.kernel.impl.transaction.SpringTransactionManager">
+            <constructor-arg ref="graphDatabaseService"/>
+        </bean>
+    </property>
+    <property name="userTransaction">
+        <bean class="org.neo4j.kernel.impl.transaction.UserTransactionImpl">
+            <constructor-arg ref="graphDatabaseService"/>
+        </bean>
+    </property>
 </bean>
 
 <tx:annotation-driven mode="aspectj" transaction-manager="transactionManager"/>
 ]]></programlisting>
+    </example>
     <para>
-        For scenarios running multiple transactional resources there are two options.
-        First of all you can have Neo4j participate in the externally set up transaction manager using the new
-        SpringProvider by enabling the configuration parameter for your graph database. Either via the spring config
-        or the configuration file (neo4j.properties).
+        For scenarios with multiple transactional resources there are two options. The first option
+        is to have Neo4j participate in the externally configured transaction manager by using the
+        Spring support in Neo4j by enabling the configuration parameter for your graph database.
+        Neo4j will then use Spring's transaction manager instead of its own.
     </para>
-    <programlisting language="xml"><![CDATA[
+    <example>
+        <title>Neo4j Spring integration</title>
+        <programlisting language="xml"><![CDATA[
 <context:annotation-config />
 <context:spring-configured/>
 
 <bean id="transactionManager" class="org.springframework.transaction.jta.JtaTransactionManager">
-<property name="transactionManager">
-    <bean id="jotm" class="org.springframework.data.graph.neo4j.transaction.JotmFactoryBean"/>
-</property>
+    <property name="transactionManager">
+        <bean id="jotm" class="org.springframework.data.graph.neo4j.transaction.JotmFactoryBean"/>
+    </property>
 </bean>
 
 <bean class="org.neo4j.kernel.EmbeddedGraphDatabase" destroy-method="shutdown">
-<constructor-arg value="target/test-db"/>
-<constructor-arg>
-    <map>
-        <entry key="tx_manager_impl" value="spring-jta"/>
-    </map>
-</constructor-arg>
+    <constructor-arg value="target/test-db"/>
+    <constructor-arg>
+        <map>
+            <entry key="tx_manager_impl" value="spring-jta"/>
+        </map>
+    </constructor-arg>
 </bean>
 
 <tx:annotation-driven mode="aspectj" transaction-manager="transactionManager"/>
-                ]]></programlisting>
+]]></programlisting>
+    </example>
     <para>
-        You can configure a stock XA transaction manager to be used with Neo4j and the other resources (e.g. Atomikos,
-        JOTM, App-Server-TM). For a bit less secure but fast 1 phase commit best effort, use the implementation coming
-        with Spring Data Graph (<code>ChainedTransactionManager</code>). It takes a list of transaction-managers as
-        constructor params and will handle them in order for transaction start and commit (or rollback) in the reverse
-        order.
+        One can also configure a stock XA transaction manager (e.g. Atomikos, JOTM, App-Server-TM) to be
+        used with Neo4j and the other resources. For a bit less secure but fast 1 phase commit best effort,
+        use <code>ChainedTransactionManager</code>, which comes bundled with Spring Data Graph. It takes a
+        list of transaction managers as constructor params and will handle them in order for transaction
+        start and commit (or rollback) in the reverse order.
     </para>
-    <programlisting language="xml"><![CDATA[
+    <example>
+        <title>ChainedTransactionManager example</title>
+        <programlisting language="xml"><![CDATA[
+<bean id="jpaTransactionManager"
+        class="org.springframework.orm.jpa.JpaTransactionManager">
+    <property name="entityManagerFactory" ref="entityManagerFactory"/>
+</bean>
+<bean id="jtaTransactionManager"
+        class="org.springframework.transaction.jta.JtaTransactionManager">
+    <property name="transactionManager">
+        <bean class="org.neo4j.kernel.impl.transaction.SpringTransactionManager">
+            <constructor-arg ref="graphDatabaseService" />
+        </bean>
+    </property>
+    <property name="userTransaction">
+        <bean  class="org.neo4j.kernel.impl.transaction.UserTransactionImpl">
+            <constructor-arg ref="graphDatabaseService" />
+        </bean>
+    </property>
+</bean>
 <bean id="transactionManager"
-        class="org.springframework.data.graph.neo4j.transaction.ChainedTransactionManager" >
+        class="org.springframework.data.graph.neo4j.transaction.ChainedTransactionManager">
     <constructor-arg>
         <list>
-        <bean class="org.springframework.orm.jpa.JpaTransactionManager" id="jpaTransactionManager">
-            <property name="entityManagerFactory" ref="entityManagerFactory"/>
-        </bean>
-        <bean
-            class="org.springframework.transaction.jta.JtaTransactionManager">
-            <property name="transactionManager">
-                <bean class="org.neo4j.kernel.impl.transaction.SpringTransactionManager">
-                    <constructor-arg ref="graphDatabaseService" />
-                </bean>
-            </property>
-            <property name="userTransaction">
-                <bean  class="org.neo4j.kernel.impl.transaction.UserTransactionImpl">
-                    <constructor-arg ref="graphDatabaseService" />
-                </bean>
-            </property>
-        </bean>
+            <ref bean="jpaTransactionManager"/>
+            <ref bean="jtaTransactionManager"/>
         </list>
     </constructor-arg>
 </bean>
+
+<tx:annotation-driven mode="aspectj" transaction-manager="transactionManager"/>
 ]]></programlisting>
+    </example>
+
 </section>
