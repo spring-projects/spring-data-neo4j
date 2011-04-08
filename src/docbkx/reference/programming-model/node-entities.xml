@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE section PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
 <section id="reference:programming-model:annotations">
-    <title>Annotations define POJO node entities</title>
-    <para>Entities are declared using the <code>@NodeEntity</code> annotation.
-        Relationship entities use the <code>@RelationshipEntity</code> annotation.
+    <title>Defining node entities</title>
+    <para>
+        Node entities are declared using the <code>@NodeEntity</code> annotation. Relationship entities use
+        the <code>@RelationshipEntity</code> annotation.
     </para>
     <section>
         <title>@NodeEntity: The basic building block</title>
@@ -61,7 +62,7 @@ String title;
         <para>
             Numerical values are indexed as such by default, allowing for range queries.
             Fulltext indexing is also possible by setting the <code>fulltext</code> attribute to true. For details see
-            the indexing section <xref linkend="reference_programming-model:indexing"/>.
+            the indexing section <xref linkend="reference:programming-model:indexing"/>.
         </para>
     </section>
 

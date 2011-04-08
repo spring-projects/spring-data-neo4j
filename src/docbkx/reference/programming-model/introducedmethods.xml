@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE section PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
 <section id="reference:programming-model:introduced-methods">
-    <title>Methods added to entity classes</title>
+    <title>Introduced methods</title>
     <para>
         The node and relationship aspects introduce (via AspectJ ITD - inter type declaration) several
         methods to the entities.

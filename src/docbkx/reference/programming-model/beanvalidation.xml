@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE section PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
 <section>
-    <title>Bean Validation - JSR-303</title>
+    <title>Bean validation (JSR-303)</title>
     <para>
         Spring Data Graph supports property based validation support. So, whenever a property is changed, it is
         checked against the annotated constraints (.e.g @Min, @Max, @Size, etc).

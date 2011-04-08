@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE section PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
 <section id="reference:programming_model:relationships">
-    <title>Relationships relate node entities</title>
+    <title>Relating node entities</title>
     <para>
         Since relationships are first-class citizens in Neo4j, associations between node entities are represented
         by relationships. In general, relationships are categorized by a type, and start and end nodes (which
@@ -9,13 +9,6 @@
         Spring Data Graph has special support to represent Neo4j relationships as entities too, but it is often
         not needed.
     </para>
-    <section>
-        <title>@NodeEntity</title>
-        <para>
-            Any class annotated with @NodeEntity will be backed by a node in the graph. Its fields will, if their
-            types are supported, be persisted as properties to the node for each entity.
-        </para>
-    </section>
     <section>
         <title>@RelatedTo: Connecting node entities</title>
         <para>

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
 <chapter id="setup">
-	<title>Setup required for Spring Data Graph</title>
+	<title>Environment setup</title>
 	<para>To use Spring Data Graph in your application, some setup is required. For building the application the necessary Maven dependencies must be included and
 		for the AspectJ weaving some extensions of the compile goal are necessary. This chapter also discusses the Spring configuration needed to set up
 		Spring Data Graph. Examples for this setup can be found in the <ulink url="http://github.com/SpringSource/spring-data-graph-examples">Spring Data Graph examples</ulink>.
