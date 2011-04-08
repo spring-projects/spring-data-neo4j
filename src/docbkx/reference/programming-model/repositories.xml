@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE section PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
-<section>
+<section id="reference:repositories">
     <title>GraphRepositories for basic CRUD and find-operations</title>
     <para>
         The repositories provided by Spring Data Graph build on the composable repository infrastructure contained
