@@ -27,7 +27,7 @@ import java.lang.reflect.Field;
 import java.util.HashSet;
 import java.util.Set;
 
-import static org.springframework.data.graph.neo4j.fieldaccess.DoReturn.doReturn;
+import static org.springframework.data.graph.neo4j.support.DoReturn.doReturn;
 
 public class OneToNRelationshipEntityFieldAccessorFactory implements FieldAccessorFactory<NodeBacked> {
 

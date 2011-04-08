@@ -20,6 +20,7 @@ import org.neo4j.graphdb.Node;
 import org.springframework.data.graph.annotation.NodeEntity;
 import org.springframework.data.graph.core.NodeBacked;
 import org.springframework.data.graph.neo4j.repository.DirectGraphRepositoryFactory;
+import org.springframework.data.graph.neo4j.support.EntityState;
 import org.springframework.data.graph.neo4j.support.GraphDatabaseContext;
 
 import javax.annotation.PostConstruct;

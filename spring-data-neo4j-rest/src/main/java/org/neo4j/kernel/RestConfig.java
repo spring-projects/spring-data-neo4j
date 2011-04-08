@@ -24,7 +24,6 @@ import org.neo4j.kernel.impl.transaction.LockManager;
 import org.neo4j.kernel.impl.transaction.TxModule;
 import org.neo4j.kernel.impl.transaction.xaframework.LogBufferFactory;
 import org.neo4j.kernel.impl.transaction.xaframework.TxIdGenerator;
-import org.springframework.data.graph.neo4j.rest.support.RestGraphDatabase;
 
 import javax.transaction.*;
 import javax.transaction.xa.XAResource;
@@ -47,7 +46,7 @@ public class RestConfig extends Config {
                 inputParams, kpe, txModule, lockManager, lockReleaser, idGeneratorFactory, txSyncHookFactory, relTypeCreator, txIdGenerator, lastCommittedTxIdSetter, fileSystem, logBufferFactory);
     }
 
-    public RestConfig(RestGraphDatabase restGraphDatabase) {
+    public RestConfig(AbstractGraphDatabase restGraphDatabase) {
         super(restGraphDatabase, restGraphDatabase.getStoreDir(), null,
                 Collections.<String,String>emptyMap(),null,
                 new TxModule(true,null){

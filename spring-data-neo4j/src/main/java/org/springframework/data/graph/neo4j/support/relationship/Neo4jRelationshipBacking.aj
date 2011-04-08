@@ -24,16 +24,18 @@ import org.neo4j.graphdb.Relationship;
 import org.springframework.beans.factory.annotation.Configurable;
 import org.springframework.data.graph.core.RelationshipBacked;
 import org.springframework.data.graph.neo4j.fieldaccess.*;
+import org.springframework.data.graph.neo4j.support.DoReturn;
+import org.springframework.data.graph.neo4j.support.EntityState;
 import org.springframework.data.graph.neo4j.support.GraphDatabaseContext;
 import org.springframework.data.graph.annotation.*;
 
 import java.lang.reflect.Field;
 
-import static org.springframework.data.graph.neo4j.fieldaccess.DoReturn.unwrap;
+import static org.springframework.data.graph.neo4j.support.DoReturn.unwrap;
 
 /**
  * Aspect for handling relationship entity creation and field access (read & write)
- * puts the underlying state into and delegates field access to an {@link org.springframework.data.graph.neo4j.fieldaccess.EntityState} instance,
+ * puts the underlying state into and delegates field access to an {@link org.springframework.data.graph.neo4j.support.EntityState} instance,
  * created by a configured {@link org.springframework.data.graph.neo4j.fieldaccess.RelationshipEntityStateFactory}
  */
 public aspect Neo4jRelationshipBacking {
@@ -67,7 +69,7 @@ public aspect Neo4jRelationshipBacking {
     }
 
     /**
-     * field for {@link org.springframework.data.graph.neo4j.fieldaccess.EntityState} that takes care of all entity operations
+     * field for {@link org.springframework.data.graph.neo4j.support.EntityState} that takes care of all entity operations
      */
     private EntityState<RelationshipBacked,Relationship> RelationshipBacked.entityState;
 

@@ -20,6 +20,7 @@ import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.traversal.TraversalDescription;
 import org.neo4j.helpers.collection.ClosableIterable;
 import org.springframework.data.graph.core.Property;
+import org.springframework.data.graph.neo4j.support.path.PathMapper;
 
 /**
  * A template with convenience operations, exception translation and implicit transaction for modifying methods
@@ -93,7 +94,7 @@ public interface Neo4jOperations {
      * @param pathMapper a mapper that translates from the resulting paths into some domain object, might use PathMapper.WithoutResult for a callback behaviour
      * @param queryOrQueryObject a lucene query string or query object (if the neo4j-index provider is lucene)
      * @return a lazy (when mapped) or eagerly (when called back) iterable containing the results of the query result mapping
-     * @see IterationController for controlling eagerness of iteration
+     * @see org.springframework.data.graph.neo4j.support.path.IterationController for controlling eagerness of iteration
      */
     <T> ClosableIterable<T> query(String indexName, PathMapper<T> pathMapper, Object queryOrQueryObject);
 
@@ -106,7 +107,7 @@ public interface Neo4jOperations {
      * @param field field to query
      * @param value value to supply to index query
      * @return a lazy (when mapped) or eagerly (when called back) iterable containing the results of the query result mapping
-     * @see IterationController for controlling eagerness of iteration
+     * @see org.springframework.data.graph.neo4j.support.path.IterationController for controlling eagerness of iteration
      */
     <T> ClosableIterable<T> query(String indexName, PathMapper<T> pathMapper, String field, String value);
 

@@ -35,6 +35,7 @@ import org.neo4j.kernel.impl.transaction.SpringTransactionManager;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.graph.core.GraphDatabase;
 import org.springframework.data.graph.neo4j.support.DelegatingGraphDatabase;
+import org.springframework.data.graph.neo4j.support.path.PathMapper;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.jta.JtaTransactionManager;

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.data.graph.neo4j.template;
+package org.springframework.data.graph.neo4j.support.path;
 
 /**
  * If the @{see PathMapper} implements this interface the returned @{see IterationMode}

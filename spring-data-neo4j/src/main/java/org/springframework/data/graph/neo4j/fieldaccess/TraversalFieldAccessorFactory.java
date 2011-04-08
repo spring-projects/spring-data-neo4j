@@ -27,7 +27,7 @@ import org.springframework.data.graph.neo4j.repository.GraphRepository;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 
-import static org.springframework.data.graph.neo4j.fieldaccess.DoReturn.doReturn;
+import static org.springframework.data.graph.neo4j.support.DoReturn.doReturn;
 
 public class TraversalFieldAccessorFactory implements FieldAccessorFactory<NodeBacked> {
 

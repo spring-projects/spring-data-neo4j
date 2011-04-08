@@ -14,16 +14,17 @@
  * limitations under the License.
  */
 
-package org.springframework.data.graph.neo4j.support;
+package org.springframework.data.graph.neo4j.support.path;
 
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.neo4j.graphdb.Node;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.graph.neo4j.Person;
-import org.springframework.data.graph.neo4j.template.NodePath;
-import org.springframework.data.graph.neo4j.transaction.EntityMapper;
+import org.springframework.data.graph.neo4j.support.EntityPath;
+import org.springframework.data.graph.neo4j.support.GraphDatabaseContext;
+import org.springframework.data.graph.neo4j.support.path.NodePath;
+import org.springframework.data.graph.neo4j.support.path.EntityMapper;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
@@ -34,26 +35,22 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = {"classpath:org/springframework/data/graph/neo4j/support/Neo4jGraphPersistenceTest-context.xml"})
-public class EntityPathTest {
+public class EntityMapperTest {
 
     @Autowired
     private GraphDatabaseContext ctx;
 
     @Test
     @Transactional
-    public void shouldConvertNodePathToEntityPath() throws Exception {
+    public void entityMapperShouldForwardEntityPath() throws Exception {
         Person michael = new Person("Michael", 36).persist();
-        Node node = michael.getPersistentState();
-        NodePath path = new NodePath(node);
-        EntityPath<Person, Person> entityPath = new EntityPath<Person, Person>(ctx, path);
-
-        Assert.assertEquals("start entity",michael, entityPath.startEntity());
-        Assert.assertEquals("start node",node, path.startNode());
-        Assert.assertEquals("end entity",michael, entityPath.endEntity());
-        Assert.assertEquals("end node",node, path.endNode());
-        Assert.assertNull("no relationship", entityPath.lastRelationshipEntity());
-        Assert.assertNull("no relationship", path.lastRelationship());
-
-        // todo all 6 iterators
+        EntityMapper<Person, Person, String> mapper = new EntityMapper<Person, Person, String>(ctx) {
+            @Override
+            public String mapPath(EntityPath<Person, Person> entityPath) {
+                return entityPath.<Person>startEntity().getName();
+            }
+        };
+        String name = mapper.mapPath(new NodePath(michael.getPersistentState()));
+        Assert.assertEquals(michael.getName(), name);
     }
 }

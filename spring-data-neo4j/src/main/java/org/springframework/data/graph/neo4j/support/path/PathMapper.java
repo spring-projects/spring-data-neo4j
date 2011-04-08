@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.data.graph.neo4j.template;
+package org.springframework.data.graph.neo4j.support.path;
 
 import org.neo4j.graphdb.Path;
 

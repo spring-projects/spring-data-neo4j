@@ -22,6 +22,7 @@ import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Path;
 import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.kernel.Traversal;
+import org.springframework.data.graph.neo4j.support.path.PathMapper;
 
 import java.util.HashSet;
 import java.util.Set;

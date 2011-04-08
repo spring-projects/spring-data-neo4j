@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.data.graph.neo4j.fieldaccess;
+package org.springframework.data.graph.neo4j.support;
 
 /**
  * Wrapper for return values of FieldAccessor methods.

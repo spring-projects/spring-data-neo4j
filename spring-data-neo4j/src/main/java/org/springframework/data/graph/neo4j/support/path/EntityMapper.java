@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package org.springframework.data.graph.neo4j.transaction;
+package org.springframework.data.graph.neo4j.support.path;
 
 import org.neo4j.graphdb.Path;
 import org.springframework.data.graph.core.NodeBacked;
 import org.springframework.data.graph.neo4j.support.EntityPath;
 import org.springframework.data.graph.neo4j.support.GraphDatabaseContext;
-import org.springframework.data.graph.neo4j.template.PathMapper;
+import org.springframework.data.graph.neo4j.support.path.PathMapper;
 
 /**
  * @author mh

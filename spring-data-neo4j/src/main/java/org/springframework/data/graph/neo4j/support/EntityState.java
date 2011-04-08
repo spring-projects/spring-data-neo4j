@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.data.graph.neo4j.fieldaccess;
+package org.springframework.data.graph.neo4j.support;
 
 import org.springframework.data.graph.core.GraphBacked;
 import org.springframework.data.graph.core.NodeBacked;

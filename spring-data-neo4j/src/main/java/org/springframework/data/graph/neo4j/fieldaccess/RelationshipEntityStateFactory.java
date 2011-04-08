@@ -19,6 +19,7 @@ package org.springframework.data.graph.neo4j.fieldaccess;
 import org.neo4j.graphdb.Relationship;
 import org.springframework.data.graph.core.RelationshipBacked;
 import org.springframework.data.graph.neo4j.repository.DirectGraphRepositoryFactory;
+import org.springframework.data.graph.neo4j.support.EntityState;
 import org.springframework.data.graph.neo4j.support.GraphDatabaseContext;
 
 import javax.annotation.PostConstruct;

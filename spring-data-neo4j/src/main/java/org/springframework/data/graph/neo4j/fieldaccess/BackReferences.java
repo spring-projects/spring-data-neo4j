@@ -18,6 +18,7 @@ package org.springframework.data.graph.neo4j.fieldaccess;
 
 import org.springframework.data.graph.core.GraphBacked;
 import org.springframework.data.graph.core.NodeBacked;
+import org.springframework.data.graph.neo4j.support.EntityState;
 
 import java.util.*;
 

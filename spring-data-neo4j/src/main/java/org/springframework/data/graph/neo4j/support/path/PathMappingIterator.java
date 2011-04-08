@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.data.graph.neo4j.template;
+package org.springframework.data.graph.neo4j.support.path;
 
 import org.neo4j.graphdb.Path;
 import org.neo4j.helpers.collection.ClosableIterable;
@@ -23,14 +23,14 @@ import org.neo4j.helpers.collection.IterableWrapper;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.springframework.data.graph.neo4j.template.IterationController.IterationMode.EAGER_STOP_ON_NULL;
+import static org.springframework.data.graph.neo4j.support.path.IterationController.IterationMode.EAGER_STOP_ON_NULL;
 
 /**
  * @author mh
  * @since 22.02.11
  */
 public class PathMappingIterator {
-    <T> Iterable<T> mapPaths(final Iterable<Path> paths, final PathMapper<T> pathMapper) {
+    public <T> Iterable<T> mapPaths(final Iterable<Path> paths, final PathMapper<T> pathMapper) {
         assert paths != null;
         assert pathMapper != null;
         IterationController.IterationMode mode = getIterationControl(pathMapper);
@@ -41,7 +41,7 @@ public class PathMappingIterator {
                 try {
                     for (Path path : paths) {
                         T mapped = pathMapper.mapPath(path);
-                        if (mapped == null && mode == EAGER_STOP_ON_NULL) break;
+                        if (mapped == null && mode == IterationController.IterationMode.EAGER_STOP_ON_NULL) break;
                         result.add(mapped);
                     }
                 } finally {

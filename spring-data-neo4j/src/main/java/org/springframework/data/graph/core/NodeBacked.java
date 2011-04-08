@@ -19,7 +19,6 @@ package org.springframework.data.graph.core;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.traversal.TraversalDescription;
-import org.springframework.data.graph.neo4j.fieldaccess.EntityState;
 import org.springframework.data.graph.neo4j.support.EntityPath;
 
 /**
@@ -148,10 +147,6 @@ public interface NodeBacked extends GraphBacked<Node> {
      * @return the newly created relationship to the target node
      */
     Relationship relateTo(NodeBacked target, String type);
-
-    // get internal state object
-    EntityState<NodeBacked, Node> getEntityState();
-
 
     // will possibly be used for object graphs
     boolean refersTo(GraphBacked target);

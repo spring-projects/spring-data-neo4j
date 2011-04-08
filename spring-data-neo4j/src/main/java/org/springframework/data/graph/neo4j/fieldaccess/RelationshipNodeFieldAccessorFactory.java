@@ -27,7 +27,7 @@ import org.springframework.data.graph.neo4j.support.GraphDatabaseContext;
 
 import java.lang.reflect.Field;
 
-import static org.springframework.data.graph.neo4j.fieldaccess.DoReturn.doReturn;
+import static org.springframework.data.graph.neo4j.support.DoReturn.doReturn;
 
 /**
  * @author Michael Hunger
