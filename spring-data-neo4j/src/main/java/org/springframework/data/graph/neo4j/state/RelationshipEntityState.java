@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-package org.springframework.data.graph.neo4j.fieldaccess;
+package org.springframework.data.graph.neo4j.state;
 
 import org.neo4j.graphdb.NotInTransactionException;
 import org.neo4j.graphdb.Relationship;
 import org.springframework.dao.InvalidDataAccessResourceUsageException;
 import org.springframework.data.graph.core.RelationshipBacked;
+import org.springframework.data.graph.neo4j.fieldaccess.*;
 import org.springframework.data.graph.neo4j.repository.DirectGraphRepositoryFactory;
 import org.springframework.data.graph.neo4j.support.GraphDatabaseContext;
 

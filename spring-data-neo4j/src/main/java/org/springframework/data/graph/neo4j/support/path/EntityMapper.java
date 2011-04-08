@@ -18,9 +18,7 @@ package org.springframework.data.graph.neo4j.support.path;
 
 import org.neo4j.graphdb.Path;
 import org.springframework.data.graph.core.NodeBacked;
-import org.springframework.data.graph.neo4j.support.EntityPath;
 import org.springframework.data.graph.neo4j.support.GraphDatabaseContext;
-import org.springframework.data.graph.neo4j.support.path.PathMapper;
 
 /**
  * @author mh
@@ -37,7 +35,7 @@ public abstract class EntityMapper<S extends NodeBacked, E extends NodeBacked, T
 
     @Override
     public T mapPath(Path path) {
-        return mapPath(new EntityPath<S,E>(graphDatabaseContext, path));
+        return mapPath(new ConvertingEntityPath<S,E>(graphDatabaseContext, path));
     }
 
     public abstract static class WithoutResult<S extends NodeBacked,E extends NodeBacked> extends EntityMapper<S,E,Void> {

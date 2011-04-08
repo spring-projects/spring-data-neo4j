@@ -19,7 +19,8 @@ package org.springframework.data.graph.neo4j.support.node;
 import org.neo4j.graphdb.Path;
 import org.neo4j.helpers.collection.IterableWrapper;
 import org.springframework.data.graph.core.NodeBacked;
-import org.springframework.data.graph.neo4j.support.EntityPath;
+import org.springframework.data.graph.neo4j.support.path.ConvertingEntityPath;
+import org.springframework.data.graph.neo4j.support.path.EntityPath;
 import org.springframework.data.graph.neo4j.support.GraphDatabaseContext;
 
 /**
@@ -35,6 +36,6 @@ public class EntityPathPathIterableWrapper<S extends NodeBacked, E extends NodeB
     }
 
     protected EntityPath<S, E> underlyingObjectToObject(Path path) {
-        return new EntityPath<S,E>(graphDatabaseContext,path);
+        return new ConvertingEntityPath<S,E>(graphDatabaseContext,path);
     }
 }

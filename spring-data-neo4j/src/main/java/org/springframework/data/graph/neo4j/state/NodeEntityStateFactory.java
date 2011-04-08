@@ -14,13 +14,15 @@
  * limitations under the License.
  */
 
-package org.springframework.data.graph.neo4j.fieldaccess;
+package org.springframework.data.graph.neo4j.state;
 
 import org.neo4j.graphdb.Node;
 import org.springframework.data.graph.annotation.NodeEntity;
 import org.springframework.data.graph.core.NodeBacked;
+import org.springframework.data.graph.neo4j.fieldaccess.DetachedEntityState;
+import org.springframework.data.graph.neo4j.fieldaccess.NodeDelegatingFieldAccessorFactory;
 import org.springframework.data.graph.neo4j.repository.DirectGraphRepositoryFactory;
-import org.springframework.data.graph.neo4j.support.EntityState;
+import org.springframework.data.graph.core.EntityState;
 import org.springframework.data.graph.neo4j.support.GraphDatabaseContext;
 
 import javax.annotation.PostConstruct;

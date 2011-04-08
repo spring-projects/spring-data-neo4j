@@ -20,16 +20,18 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.reflect.FieldSignature;
-import org.neo4j.graphdb.*;
+import org.neo4j.graphdb.DynamicRelationshipType;
+import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.traversal.TraversalDescription;
 import org.neo4j.graphdb.traversal.Traverser;
-import org.springframework.data.graph.core.NodeBacked;
 import org.springframework.data.graph.core.GraphBacked;
+import org.springframework.data.graph.core.NodeBacked;
 import org.springframework.data.graph.core.RelationshipBacked;
-import org.springframework.data.graph.neo4j.fieldaccess.*;
+import org.springframework.data.graph.neo4j.state.NodeEntityStateFactory;
 import org.springframework.data.graph.neo4j.support.DoReturn;
-import org.springframework.data.graph.neo4j.support.EntityPath;
-import org.springframework.data.graph.neo4j.support.EntityState;
+import org.springframework.data.graph.neo4j.support.path.EntityPath;
+import org.springframework.data.graph.core.EntityState;
 import org.springframework.data.graph.neo4j.support.GraphDatabaseContext;
 
 import org.springframework.data.graph.annotation.*;
@@ -38,13 +40,12 @@ import javax.persistence.Entity;
 
 import java.lang.reflect.Field;
 
-
 import static org.springframework.data.graph.neo4j.support.DoReturn.unwrap;
 
 /**
  * Aspect for handling node entity creation and field access (read & write)
- * puts the underlying state (Node) into and delegates field access to an {@link org.springframework.data.graph.neo4j.support.EntityState} instance,
- * created by a configured {@link org.springframework.data.graph.neo4j.fieldaccess.NodeEntityStateFactory}.
+ * puts the underlying state (Node) into and delegates field access to an {@link org.springframework.data.graph.core.EntityState} instance,
+ * created by a configured {@link org.springframework.data.graph.neo4j.state.NodeEntityStateFactory}.
  *
  * Handles constructor invocation and partial entities as well.
  */
@@ -86,7 +87,7 @@ public aspect Neo4jNodeBacking { // extends AbstractTypeAnnotatingMixinFields<No
         this.entityStateFactory = entityStateFactory;
     }
     /**
-     * pointcut for constructors not taking a node to be handled by the aspect and the {@link org.springframework.data.graph.neo4j.support.EntityState}
+     * pointcut for constructors not taking a node to be handled by the aspect and the {@link org.springframework.data.graph.core.EntityState}
      */
 	pointcut arbitraryUserConstructorOfNodeBackedObject(NodeBacked entity) :
 		execution((@NodeEntity *).new(..)) &&
@@ -97,7 +98,7 @@ public aspect Neo4jNodeBacking { // extends AbstractTypeAnnotatingMixinFields<No
     /**
      * Handle outside entity instantiation by either creating an appropriate backing node in the graph or in the case
      * of a reinstantiated partial entity by assigning the original node to the entity, the concrete behaviour is delegated
-     * to the {@link org.springframework.data.graph.neo4j.support.EntityState}. Also handles the java type representation in the graph.
+     * to the {@link org.springframework.data.graph.core.EntityState}. Also handles the java type representation in the graph.
      * When running outside of a transaction, no node is created, this is handled later when the entity is accessed within
      * a transaction again.
      */

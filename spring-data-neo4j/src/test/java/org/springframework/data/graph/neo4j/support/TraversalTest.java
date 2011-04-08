@@ -35,6 +35,7 @@ import org.springframework.data.graph.neo4j.repository.DirectGraphRepositoryFact
 import org.springframework.data.graph.neo4j.repository.GraphRepository;
 import org.springframework.data.graph.neo4j.support.node.Neo4jHelper;
 
+import org.springframework.data.graph.neo4j.support.path.EntityPath;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;

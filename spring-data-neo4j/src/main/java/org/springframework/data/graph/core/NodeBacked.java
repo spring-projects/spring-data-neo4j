@@ -19,7 +19,7 @@ package org.springframework.data.graph.core;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.traversal.TraversalDescription;
-import org.springframework.data.graph.neo4j.support.EntityPath;
+import org.springframework.data.graph.neo4j.support.path.EntityPath;
 
 /**
  * Interface introduced to objects annotated with &#64;NodeEntity by the {@link org.springframework.data.graph.neo4j.support.node.Neo4jNodeBacking} aspect.

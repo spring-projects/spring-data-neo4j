@@ -25,7 +25,7 @@ import java.lang.reflect.Field;
  * @author Michael Hunger
  * @since 12.09.2010
  */
-interface FieldAccessorListenerFactory<E> {
+public interface FieldAccessorListenerFactory<E> {
     /**
      * @param f field to check
      * @return true if this factory is able to create a listener for the field

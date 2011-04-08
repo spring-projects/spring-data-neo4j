@@ -14,24 +14,27 @@
  * limitations under the License.
  */
 
-package org.springframework.data.graph.neo4j.support;
+package org.springframework.data.graph.neo4j.support.path;
 
 import org.neo4j.graphdb.Path;
-import org.neo4j.graphdb.traversal.Evaluation;
-import org.neo4j.graphdb.traversal.Evaluator;
+import org.springframework.data.graph.core.GraphBacked;
 import org.springframework.data.graph.core.NodeBacked;
-import org.springframework.data.graph.neo4j.support.path.ConvertingEntityPath;
+import org.springframework.data.graph.core.RelationshipBacked;
 
 /**
  * @author mh
- * @since 26.02.11
+ * @since 08.04.11
  */
-public class EntityEvaluator<S extends NodeBacked, E extends NodeBacked> implements Evaluator {
-    private GraphDatabaseContext graphDatabaseContext;
+public interface EntityPath<S extends NodeBacked,E extends NodeBacked> extends Path {
+    <T extends NodeBacked> T startEntity(Class<T>... types);
 
-    @Override
-    public Evaluation evaluate(Path path) {
-        return evaluate(new ConvertingEntityPath<S,E>(graphDatabaseContext, path));
-    }
+    <T extends NodeBacked> T endEntity(Class<T>... types);
 
+    <T extends RelationshipBacked> T lastRelationshipEntity(Class<T>... types);
+
+    <T extends NodeBacked> Iterable<T> nodeEntities();
+
+    <T extends RelationshipBacked> Iterable<T> relationshipEntities(Class<T>... relationships);
+
+    <T extends GraphBacked> Iterable<T> allPathEntities(Class<T>... relationships);
 }

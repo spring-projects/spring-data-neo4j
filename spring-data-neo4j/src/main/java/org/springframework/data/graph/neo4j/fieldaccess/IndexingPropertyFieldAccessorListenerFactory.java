@@ -30,13 +30,13 @@ import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Field;
 
 
-class IndexingPropertyFieldAccessorListenerFactory<S extends PropertyContainer, T extends GraphBacked<S>> implements FieldAccessorListenerFactory<T> {
+public class IndexingPropertyFieldAccessorListenerFactory<S extends PropertyContainer, T extends GraphBacked<S>> implements FieldAccessorListenerFactory<T> {
 
     private final GraphDatabaseContext graphDatabaseContext;
     private final PropertyFieldAccessorFactory propertyFieldAccessorFactory;
     private final ConvertingNodePropertyFieldAccessorFactory convertingNodePropertyFieldAccessorFactory;
 
-    IndexingPropertyFieldAccessorListenerFactory(final GraphDatabaseContext graphDatabaseContext, final PropertyFieldAccessorFactory propertyFieldAccessorFactory, final ConvertingNodePropertyFieldAccessorFactory convertingNodePropertyFieldAccessorFactory) {
+    public IndexingPropertyFieldAccessorListenerFactory(final GraphDatabaseContext graphDatabaseContext, final PropertyFieldAccessorFactory propertyFieldAccessorFactory, final ConvertingNodePropertyFieldAccessorFactory convertingNodePropertyFieldAccessorFactory) {
     	this.graphDatabaseContext = graphDatabaseContext;
     	this.propertyFieldAccessorFactory = propertyFieldAccessorFactory;
         this.convertingNodePropertyFieldAccessorFactory = convertingNodePropertyFieldAccessorFactory;

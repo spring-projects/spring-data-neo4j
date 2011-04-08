@@ -22,9 +22,7 @@ import org.junit.runner.RunWith;
 import org.neo4j.graphdb.Node;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.graph.neo4j.Person;
-import org.springframework.data.graph.neo4j.support.EntityPath;
 import org.springframework.data.graph.neo4j.support.GraphDatabaseContext;
-import org.springframework.data.graph.neo4j.support.path.NodePath;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
@@ -46,7 +44,7 @@ public class EntityPathTest {
         Person michael = new Person("Michael", 36).persist();
         Node node = michael.getPersistentState();
         NodePath path = new NodePath(node);
-        EntityPath<Person, Person> entityPath = new EntityPath<Person, Person>(ctx, path);
+        EntityPath<Person, Person> entityPath = new ConvertingEntityPath<Person, Person>(ctx, path);
 
         Assert.assertEquals("start entity",michael, entityPath.startEntity());
         Assert.assertEquals("start node",node, path.startNode());

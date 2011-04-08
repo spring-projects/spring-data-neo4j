@@ -16,8 +16,8 @@
 
 package org.springframework.data.graph.neo4j.fieldaccess;
 
+import org.springframework.data.graph.core.EntityState;
 import org.springframework.data.graph.core.NodeBacked;
-import org.springframework.data.graph.neo4j.support.EntityState;
 
 import javax.persistence.Id;
 import java.lang.reflect.Field;

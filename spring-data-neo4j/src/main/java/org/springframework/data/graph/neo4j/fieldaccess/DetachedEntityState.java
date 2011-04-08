@@ -22,7 +22,7 @@ import org.neo4j.graphdb.Transaction;
 import org.springframework.data.graph.annotation.RelatedTo;
 import org.springframework.data.graph.core.GraphBacked;
 import org.springframework.data.graph.core.NodeBacked;
-import org.springframework.data.graph.neo4j.support.EntityState;
+import org.springframework.data.graph.core.EntityState;
 import org.springframework.data.graph.neo4j.support.GraphDatabaseContext;
 import org.springframework.util.ObjectUtils;
 

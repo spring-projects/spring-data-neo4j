@@ -18,7 +18,7 @@ package org.springframework.data.graph.neo4j.fieldaccess;
 
 /**
  * interface for field accessors, encapsulates reading and writing from fields and write support information about the field.
- * It is used by the {@link org.springframework.data.graph.neo4j.support.EntityState} which is delegated to by the
+ * It is used by the {@link org.springframework.data.graph.core.EntityState} which is delegated to by the
  * {@link org.springframework.data.graph.neo4j.support.node.Neo4jNodeBacking} {@link org.springframework.data.graph.neo4j.support.relationship.Neo4jRelationshipBacking}
  * aspects.
  * @param <ENTITY>

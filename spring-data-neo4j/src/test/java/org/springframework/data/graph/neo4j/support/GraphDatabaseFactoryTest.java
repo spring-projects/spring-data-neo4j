@@ -14,12 +14,11 @@
  * limitations under the License.
  */
 
-package org.springframework.data.graph.core;
+package org.springframework.data.graph.neo4j.support;
 
 import org.junit.Test;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.data.graph.neo4j.support.DelegatingGraphDatabase;
-import org.springframework.data.graph.neo4j.support.GraphDatabaseFactory;
+import org.springframework.data.graph.core.GraphDatabase;
 
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsInstanceOf.instanceOf;
