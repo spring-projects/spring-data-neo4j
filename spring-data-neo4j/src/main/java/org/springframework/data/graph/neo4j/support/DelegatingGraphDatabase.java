@@ -16,15 +16,11 @@
 
 package org.springframework.data.graph.neo4j.support;
 
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.PropertyContainer;
-import org.neo4j.graphdb.Relationship;
-import org.neo4j.graphdb.RelationshipType;
+import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.index.Index;
 import org.neo4j.graphdb.index.IndexManager;
 import org.neo4j.graphdb.traversal.TraversalDescription;
 import org.neo4j.index.impl.lucene.LuceneIndexImplementation;
-import org.neo4j.kernel.AbstractGraphDatabase;
 import org.neo4j.kernel.Traversal;
 import org.springframework.data.graph.core.GraphDatabase;
 import org.springframework.data.graph.core.Property;
@@ -37,9 +33,9 @@ import java.util.Map;
  */
 public class DelegatingGraphDatabase implements GraphDatabase {
 
-    protected AbstractGraphDatabase delegate;
+    protected GraphDatabaseService delegate;
 
-    public DelegatingGraphDatabase(final AbstractGraphDatabase delegate) {
+    public DelegatingGraphDatabase(final GraphDatabaseService delegate) {
         this.delegate = delegate;
     }
 

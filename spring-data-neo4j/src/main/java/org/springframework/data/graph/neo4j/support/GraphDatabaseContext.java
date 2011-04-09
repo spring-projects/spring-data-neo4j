@@ -80,8 +80,12 @@ public class GraphDatabaseContext {
      * @return true if a transaction manager is available and a transaction is currently running
      */
     public boolean transactionIsRunning() {
+        if (!(graphDatabaseService instanceof AbstractGraphDatabase)) {
+           return true; // assume always running tx (e.g. for REST or other remotes)
+        }
         try {
-            return getTxManager().getStatus() != Status.STATUS_NO_TRANSACTION;
+            final TransactionManager txManager = ((AbstractGraphDatabase) graphDatabaseService).getConfig().getTxModule().getTxManager();
+            return txManager.getStatus() != Status.STATUS_NO_TRANSACTION;
         } catch (SystemException e) {
             log.error("Error accessing TransactionManager", e);
             return false;
@@ -193,14 +197,6 @@ public class GraphDatabaseContext {
         throw new IllegalArgumentException("Type is not NodeBacked nor RelationshipBacked.");
     }
 
-
-
-    /**
-     * @return Neo4j Transaction manager
-     */
-    public TransactionManager getTxManager() {
-        return ((AbstractGraphDatabase) graphDatabaseService).getConfig().getTxModule().getTxManager();
-    }
 
     /**
      * Delegates to {@link GraphDatabaseService}

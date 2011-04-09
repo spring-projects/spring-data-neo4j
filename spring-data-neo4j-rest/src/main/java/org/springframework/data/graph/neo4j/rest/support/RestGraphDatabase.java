@@ -22,19 +22,15 @@ import org.neo4j.graphdb.event.KernelEventHandler;
 import org.neo4j.graphdb.event.TransactionEventHandler;
 import org.neo4j.graphdb.index.Index;
 import org.neo4j.graphdb.traversal.TraversalDescription;
-import org.neo4j.kernel.AbstractGraphDatabase;
-import org.neo4j.kernel.Config;
-import org.neo4j.kernel.RestConfig;
-import org.springframework.data.graph.neo4j.rest.support.index.RestIndexManager;
 import org.springframework.data.graph.core.GraphDatabase;
 import org.springframework.data.graph.core.Property;
+import org.springframework.data.graph.neo4j.rest.support.index.RestIndexManager;
 
 import javax.ws.rs.core.Response.Status;
-import java.io.Serializable;
 import java.net.URI;
 import java.util.Map;
 
-public class RestGraphDatabase extends AbstractGraphDatabase implements GraphDatabase {
+public class RestGraphDatabase implements GraphDatabaseService, GraphDatabase {
 
     private RestRequest restRequest;
     private long propertyRefetchTimeInMillis = 1000;
@@ -169,25 +165,5 @@ public class RestGraphDatabase extends AbstractGraphDatabase implements GraphDat
     @Override
     public KernelEventHandler unregisterKernelEventHandler(KernelEventHandler handler) {
         return handler;
-    }
-
-    @Override
-    public String getStoreDir() {
-        return getRestRequest().getUri().toString();
-    }
-
-    @Override
-    public Config getConfig() {
-        return new RestConfig(this);
-    }
-
-    @Override
-    public <T> T getManagementBean(Class<T> type) {
-        return null;
-    }
-
-    @Override
-    public boolean isReadOnly() {
-        return false;
     }
 }

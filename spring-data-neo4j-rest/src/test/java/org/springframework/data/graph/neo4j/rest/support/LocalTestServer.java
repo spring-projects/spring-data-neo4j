@@ -16,6 +16,7 @@
 
 package org.springframework.data.graph.neo4j.rest.support;
 
+import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.kernel.AbstractGraphDatabase;
 import org.neo4j.kernel.ImpermanentGraphDatabase;
 import org.neo4j.server.AddressResolver;
@@ -114,7 +115,7 @@ public class LocalTestServer {
         cleaner.cleanDb();
     }
 
-    public AbstractGraphDatabase getGraphDatabase() {
+    public GraphDatabaseService getGraphDatabase() {
         return getDatabase().graph;
     }
 }

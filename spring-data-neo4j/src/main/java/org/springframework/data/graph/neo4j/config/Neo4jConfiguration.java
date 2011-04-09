@@ -19,6 +19,7 @@ package org.springframework.data.graph.neo4j.config;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
+import org.neo4j.kernel.AbstractGraphDatabase;
 import org.neo4j.kernel.impl.transaction.SpringTransactionManager;
 import org.neo4j.kernel.impl.transaction.UserTransactionImpl;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,9 +32,9 @@ import org.springframework.data.graph.core.NodeBacked;
 import org.springframework.data.graph.core.RelationshipBacked;
 import org.springframework.data.graph.neo4j.fieldaccess.Neo4jConversionServiceFactoryBean;
 import org.springframework.data.graph.neo4j.fieldaccess.NodeDelegatingFieldAccessorFactory;
+import org.springframework.data.graph.neo4j.repository.DirectGraphRepositoryFactory;
 import org.springframework.data.graph.neo4j.state.NodeEntityStateFactory;
 import org.springframework.data.graph.neo4j.state.RelationshipEntityStateFactory;
-import org.springframework.data.graph.neo4j.repository.DirectGraphRepositoryFactory;
 import org.springframework.data.graph.neo4j.support.GraphDatabaseContext;
 import org.springframework.data.graph.neo4j.support.TypeRepresentationStrategyFactory;
 import org.springframework.data.graph.neo4j.support.node.Neo4jNodeBacking;
@@ -47,6 +48,7 @@ import org.springframework.data.persistence.EntityInstantiator;
 import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.jta.JtaTransactionManager;
+import org.springframework.transaction.jta.UserTransactionAdapter;
 
 import javax.persistence.EntityManagerFactory;
 import javax.validation.Validator;
@@ -177,18 +179,27 @@ public class Neo4jConfiguration {
 	public PlatformTransactionManager transactionManager() {
 		if (isUsingCrossStorePersistence()) {
 			JpaTransactionManager jpaTm = new JpaTransactionManager(getEntityManagerFactory());
-			JtaTransactionManager jtaTm = new JtaTransactionManager();
-			jtaTm.setTransactionManager(new SpringTransactionManager(getGraphDatabaseService()));
-			jtaTm.setUserTransaction(new UserTransactionImpl(getGraphDatabaseService()));
+            JtaTransactionManager jtaTm = createJtaTransactionManager();
 			return new ChainedTransactionManager(jpaTm, jtaTm);
 		}
 		else {
-			PlatformTransactionManager transactionManager = new JtaTransactionManager();
-			((JtaTransactionManager)transactionManager).setTransactionManager(new SpringTransactionManager(getGraphDatabaseService()));
-			((JtaTransactionManager)transactionManager).setUserTransaction(new UserTransactionImpl(getGraphDatabaseService()));
-			return transactionManager;
+            return createJtaTransactionManager();
 		}
 	}
+
+    private JtaTransactionManager createJtaTransactionManager() {
+        JtaTransactionManager jtaTm = new JtaTransactionManager();
+        final GraphDatabaseService gds = getGraphDatabaseService();
+        if (gds instanceof AbstractGraphDatabase) {
+            jtaTm.setTransactionManager(new SpringTransactionManager(gds));
+            jtaTm.setUserTransaction(new UserTransactionImpl(gds));
+        } else {
+            final NullTransactionManager tm = new NullTransactionManager();
+            jtaTm.setTransactionManager(tm);
+            jtaTm.setUserTransaction(new UserTransactionAdapter(tm));
+        }
+        return jtaTm;
+    }
 
     @Bean
     public ConfigurationCheck configurationCheck() throws Exception {

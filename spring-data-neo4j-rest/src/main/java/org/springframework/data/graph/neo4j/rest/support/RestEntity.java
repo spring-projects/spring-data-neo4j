@@ -168,6 +168,7 @@ public class RestEntity implements PropertyContainer {
     @Override
     public boolean equals( Object o ) {
         if (o == null) return false;
+        if (o == this) return true;
         return getClass().equals( o.getClass() ) && getId() == ( (RestEntity) o ).getId();
     }
 

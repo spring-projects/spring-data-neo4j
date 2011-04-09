@@ -120,7 +120,7 @@
 		<!-- Neo4J -->
 		<dependency>
 			<groupId>org.neo4j</groupId>
-			<artifactId>neo4j-community</artifactId>
+			<artifactId>neo4j</artifactId>
 		</dependency>
 
 		<dependency>

@@ -16,12 +16,8 @@
 
 package org.springframework.data.graph.neo4j.rest.support;
 
-import org.neo4j.graphdb.Direction;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Relationship;
-import org.neo4j.graphdb.Transaction;
+import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.index.IndexManager;
-import org.neo4j.kernel.AbstractGraphDatabase;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -32,9 +28,9 @@ import java.util.Map;
  * @since 02.03.11
  */
 public class Neo4jDatabaseCleaner {
-    private AbstractGraphDatabase graph;
+    private GraphDatabaseService graph;
 
-    public Neo4jDatabaseCleaner(AbstractGraphDatabase graph) {
+    public Neo4jDatabaseCleaner(GraphDatabaseService graph) {
         this.graph = graph;
     }
 

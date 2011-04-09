@@ -22,13 +22,8 @@ import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.neo4j.graphdb.Direction;
-import org.neo4j.graphdb.DynamicRelationshipType;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Path;
-import org.neo4j.graphdb.Relationship;
+import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.index.Index;
-import org.neo4j.kernel.AbstractGraphDatabase;
 import org.neo4j.kernel.ImpermanentGraphDatabase;
 import org.neo4j.kernel.Traversal;
 import org.neo4j.kernel.impl.transaction.SpringTransactionManager;
@@ -59,7 +54,7 @@ public class Neo4jTemplateApiTest {
     private Relationship relationship1;
     private Node node1;
     private static PlatformTransactionManager transactionManager;
-    private static AbstractGraphDatabase graphDatabaseService;
+    private static GraphDatabaseService graphDatabaseService;
 
 
 

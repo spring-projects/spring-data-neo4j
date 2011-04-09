@@ -129,7 +129,7 @@
 		<constructor-arg ref="graphDatabaseContext" />
 	</bean>
 
-    <bean id="transactionManager" class="org.springframework.transaction.jta.JtaTransactionManager">
+    <!--bean id="transactionManager" class="org.springframework.transaction.jta.JtaTransactionManager">
         <property name="transactionManager">
             <bean class="org.neo4j.kernel.impl.transaction.SpringTransactionManager">
                 <constructor-arg ref="graphDatabaseService"/>
@@ -140,6 +140,10 @@
                 <constructor-arg ref="graphDatabaseService"/>
             </bean>
         </property>
+    </bean-->
+
+    <bean id="transactionManager" class="org.springframework.data.graph.neo4j.config.TestTransactionManagerFactoryBean">
+        <property name="graphDatabaseService" ref="graphDatabaseService"/>
     </bean>
 
     <tx:annotation-driven mode="aspectj" transaction-manager="transactionManager"/>
