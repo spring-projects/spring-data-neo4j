@@ -2,86 +2,101 @@
 <!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN"
                  "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
 <chapter id="samples">
-  <title>Sample code</title>
+    <title>Sample code</title>
 
-  <section id="samples_introduction">
-    <title>Introduction</title>
-    <para>
-      Spring Data Graph comes with a number of samples.
-      The source code of the samples is found on
-      <ulink url="http://github.com/SpringSource/spring-data-graph-examples">GitHub</ulink>.
-      The different sample projects are introduced below.
-    </para>
-  </section>
+    <section id="samples:introduction">
+        <title>Introduction</title>
+        <para>
+            Spring Data Graph comes with a number of sample applications. The source code of the samples can be found on
+            <ulink url="http://github.com/SpringSource/spring-data-graph-examples">Github</ulink>. The different sample
+            projects are introduced below.
+        </para>
+    </section>
 
-  <section id="samples_hello-worlds">
-    <title>Hello Worlds sample</title>
-    <para>The Hello Worlds sample application is a simple console application with unit tests, that
-      creates some Worlds (entities / nodes) and Rocket Routes (relationships) in a Galaxy (graph)
-      and then reads them back and prints them out.</para>
-    <para>The unit tests demonstrate some other features of Spring Data Graph. The sample comes with a
-      minimal configuration for Maven and Spring to get up and running quickly.</para>
-    <para>Executing the application creates the following graph in the Graph Database:</para>
-    <mediaobject>
-      <imageobject>
-        <imagedata fileref="helloworlds.png" contentwidth="15cm" scalefit="1"/>
-      </imageobject>
-    </mediaobject>
-  </section>
+    <section id="samples:hello-worlds">
+        <title>Hello Worlds sample application</title>
+        <para>
+            The Hello Worlds sample application is a simple console application. It creates some worlds
+            (node entities) and rocket routes (relationships) between worlds, all in a galaxy (the graph),
+            and then prints them.
+        </para>
+        <para>
+            The unit tests demonstrate some other features of Spring Data Graph as well. The sample comes
+            with a minimal configuration for Maven and Spring to get up and running quickly.
+        </para>
+        <para>
+            Executing the application creates the following graph in the graph database:
+        </para>
+        <mediaobject>
+            <imageobject>
+                <imagedata fileref="helloworlds.png" contentwidth="15cm" scalefit="1"/>
+            </imageobject>
+        </mediaobject>
+    </section>
 
-  <section id="samples_imdb">
-    <title>IMDB sample</title>
-    <para>A web application that imports datasets from the Internet Movie Database (IMDB) into
-      the
-      graph database. It allows listings of movies with their actors and actors with their roles in
-      different movies. It also uses graph traversal operations to calculate the Kevin Bacon number
-      (distance to an actor that has acted with Kevin Bacon). This sample application shows the
-      basic usage of Spring Data Graph in a more complex setting with several annotated entities and
-      relationships as well as usage of indices and graph traversal.</para>
-    <para>See the readme file for instruction on how to compile and run the application.</para>
-    <para>An excerpt of the data stored in the Graph Database after executing the application:
-    </para>
-    <para>
-        <screenshot>
-            <mediaobject>
-                <imageobject>
-                    <imagedata fileref="imdb.png" contentwidth="15cm" scalefit="1"/>
-                </imageobject>
-            </mediaobject>
-        </screenshot>
-    </para>
-  </section>
+    <section id="samples:imdb">
+        <title>IMDB sample application</title>
+        <para>
+            The IMDB sample is a web application that imports datasets from the Internet Movie Database (IMDB)
+            into the graph database. It allows the listing of movies with their actors, and of actors and their
+            roles in different movies. It also uses graph traversal operations to calculate the
+            <ulink url="http://en.wikipedia.org/wiki/Bacon_number">Bacon number</ulink> of any given actor.
+            This sample application shows the usage of Spring Data Graph in a more complex setting, using several
+            annotated entities and relationships as well as indexes and graph traversals.
+        </para>
+        <para>
+            See the readme file for instructions on how to compile and run the application.
+        </para>
+        <para>
+            An excerpt of the data stored in the graph database after executing the application:
+        </para>
+        <para>
+            <screenshot>
+                <mediaobject>
+                    <imageobject>
+                        <imagedata fileref="imdb.png" contentwidth="15cm" scalefit="1"/>
+                    </imageobject>
+                </mediaobject>
+            </screenshot>
+        </para>
+    </section>
 
-  <section id="samples_myrestaurant-original">
-    <title>MyRestaurant sample</title>
-    <para>Simple, JPA based web application for managing users and restaurants, with the ability to add
-      restaurants as favorites to a user.</para>
-    <mediaobject>
-      <imageobject>
-        <imagedata fileref="restaurant.png" contentwidth="15cm" scalefit="1"/>
-      </imageobject>
-    </mediaobject>
-  </section>
+    <section id="samples:myrestaurants-original">
+        <title>MyRestaurants sample application</title>
+        <para>
+            Simple, JPA-based web application for managing users and restaurants, with the ability to add
+            restaurants as favorites to a user. It is basically the foundation for the MyRestaurants-Social
+            application (see<xref linkend="samples:myrestaurants-social" />), and does therefore not use
+            Spring Data Graph.
+        </para>
+        <mediaobject>
+            <imageobject>
+                <imagedata fileref="restaurant.png" contentwidth="15cm" scalefit="1"/>
+            </imageobject>
+        </mediaobject>
+    </section>
 
-  <section id="samples_myrestaurant-social">
-    <title>MyRestaurant-Social sample</title>
-    <para>An extended version of the MyRestaurant sample application that adds social networking
-      functionality to it. It is possible to have friends and to add rated relationships to
-      restaurants. The relationships and some of the properties of the entities are transparently
-      stored in the graph database. There is also a graph traversal that provides a recommendation
-      based on your friends' (and their friends') rating of restaurants. </para>
-    <para>An excerpt of the data stored in the Graph Database after executing the application:
-    </para>
-    <mediaobject>
-      <imageobject>
-        <imagedata fileref="restaurant-social.png" contentwidth="15cm" scalefit="1"/>
-      </imageobject>
-    </mediaobject>
-    <mediaobject>
-      <imageobject>
-        <imagedata fileref="restaurant-social-graph.png" contentwidth="15cm" scalefit="1"/>
-      </imageobject>
-    </mediaobject>
-  </section>
+    <section id="samples:myrestaurants-social">
+        <title>MyRestaurant-Social sample application</title>
+        <para>
+            This application extends the MyRestaurants sample application, adding social networking
+            functionality to it with cross-store persistence. The web application allows for users to add
+            friends and rate restaurants. A graph traversal provides recommendations based on your friends'
+            (and their friends') rating of restaurants.
+        </para>
+        <para>
+            Here's an excerpt of the data stored in the graph database after executing the application:
+        </para>
+        <mediaobject>
+            <imageobject>
+                <imagedata fileref="restaurant-social.png" contentwidth="15cm" scalefit="1"/>
+            </imageobject>
+        </mediaobject>
+        <mediaobject>
+            <imageobject>
+                <imagedata fileref="restaurant-social-graph.png" contentwidth="15cm" scalefit="1"/>
+            </imageobject>
+        </mediaobject>
+    </section>
 
 </chapter>
