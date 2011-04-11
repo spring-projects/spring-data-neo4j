@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE section PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
 <section>
-    <title>Overview of the AspectJ support</title>
+    <title>AspectJ support</title>
     <para>
         Behind the scenes, Spring Data Graph leverages <ulink url="http://www.eclipse.org/aspectj/">AspectJ</ulink>
         aspects to modify the behavior of simple annotated POJO entities

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE section PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
 <section id="reference:programming-model:typerepresentationstrategy">
-    <title>Storing type information in the graph</title>
+    <title>Entity types stored</title>
     <para>
         There are several ways to represent the Java type hierarchy of the data model in the graph. In general, for all
         node and relationship entities, type information is needed to perform certain repository operations. Some of

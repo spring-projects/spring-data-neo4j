@@ -1,142 +1,154 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE section PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
-<section>
-    <title>GraphRepositories for basic CRUD and find-operations</title>
+<section id="reference:repositories">
+    <title>CRUD with repositories</title>
     <para>
-        The repositories provided by Spring Data Graph build on the composable repository infrastructure contained
+        The repositories provided by Spring Data Graph build on the composable repository infrastructure
         in <ulink url="http://static.springsource.org/spring-data/data-jpa/docs/1.0.0.M2/reference/html/#repositories.custom-implementations">Spring Data Commons</ulink>.
-        Those repositories allow the interface based composition of the final repository consisting of provided default
+        They allow for interface based composition of repositories consisting of provided default
         implementations for certain interfaces and additional custom implementations for other methods.
     </para>
     <note>
         <para>
-            Spring Data Graph provides only the infrastructure and some default repository implementations so far. In future
-            releases support for finders derived from method names, named queries and annotated query methods will be added.
+            Spring Data Graph provides only the infrastructure and some default repository implementations
+            so far. Future releases will support finders derived from method names, named queries, and
+            annotated query methods.
             (e.g.
-            findByName(name),
-            @Query(name = "find-by-name-query") findByName(name),
-            @Query(query = "{name:%s}") findByName(name))
+            <code>findByName(name)</code>,
+            <code>@Query(name="find-by-name-query") findByName(name)</code>, and
+            <code>@Query(query="{name:%s}") findByName(name)</code>)
         </para>
     </note>
-    <para>Spring Data Graph comes with typed repository implementations that provide methods for
-        locating node and relationship entities. There are 3 types of basic repository interfaces and implementations.
-        One CRUD-Repository (<code>CRUDGraphRepository&lt;T&gt;</code>) that provides basic operations, a <code>IndexQueryExecutor</code>
-        that delegates to Neo4j's internal indexing subsystem for executing queries. And last but not least
-        a <code>TraversalQueryExecutor</code> that handles Neo4J Traversals.
+    <para>
+        Spring Data Graph comes with typed repository implementations that provide methods for
+        locating node and relationship entities. There are 3 types of basic repository interfaces
+        and implementations. <code>CRUDRepository</code> provides basic operations,
+        <code>IndexRepository</code> and <code>NamedIndexRepository</code> delegate to Neo4j's internal
+        indexing subsystem for queries, and <code>TraversalRepository</code> handles Neo4j traversals.
     </para>
     <para>
-        <code>CRUDGraphRepository</code> delegates to the configured <code>TypeRepresentationStrategy</code>
-        (<xref linkend="reference:programming-model:typerepresentationstrategy"/>)
+        <code>CRUDRepository</code> delegates to the configured <code>TypeRepresentationStrategy</code>
+        (see <xref linkend="reference:programming-model:typerepresentationstrategy"/>)
         for type based queries.
         <variablelist>
             <varlistentry>
-                <term>loading an instance via the Neo4j node id</term>
-                <listitem> <para> <code>T findOne(id)</code></para> </listitem>
+                <term>Load an instance via a Neo4j node id</term>
+                <listitem><para><code>T findOne(id)</code></para></listitem>
             </varlistentry>
             <varlistentry>
-                <term>checks for existence via the Neo4j node id</term>
-                <listitem> <para> <code>boolean exists(id)</code></para> </listitem>
+                <term>Check for existence of a Neo4j node id</term>
+                <listitem><para><code>boolean exists(id)</code></para></listitem>
             </varlistentry>
             <varlistentry>
-                <term>iterating over all nodes of a node entity type</term>
-                <listitem> <para> <code>Iterable&lt;T&gt; findAll()</code> (supported in future versions: <code>Iterable&lt;T&gt; findAll(Sort)</code> and <code>Page&lt;T&gt; findAll(Pageable)</code>)</para> </listitem>
+                <term>Iterate over all nodes of a node entity type</term>
+                <listitem><para><code>Iterable&lt;T&gt; findAll()</code>
+                    (supported in future versions:
+                    <code>Iterable&lt;T&gt; findAll(Sort)</code> and
+                    <code>Page&lt;T&gt; findAll(Pageable)</code>)</para></listitem>
             </varlistentry>
             <varlistentry>
-                <term>counting the instances of a node entity type</term>
-                <listitem> <para> <code>Long count()</code> </para> </listitem>
+                <term>Count the instances of a node entity type</term>
+                <listitem><para><code>Long count()</code></para></listitem>
             </varlistentry>
             <varlistentry>
-                <term>saves the graph entities</term>
-                <listitem> <para> <code>T save(T)</code> and <code>Iterable&lt;T&gt; save(Iterable&lt;T&gt;)</code> </para> </listitem>
+                <term>Save a graph entity</term>
+                <listitem><para><code>T save(T)</code> and <code>Iterable&lt;T&gt; save(Iterable&lt;T&gt;)</code></para></listitem>
             </varlistentry>
             <varlistentry>
-                <term>deletes the graph entities</term>
-                <listitem> <para> <code>void delete(T)</code>, <code>void; delete(Iterable&lt;T&gt;)</code> and <code>deleteAll()</code></para> </listitem>
+                <term>Delete a graph entity</term>
+                <listitem><para><code>void delete(T)</code>, <code>void; delete(Iterable&lt;T&gt;)</code>,
+                    and <code>deleteAll()</code></para></listitem>
             </varlistentry>
         </variablelist>
 
-      </para>
-      <para>
-        <code>IndexQueryExecutor</code> works with the indexing subsystem and provides methods to find entities by indexed properties, ranged queries of combination thereof.
+    </para>
+    <para>
+        <code>IndexRepository</code> works with the indexing subsystem and provides methods to find
+        entities by indexed properties, ranged queries, and combinations thereof. The index key is
+        the name of the indexed entity field, unless overridden in the <code>@Indexed</code> annotation.
         <variablelist>
             <varlistentry>
-                <term>iterating over all indexed instances with a certain property value</term>
-                <listitem> <para> <code>Iterable&lt;T&gt; findAllByPropertyValue(indexName, keyName, value)</code> </para> </listitem>
+                <term>Iterate over all indexed entity instances with a certain field value</term>
+                <listitem><para><code>Iterable&lt;T> findAllByPropertyValue(key, value)</code></para></listitem>
             </varlistentry>
             <varlistentry>
-                <term>getting a single instance with a certain property value</term>
-                <listitem> <para> <code>T findByPropertyValue(indexName, keyName, value)</code> </para> </listitem>
+                <term>Get a single entity instance with a certain field value</term>
+                <listitem><para><code>T findByPropertyValue(key, value)</code></para></listitem>
             </varlistentry>
             <varlistentry>
-                <term>iterating over all indexed instances within a certain numerical range (inclusive)</term>
-                <listitem> <para> <code>Iterable&lt;T&gt; findAllByRange(indexName, keyName, from, to)</code> </para> </listitem>
+                <term>Iterate over all indexed entity instances with field values in a certain numerical range (inclusive)</term>
+                <listitem><para><code>Iterable&lt;T> findAllByRange(key, from, to)</code></para></listitem>
             </varlistentry>
             <varlistentry>
-                <term>iterating over all indexed instances matching the given fulltext (or QueryContext query)</term>
-                <listitem> <para> <code>Iterable&lt;T&gt; findAllByQuery(indexName, keyName, queryOrQueryContext)</code> </para> </listitem>
+                <term>Iterate over all indexed entity instances with field values matching the given fulltext string or QueryContext query</term>
+                <listitem><para><code>Iterable&lt;T> findAllByQuery(key, queryOrQueryContext)</code></para></listitem>
             </varlistentry>
-            </variablelist>
-          </para>
+        </variablelist>
+        There is also a <code>NamedIndexRepository</code> with the same methods, but with an additional index
+        name parameter, making it possible to query any index.
+    </para>
 
     <para>
-        <code>TraversalQueryExecutor</code> works with the traversal framework.
+        <code>TraversalRepository</code> delegates to the Neo4j traversal framework.
         <variablelist>
             <varlistentry>
-                <term>iterating over a traversal result</term>
-                <listitem> <para> <code>Iterable&lt;T&gt; findAllByTraversal(startNode, traversalDescription)</code> </para> </listitem>
+                <term>Iterate over a traversal result</term>
+                <listitem><para><code>Iterable&lt;T> findAllByTraversal(startEntity, traversalDescription)</code></para></listitem>
             </varlistentry>
         </variablelist>
     </para>
     <para>
-        The <code>Repository</code> instances are either created manually via a DirectGraphRepositoryFactory to be bound
-        o a concrete node or relationship entity class.
+        The <code>Repository</code> instances are either created manually via a
+        <code>DirectGraphRepositoryFactory</code>, bound to a concrete node or relationship entity class.
         The <code>DirectGraphRepositoryFactory</code> is configured in the Spring context and can be injected.
-        <example>
-            <title>Using GraphRepositories</title>
+    </para>
+    <example>
+        <title>Using GraphRepositories</title>
         <programlisting language="java"><![CDATA[
 GraphRepository<Person> graphRepository = graphRepositoryFactory.createGraphRepository(Person.class);
 
-Person michael = graphRepository.save(new Person("Michael",36));
+Person michael = graphRepository.save(new Person("Michael", 36));
 
-Person dave=graphRepository.findOne(123);
+Person dave = graphRepository.findOne(123);
 
 Long numberOfPeople = graphRepository.count();
 
 Person mark = graphRepository.findByPropertyValue("name", "mark");
 
-Iterable<Person> devs = graphRepository.findAllByProperyValue("occupation","developer");
+Iterable<Person> devs = graphRepository.findAllByProperyValue("occupation", "developer");
 
-Iterable<Person> middleAgedPeople = graphRepository.findAllByRange("age",20,40);
+Iterable<Person> middleAgedPeople = graphRepository.findAllByRange("age", 20, 40);
 
-Iterable<Person> aTeam = graphRepository.findAllByQuery("name","A*");
+Iterable<Person> aTeam = graphRepository.findAllByQuery("name", "A*");
 
 Iterable<Person> davesFriends = graphRepository.findAllByTraversal(dave,
     Traversal.description().pruneAfterDepth(1)
     .relationships(KNOWS).filter(returnAllButStartNode()));
 ]]></programlisting>
-        </example>
-    </para>
+    </example>
     <section>
-        <title>Composing Repositories</title>
-    <para>
-        The recommended way of providing repositories is to define a repository-interface per domain class and have the
-        mechanisms provided by the repository infrastructure automatically detect them and additional implementation
-        classes and create an injectable repository implementation to be used in services or other spring beans.
+        <title>Composing repositories</title>
+        <para>
+            The recommended way of providing repositories is to define a repository interface per domain
+            class. The mechanisms provided by the repository infrastructure will automatically detect
+            them, along with additional implementation classes, and create an injectable repository
+            implementation to be used in services or other spring beans.
+        </para>
         <example>
-            <title>Composing Repositories</title>
+            <title>Composing repositories</title>
             <programlisting language="java"><![CDATA[
-public interface PersonRepository extends GraphRepository<Person>, PersonRepositoryExtension {
-}
+public interface PersonRepository extends GraphRepository<Person>, PersonRepositoryExtension {}
+
 // alternatively select some of the required repositories individually
 public interface PersonRepository extends CRUDGraphRepository<Node,Person>, IndexQueryExecutor<Node,Person>,
-            TraversalQueryExecutor<Node,Person>, PersonRepositoryExtension {
-}
+        TraversalQueryExecutor<Node,Person>, PersonRepositoryExtension {}
+
 // provide a custom extension if needed
 public interface PersonRepositoryExtension {
     Iterable<Person> findFriends(Person person);
 }
-public class PersonRepositoryImpl implements PersonRepositoryExtension {
 
+public class PersonRepositoryImpl implements PersonRepositoryExtension {
     // optionally inject default repository, or use DirectGraphRepositoryFactory
     @Autowired PersonRepository baseRepository;
     public Iterable<Person> findFriends(Person person) {
@@ -151,18 +163,17 @@ public class PersonRepositoryImpl implements PersonRepositoryExtension {
 @Autowired
 PersonRepository personRepository;
 
-    Person michael = personRepository.save(new Person("Michael",36));
+Person michael = personRepository.save(new Person("Michael",36));
 
-    Person dave=personRepository.findOne(123);
+Person dave=personRepository.findOne(123);
 
-    Iterable<Person> devs = personRepository.findAllByProperyValue("occupation","developer");
+Iterable<Person> devs = personRepository.findAllByProperyValue("occupation","developer");
 
-    Iterable<Person> aTeam = graphRepository.findAllByQuery( "name","A*");
+Iterable<Person> aTeam = graphRepository.findAllByQuery( "name","A*");
 
-    Iterable<Person> friends = personRepository.findFriends(dave);
-    ]]></programlisting>
+Iterable<Person> friends = personRepository.findFriends(dave);
+]]></programlisting>
         </example>
-    </para>
 
     </section>
 </section>

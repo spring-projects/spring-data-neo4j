@@ -1,135 +1,142 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE section PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
-<section id="reference_programming-model:indexing">
+<section id="reference:programming-model:indexing">
     <title>Indexing</title>
 
     <para>
-        The Neo4j graph database can use different index providers for exact lookups and fulltext searches. Lucene is
-        used as default index provider implementation. There is support for distinct indexes for nodes and relationships
-        which can be configured to be of fulltext or exact types.
+        The Neo4j graph database can use different so-called index providers for exact lookups and fulltext
+        searches. Lucene is the default index provider implementation. Each named index is configured to be
+        fulltext or exact.
     </para>
 
     <section>
-        <title>Exact and Numeric Index</title>
-    <para>
-        Using the standard Neo4j API, Nodes and Relationships and their indexed field-value combinations
-        have to be added manually to the appropriate index. When using Spring Data Graph, this task is simplified by
-        eased by applying an <code>@Indexed</code> annotation on entity fields. This will result in updates to the
-        index on every change.
-    </para><para>
-        Numerical fields are indexed numerically so that they are available for range queries.
-        All other fields are indexed with their string representation.
-    </para><para>
-        The @Indexed annotation can also set the
-        index-name to be used the default index name is the simple class name of the entity. So the same field names
-        from different classes don't end up in the same index by default. That would return different domain objects
-        for a single index query.
-    </para>
-    <para>
-        Query access to the index happens with the Node- and Relationship-Repostories that are created via an instance of
-        <code>org.springframework.data.graph.neo4j.repository.DirectGraphRepositoryFactory</code>. The methods
-        <code>findByPropertyValue</code> and <code>findAllByPropertyValue</code> work on the exact indexes and
-        return the first or all matches. To do range queries, use <code>findAllByRange</code> (please note that
-        currently both values are inclusive).
-    </para>
-    <programlisting language="java"><![CDATA[
+        <title>Exact and numeric index</title>
+        <para>
+            When using the standard Neo4j API, nodes and relationships have to be manually indexed with
+            key-value pairs, typically being the property name and value. When using Spring Data Graph,
+            this task is simplified to just adding an <code>@Indexed</code> annotation on entity fields
+            by which the entity should be searchable. This will result in automatic updates of the index
+            every time an indexed field changes.
+        </para>
+        <para>
+            Numerical fields are indexed numerically so that they are available for range queries. All
+            other fields are indexed with their string representation.
+        </para>
+        <para>
+            The @Indexed annotation also provides the option of using a custom index. The default index
+            name is the simple class name of the entity, so that each class typically gets its own index.
+            It is recommended to not have two entity classes with the same class name, regardless of
+            package.
+        </para>
+        <para>
+            The indexes can be queried by using a repository (see <xref linkend="reference:repositories" />).
+            Typically, the repository is an instance of
+            <code>org.springframework.data.graph.neo4j.repository.DirectGraphRepositoryFactory</code>.
+            The methods <code>findByPropertyValue()</code> and <code>findAllByPropertyValue()</code> work on
+            the exact indexes and return the first or all matches. To do range queries, use
+            <code>findAllByRange()</code> (please note that currently both values are inclusive).
+        </para>
+        <example>
+            <title>Indexing entities</title>
+            <programlisting language="java"><![CDATA[
 @NodeEntity
 class Person {
-    @Indexed(indexName = "people")
-    String name;
-
-    // automatically indexed numerically
-    @Indexed
-    int age;
-
+    @Indexed(indexName = "people") String name;
+    @Indexed int age;
 }
 
 GraphRepository<Person> graphRepository = graphRepositoryFactory.createGraphRepository(Person.class);
 
-// exact graphRepository
-Person mark = graphRepository.findByProperyValue("people","name","mark");
+// Exact match, in named index
+Person mark = graphRepository.findByPropertyValue("people", "name", "mark");
 
-// numeric range queries
-for (Person middleAgedDeveloper : graphRepository.findAllByRange( "age", 20, 40)) {
+// Numeric range query, index name inferred automatically
+for (Person middleAgedDeveloper : graphRepository.findAllByRange("age", 20, 40)) {
     Developer developer=middleAgedDeveloper.projectTo(Developer.class);
 }
 ]]></programlisting>
-        </section>
+        </example>
+
+    </section>
     <section>
-        <title>Fulltext Indexes</title>
+        <title>Fulltext indexes</title>
         <para>
-            Spring Data Graph also supports full-text indexes. By default indexed fields are stored in an exact-lookup
-            index. To have them analyzed and prepared for fulltext search, the <code>@Indexed</code> annotation has
-            the boolean <code>fulltext</code> attribute. Please note that fulltext-indexes require a separate index name
-            as the fulltext-configuration is stored in the index itself.
+            Spring Data Graph also supports fulltext indexes. By default, indexed fields are stored in
+            an exact lookup index. To have them analyzed and prepared for fulltext search, the
+            <code>@Indexed</code> annotation has the boolean <code>fulltext</code> attribute.
+
+            Please note that fulltext indexes require a separate index name as the fulltext configuration
+            is stored in the index itself.
         </para>
         <para>
-            Access to the fulltext index is provided by the <code>findAllByQuery</code> method of the repositories. Wildcard
-            like * are allowed. Otherwise the fulltext querying rules of the underlying index provider apply. (In most
-            cases this will be lucene.
+            Access to the fulltext index is provided by the <code>findAllByQuery()</code> repository method.
+            Wildcards like <code>*</code> are allowed. Generally though, the fulltext querying rules of the
+            underlying index provider apply. See the
+            <ulink url="http://lucene.apache.org/java/3_0_1/">Lucene documentation</ulink> for more
+            information on this.
         </para>
         <para>
-<programlisting language="java"><![CDATA[
+            <example>
+                <title>Fulltext indexing</title>
+                <programlisting language="java"><![CDATA[
 @NodeEntity
 class Person {
-    @Indexed(indexName = "person-name", fulltext=true)
-    String name;
+    @Indexed(indexName = "person-name", fulltext=true) String name;
 }
 
 GraphRepository<Person> graphRepository = graphRepositoryFactory.createGraphRepository(Person.class);
 
-// exact graphRepository
-Person mark = graphRepository.findAllByQuery("people-search","name","ma*");
+Person mark = graphRepository.findAllByQuery("people-search", "name", "ma*");
 ]]></programlisting>
+            </example>
+
         </para>
         <note>
-            <para>
-                Please note that indexes are currently created on demand, so whenever an index that doesn't exist
-                is requested from a query or get operation it is created. This is subject to change but has currently
-                the implication that those indexes won't be configured as fulltext which causes subsequent fulltext-
-                updates to those indexes to fail.
-            </para>
+            Please note that indexes are currently created on demand, so whenever an index that doesn't exist
+            is requested from a query or get operation it is created. This is subject to change but has
+            currently the implication that those indexes won't be configured as fulltext which causes
+            subsequent fulltext updates to those indexes to fail.
         </note>
     </section>
     <section>
-        <title>Raw Index Access</title>
-        <para>The raw index for a domain class is also available from <code>GraphDatabaseContext</code> via the
-        <code>getIndex</code> method. The second parameter is optional and takes the index-name if it doesn't default
-            to the simple domain class name. It returns the Index implementation that is provided by Neo4j.
+        <title>Manual index access</title>
+        <para>
+            The index for a domain class is also available from <code>GraphDatabaseContext</code> via
+            the <code>getIndex()</code> method. The second parameter is optional and takes the index name
+            if it should not be inferred from the class name. It returns the index implementation that is
+            provided by Neo4j.
+        </para>
+        <example>
+            <title>Manual index usage</title>
             <programlisting language="java"><![CDATA[
 @Autowired GraphDatabaseContext gdc;
 
-// exact index
-Index<Node> personIndex=gdc.getIndex(Person.class,null);
-personIndex.add(node,"name","Mark");
+// Default index
+Index<Node> personIndex = gdc.getIndex(Person.class);
+personIndex.query(new QueryContext(NumericRangeQuery.newÍntRange("age", 20, 40, true, true))
+                       .sort(new Sort(new SortField("age", SortField.INT, false))));
 
-Index<Node> namedPersonIndex=gdc.getIndex(Person.class,"people");
-namedPersonIndex.get("name","Mark");
+// Named index
+Index<Node> namedPersonIndex = gdc.getIndex(Person.class, "people");
+namedPersonIndex.get("name", "Mark");
 
-// complex range & sort query
-namedPersonIndex.query( new QueryContext( NumericRangeQuery.newÍntRange( "age", 20, 40, true, true ) )
-                        .sort( new Sort( new SortField( "age", SortField.INT, false ) ) ) );
-
-// fulltext index
-Index<Node> personFulltextIndex=gdc.getIndex(Person.class,"person-name",true);
-namedPersonIndex.query("name","Ma*");
-namedPersonIndex.query("{name:Ma*}");
-
-            ]]></programlisting>
-
-        </para>
+// Fulltext index
+Index<Node> personFulltextIndex = gdc.getIndex(Person.class, "person-name", true);
+personFulltextIndex.query("name", "*cha*");
+personFulltextIndex.query("{name:*cha*}");
+]]></programlisting>
+        </example>
     </section>
     <section>
         <title>Indexing in Neo4jTemplate</title>
         <para>
-            Neo4jTemplate also offers index support, providing auto-indexing for fields at creation time of nodes and
-            relationships. There is an <code>autoIndex</code> method that can also add indexes for a set of fields in one
-            go.
+            Neo4jTemplate also offers index support, providing auto-indexing for fields at creation time.
+            There is an <code>autoIndex</code> method that can also add indexes for a set of fields in one go.
         </para>
         <para>
-            For querying the index, the template offers query-methods that take either the exact match parameters or a query
-            object / query expression and push the results wrapped uniformly as Paths to the supplied
-            <code>PathMapper</code> to be converted or collected.
+            For querying the index, the template offers query methods that take either the exact match
+            parameters or a query object/expression, and push the results wrapped uniformly as Paths to
+            the supplied <code>PathMapper</code> to be converted or collected.
         </para>
     </section>
 </section>

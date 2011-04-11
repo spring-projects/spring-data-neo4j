@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
 <chapter id="cross-store">
-	<title>Cross-store persistence with a graph database</title>
+	<title>Cross-store persistence</title>
 	<para>The Spring Data Graph project support cross-store persistence which allows parts of the data mode to be stored in a traditional
 	JPA datastore (RDBMS) and other parts of the data model (even partial entites, that is some properties or relationships) in a graph
 	store.

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
-<chapter id="reference:aspectj-intro">
-    <title>AspectJ introduction</title>
+<chapter id="reference:aspectj-details">
+    <title>AspectJ details</title>
     <para>
         The object graph mapper of Spring Data Graph relies heavily on AspectJ. AspectJ is the Java implementation of
         the <ulink url="https://secure.wikimedia.org/wikipedia/en/wiki/Aspect-oriented_programming">Aspect

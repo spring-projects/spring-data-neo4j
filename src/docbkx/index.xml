@@ -102,7 +102,7 @@
         <xi:include href="reference/samples.xml"/>
         <xi:include href="reference/performance.xml" />
         <xi:include href="reference/template.xml" />
-        <xi:include href="reference/aspectj-intro.xml" />
+        <xi:include href="reference/aspectj-details.xml" />
         <xi:include href="reference/neo4j-server.xml" />
     </part>
 </book>
