@@ -9,7 +9,7 @@
         Spring Data Graph has special support to represent Neo4j relationships as entities too, but it is often
         not needed.
     </para>
-    <section>
+    <section id="reference:programming_model:relationships:relatedto">
         <title>@RelatedTo: Connecting node entities</title>
         <para>
             Every field of a node entity that references one or more other node entities is backed by relationships
@@ -45,7 +45,8 @@ public class Movie {
             <programlisting language="java"><![CDATA[
 @NodeEntity
 public class Actor {
-    @RelatedTo(type = "mostPaidActor", direction = Direction.INCOMING, elementClass = Movie.class)
+    @RelatedTo(type = "mostPaidActor", direction = Direction.INCOMING,
+            elementClass = Movie.class)
     private Set<Movie> mostPaidIn;
 
     @RelatedTo(type = "ACTS_IN", elementClass = Movie.class)

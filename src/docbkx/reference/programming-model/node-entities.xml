@@ -9,92 +9,90 @@
     <section>
         <title>@NodeEntity: The basic building block</title>
         <para>
-            The <code>@NodeEntity</code> annotation is used to declare a POJO entity to be backed by a node in the
-            graph store. Simple fields on the entity are mapped by default to properties of the node. Object
-            references to other NodeEntities (whether single or Collection) are mapped via relationships. If
-            the annotation parameter <code>useShortNames</code> is set to false, the properties and relationship
-            names used will be prepended with the class name of the entity.
-        </para><para>
-            If the <code>partial</code>
-            parameter is set to true, this entity takes part in a cross-store setting /<xref linkend="cross-store"/>)
-            where only the specifically annotated parts of the entity not handled by JPA will be mapped to the graph store.
+            The <code>@NodeEntity</code> annotation is used to turn a POJO class into an entity backed by a node
+            in the graph database. Fields on the entity are by default mapped to properties of the node. Fields
+            referencing other node entities (or collections thereof) are linked with relationships. If the
+            <code>useShortNames</code> attribute overridden to false, the property and relationship names will
+            have the class name of the entity prepended.
         </para>
-        <para>Entity fields can be annotated with @GraphProperty, @RelatedTo, @RelatedToVia, @Indexed, @GraphId and
-            @GraphTraversal.
+        <para>
+            If the <code>partial</code> attribute is set to true, this entity takes part in a cross-store setting,
+            where the entity lives in both the graph database and a JPA data source. See
+            <xref linkend="cross-store"/> for more information.
         </para>
-<example>
-    <title>Simple Node Entity</title>
-    <programlisting language="java"><![CDATA[
-// simplest example
-@NodeEntity
+        <para>
+            Entity fields can be annotated with <code>@GraphProperty</code>, <code>@RelatedTo</code>,
+            <code>@RelatedToVia</code>, <code>@Indexed</code>, <code>@GraphId</code> and
+            <code>@GraphTraversal</code>.
+        </para>
+        <example>
+            <title>Simple node entity</title>
+            <programlisting language="java"><![CDATA[@NodeEntity
 public class Movie {
-String title;
+    String title;
 }
 ]]></programlisting>
-</example>
+        </example>
     </section>
+
     <section>
-        <title>@GraphProperty: Optional Annotation for Property Fields</title>
-        <para>It is not necessary to annotate fields as they are persisted by default; all fields that contain primitive
-            values are persisted directly to the graph. All fields
-            convertible to String using the Spring conversion services will be stored as a string.
-            (Spring Data Graph adds a custom conversion factory that comes with converters for Enums and Dates).
+        <title>@GraphProperty: Optional annotation for property fields</title>
+        <para>
+            It is not necessary to annotate data fields, as they are persisted by default; all fields that
+            contain primitive values are persisted directly to the graph. All fields convertible to String
+            using the Spring conversion services will be stored as a string. Spring Data Graph includes a
+            custom conversion factory that comes with converters for <code>Enum</code>s and <code>Date</code>s.
             Transient fields are not persisted.
-            This annotation is mainly used for cross-store persistence.
+        </para>
+        <para>
+            This annotation is typically used with cross-store persistence. When a node entity is configured
+            as partial, then all fields that should be persisted to the graph must be explicitly annotated
+            with <code>@GraphProperty</code>.
         </para>
     </section>
 
     <section>
         <title>@Indexed: Making entities searchable by field value</title>
-        <para>The @Indexed annotation can be declared on fields that are intended to be indexed by the Neo4j
-            indexing facilities, triggered by value modification.
-            The resulting index can be used to later retrieve nodes or relationships that contain a certain property
-            value (for example a name). Often an index is used to establish the start node for a traversal.
-            Indexes are accessed by a <code>Repository</code> for a particular node or relationship entity, created via a
-            <code>DirectGraphRepositoryFactory</code>.
-        </para>
         <para>
-            GraphDatabaseContext exposes the indexes for Nodes and Relationships via the <code>getIndex</code> method.
-            Index names default to the domain class
-            name, but can also be named (<code>indexName</code> attribute)individually to reflect domain concepts.
-            be named, for instance to keep separate domain concepts in separate indexes.
-        </para>
-        <para>
-            Numerical values are indexed as such by default, allowing for range queries.
-            Fulltext indexing is also possible by setting the <code>fulltext</code> attribute to true. For details see
-            the indexing section <xref linkend="reference:programming-model:indexing"/>.
+            The @Indexed annotation can be declared on fields that are intended to be indexed by the Neo4j
+            indexing facilities. The resulting index can be used to later retrieve nodes or relationships
+            that contain a certain property value, e.g. a name. Often an index is used to establish the start
+            node for a traversal. Indexes are accessed by a repository for a particular node or relationship
+            entity type. See <xref linkend="reference:programming-model:indexing"/> and
+            <xref linkend="reference:programming-model:repositories"/> for more information.
         </para>
     </section>
 
     <section>
-        <title>@GraphTraversal: fields providing direct access to traversal results</title>
-        <para>The @GraphTraversal annotation leverages the delegation infrastructure used by the Spring Data Graph
-            aspects. It provides dynamic fields which, when accessed, return an Iterable of NodeEntities that are
-            the result of a traversal starting at the current NodeEntity. The TraversalDescription used for this
-            is created by a TraversalDescriptionBuilder whose class is referred to by the <code>traversalBuilder</code>
-            attribute of the annotation. The class of the expected NodeEntities is provided with the
+        <title>@GraphTraversal: fields as traversal result views</title>
+        <para>
+            The <code>@GraphTraversal</code> annotation leverages the delegation infrastructure used by the
+            Spring Data Graph aspects. It provides dynamic fields which, when accessed, return an Iterable
+            of node entities that are the result of a traversal starting at the entity containing the field.
+            The <code>TraversalDescription</code> used for this is created by the
+            <code>FieldTraversalDescriptionBuilder</code> class defined by the <code>traversalBuilder</code>
+            attribute. The class of the resulting node entities must be provided with the
             <code>elementClass</code> attribute.
-<example>
-    <title>@GraphTraversal in a Node Entity</title>
-    <programlisting language="java"><![CDATA[
-@NodeEntity
+        </para>
+        <example>
+            <title>@GraphTraversal from a node entity</title>
+            <programlisting language="java"><![CDATA[@NodeEntity
 public class Group {
-@GraphTraversal(traversalBuilder = PeopleTraversalBuilder.class,
-    elementClass = Person.class, params = "persons")
-private Iterable<Person> people;
+    @GraphTraversal(traversalBuilder = PeopleTraversalBuilder.class,
+            elementClass = Person.class, params = "persons")
+    private Iterable<Person> people;
 
-private static class PeopleTraversalBuilder implements FieldTraversalDescriptionBuilder {
-    @Override
-    public TraversalDescription build(NodeBacked start, Field field, String...params) {
-        return new TraversalDescriptionImpl()
-                .relationships(DynamicRelationshipType.withName(params[0]))
-                .filter(Traversal.returnAllButStartNode());
+    private static class PeopleTraversalBuilder implements FieldTraversalDescriptionBuilder {
+        @Override
+        public TraversalDescription build(NodeBacked start, Field field, String... params) {
+            return new TraversalDescriptionImpl()
+                    .relationships(DynamicRelationshipType.withName(params[0]))
+                    .filter(Traversal.returnAllButStartNode());
+        }
     }
-}
 }
 ]]></programlisting>
 
-</example>
-        </para>
+        </example>
     </section>
 </section>

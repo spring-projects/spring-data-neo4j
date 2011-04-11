@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE section PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
-<section id="reference:repositories">
+<section id="reference:programming-model:repositories">
     <title>CRUD with repositories</title>
     <para>
         The repositories provided by Spring Data Graph build on the composable repository infrastructure
@@ -105,7 +105,8 @@
     <example>
         <title>Using GraphRepositories</title>
         <programlisting language="java"><![CDATA[
-GraphRepository<Person> graphRepository = graphRepositoryFactory.createGraphRepository(Person.class);
+GraphRepository<Person> graphRepository = graphRepositoryFactory
+        .createGraphRepository(Person.class);
 
 Person michael = graphRepository.save(new Person("Michael", 36));
 
@@ -140,8 +141,9 @@ Iterable<Person> davesFriends = graphRepository.findAllByTraversal(dave,
 public interface PersonRepository extends GraphRepository<Person>, PersonRepositoryExtension {}
 
 // alternatively select some of the required repositories individually
-public interface PersonRepository extends CRUDGraphRepository<Node,Person>, IndexQueryExecutor<Node,Person>,
-        TraversalQueryExecutor<Node,Person>, PersonRepositoryExtension {}
+public interface PersonRepository extends CRUDGraphRepository<Node,Person>,
+        IndexQueryExecutor<Node,Person>, TraversalQueryExecutor<Node,Person>,
+        PersonRepositoryExtension {}
 
 // provide a custom extension if needed
 public interface PersonRepositoryExtension {
@@ -156,8 +158,10 @@ public class PersonRepositoryImpl implements PersonRepositoryExtension {
     }
 }
 
-// configure the repositories, preferably via the datagraph:repositories namespace (graphDatabaseContext reference is optional)
-<datagraph:repositories base-package="org.springframework.data.graph.neo4j" graph-database-context-ref="graphDatabaseContext"/>
+// configure the repositories, preferably via the datagraph:repositories namespace
+// (graphDatabaseContext reference is optional)
+<datagraph:repositories base-package="org.springframework.data.graph.neo4j"
+    graph-database-context-ref="graphDatabaseContext"/>
 
 // have it injected
 @Autowired

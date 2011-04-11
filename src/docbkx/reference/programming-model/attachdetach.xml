@@ -1,36 +1,129 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE section PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
 <section>
-    <title>Detached entities</title>
+    <title>Detached node entities</title>
     <para>
-        By default newly created node entities are in a detached state. When <code>persist()</code> is called on the
-        entity it is attached to the graph store and its properties and relationships are persisted as well. Changing
-        an attached entity inside a transaction will write through the changes to the datastore. Whenever an entity
-        is changed outside of a transaction it will be considered detached. The changed data is stored in the entity
-        itself and not written back to the datastore.
+        Node entities can be in two different persistence state: attached or detached. By default, newly created node
+        entities are in the detached state. When <code>persist()</code> is called on the entity, it becomes
+        attached to the graph, and its properties and relationships are stores in the database. If
+        <code>persist()</code> is not called within a transaction, it automatically creates an implicit
+        transaction for the operation.
     </para>
     <para>
-        All entities that are returned by library functions are initially in an attached state. Changing them outside
-        of a transaction detaches them. For writing the changes back it is necessary to <code>persist()</code> them
-        again.
+        Changing an attached entity inside a transaction will immediately write through the changes to
+        the datastore. Whenever an entity is changed outside of a transaction it becomes detached. The
+        changes are stored in the entity itself until the next call to <code>persist()</code>.
     </para>
     <para>
-        Persisting an entity not only persists that single entity but will traverse its existing and new relationships
-        and persist the cluster of detached entities that it is part of. The borders of this cluster are formed by
-        attached entities. The persist operation creates its own, implicit transaction. When it is called withina
-        external transaction it participates otherwise it is an atomic operation.
+        All entities returned by library functions are initially in an attached state.
+        Just as with any other entity, changing them outside of a transaction detaches them, and they
+        must be reattached with <code>persist()</code> for the data to be saved.
     </para>
-    <para>
-        Please keep in mind that the session handling behaviour is still heavily developed. The defaults and also
-        other aspects of the behaviour are likely to change in subsequent releases. At the moment there is no support
-        for the creation of relationships outside of transactions and also more complex operations like creating
-        whole subgraphs outside of transactions is not supported.
-    </para>
-    <programlisting language="java"><![CDATA[
-@NodeEntity
+    <!--<para>-->
+        <!--Persisting an entity not only persists that single entity but will traverse its existing and new relationships-->
+        <!--and persist the cluster of detached entities that it is part of. The borders of this cluster are formed by-->
+        <!--attached entities. The persist operation creates its own, implicit transaction. When it is called withina-->
+        <!--external transaction it participates otherwise it is an atomic operation.-->
+    <!--</para>-->
+    <example>
+        <title>Persisting entities</title>
+        <programlisting language="java"><![CDATA[@NodeEntity
 class Person {
     String name;
+    Person(String name) { this.name = name; }
 }
-Person p = new Person().persist();
+
+// Store Michael in the database.
+Person p = new Person("Michael").persist();
 ]]></programlisting>
+    </example>
+    <section id="reference:programming-model:detached:relating">
+        <title>Relating detached entities</title>
+        <para>
+            As mentioned above, an entity simply created with the <code>new</code> keyword starts out detached.
+            It also has no state assigned to it. If you create a new entity with <code>new</code> and then throw
+            it away, the database won't be touched at all.
+        </para>
+        <para>
+            Now consider this scenario:
+            <example>
+                <title>Relationships outside of transactions</title>
+                <programlisting><![CDATA[@NodeEntity
+class Movie {
+    private Actor topActor;
+    public void setTopActor(Actor actor) {
+        topActor = actor;
+    }
+}
+
+@NodeEntity
+class Actor {
+}
+
+Movie movie = new Movie();
+Actor actor = new Actor();
+
+movie.setTopActor(actor);
+]]></programlisting>
+            </example>
+        </para>
+        <para>
+            Neither the actor nor the movie has been assigned a node in the graph. If we were to call
+            <code>movie.persist()</code>, then Spring Data Graph would first create a node for the movie.
+            It would then note that there is a relationship to an actor, so it would call actor.persist()
+            in a cascading fashion. Once the actor has been persisted, it will create the relationship
+            from the movie to the actor. All of this will be done atomically in one transaction.
+        </para>
+        <para>
+            Important to note here is that if <code>actor.persist()</code> is called instead, then only
+            the actor will be persisted. The reason for this is that the actor entity knows nothing about
+            the movie entity. It is the movie entity that has the reference to the actor. Also note that
+            this behavior is not dependent on any configured relationship direction on the annotations.
+            It is a matter of Java references and is not related to the data model in the database.
+        </para>
+        <para>
+            If the relationships form a cycle, then the entities will first all be assigned a node in
+            the database, and then the relationships will be created. The cascading of <code>persist()</code>
+            is however only cascaded to related entity fields that have been modified.
+        </para>
+        <para>
+            In the following example, the actor and the movie are both attached entites, having both been
+            previously persisted to the graph:
+            <example>
+                <title>Cascade for modified fields</title>
+                <programlisting><![CDATA[actor.setName("Billy Bob");
+movie.persist();
+]]></programlisting>
+            </example>
+            In this case, even though the movie has a reference to the actor, the name change on the actor
+            will not be persisted by the call to <code>movie.persist()</code>. The reason for this is, as
+            mentioned above, that cascading will only be done for fields that have been modified. Since the
+            <code>movie.topActor</code> field has not been modified, it will not cascade the persist operation
+            to the actor.
+        </para>
+    </section>
+    <!--<para>-->
+        <!--Please keep in mind that the detached behavior is still being heavily developed. The defaults and-->
+        <!--other aspects of the behavior are likely to change in subsequent releases. At the moment there-->
+        <!--is no support for the creation of relationships outside of transactions. More complex operations-->
+        <!--like creating whole subgraphs outside of transactions is not supported.-->
+    <!--</para>-->
+    <!--<note>-->
+        <!--<para>-->
+
+        <!--</para>-->
+        <!--<para>-->
+            <!--In certain cases, it is actually possible to create relationships outside of a-->
+            <!--transactional context. If the entities and their relationships form a <ulink-->
+                <!--url="http://en.wikipedia.org/wiki/Directed_acyclic_graph">DAG (Directed Acyclic Graph)</ulink>,-->
+            <!--then they can be persisted <emphasis>if</emphasis> <code>persist()</code> is called on every entity-->
+            <!--<emphasis>in reverse order from the leaf nodes</emphasis>.-->
+        <!--</para>-->
+        <!--<para>-->
+            <!--For example, assume that instances of entity classes A, B, and C are linked like so:-->
+            <!--<code>B2 &lt;- A -> B1 -> C</code>. In order to persist this graph without transactions, one would-->
+            <!--first have to persist <code>C</code>, then <code>B1</code> and <code>B2</code>, and finally-->
+            <!--<code>A</code>. If one wants to use this-->
+        <!--</para>-->
+    <!--</note>-->
 </section>

@@ -29,7 +29,8 @@
             package.
         </para>
         <para>
-            The indexes can be queried by using a repository (see <xref linkend="reference:repositories" />).
+            The indexes can be queried by using a repository (see
+            <xref linkend="reference:programming-model:repositories" />).
             Typically, the repository is an instance of
             <code>org.springframework.data.graph.neo4j.repository.DirectGraphRepositoryFactory</code>.
             The methods <code>findByPropertyValue()</code> and <code>findAllByPropertyValue()</code> work on
@@ -45,7 +46,8 @@ class Person {
     @Indexed int age;
 }
 
-GraphRepository<Person> graphRepository = graphRepositoryFactory.createGraphRepository(Person.class);
+GraphRepository<Person> graphRepository = graphRepositoryFactory
+        .createGraphRepository(Person.class);
 
 // Exact match, in named index
 Person mark = graphRepository.findByPropertyValue("people", "name", "mark");
@@ -84,7 +86,8 @@ class Person {
     @Indexed(indexName = "person-name", fulltext=true) String name;
 }
 
-GraphRepository<Person> graphRepository = graphRepositoryFactory.createGraphRepository(Person.class);
+GraphRepository<Person> graphRepository = graphRepositoryFactory
+        .createGraphRepository(Person.class);
 
 Person mark = graphRepository.findAllByQuery("people-search", "name", "ma*");
 ]]></programlisting>
