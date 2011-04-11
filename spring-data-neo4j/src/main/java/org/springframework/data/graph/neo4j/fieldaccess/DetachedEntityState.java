@@ -19,15 +19,17 @@ package org.springframework.data.graph.neo4j.fieldaccess;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.neo4j.graphdb.Transaction;
-import org.springframework.data.graph.annotation.RelatedTo;
+import org.springframework.data.graph.core.EntityState;
 import org.springframework.data.graph.core.GraphBacked;
 import org.springframework.data.graph.core.NodeBacked;
-import org.springframework.data.graph.core.EntityState;
 import org.springframework.data.graph.neo4j.support.GraphDatabaseContext;
 import org.springframework.util.ObjectUtils;
 
 import java.lang.reflect.Field;
-import java.util.*;
+import java.util.Collection;
+import java.util.ConcurrentModificationException;
+import java.util.HashMap;
+import java.util.Map;
 
 import static org.springframework.data.graph.neo4j.support.DoReturn.unwrap;
 
@@ -40,11 +42,9 @@ public class DetachedEntityState<ENTITY extends GraphBacked<STATE>, STATE> imple
     protected final EntityState<ENTITY,STATE> delegate;
     private final static Log log = LogFactory.getLog(DetachedEntityState.class);
     private GraphDatabaseContext graphDatabaseContext;
-    private final BackReferences backReferences = null;
     public DetachedEntityState(final EntityState<ENTITY, STATE> delegate, GraphDatabaseContext graphDatabaseContext) {
         this.delegate = delegate;
         this.graphDatabaseContext = graphDatabaseContext;
-        //this.backReferences = new BackReferences(this);
     }
 
     @Override
@@ -152,14 +152,31 @@ public class DetachedEntityState<ENTITY extends GraphBacked<STATE>, STATE> imple
             // createAndAssignState();
             throw new IllegalStateException("Flushing detached entity without a persistent state, this had to be created first.");
         }
+
         if (isDirty()) {
-            for (final Map.Entry<Field, ExistingValue> entry : dirty.entrySet()) {
-                final Field field = entry.getKey();
-                if (log.isDebugEnabled()) log.debug("Flushing dirty Entity new node " + entity.getPersistentState() + " field " + field+ " with value "+getValueFromEntity(field));
-                checkConcurrentModification(entity, entry, field);
-                delegate.setValue(field, getValueFromEntity(field));
-            }
+            final Map<Field, ExistingValue> dirtyCopy = new HashMap<Field, ExistingValue>(dirty);
             clearDirty();
+            for (final Map.Entry<Field, ExistingValue> entry : dirtyCopy.entrySet()) {
+                final Field field = entry.getKey();
+                Object valueFromEntity = getValueFromEntity(field);
+                cascadePersist(valueFromEntity);
+                if (log.isDebugEnabled()) log.debug("Flushing dirty Entity new node " + entity.getPersistentState() + " field " + field+ " with value "+ valueFromEntity);
+                checkConcurrentModification(entity, entry, field);
+                delegate.setValue(field, valueFromEntity);
+            }
+        }
+    }
+
+    private void cascadePersist(Object valueFromEntity) {
+        if (valueFromEntity instanceof NodeBacked) {
+            ((NodeBacked) valueFromEntity).persist();
+        }
+        if (valueFromEntity instanceof Collection) {
+            for (Object o : (Collection<Object>)valueFromEntity) {
+                if (o instanceof NodeBacked) {
+                    ((NodeBacked) o).persist();
+                }
+            }
         }
     }
 
@@ -217,7 +234,6 @@ public class DetachedEntityState<ENTITY extends GraphBacked<STATE>, STATE> imple
         Transaction tx = graphDatabaseContext.beginTx();
         try {
             ENTITY result = delegate.persist();
-            //persistNeighbours();
 
             flushDirty();
             tx.success();
@@ -226,46 +242,4 @@ public class DetachedEntityState<ENTITY extends GraphBacked<STATE>, STATE> imple
             tx.finish();
         }
     }
-
-    private void persistNeighbours() {
-        backReferences.persistNeighbours();
-        for (NodeBacked nodeBacked : getOutboundDirtyNodeEntities()) {
-            nodeBacked.persist();
-        }
-    }
-
-    private Set<NodeBacked> getOutboundDirtyNodeEntities() {
-        HashSet<NodeBacked> result = new HashSet<NodeBacked>();
-        for (Field field : dirty.keySet()) {
-            if (handleSingleField(result, field)) continue;
-            handleOneToMany(result, field);
-        }
-        return result;
-    }
-
-    private boolean handleOneToMany(HashSet<NodeBacked> result, Field field) {
-        if ((Collection.class.isAssignableFrom(field.getType())) && field.isAnnotationPresent(RelatedTo.class)) {
-            result.addAll((Collection) getValueFromEntity(field));
-            return true;
-        }
-        return false;
-    }
-
-
-    private boolean handleSingleField(HashSet<NodeBacked> result, Field field) {
-        if (NodeBacked.class.isAssignableFrom(field.getType())) {
-            Object value = getValueFromEntity(field);
-            if (value!=null) {
-                result.add((NodeBacked) value);
-            }
-            return true;
-        }
-        return false;
-    }
-    public boolean refersTo(GraphBacked target) {
-        return getOutboundDirtyNodeEntities().contains(target);
-    }
 }
-
-
-

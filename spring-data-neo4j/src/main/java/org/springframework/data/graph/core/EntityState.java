@@ -62,6 +62,4 @@ public interface EntityState<ENTITY extends GraphBacked<STATE>,STATE> {
     STATE getPersistentState();
 
     ENTITY persist();
-
-    boolean refersTo(GraphBacked target);
 }

@@ -147,7 +147,4 @@ public interface NodeBacked extends GraphBacked<Node> {
      * @return the newly created relationship to the target node
      */
     Relationship relateTo(NodeBacked target, String type);
-
-    // will possibly be used for object graphs
-    boolean refersTo(GraphBacked target);
 }

@@ -67,6 +67,10 @@ class HasRelationshipMatcher extends TypeSafeMatcher<Node>
     {
         description.appendText( "Expected relationship named " + relationshipTypeName + " to " +(other==null ? "unspecified": other)+"\r\n    got: " );
 
+        if (relationships == null) {
+            description.appendValue("[]");
+            return;
+        }
         List<String> types = new ArrayList<String>();
         for ( Relationship rel : relationships )
         {
