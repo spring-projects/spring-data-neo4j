@@ -5,7 +5,7 @@
     <para>
         Behind the scenes, Spring Data Graph leverages <ulink url="http://www.eclipse.org/aspectj/">AspectJ</ulink>
         aspects to modify the behavior of simple annotated POJO entities
-        (see <xref linkend="reference:aspectj-intro"/>). Each node entity is backed by a graph node that holds its
+        (see <xref linkend="reference:aspectj-details"/>). Each node entity is backed by a graph node that holds its
         properties and relationships to other entities. AspectJ is used for intercepting field access, so that
         Spring Data Graph can retrieve the information from the entity's backing node or relationship in the database.
     </para>

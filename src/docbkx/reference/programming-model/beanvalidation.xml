@@ -3,22 +3,24 @@
 <section>
     <title>Bean validation (JSR-303)</title>
     <para>
-        Spring Data Graph supports property based validation support. So, whenever a property is changed, it is
-        checked against the annotated constraints (.e.g @Min, @Max, @Size, etc).
-        Validation errors throw a ValidationException. For evaluating the constraints the validation support that
-        comes with Spring is used. To use it a validator has to be registered with the GraphDatabaseContext, if there
-        is none, no validation will be performed (any registered Validator or (Local)ValidatorFactoryBean will be
-        used).
+        Spring Data Graph supports property-based validation support. When a property is changed, it is
+        checked against the annotated constraints, e.g. <code>@Min</code>, <code>@Max</code>,
+        <code>@Size</code>, etc. Validation errors throw a <code>ValidationException</code>. The validation
+        support that comes with Spring is used for evaluating the constraints. To use this feature, a validator
+        has to be registered with the <code>GraphDatabaseContext</code>.
     </para>
-    <programlisting language="java"><![CDATA[
+    <example>
+        <title>Bean validation</title>
+        <programlisting language="java"><![CDATA[
 @NodeEntity
 class Person {
     @Size(min = 3, max = 20)
     String name;
 
-    @Min(0)
-    @Max(100)
+    @Min(0) @Max(100)
     int age;
 }
 ]]></programlisting>
+    </example>
+
 </section>

@@ -119,9 +119,6 @@ public aspect Neo4jNodeBacking { // extends AbstractTypeAnnotatingMixinFields<No
     public <T extends NodeBacked> T NodeBacked.persist() {
         return (T)this.entityState.persist();
     }
-    public boolean NodeBacked.refersTo(GraphBacked target) {
-        return this.entityState.refersTo(target);
-    }
 
 	public void NodeBacked.setPersistentState(Node n) {
         if (this.entityState == null) {

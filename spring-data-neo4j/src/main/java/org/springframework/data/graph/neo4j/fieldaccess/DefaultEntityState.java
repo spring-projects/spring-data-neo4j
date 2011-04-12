@@ -108,7 +108,6 @@ public abstract class DefaultEntityState<ENTITY extends GraphBacked<STATE>, STAT
         }
     }
 
-
     protected Object getIdFromEntity() {
         final Field idField = fieldAccessorFactoryProviders.getIdField();
         if (idField==null) return null;
@@ -119,10 +118,5 @@ public abstract class DefaultEntityState<ENTITY extends GraphBacked<STATE>, STAT
             log.warn("Error accessing id field "+idField);
             return null;
         }
-    }
-
-    @Override
-    public boolean refersTo(GraphBacked target) {
-        return false;
     }
 }
