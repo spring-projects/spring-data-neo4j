@@ -27,6 +27,7 @@ import org.neo4j.graphdb.traversal.TraversalDescription;
 import org.neo4j.kernel.Traversal;
 import org.neo4j.kernel.impl.traversal.TraversalDescriptionImpl;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.graph.core.EntityPath;
 import org.springframework.data.graph.neo4j.Group;
 import org.springframework.data.graph.neo4j.Person;
 import static org.springframework.data.graph.neo4j.Person.persistedPerson;
@@ -35,7 +36,6 @@ import org.springframework.data.graph.neo4j.repository.DirectGraphRepositoryFact
 import org.springframework.data.graph.neo4j.repository.GraphRepository;
 import org.springframework.data.graph.neo4j.support.node.Neo4jHelper;
 
-import org.springframework.data.graph.neo4j.support.path.EntityPath;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;

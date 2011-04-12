@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.data.graph.neo4j.state;
+package org.springframework.data.graph.neo4j.support.relationship;
 
 import org.neo4j.graphdb.Relationship;
 import org.springframework.data.graph.core.RelationshipBacked;
@@ -32,7 +32,7 @@ public class RelationshipEntityStateFactory {
     private RelationshipEntityState.RelationshipStateDelegatingFieldAccessorFactory delegatingFieldAccessorFactory;
 
     public EntityState<RelationshipBacked, Relationship> getEntityState(final RelationshipBacked entity) {
-		return new RelationshipEntityState<RelationshipBacked>(null,entity,entity.getClass(), graphDatabaseContext, graphRepositoryFactory, delegatingFieldAccessorFactory);
+		return new RelationshipEntityState<RelationshipBacked>(null,entity,entity.getClass(), graphDatabaseContext, delegatingFieldAccessorFactory);
 	}
 
 	public void setGraphDatabaseContext(GraphDatabaseContext graphDatabaseContext) {
@@ -45,7 +45,7 @@ public class RelationshipEntityStateFactory {
 
     @PostConstruct
     private void setUp() {
-       this.delegatingFieldAccessorFactory =  new RelationshipEntityState.RelationshipStateDelegatingFieldAccessorFactory(graphDatabaseContext, graphRepositoryFactory);
+       this.delegatingFieldAccessorFactory =  new RelationshipEntityState.RelationshipStateDelegatingFieldAccessorFactory(graphDatabaseContext);
     }
 
 }

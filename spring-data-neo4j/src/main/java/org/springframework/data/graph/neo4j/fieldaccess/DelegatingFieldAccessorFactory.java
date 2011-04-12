@@ -20,7 +20,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.data.graph.annotation.NodeEntity;
 import org.springframework.data.graph.annotation.RelationshipEntity;
-import org.springframework.data.graph.neo4j.repository.DirectGraphRepositoryFactory;
 import org.springframework.data.graph.neo4j.support.GraphDatabaseContext;
 import org.springframework.util.ReflectionUtils;
 
@@ -34,15 +33,12 @@ public abstract class DelegatingFieldAccessorFactory<T> implements FieldAccessor
 
 	protected final GraphDatabaseContext graphDatabaseContext;
 
-	protected final DirectGraphRepositoryFactory graphRepositoryFactory;
-
     protected abstract Collection<FieldAccessorListenerFactory<?>> createListenerFactories();
 
     protected abstract Collection<? extends FieldAccessorFactory<?>> createAccessorFactories();
 
-    public DelegatingFieldAccessorFactory(final GraphDatabaseContext graphDatabaseContext, final DirectGraphRepositoryFactory graphRepositoryFactory) {
+    public DelegatingFieldAccessorFactory(final GraphDatabaseContext graphDatabaseContext) {
         this.graphDatabaseContext = graphDatabaseContext;
-        this.graphRepositoryFactory = graphRepositoryFactory;
         this.fieldAccessorFactories.addAll(createAccessorFactories());
         this.fieldAccessorListenerFactories.addAll(createListenerFactories());
     }

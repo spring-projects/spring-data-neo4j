@@ -21,6 +21,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.neo4j.graphdb.Node;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.graph.core.EntityPath;
 import org.springframework.data.graph.neo4j.Person;
 import org.springframework.data.graph.neo4j.support.GraphDatabaseContext;
 import org.springframework.test.context.ContextConfiguration;

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.data.graph.neo4j.state;
+package org.springframework.data.graph.neo4j.support.node;
 
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.NotInTransactionException;

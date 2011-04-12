@@ -103,7 +103,7 @@
     <bean id="relationshipEntityInstantiator"
           class="org.springframework.data.graph.neo4j.support.relationship.RelationshipEntityInstantiator"/>
 
-    <bean id="typeRepresentationStrategyFactory" class="org.springframework.data.graph.neo4j.support.TypeRepresentationStrategyFactory">
+    <bean id="typeRepresentationStrategyFactory" class="org.springframework.data.graph.neo4j.support.typerepresentation.TypeRepresentationStrategyFactory">
         <constructor-arg ref="graphDatabaseService"/>
         <constructor-arg ref="graphEntityInstantiator"/>
         <constructor-arg ref="relationshipEntityInstantiator"/>
@@ -112,19 +112,17 @@
     <bean id="nodeTypeRepresentationStrategy" factory-bean="typeRepresentationStrategyFactory" factory-method="getNodeTypeRepresentationStrategy" />
     <bean id="relationshipTypeRepresentationStrategy" factory-bean="typeRepresentationStrategyFactory" factory-method="getRelationshipTypeRepresentationStrategy"/>
 
-    <bean id="nodeEntityStateFactory" class="org.springframework.data.graph.neo4j.state.NodeEntityStateFactory">
+    <bean id="nodeEntityStateFactory" class="org.springframework.data.graph.neo4j.support.node.NodeEntityStateFactory">
     	<property name="nodeDelegatingFieldAccessorFactory">
 		    <bean class="org.springframework.data.graph.neo4j.fieldaccess.NodeDelegatingFieldAccessorFactory">
 		        <constructor-arg ref="graphDatabaseContext"/>
-		   		<constructor-arg ref="graphRepositoryFactory"/>
 		    </bean>
     	</property>
     	<property name="graphDatabaseContext" ref="graphDatabaseContext"/>
-		<property name="graphRepositoryFactory" ref="graphRepositoryFactory"/>
 		<property name="entityManagerFactory" ref="entityManagerFactory"/>
     </bean>
 
-    <bean id="relationshipEntityStateFactory" class="org.springframework.data.graph.neo4j.state.RelationshipEntityStateFactory">
+    <bean id="relationshipEntityStateFactory" class="org.springframework.data.graph.neo4j.support.relationship.RelationshipEntityStateFactory">
     	<property name="graphDatabaseContext" ref="graphDatabaseContext"/>
 		<property name="graphRepositoryFactory" ref="graphRepositoryFactory"/>
     </bean>

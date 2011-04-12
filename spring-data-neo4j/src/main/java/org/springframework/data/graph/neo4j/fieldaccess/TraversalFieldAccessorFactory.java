@@ -22,7 +22,6 @@ import org.springframework.data.graph.annotation.GraphTraversal;
 import org.springframework.data.graph.core.FieldTraversalDescriptionBuilder;
 import org.springframework.data.graph.core.NodeBacked;
 import org.springframework.data.graph.neo4j.repository.DirectGraphRepositoryFactory;
-import org.springframework.data.graph.neo4j.repository.GraphRepository;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
@@ -30,16 +29,6 @@ import java.lang.reflect.Field;
 import static org.springframework.data.graph.neo4j.support.DoReturn.doReturn;
 
 public class TraversalFieldAccessorFactory implements FieldAccessorFactory<NodeBacked> {
-
-	private DirectGraphRepositoryFactory graphRepositoryFactory;
-
-	
-    public TraversalFieldAccessorFactory(DirectGraphRepositoryFactory graphRepositoryFactory) {
-		super();
-		this.graphRepositoryFactory = graphRepositoryFactory;
-	}
-
-
 	@Override
     public boolean accept(final Field f) {
         final GraphTraversal graphEntityTraversal = f.getAnnotation(GraphTraversal.class);
@@ -51,7 +40,7 @@ public class TraversalFieldAccessorFactory implements FieldAccessorFactory<NodeB
 
     @Override
     public FieldAccessor<NodeBacked> forField(final Field field) {
-        return new TraversalFieldAccessor(field, graphRepositoryFactory);
+        return new TraversalFieldAccessor(field);
     }
 
 	/**
@@ -60,14 +49,12 @@ public class TraversalFieldAccessorFactory implements FieldAccessorFactory<NodeB
 	 */
 	public static class TraversalFieldAccessor implements FieldAccessor<NodeBacked> {
 	    protected final Field field;
-	    private final DirectGraphRepositoryFactory graphRepositoryFactory;
 	    private final FieldTraversalDescriptionBuilder fieldTraversalDescriptionBuilder;
 	    private Class<? extends NodeBacked> target;
         protected String[] params;
 
-        public TraversalFieldAccessor(final Field field, DirectGraphRepositoryFactory graphRepositoryFactory) {
+        public TraversalFieldAccessor(final Field field) {
 	        this.field = field;
-	        this.graphRepositoryFactory = graphRepositoryFactory;
             final GraphTraversal graphEntityTraversal = field.getAnnotation(GraphTraversal.class);
 	        this.target = graphEntityTraversal.elementClass();
             this.params = graphEntityTraversal.params();
@@ -86,9 +73,8 @@ public class TraversalFieldAccessorFactory implements FieldAccessorFactory<NodeB
 
 	    @Override
 	    public Object getValue(final NodeBacked nodeBacked) {
-	        final GraphRepository<? extends NodeBacked> finder = graphRepositoryFactory.createGraphRepository(target);
 	        final TraversalDescription traversalDescription = fieldTraversalDescriptionBuilder.build(nodeBacked,field,params);
-	        return doReturn(finder.findAllByTraversal(nodeBacked, traversalDescription));
+	        return doReturn(nodeBacked.findAllByTraversal((Class<? extends NodeBacked>) target, traversalDescription));
 	    }
 
 

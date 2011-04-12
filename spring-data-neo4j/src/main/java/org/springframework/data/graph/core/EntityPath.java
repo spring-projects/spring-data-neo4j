@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.data.graph.neo4j.support.path;
+package org.springframework.data.graph.core;
 
 import org.neo4j.graphdb.Path;
 import org.springframework.data.graph.core.GraphBacked;

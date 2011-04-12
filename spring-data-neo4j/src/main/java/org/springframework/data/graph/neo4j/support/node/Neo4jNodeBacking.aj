@@ -28,9 +28,8 @@ import org.neo4j.graphdb.traversal.Traverser;
 import org.springframework.data.graph.core.GraphBacked;
 import org.springframework.data.graph.core.NodeBacked;
 import org.springframework.data.graph.core.RelationshipBacked;
-import org.springframework.data.graph.neo4j.state.NodeEntityStateFactory;
 import org.springframework.data.graph.neo4j.support.DoReturn;
-import org.springframework.data.graph.neo4j.support.path.EntityPath;
+import org.springframework.data.graph.core.EntityPath;
 import org.springframework.data.graph.core.EntityState;
 import org.springframework.data.graph.neo4j.support.GraphDatabaseContext;
 
@@ -45,7 +44,7 @@ import static org.springframework.data.graph.neo4j.support.DoReturn.unwrap;
 /**
  * Aspect for handling node entity creation and field access (read & write)
  * puts the underlying state (Node) into and delegates field access to an {@link org.springframework.data.graph.core.EntityState} instance,
- * created by a configured {@link org.springframework.data.graph.neo4j.state.NodeEntityStateFactory}.
+ * created by a configured {@link NodeEntityStateFactory}.
  *
  * Handles constructor invocation and partial entities as well.
  */

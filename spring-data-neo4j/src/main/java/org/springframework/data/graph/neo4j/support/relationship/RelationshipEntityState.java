@@ -14,14 +14,13 @@
  * limitations under the License.
  */
 
-package org.springframework.data.graph.neo4j.state;
+package org.springframework.data.graph.neo4j.support.relationship;
 
 import org.neo4j.graphdb.NotInTransactionException;
 import org.neo4j.graphdb.Relationship;
 import org.springframework.dao.InvalidDataAccessResourceUsageException;
 import org.springframework.data.graph.core.RelationshipBacked;
 import org.springframework.data.graph.neo4j.fieldaccess.*;
-import org.springframework.data.graph.neo4j.repository.DirectGraphRepositoryFactory;
 import org.springframework.data.graph.neo4j.support.GraphDatabaseContext;
 
 import java.util.Arrays;
@@ -35,7 +34,7 @@ public class RelationshipEntityState<ENTITY extends RelationshipBacked> extends 
 
     private final GraphDatabaseContext graphDatabaseContext;
     
-    public RelationshipEntityState(final Relationship underlyingState, final ENTITY entity, final Class<? extends ENTITY> type, final GraphDatabaseContext graphDatabaseContext, final DirectGraphRepositoryFactory graphRepositoryFactory, final RelationshipStateDelegatingFieldAccessorFactory delegatingFieldAccessorFactory) {
+    public RelationshipEntityState(final Relationship underlyingState, final ENTITY entity, final Class<? extends ENTITY> type, final GraphDatabaseContext graphDatabaseContext, final RelationshipStateDelegatingFieldAccessorFactory delegatingFieldAccessorFactory) {
         super(underlyingState, entity, type, delegatingFieldAccessorFactory);
         this.graphDatabaseContext = graphDatabaseContext;
     }
@@ -68,8 +67,8 @@ public class RelationshipEntityState<ENTITY extends RelationshipBacked> extends 
     }
 
     public static class RelationshipStateDelegatingFieldAccessorFactory extends DelegatingFieldAccessorFactory {
-        public RelationshipStateDelegatingFieldAccessorFactory(GraphDatabaseContext graphDatabaseContext, DirectGraphRepositoryFactory graphRepositoryFactory) {
-            super(graphDatabaseContext, graphRepositoryFactory);
+        public RelationshipStateDelegatingFieldAccessorFactory(GraphDatabaseContext graphDatabaseContext) {
+            super(graphDatabaseContext);
         }
 
         @Override

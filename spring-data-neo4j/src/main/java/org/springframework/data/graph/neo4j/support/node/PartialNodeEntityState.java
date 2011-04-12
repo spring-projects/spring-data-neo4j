@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.data.graph.neo4j.state;
+package org.springframework.data.graph.neo4j.support.node;
 
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.NotInTransactionException;
@@ -25,7 +25,6 @@ import org.springframework.data.graph.annotation.GraphProperty;
 import org.springframework.data.graph.annotation.RelatedTo;
 import org.springframework.data.graph.core.NodeBacked;
 import org.springframework.data.graph.neo4j.fieldaccess.*;
-import org.springframework.data.graph.neo4j.repository.DirectGraphRepositoryFactory;
 import org.springframework.data.graph.neo4j.support.GraphDatabaseContext;
 
 import javax.persistence.PersistenceUnitUtil;
@@ -113,8 +112,8 @@ public class PartialNodeEntityState<ENTITY extends NodeBacked> extends DefaultEn
 
     public static class PartialNodeDelegatingFieldAccessorFactory extends DelegatingFieldAccessorFactory {
 
-        public PartialNodeDelegatingFieldAccessorFactory(GraphDatabaseContext graphDatabaseContext, DirectGraphRepositoryFactory graphRepositoryFactory) {
-            super(graphDatabaseContext, graphRepositoryFactory);
+        public PartialNodeDelegatingFieldAccessorFactory(GraphDatabaseContext graphDatabaseContext) {
+            super(graphDatabaseContext);
         }
 
         @Override
@@ -147,7 +146,7 @@ public class PartialNodeEntityState<ENTITY extends NodeBacked> extends DefaultEn
                     },
                     new OneToNRelationshipFieldAccessorFactory(getGraphDatabaseContext()),
                     new ReadOnlyOneToNRelationshipFieldAccessorFactory(getGraphDatabaseContext()),
-                    new TraversalFieldAccessorFactory(this.graphRepositoryFactory),
+                    new TraversalFieldAccessorFactory(),
                     new OneToNRelationshipEntityFieldAccessorFactory(getGraphDatabaseContext())
             );
         }

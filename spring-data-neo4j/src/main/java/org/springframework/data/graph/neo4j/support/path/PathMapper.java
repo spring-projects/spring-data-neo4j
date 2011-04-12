@@ -41,7 +41,7 @@ public interface PathMapper<T> {
     /**
      * callback instead of mapping
      */
-    public abstract class WithoutResult implements PathMapper<Void>, IterationController{
+    public abstract class WithoutResult implements PathMapper<Void>, IterationController {
         public abstract void eachPath(Path path);
 
         @Override

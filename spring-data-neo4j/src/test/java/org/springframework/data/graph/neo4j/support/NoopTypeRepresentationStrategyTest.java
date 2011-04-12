@@ -26,6 +26,8 @@ import org.neo4j.graphdb.Transaction;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.graph.annotation.NodeEntity;
 import org.springframework.data.graph.annotation.RelationshipEntity;
+import org.springframework.data.graph.neo4j.support.typerepresentation.NoopNodeTypeRepresentationStrategy;
+import org.springframework.data.graph.neo4j.support.typerepresentation.NoopRelationshipTypeRepresentationStrategy;
 import org.springframework.test.context.CleanContextCacheTestExecutionListener;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestExecutionListeners;

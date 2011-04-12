@@ -29,6 +29,8 @@ import org.springframework.data.graph.annotation.NodeEntity;
 import org.springframework.data.graph.annotation.RelationshipEntity;
 import org.springframework.data.graph.annotation.StartNode;
 import org.springframework.data.graph.neo4j.support.node.Neo4jHelper;
+import org.springframework.data.graph.neo4j.support.typerepresentation.IndexingNodeTypeRepresentationStrategy;
+import org.springframework.data.graph.neo4j.support.typerepresentation.IndexingRelationshipTypeRepresentationStrategy;
 import org.springframework.test.context.CleanContextCacheTestExecutionListener;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestExecutionListeners;

@@ -18,7 +18,6 @@ package org.springframework.data.graph.neo4j.support.node;
 
 import org.neo4j.graphdb.Node;
 import org.springframework.data.graph.core.NodeBacked;
-import org.springframework.data.graph.neo4j.state.PartialNodeEntityState;
 import org.springframework.orm.jpa.EntityManagerFactoryUtils;
 import org.springframework.data.persistence.EntityInstantiator;
 

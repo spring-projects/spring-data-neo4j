@@ -14,15 +14,14 @@
  * limitations under the License.
  */
 
-package org.springframework.data.graph.neo4j.state;
+package org.springframework.data.graph.neo4j.support.node;
 
 import org.neo4j.graphdb.Node;
 import org.springframework.data.graph.annotation.NodeEntity;
+import org.springframework.data.graph.core.EntityState;
 import org.springframework.data.graph.core.NodeBacked;
 import org.springframework.data.graph.neo4j.fieldaccess.DetachedEntityState;
 import org.springframework.data.graph.neo4j.fieldaccess.NodeDelegatingFieldAccessorFactory;
-import org.springframework.data.graph.neo4j.repository.DirectGraphRepositoryFactory;
-import org.springframework.data.graph.core.EntityState;
 import org.springframework.data.graph.neo4j.support.GraphDatabaseContext;
 
 import javax.annotation.PostConstruct;
@@ -33,8 +32,6 @@ public class NodeEntityStateFactory {
 
 	private GraphDatabaseContext graphDatabaseContext;
 	
-	private DirectGraphRepositoryFactory graphRepositoryFactory;
-
     private EntityManagerFactory entityManagerFactory;
 
     private NodeDelegatingFieldAccessorFactory nodeDelegatingFieldAccessorFactory;
@@ -72,16 +69,12 @@ public class NodeEntityStateFactory {
 		this.graphDatabaseContext = graphDatabaseContext;
 	}
 
-	public void setGraphRepositoryFactory(DirectGraphRepositoryFactory graphRepositoryFactory) {
-		this.graphRepositoryFactory = graphRepositoryFactory;
-	}
-
     public void setEntityManagerFactory(EntityManagerFactory entityManagerFactory) {
         this.entityManagerFactory = entityManagerFactory;
     }
 
     @PostConstruct
     private void setUp() {
-         this.delegatingFieldAccessorFactory = new PartialNodeEntityState.PartialNodeDelegatingFieldAccessorFactory(graphDatabaseContext, graphRepositoryFactory);
+         this.delegatingFieldAccessorFactory = new PartialNodeEntityState.PartialNodeDelegatingFieldAccessorFactory(graphDatabaseContext);
     }
 }

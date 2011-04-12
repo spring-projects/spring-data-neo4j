@@ -19,8 +19,8 @@ package org.springframework.data.graph.neo4j.template;
 import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.traversal.TraversalDescription;
 import org.neo4j.helpers.collection.ClosableIterable;
-import org.springframework.data.graph.core.Property;
 import org.springframework.data.graph.neo4j.support.path.PathMapper;
+import org.springframework.data.graph.core.Property;
 
 /**
  * A template with convenience operations, exception translation and implicit transaction for modifying methods

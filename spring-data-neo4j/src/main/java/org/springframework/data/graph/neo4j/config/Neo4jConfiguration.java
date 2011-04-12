@@ -33,10 +33,10 @@ import org.springframework.data.graph.core.RelationshipBacked;
 import org.springframework.data.graph.neo4j.fieldaccess.Neo4jConversionServiceFactoryBean;
 import org.springframework.data.graph.neo4j.fieldaccess.NodeDelegatingFieldAccessorFactory;
 import org.springframework.data.graph.neo4j.repository.DirectGraphRepositoryFactory;
-import org.springframework.data.graph.neo4j.state.NodeEntityStateFactory;
-import org.springframework.data.graph.neo4j.state.RelationshipEntityStateFactory;
+import org.springframework.data.graph.neo4j.support.node.NodeEntityStateFactory;
+import org.springframework.data.graph.neo4j.support.relationship.RelationshipEntityStateFactory;
 import org.springframework.data.graph.neo4j.support.GraphDatabaseContext;
-import org.springframework.data.graph.neo4j.support.TypeRepresentationStrategyFactory;
+import org.springframework.data.graph.neo4j.support.typerepresentation.TypeRepresentationStrategyFactory;
 import org.springframework.data.graph.neo4j.support.node.Neo4jNodeBacking;
 import org.springframework.data.graph.neo4j.support.node.NodeEntityInstantiator;
 import org.springframework.data.graph.neo4j.support.node.PartialNodeEntityInstantiator;
@@ -168,9 +168,8 @@ public class Neo4jConfiguration {
 
         NodeEntityStateFactory entityStateFactory = new NodeEntityStateFactory();
         entityStateFactory.setGraphDatabaseContext(graphDatabaseContext);
-        entityStateFactory.setGraphRepositoryFactory(graphRepositoryFactory);
         entityStateFactory.setEntityManagerFactory(entityManagerFactory);
-        final NodeDelegatingFieldAccessorFactory nodeDelegatingFieldAccessorFactory = new NodeDelegatingFieldAccessorFactory(graphDatabaseContext, graphRepositoryFactory);
+        final NodeDelegatingFieldAccessorFactory nodeDelegatingFieldAccessorFactory = new NodeDelegatingFieldAccessorFactory(graphDatabaseContext);
         entityStateFactory.setNodeDelegatingFieldAccessorFactory(nodeDelegatingFieldAccessorFactory);
         return entityStateFactory;
     }

@@ -18,9 +18,9 @@ package org.springframework.data.graph.neo4j.support.node;
 
 import org.neo4j.graphdb.Path;
 import org.neo4j.helpers.collection.IterableWrapper;
+import org.springframework.data.graph.core.EntityPath;
 import org.springframework.data.graph.core.NodeBacked;
 import org.springframework.data.graph.neo4j.support.path.ConvertingEntityPath;
-import org.springframework.data.graph.neo4j.support.path.EntityPath;
 import org.springframework.data.graph.neo4j.support.GraphDatabaseContext;
 
 /**

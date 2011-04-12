@@ -14,50 +14,50 @@
  * limitations under the License.
  */
 
-package org.springframework.data.graph.neo4j.support;
+package org.springframework.data.graph.neo4j.support.typerepresentation;
 
-import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.Relationship;
 import org.neo4j.helpers.collection.ClosableIterable;
-import org.springframework.data.graph.core.NodeBacked;
-import org.springframework.data.graph.core.NodeTypeRepresentationStrategy;
+import org.springframework.data.graph.core.RelationshipBacked;
+import org.springframework.data.graph.core.RelationshipTypeRepresentationStrategy;
 
-public class NoopNodeTypeRepresentationStrategy implements NodeTypeRepresentationStrategy {
+public class NoopRelationshipTypeRepresentationStrategy implements RelationshipTypeRepresentationStrategy {
 
     @Override
-    public void postEntityCreation(Node state, Class<? extends NodeBacked> type) {
+    public void postEntityCreation(Relationship state, Class<? extends RelationshipBacked> type) {
     }
 
     @Override
-    public <U extends NodeBacked> ClosableIterable<U> findAll(Class<U> clazz) {
+    public <U extends RelationshipBacked> ClosableIterable<U> findAll(Class<U> clazz) {
         throw new UnsupportedOperationException("findAll not supported.");
     }
 
     @Override
-    public long count(Class<? extends NodeBacked> entityClass) {
+    public long count(Class<? extends RelationshipBacked> entityClass) {
         throw new UnsupportedOperationException("count not supported.");
     }
 
     @Override
-    public void preEntityRemoval(Node state) {
+    public void preEntityRemoval(Relationship state) {
     }
 
     @Override
-    public Class<? extends NodeBacked> getJavaType(Node state) {
+    public Class<? extends RelationshipBacked> getJavaType(Relationship state) {
         throw new UnsupportedOperationException("getJavaType not supported.");
     }
 
     @Override
-    public <U extends NodeBacked> U createEntity(Node state) {
+    public <U extends RelationshipBacked> U createEntity(Relationship state) {
         throw new UnsupportedOperationException("Creation with stored type not supported.");
     }
 
     @Override
-    public <U extends NodeBacked> U createEntity(Node state, Class<U> type) {
+    public <U extends RelationshipBacked> U createEntity(Relationship state, Class<U> type) {
         return projectEntity(state, type);
     }
 
     @Override
-    public <U extends NodeBacked> U projectEntity(Node state, Class<U> type) {
+    public <U extends RelationshipBacked> U projectEntity(Relationship state, Class<U> type) {
         return null;
     }
 }

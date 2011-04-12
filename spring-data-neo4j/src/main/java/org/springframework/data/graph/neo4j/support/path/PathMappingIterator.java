@@ -23,8 +23,6 @@ import org.neo4j.helpers.collection.IterableWrapper;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.springframework.data.graph.neo4j.support.path.IterationController.IterationMode.EAGER_STOP_ON_NULL;
-
 /**
  * @author mh
  * @since 22.02.11

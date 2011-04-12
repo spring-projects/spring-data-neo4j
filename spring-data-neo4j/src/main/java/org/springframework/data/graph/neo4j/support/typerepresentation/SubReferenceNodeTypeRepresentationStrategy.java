@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.data.graph.neo4j.support;
+package org.springframework.data.graph.neo4j.support.typerepresentation;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
