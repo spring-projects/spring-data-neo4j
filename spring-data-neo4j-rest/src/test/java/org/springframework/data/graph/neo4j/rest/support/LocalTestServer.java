@@ -16,16 +16,20 @@
 
 package org.springframework.data.graph.neo4j.rest.support;
 
+import org.apache.commons.configuration.Configuration;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.kernel.AbstractGraphDatabase;
 import org.neo4j.kernel.ImpermanentGraphDatabase;
 import org.neo4j.server.AddressResolver;
+import org.neo4j.server.Bootstrapper;
 import org.neo4j.server.NeoServerWithEmbeddedWebServer;
 import org.neo4j.server.database.Database;
 import org.neo4j.server.database.GraphDatabaseFactory;
 import org.neo4j.server.modules.RESTApiModule;
+import org.neo4j.server.modules.ServerModule;
 import org.neo4j.server.modules.ThirdPartyJAXRSModule;
 import org.neo4j.server.startup.healthcheck.StartupHealthCheck;
+import org.neo4j.server.startup.healthcheck.StartupHealthCheckRule;
 import org.neo4j.server.web.Jetty6WebServer;
 
 import java.io.File;
@@ -33,6 +37,8 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URL;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -58,21 +64,40 @@ public class LocalTestServer {
         if (neoServer!=null) throw new IllegalStateException("Server already running");
         URL url = getClass().getResource("/" + propertiesFile);
         if (url==null) throw new IllegalArgumentException("Could not resolve properties file "+propertiesFile);
-        neoServer = new NeoServerWithEmbeddedWebServer(new GraphDatabaseFactory() {
+        final List<Class<? extends ServerModule>> serverModules = Arrays.asList(RESTApiModule.class, ThirdPartyJAXRSModule.class);
+        final Bootstrapper bootstrapper = new Bootstrapper() {
             @Override
-            public AbstractGraphDatabase createDatabase(String databaseStoreDirectory, Map<String, String> databaseProperties) {
-                try {
-                    return new ImpermanentGraphDatabase();
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
+            protected GraphDatabaseFactory getGraphDatabaseFactory(Configuration configuration) {
+                return new GraphDatabaseFactory() {
+                    @Override
+                    public AbstractGraphDatabase createDatabase(String databaseStoreDirectory, Map<String, String> databaseProperties) {
+                        try {
+                            return new ImpermanentGraphDatabase();
+                        } catch (IOException e) {
+                            throw new RuntimeException(e);
+                        }
+                    }
+                };
             }
-        },new AddressResolver() {
+
+            @Override
+            protected Iterable<StartupHealthCheckRule> getHealthCheckRules() {
+                return Collections.emptyList();
+            }
+
+            @Override
+            protected Iterable<Class<? extends ServerModule>> getServerModules() {
+                return serverModules;
+            }
+        };
+        final AddressResolver addressResolver = new AddressResolver() {
             @Override
             public String getHostname() {
                 return hostname;
             }
-        }, new StartupHealthCheck(), new File(url.getPath()), new Jetty6WebServer(), Arrays.asList(RESTApiModule.class, ThirdPartyJAXRSModule.class)) {
+        };
+        neoServer = new NeoServerWithEmbeddedWebServer(bootstrapper
+        , addressResolver, new StartupHealthCheck(), new File(url.getPath()), new Jetty6WebServer(), serverModules) {
             @Override
             protected int getWebServerPort() {
                 return port;
