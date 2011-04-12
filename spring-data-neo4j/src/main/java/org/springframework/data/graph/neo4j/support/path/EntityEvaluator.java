@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-package org.springframework.data.graph.neo4j.support;
+package org.springframework.data.graph.neo4j.support.path;
 
 import org.neo4j.graphdb.Path;
 import org.neo4j.graphdb.traversal.Evaluation;
 import org.neo4j.graphdb.traversal.Evaluator;
 import org.springframework.data.graph.core.NodeBacked;
+import org.springframework.data.graph.neo4j.support.GraphDatabaseContext;
 import org.springframework.data.graph.neo4j.support.path.ConvertingEntityPath;
 
 /**

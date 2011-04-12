@@ -148,7 +148,6 @@ public class Neo4jConfiguration {
     public RelationshipEntityStateFactory relationshipEntityStateFactory() throws Exception {
         RelationshipEntityStateFactory entityStateFactory = new RelationshipEntityStateFactory();
         entityStateFactory.setGraphDatabaseContext(graphDatabaseContext());
-        entityStateFactory.setGraphRepositoryFactory(directGraphRepositoryFactory());
         return entityStateFactory;
     }
 

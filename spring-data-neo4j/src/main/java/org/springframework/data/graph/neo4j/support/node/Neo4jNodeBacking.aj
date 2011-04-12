@@ -25,7 +25,6 @@ import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.traversal.TraversalDescription;
 import org.neo4j.graphdb.traversal.Traverser;
-import org.springframework.data.graph.core.GraphBacked;
 import org.springframework.data.graph.core.NodeBacked;
 import org.springframework.data.graph.core.RelationshipBacked;
 import org.springframework.data.graph.neo4j.support.DoReturn;
@@ -36,6 +35,8 @@ import org.springframework.data.graph.neo4j.support.GraphDatabaseContext;
 import org.springframework.data.graph.annotation.*;
 import javax.persistence.Transient;
 import javax.persistence.Entity;
+
+import org.springframework.data.graph.neo4j.support.path.EntityPathPathIterableWrapper;
 
 import java.lang.reflect.Field;
 

@@ -17,9 +17,8 @@
 package org.springframework.data.graph.neo4j.support.relationship;
 
 import org.neo4j.graphdb.Relationship;
-import org.springframework.data.graph.core.RelationshipBacked;
-import org.springframework.data.graph.neo4j.repository.DirectGraphRepositoryFactory;
 import org.springframework.data.graph.core.EntityState;
+import org.springframework.data.graph.core.RelationshipBacked;
 import org.springframework.data.graph.neo4j.support.GraphDatabaseContext;
 
 import javax.annotation.PostConstruct;
@@ -28,7 +27,6 @@ public class RelationshipEntityStateFactory {
 
 	private GraphDatabaseContext graphDatabaseContext;
 	
-    private DirectGraphRepositoryFactory graphRepositoryFactory;
     private RelationshipEntityState.RelationshipStateDelegatingFieldAccessorFactory delegatingFieldAccessorFactory;
 
     public EntityState<RelationshipBacked, Relationship> getEntityState(final RelationshipBacked entity) {
@@ -37,10 +35,6 @@ public class RelationshipEntityStateFactory {
 
 	public void setGraphDatabaseContext(GraphDatabaseContext graphDatabaseContext) {
 		this.graphDatabaseContext = graphDatabaseContext;
-	}
-
-	public void setGraphRepositoryFactory(DirectGraphRepositoryFactory graphRepositoryFactory) {
-		this.graphRepositoryFactory = graphRepositoryFactory;
 	}
 
     @PostConstruct

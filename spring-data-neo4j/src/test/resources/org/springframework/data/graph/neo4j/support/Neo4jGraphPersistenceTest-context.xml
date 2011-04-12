@@ -120,7 +120,6 @@
 
     <bean id="relationshipEntityStateFactory" class="org.springframework.data.graph.neo4j.support.relationship.RelationshipEntityStateFactory">
     	<property name="graphDatabaseContext" ref="graphDatabaseContext"/>
-		<property name="graphRepositoryFactory" ref="graphRepositoryFactory"/>
     </bean>
 
 	<bean id="graphRepositoryFactory" class="org.springframework.data.graph.neo4j.repository.DirectGraphRepositoryFactory">

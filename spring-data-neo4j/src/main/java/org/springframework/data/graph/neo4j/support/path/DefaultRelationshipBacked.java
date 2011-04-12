@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.data.graph.neo4j.support.relationship;
+package org.springframework.data.graph.neo4j.support.path;
 
 import org.springframework.data.graph.annotation.EndNode;
 import org.springframework.data.graph.annotation.RelationshipEntity;
