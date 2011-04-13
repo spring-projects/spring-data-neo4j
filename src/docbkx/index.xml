@@ -45,7 +45,9 @@
 
     <toc/>
 
-    <xi:include href="introduction/preface.xml"/>
+    <xi:include href="introduction/rod.xml"/>
+    <xi:include href="introduction/emil.xml"/>
+    <xi:include href="introduction/about.xml"/>
 
     <part id="tutorial">
         <title>Tutorial</title>

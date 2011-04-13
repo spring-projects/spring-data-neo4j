@@ -1,9 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE preface PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN"
                  "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
-
-<preface id="about-book">
-    <title>Preface</title>
+    <preface>
+    <title>About this Guide Book</title>
     <para>
         <mediaobject>
             <imageobject>
@@ -11,16 +10,6 @@
             </imageobject>
         </mediaobject>
     </para>
-    <section>
-    <title>Foreword: Rod Johnson, CEO of SpringSource</title>
-        <para></para>
-    </section>
-    <section>
-    <title>Foreword: Emil Eifrem, CEO of Neo Technology</title>
-        <para></para>
-    </section>
-    <section>
-    <title>About this Guide Book</title>
     <para>
         Welcome to the Spring Data Graph Guide Book. Thank you for taking the time to get an in depth look into <ulink url="https://github.com/SpringSource/spring-data-graph">Spring Data Graph Library</ulink>. Spring Data Graph is part of the <ulink url="http://springsource.org/spring-data">Spring Data project</ulink> which
         brings the convenient programming model of the Spring Framework to modern (mainly NOSQL) datastores.
@@ -47,5 +36,4 @@
         for the object-graph mapping and the template approach. The reference docs should be mainly used to look up
         concrete bits of information or to dig deeper into certain topics.
     </para>
-    </section>
-</preface>
+    </preface>
