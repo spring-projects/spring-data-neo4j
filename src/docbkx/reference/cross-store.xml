@@ -1,142 +1,155 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
 <chapter id="cross-store">
-	<title>Cross-store persistence</title>
-	<para>The Spring Data Graph project support cross-store persistence which allows parts of the data mode to be stored in a traditional
-	JPA datastore (RDBMS) and other parts of the data model (even partial entites, that is some properties or relationships) in a graph
-	store.
-  </para>
-	<para>
-	This allows existing JPA-based applications to embrace NOSQL data stores to evolve certain parts of their model.
-	Possible use cases are adding social network or geospatial information to existing applications.
-  </para>
-	<section>
-		<title>Partial graph persistence</title>
+    <title>Cross-store persistence</title>
+    <para>
+        The Spring Data Graph project support cross-store persistence, which allows for parts of the data to be
+        stored in a traditional JPA data store (RDBMS), and other parts in a graph store. This means that an entity
+        can be partially stored in e.g. MySQL, and partially stored in Neo4j.
+    </para>
+    <para>
+        This allows existing JPA-based applications to embrace NOSQL data stores for evolving certain parts
+        of their data model. Possible use cases include adding social networking or geospatial information to
+        existing applications.
+    </para>
+    <section>
+        <title>Partial entities</title>
         <para>
-            Partial graph persistence is achieved by restricting the Spring Data Graph aspects to explicitly annotated parts of
-            the entity. Those fields will be made transient by the aspect so that JPA ignores them and won't try to persist those
-            attributes.
+            Partial graph persistence is achieved by restricting the Spring Data Graph aspects to manage only
+            explicitly annotated parts of the entity. Those fields will be made <code>@Transient</code> by the
+            aspect so that JPA ignores them.
         </para>
         <para>
-		A backing node in the graph store is only created when the entity has been assigned a JPA id. Only then will the connection between the
-		two stores be kept. Until the entity has been persisted, its state is just kept inside the POJO (detached state) and flushed to the
-		backing graph store afterwards.
-	</para>
-		<para>
-            The connection between the two entities is kept via a FOREIGN_ID field in the node that contains the JPA id
-            (currently only single value ids are supported). The entity class can be resolved via the
-            TypeRepresentationStrategy that manages the Java type hierarchy within the graph. With the id and class,
-            you can then retrieve the appropriate JPA entity for a given node.
+            A backing node in the graph store is only created when the entity has been assigned a JPA ID. Only
+            then will the association between the two stores be established. Until the entity has been persisted,
+            its state is just kept inside the POJO (in detached state), and then flushed to the backing graph
+            database on <code>persist()</code>.
         </para>
-		<para>
-		The other direction is handled by indexing the Node with the FOREIGN_ID index which contains a concatenation of the fully qualified class
-		name of the JPA entity and the id. So it is possible on instantiation of a JPA id via the entity manager (or some other means like creating
-		the POJO and setting its id manually) to find the matching node using the index facilities and reconnect them.
-	</para>
-		<para>
-		Using those mechanisms and the Spring Data Graph aspects a single POJO can contain fields that are handled by JPA and other fields
-		(which might be relationships as well) that are handled by Spring Data Graph.
-	</para>
-		<section>
-			<title>@NodeEntity(partial = "true")</title>
-			<para>
-	When annotating an entity with partial true, Spring Data Graph assumes that this is a cross-store entity. So its only responsibility is for the fields
-	annotated with Spring Data Graph annotations. JPA should not take care of these fields (they should be annotated with @Transient). In this mode of
-	operation Spring Data Graph also handles the cross-store connection via the content of the JPA id field.
-	</para>
-		</section>
-		<section>
-			<title>@GraphProperty</title>
-			<para>
-				For common fields containing primitive or convertible values that wouldn't have to be annotated in exclusive Spring Data Graph operations this
-				explicit declaration is necessary to be sure that they are intended to be stored in the graph. These fields should then be made transient
-				so that JPA doesn't try to take care of them as well.
-			</para>
-		</section>
-		<para>
-			The following example is taken from the <ulink url="http://github.com/SpringSource/spring-data-graph-examples">Spring Data Graph examples</ulink>,
-			it is contained in the myrestaurant-social project.
-		</para>
-<programlisting language="java" ><![CDATA[
-	@Entity
-	@Table(name = "user_account")
-	@NodeEntity(partial = true)
-	public class UserAccount {
-	    private String userName;
-	    private String firstName;
-	    private String lastName;
+        <para>
+            The association between the two entities is maintained via a FOREIGN_ID field in the node, that
+            contains the JPA ID. Currently only single-value IDs are supported. The entity class can be resolved
+            via the <code>TypeRepresentationStrategy</code> that manages the Java type hierarchy within the graph
+            database. Given the ID and class, you can then retrieve the appropriate JPA entity for a given node.
+        </para>
+        <para>
+            The other direction is handled by indexing the Node with the FOREIGN_ID index which contains a
+            concatenation of the fully qualified class name of the JPA entity and the ID. The matching node
+            can then be found using the indexing facilities, and the two entities can be reassociated.
+        </para>
+        <para>
+            Using these mechanisms and the Spring Data Graph aspects, a single POJO can contain some fields
+            handled by JPA and others handles by Spring Data Graph. This also includes relationship fields persisted
+            in the graph database.
+        </para>
+    </section>
+    <section>
+        <title>Cross-store annotations</title>
+        <para>
+            Cross-store persistence only requires the use of one additional annotation: <code>@GraphProperty</code>.
+            See below for details and an example.
+        </para>
+        <section>
+            <title>@NodeEntity(partial = "true")</title>
+            <para>
+                When annotating an entity with <code>partial = true</code>, this marks it as a cross-store entity.
+                Spring Data Graph will thus only manage fields explicitly annotated with <code>@GraphProperty</code>.
+            </para>
+        </section>
+        <section>
+            <title>@GraphProperty</title>
+            <para>
+                Fields of primitive or convertible types do not normally have to be annotated in order to be
+                persisted by Spring Data Graph. In cross-store mode, Spring Data Graph <emphasis>only</emphasis>
+                persists fields explicitly annotated with <code>@GraphProperty</code>. JPA will ignore these fields.
+            </para>
+        </section>
+        <para>
+            The following example is taken from the
+            <ulink url="http://github.com/SpringSource/spring-data-graph-examples">Spring Data Graph examples</ulink>
+            myrestaurants-social project:
+        </para>
+        <example>
+            <title>Cross-store node entity</title>
+            <programlisting language="java"><![CDATA[@Entity
+@Table(name = "user_account")
+@NodeEntity(partial = true)
+public class UserAccount {
+    private String userName;
+    private String firstName;
+    private String lastName;
 
-	    @GraphProperty
-	    String nickname;
+    @GraphProperty
+    String nickname;
 
-	    @RelatedTo(type = "friends", elementClass = UserAccount.class)
-	    Set<UserAccount> friends;
+    @RelatedTo(type = "friends", elementClass = UserAccount.class)
+    Set<UserAccount> friends;
 
-	    @RelatedToVia(type = "recommends", elementClass = Recommendation.class)
-	    Iterable<Recommendation> recommendations;
+    @RelatedToVia(type = "recommends", elementClass = Recommendation.class)
+    Iterable<Recommendation> recommendations;
 
-	    @Temporal(TemporalType.TIMESTAMP)
-	    @DateTimeFormat(style = "S-")
-	    private Date birthDate;
+    @Temporal(TemporalType.TIMESTAMP)
+    @DateTimeFormat(style = "S-")
+    private Date birthDate;
 
-		@ManyToMany(cascade = CascadeType.ALL)
-	    private Set<Restaurant> favorites;
+    @ManyToMany(cascade = CascadeType.ALL)
+    private Set<Restaurant> favorites;
 
-		@Id
-	    @GeneratedValue(strategy = GenerationType.AUTO)
-	    @Column(name = "id")
-	    private Long id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    @Column(name = "id")
+    private Long id;
 
-	    @Transactional
-	    public void knows(UserAccount friend) {
-	        relateTo(friend, "friends");
-	    }
+    @Transactional
+    public void knows(UserAccount friend) {
+        relateTo(friend, "friends");
+    }
 
-		@Transactional
-	    public Recommendation rate(Restaurant restaurant, int stars, String comment) {
-	        Recommendation recommendation = relateTo(restaurant, Recommendation.class, "recommends");
-	        recommendation.rate(stars, comment);
-	        return recommendation;
-	    }
-	    public Iterable<Recommendation> getRecommendations() {
-	        return recommendations;
-	    }
-	}
+    @Transactional
+    public Recommendation rate(Restaurant restaurant, int stars, String comment) {
+        Recommendation recommendation = relateTo(restaurant, Recommendation.class, "recommends");
+        recommendation.rate(stars, comment);
+        return recommendation;
+    }
 
+    public Iterable<Recommendation> getRecommendations() {
+        return recommendations;
+    }
+}
 ]]></programlisting>
-	</section>
-	<section>
-		<title>Configuring cross-store persistence</title>
-		<para>
-			Configuring cross-store persistence is done similarly to the default Spring Data Graph operations. As soon as you refer
-            to an <code>entityManagerFactory</code> in the xml-namespace it is set up for cross-store persistence.
-		</para>
-<programlisting language="xml" ><![CDATA[
-<beans xmlns="http://www.springframework.org/schema/beans"
-	xmlns:context="http://www.springframework.org/schema/context"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        </example>
+    </section>
+    <section>
+        <title>Configuring cross-store persistence</title>
+        <para>
+            Configuring cross-store persistence is done similarly to the default Spring Data Graph configuration.
+            All you need to do is to specify an <code>entityManagerFactory</code> in the XML namespace
+            <code>config</code> element, and Spring Data Graph will configure itself for cross-store use.
+        </para>
+<programlisting language="xml" ><![CDATA[<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:context="http://www.springframework.org/schema/context"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xmlns:datagraph="http://www.springframework.org/schema/data/graph"
-	xsi:schemaLocation="
-		http://www.springframework.org/schema/beans 
-		http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
-		http://www.springframework.org/schema/context 
-		http://www.springframework.org/schema/context/spring-context-3.0.xsd
-		http://www.springframework.org/schema/data/graph 
-		http://www.springframework.org/schema/data/graph/datagraph-1.0.xsd
-		">
+    xsi:schemaLocation="
+        http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+        http://www.springframework.org/schema/context
+        http://www.springframework.org/schema/context/spring-context-3.0.xsd
+        http://www.springframework.org/schema/data/graph
+        http://www.springframework.org/schema/data/graph/datagraph-1.0.xsd
+        ">
 
-	<context:annotation-config/>
+    <context:annotation-config/>
 
     <datagraph:config storeDirectory="target/config-test"
         entityManagerFactory="entityManagerFactory"/>
 
     <bean class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean"
-      id="entityManagerFactory">
+            id="entityManagerFactory">
         <property name="dataSource" ref="dataSource"/>
         <property name="persistenceXmlLocation" value="classpath:META-INF/persistence.xml"/>
     </bean>
 </beans>
 ]]></programlisting>
 
-	</section>
+    </section>
 </chapter>
