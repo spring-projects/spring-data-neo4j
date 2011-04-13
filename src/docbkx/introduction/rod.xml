@@ -28,7 +28,7 @@
         Third, I'm excited about Spring Data Graph for personal reasons. I no longer get to write code as often as I
         would like. My initial convictions that Spring and AspectJ could both make building applications with Neo4j
         dramatically easier and cross-store object navigation possible gave me an excuse for a much-needed coding binge
-        early in 2011. This led to a prototype of what became Spring Data Graph — at times written paired with Emil. I’m
+        early in 2010. This led to a prototype of what became Spring Data Graph — at times written paired with Emil. I’m
         sure the vast majority of my code has long since been replaced (probably for the better) by coders who aren't
         rusty — thanks Michael and Thomas! — but I retain my pleasant memories.
     </para>
