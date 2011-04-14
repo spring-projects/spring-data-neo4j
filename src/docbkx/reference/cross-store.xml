@@ -125,7 +125,9 @@ public class UserAccount {
             All you need to do is to specify an <code>entityManagerFactory</code> in the XML namespace
             <code>config</code> element, and Spring Data Graph will configure itself for cross-store use.
         </para>
-<programlisting language="xml" ><![CDATA[<beans xmlns="http://www.springframework.org/schema/beans"
+        <example>
+            <title>Cross-store Spring configuration</title>
+            <programlisting language="xml"><![CDATA[<beans xmlns="http://www.springframework.org/schema/beans"
     xmlns:context="http://www.springframework.org/schema/context"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xmlns:datagraph="http://www.springframework.org/schema/data/graph"
@@ -150,6 +152,8 @@ public class UserAccount {
     </bean>
 </beans>
 ]]></programlisting>
+        </example>
+
 
     </section>
 </chapter>

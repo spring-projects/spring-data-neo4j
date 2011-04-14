@@ -24,9 +24,9 @@
         reporting or auditing) and only project them to a concrete, more functional target type when the business
         logic requires it.
     </para>
-    <programlisting language="java"><![CDATA[
-// not related to Person at all
-@NodeEntity
+    <example>
+        <title>Projection of entities</title>
+        <programlisting language="java"><![CDATA[@NodeEntity
 class Trainee {
     String name;
     @RelatedTo(elementClass=Training.class);
@@ -40,5 +40,7 @@ for (Person person : graphRepository.findAllByProperyValue("occupation","develop
     }
 }
 ]]></programlisting>
+    </example>
+
 
 </section>

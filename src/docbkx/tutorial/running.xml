@@ -17,8 +17,7 @@
         <para>
             <example>
                 <title>Populating the database - Controller</title>
-                <programlisting language="java"><![CDATA[
-@Service
+                <programlisting language="java"><![CDATA[@Service
 public class DatabasePopulator {
 
     @Autowired GraphDatabaseContext ctx;
@@ -54,8 +53,7 @@ public class MovieController {
             </example>
             <example>
                 <title>Populating the database - JSP</title>
-                <programlisting language="jsp"><![CDATA[
-<%@ page session="false" %>
+                <programlisting language="jsp"><![CDATA[<%@ page session="false" %>
 <%@ taglib uri="http://www.springframework.org/tags" prefix="s" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 
@@ -119,8 +117,7 @@ public class MovieController {
             <para>
                 <example>
                     <title>Starting the Neo4j Shell</title>
-                    <programlisting language="shell" ><![CDATA[
-neo4j-shell -readonly -path data/graph.db
+                    <programlisting language="shell" ><![CDATA[neo4j-shell -readonly -path data/graph.db
 ]]></programlisting>
                 </example>
             </para>
@@ -132,8 +129,7 @@ neo4j-shell -readonly -path data/graph.db
             <para>
                 <example>
                     <title>Neo4j Shell usage</title>
-                    <programlisting language="shell" ><![CDATA[
-neo4j-sh[readonly] (0)$ help
+                    <programlisting language="shell" ><![CDATA[neo4j-sh[readonly] (0)$ help
 Available commands: index dbinfo ls rm alias set eval mv gsh env rmrel mkrel
                     trav help pwd paths ... man cd
 Use man <command> for info about each command.

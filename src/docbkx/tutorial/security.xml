@@ -15,8 +15,7 @@
     <para>
         <example>
             <title>Spring Security pom.xml</title>
-            <programlisting language="xml" ><![CDATA[
-<dependency>
+            <programlisting language="xml" ><![CDATA[<dependency>
     <groupId>org.springframework.security</groupId>
     <artifactId>spring-security-web</artifactId>
     <version>${spring.version}</version>
@@ -32,8 +31,7 @@
     <para>
         <example>
             <title>Spring Security web.xml</title>
-            <programlisting language="xml" ><![CDATA[
-<context-param>
+            <programlisting language="xml" ><![CDATA[<context-param>
     <param-name>contextConfigLocation</param-name>
     <param-value>
         /WEB-INF/applicationContext-security.xml
@@ -60,8 +58,7 @@
     <para>
         <example>
             <title>Spring Security applicationContext-security.xml</title>
-            <programlisting language="xml" ><![CDATA[
-<security:global-method-security secured-annotations="enabled">
+            <programlisting language="xml" ><![CDATA[<security:global-method-security secured-annotations="enabled">
 </security:global-method-security>
 
 <security:http auto-config="true" access-denied-page="/auth/denied"> <!-- use-expressions="true" -->
@@ -89,8 +86,7 @@
         </example>
         <example>
             <title>UserDetailsService and UserDetails implementation</title>
-            <programlisting language="java" ><![CDATA[
-@Service
+            <programlisting language="java" ><![CDATA[@Service
 public class CineastsUserDetailsService implements UserDetailsService, InitializingBean {
 
     @Autowired private UserRepository userRepository;

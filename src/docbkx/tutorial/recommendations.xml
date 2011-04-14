@@ -20,8 +20,7 @@
     <para>
         <example>
             <title>Recommendations</title>
-            <programlisting language="java"><![CDATA[
-public Map<Movie,Integer> recommendMovies(User user, final int ratingDistance) {
+            <programlisting language="java"><![CDATA[public Map<Movie,Integer> recommendMovies(User user, final int ratingDistance) {
     final DynamicRelationshipType RATED = withName(User.RATED);
     final Map<Long,int[]> ratings=new HashMap<Long, int[]>();
     TraversalDescription traversal= Traversal.description().breadthFirst()

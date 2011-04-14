@@ -39,8 +39,7 @@
         </para>
         <example>
             <title>Indexing entities</title>
-            <programlisting language="java"><![CDATA[
-@NodeEntity
+            <programlisting language="java"><![CDATA[@NodeEntity
 class Person {
     @Indexed(indexName = "people") String name;
     @Indexed int age;
@@ -80,8 +79,7 @@ for (Person middleAgedDeveloper : graphRepository.findAllByRange("age", 20, 40))
         <para>
             <example>
                 <title>Fulltext indexing</title>
-                <programlisting language="java"><![CDATA[
-@NodeEntity
+                <programlisting language="java"><![CDATA[@NodeEntity
 class Person {
     @Indexed(indexName = "person-name", fulltext=true) String name;
 }
@@ -111,8 +109,7 @@ Person mark = graphRepository.findAllByQuery("people-search", "name", "ma*");
         </para>
         <example>
             <title>Manual index usage</title>
-            <programlisting language="java"><![CDATA[
-@Autowired GraphDatabaseContext gdc;
+            <programlisting language="java"><![CDATA[@Autowired GraphDatabaseContext gdc;
 
 // Default index
 Index<Node> personIndex = gdc.getIndex(Person.class);

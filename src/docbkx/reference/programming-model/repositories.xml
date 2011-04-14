@@ -132,28 +132,27 @@
         </para>
         <example>
             <title>Using GraphRepositories</title>
-            <programlisting language="java"><![CDATA[
-    GraphRepository<Person> graphRepository = graphRepositoryFactory
-            .createGraphRepository(Person.class);
+            <programlisting language="java"><![CDATA[GraphRepository<Person> graphRepository = graphRepositoryFactory
+        .createGraphRepository(Person.class);
 
-    Person michael = graphRepository.save(new Person("Michael", 36));
+Person michael = graphRepository.save(new Person("Michael", 36));
 
-    Person dave = graphRepository.findOne(123);
+Person dave = graphRepository.findOne(123);
 
-    Long numberOfPeople = graphRepository.count();
+Long numberOfPeople = graphRepository.count();
 
-    Person mark = graphRepository.findByPropertyValue("name", "mark");
+Person mark = graphRepository.findByPropertyValue("name", "mark");
 
-    Iterable<Person> devs = graphRepository.findAllByProperyValue("occupation", "developer");
+Iterable<Person> devs = graphRepository.findAllByProperyValue("occupation", "developer");
 
-    Iterable<Person> middleAgedPeople = graphRepository.findAllByRange("age", 20, 40);
+Iterable<Person> middleAgedPeople = graphRepository.findAllByRange("age", 20, 40);
 
-    Iterable<Person> aTeam = graphRepository.findAllByQuery("name", "A*");
+Iterable<Person> aTeam = graphRepository.findAllByQuery("name", "A*");
 
-    Iterable<Person> davesFriends = graphRepository.findAllByTraversal(dave,
-        Traversal.description().pruneAfterDepth(1)
-        .relationships(KNOWS).filter(returnAllButStartNode()));
-    ]]></programlisting>
+Iterable<Person> davesFriends = graphRepository.findAllByTraversal(dave,
+    Traversal.description().pruneAfterDepth(1)
+    .relationships(KNOWS).filter(returnAllButStartNode()));
+]]></programlisting>
         </example>
     </section>
 
@@ -167,8 +166,7 @@
         </para>
         <example>
             <title>Composing repositories</title>
-            <programlisting language="java"><![CDATA[
-public interface PersonRepository extends GraphRepository<Person>, PersonRepositoryExtension {}
+            <programlisting language="java"><![CDATA[public interface PersonRepository extends GraphRepository<Person>, PersonRepositoryExtension {}
 
 // alternatively select some of the required repositories individually
 public interface PersonRepository extends CRUDGraphRepository<Node,Person>,

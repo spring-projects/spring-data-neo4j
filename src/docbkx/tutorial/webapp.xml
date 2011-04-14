@@ -12,8 +12,7 @@
     <para>
         <example>
             <title>Controller for showing movies</title>
-            <programlisting language="java"><![CDATA[
-@RequestMapping(value = "/movies/{movieId}", method = RequestMethod.GET, headers = "Accept=text/html")
+            <programlisting language="java"><![CDATA[@RequestMapping(value = "/movies/{movieId}", method = RequestMethod.GET, headers = "Accept=text/html")
 public String singleMovieView(final Model model, @PathVariable String movieId) {
     Movie movie = repository.getMovie(movieId);
     model.addAttribute("id", movieId);
@@ -51,8 +50,7 @@ public String singleMovieView(final Model model, @PathVariable String movieId) {
         <para>
             <example>
                 <title>Searching for movies</title>
-                <programlisting language="java"><![CDATA[
-public class CineastRepository {
+                <programlisting language="java"><![CDATA[public class CineastRepository {
     ....
     public void List<Movie> findMovies(String query, int count) {
         List<Movie> movies=new ArrayList<Movie>(count);
@@ -79,8 +77,7 @@ public class CineastRepository {
         <para>
             <example>
                 <title>Search controller</title>
-                <programlisting language="java"><![CDATA[
-@RequestMapping(value = "/movies", method = RequestMethod.GET, headers = "Accept=text/html")
+                <programlisting language="java"><![CDATA[@RequestMapping(value = "/movies", method = RequestMethod.GET, headers = "Accept=text/html")
 public String findMovies(Model model, @RequestParam("q") String query) {
     List<Movie> movies = repository.findMovies(query, 20);
     model.addAttribute("movies", movies);
@@ -93,8 +90,7 @@ public String findMovies(Model model, @RequestParam("q") String query) {
         <para>
             <example>
                 <title>Search Results JSP</title>
-                <programlisting language="jsp" ><![CDATA[
-<h2>Movies</h2>
+                <programlisting language="jsp" ><![CDATA[<h2>Movies</h2>
 
 <c:choose>
     <c:when test="${not empty movies}">

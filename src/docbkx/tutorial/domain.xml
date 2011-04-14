@@ -24,8 +24,7 @@
     <para>
         <example>
             <title>Domain model</title>
-            <programlisting lang="java" language="java" role="java" ><![CDATA[
-class Movie {
+            <programlisting lang="java" language="java" role="java" ><![CDATA[class Movie {
     int id;
     String title;
     int year;
