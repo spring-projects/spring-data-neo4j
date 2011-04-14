@@ -3,56 +3,55 @@
 <chapter id="reference:aspectj-details">
     <title>AspectJ details</title>
     <para>
-        The object graph mapper of Spring Data Graph relies heavily on AspectJ. AspectJ is the Java implementation of
-        the <ulink url="https://secure.wikimedia.org/wikipedia/en/wiki/Aspect-oriented_programming">Aspect
-        Oriented Programming</ulink> paradigm that allows easy extraction and controlled application of so called
-        cross cutting concerns. Cross cutting concerns are repetitive tasks in a system (e.g. logging, security,
-        auditing, caching, transaction scoping) that are difficult to extract using the normal OO paradigms. The means
-        of the OO paradigm, of subclassing, polymorphism, overriding and delegation are still very cumbersome to use
-        with many of those concerns applied in the codebase. Also the flexibility is limited or would add quite a number
-        of configuration options or parameters.
+        The object graph mapper of Spring Data Graph relies heavily on AspectJ. AspectJ is a Java implementation
+        of the <ulink url="https://secure.wikimedia.org/wikipedia/en/wiki/Aspect-oriented_programming">aspect-oriented
+        programming</ulink> paradigm that allows easy extraction and controlled application of so-called
+        cross-cutting concerns. Cross-cutting concerns are typically repetitive tasks in a system (e.g. logging,
+        security, auditing, caching, transaction scoping) that are difficult to extract using the normal OO
+        paradigms. Many OO concepts, such as subclassing, polymorphism, overriding and delegation are still
+        cumbersome to use with many of those concerns applied in the code base. Also, the flexibility becomes
+        limited, potentially adding quite a number of configuration options or parameters.
     </para>
     <para>
-        The learning curve for the AspectJ pointcut language is quite slow but the developer who uses Spring Data Graph
-        will not be confronted with that. Users do not have care about to hooking into a framework mechanism or having
-        to extend a framework superclass.
+        The AspectJ pointcut language can be intimidating, but a developer using Spring Data Graph will not have
+        to deal with that. Users don't have care about to hooking into a framework mechanism, or having to extend
+        a framework superclass.
     </para>
     <para>
-        That's why AspectJ uses a declarative approach, defining concrete advice, which is just
-        the piece of code that contains the implementation of the concern. AspectJ advice can for instance
-        be applied before, after, or instead of a method or constructor call, or variable access. This is declared
-        using AspectJ's expressive pointcut language that is able to express any place within a code structure
-        or flow.
-        AspectJ is also able to introduce new methods, fields, annotations, interfaces, and superclasses
-        to existing classes.
+        AspectJ uses a declarative approach, defining concrete advice, which is just pieces of code that contain
+        the implementation of the concern. AspectJ advice can for instance be applied before, after, or instead
+        of a method or constructor call. It can also be applied on variable and field access. This is declared
+        using AspectJ's expressive pointcut language, able to express any place within a code structure or flow.
+        AspectJ is also able to introduce new methods, fields, annotations, interfaces, and superclasses to
+        existing classes.
     </para>
     <para>
-        Spring Data Graph uses both mechanisms internally. First, when encountering <code>@NodeEntity</code> or
-        <code>@RelationshipEntity</code> annotations it introduces a new interface <code>NodeBacked</code> or
-        <code>RelationshipBacked</code>, depending on the annotation type. Secondly, it introduces fields and methods
-        to the annotated class. See <xref linkend="reference:programming-model:introduced-methods"/> for more
-        information on the methods introduced.
+        Spring Data Graph uses a mix of these mechanisms internally. First, when encountering the
+        <code>@NodeEntity</code> or <code>@RelationshipEntity</code> annotations it introduces a new interface
+        <code>NodeBacked</code> or <code>RelationshipBacked</code> to the annotated class. Secondly, it introduces
+        fields and methods to the annotated class. See <xref linkend="reference:programming-model:introduced-methods"/>
+        for more information on the methods introduced.
     </para>
     <para>
         Spring Data Graph also leverages AspectJ to intercept access to fields, delegating the calls to the graph
         database instead. Under the hood, properties and relationships will be created.
     </para>
     <para>
-        So how is an aspect applied to a concrete class? This can be either done at compile time with the
-        AspectJ Java compiler (ajc) that takes source files and aspect definitions, and then compiles the source files
-        while adding all the necessary interception code for the aspects to hook in where they're declared to. This is
-        known as compile-time weaving. At runtime only a small AspectJ runtime is needed, as the bytecode of the
-        classes has already been rewritten to delegate appropriate calls via the declared advice in the aspects.
+        So how is an aspect applied to a concrete class? At compile time , the AspectJ Java compiler (ajc) takes
+        source files and aspect definitions, and compiles the source files while adding all the necessary
+        interception code for the aspects to hook in where they're declared to. This is known as compile-time
+        <emphasis>weaving</emphasis>. At runtime only a small AspectJ runtime is needed, as the byte code of the
+        classes has already been rewritten to delegate the appropriate calls via the declared advice in the aspects.
     </para>
     <note>
         <para>
-        A caveat of using compile-time weaving is that all source files that should be part of the weaving process must
-        be compiled with the AspectJ compiler. Fortunately, this is all taken care of seamlessly by the AspectJ Maven
-        plugin.
+            A caveat of using compile-time weaving is that all source files that should be part of the weaving
+            process must be compiled with the AspectJ compiler. Fortunately, this is all taken care of seamlessly
+            by the AspectJ Maven plugin.
         </para>
     </note>
     <para>
-        AspectJ also supports other types of weaving, for example load-time weaving and runtime weaving. These are
+        AspectJ also supports other types of weaving, e.g. load-time weaving and runtime weaving. These are
         currently not supported by Spring Data Graph.
     </para>
 </chapter>
