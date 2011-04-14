@@ -26,16 +26,15 @@ import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.Iterator;
 
 public class RestTestBase {
 
     protected RestGraphDatabase graphDb;
     private static final String HOSTNAME = "localhost";
-    private static final int PORT = 7473;
-    private static LocalTestServer neoServer = new LocalTestServer(HOSTNAME,PORT).withPropertiesFile("test-db.properties");
-    private static final String SERVER_ROOT_URI = "http://" + HOSTNAME + ":" + PORT + "/db/data/";
+    public static final int PORT = 7473;
+    protected static LocalTestServer neoServer = new LocalTestServer(HOSTNAME,PORT).withPropertiesFile("test-db.properties");
+    public static final String SERVER_ROOT_URI = "http://" + HOSTNAME + ":" + PORT + "/db/data/";
 
     @BeforeClass
     public static void startDb() throws Exception {
@@ -44,7 +43,7 @@ public class RestTestBase {
     }
 
     @Before
-    public void setUp() throws URISyntaxException {
+    public void setUp() throws Exception {
         cleanDb();
         graphDb = new RestGraphDatabase(new URI(SERVER_ROOT_URI));
     }

@@ -21,7 +21,6 @@ import org.apache.commons.logging.LogFactory;
 import org.neo4j.graphdb.PropertyContainer;
 import org.neo4j.graphdb.index.Index;
 import org.neo4j.index.lucene.ValueContext;
-import org.springframework.data.graph.annotation.NodeEntity;
 import org.springframework.data.graph.core.GraphBacked;
 import org.springframework.data.graph.neo4j.annotation.Indexed;
 import org.springframework.data.graph.neo4j.support.GraphDatabaseContext;
@@ -61,7 +60,7 @@ public class IndexingPropertyFieldAccessorListenerFactory<S extends PropertyCont
         Class<T> graphBacked = (Class<T>) field.getDeclaringClass();
         Index<? extends PropertyContainer> index = getIndex(field,graphBacked);
         String indexKey = getIndexKey(field);
-        return (FieldAccessListener<T, ?>) new IndexingPropertyFieldAccessorListener(field, index, indexKey);
+        return (FieldAccessListener<T, ?>) new IndexingPropertyFieldAccessorListener(index, indexKey);
     }
 
     private String getIndexKey(Field field) {
@@ -101,7 +100,7 @@ public class IndexingPropertyFieldAccessorListenerFactory<S extends PropertyCont
 	    protected final String indexKey;
         private final Index<T> index;
 
-        public IndexingPropertyFieldAccessorListener(final Field field, final Index<T> index, final String indexKey) {
+        public IndexingPropertyFieldAccessorListener(final Index<T> index, final String indexKey) {
             this.index = index;
             this.indexKey = indexKey;
         }
@@ -110,8 +109,13 @@ public class IndexingPropertyFieldAccessorListenerFactory<S extends PropertyCont
         public void valueChanged(GraphBacked<T> graphBacked, Object oldVal, Object newVal) {
             if (newVal instanceof Number) newVal = ValueContext.numeric((Number) newVal);
 
-            if (newVal==null) index.remove(graphBacked.getPersistentState(), indexKey, null);
-	        else index.add(graphBacked.getPersistentState(), indexKey, newVal);
-	    }
+            final T state = graphBacked.getPersistentState();
+            //index.remove(state, indexKey);
+            if (newVal == null) {
+                index.remove(state, indexKey);
+            } else {
+                index.add(state, indexKey, newVal);
+            }
+        }
     }
 }

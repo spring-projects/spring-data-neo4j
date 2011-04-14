@@ -28,7 +28,7 @@ public class ProvidedClassPathXmlApplicationContext extends ClassPathXmlApplicat
 
     private final GraphDatabaseService database;
 
-    public ProvidedClassPathXmlApplicationContext(GraphDatabaseService database, final String[] locations)
+    public ProvidedClassPathXmlApplicationContext(GraphDatabaseService database, final String... locations)
             throws org.springframework.beans.BeansException {
         super();
         setConfigLocations(locations);

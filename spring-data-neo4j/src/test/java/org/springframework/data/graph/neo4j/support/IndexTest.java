@@ -45,6 +45,7 @@ import java.util.Collection;
 import java.util.HashSet;
 
 import static org.junit.Assert.*;
+import static org.springframework.data.graph.neo4j.Person.NAME_INDEX;
 import static org.springframework.data.graph.neo4j.Person.persistedPerson;
 
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -95,7 +96,7 @@ public class IndexTest {
         Person me = persistedPerson(NAME_VALUE, 35);
         Person spouse = persistedPerson(NAME_VALUE3, 36);
         me.setSpouse(spouse);
-        final Person foundMe = this.personRepository.findByPropertyValue(Person.NAME_INDEX, "Person.name", NAME_VALUE);
+        final Person foundMe = this.personRepository.findByPropertyValue(NAME_INDEX, "Person.name", NAME_VALUE);
         assertEquals(spouse, foundMe.getSpouse());
     }
 
@@ -241,7 +242,7 @@ public class IndexTest {
     @Transactional
     public void testFindAllPersonByIndexOnAnnotatedField() {
         Person person = persistedPerson(NAME_VALUE, 35);
-        final Person found = personRepository.findByPropertyValue(Person.NAME_INDEX, "Person.name", NAME_VALUE);
+        final Person found = personRepository.findByPropertyValue(NAME_INDEX, "Person.name", NAME_VALUE);
         assertEquals(person, found);
     }
 
@@ -286,6 +287,46 @@ public class IndexTest {
         Index<Node> nodeIndex = graphDatabaseContext.getGraphDatabaseService().index().forNodes("node");
         nodeIndex.add(node, NAME, NAME_VALUE);
         Assert.assertEquals("indexed node found", node, nodeIndex.get(NAME, NAME_VALUE).next());
+    }
+
+    @Test
+    @Transactional
+    public void testNodeCanbBeIndexedTwice() {
+        final Person p = persistedPerson(NAME_VALUE2, 30);
+        Assert.assertEquals(p, personRepository.findByPropertyValue(NAME_INDEX, "Person.name", NAME_VALUE2));
+        p.setName(NAME_VALUE);
+        Assert.assertEquals(p,  personRepository.findByPropertyValue(NAME_INDEX, "Person.name", NAME_VALUE));
+        p.setName(NAME_VALUE2);
+        Assert.assertEquals(p,  personRepository.findByPropertyValue(NAME_INDEX, "Person.name", NAME_VALUE2));
+    }
+    @Test
+    public void testNodeCanbBeIndexedTwiceInDifferentTransactions() {
+        Transaction tx = null;
+        final Person p;
+        try {
+            tx = graphDatabaseContext.beginTx();
+            p = persistedPerson(NAME_VALUE2, 30);
+            tx.success();
+        } finally {
+            tx.finish();
+        }
+        Assert.assertEquals(p, personRepository.findByPropertyValue(NAME_INDEX, "Person.name", NAME_VALUE2));
+        try {
+            tx = graphDatabaseContext.beginTx();
+            p.setName(NAME_VALUE);
+            tx.success();
+        } finally {
+            tx.finish();
+        }
+        Assert.assertEquals(p,  personRepository.findByPropertyValue(NAME_INDEX, "Person.name", NAME_VALUE));
+        try {
+            tx = graphDatabaseContext.beginTx();
+            p.setName(NAME_VALUE2);
+            tx.success();
+        } finally {
+            tx.finish();
+        }
+        Assert.assertEquals(p,  personRepository.findByPropertyValue(NAME_INDEX, "Person.name", NAME_VALUE2));
     }
 
     @Test
