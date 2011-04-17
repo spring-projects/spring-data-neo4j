@@ -26,7 +26,7 @@ For more detailed questions, use the [forum](http://forum.springsource.org/forum
        <dependency>
          <groupId>org.springframework.data</groupId>
          <artifactId>spring-data-neo4j</artifactId>
-         <version>1.0.0.RC1</version>
+         <version>1.0.0.RELEASE</version>
        </dependency> 
        
        <repository>
