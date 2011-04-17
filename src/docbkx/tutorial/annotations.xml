@@ -12,19 +12,15 @@
         Property fields were taken care of automatically.
     </para>
     <para>
-        It was time to put our application to a test. First we needed to figure out how to persist our
-        entity to the database. It turns out that the aspect introduced new methods into the annotated
-        entities. For persisting the entity to the database, we used <code>entity.persist()</code>.
-    </para>
-    <para>
-        How could we now be assured that a field really was persisted to the graph store?
+        It was time to put our entities to a test. How could we now be assured that a attribute really was persisted to
+        the graph store? We wanted to load the entity and check the attribute.
 
-        Well, either we could have a GraphDatabaseContext injected and use its <code>getById(entityId)</code>
-        method, or use a more versatile Repository. We decided to keep things simple for now. To get an
-        entity's ID, we simply used the aspect-introduced method <code>entity.getNodeId()</code>.
+        Either we could have a GraphDatabaseContext injected and use its <code>getById(entityId)</code>
+        method to load the entity. Or use a more versatile Repository. We decided to keep things simple for now.
 
         Looking at the documentation revealed that there are a bunch of methods introduced to the
-        entities by the aspects. It's not entirely obvious, but we found two that would do the job:
+        entities by the aspects to support working with the entities.
+        That's not entirely obvious. We found two that would do the job:
         <code>entity.persist()</code> <code>entity.getNodeId()</code>.
     </para>
     <para>
