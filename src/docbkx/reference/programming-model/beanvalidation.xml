@@ -11,8 +11,7 @@
     </para>
     <example>
         <title>Bean validation</title>
-        <programlisting language="java"><![CDATA[
-@NodeEntity
+        <programlisting language="java"><![CDATA[@NodeEntity
 class Person {
     @Size(min = 3, max = 20)
     String name;

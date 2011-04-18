@@ -1,24 +1,26 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
 <chapter id="reference_template">
-        <title>Neo4jTemplate</title>
-        <para>
-            The <code>Neo4jTemplate</code> offers the convenient API of Spring templates for the Neo4j graph database.
-            It is initialized with a <code>GraphDatabaseService</code> which is thread-safe to use.
-        </para>
+    <title>Neo4jTemplate</title>
+    <para>
+        The <code>Neo4jTemplate</code> offers the convenient API of Spring templates for the Neo4j graph
+        database.
+    </para>
     <section>
         <title>Basic operations</title>
         <para>
-            For direct retrieval of nodes and relationships the <code>getReferenceNode</code>, <code>getNode</code> and
-            <code>getRelationship</code> can be used.
+            For direct retrieval of nodes and relationships, the <code>getReferenceNode()</code>,
+            <code>getNode()</code> and <code>getRelationship()</code> methods can be used.
         </para>
         <para>
-            There are methods (<code>createNode</code> and <code>createRelationship</code>) for creating nodes and
+            There are methods (<code>createNode()</code> and <code>createRelationship()</code>) for creating nodes and
             relationships that automatically set provided properties and optionally index certain fields.
         </para>
-        <para>
-<programlisting language="java"><![CDATA[
-Neo4jOperations neo = new Neo4jTemplate(grapDatabase);
+        <example>
+            <title>Neo4j template</title>
+            <programlisting language="java"><![CDATA[import static org.springframework.data.graph.core.Property._;
+
+Neo4jOperations neo = new Neo4jTemplate(graphDatabaseService);
 
 Node michael = neo.createNode(_("name","Michael"));
 Node mark = neo.createNode(_("name","Mark"));
@@ -30,60 +32,60 @@ neo.index("devs",thomas, "name","Thomas");
 
 assert "Mark".equals(neo.query("devs","name","Mark",new NodeNamePathMapper()));
 ]]></programlisting>
-        </para>
+        </example>
     </section>
     <section>
         <title>Indexing</title>
         <para>
-            Adding nodes and relationships to an index is achieved using the <code>index</code> method.
+            Adding nodes and relationships to an index is done with the <code>index()</code> method.
         </para>
         <para>
-            <code>Query</code> methods either take a field / value combination to look for exact matches in the index or
-            a lucene query object or string to handle more complex queries. All <code>query</code> methods provide
-            <code>Path</code> results to a PathMapper.
+            The <code>query()</code> methods either take a field/value combination to look for exact matches in the
+            index, or a Lucene query object or string to handle more complex queries. All <code>query()</code>
+            methods provide <code>Path</code> results to a PathMapper.
         </para>
     </section>
     <section>
-        <title>Traversal</title>
+        <title>Graph traversal</title>
         <para>
-            Traversal methods are at the core of graph operations. As such, they are fully supported in the
-            <code>Neo4jTemplate</code>. The <code>traverseNext</code> method traverses to the direct neighbours of the
-            start node filtering the relationships according to its parameters.
+            The traversal methods are at the core of graph operations. As such, they are fully supported in the
+            <code>Neo4jTemplate</code>. The <code>traverseNext()</code> method traverses to the direct neighbors
+            of the start node, filtering the relationships according to the parameters.
         </para>
         <para>
-            The <code>traverse</code> method covers the full traversal operation that takes a powerful
-            <code>TraversalDescription</code> (most probably built from the <code>Traversal.description()</code>
-            DSL) and runs it from the start node. Each path that is returned via the traversal is passed to the
-            <code>PathMapper</code> to be processed accordingly.
+            The <code>traverse()</code> method covers the full traversal operation that takes a
+            <code>TraversalDescription</code> (typically built with the <code>Traversal.description()</code>
+            DSL) and runs it from the start node. Each path that is returned by the traversal is passed to the
+            <code>PathMapper</code> to be converted into the desired type.
         </para>
-
     </section>
     <section>
         <title>Path abstraction and PathMapper</title>
         <para>
             For the querying operations Neo4jTemplate unifies the result with the <code>Path</code> abstraction that
-            comes from Neo4j. Much like a resultset a path contains <code>nodes()</code> and <code>relationships()</code>
-            starting at a <code>startNode()</code> and ending with a<code>endNode()</code>, the
-            <code>lastRelationship()</code> is also available separately. The <code>Path</code> abstraction also wraps
-            results that contain just nodes or relationships.
+            comes from Neo4j. Much like a result set, a path contains a chain of <code>nodes()</code> connected by
+            <code>relationships()</code>, starting at a <code>startNode()</code> and ending at a
+            <code>endNode()</code>. The <code>lastRelationship()</code> is also available separately. The
+            <code>Path</code> abstraction also wraps results that contain just nodes or relationships.
         </para>
         <para>
-            Using implementations of <code>PathMapper&lt;T&gt;</code>
-            and <code>PathMapper.WithoutResult</code> (comparable with <code>RowMapper</code> and
-            <code>RowCallbackHandler</code>) the paths can be converted to arbitrary Java objects.
+            Using implementations of <code>PathMapper&lt;T&gt;</code> and <code>PathMapper.WithoutResult</code>
+            (comparable with <code>RowMapper</code> and <code>RowCallbackHandler</code>), the paths can be converted
+            to arbitrary Java objects.
         </para>
         <para>
-            With <code>EntityPath</code> and <code>EntityMapper</code> there is also support for using annotation based
-            NodeEntities within the <code>Path</code> and <code>PathMapper</code> constructs.
+            With <code>EntityPath</code> and <code>EntityMapper</code> there is also support for using
+            node entities within the <code>Path</code> and <code>PathMapper</code> constructs.
         </para>
     </section>
     <section>
-        <title>Transaction handling/management</title>
+        <title>Transactions</title>
         <para>
-            The <code>Neo4jTemplate</code> provides configurable implicit transactions for all its methods. By default
-            it creates a transaction for each call (which is a no-op if there is already a transaction running). If
-            you call the constructor with the <code>useExplicitTransactions</code> parameter set to true, it won't
-            create any transactions so you have to provide them using @Transactional or the TransactionTemplate.
+            The <code>Neo4jTemplate</code> provides configurable implicit transactions for all its methods. By
+            default it creates a transaction for each call (which is a no-op if there is already a transaction
+            running). If you call the constructor with the <code>useExplicitTransactions</code> parameter set to
+            true, it won't create any transactions so you have to provide them using <code>@Transactional</code>
+            or the <code>TransactionTemplate</code>.
         </para>
     </section>
 </chapter>

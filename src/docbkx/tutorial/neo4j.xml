@@ -29,8 +29,7 @@
     <para>
         <example>
             <title>Neo4j Maven dependency</title>
-            <programlisting language="xml" ><![CDATA[
-<dependency>
+            <programlisting language="xml" ><![CDATA[<dependency>
     <groupId>org.neo4j</groupId>
     <artifactId>neo4j</artifactId>
     <version>1.3.M05</version>
@@ -41,8 +40,7 @@
     <para>
         <example>
             <title>Neo4j core API (transaction code omitted)</title>
-            <programlisting language="java" ><![CDATA[
-enum RelationshipTypes implements RelationshipType { ACTS_IN };
+            <programlisting language="java" ><![CDATA[enum RelationshipTypes implements RelationshipType { ACTS_IN };
 
 GraphDatabaseService gds = new EmbeddedGraphDatabase("/path/to/store");
 Node forrest=gds.createNode();

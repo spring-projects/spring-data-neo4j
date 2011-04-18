@@ -32,8 +32,7 @@
         <para>
             <example>
                 <title>Project pom.xml</title>
-                <programlisting language="xml"><![CDATA[
-<properties>
+                <programlisting language="xml"><![CDATA[<properties>
     <spring.version>3.0.5.RELEASE</spring.version>
 </properties>
 
@@ -69,8 +68,7 @@
 
             <example>
                 <title>Project web.xml</title>
-                <programlisting language="xml"><![CDATA[
-<listener>
+                <programlisting language="xml"><![CDATA[<listener>
     <listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
 </listener>
 
@@ -99,8 +97,7 @@
         <para>
             <example>
                 <title>Project applicationContext.xml</title>
-                <programlisting language="xml"><![CDATA[
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+                <programlisting language="xml"><![CDATA[<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
     xmlns:context="http://www.springframework.org/schema/context"
     xmlns:tx="http://www.springframework.org/schema/tx"
@@ -124,8 +121,7 @@
             </example>
             <example>
                 <title>Project dispatcherServlet-servlet.xml</title>
-                <programlisting language="xml"><![CDATA[
-<mvc:annotation-driven/>
+                <programlisting language="xml"><![CDATA[<mvc:annotation-driven/>
 <mvc:resources mapping="/images/**" location="/images/"/>
 <mvc:resources mapping="/resources/**" location="/resources/"/>
 <context:component-scan base-package="org.neo4j.cineasts.controller"/>

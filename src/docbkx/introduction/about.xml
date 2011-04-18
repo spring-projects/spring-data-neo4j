@@ -2,38 +2,46 @@
 <!DOCTYPE preface PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN"
                  "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
     <preface>
-    <title>About this Guide Book</title>
+    <title>About this guide book</title>
     <para>
-        <mediaobject>
-            <imageobject>
-                <imagedata fileref="springdatagraph.png" contentwidth="15cm" scalefit="1"/>
-            </imageobject>
-        </mediaobject>
+        Welcome to the Spring Data Graph Guide Book. Thank you for taking the time to get an in depth look
+        into <ulink url="https://github.com/SpringSource/spring-data-graph">Spring Data Graph</ulink>.
+        This project is part of the <ulink url="http://springsource.org/spring-data">Spring Data project</ulink>,
+        which brings the convenient programming model of the Spring Framework to modern NOSQL databases.
+ 		Spring Data Graph, as the name alludes to, aims to provide support for graph databases. It currently
+        supports <ulink url="http://neo4j.org">Neo4j</ulink>.
     </para>
     <para>
-        Welcome to the Spring Data Graph Guide Book. Thank you for taking the time to get an in depth look into <ulink url="https://github.com/SpringSource/spring-data-graph">Spring Data Graph Library</ulink>. Spring Data Graph is part of the <ulink url="http://springsource.org/spring-data">Spring Data project</ulink> which
-        brings the convenient programming model of the Spring Framework to modern (mainly NOSQL) datastores.
- 		Spring Data Graph currently provides integration for the <ulink url="http://neo4j.org">Neo4j Graph Database</ulink>.
-    </para><para>
-        It was written by developers for developers. So hopefully we've created a documentation that is well received by
-        our peers.
-    </para><para>
-        If you have any feedback to the Spring Data Graph Library or this book, please provide it via <ulink url="https://jira.springsource.org/browse/DATAGRAPH">SpringSource JIRA</ulink>,
-        the <ulink url="http://forum.springsource.org/forumdisplay.php?f=80">SpringSource NOSQL Forum</ulink>, <ulink
-        url="https://github.com/SpringSource/spring-data-graph/issues">github comments or issues</ulink> or the <ulink url="http://neo4j.org/community/list/">Neo4j mailing list</ulink>.
-    </para><para>
-        This book is presented as a <ulink url="http://martinfowler.com/bliki/DuplexBook.html">duplex book</ulink>, a term coined by <ulink url="http://martinfowler.com/bliki/DuplexBook.html">Martin Fowler</ulink>. A duplex book consists of at least two
-        parts. The first part is an easily accessible narrative, that gives the reader an overview of the topics contained
-        in the book. It contains lots of examples and more general discussion topics. This should be the only part of
-        the book that is required to be read cover-to-cover.
-    </para><para>
-    We chose a tutorial describing the creation of a web applicaton (cineasts.net) that allows movie enthusiasts to
-    find the favorites, rate them, connect with each other and enjoy social features. The application is running on
-    Neo4j using Spring Data Graph and the well known Spring Web Stack.
-</para><para>
-        The second part is the classic reference documentation containing the detailed information about the library.
-        It discusses the programming model, the underlying assumptions, used toolset (like aspectj) as well as the APIs
-        for the object-graph mapping and the template approach. The reference docs should be mainly used to look up
-        concrete bits of information or to dig deeper into certain topics.
+        It was written by developers for developers. Hopefully we've created a document that is well received
+        by our peers.
     </para>
-    </preface>
+    <para>
+        If you have any feedback on Spring Data Graph or this book, please provide it via the
+        <ulink url="https://jira.springsource.org/browse/DATAGRAPH">SpringSource JIRA</ulink>, the
+        <ulink url="http://forum.springsource.org/forumdisplay.php?f=80">SpringSource NOSQL Forum</ulink>,
+        <ulink url="https://github.com/SpringSource/spring-data-graph/issues">github comments or issues</ulink>,
+        or the <ulink url="http://neo4j.org/community/list/">Neo4j mailing list</ulink>.
+    </para>
+    <para>
+        This book is presented as a <ulink url="http://martinfowler.com/bliki/DuplexBook.html">duplex book</ulink>,
+        a term coined by Martin Fowler. A duplex book consists of at least two parts. The first part is an easily
+        accessible tutorial that gives the reader an overview of the topics contained in the book. It contains lots
+        of examples and discussion topics. This part of the book is highly suited for cover-to-cover reading.
+    </para>
+    <para>
+        We chose a tutorial describing the creation of a web application that allows movie enthusiasts to
+        find their favorite movies, rate them, connect with fellow movie geeks, and enjoy social features such as
+        recommendations. The application is running on Neo4j using Spring Data Graph and the well-known Spring
+        Web Stack.
+    </para>
+    <para>
+        The second part of the book is the classic reference documentation, containing detailed information about
+        the library. It discusses the programming model, the underlying assumptions, and internals, as well as the
+        APIs for the object-graph mapping. The reference documentation is typically used to look up concrete bits of
+        information, or to drill down into certain topics. For hackers wanting to really delve into Spring Data
+        Graph, it can of course also be read cover-to-cover.
+    </para>
+    <para>
+        Enjoy the book!
+    </para>
+</preface>

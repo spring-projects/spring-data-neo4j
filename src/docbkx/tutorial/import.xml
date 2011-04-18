@@ -12,8 +12,7 @@
     <para>
         <example>
             <title>JSON movie response</title>
-            <programlisting language="javascript" ><![CDATA[
-   [{"popularity":3,
+            <programlisting language="javascript" ><![CDATA[[{"popularity":3,
 "translated":true, "adult":false, "language":"en",
 "original_name":"[Rec]", "name":"[Rec]", "alternative_name":"[REC]",
 "movie_type":"movie",
@@ -60,8 +59,7 @@
         </example>
         <example>
             <title>JSON actor response</title>
-            <programlisting language="javascript" ><![CDATA[
-    [{"popularity":3,
+            <programlisting language="javascript" ><![CDATA[[{"popularity":3,
 "name":"Glenn Strange", "known_as":[{"name":"George Glenn Strange"}, {"name":"Glen Strange"},
 {"name":"Glen 'Peewee' Strange"}, {"name":"Peewee Strange"}, {"name":"'Peewee' Strange"}],
 "id":30112,
@@ -96,8 +94,7 @@
     <para>
         <example>
             <title>Importing the data</title>
-            <programlisting language="java" ><![CDATA[
-@Transactional
+            <programlisting language="java" ><![CDATA[@Transactional
 public Movie importMovie(String movieId) {
     Movie movie = repository.getMovie(movieId);
     if (movie == null) { // Not found: Create fresh

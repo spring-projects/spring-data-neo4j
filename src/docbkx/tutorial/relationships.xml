@@ -19,8 +19,7 @@
         <para>
             <example>
                 <title>Role class</title>
-                <programlisting language="java"><![CDATA[
-@RelationshipEntity
+                <programlisting language="java"><![CDATA[@RelationshipEntity
 class Role {
     @StartNode Actor actor;
     @EndNode Movie movie;
@@ -40,8 +39,7 @@ class Role {
         <para>
             <example>
                 <title>Relating actors to movies</title>
-                <programlisting language="java" ><![CDATA[
-class Actor {
+                <programlisting language="java" ><![CDATA[class Actor {
 ...
     public Role playedIn(Movie movie, String roleName) {
         Role role = relateTo(movie, Role.class, "ACTS_IN");
@@ -65,8 +63,7 @@ class Actor {
         <para>
             <example>
                 <title>@RelatedTo usage</title>
-                <programlisting language="java" ><![CDATA[
-@NodeEntity
+                <programlisting language="java" ><![CDATA[@NodeEntity
 class Movie {
     @Indexed int id;
     String title;
@@ -80,7 +77,7 @@ class Actor {
     @Indexed int id;
     String name;
     @RelatedTo(elementClass = Movie.class, type = "ACTS_IN")
-    Set<Movie> cast;
+    Set<Movie> movies;
 
     public Role playedIn(Movie movie, String roleName) {
         Role role = relateTo(movie, Role.class, "ACTS_IN");
@@ -115,8 +112,7 @@ class Actor {
         <para>
             <example>
                 <title>@RelatedToVia usage</title>
-                <programlisting language="java" ><![CDATA[
-@NodeEntity
+                <programlisting language="java" ><![CDATA[@NodeEntity
 class Movie {
     @Indexed int id;
     String title;

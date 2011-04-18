@@ -9,16 +9,14 @@
         work with a named interface rather than different versions of a generic one.
         <example>
             <title>Movie repository</title>
-        <programlisting language="java"><![CDATA[
-package org.neo4j.cineasts.repository;
+            <programlisting language="java"><![CDATA[package org.neo4j.cineasts.repository;
 public interface MovieRepository extends GraphRepository<Movie> {}
 ]]></programlisting>
         </example>
         Then we added it to the Spring context configuration by simply adding:
         <example>
             <title>Repository context configuration</title>
-        <programlisting language="xml"><![CDATA[
-<datagraph:repositories base-package="org.neo4j.cineasts.repository"/>
+            <programlisting language="xml"><![CDATA[<datagraph:repositories base-package="org.neo4j.cineasts.repository"/>
 ]]></programlisting>
         </example>
         We then created the domain-specific repository class, annotating it with <code>@Repository</code> and
@@ -27,8 +25,7 @@ public interface MovieRepository extends GraphRepository<Movie> {}
     <para>
         <example>
             <title>Domain-specific repository</title>
-            <programlisting language="java"><![CDATA[
-@Repository @Transactional
+            <programlisting language="java"><![CDATA[@Repository @Transactional
 public class CineastsRepostory {
   @Autowired MovieRepository movieRepository;
 

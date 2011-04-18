@@ -29,8 +29,7 @@
     <para>
         <example>
             <title>First test case</title>
-            <programlisting language="java" ><![CDATA[
-@Autowired GraphDatabaseContext graphDatabaseContext;
+            <programlisting language="java" ><![CDATA[@Autowired GraphDatabaseContext graphDatabaseContext;
 
 @Test public void persistedMovieShouldBeRetrievableFromGraphDb() {
     Movie forrestGump = new Movie("Forrest Gump", 1994).persist();
@@ -52,8 +51,7 @@
         Our domain model had now evolved.
         <example>
             <title>Movie class</title>
-            <programlisting language="java"><![CDATA[
-@NodeEntity
+            <programlisting language="java"><![CDATA[@NodeEntity
 class Movie {
     int id;
     String title;

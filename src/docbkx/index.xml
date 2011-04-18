@@ -4,9 +4,15 @@
 
 	<bookinfo>
 	    <title>Good Relationships</title>
-	    <subtitle>The Spring Data Graph Guidebook</subtitle>
+	    <subtitle>The Spring Data Graph Guide Book</subtitle>
 	    <releaseinfo>&version;</releaseinfo>
 	    <date/>
+
+	    <mediaobject>
+	        <imageobject>
+	            <imagedata fileref="springdatagraph.png" scalefit="1" contentwidth="15cm"/>
+	        </imageobject>
+	    </mediaobject>
 
 	    <authorgroup>
 	        <author>
@@ -27,11 +33,6 @@
 	        </author>
 	    </authorgroup>
 
-	    <mediaobject>
-	        <imageobject>
-	            <imagedata fileref="springdatagraph.png" scalefit="1" contentwidth="15cm"/>
-	        </imageobject>
-	    </mediaobject>
 	    <legalnotice>
 	        <para>
 	            Copies of this document may be made for your own use and for distribution

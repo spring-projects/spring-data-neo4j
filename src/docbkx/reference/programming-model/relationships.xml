@@ -24,8 +24,7 @@
 
         <example>
             <title>Single relationship field</title>
-            <programlisting language="java"><![CDATA[
-@NodeEntity
+            <programlisting language="java"><![CDATA[@NodeEntity
 public class Movie {
     private Actor mostPaidActor;
 }
@@ -42,8 +41,7 @@ public class Movie {
         </para>
         <example>
             <title>Node entity with relationships</title>
-            <programlisting language="java"><![CDATA[
-@NodeEntity
+            <programlisting language="java"><![CDATA[@NodeEntity
 public class Actor {
     @RelatedTo(type = "mostPaidActor", direction = Direction.INCOMING,
             elementClass = Movie.class)
@@ -103,8 +101,7 @@ public class Actor {
         </para>
         <example>
             <title>Relationship entity</title>
-            <programlisting language="java"><![CDATA[
-@NodeEntity
+            <programlisting language="java"><![CDATA[@NodeEntity
 public class Actor {
     public Role playedIn(Movie movie, String title) {
         return relatedTo(movie, Role.class, "ACTS_IN");
@@ -132,8 +129,7 @@ public class Role {
         </para>
         <example>
             <title>Accessing relationship entities using @RelatedToVia</title>
-            <programlisting language="java"><![CDATA[
-@NodeEntity
+            <programlisting language="java"><![CDATA[@NodeEntity
 public class Actor {
     @RelatedToVia(type = "ACTS_IN", elementClass = Role.class)
     private Iterable<Role> roles;

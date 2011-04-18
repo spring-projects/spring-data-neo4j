@@ -2,210 +2,227 @@
 <!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
 <chapter id="setup">
 	<title>Environment setup</title>
-	<para>To use Spring Data Graph in your application, some setup is required. For building the application the necessary Maven dependencies must be included and
-		for the AspectJ weaving some extensions of the compile goal are necessary. This chapter also discusses the Spring configuration needed to set up
-		Spring Data Graph. Examples for this setup can be found in the <ulink url="http://github.com/SpringSource/spring-data-graph-examples">Spring Data Graph examples</ulink>.
+	<para>
+        Spring Data Graph dramatically simplifies development, but some setup is naturally required.
+        For building the application, Maven needs to be configured to include the Spring Data Graph dependencies,
+        and configure the AspectJ weaving. After the build setup is complete, the Spring application needs to be
+        configured to make use of Spring Data Graph.
+		<!--Examples for this setup can be found in the -->
+        <!--<ulink url="http://github.com/SpringSource/spring-data-graph-examples">Spring Data Graph examples</ulink>.-->
     </para>
+
 	<section>
-		<title>Maven Configuration</title>
+		<title>Maven configuration</title>
 		<para>
-			As stated in the requirements chapter, Spring Data Graph projects are easiest to build with Apache Maven. The main dependencies are Spring Data Graph itself, Spring Data Commons, some parts of the Spring Framework and of course the Neo4j graph database.
+			Spring Data Graph projects are easiest to build with Apache Maven. The main dependencies are: Spring
+            Data Graph itself, Spring Data Commons, parts of the Spring Framework, and the Neo4j graph database.
 		</para>
+
         <section>
-		<title>Repositories</title>
+		    <title>Repositories</title>
             <para>
-                The milestone releases of Spring Data Graph are available from the dedicated milestone repository. Neo4j
-                releases and milestones are available from Maven Central.
+                The milestone releases of Spring Data Graph are available from the dedicated milestone
+                repository. Neo4j releases and milestones are available from Maven Central.
             </para>
-            <programlisting language="xml"><![CDATA[
-<repository>
-  <id>spring-maven-milestone</id>
-  <name>Springframework Maven Repository</name>
-  <url>http://maven.springframework.org/milestone</url>
+            <example>
+                <title>Spring milestone repository</title>
+                <programlisting language="xml"><![CDATA[<repository>
+    <id>spring-maven-milestone</id>
+    <name>Springframework Maven Repository</name>
+    <url>http://maven.springframework.org/milestone</url>
 </repository>
-				]]></programlisting>
-            </section>
-        <section>
-		<title>Dependencies</title>
-            <para>The dependency on <code>spring-data-neo4j</code>
-                should transitively pull in Spring Framework (core, context, aop,
-                aspects, tx), Aspectj, Neo4j and Spring Data Commons. If you already use these (or different versions of
-                these) in your project, then include those dependencies on your own.
-            </para>
-		<programlisting language="xml"><![CDATA[
-<dependency>
-  <groupId>org.springframework.data</groupId>
-  <artifactId>spring-data-neo4j</artifactId>
-  <version>1.0.0.RELEASE</version>
-</dependency> 
-
-<dependency>
-  <groupId>org.aspectj</groupId>
-  <artifactId>aspectjrt</artifactId>
-  <version>1.6.11.RELEASE</version>
-</dependency>
-						]]></programlisting>
-
+]]></programlisting>
+            </example>
         </section>
-    <section>
 
-		<title>AspectJ build configuration</title>
-		<para>As Spring Data Graph uses AspectJ for build time aspect weaving of your entities, it is necessary to add the aspectj-plugin to the build phases. The plugin has its own dependencies. You also need to explicitely specifiy libraries containing aspects (spring-aspects and spring-data-neo4j)</para>
-		<programlisting language="xml"><![CDATA[
-<plugin>
-  <groupId>org.codehaus.mojo</groupId>
-  <artifactId>aspectj-maven-plugin</artifactId>
-  <version>1.0</version>
-  <dependencies>
-    <!-- NB: You must use Maven 2.0.9 or above or these are ignored (see MNG-2972) -->
-    <dependency>
-      <groupId>org.aspectj</groupId>
-      <artifactId>aspectjrt</artifactId>
-      <version>1.6.11.RELEASE</version>
-    </dependency>
-    <dependency>
-      <groupId>org.aspectj</groupId>
-      <artifactId>aspectjtools</artifactId>
-      <version>1.6.11.RELEASE</version>
-    </dependency>
-  </dependencies>
-  <executions>
-    <execution>
-      <goals>
-        <goal>compile</goal>
-        <goal>test-compile</goal>
-      </goals>
-    </execution>
-  </executions>
-  <configuration>
-    <outxml>true</outxml>
-    <aspectLibraries>
-      <aspectLibrary>
-        <groupId>org.springframework</groupId>
-        <artifactId>spring-aspects</artifactId>
-      </aspectLibrary>
-      <aspectLibrary>
-        <groupId>org.springframework.data</groupId>
-        <artifactId>spring-datastore-neo4j</artifactId>
-      </aspectLibrary>
-    </aspectLibraries>
-    <source>1.6</source>
-    <target>1.6</target>
-  </configuration>
-</plugin>
-						]]></programlisting>
-    </section>
-	</section>
-	<section>
-		<title>Setting Up Spring Data Graph - Spring Configuration</title>
-		<para>The concrete configuration for Spring Data Graph is quite verbose as there is no autowiring involved. It sets up the following parts.
-            <itemizedlist>
-                <listitem>
-                    <para>GraphDatabaseService for the embedded Neo4j storage engine</para>
-                </listitem>
-                <listitem>
-                    <para>Spring transaction manager, Neo4j transaction manager</para>
-                </listitem>
-                <listitem>
-                    <para>aspects and instantiators for node and relationship entities</para>
-                </listitem>
-                <listitem>
-                    <para>EntityState and FieldAccessFactories needed for the different field handling</para>
-                </listitem>
-                <listitem>
-                    <para>Conversion services</para>
-                </listitem>
-                <listitem>
-                    <para>Repository support</para>
-                </listitem>
-                <listitem>
-                    <para>TypeRepresentationStrategies</para>
-                </listitem>
-            </itemizedlist>
-
-            </para>
         <section>
-            <title>XML-Namespace</title>
+		    <title>Dependencies</title>
             <para>
-                To simplify the configuration we provide a xml namespace <code>datagraph</code> that allows configuration of any
-                Spring Data Graph project with a single line of xml code. There are three possible parameters. You can use <code>storeDirectory</code>
-                or the reference to <code>graphDatabaseService</code> alternatively. For cross-store configuration just refer
-                to an <code>entityManagerFactory</code>.
+                The dependency on <code>spring-data-neo4j</code> will transitively pull in the necessary parts of
+                Spring Framework (core, context, aop, aspects, tx), Aspectj, Neo4j, and Spring Data Commons. If you
+                already use these (or different versions of these) in your project, then include those dependencies
+                on your own.
             </para>
-            <programlisting language="xml"><![CDATA[
-<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+            <example>
+                <title>Maven dependencies</title>
+                <programlisting language="xml"><![CDATA[<dependency>
+    <groupId>org.springframework.data</groupId>
+    <artifactId>spring-data-neo4j</artifactId>
+    <version>1.0.0.RELEASE</version>
+</dependency>
+
+<dependency>
+    <groupId>org.aspectj</groupId>
+    <artifactId>aspectjrt</artifactId>
+    <version>1.6.11.RELEASE</version>
+</dependency>
+]]></programlisting>
+            </example>
+        </section>
+
+        <section>
+            <title>AspectJ build configuration</title>
+            <para>
+                Since Spring Data Graph uses AspectJ for build-time aspect weaving of entities, it is necessary to
+                hook in the AspectJ Maven plugin to the build process. The plugin also has its own dependencies. You
+                also need to explicitly specify the aspect libraries (spring-aspects and spring-data-neo4j).
+            </para>
+            <example>
+                <title>AspectJ configuration</title>
+                <programlisting language="xml"><![CDATA[<plugin>
+    <groupId>org.codehaus.mojo</groupId>
+    <artifactId>aspectj-maven-plugin</artifactId>
+    <version>1.0</version>
+    <dependencies>
+        <!-- NB: You must use Maven 2.0.9 or above or these are ignored (see MNG-2972) -->
+        <dependency>
+            <groupId>org.aspectj</groupId>
+            <artifactId>aspectjrt</artifactId>
+            <version>1.6.11.RELEASE</version>
+        </dependency>
+        <dependency>
+            <groupId>org.aspectj</groupId>
+            <artifactId>aspectjtools</artifactId>
+            <version>1.6.11.RELEASE</version>
+        </dependency>
+    </dependencies>
+    <executions>
+        <execution>
+            <goals>
+                <goal>compile</goal>
+                <goal>test-compile</goal>
+            </goals>
+        </execution>
+    </executions>
+    <configuration>
+        <outxml>true</outxml>
+        <aspectLibraries>
+            <aspectLibrary>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-aspects</artifactId>
+            </aspectLibrary>
+            <aspectLibrary>
+                <groupId>org.springframework.data</groupId>
+                <artifactId>spring-datastore-neo4j</artifactId>
+            </aspectLibrary>
+        </aspectLibraries>
+        <source>1.6</source>
+        <target>1.6</target>
+    </configuration>
+</plugin>
+]]></programlisting>
+            </example>
+        </section>
+	</section>
+
+	<section>
+		<title>Spring configuration</title>
+		<para>
+            Users of Spring Data Graph have two ways of very concisely configuring it. Either they can use a
+            Spring Data Graph XML configuration namespace, or they can use a Java-based bean configuration.
+        </para>
+        <section>
+            <title>XML namespace</title>
+            <para>
+                The XML namespace can be used to configure Spring Data Graph. The <code>config</code> element
+                provides an XML-based configuration of Spring Data Graph in one line. It has three attributes.
+                <code>graphDatabaseService</code> points out the Neo4j instance to use. For convenience,
+                <code>storeDirectory</code> can be set instead of <code>graphDatabaseService</code> to
+                point to a directory where a new <code>EmbeddedGraphDatabase</code> will be created. For
+                cross-store configuration, the <code>entityManagerFactory</code> attribute needs to be
+                configured.
+            </para>
+            <example>
+                <title>XML configuration with store directory</title>
+                <programlisting language="xml"><![CDATA[<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
-  xmlns:context="http://www.springframework.org/schema/context"
-  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xmlns:datagraph="http://www.springframework.org/schema/data/graph"
-  xsi:schemaLocation="
-    http://www.springframework.org/schema/beans 
-    http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
-    http://www.springframework.org/schema/context 
-    http://www.springframework.org/schema/context/spring-context-3.0.xsd
-    http://www.springframework.org/schema/data/graph 
-    http://www.springframework.org/schema/data/graph/datagraph-1.0.xsd
-    ">
+        xmlns:context="http://www.springframework.org/schema/context"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns:datagraph="http://www.springframework.org/schema/data/graph"
+        xsi:schemaLocation="
+            http://www.springframework.org/schema/beans
+            http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+            http://www.springframework.org/schema/context
+            http://www.springframework.org/schema/context/spring-context-3.0.xsd
+            http://www.springframework.org/schema/data/graph
+            http://www.springframework.org/schema/data/graph/datagraph-1.0.xsd">
 
     <context:annotation-config/>
     <datagraph:config storeDirectory="target/config-test"/>
 
 </beans>
-                    ]]></programlisting>
-            <programlisting language="xml"><![CDATA[
-    <context:annotation-config/>
+]]></programlisting>
+            </example>
+            <example>
+                <title>XML configuration with bean</title>
+                <programlisting language="xml"><![CDATA[<context:annotation-config/>
 
-    <bean id="graphDatabaseService" class="org.neo4j.kernel.EmbeddedGraphDatabase" 
-      destroy-method="shutdown">
-         <constructor-arg index="0" value="target/config-test" />
-    </bean>
+<bean id="graphDatabaseService" class="org.neo4j.kernel.EmbeddedGraphDatabase"
+        destroy-method="shutdown">
+    <constructor-arg index="0" value="target/config-test" />
+</bean>
 
-    <datagraph:config graphDatabaseService="graphDatabaseService"/>
-                    ]]></programlisting>
+<datagraph:config graphDatabaseService="graphDatabaseService"/>
+]]></programlisting>
+            </example>
+            <example>
+                <title>XML configuration with cross-store</title>
+                <programlisting language="xml"><![CDATA[<context:annotation-config/>
 
-            <programlisting language="xml"><![CDATA[
-  <context:annotation-config/>
+<bean class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean"
+        id="entityManagerFactory">
+    <property name="dataSource" ref="dataSource"/>
+    <property name="persistenceXmlLocation" value="classpath:META-INF/persistence.xml"/>
+</bean>
 
-    <datagraph:config storeDirectory="target/config-test"
-      entityManagerFactory="entityManagerFactory"/>
-
-    <bean class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean"
-      id="entityManagerFactory">
-        <property name="dataSource" ref="dataSource"/>
-        <property name="persistenceXmlLocation" value="classpath:META-INF/persistence.xml"/>
-    </bean>
-                    ]]></programlisting>
+<datagraph:config storeDirectory="target/config-test"
+        entityManagerFactory="entityManagerFactory"/>
+]]></programlisting>
+            </example>
         </section>
         <section>
-            <title>Java based Configuration</title>
+            <title>Java-based bean configuration</title>
             <para>
-                You can also configure Spring Data Graph using Java based bean metadata.<note>
-        <para>For those not familiar with how to configure the Spring
-        container using Java based bean metadata instead of XML based metadata
-        see the high level introduction in the reference docs <ulink
-        url="http://static.springsource.org/spring/docs/3.0.x/spring-framework-reference/html/new-in-3.html#new-java-configuration"
-        userlevel="">here</ulink> as well as the detailed documentation <ulink
-        url="http://static.springsource.org/spring/docs/3.0.x/spring-framework-reference/html/beans.html#beans-java-instantiating-container">here</ulink>.</para>
-      </note>
-
-To help configure Spring Data Graph using Java based bean metadata the class <code>Neo4jConfiguration</code> is registerd with the context either explicitly in the XML config or via classpath scanning for classes that have the @Configuration annotation.  The only thing that must be provided in addition is the <code>GraphDatabaseService</code> configured with a datastore directory.  The example below shows using XML to register the <code>Neo4jConfiguration</code> @Configuration class as well as Spring's <code>ConfigurationClassPostProcessor</code> that transforms the @Configuration class to bean definitions.
-    <programlisting language="xml"><![CDATA[
-    <beans>
-    ...
-
-        <tx:annotation-driven mode="aspectj" transaction-manager="transactionManager"/>
-        <bean class="org.springframework.data.graph.neo4j.config.Neo4jConfiguration"/>
-
-        <bean class="org.springframework.context.annotation.ConfigurationClassPostProcessor"/>
-
-        <bean id="graphDatabaseService" class="org.neo4j.kernel.EmbeddedGraphDatabase"
-              destroy-method="shutdown" scope="singleton">
-            <constructor-arg index="0" value="target/config-test"/>
-        </bean>
-    ...
-    </beans>
-                ]]></programlisting>
+                You can also configure Spring Data Graph using Java-based bean metadata.
+            </para>
+            <note>
+                <para>
+                    For those not familiar with Java-based bean metadata in Spring, we recommend that you
+                    read up on it first. The Spring documentation has a
+                    <ulink url="http://static.springsource.org/spring/docs/3.0.x/spring-framework-reference/html/new-in-3.html#new-java-configuration" userlevel="">high-level introduction</ulink>
+                    as well as
+                    <ulink url="http://static.springsource.org/spring/docs/3.0.x/spring-framework-reference/html/beans.html#beans-java-instantiating-container">detailed documentation</ulink>
+                    on it.
                 </para>
+            </note>
+            <para>
+                In order to configure Spring Data Graph with Java-based bean metadata, the class
+                <code>Neo4jConfiguration</code> is registered with the context. This is either done
+                explicitly in the context configuration, or via classpath scanning for classes that
+                have the @Configuration annotation. The only thing that must be provided is the
+                <code>GraphDatabaseService</code>.  The example below shows how to register the
+                <code>@Configuration Neo4jConfiguration</code> class, as well as Spring's
+                <code>ConfigurationClassPostProcessor</code> that transforms the
+                <code>@Configuration</code> class to bean definitions.
+                <example>
+                    <title>Java-based bean configuration</title>
+                    <programlisting language="xml"><![CDATA[<beans ...>
+    ...
+    <tx:annotation-driven mode="aspectj" transaction-manager="transactionManager"/>
+    <bean class="org.springframework.data.graph.neo4j.config.Neo4jConfiguration"/>
+
+    <bean class="org.springframework.context.annotation.ConfigurationClassPostProcessor"/>
+
+    <bean id="graphDatabaseService" class="org.neo4j.kernel.EmbeddedGraphDatabase"
+          destroy-method="shutdown" scope="singleton">
+        <constructor-arg index="0" value="target/config-test"/>
+    </bean>
+    ...
+</beans>
+]]></programlisting>
+                </example>
+
+            </para>
         </section>
 	</section>
 </chapter>

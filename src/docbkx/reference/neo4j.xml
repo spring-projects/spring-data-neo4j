@@ -81,8 +81,7 @@
         </para>
         <example>
             <title>Neo4j usage</title>
-            <programlisting language="java" ><![CDATA[
-GraphDatabaseService graphDb = new EmbeddedGraphDatabase( "helloworld" );
+            <programlisting language="java" ><![CDATA[GraphDatabaseService graphDb = new EmbeddedGraphDatabase( "helloworld" );
 Transaction tx = graphDb.beginTx();
 try {
 	Node firstNode = graphDb.createNode();
@@ -110,8 +109,7 @@ try {
         </para>
         <example>
             <title>Traversal usage</title>
-            <programlisting language="java" ><![CDATA[
-TraversalDescription traversalDescription = Traversal.description()
+            <programlisting language="java" ><![CDATA[TraversalDescription traversalDescription = Traversal.description()
         .depthFirst()
         .relationships(KNOWS)
         .relationships(LIKES, Direction.INCOMING)
@@ -139,9 +137,7 @@ for (Path position : traversalDescription.traverse(myStartNode)) {
         </note>
         <example>
             <title>Index usage</title>
-            <programlisting language="java"><![CDATA[
-
-IndexManager indexManager = graphDb.index();
+            <programlisting language="java"><![CDATA[IndexManager indexManager = graphDb.index();
 Index<Node> nodeIndex = indexManager.forNodes("a-node-index");
 Node node = ...;
 Transaction tx = graphDb.beginTx();

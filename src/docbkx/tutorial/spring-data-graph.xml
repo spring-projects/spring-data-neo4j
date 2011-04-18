@@ -18,9 +18,7 @@
         The first step was to configure Maven:
         <example>
             <title>Spring Data Graph Maven configuration</title>
-            <programlisting language="xml"><![CDATA[
-
-<properties>
+            <programlisting language="xml"><![CDATA[<properties>
     <aspectj.version>1.6.11.RELEASE</aspectj.version>
 </properties>
 
@@ -85,8 +83,7 @@
     <para>
         <example>
             <title>Spring Data Graph context configuration</title>
-            <programlisting language="xml"><![CDATA[
-<beans xmlns="http://www.springframework.org/schema/beans" ...
+            <programlisting language="xml"><![CDATA[<beans xmlns="http://www.springframework.org/schema/beans" ...
        xmlns:datagraph="http://www.springframework.org/schema/data/graph"
        xsi:schemaLocation="... http://www.springframework.org/schema/data/graph
        http://www.springframework.org/schema/data/graph/datagraph-1.0.xsd">

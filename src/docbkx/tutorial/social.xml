@@ -18,8 +18,7 @@
         <para>
             <example>
                 <title>Social entities</title>
-                <programlisting language="java" ><![CDATA[
-@NodeEntity
+                <programlisting language="java" ><![CDATA[@NodeEntity
 class User {
     @Indexed String login;
     String name;
@@ -59,8 +58,7 @@ class Rating {
         <para>
             <example>
                 <title>Populate users and ratings</title>
-                <programlisting language="java" ><![CDATA[
-@Transactional
+                <programlisting language="java" ><![CDATA[@Transactional
 public List<Movie> populateDatabase() {
     Actor tomHanks = new Actor("1", "Tom Hanks").persist();
     Movie forestGump = new Movie("1", "Forrest Gump").persist();
@@ -88,8 +86,7 @@ public List<Movie> populateDatabase() {
         <para>
             <example>
                 <title>Getting the rating of a movie</title>
-                <programlisting language="java" ><![CDATA[
-class Movie {
+                <programlisting language="java" ><![CDATA[class Movie {
     ...
 
     @RelatedToVia(elementClass=Rating.class, type="RATED", direction = Direction.INCOMING)
