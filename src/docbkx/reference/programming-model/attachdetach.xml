@@ -91,7 +91,7 @@ movie.setTopActor(actor);
             previously persisted to the graph:
             <example>
                 <title>Cascade for modified fields</title>
-                <programlisting><![CDATA[actor.setName("Billy Bob");
+                <programlisting language="java"><![CDATA[actor.setName("Billy Bob");
 movie.persist();
 ]]></programlisting>
             </example>

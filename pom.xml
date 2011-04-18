@@ -174,6 +174,9 @@
                         <configuration>
                             <keepRelativeImageUris>true</keepRelativeImageUris>
                             <htmlCustomization>${basedir}/src/docbkx/resources/xsl/html.xsl</htmlCustomization>
+					        <useExtensions>1</useExtensions>
+					        <highlightSource>1</highlightSource>
+					        <highlightDefaultLanguage></highlightDefaultLanguage>
                             <postProcess>
                                 <move tofile="${basedir}/target/site/reference/html/index.html"
                                       file="${basedir}/target/docbkx/html/index.html"/>
@@ -207,6 +210,9 @@
                         <configuration>
                             <imgSrcPath>${basedir}/src/docbkx/</imgSrcPath>
                             <admonGraphicsPath>${basedir}/src/docbkx/resources/images/</admonGraphicsPath>
+					        <useExtensions>1</useExtensions>
+					        <highlightSource>1</highlightSource>
+					        <highlightDefaultLanguage></highlightDefaultLanguage>
                             <postProcess>
                                 <copy file="${basedir}/target/docbkx/pdf/index.pdf"
                                       tofile="${basedir}/target/site/reference/pdf/spring-data-graph-reference.pdf"
@@ -224,6 +230,9 @@
                             <keepRelativeImageUris>true</keepRelativeImageUris>
                             <chunkedOutput>true</chunkedOutput>
                             <htmlCustomization>${basedir}/src/docbkx/resources/xsl/html_chunk.xsl</htmlCustomization>
+					        <useExtensions>1</useExtensions>
+					        <highlightSource>1</highlightSource>
+					        <highlightDefaultLanguage></highlightDefaultLanguage>
                             <targetDirectory>${basedir}/target/docbkx/multi/</targetDirectory>
                             <postProcess>
                                 <move todir="${basedir}/target/site/reference/multi">

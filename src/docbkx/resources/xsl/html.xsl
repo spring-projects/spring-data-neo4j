@@ -8,6 +8,7 @@
                 version="1.0">
 
     <xsl:import href="urn:docbkx:stylesheet"/>
+    <xsl:import href="highlight.xsl"/>
 
     <!--###################################################
                     HTML Settings

@@ -14,6 +14,7 @@
 
 
     <xsl:import href="urn:docbkx:stylesheet"/>
+    <xsl:import href="highlight-fo.xsl"/>
 
     <!--###################################################
                   Custom Title Page

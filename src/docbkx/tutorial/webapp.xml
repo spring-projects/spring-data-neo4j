@@ -90,7 +90,7 @@ public String findMovies(Model model, @RequestParam("q") String query) {
         <para>
             <example>
                 <title>Search Results JSP</title>
-                <programlisting language="jsp" ><![CDATA[<h2>Movies</h2>
+                <programlisting language="xml" ><![CDATA[<h2>Movies</h2>
 
 <c:choose>
     <c:when test="${not empty movies}">
