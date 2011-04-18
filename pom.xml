@@ -122,10 +122,6 @@
 					<id>spring-site-staging</id>
 					<url>file:///${java.io.tmpdir}/spring-data/data-graph/docs/${project.version}</url>
 				</site>
-				<!-- <repository>
-					<id>spring-release-staging</id>
-					<url>file:///${java.io.tmpdir}/spring-data/data-graph/release</url>
-				</repository> -->
 				<repository>
 					<id>spring-milestone-staging</id>
 					<url>file:///${java.io.tmpdir}/spring-data/data-graph/milestone</url>
@@ -144,11 +140,6 @@
 			<id>static.springframework.org</id>
 			<url>scp://static.springframework.org/var/www/domains/springframework.org/static/htdocs/spring-data/data-graph/snapshot-site/</url>
 		</site>
-		<!-- <repository>
-			<id>spring-release</id>
-			<name>Spring Release Repository</name>
-			<url>s3://maven.springframework.org/release</url>
-		</repository> -->
 		<repository>
 			<id>spring-milestone</id>
 			<name>Spring Milestone Repository</name>
