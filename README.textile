@@ -1,11 +1,5 @@
 h1. Spring Data Graph - Quick start
 
-The primary goal of the "Spring Data":http://www.springsource.org/spring-data project is to make it easier to build Spring-powered applications that use new data access technologies such as non-relational databases, map-reduce frameworks, and cloud based data services. As the name implies, the **Graph** project provides integration with graph value stores.  The only supported Graph Database now is "Neo4j":http://neo4j.org/.
-
-The Spring Data Graph project provides a simplified POJO based programming model that reduces that amount of boilerplate code needed to create neo4j applications.  It also provides a cross-store persistence solution that can extend existing JPA data models with new parts (properties, entities, relationships) that are stored exclusively in the graph while being transparently integrated with the JPA entities.  This enables for easy and seamless addition of new features that were not available before to JPA-based applications.
-
-h2. Example
-
 <pre>
 @NodeEntity
 class Person {
@@ -32,6 +26,12 @@ for(Person friend : emil.getFriends()) {
     System.out.println("Friend: " + friend);
 }
 </pre>
+
+h2. About
+
+The primary goal of the "Spring Data":http://www.springsource.org/spring-data project is to make it easier to build Spring-powered applications that use new data access technologies such as non-relational databases, map-reduce frameworks, and cloud based data services. As the name implies, the **Graph** project provides integration with graph value stores.  The only supported Graph Database now is "Neo4j":http://neo4j.org/.
+
+The Spring Data Graph project provides a simplified POJO based programming model that reduces that amount of boilerplate code needed to create neo4j applications.  It also provides a cross-store persistence solution that can extend existing JPA data models with new parts (properties, entities, relationships) that are stored exclusively in the graph while being transparently integrated with the JPA entities.  This enables for easy and seamless addition of new features that were not available before to JPA-based applications.
 
 h2. Maven configuration
 
