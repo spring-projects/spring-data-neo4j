@@ -5,7 +5,9 @@
     <subtitle>A convincing act</subtitle>
     <para>
         Our application was not yet very much fun, just storing movies and actors. After all,
-        the power is in the relationships between them.
+        the power is in the relationships between them. Fortunately Neo4j treats relationships as first class citizens
+        allowing them to be addressed individually and assigned properties. That allows for representing them as entities
+        if needed.
     </para>
     <section>
         <title>Creating relationships</title>
@@ -15,6 +17,13 @@
             Therefore we went with the Role relationship between Movie and Actor.
             It had to be annotated with @RelationshipEntity and the @StartNode and @EndNode had to be marked.
             So our Role looked like this:
+        </para>
+        <para>
+            <mediaobject>
+                <imageobject>
+                    <imagedata fileref="relationship.png" align="center"/>
+                </imageobject>
+            </mediaobject>
         </para>
         <para>
             <example>
