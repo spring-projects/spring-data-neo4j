@@ -109,7 +109,7 @@ public class World {
     private int moons;
 
     @RelatedTo( type = "REACHABLE_BY_ROCKET", direction = Direction.BOTH, elementClass = World.class )
-    private Set&lt;World> reachableByRocket;
+    private Set<World> reachableByRocket;
 
     public World(String name, int moons) {
         this.name = name;
@@ -135,7 +135,7 @@ h2. Transactional services
 * Create a repository or service to perform typical operations on your entities. The FinderFactory and Finder helper classes make searching easy for common use cases. The complete functionality is covered in the "reference manual":http://static.springsource.org/spring-data/data-graph/docs/current/reference/html/#programming-model.
 
 <pre>
-public interface WorldRepository extends GraphRepository&lt;World>, NamedIndexRepository&lt;World> {}
+public interface WorldRepository extends GraphRepository<World>, NamedIndexRepository<World> {}
 
 @Repository
 public class WorldRepositoryImpl implements WorldRepositoryExtension {
@@ -144,7 +144,7 @@ public class WorldRepositoryImpl implements WorldRepositoryExtension {
     private WorldRepository worldRepository;
 
     @Transactional
-    public Collection&lt;World> makeSomeWorlds()  {
+    public Collection<World> makeSomeWorlds()  {
         World earth = world( "Earth", 1 );
         World mars = world( "Mars", 2 );
         mars.addRocketRouteTo( earth );
