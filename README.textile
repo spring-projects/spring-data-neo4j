@@ -21,20 +21,26 @@ Person rod = new Person("Rod").persist();
 
 emil.knows(jon);
 emil.knows(rod);
+
+// Persist created relationships to graph database
 emil.persist();
 
 for (Person friend : emil.getFriends()) {
     System.out.println("Friend: " + friend);
 }
 
-interface PersonRepository extends GraphRepository<Person> {}
-@Autowired PersonRepository repository;
-
-emil = repository.findByPropertyValue("name", "emil");
-
-for (Person friend : jon.findAllByTraversal(Person.class, Traversal.description().evaluator(Evaluators.includingDepths(1, 2)))) {
+// Method findAllByTraversal() is one of the methods introduced by @NodeEntity
+for (Person friend : jon.findAllByTraversal(Person.class,
+        Traversal.description().evaluator(Evaluators.includingDepths(1, 2)))) {
     System.out.println("Jon's friends to depth 2: " + friend);
 }
+
+// Add <datagraph:repositories base-package="com.example.repo"/> to context config.
+interface com.example.repo.PersonRepository extends GraphRepository<Person> {}
+
+@Autowired PersonRepository repo;
+emil = repo.findByPropertyValue("name", "emil");
+long numberOfPeople = repo.count();
 </pre>
 
 h2. About
