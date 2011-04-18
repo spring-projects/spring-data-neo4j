@@ -18,72 +18,66 @@ addition of new features that were not available before to JPA-based application
 
 *  Add the maven repository and dependency
 
-<pre>
-       <dependency>
-         <groupId>org.springframework.data</groupId>
-         <artifactId>spring-data-neo4j</artifactId>
-         <version>1.0.0.RELEASE</version>
-       </dependency>
-
-       <repository>
-         <id>spring-maven-snapshot</id>
-         <snapshots><enabled>true</enabled></snapshots>
-         <name>Springframework Maven MILESTONE Repository</name>
-         <url>http://maven.springframework.org/milestone</url>
-       </repository>
-</pre>
+    <dependency>
+       <groupId>org.springframework.data</groupId>
+       <artifactId>spring-data-neo4j</artifactId>
+       <version>1.0.0.RELEASE</version>
+    </dependency>
+    <repository>
+       <id>spring-maven-snapshot</id>
+       <snapshots><enabled>true</enabled></snapshots>
+       <name>Springframework Maven MILESTONE Repository</name>
+       <url>http://maven.springframework.org/milestone</url>
+    </repository>
 
 *  Configure AspectJ: Add the following plugin XML to your project's <plugins> config in pom.xml to
    hook AspectJ into the build process:
 
-<pre>
-      <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>aspectj-maven-plugin</artifactId>
-        <version>1.0</version>
-        <configuration>
-          <outxml>true</outxml>
-          <aspectLibraries>
-            <aspectLibrary>
-              <groupId>org.springframework</groupId>
-              <artifactId>spring-aspects</artifactId>
-            </aspectLibrary>
-            <aspectLibrary>
-              <groupId>org.springframework.data</groupId>
-              <artifactId>spring-data-neo4j</artifactId>
-            </aspectLibrary>
-          </aspectLibraries>
-          <source>1.6</source>
-          <target>1.6</target>
-        </configuration>
-        <executions>
-          <execution>
-            <goals>
-              <goal>compile</goal>
-              <goal>test-compile</goal>
-            </goals>
-          </execution>
-        </executions>
-        <dependencies>
-          <dependency>
-            <groupId>org.aspectj</groupId>
-            <artifactId>aspectjrt</artifactId>
-            <version>1.6.11.RELEASE</version>
-          </dependency>
-          <dependency>
-            <groupId>org.aspectj</groupId>
-            <artifactId>aspectjtools</artifactId>
-            <version>1.6.11.RELEASE</version>
-          </dependency>
-        </dependencies>
-      </plugin>
-</pre>
+    <plugin>
+      <groupId>org.codehaus.mojo</groupId>
+      <artifactId>aspectj-maven-plugin</artifactId>
+      <version>1.0</version>
+      <configuration>
+        <outxml>true</outxml>
+        <aspectLibraries>
+          <aspectLibrary>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-aspects</artifactId>
+          </aspectLibrary>
+          <aspectLibrary>
+            <groupId>org.springframework.data</groupId>
+            <artifactId>spring-data-neo4j</artifactId>
+          </aspectLibrary>
+        </aspectLibraries>
+        <source>1.6</source>
+        <target>1.6</target>
+      </configuration>
+      <executions>
+        <execution>
+          <goals>
+            <goal>compile</goal>
+            <goal>test-compile</goal>
+          </goals>
+        </execution>
+      </executions>
+      <dependencies>
+        <dependency>
+          <groupId>org.aspectj</groupId>
+          <artifactId>aspectjrt</artifactId>
+          <version>1.6.11.RELEASE</version>
+        </dependency>
+        <dependency>
+          <groupId>org.aspectj</groupId>
+          <artifactId>aspectjtools</artifactId>
+          <version>1.6.11.RELEASE</version>
+        </dependency>
+      </dependencies>
+    </plugin>
 
 ## Spring configuration:
 
 * Configure Spring Data Graph for Neo4j in your application using the provided xml namespace.
 
-<pre>
     <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
     <beans xmlns="http://www.springframework.org/schema/beans"
         xmlns:context="http://www.springframework.org/schema/context"
@@ -94,12 +88,9 @@ addition of new features that were not available before to JPA-based application
             http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd
             http://www.springframework.org/schema/data/graph http://www.springframework.org/schema/data/graph/datagraph-1.0.xsd
             ">
-
         <context:annotation-config/>
         <datagraph:config storeDirectory="target/config-test"/>
-
     </beans>
-</pre>
 
 ## Graph entities
 
