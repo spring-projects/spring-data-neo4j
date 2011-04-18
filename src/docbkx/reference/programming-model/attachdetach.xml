@@ -48,7 +48,7 @@ Person p = new Person("Michael").persist();
             Now consider this scenario:
             <example>
                 <title>Relationships outside of transactions</title>
-                <programlisting><![CDATA[@NodeEntity
+                <programlisting language="java"><![CDATA[@NodeEntity
 class Movie {
     private Actor topActor;
     public void setTopActor(Actor actor) {
