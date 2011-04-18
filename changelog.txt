@@ -11,6 +11,7 @@ Changes in version 1.0.0.RELEASE (2011-04-18)
 * better relationship collection update handling for detached entities
 * documentation updates
 
+
 Changes in version 1.0.0.RC1 (2011-04-04)
 ----------------------------------------
 
