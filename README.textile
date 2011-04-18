@@ -21,9 +21,19 @@ Person rod = new Person("Rod").persist();
 
 emil.knows(jon);
 emil.knows(rod);
+emil.persist();
 
-for(Person friend : emil.getFriends()) {
+for (Person friend : emil.getFriends()) {
     System.out.println("Friend: " + friend);
+}
+
+interface PersonRepository extends GraphRepository<Person> {}
+@Autowired PersonRepository repository;
+
+emil = repository.findByPropertyValue("name", "emil");
+
+for (Person friend : jon.findAllByTraversal(Person.class, Traversal.description().evaluator(Evaluators.includingDepths(1, 2)))) {
+    System.out.println("Jon's friends to depth 2: " + friend);
 }
 </pre>
 
