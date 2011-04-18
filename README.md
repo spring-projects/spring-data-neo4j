@@ -12,21 +12,6 @@ can extend existing JPA data models with new parts (properties, entities, relati
 in the graph while being transparently integrated with the JPA entities.  This enables for easy and seamless
 addition of new features that were not available before to JPA-based applications.
 
-Getting Help
-------------
-
-This README and the [User Guide](http://static.springsource.org/spring-data/data-graph/docs/current/reference/html/)
-are the best places to start learning about Spring Data Graph.  There are also
-[three sample appilcations](https://github.com/SpringSource/spring-data-graph-examples) briefly described in the
-reference documentation.
-
-The main project [website](http://www.springsource.org/spring-data) contains links to basic project information such
-as source code, JavaDocs, Issue tracking, etc.
-
-For more detailed questions, use the [forum](http://forum.springsource.org/forumdisplay.php?f=80). If you are new to
-Spring as well as to Spring Data, look for information about [Spring projects](http://www.springsource.org/projects).
-
-
 # Quick Start
 
 ## Maven configuration:
@@ -201,6 +186,21 @@ Spring as well as to Spring Data, look for information about [Spring projects](h
 
 Please see the [Hello Worlds sample project](https://github.com/SpringSource/spring-data-graph-examples/tree/master/hello-worlds)
 in the examples repository for more information.
+
+
+Getting Help
+------------
+
+This README and the [User Guide](http://static.springsource.org/spring-data/data-graph/docs/current/reference/html/)
+are the best places to start learning about Spring Data Graph.  There are also
+[three sample appilcations](https://github.com/SpringSource/spring-data-graph-examples) briefly described in the
+reference documentation.
+
+The main project [website](http://www.springsource.org/spring-data) contains links to basic project information such
+as source code, JavaDocs, Issue tracking, etc.
+
+For more detailed questions, use the [forum](http://forum.springsource.org/forumdisplay.php?f=80). If you are new to
+Spring as well as to Spring Data, look for information about [Spring projects](http://www.springsource.org/projects).
 
 
 Contributing to Spring Data
