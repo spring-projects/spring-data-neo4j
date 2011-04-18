@@ -18,7 +18,7 @@ addition of new features that were not available before to JPA-based application
 
 *  Add the maven repository and dependency
 
-<pre><![CDATA[
+<pre>
        <dependency>
          <groupId>org.springframework.data</groupId>
          <artifactId>spring-data-neo4j</artifactId>
@@ -31,12 +31,12 @@ addition of new features that were not available before to JPA-based application
          <name>Springframework Maven MILESTONE Repository</name>
          <url>http://maven.springframework.org/milestone</url>
        </repository>
-]]></pre>
+</pre>
 
 *  Configure AspectJ: Add the following plugin XML to your project's <plugins> config in pom.xml to
    hook AspectJ into the build process:
 
-<pre><![CDATA[
+<pre>
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>aspectj-maven-plugin</artifactId>
@@ -77,13 +77,13 @@ addition of new features that were not available before to JPA-based application
           </dependency>
         </dependencies>
       </plugin>
-	]]></pre>
+</pre>
 
 ## Spring configuration:
 
 * Configure Spring Data Graph for Neo4j in your application using the provided xml namespace.
 
-<pre><![CDATA[
+<pre>
     <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
     <beans xmlns="http://www.springframework.org/schema/beans"
         xmlns:context="http://www.springframework.org/schema/context"
@@ -99,7 +99,7 @@ addition of new features that were not available before to JPA-based application
         <datagraph:config storeDirectory="target/config-test"/>
 
     </beans>
-	]]></pre>
+</pre>
 
 ## Graph entities
 
