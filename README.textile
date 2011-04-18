@@ -1,15 +1,8 @@
 h1. Spring Data Graph - Quick start
 
-The primary goal of the "Spring Data":http://www.springsource.org/spring-data project is to make it easier to
-build Spring-powered applications that use new data access technologies such as non-relational databases, map-reduce
-frameworks, and cloud based data services. As the name implies, the **Graph** project provides integration with
-graph value stores.  The only supported Graph Database now is "Neo4j":http://neo4j.org/.
+The primary goal of the "Spring Data":http://www.springsource.org/spring-data project is to make it easier to build Spring-powered applications that use new data access technologies such as non-relational databases, map-reduce frameworks, and cloud based data services. As the name implies, the **Graph** project provides integration with graph value stores.  The only supported Graph Database now is "Neo4j":http://neo4j.org/.
 
-The Spring Data Graph project provides a simplified POJO based programming model that reduces that amount of
-boilerplate code needed to create neo4j applications.  it also provides a 'cross store' persistence solution that
-can extend existing JPA data models with new parts (properties, entities, relationships) that are stored exclusively
-in the graph while being transparently integrated with the JPA entities.  This enables for easy and seamless
-addition of new features that were not available before to JPA-based applications.
+The Spring Data Graph project provides a simplified POJO based programming model that reduces that amount of boilerplate code needed to create neo4j applications.  it also provides a 'cross store' persistence solution that can extend existing JPA data models with new parts (properties, entities, relationships) that are stored exclusively in the graph while being transparently integrated with the JPA entities.  This enables for easy and seamless addition of new features that were not available before to JPA-based applications.
 
 h2. Maven configuration
 
@@ -186,22 +179,16 @@ public class WorldRepositoryImpl implements WorldRepositoryExtension {
 </pre>
 
 
-Please see the "Hello Worlds sample project":https://github.com/SpringSource/spring-data-graph-examples/tree/master/hello-worlds
-in the examples repository for more information.
+Please see the "Hello Worlds sample project":https://github.com/SpringSource/spring-data-graph-examples/tree/master/hello-worlds in the examples repository for more information.
 
 
 h2. Getting Help
 
-This README and the "User Guide":http://static.springsource.org/spring-data/data-graph/docs/current/reference/html/
-are the best places to start learning about Spring Data Graph.  There are also
-"three sample appilcations":https://github.com/SpringSource/spring-data-graph-examples briefly described in the
-reference documentation.
+This README and the "User Guide":http://static.springsource.org/spring-data/data-graph/docs/current/reference/html/ are the best places to start learning about Spring Data Graph.  There are also "three sample appilcations":https://github.com/SpringSource/spring-data-graph-examples briefly described in the reference documentation.
 
-The main project "website":http://www.springsource.org/spring-data contains links to basic project information such
-as source code, JavaDocs, Issue tracking, etc.
+The main project "website":http://www.springsource.org/spring-data contains links to basic project information such as source code, JavaDocs, Issue tracking, etc.
 
-For more detailed questions, use the "forum":http://forum.springsource.org/forumdisplay.php?f=80. If you are new to
-Spring as well as to Spring Data, look for information about "Spring projects":http://www.springsource.org/projects.
+For more detailed questions, use the "forum":http://forum.springsource.org/forumdisplay.php?f=80. If you are new to Spring as well as to Spring Data, look for information about "Spring projects":http://www.springsource.org/projects.
 
 
 h2. Contributing to Spring Data
