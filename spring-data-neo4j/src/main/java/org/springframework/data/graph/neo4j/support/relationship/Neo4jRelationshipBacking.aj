@@ -21,6 +21,7 @@ import org.apache.commons.logging.LogFactory;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.reflect.FieldSignature;
 import org.neo4j.graphdb.Relationship;
+import org.springframework.data.graph.core.NodeBacked;
 import org.springframework.data.graph.core.RelationshipBacked;
 import org.springframework.data.graph.neo4j.support.DoReturn;
 import org.springframework.data.graph.core.EntityState;
@@ -90,6 +91,11 @@ public aspect Neo4jRelationshipBacking {
         if (!hasPersistentState()) return null;
 		return getPersistentState().getId();
 	}
+
+
+    public EntityState<RelationshipBacked, Relationship> RelationshipBacked.getEntityState() {
+        return this.entityState;
+    }
 
 
     /**

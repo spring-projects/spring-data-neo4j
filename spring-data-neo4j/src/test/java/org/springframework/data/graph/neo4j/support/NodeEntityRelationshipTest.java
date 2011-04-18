@@ -162,6 +162,16 @@ public class NodeEntityRelationshipTest {
     }
 
     @Test
+    public void testAddToOneToManyRelationshipOutsideOfTransaction() {
+        Person michael = persistedPerson("Michael", 35);
+        Group group = new Group().persist();
+        group.getPersons().add(michael);
+        group = group.persist();
+        Collection<Person> personsFromGet = group.getPersons();
+        assertEquals(new HashSet<Person>(Arrays.asList(michael)), personsFromGet);
+    }
+
+    @Test
     @Transactional
     public void testRemoveFromOneToManyRelationship() {
         Person michael = persistedPerson("Michael", 35);

@@ -44,13 +44,13 @@ public class SingleRelationshipFieldAccessorFactory extends NodeRelationshipFiel
 	public FieldAccessor<NodeBacked> forField(final Field field) {
 	    final RelatedTo relAnnotation = getRelationshipAnnotation(field);
 	    if (relAnnotation == null)
-	        return new SingleRelationshipFieldAccessor(typeFrom(field), Direction.OUTGOING, targetFrom(field), graphDatabaseContext);
-	    return new SingleRelationshipFieldAccessor(typeFrom(field, relAnnotation), dirFrom(relAnnotation), targetFrom(field), graphDatabaseContext);
+	        return new SingleRelationshipFieldAccessor(typeFrom(field), Direction.OUTGOING, targetFrom(field), graphDatabaseContext, field);
+	    return new SingleRelationshipFieldAccessor(typeFrom(field, relAnnotation), dirFrom(relAnnotation), targetFrom(field), graphDatabaseContext,field);
 	}
 
 	public static class SingleRelationshipFieldAccessor extends NodeToNodesRelationshipFieldAccessor<NodeBacked> {
-	    public SingleRelationshipFieldAccessor(final RelationshipType type, final Direction direction, final Class<? extends NodeBacked> clazz, final GraphDatabaseContext graphDatabaseContext) {
-	        super(clazz, graphDatabaseContext, direction, type);
+	    public SingleRelationshipFieldAccessor(final RelationshipType type, final Direction direction, final Class<? extends NodeBacked> clazz, final GraphDatabaseContext graphDatabaseContext, Field field) {
+	        super(clazz, graphDatabaseContext, direction, type, field);
 	    }
 
 		@Override

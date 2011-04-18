@@ -44,13 +44,13 @@ public class OneToNRelationshipFieldAccessorFactory extends NodeRelationshipFiel
 	@Override
 	public FieldAccessor<NodeBacked> forField(final Field field) {
 	    final RelatedTo relAnnotation = getRelationshipAnnotation(field);
-	    return new OneToNRelationshipFieldAccessor(typeFrom(field, relAnnotation), dirFrom(relAnnotation), targetFrom(relAnnotation), graphDatabaseContext);
+	    return new OneToNRelationshipFieldAccessor(typeFrom(field, relAnnotation), dirFrom(relAnnotation), targetFrom(relAnnotation), graphDatabaseContext,field);
 	}
 
 	public static class OneToNRelationshipFieldAccessor extends NodeToNodesRelationshipFieldAccessor<NodeBacked> {
 
-	    public OneToNRelationshipFieldAccessor(final RelationshipType type, final Direction direction, final Class<? extends NodeBacked> elementClass, final GraphDatabaseContext graphDatabaseContext) {
-	        super(elementClass, graphDatabaseContext, direction, type);
+	    public OneToNRelationshipFieldAccessor(final RelationshipType type, final Direction direction, final Class<? extends NodeBacked> elementClass, final GraphDatabaseContext graphDatabaseContext, Field field) {
+	        super(elementClass, graphDatabaseContext, direction, type,field);
 	    }
 
 	    public Object setValue(final NodeBacked entity, final Object newVal) {

@@ -39,13 +39,13 @@ public class ReadOnlyOneToNRelationshipFieldAccessorFactory extends NodeRelation
 	@Override
 	public FieldAccessor<NodeBacked> forField(final Field field) {
 	    final RelatedTo relAnnotation = getRelationshipAnnotation(field);
-	    return new ReadOnlyOneToNRelationshipFieldAccessor(typeFrom(field, relAnnotation), dirFrom(relAnnotation), targetFrom(relAnnotation), graphDatabaseContext);
+	    return new ReadOnlyOneToNRelationshipFieldAccessor(typeFrom(field, relAnnotation), dirFrom(relAnnotation), targetFrom(relAnnotation), graphDatabaseContext,field);
 	}
 
 	public static class ReadOnlyOneToNRelationshipFieldAccessor extends OneToNRelationshipFieldAccessorFactory.OneToNRelationshipFieldAccessor {
 
-		public ReadOnlyOneToNRelationshipFieldAccessor(final RelationshipType type, final Direction direction, final Class<? extends NodeBacked> elementClass, final GraphDatabaseContext graphDatabaseContext) {
-	        super(type,direction,elementClass, graphDatabaseContext);
+		public ReadOnlyOneToNRelationshipFieldAccessor(final RelationshipType type, final Direction direction, final Class<? extends NodeBacked> elementClass, final GraphDatabaseContext graphDatabaseContext, Field field) {
+	        super(type,direction,elementClass, graphDatabaseContext, field);
 		}
 
 	    @Override

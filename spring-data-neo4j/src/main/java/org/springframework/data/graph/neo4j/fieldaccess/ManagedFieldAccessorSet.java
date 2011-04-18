@@ -16,6 +16,13 @@
 
 package org.springframework.data.graph.neo4j.fieldaccess;
 
+import org.neo4j.graphdb.Node;
+import org.springframework.data.graph.core.EntityState;
+import org.springframework.data.graph.core.NodeBacked;
+import org.springframework.data.graph.core.RelationshipBacked;
+import org.springframework.data.graph.neo4j.support.DoReturn;
+
+import java.lang.reflect.Field;
 import java.util.AbstractSet;
 import java.util.Iterator;
 import java.util.Set;
@@ -27,11 +34,11 @@ import java.util.Set;
 public class ManagedFieldAccessorSet<ENTITY,T> extends AbstractSet<T> {
 	private final ENTITY entity;
 	final Set<T> delegate;
-	private final FieldAccessor<ENTITY> fieldAccessor;
+	private final Field field;
 
-	public ManagedFieldAccessorSet(final ENTITY entity, final Object newVal, final FieldAccessor fieldAccessor) {
+	public ManagedFieldAccessorSet(final ENTITY entity, final Object newVal, final Field field) {
 		this.entity = entity;
-		this.fieldAccessor = fieldAccessor;
+		this.field = field;
 		delegate = (Set<T>) newVal;
 	}
 
@@ -58,7 +65,27 @@ public class ManagedFieldAccessorSet<ENTITY,T> extends AbstractSet<T> {
 	}
 
     private void update() {
-        fieldAccessor.setValue(entity, delegate);
+        if (entity instanceof NodeBacked) {
+            NodeBacked nodeBacked = (NodeBacked) entity;
+            final EntityState<NodeBacked,Node> entityState = nodeBacked.getEntityState();
+            updateValue(entityState);
+        }
+        if (entity instanceof RelationshipBacked) {
+            RelationshipBacked relationshipBacked = (RelationshipBacked) entity;
+            updateValue(relationshipBacked.getEntityState());
+        }
+    }
+
+    private Object updateValue(EntityState entityState) {
+        try {
+            final Object newValue = entityState.setValue(field, delegate);
+            if (newValue instanceof DoReturn) return DoReturn.unwrap(newValue);
+            field.setAccessible(true);
+            field.set(entity,newValue);
+            return newValue;
+        } catch (IllegalAccessException e) {
+            throw new RuntimeException("Could not update field "+field+" to new value of type "+delegate.getClass());
+        }
     }
 
     @Override

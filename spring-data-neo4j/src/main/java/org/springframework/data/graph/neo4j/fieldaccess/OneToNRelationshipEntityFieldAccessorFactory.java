@@ -47,7 +47,7 @@ public class OneToNRelationshipEntityFieldAccessorFactory implements FieldAccess
 	@Override
 	public FieldAccessor<NodeBacked> forField(final Field field) {
 		final RelatedToVia relEntityAnnotation = getRelationshipAnnotation(field);
-		return new OneToNRelationshipEntityFieldAccessor(typeFrom(relEntityAnnotation), dirFrom(relEntityAnnotation), targetFrom(relEntityAnnotation), graphDatabaseContext);
+		return new OneToNRelationshipEntityFieldAccessor(typeFrom(relEntityAnnotation), dirFrom(relEntityAnnotation), targetFrom(relEntityAnnotation), graphDatabaseContext,field);
 	}
 
 	private boolean hasValidRelationshipAnnotation(final Field field) {
@@ -79,8 +79,8 @@ public class OneToNRelationshipEntityFieldAccessorFactory implements FieldAccess
 
 	public static class OneToNRelationshipEntityFieldAccessor extends AbstractNodeRelationshipFieldAccessor<NodeBacked, Node, RelationshipBacked, Relationship> {
 
-	    public OneToNRelationshipEntityFieldAccessor(final RelationshipType type, final Direction direction, final Class<? extends RelationshipBacked> elementClass, final GraphDatabaseContext graphDatabaseContext) {
-	        super(elementClass, graphDatabaseContext, direction, type);
+	    public OneToNRelationshipEntityFieldAccessor(final RelationshipType type, final Direction direction, final Class<? extends RelationshipBacked> elementClass, final GraphDatabaseContext graphDatabaseContext, Field field) {
+	        super(elementClass, graphDatabaseContext, direction, type, field);
 	    }
 
 	    @Override
@@ -97,7 +97,7 @@ public class OneToNRelationshipEntityFieldAccessorFactory implements FieldAccess
 	    public Object getValue(final NodeBacked entity) {
 	        checkUnderlyingNode(entity);
 	        final Set<RelationshipBacked> result = createEntitySetFromRelationships(entity);
-	        return doReturn(new ManagedFieldAccessorSet<NodeBacked, RelationshipBacked>(entity, result, this));
+	        return doReturn(new ManagedFieldAccessorSet<NodeBacked, RelationshipBacked>(entity, result, field));
 	    }
 
 	    private Set<RelationshipBacked> createEntitySetFromRelationships(final NodeBacked entity) {
