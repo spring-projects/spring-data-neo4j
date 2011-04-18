@@ -60,10 +60,19 @@ public class Actor {
             relationship of a given type between any two given entities.
         </para>
         <note>
+            <para>
+                Before an entity has been attached with <code>persist()</code> for the first time, it will
+                not have its state managed by Spring Data Graph. For example, given the Actor class defined above,
+                if <code>actor.movies</code> was accessed in a non-persisted entity, it would return
+                <code>null</code>, whereas if it was accessed in a persisted entity, it would return
+                an empty managed set.
+            </para>
+        </note>
+        <para>
             By setting direction to BOTH, relationships are created in the outgoing direction, but when the
             1:N field is read, it will include relationships in both directions. A cardinality of M:N is
             not necessary because relationships can be navigated in both directions.
-        </note>
+        </para>
         <para>
             The relationships can also be accessed by using the aspect-introduced methods
             <code>entity.getRelationshipTo(target, type)</code> and
