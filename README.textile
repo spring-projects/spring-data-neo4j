@@ -136,8 +136,7 @@ h2. Transactional services
 
 <pre>
 public interface WorldRepository extends GraphRepository&lt;World>, NamedIndexRepository&lt;World> {}
-</pre>
-<pre>
+
 @Repository
 public class WorldRepositoryImpl implements WorldRepositoryExtension {
 
@@ -183,8 +182,6 @@ public class WorldRepositoryImpl implements WorldRepositoryExtension {
     public Iterable<World> findWorldsWithMoons( int moonCount )  {
         return worldRepository.findAllByPropertyValue( "moons", "moons", moonCount );
     }
-</pre>
-<pre>
 }
 </pre>
 
