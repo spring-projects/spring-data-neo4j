@@ -157,6 +157,7 @@ public class World {
     @RelatedTo( type = "REACHABLE_BY_ROCKET", direction = Direction.BOTH, elementClass = World.class )
     private Set<World> reachableByRocket;
 
+    public World() {}
     public World(String name, int moons) {
         this.name = name;
         this.moons = moons;
