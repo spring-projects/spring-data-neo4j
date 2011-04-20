@@ -19,6 +19,7 @@ package org.springframework.data.graph.neo4j.support.path;
 import org.neo4j.graphdb.Path;
 import org.neo4j.graphdb.traversal.Evaluation;
 import org.neo4j.graphdb.traversal.Evaluator;
+import org.springframework.data.graph.core.EntityPath;
 import org.springframework.data.graph.core.NodeBacked;
 import org.springframework.data.graph.neo4j.support.GraphDatabaseContext;
 import org.springframework.data.graph.neo4j.support.path.ConvertingEntityPath;
@@ -27,12 +28,13 @@ import org.springframework.data.graph.neo4j.support.path.ConvertingEntityPath;
  * @author mh
  * @since 26.02.11
  */
-public class EntityEvaluator<S extends NodeBacked, E extends NodeBacked> implements Evaluator {
+public abstract class EntityEvaluator<S extends NodeBacked, E extends NodeBacked> implements Evaluator {
     private GraphDatabaseContext graphDatabaseContext;
 
     @Override
     public Evaluation evaluate(Path path) {
         return evaluate(new ConvertingEntityPath<S,E>(graphDatabaseContext, path));
     }
+    public abstract Evaluation evaluate(EntityPath<S,E> path);
 
 }
