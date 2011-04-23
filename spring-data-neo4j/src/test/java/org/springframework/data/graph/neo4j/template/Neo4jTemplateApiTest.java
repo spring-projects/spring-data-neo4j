@@ -37,6 +37,7 @@ import org.springframework.transaction.jta.JtaTransactionManager;
 import org.springframework.transaction.support.TransactionCallbackWithoutResult;
 import org.springframework.transaction.support.TransactionTemplate;
 
+import java.io.IOException;
 import java.util.Iterator;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -48,26 +49,39 @@ import static org.springframework.data.graph.core.Property._;
 public class Neo4jTemplateApiTest {
     private static final DynamicRelationshipType KNOWS = DynamicRelationshipType.withName("knows");
     private static final DynamicRelationshipType HAS = DynamicRelationshipType.withName("has");
-    private Neo4jTemplate template;
-    private static GraphDatabase graphDatabase;
-    private Node referenceNode;
-    private Relationship relationship1;
-    private Node node1;
-    private static PlatformTransactionManager transactionManager;
-    private static GraphDatabaseService graphDatabaseService;
+    protected Neo4jTemplate template;
+    protected static GraphDatabase graphDatabase;
+    protected Node referenceNode;
+    protected Relationship relationship1;
+    protected Node node1;
+    protected static PlatformTransactionManager transactionManager;
+    protected static GraphDatabaseService graphDatabaseService;
 
 
 
     @Before
     public void setUp() throws Exception
     {
-        graphDatabaseService = new ImpermanentGraphDatabase();
-        graphDatabase = new DelegatingGraphDatabase(graphDatabaseService);
-        transactionManager =new JtaTransactionManager(new SpringTransactionManager(graphDatabaseService));
+        graphDatabaseService = createGraphDatabaseService();
+        graphDatabase = createGraphDatabase();
+        transactionManager = createTransactionManager();
         referenceNode = graphDatabase.getReferenceNode();
         template = new Neo4jTemplate(graphDatabase, transactionManager);
         createData();
     }
+
+    protected GraphDatabaseService createGraphDatabaseService() throws IOException {
+        return new ImpermanentGraphDatabase();
+    }
+
+    protected GraphDatabase createGraphDatabase() throws Exception {
+        return new DelegatingGraphDatabase(graphDatabaseService);
+    }
+
+    protected PlatformTransactionManager createTransactionManager() {
+        return new JtaTransactionManager(new SpringTransactionManager(graphDatabaseService));
+    }
+
     private void createData() {
 
         new TransactionTemplate(Neo4jTemplateApiTest.transactionManager).execute(new TransactionCallbackWithoutResult() {
@@ -75,8 +89,7 @@ public class Neo4jTemplateApiTest {
             protected void doInTransactionWithoutResult(TransactionStatus status) {
                 referenceNode.setProperty("name", "node0");
                 graphDatabase.createIndex(Node.class, "node", false).add(referenceNode, "name", "node0");
-                node1 = graphDatabase.createNode();
-                node1.setProperty("name", "node1");
+                node1 = graphDatabase.createNode(_("name", "node1"));
                 relationship1 = referenceNode.createRelationshipTo(node1, KNOWS);
                 relationship1.setProperty("name", "rel1");
                 graphDatabase.createIndex(Relationship.class, "relationship", false).add(relationship1, "name", "rel1");
@@ -86,7 +99,9 @@ public class Neo4jTemplateApiTest {
 
     @AfterClass
     public static void tearDown() throws Exception {
-        graphDatabaseService.shutdown();
+        if (graphDatabaseService!=null) {
+            graphDatabaseService.shutdown();
+        }
     }
 
     @Test

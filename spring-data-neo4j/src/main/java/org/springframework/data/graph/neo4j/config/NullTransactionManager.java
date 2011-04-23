@@ -23,7 +23,7 @@ import javax.transaction.xa.XAResource;
 * @author mh
 * @since 09.04.11
 */
-class NullTransactionManager implements TransactionManager {
+public class NullTransactionManager implements TransactionManager {
   private static final Transaction NULL_JAVA_TRANSACTION = new Transaction() {
       @Override
       public void commit() throws HeuristicMixedException, HeuristicRollbackException, RollbackException, SecurityException, SystemException {

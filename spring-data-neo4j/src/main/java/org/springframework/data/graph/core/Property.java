@@ -16,6 +16,7 @@
 
 package org.springframework.data.graph.core;
 
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -58,6 +59,14 @@ public class Property {
         int i = 0;
         for (Map.Entry<String, Object> entry : properties.entrySet()) {
             result[i++] = new Property(entry.getKey(), entry.getValue());
+        }
+        return result;
+    }
+
+    public static Map<String, Object> toMap(Property... props) {
+        final HashMap<String, Object> result = new HashMap<String, Object>();
+        for (Property prop : props) {
+            result.put(prop.name,prop.value);
         }
         return result;
     }

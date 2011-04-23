@@ -55,7 +55,7 @@ public class RestGraphDatabase implements GraphDatabaseService, GraphDatabase {
 
     @Override
     public Node createNode(Property... props) {
-        ClientResponse response = restRequest.post("node", null);
+        ClientResponse response = restRequest.post("node", JsonHelper.createJsonFrom( Property.toMap(props) ));
         if ( restRequest.statusOtherThan(response, Status.CREATED) ) {
             throw new RuntimeException( "" + response.getStatus() );
         }
@@ -79,12 +79,17 @@ public class RestGraphDatabase implements GraphDatabaseService, GraphDatabase {
 
     @Override
     public <T extends PropertyContainer> Index<T> getIndex(String indexName) {
-        return (Index<T>) index().forNodes(indexName); // todo
+        final RestIndexManager index = index();
+        if (index.existsForNodes(indexName)) return (Index<T>) index.forNodes(indexName);
+        if (index.existsForRelationships(indexName)) return (Index<T>) index.forRelationships(indexName);
+        throw new IllegalArgumentException("Index "+indexName+" does not yet exist");
     }
 
     @Override
     public <T extends PropertyContainer> Index<T> createIndex(Class<T> type, String indexName, boolean fullText) {
-        return (Index<T>) index().forNodes(indexName); // todo
+        if (Node.class.isAssignableFrom(type)) return (Index<T>) index().forNodes(indexName);
+        if (Relationship.class.isAssignableFrom(type)) return (Index<T>) index().forRelationships(indexName);
+        throw new IllegalArgumentException("Required Node or Relationship types to create index, got "+type);
     }
 
     @Override
