@@ -297,7 +297,7 @@ public class Neo4jTemplateApiTest {
         assertNotNull(relationship);
         assertEquals(referenceNode, relationship.getStartNode());
         assertEquals(node1,relationship.getEndNode());
-        assertEquals(HAS, relationship.getType());
+        assertEquals(HAS.name(), relationship.getType().name());
         assertEquals("rel2",relationship.getProperty("name","not set"));
     }
 

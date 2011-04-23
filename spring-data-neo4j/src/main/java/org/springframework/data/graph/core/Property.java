@@ -64,6 +64,7 @@ public class Property {
     }
 
     public static Map<String, Object> toMap(Property... props) {
+        if (props==null) return null;
         final HashMap<String, Object> result = new HashMap<String, Object>();
         for (Property prop : props) {
             result.put(prop.name,prop.value);

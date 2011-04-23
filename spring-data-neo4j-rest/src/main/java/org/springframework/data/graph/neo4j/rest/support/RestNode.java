@@ -21,9 +21,7 @@ import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.Traverser.Order;
 import org.neo4j.helpers.collection.IterableWrapper;
 import org.neo4j.helpers.collection.IteratorUtil;
-import org.neo4j.helpers.collection.MapUtil;
 
-import javax.ws.rs.core.Response.Status;
 import java.net.URI;
 import java.util.Collection;
 import java.util.Map;
@@ -42,14 +40,7 @@ public class RestNode extends RestEntity implements Node {
     }
 
     public Relationship createRelationshipTo( Node toNode, RelationshipType type ) {
-        Map<String, Object> data = MapUtil.map( "to", ( (RestNode) toNode ).getUri(),
-                "type", type.name() );
-
-        ClientResponse response = restRequest.post( "relationships", JsonHelper.createJsonFrom( data ) );
-        if ( restRequest.statusOtherThan( response, Status.CREATED ) ) {
-            throw new RuntimeException( "" + response.getStatus() );
-        }
-        return new RestRelationship( response.getLocation(), getRestGraphDatabase() );
+        return RestRelationship.create(this,(RestNode)toNode,type);
     }
 
     public Iterable<Relationship> getRelationships() {

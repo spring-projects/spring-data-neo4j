@@ -16,8 +16,12 @@
 
 package org.springframework.data.graph.neo4j.rest.support;
 
+import com.sun.jersey.api.client.ClientResponse;
 import org.neo4j.graphdb.*;
+import org.neo4j.helpers.collection.MapUtil;
+import org.springframework.data.graph.core.Property;
 
+import javax.ws.rs.core.Response;
 import java.net.URI;
 import java.util.Map;
 
@@ -73,5 +77,19 @@ public class RestRelationship extends RestEntity implements Relationship {
 
     public boolean isType( RelationshipType type ) {
         return type.name().equals( getStructuralData().get( "type" ) );
+    }
+
+    public static Relationship create(RestNode startNode, RestNode endNode, RelationshipType type, Property... props) {
+        final RestRequest restRequest = startNode.getRestRequest();
+        Map<String, Object> data = MapUtil.map("to", endNode.getUri(), "type", type.name());
+        if (props!=null && props.length>0) {
+            data.put("data",Property.toMap(props));
+        }
+
+        ClientResponse response = restRequest.post( "relationships", JsonHelper.createJsonFrom( data ) );
+        if ( restRequest.statusOtherThan( response, Response.Status.CREATED ) ) {
+            throw new RuntimeException( "" + response.getStatus() );
+        }
+        return new RestRelationship( response.getLocation(), startNode.getRestGraphDatabase() );
     }
 }

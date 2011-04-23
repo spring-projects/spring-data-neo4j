@@ -95,7 +95,8 @@ public abstract class RestIndex<T extends PropertyContainer> implements Index<T>
     }
 
     public IndexHits<T> query( String key, Object value ) {
-        ClientResponse response = restRequest.get( indexPath( key ) + "?query=" +  RestRequest.encode( value ) );
+        String indexPath=key!=null ? indexPath( key ): indexPath("null");
+        ClientResponse response = restRequest.get( indexPath + "?query=" +  RestRequest.encode( value ) );
         if ( restRequest.statusIs( response, Response.Status.OK ) ) {
             Collection hits = (Collection) restRequest.toEntity( response );
             return new SimpleIndexHits<T>( hits, hits.size() );
@@ -107,7 +108,7 @@ public abstract class RestIndex<T extends PropertyContainer> implements Index<T>
     protected abstract T createEntity( Map<?, ?> item );
 
     public IndexHits<T> query( Object value ) {
-        throw new UnsupportedOperationException();
+        return query(null,value);
     }
 
     private class SimpleIndexHits<T extends PropertyContainer> implements IndexHits<T> {

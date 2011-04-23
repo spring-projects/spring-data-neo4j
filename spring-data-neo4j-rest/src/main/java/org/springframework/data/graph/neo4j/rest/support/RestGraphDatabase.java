@@ -73,8 +73,7 @@ public class RestGraphDatabase implements GraphDatabaseService, GraphDatabase {
 
     @Override
     public Relationship createRelationship(Node startNode, Node endNode, RelationshipType type, Property... props) {
-        Relationship relationship = startNode.createRelationshipTo(endNode, type);
-        return relationship;
+        return RestRelationship.create((RestNode)startNode,(RestNode)endNode,type,props);
     }
 
     @Override
