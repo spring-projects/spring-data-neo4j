@@ -24,6 +24,7 @@ import org.junit.runner.RunWith;
 import org.neo4j.graphdb.NotFoundException;
 import org.neo4j.graphdb.Transaction;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.graph.neo4j.Attribute;
 import org.springframework.data.graph.neo4j.Group;
 import org.springframework.data.graph.neo4j.Person;
 import org.springframework.data.graph.neo4j.PersonRepository;
@@ -134,4 +135,10 @@ import static org.springframework.data.graph.neo4j.Person.persistedPerson;
         Assert.assertNull("node deleted " + id, graphDatabaseContext.getNodeById(id));
     }
 
+    @Test
+    public void testPersistGenericEntity() {
+        final Attribute<String> attribute = new Attribute<String>();
+        attribute.setValue("test");
+        attribute.persist();
+    }
 }
