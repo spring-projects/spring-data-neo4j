@@ -181,6 +181,37 @@ public class NodeEntityRelationshipTest {
         group.getPersons().remove(david);
         assertEquals(Collections.singleton(michael), group.getPersons());
     }
+    @Test
+    @Transactional
+    public void testRemoveAllFromOneToManyRelationship() {
+        Person michael = persistedPerson("Michael", 35);
+        Person david = persistedPerson("David", 25);
+        Group group = new Group().persist();
+        group.setPersons(new HashSet<Person>(Arrays.asList(michael, david)));
+        group.getPersons().removeAll(Collections.singleton(david));
+        assertEquals(Collections.singleton(michael), group.getPersons());
+    }
+    @Test
+    @Transactional
+    public void testRetainAllFromOneToManyRelationship() {
+        Person michael = persistedPerson("Michael", 35);
+        Person david = persistedPerson("David", 25);
+        Group group = new Group().persist();
+        group.setPersons(new HashSet<Person>(Arrays.asList(michael, david)));
+        group.getPersons().retainAll(Collections.singleton(david));
+        assertEquals(Collections.singleton(david), group.getPersons());
+    }
+    @Test
+    @Transactional
+    public void testClearFromOneToManyRelationship() {
+        Person michael = persistedPerson("Michael", 35);
+        Person david = persistedPerson("David", 25);
+        Group group = new Group().persist();
+        group.setPersons(new HashSet<Person>(Arrays.asList(michael, david)));
+        group.getPersons().clear();
+        assertEquals(Collections.<Person>emptySet(), group.getPersons());
+    }
+
 
     @Test
     @Transactional

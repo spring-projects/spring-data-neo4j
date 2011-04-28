@@ -24,11 +24,11 @@ import org.springframework.data.graph.neo4j.support.DoReturn;
 
 import java.lang.reflect.Field;
 import java.util.AbstractSet;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.Set;
 
 /**
- * TODO handle all mutating methods
  * @param <T>
  */
 public class ManagedFieldAccessorSet<ENTITY,T> extends AbstractSet<T> {
@@ -99,4 +99,37 @@ public class ManagedFieldAccessorSet<ENTITY,T> extends AbstractSet<T> {
 		if (res) update();
 		return res;
 	}
+
+    @Override
+    public boolean removeAll(Collection<?> c) {
+        if (delegate.removeAll(c)) {
+            update();
+            return true;
+        }
+        return false;
+    }
+
+    @Override
+    public boolean remove(Object o) {
+        if (delegate.remove(o)) {
+            update();
+            return true;
+        }
+        return false;
+    }
+
+    @Override
+    public boolean retainAll(Collection<?> c) {
+        if (delegate.retainAll(c)) {
+            update();
+            return true;
+        }
+        return false;
+    }
+
+    @Override
+    public void clear() {
+        delegate.clear();
+        update();
+    }
 }
