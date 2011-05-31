@@ -1,0 +1,75 @@
+<project name="spring-data-graph-example" default="test" xmlns:ivy="antlib:org.apache.ivy.ant" basedir=".">
+	<property name="settings.dir" location="settings" />
+	<property name="lib.dir" location="lib" />
+
+	<import file="${settings.dir}/path.xml" />
+
+	<import file="${settings.dir}/install-ivy.xml" />
+	<import file="${settings.dir}/path.xml" />
+
+	<taskdef resource="org/aspectj/tools/ant/taskdefs/aspectjTaskdefs.properties" classpath="${lib.dir}/aspectjtools.jar"/>
+
+	<target name="lib.retrieve" depends="install-ivy">
+		<mkdir dir="${lib.dir}" />
+		<ivy:settings file="${settings.dir}/ivysettings.xml" />
+		<ivy:resolve file="${settings.dir}/ivy.xml" />
+		<ivy:retrieve type="jar" pattern="${lib.dir}/[artifact].[ext]" changing="true"/>
+		<ivy:retrieve type="bundle" pattern="${lib.dir}/[artifact].[ext]" changing="true"/>
+	</target>
+
+	<target name="lib.clean">
+		<delete dir="${lib.dir}" />
+	</target>
+
+	<target name="clean" description="Removes the build directory, but not any cached ivy dependencies">
+		<delete dir="target" />
+		<delete dir="build" />
+	</target>
+
+	<target name="compile" description="Compile production classes" depends="lib.retrieve">
+		<mkdir dir="${main.target}" />
+
+		<iajc sourceroots="${main.src}" destDir="${main.target}" classpathref="path.libs" source="1.6">
+			<aspectpath>
+				<pathelement location="${lib.dir}/spring-aspects.jar"/>
+			</aspectpath>
+			<aspectpath>
+				<pathelement location="${lib.dir}/spring-data-neo4j.jar"/>
+			</aspectpath>
+		</iajc>
+	</target>
+
+	<target name="compile-tests" description="Compile unit test classes" depends="compile">
+		<mkdir dir="${test.target}" />
+        <copy todir="${main.target}"  failonerror="false">
+            <fileset dir="${main.resources}"/>
+        </copy>
+        <iajc sourceroots="${test.src}" destDir="${test.target}" classpathref="path.testing" source="1.6">
+            <aspectpath>
+                <pathelement location="${lib.dir}/spring-aspects.jar"/>
+            </aspectpath>
+            <aspectpath>
+                <pathelement location="${lib.dir}/spring-data-neo4j.jar"/>
+            </aspectpath>
+        </iajc>
+	</target>
+
+	<target name="test" depends="clean, compile, compile-tests">
+		<mkdir dir="${test.reports}"/>
+        <copy todir="${test.target}" failonerror="false">
+            <fileset dir="${test.resources}" includes="**/*"/>
+        </copy>
+
+        <fileset id="unittest.source.files" dir="${test.src}">
+			<include name="**/*Test.java" />
+		</fileset>
+
+        <junit printsummary="yes" showoutput="true" dir="." outputtoformatters="false">
+            <classpath refid="path.testing"/>
+            <formatter type="plain" />
+             <batchtest fork="no" todir="${test.reports}">
+                 <fileset refid="unittest.source.files"/>
+             </batchtest>
+         </junit>
+	</target>
+</project>
