@@ -1,0 +1,54 @@
+apply plugin:'java'
+
+configurations {
+    ajtools
+    aspectpath
+}
+
+dependencies{
+    compile group: "org.springframework.data", name: "spring-data-neo4j", version: springDataGraphVersion
+	testCompile group:"junit", name: "junit", version: "4.8"
+    testCompile group:"org.springframework", name: "spring-test", version: springVersion
+    ajtools "org.aspectj:aspectjtools:$aspectjVersion"
+    compile "org.aspectj:aspectjrt:$aspectjVersion"
+    aspectpath group: "org.springframework.data", name: "spring-data-neo4j", version: springDataGraphVersion
+}
+
+task compileJava(overwrite: true, description: 'Compiles AspectJ Source', type: Ajc) {
+    dependsOn processResources
+    sourceSet = sourceSets.main
+    inputs.files(sourceSets.main.java.srcDirs)
+    outputs.dir(sourceSet.classesDir)
+    aspectPath = configurations.aspectpath
+}
+
+task compileTestJava(overwrite: true, description: 'Compiles AspectJ Test Source', type: Ajc) {
+    dependsOn processTestResources, compileJava, jar
+    sourceSet = sourceSets.test
+    inputs.files(sourceSets.test.java.srcDirs)
+    outputs.dir(sourceSet.classesDir)
+    aspectPath = files(configurations.aspectpath, jar.archivePath)
+}
+
+class Ajc extends DefaultTask {
+    Ajc() {
+        logging.captureStandardOutput(LogLevel.INFO)
+    }
+
+    @TaskAction
+    def compile() {
+        logger.info "Running ajc ..."
+
+        ant.taskdef(resource: "org/aspectj/tools/ant/taskdefs/aspectjTaskdefs.properties", classpath: project.configurations.ajtools.asPath)
+        ant.iajc(classpath: sourceSet.compileClasspath.asPath, fork: 'true', destDir: sourceSet.classesDir.absolutePath,
+                source: project.sourceCompatibility,
+                target: project.targetCompatibility,
+                aspectPath: aspectPath.asPath, sourceRootCopyFilter: '**/*.java', showWeaveInfo: 'true', Xlint: "ignore") {
+            sourceroots {
+                sourceSet.java.srcDirs.each {
+                    pathelement(location: it.absolutePath)
+                }
+            }
+        }
+    }
+}
