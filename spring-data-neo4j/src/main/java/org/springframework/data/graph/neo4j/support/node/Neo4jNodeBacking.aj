@@ -37,8 +37,10 @@ import javax.persistence.Transient;
 import javax.persistence.Entity;
 
 import org.springframework.data.graph.neo4j.support.path.EntityPathPathIterableWrapper;
+import org.springframework.data.graph.neo4j.support.query.QueryExecutor;
 
 import java.lang.reflect.Field;
+import java.util.Map;
 
 import static org.springframework.data.graph.neo4j.support.DoReturn.unwrap;
 
@@ -172,6 +174,20 @@ public aspect Neo4jNodeBacking { // extends AbstractTypeAnnotatingMixinFields<No
         if (!hasPersistentState()) throw new IllegalStateException("No node attached to " + this);
         final Traverser traverser = traversalDescription.traverse(this.getPersistentState());
         return new NodeBackedNodeIterableWrapper<T>(traverser, targetType, Neo4jNodeBacking.aspectOf().graphDatabaseContext);
+    }
+    public  <T> Iterable<T> NodeBacked.findAllByQuery(final String query, final Class<T> targetType) {
+        final QueryExecutor executor = new QueryExecutor(Neo4jNodeBacking.aspectOf().graphDatabaseContext);
+        return executor.query(query, targetType);
+    }
+
+    public  Iterable<Map<String,Object>> NodeBacked.findAllByQuery(final String query) {
+        final QueryExecutor executor = new QueryExecutor(Neo4jNodeBacking.aspectOf().graphDatabaseContext);
+        return executor.query(query);
+    }
+
+    public  <T> T NodeBacked.findByQuery(final String query, final Class<T> targetType) {
+        final QueryExecutor executor = new QueryExecutor(Neo4jNodeBacking.aspectOf().graphDatabaseContext);
+        return executor.queryForObject(query, targetType);
     }
 
     public <S extends NodeBacked, E extends NodeBacked> Iterable<EntityPath<S,E>> NodeBacked.findAllPathsByTraversal(TraversalDescription traversalDescription) {
