@@ -19,7 +19,7 @@ package org.springframework.data.graph.neo4j.template;
 import org.junit.After;
 import org.junit.Before;
 import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.kernel.ImpermanentGraphDatabase;
+import org.neo4j.test.ImpermanentGraphDatabase;
 import org.neo4j.kernel.impl.transaction.SpringTransactionManager;
 import org.springframework.data.graph.core.GraphDatabase;
 import org.springframework.data.graph.neo4j.support.DelegatingGraphDatabase;

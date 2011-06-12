@@ -19,12 +19,16 @@ package org.springframework.data.graph.neo4j.rest.support;
 import com.sun.jersey.api.client.ClientResponse;
 import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.Traverser.Order;
+import org.neo4j.helpers.collection.CombiningIterable;
 import org.neo4j.helpers.collection.IterableWrapper;
 import org.neo4j.helpers.collection.IteratorUtil;
 
 import java.net.URI;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
+
+import static java.util.Arrays.asList;
 
 public class RestNode extends RestEntity implements Node {
     public RestNode( URI uri, RestGraphDatabase graphDatabase ) {
@@ -98,11 +102,32 @@ public class RestNode extends RestEntity implements Node {
         return wrapRelationships( restRequest.get( "relationships/" + RestDirection.from( direction ).pathName ) );
     }
 
+    @Override
+    public Iterable<Relationship> getRelationships(final Direction direction, RelationshipType... types) {
+        return new CombiningIterable<Relationship>(new IterableWrapper<Iterable<Relationship>, RelationshipType>(asList(types)) {
+            @Override
+            protected Iterable<Relationship> underlyingObjectToObject(RelationshipType relationshipType) {
+                return getRelationships(direction, relationshipType);
+            }
+        });
+    }
+
+    @Override
+    public boolean hasRelationship(Direction direction, RelationshipType... types) {
+        for (RelationshipType relationshipType : types) {
+            if (hasRelationship(direction,relationshipType)) return true;
+        }
+        return false;
+    }
+
     public Iterable<Relationship> getRelationships( RelationshipType type,
                                                     Direction direction ) {
-        String relationshipsKey = RestDirection.from( direction ).dataName + "_relationships";
-        Object relationship = getStructuralData().get( relationshipsKey );
+        Object relationship = getStructuralData().get(directionParameter(direction));
         return wrapRelationships( restRequest.get( relationship + "/" + type.name() ) );
+    }
+
+    private String directionParameter(Direction direction) {
+        return RestDirection.from(direction).dataName + "_relationships";
     }
 
     public Relationship getSingleRelationship( RelationshipType type,

@@ -81,7 +81,7 @@
 	</bean>
 
 	
-	<bean id="graphDatabaseService" class="org.neo4j.kernel.ImpermanentGraphDatabase"
+	<bean id="graphDatabaseService" class="org.neo4j.test.ImpermanentGraphDatabase"
 			destroy-method="shutdown" scope="singleton">
 		 <constructor-arg index="0" value="target/data/recommendation" />
 	</bean>

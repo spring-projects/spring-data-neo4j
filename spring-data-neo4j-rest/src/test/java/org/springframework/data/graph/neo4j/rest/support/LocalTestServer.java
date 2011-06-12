@@ -19,7 +19,8 @@ package org.springframework.data.graph.neo4j.rest.support;
 import org.apache.commons.configuration.Configuration;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.kernel.AbstractGraphDatabase;
-import org.neo4j.kernel.ImpermanentGraphDatabase;
+import org.neo4j.server.configuration.PropertyFileConfigurator;
+import org.neo4j.test.ImpermanentGraphDatabase;
 import org.neo4j.server.AddressResolver;
 import org.neo4j.server.Bootstrapper;
 import org.neo4j.server.NeoServerWithEmbeddedWebServer;
@@ -97,7 +98,7 @@ public class LocalTestServer {
             }
         };
         neoServer = new NeoServerWithEmbeddedWebServer(bootstrapper
-        , addressResolver, new StartupHealthCheck(), new File(url.getPath()), new Jetty6WebServer(), serverModules) {
+        , addressResolver, new StartupHealthCheck(), new PropertyFileConfigurator(new File(url.getPath())), new Jetty6WebServer(), serverModules) {
             @Override
             protected int getWebServerPort() {
                 return port;
