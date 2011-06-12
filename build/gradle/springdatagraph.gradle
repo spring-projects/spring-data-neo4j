@@ -7,7 +7,6 @@ configurations {
 
 dependencies{
     compile group: "org.springframework.data", name: "spring-data-neo4j", version: springDataGraphVersion
-	testCompile group:"junit", name: "junit", version: "4.8"
     testCompile group:"org.springframework", name: "spring-test", version: springVersion
     ajtools "org.aspectj:aspectjtools:$aspectjVersion"
     compile "org.aspectj:aspectjrt:$aspectjVersion"
