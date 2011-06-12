@@ -107,7 +107,7 @@ public class RestNode extends RestEntity implements Node {
         return new CombiningIterable<Relationship>(new IterableWrapper<Iterable<Relationship>, RelationshipType>(asList(types)) {
             @Override
             protected Iterable<Relationship> underlyingObjectToObject(RelationshipType relationshipType) {
-                return getRelationships(direction, relationshipType);
+                return getRelationships(relationshipType,direction);
             }
         });
     }
