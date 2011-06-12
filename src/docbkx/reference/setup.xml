@@ -10,8 +10,65 @@
 		<!--Examples for this setup can be found in the -->
         <!--<ulink url="http://github.com/SpringSource/spring-data-graph-examples">Spring Data Graph examples</ulink>.-->
     </para>
-
+    <para>
+        Spring Data Graph projects can be built using maven, we also added means to build them with gradle and ant/ivy.
+    </para>
 	<section>
+        <title>Gradle configuration</title>
+        <para>
+            The necessary build plugin to build Spring Data Graph projects with gradle is available as part of the
+            SDG distribution or on github which makes the usage as easy as:
+        </para>
+        <example>
+            <title>Gradle Build Configuration</title>
+            <programlisting language="groovy"><![CDATA[sourceCompatibility = 1.6
+targetCompatibility = 1.6
+
+springVersion = "3.0.5.RELEASE"
+springDataGraphVersion = "1.1.0.M1"
+aspectjVersion = "1.6.12.M1
+
+apply from:'https://github.com/SpringSource/spring-data-graph/raw/master/build/gradle/springdatagraph.gradle'
+
+configurations {
+    runtime
+    testCompile
+}
+repositories {
+    mavenCentral()
+	mavenLocal()
+	mavenRepo urls: "http://maven.springframework.org/release"
+}]]></programlisting>
+        </example>
+        <para>
+            The actual springdatagraph.gradle is very simple just decorating the javac tasks with the iajc ant task.
+        </para>
+    </section>
+    <section>
+        <title>Ant/Ivy configuration</title>
+        <para>
+            The supplied sample ant <ulink
+                url="https://github.com/SpringSource/spring-data-graph/raw/master/build/ivy">build configuration</ulink> is mainly about resolving
+            the dependencies for Spring Data Graph and AspectJ using Ivy and integrating the iajc ant task in the build.
+        </para>
+        <example>
+            <title>Ant/Ivy Build Configuration</title>
+            <programlisting language="xml"><![CDATA[	<taskdef resource="org/aspectj/tools/ant/taskdefs/aspectjTaskdefs.properties" classpath="${lib.dir}/aspectjtools.jar"/>
+
+<target name="compile" description="Compile production classes" depends="lib.retrieve">
+	<mkdir dir="${main.target}" />
+
+	<iajc sourceroots="${main.src}" destDir="${main.target}" classpathref="path.libs" source="1.6">
+		<aspectpath>
+			<pathelement location="${lib.dir}/spring-aspects.jar"/>
+		</aspectpath>
+		<aspectpath>
+			<pathelement location="${lib.dir}/spring-data-neo4j.jar"/>
+		</aspectpath>
+	</iajc>
+</target>]]></programlisting>
+        </example>
+    </section>
 		<title>Maven configuration</title>
 		<para>
 			Spring Data Graph projects are easiest to build with Apache Maven. The main dependencies are: Spring

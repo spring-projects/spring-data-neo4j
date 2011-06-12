@@ -10,9 +10,23 @@
         to nodes, relationships, and properties in the graph database.
     </para>
     <para>
+        Spring Data Graph allows anytime to drop down to the Neo4j-API level to execute functionality with
+        the highest performance possible. For Integration of Neo4j and Grails/GORM please refer to the Neo4j
+        <ulink url="http://www.grails.org/plugin/neo4j">grails plugin</ulink>.
+    </para>
+    <para>
         To get started with a simple application, only the basic annotations
         (see <xref linkend="reference:programming-model:annotations"/>) and the additional aspect-introduced
         entity methods (see <xref linkend="reference:programming-model:introduced-methods"/>) are required.
         Basic knowledge of graph stores is needed to access advanced functionality like traversals.
+    </para>
+    <para>
+        <note>
+            <para>
+               As Spring Data Graph is based on AspectJ and uses some advanced features of that toolset, please
+                be aware of that. Please see the section on AspectJ (<xref linkend="reference:aspectj"/>) for
+                details if you run into any problems.
+            </para>
+        </note>
     </para>
 </preface>

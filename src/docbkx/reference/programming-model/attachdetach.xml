@@ -82,6 +82,14 @@ movie.setTopActor(actor);
             It is a matter of Java references and is not related to the data model in the database.
         </para>
         <para>
+            The persist operation (merge) stores all properties of the entity to the graph database
+            and puts the entity in attached mode. There is no need to update the reference to the Java
+            POJO as the underlying backing node handles the read-through transparently. If multiple
+            object instances that point to the same node are persisted, the ordering is not important
+            as long as they contain distinct changes. For concurrent changes a concurrent modification
+            exception is thrown (subject to be parametrizable in the future).
+        </para>
+        <para>
             If the relationships form a cycle, then the entities will first all be assigned a node in
             the database, and then the relationships will be created. The cascading of <code>persist()</code>
             is however only cascaded to related entity fields that have been modified.

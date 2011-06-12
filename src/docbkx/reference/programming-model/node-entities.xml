@@ -16,6 +16,10 @@
             have the class name of the entity prepended.
         </para>
         <para>
+            <code>@NodeEntity</code> annotations are inherited from super-types and interfaces. It is not necessary
+            to annotate your domain objects at every inheritance level.
+        </para>
+        <para>
             If the <code>partial</code> attribute is set to true, this entity takes part in a cross-store setting,
             where the entity lives in both the graph database and a JPA data source. See
             <xref linkend="cross-store"/> for more information.
@@ -45,6 +49,10 @@ public class Movie {
             Transient fields are not persisted.
         </para>
         <para>
+            Currently there is no support for handling arbitrary collections of primitive or convertable values.
+            Support for this will be added by the 1.1. release.
+        </para>
+        <para>
             This annotation is typically used with cross-store persistence. When a node entity is configured
             as partial, then all fields that should be persisted to the graph must be explicitly annotated
             with <code>@GraphProperty</code>.
@@ -63,6 +71,30 @@ public class Movie {
         </para>
     </section>
 
+    <section>
+        <title>@GraphQuery: fields as query result views</title>
+        <para>
+            The <code>@GraphQuery</code> annotation leverages the delegation infrastructure used by the
+            Spring Data Graph aspects. It provides dynamic fields which, when accessed, return the values
+            selected by the provided query language expression. The provided query must contain a placeholder
+            for the id of the current entity <code>start n=(%d) match n-[:FRIEND]->friend return friend</code>
+            As graph queries can return variable number of entities the annotation can be put onto fields
+            with a single value, an Iterable of a type or an Iterable of <code>Map&lt;String,Object&gt;</code>.
+            The class of the resulting node entities must right now provided with the <code>elementClass</code> attribute.
+            Additional parameters are added to the query with Java's String.format substitution.
+        </para>
+        <example>
+            <title>@GraphQuery from a node entity</title>
+            <programlisting language="java"><![CDATA[@NodeEntity
+public class Group {
+    @GraphQuery(value = "start n=(%d) match (n)-[:%s]->(friend) return friend",
+            elementClass = Person.class, params = "FRIEND")
+    private Iterable<Person> friends;
+}
+]]></programlisting>
+
+        </example>
+    </section>
     <section>
         <title>@GraphTraversal: fields as traversal result views</title>
         <para>

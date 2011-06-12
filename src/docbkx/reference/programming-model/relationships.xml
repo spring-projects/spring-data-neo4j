@@ -9,6 +9,11 @@
         Spring Data Graph has special support to represent Neo4j relationships as entities too, but it is often
         not needed.
     </para>
+    <note>
+        <para>
+            As of Neo4j 1.4.M03, circular references are allowed. Spring Data Graph reflects this accordingly.
+        </para>
+    </note>
     <section id="reference:programming_model:relationships:relatedto">
         <title>@RelatedTo: Connecting node entities</title>
         <para>
@@ -69,7 +74,12 @@ public class Actor {
             </para>
         </note>
         <para>
-            By setting direction to BOTH, relationships are created in the outgoing direction, but when the
+            When you use an Interface as target type for the <code>Set</code> and/or as <code>elementClass</code>
+            please make sure that it implements <code>NodeBacked</code> either by extending that Super-Interface manually
+            or by annotating the Interface with <code>@NodeEntity</code> too.
+        </para>
+        <para>
+            By setting direction to <code>BOTH</code>, relationships are created in the outgoing direction, but when the
             1:N field is read, it will include relationships in both directions. A cardinality of M:N is
             not necessary because relationships can be navigated in both directions.
         </para>
@@ -79,8 +89,15 @@ public class Actor {
             <code>entity.relateTo(target, type)</code> available on each NodeEntity.
             These methods find and create Neo4j relationships. It is also possible to manually remove
             relationships by using <code>entity.removeRelationshipTo(target, type)</code>.
-            Using these methods is rarely necessary though.
+            Using these methods is significantly faster than adding/removing from the collection of
+            relationships as it doesn't have to re-synchronize a whole set of relationships with the graph.
         </para>
+        <note>
+            <para>
+                Other collection types than <code>Set</code> are not supported so far, also currently NO
+                <code>Map&lt;RelationshipType,Set&lt;NodeBacked&gt;&gt;</code>.
+            </para>
+        </note>
     </section>
 
     <section>

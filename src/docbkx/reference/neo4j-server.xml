@@ -86,7 +86,12 @@ public void foo( @Context WorldRepository repo ) {
                 that Spring Data Graph is not transactional when running with a <code>RestGraphDatabase</code>.
             </para>
         </note>
-
+        <para>
+            Please also keep in mind that performing graph operations via the REST-API is about one order of
+            magnitude slower than location operations. Try to use the Neo4j-Query-Language or
+            server-side traversals whenever possible (<code>RestTraversal</code>) for retrieving large sets of data.
+            Future versions of Spring Data Graph will use the more performant batching as well as a binary protocol.
+        </para>
         <para>
         To set up your project to use the REST bindings, add this dependency to your pom.xml:
 <example>

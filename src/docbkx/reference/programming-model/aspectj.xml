@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE section PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
-<section>
+<section id="reference:aspectj">
     <title>AspectJ support</title>
     <para>
         Behind the scenes, Spring Data Graph leverages <ulink url="http://www.eclipse.org/aspectj/">AspectJ</ulink>
@@ -35,10 +35,18 @@
             classes, and generified introduced methods.
         </para>
         <para>
+            IDE's not providing the full AJ support might mark parts of your code as errors.
+            You should rely on your build-system and test to verify the correctness of the code. You might also have
+            your Entities (or their interfaces) implement the <code>NodeBacked</code> and <code>RelationshipBacked</code>
+            interfaces directly to benefit from completion support and error checking.
+        </para>
+        <para>
             Eclipse and STS support AspectJ via the AJDT plugin which can be installed from the update-site:
             <ulink url="http://download.eclipse.org/tools/ajdt/36/update/">http://download.eclipse.org/tools/ajdt/36/update/</ulink>
-            (or for the latest development snapshot of the plugin
+            (it might be necessary to use the latest development snapshot of the plugin
             <ulink url="http://download.eclipse.org/tools/ajdt/36/dev/update">http://download.eclipse.org/tools/ajdt/36/dev/update</ulink>).
+            The current version that does not show incorrect errors is AspectJ 1.6.12.M1 (included in STS 2.7.0.M2), previous versions are reported
+            to mislead the user.
         </para>
         <para>
             The AspectJ support in IntelliJ IDEA lacks some of the features. JetBrains is working on improving
