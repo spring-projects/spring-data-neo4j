@@ -69,6 +69,7 @@ repositories {
 </target>]]></programlisting>
         </example>
     </section>
+    <section>
 		<title>Maven configuration</title>
 		<para>
 			Spring Data Graph projects are easiest to build with Apache Maven. The main dependencies are: Spring
