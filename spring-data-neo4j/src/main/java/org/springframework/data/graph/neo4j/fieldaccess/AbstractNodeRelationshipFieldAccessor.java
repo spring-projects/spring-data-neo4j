@@ -69,10 +69,6 @@ public abstract class AbstractNodeRelationshipFieldAccessor<ENTITY extends Graph
         }
     }
 
-    protected void checkNoCircularReference(Node node, Set<STATE> targetNodes) {
-        if (targetNodes.contains(node)) throw new InvalidDataAccessApiUsageException("Cannot create a circular reference to "+ targetNodes);
-    }
-
     protected Set<STATE> checkTargetIsSetOfNodebacked(Object newVal) {
         if (!(newVal instanceof Set)) {
             throw new IllegalArgumentException("New value must be a Set, was: " + newVal.getClass());

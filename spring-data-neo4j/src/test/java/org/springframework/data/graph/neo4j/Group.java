@@ -43,7 +43,7 @@ public class Group {
     public final static String OTHER_NAME_INDEX="other_name";
     public static final String SEARCH_GROUPS_INDEX = "search-groups";
 
-    @RelatedTo(direction = Direction.OUTGOING, elementClass = Person.class)
+    @RelatedTo(direction = Direction.OUTGOING)
     private Collection<Person> persons;
 
     @RelatedTo(type = "persons", elementClass = Person.class)

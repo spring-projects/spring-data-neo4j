@@ -64,11 +64,11 @@ import static org.springframework.data.graph.neo4j.Person.persistedPerson;
     @Transactional
     public void testUserConstructor() {
         Person p = persistedPerson("Rod", 39);
-        assertEquals(p.getName(), p.getPersistentState().getProperty("Person.name"));
-        assertEquals(p.getAge(), p.getPersistentState().getProperty("Person.age"));
+        assertEquals(p.getName(), p.getPersistentState().getProperty("name"));
+        assertEquals(p.getAge(), p.getPersistentState().getProperty("age"));
         Person found = graphDatabaseContext.createEntityFromState(graphDatabaseContext.getNodeById(p.getNodeId()), Person.class);
-        assertEquals("Rod", found.getPersistentState().getProperty("Person.name"));
-        assertEquals(39, found.getPersistentState().getProperty("Person.age"));
+        assertEquals("Rod", found.getPersistentState().getProperty("name"));
+        assertEquals(39, found.getPersistentState().getProperty("age"));
     }
 
     @Test
@@ -82,8 +82,8 @@ import static org.springframework.data.graph.neo4j.Person.persistedPerson;
         p.setName( name );
         p.setAge( age );
         p.setHeight( height );
-        assertEquals( name, p.getPersistentState().getProperty( "Person.name" ) );
-        assertEquals( age, p.getPersistentState().getProperty("Person.age"));
+        assertEquals( name, p.getPersistentState().getProperty( "name" ) );
+        assertEquals( age, p.getPersistentState().getProperty("age"));
         assertEquals((Short)height, p.getHeight());
     }
 
@@ -93,7 +93,7 @@ import static org.springframework.data.graph.neo4j.Person.persistedPerson;
         Person p = persistedPerson("Foo", 2);
         p.setHeight((short)182);
         assertEquals((Short)(short)182, p.getHeight());
-        assertEquals((short)182, p.getPersistentState().getProperty("Person.height"));
+        assertEquals((short)182, p.getPersistentState().getProperty("height"));
     }
     @Test
     @Transactional

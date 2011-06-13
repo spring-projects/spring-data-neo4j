@@ -65,7 +65,7 @@ public class NodeEntityRelationshipTest {
         Person p = persistedPerson("Michael", 35);
         Person spouse = persistedPerson("Tina", 36);
         p.setSpouse(spouse);
-        Node spouseNode=p.getPersistentState().getSingleRelationship(DynamicRelationshipType.withName("Person.spouse"), Direction.OUTGOING).getEndNode();
+        Node spouseNode=p.getPersistentState().getSingleRelationship(DynamicRelationshipType.withName("spouse"), Direction.OUTGOING).getEndNode();
         assertEquals(spouse.getPersistentState(), spouseNode);
         assertEquals(spouse, p.getSpouse());
     }
@@ -76,7 +76,7 @@ public class NodeEntityRelationshipTest {
         Person p = persistedPerson("Michael", 35);
         Person mother = persistedPerson("Gabi", 60);
         p.setMother(mother);
-        Node motherNode = p.getPersistentState().getSingleRelationship(DynamicRelationshipType.withName("Person.mother"), Direction.OUTGOING).getEndNode();
+        Node motherNode = p.getPersistentState().getSingleRelationship(DynamicRelationshipType.withName("mother"), Direction.OUTGOING).getEndNode();
         assertEquals(mother.getPersistentState(), motherNode);
         assertEquals(mother, p.getMother());
     }
@@ -88,7 +88,7 @@ public class NodeEntityRelationshipTest {
         Person spouse = persistedPerson("Tina", 36);
         p.setSpouse(spouse);
         p.setSpouse(null);
-        Assert.assertNull(p.getPersistentState().getSingleRelationship(DynamicRelationshipType.withName("Person.spouse"), Direction.OUTGOING));
+        Assert.assertNull(p.getPersistentState().getSingleRelationship(DynamicRelationshipType.withName("spouse"), Direction.OUTGOING));
         Assert.assertNull(p.getSpouse());
     }
 
@@ -100,7 +100,7 @@ public class NodeEntityRelationshipTest {
         Person friend = persistedPerson("Helga", 34);
         p.setSpouse(spouse);
         p.setSpouse(friend);
-        assertEquals(friend.getPersistentState(), p.getPersistentState().getSingleRelationship(DynamicRelationshipType.withName("Person.spouse"), Direction.OUTGOING).getEndNode());
+        assertEquals(friend.getPersistentState(), p.getPersistentState().getSingleRelationship(DynamicRelationshipType.withName("spouse"), Direction.OUTGOING).getEndNode());
         assertEquals(friend, p.getSpouse());
     }
 
@@ -114,11 +114,12 @@ public class NodeEntityRelationshipTest {
         assertEquals(boss, p.getBoss());
     }
 
-    @Test(expected = InvalidDataAccessApiUsageException.class)
     @Transactional
-    public void testCircularRelationship() {
+    public void testAllowsCircularRelationship() {
         Person p = persistedPerson("Michael", 35);
-        p.setSpouse(p);
+        p.setBoss(p);
+
+        assertEquals("created self-referencing relationship",p,p.getBoss());
     }
     @Test
     @Transactional

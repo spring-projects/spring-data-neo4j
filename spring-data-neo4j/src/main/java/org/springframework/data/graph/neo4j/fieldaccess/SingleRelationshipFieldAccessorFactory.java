@@ -44,8 +44,8 @@ public class SingleRelationshipFieldAccessorFactory extends NodeRelationshipFiel
 	public FieldAccessor<NodeBacked> forField(final Field field) {
 	    final RelatedTo relAnnotation = getRelationshipAnnotation(field);
 	    if (relAnnotation == null)
-	        return new SingleRelationshipFieldAccessor(typeFrom(field), Direction.OUTGOING, targetFrom(field), graphDatabaseContext, field);
-	    return new SingleRelationshipFieldAccessor(typeFrom(field, relAnnotation), dirFrom(relAnnotation), targetFrom(field), graphDatabaseContext,field);
+	        return new SingleRelationshipFieldAccessor(typeFrom(field), Direction.OUTGOING, targetFrom(field, relAnnotation), graphDatabaseContext, field);
+	    return new SingleRelationshipFieldAccessor(typeFrom(field, relAnnotation), dirFrom(relAnnotation), targetFrom(field, relAnnotation), graphDatabaseContext,field);
 	}
 
 	public static class SingleRelationshipFieldAccessor extends NodeToNodesRelationshipFieldAccessor<NodeBacked> {
@@ -61,7 +61,6 @@ public class SingleRelationshipFieldAccessorFactory extends NodeRelationshipFiel
 	            return null;
 	        }
 	        final Set<Node> target=checkTargetIsSetOfNodebacked(Collections.singleton(newVal));
-	        checkNoCircularReference(node,target);
 	        removeMissingRelationships(node, target);
 			createAddedRelationships(node,target);
 	        return newVal;

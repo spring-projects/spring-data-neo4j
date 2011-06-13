@@ -96,7 +96,7 @@ public class IndexTest {
         Person me = persistedPerson(NAME_VALUE, 35);
         Person spouse = persistedPerson(NAME_VALUE3, 36);
         me.setSpouse(spouse);
-        final Person foundMe = this.personRepository.findByPropertyValue(NAME_INDEX, "Person.name", NAME_VALUE);
+        final Person foundMe = this.personRepository.findByPropertyValue(NAME_INDEX, "name", NAME_VALUE);
         assertEquals(spouse, foundMe.getSpouse());
     }
 
@@ -242,14 +242,14 @@ public class IndexTest {
     @Transactional
     public void testFindAllPersonByIndexOnAnnotatedField() {
         Person person = persistedPerson(NAME_VALUE, 35);
-        final Person found = personRepository.findByPropertyValue(NAME_INDEX, "Person.name", NAME_VALUE);
+        final Person found = personRepository.findByPropertyValue(NAME_INDEX, "name", NAME_VALUE);
         assertEquals(person, found);
     }
 
     @Test
     public void findsPersonByIndexOnAnnotatedIntFieldInSeparateTransactions() {
         Person person = persistedPerson(NAME_VALUE, 35);
-        final Person found = personFinder.findByPropertyValue("Person.age", 35);
+        final Person found = personFinder.findByPropertyValue("age", 35);
         assertEquals("person found inside range", person, found);
     }
 
@@ -257,7 +257,7 @@ public class IndexTest {
     @Transactional
     public void testRangeQueryPersonByIndexOnAnnotatedField() {
         Person person = persistedPerson(NAME_VALUE, 35);
-        final Person found = personFinder.findAllByRange("Person.age", 10, 40).iterator().next();
+        final Person found = personFinder.findAllByRange("age", 10, 40).iterator().next();
         assertEquals("person found inside range", person, found);
     }
 
@@ -265,7 +265,7 @@ public class IndexTest {
     @Transactional
     public void testOutsideRangeQueryPersonByIndexOnAnnotatedField() {
         Person person = persistedPerson(NAME_VALUE, 35);
-        Iterable<Person> emptyResult = personFinder.findAllByRange("Person.age", 0, 34);
+        Iterable<Person> emptyResult = personFinder.findAllByRange("age", 0, 34);
         assertFalse("nothing found outside range", emptyResult.iterator().hasNext());
     }
 
@@ -275,7 +275,7 @@ public class IndexTest {
     public void testFindAllPersonByIndexOnAnnotatedFieldWithAtIndexed() {
         Person person = persistedPerson(NAME_VALUE, 35);
         person.setNickname("Mike");
-        final Person found = personFinder.findByPropertyValue( "Person.nickname", "Mike");
+        final Person found = personFinder.findByPropertyValue( "nickname", "Mike");
         assertEquals(person, found);
     }
 
@@ -293,11 +293,11 @@ public class IndexTest {
     @Transactional
     public void testNodeCanbBeIndexedTwice() {
         final Person p = persistedPerson(NAME_VALUE2, 30);
-        Assert.assertEquals(p, personRepository.findByPropertyValue(NAME_INDEX, "Person.name", NAME_VALUE2));
+        Assert.assertEquals(p, personRepository.findByPropertyValue(NAME_INDEX, "name", NAME_VALUE2));
         p.setName(NAME_VALUE);
-        Assert.assertEquals(p,  personRepository.findByPropertyValue(NAME_INDEX, "Person.name", NAME_VALUE));
+        Assert.assertEquals(p,  personRepository.findByPropertyValue(NAME_INDEX, "name", NAME_VALUE));
         p.setName(NAME_VALUE2);
-        Assert.assertEquals(p,  personRepository.findByPropertyValue(NAME_INDEX, "Person.name", NAME_VALUE2));
+        Assert.assertEquals(p,  personRepository.findByPropertyValue(NAME_INDEX, "name", NAME_VALUE2));
     }
     @Test
     public void testNodeCanbBeIndexedTwiceInDifferentTransactions() {
@@ -310,7 +310,7 @@ public class IndexTest {
         } finally {
             tx.finish();
         }
-        Assert.assertEquals(p, personRepository.findByPropertyValue(NAME_INDEX, "Person.name", NAME_VALUE2));
+        Assert.assertEquals(p, personRepository.findByPropertyValue(NAME_INDEX, "name", NAME_VALUE2));
         try {
             tx = graphDatabaseContext.beginTx();
             p.setName(NAME_VALUE);
@@ -318,7 +318,7 @@ public class IndexTest {
         } finally {
             tx.finish();
         }
-        Assert.assertEquals(p,  personRepository.findByPropertyValue(NAME_INDEX, "Person.name", NAME_VALUE));
+        Assert.assertEquals(p,  personRepository.findByPropertyValue(NAME_INDEX, "name", NAME_VALUE));
         try {
             tx = graphDatabaseContext.beginTx();
             p.setName(NAME_VALUE2);
@@ -326,7 +326,7 @@ public class IndexTest {
         } finally {
             tx.finish();
         }
-        Assert.assertEquals(p,  personRepository.findByPropertyValue(NAME_INDEX, "Person.name", NAME_VALUE2));
+        Assert.assertEquals(p,  personRepository.findByPropertyValue(NAME_INDEX, "name", NAME_VALUE2));
     }
 
     @Test

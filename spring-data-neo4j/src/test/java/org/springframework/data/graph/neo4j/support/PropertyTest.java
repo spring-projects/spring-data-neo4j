@@ -18,6 +18,7 @@ package org.springframework.data.graph.neo4j.support;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.neo4j.graphdb.NotFoundException;
@@ -59,14 +60,14 @@ public class PropertyTest {
     public void testSetPropertyEnum() {
         Person p = persistedPerson("Michael", 35);
         p.setPersonality(Personality.EXTROVERT);
-        assertEquals("Wrong enum serialization.", "EXTROVERT", p.getPersistentState().getProperty("Person.personality"));
+        assertEquals("Wrong enum serialization.", "EXTROVERT", p.getPersistentState().getProperty("personality"));
     }
 
     @Test
     @Transactional
     public void testGetPropertyEnum() {
         Person p = persistedPerson("Michael", 35);
-        p.getPersistentState().setProperty("Person.personality", "EXTROVERT");
+        p.getPersistentState().setProperty("personality", "EXTROVERT");
         assertEquals("Did not deserialize property value properly.", Personality.EXTROVERT, p.getPersonality());
     }
 
@@ -75,7 +76,7 @@ public class PropertyTest {
     public void testSetTransientPropertyFieldNotManaged() {
         Person p = persistedPerson("Michael", 35);
         p.setThought("food");
-        p.getPersistentState().getProperty("Person.thought");
+        p.getPersistentState().getProperty("thought");
     }
 
     @Test
@@ -83,7 +84,7 @@ public class PropertyTest {
     public void testGetTransientPropertyFieldNotManaged() {
         Person p = persistedPerson("Michael", 35);
         p.setThought("food");
-        p.getPersistentState().setProperty("Person.thought", "sleep");
+        p.getPersistentState().setProperty("thought", "sleep");
         assertEquals("Should not have read transient value from graph.", "food", p.getThought());
     }
     @Test
@@ -143,16 +144,4 @@ public class PropertyTest {
         Friendship f = p.knows(p2);
 		assertEquals("Wrong ID.", (Long)f.getPersistentState().getId(), f.getRelationshipId());
     }
-
-	@Test(expected = InvalidDataAccessApiUsageException.class)
-	@Transactional
-	public void testFailFastOnMisconfiguredOneToNProperty() {
-	    new InvalidOneToNEntity();
-	}
-
-	@Test(expected = InvalidDataAccessApiUsageException.class)
-	@Transactional
-	public void testFailFastOnMisconfiguredReadOnlyOneToNProperty() {
-	    new InvalidReadOnlyOneToNEntity();
-	}
 }

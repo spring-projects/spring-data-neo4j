@@ -136,6 +136,8 @@ public class PartialNodeEntityState<ENTITY extends NodeBacked> extends DefaultEn
             return Arrays.<FieldAccessorFactory<?>>asList(
                     //new IdFieldAccessorFactory(),
                     //new TransientFieldAccessorFactory(),
+                    new TraversalFieldAccessorFactory(),
+                    new QueryFieldAccessorFactory(),
                     newPropertyFieldAccessorFactory(),
                     newConvertingNodePropertyFieldAccessorFactory(),
                     new SingleRelationshipFieldAccessorFactory(getGraphDatabaseContext()) {
@@ -146,7 +148,6 @@ public class PartialNodeEntityState<ENTITY extends NodeBacked> extends DefaultEn
                     },
                     new OneToNRelationshipFieldAccessorFactory(getGraphDatabaseContext()),
                     new ReadOnlyOneToNRelationshipFieldAccessorFactory(getGraphDatabaseContext()),
-                    new TraversalFieldAccessorFactory(),
                     new OneToNRelationshipEntityFieldAccessorFactory(getGraphDatabaseContext())
             );
         }

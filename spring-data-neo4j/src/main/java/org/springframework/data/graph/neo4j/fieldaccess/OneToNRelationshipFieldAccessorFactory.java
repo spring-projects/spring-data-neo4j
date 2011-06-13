@@ -44,7 +44,7 @@ public class OneToNRelationshipFieldAccessorFactory extends NodeRelationshipFiel
 	@Override
 	public FieldAccessor<NodeBacked> forField(final Field field) {
 	    final RelatedTo relAnnotation = getRelationshipAnnotation(field);
-	    return new OneToNRelationshipFieldAccessor(typeFrom(field, relAnnotation), dirFrom(relAnnotation), targetFrom(relAnnotation), graphDatabaseContext,field);
+	    return new OneToNRelationshipFieldAccessor(typeFrom(field, relAnnotation), dirFrom(relAnnotation), targetFrom(field, relAnnotation), graphDatabaseContext,field);
 	}
 
 	public static class OneToNRelationshipFieldAccessor extends NodeToNodesRelationshipFieldAccessor<NodeBacked> {
@@ -60,7 +60,6 @@ public class OneToNRelationshipFieldAccessorFactory extends NodeRelationshipFiel
 	            return null;
 	        }
 	        final Set<Node> targetNodes = checkTargetIsSetOfNodebacked(newVal);
-	        checkNoCircularReference(node, targetNodes);
 	        removeMissingRelationships(node, targetNodes);
 	        createAddedRelationships(node, targetNodes);
 	        return createManagedSet(entity, (Set<NodeBacked>) newVal);

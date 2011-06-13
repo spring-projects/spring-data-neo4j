@@ -16,10 +16,7 @@
 
 package org.springframework.data.graph.neo4j;
 
-import org.springframework.data.graph.annotation.GraphId;
-import org.springframework.data.graph.annotation.NodeEntity;
-import org.springframework.data.graph.annotation.RelatedTo;
-import org.springframework.data.graph.annotation.RelatedToVia;
+import org.springframework.data.graph.annotation.*;
 import org.springframework.data.graph.core.Direction;
 import org.springframework.data.graph.neo4j.annotation.Indexed;
 
@@ -27,9 +24,10 @@ import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.Size;
 import java.util.Date;
+import java.util.Map;
 
 
-@NodeEntity(useShortNames = false)
+@NodeEntity
 public class Person {
 
     public static final String NAME_INDEX = "name_index";
@@ -68,6 +66,34 @@ public class Person {
 
 	@RelatedToVia(type = "knows", elementClass = Friendship.class)
 	private Iterable<Friendship> friendships;
+
+    @GraphQuery(value = "start person=(%d) match (person)<-[:boss]-(boss) return boss")
+    private Person bossByQuery;
+
+    @GraphQuery(value = "start person=(%d) match (person)<-[:boss]-(boss) return boss.%s",params = "name")
+    private String bossName;
+
+    @GraphQuery(value = "start person=(%d) match (person)<-[:persons]-(team)-[:persons]->(member) return member",elementClass = Person.class)
+    private Iterable<Person> otherTeamMembers;
+
+    @GraphQuery(value = "start person=(%d) match (person)<-[:persons]-(team)-[:persons]->(member) return member.name, member.age")
+    private Iterable<Map<String,Object>> otherTeamMemberData;
+
+    public String getBossName() {
+        return bossName;
+    }
+
+    public Iterable<Person> getOtherTeamMembers() {
+        return otherTeamMembers;
+    }
+
+    public Iterable<Map<String, Object>> getOtherTeamMemberData() {
+        return otherTeamMemberData;
+    }
+
+    public Person getBossByQuery() {
+        return bossByQuery;
+    }
 
     public Person() {
     }

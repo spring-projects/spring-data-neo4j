@@ -18,7 +18,7 @@ package org.springframework.data.graph.neo4j.fieldaccess;
 
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.DynamicRelationshipType;
-import org.springframework.dao.InvalidDataAccessApiUsageException;
+import org.springframework.core.GenericCollectionTypeResolver;
 import org.springframework.data.graph.annotation.RelatedTo;
 import org.springframework.data.graph.core.NodeBacked;
 import org.springframework.data.graph.neo4j.support.GraphDatabaseContext;
@@ -39,12 +39,13 @@ public abstract class NodeRelationshipFieldAccessorFactory implements FieldAcces
 		this.graphDatabaseContext = graphDatabaseContext;
 	}
 
-	protected Class<? extends NodeBacked> targetFrom(Field field) {
+	@SuppressWarnings({"unchecked"})
+    protected Class<? extends NodeBacked> targetFrom(Field field, RelatedTo relatedTo) {
+        if (relatedTo!=null && relatedTo.elementClass()!=NodeBacked.class) return relatedTo.elementClass();
+        if (Iterable.class.isAssignableFrom(field.getType())) {
+            return (Class<? extends NodeBacked>) GenericCollectionTypeResolver.getCollectionFieldType(field);
+        }
         return (Class<? extends NodeBacked>) field.getType();
-    }
-
-    protected Class<? extends NodeBacked> targetFrom(RelatedTo relAnnotation) {
-        return (Class<? extends NodeBacked>) relAnnotation.elementClass();
     }
 
     protected Direction dirFrom(RelatedTo relAnnotation) {
@@ -69,11 +70,6 @@ public abstract class NodeRelationshipFieldAccessorFactory implements FieldAcces
 
     protected boolean hasValidRelationshipAnnotation(Field field) {
         final RelatedTo relAnnotation = getRelationshipAnnotation(field);
-        if (relAnnotation == null) return false;
-        boolean hasElementClass = !relAnnotation.elementClass().equals(NodeBacked.class);
-        if (!hasElementClass) throw new InvalidDataAccessApiUsageException(String.format(
-                "Missing mandatory attribute @RelatedTo.elementClass for one-to-N relationship field %s in class: %s",
-                field.getName(), field.getDeclaringClass().getName()));
-        return true;
+        return (relAnnotation != null);
     }
 }

@@ -69,7 +69,7 @@ public class ModificationOutsideOfTransactionTest
 		assertEquals(36, p.getAge());
 		assertFalse(hasPersistentState(p));
 		p.persist();
-		assertEquals(36, nodeFor(p).getProperty("Person.age"));
+		assertEquals(36, nodeFor(p).getProperty("age"));
 	}
 
 	@Test
@@ -160,7 +160,7 @@ public class ModificationOutsideOfTransactionTest
         Person p = persistedPerson( "Michael", 35 );
         p.setAge( 25 );
         assertEquals(25, p.getAge());
-        assertEquals( 35, nodeFor( p ).getProperty("Person.age") );
+        assertEquals( 35, nodeFor( p ).getProperty("age") );
     }
 
 	@Ignore
@@ -200,7 +200,7 @@ public class ModificationOutsideOfTransactionTest
         p.setSpouse( spouse );
 
         assertEquals( spouse, p.getSpouse() );
-        assertThat( nodeFor( p ), hasNoRelationship( "Person.spouse",spouse.getPersistentState() ) );
+        assertThat( nodeFor( p ), hasNoRelationship( "spouse",spouse.getPersistentState() ) );
 
 
         Person spouse2 = persistedPerson( "Rana", 5 );
@@ -218,7 +218,7 @@ public class ModificationOutsideOfTransactionTest
         p.persist();
 
         assertEquals( spouse, p.getSpouse() );
-        assertThat( nodeFor( p ), hasRelationship( "Person.spouse" ) );
+        assertThat( nodeFor( p ), hasRelationship( "spouse" ) );
 
 
         Person spouse2 = persistedPerson( "Rana", 5 );

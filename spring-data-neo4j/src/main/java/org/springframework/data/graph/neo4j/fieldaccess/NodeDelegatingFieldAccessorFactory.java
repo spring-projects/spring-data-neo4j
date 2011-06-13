@@ -48,12 +48,13 @@ public class NodeDelegatingFieldAccessorFactory extends DelegatingFieldAccessorF
         return Arrays.<FieldAccessorFactory<?>>asList(
                 new IdFieldAccessorFactory(),
                 new TransientFieldAccessorFactory(),
+                new TraversalFieldAccessorFactory(),
+                new QueryFieldAccessorFactory(),
                 new PropertyFieldAccessorFactory(graphDatabaseContext.getConversionService()),
                 new ConvertingNodePropertyFieldAccessorFactory(graphDatabaseContext.getConversionService()),
                 new SingleRelationshipFieldAccessorFactory(graphDatabaseContext),
                 new OneToNRelationshipFieldAccessorFactory(graphDatabaseContext),
                 new ReadOnlyOneToNRelationshipFieldAccessorFactory(graphDatabaseContext),
-                new TraversalFieldAccessorFactory(),
                 new OneToNRelationshipEntityFieldAccessorFactory(graphDatabaseContext)
         );
     }

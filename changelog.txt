@@ -7,7 +7,6 @@ Changes in version 1.1.0.M1 (2011-06-13)
 * updated dependency to AspectJ 1.6.12.M1 (also available with STS 2.7.0.M2)
 * fixed errors in the REST binding (multiple property setting, index operations)
 * added sample build scripts for gradle and ant/ivy
-* cleanup of refrenced nodes/rels after transaction rollback
 * added support for the Neo4j query language "Cypher" in entity annotations, introduced methods and repositories
 * added support for self-relationships
 * elementClass annotation attribute is now optional

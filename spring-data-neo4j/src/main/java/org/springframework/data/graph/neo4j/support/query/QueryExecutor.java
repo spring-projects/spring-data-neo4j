@@ -29,6 +29,7 @@ import org.springframework.dao.InvalidDataAccessResourceUsageException;
 import org.springframework.data.graph.core.TypeRepresentationStrategy;
 import org.springframework.data.graph.neo4j.support.GraphDatabaseContext;
 
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -105,7 +106,8 @@ public class QueryExecutor {
         return new IterableWrapper<Map<String, Object>, Map<String, Object>>(result) {
             @Override
             protected Map<String, Object> underlyingObjectToObject(Map<String, Object> row) {
-                for (Map.Entry<String, Object> entry : row.entrySet()) {
+                Map<String,Object> newRow=new HashMap<String,Object>(row); // todo performance
+                for (Map.Entry<String, Object> entry : newRow.entrySet()) {
                     Object value = convertValue(entry.getValue());
                     if (value != entry.getValue()) {
                         entry.setValue(value);

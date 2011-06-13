@@ -16,9 +16,6 @@
 
 package org.springframework.data.graph.annotation;
 
-import org.springframework.data.graph.core.FieldTraversalDescriptionBuilder;
-import org.springframework.data.graph.core.NodeBacked;
-
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -36,7 +33,7 @@ import java.lang.annotation.Target;
  * @since 15.09.2010
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.FIELD)
+@Target({ElementType.FIELD,ElementType.METHOD})
 public @interface GraphQuery {
     /**
      * @return Query to be executed %d will be replaced by the node-id of the current entity other placeholders by the given params

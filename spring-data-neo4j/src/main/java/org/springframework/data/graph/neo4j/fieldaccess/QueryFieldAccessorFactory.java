@@ -76,16 +76,16 @@ public class QueryFieldAccessorFactory implements FieldAccessorFactory<NodeBacke
 
 	    @Override
 	    public Object getValue(final NodeBacked nodeBacked) {
-            final String queryString = String.format(this.query, createPlaceholderParams(nodeBacked));
+            final String queryString = String.format(this.query, (Object[])createPlaceholderParams(nodeBacked));
             return doReturn(executeQuery(nodeBacked, queryString));
 	    }
 
         private Object executeQuery(NodeBacked nodeBacked, String queryString) {
             if (iterableResult) {
                 if (target.equals(Object.class)) return nodeBacked.findAllByQuery(queryString);
-                nodeBacked.findAllByQuery(queryString, this.target);
+                return nodeBacked.findAllByQuery(queryString, this.target);
             }
-            return nodeBacked.findByQuery(query,this.target);
+            return nodeBacked.findByQuery(queryString,this.target);
         }
 
         private Object[] createPlaceholderParams(NodeBacked nodeBacked) {
