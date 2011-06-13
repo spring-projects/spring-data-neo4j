@@ -57,7 +57,7 @@ public class ServerPluginTest extends RestTestBase {
         assertEquals(200,response.getStatus());
         final String result = response.getEntity(String.class);
         final Map data = (Map) new ObjectMapper().readValue(result, Object.class);
-        assertEquals(person.getName(),((Map)data.get("data")).get("Person.name"));
+        assertEquals(person.getName(),((Map)data.get("data")).get("name"));
 
     }
 

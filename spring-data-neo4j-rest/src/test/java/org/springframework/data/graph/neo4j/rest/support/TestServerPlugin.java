@@ -46,7 +46,7 @@ public class TestServerPlugin extends ServerPlugin {
     @PluginTarget(GraphDatabaseService.class)
     public Node person(@Source GraphDatabaseService graphDb, @Parameter(name="name") String name) {
         context(graphDb);
-        final Person result = personRepository.findByPropertyValue(Person.NAME_INDEX, "Person.name",name);
+        final Person result = personRepository.findByPropertyValue(Person.NAME_INDEX, "name",name);
         return result!=null ? result.getPersistentState() : null;
     }
 
