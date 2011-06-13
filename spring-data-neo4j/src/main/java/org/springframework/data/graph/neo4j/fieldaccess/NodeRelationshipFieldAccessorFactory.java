@@ -18,9 +18,9 @@ package org.springframework.data.graph.neo4j.fieldaccess;
 
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.DynamicRelationshipType;
-import org.springframework.core.GenericCollectionTypeResolver;
 import org.springframework.data.graph.annotation.RelatedTo;
 import org.springframework.data.graph.core.NodeBacked;
+import org.springframework.data.graph.neo4j.support.GenericTypeExtractor;
 import org.springframework.data.graph.neo4j.support.GraphDatabaseContext;
 
 import java.lang.reflect.Field;
@@ -42,10 +42,7 @@ public abstract class NodeRelationshipFieldAccessorFactory implements FieldAcces
 	@SuppressWarnings({"unchecked"})
     protected Class<? extends NodeBacked> targetFrom(Field field, RelatedTo relatedTo) {
         if (relatedTo!=null && relatedTo.elementClass()!=NodeBacked.class) return relatedTo.elementClass();
-        if (Iterable.class.isAssignableFrom(field.getType())) {
-            return (Class<? extends NodeBacked>) GenericCollectionTypeResolver.getCollectionFieldType(field);
-        }
-        return (Class<? extends NodeBacked>) field.getType();
+        return (Class<? extends NodeBacked>) GenericTypeExtractor.resolveFieldType(field);
     }
 
     protected Direction dirFrom(RelatedTo relAnnotation) {

@@ -18,6 +18,7 @@ package org.springframework.data.graph.neo4j.support;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hamcrest.core.Is;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -33,6 +34,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Map;
 
 import static java.util.Arrays.asList;
 import static org.hamcrest.CoreMatchers.is;
@@ -70,6 +72,31 @@ public class GraphRepositoryTest {
         Person p2 = persistedPerson("David", 25);
         Iterable<Person> allPersons = personRepository.findAll();
         assertThat(asCollection(allPersons), hasItems(p1, p2));
+    }
+
+    @Test
+    @Transactional
+    public void testFindIterableOfPersonWithQueryAnnotation() {
+        final TestTeam testTeam = new TestTeam(graphDatabaseContext);
+        testTeam.createSDGTeam();
+        Iterable<Person> teamMembers = personRepository.findAllTeamMembers(testTeam.sdg);
+        assertThat(asCollection(teamMembers), hasItems(testTeam.michael,testTeam.david,testTeam.emil));
+    }
+    @Test
+    @Transactional
+    public void testFindPersonWithQueryAnnotation() {
+        final TestTeam testTeam = new TestTeam(graphDatabaseContext);
+        testTeam.createSDGTeam();
+        Person boss = personRepository.findBoss(testTeam.michael);
+        assertThat(boss, is(testTeam.emil));
+    }
+    @Test
+    @Transactional
+    public void testFindIterableMapsWithQueryAnnotation() {
+        final TestTeam testTeam = new TestTeam(graphDatabaseContext);
+        testTeam.createSDGTeam();
+        Iterable<Map<String,Object>> teamMembers = personRepository.findAllTeamMemberData(testTeam.sdg);
+        assertThat(asCollection(teamMembers), hasItems(testTeam.simpleRowFor(testTeam.michael,"member"),testTeam.simpleRowFor(testTeam.david,"member"),testTeam.simpleRowFor(testTeam.emil,"member")));
     }
 
     @Test

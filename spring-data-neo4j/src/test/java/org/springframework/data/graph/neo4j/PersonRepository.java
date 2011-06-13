@@ -16,12 +16,26 @@
 
 package org.springframework.data.graph.neo4j;
 
+import org.springframework.data.graph.annotation.GraphQuery;
 import org.springframework.data.graph.neo4j.repository.NamedIndexRepository;
 import org.springframework.data.graph.neo4j.repository.GraphRepository;
+
+import java.util.Collection;
+import java.util.Map;
 
 /**
  * @author mh
  * @since 29.03.11
  */
 public interface PersonRepository extends GraphRepository<Person>, NamedIndexRepository<Person> {
+
+    @GraphQuery("start team=(%d) match (team)-[:persons]->(member) return member")
+    Iterable<Person> findAllTeamMembers(Group team);
+
+    @GraphQuery("start team=(%d) match (team)-[:persons]->(member) return member.name,member.age")
+    Iterable<Map<String,Object>> findAllTeamMemberData(Group team);
+
+    @GraphQuery("start person=(%d) match (boss)-[:boss]->(person) return boss")
+    Person findBoss(Person person);
+
 }

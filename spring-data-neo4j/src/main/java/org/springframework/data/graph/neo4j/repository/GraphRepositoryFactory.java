@@ -16,18 +16,28 @@
 
 package org.springframework.data.graph.neo4j.repository;
 
+import org.springframework.core.GenericCollectionTypeResolver;
+import org.springframework.data.graph.annotation.GraphQuery;
 import org.springframework.data.graph.annotation.NodeEntity;
 import org.springframework.data.graph.annotation.RelationshipEntity;
+import org.springframework.data.graph.core.NodeBacked;
+import org.springframework.data.graph.core.RelationshipBacked;
+import org.springframework.data.graph.neo4j.support.GenericTypeExtractor;
 import org.springframework.data.graph.neo4j.support.GraphDatabaseContext;
+import org.springframework.data.graph.neo4j.support.query.QueryExecutor;
 import org.springframework.data.repository.query.QueryLookupStrategy;
+import org.springframework.data.repository.query.QueryMethod;
 import org.springframework.data.repository.query.RepositoryQuery;
 import org.springframework.data.repository.support.EntityInformation;
 import org.springframework.data.repository.support.RepositoryFactorySupport;
 import org.springframework.data.repository.support.RepositoryMetadata;
 import org.springframework.util.Assert;
+import scala.annotation.target.field;
 
 import java.io.Serializable;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.Map;
 
 import static org.springframework.core.annotation.AnnotationUtils.findAnnotation;
 
@@ -93,10 +103,76 @@ public class GraphRepositoryFactory extends RepositoryFactorySupport {
     @Override
     protected QueryLookupStrategy getQueryLookupStrategy(QueryLookupStrategy.Key key) {
         return new QueryLookupStrategy() {
+
             @Override
-            public RepositoryQuery resolveQuery(Method method, RepositoryMetadata metadata) {
-                return null;
+            public RepositoryQuery resolveQuery(final Method method, final RepositoryMetadata metadata) {
+                final GraphQuery queryAnnotation = method.getAnnotation(GraphQuery.class);
+                if (queryAnnotation==null) return null;
+                return new QueryAnnotationRepositoryQuery(queryAnnotation, method, metadata, graphDatabaseContext);
             }
         };
+    }
+
+    private static class QueryAnnotationRepositoryQuery implements RepositoryQuery {
+        private final GraphQuery queryAnnotation;
+        private QueryExecutor queryExecutor;
+        private final Method method;
+        private final RepositoryMetadata metadata;
+        private boolean iterableResult;
+        private Class<?> target;
+
+        public QueryAnnotationRepositoryQuery(GraphQuery queryAnnotation, Method method, RepositoryMetadata metadata, final GraphDatabaseContext graphDatabaseContext) {
+            queryExecutor = new QueryExecutor(graphDatabaseContext);
+            this.queryAnnotation = queryAnnotation;
+            this.method = method;
+            this.metadata = metadata;
+            this.iterableResult = Iterable.class.isAssignableFrom(method.getReturnType());
+            this.target = resolveTarget(queryAnnotation, method);
+        }
+
+        private Class<?> resolveTarget(GraphQuery graphQuery, Method method) {
+            if (!graphQuery.elementClass().equals(Object.class)) return graphQuery.elementClass();
+            return GenericTypeExtractor.resolveReturnedType(method);
+        }
+
+        @Override
+        public Object execute(Object[] parameters) {
+            final String queryString = prepareQuery(parameters);
+            return executeQuery(queryString);
+        }
+
+        private Object executeQuery(String queryString) {
+            if (!iterableResult) return queryExecutor.queryForObject(queryString, target);
+            if (Map.class.isAssignableFrom(target)) return queryExecutor.query(queryString);
+            return queryExecutor.query(queryString,target);
+        }
+
+        private String prepareQuery(Object[] parameters) {
+            Object[] resolvedParameters=resolveParameters(parameters);
+            return String.format(queryAnnotation.value(), (Object[]) resolvedParameters);
+        }
+
+        private Object[] resolveParameters(Object[] parameters) {
+            final Object[] result = new Object[parameters.length];
+            for (int i = 0; i < parameters.length; i++) {
+                result[i] = resolveParameter(parameters[i]);
+            }
+            return result;
+        }
+
+        private Object resolveParameter(Object parameter) {
+            if (parameter instanceof NodeBacked) {
+                return ((NodeBacked)parameter).getNodeId();
+            }
+            if (parameter instanceof RelationshipBacked) {
+                return ((RelationshipBacked)parameter).getRelationshipId();
+            }
+            return parameter;
+        }
+
+        @Override
+        public QueryMethod getQueryMethod() {
+            return new QueryMethod(method, metadata);
+        }
     }
 }

@@ -16,17 +16,14 @@
 
 package org.springframework.data.graph.neo4j.fieldaccess;
 
-import org.neo4j.graphdb.traversal.TraversalDescription;
+import org.springframework.core.GenericCollectionTypeResolver;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.graph.annotation.GraphQuery;
-import org.springframework.data.graph.annotation.GraphTraversal;
-import org.springframework.data.graph.core.FieldTraversalDescriptionBuilder;
 import org.springframework.data.graph.core.NodeBacked;
-import org.springframework.data.graph.neo4j.support.node.Neo4jNodeBacking;
-import org.springframework.data.graph.neo4j.support.query.QueryExecutor;
+import org.springframework.data.graph.neo4j.support.GenericTypeExtractor;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.util.Map;
 
 import static org.springframework.data.graph.neo4j.support.DoReturn.doReturn;
 
@@ -58,13 +55,18 @@ public class QueryFieldAccessorFactory implements FieldAccessorFactory<NodeBacke
         public QueryFieldAccessor(final Field field) {
 	        this.field = field;
             final GraphQuery graphQuery = field.getAnnotation(GraphQuery.class);
-	        this.target = graphQuery.elementClass();
             this.params = graphQuery.params();
             this.query = graphQuery.value();
             this.iterableResult = Iterable.class.isAssignableFrom(field.getType());
-	    }
+            this.target = resolveTarget(graphQuery,field);
+        }
 
-	    @Override
+        private Class<?> resolveTarget(GraphQuery graphQuery, Field field) {
+            if (!graphQuery.elementClass().equals(Object.class)) return graphQuery.elementClass();
+            return GenericTypeExtractor.resolveFieldType(field);
+        }
+
+        @Override
 	    public boolean isWriteable(NodeBacked nodeBacked) {
 	        return false;
 	    }
@@ -81,11 +83,9 @@ public class QueryFieldAccessorFactory implements FieldAccessorFactory<NodeBacke
 	    }
 
         private Object executeQuery(NodeBacked nodeBacked, String queryString) {
-            if (iterableResult) {
-                if (target.equals(Object.class)) return nodeBacked.findAllByQuery(queryString);
-                return nodeBacked.findAllByQuery(queryString, this.target);
-            }
-            return nodeBacked.findByQuery(queryString,this.target);
+            if (!iterableResult) return nodeBacked.findByQuery(queryString,this.target);
+            if (Map.class.isAssignableFrom(target)) return nodeBacked.findAllByQuery(queryString);
+            return nodeBacked.findAllByQuery(queryString, this.target);
         }
 
         private Object[] createPlaceholderParams(NodeBacked nodeBacked) {
