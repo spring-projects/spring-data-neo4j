@@ -21,7 +21,7 @@
         </para>
         <example>
             <title>Gradle Build Configuration</title>
-            <programlisting language="groovy"><![CDATA[sourceCompatibility = 1.6
+            <programlisting language="java"><![CDATA[sourceCompatibility = 1.6
 targetCompatibility = 1.6
 
 springVersion = "3.0.5.RELEASE"
