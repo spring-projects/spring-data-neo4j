@@ -5,7 +5,7 @@
 	<groupId>org.springframework.data</groupId>
 	<artifactId>spring-data-graph-dist</artifactId>
 	<name>Spring Data Graph Distribution</name>
-	<version>1.1.0.BUILD-SNAPSHOT</version>
+	<version>1.1.0.M1</version>
 	<packaging>pom</packaging>
 	<modules>
 		<module>spring-data-graph-parent</module>
@@ -100,9 +100,9 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<!-- dist.* properties are used by the antrun tasks below -->
-		<dist.id>spring-data-graph</dist.id>
-		<dist.name>Spring Data</dist.name>
-		<dist.key>DATAGRAPH</dist.key>
+		<dist.id>spring-data-neo4j</dist.id>
+		<dist.name>Spring Data Neo4j</dist.name>
+		<dist.key>SDNEO4J</dist.key>
 		<dist.version>${project.version}</dist.version>
 		<dist.releaseType>snapshot</dist.releaseType>
 		<dist.finalName>${dist.id}-${dist.version}</dist.finalName>

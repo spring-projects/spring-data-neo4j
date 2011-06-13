@@ -6,9 +6,9 @@
    - the classpath is set up for you
 
 ant -f src/ant/upload-dist.xml \
-    -Ddist.id=spring-data-graph \
-    -Ddist.name='Spring Data' \
-    -Ddist.key=DATADOC \
+    -Ddist.id=spring-data-neo4j \
+    -Ddist.name='Spring Data Neo4j' \
+    -Ddist.key=SDNEO4J \
     -Ddist.releaseType=milestone \
     -Ddist.accessKey=<access key> \
     -Ddist.secretKey=<secret key> \
