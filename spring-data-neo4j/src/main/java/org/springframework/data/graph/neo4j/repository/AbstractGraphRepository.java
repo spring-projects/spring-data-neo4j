@@ -69,7 +69,7 @@ public abstract class AbstractGraphRepository<S extends PropertyContainer, T ext
      * @return Number of instances of the target type in the graph.
      */
     @Override
-    public Long count() {
+    public long count() {
         return graphDatabaseContext.count(clazz);
     }
 
@@ -244,6 +244,11 @@ public abstract class AbstractGraphRepository<S extends PropertyContainer, T ext
     @Override
     public void delete(T entity) {
        entity.remove();
+    }
+
+    @Override
+    public void delete(Long id) {
+        delete(findOne(id));
     }
 
     @Override

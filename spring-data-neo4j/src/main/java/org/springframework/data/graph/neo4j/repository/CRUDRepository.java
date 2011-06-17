@@ -76,7 +76,7 @@ public interface CRUDRepository<T extends GraphBacked<?>> extends PagingAndSorti
      * approximation
      * @return number of entities of this type in the graph
      */
-    Long count();
+    long count();
 
 
     /**

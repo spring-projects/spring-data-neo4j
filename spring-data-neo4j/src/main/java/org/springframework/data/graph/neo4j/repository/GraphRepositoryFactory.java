@@ -25,12 +25,12 @@ import org.springframework.data.graph.core.RelationshipBacked;
 import org.springframework.data.graph.neo4j.support.GenericTypeExtractor;
 import org.springframework.data.graph.neo4j.support.GraphDatabaseContext;
 import org.springframework.data.graph.neo4j.support.query.QueryExecutor;
+import org.springframework.data.repository.core.EntityInformation;
+import org.springframework.data.repository.core.RepositoryMetadata;
+import org.springframework.data.repository.core.support.RepositoryFactorySupport;
 import org.springframework.data.repository.query.QueryLookupStrategy;
 import org.springframework.data.repository.query.QueryMethod;
 import org.springframework.data.repository.query.RepositoryQuery;
-import org.springframework.data.repository.support.EntityInformation;
-import org.springframework.data.repository.support.RepositoryFactorySupport;
-import org.springframework.data.repository.support.RepositoryMetadata;
 import org.springframework.util.Assert;
 import scala.annotation.target.field;
 

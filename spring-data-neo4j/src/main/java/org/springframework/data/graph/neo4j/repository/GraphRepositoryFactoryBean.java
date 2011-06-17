@@ -19,8 +19,8 @@ package org.springframework.data.graph.neo4j.repository;
 import org.neo4j.graphdb.PropertyContainer;
 import org.springframework.data.graph.core.GraphBacked;
 import org.springframework.data.graph.neo4j.support.GraphDatabaseContext;
-import org.springframework.data.repository.support.RepositoryFactorySupport;
-import org.springframework.data.repository.support.TransactionalRepositoryFactoryBeanSupport;
+import org.springframework.data.repository.core.support.RepositoryFactorySupport;
+import org.springframework.data.repository.core.support.TransactionalRepositoryFactoryBeanSupport;
 import org.springframework.util.Assert;
 
 /**

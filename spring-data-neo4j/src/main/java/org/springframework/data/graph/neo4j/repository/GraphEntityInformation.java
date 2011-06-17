@@ -18,9 +18,7 @@ package org.springframework.data.graph.neo4j.repository;
 
 import org.neo4j.graphdb.PropertyContainer;
 import org.springframework.data.graph.core.GraphBacked;
-import org.springframework.data.repository.support.EntityInformation;
-
-import java.io.Serializable;
+import org.springframework.data.repository.core.EntityInformation;
 
 /**
  * @author mh

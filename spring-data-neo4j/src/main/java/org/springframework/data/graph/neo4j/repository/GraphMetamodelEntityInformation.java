@@ -27,7 +27,7 @@ import org.springframework.data.graph.core.GraphBacked;
 import org.springframework.data.graph.core.NodeBacked;
 import org.springframework.data.graph.core.RelationshipBacked;
 import org.springframework.data.graph.neo4j.support.GraphDatabaseContext;
-import org.springframework.data.repository.support.AbstractEntityInformation;
+import org.springframework.data.repository.core.support.AbstractEntityInformation;
 
 public class GraphMetamodelEntityInformation<S extends PropertyContainer, T extends GraphBacked<S>> extends AbstractEntityInformation<T,Long> implements GraphEntityInformation<S,T> {
 
