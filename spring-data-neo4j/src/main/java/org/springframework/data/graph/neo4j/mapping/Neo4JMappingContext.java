@@ -20,29 +20,34 @@ import java.beans.PropertyDescriptor;
 import java.lang.reflect.Field;
 
 import org.springframework.data.mapping.context.AbstractMappingContext;
+import org.springframework.data.mapping.context.MappingContext;
 import org.springframework.data.mapping.model.SimpleTypeHolder;
 import org.springframework.data.util.TypeInformation;
 
 /**
+ * Neo4J specific {@link MappingContext} implementation. Simply creates {@link Neo4JPersistentEntityImpl} and
+ * {@link Neo4JPersistentProperty} instances.
  * 
  * @author Oliver Gierke
  */
 public class Neo4JMappingContext extends AbstractMappingContext<Neo4JPersistentEntityImpl<?>, Neo4JPersistentProperty> {
 
-	/* (non-Javadoc)
-	 * @see org.springframework.data.mapping.context.AbstractMappingContext#createPersistentEntity(org.springframework.data.util.TypeInformation)
-	 */
-	@Override
-	protected <T> Neo4JPersistentEntityImpl<?> createPersistentEntity(TypeInformation<T> typeInformation) {
-		return new Neo4JPersistentEntityImpl<T>(typeInformation);
-	}
+    /*
+     * (non-Javadoc)
+     * @see org.springframework.data.mapping.context.AbstractMappingContext#createPersistentEntity(org.springframework.data.util.TypeInformation)
+     */
+    @Override
+    protected <T> Neo4JPersistentEntityImpl<?> createPersistentEntity(TypeInformation<T> typeInformation) {
+        return new Neo4JPersistentEntityImpl<T>(typeInformation);
+    }
 
-	/* (non-Javadoc)
-	 * @see org.springframework.data.mapping.context.AbstractMappingContext#createPersistentProperty(java.lang.reflect.Field, java.beans.PropertyDescriptor, org.springframework.data.mapping.model.MutablePersistentEntity, org.springframework.data.mapping.model.SimpleTypeHolder)
-	 */
-	@Override
-	protected Neo4JPersistentProperty createPersistentProperty(Field field, PropertyDescriptor descriptor,
-			Neo4JPersistentEntityImpl<?> owner, SimpleTypeHolder simpleTypeHolder) {
-		return new Neo4JPersistentPropertyImpl(field, descriptor, owner, simpleTypeHolder);
-	}
+    /*
+     * (non-Javadoc)
+     * @see org.springframework.data.mapping.context.AbstractMappingContext#createPersistentProperty(java.lang.reflect.Field, java.beans.PropertyDescriptor, org.springframework.data.mapping.model.MutablePersistentEntity, org.springframework.data.mapping.model.SimpleTypeHolder)
+     */
+    @Override
+    protected Neo4JPersistentProperty createPersistentProperty(Field field, PropertyDescriptor descriptor,
+            Neo4JPersistentEntityImpl<?> owner, SimpleTypeHolder simpleTypeHolder) {
+        return new Neo4JPersistentPropertyImpl(field, descriptor, owner, simpleTypeHolder);
+    }
 }
