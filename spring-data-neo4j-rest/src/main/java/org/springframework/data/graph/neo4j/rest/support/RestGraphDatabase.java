@@ -25,6 +25,7 @@ import org.neo4j.graphdb.traversal.TraversalDescription;
 import org.springframework.data.graph.core.GraphDatabase;
 import org.springframework.data.graph.core.Property;
 import org.springframework.data.graph.neo4j.rest.support.index.RestIndexManager;
+import org.springframework.data.graph.neo4j.support.query.QueryEngine;
 
 import javax.ws.rs.core.Response.Status;
 import java.net.URI;
@@ -94,6 +95,11 @@ public class RestGraphDatabase implements GraphDatabaseService, GraphDatabase {
     @Override
     public TraversalDescription createTraversalDescription() {
         return new RestTraversal();
+    }
+
+    @Override
+    public QueryEngine queryEngineFor(QueryEngine.Type type) {
+        return new RestQueryEngine(restRequest);
     }
 
     public RestIndexManager index() {

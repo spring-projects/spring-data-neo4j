@@ -19,6 +19,8 @@ package org.springframework.data.graph.neo4j.rest.support.index;
 import com.sun.jersey.api.client.ClientResponse;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.PropertyContainer;
+import org.neo4j.graphdb.Relationship;
+import org.neo4j.graphdb.index.AutoIndexer;
 import org.neo4j.graphdb.index.Index;
 import org.neo4j.graphdb.index.IndexManager;
 import org.neo4j.graphdb.index.RelationshipIndex;
@@ -89,5 +91,16 @@ public class RestIndexManager implements IndexManager {
     public String removeConfiguration( Index<? extends PropertyContainer> index, String s ) {
         return null;
     }
+
+    @Override
+    public AutoIndexer<Node> getNodeAutoIndexer() {
+        return null;
+    }
+
+    @Override
+    public AutoIndexer<Relationship> getRelationshipAutoIndexer() {
+        return null;
+    }
 }
+
 

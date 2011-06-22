@@ -238,7 +238,11 @@ public abstract class AbstractGraphRepository<S extends PropertyContainer, T ext
 
     @Override
     public boolean exists(Long id) {
-        return getById(id)!=null;
+        try {
+            return getById(id)!=null;
+        } catch (NotFoundException e) {
+            return false;
+        }
     }
 
     @Override
