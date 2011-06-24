@@ -31,6 +31,8 @@ import org.springframework.data.graph.neo4j.support.path.NodePath;
 import org.springframework.data.graph.neo4j.support.path.PathMapper;
 import org.springframework.data.graph.neo4j.support.path.PathMappingIterator;
 import org.springframework.data.graph.neo4j.support.path.RelationshipPath;
+import org.springframework.data.graph.neo4j.support.query.EmbeddedQueryEngine;
+import org.springframework.data.graph.neo4j.support.query.QueryEngine;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallback;
@@ -179,7 +181,7 @@ public class Neo4jTemplate implements Neo4jOperations {
 
     @Override
     public <T> ClosableIterable<T> query(String indexName, final PathMapper<T> pathMapper, String field, String value) {
-        notNull(field, "field", value, "value", pathMapper, "pathMapper",indexName,"indexName");
+        notNull(field, "field", value, "value", pathMapper, "pathMapper", indexName, "indexName");
         try {
             Index<? extends PropertyContainer> index = graphDatabase.getIndex(indexName);
             if (Relationship.class.isAssignableFrom(index.getEntityType())) {
@@ -189,6 +191,10 @@ public class Neo4jTemplate implements Neo4jOperations {
         } catch (RuntimeException e) {
             throw translateExceptionIfPossible(e);
         }
+    }
+
+    private QueryEngine queryEngineFor(EmbeddedQueryEngine.Type type) {
+        return graphDatabase.queryEngineFor(type);
     }
 
     private <T> ClosableIterable<T> mapNodes(final IndexHits<Node> nodes, final PathMapper<T> pathMapper) {
@@ -314,4 +320,34 @@ public class Neo4jTemplate implements Neo4jOperations {
            indexHits.close();
         }
     }
+
+    @Override
+    public Iterable<Map<String, Object>> query(QueryEngine.Type engineType, String statement) {
+        return queryEngineFor(engineType).query(statement);
+    }
+
+    @Override
+    public <T> Iterable<T> query(QueryEngine.Type engineType, String statement, Class<T> type) {
+        return queryEngineFor(engineType).query(statement,type);
+    }
+
+    @Override
+    public <T> T queryForObject(QueryEngine.Type engineType, String statement, Class<T> type) {
+        return queryEngineFor(engineType).queryForObject(statement,type);
+    }
 }
+
+/*
+conversion for all query methods
+
+-> target type
+-> target type + mapper
+-> no conversion (or auto-conversion) -> default mapper
+
+source        Path       Node      Relationship      Primitive, DomainObject
+Path ->       Path,      NodePath, RelationshipPath  X          lastNode()
+Node ->       endNode(), node,     Mapper            X          NodeEntity
+Relationship  lastRel(), Mapper    relationship      X          RelEntity
+primitive     X          X         X                 primitive
+Map<String,Obj>                                                 Mapper
+*/

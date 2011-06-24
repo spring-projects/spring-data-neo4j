@@ -79,6 +79,14 @@ public class RestRequest {
         return builder( path ).get( ClientResponse.class );
     }
 
+    public ClientResponse get( String path, String data ) {
+        Builder builder = builder(path);
+        if ( data != null ) {
+            builder = builder.entity( data, MediaType.APPLICATION_JSON_TYPE );
+        }
+        return builder.get(ClientResponse.class);
+    }
+
     public ClientResponse delete( String path ) {
         return builder( path ).delete( ClientResponse.class );
     }

@@ -29,7 +29,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Collection;
 import java.util.Map;
 
-import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 import static org.junit.internal.matchers.IsCollectionContaining.hasItems;
@@ -49,7 +48,7 @@ public class NodeEntityQueryTest {
 
     @Before
     public void setUp() throws Exception {
-        testTeam = new TestTeam(graphDatabaseContext);
+        testTeam = new TestTeam();
         testTeam.createSDGTeam();
         michael = testTeam.michael;
     }

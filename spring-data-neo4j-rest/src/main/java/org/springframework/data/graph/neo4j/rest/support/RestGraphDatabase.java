@@ -22,10 +22,13 @@ import org.neo4j.graphdb.event.KernelEventHandler;
 import org.neo4j.graphdb.event.TransactionEventHandler;
 import org.neo4j.graphdb.index.Index;
 import org.neo4j.graphdb.traversal.TraversalDescription;
+import org.springframework.core.convert.ConversionService;
 import org.springframework.data.graph.core.GraphDatabase;
 import org.springframework.data.graph.core.Property;
 import org.springframework.data.graph.neo4j.rest.support.index.RestIndexManager;
+import org.springframework.data.graph.neo4j.support.query.ConversionServiceQueryResultConverter;
 import org.springframework.data.graph.neo4j.support.query.QueryEngine;
+import org.springframework.data.graph.neo4j.support.query.QueryResultConverter;
 
 import javax.ws.rs.core.Response.Status;
 import java.net.URI;
@@ -35,6 +38,7 @@ public class RestGraphDatabase implements GraphDatabaseService, GraphDatabase {
 
     private RestRequest restRequest;
     private long propertyRefetchTimeInMillis = 1000;
+    private ConversionService conversionService;
 
 
     public RestGraphDatabase( URI uri ) {
@@ -99,7 +103,18 @@ public class RestGraphDatabase implements GraphDatabaseService, GraphDatabase {
 
     @Override
     public QueryEngine queryEngineFor(QueryEngine.Type type) {
-        return new RestQueryEngine(restRequest);
+        return new RestQueryEngine(this, createResultConverter());
+    }
+
+    private ConversionServiceQueryResultConverter createResultConverter() {
+        if (conversionService==null) return null;
+        return new ConversionServiceQueryResultConverter(conversionService);
+    }
+
+    @Override
+    public void setConversionService(ConversionService conversionService) {
+
+        this.conversionService = conversionService;
     }
 
     public RestIndexManager index() {

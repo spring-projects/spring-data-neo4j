@@ -28,14 +28,12 @@ import java.util.Map;
  * @since 13.06.11
  */
 public class TestTeam {
-    private final GraphDatabaseContext graphDatabaseContext;
     public Person michael;
     public Person emil;
     public Person david;
     public Group sdg;
 
-    public TestTeam(GraphDatabaseContext graphDatabaseContext) {
-        this.graphDatabaseContext = graphDatabaseContext;
+    public TestTeam() {
     }
 
     public void createSDGTeam() {

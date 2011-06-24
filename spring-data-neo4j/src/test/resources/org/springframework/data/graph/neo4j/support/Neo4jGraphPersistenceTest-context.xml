@@ -82,11 +82,10 @@
 		 <!--constructor-arg index="0" value="${neo4j.databaseDirectory}" /-->
 	</bean>
 
+    <bean id="conversionService" class="org.springframework.data.graph.neo4j.fieldaccess.Neo4jConversionServiceFactoryBean"/>
     <bean id="graphDatabaseContext" class="org.springframework.data.graph.neo4j.support.GraphDatabaseContext">
         <property name="graphDatabaseService" ref="graphDatabaseService"/>
-        <property name="conversionService">
-            <bean class="org.springframework.data.graph.neo4j.fieldaccess.Neo4jConversionServiceFactoryBean"/>
-        </property>
+        <property name="conversionService" ref="conversionService"/>
         <property name="nodeTypeRepresentationStrategy" ref="nodeTypeRepresentationStrategy"/>
         <property name="relationshipTypeRepresentationStrategy" ref="relationshipTypeRepresentationStrategy"/>
         <property name="validator">

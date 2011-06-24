@@ -21,7 +21,9 @@ import org.junit.Before;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.test.ImpermanentGraphDatabase;
 import org.neo4j.kernel.impl.transaction.SpringTransactionManager;
+import org.springframework.core.convert.ConversionService;
 import org.springframework.data.graph.core.GraphDatabase;
+import org.springframework.data.graph.neo4j.fieldaccess.Neo4jConversionServiceFactoryBean;
 import org.springframework.data.graph.neo4j.support.DelegatingGraphDatabase;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.jta.JtaTransactionManager;
@@ -31,14 +33,20 @@ public abstract class NeoApiTest {
     protected Neo4jTemplate template;
     protected PlatformTransactionManager transactionManager;
     private GraphDatabaseService graphDatabaseService;
+    protected ConversionService conversionService;
 
 
     @Before
     public void setUp() throws Exception
     {
+        conversionService = createConversionService();
         graph = createGraphDatabase();
         transactionManager = createTransactionManager();
         template = new Neo4jTemplate(graph, transactionManager);
+    }
+
+    private ConversionService createConversionService() throws Exception {
+        return new Neo4jConversionServiceFactoryBean().getObject();
     }
 
     protected PlatformTransactionManager createTransactionManager()

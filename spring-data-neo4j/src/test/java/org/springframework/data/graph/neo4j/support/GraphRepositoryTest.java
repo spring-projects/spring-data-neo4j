@@ -18,7 +18,6 @@ package org.springframework.data.graph.neo4j.support;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hamcrest.core.Is;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -38,8 +37,7 @@ import java.util.Map;
 
 import static java.util.Arrays.asList;
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
+import static org.junit.Assert.*;
 import static org.junit.internal.matchers.IsCollectionContaining.hasItems;
 import static org.neo4j.helpers.collection.IteratorUtil.asCollection;
 import static org.springframework.data.graph.neo4j.Person.persistedPerson;
@@ -77,7 +75,7 @@ public class GraphRepositoryTest {
     @Test
     @Transactional
     public void testFindIterableOfPersonWithQueryAnnotation() {
-        final TestTeam testTeam = new TestTeam(graphDatabaseContext);
+        final TestTeam testTeam = new TestTeam();
         testTeam.createSDGTeam();
         Iterable<Person> teamMembers = personRepository.findAllTeamMembers(testTeam.sdg);
         assertThat(asCollection(teamMembers), hasItems(testTeam.michael,testTeam.david,testTeam.emil));
@@ -85,7 +83,7 @@ public class GraphRepositoryTest {
     @Test
     @Transactional
     public void testFindPersonWithQueryAnnotation() {
-        final TestTeam testTeam = new TestTeam(graphDatabaseContext);
+        final TestTeam testTeam = new TestTeam();
         testTeam.createSDGTeam();
         Person boss = personRepository.findBoss(testTeam.michael);
         assertThat(boss, is(testTeam.emil));
@@ -93,7 +91,7 @@ public class GraphRepositoryTest {
     @Test
     @Transactional
     public void testFindIterableMapsWithQueryAnnotation() {
-        final TestTeam testTeam = new TestTeam(graphDatabaseContext);
+        final TestTeam testTeam = new TestTeam();
         testTeam.createSDGTeam();
         Iterable<Map<String,Object>> teamMembers = personRepository.findAllTeamMemberData(testTeam.sdg);
         assertThat(asCollection(teamMembers), hasItems(testTeam.simpleRowFor(testTeam.michael,"member"),testTeam.simpleRowFor(testTeam.david,"member"),testTeam.simpleRowFor(testTeam.emil,"member")));
@@ -153,6 +151,20 @@ public class GraphRepositoryTest {
 
     @Test
     @Transactional
+    public void testExists() {
+        Person p = persistedPerson("Michael", 35);
+        boolean found = personRepository.exists(p.getNodeId());
+        assertTrue("Found persisted entity", found);
+    }
+    @Test
+    @Transactional
+    public void testDoesntExist() {
+        boolean found = personRepository.exists(Long.MAX_VALUE-1);
+        assertFalse("Non existend id isn't foundpo ", found);
+    }
+
+    @Test
+    @Transactional
     public void testFinderFindByIdNonexistent() {
         Person p = persistedPerson("Michael", 35);
         Person p2 = personRepository.findOne(589736218L);
@@ -162,9 +174,9 @@ public class GraphRepositoryTest {
     @Test
     @Transactional
     public void testFinderCount() {
-        assertEquals((Long)0L, personRepository.count());
+        assertEquals(0L, personRepository.count());
         Person p = persistedPerson("Michael", 35);
-        assertEquals((Long)1L, personRepository.count());
+        assertEquals(1L, personRepository.count());
     }
 
     @Test

@@ -22,8 +22,13 @@ import org.neo4j.graphdb.index.IndexManager;
 import org.neo4j.graphdb.traversal.TraversalDescription;
 import org.neo4j.index.impl.lucene.LuceneIndexImplementation;
 import org.neo4j.kernel.Traversal;
+import org.springframework.core.convert.ConversionService;
 import org.springframework.data.graph.core.GraphDatabase;
 import org.springframework.data.graph.core.Property;
+import org.springframework.data.graph.neo4j.support.query.ConversionServiceQueryResultConverter;
+import org.springframework.data.graph.neo4j.support.query.EmbeddedQueryEngine;
+import org.springframework.data.graph.neo4j.support.query.QueryEngine;
+import org.springframework.data.graph.neo4j.support.query.QueryResultConverter;
 
 import java.util.Map;
 
@@ -34,14 +39,14 @@ import java.util.Map;
 public class DelegatingGraphDatabase implements GraphDatabase {
 
     protected GraphDatabaseService delegate;
+    private ConversionService conversionService;
 
     public DelegatingGraphDatabase(final GraphDatabaseService delegate) {
         this.delegate = delegate;
     }
 
-    @Override
-    public Node getReferenceNode() {
-        return delegate.getReferenceNode();
+    public void setConversionService(ConversionService conversionService) {
+        this.conversionService = conversionService;
     }
 
     @Override
@@ -122,7 +127,22 @@ public class DelegatingGraphDatabase implements GraphDatabase {
         return Traversal.description();
     }
 
+    @Override
+    public QueryEngine queryEngineFor(EmbeddedQueryEngine.Type type) {
+        return new EmbeddedQueryEngine(delegate, createResultConverter());
+    }
+
+    private ConversionServiceQueryResultConverter createResultConverter() {
+        if (conversionService == null) return null;
+        return new ConversionServiceQueryResultConverter(conversionService);
+    }
+
     public void shutdown() {
         delegate.shutdown();
+    }
+
+    @Override
+    public Node getReferenceNode() {
+        return delegate.getReferenceNode();
     }
 }

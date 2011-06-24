@@ -50,7 +50,9 @@ public class RestNeo4jTemplateTest extends Neo4jTemplateTest
     protected GraphDatabase createGraphDatabase() throws Exception
     {
         testHelper.cleanDb();
-        return testHelper.createGraphDatabase();
+        final GraphDatabase graphDatabase = testHelper.createGraphDatabase();
+        graphDatabase.setConversionService(conversionService);
+        return graphDatabase;
     }
 
     @Override
