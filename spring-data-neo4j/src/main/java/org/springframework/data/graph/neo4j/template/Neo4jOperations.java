@@ -21,6 +21,8 @@ import org.neo4j.graphdb.traversal.TraversalDescription;
 import org.neo4j.helpers.collection.ClosableIterable;
 import org.springframework.data.graph.neo4j.support.path.PathMapper;
 import org.springframework.data.graph.core.Property;
+import org.springframework.data.graph.neo4j.support.query.EmbeddedQueryEngine;
+import org.springframework.data.graph.neo4j.support.query.QueryEngine;
 
 /**
  * A template with convenience operations, exception translation and implicit transaction for modifying methods
@@ -163,4 +165,5 @@ public interface Neo4jOperations {
      */
     <T extends PropertyContainer> T index(String indexName, T element, String field, Object value);
 
+    QueryEngine queryEngineFor(EmbeddedQueryEngine.Type type);
 }

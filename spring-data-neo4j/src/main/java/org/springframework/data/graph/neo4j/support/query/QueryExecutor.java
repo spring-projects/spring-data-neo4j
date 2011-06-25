@@ -16,22 +16,12 @@
 
 package org.springframework.data.graph.neo4j.support.query;
 
-import org.neo4j.cypher.SyntaxError;
-import org.neo4j.cypher.commands.Query;
-import org.neo4j.cypher.javacompat.CypherParser;
-import org.neo4j.cypher.javacompat.ExecutionEngine;
-import org.neo4j.cypher.javacompat.ExecutionResult;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
-import org.neo4j.helpers.collection.IterableWrapper;
 import org.springframework.core.convert.ConversionService;
-import org.springframework.dao.InvalidDataAccessResourceUsageException;
 import org.springframework.data.graph.core.TypeRepresentationStrategy;
 import org.springframework.data.graph.neo4j.support.GraphDatabaseContext;
 
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -39,83 +29,29 @@ import java.util.Map;
  * @since 10.06.11
  *        todo limits
  */
-public class QueryExecutor {
+public class QueryExecutor implements QueryResultConverter {
     private final TypeRepresentationStrategy nodeTypeRepresentationStrategy;
-    private final ExecutionEngine executionEngine;
     private final TypeRepresentationStrategy relationshipTypeRepresentationStrategy;
     private final ConversionService conversionService;
+    private final QueryEngine queryEngine;
 
     public QueryExecutor(GraphDatabaseContext ctx) {
         this.nodeTypeRepresentationStrategy = ctx.getNodeTypeRepresentationStrategy();
         relationshipTypeRepresentationStrategy = ctx.getRelationshipTypeRepresentationStrategy();
         conversionService = ctx.getConversionService();
-        this.executionEngine = new ExecutionEngine(ctx.getGraphDatabaseService());
+        queryEngine = new EmbeddedQueryEngine(ctx.getGraphDatabaseService(), this);
     }
 
     public Iterable<Map<String, Object>> query(String statement) {
-        try {
-            ExecutionResult result = parseAndExecuteQuery(statement);
-            return convertResult(result);
-        } catch (Exception e) {
-            throw new InvalidDataAccessResourceUsageException("Error executing statement " + statement, e);
-        }
+        return queryEngine.query(statement);
     }
 
     public <T> Iterable<T> query(String statement, Class<T> type) {
-        try {
-            ExecutionResult result = parseAndExecuteQuery(statement);
-            return convertResult(result, type);
-        } catch (Exception e) {
-            throw new InvalidDataAccessResourceUsageException("Error executing statement " + statement + " for type " + type, e);
-        }
+        return queryEngine.query(statement, type);
     }
 
     public <T> T queryForObject(String statement, Class<T> type) {
-        try {
-            ExecutionResult result = parseAndExecuteQuery(statement);
-            final Iterable<T> convertedResult = convertResult(result, type);
-            return extractSingleResult(convertedResult);
-        } catch (Exception e) {
-            throw new InvalidDataAccessResourceUsageException("Error executing statement " + statement + " for type " + type, e);
-        }
-    }
-
-    private <T> T extractSingleResult(Iterable<T> convertedResult) {
-        final Iterator<T> it = convertedResult.iterator();
-        if (!it.hasNext()) throw new InvalidDataAccessResourceUsageException("Expected single result, got none");
-        T value = it.hasNext() ? it.next() : null;
-        if (it.hasNext())
-            throw new InvalidDataAccessResourceUsageException("Expected single result, got more than one");
-        return value;
-    }
-
-    private <T> Iterable<T> convertResult(ExecutionResult result, final Class<T> type) {
-        final List<String> columns = result.columns();
-        if (columns.size() != 1)
-            throw new InvalidDataAccessResourceUsageException("Expected single column of results, got " + columns);
-        final String column = columns.get(0);
-        return new IterableWrapper<T, Map<String, Object>>(result) {
-            @Override
-            protected T underlyingObjectToObject(Map<String, Object> row) {
-                return convertValue(row.get(column), type);
-            }
-        };
-    }
-
-    private Iterable<Map<String, Object>> convertResult(Iterable<Map<String, Object>> result) {
-        return new IterableWrapper<Map<String, Object>, Map<String, Object>>(result) {
-            @Override
-            protected Map<String, Object> underlyingObjectToObject(Map<String, Object> row) {
-                Map<String,Object> newRow=new HashMap<String,Object>(row); // todo performance
-                for (Map.Entry<String, Object> entry : newRow.entrySet()) {
-                    Object value = convertValue(entry.getValue());
-                    if (value != entry.getValue()) {
-                        entry.setValue(value);
-                    }
-                }
-                return row;
-            }
-        };
+        return queryEngine.queryForObject(statement,type);
     }
 
     private Object convertValue(Object value) {
@@ -127,23 +63,16 @@ public class QueryExecutor {
         }
         return value;
     }
-    private <T> T convertValue(Object value,Class<T> type) {
+
+    public <T> T convertValue(Object value, Class<T> type) {
+        if (type == null) return (T) convertValue(value);
+        if (type.isInstance(value)) return type.cast(value);
         if (value instanceof Node) {
-            return (T) nodeTypeRepresentationStrategy.createEntity((Node) value,type);
+            return (T) nodeTypeRepresentationStrategy.createEntity((Node) value, type);
         }
         if (value instanceof Relationship) {
-            return (T) relationshipTypeRepresentationStrategy.createEntity((Relationship) value,type);
+            return (T) relationshipTypeRepresentationStrategy.createEntity((Relationship) value, type);
         }
-        return conversionService.convert(value,type);
-    }
-
-    private ExecutionResult parseAndExecuteQuery(String statement) {
-        try {
-            CypherParser parser = new CypherParser();
-            Query query = parser.parse(statement);
-            return executionEngine.execute(query);
-        } catch (SyntaxError syntaxError) {
-            throw new InvalidDataAccessResourceUsageException("Error executing statement " + statement, syntaxError);
-        }
+        return conversionService.convert(value, type);
     }
 }

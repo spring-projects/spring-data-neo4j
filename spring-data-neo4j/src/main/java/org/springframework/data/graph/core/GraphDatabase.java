@@ -22,6 +22,8 @@ import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.graphdb.index.Index;
 import org.neo4j.graphdb.traversal.TraversalDescription;
+import org.springframework.data.graph.neo4j.support.query.EmbeddedQueryEngine;
+import org.springframework.data.graph.neo4j.support.query.QueryEngine;
 
 
 public interface GraphDatabase {
@@ -91,4 +93,6 @@ public interface GraphDatabase {
      * @return a TraversalDescription as starting point for defining a traversal
      */
     TraversalDescription createTraversalDescription();
+
+    QueryEngine queryEngineFor(EmbeddedQueryEngine.Type type);
 }

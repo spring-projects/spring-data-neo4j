@@ -38,8 +38,7 @@ import java.util.Map;
 
 import static java.util.Arrays.asList;
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
+import static org.junit.Assert.*;
 import static org.junit.internal.matchers.IsCollectionContaining.hasItems;
 import static org.neo4j.helpers.collection.IteratorUtil.asCollection;
 import static org.springframework.data.graph.neo4j.Person.persistedPerson;
@@ -153,6 +152,20 @@ public class GraphRepositoryTest {
 
     @Test
     @Transactional
+    public void testExists() {
+        Person p = persistedPerson("Michael", 35);
+        boolean found = personRepository.exists(p.getNodeId());
+        assertTrue("Found persisted entity", found);
+    }
+    @Test
+    @Transactional
+    public void testDoesntExist() {
+        boolean found = personRepository.exists(Long.MAX_VALUE-1);
+        assertFalse("Non existend id isn't foundpo ", found);
+    }
+
+    @Test
+    @Transactional
     public void testFinderFindByIdNonexistent() {
         Person p = persistedPerson("Michael", 35);
         Person p2 = personRepository.findOne(589736218L);
@@ -162,9 +175,9 @@ public class GraphRepositoryTest {
     @Test
     @Transactional
     public void testFinderCount() {
-        assertEquals((Long)0L, personRepository.count());
+        assertEquals(0L, personRepository.count());
         Person p = persistedPerson("Michael", 35);
-        assertEquals((Long)1L, personRepository.count());
+        assertEquals(1L, personRepository.count());
     }
 
     @Test

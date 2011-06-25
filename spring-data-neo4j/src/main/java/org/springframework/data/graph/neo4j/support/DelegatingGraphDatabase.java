@@ -24,6 +24,8 @@ import org.neo4j.index.impl.lucene.LuceneIndexImplementation;
 import org.neo4j.kernel.Traversal;
 import org.springframework.data.graph.core.GraphDatabase;
 import org.springframework.data.graph.core.Property;
+import org.springframework.data.graph.neo4j.support.query.EmbeddedQueryEngine;
+import org.springframework.data.graph.neo4j.support.query.QueryEngine;
 
 import java.util.Map;
 
@@ -120,6 +122,11 @@ public class DelegatingGraphDatabase implements GraphDatabase {
     @Override
     public TraversalDescription createTraversalDescription() {
         return Traversal.description();
+    }
+
+    @Override
+    public QueryEngine queryEngineFor(EmbeddedQueryEngine.Type type) {
+        return new EmbeddedQueryEngine(delegate);
     }
 
     public void shutdown() {
