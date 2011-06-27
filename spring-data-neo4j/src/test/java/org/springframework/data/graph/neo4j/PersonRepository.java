@@ -38,4 +38,5 @@ public interface PersonRepository extends GraphRepository<Person>, NamedIndexRep
     @GraphQuery("start person=(%d) match (boss)-[:boss]->(person) return boss")
     Person findBoss(Person person);
 
+    Group findTeam(Person person);
 }

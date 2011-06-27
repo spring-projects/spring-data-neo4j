@@ -7,6 +7,7 @@ Import-Package:
 Import-Template:
  org.springframework.data.core.*;version="[1.0.0, 2.0.0)",
  org.springframework.data.graph.neo4j.annotation.*;version="[1.0.0, 2.0.0)",
+ org.springframework.*;version="[3.0.0, 4.0.0)",
  org.springframework.data.graph.*;version="0",
  org.neo4j.*;version="0",
  org.w3c.dom.*;version="0",

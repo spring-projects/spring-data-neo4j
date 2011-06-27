@@ -65,6 +65,11 @@ public class DataGraphNamespaceHandler extends NamespaceHandlerSupport {
             }
 
             @Override
+            public String getNamedQueriesLocation() {
+                return "classpath*:META-INF/graph-named-queries.properties";
+            }
+
+            @Override
             protected DataGraphRepositoryConfiguration createSingleRepositoryConfigInformationFor(Element element) {
                 return new ManualDataGraphRepositoryConfiguration(element, this);
             }

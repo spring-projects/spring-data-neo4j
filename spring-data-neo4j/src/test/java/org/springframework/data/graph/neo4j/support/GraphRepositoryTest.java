@@ -43,7 +43,8 @@ import static org.neo4j.helpers.collection.IteratorUtil.asCollection;
 import static org.springframework.data.graph.neo4j.Person.persistedPerson;
 
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(locations = {"classpath:org/springframework/data/graph/neo4j/support/Neo4jGraphPersistenceTest-context.xml"})
+@ContextConfiguration(locations = {"classpath:repository-namespace-config-context.xml"})
+//@ContextConfiguration(locations = {"classpath:org/springframework/data/graph/neo4j/support/Neo4jGraphPersistenceTest-context.xml"})
 public class GraphRepositoryTest {
 
 	protected final Log log = LogFactory.getLog(getClass());
@@ -80,6 +81,7 @@ public class GraphRepositoryTest {
         Iterable<Person> teamMembers = personRepository.findAllTeamMembers(testTeam.sdg);
         assertThat(asCollection(teamMembers), hasItems(testTeam.michael,testTeam.david,testTeam.emil));
     }
+
     @Test
     @Transactional
     public void testFindPersonWithQueryAnnotation() {
@@ -95,6 +97,15 @@ public class GraphRepositoryTest {
         testTeam.createSDGTeam();
         Iterable<Map<String,Object>> teamMembers = personRepository.findAllTeamMemberData(testTeam.sdg);
         assertThat(asCollection(teamMembers), hasItems(testTeam.simpleRowFor(testTeam.michael,"member"),testTeam.simpleRowFor(testTeam.david,"member"),testTeam.simpleRowFor(testTeam.emil,"member")));
+    }
+
+    @Test
+    @Transactional
+    public void testFindByNamedQuery() {
+        final TestTeam testTeam = new TestTeam();
+        testTeam.createSDGTeam();
+        Group team = personRepository.findTeam(testTeam.michael);
+        assertThat(team, is(testTeam.sdg));
     }
 
     @Test

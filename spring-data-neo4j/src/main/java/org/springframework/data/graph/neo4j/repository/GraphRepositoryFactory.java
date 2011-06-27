@@ -16,7 +16,6 @@
 
 package org.springframework.data.graph.neo4j.repository;
 
-import org.springframework.core.GenericCollectionTypeResolver;
 import org.springframework.data.graph.annotation.GraphQuery;
 import org.springframework.data.graph.annotation.NodeEntity;
 import org.springframework.data.graph.annotation.RelationshipEntity;
@@ -26,16 +25,15 @@ import org.springframework.data.graph.neo4j.support.GenericTypeExtractor;
 import org.springframework.data.graph.neo4j.support.GraphDatabaseContext;
 import org.springframework.data.graph.neo4j.support.query.QueryExecutor;
 import org.springframework.data.repository.core.EntityInformation;
+import org.springframework.data.repository.core.NamedQueries;
 import org.springframework.data.repository.core.RepositoryMetadata;
 import org.springframework.data.repository.core.support.RepositoryFactorySupport;
 import org.springframework.data.repository.query.QueryLookupStrategy;
 import org.springframework.data.repository.query.QueryMethod;
 import org.springframework.data.repository.query.RepositoryQuery;
 import org.springframework.util.Assert;
-import scala.annotation.target.field;
 
 import java.io.Serializable;
-import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Map;
 
@@ -100,56 +98,55 @@ public class GraphRepositoryFactory extends RepositoryFactorySupport {
     }
 
 
+
     @Override
     protected QueryLookupStrategy getQueryLookupStrategy(QueryLookupStrategy.Key key) {
         return new QueryLookupStrategy() {
-
             @Override
-            public RepositoryQuery resolveQuery(final Method method, final RepositoryMetadata metadata) {
-                final GraphQuery queryAnnotation = method.getAnnotation(GraphQuery.class);
-                if (queryAnnotation==null) return null;
-                return new QueryAnnotationRepositoryQuery(queryAnnotation, method, metadata, graphDatabaseContext);
+            public RepositoryQuery resolveQuery(Method method, RepositoryMetadata repositoryMetadata, NamedQueries namedQueries) {
+                final GraphQueryMethod queryMethod = new GraphQueryMethod(method, repositoryMetadata,namedQueries);
+
+                if (queryMethod.isValid()) {
+                    return new GraphRepositoryQuery(queryMethod, repositoryMetadata, graphDatabaseContext);
+                }
+                return null;
             }
         };
     }
 
-    private static class QueryAnnotationRepositoryQuery implements RepositoryQuery {
-        private final GraphQuery queryAnnotation;
-        private QueryExecutor queryExecutor;
+    static class GraphQueryMethod extends QueryMethod {
+
         private final Method method;
-        private final RepositoryMetadata metadata;
-        private boolean iterableResult;
-        private Class<?> target;
+        private final GraphQuery queryAnnotation;
+        private final String query;
 
-        public QueryAnnotationRepositoryQuery(GraphQuery queryAnnotation, Method method, RepositoryMetadata metadata, final GraphDatabaseContext graphDatabaseContext) {
-            queryExecutor = new QueryExecutor(graphDatabaseContext);
-            this.queryAnnotation = queryAnnotation;
+        public GraphQueryMethod(Method method, RepositoryMetadata metadata, NamedQueries namedQueries) {
+            super(method, metadata);
             this.method = method;
-            this.metadata = metadata;
-            this.iterableResult = Iterable.class.isAssignableFrom(method.getReturnType());
-            this.target = resolveTarget(queryAnnotation, method);
+            queryAnnotation = method.getAnnotation(GraphQuery.class);
+            this.query = queryAnnotation != null ? queryAnnotation.value() : getNamedQuery(namedQueries);
+            if (this.query==null) throw new IllegalArgumentException("Could not extract a query from "+method);
         }
 
-        private Class<?> resolveTarget(GraphQuery graphQuery, Method method) {
-            if (!graphQuery.elementClass().equals(Object.class)) return graphQuery.elementClass();
-            return GenericTypeExtractor.resolveReturnedType(method);
+        public boolean isValid() {
+            return this.query!=null; // && this.compoundType != null
         }
 
-        @Override
-        public Object execute(Object[] parameters) {
-            final String queryString = prepareQuery(parameters);
-            return executeQuery(queryString);
+        private String getNamedQuery(NamedQueries namedQueries) {
+            final String namedQueryName = getNamedQueryName();
+            if (namedQueries.hasQuery(namedQueryName)) {
+                return namedQueries.getQuery(namedQueryName);
+            }
+            return null;
         }
 
-        private Object executeQuery(String queryString) {
-            if (!iterableResult) return queryExecutor.queryForObject(queryString, target);
-            if (Map.class.isAssignableFrom(target)) return queryExecutor.query(queryString);
-            return queryExecutor.query(queryString,target);
+        public Class<?> getReturnType() {
+            return method.getReturnType();
         }
 
         private String prepareQuery(Object[] parameters) {
             Object[] resolvedParameters=resolveParameters(parameters);
-            return String.format(queryAnnotation.value(), (Object[]) resolvedParameters);
+            return String.format(query, (Object[]) resolvedParameters);
         }
 
         private Object[] resolveParameters(Object[] parameters) {
@@ -170,9 +167,67 @@ public class GraphRepositoryFactory extends RepositoryFactorySupport {
             return parameter;
         }
 
+        private Class<?> getCompoundType() {
+            final Class<?> elementClass = getElementClass();
+            if (elementClass!=null) return elementClass;
+            return GenericTypeExtractor.resolveReturnedType(method);
+        }
+
+        private Class<?> getElementClass() {
+            if (!hasAnnotation() || queryAnnotation.elementClass().equals(Object.class)) {
+                return null;
+            }
+            return queryAnnotation.elementClass();
+        }
+
+        public String getQueryString() {
+            return this.query;
+        }
+
+        public boolean hasAnnotation() {
+            return queryAnnotation!=null;
+        }
+    }
+
+    private static class GraphRepositoryQuery implements RepositoryQuery {
+        private QueryExecutor queryExecutor;
+        private final GraphQueryMethod queryMethod;
+        private final RepositoryMetadata metadata;
+        private boolean iterableResult;
+        private Class<?> compoundType;
+
+        public GraphRepositoryQuery(GraphQueryMethod queryMethod, RepositoryMetadata metadata, final GraphDatabaseContext graphDatabaseContext) {
+            queryExecutor = new QueryExecutor(graphDatabaseContext);
+            this.queryMethod = queryMethod;
+            this.metadata = metadata;
+            this.iterableResult = Iterable.class.isAssignableFrom(queryMethod.getReturnType());
+            this.compoundType = queryMethod.getCompoundType();
+        }
+
         @Override
-        public QueryMethod getQueryMethod() {
-            return new QueryMethod(method, metadata);
+        public Object execute(Object[] parameters) {
+            final String queryString = queryMethod.prepareQuery(parameters);
+            return dispatchQuery(queryString);
+        }
+
+        private Object dispatchQuery(String queryString) {
+            if (iterableResult) {
+                if (compoundType.isAssignableFrom(Map.class)) return queryExecutor.query(queryString);
+                return queryExecutor.query(queryString, queryMethod.getCompoundType());
+            }
+            switch (queryMethod.getType()) {
+                case SINGLE_ENTITY: return queryExecutor.queryForObject(queryString, queryMethod.getReturnType());
+                case COLLECTION:
+                case PAGING:
+                    return queryExecutor.query(queryString, queryMethod.getCompoundType());
+                default:
+                    return queryExecutor.query(queryString);
+            }
+        }
+
+        @Override
+        public GraphQueryMethod getQueryMethod() {
+            return queryMethod;
         }
     }
 }
