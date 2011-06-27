@@ -31,7 +31,7 @@ import java.util.Iterator;
 public class RestTestBase {
 
     protected RestGraphDatabase graphDb;
-    private static final String HOSTNAME = "localhost";
+    private static final String HOSTNAME = "127.0.0.1";
     public static final int PORT = 7473;
     protected static LocalTestServer neoServer = new LocalTestServer(HOSTNAME,PORT).withPropertiesFile("test-db.properties");
     public static final String SERVER_ROOT_URI = "http://" + HOSTNAME + ":" + PORT + "/db/data/";
