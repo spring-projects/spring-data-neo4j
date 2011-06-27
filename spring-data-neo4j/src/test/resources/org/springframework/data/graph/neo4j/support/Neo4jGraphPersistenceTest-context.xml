@@ -147,6 +147,13 @@
     <bean id="personRepository" class="org.springframework.data.graph.neo4j.repository.GraphRepositoryFactoryBean">
         <property name="repositoryInterface" value="org.springframework.data.graph.neo4j.PersonRepository" />
         <property name="graphDatabaseContext" ref="graphDatabaseContext"/>
+        <property name="namedQueries">
+            <bean class="org.springframework.data.repository.core.support.PropertiesBasedNamedQueries">
+                <constructor-arg>
+                    <props><prop key="Person.findTeam">start p=(%d) match (p)&lt;-[:persons]-(group) return group</prop></props>
+                </constructor-arg>
+            </bean>
+        </property>
     </bean>
     <bean id="groupRepository" class="org.springframework.data.graph.neo4j.repository.GraphRepositoryFactoryBean">
         <property name="repositoryInterface" value="org.springframework.data.graph.neo4j.GroupRepository" />

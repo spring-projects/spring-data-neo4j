@@ -18,12 +18,16 @@ package org.springframework.data.graph.neo4j.support;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.neo4j.helpers.collection.IteratorUtil;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.graph.neo4j.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.graph.neo4j.Group;
+import org.springframework.data.graph.neo4j.Person;
+import org.springframework.data.graph.neo4j.PersonRepository;
 import org.springframework.data.graph.neo4j.support.node.Neo4jHelper;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -31,20 +35,16 @@ import org.springframework.test.context.transaction.BeforeTransaction;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.Map;
 
 import static java.util.Arrays.asList;
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertThat;
 import static org.junit.internal.matchers.IsCollectionContaining.hasItems;
 import static org.neo4j.helpers.collection.IteratorUtil.asCollection;
-import static org.springframework.data.graph.neo4j.Person.persistedPerson;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = {"classpath:repository-namespace-config-context.xml"})
-//@ContextConfiguration(locations = {"classpath:org/springframework/data/graph/neo4j/support/Neo4jGraphPersistenceTest-context.xml"})
 public class GraphRepositoryTest {
 
 	protected final Log log = LogFactory.getLog(getClass());
@@ -54,10 +54,13 @@ public class GraphRepositoryTest {
 
     @Autowired
     private PersonRepository personRepository;
-    @Autowired
-    private GroupRepository groupRepository;
-    @Autowired
-    private FriendshipRepository friendshipRepository;
+    private TestTeam testTeam;
+
+    @Before
+    public void setUp() throws Exception {
+        testTeam = new TestTeam();
+        testTeam.createSDGTeam();
+    }
 
     @BeforeTransaction
     public void cleanDb() {
@@ -66,140 +69,67 @@ public class GraphRepositoryTest {
 
     @Test
     @Transactional
-    public void testFinderFindAll() {
-        Person p1 = persistedPerson("Michael", 35);
-        Person p2 = persistedPerson("David", 25);
-        Iterable<Person> allPersons = personRepository.findAll();
-        assertThat(asCollection(allPersons), hasItems(p1, p2));
-    }
-
-    @Test
-    @Transactional
     public void testFindIterableOfPersonWithQueryAnnotation() {
-        final TestTeam testTeam = new TestTeam();
-        testTeam.createSDGTeam();
         Iterable<Person> teamMembers = personRepository.findAllTeamMembers(testTeam.sdg);
-        assertThat(asCollection(teamMembers), hasItems(testTeam.michael,testTeam.david,testTeam.emil));
+        assertThat(asCollection(teamMembers), hasItems(testTeam.michael, testTeam.david, testTeam.emil));
     }
 
     @Test
     @Transactional
     public void testFindPersonWithQueryAnnotation() {
-        final TestTeam testTeam = new TestTeam();
-        testTeam.createSDGTeam();
         Person boss = personRepository.findBoss(testTeam.michael);
         assertThat(boss, is(testTeam.emil));
     }
     @Test
     @Transactional
     public void testFindIterableMapsWithQueryAnnotation() {
-        final TestTeam testTeam = new TestTeam();
-        testTeam.createSDGTeam();
         Iterable<Map<String,Object>> teamMembers = personRepository.findAllTeamMemberData(testTeam.sdg);
-        assertThat(asCollection(teamMembers), hasItems(testTeam.simpleRowFor(testTeam.michael,"member"),testTeam.simpleRowFor(testTeam.david,"member"),testTeam.simpleRowFor(testTeam.emil,"member")));
+        assertThat(asCollection(teamMembers), hasItems(testTeam.simpleRowFor(testTeam.michael, "member"), testTeam.simpleRowFor(testTeam.david, "member"), testTeam.simpleRowFor(testTeam.emil, "member")));
+    }
+
+    @Test
+    @Transactional
+    public void testFindPaged() {
+        final PageRequest page = new PageRequest(0, 1, Sort.Direction.ASC, "member.name");
+        Page<Person> teamMemberPage1 = personRepository.findAllTeamMembersPaged(page, testTeam.sdg);
+        assertThat(teamMemberPage1, is((Iterable) asList(testTeam.david)));
+    }
+    @Test
+    @Transactional
+    public void testFindPagedDescending() {
+        final PageRequest page = new PageRequest(0, 2, Sort.Direction.DESC, "member.name");
+        Page<Person> teamMemberPage1 = personRepository.findAllTeamMembersPaged(page, testTeam.sdg);
+        assertThat(teamMemberPage1, is((Iterable) asList(testTeam.michael, testTeam.emil)));
+        assertThat(teamMemberPage1.isFirstPage(), is(true));
+    }
+    @Test
+    @Transactional
+    public void testFindPagedNull() {
+        Page<Person> teamMemberPage1 = personRepository.findAllTeamMembersPaged(null, testTeam.sdg);
+        assertThat(teamMemberPage1, is((Iterable) asList(testTeam.michael, testTeam.emil)));
+        assertThat(teamMemberPage1.isFirstPage(), is(true));
+        assertThat(teamMemberPage1.isLastPage(), is(true));
+    }
+
+    @Test
+    @Transactional
+    public void testFindSortedDescending() {
+        final Sort sort = new Sort(Sort.Direction.DESC, "member.name");
+        Iterable<Person> teamMembers = personRepository.findAllTeamMembersSorted(testTeam.sdg, sort);
+        assertThat(teamMembers, is((Iterable)asList(testTeam.michael, testTeam.emil, testTeam.david)));
+    }
+
+    @Test
+    @Transactional
+    public void testFindSortedNull() {
+        Iterable<Person> teamMembers = personRepository.findAllTeamMembersSorted(testTeam.sdg, null);
+        assertThat(teamMembers, hasItems(testTeam.michael, testTeam.emil, testTeam.david));
     }
 
     @Test
     @Transactional
     public void testFindByNamedQuery() {
-        final TestTeam testTeam = new TestTeam();
-        testTeam.createSDGTeam();
         Group team = personRepository.findTeam(testTeam.michael);
         assertThat(team, is(testTeam.sdg));
     }
-
-    @Test
-    @Transactional
-    public void testSaveManyPeople() {
-        Person p1 = new Person("Michael", 35);
-        Person p2 = new Person("David", 25);
-        personRepository.save(asList(p1,p2));
-        assertEquals("persisted person 1",true,p1.hasPersistentState());
-        assertEquals("persisted person 2",true,p2.hasPersistentState());
-        assertThat(asCollection(personRepository.findAll()), hasItems(p2, p1));
-    }
-
-    @Test
-    @Transactional
-    public void testSavePerson() {
-        Person p1 = new Person("Michael", 35);
-        personRepository.save(p1);
-        assertEquals("persisted person",true,p1.hasPersistentState());
-        assertThat(personRepository.findOne(p1.getId()), is(p1));
-    }
-    @Test
-    public void testDeletePerson() {
-        Person p1 = persistedPerson("Michael", 35);
-        personRepository.delete(p1);
-        assertEquals("people deleted", false, personRepository.findAll().iterator().hasNext());
-    }
-    @Test
-    public void testDeletePeople() {
-        Person p1 = persistedPerson("Michael", 35);
-        Person p2 = persistedPerson("David", 26);
-        personRepository.delete(asList(p1,p2));
-        assertEquals("people deleted", false, personRepository.findAll().iterator().hasNext());
-    }
-
-    @Test
-    @Transactional
-    public void testFindRelationshipEntity() {
-        Person p1 = persistedPerson("Michael", 35);
-        Person p2 = persistedPerson("David", 27);
-        Friendship friendship = p1.knows(p2);
-        assertEquals("Wrong friendship count.", 1L, (long) friendshipRepository.count());
-        assertEquals(friendship, friendshipRepository.findOne(friendship.getRelationshipId()));
-        assertEquals("Did not find friendship.", Collections.singleton(friendship), new HashSet<Friendship>(IteratorUtil.asCollection(friendshipRepository.findAll())));
-    }
-
-    @Test
-    @Transactional
-    public void testFinderFindById() {
-        Person p = persistedPerson("Michael", 35);
-        Person pById = personRepository.findOne(p.getNodeId());
-        assertEquals(p, pById);
-    }
-
-    @Test
-    @Transactional
-    public void testExists() {
-        Person p = persistedPerson("Michael", 35);
-        boolean found = personRepository.exists(p.getNodeId());
-        assertTrue("Found persisted entity", found);
-    }
-    @Test
-    @Transactional
-    public void testDoesntExist() {
-        boolean found = personRepository.exists(Long.MAX_VALUE-1);
-        assertFalse("Non existend id isn't foundpo ", found);
-    }
-
-    @Test
-    @Transactional
-    public void testFinderFindByIdNonexistent() {
-        Person p = persistedPerson("Michael", 35);
-        Person p2 = personRepository.findOne(589736218L);
-        Assert.assertNull(p2);
-    }
-
-    @Test
-    @Transactional
-    public void testFinderCount() {
-        assertEquals(0L, personRepository.count());
-        Person p = persistedPerson("Michael", 35);
-        assertEquals(1L, personRepository.count());
-    }
-
-    @Test
-	@Transactional
-	public void testFindAllOnGroup() {
-	    log.debug("FindAllOnGroup start");
-        Group g = new Group().persist();
-        g.setName("test");
-        Group g2 = new Group().persist();
-        g.setName("test");
-        Collection<Group> groups = IteratorUtil.addToCollection(groupRepository.findAll().iterator(), new HashSet<Group>());
-        Assert.assertEquals(2, groups.size());
-	    log.debug("FindAllOnGroup done");
-	}
 }

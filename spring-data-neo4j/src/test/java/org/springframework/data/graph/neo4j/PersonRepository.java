@@ -16,11 +16,13 @@
 
 package org.springframework.data.graph.neo4j;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.graph.annotation.GraphQuery;
-import org.springframework.data.graph.neo4j.repository.NamedIndexRepository;
 import org.springframework.data.graph.neo4j.repository.GraphRepository;
+import org.springframework.data.graph.neo4j.repository.NamedIndexRepository;
 
-import java.util.Collection;
 import java.util.Map;
 
 /**
@@ -39,4 +41,9 @@ public interface PersonRepository extends GraphRepository<Person>, NamedIndexRep
     Person findBoss(Person person);
 
     Group findTeam(Person person);
+
+    @GraphQuery("start team=(%d) match (team)-[:persons]->(member) return member")
+    Page<Person> findAllTeamMembersPaged(Pageable page, Group team);
+    @GraphQuery("start team=(%d) match (team)-[:persons]->(member) return member")
+    Iterable<Person> findAllTeamMembersSorted(Group team, Sort sort);
 }

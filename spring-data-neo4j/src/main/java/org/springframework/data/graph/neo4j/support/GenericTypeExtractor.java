@@ -38,12 +38,15 @@ public class GenericTypeExtractor {
 
     public static Class<?> resolveConcreteType(Class<?> type, final Type genericType) {
         if (Iterable.class.isAssignableFrom(type) || Page.class.isAssignableFrom(type)) {
+            if (genericType instanceof ParameterizedType) {
+                ParameterizedType returnType = (ParameterizedType) genericType;
+                Type componentType = returnType.getActualTypeArguments()[0];
 
-            ParameterizedType returnType = (ParameterizedType) genericType;
-            Type componentType = returnType.getActualTypeArguments()[0];
-
-            return componentType instanceof ParameterizedType ? (Class<?>) ((ParameterizedType) componentType).getRawType()
-                    : (Class<?>) componentType;
+                return componentType instanceof ParameterizedType ? (Class<?>) ((ParameterizedType) componentType).getRawType()
+                        : (Class<?>) componentType;
+            } else {
+                return Object.class;
+            }
         }
 
         return type;

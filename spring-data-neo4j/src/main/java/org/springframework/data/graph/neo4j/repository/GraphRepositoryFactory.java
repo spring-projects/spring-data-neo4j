@@ -16,6 +16,10 @@
 
 package org.springframework.data.graph.neo4j.repository;
 
+import org.neo4j.helpers.collection.IteratorUtil;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.graph.annotation.GraphQuery;
 import org.springframework.data.graph.annotation.NodeEntity;
 import org.springframework.data.graph.annotation.RelationshipEntity;
@@ -28,13 +32,13 @@ import org.springframework.data.repository.core.EntityInformation;
 import org.springframework.data.repository.core.NamedQueries;
 import org.springframework.data.repository.core.RepositoryMetadata;
 import org.springframework.data.repository.core.support.RepositoryFactorySupport;
-import org.springframework.data.repository.query.QueryLookupStrategy;
-import org.springframework.data.repository.query.QueryMethod;
-import org.springframework.data.repository.query.RepositoryQuery;
+import org.springframework.data.repository.query.*;
 import org.springframework.util.Assert;
 
 import java.io.Serializable;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 import static org.springframework.core.annotation.AnnotationUtils.findAnnotation;
@@ -144,15 +148,54 @@ public class GraphRepositoryFactory extends RepositoryFactorySupport {
             return method.getReturnType();
         }
 
-        private String prepareQuery(Object[] parameters) {
-            Object[] resolvedParameters=resolveParameters(parameters);
-            return String.format(query, (Object[]) resolvedParameters);
+        private String prepareQuery(Object[] args) {
+            final Parameters parameters = getParameters();
+            Object[] resolvedParameters = resolveParameters(args,parameters.getBindableParameters());
+            String baseQuery = String.format(query, (Object[]) resolvedParameters);
+            if (parameters.hasSortParameter()) {
+                baseQuery = addSorting(baseQuery, (Sort) args[parameters.getSortIndex()]);
+            }
+            if (parameters.hasPageableParameter()) {
+                final Pageable pageable = getPageable(args);
+                baseQuery = addSorting(baseQuery, pageable.getSort());
+                baseQuery = addPaging(baseQuery, pageable);
+            }
+            return baseQuery;
         }
 
-        private Object[] resolveParameters(Object[] parameters) {
-            final Object[] result = new Object[parameters.length];
-            for (int i = 0; i < parameters.length; i++) {
-                result[i] = resolveParameter(parameters[i]);
+        private Pageable getPageable(Object[] args) {
+            Parameters parameters = getParameters();
+            if (parameters.hasPageableParameter()) return (Pageable) args[parameters.getPageableIndex()];
+            return null;
+        }
+
+        private String addPaging(String baseQuery, Pageable pageable) {
+            if (pageable==null) return baseQuery;
+            return baseQuery + " skip "+pageable.getOffset() + " limit " + pageable.getPageSize();
+        }
+
+        private String addSorting(String baseQuery, Sort sort) {
+            if (sort==null) return baseQuery; // || sort.isEmpty()
+            final String sortOrder = getSortOrder(sort);
+            if (sortOrder.isEmpty()) return baseQuery;
+            return baseQuery + " order by " + sortOrder;
+        }
+
+        private String getSortOrder(Sort sort) {
+            String result = "";
+            for (Sort.Order order : sort) {
+                result += order.getProperty() + " " + order.getDirection();
+            }
+            return result;
+        }
+
+        private Object[] resolveParameters(Object[] parameters, Parameters bindableParameters) {
+            final int paramCount = bindableParameters.getNumberOfParameters();
+            final Object[] result = new Object[paramCount];
+            for (int i = 0; i < paramCount; i++) {
+                final Parameter parameter = bindableParameters.getParameter(i);
+                final Object value = parameters[parameter.getIndex()];
+                result[i] = resolveParameter(value);
             }
             return result;
         }
@@ -207,22 +250,32 @@ public class GraphRepositoryFactory extends RepositoryFactorySupport {
         @Override
         public Object execute(Object[] parameters) {
             final String queryString = queryMethod.prepareQuery(parameters);
-            return dispatchQuery(queryString);
+            return dispatchQuery(queryString,queryMethod.getPageable(parameters));
         }
 
-        private Object dispatchQuery(String queryString) {
+        private Object dispatchQuery(String queryString, Pageable pageable) {
+            final QueryMethod.Type queryResultType = queryMethod.getType();
+            if (queryResultType== QueryMethod.Type.PAGING) {
+                return queryPaged(queryString,pageable);
+            }
             if (iterableResult) {
                 if (compoundType.isAssignableFrom(Map.class)) return queryExecutor.query(queryString);
                 return queryExecutor.query(queryString, queryMethod.getCompoundType());
             }
-            switch (queryMethod.getType()) {
-                case SINGLE_ENTITY: return queryExecutor.queryForObject(queryString, queryMethod.getReturnType());
-                case COLLECTION:
-                case PAGING:
-                    return queryExecutor.query(queryString, queryMethod.getCompoundType());
-                default:
-                    return queryExecutor.query(queryString);
-            }
+            return queryExecutor.queryForObject(queryString, queryMethod.getReturnType());
+        }
+
+        private Object queryPaged(String queryString, Pageable pageable) {
+            final Iterable<?> result = queryExecutor.query(queryString, queryMethod.getCompoundType());
+            return createPage(result, pageable);
+        }
+
+        @SuppressWarnings({"unchecked"})
+        private Object createPage(Iterable<?> result, Pageable pageable) {
+            final List resultList = IteratorUtil.addToCollection(result, new ArrayList());
+            if (pageable==null) return new PageImpl(resultList);
+            final int currentTotal = pageable.getOffset() + pageable.getPageSize();
+            return new PageImpl(resultList, pageable, currentTotal);
         }
 
         @Override
