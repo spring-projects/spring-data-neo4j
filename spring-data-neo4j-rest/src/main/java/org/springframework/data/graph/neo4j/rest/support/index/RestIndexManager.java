@@ -16,7 +16,7 @@
 
 package org.springframework.data.graph.neo4j.rest.support.index;
 
-import com.sun.jersey.api.client.ClientResponse;
+
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.PropertyContainer;
 import org.neo4j.graphdb.Relationship;
@@ -24,6 +24,7 @@ import org.neo4j.graphdb.index.AutoIndexer;
 import org.neo4j.graphdb.index.Index;
 import org.neo4j.graphdb.index.IndexManager;
 import org.neo4j.graphdb.index.RelationshipIndex;
+import org.springframework.data.graph.neo4j.rest.support.RequestResult;
 import org.springframework.data.graph.neo4j.rest.support.RestGraphDatabase;
 import org.springframework.data.graph.neo4j.rest.support.RestRequest;
 
@@ -45,9 +46,9 @@ public class RestIndexManager implements IndexManager {
     }
 
     private Map<String, ?> indexInfo( final String indexType ) {
-        ClientResponse response = restRequest.get( "index/" + indexType );
-        if ( restRequest.statusIs( response, ClientResponse.Status.NO_CONTENT ) ) return Collections.emptyMap();
-        return (Map<String, ?>) restRequest.toMap( response );
+        RequestResult requestResult = restRequest.get( "index/" + indexType );
+        if ( restRequest.statusIs(requestResult, javax.ws.rs.core.Response.Status.NO_CONTENT ) ) return Collections.emptyMap();
+        return (Map<String, ?>) restRequest.toMap(requestResult);
     }
 
     public Index<Node> forNodes( String indexName ) {

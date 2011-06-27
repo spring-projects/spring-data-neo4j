@@ -16,7 +16,7 @@
 
 package org.springframework.data.graph.neo4j.rest.support;
 
-import com.sun.jersey.api.client.ClientResponse;
+
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Path;
@@ -32,7 +32,6 @@ import org.neo4j.helpers.Predicate;
 import org.neo4j.kernel.Traversal;
 import org.neo4j.kernel.Uniqueness;
 
-import javax.ws.rs.core.Response;
 import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.Collection;
@@ -213,15 +212,15 @@ public class RestTraversal implements RestTraversalDescription
         final RestNode restNode = (RestNode)node;
         final RestRequest request = restNode.getRestRequest();
         final String traversalJson = JsonHelper.createJsonFrom( description );
-        final ClientResponse result = request.post( "traverse/" + FULLPATH, traversalJson );
-        if ( request.statusOtherThan( result, Response.Status.OK ) )
+        final RequestResult requestResult = request.post("traverse/" + FULLPATH, traversalJson);
+        if ( request.statusOtherThan(requestResult, javax.ws.rs.core.Response.Status.OK ) )
         {
-            throw new RuntimeException( String.format( "Error executing traversal: %d %s", result.getStatus(), traversalJson ) );
+            throw new RuntimeException( String.format( "Error executing traversal: %d %s", requestResult.getStatus(), traversalJson ) );
         }
-        final Object col = request.toEntity( result );
+        final Object col = request.toEntity(requestResult);
         if ( !( col instanceof Collection ) )
         {
-            throw new RuntimeException( String.format( "Unexpected traversal result, %s instead of collection", col != null ? col.getClass() : null ) );
+            throw new RuntimeException( String.format( "Unexpected traversal response, %s instead of collection", col != null ? col.getClass() : null ) );
         }
         return new RestTraverser( (Collection)col, restNode.getRestGraphDatabase() );
     }

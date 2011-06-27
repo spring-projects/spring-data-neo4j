@@ -23,7 +23,6 @@ import com.sun.jersey.api.client.WebResource.Builder;
 import com.sun.jersey.api.client.filter.HTTPBasicAuthFilter;
 
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -31,6 +30,7 @@ import java.net.URLEncoder;
 import java.util.Map;
 
 public class RestRequest {
+
     private final URI baseUri;
     private final Client client;
 
@@ -75,57 +75,59 @@ public class RestRequest {
         return baseUri + "/" + path;
     }
 
-    public ClientResponse get( String path ) {
-        return builder( path ).get( ClientResponse.class );
+    public RequestResult get( String path ) {
+        return RequestResult.extractFrom(builder(path).get(ClientResponse.class));
     }
 
-    public ClientResponse get( String path, String data ) {
+    public RequestResult get( String path, String data ) {
         Builder builder = builder(path);
         if ( data != null ) {
             builder = builder.entity( data, MediaType.APPLICATION_JSON_TYPE );
         }
-        return builder.get(ClientResponse.class);
+        return RequestResult.extractFrom(builder.get(ClientResponse.class));
     }
 
-    public ClientResponse delete( String path ) {
-        return builder( path ).delete( ClientResponse.class );
+    public RequestResult delete(String path) {
+        return RequestResult.extractFrom(builder(path).delete(ClientResponse.class));
     }
 
-    public ClientResponse post( String path, String data ) {
+    public RequestResult post( String path, String data ) {
         Builder builder = builder( path );
         if ( data != null ) {
             builder = builder.entity( data, MediaType.APPLICATION_JSON_TYPE );
         }
-        return builder.post( ClientResponse.class );
+        return RequestResult.extractFrom(builder.post(ClientResponse.class));
     }
 
-    public ClientResponse put( String path, String data ) {
+    public void put( String path, String data ) {
         Builder builder = builder( path );
         if ( data != null ) {
             builder = builder.entity( data, MediaType.APPLICATION_JSON_TYPE );
         }
-        return builder.put( ClientResponse.class );
+        final ClientResponse response = builder.put(ClientResponse.class);
+        response.close();
     }
 
 
-    public Object toEntity( ClientResponse response ) {
-        return JsonHelper.jsonToSingleValue( entityString( response ) );
+    public Object toEntity( RequestResult requestResult) {
+        return JsonHelper.jsonToSingleValue( entityString(requestResult) );
     }
 
-    public Map<?, ?> toMap( ClientResponse response ) {
-        return JsonHelper.jsonToMap( entityString( response ) );
+    public Map<?, ?> toMap( RequestResult requestResult) {
+        final String json = entityString(requestResult);
+        return JsonHelper.jsonToMap(json);
     }
 
-    private String entityString( ClientResponse response ) {
-        return response.getEntity( String.class );
+    private String entityString( RequestResult requestResult) {
+        return requestResult.getEntity();
     }
 
-    public boolean statusIs( ClientResponse response, Response.StatusType status ) {
-        return response.getStatus() == status.getStatusCode();
+    public boolean statusIs( RequestResult requestResult, javax.ws.rs.core.Response.StatusType status ) {
+        return requestResult.getStatus() == status.getStatusCode();
     }
 
-    public boolean statusOtherThan( ClientResponse response, Response.StatusType status ) {
-        return !statusIs( response, status );
+    public boolean statusOtherThan( RequestResult requestResult, javax.ws.rs.core.Response.StatusType status ) {
+        return !statusIs(requestResult, status );
     }
 
     public RestRequest with( String uri ) {

@@ -71,24 +71,24 @@ public class SpringPluginInitializerTest extends SpringPluginInitializer impleme
 
     @Test
     public void shouldInjectInterface() throws Exception {
-        ClientResponse response = sendRequest( "testInterface" );
+        RequestResult requestResult = sendRequest( "testInterface" );
 
-        Assert.assertEquals( 204, response.getStatus() );
+        Assert.assertEquals( 204, requestResult.getStatus() );
         Assert.assertEquals( 1, touched );
     }
 
     @Test
     public void shouldWorkWithThirdPartyJaxrs() throws Exception {
-        ClientResponse response = sendRequest( "testNoContext" );
+        RequestResult requestResult = sendRequest( "testNoContext" );
 
-        Assert.assertEquals( 204, response.getStatus() );
+        Assert.assertEquals( 204, requestResult.getStatus() );
     }
 
-    private ClientResponse sendRequest( String method ) {
-        return Client.create().
+    private RequestResult sendRequest( String method ) {
+        return RequestResult.extractFrom(Client.create().
                 resource( "http://localhost:7473/test/" + method ).
                 type( MediaType.APPLICATION_JSON ).
-                accept( MediaType.APPLICATION_JSON ).post( ClientResponse.class );
+                accept( MediaType.APPLICATION_JSON ).post( ClientResponse.class ));
     }
 
     @Override

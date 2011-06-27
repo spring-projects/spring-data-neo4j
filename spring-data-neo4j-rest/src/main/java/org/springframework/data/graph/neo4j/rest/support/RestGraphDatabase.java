@@ -16,7 +16,7 @@
 
 package org.springframework.data.graph.neo4j.rest.support;
 
-import com.sun.jersey.api.client.ClientResponse;
+
 import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.event.KernelEventHandler;
 import org.neo4j.graphdb.event.TransactionEventHandler;
@@ -28,7 +28,6 @@ import org.springframework.data.graph.core.Property;
 import org.springframework.data.graph.neo4j.rest.support.index.RestIndexManager;
 import org.springframework.data.graph.neo4j.support.query.ConversionServiceQueryResultConverter;
 import org.springframework.data.graph.neo4j.support.query.QueryEngine;
-import org.springframework.data.graph.neo4j.support.query.QueryResultConverter;
 
 import javax.ws.rs.core.Response.Status;
 import java.net.URI;
@@ -51,29 +50,31 @@ public class RestGraphDatabase implements GraphDatabaseService, GraphDatabase {
 
     @Override
     public Node getNodeById(long id) {
-        ClientResponse response = restRequest.get("node/" + id);
-        if ( restRequest.statusIs(response, Status.NOT_FOUND) ) {
+        RequestResult requestResult = restRequest.get("node/" + id);
+        if ( restRequest.statusIs(requestResult, Status.NOT_FOUND) ) {
             throw new NotFoundException( "" + id );
         }
-        return new RestNode( restRequest.toMap(response), this );
+        return new RestNode( restRequest.toMap(requestResult), this );
     }
 
     @Override
     public Node createNode(Property... props) {
-        ClientResponse response = restRequest.post("node", JsonHelper.createJsonFrom( Property.toMap(props) ));
-        if ( restRequest.statusOtherThan(response, Status.CREATED) ) {
-            throw new RuntimeException( "" + response.getStatus() );
+        RequestResult requestResult = restRequest.post("node", JsonHelper.createJsonFrom( Property.toMap(props) ));
+        if ( restRequest.statusOtherThan(requestResult, Status.CREATED) ) {
+            final int status = requestResult.getStatus();
+            throw new RuntimeException( "" + status);
         }
-        return new RestNode( response.getLocation(), this );
+        final URI location = requestResult.getLocation();
+        return new RestNode(location, this );
     }
 
     @Override
     public Relationship getRelationshipById(long id) {
-        ClientResponse response = restRequest.get("relationship/" + id);
-        if ( restRequest.statusIs( response, Status.NOT_FOUND ) ) {
+        RequestResult requestResult = restRequest.get("relationship/" + id);
+        if ( restRequest.statusIs(requestResult, Status.NOT_FOUND ) ) {
             throw new NotFoundException( "" + id );
         }
-        return new RestRelationship( restRequest.toMap( response ), this );
+        return new RestRelationship( restRequest.toMap(requestResult), this );
     }
 
     @Override

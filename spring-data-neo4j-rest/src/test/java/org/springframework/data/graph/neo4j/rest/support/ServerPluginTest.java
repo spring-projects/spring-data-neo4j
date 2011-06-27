@@ -18,6 +18,7 @@ package org.springframework.data.graph.neo4j.rest.support;
 
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientResponse;
+
 import com.sun.jersey.api.client.WebResource;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.junit.BeforeClass;
@@ -53,9 +54,9 @@ public class ServerPluginTest extends RestTestBase {
 
     @Test
     public void testGetFriends() throws IOException {
-        final ClientResponse response = createRequest("ext/TestServerPlugin/graphdb/person").post(ClientResponse.class, "{\"name\":\"" + person.getName() + "\"}");
-        assertEquals(200,response.getStatus());
-        final String result = response.getEntity(String.class);
+        final RequestResult requestResult = RequestResult.extractFrom(createRequest("ext/TestServerPlugin/graphdb/person").post(ClientResponse.class, "{\"name\":\"" + person.getName() + "\"}"));
+        assertEquals(200, requestResult.getStatus());
+        final String result = requestResult.getEntity();
         final Map data = (Map) new ObjectMapper().readValue(result, Object.class);
         assertEquals(person.getName(),((Map)data.get("data")).get("name"));
 

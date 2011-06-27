@@ -16,14 +16,13 @@
 
 package org.springframework.data.graph.neo4j.rest.support;
 
-import com.sun.jersey.api.client.ClientResponse;
+
 import org.neo4j.helpers.collection.IterableWrapper;
 import org.springframework.dao.InvalidDataAccessResourceUsageException;
 import org.springframework.data.graph.neo4j.support.query.QueryEngine;
 import org.springframework.data.graph.neo4j.support.query.QueryResultConverter;
 
 import java.util.*;
-import org.springframework.data.graph.neo4j.support.query.QueryEngine;
 
 import java.util.Map;
 
@@ -48,8 +47,8 @@ public class RestQueryEngine implements QueryEngine {
     }
 
     private RestQueryResult executeStatement(String statement) {
-        final ClientResponse response = restRequest.get("ext/CypherPlugin/graphdb/execute_query", JsonHelper.createJsonFrom(Collections.singletonMap("query", statement)));
-        return new RestQueryResult(restRequest.toMap(response));
+        final RequestResult requestResult = restRequest.get("ext/CypherPlugin/graphdb/execute_query", JsonHelper.createJsonFrom(Collections.singletonMap("query", statement)));
+        return new RestQueryResult(restRequest.toMap(requestResult));
     }
 
     class RestQueryResult {

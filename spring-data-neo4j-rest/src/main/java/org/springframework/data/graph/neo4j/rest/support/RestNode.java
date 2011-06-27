@@ -16,7 +16,7 @@
 
 package org.springframework.data.graph.neo4j.rest.support;
 
-import com.sun.jersey.api.client.ClientResponse;
+
 import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.Traverser.Order;
 import org.neo4j.helpers.collection.CombiningIterable;
@@ -24,7 +24,6 @@ import org.neo4j.helpers.collection.IterableWrapper;
 import org.neo4j.helpers.collection.IteratorUtil;
 
 import java.net.URI;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
 
@@ -52,9 +51,9 @@ public class RestNode extends RestEntity implements Node {
     }
 
     @SuppressWarnings("unchecked")
-    private Iterable<Relationship> wrapRelationships( ClientResponse response ) {
+    private Iterable<Relationship> wrapRelationships( RequestResult requestResult) {
         return new IterableWrapper<Relationship, Object>(
-                (Collection<Object>) restRequest.toEntity( response ) ) {
+                (Collection<Object>) restRequest.toEntity(requestResult) ) {
             @Override
             protected Relationship underlyingObjectToObject( Object data ) {
                 return new RestRelationship( (Map<?, ?>) data, getRestGraphDatabase() );

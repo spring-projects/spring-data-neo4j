@@ -16,7 +16,7 @@
 
 package org.springframework.data.graph.neo4j.rest.support;
 
-import com.sun.jersey.api.client.ClientResponse;
+
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.NotFoundException;
 import org.neo4j.graphdb.PropertyContainer;
@@ -68,10 +68,10 @@ public class RestEntity implements PropertyContainer {
 
     Map<String, Object> getPropertyData() {
         if ( this.propertyData == null || timeElapsed( this.lastTimeFetchedPropertyData, graphDatabase.getPropertyRefetchTimeInMillis() ) ) {
-            ClientResponse response = restRequest.get( "properties" );
-            boolean ok = restRequest.statusIs( response, Status.OK );
+            RequestResult requestResult = restRequest.get( "properties" );
+            boolean ok = restRequest.statusIs(requestResult, Status.OK );
             if ( ok ) {
-                this.propertyData = (Map<String, Object>) restRequest.toMap( response );
+                this.propertyData = (Map<String, Object>) restRequest.toMap(requestResult);
             } else {
                 this.propertyData = Collections.emptyMap();
             }

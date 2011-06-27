@@ -16,16 +16,12 @@
 
 package org.springframework.data.graph.neo4j.rest.support.index;
 
-import com.sun.jersey.api.client.ClientResponse;
+
 import org.neo4j.graphdb.PropertyContainer;
 import org.neo4j.graphdb.index.Index;
 import org.neo4j.graphdb.index.IndexHits;
-import org.springframework.data.graph.neo4j.rest.support.JsonHelper;
-import org.springframework.data.graph.neo4j.rest.support.RestEntity;
-import org.springframework.data.graph.neo4j.rest.support.RestGraphDatabase;
-import org.springframework.data.graph.neo4j.rest.support.RestRequest;
+import org.springframework.data.graph.neo4j.rest.support.*;
 
-import javax.ws.rs.core.Response;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
@@ -56,7 +52,7 @@ public abstract class RestIndex<T extends PropertyContainer> implements Index<T>
 
     public void add( T entity, String key, Object value ) {
         String uri = ( (RestEntity) entity ).getUri();
-        restRequest.post( indexPath( key, value ), JsonHelper.createJsonFrom( uri ) );
+        restRequest.post(indexPath(key, value), JsonHelper.createJsonFrom(uri));
     }
 
     protected String indexPath( ) {
@@ -96,9 +92,9 @@ public abstract class RestIndex<T extends PropertyContainer> implements Index<T>
 
     public IndexHits<T> query( String key, Object value ) {
         String indexPath=key!=null ? indexPath( key ): indexPath("null");
-        ClientResponse response = restRequest.get( indexPath + "?query=" +  RestRequest.encode( value ) );
-        if ( restRequest.statusIs( response, Response.Status.OK ) ) {
-            Collection hits = (Collection) restRequest.toEntity( response );
+        RequestResult requestResult = restRequest.get( indexPath + "?query=" +  RestRequest.encode( value ) );
+        if ( restRequest.statusIs(requestResult, javax.ws.rs.core.Response.Status.OK ) ) {
+            Collection hits = (Collection) restRequest.toEntity(requestResult);
             return new SimpleIndexHits<T>( hits, hits.size() );
         } else {
             return new SimpleIndexHits<T>( Collections.emptyList(), 0 );

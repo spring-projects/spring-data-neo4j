@@ -16,12 +16,11 @@
 
 package org.springframework.data.graph.neo4j.rest.support;
 
-import com.sun.jersey.api.client.ClientResponse;
+
 import org.neo4j.graphdb.*;
 import org.neo4j.helpers.collection.MapUtil;
 import org.springframework.data.graph.core.Property;
 
-import javax.ws.rs.core.Response;
 import java.net.URI;
 import java.util.Map;
 
@@ -86,10 +85,12 @@ public class RestRelationship extends RestEntity implements Relationship {
             data.put("data",Property.toMap(props));
         }
 
-        ClientResponse response = restRequest.post( "relationships", JsonHelper.createJsonFrom( data ) );
-        if ( restRequest.statusOtherThan( response, Response.Status.CREATED ) ) {
-            throw new RuntimeException( "" + response.getStatus() );
+        RequestResult requestResult = restRequest.post( "relationships", JsonHelper.createJsonFrom( data ) );
+        if ( restRequest.statusOtherThan(requestResult, javax.ws.rs.core.Response.Status.CREATED ) ) {
+            final int status = requestResult.getStatus();
+            throw new RuntimeException( "" + status);
         }
-        return new RestRelationship( response.getLocation(), startNode.getRestGraphDatabase() );
+        final URI location = requestResult.getLocation();
+        return new RestRelationship(location, startNode.getRestGraphDatabase() );
     }
 }
