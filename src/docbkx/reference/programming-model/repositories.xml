@@ -20,6 +20,10 @@
         <!--</para>-->
     <!--</note>-->
     <para>
+        Spring Data Graph repositories support annotated and named queries for the Neo4j
+        <ulink url="http://docs.neo4j.org/chunked/milestone/query-lang.html">Cypher</ulink> query-language.
+    </para>
+    <para>
         Spring Data Graph comes with typed repository implementations that provide methods for
         locating node and relationship entities. There are 3 types of basic repository interfaces
         and implementations. <code>CRUDRepository</code> provides basic operations,
@@ -121,6 +125,66 @@
                 </varlistentry>
             </variablelist>
         </para>
+    </section>
+
+    <section>
+        <title>Cypher-Queries</title>
+        <section>
+            <title>Annotated Queries</title>
+        <para>
+            Queries for the graph-query language cypher can be supplied with the <code>@GraphQuery</code> annotation.
+            That means every method annotated with <code>@GraphQuery("start n=(%d) match (n)-->(m) return m")</code>
+            will use the query string. The String-format parameters are replaced by the actual method parameters in order,
+            whereby Node and Relationship-Entities are resolved to their respective id's and all other parameters are
+            replaced directly (i.e. Strings, Longs, etc). There is special support for the <code>Sort</code> and <code>Pageable</code>
+            parameters from Spring Data Commons, which are supported to add programmatic paging and sorting (alternatively
+            static paging and sorting can be supplied in the query string itself).
+        </para>
+        </section>
+
+        <section>
+            <title>Named Queries</title>
+        <para>Spring Data Graph also supports the notion of named queries which are externalized in property-config-files
+            (<code>META-INF/graph-named-queries.properties</code>). Those files have the format:
+            <code>Entity.finderName=query</code> (e.g. <code>Person.findBoss=start p=(%d) match (p)&lt;-[:BOSS]-(boss) return boss</code>).
+            Otherwise named queries support the same parameters as annotated queries.
+        </para>
+        </section>
+        <section>
+            <title>Query results</title>
+            <para>Typical results for queries are <code>Iterable&lt;Type&gt;, Iterable&lt;Map&lt;String,Object&gt;&gt;, Type and Page&lt;Type&gt;</code>.
+                Nodes and Relationships are converted to their respective Entities (if they exist). Other values are converted
+                using the registered Spring conversion services (e.g. enums).
+            </para>
+        </section>
+        <section>
+            <title>Cypher Examples</title>
+            <para>There is a <ulink url="http://neo4j.vidcaster.com/U2Y/introduction-to-cypher">screencast</ulink> available showing many features of the query language.
+                The following examples are taken from the cineasts dataset of the tutorial section.
+                <variablelist>
+                    <varlistentry>
+                        <term><code>start n=(0) return n</code></term>
+                        <listitem><para>returns the node with id 0</para></listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term><code>start movie=(Movie,title,'Matrix') return movie</code></term>
+                        <listitem><para>returns the nodes which are indexed as 'Matrix'</para></listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term><code>start movie=(Movie,title,'Matrix') match (movie)&lt;-[:ACTS_IN]-(actor) return actor.name</code></term>
+                        <listitem><para>returns the names of the actors that have a ACTS_IN relationship to the movie node for matrix</para></listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term><code>start movie=(Movie,title,'Matrix') match (movie)&lt;-[r,:RATED]-(user) where r.stars > 3 return user.name, r.stars, r.comment</code></term>
+                        <listitem><para>returns users names and their ratings (>3) of the movie matrix</para></listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term><code>start user=(User,login,'micha') match (user)-[:FRIEND]-(friend)-[r,:RATED]->(movie) return movie.title, AVG(r.stars), count(*) order by AVG(r.stars) desc, count(*) desc</code></term>
+                        <listitem><para>returns the movies rate by the friends of the user 'micha', aggregated by movie.title, with averaged ratings and rating-counts sorted by both</para></listitem>
+                    </varlistentry>
+                </variablelist>
+            </para>
+        </section>
     </section>
 
     <section>

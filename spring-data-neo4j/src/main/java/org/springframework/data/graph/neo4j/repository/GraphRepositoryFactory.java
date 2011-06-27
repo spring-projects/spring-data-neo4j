@@ -157,8 +157,10 @@ public class GraphRepositoryFactory extends RepositoryFactorySupport {
             }
             if (parameters.hasPageableParameter()) {
                 final Pageable pageable = getPageable(args);
-                baseQuery = addSorting(baseQuery, pageable.getSort());
-                baseQuery = addPaging(baseQuery, pageable);
+                if (pageable!=null) {
+                    baseQuery = addSorting(baseQuery, pageable.getSort());
+                    baseQuery = addPaging(baseQuery, pageable);
+                }
             }
             return baseQuery;
         }

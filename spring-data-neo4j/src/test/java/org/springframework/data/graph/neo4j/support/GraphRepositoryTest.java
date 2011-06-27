@@ -34,12 +34,15 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.transaction.BeforeTransaction;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 
 import static java.util.Arrays.asList;
+import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
+import static org.junit.internal.matchers.IsCollectionContaining.hasItem;
 import static org.junit.internal.matchers.IsCollectionContaining.hasItems;
 import static org.neo4j.helpers.collection.IteratorUtil.asCollection;
 
@@ -92,23 +95,23 @@ public class GraphRepositoryTest {
     public void testFindPaged() {
         final PageRequest page = new PageRequest(0, 1, Sort.Direction.ASC, "member.name");
         Page<Person> teamMemberPage1 = personRepository.findAllTeamMembersPaged(page, testTeam.sdg);
-        assertThat(teamMemberPage1, is((Iterable) asList(testTeam.david)));
+        assertThat(teamMemberPage1, hasItem(testTeam.david));
     }
     @Test
     @Transactional
     public void testFindPagedDescending() {
         final PageRequest page = new PageRequest(0, 2, Sort.Direction.DESC, "member.name");
         Page<Person> teamMemberPage1 = personRepository.findAllTeamMembersPaged(page, testTeam.sdg);
-        assertThat(teamMemberPage1, is((Iterable) asList(testTeam.michael, testTeam.emil)));
+        assertEquals(asList(testTeam.michael, testTeam.emil), asCollection(teamMemberPage1));
         assertThat(teamMemberPage1.isFirstPage(), is(true));
     }
     @Test
     @Transactional
     public void testFindPagedNull() {
         Page<Person> teamMemberPage1 = personRepository.findAllTeamMembersPaged(null, testTeam.sdg);
-        assertThat(teamMemberPage1, is((Iterable) asList(testTeam.michael, testTeam.emil)));
+        assertEquals(asList(testTeam.michael, testTeam.emil,testTeam.david), asCollection(teamMemberPage1));
         assertThat(teamMemberPage1.isFirstPage(), is(true));
-        assertThat(teamMemberPage1.isLastPage(), is(true));
+        assertThat(teamMemberPage1.isLastPage(), is(false));
     }
 
     @Test
@@ -116,7 +119,7 @@ public class GraphRepositoryTest {
     public void testFindSortedDescending() {
         final Sort sort = new Sort(Sort.Direction.DESC, "member.name");
         Iterable<Person> teamMembers = personRepository.findAllTeamMembersSorted(testTeam.sdg, sort);
-        assertThat(teamMembers, is((Iterable)asList(testTeam.michael, testTeam.emil, testTeam.david)));
+        assertEquals(asList(testTeam.michael, testTeam.emil, testTeam.david), asCollection(teamMembers));
     }
 
     @Test

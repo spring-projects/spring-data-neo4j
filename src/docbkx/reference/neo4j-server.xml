@@ -117,5 +117,12 @@ public void foo( @Context WorldRepository repo ) {
             </example>
             Your project is now set up to work against a remote Neo4j Server.
         </para>
+        <para>
+            The remote REST implementation works for both the Neo4jTemplate as well as the GraphEntities. For traversals
+            and cypher-graph-queries it is sensible to forward those to the remote and execute them there instead of
+            walking the graph over the wire. RestGraphDatabase already supports that by providing methods that forward
+            to the remote instance. (e.g. <code>queryEngineFor(), index() and createTraversalDescription()</code>).
+            Please use those methods when interacting with a remote server for optimal performance.
+        </para>
     </section>
 </chapter>
