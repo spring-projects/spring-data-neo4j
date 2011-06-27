@@ -4,7 +4,7 @@
     <title>CRUD with repositories</title>
     <para>
         The repositories provided by Spring Data Graph build on the composable repository infrastructure
-        in <ulink url="http://static.springsource.org/spring-data/data-jpa/docs/1.0.0.M2/reference/html/#repositories.custom-implementations">Spring Data Commons</ulink>.
+        in <ulink url="http://static.springsource.org/spring-data/data-jpa/docs/current/reference/html/#repositories.custom-implementations">Spring Data Commons</ulink>.
         They allow for interface based composition of repositories consisting of provided default
         implementations for certain interfaces and additional custom implementations for other methods.
     </para>
