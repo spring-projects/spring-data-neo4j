@@ -20,7 +20,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.internal.matchers.IsCollectionContaining;
 import org.junit.runner.RunWith;
-import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.helpers.collection.IteratorUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,7 +32,6 @@ import org.springframework.data.graph.neo4j.support.DelegatingGraphDatabase;
 import org.springframework.data.graph.neo4j.support.GraphDatabaseContext;
 import org.springframework.data.graph.neo4j.support.TestTeam;
 import org.springframework.data.graph.neo4j.support.node.Neo4jHelper;
-import org.springframework.data.graph.neo4j.template.NeoApiTest;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.transaction.BeforeTransaction;
@@ -45,6 +43,7 @@ import java.util.Map;
 import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
+
 
 /**
  * @author mh

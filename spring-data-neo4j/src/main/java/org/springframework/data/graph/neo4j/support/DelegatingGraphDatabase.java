@@ -28,8 +28,6 @@ import org.springframework.data.graph.core.Property;
 import org.springframework.data.graph.neo4j.support.query.ConversionServiceQueryResultConverter;
 import org.springframework.data.graph.neo4j.support.query.EmbeddedQueryEngine;
 import org.springframework.data.graph.neo4j.support.query.QueryEngine;
-import org.springframework.data.graph.neo4j.support.query.QueryResultConverter;
-
 import java.util.Map;
 
 /**

@@ -23,6 +23,9 @@ import org.springframework.data.graph.neo4j.support.query.QueryEngine;
 import org.springframework.data.graph.neo4j.support.query.QueryResultConverter;
 
 import java.util.*;
+import org.springframework.data.graph.neo4j.support.query.QueryEngine;
+
+import java.util.Map;
 
 /**
  * @author mh
