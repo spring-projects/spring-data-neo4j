@@ -49,13 +49,13 @@ public class NeoTraversalTest extends NeoApiTest {
         });
 
         final Set<String> resultSet = new HashSet<String>();
-        template.traverseGraph(template.getReferenceNode(), new PathMapper.WithoutResult() {
+        template.traverse(Traversal.description().relationships(HAS).filter(returnAllButStartNode()).prune(Traversal.pruneAfterDepth(2)), template.getReferenceNode(), new PathMapper.WithoutResult() {
             @Override
             public void eachPath(Path path) {
                 String nodeName = (String) path.endNode().getProperty("name", "");
                 resultSet.add(nodeName);
             }
-        }, Traversal.description().relationships(HAS).filter(returnAllButStartNode()).prune(Traversal.pruneAfterDepth(2)));
+        });
         assertEquals("all members", new HashSet<String>(asList("grandpa", "grandma", "daughter", "son", "man", "wife", "family")), resultSet);
     }
 

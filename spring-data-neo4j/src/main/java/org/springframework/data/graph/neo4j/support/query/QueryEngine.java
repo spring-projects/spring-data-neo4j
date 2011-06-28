@@ -16,6 +16,8 @@
 
 package org.springframework.data.graph.neo4j.support.query;
 
+import org.springframework.data.graph.neo4j.conversion.QueryResult;
+
 import java.util.Map;
 
 /**
@@ -23,11 +25,7 @@ import java.util.Map;
  * @since 22.06.11
  */
 public interface QueryEngine {
-    Iterable<Map<String, Object>> query(String statement);
-
-    <T> Iterable<T> query(String statement, Class<T> type);
-
-    <T> T queryForObject(String statement, Class<T> type);
+    QueryResult<Map<String, Object>> query(String statement);
 
     public enum Type { Cypher, Gremlin }
 }

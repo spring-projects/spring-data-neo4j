@@ -248,27 +248,27 @@ public class Neo4jTemplateApiTest {
 
     @Test
     public void testQueryNodes() throws Exception {
-        assertSingleResult("node0", template.query("node", new NodeNameMapper(), new TermQuery(new Term("name", "node0"))));
+        assertSingleResult("node0", template.lookup("node", new TermQuery(new Term("name", "node0")), new NodeNameMapper()));
     }
 
     @Test
     public void testRetrieveNodes() throws Exception {
-        assertSingleResult("node0", template.query("node", new NodeNameMapper(), "name", "node0"));
+        assertSingleResult("node0", template.lookup("node", "name", "node0", new NodeNameMapper()));
     }
 
     @Test
     public void testQueryRelationships() throws Exception {
-        assertSingleResult("rel1", template.query("relationship", new RelationshipNameMapper(), new TermQuery(new Term("name", "rel1"))));
+        assertSingleResult("rel1", template.lookup("relationship", new TermQuery(new Term("name", "rel1")), new RelationshipNameMapper()));
     }
 
     @Test
     public void testRetrieveRelationships() throws Exception {
-        assertSingleResult("rel1",template.query("relationship", new RelationshipNameMapper(), "name", "rel1"));
+        assertSingleResult("rel1",template.lookup("relationship", "name", "rel1", new RelationshipNameMapper()));
     }
 
     @Test
     public void testTraverse() throws Exception {
-        assertSingleResult("node1",template.traverseGraph(referenceNode, new NodeNameMapper(), Traversal.description().relationships(KNOWS).prune(Traversal.pruneAfterDepth(1)).filter(Traversal.returnAllButStartNode())));
+        assertSingleResult("node1",template.traverse(Traversal.description().relationships(KNOWS).prune(Traversal.pruneAfterDepth(1)).filter(Traversal.returnAllButStartNode()), referenceNode, new NodeNameMapper()));
     }
 
     @Test

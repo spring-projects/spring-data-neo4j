@@ -57,7 +57,7 @@ public class QueryEngineTest {
     protected ConversionService conversionService;
     @Autowired
     private GraphDatabaseContext graphDatabaseContext;
-    private QueryEngine queryEngine;
+    private QueryOperations queryEngine;
     private TestTeam testTeam;
     private Person michael;
     private GraphDatabase graphDatabase;
@@ -67,7 +67,7 @@ public class QueryEngineTest {
         graphDatabase = createGraphDatabase();
         testTeam = new TestTeam();
         testTeam.createSDGTeam();
-        queryEngine = graphDatabase.queryEngineFor(QueryEngine.Type.Cypher);
+        queryEngine = new DefaultQueryOperations(graphDatabase.queryEngineFor(QueryEngine.Type.Cypher));
         michael = testTeam.michael;
     }
 

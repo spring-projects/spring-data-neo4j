@@ -20,7 +20,7 @@ package org.springframework.data.graph.neo4j.rest.support;
 import org.neo4j.helpers.collection.IterableWrapper;
 import org.springframework.dao.InvalidDataAccessResourceUsageException;
 import org.springframework.data.graph.neo4j.support.query.QueryEngine;
-import org.springframework.data.graph.neo4j.support.query.QueryResultConverter;
+import org.springframework.data.graph.neo4j.support.query.ResultConverter;
 
 import java.util.*;
 
@@ -33,9 +33,9 @@ import java.util.Map;
 public class RestQueryEngine implements QueryEngine {
     private final RestRequest restRequest;
     private final RestGraphDatabase restGraphDatabase;
-    private final QueryResultConverter resultConverter;
+    private final ResultConverter resultConverter;
 
-    public RestQueryEngine(RestGraphDatabase restGraphDatabase, QueryResultConverter resultConverter) {
+    public RestQueryEngine(RestGraphDatabase restGraphDatabase, ResultConverter resultConverter) {
         this.restGraphDatabase = restGraphDatabase;
         this.resultConverter = resultConverter;
         this.restRequest = restGraphDatabase.getRestRequest();

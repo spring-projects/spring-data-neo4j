@@ -16,10 +16,6 @@
 
 package org.springframework.data.graph.neo4j.support.query;
 
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Relationship;
-import org.springframework.core.convert.ConversionService;
-import org.springframework.data.graph.core.TypeRepresentationStrategy;
 import org.springframework.data.graph.neo4j.support.GraphDatabaseContext;
 
 import java.util.Map;
@@ -29,17 +25,12 @@ import java.util.Map;
  * @since 10.06.11
  *        todo limits
  */
-public class QueryExecutor implements QueryResultConverter {
-    private final TypeRepresentationStrategy nodeTypeRepresentationStrategy;
-    private final TypeRepresentationStrategy relationshipTypeRepresentationStrategy;
-    private final ConversionService conversionService;
+public class QueryExecutor {
     private final QueryEngine queryEngine;
 
     public QueryExecutor(GraphDatabaseContext ctx) {
-        this.nodeTypeRepresentationStrategy = ctx.getNodeTypeRepresentationStrategy();
-        relationshipTypeRepresentationStrategy = ctx.getRelationshipTypeRepresentationStrategy();
-        conversionService = ctx.getConversionService();
-        queryEngine = new EmbeddedQueryEngine(ctx.getGraphDatabaseService(), this);
+        EntityResultConverter converter = new EntityResultConverter(ctx);
+        queryEngine = new EmbeddedQueryEngine(ctx.getGraphDatabaseService(), converter);
     }
 
     public Iterable<Map<String, Object>> query(String statement) {
@@ -47,32 +38,11 @@ public class QueryExecutor implements QueryResultConverter {
     }
 
     public <T> Iterable<T> query(String statement, Class<T> type) {
-        return queryEngine.query(statement, type);
+        return queryEngine.query(statement).to(type);
     }
 
     public <T> T queryForObject(String statement, Class<T> type) {
-        return queryEngine.queryForObject(statement,type);
+        return queryEngine.query(statement).to(type).single();
     }
 
-    private Object convertValue(Object value) {
-        if (value instanceof Node) {
-            return nodeTypeRepresentationStrategy.createEntity((Node) value);
-        }
-        if (value instanceof Relationship) {
-            return relationshipTypeRepresentationStrategy.createEntity((Relationship) value);
-        }
-        return value;
-    }
-
-    public <T> T convertValue(Object value, Class<T> type) {
-        if (type == null) return (T) convertValue(value);
-        if (type.isInstance(value)) return type.cast(value);
-        if (value instanceof Node) {
-            return (T) nodeTypeRepresentationStrategy.createEntity((Node) value, type);
-        }
-        if (value instanceof Relationship) {
-            return (T) relationshipTypeRepresentationStrategy.createEntity((Relationship) value, type);
-        }
-        return conversionService.convert(value, type);
-    }
 }
