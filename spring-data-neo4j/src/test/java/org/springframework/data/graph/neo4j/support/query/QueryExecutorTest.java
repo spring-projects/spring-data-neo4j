@@ -64,7 +64,7 @@ public class QueryExecutorTest {
     @Transactional
     public void testQueryList() throws Exception {
         final String queryString = String.format("start person=(%d,%d) return person.name, person.age", michael.getNodeId(), testTeam.david.getNodeId());
-        final Collection<Map<String,Object>> result = IteratorUtil.asCollection(queryExecutor.query(queryString));
+        final Collection<Map<String,Object>> result = IteratorUtil.asCollection(queryExecutor.queryForList(queryString));
 
         assertEquals(asList(testTeam.simpleRowFor(michael,"person"),testTeam.simpleRowFor(testTeam.david,"person")),result);
     }

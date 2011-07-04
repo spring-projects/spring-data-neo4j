@@ -22,71 +22,54 @@ import org.neo4j.cypher.javacompat.CypherParser;
 import org.neo4j.cypher.javacompat.ExecutionEngine;
 import org.neo4j.cypher.javacompat.ExecutionResult;
 import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.helpers.collection.IterableWrapper;
 import org.springframework.dao.InvalidDataAccessResourceUsageException;
 import org.springframework.data.graph.neo4j.conversion.DefaultConverter;
 import org.springframework.data.graph.neo4j.conversion.QueryResult;
 import org.springframework.data.graph.neo4j.conversion.QueryResultBuilder;
 import org.springframework.data.graph.neo4j.conversion.ResultConverter;
 
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 
 public class EmbeddedQueryEngine implements QueryEngine, QueryOperations {
+
+    final ExecutionEngine executionEngine;
+    private ResultConverter resultConverter;
+    private final DefaultQueryOperations queryOperations;
 
     public EmbeddedQueryEngine(GraphDatabaseService graphDatabaseService) {
         this(graphDatabaseService, new DefaultConverter());
     }
 
-    final ExecutionEngine executionEngine;
-    private ResultConverter resultConverter;
 
     public EmbeddedQueryEngine(GraphDatabaseService graphDatabaseService, ResultConverter resultConverter) {
         this.resultConverter = resultConverter != null ? resultConverter : new DefaultConverter();
         this.executionEngine = new ExecutionEngine(graphDatabaseService);
-    }
-
-    @Override
-    public Iterable<Map<String, Object>> queryForList(String statement) {
-        try {
-            ExecutionResult result = parseAndExecuteQuery(statement);
-            return convertResult(result);
-        } catch (Exception e) {
-            throw new InvalidDataAccessResourceUsageException("Error executing statement " + statement, e);
-        }
+        this.queryOperations = new DefaultQueryOperations(this);
     }
 
     @Override
     public QueryResult<Map<String, Object>> query(String statement) {
         try {
             ExecutionResult result = parseAndExecuteQuery(statement);
-            return new QueryResultBuilder<Map<String,Object>>(result);
+            return new QueryResultBuilder<Map<String,Object>>(result,resultConverter);
         } catch (Exception e) {
             throw new InvalidDataAccessResourceUsageException("Error executing statement " + statement, e);
         }
     }
 
     @Override
+    public Iterable<Map<String, Object>> queryForList(String statement) {
+        return queryOperations.queryForList(statement);
+    }
+
+    @Override
     public <T> Iterable<T> query(String statement, Class<T> type) {
-        try {
-            ExecutionResult result = parseAndExecuteQuery(statement);
-            return convertResult(result, type);
-        } catch (Exception e) {
-            throw new InvalidDataAccessResourceUsageException("Error executing statement " + statement + " for type " + type, e);
-        }
+        return queryOperations.query(statement, type);
     }
 
     @Override
     public <T> T queryForObject(String statement, Class<T> type) {
-        try {
-            ExecutionResult result = parseAndExecuteQuery(statement);
-            final Iterable<T> convertedResult = convertResult(result, type);
-            return extractSingleResult(convertedResult);
-        } catch (Exception e) {
-            throw new InvalidDataAccessResourceUsageException("Error executing statement " + statement + " for type " + type, e);
-        }
+        return queryOperations.queryForObject(statement, type);
     }
 
     private ExecutionResult parseAndExecuteQuery(String statement) {
@@ -98,43 +81,4 @@ public class EmbeddedQueryEngine implements QueryEngine, QueryOperations {
             throw new InvalidDataAccessResourceUsageException("Error executing statement " + statement, syntaxError);
         }
     }
-
-    private <T> T extractSingleResult(Iterable<T> convertedResult) {
-        final Iterator<T> it = convertedResult.iterator();
-        if (!it.hasNext()) throw new InvalidDataAccessResourceUsageException("Expected single result, got none");
-        T value = it.hasNext() ? it.next() : null;
-        if (it.hasNext())
-            throw new InvalidDataAccessResourceUsageException("Expected single result, got more than one");
-        return value;
-    }
-
-    private <T> Iterable<T> convertResult(ExecutionResult result, final Class<T> type) {
-        final List<String> columns = result.columns();
-        if (columns.size() != 1)
-            throw new InvalidDataAccessResourceUsageException("Expected single column of results, got " + columns);
-        final String column = columns.get(0);
-        return new IterableWrapper<T, Map<String, Object>>(result) {
-            @Override
-            protected T underlyingObjectToObject(Map<String, Object> row) {
-                return (T) resultConverter.convert(row.get(column), type);
-            }
-        };
-    }
-
-    private Iterable<Map<String, Object>> convertResult(Iterable<Map<String, Object>> result) {
-        return new IterableWrapper<Map<String, Object>, Map<String, Object>>(result) {
-            @Override
-            protected Map<String, Object> underlyingObjectToObject(Map<String, Object> row) {
-                Map<String,Object> newRow=new HashMap<String,Object>(row); // todo performance
-                for (Map.Entry<String, Object> entry : newRow.entrySet()) {
-                    Object value = resultConverter.convert(entry.getValue(), null);
-                    if (value != entry.getValue()) {
-                        entry.setValue(value);
-                    }
-                }
-                return row;
-            }
-        };
-    }
-
 }

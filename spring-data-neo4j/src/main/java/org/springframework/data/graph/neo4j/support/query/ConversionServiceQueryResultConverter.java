@@ -17,13 +17,13 @@
 package org.springframework.data.graph.neo4j.support.query;
 
 import org.springframework.core.convert.ConversionService;
-import org.springframework.data.graph.neo4j.conversion.ResultConverter;
+import org.springframework.data.graph.neo4j.conversion.DefaultConverter;
 
 /**
  * @author mh
  * @since 22.06.11
  */
-public class ConversionServiceQueryResultConverter<R> implements ResultConverter<Object,R> {
+public class ConversionServiceQueryResultConverter<R> extends DefaultConverter<Object,R> {
     private final ConversionService conversionService;
 
     public ConversionServiceQueryResultConverter(ConversionService conversionService) {
@@ -31,8 +31,10 @@ public class ConversionServiceQueryResultConverter<R> implements ResultConverter
     }
 
     @Override
-    public R convert(Object value, Class<R> type) {
-        if (type==null || type.isInstance(value)) return (R) value;
-        return conversionService.convert(value,type);
+    protected Object doConvert(Object value, Class<?> sourceType, Class type) {
+        if (conversionService.canConvert(sourceType, type)) {
+            return conversionService.convert(value, type);
+        }
+        return null;
     }
 }

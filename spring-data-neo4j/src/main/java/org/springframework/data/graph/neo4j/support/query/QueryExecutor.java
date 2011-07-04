@@ -17,6 +17,7 @@
 package org.springframework.data.graph.neo4j.support.query;
 
 import org.springframework.data.graph.neo4j.support.GraphDatabaseContext;
+import org.springframework.data.graph.neo4j.support.conversion.EntityResultConverter;
 
 import java.util.Map;
 
@@ -25,7 +26,7 @@ import java.util.Map;
  * @since 10.06.11
  *        todo limits
  */
-public class QueryExecutor {
+public class QueryExecutor implements QueryOperations {
     private final QueryEngine queryEngine;
 
     public QueryExecutor(GraphDatabaseContext ctx) {
@@ -33,7 +34,7 @@ public class QueryExecutor {
         queryEngine = new EmbeddedQueryEngine(ctx.getGraphDatabaseService(), converter);
     }
 
-    public Iterable<Map<String, Object>> query(String statement) {
+    public Iterable<Map<String, Object>> queryForList(String statement) {
         return queryEngine.query(statement);
     }
 

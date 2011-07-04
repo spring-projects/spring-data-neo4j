@@ -182,7 +182,7 @@ public aspect Neo4jNodeBacking { // extends AbstractTypeAnnotatingMixinFields<No
 
     public  Iterable<Map<String,Object>> NodeBacked.findAllByQuery(final String query) {
         final QueryExecutor executor = new QueryExecutor(Neo4jNodeBacking.aspectOf().graphDatabaseContext);
-        return executor.query(query);
+        return executor.queryForList(query);
     }
 
     public  <T> T NodeBacked.findByQuery(final String query, final Class<T> targetType) {

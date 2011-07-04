@@ -18,6 +18,7 @@ package org.springframework.data.graph.neo4j.support.query;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.internal.matchers.IsCollectionContaining;
 import org.junit.runner.RunWith;
 import org.neo4j.graphdb.Node;
 import org.neo4j.helpers.collection.IteratorUtil;
@@ -27,11 +28,9 @@ import org.springframework.data.graph.core.GraphDatabase;
 import org.springframework.data.graph.core.NodeBacked;
 import org.springframework.data.graph.neo4j.Person;
 import org.springframework.data.graph.neo4j.Personality;
-import org.springframework.data.graph.neo4j.conversion.ResultConverter;
 import org.springframework.data.graph.neo4j.support.DelegatingGraphDatabase;
 import org.springframework.data.graph.neo4j.support.GraphDatabaseContext;
 import org.springframework.data.graph.neo4j.support.TestTeam;
-import org.springframework.data.graph.neo4j.support.conversion.EntityResultConverter;
 import org.springframework.data.graph.neo4j.support.node.Neo4jHelper;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -43,6 +42,7 @@ import java.util.Map;
 
 import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
 
 
 /**
@@ -52,12 +52,12 @@ import static org.junit.Assert.assertEquals;
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = {"classpath:org/springframework/data/graph/neo4j/support/Neo4jGraphPersistenceTest-context.xml"})
 @Transactional
-public class QueryEngineTest {
+public class QueryOperationsTest {
     @Autowired
     protected ConversionService conversionService;
     @Autowired
     private GraphDatabaseContext graphDatabaseContext;
-    private QueryEngine queryEngine;
+    private QueryOperations queryOperations;
     private TestTeam testTeam;
     private Person michael;
     private GraphDatabase graphDatabase;
@@ -67,7 +67,7 @@ public class QueryEngineTest {
         graphDatabase = createGraphDatabase();
         testTeam = new TestTeam();
         testTeam.createSDGTeam();
-        queryEngine = graphDatabase.queryEngineFor(QueryEngine.Type.Cypher);
+        queryOperations = new DefaultQueryOperations(graphDatabase.queryEngineFor(QueryEngine.Type.Cypher));
         michael = testTeam.michael;
     }
 
@@ -86,45 +86,18 @@ public class QueryEngineTest {
     @Transactional
     public void testQueryList() throws Exception {
         final String queryString = String.format("start person=(%d,%d) return person.name, person.age", idFor(michael), idFor(testTeam.david));
-        final Collection<Map<String,Object>> result = IteratorUtil.asCollection(queryEngine.query(queryString));
+        final Collection<Map<String,Object>> result = IteratorUtil.asCollection(queryOperations.queryForList(queryString));
 
         assertEquals(asList(testTeam.simpleRowFor(michael,"person"),testTeam.simpleRowFor(testTeam.david,"person")),result);
     }
 
     @Test
-    public void testQueryListOfTypeNode() throws Exception {
-        final String queryString = String.format("start person=(name_index,name,\"%s\") match (person) <-[:boss]- (boss) return boss", michael.getName());
-        final Collection<Node> result = IteratorUtil.asCollection(queryEngine.query(queryString).to(Node.class));
-
-        assertEquals(asList(nodeFor(testTeam.emil)),result);
-    }
-    @Test
     public void testQueryListOfTypePerson() throws Exception {
         final String queryString = String.format("start person=(name_index,name,\"%s\") match (person) <-[:boss]- (boss) return boss", michael.getName());
-        final Collection<Person> result = IteratorUtil.asCollection(queryEngine.query(queryString).to(Person.class, new EntityResultConverter(graphDatabaseContext)));
+        final Collection<Node> result = IteratorUtil.asCollection(queryOperations.query(queryString, Node.class));
 
-        assertEquals(asList(testTeam.emil),result);
-    }
+        assertEquals(asList(nodeFor(testTeam.emil)),result);
 
-    @Test
-    public void testQuerySingleOfTypePerson() throws Exception {
-        final String queryString = String.format("start person=(name_index,name,\"%s\") match (person) <-[:boss]- (boss) return boss", michael.getName());
-        final Person result = queryEngine.query(queryString).to(Person.class, new EntityResultConverter<Map<String,Object>,Person>(graphDatabaseContext)).single();
-
-        assertEquals(testTeam.emil,result);
-    }
-
-    @Test
-    public void testQueryListWithCustomConverter() throws Exception {
-        final String queryString = String.format("start person=(name_index,name,\"%s\") match (person) <-[:boss]- (boss) return boss", michael.getName());
-        final Collection<String> result = IteratorUtil.asCollection(queryEngine.query(queryString).to(String.class, new ResultConverter<Map<String, Object>, String>() {
-            @Override
-            public String convert(Map<String, Object> row, Class<String> target) {
-                return (String) ((Node) row.get("boss")).getProperty("name");
-            }
-        }));
-
-        assertEquals(asList("Emil"),result);
     }
 
     private Node nodeFor(final NodeBacked entity) {
@@ -135,16 +108,41 @@ public class QueryEngineTest {
     }
 
     @Test
+    public void testQueryOtherTeamMembers() throws Exception {
+        final String queryString = String.format("start person=(%d) match (person)<-[:persons]-(team)-[:persons]->(member) return member", idFor(michael));
+        System.out.println("testTeam = " + testTeam.sdg.getPersons());
+        final Collection<Node> result = IteratorUtil.asCollection(queryOperations.query(queryString, Node.class));
+
+        assertThat(result, IsCollectionContaining.hasItems(nodeFor(testTeam.david), nodeFor(testTeam.emil)));
+
+    }
+
+    @Test
+    public void testQueryAllTeamMembersByTeam() throws Exception {
+        final String queryString = String.format("start team=(Group,name,\"%s\") match (team)-[:persons]->(member) return member", testTeam.sdg.getName());
+        final Collection<Node> result = IteratorUtil.asCollection(queryOperations.query(queryString, Node.class));
+
+        assertThat(result, IsCollectionContaining.hasItems(nodeFor(testTeam.david),nodeFor(testTeam.michael)));
+    }
+
+    @Test
+    public void testQueryForObjectAsGroup() throws Exception {
+        final String queryString = String.format("start person=(name_index,name,\"%s\") match (person) <-[:persons]- (team) return team", michael.getName());
+        final Node result = queryOperations.queryForObject(queryString, Node.class);
+
+        assertEquals(nodeFor(testTeam.sdg),result);
+    }
+    @Test
     public void testQueryForObjectAsString() throws Exception {
         final String queryString = String.format("start person=(name_index,name,\"%s\") match (person) <-[:persons]- (team) return team.name", michael.getName());
-        final String result = queryEngine.query(queryString).to(String.class).single();
+        final String result = queryOperations.queryForObject(queryString, String.class);
 
         assertEquals(testTeam.sdg.getName(),result);
     }
     @Test
     public void testQueryForObjectAsEnum() throws Exception {
         final String queryString = String.format("start person=(name_index,name,\"%s\") return person.personality", michael.getName());
-        final Personality result = queryEngine.query(queryString).to(Personality.class).single();
+        final Personality result = queryOperations.queryForObject(queryString, Personality.class);
 
         assertEquals(michael.getPersonality(),result);
     }

@@ -25,6 +25,7 @@ import org.neo4j.graphdb.traversal.TraversalDescription;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.data.graph.core.GraphDatabase;
 import org.springframework.data.graph.core.Property;
+import org.springframework.data.graph.neo4j.conversion.ResultConverter;
 import org.springframework.data.graph.neo4j.rest.support.index.RestIndexManager;
 import org.springframework.data.graph.neo4j.support.query.ConversionServiceQueryResultConverter;
 import org.springframework.data.graph.neo4j.support.query.QueryEngine;
@@ -107,7 +108,7 @@ public class RestGraphDatabase implements GraphDatabaseService, GraphDatabase {
         return new RestQueryEngine(this, createResultConverter());
     }
 
-    private ConversionServiceQueryResultConverter createResultConverter() {
+    private ResultConverter createResultConverter() {
         if (conversionService==null) return null;
         return new ConversionServiceQueryResultConverter(conversionService);
     }
