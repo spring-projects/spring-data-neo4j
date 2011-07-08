@@ -23,6 +23,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.neo4j.helpers.collection.IteratorUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.graph.neo4j.*;
 import org.springframework.data.graph.neo4j.support.node.Neo4jHelper;
 import org.springframework.test.context.ContextConfiguration;
@@ -38,6 +40,7 @@ import java.util.Map;
 import static java.util.Arrays.asList;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 import static org.junit.internal.matchers.IsCollectionContaining.hasItems;
 import static org.neo4j.helpers.collection.IteratorUtil.asCollection;
 import static org.springframework.data.graph.neo4j.Person.persistedPerson;
@@ -199,7 +202,31 @@ public class FinderTest {
         Group g2 = new Group().persist();
         g.setName("test");
         Collection<Group> groups = IteratorUtil.addToCollection(groupRepository.findAll().iterator(), new HashSet<Group>());
-        Assert.assertEquals(2, groups.size());
-	    log.debug("FindAllOnGroup done");
+        assertEquals(2, groups.size());
 	}
+    @Test
+	@Transactional
+	public void testFindPaged() {
+	    log.debug("FindAllOnGroup start");
+        Person p1=Person.persistedPerson("person1",11);
+        Person p2=Person.persistedPerson("person2", 12);
+        Person p3=Person.persistedPerson("person3", 13);
+        final Page<Person> page0 = personRepository.findAll(new PageRequest(0, 2));
+        final Page<Person> page1 = personRepository.findAll(new PageRequest(1, 2));
+        final Page<Person> page2 = personRepository.findAll(new PageRequest(2, 2));
+        assertPage(page0, 0, 2, 3, p1, p2);
+        assertPage(page1, 1, 2, 3, p3);
+        assertPage(page2, 2, 2, 3);
+	}
+
+    private void assertPage(Page<Person> page0, int pageNumber, int totalPages, final int totalElements, Person... people) {
+        assertEquals("content count",people.length,page0.getNumberOfElements());
+        assertEquals("page number",pageNumber,page0.getNumber());
+        assertEquals("page size",2,page0.getSize());
+        assertEquals("total elements", totalElements,page0.getTotalElements());
+        assertEquals("page count",totalPages,page0.getTotalPages());
+        assertEquals("next page",pageNumber < totalPages-1,page0.hasNextPage());
+        assertEquals("previous page",pageNumber > 0,page0.hasPreviousPage());
+        assertEquals("page content",asList(people),page0.getContent());
+    }
 }

@@ -16,7 +16,6 @@
 
 package org.springframework.data.graph.neo4j.support.query;
 
-import org.neo4j.cypher.SyntaxError;
 import org.neo4j.cypher.commands.Query;
 import org.neo4j.cypher.javacompat.CypherParser;
 import org.neo4j.cypher.javacompat.ExecutionEngine;
@@ -80,8 +79,8 @@ public class EmbeddedQueryEngine implements QueryEngine {
             CypherParser parser = new CypherParser();
             Query query = parser.parse(statement);
             return executionEngine.execute(query);
-        } catch (SyntaxError syntaxError) {
-            throw new InvalidDataAccessResourceUsageException("Error executing statement " + statement, syntaxError);
+        } catch(Exception e) {
+            throw new InvalidDataAccessResourceUsageException("Error executing statement " + statement, e);
         }
     }
 

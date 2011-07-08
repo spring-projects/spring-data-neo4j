@@ -274,17 +274,36 @@ public abstract class AbstractGraphRepository<S extends PropertyContainer, T ext
 
     @Override
     public Page<T> findAll(final Pageable pageable) {
-        final int count = pageable.getOffset()+pageable.getPageSize();
-        int counter=count;
-        ClosableIterable<T> all = findAll(pageable.getSort());
-        List<T> result=new ArrayList<T>(count);
-        for (T t : all) {
-            if (counter == 0) break;
-            result.add(t);
-            counter--;
+        int count = pageable.getPageSize();
+        int offset = pageable.getOffset();
+        ClosableIterable<T> foundEntities = findAll(pageable.getSort());
+        final Iterator<T> iterator = foundEntities.iterator();
+        final PageImpl<T> page = extractPage(pageable, count, offset, iterator);
+        foundEntities.close();
+        return page;
+    }
+
+    private PageImpl<T> extractPage(Pageable pageable, int count, int offset, Iterator<T> iterator) {
+        final List<T> result = new ArrayList<T>(count);
+        int total=subList(offset, count, iterator, result);
+        if (iterator.hasNext()) total++;
+        return new PageImpl<T>(result, pageable, total);
+    }
+
+    private int subList(int skip, int limit, Iterator<T> source, final List<T> list) {
+        int count=0;
+        while (source.hasNext()) {
+            count++;
+            T t = source.next();
+            if (skip > 0) {
+                skip--;
+            } else {
+                list.add(t);
+                limit--;
+            }
+            if (limit + skip == 0) break;
         }
-        all.close();
-        return new PageImpl<T>(result, pageable,count - counter);
+        return count;
     }
 
     private class IndexHitsWrapper extends IterableWrapper<T, S> implements ClosableIterable<T> {
