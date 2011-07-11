@@ -14,18 +14,13 @@
  * limitations under the License.
  */
 
-package org.springframework.data.graph.neo4j.support.query;
-
-import org.springframework.data.graph.neo4j.conversion.QueryResult;
-
-import java.util.Map;
+package org.springframework.data.graph.neo4j.conversion;
 
 /**
  * @author mh
- * @since 22.06.11
+ * @since 28.06.11
  */
-public interface QueryEngine {
-    QueryResult<Map<String, Object>> query(String statement);
-
-    public enum Type { Cypher, Gremlin }
+public interface Handler<R> {
+    void handle(R value);
 }
+

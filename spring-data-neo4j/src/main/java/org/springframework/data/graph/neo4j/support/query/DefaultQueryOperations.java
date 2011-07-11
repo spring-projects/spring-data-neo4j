@@ -16,22 +16,17 @@
 
 package org.springframework.data.graph.neo4j.support.query;
 
-import org.springframework.data.graph.neo4j.support.GraphDatabaseContext;
-import org.springframework.data.graph.neo4j.support.conversion.EntityResultConverter;
-
 import java.util.Map;
 
 /**
  * @author mh
- * @since 10.06.11
- *        todo limits
+ * @since 28.06.11
  */
-public class QueryExecutor implements QueryOperations {
-    private final QueryEngine queryEngine;
+public class DefaultQueryOperations implements QueryOperations {
+    private QueryEngine queryEngine;
 
-    public QueryExecutor(GraphDatabaseContext ctx) {
-        EntityResultConverter converter = new EntityResultConverter(ctx);
-        queryEngine = new EmbeddedQueryEngine(ctx.getGraphDatabaseService(), converter);
+    public DefaultQueryOperations(QueryEngine queryEngine) {
+        this.queryEngine = queryEngine;
     }
 
     public Iterable<Map<String, Object>> queryForList(String statement) {

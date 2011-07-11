@@ -17,14 +17,10 @@
 package org.springframework.data.graph.neo4j.rest.support;
 
 
-import org.neo4j.helpers.collection.IterableWrapper;
-import org.springframework.dao.InvalidDataAccessResourceUsageException;
+import org.springframework.data.graph.neo4j.conversion.*;
 import org.springframework.data.graph.neo4j.support.query.QueryEngine;
-import org.springframework.data.graph.neo4j.support.query.QueryResultConverter;
 
 import java.util.*;
-
-import java.util.Map;
 
 /**
  * @author mh
@@ -33,54 +29,71 @@ import java.util.Map;
 public class RestQueryEngine implements QueryEngine {
     private final RestRequest restRequest;
     private final RestGraphDatabase restGraphDatabase;
-    private final QueryResultConverter resultConverter;
+    private final ResultConverter resultConverter;
 
-    public RestQueryEngine(RestGraphDatabase restGraphDatabase, QueryResultConverter resultConverter) {
+    public RestQueryEngine(RestGraphDatabase restGraphDatabase) {
+        this(restGraphDatabase,null);
+    }
+    public RestQueryEngine(RestGraphDatabase restGraphDatabase, ResultConverter resultConverter) {
         this.restGraphDatabase = restGraphDatabase;
-        this.resultConverter = resultConverter;
+        this.resultConverter = resultConverter!=null ? resultConverter : new DefaultConverter();
         this.restRequest = restGraphDatabase.getRestRequest();
     }
 
     @Override
-    public Iterable<Map<String, Object>> query(String statement) {
-        return executeStatement(statement).getData();
+    public QueryResult<Map<String, Object>> query(String statement) {
+        return executeStatement(statement);
     }
 
     private RestQueryResult executeStatement(String statement) {
         final RequestResult requestResult = restRequest.get("ext/CypherPlugin/graphdb/execute_query", JsonHelper.createJsonFrom(Collections.singletonMap("query", statement)));
-        return new RestQueryResult(restRequest.toMap(requestResult));
+        return new RestQueryResult(restRequest.toMap(requestResult),restGraphDatabase,resultConverter);
     }
 
-    class RestQueryResult {
-        List<String> columns;
-        List<Map<String,Object>> data;
+    static class RestQueryResult implements QueryResult<Map<String,Object>> {
+        QueryResultBuilder<Map<String,Object>> result;
+        private final RestGraphDatabase restGraphDatabase;
 
-        public RestQueryResult(Map<?, ?> result) {
-            columns= (List<String>) result.get("columns");
-            extractData(result);
+
+        @Override
+        public <R> ConvertedResult<R> to(Class<R> type) {
+            return result.to(type);
         }
 
-        private void extractData(Map<?, ?> result) {
-            List<List<?>> rows= (List<List<?>>) result.get("data");
-            data=new ArrayList<Map<String, Object>>(rows.size());
+        @Override
+        public <R> ConvertedResult<R> to(Class<R> type, ResultConverter<Map<String, Object>, R> converter) {
+            return result.to(type,converter);
+        }
+
+        @Override
+        public Iterator<Map<String, Object>> iterator() {
+            return result.iterator();
+        }
+
+        public RestQueryResult(Map<?, ?> result, RestGraphDatabase restGraphDatabase, ResultConverter resultConverter) {
+            this.restGraphDatabase = restGraphDatabase;
+            List<String> columns= (List<String>) result.get("columns");
+            final List<Map<String, Object>> data = extractData(result, columns);
+            this.result=new QueryResultBuilder<Map<String,Object>>(data, resultConverter);
+        }
+
+        private List<Map<String, Object>> extractData(Map<?, ?> restResult, List<String> columns) {
+            List<List<?>> rows= (List<List<?>>) restResult.get("data");
+            List<Map<String,Object>> result=new ArrayList<Map<String, Object>>(rows.size());
             for (List<?> row : rows) {
-                data.add(mapRow(row));
+                result.add(mapRow(columns,row));
             }
+            return result;
         }
 
-        private Map<String, Object> mapRow(List<?> row) {
+        private Map<String, Object> mapRow(List<String> columns, List<?> row) {
             int columnCount=columns.size();
             Map<String,Object> newRow=new HashMap<String, Object>(columnCount);
             for (int i = 0; i < columnCount; i++) {
                 final Object value = row.get(i);
-                newRow.put(columns.get(i), convertValue(value));
+                newRow.put(columns.get(i), convertFromRepresentation(value));
             }
             return newRow;
-        }
-
-        private Object convertValue(Object value) {
-            final Object representationValue = convertFromRepresentation(value);
-            return resultConverter.convertValue(representationValue, null);
         }
 
         private Object convertFromRepresentation(Object value) {
@@ -102,42 +115,5 @@ public class RestQueryEngine implements QueryEngine {
             }
             return null;
         }
-
-        public List<Map<String, Object>> getData() {
-            return data;
-        }
-
-        public List<String> getColumns() {
-            return columns;
-        }
-
-        public <T> T getSingleValue(Class<T> type) {
-            if (data.size()==0) throw new InvalidDataAccessResourceUsageException("Expected single result, got none");
-            if (data.size()!=1) throw new InvalidDataAccessResourceUsageException("Expected single result, got more than one");
-            return getSingleColumn(type).iterator().next();
-        }
-
-        public <T> Iterable<T> getSingleColumn(final Class<T> type) {
-            if (columns.size()==0) throw new InvalidDataAccessResourceUsageException("Expected single column, got none");
-            if (columns.size()!=1) throw new InvalidDataAccessResourceUsageException("Expected single column, got more than one");
-            final String firstColumn = columns.get(0);
-            return new IterableWrapper<T, Map<String,Object>>(data) {
-                @Override
-                protected T underlyingObjectToObject(Map<String,Object> row) {
-                    return resultConverter.convertValue(row.get(firstColumn),type);
-                }
-            };
-        }
-    }
-
-    @Override
-    public <T> Iterable<T> query(String statement, Class<T> type) {
-        final RestQueryResult restQueryResult = executeStatement(statement);
-        return restQueryResult.getSingleColumn(type);
-    }
-
-    @Override
-    public <T> T queryForObject(String statement, Class<T> type) {
-        return executeStatement(statement).getSingleValue(type);
     }
 }

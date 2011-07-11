@@ -14,19 +14,13 @@
  * limitations under the License.
  */
 
-package org.springframework.data.graph.neo4j.support.query;
+package org.springframework.data.graph.neo4j.conversion;
 
 /**
- * @author mh
- * @since 22.06.11
- */
-public interface QueryResultConverter {
-    <T> T convertValue(Object value, Class<T> type);
-
-    QueryResultConverter NO_OP_QUERY_RESULT_CONVERTER = new QueryResultConverter() {
-        @Override
-        public <T> T convertValue(Object value, Class<T> type) {
-            return (T) value;
-        }
-    };
+* @author mh
+* @since 28.06.11
+*/
+public interface QueryResult<T> extends Iterable<T> {
+    <R> ConvertedResult<R> to(Class<R> type);
+    <R> ConvertedResult<R> to(Class<R> type, ResultConverter<T, R> resultConverter);
 }

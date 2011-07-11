@@ -261,7 +261,7 @@ public class GraphRepositoryFactory extends RepositoryFactorySupport {
                 return queryPaged(queryString,pageable);
             }
             if (iterableResult) {
-                if (compoundType.isAssignableFrom(Map.class)) return queryExecutor.query(queryString);
+                if (compoundType.isAssignableFrom(Map.class)) return queryExecutor.queryForList(queryString);
                 return queryExecutor.query(queryString, queryMethod.getCompoundType());
             }
             return queryExecutor.queryForObject(queryString, queryMethod.getReturnType());

@@ -27,6 +27,7 @@ import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.graph.UncategorizedGraphStoreException;
 import org.springframework.data.graph.core.GraphDatabase;
 import org.springframework.data.graph.core.Property;
+import org.springframework.data.graph.neo4j.conversion.*;
 import org.springframework.data.graph.neo4j.support.path.NodePath;
 import org.springframework.data.graph.neo4j.support.path.PathMapper;
 import org.springframework.data.graph.neo4j.support.path.PathMappingIterator;
@@ -166,7 +167,7 @@ public class Neo4jTemplate implements Neo4jOperations {
     }
 
     @Override
-    public <T> ClosableIterable<T> query(String indexName, final PathMapper<T> pathMapper, Object queryOrQueryObject) {
+    public <T> ClosableIterable<T> lookup(String indexName, Object queryOrQueryObject, final PathMapper<T> pathMapper) {
         notNull(queryOrQueryObject, "queryOrQueryObject", pathMapper, "pathMapper",indexName,"indexName");
         try {
             Index<? extends PropertyContainer> index = graphDatabase.getIndex(indexName);
@@ -180,7 +181,7 @@ public class Neo4jTemplate implements Neo4jOperations {
     }
 
     @Override
-    public <T> ClosableIterable<T> query(String indexName, final PathMapper<T> pathMapper, String field, String value) {
+    public <T> ClosableIterable<T> lookup(String indexName, String field, String value, final PathMapper<T> pathMapper) {
         notNull(field, "field", value, "value", pathMapper, "pathMapper", indexName, "indexName");
         try {
             Index<? extends PropertyContainer> index = graphDatabase.getIndex(indexName);
@@ -219,7 +220,7 @@ public class Neo4jTemplate implements Neo4jOperations {
     }
 
     @Override
-    public <T> Iterable<T> traverseGraph(Node startNode, final PathMapper<T> pathMapper, TraversalDescription traversal) {
+    public <T> Iterable<T> traverse(TraversalDescription traversal, Node startNode, final PathMapper<T> pathMapper) {
         notNull(startNode, "startNode", traversal, "traversal", pathMapper, "pathMapper");
         try {
             return mapPaths(traversal.traverse(startNode), pathMapper);
@@ -328,12 +329,74 @@ public class Neo4jTemplate implements Neo4jOperations {
 
     @Override
     public <T> Iterable<T> query(QueryEngine.Type engineType, String statement, Class<T> type) {
-        return queryEngineFor(engineType).query(statement,type);
+        return queryEngineFor(engineType).query(statement).to(type);
     }
 
     @Override
     public <T> T queryForObject(QueryEngine.Type engineType, String statement, Class<T> type) {
-        return queryEngineFor(engineType).queryForObject(statement,type);
+        return queryEngineFor(engineType).query(statement).to(type).single();
+    }
+
+    public QueryResult<Map<String, Object>> query(String statement) {
+        notNull(statement, "statement");
+        return queryEngineFor(QueryEngine.Type.Cypher).query(statement);
+    }
+
+    public QueryResult<Path> traverse(Node startNode, TraversalDescription traversal) {
+        notNull(startNode, "startNode", traversal, "traversal");
+        try {
+            return new QueryResultBuilder<Path>(traversal.traverse(startNode));
+        } catch (RuntimeException e) {
+            throw translateExceptionIfPossible(e);
+        }
+    }
+
+    public <T extends PropertyContainer> QueryResult<T> lookup(String indexName, String field, Object value) {
+        notNull(field, "field", value, "value", indexName, "indexName");
+        try {
+            Index<T> index = graphDatabase.getIndex(indexName);
+            return new QueryResultBuilder<T>(index.get(field, value));
+        } catch (RuntimeException e) {
+            throw translateExceptionIfPossible(e);
+        }
+    }
+    public <T extends PropertyContainer> QueryResult<T> lookup(String indexName, Object valueOrQueryObject) {
+        notNull(valueOrQueryObject, "valueOrQueryObject", indexName, "indexName");
+        try {
+            Index<T> index = graphDatabase.getIndex(indexName);
+            return new QueryResultBuilder<T>(index.query(valueOrQueryObject));
+        } catch (RuntimeException e) {
+            throw translateExceptionIfPossible(e);
+        }
+    }
+
+    {
+        /*
+        final Iterable<Node> nodes = query("start n=(0) return n").to(Node.class);
+        final Iterable<Path> nodePaths = query("start n=(0) return n").to(Path.class);
+        final Iterable<Long> costs = lookup("index", "field", "value").to(Long.class, new ResultConverter<Relationship, Long>() {
+            @Override
+            public Long convert(Relationship value, Class<Long> type) {
+                return (Long) value.getProperty("cost");
+            }
+        });
+        final Iterable<Person> people = lookup("index", "field:value*").to(Person.class);
+
+        lookup("index", "field:value*").to(Node.class).handle(new Handler<Node>() {
+            @Override
+            public void handle(Node node) {
+                node.setProperty("count",((Integer)node.getProperty("count",0))+1);
+            }
+        });
+
+        final Iterable<Node> endNodes = traverse(start, desc).to(Node.class);
+        final Iterable<Relationship> lastRelationships = traverse(start, desc).to(Relationship.class);
+        final Iterable<Integer> pathLengths = traverse(start, desc).to(Integer.class, new ResultConverter<Path, Integer>() {
+            public Integer convert(Path path, Class<Integer> type) {
+                return path.length();
+            }
+        });
+        */
     }
 }
 

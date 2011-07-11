@@ -16,25 +16,16 @@
 
 package org.springframework.data.graph.neo4j.support.query;
 
-import org.springframework.core.convert.ConversionService;
-import org.springframework.data.graph.neo4j.conversion.DefaultConverter;
+import java.util.Map;
 
 /**
  * @author mh
- * @since 22.06.11
+ * @since 28.06.11
  */
-public class ConversionServiceQueryResultConverter<R> extends DefaultConverter<Object,R> {
-    private final ConversionService conversionService;
+public interface QueryOperations {
+    Iterable<Map<String, Object>> queryForList(String statement);
 
-    public ConversionServiceQueryResultConverter(ConversionService conversionService) {
-        this.conversionService = conversionService;
-    }
+    <T> Iterable<T> query(String statement, Class<T> type);
 
-    @Override
-    protected Object doConvert(Object value, Class<?> sourceType, Class type) {
-        if (conversionService.canConvert(sourceType, type)) {
-            return conversionService.convert(value, type);
-        }
-        return null;
-    }
+    <T> T queryForObject(String statement, Class<T> type);
 }

@@ -19,11 +19,7 @@ package org.springframework.data.graph.neo4j.rest.support.index;
 
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.PropertyContainer;
-import org.neo4j.graphdb.Relationship;
-import org.neo4j.graphdb.index.AutoIndexer;
-import org.neo4j.graphdb.index.Index;
-import org.neo4j.graphdb.index.IndexManager;
-import org.neo4j.graphdb.index.RelationshipIndex;
+import org.neo4j.graphdb.index.*;
 import org.springframework.data.graph.neo4j.rest.support.RequestResult;
 import org.springframework.data.graph.neo4j.rest.support.RestGraphDatabase;
 import org.springframework.data.graph.neo4j.rest.support.RestRequest;
@@ -95,12 +91,12 @@ public class RestIndexManager implements IndexManager {
 
     @Override
     public AutoIndexer<Node> getNodeAutoIndexer() {
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     @Override
-    public AutoIndexer<Relationship> getRelationshipAutoIndexer() {
-        return null;
+    public RelationshipAutoIndexer getRelationshipAutoIndexer() {
+        throw new UnsupportedOperationException();
     }
 }
 
