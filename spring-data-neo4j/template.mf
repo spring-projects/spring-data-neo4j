@@ -16,7 +16,7 @@ Import-Template:
  org.springframework.util.*;version="[3.0.0, 4.0.0)",
  org.springframework.data.*;version="[1.0.0, 2.0.0)",
  org.springframework.persistence.*;version="[1.0.0, 2.0.0)",
- org.springframework.data.graph.*;version="0",
+ org.springframework.data.neo4j.*;version="0",
  org.neo4j.*;version="0",
  org.w3c.dom.*;version="0",
  org.aspectj.*;version="[1.6.5, 2.0.0)",

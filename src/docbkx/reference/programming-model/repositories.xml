@@ -252,7 +252,7 @@ public class PersonRepositoryImpl implements PersonRepositoryExtension {
 
 // configure the repositories, preferably via the datagraph:repositories namespace
 // (graphDatabaseContext reference is optional)
-<datagraph:repositories base-package="org.springframework.data.graph.neo4j"
+<datagraph:repositories base-package="org.springframework.data.neo4j"
     graph-database-context-ref="graphDatabaseContext"/>
 
 // have it injected

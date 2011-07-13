@@ -1,1 +1,1 @@
-http\://www.springframework.org/schema/data/graph=org.springframework.data.graph.neo4j.config.DataGraphNamespaceHandler
+http\://www.springframework.org/schema/data/graph=org.springframework.data.neo4j.config.DataGraphNamespaceHandler

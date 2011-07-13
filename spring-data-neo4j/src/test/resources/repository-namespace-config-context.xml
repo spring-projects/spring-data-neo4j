@@ -11,6 +11,6 @@
 
     <context:annotation-config/>
     <datagraph:config graphDatabaseService="graphDatabaseService"/>
-    <datagraph:repositories base-package="org.springframework.data.graph.neo4j"/>
+    <datagraph:repositories base-package="org.springframework.data.neo4j"/>
     <bean id="graphDatabaseService" class="org.neo4j.test.ImpermanentGraphDatabase"/>
 </beans>

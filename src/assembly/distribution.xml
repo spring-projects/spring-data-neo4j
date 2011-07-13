@@ -42,7 +42,6 @@
 		<moduleSet>
 			<!-- adds module jars to the distribution archive under the 'dist' directory -->
 			<includes>
-				<include>org.springframework.data:spring-data-graph-core</include>
 				<include>org.springframework.data:spring-data-neo4j</include>
 				<include>org.springframework.data:spring-data-neo4j-rest</include>
 			</includes>
@@ -56,7 +55,6 @@
 			<!-- adds module source jars to the distribution archive under the 'src' directory
 				 see pom.xml 'maven-source-plugin' declaration -->
 			<includes>
-				<include>org.springframework.data:spring-data-graph-core</include>
 				<include>org.springframework.data:spring-data-neo4j</include>
 				<include>org.springframework.data:spring-data-neo4j-rest</include>
 			</includes>

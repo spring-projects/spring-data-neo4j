@@ -19,7 +19,7 @@
 
     <bean id="transactionManager" class="org.springframework.transaction.jta.JtaTransactionManager">
         <property name="transactionManager">
-            <bean id="jotm" class="org.springframework.data.graph.neo4j.transaction.JotmFactoryBean"/>
+            <bean id="jotm" class="org.springframework.data.neo4j.transaction.JotmFactoryBean"/>
         </property>
     </bean>
 

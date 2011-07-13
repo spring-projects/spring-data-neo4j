@@ -32,7 +32,7 @@
             The indexes can be queried by using a repository (see
             <xref linkend="reference:programming-model:repositories" />).
             Typically, the repository is an instance of
-            <code>org.springframework.data.graph.neo4j.repository.DirectGraphRepositoryFactory</code>.
+            <code>org.springframework.data.neo4j.repository.DirectGraphRepositoryFactory</code>.
             The methods <code>findByPropertyValue()</code> and <code>findAllByPropertyValue()</code> work on
             the exact indexes and return the first or all matches. To do range queries, use
             <code>findAllByRange()</code> (please note that currently both values are inclusive).

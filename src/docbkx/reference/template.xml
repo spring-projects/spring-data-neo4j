@@ -18,7 +18,7 @@
         </para>
         <example>
             <title>Neo4j template</title>
-            <programlisting language="java"><![CDATA[import static org.springframework.data.graph.core.Property._;
+            <programlisting language="java"><![CDATA[<![CDATA[import static org.springframework.data.neo4j.core.Property._;
 
 Neo4jOperations neo = new Neo4jTemplate(graphDatabaseService);
 
@@ -31,7 +31,7 @@ neo.createRelationship(mark,thomas, WORKS_WITH, _("project","spring-data"));
 neo.index("devs",thomas, "name","Thomas");
 
 assert "Mark".equals(neo.query("devs","name","Mark",new NodeNamePathMapper()));
-]]></programlisting>
+]]>]]></programlisting>
         </example>
     </section>
     <section>
