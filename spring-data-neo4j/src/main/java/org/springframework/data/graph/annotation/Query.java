@@ -34,7 +34,7 @@ import java.lang.annotation.Target;
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.FIELD,ElementType.METHOD})
-public @interface GraphQuery {
+public @interface Query {
     /**
      * @return Query to be executed %d will be replaced by the node-id of the current entity other placeholders by the given params
      */

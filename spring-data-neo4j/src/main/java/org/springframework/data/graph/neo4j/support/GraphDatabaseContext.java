@@ -25,8 +25,8 @@ import org.neo4j.helpers.collection.ClosableIterable;
 import org.neo4j.index.impl.lucene.LuceneIndexImplementation;
 import org.neo4j.kernel.AbstractGraphDatabase;
 import org.springframework.core.convert.ConversionService;
+import org.springframework.data.graph.annotation.Indexed;
 import org.springframework.data.graph.core.*;
-import org.springframework.data.graph.neo4j.annotation.Indexed;
 
 import javax.transaction.Status;
 import javax.transaction.SystemException;

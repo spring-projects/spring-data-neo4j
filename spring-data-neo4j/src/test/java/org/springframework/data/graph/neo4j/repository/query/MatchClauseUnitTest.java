@@ -24,10 +24,10 @@ import java.util.Set;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.data.graph.annotation.Indexed;
 import org.springframework.data.graph.annotation.NodeEntity;
 import org.springframework.data.graph.annotation.RelatedTo;
 import org.springframework.data.graph.core.Direction;
-import org.springframework.data.graph.neo4j.annotation.Indexed;
 import org.springframework.data.graph.neo4j.mapping.Neo4JMappingContext;
 import org.springframework.data.repository.query.parser.Property;
 

@@ -16,8 +16,8 @@
 
 package org.springframework.data.graph.neo4j;
 
+import org.springframework.data.graph.annotation.Indexed;
 import org.springframework.data.graph.annotation.NodeEntity;
-import org.springframework.data.graph.neo4j.annotation.Indexed;
 
 /**
  * @author mh

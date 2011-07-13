@@ -19,7 +19,7 @@ package org.springframework.data.graph.neo4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.graph.annotation.GraphQuery;
+import org.springframework.data.graph.annotation.Query;
 import org.springframework.data.graph.neo4j.repository.GraphRepository;
 import org.springframework.data.graph.neo4j.repository.NamedIndexRepository;
 
@@ -31,19 +31,19 @@ import java.util.Map;
  */
 public interface PersonRepository extends GraphRepository<Person>, NamedIndexRepository<Person> {
 
-    @GraphQuery("start team=(%d) match (team)-[:persons]->(member) return member")
+    @Query("start team=(%d) match (team)-[:persons]->(member) return member")
     Iterable<Person> findAllTeamMembers(Group team);
 
-    @GraphQuery("start team=(%d) match (team)-[:persons]->(member) return member.name,member.age")
+    @Query("start team=(%d) match (team)-[:persons]->(member) return member.name,member.age")
     Iterable<Map<String,Object>> findAllTeamMemberData(Group team);
 
-    @GraphQuery("start person=(%d) match (boss)-[:boss]->(person) return boss")
+    @Query("start person=(%d) match (boss)-[:boss]->(person) return boss")
     Person findBoss(Person person);
 
     Group findTeam(Person person);
 
-    @GraphQuery("start team=(%d) match (team)-[:persons]->(member) return member")
+    @Query("start team=(%d) match (team)-[:persons]->(member) return member")
     Page<Person> findAllTeamMembersPaged(Pageable page, Group team);
-    @GraphQuery("start team=(%d) match (team)-[:persons]->(member) return member")
+    @Query("start team=(%d) match (team)-[:persons]->(member) return member")
     Iterable<Person> findAllTeamMembersSorted(Group team, Sort sort);
 }

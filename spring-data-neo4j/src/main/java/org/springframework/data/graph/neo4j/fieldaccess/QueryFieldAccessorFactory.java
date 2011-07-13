@@ -16,9 +16,8 @@
 
 package org.springframework.data.graph.neo4j.fieldaccess;
 
-import org.springframework.core.GenericCollectionTypeResolver;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
-import org.springframework.data.graph.annotation.GraphQuery;
+import org.springframework.data.graph.annotation.Query;
 import org.springframework.data.graph.core.NodeBacked;
 import org.springframework.data.graph.neo4j.support.GenericTypeExtractor;
 
@@ -30,9 +29,9 @@ import static org.springframework.data.graph.neo4j.support.DoReturn.doReturn;
 public class QueryFieldAccessorFactory implements FieldAccessorFactory<NodeBacked> {
 	@Override
     public boolean accept(final Field f) {
-        final GraphQuery graphQuery = f.getAnnotation(GraphQuery.class);
-        return graphQuery != null
-                && !graphQuery.value().isEmpty();
+        final Query query = f.getAnnotation(Query.class);
+        return query != null
+                && !query.value().isEmpty();
     }
 
 
@@ -54,15 +53,15 @@ public class QueryFieldAccessorFactory implements FieldAccessorFactory<NodeBacke
 
         public QueryFieldAccessor(final Field field) {
 	        this.field = field;
-            final GraphQuery graphQuery = field.getAnnotation(GraphQuery.class);
-            this.params = graphQuery.params();
-            this.query = graphQuery.value();
+            final Query query = field.getAnnotation(Query.class);
+            this.params = query.params();
+            this.query = query.value();
             this.iterableResult = Iterable.class.isAssignableFrom(field.getType());
-            this.target = resolveTarget(graphQuery,field);
+            this.target = resolveTarget(query,field);
         }
 
-        private Class<?> resolveTarget(GraphQuery graphQuery, Field field) {
-            if (!graphQuery.elementClass().equals(Object.class)) return graphQuery.elementClass();
+        private Class<?> resolveTarget(Query query, Field field) {
+            if (!query.elementClass().equals(Object.class)) return query.elementClass();
             return GenericTypeExtractor.resolveFieldType(field);
         }
 

@@ -17,8 +17,8 @@
 package org.springframework.data.graph.neo4j.partial;
 
 import org.springframework.data.graph.annotation.GraphProperty;
+import org.springframework.data.graph.annotation.Indexed;
 import org.springframework.data.graph.annotation.NodeEntity;
-import org.springframework.data.graph.neo4j.annotation.Indexed;
 
 import javax.persistence.*;
 

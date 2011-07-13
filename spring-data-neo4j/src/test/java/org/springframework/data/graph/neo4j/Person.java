@@ -18,7 +18,7 @@ package org.springframework.data.graph.neo4j;
 
 import org.springframework.data.graph.annotation.*;
 import org.springframework.data.graph.core.Direction;
-import org.springframework.data.graph.neo4j.annotation.Indexed;
+import org.springframework.data.graph.annotation.Indexed;
 
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
@@ -67,16 +67,16 @@ public class Person {
 	@RelatedToVia(type = "knows", elementClass = Friendship.class)
 	private Iterable<Friendship> friendships;
 
-    @GraphQuery(value = "start person=(%d) match (person)<-[:boss]-(boss) return boss")
+    @Query(value = "start person=(%d) match (person)<-[:boss]-(boss) return boss")
     private Person bossByQuery;
 
-    @GraphQuery(value = "start person=(%d) match (person)<-[:boss]-(boss) return boss.%s",params = "name")
+    @Query(value = "start person=(%d) match (person)<-[:boss]-(boss) return boss.%s",params = "name")
     private String bossName;
 
-    @GraphQuery(value = "start person=(%d) match (person)<-[:persons]-(team)-[:persons]->(member) return member",elementClass = Person.class)
+    @Query(value = "start person=(%d) match (person)<-[:persons]-(team)-[:persons]->(member) return member",elementClass = Person.class)
     private Iterable<Person> otherTeamMembers;
 
-    @GraphQuery(value = "start person=(%d) match (person)<-[:persons]-(team)-[:persons]->(member) return member.name, member.age")
+    @Query(value = "start person=(%d) match (person)<-[:persons]-(team)-[:persons]->(member) return member.name, member.age")
     private Iterable<Map<String,Object>> otherTeamMemberData;
 
     public String getBossName() {

@@ -20,7 +20,7 @@ import org.neo4j.helpers.collection.IteratorUtil;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.graph.annotation.GraphQuery;
+import org.springframework.data.graph.annotation.Query;
 import org.springframework.data.graph.annotation.NodeEntity;
 import org.springframework.data.graph.annotation.RelationshipEntity;
 import org.springframework.data.graph.core.NodeBacked;
@@ -121,13 +121,13 @@ public class GraphRepositoryFactory extends RepositoryFactorySupport {
     static class GraphQueryMethod extends QueryMethod {
 
         private final Method method;
-        private final GraphQuery queryAnnotation;
+        private final Query queryAnnotation;
         private final String query;
 
         public GraphQueryMethod(Method method, RepositoryMetadata metadata, NamedQueries namedQueries) {
             super(method, metadata);
             this.method = method;
-            queryAnnotation = method.getAnnotation(GraphQuery.class);
+            queryAnnotation = method.getAnnotation(Query.class);
             this.query = queryAnnotation != null ? queryAnnotation.value() : getNamedQuery(namedQueries);
             if (this.query==null) throw new IllegalArgumentException("Could not extract a query from "+method);
         }

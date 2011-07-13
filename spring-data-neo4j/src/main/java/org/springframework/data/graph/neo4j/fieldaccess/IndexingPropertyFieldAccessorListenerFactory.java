@@ -21,8 +21,8 @@ import org.apache.commons.logging.LogFactory;
 import org.neo4j.graphdb.PropertyContainer;
 import org.neo4j.graphdb.index.Index;
 import org.neo4j.index.lucene.ValueContext;
+import org.springframework.data.graph.annotation.Indexed;
 import org.springframework.data.graph.core.GraphBacked;
-import org.springframework.data.graph.neo4j.annotation.Indexed;
 import org.springframework.data.graph.neo4j.support.GraphDatabaseContext;
 
 import java.lang.reflect.AnnotatedElement;

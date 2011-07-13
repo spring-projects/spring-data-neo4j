@@ -20,19 +20,11 @@ import org.neo4j.graphdb.DynamicRelationshipType;
 import org.neo4j.graphdb.traversal.TraversalDescription;
 import org.neo4j.kernel.Traversal;
 import org.neo4j.kernel.impl.traversal.TraversalDescriptionImpl;
-import org.springframework.data.graph.*;
-import org.springframework.data.graph.annotation.GraphProperty;
-import org.springframework.data.graph.annotation.GraphTraversal;
-import org.springframework.data.graph.annotation.NodeEntity;
-import org.springframework.data.graph.annotation.RelatedTo;
+import org.springframework.data.graph.annotation.*;
 import org.springframework.data.graph.core.Direction;
 import org.springframework.data.graph.core.FieldTraversalDescriptionBuilder;
 import org.springframework.data.graph.core.NodeBacked;
-import org.springframework.data.graph.neo4j.Person;
-import org.springframework.data.graph.neo4j.annotation.Indexed;
-
-import static org.springframework.data.graph.neo4j.Person.persistedPerson;
-import static org.springframework.data.graph.neo4j.Person.persistedPerson;
+import org.springframework.data.graph.annotation.Indexed;
 
 import java.lang.reflect.Field;
 import java.util.Collection;
