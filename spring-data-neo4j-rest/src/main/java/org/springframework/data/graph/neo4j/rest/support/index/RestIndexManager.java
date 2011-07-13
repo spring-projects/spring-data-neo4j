@@ -19,6 +19,7 @@ package org.springframework.data.graph.neo4j.rest.support.index;
 
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.PropertyContainer;
+import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.index.*;
 import org.springframework.data.graph.neo4j.rest.support.RequestResult;
 import org.springframework.data.graph.neo4j.rest.support.RestGraphDatabase;

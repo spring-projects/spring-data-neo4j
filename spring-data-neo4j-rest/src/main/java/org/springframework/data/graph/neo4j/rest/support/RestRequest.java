@@ -23,6 +23,7 @@ import com.sun.jersey.api.client.WebResource.Builder;
 import com.sun.jersey.api.client.filter.HTTPBasicAuthFilter;
 
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -122,11 +123,11 @@ public class RestRequest {
         return requestResult.getEntity();
     }
 
-    public boolean statusIs( RequestResult requestResult, javax.ws.rs.core.Response.StatusType status ) {
+    public boolean statusIs( RequestResult requestResult, Response.StatusType status ) {
         return requestResult.getStatus() == status.getStatusCode();
     }
 
-    public boolean statusOtherThan( RequestResult requestResult, javax.ws.rs.core.Response.StatusType status ) {
+    public boolean statusOtherThan( RequestResult requestResult, Response.StatusType status ) {
         return !statusIs(requestResult, status );
     }
 

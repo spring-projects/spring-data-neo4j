@@ -16,7 +16,7 @@
 		<org.slf4j.version>1.5.10</org.slf4j.version>
 		<org.springframework.version>3.0.5.RELEASE</org.springframework.version>
 		<data.commons.version>1.1.0.BUILD-SNAPSHOT</data.commons.version>
-        <neo4j.version>1.4-SNAPSHOT</neo4j.version>
+        <neo4j.version>1.4</neo4j.version>
         <aspectj.version>1.6.12.M1</aspectj.version>
 	</properties>
 	<profiles>
@@ -134,11 +134,6 @@
 			<dependency>
 				<groupId>org.springframework.data</groupId>
 				<artifactId>spring-data-commons-core</artifactId>
-				<version>${data.commons.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>org.springframework.data</groupId>
-				<artifactId>spring-data-commons-aspects</artifactId>
 				<version>${data.commons.version}</version>
 			</dependency>
 			<dependency>
