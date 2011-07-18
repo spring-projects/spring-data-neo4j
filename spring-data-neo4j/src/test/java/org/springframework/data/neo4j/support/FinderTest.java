@@ -21,6 +21,7 @@ import org.apache.commons.logging.LogFactory;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.neo4j.helpers.collection.ClosableIterable;
 import org.neo4j.helpers.collection.IteratorUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -32,10 +33,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.transaction.BeforeTransaction;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Map;
+import java.util.*;
 
 import static java.util.Arrays.asList;
 import static org.hamcrest.CoreMatchers.is;
@@ -211,11 +209,12 @@ public class FinderTest {
         Person p1=Person.persistedPerson("person1",11);
         Person p2=Person.persistedPerson("person2", 12);
         Person p3=Person.persistedPerson("person3", 13);
+        final List<Person> all = IteratorUtil.addToCollection(personRepository.findAll(), new ArrayList<Person>());
         final Page<Person> page0 = personRepository.findAll(new PageRequest(0, 2));
         final Page<Person> page1 = personRepository.findAll(new PageRequest(1, 2));
         final Page<Person> page2 = personRepository.findAll(new PageRequest(2, 2));
-        assertPage(page0, 0, 2, 3, p1, p2);
-        assertPage(page1, 1, 2, 3, p3);
+        assertPage(page0, 0, 2, 3, all.get(0), all.get(1));
+        assertPage(page1, 1, 2, 3, all.get(2));
         assertPage(page2, 2, 2, 3);
 	}
 
