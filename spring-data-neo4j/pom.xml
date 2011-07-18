@@ -129,8 +129,14 @@
 		<dependency>
 			<groupId>org.neo4j</groupId>
 			<artifactId>server-api</artifactId>
-		 <scope>provided</scope>
+		 <scope>optional</scope>
 		</dependency>
+
+        <dependency>
+          <groupId>com.tinkerpop.blueprints</groupId>
+          <artifactId>blueprints-neo4j-graph</artifactId>
+          <scope>optional</scope>
+        </dependency>
 
 		<dependency>
 			<groupId>commons-configuration</groupId>
