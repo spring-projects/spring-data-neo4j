@@ -29,9 +29,12 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URLEncoder;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 public class RestRequest {
 
+    public static final int CONNECT_TIMEOUT = (int) TimeUnit.SECONDS.toMillis(30);
+    public static final int READ_TIMEOUT = (int) TimeUnit.SECONDS.toMillis(30);
     private final URI baseUri;
     private final Client client;
 
@@ -41,9 +44,23 @@ public class RestRequest {
 
     public RestRequest( URI baseUri, String username, String password ) {
         this.baseUri = uriWithoutSlash( baseUri );
-        client = Client.create();
-        if ( username != null ) client.addFilter( new HTTPBasicAuthFilter( username, password ) );
+        client = createClient();
+        addAuthFilter(username, password);
 
+    }
+
+    private void addAuthFilter(String username, String password) {
+        if (username == null) return;
+        client.addFilter( new HTTPBasicAuthFilter( username, password ) );
+    }
+
+    private Client createClient() {
+        Client client = Client.create();
+
+        client.setConnectTimeout(CONNECT_TIMEOUT);
+        client.setReadTimeout(READ_TIMEOUT);
+
+        return client;
     }
 
     private RestRequest( URI uri, Client client ) {
