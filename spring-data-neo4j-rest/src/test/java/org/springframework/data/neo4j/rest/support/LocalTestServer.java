@@ -105,6 +105,7 @@ public class LocalTestServer {
             }
         };
         neoServer.start();
+        neoServer.getWebServer().getJetty().setStopAtShutdown(true);
     }
 
     public void stop() {
