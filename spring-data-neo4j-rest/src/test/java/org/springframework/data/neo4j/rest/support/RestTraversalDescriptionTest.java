@@ -60,7 +60,7 @@ public class RestTraversalDescriptionTest
     @Test
     public void testPruneScript() throws Exception {
         traversalDescription.prune(RestTraversalDescription.ScriptLanguage.JAVASCRIPT, "return true;");
-        Map pruneEvaluator= (Map) getPostData("prune evaluator");
+        Map pruneEvaluator= (Map) getPostData("prune_evaluator");
         Assert.assertEquals("javascript", pruneEvaluator.get("language"));
         Assert.assertEquals("return true;", pruneEvaluator.get("body"));
     }
@@ -68,7 +68,7 @@ public class RestTraversalDescriptionTest
     @Test
     public void testFilterScript() throws Exception {
         traversalDescription.filter(RestTraversalDescription.ScriptLanguage.JAVASCRIPT, "return true;");
-        Map pruneEvaluator= (Map) getPostData("return filter");
+        Map pruneEvaluator= (Map) getPostData("return_filter");
         Assert.assertEquals("javascript", pruneEvaluator.get("language"));
         Assert.assertEquals("return true;", pruneEvaluator.get("body"));
     }
