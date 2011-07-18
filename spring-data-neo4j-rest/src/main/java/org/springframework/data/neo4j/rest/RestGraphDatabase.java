@@ -27,7 +27,6 @@ import org.springframework.data.neo4j.core.GraphDatabase;
 import org.springframework.data.neo4j.core.Property;
 import org.springframework.data.neo4j.conversion.ResultConverter;
 import org.springframework.data.neo4j.rest.index.RestIndexManager;
-import org.springframework.data.neo4j.rest.index.RestIndexManager;
 import org.springframework.data.neo4j.support.query.ConversionServiceQueryResultConverter;
 import org.springframework.data.neo4j.support.query.QueryEngine;
 
@@ -106,7 +105,7 @@ public class RestGraphDatabase implements GraphDatabaseService, GraphDatabase {
 
     @Override
     public QueryEngine queryEngineFor(QueryEngine.Type type) {
-        return new RestQueryEngine(this, createResultConverter());
+        return new RestCypherQueryEngine(this, createResultConverter());
     }
 
     private ResultConverter createResultConverter() {

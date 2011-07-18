@@ -17,12 +17,14 @@
 package org.springframework.data.neo4j.template;
 
 import org.junit.Test;
-import org.springframework.data.neo4j.core.GraphDatabase;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Path;
 import org.neo4j.graphdb.RelationshipType;
+import org.neo4j.graphdb.traversal.TraversalDescription;
 import org.neo4j.kernel.Traversal;
-import org.springframework.data.neo4j.support.path.PathMapper;
+import org.springframework.data.neo4j.conversion.Handler;
+import org.springframework.data.neo4j.conversion.QueryResult;
+import org.springframework.data.neo4j.core.GraphDatabase;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -49,13 +51,14 @@ public class NeoTraversalTest extends NeoApiTest {
         });
 
         final Set<String> resultSet = new HashSet<String>();
-        template.traverse(Traversal.description().relationships(HAS).filter(returnAllButStartNode()).prune(Traversal.pruneAfterDepth(2)), template.getReferenceNode(), new PathMapper.WithoutResult() {
+        final TraversalDescription description = Traversal.description().relationships(HAS).filter(returnAllButStartNode()).prune(Traversal.pruneAfterDepth(2));
+        final QueryResult<Path> queryResult = template.traverse(template.getReferenceNode(), description);
+        queryResult.handle(new Handler<Path>() {
             @Override
-            public void eachPath(Path path) {
-                String nodeName = (String) path.endNode().getProperty("name", "");
-                resultSet.add(nodeName);
-            }
-        });
+            public void handle(Path value) {
+                final String name = (String) value.endNode().getProperty("name", "");
+                resultSet.add(name);
+            }});
         assertEquals("all members", new HashSet<String>(asList("grandpa", "grandma", "daughter", "son", "man", "wife", "family")), resultSet);
     }
 

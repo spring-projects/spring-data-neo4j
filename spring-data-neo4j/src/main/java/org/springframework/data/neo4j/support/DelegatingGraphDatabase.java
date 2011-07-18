@@ -26,7 +26,7 @@ import org.springframework.core.convert.ConversionService;
 import org.springframework.data.neo4j.core.GraphDatabase;
 import org.springframework.data.neo4j.core.Property;
 import org.springframework.data.neo4j.support.query.ConversionServiceQueryResultConverter;
-import org.springframework.data.neo4j.support.query.EmbeddedQueryEngine;
+import org.springframework.data.neo4j.support.query.CypherQueryEngine;
 import org.springframework.data.neo4j.support.query.QueryEngine;
 import java.util.Map;
 
@@ -126,8 +126,8 @@ public class DelegatingGraphDatabase implements GraphDatabase {
     }
 
     @Override
-    public QueryEngine queryEngineFor(EmbeddedQueryEngine.Type type) {
-        return new EmbeddedQueryEngine(delegate, createResultConverter());
+    public QueryEngine queryEngineFor(CypherQueryEngine.Type type) {
+        return new CypherQueryEngine(delegate, createResultConverter());
     }
 
     private ConversionServiceQueryResultConverter createResultConverter() {

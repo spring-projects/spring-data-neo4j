@@ -24,13 +24,14 @@ import org.junit.Before;
 import org.junit.Test;
 import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.index.Index;
+import org.neo4j.graphdb.traversal.TraversalDescription;
 import org.neo4j.test.ImpermanentGraphDatabase;
 import org.neo4j.kernel.Traversal;
 import org.neo4j.kernel.impl.transaction.SpringTransactionManager;
 import org.springframework.dao.DataAccessException;
+import org.springframework.data.neo4j.conversion.ResultConverter;
 import org.springframework.data.neo4j.core.GraphDatabase;
 import org.springframework.data.neo4j.support.DelegatingGraphDatabase;
-import org.springframework.data.neo4j.support.path.PathMapper;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.jta.JtaTransactionManager;
@@ -248,40 +249,41 @@ public class Neo4jTemplateApiTest {
 
     @Test
     public void testQueryNodes() throws Exception {
-        assertSingleResult("node0", template.lookup("node", new TermQuery(new Term("name", "node0")), new NodeNameMapper()));
+        assertSingleResult("node0", template.lookup("node", new TermQuery(new Term("name", "node0"))).to(String.class, new PropertyContainerNameConverter()));
     }
 
     @Test
     public void testRetrieveNodes() throws Exception {
-        assertSingleResult("node0", template.lookup("node", "name", "node0", new NodeNameMapper()));
+        assertSingleResult("node0", template.lookup("node", "name", "node0").to(String.class, new PropertyContainerNameConverter()));
     }
 
     @Test
     public void testQueryRelationships() throws Exception {
-        assertSingleResult("rel1", template.lookup("relationship", new TermQuery(new Term("name", "rel1")), new RelationshipNameMapper()));
+        assertSingleResult("rel1", template.lookup("relationship", new TermQuery(new Term("name", "rel1"))).to(String.class, new PropertyContainerNameConverter()));
     }
 
     @Test
     public void testRetrieveRelationships() throws Exception {
-        assertSingleResult("rel1",template.lookup("relationship", "name", "rel1", new RelationshipNameMapper()));
+        assertSingleResult("rel1",template.lookup("relationship", "name", "rel1").to(String.class, new PropertyContainerNameConverter()));
     }
 
     @Test
     public void testTraverse() throws Exception {
-        assertSingleResult("node1",template.traverse(Traversal.description().relationships(KNOWS).prune(Traversal.pruneAfterDepth(1)).filter(Traversal.returnAllButStartNode()), referenceNode, new NodeNameMapper()));
+        final TraversalDescription description = Traversal.description().relationships(KNOWS).prune(Traversal.pruneAfterDepth(1)).filter(Traversal.returnAllButStartNode());
+        assertSingleResult("node1",template.traverse(referenceNode, description).to(String.class,new PathNodeNameMapper()));
     }
 
     @Test
     public void shouldGetDirectRelationship() throws Exception {
-        assertSingleResult("rel1", template.traverseNext(referenceNode, new RelationshipNameMapper()));
+        assertSingleResult("rel1", template.convert(referenceNode.getRelationships()).to(String.class, new RelationshipNameConverter()));
     }
     @Test
     public void shouldGetDirectRelationshipForType() throws Exception {
-        assertSingleResult("rel1", template.traverseNext(referenceNode, new RelationshipNameMapper(), KNOWS));
+        assertSingleResult("rel1", template.convert(referenceNode.getRelationships(KNOWS)).to(String.class, new RelationshipNameConverter()));
     }
     @Test
     public void shouldGetDirectRelationshipForTypeAndDirection() throws Exception {
-        assertSingleResult("rel1", template.traverseNext(referenceNode, new RelationshipNameMapper(), KNOWS, Direction.OUTGOING));
+        assertSingleResult("rel1", template.convert(referenceNode.getRelationships(KNOWS, Direction.OUTGOING)).to(String.class, new RelationshipNameConverter()));
     }
 
     private <T> void assertSingleResult(T expected, Iterable<T> iterable) {
@@ -301,16 +303,30 @@ public class Neo4jTemplateApiTest {
         assertEquals("rel2",relationship.getProperty("name","not set"));
     }
 
-    private static class RelationshipNameMapper implements PathMapper<String> {
+    private static class PathRelationshipNameMapper implements ResultConverter<Path,String> {
         @Override
-        public String mapPath(Path path) {
+        public String convert(Path path, Class<String> type) {
             return (String) path.lastRelationship().getProperty("name","not set");
         }
     }
-    private static class NodeNameMapper implements PathMapper<String> {
+    private static class PathNodeNameMapper implements ResultConverter<Path,String> {
         @Override
-        public String mapPath(Path path) {
+        public String convert(Path path, Class<String> type) {
             return (String) path.endNode().getProperty("name","not set");
+        }
+    }
+
+    private static class RelationshipNameConverter implements ResultConverter<Relationship,String> {
+        @Override
+        public String convert(Relationship value, Class<String> type) {
+            return (String) value.getProperty("name");
+        }
+    }
+
+    private static class PropertyContainerNameConverter implements ResultConverter<PropertyContainer, String> {
+        @Override
+        public String convert(PropertyContainer value, Class<String> type) {
+            return (String) value.getProperty("name");
         }
     }
 }

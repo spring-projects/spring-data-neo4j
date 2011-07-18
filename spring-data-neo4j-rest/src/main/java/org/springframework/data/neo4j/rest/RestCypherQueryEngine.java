@@ -26,15 +26,15 @@ import java.util.*;
  * @author mh
  * @since 22.06.11
  */
-public class RestQueryEngine implements QueryEngine {
+public class RestCypherQueryEngine implements QueryEngine {
     private final RestRequest restRequest;
     private final RestGraphDatabase restGraphDatabase;
     private final ResultConverter resultConverter;
 
-    public RestQueryEngine(RestGraphDatabase restGraphDatabase) {
+    public RestCypherQueryEngine(RestGraphDatabase restGraphDatabase) {
         this(restGraphDatabase,null);
     }
-    public RestQueryEngine(RestGraphDatabase restGraphDatabase, ResultConverter resultConverter) {
+    public RestCypherQueryEngine(RestGraphDatabase restGraphDatabase, ResultConverter resultConverter) {
         this.restGraphDatabase = restGraphDatabase;
         this.resultConverter = resultConverter!=null ? resultConverter : new DefaultConverter();
         this.restRequest = restGraphDatabase.getRestRequest();
@@ -63,6 +63,11 @@ public class RestQueryEngine implements QueryEngine {
         @Override
         public <R> ConvertedResult<R> to(Class<R> type, ResultConverter<Map<String, Object>, R> converter) {
             return result.to(type,converter);
+        }
+
+        @Override
+        public void handle(Handler<Map<String, Object>> handler) {
+            result.handle(handler);
         }
 
         @Override

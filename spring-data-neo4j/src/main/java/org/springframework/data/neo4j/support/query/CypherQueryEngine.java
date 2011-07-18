@@ -29,18 +29,18 @@ import org.springframework.data.neo4j.conversion.ResultConverter;
 
 import java.util.Map;
 
-public class EmbeddedQueryEngine implements QueryEngine, QueryOperations {
+public class CypherQueryEngine implements QueryEngine, QueryOperations {
 
     final ExecutionEngine executionEngine;
     private ResultConverter resultConverter;
     private final DefaultQueryOperations queryOperations;
 
-    public EmbeddedQueryEngine(GraphDatabaseService graphDatabaseService) {
+    public CypherQueryEngine(GraphDatabaseService graphDatabaseService) {
         this(graphDatabaseService, new DefaultConverter());
     }
 
 
-    public EmbeddedQueryEngine(GraphDatabaseService graphDatabaseService, ResultConverter resultConverter) {
+    public CypherQueryEngine(GraphDatabaseService graphDatabaseService, ResultConverter resultConverter) {
         this.resultConverter = resultConverter != null ? resultConverter : new DefaultConverter();
         this.executionEngine = new ExecutionEngine(graphDatabaseService);
         this.queryOperations = new DefaultQueryOperations(this);

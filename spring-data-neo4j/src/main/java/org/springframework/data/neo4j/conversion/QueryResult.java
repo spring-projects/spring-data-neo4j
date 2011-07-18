@@ -23,4 +23,5 @@ package org.springframework.data.neo4j.conversion;
 public interface QueryResult<T> extends Iterable<T> {
     <R> ConvertedResult<R> to(Class<R> type);
     <R> ConvertedResult<R> to(Class<R> type, ResultConverter<T, R> resultConverter);
+    void handle(Handler<T> handler);
 }

@@ -31,7 +31,7 @@ public class QueryExecutor implements QueryOperations {
 
     public QueryExecutor(GraphDatabaseContext ctx) {
         EntityResultConverter converter = new EntityResultConverter(ctx);
-        queryEngine = new EmbeddedQueryEngine(ctx.getGraphDatabaseService(), converter);
+        queryEngine = new CypherQueryEngine(ctx.getGraphDatabaseService(), converter);
     }
 
     public Iterable<Map<String, Object>> queryForList(String statement) {

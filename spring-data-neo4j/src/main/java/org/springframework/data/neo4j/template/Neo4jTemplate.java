@@ -30,9 +30,8 @@ import org.springframework.data.neo4j.core.GraphDatabase;
 import org.springframework.data.neo4j.core.Property;
 import org.springframework.data.neo4j.support.path.NodePath;
 import org.springframework.data.neo4j.support.path.PathMapper;
-import org.springframework.data.neo4j.support.path.PathMappingIterator;
 import org.springframework.data.neo4j.support.path.RelationshipPath;
-import org.springframework.data.neo4j.support.query.EmbeddedQueryEngine;
+import org.springframework.data.neo4j.support.query.CypherQueryEngine;
 import org.springframework.data.neo4j.support.query.QueryEngine;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionStatus;
@@ -167,34 +166,11 @@ public class Neo4jTemplate implements Neo4jOperations {
     }
 
     @Override
-    public <T> ClosableIterable<T> lookup(String indexName, Object queryOrQueryObject, final PathMapper<T> pathMapper) {
-        notNull(queryOrQueryObject, "queryOrQueryObject", pathMapper, "pathMapper",indexName,"indexName");
-        try {
-            Index<? extends PropertyContainer> index = graphDatabase.getIndex(indexName);
-            if (Relationship.class.isAssignableFrom(index.getEntityType())) {
-                return mapRelationships(((Index<Relationship>)index).query(queryOrQueryObject), pathMapper);
-            }
-            return mapNodes(((Index<Node>)index).query(queryOrQueryObject), pathMapper);
-        } catch (RuntimeException e) {
-            throw translateExceptionIfPossible(e);
-        }
+    public <T> QueryResult<T> convert(Iterable<T> iterable) {
+        return new QueryResultBuilder<T>(iterable);
     }
 
-    @Override
-    public <T> ClosableIterable<T> lookup(String indexName, String field, String value, final PathMapper<T> pathMapper) {
-        notNull(field, "field", value, "value", pathMapper, "pathMapper", indexName, "indexName");
-        try {
-            Index<? extends PropertyContainer> index = graphDatabase.getIndex(indexName);
-            if (Relationship.class.isAssignableFrom(index.getEntityType())) {
-                return mapRelationships(((Index<Relationship>)index).get(field, value), pathMapper);
-            }
-            return mapNodes(((Index<Node>)index).get(field, value), pathMapper);
-        } catch (RuntimeException e) {
-            throw translateExceptionIfPossible(e);
-        }
-    }
-
-    private QueryEngine queryEngineFor(EmbeddedQueryEngine.Type type) {
+    private QueryEngine queryEngineFor(CypherQueryEngine.Type type) {
         return graphDatabase.queryEngineFor(type);
     }
 
@@ -220,62 +196,6 @@ public class Neo4jTemplate implements Neo4jOperations {
     }
 
     @Override
-    public <T> Iterable<T> traverse(TraversalDescription traversal, Node startNode, final PathMapper<T> pathMapper) {
-        notNull(startNode, "startNode", traversal, "traversal", pathMapper, "pathMapper");
-        try {
-            return mapPaths(traversal.traverse(startNode), pathMapper);
-        } catch (RuntimeException e) {
-            throw translateExceptionIfPossible(e);
-        }
-    }
-
-    private <T> Iterable<T> mapPaths(final Iterable<Path> paths, final PathMapper<T> pathMapper) {
-        return new PathMappingIterator().mapPaths(paths,pathMapper);
-    }
-
-
-    @Override
-    public <T> Iterable<T> traverseNext(Node startNode, final PathMapper<T> pathMapper, RelationshipType relationshipType, Direction direction) {
-        notNull(startNode, "startNode", relationshipType, "relationshipType", direction, "direction", pathMapper, "pathMapper");
-        try {
-            return mapRelationships(startNode.getRelationships(relationshipType, direction), pathMapper);
-        } catch (RuntimeException e) {
-            throw translateExceptionIfPossible(e);
-        }
-    }
-
-    @Override
-    public <T> Iterable<T> traverseNext(Node startNode, final PathMapper<T> pathMapper, RelationshipType... relationshipTypes) {
-        notNull(startNode, "startNode", relationshipTypes, "relationshipType", pathMapper, "pathMapper");
-        try {
-            return mapRelationships(startNode.getRelationships(relationshipTypes), pathMapper);
-        } catch (RuntimeException e) {
-            throw translateExceptionIfPossible(e);
-        }
-    }
-
-    @Override
-    public <T> Iterable<T> traverseNext(Node startNode, final PathMapper<T> pathMapper) {
-        notNull(startNode, "startNode", pathMapper, "pathMapper");
-        try {
-            return mapRelationships(startNode.getRelationships(), pathMapper);
-        } catch (RuntimeException e) {
-            throw translateExceptionIfPossible(e);
-        }
-    }
-
-    private <T> Iterable<T> mapRelationships(final Iterable<Relationship> relationships, final PathMapper<T> pathMapper) {
-        assert relationships != null;
-        assert pathMapper != null;
-        return new IterableWrapper<T, Relationship>(relationships) {
-            @Override
-            protected T underlyingObjectToObject(Relationship relationship) {
-                return pathMapper.mapPath(new RelationshipPath(relationship));
-            }
-        };
-    }
-
-    @Override
     public Relationship createRelationship(final Node startNode, final Node endNode, final RelationshipType relationshipType, final Property... properties) {
         notNull(startNode, "startNode", endNode, "endNode", relationshipType, "relationshipType", properties, "properties");
         return exec(new GraphCallback<Relationship>() {
@@ -284,19 +204,6 @@ public class Neo4jTemplate implements Neo4jOperations {
                 return graph.createRelationship(startNode, endNode, relationshipType, properties);
             }
         });
-    }
-
-    private <T extends PropertyContainer> T setProperties(T primitive, Map<String, Object> properties) {
-        assert primitive != null;
-        if (properties==null) return primitive;
-        for (Map.Entry<String, Object> prop : properties.entrySet()) {
-            if (prop.getValue()==null) {
-                primitive.removeProperty(prop.getKey());
-            } else {
-                primitive.setProperty(prop.getKey(), prop.getValue());
-            }
-        }
-        return primitive;
     }
 
     private static abstract class IndexHitsIterableWrapper<T, S extends PropertyContainer> extends IterableWrapper<T, S> implements ClosableIterable<T> {
@@ -323,25 +230,12 @@ public class Neo4jTemplate implements Neo4jOperations {
     }
 
     @Override
-    public Iterable<Map<String, Object>> query(QueryEngine.Type engineType, String statement) {
-        return queryEngineFor(engineType).query(statement);
-    }
-
-    @Override
-    public <T> Iterable<T> query(QueryEngine.Type engineType, String statement, Class<T> type) {
-        return queryEngineFor(engineType).query(statement).to(type);
-    }
-
-    @Override
-    public <T> T queryForObject(QueryEngine.Type engineType, String statement, Class<T> type) {
-        return queryEngineFor(engineType).query(statement).to(type).single();
-    }
-
     public QueryResult<Map<String, Object>> query(String statement) {
         notNull(statement, "statement");
         return queryEngineFor(QueryEngine.Type.Cypher).query(statement);
     }
 
+    @Override
     public QueryResult<Path> traverse(Node startNode, TraversalDescription traversal) {
         notNull(startNode, "startNode", traversal, "traversal");
         try {
@@ -351,6 +245,7 @@ public class Neo4jTemplate implements Neo4jOperations {
         }
     }
 
+    @Override
     public <T extends PropertyContainer> QueryResult<T> lookup(String indexName, String field, Object value) {
         notNull(field, "field", value, "value", indexName, "indexName");
         try {
@@ -360,6 +255,7 @@ public class Neo4jTemplate implements Neo4jOperations {
             throw translateExceptionIfPossible(e);
         }
     }
+    @Override
     public <T extends PropertyContainer> QueryResult<T> lookup(String indexName, Object valueOrQueryObject) {
         notNull(valueOrQueryObject, "valueOrQueryObject", indexName, "indexName");
         try {
@@ -368,35 +264,6 @@ public class Neo4jTemplate implements Neo4jOperations {
         } catch (RuntimeException e) {
             throw translateExceptionIfPossible(e);
         }
-    }
-
-    {
-        /*
-        final Iterable<Node> nodes = query("start n=(0) return n").to(Node.class);
-        final Iterable<Path> nodePaths = query("start n=(0) return n").to(Path.class);
-        final Iterable<Long> costs = lookup("index", "field", "value").to(Long.class, new ResultConverter<Relationship, Long>() {
-            @Override
-            public Long convert(Relationship value, Class<Long> type) {
-                return (Long) value.getProperty("cost");
-            }
-        });
-        final Iterable<Person> people = lookup("index", "field:value*").to(Person.class);
-
-        lookup("index", "field:value*").to(Node.class).handle(new Handler<Node>() {
-            @Override
-            public void handle(Node node) {
-                node.setProperty("count",((Integer)node.getProperty("count",0))+1);
-            }
-        });
-
-        final Iterable<Node> endNodes = traverse(start, desc).to(Node.class);
-        final Iterable<Relationship> lastRelationships = traverse(start, desc).to(Relationship.class);
-        final Iterable<Integer> pathLengths = traverse(start, desc).to(Integer.class, new ResultConverter<Path, Integer>() {
-            public Integer convert(Path path, Class<Integer> type) {
-                return path.length();
-            }
-        });
-        */
     }
 }
 
