@@ -104,11 +104,11 @@ public class RestTraversal implements RestTraversalDescription
     {
         if ( pathPredicate == Traversal.returnAll() )
         {
-            return add( "return filter", toMap( "language", "builtin", "name", "all" ) );
+            return add( "return_filter", toMap( "language", "builtin", "name", "all" ) );
         }
         if ( pathPredicate == Traversal.returnAllButStartNode() )
         {
-            return add( "return filter", toMap( "language", "builtin", "name", "all but start node" ) );
+            return add( "return_filter", toMap( "language", "builtin", "name", "all but start node" ) );
         }
         throw new UnsupportedOperationException( "Only builtin paths supported" );
     }
@@ -120,17 +120,17 @@ public class RestTraversal implements RestTraversalDescription
 
     public TraversalDescription prune( ScriptLanguage language, String code )
     {
-        return add( "prune evaluator", toMap( "language", language.name().toLowerCase(), "body", code ) );
+        return add( "prune_evaluator", toMap( "language", language.name().toLowerCase(), "body", code ) );
     }
 
     public TraversalDescription filter( ScriptLanguage language, String code )
     {
-        return add( "return filter", toMap( "language", language.name().toLowerCase(), "body", code ) );
+        return add( "return_filter", toMap( "language", language.name().toLowerCase(), "body", code ) );
     }
 
     public TraversalDescription maxDepth( int depth )
     {
-        return add( "max depth", depth );
+        return add( "max_depth", depth );
     }
 
     public TraversalDescription order( BranchOrderingPolicy branchOrderingPolicy )
@@ -140,12 +140,12 @@ public class RestTraversal implements RestTraversalDescription
 
     public TraversalDescription depthFirst()
     {
-        return add( "order", "depth first" );
+        return add( "order", "depth_first" );
     }
 
     public TraversalDescription breadthFirst()
     {
-        return add( "order", "breadth first" );
+        return add( "order", "breadth_first" );
     }
 
     private RestTraversalDescription add( String key, Object value )
