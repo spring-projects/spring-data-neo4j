@@ -25,9 +25,9 @@ import org.junit.Test;
 import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.index.Index;
 import org.neo4j.graphdb.traversal.TraversalDescription;
-import org.neo4j.test.ImpermanentGraphDatabase;
 import org.neo4j.kernel.Traversal;
 import org.neo4j.kernel.impl.transaction.SpringTransactionManager;
+import org.neo4j.test.ImpermanentGraphDatabase;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.neo4j.conversion.ResultConverter;
 import org.springframework.data.neo4j.core.GraphDatabase;
@@ -44,7 +44,7 @@ import java.util.Iterator;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
 import static org.junit.Assert.*;
-import static org.springframework.data.neo4j.core.Property._;
+import static org.neo4j.helpers.collection.MapUtil.map;
 
 
 public class Neo4jTemplateApiTest {
@@ -90,7 +90,7 @@ public class Neo4jTemplateApiTest {
             protected void doInTransactionWithoutResult(TransactionStatus status) {
                 referenceNode.setProperty("name", "node0");
                 graphDatabase.createIndex(Node.class, "node", false).add(referenceNode, "name", "node0");
-                node1 = graphDatabase.createNode(_("name", "node1"));
+                node1 = graphDatabase.createNode(map("name", "node1"));
                 relationship1 = referenceNode.createRelationshipTo(node1, KNOWS);
                 relationship1.setProperty("name", "rel1");
                 graphDatabase.createIndex(Relationship.class, "relationship", false).add(relationship1, "name", "rel1");
@@ -211,7 +211,7 @@ public class Neo4jTemplateApiTest {
 
     @Test
     public void testCreateNodeWithProperties() throws Exception {
-        Node node=template.createNode(_("test", "testCreateNodeWithProperties"));
+        Node node=template.createNode(map("test", "testCreateNodeWithProperties"));
         assertTestPropertySet(node, "testCreateNodeWithProperties");
     }
 
@@ -295,7 +295,7 @@ public class Neo4jTemplateApiTest {
 
     @Test
     public void shouldCreateRelationshipWithProperty() throws Exception {
-        Relationship relationship = template.createRelationship(referenceNode, node1, HAS,_("name","rel2"));
+        Relationship relationship = template.createRelationship(referenceNode, node1, HAS,map("name","rel2"));
         assertNotNull(relationship);
         assertEquals(referenceNode, relationship.getStartNode());
         assertEquals(node1,relationship.getEndNode());

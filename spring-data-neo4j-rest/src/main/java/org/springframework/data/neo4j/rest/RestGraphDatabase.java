@@ -23,9 +23,8 @@ import org.neo4j.graphdb.event.TransactionEventHandler;
 import org.neo4j.graphdb.index.Index;
 import org.neo4j.graphdb.traversal.TraversalDescription;
 import org.springframework.core.convert.ConversionService;
-import org.springframework.data.neo4j.core.GraphDatabase;
-import org.springframework.data.neo4j.core.Property;
 import org.springframework.data.neo4j.conversion.ResultConverter;
+import org.springframework.data.neo4j.core.GraphDatabase;
 import org.springframework.data.neo4j.rest.index.RestIndexManager;
 import org.springframework.data.neo4j.support.query.ConversionServiceQueryResultConverter;
 import org.springframework.data.neo4j.support.query.QueryEngine;
@@ -59,8 +58,8 @@ public class RestGraphDatabase implements GraphDatabaseService, GraphDatabase {
     }
 
     @Override
-    public Node createNode(Property... props) {
-        RequestResult requestResult = restRequest.post("node", JsonHelper.createJsonFrom( Property.toMap(props) ));
+    public Node createNode(Map<String, Object> props) {
+        RequestResult requestResult = restRequest.post("node", JsonHelper.createJsonFrom( props ));
         if ( restRequest.statusOtherThan(requestResult, Status.CREATED) ) {
             final int status = requestResult.getStatus();
             throw new RuntimeException( "" + status);
@@ -79,7 +78,7 @@ public class RestGraphDatabase implements GraphDatabaseService, GraphDatabase {
     }
 
     @Override
-    public Relationship createRelationship(Node startNode, Node endNode, RelationshipType type, Property... props) {
+    public Relationship createRelationship(Node startNode, Node endNode, RelationshipType type, Map<String, Object> props) {
         return RestRelationship.create((RestNode)startNode,(RestNode)endNode,type,props);
     }
 
@@ -139,7 +138,7 @@ public class RestGraphDatabase implements GraphDatabaseService, GraphDatabase {
 
     @Override
     public Node createNode() {
-        return createNode((Property[])null);
+        return createNode(null);
     }
 
     @Override

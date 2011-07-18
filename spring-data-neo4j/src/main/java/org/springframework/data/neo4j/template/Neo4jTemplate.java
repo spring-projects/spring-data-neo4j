@@ -27,10 +27,7 @@ import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.neo4j.conversion.QueryResult;
 import org.springframework.data.neo4j.conversion.QueryResultBuilder;
 import org.springframework.data.neo4j.core.GraphDatabase;
-import org.springframework.data.neo4j.core.Property;
-import org.springframework.data.neo4j.support.path.NodePath;
 import org.springframework.data.neo4j.support.path.PathMapper;
-import org.springframework.data.neo4j.support.path.RelationshipPath;
 import org.springframework.data.neo4j.support.query.CypherQueryEngine;
 import org.springframework.data.neo4j.support.query.QueryEngine;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -117,7 +114,7 @@ public class Neo4jTemplate implements Neo4jOperations {
     }
 
     @Override
-    public Node createNode(final Property... properties) {
+    public Node createNode(final Map<String,Object> properties) {
         return exec(new GraphCallback<Node>() {
             @Override
             public Node doWithGraph(GraphDatabase graph) throws Exception {
@@ -174,29 +171,8 @@ public class Neo4jTemplate implements Neo4jOperations {
         return graphDatabase.queryEngineFor(type);
     }
 
-    private <T> ClosableIterable<T> mapNodes(final IndexHits<Node> nodes, final PathMapper<T> pathMapper) {
-        assert nodes != null;
-        assert pathMapper != null;
-        return new IndexHitsIterableWrapper<T,Node>(nodes, pathMapper) {
-            @Override
-            protected Path createPath(Node node) {
-                return new NodePath(node);
-            }
-        };
-    }
-    private <T> ClosableIterable<T> mapRelationships(final IndexHits<Relationship> relationships, final PathMapper<T> pathMapper) {
-        assert relationships != null;
-        assert pathMapper != null;
-        return new IndexHitsIterableWrapper<T,Relationship>(relationships, pathMapper) {
-            @Override
-            protected Path createPath(Relationship relationship) {
-                return new RelationshipPath(relationship);
-            }
-        };
-    }
-
     @Override
-    public Relationship createRelationship(final Node startNode, final Node endNode, final RelationshipType relationshipType, final Property... properties) {
+    public Relationship createRelationship(final Node startNode, final Node endNode, final RelationshipType relationshipType, final Map<String,Object> properties) {
         notNull(startNode, "startNode", endNode, "endNode", relationshipType, "relationshipType", properties, "properties");
         return exec(new GraphCallback<Relationship>() {
             @Override
@@ -204,6 +180,11 @@ public class Neo4jTemplate implements Neo4jOperations {
                 return graph.createRelationship(startNode, endNode, relationshipType, properties);
             }
         });
+    }
+
+    @Override
+    public Node createNode() {
+        return createNode(null);
     }
 
     private static abstract class IndexHitsIterableWrapper<T, S extends PropertyContainer> extends IterableWrapper<T, S> implements ClosableIterable<T> {

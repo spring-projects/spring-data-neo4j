@@ -31,8 +31,8 @@ import java.util.Set;
 
 import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
+import static org.neo4j.helpers.collection.MapUtil.map;
 import static org.neo4j.kernel.Traversal.returnAllButStartNode;
-import static org.springframework.data.neo4j.core.Property._;
 import static org.springframework.data.neo4j.template.NeoTraversalTest.Type.HAS;
 
 public class NeoTraversalTest extends NeoApiTest {
@@ -65,23 +65,23 @@ public class NeoTraversalTest extends NeoApiTest {
 
     private void createFamily() {
 
-        Node family = template.createNode(_("name", "family"));
-        Node man = template.createNode(_("name", "wife"));
-        Node wife = template.createNode(_("name", "man"));
+        Node family = template.createNode(map("name", "family"));
+        Node man = template.createNode(map("name", "wife"));
+        Node wife = template.createNode(map("name", "man"));
         family.createRelationshipTo(man, HAS);
         family.createRelationshipTo(wife, HAS);
 
-        Node daughter = template.createNode(_("name", "daughter"));
+        Node daughter = template.createNode(map("name", "daughter"));
         family.createRelationshipTo(daughter, HAS);
-        Node son = template.createNode(_("name", "son"));
+        Node son = template.createNode(map("name", "son"));
         family.createRelationshipTo(son, HAS);
         man.createRelationshipTo(son, Type.CHILD);
         wife.createRelationshipTo(son, Type.CHILD);
         man.createRelationshipTo(daughter, Type.CHILD);
         wife.createRelationshipTo(daughter, Type.CHILD);
 
-        Node grandma = template.createNode(_("name", "grandma"));
-        Node grandpa = template.createNode(_("name", "grandpa"));
+        Node grandma = template.createNode(map("name", "grandma"));
+        Node grandpa = template.createNode(map("name", "grandpa"));
 
         family.createRelationshipTo(grandma, HAS);
         family.createRelationshipTo(grandpa, HAS);

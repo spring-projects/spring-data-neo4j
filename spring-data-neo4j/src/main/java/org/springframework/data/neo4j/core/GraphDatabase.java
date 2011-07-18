@@ -26,6 +26,8 @@ import org.springframework.core.convert.ConversionService;
 import org.springframework.data.neo4j.support.query.CypherQueryEngine;
 import org.springframework.data.neo4j.support.query.QueryEngine;
 
+import java.util.Map;
+
 
 public interface GraphDatabase {
     /**
@@ -46,10 +48,11 @@ public interface GraphDatabase {
      * <code>graphDatabase.createNode(PropertyMap._("name","value"));</code>
      * <code>graphDatabase.createNode(PropertyMap.props().set("name","value").set("prop","anotherValue").toMap(), "name", "prop");</code>
      *
+     *
      * @param props properties to be set at node creation might be null
      * @return the newly created node
      */
-    Node createNode(Property... props);
+    Node createNode(Map<String, Object> props);
 
     /**
      * @param id relationship id
@@ -65,13 +68,14 @@ public interface GraphDatabase {
      * <code>graphDatabase.createRelationship(from,to,TYPE, PropertyMap.props().set("name","value").set("prop","anotherValue").toMap(), "name", "prop");</code>
      *
      *
+     *
      * @param startNode start-node of relationship
      * @param endNode end-node of relationship
      * @param type relationship type, might by an enum implementing RelationshipType or a DynamicRelationshipType.withName("name")
      * @param props optional initial properties
      * @return  the newly created relationship
      */
-    Relationship createRelationship(Node startNode, Node endNode, RelationshipType type, Property... props);
+    Relationship createRelationship(Node startNode, Node endNode, RelationshipType type, Map<String, Object> props);
 
     /**
      * @param indexName existing index name, not null

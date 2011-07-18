@@ -24,10 +24,10 @@ import org.neo4j.index.impl.lucene.LuceneIndexImplementation;
 import org.neo4j.kernel.Traversal;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.data.neo4j.core.GraphDatabase;
-import org.springframework.data.neo4j.core.Property;
 import org.springframework.data.neo4j.support.query.ConversionServiceQueryResultConverter;
 import org.springframework.data.neo4j.support.query.CypherQueryEngine;
 import org.springframework.data.neo4j.support.query.QueryEngine;
+
 import java.util.Map;
 
 /**
@@ -53,18 +53,18 @@ public class DelegatingGraphDatabase implements GraphDatabase {
     }
 
     @Override
-    public Node createNode(Property... props) {
+    public Node createNode(Map<String, Object> props) {
         return setProperties(delegate.createNode(), props);
     }
 
-    private <T extends PropertyContainer> T setProperties(T primitive, Property... properties) {
+    private <T extends PropertyContainer> T setProperties(T primitive, Map<String, Object> properties) {
         assert primitive != null;
-        if (properties==null || properties.length==0) return primitive;
-        for (Property prop : properties) {
-            if (prop.value==null) {
-                primitive.removeProperty(prop.name);
+        if (properties==null || properties.isEmpty()) return primitive;
+        for (Map.Entry<String, Object> prop : properties.entrySet()) {
+            if (prop.getValue()==null) {
+                primitive.removeProperty(prop.getKey());
             } else {
-                primitive.setProperty(prop.name, prop.value);
+                primitive.setProperty(prop.getKey(), prop.getValue());
             }
         }
         return primitive;
@@ -76,7 +76,7 @@ public class DelegatingGraphDatabase implements GraphDatabase {
     }
 
     @Override
-    public Relationship createRelationship(Node startNode, Node endNode, RelationshipType type, Property... props) {
+    public Relationship createRelationship(Node startNode, Node endNode, RelationshipType type, Map<String, Object> props) {
         return setProperties(startNode.createRelationshipTo(endNode,type),props);
     }
 
@@ -126,8 +126,10 @@ public class DelegatingGraphDatabase implements GraphDatabase {
     }
 
     @Override
-    public QueryEngine queryEngineFor(CypherQueryEngine.Type type) {
-        return new CypherQueryEngine(delegate, createResultConverter());
+    public QueryEngine queryEngineFor(QueryEngine.Type type) {
+        if (type == QueryEngine.Type.Cypher)
+            return new CypherQueryEngine(delegate, createResultConverter());
+        throw new IllegalArgumentException("Could not resolve query engine for "+type);
     }
 
     private ConversionServiceQueryResultConverter createResultConverter() {

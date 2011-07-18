@@ -19,7 +19,6 @@ package org.springframework.data.neo4j.rest;
 
 import org.neo4j.graphdb.*;
 import org.neo4j.helpers.collection.MapUtil;
-import org.springframework.data.neo4j.core.Property;
 
 import java.net.URI;
 import java.util.Map;
@@ -78,11 +77,11 @@ public class RestRelationship extends RestEntity implements Relationship {
         return type.name().equals( getStructuralData().get( "type" ) );
     }
 
-    public static Relationship create(RestNode startNode, RestNode endNode, RelationshipType type, Property... props) {
+    public static Relationship create(RestNode startNode, RestNode endNode, RelationshipType type, Map<String, Object> props) {
         final RestRequest restRequest = startNode.getRestRequest();
         Map<String, Object> data = MapUtil.map("to", endNode.getUri(), "type", type.name());
-        if (props!=null && props.length>0) {
-            data.put("data",Property.toMap(props));
+        if (props!=null && props.size()>0) {
+            data.put("data",props);
         }
 
         RequestResult requestResult = restRequest.post( "relationships", JsonHelper.createJsonFrom( data ) );

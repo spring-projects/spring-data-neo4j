@@ -43,7 +43,7 @@ public class RestNode extends RestEntity implements Node {
     }
 
     public Relationship createRelationshipTo( Node toNode, RelationshipType type ) {
-        return RestRelationship.create(this,(RestNode)toNode,type);
+        return RestRelationship.create(this,(RestNode)toNode,type,null);
     }
 
     public Iterable<Relationship> getRelationships() {

@@ -19,7 +19,6 @@ package org.springframework.data.neo4j.template;
 import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.traversal.TraversalDescription;
 import org.springframework.data.neo4j.conversion.QueryResult;
-import org.springframework.data.neo4j.core.Property;
 
 import java.util.Map;
 
@@ -63,7 +62,7 @@ public interface Neo4jOperations {
      * @param props properties to be set at node creation might be null
      * @return the newly created node
      */
-    Node createNode(Property... props);
+    Node createNode(Map<String,Object> props);
 
     /**
      * Delegates to the GraphDatabase
@@ -85,7 +84,7 @@ public interface Neo4jOperations {
      * @param props optional initial properties
      * @return  the newly created relationship
      */
-    Relationship createRelationship(Node startNode, Node endNode, RelationshipType type, Property... props);
+    Relationship createRelationship(Node startNode, Node endNode, RelationshipType type, Map<String,Object> props);
 
     /**
      * Indexes the given field and value for the element.
@@ -108,4 +107,6 @@ public interface Neo4jOperations {
     <T extends PropertyContainer> QueryResult<T> lookup(String indexName, String field, Object value);
 
     <T extends PropertyContainer> QueryResult<T> lookup(String indexName, Object valueOrQueryObject);
+
+    Node createNode();
 }

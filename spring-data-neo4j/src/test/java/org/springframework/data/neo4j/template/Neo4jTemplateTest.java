@@ -22,10 +22,10 @@ import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.RelationshipType;
 import org.springframework.data.neo4j.core.GraphDatabase;
-import org.springframework.data.neo4j.core.Property;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.neo4j.helpers.collection.MapUtil.map;
 import static org.springframework.data.neo4j.template.Neo4jTemplateTest.Type.HAS;
 
 public class Neo4jTemplateTest extends NeoApiTest {
@@ -52,7 +52,7 @@ public class Neo4jTemplateTest extends NeoApiTest {
             @Override
             public void doWithGraphWithoutResult(GraphDatabase graph) throws Exception {
                 Node refNode = graph.getReferenceNode();
-                Node node = graph.createNode(Property._("name", "Test"), Property._("size", 100));
+                Node node = graph.createNode(map("name", "Test", "size", 100));
                 refNode.createRelationshipTo(node, HAS);
 
                 final Relationship toTestNode = refNode.getSingleRelationship(HAS, Direction.OUTGOING);
