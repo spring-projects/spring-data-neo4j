@@ -277,7 +277,7 @@ repositories {
     </bean>
     ...
 </beans>
-]]>]]></programlisting>
+]]></programlisting>
                 </example>
 
             </para>

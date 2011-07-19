@@ -31,7 +31,7 @@ neo.createRelationship(mark,thomas, WORKS_WITH, _("project","spring-data"));
 neo.index("devs",thomas, "name","Thomas");
 
 assert "Mark".equals(neo.query("devs","name","Mark",new NodeNamePathMapper()));
-]]>]]></programlisting>
+]]></programlisting>
         </example>
     </section>
     <section>

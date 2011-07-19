@@ -65,7 +65,7 @@
 </bean>
 
 <tx:annotation-driven mode="aspectj" transaction-manager="transactionManager"/>
-]]>]]></programlisting>
+]]></programlisting>
     </example>
     <para>
         One can also configure a stock XA transaction manager (e.g. Atomikos, JOTM, App-Server-TM) to be
@@ -104,7 +104,7 @@
 </bean>
 
 <tx:annotation-driven mode="aspectj" transaction-manager="transactionManager"/>
-]]>]]></programlisting>
+]]></programlisting>
     </example>
 
 </section>
