@@ -33,11 +33,7 @@ import org.neo4j.server.modules.ThirdPartyJAXRSModule;
 import org.neo4j.server.startup.healthcheck.StartupHealthCheck;
 import org.neo4j.server.startup.healthcheck.StartupHealthCheckRule;
 import org.neo4j.server.web.Jetty6WebServer;
-<<<<<<< HEAD
-import org.springframework.dao.DataAccessResourceFailureException;
-=======
 import org.neo4j.test.ImpermanentGraphDatabase;
->>>>>>> waiting for jetty startup via listener
 
 import java.io.File;
 import java.io.IOException;
