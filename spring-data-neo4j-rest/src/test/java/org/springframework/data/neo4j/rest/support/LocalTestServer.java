@@ -32,6 +32,7 @@ import org.neo4j.server.modules.ThirdPartyJAXRSModule;
 import org.neo4j.server.startup.healthcheck.StartupHealthCheck;
 import org.neo4j.server.startup.healthcheck.StartupHealthCheckRule;
 import org.neo4j.server.web.Jetty6WebServer;
+import org.springframework.dao.DataAccessResourceFailureException;
 
 import java.io.File;
 import java.io.IOException;
@@ -107,9 +108,27 @@ public class LocalTestServer {
         neoServer.start();
         neoServer.getWebServer().getJetty().setStopAtShutdown(true);
         // let the server get fully started
-        try {
-            Thread.sleep(1000L);
-        } catch (InterruptedException e) {}
+        int sleepCount = 0;
+        while (!neoServer.getWebServer().getJetty().isStarted()) {
+            System.out.println( "Neo4j Server Status: " +
+                    (neoServer.getWebServer().getJetty().isStarting() ? "STARTING" :
+                            neoServer.getWebServer().getJetty().isStarted() ? "STARTED" :
+                                    neoServer.getWebServer().getJetty().isFailed() ? "FAILED" :
+                                            "UNKNOWN"));
+            if (neoServer.getWebServer().getJetty().isFailed()) {
+                 throw new DataAccessResourceFailureException("Neo4j Server startup failed");
+            }
+            if (sleepCount > 5) {
+                throw new DataAccessResourceFailureException("Neo4j Server startup unsuccessful after waiting 5 times");
+            }
+            try {
+                sleepCount++;
+                System.out.println( "Sleeping ...");
+                Thread.sleep(500L);
+            } catch (InterruptedException e) {
+                System.out.println( "Interrupted " + e.getMessage());
+            }
+        }
     }
 
     public void stop() {
