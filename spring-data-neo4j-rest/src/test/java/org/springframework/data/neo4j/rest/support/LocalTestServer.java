@@ -17,13 +17,14 @@
 package org.springframework.data.neo4j.rest.support;
 
 import org.apache.commons.configuration.Configuration;
+import org.mortbay.component.LifeCycle;
+import org.mortbay.jetty.Server;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.kernel.AbstractGraphDatabase;
-import org.neo4j.server.configuration.PropertyFileConfigurator;
-import org.neo4j.test.ImpermanentGraphDatabase;
 import org.neo4j.server.AddressResolver;
 import org.neo4j.server.Bootstrapper;
 import org.neo4j.server.NeoServerWithEmbeddedWebServer;
+import org.neo4j.server.configuration.PropertyFileConfigurator;
 import org.neo4j.server.database.Database;
 import org.neo4j.server.database.GraphDatabaseFactory;
 import org.neo4j.server.modules.RESTApiModule;
@@ -32,7 +33,11 @@ import org.neo4j.server.modules.ThirdPartyJAXRSModule;
 import org.neo4j.server.startup.healthcheck.StartupHealthCheck;
 import org.neo4j.server.startup.healthcheck.StartupHealthCheckRule;
 import org.neo4j.server.web.Jetty6WebServer;
+<<<<<<< HEAD
 import org.springframework.dao.DataAccessResourceFailureException;
+=======
+import org.neo4j.test.ImpermanentGraphDatabase;
+>>>>>>> waiting for jetty startup via listener
 
 import java.io.File;
 import java.io.IOException;
@@ -42,6 +47,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author mh
@@ -98,37 +105,29 @@ public class LocalTestServer {
                 return hostname;
             }
         };
+        final Jetty6WebServer jettyWebServer = new Jetty6WebServer() {
+            @Override
+            protected void startJetty() {
+                final Server jettyServer = getJetty();
+                jettyServer.setStopAtShutdown(true);
+                final JettyStartupListener startupListener = new JettyStartupListener();
+                jettyServer.getServer().addLifeCycleListener(startupListener);
+                // System.err.println("jetty is started before notification " + jettyServer.isStarted());
+
+                super.startJetty();
+
+                startupListener.await();
+                // System.err.println("jetty is started after notification " + jettyServer.isStarted());
+            }
+        };
         neoServer = new NeoServerWithEmbeddedWebServer(bootstrapper
-        , addressResolver, new StartupHealthCheck(), new PropertyFileConfigurator(new File(url.getPath())), new Jetty6WebServer(), serverModules) {
+        , addressResolver, new StartupHealthCheck(), new PropertyFileConfigurator(new File(url.getPath())), jettyWebServer, serverModules) {
             @Override
             protected int getWebServerPort() {
                 return port;
             }
         };
         neoServer.start();
-        neoServer.getWebServer().getJetty().setStopAtShutdown(true);
-        // let the server get fully started
-        int sleepCount = 0;
-        while (!neoServer.getWebServer().getJetty().isStarted()) {
-            System.out.println( "Neo4j Server Status: " +
-                    (neoServer.getWebServer().getJetty().isStarting() ? "STARTING" :
-                            neoServer.getWebServer().getJetty().isStarted() ? "STARTED" :
-                                    neoServer.getWebServer().getJetty().isFailed() ? "FAILED" :
-                                            "UNKNOWN"));
-            if (neoServer.getWebServer().getJetty().isFailed()) {
-                 throw new DataAccessResourceFailureException("Neo4j Server startup failed");
-            }
-            if (sleepCount > 5) {
-                throw new DataAccessResourceFailureException("Neo4j Server startup unsuccessful after waiting 5 times");
-            }
-            try {
-                sleepCount++;
-                System.out.println( "Sleeping ...");
-                Thread.sleep(500L);
-            } catch (InterruptedException e) {
-                System.out.println( "Interrupted " + e.getMessage());
-            }
-        }
     }
 
     public void stop() {
@@ -167,5 +166,42 @@ public class LocalTestServer {
 
     public GraphDatabaseService getGraphDatabase() {
         return getDatabase().graph;
+    }
+
+    private static class JettyStartupListener implements LifeCycle.Listener {
+        CountDownLatch latch=new CountDownLatch(1);
+        public void await() {
+            try {
+                latch.await(5, TimeUnit.SECONDS);
+            } catch(InterruptedException ie) {
+                Thread.currentThread().interrupt();
+                throw new RuntimeException(ie);
+            }
+        }
+
+        @Override
+        public void lifeCycleStarting(LifeCycle event) {
+        }
+
+        @Override
+        public void lifeCycleStarted(LifeCycle event) {
+            latch.countDown();
+        }
+
+        @Override
+        public void lifeCycleFailure(LifeCycle event, Throwable cause) {
+            latch.countDown();
+            throw new RuntimeException(cause);
+        }
+
+        @Override
+        public void lifeCycleStopping(LifeCycle event) {
+
+        }
+
+        @Override
+        public void lifeCycleStopped(LifeCycle event) {
+            latch.countDown();
+        }
     }
 }
