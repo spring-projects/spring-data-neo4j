@@ -106,6 +106,10 @@ public class LocalTestServer {
         };
         neoServer.start();
         neoServer.getWebServer().getJetty().setStopAtShutdown(true);
+        // let the server get fully started
+        try {
+            Thread.sleep(500L);
+        } catch (InterruptedException e) {}
     }
 
     public void stop() {
