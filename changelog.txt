@@ -1,6 +1,19 @@
 Spring Data Graph Changelog
 ===========================
 
+Changes in version 1.1.0.M2 (2011-07-20)
+-----------------------------------------
+* updated dependency to Neo4j 1.4
+* API updates to Neo4j 1.4 changes
+* repackaging to org.springframework.data.neo4j.*
+* added cypher queries to Neo4j-Template
+* Neo4j-Template API overhaul
+* fluent query, traversal, lookup methods in the Neo4j-Template
+* Integrated remote REST-Cypher Plugin
+* fixed lingering client connections for the REST module (ClientResponse.close())
+* fixed NotFoundException with GraphRepository.exists()
+
+
 Changes in version 1.1.0.M1 (2011-06-13)
 -----------------------------------------
 * updated dependency to Neo4j 1.4.M04
