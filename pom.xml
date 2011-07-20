@@ -5,7 +5,7 @@
 	<groupId>org.springframework.data</groupId>
 	<artifactId>spring-data-graph-dist</artifactId>
 	<name>Spring Data Graph Distribution</name>
-	<version>1.1.0.M2</version>
+	<version>1.1.0.BUILD-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	<modules>
 		<module>spring-data-graph-parent</module>
