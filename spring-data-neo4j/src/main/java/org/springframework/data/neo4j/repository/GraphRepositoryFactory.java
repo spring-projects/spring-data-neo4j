@@ -38,6 +38,7 @@ import org.springframework.util.Assert;
 import java.io.Serializable;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -150,19 +151,28 @@ public class GraphRepositoryFactory extends RepositoryFactorySupport {
 
         private String prepareQuery(Object[] args) {
             final Parameters parameters = getParameters();
-            Object[] resolvedParameters = resolveParameters(args,parameters.getBindableParameters());
-            String baseQuery = String.format(query, (Object[]) resolvedParameters);
+            String queryString = this.query;
             if (parameters.hasSortParameter()) {
-                baseQuery = addSorting(baseQuery, (Sort) args[parameters.getSortIndex()]);
+                queryString = addSorting(queryString, (Sort) args[parameters.getSortIndex()]);
             }
             if (parameters.hasPageableParameter()) {
                 final Pageable pageable = getPageable(args);
                 if (pageable!=null) {
-                    baseQuery = addSorting(baseQuery, pageable.getSort());
-                    baseQuery = addPaging(baseQuery, pageable);
+                    queryString = addSorting(queryString, pageable.getSort());
+                    queryString = addPaging(queryString, pageable);
                 }
             }
-            return baseQuery;
+            return queryString;
+        }
+
+
+        private Map<String, Object> resolveParams(Object[] parameters) {
+            Map<String,Object> params=new HashMap<String, Object>();
+            for (Parameter parameter : getParameters().getBindableParameters()) {
+                final Object value = parameters[parameter.getIndex()];
+                params.put(parameter.getName(),resolveParameter(value));
+            }
+            return params;
         }
 
         private Pageable getPageable(Object[] args) {
@@ -187,17 +197,6 @@ public class GraphRepositoryFactory extends RepositoryFactorySupport {
             String result = "";
             for (Sort.Order order : sort) {
                 result += order.getProperty() + " " + order.getDirection();
-            }
-            return result;
-        }
-
-        private Object[] resolveParameters(Object[] parameters, Parameters bindableParameters) {
-            final int paramCount = bindableParameters.getNumberOfParameters();
-            final Object[] result = new Object[paramCount];
-            for (int i = 0; i < paramCount; i++) {
-                final Parameter parameter = bindableParameters.getParameter(i);
-                final Object value = parameters[parameter.getIndex()];
-                result[i] = resolveParameter(value);
             }
             return result;
         }
@@ -251,24 +250,25 @@ public class GraphRepositoryFactory extends RepositoryFactorySupport {
 
         @Override
         public Object execute(Object[] parameters) {
+            Map<String, Object> params = queryMethod.resolveParams(parameters);
             final String queryString = queryMethod.prepareQuery(parameters);
-            return dispatchQuery(queryString,queryMethod.getPageable(parameters));
+            return dispatchQuery(queryString,params,queryMethod.getPageable(parameters));
         }
 
-        private Object dispatchQuery(String queryString, Pageable pageable) {
+        private Object dispatchQuery(String queryString, Map<String, Object> params, Pageable pageable) {
             final QueryMethod.Type queryResultType = queryMethod.getType();
             if (queryResultType== QueryMethod.Type.PAGING) {
-                return queryPaged(queryString,pageable);
+                return queryPaged(queryString,params,pageable);
             }
             if (iterableResult) {
-                if (compoundType.isAssignableFrom(Map.class)) return queryExecutor.queryForList(queryString);
-                return queryExecutor.query(queryString, queryMethod.getCompoundType());
+                if (compoundType.isAssignableFrom(Map.class)) return queryExecutor.queryForList(queryString,params);
+                return queryExecutor.query(queryString, queryMethod.getCompoundType(),params);
             }
-            return queryExecutor.queryForObject(queryString, queryMethod.getReturnType());
+            return queryExecutor.queryForObject(queryString, queryMethod.getReturnType(),params);
         }
 
-        private Object queryPaged(String queryString, Pageable pageable) {
-            final Iterable<?> result = queryExecutor.query(queryString, queryMethod.getCompoundType());
+        private Object queryPaged(String queryString, Map<String, Object> params, Pageable pageable) {
+            final Iterable<?> result = queryExecutor.query(queryString, queryMethod.getCompoundType(),params);
             return createPage(result, pageable);
         }
 

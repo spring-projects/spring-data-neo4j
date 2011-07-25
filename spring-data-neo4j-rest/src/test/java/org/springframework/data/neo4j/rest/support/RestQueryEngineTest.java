@@ -22,7 +22,7 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.neo4j.core.GraphDatabase;
 import org.springframework.data.neo4j.rest.RestGraphDatabase;
-import org.springframework.data.neo4j.support.query.QueryOperationsTest;
+import org.springframework.data.neo4j.support.query.QueryEngineTest;
 import org.springframework.test.context.CleanContextCacheTestExecutionListener;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestExecutionListeners;
@@ -39,7 +39,7 @@ import org.springframework.test.context.transaction.TransactionalTestExecutionLi
 @ContextConfiguration(locations = {"classpath:org/springframework/data/neo4j/support/Neo4jGraphPersistenceTest-context.xml",
     "classpath:RestTest-context.xml"})
 @TestExecutionListeners({CleanContextCacheTestExecutionListener.class, DependencyInjectionTestExecutionListener.class, TransactionalTestExecutionListener.class})
-public class RestQueryEngineTest extends QueryOperationsTest {
+public class RestQueryEngineTest extends QueryEngineTest {
 
     @Autowired
     RestGraphDatabase restGraphDatabase;

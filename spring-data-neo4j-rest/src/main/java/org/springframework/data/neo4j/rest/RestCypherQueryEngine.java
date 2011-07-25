@@ -17,10 +17,13 @@
 package org.springframework.data.neo4j.rest;
 
 
+import org.neo4j.helpers.collection.MapUtil;
 import org.springframework.data.neo4j.conversion.*;
 import org.springframework.data.neo4j.support.query.QueryEngine;
 
-import java.util.*;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author mh
@@ -42,11 +45,8 @@ public class RestCypherQueryEngine implements QueryEngine<Map<String,Object>> {
 
     @Override
     public QueryResult<Map<String, Object>> query(String statement, Map<String, Object> params) {
-        return executeStatement(statement);
-    }
-
-    private RestQueryResult executeStatement(String statement) {
-        final RequestResult requestResult = restRequest.get("ext/CypherPlugin/graphdb/execute_query", JsonHelper.createJsonFrom(Collections.singletonMap("query", statement)));
+        final String parametrizedStatement = QueryResultBuilder.replaceParams(statement, params);
+        final RequestResult requestResult = restRequest.get("ext/CypherPlugin/graphdb/execute_query", JsonHelper.createJsonFrom(MapUtil.map("query", parametrizedStatement)));
         return new RestQueryResult(restRequest.toMap(requestResult),restGraphDatabase,resultConverter);
     }
 

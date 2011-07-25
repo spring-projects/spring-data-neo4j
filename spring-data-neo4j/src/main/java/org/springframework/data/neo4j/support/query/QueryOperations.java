@@ -23,9 +23,9 @@ import java.util.Map;
  * @since 28.06.11
  */
 public interface QueryOperations<R> {
-    Iterable<R> queryForList(String statement, Map<String,Object>...params);
+    Iterable<R> queryForList(String statement, Map<String,Object> params);
 
-    <T> Iterable<T> query(String statement, Class<T> type, Map<String,Object>...params);
+    <T> Iterable<T> query(String statement, Class<T> type, Map<String,Object> params);
 
-    <T> T queryForObject(String statement, Class<T> type, Map<String,Object>...params);
+    <T> T queryForObject(String statement, Class<T> type, Map<String,Object> params);
 }

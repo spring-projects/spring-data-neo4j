@@ -46,7 +46,7 @@ public class QueryResultBuilder<T> implements QueryResult<T> {
     public static String replaceParams(String statement, Map<String, Object> params) {
         if (params==null || params.isEmpty()) return statement;
         for (Map.Entry<String, Object> param : params.entrySet()) {
-            statement = statement.replaceAll(":"+param.getKey(),""+param.getValue());
+            statement = statement.replaceAll("%"+param.getKey()+"\\b",""+param.getValue());
         }
         return statement;
     }

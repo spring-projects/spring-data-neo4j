@@ -20,7 +20,6 @@ import org.springframework.data.neo4j.support.GraphDatabaseContext;
 import org.springframework.data.neo4j.support.conversion.EntityResultConverter;
 
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -36,23 +35,19 @@ public class CypherQueryExecutor implements QueryOperations<Map<String,Object>> 
         queryEngine = new CypherQueryEngine(ctx.getGraphDatabaseService(), converter);
     }
 
-    public Iterable<Map<String, Object>> queryForList(String statement, Map<String,Object>...params) {
+    public Iterable<Map<String, Object>> queryForList(String statement, Map<String,Object> params) {
         return queryEngine.query(statement,mergeParams(params));
     }
 
-    public <T> Iterable<T> query(String statement, Class<T> type, Map<String,Object>...params) {
+    public <T> Iterable<T> query(String statement, Class<T> type, Map<String,Object> params) {
         return queryEngine.query(statement,mergeParams(params)).to(type);
     }
 
-    public <T> T queryForObject(String statement, Class<T> type, Map<String,Object>...params) {
+    public <T> T queryForObject(String statement, Class<T> type, Map<String,Object> params) {
         return (T) queryEngine.query(statement,mergeParams(params)).to(type).single();
     }
-    private Map<String,Object> mergeParams(Map<String,Object>...params) {
-        if (params==null || params.length==0) return Collections.emptyMap();
-        Map<String,Object> result=new HashMap<String, Object>();
-        for (Map<String, Object> map : params) {
-            result.putAll(map);
-        }
-        return result;
+    private Map<String,Object> mergeParams(Map<String,Object> params) {
+        if (params==null) return Collections.emptyMap();
+        return params;
     }
 }
