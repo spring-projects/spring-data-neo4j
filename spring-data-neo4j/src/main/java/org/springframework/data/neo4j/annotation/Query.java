@@ -49,4 +49,6 @@ public @interface Query {
      * @return tuple list of parameters that are replaced in the to the @see query-string {"name", value}
      */
     String[] params() default {};
+
+    QueryType type() default QueryType.Cypher;
 }

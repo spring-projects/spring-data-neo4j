@@ -1,6 +1,12 @@
 Spring Data Graph Changelog
 ===========================
 
+Changes in version 1.1.0.RELEASE (2011-07-25)
+---------------------------------------------
+* Added Gremlin support (embedded & REST)
+* QueryEngine.query method now takes a parameter map (for cypher and gremlin)
+* documentation updates
+
 Changes in version 1.1.0.M2 (2011-07-20)
 -----------------------------------------
 * updated dependency to Neo4j 1.4

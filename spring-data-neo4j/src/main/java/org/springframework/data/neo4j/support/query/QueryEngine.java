@@ -27,5 +27,4 @@ import java.util.Map;
 public interface QueryEngine<T> {
     QueryResult<T> query(String statement, Map<String, Object> params);
 
-    public enum Type { Cypher, Gremlin }
 }

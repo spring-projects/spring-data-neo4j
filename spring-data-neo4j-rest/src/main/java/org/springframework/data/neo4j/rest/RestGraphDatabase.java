@@ -23,6 +23,7 @@ import org.neo4j.graphdb.event.TransactionEventHandler;
 import org.neo4j.graphdb.index.Index;
 import org.neo4j.graphdb.traversal.TraversalDescription;
 import org.springframework.core.convert.ConversionService;
+import org.springframework.data.neo4j.annotation.QueryType;
 import org.springframework.data.neo4j.conversion.ResultConverter;
 import org.springframework.data.neo4j.core.GraphDatabase;
 import org.springframework.data.neo4j.rest.index.RestIndexManager;
@@ -103,7 +104,7 @@ public class RestGraphDatabase implements GraphDatabaseService, GraphDatabase {
     }
 
     @Override
-    public QueryEngine queryEngineFor(QueryEngine.Type type) {
+    public QueryEngine queryEngineFor(QueryType type) {
         switch (type) {
             case Cypher: return new RestCypherQueryEngine(this, createResultConverter());
             case Gremlin: return new RestGremlinQueryEngine(this, createResultConverter());

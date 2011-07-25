@@ -21,10 +21,10 @@ import org.neo4j.graphdb.index.Index;
 import org.neo4j.graphdb.traversal.TraversalDescription;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
+import org.springframework.data.neo4j.annotation.QueryType;
 import org.springframework.data.neo4j.conversion.QueryResult;
 import org.springframework.data.neo4j.conversion.QueryResultBuilder;
 import org.springframework.data.neo4j.core.GraphDatabase;
-import org.springframework.data.neo4j.support.path.PathMapper;
 import org.springframework.data.neo4j.support.query.QueryEngine;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionStatus;
@@ -163,7 +163,7 @@ public class Neo4jTemplate implements Neo4jOperations {
         return new QueryResultBuilder<T>(iterable);
     }
 
-    private QueryEngine queryEngineFor(QueryEngine.Type type) {
+    private QueryEngine queryEngineFor(QueryType type) {
         return graphDatabase.queryEngineFor(type);
     }
 
@@ -180,13 +180,13 @@ public class Neo4jTemplate implements Neo4jOperations {
 
     public QueryResult<Map<String, Object>> query(String statement, Map<String, Object> params) {
         notNull(statement, "statement");
-        return queryEngineFor(QueryEngine.Type.Cypher).query(statement, params);
+        return queryEngineFor(QueryType.Cypher).query(statement, params);
     }
 
     @Override
     public QueryResult<Object> execute(String statement, Map<String, Object> params) {
         notNull(statement, "statement");
-        return queryEngineFor(QueryEngine.Type.Gremlin).query(statement, params);
+        return queryEngineFor(QueryType.Gremlin).query(statement, params);
     }
 
     @Override

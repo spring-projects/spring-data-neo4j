@@ -26,6 +26,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.data.neo4j.Person;
 import org.springframework.data.neo4j.Personality;
+import org.springframework.data.neo4j.annotation.QueryType;
 import org.springframework.data.neo4j.conversion.ResultConverter;
 import org.springframework.data.neo4j.core.GraphDatabase;
 import org.springframework.data.neo4j.core.NodeBacked;
@@ -68,7 +69,7 @@ public class QueryEngineTest {
         graphDatabase = createGraphDatabase();
         testTeam = new TestTeam();
         testTeam.createSDGTeam();
-        queryEngine = graphDatabase.queryEngineFor(QueryEngine.Type.Cypher);
+        queryEngine = graphDatabase.queryEngineFor(QueryType.Cypher);
         michael = testTeam.michael;
     }
 

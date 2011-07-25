@@ -43,7 +43,7 @@ public class GremlinQueryEngine implements QueryEngine<Object> {
     @Override
     public QueryResult<Object> query(String statement, Map<String, Object> params) {
         try {
-            Iterable<Object> result = gremlinExecutor.query(statement, null);
+            Iterable<Object> result = gremlinExecutor.query(statement, params);
             return new QueryResultBuilder<Object>(result,resultConverter);
         } catch (Exception e) {
             throw new InvalidDataAccessResourceUsageException("Error executing statement " + statement, e);
