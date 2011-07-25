@@ -24,8 +24,8 @@ import java.util.Map;
  * @author mh
  * @since 22.06.11
  */
-public interface QueryEngine {
-    QueryResult<Map<String, Object>> query(String statement);
+public interface QueryEngine<T> {
+    QueryResult<T> query(String statement, Map<String, Object> params);
 
     public enum Type { Cypher, Gremlin }
 }

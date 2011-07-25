@@ -22,10 +22,10 @@ import java.util.Map;
  * @author mh
  * @since 28.06.11
  */
-public interface QueryOperations {
-    Iterable<Map<String, Object>> queryForList(String statement);
+public interface QueryOperations<R> {
+    Iterable<R> queryForList(String statement, Map<String,Object>...params);
 
-    <T> Iterable<T> query(String statement, Class<T> type);
+    <T> Iterable<T> query(String statement, Class<T> type, Map<String,Object>...params);
 
-    <T> T queryForObject(String statement, Class<T> type);
+    <T> T queryForObject(String statement, Class<T> type, Map<String,Object>...params);
 }

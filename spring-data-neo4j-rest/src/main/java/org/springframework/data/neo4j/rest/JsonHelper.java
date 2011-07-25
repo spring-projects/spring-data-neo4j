@@ -44,7 +44,7 @@ public class JsonHelper {
         return (List<Map<String, Object>>) readJson( json );
     }
 
-    private static Object readJson( String json ) {
+    public static Object readJson( String json ) {
         ObjectMapper mapper = new ObjectMapper();
         try {
             return mapper.readValue( json, Object.class );

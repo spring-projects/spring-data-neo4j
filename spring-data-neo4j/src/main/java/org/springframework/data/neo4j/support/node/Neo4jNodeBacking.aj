@@ -42,7 +42,7 @@ import org.springframework.data.neo4j.core.EntityState;
 import org.springframework.data.neo4j.support.GraphDatabaseContext;
 
 import org.springframework.data.neo4j.support.path.EntityPathPathIterableWrapper;
-import org.springframework.data.neo4j.support.query.QueryExecutor;
+import org.springframework.data.neo4j.support.query.CypherQueryExecutor;
 
 import javax.persistence.Transient;
 import javax.persistence.Entity;
@@ -184,17 +184,17 @@ public aspect Neo4jNodeBacking { // extends AbstractTypeAnnotatingMixinFields<No
         return new NodeBackedNodeIterableWrapper<T>(traverser, targetType, Neo4jNodeBacking.aspectOf().graphDatabaseContext);
     }
     public  <T> Iterable<T> NodeBacked.findAllByQuery(final String query, final Class<T> targetType) {
-        final QueryExecutor executor = new QueryExecutor(Neo4jNodeBacking.aspectOf().graphDatabaseContext);
+        final CypherQueryExecutor executor = new CypherQueryExecutor(Neo4jNodeBacking.aspectOf().graphDatabaseContext);
         return executor.query(query, targetType);
     }
 
     public  Iterable<Map<String,Object>> NodeBacked.findAllByQuery(final String query) {
-        final QueryExecutor executor = new QueryExecutor(Neo4jNodeBacking.aspectOf().graphDatabaseContext);
+        final CypherQueryExecutor executor = new CypherQueryExecutor(Neo4jNodeBacking.aspectOf().graphDatabaseContext);
         return executor.queryForList(query);
     }
 
     public  <T> T NodeBacked.findByQuery(final String query, final Class<T> targetType) {
-        final QueryExecutor executor = new QueryExecutor(Neo4jNodeBacking.aspectOf().graphDatabaseContext);
+        final CypherQueryExecutor executor = new CypherQueryExecutor(Neo4jNodeBacking.aspectOf().graphDatabaseContext);
         return executor.queryForObject(query, targetType);
     }
 

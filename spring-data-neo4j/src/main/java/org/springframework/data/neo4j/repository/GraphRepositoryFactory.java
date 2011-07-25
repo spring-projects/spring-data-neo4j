@@ -27,7 +27,7 @@ import org.springframework.data.neo4j.core.NodeBacked;
 import org.springframework.data.neo4j.core.RelationshipBacked;
 import org.springframework.data.neo4j.support.GenericTypeExtractor;
 import org.springframework.data.neo4j.support.GraphDatabaseContext;
-import org.springframework.data.neo4j.support.query.QueryExecutor;
+import org.springframework.data.neo4j.support.query.CypherQueryExecutor;
 import org.springframework.data.repository.core.EntityInformation;
 import org.springframework.data.repository.core.NamedQueries;
 import org.springframework.data.repository.core.RepositoryMetadata;
@@ -235,14 +235,14 @@ public class GraphRepositoryFactory extends RepositoryFactorySupport {
     }
 
     private static class GraphRepositoryQuery implements RepositoryQuery {
-        private QueryExecutor queryExecutor;
+        private CypherQueryExecutor queryExecutor;
         private final GraphQueryMethod queryMethod;
         private final RepositoryMetadata metadata;
         private boolean iterableResult;
         private Class<?> compoundType;
 
         public GraphRepositoryQuery(GraphQueryMethod queryMethod, RepositoryMetadata metadata, final GraphDatabaseContext graphDatabaseContext) {
-            queryExecutor = new QueryExecutor(graphDatabaseContext);
+            queryExecutor = new CypherQueryExecutor(graphDatabaseContext);
             this.queryMethod = queryMethod;
             this.metadata = metadata;
             this.iterableResult = Iterable.class.isAssignableFrom(queryMethod.getReturnType());

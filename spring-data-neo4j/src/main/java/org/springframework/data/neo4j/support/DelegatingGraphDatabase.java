@@ -27,7 +27,9 @@ import org.springframework.data.neo4j.core.GraphDatabase;
 import org.springframework.data.neo4j.core.Property;
 import org.springframework.data.neo4j.support.query.ConversionServiceQueryResultConverter;
 import org.springframework.data.neo4j.support.query.CypherQueryEngine;
+import org.springframework.data.neo4j.support.query.GremlinQueryEngine;
 import org.springframework.data.neo4j.support.query.QueryEngine;
+
 import java.util.Map;
 
 /**
@@ -126,8 +128,12 @@ public class DelegatingGraphDatabase implements GraphDatabase {
     }
 
     @Override
-    public QueryEngine queryEngineFor(CypherQueryEngine.Type type) {
-        return new CypherQueryEngine(delegate, createResultConverter());
+    public <T> QueryEngine<T> queryEngineFor(QueryEngine.Type type) {
+        switch (type) {
+            case Cypher:  return (QueryEngine<T>)new CypherQueryEngine(delegate, createResultConverter());
+            case Gremlin: return (QueryEngine<T>) new GremlinQueryEngine(delegate);
+        }
+        throw new IllegalArgumentException("Unknown Query Engine Type "+type);
     }
 
     private ConversionServiceQueryResultConverter createResultConverter() {

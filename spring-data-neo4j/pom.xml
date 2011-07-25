@@ -134,7 +134,18 @@
 
         <dependency>
           <groupId>com.tinkerpop.blueprints</groupId>
+          <artifactId>blueprints-core</artifactId>
+          <scope>optional</scope>
+        </dependency>
+        <dependency>
+          <groupId>com.tinkerpop.blueprints</groupId>
           <artifactId>blueprints-neo4j-graph</artifactId>
+          <scope>optional</scope>
+        </dependency>
+
+        <dependency>
+          <groupId>com.tinkerpop</groupId>
+          <artifactId>gremlin</artifactId>
           <scope>optional</scope>
         </dependency>
 

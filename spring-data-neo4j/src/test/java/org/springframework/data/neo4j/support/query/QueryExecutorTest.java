@@ -23,7 +23,6 @@ import org.junit.runner.RunWith;
 import org.neo4j.helpers.collection.IteratorUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.neo4j.Group;
-import org.springframework.data.neo4j.*;
 import org.springframework.data.neo4j.Person;
 import org.springframework.data.neo4j.Personality;
 import org.springframework.data.neo4j.support.GraphDatabaseContext;
@@ -49,7 +48,7 @@ import static org.junit.Assert.assertThat;
 public class QueryExecutorTest {
     @Autowired
     GraphDatabaseContext graphDatabaseContext;
-    private QueryExecutor queryExecutor;
+    private CypherQueryExecutor queryExecutor;
     private TestTeam testTeam;
     private Person michael;
 
@@ -57,7 +56,7 @@ public class QueryExecutorTest {
     public void setUp() throws Exception {
         testTeam = new TestTeam();
         testTeam.createSDGTeam();
-        queryExecutor = new QueryExecutor(graphDatabaseContext);
+        queryExecutor = new CypherQueryExecutor(graphDatabaseContext);
         michael = testTeam.michael;
     }
 

@@ -59,7 +59,7 @@ public class QueryOperationsTest {
     protected ConversionService conversionService;
     @Autowired
     private GraphDatabaseContext graphDatabaseContext;
-    private QueryOperations queryOperations;
+    private CypherQueryExecutor queryOperations;
     private TestTeam testTeam;
     private Person michael;
     private GraphDatabase graphDatabase;
@@ -69,7 +69,8 @@ public class QueryOperationsTest {
         graphDatabase = createGraphDatabase();
         testTeam = new TestTeam();
         testTeam.createSDGTeam();
-        queryOperations = new DefaultQueryOperations(graphDatabase.queryEngineFor(QueryEngine.Type.Cypher));
+        queryOperations = new CypherQueryExecutor(graphDatabaseContext);
+        //new DefaultQueryOperations<Map<String,Object>>(graphDatabase.queryEngineFor(QueryEngine.Type.Cypher));
         michael = testTeam.michael;
     }
 

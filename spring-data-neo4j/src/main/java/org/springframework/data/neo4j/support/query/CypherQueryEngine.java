@@ -29,11 +29,10 @@ import org.springframework.data.neo4j.conversion.ResultConverter;
 
 import java.util.Map;
 
-public class CypherQueryEngine implements QueryEngine, QueryOperations {
+public class CypherQueryEngine implements QueryEngine<Map<String,Object>> {
 
     final ExecutionEngine executionEngine;
     private ResultConverter resultConverter;
-    private final DefaultQueryOperations queryOperations;
 
     public CypherQueryEngine(GraphDatabaseService graphDatabaseService) {
         this(graphDatabaseService, new DefaultConverter());
@@ -43,32 +42,17 @@ public class CypherQueryEngine implements QueryEngine, QueryOperations {
     public CypherQueryEngine(GraphDatabaseService graphDatabaseService, ResultConverter resultConverter) {
         this.resultConverter = resultConverter != null ? resultConverter : new DefaultConverter();
         this.executionEngine = new ExecutionEngine(graphDatabaseService);
-        this.queryOperations = new DefaultQueryOperations(this);
     }
 
     @Override
-    public QueryResult<Map<String, Object>> query(String statement) {
+    public QueryResult<Map<String, Object>> query(String statement, Map<String, Object> params) {
         try {
-            ExecutionResult result = parseAndExecuteQuery(statement);
+            String parametrizedQuery = QueryResultBuilder.replaceParams(statement,params);
+            ExecutionResult result = parseAndExecuteQuery(parametrizedQuery);
             return new QueryResultBuilder<Map<String,Object>>(result,resultConverter);
         } catch (Exception e) {
             throw new InvalidDataAccessResourceUsageException("Error executing statement " + statement, e);
         }
-    }
-
-    @Override
-    public Iterable<Map<String, Object>> queryForList(String statement) {
-        return queryOperations.queryForList(statement);
-    }
-
-    @Override
-    public <T> Iterable<T> query(String statement, Class<T> type) {
-        return queryOperations.query(statement, type);
-    }
-
-    @Override
-    public <T> T queryForObject(String statement, Class<T> type) {
-        return queryOperations.queryForObject(statement, type);
     }
 
     private ExecutionResult parseAndExecuteQuery(String statement) {

@@ -274,6 +274,16 @@ public class Neo4jTemplateApiTest {
     }
 
     @Test
+    public void shouldFindNextNodeViaCypher() throws Exception {
+        assertSingleResult(node1, template.query("start n=(0) match n-->m return m", null).to(Node.class));
+    }
+
+    @Test
+    public void shouldFindNextNodeViaGremlin() throws Exception {
+        assertSingleResult(node1, template.execute("g.v(0).out", null).to(Node.class));
+    }
+
+    @Test
     public void shouldGetDirectRelationship() throws Exception {
         assertSingleResult("rel1", template.convert(referenceNode.getRelationships()).to(String.class, new RelationshipNameConverter()));
     }

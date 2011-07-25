@@ -23,7 +23,6 @@ import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.graphdb.index.Index;
 import org.neo4j.graphdb.traversal.TraversalDescription;
 import org.springframework.core.convert.ConversionService;
-import org.springframework.data.neo4j.support.query.CypherQueryEngine;
 import org.springframework.data.neo4j.support.query.QueryEngine;
 
 
@@ -95,7 +94,7 @@ public interface GraphDatabase {
      */
     TraversalDescription createTraversalDescription();
 
-    QueryEngine queryEngineFor(CypherQueryEngine.Type type);
+    <T> QueryEngine<T> queryEngineFor(QueryEngine.Type type);
 
     void setConversionService(ConversionService conversionService);
 }

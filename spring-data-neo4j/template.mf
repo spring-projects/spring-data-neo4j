@@ -27,9 +27,12 @@ Import-Template:
  javax.validation.*;version="0";resolution:=optional,
  javax.annotation.*;version="0";resolution:=optional,
  javax.naming.*;version="0";resolution:=optional,
+ javax.script.*;version="0";resolution:=optional,
  javax.persistence.*;version="[1.0.0, 3.0.0)";resolution:=optional,
  javax.persistence.spi.*;version="[1.0.0, 3.0.0)";resolution:=optional,
- javax.transaction.*;version="[1.0.1, 2.0.0)";resolution:=optional
-Excluded-Imports: 
+ javax.transaction.*;version="[1.0.1, 2.0.0)";resolution:=optional,
+ com.tinkerpop.blueprints.*;version="[0.8,1.0)";resolution:=optional,
+ com.tinkerpop.gremlin.*;version="[1.1,2.0)";resolution:=optional
+Excluded-Imports:
  org.neo4j.*.impl.*
 
