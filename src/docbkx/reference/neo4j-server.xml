@@ -88,8 +88,8 @@ public void foo( @Context WorldRepository repo ) {
         </note>
         <para>
             Please also keep in mind that performing graph operations via the REST-API is about one order of
-            magnitude slower than location operations. Try to use the Neo4j-Query-Language or
-            server-side traversals whenever possible (<code>RestTraversal</code>) for retrieving large sets of data.
+            magnitude slower than location operations. Try to use the Neo4j Cypher query language,
+            server-side traversals (<code>RestTraversal</code>) or Gremlin expressions whenever possible for retrieving large sets of data.
             Future versions of Spring Data Graph will use the more performant batching as well as a binary protocol.
         </para>
         <para>
@@ -123,6 +123,9 @@ public void foo( @Context WorldRepository repo ) {
             walking the graph over the wire. RestGraphDatabase already supports that by providing methods that forward
             to the remote instance. (e.g. <code>queryEngineFor(), index() and createTraversalDescription()</code>).
             Please use those methods when interacting with a remote server for optimal performance.
+        </para>
+        <para>
+
         </para>
     </section>
 </chapter>

@@ -14,25 +14,52 @@
         </para>
         <para>
             There are methods (<code>createNode()</code> and <code>createRelationship()</code>) for creating nodes and
-            relationships that automatically set provided properties and optionally index certain fields.
+            relationships that automatically set provided properties.
         </para>
         <example>
             <title>Neo4j template</title>
-            <programlisting language="java"><![CDATA[<![CDATA[import static org.springframework.data.neo4j.core.Property._;
+            <programlisting language="java"><![CDATA[<![CDATA[import static org.neo4j.helpers.collection.MapUtil.map;
 
 Neo4jOperations neo = new Neo4jTemplate(graphDatabaseService);
 
-Node michael = neo.createNode(_("name","Michael"));
-Node mark = neo.createNode(_("name","Mark"));
-Node thomas = neo.createNode(_("name","Thomas"));
+Node michael = neo.createNode(map("name","Michael"));
+Node mark = neo.createNode(map("name","Mark"));
+Node thomas = neo.createNode(map("name","Thomas"));
 
-neo.createRelationship(mark,thomas, WORKS_WITH, _("project","spring-data"));
+neo.createRelationship(mark,thomas, WORKS_WITH, map("project","spring-data"));
 
 neo.index("devs",thomas, "name","Thomas");
 
-assert "Mark".equals(neo.query("devs","name","Mark",new NodeNamePathMapper()));
-]]></programlisting>
+// Cypher
+assert "Mark".equals(neo.query("start p=(%person) match p<-[:WORKS_WITH]-other return other.name",
+    map("person",thomas)).to(String.class).single());
+
+// Gremlin
+assert thomas.equals(neo.execute("g.v(person).out('WORKS_WITH')",
+    map("person",mark)).to(Node.class).single());
+
+// Index lookup
+assert mark.equals(neo.lookup("devs","name","Mark").single());
+
+// Index lookup with Result Converter
+assert "Mark".equals(neo.lookup("devs","name","Mark").to(String.class, new ResultConverter<PropertyContainer, String> {
+        public String convert(PropertyContainer element, Class<String> type) {
+            return (String) element.getProperty("name");
+        }}));]]></programlisting>
         </example>
+    </section>
+    <section>
+        <title>QueryResult</title>
+        <para>
+            All querying methods of the template return a uniform result type: <code>QueryResult&lt;T&gt;</code>
+            which is also an <code>Iterable&lt;T&gt;</code>. The query result offers methods of converting each
+            element to a target type <code>queryResult.to(Type.class)</code> optionally supplying a
+            <code>ResultConverter&lt;FROM,TO&gt;</code> which takes care of custom conversions. By default most
+            query methods can already handle conversions from and to: Paths, Nodes, Relationship and GraphEntities
+            as well as conversions backed by registered ConversionServices. A converted <code>QueryResult&lt;FROM&gt;</code> is an
+            <code>Iterable&lt;TO&gt;</code>. QueryResults can be limited to a single value using the <code>queryResult.single()</code>
+            method. It also offers support for a pure callback function using a <code>Handler&lt;T&gt;</code>.
+        </para>
     </section>
     <section>
         <title>Indexing</title>
@@ -40,42 +67,36 @@ assert "Mark".equals(neo.query("devs","name","Mark",new NodeNamePathMapper()));
             Adding nodes and relationships to an index is done with the <code>index()</code> method.
         </para>
         <para>
-            The <code>query()</code> methods either take a field/value combination to look for exact matches in the
-            index, or a Lucene query object or string to handle more complex queries. All <code>query()</code>
-            methods provide <code>Path</code> results to a PathMapper.
+            The <code>lookup()</code> methods either take a field/value combination to look for exact matches in the
+            index, or a Lucene query object or string to handle more complex queries. All <code>lookup()</code>
+            methods return a <code>QueryResult&lt;PropertyContainer&gt;</code> to be used or transformed.
         </para>
     </section>
     <section>
         <title>Graph traversal</title>
         <para>
-            The traversal methods are at the core of graph operations. As such, they are fully supported in the
-            <code>Neo4jTemplate</code>. The <code>traverseNext()</code> method traverses to the direct neighbors
-            of the start node, filtering the relationships according to the parameters.
-        </para>
-        <para>
+            The traversal methods are at the core of graph operations.
             The <code>traverse()</code> method covers the full traversal operation that takes a
             <code>TraversalDescription</code> (typically built with the <code>Traversal.description()</code>
-            DSL) and runs it from the start node. Each path that is returned by the traversal is passed to the
-            <code>PathMapper</code> to be converted into the desired type.
+            DSL) and runs it from the given start node. <code>traverse</code> returns a <code>QueryResult&lt;Path&gt;</code>
+            to be used or transformed.
         </para>
     </section>
     <section>
-        <title>Path abstraction and PathMapper</title>
+        <title>Cypher Queries</title>
         <para>
-            For the querying operations Neo4jTemplate unifies the result with the <code>Path</code> abstraction that
-            comes from Neo4j. Much like a result set, a path contains a chain of <code>nodes()</code> connected by
-            <code>relationships()</code>, starting at a <code>startNode()</code> and ending at a
-            <code>endNode()</code>. The <code>lastRelationship()</code> is also available separately. The
-            <code>Path</code> abstraction also wraps results that contain just nodes or relationships.
+            The <code>Neo4jTemplate</code> also allows execution of arbitrary Cypher queries. Via the <code>query</code>
+            methods the statement and parameter-Map are provided. Cypher Queries return tabular results, so the
+            <code>QueryResult&lt;Map&lt;String,Object&gt;&gt;</code> contains the rows which can be either used as they are
+            or converted as needed.
         </para>
+    </section>
+    <section>
+        <title>Gremlin Scripts</title>
         <para>
-            Using implementations of <code>PathMapper&lt;T&gt;</code> and <code>PathMapper.WithoutResult</code>
-            (comparable with <code>RowMapper</code> and <code>RowCallbackHandler</code>), the paths can be converted
-            to arbitrary Java objects.
-        </para>
-        <para>
-            With <code>EntityPath</code> and <code>EntityMapper</code> there is also support for using
-            node entities within the <code>Path</code> and <code>PathMapper</code> constructs.
+            Gremlin Scripts can run with the <code>execute</code> method, which also takes the parameters that will be
+            available as variables inside the script. The result of the executions is a generic
+            <code>QueryResult&lt;Object&gt;</code> fit for conversion or usage.
         </para>
     </section>
     <section>
@@ -86,6 +107,13 @@ assert "Mark".equals(neo.query("devs","name","Mark",new NodeNamePathMapper()));
             running). If you call the constructor with the <code>useExplicitTransactions</code> parameter set to
             true, it won't create any transactions so you have to provide them using <code>@Transactional</code>
             or the <code>TransactionTemplate</code>.
+        </para>
+    </section>
+    <section>
+        <title>Neo4j REST Server</title>
+        <para>If the template is configured to use a <code>RestGraphDatabase</code> the expensive operations
+        like traversals and querying are executed efficiently on the server side by using the REST API to forward
+        those calls. All the other template methods require single network operations.
         </para>
     </section>
 </chapter>

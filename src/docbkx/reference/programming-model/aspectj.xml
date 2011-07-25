@@ -59,7 +59,7 @@
         </note>
         <para>
             The AspectJ support in IntelliJ IDEA lacks some of the features. JetBrains is working on improving
-            the situation in their upcoming 10.5 release of their popular IDE. Their latest work is available
+            the situation in their upcoming 11 release of their popular IDE. Their latest work is available
             under their early access program (EAP). Building the project with the AspectJ compiler
             <code>ajc</code> works in IDEA (Options -> Compiler -> Java Compiler should show ajc). Make sure to
             give the compiler at least 512 MB of RAM.
