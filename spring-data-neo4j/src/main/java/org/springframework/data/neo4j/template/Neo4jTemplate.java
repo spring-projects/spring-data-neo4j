@@ -18,17 +18,13 @@ package org.springframework.data.neo4j.template;
 
 import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.index.Index;
-import org.neo4j.graphdb.index.IndexHits;
 import org.neo4j.graphdb.traversal.TraversalDescription;
-import org.neo4j.helpers.collection.ClosableIterable;
-import org.neo4j.helpers.collection.IterableWrapper;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.neo4j.conversion.QueryResult;
 import org.springframework.data.neo4j.conversion.QueryResultBuilder;
 import org.springframework.data.neo4j.core.GraphDatabase;
 import org.springframework.data.neo4j.support.path.PathMapper;
-import org.springframework.data.neo4j.support.query.CypherQueryEngine;
 import org.springframework.data.neo4j.support.query.QueryEngine;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionStatus;
@@ -167,7 +163,7 @@ public class Neo4jTemplate implements Neo4jOperations {
         return new QueryResultBuilder<T>(iterable);
     }
 
-    private QueryEngine queryEngineFor(CypherQueryEngine.Type type) {
+    private QueryEngine queryEngineFor(QueryEngine.Type type) {
         return graphDatabase.queryEngineFor(type);
     }
 
@@ -182,38 +178,15 @@ public class Neo4jTemplate implements Neo4jOperations {
         });
     }
 
-    @Override
-    public Node createNode() {
-        return createNode(null);
-    }
-
-    private static abstract class IndexHitsIterableWrapper<T, S extends PropertyContainer> extends IterableWrapper<T, S> implements ClosableIterable<T> {
-        private final IndexHits<S> indexHits;
-        private final PathMapper<T> pathMapper;
-
-        public IndexHitsIterableWrapper(IndexHits<S> indexHits, PathMapper<T> pathMapper) {
-            super(indexHits);
-            this.indexHits = indexHits;
-            this.pathMapper = pathMapper;
-        }
-
-        @Override
-        protected T underlyingObjectToObject(S node) {
-            return pathMapper.mapPath(createPath(node));
-        }
-
-        protected abstract Path createPath(S element);
-
-        @Override
-        public void close() {
-           indexHits.close();
-        }
-    }
-
-    @Override
-    public QueryResult<Map<String, Object>> query(String statement) {
+    public QueryResult<Map<String, Object>> query(String statement, Map<String, Object> params) {
         notNull(statement, "statement");
-        return queryEngineFor(QueryEngine.Type.Cypher).query(statement);
+        return queryEngineFor(QueryEngine.Type.Cypher).query(statement, params);
+    }
+
+    @Override
+    public QueryResult<Object> execute(String statement, Map<String, Object> params) {
+        notNull(statement, "statement");
+        return queryEngineFor(QueryEngine.Type.Gremlin).query(statement, params);
     }
 
     @Override
@@ -237,11 +210,11 @@ public class Neo4jTemplate implements Neo4jOperations {
         }
     }
     @Override
-    public <T extends PropertyContainer> QueryResult<T> lookup(String indexName, Object valueOrQueryObject) {
-        notNull(valueOrQueryObject, "valueOrQueryObject", indexName, "indexName");
+    public <T extends PropertyContainer> QueryResult<T> lookup(String indexName, Object query) {
+        notNull(query, "valueOrQueryObject", indexName, "indexName");
         try {
             Index<T> index = graphDatabase.getIndex(indexName);
-            return new QueryResultBuilder<T>(index.query(valueOrQueryObject));
+            return new QueryResultBuilder<T>(index.query(query));
         } catch (RuntimeException e) {
             throw translateExceptionIfPossible(e);
         }

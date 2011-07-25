@@ -240,8 +240,6 @@ public class GraphDatabaseContext {
         return graphDatabaseService.getRelationshipById(id);
     }
 
-
-
     public GraphDatabaseService getGraphDatabaseService() {
 		return graphDatabaseService;
 	}

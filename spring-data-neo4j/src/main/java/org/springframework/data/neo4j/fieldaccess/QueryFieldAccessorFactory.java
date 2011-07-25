@@ -22,6 +22,7 @@ import org.springframework.data.neo4j.core.NodeBacked;
 import org.springframework.data.neo4j.support.GenericTypeExtractor;
 
 import java.lang.reflect.Field;
+import java.util.HashMap;
 import java.util.Map;
 
 import static org.springframework.data.neo4j.support.DoReturn.doReturn;
@@ -48,13 +49,16 @@ public class QueryFieldAccessorFactory implements FieldAccessorFactory<NodeBacke
 	    protected final Field field;
 	    private final String query;
 	    private Class<?> target;
-        protected String[] params;
+        protected String[] annotationParams;
         private boolean iterableResult;
 
         public QueryFieldAccessor(final Field field) {
 	        this.field = field;
             final Query query = field.getAnnotation(Query.class);
-            this.params = query.params();
+            this.annotationParams = query.params();
+            if ((this.annotationParams.length % 2) != 0) {
+                throw new IllegalArgumentException("Number of parameters has to be even to construct a parameter map");
+            }
             this.query = query.value();
             this.iterableResult = Iterable.class.isAssignableFrom(field.getType());
             this.target = resolveTarget(query,field);
@@ -77,23 +81,23 @@ public class QueryFieldAccessorFactory implements FieldAccessorFactory<NodeBacke
 
 	    @Override
 	    public Object getValue(final NodeBacked nodeBacked) {
-            final String queryString = String.format(this.query, (Object[])createPlaceholderParams(nodeBacked));
-            return doReturn(executeQuery(nodeBacked, queryString));
+            return doReturn(executeQuery(nodeBacked, this.query, createPlaceholderParams(nodeBacked)));
 	    }
 
-        private Object executeQuery(NodeBacked nodeBacked, String queryString) {
-            if (!iterableResult) return nodeBacked.findByQuery(queryString,this.target);
-            if (Map.class.isAssignableFrom(target)) return nodeBacked.findAllByQuery(queryString);
-            return nodeBacked.findAllByQuery(queryString, this.target);
+        private Object executeQuery(NodeBacked nodeBacked, String queryString, Map<String, Object> params) {
+            if (!iterableResult) return nodeBacked.findByQuery(queryString,this.target,params);
+            if (Map.class.isAssignableFrom(target)) return nodeBacked.findAllByQuery(queryString,params);
+            return nodeBacked.findAllByQuery(queryString, this.target,params);
         }
 
-        private Object[] createPlaceholderParams(NodeBacked nodeBacked) {
-            if (params.length==0) return new Object[] {nodeBacked.getNodeId()};
-
-            final Object[] parameters = new Object[1 + this.params.length];
-            parameters[0]=nodeBacked.getNodeId();
-            System.arraycopy(this.params,0,parameters,1,this.params.length);
-            return parameters;
+        private Map<String, Object> createPlaceholderParams(NodeBacked nodeBacked) {
+            Map<String,Object> params=new HashMap<String, Object>();
+            params.put("start",nodeBacked.getNodeId());
+            if (annotationParams.length==0) return params;
+            for (int i = 0; i < annotationParams.length; i+=2) {
+                params.put(annotationParams[i],annotationParams[i+1]);
+            }
+            return params;
         }
     }
 }

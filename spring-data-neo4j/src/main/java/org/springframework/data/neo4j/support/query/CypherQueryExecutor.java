@@ -19,6 +19,7 @@ package org.springframework.data.neo4j.support.query;
 import org.springframework.data.neo4j.support.GraphDatabaseContext;
 import org.springframework.data.neo4j.support.conversion.EntityResultConverter;
 
+import java.util.Collections;
 import java.util.Map;
 
 /**
@@ -26,24 +27,27 @@ import java.util.Map;
  * @since 10.06.11
  *        todo limits
  */
-public class QueryExecutor implements QueryOperations {
-    private final QueryEngine queryEngine;
+public class CypherQueryExecutor implements QueryOperations<Map<String,Object>> {
+    private final CypherQueryEngine queryEngine;
 
-    public QueryExecutor(GraphDatabaseContext ctx) {
+    public CypherQueryExecutor(GraphDatabaseContext ctx) {
         EntityResultConverter converter = new EntityResultConverter(ctx);
         queryEngine = new CypherQueryEngine(ctx.getGraphDatabaseService(), converter);
     }
 
-    public Iterable<Map<String, Object>> queryForList(String statement) {
-        return queryEngine.query(statement);
+    public Iterable<Map<String, Object>> queryForList(String statement, Map<String,Object> params) {
+        return queryEngine.query(statement,mergeParams(params));
     }
 
-    public <T> Iterable<T> query(String statement, Class<T> type) {
-        return queryEngine.query(statement).to(type);
+    public <T> Iterable<T> query(String statement, Class<T> type, Map<String,Object> params) {
+        return queryEngine.query(statement,mergeParams(params)).to(type);
     }
 
-    public <T> T queryForObject(String statement, Class<T> type) {
-        return queryEngine.query(statement).to(type).single();
+    public <T> T queryForObject(String statement, Class<T> type, Map<String,Object> params) {
+        return (T) queryEngine.query(statement,mergeParams(params)).to(type).single();
     }
-
+    private Map<String,Object> mergeParams(Map<String,Object> params) {
+        if (params==null) return Collections.emptyMap();
+        return params;
+    }
 }

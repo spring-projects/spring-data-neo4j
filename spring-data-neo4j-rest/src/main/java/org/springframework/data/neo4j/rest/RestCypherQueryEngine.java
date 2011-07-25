@@ -17,16 +17,19 @@
 package org.springframework.data.neo4j.rest;
 
 
+import org.neo4j.helpers.collection.MapUtil;
 import org.springframework.data.neo4j.conversion.*;
 import org.springframework.data.neo4j.support.query.QueryEngine;
 
-import java.util.*;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author mh
  * @since 22.06.11
  */
-public class RestCypherQueryEngine implements QueryEngine {
+public class RestCypherQueryEngine implements QueryEngine<Map<String,Object>> {
     private final RestRequest restRequest;
     private final RestGraphDatabase restGraphDatabase;
     private final ResultConverter resultConverter;
@@ -41,19 +44,14 @@ public class RestCypherQueryEngine implements QueryEngine {
     }
 
     @Override
-    public QueryResult<Map<String, Object>> query(String statement) {
-        return executeStatement(statement);
-    }
-
-    private RestQueryResult executeStatement(String statement) {
-        final RequestResult requestResult = restRequest.get("ext/CypherPlugin/graphdb/execute_query", JsonHelper.createJsonFrom(Collections.singletonMap("query", statement)));
+    public QueryResult<Map<String, Object>> query(String statement, Map<String, Object> params) {
+        final String parametrizedStatement = QueryResultBuilder.replaceParams(statement, params);
+        final RequestResult requestResult = restRequest.get("ext/CypherPlugin/graphdb/execute_query", JsonHelper.createJsonFrom(MapUtil.map("query", parametrizedStatement)));
         return new RestQueryResult(restRequest.toMap(requestResult),restGraphDatabase,resultConverter);
     }
 
     static class RestQueryResult implements QueryResult<Map<String,Object>> {
         QueryResultBuilder<Map<String,Object>> result;
-        private final RestGraphDatabase restGraphDatabase;
-
 
         @Override
         public <R> ConvertedResult<R> to(Class<R> type) {
@@ -76,49 +74,9 @@ public class RestCypherQueryEngine implements QueryEngine {
         }
 
         public RestQueryResult(Map<?, ?> result, RestGraphDatabase restGraphDatabase, ResultConverter resultConverter) {
-            this.restGraphDatabase = restGraphDatabase;
-            List<String> columns= (List<String>) result.get("columns");
-            final List<Map<String, Object>> data = extractData(result, columns);
+            final RestTableResultExtractor extractor = new RestTableResultExtractor(new RestEntityExtractor(restGraphDatabase));
+            final List<Map<String, Object>> data = extractor.extract(result);
             this.result=new QueryResultBuilder<Map<String,Object>>(data, resultConverter);
-        }
-
-        private List<Map<String, Object>> extractData(Map<?, ?> restResult, List<String> columns) {
-            List<List<?>> rows= (List<List<?>>) restResult.get("data");
-            List<Map<String,Object>> result=new ArrayList<Map<String, Object>>(rows.size());
-            for (List<?> row : rows) {
-                result.add(mapRow(columns,row));
-            }
-            return result;
-        }
-
-        private Map<String, Object> mapRow(List<String> columns, List<?> row) {
-            int columnCount=columns.size();
-            Map<String,Object> newRow=new HashMap<String, Object>(columnCount);
-            for (int i = 0; i < columnCount; i++) {
-                final Object value = row.get(i);
-                newRow.put(columns.get(i), convertFromRepresentation(value));
-            }
-            return newRow;
-        }
-
-        private Object convertFromRepresentation(Object value) {
-            if (value instanceof Map) {
-                RestEntity restEntity = createRestEntity((Map) value);
-                if (restEntity!=null) return restEntity;
-            }
-            return value;
-        }
-
-        private RestEntity createRestEntity(Map data) {
-            final String uri = (String) data.get("self");
-            if (uri == null || uri.isEmpty()) return null;
-            if (uri.contains("/node/")) {
-                return new RestNode(data,restGraphDatabase);
-            }
-            if (uri.contains("/relationship/")) {
-                return new RestRelationship(data,restGraphDatabase);
-            }
-            return null;
         }
     }
 }

@@ -19,9 +19,11 @@ package org.springframework.data.neo4j.fieldaccess;
 import org.neo4j.graphdb.traversal.TraversalDescription;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.neo4j.annotation.GraphTraversal;
+import org.springframework.data.neo4j.annotation.Query;
 import org.springframework.data.neo4j.core.FieldTraversalDescriptionBuilder;
 import org.springframework.data.neo4j.core.NodeBacked;
 import org.springframework.data.neo4j.repository.DirectGraphRepositoryFactory;
+import org.springframework.data.neo4j.support.GenericTypeExtractor;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
@@ -56,10 +58,18 @@ public class TraversalFieldAccessorFactory implements FieldAccessorFactory<NodeB
         public TraversalFieldAccessor(final Field field) {
 	        this.field = field;
             final GraphTraversal graphEntityTraversal = field.getAnnotation(GraphTraversal.class);
-	        this.target = graphEntityTraversal.elementClass();
+	        this.target = resolveTarget(graphEntityTraversal,field);
             this.params = graphEntityTraversal.params();
             this.fieldTraversalDescriptionBuilder = createTraversalDescription(graphEntityTraversal);
 	    }
+
+        private Class<? extends NodeBacked> resolveTarget(GraphTraversal graphTraversal, Field field) {
+            if (!graphTraversal.elementClass().equals(Object.class)) return graphTraversal.elementClass();
+            final Class<?> result = GenericTypeExtractor.resolveFieldType(field);
+            if (!NodeBacked.class.isAssignableFrom(result)) throw new IllegalArgumentException("The target result type of the traversal is no node entity: "+field);
+            return (Class<? extends NodeBacked>) result;
+        }
+
 
 	    @Override
 	    public boolean isWriteable(NodeBacked nodeBacked) {

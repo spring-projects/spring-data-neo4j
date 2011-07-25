@@ -132,13 +132,16 @@
         <section>
             <title>Annotated Queries</title>
         <para>
-            Queries for the graph-query language cypher can be supplied with the <code>@GraphQuery</code> annotation.
-            That means every method annotated with <code>@GraphQuery("start n=(%d) match (n)-->(m) return m")</code>
-            will use the query string. The String-format parameters are replaced by the actual method parameters in order,
-            whereby Node and Relationship-Entities are resolved to their respective id's and all other parameters are
+            Queries for the cypher graph-query language can be supplied with the <code>@Query</code> annotation.
+            That means every method annotated with <code>@Query("start n=(%node) match (n)-->(m) return m")</code>
+            will use the query string. The named parameter <code>%node</code> will be replaced by the actual method parameters.
+            Node and Relationship-Entities are resolved to their respective id's and all other parameters are
             replaced directly (i.e. Strings, Longs, etc). There is special support for the <code>Sort</code> and <code>Pageable</code>
             parameters from Spring Data Commons, which are supported to add programmatic paging and sorting (alternatively
             static paging and sorting can be supplied in the query string itself).
+
+            For using the named parameters you have to either annotate the parameters of the method with the
+            <code>@Param("node")</code> annotation or enable debug symbols.
         </para>
         </section>
 
@@ -146,8 +149,9 @@
             <title>Named Queries</title>
         <para>Spring Data Graph also supports the notion of named queries which are externalized in property-config-files
             (<code>META-INF/graph-named-queries.properties</code>). Those files have the format:
-            <code>Entity.finderName=query</code> (e.g. <code>Person.findBoss=start p=(%d) match (p)&lt;-[:BOSS]-(boss) return boss</code>).
-            Otherwise named queries support the same parameters as annotated queries.
+            <code>Entity.finderName=query</code> (e.g. <code>Person.findBoss=start p=(%person) match (p)&lt;-[:BOSS]-(boss) return boss</code>).
+            Otherwise named queries support the same parameters as annotated queries. For using the named parameters you have to either
+            annotate the parameters of the method with the <code>@Param("person")</code> annotation or enable debug symbols.
         </para>
         </section>
         <section>

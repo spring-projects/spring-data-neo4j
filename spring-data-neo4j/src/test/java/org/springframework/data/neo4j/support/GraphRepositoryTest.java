@@ -93,21 +93,21 @@ public class GraphRepositoryTest {
     @Transactional
     public void testFindPaged() {
         final PageRequest page = new PageRequest(0, 1, Sort.Direction.ASC, "member.name");
-        Page<Person> teamMemberPage1 = personRepository.findAllTeamMembersPaged(page, testTeam.sdg);
+        Page<Person> teamMemberPage1 = personRepository.findAllTeamMembersPaged(testTeam.sdg,page);
         assertThat(teamMemberPage1, hasItem(testTeam.david));
     }
     @Test
     @Transactional
     public void testFindPagedDescending() {
         final PageRequest page = new PageRequest(0, 2, Sort.Direction.DESC, "member.name");
-        Page<Person> teamMemberPage1 = personRepository.findAllTeamMembersPaged(page, testTeam.sdg);
+        Page<Person> teamMemberPage1 = personRepository.findAllTeamMembersPaged(testTeam.sdg,page);
         assertEquals(asList(testTeam.michael, testTeam.emil), asCollection(teamMemberPage1));
         assertThat(teamMemberPage1.isFirstPage(), is(true));
     }
     @Test
     @Transactional
     public void testFindPagedNull() {
-        Page<Person> teamMemberPage1 = personRepository.findAllTeamMembersPaged(null, testTeam.sdg);
+        Page<Person> teamMemberPage1 = personRepository.findAllTeamMembersPaged(testTeam.sdg,null);
         assertEquals(asList(testTeam.michael, testTeam.emil,testTeam.david), asCollection(teamMemberPage1));
         assertThat(teamMemberPage1.isFirstPage(), is(true));
         assertThat(teamMemberPage1.isLastPage(), is(false));

@@ -19,6 +19,10 @@ package org.springframework.data.neo4j.core;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.traversal.TraversalDescription;
+import org.springframework.data.neo4j.support.node.Neo4jNodeBacking;
+import org.springframework.data.neo4j.support.query.CypherQueryExecutor;
+
+import java.util.Map;
 
 /**
  * Interface introduced to objects annotated with &#64;NodeEntity by the {@link org.springframework.data.neo4j.support.node.Neo4jNodeBacking} aspect.
@@ -125,6 +129,11 @@ public interface NodeBacked extends GraphBacked<Node> {
     <R extends RelationshipBacked> R getRelationshipTo(NodeBacked target, Class<R> relationshipClass, String type);
 
 
+    <T> Iterable<T> findAllByQuery(final String query, final Class<T> targetType,Map<String,Object> params);
+
+    Iterable<Map<String,Object>> findAllByQuery(final String query,Map<String,Object> params);
+
+    <T> T findByQuery(final String query, final Class<T> targetType,Map<String,Object> params);
 
 
 

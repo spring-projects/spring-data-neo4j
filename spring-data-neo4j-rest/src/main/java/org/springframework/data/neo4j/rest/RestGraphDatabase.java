@@ -104,7 +104,11 @@ public class RestGraphDatabase implements GraphDatabaseService, GraphDatabase {
 
     @Override
     public QueryEngine queryEngineFor(QueryEngine.Type type) {
-        return new RestCypherQueryEngine(this, createResultConverter());
+        switch (type) {
+            case Cypher: return new RestCypherQueryEngine(this, createResultConverter());
+            case Gremlin: return new RestGremlinQueryEngine(this, createResultConverter());
+        }
+        throw new IllegalArgumentException("Unknown Query Engine Type "+type);
     }
 
     private ResultConverter createResultConverter() {
