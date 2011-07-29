@@ -48,9 +48,18 @@
             The current version that does not show incorrect errors is AspectJ 1.6.12.M1 (included in STS 2.7.0.M2), previous versions are reported
             to mislead the user.
         </para>
+        <note>
+        <para>
+            There might be some issues with the eclipse maven plugin not adding AspectJ files correctly to the build path. If you encounter issues, please try the following:
+
+            Try editing the build path to <code>include **/*.aj</code> for the spring-data-neo4j project.
+            You can do this by selecting "Build Path -> Configure Build Path ..." from the Package Explorer.
+            Then for the <code>spring-data-neo4j/src/main/java</code> add <code>**/*.aj</code> to the Included path.
+        </para>
+        </note>
         <para>
             The AspectJ support in IntelliJ IDEA lacks some of the features. JetBrains is working on improving
-            the situation in their upcoming 10.5 release of their popular IDE. Their latest work is available
+            the situation in their upcoming 11 release of their popular IDE. Their latest work is available
             under their early access program (EAP). Building the project with the AspectJ compiler
             <code>ajc</code> works in IDEA (Options -> Compiler -> Java Compiler should show ajc). Make sure to
             give the compiler at least 512 MB of RAM.

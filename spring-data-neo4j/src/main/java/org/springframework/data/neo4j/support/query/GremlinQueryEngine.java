@@ -16,10 +16,6 @@
 
 package org.springframework.data.neo4j.support.query;
 
-import org.neo4j.cypher.commands.Query;
-import org.neo4j.cypher.javacompat.CypherParser;
-import org.neo4j.cypher.javacompat.ExecutionEngine;
-import org.neo4j.cypher.javacompat.ExecutionResult;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.springframework.dao.InvalidDataAccessResourceUsageException;
 import org.springframework.data.neo4j.conversion.DefaultConverter;
@@ -29,38 +25,27 @@ import org.springframework.data.neo4j.conversion.ResultConverter;
 
 import java.util.Map;
 
-public class CypherQueryEngine implements QueryEngine<Map<String,Object>> {
+public class GremlinQueryEngine implements QueryEngine<Object> {
 
-    final ExecutionEngine executionEngine;
-    private ResultConverter resultConverter;
+    private final GremlinExecutor gremlinExecutor;
+    private final ResultConverter resultConverter;
 
-    public CypherQueryEngine(GraphDatabaseService graphDatabaseService) {
+    public GremlinQueryEngine(GraphDatabaseService graphDatabaseService) {
         this(graphDatabaseService, new DefaultConverter());
     }
 
 
-    public CypherQueryEngine(GraphDatabaseService graphDatabaseService, ResultConverter resultConverter) {
+    public GremlinQueryEngine(GraphDatabaseService graphDatabaseService, ResultConverter resultConverter) {
         this.resultConverter = resultConverter != null ? resultConverter : new DefaultConverter();
-        this.executionEngine = new ExecutionEngine(graphDatabaseService);
+        this.gremlinExecutor = new GremlinExecutor(graphDatabaseService);
     }
 
     @Override
-    public QueryResult<Map<String, Object>> query(String statement, Map<String, Object> params) {
+    public QueryResult<Object> query(String statement, Map<String, Object> params) {
         try {
-            String parametrizedQuery = QueryResultBuilder.replaceParams(statement,params);
-            ExecutionResult result = parseAndExecuteQuery(parametrizedQuery);
-            return new QueryResultBuilder<Map<String,Object>>(result,resultConverter);
+            Iterable<Object> result = gremlinExecutor.query(statement, params);
+            return new QueryResultBuilder<Object>(result,resultConverter);
         } catch (Exception e) {
-            throw new InvalidDataAccessResourceUsageException("Error executing statement " + statement, e);
-        }
-    }
-
-    private ExecutionResult parseAndExecuteQuery(String statement) {
-        try {
-            CypherParser parser = new CypherParser();
-            Query query = parser.parse(statement);
-            return executionEngine.execute(query);
-        } catch(Exception e) {
             throw new InvalidDataAccessResourceUsageException("Error executing statement " + statement, e);
         }
     }

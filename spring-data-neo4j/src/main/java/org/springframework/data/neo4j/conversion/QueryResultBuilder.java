@@ -21,6 +21,7 @@ import org.neo4j.helpers.collection.ClosableIterable;
 import org.neo4j.helpers.collection.IteratorWrapper;
 
 import java.util.Iterator;
+import java.util.Map;
 
 /**
  * @author mh
@@ -40,6 +41,14 @@ public class QueryResultBuilder<T> implements QueryResult<T> {
         this.result = result;
         this.isClosableIterable = result instanceof IndexHits || result instanceof ClosableIterable;
         this.defaultConverter = defaultConverter;
+    }
+
+    public static String replaceParams(String statement, Map<String, Object> params) {
+        if (params==null || params.isEmpty()) return statement;
+        for (Map.Entry<String, Object> param : params.entrySet()) {
+            statement = statement.replaceAll("%"+param.getKey()+"\\b",""+param.getValue());
+        }
+        return statement;
     }
 
     @Override

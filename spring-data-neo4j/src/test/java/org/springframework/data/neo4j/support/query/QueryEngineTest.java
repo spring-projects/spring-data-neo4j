@@ -21,15 +21,15 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.neo4j.graphdb.Node;
 import org.neo4j.helpers.collection.IteratorUtil;
+import org.neo4j.helpers.collection.MapUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.data.neo4j.Person;
 import org.springframework.data.neo4j.Personality;
+import org.springframework.data.neo4j.annotation.QueryType;
+import org.springframework.data.neo4j.conversion.ResultConverter;
 import org.springframework.data.neo4j.core.GraphDatabase;
 import org.springframework.data.neo4j.core.NodeBacked;
-import org.springframework.data.neo4j.Person;
-import org.springframework.data.neo4j.Personality;
-import org.springframework.data.neo4j.conversion.ResultConverter;
 import org.springframework.data.neo4j.support.DelegatingGraphDatabase;
 import org.springframework.data.neo4j.support.GraphDatabaseContext;
 import org.springframework.data.neo4j.support.TestTeam;
@@ -59,7 +59,7 @@ public class QueryEngineTest {
     protected ConversionService conversionService;
     @Autowired
     private GraphDatabaseContext graphDatabaseContext;
-    private QueryEngine queryEngine;
+    private QueryEngine<Map<String,Object>> queryEngine;
     private TestTeam testTeam;
     private Person michael;
     private GraphDatabase graphDatabase;
@@ -69,7 +69,7 @@ public class QueryEngineTest {
         graphDatabase = createGraphDatabase();
         testTeam = new TestTeam();
         testTeam.createSDGTeam();
-        queryEngine = graphDatabase.queryEngineFor(QueryEngine.Type.Cypher);
+        queryEngine = graphDatabase.queryEngineFor(QueryType.Cypher);
         michael = testTeam.michael;
     }
 
@@ -87,31 +87,35 @@ public class QueryEngineTest {
     @Test
     @Transactional
     public void testQueryList() throws Exception {
-        final String queryString = String.format("start person=(%d,%d) return person.name, person.age", idFor(michael), idFor(testTeam.david));
-        final Collection<Map<String,Object>> result = IteratorUtil.asCollection(queryEngine.query(queryString));
+        final String queryString = "start person=(%michael,%david) return person.name, person.age";
+        final Collection<Map<String,Object>> result = IteratorUtil.asCollection(queryEngine.query(queryString, MapUtil.map("michael",idFor(michael), "david",idFor(testTeam.david))));
 
         assertEquals(asList(testTeam.simpleRowFor(michael,"person"),testTeam.simpleRowFor(testTeam.david,"person")),result);
     }
 
     @Test
     public void testQueryListOfTypeNode() throws Exception {
-        final String queryString = String.format("start person=(name_index,name,\"%s\") match (person) <-[:boss]- (boss) return boss", michael.getName());
-        final Collection<Node> result = IteratorUtil.asCollection(queryEngine.query(queryString).to(Node.class));
+        final String queryString = "start person=(name_index,name,\"%name\") match (person) <-[:boss]- (boss) return boss";
+        final Collection<Node> result = IteratorUtil.asCollection(queryEngine.query(queryString, michaelsName()).to(Node.class));
 
         assertEquals(asList(nodeFor(testTeam.emil)),result);
     }
     @Test
     public void testQueryListOfTypePerson() throws Exception {
-        final String queryString = String.format("start person=(name_index,name,\"%s\") match (person) <-[:boss]- (boss) return boss", michael.getName());
-        final Collection<Person> result = IteratorUtil.asCollection(queryEngine.query(queryString).to(Person.class, new EntityResultConverter(graphDatabaseContext)));
+        final String queryString = "start person=(name_index,name,\"%name\") match (person) <-[:boss]- (boss) return boss";
+        final Collection<Person> result = IteratorUtil.asCollection(queryEngine.query(queryString, michaelsName()).to(Person.class, new EntityResultConverter(graphDatabaseContext)));
 
         assertEquals(asList(testTeam.emil),result);
     }
 
+    private Map<String, Object> michaelsName() {
+        return MapUtil.map("name", michael.getName());
+    }
+
     @Test
     public void testQuerySingleOfTypePerson() throws Exception {
-        final String queryString = String.format("start person=(name_index,name,\"%s\") match (person) <-[:boss]- (boss) return boss", michael.getName());
-        final Person result = queryEngine.query(queryString).to(Person.class, new EntityResultConverter<Map<String,Object>,Person>(graphDatabaseContext)).single();
+        final String queryString = "start person=(name_index,name,\"%name\") match (person) <-[:boss]- (boss) return boss";
+        final Person result = queryEngine.query(queryString, michaelsName()).to(Person.class, new EntityResultConverter<Map<String,Object>,Person>(graphDatabaseContext)).single();
 
         assertEquals(testTeam.emil,result);
     }
@@ -119,7 +123,7 @@ public class QueryEngineTest {
     @Test
     public void testQueryListWithCustomConverter() throws Exception {
         final String queryString = String.format("start person=(name_index,name,\"%s\") match (person) <-[:boss]- (boss) return boss", michael.getName());
-        final Collection<String> result = IteratorUtil.asCollection(queryEngine.query(queryString).to(String.class, new ResultConverter<Map<String, Object>, String>() {
+        final Collection<String> result = IteratorUtil.asCollection(queryEngine.query(queryString, michaelsName()).to(String.class, new ResultConverter<Map<String, Object>, String>() {
             @Override
             public String convert(Map<String, Object> row, Class<String> target) {
                 return (String) ((Node) row.get("boss")).getProperty("name");
@@ -138,15 +142,15 @@ public class QueryEngineTest {
 
     @Test
     public void testQueryForObjectAsString() throws Exception {
-        final String queryString = String.format("start person=(name_index,name,\"%s\") match (person) <-[:persons]- (team) return team.name", michael.getName());
-        final String result = queryEngine.query(queryString).to(String.class).single();
+        final String queryString = "start person=(name_index,name,\"%name\") match (person) <-[:persons]- (team) return team.name";
+        final String result = queryEngine.query(queryString, michaelsName()).to(String.class).single();
 
         assertEquals(testTeam.sdg.getName(),result);
     }
     @Test
     public void testQueryForObjectAsEnum() throws Exception {
-        final String queryString = String.format("start person=(name_index,name,\"%s\") return person.personality", michael.getName());
-        final Personality result = queryEngine.query(queryString).to(Personality.class).single();
+        final String queryString = "start person=(name_index,name,\"%name\") return person.personality";
+        final Personality result = queryEngine.query(queryString, michaelsName()).to(Personality.class).single();
 
         assertEquals(michael.getPersonality(),result);
     }

@@ -23,9 +23,11 @@ import org.neo4j.graphdb.traversal.TraversalDescription;
 import org.neo4j.index.impl.lucene.LuceneIndexImplementation;
 import org.neo4j.kernel.Traversal;
 import org.springframework.core.convert.ConversionService;
+import org.springframework.data.neo4j.annotation.QueryType;
 import org.springframework.data.neo4j.core.GraphDatabase;
 import org.springframework.data.neo4j.support.query.ConversionServiceQueryResultConverter;
 import org.springframework.data.neo4j.support.query.CypherQueryEngine;
+import org.springframework.data.neo4j.support.query.GremlinQueryEngine;
 import org.springframework.data.neo4j.support.query.QueryEngine;
 
 import java.util.Map;
@@ -125,11 +127,12 @@ public class DelegatingGraphDatabase implements GraphDatabase {
         return Traversal.description();
     }
 
-    @Override
-    public QueryEngine queryEngineFor(QueryEngine.Type type) {
-        if (type == QueryEngine.Type.Cypher)
-            return new CypherQueryEngine(delegate, createResultConverter());
-        throw new IllegalArgumentException("Could not resolve query engine for "+type);
+    public <T> QueryEngine<T> queryEngineFor(QueryType type) {
+        switch (type) {
+            case Cypher:  return (QueryEngine<T>)new CypherQueryEngine(delegate, createResultConverter());
+            case Gremlin: return (QueryEngine<T>) new GremlinQueryEngine(delegate);
+        }
+        throw new IllegalArgumentException("Unknown Query Engine Type "+type);
     }
 
     private ConversionServiceQueryResultConverter createResultConverter() {

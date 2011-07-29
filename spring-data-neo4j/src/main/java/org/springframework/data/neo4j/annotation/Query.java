@@ -36,7 +36,7 @@ import java.lang.annotation.Target;
 @Target({ElementType.FIELD,ElementType.METHOD})
 public @interface Query {
     /**
-     * @return Query to be executed %d will be replaced by the node-id of the current entity other placeholders by the given params
+     * @return Query to be executed %start will be replaced by the node-id of the current entity other placeholders (%name) by the given named params
      */
     String value() default "";
 
@@ -46,7 +46,9 @@ public @interface Query {
     Class<?> elementClass() default Object.class;
 
     /**
-     * @return parameters that are replaced in the to the @see query-string
+     * @return tuple list of parameters that are replaced in the to the @see query-string {"name", value}
      */
     String[] params() default {};
+
+    QueryType type() default QueryType.Cypher;
 }

@@ -2,6 +2,17 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
 
+    <!-- TODO
+    * Gremlin @Query on fields
+    * Gremlin @Query on repository methods
+    * variables in gremlin queries
+    * variables in cypher queries
+    * New Template Query API
+    * Spring Roo Addon, Intro, Example Session
+    * Update tutorial to include some of the new features (cypher, gremlin)
+    *
+    * more on Gremlin / Cypher over REST
+    -->
 	<bookinfo>
 	    <title>Good Relationships</title>
 	    <subtitle>The Spring Data Graph Guide Book</subtitle>
@@ -23,14 +34,6 @@
 	            <firstname>David</firstname>
 	            <surname>Montag</surname>
 	        </author>
-	        <author>
-	            <firstname>Mark</firstname>
-	            <surname>Pollack</surname>
-	        </author>
-	        <author>
-	            <firstname>Thomas</firstname>
-	            <surname>Risberg</surname>
-	        </author>
 	    </authorgroup>
 
 	    <legalnotice>
@@ -40,6 +43,9 @@
 	            further provided that each copy contains this Copyright Notice, whether
 	            distributed in print or electronically.
 	        </para>
+            <para>
+                Copyright 2010-2011 Neo Technology
+            </para>
 	    </legalnotice>
 
 	</bookinfo>

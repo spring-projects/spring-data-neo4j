@@ -72,28 +72,33 @@ public class Movie {
     </section>
 
     <section>
-        <title>@GraphQuery: fields as query result views</title>
+        <title>@Query: fields as query result views</title>
         <para>
-            The <code>@GraphQuery</code> annotation leverages the delegation infrastructure used by the
+            The <code>@Query</code> annotation leverages the delegation infrastructure used by the
             Spring Data Graph aspects. It provides dynamic fields which, when accessed, return the values
-            selected by the provided query language expression. The provided query must contain a placeholder
-            for the id of the current entity <code>start n=(%d) match n-[:FRIEND]->friend return friend</code>
-            As graph queries can return variable number of entities the annotation can be put onto fields
-            with a single value, an Iterable of a type or an Iterable of <code>Map&lt;String,Object&gt;</code>.
-            The class of the resulting node entities must right now provided with the <code>elementClass</code> attribute.
-            Additional parameters are added to the query with Java's String.format substitution.
+            selected by the provided query language expression. The provided query must contain a placeholder named <code>%start</code>
+            for the id of the current entity. For instance <code>start n=(%start) match n-[:FRIEND]->friend return friend</code>.
+            Graph queries can return variable number of entities. That's why annotation can be put onto fields
+            with a single value, an Iterable of a concrete type or an Iterable of <code>Map&lt;String,Object&gt;</code>.
+            Additional parameters are taken from the params attribute of the <code>@Query</code> annotation.
+            The tuples form key-value pairs that are provided to the query at execution time.
         </para>
         <example>
-            <title>@GraphQuery from a node entity</title>
+            <title>@Graph on a node entity field</title>
             <programlisting language="java"><![CDATA[@NodeEntity
 public class Group {
-    @GraphQuery(value = "start n=(%d) match (n)-[:%s]->(friend) return friend",
-            elementClass = Person.class, params = "FRIEND")
+    @Query(value = "start n=(%start) match (n)-[:%relType]->(friend) return friend",
+                params = {"relType", "FRIEND"})
     private Iterable<Person> friends;
 }
 ]]></programlisting>
 
         </example>
+        <para>
+            <note>
+                Please note that this annotation can also be used on repository methods.
+            </note>
+        </para>
     </section>
     <section>
         <title>@GraphTraversal: fields as traversal result views</title>

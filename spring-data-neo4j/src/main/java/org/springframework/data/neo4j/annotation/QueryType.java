@@ -14,18 +14,12 @@
  * limitations under the License.
  */
 
-package org.springframework.data.neo4j.support.query;
-
-import java.util.Map;
+package org.springframework.data.neo4j.annotation;
 
 /**
  * @author mh
- * @since 28.06.11
+ * @since 25.07.11
  */
-public interface QueryOperations<R> {
-    Iterable<R> queryForList(String statement, Map<String,Object> params);
-
-    <T> Iterable<T> query(String statement, Class<T> type, Map<String,Object> params);
-
-    <T> T queryForObject(String statement, Class<T> type, Map<String,Object> params);
+public enum QueryType {
+    Cypher, Gremlin
 }

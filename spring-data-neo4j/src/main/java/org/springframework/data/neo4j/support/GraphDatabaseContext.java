@@ -73,7 +73,7 @@ public class GraphDatabaseContext {
         Map<String, String> config = fullText ? LuceneIndexImplementation.FULLTEXT_CONFIG : null;
         if (NodeBacked.class.isAssignableFrom(type)) return (Index<S>) getIndexManager().forNodes(indexName, config);
         if (RelationshipBacked.class.isAssignableFrom(type)) return (Index<S>) getIndexManager().forRelationships(indexName, config);
-        throw new IllegalArgumentException("Wrong index type supplied: " + type);
+        throw new IllegalArgumentException("Wrong index type supplied: " + type+" expected Node- or Relationship-Entity");
     }
 
     /**
@@ -239,8 +239,6 @@ public class GraphDatabaseContext {
     public Relationship getRelationshipById(final long id) {
         return graphDatabaseService.getRelationshipById(id);
     }
-
-
 
     public GraphDatabaseService getGraphDatabaseService() {
 		return graphDatabaseService;

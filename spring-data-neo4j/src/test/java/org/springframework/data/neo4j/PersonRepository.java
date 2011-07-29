@@ -20,8 +20,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.neo4j.annotation.Query;
+import org.springframework.data.neo4j.annotation.QueryType;
 import org.springframework.data.neo4j.repository.GraphRepository;
 import org.springframework.data.neo4j.repository.NamedIndexRepository;
+import org.springframework.data.repository.query.Param;
 
 import java.util.Map;
 
@@ -31,19 +33,22 @@ import java.util.Map;
  */
 public interface PersonRepository extends GraphRepository<Person>, NamedIndexRepository<Person> {
 
-    @Query("start team=(%d) match (team)-[:persons]->(member) return member")
-    Iterable<Person> findAllTeamMembers(Group team);
+    @Query("start team=(%team) match (team)-[:persons]->(member) return member")
+    Iterable<Person> findAllTeamMembers(@Param("team") Group team);
 
-    @Query("start team=(%d) match (team)-[:persons]->(member) return member.name,member.age")
-    Iterable<Map<String,Object>> findAllTeamMemberData(Group team);
+    @Query(value = "g.v(team).out('persons')", type = QueryType.Gremlin)
+    Iterable<Person> findAllTeamMembersGremlin(@Param("team") Group team);
 
-    @Query("start person=(%d) match (boss)-[:boss]->(person) return boss")
-    Person findBoss(Person person);
+    @Query("start team=(%team) match (team)-[:persons]->(member) return member.name,member.age")
+    Iterable<Map<String,Object>> findAllTeamMemberData(@Param("team") Group team);
 
-    Group findTeam(Person person);
+    @Query("start person=(%person) match (boss)-[:boss]->(person) return boss")
+    Person findBoss(@Param("person") Person person);
 
-    @Query("start team=(%d) match (team)-[:persons]->(member) return member")
-    Page<Person> findAllTeamMembersPaged(Pageable page, Group team);
-    @Query("start team=(%d) match (team)-[:persons]->(member) return member")
-    Iterable<Person> findAllTeamMembersSorted(Group team, Sort sort);
+    Group findTeam(@Param("person") Person person);
+
+    @Query("start team=(%team) match (team)-[:persons]->(member) return member")
+    Page<Person> findAllTeamMembersPaged(@Param("team") Group team, Pageable page);
+    @Query("start team=(%team) match (team)-[:persons]->(member) return member")
+    Iterable<Person> findAllTeamMembersSorted(@Param("team") Group team, Sort sort);
 }

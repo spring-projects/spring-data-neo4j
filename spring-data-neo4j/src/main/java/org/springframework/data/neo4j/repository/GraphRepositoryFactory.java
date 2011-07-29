@@ -20,14 +20,17 @@ import org.neo4j.helpers.collection.IteratorUtil;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.neo4j.annotation.Query;
 import org.springframework.data.neo4j.annotation.NodeEntity;
+import org.springframework.data.neo4j.annotation.Query;
+import org.springframework.data.neo4j.annotation.QueryType;
 import org.springframework.data.neo4j.annotation.RelationshipEntity;
 import org.springframework.data.neo4j.core.NodeBacked;
 import org.springframework.data.neo4j.core.RelationshipBacked;
 import org.springframework.data.neo4j.support.GenericTypeExtractor;
 import org.springframework.data.neo4j.support.GraphDatabaseContext;
-import org.springframework.data.neo4j.support.query.QueryExecutor;
+import org.springframework.data.neo4j.support.conversion.EntityResultConverter;
+import org.springframework.data.neo4j.support.query.CypherQueryExecutor;
+import org.springframework.data.neo4j.support.query.GremlinQueryEngine;
 import org.springframework.data.repository.core.EntityInformation;
 import org.springframework.data.repository.core.NamedQueries;
 import org.springframework.data.repository.core.RepositoryMetadata;
@@ -38,10 +41,13 @@ import org.springframework.util.Assert;
 import java.io.Serializable;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import static org.springframework.core.annotation.AnnotationUtils.findAnnotation;
+import static org.springframework.data.neo4j.annotation.QueryType.Cypher;
+import static org.springframework.data.neo4j.annotation.QueryType.Gremlin;
 
 /**
  * @author mh
@@ -109,11 +115,7 @@ public class GraphRepositoryFactory extends RepositoryFactorySupport {
             @Override
             public RepositoryQuery resolveQuery(Method method, RepositoryMetadata repositoryMetadata, NamedQueries namedQueries) {
                 final GraphQueryMethod queryMethod = new GraphQueryMethod(method, repositoryMetadata,namedQueries);
-
-                if (queryMethod.isValid()) {
-                    return new GraphRepositoryQuery(queryMethod, repositoryMetadata, graphDatabaseContext);
-                }
-                return null;
+                return queryMethod.createQuery(repositoryMetadata, GraphRepositoryFactory.this.graphDatabaseContext);
             }
         };
     }
@@ -150,19 +152,28 @@ public class GraphRepositoryFactory extends RepositoryFactorySupport {
 
         private String prepareQuery(Object[] args) {
             final Parameters parameters = getParameters();
-            Object[] resolvedParameters = resolveParameters(args,parameters.getBindableParameters());
-            String baseQuery = String.format(query, (Object[]) resolvedParameters);
+            String queryString = this.query;
             if (parameters.hasSortParameter()) {
-                baseQuery = addSorting(baseQuery, (Sort) args[parameters.getSortIndex()]);
+                queryString = addSorting(queryString, (Sort) args[parameters.getSortIndex()]);
             }
             if (parameters.hasPageableParameter()) {
                 final Pageable pageable = getPageable(args);
                 if (pageable!=null) {
-                    baseQuery = addSorting(baseQuery, pageable.getSort());
-                    baseQuery = addPaging(baseQuery, pageable);
+                    queryString = addSorting(queryString, pageable.getSort());
+                    queryString = addPaging(queryString, pageable);
                 }
             }
-            return baseQuery;
+            return queryString;
+        }
+
+
+        private Map<String, Object> resolveParams(Object[] parameters) {
+            Map<String,Object> params=new HashMap<String, Object>();
+            for (Parameter parameter : getParameters().getBindableParameters()) {
+                final Object value = parameters[parameter.getIndex()];
+                params.put(parameter.getName(),resolveParameter(value));
+            }
+            return params;
         }
 
         private Pageable getPageable(Object[] args) {
@@ -187,17 +198,6 @@ public class GraphRepositoryFactory extends RepositoryFactorySupport {
             String result = "";
             for (Sort.Order order : sort) {
                 result += order.getProperty() + " " + order.getDirection();
-            }
-            return result;
-        }
-
-        private Object[] resolveParameters(Object[] parameters, Parameters bindableParameters) {
-            final int paramCount = bindableParameters.getNumberOfParameters();
-            final Object[] result = new Object[paramCount];
-            for (int i = 0; i < paramCount; i++) {
-                final Parameter parameter = bindableParameters.getParameter(i);
-                final Object value = parameters[parameter.getIndex()];
-                result[i] = resolveParameter(value);
             }
             return result;
         }
@@ -232,57 +232,111 @@ public class GraphRepositoryFactory extends RepositoryFactorySupport {
         public boolean hasAnnotation() {
             return queryAnnotation!=null;
         }
+
+        private boolean isIterableResult() {
+            return Iterable.class.isAssignableFrom(getReturnType());
+        }
+
+        private RepositoryQuery createQuery(RepositoryMetadata repositoryMetadata, final GraphDatabaseContext context) {
+            if (!isValid()) return null;
+            if (queryAnnotation == null) {
+                return new CypherGraphRepositoryQuery(this, repositoryMetadata, context); // cypher is default for named queries
+            }
+            switch (queryAnnotation.type()) {
+                case Cypher:
+                    return new CypherGraphRepositoryQuery(this, repositoryMetadata, context);
+                case Gremlin:
+                    return new GremlinGraphRepositoryQuery(this, repositoryMetadata, context);
+                default:
+                    throw new IllegalStateException("@Query Annotation has to be configured as Cypher or Gremlin Query");
+            }
+        }
     }
 
-    private static class GraphRepositoryQuery implements RepositoryQuery {
-        private QueryExecutor queryExecutor;
+
+    private static class CypherGraphRepositoryQuery extends GraphRepositoryQuery {
+
+        private CypherQueryExecutor queryExecutor;
+
+        public CypherGraphRepositoryQuery(GraphQueryMethod queryMethod, RepositoryMetadata metadata, final GraphDatabaseContext graphDatabaseContext) {
+            super(queryMethod, metadata, graphDatabaseContext);
+            queryExecutor = new CypherQueryExecutor(graphDatabaseContext);
+        }
+
+        protected Object dispatchQuery(String queryString, Map<String, Object> params, Pageable pageable) {
+            GraphQueryMethod queryMethod = getQueryMethod();
+            final Class<?> compoundType = queryMethod.getCompoundType();
+            final QueryMethod.Type queryResultType = queryMethod.getType();
+            if (queryResultType== QueryMethod.Type.PAGING) {
+                return queryPaged(queryString,params,pageable);
+            }
+            if (queryMethod.isIterableResult()) {
+                if (compoundType.isAssignableFrom(Map.class)) return queryExecutor.queryForList(queryString,params);
+                return queryExecutor.query(queryString, queryMethod.getCompoundType(),params);
+            }
+            return queryExecutor.queryForObject(queryString, queryMethod.getReturnType(),params);
+        }
+        private Object queryPaged(String queryString, Map<String, Object> params, Pageable pageable) {
+            final Iterable<?> result = queryExecutor.query(queryString, getQueryMethod().getCompoundType(),params);
+            return createPage(result, pageable);
+        }
+    }
+
+    private static class GremlinGraphRepositoryQuery extends GraphRepositoryQuery {
+
+        private GremlinQueryEngine queryExecutor;
+
+        public GremlinGraphRepositoryQuery(GraphQueryMethod queryMethod, RepositoryMetadata metadata, final GraphDatabaseContext graphDatabaseContext) {
+            super(queryMethod, metadata, graphDatabaseContext);
+            queryExecutor = new GremlinQueryEngine(graphDatabaseContext.getGraphDatabaseService(), new EntityResultConverter(graphDatabaseContext));
+        }
+
+        protected Object dispatchQuery(String queryString, Map<String, Object> params, Pageable pageable) {
+            GraphQueryMethod queryMethod = getQueryMethod();
+            final QueryMethod.Type queryResultType = queryMethod.getType();
+            if (queryResultType== QueryMethod.Type.PAGING) {
+                return queryPaged(queryString,params,pageable);
+            }
+            if (queryMethod.isIterableResult()) {
+                return queryExecutor.query(queryString,params).to(queryMethod.getCompoundType());
+            }
+            return queryExecutor.query(queryString, params).to(queryMethod.getReturnType()).single();
+        }
+
+        private Object queryPaged(String queryString, Map<String, Object> params, Pageable pageable) {
+            final Iterable<?> result = queryExecutor.query(queryString, params).to(getQueryMethod().getCompoundType());
+            return createPage(result, pageable);
+        }
+
+    }
+
+    private static abstract class GraphRepositoryQuery implements RepositoryQuery {
         private final GraphQueryMethod queryMethod;
-        private final RepositoryMetadata metadata;
-        private boolean iterableResult;
-        private Class<?> compoundType;
 
         public GraphRepositoryQuery(GraphQueryMethod queryMethod, RepositoryMetadata metadata, final GraphDatabaseContext graphDatabaseContext) {
-            queryExecutor = new QueryExecutor(graphDatabaseContext);
             this.queryMethod = queryMethod;
-            this.metadata = metadata;
-            this.iterableResult = Iterable.class.isAssignableFrom(queryMethod.getReturnType());
-            this.compoundType = queryMethod.getCompoundType();
         }
 
         @Override
         public Object execute(Object[] parameters) {
+            Map<String, Object> params = queryMethod.resolveParams(parameters);
             final String queryString = queryMethod.prepareQuery(parameters);
-            return dispatchQuery(queryString,queryMethod.getPageable(parameters));
+            return dispatchQuery(queryString,params,queryMethod.getPageable(parameters));
         }
 
-        private Object dispatchQuery(String queryString, Pageable pageable) {
-            final QueryMethod.Type queryResultType = queryMethod.getType();
-            if (queryResultType== QueryMethod.Type.PAGING) {
-                return queryPaged(queryString,pageable);
-            }
-            if (iterableResult) {
-                if (compoundType.isAssignableFrom(Map.class)) return queryExecutor.queryForList(queryString);
-                return queryExecutor.query(queryString, queryMethod.getCompoundType());
-            }
-            return queryExecutor.queryForObject(queryString, queryMethod.getReturnType());
-        }
-
-        private Object queryPaged(String queryString, Pageable pageable) {
-            final Iterable<?> result = queryExecutor.query(queryString, queryMethod.getCompoundType());
-            return createPage(result, pageable);
-        }
-
-        @SuppressWarnings({"unchecked"})
-        private Object createPage(Iterable<?> result, Pageable pageable) {
-            final List resultList = IteratorUtil.addToCollection(result, new ArrayList());
-            if (pageable==null) return new PageImpl(resultList);
-            final int currentTotal = pageable.getOffset() + pageable.getPageSize();
-            return new PageImpl(resultList, pageable, currentTotal);
-        }
+        protected abstract Object dispatchQuery(String queryString, Map<String, Object> params, Pageable pageable);
 
         @Override
         public GraphQueryMethod getQueryMethod() {
             return queryMethod;
+        }
+
+        @SuppressWarnings({"unchecked"})
+        protected Object createPage(Iterable<?> result, Pageable pageable) {
+            final List resultList = IteratorUtil.addToCollection(result, new ArrayList());
+            if (pageable==null) return new PageImpl(resultList);
+            final int currentTotal = pageable.getOffset() + pageable.getPageSize();
+            return new PageImpl(resultList, pageable, currentTotal);
         }
     }
 }

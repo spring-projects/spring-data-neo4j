@@ -15,9 +15,11 @@
 		<org.mockito.version>1.8.4</org.mockito.version>
 		<org.slf4j.version>1.5.10</org.slf4j.version>
 		<org.springframework.version>3.0.5.RELEASE</org.springframework.version>
-		<data.commons.version>1.1.0.RC1</data.commons.version>
+		<data.commons.version>1.1.0.RELEASE</data.commons.version>
         <neo4j.version>1.4</neo4j.version>
         <aspectj.version>1.6.12.M1</aspectj.version>
+        <blueprints.version>0.8</blueprints.version>
+        <gremlin.version>1.1</gremlin.version>
 	</properties>
 	<profiles>
 		<profile>
@@ -183,6 +185,27 @@
 				</exclusions>
 				<scope>runtime</scope>
 			</dependency>
+
+
+            <dependency>
+              <groupId>com.tinkerpop.blueprints</groupId>
+              <artifactId>blueprints-core</artifactId>
+              <version>${blueprints.version}</version>
+              <scope>optional</scope>
+            </dependency>
+            <dependency>
+              <groupId>com.tinkerpop.blueprints</groupId>
+              <artifactId>blueprints-neo4j-graph</artifactId>
+              <version>${blueprints.version}</version>
+              <scope>optional</scope>
+            </dependency>
+
+            <dependency>
+              <groupId>com.tinkerpop</groupId>
+              <artifactId>gremlin</artifactId>
+              <version>${gremlin.version}</version>
+              <scope>optional</scope>
+            </dependency>
 
 			<dependency>
 				<groupId>javax.annotation</groupId>

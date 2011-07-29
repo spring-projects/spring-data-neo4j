@@ -31,6 +31,7 @@ import org.springframework.data.neo4j.annotation.RelationshipEntity;
 import org.springframework.data.neo4j.annotation.RelatedTo;
 import org.springframework.data.neo4j.annotation.GraphProperty;
 import org.springframework.data.neo4j.annotation.GraphId;
+import org.springframework.data.neo4j.annotation.Query;
 import org.springframework.data.neo4j.annotation.RelatedToVia;
 import org.springframework.data.neo4j.annotation.GraphTraversal;
 
@@ -42,7 +43,7 @@ import org.springframework.data.neo4j.core.EntityState;
 import org.springframework.data.neo4j.support.GraphDatabaseContext;
 
 import org.springframework.data.neo4j.support.path.EntityPathPathIterableWrapper;
-import org.springframework.data.neo4j.support.query.QueryExecutor;
+import org.springframework.data.neo4j.support.query.CypherQueryExecutor;
 
 import javax.persistence.Transient;
 import javax.persistence.Entity;
@@ -71,6 +72,7 @@ public aspect Neo4jNodeBacking { // extends AbstractTypeAnnotatingMixinFields<No
     declare @field: @RelatedToVia * (@Entity @NodeEntity(partial=true) *).*:@Transient;
     declare @field: @GraphId * (@Entity @NodeEntity(partial=true) *).*:@Transient;
     declare @field: @GraphTraversal * (@Entity @NodeEntity(partial=true) *).*:@Transient;
+    declare @field: @Query * (@Entity @NodeEntity(partial=true) *).*:@Transient;
 
 
 
@@ -183,19 +185,20 @@ public aspect Neo4jNodeBacking { // extends AbstractTypeAnnotatingMixinFields<No
         final Traverser traverser = traversalDescription.traverse(this.getPersistentState());
         return new NodeBackedNodeIterableWrapper<T>(traverser, targetType, Neo4jNodeBacking.aspectOf().graphDatabaseContext);
     }
-    public  <T> Iterable<T> NodeBacked.findAllByQuery(final String query, final Class<T> targetType) {
-        final QueryExecutor executor = new QueryExecutor(Neo4jNodeBacking.aspectOf().graphDatabaseContext);
-        return executor.query(query, targetType);
+
+    public  <T> Iterable<T> NodeBacked.findAllByQuery(final String query, final Class<T> targetType, Map<String,Object> params) {
+        final CypherQueryExecutor executor = new CypherQueryExecutor(Neo4jNodeBacking.aspectOf().graphDatabaseContext);
+        return executor.query(query, targetType,params);
     }
 
-    public  Iterable<Map<String,Object>> NodeBacked.findAllByQuery(final String query) {
-        final QueryExecutor executor = new QueryExecutor(Neo4jNodeBacking.aspectOf().graphDatabaseContext);
-        return executor.queryForList(query);
+    public  Iterable<Map<String,Object>> NodeBacked.findAllByQuery(final String query,Map<String,Object> params) {
+        final CypherQueryExecutor executor = new CypherQueryExecutor(Neo4jNodeBacking.aspectOf().graphDatabaseContext);
+        return executor.queryForList(query,params);
     }
 
-    public  <T> T NodeBacked.findByQuery(final String query, final Class<T> targetType) {
-        final QueryExecutor executor = new QueryExecutor(Neo4jNodeBacking.aspectOf().graphDatabaseContext);
-        return executor.queryForObject(query, targetType);
+    public  <T> T NodeBacked.findByQuery(final String query, final Class<T> targetType,Map<String,Object> params) {
+        final CypherQueryExecutor executor = new CypherQueryExecutor(Neo4jNodeBacking.aspectOf().graphDatabaseContext);
+        return executor.queryForObject(query, targetType,params);
     }
 
     public <S extends NodeBacked, E extends NodeBacked> Iterable<EntityPath<S,E>> NodeBacked.findAllPathsByTraversal(TraversalDescription traversalDescription) {

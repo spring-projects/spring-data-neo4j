@@ -205,7 +205,7 @@ public class Neo4jTemplateApiTest {
 
     @Test
     public void testCreateNode() throws Exception {
-        Node node=template.createNode();
+        Node node= template.createNode(null);
         assertNotNull("created node",node);
     }
 
@@ -274,6 +274,16 @@ public class Neo4jTemplateApiTest {
     }
 
     @Test
+    public void shouldFindNextNodeViaCypher() throws Exception {
+        assertSingleResult(node1, template.query("start n=(0) match n-->m return m", null).to(Node.class));
+    }
+
+    @Test
+    public void shouldFindNextNodeViaGremlin() throws Exception {
+        assertSingleResult(node1, template.execute("g.v(0).out", null).to(Node.class));
+    }
+
+    @Test
     public void shouldGetDirectRelationship() throws Exception {
         assertSingleResult("rel1", template.convert(referenceNode.getRelationships()).to(String.class, new RelationshipNameConverter()));
     }
@@ -295,7 +305,7 @@ public class Neo4jTemplateApiTest {
 
     @Test
     public void shouldCreateRelationshipWithProperty() throws Exception {
-        Relationship relationship = template.createRelationship(referenceNode, node1, HAS,map("name","rel2"));
+        Relationship relationship = template.createRelationship(referenceNode, node1, HAS,map("name", "rel2"));
         assertNotNull(relationship);
         assertEquals(referenceNode, relationship.getStartNode());
         assertEquals(node1,relationship.getEndNode());
