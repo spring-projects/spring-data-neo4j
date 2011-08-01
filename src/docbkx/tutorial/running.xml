@@ -11,7 +11,7 @@
         <para>
             Before we opened the gates we needed to add some movie data. So we wrote a small class for
             populating the database which could be called from our controller. To make it safe to call
-            several times we added index lookups to check for existing entries. A simple /populate endpoint
+            several times we added index lookups to check for existing entries. A simple <code>/populate</code> endpoint
             for the controller that called it would be enough for now.
         </para>
         <para>
@@ -64,7 +64,8 @@ public class MovieController {
     <ul>
     <c:forEach items="${movie.roles}" var="role">
       <li>
-        <a href="/actors/${role.actor.id}"><c:out value="${role.actor.name}" /> as <c:out value="${role.name}" /></a><br/>
+        <a href="/actors/${role.actor.id}"><c:out value="${role.actor.name}" /> as
+        <c:out value="${role.name}" /></a><br/>
       </li>
     </c:forEach>
     </ul>
@@ -82,7 +83,7 @@ public class MovieController {
         </para>
         <note>
             Pardon the misused GET parameter for that (don't try this at home, the
-            <ulink url="http://restinpractice.com">REST guys</ulink> will be hunt you down). This is only for
+            <ulink url="http://restinpractice.com">REST guys</ulink> will hunt you down). This is only for
             running it from the browser address line. The next iteration of this website would use a button
             with POST.
         </note>

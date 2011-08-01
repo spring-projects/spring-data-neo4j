@@ -24,21 +24,26 @@
     final DynamicRelationshipType RATED = withName(User.RATED);
     final Map<Long,int[]> ratings=new HashMap<Long, int[]>();
     TraversalDescription traversal= Traversal.description().breadthFirst()
-        .relationships(withName(User.FRIEND)).relationships(RATED, OUTGOING).evaluator(new Evaluator() {
+        .relationships(withName(User.FRIEND)).relationships(RATED, OUTGOING)
+        .evaluator(new Evaluator() {
 
       public Evaluation evaluate(Path path) {
           final int length = path.length() - 1;
-          if (length > ratingDistance) return Evaluation.EXCLUDE_AND_PRUNE; // only as far as requested
+          // only as far as requested
+          if (length > ratingDistance) return Evaluation.EXCLUDE_AND_PRUNE;
           Relationship rating = path.lastRelationship();
-          if (rating != null && rating.getType().equals(RATED)) { // process RATED relationships, not FRIEND
-              if (length == 0) return Evaluation.EXCLUDE_AND_PRUNE; // my rated movies
+          // process RATED relationships, not FRIEND
+          if (rating != null && rating.getType().equals(RATED)) {
+              // my rated movies
+              if (length == 0) return Evaluation.EXCLUDE_AND_PRUNE;
               final long movieId = rating.getEndNode().getId();
               int[] stars = ratings.get(movieId);
               if (stars == null) {
                   stars = new int[2];
                   ratings.put(movieId, stars);
               }
-              int weight = ratingDistance - length; // aggregate for averaging, inverse to distance
+              // aggregate for averaging, inverse to distance
+              int weight = ratingDistance - length;
               stars[0] += weight * (Integer) rating.getProperty("stars", 0);
               stars[1] += weight;
               return Evaluation.INCLUDE_AND_PRUNE;
@@ -48,7 +53,8 @@
     });
 
     Map<Movie,Integer> result=new HashMap<Movie, Integer>();
-    final Iterable<Movie> movies = movieRepository.findAllByTraversal(user, traversal); // lazy traversal results
+    // lazy traversal results
+    final Iterable<Movie> movies = movieRepository.findAllByTraversal(user, traversal);
     for (Movie movie : movies) { // assign movie to averaged rating
       final int[] stars = ratings.get(movie.getNodeId());
       result.put(movie, stars[0]/stars[1]);

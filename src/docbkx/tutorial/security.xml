@@ -92,7 +92,8 @@ public class CineastsUserDetailsService implements UserDetailsService, Initializ
     @Autowired private UserRepository userRepository;
 
     @Override
-    public UserDetails loadUserByUsername(String login) throws UsernameNotFoundException, DataAccessException {
+    public UserDetails loadUserByUsername(String login)
+                                throws UsernameNotFoundException, DataAccessException {
         final User user = findUser(login);
         if (user==null) throw new UsernameNotFoundException("Username not found",login);
         return new CineastsUserDetails(user);
