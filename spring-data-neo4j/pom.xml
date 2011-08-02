@@ -129,24 +129,24 @@
 		<dependency>
 			<groupId>org.neo4j</groupId>
 			<artifactId>server-api</artifactId>
-		 <scope>optional</scope>
+		 <optional>true</optional>
 		</dependency>
 
         <dependency>
           <groupId>com.tinkerpop.blueprints</groupId>
           <artifactId>blueprints-core</artifactId>
-          <scope>optional</scope>
+          <optional>true</optional>
         </dependency>
         <dependency>
           <groupId>com.tinkerpop.blueprints</groupId>
           <artifactId>blueprints-neo4j-graph</artifactId>
-          <scope>optional</scope>
+          <optional>true</optional>
         </dependency>
 
         <dependency>
           <groupId>com.tinkerpop</groupId>
           <artifactId>gremlin</artifactId>
-          <scope>optional</scope>
+          <optional>true</optional>
         </dependency>
 
 		<dependency>
