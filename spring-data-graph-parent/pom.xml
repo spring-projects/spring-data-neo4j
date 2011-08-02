@@ -388,7 +388,8 @@
 			</plugin>
             <plugin>
                 <groupId>com.mycila.maven-license-plugin</groupId>
-                <artifactId>maven-license-plugin</artifactId>                
+                <artifactId>maven-license-plugin</artifactId>
+                <version>1.9.0</version>                
                 <executions>
                   <execution>
                     <id>check-licenses</id>
