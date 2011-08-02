@@ -191,20 +191,20 @@
               <groupId>com.tinkerpop.blueprints</groupId>
               <artifactId>blueprints-core</artifactId>
               <version>${blueprints.version}</version>
-              <scope>optional</scope>
+              <optional>true</optional>
             </dependency>
             <dependency>
               <groupId>com.tinkerpop.blueprints</groupId>
               <artifactId>blueprints-neo4j-graph</artifactId>
               <version>${blueprints.version}</version>
-              <scope>optional</scope>
+              <optional>true</optional>
             </dependency>
 
             <dependency>
               <groupId>com.tinkerpop</groupId>
               <artifactId>gremlin</artifactId>
               <version>${gremlin.version}</version>
-              <scope>optional</scope>
+              <optional>true</optional>
             </dependency>
 
 			<dependency>
