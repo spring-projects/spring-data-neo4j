@@ -37,3 +37,4 @@ Import-Package:
  net.sf.cglib.proxy;version="[2.2.0,3.0.0)",
  net.sf.cglib.core;version="[2.2.0,3.0.0)",
  net.sf.cglib.reflect;version="[2.2.0,3.0.0)"
+DynamicImport-Package: *
