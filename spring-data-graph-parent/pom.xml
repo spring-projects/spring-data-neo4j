@@ -452,7 +452,7 @@
 	<pluginRepositories>
 		<pluginRepository>
 			<!-- necessary for utils -->
-			<id>repository.plugin.springsource.release</id>
+            <id>repository.springsource.maven.bundles.release</id>
 			<name>SpringSource Maven Repository</name>
 			<url>http://repository.springsource.com/maven/bundles/release</url>
 		</pluginRepository>
