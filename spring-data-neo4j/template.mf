@@ -18,6 +18,7 @@ Import-Template:
  org.springframework.persistence.*;version="[1.0.0, 2.0.0)",
  org.springframework.data.neo4j.*;version="0",
  org.neo4j.*;version="0",
+ org.neo4j.cypher.*;version="0";resolution:=optional,
  org.w3c.dom.*;version="0",
  org.aspectj.*;version="[1.6.5, 2.0.0)",
  org.apache.commons.logging.*;version="[1.1.1, 2.0.0)",
@@ -33,9 +34,8 @@ Import-Template:
  javax.transaction.*;version="[1.0.1, 2.0.0)";resolution:=optional,
  com.tinkerpop.blueprints.*;version="[0.8,1.0)";resolution:=optional,
  com.tinkerpop.gremlin.*;version="[1.1,2.0)";resolution:=optional
-Excluded-Imports:
- org.neo4j.*.impl.*
 Import-Package: 
  net.sf.cglib.proxy;version="[2.2.0,3.0.0)",
  net.sf.cglib.core;version="[2.2.0,3.0.0)",
  net.sf.cglib.reflect;version="[2.2.0,3.0.0)"
+DynamicImport-Package: *

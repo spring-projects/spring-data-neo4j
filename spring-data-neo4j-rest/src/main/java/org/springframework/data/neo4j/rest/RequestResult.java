@@ -39,7 +39,7 @@ public class RequestResult {
     public static RequestResult extractFrom(ClientResponse clientResponse) {
         final int status = clientResponse.getStatus();
         final URI location = clientResponse.getLocation();
-        final String data = status != Response.Status.NO_CONTENT.getStatusCode() ? clientResponse.getEntity(String.class) : null;
+		final String data = status != Response.Status.NO_CONTENT.getStatusCode() ? clientResponse.getEntity(String.class) : null;
         clientResponse.close();
         return new RequestResult(status, location, data);
     }

@@ -191,20 +191,20 @@
               <groupId>com.tinkerpop.blueprints</groupId>
               <artifactId>blueprints-core</artifactId>
               <version>${blueprints.version}</version>
-              <scope>optional</scope>
+              <optional>true</optional>
             </dependency>
             <dependency>
               <groupId>com.tinkerpop.blueprints</groupId>
               <artifactId>blueprints-neo4j-graph</artifactId>
               <version>${blueprints.version}</version>
-              <scope>optional</scope>
+              <optional>true</optional>
             </dependency>
 
             <dependency>
               <groupId>com.tinkerpop</groupId>
               <artifactId>gremlin</artifactId>
               <version>${gremlin.version}</version>
-              <scope>optional</scope>
+              <optional>true</optional>
             </dependency>
 
 			<dependency>
@@ -388,7 +388,8 @@
 			</plugin>
             <plugin>
                 <groupId>com.mycila.maven-license-plugin</groupId>
-                <artifactId>maven-license-plugin</artifactId>                
+                <artifactId>maven-license-plugin</artifactId>
+                <version>1.9.0</version>                
                 <executions>
                   <execution>
                     <id>check-licenses</id>
@@ -452,7 +453,7 @@
 	<pluginRepositories>
 		<pluginRepository>
 			<!-- necessary for utils -->
-			<id>repository.plugin.springsource.release</id>
+            <id>repository.springsource.maven.bundles.release</id>
 			<name>SpringSource Maven Repository</name>
 			<url>http://repository.springsource.com/maven/bundles/release</url>
 		</pluginRepository>
