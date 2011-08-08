@@ -73,10 +73,6 @@
             <scope>test</scope>
           <exclusions>
               <exclusion>
-                  <groupId>com.tinkerpop</groupId>
-                  <artifactId>gremlin</artifactId>
-              </exclusion>
-              <exclusion>
                   <groupId>org.neo4j</groupId>
                   <artifactId>neo4j</artifactId>
               </exclusion>

@@ -18,7 +18,9 @@ package org.springframework.data.neo4j.rest.support;
 
 import org.apache.commons.configuration.Configuration;
 import org.mortbay.component.LifeCycle;
+import org.mortbay.jetty.NCSARequestLog;
 import org.mortbay.jetty.Server;
+import org.mortbay.jetty.handler.RequestLogHandler;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.kernel.AbstractGraphDatabase;
 import org.neo4j.server.AddressResolver;
@@ -101,19 +103,18 @@ public class LocalTestServer {
                 return hostname;
             }
         };
+        final JettyStartupListener startupListener = new JettyStartupListener();
         final Jetty6WebServer jettyWebServer = new Jetty6WebServer() {
             @Override
             protected void startJetty() {
                 final Server jettyServer = getJetty();
                 jettyServer.setStopAtShutdown(true);
-                final JettyStartupListener startupListener = new JettyStartupListener();
-                jettyServer.getServer().addLifeCycleListener(startupListener);
-                // System.err.println("jetty is started before notification " + jettyServer.isStarted());
-
+                final Server server = jettyServer.getServer();
+                server.addLifeCycleListener(startupListener);
+                addAccessLogHandler(server);
                 super.startJetty();
 
                 startupListener.await();
-                // System.err.println("jetty is started after notification " + jettyServer.isStarted());
             }
         };
         neoServer = new NeoServerWithEmbeddedWebServer(bootstrapper
@@ -123,7 +124,15 @@ public class LocalTestServer {
                 return port;
             }
         };
+        System.err.println(neoServer.getConfiguration());
         neoServer.start();
+    }
+
+    private void addAccessLogHandler(Server server) {
+        final RequestLogHandler logHandler = new RequestLogHandler();
+        final NCSARequestLog requestLog = new NCSARequestLog("/tmp/NCSARequestLog.log");
+        logHandler.setRequestLog(requestLog);
+        server.addHandler(logHandler);
     }
 
     public void stop() {

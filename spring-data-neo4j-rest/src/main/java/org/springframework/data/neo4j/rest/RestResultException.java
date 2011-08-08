@@ -42,6 +42,6 @@ public class RestResultException extends RuntimeException {
     }
 
     public static boolean isExceptionResult(Map<?, ?> result) {
-        return result.containsKey("exception") && result.containsKey("message");
+        return result.containsKey("exception");
     }
 }
