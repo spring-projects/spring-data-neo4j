@@ -16,18 +16,57 @@
 
 package org.springframework.data.neo4j.rest;
 
-import org.neo4j.graphdb.traversal.TraversalDescription;
+import org.neo4j.graphdb.*;
+import org.neo4j.graphdb.traversal.*;
+import org.neo4j.graphdb.traversal.Traverser;
+import org.neo4j.helpers.Predicate;
 
 /**
  * @author Michael Hunger
  * @since 03.02.11
  */
 public interface RestTraversalDescription extends TraversalDescription {
-    TraversalDescription prune(ScriptLanguage language, String code);
+    RestTraversalDescription prune(ScriptLanguage language, String code);
 
-    TraversalDescription filter(ScriptLanguage language, String code);
+    RestTraversalDescription filter(ScriptLanguage language, String code);
 
-    TraversalDescription maxDepth(int depth);
+    RestTraversalDescription maxDepth(int depth);
+
+    @Override
+    RestTraversalDescription uniqueness(UniquenessFactory uniquenessFactory);
+
+    @Override
+    RestTraversalDescription uniqueness(UniquenessFactory uniquenessFactory, Object o);
+
+    @Override
+    RestTraversalDescription prune(PruneEvaluator pruneEvaluator);
+
+    @Override
+    RestTraversalDescription filter(Predicate<Path> pathPredicate);
+
+    @Override
+    RestTraversalDescription evaluator(Evaluator evaluator);
+
+    @Override
+    RestTraversalDescription order(BranchOrderingPolicy branchOrderingPolicy);
+
+    @Override
+    RestTraversalDescription depthFirst();
+
+    @Override
+    RestTraversalDescription breadthFirst();
+
+    @Override
+    RestTraversalDescription relationships(RelationshipType relationshipType);
+
+    @Override
+    RestTraversalDescription relationships(RelationshipType relationshipType, Direction direction);
+
+    @Override
+    RestTraversalDescription expand(RelationshipExpander relationshipExpander);
+
+    @Override
+    Traverser traverse(Node node);
 
     public enum ScriptLanguage {
         JAVASCRIPT;
