@@ -111,7 +111,7 @@ public class LocalTestServer {
                 jettyServer.setStopAtShutdown(true);
                 final Server server = jettyServer.getServer();
                 server.addLifeCycleListener(startupListener);
-                addAccessLogHandler(server);
+                // addAccessLogHandler(server);
                 super.startJetty();
 
                 startupListener.await();
