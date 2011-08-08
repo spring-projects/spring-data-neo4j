@@ -55,7 +55,7 @@
 ]]></programlisting>
             </example>
 
-            Now, your resources can be annotated with the beans they need, like this:
+            Now, your resources can require the spring-beans they need, annotated with <code>@Context</code> like this:
             <example>
                 <title>Jersey resource</title>
                 <programlisting language="java"><![CDATA[@Path( "/path" )
@@ -100,7 +100,7 @@ public void foo( @Context WorldRepository repo ) {
 <dependency>
   <groupId>org.springframework.data</groupId>
   <artifactId>spring-data-neo4j-rest</artifactId>
-  <version>1.1.0.M2</version>
+  <version>1.1.0</version>
 </dependency>
 ]]></programlisting>
             </example>
@@ -110,7 +110,7 @@ public void foo( @Context WorldRepository repo ) {
                 <title>REST client configuration - application context</title>
                 <programlisting language="xml"><![CDATA[<datagraph:config graphDatabaseService="graphDatabaseService"/>
 
-<bean id="graphDatabaseService" class="org.neo4j.rest.graphdb.RestGraphDatabase">
+<bean id="graphDatabaseService" class="org.springframework.data.neo4j.rest.RestGraphDatabase">
     <constructor-arg value="http://localhost:7474/db/data/"/>
 </bean>
 ]]></programlisting>

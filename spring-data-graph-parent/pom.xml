@@ -233,7 +233,14 @@
         <groupId>org.neo4j</groupId>
         <artifactId>neo4j</artifactId>
         <version>${neo4j.version}</version>
+          <exclusions>
+              <exclusion>
+                  <groupId>org.neo4j</groupId>
+                  <artifactId>neo4j-cypher</artifactId>
+              </exclusion>
+          </exclusions>
       </dependency>
+
       <dependency>
         <groupId>org.neo4j</groupId>
         <artifactId>neo4j-kernel</artifactId>
@@ -246,6 +253,12 @@
         <artifactId>server-api</artifactId>
         <version>${neo4j.version}</version>
 		<scope>provided</scope>
+      </dependency>
+      <dependency>
+          <groupId>org.neo4j</groupId>
+          <artifactId>neo4j-cypher</artifactId>
+          <version>${neo4j.version}</version>
+          <optional>true</optional>
       </dependency>
       <dependency>
         <groupId>commons-configuration</groupId>

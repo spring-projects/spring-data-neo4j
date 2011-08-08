@@ -58,12 +58,14 @@
             <groupId>org.neo4j.server.plugin</groupId>
             <artifactId>neo4j-cypher-plugin</artifactId>
             <version>${neo4j.version}</version>
+            <optional>true</optional>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.neo4j.server.plugin</groupId>
             <artifactId>neo4j-gremlin-plugin</artifactId>
             <version>${neo4j.version}</version>
+            <optional>true</optional>
             <scope>test</scope>
         </dependency>
         <dependency>

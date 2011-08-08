@@ -40,19 +40,16 @@ public class Movie {
             It is also possible to have fields that reference a set of node entities (1:N). These fields come in
             two forms, modifiable or read-only. Modifiable fields are of the type <code>java.util.Set&lt;T></code>,
             and read-only fields are <code>java.lang.Iterable&lt;T></code>, where T is a @NodeEntity-annotated
-            class. The Java implementation of generics uses type erasure, meaning that the type parameters are
-            typically not available at runtime. Therefore, the <code>elementClass</code> attribute must be
-            specified on the annotation, which must always be present for 1:N fields.
+            class.
         </para>
         <example>
             <title>Node entity with relationships</title>
             <programlisting language="java"><![CDATA[@NodeEntity
 public class Actor {
-    @RelatedTo(type = "mostPaidActor", direction = Direction.INCOMING,
-            elementClass = Movie.class)
+    @RelatedTo(type = "mostPaidActor", direction = Direction.INCOMING)
     private Set<Movie> mostPaidIn;
 
-    @RelatedTo(type = "ACTS_IN", elementClass = Movie.class)
+    @RelatedTo(type = "ACTS_IN")
     private Set<Movie> movies;
 }
 ]]></programlisting>
@@ -157,7 +154,7 @@ public class Role {
             <title>Accessing relationship entities using @RelatedToVia</title>
             <programlisting language="java"><![CDATA[@NodeEntity
 public class Actor {
-    @RelatedToVia(type = "ACTS_IN", elementClass = Role.class)
+    @RelatedToVia(type = "ACTS_IN")
     private Iterable<Role> roles;
 
     public Role playedIn(Movie movie, String title) {
