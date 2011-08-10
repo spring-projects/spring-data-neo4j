@@ -6,11 +6,11 @@
     <para>
         So far it had all been pure Spring Framework and Neo4j. However, using the Neo4j code in our domain
         classes polluted them with graph database details. For this application, we wanted to keep the domain
-        classes clean. Spring Data Graph promised to do the heavy lifting for us, so we continued with
-        investigating it.
+        classes clean. Spring Data Graph promised to do the heavy lifting for us, so we continued investigating it.
     </para>
     <para>
-        Spring Data Graph depends heavily on AspectJ weaving. Some parts of our classes would get new behavior,
+        Spring Data Graph depends heavily on AspectJ <xref linkend="reference:aspectj-details">features</xref>.
+        Some parts of our classes would get new behavior,
         but it would not be visible in our code. The upside of this is that you get rid of a lot of boilerplate
         code.
     </para>

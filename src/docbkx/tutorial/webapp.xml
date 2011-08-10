@@ -12,7 +12,8 @@
     <para>
         <example>
             <title>Controller for showing movies</title>
-            <programlisting language="java"><![CDATA[@RequestMapping(value = "/movies/{movieId}", method = RequestMethod.GET, headers = "Accept=text/html")
+            <programlisting language="java"><![CDATA[@RequestMapping(value = "/movies/{movieId}",
+method = RequestMethod.GET, headers = "Accept=text/html")
 public String singleMovieView(final Model model, @PathVariable String movieId) {
     Movie movie = repository.getMovie(movieId);
     model.addAttribute("id", movieId);
@@ -37,7 +38,7 @@ public String singleMovieView(final Model model, @PathVariable String movieId) {
         <title>Searching</title>
         <para>
             The next thing was to allow users to search for movies, so we needed some fulltext search
-            capabilities. As the index provider implementation of Neo4j is based on Apache Lucene,
+            capabilities. As the index provider implementation of Neo4j is based on <ulink href="http://lucene.apache.org/java/docs/index.html">Apache Lucene</ulink>,
             we were delighted to see that fulltext indexes were supported out of the box.
         </para>
         <para>
@@ -77,7 +78,8 @@ public String singleMovieView(final Model model, @PathVariable String movieId) {
         <para>
             <example>
                 <title>Search controller</title>
-                <programlisting language="java"><![CDATA[@RequestMapping(value = "/movies", method = RequestMethod.GET, headers = "Accept=text/html")
+                <programlisting language="java"><![CDATA[@RequestMapping(value = "/movies",
+method = RequestMethod.GET, headers = "Accept=text/html")
 public String findMovies(Model model, @RequestParam("q") String query) {
     List<Movie> movies = repository.findMovies(query, 20);
     model.addAttribute("movies", movies);

@@ -37,7 +37,7 @@
         database instead. Under the hood, properties and relationships will be created.
     </para>
     <para>
-        So how is an aspect applied to a concrete class? At compile time , the AspectJ Java compiler (ajc) takes
+        So how is an aspect applied to a concrete class? At compile time, the AspectJ Java compiler (ajc) takes
         source files and aspect definitions, and compiles the source files while adding all the necessary
         interception code for the aspects to hook in where they're declared to. This is known as compile-time
         <emphasis>weaving</emphasis>. At runtime only a small AspectJ runtime is needed, as the byte code of the

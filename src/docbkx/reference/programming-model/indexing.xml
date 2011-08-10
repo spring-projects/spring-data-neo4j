@@ -81,7 +81,7 @@ for (Person middleAgedDeveloper : graphRepository.findAllByRange("age", 20, 40))
                 <title>Fulltext indexing</title>
                 <programlisting language="java"><![CDATA[@NodeEntity
 class Person {
-    @Indexed(indexName = "person-name", fulltext=true) String name;
+    @Indexed(indexName = "people-search", fulltext=true) String name;
 }
 
 GraphRepository<Person> graphRepository = graphRepositoryFactory
@@ -121,7 +121,7 @@ Index<Node> namedPersonIndex = gdc.getIndex(Person.class, "people");
 namedPersonIndex.get("name", "Mark");
 
 // Fulltext index
-Index<Node> personFulltextIndex = gdc.getIndex(Person.class, "person-name", true);
+Index<Node> personFulltextIndex = gdc.getIndex(Person.class, "people-search", true);
 personFulltextIndex.query("name", "*cha*");
 personFulltextIndex.query("{name:*cha*}");
 ]]></programlisting>

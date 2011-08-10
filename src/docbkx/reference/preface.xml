@@ -10,7 +10,7 @@
         to nodes, relationships, and properties in the graph database.
     </para>
     <para>
-        Spring Data Graph allows anytime to drop down to the Neo4j-API level to execute functionality with
+        Spring Data Graph allows, at anytime, to drop down to the Neo4j-API level to execute functionality with
         the highest performance possible. For Integration of Neo4j and Grails/GORM please refer to the Neo4j
         <ulink url="http://www.grails.org/plugin/neo4j">grails plugin</ulink>.
     </para>

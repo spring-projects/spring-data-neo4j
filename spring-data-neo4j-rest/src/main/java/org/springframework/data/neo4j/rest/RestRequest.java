@@ -33,8 +33,8 @@ import java.util.concurrent.TimeUnit;
 
 public class RestRequest {
 
-    public static final int CONNECT_TIMEOUT = (int) TimeUnit.SECONDS.toMillis(300);
-    public static final int READ_TIMEOUT = (int) TimeUnit.SECONDS.toMillis(300);
+    public static final int CONNECT_TIMEOUT = (int) TimeUnit.SECONDS.toMillis(30);
+    public static final int READ_TIMEOUT = (int) TimeUnit.SECONDS.toMillis(30);
     private final URI baseUri;
     private final Client client;
 

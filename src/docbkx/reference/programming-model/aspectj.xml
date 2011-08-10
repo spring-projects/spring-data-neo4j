@@ -30,7 +30,7 @@
         <title>AspectJ IDE support</title>
         <para>
             As Spring Data Graph uses some advanced features of AspectJ, users may experience issues with
-            their IDE reporting errors where there in fact are none. Features that might be reported wrongfully
+            their IDE reporting errors where in fact there are none. Features that might be reported wrongfully
             include: introduction of methods to interfaces, declaration of additional interfaces for annotated
             classes, and generified introduced methods.
         </para>

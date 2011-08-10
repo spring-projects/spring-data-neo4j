@@ -4,8 +4,8 @@
     <title>Relationships</title>
     <subtitle>A convincing act</subtitle>
     <para>
-        Our application was not yet very much fun, just storing movies and actors. After all,
-        the power is in the relationships between them. Fortunately Neo4j treats relationships as first class citizens
+        Our application was not yet very much fun yet, just storing movies and actors. After all,
+        the power is in the relationships between them. Fortunately, Neo4j treats relationships as first class citizens,
         allowing them to be addressed individually and assigned properties. That allows for representing them as entities
         if needed.
     </para>
@@ -64,7 +64,7 @@ class Role {
         <title>Accessing related entities</title>
         <para>
             Now we wanted to find connected entities.
-            We already had fields for the relationships in both classes. Now it was time to annotate them
+            We already had fields for the relationships in both classes. It was time to annotate them
             correctly. It turned out that we needed to provide the target type of the fields again, due to
             Java's type erasure. The Neo4j relationship type and direction were easy to figure out.
             The direction even defaulted to outgoing, so we only had to specify it for the movie.
@@ -112,9 +112,9 @@ class Actor {
         <title>Accessing the relationship entities</title>
         <para>
             But we still couldn't access the Role relationships. It turned out that there was a separate
-            annotation <code>@RelatedToVia</code> for accessing the actual relationship entities . And we had
+            annotation <code>@RelatedToVia</code> for accessing the actual relationship entities. And we had
             to declare the field as an Iterable&lt;Role&gt;, with read-only semantics. This appeared to mean
-            that we were not able to add new roles though the field. Adding relationship entities seemed like
+            that we were not able to add new roles through the field. Adding relationship entities seemed like
             it had to be done by using <code>entity.relateTo()</code>. The annotation attributes were similar to
             those used for <code>@RelatedTo</code>. So off we went, creating our first real relationship (just kidding).
         </para>
