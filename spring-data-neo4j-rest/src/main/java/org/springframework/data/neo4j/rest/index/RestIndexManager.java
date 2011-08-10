@@ -51,7 +51,7 @@ public class RestIndexManager implements IndexManager {
         return new RestNodeIndex( restRequest, indexName, restGraphDatabase );
     }
 
-    public Index<Node> forNodes( String indexName, Map<String, String> stringStringMap ) {
+    public Index<Node> forNodes( String indexName, Map<String, String> config ) {
         return new RestNodeIndex( restRequest, indexName, restGraphDatabase );
     }
 
@@ -68,7 +68,7 @@ public class RestIndexManager implements IndexManager {
         return new RestRelationshipIndex( restRequest, indexName, restGraphDatabase );
     }
 
-    public RelationshipIndex forRelationships( String indexName, Map<String, String> stringStringMap ) {
+    public RelationshipIndex forRelationships( String indexName, Map<String, String> config ) {
         return new RestRelationshipIndex( restRequest, indexName, restGraphDatabase );
     }
 
@@ -81,12 +81,12 @@ public class RestIndexManager implements IndexManager {
         return null;
     }
 
-    public String setConfiguration( Index<? extends PropertyContainer> index, String s, String s1 ) {
-        return null;
+    public String setConfiguration( Index<? extends PropertyContainer> index, String name, String value ) {
+        throw new UnsupportedOperationException();
     }
 
-    public String removeConfiguration( Index<? extends PropertyContainer> index, String s ) {
-        return null;
+    public String removeConfiguration( Index<? extends PropertyContainer> index, String name ) {
+        throw new UnsupportedOperationException();
     }
 
     @Override
