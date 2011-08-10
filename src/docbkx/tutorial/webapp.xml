@@ -38,7 +38,7 @@ public String singleMovieView(final Model model, @PathVariable String movieId) {
         <title>Searching</title>
         <para>
             The next thing was to allow users to search for movies, so we needed some fulltext search
-            capabilities. As the index provider implementation of Neo4j is based on <ulink href="http://lucene.apache.org/java/docs/index.html">Apache Lucene</ulink>,
+            capabilities. As the index provider implementation of Neo4j is based on <ulink url="http://lucene.apache.org/java/docs/index.html">Apache Lucene</ulink>,
             we were delighted to see that fulltext indexes were supported out of the box.
         </para>
         <para>
