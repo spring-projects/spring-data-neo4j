@@ -21,7 +21,7 @@ import org.neo4j.graphdb.NotInTransactionException;
 import org.springframework.dao.InvalidDataAccessResourceUsageException;
 import org.springframework.data.neo4j.core.NodeBacked;
 import org.springframework.data.neo4j.fieldaccess.DefaultEntityState;
-import org.springframework.data.neo4j.fieldaccess.NodeDelegatingFieldAccessorFactory;
+import org.springframework.data.neo4j.fieldaccess.DelegatingFieldAccessorFactory;
 import org.springframework.data.neo4j.support.GraphDatabaseContext;
 
 /**
@@ -32,7 +32,7 @@ public class NodeEntityState<ENTITY extends NodeBacked> extends DefaultEntitySta
 
     private final GraphDatabaseContext graphDatabaseContext;
 
-    public NodeEntityState(final Node underlyingState, final ENTITY entity, final Class<? extends ENTITY> type, final GraphDatabaseContext graphDatabaseContext, final NodeDelegatingFieldAccessorFactory nodeDelegatingFieldAccessorFactory) {
+    public NodeEntityState(final Node underlyingState, final ENTITY entity, final Class<? extends ENTITY> type, final GraphDatabaseContext graphDatabaseContext, final DelegatingFieldAccessorFactory<NodeBacked> nodeDelegatingFieldAccessorFactory) {
         super(underlyingState, entity, type, nodeDelegatingFieldAccessorFactory);
         this.graphDatabaseContext = graphDatabaseContext;
     }
