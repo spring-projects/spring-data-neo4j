@@ -12,6 +12,14 @@
 		<module>spring-data-neo4j</module>
 		<module>spring-data-neo4j-rest</module>
 	</modules>
+    <description><![CDATA[
+    Within the Spring Data project the Spring Data Graph library provides integration with the Neo4j graph database, offering object graph mapping, a Neo4jTemplate and Spring-Data-Commons Repository implementations.
+    ]]></description>
+    <url>http://www.springsource.org/spring-data/neo4j</url>
+    <organization>
+    		<name>SpringSource</name>
+    		<url>http://www.springsource.com</url>
+    </organization>
 
 	<developers>
 		<developer>
@@ -22,7 +30,6 @@
 			<organizationUrl>http://www.SpringSource.com</organizationUrl>
 			<roles>
 				<role>Project Admin</role>
-				<role>Developer</role>
 			</roles>
 			<timezone>-5</timezone>
 		</developer>
@@ -34,7 +41,6 @@
 			<organizationUrl>http://www.SpringSource.com</organizationUrl>
 			<roles>
 				<role>Project Admin</role>
-				<role>Developer</role>
 			</roles>
 			<timezone>-5</timezone>
 		</developer>
@@ -45,6 +51,7 @@
 			<organization>Neo Technology</organization>
 			<organizationUrl>http://www.neotechnology.com</organizationUrl>
 			<roles>
+				<role>Project Admin</role>
 				<role>Developer</role>
 			</roles>
 			<timezone>+1</timezone>
@@ -113,7 +120,7 @@
 		<dist.secretKey>s3 secret key</dist.secretKey>
 		-->
 	</properties>
-	<profiles>
+	<!--profiles>
 		<profile>
 			<id>staging</id>
 			<distributionManagement>
@@ -133,7 +140,7 @@
 		</profile>
 	</profiles>
 	<distributionManagement>
-		<!-- see 'staging' profile for dry-run deployment settings -->
+		<!- see 'staging' profile for dry-run deployment settings ->
 		<downloadUrl>http://www.springsource.com/spring-data</downloadUrl>
 		<site>
 			<id>static.springframework.org</id>
@@ -149,7 +156,7 @@
 			<name>Spring Snapshot Repository</name>
 			<url>s3://maven.springframework.org/snapshot</url>
 		</snapshotRepository>
-	</distributionManagement>
+	</distributionManagement-->
 	<build>
 		<extensions>
 			<extension>
@@ -291,12 +298,12 @@
             </plugin>
 			<plugin>
 				<artifactId>maven-javadoc-plugin</artifactId>
-				<version>2.5</version>
+				<version>2.7</version>
 				<configuration>
 					<javadoc:aggregate>true</javadoc:aggregate>
 					<breakiterator>true</breakiterator>
 					<header>Spring Data Graph</header>
-					<source>1.5</source>
+					<source>1.6</source>
 					<quiet>true</quiet>
 					<javadocDirectory>${project.basedir}/src/main/javadoc</javadocDirectory>
 					<overview>${project.basedir}/src/main/javadoc/overview.html</overview>
@@ -321,7 +328,7 @@
                     </descriptors>
                     <appendAssemblyId>false</appendAssemblyId>
                 </configuration>
-				<executions>
+				<!--executions> accodring to: http://www.sonatype.com/books/mvnref-book/reference/assemblies-sect-basics.html
 					<execution>
 						<id>distribution</id>
 						<goals>
@@ -329,7 +336,7 @@
 						</goals>
 						<phase>package</phase>
 					</execution>
-				</executions>
+				</executions-->
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
