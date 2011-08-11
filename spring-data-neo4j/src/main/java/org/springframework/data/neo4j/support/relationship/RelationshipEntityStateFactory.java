@@ -19,14 +19,14 @@ package org.springframework.data.neo4j.support.relationship;
 import org.neo4j.graphdb.Relationship;
 import org.springframework.data.neo4j.core.EntityState;
 import org.springframework.data.neo4j.core.RelationshipBacked;
-import org.springframework.data.neo4j.fieldaccess.RelationshipDelegatingFieldAccessorFactory;
+import org.springframework.data.neo4j.fieldaccess.DelegatingFieldAccessorFactory;
 import org.springframework.data.neo4j.support.GraphDatabaseContext;
 
 public class RelationshipEntityStateFactory {
 
 	private GraphDatabaseContext graphDatabaseContext;
 	
-    private RelationshipDelegatingFieldAccessorFactory relationshipDelegatingFieldAccessorFactory;
+    private DelegatingFieldAccessorFactory<RelationshipBacked> relationshipDelegatingFieldAccessorFactory;
 
     public EntityState<RelationshipBacked, Relationship> getEntityState(final RelationshipBacked entity) {
 		return new RelationshipEntityState<RelationshipBacked>(null,entity,entity.getClass(), graphDatabaseContext, relationshipDelegatingFieldAccessorFactory);
@@ -37,7 +37,7 @@ public class RelationshipEntityStateFactory {
 	}
 
 	public void setRelationshipDelegatingFieldAccessorFactory(
-			RelationshipDelegatingFieldAccessorFactory delegatingFieldAccessorFactory) {
+			DelegatingFieldAccessorFactory<RelationshipBacked> delegatingFieldAccessorFactory) {
 		this.relationshipDelegatingFieldAccessorFactory = delegatingFieldAccessorFactory;
 	}
 }

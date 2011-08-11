@@ -174,12 +174,12 @@ public class Neo4jConfiguration {
     }
 
     @Bean
-    public NodeDelegatingFieldAccessorFactory nodeDelegatingFieldAccessorFactory() throws Exception {
+    public DelegatingFieldAccessorFactory<NodeBacked> nodeDelegatingFieldAccessorFactory() throws Exception {
         return new NodeDelegatingFieldAccessorFactory(graphDatabaseContext());
     }
     
     @Bean
-    public RelationshipDelegatingFieldAccessorFactory relationshipDelegatingFieldAccessorFactory() throws Exception {
+    public DelegatingFieldAccessorFactory<RelationshipBacked> relationshipDelegatingFieldAccessorFactory() throws Exception {
         return new RelationshipDelegatingFieldAccessorFactory(graphDatabaseContext());
     }
 

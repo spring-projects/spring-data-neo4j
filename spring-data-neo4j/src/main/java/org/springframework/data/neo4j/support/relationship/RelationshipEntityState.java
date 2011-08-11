@@ -32,7 +32,7 @@ public class RelationshipEntityState<ENTITY extends RelationshipBacked> extends 
 
     private final GraphDatabaseContext graphDatabaseContext;
     
-    public RelationshipEntityState(final Relationship underlyingState, final ENTITY entity, final Class<? extends ENTITY> type, final GraphDatabaseContext graphDatabaseContext, final RelationshipDelegatingFieldAccessorFactory delegatingFieldAccessorFactory) {
+    public RelationshipEntityState(final Relationship underlyingState, final ENTITY entity, final Class<? extends ENTITY> type, final GraphDatabaseContext graphDatabaseContext, final DelegatingFieldAccessorFactory<RelationshipBacked> delegatingFieldAccessorFactory) {
         super(underlyingState, entity, type, delegatingFieldAccessorFactory);
         this.graphDatabaseContext = graphDatabaseContext;
     }
