@@ -105,6 +105,20 @@
         and evaluated whenever a property is set, or when a previously detached entity is persisted to the graph.
         (see <xref linkend="reference:programming-model:validation"/>)
     </para>
+    <para>
+        Unfortunately the setup of Spring Data Graph is more involved than we'd like. That is partly due to the maven setup
+        and dependencies, which can be alleviated by using different build systems like gradle or ant/ivy. The Spring configuration
+        itself boils down to two lines of <code>&lt;datagraph&gt;</code> namespace setup. (see <xref linkend="setup"/>)
+    </para>
+    <para>
+        Spring Data Graph can also be used in a JPA environment to add graph features to your JPA entities. In the <xref linkend="reference:cross-store"/>
+        the slightly different behavior and setup of a Graph-JPA interaction are described.
+    </para>
+    <para>
+        The provided samples, which are also publicly hosted on <ulink url="http://github.com/springsource/spring-data-graph-examples">github</ulink> are explained in
+        <xref linkend="reference:samples"/>.
+    </para>
+
 <!--
         <xi:include href="reference/neo4j.xml"/>
         <xi:include href="reference/programming-model/programming-model.xml"/>

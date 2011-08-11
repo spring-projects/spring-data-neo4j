@@ -5,7 +5,6 @@
 	<groupId>org.springframework.data</groupId>
 	<artifactId>spring-data-graph-parent</artifactId>
 	<name>Spring Data Graph Parent</name>
-	<url>http://www.springsource.org/spring-data/data-graph</url>
 	<version>1.1.0.BUILD-SNAPSHOT</version>
 	<packaging>pom</packaging>
     <description><![CDATA[
