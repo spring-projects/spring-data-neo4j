@@ -30,7 +30,8 @@
             visit the <ulink url="http://wiki.neo4j.org/content/Main_Page#Language_and_framework_bindings">Neo4j Wiki</ulink>.
         </para>
     </section>
-
+    <section>
+        <title>Reference Documentation Overview</title>
     <para>
         The explanation of Spring Data Graphs programming model starts with some underlying details.
         The basic internal workings of Spring Data Graph are explained in the initial chapter about AspectJ <xref linkend="reference:aspectj"/>.
@@ -42,6 +43,10 @@
         mark domain objects to be backed by nodes and relationships of the graph database. For individual fields the
         annotations allow you to declare how they should be processed and mapped to the graph. For property fields and
         references to other entities this is straightforward.
+    </para>
+    <para>
+        To use advanced functionality like traversals, Cypher and Gremlin, a basic understanding of the graph data model is required.
+        The graph data model is explained in the chapter about <xref linkend="neo4j">Neo4j</xref>.
     </para>
     <para>
         Relationships between entities are first class citizens in a graph database and therefore worth a separate
@@ -124,10 +129,6 @@
         <xi:include href="reference/neo4j-server.xml" />
 -->
     <para>
-        To use advanced functionality like traversals, Cypher and Gremlin, a basic understanding of the graph data model is required.
-        The graph data model is explained in the chapter about <xref linkend="neo4j">Neo4j</xref>.
-    </para>
-    <para>
         <note>
             <para>
                As Spring Data Graph is based on AspectJ and uses some advanced features of that toolset, please
@@ -136,4 +137,6 @@
             </para>
         </note>
     </para>
+    </section>
+
 </preface>
