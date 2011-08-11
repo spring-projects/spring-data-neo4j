@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE section PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
-<section>
+<section id="reference:programming-model:lifecycle">
     <title>Detached node entities</title>
     <para>
         Node entities can be in two different persistence state: attached or detached. By default, newly created node

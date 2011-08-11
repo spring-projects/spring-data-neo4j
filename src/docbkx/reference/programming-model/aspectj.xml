@@ -11,12 +11,10 @@
     </para>
     <para>
         The aspect introduces some internal fields and some public methods
-        (see <xref linkend="reference:programming-model:introduced-methods"/>) in the entities, such as
+        (see <xref linkend="reference:programming-model:introduced-methods"/>) to the entities, such as
         <code>entity.getPersistentState()</code> and <code>entity.relateTo</code>.
-        It also introduces repository methods like
-        <code>find(Class&lt;? extends NodeEntity>, TraversalDescription)</code>,
-        and <code>equals()</code> and <code>hashCode</code> delegation, making <code>equals()</code>
-        honor the backing state.
+        It also introduces repository methods like<code>find(Class&lt;? extends NodeEntity>, TraversalDescription)</code>.
+        Introduced methods for <code>equals()</code> and <code>hashCode()</code> use the underlying node or relationship.
     </para>
     <para>
         Spring Data Graph internally uses an abstraction called <code>EntityState</code> that the field
@@ -24,7 +22,7 @@
         minimum, focusing mainly on the pointcuts and delegation code. The <code>EntityState</code> then uses
         a number of <code>FieldAccessorFactories</code> to create a <code>FieldAccessor</code> instance per
         field that does the specific handling needed for the concrete field type. There are various layers of
-        caching involved as well, so it handles repeat instantiation efficiently.
+        caching involved as well, so it handles repeated instantiation efficiently.
     </para>
     <section>
         <title>AspectJ IDE support</title>
@@ -50,7 +48,8 @@
         </para>
         <note>
         <para>
-            There might be some issues with the eclipse maven plugin not adding AspectJ files correctly to the build path. If you encounter issues, please try the following:
+            There might be some issues with the eclipse maven plugin not adding AspectJ files correctly to the build path.
+            If you encounter issues, please try the following:
 
             Try editing the build path to <code>include **/*.aj</code> for the spring-data-neo4j project.
             You can do this by selecting "Build Path -> Configure Build Path ..." from the Package Explorer.
