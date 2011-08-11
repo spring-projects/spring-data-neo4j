@@ -58,12 +58,14 @@
             <groupId>org.neo4j.server.plugin</groupId>
             <artifactId>neo4j-cypher-plugin</artifactId>
             <version>${neo4j.version}</version>
+            <optional>true</optional>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.neo4j.server.plugin</groupId>
             <artifactId>neo4j-gremlin-plugin</artifactId>
             <version>${neo4j.version}</version>
+            <optional>true</optional>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -72,10 +74,6 @@
             <version>${neo4j.version}</version>
             <scope>test</scope>
           <exclusions>
-              <exclusion>
-                  <groupId>com.tinkerpop</groupId>
-                  <artifactId>gremlin</artifactId>
-              </exclusion>
               <exclusion>
                   <groupId>org.neo4j</groupId>
                   <artifactId>neo4j</artifactId>

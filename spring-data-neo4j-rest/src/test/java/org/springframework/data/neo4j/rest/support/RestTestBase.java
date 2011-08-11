@@ -22,6 +22,7 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.neo4j.graphdb.Direction;
+import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.springframework.data.neo4j.rest.RestGraphDatabase;
@@ -31,7 +32,7 @@ import java.util.Iterator;
 
 public class RestTestBase {
 
-    protected RestGraphDatabase graphDb;
+    protected RestGraphDatabase restGraphDatabase;
     private static final String HOSTNAME = "127.0.0.1";
     public static final int PORT = 7473;
     protected static LocalTestServer neoServer = new LocalTestServer(HOSTNAME,PORT).withPropertiesFile("test-db.properties");
@@ -46,7 +47,7 @@ public class RestTestBase {
     @Before
     public void setUp() throws Exception {
         cleanDb();
-        graphDb = new RestGraphDatabase(new URI(SERVER_ROOT_URI));
+        restGraphDatabase = new RestGraphDatabase(new URI(SERVER_ROOT_URI));
     }
 
     public static void cleanDb() {
@@ -56,16 +57,20 @@ public class RestTestBase {
     @AfterClass
     public static void shutdownDb() {
         neoServer.stop();
-
     }
+
+    public GraphDatabaseService getGraphDatabase() {
+        return neoServer.getGraphDatabase();
+    }
+
 
     protected Relationship relationship() {
         Iterator<Relationship> it = node().getRelationships(Direction.OUTGOING).iterator();
         if (it.hasNext()) return it.next();
-        return node().createRelationshipTo(graphDb.createNode(null), Type.TEST);
+        return node().createRelationshipTo(restGraphDatabase.createNode(null), Type.TEST);
     }
 
     protected Node node() {
-        return graphDb.getReferenceNode();
+        return restGraphDatabase.getReferenceNode();
     }
 }

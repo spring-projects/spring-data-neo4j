@@ -46,7 +46,22 @@ public class RestGremlinQueryEngine implements QueryEngine<Object> {
     public QueryResult<Object> query(String statement, Map<String, Object> params) {
         final String data = JsonHelper.createJsonFrom(MapUtil.map("script", statement,"params",params));
         final RequestResult requestResult = restRequest.get("ext/GremlinPlugin/graphdb/execute_script", data);
-        return new RestQueryResult(JsonHelper.readJson(requestResult.getEntity()),restGraphDatabase,resultConverter);
+        final Object result = JsonHelper.readJson(requestResult.getEntity());
+        if (requestResult.getStatus() == 500) {
+            return handleError(result);
+        } else {
+            return new RestQueryResult(result,restGraphDatabase,resultConverter);
+        }
+    }
+
+    private QueryResult<Object> handleError(Object result) {
+        if (result instanceof Map) {
+            Map<?, ?> mapResult = (Map<?, ?>) result;
+            if (RestResultException.isExceptionResult(mapResult)) {
+                throw new RestResultException(mapResult);
+            }
+        }
+        throw new RestResultException(Collections.singletonMap("exception", result.toString()));
     }
 
     static class RestQueryResult<T> implements QueryResult<T> {

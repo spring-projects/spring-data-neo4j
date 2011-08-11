@@ -16,7 +16,7 @@
         <ulink url="http://wiki.neo4j.org/content/Traversal_Framework">Traversal Description</ulink>.
     </para>
     <para>
-        We also learned that Neo4j is fully transactional and therefore upholds ACID guarantees for our data.
+        We also learned that Neo4j is fully transactional and therefore upholds <ulink url="http://en.wikipedia.org/wiki/ACID">ACID</ulink> guarantees for our data.
         This is unusual for NOSQL databases, but easier for us to get our head around than non-transactional
         eventual consistency. It also made us feel safe, though it also meant that we had to manage transactions.
         Something to keep in mind for later.

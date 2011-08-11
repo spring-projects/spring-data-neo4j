@@ -21,8 +21,10 @@
 "status":"Released",
 "tagline":"One Witness. One Camera",
 "certification":"R",
-"overview":"\"REC\" turns on a young TV reporter and her cameraman who cover the night shift at the local fire station...
-"keywords":["terror", "lebende leichen", "obsession", "camcorder", "firemen", "reality tv ", "bite", "cinematographer",
+"overview":"\"REC\" turns on a young TV reporter and her cameraman who cover the night shift
+ at the local fire station...
+"keywords":["terror", "lebende leichen", "obsession", "camcorder", "firemen", "reality tv ",
+ "bite", "cinematographer",
 "attempt to escape", "virus", "lodger", "live-reportage", "schwerverletzt"],
 "released":"2007-08-29",
 "runtime":78,
@@ -39,14 +41,15 @@
 "countries":[{"code":"ES", "name":"Spain", "url":"http://www.themoviedb.org/country/es"}],
 "posters":[{"image":{"type":"poster",
 "size":"original", "height":1000, "width":706,
-"url":"http://cf1.imgobject.com/posters/3a0/4cc8df415e73d650240003a0/rec-original.jpg", "id":"4cc8df415e73d650240003a0"}},
+"url":"http://cf1.imgobject.com/posters/3a0/4cc8df415e73d650240003a0/rec-original.jpg",
+"id":"4cc8df415e73d650240003a0"}},
 ....
 "cast":[{"name":"Manuela Velasco",
 "job":"Actor", "department":"Actors",
 "character":"Angela Vidal",
 "id":34793, "order":0, "cast_id":1,
 "url":"http://www.themoviedb.org/person/34793",
-"profile":"http://cf1.imgobject.com/profiles/390/4c0157fa017a3c702d001390/manuela-velasco-thumb.jpg"},
+"profile":"http://cf1.imgobject.com/profiles/390/.../manuela-velasco-thumb.jpg"},
 ...
 {"name":"Gl\u00f2ria Viguer",
 "job":"Costume Design", "department":"Costume \u0026 Make-Up",
@@ -73,7 +76,7 @@
 "character":"The Frankenstein Monster",
 "cast_id":23,
 "url":"http://www.themoviedb.org/movie/3073",
-"poster":"http://cf1.imgobject.com/posters/4ca/4bc9185d017a3c57fe0094ca/bud-abbott-lou-costello-meet-frankenstein-cover.jpg",
+"poster":"http://cf1.imgobject.com/posters/4ca/.../bud-abbott-lou-costello-meet-frankenstein-cover.jpg",
 "adult":false, "release":"1948-06-15"},
 ...],
 "profile":[],
@@ -102,7 +105,8 @@ public Movie importMovie(String movieId) {
     }
 
     Map data = loadMovieData(movieId);
-    if (data.containsKey("not_found")) throw new RuntimeException("Data for Movie "+movieId+" not found.");
+    if (data.containsKey("not_found"))
+            throw new RuntimeException("Data for Movie "+movieId+" not found.");
     movieDbJsonMapper.mapToMovie(data, movie);
     movie.persist();
     relatePersonsToMovie(movie, data);

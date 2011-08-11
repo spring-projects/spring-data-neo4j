@@ -12,7 +12,7 @@
         Property fields were taken care of automatically.
     </para>
     <para>
-        It was time to put our entities to a test. How could we now be assured that a attribute really was persisted to
+        It was time to put our entities to a test. How could we now be assured that an attribute really was persisted to
         the graph store? We wanted to load the entity and check the attribute.
 
         Either we could have a GraphDatabaseContext injected and use its <code>getById(entityId)</code>
@@ -48,12 +48,11 @@
         need external transactions, but not for this simple test.
     </para>
     <para>
-        Our domain model had now evolved.
         <example>
-            <title>Movie class</title>
+            <title>Movie class with annotation</title>
             <programlisting language="java"><![CDATA[@NodeEntity
 class Movie {
-    int id;
+    String id;
     String title;
     int year;
     Set<Role> cast;

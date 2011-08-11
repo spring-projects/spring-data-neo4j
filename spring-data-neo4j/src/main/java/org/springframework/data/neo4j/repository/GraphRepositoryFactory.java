@@ -92,12 +92,9 @@ public class GraphRepositoryFactory extends RepositoryFactorySupport {
     @Override
     protected Class<?> getRepositoryBaseClass(RepositoryMetadata repositoryMetadata) {
         Class<?> domainClass = repositoryMetadata.getDomainClass();
-        if (findAnnotation(domainClass, NodeEntity.class) !=null) {
-            return NodeGraphRepository.class;
-        }
-        if (findAnnotation(domainClass, RelationshipEntity.class) !=null) {
-            return RelationshipGraphRepository.class;
-        }
+        final GraphEntityInformation entityInformation = (GraphEntityInformation) getEntityInformation(domainClass);
+        if (entityInformation.isNodeEntity()) return NodeGraphRepository.class;
+        if (entityInformation.isRelationshipEntity()) return RelationshipGraphRepository.class;
         throw new IllegalArgumentException("Invalid Domain Class "+ domainClass+" neither Node- nor RelationshipEntity");
     }
 

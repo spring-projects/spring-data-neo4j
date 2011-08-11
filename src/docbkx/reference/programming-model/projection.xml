@@ -29,7 +29,7 @@
         <programlisting language="java"><![CDATA[@NodeEntity
 class Trainee {
     String name;
-    @RelatedTo(elementClass=Training.class);
+    @RelatedTo
     Set<Training> trainings;
 }
 

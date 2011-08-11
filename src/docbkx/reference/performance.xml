@@ -24,7 +24,7 @@
             <!--frameworks and libraries that expect Java POJOs as input or create them as results.-->
         <!--</para>-->
         <para>
-            Spring Data Graph was however not designed with a major focus on performance. It does add some overhead
+            Spring Data Graph, however, was not designed with a major focus on performance. It does add some overhead
             to pure graph operations. Something to keep in mind is that any access of properties and relationships
             will in general read through down to the database. To avoid multiple reads, it is sensible to store the
             result in a local variable in suitable scope (e.g. method, class or jsp).

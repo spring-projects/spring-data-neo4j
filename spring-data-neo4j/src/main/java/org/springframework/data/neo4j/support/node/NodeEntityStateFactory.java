@@ -20,8 +20,8 @@ import org.neo4j.graphdb.Node;
 import org.springframework.data.neo4j.annotation.NodeEntity;
 import org.springframework.data.neo4j.core.EntityState;
 import org.springframework.data.neo4j.core.NodeBacked;
+import org.springframework.data.neo4j.fieldaccess.DelegatingFieldAccessorFactory;
 import org.springframework.data.neo4j.fieldaccess.DetachedEntityState;
-import org.springframework.data.neo4j.fieldaccess.NodeDelegatingFieldAccessorFactory;
 import org.springframework.data.neo4j.support.GraphDatabaseContext;
 
 import javax.annotation.PostConstruct;
@@ -34,7 +34,7 @@ public class NodeEntityStateFactory {
 	
     private EntityManagerFactory entityManagerFactory;
 
-    private NodeDelegatingFieldAccessorFactory nodeDelegatingFieldAccessorFactory;
+    private DelegatingFieldAccessorFactory<NodeBacked> nodeDelegatingFieldAccessorFactory;
 
     private PartialNodeEntityState.PartialNodeDelegatingFieldAccessorFactory delegatingFieldAccessorFactory;
 
@@ -61,7 +61,7 @@ public class NodeEntityStateFactory {
     }
 
     public void setNodeDelegatingFieldAccessorFactory(
-			NodeDelegatingFieldAccessorFactory nodeDelegatingFieldAccessorFactory) {
+            DelegatingFieldAccessorFactory<NodeBacked> nodeDelegatingFieldAccessorFactory) {
 		this.nodeDelegatingFieldAccessorFactory = nodeDelegatingFieldAccessorFactory;
 	}
 	

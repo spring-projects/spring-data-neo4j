@@ -114,7 +114,7 @@ public class RestNode extends RestEntity implements Node {
     @Override
     public boolean hasRelationship(Direction direction, RelationshipType... types) {
         for (RelationshipType relationshipType : types) {
-            if (hasRelationship(direction,relationshipType)) return true;
+            if (hasRelationship(relationshipType, direction)) return true;
         }
         return false;
     }

@@ -30,18 +30,19 @@ import org.springframework.core.convert.ConversionService;
 import org.springframework.dao.support.PersistenceExceptionTranslator;
 import org.springframework.data.neo4j.core.NodeBacked;
 import org.springframework.data.neo4j.core.RelationshipBacked;
+import org.springframework.data.neo4j.fieldaccess.DelegatingFieldAccessorFactory;
 import org.springframework.data.neo4j.fieldaccess.Neo4jConversionServiceFactoryBean;
 import org.springframework.data.neo4j.fieldaccess.NodeDelegatingFieldAccessorFactory;
 import org.springframework.data.neo4j.repository.DirectGraphRepositoryFactory;
-import org.springframework.data.neo4j.support.node.NodeEntityStateFactory;
-import org.springframework.data.neo4j.support.relationship.RelationshipEntityStateFactory;
 import org.springframework.data.neo4j.support.GraphDatabaseContext;
-import org.springframework.data.neo4j.support.typerepresentation.TypeRepresentationStrategyFactory;
 import org.springframework.data.neo4j.support.node.Neo4jNodeBacking;
 import org.springframework.data.neo4j.support.node.NodeEntityInstantiator;
+import org.springframework.data.neo4j.support.node.NodeEntityStateFactory;
 import org.springframework.data.neo4j.support.node.PartialNodeEntityInstantiator;
 import org.springframework.data.neo4j.support.relationship.Neo4jRelationshipBacking;
 import org.springframework.data.neo4j.support.relationship.RelationshipEntityInstantiator;
+import org.springframework.data.neo4j.support.relationship.RelationshipEntityStateFactory;
+import org.springframework.data.neo4j.support.typerepresentation.TypeRepresentationStrategyFactory;
 import org.springframework.data.neo4j.template.Neo4jExceptionTranslator;
 import org.springframework.data.neo4j.transaction.ChainedTransactionManager;
 import org.springframework.data.persistence.EntityInstantiator;
@@ -162,15 +163,17 @@ public class Neo4jConfiguration {
 
     @Bean
     public NodeEntityStateFactory nodeEntityStateFactory() throws Exception {
-        final GraphDatabaseContext graphDatabaseContext = graphDatabaseContext();
-        final DirectGraphRepositoryFactory graphRepositoryFactory = directGraphRepositoryFactory();
 
         NodeEntityStateFactory entityStateFactory = new NodeEntityStateFactory();
-        entityStateFactory.setGraphDatabaseContext(graphDatabaseContext);
+        entityStateFactory.setGraphDatabaseContext(graphDatabaseContext());
         entityStateFactory.setEntityManagerFactory(entityManagerFactory);
-        final NodeDelegatingFieldAccessorFactory nodeDelegatingFieldAccessorFactory = new NodeDelegatingFieldAccessorFactory(graphDatabaseContext);
-        entityStateFactory.setNodeDelegatingFieldAccessorFactory(nodeDelegatingFieldAccessorFactory);
+        entityStateFactory.setNodeDelegatingFieldAccessorFactory(nodeDelegatingFieldAccessorFactory());
         return entityStateFactory;
+    }
+
+    @Bean
+    public DelegatingFieldAccessorFactory<NodeBacked> nodeDelegatingFieldAccessorFactory() throws Exception {
+        return new NodeDelegatingFieldAccessorFactory(graphDatabaseContext());
     }
 
     @Bean

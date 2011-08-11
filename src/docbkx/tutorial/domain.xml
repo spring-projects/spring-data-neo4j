@@ -64,6 +64,7 @@ class Rating {
         </example>
     </para>
     <para>
-        Then we wrote some tests to show how the basic plumbing works.
+        Then we wrote some simple tests to show that the basic design of the domain is good enough so far. Just creating
+        a movie populating it with actors and having it rated by a user and its friends.
     </para>
 </chapter>

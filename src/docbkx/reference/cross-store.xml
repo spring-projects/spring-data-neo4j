@@ -81,10 +81,10 @@ public class UserAccount {
     @GraphProperty
     String nickname;
 
-    @RelatedTo(type = "friends", elementClass = UserAccount.class)
+    @RelatedTo
     Set<UserAccount> friends;
 
-    @RelatedToVia(type = "recommends", elementClass = Recommendation.class)
+    @RelatedToVia(type = "recommends")
     Iterable<Recommendation> recommendations;
 
     @Temporal(TemporalType.TIMESTAMP)
@@ -99,12 +99,10 @@ public class UserAccount {
     @Column(name = "id")
     private Long id;
 
-    @Transactional
     public void knows(UserAccount friend) {
         relateTo(friend, "friends");
     }
 
-    @Transactional
     public Recommendation rate(Restaurant restaurant, int stars, String comment) {
         Recommendation recommendation = relateTo(restaurant, Recommendation.class, "recommends");
         recommendation.rate(stars, comment);

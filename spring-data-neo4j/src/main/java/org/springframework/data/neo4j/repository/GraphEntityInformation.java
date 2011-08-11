@@ -28,4 +28,5 @@ public interface GraphEntityInformation<S extends PropertyContainer, T extends G
 
     boolean isNodeEntity();
     boolean isPartialEntity();
+    boolean isRelationshipEntity();
 }
