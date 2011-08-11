@@ -124,11 +124,6 @@
 		    </bean>
     	</property>
     	<property name="graphDatabaseContext" ref="graphDatabaseContext"/>
-        <property name="relationshipDelegatingFieldAccessorFactory">
-            <bean class="org.springframework.data.neo4j.fieldaccess.RelationshipDelegatingFieldAccessorFactory">
-                <constructor-arg ref="graphDatabaseContext"/>
-            </bean>
-        </property>
     </bean>
 
 	<bean id="graphRepositoryFactory" class="org.springframework.data.neo4j.repository.DirectGraphRepositoryFactory">
