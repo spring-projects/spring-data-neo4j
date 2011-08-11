@@ -19,27 +19,25 @@ package org.springframework.data.neo4j.support.relationship;
 import org.neo4j.graphdb.Relationship;
 import org.springframework.data.neo4j.core.EntityState;
 import org.springframework.data.neo4j.core.RelationshipBacked;
+import org.springframework.data.neo4j.fieldaccess.DelegatingFieldAccessorFactory;
 import org.springframework.data.neo4j.support.GraphDatabaseContext;
-
-import javax.annotation.PostConstruct;
 
 public class RelationshipEntityStateFactory {
 
 	private GraphDatabaseContext graphDatabaseContext;
 	
-    private RelationshipEntityState.RelationshipStateDelegatingFieldAccessorFactory delegatingFieldAccessorFactory;
+    private DelegatingFieldAccessorFactory<RelationshipBacked> relationshipDelegatingFieldAccessorFactory;
 
     public EntityState<RelationshipBacked, Relationship> getEntityState(final RelationshipBacked entity) {
-		return new RelationshipEntityState<RelationshipBacked>(null,entity,entity.getClass(), graphDatabaseContext, delegatingFieldAccessorFactory);
+		return new RelationshipEntityState<RelationshipBacked>(null,entity,entity.getClass(), graphDatabaseContext, relationshipDelegatingFieldAccessorFactory);
 	}
 
 	public void setGraphDatabaseContext(GraphDatabaseContext graphDatabaseContext) {
 		this.graphDatabaseContext = graphDatabaseContext;
 	}
 
-    @PostConstruct
-    private void setUp() {
-       this.delegatingFieldAccessorFactory =  new RelationshipEntityState.RelationshipStateDelegatingFieldAccessorFactory(graphDatabaseContext);
-    }
-
+	public void setRelationshipDelegatingFieldAccessorFactory(
+			DelegatingFieldAccessorFactory<RelationshipBacked> delegatingFieldAccessorFactory) {
+		this.relationshipDelegatingFieldAccessorFactory = delegatingFieldAccessorFactory;
+	}
 }
