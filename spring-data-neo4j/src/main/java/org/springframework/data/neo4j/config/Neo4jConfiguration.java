@@ -141,8 +141,7 @@ public class Neo4jConfiguration {
 	public Neo4jRelationshipBacking neo4jRelationshipBacking() throws Exception {
 		Neo4jRelationshipBacking aspect = Neo4jRelationshipBacking.aspectOf();
 		aspect.setGraphDatabaseContext(graphDatabaseContext());
-        RelationshipEntityStateFactory entityStateFactory = relationshipEntityStateFactory();
-		aspect.setRelationshipEntityStateFactory(entityStateFactory);
+        aspect.setRelationshipEntityStateFactory(relationshipEntityStateFactory());
 		return aspect;
 	}
 
