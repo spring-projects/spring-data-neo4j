@@ -16,17 +16,17 @@
 
 package org.springframework.data.neo4j.support.node;
 
+import javax.annotation.PostConstruct;
+import javax.persistence.EntityManagerFactory;
+import javax.persistence.PersistenceUnitUtil;
+
 import org.neo4j.graphdb.Node;
 import org.springframework.data.neo4j.annotation.NodeEntity;
 import org.springframework.data.neo4j.core.EntityState;
 import org.springframework.data.neo4j.core.NodeBacked;
-import org.springframework.data.neo4j.fieldaccess.DelegatingFieldAccessorFactory;
 import org.springframework.data.neo4j.fieldaccess.DetachedEntityState;
+import org.springframework.data.neo4j.fieldaccess.NodeDelegatingFieldAccessorFactory;
 import org.springframework.data.neo4j.support.GraphDatabaseContext;
-
-import javax.annotation.PostConstruct;
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.PersistenceUnitUtil;
 
 public class NodeEntityStateFactory {
 
@@ -34,7 +34,7 @@ public class NodeEntityStateFactory {
 	
     private EntityManagerFactory entityManagerFactory;
 
-    private DelegatingFieldAccessorFactory<NodeBacked> nodeDelegatingFieldAccessorFactory;
+    private NodeDelegatingFieldAccessorFactory nodeDelegatingFieldAccessorFactory;
 
     private PartialNodeEntityState.PartialNodeDelegatingFieldAccessorFactory delegatingFieldAccessorFactory;
 
@@ -61,7 +61,7 @@ public class NodeEntityStateFactory {
     }
 
     public void setNodeDelegatingFieldAccessorFactory(
-            DelegatingFieldAccessorFactory<NodeBacked> nodeDelegatingFieldAccessorFactory) {
+    		NodeDelegatingFieldAccessorFactory nodeDelegatingFieldAccessorFactory) {
 		this.nodeDelegatingFieldAccessorFactory = nodeDelegatingFieldAccessorFactory;
 	}
 	

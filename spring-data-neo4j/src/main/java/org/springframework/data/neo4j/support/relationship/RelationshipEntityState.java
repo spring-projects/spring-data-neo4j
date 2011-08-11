@@ -23,8 +23,6 @@ import org.springframework.data.neo4j.core.RelationshipBacked;
 import org.springframework.data.neo4j.fieldaccess.*;
 import org.springframework.data.neo4j.support.GraphDatabaseContext;
 
-import java.util.Arrays;
-import java.util.Collection;
 
 /**
  * @author Michael Hunger
@@ -34,7 +32,7 @@ public class RelationshipEntityState<ENTITY extends RelationshipBacked> extends 
 
     private final GraphDatabaseContext graphDatabaseContext;
     
-    public RelationshipEntityState(final Relationship underlyingState, final ENTITY entity, final Class<? extends ENTITY> type, final GraphDatabaseContext graphDatabaseContext, final RelationshipStateDelegatingFieldAccessorFactory delegatingFieldAccessorFactory) {
+    public RelationshipEntityState(final Relationship underlyingState, final ENTITY entity, final Class<? extends ENTITY> type, final GraphDatabaseContext graphDatabaseContext, final RelationshipDelegatingFieldAccessorFactory delegatingFieldAccessorFactory) {
         super(underlyingState, entity, type, delegatingFieldAccessorFactory);
         this.graphDatabaseContext = graphDatabaseContext;
     }
@@ -64,31 +62,5 @@ public class RelationshipEntityState<ENTITY extends RelationshipBacked> extends 
     public ENTITY persist() {
         createAndAssignState();
         return entity;
-    }
-
-    public static class RelationshipStateDelegatingFieldAccessorFactory extends DelegatingFieldAccessorFactory {
-        public RelationshipStateDelegatingFieldAccessorFactory(GraphDatabaseContext graphDatabaseContext) {
-            super(graphDatabaseContext);
-        }
-
-        @Override
-        protected Collection<FieldAccessorListenerFactory<?>> createListenerFactories() {
-            return Arrays.<FieldAccessorListenerFactory<?>>asList(
-                    new IndexingPropertyFieldAccessorListenerFactory(
-                            graphDatabaseContext,
-                            new PropertyFieldAccessorFactory(graphDatabaseContext.getConversionService()),
-                            new ConvertingNodePropertyFieldAccessorFactory(graphDatabaseContext.getConversionService())
-                    ));
-        }
-
-        @Override
-        protected Collection<? extends FieldAccessorFactory<?>> createAccessorFactories() {
-            return Arrays.<FieldAccessorFactory<?>>asList(
-                    new TransientFieldAccessorFactory(),
-                    new RelationshipNodeFieldAccessorFactory(graphDatabaseContext),
-                    new PropertyFieldAccessorFactory(graphDatabaseContext.getConversionService()),
-                    new ConvertingNodePropertyFieldAccessorFactory(graphDatabaseContext.getConversionService())
-            );
-        }
     }
 }

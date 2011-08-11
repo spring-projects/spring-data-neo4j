@@ -16,6 +16,9 @@
 
 package org.springframework.data.neo4j.config;
 
+import javax.persistence.EntityManagerFactory;
+import javax.validation.Validator;
+
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
@@ -33,6 +36,7 @@ import org.springframework.data.neo4j.core.RelationshipBacked;
 import org.springframework.data.neo4j.fieldaccess.DelegatingFieldAccessorFactory;
 import org.springframework.data.neo4j.fieldaccess.Neo4jConversionServiceFactoryBean;
 import org.springframework.data.neo4j.fieldaccess.NodeDelegatingFieldAccessorFactory;
+import org.springframework.data.neo4j.fieldaccess.RelationshipDelegatingFieldAccessorFactory;
 import org.springframework.data.neo4j.repository.DirectGraphRepositoryFactory;
 import org.springframework.data.neo4j.support.GraphDatabaseContext;
 import org.springframework.data.neo4j.support.node.Neo4jNodeBacking;
@@ -50,9 +54,6 @@ import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.jta.JtaTransactionManager;
 import org.springframework.transaction.jta.UserTransactionAdapter;
-
-import javax.persistence.EntityManagerFactory;
-import javax.validation.Validator;
 
 /**
  * Abstract base class for code based configuration of Spring managed Neo4j infrastructure.
@@ -149,6 +150,7 @@ public class Neo4jConfiguration {
     public RelationshipEntityStateFactory relationshipEntityStateFactory() throws Exception {
         RelationshipEntityStateFactory entityStateFactory = new RelationshipEntityStateFactory();
         entityStateFactory.setGraphDatabaseContext(graphDatabaseContext());
+        entityStateFactory.setRelationshipDelegatingFieldAccessorFactory(relationshipDelegatingFieldAccessorFactory());
         return entityStateFactory;
     }
 
@@ -172,8 +174,13 @@ public class Neo4jConfiguration {
     }
 
     @Bean
-    public DelegatingFieldAccessorFactory<NodeBacked> nodeDelegatingFieldAccessorFactory() throws Exception {
+    public NodeDelegatingFieldAccessorFactory nodeDelegatingFieldAccessorFactory() throws Exception {
         return new NodeDelegatingFieldAccessorFactory(graphDatabaseContext());
+    }
+    
+    @Bean
+    public RelationshipDelegatingFieldAccessorFactory relationshipDelegatingFieldAccessorFactory() throws Exception {
+        return new RelationshipDelegatingFieldAccessorFactory(graphDatabaseContext());
     }
 
     @Bean
