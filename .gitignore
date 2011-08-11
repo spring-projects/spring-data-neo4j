@@ -1,7 +1,4 @@
 .DS_Store
-.project
-.settings
-.classpath
 target
 .springBeans
 .ant-targets-build.xml
