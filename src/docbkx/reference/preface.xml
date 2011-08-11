@@ -118,30 +118,25 @@
         The provided samples, which are also publicly hosted on <ulink url="http://github.com/springsource/spring-data-graph-examples">github</ulink> are explained in
         <xref linkend="reference:samples"/>.
     </para>
-
-<!--
-        <xi:include href="reference/neo4j.xml"/>
-        <xi:include href="reference/programming-model/programming-model.xml"/>
-            <xi:include href="aspectj.xml"/>
-            <xi:include href="node-entities.xml"/>
-            <xi:include href="relationships.xml"/>
-            <xi:include href="introducedmethods.xml"/>
-            <xi:include href="indexing.xml"/>
-            <xi:include href="repositories.xml"/>
-            <xi:include href="transactions.xml"/>
-            <xi:include href="attachdetach.xml"/>
-            <xi:include href="typerepresentationstrategy.xml"/>
-            <xi:include href="projection.xml"/>
-            <xi:include href="beanvalidation.xml"/>
-
-        <xi:include href="reference/setup.xml"/>
-        <xi:include href="reference/cross-store.xml"/>
-        <xi:include href="reference/samples.xml"/>
-        <xi:include href="reference/performance.xml" />
-        <xi:include href="reference/template.xml" />
-        <xi:include href="reference/aspectj-details.xml" />
-        <xi:include href="reference/neo4j-server.xml" />
--->
+    <para>
+        The performance implications of using Spring Data Graph are detailed in <xref linkend="reference:performance"/>. This chapter also discusses
+        which usecases should be handled with Spring Data Graph and when it should not be used.
+    </para>
+    <para>
+        Being a Spring Data library, Spring Data Graph also implements a comprehensive template for interacting with the Neo4j graph database.
+        The <xref linkend="reference:template">Neo4jTemplate</xref> provides all basic graph operations as well as advanced querying with
+        Indexes, Cypher, Gremlin and Traversals with a convenient API.
+    </para>
+    <para>
+        As AspectJ might not come that easy to everyone, some of the core concepts of this Aspect oriented programming implementation for Java
+        are explained in <xref linkend="reference:aspectj-details"/>.
+    </para>
+    <para>
+        How to consume the REST-API of a Neo4j-Server is the topic of <xref linkend="reference:neo4j-server"/>. But Spring Data Graph can also
+        be used to create custom Extensions for the Neo4j Server which would serve domain model abstractions to a suitable front-end. So instead of
+        talking low level primitives to a database, the front-end would communicate via a domain level protocol with endpoints implemented
+        in Jersey and Spring Data Graph.
+    </para>
     <para>
         <note>
             <para>

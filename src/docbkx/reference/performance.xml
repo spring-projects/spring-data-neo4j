@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
-<chapter id="reference_performance">
+<chapter id="reference:performance">
     <title>Performance considerations</title>
     <para>
         Although adding layers of abstraction is a common pattern in software development, each of these layers
@@ -15,14 +15,14 @@
             mapped to the graph with very little work. Building on this foundation, one can later explore other,
             more efficient ways to explore and process the graph - if the performance requirements demand it.
         </para>
-        <!--<para>-->
-            <!--Like any other object mapping framework, the domain entities that are created, read, or persisted -->
-            <!--represent only a small fraction of the data stored in the database. This is the set needed for a -->
-            <!--certain use-case to be displayed, edited or processed in a low throughput fashion. The main advantages -->
-            <!--of using an object mapper in this case are the ease of use of real domain objects in your business -->
-            <!--logic and also with existing-->
-            <!--frameworks and libraries that expect Java POJOs as input or create them as results.-->
-        <!--</para>-->
+        <para>
+            Like any other object mapping framework, the domain entities that are created, read, or persisted
+            represent only a small fraction of the data stored in the database. This is the set needed for a
+            certain use-case to be displayed, edited or processed in a low throughput fashion. The main advantages
+            of using an object mapper in this case are the ease of use of real domain objects in your business
+            logic and also with existing
+            frameworks and libraries that expect Java POJOs as input or create them as results.
+        </para>
         <para>
             Spring Data Graph, however, was not designed with a major focus on performance. It does add some overhead
             to pure graph operations. Something to keep in mind is that any access of properties and relationships
