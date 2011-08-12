@@ -404,7 +404,7 @@
                     </descriptors>
                     <appendAssemblyId>false</appendAssemblyId>
                 </configuration>
-				<!--executions> accodring to: http://www.sonatype.com/books/mvnref-book/reference/assemblies-sect-basics.html
+				<executions>
 					<execution>
 						<id>distribution</id>
 						<goals>
@@ -412,7 +412,7 @@
 						</goals>
 						<phase>package</phase>
 					</execution>
-				</executions-->
+				</executions>
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
