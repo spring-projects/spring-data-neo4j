@@ -7,7 +7,7 @@
 	<name>Spring Data Graph Distribution</name>
     <description><![CDATA[Within the Spring Data project the Spring Data Graph library provides integration with the Neo4j graph database, offering object graph mapping, a Neo4jTemplate and Spring-Data-Commons Repository implementations.
     ]]></description>
-	<version>1.1.0.RELEASE</version>
+	<version>1.2.0.BUILD-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	<modules>
 		<module>spring-data-graph-parent</module>
