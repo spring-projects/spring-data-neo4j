@@ -10,8 +10,7 @@
 	<artifactId>spring-data-neo4j</artifactId>
 	<packaging>jar</packaging>
 	<name>Spring Data Neo4J Core</name>
-    <description><![CDATA[
-    Within the Spring Data project the Spring Data Graph library provides integration with the Neo4j graph database, offering object graph mapping, a Neo4jTemplate and Spring-Data-Commons Repository implementations.
+    <description><![CDATA[Spring Data Graph core support for Neo4j graph database, offering object graph mapping, a Neo4jTemplate and Spring-Data-Commons Repository implementations.
     ]]></description>
     <url>http://www.springsource.org/spring-data/neo4j</url>
 	<dependencies>

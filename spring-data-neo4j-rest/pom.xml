@@ -10,8 +10,7 @@
     <artifactId>spring-data-neo4j-rest</artifactId>
     <packaging>jar</packaging>
     <name>Spring Data Graph REST Wrapper</name>
-    <description><![CDATA[
-    Wrapper for the Neo4j REST API, provides a Graph Database proxy for the remote invocation.
+    <description><![CDATA[Spring Data Graph Wrapper for the Neo4j REST API, provides a Graph Database proxy for the remote invocation.
     ]]></description>
     <url>http://www.springsource.org/spring-data/neo4j</url>
     <properties>

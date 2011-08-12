@@ -7,8 +7,7 @@
 	<name>Spring Data Graph Parent</name>
 	<version>1.1.0.BUILD-SNAPSHOT</version>
 	<packaging>pom</packaging>
-    <description><![CDATA[
-    Within the Spring Data project the Spring Data Graph library provides integration with the Neo4j graph database, offering object graph mapping, a Neo4jTemplate and Spring-Data-Commons Repository implementations.
+    <description><![CDATA[Spring Data Graph parent project. Defines dependencies and common configuration for the build process.
     ]]></description>
     <url>http://www.springsource.org/spring-data/neo4j</url>
 	<properties>
@@ -24,97 +23,74 @@
         <blueprints.version>0.8</blueprints.version>
         <gremlin.version>1.1</gremlin.version>
 	</properties>
-    <profiles>
-        <profile>
-            <id>strict</id>
-            <properties>
-                <maven.test.failure.ignore>false</maven.test.failure.ignore>
-            </properties>
-        </profile>
-        <profile>
-            <id>fast</id>
-            <properties>
-                <maven.test.skip>true</maven.test.skip>
-                <maven.javadoc.skip>true</maven.javadoc.skip>
-            </properties>
-        </profile>
-        <profile>
-            <id>staging</id>
-            <distributionManagement>
-                <site>
-                    <id>spring-site-staging</id>
-                    <url>file:///${java.io.tmpdir}/spring-data/data-graph/docs</url>
-                </site>
-                <repository>
-                    <id>spring-milestone-staging</id>
-                    <url>file:///${java.io.tmpdir}/spring-data/data-graph/milestone</url>
-                </repository>
-                <snapshotRepository>
-                    <id>spring-snapshot-staging</id>
-                    <url>file:///${java.io.tmpdir}/spring-data/data-graph/snapshot</url>
-                </snapshotRepository>
-            </distributionManagement>
-        </profile>
-        <profile>
-            <id>bootstrap</id>
-            <!-- TODO: move the repositories in here before release -->
-        </profile>
-        <profile>
-            <id>milestone</id>
-            <distributionManagement>
-                <site>
-                    <id>static.springframework.org</id>
-                    <url>
-                        scp://static.springframework.org/var/www/domains/springframework.org/static/htdocs/spring-data/data-graph/docs/${project.version}
-                    </url>
-                </site>
-                <repository>
-                    <id>spring-milestone</id>
-                    <name>Spring Milestone Repository</name>
-                    <url>s3://maven.springframework.org/milestone</url>
-                </repository>
-                <snapshotRepository>
-                    <id>spring-snapshot</id>
-                    <name>Spring Snapshot Repository</name>
-                    <url>s3://maven.springframework.org/snapshot</url>
-                </snapshotRepository>
-
-            </distributionManagement>
-        </profile>
-
-        <profile>
-            <id>central</id>
-            <distributionManagement>
-                <snapshotRepository>
-                    <id>sonatype-nexus-snapshots</id>
-                    <name>Sonatype Nexus Snapshots</name>
-                    <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
-                </snapshotRepository>
-                <repository>
-                    <id>sonatype-nexus-staging</id>
-                    <name>Nexus Release Repository</name>
-                    <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
-                </repository>
-            </distributionManagement>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-gpg-plugin</artifactId>
-                        <executions>
-                            <execution>
-                                <id>sign-artifacts</id>
-                                <phase>verify</phase>
-                                <goals>
-                                    <goal>sign</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-    </profiles>
+	<profiles>
+		<profile>
+			<id>fast</id>
+			<properties>
+				<maven.test.skip>true</maven.test.skip>
+				<maven.javadoc.skip>true</maven.javadoc.skip>
+			</properties>
+		</profile>
+		<profile>
+			<id>staging</id>
+			<distributionManagement>
+				<site>
+					<id>spring-site-staging</id>
+					<url>file:///${java.io.tmpdir}/spring-data/data-graph/docs/${project.version}</url>
+				</site>
+				<repository>
+					<id>spring-milestone-staging</id>
+					<url>file:///${java.io.tmpdir}/spring-data/data-graph/milestone</url>
+				</repository>
+				<snapshotRepository>
+					<id>spring-snapshot-staging</id>
+					<url>file:///${java.io.tmpdir}/spring-data/data-graph/snapshot</url>
+				</snapshotRepository>
+			</distributionManagement>
+		</profile>
+		<profile>
+			<id>milestone</id>
+			<distributionManagement>
+			  <repository>
+				<id>spring-milestone</id>
+				<name>Spring Milestone Repository</name>
+				<url>s3://maven.springframework.org/milestone</url>
+			  </repository>
+			</distributionManagement>
+		</profile>
+		<profile>
+			<id>central</id>
+			<distributionManagement>
+			  <snapshotRepository>
+				<id>sonatype-nexus-snapshots</id>
+				<name>Sonatype Nexus Snapshots</name>
+				<url>https://oss.sonatype.org/content/repositories/snapshots/</url>
+			  </snapshotRepository>
+			  <repository>
+				<id>sonatype-nexus-staging</id>
+				<name>Nexus Release Repository</name>
+				<url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+			  </repository>
+			</distributionManagement>
+			<build>
+			  <plugins>
+				<plugin>
+				  <groupId>org.apache.maven.plugins</groupId>
+				  <artifactId>maven-gpg-plugin</artifactId>
+				  <executions>
+					<execution>
+					  <id>sign-artifacts</id>
+					  <phase>verify</phase>
+					  <goals>
+						<goal>sign</goal>
+					  </goals>
+					</execution>
+				  </executions>
+				</plugin>
+			  </plugins>
+			</build>
+		</profile>
+	</profiles>
     <scm>
         <url>http://github.com/SpringSource/spring-data-graph</url>
         <connection>scm:git:git://github.com/SpringSource/spring-data-graph.git</connection>
@@ -130,9 +106,9 @@
             </url>
         </site>
         <repository>
-            <id>spring-milestone</id>
-            <name>Spring Milestone Repository</name>
-            <url>s3://maven.springframework.org/milestone</url>
+            <id>spring-release</id>
+            <name>Spring Release Repository</name>
+            <url>s3://maven.springframework.org/release</url>
         </repository>
         <snapshotRepository>
             <id>spring-snapshot</id>
