@@ -4,12 +4,15 @@
 	<parent>
 		<groupId>org.springframework.data</groupId>
 		<artifactId>spring-data-graph-parent</artifactId>
-		<version>1.1.0.BUILD-SNAPSHOT</version>
+		<version>1.2.0.BUILD-SNAPSHOT</version>
 		<relativePath>../spring-data-graph-parent/pom.xml</relativePath>
 	</parent>
 	<artifactId>spring-data-neo4j</artifactId>
 	<packaging>jar</packaging>
-	<name>Spring Data Neo4J Support</name>
+	<name>Spring Data Neo4J Core</name>
+    <description><![CDATA[Spring Data Graph core support for Neo4j graph database, offering object graph mapping, a Neo4jTemplate and Spring-Data-Commons Repository implementations.
+    ]]></description>
+    <url>http://www.springsource.org/spring-data/neo4j</url>
 	<dependencies>
 		<!--  Spring -->
 		<dependency>

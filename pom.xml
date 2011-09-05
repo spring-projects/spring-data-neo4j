@@ -5,21 +5,40 @@
 	<groupId>org.springframework.data</groupId>
 	<artifactId>spring-data-graph-dist</artifactId>
 	<name>Spring Data Graph Distribution</name>
-	<version>1.1.0.BUILD-SNAPSHOT</version>
+    <description><![CDATA[Within the Spring Data project the Spring Data Graph library provides integration with the Neo4j graph database, offering object graph mapping, a Neo4jTemplate and Spring-Data-Commons Repository implementations.
+    ]]></description>
+	<version>1.2.0.BUILD-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	<modules>
 		<module>spring-data-graph-parent</module>
 		<module>spring-data-neo4j</module>
 		<module>spring-data-neo4j-rest</module>
 	</modules>
-    <description><![CDATA[
-    Within the Spring Data project the Spring Data Graph library provides integration with the Neo4j graph database, offering object graph mapping, a Neo4jTemplate and Spring-Data-Commons Repository implementations.
-    ]]></description>
     <url>http://www.springsource.org/spring-data/neo4j</url>
     <organization>
     		<name>SpringSource</name>
     		<url>http://www.springsource.com</url>
     </organization>
+    <scm>
+        <url>http://github.com/SpringSource/spring-data-graph</url>
+        <connection>scm:git:git://github.com/SpringSource/spring-data-graph.git</connection>
+        <developerConnection>scm:git:git://github.com/SpringSource/spring-data-graph.git</developerConnection>
+    </scm>
+	<issueManagement>
+		<system>JIRA</system>
+		<url>https://jira.springsource.org/browse/DATAGRAPH</url>
+	</issueManagement>
+	<mailingLists>
+		<mailingList>
+			<name>Spring Batch Forum</name>
+			<post>http://forum.springsource.org/forumdisplay.php?f=80</post>
+			<archive>http://forum.springsource.org/forumdisplay.php?f=80</archive>
+		</mailingList>
+	</mailingLists>
+	<ciManagement>
+		<system>Bamboo</system>
+		<url>https://build.springsource.org/browse/SPRINGDATA</url>
+	</ciManagement>
 
 	<developers>
 		<developer>
@@ -120,7 +139,13 @@
 		<dist.secretKey>s3 secret key</dist.secretKey>
 		-->
 	</properties>
-	<!--profiles>
+	<profiles>
+		<profile>
+			<id>fast</id>
+			<properties>
+				<maven.test.skip>true</maven.test.skip>
+			</properties>
+		</profile>
 		<profile>
 			<id>staging</id>
 			<distributionManagement>
@@ -138,25 +163,66 @@
 				</snapshotRepository>
 			</distributionManagement>
 		</profile>
+		<profile>
+			<id>milestone</id>
+			<distributionManagement>
+			  <repository>
+				<id>spring-milestone</id>
+				<name>Spring Milestone Repository</name>
+				<url>s3://maven.springframework.org/milestone</url>
+			  </repository>
+			</distributionManagement>
+		</profile>
+		<profile>
+			<id>central</id>
+			<distributionManagement>
+			  <snapshotRepository>
+				<id>sonatype-nexus-snapshots</id>
+				<name>Sonatype Nexus Snapshots</name>
+				<url>https://oss.sonatype.org/content/repositories/snapshots/</url>
+			  </snapshotRepository>
+			  <repository>
+				<id>sonatype-nexus-staging</id>
+				<name>Nexus Release Repository</name>
+				<url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+			  </repository>
+			</distributionManagement>
+			<build>
+			  <plugins>
+				<plugin>
+				  <groupId>org.apache.maven.plugins</groupId>
+				  <artifactId>maven-gpg-plugin</artifactId>
+				  <executions>
+					<execution>
+					  <id>sign-artifacts</id>
+					  <phase>verify</phase>
+					  <goals>
+						<goal>sign</goal>
+					  </goals>
+					</execution>
+				  </executions>
+				</plugin>
+			  </plugins>
+			</build>
+		</profile>
 	</profiles>
 	<distributionManagement>
-		<!- see 'staging' profile for dry-run deployment settings ->
 		<downloadUrl>http://www.springsource.com/spring-data</downloadUrl>
 		<site>
 			<id>static.springframework.org</id>
 			<url>scp://static.springframework.org/var/www/domains/springframework.org/static/htdocs/spring-data/data-graph/snapshot-site/</url>
 		</site>
-		<repository>
-			<id>spring-milestone</id>
-			<name>Spring Milestone Repository</name>
-			<url>s3://maven.springframework.org/milestone</url>
-		</repository>
+        <repository>
+            <id>spring-release</id>
+            <name>Spring Release Repository</name>
+            <url>s3://maven.springframework.org/release</url>
+        </repository>
 		<snapshotRepository>
 			<id>spring-snapshot</id>
 			<name>Spring Snapshot Repository</name>
 			<url>s3://maven.springframework.org/snapshot</url>
 		</snapshotRepository>
-	</distributionManagement-->
+	</distributionManagement>
 	<build>
 		<extensions>
 			<extension>
@@ -315,6 +381,15 @@
 						<link>http://java.sun.com/javase/6/docs/api</link>
 					</links>
 				</configuration>
+				<executions>
+					<execution>
+						<id>javadoc</id>
+						<goals>
+							<goal>jar</goal>
+						</goals>
+						<phase>package</phase>
+					</execution>
+				</executions>
 			</plugin>
 			<plugin><!--
 				run `mvn package assembly:assembly` to trigger assembly creation.
@@ -328,7 +403,7 @@
                     </descriptors>
                     <appendAssemblyId>false</appendAssemblyId>
                 </configuration>
-				<!--executions> accodring to: http://www.sonatype.com/books/mvnref-book/reference/assemblies-sect-basics.html
+				<executions>
 					<execution>
 						<id>distribution</id>
 						<goals>
@@ -336,7 +411,7 @@
 						</goals>
 						<phase>package</phase>
 					</execution>
-				</executions-->
+				</executions>
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>

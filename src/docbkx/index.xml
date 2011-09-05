@@ -19,12 +19,6 @@
 	    <releaseinfo>&version;</releaseinfo>
 	    <date/>
 
-	    <mediaobject>
-	        <imageobject>
-	            <imagedata fileref="springdatagraph.png" scalefit="1" contentwidth="15cm"/>
-	        </imageobject>
-	    </mediaobject>
-
 	    <authorgroup>
 	        <author>
 	            <firstname>Michael</firstname>
@@ -60,9 +54,17 @@
         <title>Tutorial</title>
         <partintro>
             <para>
+                <mediaobject>
+                    <imageobject>
+                        <imagedata fileref="tutorial/cineasts.png" scale="80" align="center"/>
+                    </imageobject>
+                </mediaobject>
+            </para>
+
+            <para>
                 The first part of the book provides a tutorial that walks through the creation of a complete web
                 application called cineasts.net, built with Spring Data Graph and Neo4j.
-                Cineasts are people who love movies, and the site is a gathering place for these people. For
+                Cineasts are people who love movies, and the site is a gathering place for moviegoers. For
                 cineasts.net we decided to add a social aspect to the rating of movies, allowing friends to
                 share their scores and get recommendations for new friends and movies.
             </para>
@@ -94,16 +96,32 @@
 
 
     <part id="reference">
-        <title>Reference</title>
+        <title>Reference Documentation</title>
         <partintro>
             <para>
-                This is the reference part of the book. It has information about the
-                programming model, APIs, concepts, and annotations of Spring Data Graph.
+                <mediaobject>
+           	        <imageobject>
+           	            <imagedata fileref="introduction/springdatagraph.png" scalefit="1" contentwidth="15cm"/>
+           	        </imageobject>
+           	    </mediaobject>
+            </para>
+
+            <para>
+                This part of the Spring Data Graph Guide book provides the reference documentation. It details many
+                aspects of the tutorial and also explains concepts that were only just mentioned there.
+            </para>
+            <para>
+                Its content covers information about the programming model, APIs, concepts, annotations and
+                technical details of Spring Data Graph.
+            </para>
+            <para>
+                Whenever you look for the means to employ the full power of the Spring Data Graph library you find your
+                answers in the reference section. If you don't, please inform us about missing or incorrect content so that
+                we can fix that.
             </para>
         </partintro>
 
         <xi:include href="reference/preface.xml"/>
-        <xi:include href="reference/spring-data.xml" />
         <xi:include href="reference/neo4j.xml"/>
         <xi:include href="reference/programming-model/programming-model.xml"/>
         <xi:include href="reference/setup.xml"/>

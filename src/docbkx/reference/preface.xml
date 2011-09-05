@@ -2,23 +2,140 @@
 <!DOCTYPE preface PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN"
 "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
 <preface id="reference:preface">
-    <title>Preface</title>
+    <title>Reference Documentation</title>
+    <section>
+        <title>Spring Data and Spring Data Graph</title>
+
+        <para>
+            <ulink url="http://springsource.org/spring-data">Spring Data</ulink> is a SpringSource project that aims to
+            provide Spring's convenient programming model and well known conventions for NOSQL databases. Currently there
+            is support for graph (Neo4j), key-value (Redis, Riak), document (MongoDB) and relational (Oracle)
+            databases. Mark Pollack, the author of Spring.NET, is the project lead for the Spring Data project.
+        </para>
+
+        <para>
+            The Spring Data Graph project, as part of the Spring Data initiative, aims to simplify development
+            with the Neo4j graph database. Like JPA, it uses annotations on simple POJO domain objects.
+            The annotations activate the AspectJ aspects in the Spring Data Graph framework, mapping the POJO entities
+            and their fields to nodes, relationships, and properties in the graph database.
+        </para>
+
+        <para>
+            Spring Data Graph allows, at anytime, to drop down to the <xref linkend="neo4j" >Neo4j-API</xref> level to execute functionality with
+            the highest performance possible.
+        </para>
+        <para>
+            For Integration of Neo4j and Grails/GORM please refer to the Neo4j
+            <ulink url="http://www.grails.org/plugin/neo4j">grails plugin</ulink>. For other language bindings or frameworks
+            visit the <ulink url="http://wiki.neo4j.org/content/Main_Page#Language_and_framework_bindings">Neo4j Wiki</ulink>.
+        </para>
+    </section>
+    <section>
+        <title>Reference Documentation Overview</title>
     <para>
-        The Spring Data Graph project, as part of the Spring Data initiative, aims to simplify development
-        with graph databases. Like JPA, it uses annotations on simple POJO beans. The annotations activate
-        the AspectJ aspects in the Spring Data Graph framework, mapping the POJO entities and their fields
-        to nodes, relationships, and properties in the graph database.
+        The explanation of Spring Data Graphs programming model starts with some underlying details.
+        The basic internal workings of Spring Data Graph are explained in the initial chapter about AspectJ <xref linkend="reference:aspectj"/>.
+        It also explains some of the common issues around AspectJ tooling with the current IDEs.
     </para>
     <para>
-        Spring Data Graph allows, at anytime, to drop down to the Neo4j-API level to execute functionality with
-        the highest performance possible. For Integration of Neo4j and Grails/GORM please refer to the Neo4j
-        <ulink url="http://www.grails.org/plugin/neo4j">grails plugin</ulink>.
+        To get started with a simple application, you need only your domain model and the annotations
+        (see <xref linkend="reference:programming-model:annotations"/>) provided by the library. You use annotations to
+        mark domain objects to be backed by nodes and relationships of the graph database. For individual fields the
+        annotations allow you to declare how they should be processed and mapped to the graph. For property fields and
+        references to other entities this is straightforward.
     </para>
     <para>
-        To get started with a simple application, only the basic annotations
-        (see <xref linkend="reference:programming-model:annotations"/>) and the additional aspect-introduced
-        entity methods (see <xref linkend="reference:programming-model:introduced-methods"/>) are required.
-        Basic knowledge of graph stores is needed to access advanced functionality like traversals.
+        To use advanced functionality like traversals, Cypher and Gremlin, a basic understanding of the graph data model is required.
+        The graph data model is explained in the chapter about <xref linkend="neo4j">Neo4j</xref>.
+    </para>
+    <para>
+        Relationships between entities are first class citizens in a graph database and therefore worth a separate
+        <xref linkend="reference:programming_model:relationships" >chapter</xref> describing their usage in Spring Data Graph.
+    </para>
+    <para>
+        To add fields that are just backed by graph operations is a bit more involved. First you should know
+        about traversals, Cypher queries and Gremlin expressions.
+        Those are explained in the <xref linkend="neo4j" >Neo4j-API</xref> chapter. Then you can start adding purely
+        dynamically gathered fields to your entities.
+    </para>
+    <para>
+        You might probably use the additional
+        entity methods (see <xref linkend="reference:programming-model:introduced-methods"/>) that are added to your
+        domain objects by Spring Data Graph. Those allow you to manage the entity lifecycles as well as to connect entities.
+        Those methods also provide the means to execute the mentioned graph operations with your entity as a starting point.
+    </para>
+    <para>
+        Indexing operations are useful for finding individual nodes and relationships in a graph. They can be used to
+        start graph operations or to be processed in your application. Indexing in the plain Neo4j API is a bit more involved.
+        Spring Data Graph maintains automatic indexes per entity class, with @Indexed annotations on relevant fields.
+        (<xref linkend="reference:programming-model:indexing"/>)
+    </para>
+    <para>
+        If you don't want to go the path of persistence aware domain objects (Active-Record) but rather use a DAO layer,
+        Spring Data Commons provides a repository abstraction that is also implemented in Spring Data Graph. Those repositories
+        just consist of a composition of interfaces that declare the available methods on the concrete repository. The implementation
+        details are handled by the library. At least for typical CRUD, Index- and Query-operatoins that is very convenient.
+        For custom implementations of repository methods you are free to add your own code. (<xref linkend="reference:programming-model:repositories"/>).
+    </para>
+    <para>
+        Neo4j is an ACID database, it uses Java transactions (and internally even a 2 phase commit protocol) to guarantee the
+        safety of your data. The implications of that are described in the chapter around transactions. (<xref linkend="reference:programming-model:transactions"/>)
+    </para>
+    <para>
+        The need of an active transaction for mutating the state of nodes or relationships implies that direct changes to
+        the graph are only possible in a transactional context. Unfortunately many higher level application layers don't
+        want to care about transactions and the open-session-in-view pattern is not widely used. Therefore Spring Data
+        Graph introduced an entity lifecyle and added support for detached entities which can be used for temporary
+        domain objects that are not intended to be stored in the graph or which will be attached to the graph only later.
+        (<xref linkend="reference:programming-model:lifecycle"/>)
+    </para>
+    <para>
+        Unlike Neo4j which is a schema free database, Spring Data Graph works on Java domain objects. So it needs to store
+        the type information of the entities in the graph to be able to reconstruct them when just nodes are retrieved. To
+        achieve that it employs type-representation-strategies which are described in a separate chapter.
+        (<xref linkend="reference:programming-model:typerepresentationstrategy"/>)
+    </para>
+    <para>
+        To be able to leverage the schema-free nature of Neo4j it is possible to project any entity to another entity type. That
+        is useful as long as they share some properties (or relationships). The entities don't have to share any super-types
+        or hierarchies. How that works is explained here: <xref linkend="reference:programming-model:projection"/>.
+    </para>
+    <para>
+        Spring Data Graph offers basic support for bean property validation (JSR-303). Annotations from that JSR are recognized
+        and evaluated whenever a property is set, or when a previously detached entity is persisted to the graph.
+        (see <xref linkend="reference:programming-model:validation"/>)
+    </para>
+    <para>
+        Unfortunately the setup of Spring Data Graph is more involved than we'd like. That is partly due to the maven setup
+        and dependencies, which can be alleviated by using different build systems like gradle or ant/ivy. The Spring configuration
+        itself boils down to two lines of <code>&lt;datagraph&gt;</code> namespace setup. (see <xref linkend="setup"/>)
+    </para>
+    <para>
+        Spring Data Graph can also be used in a JPA environment to add graph features to your JPA entities. In the <xref linkend="reference:cross-store"/>
+        the slightly different behavior and setup of a Graph-JPA interaction are described.
+    </para>
+    <para>
+        The provided samples, which are also publicly hosted on <ulink url="http://github.com/springsource/spring-data-graph-examples">github</ulink> are explained in
+        <xref linkend="reference:samples"/>.
+    </para>
+    <para>
+        The performance implications of using Spring Data Graph are detailed in <xref linkend="reference:performance"/>. This chapter also discusses
+        which usecases should be handled with Spring Data Graph and when it should not be used.
+    </para>
+    <para>
+        Being a Spring Data library, Spring Data Graph also implements a comprehensive template for interacting with the Neo4j graph database.
+        The <xref linkend="reference:template">Neo4jTemplate</xref> provides all basic graph operations as well as advanced querying with
+        Indexes, Cypher, Gremlin and Traversals with a convenient API.
+    </para>
+    <para>
+        As AspectJ might not come that easy to everyone, some of the core concepts of this Aspect oriented programming implementation for Java
+        are explained in <xref linkend="reference:aspectj-details"/>.
+    </para>
+    <para>
+        How to consume the REST-API of a Neo4j-Server is the topic of <xref linkend="reference:neo4j-server"/>. But Spring Data Graph can also
+        be used to create custom Extensions for the Neo4j Server which would serve domain model abstractions to a suitable front-end. So instead of
+        talking low level primitives to a database, the front-end would communicate via a domain level protocol with endpoints implemented
+        in Jersey and Spring Data Graph.
     </para>
     <para>
         <note>
@@ -29,4 +146,6 @@
             </para>
         </note>
     </para>
+    </section>
+
 </preface>

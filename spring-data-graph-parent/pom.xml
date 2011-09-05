@@ -5,9 +5,118 @@
 	<groupId>org.springframework.data</groupId>
 	<artifactId>spring-data-graph-parent</artifactId>
 	<name>Spring Data Graph Parent</name>
-	<url>http://www.springsource.org/spring-data/data-graph</url>
-	<version>1.1.0.BUILD-SNAPSHOT</version>
+	<version>1.2.0.BUILD-SNAPSHOT</version>
 	<packaging>pom</packaging>
+    <description><![CDATA[Spring Data Graph parent project. Defines dependencies and common configuration for the build process.
+    ]]></description>
+    <url>http://www.springsource.org/spring-data/neo4j</url>
+    <organization>
+    		<name>SpringSource</name>
+    		<url>http://www.springsource.com</url>
+    </organization>
+    <scm>
+        <url>http://github.com/SpringSource/spring-data-graph</url>
+        <connection>scm:git:git://github.com/SpringSource/spring-data-graph.git</connection>
+        <developerConnection>scm:git:git://github.com/SpringSource/spring-data-graph.git</developerConnection>
+    </scm>
+	<issueManagement>
+		<system>JIRA</system>
+		<url>https://jira.springsource.org/browse/DATAGRAPH</url>
+	</issueManagement>
+	<mailingLists>
+		<mailingList>
+			<name>Spring Batch Forum</name>
+			<post>http://forum.springsource.org/forumdisplay.php?f=80</post>
+			<archive>http://forum.springsource.org/forumdisplay.php?f=80</archive>
+		</mailingList>
+	</mailingLists>
+	<ciManagement>
+		<system>Bamboo</system>
+		<url>https://build.springsource.org/browse/SPRINGDATA</url>
+	</ciManagement>
+
+	<developers>
+		<developer>
+			<id>trisberg</id>
+			<name>Thomas Risberg</name>
+			<email>trisberg at vmware.com</email>
+			<organization>SpringSource</organization>
+			<organizationUrl>http://www.SpringSource.com</organizationUrl>
+			<roles>
+				<role>Project Admin</role>
+			</roles>
+			<timezone>-5</timezone>
+		</developer>
+		<developer>
+			<id>mpollack</id>
+			<name>Mark Pollack</name>
+			<email>mpollack at vmware.com</email>
+			<organization>SpringSource</organization>
+			<organizationUrl>http://www.SpringSource.com</organizationUrl>
+			<roles>
+				<role>Project Admin</role>
+			</roles>
+			<timezone>-5</timezone>
+		</developer>
+		<developer>
+			<id>mhunger</id>
+			<name>Michael Hunger</name>
+			<email>michael.hunger at neotechnology.com</email>
+			<organization>Neo Technology</organization>
+			<organizationUrl>http://www.neotechnology.com</organizationUrl>
+			<roles>
+				<role>Project Admin</role>
+				<role>Developer</role>
+			</roles>
+			<timezone>+1</timezone>
+		</developer>
+		<developer>
+			<id>dmontag</id>
+			<name>David Montag</name>
+			<email>david.montag at neotechnology.com</email>
+			<organization>Neo Technology</organization>
+			<organizationUrl>http://www.neotechnology.com</organizationUrl>
+			<roles>
+				<role>Developer</role>
+			</roles>
+			<timezone>-7</timezone>
+		</developer>
+        <developer>
+			<id>systay</id>
+			<name>Andres Taylor</name>
+			<email>andres at neotechnology.com</email>
+			<organization>Neo Technology</organization>
+			<organizationUrl>http://www.neotechnology.com</organizationUrl>
+			<roles>
+				<role>Developer</role>
+			</roles>
+			<timezone>+1</timezone>
+		</developer>
+	</developers>
+
+	<licenses>
+		<license>
+			<name>Apache License, Version 2.0</name>
+			<url>http://www.apache.org/licenses/LICENSE-2.0</url>
+			<comments>
+			Copyright 2010 the original author or authors.
+
+			Licensed under the Apache License, Version 2.0 (the "License");
+			you may not use this file except in compliance with the License.
+			You may obtain a copy of the License at
+
+			     http://www.apache.org/licenses/LICENSE-2.0
+
+			Unless required by applicable law or agreed to in writing, software
+			distributed under the License is distributed on an "AS IS" BASIS,
+			WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
+			implied.
+			See the License for the specific language governing permissions and
+			limitations under the License.
+			</comments>
+		</license>
+	</licenses>
+
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<junit.version>4.8.1</junit.version>
@@ -21,102 +130,74 @@
         <blueprints.version>0.8</blueprints.version>
         <gremlin.version>1.1</gremlin.version>
 	</properties>
-    <profiles>
-        <profile>
-            <id>strict</id>
-            <properties>
-                <maven.test.failure.ignore>false</maven.test.failure.ignore>
-            </properties>
-        </profile>
-        <profile>
-            <id>fast</id>
-            <properties>
-                <maven.test.skip>true</maven.test.skip>
-                <maven.javadoc.skip>true</maven.javadoc.skip>
-            </properties>
-        </profile>
-        <profile>
-            <id>staging</id>
-            <distributionManagement>
-                <site>
-                    <id>spring-site-staging</id>
-                    <url>file:///${java.io.tmpdir}/spring-data/data-graph/docs</url>
-                </site>
-                <repository>
-                    <id>spring-milestone-staging</id>
-                    <url>file:///${java.io.tmpdir}/spring-data/data-graph/milestone</url>
-                </repository>
-                <snapshotRepository>
-                    <id>spring-snapshot-staging</id>
-                    <url>file:///${java.io.tmpdir}/spring-data/data-graph/snapshot</url>
-                </snapshotRepository>
-            </distributionManagement>
-        </profile>
-        <profile>
-            <id>bootstrap</id>
-            <!-- TODO: move the repositories in here before release -->
-        </profile>
-        <profile>
-            <id>milestone</id>
-            <distributionManagement>
-                <site>
-                    <id>static.springframework.org</id>
-                    <url>
-                        scp://static.springframework.org/var/www/domains/springframework.org/static/htdocs/spring-data/data-graph/docs/${project.version}
-                    </url>
-                </site>
-                <repository>
-                    <id>spring-milestone</id>
-                    <name>Spring Milestone Repository</name>
-                    <url>s3://maven.springframework.org/milestone</url>
-                </repository>
-                <snapshotRepository>
-                    <id>spring-snapshot</id>
-                    <name>Spring Snapshot Repository</name>
-                    <url>s3://maven.springframework.org/snapshot</url>
-                </snapshotRepository>
+	<profiles>
+		<profile>
+			<id>fast</id>
+			<properties>
+				<maven.test.skip>true</maven.test.skip>
+			</properties>
+		</profile>
+		<profile>
+			<id>staging</id>
+			<distributionManagement>
+				<site>
+					<id>spring-site-staging</id>
+					<url>file:///${java.io.tmpdir}/spring-data/data-graph/docs/${project.version}</url>
+				</site>
+				<repository>
+					<id>spring-milestone-staging</id>
+					<url>file:///${java.io.tmpdir}/spring-data/data-graph/milestone</url>
+				</repository>
+				<snapshotRepository>
+					<id>spring-snapshot-staging</id>
+					<url>file:///${java.io.tmpdir}/spring-data/data-graph/snapshot</url>
+				</snapshotRepository>
+			</distributionManagement>
+		</profile>
+		<profile>
+			<id>milestone</id>
+			<distributionManagement>
+			  <repository>
+				<id>spring-milestone</id>
+				<name>Spring Milestone Repository</name>
+				<url>s3://maven.springframework.org/milestone</url>
+			  </repository>
+			</distributionManagement>
+		</profile>
+		<profile>
+			<id>central</id>
+			<distributionManagement>
+			  <snapshotRepository>
+				<id>sonatype-nexus-snapshots</id>
+				<name>Sonatype Nexus Snapshots</name>
+				<url>https://oss.sonatype.org/content/repositories/snapshots/</url>
+			  </snapshotRepository>
+			  <repository>
+				<id>sonatype-nexus-staging</id>
+				<name>Nexus Release Repository</name>
+				<url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+			  </repository>
+			</distributionManagement>
+			<build>
+			  <plugins>
+				<plugin>
+				  <groupId>org.apache.maven.plugins</groupId>
+				  <artifactId>maven-gpg-plugin</artifactId>
+				  <executions>
+					<execution>
+					  <id>sign-artifacts</id>
+					  <phase>verify</phase>
+					  <goals>
+						<goal>sign</goal>
+					  </goals>
+					</execution>
+				  </executions>
+				</plugin>
+			  </plugins>
+			</build>
+		</profile>
+	</profiles>
 
-            </distributionManagement>
-        </profile>
-
-        <profile>
-            <id>central</id>
-            <distributionManagement>
-                <snapshotRepository>
-                    <id>sonatype-nexus-snapshots</id>
-                    <name>Sonatype Nexus Snapshots</name>
-                    <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
-                </snapshotRepository>
-                <repository>
-                    <id>sonatype-nexus-staging</id>
-                    <name>Nexus Release Repository</name>
-                    <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
-                </repository>
-            </distributionManagement>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-gpg-plugin</artifactId>
-                        <executions>
-                            <execution>
-                                <id>sign-artifacts</id>
-                                <phase>verify</phase>
-                                <goals>
-                                    <goal>sign</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-    </profiles>
-    <scm>
-        <url>http://github.com/SpringSource/spring-data-graph</url>
-        <connection>scm:git:git://github.com/SpringSource/spring-data-graph.git</connection>
-        <developerConnection>scm:git:git://github.com/SpringSource/spring-data-graph.git</developerConnection>
-    </scm>
     <distributionManagement>
         <!-- see 'staging' profile for dry-run deployment settings -->
         <downloadUrl>http://www.springsource.com/download/community</downloadUrl>
@@ -127,9 +208,9 @@
             </url>
         </site>
         <repository>
-            <id>spring-milestone</id>
-            <name>Spring Milestone Repository</name>
-            <url>s3://maven.springframework.org/milestone</url>
+            <id>spring-release</id>
+            <name>Spring Release Repository</name>
+            <url>s3://maven.springframework.org/release</url>
         </repository>
         <snapshotRepository>
             <id>spring-snapshot</id>
@@ -456,7 +537,7 @@
 						<goals>
 							<goal>jar</goal>
 						</goals>
-                        <phase>deploy</phase>
+                        <phase>package</phase>
 					</execution>
 				</executions>
 			</plugin>

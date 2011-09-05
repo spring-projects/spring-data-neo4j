@@ -16,13 +16,6 @@
         your friends like.
     </para>
     <para>
-        <mediaobject>
-            <imageobject>
-                <imagedata fileref="cineasts.png" scale="80" align="center"/>
-            </imageobject>
-        </mediaobject>
-    </para>
-    <para>
         When we looked for possible sources of data, IMDB was our first stop. But they're a bit expensive
         for our taste, charging $15k USD for data access. Fortunately, we found
         <ulink url="http://themoviedb.org">TheMoviedb.org</ulink> which provides user-generated data for free.
