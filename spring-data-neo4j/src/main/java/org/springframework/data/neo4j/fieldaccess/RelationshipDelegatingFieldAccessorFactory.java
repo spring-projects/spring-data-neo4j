@@ -43,7 +43,8 @@ public class RelationshipDelegatingFieldAccessorFactory extends DelegatingFieldA
                 new TransientFieldAccessorFactory(),
                 new RelationshipNodeFieldAccessorFactory(graphDatabaseContext),
                 new PropertyFieldAccessorFactory(graphDatabaseContext.getConversionService()),
-                new ConvertingNodePropertyFieldAccessorFactory(graphDatabaseContext.getConversionService())
+                new ConvertingNodePropertyFieldAccessorFactory(graphDatabaseContext.getConversionService()),
+                new DynamicPropertiesFieldAccessorFactory(graphDatabaseContext.getConversionService())
         );
     }
 }

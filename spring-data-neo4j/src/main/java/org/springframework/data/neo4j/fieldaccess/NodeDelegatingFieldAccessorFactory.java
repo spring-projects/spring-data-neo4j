@@ -55,7 +55,8 @@ public class NodeDelegatingFieldAccessorFactory extends DelegatingFieldAccessorF
                 new SingleRelationshipFieldAccessorFactory(graphDatabaseContext),
                 new OneToNRelationshipFieldAccessorFactory(graphDatabaseContext),
                 new ReadOnlyOneToNRelationshipFieldAccessorFactory(graphDatabaseContext),
-                new OneToNRelationshipEntityFieldAccessorFactory(graphDatabaseContext)
+                new OneToNRelationshipEntityFieldAccessorFactory(graphDatabaseContext),
+                new DynamicPropertiesFieldAccessorFactory(graphDatabaseContext.getConversionService())
         );
     }
 }

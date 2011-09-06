@@ -16,14 +16,20 @@
 
 package org.springframework.data.neo4j;
 
-import org.springframework.data.neo4j.annotation.*;
-import org.springframework.data.neo4j.core.Direction;
+import java.util.Date;
+import java.util.Map;
 
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.Size;
-import java.util.Date;
-import java.util.Map;
+
+import org.springframework.data.neo4j.annotation.Indexed;
+import org.springframework.data.neo4j.annotation.NodeEntity;
+import org.springframework.data.neo4j.annotation.Query;
+import org.springframework.data.neo4j.annotation.RelatedTo;
+import org.springframework.data.neo4j.annotation.RelatedToVia;
+import org.springframework.data.neo4j.core.Direction;
+import org.springframework.data.neo4j.fieldaccess.DynamicProperties;
 
 
 @NodeEntity
@@ -57,6 +63,8 @@ public class Person {
 
 	private Car car;
 
+	private DynamicProperties personalProperties;
+	
 	@RelatedTo
 	private Person mother;
 
@@ -204,6 +212,22 @@ public class Person {
 		return car;
 	}
 
+	public void setProperty(String key, Object value) {
+		personalProperties.setProperty(key, value);
+	}
+	
+	public Object getProperty(String key) {
+		return personalProperties.getProperty(key);
+	}
+	
+	public DynamicProperties getPersonalProperties() {
+		return personalProperties;
+	}
+	
+	public void setPersonalProperties(DynamicProperties personalProperties) {
+		this.personalProperties = personalProperties;
+	}
+	
 	public void setNickname(String nickname) {
 		this.nickname = nickname;
 	}
