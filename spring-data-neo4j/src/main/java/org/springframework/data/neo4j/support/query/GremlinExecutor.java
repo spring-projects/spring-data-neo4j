@@ -27,6 +27,7 @@ import org.neo4j.helpers.collection.IterableWrapper;
 
 import javax.script.*;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -81,7 +82,17 @@ public class GremlinExecutor {
     public static Iterable getRepresentation(final Object result) {
         if (result instanceof Iterable) {
             if (result instanceof Table) {
-                Table table = (Table) result;
+                final Table table = (Table) result;
+                return new IterableWrapper<Map<String,Object>,Table.Row>(table) {
+                    @Override
+                    protected Map<String, Object> underlyingObjectToObject(Table.Row row) {
+                        Map<String,Object> result=new LinkedHashMap<String, Object>();
+                        for (String column : table.getColumnNames()) {
+                            result.put(column, row.getColumn(column));
+                        }
+                        return result;
+                    }
+                };
             }
             return new IterableWrapper((Iterable) result) {
                 @Override
