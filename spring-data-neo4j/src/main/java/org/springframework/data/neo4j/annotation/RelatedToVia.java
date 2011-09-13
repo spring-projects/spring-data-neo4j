@@ -52,5 +52,5 @@ public @interface RelatedToVia {
     /**
      * @return target relationship entity class
      */
-    Class<? extends RelationshipBacked> elementClass();
+    Class<? extends RelationshipBacked> elementClass() default RelationshipBacked.class;
 }
