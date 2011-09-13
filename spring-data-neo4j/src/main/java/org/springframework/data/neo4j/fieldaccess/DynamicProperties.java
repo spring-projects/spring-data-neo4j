@@ -32,7 +32,7 @@ import org.springframework.data.neo4j.fieldaccess.DynamicPropertiesFieldAccessor
  * &#064;NodeEntity
  * class Person {
  *     String name;
- *     DynamicProperties personalProperties;
+ *     DynamicProperties personalProperties = new DynamicPropertiesContainer();
  * }
  * 
  * Person p = new Person();

@@ -56,10 +56,18 @@ public class DynamicPropertiesTest
     /**
      * The dynamic properties can only be used, after the entity has been persisted and has an entity state.
      */
-    @Test(expected = java.lang.NullPointerException.class)
-	public void testCreateOutsideTransactionFails() {
+    @Test
+	public void testCreateOutsideTransaction() {
 		Person p = new Person("James", 35);
-		p.setProperty("s", "String");
+    	p.setProperty("s", "String");
+    	p.setProperty("x", 100);
+    	p.setProperty("pi", 3.1415);
+		p.persist();
+		assertEquals(3, IteratorUtil.count(p.getPersonalProperties().getPropertyKeys()));
+		assertProperties(nodeFor(p));
+		p.setProperty("s", "String two");
+		p.persist();
+		assertEquals("String two", nodeFor(p).getProperty("personalProperties-s"));	
 	}
     
     Person createTestPerson() {

@@ -65,8 +65,18 @@ public class DynamicPropertiesFieldAccessorFactory implements FieldAccessorFacto
 
         @Override
         public Object setValue(final GraphBacked<PropertyContainer> entity, final Object newVal) {
-            final PropertyContainer propertyContainer = entity.getPersistentState();
-            ManagedPrefixedDynamicProperties<?> dynamicProperties = (ManagedPrefixedDynamicProperties<?>) newVal;
+        	final PropertyContainer propertyContainer = entity.getPersistentState();
+        	PrefixedDynamicProperties dynamicProperties;
+        	if (newVal instanceof DynamicPropertiesContainer) {
+        		dynamicProperties = new PrefixedDynamicProperties(propertyNamePrefix);
+        		DynamicProperties newPropertiesVal = (DynamicProperties)newVal;
+        		for(String key : newPropertiesVal.getPropertyKeys()) {
+        			dynamicProperties.setProperty(key, newPropertiesVal.getProperty(key));
+        		}
+        	}
+        	else {
+        		dynamicProperties = (ManagedPrefixedDynamicProperties<?>) newVal;
+        	}
 
             Set<String> dynamicProps = dynamicProperties.getPrefixedPropertyKeys();
             Set<String> nodeProps = new HashSet<String>();
@@ -81,7 +91,9 @@ public class DynamicPropertiesFieldAccessorFactory implements FieldAccessorFacto
             // nodeProps now contains the properties that are present on the node, but not in the DynamicProperties -
             // in other words: properties that have been removed. Remove them from the node as well.
 			for(String removedKey : nodeProps) {
-				propertyContainer.removeProperty(removedKey);
+				if (dynamicProperties.isPrefixedKey(removedKey)) {
+					propertyContainer.removeProperty(removedKey);
+				}
 			}
             
 			// Add all properties to the propertyContainer
