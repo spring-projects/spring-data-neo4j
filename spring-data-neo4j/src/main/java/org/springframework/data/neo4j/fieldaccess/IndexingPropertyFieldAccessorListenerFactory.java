@@ -31,25 +31,21 @@ import java.lang.reflect.Field;
 
 public class IndexingPropertyFieldAccessorListenerFactory<S extends PropertyContainer, T extends GraphBacked<S>> implements FieldAccessorListenerFactory<T> {
 
-    private final GraphDatabaseContext graphDatabaseContext;
     private final PropertyFieldAccessorFactory propertyFieldAccessorFactory;
     private final ConvertingNodePropertyFieldAccessorFactory convertingNodePropertyFieldAccessorFactory;
+    private final IndexInfo indexInfo;
 
     public IndexingPropertyFieldAccessorListenerFactory(final GraphDatabaseContext graphDatabaseContext, final PropertyFieldAccessorFactory propertyFieldAccessorFactory, final ConvertingNodePropertyFieldAccessorFactory convertingNodePropertyFieldAccessorFactory) {
-    	this.graphDatabaseContext = graphDatabaseContext;
+        indexInfo = new IndexInfo<S,T>(graphDatabaseContext);
     	this.propertyFieldAccessorFactory = propertyFieldAccessorFactory;
         this.convertingNodePropertyFieldAccessorFactory = convertingNodePropertyFieldAccessorFactory;
     }
 
     @Override
     public boolean accept(final Field f) {
-        return isPropertyField(f) && isIndexed(f);
+        return isPropertyField(f) && indexInfo.isIndexed(f);
     }
 
-    private boolean isIndexed(final Field f) {
-        final Indexed indexedAnnotation = getIndexedAnnotation(f);
-        return indexedAnnotation != null;
-    }
 
     private boolean isPropertyField(final Field f) {
         return propertyFieldAccessorFactory.accept(f) || convertingNodePropertyFieldAccessorFactory.accept(f);
@@ -57,36 +53,49 @@ public class IndexingPropertyFieldAccessorListenerFactory<S extends PropertyCont
 
     @Override
     public FieldAccessListener<T, ?> forField(Field field) {
-        Class<T> graphBacked = (Class<T>) field.getDeclaringClass();
-        Index<? extends PropertyContainer> index = getIndex(field,graphBacked);
-        String indexKey = getIndexKey(field);
-        return (FieldAccessListener<T, ?>) new IndexingPropertyFieldAccessorListener(index, indexKey);
+        return (FieldAccessListener<T, ?>) new IndexingPropertyFieldAccessorListener(field,indexInfo);
     }
 
-    private String getIndexKey(Field field) {
-        Indexed indexed = getIndexedAnnotation(field);
-        if (indexed==null || indexed.fieldName().isEmpty()) return DelegatingFieldAccessorFactory.getNeo4jPropertyName(field);
-        return indexed.fieldName();
-    }
 
-    private Index<S> getIndex(Field field, Class<T> type) {
-        if (!isFulltextIndex(field)) {
-            return graphDatabaseContext.getIndex(type, Indexed.Name.get(field), false);
+    public static class IndexInfo<S extends PropertyContainer, T extends GraphBacked<S>> {
+        private final GraphDatabaseContext graphDatabaseContext;
+
+        public IndexInfo(GraphDatabaseContext graphDatabaseContext) {
+            this.graphDatabaseContext = graphDatabaseContext;
         }
-        Indexed indexed = getIndexedAnnotation(field);
-        if (indexed.indexName()==null) throw new IllegalStateException("@Indexed(fullext=true) on "+field+" requires an indexName too ");
-        String defaultIndexName = Indexed.Name.getDefault(field);
-        if (indexed.indexName().equals(defaultIndexName)) throw new IllegalStateException("Full-index name for "+field+" must differ from the default name: "+defaultIndexName);
-        return graphDatabaseContext.getIndex(type, indexed.indexName(), true);
-    }
 
-    private boolean isFulltextIndex(Field field) {
-        Indexed indexed = getIndexedAnnotation(field);
-        return indexed!=null && indexed.fulltext();
-    }
+        private boolean isIndexed(final Field f) {
+            final Indexed indexedAnnotation = getIndexedAnnotation(f);
+            return indexedAnnotation != null;
+        }
+        private String getIndexKey(Field field) {
+            Indexed indexed = getIndexedAnnotation(field);
+            if (indexed==null || indexed.fieldName().isEmpty()) return DelegatingFieldAccessorFactory.getNeo4jPropertyName(field);
+            return indexed.fieldName();
+        }
 
-    private Indexed getIndexedAnnotation(AnnotatedElement element) {
-        return element.getAnnotation(Indexed.class);
+        private boolean isFulltextIndex(Field field) {
+            Indexed indexed = getIndexedAnnotation(field);
+            return indexed!=null && indexed.fulltext();
+        }
+
+        private Indexed getIndexedAnnotation(AnnotatedElement element) {
+            return element.getAnnotation(Indexed.class);
+        }
+
+        private Index<S> getIndex(Field field, T instance) {
+            final Indexed indexedAnnotation = getIndexedAnnotation(field);
+            final Class<T> type = (Class<T>) field.getDeclaringClass();
+            final String providedIndexName = indexedAnnotation.indexName().isEmpty() ? null : indexedAnnotation.indexName();
+            String indexName = Indexed.Name.get(indexedAnnotation.level(), type, providedIndexName, instance.getClass());
+            if (!isFulltextIndex(field)) {
+                return graphDatabaseContext.getIndex(type, indexName, false);
+            }
+            if (providedIndexName == null) throw new IllegalStateException("@Indexed(fullext=true) on "+field+" requires an providedIndexName too ");
+            String defaultIndexName = Indexed.Name.get(indexedAnnotation.level(), type, null, instance.getClass());
+            if (providedIndexName.equals(defaultIndexName)) throw new IllegalStateException("Full-index name for "+field+" must differ from the default name: "+defaultIndexName);
+            return graphDatabaseContext.getIndex(type, indexName, true);
+        }
     }
 
     /**
@@ -98,15 +107,21 @@ public class IndexingPropertyFieldAccessorListenerFactory<S extends PropertyCont
 	    private final static Log log = LogFactory.getLog( IndexingPropertyFieldAccessorListener.class );
 
 	    protected final String indexKey;
-        private final Index<T> index;
+        private final Field field;
+        private final IndexInfo indexInfo;
+        private Index<T> index;
 
-        public IndexingPropertyFieldAccessorListener(final Index<T> index, final String indexKey) {
-            this.index = index;
-            this.indexKey = indexKey;
+        public IndexingPropertyFieldAccessorListener(final Field field, IndexInfo indexInfo) {
+            this.field = field;
+            this.indexInfo = indexInfo;
+            indexKey = indexInfo.getIndexKey(field);
         }
 
 	    @Override
         public void valueChanged(GraphBacked<T> graphBacked, Object oldVal, Object newVal) {
+            if (index==null) {
+                index = indexInfo.getIndex(field, graphBacked);
+            }
             if (newVal instanceof Number) newVal = ValueContext.numeric((Number) newVal);
 
             final T state = graphBacked.getPersistentState();

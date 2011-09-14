@@ -38,6 +38,8 @@ public @interface Indexed {
 
     String fieldName() default "";
 
+    Level level() default Level.CLASS;
+
     static class Name {
         public static String getDefault(Field field) {
             return get(field.getDeclaringClass());
@@ -49,6 +51,7 @@ public @interface Indexed {
 
         private static String getIndexName(AnnotatedElement element, String defaultIndexName) {
             Indexed indexed = element.getAnnotation(Indexed.class);
+
             if (indexed == null || indexed.indexName() == null || indexed.indexName().isEmpty()) {
                 return defaultIndexName;
             }
@@ -58,5 +61,17 @@ public @interface Indexed {
         public static String get(Field field) {
             return getIndexName(field, getDefault(field));
         }
+
+        public static String get(Level level, Class<?> type, String providedIndexName, Class<?> instanceType) {
+            if (providedIndexName!=null) return providedIndexName;
+            switch (level) {
+                case GLOBAL: return "nodes";
+                case CLASS: return get(type);
+                case INSTANCE: return get(instanceType);
+                default : return get(type);
+            }
+        }
     }
+
+    enum Level { GLOBAL, CLASS, INSTANCE}
 }

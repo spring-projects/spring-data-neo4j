@@ -59,6 +59,15 @@ public class Group {
     @Indexed(fieldName = OTHER_NAME_INDEX)
     private String otherName;
 
+    @Indexed(level=Indexed.Level.GLOBAL)
+    private String globalName;
+
+    @Indexed(level=Indexed.Level.CLASS)
+    private String classLevelName;
+
+    @Indexed(level=Indexed.Level.INSTANCE)
+    private String indexLevelName;
+
     public String getFullTextName() {
         return fullTextName;
     }
@@ -127,5 +136,17 @@ public class Group {
 
     public void setUnindexedName2(String unindexedName2) {
         this.unindexedName2 = unindexedName2;
+    }
+
+    public void setGlobalName(String globalName) {
+        this.globalName = globalName;
+    }
+
+    public void setClassLevelName(String classLevelName) {
+        this.classLevelName = classLevelName;
+    }
+
+    public void setIndexLevelName(String indexLevelName) {
+        this.indexLevelName = indexLevelName;
     }
 }

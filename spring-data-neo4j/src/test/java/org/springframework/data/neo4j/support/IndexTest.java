@@ -22,11 +22,9 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.neo4j.graphdb.DynamicRelationshipType;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Relationship;
-import org.neo4j.graphdb.Transaction;
+import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.index.Index;
+import org.neo4j.graphdb.index.IndexHits;
 import org.neo4j.helpers.collection.IteratorUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.neo4j.*;
@@ -145,6 +143,17 @@ public class IndexTest {
         group.setName(NAME_VALUE);
         final Group found = groupFinder.findByPropertyValue(NAME, NAME_VALUE);
         assertEquals(group, found);
+    }
+
+    @Test
+    @Transactional
+    public void testFindGroupByInstanceIndex() {
+        Group group = new SubGroup().persist();
+        group.setIndexLevelName("indexLevelNameValue");
+        Index<Node> subGroupIndex = graphDatabaseContext.getIndex(SubGroup.class);
+        final Node found = subGroupIndex.get("indexLevelName", "indexLevelNameValue").getSingle();
+        final SubGroup foundEntity = graphDatabaseContext.createEntityFromState(found, SubGroup.class);
+        assertEquals(group, foundEntity);
     }
 
     @Test
