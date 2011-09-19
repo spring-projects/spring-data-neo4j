@@ -66,5 +66,10 @@ public class IdFieldAccessorFactory implements FieldAccessorFactory<NodeBacked> 
             return doReturn(nodeBacked.getPersistentState().getId());
 	    }
 
+		@Override
+		public Object getDefaultImplementation() {
+			return null;
+		}
+
 	}
 }

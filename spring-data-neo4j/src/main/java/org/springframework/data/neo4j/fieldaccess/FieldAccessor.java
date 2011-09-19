@@ -25,6 +25,15 @@ package org.springframework.data.neo4j.fieldaccess;
  */
 public interface FieldAccessor<ENTITY> {
 
+	/**
+	 * Returns a default implementation for a field or {@code null} if none is provided.
+	 * <p>
+	 * This default implementation is returned in detached mode by the {@link DetachedEntityState}
+	 * when the value of the field is get. 
+	 * @return a default implementation for a field or {@code null} if none is provided.
+	 */
+	Object getDefaultImplementation();
+	
     /**
      * handles field write modification.
      * @param entity

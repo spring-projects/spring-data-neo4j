@@ -109,6 +109,11 @@ public class RelationshipNodeFieldAccessorFactory implements FieldAccessorFactor
         public boolean isWriteable(final RelationshipBacked relationshipBacked) {
             return false;
         }
+        
+		@Override
+		public Object getDefaultImplementation() {
+			return null;
+		}
     }
 
 }

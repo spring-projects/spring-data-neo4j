@@ -122,5 +122,10 @@ public class DynamicPropertiesFieldAccessorFactory implements FieldAccessorFacto
         public boolean isWriteable(final GraphBacked<PropertyContainer> entity) {
             return true;
         }
+
+		@Override
+		public Object getDefaultImplementation() {
+			return new DynamicPropertiesContainer();
+		}
     }
 }

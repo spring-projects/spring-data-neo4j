@@ -31,7 +31,6 @@ import org.springframework.data.neo4j.annotation.RelatedTo;
 import org.springframework.data.neo4j.annotation.RelatedToVia;
 import org.springframework.data.neo4j.core.Direction;
 import org.springframework.data.neo4j.fieldaccess.DynamicProperties;
-import org.springframework.data.neo4j.fieldaccess.DynamicPropertiesContainer;
 
 
 @NodeEntity
@@ -65,7 +64,7 @@ public class Person {
 
 	private Car car;
 
-	private DynamicProperties personalProperties = new DynamicPropertiesContainer();
+	private DynamicProperties personalProperties;
 	
 	@RelatedTo
 	private Person mother;

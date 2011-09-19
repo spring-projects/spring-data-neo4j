@@ -34,6 +34,7 @@ import org.neo4j.helpers.collection.IteratorUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.neo4j.Friendship;
 import org.springframework.data.neo4j.Person;
+import org.springframework.data.neo4j.PersonRepository;
 import org.springframework.data.neo4j.fieldaccess.DynamicProperties;
 import org.springframework.data.neo4j.support.node.Neo4jHelper;
 import org.springframework.test.context.ContextConfiguration;
@@ -48,6 +49,9 @@ public class DynamicPropertiesTest
     @Autowired
     private GraphDatabaseContext graphDatabaseContext;
 
+    @Autowired
+    private PersonRepository personRepository;
+    
     @BeforeTransaction
     public void cleanDb() {
         Neo4jHelper.cleanDb(graphDatabaseContext);
@@ -84,6 +88,17 @@ public class DynamicPropertiesTest
     	Person p = createTestPerson();
     	assertEquals(3, IteratorUtil.count(p.getPersonalProperties().getPropertyKeys()));
 		assertProperties(nodeFor(p));
+    }
+    
+    @Test
+    @Transactional
+    public void testReload() {
+    	Person p = createTestPerson();
+    	Person p2 = personRepository.findOne(p.getId());
+    	assertEquals(3, IteratorUtil.count(p2.getPersonalProperties().getPropertyKeys()));
+    	assertEquals("String", p2.getPersonalProperties().getProperty("s"));
+    	assertEquals(100, p2.getPersonalProperties().getProperty("x"));
+    	assertEquals(3.1415, ((Double)p2.getPersonalProperties().getProperty("pi")).doubleValue(), 0.000000001);
     }
     
     @Test

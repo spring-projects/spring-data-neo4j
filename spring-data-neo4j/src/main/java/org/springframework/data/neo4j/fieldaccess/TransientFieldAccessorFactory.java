@@ -59,5 +59,10 @@ public class TransientFieldAccessorFactory implements FieldAccessorFactory<Graph
             return null;
         }
 
+		@Override
+		public Object getDefaultImplementation() {
+			return null;
+		}
+
     }
 }

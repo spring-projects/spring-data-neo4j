@@ -99,5 +99,10 @@ public class TraversalFieldAccessorFactory implements FieldAccessorFactory<NodeB
 	        }
 	    }
 
+		@Override
+		public Object getDefaultImplementation() {
+			return null;
+		}
+
 	}
 }

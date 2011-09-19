@@ -18,6 +18,8 @@ package org.springframework.data.neo4j.core;
 
 import java.lang.reflect.Field;
 
+import org.springframework.data.neo4j.fieldaccess.FieldAccessor;
+
 /**
  * Interface for classes encapsulating and delegating read and write field access of an GraphBacked entity to a number of field accessors.
  * Wraps the entity, the underlying state and also handles the creation of the state (call back).
@@ -29,6 +31,12 @@ public interface EntityState<ENTITY extends GraphBacked<STATE>,STATE> {
 
     void setPersistentState(STATE state);
 
+    /**
+     * @param field field of the entity class
+     * @return a default value for the given field by its {@link FieldAccessor} or {@code null} if none is provided.
+     */
+    Object getDefaultImplementation(Field field);
+    
     /**
      * @param field
      * @return value of the field either from the state and/or the entity
