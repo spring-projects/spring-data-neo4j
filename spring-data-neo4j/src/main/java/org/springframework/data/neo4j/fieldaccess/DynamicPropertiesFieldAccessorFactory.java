@@ -67,16 +67,20 @@ public class DynamicPropertiesFieldAccessorFactory implements FieldAccessorFacto
         public Object setValue(final GraphBacked<PropertyContainer> entity, final Object newVal) {
         	final PropertyContainer propertyContainer = entity.getPersistentState();
         	PrefixedDynamicProperties dynamicProperties;
-        	if (newVal instanceof DynamicPropertiesContainer) {
+            if (newVal instanceof ManagedPrefixedDynamicProperties) {
+                // newVal is already a managed container
+                dynamicProperties = (ManagedPrefixedDynamicProperties<?>) newVal;
+            }
+            else {
+                // newVal is not a managed prefixed container and therefore contains
+                // pure key/values that must be converted to a prefixed form
         		dynamicProperties = new PrefixedDynamicProperties(propertyNamePrefix);
         		DynamicProperties newPropertiesVal = (DynamicProperties)newVal;
         		for(String key : newPropertiesVal.getPropertyKeys()) {
         			dynamicProperties.setProperty(key, newPropertiesVal.getProperty(key));
         		}
         	}
-        	else {
-        		dynamicProperties = (ManagedPrefixedDynamicProperties<?>) newVal;
-        	}
+
 
             Set<String> dynamicProps = dynamicProperties.getPrefixedPropertyKeys();
             Set<String> nodeProps = new HashSet<String>();
