@@ -75,7 +75,6 @@ public class ManagedPrefixedDynamicProperties<ENTITY> extends PrefixedDynamicPro
     public DynamicProperties createFrom(Map<String, Object> map) {
         DynamicProperties d = new ManagedPrefixedDynamicProperties<ENTITY>(prefix, map.size(), field, entity);
         d.setPropertiesFrom(map);
-        update();
         return d;
     }
 
