@@ -113,6 +113,10 @@ public abstract class AbstractNodeRelationshipFieldAccessor<ENTITY extends Graph
         }
     }
 
+	public Object getDefaultImplementation() {
+        return null;
+	}
+	
     protected abstract Relationship obtainSingleRelationship(STATE start, TSTATE end);
 
     protected abstract Iterable<TSTATE> getStatesFromEntity(ENTITY entity);

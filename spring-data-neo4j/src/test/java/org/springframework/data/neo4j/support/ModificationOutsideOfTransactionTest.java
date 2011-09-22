@@ -62,6 +62,7 @@ public class ModificationOutsideOfTransactionTest
         Neo4jHelper.cleanDb(graphDatabaseContext);
     }
 
+    @Test
 	public void testCreateOutsideTransaction() {
 		Person p = new Person("Michael", 35);
 		assertEquals(35, p.getAge());

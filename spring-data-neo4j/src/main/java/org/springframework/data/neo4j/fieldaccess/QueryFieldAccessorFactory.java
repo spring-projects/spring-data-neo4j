@@ -99,5 +99,10 @@ public class QueryFieldAccessorFactory implements FieldAccessorFactory<NodeBacke
             }
             return params;
         }
+
+		@Override
+		public Object getDefaultImplementation() {
+			return null;
+		}
     }
 }

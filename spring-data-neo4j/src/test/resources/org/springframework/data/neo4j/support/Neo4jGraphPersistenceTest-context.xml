@@ -118,12 +118,12 @@
     </bean>
 
     <bean id="relationshipEntityStateFactory" class="org.springframework.data.neo4j.support.relationship.RelationshipEntityStateFactory">
-    	<property name="graphDatabaseContext" ref="graphDatabaseContext"/>
         <property name="relationshipDelegatingFieldAccessorFactory">
-            <bean class="org.springframework.data.neo4j.fieldaccess.RelationshipDelegatingFieldAccessorFactory">
-                <constructor-arg ref="graphDatabaseContext"/>
-            </bean>
-        </property>
+		    <bean class="org.springframework.data.neo4j.fieldaccess.RelationshipDelegatingFieldAccessorFactory">
+		        <constructor-arg ref="graphDatabaseContext"/>
+		    </bean>
+    	</property>
+    	<property name="graphDatabaseContext" ref="graphDatabaseContext"/>
     </bean>
 
 	<bean id="graphRepositoryFactory" class="org.springframework.data.neo4j.repository.DirectGraphRepositoryFactory">

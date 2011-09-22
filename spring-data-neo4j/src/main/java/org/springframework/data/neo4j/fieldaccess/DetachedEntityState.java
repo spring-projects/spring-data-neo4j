@@ -72,7 +72,23 @@ public class DetachedEntityState<ENTITY extends GraphBacked<STATE>, STATE> imple
         if (isDetached()) {
             if (getEntity().getPersistentState()==null || isDirty(field)) {
                 if (log.isDebugEnabled()) log.debug("Outside of transaction, GET value from field " + field);
-                return null;
+                Object entityValue = getValueFromEntity(field);
+                if (entityValue != null) {
+                	return entityValue;
+                }
+                
+                Object defaultValue = getDefaultImplementation(field);
+                if (defaultValue != null) {
+                    final ENTITY entity = getEntity();
+                    try {
+                        field.setAccessible(true);
+                        field.set(entity, defaultValue);
+                        addDirty(field, defaultValue, false);
+                    } catch(IllegalAccessException e) {
+                    	throw new RuntimeException("Error setting default value for field " + field + " in " + entity.getClass(), e);
+                    }
+                }
+                return defaultValue;
             }
         } else {
 //            flushDirty();
@@ -125,7 +141,10 @@ public class DetachedEntityState<ENTITY extends GraphBacked<STATE>, STATE> imple
         // flushDirty();
         return delegate.setValue(field, newVal);
     }
-
+	@Override
+	public Object getDefaultImplementation(Field field) {
+        return delegate.getDefaultImplementation(field);
+	}
     private Object getDefaultValue(final Class<?> type) {
         if (type.isPrimitive()) {
             if (type.equals(boolean.class)) return false;
@@ -216,6 +235,10 @@ public class DetachedEntityState<ENTITY extends GraphBacked<STATE>, STATE> imple
 
     private void clearDirty() {
         this.dirty.clear();
+    }
+    
+    private void clearDirty(final Field f) {
+        this.dirty.remove(f);
     }
 
     private void addDirty(final Field f, final Object previousValue, boolean fromGraph) {

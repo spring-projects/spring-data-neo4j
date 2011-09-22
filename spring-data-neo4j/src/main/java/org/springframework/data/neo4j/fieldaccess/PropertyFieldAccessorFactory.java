@@ -109,5 +109,10 @@ public class PropertyFieldAccessorFactory implements FieldAccessorFactory<GraphB
             return null;
         }
 
+		@Override
+		public Object getDefaultImplementation() {
+			return null;
+		}
+
     }
 }
