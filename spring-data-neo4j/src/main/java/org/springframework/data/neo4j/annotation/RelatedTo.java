@@ -16,6 +16,7 @@
 
 package org.springframework.data.neo4j.annotation;
 
+import org.springframework.data.annotation.Reference;
 import org.springframework.data.neo4j.core.Direction;
 import org.springframework.data.neo4j.core.NodeBacked;
 
@@ -44,6 +45,7 @@ import java.lang.annotation.Target;
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
+@Reference
 public @interface RelatedTo {
     /**
      * @return name of the relationship type, optional, can be inferred from the field name

@@ -236,9 +236,9 @@
             <plugin>
                 <groupId>com.agilejava.docbkx</groupId>
                 <artifactId>docbkx-maven-plugin</artifactId>
-                <version>2.0.8</version>
+                <version>2.0.12</version>
                 <executions>
-                    <execution>
+                    <!--execution>
                         <id>single-page</id>
                         <goals>
                             <goal>generate-html</goal>
@@ -273,8 +273,31 @@
                             </postProcess>
                         </configuration>
                         <phase>pre-site</phase>
-                    </execution>
-                    <execution>
+                    </execution-->
+				 	<execution>
+				            <id>generate-rtf</id>
+				            <goals>
+				              <goal>generate-rtf</goal>
+				            </goals>
+				            <configuration>
+                            <imgSrcPath>${basedir}/src/docbkx/</imgSrcPath>
+                            <admonGraphicsPath>${basedir}/src/docbkx/resources/images/</admonGraphicsPath>
+                    <sourceDirectory>${basedir}/src/docbkx/</sourceDirectory>
+                    <!--foCustomization>${basedir}/src/docbkx/resources/xsl/fortf2.xsl</foCustomization-->
+							<fopExtensions>0</fopExtensions>
+							<fop1Extensions>0</fop1Extensions>
+					        <useExtensions>0</useExtensions>
+					        <!--highlightSource>1</highlightSource>
+					        <highlightDefaultLanguage></highlightDefaultLanguage-->
+                            <postProcess>
+                                <copy file="${basedir}/target/docbkx/rtf/index.rtf"
+                                      tofile="${basedir}/target/site/reference/rtf/spring-data-graph-reference.rtf"
+                                      failonerror="false"/>
+                            </postProcess>
+				            </configuration>
+	                        <phase>pre-site</phase>
+				    </execution>
+                    <!--execution>
                         <id>single-pdf</id>
                         <goals>
                             <goal>generate-pdf</goal>
@@ -282,6 +305,7 @@
                         <configuration>
                             <imgSrcPath>${basedir}/src/docbkx/</imgSrcPath>
                             <admonGraphicsPath>${basedir}/src/docbkx/resources/images/</admonGraphicsPath>
+					        <foCustomization>${basedir}/src/docbkx/resources/xsl/fopdf.xsl</foCustomization>
 					        <useExtensions>1</useExtensions>
 					        <highlightSource>1</highlightSource>
 					        <highlightDefaultLanguage></highlightDefaultLanguage>
@@ -331,7 +355,7 @@
                             </postProcess>
                         </configuration>
                         <phase>pre-site</phase>
-                    </execution>
+                    </execution-->
                 </executions>
                 <dependencies>
                     <dependency>
@@ -352,7 +376,7 @@
                     <draftWatermarkImage/>
                     <htmlStylesheet>css/html.css</htmlStylesheet>
                     <sourceDirectory>${basedir}/src/docbkx/</sourceDirectory>
-                    <foCustomization>${basedir}/src/docbkx/resources/xsl/fopdf.xsl</foCustomization>
+                    <!--foCustomization>${basedir}/src/docbkx/resources/xsl/fopdf.xsl</foCustomization-->
                     <xincludeSupported>true</xincludeSupported>
                     <entities>
                         <entity>

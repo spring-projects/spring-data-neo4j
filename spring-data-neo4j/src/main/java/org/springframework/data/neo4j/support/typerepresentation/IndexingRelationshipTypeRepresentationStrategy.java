@@ -33,7 +33,9 @@ import org.springframework.data.neo4j.core.RelationshipTypeRepresentationStrateg
 import org.springframework.data.persistence.EntityInstantiator;
 
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
+import java.util.WeakHashMap;
 
 public class IndexingRelationshipTypeRepresentationStrategy implements RelationshipTypeRepresentationStrategy {
 
@@ -42,17 +44,14 @@ public class IndexingRelationshipTypeRepresentationStrategy implements Relations
     public static final String INDEX_KEY = "className";
     private EntityInstantiator<RelationshipBacked, Relationship> relationshipEntityInstantiator;
     private GraphDatabaseService graphDb;
-    private final Map<String,Class<?>> cache=new HashMap<String, Class<?>>();
+    private final EntityTypeCache typeCache;
 
     public IndexingRelationshipTypeRepresentationStrategy(GraphDatabaseService graphDb,
                                                           EntityInstantiator<RelationshipBacked, Relationship> relationshipEntityInstantiator) {
 		this.graphDb = graphDb;
         this.relationshipEntityInstantiator = relationshipEntityInstantiator;
+        typeCache = new EntityTypeCache();
     }
-
-	private Index<Node> getNodeTypesIndex() {
-		return graphDb.index().forNodes(INDEX_NAME);
-	}
 
 	private Index<Relationship> getRelTypesIndex() {
 		return graphDb.index().forRelationships(INDEX_NAME);
@@ -87,8 +86,10 @@ public class IndexingRelationshipTypeRepresentationStrategy implements Relations
     @Override
     public long count(Class<? extends RelationshipBacked> entityClass) {
         long count = 0;
-        for (Object o : getRelTypesIndex().get(INDEX_KEY, entityClass.getName())) {
-            count += 1;
+        final IndexHits<Relationship> hits = getRelTypesIndex().get(INDEX_KEY, entityClass.getName());
+        while (hits.hasNext()) {
+            hits.next();
+            count++;
         }
 		return count;
 	}
@@ -96,28 +97,9 @@ public class IndexingRelationshipTypeRepresentationStrategy implements Relations
     @Override
     @SuppressWarnings("unchecked")
     public Class<? extends RelationshipBacked> getJavaType(Relationship relationship) {
-		if (relationship == null) throw new IllegalArgumentException("Node is null");
+		if (relationship == null) throw new IllegalArgumentException("Relationship is null");
         String className = (String) relationship.getProperty(TYPE_PROPERTY_NAME);
-        return getClassForName(className);
-    }
-
-    @SuppressWarnings({"unchecked"})
-    private <ENTITY extends GraphBacked<?>> Class<ENTITY> getClassForName(String className) {
-        try {
-            Class<ENTITY> result= (Class<ENTITY>) cache.get(className);
-            if (result!=null) return result;
-            synchronized (cache) {
-                result= (Class<ENTITY>) cache.get(className);
-                if (result!=null) return result;
-                result = (Class<ENTITY>) Class.forName(className);
-                cache.put(className,result);
-                return result;
-            }
-		} catch (NotFoundException e) {
-			return null;
-		} catch (ClassNotFoundException e) {
-			return null;
-		}
+        return typeCache.getClassForName(className);
     }
 
 

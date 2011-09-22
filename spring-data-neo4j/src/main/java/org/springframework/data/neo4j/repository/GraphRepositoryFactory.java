@@ -78,10 +78,11 @@ public class GraphRepositoryFactory extends RepositoryFactorySupport {
 
     @SuppressWarnings({ "unchecked", "rawtypes" })
     protected Object getTargetRepository(RepositoryMetadata metadata, GraphDatabaseContext graphDatabaseContext) {
+
         Class<?> repositoryInterface = metadata.getRepositoryInterface();
         Class<?> type = metadata.getDomainClass();
         GraphEntityInformation entityInformation = (GraphEntityInformation)getEntityInformation(type);
-
+        // todo entityInformation.isGraphBacked();
         if (entityInformation.isNodeEntity()) {
             return new NodeGraphRepository(type,graphDatabaseContext);
         } else {

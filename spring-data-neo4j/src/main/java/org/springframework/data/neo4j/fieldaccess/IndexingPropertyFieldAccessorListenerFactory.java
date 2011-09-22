@@ -33,17 +33,17 @@ public class IndexingPropertyFieldAccessorListenerFactory<S extends PropertyCont
 
     private final PropertyFieldAccessorFactory propertyFieldAccessorFactory;
     private final ConvertingNodePropertyFieldAccessorFactory convertingNodePropertyFieldAccessorFactory;
-    private final IndexInfo indexInfo;
+    private final IndexProvider indexProvider;
 
     public IndexingPropertyFieldAccessorListenerFactory(final GraphDatabaseContext graphDatabaseContext, final PropertyFieldAccessorFactory propertyFieldAccessorFactory, final ConvertingNodePropertyFieldAccessorFactory convertingNodePropertyFieldAccessorFactory) {
-        indexInfo = new IndexInfo<S,T>(graphDatabaseContext);
+        indexProvider = new IndexProvider<S,T>(graphDatabaseContext);
     	this.propertyFieldAccessorFactory = propertyFieldAccessorFactory;
         this.convertingNodePropertyFieldAccessorFactory = convertingNodePropertyFieldAccessorFactory;
     }
 
     @Override
     public boolean accept(final Field f) {
-        return isPropertyField(f) && indexInfo.isIndexed(f);
+        return isPropertyField(f) && indexProvider.isIndexed(f);
     }
 
 
@@ -53,14 +53,14 @@ public class IndexingPropertyFieldAccessorListenerFactory<S extends PropertyCont
 
     @Override
     public FieldAccessListener<T, ?> forField(Field field) {
-        return (FieldAccessListener<T, ?>) new IndexingPropertyFieldAccessorListener(field,indexInfo);
+        return (FieldAccessListener<T, ?>) new IndexingPropertyFieldAccessorListener(field, indexProvider);
     }
 
 
-    public static class IndexInfo<S extends PropertyContainer, T extends GraphBacked<S>> {
+    public static class IndexProvider<S extends PropertyContainer, T extends GraphBacked<S>> {
         private final GraphDatabaseContext graphDatabaseContext;
 
-        public IndexInfo(GraphDatabaseContext graphDatabaseContext) {
+        public IndexProvider(GraphDatabaseContext graphDatabaseContext) {
             this.graphDatabaseContext = graphDatabaseContext;
         }
 
@@ -108,20 +108,17 @@ public class IndexingPropertyFieldAccessorListenerFactory<S extends PropertyCont
 
 	    protected final String indexKey;
         private final Field field;
-        private final IndexInfo indexInfo;
-        private Index<T> index;
+        private final IndexProvider indexProvider;
 
-        public IndexingPropertyFieldAccessorListener(final Field field, IndexInfo indexInfo) {
+        public IndexingPropertyFieldAccessorListener(final Field field, IndexProvider indexProvider) {
             this.field = field;
-            this.indexInfo = indexInfo;
-            indexKey = indexInfo.getIndexKey(field);
+            this.indexProvider = indexProvider;
+            indexKey = indexProvider.getIndexKey(field);
         }
 
 	    @Override
         public void valueChanged(GraphBacked<T> graphBacked, Object oldVal, Object newVal) {
-            if (index==null) {
-                index = indexInfo.getIndex(field, graphBacked);
-            }
+            Index<T> index = indexProvider.getIndex(field, graphBacked);
             if (newVal instanceof Number) newVal = ValueContext.numeric((Number) newVal);
 
             final T state = graphBacked.getPersistentState();

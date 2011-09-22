@@ -122,7 +122,7 @@
 		<junit.version>4.8.1</junit.version>
 		<log4j.version>1.2.15</log4j.version>
 		<org.mockito.version>1.8.4</org.mockito.version>
-		<org.slf4j.version>1.5.10</org.slf4j.version>
+		<org.slf4j.version>1.6.1</org.slf4j.version>
 		<org.springframework.version>3.0.5.RELEASE</org.springframework.version>
 		<data.commons.version>1.1.0.RELEASE</data.commons.version>
         <neo4j.version>1.4.1</neo4j.version>

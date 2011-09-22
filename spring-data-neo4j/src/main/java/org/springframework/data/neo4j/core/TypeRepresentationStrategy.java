@@ -27,6 +27,8 @@ import org.neo4j.helpers.collection.ClosableIterable;
  * Contains a callback on entity creation that can setup the type representation. The finder methods are delegated to
  * for the appropriate calls for the strategy set for the datastore.
  *
+ * TODO use SDC TypeMapper implementations to delegate to for concrete implementation
+ *
 * @author Michael Hunger
 * @since 13.09.2010
 */

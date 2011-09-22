@@ -16,26 +16,63 @@
 
 package org.springframework.data.neo4j.mapping;
 
+import org.springframework.data.mapping.model.MappingException;
+import org.springframework.data.neo4j.annotation.NodeEntity;
+import org.springframework.data.neo4j.annotation.RelatedTo;
+import org.springframework.data.neo4j.annotation.RelatedToVia;
+import org.springframework.data.neo4j.annotation.RelationshipEntity;
 import org.springframework.data.neo4j.core.Direction;
+import org.springframework.data.util.TypeInformation;
+import scala.annotation.target.field;
 
-/**
- * Captures information about a relationship.
- *
- * @author Oliver Gierke
- */
-public interface RelationshipInfo {
+import java.lang.reflect.Field;
 
-	/**
-	 * Returns the direction of the relationship.
-	 * 
-	 * @return
-	 */
-	Direction getDirection();
+public class RelationshipInfo {
 
-	/**
-	 * Returns the type of the relationship.
-	 * 
-	 * @return
-	 */
-	String getType();
+    private boolean isMultiple;
+    private final Direction direction;
+    private final String type;
+    private final TypeInformation<?> targetType;
+    private final boolean isNodeRelationship;
+
+    public Direction getDirection() {
+        return direction;
+    }
+
+    public String getType() {
+        return type;
+    }
+    public boolean isMultiple() {
+        return isMultiple;
+    }
+
+    public RelationshipInfo(String type, Direction direction, TypeInformation<?> typeInformation) {
+        this.type = type;
+        this.direction = direction;
+        isMultiple = typeInformation.isCollectionLike();
+        targetType = typeInformation.getActualType();
+        isNodeRelationship = isNodeEntity(targetType);
+    }
+
+    private boolean isNodeEntity(TypeInformation<?> targetType) {
+        if (targetType.getType().isAnnotationPresent(NodeEntity.class)) return true;
+        if (targetType.getType().isAnnotationPresent(RelationshipEntity.class)) return false;
+        throw new MappingException("Target type for relationship "+ type +" field is invalid "+targetType);
+    }
+
+    public static RelationshipInfo fromField(Field field, TypeInformation<?> typeInformation) {
+        return new RelationshipInfo(field.getName(), Direction.OUTGOING, typeInformation);
+    }
+    public static RelationshipInfo fromField(Field field, RelatedTo annotation, TypeInformation<?> typeInformation) {
+        return new RelationshipInfo(
+                annotation.type().isEmpty() ? field.getName() : annotation.type(),
+                annotation.direction(),
+                typeInformation);
+    }
+    public static RelationshipInfo fromField(Field field, RelatedToVia annotation, TypeInformation<?> typeInformation) {
+        return new RelationshipInfo(
+                annotation.type().isEmpty() ? field.getName() : annotation.type(),
+                annotation.direction(),
+                typeInformation);
+    }
 }

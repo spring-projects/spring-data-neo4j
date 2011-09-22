@@ -21,6 +21,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+import org.springframework.data.annotation.Reference;
 import org.springframework.data.neo4j.core.Direction;
 import org.springframework.data.neo4j.core.RelationshipBacked;
 
@@ -38,6 +39,7 @@ import org.springframework.data.neo4j.core.RelationshipBacked;
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
+@Reference
 public @interface RelatedToVia {
     /**
      * @return name of the relationship type, optional, can be inferred from the field name

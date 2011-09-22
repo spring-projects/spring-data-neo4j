@@ -41,4 +41,8 @@ public interface Neo4JPersistentProperty extends PersistentProperty<Neo4JPersist
      * @return
      */
     RelationshipInfo getRelationshipInfo();
+
+    boolean isIndexed();
+
+    Neo4JPersistentPropertyImpl.IndexInfo getIndexInfo();
 }

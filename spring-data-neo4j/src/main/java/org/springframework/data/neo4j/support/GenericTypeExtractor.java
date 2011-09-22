@@ -37,7 +37,7 @@ public class GenericTypeExtractor {
     }
 
     public static Class<?> resolveConcreteType(Class<?> type, final Type genericType) {
-        if (Iterable.class.isAssignableFrom(type) || Page.class.isAssignableFrom(type)) {
+        if (Iterable.class.isAssignableFrom(type)) {
             if (genericType instanceof ParameterizedType) {
                 ParameterizedType returnType = (ParameterizedType) genericType;
                 Type componentType = returnType.getActualTypeArguments()[0];

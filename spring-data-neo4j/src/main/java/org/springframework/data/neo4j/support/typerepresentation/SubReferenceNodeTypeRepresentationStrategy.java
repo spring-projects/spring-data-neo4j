@@ -24,6 +24,7 @@ import org.neo4j.helpers.collection.ClosableIterable;
 import org.neo4j.helpers.collection.CombiningIterable;
 import org.neo4j.helpers.collection.IterableWrapper;
 import org.neo4j.kernel.Traversal;
+import org.springframework.data.neo4j.core.GraphBacked;
 import org.springframework.data.neo4j.core.NodeBacked;
 import org.springframework.data.neo4j.core.NodeTypeRepresentationStrategy;
 import org.springframework.data.persistence.EntityInstantiator;
@@ -54,11 +55,13 @@ public class SubReferenceNodeTypeRepresentationStrategy implements NodeTypeRepre
 
 	private GraphDatabaseService graphDatabaseService;
 	private EntityInstantiator<NodeBacked, Node> entityInstantiator;
+    private final EntityTypeCache typeCache;
 
-	public SubReferenceNodeTypeRepresentationStrategy(GraphDatabaseService graphDatabaseService, EntityInstantiator<NodeBacked, Node> entityInstantiator) {
+    public SubReferenceNodeTypeRepresentationStrategy(GraphDatabaseService graphDatabaseService, EntityInstantiator<NodeBacked, Node> entityInstantiator) {
 		this.graphDatabaseService = graphDatabaseService;
 		this.entityInstantiator = entityInstantiator;
-	}
+        typeCache = new EntityTypeCache();
+    }
 
     public static Node getSingleOtherNode(Node node, RelationshipType type,
                                           Direction direction) {
@@ -125,18 +128,24 @@ public class SubReferenceNodeTypeRepresentationStrategy implements NodeTypeRepre
 	@Override
 	@SuppressWarnings("unchecked")
 	public <T extends NodeBacked> Class<T> getJavaType(Node node) {
-        if (node==null) throw new IllegalArgumentException("Node is null");
+        if (node == null) throw new IllegalArgumentException("Node is null");
         Relationship instanceOfRelationship = node.getSingleRelationship(INSTANCE_OF_RELATIONSHIP_TYPE, Direction.OUTGOING);
-        if (instanceOfRelationship==null) throw new IllegalArgumentException("The node "+node+" is not attached to a type hierarchy.");
+        if (instanceOfRelationship == null)
+            throw new IllegalArgumentException("The node " + node + " is not attached to a type hierarchy.");
         Node subrefNode = instanceOfRelationship.getEndNode();
-		try {
-			Class<T> clazz = (Class<T>) Class.forName((String) subrefNode.getProperty(SUBREF_CLASS_KEY)).asSubclass(NodeBacked.class);
-			if (log.isDebugEnabled()) log.debug("Found class " + clazz.getSimpleName() + " for node: " + node);
-			return clazz;
-		} catch (ClassNotFoundException e) {
-			throw new IllegalStateException("Unable to get type for node: " + node, e);
-		}
-	}
+        final String typeName = (String) subrefNode.getProperty(SUBREF_CLASS_KEY);
+        Class<T> clazz = resolveType(node, typeName);
+        if (log.isDebugEnabled()) log.debug("Found class " + clazz.getSimpleName() + " for node: " + node);
+        return clazz;
+    }
+
+    private <T extends NodeBacked> Class<T> resolveType(Node node, String typeName) {
+        final Class<GraphBacked<?>> type = typeCache.getClassForName(typeName);
+        if (type == null) {
+      	    throw new IllegalStateException("Unable to get type for node: " + node);
+        }
+        return (Class<T>) type.asSubclass(NodeBacked.class);
+    }
 
     @Override
     public void preEntityRemoval(Node state) {

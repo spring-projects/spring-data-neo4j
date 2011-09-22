@@ -31,6 +31,7 @@ import org.springframework.data.persistence.EntityInstantiator;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.WeakHashMap;
 
 public class IndexingNodeTypeRepresentationStrategy implements NodeTypeRepresentationStrategy {
 
@@ -39,12 +40,13 @@ public class IndexingNodeTypeRepresentationStrategy implements NodeTypeRepresent
     public static final String INDEX_KEY = "className";
     private EntityInstantiator<NodeBacked, Node> graphEntityInstantiator;
     private GraphDatabaseService graphDb;
-    private final Map<String,Class<?>> cache=new HashMap<String, Class<?>>();
+    private final EntityTypeCache typeCache;
 
     public IndexingNodeTypeRepresentationStrategy(GraphDatabaseService graphDb,
                                                   EntityInstantiator<NodeBacked, Node> graphEntityInstantiator) {
 		this.graphDb = graphDb;
 		this.graphEntityInstantiator = graphEntityInstantiator;
+        typeCache = new EntityTypeCache();
     }
 
 	private Index<Node> getNodeTypesIndex() {
@@ -92,26 +94,7 @@ public class IndexingNodeTypeRepresentationStrategy implements NodeTypeRepresent
     public Class<? extends NodeBacked> getJavaType(Node node) {
 		if (node == null) throw new IllegalArgumentException("Node is null");
         String className = (String) node.getProperty(TYPE_PROPERTY_NAME);
-        return getClassForName(className);
-    }
-
-    @SuppressWarnings({"unchecked"})
-    private <ENTITY extends GraphBacked<?>> Class<ENTITY> getClassForName(String className) {
-        try {
-            Class<ENTITY> result= (Class<ENTITY>) cache.get(className);
-            if (result!=null) return result;
-            synchronized (cache) {
-                result= (Class<ENTITY>) cache.get(className);
-                if (result!=null) return result;
-                result = (Class<ENTITY>) Class.forName(className);
-                cache.put(className,result);
-                return result;
-            }
-		} catch (NotFoundException e) {
-			return null;
-		} catch (ClassNotFoundException e) {
-			return null;
-		}
+        return typeCache.getClassForName(className);
     }
 
     @Override
