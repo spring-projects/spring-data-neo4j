@@ -20,7 +20,9 @@ import org.neo4j.graphdb.NotInTransactionException;
 import org.neo4j.graphdb.Relationship;
 import org.springframework.dao.InvalidDataAccessResourceUsageException;
 import org.springframework.data.neo4j.core.RelationshipBacked;
-import org.springframework.data.neo4j.fieldaccess.*;
+import org.springframework.data.neo4j.fieldaccess.DefaultEntityState;
+import org.springframework.data.neo4j.fieldaccess.DelegatingFieldAccessorFactory;
+import org.springframework.data.neo4j.mapping.Neo4JPersistentEntity;
 import org.springframework.data.neo4j.support.GraphDatabaseContext;
 
 
@@ -32,8 +34,8 @@ public class RelationshipEntityState<ENTITY extends RelationshipBacked> extends 
 
     private final GraphDatabaseContext graphDatabaseContext;
     
-    public RelationshipEntityState(final Relationship underlyingState, final ENTITY entity, final Class<? extends ENTITY> type, final GraphDatabaseContext graphDatabaseContext, final DelegatingFieldAccessorFactory<RelationshipBacked> delegatingFieldAccessorFactory) {
-        super(underlyingState, entity, type, delegatingFieldAccessorFactory);
+    public RelationshipEntityState(final Relationship underlyingState, final ENTITY entity, final Class<? extends ENTITY> type, final GraphDatabaseContext graphDatabaseContext, final DelegatingFieldAccessorFactory<RelationshipBacked> delegatingFieldAccessorFactory, Neo4JPersistentEntity<?> persistentEntity) {
+        super(underlyingState, entity, type, delegatingFieldAccessorFactory, persistentEntity);
         this.graphDatabaseContext = graphDatabaseContext;
     }
 

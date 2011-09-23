@@ -20,6 +20,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.data.neo4j.core.EntityState;
 import org.springframework.data.neo4j.core.GraphBacked;
+import org.springframework.data.neo4j.mapping.Neo4JPersistentEntity;
 
 import java.lang.reflect.Field;
 import java.util.HashMap;
@@ -38,12 +39,13 @@ public abstract class DefaultEntityState<ENTITY extends GraphBacked<STATE>, STAT
     private STATE state;
     protected final static Log log= LogFactory.getLog(DefaultEntityState.class);
     private final FieldAccessorFactoryProviders<ENTITY> fieldAccessorFactoryProviders;
+    private final Neo4JPersistentEntity<?> persistentEntity;
 
-
-    public DefaultEntityState(final STATE underlyingState, final ENTITY entity, final Class<? extends ENTITY> type, final DelegatingFieldAccessorFactory delegatingFieldAccessorFactory) {
+    public DefaultEntityState(final STATE underlyingState, final ENTITY entity, final Class<? extends ENTITY> type, final DelegatingFieldAccessorFactory delegatingFieldAccessorFactory, Neo4JPersistentEntity<?> persistentEntity) {
         this.state = underlyingState;
         this.entity = entity;
         this.type = type;
+        this.persistentEntity = persistentEntity;
         if (delegatingFieldAccessorFactory!=null) {
             fieldAccessorFactoryProviders = delegatingFieldAccessorFactory.accessorFactoriesFor(type);
             this.fieldAccessors.putAll(fieldAccessorFactoryProviders.getFieldAccessors());

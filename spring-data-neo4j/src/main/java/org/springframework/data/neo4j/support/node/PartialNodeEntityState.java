@@ -25,6 +25,7 @@ import org.springframework.data.neo4j.annotation.GraphProperty;
 import org.springframework.data.neo4j.annotation.RelatedTo;
 import org.springframework.data.neo4j.core.NodeBacked;
 import org.springframework.data.neo4j.fieldaccess.*;
+import org.springframework.data.neo4j.mapping.Neo4JPersistentEntity;
 import org.springframework.data.neo4j.support.GraphDatabaseContext;
 
 import javax.persistence.PersistenceUnitUtil;
@@ -44,8 +45,8 @@ public class PartialNodeEntityState<ENTITY extends NodeBacked> extends DefaultEn
     private final GraphDatabaseContext graphDatabaseContext;
     private PersistenceUnitUtil persistenceUnitUtil;
 
-    public PartialNodeEntityState(final Node underlyingState, final ENTITY entity, final Class<? extends ENTITY> type, final GraphDatabaseContext graphDatabaseContext, PersistenceUnitUtil persistenceUnitUtil, final PartialNodeDelegatingFieldAccessorFactory delegatingFieldAccessorFactory) {
-    	super(underlyingState, entity, type, delegatingFieldAccessorFactory);
+    public PartialNodeEntityState(final Node underlyingState, final ENTITY entity, final Class<? extends ENTITY> type, final GraphDatabaseContext graphDatabaseContext, PersistenceUnitUtil persistenceUnitUtil, final PartialNodeDelegatingFieldAccessorFactory delegatingFieldAccessorFactory, final Neo4JPersistentEntity<?> persistentEntity) {
+    	super(underlyingState, entity, type, delegatingFieldAccessorFactory, persistentEntity);
         this.graphDatabaseContext = graphDatabaseContext;
         this.persistenceUnitUtil = persistenceUnitUtil;
     }

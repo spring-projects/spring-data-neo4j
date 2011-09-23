@@ -120,7 +120,11 @@
     	</property>
     	<property name="graphDatabaseContext" ref="graphDatabaseContext"/>
 		<property name="entityManagerFactory" ref="entityManagerFactory"/>
+		<property name="mappingContext" ref="mappingContext"/>
     </bean>
+
+    <bean id="mappingContext" class="org.springframework.data.neo4j.mapping.Neo4JMappingContext"/>
+
 
     <bean id="relationshipEntityStateFactory" class="org.springframework.data.neo4j.support.relationship.RelationshipEntityStateFactory">
     	<property name="relationshipDelegatingFieldAccessorFactory">
@@ -129,6 +133,7 @@
 		    </bean>
     	</property>
     	<property name="graphDatabaseContext" ref="graphDatabaseContext"/>
+    	<property name="mappingContext" ref="mappingContext"/>
     </bean>
     
 
@@ -136,10 +141,6 @@
 		<constructor-arg ref="graphDatabaseContext" />
 	</bean>
 	
-	
-	
-
-
     <bean id="transactionManager" class="org.springframework.data.neo4j.transaction.ChainedTransactionManager" >
 		<constructor-arg>
             <list>

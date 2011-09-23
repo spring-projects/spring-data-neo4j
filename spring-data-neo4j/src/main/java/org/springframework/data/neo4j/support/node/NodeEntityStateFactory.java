@@ -16,17 +16,19 @@
 
 package org.springframework.data.neo4j.support.node;
 
-import javax.annotation.PostConstruct;
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.PersistenceUnitUtil;
-
 import org.neo4j.graphdb.Node;
 import org.springframework.data.neo4j.annotation.NodeEntity;
 import org.springframework.data.neo4j.core.EntityState;
 import org.springframework.data.neo4j.core.NodeBacked;
 import org.springframework.data.neo4j.fieldaccess.DelegatingFieldAccessorFactory;
 import org.springframework.data.neo4j.fieldaccess.DetachedEntityState;
+import org.springframework.data.neo4j.mapping.Neo4JMappingContext;
+import org.springframework.data.neo4j.mapping.Neo4JPersistentEntity;
 import org.springframework.data.neo4j.support.GraphDatabaseContext;
+
+import javax.annotation.PostConstruct;
+import javax.persistence.EntityManagerFactory;
+import javax.persistence.PersistenceUnitUtil;
 
 public class NodeEntityStateFactory {
 
@@ -38,10 +40,14 @@ public class NodeEntityStateFactory {
 
     private PartialNodeEntityState.PartialNodeDelegatingFieldAccessorFactory delegatingFieldAccessorFactory;
 
+    private Neo4JMappingContext mappingContext;
+
     public EntityState<NodeBacked,Node> getEntityState(final NodeBacked entity) {
-        final NodeEntity graphEntityAnnotation = entity.getClass().getAnnotation(NodeEntity.class); // todo cache ??
+        final Class<? extends NodeBacked> entityType = entity.getClass();
+        final NodeEntity graphEntityAnnotation = entityType.getAnnotation(NodeEntity.class); // todo cache ??
+        final Neo4JPersistentEntity<?> persistentEntity = mappingContext.getPersistentEntity(entityType);
         if (graphEntityAnnotation.partial()) {
-            final PartialNodeEntityState<NodeBacked> partialNodeEntityState = new PartialNodeEntityState<NodeBacked>(null, entity, entity.getClass(), graphDatabaseContext, getPersistenceUnitUtils(), delegatingFieldAccessorFactory);
+            final PartialNodeEntityState<NodeBacked> partialNodeEntityState = new PartialNodeEntityState<NodeBacked>(null, entity, entityType, graphDatabaseContext, getPersistenceUnitUtils(), delegatingFieldAccessorFactory, persistentEntity);
             return new DetachedEntityState<NodeBacked, Node>(partialNodeEntityState, graphDatabaseContext) {
                 @Override
                 protected boolean isDetached() {
@@ -49,7 +55,7 @@ public class NodeEntityStateFactory {
                 }
             };
         } else {
-            NodeEntityState<NodeBacked> nodeEntityState = new NodeEntityState<NodeBacked>(null, entity, entity.getClass(), graphDatabaseContext, nodeDelegatingFieldAccessorFactory);
+            NodeEntityState<NodeBacked> nodeEntityState = new NodeEntityState<NodeBacked>(null, entity, entityType, graphDatabaseContext, nodeDelegatingFieldAccessorFactory, persistentEntity);
             // alternative was return new NestedTransactionEntityState<NodeBacked, Node>(nodeEntityState,graphDatabaseContext);
             return new DetachedEntityState<NodeBacked, Node>(nodeEntityState, graphDatabaseContext);
         }
@@ -71,6 +77,14 @@ public class NodeEntityStateFactory {
 
     public void setEntityManagerFactory(EntityManagerFactory entityManagerFactory) {
         this.entityManagerFactory = entityManagerFactory;
+    }
+
+    public Neo4JMappingContext getMappingContext() {
+        return mappingContext;
+    }
+
+    public void setMappingContext(Neo4JMappingContext mappingContext) {
+        this.mappingContext = mappingContext;
     }
 
     @PostConstruct

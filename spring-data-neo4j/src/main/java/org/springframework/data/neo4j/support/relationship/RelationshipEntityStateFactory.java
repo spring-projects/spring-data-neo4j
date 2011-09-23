@@ -20,6 +20,7 @@ import org.neo4j.graphdb.Relationship;
 import org.springframework.data.neo4j.core.EntityState;
 import org.springframework.data.neo4j.core.RelationshipBacked;
 import org.springframework.data.neo4j.fieldaccess.DelegatingFieldAccessorFactory;
+import org.springframework.data.neo4j.mapping.Neo4JMappingContext;
 import org.springframework.data.neo4j.support.GraphDatabaseContext;
 
 public class RelationshipEntityStateFactory {
@@ -27,9 +28,11 @@ public class RelationshipEntityStateFactory {
 	private GraphDatabaseContext graphDatabaseContext;
 	
     private DelegatingFieldAccessorFactory<RelationshipBacked> relationshipDelegatingFieldAccessorFactory;
+    private Neo4JMappingContext mappingContext;
 
     public EntityState<RelationshipBacked, Relationship> getEntityState(final RelationshipBacked entity) {
-		return new RelationshipEntityState<RelationshipBacked>(null,entity,entity.getClass(), graphDatabaseContext, relationshipDelegatingFieldAccessorFactory);
+        final Class<? extends RelationshipBacked> entityType = entity.getClass();
+        return new RelationshipEntityState<RelationshipBacked>(null,entity, entityType, graphDatabaseContext, relationshipDelegatingFieldAccessorFactory,mappingContext.getPersistentEntity(entityType));
 	}
 
 	public void setGraphDatabaseContext(GraphDatabaseContext graphDatabaseContext) {
@@ -40,4 +43,8 @@ public class RelationshipEntityStateFactory {
 			DelegatingFieldAccessorFactory<RelationshipBacked> delegatingFieldAccessorFactory) {
 		this.relationshipDelegatingFieldAccessorFactory = delegatingFieldAccessorFactory;
 	}
+
+    public void setMappingContext(Neo4JMappingContext mappingContext) {
+        this.mappingContext = mappingContext;
+    }
 }

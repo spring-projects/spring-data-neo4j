@@ -16,13 +16,13 @@
 
 package org.springframework.data.neo4j.mapping;
 
-import java.beans.PropertyDescriptor;
-import java.lang.reflect.Field;
-
 import org.springframework.data.mapping.context.AbstractMappingContext;
 import org.springframework.data.mapping.context.MappingContext;
 import org.springframework.data.mapping.model.SimpleTypeHolder;
 import org.springframework.data.util.TypeInformation;
+
+import java.beans.PropertyDescriptor;
+import java.lang.reflect.Field;
 
 /**
  * Neo4J specific {@link MappingContext} implementation. Simply creates {@link Neo4JPersistentEntityImpl} and

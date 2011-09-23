@@ -37,6 +37,7 @@ import org.springframework.data.neo4j.fieldaccess.DelegatingFieldAccessorFactory
 import org.springframework.data.neo4j.fieldaccess.Neo4jConversionServiceFactoryBean;
 import org.springframework.data.neo4j.fieldaccess.NodeDelegatingFieldAccessorFactory;
 import org.springframework.data.neo4j.fieldaccess.RelationshipDelegatingFieldAccessorFactory;
+import org.springframework.data.neo4j.mapping.Neo4JMappingContext;
 import org.springframework.data.neo4j.repository.DirectGraphRepositoryFactory;
 import org.springframework.data.neo4j.support.GraphDatabaseContext;
 import org.springframework.data.neo4j.support.node.Neo4jNodeBacking;
@@ -149,6 +150,7 @@ public class Neo4jConfiguration {
     public RelationshipEntityStateFactory relationshipEntityStateFactory() throws Exception {
         RelationshipEntityStateFactory entityStateFactory = new RelationshipEntityStateFactory();
         entityStateFactory.setGraphDatabaseContext(graphDatabaseContext());
+        entityStateFactory.setMappingContext(mappingContext());
         entityStateFactory.setRelationshipDelegatingFieldAccessorFactory(relationshipDelegatingFieldAccessorFactory());
         return entityStateFactory;
     }
@@ -163,11 +165,17 @@ public class Neo4jConfiguration {
 	}
 
     @Bean
+    public Neo4JMappingContext mappingContext() {
+        return new Neo4JMappingContext();
+    }
+
+    @Bean
     public NodeEntityStateFactory nodeEntityStateFactory() throws Exception {
 
         NodeEntityStateFactory entityStateFactory = new NodeEntityStateFactory();
         entityStateFactory.setGraphDatabaseContext(graphDatabaseContext());
         entityStateFactory.setEntityManagerFactory(entityManagerFactory);
+        entityStateFactory.setMappingContext(mappingContext());
         entityStateFactory.setNodeDelegatingFieldAccessorFactory(nodeDelegatingFieldAccessorFactory());
         return entityStateFactory;
     }
