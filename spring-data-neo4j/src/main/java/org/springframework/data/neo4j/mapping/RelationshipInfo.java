@@ -55,9 +55,10 @@ public class RelationshipInfo {
     }
 
     private boolean isNodeEntity(TypeInformation<?> targetType) {
-        if (targetType.getType().isAnnotationPresent(NodeEntity.class)) return true;
-        if (targetType.getType().isAnnotationPresent(RelationshipEntity.class)) return false;
-        throw new MappingException("Target type for relationship "+ type +" field is invalid "+targetType);
+        final Class<?> type = targetType.getType();
+        if (type.isAnnotationPresent(NodeEntity.class)) return true;
+        if (type.isAnnotationPresent(RelationshipEntity.class)) return false;
+        throw new MappingException("Target type for relationship "+ this.type +" field is invalid "+type);
     }
 
     public static RelationshipInfo fromField(Field field, TypeInformation<?> typeInformation) {

@@ -76,6 +76,7 @@ public class MatchClauseUnitTest {
 		private Group group;
 	}
 
+    @NodeEntity
 	class Group {
 
 		@Indexed
