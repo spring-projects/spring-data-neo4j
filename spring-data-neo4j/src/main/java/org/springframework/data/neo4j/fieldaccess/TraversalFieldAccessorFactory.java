@@ -16,13 +16,15 @@
 
 package org.springframework.data.neo4j.fieldaccess;
 
+import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.Path;
+import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.traversal.TraversalDescription;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.neo4j.annotation.GraphTraversal;
-import org.springframework.data.neo4j.annotation.Query;
 import org.springframework.data.neo4j.core.FieldTraversalDescriptionBuilder;
 import org.springframework.data.neo4j.core.NodeBacked;
-import org.springframework.data.neo4j.repository.DirectGraphRepositoryFactory;
+import org.springframework.data.neo4j.core.RelationshipBacked;
 import org.springframework.data.neo4j.support.GenericTypeExtractor;
 
 import java.lang.reflect.Constructor;
@@ -52,7 +54,7 @@ public class TraversalFieldAccessorFactory implements FieldAccessorFactory<NodeB
 	public static class TraversalFieldAccessor implements FieldAccessor<NodeBacked> {
 	    protected final Field field;
 	    private final FieldTraversalDescriptionBuilder fieldTraversalDescriptionBuilder;
-	    private Class<? extends NodeBacked> target;
+	    private Class<?> target;
         protected String[] params;
 
         public TraversalFieldAccessor(final Field field) {
@@ -63,15 +65,23 @@ public class TraversalFieldAccessorFactory implements FieldAccessorFactory<NodeB
             this.fieldTraversalDescriptionBuilder = createTraversalDescription(graphEntityTraversal);
 	    }
 
-        private Class<? extends NodeBacked> resolveTarget(GraphTraversal graphTraversal, Field field) {
-            if (!graphTraversal.elementClass().equals(Object.class)) return graphTraversal.elementClass();
+        private Class<?> resolveTarget(GraphTraversal graphTraversal, Field field) {
+            if (!graphTraversal.elementClass().equals(NodeBacked.class)) return graphTraversal.elementClass();
             final Class<?> result = GenericTypeExtractor.resolveFieldType(field);
-            if (!NodeBacked.class.isAssignableFrom(result)) throw new IllegalArgumentException("The target result type of the traversal is no node entity: "+field);
-            return (Class<? extends NodeBacked>) result;
+            Class<?>[] allowedTypes={NodeBacked.class,RelationshipBacked.class,Node.class,Relationship.class, Path.class};
+            if (!checkTypes(result,allowedTypes)) throw new IllegalArgumentException("The target result type "+result+" of the traversal is no subclass of the allowed types: "+field+" "+allowedTypes);
+            return result;
+        }
+
+        private boolean checkTypes(Class<?> target, Class<?>...allowedTypes) {
+            for (Class<?> type : allowedTypes) {
+                if (type.isAssignableFrom(target)) return true;
+            }
+            return false;
         }
 
 
-	    @Override
+        @Override
 	    public boolean isWriteable(NodeBacked nodeBacked) {
 	        return false;
 	    }
@@ -84,7 +94,7 @@ public class TraversalFieldAccessorFactory implements FieldAccessorFactory<NodeB
 	    @Override
 	    public Object getValue(final NodeBacked nodeBacked) {
 	        final TraversalDescription traversalDescription = fieldTraversalDescriptionBuilder.build(nodeBacked,field,params);
-	        return doReturn(nodeBacked.findAllByTraversal((Class<? extends NodeBacked>) target, traversalDescription));
+	        return doReturn(nodeBacked.findAllByTraversal(target, traversalDescription));
 	    }
 
 

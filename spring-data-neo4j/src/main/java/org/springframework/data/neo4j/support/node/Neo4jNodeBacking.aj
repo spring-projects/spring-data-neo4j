@@ -21,6 +21,8 @@ import org.apache.commons.logging.LogFactory;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.reflect.FieldSignature;
 import org.neo4j.graphdb.DynamicRelationshipType;
+import org.neo4j.graphdb.Path;
+import org.neo4j.helpers.collection.IterableWrapper;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.traversal.TraversalDescription;
@@ -180,10 +182,35 @@ public aspect Neo4jNodeBacking { // extends AbstractTypeAnnotatingMixinFields<No
 		return getPersistentState().getId();
 	}
 
-    public  <T extends NodeBacked> Iterable<T> NodeBacked.findAllByTraversal(final Class<T> targetType, TraversalDescription traversalDescription) {
+    public  <T> Iterable<T> NodeBacked.findAllByTraversal(final Class<T> targetType, TraversalDescription traversalDescription) {
         if (!hasPersistentState()) throw new IllegalStateException("No node attached to " + this);
         final Traverser traverser = traversalDescription.traverse(this.getPersistentState());
-        return new NodeBackedNodeIterableWrapper<T>(traverser, targetType, Neo4jNodeBacking.aspectOf().graphDatabaseContext);
+        if (Node.class.isAssignableFrom(targetType)) return (Iterable<T>) traverser.nodes();
+        if (Relationship.class.isAssignableFrom(targetType)) return (Iterable<T>) traverser.relationships();
+        if (Path.class.isAssignableFrom(targetType)) return (Iterable<T>) traverser;
+        return (Iterable<T>)Neo4jNodeBacking.aspectOf().convertToGraphEntity(traverser,targetType);
+    }
+
+    private Iterable<?> convertToGraphEntity(Traverser traverser, final Class<?> targetType) {
+        final GraphDatabaseContext ctx = Neo4jNodeBacking.aspectOf().graphDatabaseContext;
+        if (NodeBacked.class.isAssignableFrom(targetType)) {
+            return new IterableWrapper<Object,Node>(traverser.nodes()) {
+                @Override
+                protected Object underlyingObjectToObject(Node node) {
+                    return ctx.createEntityFromState(node,(Class<? extends NodeBacked>)targetType);
+                }
+            };
+        }
+        if (RelationshipBacked.class.isAssignableFrom(targetType)) {
+            return new IterableWrapper<Object,Relationship>(traverser.relationships()) {
+                @Override
+                protected Object underlyingObjectToObject(Relationship relationship) {
+                    return ctx.createEntityFromState(relationship,(Class<? extends RelationshipBacked>)targetType);
+                }
+            };
+        }
+        throw new IllegalStateException("Can't determine valid type for traversal target "+targetType);
+
     }
 
     public  <T> Iterable<T> NodeBacked.findAllByQuery(final String query, final Class<T> targetType, Map<String,Object> params) {

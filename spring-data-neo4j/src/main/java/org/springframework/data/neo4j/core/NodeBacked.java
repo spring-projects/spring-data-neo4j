@@ -93,7 +93,7 @@ public interface NodeBacked extends GraphBacked<Node> {
      * @return Lazy {@link java.lang.Iterable} over the traversal results, converted to the expected node
      * entity instances
      */
-    <T extends NodeBacked> Iterable<T> findAllByTraversal(final Class<T> targetType, TraversalDescription traversalDescription);
+    <T> Iterable<T> findAllByTraversal(final Class<T> targetType, TraversalDescription traversalDescription);
 
     /**
      * Perform a traversal from this entity's underlying node with the given traversal description. The found paths
