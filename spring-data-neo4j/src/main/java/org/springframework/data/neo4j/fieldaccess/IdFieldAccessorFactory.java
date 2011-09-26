@@ -16,11 +16,8 @@
 
 package org.springframework.data.neo4j.fieldaccess;
 
-import org.springframework.data.neo4j.annotation.GraphId;
 import org.springframework.data.neo4j.core.NodeBacked;
-
-import javax.persistence.Id;
-import java.lang.reflect.Field;
+import org.springframework.data.neo4j.mapping.Neo4JPersistentProperty;
 
 import static org.springframework.data.neo4j.support.DoReturn.doReturn;
 
@@ -30,25 +27,20 @@ import static org.springframework.data.neo4j.support.DoReturn.doReturn;
  */
 public class IdFieldAccessorFactory implements FieldAccessorFactory<NodeBacked> {
 	@Override
-	public boolean accept(final Field f) {
-	    return isIdField(f);
-	}
-
-	private boolean isIdField(Field field) {
-	    final Class<?> type = field.getType();
-		return (type.equals(Long.class) || type.equals(long.class)) && (field.isAnnotationPresent(GraphId.class) || field.isAnnotationPresent(Id.class));
+	public boolean accept(final Neo4JPersistentProperty property) {
+	    return property.isIdProperty();
 	}
 
 	@Override
-	public FieldAccessor<NodeBacked> forField(final Field field) {
-	    return new IdFieldAccessor(field);
+	public FieldAccessor<NodeBacked> forField(final Neo4JPersistentProperty property) {
+	    return new IdFieldAccessor(property);
 	}
 
 	public static class IdFieldAccessor implements FieldAccessor<NodeBacked> {
-	    protected final Field field;
+	    protected final Neo4JPersistentProperty property;
 
-	    public IdFieldAccessor(final Field field) {
-	        this.field = field;
+	    public IdFieldAccessor(final Neo4JPersistentProperty property) {
+	        this.property = property;
 	    }
 
 	    @Override

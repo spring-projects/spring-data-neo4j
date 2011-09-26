@@ -16,6 +16,8 @@
 
 package org.springframework.data.neo4j.fieldaccess;
 
+import org.springframework.data.neo4j.mapping.Neo4JPersistentProperty;
+
 import java.lang.reflect.Field;
 
 /**
@@ -27,14 +29,16 @@ import java.lang.reflect.Field;
 */
 public interface FieldAccessorFactory<E> {
     /**
+     *
      * @param f field to check
      * @return true if this factory is responsible for creating a accessor for this field
      */
-    boolean accept(Field f);
+    boolean accept(Neo4JPersistentProperty f);
 
     /**
+     *
      * @param f the field to create an accessor for
      * @return a field accessor for the field or null if none can be created
      */
-    FieldAccessor<E> forField(Field f);
+    FieldAccessor<E> forField(Neo4JPersistentProperty f);
 }

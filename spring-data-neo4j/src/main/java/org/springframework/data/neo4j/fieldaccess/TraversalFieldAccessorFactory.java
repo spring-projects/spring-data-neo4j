@@ -25,6 +25,7 @@ import org.springframework.data.neo4j.annotation.GraphTraversal;
 import org.springframework.data.neo4j.core.FieldTraversalDescriptionBuilder;
 import org.springframework.data.neo4j.core.NodeBacked;
 import org.springframework.data.neo4j.core.RelationshipBacked;
+import org.springframework.data.neo4j.mapping.Neo4JPersistentProperty;
 import org.springframework.data.neo4j.support.GenericTypeExtractor;
 
 import java.lang.reflect.Constructor;
@@ -34,7 +35,7 @@ import static org.springframework.data.neo4j.support.DoReturn.doReturn;
 
 public class TraversalFieldAccessorFactory implements FieldAccessorFactory<NodeBacked> {
 	@Override
-    public boolean accept(final Field f) {
+    public boolean accept(final Neo4JPersistentProperty f) {
         final GraphTraversal graphEntityTraversal = f.getAnnotation(GraphTraversal.class);
         return graphEntityTraversal != null
                 && graphEntityTraversal.traversalBuilder() != FieldTraversalDescriptionBuilder.class
@@ -43,8 +44,8 @@ public class TraversalFieldAccessorFactory implements FieldAccessorFactory<NodeB
 
 
     @Override
-    public FieldAccessor<NodeBacked> forField(final Field field) {
-        return new TraversalFieldAccessor(field);
+    public FieldAccessor<NodeBacked> forField(final Neo4JPersistentProperty property) {
+        return new TraversalFieldAccessor(property);
     }
 
 	/**
@@ -52,24 +53,24 @@ public class TraversalFieldAccessorFactory implements FieldAccessorFactory<NodeB
 	 * @since 12.09.2010
 	 */
 	public static class TraversalFieldAccessor implements FieldAccessor<NodeBacked> {
-	    protected final Field field;
+	    protected final Neo4JPersistentProperty property;
 	    private final FieldTraversalDescriptionBuilder fieldTraversalDescriptionBuilder;
 	    private Class<?> target;
         protected String[] params;
 
-        public TraversalFieldAccessor(final Field field) {
-	        this.field = field;
-            final GraphTraversal graphEntityTraversal = field.getAnnotation(GraphTraversal.class);
-	        this.target = resolveTarget(graphEntityTraversal,field);
+        public TraversalFieldAccessor(final Neo4JPersistentProperty property) {
+	        this.property = property;
+            final GraphTraversal graphEntityTraversal = property.getAnnotation(GraphTraversal.class);
+	        this.target = resolveTarget(graphEntityTraversal,property);
             this.params = graphEntityTraversal.params();
             this.fieldTraversalDescriptionBuilder = createTraversalDescription(graphEntityTraversal);
 	    }
 
-        private Class<?> resolveTarget(GraphTraversal graphTraversal, Field field) {
+        private Class<?> resolveTarget(GraphTraversal graphTraversal, Neo4JPersistentProperty property) {
             if (!graphTraversal.elementClass().equals(NodeBacked.class)) return graphTraversal.elementClass();
-            final Class<?> result = GenericTypeExtractor.resolveFieldType(field);
+            final Class<?> result = property.getTypeInformation().getActualType().getType();
             Class<?>[] allowedTypes={NodeBacked.class,RelationshipBacked.class,Node.class,Relationship.class, Path.class};
-            if (!checkTypes(result,allowedTypes)) throw new IllegalArgumentException("The target result type "+result+" of the traversal is no subclass of the allowed types: "+field+" "+allowedTypes);
+            if (!checkTypes(result,allowedTypes)) throw new IllegalArgumentException("The target result type "+result+" of the traversal is no subclass of the allowed types: "+property+" "+allowedTypes);
             return result;
         }
 
@@ -88,12 +89,12 @@ public class TraversalFieldAccessorFactory implements FieldAccessorFactory<NodeB
 
 	    @Override
 	    public Object setValue(final NodeBacked nodeBacked, final Object newVal) {
-	        throw new InvalidDataAccessApiUsageException("Cannot set readonly traversal description field " + field);
+	        throw new InvalidDataAccessApiUsageException("Cannot set readonly traversal description field " + property);
 	    }
 
 	    @Override
 	    public Object getValue(final NodeBacked nodeBacked) {
-	        final TraversalDescription traversalDescription = fieldTraversalDescriptionBuilder.build(nodeBacked,field,params);
+	        final TraversalDescription traversalDescription = fieldTraversalDescriptionBuilder.build(nodeBacked, property,params);
 	        return doReturn(nodeBacked.findAllByTraversal(target, traversalDescription));
 	    }
 
@@ -105,7 +106,7 @@ public class TraversalFieldAccessorFactory implements FieldAccessorFactory<NodeB
 	            constructor.setAccessible(true);
 	            return constructor.newInstance();
 	        } catch (Exception e) {
-	            throw new RuntimeException("Error creating TraversalDescription from " + field,e);
+	            throw new RuntimeException("Error creating TraversalDescription from " + property,e);
 	        }
 	    }
 

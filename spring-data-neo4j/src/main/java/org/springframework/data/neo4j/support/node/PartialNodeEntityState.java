@@ -26,6 +26,7 @@ import org.springframework.data.neo4j.annotation.RelatedTo;
 import org.springframework.data.neo4j.core.NodeBacked;
 import org.springframework.data.neo4j.fieldaccess.*;
 import org.springframework.data.neo4j.mapping.Neo4JPersistentEntity;
+import org.springframework.data.neo4j.mapping.Neo4JPersistentProperty;
 import org.springframework.data.neo4j.support.GraphDatabaseContext;
 
 import javax.persistence.PersistenceUnitUtil;
@@ -45,7 +46,7 @@ public class PartialNodeEntityState<ENTITY extends NodeBacked> extends DefaultEn
     private final GraphDatabaseContext graphDatabaseContext;
     private PersistenceUnitUtil persistenceUnitUtil;
 
-    public PartialNodeEntityState(final Node underlyingState, final ENTITY entity, final Class<? extends ENTITY> type, final GraphDatabaseContext graphDatabaseContext, PersistenceUnitUtil persistenceUnitUtil, final PartialNodeDelegatingFieldAccessorFactory delegatingFieldAccessorFactory, final Neo4JPersistentEntity<?> persistentEntity) {
+    public PartialNodeEntityState(final Node underlyingState, final ENTITY entity, final Class<? extends ENTITY> type, final GraphDatabaseContext graphDatabaseContext, PersistenceUnitUtil persistenceUnitUtil, final PartialNodeDelegatingFieldAccessorFactory delegatingFieldAccessorFactory, final Neo4JPersistentEntity<ENTITY> persistentEntity) {
     	super(underlyingState, entity, type, delegatingFieldAccessorFactory, persistentEntity);
         this.graphDatabaseContext = graphDatabaseContext;
         this.persistenceUnitUtil = persistenceUnitUtil;
@@ -86,7 +87,7 @@ public class PartialNodeEntityState<ENTITY extends NodeBacked> extends DefaultEn
 
     @Override
     public boolean isWritable(Field field) {
-        final FieldAccessor<ENTITY> accessor = accessorFor(field);
+        final FieldAccessor<ENTITY> accessor = accessorFor(property(field));
         if (accessor == null) return false; // difference to default behaviour, we don't care for non-managed fields here
         return accessor.isWriteable(entity);
     }
@@ -125,8 +126,8 @@ public class PartialNodeEntityState<ENTITY extends NodeBacked> extends DefaultEn
                             newPropertyFieldAccessorFactory(),
                             newConvertingNodePropertyFieldAccessorFactory()) {
                         @Override
-                        public boolean accept(Field f) {
-                            return f.isAnnotationPresent(GraphProperty.class) && super.accept(f);
+                        public boolean accept(Neo4JPersistentProperty property) {
+                            return property.isAnnotationPresent(GraphProperty.class) && super.accept(property);
                         }
                     },
                     new JpaIdFieldAccessListenerFactory());
@@ -143,8 +144,8 @@ public class PartialNodeEntityState<ENTITY extends NodeBacked> extends DefaultEn
                     newConvertingNodePropertyFieldAccessorFactory(),
                     new SingleRelationshipFieldAccessorFactory(getGraphDatabaseContext()) {
                         @Override
-                        public boolean accept(Field f) {
-                            return f.isAnnotationPresent(RelatedTo.class) && super.accept(f);
+                        public boolean accept(Neo4JPersistentProperty property) {
+                            return property.isAnnotationPresent(RelatedTo.class) && super.accept(property);
                         }
                     },
                     new OneToNRelationshipFieldAccessorFactory(getGraphDatabaseContext()),
@@ -156,7 +157,7 @@ public class PartialNodeEntityState<ENTITY extends NodeBacked> extends DefaultEn
         private ConvertingNodePropertyFieldAccessorFactory newConvertingNodePropertyFieldAccessorFactory() {
             return new ConvertingNodePropertyFieldAccessorFactory(getGraphDatabaseContext().getConversionService()) {
                 @Override
-                public boolean accept(Field f) {
+                public boolean accept(Neo4JPersistentProperty f) {
                     return f.isAnnotationPresent(GraphProperty.class) && super.accept(f);
                 }
             };
@@ -165,7 +166,7 @@ public class PartialNodeEntityState<ENTITY extends NodeBacked> extends DefaultEn
         private PropertyFieldAccessorFactory newPropertyFieldAccessorFactory() {
             return new PropertyFieldAccessorFactory(getGraphDatabaseContext().getConversionService()) {
                 @Override
-                public boolean accept(Field f) {
+                public boolean accept(Neo4JPersistentProperty f) {
                     return f.isAnnotationPresent(GraphProperty.class) && super.accept(f);
                 }
             };

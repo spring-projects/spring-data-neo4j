@@ -20,6 +20,7 @@ import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.DynamicRelationshipType;
 import org.springframework.data.neo4j.annotation.RelatedTo;
 import org.springframework.data.neo4j.core.NodeBacked;
+import org.springframework.data.neo4j.mapping.Neo4JPersistentProperty;
 import org.springframework.data.neo4j.support.GenericTypeExtractor;
 import org.springframework.data.neo4j.support.GraphDatabaseContext;
 
@@ -33,40 +34,8 @@ public abstract class NodeRelationshipFieldAccessorFactory implements FieldAcces
 
     protected GraphDatabaseContext graphDatabaseContext;
     
-    public NodeRelationshipFieldAccessorFactory(
-			GraphDatabaseContext graphDatabaseContext) {
-		super();
+    public NodeRelationshipFieldAccessorFactory(GraphDatabaseContext graphDatabaseContext) {
 		this.graphDatabaseContext = graphDatabaseContext;
 	}
 
-	@SuppressWarnings({"unchecked"})
-    protected Class<? extends NodeBacked> targetFrom(Field field, RelatedTo relatedTo) {
-        if (relatedTo!=null && relatedTo.elementClass()!=NodeBacked.class) return relatedTo.elementClass();
-        return (Class<? extends NodeBacked>) GenericTypeExtractor.resolveFieldType(field);
-    }
-
-    protected Direction dirFrom(RelatedTo relAnnotation) {
-        return relAnnotation.direction().toNeo4jDir();
-    }
-
-    protected DynamicRelationshipType typeFrom(Field field) {
-        return DynamicRelationshipType.withName(DelegatingFieldAccessorFactory.getNeo4jPropertyName(field));
-    }
-
-    protected DynamicRelationshipType typeFrom(RelatedTo relAnnotation) {
-        return DynamicRelationshipType.withName(relAnnotation.type());
-    }
-
-    protected DynamicRelationshipType typeFrom(Field field, RelatedTo relAnnotation) {
-        return "".equals(relAnnotation.type()) ? typeFrom(field) : typeFrom(relAnnotation);
-    }
-
-    protected RelatedTo getRelationshipAnnotation(Field field) {
-        return field.getAnnotation(RelatedTo.class);
-    }
-
-    protected boolean hasValidRelationshipAnnotation(Field field) {
-        final RelatedTo relAnnotation = getRelationshipAnnotation(field);
-        return (relAnnotation != null);
-    }
 }

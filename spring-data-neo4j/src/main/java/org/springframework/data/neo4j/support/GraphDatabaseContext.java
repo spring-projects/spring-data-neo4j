@@ -183,7 +183,7 @@ public class GraphDatabaseContext {
         } else if (state instanceof Relationship && RelationshipBacked.class.isAssignableFrom(type)) {
             return (TypeRepresentationStrategy<S, T>) relationshipTypeRepresentationStrategy;
         }
-        throw new IllegalArgumentException("Type is not NodeBacked nor RelationshipBacked.");
+        throw new IllegalArgumentException("Type "+type+" is not NodeBacked nor RelationshipBacked.");
     }
 
     @SuppressWarnings("unchecked")

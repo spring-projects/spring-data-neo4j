@@ -18,19 +18,17 @@ package org.springframework.data.neo4j.fieldaccess;
 
 import org.neo4j.graphdb.PropertyContainer;
 import org.springframework.data.neo4j.core.GraphBacked;
-
-import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
+import org.springframework.data.neo4j.mapping.Neo4JPersistentProperty;
 
 public class TransientFieldAccessorFactory implements FieldAccessorFactory<GraphBacked<PropertyContainer>> {
     @Override
-    public boolean accept(final Field f) {
-        return Modifier.isTransient(f.getModifiers());
+    public boolean accept(final Neo4JPersistentProperty property) {
+        return property.isTransient();
     }
 
     @Override
-    public FieldAccessor<GraphBacked<PropertyContainer>> forField(final Field field) {
-        return new TransientFieldAccessor(field);
+    public FieldAccessor<GraphBacked<PropertyContainer>> forField(final Neo4JPersistentProperty property) {
+        return new TransientFieldAccessor(property);
     }
 
     /**
@@ -38,10 +36,10 @@ public class TransientFieldAccessorFactory implements FieldAccessorFactory<Graph
      * @since 12.09.2010
      */
     public static class TransientFieldAccessor implements FieldAccessor<GraphBacked<PropertyContainer>> {
-        protected final Field field;
+        protected final Neo4JPersistentProperty property;
 
-        public TransientFieldAccessor(final Field field) {
-            this.field = field;
+        public TransientFieldAccessor(final Neo4JPersistentProperty property) {
+            this.property = property;
         }
 
         @Override

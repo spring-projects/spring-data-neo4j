@@ -16,6 +16,9 @@
 
 package org.springframework.data.neo4j.fieldaccess;
 
+import org.springframework.data.neo4j.mapping.Neo4JPersistentProperty;
+import org.springframework.data.util.TypeInformation;
+
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -29,69 +32,69 @@ import java.util.Map;
 public class FieldAccessorFactoryProviders<T> {
 
     static class FieldAccessorFactoryProvider<E> {
-        private final Field field;
+        private final Neo4JPersistentProperty property;
         private final FieldAccessorFactory<E> fieldAccessorFactory;
         private final List<FieldAccessorListenerFactory<E>> fieldAccessorListenerFactories;
 
-        FieldAccessorFactoryProvider(final Field field, final FieldAccessorFactory<E> fieldAccessorFactory, final List<FieldAccessorListenerFactory<E>> fieldAccessorListenerFactories) {
-            this.field = field;
+        FieldAccessorFactoryProvider(final Neo4JPersistentProperty property, final FieldAccessorFactory fieldAccessorFactory, final List fieldAccessorListenerFactories) {
+            this.property = property;
             this.fieldAccessorFactory = fieldAccessorFactory;
             this.fieldAccessorListenerFactories = fieldAccessorListenerFactories;
         }
 
         public FieldAccessor<E> accessor() {
             if (fieldAccessorFactory == null) return null;
-            return fieldAccessorFactory.forField(field);
+            return fieldAccessorFactory.forField(property);
         }
 
         public List<FieldAccessListener<E, ?>> listeners() {
             if (fieldAccessorListenerFactories == null) return null;
             final List<FieldAccessListener<E, ?>> listeners = new ArrayList<FieldAccessListener<E, ?>>(fieldAccessorListenerFactories.size());
             for (final FieldAccessorListenerFactory<E> fieldAccessorListenerFactory : fieldAccessorListenerFactories) {
-                listeners.add(fieldAccessorListenerFactory.forField(field));
+                listeners.add(fieldAccessorListenerFactory.forField(property));
             }
             return listeners;
         }
 
-        public Field getField() {
-            return field;
+        public Neo4JPersistentProperty getProperty() {
+            return property;
         }
     }
 
-    private final Class<T> type;
+    private final TypeInformation<?> type;
     private final List<FieldAccessorFactoryProvider<T>> fieldAccessorFactoryProviders = new ArrayList<FieldAccessorFactoryProvider<T>>();
     private final IdFieldAccessorFactory idFieldAccessorFactory;
-    private Field idField;
+    private Neo4JPersistentProperty idProperty;
 
-    FieldAccessorFactoryProviders(Class<T> type) {
+    FieldAccessorFactoryProviders(TypeInformation<?> type) {
         this.type = type;
         idFieldAccessorFactory = new IdFieldAccessorFactory();
     }
 
-    public Map<Field, FieldAccessor<T>> getFieldAccessors() {
-        final Map<Field, FieldAccessor<T>> result = new HashMap<Field, FieldAccessor<T>>(fieldAccessorFactoryProviders.size(),1);
+    public Map<Neo4JPersistentProperty, FieldAccessor<T>> getFieldAccessors() {
+        final Map<Neo4JPersistentProperty, FieldAccessor<T>> result = new HashMap<Neo4JPersistentProperty, FieldAccessor<T>>(fieldAccessorFactoryProviders.size(),1);
         for (final FieldAccessorFactoryProvider<T> fieldAccessorFactoryProvider : fieldAccessorFactoryProviders) {
             final FieldAccessor<T> accessor = fieldAccessorFactoryProvider.accessor();
-            result.put(fieldAccessorFactoryProvider.getField(), accessor);
+            result.put(fieldAccessorFactoryProvider.getProperty(), accessor);
         }
         return result;
     }
 
-    public Map<Field, List<FieldAccessListener<T,?>>> getFieldAccessListeners() {
-        final Map<Field, List<FieldAccessListener<T,?>>> result = new HashMap<Field, List<FieldAccessListener<T,?>>>(fieldAccessorFactoryProviders.size(),1);
+    public Map<Neo4JPersistentProperty, List<FieldAccessListener<T,?>>> getFieldAccessListeners() {
+        final Map<Neo4JPersistentProperty, List<FieldAccessListener<T,?>>> result = new HashMap<Neo4JPersistentProperty, List<FieldAccessListener<T,?>>>(fieldAccessorFactoryProviders.size(),1);
         for (final FieldAccessorFactoryProvider<T> fieldAccessorFactoryProvider : fieldAccessorFactoryProviders) {
             final List<FieldAccessListener<T,?>> listeners = (List<FieldAccessListener<T,?>>) fieldAccessorFactoryProvider.listeners();
-            result.put(fieldAccessorFactoryProvider.getField(), listeners);
+            result.put(fieldAccessorFactoryProvider.getProperty(), listeners);
         }
         return result;
     }
 
-    public void add(Field field, FieldAccessorFactory<?> fieldAccessorFactory, List<FieldAccessorListenerFactory> listenerFactories) {
-        fieldAccessorFactoryProviders.add(new FieldAccessorFactoryProvider(field, fieldAccessorFactory, listenerFactories));
-        if (idFieldAccessorFactory.accept(field)) this.idField = field;
+    public void add(Neo4JPersistentProperty property, FieldAccessorFactory<?> fieldAccessorFactory, List<FieldAccessorListenerFactory> listenerFactories) {
+        fieldAccessorFactoryProviders.add(new FieldAccessorFactoryProvider(property, fieldAccessorFactory, listenerFactories));
+        if (property.isIdProperty()) this.idProperty = property;
     }
 
-    public Field getIdField() {
-        return idField;
+    public Neo4JPersistentProperty getIdProperty() {
+        return idProperty;
     }
 }

@@ -16,14 +16,18 @@
 
 package org.springframework.data.neo4j.mapping;
 
+import org.neo4j.graphdb.Direction;
+import org.neo4j.graphdb.DynamicRelationshipType;
+import org.neo4j.graphdb.RelationshipType;
 import org.springframework.data.mapping.model.MappingException;
 import org.springframework.data.neo4j.annotation.NodeEntity;
 import org.springframework.data.neo4j.annotation.RelatedTo;
 import org.springframework.data.neo4j.annotation.RelatedToVia;
 import org.springframework.data.neo4j.annotation.RelationshipEntity;
-import org.springframework.data.neo4j.core.Direction;
+import org.springframework.data.neo4j.core.NodeBacked;
+import org.springframework.data.neo4j.core.RelationshipBacked;
+import org.springframework.data.util.ClassTypeInformation;
 import org.springframework.data.util.TypeInformation;
-import scala.annotation.target.field;
 
 import java.lang.reflect.Field;
 
@@ -33,7 +37,8 @@ public class RelationshipInfo {
     private final Direction direction;
     private final String type;
     private final TypeInformation<?> targetType;
-    private final boolean isNodeRelationship;
+    private final boolean targetsNodes;
+    private boolean readonly;
 
     public Direction getDirection() {
         return direction;
@@ -42,38 +47,61 @@ public class RelationshipInfo {
     public String getType() {
         return type;
     }
+    public RelationshipType getRelationshipType() {
+        return DynamicRelationshipType.withName(type);
+    }
+
     public boolean isMultiple() {
         return isMultiple;
     }
 
-    public RelationshipInfo(String type, Direction direction, TypeInformation<?> typeInformation) {
+    public RelationshipInfo(String type, Direction direction, TypeInformation<?> typeInformation, TypeInformation<?> concreteActualType, boolean targetsNode) {
         this.type = type;
         this.direction = direction;
         isMultiple = typeInformation.isCollectionLike();
-        targetType = typeInformation.getActualType();
-        isNodeRelationship = isNodeEntity(targetType);
+        targetType = concreteActualType!=null ? concreteActualType : typeInformation.getActualType();
+        targetsNodes = isNodeEntity(targetType);
+        this.readonly = isMultiple() && typeInformation.getType().equals(Iterable.class);
     }
 
     private boolean isNodeEntity(TypeInformation<?> targetType) {
         final Class<?> type = targetType.getType();
         if (type.isAnnotationPresent(NodeEntity.class)) return true;
         if (type.isAnnotationPresent(RelationshipEntity.class)) return false;
-        throw new MappingException("Target type for relationship "+ this.type +" field is invalid "+type);
+        throw new MappingException("Target type for relationship " + this.type + " field is invalid " + type);
     }
 
     public static RelationshipInfo fromField(Field field, TypeInformation<?> typeInformation) {
-        return new RelationshipInfo(field.getName(), Direction.OUTGOING, typeInformation);
+        return new RelationshipInfo(field.getName(), Direction.OUTGOING, typeInformation,null,true);
     }
+
     public static RelationshipInfo fromField(Field field, RelatedTo annotation, TypeInformation<?> typeInformation) {
         return new RelationshipInfo(
                 annotation.type().isEmpty() ? field.getName() : annotation.type(),
-                annotation.direction(),
-                typeInformation);
+                annotation.direction().toNeo4jDir(),
+                typeInformation,
+                annotation.elementClass() != NodeBacked.class ? ClassTypeInformation.from(annotation.elementClass()) : null,
+                true);
     }
+
     public static RelationshipInfo fromField(Field field, RelatedToVia annotation, TypeInformation<?> typeInformation) {
         return new RelationshipInfo(
                 annotation.type().isEmpty() ? field.getName() : annotation.type(),
-                annotation.direction(),
-                typeInformation);
+                annotation.direction().toNeo4jDir(),
+                typeInformation,
+                annotation.elementClass() != RelationshipBacked.class ? ClassTypeInformation.from(annotation.elementClass()) : null,
+                false);
+    }
+
+    public TypeInformation<?> getTargetType() {
+        return targetType;
+    }
+
+    public boolean targetsNodes() {
+        return targetsNodes;
+    }
+
+    public boolean isReadonly() {
+        return readonly;
     }
 }

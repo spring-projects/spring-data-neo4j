@@ -19,6 +19,8 @@ package org.springframework.data.neo4j.core;
 import java.lang.reflect.Field;
 
 import org.springframework.data.neo4j.fieldaccess.FieldAccessor;
+import org.springframework.data.neo4j.mapping.Neo4JPersistentEntity;
+import org.springframework.data.neo4j.mapping.Neo4JPersistentProperty;
 
 /**
  * Interface for classes encapsulating and delegating read and write field access of an GraphBacked entity to a number of field accessors.
@@ -50,11 +52,13 @@ public interface EntityState<ENTITY extends GraphBacked<STATE>,STATE> {
     boolean isWritable(Field field);
 
     /**
+     *
      * @param field
      * @param newVal
      * @return sets the value in the entity and/or the state
      */
     Object setValue(Field field, Object newVal);
+    Object setValue(Neo4JPersistentProperty property, Object newVal);
 
     /**
      * callback for creating and initializing an initial state
@@ -67,4 +71,6 @@ public interface EntityState<ENTITY extends GraphBacked<STATE>,STATE> {
     STATE getPersistentState();
 
     ENTITY persist();
+
+    Neo4JPersistentEntity<ENTITY> getPersistentEntity();
 }

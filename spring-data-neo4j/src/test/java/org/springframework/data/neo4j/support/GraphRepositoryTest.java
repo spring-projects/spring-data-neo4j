@@ -30,9 +30,13 @@ import org.springframework.data.neo4j.*;
 import org.springframework.data.neo4j.Person;
 import org.springframework.data.neo4j.PersonRepository;
 import org.springframework.data.neo4j.support.node.Neo4jHelper;
+import org.springframework.test.context.CleanContextCacheTestExecutionListener;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.TestExecutionListeners;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
 import org.springframework.test.context.transaction.BeforeTransaction;
+import org.springframework.test.context.transaction.TransactionalTestExecutionListener;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Map;
@@ -47,6 +51,7 @@ import static org.neo4j.helpers.collection.IteratorUtil.asCollection;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = {"classpath:repository-namespace-config-context.xml"})
+@TestExecutionListeners({CleanContextCacheTestExecutionListener.class, DependencyInjectionTestExecutionListener.class, TransactionalTestExecutionListener.class})
 public class GraphRepositoryTest {
 
 	protected final Log log = LogFactory.getLog(getClass());

@@ -19,8 +19,7 @@ package org.springframework.data.neo4j.fieldaccess;
 import org.neo4j.graphdb.PropertyContainer;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.data.neo4j.core.GraphBacked;
-
-import java.lang.reflect.Field;
+import org.springframework.data.neo4j.mapping.Neo4JPersistentProperty;
 
 import static org.springframework.data.neo4j.support.DoReturn.doReturn;
 
@@ -37,34 +36,26 @@ public class PropertyFieldAccessorFactory implements FieldAccessorFactory<GraphB
     }
 
     @Override
-    public boolean accept(final Field f) {
-        return isNeo4jPropertyType(f.getType());
+    public boolean accept(final Neo4JPersistentProperty f) {
+        return f.isNeo4jPropertyType();
     }
 
     @Override
-    public FieldAccessor<GraphBacked<PropertyContainer>> forField(final Field field) {
-        return new PropertyFieldAccessor(conversionService,DelegatingFieldAccessorFactory.getNeo4jPropertyName(field),field.getType());
-    }
-
-    private boolean isNeo4jPropertyType(final Class<?> fieldType) {
-        // todo: add array support
-        return fieldType.isPrimitive()
-                || fieldType.equals(String.class)
-                || fieldType.equals(Character.class)
-                || fieldType.equals(Boolean.class)
-                || (fieldType.getName().startsWith("java.lang") && Number.class.isAssignableFrom(fieldType))
-                || (fieldType.isArray() && !fieldType.getComponentType().isArray() && isNeo4jPropertyType(fieldType.getComponentType()));
+    public FieldAccessor<GraphBacked<PropertyContainer>> forField(final Neo4JPersistentProperty field) {
+        return new PropertyFieldAccessor(conversionService, field);
     }
 
     public static class PropertyFieldAccessor implements FieldAccessor<GraphBacked<PropertyContainer>> {
         private final ConversionService conversionService;
+        private final Neo4JPersistentProperty property;
         protected final String propertyName;
         protected final Class<?> fieldType;
 
-        public PropertyFieldAccessor(ConversionService conversionService, String propertyName, Class fieldType) {
+        public PropertyFieldAccessor(ConversionService conversionService, Neo4JPersistentProperty property) {
             this.conversionService = conversionService;
-            this.propertyName = propertyName;
-            this.fieldType = fieldType;
+            this.property = property;
+            this.propertyName = property.getNeo4jPropertyName();
+            this.fieldType = property.getType() ;
         }
 
         @Override

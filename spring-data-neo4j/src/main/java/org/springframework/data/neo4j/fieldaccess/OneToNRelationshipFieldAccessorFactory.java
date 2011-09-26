@@ -19,12 +19,11 @@ package org.springframework.data.neo4j.fieldaccess;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.RelationshipType;
-import org.springframework.data.neo4j.annotation.RelatedTo;
 import org.springframework.data.neo4j.core.NodeBacked;
+import org.springframework.data.neo4j.mapping.Neo4JPersistentProperty;
+import org.springframework.data.neo4j.mapping.RelationshipInfo;
 import org.springframework.data.neo4j.support.GraphDatabaseContext;
 
-import java.lang.reflect.Field;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Set;
 
@@ -36,21 +35,24 @@ public class OneToNRelationshipFieldAccessorFactory extends NodeRelationshipFiel
 		super(graphDatabaseContext);
 	}
 
-	@Override
-	public boolean accept(final Field f) {
-	    return Collection.class.isAssignableFrom(f.getType()) && hasValidRelationshipAnnotation(f);
-	}
+    @Override
+    public boolean accept(final Neo4JPersistentProperty property) {
+        if (!property.isRelationship()) return false;
+        final RelationshipInfo info = property.getRelationshipInfo();
+        return info.isMultiple() && info.targetsNodes() && !info.isReadonly();
+    }
 
-	@Override
-	public FieldAccessor<NodeBacked> forField(final Field field) {
-	    final RelatedTo relAnnotation = getRelationshipAnnotation(field);
-	    return new OneToNRelationshipFieldAccessor(typeFrom(field, relAnnotation), dirFrom(relAnnotation), targetFrom(field, relAnnotation), graphDatabaseContext,field);
+    @Override
+	public FieldAccessor<NodeBacked> forField(final Neo4JPersistentProperty property) {
+        final RelationshipInfo relationshipInfo = property.getRelationshipInfo();
+        final Class<? extends NodeBacked> targetType = (Class<? extends NodeBacked>) relationshipInfo.getTargetType().getType();
+        return new OneToNRelationshipFieldAccessor(relationshipInfo.getRelationshipType(), relationshipInfo.getDirection(), targetType, graphDatabaseContext,property);
 	}
 
 	public static class OneToNRelationshipFieldAccessor extends NodeToNodesRelationshipFieldAccessor<NodeBacked> {
 
-	    public OneToNRelationshipFieldAccessor(final RelationshipType type, final Direction direction, final Class<? extends NodeBacked> elementClass, final GraphDatabaseContext graphDatabaseContext, Field field) {
-	        super(elementClass, graphDatabaseContext, direction, type,field);
+	    public OneToNRelationshipFieldAccessor(final RelationshipType type, final Direction direction, final Class<? extends NodeBacked> elementClass, final GraphDatabaseContext graphDatabaseContext, Neo4JPersistentProperty property) {
+	        super(elementClass, graphDatabaseContext, direction, type,property);
 	    }
 
 	    public Object setValue(final NodeBacked entity, final Object newVal) {

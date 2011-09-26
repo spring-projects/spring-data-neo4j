@@ -18,10 +18,13 @@ package org.springframework.data.neo4j.fieldaccess;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.data.neo4j.annotation.NodeEntity;
-import org.springframework.data.neo4j.annotation.RelationshipEntity;
+import org.springframework.data.mapping.Association;
+import org.springframework.data.mapping.AssociationHandler;
+import org.springframework.data.mapping.PropertyHandler;
+import org.springframework.data.neo4j.mapping.Neo4JPersistentEntity;
+import org.springframework.data.neo4j.mapping.Neo4JPersistentProperty;
 import org.springframework.data.neo4j.support.GraphDatabaseContext;
-import org.springframework.util.ReflectionUtils;
+import org.springframework.data.util.TypeInformation;
 
 import java.lang.reflect.Field;
 import java.util.*;
@@ -49,62 +52,44 @@ public abstract class DelegatingFieldAccessorFactory<T> implements FieldAccessor
 	}
 
 	@Override
-    public boolean accept(final Field f) {
+    public boolean accept(final Neo4JPersistentProperty f) {
         return true;
     }
 
     final Collection<FieldAccessorFactory<?>> fieldAccessorFactories = new ArrayList<FieldAccessorFactory<?>>();
     final Collection<FieldAccessorListenerFactory<?>> fieldAccessorListenerFactories = new ArrayList<FieldAccessorListenerFactory<?>>();
 
-    public FieldAccessor forField(final Field field) {
-        final FieldAccessorFactory<?> factory = factoryForField(field);
-        return factory != null ? factory.forField(field) : null;
+    public FieldAccessor forField(final Neo4JPersistentProperty property) {
+        final FieldAccessorFactory<?> factory = factoryForField(property);
+        return factory != null ? factory.forField(property) : null;
     }
 
-    private <E> FieldAccessorFactory<E> factoryForField(final Field field) {
-        if (isSyntheticField(field)) return null;
+    private <E> FieldAccessorFactory<E> factoryForField(final Neo4JPersistentProperty property) {
+        if (property.isSyntheticField()) return null;
         for (final FieldAccessorFactory<?> fieldAccessorFactory : fieldAccessorFactories) {
-            if (fieldAccessorFactory.accept(field)) {
-                if (log.isInfoEnabled()) log.info("Factory " + fieldAccessorFactory + " used for field: " + field);
+            if (fieldAccessorFactory.accept(property)) {
+                if (log.isInfoEnabled()) log.info("Factory " + fieldAccessorFactory + " used for field: " + property);
                 return (FieldAccessorFactory<E>) fieldAccessorFactory;
             }
         }
-        if (log.isWarnEnabled()) log.warn("No FieldAccessor configured for field: " + field);
+        if (log.isWarnEnabled()) log.warn("No FieldAccessor configured for field: " + property);
         return null;
     }
 
-    private boolean isSyntheticField(final Field field) {
-        return field.getName().contains("$");
-    }
-
-    public static String getNeo4jPropertyName(final Field field) {
-        final Class<?> entityClass = field.getDeclaringClass();
-        if (useShortNames(entityClass)) return field.getName();
-        return String.format("%s.%s", entityClass.getSimpleName(), field.getName());
-    }
-
-    private static boolean useShortNames(final Class<?> entityClass) {
-        final NodeEntity graphEntity = entityClass.getAnnotation(NodeEntity.class);
-        if (graphEntity != null) return graphEntity.useShortNames();
-        final RelationshipEntity graphRelationship = entityClass.getAnnotation(RelationshipEntity.class);
-        if (graphRelationship != null) return graphRelationship.useShortNames();
-        return false;
-    }
-
-    public List<FieldAccessListener<T, ?>> listenersFor(final Field field) {
+    public List<FieldAccessListener<T, ?>> listenersFor(final Neo4JPersistentProperty property) {
         final List<FieldAccessListener<T, ?>> result = new ArrayList<FieldAccessListener<T, ?>>();
-        final List<FieldAccessorListenerFactory<T>> fieldAccessListenerFactories = getFieldAccessListenerFactories(field);
+        final List<FieldAccessorListenerFactory<T>> fieldAccessListenerFactories = getFieldAccessListenerFactories(property);
         for (final FieldAccessorListenerFactory<T> fieldAccessorListenerFactory : fieldAccessListenerFactories) {
-            final FieldAccessListener<T, ?> listener = fieldAccessorListenerFactory.forField(field);
+            final FieldAccessListener<T, ?> listener = fieldAccessorListenerFactory.forField(property);
             result.add(listener);
         }
         return result;
     }
 
-    private <E> List<FieldAccessorListenerFactory<E>> getFieldAccessListenerFactories(final Field field) {
+    private <E> List<FieldAccessorListenerFactory<E>> getFieldAccessListenerFactories(final Neo4JPersistentProperty property) {
         final List<FieldAccessorListenerFactory<E>> result = new ArrayList<FieldAccessorListenerFactory<E>>();
         for (final FieldAccessorListenerFactory<?> fieldAccessorListenerFactory : fieldAccessorListenerFactories) {
-            if (fieldAccessorListenerFactory.accept(field)) {
+            if (fieldAccessorListenerFactory.accept(property)) {
                 result.add((FieldAccessorListenerFactory<E>) fieldAccessorListenerFactory);
             }
         }
@@ -114,21 +99,32 @@ public abstract class DelegatingFieldAccessorFactory<T> implements FieldAccessor
 
 
 
-    private final Map<Class<?>, FieldAccessorFactoryProviders> accessorFactoryProviderCache = new HashMap<Class<?>, FieldAccessorFactoryProviders>();
+    private final Map<TypeInformation<?>, FieldAccessorFactoryProviders> accessorFactoryProviderCache = new HashMap<TypeInformation<?>, FieldAccessorFactoryProviders>();
 
-    public <T> FieldAccessorFactoryProviders<T> accessorFactoriesFor(final Class<T> type) {
+    public <T> FieldAccessorFactoryProviders<T> accessorFactoriesFor(final Neo4JPersistentEntity<?> type) {
         synchronized (this) {
-            final FieldAccessorFactoryProviders<T> fieldAccessorFactoryProviders = accessorFactoryProviderCache.get(type);
+            final TypeInformation<?> typeInformation = type.getTypeInformation();
+            final FieldAccessorFactoryProviders<T> fieldAccessorFactoryProviders = accessorFactoryProviderCache.get(typeInformation);
             if (fieldAccessorFactoryProviders != null) return fieldAccessorFactoryProviders;
-            final FieldAccessorFactoryProviders<T> newFieldAccessorFactories = new FieldAccessorFactoryProviders<T>(type);
-            ReflectionUtils.doWithFields(type, new ReflectionUtils.FieldCallback() {
-                public void doWith(final Field field) throws IllegalArgumentException, IllegalAccessException {
-                    final FieldAccessorFactory<?> factory = factoryForField(field);
-                    final List<FieldAccessorListenerFactory> listenerFactories = (List<FieldAccessorListenerFactory>) getFieldAccessListenerFactories(field);
-                    newFieldAccessorFactories.add(field, factory, listenerFactories);
+            final FieldAccessorFactoryProviders<T> newFieldAccessorFactories = new FieldAccessorFactoryProviders<T>(typeInformation);
+            type.doWithProperties(new PropertyHandler<Neo4JPersistentProperty>() {
+                @Override
+                public void doWithPersistentProperty(Neo4JPersistentProperty property) {
+                    final FieldAccessorFactory<?> factory = factoryForField(property);
+                    final List<FieldAccessorListenerFactory> listenerFactories = (List<FieldAccessorListenerFactory>) getFieldAccessListenerFactories(property);
+                    newFieldAccessorFactories.add(property, factory, listenerFactories);
                 }
             });
-            accessorFactoryProviderCache.put(type, newFieldAccessorFactories);
+            type.doWithAssociations(new AssociationHandler<Neo4JPersistentProperty>() {
+                @Override
+                public void doWithAssociation(Association<Neo4JPersistentProperty> association) {
+                    final Neo4JPersistentProperty property = association.getInverse();
+                    final FieldAccessorFactory<?> factory = factoryForField(property);
+                    final List<FieldAccessorListenerFactory> listenerFactories = (List<FieldAccessorListenerFactory>) getFieldAccessListenerFactories(property);
+                    newFieldAccessorFactories.add(property, factory, listenerFactories);
+                }
+            });
+            accessorFactoryProviderCache.put(typeInformation, newFieldAccessorFactories);
             return newFieldAccessorFactories;
         }
     }

@@ -20,9 +20,9 @@ import org.neo4j.graphdb.Node;
 import org.springframework.data.neo4j.core.EntityState;
 import org.springframework.data.neo4j.core.NodeBacked;
 import org.springframework.data.neo4j.core.RelationshipBacked;
+import org.springframework.data.neo4j.mapping.Neo4JPersistentProperty;
 import org.springframework.data.neo4j.support.DoReturn;
 
-import java.lang.reflect.Field;
 import java.util.AbstractSet;
 import java.util.Collection;
 import java.util.Iterator;
@@ -34,11 +34,11 @@ import java.util.Set;
 public class ManagedFieldAccessorSet<ENTITY,T> extends AbstractSet<T> {
 	private final ENTITY entity;
 	final Set<T> delegate;
-	private final Field field;
+	private final Neo4JPersistentProperty property;
 
-	public ManagedFieldAccessorSet(final ENTITY entity, final Object newVal, final Field field) {
+	public ManagedFieldAccessorSet(final ENTITY entity, final Object newVal, final Neo4JPersistentProperty property) {
 		this.entity = entity;
-		this.field = field;
+		this.property = property;
 		delegate = (Set<T>) newVal;
 	}
 
@@ -78,13 +78,12 @@ public class ManagedFieldAccessorSet<ENTITY,T> extends AbstractSet<T> {
 
     private Object updateValue(EntityState entityState) {
         try {
-            final Object newValue = entityState.setValue(field, delegate);
+            final Object newValue = entityState.setValue(property, delegate);
             if (newValue instanceof DoReturn) return DoReturn.unwrap(newValue);
-            field.setAccessible(true);
-            field.set(entity,newValue);
+            property.setValue(entity, newValue);
             return newValue;
         } catch (IllegalAccessException e) {
-            throw new RuntimeException("Could not update field "+field+" to new value of type "+delegate.getClass());
+            throw new RuntimeException("Could not update field "+ property +" to new value of type "+delegate.getClass());
         }
     }
 

@@ -23,6 +23,7 @@ import org.neo4j.graphdb.index.Index;
 import org.neo4j.index.lucene.ValueContext;
 import org.springframework.data.neo4j.annotation.Indexed;
 import org.springframework.data.neo4j.core.GraphBacked;
+import org.springframework.data.neo4j.mapping.Neo4JPersistentProperty;
 import org.springframework.data.neo4j.support.GraphDatabaseContext;
 
 import java.lang.reflect.AnnotatedElement;
@@ -42,18 +43,18 @@ public class IndexingPropertyFieldAccessorListenerFactory<S extends PropertyCont
     }
 
     @Override
-    public boolean accept(final Field f) {
-        return isPropertyField(f) && indexProvider.isIndexed(f);
+    public boolean accept(final Neo4JPersistentProperty property) {
+        return isPropertyField(property) && property.isIndexed();
     }
 
 
-    private boolean isPropertyField(final Field f) {
-        return propertyFieldAccessorFactory.accept(f) || convertingNodePropertyFieldAccessorFactory.accept(f);
+    private boolean isPropertyField(final Neo4JPersistentProperty property) {
+        return propertyFieldAccessorFactory.accept(property) || convertingNodePropertyFieldAccessorFactory.accept(property);
     }
 
     @Override
-    public FieldAccessListener<T, ?> forField(Field field) {
-        return (FieldAccessListener<T, ?>) new IndexingPropertyFieldAccessorListener(field, indexProvider);
+    public FieldAccessListener<T, ?> forField(Neo4JPersistentProperty property) {
+        return (FieldAccessListener<T, ?>) new IndexingPropertyFieldAccessorListener(property, indexProvider);
     }
 
 
@@ -64,36 +65,27 @@ public class IndexingPropertyFieldAccessorListenerFactory<S extends PropertyCont
             this.graphDatabaseContext = graphDatabaseContext;
         }
 
-        private boolean isIndexed(final Field f) {
-            final Indexed indexedAnnotation = getIndexedAnnotation(f);
-            return indexedAnnotation != null;
-        }
-        private String getIndexKey(Field field) {
-            Indexed indexed = getIndexedAnnotation(field);
-            if (indexed==null || indexed.fieldName().isEmpty()) return DelegatingFieldAccessorFactory.getNeo4jPropertyName(field);
+        private String getIndexKey(Neo4JPersistentProperty property) {
+            Indexed indexed = property.getAnnotation(Indexed.class);
+            if (indexed==null || indexed.fieldName().isEmpty()) return property.getNeo4jPropertyName();
             return indexed.fieldName();
-        }
-
-        private boolean isFulltextIndex(Field field) {
-            Indexed indexed = getIndexedAnnotation(field);
-            return indexed!=null && indexed.fulltext();
         }
 
         private Indexed getIndexedAnnotation(AnnotatedElement element) {
             return element.getAnnotation(Indexed.class);
         }
 
-        private Index<S> getIndex(Field field, T instance) {
-            final Indexed indexedAnnotation = getIndexedAnnotation(field);
-            final Class<T> type = (Class<T>) field.getDeclaringClass();
+        private Index<S> getIndex(Neo4JPersistentProperty property, GraphBacked instance) {
+            final Indexed indexedAnnotation = property.getAnnotation(Indexed.class);
+            final Class<T> type = (Class<T>) property.getOwner().getType();
             final String providedIndexName = indexedAnnotation.indexName().isEmpty() ? null : indexedAnnotation.indexName();
             String indexName = Indexed.Name.get(indexedAnnotation.level(), type, providedIndexName, instance.getClass());
-            if (!isFulltextIndex(field)) {
+            if (!property.getIndexInfo().isFulltext()) {
                 return graphDatabaseContext.getIndex(type, indexName, false);
             }
-            if (providedIndexName == null) throw new IllegalStateException("@Indexed(fullext=true) on "+field+" requires an providedIndexName too ");
+            if (providedIndexName == null) throw new IllegalStateException("@Indexed(fullext=true) on "+property+" requires an providedIndexName too ");
             String defaultIndexName = Indexed.Name.get(indexedAnnotation.level(), type, null, instance.getClass());
-            if (providedIndexName.equals(defaultIndexName)) throw new IllegalStateException("Full-index name for "+field+" must differ from the default name: "+defaultIndexName);
+            if (providedIndexName.equals(defaultIndexName)) throw new IllegalStateException("Full-index name for "+property+" must differ from the default name: "+defaultIndexName);
             return graphDatabaseContext.getIndex(type, indexName, true);
         }
     }
@@ -107,18 +99,18 @@ public class IndexingPropertyFieldAccessorListenerFactory<S extends PropertyCont
 	    private final static Log log = LogFactory.getLog( IndexingPropertyFieldAccessorListener.class );
 
 	    protected final String indexKey;
-        private final Field field;
+        private final Neo4JPersistentProperty property;
         private final IndexProvider indexProvider;
 
-        public IndexingPropertyFieldAccessorListener(final Field field, IndexProvider indexProvider) {
-            this.field = field;
+        public IndexingPropertyFieldAccessorListener(final Neo4JPersistentProperty property, IndexProvider indexProvider) {
+            this.property = property;
             this.indexProvider = indexProvider;
-            indexKey = indexProvider.getIndexKey(field);
+            indexKey = indexProvider.getIndexKey(property);
         }
 
 	    @Override
         public void valueChanged(GraphBacked<T> graphBacked, Object oldVal, Object newVal) {
-            Index<T> index = indexProvider.getIndex(field, graphBacked);
+            Index<T> index = indexProvider.getIndex(property, graphBacked);
             if (newVal instanceof Number) newVal = ValueContext.numeric((Number) newVal);
 
             final T state = graphBacked.getPersistentState();

@@ -19,7 +19,9 @@ package org.springframework.data.neo4j.fieldaccess;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.neo4j.annotation.Query;
 import org.springframework.data.neo4j.core.NodeBacked;
+import org.springframework.data.neo4j.mapping.Neo4JPersistentProperty;
 import org.springframework.data.neo4j.support.GenericTypeExtractor;
+import org.springframework.data.util.TypeInformation;
 
 import java.lang.reflect.Field;
 import java.util.HashMap;
@@ -29,7 +31,7 @@ import static org.springframework.data.neo4j.support.DoReturn.doReturn;
 
 public class QueryFieldAccessorFactory implements FieldAccessorFactory<NodeBacked> {
 	@Override
-    public boolean accept(final Field f) {
+    public boolean accept(final Neo4JPersistentProperty f) {
         final Query query = f.getAnnotation(Query.class);
         return query != null
                 && !query.value().isEmpty();
@@ -37,7 +39,7 @@ public class QueryFieldAccessorFactory implements FieldAccessorFactory<NodeBacke
 
 
     @Override
-    public FieldAccessor<NodeBacked> forField(final Field field) {
+    public FieldAccessor<NodeBacked> forField(final Neo4JPersistentProperty field) {
         return new QueryFieldAccessor(field);
     }
 
@@ -46,27 +48,27 @@ public class QueryFieldAccessorFactory implements FieldAccessorFactory<NodeBacke
 	 * @since 12.09.2010
 	 */
 	public static class QueryFieldAccessor implements FieldAccessor<NodeBacked> {
-	    protected final Field field;
+	    protected final Neo4JPersistentProperty property;
 	    private final String query;
 	    private Class<?> target;
         protected String[] annotationParams;
         private boolean iterableResult;
 
-        public QueryFieldAccessor(final Field field) {
-	        this.field = field;
-            final Query query = field.getAnnotation(Query.class);
+        public QueryFieldAccessor(final Neo4JPersistentProperty property) {
+	        this.property = property;
+            final Query query = property.getAnnotation(Query.class);
             this.annotationParams = query.params();
             if ((this.annotationParams.length % 2) != 0) {
                 throw new IllegalArgumentException("Number of parameters has to be even to construct a parameter map");
             }
             this.query = query.value();
-            this.iterableResult = Iterable.class.isAssignableFrom(field.getType());
-            this.target = resolveTarget(query,field);
+            this.iterableResult = Iterable.class.isAssignableFrom(property.getType());
+            this.target = resolveTarget(query,property);
         }
 
-        private Class<?> resolveTarget(Query query, Field field) {
+        private Class<?> resolveTarget(Query query, Neo4JPersistentProperty property) {
             if (!query.elementClass().equals(Object.class)) return query.elementClass();
-            return GenericTypeExtractor.resolveFieldType(field);
+            return property.getTypeInformation().getActualType().getType();
         }
 
         @Override
@@ -76,7 +78,7 @@ public class QueryFieldAccessorFactory implements FieldAccessorFactory<NodeBacke
 
 	    @Override
 	    public Object setValue(final NodeBacked nodeBacked, final Object newVal) {
-	        throw new InvalidDataAccessApiUsageException("Cannot set readonly query field " + field);
+	        throw new InvalidDataAccessApiUsageException("Cannot set readonly query field " + property);
 	    }
 
 	    @Override

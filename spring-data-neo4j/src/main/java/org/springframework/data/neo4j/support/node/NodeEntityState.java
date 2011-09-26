@@ -33,7 +33,7 @@ public class NodeEntityState<ENTITY extends NodeBacked> extends DefaultEntitySta
 
     private final GraphDatabaseContext graphDatabaseContext;
 
-    public NodeEntityState(final Node underlyingState, final ENTITY entity, final Class<? extends ENTITY> type, final GraphDatabaseContext graphDatabaseContext, final DelegatingFieldAccessorFactory<NodeBacked> nodeDelegatingFieldAccessorFactory, Neo4JPersistentEntity<?> persistentEntity) {
+    public NodeEntityState(final Node underlyingState, final ENTITY entity, final Class<? extends ENTITY> type, final GraphDatabaseContext graphDatabaseContext, final DelegatingFieldAccessorFactory<NodeBacked> nodeDelegatingFieldAccessorFactory, Neo4JPersistentEntity<ENTITY> persistentEntity) {
         super(underlyingState, entity, type, nodeDelegatingFieldAccessorFactory,persistentEntity);
         this.graphDatabaseContext = graphDatabaseContext;
     }

@@ -16,7 +16,7 @@
 
 package org.springframework.data.neo4j.fieldaccess;
 
-import java.lang.reflect.Field;
+import org.springframework.data.neo4j.mapping.Neo4JPersistentProperty;
 
 /**
  * factory interface for field accessor listeners. Provides means to check if a field is eligible for this factory
@@ -27,14 +27,14 @@ import java.lang.reflect.Field;
  */
 public interface FieldAccessorListenerFactory<E> {
     /**
-     * @param f field to check
-     * @return true if this factory is able to create a listener for the field
+     *
+     * @param property@return true if this factory is able to create a listener for the field
      */
-    boolean accept(Field f);
+    boolean accept(Neo4JPersistentProperty property);
 
     /**
-     * @param f field to create a listener for
-     * @return newly created field listener
+     *
+     * @param property@return newly created field listener
      */
-    FieldAccessListener<E, ?> forField(Field f);
+    FieldAccessListener<E, ?> forField(Neo4JPersistentProperty property);
 }

@@ -22,6 +22,7 @@ import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.RelationshipType;
 import org.springframework.data.neo4j.core.GraphBacked;
 import org.springframework.data.neo4j.core.NodeBacked;
+import org.springframework.data.neo4j.mapping.Neo4JPersistentProperty;
 import org.springframework.data.neo4j.support.GraphDatabaseContext;
 
 import java.lang.reflect.Field;
@@ -33,8 +34,8 @@ import java.util.Set;
  * @since 12.09.2010
  */
 public abstract class NodeToNodesRelationshipFieldAccessor<TARGET extends GraphBacked> extends AbstractNodeRelationshipFieldAccessor<NodeBacked, Node, TARGET, Node> {
-    public NodeToNodesRelationshipFieldAccessor(final Class<? extends TARGET> clazz, final GraphDatabaseContext graphDatabaseContext, final Direction direction, final RelationshipType type, Field field) {
-        super(clazz, graphDatabaseContext, direction, type,field);
+    public NodeToNodesRelationshipFieldAccessor(final Class<? extends TARGET> clazz, final GraphDatabaseContext graphDatabaseContext, final Direction direction, final RelationshipType type, Neo4JPersistentProperty property) {
+        super(clazz, graphDatabaseContext, direction, type,property);
     }
 
     @Override

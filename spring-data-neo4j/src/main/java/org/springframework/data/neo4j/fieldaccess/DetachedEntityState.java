@@ -22,6 +22,8 @@ import org.neo4j.graphdb.Transaction;
 import org.springframework.data.neo4j.core.EntityState;
 import org.springframework.data.neo4j.core.GraphBacked;
 import org.springframework.data.neo4j.core.NodeBacked;
+import org.springframework.data.neo4j.mapping.Neo4JPersistentEntity;
+import org.springframework.data.neo4j.mapping.Neo4JPersistentProperty;
 import org.springframework.data.neo4j.support.GraphDatabaseContext;
 import org.springframework.util.ObjectUtils;
 
@@ -42,8 +44,11 @@ public class DetachedEntityState<ENTITY extends GraphBacked<STATE>, STATE> imple
     protected final EntityState<ENTITY,STATE> delegate;
     private final static Log log = LogFactory.getLog(DetachedEntityState.class);
     private GraphDatabaseContext graphDatabaseContext;
+    private Neo4JPersistentEntity<ENTITY> persistentEntity;
+
     public DetachedEntityState(final EntityState<ENTITY, STATE> delegate, GraphDatabaseContext graphDatabaseContext) {
         this.delegate = delegate;
+        this.persistentEntity = delegate.getPersistentEntity();
         this.graphDatabaseContext = graphDatabaseContext;
     }
 
@@ -65,6 +70,11 @@ public class DetachedEntityState<ENTITY extends GraphBacked<STATE>, STATE> imple
     @Override
     public STATE getPersistentState() {
         return delegate.getPersistentState();
+    }
+
+    @Override
+    public Neo4JPersistentEntity<ENTITY> getPersistentEntity() {
+        return persistentEntity;
     }
 
     @Override
@@ -124,7 +134,17 @@ public class DetachedEntityState<ENTITY extends GraphBacked<STATE>, STATE> imple
     }
     @Override
     public Object setValue(final Field field, final Object newVal) {
+        return setValue(property(field),newVal);
+    }
+
+    private Neo4JPersistentProperty property(Field field) {
+        return persistentEntity.getPersistentProperty(field.getName());
+    }
+
+    @Override
+    public Object setValue(final Neo4JPersistentProperty property, final Object newVal) {
         if (isDetached()) {
+            final Field field = property.getField();
             if (!isDirty(field) && isWritable(field)) {
                 Object existingValue;
                 if (hasPersistentState()) {
@@ -139,7 +159,7 @@ public class DetachedEntityState<ENTITY extends GraphBacked<STATE>, STATE> imple
             return newVal;
         }
         // flushDirty();
-        return delegate.setValue(field, newVal);
+        return delegate.setValue(property, newVal);
     }
 	@Override
 	public Object getDefaultImplementation(Field field) {

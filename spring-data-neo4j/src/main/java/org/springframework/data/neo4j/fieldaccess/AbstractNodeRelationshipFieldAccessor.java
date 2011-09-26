@@ -19,9 +19,9 @@ package org.springframework.data.neo4j.fieldaccess;
 import org.neo4j.graphdb.*;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.neo4j.core.GraphBacked;
+import org.springframework.data.neo4j.mapping.Neo4JPersistentProperty;
 import org.springframework.data.neo4j.support.GraphDatabaseContext;
 
-import java.lang.reflect.Field;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -31,17 +31,17 @@ import java.util.Set;
  */
 public abstract class AbstractNodeRelationshipFieldAccessor<ENTITY extends GraphBacked,STATE extends PropertyContainer,TARGET extends GraphBacked,TSTATE extends PropertyContainer> implements FieldAccessor<ENTITY> {
     protected final RelationshipType type;
-    protected final Field field;
+    protected final Neo4JPersistentProperty property;
     protected final Direction direction;
     protected final Class<? extends TARGET> relatedType;
     protected final GraphDatabaseContext graphDatabaseContext;
 
-    public AbstractNodeRelationshipFieldAccessor(Class<? extends TARGET> clazz, GraphDatabaseContext graphDatabaseContext, Direction direction, RelationshipType type, Field field) {
+    public AbstractNodeRelationshipFieldAccessor(Class<? extends TARGET> clazz, GraphDatabaseContext graphDatabaseContext, Direction direction, RelationshipType type, Neo4JPersistentProperty property) {
         this.relatedType = clazz;
         this.graphDatabaseContext = graphDatabaseContext;
         this.direction = direction;
         this.type = type;
-        this.field = field;
+        this.property = property;
     }
 
     @Override
@@ -84,7 +84,7 @@ public abstract class AbstractNodeRelationshipFieldAccessor<ENTITY extends Graph
     }
 
     protected ManagedFieldAccessorSet<ENTITY,TARGET> createManagedSet(ENTITY entity, Set<TARGET> result) {
-        return new ManagedFieldAccessorSet<ENTITY,TARGET>(entity, result, field);
+        return new ManagedFieldAccessorSet<ENTITY,TARGET>(entity, result, property);
     }
 
     protected Set<TARGET> createEntitySetFromRelationshipEndNodes(ENTITY entity) {

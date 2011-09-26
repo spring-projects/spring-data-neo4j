@@ -21,6 +21,8 @@ import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.neo4j.annotation.RelatedToVia;
 import org.springframework.data.neo4j.core.NodeBacked;
 import org.springframework.data.neo4j.core.RelationshipBacked;
+import org.springframework.data.neo4j.mapping.Neo4JPersistentProperty;
+import org.springframework.data.neo4j.mapping.RelationshipInfo;
 import org.springframework.data.neo4j.support.GraphDatabaseContext;
 
 import java.lang.reflect.Field;
@@ -40,47 +42,19 @@ public class OneToNRelationshipEntityFieldAccessorFactory implements FieldAccess
 	}
 
 	@Override
-	public boolean accept(final Field f) {
-		return Iterable.class.isAssignableFrom(f.getType()) && hasValidRelationshipAnnotation(f);
+	public boolean accept(final Neo4JPersistentProperty property) {
+		return property.isRelationship() && !property.getRelationshipInfo().targetsNodes() && property.getRelationshipInfo().isMultiple();
 	}
 
 	@Override
-	public FieldAccessor<NodeBacked> forField(final Field field) {
-		final RelatedToVia relEntityAnnotation = getRelationshipAnnotation(field);
-		return new OneToNRelationshipEntityFieldAccessor(typeFrom(relEntityAnnotation), dirFrom(relEntityAnnotation), targetFrom(relEntityAnnotation), graphDatabaseContext,field);
+	public FieldAccessor<NodeBacked> forField(final Neo4JPersistentProperty property) {
+        final RelationshipInfo relationshipInfo = property.getRelationshipInfo();
+		return new OneToNRelationshipEntityFieldAccessor(relationshipInfo.getRelationshipType(), relationshipInfo.getDirection(), (Class<? extends RelationshipBacked>) relationshipInfo.getTargetType().getType(), graphDatabaseContext,property);
 	}
-
-	private boolean hasValidRelationshipAnnotation(final Field field) {
-		final RelatedToVia relEntityAnnotation = getRelationshipAnnotation(field);
-		if (relEntityAnnotation == null) return false;
-		Class<? extends RelationshipBacked> elementClass = relEntityAnnotation.elementClass();
-		boolean hasElementClass = elementClass != null && !RelationshipBacked.class.equals(elementClass);
-        if (!hasElementClass) throw new InvalidDataAccessApiUsageException(String.format(
-                "Missing mandatory attribute @RelatedTo.elementClass for one-to-N relationship field %s in class: %s",
-                field.getName(), field.getDeclaringClass().getName()));
-        return hasElementClass;
-	}
-
-	private RelatedToVia getRelationshipAnnotation(final Field field) {
-        return field.getAnnotation(RelatedToVia.class);
-    }
-
-	private Class<? extends RelationshipBacked> targetFrom(final RelatedToVia relEntityAnnotation) {
-		return relEntityAnnotation.elementClass();
-	}
-
-	private Direction dirFrom(final RelatedToVia relEntityAnnotation) {
-		return relEntityAnnotation.direction().toNeo4jDir();
-	}
-
-	private DynamicRelationshipType typeFrom(final RelatedToVia relEntityAnnotation) {
-		return DynamicRelationshipType.withName(relEntityAnnotation.type());
-	}
-
 	public static class OneToNRelationshipEntityFieldAccessor extends AbstractNodeRelationshipFieldAccessor<NodeBacked, Node, RelationshipBacked, Relationship> {
 
-	    public OneToNRelationshipEntityFieldAccessor(final RelationshipType type, final Direction direction, final Class<? extends RelationshipBacked> elementClass, final GraphDatabaseContext graphDatabaseContext, Field field) {
-	        super(elementClass, graphDatabaseContext, direction, type, field);
+	    public OneToNRelationshipEntityFieldAccessor(final RelationshipType type, final Direction direction, final Class<? extends RelationshipBacked> elementClass, final GraphDatabaseContext graphDatabaseContext, Neo4JPersistentProperty property) {
+	        super(elementClass, graphDatabaseContext, direction, type, property);
 	    }
 
 	    @Override
@@ -97,7 +71,7 @@ public class OneToNRelationshipEntityFieldAccessorFactory implements FieldAccess
 	    public Object getValue(final NodeBacked entity) {
 	        checkUnderlyingNode(entity);
 	        final Set<RelationshipBacked> result = createEntitySetFromRelationships(entity);
-	        return doReturn(new ManagedFieldAccessorSet<NodeBacked, RelationshipBacked>(entity, result, field));
+	        return doReturn(new ManagedFieldAccessorSet<NodeBacked, RelationshipBacked>(entity, result, property));
 	    }
 
 	    private Set<RelationshipBacked> createEntitySetFromRelationships(final NodeBacked entity) {

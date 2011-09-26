@@ -23,9 +23,8 @@ import org.springframework.data.neo4j.annotation.EndNode;
 import org.springframework.data.neo4j.annotation.StartNode;
 import org.springframework.data.neo4j.core.NodeBacked;
 import org.springframework.data.neo4j.core.RelationshipBacked;
+import org.springframework.data.neo4j.mapping.Neo4JPersistentProperty;
 import org.springframework.data.neo4j.support.GraphDatabaseContext;
-
-import java.lang.reflect.Field;
 
 import static org.springframework.data.neo4j.support.DoReturn.doReturn;
 
@@ -43,22 +42,22 @@ public class RelationshipNodeFieldAccessorFactory implements FieldAccessorFactor
 	}
 
 	@Override
-    public boolean accept(final Field f) {
+    public boolean accept(final Neo4JPersistentProperty f) {
         return isStartNodeField(f) || isEndNodeField(f);
     }
 
-    private boolean isEndNodeField(final Field f) {
+    private boolean isEndNodeField(final Neo4JPersistentProperty f) {
         return f.isAnnotationPresent(EndNode.class);
     }
 
-    private boolean isStartNodeField(final Field f) {
+    private boolean isStartNodeField(final Neo4JPersistentProperty f) {
         return f.isAnnotationPresent(StartNode.class);
     }
 
     @Override
-    public FieldAccessor<RelationshipBacked> forField(final Field f) {
-        if (isStartNodeField(f)) {
-            return new RelationshipNodeFieldAccessor(f, graphDatabaseContext) {
+    public FieldAccessor<RelationshipBacked> forField(final Neo4JPersistentProperty property) {
+        if (isStartNodeField(property)) {
+            return new RelationshipNodeFieldAccessor(property, graphDatabaseContext) {
                 @Override
                 protected Node getNode(final Relationship relationship) {
                     return relationship.getStartNode();
@@ -66,8 +65,8 @@ public class RelationshipNodeFieldAccessorFactory implements FieldAccessorFactor
             };
 
         }
-        if (isEndNodeField(f)) {
-            return new RelationshipNodeFieldAccessor(f, graphDatabaseContext) {
+        if (isEndNodeField(property)) {
+            return new RelationshipNodeFieldAccessor(property, graphDatabaseContext) {
                 @Override
                 protected Node getNode(final Relationship relationship) {
                     return relationship.getEndNode();
@@ -79,11 +78,11 @@ public class RelationshipNodeFieldAccessorFactory implements FieldAccessorFactor
 
     public static abstract class RelationshipNodeFieldAccessor implements FieldAccessor<RelationshipBacked> {
 
-        private final Field field;
+        private final Neo4JPersistentProperty property;
         private final GraphDatabaseContext graphDatabaseContext;
 
-        public RelationshipNodeFieldAccessor(final Field field, final GraphDatabaseContext graphDatabaseContext) {
-            this.field = field;
+        public RelationshipNodeFieldAccessor(final Neo4JPersistentProperty property, final GraphDatabaseContext graphDatabaseContext) {
+            this.property = property;
             this.graphDatabaseContext = graphDatabaseContext;
         }
 
@@ -99,7 +98,7 @@ public class RelationshipNodeFieldAccessorFactory implements FieldAccessorFactor
             if (node == null) {
                 return null;
             }
-            final NodeBacked result = graphDatabaseContext.createEntityFromState(node, (Class<? extends NodeBacked>) field.getType());
+            final NodeBacked result = graphDatabaseContext.createEntityFromState(node, (Class<? extends NodeBacked>) property.getType());
             return doReturn(result);
         }
 

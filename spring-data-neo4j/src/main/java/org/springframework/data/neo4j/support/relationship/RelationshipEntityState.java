@@ -34,7 +34,7 @@ public class RelationshipEntityState<ENTITY extends RelationshipBacked> extends 
 
     private final GraphDatabaseContext graphDatabaseContext;
     
-    public RelationshipEntityState(final Relationship underlyingState, final ENTITY entity, final Class<? extends ENTITY> type, final GraphDatabaseContext graphDatabaseContext, final DelegatingFieldAccessorFactory<RelationshipBacked> delegatingFieldAccessorFactory, Neo4JPersistentEntity<?> persistentEntity) {
+    public RelationshipEntityState(final Relationship underlyingState, final ENTITY entity, final Class<? extends ENTITY> type, final GraphDatabaseContext graphDatabaseContext, final DelegatingFieldAccessorFactory<RelationshipBacked> delegatingFieldAccessorFactory, Neo4JPersistentEntity<ENTITY> persistentEntity) {
         super(underlyingState, entity, type, delegatingFieldAccessorFactory, persistentEntity);
         this.graphDatabaseContext = graphDatabaseContext;
     }

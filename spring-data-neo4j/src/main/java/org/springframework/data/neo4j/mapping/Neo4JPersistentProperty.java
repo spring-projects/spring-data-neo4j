@@ -16,7 +16,13 @@
 
 package org.springframework.data.neo4j.mapping;
 
+import org.springframework.core.convert.ConversionService;
 import org.springframework.data.mapping.PersistentProperty;
+import org.springframework.data.neo4j.annotation.Indexed;
+
+import javax.persistence.Id;
+import java.lang.annotation.Annotation;
+import java.util.Collection;
 
 /**
  * Interface for Neo4J specific {@link PersistentProperty}s. Declares additional metadata to lookup relationship
@@ -45,4 +51,26 @@ public interface Neo4JPersistentProperty extends PersistentProperty<Neo4JPersist
     boolean isIndexed();
 
     Neo4JPersistentPropertyImpl.IndexInfo getIndexInfo();
+
+    String getNeo4jPropertyName();
+
+    boolean isSimpleValueField();
+
+    boolean isSerializableField(final ConversionService conversionService);
+
+    boolean isDeserializableField(final ConversionService conversionService);
+
+    boolean isNeo4jPropertyType();
+
+    boolean isSyntheticField();
+
+    Collection<? extends Annotation> getAnnotations();
+
+    <T extends Annotation> T getAnnotation(Class<T> annotationType);
+
+    <T extends Annotation> boolean isAnnotationPresent(Class<T> annotationType);
+
+    void setValue(Object entity, Object newValue) throws IllegalAccessException;
+
+    Object getValue(final Object entity) throws IllegalAccessException;
 }

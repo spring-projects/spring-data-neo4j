@@ -21,6 +21,7 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.data.neo4j.core.EntityState;
 import org.springframework.data.neo4j.core.GraphBacked;
 import org.springframework.data.neo4j.mapping.Neo4JPersistentEntity;
+import org.springframework.data.neo4j.mapping.Neo4JPersistentProperty;
 
 import java.lang.reflect.Field;
 import java.util.HashMap;
@@ -34,20 +35,20 @@ import java.util.Map;
 public abstract class DefaultEntityState<ENTITY extends GraphBacked<STATE>, STATE> implements EntityState<ENTITY,STATE> {
     protected final ENTITY entity;
     protected final Class<? extends ENTITY> type;
-    private final Map<Field, FieldAccessor<ENTITY>> fieldAccessors = new HashMap<Field, FieldAccessor<ENTITY>>();
-    private final Map<Field,List<FieldAccessListener<ENTITY,?>>> fieldAccessorListeners = new HashMap<Field, List<FieldAccessListener<ENTITY, ?>>>();
+    private final Map<Neo4JPersistentProperty, FieldAccessor<ENTITY>> fieldAccessors = new HashMap<Neo4JPersistentProperty, FieldAccessor<ENTITY>>();
+    private final Map<Neo4JPersistentProperty,List<FieldAccessListener<ENTITY,?>>> fieldAccessorListeners = new HashMap<Neo4JPersistentProperty, List<FieldAccessListener<ENTITY, ?>>>();
     private STATE state;
     protected final static Log log= LogFactory.getLog(DefaultEntityState.class);
     private final FieldAccessorFactoryProviders<ENTITY> fieldAccessorFactoryProviders;
-    private final Neo4JPersistentEntity<?> persistentEntity;
+    private final Neo4JPersistentEntity<ENTITY> persistentEntity;
 
-    public DefaultEntityState(final STATE underlyingState, final ENTITY entity, final Class<? extends ENTITY> type, final DelegatingFieldAccessorFactory delegatingFieldAccessorFactory, Neo4JPersistentEntity<?> persistentEntity) {
+    public DefaultEntityState(final STATE underlyingState, final ENTITY entity, final Class<? extends ENTITY> type, final DelegatingFieldAccessorFactory delegatingFieldAccessorFactory, Neo4JPersistentEntity<ENTITY> persistentEntity) {
         this.state = underlyingState;
         this.entity = entity;
         this.type = type;
         this.persistentEntity = persistentEntity;
         if (delegatingFieldAccessorFactory!=null) {
-            fieldAccessorFactoryProviders = delegatingFieldAccessorFactory.accessorFactoriesFor(type);
+            fieldAccessorFactoryProviders = delegatingFieldAccessorFactory.accessorFactoriesFor(persistentEntity);
             this.fieldAccessors.putAll(fieldAccessorFactoryProviders.getFieldAccessors());
             this.fieldAccessorListeners.putAll(fieldAccessorFactoryProviders.getFieldAccessListeners());
         } else {
@@ -78,38 +79,53 @@ public abstract class DefaultEntityState<ENTITY extends GraphBacked<STATE>, STAT
         return state;
     }
 
+    public Neo4JPersistentEntity<ENTITY> getPersistentEntity() {
+        return persistentEntity;
+    }
+
     @Override
     public boolean isWritable(Field field) {
-        final FieldAccessor<ENTITY> accessor = accessorFor(field);
+        final FieldAccessor<ENTITY> accessor = accessorFor(property(field));
         if (accessor == null) return true;
         return accessor.isWriteable(entity);
     }
 
     @Override
     public Object getValue(final Field field) {
-        final FieldAccessor<ENTITY> accessor = accessorFor(field);
+        final FieldAccessor<ENTITY> accessor = accessorFor(property(field));
         if (accessor == null) return null;
         else return accessor.getValue(entity);
     }
     @Override
     public Object setValue(final Field field, final Object newVal) {
-        final FieldAccessor<ENTITY> accessor = accessorFor(field);
+        return setValue(property(field),newVal);
+    }
+
+    @Override
+    public Object setValue(final Neo4JPersistentProperty property, final Object newVal) {
+        final FieldAccessor<ENTITY> accessor = accessorFor(property);
         final Object result=accessor!=null ? accessor.setValue(entity, newVal) : newVal;
-        notifyListeners(field, result);
+        notifyListeners(property, result);
         return result;
     }
 
+
 	@Override
 	public Object getDefaultImplementation(Field field) {
-        final FieldAccessor<ENTITY> accessor = accessorFor(field);
+        final FieldAccessor<ENTITY> accessor = accessorFor(property(field));
         if (accessor == null) return null;
         else return accessor.getDefaultImplementation();
 	}
-    protected FieldAccessor<ENTITY> accessorFor(final Field field) {
-        return fieldAccessors.get(field);
+
+    protected Neo4JPersistentProperty property(Field field) {
+        return persistentEntity.getPersistentProperty(field.getName());
     }
 
-    private void notifyListeners(final Field field, final Object result) {
+    protected FieldAccessor<ENTITY> accessorFor(final Neo4JPersistentProperty property) {
+        return fieldAccessors.get(property);
+    }
+
+    private void notifyListeners(final Neo4JPersistentProperty field, final Object result) {
         if (!fieldAccessorListeners.containsKey(field) || fieldAccessorListeners.get(field) == null) return;
         for (final FieldAccessListener<ENTITY, ?> listener : fieldAccessorListeners.get(field)) {
             listener.valueChanged(entity, null, result); // todo oldValue
@@ -117,13 +133,12 @@ public abstract class DefaultEntityState<ENTITY extends GraphBacked<STATE>, STAT
     }
 
     protected Object getIdFromEntity() {
-        final Field idField = fieldAccessorFactoryProviders.getIdField();
-        if (idField==null) return null;
+        final Neo4JPersistentProperty idProperty = fieldAccessorFactoryProviders.getIdProperty();
+        if (idProperty==null) return null;
         try {
-            idField.setAccessible(true);
-            return idField.get(entity);
+            return idProperty.getValue(entity);
         } catch (IllegalAccessException e) {
-            log.warn("Error accessing id field "+idField);
+            log.warn("Error accessing id field "+idProperty);
             return null;
         }
     }

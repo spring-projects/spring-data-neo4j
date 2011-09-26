@@ -18,9 +18,9 @@ package org.springframework.data.neo4j.fieldaccess;
 
 import org.springframework.data.neo4j.core.EntityState;
 import org.springframework.data.neo4j.core.NodeBacked;
+import org.springframework.data.neo4j.mapping.Neo4JPersistentProperty;
 
 import javax.persistence.Id;
-import java.lang.reflect.Field;
 
 /**
  * @author Michael Hunger
@@ -28,20 +28,20 @@ import java.lang.reflect.Field;
  */
 public class JpaIdFieldAccessListenerFactory implements FieldAccessorListenerFactory<NodeBacked> {
     @Override
-    public boolean accept(final Field f) {
-        return f.isAnnotationPresent(Id.class);
+    public boolean accept(final Neo4JPersistentProperty property) {
+        return property.isAnnotationPresent(Id.class);
     }
 
     @Override
-    public FieldAccessListener<NodeBacked, ?> forField(final Field field) {
-        return new JpaIdFieldListener(field);
+    public FieldAccessListener<NodeBacked, ?> forField(final Neo4JPersistentProperty property) {
+        return new JpaIdFieldListener(property);
     }
 
     public static class JpaIdFieldListener implements FieldAccessListener<NodeBacked, Object> {
-        protected final Field field;
+        protected final Neo4JPersistentProperty property;
 
-        public JpaIdFieldListener(final Field field) {
-            this.field = field;
+        public JpaIdFieldListener(final Neo4JPersistentProperty property) {
+            this.property = property;
         }
 
         @Override

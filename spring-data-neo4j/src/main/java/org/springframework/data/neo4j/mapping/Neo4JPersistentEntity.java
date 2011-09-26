@@ -25,4 +25,5 @@ import org.springframework.data.mapping.PersistentEntity;
  */
 public interface Neo4JPersistentEntity<T> extends PersistentEntity<T, Neo4JPersistentProperty> {
 
+    boolean useShortNames();
 }

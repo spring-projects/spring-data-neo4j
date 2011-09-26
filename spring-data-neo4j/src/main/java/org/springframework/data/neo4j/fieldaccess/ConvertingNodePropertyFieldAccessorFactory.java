@@ -20,10 +20,8 @@ import org.neo4j.graphdb.PropertyContainer;
 import org.springframework.beans.factory.annotation.Configurable;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.data.neo4j.core.GraphBacked;
-import org.springframework.data.neo4j.core.NodeBacked;
-import org.springframework.data.neo4j.core.RelationshipBacked;
-
-import java.lang.reflect.Field;
+import org.springframework.data.neo4j.mapping.Neo4JPersistentProperty;
+import scala.annotation.target.field;
 
 /**
  * @author Michael Hunger
@@ -40,35 +38,20 @@ public class ConvertingNodePropertyFieldAccessorFactory implements FieldAccessor
 
     
 	@Override
-    public boolean accept(final Field field) {
-        return isSerializableField(field) && isDeserializableField(field);
+    public boolean accept(final Neo4JPersistentProperty field) {
+        return field.isSerializableField(conversionService) && field.isDeserializableField(conversionService);
     }
 
     @Override
-    public FieldAccessor<GraphBacked<PropertyContainer>> forField(final Field field) {
-        return new ConvertingNodePropertyFieldAccessor(conversionService, DelegatingFieldAccessorFactory.getNeo4jPropertyName(field),field.getType());
-    }
-
-    private boolean isSerializableField(final Field field) {
-        return isSimpleValueField(field) && conversionService.canConvert(field.getType(), String.class);
-    }
-
-    private boolean isDeserializableField(final Field field) {
-        return isSimpleValueField(field) && conversionService.canConvert(String.class, field.getType());
-    }
-
-    private boolean isSimpleValueField(final Field field) {
-        final Class<?> type = field.getType();
-        if (Iterable.class.isAssignableFrom(type) || NodeBacked.class.isAssignableFrom(type) || RelationshipBacked.class.isAssignableFrom(type))
-            return false;
-        return true;
+    public FieldAccessor<GraphBacked<PropertyContainer>> forField(final Neo4JPersistentProperty property) {
+        return new ConvertingNodePropertyFieldAccessor(conversionService,property);
     }
 
     public static class ConvertingNodePropertyFieldAccessor extends PropertyFieldAccessorFactory.PropertyFieldAccessor {
         private final ConversionService conversionService;
 
-        public ConvertingNodePropertyFieldAccessor(ConversionService conversionService, String propertyName, Class fieldType) {
-            super(conversionService,propertyName,fieldType);
+        public ConvertingNodePropertyFieldAccessor(ConversionService conversionService, Neo4JPersistentProperty property) {
+            super(conversionService, property);
             this.conversionService = conversionService;
         }
 

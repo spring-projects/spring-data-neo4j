@@ -16,17 +16,14 @@
 package org.springframework.data.neo4j.fieldaccess;
 
 import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Set;
 
-import org.apache.commons.collections.CollectionUtils;
 import org.neo4j.graphdb.PropertyContainer;
 import org.neo4j.helpers.collection.IteratorUtil;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.data.neo4j.core.GraphBacked;
+import org.springframework.data.neo4j.mapping.Neo4JPersistentProperty;
 import org.springframework.data.neo4j.support.DoReturn;
 
 /**
@@ -42,22 +39,22 @@ public class DynamicPropertiesFieldAccessorFactory implements FieldAccessorFacto
     }
 
     @Override
-    public boolean accept(Field f) {
+    public boolean accept(Neo4JPersistentProperty f) {
         return DynamicProperties.class.isAssignableFrom(f.getType());
     }
 
     @Override
-    public FieldAccessor<GraphBacked<PropertyContainer>> forField(Field field) {
+    public FieldAccessor<GraphBacked<PropertyContainer>> forField(Neo4JPersistentProperty field) {
         return new DynamicPropertiesFieldAccessor(conversionService,
-                DelegatingFieldAccessorFactory.getNeo4jPropertyName(field), field);
+                field.getNeo4jPropertyName(), field);
     }
 
     public static class DynamicPropertiesFieldAccessor implements FieldAccessor<GraphBacked<PropertyContainer>> {
         private final ConversionService conversionService;
         private final String propertyNamePrefix;
-        private final Field field;
+        private final Neo4JPersistentProperty field;
 
-        public DynamicPropertiesFieldAccessor(ConversionService conversionService, String propertyName, Field field) {
+        public DynamicPropertiesFieldAccessor(ConversionService conversionService, String propertyName, Neo4JPersistentProperty field) {
             this.conversionService = conversionService;
             this.propertyNamePrefix = propertyName;
             this.field = field;

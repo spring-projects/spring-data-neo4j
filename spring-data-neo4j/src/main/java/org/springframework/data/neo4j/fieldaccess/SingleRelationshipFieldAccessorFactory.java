@@ -21,6 +21,8 @@ import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.RelationshipType;
 import org.springframework.data.neo4j.annotation.RelatedTo;
 import org.springframework.data.neo4j.core.NodeBacked;
+import org.springframework.data.neo4j.mapping.Neo4JPersistentProperty;
+import org.springframework.data.neo4j.mapping.RelationshipInfo;
 import org.springframework.data.neo4j.support.GraphDatabaseContext;
 
 import java.lang.reflect.Field;
@@ -36,21 +38,19 @@ public class SingleRelationshipFieldAccessorFactory extends NodeRelationshipFiel
 	}
 
 	@Override
-	public boolean accept(final Field f) {
-	    return NodeBacked.class.isAssignableFrom(f.getType());
+	public boolean accept(final Neo4JPersistentProperty property) {
+	    return property.isRelationship() && property.getRelationshipInfo().targetsNodes() && !property.getRelationshipInfo().isMultiple();
 	}
 
 	@Override
-	public FieldAccessor<NodeBacked> forField(final Field field) {
-	    final RelatedTo relAnnotation = getRelationshipAnnotation(field);
-	    if (relAnnotation == null)
-	        return new SingleRelationshipFieldAccessor(typeFrom(field), Direction.OUTGOING, targetFrom(field, relAnnotation), graphDatabaseContext, field);
-	    return new SingleRelationshipFieldAccessor(typeFrom(field, relAnnotation), dirFrom(relAnnotation), targetFrom(field, relAnnotation), graphDatabaseContext,field);
+	public FieldAccessor<NodeBacked> forField(final Neo4JPersistentProperty property) {
+        final RelationshipInfo relationshipInfo = property.getRelationshipInfo();
+        return new SingleRelationshipFieldAccessor(relationshipInfo.getRelationshipType(), relationshipInfo.getDirection(), (Class<? extends NodeBacked>) relationshipInfo.getTargetType().getType(), graphDatabaseContext,property);
 	}
 
 	public static class SingleRelationshipFieldAccessor extends NodeToNodesRelationshipFieldAccessor<NodeBacked> {
-	    public SingleRelationshipFieldAccessor(final RelationshipType type, final Direction direction, final Class<? extends NodeBacked> clazz, final GraphDatabaseContext graphDatabaseContext, Field field) {
-	        super(clazz, graphDatabaseContext, direction, type, field);
+	    public SingleRelationshipFieldAccessor(final RelationshipType type, final Direction direction, final Class<? extends NodeBacked> clazz, final GraphDatabaseContext graphDatabaseContext, Neo4JPersistentProperty property) {
+	        super(clazz, graphDatabaseContext, direction, type, property);
 	    }
 
 		@Override

@@ -17,8 +17,7 @@
 package org.springframework.data.neo4j.core;
 
 import org.neo4j.graphdb.traversal.TraversalDescription;
-
-import java.lang.reflect.Field;
+import org.springframework.data.neo4j.mapping.Neo4JPersistentProperty;
 
 /**
  * Interface for classes that build traversal descriptions. Those classes can be referred to by
@@ -31,9 +30,10 @@ import java.lang.reflect.Field;
 public interface FieldTraversalDescriptionBuilder {
     /**
      * Builder method for traversal description.
+     *
      * @param start the Entity that contains the field with the dynamic traversal. Used for the parametrization of the traversal description.
-     * @param field the concrete field that will provide the traversal. Used for the parametrization of the traversal description.
+     * @param property
      * @return the TraversalDescription to apply on fieldaccess, the start node is the current entity node
      */
-    TraversalDescription build(NodeBacked start, Field field, String...params);
+    TraversalDescription build(NodeBacked start, Neo4JPersistentProperty property, String...params);
 }
