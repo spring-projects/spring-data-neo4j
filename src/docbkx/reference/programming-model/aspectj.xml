@@ -40,12 +40,12 @@
         </para>
         <para>
             Eclipse and STS support AspectJ via the AJDT plugin which can be installed from the update-site:
-            <ulink url="http://download.eclipse.org/tools/ajdt/36/update/">http://download.eclipse.org/tools/ajdt/36/update/</ulink>
+            <ulink url="http://download.eclipse.org/tools/ajdt/36/update/">http://download.eclipse.org/tools/ajdt/37/update/</ulink>
             (it might be necessary to use the latest development snapshot of the plugin
             <ulink url="http://download.eclipse.org/tools/ajdt/36/dev/update">http://download.eclipse.org/tools/ajdt/36/dev/update</ulink>).
-            The current version that does not show incorrect errors is AspectJ 1.6.12.M1 (included in STS 2.7.0.M2), previous versions are reported
+            The current version that does not show incorrect errors is AspectJ 1.6.12.RELEASE (included in STS 2.8.0), previous versions are reported
             to mislead the user.
-        </para>
+        </para>                                                                                      ¸
         <note>
         <para>
             There might be some issues with the eclipse maven plugin not adding AspectJ files correctly to the build path.
