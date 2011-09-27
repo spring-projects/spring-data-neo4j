@@ -3,14 +3,14 @@
 <section id="reference:programming-model:repositories">
     <title>CRUD with repositories</title>
     <para>
-        The repositories provided by Spring Data Graph build on the composable repository infrastructure
+        The repositories provided by Spring Data Neo4j build on the composable repository infrastructure
         in <ulink url="http://static.springsource.org/spring-data/data-jpa/docs/current/reference/html/#repositories.custom-implementations">Spring Data Commons</ulink>.
         They allow for interface based composition of repositories consisting of provided default
         implementations for certain interfaces and additional custom implementations for other methods.
     </para>
     <!--<note>-->
         <!--<para>-->
-            <!--Spring Data Graph provides only the infrastructure and some default repository implementations-->
+            <!--Spring Data Neo4j provides only the infrastructure and some default repository implementations-->
             <!--so far. Future releases will support finders derived from method names, named queries, and-->
             <!--annotated query methods.-->
             <!--(e.g.-->
@@ -20,11 +20,11 @@
         <!--</para>-->
     <!--</note>-->
     <para>
-        Spring Data Graph repositories support annotated and named queries for the Neo4j
+        Spring Data Neo4j repositories support annotated and named queries for the Neo4j
         <ulink url="http://docs.neo4j.org/chunked/milestone/query-lang.html">Cypher</ulink> query-language.
     </para>
     <para>
-        Spring Data Graph comes with typed repository implementations that provide methods for
+        Spring Data Neo4j comes with typed repository implementations that provide methods for
         locating node and relationship entities. There are 3 types of basic repository interfaces
         and implementations. <code>CRUDRepository</code> provides basic operations,
         <code>IndexRepository</code> and <code>NamedIndexRepository</code> delegate to Neo4j's internal
@@ -147,8 +147,8 @@
 
         <section>
             <title>Named Queries</title>
-        <para>Spring Data Graph also supports the notion of named queries which are externalized in property-config-files
-            (<code>META-INF/graph-named-queries.properties</code>). Those files have the format:
+        <para>Spring Data Neo4j also supports the notion of named queries which are externalized in property-config-files
+            (<code>META-INF/neo4j-named-queries.properties</code>). Those files have the format:
             <code>Entity.finderName=query</code> (e.g. <code>Person.findBoss=start p=(%person) match (p)&lt;-[:BOSS]-(boss) return boss</code>).
             Otherwise named queries support the same parameters as annotated queries. For using the named parameters you have to either
             annotate the parameters of the method with the <code>@Param("person")</code> annotation or enable debug symbols.
@@ -256,7 +256,7 @@ public class PersonRepositoryImpl implements PersonRepositoryExtension {
 
 // configure the repositories, preferably via the datagraph:repositories namespace
 // (graphDatabaseContext reference is optional)
-<datagraph:repositories base-package="org.springframework.data.neo4j"
+<neo4j:repositories base-package="org.springframework.data.neo4j"
     graph-database-context-ref="graphDatabaseContext"/>
 
 // have it injected

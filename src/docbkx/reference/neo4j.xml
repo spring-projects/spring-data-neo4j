@@ -129,7 +129,7 @@ for (Path position : traversalDescription.traverse(myStartNode)) {
             Retrieval is done with query methods on indexes, returning an IndexHits iterator.
         </para>
         <para>
-            Spring Data Graph provides automatic indexing via the @Indexed annotation, eliminating the need
+            Spring Data Neo4j provides automatic indexing via the @Indexed annotation, eliminating the need
             for manual index management.
         </para>
         <note>
@@ -176,9 +176,9 @@ for (Node foundNode : nodeIndex.get("property","value")) {
         </para>
         <para>
             Cypher can be executed on an embedded graph db using <code>ExecutionEngine</code> and
-            <code>CypherParser</code>. This is encapsulated in Spring Data Graph with
+            <code>CypherParser</code>. This is encapsulated in Spring Data Neo4j with
             <code>CypherQueryEngine</code>. The Neo4j-REST-Server comes with a Cypher-Plugin that is accessible remotely and is
-            available in the Spring Data Graph REST-Binding.
+            available in the Spring Data Neo4j REST-Binding.
         </para>
         <example>
             <title>Cypher Examples on the Cineasts.net Dataset</title>
@@ -218,9 +218,9 @@ start user=(User,login,'micha') match (user)-[:FRIEND]-(friend)-[r,:RATED]->(mov
             turing complete.
         </para>
         <para>Gremlin can be executed by including the tinkerpop and blueprints dependencies and then requesting a <code>ScriptEngine</code>
-        of type "gremlin" from the <code>javax.Script*</code> facilities. In Spring Data Graph this is encapsulated in
+        of type "gremlin" from the <code>javax.Script*</code> facilities. In Spring Data Neo4j this is encapsulated in
         <code>GremlinQueryEngine</code>. The Neo4j-REST-Server also comes with a Gremlin-Plugin that is accessible remotely and is
-            available in the Spring Data Graph REST-Binding.
+            available in the Spring Data Neo4j REST-Binding.
         </para>
         <example>
             <title>Sample Gremlin Queries</title>

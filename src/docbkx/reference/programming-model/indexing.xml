@@ -13,7 +13,7 @@
         <title>Exact and numeric index</title>
         <para>
             When using the standard Neo4j API, nodes and relationships have to be manually indexed with
-            key-value pairs, typically being the property name and value. When using Spring Data Graph,
+            key-value pairs, typically being the property name and value. When using Spring Data Neo4j,
             this task is simplified to just adding an <code>@Indexed</code> annotation on entity fields
             by which the entity should be searchable. This will result in automatic updates of the index
             every time an indexed field changes.
@@ -62,7 +62,7 @@ for (Person middleAgedDeveloper : graphRepository.findAllByRange("age", 20, 40))
     <section>
         <title>Fulltext indexes</title>
         <para>
-            Spring Data Graph also supports fulltext indexes. By default, indexed fields are stored in
+            Spring Data Neo4j also supports fulltext indexes. By default, indexed fields are stored in
             an exact lookup index. To have them analyzed and prepared for fulltext search, the
             <code>@Indexed</code> annotation has the boolean <code>fulltext</code> attribute.
 

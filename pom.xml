@@ -3,14 +3,14 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.springframework.data</groupId>
-	<artifactId>spring-data-graph-dist</artifactId>
-	<name>Spring Data Graph Distribution</name>
-    <description><![CDATA[Within the Spring Data project the Spring Data Graph library provides integration with the Neo4j graph database, offering object graph mapping, a Neo4jTemplate and Spring-Data-Commons Repository implementations.
+	<artifactId>spring-data-neo4j-dist</artifactId>
+	<name>Spring Data Neo4j Distribution</name>
+    <description><![CDATA[Within the Spring Data project the Spring Data Neo4j library provides integration with the Neo4j graph database, offering object graph mapping, a Neo4jTemplate and Spring-Data-Commons Repository implementations.
     ]]></description>
 	<version>1.2.0.BUILD-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	<modules>
-		<module>spring-data-graph-parent</module>
+		<module>spring-data-neo4j-parent</module>
 		<module>spring-data-neo4j</module>
 		<module>spring-data-neo4j-rest</module>
 	</modules>
@@ -20,9 +20,9 @@
     		<url>http://www.springsource.com</url>
     </organization>
     <scm>
-        <url>http://github.com/SpringSource/spring-data-graph</url>
-        <connection>scm:git:git://github.com/SpringSource/spring-data-graph.git</connection>
-        <developerConnection>scm:git:git://github.com/SpringSource/spring-data-graph.git</developerConnection>
+        <url>http://github.com/SpringSource/spring-data-neo4j</url>
+        <connection>scm:git:git://github.com/SpringSource/spring-data-neo4j.git</connection>
+        <developerConnection>scm:git:git://github.com/SpringSource/spring-data-neo4j.git</developerConnection>
     </scm>
 	<issueManagement>
 		<system>JIRA</system>
@@ -151,15 +151,15 @@
 			<distributionManagement>
 				<site>
 					<id>spring-site-staging</id>
-					<url>file:///${java.io.tmpdir}/spring-data/data-graph/docs/${project.version}</url>
+					<url>file:///${java.io.tmpdir}/spring-data/data-neo4j/docs/${project.version}</url>
 				</site>
 				<repository>
 					<id>spring-milestone-staging</id>
-					<url>file:///${java.io.tmpdir}/spring-data/data-graph/milestone</url>
+					<url>file:///${java.io.tmpdir}/spring-data/data-neo4j/milestone</url>
 				</repository>
 				<snapshotRepository>
 					<id>spring-snapshot-staging</id>
-					<url>file:///${java.io.tmpdir}/spring-data/data-graph/snapshot</url>
+					<url>file:///${java.io.tmpdir}/spring-data/data-neo4j/snapshot</url>
 				</snapshotRepository>
 			</distributionManagement>
 		</profile>
@@ -210,7 +210,7 @@
 		<downloadUrl>http://www.springsource.com/spring-data</downloadUrl>
 		<site>
 			<id>static.springframework.org</id>
-			<url>scp://static.springframework.org/var/www/domains/springframework.org/static/htdocs/spring-data/data-graph/snapshot-site/</url>
+			<url>scp://static.springframework.org/var/www/domains/springframework.org/static/htdocs/spring-data/data-neo4j/snapshot-site/</url>
 		</site>
         <repository>
             <id>spring-release</id>
@@ -291,7 +291,7 @@
 					        <highlightDefaultLanguage></highlightDefaultLanguage-->
                             <postProcess>
                                 <copy file="${basedir}/target/docbkx/rtf/index.rtf"
-                                      tofile="${basedir}/target/site/reference/rtf/spring-data-graph-reference.rtf"
+                                      tofile="${basedir}/target/site/reference/rtf/spring-data-neo4j-reference.rtf"
                                       failonerror="false"/>
                             </postProcess>
 				            </configuration>
@@ -311,7 +311,7 @@
 					        <highlightDefaultLanguage></highlightDefaultLanguage>
                             <postProcess>
                                 <copy file="${basedir}/target/docbkx/pdf/index.pdf"
-                                      tofile="${basedir}/target/site/reference/pdf/spring-data-graph-reference.pdf"
+                                      tofile="${basedir}/target/site/reference/pdf/spring-data-neo4j-reference.pdf"
                                       failonerror="false"/>
                             </postProcess>
                         </configuration>
@@ -392,7 +392,7 @@
 				<configuration>
 					<javadoc:aggregate>true</javadoc:aggregate>
 					<breakiterator>true</breakiterator>
-					<header>Spring Data Graph</header>
+					<header>Spring Data Neo4j</header>
 					<source>1.6</source>
 					<quiet>true</quiet>
 					<javadocDirectory>${project.basedir}/src/main/javadoc</javadocDirectory>
@@ -471,8 +471,8 @@
 				</dependencies>
 			</plugin>
 		</plugins>
-		<!-- the name of this project is 'spring-data-graph-dist';
-			 make sure the zip file is just 'spring-data-graph'. -->
+		<!-- the name of this project is 'spring-data-neo4j-dist';
+			 make sure the zip file is just 'spring-data-neo4j'. -->
 		<finalName>${dist.finalName}</finalName>
 	</build>
     <pluginRepositories>

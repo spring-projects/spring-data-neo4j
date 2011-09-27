@@ -9,7 +9,7 @@
         were impressive. This sections presents some of the remaining screen shots of Cineasts.net.
     </para>
     <para>
-        Some noteworthy things. Since Spring Data Graph reads through down to the database for property
+        Some noteworthy things. Since Spring Data Neo4j reads through down to the database for property
         and relationship access, we tried to minimize that by using <code>&lt;c:var/&gt;</code> several times.
         The app contains very little javascript / ajax code right now, that will change when it moves ahead.
     </para>

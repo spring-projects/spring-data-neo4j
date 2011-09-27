@@ -3,10 +3,10 @@
 <chapter id="programming-model" xmlns:xi="http://www.w3.org/2001/XInclude">
     <title>Programming model</title>
     <para>
-        This chapter covers the fundamentals of the programming model behind Spring Data Graph. It discusses the
-        AspectJ features used and the annotations provided by Spring Data Graph and how to use them.
+        This chapter covers the fundamentals of the programming model behind Spring Data Neo4j. It discusses the
+        AspectJ features used and the annotations provided by Spring Data Neo4j and how to use them.
         Examples for this section are taken from the "IMDB" project of
-        <ulink url="http://github.com/SpringSource/spring-data-graph-examples">Spring Data Graph examples</ulink>.
+        <ulink url="http://github.com/SpringSource/spring-data-neo4j-examples">Spring Data Neo4j examples</ulink>.
     </para>
     <xi:include href="aspectj.xml"/>
     <xi:include href="node-entities.xml"/>

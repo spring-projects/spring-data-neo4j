@@ -66,7 +66,7 @@ public class DataGraphNamespaceHandler extends NamespaceHandlerSupport {
 
             @Override
             public String getNamedQueriesLocation() {
-                return "classpath*:META-INF/graph-named-queries.properties";
+                return "classpath*:META-INF/neo4j-named-queries.properties";
             }
 
             @Override

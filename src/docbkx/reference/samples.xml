@@ -7,8 +7,8 @@
     <section id="samples:introduction">
         <title>Introduction</title>
         <para>
-            Spring Data Graph comes with a number of sample applications. The source code of the samples can be found on
-            <ulink url="http://github.com/SpringSource/spring-data-graph-examples">Github</ulink>. The different sample
+            Spring Data Neo4j comes with a number of sample applications. The source code of the samples can be found on
+            <ulink url="http://github.com/SpringSource/spring-data-neo4j-examples">Github</ulink>. The different sample
             projects are introduced below.
         </para>
     </section>
@@ -21,7 +21,7 @@
             and then prints them.
         </para>
         <para>
-            The unit tests demonstrate some other features of Spring Data Graph as well. The sample comes
+            The unit tests demonstrate some other features of Spring Data Neo4j as well. The sample comes
             with a minimal configuration for Maven and Spring to get up and running quickly.
         </para>
         <para>
@@ -41,7 +41,7 @@
             into the graph database. It allows the listing of movies with their actors, and of actors and their
             roles in different movies. It also uses graph traversal operations to calculate the
             <ulink url="http://en.wikipedia.org/wiki/Bacon_number">Bacon number</ulink> of any given actor.
-            This sample application shows the usage of Spring Data Graph in a more complex setting, using several
+            This sample application shows the usage of Spring Data Neo4j in a more complex setting, using several
             annotated entities and relationships as well as indexes and graph traversals.
         </para>
         <para>
@@ -67,7 +67,7 @@
             Simple, JPA-based web application for managing users and restaurants, with the ability to add
             restaurants as favorites to a user. It is basically the foundation for the MyRestaurants-Social
             application (see<xref linkend="samples:myrestaurants-social" />), and does therefore not use
-            Spring Data Graph.
+            Spring Data Neo4j.
         </para>
         <mediaobject>
             <imageobject>

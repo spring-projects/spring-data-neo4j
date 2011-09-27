@@ -1,4 +1,4 @@
-<project name="spring-data-graph-example" default="test" xmlns:ivy="antlib:org.apache.ivy.ant" basedir=".">
+<project name="spring-data-neo4j-example" default="test" xmlns:ivy="antlib:org.apache.ivy.ant" basedir=".">
 	<property name="settings.dir" location="settings" />
 	<property name="lib.dir" location="lib" />
 

@@ -4,13 +4,13 @@
     <preface>
     <title>About this guide book</title>
     <section>
-        <title>The Spring Data Graph Project</title>
+        <title>The Spring Data Neo4j Project</title>
         <para>
-            Welcome to the Spring Data Graph Guide Book. Thank you for taking the time to get an in depth look
-            into <ulink url="https://github.com/SpringSource/spring-data-graph">Spring Data Graph</ulink>.
+            Welcome to the Spring Data Neo4j Guide Book. Thank you for taking the time to get an in depth look
+            into <ulink url="https://github.com/SpringSource/spring-data-neo4j">Spring Data Neo4j</ulink>.
             This project is part of the <ulink url="http://springsource.org/spring-data">Spring Data project</ulink>,
             which brings the convenient programming model of the Spring Framework to modern NOSQL databases.
-     		Spring Data Graph, as the name alludes to, aims to provide support for graph databases. It currently
+     		Spring Data Neo4j, as the name alludes to, aims to provide support for graph databases. It currently
             supports <ulink url="http://neo4j.org">Neo4j</ulink>.
         </para>
     </section>
@@ -21,10 +21,10 @@
             by our peers.
         </para>
         <para>
-            If you have any feedback on Spring Data Graph or this book, please provide it via the
-            <ulink url="https://jira.springsource.org/browse/DATAGRAPH">SpringSource JIRA</ulink>, the
+            If you have any feedback on Spring Data Neo4j or this book, please provide it via the
+            <ulink url="http://jira.springsource.org/browse/DATAGRAPH">SpringSource JIRA</ulink>, the
             <ulink url="http://forum.springsource.org/forumdisplay.php?f=80">SpringSource NOSQL Forum</ulink>,
-            <ulink url="https://github.com/SpringSource/spring-data-graph/issues">github comments or issues</ulink>,
+            <ulink url="http://github.com/SpringSource/spring-data-neo4j/issues">github comments or issues</ulink>,
             or the <ulink url="http://neo4j.org/community/list/">Neo4j mailing list</ulink>.
         </para>
     </section>
@@ -38,7 +38,7 @@
         <para>
             We chose a tutorial describing the creation of a web application that allows movie enthusiasts to
             find their favorite movies, rate them, connect with fellow movie geeks, and enjoy social features such as
-            recommendations. The application is running on Neo4j using Spring Data Graph and the well-known Spring
+            recommendations. The application is running on Neo4j using Spring Data Neo4j and the well-known Spring
             Web Stack.
         </para>
         <para>
@@ -46,7 +46,7 @@
             the library. It discusses the programming model, the underlying assumptions, and internals, as well as the
             APIs for the object-graph mapping. The reference documentation is typically used to look up concrete bits of
             information, or to drill down into certain topics. For hackers wanting to really delve into Spring Data
-            Graph, it can of course also be read cover-to-cover.
+            Neo4j, it can of course also be read cover-to-cover.
         </para>
     </section>
     <section><title>Acknowledgements</title>
@@ -62,7 +62,7 @@
         <para>
             We also appreciate very much the foresight of Rod Johnson and Emil Eifrem to initiate the project, and now
             also providing great forewords. Their leadership inspired collaboration between the engineering teams at
-            SpringSource and Neo Technology, a tremendous help during the making of Spring Data Graph.
+            SpringSource and Neo Technology, a tremendous help during the making of Spring Data Neo4j.
              
         </para>
          

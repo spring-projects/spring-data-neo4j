@@ -13,8 +13,8 @@ ant -f src/ant/upload-dist.xml \
     -Ddist.accessKey=<access key> \
     -Ddist.secretKey=<secret key> \
     -Ddist.bucketName=dist.springframework.org \
-    -Ddist.fileName=spring-data-graph-1.0.0.???.zip \
-    -Ddist.filePath=../../spring-data-graph-1.0.0.???.zip \
+    -Ddist.fileName=spring-data-neo4j-1.0.0.???.zip \
+    -Ddist.filePath=../../spring-data-neo4j-1.0.0.???.zip \
     -Ddist.version=1.0.0.??? \
     upload-dist
 -->

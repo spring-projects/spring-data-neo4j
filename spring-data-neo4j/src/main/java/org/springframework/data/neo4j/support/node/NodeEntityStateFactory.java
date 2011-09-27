@@ -91,4 +91,8 @@ public class NodeEntityStateFactory {
     private void setUp() {
          this.delegatingFieldAccessorFactory = new PartialNodeEntityState.PartialNodeDelegatingFieldAccessorFactory(graphDatabaseContext);
     }
+
+    public GraphDatabaseContext getGraphDatabaseContext() {
+        return graphDatabaseContext;
+    }
 }

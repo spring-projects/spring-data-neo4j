@@ -78,7 +78,7 @@ public class RelationshipInfo {
     public static RelationshipInfo fromField(Field field, RelatedTo annotation, TypeInformation<?> typeInformation) {
         return new RelationshipInfo(
                 annotation.type().isEmpty() ? field.getName() : annotation.type(),
-                annotation.direction().toNeo4jDir(),
+                annotation.direction(),
                 typeInformation,
                 annotation.elementClass() != NodeBacked.class ? ClassTypeInformation.from(annotation.elementClass()) : null,
                 true);
@@ -87,7 +87,7 @@ public class RelationshipInfo {
     public static RelationshipInfo fromField(Field field, RelatedToVia annotation, TypeInformation<?> typeInformation) {
         return new RelationshipInfo(
                 annotation.type().isEmpty() ? field.getName() : annotation.type(),
-                annotation.direction().toNeo4jDir(),
+                annotation.direction(),
                 typeInformation,
                 annotation.elementClass() != RelationshipBacked.class ? ClassTypeInformation.from(annotation.elementClass()) : null,
                 false);

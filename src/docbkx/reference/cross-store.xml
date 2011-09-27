@@ -3,7 +3,7 @@
 <chapter id="reference:cross-store">
     <title>Cross-store persistence</title>
     <para>
-        The Spring Data Graph project support cross-store persistence, which allows for parts of the data to be
+        The Spring Data Neo4j project support cross-store persistence, which allows for parts of the data to be
         stored in a traditional JPA data store (RDBMS), and other parts in a graph store. This means that an entity
         can be partially stored in e.g. MySQL, and partially stored in Neo4j.
     </para>
@@ -15,7 +15,7 @@
     <section>
         <title>Partial entities</title>
         <para>
-            Partial graph persistence is achieved by restricting the Spring Data Graph aspects to manage only
+            Partial graph persistence is achieved by restricting the Spring Data Neo4j aspects to manage only
             explicitly annotated parts of the entity. Those fields will be made <code>@Transient</code> by the
             aspect so that JPA ignores them.
         </para>
@@ -37,8 +37,8 @@
             can then be found using the indexing facilities, and the two entities can be reassociated.
         </para>
         <para>
-            Using these mechanisms and the Spring Data Graph aspects, a single POJO can contain some fields
-            handled by JPA and others handles by Spring Data Graph. This also includes relationship fields persisted
+            Using these mechanisms and the Spring Data Neo4j aspects, a single POJO can contain some fields
+            handled by JPA and others handles by Spring Data Neo4j. This also includes relationship fields persisted
             in the graph database.
         </para>
     </section>
@@ -52,20 +52,20 @@
             <title>@NodeEntity(partial = "true")</title>
             <para>
                 When annotating an entity with <code>partial = true</code>, this marks it as a cross-store entity.
-                Spring Data Graph will thus only manage fields explicitly annotated with <code>@GraphProperty</code>.
+                Spring Data Neo4j will thus only manage fields explicitly annotated with <code>@GraphProperty</code>.
             </para>
         </section>
         <section>
             <title>@GraphProperty</title>
             <para>
                 Fields of primitive or convertible types do not normally have to be annotated in order to be
-                persisted by Spring Data Graph. In cross-store mode, Spring Data Graph <emphasis>only</emphasis>
+                persisted by Spring Data Neo4j. In cross-store mode, Spring Data Neo4j <emphasis>only</emphasis>
                 persists fields explicitly annotated with <code>@GraphProperty</code>. JPA will ignore these fields.
             </para>
         </section>
         <para>
             The following example is taken from the
-            <ulink url="http://github.com/SpringSource/spring-data-graph-examples">Spring Data Graph examples</ulink>
+            <ulink url="http://github.com/SpringSource/spring-data-neo4j-examples">Spring Data Neo4j examples</ulink>
             myrestaurants-social project:
         </para>
         <example>
@@ -119,28 +119,28 @@ public class UserAccount {
     <section>
         <title>Configuring cross-store persistence</title>
         <para>
-            Configuring cross-store persistence is done similarly to the default Spring Data Graph configuration.
+            Configuring cross-store persistence is done similarly to the default Spring Data Neo4j configuration.
             All you need to do is to specify an <code>entityManagerFactory</code> in the XML namespace
-            <code>config</code> element, and Spring Data Graph will configure itself for cross-store use.
+            <code>config</code> element, and Spring Data Neo4j will configure itself for cross-store use.
         </para>
         <example>
             <title>Cross-store Spring configuration</title>
             <programlisting language="xml"><![CDATA[<beans xmlns="http://www.springframework.org/schema/beans"
     xmlns:context="http://www.springframework.org/schema/context"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xmlns:datagraph="http://www.springframework.org/schema/data/graph"
+    xmlns:datagraph="http://www.springframework.org/schema/data/neo4j"
     xsi:schemaLocation="
         http://www.springframework.org/schema/beans
         http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
         http://www.springframework.org/schema/context
         http://www.springframework.org/schema/context/spring-context-3.0.xsd
-        http://www.springframework.org/schema/data/graph
-        http://www.springframework.org/schema/data/graph/datagraph-1.0.xsd
+        http://www.springframework.org/schema/data/neo4j
+        http://www.springframework.org/schema/data/neo4j/spring-neo4j-2.0.xsd
         ">
 
     <context:annotation-config/>
 
-    <datagraph:config storeDirectory="target/config-test"
+    <neo4j:config storeDirectory="target/config-test"
         entityManagerFactory="entityManagerFactory"/>
 
     <bean class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean"

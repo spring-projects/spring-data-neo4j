@@ -66,7 +66,7 @@
         </itemizedlist>
     </para>
     <para>
-        Spring Data Graph will by default autodetect which are the most suitable strategies for node and relationship
+        Spring Data Neo4j will by default autodetect which are the most suitable strategies for node and relationship
         entities. For new data stores, it will always opt for the indexing strategies. If a data store was created
         with the older<code>SubReferenceNodeTypeRepresentationStrategy</code>, then it will continue to use that
         strategy for node entities. It will however in that case use the no-op strategy for relationship entities,

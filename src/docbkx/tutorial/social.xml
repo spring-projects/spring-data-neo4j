@@ -11,7 +11,7 @@
         <title>Users</title>
         <para>
             So we started out by taking the User class that we'd already coded and made it a
-            full-fledged Spring Data Graph entity. We added the ability to make friends and to
+            full-fledged Spring Data Neo4j entity. We added the ability to make friends and to
             rate movies. With that we also added a simple UserRepository that was able to look
             up users by ID.
         </para>

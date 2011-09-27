@@ -5,12 +5,12 @@
     <para>
         Although adding layers of abstraction is a common pattern in software development, each of these layers
         generally adds overhead and performance penalties. This chapter discusses the performance implications
-        of using Spring Data Graph instead of the Neo4j API directly.
+        of using Spring Data Neo4j instead of the Neo4j API directly.
     </para>
     <section>
-        <title>When is Spring Data Graph right</title>
+        <title>When is Spring Data Neo4j right</title>
         <para>
-            The focus of Spring Data Graph is to add a convenience layer on top of the Neo4j API. This enables
+            The focus of Spring Data Neo4j is to add a convenience layer on top of the Neo4j API. This enables
             developers to get up and running with a graph database very quickly, having their domain objects
             mapped to the graph with very little work. Building on this foundation, one can later explore other,
             more efficient ways to explore and process the graph - if the performance requirements demand it.
@@ -24,7 +24,7 @@
             frameworks and libraries that expect Java POJOs as input or create them as results.
         </para>
         <para>
-            Spring Data Graph, however, was not designed with a major focus on performance. It does add some overhead
+            Spring Data Neo4j, however, was not designed with a major focus on performance. It does add some overhead
             to pure graph operations. Something to keep in mind is that any access of properties and relationships
             will in general read through down to the database. To avoid multiple reads, it is sensible to store the
             result in a local variable in suitable scope (e.g. method, class or jsp).

@@ -3,11 +3,11 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.springframework.data</groupId>
-	<artifactId>spring-data-graph-parent</artifactId>
-	<name>Spring Data Graph Parent</name>
+	<artifactId>spring-data-neo4j-parent</artifactId>
+	<name>Spring Data Neo4j Parent</name>
 	<version>1.2.0.BUILD-SNAPSHOT</version>
 	<packaging>pom</packaging>
-    <description><![CDATA[Spring Data Graph parent project. Defines dependencies and common configuration for the build process.
+    <description><![CDATA[Spring Data Neo4j parent project. Defines dependencies and common configuration for the build process.
     ]]></description>
     <url>http://www.springsource.org/spring-data/neo4j</url>
     <organization>
@@ -15,9 +15,9 @@
     		<url>http://www.springsource.com</url>
     </organization>
     <scm>
-        <url>http://github.com/SpringSource/spring-data-graph</url>
-        <connection>scm:git:git://github.com/SpringSource/spring-data-graph.git</connection>
-        <developerConnection>scm:git:git://github.com/SpringSource/spring-data-graph.git</developerConnection>
+        <url>http://github.com/SpringSource/spring-data-neo4j</url>
+        <connection>scm:git:git://github.com/SpringSource/spring-data-neo4j.git</connection>
+        <developerConnection>scm:git:git://github.com/SpringSource/spring-data-neo4j.git</developerConnection>
     </scm>
 	<issueManagement>
 		<system>JIRA</system>
@@ -124,7 +124,7 @@
 		<org.mockito.version>1.8.4</org.mockito.version>
 		<org.slf4j.version>1.6.1</org.slf4j.version>
 		<org.springframework.version>3.0.5.RELEASE</org.springframework.version>
-		<data.commons.version>1.1.0.RELEASE</data.commons.version>
+		<data.commons.version>1.2.0.BUILD-SNAPSHOT</data.commons.version>
         <neo4j.version>1.4.1</neo4j.version>
         <aspectj.version>1.6.12.M1</aspectj.version>
         <blueprints.version>0.8</blueprints.version>
@@ -142,15 +142,15 @@
 			<distributionManagement>
 				<site>
 					<id>spring-site-staging</id>
-					<url>file:///${java.io.tmpdir}/spring-data/data-graph/docs/${project.version}</url>
+					<url>file:///${java.io.tmpdir}/spring-data/data-neo4j/docs/${project.version}</url>
 				</site>
 				<repository>
 					<id>spring-milestone-staging</id>
-					<url>file:///${java.io.tmpdir}/spring-data/data-graph/milestone</url>
+					<url>file:///${java.io.tmpdir}/spring-data/data-neo4j/milestone</url>
 				</repository>
 				<snapshotRepository>
 					<id>spring-snapshot-staging</id>
-					<url>file:///${java.io.tmpdir}/spring-data/data-graph/snapshot</url>
+					<url>file:///${java.io.tmpdir}/spring-data/data-neo4j/snapshot</url>
 				</snapshotRepository>
 			</distributionManagement>
 		</profile>
@@ -204,7 +204,7 @@
         <site>
             <id>static.springframework.org</id>
             <url>
-                scp://static.springframework.org/var/www/domains/springframework.org/static/htdocs/spring-data/data-graph/docs/${project.version}
+                scp://static.springframework.org/var/www/domains/springframework.org/static/htdocs/spring-data/data-neo4j/docs/${project.version}
             </url>
         </site>
         <repository>
@@ -571,7 +571,7 @@
                 </executions>
                 <configuration>
                   <strictCheck>true</strictCheck>
-                  <header>${basedir}/../spring-data-graph-parent/license-header.txt</header>
+                  <header>${basedir}/../spring-data-neo4j-parent/license-header.txt</header>
                   <includes>
                     <include>src/**/*.java</include>
                     <include>src/**/*.js</include>

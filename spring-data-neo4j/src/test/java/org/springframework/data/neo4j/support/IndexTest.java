@@ -349,4 +349,14 @@ public class IndexTest {
         relationshipIndex.add(indexedRelationship, NAME, NAME_VALUE);
         Assert.assertEquals("indexed relationship found", indexedRelationship, relationshipIndex.get(NAME, NAME_VALUE).next());
     }
+    
+    @Test
+    @Transactional
+    public void testUpdateBooleanPropertyIsReflectedInIndex() {
+        Group group = new Group().persist();
+        group.setAdmin(true);
+        assertEquals(1,IteratorUtil.asCollection(groupRepository.findAllByPropertyValue("admin",true)).size());
+        group.setAdmin(false);
+        assertEquals(0,IteratorUtil.asCollection(groupRepository.findAllByPropertyValue("admin",true)).size());
+    }
 }

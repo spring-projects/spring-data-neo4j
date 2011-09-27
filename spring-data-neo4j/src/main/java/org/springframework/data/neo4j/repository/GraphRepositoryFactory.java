@@ -264,8 +264,7 @@ public class GraphRepositoryFactory extends RepositoryFactorySupport {
         protected Object dispatchQuery(String queryString, Map<String, Object> params, Pageable pageable) {
             GraphQueryMethod queryMethod = getQueryMethod();
             final Class<?> compoundType = queryMethod.getCompoundType();
-            final QueryMethod.Type queryResultType = queryMethod.getType();
-            if (queryResultType== QueryMethod.Type.PAGING) {
+            if (queryMethod.isPageQuery()) {
                 return queryPaged(queryString,params,pageable);
             }
             if (queryMethod.isIterableResult()) {
@@ -291,8 +290,7 @@ public class GraphRepositoryFactory extends RepositoryFactorySupport {
 
         protected Object dispatchQuery(String queryString, Map<String, Object> params, Pageable pageable) {
             GraphQueryMethod queryMethod = getQueryMethod();
-            final QueryMethod.Type queryResultType = queryMethod.getType();
-            if (queryResultType== QueryMethod.Type.PAGING) {
+            if (queryMethod.isPageQuery()) {
                 return queryPaged(queryString,params,pageable);
             }
             if (queryMethod.isIterableResult()) {

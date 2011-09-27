@@ -3,7 +3,7 @@
 <section id="reference:programming-model:validation">
     <title>Bean validation (JSR-303)</title>
     <para>
-        Spring Data Graph supports property-based validation support. When a property is changed, it is
+        Spring Data Neo4j supports property-based validation support. When a property is changed, it is
         checked against the annotated constraints, e.g. <code>@Min</code>, <code>@Max</code>,
         <code>@Size</code>, etc. Validation errors throw a <code>ValidationException</code>. The validation
         support that comes with Spring is used for evaluating the constraints. To use this feature, a validator

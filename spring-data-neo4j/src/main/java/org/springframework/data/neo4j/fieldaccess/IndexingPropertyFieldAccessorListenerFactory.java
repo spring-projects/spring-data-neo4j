@@ -114,10 +114,8 @@ public class IndexingPropertyFieldAccessorListenerFactory<S extends PropertyCont
             if (newVal instanceof Number) newVal = ValueContext.numeric((Number) newVal);
 
             final T state = graphBacked.getPersistentState();
-            //index.remove(state, indexKey);
-            if (newVal == null) {
-                index.remove(state, indexKey);
-            } else {
+            index.remove(state, indexKey);
+            if (newVal != null) {
                 index.add(state, indexKey, newVal);
             }
         }

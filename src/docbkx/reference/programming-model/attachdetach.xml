@@ -69,7 +69,7 @@ movie.setTopActor(actor);
         </para>
         <para>
             Neither the actor nor the movie has been assigned a node in the graph. If we were to call
-            <code>movie.persist()</code>, then Spring Data Graph would first create a node for the movie.
+            <code>movie.persist()</code>, then Spring Data Neo4j would first create a node for the movie.
             It would then note that there is a relationship to an actor, so it would call actor.persist()
             in a cascading fashion. Once the actor has been persisted, it will create the relationship
             from the movie to the actor. All of this will be done atomically in one transaction.

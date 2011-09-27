@@ -16,8 +16,8 @@
 
 package org.springframework.data.neo4j.annotation;
 
+import org.neo4j.graphdb.Direction;
 import org.springframework.data.annotation.Reference;
-import org.springframework.data.neo4j.core.Direction;
 import org.springframework.data.neo4j.core.NodeBacked;
 
 import java.lang.annotation.ElementType;

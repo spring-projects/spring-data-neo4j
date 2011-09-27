@@ -44,7 +44,7 @@ public class Movie {
         <para>
             It is not necessary to annotate data fields, as they are persisted by default; all fields that
             contain primitive values are persisted directly to the graph. All fields convertible to String
-            using the Spring conversion services will be stored as a string. Spring Data Graph includes a
+            using the Spring conversion services will be stored as a string. Spring Data Neo4j includes a
             custom conversion factory that comes with converters for <code>Enum</code>s and <code>Date</code>s.
             Transient fields are not persisted.
         </para>
@@ -75,7 +75,7 @@ public class Movie {
         <title>@Query: fields as query result views</title>
         <para>
             The <code>@Query</code> annotation leverages the delegation infrastructure used by the
-            Spring Data Graph aspects. It provides dynamic fields which, when accessed, return the values
+            Spring Data Neo4j aspects. It provides dynamic fields which, when accessed, return the values
             selected by the provided query language expression. The provided query must contain a placeholder named <code>%start</code>
             for the id of the current entity. For instance <code>start n=(%start) match n-[:FRIEND]->friend return friend</code>.
             Graph queries can return variable number of entities. That's why annotation can be put onto fields
@@ -104,7 +104,7 @@ public class Group {
         <title>@GraphTraversal: fields as traversal result views</title>
         <para>
             The <code>@GraphTraversal</code> annotation leverages the delegation infrastructure used by the
-            Spring Data Graph aspects. It provides dynamic fields which, when accessed, return an Iterable
+            Spring Data Neo4j aspects. It provides dynamic fields which, when accessed, return an Iterable
             of node entities that are the result of a traversal starting at the entity containing the field.
             The <code>TraversalDescription</code> used for this is created by the
             <code>FieldTraversalDescriptionBuilder</code> class defined by the <code>traversalBuilder</code>

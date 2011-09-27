@@ -6,19 +6,19 @@
         Since relationships are first-class citizens in Neo4j, associations between node entities are represented
         by relationships. In general, relationships are categorized by a type, and start and end nodes (which
         imply the direction of the relationship). Relationships can have an arbitrary number of properties.
-        Spring Data Graph has special support to represent Neo4j relationships as entities too, but it is often
+        Spring Data Neo4j has special support to represent Neo4j relationships as entities too, but it is often
         not needed.
     </para>
     <note>
         <para>
-            As of Neo4j 1.4.M03, circular references are allowed. Spring Data Graph reflects this accordingly.
+            As of Neo4j 1.4.M03, circular references are allowed. Spring Data Neo4j reflects this accordingly.
         </para>
     </note>
     <section id="reference:programming_model:relationships:relatedto">
         <title>@RelatedTo: Connecting node entities</title>
         <para>
             Every field of a node entity that references one or more other node entities is backed by relationships
-            in the graph. These relationships are managed by Spring Data Graph automatically.
+            in the graph. These relationships are managed by Spring Data Neo4j automatically.
         </para>
         <para>
             The simplest kind of relationship is a single field pointing to another node entity (1:1).
@@ -56,15 +56,15 @@ public class Actor {
         </example>
         <para>
             Fields referencing other entities should not be manually initialized, as they are managed by
-            Spring Data Graph under the hood. 1:N fields can be accessed immediately, and Spring Data Graph
+            Spring Data Neo4j under the hood. 1:N fields can be accessed immediately, and Spring Data Neo4j
             will provide a java.util.Set representing the relationships. If the returned set is modified,
-            the changes are reflected in the graph. Spring Data Graph also ensures that there is only one
+            the changes are reflected in the graph. Spring Data Neo4j also ensures that there is only one
             relationship of a given type between any two given entities.
         </para>
         <note>
             <para>
                 Before an entity has been attached with <code>persist()</code> for the first time, it will
-                not have its state managed by Spring Data Graph. For example, given the Actor class defined above,
+                not have its state managed by Spring Data Neo4j. For example, given the Actor class defined above,
                 if <code>actor.movies</code> was accessed in a non-persisted entity, it would return
                 <code>null</code>, whereas if it was accessed in a persisted entity, it would return
                 an empty managed set.

@@ -15,7 +15,7 @@
         (not related in the inheritance hierarchy or even an interface) order type that is valid in the current
         context and only offers the attributes and methods needed here would be very benefitial.
     </para>
-    <para>Spring Data Graph offers initial support for projecting node and relationship entities to different target
+    <para>Spring Data Neo4j offers initial support for projecting node and relationship entities to different target
         types. All instances of this projected entity share the same backing node or relationship, so data changes are
         reflected immediately.
     </para>

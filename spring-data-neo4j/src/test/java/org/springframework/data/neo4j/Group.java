@@ -16,12 +16,12 @@
 
 package org.springframework.data.neo4j;
 
+import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.DynamicRelationshipType;
 import org.neo4j.graphdb.traversal.TraversalDescription;
 import org.neo4j.kernel.Traversal;
 import org.neo4j.kernel.impl.traversal.TraversalDescriptionImpl;
 import org.springframework.data.neo4j.annotation.*;
-import org.springframework.data.neo4j.core.Direction;
 import org.springframework.data.neo4j.core.FieldTraversalDescriptionBuilder;
 import org.springframework.data.neo4j.core.NodeBacked;
 import org.springframework.data.neo4j.mapping.Neo4JPersistentProperty;
@@ -46,6 +46,10 @@ public class Group {
     @GraphProperty
     @Indexed
     private String name;
+
+    @GraphProperty
+    @Indexed
+    private Boolean admin;
 
     @GraphProperty
     private String unindexedName;
@@ -148,5 +152,13 @@ public class Group {
 
     public void setIndexLevelName(String indexLevelName) {
         this.indexLevelName = indexLevelName;
+    }
+
+    public Boolean isAdmin() {
+        return admin;
+    }
+
+    public void setAdmin(Boolean admin) {
+        this.admin = admin;
     }
 }

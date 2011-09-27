@@ -17,7 +17,7 @@
         the convenience of the Spring programming model to NOSQL databases. That should be in line with
         what we already know, providing us with a quick start. We had a look at the list of projects
         supporting the different NOSQL databases out there. Only one of them mentioned the kind of social
-        network we were thinking of - Spring Data Graph for Neo4j, a graph database. Neo4j's slogan of
+        network we were thinking of - Spring Data Neo4j for the Neo4j graph database. Neo4j's slogan of
         "value in relationships" and the accompanying docs looked like what we needed.
         We decided to give it a try.
     </para>
@@ -90,8 +90,8 @@
             showing a static view. See the Spring Framework documentation for information on doing this.
         </para>
         <!--<para>-->
-            <!--Next was the setting up of Spring Data Graph. We looked at the README at the Spring Data Graph-->
-            <!--Github, and then checked the Spring Data Graph manual. There was a bit of Maven setup for AspectJ-->
+            <!--Next was the setting up of Spring Data Neo4j. We looked at the README at the Spring Data Neo4j-->
+            <!--Github, and then checked the Spring Data Neo4j manual. There was a bit of Maven setup for AspectJ-->
             <!--but apart from that, not much new stuff. Time to add a few lines to our Spring configuration.-->
         <!--</para>-->
         <para>

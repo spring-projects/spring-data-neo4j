@@ -3,20 +3,20 @@
 <chapter id="setup">
 	<title>Environment setup</title>
 	<para>
-        Spring Data Graph dramatically simplifies development, but some setup is naturally required.
-        For building the application, Maven needs to be configured to include the Spring Data Graph dependencies,
+        Spring Data Neo4j dramatically simplifies development, but some setup is naturally required.
+        For building the application, Maven needs to be configured to include the Spring Data Neo4j dependencies,
         and configure the AspectJ weaving. After the build setup is complete, the Spring application needs to be
-        configured to make use of Spring Data Graph.
+        configured to make use of Spring Data Neo4j.
 		<!--Examples for this setup can be found in the -->
-        <!--<ulink url="http://github.com/SpringSource/spring-data-graph-examples">Spring Data Graph examples</ulink>.-->
+        <!--<ulink url="http://github.com/SpringSource/spring-data-neo4j-examples">Spring Data Neo4j examples</ulink>.-->
     </para>
     <para>
-        Spring Data Graph projects can be built using maven, we also added means to build them with gradle and ant/ivy.
+        Spring Data Neo4j projects can be built using maven, we also added means to build them with gradle and ant/ivy.
     </para>
 	<section>
         <title>Gradle configuration</title>
         <para>
-            The necessary build plugin to build Spring Data Graph projects with gradle is available as part of the
+            The necessary build plugin to build Spring Data Neo4j projects with gradle is available as part of the
             SDG distribution or on github which makes the usage as easy as:
         </para>
         <example>
@@ -25,11 +25,11 @@
 targetCompatibility = 1.6
 
 springVersion = "3.0.5.RELEASE"
-springDataGraphVersion = "1.1.0"
+springDataNeo4jVersion = "1.1.0"
 aspectjVersion = "1.6.12.M1
 
-apply from:'https://github.com/SpringSource/spring-data-graph/raw/master/build/
-gradle/springdatagraph.gradle'
+apply from:'https://github.com/SpringSource/spring-data-neo4j/raw/master/build/
+gradle/springdataneo4j.gradle'
 
 configurations {
     runtime
@@ -42,15 +42,15 @@ repositories {
 }]]></programlisting>
         </example>
         <para>
-            The actual springdatagraph.gradle is very simple just decorating the javac tasks with the iajc ant task.
+            The actual springdataneo4j.gradle is very simple just decorating the javac tasks with the iajc ant task.
         </para>
     </section>
     <section>
         <title>Ant/Ivy configuration</title>
         <para>
             The supplied sample ant <ulink
-                url="https://github.com/SpringSource/spring-data-graph/raw/master/build/ivy">build configuration</ulink> is mainly about resolving
-            the dependencies for Spring Data Graph and AspectJ using Ivy and integrating the iajc ant task in the build.
+                url="https://github.com/SpringSource/spring-data-neo4j/raw/master/build/ivy">build configuration</ulink> is mainly about resolving
+            the dependencies for Spring Data Neo4j and AspectJ using Ivy and integrating the iajc ant task in the build.
         </para>
         <example>
             <title>Ant/Ivy Build Configuration</title>
@@ -73,14 +73,14 @@ repositories {
     <section>
 		<title>Maven configuration</title>
 		<para>
-			Spring Data Graph projects are easiest to build with Apache Maven. The main dependencies are: Spring
-            Data Graph itself, Spring Data Commons, parts of the Spring Framework, and the Neo4j graph database.
+			Spring Data Neo4j projects are easiest to build with Apache Maven. The main dependencies are: Spring
+            Data Neo4j itself, Spring Data Commons, parts of the Spring Framework, and the Neo4j graph database.
 		</para>
 
         <section>
 		    <title>Repositories</title>
             <para>
-                The milestone releases of Spring Data Graph are available from the dedicated milestone
+                The milestone releases of Spring Data Neo4j are available from the dedicated milestone
                 repository. Neo4j releases and milestones are available from Maven Central.
             </para>
             <example>
@@ -122,7 +122,7 @@ repositories {
         <section>
             <title>AspectJ build configuration</title>
             <para>
-                Since Spring Data Graph uses AspectJ for build-time aspect weaving of entities, it is necessary to
+                Since Spring Data Neo4j uses AspectJ for build-time aspect weaving of entities, it is necessary to
                 hook in the AspectJ Maven plugin to the build process. The plugin also has its own dependencies. You
                 also need to explicitly specify the aspect libraries (spring-aspects and spring-data-neo4j).
             </para>
@@ -177,14 +177,14 @@ repositories {
 	<section>
 		<title>Spring configuration</title>
 		<para>
-            Users of Spring Data Graph have two ways of very concisely configuring it. Either they can use a
-            Spring Data Graph XML configuration namespace, or they can use a Java-based bean configuration.
+            Users of Spring Data Neo4j have two ways of very concisely configuring it. Either they can use a
+            Spring Data Neo4j XML configuration namespace, or they can use a Java-based bean configuration.
         </para>
         <section>
             <title>XML namespace</title>
             <para>
-                The XML namespace can be used to configure Spring Data Graph. The <code>config</code> element
-                provides an XML-based configuration of Spring Data Graph in one line. It has three attributes.
+                The XML namespace can be used to configure Spring Data Neo4j. The <code>config</code> element
+                provides an XML-based configuration of Spring Data Neo4j in one line. It has three attributes.
                 <code>graphDatabaseService</code> points out the Neo4j instance to use. For convenience,
                 <code>storeDirectory</code> can be set instead of <code>graphDatabaseService</code> to
                 point to a directory where a new <code>EmbeddedGraphDatabase</code> will be created. For
@@ -197,17 +197,17 @@ repositories {
 <beans xmlns="http://www.springframework.org/schema/beans"
         xmlns:context="http://www.springframework.org/schema/context"
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-        xmlns:datagraph="http://www.springframework.org/schema/data/graph"
+        xmlns:neo4j="http://www.springframework.org/schema/data/neo4j"
         xsi:schemaLocation="
             http://www.springframework.org/schema/beans
             http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
             http://www.springframework.org/schema/context
             http://www.springframework.org/schema/context/spring-context-3.0.xsd
-            http://www.springframework.org/schema/data/graph
-            http://www.springframework.org/schema/data/graph/datagraph-1.0.xsd">
+            http://www.springframework.org/schema/data/neo4j
+            http://www.springframework.org/schema/data/neo4j/spring-neo4j-2.0.xsd">
 
     <context:annotation-config/>
-    <datagraph:config storeDirectory="target/config-test"/>
+    <neo4j:config storeDirectory="target/config-test"/>
 
 </beans>
 ]]></programlisting>
@@ -221,7 +221,7 @@ repositories {
     <constructor-arg index="0" value="target/config-test" />
 </bean>
 
-<datagraph:config graphDatabaseService="graphDatabaseService"/>
+<neo4j:config graphDatabaseService="graphDatabaseService"/>
 ]]></programlisting>
             </example>
             <example>
@@ -234,7 +234,7 @@ repositories {
     <property name="persistenceXmlLocation" value="classpath:META-INF/persistence.xml"/>
 </bean>
 
-<datagraph:config storeDirectory="target/config-test"
+<neo4j:config storeDirectory="target/config-test"
         entityManagerFactory="entityManagerFactory"/>
 ]]></programlisting>
             </example>
@@ -242,7 +242,7 @@ repositories {
         <section>
             <title>Java-based bean configuration</title>
             <para>
-                You can also configure Spring Data Graph using Java-based bean metadata.
+                You can also configure Spring Data Neo4j using Java-based bean metadata.
             </para>
             <note>
                 <para>
@@ -255,7 +255,7 @@ repositories {
                 </para>
             </note>
             <para>
-                In order to configure Spring Data Graph with Java-based bean metadata, the class
+                In order to configure Spring Data Neo4j with Java-based bean metadata, the class
                 <code>Neo4jConfiguration</code> is registered with the context. This is either done
                 explicitly in the context configuration, or via classpath scanning for classes that
                 have the @Configuration annotation. The only thing that must be provided is the

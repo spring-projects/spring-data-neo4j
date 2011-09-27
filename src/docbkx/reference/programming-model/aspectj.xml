@@ -3,11 +3,11 @@
 <section id="reference:aspectj">
     <title>AspectJ support</title>
     <para>
-        Behind the scenes, Spring Data Graph leverages <ulink url="http://www.eclipse.org/aspectj/">AspectJ</ulink>
+        Behind the scenes, Spring Data Neo4j leverages <ulink url="http://www.eclipse.org/aspectj/">AspectJ</ulink>
         aspects to modify the behavior of simple annotated POJO entities
         (see <xref linkend="reference:aspectj-details"/>). Each node entity is backed by a graph node that holds its
         properties and relationships to other entities. AspectJ is used for intercepting field access, so that
-        Spring Data Graph can retrieve the information from the entity's backing node or relationship in the database.
+        Spring Data Neo4j can retrieve the information from the entity's backing node or relationship in the database.
     </para>
     <para>
         The aspect introduces some internal fields and some public methods
@@ -17,7 +17,7 @@
         Introduced methods for <code>equals()</code> and <code>hashCode()</code> use the underlying node or relationship.
     </para>
     <para>
-        Spring Data Graph internally uses an abstraction called <code>EntityState</code> that the field
+        Spring Data Neo4j internally uses an abstraction called <code>EntityState</code> that the field
         access and instantiation advices of the aspect delegate to. This way, the aspect code is kept to a
         minimum, focusing mainly on the pointcuts and delegation code. The <code>EntityState</code> then uses
         a number of <code>FieldAccessorFactories</code> to create a <code>FieldAccessor</code> instance per
@@ -27,7 +27,7 @@
     <section>
         <title>AspectJ IDE support</title>
         <para>
-            As Spring Data Graph uses some advanced features of AspectJ, users may experience issues with
+            As Spring Data Neo4j uses some advanced features of AspectJ, users may experience issues with
             their IDE reporting errors where in fact there are none. Features that might be reported wrongfully
             include: introduction of methods to interfaces, declaration of additional interfaces for annotated
             classes, and generified introduced methods.

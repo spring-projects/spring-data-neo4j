@@ -99,7 +99,7 @@ class Actor {
         </para>
         <para>
             While reading about these relationship collections, we learned that they are actually
-            Spring Data Graph-managed sets. So whenever we add or remove something from the set,
+            Spring Data Neo4j-managed sets. So whenever we add or remove something from the set,
             it automatically gets reflected in the underlying relationships. That's neat! But this
             also meant we did not need to initialize the fields. That could be easy to forget.
         </para>

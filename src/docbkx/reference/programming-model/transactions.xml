@@ -7,7 +7,7 @@
         boundaries. Reading data does however not require transactions.
     </para>
     <para>
-        Spring Data Graph integrates with transaction managers configured using Spring. The simplest
+        Spring Data Neo4j integrates with transaction managers configured using Spring. The simplest
         scenario of just running the graph database uses a SpringTransactionManager provided by the
         Neo4j kernel to be used with Spring's JtaTransactionManager. That is, configuring Spring to
         use Neo4j's transaction manager.
@@ -16,7 +16,7 @@
         <para>
             The explicit XML configuration given below is encoded in the <code>Neo4jConfiguration</code>
             configuration bean that uses Spring's <code>@Configuration</code> feature. This greatly
-            simplifies the configuration of Spring Data Graph.
+            simplifies the configuration of Spring Data Neo4j.
             <!--An example is shown further below.-->
         </para>
     </note>
@@ -70,7 +70,7 @@
     <para>
         One can also configure a stock XA transaction manager (e.g. Atomikos, JOTM, App-Server-TM) to be
         used with Neo4j and the other resources. For a bit less secure but fast 1 phase commit best effort,
-        use <code>ChainedTransactionManager</code>, which comes bundled with Spring Data Graph. It takes a
+        use <code>ChainedTransactionManager</code>, which comes bundled with Spring Data Neo4j. It takes a
         list of transaction managers as constructor params and will handle them in order for transaction
         start and commit (or rollback) in the reverse order.
     </para>

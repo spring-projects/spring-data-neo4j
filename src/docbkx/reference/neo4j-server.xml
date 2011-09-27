@@ -4,7 +4,7 @@
     <title>Neo4j Server</title>
     <para>
         Neo4j is not only available in embedded mode. It can also be installed and run as a stand-alone server
-        accessible via a REST API. Developers can integrate Spring Data Graph into the Neo4j server infrastructure
+        accessible via a REST API. Developers can integrate Spring Data Neo4j into the Neo4j server infrastructure
         in two ways: in an unmanaged server extension, or via the REST API.
     </para>
     <section>
@@ -41,7 +41,7 @@
             <programlisting language="ini"><![CDATA[org.neo4j.server.thirdparty_jaxrs_classes=com.example.mypackage=/my-context]]></programlisting>
         </example>
         <para>
-            Running Spring Data Graph on the Neo4j Server is easy. You need to tell the server where to find the
+            Running Spring Data Neo4j on the Neo4j Server is easy. You need to tell the server where to find the
             Spring context configuration file, and which beans from it to expose:
             <example>
                 <title>Server plugin initialization</title>
@@ -74,23 +74,23 @@ public void foo( @Context WorldRepository repo ) {
         </para>        	   
     </section>
     <section>
-        <title>Using Spring Data Graph as a REST client</title>
+        <title>Using Spring Data Neo4j as a REST client</title>
         <para>
-            Spring Data Graph can use a set of Java REST bindings which come as a drop in replacement for the
+            Spring Data Neo4j can use a set of Java REST bindings which come as a drop in replacement for the
             GraphDatabaseService API. By simply configuring the <code>graphDatabaseService</code> to be a
             <code>RestGraphDatabase</code> pointing to a Neo4j Server instance.
         </para>
         <note>
             <para>
                 The Neo4j Server REST API does not allow for transactions to span across requests, which means
-                that Spring Data Graph is not transactional when running with a <code>RestGraphDatabase</code>.
+                that Spring Data Neo4j is not transactional when running with a <code>RestGraphDatabase</code>.
             </para>
         </note>
         <para>
             Please also keep in mind that performing graph operations via the REST-API is about one order of
             magnitude slower than location operations. Try to use the Neo4j Cypher query language,
             server-side traversals (<code>RestTraversal</code>) or Gremlin expressions whenever possible for retrieving large sets of data.
-            Future versions of Spring Data Graph will use the more performant batching as well as a binary protocol.
+            Future versions of Spring Data Neo4j will use the more performant batching as well as a binary protocol.
         </para>
         <para>
         To set up your project to use the REST bindings, add this dependency to your pom.xml:
@@ -104,11 +104,11 @@ public void foo( @Context WorldRepository repo ) {
 </dependency>
 ]]></programlisting>
             </example>
-            Now, you set up the normal Spring Data Graph configuration, but point the database to an URL instead
+            Now, you set up the normal Spring Data Neo4j configuration, but point the database to an URL instead
             of a local directory, like so:
             <example>
                 <title>REST client configuration - application context</title>
-                <programlisting language="xml"><![CDATA[<datagraph:config graphDatabaseService="graphDatabaseService"/>
+                <programlisting language="xml"><![CDATA[<neo4j:config graphDatabaseService="graphDatabaseService"/>
 
 <bean id="graphDatabaseService" class="org.springframework.data.neo4j.rest.RestGraphDatabase">
     <constructor-arg value="http://localhost:7474/db/data/"/>

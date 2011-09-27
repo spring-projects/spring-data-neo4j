@@ -16,7 +16,7 @@ public interface MovieRepository extends GraphRepository<Movie> {}
         Then we added it to the Spring context configuration by simply adding:
         <example>
             <title>Repository context configuration</title>
-            <programlisting language="xml"><![CDATA[<datagraph:repositories base-package="org.neo4j.cineasts.repository"/>
+            <programlisting language="xml"><![CDATA[<neo4j:repositories base-package="org.neo4j.cineasts.repository"/>
 ]]></programlisting>
         </example>
         We then created the domain-specific repository class, annotating it with <code>@Repository</code> and

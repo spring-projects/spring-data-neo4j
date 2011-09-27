@@ -21,8 +21,8 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+import org.neo4j.graphdb.Direction;
 import org.springframework.data.annotation.Reference;
-import org.springframework.data.neo4j.core.Direction;
 import org.springframework.data.neo4j.core.RelationshipBacked;
 
 /**
