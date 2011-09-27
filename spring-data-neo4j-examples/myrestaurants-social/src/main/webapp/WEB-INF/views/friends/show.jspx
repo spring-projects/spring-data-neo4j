@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<div xmlns:field="urn:jsptagdir:/WEB-INF/tags/form/fields" xmlns:jsp="http://java.sun.com/JSP/Page" xmlns:page="urn:jsptagdir:/WEB-INF/tags/form" version="2.0">
+    <jsp:output omit-xml-declaration="yes"/>
+    <page:show id="ps_com_springone_myrestaurants_domain_Friend" object="${friend}" path="/friends" update="false">
+        <field:display field="userName" id="s_com_springone_myrestaurants_domain_Friend_userName" object="${friend}"/>
+    </page:show>
+</div>

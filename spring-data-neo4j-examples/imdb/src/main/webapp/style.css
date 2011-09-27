@@ -1,0 +1,118 @@
+html {
+	font-size: 100%
+}
+
+body {
+	color: #353535;
+	text-align: left;
+	font: 0.75em/1.5 sans-serif;
+	background: #fffdfb url(/imdb/bg.png) repeat-x;
+	margin-top: 4em;
+	margin-left: 8em;
+}
+
+.inputField {
+	padding: 5px;
+	border: 0;
+	border-bottom: 1px solid #cccccc;
+	background: #FFFFFF url(/imdb/gradient.png) repeat-x;
+	font: normal 14px "trebuchet ms", helvetica, sans-serif;
+	color: #454743;
+}
+
+.inputField:hover {
+	border-bottom: 1px solid #333;
+}
+
+label {
+	font: 13px "trebuchet ms", helvetica, sans-serif;
+	color: #0c9b92;
+	margin-right: 0.5em;
+}
+
+p {
+	color: #5f5f5f;
+}
+
+a:link {
+	color: #0c9b92;
+}
+
+a:visited {
+	color: #00a18a;
+}
+
+a:hover {
+	
+}
+
+h1 {
+	color: #006380;
+	padding-top: 0.5em;
+	line-height: 1.2;
+}
+
+#menu {
+	clear: left;
+	padding-top: 1.5em;
+}
+
+ul {
+	padding-left: 0;
+}
+
+li {
+	color: #656565;
+	list-style-type: none;
+	background: url(/imdb/menu.png) no-repeat;
+	padding-left: 20px;
+	line-height: 20px;
+}
+
+.actor {
+	background-image: url(/imdb/actor.png);
+}
+
+.actors li,.movies li {
+	float: left;
+	width: 15em;
+	height: 7em;
+	background-color: #F8F8F8;
+	border: 1px solid #D6D6D6;
+	background-position: 6px 6px;
+	margin: 10px;
+	padding: 0.5em 0.5em 0.5em 30px;
+	overflow: hidden;
+}
+
+li.actor em {
+	display: block;
+}
+
+.movies a {
+	display: block;
+}
+
+.movie {
+	background-image: url(/imdb/movie.png);
+}
+
+.setup {
+	background-image: url(/imdb/setup.png);
+}
+
+fieldset {
+	border: 1px solid #afafaf;
+	padding: 1em;
+}
+
+legend {
+	font-weight: bold;
+	background-repeat: no-repeat;
+	background-position: 4px 0;
+	padding: 0 6px 0 24px;
+}
+
+pre {
+	font-size: 1.5em;
+}

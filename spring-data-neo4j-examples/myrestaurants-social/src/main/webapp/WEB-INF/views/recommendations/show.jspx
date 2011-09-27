@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<div xmlns:field="urn:jsptagdir:/WEB-INF/tags/form/fields" xmlns:jsp="http://java.sun.com/JSP/Page" xmlns:page="urn:jsptagdir:/WEB-INF/tags/form" version="2.0">
+    <jsp:output omit-xml-declaration="yes"/>
+    <page:show id="ps_com_springone_myrestaurants_domain_Recommendation" object="${recommendation}" path="/recommendations" create="false">
+        <field:display field="name" id="s_com_springone_myrestaurants_domain_Recommendation_name" object="${recommendation}" />
+        <field:display field="rating" id="s_com_springone_myrestaurants_domain_Recommendation_rating" object="${recommendation}" />
+        <field:display field="comments" id="s_com_springone_myrestaurants_domain_Recommendation_comments" object="${recommendation}" />
+    </page:show>
+</div>

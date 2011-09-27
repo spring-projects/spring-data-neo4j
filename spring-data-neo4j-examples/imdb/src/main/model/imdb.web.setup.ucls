@@ -1,0 +1,105 @@
+<class-diagram icons="true" always-add-relationships="true" generalizations="true" realizations="true" 
+  associations="true" dependencies="false" nesting-relationships="true" version="0.9.65">  
+  <classifier-display autosize="true" package="true" initial-value="false" signature="true" visibility="true">    
+    <attributes public="true" package="true" protected="true" private="true"/>    
+    <operations public="true" package="true" protected="true" private="true"/>  
+  </classifier-display>  
+  <association-display labels="true" multiplicity="true"/>  
+  <package language="java" name="org.neo4j.examples.imdb.web" project="imdb" 
+    file="/imdb/src/main/java/org/neo4j/examples/imdb/web" binary="false" corner="BOTTOM_RIGHT">    
+    <position x="99" y="42" width="-1" height="-1"/>  
+  </package>  
+  <class language="java" name="org.springframework.web.servlet.mvc.SimpleFormController" project="imdb" 
+    file="/home/anders/.m2/repository/org/springframework/spring-webmvc/2.5.5/spring-webmvc-2.5.5.jar" binary="true" 
+    corner="BOTTOM_RIGHT">    
+    <display autosize="true" package="true" initial-value="false" signature="true" visibility="true">      
+      <attributes public="false" package="false" protected="false" private="false"/>      
+      <operations public="false" package="false" protected="false" private="false"/>    
+    </display>    
+    <position x="312" y="59" width="-1" height="-1"/>  
+  </class>  
+  <class language="java" name="org.neo4j.examples.imdb.web.SetupController" project="imdb" 
+    file="/imdb/src/main/java/org/neo4j/examples/imdb/web/SetupController.java" binary="false" corner="BOTTOM_RIGHT">    
+    <display autosize="true" package="true" initial-value="false" signature="true" visibility="true">      
+      <attributes public="true" package="true" protected="true" private="true"/>      
+      <operations public="true" package="true" protected="true" private="true"/>    
+    </display>    
+    <position x="312" y="179" width="-1" height="-1"/>  
+  </class>  
+  <interface language="java" name="org.neo4j.examples.imdb.web.SetupControllerDelegate" project="imdb" 
+    file="/imdb/src/main/java/org/neo4j/examples/imdb/web/SetupControllerDelegate.java" binary="false" 
+    corner="BOTTOM_RIGHT">    
+    <display autosize="true" package="true" initial-value="false" signature="true" visibility="true">      
+      <attributes public="true" package="true" protected="true" private="true"/>      
+      <operations public="true" package="true" protected="true" private="true"/>    
+    </display>    
+    <position x="309" y="307" width="-1" height="-1"/>  
+  </interface>  
+  <class language="java" name="org.neo4j.examples.imdb.web.ImdbSetupControllerDelegate" project="imdb" 
+    file="/imdb/src/main/java/org/neo4j/examples/imdb/web/ImdbSetupControllerDelegate.java" binary="false" 
+    corner="BOTTOM_RIGHT">    
+    <display autosize="true" package="true" initial-value="false" signature="true" visibility="true">      
+      <attributes public="true" package="true" protected="true" private="true"/>      
+      <operations public="true" package="true" protected="true" private="true"/>    
+    </display>    
+    <position x="309" y="434" width="-1" height="-1"/>  
+  </class>  
+  <interface language="java" name="org.neo4j.examples.imdb.parser.ImdbReader" project="imdb" 
+    file="/imdb/src/main/java/org/neo4j/examples/imdb/parser/ImdbReader.java" binary="false" corner="BOTTOM_RIGHT">    
+    <display autosize="true" package="true" initial-value="false" signature="true" visibility="true">      
+      <attributes public="false" package="false" protected="false" private="false"/>      
+      <operations public="false" package="false" protected="false" private="false"/>    
+    </display>    
+    <position x="200" y="553" width="-1" height="-1"/>  
+  </interface>  
+  <interface language="java" name="org.neo4j.examples.imdb.domain.ImdbService" project="imdb" 
+    file="/imdb/src/main/java/org/neo4j/examples/imdb/domain/ImdbService.java" binary="false" corner="BOTTOM_RIGHT">    
+    <display autosize="true" package="true" initial-value="false" signature="true" visibility="true">      
+      <attributes public="false" package="false" protected="false" private="false"/>      
+      <operations public="false" package="false" protected="false" private="false"/>    
+    </display>    
+    <position x="409" y="551" width="-1" height="-1"/>  
+  </interface>  
+  <association>    
+    <display labels="true" multiplicity="true"/>    
+    <source navigable="false" project="imdb" name="org.neo4j.examples.imdb.web.ImdbSetupControllerDelegate" 
+      file="/imdb/src/main/java/org/neo4j/examples/imdb/web/ImdbSetupControllerDelegate.java" binary="false">      
+      <attribute name="imdbReader"/>      
+      <multiplicity minimum="0" maximum="1"/>    
+    </source>    
+    <target navigable="true" project="imdb" name="org.neo4j.examples.imdb.parser.ImdbReader" 
+      file="/imdb/src/main/java/org/neo4j/examples/imdb/parser/ImdbReader.java" binary="false"/>  
+  </association>  
+  <generalization>    
+    <source project="imdb" name="org.neo4j.examples.imdb.web.SetupController" 
+      file="/imdb/src/main/java/org/neo4j/examples/imdb/web/SetupController.java" binary="false"/>    
+    <target project="imdb" name="org.springframework.web.servlet.mvc.SimpleFormController" 
+      file="/home/anders/.m2/repository/org/springframework/spring-webmvc/2.5.5/spring-webmvc-2.5.5.jar" binary="true"/>  
+  </generalization>  
+  <association>    
+    <display labels="true" multiplicity="true"/>    
+    <source navigable="false" project="imdb" name="org.neo4j.examples.imdb.web.ImdbSetupControllerDelegate" 
+      file="/imdb/src/main/java/org/neo4j/examples/imdb/web/ImdbSetupControllerDelegate.java" binary="false">      
+      <attribute name="imdbService"/>      
+      <multiplicity minimum="0" maximum="1"/>    
+    </source>    
+    <target navigable="true" project="imdb" name="org.neo4j.examples.imdb.domain.ImdbService" 
+      file="/imdb/src/main/java/org/neo4j/examples/imdb/domain/ImdbService.java" binary="false"/>  
+  </association>  
+  <realization>    
+    <source project="imdb" name="org.neo4j.examples.imdb.web.ImdbSetupControllerDelegate" 
+      file="/imdb/src/main/java/org/neo4j/examples/imdb/web/ImdbSetupControllerDelegate.java" binary="false"/>    
+    <target project="imdb" name="org.neo4j.examples.imdb.web.SetupControllerDelegate" 
+      file="/imdb/src/main/java/org/neo4j/examples/imdb/web/SetupControllerDelegate.java" binary="false"/>  
+  </realization>  
+  <association>    
+    <display labels="true" multiplicity="true"/>    
+    <source navigable="false" project="imdb" name="org.neo4j.examples.imdb.web.SetupController" 
+      file="/imdb/src/main/java/org/neo4j/examples/imdb/web/SetupController.java" binary="false">      
+      <attribute name="delegate"/>      
+      <multiplicity minimum="0" maximum="1"/>    
+    </source>    
+    <target navigable="true" project="imdb" name="org.neo4j.examples.imdb.web.SetupControllerDelegate" 
+      file="/imdb/src/main/java/org/neo4j/examples/imdb/web/SetupControllerDelegate.java" binary="false"/>  
+  </association>
+</class-diagram>

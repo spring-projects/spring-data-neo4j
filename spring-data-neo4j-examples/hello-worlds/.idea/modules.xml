@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/spring-data-neo4j-hello-worlds.iml" filepath="$PROJECT_DIR$/spring-data-neo4j-hello-worlds.iml" />
+    </modules>
+  </component>
+</project>
+

@@ -1,0 +1,62 @@
+<class-diagram icons="true" always-add-relationships="false" generalizations="true" realizations="true" 
+  associations="true" dependencies="false" nesting-relationships="true" version="0.9.65">  
+  <classifier-display autosize="true" package="true" initial-value="false" signature="true" visibility="true">    
+    <attributes public="true" package="true" protected="true" private="true"/>    
+    <operations public="true" package="true" protected="true" private="true"/>  
+  </classifier-display>  
+  <association-display labels="true" multiplicity="true"/>  
+  <package language="java" name="org.neo4j.examples.imdb.util" project="imdb" 
+    file="/imdb/src/main/java/org/neo4j/examples/imdb/util" binary="false" corner="BOTTOM_RIGHT">    
+    <position x="108" y="37" width="-1" height="-1"/>  
+  </package>  
+  <interface language="java" name="org.neo4j.examples.imdb.util.PathFinder" project="imdb" 
+    file="/imdb/src/main/java/org/neo4j/examples/imdb/util/PathFinder.java" binary="false" corner="BOTTOM_RIGHT">    
+    <display autosize="true" package="true" initial-value="false" signature="true" visibility="true">      
+      <attributes public="true" package="true" protected="true" private="true"/>      
+      <operations public="true" package="true" protected="true" private="true"/>    
+    </display>    
+    <position x="193" y="120" width="-1" height="-1"/>  
+  </interface>  
+  <class language="java" name="org.neo4j.examples.imdb.util.SimplePathFinder" project="imdb" 
+    file="/imdb/src/main/java/org/neo4j/examples/imdb/util/SimplePathFinder.java" binary="false" corner="BOTTOM_RIGHT">    
+    <display autosize="true" package="true" initial-value="false" signature="true" visibility="true">      
+      <attributes public="false" package="false" protected="false" private="false"/>      
+      <operations public="true" package="true" protected="true" private="false"/>    
+    </display>    
+    <position x="196" y="232" width="-1" height="-1"/>  
+  </class>  
+  <class language="java" name="org.neo4j.examples.imdb.util.SimplePathFinder.PathStopEval" project="imdb" 
+    file="/imdb/src/main/java/org/neo4j/examples/imdb/util/SimplePathFinder.java" binary="false" corner="BOTTOM_RIGHT">    
+    <display autosize="true" package="true" initial-value="false" signature="true" visibility="true">      
+      <attributes public="true" package="true" protected="true" private="true"/>      
+      <operations public="true" package="true" protected="true" private="true"/>    
+    </display>    
+    <position x="119" y="359" width="-1" height="-1"/>  
+  </class>  
+  <class language="java" name="org.neo4j.examples.imdb.util.SimplePathFinder.PathReturnEval" project="imdb" 
+    file="/imdb/src/main/java/org/neo4j/examples/imdb/util/SimplePathFinder.java" binary="false" corner="BOTTOM_RIGHT">    
+    <display autosize="true" package="true" initial-value="false" signature="true" visibility="true">      
+      <attributes public="true" package="true" protected="true" private="true"/>      
+      <operations public="true" package="true" protected="false" private="true"/>    
+    </display>    
+    <position x="423" y="393" width="-1" height="-1"/>  
+  </class>  
+  <realization>    
+    <source project="imdb" name="org.neo4j.examples.imdb.util.SimplePathFinder" 
+      file="/imdb/src/main/java/org/neo4j/examples/imdb/util/SimplePathFinder.java" binary="false"/>    
+    <target project="imdb" name="org.neo4j.examples.imdb.util.PathFinder" 
+      file="/imdb/src/main/java/org/neo4j/examples/imdb/util/PathFinder.java" binary="false"/>  
+  </realization>  
+  <nesting>    
+    <source project="imdb" name="org.neo4j.examples.imdb.util.SimplePathFinder" 
+      file="/imdb/src/main/java/org/neo4j/examples/imdb/util/SimplePathFinder.java" binary="false"/>    
+    <target project="imdb" name="org.neo4j.examples.imdb.util.SimplePathFinder.PathReturnEval" 
+      file="/imdb/src/main/java/org/neo4j/examples/imdb/util/SimplePathFinder.java" binary="false"/>  
+  </nesting>  
+  <nesting>    
+    <source project="imdb" name="org.neo4j.examples.imdb.util.SimplePathFinder" 
+      file="/imdb/src/main/java/org/neo4j/examples/imdb/util/SimplePathFinder.java" binary="false"/>    
+    <target project="imdb" name="org.neo4j.examples.imdb.util.SimplePathFinder.PathStopEval" 
+      file="/imdb/src/main/java/org/neo4j/examples/imdb/util/SimplePathFinder.java" binary="false"/>  
+  </nesting>
+</class-diagram>

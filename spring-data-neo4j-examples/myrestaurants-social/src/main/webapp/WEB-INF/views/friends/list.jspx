@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<div xmlns:jsp="http://java.sun.com/JSP/Page" xmlns:page="urn:jsptagdir:/WEB-INF/tags/form" xmlns:table="urn:jsptagdir:/WEB-INF/tags/form/fields" version="2.0">
+    <jsp:output omit-xml-declaration="yes"/>
+    <page:list id="pl_com_springone_myrestaurants_domain_Friend" items="${friends}" z="4mmBHADqj6zmCL/hO1ta1QUT8d4=">
+        <table:table data="${friends}" id="l_com_springone_myrestaurants_domain_Friend" path="/friends" z="IHZiPLhWXiQxZuvLQ4QbtiRe/2g=">
+            <table:column id="c_com_springone_myrestaurants_domain_Friend_userName" property="userName" z="50ocE+AVvJL5wofXv0+1qSWpPGY="/>
+        </table:table>
+    </page:list>
+</div>

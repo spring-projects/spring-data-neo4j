@@ -1,0 +1,46 @@
+<class-diagram icons="true" always-add-relationships="true" generalizations="true" realizations="true" 
+  associations="true" dependencies="false" nesting-relationships="true" version="0.9.65">  
+  <classifier-display autosize="true" package="true" initial-value="false" signature="true" visibility="true">    
+    <attributes public="true" package="true" protected="true" private="true"/>    
+    <operations public="true" package="true" protected="true" private="true"/>  
+  </classifier-display>  
+  <association-display labels="true" multiplicity="true"/>  
+  <package language="java" name="org.neo4j.examples.imdb.parser" project="imdb" 
+    file="/imdb/src/main/java/org/neo4j/examples/imdb/parser" binary="false" corner="BOTTOM_RIGHT">    
+    <position x="117" y="33" width="-1" height="-1"/>  
+  </package>  
+  <class language="java" name="org.neo4j.examples.imdb.parser.ActorData" project="imdb" 
+    file="/imdb/src/main/java/org/neo4j/examples/imdb/parser/ActorData.java" binary="false" corner="BOTTOM_RIGHT">    
+    <display autosize="true" package="true" initial-value="false" signature="true" visibility="true">      
+      <attributes public="true" package="true" protected="true" private="true"/>      
+      <operations public="true" package="true" protected="true" private="true"/>    
+    </display>    
+    <position x="305" y="150" width="-1" height="-1"/>  
+  </class>  
+  <class language="java" name="org.neo4j.examples.imdb.parser.RoleData" project="imdb" 
+    file="/imdb/src/main/java/org/neo4j/examples/imdb/parser/RoleData.java" binary="false" corner="BOTTOM_RIGHT">    
+    <display autosize="true" package="true" initial-value="false" signature="true" visibility="true">      
+      <attributes public="true" package="true" protected="true" private="true"/>      
+      <operations public="true" package="true" protected="true" private="true"/>    
+    </display>    
+    <position x="565" y="150" width="-1" height="-1"/>  
+  </class>  
+  <class language="java" name="org.neo4j.examples.imdb.parser.MovieData" project="imdb" 
+    file="/imdb/src/main/java/org/neo4j/examples/imdb/parser/MovieData.java" binary="false" corner="BOTTOM_RIGHT">    
+    <display autosize="true" package="true" initial-value="false" signature="true" visibility="true">      
+      <attributes public="true" package="true" protected="true" private="true"/>      
+      <operations public="true" package="true" protected="true" private="true"/>    
+    </display>    
+    <position x="85" y="148" width="-1" height="-1"/>  
+  </class>  
+  <association>    
+    <display labels="true" multiplicity="true"/>    
+    <source navigable="false" project="imdb" name="org.neo4j.examples.imdb.parser.ActorData" 
+      file="/imdb/src/main/java/org/neo4j/examples/imdb/parser/ActorData.java" binary="false">      
+      <attribute name="movieRoles"/>      
+      <multiplicity minimum="0" maximum="2147483647"/>    
+    </source>    
+    <target navigable="true" project="imdb" name="org.neo4j.examples.imdb.parser.RoleData" 
+      file="/imdb/src/main/java/org/neo4j/examples/imdb/parser/RoleData.java" binary="false"/>  
+  </association>
+</class-diagram>

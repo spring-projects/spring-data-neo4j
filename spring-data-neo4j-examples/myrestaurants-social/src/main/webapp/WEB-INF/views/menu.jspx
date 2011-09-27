@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<div xmlns:jsp="http://java.sun.com/JSP/Page" xmlns:c="http://java.sun.com/jsp/jstl/core" xmlns:menu="urn:jsptagdir:/WEB-INF/tags/menu" xmlns:sec="http://www.springframework.org/security/tags" id="menu" version="2.0">
+	<jsp:output omit-xml-declaration="yes"/>
+    
+    <c:set var="displayName">
+		<sec:authorize access="isAuthenticated()">
+        	<sec:authentication property="principal.username" />
+    	</sec:authorize>
+    </c:set>
+    
+	<menu:menu id="_menu">
+        <menu:category id="c_useraccount">
+        	<sec:authorize ifNotGranted="ROLE_ADMIN, ROLE_USER">
+              <menu:item id="i_useraccount_new" messageCode="user_menu_new" url="/useraccounts?form"/>
+			  <menu:item id="i_useraccount_login" messageCode="global_menu_login" url="/login"/>
+        	</sec:authorize>
+        	<sec:authorize ifAnyGranted="ROLE_ADMIN, ROLE_USER">
+			  <menu:item id="i_useraccount_logout" messageCode="global_menu_logout" url="/resources/j_spring_security_logout"/>
+        	</sec:authorize>
+			<sec:authorize ifAllGranted="ROLE_ADMIN">
+        	  <menu:item id="i_useraccount_list" messageCode="global_menu_list" url="/useraccounts?page=${empty param.page ? 1 : param.page}&amp;size=${empty param.size ? 10 : param.size}"/>
+			</sec:authorize>		
+        </menu:category>
+		<sec:authorize ifAnyGranted="ROLE_ADMIN, ROLE_USER">
+    	  <menu:category id="c_restaurant">
+			<sec:authorize ifAllGranted="ROLE_ADMIN">
+              <menu:item id="i_restaurant_new" messageCode="global_menu_new" url="/restaurants?form"/>
+			</sec:authorize>		
+        	<menu:item id="i_restaurant_list" messageCode="global_menu_list" url="/restaurants?page=${empty param.page ? 1 : param.page}&amp;size=${empty param.size ? 10 : param.size}"/>
+			<sec:authorize ifAllGranted="ROLE_USER">
+              <menu:item id="i_restaurant_fav" messageCode="restaurant_menu_fav" url="/useraccounts/${displayName}?form2"/>
+			</sec:authorize>		
+          </menu:category>
+          <menu:category id="c_recommendation">
+            <menu:item id="i_recommendation_list" messageCode="global_menu_list_my" url="/recommendations?page=${empty param.page ? 1 : param.page}&amp;size=${empty param.size ? 10 : param.size}"/>
+          </menu:category>   
+    	  <menu:category id="c_friend">
+            <menu:item id="i_friend_new" messageCode="global_menu_new" url="/friends?form" />
+            <menu:item id="i_friend_list" messageCode="global_menu_list_my" url="/friends?page=${empty param.page ? 1 : param.page}&amp;size=${empty param.size ? 10 : param.size}"/>
+            <menu:item id="i_topn" messageCode="global_menu_topn" url="/topn/"/>
+          </menu:category>             
+		</sec:authorize>		
+    </menu:menu>
+</div>

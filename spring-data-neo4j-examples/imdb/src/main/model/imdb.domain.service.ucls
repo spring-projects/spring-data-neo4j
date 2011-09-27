@@ -1,0 +1,171 @@
+<class-diagram version="0.9.86" automaticImage="PNG" icons="true" always-add-relationships="true" generalizations="true" 
+  realizations="true" associations="true" dependencies="true" nesting-relationships="true">  
+  <package corner="BOTTOM_RIGHT" language="java" name="org.neo4j.examples.imdb.domain" project="imdb" 
+    file="/imdb/src/main/java/org/neo4j/examples/imdb/domain" binary="false">    
+    <position x="121" y="28" width="-1" height="-1"/>  
+  </package>  
+  <interface corner="BOTTOM_RIGHT" language="java" name="org.neo4j.examples.imdb.domain.ImdbService" project="imdb" 
+    file="/imdb/src/main/java/org/neo4j/examples/imdb/domain/ImdbService.java" binary="false">    
+    <position x="557" y="356" width="-1" height="-1"/>    
+    <display autosize="true" package="true" initial-value="false" signature="true" visibility="true">      
+      <attributes public="false" package="false" protected="false" private="false"/>      
+      <operations public="true" package="true" protected="true" private="true"/>    
+    </display>  
+  </interface>  
+  <interface corner="BOTTOM_RIGHT" language="java" name="org.neo4j.examples.imdb.util.PathFinder" project="imdb" 
+    file="/imdb/src/main/java/org/neo4j/examples/imdb/util/PathFinder.java" binary="false">    
+    <position x="66" y="191" width="-1" height="-1"/>    
+    <display autosize="true" package="true" initial-value="false" signature="true" visibility="true">      
+      <attributes public="false" package="false" protected="false" private="false"/>      
+      <operations public="false" package="false" protected="false" private="false"/>    
+    </display>  
+  </interface>  
+  <class corner="BOTTOM_RIGHT" language="java" name="org.neo4j.examples.imdb.domain.ImdbServiceImpl" project="imdb" 
+    file="/imdb/src/main/java/org/neo4j/examples/imdb/domain/ImdbServiceImpl.java" binary="false">    
+    <position x="191" y="415" width="-1" height="-1"/>    
+    <display autosize="true" package="true" initial-value="false" signature="true" visibility="true">      
+      <attributes public="false" package="false" protected="false" private="false"/>      
+      <operations public="true" package="true" protected="true" private="true"/>    
+    </display>  
+  </class>  
+  <interface corner="BOTTOM_RIGHT" language="java" name="org.neo4j.examples.imdb.domain.ImdbSearchEngine" project="imdb" 
+    file="/imdb/src/main/java/org/neo4j/examples/imdb/domain/ImdbSearchEngine.java" binary="false">    
+    <position x="301" y="229" width="-1" height="-1"/>    
+    <display autosize="true" package="true" initial-value="false" signature="true" visibility="true">      
+      <attributes public="false" package="false" protected="false" private="false"/>      
+      <operations public="true" package="false" protected="false" private="false"/>    
+    </display>  
+  </interface>  
+  <class corner="BOTTOM_RIGHT" language="java" name="org.neo4j.examples.imdb.domain.ImdbSearchEngineImpl" project="imdb" 
+    file="/imdb/src/main/java/org/neo4j/examples/imdb/domain/ImdbSearchEngineImpl.java" binary="false">    
+    <position x="447" y="114" width="-1" height="-1"/>    
+    <display autosize="true" package="true" initial-value="false" signature="true" visibility="true">      
+      <attributes public="false" package="false" protected="false" private="false"/>      
+      <operations public="false" package="false" protected="false" private="false"/>    
+    </display>  
+  </class>  
+  <interface corner="BOTTOM_RIGHT" language="java" name="org.neo4j.graphdb.GraphDatabaseService" project="imdb" 
+    file="/home/anders/.m2/repository/org/neo4j/neo4j-kernel/1.0-SNAPSHOT/neo4j-kernel-1.0-SNAPSHOT.jar" binary="true">    
+    <position x="200" y="98" width="-1" height="-1"/>    
+    <display autosize="true" package="true" initial-value="false" signature="true" visibility="true">      
+      <attributes public="false" package="false" protected="false" private="false"/>      
+      <operations public="false" package="false" protected="false" private="false"/>    
+    </display>  
+  </interface>  
+  <interface corner="BOTTOM_RIGHT" language="java" name="org.neo4j.index.IndexService" project="imdb" 
+    file="/home/anders/.m2/repository/org/neo4j/neo4j-index/1.0-SNAPSHOT/neo4j-index-1.0-SNAPSHOT.jar" binary="true">    
+    <position x="751" y="74" width="-1" height="-1"/>    
+    <display autosize="true" package="true" initial-value="false" signature="true" visibility="true">      
+      <attributes public="false" package="false" protected="false" private="false"/>      
+      <operations public="true" package="true" protected="true" private="true"/>    
+    </display>  
+  </interface>  
+  <association>    
+    <source project="imdb" name="org.neo4j.examples.imdb.domain.ImdbSearchEngineImpl" 
+      file="/imdb/src/main/java/org/neo4j/examples/imdb/domain/ImdbSearchEngineImpl.java" binary="false" 
+      navigable="false">      
+      <attribute name="graphDbService"/>      
+      <multiplicity minimum="0" maximum="1"/>    
+    </source>    
+    <target project="imdb" name="org.neo4j.graphdb.GraphDatabaseService" 
+      file="/home/anders/.m2/repository/org/neo4j/neo4j-kernel/1.0-SNAPSHOT/neo4j-kernel-1.0-SNAPSHOT.jar" binary="true" 
+      navigable="true"/>    
+    <display labels="true" multiplicity="true"/>  
+  </association>  
+  <association>    
+    <source project="imdb" name="org.neo4j.examples.imdb.domain.ImdbServiceImpl" 
+      file="/imdb/src/main/java/org/neo4j/examples/imdb/domain/ImdbServiceImpl.java" binary="false" navigable="false">      
+      <attribute name="graphDbService"/>      
+      <multiplicity minimum="0" maximum="1"/>    
+    </source>    
+    <target project="imdb" name="org.neo4j.graphdb.GraphDatabaseService" 
+      file="/home/anders/.m2/repository/org/neo4j/neo4j-kernel/1.0-SNAPSHOT/neo4j-kernel-1.0-SNAPSHOT.jar" binary="true" 
+      navigable="true"/>    
+    <display labels="true" multiplicity="true"/>  
+  </association>  
+  <dependency>    
+    <source project="imdb" name="org.neo4j.examples.imdb.domain" 
+      file="/imdb/src/main/java/org/neo4j/examples/imdb/domain" binary="false"/>    
+    <target project="imdb" name="org.neo4j.graphdb.GraphDatabaseService" 
+      file="/home/anders/.m2/repository/org/neo4j/neo4j-kernel/1.0-SNAPSHOT/neo4j-kernel-1.0-SNAPSHOT.jar" 
+      binary="true"/>  
+  </dependency>  
+  <realization>    
+    <source project="imdb" name="org.neo4j.examples.imdb.domain.ImdbSearchEngineImpl" 
+      file="/imdb/src/main/java/org/neo4j/examples/imdb/domain/ImdbSearchEngineImpl.java" binary="false"/>    
+    <target project="imdb" name="org.neo4j.examples.imdb.domain.ImdbSearchEngine" 
+      file="/imdb/src/main/java/org/neo4j/examples/imdb/domain/ImdbSearchEngine.java" binary="false"/>  
+  </realization>  
+  <association>    
+    <source project="imdb" name="org.neo4j.examples.imdb.domain.ImdbServiceImpl" 
+      file="/imdb/src/main/java/org/neo4j/examples/imdb/domain/ImdbServiceImpl.java" binary="false" navigable="false">      
+      <attribute name="searchEngine"/>      
+      <multiplicity minimum="0" maximum="1"/>    
+    </source>    
+    <target project="imdb" name="org.neo4j.examples.imdb.domain.ImdbSearchEngine" 
+      file="/imdb/src/main/java/org/neo4j/examples/imdb/domain/ImdbSearchEngine.java" binary="false" navigable="true"/>    
+    <display labels="true" multiplicity="true"/>  
+  </association>  
+  <association>    
+    <source project="imdb" name="org.neo4j.examples.imdb.domain.ImdbServiceImpl" 
+      file="/imdb/src/main/java/org/neo4j/examples/imdb/domain/ImdbServiceImpl.java" binary="false" navigable="false">      
+      <attribute name="pathFinder"/>      
+      <multiplicity minimum="0" maximum="1"/>    
+    </source>    
+    <target project="imdb" name="org.neo4j.examples.imdb.util.PathFinder" 
+      file="/imdb/src/main/java/org/neo4j/examples/imdb/util/PathFinder.java" binary="false" navigable="true"/>    
+    <display labels="true" multiplicity="true"/>  
+  </association>  
+  <realization>    
+    <source project="imdb" name="org.neo4j.examples.imdb.domain.ImdbServiceImpl" 
+      file="/imdb/src/main/java/org/neo4j/examples/imdb/domain/ImdbServiceImpl.java" binary="false"/>    
+    <target project="imdb" name="org.neo4j.examples.imdb.domain.ImdbService" 
+      file="/imdb/src/main/java/org/neo4j/examples/imdb/domain/ImdbService.java" binary="false"/>  
+  </realization>  
+  <dependency>    
+    <source project="imdb" name="org.neo4j.examples.imdb.domain" 
+      file="/imdb/src/main/java/org/neo4j/examples/imdb/domain" binary="false"/>    
+    <target project="imdb" name="org.neo4j.index.IndexService" 
+      file="/home/anders/.m2/repository/org/neo4j/neo4j-index/1.0-SNAPSHOT/neo4j-index-1.0-SNAPSHOT.jar" binary="true"/>  
+  </dependency>  
+  <association>    
+    <source project="imdb" name="org.neo4j.examples.imdb.domain.ImdbServiceImpl" 
+      file="/imdb/src/main/java/org/neo4j/examples/imdb/domain/ImdbServiceImpl.java" binary="false" navigable="false">      
+      <attribute name="indexService"/>      
+      <multiplicity minimum="0" maximum="1"/>    
+    </source>    
+    <target project="imdb" name="org.neo4j.index.IndexService" 
+      file="/home/anders/.m2/repository/org/neo4j/neo4j-index/1.0-SNAPSHOT/neo4j-index-1.0-SNAPSHOT.jar" binary="true" 
+      navigable="true"/>    
+    <display labels="true" multiplicity="true"/>  
+  </association>  
+  <association>    
+    <source project="imdb" name="org.neo4j.examples.imdb.domain.ImdbSearchEngineImpl" 
+      file="/imdb/src/main/java/org/neo4j/examples/imdb/domain/ImdbSearchEngineImpl.java" binary="false" 
+      navigable="false">      
+      <attribute name="indexService"/>      
+      <multiplicity minimum="0" maximum="1"/>    
+    </source>    
+    <target project="imdb" name="org.neo4j.index.IndexService" 
+      file="/home/anders/.m2/repository/org/neo4j/neo4j-index/1.0-SNAPSHOT/neo4j-index-1.0-SNAPSHOT.jar" binary="true" 
+      navigable="true"/>    
+    <display labels="true" multiplicity="true"/>  
+  </association>  
+  <dependency>    
+    <source project="imdb" name="org.neo4j.examples.imdb.domain" 
+      file="/imdb/src/main/java/org/neo4j/examples/imdb/domain" binary="false"/>    
+    <target project="imdb" name="org.neo4j.examples.imdb.util.PathFinder" 
+      file="/imdb/src/main/java/org/neo4j/examples/imdb/util/PathFinder.java" binary="false"/>  
+  </dependency>  
+  <dependency>    
+    <source project="imdb" name="org.neo4j.examples.imdb.domain.ImdbSearchEngineImpl" 
+      file="/imdb/src/main/java/org/neo4j/examples/imdb/domain/ImdbSearchEngineImpl.java" binary="false"/>    
+    <target project="imdb" name="org.neo4j.examples.imdb.domain.ImdbSearchEngine" 
+      file="/imdb/src/main/java/org/neo4j/examples/imdb/domain/ImdbSearchEngine.java" binary="false"/>  
+  </dependency>  
+  <classifier-display autosize="true" package="true" initial-value="false" signature="true" visibility="true">    
+    <attributes public="false" package="false" protected="false" private="false"/>    
+    <operations public="false" package="false" protected="false" private="false"/>  
+  </classifier-display>  
+  <association-display labels="true" multiplicity="true"/>
+</class-diagram>

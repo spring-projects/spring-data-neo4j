@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<div xmlns:field="urn:jsptagdir:/WEB-INF/tags/form/fields" xmlns:jsp="http://java.sun.com/JSP/Page" xmlns:page="urn:jsptagdir:/WEB-INF/tags/form" version="2.0">
+    <jsp:output omit-xml-declaration="yes"/>
+    <page:show id="ps_com_springone_myrestaurants_domain_Restaurant" object="${restaurant}" path="/restaurants" create="false" update="false" delete="false" favorite="true" >
+        <field:display field="name" id="s_com_springone_myrestaurants_domain_Restaurant_name" object="${restaurant}"/>
+        <field:display field="zipCode" id="s_com_springone_myrestaurants_domain_Restaurant_zipCode" object="${restaurant}"/>
+    	<field:display field="city" id="s_com_springone_myrestaurants_domain_Restaurant_city" object="${restaurant}"/>
+        <field:display field="state" id="s_com_springone_myrestaurants_domain_Restaurant_state" object="${restaurant}"/>
+    </page:show>
+</div>

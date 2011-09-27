@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<div xmlns:jsp="http://java.sun.com/JSP/Page" xmlns:page="urn:jsptagdir:/WEB-INF/tags/form" xmlns:table="urn:jsptagdir:/WEB-INF/tags/form/fields" version="2.0">
+    <jsp:output omit-xml-declaration="yes"/>
+    <page:list id="pl_com_springone_myrestaurants_domain_Restaurant" items="${restaurants}">
+        <table:table data="${restaurants}" id="l_com_springone_myrestaurants_domain_Restaurant" path="/restaurants" create="false" update="false" delete="false" favorite="true" recommend="true">
+            <table:column id="c_com_springone_myrestaurants_domain_Restaurant_name" property="name"/>
+            <table:column id="c_com_springone_myrestaurants_domain_Restaurant_zipCode" property="zipCode"/>
+        	<table:column id="c_com_springone_myrestaurants_domain_Restaurant_city" property="city"/>
+            <table:column id="c_com_springone_myrestaurants_domain_Restaurant_state" property="state"/>
+        </table:table>
+    </page:list>
+</div>

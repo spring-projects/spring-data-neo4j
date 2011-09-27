@@ -1,0 +1,140 @@
+<class-diagram icons="true" always-add-relationships="true" generalizations="true" realizations="true" 
+  associations="true" dependencies="false" nesting-relationships="true" version="0.9.65">  
+  <classifier-display autosize="true" package="true" initial-value="false" signature="true" visibility="true">    
+    <attributes public="true" package="true" protected="true" private="true"/>    
+    <operations public="true" package="true" protected="true" private="true"/>  
+  </classifier-display>  
+  <association-display labels="true" multiplicity="true"/>  
+  <package language="java" name="org.neo4j.examples.imdb.web" project="imdb" 
+    file="/imdb/src/main/java/org/neo4j/examples/imdb/web" binary="false" corner="BOTTOM_RIGHT">    
+    <position x="95" y="37" width="-1" height="-1"/>  
+  </package>  
+  <class language="java" name="org.neo4j.examples.imdb.web.MovieForm" project="imdb" 
+    file="/imdb/src/main/java/org/neo4j/examples/imdb/web/MovieForm.java" binary="false" corner="BOTTOM_RIGHT">    
+    <display autosize="true" package="true" initial-value="false" signature="true" visibility="true">      
+      <attributes public="true" package="true" protected="true" private="false"/>      
+      <operations public="true" package="true" protected="true" private="true"/>    
+    </display>    
+    <position x="541" y="565" width="-1" height="-1"/>  
+  </class>  
+  <class language="java" name="org.neo4j.examples.imdb.web.FindController" project="imdb" 
+    file="/imdb/src/main/java/org/neo4j/examples/imdb/web/FindController.java" binary="false" corner="BOTTOM_RIGHT">    
+    <display autosize="true" package="true" initial-value="false" signature="true" visibility="true">      
+      <attributes public="true" package="true" protected="true" private="true"/>      
+      <operations public="true" package="true" protected="true" private="true"/>    
+    </display>    
+    <position x="309" y="164" width="-1" height="-1"/>  
+  </class>  
+  <interface language="java" name="org.neo4j.examples.imdb.web.FindControllerDelegate" project="imdb" 
+    file="/imdb/src/main/java/org/neo4j/examples/imdb/web/FindControllerDelegate.java" binary="false" 
+    corner="BOTTOM_RIGHT">    
+    <display autosize="true" package="true" initial-value="false" signature="true" visibility="true">      
+      <attributes public="true" package="true" protected="true" private="true"/>      
+      <operations public="true" package="true" protected="true" private="true"/>    
+    </display>    
+    <position x="309" y="301" width="-1" height="-1"/>  
+  </interface>  
+  <class language="java" name="org.neo4j.examples.imdb.web.ActorFindControllerDelegate" project="imdb" 
+    file="/imdb/src/main/java/org/neo4j/examples/imdb/web/ActorFindControllerDelegate.java" binary="false" 
+    corner="BOTTOM_RIGHT">    
+    <display autosize="true" package="true" initial-value="false" signature="true" visibility="true">      
+      <attributes public="true" package="true" protected="true" private="true"/>      
+      <operations public="true" package="true" protected="true" private="false"/>    
+    </display>    
+    <position x="176" y="428" width="-1" height="-1"/>  
+  </class>  
+  <class language="java" name="org.neo4j.examples.imdb.web.MovieFindControllerDelegate" project="imdb" 
+    file="/imdb/src/main/java/org/neo4j/examples/imdb/web/MovieFindControllerDelegate.java" binary="false" 
+    corner="BOTTOM_RIGHT">    
+    <display autosize="true" package="true" initial-value="false" signature="true" visibility="true">      
+      <attributes public="true" package="true" protected="true" private="true"/>      
+      <operations public="true" package="true" protected="true" private="false"/>    
+    </display>    
+    <position x="451" y="429" width="-1" height="-1"/>  
+  </class>  
+  <class language="java" name="org.springframework.web.servlet.mvc.SimpleFormController" project="imdb" 
+    file="/home/anders/.m2/repository/org/springframework/spring-webmvc/2.5.5/spring-webmvc-2.5.5.jar" binary="true" 
+    corner="BOTTOM_RIGHT">    
+    <display autosize="true" package="true" initial-value="false" signature="true" visibility="true">      
+      <attributes public="false" package="false" protected="false" private="false"/>      
+      <operations public="false" package="false" protected="false" private="false"/>    
+    </display>    
+    <position x="308" y="54" width="-1" height="-1"/>  
+  </class>  
+  <interface language="java" name="org.neo4j.examples.imdb.domain.ImdbService" project="imdb" 
+    file="/imdb/src/main/java/org/neo4j/examples/imdb/domain/ImdbService.java" binary="false" corner="BOTTOM_RIGHT">    
+    <display autosize="true" package="true" initial-value="false" signature="true" visibility="true">      
+      <attributes public="true" package="true" protected="true" private="true"/>      
+      <operations public="true" package="true" protected="true" private="true"/>    
+    </display>    
+    <position x="317" y="585" width="-1" height="-1"/>  
+  </interface>  
+  <class language="java" name="org.neo4j.examples.imdb.web.ActorForm" project="imdb" 
+    file="/imdb/src/main/java/org/neo4j/examples/imdb/web/ActorForm.java" binary="false" corner="BOTTOM_RIGHT">    
+    <display autosize="true" package="true" initial-value="false" signature="true" visibility="true">      
+      <attributes public="true" package="true" protected="true" private="false"/>      
+      <operations public="true" package="true" protected="true" private="true"/>    
+    </display>    
+    <position x="99" y="563" width="-1" height="-1"/>  
+  </class>  
+  <association>    
+    <display labels="true" multiplicity="true"/>    
+    <source navigable="false" project="imdb" name="org.neo4j.examples.imdb.web.MovieFindControllerDelegate" 
+      file="/imdb/src/main/java/org/neo4j/examples/imdb/web/MovieFindControllerDelegate.java" binary="false">      
+      <attribute name="imdbService"/>      
+      <multiplicity minimum="0" maximum="1"/>    
+    </source>    
+    <target navigable="true" project="imdb" name="org.neo4j.examples.imdb.domain.ImdbService" 
+      file="/imdb/src/main/java/org/neo4j/examples/imdb/domain/ImdbService.java" binary="false"/>  
+  </association>  
+  <association>    
+    <display labels="true" multiplicity="true"/>    
+    <source navigable="false" project="imdb" name="org.neo4j.examples.imdb.web.ActorFindControllerDelegate" 
+      file="/imdb/src/main/java/org/neo4j/examples/imdb/web/ActorFindControllerDelegate.java" binary="false">      
+      <attribute name="imdbService"/>      
+      <multiplicity minimum="0" maximum="1"/>    
+    </source>    
+    <target navigable="true" project="imdb" name="org.neo4j.examples.imdb.domain.ImdbService" 
+      file="/imdb/src/main/java/org/neo4j/examples/imdb/domain/ImdbService.java" binary="false"/>  
+  </association>  
+  <generalization>    
+    <source project="imdb" name="org.neo4j.examples.imdb.web.FindController" 
+      file="/imdb/src/main/java/org/neo4j/examples/imdb/web/FindController.java" binary="false"/>    
+    <target project="imdb" name="org.springframework.web.servlet.mvc.SimpleFormController" 
+      file="/home/anders/.m2/repository/org/springframework/spring-webmvc/2.5.5/spring-webmvc-2.5.5.jar" binary="true"/>  
+  </generalization>  
+  <association>    
+    <display labels="true" multiplicity="true"/>    
+    <source navigable="false" project="imdb" name="org.neo4j.examples.imdb.web.FindController" 
+      file="/imdb/src/main/java/org/neo4j/examples/imdb/web/FindController.java" binary="false">      
+      <attribute name="delegate"/>      
+      <multiplicity minimum="0" maximum="1"/>    
+    </source>    
+    <target navigable="true" project="imdb" name="org.neo4j.examples.imdb.web.FindControllerDelegate" 
+      file="/imdb/src/main/java/org/neo4j/examples/imdb/web/FindControllerDelegate.java" binary="false"/>  
+  </association>  
+  <dependency>    
+    <source project="imdb" name="org.neo4j.examples.imdb.web.ActorFindControllerDelegate" 
+      file="/imdb/src/main/java/org/neo4j/examples/imdb/web/ActorFindControllerDelegate.java" binary="false"/>    
+    <target project="imdb" name="org.neo4j.examples.imdb.web.ActorForm" 
+      file="/imdb/src/main/java/org/neo4j/examples/imdb/web/ActorForm.java" binary="false"/>  
+  </dependency>  
+  <realization>    
+    <source project="imdb" name="org.neo4j.examples.imdb.web.MovieFindControllerDelegate" 
+      file="/imdb/src/main/java/org/neo4j/examples/imdb/web/MovieFindControllerDelegate.java" binary="false"/>    
+    <target project="imdb" name="org.neo4j.examples.imdb.web.FindControllerDelegate" 
+      file="/imdb/src/main/java/org/neo4j/examples/imdb/web/FindControllerDelegate.java" binary="false"/>  
+  </realization>  
+  <realization>    
+    <source project="imdb" name="org.neo4j.examples.imdb.web.ActorFindControllerDelegate" 
+      file="/imdb/src/main/java/org/neo4j/examples/imdb/web/ActorFindControllerDelegate.java" binary="false"/>    
+    <target project="imdb" name="org.neo4j.examples.imdb.web.FindControllerDelegate" 
+      file="/imdb/src/main/java/org/neo4j/examples/imdb/web/FindControllerDelegate.java" binary="false"/>  
+  </realization>  
+  <dependency>    
+    <source project="imdb" name="org.neo4j.examples.imdb.web.MovieFindControllerDelegate" 
+      file="/imdb/src/main/java/org/neo4j/examples/imdb/web/MovieFindControllerDelegate.java" binary="false"/>    
+    <target project="imdb" name="org.neo4j.examples.imdb.web.MovieForm" 
+      file="/imdb/src/main/java/org/neo4j/examples/imdb/web/MovieForm.java" binary="false"/>  
+  </dependency>
+</class-diagram>

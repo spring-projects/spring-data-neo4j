@@ -1,0 +1,123 @@
+<class-diagram version="0.9.86" automaticImage="PNG" icons="true" always-add-relationships="true" generalizations="true" 
+  realizations="true" associations="true" dependencies="false" nesting-relationships="true">  
+  <package corner="BOTTOM_RIGHT" language="java" name="org.neo4j.examples.imdb.domain" project="imdb" 
+    file="/imdb/src/main/java/org/neo4j/examples/imdb/domain" binary="false">    
+    <position x="121" y="42" width="-1" height="-1"/>  
+  </package>  
+  <class corner="BOTTOM_RIGHT" language="java" name="org.neo4j.examples.imdb.domain.ActorImpl" project="imdb" 
+    file="/imdb/src/main/java/org/neo4j/examples/imdb/domain/ActorImpl.java" binary="false">    
+    <position x="104" y="276" width="-1" height="-1"/>    
+    <display autosize="true" package="true" initial-value="false" signature="true" visibility="true">      
+      <attributes public="true" package="true" protected="true" private="true"/>      
+      <operations public="true" package="true" protected="true" private="true"/>    
+    </display>  
+  </class>  
+  <class corner="BOTTOM_RIGHT" language="java" name="org.neo4j.examples.imdb.domain.MovieImpl" project="imdb" 
+    file="/imdb/src/main/java/org/neo4j/examples/imdb/domain/MovieImpl.java" binary="false">    
+    <position x="578" y="283" width="-1" height="-1"/>    
+    <display autosize="true" package="true" initial-value="false" signature="true" visibility="true">      
+      <attributes public="true" package="true" protected="true" private="true"/>      
+      <operations public="true" package="true" protected="true" private="true"/>    
+    </display>  
+  </class>  
+  <class corner="BOTTOM_RIGHT" language="java" name="org.neo4j.examples.imdb.domain.RoleImpl" project="imdb" 
+    file="/imdb/src/main/java/org/neo4j/examples/imdb/domain/RoleImpl.java" binary="false">    
+    <position x="298" y="532" width="-1" height="-1"/>    
+    <display autosize="true" package="true" initial-value="false" signature="true" visibility="true">      
+      <attributes public="true" package="true" protected="true" private="true"/>      
+      <operations public="true" package="true" protected="true" private="true"/>    
+    </display>  
+  </class>  
+  <enumeration corner="BOTTOM_RIGHT" language="java" name="org.neo4j.examples.imdb.domain.RelTypes" project="imdb" 
+    file="/imdb/src/main/java/org/neo4j/examples/imdb/domain/RelTypes.java" binary="false">    
+    <position x="357" y="65" width="-1" height="-1"/>    
+    <display autosize="true" package="true" initial-value="false" signature="true" visibility="true">      
+      <attributes public="true" package="true" protected="true" private="true"/>      
+      <operations public="false" package="false" protected="false" private="false"/>    
+    </display>  
+  </enumeration>  
+  <interface corner="BOTTOM_RIGHT" language="java" name="org.neo4j.graphdb.Node" project="imdb" 
+    file="/home/anders/.m2/repository/org/neo4j/neo4j-kernel/1.0-SNAPSHOT/neo4j-kernel-1.0-SNAPSHOT.jar" binary="true">    
+    <position x="331" y="164" width="-1" height="-1"/>    
+    <display autosize="true" package="true" initial-value="false" signature="true" visibility="true">      
+      <attributes public="false" package="false" protected="false" private="false"/>      
+      <operations public="false" package="false" protected="false" private="false"/>    
+    </display>  
+  </interface>  
+  <interface corner="BOTTOM_RIGHT" language="java" name="org.neo4j.graphdb.Relationship" project="imdb" 
+    file="/home/anders/.m2/repository/org/neo4j/neo4j-kernel/1.0-SNAPSHOT/neo4j-kernel-1.0-SNAPSHOT.jar" binary="true">    
+    <position x="574" y="534" width="-1" height="-1"/>    
+    <display autosize="true" package="true" initial-value="false" signature="true" visibility="true">      
+      <attributes public="false" package="false" protected="false" private="false"/>      
+      <operations public="false" package="false" protected="false" private="false"/>    
+    </display>  
+  </interface>  
+  <association>    
+    <source project="imdb" name="org.neo4j.examples.imdb.domain.ActorImpl" 
+      file="/imdb/src/main/java/org/neo4j/examples/imdb/domain/ActorImpl.java" binary="false" navigable="false">      
+      <attribute name="underlyingNode"/>      
+      <multiplicity minimum="0" maximum="1"/>    
+    </source>    
+    <target project="imdb" name="org.neo4j.graphdb.Node" 
+      file="/home/anders/.m2/repository/org/neo4j/neo4j-kernel/1.0-SNAPSHOT/neo4j-kernel-1.0-SNAPSHOT.jar" binary="true" 
+      navigable="true"/>    
+    <display labels="true" multiplicity="true"/>  
+  </association>  
+  <dependency>    
+    <source project="imdb" name="org.neo4j.examples.imdb.domain.ActorImpl" 
+      file="/imdb/src/main/java/org/neo4j/examples/imdb/domain/ActorImpl.java" binary="false"/>    
+    <target project="imdb" name="org.neo4j.examples.imdb.domain.MovieImpl" 
+      file="/imdb/src/main/java/org/neo4j/examples/imdb/domain/MovieImpl.java" binary="false"/>  
+  </dependency>  
+  <dependency>    
+    <source project="imdb" name="org.neo4j.examples.imdb.domain.MovieImpl" 
+      file="/imdb/src/main/java/org/neo4j/examples/imdb/domain/MovieImpl.java" binary="false"/>    
+    <target project="imdb" name="org.neo4j.examples.imdb.domain.ActorImpl" 
+      file="/imdb/src/main/java/org/neo4j/examples/imdb/domain/ActorImpl.java" binary="false"/>  
+  </dependency>  
+  <dependency>    
+    <source project="imdb" name="org.neo4j.examples.imdb.domain.RoleImpl" 
+      file="/imdb/src/main/java/org/neo4j/examples/imdb/domain/RoleImpl.java" binary="false"/>    
+    <target project="imdb" name="org.neo4j.examples.imdb.domain.MovieImpl" 
+      file="/imdb/src/main/java/org/neo4j/examples/imdb/domain/MovieImpl.java" binary="false"/>  
+  </dependency>  
+  <dependency>    
+    <source project="imdb" name="org.neo4j.examples.imdb.domain.ActorImpl" 
+      file="/imdb/src/main/java/org/neo4j/examples/imdb/domain/ActorImpl.java" binary="false"/>    
+    <target project="imdb" name="org.neo4j.examples.imdb.domain.RoleImpl" 
+      file="/imdb/src/main/java/org/neo4j/examples/imdb/domain/RoleImpl.java" binary="false"/>  
+  </dependency>  
+  <association>    
+    <source project="imdb" name="org.neo4j.examples.imdb.domain.RoleImpl" 
+      file="/imdb/src/main/java/org/neo4j/examples/imdb/domain/RoleImpl.java" binary="false" navigable="false">      
+      <attribute name="underlyingRel"/>      
+      <multiplicity minimum="0" maximum="1"/>    
+    </source>    
+    <target project="imdb" name="org.neo4j.graphdb.Relationship" 
+      file="/home/anders/.m2/repository/org/neo4j/neo4j-kernel/1.0-SNAPSHOT/neo4j-kernel-1.0-SNAPSHOT.jar" binary="true" 
+      navigable="true"/>    
+    <display labels="true" multiplicity="true"/>  
+  </association>  
+  <dependency>    
+    <source project="imdb" name="org.neo4j.examples.imdb.domain.RoleImpl" 
+      file="/imdb/src/main/java/org/neo4j/examples/imdb/domain/RoleImpl.java" binary="false"/>    
+    <target project="imdb" name="org.neo4j.examples.imdb.domain.ActorImpl" 
+      file="/imdb/src/main/java/org/neo4j/examples/imdb/domain/ActorImpl.java" binary="false"/>  
+  </dependency>  
+  <association>    
+    <source project="imdb" name="org.neo4j.examples.imdb.domain.MovieImpl" 
+      file="/imdb/src/main/java/org/neo4j/examples/imdb/domain/MovieImpl.java" binary="false" navigable="false">      
+      <attribute name="underlyingNode"/>      
+      <multiplicity minimum="0" maximum="1"/>    
+    </source>    
+    <target project="imdb" name="org.neo4j.graphdb.Node" 
+      file="/home/anders/.m2/repository/org/neo4j/neo4j-kernel/1.0-SNAPSHOT/neo4j-kernel-1.0-SNAPSHOT.jar" binary="true" 
+      navigable="true"/>    
+    <display labels="true" multiplicity="true"/>  
+  </association>  
+  <classifier-display autosize="true" package="true" initial-value="false" signature="true" visibility="true">    
+    <attributes public="true" package="true" protected="true" private="true"/>    
+    <operations public="true" package="true" protected="true" private="true"/>  
+  </classifier-display>  
+  <association-display labels="true" multiplicity="true"/>
+</class-diagram>

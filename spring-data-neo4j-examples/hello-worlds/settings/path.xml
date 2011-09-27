@@ -1,0 +1,30 @@
+<?xml version="1.0" ?>
+
+<project name="path" default="donothingToMakeAValidAntFile"
+	basedir=".">
+
+	<property name="main.src" location="src/main/java" />
+	<property name="main.resources" location="src/main/resources" />
+	<property name="main.target" location="target/main/classes" />
+
+    <property name="test.src" location="src/test/java" />
+	<property name="test.target" location="target/test/classes" />
+	<property name="test.reports" location="target/test/reports" />
+	<property name="test.resources" location="src/test/resources" />
+
+	<target name="donothingToMakeAValidAntFile" />
+
+	<path id="path.libs">
+		<fileset dir="lib" />
+	</path>
+
+	<path id="path.compile">
+		<path refid="path.libs" />
+		<dirset dir="${main.target}" />
+	</path>
+
+	<path id="path.testing">
+		<path refid="path.compile" />
+		<dirset dir="${test.target}"/>
+	</path>
+</project>

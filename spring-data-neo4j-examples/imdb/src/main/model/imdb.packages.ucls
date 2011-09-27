@@ -1,0 +1,76 @@
+<class-diagram version="0.9.86" automaticImage="PNG" icons="true" always-add-relationships="true" generalizations="true" 
+  realizations="true" associations="true" dependencies="true" nesting-relationships="true">  
+  <package corner="BOTTOM_RIGHT" language="java" name="org.neo4j.examples.imdb.domain" project="imdb" 
+    file="/imdb/src/main/java/org/neo4j/examples/imdb/domain" binary="false">    
+    <position x="204" y="171" width="-1" height="-1"/>  
+  </package>  
+  <package corner="BOTTOM_RIGHT" language="java" name="org.neo4j.examples.imdb.parser" project="imdb" 
+    file="/imdb/src/main/java/org/neo4j/examples/imdb/parser" binary="false">    
+    <position x="434" y="87" width="-1" height="-1"/>  
+  </package>  
+  <package corner="BOTTOM_RIGHT" language="java" name="org.neo4j.examples.imdb.util" project="imdb" 
+    file="/imdb/src/main/java/org/neo4j/examples/imdb/util" binary="false">    
+    <position x="387" y="282" width="-1" height="-1"/>  
+  </package>  
+  <package corner="BOTTOM_RIGHT" language="java" name="org.neo4j.examples.imdb.web" project="imdb" 
+    file="/imdb/src/main/java/org/neo4j/examples/imdb/web" binary="false">    
+    <position x="132" y="53" width="-1" height="-1"/>  
+  </package>  
+  <package corner="BOTTOM_RIGHT" language="java" name="org.neo4j.graphdb" project="imdb" 
+    file="/home/anders/.m2/repository/org/neo4j/neo4j-kernel/1.0-SNAPSHOT/neo4j-kernel-1.0-SNAPSHOT.jar" binary="true">    
+    <position x="181" y="364" width="-1" height="-1"/>  
+  </package>  
+  <package corner="BOTTOM_RIGHT" language="java" name="org.neo4j.index" project="imdb" 
+    file="/home/anders/.m2/repository/org/neo4j/neo4j-index/1.0-SNAPSHOT/neo4j-index-1.0-SNAPSHOT.jar" binary="true">    
+    <position x="91" y="263" width="-1" height="-1"/>  
+  </package>  
+  <dependency>    
+    <source project="imdb" name="org.neo4j.examples.imdb.domain" 
+      file="/imdb/src/main/java/org/neo4j/examples/imdb/domain" binary="false"/>    
+    <target project="imdb" name="org.neo4j.examples.imdb.util" file="/imdb/src/main/java/org/neo4j/examples/imdb/util" 
+      binary="false"/>  
+  </dependency>  
+  <dependency>    
+    <source project="imdb" name="org.neo4j.examples.imdb.web" file="/imdb/src/main/java/org/neo4j/examples/imdb/web" 
+      binary="false"/>    
+    <target project="imdb" name="org.neo4j.examples.imdb.domain" 
+      file="/imdb/src/main/java/org/neo4j/examples/imdb/domain" binary="false"/>  
+  </dependency>  
+  <dependency>    
+    <source project="imdb" name="org.neo4j.examples.imdb.util" file="/imdb/src/main/java/org/neo4j/examples/imdb/util" 
+      binary="false"/>    
+    <target project="imdb" name="org.neo4j.graphdb" 
+      file="/home/anders/.m2/repository/org/neo4j/neo4j-kernel/1.0-SNAPSHOT/neo4j-kernel-1.0-SNAPSHOT.jar" 
+      binary="true"/>  
+  </dependency>  
+  <dependency>    
+    <source project="imdb" name="org.neo4j.examples.imdb.parser" 
+      file="/imdb/src/main/java/org/neo4j/examples/imdb/parser" binary="false"/>    
+    <target project="imdb" name="org.neo4j.examples.imdb.domain" 
+      file="/imdb/src/main/java/org/neo4j/examples/imdb/domain" binary="false"/>  
+  </dependency>  
+  <dependency>    
+    <source project="imdb" name="org.neo4j.examples.imdb.web" file="/imdb/src/main/java/org/neo4j/examples/imdb/web" 
+      binary="false"/>    
+    <target project="imdb" name="org.neo4j.examples.imdb.parser" 
+      file="/imdb/src/main/java/org/neo4j/examples/imdb/parser" binary="false"/>  
+  </dependency>  
+  <dependency>    
+    <source project="imdb" name="org.neo4j.examples.imdb.domain" 
+      file="/imdb/src/main/java/org/neo4j/examples/imdb/domain" binary="false"/>    
+    <target project="imdb" name="org.neo4j.graphdb" 
+      file="/home/anders/.m2/repository/org/neo4j/neo4j-kernel/1.0-SNAPSHOT/neo4j-kernel-1.0-SNAPSHOT.jar" 
+      binary="true"/>  
+  </dependency>  
+  <dependency>    
+    <source project="imdb" name="org.neo4j.examples.imdb.domain" 
+      file="/imdb/src/main/java/org/neo4j/examples/imdb/domain" binary="false"/>    
+    <target project="imdb" name="org.neo4j.index" 
+      file="/home/anders/.m2/repository/org/neo4j/neo4j-index/1.0-SNAPSHOT/neo4j-index-1.0-SNAPSHOT.jar" binary="true"/>  
+  </dependency>  
+  <classifier-display autosize="true" package="true" initial-value="false" signature="true" visibility="true">    
+    <attributes public="true" package="true" protected="true" private="true"/>    
+    <operations public="true" package="true" protected="true" private="true"/>  
+  </classifier-display>  
+  <association-display labels="true" multiplicity="true"/>
+</class-diagram>

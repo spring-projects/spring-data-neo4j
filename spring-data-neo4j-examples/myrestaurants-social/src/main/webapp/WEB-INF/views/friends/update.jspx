@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<div xmlns:field="urn:jsptagdir:/WEB-INF/tags/form/fields" xmlns:form="urn:jsptagdir:/WEB-INF/tags/form" xmlns:jsp="http://java.sun.com/JSP/Page" version="2.0">
+    <jsp:output omit-xml-declaration="yes"/>
+    <form:update id="fu_com_springone_myrestaurants_domain_Friend" modelAttribute="friend" path="/friends" z="AKxItzgCd0s+ThelJsLD8KCztRA=">
+        <field:input field="userName" id="c_com_springone_myrestaurants_domain_Friend_userName" z="TZGIU/jLP8DamYRQt64dBJltBqw="/>
+    </form:update>
+</div>

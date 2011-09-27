@@ -1,0 +1,66 @@
+<class-diagram icons="true" always-add-relationships="true" generalizations="true" realizations="true" 
+  associations="true" dependencies="false" nesting-relationships="true" version="0.9.65">  
+  <classifier-display autosize="true" package="true" initial-value="false" signature="true" visibility="true">    
+    <attributes public="true" package="true" protected="true" private="true"/>    
+    <operations public="true" package="true" protected="true" private="true"/>  
+  </classifier-display>  
+  <association-display labels="true" multiplicity="true"/>  
+  <package language="java" name="org.neo4j.examples.imdb.domain" project="imdb" 
+    file="/imdb/src/main/java/org/neo4j/examples/imdb/domain" binary="false" corner="BOTTOM_RIGHT">    
+    <position x="125" y="39" width="-1" height="-1"/>  
+  </package>  
+  <interface language="java" name="org.neo4j.examples.imdb.domain.Actor" project="imdb" 
+    file="/imdb/src/main/java/org/neo4j/examples/imdb/domain/Actor.java" binary="false" corner="BOTTOM_RIGHT">    
+    <display autosize="true" package="true" initial-value="false" signature="true" visibility="true">      
+      <attributes public="false" package="false" protected="false" private="false"/>      
+      <operations public="true" package="true" protected="true" private="true"/>    
+    </display>    
+    <position x="121" y="157" width="-1" height="-1"/>  
+  </interface>  
+  <interface language="java" name="org.neo4j.examples.imdb.domain.Movie" project="imdb" 
+    file="/imdb/src/main/java/org/neo4j/examples/imdb/domain/Movie.java" binary="false" corner="BOTTOM_RIGHT">    
+    <display autosize="true" package="true" initial-value="false" signature="true" visibility="true">      
+      <attributes public="false" package="false" protected="false" private="false"/>      
+      <operations public="true" package="true" protected="true" private="true"/>    
+    </display>    
+    <position x="389" y="143" width="-1" height="-1"/>  
+  </interface>  
+  <interface language="java" name="org.neo4j.examples.imdb.domain.Role" project="imdb" 
+    file="/imdb/src/main/java/org/neo4j/examples/imdb/domain/Role.java" binary="false" corner="BOTTOM_RIGHT">    
+    <display autosize="true" package="true" initial-value="false" signature="true" visibility="true">      
+      <attributes public="false" package="false" protected="false" private="false"/>      
+      <operations public="true" package="true" protected="true" private="true"/>    
+    </display>    
+    <position x="251" y="339" width="-1" height="-1"/>  
+  </interface>  
+  <dependency>    
+    <source project="imdb" name="org.neo4j.examples.imdb.domain.Actor" 
+      file="/imdb/src/main/java/org/neo4j/examples/imdb/domain/Actor.java" binary="false"/>    
+    <target project="imdb" name="org.neo4j.examples.imdb.domain.Movie" 
+      file="/imdb/src/main/java/org/neo4j/examples/imdb/domain/Movie.java" binary="false"/>  
+  </dependency>  
+  <dependency>    
+    <source project="imdb" name="org.neo4j.examples.imdb.domain.Actor" 
+      file="/imdb/src/main/java/org/neo4j/examples/imdb/domain/Actor.java" binary="false"/>    
+    <target project="imdb" name="org.neo4j.examples.imdb.domain.Role" 
+      file="/imdb/src/main/java/org/neo4j/examples/imdb/domain/Role.java" binary="false"/>  
+  </dependency>  
+  <dependency>    
+    <source project="imdb" name="org.neo4j.examples.imdb.domain.Role" 
+      file="/imdb/src/main/java/org/neo4j/examples/imdb/domain/Role.java" binary="false"/>    
+    <target project="imdb" name="org.neo4j.examples.imdb.domain.Movie" 
+      file="/imdb/src/main/java/org/neo4j/examples/imdb/domain/Movie.java" binary="false"/>  
+  </dependency>  
+  <dependency>    
+    <source project="imdb" name="org.neo4j.examples.imdb.domain.Role" 
+      file="/imdb/src/main/java/org/neo4j/examples/imdb/domain/Role.java" binary="false"/>    
+    <target project="imdb" name="org.neo4j.examples.imdb.domain.Actor" 
+      file="/imdb/src/main/java/org/neo4j/examples/imdb/domain/Actor.java" binary="false"/>  
+  </dependency>  
+  <dependency>    
+    <source project="imdb" name="org.neo4j.examples.imdb.domain.Movie" 
+      file="/imdb/src/main/java/org/neo4j/examples/imdb/domain/Movie.java" binary="false"/>    
+    <target project="imdb" name="org.neo4j.examples.imdb.domain.Actor" 
+      file="/imdb/src/main/java/org/neo4j/examples/imdb/domain/Actor.java" binary="false"/>  
+  </dependency>
+</class-diagram>

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<div xmlns:field="urn:jsptagdir:/WEB-INF/tags/form/fields" xmlns:form="urn:jsptagdir:/WEB-INF/tags/form" xmlns:jsp="http://java.sun.com/JSP/Page" version="2.0">
+    <jsp:output omit-xml-declaration="yes"/>
+    <form:update id="fu_com_springone_myrestaurants_domain_Recommendation" modelAttribute="recommendation" path="/recommendations" versionField="none">
+        <field:input field="name" id="c_com_springone_myrestaurants_domain_Recommendation_name" z="I2yE+cB7scb12F/C0g48lu2i0QU="/>
+        <field:input field="rating" id="c_com_springone_myrestaurants_domain_Recommendation_rating" validationMessageCode="field_invalid_integer" z="5wkRWtnYYq6Z6+9R4cZWpVuySwQ="/>
+        <field:input field="comments" id="c_com_springone_myrestaurants_domain_Recommendation_comments" z="E/A7yOsZsDji2SnMRY/lAuES9s8="/>
+        <field:input field="restaurantId" id="c_com_springone_myrestaurants_domain_Recommendation_restaurantId" render="true"/>
+    </form:update>
+</div>

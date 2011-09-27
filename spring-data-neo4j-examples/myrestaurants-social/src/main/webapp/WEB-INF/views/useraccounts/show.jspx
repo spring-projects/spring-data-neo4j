@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<div xmlns:field="urn:jsptagdir:/WEB-INF/tags/form/fields" xmlns:jsp="http://java.sun.com/JSP/Page" xmlns:page="urn:jsptagdir:/WEB-INF/tags/form" version="2.0">
+    <jsp:output omit-xml-declaration="yes"/>
+    <page:show id="ps_com_springone_myrestaurants_domain_UserAccount" object="${useraccount}" path="/useraccounts" list="false" create="false" update="false" delete="false">
+        <field:display field="firstName" id="s_com_springone_myrestaurants_domain_UserAccount_firstName" object="${useraccount}"/>
+        <field:display field="lastName" id="s_com_springone_myrestaurants_domain_UserAccount_lastName" object="${useraccount}"/>
+        <field:display field="nickname" id="s_com_springone_myrestaurants_domain_UserAccount_nickname" object="${useraccount}"/>
+        <field:display date="true" dateTimePattern="${userAccount_birthdate_date_format}" field="birthDate" id="s_com_springone_myrestaurants_domain_UserAccount_birthDate" object="${useraccount}"/>
+        <field:display field="favorites" id="s_com_springone_myrestaurants_domain_UserAccount_favorites" object="${useraccount}"/>
+    	<field:display field="userName" id="s_com_springone_myrestaurants_domain_UserAccount_userName" object="${useraccount}"/>
+    </page:show>
+</div>
