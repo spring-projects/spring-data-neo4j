@@ -1,14 +1,16 @@
 package org.neo4j.cineasts.domain;
 
+import org.neo4j.graphdb.Direction;
 import org.neo4j.helpers.collection.IteratorUtil;
-import org.springframework.data.graph.annotation.NodeEntity;
-import org.springframework.data.graph.annotation.RelatedTo;
-import org.springframework.data.graph.annotation.RelatedToVia;
-import org.springframework.data.graph.neo4j.annotation.Indexed;
+import org.springframework.data.neo4j.annotation.NodeEntity;
+import org.springframework.data.neo4j.annotation.RelatedTo;
+import org.springframework.data.neo4j.annotation.RelatedToVia;
+import org.springframework.data.neo4j.annotation.Indexed;
 
 import java.util.*;
 
-import static org.springframework.data.graph.core.Direction.INCOMING;
+import static org.neo4j.graphdb.Direction.INCOMING;
+
 
 /**
  * @author mh

@@ -7,7 +7,7 @@ import org.neo4j.graphdb.traversal.Evaluators;
 import org.neo4j.graphdb.traversal.TraversalDescription;
 import org.neo4j.kernel.Traversal;
 import org.neo4j.kernel.Uniqueness;
-import org.springframework.data.graph.core.EntityPath;
+import org.springframework.data.neo4j.core.EntityPath;
 
 import java.util.HashMap;
 import java.util.Map;

@@ -1,8 +1,8 @@
 package org.neo4j.cineasts.domain;
 
-import org.springframework.data.graph.annotation.EndNode;
-import org.springframework.data.graph.annotation.RelationshipEntity;
-import org.springframework.data.graph.annotation.StartNode;
+import org.springframework.data.neo4j.annotation.EndNode;
+import org.springframework.data.neo4j.annotation.RelationshipEntity;
+import org.springframework.data.neo4j.annotation.StartNode;
 
 /**
  * @author mh
