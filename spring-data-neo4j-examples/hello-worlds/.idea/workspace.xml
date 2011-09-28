@@ -143,22 +143,22 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="helloWorldContext.xml" pinned="false" current="false" current-in-tab="false">
+      <file leaf-file-name="helloWorldContext.xml" pinned="false" current="true" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/main/resources/spring/helloWorldContext.xml">
           <provider editor-type-id="com.intellij.spring.perspectives.SpringBeansStructureEditorProvider">
             <state />
           </provider>
           <provider selected="true" editor-type-id="text-editor">
-            <state line="15" column="110" selection-start="1078" selection-end="1078" vertical-scroll-proportion="-9.636364">
+            <state line="2" column="0" selection-start="56" selection-end="850" vertical-scroll-proportion="0.08547009">
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="79e36199_spring-neo4j-2.0.xsd" pinned="false" current="true" current-in-tab="true">
+      <file leaf-file-name="79e36199_spring-neo4j-2.0.xsd" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$USER_HOME$/Library/Caches/IntelliJIdea11/extResources/79e36199_spring-neo4j-2.0.xsd">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="1" column="67" selection-start="106" selection-end="106" vertical-scroll-proportion="0.038860105">
+            <state line="1" column="67" selection-start="106" selection-end="106" vertical-scroll-proportion="0.0">
               <folding />
             </state>
           </provider>
@@ -596,19 +596,19 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$USER_HOME$/Library/Caches/IntelliJIdea11/extResources/79e36199_spring-neo4j-2.0.xsd">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="1" column="67" selection-start="106" selection-end="106" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/src/main/resources/spring/helloWorldContext.xml">
       <provider editor-type-id="com.intellij.spring.perspectives.SpringBeansStructureEditorProvider">
         <state />
       </provider>
       <provider selected="true" editor-type-id="text-editor">
-        <state line="15" column="110" selection-start="1078" selection-end="1078" vertical-scroll-proportion="-9.636364">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$USER_HOME$/Library/Caches/IntelliJIdea11/extResources/79e36199_spring-neo4j-2.0.xsd">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="1" column="67" selection-start="106" selection-end="106" vertical-scroll-proportion="0.038860105">
+        <state line="2" column="0" selection-start="56" selection-end="850" vertical-scroll-proportion="0.08547009">
           <folding />
         </state>
       </provider>
