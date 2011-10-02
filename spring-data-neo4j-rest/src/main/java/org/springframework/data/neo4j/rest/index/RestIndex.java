@@ -20,8 +20,9 @@ package org.springframework.data.neo4j.rest.index;
 import org.neo4j.graphdb.PropertyContainer;
 import org.neo4j.graphdb.index.Index;
 import org.neo4j.graphdb.index.IndexHits;
+import org.neo4j.helpers.collection.MapUtil;
+import org.neo4j.index.lucene.ValueContext;
 import org.springframework.data.neo4j.rest.*;
-import org.springframework.data.neo4j.support.*;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -53,7 +54,12 @@ public abstract class RestIndex<T extends PropertyContainer> implements Index<T>
 
     public void add( T entity, String key, Object value ) {
         String uri = ( (RestEntity) entity ).getUri();
-        restRequest.post(indexPath(key, value), JsonHelper.createJsonFrom(uri));
+        if (value instanceof ValueContext) {
+            value = ((ValueContext)value).getCorrectValue();
+        }
+        final Map<String, Object> data = MapUtil.map("key", key, "value", value, "uri", uri);
+        final RequestResult result = restRequest.post(indexPath(), JsonHelper.createJsonFrom(data));
+        if (result.getStatus()!=201) throw new RestResultException(restRequest.toMap(result));
     }
 
     protected String indexPath( ) {
@@ -85,6 +91,11 @@ public abstract class RestIndex<T extends PropertyContainer> implements Index<T>
 
     public void delete() {
         restRequest.delete( indexPath( ));
+    }
+
+    @Override
+    public boolean isWriteable() {
+        return true;
     }
 
     public IndexHits<T> get( String key, Object value ) {
@@ -156,5 +167,6 @@ public abstract class RestIndex<T extends PropertyContainer> implements Index<T>
         public void remove() {
 
         }
+
     }
 }

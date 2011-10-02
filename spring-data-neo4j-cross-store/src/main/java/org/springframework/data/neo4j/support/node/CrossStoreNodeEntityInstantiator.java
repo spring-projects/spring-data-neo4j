@@ -17,6 +17,7 @@
 package org.springframework.data.neo4j.support.node;
 
 import org.neo4j.graphdb.Node;
+import org.springframework.data.neo4j.core.NodeBacked;
 import org.springframework.data.neo4j.support.EntityInstantiator;
 import org.springframework.orm.jpa.EntityManagerFactoryUtils;
 
@@ -29,13 +30,13 @@ import javax.persistence.EntityManagerFactory;
  * @author Michael Hunger
  * @since 02.10.2010
  */
-public class PartialNodeEntityInstantiator implements EntityInstantiator<Node> {
+public class CrossStoreNodeEntityInstantiator implements EntityInstantiator<Node> {
 
 	private final NodeEntityInstantiator delegate;
     private EntityManagerFactory entityManagerFactory;
 
 
-    public PartialNodeEntityInstantiator(NodeEntityInstantiator delegate, EntityManagerFactory entityManagerFactory) {
+    public CrossStoreNodeEntityInstantiator(NodeEntityInstantiator delegate, EntityManagerFactory entityManagerFactory) {
 		this.delegate = delegate;
         this.entityManagerFactory = entityManagerFactory;
     }
@@ -50,10 +51,10 @@ public class PartialNodeEntityInstantiator implements EntityInstantiator<Node> {
      * @return
      */
 	public <T> T createEntityFromState(Node n, Class<T> entityClass) {
-        if (n.hasProperty(PartialNodeEntityState.FOREIGN_ID)) {
-            final Object foreignId = n.getProperty(PartialNodeEntityState.FOREIGN_ID);
+        if (n.hasProperty(CrossStoreNodeEntityState.FOREIGN_ID)) {
+            final Object foreignId = n.getProperty(CrossStoreNodeEntityState.FOREIGN_ID);
             final T result = entityManager().find(entityClass, foreignId);
-            result.setPersistentState(n);
+            ((NodeBacked)result).setPersistentState(n);
             return result;
         }
         return delegate.createEntityFromState(n, entityClass);

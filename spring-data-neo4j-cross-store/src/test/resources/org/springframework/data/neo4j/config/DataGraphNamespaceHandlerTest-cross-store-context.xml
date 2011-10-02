@@ -24,6 +24,6 @@
         <property name="password" value=""/>
     </bean>
 
-    <bean id="config" class="org.springframework.data.neo4j.config.DataGraphNamespaceHandlerTest$Config"/>
+    <bean id="config" class="org.springframework.data.neo4j.config.DataGraphNamespaceHandlerCrossStoreTest$Config"/>
 
 </beans>

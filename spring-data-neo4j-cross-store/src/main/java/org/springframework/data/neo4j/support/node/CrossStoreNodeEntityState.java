@@ -38,7 +38,7 @@ import java.util.Collection;
  * @author Michael Hunger
  * @since 21.09.2010
  */
-public class PartialNodeEntityState<ENTITY extends NodeBacked> extends DefaultEntityState<ENTITY, Node> {
+public class CrossStoreNodeEntityState<ENTITY extends NodeBacked> extends DefaultEntityState<Node> {
 
     public static final String FOREIGN_ID = "foreignId";
     public static final String FOREIGN_ID_INDEX = "foreign_id";
@@ -46,7 +46,7 @@ public class PartialNodeEntityState<ENTITY extends NodeBacked> extends DefaultEn
     private final GraphDatabaseContext graphDatabaseContext;
     private PersistenceUnitUtil persistenceUnitUtil;
 
-    public PartialNodeEntityState(final Node underlyingState, final ENTITY entity, final Class<? extends ENTITY> type, final GraphDatabaseContext graphDatabaseContext, PersistenceUnitUtil persistenceUnitUtil, final PartialNodeDelegatingFieldAccessorFactory delegatingFieldAccessorFactory, final Neo4jPersistentEntity<ENTITY> persistentEntity) {
+    public CrossStoreNodeEntityState(final Node underlyingState, final ENTITY entity, final Class<? extends ENTITY> type, final GraphDatabaseContext graphDatabaseContext, PersistenceUnitUtil persistenceUnitUtil, final CrossStoreNodeDelegatingFieldAccessorFactory delegatingFieldAccessorFactory, final Neo4jPersistentEntity persistentEntity) {
     	super(underlyingState, entity, type, delegatingFieldAccessorFactory, persistentEntity);
         this.graphDatabaseContext = graphDatabaseContext;
         this.persistenceUnitUtil = persistenceUnitUtil;
@@ -55,6 +55,7 @@ public class PartialNodeEntityState<ENTITY extends NodeBacked> extends DefaultEn
     // TODO handle non persisted Entity like running outside of an transaction
     @Override
     public void createAndAssignState() {
+        @SuppressWarnings("unchecked") ENTITY entity = (ENTITY) this.entity;
         if (entity.getPersistentState() != null) return;
         try {
             final Object id = getId(entity);
@@ -77,17 +78,18 @@ public class PartialNodeEntityState<ENTITY extends NodeBacked> extends DefaultEn
         }
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public ENTITY persist() {
         if (getPersistentState() == null) {
             createAndAssignState();
         }
-        return entity;
+        return (ENTITY) entity;
     }
 
     @Override
     public boolean isWritable(Field field) {
-        final FieldAccessor<ENTITY> accessor = accessorFor(property(field));
+        final FieldAccessor accessor = accessorFor(property(field));
         if (accessor == null) return false; // difference to default behaviour, we don't care for non-managed fields here
         return accessor.isWriteable(entity);
     }
@@ -112,15 +114,15 @@ public class PartialNodeEntityState<ENTITY extends NodeBacked> extends DefaultEn
         return persistenceUnitUtil!=null ? persistenceUnitUtil.getIdentifier(entity) : null;
     }
 
-    public static class PartialNodeDelegatingFieldAccessorFactory extends DelegatingFieldAccessorFactory {
+    public static class CrossStoreNodeDelegatingFieldAccessorFactory extends DelegatingFieldAccessorFactory {
 
-        public PartialNodeDelegatingFieldAccessorFactory(GraphDatabaseContext graphDatabaseContext) {
+        public CrossStoreNodeDelegatingFieldAccessorFactory(GraphDatabaseContext graphDatabaseContext) {
             super(graphDatabaseContext);
         }
 
         @Override
-        protected Collection<FieldAccessorListenerFactory<?>> createListenerFactories() {
-            return Arrays.<FieldAccessorListenerFactory<?>>asList(
+        protected Collection<FieldAccessorListenerFactory> createListenerFactories() {
+            return Arrays.asList(
                     new IndexingPropertyFieldAccessorListenerFactory(
                             getGraphDatabaseContext(),
                             newPropertyFieldAccessorFactory(),
@@ -134,12 +136,12 @@ public class PartialNodeEntityState<ENTITY extends NodeBacked> extends DefaultEn
         }
 
         @Override
-        protected Collection<? extends FieldAccessorFactory<?>> createAccessorFactories() {
-            return Arrays.<FieldAccessorFactory<?>>asList(
+        protected Collection<? extends FieldAccessorFactory> createAccessorFactories() {
+            return Arrays.asList(
                     //new IdFieldAccessorFactory(),
                     //new TransientFieldAccessorFactory(),
-                    new TraversalFieldAccessorFactory(),
-                    new QueryFieldAccessorFactory(),
+                    new TraversalFieldAccessorFactory(graphDatabaseContext),
+                    new QueryFieldAccessorFactory(graphDatabaseContext),
                     newPropertyFieldAccessorFactory(),
                     newConvertingNodePropertyFieldAccessorFactory(),
                     new SingleRelationshipFieldAccessorFactory(getGraphDatabaseContext()) {
@@ -155,7 +157,7 @@ public class PartialNodeEntityState<ENTITY extends NodeBacked> extends DefaultEn
         }
 
         private ConvertingNodePropertyFieldAccessorFactory newConvertingNodePropertyFieldAccessorFactory() {
-            return new ConvertingNodePropertyFieldAccessorFactory(getGraphDatabaseContext().getConversionService()) {
+            return new ConvertingNodePropertyFieldAccessorFactory(getGraphDatabaseContext()) {
                 @Override
                 public boolean accept(Neo4jPersistentProperty property) {
                     return property.isAnnotationPresent(GraphProperty.class) && super.accept(property);
@@ -164,10 +166,10 @@ public class PartialNodeEntityState<ENTITY extends NodeBacked> extends DefaultEn
         }
 
         private PropertyFieldAccessorFactory newPropertyFieldAccessorFactory() {
-            return new PropertyFieldAccessorFactory(getGraphDatabaseContext().getConversionService()) {
+            return new PropertyFieldAccessorFactory(getGraphDatabaseContext()) {
                 @Override
-                public boolean accept(Neo4jPersistentProperty f) {
-                    return f.isAnnotationPresent(GraphProperty.class) && super.accept(f);
+                public boolean accept(Neo4jPersistentProperty property) {
+                    return property.isAnnotationPresent(GraphProperty.class) && super.accept(property);
                 }
             };
         }

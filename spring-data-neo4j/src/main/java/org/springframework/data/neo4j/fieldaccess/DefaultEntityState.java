@@ -40,9 +40,9 @@ public abstract class DefaultEntityState<STATE> implements EntityState<STATE> {
     private STATE state;
     protected final static Log log= LogFactory.getLog(DefaultEntityState.class);
     private final FieldAccessorFactoryProviders<Object> fieldAccessorFactoryProviders;
-    private final Neo4jPersistentEntity<Object> persistentEntity;
+    private final Neo4jPersistentEntity<?> persistentEntity;
 
-    public DefaultEntityState(final STATE underlyingState, final Object entity, final Class<? extends Object> type, final DelegatingFieldAccessorFactory delegatingFieldAccessorFactory, Neo4jPersistentEntity<Object> persistentEntity) {
+    public DefaultEntityState(final STATE underlyingState, final Object entity, final Class<? extends Object> type, final DelegatingFieldAccessorFactory delegatingFieldAccessorFactory, Neo4jPersistentEntity<?> persistentEntity) {
         this.state = underlyingState;
         this.entity = entity;
         this.type = type;
@@ -79,7 +79,7 @@ public abstract class DefaultEntityState<STATE> implements EntityState<STATE> {
         return state;
     }
 
-    public Neo4jPersistentEntity<Object> getPersistentEntity() {
+    public Neo4jPersistentEntity<?> getPersistentEntity() {
         return persistentEntity;
     }
 

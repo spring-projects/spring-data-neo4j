@@ -20,15 +20,12 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.neo4j.graphdb.Transaction;
 import org.springframework.data.neo4j.core.EntityState;
-
-
 import org.springframework.data.neo4j.mapping.Neo4jPersistentEntity;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.support.GraphDatabaseContext;
 import org.springframework.util.ObjectUtils;
 
 import java.lang.reflect.Field;
-import java.util.Collection;
 import java.util.ConcurrentModificationException;
 import java.util.HashMap;
 import java.util.Map;
@@ -44,7 +41,7 @@ public class DetachedEntityState<STATE> implements EntityState<STATE> {
     protected final EntityState<STATE> delegate;
     private final static Log log = LogFactory.getLog(DetachedEntityState.class);
     private GraphDatabaseContext graphDatabaseContext;
-    private Neo4jPersistentEntity<Object> persistentEntity;
+    private Neo4jPersistentEntity<?> persistentEntity;
 
     public DetachedEntityState(final EntityState<STATE> delegate, GraphDatabaseContext graphDatabaseContext) {
         this.delegate = delegate;
@@ -73,7 +70,7 @@ public class DetachedEntityState<STATE> implements EntityState<STATE> {
     }
 
     @Override
-    public Neo4jPersistentEntity<Object> getPersistentEntity() {
+    public Neo4jPersistentEntity<?> getPersistentEntity() {
         return persistentEntity;
     }
 

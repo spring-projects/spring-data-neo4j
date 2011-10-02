@@ -16,11 +16,11 @@
 
 package org.springframework.data.neo4j.core;
 
-import java.lang.reflect.Field;
-
 import org.springframework.data.neo4j.fieldaccess.FieldAccessor;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentEntity;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
+
+import java.lang.reflect.Field;
 
 /**
  * Interface for classes encapsulating and delegating read and write field access of an GraphBacked entity to a number of field accessors.
@@ -72,5 +72,5 @@ public interface EntityState<STATE> {
 
     Object persist();
 
-    Neo4jPersistentEntity<Object> getPersistentEntity();
+    Neo4jPersistentEntity<?> getPersistentEntity();
 }

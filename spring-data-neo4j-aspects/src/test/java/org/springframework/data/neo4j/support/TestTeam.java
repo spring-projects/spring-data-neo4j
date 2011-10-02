@@ -49,6 +49,7 @@ public class TestTeam {
         sdg.addPerson(michael);
         sdg.addPerson(emil);
         sdg.addPerson(david);
+        sdg.persist();
     }
 
     public Map<String, Object> simpleRowFor(final Person person, String prefix) {

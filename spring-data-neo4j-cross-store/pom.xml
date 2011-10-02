@@ -86,6 +86,35 @@
 			<optional>true</optional>
 		</dependency>
 
+        <dependency>
+            <groupId>org.neo4j</groupId>
+            <artifactId>neo4j-cypher</artifactId>
+            <optional>true</optional>
+        </dependency>
+
+        <dependency>
+            <groupId>org.neo4j</groupId>
+            <artifactId>server-api</artifactId>
+            <optional>true</optional>
+        </dependency>
+
+        <dependency>
+          <groupId>com.tinkerpop.blueprints</groupId>
+          <artifactId>blueprints-core</artifactId>
+          <optional>true</optional>
+        </dependency>
+        <dependency>
+          <groupId>com.tinkerpop.blueprints</groupId>
+          <artifactId>blueprints-neo4j-graph</artifactId>
+          <optional>true</optional>
+        </dependency>
+
+        <dependency>
+          <groupId>com.tinkerpop</groupId>
+          <artifactId>gremlin</artifactId>
+          <optional>true</optional>
+        </dependency>
+
 		<dependency>
 			<groupId>org.mockito</groupId>
 			<artifactId>mockito-all</artifactId>
@@ -204,6 +233,10 @@
 						<aspectLibrary>
 							<groupId>org.springframework</groupId>
 							<artifactId>spring-aspects</artifactId>
+						</aspectLibrary>
+						<aspectLibrary>
+							<groupId>org.springframework.data</groupId>
+							<artifactId>spring-data-neo4j-aspects</artifactId>
 						</aspectLibrary>
 					</aspectLibraries>
 					<source>1.6</source>

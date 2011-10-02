@@ -9,6 +9,7 @@
 	</parent>
     <artifactId>spring-data-neo4j-rest</artifactId>
     <packaging>jar</packaging>
+    <version>2.0.0.BUILD-SNAPSHOT</version>
     <name>Spring Data Neo4j REST Wrapper</name>
     <description><![CDATA[Spring Data Neo4j Wrapper for the Neo4j REST API, provides a Graph Database proxy for the remote invocation.
     ]]></description>
@@ -36,9 +37,10 @@
             <scope>test</scope>
             <type>test-jar</type>
         </dependency>
+
         <dependency>
             <groupId>org.springframework.data</groupId>
-            <artifactId>spring-data-neo4j</artifactId>
+            <artifactId>spring-data-neo4j-aspects</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
@@ -123,6 +125,24 @@
               </exclusion>
           </exclusions>
         </dependency>
+
+        <dependency>
+          <groupId>com.tinkerpop.blueprints</groupId>
+          <artifactId>blueprints-core</artifactId>
+          <optional>true</optional>
+        </dependency>
+        <dependency>
+          <groupId>com.tinkerpop.blueprints</groupId>
+          <artifactId>blueprints-neo4j-graph</artifactId>
+          <optional>true</optional>
+        </dependency>
+
+        <dependency>
+          <groupId>com.tinkerpop</groupId>
+          <artifactId>gremlin</artifactId>
+          <optional>true</optional>
+        </dependency>
+
         <dependency>
             <groupId>commons-configuration</groupId>
             <artifactId>commons-configuration</artifactId>

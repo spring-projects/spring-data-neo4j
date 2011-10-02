@@ -21,7 +21,7 @@ import com.tinkerpop.blueprints.pgm.Vertex;
 import com.tinkerpop.blueprints.pgm.impls.neo4j.Neo4jEdge;
 import com.tinkerpop.blueprints.pgm.impls.neo4j.Neo4jGraph;
 import com.tinkerpop.blueprints.pgm.impls.neo4j.Neo4jVertex;
-import com.tinkerpop.gremlin.pipes.util.Table;
+import com.tinkerpop.pipes.util.Table;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.helpers.collection.IterableWrapper;
 

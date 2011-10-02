@@ -93,15 +93,24 @@
         </property>
         <property name="nodeTypeRepresentationStrategy" ref="nodeTypeRepresentationStrategy"/>
         <property name="relationshipTypeRepresentationStrategy" ref="relationshipTypeRepresentationStrategy"/>
+        <property name="entityStateHandler" ref="entityStateHandler"/>
+        <property name="mappingContext" ref="mappingContext"/>
     </bean>
-    <bean id="graphEntityInstantiator" class="org.springframework.data.neo4j.support.node.PartialNodeEntityInstantiator">
-        <constructor-arg>
-            <bean class="org.springframework.data.neo4j.support.node.NodeEntityInstantiator" />
-        </constructor-arg>
+    <bean id="graphEntityInstantiator" class="org.springframework.data.neo4j.support.node.CrossStoreNodeEntityInstantiator">
+        <constructor-arg ref="nodeEntityInstantiator"/>
         <constructor-arg ref="entityManagerFactory"/>
     </bean>
-    <bean id="relationshipEntityInstantiator"
-          class="org.springframework.data.neo4j.support.relationship.RelationshipEntityInstantiator"/>
+    <bean id="entityStateHandler" class="org.springframework.data.neo4j.support.EntityStateHandler">
+        <constructor-arg ref="mappingContext"/>
+        <constructor-arg ref="graphDatabaseService"/>
+    </bean>
+    <bean id="relationshipEntityInstantiator" class="org.springframework.data.neo4j.support.relationship.RelationshipEntityInstantiator">
+        <constructor-arg ref="entityStateHandler"/>
+    </bean>
+
+    <bean id="nodeEntityInstantiator" class="org.springframework.data.neo4j.support.node.NodeEntityInstantiator">
+        <constructor-arg ref="entityStateHandler"/>
+    </bean>
 
     <bean id="typeRepresentationStrategyFactory" class="org.springframework.data.neo4j.support.typerepresentation.TypeRepresentationStrategyFactory">
         <constructor-arg ref="graphDatabaseService"/>
@@ -112,7 +121,7 @@
     <bean id="nodeTypeRepresentationStrategy" factory-bean="typeRepresentationStrategyFactory" factory-method="getNodeTypeRepresentationStrategy" />
     <bean id="relationshipTypeRepresentationStrategy" factory-bean="typeRepresentationStrategyFactory" factory-method="getRelationshipTypeRepresentationStrategy"/>
 
-    <bean id="nodeEntityStateFactory" class="org.springframework.data.neo4j.support.node.NodeEntityStateFactory">
+    <bean id="nodeEntityStateFactory" class="org.springframework.data.neo4j.support.node.CrossStoreNodeEntityStateFactory">
     	<property name="nodeDelegatingFieldAccessorFactory">
 		    <bean class="org.springframework.data.neo4j.fieldaccess.NodeDelegatingFieldAccessorFactory">
 		        <constructor-arg ref="graphDatabaseContext"/>

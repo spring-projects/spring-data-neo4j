@@ -30,7 +30,7 @@ public class NodeEntityStateFactory {
 
 	protected GraphDatabaseContext graphDatabaseContext;
 
-    private DelegatingFieldAccessorFactory nodeDelegatingFieldAccessorFactory;
+    protected DelegatingFieldAccessorFactory nodeDelegatingFieldAccessorFactory;
 
     protected Neo4jMappingContext mappingContext;
 

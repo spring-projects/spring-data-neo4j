@@ -44,8 +44,8 @@ public class RestGremlinQueryEngine implements QueryEngine<Object> {
 
     @Override
     public QueryResult<Object> query(String statement, Map<String, Object> params) {
-        final String paramsString = JsonHelper.createJsonFrom(params == null ? Collections.emptyMap() : params);
-        final String data = JsonHelper.createJsonFrom(MapUtil.map("script", statement,"params",paramsString));
+        //final String paramsString = JsonHelper.createJsonFrom(params == null ? Collections.emptyMap() : params);
+        final String data = JsonHelper.createJsonFrom(MapUtil.map("script", statement,"params",params));
         final RequestResult requestResult = restRequest.get("ext/GremlinPlugin/graphdb/execute_script", data);
         final Object result = JsonHelper.readJson(requestResult.getEntity());
         if (requestResult.getStatus() == 500) {

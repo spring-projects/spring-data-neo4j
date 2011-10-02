@@ -36,6 +36,7 @@ import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.support.query.CypherQueryExecutor;
 import org.springframework.data.util.TypeInformation;
 
+import javax.annotation.PostConstruct;
 import javax.transaction.Status;
 import javax.transaction.SystemException;
 import javax.transaction.TransactionManager;
@@ -299,8 +300,12 @@ public class GraphDatabaseContext {
 
 	public void setGraphDatabaseService(GraphDatabaseService graphDatabaseService) {
 		this.graphDatabaseService = graphDatabaseService;
-        this.cypherQueryExecutor = new CypherQueryExecutor(this);
 	}
+
+    @PostConstruct
+    public void createCypherExecutor() {
+        this.cypherQueryExecutor = new CypherQueryExecutor(this);
+    }
 
     public NodeTypeRepresentationStrategy getNodeTypeRepresentationStrategy() {
         return nodeTypeRepresentationStrategy;

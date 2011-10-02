@@ -27,6 +27,7 @@ import org.springframework.core.convert.ConversionService;
 import org.springframework.data.neo4j.Person;
 import org.springframework.data.neo4j.Personality;
 import org.springframework.data.neo4j.annotation.QueryType;
+import org.springframework.data.neo4j.conversion.QueryResult;
 import org.springframework.data.neo4j.conversion.ResultConverter;
 import org.springframework.data.neo4j.core.GraphDatabase;
 import org.springframework.data.neo4j.core.NodeBacked;
@@ -96,7 +97,8 @@ public class QueryEngineTest {
     @Test
     public void testQueryListOfTypeNode() throws Exception {
         final String queryString = "start person=(name_index,name,\"%name\") match (person) <-[:boss]- (boss) return boss";
-        final Collection<Node> result = IteratorUtil.asCollection(queryEngine.query(queryString, michaelsName()).to(Node.class));
+        final QueryResult<Map<String,Object>> queryResult = queryEngine.query(queryString, michaelsName());
+        final Collection<Node> result = IteratorUtil.asCollection(queryResult.to(Node.class));
 
         assertEquals(asList(nodeFor(testTeam.emil)),result);
     }

@@ -24,7 +24,6 @@ import org.codehaus.jackson.map.ObjectMapper;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.springframework.data.neo4j.Person;
-import org.springframework.data.neo4j.Person;
 import org.springframework.data.neo4j.rest.RequestResult;
 import org.springframework.data.neo4j.server.ProvidedClassPathXmlApplicationContext;
 
