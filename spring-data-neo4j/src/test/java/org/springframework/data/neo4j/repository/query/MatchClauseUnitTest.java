@@ -28,7 +28,7 @@ import org.neo4j.graphdb.Direction;
 import org.springframework.data.neo4j.annotation.Indexed;
 import org.springframework.data.neo4j.annotation.NodeEntity;
 import org.springframework.data.neo4j.annotation.RelatedTo;
-import org.springframework.data.neo4j.mapping.Neo4JMappingContext;
+import org.springframework.data.neo4j.mapping.Neo4jMappingContext;
 import org.springframework.data.repository.query.parser.Property;
 
 /**
@@ -37,11 +37,11 @@ import org.springframework.data.repository.query.parser.Property;
  */
 public class MatchClauseUnitTest {
 
-	Neo4JMappingContext context;
+	Neo4jMappingContext context;
 
 	@Before
 	public void setUp() {
-		context = new Neo4JMappingContext();
+		context = new Neo4jMappingContext();
 		context.setInitialEntitySet(Collections.singleton(Person.class));
 		context.afterPropertiesSet();
 	}

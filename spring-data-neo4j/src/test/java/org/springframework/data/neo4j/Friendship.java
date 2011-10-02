@@ -17,13 +17,10 @@
 package org.springframework.data.neo4j;
 
 
-import java.util.Date;
-
-import org.springframework.data.neo4j.annotation.EndNode;
-import org.springframework.data.neo4j.annotation.Indexed;
-import org.springframework.data.neo4j.annotation.RelationshipEntity;
-import org.springframework.data.neo4j.annotation.StartNode;
+import org.springframework.data.neo4j.annotation.*;
 import org.springframework.data.neo4j.fieldaccess.DynamicProperties;
+
+import java.util.Date;
 
 @RelationshipEntity(useShortNames = false)
 public class Friendship {
@@ -48,6 +45,9 @@ public class Friendship {
 	@EndNode
 	private Person p2;
 
+    @RelationshipType
+    private String type;
+
     @Indexed
 	private int years;
 
@@ -56,8 +56,14 @@ public class Friendship {
 	private DynamicProperties personalProperties;
 	
 	private transient String latestLocation;
-	
-	public void setPerson1(Person p) {
+
+    public Friendship(Person start, Person end, String type) {
+        this.p1 = start;
+        this.p2 = end;
+        this.type = type;
+    }
+
+    public void setPerson1(Person p) {
 		p1 = p;
 	}
 	

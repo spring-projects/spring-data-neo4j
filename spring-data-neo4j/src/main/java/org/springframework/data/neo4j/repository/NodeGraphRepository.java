@@ -18,10 +18,10 @@ package org.springframework.data.neo4j.repository;
 
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.traversal.TraversalDescription;
-import org.springframework.data.neo4j.core.NodeBacked;
+
 import org.springframework.data.neo4j.support.GraphDatabaseContext;
 
-public class NodeGraphRepository<T extends NodeBacked> extends AbstractGraphRepository<Node, T> implements GraphRepository<T> {
+public class NodeGraphRepository<T> extends AbstractGraphRepository<Node, T> implements GraphRepository<T> {
 
     public NodeGraphRepository(final Class<T> clazz, final GraphDatabaseContext graphDatabaseContext) {
         super(graphDatabaseContext, clazz);
@@ -33,13 +33,13 @@ public class NodeGraphRepository<T extends NodeBacked> extends AbstractGraphRepo
     }
 
     @Override
-    public <N extends NodeBacked> Iterable<T> findAllByTraversal(final N startNode, final TraversalDescription traversalDescription) {
-        return (Iterable<T>) startNode.findAllByTraversal((Class<? extends NodeBacked>) clazz, traversalDescription);
+    public <N> Iterable<T> findAllByTraversal(final N start, final TraversalDescription traversalDescription) {
+        return graphDatabaseContext.findAllByTraversal(start, clazz, traversalDescription);
     }
 
     @Override
     public T save(T entity) {
-        return (T) ((NodeBacked)entity).persist();
+        return (T)graphDatabaseContext.save(entity);
     }
 
     @Override

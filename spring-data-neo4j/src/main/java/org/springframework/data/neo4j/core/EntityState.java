@@ -19,8 +19,8 @@ package org.springframework.data.neo4j.core;
 import java.lang.reflect.Field;
 
 import org.springframework.data.neo4j.fieldaccess.FieldAccessor;
-import org.springframework.data.neo4j.mapping.Neo4JPersistentEntity;
-import org.springframework.data.neo4j.mapping.Neo4JPersistentProperty;
+import org.springframework.data.neo4j.mapping.Neo4jPersistentEntity;
+import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 
 /**
  * Interface for classes encapsulating and delegating read and write field access of an GraphBacked entity to a number of field accessors.
@@ -28,8 +28,8 @@ import org.springframework.data.neo4j.mapping.Neo4JPersistentProperty;
  * @author Michael Hunger
  * @since 15.09.2010
  */
-public interface EntityState<ENTITY extends GraphBacked<STATE>,STATE> {
-    ENTITY getEntity();
+public interface EntityState<STATE> {
+    Object getEntity();
 
     void setPersistentState(STATE state);
 
@@ -58,7 +58,7 @@ public interface EntityState<ENTITY extends GraphBacked<STATE>,STATE> {
      * @return sets the value in the entity and/or the state
      */
     Object setValue(Field field, Object newVal);
-    Object setValue(Neo4JPersistentProperty property, Object newVal);
+    Object setValue(Neo4jPersistentProperty property, Object newVal);
 
     /**
      * callback for creating and initializing an initial state
@@ -70,7 +70,7 @@ public interface EntityState<ENTITY extends GraphBacked<STATE>,STATE> {
     boolean hasPersistentState();
     STATE getPersistentState();
 
-    ENTITY persist();
+    Object persist();
 
-    Neo4JPersistentEntity<ENTITY> getPersistentEntity();
+    Neo4jPersistentEntity<Object> getPersistentEntity();
 }

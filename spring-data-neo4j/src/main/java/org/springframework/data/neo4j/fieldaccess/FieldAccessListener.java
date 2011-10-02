@@ -18,10 +18,8 @@ package org.springframework.data.neo4j.fieldaccess;
 
 /**
  * interface for listeners for field modifications, used for instance for indexing or tracing
- * @param <ENTITY>
- * @param <TARGET>
  */
-public interface FieldAccessListener<ENTITY, TARGET> {
+public interface FieldAccessListener {
 
     /**
      * callback method after modifying field write operation
@@ -29,6 +27,6 @@ public interface FieldAccessListener<ENTITY, TARGET> {
      * @param oldVal
      * @param newVal
      */
-	void valueChanged(ENTITY entity, Object oldVal, Object newVal);
+	void valueChanged(Object entity, Object oldVal, Object newVal);
 
 }

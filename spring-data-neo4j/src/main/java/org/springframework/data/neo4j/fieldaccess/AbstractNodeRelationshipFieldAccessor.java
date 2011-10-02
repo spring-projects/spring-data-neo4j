@@ -18,9 +18,10 @@ package org.springframework.data.neo4j.fieldaccess;
 
 import org.neo4j.graphdb.*;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
-import org.springframework.data.neo4j.core.GraphBacked;
-import org.springframework.data.neo4j.mapping.Neo4JPersistentProperty;
+
+import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.support.GraphDatabaseContext;
+import org.springframework.util.Assert;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -29,14 +30,14 @@ import java.util.Set;
  * @author Michael Hunger
  * @since 11.09.2010
  */
-public abstract class AbstractNodeRelationshipFieldAccessor<ENTITY extends GraphBacked,STATE extends PropertyContainer,TARGET extends GraphBacked,TSTATE extends PropertyContainer> implements FieldAccessor<ENTITY> {
+public abstract class AbstractNodeRelationshipFieldAccessor<STATE extends PropertyContainer,TSTATE extends PropertyContainer> implements FieldAccessor {
     protected final RelationshipType type;
-    protected final Neo4JPersistentProperty property;
+    protected final Neo4jPersistentProperty property;
     protected final Direction direction;
-    protected final Class<? extends TARGET> relatedType;
+    protected final Class<?> relatedType;
     protected final GraphDatabaseContext graphDatabaseContext;
 
-    public AbstractNodeRelationshipFieldAccessor(Class<? extends TARGET> clazz, GraphDatabaseContext graphDatabaseContext, Direction direction, RelationshipType type, Neo4JPersistentProperty property) {
+    public AbstractNodeRelationshipFieldAccessor(Class<?> clazz, GraphDatabaseContext graphDatabaseContext, Direction direction, RelationshipType type, Neo4jPersistentProperty property) {
         this.relatedType = clazz;
         this.graphDatabaseContext = graphDatabaseContext;
         this.direction = direction;
@@ -45,11 +46,11 @@ public abstract class AbstractNodeRelationshipFieldAccessor<ENTITY extends Graph
     }
 
     @Override
-    public boolean isWriteable(ENTITY entity) {
+    public boolean isWriteable(Object entity) {
         return true;
     }
 
-    protected STATE checkUnderlyingNode(ENTITY entity) {
+    protected STATE checkUnderlyingNode(Object entity) {
         if (entity==null) throw new IllegalStateException("Entity is null");
         STATE node = getState(entity);
         if (node != null) return node;
@@ -68,7 +69,7 @@ public abstract class AbstractNodeRelationshipFieldAccessor<ENTITY extends Graph
             createSingleRelationship(node,targetNode);
         }
     }
-
+    // adding cascade
     protected Set<STATE> checkTargetIsSetOfNodebacked(Object newVal) {
         if (!(newVal instanceof Set)) {
             throw new IllegalArgumentException("New value must be a Set, was: " + newVal.getClass());
@@ -78,20 +79,30 @@ public abstract class AbstractNodeRelationshipFieldAccessor<ENTITY extends Graph
             if (!relatedType.isInstance(value)) {
                 throw new IllegalArgumentException("New value elements must be "+relatedType);
             }
-            nodes.add(getState((ENTITY)value));
+//            nodes.add(getState(value));
+              nodes.add(getOrCreateState(value));
         }
         return nodes;
     }
 
-    protected ManagedFieldAccessorSet<ENTITY,TARGET> createManagedSet(ENTITY entity, Set<TARGET> result) {
-        return new ManagedFieldAccessorSet<ENTITY,TARGET>(entity, result, property);
+    protected STATE getOrCreateState(Object value) {
+        final STATE state = getState(value);
+        if (state != null) return state;
+        final Object saved = graphDatabaseContext.save(value);
+        final STATE newState = getState(saved);
+        Assert.notNull(newState);
+        return newState;
     }
 
-    protected Set<TARGET> createEntitySetFromRelationshipEndNodes(ENTITY entity) {
+    protected <T> ManagedFieldAccessorSet<T> createManagedSet(Object entity, Set<T> result) {
+        return new ManagedFieldAccessorSet<T>(entity, result, property,graphDatabaseContext,this);
+    }
+
+    protected Set<Object> createEntitySetFromRelationshipEndNodes(Object entity) {
         final Iterable<TSTATE> nodes = getStatesFromEntity(entity);
-        final Set<TARGET> result = new HashSet<TARGET>();
+        final Set<Object> result = new HashSet<Object>();
         for (final TSTATE otherNode : nodes) {
-            TARGET target=graphDatabaseContext.createEntityFromState(otherNode, relatedType);
+            Object target=graphDatabaseContext.createEntityFromState(otherNode, relatedType);
             result.add(target);
 		}
         return result;
@@ -119,7 +130,8 @@ public abstract class AbstractNodeRelationshipFieldAccessor<ENTITY extends Graph
 	
     protected abstract Relationship obtainSingleRelationship(STATE start, TSTATE end);
 
-    protected abstract Iterable<TSTATE> getStatesFromEntity(ENTITY entity);
+    protected abstract Iterable<TSTATE> getStatesFromEntity(Object entity);
 
-    protected abstract STATE getState(ENTITY entity);
+    protected abstract STATE
+    getState(Object entity);
 }

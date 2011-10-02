@@ -18,6 +18,6 @@ package org.springframework.data.neo4j.core;
 
 import org.neo4j.graphdb.Relationship;
 
-public interface RelationshipTypeRepresentationStrategy extends TypeRepresentationStrategy<Relationship, RelationshipBacked> {
+public interface RelationshipTypeRepresentationStrategy extends TypeRepresentationStrategy<Relationship> {
 
 }

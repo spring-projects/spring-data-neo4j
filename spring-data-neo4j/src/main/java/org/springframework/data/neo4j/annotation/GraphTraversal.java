@@ -22,7 +22,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 import org.springframework.data.neo4j.core.FieldTraversalDescriptionBuilder;
-import org.springframework.data.neo4j.core.NodeBacked;
+
 
 /**
  * Field that provides access to an iterator which is created by applying the traversal that is built by the supplied
@@ -41,12 +41,13 @@ public @interface GraphTraversal {
     /**
      * @return Builder for the {@link org.neo4j.graphdb.traversal.TraversalDescription} to be applied
      */
-    Class<? extends FieldTraversalDescriptionBuilder> traversalBuilder() default FieldTraversalDescriptionBuilder.class;
+    // FQN is a fix for javac compiler bug
+    Class<? extends org.springframework.data.neo4j.core.FieldTraversalDescriptionBuilder> traversalBuilder() default org.springframework.data.neo4j.core.FieldTraversalDescriptionBuilder.class;
 
     /**
      * @return target graph entity to be iterated over.
      */
-    Class<? extends NodeBacked> elementClass() default NodeBacked.class;
+    Class<?> elementClass() default Object.class;
 
     /**
      * @return parameters that are passed to the @see FieldTraversalDescriptionBuilder#build

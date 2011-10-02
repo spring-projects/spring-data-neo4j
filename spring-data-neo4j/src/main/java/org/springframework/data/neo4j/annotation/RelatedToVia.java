@@ -23,7 +23,7 @@ import java.lang.annotation.Target;
 
 import org.neo4j.graphdb.Direction;
 import org.springframework.data.annotation.Reference;
-import org.springframework.data.neo4j.core.RelationshipBacked;
+
 
 /**
  * Annotation for {@link org.springframework.data.neo4j.annotation.NodeEntity} fields that relate to other entities via
@@ -49,10 +49,11 @@ public @interface RelatedToVia {
     /**
      * @return direction for the relationship, by default outgoing
      */
-    Direction direction() default Direction.OUTGOING;
+    // FQN is a fix for javac compiler bug http://bugs.sun.com/view_bug.do?bug_id=6512707
+    org.neo4j.graphdb.Direction direction() default org.neo4j.graphdb.Direction.OUTGOING;
 
     /**
      * @return target relationship entity class
      */
-    Class<? extends RelationshipBacked> elementClass() default RelationshipBacked.class;
+    Class<?> elementClass() default Object.class;
 }

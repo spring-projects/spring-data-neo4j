@@ -19,7 +19,7 @@ package org.springframework.data.neo4j.repository.query;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.springframework.data.neo4j.mapping.Neo4JMappingContext;
+import org.springframework.data.neo4j.mapping.Neo4jMappingContext;
 import org.springframework.data.repository.query.parser.Part;
 import org.springframework.data.util.TypeInformation;
 import org.springframework.util.Assert;
@@ -34,12 +34,12 @@ public class CypherQuery {
 
     private final String TEMPLATE = "start %s match % where %";
 
-    private final Neo4JMappingContext context;
+    private final Neo4jMappingContext context;
     private final TypeInformation<?> rootType;
 
     private final Set<MatchClause> matchClauses;
 
-    public CypherQuery(TypeInformation<?> rootType, Neo4JMappingContext context) {
+    public CypherQuery(TypeInformation<?> rootType, Neo4jMappingContext context) {
 
         Assert.notNull(rootType);
         Assert.notNull(context);

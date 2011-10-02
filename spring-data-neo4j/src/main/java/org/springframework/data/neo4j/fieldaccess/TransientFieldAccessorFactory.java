@@ -17,17 +17,17 @@
 package org.springframework.data.neo4j.fieldaccess;
 
 import org.neo4j.graphdb.PropertyContainer;
-import org.springframework.data.neo4j.core.GraphBacked;
-import org.springframework.data.neo4j.mapping.Neo4JPersistentProperty;
 
-public class TransientFieldAccessorFactory implements FieldAccessorFactory<GraphBacked<PropertyContainer>> {
+import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
+
+public class TransientFieldAccessorFactory implements FieldAccessorFactory {
     @Override
-    public boolean accept(final Neo4JPersistentProperty property) {
+    public boolean accept(final Neo4jPersistentProperty property) {
         return property.isTransient();
     }
 
     @Override
-    public FieldAccessor<GraphBacked<PropertyContainer>> forField(final Neo4JPersistentProperty property) {
+    public FieldAccessor forField(final Neo4jPersistentProperty property) {
         return new TransientFieldAccessor(property);
     }
 
@@ -35,25 +35,25 @@ public class TransientFieldAccessorFactory implements FieldAccessorFactory<Graph
      * @author Michael Hunger
      * @since 12.09.2010
      */
-    public static class TransientFieldAccessor implements FieldAccessor<GraphBacked<PropertyContainer>> {
-        protected final Neo4JPersistentProperty property;
+    public static class TransientFieldAccessor implements FieldAccessor {
+        protected final Neo4jPersistentProperty property;
 
-        public TransientFieldAccessor(final Neo4JPersistentProperty property) {
+        public TransientFieldAccessor(final Neo4jPersistentProperty property) {
             this.property = property;
         }
 
         @Override
-        public Object setValue(final GraphBacked<PropertyContainer> graphBacked, final Object newVal) {
+        public Object setValue(final Object entity, final Object newVal) {
             return newVal;
         }
 
         @Override
-        public boolean isWriteable(final GraphBacked<PropertyContainer> graphBacked) {
+        public boolean isWriteable(final Object entity) {
             return true;
         }
 
         @Override
-        public Object getValue(final GraphBacked<PropertyContainer> graphBacked) {
+        public Object getValue(final Object entity) {
             return null;
         }
 

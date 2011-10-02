@@ -17,7 +17,8 @@
 package org.springframework.data.neo4j.repository;
 
 import org.neo4j.graphdb.PropertyContainer;
-import org.springframework.data.neo4j.core.GraphBacked;
+
+import org.springframework.data.neo4j.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.support.GraphDatabaseContext;
 import org.springframework.data.repository.core.support.RepositoryFactorySupport;
 import org.springframework.data.repository.core.support.TransactionalRepositoryFactoryBeanSupport;
@@ -27,7 +28,7 @@ import org.springframework.util.Assert;
  * @author mh
  * @since 28.03.11
  */
-public class GraphRepositoryFactoryBean<S extends PropertyContainer, R extends CRUDRepository<T>, T extends GraphBacked<S>>
+public class GraphRepositoryFactoryBean<S extends PropertyContainer, R extends CRUDRepository<T>, T>
         extends TransactionalRepositoryFactoryBeanSupport<R, T, Long> {
 
     private GraphDatabaseContext graphDatabaseContext;
@@ -36,10 +37,8 @@ public class GraphRepositoryFactoryBean<S extends PropertyContainer, R extends C
         this.graphDatabaseContext = graphDatabaseContext;
     }
 
-
     @Override
     protected RepositoryFactorySupport doCreateRepositoryFactory() {
-
         return createRepositoryFactory(graphDatabaseContext);
     }
 

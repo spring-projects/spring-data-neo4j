@@ -19,55 +19,35 @@ package org.springframework.data.neo4j.support.node;
 import org.neo4j.graphdb.Node;
 import org.springframework.data.neo4j.annotation.NodeEntity;
 import org.springframework.data.neo4j.core.EntityState;
-import org.springframework.data.neo4j.core.NodeBacked;
+
 import org.springframework.data.neo4j.fieldaccess.DelegatingFieldAccessorFactory;
 import org.springframework.data.neo4j.fieldaccess.DetachedEntityState;
-import org.springframework.data.neo4j.mapping.Neo4JMappingContext;
-import org.springframework.data.neo4j.mapping.Neo4JPersistentEntity;
+import org.springframework.data.neo4j.mapping.Neo4jMappingContext;
+import org.springframework.data.neo4j.mapping.Neo4jPersistentEntity;
 import org.springframework.data.neo4j.support.GraphDatabaseContext;
-
-import javax.annotation.PostConstruct;
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.PersistenceUnitUtil;
 
 public class NodeEntityStateFactory {
 
-	private GraphDatabaseContext graphDatabaseContext;
-	
-    private EntityManagerFactory entityManagerFactory;
+	protected GraphDatabaseContext graphDatabaseContext;
 
-    private DelegatingFieldAccessorFactory<NodeBacked> nodeDelegatingFieldAccessorFactory;
+    private DelegatingFieldAccessorFactory nodeDelegatingFieldAccessorFactory;
 
-    private PartialNodeEntityState.PartialNodeDelegatingFieldAccessorFactory delegatingFieldAccessorFactory;
+    protected Neo4jMappingContext mappingContext;
 
-    private Neo4JMappingContext mappingContext;
+    private boolean createDetachableEntities = true;
 
-    public EntityState<NodeBacked,Node> getEntityState(final NodeBacked entity) {
-        final Class<? extends NodeBacked> entityType = entity.getClass();
+    public EntityState<Node> getEntityState(final Object entity) {
+        final Class<?> entityType = entity.getClass();
         final NodeEntity graphEntityAnnotation = entityType.getAnnotation(NodeEntity.class); // todo cache ??
-        final Neo4JPersistentEntity<?> persistentEntity = mappingContext.getPersistentEntity(entityType);
-        if (graphEntityAnnotation.partial()) {
-            final PartialNodeEntityState<NodeBacked> partialNodeEntityState = new PartialNodeEntityState<NodeBacked>(null, entity, entityType, graphDatabaseContext, getPersistenceUnitUtils(), delegatingFieldAccessorFactory, (Neo4JPersistentEntity<NodeBacked>) persistentEntity);
-            return new DetachedEntityState<NodeBacked, Node>(partialNodeEntityState, graphDatabaseContext) {
-                @Override
-                protected boolean isDetached() {
-                    return super.isDetached() || partialNodeEntityState.getId(entity) == null;
-                }
-            };
-        } else {
-            NodeEntityState<NodeBacked> nodeEntityState = new NodeEntityState<NodeBacked>(null, entity, entityType, graphDatabaseContext, nodeDelegatingFieldAccessorFactory, (Neo4JPersistentEntity<NodeBacked>) persistentEntity);
-            // alternative was return new NestedTransactionEntityState<NodeBacked, Node>(nodeEntityState,graphDatabaseContext);
-            return new DetachedEntityState<NodeBacked, Node>(nodeEntityState, graphDatabaseContext);
-        }
-    }
-
-    private PersistenceUnitUtil getPersistenceUnitUtils() {
-        if (entityManagerFactory == null) return null;
-        return entityManagerFactory.getPersistenceUnitUtil();
+        final Neo4jPersistentEntity<?> persistentEntity = mappingContext.getPersistentEntity(entityType);
+        NodeEntityState nodeEntityState = new NodeEntityState(null, entity, entityType, graphDatabaseContext, nodeDelegatingFieldAccessorFactory, (Neo4jPersistentEntity) persistentEntity);
+        // alternative was return new NestedTransactionEntityState<NodeBacked, Node>(nodeEntityState,graphDatabaseContext);
+        if (createDetachableEntities) return new DetachedEntityState<Node>(nodeEntityState, graphDatabaseContext);
+        return nodeEntityState;
     }
 
     public void setNodeDelegatingFieldAccessorFactory(
-    		DelegatingFieldAccessorFactory<NodeBacked> nodeDelegatingFieldAccessorFactory) {
+    		DelegatingFieldAccessorFactory nodeDelegatingFieldAccessorFactory) {
 		this.nodeDelegatingFieldAccessorFactory = nodeDelegatingFieldAccessorFactory;
 	}
 	
@@ -75,24 +55,19 @@ public class NodeEntityStateFactory {
 		this.graphDatabaseContext = graphDatabaseContext;
 	}
 
-    public void setEntityManagerFactory(EntityManagerFactory entityManagerFactory) {
-        this.entityManagerFactory = entityManagerFactory;
-    }
-
-    public Neo4JMappingContext getMappingContext() {
+    public Neo4jMappingContext getMappingContext() {
         return mappingContext;
     }
 
-    public void setMappingContext(Neo4JMappingContext mappingContext) {
+    public void setMappingContext(Neo4jMappingContext mappingContext) {
         this.mappingContext = mappingContext;
-    }
-
-    @PostConstruct
-    private void setUp() {
-         this.delegatingFieldAccessorFactory = new PartialNodeEntityState.PartialNodeDelegatingFieldAccessorFactory(graphDatabaseContext);
     }
 
     public GraphDatabaseContext getGraphDatabaseContext() {
         return graphDatabaseContext;
+    }
+
+    public void setCreateDetachableEntities(boolean createDetachableEntities) {
+        this.createDetachableEntities = createDetachableEntities;
     }
 }

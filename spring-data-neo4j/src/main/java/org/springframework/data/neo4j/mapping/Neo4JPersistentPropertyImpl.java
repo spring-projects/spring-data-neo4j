@@ -20,10 +20,11 @@ import org.springframework.core.convert.ConversionService;
 import org.springframework.data.mapping.Association;
 import org.springframework.data.mapping.PersistentEntity;
 import org.springframework.data.mapping.model.AbstractPersistentProperty;
+import org.springframework.data.mapping.model.MappingException;
 import org.springframework.data.mapping.model.SimpleTypeHolder;
 import org.springframework.data.neo4j.annotation.*;
-import org.springframework.data.neo4j.core.NodeBacked;
-import org.springframework.data.neo4j.core.RelationshipBacked;
+
+
 import org.springframework.data.util.TypeInformation;
 
 import java.beans.PropertyDescriptor;
@@ -34,20 +35,20 @@ import java.util.IdentityHashMap;
 import java.util.Map;
 
 /**
- * Implementation of {@link Neo4JPersistentProperty}.
+ * Implementation of {@link Neo4jPersistentProperty}.
  *
  * @author Oliver Gierke
  */
-class Neo4JPersistentPropertyImpl extends AbstractPersistentProperty<Neo4JPersistentProperty> implements
-        Neo4JPersistentProperty {
+class Neo4jPersistentPropertyImpl extends AbstractPersistentProperty<Neo4jPersistentProperty> implements
+        Neo4jPersistentProperty {
 
     private final RelationshipInfo relationshipInfo;
     private final boolean isIdProperty;
     private IndexInfo indexInfo;
     private Map<Class<? extends Annotation>, ? extends Annotation> annotations;
 
-    public Neo4JPersistentPropertyImpl(Field field, PropertyDescriptor propertyDescriptor,
-                                       PersistentEntity<?, Neo4JPersistentProperty> owner, SimpleTypeHolder simpleTypeHolder) {
+    public Neo4jPersistentPropertyImpl(Field field, PropertyDescriptor propertyDescriptor,
+                                       PersistentEntity<?, Neo4jPersistentProperty> owner, SimpleTypeHolder simpleTypeHolder) {
         super(field, propertyDescriptor, owner, simpleTypeHolder);
         this.annotations = extractAnnotations(field);
         this.relationshipInfo = extractRelationshipInfo(field);
@@ -91,9 +92,13 @@ class Neo4JPersistentPropertyImpl extends AbstractPersistentProperty<Neo4JPersis
     }
 
     @Override
-    public void setValue(Object entity, Object newValue) throws IllegalAccessException {
-        field.setAccessible(true);
-        field.set(entity, newValue);
+    public void setValue(Object entity, Object newValue) {
+        try {
+            if (!field.isAccessible()) field.setAccessible(true);
+            field.set(entity, newValue);
+        } catch (IllegalAccessException e) {
+            throw new MappingException("Could not access field "+field+" for setting value "+newValue+" on "+this);
+        }
     }
 
     private static boolean hasAnnotation(TypeInformation<?> typeInformation, final Class<NodeEntity> annotationClass) {
@@ -106,8 +111,8 @@ class Neo4JPersistentPropertyImpl extends AbstractPersistentProperty<Neo4JPersis
     }
 
     @Override
-    protected Association<Neo4JPersistentProperty> createAssociation() {
-        return new Association<Neo4JPersistentProperty>(this, null);
+    protected Association<Neo4jPersistentProperty> createAssociation() {
+        return new Association<Neo4jPersistentProperty>(this, null);
     }
 
     @Override
@@ -131,16 +136,14 @@ class Neo4JPersistentPropertyImpl extends AbstractPersistentProperty<Neo4JPersis
     }
 
     public String getNeo4jPropertyName() {
-        final Neo4JPersistentEntity entityClass = (Neo4JPersistentEntity) getOwner();
+        final Neo4jPersistentEntity entityClass = (Neo4jPersistentEntity) getOwner();
         if (entityClass.useShortNames()) return getName();
         return String.format("%s.%s", entityClass.getType().getSimpleName(), getName());
     }
 
+
     public boolean isSimpleValueField() {
-        final Class<?> type = getType();
-        if (Iterable.class.isAssignableFrom(type) || NodeBacked.class.isAssignableFrom(type) || RelationshipBacked.class.isAssignableFrom(type))
-            return false;
-        return true;
+        return !(getTypeInformation().isCollectionLike() || isRelationship());
     }
 
     public boolean isSerializableField(final ConversionService conversionService) {
@@ -175,10 +178,14 @@ class Neo4JPersistentPropertyImpl extends AbstractPersistentProperty<Neo4JPersis
         return annotations.values();
     }
 
-    public Object getValue(final Object entity) throws IllegalAccessException {
-        final Field field = getField();
-        field.setAccessible(true);
-        return field.get(entity);
+    public Object getValue(final Object entity) {
+        try {
+            final Field field = getField();
+            if (!field.isAccessible()) field.setAccessible(true);
+            return field.get(entity);
+        } catch (IllegalAccessException e) {
+            throw new MappingException("Could not access field "+field);
+        }
     }
 
 
@@ -207,5 +214,10 @@ class Neo4JPersistentPropertyImpl extends AbstractPersistentProperty<Neo4JPersis
     @Override
     public String toString() {
         return getType() +" "+ getName() + " rel: "+isRelationship()+ " idx: "+isIndexed();
+    }
+
+    @Override
+    public Neo4jPersistentEntity<?> getOwner() {
+        return (Neo4jPersistentEntity<?>)super.getOwner();
     }
 }

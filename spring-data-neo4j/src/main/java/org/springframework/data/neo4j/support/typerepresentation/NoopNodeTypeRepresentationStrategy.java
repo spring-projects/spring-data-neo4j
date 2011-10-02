@@ -18,22 +18,30 @@ package org.springframework.data.neo4j.support.typerepresentation;
 
 import org.neo4j.graphdb.Node;
 import org.neo4j.helpers.collection.ClosableIterable;
-import org.springframework.data.neo4j.core.NodeBacked;
+
 import org.springframework.data.neo4j.core.NodeTypeRepresentationStrategy;
+import org.springframework.data.neo4j.support.EntityInstantiator;
+import org.springframework.data.neo4j.support.node.NodeEntityInstantiator;
 
 public class NoopNodeTypeRepresentationStrategy implements NodeTypeRepresentationStrategy {
 
-    @Override
-    public void postEntityCreation(Node state, Class<? extends NodeBacked> type) {
+    private final EntityInstantiator<Node> nodeEntiyInstantiator;
+
+    public NoopNodeTypeRepresentationStrategy(EntityInstantiator<Node> nodeEntiyInstantiator) {
+        this.nodeEntiyInstantiator = nodeEntiyInstantiator;
     }
 
     @Override
-    public <U extends NodeBacked> ClosableIterable<U> findAll(Class<U> clazz) {
+    public void postEntityCreation(Node state, Class<?> type) {
+    }
+
+    @Override
+    public <U> ClosableIterable<U> findAll(Class<U> clazz) {
         throw new UnsupportedOperationException("findAll not supported.");
     }
 
     @Override
-    public long count(Class<? extends NodeBacked> entityClass) {
+    public long count(Class<?> entityClass) {
         throw new UnsupportedOperationException("count not supported.");
     }
 
@@ -42,22 +50,22 @@ public class NoopNodeTypeRepresentationStrategy implements NodeTypeRepresentatio
     }
 
     @Override
-    public Class<? extends NodeBacked> getJavaType(Node state) {
+    public Class<?> getJavaType(Node state) {
         throw new UnsupportedOperationException("getJavaType not supported.");
     }
 
     @Override
-    public <U extends NodeBacked> U createEntity(Node state) {
+    public <U> U createEntity(Node state) {
         throw new UnsupportedOperationException("Creation with stored type not supported.");
     }
 
     @Override
-    public <U extends NodeBacked> U createEntity(Node state, Class<U> type) {
+    public <U> U createEntity(Node state, Class<U> type) {
         return projectEntity(state, type);
     }
 
     @Override
-    public <U extends NodeBacked> U projectEntity(Node state, Class<U> type) {
-        return null;
+    public <U> U projectEntity(Node state, Class<U> type) {
+        return nodeEntiyInstantiator.createEntityFromState(state,type);
     }
 }

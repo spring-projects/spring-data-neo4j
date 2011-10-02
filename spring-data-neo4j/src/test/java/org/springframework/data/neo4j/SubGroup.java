@@ -16,7 +16,7 @@
 
 package org.springframework.data.neo4j;
 
-import org.springframework.data.neo4j.annotation.*;
+import org.springframework.data.neo4j.annotation.NodeEntity;
 
 @NodeEntity
 public class SubGroup extends Group 	{

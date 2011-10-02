@@ -19,14 +19,14 @@ package org.springframework.data.neo4j.support.path;
 import org.neo4j.graphdb.Path;
 import org.neo4j.helpers.collection.IterableWrapper;
 import org.springframework.data.neo4j.core.EntityPath;
-import org.springframework.data.neo4j.core.NodeBacked;
+
 import org.springframework.data.neo4j.support.GraphDatabaseContext;
 
 /**
 * @author mh
 * @since 04.04.11
 */
-public class EntityPathPathIterableWrapper<S extends NodeBacked, E extends NodeBacked> extends IterableWrapper<EntityPath<S,E>, Path> {
+public class EntityPathPathIterableWrapper<S, E> extends IterableWrapper<EntityPath<S,E>, Path> {
     private final GraphDatabaseContext graphDatabaseContext;
 
     public EntityPathPathIterableWrapper(Iterable<Path> paths, GraphDatabaseContext graphDatabaseContext) {

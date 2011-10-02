@@ -16,9 +16,9 @@
 
 package org.springframework.data.neo4j.repository;
 
-import org.springframework.data.neo4j.core.GraphBacked;
-import org.springframework.data.neo4j.core.NodeBacked;
-import org.springframework.data.neo4j.core.RelationshipBacked;
+
+
+
 import org.springframework.data.neo4j.support.GraphDatabaseContext;
 
 /**
@@ -33,9 +33,9 @@ public class DirectGraphRepositoryFactory {
     }
 
     @SuppressWarnings({"unchecked"})
-    public <T extends GraphBacked<?>> GraphRepository<T> createGraphRepository(Class<T> clazz) {
-        if (NodeBacked.class.isAssignableFrom(clazz)) return new NodeGraphRepository(clazz, graphDatabaseContext);
-        if (RelationshipBacked.class.isAssignableFrom(clazz)) return new RelationshipGraphRepository(clazz, graphDatabaseContext);
+    public <T> GraphRepository<T> createGraphRepository(Class<T> clazz) {
+        if (graphDatabaseContext.isNodeEntity(clazz)) return new NodeGraphRepository(clazz, graphDatabaseContext);
+        if (graphDatabaseContext.isRelationshipEntity(clazz)) return new RelationshipGraphRepository(clazz, graphDatabaseContext);
         throw new IllegalArgumentException("Can't create graph repository for non graph entity of type "+clazz);
     }
 }

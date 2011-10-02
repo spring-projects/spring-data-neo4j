@@ -18,20 +18,18 @@ package org.springframework.data.neo4j.fieldaccess;
 
 import org.neo4j.graphdb.*;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
-import org.springframework.data.neo4j.annotation.RelatedToVia;
-import org.springframework.data.neo4j.core.NodeBacked;
-import org.springframework.data.neo4j.core.RelationshipBacked;
-import org.springframework.data.neo4j.mapping.Neo4JPersistentProperty;
+
+
+import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.mapping.RelationshipInfo;
 import org.springframework.data.neo4j.support.GraphDatabaseContext;
 
-import java.lang.reflect.Field;
 import java.util.HashSet;
 import java.util.Set;
 
 import static org.springframework.data.neo4j.support.DoReturn.doReturn;
 
-public class OneToNRelationshipEntityFieldAccessorFactory implements FieldAccessorFactory<NodeBacked> {
+public class OneToNRelationshipEntityFieldAccessorFactory implements FieldAccessorFactory {
 
 	private GraphDatabaseContext graphDatabaseContext;
 	
@@ -42,50 +40,51 @@ public class OneToNRelationshipEntityFieldAccessorFactory implements FieldAccess
 	}
 
 	@Override
-	public boolean accept(final Neo4JPersistentProperty property) {
+	public boolean accept(final Neo4jPersistentProperty property) {
 		return property.isRelationship() && !property.getRelationshipInfo().targetsNodes() && property.getRelationshipInfo().isMultiple();
 	}
 
 	@Override
-	public FieldAccessor<NodeBacked> forField(final Neo4JPersistentProperty property) {
+	public FieldAccessor forField(final Neo4jPersistentProperty property) {
         final RelationshipInfo relationshipInfo = property.getRelationshipInfo();
-		return new OneToNRelationshipEntityFieldAccessor(relationshipInfo.getRelationshipType(), relationshipInfo.getDirection(), (Class<? extends RelationshipBacked>) relationshipInfo.getTargetType().getType(), graphDatabaseContext,property);
+		return new OneToNRelationshipEntityFieldAccessor(relationshipInfo.getRelationshipType(), relationshipInfo.getDirection(), (Class<?>) relationshipInfo.getTargetType().getType(), graphDatabaseContext,property);
 	}
-	public static class OneToNRelationshipEntityFieldAccessor extends AbstractNodeRelationshipFieldAccessor<NodeBacked, Node, RelationshipBacked, Relationship> {
+	public static class OneToNRelationshipEntityFieldAccessor extends AbstractNodeRelationshipFieldAccessor<Node, Relationship> {
 
-	    public OneToNRelationshipEntityFieldAccessor(final RelationshipType type, final Direction direction, final Class<? extends RelationshipBacked> elementClass, final GraphDatabaseContext graphDatabaseContext, Neo4JPersistentProperty property) {
+	    public OneToNRelationshipEntityFieldAccessor(final RelationshipType type, final Direction direction, final Class<?> elementClass, final GraphDatabaseContext graphDatabaseContext, Neo4jPersistentProperty property) {
 	        super(elementClass, graphDatabaseContext, direction, type, property);
 	    }
 
 	    @Override
-	    public Object setValue(final NodeBacked entity, final Object newVal) {
+	    public Object setValue(final Object entity, final Object newVal) {
 	        throw new InvalidDataAccessApiUsageException("Cannot set read-only relationship entity field.");
 	    }
 
 	    @Override
-	    public boolean isWriteable(NodeBacked nodeBacked) {
+	    public boolean isWriteable(Object entity) {
 	        return false;
 	    }
 
 	    @Override
-	    public Object getValue(final NodeBacked entity) {
+	    public Object getValue(final Object entity) {
 	        checkUnderlyingNode(entity);
-	        final Set<RelationshipBacked> result = createEntitySetFromRelationships(entity);
-	        return doReturn(new ManagedFieldAccessorSet<NodeBacked, RelationshipBacked>(entity, result, property));
+	        final Set<?> result = createEntitySetFromRelationships(entity);
+	        return doReturn(new ManagedFieldAccessorSet(entity, result, property,graphDatabaseContext, this));
 	    }
 
-	    private Set<RelationshipBacked> createEntitySetFromRelationships(final NodeBacked entity) {
-	        final Set<RelationshipBacked> result = new HashSet<RelationshipBacked>();
+	    private Set<?> createEntitySetFromRelationships(final Object entity) {
+	        final Set<Object> result = new HashSet<Object>();
 	        for (final Relationship rel : getStatesFromEntity(entity)) {
-	            final RelationshipBacked relationshipEntity = graphDatabaseContext.createEntityFromState(rel, relatedType);
+	            final Object relationshipEntity = graphDatabaseContext.createEntityFromState(rel, relatedType);
 	            result.add(relationshipEntity);
 	        }
 	        return result;
 	    }
 
 	    @Override
-	    protected Iterable<Relationship> getStatesFromEntity(final NodeBacked entity) {
-	        return entity.getPersistentState().getRelationships(type, direction);
+	    protected Iterable<Relationship> getStatesFromEntity(final Object entity) {
+            final Node persistentState = property.getOwner().getPersistentState(entity, graphDatabaseContext);
+            return persistentState.getRelationships(type, direction);
 	    }
 
 	    @Override
@@ -94,8 +93,8 @@ public class OneToNRelationshipEntityFieldAccessorFactory implements FieldAccess
 	    }
 
 	    @Override
-	    protected Node getState(final NodeBacked nodeBacked) {
-	        return nodeBacked.getPersistentState();
+	    protected Node getState(final Object entity) {
+	        return property.getOwner().getPersistentState(entity, graphDatabaseContext);
 	    }
 
 	}

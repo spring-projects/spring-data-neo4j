@@ -16,6 +16,7 @@
 
 package org.springframework.data.neo4j.mapping;
 
+import org.neo4j.graphdb.PropertyContainer;
 import org.springframework.data.mapping.context.AbstractMappingContext;
 import org.springframework.data.mapping.context.MappingContext;
 import org.springframework.data.mapping.model.SimpleTypeHolder;
@@ -25,20 +26,20 @@ import java.beans.PropertyDescriptor;
 import java.lang.reflect.Field;
 
 /**
- * Neo4J specific {@link MappingContext} implementation. Simply creates {@link Neo4JPersistentEntityImpl} and
- * {@link Neo4JPersistentProperty} instances.
+ * Neo4J specific {@link MappingContext} implementation. Simply creates {@link Neo4jPersistentEntityImpl} and
+ * {@link Neo4jPersistentProperty} instances.
  * 
  * @author Oliver Gierke
  */
-public class Neo4JMappingContext extends AbstractMappingContext<Neo4JPersistentEntityImpl<?>, Neo4JPersistentProperty> {
+public class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersistentEntityImpl<?>, Neo4jPersistentProperty> {
 
     /*
      * (non-Javadoc)
      * @see org.springframework.data.mapping.context.AbstractMappingContext#createPersistentEntity(org.springframework.data.util.TypeInformation)
      */
     @Override
-    protected <T> Neo4JPersistentEntityImpl<?> createPersistentEntity(TypeInformation<T> typeInformation) {
-        return new Neo4JPersistentEntityImpl<T>(typeInformation);
+    protected <T> Neo4jPersistentEntityImpl<?> createPersistentEntity(TypeInformation<T> typeInformation) {
+        return new Neo4jPersistentEntityImpl<T>(typeInformation);
     }
 
     /*
@@ -46,8 +47,22 @@ public class Neo4JMappingContext extends AbstractMappingContext<Neo4JPersistentE
      * @see org.springframework.data.mapping.context.AbstractMappingContext#createPersistentProperty(java.lang.reflect.Field, java.beans.PropertyDescriptor, org.springframework.data.mapping.model.MutablePersistentEntity, org.springframework.data.mapping.model.SimpleTypeHolder)
      */
     @Override
-    protected Neo4JPersistentProperty createPersistentProperty(Field field, PropertyDescriptor descriptor,
-            Neo4JPersistentEntityImpl<?> owner, SimpleTypeHolder simpleTypeHolder) {
-        return new Neo4JPersistentPropertyImpl(field, descriptor, owner, simpleTypeHolder);
+    protected Neo4jPersistentProperty createPersistentProperty(Field field, PropertyDescriptor descriptor,
+            Neo4jPersistentEntityImpl<?> owner, SimpleTypeHolder simpleTypeHolder) {
+        return new Neo4jPersistentPropertyImpl(field, descriptor, owner, simpleTypeHolder);
     }
+
+    public boolean isNodeEntity(Class<?> type) {
+        return getPersistentEntity(type).isNodeEntity();
+    }
+
+    public boolean isRelationshipEntity(Class<?> type) {
+        return getPersistentEntity(type).isRelationshipEntity();
+    }
+
+    public void setPersistentState(Object entity, PropertyContainer pc) {
+        final Neo4jPersistentEntityImpl<?> persistentEntity = getPersistentEntity(entity.getClass());
+        persistentEntity.setPersistentState(entity, pc);
+    }
+
 }

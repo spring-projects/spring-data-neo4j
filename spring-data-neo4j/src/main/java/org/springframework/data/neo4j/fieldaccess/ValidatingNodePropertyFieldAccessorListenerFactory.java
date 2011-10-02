@@ -19,10 +19,9 @@ package org.springframework.data.neo4j.fieldaccess;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.neo4j.graphdb.PropertyContainer;
-import org.springframework.data.mapping.PersistentEntity;
-import org.springframework.data.neo4j.core.GraphBacked;
-import org.springframework.data.neo4j.mapping.Neo4JPersistentEntity;
-import org.springframework.data.neo4j.mapping.Neo4JPersistentProperty;
+
+import org.springframework.data.neo4j.mapping.Neo4jPersistentEntity;
+import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.support.GraphDatabaseContext;
 
 import javax.validation.Constraint;
@@ -30,11 +29,10 @@ import javax.validation.ConstraintViolation;
 import javax.validation.ValidationException;
 import javax.validation.Validator;
 import java.lang.annotation.Annotation;
-import java.lang.reflect.Field;
 import java.util.Set;
 
 
-class ValidatingNodePropertyFieldAccessorListenerFactory<T extends GraphBacked<?>> implements FieldAccessorListenerFactory<T> {
+class ValidatingNodePropertyFieldAccessorListenerFactory implements FieldAccessorListenerFactory {
 
     private final GraphDatabaseContext graphDatabaseContext;
 
@@ -43,11 +41,11 @@ class ValidatingNodePropertyFieldAccessorListenerFactory<T extends GraphBacked<?
     }
 
     @Override
-    public boolean accept(final Neo4JPersistentProperty property) {
+    public boolean accept(final Neo4jPersistentProperty property) {
         return hasValidationAnnotation(property);
     }
 
-    private boolean hasValidationAnnotation(final Neo4JPersistentProperty property) {
+    private boolean hasValidationAnnotation(final Neo4jPersistentProperty property) {
         for (Annotation annotation : property.getAnnotations()) {
             if (annotation.annotationType().isAnnotationPresent(Constraint.class)) return true;
         }
@@ -55,7 +53,7 @@ class ValidatingNodePropertyFieldAccessorListenerFactory<T extends GraphBacked<?
     }
 
     @Override
-    public FieldAccessListener<T, ?> forField(Neo4JPersistentProperty property) {
+    public FieldAccessListener forField(Neo4jPersistentProperty property) {
         return new ValidatingNodePropertyFieldAccessorListener(property,graphDatabaseContext.getValidator());
     }
 
@@ -64,21 +62,21 @@ class ValidatingNodePropertyFieldAccessorListenerFactory<T extends GraphBacked<?
 	 * @author Michael Hunger
 	 * @since 12.09.2010
 	 */
-	public static class ValidatingNodePropertyFieldAccessorListener<T extends PropertyContainer> implements FieldAccessListener<GraphBacked<T>, Object> {
+	public static class ValidatingNodePropertyFieldAccessorListener<T extends PropertyContainer> implements FieldAccessListener {
 
 	    private final static Log log = LogFactory.getLog( ValidatingNodePropertyFieldAccessorListener.class );
         private String propertyName;
         private Validator validator;
-        private Neo4JPersistentEntity<?> entityType;
+        private Neo4jPersistentEntity<?> entityType;
 
-        public ValidatingNodePropertyFieldAccessorListener(final Neo4JPersistentProperty field, Validator validator) {
+        public ValidatingNodePropertyFieldAccessorListener(final Neo4jPersistentProperty field, Validator validator) {
             this.propertyName = field.getName();
-            this.entityType = (Neo4JPersistentEntity<?>) field.getOwner();
+            this.entityType = (Neo4jPersistentEntity<?>) field.getOwner();
             this.validator = validator;
         }
 
 	    @Override
-        public void valueChanged(GraphBacked<T> graphBacked, Object oldVal, Object newVal) {
+        public void valueChanged(Object entity, Object oldVal, Object newVal) {
             if (validator==null) return;
             Set<ConstraintViolation<T>> constraintViolations = validator.validateValue((Class<T>)entityType.getType(), propertyName, newVal);
             if (!constraintViolations.isEmpty()) throw new ValidationException("Error validating field "+propertyName+ " of "+entityType+": "+constraintViolations);

@@ -20,10 +20,10 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.neo4j.graphdb.Transaction;
 import org.springframework.data.neo4j.core.EntityState;
-import org.springframework.data.neo4j.core.GraphBacked;
-import org.springframework.data.neo4j.core.NodeBacked;
-import org.springframework.data.neo4j.mapping.Neo4JPersistentEntity;
-import org.springframework.data.neo4j.mapping.Neo4JPersistentProperty;
+
+
+import org.springframework.data.neo4j.mapping.Neo4jPersistentEntity;
+import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.support.GraphDatabaseContext;
 import org.springframework.util.ObjectUtils;
 
@@ -39,14 +39,14 @@ import static org.springframework.data.neo4j.support.DoReturn.unwrap;
  * @author Michael Hunger
  * @since 15.09.2010
  */
-public class DetachedEntityState<ENTITY extends GraphBacked<STATE>, STATE> implements EntityState<ENTITY,STATE> {
+public class DetachedEntityState<STATE> implements EntityState<STATE> {
     private final Map<Field, ExistingValue> dirty = new HashMap<Field, ExistingValue>();
-    protected final EntityState<ENTITY,STATE> delegate;
+    protected final EntityState<STATE> delegate;
     private final static Log log = LogFactory.getLog(DetachedEntityState.class);
     private GraphDatabaseContext graphDatabaseContext;
-    private Neo4JPersistentEntity<ENTITY> persistentEntity;
+    private Neo4jPersistentEntity<Object> persistentEntity;
 
-    public DetachedEntityState(final EntityState<ENTITY, STATE> delegate, GraphDatabaseContext graphDatabaseContext) {
+    public DetachedEntityState(final EntityState<STATE> delegate, GraphDatabaseContext graphDatabaseContext) {
         this.delegate = delegate;
         this.persistentEntity = delegate.getPersistentEntity();
         this.graphDatabaseContext = graphDatabaseContext;
@@ -58,7 +58,7 @@ public class DetachedEntityState<ENTITY extends GraphBacked<STATE>, STATE> imple
     }
 
     @Override
-    public ENTITY getEntity() {
+    public Object getEntity() {
         return delegate.getEntity();
     }
 
@@ -73,14 +73,14 @@ public class DetachedEntityState<ENTITY extends GraphBacked<STATE>, STATE> imple
     }
 
     @Override
-    public Neo4JPersistentEntity<ENTITY> getPersistentEntity() {
+    public Neo4jPersistentEntity<Object> getPersistentEntity() {
         return persistentEntity;
     }
 
     @Override
     public Object getValue(final Field field) {
         if (isDetached()) {
-            if (getEntity().getPersistentState()==null || isDirty(field)) {
+            if (graphDatabaseContext.getPersistentState(getEntity())==null || isDirty(field)) {
                 if (log.isDebugEnabled()) log.debug("Outside of transaction, GET value from field " + field);
                 Object entityValue = getValueFromEntity(field);
                 if (entityValue != null) {
@@ -89,7 +89,7 @@ public class DetachedEntityState<ENTITY extends GraphBacked<STATE>, STATE> imple
                 
                 Object defaultValue = getDefaultImplementation(field);
                 if (defaultValue != null) {
-                    final ENTITY entity = getEntity();
+                    final Object entity = getEntity();
                     try {
                         field.setAccessible(true);
                         field.set(entity, defaultValue);
@@ -137,12 +137,12 @@ public class DetachedEntityState<ENTITY extends GraphBacked<STATE>, STATE> imple
         return setValue(property(field),newVal);
     }
 
-    private Neo4JPersistentProperty property(Field field) {
+    private Neo4jPersistentProperty property(Field field) {
         return persistentEntity.getPersistentProperty(field.getName());
     }
 
     @Override
-    public Object setValue(final Neo4JPersistentProperty property, final Object newVal) {
+    public Object setValue(final Neo4jPersistentProperty property, final Object newVal) {
         if (isDetached()) {
             final Field field = property.getField();
             if (!isDirty(field) && isWritable(field)) {
@@ -186,7 +186,7 @@ public class DetachedEntityState<ENTITY extends GraphBacked<STATE>, STATE> imple
      * always runs inside of a transaction
      */
     private void flushDirty() {
-        final ENTITY entity = getEntity();
+        final Object entity = getEntity();
         if (!hasPersistentState()) {
             // createAndAssignState();
             throw new IllegalStateException("Flushing detached entity without a persistent state, this had to be created first.");
@@ -199,15 +199,16 @@ public class DetachedEntityState<ENTITY extends GraphBacked<STATE>, STATE> imple
                 final Field field = entry.getKey();
                 Object valueFromEntity = getValueFromEntity(field);
                 cascadePersist(valueFromEntity);
-                if (log.isDebugEnabled()) log.debug("Flushing dirty Entity new node " + entity.getPersistentState() + " field " + field+ " with value "+ valueFromEntity);
+                if (log.isDebugEnabled()) log.debug("Flushing dirty Entity new node " + entity + " field " + field+ " with value "+ valueFromEntity);
                 checkConcurrentModification(entity, entry, field);
                 delegate.setValue(field, valueFromEntity);
             }
         }
     }
 
+
     private void cascadePersist(Object valueFromEntity) {
-        if (valueFromEntity instanceof NodeBacked) {
+    /* TODO   if (valueFromEntity instanceof NodeBacked) {
             ((NodeBacked) valueFromEntity).persist();
         }
         if (valueFromEntity instanceof Collection) {
@@ -217,6 +218,7 @@ public class DetachedEntityState<ENTITY extends GraphBacked<STATE>, STATE> imple
                 }
             }
         }
+     */
     }
 
     @Override
@@ -226,7 +228,7 @@ public class DetachedEntityState<ENTITY extends GraphBacked<STATE>, STATE> imple
 
 
     private Object getValueFromEntity(final Field field) {
-        final ENTITY entity = getEntity();
+        final Object entity = getEntity();
         try {
             field.setAccessible(true);
             return field.get(entity);
@@ -235,12 +237,12 @@ public class DetachedEntityState<ENTITY extends GraphBacked<STATE>, STATE> imple
         }
     }
 
-    private void checkConcurrentModification(final ENTITY entity, final Map.Entry<Field, ExistingValue> entry, final Field field) {
+    private void checkConcurrentModification(final Object entity, final Map.Entry<Field, ExistingValue> entry, final Field field) {
         final ExistingValue previousValue = entry.getValue();
         if (previousValue.mustCheckConcurrentModification()) {
             final Object nodeValue = unwrap(delegate.getValue(field));
             if (!ObjectUtils.nullSafeEquals(nodeValue, previousValue.value)) {
-                throw new ConcurrentModificationException("Node " + entity.getPersistentState() + " field " + field + " changed in between previous " + previousValue + " current " + nodeValue); // todo or just overwrite
+                throw new ConcurrentModificationException("Node " + entity + " field " + field + " changed in between previous " + previousValue + " current " + nodeValue); // todo or just overwrite
             }
         }
     }
@@ -272,11 +274,11 @@ public class DetachedEntityState<ENTITY extends GraphBacked<STATE>, STATE> imple
 
     // todo always create an transaction for persist, atomic operation when no outside tx exists
     @Override
-    public ENTITY persist() {
+    public Object persist() {
         if (!isDetached()) return getEntity();
         Transaction tx = graphDatabaseContext.beginTx();
         try {
-            ENTITY result = delegate.persist();
+            Object result = delegate.persist();
 
             flushDirty();
             tx.success();

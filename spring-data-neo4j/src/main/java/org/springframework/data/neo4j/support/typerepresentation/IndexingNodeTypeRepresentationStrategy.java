@@ -24,10 +24,9 @@ import org.neo4j.helpers.collection.ClosableIterable;
 import org.neo4j.helpers.collection.FilteringIterable;
 import org.neo4j.helpers.collection.IterableWrapper;
 import org.springframework.data.neo4j.annotation.NodeEntity;
-import org.springframework.data.neo4j.core.GraphBacked;
-import org.springframework.data.neo4j.core.NodeBacked;
+
 import org.springframework.data.neo4j.core.NodeTypeRepresentationStrategy;
-import org.springframework.data.persistence.EntityInstantiator;
+import org.springframework.data.neo4j.support.EntityInstantiator;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -38,12 +37,12 @@ public class IndexingNodeTypeRepresentationStrategy implements NodeTypeRepresent
     public static final String INDEX_NAME = "__types__";
     public static final String TYPE_PROPERTY_NAME = "__type__";
     public static final String INDEX_KEY = "className";
-    private EntityInstantiator<NodeBacked, Node> graphEntityInstantiator;
+    private EntityInstantiator<Node> graphEntityInstantiator;
     private GraphDatabaseService graphDb;
     private final EntityTypeCache typeCache;
 
     public IndexingNodeTypeRepresentationStrategy(GraphDatabaseService graphDb,
-                                                  EntityInstantiator<NodeBacked, Node> graphEntityInstantiator) {
+                                                  EntityInstantiator<Node> graphEntityInstantiator) {
 		this.graphDb = graphDb;
 		this.graphEntityInstantiator = graphEntityInstantiator;
         typeCache = new EntityTypeCache();
@@ -58,12 +57,12 @@ public class IndexingNodeTypeRepresentationStrategy implements NodeTypeRepresent
 	}
 
 	@Override
-	public void postEntityCreation(Node state, Class<? extends NodeBacked> type) {
+	public void postEntityCreation(Node state, Class<?> type) {
         addToNodeTypesIndex(state, type);
         state.setProperty(TYPE_PROPERTY_NAME, type.getName());
 	}
 
-    private void addToNodeTypesIndex(Node node, Class<? extends NodeBacked> entityClass) {
+    private void addToNodeTypesIndex(Node node, Class<?> entityClass) {
 		Class<?> klass = entityClass;
 		while (klass.getAnnotation(NodeEntity.class) != null) {
 			getNodeTypesIndex().add(node, INDEX_KEY, klass.getName());
@@ -72,17 +71,17 @@ public class IndexingNodeTypeRepresentationStrategy implements NodeTypeRepresent
 	}
 
     @Override
-    public <U extends NodeBacked> ClosableIterable<U> findAll(Class<U> clazz) {
+    public <U> ClosableIterable<U> findAll(Class<U> clazz) {
         return findAllNodeBacked(clazz);
     }
 
-    private <ENTITY extends NodeBacked> ClosableIterable<ENTITY> findAllNodeBacked(Class<ENTITY> clazz) {
+    private <Object> ClosableIterable<Object> findAllNodeBacked(Class<Object> clazz) {
 		final IndexHits<Node> allEntitiesOfType = getNodeTypesIndex().get(INDEX_KEY, clazz.getName());
-        return new FilteringClosableIterable<ENTITY>(allEntitiesOfType);
+        return new FilteringClosableIterable<Object>(allEntitiesOfType);
 	}
 
     @Override
-    public long count(Class<? extends NodeBacked> entityClass) {
+    public long count(Class<?> entityClass) {
         long count = 0;
         for (Object o : getNodeTypesIndex().get(INDEX_KEY, entityClass.getName())) {
             count += 1;
@@ -91,7 +90,7 @@ public class IndexingNodeTypeRepresentationStrategy implements NodeTypeRepresent
 	}
 
     @Override
-    public Class<? extends NodeBacked> getJavaType(Node node) {
+    public Class<?> getJavaType(Node node) {
 		if (node == null) throw new IllegalArgumentException("Node is null");
         String className = (String) node.getProperty(TYPE_PROPERTY_NAME);
         return typeCache.getClassForName(className);
@@ -104,8 +103,8 @@ public class IndexingNodeTypeRepresentationStrategy implements NodeTypeRepresent
 
     @Override
     @SuppressWarnings("unchecked")
-    public <U extends NodeBacked> U createEntity(Node state) {
-        Class<? extends NodeBacked> javaType = getJavaType(state);
+    public <U> U createEntity(Node state) {
+        Class<?> javaType = getJavaType(state);
         if (javaType == null) {
             throw new IllegalStateException("No type stored on node.");
         }
@@ -114,8 +113,8 @@ public class IndexingNodeTypeRepresentationStrategy implements NodeTypeRepresent
 
     @Override
     @SuppressWarnings("unchecked")
-    public <U extends NodeBacked> U createEntity(Node state, Class<U> type) {
-        Class<? extends NodeBacked> javaType = getJavaType(state);
+    public <U> U createEntity(Node state, Class<U> type) {
+        Class<?> javaType = getJavaType(state);
         if (javaType == null) {
             throw new IllegalStateException("No type stored on node.");
         }
@@ -126,25 +125,25 @@ public class IndexingNodeTypeRepresentationStrategy implements NodeTypeRepresent
     }
 
     @Override
-    public <U extends NodeBacked> U projectEntity(Node state, Class<U> type) {
+    public <U> U projectEntity(Node state, Class<U> type) {
         return graphEntityInstantiator.createEntityFromState(state, type);
     }
 
-    private class FilteringClosableIterable<ENTITY extends NodeBacked> extends FilteringIterable<ENTITY> implements ClosableIterable<ENTITY> {
+    private class FilteringClosableIterable<Object> extends FilteringIterable<Object> implements ClosableIterable<Object> {
         private final IndexHits<Node> indexHits;
 
         public FilteringClosableIterable(IndexHits<Node> indexHits) {
-            super(new IterableWrapper<ENTITY, Node>(indexHits) {
+            super(new IterableWrapper<Object, Node>(indexHits) {
                         @Override
                         @SuppressWarnings("unchecked")
-                        protected ENTITY underlyingObjectToObject(Node node) {
-                            Class<ENTITY> javaType = (Class<ENTITY>) getJavaType(node);
+                        protected Object underlyingObjectToObject(Node node) {
+                            Class<Object> javaType = (Class<Object>) getJavaType(node);
                             if (javaType == null) return null;
                             return graphEntityInstantiator.createEntityFromState(node, javaType);
                         }
-                    }, new Predicate<ENTITY>() {
+                    }, new Predicate<Object>() {
                         @Override
-                        public boolean accept(ENTITY item) {
+                        public boolean accept(Object item) {
                             return item != null;
                         }
                     });

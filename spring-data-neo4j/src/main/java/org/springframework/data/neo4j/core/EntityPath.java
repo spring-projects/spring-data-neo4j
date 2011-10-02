@@ -17,22 +17,22 @@
 package org.springframework.data.neo4j.core;
 
 import org.neo4j.graphdb.Path;
-import org.springframework.data.neo4j.core.RelationshipBacked;
+
 
 /**
  * @author mh
  * @since 08.04.11
  */
-public interface EntityPath<S extends NodeBacked,E extends NodeBacked> extends Path {
-    <T extends NodeBacked> T startEntity(Class<T>... types);
+public interface EntityPath<S,E> extends Path {
+    <T> T startEntity(Class<T>... types);
 
-    <T extends NodeBacked> T endEntity(Class<T>... types);
+    <T> T endEntity(Class<T>... types);
 
-    <T extends RelationshipBacked> T lastRelationshipEntity(Class<T>... types);
+    <T> T lastRelationshipEntity(Class<T>... types);
 
-    <T extends NodeBacked> Iterable<T> nodeEntities();
+    <T> Iterable<T> nodeEntities();
 
-    <T extends RelationshipBacked> Iterable<T> relationshipEntities(Class<T>... relationships);
+    <T> Iterable<T> relationshipEntities(Class<T>... relationships);
 
-    <T extends GraphBacked> Iterable<T> allPathEntities(Class<T>... relationships);
+    <T> Iterable<T> allPathEntities(Class<T>... relationships);
 }

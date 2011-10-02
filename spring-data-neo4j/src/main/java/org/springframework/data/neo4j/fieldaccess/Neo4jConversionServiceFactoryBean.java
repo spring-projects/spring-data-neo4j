@@ -101,7 +101,7 @@ public class Neo4jConversionServiceFactoryBean implements FactoryBean<Conversion
                 if (source == null) return null;
                 final String trimmed=source.trim();
                 if (trimmed.isEmpty()) return null;
-                return Enum.valueOf(this.enumType, trimmed);
+                return (T)Enum.valueOf(this.enumType, trimmed);
             }
 
         }

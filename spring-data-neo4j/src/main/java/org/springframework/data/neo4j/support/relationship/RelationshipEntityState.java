@@ -17,12 +17,13 @@
 package org.springframework.data.neo4j.support.relationship;
 
 import org.neo4j.graphdb.NotInTransactionException;
+import org.neo4j.graphdb.PropertyContainer;
 import org.neo4j.graphdb.Relationship;
 import org.springframework.dao.InvalidDataAccessResourceUsageException;
-import org.springframework.data.neo4j.core.RelationshipBacked;
+
 import org.springframework.data.neo4j.fieldaccess.DefaultEntityState;
 import org.springframework.data.neo4j.fieldaccess.DelegatingFieldAccessorFactory;
-import org.springframework.data.neo4j.mapping.Neo4JPersistentEntity;
+import org.springframework.data.neo4j.mapping.Neo4jPersistentEntity;
 import org.springframework.data.neo4j.support.GraphDatabaseContext;
 
 
@@ -30,25 +31,26 @@ import org.springframework.data.neo4j.support.GraphDatabaseContext;
  * @author Michael Hunger
  * @since 21.09.2010
  */
-public class RelationshipEntityState<ENTITY extends RelationshipBacked> extends DefaultEntityState<ENTITY, Relationship> {
+public class RelationshipEntityState extends DefaultEntityState<Relationship> {
 
     private final GraphDatabaseContext graphDatabaseContext;
     
-    public RelationshipEntityState(final Relationship underlyingState, final ENTITY entity, final Class<? extends ENTITY> type, final GraphDatabaseContext graphDatabaseContext, final DelegatingFieldAccessorFactory<RelationshipBacked> delegatingFieldAccessorFactory, Neo4JPersistentEntity<ENTITY> persistentEntity) {
+    public RelationshipEntityState(final Relationship underlyingState, final Object entity, final Class<? extends Object> type, final GraphDatabaseContext graphDatabaseContext, final DelegatingFieldAccessorFactory delegatingFieldAccessorFactory, Neo4jPersistentEntity<Object> persistentEntity) {
         super(underlyingState, entity, type, delegatingFieldAccessorFactory, persistentEntity);
         this.graphDatabaseContext = graphDatabaseContext;
     }
 
     @Override
     public void createAndAssignState() {
-        if (entity.getPersistentState()!=null) return;
+        final PropertyContainer state = graphDatabaseContext.getPersistentState(entity);
+        if (state !=null) return;
         try {
             final Object id = getIdFromEntity();
             if (id instanceof Number) {
                 final Relationship relationship = graphDatabaseContext.getRelationshipById(((Number) id).longValue());
                 setPersistentState(relationship);
                 if (log.isInfoEnabled())
-                    log.info("Entity reattached " + entity.getClass() + "; used Relationship [" + entity.getPersistentState() + "];");
+                    log.info("Entity reattached " + entity.getClass() + "; used Relationship [" + state + "];");
                 return;
             }
 
@@ -61,7 +63,7 @@ public class RelationshipEntityState<ENTITY extends RelationshipBacked> extends 
     }
 
     @Override
-    public ENTITY persist() {
+    public Object persist() {
         createAndAssignState();
         return entity;
     }

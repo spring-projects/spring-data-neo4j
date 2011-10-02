@@ -20,12 +20,12 @@ import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.RelationshipType;
-import org.springframework.data.neo4j.core.GraphBacked;
-import org.springframework.data.neo4j.core.NodeBacked;
-import org.springframework.data.neo4j.mapping.Neo4JPersistentProperty;
-import org.springframework.data.neo4j.support.GraphDatabaseContext;
 
-import java.lang.reflect.Field;
+
+import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
+import org.springframework.data.neo4j.support.GraphDatabaseContext;
+import org.springframework.util.Assert;
+
 import java.util.HashSet;
 import java.util.Set;
 
@@ -33,8 +33,8 @@ import java.util.Set;
  * @author Michael Hunger
  * @since 12.09.2010
  */
-public abstract class NodeToNodesRelationshipFieldAccessor<TARGET extends GraphBacked> extends AbstractNodeRelationshipFieldAccessor<NodeBacked, Node, TARGET, Node> {
-    public NodeToNodesRelationshipFieldAccessor(final Class<? extends TARGET> clazz, final GraphDatabaseContext graphDatabaseContext, final Direction direction, final RelationshipType type, Neo4JPersistentProperty property) {
+public abstract class NodeToNodesRelationshipFieldAccessor extends AbstractNodeRelationshipFieldAccessor<Node, Node> {
+    public NodeToNodesRelationshipFieldAccessor(final Class<?> clazz, final GraphDatabaseContext graphDatabaseContext, final Direction direction, final RelationshipType type, Neo4jPersistentProperty property) {
         super(clazz, graphDatabaseContext, direction, type,property);
     }
 
@@ -48,7 +48,7 @@ public abstract class NodeToNodesRelationshipFieldAccessor<TARGET extends GraphB
     }
 
     @Override
-    protected Iterable<Node> getStatesFromEntity(final NodeBacked entity) {
+    protected Iterable<Node> getStatesFromEntity(final Object entity) {
         final Node entityNode = getState(entity);
         final Set<Node> result = new HashSet<Node>();
         for (final Relationship rel : entityNode.getRelationships(type, direction)) {
@@ -58,7 +58,8 @@ public abstract class NodeToNodesRelationshipFieldAccessor<TARGET extends GraphB
     }
 
     @Override
-    protected Node getState(final NodeBacked entity) {
-        return entity.getPersistentState();
+    protected Node getState(final Object entity) {
+        return property.getOwner().getPersistentState(entity, graphDatabaseContext);
     }
+
 }

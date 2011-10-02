@@ -15,68 +15,70 @@
  */
 package org.springframework.data.neo4j.fieldaccess;
 
-import java.lang.reflect.Field;
 import java.util.HashSet;
 import java.util.Set;
 
 import org.neo4j.graphdb.PropertyContainer;
 import org.neo4j.helpers.collection.IteratorUtil;
 import org.springframework.core.convert.ConversionService;
-import org.springframework.data.neo4j.core.GraphBacked;
-import org.springframework.data.neo4j.mapping.Neo4JPersistentProperty;
+
+import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.support.DoReturn;
+import org.springframework.data.neo4j.support.GraphDatabaseContext;
 
 /**
  * This accessor factory creates {@link DynamicPropertiesFieldAccessor}s for @NodeEntity properties of type
  * {@link DynamicProperties}.
  */
-public class DynamicPropertiesFieldAccessorFactory implements FieldAccessorFactory<GraphBacked<PropertyContainer>> {
+public class DynamicPropertiesFieldAccessorFactory implements FieldAccessorFactory {
 
-    private final ConversionService conversionService;
+    private final GraphDatabaseContext graphDatabaseContext;
 
-    public DynamicPropertiesFieldAccessorFactory(final ConversionService conversionService) {
-        this.conversionService = conversionService;
+    public DynamicPropertiesFieldAccessorFactory(final GraphDatabaseContext graphDatabaseContext) {
+        this.graphDatabaseContext = graphDatabaseContext;
     }
 
     @Override
-    public boolean accept(Neo4JPersistentProperty f) {
+    public boolean accept(Neo4jPersistentProperty f) {
         return DynamicProperties.class.isAssignableFrom(f.getType());
     }
 
     @Override
-    public FieldAccessor<GraphBacked<PropertyContainer>> forField(Neo4JPersistentProperty field) {
-        return new DynamicPropertiesFieldAccessor(conversionService,
+    public FieldAccessor forField(Neo4jPersistentProperty field) {
+        return new DynamicPropertiesFieldAccessor(graphDatabaseContext,
                 field.getNeo4jPropertyName(), field);
     }
 
-    public static class DynamicPropertiesFieldAccessor implements FieldAccessor<GraphBacked<PropertyContainer>> {
-        private final ConversionService conversionService;
+    public static class DynamicPropertiesFieldAccessor implements FieldAccessor {
         private final String propertyNamePrefix;
-        private final Neo4JPersistentProperty field;
+        private final Neo4jPersistentProperty field;
+        private final GraphDatabaseContext graphDatabaseContext;
 
-        public DynamicPropertiesFieldAccessor(ConversionService conversionService, String propertyName, Neo4JPersistentProperty field) {
-            this.conversionService = conversionService;
+        public DynamicPropertiesFieldAccessor(GraphDatabaseContext graphDatabaseContext, String propertyName, Neo4jPersistentProperty field) {
+            this.graphDatabaseContext = graphDatabaseContext;
             this.propertyNamePrefix = propertyName;
             this.field = field;
         }
 
         @Override
-        public Object setValue(final GraphBacked<PropertyContainer> entity, final Object newVal) {
-        	final PropertyContainer propertyContainer = entity.getPersistentState();
+        public Object setValue(final Object entity, final Object newVal) {
+        	final PropertyContainer propertyContainer = graphDatabaseContext.getPersistentState(entity);
         	PrefixedDynamicProperties dynamicProperties;
             if (newVal instanceof ManagedPrefixedDynamicProperties) {
                 // newVal is already a managed container
-                dynamicProperties = (ManagedPrefixedDynamicProperties<?>) newVal;
+                dynamicProperties = (ManagedPrefixedDynamicProperties) newVal;
             }
             else {
                 // newVal is not a managed prefixed container and therefore contains
                 // pure key/values that must be converted to a prefixed form
         		dynamicProperties = new PrefixedDynamicProperties(propertyNamePrefix);
-        		DynamicProperties newPropertiesVal = (DynamicProperties)newVal;
-        		for(String key : newPropertiesVal.getPropertyKeys()) {
-        			dynamicProperties.setProperty(key, newPropertiesVal.getProperty(key));
-        		}
-        	}
+                if (newVal != null) {
+                    DynamicProperties newPropertiesVal = (DynamicProperties) newVal;
+                    for (String key : newPropertiesVal.getPropertyKeys()) {
+                        dynamicProperties.setProperty(key, newPropertiesVal.getProperty(key));
+                    }
+                }
+            }
 
 
             Set<String> dynamicProps = dynamicProperties.getPrefixedPropertyKeys();
@@ -105,10 +107,9 @@ public class DynamicPropertiesFieldAccessorFactory implements FieldAccessorFacto
         }
 
         @Override
-        public Object getValue(final GraphBacked<PropertyContainer> entity) {
-            PropertyContainer element = entity.getPersistentState();
-            ManagedPrefixedDynamicProperties<?> props = ManagedPrefixedDynamicProperties.create(propertyNamePrefix,
-                    field, entity);
+        public Object getValue(final Object entity) {
+            PropertyContainer element = graphDatabaseContext.getPersistentState(entity);
+            ManagedPrefixedDynamicProperties props = ManagedPrefixedDynamicProperties.create(propertyNamePrefix, field, entity,graphDatabaseContext,this);
             for (String key : element.getPropertyKeys()) {
                 props.setPropertyIfPrefixed(key, element.getProperty(key));
             }
@@ -116,7 +117,7 @@ public class DynamicPropertiesFieldAccessorFactory implements FieldAccessorFacto
         }
 
         @Override
-        public boolean isWriteable(final GraphBacked<PropertyContainer> entity) {
+        public boolean isWriteable(final Object entity) {
             return true;
         }
 

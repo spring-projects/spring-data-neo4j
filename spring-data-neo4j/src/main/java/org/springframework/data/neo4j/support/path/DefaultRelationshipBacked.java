@@ -19,7 +19,7 @@ package org.springframework.data.neo4j.support.path;
 import org.springframework.data.neo4j.annotation.EndNode;
 import org.springframework.data.neo4j.annotation.RelationshipEntity;
 import org.springframework.data.neo4j.annotation.StartNode;
-import org.springframework.data.neo4j.core.NodeBacked;
+
 
 /**
  * @author mh
@@ -27,10 +27,6 @@ import org.springframework.data.neo4j.core.NodeBacked;
  */
 @RelationshipEntity
 public class DefaultRelationshipBacked {
-    @StartNode
-    NodeBacked startNode;
-
-    @EndNode
-    NodeBacked endNode;
-
+    @StartNode Object start;
+    @EndNode Object end;
 }

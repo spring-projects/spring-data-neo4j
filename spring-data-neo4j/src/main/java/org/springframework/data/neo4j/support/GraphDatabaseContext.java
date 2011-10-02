@@ -21,12 +21,21 @@ import org.apache.commons.logging.LogFactory;
 import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.index.Index;
 import org.neo4j.graphdb.index.IndexManager;
+import org.neo4j.graphdb.traversal.*;
+import org.neo4j.graphdb.traversal.Traverser;
 import org.neo4j.helpers.collection.ClosableIterable;
+import org.neo4j.helpers.collection.IterableWrapper;
 import org.neo4j.index.impl.lucene.LuceneIndexImplementation;
 import org.neo4j.kernel.AbstractGraphDatabase;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.data.neo4j.annotation.Indexed;
 import org.springframework.data.neo4j.core.*;
+import org.springframework.data.neo4j.mapping.Neo4jMappingContext;
+import org.springframework.data.neo4j.mapping.Neo4jNodeConverter;
+import org.springframework.data.neo4j.mapping.Neo4jPersistentEntityImpl;
+import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
+import org.springframework.data.neo4j.support.query.CypherQueryExecutor;
+import org.springframework.data.util.TypeInformation;
 
 import javax.transaction.Status;
 import javax.transaction.SystemException;
@@ -51,28 +60,31 @@ public class GraphDatabaseContext {
 
     private GraphDatabaseService graphDatabaseService;
     private ConversionService conversionService;
-
+    private Neo4jNodeConverter converter;
     private Validator validator;
     private NodeTypeRepresentationStrategy nodeTypeRepresentationStrategy;
 
     private RelationshipTypeRepresentationStrategy relationshipTypeRepresentationStrategy;
 
+    private Neo4jMappingContext mappingContext;
+    private final CypherQueryExecutor executor = new CypherQueryExecutor(this);
 
 
-    public <S extends PropertyContainer, T extends GraphBacked<S>> Index<S> getIndex(Class<T> type) {
+    public <S extends PropertyContainer, T> Index<S> getIndex(Class<T> type) {
         return getIndex(type, null);
     }
 
-    public <S extends PropertyContainer, T extends GraphBacked<S>> Index<S> getIndex(Class<T> type, String indexName) {
+    public <S extends PropertyContainer, T> Index<S> getIndex(Class<T> type, String indexName) {
         return getIndex(type, indexName, false);
     }
 
 
-    public <S extends PropertyContainer, T extends GraphBacked<S>> Index<S> getIndex(Class<T> type, String indexName, boolean fullText) {
+    public <S extends PropertyContainer, T> Index<S> getIndex(Class<T> type, String indexName, boolean fullText) {
         if (indexName==null) indexName = Indexed.Name.get(type);
         Map<String, String> config = fullText ? LuceneIndexImplementation.FULLTEXT_CONFIG : null;
-        if (NodeBacked.class.isAssignableFrom(type)) return (Index<S>) getIndexManager().forNodes(indexName, config);
-        if (RelationshipBacked.class.isAssignableFrom(type)) return (Index<S>) getIndexManager().forRelationships(indexName, config);
+
+        if (mappingContext.isNodeEntity(type)) return (Index<S>) getIndexManager().forNodes(indexName, config);
+        if (mappingContext.isRelationshipEntity(type)) return (Index<S>) getIndexManager().forRelationships(indexName, config);
         throw new IllegalArgumentException("Wrong index type supplied: " + type+" expected Node- or Relationship-Entity");
     }
 
@@ -92,37 +104,95 @@ public class GraphDatabaseContext {
         }
     }
 
-    public <T extends GraphBacked<? extends PropertyContainer>> ClosableIterable<T> findAll(final Class<T> entityClass) {
+    public <T> ClosableIterable<T> findAll(final Class<T> entityClass) {
         return getTypeRepresentationStrategy(entityClass).findAll(entityClass);
     }
 
-    public <T extends GraphBacked<? extends PropertyContainer>> long count(final Class<T> entityClass) {
+    public <T> long count(final Class<T> entityClass) {
         return getTypeRepresentationStrategy(entityClass).count(entityClass);
     }
 
 
 
-    public <S extends PropertyContainer, T extends GraphBacked<S>> T createEntityFromStoredType(S state) {
+    public <S extends PropertyContainer, T> T createEntityFromStoredType(S state) {
         return getTypeRepresentationStrategy(state).createEntity(state);
     }
 
-    public <S extends PropertyContainer, T extends GraphBacked<S>> T createEntityFromState(S state, Class<T> type) {
+    public <S extends PropertyContainer, T> T createEntityFromState(S state, Class<T> type) {
         if (state==null) throw new IllegalArgumentException("state has to be either a Node or Relationship, not null");
         return getTypeRepresentationStrategy(state, type).createEntity(state, type);
     }
 
-    public <S extends PropertyContainer, T extends GraphBacked<S>> T projectTo(GraphBacked<S> entity, Class<T> targetType) {
-        S state = entity.getPersistentState();
+    public <S extends PropertyContainer, T> T projectTo(Object entity, Class<T> targetType) {
+        S state = getPersistentState(entity);
         return getTypeRepresentationStrategy(state, targetType).projectEntity(state, targetType);
     }
+    
+    public <S extends PropertyContainer> S getPersistentState(Object entity) {
+        if (entity instanceof PropertyContainer) {
+            return (S) entity;
+        }
+        if (isManaged(entity)) {
+            return ((ManagedEntity<S>)entity).getPersistentState();
+        }
+        final Class<?> type = entity.getClass();
+        final Neo4jPersistentEntityImpl<?> persistentEntity = mappingContext.getPersistentEntity(type);
+        return (S)persistentEntity.getPersistentState(entity,this);
+    }
 
-    public <S extends PropertyContainer, T extends GraphBacked<S>> void postEntityCreation(S node, Class<T> entityClass) {
+    // todo depending on type of mapping
+    public <S extends PropertyContainer> void setPersistentState(Object entity, S state) {
+        if (entity instanceof PropertyContainer) {
+            return;
+        }
+        if (isManaged(entity)) {
+            ((ManagedEntity<S>)entity).setPersistentState(state);
+            return;
+        }
+        final Class<?> type = entity.getClass();
+        final Neo4jPersistentEntityImpl<?> persistentEntity = mappingContext.getPersistentEntity(type);
+        persistentEntity.setPersistentState(entity,state);
+    }
+
+    public <S extends PropertyContainer, T> void postEntityCreation(S node, Class<T> entityClass) {
         getTypeRepresentationStrategy(node, entityClass).postEntityCreation(node, entityClass);
     }
 
+    public  <T> Iterable<T> findAllByTraversal(Object entity, Class<?> targetType, TraversalDescription traversalDescription) {
+        final Neo4jPersistentEntityImpl<?> persistentEntity = mappingContext.getPersistentEntity(entity.getClass());
+        final PropertyContainer state = persistentEntity.getPersistentState(entity, this);
+        if (state == null) throw new IllegalStateException("No node attached to " + this);
+        final Traverser traverser = traversalDescription.traverse((Node) state);
+        if (Node.class.isAssignableFrom(targetType)) return (Iterable<T>) traverser.nodes();
+        if (Relationship.class.isAssignableFrom(targetType)) return (Iterable<T>) traverser.relationships();
+        if (Path.class.isAssignableFrom(targetType)) return (Iterable<T>) traverser;
+        return (Iterable<T>)convertToGraphEntity(traverser, targetType);
+    }
 
-    public void removeNodeEntity(NodeBacked entity) {
-        Node node = entity.getPersistentState();
+    private Iterable<?> convertToGraphEntity(Traverser traverser, final Class<?> targetType) {
+        if (isNodeEntity(targetType)) {
+            return new IterableWrapper<Object,Node>(traverser.nodes()) {
+                @Override
+                protected Object underlyingObjectToObject(Node node) {
+                    return createEntityFromState(node,targetType);
+                }
+            };
+        }
+        if (isRelationshipEntity(targetType)) {
+            return new IterableWrapper<Object,Relationship>(traverser.relationships()) {
+                @Override
+                protected Object underlyingObjectToObject(Relationship relationship) {
+                    return createEntityFromState(relationship, targetType);
+                }
+            };
+        }
+        throw new IllegalStateException("Can't determine valid type for traversal target "+targetType);
+
+    }
+
+
+    public void removeNodeEntity(Object entity) {
+        Node node = getPersistentState(entity);
         if (node == null) return;
         nodeTypeRepresentationStrategy.preEntityRemoval(node);
         for (Relationship relationship : node.getRelationships()) {
@@ -132,8 +202,8 @@ public class GraphDatabaseContext {
         node.delete();
     }
 
-    public void removeRelationshipEntity(RelationshipBacked entity) {
-        Relationship relationship = entity.getPersistentState();
+    public void removeRelationshipEntity(Object entity) {
+        Relationship relationship = getPersistentState(entity);
         if (relationship == null) return;
         removeRelationship(relationship);
     }
@@ -165,34 +235,31 @@ public class GraphDatabaseContext {
 
 
     @SuppressWarnings("unchecked")
-    private <T extends GraphBacked<? extends PropertyContainer>>
-        TypeRepresentationStrategy<?, T> getTypeRepresentationStrategy(Class<T> type) {
-        if (NodeBacked.class.isAssignableFrom(type)) {
-            return (TypeRepresentationStrategy<?, T>) nodeTypeRepresentationStrategy;
-        } else if (RelationshipBacked.class.isAssignableFrom(type)) {
-            return (TypeRepresentationStrategy<?, T>) relationshipTypeRepresentationStrategy;
+    private <T> TypeRepresentationStrategy<?> getTypeRepresentationStrategy(Class<T> type) {
+        if (mappingContext.isNodeEntity(type)) {
+            return (TypeRepresentationStrategy<?>)nodeTypeRepresentationStrategy;
+        } else if (mappingContext.isRelationshipEntity(type)) {
+            return (TypeRepresentationStrategy<?>)relationshipTypeRepresentationStrategy;
         }
         throw new IllegalArgumentException("Type is not NodeBacked nor RelationshipBacked.");
     }
 
     @SuppressWarnings("unchecked")
-    private <S extends PropertyContainer, T extends GraphBacked<S>>
-        TypeRepresentationStrategy<S, T> getTypeRepresentationStrategy(S state, Class<T> type) {
-        if (state instanceof Node && NodeBacked.class.isAssignableFrom(type)) {
-            return (TypeRepresentationStrategy<S, T>) nodeTypeRepresentationStrategy;
-        } else if (state instanceof Relationship && RelationshipBacked.class.isAssignableFrom(type)) {
-            return (TypeRepresentationStrategy<S, T>) relationshipTypeRepresentationStrategy;
+    private <S extends PropertyContainer, T> TypeRepresentationStrategy<S> getTypeRepresentationStrategy(S state, Class<T> type) {
+        if (state instanceof Node && mappingContext.isNodeEntity(type)) {
+            return (TypeRepresentationStrategy<S>) nodeTypeRepresentationStrategy;
+        } else if (state instanceof Relationship && mappingContext.isRelationshipEntity(type)) {
+            return (TypeRepresentationStrategy<S>) relationshipTypeRepresentationStrategy;
         }
         throw new IllegalArgumentException("Type "+type+" is not NodeBacked nor RelationshipBacked.");
     }
 
     @SuppressWarnings("unchecked")
-    private <S extends PropertyContainer, T extends GraphBacked<S>>
-        TypeRepresentationStrategy<S, T> getTypeRepresentationStrategy(S state) {
+    private <S extends PropertyContainer, T> TypeRepresentationStrategy<S> getTypeRepresentationStrategy(S state) {
         if (state instanceof Node) {
-            return (TypeRepresentationStrategy<S, T>) nodeTypeRepresentationStrategy;
+            return (TypeRepresentationStrategy<S>) nodeTypeRepresentationStrategy;
         } else if (state instanceof Relationship) {
-            return (TypeRepresentationStrategy<S, T>) relationshipTypeRepresentationStrategy;
+            return (TypeRepresentationStrategy<S>) relationshipTypeRepresentationStrategy;
         }
         throw new IllegalArgumentException("Type is not NodeBacked nor RelationshipBacked.");
     }
@@ -280,7 +347,46 @@ public class GraphDatabaseContext {
         this.validator = validatorFactory;
     }
 
+    public void setMappingContext(Neo4jMappingContext mappingContext) {
+        this.mappingContext = mappingContext;
+    }
 
+    public boolean isNodeEntity(Class<?> targetType) {
+        return mappingContext.isNodeEntity(targetType);
+    }
 
+    public boolean isRelationshipEntity(Class targetType) {
+        return mappingContext.isRelationshipEntity(targetType);
+    }
+
+    public Object save(Object entity) {
+        if (isManaged(entity)) {
+            return ((ManagedEntity)entity).persist();
+        } else {
+            final Node node = this.<Node>getPersistentState(entity);
+            this.converter.write(entity, node);
+            return entity; // TODO ?
+        }
+    }
+
+    private boolean isManaged(Object entity) {
+        return entity instanceof ManagedEntity;
+    }
+
+    public void setConverter(Neo4jNodeConverter converter) {
+        this.converter = converter;
+    }
+
+    public Object executeQuery(Object entity, String queryString, Map<String, Object> params, Neo4jPersistentProperty property) {
+        final TypeInformation<?> typeInformation = property.getTypeInformation();
+        final Class<?> targetType = typeInformation.getActualType().getType();
+        if (typeInformation.isCollectionLike()) {
+            return executor.query(queryString, targetType, params);
+        }
+        if (typeInformation.isMap()) {
+            return executor.queryForList(queryString, params);
+        }
+        return executor.queryForObject(queryString, targetType, params);
+    }
 }
 

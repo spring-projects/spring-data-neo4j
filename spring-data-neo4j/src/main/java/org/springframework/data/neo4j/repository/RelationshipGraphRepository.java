@@ -18,11 +18,11 @@ package org.springframework.data.neo4j.repository;
 
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.traversal.TraversalDescription;
-import org.springframework.data.neo4j.core.NodeBacked;
-import org.springframework.data.neo4j.core.RelationshipBacked;
+
+
 import org.springframework.data.neo4j.support.GraphDatabaseContext;
 
-public class RelationshipGraphRepository<T extends RelationshipBacked> extends AbstractGraphRepository<Relationship, T> implements GraphRepository<T> {
+public class RelationshipGraphRepository<T> extends AbstractGraphRepository<Relationship, T> implements GraphRepository<T> {
 
     public RelationshipGraphRepository(final Class<T> clazz, final GraphDatabaseContext graphDatabaseContext) {
         super(graphDatabaseContext, clazz);
@@ -34,7 +34,7 @@ public class RelationshipGraphRepository<T extends RelationshipBacked> extends A
     }
 
     @Override
-    public <N extends NodeBacked> Iterable<T> findAllByTraversal(final N startNode, final TraversalDescription traversalDescription) {
+    public <N> Iterable<T> findAllByTraversal(final N startNode, final TraversalDescription traversalDescription) {
         throw new UnsupportedOperationException("Traversal not able to start at relationship");
     }
 

@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.junit.Test;
+import org.neo4j.helpers.collection.IteratorUtil;
 
 public class PrefixedDynamicPropertyTest {
     private static final String VALUE = "value";
@@ -40,12 +41,7 @@ public class PrefixedDynamicPropertyTest {
     PrefixedDynamicProperties props = new PrefixedDynamicProperties(PREFIX);
 
     private <T> List<T> toList(Iterable<T> it) {
-        List<T> result = new ArrayList<T>();
-        for (T t : it) {
-            result.add(t);
-        }
-
-        return result;
+        return IteratorUtil.addToCollection(it, new ArrayList<T>());
     }
 
     @Test

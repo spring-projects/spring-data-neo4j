@@ -16,8 +16,13 @@
 
 package org.springframework.data.neo4j.fieldaccess;
 
-import org.springframework.data.neo4j.core.NodeBacked;
-import org.springframework.data.neo4j.mapping.Neo4JPersistentProperty;
+
+import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.PropertyContainer;
+import org.neo4j.graphdb.Relationship;
+import org.springframework.data.mapping.model.MappingException;
+import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
+import org.springframework.data.neo4j.support.GraphDatabaseContext;
 
 import static org.springframework.data.neo4j.support.DoReturn.doReturn;
 
@@ -25,37 +30,52 @@ import static org.springframework.data.neo4j.support.DoReturn.doReturn;
  * @author Michael Hunger
  * @since 12.09.2010
  */
-public class IdFieldAccessorFactory implements FieldAccessorFactory<NodeBacked> {
-	@Override
-	public boolean accept(final Neo4JPersistentProperty property) {
+public class IdFieldAccessorFactory implements FieldAccessorFactory {
+    private final GraphDatabaseContext graphDatabaseContext;
+
+    public IdFieldAccessorFactory(GraphDatabaseContext graphDatabaseContext) {
+        this.graphDatabaseContext = graphDatabaseContext;
+    }
+
+    @Override
+	public boolean accept(final Neo4jPersistentProperty property) {
 	    return property.isIdProperty();
 	}
 
 	@Override
-	public FieldAccessor<NodeBacked> forField(final Neo4JPersistentProperty property) {
-	    return new IdFieldAccessor(property);
+	public FieldAccessor forField(final Neo4jPersistentProperty property) {
+	    return new IdFieldAccessor(property,graphDatabaseContext);
 	}
 
-	public static class IdFieldAccessor implements FieldAccessor<NodeBacked> {
-	    protected final Neo4JPersistentProperty property;
+	public static class IdFieldAccessor implements FieldAccessor {
+	    protected final Neo4jPersistentProperty property;
+        private final GraphDatabaseContext graphDatabaseContext;
 
-	    public IdFieldAccessor(final Neo4JPersistentProperty property) {
+        public IdFieldAccessor(final Neo4jPersistentProperty property, GraphDatabaseContext graphDatabaseContext) {
 	        this.property = property;
-	    }
+            this.graphDatabaseContext = graphDatabaseContext;
+        }
 
 	    @Override
-	    public boolean isWriteable(NodeBacked nodeBacked) {
+	    public boolean isWriteable(Object entity) {
 	        return false;
 	    }
 
 	    @Override
-	    public Object setValue(final NodeBacked nodeBacked, final Object newVal) {
+	    public Object setValue(final Object entity, final Object newVal) {
 	        return newVal;
 	    }
 
 	    @Override
-	    public Object getValue(final NodeBacked nodeBacked) {
-            return doReturn(nodeBacked.getPersistentState().getId());
+	    public Object getValue(final Object entity) {
+            final PropertyContainer state = graphDatabaseContext.getPersistentState(entity);
+            if (state instanceof Node) {
+                return doReturn(((Node)state).getId());
+            }
+            if (state instanceof Relationship) {
+                return doReturn(((Relationship)state).getId());
+            }
+            throw new MappingException("Error retrieving id value from "+entity);
 	    }
 
 		@Override

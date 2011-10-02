@@ -16,8 +16,6 @@
 
 package org.springframework.data.neo4j;
 
-import org.springframework.data.neo4j.annotation.NodeEntity;
-
 public class Volvo extends Car {
 	public Volvo() {
 	}

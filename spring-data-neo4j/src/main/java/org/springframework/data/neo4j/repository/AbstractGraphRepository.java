@@ -17,8 +17,10 @@
 package org.springframework.data.neo4j.repository;
 
 import org.apache.lucene.search.NumericRangeQuery;
+import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.NotFoundException;
 import org.neo4j.graphdb.PropertyContainer;
+import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.index.Index;
 import org.neo4j.graphdb.index.IndexHits;
 import org.neo4j.helpers.collection.ClosableIterable;
@@ -27,7 +29,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.neo4j.core.GraphBacked;
+
 import org.springframework.data.neo4j.support.GraphDatabaseContext;
 
 import java.util.ArrayList;
@@ -43,7 +45,7 @@ import java.util.List;
  * @param <S> Type of backing state, either Node or Relationship
  */
 @org.springframework.stereotype.Repository
-public abstract class AbstractGraphRepository<S extends PropertyContainer, T extends GraphBacked<S>> implements GraphRepository<T>, NamedIndexRepository<T> {
+public abstract class AbstractGraphRepository<S extends PropertyContainer, T> implements GraphRepository<T>, NamedIndexRepository<T> {
     public static final ClosableIterable EMPTY_CLOSABLE_ITERABLE = new ClosableIterable() {
         @Override
         public void close() {
@@ -247,7 +249,16 @@ public abstract class AbstractGraphRepository<S extends PropertyContainer, T ext
 
     @Override
     public void delete(T entity) {
-       entity.remove();
+        final PropertyContainer state = graphDatabaseContext.getPersistentState(entity);
+        if (state instanceof Node) {
+            Node node = (Node) state;
+            node.delete();
+        }
+        if (state instanceof Relationship) {
+            Relationship relationship = (Relationship) state;
+            relationship.delete();
+        }
+
     }
 
     @Override
@@ -258,7 +269,7 @@ public abstract class AbstractGraphRepository<S extends PropertyContainer, T ext
     @Override
     public void delete(Iterable<? extends T> entities) {
         for (T entity : entities) {
-            entity.remove();
+            delete(entity);
         }
     }
 

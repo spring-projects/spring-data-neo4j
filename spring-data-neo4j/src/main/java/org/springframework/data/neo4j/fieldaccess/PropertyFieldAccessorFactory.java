@@ -17,9 +17,10 @@
 package org.springframework.data.neo4j.fieldaccess;
 
 import org.neo4j.graphdb.PropertyContainer;
+
 import org.springframework.core.convert.ConversionService;
-import org.springframework.data.neo4j.core.GraphBacked;
-import org.springframework.data.neo4j.mapping.Neo4JPersistentProperty;
+import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
+import org.springframework.data.neo4j.support.GraphDatabaseContext;
 
 import static org.springframework.data.neo4j.support.DoReturn.doReturn;
 
@@ -27,45 +28,47 @@ import static org.springframework.data.neo4j.support.DoReturn.doReturn;
  * @author Michael Hunger
  * @since 12.09.2010
  */
-public class PropertyFieldAccessorFactory implements FieldAccessorFactory<GraphBacked<PropertyContainer>> {
+public class PropertyFieldAccessorFactory implements FieldAccessorFactory {
 
-    private final ConversionService conversionService;
+    private final GraphDatabaseContext graphDatabaseContext;
 
-    public PropertyFieldAccessorFactory(ConversionService conversionService) {
-        this.conversionService = conversionService;
+    public PropertyFieldAccessorFactory(GraphDatabaseContext graphDatabaseContext) {
+        this.graphDatabaseContext = graphDatabaseContext;
     }
 
     @Override
-    public boolean accept(final Neo4JPersistentProperty f) {
+    public boolean accept(final Neo4jPersistentProperty f) {
         return f.isNeo4jPropertyType();
     }
 
     @Override
-    public FieldAccessor<GraphBacked<PropertyContainer>> forField(final Neo4JPersistentProperty field) {
-        return new PropertyFieldAccessor(conversionService, field);
+    public FieldAccessor forField(final Neo4jPersistentProperty field) {
+        return new PropertyFieldAccessor(graphDatabaseContext, field);
     }
 
-    public static class PropertyFieldAccessor implements FieldAccessor<GraphBacked<PropertyContainer>> {
-        private final ConversionService conversionService;
-        private final Neo4JPersistentProperty property;
+    public static class PropertyFieldAccessor implements FieldAccessor {
+        protected final GraphDatabaseContext graphDatabaseContext;
+        protected final Neo4jPersistentProperty property;
         protected final String propertyName;
         protected final Class<?> fieldType;
+        private ConversionService conversionService;
 
-        public PropertyFieldAccessor(ConversionService conversionService, Neo4JPersistentProperty property) {
-            this.conversionService = conversionService;
+        public PropertyFieldAccessor(GraphDatabaseContext graphDatabaseContext, Neo4jPersistentProperty property) {
+            this.graphDatabaseContext = graphDatabaseContext;
+            conversionService = graphDatabaseContext.getConversionService();
             this.property = property;
             this.propertyName = property.getNeo4jPropertyName();
             this.fieldType = property.getType() ;
         }
 
         @Override
-        public boolean isWriteable(final GraphBacked<PropertyContainer> graphBacked) {
+        public boolean isWriteable(final Object entity) {
             return true;
         }
 
         @Override
-        public Object setValue(final GraphBacked<PropertyContainer> graphBacked, final Object newVal) {
-            final PropertyContainer propertyContainer = graphBacked.getPersistentState();
+        public Object setValue(final Object entity, final Object newVal) {
+            final PropertyContainer propertyContainer = graphDatabaseContext.getPersistentState(entity);
             if (newVal==null) {
                 propertyContainer.removeProperty(propertyName);
             } else {
@@ -75,17 +78,17 @@ public class PropertyFieldAccessorFactory implements FieldAccessorFactory<GraphB
         }
 
         @Override
-        public final Object getValue(final GraphBacked<PropertyContainer> graphBacked) {
-            return doReturn(doGetValue(graphBacked));
+        public final Object getValue(final Object entity) {
+            return doReturn(doGetValue(entity));
         }
 
-        protected Object doGetValue(final GraphBacked<PropertyContainer> graphBacked) {
-            PropertyContainer element = graphBacked.getPersistentState();
+        protected Object doGetValue(final Object entity) {
+            PropertyContainer element = graphDatabaseContext.getPersistentState(entity);
             if (element.hasProperty(propertyName)) {
                 Object value = element.getProperty(propertyName);
                 if (value == null || fieldType.isInstance(value)) return value;
-                if (conversionService!=null) {
-                    return conversionService.convert(value, fieldType);
+                if (graphDatabaseContext.getConversionService() !=null) {
+                    return graphDatabaseContext.getConversionService().convert(value, fieldType);
                 }
                 return value;
             }

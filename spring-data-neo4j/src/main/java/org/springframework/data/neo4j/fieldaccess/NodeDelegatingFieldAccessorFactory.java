@@ -16,7 +16,7 @@
 
 package org.springframework.data.neo4j.fieldaccess;
 
-import org.springframework.data.neo4j.core.NodeBacked;
+
 import org.springframework.data.neo4j.support.GraphDatabaseContext;
 
 import java.util.Arrays;
@@ -26,37 +26,37 @@ import java.util.Collection;
 * @author Michael Hunger
 * @since 30.09.2010
 */
-public class NodeDelegatingFieldAccessorFactory extends DelegatingFieldAccessorFactory<NodeBacked> {
+public class NodeDelegatingFieldAccessorFactory extends DelegatingFieldAccessorFactory {
 	
     public NodeDelegatingFieldAccessorFactory(GraphDatabaseContext graphDatabaseContext) {
         super(graphDatabaseContext);
     }
 
     @Override
-    protected Collection<FieldAccessorListenerFactory<?>> createListenerFactories() {
-        return Arrays.<FieldAccessorListenerFactory<?>>asList(
+    protected Collection<FieldAccessorListenerFactory> createListenerFactories() {
+        return Arrays.<FieldAccessorListenerFactory>asList(
                 new IndexingPropertyFieldAccessorListenerFactory(
                 		graphDatabaseContext,
-                		new PropertyFieldAccessorFactory(graphDatabaseContext.getConversionService()),
-                		new ConvertingNodePropertyFieldAccessorFactory(graphDatabaseContext.getConversionService())),
+                		new PropertyFieldAccessorFactory(graphDatabaseContext),
+                		new ConvertingNodePropertyFieldAccessorFactory(graphDatabaseContext)),
                 new ValidatingNodePropertyFieldAccessorListenerFactory(graphDatabaseContext)
         );
     }
 
     @Override
-    protected Collection<? extends FieldAccessorFactory<?>> createAccessorFactories() {
-        return Arrays.<FieldAccessorFactory<?>>asList(
-                new IdFieldAccessorFactory(),
+    protected Collection<? extends FieldAccessorFactory> createAccessorFactories() {
+        return Arrays.<FieldAccessorFactory>asList(
+                new IdFieldAccessorFactory(graphDatabaseContext),
                 new TransientFieldAccessorFactory(),
-                new TraversalFieldAccessorFactory(),
-                new QueryFieldAccessorFactory(),
-                new PropertyFieldAccessorFactory(graphDatabaseContext.getConversionService()),
-                new ConvertingNodePropertyFieldAccessorFactory(graphDatabaseContext.getConversionService()),
+                new TraversalFieldAccessorFactory(graphDatabaseContext),
+                new QueryFieldAccessorFactory(graphDatabaseContext),
+                new PropertyFieldAccessorFactory(graphDatabaseContext),
+                new ConvertingNodePropertyFieldAccessorFactory(graphDatabaseContext),
                 new SingleRelationshipFieldAccessorFactory(graphDatabaseContext),
                 new OneToNRelationshipFieldAccessorFactory(graphDatabaseContext),
                 new ReadOnlyOneToNRelationshipFieldAccessorFactory(graphDatabaseContext),
                 new OneToNRelationshipEntityFieldAccessorFactory(graphDatabaseContext),
-                new DynamicPropertiesFieldAccessorFactory(graphDatabaseContext.getConversionService())
+                new DynamicPropertiesFieldAccessorFactory(graphDatabaseContext)
         );
     }
 }

@@ -21,16 +21,18 @@ package org.springframework.data.neo4j.repository;
  * @since 28.03.11
  */
 
+import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.PropertyContainer;
+import org.neo4j.graphdb.Relationship;
 import org.springframework.data.neo4j.annotation.NodeEntity;
 import org.springframework.data.neo4j.annotation.RelationshipEntity;
-import org.springframework.data.neo4j.core.GraphBacked;
-import org.springframework.data.neo4j.core.NodeBacked;
-import org.springframework.data.neo4j.core.RelationshipBacked;
+
+
+
 import org.springframework.data.neo4j.support.GraphDatabaseContext;
 import org.springframework.data.repository.core.support.AbstractEntityInformation;
 
-public class GraphMetamodelEntityInformation<S extends PropertyContainer, T extends GraphBacked<S>> extends AbstractEntityInformation<T,Long> implements GraphEntityInformation<S,T> {
+public class GraphMetamodelEntityInformation<S extends PropertyContainer, T> extends AbstractEntityInformation<T,Long> implements GraphEntityInformation<S,T> {
 
     private GraphDatabaseContext graphDatabaseContext;
     private final RelationshipEntity relationshipEntity;
@@ -61,13 +63,19 @@ public class GraphMetamodelEntityInformation<S extends PropertyContainer, T exte
 
     @Override
     public boolean isNew(T entity) {
-        return entity.hasPersistentState();
+        return graphDatabaseContext.getPersistentState(entity)!=null;
     }
 
 
     @Override
     public Long getId(T entity) {
-        return isNodeEntity() ? ((NodeBacked)entity).getNodeId() : ((RelationshipBacked)entity).getRelationshipId();
+        final PropertyContainer state = graphDatabaseContext.getPersistentState(entity);
+        if (isNodeEntity()) {
+            return ((Node)state).getId();
+        }
+        else {
+            return ((Relationship) state).getId();
+        }
     }
 
     @Override

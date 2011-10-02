@@ -19,33 +19,31 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.data.neo4j.Person;
 
-import java.util.Collections;
-
 import static org.junit.Assert.assertEquals;
 
 /**
  * @author mh
  * @since 19.09.11
  */
-public class Neo4JMappingContextTest {
+public class Neo4jMappingContextTest {
 
-    private Neo4JMappingContext mappingContext;
-    private Neo4JPersistentEntityImpl<?> personType;
+    private Neo4jMappingContext mappingContext;
+    private Neo4jPersistentEntityImpl<?> personType;
 
     @Before
     public void setUp() throws Exception {
-        mappingContext = new Neo4JMappingContext();
+        mappingContext = new Neo4jMappingContext();
         personType = mappingContext.getPersistentEntity(Person.class);
     }
 
     @Test
     public void checkGraphIdProperty() {
-        final Neo4JPersistentProperty idProperty = personType.getIdProperty();
+        final Neo4jPersistentProperty idProperty = personType.getIdProperty();
         assertEquals("graphId", idProperty.getName());
     }
 
     @Test public void checkNameProperty() {
-        final Neo4JPersistentProperty nameProperty = personType.getPersistentProperty("name");
+        final Neo4jPersistentProperty nameProperty = personType.getPersistentProperty("name");
         assertEquals("name",nameProperty.getName());
         assertEquals(String.class,nameProperty.getType());
         assertEquals(true,nameProperty.isIndexed());

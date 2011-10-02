@@ -18,7 +18,7 @@ package org.springframework.data.neo4j.annotation;
 
 import org.neo4j.graphdb.Direction;
 import org.springframework.data.annotation.Reference;
-import org.springframework.data.neo4j.core.NodeBacked;
+
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -55,10 +55,11 @@ public @interface RelatedTo {
     /**
      * @return direction for the relationship, by default outgoing
      */
-    Direction direction() default Direction.OUTGOING;
+    // FQN is a fix for javac compiler bug http://bugs.sun.com/view_bug.do?bug_id=6512707
+    org.neo4j.graphdb.Direction direction() default org.neo4j.graphdb.Direction.OUTGOING;
 
     /**
      * @return target class, required for collection based fields (no generic inferring)
      */
-    Class<? extends NodeBacked> elementClass() default NodeBacked.class;
+    Class<?> elementClass() default Object.class;
 }

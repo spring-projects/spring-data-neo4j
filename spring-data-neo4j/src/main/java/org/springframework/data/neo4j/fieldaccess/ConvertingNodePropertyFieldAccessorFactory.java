@@ -16,62 +16,62 @@
 
 package org.springframework.data.neo4j.fieldaccess;
 
-import org.neo4j.graphdb.PropertyContainer;
 import org.springframework.beans.factory.annotation.Configurable;
 import org.springframework.core.convert.ConversionService;
-import org.springframework.data.neo4j.core.GraphBacked;
-import org.springframework.data.neo4j.mapping.Neo4JPersistentProperty;
-import scala.annotation.target.field;
+
+import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
+import org.springframework.data.neo4j.support.GraphDatabaseContext;
 
 /**
  * @author Michael Hunger
  * @since 12.09.2010
  */
 @Configurable
-public class ConvertingNodePropertyFieldAccessorFactory implements FieldAccessorFactory<GraphBacked<PropertyContainer>> {
+public class ConvertingNodePropertyFieldAccessorFactory implements FieldAccessorFactory {
 
-	ConversionService conversionService;
-	
-    public ConvertingNodePropertyFieldAccessorFactory(ConversionService conversionService) {
-		this.conversionService = conversionService;
-	}
+
+    private final GraphDatabaseContext graphDatabaseContext;
+    private ConversionService conversionService;
+
+    public ConvertingNodePropertyFieldAccessorFactory(GraphDatabaseContext graphDatabaseContext) {
+        this.graphDatabaseContext = graphDatabaseContext;
+        this.conversionService = graphDatabaseContext.getConversionService();
+    }
 
     
 	@Override
-    public boolean accept(final Neo4JPersistentProperty field) {
-        return field.isSerializableField(conversionService) && field.isDeserializableField(conversionService);
+    public boolean accept(final Neo4jPersistentProperty property) {
+        return property.isSerializableField(conversionService) && property.isDeserializableField(conversionService);
     }
 
     @Override
-    public FieldAccessor<GraphBacked<PropertyContainer>> forField(final Neo4JPersistentProperty property) {
-        return new ConvertingNodePropertyFieldAccessor(conversionService,property);
+    public FieldAccessor forField(final Neo4jPersistentProperty property) {
+        return new ConvertingNodePropertyFieldAccessor(property,graphDatabaseContext);
     }
 
     public static class ConvertingNodePropertyFieldAccessor extends PropertyFieldAccessorFactory.PropertyFieldAccessor {
-        private final ConversionService conversionService;
 
-        public ConvertingNodePropertyFieldAccessor(ConversionService conversionService, Neo4JPersistentProperty property) {
-            super(conversionService, property);
-            this.conversionService = conversionService;
+        public ConvertingNodePropertyFieldAccessor(Neo4jPersistentProperty property, GraphDatabaseContext graphDatabaseContext) {
+            super(graphDatabaseContext, property);
         }
 
         @Override
-        public Object setValue(final GraphBacked<PropertyContainer> graphBacked, final Object newVal) {
-            super.setValue(graphBacked, serializePropertyValue(newVal));
+        public Object setValue(final Object entity, final Object newVal) {
+            super.setValue(entity, serializePropertyValue(newVal));
             return newVal;
         }
 
         @Override
-        public Object doGetValue(final GraphBacked<PropertyContainer> graphBacked) {
-            return deserializePropertyValue(super.doGetValue(graphBacked));
+        public Object doGetValue(final Object entity) {
+            return deserializePropertyValue(super.doGetValue(entity));
         }
 
         private Object serializePropertyValue(final Object newVal) {
-            return conversionService.convert(newVal, String.class);
+            return graphDatabaseContext.getConversionService().convert(newVal, String.class);
         }
 
         private Object deserializePropertyValue(final Object value) {
-            return conversionService.convert(value, fieldType);
+            return graphDatabaseContext.getConversionService().convert(value, fieldType);
         }
 
     }

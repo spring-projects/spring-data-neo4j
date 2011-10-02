@@ -18,12 +18,9 @@ package org.springframework.data.neo4j.fieldaccess;
 
 /**
  * interface for field accessors, encapsulates reading and writing from fields and write support information about the field.
- * It is used by the {@link org.springframework.data.neo4j.core.EntityState} which is delegated to by the
- * {@link org.springframework.data.neo4j.support.node.Neo4jNodeBacking} {@link org.springframework.data.neo4j.support.relationship.Neo4jRelationshipBacking}
- * aspects.
- * @param <ENTITY>
+ * It is used by the {@link org.springframework.data.neo4j.core.EntityState}.
  */
-public interface FieldAccessor<ENTITY> {
+public interface FieldAccessor {
 
 	/**
 	 * Returns a default implementation for a field or {@code null} if none is provided.
@@ -41,18 +38,18 @@ public interface FieldAccessor<ENTITY> {
      * @return the written value or a DoReturn wrapper with the written value or null.
      * DoReturn indicates that the aspect should not proceed to the original field access but instead return immediately.
      */
-	Object setValue(ENTITY entity, Object newVal);
+	Object setValue(Object entity, Object newVal);
 
     /**
      * @param entity
      * @return the value or a DoReturn wrapper with the value for the field.
      * DoReturn indicates that the aspect should not proceed to the original field access but instead return immediately.
      */
-	Object getValue(ENTITY entity);
+	Object getValue(Object entity);
 
     /**
      * @param entity
      * @return false for read only or computed fields, true otherwise
      */
-    boolean isWriteable(ENTITY entity);
+    boolean isWriteable(Object entity);
 }

@@ -17,13 +17,13 @@
 package org.springframework.data.neo4j.repository;
 
 import org.neo4j.helpers.collection.ClosableIterable;
-import org.springframework.data.neo4j.core.GraphBacked;
+
 
 /**
  * @author mh
  * @since 29.03.11
  */
-public interface IndexRepository<T extends GraphBacked<?>> {
+public interface IndexRepository<T> {
     T findByPropertyValue(String property, Object value);
 
     ClosableIterable<T> findAllByPropertyValue(String property, Object value);

@@ -21,9 +21,9 @@ import org.neo4j.graphdb.Relationship;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.neo4j.annotation.EndNode;
 import org.springframework.data.neo4j.annotation.StartNode;
-import org.springframework.data.neo4j.core.NodeBacked;
-import org.springframework.data.neo4j.core.RelationshipBacked;
-import org.springframework.data.neo4j.mapping.Neo4JPersistentProperty;
+
+
+import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.support.GraphDatabaseContext;
 
 import static org.springframework.data.neo4j.support.DoReturn.doReturn;
@@ -32,7 +32,7 @@ import static org.springframework.data.neo4j.support.DoReturn.doReturn;
  * @author Michael Hunger
  * @since 21.09.2010
  */
-public class RelationshipNodeFieldAccessorFactory implements FieldAccessorFactory<RelationshipBacked> {
+public class RelationshipNodeFieldAccessorFactory implements FieldAccessorFactory {
 
 	private GraphDatabaseContext graphDatabaseContext;
 
@@ -42,20 +42,20 @@ public class RelationshipNodeFieldAccessorFactory implements FieldAccessorFactor
 	}
 
 	@Override
-    public boolean accept(final Neo4JPersistentProperty f) {
+    public boolean accept(final Neo4jPersistentProperty f) {
         return isStartNodeField(f) || isEndNodeField(f);
     }
 
-    private boolean isEndNodeField(final Neo4JPersistentProperty f) {
+    private boolean isEndNodeField(final Neo4jPersistentProperty f) {
         return f.isAnnotationPresent(EndNode.class);
     }
 
-    private boolean isStartNodeField(final Neo4JPersistentProperty f) {
+    private boolean isStartNodeField(final Neo4jPersistentProperty f) {
         return f.isAnnotationPresent(StartNode.class);
     }
 
     @Override
-    public FieldAccessor<RelationshipBacked> forField(final Neo4JPersistentProperty property) {
+    public FieldAccessor forField(final Neo4jPersistentProperty property) {
         if (isStartNodeField(property)) {
             return new RelationshipNodeFieldAccessor(property, graphDatabaseContext) {
                 @Override
@@ -76,36 +76,36 @@ public class RelationshipNodeFieldAccessorFactory implements FieldAccessorFactor
         return null;
     }
 
-    public static abstract class RelationshipNodeFieldAccessor implements FieldAccessor<RelationshipBacked> {
+    public static abstract class RelationshipNodeFieldAccessor implements FieldAccessor {
 
-        private final Neo4JPersistentProperty property;
+        private final Neo4jPersistentProperty property;
         private final GraphDatabaseContext graphDatabaseContext;
 
-        public RelationshipNodeFieldAccessor(final Neo4JPersistentProperty property, final GraphDatabaseContext graphDatabaseContext) {
+        public RelationshipNodeFieldAccessor(final Neo4jPersistentProperty property, final GraphDatabaseContext graphDatabaseContext) {
             this.property = property;
             this.graphDatabaseContext = graphDatabaseContext;
         }
 
         @Override
-        public Object setValue(final RelationshipBacked relationshipBacked, final Object newVal) {
+        public Object setValue(final Object entity, final Object newVal) {
             throw new InvalidDataAccessApiUsageException("Cannot change start or end node of existing relationship.");
         }
 
         @Override
-        public Object getValue(final RelationshipBacked relationshipBacked) {
-            final Relationship relationship = relationshipBacked.getPersistentState();
+        public Object getValue(final Object entity) {
+            final Relationship relationship = graphDatabaseContext.getPersistentState(entity);
             final Node node = getNode(relationship);
             if (node == null) {
                 return null;
             }
-            final NodeBacked result = graphDatabaseContext.createEntityFromState(node, (Class<? extends NodeBacked>) property.getType());
+            final Object result = graphDatabaseContext.createEntityFromState(node, (Class<?>) property.getType());
             return doReturn(result);
         }
 
         protected abstract Node getNode(Relationship relationship);
 
         @Override
-        public boolean isWriteable(final RelationshipBacked relationshipBacked) {
+        public boolean isWriteable(final Object entity) {
             return false;
         }
         

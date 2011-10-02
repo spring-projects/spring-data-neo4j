@@ -17,14 +17,14 @@
 package org.springframework.data.neo4j.repository;
 
 import org.neo4j.graphdb.traversal.TraversalDescription;
-import org.springframework.data.neo4j.core.GraphBacked;
-import org.springframework.data.neo4j.core.NodeBacked;
+
+
 
 /**
  * @author mh
  * @since 29.03.11
  */
-public interface TraversalRepository<T extends GraphBacked<?>> {
+public interface TraversalRepository<T> {
     /**
      * Traversal based finder that returns a lazy Iterable over the traversal results
      *
@@ -33,5 +33,5 @@ public interface TraversalRepository<T extends GraphBacked<?>> {
      * @param <N>                  Start node entity type
      * @return Iterable over traversal result
      */
-    <N extends NodeBacked> Iterable<T> findAllByTraversal(N startNode, TraversalDescription traversalDescription);
+    <N> Iterable<T> findAllByTraversal(N startNode, TraversalDescription traversalDescription);
 }

@@ -22,50 +22,51 @@ import org.neo4j.graphdb.PropertyContainer;
 import org.neo4j.graphdb.index.Index;
 import org.neo4j.index.lucene.ValueContext;
 import org.springframework.data.neo4j.annotation.Indexed;
-import org.springframework.data.neo4j.core.GraphBacked;
-import org.springframework.data.neo4j.mapping.Neo4JPersistentProperty;
+
+import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.support.GraphDatabaseContext;
 
 import java.lang.reflect.AnnotatedElement;
-import java.lang.reflect.Field;
 
 
-public class IndexingPropertyFieldAccessorListenerFactory<S extends PropertyContainer, T extends GraphBacked<S>> implements FieldAccessorListenerFactory<T> {
+public class IndexingPropertyFieldAccessorListenerFactory<S extends PropertyContainer, T> implements FieldAccessorListenerFactory {
 
     private final PropertyFieldAccessorFactory propertyFieldAccessorFactory;
     private final ConvertingNodePropertyFieldAccessorFactory convertingNodePropertyFieldAccessorFactory;
     private final IndexProvider indexProvider;
+    private final GraphDatabaseContext graphDatabaseContext;
 
     public IndexingPropertyFieldAccessorListenerFactory(final GraphDatabaseContext graphDatabaseContext, final PropertyFieldAccessorFactory propertyFieldAccessorFactory, final ConvertingNodePropertyFieldAccessorFactory convertingNodePropertyFieldAccessorFactory) {
+        this.graphDatabaseContext = graphDatabaseContext;
         indexProvider = new IndexProvider<S,T>(graphDatabaseContext);
     	this.propertyFieldAccessorFactory = propertyFieldAccessorFactory;
         this.convertingNodePropertyFieldAccessorFactory = convertingNodePropertyFieldAccessorFactory;
     }
 
     @Override
-    public boolean accept(final Neo4JPersistentProperty property) {
+    public boolean accept(final Neo4jPersistentProperty property) {
         return isPropertyField(property) && property.isIndexed();
     }
 
 
-    private boolean isPropertyField(final Neo4JPersistentProperty property) {
+    private boolean isPropertyField(final Neo4jPersistentProperty property) {
         return propertyFieldAccessorFactory.accept(property) || convertingNodePropertyFieldAccessorFactory.accept(property);
     }
 
     @Override
-    public FieldAccessListener<T, ?> forField(Neo4JPersistentProperty property) {
-        return (FieldAccessListener<T, ?>) new IndexingPropertyFieldAccessorListener(property, indexProvider);
+    public FieldAccessListener forField(Neo4jPersistentProperty property) {
+        return new IndexingPropertyFieldAccessorListener(property, indexProvider,graphDatabaseContext);
     }
 
 
-    public static class IndexProvider<S extends PropertyContainer, T extends GraphBacked<S>> {
+    public static class IndexProvider<S extends PropertyContainer, T> {
         private final GraphDatabaseContext graphDatabaseContext;
 
         public IndexProvider(GraphDatabaseContext graphDatabaseContext) {
             this.graphDatabaseContext = graphDatabaseContext;
         }
 
-        private String getIndexKey(Neo4JPersistentProperty property) {
+        private String getIndexKey(Neo4jPersistentProperty property) {
             Indexed indexed = property.getAnnotation(Indexed.class);
             if (indexed==null || indexed.fieldName().isEmpty()) return property.getNeo4jPropertyName();
             return indexed.fieldName();
@@ -75,7 +76,7 @@ public class IndexingPropertyFieldAccessorListenerFactory<S extends PropertyCont
             return element.getAnnotation(Indexed.class);
         }
 
-        private Index<S> getIndex(Neo4JPersistentProperty property, GraphBacked instance) {
+        private Index<S> getIndex(Neo4jPersistentProperty property, Object instance) {
             final Indexed indexedAnnotation = property.getAnnotation(Indexed.class);
             final Class<T> type = (Class<T>) property.getOwner().getType();
             final String providedIndexName = indexedAnnotation.indexName().isEmpty() ? null : indexedAnnotation.indexName();
@@ -94,26 +95,28 @@ public class IndexingPropertyFieldAccessorListenerFactory<S extends PropertyCont
 	 * @author Michael Hunger
 	 * @since 12.09.2010
 	 */
-	public static class IndexingPropertyFieldAccessorListener<T extends PropertyContainer> implements FieldAccessListener<GraphBacked<T>, Object> {
+	public static class IndexingPropertyFieldAccessorListener<T extends PropertyContainer> implements FieldAccessListener {
 
 	    private final static Log log = LogFactory.getLog( IndexingPropertyFieldAccessorListener.class );
 
 	    protected final String indexKey;
-        private final Neo4JPersistentProperty property;
+        private final Neo4jPersistentProperty property;
         private final IndexProvider indexProvider;
+        private final GraphDatabaseContext graphDatabaseContext;
 
-        public IndexingPropertyFieldAccessorListener(final Neo4JPersistentProperty property, IndexProvider indexProvider) {
+        public IndexingPropertyFieldAccessorListener(final Neo4jPersistentProperty property, IndexProvider indexProvider, GraphDatabaseContext graphDatabaseContext) {
             this.property = property;
             this.indexProvider = indexProvider;
+            this.graphDatabaseContext = graphDatabaseContext;
             indexKey = indexProvider.getIndexKey(property);
         }
 
 	    @Override
-        public void valueChanged(GraphBacked<T> graphBacked, Object oldVal, Object newVal) {
-            Index<T> index = indexProvider.getIndex(property, graphBacked);
+        public void valueChanged(Object entity, Object oldVal, Object newVal) {
+            Index<T> index = indexProvider.getIndex(property, entity);
             if (newVal instanceof Number) newVal = ValueContext.numeric((Number) newVal);
 
-            final T state = graphBacked.getPersistentState();
+            final T state = graphDatabaseContext.getPersistentState(entity);
             index.remove(state, indexKey);
             if (newVal != null) {
                 index.add(state, indexKey, newVal);

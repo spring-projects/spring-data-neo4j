@@ -16,21 +16,16 @@
 
 package org.springframework.data.neo4j;
 
-import java.util.Date;
-import java.util.Map;
+import org.neo4j.graphdb.Direction;
+import org.neo4j.graphdb.Node;
+import org.springframework.data.neo4j.annotation.*;
+import org.springframework.data.neo4j.fieldaccess.DynamicProperties;
 
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.Size;
-
-import org.neo4j.graphdb.Direction;
-import org.springframework.data.neo4j.annotation.GraphId;
-import org.springframework.data.neo4j.annotation.Indexed;
-import org.springframework.data.neo4j.annotation.NodeEntity;
-import org.springframework.data.neo4j.annotation.Query;
-import org.springframework.data.neo4j.annotation.RelatedTo;
-import org.springframework.data.neo4j.annotation.RelatedToVia;
-import org.springframework.data.neo4j.fieldaccess.DynamicProperties;
+import java.util.Date;
+import java.util.Map;
 
 
 @NodeEntity
@@ -86,6 +81,10 @@ public class Person {
 
     @Query(value = "start person=(%start) match (person)<-[:persons]-(team)-[:persons]->(member) return member.name, member.age")
     private Iterable<Map<String,Object>> otherTeamMemberData;
+
+    public Person(Node n) {
+        this.graphId = n.getId();
+    }
 
     public String getBossName() {
         return bossName;
@@ -174,7 +173,7 @@ public class Person {
 	}
 
 	public Friendship knows(Person p) {
-        return (Friendship)relateTo(p, Friendship.class,"knows");
+        return new Friendship(this, p, "knows");
 	}
 
 	public void setPersonality(Personality personality) {
@@ -232,8 +231,4 @@ public class Person {
 	public void setNickname(String nickname) {
 		this.nickname = nickname;
 	}
-
-    public static Person persistedPerson(String name, int age) {
-        return new Person(name,age).persist();
-    }
 }

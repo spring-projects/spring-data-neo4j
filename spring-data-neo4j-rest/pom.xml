@@ -31,7 +31,7 @@
 
         <dependency>
             <groupId>org.springframework.data</groupId>
-            <artifactId>spring-data-neo4j</artifactId>
+            <artifactId>spring-data-neo4j-aspects</artifactId>
             <version>${project.version}</version>
             <scope>test</scope>
             <type>test-jar</type>

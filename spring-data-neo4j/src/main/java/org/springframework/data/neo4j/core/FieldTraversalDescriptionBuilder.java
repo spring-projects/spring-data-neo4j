@@ -17,7 +17,7 @@
 package org.springframework.data.neo4j.core;
 
 import org.neo4j.graphdb.traversal.TraversalDescription;
-import org.springframework.data.neo4j.mapping.Neo4JPersistentProperty;
+import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 
 /**
  * Interface for classes that build traversal descriptions. Those classes can be referred to by
@@ -35,5 +35,5 @@ public interface FieldTraversalDescriptionBuilder {
      * @param property
      * @return the TraversalDescription to apply on fieldaccess, the start node is the current entity node
      */
-    TraversalDescription build(NodeBacked start, Neo4JPersistentProperty property, String...params);
+    TraversalDescription build(Object start, Neo4jPersistentProperty property, String...params);
 }

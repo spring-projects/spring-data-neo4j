@@ -19,8 +19,7 @@ package org.springframework.data.neo4j.fieldaccess;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.RelationshipType;
-import org.springframework.data.neo4j.core.NodeBacked;
-import org.springframework.data.neo4j.mapping.Neo4JPersistentProperty;
+import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.mapping.RelationshipInfo;
 import org.springframework.data.neo4j.support.GraphDatabaseContext;
 
@@ -36,26 +35,26 @@ public class OneToNRelationshipFieldAccessorFactory extends NodeRelationshipFiel
 	}
 
     @Override
-    public boolean accept(final Neo4JPersistentProperty property) {
+    public boolean accept(final Neo4jPersistentProperty property) {
         if (!property.isRelationship()) return false;
         final RelationshipInfo info = property.getRelationshipInfo();
         return info.isMultiple() && info.targetsNodes() && !info.isReadonly();
     }
 
     @Override
-	public FieldAccessor<NodeBacked> forField(final Neo4JPersistentProperty property) {
+	public FieldAccessor forField(final Neo4jPersistentProperty property) {
         final RelationshipInfo relationshipInfo = property.getRelationshipInfo();
-        final Class<? extends NodeBacked> targetType = (Class<? extends NodeBacked>) relationshipInfo.getTargetType().getType();
+        final Class<?> targetType = (Class<?>) relationshipInfo.getTargetType().getType();
         return new OneToNRelationshipFieldAccessor(relationshipInfo.getRelationshipType(), relationshipInfo.getDirection(), targetType, graphDatabaseContext,property);
 	}
 
-	public static class OneToNRelationshipFieldAccessor extends NodeToNodesRelationshipFieldAccessor<NodeBacked> {
+	public static class OneToNRelationshipFieldAccessor extends NodeToNodesRelationshipFieldAccessor {
 
-	    public OneToNRelationshipFieldAccessor(final RelationshipType type, final Direction direction, final Class<? extends NodeBacked> elementClass, final GraphDatabaseContext graphDatabaseContext, Neo4JPersistentProperty property) {
+	    public OneToNRelationshipFieldAccessor(final RelationshipType type, final Direction direction, final Class<?> elementClass, final GraphDatabaseContext graphDatabaseContext, Neo4jPersistentProperty property) {
 	        super(elementClass, graphDatabaseContext, direction, type,property);
 	    }
 
-	    public Object setValue(final NodeBacked entity, final Object newVal) {
+	    public Object setValue(final Object entity, final Object newVal) {
 	        final Node node = checkUnderlyingNode(entity);
 	        if (newVal == null) {
 	            removeMissingRelationships(node, Collections.<Node>emptySet());
@@ -64,13 +63,13 @@ public class OneToNRelationshipFieldAccessorFactory extends NodeRelationshipFiel
 	        final Set<Node> targetNodes = checkTargetIsSetOfNodebacked(newVal);
 	        removeMissingRelationships(node, targetNodes);
 	        createAddedRelationships(node, targetNodes);
-	        return createManagedSet(entity, (Set<NodeBacked>) newVal);
+	        return createManagedSet(entity, (Set<?>) newVal);
 	    }
 
-	    @Override
-	    public Object getValue(final NodeBacked entity) {
+        @Override
+	    public Object getValue(final Object entity) {
 	        checkUnderlyingNode(entity);
-	        final Set<NodeBacked> result = createEntitySetFromRelationshipEndNodes(entity);
+	        final Set<?> result = createEntitySetFromRelationshipEndNodes(entity);
 	        return doReturn(createManagedSet(entity, result));
 	    }
 

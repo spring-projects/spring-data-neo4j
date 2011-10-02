@@ -16,14 +16,25 @@
 
 package org.springframework.data.neo4j.mapping;
 
+import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.PropertyContainer;
 import org.springframework.data.mapping.PersistentEntity;
+import org.springframework.data.neo4j.support.GraphDatabaseContext;
 
 /**
  * Interface for Neo4J specific {@link PersistentEntity}.
  * 
  * @author Oliver Gierke
  */
-public interface Neo4JPersistentEntity<T> extends PersistentEntity<T, Neo4JPersistentProperty> {
+public interface Neo4jPersistentEntity<T> extends PersistentEntity<T, Neo4jPersistentProperty> {
 
     boolean useShortNames();
+
+    boolean isNodeEntity();
+
+    boolean isRelationshipEntity();
+
+    void setPersistentState(Object entity, PropertyContainer pc);
+
+    <T extends PropertyContainer> T  getPersistentState(Object entity, GraphDatabaseContext service);
 }

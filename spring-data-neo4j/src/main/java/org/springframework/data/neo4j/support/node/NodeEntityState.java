@@ -19,21 +19,21 @@ package org.springframework.data.neo4j.support.node;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.NotInTransactionException;
 import org.springframework.dao.InvalidDataAccessResourceUsageException;
-import org.springframework.data.neo4j.core.NodeBacked;
+
 import org.springframework.data.neo4j.fieldaccess.DefaultEntityState;
 import org.springframework.data.neo4j.fieldaccess.DelegatingFieldAccessorFactory;
-import org.springframework.data.neo4j.mapping.Neo4JPersistentEntity;
+import org.springframework.data.neo4j.mapping.Neo4jPersistentEntity;
 import org.springframework.data.neo4j.support.GraphDatabaseContext;
 
 /**
  * @author Michael Hunger
  * @since 21.09.2010
  */
-public class NodeEntityState<ENTITY extends NodeBacked> extends DefaultEntityState<ENTITY, Node> {
+public class NodeEntityState extends DefaultEntityState<Node> {
 
     private final GraphDatabaseContext graphDatabaseContext;
 
-    public NodeEntityState(final Node underlyingState, final ENTITY entity, final Class<? extends ENTITY> type, final GraphDatabaseContext graphDatabaseContext, final DelegatingFieldAccessorFactory<NodeBacked> nodeDelegatingFieldAccessorFactory, Neo4JPersistentEntity<ENTITY> persistentEntity) {
+    public NodeEntityState(final Node underlyingState, final Object entity, final Class<? extends Object> type, final GraphDatabaseContext graphDatabaseContext, final DelegatingFieldAccessorFactory nodeDelegatingFieldAccessorFactory, Neo4jPersistentEntity<Object> persistentEntity) {
         super(underlyingState, entity, type, nodeDelegatingFieldAccessorFactory,persistentEntity);
         this.graphDatabaseContext = graphDatabaseContext;
     }
@@ -64,7 +64,13 @@ public class NodeEntityState<ENTITY extends NodeBacked> extends DefaultEntitySta
     }
 
     @Override
-    public ENTITY persist() {
+    public void setPersistentState(Node node) {
+        graphDatabaseContext.setPersistentState(entity,node);
+        super.setPersistentState(node);
+    }
+
+    @Override
+    public Object persist() {
         if (getPersistentState() == null) {
             createAndAssignState();
         }

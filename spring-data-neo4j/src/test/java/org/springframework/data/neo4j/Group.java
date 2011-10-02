@@ -23,8 +23,7 @@ import org.neo4j.kernel.Traversal;
 import org.neo4j.kernel.impl.traversal.TraversalDescriptionImpl;
 import org.springframework.data.neo4j.annotation.*;
 import org.springframework.data.neo4j.core.FieldTraversalDescriptionBuilder;
-import org.springframework.data.neo4j.core.NodeBacked;
-import org.springframework.data.neo4j.mapping.Neo4JPersistentProperty;
+import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 
 import java.util.Collection;
 
@@ -118,7 +117,7 @@ public class Group {
 
     private static class PeopleTraversalBuilder implements FieldTraversalDescriptionBuilder {
         @Override
-        public TraversalDescription build(NodeBacked start, Neo4JPersistentProperty property, String...params) {
+        public TraversalDescription build(Object start, Neo4jPersistentProperty property, String...params) {
             return new TraversalDescriptionImpl()
                     .relationships(DynamicRelationshipType.withName(params[0]))
                     .filter(Traversal.returnAllButStartNode());

@@ -24,8 +24,8 @@ import org.springframework.data.neo4j.annotation.NodeEntity;
 import org.springframework.data.neo4j.annotation.RelatedTo;
 import org.springframework.data.neo4j.annotation.RelatedToVia;
 import org.springframework.data.neo4j.annotation.RelationshipEntity;
-import org.springframework.data.neo4j.core.NodeBacked;
-import org.springframework.data.neo4j.core.RelationshipBacked;
+
+
 import org.springframework.data.util.ClassTypeInformation;
 import org.springframework.data.util.TypeInformation;
 
@@ -80,7 +80,7 @@ public class RelationshipInfo {
                 annotation.type().isEmpty() ? field.getName() : annotation.type(),
                 annotation.direction(),
                 typeInformation,
-                annotation.elementClass() != NodeBacked.class ? ClassTypeInformation.from(annotation.elementClass()) : null,
+                annotation.elementClass() != Object.class ? ClassTypeInformation.from(annotation.elementClass()) : null,
                 true);
     }
 
@@ -89,7 +89,7 @@ public class RelationshipInfo {
                 annotation.type().isEmpty() ? field.getName() : annotation.type(),
                 annotation.direction(),
                 typeInformation,
-                annotation.elementClass() != RelationshipBacked.class ? ClassTypeInformation.from(annotation.elementClass()) : null,
+                annotation.elementClass() != Object.class ? ClassTypeInformation.from(annotation.elementClass()) : null,
                 false);
     }
 

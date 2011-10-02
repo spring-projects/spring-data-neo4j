@@ -16,6 +16,9 @@
 
 package org.springframework.data.neo4j.repository;
 
+import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.PropertyContainer;
+import org.neo4j.graphdb.Relationship;
 import org.neo4j.helpers.collection.IteratorUtil;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -24,8 +27,8 @@ import org.springframework.data.neo4j.annotation.NodeEntity;
 import org.springframework.data.neo4j.annotation.Query;
 import org.springframework.data.neo4j.annotation.QueryType;
 import org.springframework.data.neo4j.annotation.RelationshipEntity;
-import org.springframework.data.neo4j.core.NodeBacked;
-import org.springframework.data.neo4j.core.RelationshipBacked;
+
+
 import org.springframework.data.neo4j.support.GenericTypeExtractor;
 import org.springframework.data.neo4j.support.GraphDatabaseContext;
 import org.springframework.data.neo4j.support.conversion.EntityResultConverter;
@@ -165,11 +168,11 @@ public class GraphRepositoryFactory extends RepositoryFactorySupport {
         }
 
 
-        private Map<String, Object> resolveParams(Object[] parameters) {
+        private Map<String, Object> resolveParams(Object[] parameters, GraphDatabaseContext graphDatabaseContext) {
             Map<String,Object> params=new HashMap<String, Object>();
             for (Parameter parameter : getParameters().getBindableParameters()) {
                 final Object value = parameters[parameter.getIndex()];
-                params.put(parameter.getName(),resolveParameter(value));
+                params.put(parameter.getName(),resolveParameter(value,graphDatabaseContext));
             }
             return params;
         }
@@ -200,12 +203,14 @@ public class GraphRepositoryFactory extends RepositoryFactorySupport {
             return result;
         }
 
-        private Object resolveParameter(Object parameter) {
-            if (parameter instanceof NodeBacked) {
-                return ((NodeBacked)parameter).getNodeId();
+        private Object resolveParameter(Object parameter, GraphDatabaseContext graphDatabaseContext) {
+            final Class<?> type = parameter.getClass();
+            final PropertyContainer state = graphDatabaseContext.getPersistentState(parameter);
+            if (graphDatabaseContext.isNodeEntity(type)) {
+                return ((Node) state).getId();
             }
-            if (parameter instanceof RelationshipBacked) {
-                return ((RelationshipBacked)parameter).getRelationshipId();
+            if (graphDatabaseContext.isRelationshipEntity(type)) {
+                return ((Relationship)state).getId();
             }
             return parameter;
         }
@@ -308,14 +313,16 @@ public class GraphRepositoryFactory extends RepositoryFactorySupport {
 
     private static abstract class GraphRepositoryQuery implements RepositoryQuery {
         private final GraphQueryMethod queryMethod;
+        private final GraphDatabaseContext graphDatabaseContext;
 
         public GraphRepositoryQuery(GraphQueryMethod queryMethod, RepositoryMetadata metadata, final GraphDatabaseContext graphDatabaseContext) {
             this.queryMethod = queryMethod;
+            this.graphDatabaseContext = graphDatabaseContext;
         }
 
         @Override
         public Object execute(Object[] parameters) {
-            Map<String, Object> params = queryMethod.resolveParams(parameters);
+            Map<String, Object> params = queryMethod.resolveParams(parameters,graphDatabaseContext);
             final String queryString = queryMethod.prepareQuery(parameters);
             return dispatchQuery(queryString,params,queryMethod.getPageable(parameters));
         }

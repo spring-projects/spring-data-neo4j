@@ -16,7 +16,7 @@
 
 package org.springframework.data.neo4j.repository;
 
-import org.springframework.data.neo4j.core.GraphBacked;
+
 import org.springframework.data.repository.NoRepositoryBean;
 
 /**
@@ -24,6 +24,6 @@ import org.springframework.data.repository.NoRepositoryBean;
  * @since 12.01.11
  */
 @NoRepositoryBean
-public interface GraphRepository<T extends GraphBacked<?>> extends CRUDRepository<T>, IndexRepository<T>, TraversalRepository<T> {
+public interface GraphRepository<T> extends CRUDRepository<T>, IndexRepository<T>, TraversalRepository<T> {
 
 }

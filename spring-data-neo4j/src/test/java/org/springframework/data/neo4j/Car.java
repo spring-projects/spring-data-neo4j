@@ -17,14 +17,17 @@
 package org.springframework.data.neo4j;
 
 import org.neo4j.graphdb.Node;
+import org.springframework.data.neo4j.annotation.GraphId;
 import org.springframework.data.neo4j.annotation.NodeEntity;
 
 @NodeEntity
 public abstract class Car {
-	public Car() {
+	@GraphId
+    long id;
+    public Car() {
 	}
 
 	public Car(Node n) {
-		setPersistentState(n);
+		this.id = n.getId();
 	}
 }

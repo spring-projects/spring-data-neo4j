@@ -16,9 +16,7 @@
 
 package org.springframework.data.neo4j.fieldaccess;
 
-import org.springframework.data.neo4j.mapping.Neo4JPersistentProperty;
-
-import java.lang.reflect.Field;
+import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 
 /**
  * Factory interface for a single field / field accessor. Provides means to check if a certain field is eligible for this
@@ -27,18 +25,18 @@ import java.lang.reflect.Field;
  * @author Michael Hunger
  * @since 12.09.2010
 */
-public interface FieldAccessorFactory<E> {
+public interface FieldAccessorFactory {
     /**
      *
      * @param f field to check
      * @return true if this factory is responsible for creating a accessor for this field
      */
-    boolean accept(Neo4JPersistentProperty f);
+    boolean accept(Neo4jPersistentProperty f);
 
     /**
      *
      * @param f the field to create an accessor for
      * @return a field accessor for the field or null if none can be created
      */
-    FieldAccessor<E> forField(Neo4JPersistentProperty f);
+    FieldAccessor forField(Neo4jPersistentProperty f);
 }

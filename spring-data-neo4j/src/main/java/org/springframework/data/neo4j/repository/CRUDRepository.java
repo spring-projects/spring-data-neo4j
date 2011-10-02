@@ -20,7 +20,7 @@ import org.neo4j.helpers.collection.ClosableIterable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.neo4j.core.GraphBacked;
+
 import org.springframework.data.repository.NoRepositoryBean;
 import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,7 +29,7 @@ import org.springframework.transaction.annotation.Transactional;
  * CRUD interface for graph repositories, used as base repository for crud operations
  */
 @NoRepositoryBean
-public interface CRUDRepository<T extends GraphBacked<?>> extends PagingAndSortingRepository<T, Long> {
+public interface CRUDRepository<T> extends PagingAndSortingRepository<T, Long> {
 
     /**
      * persists an entity by forwarding to entity.persist()

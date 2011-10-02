@@ -16,46 +16,52 @@
 
 package org.springframework.data.neo4j.fieldaccess;
 
+import org.neo4j.graphdb.Node;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.neo4j.annotation.Query;
-import org.springframework.data.neo4j.core.NodeBacked;
-import org.springframework.data.neo4j.mapping.Neo4JPersistentProperty;
-import org.springframework.data.neo4j.support.GenericTypeExtractor;
-import org.springframework.data.util.TypeInformation;
 
-import java.lang.reflect.Field;
+import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
+import org.springframework.data.neo4j.support.GraphDatabaseContext;
+
 import java.util.HashMap;
 import java.util.Map;
 
 import static org.springframework.data.neo4j.support.DoReturn.doReturn;
 
-public class QueryFieldAccessorFactory implements FieldAccessorFactory<NodeBacked> {
-	@Override
-    public boolean accept(final Neo4JPersistentProperty f) {
+public class QueryFieldAccessorFactory implements FieldAccessorFactory {
+    private final GraphDatabaseContext graphDatabaseContext;
+
+    public QueryFieldAccessorFactory(GraphDatabaseContext graphDatabaseContext) {
+        this.graphDatabaseContext = graphDatabaseContext;
+    }
+
+    @Override
+    public boolean accept(final Neo4jPersistentProperty f) {
         final Query query = f.getAnnotation(Query.class);
-        return query != null
-                && !query.value().isEmpty();
+        return query != null && !query.value().isEmpty();
     }
 
 
     @Override
-    public FieldAccessor<NodeBacked> forField(final Neo4JPersistentProperty field) {
-        return new QueryFieldAccessor(field);
+    public FieldAccessor forField(final Neo4jPersistentProperty property) {
+        return new QueryFieldAccessor(property,graphDatabaseContext);
     }
 
 	/**
 	 * @author Michael Hunger
 	 * @since 12.09.2010
 	 */
-	public static class QueryFieldAccessor implements FieldAccessor<NodeBacked> {
-	    protected final Neo4JPersistentProperty property;
-	    private final String query;
+	public static class QueryFieldAccessor implements FieldAccessor {
+	    protected final Neo4jPersistentProperty property;
+        private final GraphDatabaseContext graphDatabaseContext;
+        private final String query;
 	    private Class<?> target;
         protected String[] annotationParams;
         private boolean iterableResult;
 
-        public QueryFieldAccessor(final Neo4JPersistentProperty property) {
+        public QueryFieldAccessor(final Neo4jPersistentProperty property, GraphDatabaseContext graphDatabaseContext) {
 	        this.property = property;
+            this.graphDatabaseContext = graphDatabaseContext;
             final Query query = property.getAnnotation(Query.class);
             this.annotationParams = query.params();
             if ((this.annotationParams.length % 2) != 0) {
@@ -66,35 +72,34 @@ public class QueryFieldAccessorFactory implements FieldAccessorFactory<NodeBacke
             this.target = resolveTarget(query,property);
         }
 
-        private Class<?> resolveTarget(Query query, Neo4JPersistentProperty property) {
+        private Class<?> resolveTarget(Query query, Neo4jPersistentProperty property) {
             if (!query.elementClass().equals(Object.class)) return query.elementClass();
             return property.getTypeInformation().getActualType().getType();
         }
 
         @Override
-	    public boolean isWriteable(NodeBacked nodeBacked) {
+	    public boolean isWriteable(Object entity) {
 	        return false;
 	    }
 
 	    @Override
-	    public Object setValue(final NodeBacked nodeBacked, final Object newVal) {
+	    public Object setValue(final Object entity, final Object newVal) {
 	        throw new InvalidDataAccessApiUsageException("Cannot set readonly query field " + property);
 	    }
 
 	    @Override
-	    public Object getValue(final NodeBacked nodeBacked) {
-            return doReturn(executeQuery(nodeBacked, this.query, createPlaceholderParams(nodeBacked)));
+	    public Object getValue(final Object entity) {
+            return doReturn(executeQuery(entity, this.query, createPlaceholderParams(entity)));
 	    }
 
-        private Object executeQuery(NodeBacked nodeBacked, String queryString, Map<String, Object> params) {
-            if (!iterableResult) return nodeBacked.findByQuery(queryString,this.target,params);
-            if (Map.class.isAssignableFrom(target)) return nodeBacked.findAllByQuery(queryString,params);
-            return nodeBacked.findAllByQuery(queryString, this.target,params);
+        private Object executeQuery(Object entity, String queryString, Map<String, Object> params) {
+            return graphDatabaseContext.executeQuery(entity,queryString,params,property);
         }
 
-        private Map<String, Object> createPlaceholderParams(NodeBacked nodeBacked) {
+        private Map<String, Object> createPlaceholderParams(Object entity) {
             Map<String,Object> params=new HashMap<String, Object>();
-            params.put("start",nodeBacked.getNodeId());
+            final Node startNode = graphDatabaseContext.<Node>getPersistentState(entity);
+            params.put("start", startNode.getId());
             if (annotationParams.length==0) return params;
             for (int i = 0; i < annotationParams.length; i+=2) {
                 params.put(annotationParams[i],annotationParams[i+1]);

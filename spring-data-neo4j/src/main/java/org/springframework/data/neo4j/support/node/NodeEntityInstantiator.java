@@ -17,8 +17,10 @@
 package org.springframework.data.neo4j.support.node;
 
 import org.neo4j.graphdb.Node;
-import org.springframework.data.neo4j.core.NodeBacked;
-import org.springframework.data.persistence.AbstractConstructorEntityInstantiator;
+import org.neo4j.graphdb.Relationship;
+import org.springframework.data.neo4j.mapping.Neo4jMappingContext;
+import org.springframework.data.neo4j.support.AbstractConstructorEntityInstantiator;
+
 
 /**
  * Implementation of an entity instantiator for neo4j graphdb nodes, binding the entity type to a NodeBacked and the
@@ -27,12 +29,24 @@ import org.springframework.data.persistence.AbstractConstructorEntityInstantiato
  * 
  * @author Rod Johnson
  */
-public class NodeEntityInstantiator extends AbstractConstructorEntityInstantiator<NodeBacked, Node>{
-	
-	@Override
-	protected void setState(NodeBacked entity, Node s) {
-		entity.setPersistentState(s);
+public class NodeEntityInstantiator extends AbstractConstructorEntityInstantiator<Node> {
+
+    private final Neo4jMappingContext mappingContext;
+
+    public NodeEntityInstantiator(Neo4jMappingContext mappingContext) {
+        this.mappingContext = mappingContext;
+    }
+
+
+    @Override
+	protected void setState(Object entity, Node node) {
+		setPersistentState(entity,node);
 	}
+
+    protected void setPersistentState(Object entity, Node node) {
+        this.mappingContext.setPersistentState(entity,node);
+    }
+
 
     @Override
     protected String getFailingMessageForClass(Class<?> entityClass, Class<Node> stateClass) {

@@ -22,9 +22,9 @@ import org.neo4j.graphdb.PropertyContainer;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.helpers.collection.IterableWrapper;
 import org.springframework.data.neo4j.core.EntityPath;
-import org.springframework.data.neo4j.core.GraphBacked;
-import org.springframework.data.neo4j.core.NodeBacked;
-import org.springframework.data.neo4j.core.RelationshipBacked;
+
+
+
 import org.springframework.data.neo4j.support.GraphDatabaseContext;
 
 import java.util.Iterator;
@@ -33,25 +33,25 @@ import java.util.Iterator;
 * @author mh
 * @since 26.02.11
 */
-public class ConvertingEntityPath<S extends NodeBacked,E extends NodeBacked> implements EntityPath<S,E> {
+public class ConvertingEntityPath<S,E> implements EntityPath<S,E> {
 
     @Override
-    public <T extends NodeBacked> T startEntity(Class<T>... types) {
+    public <T> T startEntity(Class<T>... types) {
         return createNodeEntityFromFirstParameterOrStoredType(startNode(), types);
     }
 
-    private <T extends NodeBacked> T createNodeEntityFromFirstParameterOrStoredType(Node node, Class<T>...types) {
+    private <T> T createNodeEntityFromFirstParameterOrStoredType(Node node, Class<T>...types) {
         if (node==null) return null;
         if (types==null || types.length==0) return graphDatabaseContext.createEntityFromStoredType(node);
         return graphDatabaseContext.createEntityFromState(node,types[0]);
     }
 
     @Override
-    public <T extends NodeBacked> T endEntity(Class<T>... types) {
+    public <T> T endEntity(Class<T>... types) {
         return createNodeEntityFromFirstParameterOrStoredType(endNode(),types);
     }
     @Override
-    public <T extends RelationshipBacked> T lastRelationshipEntity(Class<T>... types) {
+    public <T> T lastRelationshipEntity(Class<T>... types) {
         Relationship relationship = lastRelationship();
         if (relationship==null) return null;
         return graphDatabaseContext.createEntityFromState(relationship, getFirstOrDefault((Class<T>) DefaultRelationshipBacked.class, types));
@@ -63,7 +63,7 @@ public class ConvertingEntityPath<S extends NodeBacked,E extends NodeBacked> imp
     }
 
     @Override
-    public <T extends NodeBacked> Iterable<T> nodeEntities() {
+    public <T> Iterable<T> nodeEntities() {
         return new IterableWrapper<T,Node>(nodes()) {
             @Override
             protected T underlyingObjectToObject(Node node) {
@@ -73,7 +73,7 @@ public class ConvertingEntityPath<S extends NodeBacked,E extends NodeBacked> imp
     }
 
     @Override
-    public <T extends RelationshipBacked> Iterable<T> relationshipEntities(final Class<T>... relationships) {
+    public <T> Iterable<T> relationshipEntities(final Class<T>... relationships) {
         return new IterableWrapper<T,Relationship>(relationships()) {
             @Override
             protected T underlyingObjectToObject(Relationship relationship) {
@@ -83,7 +83,7 @@ public class ConvertingEntityPath<S extends NodeBacked,E extends NodeBacked> imp
     }
 
     @Override
-    public <T extends GraphBacked> Iterable<T> allPathEntities(final Class<T>... relationships) {
+    public <T> Iterable<T> allPathEntities(final Class<T>... relationships) {
         return new IterableWrapper<T,PropertyContainer>(delegate) {
             @Override
             protected T underlyingObjectToObject(PropertyContainer element) {

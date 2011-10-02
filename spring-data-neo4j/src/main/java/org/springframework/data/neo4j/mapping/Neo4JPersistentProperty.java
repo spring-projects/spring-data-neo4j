@@ -18,9 +18,7 @@ package org.springframework.data.neo4j.mapping;
 
 import org.springframework.core.convert.ConversionService;
 import org.springframework.data.mapping.PersistentProperty;
-import org.springframework.data.neo4j.annotation.Indexed;
 
-import javax.persistence.Id;
 import java.lang.annotation.Annotation;
 import java.util.Collection;
 
@@ -30,7 +28,7 @@ import java.util.Collection;
  * 
  * @author Oliver Gierke
  */
-public interface Neo4JPersistentProperty extends PersistentProperty<Neo4JPersistentProperty> {
+public interface Neo4jPersistentProperty extends PersistentProperty<Neo4jPersistentProperty> {
 
     /**
      * Returns whether the property represents a relationship. If this returns {@literal true}, clients can expect
@@ -50,7 +48,7 @@ public interface Neo4JPersistentProperty extends PersistentProperty<Neo4JPersist
 
     boolean isIndexed();
 
-    Neo4JPersistentPropertyImpl.IndexInfo getIndexInfo();
+    Neo4jPersistentPropertyImpl.IndexInfo getIndexInfo();
 
     String getNeo4jPropertyName();
 
@@ -70,7 +68,9 @@ public interface Neo4JPersistentProperty extends PersistentProperty<Neo4JPersist
 
     <T extends Annotation> boolean isAnnotationPresent(Class<T> annotationType);
 
-    void setValue(Object entity, Object newValue) throws IllegalAccessException;
+    void setValue(Object entity, Object newValue);
 
-    Object getValue(final Object entity) throws IllegalAccessException;
+    Object getValue(final Object entity);
+
+    Neo4jPersistentEntity<?> getOwner();
 }

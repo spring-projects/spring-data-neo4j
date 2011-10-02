@@ -20,14 +20,14 @@ import org.neo4j.graphdb.Path;
 import org.neo4j.graphdb.traversal.Evaluation;
 import org.neo4j.graphdb.traversal.Evaluator;
 import org.springframework.data.neo4j.core.EntityPath;
-import org.springframework.data.neo4j.core.NodeBacked;
+
 import org.springframework.data.neo4j.support.GraphDatabaseContext;
 
 /**
  * @author mh
  * @since 26.02.11
  */
-public abstract class EntityEvaluator<S extends NodeBacked, E extends NodeBacked> implements Evaluator {
+public abstract class EntityEvaluator<S, E> implements Evaluator {
     private GraphDatabaseContext graphDatabaseContext;
 
     @Override

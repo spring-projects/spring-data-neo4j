@@ -17,11 +17,14 @@
 package org.springframework.data.neo4j.fieldaccess;
 
 import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.PropertyContainer;
 import org.springframework.data.neo4j.core.EntityState;
-import org.springframework.data.neo4j.core.NodeBacked;
-import org.springframework.data.neo4j.core.RelationshipBacked;
-import org.springframework.data.neo4j.mapping.Neo4JPersistentProperty;
+
+
+import org.springframework.data.neo4j.mapping.Neo4jPersistentEntity;
+import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.support.DoReturn;
+import org.springframework.data.neo4j.support.GraphDatabaseContext;
 
 import java.util.AbstractSet;
 import java.util.Collection;
@@ -31,15 +34,19 @@ import java.util.Set;
 /**
  * @param <T>
  */
-public class ManagedFieldAccessorSet<ENTITY,T> extends AbstractSet<T> {
-	private final ENTITY entity;
+public class ManagedFieldAccessorSet<T> extends AbstractSet<T> {
+	private final Object entity;
 	final Set<T> delegate;
-	private final Neo4JPersistentProperty property;
+	private final Neo4jPersistentProperty property;
+    private final GraphDatabaseContext ctx;
+    private final FieldAccessor fieldAccessor;
 
-	public ManagedFieldAccessorSet(final ENTITY entity, final Object newVal, final Neo4JPersistentProperty property) {
+    public ManagedFieldAccessorSet(final Object entity, final Object newVal, final Neo4jPersistentProperty property, GraphDatabaseContext ctx, FieldAccessor fieldAccessor) {
 		this.entity = entity;
 		this.property = property;
-		delegate = (Set<T>) newVal;
+        this.ctx = ctx;
+        this.fieldAccessor = fieldAccessor;
+        delegate = (Set<T>) newVal;
 	}
 
 	@Override
@@ -65,26 +72,21 @@ public class ManagedFieldAccessorSet<ENTITY,T> extends AbstractSet<T> {
 	}
 
     private void update() {
-        if (entity instanceof NodeBacked) {
-            NodeBacked nodeBacked = (NodeBacked) entity;
-            final EntityState<NodeBacked,Node> entityState = nodeBacked.getEntityState();
-            updateValue(entityState);
+        final Neo4jPersistentEntity<?> persistentEntity = property.getOwner();
+        final PropertyContainer persistentState = persistentEntity.getPersistentState(entity, ctx);
+        if (persistentEntity.isNodeEntity()) {
+            updateValue();
         }
-        if (entity instanceof RelationshipBacked) {
-            RelationshipBacked relationshipBacked = (RelationshipBacked) entity;
-            updateValue(relationshipBacked.getEntityState());
+        if (persistentEntity.isRelationshipEntity()) {
+            updateValue();
         }
     }
 
-    private Object updateValue(EntityState entityState) {
-        try {
-            final Object newValue = entityState.setValue(property, delegate);
-            if (newValue instanceof DoReturn) return DoReturn.unwrap(newValue);
-            property.setValue(entity, newValue);
-            return newValue;
-        } catch (IllegalAccessException e) {
-            throw new RuntimeException("Could not update field "+ property +" to new value of type "+delegate.getClass());
-        }
+    private Object updateValue() {
+        final Object newValue = fieldAccessor.setValue(entity,delegate);
+        if (newValue instanceof DoReturn) return DoReturn.unwrap(newValue);
+        property.setValue(entity, newValue);
+        return newValue;
     }
 
     @Override

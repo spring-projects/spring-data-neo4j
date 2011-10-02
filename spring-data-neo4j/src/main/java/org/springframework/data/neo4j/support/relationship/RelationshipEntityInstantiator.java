@@ -17,8 +17,9 @@
 package org.springframework.data.neo4j.support.relationship;
 
 import org.neo4j.graphdb.Relationship;
-import org.springframework.data.neo4j.core.RelationshipBacked;
-import org.springframework.data.persistence.AbstractConstructorEntityInstantiator;
+
+import org.springframework.data.neo4j.mapping.Neo4jMappingContext;
+import org.springframework.data.neo4j.support.AbstractConstructorEntityInstantiator;
 import sun.reflect.ReflectionFactory;
 
 /**
@@ -27,21 +28,27 @@ import sun.reflect.ReflectionFactory;
  * Part of the SPI, not intended for public use.
  */
 
-public class RelationshipEntityInstantiator extends AbstractConstructorEntityInstantiator<RelationshipBacked, Relationship> {
+public class RelationshipEntityInstantiator extends AbstractConstructorEntityInstantiator<Relationship> {
 
-    @Override
-    protected void setState(RelationshipBacked entity, Relationship relationship) {
-        entity.setPersistentState(relationship);
+    private final Neo4jMappingContext mappingContext;
+
+    public RelationshipEntityInstantiator(Neo4jMappingContext mappingContext) {
+        this.mappingContext = mappingContext;
     }
 
     @Override
-    protected String getFailingMessageForClass(Class<?> entityClass, Class<Relationship> stateClass) {
+    protected void setState(Object entity, Relationship relationship) {
+        this.mappingContext.setPersistentState(entity,relationship);
+    }
+
+    @Override
+    protected String getFailingMessageForClass(Class<?> entityClass, Class<Relationship> relationshipClass) {
         return entityClass.getSimpleName() + ": entity must have a no-arg constructor.";
     }
 
 
     /*
-    protected <T extends RelationshipBacked> StateBackedCreator<T, Relationship> createInstantiator(Class<T> type, final Class<Relationship> stateType) {
+    protected <T> StateBackedCreator<T, Relationship> createInstantiator(Class<T> type, final Class<Relationship> stateType) {
         StateBackedCreator<T,Relationship> creator = createWithoutConstructorInvocation(type,stateType);
         if (creator !=null) return creator;
         return createFailingInstantiator(stateType);

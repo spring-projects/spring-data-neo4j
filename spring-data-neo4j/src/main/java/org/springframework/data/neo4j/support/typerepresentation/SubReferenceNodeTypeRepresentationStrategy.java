@@ -24,10 +24,10 @@ import org.neo4j.helpers.collection.ClosableIterable;
 import org.neo4j.helpers.collection.CombiningIterable;
 import org.neo4j.helpers.collection.IterableWrapper;
 import org.neo4j.kernel.Traversal;
-import org.springframework.data.neo4j.core.GraphBacked;
-import org.springframework.data.neo4j.core.NodeBacked;
+
+
 import org.springframework.data.neo4j.core.NodeTypeRepresentationStrategy;
-import org.springframework.data.persistence.EntityInstantiator;
+import org.springframework.data.neo4j.support.EntityInstantiator;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -54,10 +54,10 @@ public class SubReferenceNodeTypeRepresentationStrategy implements NodeTypeRepre
 	public static final String SUBREF_CLASS_KEY = "class";
 
 	private GraphDatabaseService graphDatabaseService;
-	private EntityInstantiator<NodeBacked, Node> entityInstantiator;
+	private EntityInstantiator<Node> entityInstantiator;
     private final EntityTypeCache typeCache;
 
-    public SubReferenceNodeTypeRepresentationStrategy(GraphDatabaseService graphDatabaseService, EntityInstantiator<NodeBacked, Node> entityInstantiator) {
+    public SubReferenceNodeTypeRepresentationStrategy(GraphDatabaseService graphDatabaseService, EntityInstantiator<Node> entityInstantiator) {
 		this.graphDatabaseService = graphDatabaseService;
 		this.entityInstantiator = entityInstantiator;
         typeCache = new EntityTypeCache();
@@ -93,7 +93,7 @@ public class SubReferenceNodeTypeRepresentationStrategy implements NodeTypeRepre
     }
 
     @Override
-    public void postEntityCreation(Node state, Class<? extends NodeBacked> type) {
+    public void postEntityCreation(Node state, Class<?> type) {
 	    final Node subReference = obtainSubreferenceNode(type);
         state.createRelationshipTo(subReference, INSTANCE_OF_RELATIONSHIP_TYPE);
 	    subReference.setProperty(SUBREF_CLASS_KEY, type.getName());
@@ -119,7 +119,7 @@ public class SubReferenceNodeTypeRepresentationStrategy implements NodeTypeRepre
 	}
 
 	@Override
-    public long count(final Class<? extends NodeBacked> entityClass) {
+    public long count(final Class<?> entityClass) {
         final Node subrefNode = findSubreferenceNode(entityClass);
         if (subrefNode == null) return 0;
         return (Integer) subrefNode.getProperty(SUBREFERENCE_NODE_COUNTER_KEY, 0);
@@ -127,7 +127,7 @@ public class SubReferenceNodeTypeRepresentationStrategy implements NodeTypeRepre
 
 	@Override
 	@SuppressWarnings("unchecked")
-	public <T extends NodeBacked> Class<T> getJavaType(Node node) {
+	public <T> Class<T> getJavaType(Node node) {
         if (node == null) throw new IllegalArgumentException("Node is null");
         Relationship instanceOfRelationship = node.getSingleRelationship(INSTANCE_OF_RELATIONSHIP_TYPE, Direction.OUTGOING);
         if (instanceOfRelationship == null)
@@ -139,17 +139,17 @@ public class SubReferenceNodeTypeRepresentationStrategy implements NodeTypeRepre
         return clazz;
     }
 
-    private <T extends NodeBacked> Class<T> resolveType(Node node, String typeName) {
-        final Class<GraphBacked<?>> type = typeCache.getClassForName(typeName);
+    private <T> Class<T> resolveType(Node node, String typeName) {
+        final Class<?> type = typeCache.getClassForName(typeName);
         if (type == null) {
       	    throw new IllegalStateException("Unable to get type for node: " + node);
         }
-        return (Class<T>) type.asSubclass(NodeBacked.class);
+        return (Class<T>) type;
     }
 
     @Override
     public void preEntityRemoval(Node state) {
-        Class<? extends NodeBacked> clazz = getJavaType(state);
+        Class<?> clazz = getJavaType(state);
         if (clazz == null) return;
         final Node subReference = obtainSubreferenceNode(clazz);
         Relationship instanceOf = state.getSingleRelationship(INSTANCE_OF_RELATIONSHIP_TYPE, Direction.OUTGOING);
@@ -165,18 +165,19 @@ public class SubReferenceNodeTypeRepresentationStrategy implements NodeTypeRepre
     }
 
     @Override
-    public <T extends NodeBacked> ClosableIterable<T> findAll(final Class<T> clazz) {
+    public <T> ClosableIterable<T> findAll(final Class<T> clazz) {
         final Node subrefNode = findSubreferenceNode(clazz);
 		if (log.isDebugEnabled()) log.debug("Subref: " + subrefNode);
 		Iterable<Iterable<T>> relIterables = findEntityIterables(subrefNode);
 		return new ClosableCombiningIterable<T>(relIterables);
     }
 
-	private <T extends NodeBacked> List<Iterable<T>> findEntityIterables(Node subrefNode) {
+	private <T> List<Iterable<T>> findEntityIterables(Node subrefNode) {
         if (subrefNode == null) return Collections.emptyList();
 		List<Iterable<T>> result = new LinkedList<Iterable<T>>();
 		for (Relationship relationship : subrefNode.getRelationships(SUBCLASS_OF_RELATIONSHIP_TYPE, Direction.INCOMING)) {
-			result.addAll((Collection<? extends Iterable<T>>) findEntityIterables(relationship.getStartNode()));
+            final List<Iterable<T>> entityIterables = this.<T>findEntityIterables(relationship.getStartNode());
+            result.addAll(entityIterables);
 		}
 		Iterable<T> t = new IterableWrapper<T, Relationship>(subrefNode.getRelationships(INSTANCE_OF_RELATIONSHIP_TYPE, Direction.INCOMING)) {
             @Override
@@ -196,7 +197,7 @@ public class SubReferenceNodeTypeRepresentationStrategy implements NodeTypeRepre
         return getOrCreateSubReferenceNode(subRefRelationshipType(entityClass));
     }
 
-    public Node findSubreferenceNode(final Class<? extends NodeBacked> entityClass) {
+    public Node findSubreferenceNode(final Class<?> entityClass) {
         final Relationship subrefRelationship = graphDatabaseService.getReferenceNode().getSingleRelationship(subRefRelationshipType(entityClass), Direction.OUTGOING);
         return subrefRelationship != null ? subrefRelationship.getEndNode() : null;
     }
@@ -224,8 +225,8 @@ public class SubReferenceNodeTypeRepresentationStrategy implements NodeTypeRepre
 
 
     @Override
-    public <U extends NodeBacked> U createEntity(Node state) {
-        Class<? extends NodeBacked> javaType = getJavaType(state);
+    public <U> U createEntity(Node state) {
+        Class<?> javaType = getJavaType(state);
         if (javaType == null) {
             throw new IllegalStateException("No type stored on node.");
         }
@@ -233,8 +234,8 @@ public class SubReferenceNodeTypeRepresentationStrategy implements NodeTypeRepre
     }
 
     @Override
-    public <U extends NodeBacked> U createEntity(Node state, Class<U> type) {
-        Class<? extends NodeBacked> javaType = getJavaType(state);
+    public <U> U createEntity(Node state, Class<U> type) {
+        Class<?> javaType = getJavaType(state);
         if (javaType == null) {
             throw new IllegalStateException("No type stored on node.");
         }
@@ -245,11 +246,11 @@ public class SubReferenceNodeTypeRepresentationStrategy implements NodeTypeRepre
     }
 
     @Override
-    public <U extends NodeBacked> U projectEntity(Node state, Class<U> type) {
+    public <U> U projectEntity(Node state, Class<U> type) {
         return entityInstantiator.createEntityFromState(state, type);
     }
 
-    private static class ClosableCombiningIterable<T extends NodeBacked> extends CombiningIterable<T> implements ClosableIterable<T> {
+    private static class ClosableCombiningIterable<T> extends CombiningIterable<T> implements ClosableIterable<T> {
         private final Iterable<Iterable<T>> relIterables;
 
         public ClosableCombiningIterable(Iterable<Iterable<T>> relIterables) {

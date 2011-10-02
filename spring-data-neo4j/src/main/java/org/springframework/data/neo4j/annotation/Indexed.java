@@ -38,7 +38,8 @@ public @interface Indexed {
 
     String fieldName() default "";
 
-    Level level() default Level.CLASS;
+    // FQN is a fix for javac compiler bug http://bugs.sun.com/view_bug.do?bug_id=6512707
+    org.springframework.data.neo4j.annotation.Indexed.Level level() default org.springframework.data.neo4j.annotation.Indexed.Level.CLASS;
 
     static class Name {
         public static String getDefault(Field field) {

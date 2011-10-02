@@ -16,7 +16,6 @@
 
 package org.springframework.data.neo4j.config;
 
-import javax.persistence.EntityManagerFactory;
 import javax.validation.Validator;
 
 import org.neo4j.graphdb.GraphDatabaseService;
@@ -26,32 +25,27 @@ import org.neo4j.kernel.AbstractGraphDatabase;
 import org.neo4j.kernel.impl.transaction.SpringTransactionManager;
 import org.neo4j.kernel.impl.transaction.UserTransactionImpl;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.dao.support.PersistenceExceptionTranslator;
-import org.springframework.data.neo4j.core.NodeBacked;
-import org.springframework.data.neo4j.core.RelationshipBacked;
+
+
 import org.springframework.data.neo4j.fieldaccess.DelegatingFieldAccessorFactory;
 import org.springframework.data.neo4j.fieldaccess.Neo4jConversionServiceFactoryBean;
 import org.springframework.data.neo4j.fieldaccess.NodeDelegatingFieldAccessorFactory;
 import org.springframework.data.neo4j.fieldaccess.RelationshipDelegatingFieldAccessorFactory;
-import org.springframework.data.neo4j.mapping.Neo4JMappingContext;
+import org.springframework.data.neo4j.mapping.Neo4jMappingContext;
+import org.springframework.data.neo4j.mapping.Neo4jNodeConverterImpl;
 import org.springframework.data.neo4j.repository.DirectGraphRepositoryFactory;
+import org.springframework.data.neo4j.support.EntityInstantiator;
 import org.springframework.data.neo4j.support.GraphDatabaseContext;
-import org.springframework.data.neo4j.support.node.Neo4jNodeBacking;
 import org.springframework.data.neo4j.support.node.NodeEntityInstantiator;
 import org.springframework.data.neo4j.support.node.NodeEntityStateFactory;
-import org.springframework.data.neo4j.support.node.PartialNodeEntityInstantiator;
-import org.springframework.data.neo4j.support.relationship.Neo4jRelationshipBacking;
 import org.springframework.data.neo4j.support.relationship.RelationshipEntityInstantiator;
 import org.springframework.data.neo4j.support.relationship.RelationshipEntityStateFactory;
 import org.springframework.data.neo4j.support.typerepresentation.TypeRepresentationStrategyFactory;
 import org.springframework.data.neo4j.template.Neo4jExceptionTranslator;
-import org.springframework.data.neo4j.transaction.ChainedTransactionManager;
-import org.springframework.data.persistence.EntityInstantiator;
-import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.jta.JtaTransactionManager;
 import org.springframework.transaction.jta.UserTransactionAdapter;
@@ -63,7 +57,7 @@ import org.springframework.transaction.jta.UserTransactionAdapter;
  * @author Thomas Risberg
  */
 @Configuration
-public class Neo4jConfiguration {
+public abstract class Neo4jConfiguration {
     private GraphDatabaseService graphDatabaseService;
 
     @Autowired(required = false)
@@ -79,26 +73,10 @@ public class Neo4jConfiguration {
         this.graphDatabaseService = graphDatabaseService;
     }
 
-    private EntityManagerFactory entityManagerFactory;
-
-    public EntityManagerFactory getEntityManagerFactory() {
-        return entityManagerFactory;
-    }
-
-    @Qualifier("&entityManagerFactory")
-    @Autowired(required = false)
-    public void setEntityManagerFactory(EntityManagerFactory entityManagerFactory) {
-        this.entityManagerFactory = entityManagerFactory;
-    }
-
-    public boolean isUsingCrossStorePersistence() {
-        return entityManagerFactory != null;
-    }
-
-	@Bean
+    @Bean
 	public GraphDatabaseContext graphDatabaseContext() throws Exception {
-        EntityInstantiator<RelationshipBacked, Relationship> relationshipEntityInstantiator = graphRelationshipInstantiator();
-        EntityInstantiator<NodeBacked, Node> graphEntityInstantiator = graphEntityInstantiator();
+        EntityInstantiator<Relationship> relationshipEntityInstantiator = graphRelationshipInstantiator();
+        EntityInstantiator<Node> graphEntityInstantiator = graphEntityInstantiator();
 
         TypeRepresentationStrategyFactory typeRepresentationStrategyFactory =
                 new TypeRepresentationStrategyFactory(graphDatabaseService, graphEntityInstantiator, relationshipEntityInstantiator);
@@ -106,6 +84,8 @@ public class Neo4jConfiguration {
         GraphDatabaseContext gdc = new GraphDatabaseContext();
         gdc.setGraphDatabaseService(getGraphDatabaseService());
         gdc.setConversionService(conversionService());
+        gdc.setMappingContext(mappingContext());
+        gdc.setConverter(neo4jConverter());
         gdc.setNodeTypeRepresentationStrategy(typeRepresentationStrategyFactory.getNodeTypeRepresentationStrategy());
         gdc.setRelationshipTypeRepresentationStrategy(typeRepresentationStrategyFactory.getRelationshipTypeRepresentationStrategy());
         if (validator!=null) {
@@ -115,35 +95,28 @@ public class Neo4jConfiguration {
 	}
 
     @Bean
+    public Neo4jNodeConverterImpl neo4jConverter() throws Exception {
+        return new Neo4jNodeConverterImpl(nodeEntityStateFactory());
+    }
+
+    @Bean
     protected ConversionService conversionService() throws Exception {
         return new Neo4jConversionServiceFactoryBean().getObject();
     }
 
     @Bean
     protected RelationshipEntityInstantiator graphRelationshipInstantiator() {
-        return new RelationshipEntityInstantiator();
+        return new RelationshipEntityInstantiator(mappingContext());
     }
 
     @Bean
-	protected EntityInstantiator<NodeBacked, Node> graphEntityInstantiator() {
-		if (isUsingCrossStorePersistence()) {
-			return new PartialNodeEntityInstantiator(new NodeEntityInstantiator(), entityManagerFactory);
-		} else {
-			return new NodeEntityInstantiator();
-		}
+	protected EntityInstantiator<Node> graphEntityInstantiator() {
+	   return new NodeEntityInstantiator(mappingContext());
 	}
 
 	@Bean
 	public DirectGraphRepositoryFactory directGraphRepositoryFactory() throws Exception {
 		return new DirectGraphRepositoryFactory(graphDatabaseContext());
-	}
-	
-	@Bean
-	public Neo4jRelationshipBacking neo4jRelationshipBacking() throws Exception {
-		Neo4jRelationshipBacking aspect = Neo4jRelationshipBacking.aspectOf();
-		aspect.setGraphDatabaseContext(graphDatabaseContext());
-        aspect.setRelationshipEntityStateFactory(relationshipEntityStateFactory());
-		return aspect;
 	}
 
     @Bean
@@ -156,17 +129,8 @@ public class Neo4jConfiguration {
     }
 
     @Bean
-	public Neo4jNodeBacking neo4jNodeBacking() throws Exception {
-		Neo4jNodeBacking aspect = Neo4jNodeBacking.aspectOf();
-		aspect.setGraphDatabaseContext(graphDatabaseContext());
-        NodeEntityStateFactory entityStateFactory = nodeEntityStateFactory();
-		aspect.setNodeEntityStateFactory(entityStateFactory);
-		return aspect;
-	}
-
-    @Bean
-    public Neo4JMappingContext mappingContext() {
-        return new Neo4JMappingContext();
+    public Neo4jMappingContext mappingContext() {
+        return new Neo4jMappingContext();
     }
 
     @Bean
@@ -174,35 +138,27 @@ public class Neo4jConfiguration {
 
         NodeEntityStateFactory entityStateFactory = new NodeEntityStateFactory();
         entityStateFactory.setGraphDatabaseContext(graphDatabaseContext());
-        entityStateFactory.setEntityManagerFactory(entityManagerFactory);
         entityStateFactory.setMappingContext(mappingContext());
         entityStateFactory.setNodeDelegatingFieldAccessorFactory(nodeDelegatingFieldAccessorFactory());
         return entityStateFactory;
     }
 
     @Bean
-    public DelegatingFieldAccessorFactory<NodeBacked> nodeDelegatingFieldAccessorFactory() throws Exception {
+    public DelegatingFieldAccessorFactory nodeDelegatingFieldAccessorFactory() throws Exception {
         return new NodeDelegatingFieldAccessorFactory(graphDatabaseContext());
     }
     
     @Bean
-    public DelegatingFieldAccessorFactory<RelationshipBacked> relationshipDelegatingFieldAccessorFactory() throws Exception {
+    public DelegatingFieldAccessorFactory relationshipDelegatingFieldAccessorFactory() throws Exception {
         return new RelationshipDelegatingFieldAccessorFactory(graphDatabaseContext());
     }
 
     @Bean
 	public PlatformTransactionManager transactionManager() {
-		if (isUsingCrossStorePersistence()) {
-			JpaTransactionManager jpaTm = new JpaTransactionManager(getEntityManagerFactory());
-            JtaTransactionManager jtaTm = createJtaTransactionManager();
-			return new ChainedTransactionManager(jpaTm, jtaTm);
-		}
-		else {
-            return createJtaTransactionManager();
-		}
+        return createJtaTransactionManager();
 	}
 
-    private JtaTransactionManager createJtaTransactionManager() {
+    protected JtaTransactionManager createJtaTransactionManager() {
         JtaTransactionManager jtaTm = new JtaTransactionManager();
         final GraphDatabaseService gds = getGraphDatabaseService();
         if (gds instanceof AbstractGraphDatabase) {

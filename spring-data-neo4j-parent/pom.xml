@@ -123,7 +123,7 @@
 		<log4j.version>1.2.15</log4j.version>
 		<org.mockito.version>1.8.4</org.mockito.version>
 		<org.slf4j.version>1.6.1</org.slf4j.version>
-		<org.springframework.version>3.0.5.RELEASE</org.springframework.version>
+		<org.springframework.version>3.0.6.RELEASE</org.springframework.version>
 		<data.commons.version>1.2.0.BUILD-SNAPSHOT</data.commons.version>
         <neo4j.version>1.4.1</neo4j.version>
         <aspectj.version>1.6.12.M1</aspectj.version>
@@ -282,6 +282,11 @@
 			<dependency>
 				<groupId>org.springframework.data</groupId>
 				<artifactId>spring-data-neo4j</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.springframework.data</groupId>
+				<artifactId>spring-data-neo4j-aspects</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 

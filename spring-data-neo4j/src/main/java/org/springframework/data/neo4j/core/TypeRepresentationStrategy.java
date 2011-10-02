@@ -32,33 +32,33 @@ import org.neo4j.helpers.collection.ClosableIterable;
 * @author Michael Hunger
 * @since 13.09.2010
 */
-public interface TypeRepresentationStrategy<S extends PropertyContainer, T extends GraphBacked<S>> {
+public interface TypeRepresentationStrategy<S extends PropertyContainer> {
     /**
      * Callback for setting up and/or storing type information after creation.
      *
      * @param state Backing state of entity being created
      * @param type Type of entity being created
      */
-    void postEntityCreation(S state, Class<? extends T> type);
+    void postEntityCreation(S state, Class<?> type);
 
     /**
      *
      * @param clazz Type whose instances should be iterated over
      * @return lazy Iterable over all instances of the given type
      */
-    <U extends T> ClosableIterable<U> findAll(final Class<U> clazz);
+    <U> ClosableIterable<U> findAll(final Class<U> clazz);
 
     /**
      * @param entityClass
      * @return number of instances of this class contained in the graph
      */
-    long count(final Class<? extends T> entityClass);
+    long count(final Class<?> entityClass);
 
     /**
      * @param state
      * @return java type that of the node entity of this node
      */
-	<U extends T> Class<U> getJavaType(S state);
+	<U> Class<U> getJavaType(S state);
 
     /**
      * Callback for cleaning up type information before removal. If state does not have any
@@ -77,7 +77,7 @@ public interface TypeRepresentationStrategy<S extends PropertyContainer, T exten
      * @throws IllegalStateException If the strategy is unable to infer any type from the state
      * @return Entity instance
      */
-    <U extends T> U createEntity(S state) throws IllegalStateException;
+    <U> U createEntity(S state) throws IllegalStateException;
 
     /**
      * Instantiate the entity given its state. The type of the desired entity is also specified.
@@ -90,7 +90,7 @@ public interface TypeRepresentationStrategy<S extends PropertyContainer, T exten
      * @throws IllegalArgumentException If the specified type does not match the inferred type
      * @return Entity instance
      */
-    <U extends T> U createEntity(S state, Class<U> type) throws IllegalStateException, IllegalArgumentException;
+    <U> U createEntity(S state, Class<U> type) throws IllegalStateException, IllegalArgumentException;
 
     /**
      * Instantiate the entity of the given type, with the given state as backing state. No checking
@@ -100,5 +100,5 @@ public interface TypeRepresentationStrategy<S extends PropertyContainer, T exten
      * @param type Type of entity to be instantiated
      * @return Entity instance.
      */
-    <U extends T> U projectEntity(S state, Class<U> type);
+    <U> U projectEntity(S state, Class<U> type);
 }

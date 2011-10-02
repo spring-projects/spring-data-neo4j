@@ -16,8 +16,8 @@
 
 package org.springframework.data.neo4j.repository.query;
 
-import org.springframework.data.neo4j.mapping.Neo4JMappingContext;
-import org.springframework.data.neo4j.mapping.Neo4JPersistentProperty;
+import org.springframework.data.neo4j.mapping.Neo4jMappingContext;
+import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.mapping.RelationshipInfo;
 import org.springframework.data.repository.query.parser.Property;
 import org.springframework.util.Assert;
@@ -30,15 +30,15 @@ import org.springframework.util.StringUtils;
  */
 class MatchClause {
 
-    private final Iterable<Neo4JPersistentProperty> properties;
+    private final Iterable<Neo4jPersistentProperty> properties;
 
     /**
-     * Creates a new {@link MatchClause} using the given {@link Neo4JMappingContext} and {@link Property}.
+     * Creates a new {@link MatchClause} using the given {@link org.springframework.data.neo4j.mapping.Neo4jMappingContext} and {@link Property}.
      * 
      * @param context must not be {@literal null}.
      * @param property must not be {@literal null}.
      */
-    public MatchClause(Neo4JMappingContext context, Property property) {
+    public MatchClause(Neo4jMappingContext context, Property property) {
 
         Assert.notNull(context);
         Assert.notNull(property);
@@ -56,7 +56,7 @@ class MatchClause {
 
         String intermediate = null;
 
-        for (Neo4JPersistentProperty property : properties) {
+        for (Neo4jPersistentProperty property : properties) {
 
             if (!property.isRelationship()) {
                 return intermediate;

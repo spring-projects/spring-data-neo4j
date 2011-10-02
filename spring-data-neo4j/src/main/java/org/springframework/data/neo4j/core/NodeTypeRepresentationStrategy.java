@@ -18,6 +18,6 @@ package org.springframework.data.neo4j.core;
 
 import org.neo4j.graphdb.Node;
 
-public interface NodeTypeRepresentationStrategy extends TypeRepresentationStrategy<Node, NodeBacked> {
+public interface NodeTypeRepresentationStrategy extends TypeRepresentationStrategy<Node> {
 
 }

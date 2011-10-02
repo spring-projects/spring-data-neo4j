@@ -16,7 +16,7 @@
 package org.springframework.data.neo4j.support.typerepresentation;
 
 import org.neo4j.graphdb.NotFoundException;
-import org.springframework.data.neo4j.core.GraphBacked;
+
 
 import java.util.Map;
 import java.util.WeakHashMap;
@@ -29,14 +29,14 @@ class EntityTypeCache {
     private final Map<String, Class<?>> cache = new WeakHashMap<String, Class<?>>();
 
     @SuppressWarnings({"unchecked"})
-    <ENTITY extends GraphBacked<?>> Class<ENTITY> getClassForName(String className) {
+    <Object> Class<Object> getClassForName(String className) {
         try {
-            Class<ENTITY> result = (Class<ENTITY>) cache.get(className);
+            Class<Object> result = (Class<Object>) cache.get(className);
             if (result != null) return result;
             synchronized (cache) {
-                result = (Class<ENTITY>) cache.get(className);
+                result = (Class<Object>) cache.get(className);
                 if (result != null) return result;
-                result = (Class<ENTITY>) Class.forName(className);
+                result = (Class<Object>) Class.forName(className);
                 cache.put(className, result);
                 return result;
             }

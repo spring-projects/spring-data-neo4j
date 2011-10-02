@@ -50,5 +50,6 @@ public @interface Query {
      */
     String[] params() default {};
 
-    QueryType type() default QueryType.Cypher;
+    // FQN is a fix for javac compiler bug
+    org.springframework.data.neo4j.annotation.QueryType type() default org.springframework.data.neo4j.annotation.QueryType.Cypher;
 }

@@ -17,14 +17,14 @@
 package org.springframework.data.neo4j.repository;
 
 import org.neo4j.graphdb.PropertyContainer;
-import org.springframework.data.neo4j.core.GraphBacked;
+
 import org.springframework.data.repository.core.EntityInformation;
 
 /**
  * @author mh
  * @since 28.03.11
  */
-public interface GraphEntityInformation<S extends PropertyContainer, T extends GraphBacked<S>> extends EntityInformation<T, Long> {
+public interface GraphEntityInformation<S extends PropertyContainer, T> extends EntityInformation<T, Long> {
 
     boolean isNodeEntity();
     boolean isPartialEntity();

@@ -20,17 +20,17 @@ import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.springframework.data.neo4j.core.*;
-import org.springframework.data.persistence.EntityInstantiator;
+import org.springframework.data.neo4j.support.EntityInstantiator;
 
 public class TypeRepresentationStrategyFactory {
     private GraphDatabaseService graphDatabaseService;
-    private EntityInstantiator<NodeBacked, Node> graphEntityInstantiator;
-    private EntityInstantiator<RelationshipBacked,Relationship> relationshipEntityInstantiator;
+    private EntityInstantiator<Node> graphEntityInstantiator;
+    private EntityInstantiator<Relationship> relationshipEntityInstantiator;
     private Strategy strategy;
 
     public TypeRepresentationStrategyFactory(GraphDatabaseService graphDatabaseService,
-                                             EntityInstantiator<NodeBacked, Node> graphEntityInstantiator,
-                                             EntityInstantiator<RelationshipBacked, Relationship> relationshipEntityInstantiator) {
+                                             EntityInstantiator<Node> graphEntityInstantiator,
+                                             EntityInstantiator<Relationship> relationshipEntityInstantiator) {
         this.graphDatabaseService = graphDatabaseService;
         this.graphEntityInstantiator = graphEntityInstantiator;
         this.relationshipEntityInstantiator = relationshipEntityInstantiator;
@@ -67,40 +67,40 @@ public class TypeRepresentationStrategyFactory {
     private enum Strategy {
         SubRef {
             @Override
-            public NodeTypeRepresentationStrategy getNodeTypeRepresentationStrategy(GraphDatabaseService graphDatabaseService, EntityInstantiator<NodeBacked, Node> graphEntityInstantiator) {
+            public NodeTypeRepresentationStrategy getNodeTypeRepresentationStrategy(GraphDatabaseService graphDatabaseService, EntityInstantiator<Node> graphEntityInstantiator) {
                 return new SubReferenceNodeTypeRepresentationStrategy(graphDatabaseService, graphEntityInstantiator);
             }
 
             @Override
-            public RelationshipTypeRepresentationStrategy getRelationshipTypeRepresentationStrategy(GraphDatabaseService graphDatabaseService, EntityInstantiator<RelationshipBacked, Relationship> relationshipEntityInstantiator) {
-                return new NoopRelationshipTypeRepresentationStrategy();
+            public RelationshipTypeRepresentationStrategy getRelationshipTypeRepresentationStrategy(GraphDatabaseService graphDatabaseService, EntityInstantiator<Relationship> relationshipEntityInstantiator) {
+                return new NoopRelationshipTypeRepresentationStrategy(relationshipEntityInstantiator);
             }
         },
         Indexed {
             @Override
-            public NodeTypeRepresentationStrategy getNodeTypeRepresentationStrategy(GraphDatabaseService graphDatabaseService, EntityInstantiator<NodeBacked, Node> graphEntityInstantiator) {
+            public NodeTypeRepresentationStrategy getNodeTypeRepresentationStrategy(GraphDatabaseService graphDatabaseService, EntityInstantiator<Node> graphEntityInstantiator) {
                 return new IndexingNodeTypeRepresentationStrategy(graphDatabaseService, graphEntityInstantiator);
             }
 
             @Override
-            public RelationshipTypeRepresentationStrategy getRelationshipTypeRepresentationStrategy(GraphDatabaseService graphDatabaseService, EntityInstantiator<RelationshipBacked, Relationship> relationshipEntityInstantiator) {
+            public RelationshipTypeRepresentationStrategy getRelationshipTypeRepresentationStrategy(GraphDatabaseService graphDatabaseService, EntityInstantiator<Relationship> relationshipEntityInstantiator) {
                 return new IndexingRelationshipTypeRepresentationStrategy(graphDatabaseService, relationshipEntityInstantiator);
             }
         },
         Noop {
             @Override
-            public NodeTypeRepresentationStrategy getNodeTypeRepresentationStrategy(GraphDatabaseService graphDatabaseService, EntityInstantiator<NodeBacked, Node> graphEntityInstantiator) {
-                return new NoopNodeTypeRepresentationStrategy();
+            public NodeTypeRepresentationStrategy getNodeTypeRepresentationStrategy(GraphDatabaseService graphDatabaseService, EntityInstantiator<Node> graphEntityInstantiator) {
+                return new NoopNodeTypeRepresentationStrategy(graphEntityInstantiator);
             }
 
             @Override
-            public RelationshipTypeRepresentationStrategy getRelationshipTypeRepresentationStrategy(GraphDatabaseService graphDatabaseService, EntityInstantiator<RelationshipBacked, Relationship> relationshipEntityInstantiator) {
-                return new NoopRelationshipTypeRepresentationStrategy();
+            public RelationshipTypeRepresentationStrategy getRelationshipTypeRepresentationStrategy(GraphDatabaseService graphDatabaseService, EntityInstantiator<Relationship> relationshipEntityInstantiator) {
+                return new NoopRelationshipTypeRepresentationStrategy(relationshipEntityInstantiator);
             }
         };
 
-        public abstract NodeTypeRepresentationStrategy getNodeTypeRepresentationStrategy(GraphDatabaseService graphDatabaseService, EntityInstantiator<NodeBacked, Node> graphEntityInstantiator);
+        public abstract NodeTypeRepresentationStrategy getNodeTypeRepresentationStrategy(GraphDatabaseService graphDatabaseService, EntityInstantiator<Node> graphEntityInstantiator);
 
-        public abstract RelationshipTypeRepresentationStrategy getRelationshipTypeRepresentationStrategy(GraphDatabaseService graphDatabaseService, EntityInstantiator<RelationshipBacked, Relationship> relationshipEntityInstantiator);
+        public abstract RelationshipTypeRepresentationStrategy getRelationshipTypeRepresentationStrategy(GraphDatabaseService graphDatabaseService, EntityInstantiator<Relationship> relationshipEntityInstantiator);
     }
 }
