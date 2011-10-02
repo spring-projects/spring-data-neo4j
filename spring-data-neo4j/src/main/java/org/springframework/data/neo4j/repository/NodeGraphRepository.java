@@ -37,11 +37,13 @@ public class NodeGraphRepository<T> extends AbstractGraphRepository<Node, T> imp
         return graphDatabaseContext.findAllByTraversal(start, clazz, traversalDescription);
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public T save(T entity) {
         return (T)graphDatabaseContext.save(entity);
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public Iterable<T> save(Iterable<? extends T> entities) {
         for (T entity : entities) {

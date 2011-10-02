@@ -228,6 +228,7 @@ public abstract class AbstractGraphRepository<S extends PropertyContainer, T> im
         });
     }
 
+    @SuppressWarnings("unchecked")
     protected <T extends Number> NumericRangeQuery<T> createInclusiveRangeQuery(String property, Number from, Number to) {
         if (from instanceof Long) return (NumericRangeQuery<T>) NumericRangeQuery.newLongRange(property, from.longValue(),to.longValue(),true,true);
         if (from instanceof Integer) return (NumericRangeQuery<T>) NumericRangeQuery.newIntRange(property, from.intValue(), to.intValue(), true, true);

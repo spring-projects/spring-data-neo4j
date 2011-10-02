@@ -33,19 +33,10 @@ import java.lang.reflect.Field;
  */
 public class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersistentEntityImpl<?>, Neo4jPersistentProperty> {
 
-    /*
-     * (non-Javadoc)
-     * @see org.springframework.data.mapping.context.AbstractMappingContext#createPersistentEntity(org.springframework.data.util.TypeInformation)
-     */
-    @Override
     protected <T> Neo4jPersistentEntityImpl<?> createPersistentEntity(TypeInformation<T> typeInformation) {
         return new Neo4jPersistentEntityImpl<T>(typeInformation);
     }
 
-    /*
-     * (non-Javadoc)
-     * @see org.springframework.data.mapping.context.AbstractMappingContext#createPersistentProperty(java.lang.reflect.Field, java.beans.PropertyDescriptor, org.springframework.data.mapping.model.MutablePersistentEntity, org.springframework.data.mapping.model.SimpleTypeHolder)
-     */
     @Override
     protected Neo4jPersistentProperty createPersistentProperty(Field field, PropertyDescriptor descriptor,
             Neo4jPersistentEntityImpl<?> owner, SimpleTypeHolder simpleTypeHolder) {

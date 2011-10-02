@@ -62,11 +62,6 @@ public class DataGraphNamespaceHandlerTest {
         assertInjected("-code");
     }
 
-    @Test
-    public void injectionForCrossStore() {
-        assertInjected("-cross-store");
-    }
-
     private Config assertInjected(String testCase) {
         ClassPathXmlApplicationContext ctx = new ClassPathXmlApplicationContext("classpath:org/springframework/data/neo4j/config/DataGraphNamespaceHandlerTest" + testCase + "-context.xml");
         Config config = ctx.getBean("config", Config.class);

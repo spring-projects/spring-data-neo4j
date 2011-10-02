@@ -79,6 +79,7 @@ public class GraphDatabaseContext {
     }
 
 
+    @SuppressWarnings("unchecked")
     public <S extends PropertyContainer, T> Index<S> getIndex(Class<T> type, String indexName, boolean fullText) {
         if (indexName==null) indexName = Indexed.Name.get(type);
         Map<String, String> config = fullText ? LuceneIndexImplementation.FULLTEXT_CONFIG : null;
@@ -128,6 +129,7 @@ public class GraphDatabaseContext {
         return getTypeRepresentationStrategy(state, targetType).projectEntity(state, targetType);
     }
     
+    @SuppressWarnings("unchecked")
     public <S extends PropertyContainer> S getPersistentState(Object entity) {
         if (entity instanceof PropertyContainer) {
             return (S) entity;
@@ -141,6 +143,7 @@ public class GraphDatabaseContext {
     }
 
     // todo depending on type of mapping
+    @SuppressWarnings("unchecked")
     public <S extends PropertyContainer> void setPersistentState(Object entity, S state) {
         if (entity instanceof PropertyContainer) {
             return;
@@ -158,6 +161,7 @@ public class GraphDatabaseContext {
         getTypeRepresentationStrategy(node, entityClass).postEntityCreation(node, entityClass);
     }
 
+    @SuppressWarnings("unchecked")
     public  <T> Iterable<T> findAllByTraversal(Object entity, Class<?> targetType, TraversalDescription traversalDescription) {
         final Neo4jPersistentEntityImpl<?> persistentEntity = mappingContext.getPersistentEntity(entity.getClass());
         final PropertyContainer state = persistentEntity.getPersistentState(entity, this);

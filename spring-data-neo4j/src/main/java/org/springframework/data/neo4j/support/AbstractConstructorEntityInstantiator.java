@@ -15,17 +15,17 @@
  */
 package org.springframework.data.neo4j.support;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
-import java.util.HashMap;
-import java.util.Map;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.data.persistence.StateBackedCreator;
 import org.springframework.data.persistence.StateProvider;
 import org.springframework.util.ClassUtils;
 import sun.reflect.ReflectionFactory;
+
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Try for a constructor taking state: failing that, try a no-arg constructor and then setUnderlyingNode().
@@ -37,7 +37,8 @@ public abstract class AbstractConstructorEntityInstantiator<STATE> implements En
 	private final Log log = LogFactory.getLog(getClass());
 	private final Map<Class<?>, StateBackedCreator<?, STATE>> cache = new HashMap<Class<?>, StateBackedCreator<?, STATE>>();
 
-	public <T> T createEntityFromState(STATE n, Class<T> c) {
+	@SuppressWarnings("unchecked")
+    public <T> T createEntityFromState(STATE n, Class<T> c) {
 		try {
 			StateBackedCreator<T, STATE> creator = (StateBackedCreator<T, STATE>) cache.get(c);
 			if (creator != null)
@@ -135,7 +136,7 @@ public abstract class AbstractConstructorEntityInstantiator<STATE> implements En
 
 	protected <T> StateBackedCreator<T, STATE> stateTakingConstructorInstantiator(
 			Class<T> type, Class<STATE> stateType) {
-		Class<? extends STATE> stateInterface = (Class<? extends STATE>) stateType.getInterfaces()[0];
+		@SuppressWarnings("unchecked") Class<? extends STATE> stateInterface = (Class<? extends STATE>) stateType.getInterfaces()[0];
 		final Constructor<T> constructor = ClassUtils.getConstructorIfAvailable(type, stateInterface);
 		if (constructor == null)
 			return null;

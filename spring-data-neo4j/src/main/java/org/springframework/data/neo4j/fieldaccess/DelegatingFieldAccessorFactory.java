@@ -68,7 +68,7 @@ public abstract class DelegatingFieldAccessorFactory implements FieldAccessorFac
         for (final FieldAccessorFactory fieldAccessorFactory : fieldAccessorFactories) {
             if (fieldAccessorFactory.accept(property)) {
                 if (log.isInfoEnabled()) log.info("Factory " + fieldAccessorFactory + " used for field: " + property);
-                return (FieldAccessorFactory) fieldAccessorFactory;
+                return fieldAccessorFactory;
             }
         }
         if (log.isWarnEnabled()) log.warn("No FieldAccessor configured for field: " + property);
@@ -89,7 +89,7 @@ public abstract class DelegatingFieldAccessorFactory implements FieldAccessorFac
         final List<FieldAccessorListenerFactory> result = new ArrayList<FieldAccessorListenerFactory>();
         for (final FieldAccessorListenerFactory fieldAccessorListenerFactory : fieldAccessorListenerFactories) {
             if (fieldAccessorListenerFactory.accept(property)) {
-                result.add((FieldAccessorListenerFactory) fieldAccessorListenerFactory);
+                result.add(fieldAccessorListenerFactory);
             }
         }
         return result;
@@ -100,6 +100,7 @@ public abstract class DelegatingFieldAccessorFactory implements FieldAccessorFac
 
     private final Map<TypeInformation<?>, FieldAccessorFactoryProviders> accessorFactoryProviderCache = new HashMap<TypeInformation<?>, FieldAccessorFactoryProviders>();
 
+    @SuppressWarnings("unchecked")
     public <T> FieldAccessorFactoryProviders<T> accessorFactoriesFor(final Neo4jPersistentEntity<?> type) {
         synchronized (this) {
             final TypeInformation<?> typeInformation = type.getTypeInformation();
@@ -110,7 +111,7 @@ public abstract class DelegatingFieldAccessorFactory implements FieldAccessorFac
                 @Override
                 public void doWithPersistentProperty(Neo4jPersistentProperty property) {
                     final FieldAccessorFactory factory = factoryForField(property);
-                    final List<FieldAccessorListenerFactory> listenerFactories = (List<FieldAccessorListenerFactory>) getFieldAccessListenerFactories(property);
+                    final List<FieldAccessorListenerFactory> listenerFactories = getFieldAccessListenerFactories(property);
                     newFieldAccessorFactories.add(property, factory, listenerFactories);
                 }
             });
@@ -119,7 +120,7 @@ public abstract class DelegatingFieldAccessorFactory implements FieldAccessorFac
                 public void doWithAssociation(Association<Neo4jPersistentProperty> association) {
                     final Neo4jPersistentProperty property = association.getInverse();
                     final FieldAccessorFactory factory = factoryForField(property);
-                    final List<FieldAccessorListenerFactory> listenerFactories = (List<FieldAccessorListenerFactory>) getFieldAccessListenerFactories(property);
+                    final List<FieldAccessorListenerFactory> listenerFactories = getFieldAccessListenerFactories(property);
                     newFieldAccessorFactories.add(property, factory, listenerFactories);
                 }
             });

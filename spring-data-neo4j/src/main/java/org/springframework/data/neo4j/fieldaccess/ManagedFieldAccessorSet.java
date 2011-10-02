@@ -16,11 +16,6 @@
 
 package org.springframework.data.neo4j.fieldaccess;
 
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.PropertyContainer;
-import org.springframework.data.neo4j.core.EntityState;
-
-
 import org.springframework.data.neo4j.mapping.Neo4jPersistentEntity;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.support.DoReturn;
@@ -41,6 +36,7 @@ public class ManagedFieldAccessorSet<T> extends AbstractSet<T> {
     private final GraphDatabaseContext ctx;
     private final FieldAccessor fieldAccessor;
 
+    @SuppressWarnings("unchecked")
     public ManagedFieldAccessorSet(final Object entity, final Object newVal, final Neo4jPersistentProperty property, GraphDatabaseContext ctx, FieldAccessor fieldAccessor) {
 		this.entity = entity;
 		this.property = property;
@@ -73,7 +69,6 @@ public class ManagedFieldAccessorSet<T> extends AbstractSet<T> {
 
     private void update() {
         final Neo4jPersistentEntity<?> persistentEntity = property.getOwner();
-        final PropertyContainer persistentState = persistentEntity.getPersistentState(entity, ctx);
         if (persistentEntity.isNodeEntity()) {
             updateValue();
         }

@@ -33,6 +33,7 @@ import java.util.Iterator;
 * @author mh
 * @since 26.02.11
 */
+@SuppressWarnings("unchecked") // TODO DefaultNode/RelationshipBacked
 public class ConvertingEntityPath<S,E> implements EntityPath<S,E> {
 
     @Override

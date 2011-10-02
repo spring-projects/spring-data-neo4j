@@ -44,6 +44,7 @@ public class CypherQueryEngine implements QueryEngine<Map<String,Object>> {
         this.executionEngine = new ExecutionEngine(graphDatabaseService);
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public QueryResult<Map<String, Object>> query(String statement, Map<String, Object> params) {
         try {

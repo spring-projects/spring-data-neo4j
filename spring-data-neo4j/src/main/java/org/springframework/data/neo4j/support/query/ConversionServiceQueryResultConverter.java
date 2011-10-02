@@ -30,6 +30,7 @@ public class ConversionServiceQueryResultConverter<R> extends DefaultConverter<O
         this.conversionService = conversionService;
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     protected Object doConvert(Object value, Class<?> sourceType, Class type) {
         if (conversionService.canConvert(sourceType, type)) {

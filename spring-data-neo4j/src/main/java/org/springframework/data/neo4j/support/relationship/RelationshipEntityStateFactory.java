@@ -31,6 +31,7 @@ public class RelationshipEntityStateFactory {
     private DelegatingFieldAccessorFactory relationshipDelegatingFieldAccessorFactory;
     private Neo4jMappingContext mappingContext;
 
+    @SuppressWarnings("unchecked")
     public EntityState<Relationship> getEntityState(final Object entity) {
         final Class<?> entityType = entity.getClass();
         return new RelationshipEntityState(null,entity, entityType, graphDatabaseContext, relationshipDelegatingFieldAccessorFactory, (Neo4jPersistentEntity) mappingContext.getPersistentEntity(entityType));

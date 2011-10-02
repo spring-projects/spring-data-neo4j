@@ -18,12 +18,12 @@ package org.springframework.data.neo4j.mapping;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.neo4j.graphdb.*;
+import org.neo4j.graphdb.Direction;
+import org.neo4j.graphdb.DynamicRelationshipType;
+import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.Transaction;
 import org.neo4j.graphdb.index.Index;
-import org.neo4j.graphdb.index.IndexHits;
-import org.neo4j.helpers.collection.IteratorUtil;
 import org.neo4j.test.ImpermanentGraphDatabase;
-import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.data.neo4j.Person;
 import org.springframework.data.neo4j.Personality;
 import org.springframework.data.neo4j.fieldaccess.Neo4jConversionServiceFactoryBean;
@@ -33,7 +33,6 @@ import org.springframework.data.neo4j.support.node.NodeEntityInstantiator;
 import org.springframework.data.neo4j.support.node.NodeEntityStateFactory;
 import org.springframework.data.neo4j.support.typerepresentation.NoopNodeTypeRepresentationStrategy;
 
-import java.io.IOException;
 import java.util.Date;
 
 import static org.junit.Assert.assertEquals;
@@ -57,7 +56,8 @@ public class Neo4jNodeConverterTest {
         nodeEntityStateFactory.setMappingContext(mappingContext);
         nodeEntityStateFactory.setGraphDatabaseContext(gdc);
         nodeEntityStateFactory.setNodeDelegatingFieldAccessorFactory(new NodeDelegatingFieldAccessorFactory(gdc));
-        converter = new Neo4jNodeConverterImpl(nodeEntityStateFactory);
+        converter = new Neo4jNodeConverterImpl();
+        converter.setNodeEntityStateFactory(nodeEntityStateFactory);
         gdc.setConverter(converter);
     }
 
@@ -74,6 +74,7 @@ public class Neo4jNodeConverterTest {
     public void tearDown() throws Exception {
         tx.failure();
         tx.finish();
+        gdc.getGraphDatabaseService().shutdown();
     }
 
     @Test

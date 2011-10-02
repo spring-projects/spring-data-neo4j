@@ -16,7 +16,6 @@
 
 package org.springframework.data.neo4j.mapping;
 
-import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.PropertyContainer;
 import org.springframework.data.mapping.PersistentEntity;
 import org.springframework.data.neo4j.support.GraphDatabaseContext;

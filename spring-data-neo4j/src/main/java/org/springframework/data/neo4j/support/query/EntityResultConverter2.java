@@ -27,6 +27,7 @@ import org.springframework.data.neo4j.support.GraphDatabaseContext;
  * @author mh
  * @since 28.06.11
  */
+@SuppressWarnings("unchecked")
 public class EntityResultConverter2<R> implements ResultConverter<Object,R> {
     private final TypeRepresentationStrategy nodeTypeRepresentationStrategy;
     private final TypeRepresentationStrategy relationshipTypeRepresentationStrategy;

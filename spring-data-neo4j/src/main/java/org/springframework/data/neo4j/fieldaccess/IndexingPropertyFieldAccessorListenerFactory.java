@@ -78,7 +78,7 @@ public class IndexingPropertyFieldAccessorListenerFactory<S extends PropertyCont
 
         private Index<S> getIndex(Neo4jPersistentProperty property, Object instance) {
             final Indexed indexedAnnotation = property.getAnnotation(Indexed.class);
-            final Class<T> type = (Class<T>) property.getOwner().getType();
+            @SuppressWarnings("unchecked") final Class<T> type = (Class<T>) property.getOwner().getType();
             final String providedIndexName = indexedAnnotation.indexName().isEmpty() ? null : indexedAnnotation.indexName();
             String indexName = Indexed.Name.get(indexedAnnotation.level(), type, providedIndexName, instance.getClass());
             if (!property.getIndexInfo().isFulltext()) {
@@ -113,7 +113,7 @@ public class IndexingPropertyFieldAccessorListenerFactory<S extends PropertyCont
 
 	    @Override
         public void valueChanged(Object entity, Object oldVal, Object newVal) {
-            Index<T> index = indexProvider.getIndex(property, entity);
+            @SuppressWarnings("unchecked") Index<T> index = indexProvider.getIndex(property, entity);
             if (newVal instanceof Number) newVal = ValueContext.numeric((Number) newVal);
 
             final T state = graphDatabaseContext.getPersistentState(entity);

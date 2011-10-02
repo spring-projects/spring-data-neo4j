@@ -70,6 +70,7 @@ public abstract class AbstractNodeRelationshipFieldAccessor<STATE extends Proper
         }
     }
     // adding cascade
+    @SuppressWarnings("unchecked")
     protected Set<STATE> checkTargetIsSetOfNodebacked(Object newVal) {
         if (!(newVal instanceof Set)) {
             throw new IllegalArgumentException("New value must be a Set, was: " + newVal.getClass());
@@ -109,6 +110,7 @@ public abstract class AbstractNodeRelationshipFieldAccessor<STATE extends Proper
     }
 
 
+    @SuppressWarnings("unchecked")
     protected void createSingleRelationship(STATE start, TSTATE end) {
         if (end==null) return;
         switch(direction) {

@@ -82,6 +82,7 @@ public class DelegatingGraphDatabase implements GraphDatabase {
         return setProperties(startNode.createRelationshipTo(endNode,type),props);
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public <T extends PropertyContainer> Index<T> getIndex(String indexName) {
         IndexManager indexManager = delegate.index();
@@ -91,6 +92,7 @@ public class DelegatingGraphDatabase implements GraphDatabase {
     }
 
     // TODO handle existing indexes
+    @SuppressWarnings("unchecked")
     @Override
     public <T extends PropertyContainer> Index<T> createIndex(Class<T> type, String indexName, boolean fullText) {
         IndexManager indexManager = delegate.index();
@@ -127,6 +129,7 @@ public class DelegatingGraphDatabase implements GraphDatabase {
         return Traversal.description();
     }
 
+    @SuppressWarnings("unchecked")
     public <T> QueryEngine<T> queryEngineFor(QueryType type) {
         switch (type) {
             case Cypher:  return (QueryEngine<T>)new CypherQueryEngine(delegate, createResultConverter());

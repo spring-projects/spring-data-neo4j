@@ -30,6 +30,7 @@ import java.util.Map;
  * @since 28.06.11
  */
 public class DefaultConverter<T,R> implements ResultConverter<T,R> {
+    @SuppressWarnings("unchecked")
     public R convert(Object value, Class type) {
         if (value == null || type.isInstance(value)) return (R) value;
         Object singleValue = extractValue(value);
@@ -55,6 +56,7 @@ public class DefaultConverter<T,R> implements ResultConverter<T,R> {
         return result;
     }
 
+    @SuppressWarnings("unchecked")
     protected Object doConvert(Object value, Class<?> sourceType, Class type) {
         if (Node.class.isAssignableFrom(type)) {
             return toNode(value, sourceType);

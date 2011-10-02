@@ -21,19 +21,16 @@ import org.neo4j.graphdb.Transaction;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.data.mapping.Association;
 import org.springframework.data.mapping.AssociationHandler;
-import org.springframework.data.mapping.PersistentEntity;
 import org.springframework.data.mapping.PropertyHandler;
 import org.springframework.data.mapping.context.MappingContext;
 import org.springframework.data.mapping.model.BeanWrapper;
 import org.springframework.data.mapping.model.MappingException;
 import org.springframework.data.neo4j.core.EntityState;
-
 import org.springframework.data.neo4j.support.DoReturn;
 import org.springframework.data.neo4j.support.GraphDatabaseContext;
 import org.springframework.data.neo4j.support.node.NodeEntityStateFactory;
 import org.springframework.util.Assert;
 
-import javax.annotation.PostConstruct;
 import java.lang.reflect.InvocationTargetException;
 
 /**
@@ -41,9 +38,12 @@ import java.lang.reflect.InvocationTargetException;
  * @since 27.09.11
  */
 public class Neo4jNodeConverterImpl implements Neo4jNodeConverter {
-    private final NodeEntityStateFactory nodeEntityStateFactory;
+    private NodeEntityStateFactory nodeEntityStateFactory;
 
-    public Neo4jNodeConverterImpl(NodeEntityStateFactory nodeEntityStateFactory) {
+    public Neo4jNodeConverterImpl() {
+    }
+
+    public void setNodeEntityStateFactory(NodeEntityStateFactory nodeEntityStateFactory) {
         this.nodeEntityStateFactory = nodeEntityStateFactory;
         nodeEntityStateFactory.setCreateDetachableEntities(false);
     }
@@ -62,7 +62,7 @@ public class Neo4jNodeConverterImpl implements Neo4jNodeConverter {
     public <R> R read(Class<R> targetType, Node node) {
         Assert.notNull(targetType);
         Assert.notNull(node);
-        final Neo4jPersistentEntity<R> persistentEntity = (Neo4jPersistentEntity<R>) getMappingContext().getPersistentEntity(targetType);
+        @SuppressWarnings("unchecked") final Neo4jPersistentEntity<R> persistentEntity = (Neo4jPersistentEntity<R>) getMappingContext().getPersistentEntity(targetType);
         final GraphDatabaseContext graphDatabaseContext = nodeEntityStateFactory.getGraphDatabaseContext();
         final R entity = graphDatabaseContext.createEntityFromState(node, targetType);
         final BeanWrapper<Neo4jPersistentEntity<R>, R> wrapper = BeanWrapper.create(entity, getConversionService());

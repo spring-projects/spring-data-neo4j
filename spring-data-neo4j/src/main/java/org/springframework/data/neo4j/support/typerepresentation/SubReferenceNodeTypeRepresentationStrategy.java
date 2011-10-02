@@ -24,12 +24,9 @@ import org.neo4j.helpers.collection.ClosableIterable;
 import org.neo4j.helpers.collection.CombiningIterable;
 import org.neo4j.helpers.collection.IterableWrapper;
 import org.neo4j.kernel.Traversal;
-
-
 import org.springframework.data.neo4j.core.NodeTypeRepresentationStrategy;
 import org.springframework.data.neo4j.support.EntityInstantiator;
 
-import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
@@ -224,6 +221,7 @@ public class SubReferenceNodeTypeRepresentationStrategy implements NodeTypeRepre
 	}
 
 
+    @SuppressWarnings("unchecked")
     @Override
     public <U> U createEntity(Node state) {
         Class<?> javaType = getJavaType(state);
@@ -233,6 +231,7 @@ public class SubReferenceNodeTypeRepresentationStrategy implements NodeTypeRepre
         return (U) entityInstantiator.createEntityFromState(state, javaType);
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public <U> U createEntity(Node state, Class<U> type) {
         Class<?> javaType = getJavaType(state);

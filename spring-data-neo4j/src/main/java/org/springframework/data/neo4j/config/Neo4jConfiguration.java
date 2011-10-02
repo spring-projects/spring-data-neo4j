@@ -16,6 +16,7 @@
 
 package org.springframework.data.neo4j.config;
 
+import javax.annotation.PostConstruct;
 import javax.validation.Validator;
 
 import org.neo4j.graphdb.GraphDatabaseService;
@@ -96,7 +97,7 @@ public abstract class Neo4jConfiguration {
 
     @Bean
     public Neo4jNodeConverterImpl neo4jConverter() throws Exception {
-        return new Neo4jNodeConverterImpl(nodeEntityStateFactory());
+        return new Neo4jNodeConverterImpl();
     }
 
     @Bean
@@ -133,9 +134,12 @@ public abstract class Neo4jConfiguration {
         return new Neo4jMappingContext();
     }
 
+    @PostConstruct
+    public void setupContext() throws Exception {
+        neo4jConverter().setNodeEntityStateFactory(nodeEntityStateFactory());
+    }
     @Bean
     public NodeEntityStateFactory nodeEntityStateFactory() throws Exception {
-
         NodeEntityStateFactory entityStateFactory = new NodeEntityStateFactory();
         entityStateFactory.setGraphDatabaseContext(graphDatabaseContext());
         entityStateFactory.setMappingContext(mappingContext());

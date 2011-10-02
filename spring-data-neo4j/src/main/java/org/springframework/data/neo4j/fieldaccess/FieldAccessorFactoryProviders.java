@@ -16,7 +16,6 @@
 
 package org.springframework.data.neo4j.fieldaccess;
 
-import org.springframework.data.mapping.PersistentProperty;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.support.GraphDatabaseContext;
 import org.springframework.data.util.TypeInformation;
@@ -37,6 +36,7 @@ public class FieldAccessorFactoryProviders<T> {
         private final FieldAccessorFactory fieldAccessorFactory;
         private final List<FieldAccessorListenerFactory> fieldAccessorListenerFactories;
 
+        @SuppressWarnings("unchecked")
         FieldAccessorFactoryProvider(final Neo4jPersistentProperty property, final FieldAccessorFactory fieldAccessorFactory, final List fieldAccessorListenerFactories) {
             this.property = property;
             this.fieldAccessorFactory = fieldAccessorFactory;
@@ -90,6 +90,7 @@ public class FieldAccessorFactoryProviders<T> {
         return result;
     }
 
+    @SuppressWarnings("unchecked")
     public void add(Neo4jPersistentProperty property, FieldAccessorFactory fieldAccessorFactory, List<FieldAccessorListenerFactory> listenerFactories) {
         fieldAccessorFactoryProviders.add(new FieldAccessorFactoryProvider(property, fieldAccessorFactory, listenerFactories));
         if (property.isIdProperty()) this.idProperty = property;

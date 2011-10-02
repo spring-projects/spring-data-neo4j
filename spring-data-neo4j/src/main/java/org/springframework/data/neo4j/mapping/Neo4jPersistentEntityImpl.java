@@ -95,6 +95,7 @@ public class Neo4jPersistentEntityImpl<T> extends BasicPersistentEntity<T, Neo4j
         throw new MappingException("Entity has to be annotated with @NodeEntity or @RelationshipEntity"+this);
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public <T extends PropertyContainer> T  getPersistentState(Object entity, GraphDatabaseContext service) {
         final Neo4jPersistentProperty idProperty = getIdProperty();

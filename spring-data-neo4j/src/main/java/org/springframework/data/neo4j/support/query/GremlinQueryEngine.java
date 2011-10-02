@@ -40,6 +40,7 @@ public class GremlinQueryEngine implements QueryEngine<Object> {
         this.gremlinExecutor = new GremlinExecutor(graphDatabaseService);
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public QueryResult<Object> query(String statement, Map<String, Object> params) {
         try {
