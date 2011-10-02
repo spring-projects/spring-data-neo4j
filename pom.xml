@@ -15,6 +15,10 @@
 		<module>spring-data-neo4j-rest</module>
 		<module>spring-data-neo4j-aspects</module>
 		<module>spring-data-neo4j-cross-store</module>
+		<module>spring-data-neo4j-examples/hello-worlds</module>
+		<module>spring-data-neo4j-examples/imdb</module>
+		<module>spring-data-neo4j-examples/cineasts</module>
+		<module>spring-data-neo4j-examples/myrestaurants-social</module>
 	</modules>
     <url>http://www.springsource.org/spring-data/neo4j</url>
     <organization>

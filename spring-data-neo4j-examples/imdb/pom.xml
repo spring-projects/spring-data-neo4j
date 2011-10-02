@@ -7,7 +7,7 @@
   <version>2.0.0-BUILD-SNAPSHOT</version>
   <name>imdb</name>
   <properties>
-    <spring.version>3.0.5.RELEASE</spring.version>
+    <spring.version>3.0.6.RELEASE</spring.version>
     <aspectj.version>1.6.12.M1</aspectj.version>
     <slf4j.version>1.6.1</slf4j.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -146,7 +146,7 @@
     </dependency>
     <dependency>
       <groupId>org.springframework.data</groupId>
-      <artifactId>spring-data-neo4j</artifactId>
+      <artifactId>spring-data-neo4j-aspects</artifactId>
       <version>${data-graph.version}</version>
     </dependency>
     <dependency>
@@ -407,7 +407,7 @@
             </aspectLibrary>
             <aspectLibrary>
               <groupId>org.springframework.data</groupId>
-              <artifactId>spring-data-neo4j</artifactId>
+              <artifactId>spring-data-neo4j-aspects</artifactId>
             </aspectLibrary>
           </aspectLibraries>
           <source>1.6</source>

@@ -7,10 +7,7 @@ import org.neo4j.graphdb.traversal.TraversalBranch;
 import org.neo4j.graphdb.traversal.TraversalDescription;
 import org.neo4j.kernel.impl.traversal.TraversalDescriptionImpl;
 import org.springframework.data.neo4j.core.FieldTraversalDescriptionBuilder;
-import org.springframework.data.neo4j.core.NodeBacked;
-import org.springframework.data.neo4j.mapping.Neo4JPersistentProperty;
-
-import java.lang.reflect.Field;
+import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 
 /**
  * @author Michael Hunger
@@ -20,7 +17,7 @@ import java.lang.reflect.Field;
  */
 class TopRatedRestaurantTraverser implements FieldTraversalDescriptionBuilder {
     @Override
-    public TraversalDescription build(NodeBacked start, Neo4JPersistentProperty field, String... params) {
+    public TraversalDescription build(Object start, Neo4jPersistentProperty field, String... params) {
         return new TraversalDescriptionImpl()
                 .breadthFirst()
                 .relationships(DynamicRelationshipType.withName("friends"))

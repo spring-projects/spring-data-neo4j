@@ -11,10 +11,10 @@
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<spring.version>3.0.5.RELEASE</spring.version>
+		<spring.version>3.0.6.RELEASE</spring.version>
 		<slf4j.version>1.6.1</slf4j.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<neo4j.version>1.4.1</neo4j.version>
+		<neo4j.version>1.5-SNAPSHOT</neo4j.version>
 		<spring-data-graph.version>2.0.0.BUILD-SNAPSHOT</spring-data-graph.version>
 		<aspectj.version>1.6.12.M1</aspectj.version>
 		<org.slf4j-version>1.6.1</org.slf4j-version>
@@ -159,7 +159,7 @@
 
 		<dependency>
 			<groupId>org.springframework.data</groupId>
-			<artifactId>spring-data-neo4j</artifactId>
+			<artifactId>spring-data-neo4j-aspects</artifactId>
 			<version>${spring-data-graph.version}</version>
 			<exclusions>
 				<exclusion>
@@ -312,7 +312,7 @@
 						</aspectLibrary>
 						<aspectLibrary>
 							<groupId>org.springframework.data</groupId>
-							<artifactId>spring-data-neo4j</artifactId>
+							<artifactId>spring-data-neo4j-aspects</artifactId>
 						</aspectLibrary>
 					</aspectLibraries>
 					<source>1.6</source>
