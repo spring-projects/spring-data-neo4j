@@ -86,18 +86,27 @@
     <bean id="graphDatabaseContext" class="org.springframework.data.neo4j.support.GraphDatabaseContext">
         <property name="graphDatabaseService" ref="graphDatabaseService"/>
         <property name="conversionService" ref="conversionService"/>
+        <property name="entityStateHandler" ref="entityStateHandler"/>
         <property name="nodeTypeRepresentationStrategy" ref="nodeTypeRepresentationStrategy"/>
         <property name="relationshipTypeRepresentationStrategy" ref="relationshipTypeRepresentationStrategy"/>
         <property name="validator">
             <bean class="org.springframework.validation.beanvalidation.LocalValidatorFactoryBean"/>
         </property>
+        <property name="mappingContext" ref="mappingContext"/>
     </bean>
 
-    <bean id="relationshipEntityInstantiator"
-          class="org.springframework.data.neo4j.support.relationship.RelationshipEntityInstantiator"/>
 
-    <bean id="graphEntityInstantiator"
-          class="org.springframework.data.neo4j.support.node.NodeEntityInstantiator"/>
+    <bean id="entityStateHandler" class="org.springframework.data.neo4j.support.EntityStateHandler">
+        <constructor-arg ref="mappingContext"/>
+        <constructor-arg ref="graphDatabaseService"/>
+    </bean>
+    <bean id="relationshipEntityInstantiator" class="org.springframework.data.neo4j.support.relationship.RelationshipEntityInstantiator">
+        <constructor-arg ref="entityStateHandler"/>
+    </bean>
+
+    <bean id="graphEntityInstantiator" class="org.springframework.data.neo4j.support.node.NodeEntityInstantiator">
+        <constructor-arg ref="entityStateHandler"/>
+    </bean>
 
     <bean id="typeRepresentationStrategyFactory" class="org.springframework.data.neo4j.support.typerepresentation.TypeRepresentationStrategyFactory">
         <constructor-arg ref="graphDatabaseService"/>
@@ -117,6 +126,10 @@
     	<property name="graphDatabaseContext" ref="graphDatabaseContext"/>
     	<property name="mappingContext" ref="mappingContext"/>
     </bean>
+
+    <!--bean id="neo4jNodeConverter" class="org.springframework.data.neo4j.mapping.Neo4jNodeConverterImpl">
+        <property name="nodeEntityStateFactory" ref="nodeEntityStateFactory"/>
+    </bean-->
 
     <bean id="mappingContext" class="org.springframework.data.neo4j.mapping.Neo4jMappingContext"/>
 

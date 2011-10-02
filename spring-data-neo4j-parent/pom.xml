@@ -125,7 +125,7 @@
 		<org.slf4j.version>1.6.1</org.slf4j.version>
 		<org.springframework.version>3.0.6.RELEASE</org.springframework.version>
 		<data.commons.version>1.2.0.BUILD-SNAPSHOT</data.commons.version>
-        <neo4j.version>1.4.1</neo4j.version>
+        <neo4j.version>1.5-SNAPSHOT</neo4j.version>
         <aspectj.version>1.6.12.M1</aspectj.version>
         <blueprints.version>0.8</blueprints.version>
         <gremlin.version>1.1</gremlin.version>
@@ -593,20 +593,20 @@
                   </mapping>
                 </configuration>
             </plugin>
-                    <plugin>
-                        <!--
-                            configures the springsource bundlor plugin, which generates
-                            OSGI-compatible MANIFEST.MF files during the 'compile' phase of
-                            the maven build. this plugin is declared within the
-                            pluginManagement section because not every module that inherits
-                            from this pom needs bundlor's services, e.g.:
-                            spring-integration-samples and all its children. for this reason,
-                            all modules that wish to use bundlor must declare it explicitly.
-                            it is not necessary to specify the <version> or <configuration>
-                            sections, but groupId and artifactId are required. see
-                            http://static.springsource.org/s2-bundlor/1.0.x/user-guide/html/ch04s03.html
-                            for more info
-                        -->
+            <!--
+                configures the springsource bundlor plugin, which generates
+                OSGI-compatible MANIFEST.MF files during the 'compile' phase of
+                the maven build. this plugin is declared within the
+                pluginManagement section because not every module that inherits
+                from this pom needs bundlor's services, e.g.:
+                spring-integration-samples and all its children. for this reason,
+                all modules that wish to use bundlor must declare it explicitly.
+                it is not necessary to specify the <version> or <configuration>
+                sections, but groupId and artifactId are required. see
+                http://static.springsource.org/s2-bundlor/1.0.x/user-guide/html/ch04s03.html
+                for more info
+            -->
+                    <!--plugin>
                         <groupId>com.springsource.bundlor</groupId>
                         <artifactId>com.springsource.bundlor.maven</artifactId>
                         <version>1.0.0.RELEASE</version>
@@ -621,7 +621,7 @@
                                 </goals>
                             </execution>
                         </executions>
-                    </plugin>
+                    </plugin-->
 		</plugins>
 	</build>
 	<pluginRepositories>

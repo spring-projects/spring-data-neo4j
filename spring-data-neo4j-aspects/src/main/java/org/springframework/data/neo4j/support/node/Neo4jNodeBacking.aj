@@ -22,7 +22,6 @@ import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.reflect.FieldSignature;
 import org.neo4j.graphdb.DynamicRelationshipType;
 import org.neo4j.graphdb.Path;
-import org.neo4j.helpers.collection.IterableWrapper;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.traversal.TraversalDescription;
@@ -39,6 +38,7 @@ import org.springframework.data.neo4j.annotation.GraphTraversal;
 
 import org.springframework.data.neo4j.core.NodeBacked;
 import org.springframework.data.neo4j.core.RelationshipBacked;
+import org.springframework.data.neo4j.fieldaccess.GraphBackedEntityIterableWrapper;
 import org.springframework.data.neo4j.support.DoReturn;
 import org.springframework.data.neo4j.core.EntityPath;
 import org.springframework.data.neo4j.core.EntityState;
@@ -196,20 +196,10 @@ public privileged aspect Neo4jNodeBacking { // extends AbstractTypeAnnotatingMix
     private Iterable<?> convertToGraphEntity(Traverser traverser, final Class<?> targetType) {
         final GraphDatabaseContext ctx = Neo4jNodeBacking.aspectOf().graphDatabaseContext;
         if (NodeBacked.class.isAssignableFrom(targetType)) {
-            return new IterableWrapper<Object,Node>(traverser.nodes()) {
-                @Override
-                protected Object underlyingObjectToObject(Node node) {
-                    return ctx.createEntityFromState(node,(Class<? extends NodeBacked>)targetType);
-                }
-            };
+            return GraphBackedEntityIterableWrapper.create(traverser.nodes(), (Class<? extends NodeBacked>) targetType, ctx);
         }
         if (RelationshipBacked.class.isAssignableFrom(targetType)) {
-            return new IterableWrapper<Object,Relationship>(traverser.relationships()) {
-                @Override
-                protected Object underlyingObjectToObject(Relationship relationship) {
-                    return ctx.createEntityFromState(relationship,(Class<? extends RelationshipBacked>)targetType);
-                }
-            };
+            return GraphBackedEntityIterableWrapper.create(traverser.relationships(), (Class<? extends RelationshipBacked>) targetType, ctx);
         }
         throw new IllegalStateException("Can't determine valid type for traversal target "+targetType);
 

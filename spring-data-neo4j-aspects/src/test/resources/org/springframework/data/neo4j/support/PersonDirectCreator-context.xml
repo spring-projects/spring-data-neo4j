@@ -16,6 +16,7 @@
 
     <bean id="graphEntityInstantiator"
           class="org.springframework.data.neo4j.support.node.NodeEntityInstantiator">
+        <constructor-arg ref="entityStateHandler"/>
         <property name="instantiators">
             <map>
                 <entry key="org.springframework.data.neo4j.Person">

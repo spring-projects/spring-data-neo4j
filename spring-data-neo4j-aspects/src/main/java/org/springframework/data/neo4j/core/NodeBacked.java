@@ -19,8 +19,6 @@ package org.springframework.data.neo4j.core;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.traversal.TraversalDescription;
-import org.springframework.data.neo4j.support.node.Neo4jNodeBacking;
-import org.springframework.data.neo4j.support.query.CypherQueryExecutor;
 
 import java.util.Map;
 
@@ -30,7 +28,7 @@ import java.util.Map;
  *
  * @author Rod Johnson
  */
-public interface NodeBacked extends GraphBacked<Node> {
+public interface NodeBacked extends GraphBacked<Node,NodeBacked> {
 
     /**
      * Attach the entity inside a running transaction. Creating or changing an entity outside of a transaction

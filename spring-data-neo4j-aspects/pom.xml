@@ -41,6 +41,12 @@
 			<groupId>org.springframework.data</groupId>
 			<artifactId>spring-data-neo4j</artifactId>
 		</dependency>
+		<dependency>
+			<groupId>org.springframework.data</groupId>
+			<artifactId>spring-data-neo4j</artifactId>
+            <version>${project.version}</version>
+            <type>test-jar</type>
+		</dependency>
 
 		<!-- Logging -->
 		<dependency>
@@ -86,6 +92,35 @@
 			<artifactId>jsr250-api</artifactId>
 			<optional>true</optional>
 		</dependency>
+
+        <dependency>
+            <groupId>org.neo4j</groupId>
+            <artifactId>neo4j-cypher</artifactId>
+            <optional>true</optional>
+        </dependency>
+
+        <dependency>
+            <groupId>org.neo4j</groupId>
+            <artifactId>server-api</artifactId>
+            <optional>true</optional>
+        </dependency>
+
+        <dependency>
+          <groupId>com.tinkerpop.blueprints</groupId>
+          <artifactId>blueprints-core</artifactId>
+          <optional>true</optional>
+        </dependency>
+        <dependency>
+          <groupId>com.tinkerpop.blueprints</groupId>
+          <artifactId>blueprints-neo4j-graph</artifactId>
+          <optional>true</optional>
+        </dependency>
+
+        <dependency>
+          <groupId>com.tinkerpop</groupId>
+          <artifactId>gremlin</artifactId>
+          <optional>true</optional>
+        </dependency>
 
 		<dependency>
 			<groupId>org.mockito</groupId>
@@ -206,10 +241,10 @@
 							<groupId>org.springframework</groupId>
 							<artifactId>spring-aspects</artifactId>
 						</aspectLibrary>
-						<aspectLibrary>
+						<!--aspectLibrary>
 							<groupId>org.springframework</groupId>
 							<artifactId>spring-data-neo4j-aspects</artifactId>
-						</aspectLibrary>
+						</aspectLibrary-->
 					</aspectLibraries>
 					<source>1.6</source>
 					<target>1.6</target>

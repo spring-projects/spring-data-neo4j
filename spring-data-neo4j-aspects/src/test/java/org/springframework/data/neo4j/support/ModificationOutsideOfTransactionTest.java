@@ -164,21 +164,23 @@ public class ModificationOutsideOfTransactionTest
         assertEquals( 35, nodeFor( p ).getProperty("age") );
     }
 
-	@Ignore
-	@Test
-    public void shouldWorkWithUninitializedCollectionFieldWithoutUnderlyingState()
-    {
+    @Test
+    public void shouldWorkWithUninitializedCollectionFieldWithoutUnderlyingState() {
         Group group = new Group();
-	    Collection<Person> people = group.getPersons();
-	    assertNotNull(people);
+        Collection<Person> people = group.getPersons();
+        assertNotNull(people);
 
-	    Person p = new Person( "David", 27 );
-	    people.add(p);
+        Person p = new Person("David", 27);
+        people.add(p);
 
-        assertEquals( Collections.singleton(p), group.getPersons() );
+        assertEquals(Collections.singleton(p), group.getPersons());
+
+        group.persist();
+        assertThat(group.getPersistentState(), hasRelationship("persons", p.getPersistentState()));
+        assertThat(p.getPersistentState(), hasRelationship("persons", group.getPersistentState()));
     }
 
-	@Test
+    @Test
     public void shouldWorkWithInitializedCollectionFieldWithoutUnderlyingState()
     {
         Group group = new Group();
@@ -190,6 +192,11 @@ public class ModificationOutsideOfTransactionTest
 	    people.add(p);
 
         assertEquals( Collections.singleton(p), group.getPersons() );
+
+
+        group.persist();
+        assertThat(group.getPersistentState(), hasRelationship("persons", p.getPersistentState()));
+        assertThat(p.getPersistentState(), hasRelationship("persons", group.getPersistentState()));
     }
 
     @Test

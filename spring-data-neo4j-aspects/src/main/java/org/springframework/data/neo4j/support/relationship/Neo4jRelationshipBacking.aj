@@ -22,6 +22,7 @@ import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.reflect.FieldSignature;
 import org.neo4j.graphdb.Relationship;
 import org.springframework.data.neo4j.annotation.RelationshipEntity;
+import org.springframework.data.neo4j.core.NodeBacked;
 import org.springframework.data.neo4j.core.RelationshipBacked;
 import org.springframework.data.neo4j.support.DoReturn;
 import org.springframework.data.neo4j.core.EntityState;
@@ -117,6 +118,10 @@ public aspect Neo4jRelationshipBacking {
         if (!hasPersistentState()) return System.identityHashCode(this);
 		return getPersistentState().hashCode();
 	}
+
+    public <T extends RelationshipBacked> T RelationshipBacked.persist() {
+        return (T)this.entityState.persist();
+    }
 
 	public void RelationshipBacked.remove() {
 	     Neo4jRelationshipBacking.aspectOf().graphDatabaseContext.removeRelationshipEntity(this);

@@ -26,7 +26,7 @@ import org.springframework.data.neo4j.support.ManagedEntity;
  * @author Michael Hunger
  * @since 21.09.2010
  */
-public interface GraphBacked<STATE> extends ManagedEntity<STATE> {
+public interface GraphBacked<STATE,ENTITY extends GraphBacked<STATE,ENTITY>> extends ManagedEntity<STATE,ENTITY> {
     /**
      * internal setter used for initializing the graph-db state on existing or newly created entities
      *
