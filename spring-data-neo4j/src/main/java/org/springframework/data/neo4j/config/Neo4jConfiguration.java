@@ -16,9 +16,6 @@
 
 package org.springframework.data.neo4j.config;
 
-import javax.annotation.PostConstruct;
-import javax.validation.Validator;
-
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
@@ -30,8 +27,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.dao.support.PersistenceExceptionTranslator;
-
-
 import org.springframework.data.neo4j.fieldaccess.DelegatingFieldAccessorFactory;
 import org.springframework.data.neo4j.fieldaccess.Neo4jConversionServiceFactoryBean;
 import org.springframework.data.neo4j.fieldaccess.NodeDelegatingFieldAccessorFactory;
@@ -40,6 +35,7 @@ import org.springframework.data.neo4j.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.mapping.Neo4jNodeConverterImpl;
 import org.springframework.data.neo4j.repository.DirectGraphRepositoryFactory;
 import org.springframework.data.neo4j.support.EntityInstantiator;
+import org.springframework.data.neo4j.support.EntityStateHandler;
 import org.springframework.data.neo4j.support.GraphDatabaseContext;
 import org.springframework.data.neo4j.support.node.NodeEntityInstantiator;
 import org.springframework.data.neo4j.support.node.NodeEntityStateFactory;
@@ -50,6 +46,9 @@ import org.springframework.data.neo4j.template.Neo4jExceptionTranslator;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.jta.JtaTransactionManager;
 import org.springframework.transaction.jta.UserTransactionAdapter;
+
+import javax.annotation.PostConstruct;
+import javax.validation.Validator;
 
 /**
  * Abstract base class for code based configuration of Spring managed Neo4j infrastructure.
@@ -87,6 +86,7 @@ public abstract class Neo4jConfiguration {
         gdc.setConversionService(conversionService());
         gdc.setMappingContext(mappingContext());
         gdc.setConverter(neo4jConverter());
+        gdc.setEntityStateHandler(entityStateHandler());
         gdc.setNodeTypeRepresentationStrategy(typeRepresentationStrategyFactory.getNodeTypeRepresentationStrategy());
         gdc.setRelationshipTypeRepresentationStrategy(typeRepresentationStrategyFactory.getRelationshipTypeRepresentationStrategy());
         if (validator!=null) {
@@ -94,6 +94,11 @@ public abstract class Neo4jConfiguration {
         }
 		return gdc;
 	}
+
+    @Bean
+    public EntityStateHandler entityStateHandler() {
+        return new EntityStateHandler(mappingContext(),graphDatabaseService);
+    }
 
     @Bean
     public Neo4jNodeConverterImpl neo4jConverter() throws Exception {
@@ -106,13 +111,13 @@ public abstract class Neo4jConfiguration {
     }
 
     @Bean
-    protected RelationshipEntityInstantiator graphRelationshipInstantiator() {
-        return new RelationshipEntityInstantiator(mappingContext());
+    protected RelationshipEntityInstantiator graphRelationshipInstantiator() throws Exception {
+        return new RelationshipEntityInstantiator(entityStateHandler());
     }
 
     @Bean
-	protected EntityInstantiator<Node> graphEntityInstantiator() {
-	   return new NodeEntityInstantiator(mappingContext());
+	protected EntityInstantiator<Node> graphEntityInstantiator() throws Exception {
+	   return new NodeEntityInstantiator(entityStateHandler());
 	}
 
 	@Bean

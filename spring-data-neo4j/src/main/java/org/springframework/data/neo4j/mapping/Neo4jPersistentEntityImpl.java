@@ -23,7 +23,6 @@ import org.springframework.data.mapping.model.BasicPersistentEntity;
 import org.springframework.data.mapping.model.MappingException;
 import org.springframework.data.neo4j.annotation.NodeEntity;
 import org.springframework.data.neo4j.annotation.RelationshipEntity;
-import org.springframework.data.neo4j.support.GraphDatabaseContext;
 import org.springframework.data.util.TypeInformation;
 
 import java.lang.annotation.Annotation;
@@ -97,19 +96,10 @@ public class Neo4jPersistentEntityImpl<T> extends BasicPersistentEntity<T, Neo4j
 
     @SuppressWarnings("unchecked")
     @Override
-    public <T extends PropertyContainer> T  getPersistentState(Object entity, GraphDatabaseContext service) {
+    public Object getPersistentId(Object entity) {
         final Neo4jPersistentProperty idProperty = getIdProperty();
         if (idProperty==null) throw new MappingException("No field annotated with @GraphId found in "+ getEntityName());
-        if (!Number.class.isAssignableFrom(idProperty.getType())) throw new IllegalArgumentException("The id of "+getEntityName()+" "+idProperty+" is not a number");
-        final Number id = (Number) idProperty.getValue(entity);
-        if (id==null) return null; // todo create new node?
-        if (isNodeEntity()) {
-            return (T) service.getNodeById(id.longValue());
-        }
-        if (isRelationshipEntity()) {
-            return (T) service.getRelationshipById(id.longValue());
-        }
-        throw new IllegalArgumentException("The entity "+getEntityName()+" has to be either annotated with @NodeEntity or @RelationshipEntity");
+        return idProperty.getValue(entity);
     }
 
     public String getEntityName() {

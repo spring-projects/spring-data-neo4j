@@ -20,11 +20,8 @@ import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.RelationshipType;
-
-
 import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.support.GraphDatabaseContext;
-import org.springframework.util.Assert;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -59,7 +56,7 @@ public abstract class NodeToNodesRelationshipFieldAccessor extends AbstractNodeR
 
     @Override
     protected Node getState(final Object entity) {
-        return property.getOwner().getPersistentState(entity, graphDatabaseContext);
+        return graphDatabaseContext.getPersistentState(entity);
     }
 
 }

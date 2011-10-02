@@ -35,5 +35,5 @@ public interface Neo4jPersistentEntity<T> extends PersistentEntity<T, Neo4jPersi
 
     void setPersistentState(Object entity, PropertyContainer pc);
 
-    <T extends PropertyContainer> T  getPersistentState(Object entity, GraphDatabaseContext service);
+    Object getPersistentId(Object entity);
 }

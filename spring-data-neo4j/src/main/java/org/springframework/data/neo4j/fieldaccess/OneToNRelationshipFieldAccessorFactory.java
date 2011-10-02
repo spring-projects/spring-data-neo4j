@@ -24,6 +24,7 @@ import org.springframework.data.neo4j.mapping.RelationshipInfo;
 import org.springframework.data.neo4j.support.GraphDatabaseContext;
 
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Set;
 
 import static org.springframework.data.neo4j.support.DoReturn.doReturn;
@@ -73,5 +74,9 @@ public class OneToNRelationshipFieldAccessorFactory extends NodeRelationshipFiel
 	        return doReturn(createManagedSet(entity, result));
 	    }
 
-	}
+        @Override
+        public Object getDefaultImplementation() {
+            return new HashSet();
+        }
+    }
 }

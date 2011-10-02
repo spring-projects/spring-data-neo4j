@@ -17,9 +17,8 @@
 package org.springframework.data.neo4j.support.node;
 
 import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Relationship;
-import org.springframework.data.neo4j.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.support.AbstractConstructorEntityInstantiator;
+import org.springframework.data.neo4j.support.EntityStateHandler;
 
 
 /**
@@ -31,10 +30,10 @@ import org.springframework.data.neo4j.support.AbstractConstructorEntityInstantia
  */
 public class NodeEntityInstantiator extends AbstractConstructorEntityInstantiator<Node> {
 
-    private final Neo4jMappingContext mappingContext;
+    private final EntityStateHandler entityStateHandler;
 
-    public NodeEntityInstantiator(Neo4jMappingContext mappingContext) {
-        this.mappingContext = mappingContext;
+    public NodeEntityInstantiator(EntityStateHandler entityStateHandler) {
+        this.entityStateHandler = entityStateHandler;
     }
 
 
@@ -44,7 +43,7 @@ public class NodeEntityInstantiator extends AbstractConstructorEntityInstantiato
 	}
 
     protected void setPersistentState(Object entity, Node node) {
-        this.mappingContext.setPersistentState(entity,node);
+        this.entityStateHandler.setPersistentState(entity,node);
     }
 
 

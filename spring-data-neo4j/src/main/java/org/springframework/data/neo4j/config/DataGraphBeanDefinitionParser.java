@@ -25,6 +25,7 @@ import org.springframework.beans.factory.support.BeanNameGenerator;
 import org.springframework.beans.factory.xml.AbstractBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.context.annotation.ConfigurationClassPostProcessor;
+import org.springframework.util.ClassUtils;
 import org.w3c.dom.Element;
 
 import static org.springframework.util.StringUtils.hasText;
@@ -32,20 +33,38 @@ import static org.springframework.util.StringUtils.hasText;
 public class DataGraphBeanDefinitionParser extends AbstractBeanDefinitionParser {
 
     private static final String GRAPH_DATABASE_SERVICE = "graphDatabaseService";
+    public static final String ASPECTJ_CONFIG = "org.springframework.data.neo4j.config.Neo4jAspectConfiguration";
+    public static final String CROSS_STORE_CONFIG = "org.springframework.data.neo4j.config.CrossStoreNeo4jConfiguration";
 
     @Override
     protected AbstractBeanDefinition parseInternal(Element element, ParserContext context) {
-        BeanDefinitionBuilder configBuilder = createConfigurationBeanDefinition();
+        BeanDefinitionBuilder configBuilder = createConfigurationBeanDefinition(element);
         setupGraphDatabase(element, context, configBuilder);
         setupEntityManagerFactory(element, configBuilder);
         setupConfigurationClassPostProcessor(context);
         return getSourcedBeanDefinition(configBuilder, element, context);
     }
 
-    private BeanDefinitionBuilder createConfigurationBeanDefinition() {
-        BeanDefinitionBuilder configBuilder = BeanDefinitionBuilder.rootBeanDefinition(Neo4jConfiguration.class);
+
+    private BeanDefinitionBuilder createConfigurationBeanDefinition(Element element) {
+        BeanDefinitionBuilder configBuilder = createConfigBuilderByMode(element);
         configBuilder.setAutowireMode(Autowire.BY_TYPE.value());
         return configBuilder;
+    }
+
+    // todo cross-store
+    private BeanDefinitionBuilder createConfigBuilderByMode(Element element) {
+        if (isModeCrossStore(element)) return BeanDefinitionBuilder.rootBeanDefinition(CROSS_STORE_CONFIG);
+        if (isModeAspectJ()) return BeanDefinitionBuilder.rootBeanDefinition(ASPECTJ_CONFIG);
+        return BeanDefinitionBuilder.rootBeanDefinition(Neo4jConfiguration.class);
+    }
+
+    private boolean isModeCrossStore(Element element) {
+        return isModeAspectJ() && isEntityManagerFactoryConfigured(element);
+    }
+
+    private boolean isModeAspectJ() {
+        return ClassUtils.isPresent(ASPECTJ_CONFIG, getClass().getClassLoader());
     }
 
     private void setupConfigurationClassPostProcessor(final ParserContext parserContext) {
@@ -72,10 +91,15 @@ public class DataGraphBeanDefinitionParser extends AbstractBeanDefinitionParser 
     }
 
     private void setupEntityManagerFactory(Element element, BeanDefinitionBuilder configBuilder) {
-        String entityManagerFactory = element.getAttribute("entityManagerFactory");
-        if (hasText(entityManagerFactory)) {
+        if (isEntityManagerFactoryConfigured(element)) {
+            String entityManagerFactory = element.getAttribute("entityManagerFactory");
             configBuilder.addPropertyReference("entityManagerFactory", entityManagerFactory);
         }
+    }
+
+    private boolean isEntityManagerFactoryConfigured(Element element) {
+        String entityManagerFactory = element.getAttribute("entityManagerFactory");
+        return hasText(entityManagerFactory);
     }
 
     private String handleStoreDir(Element element, ParserContext context, BeanDefinitionBuilder configBuilder) {

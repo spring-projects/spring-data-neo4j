@@ -15,18 +15,13 @@
  */
 package org.springframework.data.neo4j.fieldaccess;
 
-import java.lang.reflect.Field;
-import java.util.Map;
-
-import org.neo4j.graphdb.Node;
 import org.springframework.data.neo4j.core.EntityState;
-
-
-
 import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.support.DoReturn;
 import org.springframework.data.neo4j.support.GraphDatabaseContext;
-import scala.annotation.target.field;
+import org.springframework.data.neo4j.support.ManagedEntity;
+
+import java.util.Map;
 
 /**
  * Updates the entity containing such a ManagedPrefixedDynamicProperties when some property is added, changed or
@@ -82,14 +77,25 @@ public class ManagedPrefixedDynamicProperties extends PrefixedDynamicProperties 
         return d;
     }
 
-    private void update() {
-         updateValue();
-    }
-
     private Object updateValue() {
         final Object newValue = fieldAccessor.setValue(entity, this);
         if (newValue instanceof DoReturn)
             return DoReturn.unwrap(newValue);
+        property.setValue(entity, newValue);
+        return newValue;
+    }
+
+    private void update() {
+        if (graphDatabaseContext.isManaged(entity)) {
+            updateValueWithState(((ManagedEntity)entity).getEntityState());
+        } else {
+            updateValue();
+        }
+    }
+
+    private Object updateValueWithState(EntityState entityState) {
+        final Object newValue = entityState.setValue(property, this);
+        if (newValue instanceof DoReturn) return DoReturn.unwrap(newValue);
         property.setValue(entity, newValue);
         return newValue;
     }

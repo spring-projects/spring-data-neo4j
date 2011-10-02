@@ -28,6 +28,7 @@ import org.springframework.data.neo4j.Person;
 import org.springframework.data.neo4j.Personality;
 import org.springframework.data.neo4j.fieldaccess.Neo4jConversionServiceFactoryBean;
 import org.springframework.data.neo4j.fieldaccess.NodeDelegatingFieldAccessorFactory;
+import org.springframework.data.neo4j.support.EntityStateHandler;
 import org.springframework.data.neo4j.support.GraphDatabaseContext;
 import org.springframework.data.neo4j.support.node.NodeEntityInstantiator;
 import org.springframework.data.neo4j.support.node.NodeEntityStateFactory;
@@ -63,10 +64,13 @@ public class Neo4jNodeConverterTest {
 
     private GraphDatabaseContext createContext(Neo4jMappingContext mappingContext) throws Exception {
         GraphDatabaseContext gdc = new GraphDatabaseContext();
-        gdc.setGraphDatabaseService(new ImpermanentGraphDatabase());
+        final ImpermanentGraphDatabase gdb = new ImpermanentGraphDatabase();
+        gdc.setGraphDatabaseService(gdb);
         gdc.setMappingContext(mappingContext);
-        gdc.setNodeTypeRepresentationStrategy(new NoopNodeTypeRepresentationStrategy(new NodeEntityInstantiator(mappingContext)));
+        final EntityStateHandler entityStateHandler = new EntityStateHandler(mappingContext, gdb);
+        gdc.setNodeTypeRepresentationStrategy(new NoopNodeTypeRepresentationStrategy(new NodeEntityInstantiator(entityStateHandler)));
         gdc.setConversionService(new Neo4jConversionServiceFactoryBean().getObject());
+        gdc.setEntityStateHandler(entityStateHandler);
         return gdc;
     }
 

@@ -17,9 +17,8 @@
 package org.springframework.data.neo4j.support.relationship;
 
 import org.neo4j.graphdb.Relationship;
-
-import org.springframework.data.neo4j.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.support.AbstractConstructorEntityInstantiator;
+import org.springframework.data.neo4j.support.EntityStateHandler;
 import sun.reflect.ReflectionFactory;
 
 /**
@@ -30,15 +29,15 @@ import sun.reflect.ReflectionFactory;
 
 public class RelationshipEntityInstantiator extends AbstractConstructorEntityInstantiator<Relationship> {
 
-    private final Neo4jMappingContext mappingContext;
+    private final EntityStateHandler entityStateHandler;
 
-    public RelationshipEntityInstantiator(Neo4jMappingContext mappingContext) {
-        this.mappingContext = mappingContext;
+    public RelationshipEntityInstantiator(EntityStateHandler entityStateHandler) {
+        this.entityStateHandler = entityStateHandler;
     }
 
     @Override
     protected void setState(Object entity, Relationship relationship) {
-        this.mappingContext.setPersistentState(entity,relationship);
+        this.entityStateHandler.setPersistentState(entity,relationship);
     }
 
     @Override

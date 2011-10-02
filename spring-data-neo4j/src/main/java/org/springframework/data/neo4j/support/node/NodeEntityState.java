@@ -24,6 +24,7 @@ import org.springframework.data.neo4j.fieldaccess.DefaultEntityState;
 import org.springframework.data.neo4j.fieldaccess.DelegatingFieldAccessorFactory;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentEntity;
 import org.springframework.data.neo4j.support.GraphDatabaseContext;
+import org.springframework.data.neo4j.support.ManagedEntity;
 
 /**
  * @author Michael Hunger
@@ -65,7 +66,9 @@ public class NodeEntityState extends DefaultEntityState<Node> {
 
     @Override
     public void setPersistentState(Node node) {
-        graphDatabaseContext.setPersistentState(entity,node);
+        if (!(entity instanceof ManagedEntity)) {
+            graphDatabaseContext.setPersistentState(entity, node);
+        }
         super.setPersistentState(node);
     }
 

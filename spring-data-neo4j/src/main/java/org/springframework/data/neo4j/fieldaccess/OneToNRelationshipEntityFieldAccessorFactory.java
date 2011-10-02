@@ -16,16 +16,14 @@
 
 package org.springframework.data.neo4j.fieldaccess;
 
-import org.neo4j.graphdb.*;
+import org.neo4j.graphdb.Direction;
+import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.Relationship;
+import org.neo4j.graphdb.RelationshipType;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
-
-
 import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.mapping.RelationshipInfo;
 import org.springframework.data.neo4j.support.GraphDatabaseContext;
-
-import java.util.HashSet;
-import java.util.Set;
 
 import static org.springframework.data.neo4j.support.DoReturn.doReturn;
 
@@ -68,22 +66,16 @@ public class OneToNRelationshipEntityFieldAccessorFactory implements FieldAccess
 	    @Override
 	    public Object getValue(final Object entity) {
 	        checkUnderlyingNode(entity);
-	        final Set<?> result = createEntitySetFromRelationships(entity);
-	        return doReturn(new ManagedFieldAccessorSet(entity, result, property,graphDatabaseContext, this));
-	    }
+            return doReturn(iterableFrom(entity));
+        }
 
-	    private Set<?> createEntitySetFromRelationships(final Object entity) {
-	        final Set<Object> result = new HashSet<Object>();
-	        for (final Relationship rel : getStatesFromEntity(entity)) {
-	            final Object relationshipEntity = graphDatabaseContext.createEntityFromState(rel, relatedType);
-	            result.add(relationshipEntity);
-	        }
-	        return result;
-	    }
+        private GraphBackedEntityIterableWrapper<Relationship, ?> iterableFrom(final Object entity) {
+            return GraphBackedEntityIterableWrapper.create(getStatesFromEntity(entity), relatedType, graphDatabaseContext);
+        }
 
 	    @Override
 	    protected Iterable<Relationship> getStatesFromEntity(final Object entity) {
-            final Node persistentState = property.getOwner().getPersistentState(entity, graphDatabaseContext);
+            final Node persistentState = getState(entity);
             return persistentState.getRelationships(type, direction);
 	    }
 
@@ -94,7 +86,7 @@ public class OneToNRelationshipEntityFieldAccessorFactory implements FieldAccess
 
 	    @Override
 	    protected Node getState(final Object entity) {
-	        return property.getOwner().getPersistentState(entity, graphDatabaseContext);
+	        return graphDatabaseContext.getPersistentState(entity);
 	    }
 
 	}

@@ -32,7 +32,6 @@ import org.springframework.data.neo4j.annotation.Indexed;
 import org.springframework.data.neo4j.core.*;
 import org.springframework.data.neo4j.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.mapping.Neo4jNodeConverter;
-import org.springframework.data.neo4j.mapping.Neo4jPersistentEntityImpl;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.support.query.CypherQueryExecutor;
 import org.springframework.data.util.TypeInformation;
@@ -67,7 +66,8 @@ public class GraphDatabaseContext {
     private RelationshipTypeRepresentationStrategy relationshipTypeRepresentationStrategy;
 
     private Neo4jMappingContext mappingContext;
-    private final CypherQueryExecutor executor = new CypherQueryExecutor(this);
+    private CypherQueryExecutor cypherQueryExecutor;
+    private EntityStateHandler entityStateHandler;
 
 
     public <S extends PropertyContainer, T> Index<S> getIndex(Class<T> type) {
@@ -128,33 +128,16 @@ public class GraphDatabaseContext {
         S state = getPersistentState(entity);
         return getTypeRepresentationStrategy(state, targetType).projectEntity(state, targetType);
     }
-    
+
     @SuppressWarnings("unchecked")
     public <S extends PropertyContainer> S getPersistentState(Object entity) {
-        if (entity instanceof PropertyContainer) {
-            return (S) entity;
-        }
-        if (isManaged(entity)) {
-            return ((ManagedEntity<S>)entity).getPersistentState();
-        }
-        final Class<?> type = entity.getClass();
-        final Neo4jPersistentEntityImpl<?> persistentEntity = mappingContext.getPersistentEntity(type);
-        return (S)persistentEntity.getPersistentState(entity,this);
+        return entityStateHandler.getPersistentState(entity);
     }
 
     // todo depending on type of mapping
     @SuppressWarnings("unchecked")
     public <S extends PropertyContainer> void setPersistentState(Object entity, S state) {
-        if (entity instanceof PropertyContainer) {
-            return;
-        }
-        if (isManaged(entity)) {
-            ((ManagedEntity<S>)entity).setPersistentState(state);
-            return;
-        }
-        final Class<?> type = entity.getClass();
-        final Neo4jPersistentEntityImpl<?> persistentEntity = mappingContext.getPersistentEntity(type);
-        persistentEntity.setPersistentState(entity,state);
+        entityStateHandler.setPersistentState(entity, state);
     }
 
     public <S extends PropertyContainer, T> void postEntityCreation(S node, Class<T> entityClass) {
@@ -163,8 +146,7 @@ public class GraphDatabaseContext {
 
     @SuppressWarnings("unchecked")
     public  <T> Iterable<T> findAllByTraversal(Object entity, Class<?> targetType, TraversalDescription traversalDescription) {
-        final Neo4jPersistentEntityImpl<?> persistentEntity = mappingContext.getPersistentEntity(entity.getClass());
-        final PropertyContainer state = persistentEntity.getPersistentState(entity, this);
+        final PropertyContainer state = entityStateHandler.getPersistentState(entity);
         if (state == null) throw new IllegalStateException("No node attached to " + this);
         final Traverser traverser = traversalDescription.traverse((Node) state);
         if (Node.class.isAssignableFrom(targetType)) return (Iterable<T>) traverser.nodes();
@@ -317,6 +299,7 @@ public class GraphDatabaseContext {
 
 	public void setGraphDatabaseService(GraphDatabaseService graphDatabaseService) {
 		this.graphDatabaseService = graphDatabaseService;
+        this.cypherQueryExecutor = new CypherQueryExecutor(this);
 	}
 
     public NodeTypeRepresentationStrategy getNodeTypeRepresentationStrategy() {
@@ -373,8 +356,8 @@ public class GraphDatabaseContext {
         }
     }
 
-    private boolean isManaged(Object entity) {
-        return entity instanceof ManagedEntity;
+    public boolean isManaged(Object entity) {
+        return entityStateHandler.isManaged(entity);
     }
 
     public void setConverter(Neo4jNodeConverter converter) {
@@ -383,14 +366,19 @@ public class GraphDatabaseContext {
 
     public Object executeQuery(Object entity, String queryString, Map<String, Object> params, Neo4jPersistentProperty property) {
         final TypeInformation<?> typeInformation = property.getTypeInformation();
-        final Class<?> targetType = typeInformation.getActualType().getType();
+        final TypeInformation<?> actualType = typeInformation.getActualType();
+        final Class<?> targetType = actualType.getType();
+        if (actualType.isMap()) {
+            return cypherQueryExecutor.queryForList(queryString, params);
+        }
         if (typeInformation.isCollectionLike()) {
-            return executor.query(queryString, targetType, params);
+            return cypherQueryExecutor.query(queryString, targetType, params);
         }
-        if (typeInformation.isMap()) {
-            return executor.queryForList(queryString, params);
-        }
-        return executor.queryForObject(queryString, targetType, params);
+        return cypherQueryExecutor.queryForObject(queryString, targetType, params);
+    }
+
+    public void setEntityStateHandler(EntityStateHandler entityStateHandler) {
+        this.entityStateHandler = entityStateHandler;
     }
 }
 

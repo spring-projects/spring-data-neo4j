@@ -16,10 +16,11 @@
 
 package org.springframework.data.neo4j.fieldaccess;
 
-import org.springframework.data.neo4j.mapping.Neo4jPersistentEntity;
+import org.springframework.data.neo4j.core.EntityState;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.support.DoReturn;
 import org.springframework.data.neo4j.support.GraphDatabaseContext;
+import org.springframework.data.neo4j.support.ManagedEntity;
 
 import java.util.AbstractSet;
 import java.util.Collection;
@@ -68,13 +69,18 @@ public class ManagedFieldAccessorSet<T> extends AbstractSet<T> {
 	}
 
     private void update() {
-        final Neo4jPersistentEntity<?> persistentEntity = property.getOwner();
-        if (persistentEntity.isNodeEntity()) {
+        if (ctx.isManaged(entity)) {
+            updateValueWithState(((ManagedEntity)entity).getEntityState());
+        } else {
             updateValue();
         }
-        if (persistentEntity.isRelationshipEntity()) {
-            updateValue();
-        }
+    }
+
+    private Object updateValueWithState(EntityState entityState) {
+        final Object newValue = entityState.setValue(property, delegate);
+        if (newValue instanceof DoReturn) return DoReturn.unwrap(newValue);
+        property.setValue(entity, newValue);
+        return newValue;
     }
 
     private Object updateValue() {

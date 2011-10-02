@@ -15,16 +15,18 @@
  */
 package org.springframework.data.neo4j.support;
 
-import org.neo4j.graphdb.PropertyContainer;
+import org.springframework.data.neo4j.core.EntityState;
 
 /**
  * @author mh
  * @since 02.10.11
  */
-public interface ManagedEntity<S> {
-    <T extends S> T persist();
+public interface ManagedEntity<S,T> {
+    <U extends T> U persist();
 
     S getPersistentState();
+
+    EntityState<S> getEntityState();
 
     void setPersistentState(S state);
 }
