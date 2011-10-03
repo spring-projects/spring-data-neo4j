@@ -4,6 +4,15 @@
         <wb-resource deploy-path="/WEB-INF/classes" source-path="/src/main/java"/>
         <wb-resource deploy-path="/WEB-INF/classes" source-path="/src/main/resources"/>
         <wb-resource deploy-path="/" source-path="/src/main/webapp"/>
+        <dependent-module deploy-path="/WEB-INF/lib" handle="module:/resource/spring-data-neo4j-cross-store/spring-data-neo4j-cross-store">
+            <dependency-type>uses</dependency-type>
+        </dependent-module>
+        <dependent-module deploy-path="/WEB-INF/lib" handle="module:/resource/spring-data-neo4j-aspects/spring-data-neo4j-aspects">
+            <dependency-type>uses</dependency-type>
+        </dependent-module>
+        <dependent-module deploy-path="/WEB-INF/lib" handle="module:/resource/spring-data-neo4j/spring-data-neo4j">
+            <dependency-type>uses</dependency-type>
+        </dependent-module>
     <property name="context-root" value="myrestaurants-social"/>
         <property name="java-output-path" value="/myrestaurants-social/target/classes"/>
   </wb-module>
