@@ -1,4 +1,7 @@
 ajcore*
+.project
+.classpath
+.settings
 .idea
 *.log
 .DS_Store

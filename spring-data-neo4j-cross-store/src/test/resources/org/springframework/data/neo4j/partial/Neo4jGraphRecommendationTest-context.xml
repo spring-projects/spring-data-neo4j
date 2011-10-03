@@ -70,12 +70,12 @@
 	    Start datastore config
     -->
 
-	<bean id="neo4jNodeBacking" class="org.springframework.data.neo4j.support.node.Neo4jNodeBacking" factory-method="aspectOf">
+	<bean id="neo4jNodeBacking" class="org.springframework.data.neo4j.aspects.support.node.Neo4jNodeBacking" factory-method="aspectOf">
 		<property name="graphDatabaseContext" ref="graphDatabaseContext"/>
 		<property name="nodeEntityStateFactory" ref="nodeEntityStateFactory"/>
 	</bean>
 
-	<bean class="org.springframework.data.neo4j.support.relationship.Neo4jRelationshipBacking" factory-method="aspectOf">
+	<bean class="org.springframework.data.neo4j.aspects.support.relationship.Neo4jRelationshipBacking" factory-method="aspectOf">
 		<property name="graphDatabaseContext" ref="graphDatabaseContext"/>
 		<property name="relationshipEntityStateFactory" ref="relationshipEntityStateFactory"/>
 	</bean>

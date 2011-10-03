@@ -606,7 +606,7 @@
                 http://static.springsource.org/s2-bundlor/1.0.x/user-guide/html/ch04s03.html
                 for more info
             -->
-                    <!--plugin>
+                    <plugin>
                         <groupId>com.springsource.bundlor</groupId>
                         <artifactId>com.springsource.bundlor.maven</artifactId>
                         <version>1.0.0.RELEASE</version>
@@ -621,7 +621,7 @@
                                 </goals>
                             </execution>
                         </executions>
-                    </plugin-->
+                    </plugin>
 		</plugins>
 	</build>
 	<pluginRepositories>

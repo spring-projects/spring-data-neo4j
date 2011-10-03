@@ -23,7 +23,7 @@ import com.sun.jersey.api.client.WebResource;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.springframework.data.neo4j.Person;
+import org.springframework.data.neo4j.aspects.Person;
 import org.springframework.data.neo4j.rest.RequestResult;
 import org.springframework.data.neo4j.server.ProvidedClassPathXmlApplicationContext;
 
@@ -32,7 +32,7 @@ import java.io.IOException;
 import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
-import static org.springframework.data.neo4j.Person.persistedPerson;
+import static org.springframework.data.neo4j.aspects.Person.persistedPerson;
 
 /**
  * @author mh

@@ -21,10 +21,7 @@ import org.neo4j.graphdb.Node;
 import org.neo4j.helpers.collection.IterableWrapper;
 import org.neo4j.server.plugins.*;
 import org.springframework.context.ApplicationContext;
-import org.springframework.data.neo4j.Friendship;
-import org.springframework.data.neo4j.*;
-import org.springframework.data.neo4j.Person;
-import org.springframework.data.neo4j.PersonRepository;
+import org.springframework.data.neo4j.aspects.*;
 import org.springframework.data.neo4j.server.ProvidedClassPathXmlApplicationContext;
 import org.springframework.data.neo4j.support.GraphDatabaseContext;
 

@@ -20,6 +20,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.neo4j.aspects.config.Neo4jAspectConfiguration;
 import org.springframework.data.neo4j.support.EntityInstantiator;
 import org.springframework.data.neo4j.support.node.CrossStoreNodeEntityStateFactory;
 import org.springframework.data.neo4j.support.node.NodeEntityInstantiator;

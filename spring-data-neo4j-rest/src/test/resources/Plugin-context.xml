@@ -10,6 +10,6 @@
 
     <neo4j:config graphDatabaseService="graphDatabaseService"/>
 
-    <neo4j:repositories base-package="org.springframework.data.neo4j"/>
+    <neo4j:repositories base-package="org.springframework.data.neo4j.aspects"/>
 
 </beans>

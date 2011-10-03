@@ -17,8 +17,8 @@ package org.springframework.data.neo4j.support.node;
 
 import org.neo4j.graphdb.Node;
 import org.springframework.data.neo4j.annotation.NodeEntity;
+import org.springframework.data.neo4j.aspects.core.NodeBacked;
 import org.springframework.data.neo4j.core.EntityState;
-import org.springframework.data.neo4j.core.NodeBacked;
 import org.springframework.data.neo4j.fieldaccess.DetachedEntityState;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentEntity;
 

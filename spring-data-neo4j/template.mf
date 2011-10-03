@@ -33,7 +33,8 @@ Import-Template:
  javax.persistence.spi.*;version="[1.0.0, 3.0.0)";resolution:=optional,
  javax.transaction.*;version="[1.0.1, 2.0.0)";resolution:=optional,
  com.tinkerpop.blueprints.*;version="[0.8,1.0)";resolution:=optional,
- com.tinkerpop.gremlin.*;version="[1.1,2.0)";resolution:=optional
+ com.tinkerpop.gremlin.*;version="[1.1,2.0)";resolution:=optional,
+ com.tinkerpop.pipes.util.*;version="[0.8,1.0)";resolution:=optional
 Import-Package: 
  net.sf.cglib.proxy;version="[2.2.0,3.0.0)",
  net.sf.cglib.core;version="[2.2.0,3.0.0)",
