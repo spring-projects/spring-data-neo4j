@@ -17,7 +17,7 @@ package org.springframework.data.neo4j.mapping;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.springframework.data.neo4j.Person;
+import org.springframework.data.neo4j.model.Person;
 
 import static org.junit.Assert.assertEquals;
 

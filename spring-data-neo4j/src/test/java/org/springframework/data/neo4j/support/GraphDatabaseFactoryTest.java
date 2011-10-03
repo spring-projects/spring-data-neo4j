@@ -14,19 +14,16 @@
  * limitations under the License.
  */
 
-package org.springframework.data.neo4j.aspects.support;
+package org.springframework.data.neo4j.support;
 
+import org.hamcrest.core.Is;
+import org.hamcrest.core.IsInstanceOf;
+import org.hamcrest.core.IsNot;
+import org.hamcrest.core.IsNull;
+import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.data.neo4j.core.GraphDatabase;
-import org.springframework.data.neo4j.support.DelegatingGraphDatabase;
-import org.springframework.data.neo4j.support.GraphDatabaseFactory;
-
-import static org.hamcrest.core.Is.is;
-import static org.hamcrest.core.IsInstanceOf.instanceOf;
-import static org.hamcrest.core.IsNot.not;
-import static org.hamcrest.core.IsNull.nullValue;
-import static org.junit.Assert.assertThat;
 
 /**
  * @author mh
@@ -39,8 +36,8 @@ public class GraphDatabaseFactoryTest {
         ClassPathXmlApplicationContext ctx = new ClassPathXmlApplicationContext("GraphDatabaseFactory-context.xml");
         try {
             GraphDatabase graphDatabase = ctx.getBean("graphDatabase", GraphDatabase.class);
-            assertThat(graphDatabase, is(not(nullValue())));
-            assertThat(graphDatabase, is(instanceOf(DelegatingGraphDatabase.class)));
+            Assert.assertThat(graphDatabase, Is.is(IsNot.not(IsNull.nullValue())));
+            Assert.assertThat(graphDatabase, Is.is(IsInstanceOf.instanceOf(DelegatingGraphDatabase.class)));
         } finally {
             ctx.close();
         }
@@ -52,8 +49,8 @@ public class GraphDatabaseFactoryTest {
         try {
             factory.setStoreLocation("target/test-db");
             GraphDatabase graphDatabase = factory.getObject();
-            assertThat(graphDatabase, is(not(nullValue())));
-            assertThat(graphDatabase,is(instanceOf(DelegatingGraphDatabase.class)));
+            Assert.assertThat(graphDatabase, Is.is(IsNot.not(IsNull.nullValue())));
+            Assert.assertThat(graphDatabase, Is.is(IsInstanceOf.instanceOf(DelegatingGraphDatabase.class)));
         } finally {
             factory.shutdown();
         }

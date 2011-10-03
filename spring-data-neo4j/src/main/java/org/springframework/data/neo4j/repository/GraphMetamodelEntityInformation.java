@@ -38,6 +38,7 @@ public class GraphMetamodelEntityInformation<S extends PropertyContainer, T> ext
     private final RelationshipEntity relationshipEntity;
     private final NodeEntity nodeEntity;
 
+    @SuppressWarnings("unchecked")
     public GraphMetamodelEntityInformation(Class domainClass, GraphDatabaseContext graphDatabaseContext) {
         super(domainClass);
         this.graphDatabaseContext = graphDatabaseContext;

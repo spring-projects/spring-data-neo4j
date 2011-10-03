@@ -16,7 +16,9 @@
 
 package org.springframework.data.neo4j.support.typerepresentation;
 
-import org.neo4j.graphdb.*;
+import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.index.Index;
 import org.neo4j.graphdb.index.IndexHits;
 import org.neo4j.helpers.Predicate;
@@ -24,13 +26,8 @@ import org.neo4j.helpers.collection.ClosableIterable;
 import org.neo4j.helpers.collection.FilteringIterable;
 import org.neo4j.helpers.collection.IterableWrapper;
 import org.springframework.data.neo4j.annotation.NodeEntity;
-
 import org.springframework.data.neo4j.core.NodeTypeRepresentationStrategy;
 import org.springframework.data.neo4j.support.EntityInstantiator;
-
-import java.util.HashMap;
-import java.util.Map;
-import java.util.WeakHashMap;
 
 public class IndexingNodeTypeRepresentationStrategy implements NodeTypeRepresentationStrategy {
 
@@ -89,6 +86,7 @@ public class IndexingNodeTypeRepresentationStrategy implements NodeTypeRepresent
 		return count;
 	}
 
+    @SuppressWarnings("unchecked")
     @Override
     public Class<?> getJavaType(Node node) {
 		if (node == null) throw new IllegalArgumentException("Node is null");

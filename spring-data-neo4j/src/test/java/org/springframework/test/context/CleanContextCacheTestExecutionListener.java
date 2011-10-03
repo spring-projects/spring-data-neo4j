@@ -16,9 +16,9 @@
 
 package org.springframework.test.context;
 
+import org.springframework.context.ApplicationContext;
 import org.springframework.test.context.support.AbstractTestExecutionListener;
 
-import java.applet.AppletContext;
 import java.lang.reflect.Field;
 import java.util.Map;
 
@@ -31,7 +31,7 @@ public class CleanContextCacheTestExecutionListener extends AbstractTestExecutio
         ContextCache cache = (ContextCache) cacheField.get(testContext);
         Field cacheMapField = ContextCache.class.getDeclaredField("contextKeyToContextMap");
         cacheMapField.setAccessible(true);
-        Map<String, AppletContext> cacheMap = (Map<String, AppletContext>) cacheMapField.get(cache);
+        @SuppressWarnings("unchecked") Map<String, ApplicationContext> cacheMap = (Map<String, ApplicationContext>) cacheMapField.get(cache);
         String[] keys = new String[cacheMap.size()];
         cacheMap.keySet().toArray(keys);
         for (String key : keys) {

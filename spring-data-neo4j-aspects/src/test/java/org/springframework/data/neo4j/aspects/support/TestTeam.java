@@ -46,7 +46,12 @@ public class TestTeam {
         sdg.addPerson(michael);
         sdg.addPerson(emil);
         sdg.addPerson(david);
+        // todo those should be attached and automatically written through to the db
+        david.persist();
+        emil.persist();
+        michael.persist();
         sdg.persist();
+
     }
 
     public Map<String, Object> simpleRowFor(final Person person, String prefix) {

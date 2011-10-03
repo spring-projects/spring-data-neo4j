@@ -34,6 +34,7 @@ public class EntityStateHandler {
         this.service = service;
     }
 
+    @SuppressWarnings("unchecked")
     public <S extends PropertyContainer> void setPersistentState(Object entity, S state) {
         if (entity instanceof PropertyContainer) {
             return;

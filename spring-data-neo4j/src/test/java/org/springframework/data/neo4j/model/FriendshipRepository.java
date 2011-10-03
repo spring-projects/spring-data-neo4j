@@ -14,19 +14,9 @@
  * limitations under the License.
  */
 
-package org.springframework.data.neo4j;
+package org.springframework.data.neo4j.model;
 
-import org.springframework.data.neo4j.annotation.NodeEntity;
+import org.springframework.data.neo4j.repository.GraphRepository;
 
-/**
- * @author mh
- * @since 20.01.11
- */
-@NodeEntity
-public class Named {
-    public String name;
-
-    public String getName() {
-        return name;
-    }
+public interface FriendshipRepository extends GraphRepository<Friendship> {
 }

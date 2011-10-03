@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.neo4j.support.node;
+package org.springframework.data.neo4j.cross_store.support.node;
 
 import org.neo4j.graphdb.Node;
 import org.springframework.data.neo4j.annotation.NodeEntity;
@@ -21,6 +21,8 @@ import org.springframework.data.neo4j.aspects.core.NodeBacked;
 import org.springframework.data.neo4j.core.EntityState;
 import org.springframework.data.neo4j.fieldaccess.DetachedEntityState;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentEntity;
+import org.springframework.data.neo4j.support.node.NodeEntityState;
+import org.springframework.data.neo4j.support.node.NodeEntityStateFactory;
 
 import javax.annotation.PostConstruct;
 import javax.persistence.EntityManagerFactory;

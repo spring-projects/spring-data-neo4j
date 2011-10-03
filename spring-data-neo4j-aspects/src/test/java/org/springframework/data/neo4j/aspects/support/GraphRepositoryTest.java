@@ -25,7 +25,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.neo4j.aspects.*;
+import org.springframework.data.neo4j.aspects.Group;
+import org.springframework.data.neo4j.aspects.Person;
+import org.springframework.data.neo4j.aspects.PersonRepository;
 import org.springframework.data.neo4j.support.GraphDatabaseContext;
 import org.springframework.data.neo4j.support.node.Neo4jHelper;
 import org.springframework.test.context.CleanContextCacheTestExecutionListener;
@@ -37,6 +39,7 @@ import org.springframework.test.context.transaction.BeforeTransaction;
 import org.springframework.test.context.transaction.TransactionalTestExecutionListener;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashSet;
 import java.util.Map;
 
 import static java.util.Arrays.asList;
@@ -45,6 +48,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 import static org.junit.internal.matchers.IsCollectionContaining.hasItem;
 import static org.junit.internal.matchers.IsCollectionContaining.hasItems;
+import static org.neo4j.helpers.collection.IteratorUtil.addToCollection;
 import static org.neo4j.helpers.collection.IteratorUtil.asCollection;
 
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -61,15 +65,14 @@ public class GraphRepositoryTest {
     private PersonRepository personRepository;
     private TestTeam testTeam;
 
+    @BeforeTransaction
+    public void cleanDb() {
+        Neo4jHelper.cleanDb(graphDatabaseContext);
+    }
     @Before
     public void setUp() throws Exception {
         testTeam = new TestTeam();
         testTeam.createSDGTeam();
-    }
-
-    @BeforeTransaction
-    public void cleanDb() {
-        Neo4jHelper.cleanDb(graphDatabaseContext);
     }
 
     @Test
@@ -117,7 +120,7 @@ public class GraphRepositoryTest {
     @Transactional
     public void testFindPagedNull() {
         Page<Person> teamMemberPage1 = personRepository.findAllTeamMembersPaged(testTeam.sdg,null);
-        assertEquals(asList(testTeam.michael, testTeam.emil,testTeam.david), asCollection(teamMemberPage1));
+        assertEquals(new HashSet(asList(testTeam.david, testTeam.emil, testTeam.michael)), addToCollection(teamMemberPage1, new HashSet()));
         assertThat(teamMemberPage1.isFirstPage(), is(true));
         assertThat(teamMemberPage1.isLastPage(), is(false));
     }

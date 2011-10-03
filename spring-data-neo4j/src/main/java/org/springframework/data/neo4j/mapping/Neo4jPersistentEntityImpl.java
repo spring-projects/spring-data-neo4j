@@ -68,6 +68,7 @@ public class Neo4jPersistentEntityImpl<T> extends BasicPersistentEntity<T, Neo4j
         return hasAnnotation(RelationshipEntity.class);
     }
 
+    @SuppressWarnings("unchecked")
     private <T extends Annotation> T getAnnotation(Class<T> annotationType) {
         return (T) annotations.get(annotationType);
     }

@@ -1,3 +1,4 @@
+*.hprof*
 ajcore*
 .project
 .classpath

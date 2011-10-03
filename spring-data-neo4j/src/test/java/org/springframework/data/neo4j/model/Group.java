@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.data.neo4j;
+package org.springframework.data.neo4j.model;
 
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.DynamicRelationshipType;
@@ -116,6 +116,7 @@ public class Group {
     }
 
     private static class PeopleTraversalBuilder implements FieldTraversalDescriptionBuilder {
+        @SuppressWarnings("deprecation")
         @Override
         public TraversalDescription build(Object start, Neo4jPersistentProperty property, String...params) {
             return new TraversalDescriptionImpl()

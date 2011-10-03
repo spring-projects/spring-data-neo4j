@@ -116,6 +116,12 @@ public class LocalTestServer {
 
                 startupListener.await();
             }
+
+            @Override
+            public void stop() {
+                getJetty().setStopAtShutdown(false);
+                super.stop();
+            }
         };
         neoServer = new NeoServerWithEmbeddedWebServer(bootstrapper
         , addressResolver, new StartupHealthCheck(), new PropertyFileConfigurator(new File(url.getPath())), jettyWebServer, serverModules) {

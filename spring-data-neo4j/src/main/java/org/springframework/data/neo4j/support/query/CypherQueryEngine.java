@@ -27,6 +27,7 @@ import org.springframework.data.neo4j.conversion.QueryResult;
 import org.springframework.data.neo4j.conversion.QueryResultBuilder;
 import org.springframework.data.neo4j.conversion.ResultConverter;
 
+import java.util.Collections;
 import java.util.Map;
 
 public class CypherQueryEngine implements QueryEngine<Map<String,Object>> {
@@ -48,19 +49,18 @@ public class CypherQueryEngine implements QueryEngine<Map<String,Object>> {
     @Override
     public QueryResult<Map<String, Object>> query(String statement, Map<String, Object> params) {
         try {
-            String parametrizedQuery = QueryResultBuilder.replaceParams(statement,params);
-            ExecutionResult result = parseAndExecuteQuery(parametrizedQuery);
+            ExecutionResult result = parseAndExecuteQuery(statement,params);
             return new QueryResultBuilder<Map<String,Object>>(result,resultConverter);
         } catch (Exception e) {
             throw new InvalidDataAccessResourceUsageException("Error executing statement " + statement, e);
         }
     }
 
-    private ExecutionResult parseAndExecuteQuery(String statement) {
+    private ExecutionResult parseAndExecuteQuery(String statement, Map<String, Object> params) {
         try {
             CypherParser parser = new CypherParser();
             Query query = parser.parse(statement);
-            return executionEngine.execute(query);
+            return executionEngine.execute(query,params==null ? Collections.<String,Object>emptyMap() : params);
         } catch(Exception e) {
             throw new InvalidDataAccessResourceUsageException("Error executing statement " + statement, e);
         }

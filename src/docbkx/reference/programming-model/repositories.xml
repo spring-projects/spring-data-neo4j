@@ -149,9 +149,9 @@
             <title>Named Queries</title>
         <para>Spring Data Neo4j also supports the notion of named queries which are externalized in property-config-files
             (<code>META-INF/neo4j-named-queries.properties</code>). Those files have the format:
-            <code>Entity.finderName=query</code> (e.g. <code>Person.findBoss=start p=(%person) match (p)&lt;-[:BOSS]-(boss) return boss</code>).
+            <code>Entity.finderName=query</code> (e.g. <code>Person.findBoss=start p=({p_person}) match (p)&lt;-[:BOSS]-(boss) return boss</code>).
             Otherwise named queries support the same parameters as annotated queries. For using the named parameters you have to either
-            annotate the parameters of the method with the <code>@Param("person")</code> annotation or enable debug symbols.
+            annotate the parameters of the method with the <code>@Param("p_person")</code> annotation or enable debug symbols.
         </para>
         </section>
         <section>

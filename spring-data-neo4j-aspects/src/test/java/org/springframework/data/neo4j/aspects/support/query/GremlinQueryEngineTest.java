@@ -94,14 +94,14 @@ public class GremlinQueryEngineTest {
     /*
     @Test
     public void testQueryListOfTypeNode() throws Exception {
-        final String queryString = "start person=(name_index,name,\"%name\") match (person) <-[:boss]- (boss) return boss";
+        final String queryString = "start person=(name_index,name,\"{name}\") match (person) <-[:boss]- (boss) return boss";
         final Collection<Node> result = IteratorUtil.asCollection(queryEngine.query(queryString, michaelsName()).to(Node.class));
 
         assertEquals(asList(nodeFor(testTeam.emil)),result);
     }
     @Test
     public void testQueryListOfTypePerson() throws Exception {
-        final String queryString = "start person=(name_index,name,\"%name\") match (person) <-[:boss]- (boss) return boss";
+        final String queryString = "start person=(name_index,name,\"{name}\") match (person) <-[:boss]- (boss) return boss";
         final Collection<Person> result = IteratorUtil.asCollection(queryEngine.query(queryString, michaelsName()).to(Person.class, new EntityResultConverter(graphDatabaseContext)));
 
         assertEquals(asList(testTeam.emil),result);
@@ -110,7 +110,7 @@ public class GremlinQueryEngineTest {
 
     @Test
     public void testQuerySingleOfTypePerson() throws Exception {
-        final String queryString = "start person=(name_index,name,\"%name\") match (person) <-[:boss]- (boss) return boss";
+        final String queryString = "start person=(name_index,name,\"{name}\") match (person) <-[:boss]- (boss) return boss";
         final Person result = queryEngine.query(queryString, michaelsName()).to(Person.class, new EntityResultConverter<Map<String,Object>,Person>(graphDatabaseContext)).single();
 
         assertEquals(testTeam.emil,result);
@@ -132,14 +132,14 @@ public class GremlinQueryEngineTest {
 
     @Test
     public void testQueryForObjectAsString() throws Exception {
-        final String queryString = "start person=(name_index,name,\"%name\") match (person) <-[:persons]- (team) return team.name";
+        final String queryString = "start person=(name_index,name,\"{name}\") match (person) <-[:persons]- (team) return team.name";
         final String result = queryEngine.query(queryString, michaelsName()).to(String.class).single();
 
         assertEquals(testTeam.sdg.getName(),result);
     }
     @Test
     public void testQueryForObjectAsEnum() throws Exception {
-        final String queryString = "start person=(name_index,name,\"%name\") return person.personality";
+        final String queryString = "start person=(name_index,name,\"{name}\") return person.personality";
         final Personality result = queryEngine.query(queryString, michaelsName()).to(Personality.class).single();
 
         assertEquals(michael.getPersonality(),result);

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.data.neo4j;
+package org.springframework.data.neo4j.model;
 
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.Node;
@@ -70,16 +70,16 @@ public class Person {
 	@RelatedToVia(type = "knows", elementClass = Friendship.class)
 	private Iterable<Friendship> friendships;
 
-    @Query(value = "start person=(%start) match (person)<-[:boss]-(boss) return boss")
+    @Query(value = "start person=node({self}) match (person)<-[:boss]-(boss) return boss")
     private Person bossByQuery;
 
-    @Query(value = "start person=(%start) match (person)<-[:boss]-(boss) return boss.%property",params = {"property","name"})
+    @Query(value = "start person=node({self}) match (person)<-[:boss]-(boss) return boss.%property",params = {"property","name"})
     private String bossName;
 
-    @Query(value = "start person=(%start) match (person)<-[:persons]-(team)-[:persons]->(member) return member",elementClass = Person.class)
+    @Query(value = "start person=node({self}) match (person)<-[:persons]-(team)-[:persons]->(member) return member",elementClass = Person.class)
     private Iterable<Person> otherTeamMembers;
 
-    @Query(value = "start person=(%start) match (person)<-[:persons]-(team)-[:persons]->(member) return member.name, member.age")
+    @Query(value = "start person=node({self}) match (person)<-[:persons]-(team)-[:persons]->(member) return member.name, member.age")
     private Iterable<Map<String,Object>> otherTeamMemberData;
 
     public Person(Node n) {

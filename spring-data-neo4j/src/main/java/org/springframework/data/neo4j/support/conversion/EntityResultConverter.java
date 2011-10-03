@@ -37,6 +37,7 @@ public class EntityResultConverter<T,R> extends DefaultConverter<T,R> {
         conversionService = this.ctx.getConversionService();
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     protected Object doConvert(Object value, Class<?> sourceType, Class targetType) {
         if (ctx.isNodeEntity(targetType)) {

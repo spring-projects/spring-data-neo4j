@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.neo4j.config;
+package org.springframework.data.neo4j.cross_store.config;
 
 import org.neo4j.graphdb.Node;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,11 +21,11 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.neo4j.aspects.config.Neo4jAspectConfiguration;
+import org.springframework.data.neo4j.cross_store.support.node.CrossStoreNodeEntityInstantiator;
+import org.springframework.data.neo4j.cross_store.support.node.CrossStoreNodeEntityStateFactory;
 import org.springframework.data.neo4j.support.EntityInstantiator;
-import org.springframework.data.neo4j.support.node.CrossStoreNodeEntityStateFactory;
 import org.springframework.data.neo4j.support.node.NodeEntityInstantiator;
 import org.springframework.data.neo4j.support.node.NodeEntityStateFactory;
-import org.springframework.data.neo4j.support.node.CrossStoreNodeEntityInstantiator;
 import org.springframework.data.neo4j.transaction.ChainedTransactionManager;
 import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.transaction.PlatformTransactionManager;

@@ -99,7 +99,7 @@ public class QueryFieldAccessorFactory implements FieldAccessorFactory {
         private Map<String, Object> createPlaceholderParams(Object entity) {
             Map<String,Object> params=new HashMap<String, Object>();
             final Node startNode = graphDatabaseContext.<Node>getPersistentState(entity);
-            params.put("start", startNode.getId());
+            params.put("self", startNode.getId());
             if (annotationParams.length==0) return params;
             for (int i = 0; i < annotationParams.length; i+=2) {
                 params.put(annotationParams[i],annotationParams[i+1]);

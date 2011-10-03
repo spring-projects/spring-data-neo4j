@@ -96,7 +96,7 @@
         <property name="entityStateHandler" ref="entityStateHandler"/>
         <property name="mappingContext" ref="mappingContext"/>
     </bean>
-    <bean id="graphEntityInstantiator" class="org.springframework.data.neo4j.support.node.CrossStoreNodeEntityInstantiator">
+    <bean id="graphEntityInstantiator" class="org.springframework.data.neo4j.cross_store.support.node.CrossStoreNodeEntityInstantiator">
         <constructor-arg ref="nodeEntityInstantiator"/>
         <constructor-arg ref="entityManagerFactory"/>
     </bean>
@@ -121,7 +121,7 @@
     <bean id="nodeTypeRepresentationStrategy" factory-bean="typeRepresentationStrategyFactory" factory-method="getNodeTypeRepresentationStrategy" />
     <bean id="relationshipTypeRepresentationStrategy" factory-bean="typeRepresentationStrategyFactory" factory-method="getRelationshipTypeRepresentationStrategy"/>
 
-    <bean id="nodeEntityStateFactory" class="org.springframework.data.neo4j.support.node.CrossStoreNodeEntityStateFactory">
+    <bean id="nodeEntityStateFactory" class="org.springframework.data.neo4j.cross_store.support.node.CrossStoreNodeEntityStateFactory">
     	<property name="nodeDelegatingFieldAccessorFactory">
 		    <bean class="org.springframework.data.neo4j.fieldaccess.NodeDelegatingFieldAccessorFactory">
 		        <constructor-arg ref="graphDatabaseContext"/>

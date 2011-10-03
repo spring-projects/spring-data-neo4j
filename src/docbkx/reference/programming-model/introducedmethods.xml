@@ -114,19 +114,19 @@
                 </listitem>
             </varlistentry>
             <varlistentry>
-                <term>Executes the given query, replacing <code>%start</code> with the node-id and returning the results converted to the target type.</term>
+                <term>Executes the given query, providing the  <code>{self}</code> variable with the node-id and returning the results converted to the target type.</term>
                 <listitem>
                     <para><code>&lt;T&gt; Iterable&lt;T&gt; NodeBacked.findAllByQuery(final String query, final Class&lt;T&gt; targetType)</code></para>
                 </listitem>
             </varlistentry>
             <varlistentry>
-                <term>Executes the given query, replacing <code>%start</code> with the node-id and returning the original result, but with nodes and relationships replaced by their appropriate entities.</term>
+                <term>Executes the given query, providing <code>{self}</code> variable with the node-id and returning the original result, but with nodes and relationships replaced by their appropriate entities.</term>
                 <listitem>
                     <para><code>Iterable&lt;Map&lt;String,Object&gt;&gt; NodeBacked.findAllByQuery(final String query)</code></para>
                 </listitem>
             </varlistentry>
             <varlistentry>
-                <term>Executes the given query, replacing <code>%start</code> with the node-id and returns a single result converted to the target type.</term>
+                <term>Executes the given query, providing <code>{self}</code> variable with the node-id and returns a single result converted to the target type.</term>
                 <listitem>
                     <para><code>&lt;T&gt; T NodeBacked.findByQuery(final String query, final Class&lt;T&gt; targetType)</code></para>
                 </listitem>
