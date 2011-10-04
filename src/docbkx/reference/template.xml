@@ -31,7 +31,7 @@ neo.createRelationship(mark,thomas, WORKS_WITH, map("project","spring-data"));
 neo.index("devs",thomas, "name","Thomas");
 
 // Cypher
-assert "Mark".equals(neo.query("start p=(%person) match p<-[:WORKS_WITH]-other return other.name",
+assert "Mark".equals(neo.query("start p=({p_person}) match p<-[:WORKS_WITH]-other return other.name",
     map("person",thomas)).to(String.class).single());
 
 // Gremlin

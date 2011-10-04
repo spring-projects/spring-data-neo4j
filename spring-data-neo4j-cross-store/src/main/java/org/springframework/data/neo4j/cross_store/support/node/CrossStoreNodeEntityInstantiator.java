@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
-package org.springframework.data.neo4j.support.node;
+package org.springframework.data.neo4j.cross_store.support.node;
 
 import org.neo4j.graphdb.Node;
 import org.springframework.data.neo4j.aspects.core.NodeBacked;
 import org.springframework.data.neo4j.support.EntityInstantiator;
+import org.springframework.data.neo4j.support.node.NodeEntityInstantiator;
 import org.springframework.orm.jpa.EntityManagerFactoryUtils;
 
 import javax.persistence.EntityManager;

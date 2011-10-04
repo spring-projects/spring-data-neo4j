@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.data.neo4j;
+package org.springframework.data.neo4j.model;
 
 
 import org.springframework.data.neo4j.annotation.*;

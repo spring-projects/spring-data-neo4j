@@ -86,6 +86,7 @@ public class Neo4jConversionServiceFactoryBean implements FactoryBean<Conversion
 
     public static class StringToEnumConverterFactory implements ConverterFactory<String, Enum> {
 
+        @SuppressWarnings("unchecked")
         public <T extends Enum> Converter<String, T> getConverter(Class<T> targetType) {
             return new StringToEnum(targetType);
         }
@@ -97,6 +98,7 @@ public class Neo4jConversionServiceFactoryBean implements FactoryBean<Conversion
             public StringToEnum(Class<T> enumType) {
                 this.enumType = enumType;
             }
+            @SuppressWarnings("RedundantCast")
             public T convert(String source) {
                 if (source == null) return null;
                 final String trimmed=source.trim();

@@ -67,7 +67,8 @@ public abstract class SpringPluginInitializer implements PluginLifecycle {
         ProvidedClassPathXmlApplicationContext appCtx = SpringPluginInitializer.this.ctx;
         for ( final Pair<String, Class> exposedBean : exposedBeans ) {
 //            Class<?> concreteType = ctx.getType( exposedBean );
-            result.add( new SpringBeanInjectable( appCtx, exposedBean.first(), exposedBean.other() ) );
+            @SuppressWarnings("unchecked") final SpringBeanInjectable injectable = new SpringBeanInjectable(appCtx, exposedBean.first(), exposedBean.other());
+            result.add(injectable);
         }
         return result;
     }
@@ -86,7 +87,7 @@ public abstract class SpringPluginInitializer implements PluginLifecycle {
      *
      * @param <T> optional type of the bean
      */
-    private static class SpringBeanInjectable<T extends Object> implements Injectable<T> {
+    private static class SpringBeanInjectable<T> implements Injectable<T> {
         private final String exposedBean;
         protected ApplicationContext ctx;
         private final Class<T> clazz;
@@ -97,6 +98,7 @@ public abstract class SpringPluginInitializer implements PluginLifecycle {
             this.clazz = clazz;
         }
 
+        @SuppressWarnings("unchecked")
         public T getValue() {
             return (T)ctx.getBean( exposedBean );
 

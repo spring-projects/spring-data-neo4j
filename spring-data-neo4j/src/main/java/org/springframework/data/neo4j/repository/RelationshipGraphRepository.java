@@ -43,6 +43,7 @@ public class RelationshipGraphRepository<T> extends AbstractGraphRepository<Rela
         return entity;
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public Iterable<T> save(Iterable<? extends T> entities) {
         return (Iterable<T>) entities;

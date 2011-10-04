@@ -14,25 +14,10 @@
  * limitations under the License.
  */
 
-package org.springframework.data.neo4j;
+package org.springframework.data.neo4j.model;
 
-import org.springframework.data.neo4j.annotation.Indexed;
 import org.springframework.data.neo4j.annotation.NodeEntity;
 
-/**
- * @author mh
- * @since 27.04.11
- */
 @NodeEntity
-public class Attribute<T> {
-    @Indexed
-    T value;
-
-    public T getValue() {
-        return value;
-    }
-
-    public void setValue(T value) {
-        this.value = value;
-    }
+public class SubGroup extends Group 	{
 }

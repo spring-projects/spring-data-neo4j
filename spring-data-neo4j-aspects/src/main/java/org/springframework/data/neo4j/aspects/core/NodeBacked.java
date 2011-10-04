@@ -62,7 +62,13 @@ public interface NodeBacked extends GraphBacked<Node,NodeBacked> {
      * @param target            other entity
      * @param relationshipClass relationship entity class
      * @param relationshipType  type of relationship to be created
+     * @param allowDuplicates duplication relationships of the same type are allowed between two entities
      * @return relationship entity of specified relationshipClass
+     */
+    <R extends RelationshipBacked, N extends NodeBacked> R relateTo(N target, Class<R> relationshipClass, String relationshipType,boolean allowDuplicates);
+
+    /**
+     * delegates to relateTo with allowDuplicates set to false
      */
     <R extends RelationshipBacked, N extends NodeBacked> R relateTo(N target, Class<R> relationshipClass, String relationshipType);
 
@@ -151,7 +157,12 @@ public interface NodeBacked extends GraphBacked<Node,NodeBacked> {
      *
      * @param target entity
      * @param type   neo4j relationship type for the underlying relationship
+     * @param allowDuplicates duplication relationships of the same type are allowed between two entities
      * @return the newly created relationship to the target node
+     */
+    Relationship relateTo(NodeBacked target, String type, boolean allowDuplicates);
+    /**
+     * delegates to relateTo with allowDuplicates set to false
      */
     Relationship relateTo(NodeBacked target, String type);
 }

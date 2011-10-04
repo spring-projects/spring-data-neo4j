@@ -30,11 +30,12 @@ public class RestTestHelper
     protected RestGraphDatabase graphDb;
     private static final String HOSTNAME = "localhost";
     private static final int PORT = 7473;
-    private static LocalTestServer neoServer = new LocalTestServer(HOSTNAME,PORT).withPropertiesFile("test-db.properties");
+    private static LocalTestServer neoServer;
     private static final String SERVER_ROOT_URI = "http://" + HOSTNAME + ":" + PORT + "/db/data/";
 
     public void startServer() throws Exception {
         BasicConfigurator.configure();
+        neoServer = new LocalTestServer(HOSTNAME,PORT).withPropertiesFile("test-db.properties");
         neoServer.start();
     }
 
@@ -48,5 +49,6 @@ public class RestTestHelper
 
     public static void shutdownServer() {
         neoServer.stop();
+        neoServer = null;
     }
 }

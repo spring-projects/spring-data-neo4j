@@ -162,11 +162,16 @@ public privileged aspect Neo4jNodeBacking { // extends AbstractTypeAnnotatingMix
     }
 
 	public Relationship NodeBacked.relateTo(NodeBacked target, String type) {
+        return this.relateTo(target,type,false);
+    }
+    public Relationship NodeBacked.relateTo(NodeBacked target, String type, boolean allowDuplicates) {
         if (target==null) throw new IllegalArgumentException("Target entity is null");
         if (type==null) throw new IllegalArgumentException("Relationshiptype is null");
 
-        Relationship relationship=getRelationshipTo(target,type);
-        if (relationship!=null) return relationship;
+        if (!allowDuplicates) {
+            Relationship relationship=getRelationshipTo(target,type);
+            if (relationship!=null) return relationship;
+        }
         return this.getPersistentState().createRelationshipTo(target.getPersistentState(), DynamicRelationshipType.withName(type));
 	}
 
@@ -229,11 +234,14 @@ public privileged aspect Neo4jNodeBacking { // extends AbstractTypeAnnotatingMix
     }
 
     public <R extends RelationshipBacked, N extends NodeBacked> R NodeBacked.relateTo(N target, Class<R> relationshipClass, String relationshipType) {
+        return this.relateTo(target,relationshipClass,relationshipType,false);
+    }
+    public <R extends RelationshipBacked, N extends NodeBacked> R NodeBacked.relateTo(N target, Class<R> relationshipClass, String relationshipType, boolean allowDuplicates) {
         if (target==null) throw new IllegalArgumentException("Target entity is null");
         if (relationshipClass==null) throw new IllegalArgumentException("Relationship class is null");
         if (relationshipType==null) throw new IllegalArgumentException("Relationshiptype is null");
 
-        Relationship rel = this.relateTo(target,relationshipType);
+        Relationship rel = this.relateTo(target,relationshipType,allowDuplicates);
 
         GraphDatabaseContext gdc = Neo4jNodeBacking.aspectOf().graphDatabaseContext;
         gdc.postEntityCreation(rel, relationshipClass);

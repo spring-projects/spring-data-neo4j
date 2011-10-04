@@ -14,20 +14,9 @@
  * limitations under the License.
  */
 
-package org.springframework.data.neo4j;
+package org.springframework.data.neo4j.model;
 
-import org.neo4j.graphdb.Node;
-import org.springframework.data.neo4j.annotation.GraphId;
-import org.springframework.data.neo4j.annotation.NodeEntity;
-
-@NodeEntity
-public abstract class Car {
-	@GraphId
-    long id;
-    public Car() {
-	}
-
-	public Car(Node n) {
-		this.id = n.getId();
+public class Volvo extends Car {
+	public Volvo() {
 	}
 }

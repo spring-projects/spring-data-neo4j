@@ -33,8 +33,8 @@ import static org.springframework.util.StringUtils.hasText;
 public class DataGraphBeanDefinitionParser extends AbstractBeanDefinitionParser {
 
     private static final String GRAPH_DATABASE_SERVICE = "graphDatabaseService";
-    public static final String ASPECTJ_CONFIG = "org.springframework.data.neo4j.config.Neo4jAspectConfiguration";
-    public static final String CROSS_STORE_CONFIG = "org.springframework.data.neo4j.config.CrossStoreNeo4jConfiguration";
+    public static final String ASPECTJ_CONFIG = "org.springframework.data.neo4j.aspects.config.Neo4jAspectConfiguration";
+    public static final String CROSS_STORE_CONFIG = "org.springframework.data.neo4j.cross_store.config.CrossStoreNeo4jConfiguration";
 
     @Override
     protected AbstractBeanDefinition parseInternal(Element element, ParserContext context) {

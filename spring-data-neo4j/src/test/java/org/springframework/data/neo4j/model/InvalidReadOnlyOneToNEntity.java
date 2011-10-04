@@ -14,9 +14,13 @@
  * limitations under the License.
  */
 
-package org.springframework.data.neo4j;
+package org.springframework.data.neo4j.model;
 
-public class Toyota extends Car {
-	public Toyota() {
-	}
+import org.springframework.data.neo4j.annotation.NodeEntity;
+import org.springframework.data.neo4j.annotation.RelatedTo;
+
+@NodeEntity
+public class InvalidReadOnlyOneToNEntity {
+    @RelatedTo
+    private Iterable<InvalidReadOnlyOneToNEntity> others;
 }

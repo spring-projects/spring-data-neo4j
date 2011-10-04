@@ -51,7 +51,7 @@ public class NeoTraversalTest extends NeoApiTest {
         });
 
         final Set<String> resultSet = new HashSet<String>();
-        final TraversalDescription description = Traversal.description().relationships(HAS).filter(returnAllButStartNode()).prune(Traversal.pruneAfterDepth(2));
+        @SuppressWarnings("deprecation") final TraversalDescription description = Traversal.description().relationships(HAS).filter(returnAllButStartNode()).prune(Traversal.pruneAfterDepth(2));
         final QueryResult<Path> queryResult = template.traverse(template.getReferenceNode(), description);
         queryResult.handle(new Handler<Path>() {
             @Override

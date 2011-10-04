@@ -53,7 +53,6 @@ public class Neo4jTemplate implements Neo4jOperations {
     /**
      * @param graphDatabase the neo4j graph database
      * @param transactionManager if passed in, will be used to create implicit transactions whenever needed
-     * @return a Neo4jTemplate instance
      */
     public Neo4jTemplate(final GraphDatabase graphDatabase, PlatformTransactionManager transactionManager) {
         notNull(graphDatabase, "graphDatabase");
@@ -61,10 +60,6 @@ public class Neo4jTemplate implements Neo4jOperations {
         this.graphDatabase = graphDatabase;
     }
 
-    /**
-     * @param graphDatabase the neo4j graph database
-     * @return a Neo4jTemplate instance
-     */
     public Neo4jTemplate(final GraphDatabase graphDatabase) {
         notNull(graphDatabase, "graphDatabase");
         transactionManager = null;
@@ -178,11 +173,13 @@ public class Neo4jTemplate implements Neo4jOperations {
         });
     }
 
+    @SuppressWarnings("unchecked")
     public QueryResult<Map<String, Object>> query(String statement, Map<String, Object> params) {
         notNull(statement, "statement");
         return queryEngineFor(QueryType.Cypher).query(statement, params);
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public QueryResult<Object> execute(String statement, Map<String, Object> params) {
         notNull(statement, "statement");

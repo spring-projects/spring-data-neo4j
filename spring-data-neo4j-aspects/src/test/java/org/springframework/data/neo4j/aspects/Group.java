@@ -18,13 +18,13 @@ package org.springframework.data.neo4j.aspects;
 
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.DynamicRelationshipType;
+import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.traversal.TraversalDescription;
 import org.neo4j.kernel.Traversal;
 import org.neo4j.kernel.impl.traversal.TraversalDescriptionImpl;
-import org.springframework.data.neo4j.aspects.Person;
 import org.springframework.data.neo4j.annotation.*;
 import org.springframework.data.neo4j.core.FieldTraversalDescriptionBuilder;
-
 import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 
 import java.util.Collection;
@@ -43,6 +43,12 @@ public class Group {
 
     @GraphTraversal(traversalBuilder = PeopleTraversalBuilder.class, elementClass = Person.class, params = "persons")
     private Iterable<Person> people;
+
+    @GraphTraversal(traversalBuilder = PeopleTraversalBuilder.class, params = "persons")
+    private Iterable<Node> peopleNodes;
+
+    @GraphTraversal(traversalBuilder = PeopleTraversalBuilder.class, params = "persons")
+    private Iterable<Relationship> peopleRelationships;
 
     @GraphProperty
     @Indexed
@@ -161,5 +167,13 @@ public class Group {
 
     public void setAdmin(Boolean admin) {
         this.admin = admin;
+    }
+
+    public Iterable<Node> getPeopleNodes() {
+        return peopleNodes;
+    }
+
+    public Iterable<Relationship> getPeopleRelationships() {
+        return peopleRelationships;
     }
 }

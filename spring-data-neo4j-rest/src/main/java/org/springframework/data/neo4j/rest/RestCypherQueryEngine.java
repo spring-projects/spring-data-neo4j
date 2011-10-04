@@ -45,9 +45,10 @@ public class RestCypherQueryEngine implements QueryEngine<Map<String,Object>> {
 
     @Override
     public QueryResult<Map<String, Object>> query(String statement, Map<String, Object> params) {
-        final String parametrizedStatement = QueryResultBuilder.replaceParams(statement, params);
-        final RequestResult requestResult = restRequest.get("ext/CypherPlugin/graphdb/execute_query", JsonHelper.createJsonFrom(MapUtil.map("query", parametrizedStatement)));
-        return new RestQueryResult(restRequest.toMap(requestResult),restGraphDatabase,resultConverter);
+        final RequestResult requestResult = restRequest.get("ext/CypherPlugin/graphdb/execute_query", JsonHelper.createJsonFrom(MapUtil.map("query", statement, "params", params)));
+        final Map<?, ?> resultMap = restRequest.toMap(requestResult);
+        if (RestResultException.isExceptionResult(resultMap)) throw new RestResultException(resultMap);
+        return new RestQueryResult(resultMap,restGraphDatabase,resultConverter);
     }
 
     static class RestQueryResult implements QueryResult<Map<String,Object>> {

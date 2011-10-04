@@ -143,13 +143,10 @@ public class DetachedEntityState<STATE> implements EntityState<STATE> {
         if (isDetached()) {
             final Field field = property.getField();
             if (!isDirty(field) && isWritable(field)) {
-                Object existingValue;
                 if (hasPersistentState()) {
                     addDirty(field, unwrap(delegate.getValue(field)), true);
                 }
                 else {
-                    // existingValue = getValueFromEntity(field);
-                    // if (existingValue == null) existingValue = getDefaultValue(field.getType());
                     addDirty(field, newVal, false);
                 }
             }
@@ -170,6 +167,7 @@ public class DetachedEntityState<STATE> implements EntityState<STATE> {
         return null;
     }
 
+    @SuppressWarnings("deprecation")
     @Override
     public void createAndAssignState() {
         if (graphDatabaseContext.transactionIsRunning()) {

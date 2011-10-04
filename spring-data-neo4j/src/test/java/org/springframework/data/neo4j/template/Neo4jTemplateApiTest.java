@@ -18,10 +18,7 @@ package org.springframework.data.neo4j.template;
 
 import org.apache.lucene.index.Term;
 import org.apache.lucene.search.TermQuery;
-import org.junit.AfterClass;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.*;
 import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.index.Index;
 import org.neo4j.graphdb.traversal.TraversalDescription;
@@ -51,12 +48,12 @@ public class Neo4jTemplateApiTest {
     private static final DynamicRelationshipType KNOWS = DynamicRelationshipType.withName("knows");
     private static final DynamicRelationshipType HAS = DynamicRelationshipType.withName("has");
     protected Neo4jTemplate template;
-    protected static GraphDatabase graphDatabase;
+    protected GraphDatabase graphDatabase;
     protected Node referenceNode;
     protected Relationship relationship1;
     protected Node node1;
-    protected static PlatformTransactionManager transactionManager;
-    protected static GraphDatabaseService graphDatabaseService;
+    protected PlatformTransactionManager transactionManager;
+    protected GraphDatabaseService graphDatabaseService;
 
 
 
@@ -85,7 +82,7 @@ public class Neo4jTemplateApiTest {
 
     private void createData() {
 
-        new TransactionTemplate(Neo4jTemplateApiTest.transactionManager).execute(new TransactionCallbackWithoutResult() {
+        new TransactionTemplate(transactionManager).execute(new TransactionCallbackWithoutResult() {
             @Override
             protected void doInTransactionWithoutResult(TransactionStatus status) {
                 referenceNode.setProperty("name", "node0");
@@ -98,8 +95,8 @@ public class Neo4jTemplateApiTest {
         });
     }
 
-    @AfterClass
-    public static void tearDown() throws Exception {
+    @After
+    public void tearDown() throws Exception {
         if (graphDatabaseService!=null) {
             graphDatabaseService.shutdown();
         }
@@ -137,7 +134,7 @@ public class Neo4jTemplateApiTest {
 
     @Test
     public void shouldRollbackViaStatus() throws Exception {
-        new TransactionTemplate(Neo4jTemplateApiTest.transactionManager).execute(new TransactionCallbackWithoutResult() {
+        new TransactionTemplate(transactionManager).execute(new TransactionCallbackWithoutResult() {
             @Override
             protected void doInTransactionWithoutResult(final TransactionStatus status) {
                 template.exec(new GraphCallback.WithoutResult() {
@@ -174,7 +171,7 @@ public class Neo4jTemplateApiTest {
     }
     @Test(expected = DataAccessException.class)
     public void shouldConvertNotFoundExceptionToDataAccessException() {
-        Neo4jTemplate template = new Neo4jTemplate(graphDatabase, Neo4jTemplateApiTest.transactionManager);
+        Neo4jTemplate template = new Neo4jTemplate(graphDatabase, transactionManager);
         template.exec(new GraphCallback.WithoutResult() {
             @Override
             public void doWithGraphWithoutResult(GraphDatabase graph) throws Exception {
@@ -267,6 +264,7 @@ public class Neo4jTemplateApiTest {
         assertSingleResult("rel1",template.lookup("relationship", "name", "rel1").to(String.class, new PropertyContainerNameConverter()));
     }
 
+    @SuppressWarnings("deprecation")
     @Test
     public void testTraverse() throws Exception {
         final TraversalDescription description = Traversal.description().relationships(KNOWS).prune(Traversal.pruneAfterDepth(1)).filter(Traversal.returnAllButStartNode());
@@ -275,7 +273,7 @@ public class Neo4jTemplateApiTest {
 
     @Test
     public void shouldFindNextNodeViaCypher() throws Exception {
-        assertSingleResult(node1, template.query("start n=(0) match n-->m return m", null).to(Node.class));
+        assertSingleResult(node1, template.query("start n=node(0) match n-->m return m", null).to(Node.class));
     }
 
     @Test

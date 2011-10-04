@@ -172,7 +172,7 @@
         <property name="namedQueries">
             <bean class="org.springframework.data.repository.core.support.PropertiesBasedNamedQueries">
                 <constructor-arg>
-                    <props><prop key="Person.findTeam">start p=(%person) match (p)&lt;-[:persons]-(group) return group</prop></props>
+                    <props><prop key="Person.findTeam">start p=node({p_person}) match (p)&lt;-[:persons]-(group) return group</prop></props>
                 </constructor-arg>
             </bean>
         </property>

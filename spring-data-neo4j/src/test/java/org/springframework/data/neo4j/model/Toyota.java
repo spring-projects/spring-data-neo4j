@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-package org.springframework.data.neo4j;
+package org.springframework.data.neo4j.model;
 
-public enum Personality {
-	EXTROVERT, INTROVERT
+public class Toyota extends Car {
+	public Toyota() {
+	}
 }

@@ -87,17 +87,16 @@ public class QueryEngineTest {
     }
 
     @Test
-    @Transactional
     public void testQueryList() throws Exception {
-        final String queryString = "start person=(%michael,%david) return person.name, person.age";
-        final Collection<Map<String,Object>> result = IteratorUtil.asCollection(queryEngine.query(queryString, MapUtil.map("michael",idFor(michael), "david",idFor(testTeam.david))));
+        final String queryString = "start person=node({people}) return person.name, person.age";
+        final Collection<Map<String,Object>> result = IteratorUtil.asCollection(queryEngine.query(queryString, MapUtil.map("people",asList(idFor(michael),idFor(testTeam.david)))));
 
         assertEquals(asList(testTeam.simpleRowFor(michael,"person"),testTeam.simpleRowFor(testTeam.david,"person")),result);
     }
 
     @Test
     public void testQueryListOfTypeNode() throws Exception {
-        final String queryString = "start person=(name_index,name,\"%name\") match (person) <-[:boss]- (boss) return boss";
+        final String queryString = "start person=node:name_index(name={name}) match (person) <-[:boss]- (boss) return boss";
         final QueryResult<Map<String,Object>> queryResult = queryEngine.query(queryString, michaelsName());
         final Collection<Node> result = IteratorUtil.asCollection(queryResult.to(Node.class));
 
@@ -105,7 +104,7 @@ public class QueryEngineTest {
     }
     @Test
     public void testQueryListOfTypePerson() throws Exception {
-        final String queryString = "start person=(name_index,name,\"%name\") match (person) <-[:boss]- (boss) return boss";
+        final String queryString = "start person=node:name_index(name={name}) match (person) <-[:boss]- (boss) return boss";
         final Collection<Person> result = IteratorUtil.asCollection(queryEngine.query(queryString, michaelsName()).to(Person.class, new EntityResultConverter(graphDatabaseContext)));
 
         assertEquals(asList(testTeam.emil),result);
@@ -117,7 +116,7 @@ public class QueryEngineTest {
 
     @Test
     public void testQuerySingleOfTypePerson() throws Exception {
-        final String queryString = "start person=(name_index,name,\"%name\") match (person) <-[:boss]- (boss) return boss";
+        final String queryString = "start person=node:name_index(name={name}) match (person) <-[:boss]- (boss) return boss";
         final Person result = queryEngine.query(queryString, michaelsName()).to(Person.class, new EntityResultConverter<Map<String,Object>,Person>(graphDatabaseContext)).single();
 
         assertEquals(testTeam.emil,result);
@@ -125,7 +124,7 @@ public class QueryEngineTest {
 
     @Test
     public void testQueryListWithCustomConverter() throws Exception {
-        final String queryString = String.format("start person=(name_index,name,\"%s\") match (person) <-[:boss]- (boss) return boss", michael.getName());
+        final String queryString = "start person=node:name_index(name={name}) match (person) <-[:boss]- (boss) return boss";
         final Collection<String> result = IteratorUtil.asCollection(queryEngine.query(queryString, michaelsName()).to(String.class, new ResultConverter<Map<String, Object>, String>() {
             @Override
             public String convert(Map<String, Object> row, Class<String> target) {
@@ -145,14 +144,14 @@ public class QueryEngineTest {
 
     @Test
     public void testQueryForObjectAsString() throws Exception {
-        final String queryString = "start person=(name_index,name,\"%name\") match (person) <-[:persons]- (team) return team.name";
+        final String queryString = "start person=node:name_index(name={name}) match (person) <-[:persons]- (team) return team.name";
         final String result = queryEngine.query(queryString, michaelsName()).to(String.class).single();
 
         assertEquals(testTeam.sdg.getName(),result);
     }
     @Test
     public void testQueryForObjectAsEnum() throws Exception {
-        final String queryString = "start person=(name_index,name,\"%name\") return person.personality";
+        final String queryString = "start person=node:name_index(name={name}) return person.personality";
         final Personality result = queryEngine.query(queryString, michaelsName()).to(Personality.class).single();
 
         assertEquals(michael.getPersonality(),result);

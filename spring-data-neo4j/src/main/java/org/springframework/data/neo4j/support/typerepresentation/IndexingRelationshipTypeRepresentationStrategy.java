@@ -57,10 +57,10 @@ public class IndexingRelationshipTypeRepresentationStrategy implements Relations
 	}
 
     private void addToTypesIndex(Relationship node, Class<?> entityClass) {
-		Class<?> klass = entityClass;
-		while (klass.getAnnotation(RelationshipEntity.class) != null) {
-			getRelTypesIndex().add(node, INDEX_KEY, klass.getName());
-			klass = klass.getSuperclass();
+		Class<?> type = entityClass;
+		while (type.getAnnotation(RelationshipEntity.class) != null) {
+			getRelTypesIndex().add(node, INDEX_KEY, type.getName());
+			type = type.getSuperclass();
 		}
 	}
 

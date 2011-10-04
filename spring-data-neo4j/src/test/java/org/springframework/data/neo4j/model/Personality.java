@@ -14,14 +14,8 @@
  * limitations under the License.
  */
 
-package org.springframework.data.neo4j;
+package org.springframework.data.neo4j.model;
 
-import org.springframework.data.neo4j.repository.GraphRepository;
-import org.springframework.data.neo4j.repository.NamedIndexRepository;
-
-/**
- * @author mh
- * @since 29.03.11
- */
-public interface GroupRepository extends GraphRepository<Group>, NamedIndexRepository<Group> {
+public enum Personality {
+	EXTROVERT, INTROVERT
 }

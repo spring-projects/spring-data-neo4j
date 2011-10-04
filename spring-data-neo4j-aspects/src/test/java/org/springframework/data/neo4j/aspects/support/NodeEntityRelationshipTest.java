@@ -26,6 +26,7 @@ import org.neo4j.helpers.collection.IteratorUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 
+import static org.junit.Assert.assertTrue;
 import static org.springframework.data.neo4j.aspects.Person.persistedPerson;
 
 import org.springframework.data.neo4j.aspects.*;
@@ -146,7 +147,7 @@ public class NodeEntityRelationshipTest {
         group.setPersons(persons);
         Collection<Person> personsFromGet = group.getPersons();
         assertEquals(persons, personsFromGet);
-        Assert.assertTrue(Set.class.isAssignableFrom(personsFromGet.getClass()));
+        assertTrue(Set.class.isAssignableFrom(personsFromGet.getClass()));
     }
 
     @Test
@@ -160,7 +161,7 @@ public class NodeEntityRelationshipTest {
         group.getPersons().add(david);
         Collection<Person> personsFromGet = group.getPersons();
         assertEquals(new HashSet<Person>(Arrays.asList(david,michael)), personsFromGet);
-        Assert.assertTrue(Set.class.isAssignableFrom(personsFromGet.getClass()));
+        assertTrue(Set.class.isAssignableFrom(personsFromGet.getClass()));
     }
 
     @Test
@@ -243,6 +244,26 @@ public class NodeEntityRelationshipTest {
         group.setPersons(persons);
         assertEquals(persons, IteratorUtil.addToCollection(group.getReadOnlyPersons().iterator(), new HashSet<Person>()));
     }
+
+    @Test
+    @Transactional
+    public void multipleRelationshipsOfSameTypeBetweenTwoEntities() {
+        Person michael = persistedPerson("Michael", 35);
+        Person david = persistedPerson("David", 25);
+        Friendship friendship1 = michael.relateTo(david, Friendship.class, "knows", true);
+        friendship1.setYears(1);
+        Friendship friendship2 = michael.relateTo(david, Friendship.class, "knows",true);
+        friendship2.setYears(2);
+        assertTrue("two different relationships", friendship1 != friendship2);
+        assertTrue("two different relationships", friendship1.getPersistentState() != friendship2.getPersistentState());
+        assertEquals(1, friendship1.getYears());
+        assertEquals(2,friendship2.getYears());
+        final Collection<Relationship> friends = IteratorUtil.asCollection(michael.getPersistentState().getRelationships(Direction.OUTGOING, DynamicRelationshipType.withName("knows")));
+        assertEquals(2,friends.size());
+        assertTrue(friends.contains(friendship1.getPersistentState()));
+        assertTrue(friends.contains(friendship2.getPersistentState()));
+    }
+
 
     @Test(expected = InvalidDataAccessApiUsageException.class)
     @Transactional

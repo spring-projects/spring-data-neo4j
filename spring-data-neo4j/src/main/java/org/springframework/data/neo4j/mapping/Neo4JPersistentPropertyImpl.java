@@ -69,6 +69,7 @@ class Neo4jPersistentPropertyImpl extends AbstractPersistentProperty<Neo4jPersis
         return annotation!=null ? new IndexInfo(annotation) : null;
     }
 
+    @SuppressWarnings("unchecked")
     public <T extends Annotation> T getAnnotation(Class<T> annotationType) {
         return (T) annotations.get(annotationType);
     }

@@ -136,6 +136,7 @@ public class SubReferenceNodeTypeRepresentationStrategy implements NodeTypeRepre
         return clazz;
     }
 
+    @SuppressWarnings("unchecked")
     private <T> Class<T> resolveType(Node node, String typeName) {
         final Class<?> type = typeCache.getClassForName(typeName);
         if (type == null) {
@@ -180,7 +181,7 @@ public class SubReferenceNodeTypeRepresentationStrategy implements NodeTypeRepre
             @Override
             protected T underlyingObjectToObject(final Relationship rel) {
                 final Node node = rel.getStartNode();
-	            T entity = (T) entityInstantiator.createEntityFromState(node, getJavaType(node));
+	            @SuppressWarnings("unchecked") T entity = (T) entityInstantiator.createEntityFromState(node, getJavaType(node));
 	            if (log.isDebugEnabled()) log.debug("Converting node: " + node + " to entity: " + entity);
 	            return entity;
             }

@@ -76,8 +76,8 @@ public class Movie {
         <para>
             The <code>@Query</code> annotation leverages the delegation infrastructure used by the
             Spring Data Neo4j aspects. It provides dynamic fields which, when accessed, return the values
-            selected by the provided query language expression. The provided query must contain a placeholder named <code>%start</code>
-            for the id of the current entity. For instance <code>start n=(%start) match n-[:FRIEND]->friend return friend</code>.
+            selected by the provided query language expression. The provided query must contain a placeholder named <code>{self}</code>
+            for the id of the current entity. For instance <code>start n=({self}) match n-[:FRIEND]->friend return friend</code>.
             Graph queries can return variable number of entities. That's why annotation can be put onto fields
             with a single value, an Iterable of a concrete type or an Iterable of <code>Map&lt;String,Object&gt;</code>.
             Additional parameters are taken from the params attribute of the <code>@Query</code> annotation.
@@ -87,7 +87,7 @@ public class Movie {
             <title>@Graph on a node entity field</title>
             <programlisting language="java"><![CDATA[@NodeEntity
 public class Group {
-    @Query(value = "start n=(%start) match (n)-[:%relType]->(friend) return friend",
+    @Query(value = "start n=({self}) match (n)-[:%relType]->(friend) return friend",
                 params = {"relType", "FRIEND"})
     private Iterable<Person> friends;
 }

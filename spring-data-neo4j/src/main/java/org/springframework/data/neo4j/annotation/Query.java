@@ -36,7 +36,7 @@ import java.lang.annotation.Target;
 @Target({ElementType.FIELD,ElementType.METHOD})
 public @interface Query {
     /**
-     * @return Query to be executed %start will be replaced by the node-id of the current entity other placeholders (%name) by the given named params
+     * @return Query to be executed {self} will be provided by the node-id of the current entity other parameters (e.g. {name}) by the given named params
      */
     String value() default "";
 

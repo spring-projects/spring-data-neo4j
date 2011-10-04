@@ -14,18 +14,25 @@
  * limitations under the License.
  */
 
-package org.springframework.data.neo4j;
+package org.springframework.data.neo4j.model;
 
-import org.neo4j.graphdb.Node;
-import org.springframework.data.persistence.StateBackedCreator;
+import org.springframework.data.neo4j.annotation.Indexed;
+import org.springframework.data.neo4j.annotation.NodeEntity;
 
 /**
  * @author mh
- * @since 25.03.11
+ * @since 27.04.11
  */
-public class PersonCreator implements StateBackedCreator<Person,Node> {
-    @Override
-    public Person create(Node n, Class<Person> c) throws Exception {
-        return new Person(n);
+@NodeEntity
+public class Attribute<T> {
+    @Indexed
+    T value;
+
+    public T getValue() {
+        return value;
+    }
+
+    public void setValue(T value) {
+        this.value = value;
     }
 }

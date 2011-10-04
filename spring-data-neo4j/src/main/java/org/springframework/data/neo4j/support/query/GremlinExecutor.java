@@ -31,11 +31,10 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
-@SuppressWarnings("ALL")
 public class GremlinExecutor {
 
     public static final int REFRESH_ENGINE_COUNT = 10000;
-    private final String g = "g";
+    private static final String GRAPH_VARIABLE = "g";
     private volatile ScriptEngine engine;
 
     private ScriptEngine createScriptEngine() {
@@ -49,6 +48,7 @@ public class GremlinExecutor {
         this.graphDatabaseService = graphDatabaseService;
     }
 
+    @SuppressWarnings("unchecked")
     public Iterable<Object> query(String statement, Map<String,Object> params) {
         try {
             final Bindings bindings = createBindings(params);
@@ -62,7 +62,7 @@ public class GremlinExecutor {
 
     private Bindings createBindings(Map<String, Object> params) {
         final Bindings bindings = new SimpleBindings();
-        bindings.put(g, new Neo4jGraph(graphDatabaseService));
+        bindings.put(GRAPH_VARIABLE, new Neo4jGraph(graphDatabaseService));
         if (params==null) return bindings;
         for (Map.Entry<String, Object> entry : params.entrySet()) {
             bindings.put(entry.getKey(),entry.getValue());
@@ -73,12 +73,13 @@ public class GremlinExecutor {
     private ScriptEngine engine() {
         if (engine == null || executionCount.incrementAndGet() > REFRESH_ENGINE_COUNT) {
             executionCount.set(0);
-            this.engine = new ScriptEngineManager().getEngineByName("gremlin");
+            this.engine = createScriptEngine();
         }
         return this.engine;
     }
 
 
+    @SuppressWarnings("unchecked")
     public static Iterable getRepresentation(final Object result) {
         if (result instanceof Iterable) {
             if (result instanceof Table) {

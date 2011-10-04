@@ -22,22 +22,20 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.DynamicRelationshipType;
+import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.traversal.Evaluators;
 import org.neo4j.graphdb.traversal.TraversalDescription;
+import org.neo4j.helpers.collection.IteratorUtil;
 import org.neo4j.kernel.Traversal;
 import org.neo4j.kernel.impl.traversal.TraversalDescriptionImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.neo4j.aspects.Group;
 import org.springframework.data.neo4j.aspects.Person;
 import org.springframework.data.neo4j.core.EntityPath;
-
-import static org.springframework.data.neo4j.aspects.Person.persistedPerson;
-
 import org.springframework.data.neo4j.repository.DirectGraphRepositoryFactory;
 import org.springframework.data.neo4j.repository.GraphRepository;
 import org.springframework.data.neo4j.support.GraphDatabaseContext;
 import org.springframework.data.neo4j.support.node.Neo4jHelper;
-
 import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -48,6 +46,7 @@ import java.util.Collections;
 import java.util.HashSet;
 
 import static org.junit.Assert.assertEquals;
+import static org.springframework.data.neo4j.aspects.Person.persistedPerson;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = {"classpath:org/springframework/data/neo4j/aspects/support/Neo4jGraphPersistenceTest-context.xml"})
@@ -100,18 +99,29 @@ public class TraversalTest {
 
     @Test
     @Transactional
-    @Rollback(false)
     public void testTraverseFieldFromGroupToPeople() {
         Person p = persistedPerson("Michael", 35);
         Group group = new Group().persist();
-        group.setName("dev");
         group.addPerson(p);
-        Iterable<Person> people = group.getPeople();
-        final HashSet<Person> found = new HashSet<Person>();
-        for (Person person : people) {
-            found.add(person);
-        }
-        assertEquals(Collections.singleton(p),found);
+        assertEquals(Collections.singletonList(p),IteratorUtil.asCollection(group.getPeople()));
+    }
+    @Test
+    @Transactional
+    public void testTraverseFieldFromGroupToPeopleNodes() {
+        Person p = persistedPerson("Michael", 35);
+        Group group = new Group().persist();
+        group.addPerson(p);
+        assertEquals(Collections.singletonList(p.getPersistentState()), IteratorUtil.asCollection(group.getPeopleNodes()));
+    }
+
+    @Test
+    @Transactional
+    public void testTraverseFieldFromGroupToPeopleRelationships() {
+        Person p = persistedPerson("Michael", 35);
+        Group group = new Group().persist();
+        group.addPerson(p);
+        Relationship personRelationship = group.getPersistentState().getSingleRelationship(DynamicRelationshipType.withName("persons"),Direction.OUTGOING);
+        assertEquals(Collections.singletonList(personRelationship), IteratorUtil.asCollection(group.getPeopleRelationships()));
     }
 
     @Test

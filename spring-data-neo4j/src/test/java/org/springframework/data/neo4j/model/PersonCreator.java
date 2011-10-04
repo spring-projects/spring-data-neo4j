@@ -14,9 +14,18 @@
  * limitations under the License.
  */
 
-package org.springframework.data.neo4j;
+package org.springframework.data.neo4j.model;
 
-import org.springframework.data.neo4j.repository.GraphRepository;
+import org.neo4j.graphdb.Node;
+import org.springframework.data.persistence.StateBackedCreator;
 
-public interface FriendshipRepository extends GraphRepository<Friendship> {
+/**
+ * @author mh
+ * @since 25.03.11
+ */
+public class PersonCreator implements StateBackedCreator<Person,Node> {
+    @Override
+    public Person create(Node n, Class<Person> c) throws Exception {
+        return new Person(n);
+    }
 }
