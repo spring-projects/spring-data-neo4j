@@ -16,6 +16,7 @@ import java.util.Set;
 public class Person {
     @Indexed
     String id;
+    @Indexed(fulltext = true, indexName = "people")
     String name;
     private Date birthday;
     private String birthplace;
