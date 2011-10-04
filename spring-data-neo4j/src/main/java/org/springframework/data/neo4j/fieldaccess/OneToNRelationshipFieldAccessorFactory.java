@@ -45,7 +45,7 @@ public class OneToNRelationshipFieldAccessorFactory extends NodeRelationshipFiel
     @Override
 	public FieldAccessor forField(final Neo4jPersistentProperty property) {
         final RelationshipInfo relationshipInfo = property.getRelationshipInfo();
-        final Class<?> targetType = (Class<?>) relationshipInfo.getTargetType().getType();
+        final Class<?> targetType = relationshipInfo.getTargetType().getType();
         return new OneToNRelationshipFieldAccessor(relationshipInfo.getRelationshipType(), relationshipInfo.getDirection(), targetType, graphDatabaseContext,property);
 	}
 
