@@ -119,7 +119,7 @@ public class Group {
         this.otherName = otherName;
     }
 
-    public long getId() {
+    public Long getId() {
         return id;
     }
 

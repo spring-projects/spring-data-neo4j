@@ -38,7 +38,6 @@ import java.util.*;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singleton;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
 
 /**
  * @author mh
@@ -82,6 +81,7 @@ public class Neo4jNodeConverterTest {
         gdc.setNodeTypeRepresentationStrategy(new NoopNodeTypeRepresentationStrategy(new NodeEntityInstantiator(entityStateHandler)));
         gdc.setConversionService(new Neo4jConversionServiceFactoryBean().getObject());
         gdc.setEntityStateHandler(entityStateHandler);
+        gdc.createCypherExecutor();
         return gdc;
     }
 
@@ -195,8 +195,28 @@ public class Neo4jNodeConverterTest {
         assertEquals("added additional relationship end node", emil.getId(), (Long) boss.getId());
     }
 
-    private void storeInGraph(Object obj) {
+    private Group storeInGraph(Group g) {
+        final Long id = g.getId();
+        if (id!=null) {
+            converter.write(g, gdc.getNodeById(id));
+        } else {
+            converter.write(g, null);
+        }
+        return g;
+    }
+    private Person storeInGraph(Person p) {
+        final Long id = p.getId();
+        if (id!=null) {
+            converter.write(p, gdc.getNodeById(id));
+        } else {
+            converter.write(p, null);
+        }
+        return p;
+    }
+
+    private <T> T storeInGraph(T obj) {
         converter.write(obj, null);
+        return obj;
     }
 
     @Test
@@ -273,12 +293,66 @@ public class Neo4jNodeConverterTest {
         assertEquals(0, getRelatedNodes(emilNode(), "boss", Direction.INCOMING).size());
     }
 
+    @Test
+    public void testDeleteMultipleRelationships() {
+        group.setPersons(set(storeInGraph(emil), storeInGraph(michael), storeInGraph(andres)));
+        storeInGraph(group);
+
+        group.getPersons().remove(emil);
+        storeInGraph(group);
+
+        assertEquals(set(andresNode(), michaelNode()), set(groupMemberNodes()));
+    }
+
+    @Test
+    public void testReadRelationshipCollectionFromGraph() {
+        Node groupNode = createNewNode();
+        Node p1 = createNewNode();
+        Node p2 = createNewNode();
+        groupNode.createRelationshipTo(p1, PERSONS);
+        groupNode.createRelationshipTo(p2, PERSONS);
+
+        Group g = converter.read(Group.class, groupNode);
+        assertEquals(set(readPerson(p1), readPerson(p2)), set(g.getPersons()));
+    }
+
+    @Test
+    public void testReadRelationshipIterableFromGraph() {
+        Node groupNode = createNewNode();
+        Node p1 = createNewNode();
+        Node p2 = createNewNode();
+        groupNode.createRelationshipTo(p1, PERSONS);
+        groupNode.createRelationshipTo(p2, PERSONS);
+
+        Group g = converter.read(Group.class, groupNode);
+        assertEquals(set(readPerson(p1), readPerson(p2)), set(g.getReadOnlyPersons()));
+    }
+
+    @Test
+    public void testRelationshipCollectionModificationIsReflectedInGraph() {
+        group.setPersons(set(storeInGraph(emil), storeInGraph(andres)));
+        storeInGraph(group);
+
+        group.getPersons().remove(emil);
+        group.getPersons().add(storeInGraph(michael));
+        storeInGraph(group);
+
+        assertEquals(set(andresNode(), michaelNode()), set(groupMemberNodes()));
+    }
+
+    @Test
+    public void testNullValuesForRelationshipCollectionsAreIgnored() {
+        group.setPersons(set(storeInGraph(emil)));
+        storeInGraph(group);
+        assertEquals(set(emilNode()), set(groupMemberNodes()));
+        group.setPersons(null);
+        storeInGraph(group);
+        assertEquals(set(emilNode()), set(groupMemberNodes()));
+    }
 
     public Person readPerson(Node node) {
         return converter.read(Person.class, node);
     }
-
-
 
     private List<Node> getRelatedNodes(Node startNode, String type, Direction direction) {
         List<Node> result = new ArrayList<Node>();

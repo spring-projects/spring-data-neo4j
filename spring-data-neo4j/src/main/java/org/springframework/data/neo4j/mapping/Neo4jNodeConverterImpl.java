@@ -93,7 +93,6 @@ public class Neo4jNodeConverterImpl implements Neo4jNodeConverter {
     }
 
     private <R> void getEntityStateValue(Neo4jPersistentProperty property, EntityState<Node> nodeState, BeanWrapper<Neo4jPersistentEntity<R>, R> wrapper) {
-        if (!nodeState.isWritable(property.getField())) return;
         final Object value = nodeState.getValue(property.getField());
         setProperty(wrapper, property, value);
     }

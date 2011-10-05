@@ -70,10 +70,10 @@ public class Person {
 	@RelatedToVia(type = "knows", elementClass = Friendship.class)
 	private Iterable<Friendship> friendships;
 
-    @Query(value = "start person=node({self}) match (person)<-[:boss]-(boss) return boss")
+    @Query(value = "start person=node({self}) match (person)<-[?:boss]-(boss) return boss")
     private Person bossByQuery;
 
-    @Query(value = "start person=node({self}) match (person)<-[:boss]-(boss) return boss.%property",params = {"property","name"})
+    // @Query(value = "start person=node({self}) match (person)<-[?:boss]-(boss) return boss.name")
     private String bossName;
 
     @Query(value = "start person=node({self}) match (person)<-[:persons]-(team)-[:persons]->(member) return member",elementClass = Person.class)
@@ -170,10 +170,9 @@ public class Person {
         if (o == null || getClass() != o.getClass()) return false;
 
         Person person = (Person) o;
+        if (graphId == null) return super.equals(o);
+        return graphId.equals(person.graphId);
 
-        if (graphId != null ? !graphId.equals(person.graphId) : person.graphId != null) return false;
-
-        return true;
     }
 
     @Override

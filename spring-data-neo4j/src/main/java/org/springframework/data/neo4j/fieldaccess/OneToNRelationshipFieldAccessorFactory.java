@@ -23,7 +23,6 @@ import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.mapping.RelationshipInfo;
 import org.springframework.data.neo4j.support.GraphDatabaseContext;
 
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -58,7 +57,9 @@ public class OneToNRelationshipFieldAccessorFactory extends NodeRelationshipFiel
 	    public Object setValue(final Object entity, final Object newVal) {
 	        final Node node = checkUnderlyingNode(entity);
 	        if (newVal == null) {
+/* null should not remove existing relationships but leave them alone
 	            removeMissingRelationships(node, Collections.<Node>emptySet());
+*/
 	            return null;
 	        }
 	        final Set<Node> targetNodes = checkTargetIsSetOfNodebacked(newVal);

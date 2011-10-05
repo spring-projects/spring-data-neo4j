@@ -34,7 +34,7 @@ public class ReadOnlyOneToNRelationshipFieldAccessorFactory extends NodeRelation
 	public boolean accept(final Neo4jPersistentProperty f) {
 	    if (!f.isRelationship()) return false;
         final RelationshipInfo info = f.getRelationshipInfo();
-        return  info.isMultiple() && info.targetsNodes() && info.isReadonly();
+        return info.isMultiple() && info.targetsNodes() && info.isReadonly();
 	}
 
 	@Override
