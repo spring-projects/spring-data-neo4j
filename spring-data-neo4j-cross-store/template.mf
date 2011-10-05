@@ -1,5 +1,5 @@
-Bundle-SymbolicName: org.springframework.data.neo4j
-Bundle-Name: Spring Data Neo4J
+Bundle-SymbolicName: org.springframework.data.neo4j.cross_store
+Bundle-Name: Spring Data Neo4J Cross-Store
 Bundle-Vendor: SpringSource
 Bundle-ManifestVersion: 2
 Import-Package:
