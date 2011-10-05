@@ -2,9 +2,9 @@ Bundle-SymbolicName: org.springframework.data.neo4j.rest
 Bundle-Name: Spring Data Neo4J REST
 Bundle-Vendor: SpringSource
 Bundle-ManifestVersion: 2
-Import-Package:
+Import-Package: 
  sun.reflect;version="0";resolution:=optional
-Import-Template:
+Import-Template: 
  org.springframework.data.core.*;version="[1.0.0, 2.0.0)",
  org.springframework.data.neo4j.annotation.*;version="[1.0.0, 2.0.0)",
  org.springframework.*;version="[3.0.0, 4.0.0)",
@@ -18,5 +18,5 @@ Import-Template:
  com.sun.jersey.api.*;version="0",
  javax.ws.rs.core.*;version="0",
  org.codehaus.jackson.*;version="0"
-Excluded-Exports:
+Excluded-Exports: 
  org.neo4j.kernel
