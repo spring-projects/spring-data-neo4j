@@ -18,5 +18,5 @@ Import-Template:
  com.sun.jersey.api.*;version="0",
  javax.ws.rs.core.*;version="0",
  org.codehaus.jackson.*;version="0"
-Excluded-Exports:
+Excluded-Exports: 
  org.neo4j.kernel

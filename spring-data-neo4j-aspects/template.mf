@@ -2,8 +2,6 @@ Bundle-SymbolicName: org.springframework.data.neo4j.aspects
 Bundle-Name: Spring Data Neo4j Aspects
 Bundle-Vendor: SpringSource
 Bundle-ManifestVersion: 2
-Import-Package: 
- sun.reflect;version="0";resolution:=optional
 Import-Template: 
  org.springframework.beans.*;version="[3.0.0, 4.0.0)",
  org.springframework.context.*;version="[3.0.0, 4.0.0)",
@@ -33,6 +31,7 @@ Import-Template:
  javax.persistence.spi.*;version="[1.0.0, 3.0.0)";resolution:=optional,
  javax.transaction.*;version="[1.0.1, 2.0.0)";resolution:=optional
 Import-Package: 
+ sun.reflect;version="0";resolution:=optional,
  net.sf.cglib.proxy;version="[2.2.0,3.0.0)",
  net.sf.cglib.core;version="[2.2.0,3.0.0)",
  net.sf.cglib.reflect;version="[2.2.0,3.0.0)"
