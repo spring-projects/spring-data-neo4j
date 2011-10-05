@@ -38,6 +38,7 @@ import java.util.*;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singleton;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 /**
  * @author mh
@@ -45,9 +46,14 @@ import static org.junit.Assert.assertEquals;
  */
 public class Neo4jNodeConverterTest {
 
+    public static final DynamicRelationshipType PERSONS = DynamicRelationshipType.withName("persons");
     private Neo4jNodeConverterImpl converter;
     private Transaction tx;
     private GraphDatabaseContext gdc;
+    private Group group;
+    private Person michael;
+    private Person emil;
+    private Person andres;
 
     @Before
     public void setUp() throws Exception {
@@ -61,6 +67,10 @@ public class Neo4jNodeConverterTest {
         converter = new Neo4jNodeConverterImpl();
         converter.setNodeEntityStateFactory(nodeEntityStateFactory);
         gdc.setConverter(converter);
+        group = new Group();
+        michael = new Person("Michael", 37);
+        emil = new Person("Emil", 30);
+        andres = new Person("Andrés", 36);
     }
 
     private GraphDatabaseContext createContext(Neo4jMappingContext mappingContext) throws Exception {
@@ -75,6 +85,15 @@ public class Neo4jNodeConverterTest {
         return gdc;
     }
 
+
+    private List<Node> groupMemberNodes() {
+        return groupMemberNodes(groupNode());
+    }
+
+    private List<Node> groupMemberNodes(Node node) {
+        return getRelatedNodes(node, "persons", Direction.OUTGOING);
+    }
+
     @After
     public void tearDown() throws Exception {
         tx.failure();
@@ -84,155 +103,185 @@ public class Neo4jNodeConverterTest {
 
     @Test
     public void testWriteEntityToNewNode() {
-        final Person p = new Person("Michael",37);
-        converter.write(p,null);
-        final Node createdNode = gdc.getNodeById(p.getId());
-        assertEquals("Michael", createdNode.getProperty("name"));
+        storeInGraph(michael);
+        assertEquals("Michael", michaelNode().getProperty("name"));
     }
+
     @Test
     public void testFindNewlyWrittenNodeInIndex() {
-        final Person p = new Person("Michael",37);
-        converter.write(p,null);
-        final Node createdNode = gdc.getNodeById(p.getId());
-        final Index<Node> index = gdc.getIndex(Person.class,Person.NAME_INDEX);
+        storeInGraph(michael);
+        final Node createdNode = michaelNode();
+        final Index<Node> index = gdc.getIndex(Person.class, Person.NAME_INDEX);
         final Node found = index.get("name", "Michael").getSingle();
         assertEquals("node found in index", createdNode, found);
     }
+
+    private Node michaelNode() {
+        return gdc.getNodeById(michael.getId());
+    }
+
     @Test
     public void testWriteEntityToExistingNode() {
-        final Node existingNode = gdc.createNode();
-        final Person p = new Person("Michael",37);
-        converter.write(p, existingNode);
-        assertEquals("Entity uses provided node", existingNode.getId(), p.getId());
+        final Node existingNode = createNewNode();
+        converter.write(michael, existingNode);
+        assertEquals("Entity uses provided node", (Long) existingNode.getId(), michael.getId());
         assertEquals("Michael", existingNode.getProperty("name"));
+    }
+
+    private Node createNewNode() {
+        return gdc.createNode();
     }
 
     @Test
     public void testUpdateExistingNode() {
-        final Node existingNode = gdc.createNode();
-        existingNode.setProperty("name","Test");
+        final Node existingNode = createNewNode();
+        existingNode.setProperty("name", "Test");
         assertEquals("Test", existingNode.getProperty("name"));
-        final Person p = new Person("Michael",37);
-        converter.write(p, existingNode);
+        converter.write(michael, existingNode);
         assertEquals("Michael", existingNode.getProperty("name"));
-        p.setName("Emil");
-        converter.write(p, existingNode);
+        michael.setName("Emil");
+        converter.write(michael, existingNode);
         assertEquals("Emil", existingNode.getProperty("name"));
     }
 
     @Test
     public void testWriteConvertedPropertiesToExistingNode() {
-        final Node existingNode = gdc.createNode();
-        final Person p = new Person("Michael",37);
-        p.setBirthdate(new Date(100));
-        p.setPersonality(Personality.EXTROVERT);
-        converter.write(p, existingNode);
+        final Node existingNode = createNewNode();
+        michael.setBirthdate(new Date(100));
+        michael.setPersonality(Personality.EXTROVERT);
+        converter.write(michael, existingNode);
         assertEquals("100", existingNode.getProperty("birthdate"));
         assertEquals("EXTROVERT", existingNode.getProperty("personality"));
     }
+
     @Test
     public void testReadConvertedPropertiesToExistingNode() {
-        final Node existingNode = gdc.createNode();
-        existingNode.setProperty("name","Michael");
-        existingNode.setProperty("age",36);
-        existingNode.setProperty("personality","EXTROVERT");
-        existingNode.setProperty("birthdate","100");
-        final Person p = converter.read(Person.class,existingNode);
+        final Node existingNode = createNewNode();
+        existingNode.setProperty("name", "Michael");
+        existingNode.setProperty("age", 36);
+        existingNode.setProperty("personality", "EXTROVERT");
+        existingNode.setProperty("birthdate", "100");
+        final Person p = converter.read(Person.class, existingNode);
         assertEquals("Michael", p.getName());
         assertEquals(36, p.getAge());
-        assertEquals(new Date(100),p.getBirthdate());
-        assertEquals(Personality.EXTROVERT,p.getPersonality());
+        assertEquals(new Date(100), p.getBirthdate());
+        assertEquals(Personality.EXTROVERT, p.getPersonality());
     }
 
     @Test
     public void testDeleteProperty() {
-        final Node existingNode = gdc.createNode();
-        final Person p = new Person("Michael",37);
-        converter.write(p, existingNode);
-        p.setName(null);
-        converter.write(p, existingNode);
+        final Node existingNode = createNewNode();
+        converter.write(michael, existingNode);
+        michael.setName(null);
+        converter.write(michael, existingNode);
         assertEquals(false, existingNode.hasProperty("name"));
     }
 
     @Test
     public void testReadEntityFromExistingNode() {
-        final Node node = gdc.createNode();
-        node.setProperty("name","Emil");
+        final Node node = createNewNode();
+        node.setProperty("name", "Emil");
         final Person p = converter.read(Person.class, node);
         assertEquals("Emil", p.getName());
     }
 
     @Test
     public void testSetRelationshipWithPreExistingNode() {
-        final Person p = new Person("Michael",37);
-        final Person emil = new Person("Emil", 30);
-        converter.write(emil, null);
-        p.setBoss(emil);
-        converter.write(p, null);
-        final Node node = gdc.getNodeById(p.getId());
-        final Node boss = node.getRelationships(DynamicRelationshipType.withName("boss"), Direction.INCOMING).iterator().next().getStartNode();
-        assertEquals("added additional relationship end node",emil.getId(), boss.getId());
+        Person emil1 = emil;
+        storeInGraph(emil1);
+        michael.setBoss(emil);
+        storeInGraph(michael);
+        final Node boss = getRelatedNodes(michaelNode(), "boss", Direction.INCOMING).get(0);
+        assertEquals("added additional relationship end node", emil.getId(), (Long) boss.getId());
     }
+
+    private void storeInGraph(Object obj) {
+        converter.write(obj, null);
+    }
+
     @Test
     public void testAddRelationshipWithPreExistingNode() {
-        Group g=new Group();
-        final Person michael = new Person("Michael",37);
-        converter.write(michael, null);
-        g.setPersons(singleton(michael));
-        converter.write(g,null);
-        final Node groupNode = gdc.getNodeById(g.getId());
-        final Collection<Relationship> persons = IteratorUtil.asCollection(groupNode.getRelationships(DynamicRelationshipType.withName("persons"), Direction.OUTGOING));
-        final Node michaelNode = persons.iterator().next().getOtherNode(groupNode);
-        assertEquals("added michaelNode to group",michael.getId(), michaelNode.getId());
+        storeInGraph(michael);
+        group.setPersons(singleton(michael));
+        storeInGraph(group);
+        final Collection<Relationship> persons = IteratorUtil.asCollection(groupNode().getRelationships(PERSONS, Direction.OUTGOING));
+        final Node michaelNode = persons.iterator().next().getOtherNode(groupNode());
+        assertEquals("added michaelNode to group", michael.getId(), (Long) michaelNode.getId());
+    }
+
+    private Node groupNode() {
+        return gdc.getNodeById(group.getId());
     }
 
     @Test
     public void testAddRelationshipWithTwoExistingNodes() {
-        Group group=new Group();
-        final Person michael = new Person("Michael",37);
-        final Person andres = new Person("Andrés",36);
-        converter.write(michael, null);
-        converter.write(andres, null);
-        group.setPersons(new HashSet<Person>(asList(michael, andres)));
-        converter.write(group,null);
-        final Node groupNode = gdc.getNodeById(group.getId());
-        final Collection<Node> persons = getRelatedNodes(groupNode, "persons", Direction.OUTGOING);
-        assertEquals(2,persons.size());
-        assertEquals(asList(gdc.getNodeById(michael.getId()),gdc.getNodeById(andres.getId())), persons);
+        storeInGraph(michael);
+        storeInGraph(andres);
+        group.setPersons(set(andres, michael));
+        storeInGraph(group);
+        final Collection<Node> persons = groupMemberNodes();
+        assertEquals(2, persons.size());
+        assertEquals(asList(michaelNode(), andresNode()), persons);
     }
 
     @Test
     public void testAddRelationshipWithTwoPeopleButJustOneExistingNodes() {
-        Group group=new Group();
-        final Person michael = new Person("Michael",37);
-        final Person andres = new Person("Andrés",36);
-        converter.write(michael, null);
-        group.setPersons(new HashSet<Person>(asList(michael, andres)));
-        converter.write(group,null);
-        final Node groupNode = gdc.getNodeById(group.getId());
-        final Collection<Node> persons = getRelatedNodes(groupNode, "persons", Direction.OUTGOING);
-        assertEquals(2,persons.size());
-        assertEquals(asList(gdc.getNodeById(michael.getId()),gdc.getNodeById(andres.getId())), persons);
+        storeInGraph(michael);
+        group.setPersons(set(andres, michael));
+        storeInGraph(group);
+        final Collection<Node> persons = groupMemberNodes();
+        assertEquals(2, persons.size());
+        assertEquals(asList(michaelNode(), andresNode()), persons);
+    }
+
+
+    private <T> Set<T> set(T... objs) {
+        return new HashSet<T>(asList(objs));
+    }
+
+    private <T> Set<T> set(Iterable<T> objs) {
+        return IteratorUtil.addToCollection(objs, new HashSet<T>());
     }
 
     @Test
     public void testAddRelationshipCascadeOverTwoSteps() {
-        Group group=new Group();
-        final Person andres = new Person("Andrés",36);
-        final Person emil = new Person("Emil",30);
         andres.setBoss(emil);
         group.setPersons(singleton(andres));
-        converter.write(group,null);
-        final Node groupNode = gdc.getNodeById(group.getId());
-        final Collection<Node> persons = getRelatedNodes(groupNode, "persons", Direction.OUTGOING);
-        assertEquals(1,persons.size());
-        final Node andresNode = gdc.getNodeById(andres.getId());
-        assertEquals(asList(andresNode), persons);
-        assertEquals(emil.getId(), getRelatedNodes(andresNode,"boss",Direction.INCOMING).get(0).getId());
+        storeInGraph(group);
+        final Collection<Node> persons = groupMemberNodes();
+        assertEquals(1, persons.size());
+        assertEquals(asList(andresNode()), persons);
+        assertEquals(emil.getId(), (Long) getRelatedNodes(andresNode(), "boss", Direction.INCOMING).get(0).getId());
     }
 
+    private Node andresNode() {
+        return gdc.getNodeById(andres.getId());
+    }
+
+    private Node emilNode() {
+        return gdc.getNodeById(emil.getId());
+    }
+
+    @Test
+    public void testDeleteSingleRelationship() {
+        emil.setBoss(andres);
+        storeInGraph(emil);
+
+        emil.setBoss(null);
+        storeInGraph(emil);
+
+        assertEquals(0, getRelatedNodes(emilNode(), "boss", Direction.INCOMING).size());
+    }
+
+
+    public Person readPerson(Node node) {
+        return converter.read(Person.class, node);
+    }
+
+
+
     private List<Node> getRelatedNodes(Node startNode, String type, Direction direction) {
-        List<Node> result=new ArrayList<Node>();
+        List<Node> result = new ArrayList<Node>();
         for (Relationship relationship : startNode.getRelationships(DynamicRelationshipType.withName(type), direction)) {
             result.add(relationship.getOtherNode(startNode));
         }
@@ -241,22 +290,19 @@ public class Neo4jNodeConverterTest {
 
     @Test
     public void testSetRelationshipWithNonExistingNode() {
-        final Person michael = new Person("Michael",37);
-        final Person emil = new Person("Emil", 30);
         michael.setBoss(emil);
-        converter.write(michael, null);
-        final Node node = gdc.getNodeById(michael.getId());
-        final Node boss = getRelatedNodes(node,"boss",Direction.INCOMING).get(0);
-        assertEquals("added additional relationship end node",emil.getId(), boss.getId());
+        storeInGraph(michael);
+        final Node node = michaelNode();
+        final Node boss = getRelatedNodes(node, "boss", Direction.INCOMING).get(0);
+        assertEquals("added additional relationship end node", emil.getId(), (Long) boss.getId());
     }
+
     @Test
     public void testAddRelationshipWithNonExistingNode() {
-        Group g=new Group();
-        final Person michael = new Person("Michael",37);
-        g.setPersons(singleton(michael));
-        converter.write(g,null);
-        final Node groupNode = gdc.getNodeById(g.getId());
-        final Node michaelNode = getRelatedNodes(groupNode,"persons",Direction.OUTGOING).get(0);
-        assertEquals("added member to group",michael.getId(), michaelNode.getId());
+        group.setPersons(singleton(michael));
+        storeInGraph(group);
+        final Node groupNode = groupNode();
+        final Node michaelNode = getRelatedNodes(groupNode, "persons", Direction.OUTGOING).get(0);
+        assertEquals("added member to group", michael.getId(), (Long) michaelNode.getId());
     }
 }

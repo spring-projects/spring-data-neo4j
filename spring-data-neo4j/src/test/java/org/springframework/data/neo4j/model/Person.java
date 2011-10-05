@@ -164,7 +164,24 @@ public class Person {
 		return name;
 	}
 
-	public Iterable<Friendship> getFriendships() {
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Person person = (Person) o;
+
+        if (graphId != null ? !graphId.equals(person.graphId) : person.graphId != null) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        return graphId != null ? graphId.hashCode() : super.hashCode();
+    }
+
+    public Iterable<Friendship> getFriendships() {
 		return friendships;
 	}
 
@@ -200,7 +217,7 @@ public class Person {
 		this.birthdate = birthdate;
 	}
 
-	public long getId() {
+	public Long getId() {
 		return graphId;
 	}
 
