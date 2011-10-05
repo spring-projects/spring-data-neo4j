@@ -75,18 +75,14 @@ public class Neo4jNodeConverterImpl implements Neo4jNodeConverter {
             persistentEntity.doWithProperties(new PropertyHandler<Neo4jPersistentProperty>() {
             @Override
             public void doWithPersistentProperty(Neo4jPersistentProperty property) {
-                if (!nodeState.isWritable(property.getField())) return;
-                final Object value = nodeState.getValue(property.getField());
-                setProperty(wrapper, property, value);
+                getEntityStateValue(property, nodeState, wrapper);
             }
         });
         persistentEntity.doWithAssociations(new AssociationHandler<Neo4jPersistentProperty>() {
             @Override
             public void doWithAssociation(Association<Neo4jPersistentProperty> association) {
                 final Neo4jPersistentProperty property = association.getInverse();
-                if (!nodeState.isWritable(property.getField())) return;
-                final Object value = nodeState.getValue(property.getField());
-                setProperty(wrapper, property, value);
+                getEntityStateValue(property, nodeState, wrapper);
             }
         });
             tx.success();
@@ -94,6 +90,12 @@ public class Neo4jNodeConverterImpl implements Neo4jNodeConverter {
         } finally {
             tx.finish();
         }
+    }
+
+    private <R> void getEntityStateValue(Neo4jPersistentProperty property, EntityState<Node> nodeState, BeanWrapper<Neo4jPersistentEntity<R>, R> wrapper) {
+        if (!nodeState.isWritable(property.getField())) return;
+        final Object value = nodeState.getValue(property.getField());
+        setProperty(wrapper, property, value);
     }
 
     @Override
@@ -110,24 +112,26 @@ public class Neo4jNodeConverterImpl implements Neo4jNodeConverter {
             persistentEntity.doWithProperties(new PropertyHandler<Neo4jPersistentProperty>() {
             @Override
             public void doWithPersistentProperty(Neo4jPersistentProperty property) {
-                if (!nodeState.isWritable(property.getField())) return;
-                final Object value = getProperty(wrapper, property);
-                nodeState.setValue(property, value);
+                setEntityStateValue(property, nodeState, wrapper);
             }
         });
         persistentEntity.doWithAssociations(new AssociationHandler<Neo4jPersistentProperty>() {
             @Override
             public void doWithAssociation(Association<Neo4jPersistentProperty> association) {
                 final Neo4jPersistentProperty property = association.getInverse();
-                if (!nodeState.isWritable(property.getField())) return;
-                final Object value = getProperty(wrapper, property);
-                nodeState.setValue(property, value);
+                setEntityStateValue(property, nodeState, wrapper);
             }
         });
             tx.success();
         } finally {
             tx.finish();
         }
+    }
+
+    private void setEntityStateValue(Neo4jPersistentProperty property, EntityState<Node> nodeState, BeanWrapper<Neo4jPersistentEntity<Object>, Object> wrapper) {
+        if (!nodeState.isWritable(property.getField())) return;
+        final Object value = getProperty(wrapper, property);
+        nodeState.setValue(property, value);
     }
 
     private Node useGetOrCreateNode(Node node, Neo4jPersistentEntity<?> persistentEntity, BeanWrapper<Neo4jPersistentEntity<Object>, Object> wrapper) {

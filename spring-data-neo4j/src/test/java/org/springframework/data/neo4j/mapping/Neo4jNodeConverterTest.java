@@ -18,24 +18,25 @@ package org.springframework.data.neo4j.mapping;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.neo4j.graphdb.Direction;
-import org.neo4j.graphdb.DynamicRelationshipType;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Transaction;
+import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.index.Index;
+import org.neo4j.helpers.collection.IteratorUtil;
 import org.neo4j.test.ImpermanentGraphDatabase;
-import org.springframework.data.neo4j.model.Person;
-import org.springframework.data.neo4j.model.Personality;
 import org.springframework.data.neo4j.fieldaccess.Neo4jConversionServiceFactoryBean;
 import org.springframework.data.neo4j.fieldaccess.NodeDelegatingFieldAccessorFactory;
+import org.springframework.data.neo4j.model.Group;
+import org.springframework.data.neo4j.model.Person;
+import org.springframework.data.neo4j.model.Personality;
 import org.springframework.data.neo4j.support.EntityStateHandler;
 import org.springframework.data.neo4j.support.GraphDatabaseContext;
 import org.springframework.data.neo4j.support.node.NodeEntityInstantiator;
 import org.springframework.data.neo4j.support.node.NodeEntityStateFactory;
 import org.springframework.data.neo4j.support.typerepresentation.NoopNodeTypeRepresentationStrategy;
 
-import java.util.Date;
+import java.util.*;
 
+import static java.util.Arrays.asList;
+import static java.util.Collections.singleton;
 import static org.junit.Assert.assertEquals;
 
 /**
@@ -173,13 +174,89 @@ public class Neo4jNodeConverterTest {
         assertEquals("added additional relationship end node",emil.getId(), boss.getId());
     }
     @Test
+    public void testAddRelationshipWithPreExistingNode() {
+        Group g=new Group();
+        final Person michael = new Person("Michael",37);
+        converter.write(michael, null);
+        g.setPersons(singleton(michael));
+        converter.write(g,null);
+        final Node groupNode = gdc.getNodeById(g.getId());
+        final Collection<Relationship> persons = IteratorUtil.asCollection(groupNode.getRelationships(DynamicRelationshipType.withName("persons"), Direction.OUTGOING));
+        final Node michaelNode = persons.iterator().next().getOtherNode(groupNode);
+        assertEquals("added michaelNode to group",michael.getId(), michaelNode.getId());
+    }
+
+    @Test
+    public void testAddRelationshipWithTwoExistingNodes() {
+        Group group=new Group();
+        final Person michael = new Person("Michael",37);
+        final Person andres = new Person("Andrés",36);
+        converter.write(michael, null);
+        converter.write(andres, null);
+        group.setPersons(new HashSet<Person>(asList(michael, andres)));
+        converter.write(group,null);
+        final Node groupNode = gdc.getNodeById(group.getId());
+        final Collection<Node> persons = getRelatedNodes(groupNode, "persons", Direction.OUTGOING);
+        assertEquals(2,persons.size());
+        assertEquals(asList(gdc.getNodeById(michael.getId()),gdc.getNodeById(andres.getId())), persons);
+    }
+
+    @Test
+    public void testAddRelationshipWithTwoPeopleButJustOneExistingNodes() {
+        Group group=new Group();
+        final Person michael = new Person("Michael",37);
+        final Person andres = new Person("Andrés",36);
+        converter.write(michael, null);
+        group.setPersons(new HashSet<Person>(asList(michael, andres)));
+        converter.write(group,null);
+        final Node groupNode = gdc.getNodeById(group.getId());
+        final Collection<Node> persons = getRelatedNodes(groupNode, "persons", Direction.OUTGOING);
+        assertEquals(2,persons.size());
+        assertEquals(asList(gdc.getNodeById(michael.getId()),gdc.getNodeById(andres.getId())), persons);
+    }
+
+    @Test
+    public void testAddRelationshipCascadeOverTwoSteps() {
+        Group group=new Group();
+        final Person andres = new Person("Andrés",36);
+        final Person emil = new Person("Emil",30);
+        andres.setBoss(emil);
+        group.setPersons(singleton(andres));
+        converter.write(group,null);
+        final Node groupNode = gdc.getNodeById(group.getId());
+        final Collection<Node> persons = getRelatedNodes(groupNode, "persons", Direction.OUTGOING);
+        assertEquals(1,persons.size());
+        final Node andresNode = gdc.getNodeById(andres.getId());
+        assertEquals(asList(andresNode), persons);
+        assertEquals(emil.getId(), getRelatedNodes(andresNode,"boss",Direction.INCOMING).get(0).getId());
+    }
+
+    private List<Node> getRelatedNodes(Node startNode, String type, Direction direction) {
+        List<Node> result=new ArrayList<Node>();
+        for (Relationship relationship : startNode.getRelationships(DynamicRelationshipType.withName(type), direction)) {
+            result.add(relationship.getOtherNode(startNode));
+        }
+        return result;
+    }
+
+    @Test
     public void testSetRelationshipWithNonExistingNode() {
-        final Person p = new Person("Michael",37);
+        final Person michael = new Person("Michael",37);
         final Person emil = new Person("Emil", 30);
-        p.setBoss(emil);
-        converter.write(p, null);
-        final Node node = gdc.getNodeById(p.getId());
-        final Node boss = node.getRelationships(DynamicRelationshipType.withName("boss"), Direction.INCOMING).iterator().next().getStartNode();
+        michael.setBoss(emil);
+        converter.write(michael, null);
+        final Node node = gdc.getNodeById(michael.getId());
+        final Node boss = getRelatedNodes(node,"boss",Direction.INCOMING).get(0);
         assertEquals("added additional relationship end node",emil.getId(), boss.getId());
+    }
+    @Test
+    public void testAddRelationshipWithNonExistingNode() {
+        Group g=new Group();
+        final Person michael = new Person("Michael",37);
+        g.setPersons(singleton(michael));
+        converter.write(g,null);
+        final Node groupNode = gdc.getNodeById(g.getId());
+        final Node michaelNode = getRelatedNodes(groupNode,"persons",Direction.OUTGOING).get(0);
+        assertEquals("added member to group",michael.getId(), michaelNode.getId());
     }
 }

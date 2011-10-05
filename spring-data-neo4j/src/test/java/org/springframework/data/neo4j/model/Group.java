@@ -26,6 +26,7 @@ import org.springframework.data.neo4j.core.FieldTraversalDescriptionBuilder;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 
 import java.util.Collection;
+import java.util.Set;
 
 @NodeEntity
 public class Group {
@@ -71,6 +72,9 @@ public class Group {
     @Indexed(level=Indexed.Level.INSTANCE)
     private String indexLevelName;
 
+    @GraphId
+    private Long id;
+
     public String getFullTextName() {
         return fullTextName;
     }
@@ -87,7 +91,7 @@ public class Group {
         this.name = name;
     }
 
-    public void setPersons(Collection<Person> persons) {
+    public void setPersons(Set<Person> persons) {
         this.persons = persons;
     }
 
@@ -113,6 +117,10 @@ public class Group {
 
     public void setOtherName(String otherName) {
         this.otherName = otherName;
+    }
+
+    public long getId() {
+        return id;
     }
 
     private static class PeopleTraversalBuilder implements FieldTraversalDescriptionBuilder {
