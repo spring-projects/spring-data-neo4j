@@ -25,6 +25,6 @@ import java.lang.annotation.Target;
  * Annotation fot the field that virtually provides the Id of the graph entity (node or relationship), type of the field should be long
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.FIELD)
+@Target({ElementType.FIELD,ElementType.METHOD})
 public @interface GraphId {
 }

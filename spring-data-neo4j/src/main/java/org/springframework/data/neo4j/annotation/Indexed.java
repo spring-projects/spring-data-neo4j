@@ -27,7 +27,7 @@ import java.lang.reflect.Field;
  * Annotated fields and entities will be indexed and available for retrieval using an indexing API.
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target(value = {ElementType.FIELD, ElementType.TYPE})
+@Target(value = {ElementType.FIELD, ElementType.TYPE,ElementType.METHOD})
 public @interface Indexed {
     /**
      * Name of the index to use.

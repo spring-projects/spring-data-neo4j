@@ -29,6 +29,6 @@ import java.lang.annotation.Target;
  * @since 27.08.2010
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.FIELD)
+@Target({ElementType.FIELD,ElementType.METHOD})
 public @interface EndNode {
 }

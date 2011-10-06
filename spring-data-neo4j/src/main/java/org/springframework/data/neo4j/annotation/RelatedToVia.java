@@ -38,7 +38,7 @@ import org.springframework.data.annotation.Reference;
  * @since 27.08.2010
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.FIELD)
+@Target({ElementType.FIELD,ElementType.METHOD})
 @Reference
 public @interface RelatedToVia {
     /**

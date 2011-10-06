@@ -21,8 +21,6 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import org.springframework.data.neo4j.core.FieldTraversalDescriptionBuilder;
-
 
 /**
  * Field that provides access to an iterator which is created by applying the traversal that is built by the supplied
@@ -36,7 +34,7 @@ import org.springframework.data.neo4j.core.FieldTraversalDescriptionBuilder;
  * @since 15.09.2010
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.FIELD)
+@Target({ElementType.FIELD,ElementType.METHOD})
 public @interface GraphTraversal {
     /**
      * @return Builder for the {@link org.neo4j.graphdb.traversal.TraversalDescription} to be applied

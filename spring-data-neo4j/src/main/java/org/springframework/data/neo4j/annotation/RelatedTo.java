@@ -16,9 +16,7 @@
 
 package org.springframework.data.neo4j.annotation;
 
-import org.neo4j.graphdb.Direction;
 import org.springframework.data.annotation.Reference;
-
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -44,7 +42,7 @@ import java.lang.annotation.Target;
  * @since 27.08.2010
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.FIELD)
+@Target({ElementType.FIELD,ElementType.METHOD})
 @Reference
 public @interface RelatedTo {
     /**
