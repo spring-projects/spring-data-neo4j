@@ -1,0 +1,4 @@
+* eclipse / STS setup with m2e, AspectJConfigurator and Weaving enabled etc. https://jira.springsource.org/browse/DATAGRAPH-104
+
+* fetch-strategies / behaviour
+* cascading persist/save

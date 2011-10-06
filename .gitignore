@@ -1,3 +1,4 @@
+src/docbkx/snippets
 *.hprof*
 ajcore*
 .project

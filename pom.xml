@@ -242,9 +242,9 @@
             <plugin>
                 <groupId>com.agilejava.docbkx</groupId>
                 <artifactId>docbkx-maven-plugin</artifactId>
-                <version>2.0.12</version>
+                <version>2.0.8</version>
                 <executions>
-                    <!--execution>
+                    <execution>
                         <id>single-page</id>
                         <goals>
                             <goal>generate-html</goal>
@@ -279,8 +279,8 @@
                             </postProcess>
                         </configuration>
                         <phase>pre-site</phase>
-                    </execution-->
-				 	<execution>
+                    </execution>
+				 	<!--execution>
 				            <id>generate-rtf</id>
 				            <goals>
 				              <goal>generate-rtf</goal>
@@ -289,12 +289,11 @@
                             <imgSrcPath>${basedir}/src/docbkx/</imgSrcPath>
                             <admonGraphicsPath>${basedir}/src/docbkx/resources/images/</admonGraphicsPath>
                     <sourceDirectory>${basedir}/src/docbkx/</sourceDirectory>
-                    <!--foCustomization>${basedir}/src/docbkx/resources/xsl/fortf2.xsl</foCustomization-->
 							<fopExtensions>0</fopExtensions>
 							<fop1Extensions>0</fop1Extensions>
 					        <useExtensions>0</useExtensions>
-					        <!--highlightSource>1</highlightSource>
-					        <highlightDefaultLanguage></highlightDefaultLanguage-->
+					        <!- -highlightSource>1</highlightSource>
+					        <highlightDefaultLanguage></highlightDefaultLanguage- ->
                             <postProcess>
                                 <copy file="${basedir}/target/docbkx/rtf/index.rtf"
                                       tofile="${basedir}/target/site/reference/rtf/spring-data-neo4j-reference.rtf"
@@ -302,8 +301,8 @@
                             </postProcess>
 				            </configuration>
 	                        <phase>pre-site</phase>
-				    </execution>
-                    <!--execution>
+				    </execution-->
+                    <execution>
                         <id>single-pdf</id>
                         <goals>
                             <goal>generate-pdf</goal>
@@ -361,7 +360,7 @@
                             </postProcess>
                         </configuration>
                         <phase>pre-site</phase>
-                    </execution-->
+                    </execution>
                 </executions>
                 <dependencies>
                     <dependency>
@@ -467,7 +466,7 @@
 					<dependency>
 						<groupId>org.springframework.build</groupId>
 						<artifactId>org.springframework.build.aws.ant</artifactId>
-						<version>3.0.6.RELEASE</version>
+						<version>3.0.5.RELEASE</version>
 					</dependency>
 					<dependency>
 						<groupId>net.java.dev.jets3t</groupId>

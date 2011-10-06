@@ -1,53 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
-<chapter id="reference:template">
+<chapter id="reference:template" xmlns:xi="http://www.w3.org/2001/XInclude">
     <title>Neo4jTemplate</title>
     <para>
         The <code>Neo4jTemplate</code> offers the convenient API of Spring templates for the Neo4j graph
         database.
     </para>
-    <section>
-        <title>Basic operations</title>
-        <para>
-            For direct retrieval of nodes and relationships, the <code>getReferenceNode()</code>,
-            <code>getNode()</code> and <code>getRelationship()</code> methods can be used.
-        </para>
-        <para>
-            There are methods (<code>createNode()</code> and <code>createRelationship()</code>) for creating nodes and
-            relationships that automatically set provided properties.
-        </para>
-        <example>
-            <title>Neo4j template</title>
-            <programlisting language="java"><![CDATA[<![CDATA[import static org.neo4j.helpers.collection.MapUtil.map;
 
-Neo4jOperations neo = new Neo4jTemplate(graphDatabaseService);
-
-Node michael = neo.createNode(map("name","Michael"));
-Node mark = neo.createNode(map("name","Mark"));
-Node thomas = neo.createNode(map("name","Thomas"));
-
-neo.createRelationship(mark,thomas, WORKS_WITH, map("project","spring-data"));
-
-neo.index("devs",thomas, "name","Thomas");
-
-// Cypher
-assert "Mark".equals(neo.query("start p=({p_person}) match p<-[:WORKS_WITH]-other return other.name",
-    map("person",thomas)).to(String.class).single());
-
-// Gremlin
-assert thomas.equals(neo.execute("g.v(person).out('WORKS_WITH')",
-    map("person",mark)).to(Node.class).single());
-
-// Index lookup
-assert mark.equals(neo.lookup("devs","name","Mark").single());
-
-// Index lookup with Result Converter
-assert "Mark".equals(neo.lookup("devs","name","Mark").to(String.class, new ResultConverter<PropertyContainer, String> {
-        public String convert(PropertyContainer element, Class<String> type) {
-            return (String) element.getProperty("name");
-        }}));]]></programlisting>
-        </example>
-    </section>
+    <xi:include href="../snippets/SnippetNeo4jTemplateMethods.xml"/>
     <section>
         <title>QueryResult</title>
         <para>
