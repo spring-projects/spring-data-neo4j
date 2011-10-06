@@ -23,6 +23,6 @@
 
     <bean id="viewResolver" class="org.springframework.web.servlet.view.InternalResourceViewResolver" p:prefix="/WEB-INF/views/" p:suffix=".jsp"/>
 
-    <tx:annotation-driven mode="aspectj"/>
+    <tx:annotation-driven mode="aspectj" transaction-manager="transactionManager"/>
 
 </beans>

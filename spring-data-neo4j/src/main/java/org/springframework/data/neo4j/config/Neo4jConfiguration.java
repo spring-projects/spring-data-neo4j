@@ -23,10 +23,12 @@ import org.neo4j.kernel.AbstractGraphDatabase;
 import org.neo4j.kernel.impl.transaction.SpringTransactionManager;
 import org.neo4j.kernel.impl.transaction.UserTransactionImpl;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.dao.support.PersistenceExceptionTranslator;
+import org.springframework.data.neo4j.core.GraphDatabase;
 import org.springframework.data.neo4j.fieldaccess.DelegatingFieldAccessorFactory;
 import org.springframework.data.neo4j.fieldaccess.Neo4jConversionServiceFactoryBean;
 import org.springframework.data.neo4j.fieldaccess.NodeDelegatingFieldAccessorFactory;
@@ -34,6 +36,7 @@ import org.springframework.data.neo4j.fieldaccess.RelationshipDelegatingFieldAcc
 import org.springframework.data.neo4j.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.mapping.Neo4jNodeConverterImpl;
 import org.springframework.data.neo4j.repository.DirectGraphRepositoryFactory;
+import org.springframework.data.neo4j.support.DelegatingGraphDatabase;
 import org.springframework.data.neo4j.support.EntityInstantiator;
 import org.springframework.data.neo4j.support.EntityStateHandler;
 import org.springframework.data.neo4j.support.GraphDatabaseContext;
@@ -162,8 +165,9 @@ public abstract class Neo4jConfiguration {
         return new RelationshipDelegatingFieldAccessorFactory(graphDatabaseContext());
     }
 
-    @Bean
-	public PlatformTransactionManager transactionManager() {
+    @Bean(name = {"neo4jTransactionManager","transactionManager"})
+    @Qualifier("neo4jTransactionManager")
+	public PlatformTransactionManager neo4jTransactionManager() {
         return createJtaTransactionManager();
 	}
 
@@ -182,8 +186,13 @@ public abstract class Neo4jConfiguration {
     }
 
     @Bean
+    public GraphDatabase graphDatabase() {
+        return new DelegatingGraphDatabase(graphDatabaseService);
+    }
+
+    @Bean
     public ConfigurationCheck configurationCheck() throws Exception {
-        return new ConfigurationCheck(graphDatabaseContext(),transactionManager());
+        return new ConfigurationCheck(graphDatabaseContext(),neo4jTransactionManager());
     }
 
     @Bean
