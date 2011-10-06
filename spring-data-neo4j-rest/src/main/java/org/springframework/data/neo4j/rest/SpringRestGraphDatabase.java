@@ -23,6 +23,8 @@ import org.neo4j.graphdb.index.Index;
 import org.neo4j.graphdb.traversal.TraversalDescription;
 import org.neo4j.rest.graphdb.*;
 import org.neo4j.rest.graphdb.RestRequest;
+import org.neo4j.rest.graphdb.query.RestCypherQueryEngine;
+import org.neo4j.rest.graphdb.query.RestGremlinQueryEngine;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.data.neo4j.annotation.QueryType;
 import org.springframework.data.neo4j.conversion.ResultConverter;
@@ -77,12 +79,11 @@ public class SpringRestGraphDatabase extends org.neo4j.rest.graphdb.RestGraphDat
 
     @Override
     public <T> QueryEngine<T> queryEngineFor(QueryType type) {
-      /** switch (type) {
-            case Cypher: return new RestCypherQueryEngine(this, createResultConverter());
-            case Gremlin: return new RestGremlinQueryEngine(this, createResultConverter());
+       switch (type) {
+            case Cypher: return (QueryEngine<T>)new SpringRestCypherQueryEngine(new RestCypherQueryEngine(super.getRestAPI()));
+            case Gremlin: return (QueryEngine<T>)new SpringRestGremlinQueryEngine(new RestGremlinQueryEngine(super.getRestAPI()));
         }
-        throw new IllegalArgumentException("Unknown Query Engine Type "+type);    */
-        return null;
+        throw new IllegalArgumentException("Unknown Query Engine Type "+type);
     }
 
     @Override

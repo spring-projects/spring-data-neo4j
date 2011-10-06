@@ -76,14 +76,20 @@ public class GraphDatabaseContext {
     }
 
     public <S extends PropertyContainer, T> Index<S> getIndex(Class<T> type, String indexName) {
-        return getIndex(type, indexName, false);
+        return getIndex(type, indexName, null);
     }
 
 
     @SuppressWarnings("unchecked")
-    public <S extends PropertyContainer, T> Index<S> getIndex(Class<T> type, String indexName, boolean fullText) {
+    public <S extends PropertyContainer, T> Index<S> getIndex(Class<T> type, String indexName, Boolean fullText) {
         if (indexName==null) indexName = Indexed.Name.get(type);
-        Map<String, String> config = fullText ? LuceneIndexImplementation.FULLTEXT_CONFIG : null;
+        if (fullText == null){
+            if (mappingContext.isNodeEntity(type)) return (Index<S>) getIndexManager().forNodes(indexName);
+            if (mappingContext.isRelationshipEntity(type)) return (Index<S>) getIndexManager().forRelationships(indexName);
+            throw new IllegalArgumentException("Wrong index type supplied: " + type+" expected Node- or Relationship-Entity");
+
+        }
+        Map<String, String> config = fullText ? LuceneIndexImplementation.FULLTEXT_CONFIG : LuceneIndexImplementation.EXACT_CONFIG;
 
         if (mappingContext.isNodeEntity(type)) return (Index<S>) getIndexManager().forNodes(indexName, config);
         if (mappingContext.isRelationshipEntity(type)) return (Index<S>) getIndexManager().forRelationships(indexName, config);

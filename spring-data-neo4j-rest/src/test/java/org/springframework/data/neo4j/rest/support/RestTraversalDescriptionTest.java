@@ -20,8 +20,9 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.neo4j.kernel.Uniqueness;
-import org.springframework.data.neo4j.rest.RestTraversal;
-import org.springframework.data.neo4j.rest.RestTraversalDescription;
+import org.neo4j.rest.graphdb.traversal.RestTraversal;
+import org.neo4j.rest.graphdb.traversal.RestTraversalDescription;
+
 
 import java.util.Map;
 

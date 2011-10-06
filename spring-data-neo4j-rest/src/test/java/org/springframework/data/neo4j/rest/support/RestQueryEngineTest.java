@@ -22,7 +22,7 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.neo4j.aspects.support.query.QueryEngineTest;
 import org.springframework.data.neo4j.core.GraphDatabase;
-import org.springframework.data.neo4j.rest.RestGraphDatabase;
+import org.springframework.data.neo4j.rest.SpringRestGraphDatabase;
 import org.springframework.test.context.CleanContextCacheTestExecutionListener;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestExecutionListeners;
@@ -42,7 +42,7 @@ import org.springframework.test.context.transaction.TransactionalTestExecutionLi
 public class RestQueryEngineTest extends QueryEngineTest {
 
     @Autowired
-    RestGraphDatabase restGraphDatabase;
+    SpringRestGraphDatabase restGraphDatabase;
 
     @BeforeClass
     public static void startDb() throws Exception {

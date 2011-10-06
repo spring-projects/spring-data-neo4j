@@ -19,7 +19,7 @@ package org.springframework.data.neo4j.rest.support;
 
 import org.apache.log4j.BasicConfigurator;
 import org.springframework.data.neo4j.core.GraphDatabase;
-import org.springframework.data.neo4j.rest.RestGraphDatabase;
+import org.springframework.data.neo4j.rest.SpringRestGraphDatabase;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -27,7 +27,7 @@ import java.net.URISyntaxException;
 public class RestTestHelper
 {
 
-    protected RestGraphDatabase graphDb;
+    protected SpringRestGraphDatabase graphDb;
     private static final String HOSTNAME = "localhost";
     private static final int PORT = 7473;
     private static LocalTestServer neoServer;
@@ -40,7 +40,7 @@ public class RestTestHelper
     }
 
     public GraphDatabase createGraphDatabase() throws URISyntaxException {
-        return new RestGraphDatabase(new URI(SERVER_ROOT_URI));
+        return new SpringRestGraphDatabase(SERVER_ROOT_URI);
     }
 
     public void cleanDb() {
