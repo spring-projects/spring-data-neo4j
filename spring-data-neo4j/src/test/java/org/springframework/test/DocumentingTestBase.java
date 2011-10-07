@@ -24,6 +24,8 @@ import static org.junit.Assert.fail;
 
 public abstract class DocumentingTestBase {
 
+    private static final String DOCBOOK_DIR = "src/docbkx";
+    private static final String SRC_TEST_JAVA = "src/test/java";
     protected String title;
     protected String snippetTitle;
     protected String snippet;
@@ -31,7 +33,7 @@ public abstract class DocumentingTestBase {
 
     @After
     public void outputDocs() throws IOException {
-        final File directory = new File("src/docbkx/snippets");
+        final File directory = new File(docbookDirectory(),"snippets");
         if (directory.isFile() || !directory.exists() && !directory.mkdirs()) throw new RuntimeException("Could not create directory "+directory);
         final String name = getClass().getSimpleName();
         final PrintWriter writer = new PrintWriter(new FileWriter(getSnippetFileName(directory,name)));
@@ -41,6 +43,10 @@ public abstract class DocumentingTestBase {
         writer.write(createSnippet());
         writer.write(createFooter());
         writer.close();
+    }
+
+    private File docbookDirectory() {
+        return new File(determineRoot(),DOCBOOK_DIR);
     }
 
     protected File getSnippetFileName(File directory, String name) {
@@ -83,7 +89,7 @@ public abstract class DocumentingTestBase {
             StringBuilder snippetText = new StringBuilder();
             boolean inSnippet = false;
             while ((line = reader.readLine()) != null) {
-                if (line.matches(".*//.+SNIPPET\\s+"+snippet+".*")) {
+                if (line.matches(".*//.+SNIPPET\\s+.*\\b"+snippet+"\\b.*")) {
                     inSnippet = !inSnippet;
                     continue;
                 }
@@ -100,28 +106,27 @@ public abstract class DocumentingTestBase {
 
     protected File getJavaFile() {
         final String javaFileName = getClass().getName().replaceAll("\\.", File.separator) + ".java";
-        final File javaFile = new File(directoryPrefix() + "src/test/java", javaFileName);
+        final File javaFile = new File(testSourceDirectory(), javaFileName);
         if (!javaFile.exists()) fail("Snippet File " + javaFile + " does not exist ");
         return javaFile;
     }
 
-    private String directoryPrefix() {
-        final boolean isAlreadyInDirectory = moduleWithParent().equals(currentDirectoryWithParent());
-        return isAlreadyInDirectory ? "" : module()+"/";
+    private File testSourceDirectory() {
+        return new File(new File(determineRoot(),module()),SRC_TEST_JAVA);
     }
-
-    private String moduleWithParent() {
-        return ("spring-data-neo4j/"+module());
-    }
-
-    private String currentDirectoryWithParent() {
-        final File currentDir = new File(".").getAbsoluteFile();
-        System.err.println("pwd "+currentDir);
-        return currentDir.getParentFile().getParentFile().getName() + "/" + currentDir.getParentFile().getName();
+    private File currentDirectory() {
+        return new File(".").getAbsoluteFile().getParentFile();
     }
 
     protected String module() {
         return "spring-data-neo4j";
     }
 
+    protected File determineRoot() {
+        File currentDirectory = currentDirectory();
+        if (new File(currentDirectory,DOCBOOK_DIR).exists()) return currentDirectory;
+        currentDirectory = currentDirectory.getParentFile();
+        if (new File(currentDirectory,DOCBOOK_DIR).exists()) return currentDirectory;
+        throw new IllegalStateException("Can't determine root directory, started at "+currentDirectory());
+    }
 }
