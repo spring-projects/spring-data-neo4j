@@ -23,8 +23,8 @@ import com.sun.jersey.api.client.WebResource;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.neo4j.rest.graphdb.RequestResult;
 import org.springframework.data.neo4j.aspects.Person;
-import org.springframework.data.neo4j.rest.RequestResult;
 import org.springframework.data.neo4j.server.ProvidedClassPathXmlApplicationContext;
 
 import javax.ws.rs.core.MediaType;
