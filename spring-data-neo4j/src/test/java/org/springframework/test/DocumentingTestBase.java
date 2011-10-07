@@ -116,6 +116,7 @@ public abstract class DocumentingTestBase {
 
     private String currentDirectoryWithParent() {
         final File currentDir = new File(".").getAbsoluteFile();
+        System.err.println("pwd "+currentDir);
         return currentDir.getParentFile().getParentFile().getName() + "/" + currentDir.getParentFile().getName();
     }
 
