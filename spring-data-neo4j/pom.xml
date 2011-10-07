@@ -213,7 +213,6 @@
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>aspectj-maven-plugin</artifactId>
-				<version>1.2</version>
 				<dependencies>
 					<dependency>
 						<groupId>org.aspectj</groupId>
