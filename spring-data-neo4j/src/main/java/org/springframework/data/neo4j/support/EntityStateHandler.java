@@ -51,6 +51,9 @@ public class EntityStateHandler {
     public boolean isManaged(Object entity) {
         return entity instanceof ManagedEntity;
     }
+    public boolean isManaged(Class type) {
+        return ManagedEntity.class.isAssignableFrom(type);
+    }
 
     @SuppressWarnings("unchecked")
     public <S extends PropertyContainer> S getPersistentState(Object entity) {

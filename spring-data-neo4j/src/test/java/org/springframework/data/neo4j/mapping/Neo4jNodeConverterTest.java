@@ -379,4 +379,5 @@ public class Neo4jNodeConverterTest {
         final Node michaelNode = getRelatedNodes(groupNode, "persons", Direction.OUTGOING).get(0);
         assertEquals("added member to group", michael.getId(), (Long) michaelNode.getId());
     }
+
 }

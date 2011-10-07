@@ -95,6 +95,13 @@
 			<artifactId>flexjson</artifactId>
 			<version>2.0</version>
 		</dependency>
+        <dependency>
+          <groupId>org.neo4j</groupId>
+          <artifactId>neo4j-kernel</artifactId>
+          <version>1.5-SNAPSHOT</version>
+          <type>test-jar</type>
+          <scope>test</scope>
+        </dependency>
 		<!-- Spring dependencies -->
 		<dependency>
 			<groupId>org.springframework</groupId>

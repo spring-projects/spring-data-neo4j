@@ -66,7 +66,7 @@ public class CrossStoreNeo4jConfiguration extends Neo4jAspectConfiguration {
 	}
 
     @Bean
-	public PlatformTransactionManager transactionManager() {
+	public PlatformTransactionManager neo4jTransactionManager() {
 		if (isUsingCrossStorePersistence()) {
 			JpaTransactionManager jpaTm = new JpaTransactionManager(getEntityManagerFactory());
             JtaTransactionManager jtaTm = createJtaTransactionManager();

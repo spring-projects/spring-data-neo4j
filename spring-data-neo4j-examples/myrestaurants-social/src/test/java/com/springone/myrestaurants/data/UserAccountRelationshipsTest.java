@@ -1,12 +1,10 @@
 package com.springone.myrestaurants.data;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
-
+import com.springone.myrestaurants.domain.Recommendation;
+import com.springone.myrestaurants.domain.Restaurant;
+import com.springone.myrestaurants.domain.UserAccount;
 import junit.framework.Assert;
-
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,9 +13,9 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.springone.myrestaurants.domain.Recommendation;
-import com.springone.myrestaurants.domain.Restaurant;
-import com.springone.myrestaurants.domain.UserAccount;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration

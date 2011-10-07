@@ -76,7 +76,7 @@ public class Person {
     @Query(value = "start person=node({self}) match (person)<-[?:boss]-(boss) return boss.name")
     private String bossName;
 
-    @Query(value = "start person=node({self}) match (person)<-[:persons]-(team)-[:persons]->(member) return member",elementClass = Person.class)
+    @Query(value = "start person=node({self}) match (person)<-[:persons]-(team)-[:persons]->(member) return member")
     private Iterable<Person> otherTeamMembers;
 
     @Query(value = "start person=node({self}) match (person)<-[:persons]-(team)-[:persons]->(member) return member.name, member.age")

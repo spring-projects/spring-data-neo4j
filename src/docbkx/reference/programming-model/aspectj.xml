@@ -54,6 +54,10 @@
             Try editing the build path to <code>include **/*.aj</code> for the spring-data-neo4j project.
             You can do this by selecting "Build Path -> Configure Build Path ..." from the Package Explorer.
             Then for the <code>spring-data-neo4j/src/main/java</code> add <code>**/*.aj</code> to the Included path.
+
+            For importing an Spring Data Graph project into Eclipse with m2e.
+            Please make sure that the <ulink href="http://dist.springsource.org/release/AJDT/configurator">AspectJ Configurator</ulink> is installed and
+
         </para>
         </note>
         <para>
