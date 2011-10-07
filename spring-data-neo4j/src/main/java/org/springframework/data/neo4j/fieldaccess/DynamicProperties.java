@@ -38,12 +38,12 @@ import org.springframework.data.neo4j.fieldaccess.DynamicPropertiesFieldAccessor
  * Person p = new Person();
  * p.persist();
  * p.personalProperties.setProperty(&quot;ZIP&quot;, 8000);
- * p.personalProperties.setProperty(&quot;City&quot;, &quot;Zürich&quot;);
+ * p.personalProperties.setProperty(&quot;City&quot;, &quot;Zuerich&quot;);
  * </pre>
  * results in a node with the properties:
  * <pre>
  * "personalProperties-ZIP" => 8000
- * "personalProperties-City" => "Zürich"
+ * "personalProperties-City" => "Zuerich"
  * </pre>
  */
 public interface DynamicProperties {
