@@ -23,7 +23,7 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.springframework.data.neo4j.rest.RequestResult;
+import org.neo4j.rest.graphdb.RequestResult;
 import org.springframework.data.neo4j.server.SpringPluginInitializer;
 
 import javax.ws.rs.POST;
