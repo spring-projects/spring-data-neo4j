@@ -25,11 +25,11 @@ import java.util.Set;
 import org.junit.Before;
 import org.junit.Test;
 import org.neo4j.graphdb.Direction;
+import org.springframework.data.mapping.PropertyPath;
 import org.springframework.data.neo4j.annotation.Indexed;
 import org.springframework.data.neo4j.annotation.NodeEntity;
 import org.springframework.data.neo4j.annotation.RelatedTo;
 import org.springframework.data.neo4j.mapping.Neo4jMappingContext;
-import org.springframework.data.repository.query.parser.Property;
 
 /**
  * 
@@ -37,52 +37,52 @@ import org.springframework.data.repository.query.parser.Property;
  */
 public class MatchClauseUnitTest {
 
-	Neo4jMappingContext context;
+    Neo4jMappingContext context;
 
-	@Before
-	public void setUp() {
-		context = new Neo4jMappingContext();
-		context.setInitialEntitySet(Collections.singleton(Person.class));
-		context.afterPropertiesSet();
-	}
+    @Before
+    public void setUp() {
+        context = new Neo4jMappingContext();
+        context.setInitialEntitySet(Collections.singleton(Person.class));
+        context.afterPropertiesSet();
+    }
 
-	@Test
-	public void buildsMatchExpressionForSimpleTraversalCorrectly() {
+    @Test
+    public void buildsMatchExpressionForSimpleTraversalCorrectly() {
 
-		MatchClause clause = new MatchClause(context, Property.from("group", Person.class));
-		assertThat(clause.toString(), is("(person)<-[:members]-(group)"));
-	}
+        MatchClause clause = new MatchClause(context, PropertyPath.from("group", Person.class));
+        assertThat(clause.toString(), is("(person)<-[:members]-(group)"));
+    }
 
-	@Test
-	public void createsMatchClassForDeepTraversal() {
+    @Test
+    public void createsMatchClassForDeepTraversal() {
 
-		MatchClause clause = new MatchClause(context, Property.from("group.members.age", Person.class));
-		assertThat(clause.toString(), is("(person)<-[:members]-(group)-[:members]->(members)"));
-	}
+        MatchClause clause = new MatchClause(context, PropertyPath.from("group.members.age", Person.class));
+        assertThat(clause.toString(), is("(person)<-[:members]-(group)-[:members]->(members)"));
+    }
 
-	@Test
-	public void stopsAtNonRelationShipProperty() {
+    @Test
+    public void stopsAtNonRelationShipPropertyPath() {
 
-		MatchClause clause = new MatchClause(context, Property.from("group.name", Person.class));
-		assertThat(clause.toString(), is("(person)<-[:members]-(group)"));
-	}
-
-	@NodeEntity
-	class Person {
-
-		private int age;
-
-		@RelatedTo(type = "members", direction = Direction.INCOMING)
-		private Group group;
-	}
+        MatchClause clause = new MatchClause(context, PropertyPath.from("group.name", Person.class));
+        assertThat(clause.toString(), is("(person)<-[:members]-(group)"));
+    }
 
     @NodeEntity
-	class Group {
+    class Person {
 
-		@Indexed
-		private String name;
+        private int age;
 
-		@RelatedTo(type = "members", direction = Direction.OUTGOING)
-		private Set<Person> members;
-	}
+        @RelatedTo(type = "members", direction = Direction.INCOMING)
+        private Group group;
+    }
+
+    @NodeEntity
+    class Group {
+
+        @Indexed
+        private String name;
+
+        @RelatedTo(type = "members", direction = Direction.OUTGOING)
+        private Set<Person> members;
+    }
 }

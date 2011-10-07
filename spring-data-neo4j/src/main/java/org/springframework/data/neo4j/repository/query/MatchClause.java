@@ -16,10 +16,10 @@
 
 package org.springframework.data.neo4j.repository.query;
 
+import org.springframework.data.mapping.PropertyPath;
 import org.springframework.data.neo4j.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.mapping.RelationshipInfo;
-import org.springframework.data.repository.query.parser.Property;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -33,18 +33,18 @@ class MatchClause {
     private final Iterable<Neo4jPersistentProperty> properties;
 
     /**
-     * Creates a new {@link MatchClause} using the given {@link org.springframework.data.neo4j.mapping.Neo4jMappingContext} and {@link Property}.
+     * Creates a new {@link MatchClause} using the given
+     * {@link org.springframework.data.neo4j.mapping.Neo4jMappingContext} and {@link PropertyPath}.
      * 
      * @param context must not be {@literal null}.
      * @param property must not be {@literal null}.
      */
-    public MatchClause(Neo4jMappingContext context, Property property) {
+    public MatchClause(Neo4jMappingContext context, PropertyPath property) {
 
         Assert.notNull(context);
         Assert.notNull(property);
 
-        Class<?> rootType = property.getOwningType().getType();
-        this.properties = context.getPersistentPropertyPath(rootType, property.toDotPath());
+        this.properties = context.getPersistentPropertyPath(property);
     }
 
     /*
@@ -65,9 +65,10 @@ class MatchClause {
             RelationshipInfo info = property.getRelationshipInfo();
             Class<?> ownerType = property.getOwner().getType();
 
-            intermediate = intermediate == null ? asVariableReference(StringUtils.uncapitalize(ownerType.getSimpleName()))
-                    : intermediate;
-            intermediate = String.format(getPattern(info), intermediate, info.getType(), asVariableReference(property.getName()));
+            intermediate = intermediate == null ? asVariableReference(StringUtils.uncapitalize(ownerType
+                    .getSimpleName())) : intermediate;
+            intermediate = String.format(getPattern(info), intermediate, info.getType(),
+                    asVariableReference(property.getName()));
         }
 
         return intermediate.toString();
