@@ -2,3 +2,5 @@
 
 * fetch-strategies / behaviour
 * cascading persist/save
+* @Indexed(level)
+*

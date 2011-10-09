@@ -24,6 +24,8 @@ import java.util.Date;
 
 @RelationshipEntity(useShortNames = false)
 public class Friendship {
+    @GraphId
+    private Long id;
 
     public Friendship() {
 	}
@@ -110,4 +112,8 @@ public class Friendship {
 	public DynamicProperties getPersonalProperties() {
 		return personalProperties;
 	}
+
+    public Long getId() {
+        return id;
+    }
 }

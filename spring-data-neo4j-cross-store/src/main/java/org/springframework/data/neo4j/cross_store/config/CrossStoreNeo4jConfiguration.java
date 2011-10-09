@@ -78,13 +78,13 @@ public class CrossStoreNeo4jConfiguration extends Neo4jAspectConfiguration {
 	}
 
     @Bean
-    public NodeEntityStateFactory nodeEntityStateFactory() throws Exception {
+    public CrossStoreNodeEntityStateFactory nodeEntityStateFactory() throws Exception {
+        return new CrossStoreNodeEntityStateFactory();
+    }
 
-        CrossStoreNodeEntityStateFactory entityStateFactory = new CrossStoreNodeEntityStateFactory();
-        entityStateFactory.setGraphDatabaseContext(graphDatabaseContext());
-        entityStateFactory.setEntityManagerFactory(entityManagerFactory);
-        entityStateFactory.setMappingContext(mappingContext());
-        entityStateFactory.setNodeDelegatingFieldAccessorFactory(nodeDelegatingFieldAccessorFactory());
-        return entityStateFactory;
+    @Override
+    public void wireEntityStateFactories() throws Exception {
+        super.wireEntityStateFactories();
+        nodeEntityStateFactory().setEntityManagerFactory(entityManagerFactory);
     }
 }

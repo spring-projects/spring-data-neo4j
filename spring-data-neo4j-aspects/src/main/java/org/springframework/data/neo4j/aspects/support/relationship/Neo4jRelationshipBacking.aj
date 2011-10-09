@@ -75,7 +75,7 @@ public aspect Neo4jRelationshipBacking {
 
 	public void RelationshipBacked.setPersistentState(Relationship r) {
         if (this.entityState == null) {
-            this.entityState = Neo4jRelationshipBacking.aspectOf().entityStateFactory.getEntityState(this);
+            this.entityState = Neo4jRelationshipBacking.aspectOf().entityStateFactory.getEntityState(this, true);
         }
         this.entityState.setPersistentState(r);
 	}

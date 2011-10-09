@@ -13,25 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.springframework.data.neo4j.mapping;
 
-package org.springframework.data.neo4j.annotation;
-
-import org.springframework.data.annotation.Reference;
-
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.PropertyContainer;
+import org.springframework.data.convert.EntityConverter;
+import org.springframework.data.convert.EntityReader;
+import org.springframework.data.convert.EntityWriter;
 
 /**
- * Field annotation for the start node of a relationship entity. The field type must be a node entity. The start node
- * field is read only.
- *
- * @author Michael Hunger
- * @since 27.08.2010
+ * @author mh
+ * @since 27.09.11
  */
-@Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.FIELD,ElementType.METHOD})
-@Reference
-public @interface StartNode {
+public interface Neo4jEntityConverter<T, S extends PropertyContainer> extends EntityConverter<Neo4jPersistentEntity<?>, Neo4jPersistentProperty, T, S>, EntityWriter<T,S>,
+        EntityReader<T, S> {
+
 }

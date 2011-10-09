@@ -67,6 +67,7 @@ public class Person {
 	@RelatedTo(type = "boss", direction = Direction.INCOMING)
 	private Person boss;
 
+    @Fetch
 	@RelatedToVia(type = "knows", elementClass = Friendship.class)
 	private Iterable<Friendship> friendships;
 

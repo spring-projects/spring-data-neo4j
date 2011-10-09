@@ -23,8 +23,9 @@ import org.springframework.data.neo4j.fieldaccess.DelegatingFieldAccessorFactory
 import org.springframework.data.neo4j.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentEntity;
 import org.springframework.data.neo4j.support.GraphDatabaseContext;
+import org.springframework.data.neo4j.support.node.EntityStateFactory;
 
-public class RelationshipEntityStateFactory {
+public class RelationshipEntityStateFactory implements EntityStateFactory<Relationship> {
 
 	private GraphDatabaseContext graphDatabaseContext;
 	
@@ -32,7 +33,7 @@ public class RelationshipEntityStateFactory {
     private Neo4jMappingContext mappingContext;
 
     @SuppressWarnings("unchecked")
-    public EntityState<Relationship> getEntityState(final Object entity) {
+    public EntityState<Relationship> getEntityState(final Object entity, boolean detachable) {
         final Class<?> entityType = entity.getClass();
         return new RelationshipEntityState(null,entity, entityType, graphDatabaseContext, relationshipDelegatingFieldAccessorFactory, (Neo4jPersistentEntity) mappingContext.getPersistentEntity(entityType));
 	}
@@ -48,5 +49,10 @@ public class RelationshipEntityStateFactory {
 
     public void setMappingContext(Neo4jMappingContext mappingContext) {
         this.mappingContext = mappingContext;
+    }
+
+    @Override
+    public GraphDatabaseContext getGraphDatabaseContext() {
+        return graphDatabaseContext;
     }
 }

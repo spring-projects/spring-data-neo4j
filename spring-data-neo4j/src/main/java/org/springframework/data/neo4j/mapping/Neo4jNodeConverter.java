@@ -24,7 +24,6 @@ import org.springframework.data.convert.EntityWriter;
  * @author mh
  * @since 27.09.11
  */
-public interface Neo4jNodeConverter extends EntityConverter<Neo4jPersistentEntity<?>, Neo4jPersistentProperty, Object, Node>, EntityWriter<Object,Node>,
-        EntityReader<Object, Node> {
+public interface Neo4jNodeConverter<T> extends Neo4jEntityConverter<T,Node> {
 
 }

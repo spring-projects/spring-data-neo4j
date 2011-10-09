@@ -36,14 +36,14 @@
 	</issueManagement>
 	<mailingLists>
 		<mailingList>
-			<name>Spring Batch Forum</name>
+			<name>Spring Data Forum</name>
 			<post>http://forum.springsource.org/forumdisplay.php?f=80</post>
 			<archive>http://forum.springsource.org/forumdisplay.php?f=80</archive>
 		</mailingList>
 	</mailingLists>
 	<ciManagement>
 		<system>Bamboo</system>
-		<url>https://build.springsource.org/browse/SPRINGDATA</url>
+		<url>https://build.springsource.org/browse/SPRINGDATA-DATAGRAPH</url>
 	</ciManagement>
 
 	<developers>

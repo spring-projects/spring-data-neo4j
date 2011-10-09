@@ -17,7 +17,6 @@
 package org.springframework.data.neo4j.support.node;
 
 import org.neo4j.graphdb.Node;
-import org.springframework.data.neo4j.annotation.NodeEntity;
 import org.springframework.data.neo4j.core.EntityState;
 
 import org.springframework.data.neo4j.fieldaccess.DelegatingFieldAccessorFactory;
@@ -26,7 +25,7 @@ import org.springframework.data.neo4j.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentEntity;
 import org.springframework.data.neo4j.support.GraphDatabaseContext;
 
-public class NodeEntityStateFactory {
+public class NodeEntityStateFactory implements EntityStateFactory<Node> {
 
 	protected GraphDatabaseContext graphDatabaseContext;
 
@@ -34,16 +33,16 @@ public class NodeEntityStateFactory {
 
     protected Neo4jMappingContext mappingContext;
 
-    private boolean createDetachableEntities = true;
-
-    public EntityState<Node> getEntityState(final Object entity) {
+    public EntityState<Node> getEntityState(final Object entity, boolean detachable) {
         final Class<?> entityType = entity.getClass();
-        final NodeEntity graphEntityAnnotation = entityType.getAnnotation(NodeEntity.class); // todo cache ??
-        final Neo4jPersistentEntity<?> persistentEntity = mappingContext.getPersistentEntity(entityType);
-        NodeEntityState nodeEntityState = new NodeEntityState(null, entity, entityType, graphDatabaseContext, nodeDelegatingFieldAccessorFactory, (Neo4jPersistentEntity) persistentEntity);
-        // alternative was return new NestedTransactionEntityState<NodeBacked, Node>(nodeEntityState,graphDatabaseContext);
-        if (createDetachableEntities) return new DetachedEntityState<Node>(nodeEntityState, graphDatabaseContext);
-        return nodeEntityState;
+        @SuppressWarnings("unchecked") final Neo4jPersistentEntity<Object> persistentEntity =
+                (Neo4jPersistentEntity<Object>) mappingContext.getPersistentEntity(entityType);
+        NodeEntityState nodeEntityState = new NodeEntityState(null, entity, entityType, graphDatabaseContext,
+                nodeDelegatingFieldAccessorFactory, persistentEntity);
+        if (!detachable) {
+            return nodeEntityState;
+        }
+        return new DetachedEntityState<Node>(nodeEntityState, graphDatabaseContext);
     }
 
     public void setNodeDelegatingFieldAccessorFactory(
@@ -67,7 +66,4 @@ public class NodeEntityStateFactory {
         return graphDatabaseContext;
     }
 
-    public void setCreateDetachableEntities(boolean createDetachableEntities) {
-        this.createDetachableEntities = createDetachableEntities;
-    }
 }

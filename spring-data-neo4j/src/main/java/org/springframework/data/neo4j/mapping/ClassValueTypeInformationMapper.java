@@ -13,29 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.data.neo4j.mapping;
 
-import org.neo4j.graphdb.PropertyContainer;
-import org.springframework.data.mapping.PersistentEntity;
-import org.springframework.data.neo4j.support.GraphDatabaseContext;
+import org.springframework.data.convert.TypeInformationMapper;
+import org.springframework.data.util.ClassTypeInformation;
+import org.springframework.data.util.TypeInformation;
 
 /**
- * Interface for Neo4J specific {@link PersistentEntity}.
- * 
- * @author Oliver Gierke
- */
-public interface Neo4jPersistentEntity<T> extends PersistentEntity<T, Neo4jPersistentProperty> {
+* @author mh
+* @since 09.10.11
+*/
+public class ClassValueTypeInformationMapper implements TypeInformationMapper {
+    @Override
+    public TypeInformation<?> resolveTypeFrom(Object alias) {
+        if (!(alias instanceof Class)) {
+            return null;
+        }
 
-    boolean useShortNames();
+        return ClassTypeInformation.from((Class<?>) alias);
+    }
 
-    boolean isNodeEntity();
-
-    boolean isRelationshipEntity();
-
-    void setPersistentState(Object entity, PropertyContainer pc);
-
-    Object getPersistentId(Object entity);
-
-    RelationshipProperties getRelationshipProperties();
+    @Override
+    public Object createAliasFor(TypeInformation<?> type) {
+        return type.getType();
+    }
 }

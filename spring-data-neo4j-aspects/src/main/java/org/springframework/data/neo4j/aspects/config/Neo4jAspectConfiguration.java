@@ -16,22 +16,26 @@
 package org.springframework.data.neo4j.aspects.config;
 
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.data.neo4j.aspects.support.node.Neo4jNodeBacking;
 import org.springframework.data.neo4j.aspects.support.relationship.Neo4jRelationshipBacking;
 import org.springframework.data.neo4j.config.Neo4jConfiguration;
 import org.springframework.data.neo4j.support.node.NodeEntityStateFactory;
 
+import javax.annotation.PostConstruct;
+
 /**
  * @author mh
  * @since 30.09.11
  */
+@Configuration
 public class Neo4jAspectConfiguration extends Neo4jConfiguration
 {
     @Bean
     public Neo4jRelationshipBacking neo4jRelationshipBacking() throws Exception {
         Neo4jRelationshipBacking aspect = Neo4jRelationshipBacking.aspectOf();
         aspect.setGraphDatabaseContext(graphDatabaseContext());
-aspect.setRelationshipEntityStateFactory(relationshipEntityStateFactory());
+        aspect.setRelationshipEntityStateFactory(relationshipEntityStateFactory());
         return aspect;
     }
 
@@ -43,4 +47,10 @@ aspect.setRelationshipEntityStateFactory(relationshipEntityStateFactory());
 		aspect.setNodeEntityStateFactory(entityStateFactory);
 		return aspect;
 	}
+
+    @Override
+    @PostConstruct
+    public void wireEntityStateFactories() throws Exception {
+        super.wireEntityStateFactories();
+    }
 }

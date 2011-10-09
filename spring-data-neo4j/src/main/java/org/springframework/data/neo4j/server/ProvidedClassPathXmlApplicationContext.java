@@ -42,4 +42,9 @@ public class ProvidedClassPathXmlApplicationContext extends ClassPathXmlApplicat
         beanFactory.registerResolvableDependency(GraphDatabaseService.class, database);
         beanFactory.registerSingleton("graphDatabaseService", database);
     }
+
+    @Override
+    protected void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) {
+        super.postProcessBeanFactory(beanFactory);
+    }
 }

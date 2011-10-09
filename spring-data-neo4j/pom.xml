@@ -53,6 +53,7 @@
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-api</artifactId>
+            <scope>runtime</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.slf4j</groupId>
@@ -103,6 +104,7 @@
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
+            <scope>test</scope>
 		</dependency>
 
 		<dependency>
@@ -132,7 +134,7 @@
 		<dependency>
 			<groupId>org.neo4j</groupId>
 			<artifactId>server-api</artifactId>
-		 <optional>true</optional>
+		    <optional>true</optional>
 		</dependency>
 
         <dependency>

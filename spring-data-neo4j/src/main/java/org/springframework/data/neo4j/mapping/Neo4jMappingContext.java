@@ -19,8 +19,12 @@ package org.springframework.data.neo4j.mapping;
 import org.neo4j.graphdb.PropertyContainer;
 import org.springframework.data.mapping.context.AbstractMappingContext;
 import org.springframework.data.mapping.context.MappingContext;
+import org.springframework.data.mapping.model.MappingException;
 import org.springframework.data.mapping.model.SimpleTypeHolder;
+import org.springframework.data.neo4j.annotation.NodeEntity;
+import org.springframework.data.neo4j.annotation.RelationshipEntity;
 import org.springframework.data.util.TypeInformation;
+import scala.annotation.target.field;
 
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.Field;
@@ -34,7 +38,14 @@ import java.lang.reflect.Field;
 public class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersistentEntityImpl<?>, Neo4jPersistentProperty> {
 
     protected <T> Neo4jPersistentEntityImpl<?> createPersistentEntity(TypeInformation<T> typeInformation) {
-        return new Neo4jPersistentEntityImpl<T>(typeInformation);
+        final Class<T> type = typeInformation.getType();
+        if (type.isAnnotationPresent(NodeEntity.class)) {
+            return new Neo4jPersistentEntityImpl<T>(typeInformation);
+        }
+        if (type.isAnnotationPresent(RelationshipEntity.class)) {
+            return new Neo4jPersistentEntityImpl<T>(typeInformation);
+        }
+        throw new MappingException("Type "+type+" is neither a @NodeEntity nor a @RelationshipEntity");
     }
 
     @Override
@@ -55,5 +66,4 @@ public class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersistentE
         final Neo4jPersistentEntityImpl<?> persistentEntity = getPersistentEntity(entity.getClass());
         persistentEntity.setPersistentState(entity, pc);
     }
-
 }

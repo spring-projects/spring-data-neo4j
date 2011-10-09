@@ -19,10 +19,11 @@ package org.springframework.data.neo4j.mapping;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.PropertyContainer;
 import org.neo4j.graphdb.Relationship;
+import org.springframework.data.mapping.Association;
 import org.springframework.data.mapping.model.BasicPersistentEntity;
 import org.springframework.data.mapping.model.MappingException;
-import org.springframework.data.neo4j.annotation.NodeEntity;
-import org.springframework.data.neo4j.annotation.RelationshipEntity;
+import org.springframework.data.neo4j.annotation.*;
+import org.springframework.data.neo4j.support.ManagedEntity;
 import org.springframework.data.util.TypeInformation;
 
 import java.lang.annotation.Annotation;
@@ -34,9 +35,13 @@ import java.util.Map;
  *
  * @author Oliver Gierke
  */
-public class Neo4jPersistentEntityImpl<T> extends BasicPersistentEntity<T, Neo4jPersistentProperty> implements Neo4jPersistentEntity<T> {
+public class Neo4jPersistentEntityImpl<T> extends BasicPersistentEntity<T, Neo4jPersistentProperty> implements Neo4jPersistentEntity<T>, RelationshipProperties {
 
     private Map<Class<? extends Annotation>,Annotation> annotations=new IdentityHashMap<Class<? extends Annotation>,Annotation>();
+    private final boolean managed;
+    private Neo4jPersistentProperty startNodeProperty;
+    private Neo4jPersistentProperty endNodeProperty;
+    private Neo4jPersistentProperty relationshipType;
 
     /**
      * Creates a new {@link Neo4jPersistentEntityImpl} instance.
@@ -48,6 +53,7 @@ public class Neo4jPersistentEntityImpl<T> extends BasicPersistentEntity<T, Neo4j
         for (Annotation annotation : information.getType().getAnnotations()) {
             annotations.put(annotation.annotationType(),annotation);
         }
+        managed = ManagedEntity.class.isAssignableFrom(information.getType());
     }
 
     public boolean useShortNames() {
@@ -103,7 +109,51 @@ public class Neo4jPersistentEntityImpl<T> extends BasicPersistentEntity<T, Neo4j
         return idProperty.getValue(entity);
     }
 
+    @Override
+    public RelationshipProperties getRelationshipProperties() {
+        return isRelationshipEntity() ? this : null;
+    }
+
     public String getEntityName() {
         return getType().getName();
+    }
+
+    public boolean isManaged() {
+        return managed;
+    }
+
+    @Override
+    public void addPersistentProperty(Neo4jPersistentProperty property) {
+        super.addPersistentProperty(property);
+        if (property.isAnnotationPresent(RelationshipType.class)) {
+            this.relationshipType = property;
+        }
+    }
+
+    @Override
+    public void addAssociation(Association<Neo4jPersistentProperty> neo4jPersistentPropertyAssociation) {
+        super.addAssociation(neo4jPersistentPropertyAssociation);
+        final Neo4jPersistentProperty property = neo4jPersistentPropertyAssociation.getInverse();
+        if (property.isAnnotationPresent(StartNode.class)) {
+            this.startNodeProperty = property;
+        }
+        if (property.isAnnotationPresent(EndNode.class)) {
+            this.endNodeProperty = property;
+        }
+    }
+
+    @Override
+    public Neo4jPersistentProperty getStartNodeProperty() {
+        return startNodeProperty;
+    }
+
+    @Override
+    public Neo4jPersistentProperty getEndeNodeProperty() {
+        return endNodeProperty;
+    }
+
+    @Override
+    public Neo4jPersistentProperty getTypeProperty() {
+        return relationshipType;
     }
 }

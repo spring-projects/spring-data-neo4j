@@ -89,7 +89,7 @@ public abstract class DocumentingTestBase {
             StringBuilder snippetText = new StringBuilder();
             boolean inSnippet = false;
             while ((line = reader.readLine()) != null) {
-                if (line.matches(".*//.+SNIPPET\\s+"+snippet+".*")) {
+                if (line.matches(".*//.+SNIPPET\\s+.*\\b"+snippet+"\\b.*")) {
                     inSnippet = !inSnippet;
                     continue;
                 }

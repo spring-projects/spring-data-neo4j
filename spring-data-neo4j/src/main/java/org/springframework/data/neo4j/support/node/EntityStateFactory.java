@@ -13,25 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.springframework.data.neo4j.support.node;
 
-package org.springframework.data.neo4j.annotation;
-
-import org.springframework.data.annotation.Reference;
-
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.PropertyContainer;
+import org.springframework.data.neo4j.core.EntityState;
+import org.springframework.data.neo4j.support.GraphDatabaseContext;
 
 /**
- * Field annotation for the start node of a relationship entity. The field type must be a node entity. The start node
- * field is read only.
- *
- * @author Michael Hunger
- * @since 27.08.2010
+ * @author mh
+ * @since 07.10.11
  */
-@Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.FIELD,ElementType.METHOD})
-@Reference
-public @interface StartNode {
+public interface EntityStateFactory<S extends PropertyContainer> {
+    EntityState<S> getEntityState(final Object entity, boolean detachable);
+
+    GraphDatabaseContext getGraphDatabaseContext();
 }

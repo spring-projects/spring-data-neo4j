@@ -221,4 +221,15 @@ class Neo4jPersistentPropertyImpl extends AbstractPersistentProperty<Neo4jPersis
     public Neo4jPersistentEntity<?> getOwner() {
         return (Neo4jPersistentEntity<?>)super.getOwner();
     }
+    @Override
+    public boolean isEntity() {
+        return super.isEntity() && (isRelationshipEntity() || isNodeEntity());
+    }
+
+    private boolean isRelationshipEntity() {
+        return getType().isAnnotationPresent(RelationshipEntity.class);
+    }
+    private boolean isNodeEntity() {
+        return getType().isAnnotationPresent(NodeEntity.class);
+    }
 }

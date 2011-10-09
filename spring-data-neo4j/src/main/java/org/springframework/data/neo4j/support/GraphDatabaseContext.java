@@ -28,8 +28,12 @@ import org.neo4j.helpers.collection.IterableWrapper;
 import org.neo4j.index.impl.lucene.LuceneIndexImplementation;
 import org.neo4j.kernel.AbstractGraphDatabase;
 import org.springframework.core.convert.ConversionService;
+import org.springframework.data.convert.EntityConverter;
 import org.springframework.data.neo4j.annotation.Indexed;
+import org.springframework.data.neo4j.annotation.NodeEntity;
+import org.springframework.data.neo4j.annotation.RelationshipEntity;
 import org.springframework.data.neo4j.core.*;
+import org.springframework.data.neo4j.mapping.Neo4jEntityConverter;
 import org.springframework.data.neo4j.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.mapping.Neo4jNodeConverter;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
@@ -60,11 +64,11 @@ public class GraphDatabaseContext {
 
     private GraphDatabaseService graphDatabaseService;
     private ConversionService conversionService;
-    private Neo4jNodeConverter converter;
+    private Neo4jEntityConverter<Object,Node> converter;
     private Validator validator;
-    private NodeTypeRepresentationStrategy nodeTypeRepresentationStrategy;
+    private TypeRepresentationStrategy<Node> nodeTypeRepresentationStrategy;
 
-    private RelationshipTypeRepresentationStrategy relationshipTypeRepresentationStrategy;
+    private TypeRepresentationStrategy<Relationship> relationshipTypeRepresentationStrategy;
 
     private Neo4jMappingContext mappingContext;
     private CypherQueryExecutor cypherQueryExecutor;
@@ -313,19 +317,19 @@ public class GraphDatabaseContext {
         this.cypherQueryExecutor = new CypherQueryExecutor(this);
     }
 
-    public NodeTypeRepresentationStrategy getNodeTypeRepresentationStrategy() {
+    public TypeRepresentationStrategy<Node> getNodeTypeRepresentationStrategy() {
         return nodeTypeRepresentationStrategy;
     }
 
-    public void setNodeTypeRepresentationStrategy(NodeTypeRepresentationStrategy nodeTypeRepresentationStrategy) {
+    public void setNodeTypeRepresentationStrategy(TypeRepresentationStrategy<Node> nodeTypeRepresentationStrategy) {
         this.nodeTypeRepresentationStrategy = nodeTypeRepresentationStrategy;
     }
 
-    public RelationshipTypeRepresentationStrategy getRelationshipTypeRepresentationStrategy() {
+    public TypeRepresentationStrategy<Relationship> getRelationshipTypeRepresentationStrategy() {
         return relationshipTypeRepresentationStrategy;
     }
 
-    public void setRelationshipTypeRepresentationStrategy(RelationshipTypeRepresentationStrategy relationshipTypeRepresentationStrategy) {
+    public void setRelationshipTypeRepresentationStrategy(TypeRepresentationStrategy<Relationship> relationshipTypeRepresentationStrategy) {
         this.relationshipTypeRepresentationStrategy = relationshipTypeRepresentationStrategy;
     }
 
@@ -350,11 +354,13 @@ public class GraphDatabaseContext {
     }
 
     public boolean isNodeEntity(Class<?> targetType) {
-        return mappingContext.isNodeEntity(targetType);
+        return targetType.isAnnotationPresent(NodeEntity.class);
+        //return mappingContext.isNodeEntity(targetType);
     }
 
     public boolean isRelationshipEntity(Class targetType) {
-        return mappingContext.isRelationshipEntity(targetType);
+        return targetType.isAnnotationPresent(RelationshipEntity.class);
+        // return mappingContext.isRelationshipEntity(targetType);
     }
 
     public Object save(Object entity) {
@@ -371,7 +377,7 @@ public class GraphDatabaseContext {
         return entityStateHandler.isManaged(entity);
     }
 
-    public void setConverter(Neo4jNodeConverter converter) {
+    public void setNodeEntityConverter(Neo4jEntityConverter<Object, Node> converter) {
         this.converter = converter;
     }
 

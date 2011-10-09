@@ -22,6 +22,7 @@ import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.neo4j.rest.graphdb.RequestResult;
 import org.springframework.data.neo4j.aspects.Person;
@@ -38,6 +39,7 @@ import static org.springframework.data.neo4j.aspects.Person.persistedPerson;
  * @author mh
  * @since 14.04.11
  */
+@Ignore("TODO")
 public class ServerPluginTest extends RestTestBase {
 
     private Person person;

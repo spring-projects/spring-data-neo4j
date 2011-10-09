@@ -35,6 +35,7 @@ public class Group {
     public static final String SEARCH_GROUPS_INDEX = "search-groups";
 
     @RelatedTo(direction = Direction.OUTGOING)
+    @Fetch
     private Collection<Person> persons;
 
     @RelatedTo(type = "persons", elementClass = Person.class)

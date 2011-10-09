@@ -33,4 +33,5 @@
     </bean>
 
     <tx:annotation-driven mode="aspectj" transaction-manager="transactionManager"/>
+    <!--context:load-time-weaver aspectj-weaving="autodetect"/-->
 </beans>

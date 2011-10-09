@@ -41,6 +41,7 @@ public class RelationshipDelegatingFieldAccessorFactory extends DelegatingFieldA
     protected Collection<? extends FieldAccessorFactory> createAccessorFactories() {
         return Arrays.<FieldAccessorFactory>asList(
                 new TransientFieldAccessorFactory(),
+                new IdFieldAccessorFactory(graphDatabaseContext),
                 new RelationshipNodeFieldAccessorFactory(graphDatabaseContext),
                 new PropertyFieldAccessorFactory(graphDatabaseContext),
                 new ConvertingNodePropertyFieldAccessorFactory(graphDatabaseContext),

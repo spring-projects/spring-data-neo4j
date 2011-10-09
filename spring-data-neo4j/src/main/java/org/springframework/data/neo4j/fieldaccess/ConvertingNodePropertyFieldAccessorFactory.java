@@ -31,16 +31,19 @@ public class ConvertingNodePropertyFieldAccessorFactory implements FieldAccessor
 
 
     private final GraphDatabaseContext graphDatabaseContext;
-    private ConversionService conversionService;
 
     public ConvertingNodePropertyFieldAccessorFactory(GraphDatabaseContext graphDatabaseContext) {
         this.graphDatabaseContext = graphDatabaseContext;
-        this.conversionService = graphDatabaseContext.getConversionService();
     }
 
-    
+    private ConversionService getConversionService() {
+        return graphDatabaseContext.getConversionService();
+    }
+
+
 	@Override
     public boolean accept(final Neo4jPersistentProperty property) {
+        final ConversionService conversionService = getConversionService();
         return property.isSerializableField(conversionService) && property.isDeserializableField(conversionService);
     }
 

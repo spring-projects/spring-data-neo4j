@@ -36,12 +36,15 @@ public class CrossStoreNodeEntityStateFactory extends NodeEntityStateFactory {
     private CrossStoreNodeEntityState.CrossStoreNodeDelegatingFieldAccessorFactory delegatingFieldAccessorFactory;
     private EntityManagerFactory entityManagerFactory;
 
-    public EntityState<Node> getEntityState(final Object entity) {
+    public EntityState<Node> getEntityState(final Object entity, boolean detachable) {
         final Class<?> entityType = entity.getClass();
-        final NodeEntity graphEntityAnnotation = entityType.getAnnotation(NodeEntity.class); // todo cache ??
-        final Neo4jPersistentEntity<?> persistentEntity = mappingContext.getPersistentEntity(entityType);
-        if (graphEntityAnnotation.partial()) {
-            final CrossStoreNodeEntityState<NodeBacked> partialNodeEntityState = new CrossStoreNodeEntityState<NodeBacked>(null, (NodeBacked)entity, (Class<? extends NodeBacked>) entityType, graphDatabaseContext, getPersistenceUnitUtils(), delegatingFieldAccessorFactory,  persistentEntity);
+        if (isPartial(entityType)) {
+            final Neo4jPersistentEntity<?> persistentEntity = mappingContext.getPersistentEntity(entityType);
+            @SuppressWarnings("unchecked") final CrossStoreNodeEntityState<NodeBacked> partialNodeEntityState =
+                    new CrossStoreNodeEntityState<NodeBacked>(null, (NodeBacked)entity, (Class<? extends NodeBacked>) entityType,
+                            graphDatabaseContext, getPersistenceUnitUtils(), delegatingFieldAccessorFactory,
+                            persistentEntity);
+            if (!detachable) return partialNodeEntityState;
             return new DetachedEntityState<Node>(partialNodeEntityState, graphDatabaseContext) {
                 @Override
                 protected boolean isDetached() {
@@ -49,10 +52,13 @@ public class CrossStoreNodeEntityStateFactory extends NodeEntityStateFactory {
                 }
             };
         } else {
-            NodeEntityState nodeEntityState = new NodeEntityState(null, entity, entityType, graphDatabaseContext, nodeDelegatingFieldAccessorFactory, (Neo4jPersistentEntity) persistentEntity);
-            // alternative was return new NestedTransactionEntityState<NodeBacked, Node>(nodeEntityState,graphDatabaseContext);
-            return new DetachedEntityState<Node>(nodeEntityState, graphDatabaseContext);
+            return super.getEntityState(entity,detachable);
         }
+    }
+
+    private boolean isPartial(Class<?> entityType) {
+        final NodeEntity graphEntityAnnotation = entityType.getAnnotation(NodeEntity.class); // todo cache ??
+        return graphEntityAnnotation.partial();
     }
 
     private PersistenceUnitUtil getPersistenceUnitUtils() {
