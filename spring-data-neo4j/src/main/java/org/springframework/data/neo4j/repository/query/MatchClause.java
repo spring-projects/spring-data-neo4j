@@ -13,94 +13,63 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.data.neo4j.repository.query;
 
-import org.springframework.data.mapping.PropertyPath;
-import org.springframework.data.neo4j.mapping.Neo4jMappingContext;
+import org.springframework.data.mapping.context.PersistentPropertyPath;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.mapping.RelationshipInfo;
 import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
 
 /**
- * Value object to build the {@code match} clause of a Cypher query.
+ * Value object to build the {@literal match} clause of a Cypher query.
  * 
  * @author Oliver Gierke
  */
 class MatchClause {
 
-    private final Iterable<Neo4jPersistentProperty> properties;
+    private final PersistentPropertyPath<Neo4jPersistentProperty> path;
 
     /**
-     * Creates a new {@link MatchClause} using the given
-     * {@link org.springframework.data.neo4j.mapping.Neo4jMappingContext} and {@link PropertyPath}.
+     * Creates a new {@link MatchClause} using the given {@link PersistentPropertyPath}.
      * 
-     * @param context must not be {@literal null}.
-     * @param property must not be {@literal null}.
+     * @param path must not be {@literal null}.
      */
-    public MatchClause(Neo4jMappingContext context, PropertyPath property) {
-
-        Assert.notNull(context);
-        Assert.notNull(property);
-
-        this.properties = context.getPersistentPropertyPath(property);
+    public MatchClause(PersistentPropertyPath<Neo4jPersistentProperty> path) {
+        Assert.notNull(path);
+        this.path = relationshipPath(path);
     }
 
-    /*
-     * (non-Javadoc)
-     * @see java.lang.Object#toString()
+    private PersistentPropertyPath<Neo4jPersistentProperty> relationshipPath(
+            PersistentPropertyPath<Neo4jPersistentProperty> path) {
+
+        return (path.getLength() == 1 || path.getLeafProperty().isRelationship()) ? path : relationshipPath(path
+                .getParentPath());
+    }
+
+    /**
+     * Returns whether the match clause actually deals with a relationship.
      */
-    @Override
-    public String toString() {
-
-        String intermediate = null;
-
-        for (Neo4jPersistentProperty property : properties) {
-
-            if (!property.isRelationship()) {
-                return intermediate;
+    public boolean hasRelationship() {
+        for (Neo4jPersistentProperty property : path) {
+            if (property.isRelationship()) {
+                return true;
             }
-
-            RelationshipInfo info = property.getRelationshipInfo();
-            Class<?> ownerType = property.getOwner().getType();
-
-            intermediate = intermediate == null ? asVariableReference(StringUtils.uncapitalize(ownerType
-                    .getSimpleName())) : intermediate;
-            intermediate = String.format(getPattern(info), intermediate, info.getType(),
-                    asVariableReference(property.getName()));
         }
-
-        return intermediate.toString();
+        return false;
     }
 
-    /**
-     * Returns the given value as variable reference.
-     * 
-     * @param value
-     * @return
-     */
-    private static String asVariableReference(String value) {
-        return String.format("(%s)", value);
+    public String toString(VariableContext variableContext) {
+        return matchPattern(variableContext, path);
     }
 
-    /**
-     * Returns the clause pattern for the given {@link RelationshipInfo}.
-     * 
-     * @param info must not be {@literal null}.
-     * @return
-     */
-    private static String getPattern(RelationshipInfo info) {
-
-        switch (info.getDirection()) {
-        case OUTGOING:
-            return "%s-[:%s]->%s";
-        case INCOMING:
-            return "%s<-[:%s]-%s";
-        case BOTH:
-            return "%s-[:%s]-%s";
-        default:
-            throw new IllegalArgumentException("Unsupported direction!");
+    private String matchPattern(VariableContext variableContext, PersistentPropertyPath<Neo4jPersistentProperty> relPath) {
+        if (relPath.getLength() == 1) {
+            final Neo4jPersistentProperty property = relPath.getBaseProperty();
+            return variableContext.getVariableFor(property.getOwner()) + QueryTemplates.getArrow(property.getRelationshipInfo())
+                    + variableContext.getVariableFor(relPath);
         }
+        final RelationshipInfo info = relPath.getLeafProperty().getRelationshipInfo();
+        return matchPattern(variableContext, relPath.getParentPath()) + QueryTemplates.getArrow(info)
+                + variableContext.getVariableFor(relPath);
     }
 }

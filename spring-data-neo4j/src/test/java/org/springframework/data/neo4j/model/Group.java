@@ -16,27 +16,33 @@
 
 package org.springframework.data.neo4j.model;
 
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
+
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.DynamicRelationshipType;
 import org.neo4j.graphdb.traversal.TraversalDescription;
 import org.neo4j.kernel.Traversal;
 import org.neo4j.kernel.impl.traversal.TraversalDescriptionImpl;
-import org.springframework.data.neo4j.annotation.*;
+import org.springframework.data.neo4j.annotation.GraphId;
+import org.springframework.data.neo4j.annotation.GraphProperty;
+import org.springframework.data.neo4j.annotation.GraphTraversal;
+import org.springframework.data.neo4j.annotation.Indexed;
+import org.springframework.data.neo4j.annotation.NodeEntity;
+import org.springframework.data.neo4j.annotation.RelatedTo;
 import org.springframework.data.neo4j.core.FieldTraversalDescriptionBuilder;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
-
-import java.util.Collection;
-import java.util.Set;
+import org.springframework.util.ObjectUtils;
 
 @NodeEntity
 public class Group {
 
-    public final static String OTHER_NAME_INDEX="other_name";
+    public final static String OTHER_NAME_INDEX = "other_name";
     public static final String SEARCH_GROUPS_INDEX = "search-groups";
 
     @RelatedTo(direction = Direction.OUTGOING)
-    @Fetch
-    private Collection<Person> persons;
+    private Collection<Person> persons = new HashSet<Person>();
 
     @RelatedTo(type = "persons", elementClass = Person.class)
     private Iterable<Person> readOnlyPersons;
@@ -64,13 +70,13 @@ public class Group {
     @Indexed(fieldName = OTHER_NAME_INDEX)
     private String otherName;
 
-    @Indexed(level=Indexed.Level.GLOBAL)
+    @Indexed(level = Indexed.Level.GLOBAL)
     private String globalName;
 
-    @Indexed(level=Indexed.Level.CLASS)
+    @Indexed(level = Indexed.Level.CLASS)
     private String classLevelName;
 
-    @Indexed(level=Indexed.Level.INSTANCE)
+    @Indexed(level = Indexed.Level.INSTANCE)
     private String indexLevelName;
 
     @GraphId
@@ -127,10 +133,9 @@ public class Group {
     private static class PeopleTraversalBuilder implements FieldTraversalDescriptionBuilder {
         @SuppressWarnings("deprecation")
         @Override
-        public TraversalDescription build(Object start, Neo4jPersistentProperty property, String...params) {
-            return new TraversalDescriptionImpl()
-                    .relationships(DynamicRelationshipType.withName(params[0]))
-                    .filter(Traversal.returnAllButStartNode());
+        public TraversalDescription build(Object start, Neo4jPersistentProperty property, String... params) {
+            return new TraversalDescriptionImpl().relationships(DynamicRelationshipType.withName(params[0])).filter(
+                    Traversal.returnAllButStartNode());
 
         }
     }
@@ -169,5 +174,31 @@ public class Group {
 
     public void setAdmin(Boolean admin) {
         this.admin = admin;
+    }
+
+    /* (non-Javadoc)
+     * @see java.lang.Object#equals(java.lang.Object)
+     */
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+
+        if (obj == null || !getClass().equals(obj.getClass())) {
+            return false;
+        }
+
+        Group that = (Group) obj;
+
+        return ObjectUtils.nullSafeEquals(this.id, that.id);
+    }
+
+    /* (non-Javadoc)
+     * @see java.lang.Object#hashCode()
+     */
+    @Override
+    public int hashCode() {
+        return ObjectUtils.nullSafeHashCode(this.id);
     }
 }

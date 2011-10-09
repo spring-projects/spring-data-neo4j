@@ -16,6 +16,13 @@
 
 package org.springframework.data.neo4j.repository;
 
+import java.io.Serializable;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.PropertyContainer;
 import org.neo4j.graphdb.Relationship;
@@ -23,12 +30,11 @@ import org.neo4j.helpers.collection.IteratorUtil;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.neo4j.annotation.NodeEntity;
+import org.springframework.data.mapping.context.MappingContext;
 import org.springframework.data.neo4j.annotation.Query;
-import org.springframework.data.neo4j.annotation.QueryType;
-import org.springframework.data.neo4j.annotation.RelationshipEntity;
-
-
+import org.springframework.data.neo4j.mapping.Neo4jPersistentEntity;
+import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
+import org.springframework.data.neo4j.repository.query.DerivedCypherRepositoryQuery;
 import org.springframework.data.neo4j.support.GenericTypeExtractor;
 import org.springframework.data.neo4j.support.GraphDatabaseContext;
 import org.springframework.data.neo4j.support.conversion.EntityResultConverter;
@@ -38,19 +44,12 @@ import org.springframework.data.repository.core.EntityInformation;
 import org.springframework.data.repository.core.NamedQueries;
 import org.springframework.data.repository.core.RepositoryMetadata;
 import org.springframework.data.repository.core.support.RepositoryFactorySupport;
-import org.springframework.data.repository.query.*;
+import org.springframework.data.repository.query.Parameter;
+import org.springframework.data.repository.query.Parameters;
+import org.springframework.data.repository.query.QueryLookupStrategy;
+import org.springframework.data.repository.query.QueryMethod;
+import org.springframework.data.repository.query.RepositoryQuery;
 import org.springframework.util.Assert;
-
-import java.io.Serializable;
-import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import static org.springframework.core.annotation.AnnotationUtils.findAnnotation;
-import static org.springframework.data.neo4j.annotation.QueryType.Cypher;
-import static org.springframework.data.neo4j.annotation.QueryType.Gremlin;
 
 /**
  * @author mh
@@ -58,12 +57,23 @@ import static org.springframework.data.neo4j.annotation.QueryType.Gremlin;
  */
 public class GraphRepositoryFactory extends RepositoryFactorySupport {
 
-
     private final GraphDatabaseContext graphDatabaseContext;
+    private final MappingContext<? extends Neo4jPersistentEntity<?>, Neo4jPersistentProperty> mappingContext;
 
-    public GraphRepositoryFactory(GraphDatabaseContext graphDatabaseContext) {
+    /**
+     * Creates a new {@link GraphRepositoryFactory} from the given {@link GraphDatabaseContext} and
+     * {@link MappingContext}.
+     * 
+     * @param graphDatabaseContext must not be {@literal null}.
+     * @param mappingContext must not be {@literal null}.
+     */
+    public GraphRepositoryFactory(GraphDatabaseContext graphDatabaseContext, MappingContext<? extends Neo4jPersistentEntity<?>, Neo4jPersistentProperty> mappingContext) {
+
         Assert.notNull(graphDatabaseContext);
+        Assert.notNull(mappingContext);
+
         this.graphDatabaseContext = graphDatabaseContext;
+        this.mappingContext = mappingContext;
     }
 
 
@@ -82,7 +92,6 @@ public class GraphRepositoryFactory extends RepositoryFactorySupport {
     @SuppressWarnings({ "unchecked", "rawtypes" })
     protected Object getTargetRepository(RepositoryMetadata metadata, GraphDatabaseContext graphDatabaseContext) {
 
-        Class<?> repositoryInterface = metadata.getRepositoryInterface();
         Class<?> type = metadata.getDomainClass();
         GraphEntityInformation entityInformation = (GraphEntityInformation)getEntityInformation(type);
         // todo entityInformation.isGraphBacked();
@@ -96,14 +105,20 @@ public class GraphRepositoryFactory extends RepositoryFactorySupport {
     @Override
     protected Class<?> getRepositoryBaseClass(RepositoryMetadata repositoryMetadata) {
         Class<?> domainClass = repositoryMetadata.getDomainClass();
+
+        @SuppressWarnings("rawtypes")
         final GraphEntityInformation entityInformation = (GraphEntityInformation) getEntityInformation(domainClass);
-        if (entityInformation.isNodeEntity()) return NodeGraphRepository.class;
-        if (entityInformation.isRelationshipEntity()) return RelationshipGraphRepository.class;
+        if (entityInformation.isNodeEntity()) {
+            return NodeGraphRepository.class;
+        }
+        if (entityInformation.isRelationshipEntity()) {
+            return RelationshipGraphRepository.class;
+        }
         throw new IllegalArgumentException("Invalid Domain Class "+ domainClass+" neither Node- nor RelationshipEntity");
     }
 
     @Override
-    @SuppressWarnings({"unchecked"})
+    @SuppressWarnings({"unchecked", "rawtypes"})
     public <T, ID extends Serializable> EntityInformation<T, ID> getEntityInformation(Class<T> type) {
         return new GraphMetamodelEntityInformation(type,graphDatabaseContext);
     }
@@ -116,12 +131,17 @@ public class GraphRepositoryFactory extends RepositoryFactorySupport {
             @Override
             public RepositoryQuery resolveQuery(Method method, RepositoryMetadata repositoryMetadata, NamedQueries namedQueries) {
                 final GraphQueryMethod queryMethod = new GraphQueryMethod(method, repositoryMetadata,namedQueries);
+
+                if (!queryMethod.hasAnnotation() && !namedQueries.hasQuery(queryMethod.getNamedQueryName())) {
+                    return new DerivedCypherRepositoryQuery(mappingContext, queryMethod, graphDatabaseContext);
+                }
+
                 return queryMethod.createQuery(repositoryMetadata, GraphRepositoryFactory.this.graphDatabaseContext);
             }
         };
     }
 
-    static class GraphQueryMethod extends QueryMethod {
+    public static class GraphQueryMethod extends QueryMethod {
 
         private final Method method;
         private final Query queryAnnotation;
@@ -132,7 +152,6 @@ public class GraphRepositoryFactory extends RepositoryFactorySupport {
             this.method = method;
             queryAnnotation = method.getAnnotation(Query.class);
             this.query = queryAnnotation != null ? queryAnnotation.value() : getNamedQuery(namedQueries);
-            if (this.query==null) throw new IllegalArgumentException("Could not extract a query from "+method);
         }
 
         public boolean isValid() {
@@ -179,19 +198,28 @@ public class GraphRepositoryFactory extends RepositoryFactorySupport {
 
         private Pageable getPageable(Object[] args) {
             Parameters parameters = getParameters();
-            if (parameters.hasPageableParameter()) return (Pageable) args[parameters.getPageableIndex()];
+            if (parameters.hasPageableParameter()) {
+                return (Pageable) args[parameters.getPageableIndex()];
+            }
             return null;
         }
 
         private String addPaging(String baseQuery, Pageable pageable) {
-            if (pageable==null) return baseQuery;
+            if (pageable==null) {
+                return baseQuery;
+            }
             return baseQuery + " skip "+pageable.getOffset() + " limit " + pageable.getPageSize();
         }
 
         private String addSorting(String baseQuery, Sort sort) {
-            if (sort==null) return baseQuery; // || sort.isEmpty()
+            if (sort==null)
+            {
+                return baseQuery; // || sort.isEmpty()
+            }
             final String sortOrder = getSortOrder(sort);
-            if (sortOrder.isEmpty()) return baseQuery;
+            if (sortOrder.isEmpty()) {
+                return baseQuery;
+            }
             return baseQuery + " order by " + sortOrder;
         }
 
@@ -217,7 +245,9 @@ public class GraphRepositoryFactory extends RepositoryFactorySupport {
 
         private Class<?> getCompoundType() {
             final Class<?> elementClass = getElementClass();
-            if (elementClass!=null) return elementClass;
+            if (elementClass!=null) {
+                return elementClass;
+            }
             return GenericTypeExtractor.resolveReturnedType(method);
         }
 
@@ -241,17 +271,19 @@ public class GraphRepositoryFactory extends RepositoryFactorySupport {
         }
 
         private RepositoryQuery createQuery(RepositoryMetadata repositoryMetadata, final GraphDatabaseContext context) {
-            if (!isValid()) return null;
+            if (!isValid()) {
+                return null;
+            }
             if (queryAnnotation == null) {
                 return new CypherGraphRepositoryQuery(this, repositoryMetadata, context); // cypher is default for named queries
             }
             switch (queryAnnotation.type()) {
-                case Cypher:
-                    return new CypherGraphRepositoryQuery(this, repositoryMetadata, context);
-                case Gremlin:
-                    return new GremlinGraphRepositoryQuery(this, repositoryMetadata, context);
-                default:
-                    throw new IllegalStateException("@Query Annotation has to be configured as Cypher or Gremlin Query");
+            case Cypher:
+                return new CypherGraphRepositoryQuery(this, repositoryMetadata, context);
+            case Gremlin:
+                return new GremlinGraphRepositoryQuery(this, repositoryMetadata, context);
+            default:
+                throw new IllegalStateException("@Query Annotation has to be configured as Cypher or Gremlin Query");
             }
         }
     }
@@ -266,6 +298,7 @@ public class GraphRepositoryFactory extends RepositoryFactorySupport {
             queryExecutor = new CypherQueryExecutor(graphDatabaseContext);
         }
 
+        @Override
         protected Object dispatchQuery(String queryString, Map<String, Object> params, Pageable pageable) {
             GraphQueryMethod queryMethod = getQueryMethod();
             final Class<?> compoundType = queryMethod.getCompoundType();
@@ -273,7 +306,9 @@ public class GraphRepositoryFactory extends RepositoryFactorySupport {
                 return queryPaged(queryString,params,pageable);
             }
             if (queryMethod.isIterableResult()) {
-                if (compoundType.isAssignableFrom(Map.class)) return queryExecutor.queryForList(queryString,params);
+                if (compoundType.isAssignableFrom(Map.class)) {
+                    return queryExecutor.queryForList(queryString,params);
+                }
                 return queryExecutor.query(queryString, queryMethod.getCompoundType(),params);
             }
             return queryExecutor.queryForObject(queryString, queryMethod.getReturnType(),params);
@@ -290,9 +325,10 @@ public class GraphRepositoryFactory extends RepositoryFactorySupport {
 
         public GremlinGraphRepositoryQuery(GraphQueryMethod queryMethod, RepositoryMetadata metadata, final GraphDatabaseContext graphDatabaseContext) {
             super(queryMethod, metadata, graphDatabaseContext);
-            queryExecutor = new GremlinQueryEngine(graphDatabaseContext.getGraphDatabaseService(), new EntityResultConverter(graphDatabaseContext));
+            queryExecutor = new GremlinQueryEngine(graphDatabaseContext.getGraphDatabaseService(), new EntityResultConverter<Object, Object>(graphDatabaseContext));
         }
 
+        @Override
         protected Object dispatchQuery(String queryString, Map<String, Object> params, Pageable pageable) {
             GraphQueryMethod queryMethod = getQueryMethod();
             if (queryMethod.isPageQuery()) {
@@ -334,10 +370,13 @@ public class GraphRepositoryFactory extends RepositoryFactorySupport {
             return queryMethod;
         }
 
-        @SuppressWarnings({"unchecked"})
+
+        @SuppressWarnings({"unchecked", "rawtypes"})
         protected Object createPage(Iterable<?> result, Pageable pageable) {
             final List resultList = IteratorUtil.addToCollection(result, new ArrayList());
-            if (pageable==null) return new PageImpl(resultList);
+            if (pageable==null) {
+                return new PageImpl(resultList);
+            }
             final int currentTotal = pageable.getOffset() + pageable.getPageSize();
             return new PageImpl(resultList, pageable, currentTotal);
         }

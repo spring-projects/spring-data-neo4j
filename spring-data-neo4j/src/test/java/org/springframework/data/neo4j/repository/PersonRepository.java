@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.data.neo4j.model;
+package org.springframework.data.neo4j.repository;
 
 import java.util.Map;
 
@@ -23,12 +23,15 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.neo4j.annotation.Query;
 import org.springframework.data.neo4j.annotation.QueryType;
-import org.springframework.data.neo4j.repository.GraphRepository;
-import org.springframework.data.neo4j.repository.NamedIndexRepository;
+import org.springframework.data.neo4j.model.Group;
+import org.springframework.data.neo4j.model.Person;
 import org.springframework.data.repository.query.Param;
 
 /**
- * @author mh
+ * Sample repository interface to manage {@link Person}s.
+ * 
+ * @author Michael Hunger
+ * @author Oliver Gierke
  * @since 29.03.11
  */
 public interface PersonRepository extends GraphRepository<Person>, NamedIndexRepository<Person> {
@@ -49,6 +52,10 @@ public interface PersonRepository extends GraphRepository<Person>, NamedIndexRep
 
     @Query("start team=node({p_team}) match (team)-[:persons]->(member) return member")
     Page<Person> findAllTeamMembersPaged(@Param("p_team") Group team, Pageable page);
+
     @Query("start team=node({p_team}) match (team)-[:persons]->(member) return member")
     Iterable<Person> findAllTeamMembersSorted(@Param("p_team") Group team, Sort sort);
+
+    // Derived queries
+    Iterable<Person> findByName(String name);
 }

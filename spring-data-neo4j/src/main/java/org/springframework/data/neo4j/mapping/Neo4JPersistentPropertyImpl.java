@@ -52,7 +52,7 @@ class Neo4jPersistentPropertyImpl extends AbstractPersistentProperty<Neo4jPersis
         super(field, propertyDescriptor, owner, simpleTypeHolder);
         this.annotations = extractAnnotations(field);
         this.relationshipInfo = extractRelationshipInfo(field);
-        this.indexInfo = extractIndexInfo(field);
+        this.indexInfo = extractIndexInfo();
         this.isIdProperty = annotations.containsKey(GraphId.class);
     }
 
@@ -64,9 +64,9 @@ class Neo4jPersistentPropertyImpl extends AbstractPersistentProperty<Neo4jPersis
         return result;
     }
 
-    private IndexInfo extractIndexInfo(Field field) {
+    private IndexInfo extractIndexInfo() {
         final Indexed annotation = getAnnotation(Indexed.class);
-        return annotation!=null ? new IndexInfo(annotation) : null;
+        return annotation!=null ? new IndexInfo(annotation,this) : null;
     }
 
     @SuppressWarnings("unchecked")
@@ -196,11 +196,19 @@ class Neo4jPersistentPropertyImpl extends AbstractPersistentProperty<Neo4jPersis
         private final String fieldName;
         private final Indexed.Level level;
 
-        public IndexInfo(Indexed annotation) {
-            this.indexName = annotation.indexName();
+        public IndexInfo(Indexed annotation, Neo4jPersistentPropertyImpl property) {
+            this.indexName = determineIndexName(annotation,property);
             this.fulltext = annotation.fulltext();
             fieldName = annotation.fieldName();
             level = annotation.level();
+        }
+
+
+        private String determineIndexName(Indexed annotation, Neo4jPersistentPropertyImpl property) {
+            final String providedIndexName = annotation.indexName().isEmpty() ? null : annotation.indexName();
+            final Class<?> declaringClass = property.getField().getDeclaringClass();
+            final Class<?> instanceType = property.getOwner().getType();
+            return Indexed.Name.get(annotation.level(), declaringClass, providedIndexName, instanceType);
         }
 
         public String getIndexName() {

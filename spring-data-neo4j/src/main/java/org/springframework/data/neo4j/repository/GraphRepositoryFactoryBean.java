@@ -17,8 +17,10 @@
 package org.springframework.data.neo4j.repository;
 
 import org.neo4j.graphdb.PropertyContainer;
-
+import org.springframework.data.mapping.context.MappingContext;
 import org.springframework.data.neo4j.mapping.Neo4jMappingContext;
+import org.springframework.data.neo4j.mapping.Neo4jPersistentEntity;
+import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.support.GraphDatabaseContext;
 import org.springframework.data.repository.core.support.RepositoryFactorySupport;
 import org.springframework.data.repository.core.support.TransactionalRepositoryFactoryBeanSupport;
@@ -28,13 +30,22 @@ import org.springframework.util.Assert;
  * @author mh
  * @since 28.03.11
  */
-public class GraphRepositoryFactoryBean<S extends PropertyContainer, R extends CRUDRepository<T>, T>
-        extends TransactionalRepositoryFactoryBeanSupport<R, T, Long> {
+public class GraphRepositoryFactoryBean<S extends PropertyContainer, R extends CRUDRepository<T>, T> extends
+TransactionalRepositoryFactoryBeanSupport<R, T, Long> {
 
     private GraphDatabaseContext graphDatabaseContext;
+    private MappingContext<? extends Neo4jPersistentEntity<?>, Neo4jPersistentProperty> mappingContext;
 
     public void setGraphDatabaseContext(GraphDatabaseContext graphDatabaseContext) {
         this.graphDatabaseContext = graphDatabaseContext;
+    }
+
+    /**
+     * @param mappingContext the mappingContext to set
+     */
+    public void setMappingContext(
+            MappingContext<Neo4jPersistentEntity<?>, Neo4jPersistentProperty> mappingContext) {
+        this.mappingContext = mappingContext;
     }
 
     @Override
@@ -42,15 +53,21 @@ public class GraphRepositoryFactoryBean<S extends PropertyContainer, R extends C
         return createRepositoryFactory(graphDatabaseContext);
     }
 
-
     protected RepositoryFactorySupport createRepositoryFactory(GraphDatabaseContext graphDatabaseContext) {
 
-        return new GraphRepositoryFactory(graphDatabaseContext);
+        return new GraphRepositoryFactory(graphDatabaseContext, mappingContext);
     }
 
     @Override
     public void afterPropertiesSet() {
         Assert.notNull(graphDatabaseContext, "GraphDatabaseContext must not be null!");
+
+        if (mappingContext == null) {
+            Neo4jMappingContext context = new Neo4jMappingContext();
+            context.afterPropertiesSet();
+            this.mappingContext = context;
+        }
+
         super.afterPropertiesSet();
     }
 }

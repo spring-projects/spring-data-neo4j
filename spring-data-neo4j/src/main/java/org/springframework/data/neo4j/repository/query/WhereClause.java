@@ -15,36 +15,60 @@
  */
 package org.springframework.data.neo4j.repository.query;
 
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+
 import org.springframework.data.mapping.context.PersistentPropertyPath;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
+import org.springframework.data.repository.query.parser.Part.Type;
 import org.springframework.util.Assert;
 
 /**
- * Representation of a Cypher {@literal start} clause.
+ * Representation of a Cypher {@literal where} clause.
  * 
  * @author Oliver Gierke
  */
-class StartClause {
+class WhereClause {
+
+    private static final Map<Type, String> SYMBOLS;
+
+    static {
+
+        Map<Type, String> symbols = new HashMap<Type, String>();
+        symbols.put(Type.GREATER_THAN, ">");
+        symbols.put(Type.GREATER_THAN_EQUAL, ">=");
+        symbols.put(Type.LESS_THAN, "<");
+        symbols.put(Type.LESS_THAN_EQUAL, "<=");
+        symbols.put(Type.NEGATING_SIMPLE_PROPERTY, "!=");
+        symbols.put(Type.SIMPLE_PROPERTY, "=");
+
+        SYMBOLS = Collections.unmodifiableMap(symbols);
+    }
 
     private final PersistentPropertyPath<Neo4jPersistentProperty> path;
     private final String variable;
+    private final Type type;
     private final int index;
 
     /**
-     * Creates a new {@link StartClause} from the given {@link Neo4jPersistentProperty}, variable and the given
-     * parameter index.
+     * Creates a new {@link WhereClause} for the given {@link Neo4jPersistentProperty}, variable, type and parameter
+     * index.
      * 
-     * @param property must not be {@literal null}.
+     * @param path must not be {@literal null}.
      * @param variable must not be {@literal null} or empty.
+     * @param type must not be {@literal null}.
      * @param index
      */
-    public StartClause(PersistentPropertyPath<Neo4jPersistentProperty> property, String variable, int index) {
+    public WhereClause(PersistentPropertyPath<Neo4jPersistentProperty> path, String variable, Type type, int index) {
 
-        Assert.notNull(property);
+        Assert.notNull(path);
         Assert.hasText(variable);
+        Assert.notNull(type);
 
-        this.path = property;
+        this.path = path;
         this.variable = variable;
+        this.type = type;
         this.index = index;
     }
 
@@ -54,11 +78,7 @@ class StartClause {
      */
     @Override
     public String toString() {
-
-        Neo4jPersistentProperty leafProperty = path.getLeafProperty();
-        String indexName = leafProperty.getIndexInfo().getIndexName();
-        String propertyName = leafProperty.getNeo4jPropertyName();
-
-        return String.format(QueryTemplates.START_CLAUSE, variable, indexName, propertyName, index);
+        return String.format(QueryTemplates.WHERE_CLAUSE, variable, path.getLeafProperty().getNeo4jPropertyName(),
+                SYMBOLS.get(type), index);
     }
 }
