@@ -31,6 +31,7 @@ import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.jta.JtaTransactionManager;
 
+import javax.annotation.PostConstruct;
 import javax.persistence.EntityManagerFactory;
 
 /**
@@ -59,7 +60,7 @@ public class CrossStoreNeo4jConfiguration extends Neo4jAspectConfiguration {
     @Bean
 	protected EntityInstantiator<Node> graphEntityInstantiator() {
 		if (isUsingCrossStorePersistence()) {
-			return new CrossStoreNodeEntityInstantiator(new NodeEntityInstantiator(entityStateHandler()), entityManagerFactory);
+    			return new CrossStoreNodeEntityInstantiator(new NodeEntityInstantiator(entityStateHandler()), entityManagerFactory);
 		} else {
 			return new NodeEntityInstantiator(entityStateHandler());
 		}
@@ -82,9 +83,11 @@ public class CrossStoreNeo4jConfiguration extends Neo4jAspectConfiguration {
         return new CrossStoreNodeEntityStateFactory();
     }
 
+    @PostConstruct
     @Override
     public void wireEntityStateFactories() throws Exception {
         super.wireEntityStateFactories();
         nodeEntityStateFactory().setEntityManagerFactory(entityManagerFactory);
+        nodeEntityStateFactory().postConstruct();
     }
 }

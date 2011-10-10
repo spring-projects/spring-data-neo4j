@@ -51,11 +51,9 @@ public class PropertyFieldAccessorFactory implements FieldAccessorFactory {
         protected final Neo4jPersistentProperty property;
         protected final String propertyName;
         protected final Class<?> fieldType;
-        private ConversionService conversionService;
 
         public PropertyFieldAccessor(GraphDatabaseContext graphDatabaseContext, Neo4jPersistentProperty property) {
             this.graphDatabaseContext = graphDatabaseContext;
-            conversionService = graphDatabaseContext.getConversionService();
             this.property = property;
             this.propertyName = property.getNeo4jPropertyName();
             this.fieldType = property.getType() ;

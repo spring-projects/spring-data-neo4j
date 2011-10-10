@@ -70,8 +70,7 @@ public class CrossStoreNodeEntityStateFactory extends NodeEntityStateFactory {
         this.entityManagerFactory = entityManagerFactory;
     }
 
-    @PostConstruct
-    private void setUp() {
+    public void postConstruct() {
          this.delegatingFieldAccessorFactory = new CrossStoreNodeEntityState.CrossStoreNodeDelegatingFieldAccessorFactory(graphDatabaseContext);
     }
 
