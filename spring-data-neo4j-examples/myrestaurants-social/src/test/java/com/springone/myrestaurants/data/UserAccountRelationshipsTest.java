@@ -68,6 +68,7 @@ public class UserAccountRelationshipsTest extends AbstractTestWithUserAccount {
 
     @Transactional
     @Test
+    @Ignore
     public void testAddRecommendation() {
     	UserAccount user = userAccountRepo.findUserAccount(userId);
     	Restaurant rest = restaurantRepository.findRestaurant(22L);

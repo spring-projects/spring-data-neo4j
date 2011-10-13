@@ -70,7 +70,7 @@ public class Neo4jEntityConverterImpl<T,S extends PropertyContainer> implements 
         // 1) source -> type alias
         // 2) type alias -> type
         // 3) check for subtype matching / enforcement
-        final TypeInformation<R> requestedTypeInformation = ClassTypeInformation.from(requestedType);
+        final TypeInformation<R> requestedTypeInformation = requestedType == null ? null : ClassTypeInformation.from(requestedType);
         final TypeInformation<? extends R> targetType = typeMapper.readType(source, requestedTypeInformation);
 
         // retrieve meta-information about the type

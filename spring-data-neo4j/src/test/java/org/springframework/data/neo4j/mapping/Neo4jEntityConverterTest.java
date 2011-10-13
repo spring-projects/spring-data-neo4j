@@ -15,32 +15,14 @@
  */
 package org.springframework.data.neo4j.mapping;
 
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
 import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.index.Index;
 import org.neo4j.helpers.collection.IteratorUtil;
-import org.neo4j.test.ImpermanentGraphDatabase;
-import org.springframework.core.convert.ConversionService;
-import org.springframework.data.convert.DefaultTypeMapper;
-import org.springframework.data.convert.TypeMapper;
-import org.springframework.data.neo4j.core.TypeRepresentationStrategy;
-import org.springframework.data.neo4j.fieldaccess.Neo4jConversionServiceFactoryBean;
-import org.springframework.data.neo4j.fieldaccess.NodeDelegatingFieldAccessorFactory;
-import org.springframework.data.neo4j.fieldaccess.RelationshipDelegatingFieldAccessorFactory;
 import org.springframework.data.neo4j.model.Friendship;
 import org.springframework.data.neo4j.model.Group;
 import org.springframework.data.neo4j.model.Person;
 import org.springframework.data.neo4j.model.Personality;
-import org.springframework.data.neo4j.support.EntityStateHandler;
-import org.springframework.data.neo4j.support.GraphDatabaseContext;
-import org.springframework.data.neo4j.support.node.NodeEntityInstantiator;
-import org.springframework.data.neo4j.support.node.NodeEntityStateFactory;
-import org.springframework.data.neo4j.support.relationship.RelationshipEntityInstantiator;
-import org.springframework.data.neo4j.support.relationship.RelationshipEntityStateFactory;
-import org.springframework.data.neo4j.support.typerepresentation.NoopNodeTypeRepresentationStrategy;
-import org.springframework.data.neo4j.support.typerepresentation.NoopRelationshipTypeRepresentationStrategy;
 
 import java.util.*;
 
@@ -52,17 +34,7 @@ import static org.junit.Assert.assertEquals;
  * @author mh
  * @since 19.09.11
  */
-public class Neo4jEntityConverterTest {
-
-    public static final DynamicRelationshipType PERSONS = DynamicRelationshipType.withName("persons");
-    private static final RelationshipType KNOWS = DynamicRelationshipType.withName("knows");
-    private Neo4jEntityConverterImpl<Object,Node> converter;
-    private Transaction tx;
-    private GraphDatabaseContext gdc;
-    private Group group;
-    private Person michael;
-    private Person emil;
-    private Person andres;
+public class Neo4jEntityConverterTest extends Neo4jPersistentTestBase {
 
     /* OUCH
 
@@ -92,76 +64,6 @@ public class Neo4jEntityConverterTest {
 
      */
 
-    @Before
-    public void setUp() throws Exception {
-        final Neo4jMappingContext mappingContext = new Neo4jMappingContext();
-        gdc = createContext(mappingContext);
-        tx = gdc.beginTx();
-
-        final NodeEntityStateFactory nodeEntityStateFactory = createNodeEntityStateFactory(mappingContext);
-        final RelationshipEntityStateFactory relationshipEntityStateFactory = createRelationshipEntityStateFactory(mappingContext);
-        final EntityStateHandler entityStateHandler = new EntityStateHandler(mappingContext, gdc.getGraphDatabaseService());
-        final NodeEntityInstantiator entityInstantiator = new NodeEntityInstantiator(entityStateHandler);
-        final TypeRepresentationStrategy<Node> typeRepresentationStrategy = gdc.getNodeTypeRepresentationStrategy();
-        TypeMapper<Node> typeMapper = new DefaultTypeMapper<Node>(new TRSTypeAliasAccessor<Node>(typeRepresentationStrategy),asList(new ClassValueTypeInformationMapper()));
-        SourceStateTransmitter<Node> nodeStateTransmitter = new SourceStateTransmitter<Node>(nodeEntityStateFactory);
-        SourceStateTransmitter<Relationship> relationshipStateTransmitter = new SourceStateTransmitter<Relationship>(relationshipEntityStateFactory);
-        final ConversionService conversionService = gdc.getConversionService();
-
-        Neo4jEntityFetchHandler fetchHandler=new Neo4jEntityFetchHandler(entityStateHandler, conversionService, relationshipStateTransmitter , nodeStateTransmitter);
-
-        converter = new Neo4jEntityConverterImpl<Object,Node>(mappingContext, conversionService, entityInstantiator, entityStateHandler, typeMapper, nodeStateTransmitter, fetchHandler);
-        gdc.setNodeEntityConverter(converter);
-        group = new Group();
-        michael = new Person("Michael", 37);
-        emil = new Person("Emil", 30);
-        andres = new Person("Andrés", 36);
-    }
-
-    private NodeEntityStateFactory createNodeEntityStateFactory(Neo4jMappingContext mappingContext) {
-        final NodeEntityStateFactory nodeEntityStateFactory = new NodeEntityStateFactory();
-        nodeEntityStateFactory.setMappingContext(mappingContext);
-        nodeEntityStateFactory.setGraphDatabaseContext(gdc);
-        nodeEntityStateFactory.setNodeDelegatingFieldAccessorFactory(new NodeDelegatingFieldAccessorFactory(gdc));
-        return nodeEntityStateFactory;
-    }
-    private RelationshipEntityStateFactory createRelationshipEntityStateFactory(Neo4jMappingContext mappingContext) {
-        final RelationshipEntityStateFactory relationshipEntityStateFactory = new RelationshipEntityStateFactory();
-        relationshipEntityStateFactory.setMappingContext(mappingContext);
-        relationshipEntityStateFactory.setGraphDatabaseContext(gdc);
-        relationshipEntityStateFactory.setRelationshipDelegatingFieldAccessorFactory(new RelationshipDelegatingFieldAccessorFactory(gdc));
-        return relationshipEntityStateFactory;
-    }
-
-    private GraphDatabaseContext createContext(Neo4jMappingContext mappingContext) throws Exception {
-        GraphDatabaseContext gdc = new GraphDatabaseContext();
-        final ImpermanentGraphDatabase gdb = new ImpermanentGraphDatabase();
-        gdc.setGraphDatabaseService(gdb);
-        gdc.setMappingContext(mappingContext);
-        final EntityStateHandler entityStateHandler = new EntityStateHandler(mappingContext, gdb);
-        gdc.setNodeTypeRepresentationStrategy(new NoopNodeTypeRepresentationStrategy(new NodeEntityInstantiator(entityStateHandler)));
-        gdc.setRelationshipTypeRepresentationStrategy(new NoopRelationshipTypeRepresentationStrategy(new RelationshipEntityInstantiator(entityStateHandler)));
-        gdc.setConversionService(new Neo4jConversionServiceFactoryBean().getObject());
-        gdc.setEntityStateHandler(entityStateHandler);
-        gdc.createCypherExecutor();
-        return gdc;
-    }
-
-
-    private List<Node> groupMemberNodes() {
-        return groupMemberNodes(groupNode());
-    }
-
-    private List<Node> groupMemberNodes(Node node) {
-        return getRelatedNodes(node, "persons", Direction.OUTGOING);
-    }
-
-    @After
-    public void tearDown() throws Exception {
-        tx.failure();
-        tx.finish();
-        gdc.getGraphDatabaseService().shutdown();
-    }
 
     @Test
     public void testWriteEntityToNewNode() {
@@ -178,20 +80,12 @@ public class Neo4jEntityConverterTest {
         assertEquals("node found in index", createdNode, found);
     }
 
-    private Node michaelNode() {
-        return gdc.getNodeById(michael.getId());
-    }
-
     @Test
     public void testWriteEntityToExistingNode() {
         final Node existingNode = createNewNode();
-        converter.write(michael, existingNode);
+        write(michael, existingNode);
         assertEquals("Entity uses provided node", (Long) existingNode.getId(), michael.getId());
         assertEquals("Michael", existingNode.getProperty("name"));
-    }
-
-    private Node createNewNode() {
-        return gdc.createNode();
     }
 
     @Test
@@ -199,10 +93,10 @@ public class Neo4jEntityConverterTest {
         final Node existingNode = createNewNode();
         existingNode.setProperty("name", "Test");
         assertEquals("Test", existingNode.getProperty("name"));
-        converter.write(michael, existingNode);
+        write(michael, existingNode);
         assertEquals("Michael", existingNode.getProperty("name"));
         michael.setName("Emil");
-        converter.write(michael, existingNode);
+        write(michael, existingNode);
         assertEquals("Emil", existingNode.getProperty("name"));
     }
 
@@ -211,7 +105,7 @@ public class Neo4jEntityConverterTest {
         final Node existingNode = createNewNode();
         michael.setBirthdate(new Date(100));
         michael.setPersonality(Personality.EXTROVERT);
-        converter.write(michael, existingNode);
+        write(michael, existingNode);
         assertEquals("100", existingNode.getProperty("birthdate"));
         assertEquals("EXTROVERT", existingNode.getProperty("personality"));
     }
@@ -223,7 +117,7 @@ public class Neo4jEntityConverterTest {
         existingNode.setProperty("age", 36);
         existingNode.setProperty("personality", "EXTROVERT");
         existingNode.setProperty("birthdate", "100");
-        final Person p = converter.read(Person.class, existingNode);
+        final Person p = readPerson(existingNode);
         assertEquals("Michael", p.getName());
         assertEquals(36, p.getAge());
         assertEquals(new Date(100), p.getBirthdate());
@@ -233,9 +127,9 @@ public class Neo4jEntityConverterTest {
     @Test
     public void testDeleteProperty() {
         final Node existingNode = createNewNode();
-        converter.write(michael, existingNode);
+        write(michael, existingNode);
         michael.setName(null);
-        converter.write(michael, existingNode);
+        write(michael, existingNode);
         assertEquals(false, existingNode.hasProperty("name"));
     }
 
@@ -243,7 +137,7 @@ public class Neo4jEntityConverterTest {
     public void testReadEntityFromExistingNode() {
         final Node node = createNewNode();
         node.setProperty("name", "Emil");
-        final Person p = converter.read(Person.class, node);
+        final Person p = readPerson(node);
         assertEquals("Emil", p.getName());
     }
 
@@ -257,31 +151,6 @@ public class Neo4jEntityConverterTest {
         assertEquals("added additional relationship end node", emil.getId(), (Long) boss.getId());
     }
 
-    private Group storeInGraph(Group g) {
-        final Long id = g.getId();
-        if (id != null) {
-            converter.write(g, gdc.getNodeById(id));
-        } else {
-            converter.write(g, null);
-        }
-        return g;
-    }
-
-    private Person storeInGraph(Person p) {
-        final Long id = p.getId();
-        if (id != null) {
-            converter.write(p, gdc.getNodeById(id));
-        } else {
-            converter.write(p, null);
-        }
-        return p;
-    }
-
-    private <T> T storeInGraph(T obj) {
-        converter.write(obj, null);
-        return obj;
-    }
-
     @Test
     public void testAddRelationshipWithPreExistingNode() {
         storeInGraph(michael);
@@ -290,10 +159,6 @@ public class Neo4jEntityConverterTest {
         final Collection<Relationship> persons = IteratorUtil.asCollection(groupNode().getRelationships(PERSONS, Direction.OUTGOING));
         final Node michaelNode = persons.iterator().next().getOtherNode(groupNode());
         assertEquals("added michaelNode to group", michael.getId(), (Long) michaelNode.getId());
-    }
-
-    private Node groupNode() {
-        return gdc.getNodeById(group.getId());
     }
 
     @Test
@@ -318,14 +183,6 @@ public class Neo4jEntityConverterTest {
     }
 
 
-    private <T> Set<T> set(T... objs) {
-        return new HashSet<T>(asList(objs));
-    }
-
-    private <T> Set<T> set(Iterable<T> objs) {
-        return IteratorUtil.addToCollection(objs, new HashSet<T>());
-    }
-
     @Test
     public void testAddRelationshipCascadeOverTwoSteps() {
         andres.setBoss(emil);
@@ -335,14 +192,6 @@ public class Neo4jEntityConverterTest {
         assertEquals(1, persons.size());
         assertEquals(asList(andresNode()), persons);
         assertEquals(emil.getId(), (Long) getRelatedNodes(andresNode(), "boss", Direction.INCOMING).get(0).getId());
-    }
-
-    private Node andresNode() {
-        return gdc.getNodeById(andres.getId());
-    }
-
-    private Node emilNode() {
-        return gdc.getNodeById(emil.getId());
     }
 
     @Test
@@ -375,7 +224,7 @@ public class Neo4jEntityConverterTest {
         groupNode.createRelationshipTo(p1, PERSONS);
         groupNode.createRelationshipTo(p2, PERSONS);
 
-        Group g = converter.read(Group.class, groupNode);
+        Group g = readGroup(groupNode);
         assertEquals(set(readPerson(p1), readPerson(p2)), set(g.getPersons()));
     }
 
@@ -387,7 +236,7 @@ public class Neo4jEntityConverterTest {
         groupNode.createRelationshipTo(p1, PERSONS);
         groupNode.createRelationshipTo(p2, PERSONS);
 
-        Group g = converter.read(Group.class, groupNode);
+        Group g = readGroup(groupNode);
         assertEquals(set(readPerson(p1), readPerson(p2)), set(g.getReadOnlyPersons()));
     }
 
@@ -411,18 +260,6 @@ public class Neo4jEntityConverterTest {
         group.setPersons(null);
         storeInGraph(group);
         assertEquals(set(emilNode()), set(groupMemberNodes()));
-    }
-
-    public Person readPerson(Node node) {
-        return converter.read(Person.class, node);
-    }
-
-    private List<Node> getRelatedNodes(Node startNode, String type, Direction direction) {
-        List<Node> result = new ArrayList<Node>();
-        for (Relationship relationship : startNode.getRelationships(DynamicRelationshipType.withName(type), direction)) {
-            result.add(relationship.getOtherNode(startNode));
-        }
-        return result;
     }
 
     @Test
@@ -451,7 +288,7 @@ public class Neo4jEntityConverterTest {
         julianNode.setProperty("name", "Julian");
         groupNode.createRelationshipTo(julianNode, PERSONS);
 
-        Group g = converter.read(Group.class, groupNode);
+        Group g = readGroup(groupNode);
         Person julian = IteratorUtil.first(g.getPersons());
         assertEquals("Julian", julian.getName());
     }
@@ -464,7 +301,7 @@ public class Neo4jEntityConverterTest {
         Relationship friendshipRelationship = michaelNode().createRelationshipTo(andresNode(), KNOWS);
         friendshipRelationship.setProperty("Friendship.years", 19);
 
-        Person m = converter.read(Person.class, michaelNode());
+        Person m = readPerson(michaelNode());
         Friendship friendship = IteratorUtil.first(m.getFriendships());
 
         assertEquals((Long) friendshipRelationship.getId(), friendship.getId());

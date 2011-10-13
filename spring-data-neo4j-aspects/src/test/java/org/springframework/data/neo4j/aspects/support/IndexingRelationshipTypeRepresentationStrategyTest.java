@@ -73,7 +73,7 @@ public class IndexingRelationshipTypeRepresentationStrategyTest {
 	@Test
 	@Transactional
 	public void testPostEntityCreationOfRelationshipBacked() throws Exception {
-		Index<Relationship> typesIndex = graphDatabaseService.index().forRelationships(IndexingNodeTypeRepresentationStrategy.INDEX_NAME);
+		Index<Relationship> typesIndex = graphDatabaseService.index().forRelationships(IndexingRelationshipTypeRepresentationStrategy.INDEX_NAME);
 		IndexHits<Relationship> linkHits = typesIndex.get(IndexingNodeTypeRepresentationStrategy.INDEX_KEY, link.getClass().getName());
         Relationship rel = linkHits.getSingle();
         assertEquals(rel(link), rel);

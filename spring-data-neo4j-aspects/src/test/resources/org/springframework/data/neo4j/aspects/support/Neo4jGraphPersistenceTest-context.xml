@@ -93,7 +93,8 @@
             <bean class="org.springframework.validation.beanvalidation.LocalValidatorFactoryBean"/>
         </property>
         <property name="mappingContext" ref="mappingContext"/>
-        <property name="nodeEntityConverter" ref="nodeEntityConverter"/>
+        <property name="relationshipEntityStateFactory" ref="relationshipEntityStateFactory"/>
+        <property name="nodeEntityStateFactory" ref="nodeEntityStateFactory"/>
     </bean>
 
 

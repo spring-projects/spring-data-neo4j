@@ -123,6 +123,11 @@
 			<groupId>org.neo4j</groupId>
 			<artifactId>neo4j</artifactId>
 		</dependency>
+		<dependency>
+			<groupId>org.neo4j</groupId>
+			<artifactId>neo4j-cypher</artifactId>
+            <optional>true</optional>
+		</dependency>
 
 		<dependency>
 			<groupId>org.neo4j</groupId>
@@ -145,6 +150,12 @@
         <dependency>
           <groupId>com.tinkerpop.blueprints</groupId>
           <artifactId>blueprints-neo4j-graph</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.neo4j</groupId>
+                    <artifactId>neo4j</artifactId>
+                </exclusion>
+            </exclusions>
           <optional>true</optional>
         </dependency>
 

@@ -39,7 +39,8 @@ import org.springframework.data.neo4j.annotation.GraphTraversal;
 
 import org.springframework.data.neo4j.aspects.core.NodeBacked;
 import org.springframework.data.neo4j.aspects.core.RelationshipBacked;
-import org.springframework.data.neo4j.fieldaccess.GraphBackedEntityIterableWrapper;
+import org.springframework.data.neo4j.support.EntityStateHandler;
+import org.springframework.data.neo4j.support.RelationshipResult;
 import org.springframework.data.neo4j.support.node.NodeEntityStateFactory;
 import org.springframework.data.neo4j.support.DoReturn;
 import org.springframework.data.neo4j.core.EntityPath;
@@ -158,32 +159,19 @@ public privileged aspect Neo4jNodeBacking { // extends AbstractTypeAnnotatingMix
     }
 
     public <T extends NodeBacked> T NodeBacked.projectTo(Class<T> targetType) {
-        return (T)Neo4jNodeBacking.aspectOf().graphDatabaseContext.projectTo( this, targetType);
+        return (T)graphDatabaseContext().projectTo( this, targetType);
     }
 
 	public Relationship NodeBacked.relateTo(NodeBacked target, String type) {
-        return this.relateTo(target,type,false);
+        return this.relateTo(target, type, false);
     }
     public Relationship NodeBacked.relateTo(NodeBacked target, String type, boolean allowDuplicates) {
-        if (target==null) throw new IllegalArgumentException("Target entity is null");
-        if (type==null) throw new IllegalArgumentException("Relationshiptype is null");
-
-        if (!allowDuplicates) {
-            Relationship relationship=getRelationshipTo(target,type);
-            if (relationship!=null) return relationship;
-        }
-        return this.getPersistentState().createRelationshipTo(target.getPersistentState(), DynamicRelationshipType.withName(type));
+        final RelationshipResult result = entityStateHandler().relateTo(this, target, type, allowDuplicates);
+        return result.relationship;
 	}
 
     public Relationship NodeBacked.getRelationshipTo(NodeBacked target, String type) {
-        Node node = this.getPersistentState();
-        Node targetNode = target.getPersistentState();
-        if (node==null || targetNode==null) return null;
-        Iterable<Relationship> relationships = node.getRelationships(DynamicRelationshipType.withName(type), org.neo4j.graphdb.Direction.OUTGOING);
-        for (Relationship relationship : relationships) {
-            if (relationship.getOtherNode(node).equals(targetNode)) return relationship;
-        }
-        return null;
+        return graphDatabaseContext().getRelationshipTo(this,target,null,type);
     }
 
 	public Long NodeBacked.getNodeId() {
@@ -194,113 +182,70 @@ public privileged aspect Neo4jNodeBacking { // extends AbstractTypeAnnotatingMix
     public  <T> Iterable<T> NodeBacked.findAllByTraversal(final Class<T> targetType, TraversalDescription traversalDescription) {
         if (!hasPersistentState()) throw new IllegalStateException("No node attached to " + this);
         final Traverser traverser = traversalDescription.traverse(this.getPersistentState());
-        if (Node.class.isAssignableFrom(targetType)) return (Iterable<T>) traverser.nodes();
-        if (Relationship.class.isAssignableFrom(targetType)) return (Iterable<T>) traverser.relationships();
-        if (Path.class.isAssignableFrom(targetType)) return (Iterable<T>) traverser;
-        return (Iterable<T>)Neo4jNodeBacking.aspectOf().convertToGraphEntity(traverser,targetType);
-    }
-
-    private Iterable<?> convertToGraphEntity(Traverser traverser, final Class<?> targetType) {
-        final GraphDatabaseContext ctx = Neo4jNodeBacking.aspectOf().graphDatabaseContext;
-        if (NodeBacked.class.isAssignableFrom(targetType)) {
-            return GraphBackedEntityIterableWrapper.create(traverser.nodes(), (Class<? extends NodeBacked>) targetType, ctx);
-        }
-        if (RelationshipBacked.class.isAssignableFrom(targetType)) {
-            return GraphBackedEntityIterableWrapper.create(traverser.relationships(), (Class<? extends RelationshipBacked>) targetType, ctx);
-        }
-        throw new IllegalStateException("Can't determine valid type for traversal target "+targetType);
-
+        return graphDatabaseContext().convertResultsTo(traverser, targetType);
     }
 
     public  <T> Iterable<T> NodeBacked.findAllByQuery(final String query, final Class<T> targetType, Map<String,Object> params) {
-        final CypherQueryExecutor executor = new CypherQueryExecutor(Neo4jNodeBacking.aspectOf().graphDatabaseContext);
+        final CypherQueryExecutor executor = new CypherQueryExecutor(graphDatabaseContext());
         return executor.query(query, targetType,params);
     }
 
     public  Iterable<Map<String,Object>> NodeBacked.findAllByQuery(final String query,Map<String,Object> params) {
-        final CypherQueryExecutor executor = new CypherQueryExecutor(Neo4jNodeBacking.aspectOf().graphDatabaseContext);
+        final CypherQueryExecutor executor = new CypherQueryExecutor(graphDatabaseContext());
         return executor.queryForList(query,params);
     }
 
     public  <T> T NodeBacked.findByQuery(final String query, final Class<T> targetType,Map<String,Object> params) {
-        final CypherQueryExecutor executor = new CypherQueryExecutor(Neo4jNodeBacking.aspectOf().graphDatabaseContext);
+        final CypherQueryExecutor executor = new CypherQueryExecutor(graphDatabaseContext());
         return executor.queryForObject(query, targetType,params);
     }
 
     public <S extends NodeBacked, E extends NodeBacked> Iterable<EntityPath<S,E>> NodeBacked.findAllPathsByTraversal(TraversalDescription traversalDescription) {
         if (!hasPersistentState()) throw new IllegalStateException("No node attached to " + this);
         final Traverser traverser = traversalDescription.traverse(this.getPersistentState());
-        return new EntityPathPathIterableWrapper<S, E>(traverser, Neo4jNodeBacking.aspectOf().graphDatabaseContext);
+        return new EntityPathPathIterableWrapper<S, E>(traverser, graphDatabaseContext());
     }
 
     public <R extends RelationshipBacked, N extends NodeBacked> R NodeBacked.relateTo(N target, Class<R> relationshipClass, String relationshipType) {
-        return this.relateTo(target,relationshipClass,relationshipType,false);
+        return graphDatabaseContext().relateTo(this, target, relationshipClass, relationshipType, false);
     }
     public <R extends RelationshipBacked, N extends NodeBacked> R NodeBacked.relateTo(N target, Class<R> relationshipClass, String relationshipType, boolean allowDuplicates) {
-        if (target==null) throw new IllegalArgumentException("Target entity is null");
-        if (relationshipClass==null) throw new IllegalArgumentException("Relationship class is null");
-        if (relationshipType==null) throw new IllegalArgumentException("Relationshiptype is null");
-
-        Relationship rel = this.relateTo(target,relationshipType,allowDuplicates);
-
-        GraphDatabaseContext gdc = Neo4jNodeBacking.aspectOf().graphDatabaseContext;
-        gdc.postEntityCreation(rel, relationshipClass);
-        return (R) gdc.createEntityFromState(rel, relationshipClass);
+        return graphDatabaseContext().relateTo(this,target,relationshipClass, relationshipType,allowDuplicates);
     }
 
     public void NodeBacked.remove() {
-        Neo4jNodeBacking.aspectOf().graphDatabaseContext.removeNodeEntity(this);
+        graphDatabaseContext().removeNodeEntity(this);
     }
 
     public void NodeBacked.removeRelationshipTo(NodeBacked target, String relationshipType) {
-        if (target==null) throw new IllegalArgumentException("Target entity is null");
-        if (relationshipType==null) throw new IllegalArgumentException("Relationshiptype is null");
-
-        Node node=this.getPersistentState();
-        Node targetNode=target.getPersistentState();
-        if (node==null || targetNode==null) return;
-        for (Relationship rel : this.getPersistentState().getRelationships(DynamicRelationshipType.withName(relationshipType))) {
-            if (rel.getOtherNode(node).equals(targetNode)) {
-                rel.delete();
-                return;
-            }
-        }
+        graphDatabaseContext().removeRelationshipTo(this,target,relationshipType);
     }
 
     public <R extends RelationshipBacked> R NodeBacked.getRelationshipTo( NodeBacked target, Class<R> relationshipClass, String type) {
-        if (target ==null) throw new IllegalArgumentException("Target entity is null");
-        if (relationshipClass==null) throw new IllegalArgumentException("Relationship class is null");
-        if (type==null) throw new IllegalArgumentException("Relationshiptype is null");
-        Node node=this.getPersistentState();
-        Node targetNode= target.getPersistentState();
-        if (node==null || targetNode==null) return null;
-        for (Relationship rel : node.getRelationships(DynamicRelationshipType.withName(type))) {
-            if (rel.getOtherNode(node).equals(targetNode)) {
-                return (R)Neo4jNodeBacking.aspectOf().graphDatabaseContext.createEntityFromState(rel, relationshipClass);
-            }
-        }
-        return null;
+        return (R)graphDatabaseContext().getRelationshipTo(this,target,relationshipClass,type);
+    }
+
+    public static GraphDatabaseContext graphDatabaseContext() {
+        return Neo4jNodeBacking.aspectOf().graphDatabaseContext;
     }
 
     /**
      * @param obj
      * @return result of equals operation fo the underlying node, false if there is none
      */
-	public final boolean NodeBacked.equals(Object obj) {
-        if (obj == this) return true;
-        if (!hasPersistentState()) return false;
-		if (obj instanceof NodeBacked) {
-			return this.getPersistentState().equals(((NodeBacked) obj).getPersistentState());
-		}
-		return false;
+	public boolean NodeBacked.equals(Object obj) {
+        return entityStateHandler().equals(this, obj);
 	}
+
+    public static EntityStateHandler entityStateHandler() {
+        return graphDatabaseContext().getEntityStateHandler();
+    }
 
     /**
      * @return result of the hashCode of the underlying node (if any, otherwise identityHashCode)
      */
-	public final int NodeBacked.hashCode() {
-        if (!hasPersistentState()) return System.identityHashCode(this);
-		return getPersistentState().hashCode();
+	public int NodeBacked.hashCode() {
+        return entityStateHandler().hashCode(this);
 	}
 
     /**

@@ -24,7 +24,6 @@ import org.springframework.data.mapping.model.SimpleTypeHolder;
 import org.springframework.data.neo4j.annotation.NodeEntity;
 import org.springframework.data.neo4j.annotation.RelationshipEntity;
 import org.springframework.data.util.TypeInformation;
-import scala.annotation.target.field;
 
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.Field;

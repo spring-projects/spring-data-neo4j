@@ -87,7 +87,8 @@ public abstract class Neo4jConfiguration {
         gdc.setGraphDatabaseService(getGraphDatabaseService());
         gdc.setConversionService(conversionService());
         gdc.setMappingContext(mappingContext());
-        gdc.setNodeEntityConverter(nodeEntityConverter());
+        gdc.setNodeEntityStateFactory(nodeEntityStateFactory());
+        gdc.setRelationshipEntityStateFactory(relationshipEntityStateFactory());
         gdc.setEntityStateHandler(entityStateHandler());
         gdc.setNodeTypeRepresentationStrategy(nodeTypeRepresentationStrategy());
         gdc.setRelationshipTypeRepresentationStrategy(relationshipTypeRepresentationStrategy());

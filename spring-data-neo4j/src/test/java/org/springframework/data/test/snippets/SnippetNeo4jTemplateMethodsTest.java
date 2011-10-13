@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.test.snippets;
+package org.springframework.data.test.snippets;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -26,21 +26,20 @@ import org.springframework.data.neo4j.conversion.ResultConverter;
 import org.springframework.data.neo4j.core.GraphDatabase;
 import org.springframework.data.neo4j.template.Neo4jOperations;
 import org.springframework.data.neo4j.template.Neo4jTemplate;
-import org.springframework.test.DocumentingTestBase;
+import org.springframework.data.test.DocumentingTestBase;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import java.util.Arrays;
 
+import static java.util.Arrays.asList;
+import static org.junit.Assert.assertEquals;
 import static org.neo4j.helpers.collection.MapUtil.map;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = {"classpath*:DocumentingTest-context.xml"})
-public class SnippetNeo4jTemplateMethods extends DocumentingTestBase {
+public class SnippetNeo4jTemplateMethodsTest extends DocumentingTestBase {
     @Autowired
     private GraphDatabase graphDatabase;
     private static final RelationshipType WORKS_WITH = DynamicRelationshipType.withName("WORKS_WITH");
@@ -66,10 +65,9 @@ public class SnippetNeo4jTemplateMethods extends DocumentingTestBase {
         neo.createRelationship(mark, thomas, WORKS_WITH, map("project", "spring-data"));
 
         neo.index("devs", thomas, "name", "Thomas");
-
-        // Cypher
-        assert "Mark".equals(neo.query("start p=({p_person}) match p<-[:WORKS_WITH]-other return other.name",
-                map("person", thomas)).to(String.class).single());
+        // Cypher TODO
+        assertEquals( "Mark", neo.query("start p=node({person}) match p<-[:WORKS_WITH]-other return other.name",
+                                  map("person", asList(thomas.getId()))).to(String.class).single());
 
 
         // SNIPPET template
@@ -79,18 +77,18 @@ public class SnippetNeo4jTemplateMethods extends DocumentingTestBase {
         // SNIPPET template
 
         // Gremlin
-        assert thomas.equals(neo.execute("g.v(person).out('WORKS_WITH')",
-                map("person", mark)).to(Node.class).single());
+        assertEquals(thomas, neo.execute("g.v(person).out('WORKS_WITH')",
+                map("person", mark.getId())).to(Node.class).single());
 
         // Index lookup
-        assert mark.equals(neo.lookup("devs", "name", "Mark").to(Node.class).single());
+        assertEquals(thomas, neo.lookup("devs", "name", "Thomas").to(Node.class).single());
 
         // Index lookup with Result Converter
-        assert "Mark".equals(neo.lookup("devs", "name", "Mark").to(String.class, new ResultConverter<PropertyContainer, String>() {
+        assertEquals("Thomas", neo.lookup("devs", "name", "Thomas").to(String.class, new ResultConverter<PropertyContainer, String>() {
             public String convert(PropertyContainer element, Class<String> type) {
                 return (String) element.getProperty("name");
             }
-        }));
+        }).single());
         // SNIPPET template
     }
 

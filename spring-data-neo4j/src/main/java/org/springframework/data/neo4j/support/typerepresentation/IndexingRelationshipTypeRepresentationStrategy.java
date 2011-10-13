@@ -32,7 +32,7 @@ import org.springframework.data.neo4j.support.EntityInstantiator;
 
 public class IndexingRelationshipTypeRepresentationStrategy implements RelationshipTypeRepresentationStrategy {
 
-    public static final String INDEX_NAME = "__types__";
+    public static final String INDEX_NAME = "__rel_types__";
     public static final String TYPE_PROPERTY_NAME = "__type__";
     public static final String INDEX_KEY = "className";
     private EntityInstantiator<Relationship> relationshipEntityInstantiator;

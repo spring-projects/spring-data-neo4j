@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.test;
+package org.springframework.data.test;
 
 
 import org.junit.After;
@@ -35,7 +35,7 @@ public abstract class DocumentingTestBase {
     public void outputDocs() throws IOException {
         final File directory = new File(docbookDirectory(),"snippets");
         if (directory.isFile() || !directory.exists() && !directory.mkdirs()) throw new RuntimeException("Could not create directory "+directory);
-        final String name = getClass().getSimpleName();
+        final String name = getSnippetName();
         final PrintWriter writer = new PrintWriter(new FileWriter(getSnippetFileName(directory,name)));
         writer.write(createHeader());
         writer.write(createTitle());
@@ -43,6 +43,11 @@ public abstract class DocumentingTestBase {
         writer.write(createSnippet());
         writer.write(createFooter());
         writer.close();
+    }
+
+    private String getSnippetName() {
+        final String className = getClass().getSimpleName();
+        return className.replace("Tests?$","");
     }
 
     private File docbookDirectory() {

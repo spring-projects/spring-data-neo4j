@@ -93,7 +93,7 @@ public class QueryFieldAccessorFactory implements FieldAccessorFactory {
 	    }
 
         private Object executeQuery(Object entity, String queryString, Map<String, Object> params) {
-            return graphDatabaseContext.executeQuery(entity,queryString,params,property);
+            return graphDatabaseContext.executeQuery(queryString,params,property);
         }
 
         private Map<String, Object> createPlaceholderParams(Object entity) {
