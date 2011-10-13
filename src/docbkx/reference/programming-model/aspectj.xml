@@ -56,7 +56,7 @@
             Then for the <code>spring-data-neo4j/src/main/java</code> add <code>**/*.aj</code> to the Included path.
 
             For importing an Spring Data Graph project into Eclipse with m2e.
-            Please make sure that the <ulink href="http://dist.springsource.org/release/AJDT/configurator">AspectJ Configurator</ulink> is installed and
+            Please make sure that the <ulink url="http://dist.springsource.org/release/AJDT/configurator">AspectJ Configurator</ulink> is installed and
 
         </para>
         </note>
