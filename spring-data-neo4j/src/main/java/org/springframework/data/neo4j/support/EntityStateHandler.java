@@ -106,7 +106,7 @@ public class EntityStateHandler {
     public <S extends PropertyContainer> S useOrCreateState(Object entity, S state) {
         if (state != null) return state;
         final S containedState = getPersistentState(entity);
-        if (containedState == null) return containedState;
+        if (containedState != null) return containedState;
         final Class<?> type = entity.getClass();
         final Neo4jPersistentEntityImpl<?> persistentEntity = mappingContext.getPersistentEntity(type);
         if (persistentEntity.isNodeEntity()) {
