@@ -153,7 +153,14 @@
 			</properties>
 		</profile>
 		<profile>
-			<id>staging</id>
+            <id>staging</id>
+            <modules>
+                <module>spring-data-neo4j-parent</module>
+                <module>spring-data-neo4j</module>
+                <module>spring-data-neo4j-rest</module>
+                <module>spring-data-neo4j-aspects</module>
+                <module>spring-data-neo4j-cross-store</module>
+            </modules>
 			<distributionManagement>
 				<site>
 					<id>spring-site-staging</id>
@@ -170,7 +177,41 @@
 			</distributionManagement>
 		</profile>
 		<profile>
+			<id>snapshot</id>
+            <modules>
+           		<module>spring-data-neo4j-parent</module>
+           		<module>spring-data-neo4j</module>
+           		<module>spring-data-neo4j-rest</module>
+           		<module>spring-data-neo4j-aspects</module>
+           		<module>spring-data-neo4j-cross-store</module>
+           	</modules>
+			<distributionManagement>
+                <downloadUrl>http://www.springsource.com/spring-data</downloadUrl>
+              		<site>
+              			<id>static.springframework.org</id>
+              			<url>scp://static.springframework.org/var/www/domains/springframework.org/static/htdocs/spring-data/data-graph/snapshot-site/</url>
+              		</site>
+                      <repository>
+                          <id>spring-release</id>
+                          <name>Spring Release Repository</name>
+                          <url>s3://maven.springframework.org/release</url>
+                      </repository>
+              		<snapshotRepository>
+              			<id>spring-snapshot</id>
+              			<name>Spring Snapshot Repository</name>
+              			<url>s3://maven.springframework.org/snapshot</url>
+              		</snapshotRepository>
+			</distributionManagement>
+		</profile>
+		<profile>
 			<id>milestone</id>
+            <modules>
+           		<module>spring-data-neo4j-parent</module>
+           		<module>spring-data-neo4j</module>
+           		<module>spring-data-neo4j-rest</module>
+           		<module>spring-data-neo4j-aspects</module>
+           		<module>spring-data-neo4j-cross-store</module>
+           	</modules>
 			<distributionManagement>
 			  <repository>
 				<id>spring-milestone</id>
@@ -181,6 +222,13 @@
 		</profile>
 		<profile>
 			<id>central</id>
+            <modules>
+           		<module>spring-data-neo4j-parent</module>
+           		<module>spring-data-neo4j</module>
+           		<module>spring-data-neo4j-rest</module>
+           		<module>spring-data-neo4j-aspects</module>
+           		<module>spring-data-neo4j-cross-store</module>
+           	</modules>
 			<distributionManagement>
 			  <snapshotRepository>
 				<id>sonatype-nexus-snapshots</id>
@@ -212,11 +260,11 @@
 			</build>
 		</profile>
 	</profiles>
-	<distributionManagement>
+	<!--distributionManagement>
 		<downloadUrl>http://www.springsource.com/spring-data</downloadUrl>
 		<site>
 			<id>static.springframework.org</id>
-			<url>scp://static.springframework.org/var/www/domains/springframework.org/static/htdocs/spring-data/data-neo4j/snapshot-site/</url>
+			<url>scp://static.springframework.org/var/www/domains/springframework.org/static/htdocs/spring-data/data-graph/snapshot-site/</url>
 		</site>
         <repository>
             <id>spring-release</id>
@@ -228,7 +276,7 @@
 			<name>Spring Snapshot Repository</name>
 			<url>s3://maven.springframework.org/snapshot</url>
 		</snapshotRepository>
-	</distributionManagement>
+	</distributionManagement-->
 	<build>
 		<extensions>
 			<extension>
