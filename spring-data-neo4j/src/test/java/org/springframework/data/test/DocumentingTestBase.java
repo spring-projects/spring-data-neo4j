@@ -47,7 +47,7 @@ public abstract class DocumentingTestBase {
 
     private String getSnippetName() {
         final String className = getClass().getSimpleName();
-        return className.replace("Tests?$","");
+        return className.replaceAll("Tests?$","");
     }
 
     private File docbookDirectory() {
