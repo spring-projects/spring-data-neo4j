@@ -36,7 +36,7 @@ public class Neo4jEntityFetchHandler {
     private final EntityStateHandler entityStateHandler;
     private final ConversionService conversionService;
 
-    public Neo4jEntityFetchHandler(EntityStateHandler entityStateHandler, ConversionService conversionService, SourceStateTransmitter<Relationship> relationshipStateTransmitter, SourceStateTransmitter<Node> nodeStateTransmitter) {
+    public Neo4jEntityFetchHandler(EntityStateHandler entityStateHandler, ConversionService conversionService, SourceStateTransmitter<Node> nodeStateTransmitter, SourceStateTransmitter<Relationship> relationshipStateTransmitter) {
         this.conversionService = conversionService;
         this.entityStateHandler = entityStateHandler;
         this.relationshipStateTransmitter = relationshipStateTransmitter;

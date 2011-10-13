@@ -37,7 +37,9 @@ import org.springframework.data.neo4j.mapping.Neo4jEntityPersister;
 import org.springframework.data.neo4j.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.support.node.EntityStateFactory;
+import org.springframework.data.neo4j.support.node.NodeEntityInstantiator;
 import org.springframework.data.neo4j.support.query.CypherQueryExecutor;
+import org.springframework.data.neo4j.support.relationship.RelationshipEntityInstantiator;
 import org.springframework.data.util.TypeInformation;
 
 import javax.annotation.PostConstruct;
@@ -77,6 +79,18 @@ public class GraphDatabaseContext {
     private EntityStateFactory<Relationship> relationshipEntityStateFactory;
     private EntityRemover entityRemover;
     private TypeRepresentationStrategies typeRepresentationStrategies;
+    private EntityInstantiator<Relationship> relationshipEntityInstantiator;
+    private EntityInstantiator<Node> nodeEntityInstantiator;
+    private EntityTools<Node> nodeEntityTools;
+    private EntityTools<Relationship> relationshipEntityTools;
+
+    public void setRelationshipEntityInstantiator(EntityInstantiator<Relationship> relationshipEntityInstantiator) {
+        this.relationshipEntityInstantiator = relationshipEntityInstantiator;
+    }
+
+    public void setNodeEntityInstantiator(EntityInstantiator<Node> nodeEntityInstantiator) {
+        this.nodeEntityInstantiator = nodeEntityInstantiator;
+    }
 
     static class IndexProvider {
         private IndexManager indexManager;
@@ -270,9 +284,17 @@ public class GraphDatabaseContext {
     public void postConstruct() {
         this.typeRepresentationStrategies = new TypeRepresentationStrategies(mappingContext, nodeTypeRepresentationStrategy, relationshipTypeRepresentationStrategy);
         this.cypherQueryExecutor = new CypherQueryExecutor(this);
-        this.entityPersister = new Neo4jEntityPersister(graphDatabaseService, mappingContext, conversionService,
-                nodeEntityStateFactory, relationshipEntityStateFactory, nodeTypeRepresentationStrategy, relationshipTypeRepresentationStrategy);
-        this.entityRemover = new EntityRemover(entityStateHandler, nodeTypeRepresentationStrategy, relationshipTypeRepresentationStrategy, graphDatabaseService.index());
+        final EntityStateHandler entityStateHandler = new EntityStateHandler(mappingContext, graphDatabaseService);
+        if (nodeEntityInstantiator==null) {
+            nodeEntityInstantiator = new NodeEntityInstantiator(entityStateHandler);
+        }
+        this.nodeEntityTools = new EntityTools<Node>(nodeTypeRepresentationStrategy,nodeEntityStateFactory, nodeEntityInstantiator);
+        if (relationshipEntityInstantiator==null) {
+            relationshipEntityInstantiator = new RelationshipEntityInstantiator(entityStateHandler);
+        }
+        this.relationshipEntityTools = new EntityTools<Relationship>(relationshipTypeRepresentationStrategy, relationshipEntityStateFactory, relationshipEntityInstantiator);
+        this.entityPersister = new Neo4jEntityPersister(conversionService, nodeEntityTools,relationshipEntityTools,mappingContext, entityStateHandler);
+        this.entityRemover = new EntityRemover(this.entityStateHandler, nodeTypeRepresentationStrategy, relationshipTypeRepresentationStrategy, graphDatabaseService.index());
         this.indexProvider = new IndexProvider(graphDatabaseService.index(), mappingContext);
     }
 

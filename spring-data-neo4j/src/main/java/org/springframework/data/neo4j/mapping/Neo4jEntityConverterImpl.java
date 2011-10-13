@@ -25,6 +25,7 @@ import org.springframework.data.mapping.model.BeanWrapper;
 import org.springframework.data.mapping.model.MappingException;
 import org.springframework.data.neo4j.support.EntityInstantiator;
 import org.springframework.data.neo4j.support.EntityStateHandler;
+import org.springframework.data.neo4j.support.EntityTools;
 import org.springframework.data.neo4j.support.ManagedEntity;
 import org.springframework.data.util.ClassTypeInformation;
 import org.springframework.data.util.TypeInformation;
@@ -43,16 +44,17 @@ public class Neo4jEntityConverterImpl<T,S extends PropertyContainer> implements 
     private final TypeMapper<S> typeMapper;
     private final SourceStateTransmitter<S> sourceStateTransmitter;
     private final Neo4jEntityFetchHandler entityFetchHandler;
-    public Neo4jEntityConverterImpl(Neo4jMappingContext mappingContext, ConversionService conversionService, EntityInstantiator<S> entityInstantiator,
-                                    EntityStateHandler entityStateHandler, TypeMapper<S> typeMapper,
-                                    SourceStateTransmitter<S> sourceStateTransmitter, Neo4jEntityFetchHandler entityFetchHandler) {
+
+    public Neo4jEntityConverterImpl(Neo4jMappingContext mappingContext, ConversionService conversionService,
+                                    EntityStateHandler entityStateHandler, Neo4jEntityFetchHandler entityFetchHandler,
+                                    EntityTools<S> entityTools) {
         this.mappingContext = mappingContext;
         this.conversionService = conversionService;
-        this.entityInstantiator = entityInstantiator;
         this.entityStateHandler = entityStateHandler;
-        this.typeMapper = typeMapper;
-        this.sourceStateTransmitter = sourceStateTransmitter;
         this.entityFetchHandler = entityFetchHandler;
+        this.entityInstantiator = new Neo4jEntityPersister.CachedInstantiator<S>(entityTools.getEntityInstantiator());
+        this.typeMapper = entityTools.getTypeMapper();
+        this.sourceStateTransmitter = entityTools.getSourceStateTransmitter();
     }
 
     @Override

@@ -68,7 +68,6 @@ public class UserAccountRelationshipsTest extends AbstractTestWithUserAccount {
 
     @Transactional
     @Test
-    @Ignore
     public void testAddRecommendation() {
     	UserAccount user = userAccountRepo.findUserAccount(userId);
     	Restaurant rest = restaurantRepository.findRestaurant(22L);
@@ -84,8 +83,9 @@ public class UserAccountRelationshipsTest extends AbstractTestWithUserAccount {
     	Recommendation r = recommendations.get(0);
     	Assert.assertEquals("recommendation should have correct rating", 3, r.getStars());
     	Assert.assertEquals("recommendation should have correct comment", "Pretty Good", r.getComment());
-    	Assert.assertEquals("recommendation should have correct restaurant id", new Long(22), r.getRestaurant().getId());
-    	Assert.assertEquals("recommendation should have correct restaurant name", "Subway Sandwiches & Salads", r.getRestaurant().getName());
+        final Restaurant restaurant = r.getRestaurant();
+        Assert.assertEquals("recommendation should have correct restaurant id", new Long(22), restaurant.getId());
+    	Assert.assertEquals("recommendation should have correct restaurant name", "Subway Sandwiches & Salads", restaurant.getName());
     }
 
 }

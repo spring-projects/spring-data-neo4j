@@ -87,11 +87,16 @@ public abstract class Neo4jConfiguration {
         gdc.setGraphDatabaseService(getGraphDatabaseService());
         gdc.setConversionService(conversionService());
         gdc.setMappingContext(mappingContext());
-        gdc.setNodeEntityStateFactory(nodeEntityStateFactory());
-        gdc.setRelationshipEntityStateFactory(relationshipEntityStateFactory());
         gdc.setEntityStateHandler(entityStateHandler());
+
+        gdc.setNodeEntityStateFactory(nodeEntityStateFactory());
         gdc.setNodeTypeRepresentationStrategy(nodeTypeRepresentationStrategy());
+        gdc.setNodeEntityInstantiator(graphEntityInstantiator());
+
+        gdc.setRelationshipEntityStateFactory(relationshipEntityStateFactory());
         gdc.setRelationshipTypeRepresentationStrategy(relationshipTypeRepresentationStrategy());
+        gdc.setRelationshipEntityInstantiator(graphRelationshipInstantiator());
+
         if (validator!=null) {
             gdc.setValidator(validator);
         }
@@ -117,22 +122,23 @@ public abstract class Neo4jConfiguration {
     public EntityStateHandler entityStateHandler() {
         return new EntityStateHandler(mappingContext(),graphDatabaseService);
     }
-    
-    @Bean 
-    public Neo4jEntityConverter<Object,Node> nodeEntityConverter() throws Exception {
-        return new Neo4jEntityConverterImpl<Object, Node>(mappingContext(), conversionService(), graphEntityInstantiator() ,entityStateHandler(),typeMapper(), nodeStateTransmitter(), entityFetchHandler());
-    }
 
-    private TypeMapper<Node> typeMapper() throws Exception {
+
+    @Bean
+    public TypeMapper<Node> nodeTypeMapper() throws Exception {
         return new DefaultTypeMapper<Node>(new TRSTypeAliasAccessor<Node>(nodeTypeRepresentationStrategy()),asList(new ClassValueTypeInformationMapper()));
     }
 
+    @Bean
+    public TypeMapper<Relationship> relationshipTypeMapper() throws Exception {
+        return new DefaultTypeMapper<Relationship>(new TRSTypeAliasAccessor<Relationship>(relationshipTypeRepresentationStrategy()),asList(new ClassValueTypeInformationMapper()));
+    }
 
     @Bean
     public Neo4jEntityFetchHandler entityFetchHandler() throws Exception {
         final SourceStateTransmitter<Node> nodeSourceStateTransmitter = nodeStateTransmitter();
         final SourceStateTransmitter<Relationship> relationshipSourceStateTransmitter = new SourceStateTransmitter<Relationship>(relationshipEntityStateFactory());
-        return new Neo4jEntityFetchHandler(entityStateHandler(), conversionService(), relationshipSourceStateTransmitter, nodeSourceStateTransmitter);
+        return new Neo4jEntityFetchHandler(entityStateHandler(), conversionService(), nodeSourceStateTransmitter, relationshipSourceStateTransmitter);
     }
 
     @Bean

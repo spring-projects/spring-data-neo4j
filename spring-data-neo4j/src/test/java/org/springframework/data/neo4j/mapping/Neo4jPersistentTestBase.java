@@ -31,6 +31,7 @@ import org.springframework.data.neo4j.fieldaccess.RelationshipDelegatingFieldAcc
 import org.springframework.data.neo4j.model.Group;
 import org.springframework.data.neo4j.model.Person;
 import org.springframework.data.neo4j.support.EntityStateHandler;
+import org.springframework.data.neo4j.support.EntityTools;
 import org.springframework.data.neo4j.support.GraphDatabaseContext;
 import org.springframework.data.neo4j.support.node.NodeEntityInstantiator;
 import org.springframework.data.neo4j.support.node.NodeEntityStateFactory;
@@ -52,12 +53,12 @@ import static java.util.Arrays.asList;
  */
 public class Neo4jPersistentTestBase {
     private Transaction tx;
-    private Neo4jEntityConverterImpl<Object,Node> nodeConverter;
     protected GraphDatabaseContext gdc;
     protected NodeEntityStateFactory nodeEntityStateFactory;
     protected RelationshipEntityStateFactory relationshipEntityStateFactory;
     protected EntityStateHandler entityStateHandler;
     protected NodeEntityInstantiator nodeEntityInstantiator;
+    protected RelationshipEntityInstantiator relationshipEntityInstantiator;
     protected TypeMapper<Node> nodeTypeMapper;
     protected SourceStateTransmitter<Node> nodeStateTransmitter;
     protected SourceStateTransmitter<Relationship> relationshipStateTransmitter;
@@ -97,17 +98,17 @@ public class Neo4jPersistentTestBase {
         entityStateHandler = gdc.getEntityStateHandler();
 
         nodeEntityInstantiator = new NodeEntityInstantiator(entityStateHandler);
+        relationshipEntityInstantiator = new RelationshipEntityInstantiator(entityStateHandler);
         nodeTypeMapper = new DefaultTypeMapper<Node>(new TRSTypeAliasAccessor<Node>(gdc.getNodeTypeRepresentationStrategy()),asList(new ClassValueTypeInformationMapper()));
         nodeStateTransmitter = new SourceStateTransmitter<Node>(nodeEntityStateFactory);
         relationshipStateTransmitter = new SourceStateTransmitter<Relationship>(relationshipEntityStateFactory);
         conversionService = gdc.getConversionService();
-        fetchHandler = new Neo4jEntityFetchHandler(entityStateHandler, conversionService, relationshipStateTransmitter, nodeStateTransmitter);
 
-        nodeConverter = new Neo4jEntityConverterImpl<Object,Node>(mappingContext, conversionService, nodeEntityInstantiator, entityStateHandler, nodeTypeMapper, nodeStateTransmitter, fetchHandler);
+        fetchHandler = new Neo4jEntityFetchHandler(entityStateHandler, conversionService, nodeStateTransmitter, relationshipStateTransmitter);
+        final EntityTools<Node> nodeEntityTools = new EntityTools<Node>(gdc.getNodeTypeRepresentationStrategy(), nodeEntityStateFactory, nodeEntityInstantiator);
+        final EntityTools<Relationship> relationshipEntityTools = new EntityTools<Relationship>(gdc.getRelationshipTypeRepresentationStrategy(), relationshipEntityStateFactory, relationshipEntityInstantiator);
 
-        entityPersister = new Neo4jEntityPersister(gdc.getGraphDatabaseService(), mappingContext, conversionService,
-                nodeEntityStateFactory, relationshipEntityStateFactory,
-                gdc.getNodeTypeRepresentationStrategy(), gdc.getRelationshipTypeRepresentationStrategy());
+        entityPersister = new Neo4jEntityPersister(conversionService, nodeEntityTools, relationshipEntityTools, mappingContext, entityStateHandler);
 
         group = new Group();
         michael = new Person("Michael", 37);

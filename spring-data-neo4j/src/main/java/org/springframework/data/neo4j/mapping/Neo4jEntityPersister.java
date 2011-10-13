@@ -15,26 +15,18 @@
  */
 package org.springframework.data.neo4j.mapping;
 
-import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.PropertyContainer;
 import org.neo4j.graphdb.Relationship;
 import org.springframework.core.convert.ConversionService;
-import org.springframework.data.convert.DefaultTypeMapper;
-import org.springframework.data.convert.TypeMapper;
 import org.springframework.data.mapping.context.MappingContext;
-import org.springframework.data.neo4j.core.TypeRepresentationStrategy;
 import org.springframework.data.neo4j.support.EntityInstantiator;
 import org.springframework.data.neo4j.support.EntityStateHandler;
+import org.springframework.data.neo4j.support.EntityTools;
 import org.springframework.data.neo4j.support.ManagedEntity;
-import org.springframework.data.neo4j.support.node.EntityStateFactory;
-import org.springframework.data.neo4j.support.node.NodeEntityInstantiator;
-import org.springframework.data.neo4j.support.relationship.RelationshipEntityInstantiator;
 
 import java.util.HashMap;
 import java.util.Map;
-
-import static java.util.Arrays.asList;
 
 /**
  * @author mh
@@ -46,32 +38,16 @@ public class Neo4jEntityPersister implements Neo4jEntityConverter<Object,Node> {
     private EntityStateHandler entityStateHandler;
     private final Neo4jMappingContext mappingContext;
 
-
-    public Neo4jEntityPersister(GraphDatabaseService graphDatabaseService, Neo4jMappingContext mappingContext, ConversionService conversionService,
-                                EntityStateFactory<Node> nodeEntityStateFactory, EntityStateFactory<Relationship> relationshipEntityStateFactory,
-                                TypeRepresentationStrategy<Node> nodeTypeRepresentationStrategy, TypeRepresentationStrategy<Relationship> relationshipTypeRepresentationStrategy) {
+    public Neo4jEntityPersister(ConversionService conversionService, EntityTools<Node> nodeEntityTools, EntityTools<Relationship> relationshipEntityTools, Neo4jMappingContext mappingContext, EntityStateHandler entityStateHandler) {
         this.mappingContext = mappingContext;
+        this.entityStateHandler = entityStateHandler;
 
-        this.entityStateHandler = new EntityStateHandler(mappingContext, graphDatabaseService);
+        Neo4jEntityFetchHandler fetchHandler=new Neo4jEntityFetchHandler(entityStateHandler, conversionService, nodeEntityTools.getSourceStateTransmitter(), relationshipEntityTools.getSourceStateTransmitter());
 
-        final EntityInstantiator<Node> nodeEntityInstantiator = new CachedInstantiator<Node>(new NodeEntityInstantiator(entityStateHandler));
-        TypeMapper<Node> nodeTypeMapper = new DefaultTypeMapper<Node>(new TRSTypeAliasAccessor<Node>(nodeTypeRepresentationStrategy), asList(new ClassValueTypeInformationMapper()));
-        SourceStateTransmitter<Node> nodeStateTransmitter = new SourceStateTransmitter<Node>(nodeEntityStateFactory);
+        this.nodeConverter = new CachedConverter<Node>(new Neo4jEntityConverterImpl<Object,Node>(mappingContext, conversionService, entityStateHandler, fetchHandler, nodeEntityTools));
 
-        final EntityInstantiator<Relationship> relationshipEntityInstantiator = new CachedInstantiator<Relationship>(new RelationshipEntityInstantiator(entityStateHandler));
-        TypeMapper<Relationship> relationShipTypeMapper = new DefaultTypeMapper<Relationship>(new TRSTypeAliasAccessor<Relationship>(relationshipTypeRepresentationStrategy), asList(new ClassValueTypeInformationMapper()));
-        SourceStateTransmitter<Relationship> relationshipStateTransmitter = new SourceStateTransmitter<Relationship>(relationshipEntityStateFactory);
+        this.relationshipConverter = new CachedConverter<Relationship>(new Neo4jEntityConverterImpl<Object,Relationship>(mappingContext, conversionService, entityStateHandler, fetchHandler, relationshipEntityTools));
 
-        Neo4jEntityFetchHandler fetchHandler=new Neo4jEntityFetchHandler(entityStateHandler, conversionService, relationshipStateTransmitter , nodeStateTransmitter);
-
-        this.nodeConverter = new CachedConverter<Node>(
-                new Neo4jEntityConverterImpl<Object,Node>(mappingContext, conversionService, nodeEntityInstantiator,
-                        entityStateHandler, nodeTypeMapper, nodeStateTransmitter, fetchHandler));
-
-        this.relationshipConverter = new CachedConverter<Relationship>(
-                new Neo4jEntityConverterImpl<Object,Relationship>(mappingContext, conversionService,
-                        relationshipEntityInstantiator, entityStateHandler, relationShipTypeMapper,
-                        relationshipStateTransmitter, fetchHandler));
     }
 
     public <S extends PropertyContainer, T> T createEntityFromStoredType(S state) {
@@ -113,10 +89,10 @@ public class Neo4jEntityPersister implements Neo4jEntityConverter<Object,Node> {
             return cache().objects.containsKey(state);
         }
     }
-    static class CachedInstantiator<S extends PropertyContainer> implements EntityInstantiator<S> {
+    public static class CachedInstantiator<S extends PropertyContainer> implements EntityInstantiator<S> {
         private final EntityInstantiator<S> delegate;
 
-        CachedInstantiator(EntityInstantiator<S> delegate) {
+        public CachedInstantiator(EntityInstantiator<S> delegate) {
             this.delegate = delegate;
         }
 
@@ -132,10 +108,10 @@ public class Neo4jEntityPersister implements Neo4jEntityConverter<Object,Node> {
             }
         }
     }
-    static class CachedConverter<S extends PropertyContainer> implements Neo4jEntityConverter<Object,S> {
+    public static class CachedConverter<S extends PropertyContainer> implements Neo4jEntityConverter<Object,S> {
         private final Neo4jEntityConverter<Object,S> delegate;
 
-        CachedConverter(Neo4jEntityConverter<Object, S> delegate) {
+        public CachedConverter(Neo4jEntityConverter<Object, S> delegate) {
             this.delegate = delegate;
         }
 
