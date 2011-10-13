@@ -15,10 +15,6 @@
 		<module>spring-data-neo4j-rest</module>
 		<module>spring-data-neo4j-aspects</module>
 		<module>spring-data-neo4j-cross-store</module>
-		<module>spring-data-neo4j-examples/hello-worlds</module>
-		<module>spring-data-neo4j-examples/imdb</module>
-		<module>spring-data-neo4j-examples/cineasts</module>
-		<module>spring-data-neo4j-examples/myrestaurants-social</module>
 	</modules>
     <url>http://www.springsource.org/spring-data/neo4j</url>
     <organization>
@@ -152,15 +148,17 @@
 				<maven.test.skip>true</maven.test.skip>
 			</properties>
 		</profile>
+        <profile>
+            <id>examples</id>
+            <modules>
+           		<module>spring-data-neo4j-examples/hello-worlds</module>
+           		<module>spring-data-neo4j-examples/imdb</module>
+           		<module>spring-data-neo4j-examples/cineasts</module>
+           		<module>spring-data-neo4j-examples/myrestaurants-social</module>
+           	</modules>
+        </profile>
 		<profile>
             <id>staging</id>
-            <modules>
-                <module>spring-data-neo4j-parent</module>
-                <module>spring-data-neo4j</module>
-                <module>spring-data-neo4j-rest</module>
-                <module>spring-data-neo4j-aspects</module>
-                <module>spring-data-neo4j-cross-store</module>
-            </modules>
 			<distributionManagement>
 				<site>
 					<id>spring-site-staging</id>
@@ -178,13 +176,6 @@
 		</profile>
 		<profile>
 			<id>snapshot</id>
-            <modules>
-           		<module>spring-data-neo4j-parent</module>
-           		<module>spring-data-neo4j</module>
-           		<module>spring-data-neo4j-rest</module>
-           		<module>spring-data-neo4j-aspects</module>
-           		<module>spring-data-neo4j-cross-store</module>
-           	</modules>
 			<distributionManagement>
                 <downloadUrl>http://www.springsource.com/spring-data</downloadUrl>
               		<site>
@@ -205,13 +196,6 @@
 		</profile>
 		<profile>
 			<id>milestone</id>
-            <modules>
-           		<module>spring-data-neo4j-parent</module>
-           		<module>spring-data-neo4j</module>
-           		<module>spring-data-neo4j-rest</module>
-           		<module>spring-data-neo4j-aspects</module>
-           		<module>spring-data-neo4j-cross-store</module>
-           	</modules>
 			<distributionManagement>
 			  <repository>
 				<id>spring-milestone</id>
@@ -222,13 +206,6 @@
 		</profile>
 		<profile>
 			<id>central</id>
-            <modules>
-           		<module>spring-data-neo4j-parent</module>
-           		<module>spring-data-neo4j</module>
-           		<module>spring-data-neo4j-rest</module>
-           		<module>spring-data-neo4j-aspects</module>
-           		<module>spring-data-neo4j-cross-store</module>
-           	</modules>
 			<distributionManagement>
 			  <snapshotRepository>
 				<id>sonatype-nexus-snapshots</id>

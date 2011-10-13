@@ -43,7 +43,9 @@
 			<!-- adds module jars to the distribution archive under the 'dist' directory -->
 			<includes>
 				<include>org.springframework.data:spring-data-neo4j</include>
+				<include>org.springframework.data:spring-data-neo4j-aspects</include>
 				<include>org.springframework.data:spring-data-neo4j-rest</include>
+				<include>org.springframework.data:spring-data-neo4j-cross-store</include>
 			</includes>
 			<binaries>
 				<outputDirectory>dist</outputDirectory>
@@ -56,7 +58,9 @@
 				 see pom.xml 'maven-source-plugin' declaration -->
 			<includes>
 				<include>org.springframework.data:spring-data-neo4j</include>
+				<include>org.springframework.data:spring-data-neo4j-aspects</include>
 				<include>org.springframework.data:spring-data-neo4j-rest</include>
+				<include>org.springframework.data:spring-data-neo4j-cross-store</include>
 			</includes>
 			<binaries>
 				<attachmentClassifier>sources</attachmentClassifier>
