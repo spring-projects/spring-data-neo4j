@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE section PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
-<section id="reference:programming-model:repositories">
+<section id="reference:programming-model:repositories" xmlns:xi="http://www.w3.org/2001/XInclude">
     <title>CRUD with repositories</title>
     <para>
         The repositories provided by Spring Data Neo4j build on the composable repository infrastructure
@@ -189,6 +189,7 @@
                 </variablelist>
             </para>
         </section>
+        <xi:include href="../../snippets/SnippetRepositoryDerivedFinder.xml"/>
     </section>
 
     <section>
