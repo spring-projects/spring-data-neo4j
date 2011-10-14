@@ -7,6 +7,7 @@ import org.junit.runner.RunWith;
 import org.neo4j.cineasts.repository.MovieRepository;
 import org.neo4j.cineasts.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.neo4j.rest.support.RestTestBase;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,14 +16,10 @@ import java.util.Iterator;
 
 import static org.junit.Assert.*;
 
-/**
- * @author mh
- * @since 04.03.11
- */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration({"/movies-test-context.xml"})
 @Transactional
-public class DomainTest {
+public class DomainTest extends RestTestBase {
 
     @Autowired
     protected MovieRepository movieRepository;
@@ -34,7 +31,6 @@ public class DomainTest {
     }
 
     @Test
-    @Ignore("Fails over REST")
     public void actorCanPlayARoleInAMovie() {
         Person tomHanks = new Person("1","Tom Hanks").persist();
         Movie forestGump = new Movie("1", "Forrest Gump").persist();

@@ -6,6 +6,7 @@ import org.neo4j.cineasts.domain.Movie;
 import org.neo4j.cineasts.domain.Person;
 import org.neo4j.cineasts.service.CineastsRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.neo4j.rest.support.RestTestBase;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,7 +20,7 @@ import static org.junit.Assert.assertEquals;
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration({"/movies-test-context.xml"})
 @Transactional
-public class MovieDbImportServiceTest {
+public class MovieDbImportServiceTest extends RestTestBase {
 
     @Autowired
     MovieDbImportService importService;

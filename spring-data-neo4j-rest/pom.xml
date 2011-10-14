@@ -1,12 +1,12 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
-	<parent>
-    <groupId>org.springframework.data</groupId>
-		<artifactId>spring-data-neo4j-parent</artifactId>
-		<version>2.0.0.BUILD-SNAPSHOT</version>
-		<relativePath>../spring-data-neo4j-parent/pom.xml</relativePath>
-	</parent>
+    <parent>
+        <groupId>org.springframework.data</groupId>
+        <artifactId>spring-data-neo4j-parent</artifactId>
+        <version>2.0.0.BUILD-SNAPSHOT</version>
+        <relativePath>../spring-data-neo4j-parent/pom.xml</relativePath>
+    </parent>
     <artifactId>spring-data-neo4j-rest</artifactId>
     <packaging>jar</packaging>
     <version>2.0.0.BUILD-SNAPSHOT</version>
@@ -37,7 +37,7 @@
             <scope>test</scope>
             <type>test-jar</type>
         </dependency>
-				<dependency>
+        <dependency>
             <groupId>org.neo4j</groupId>
             <artifactId>neo4j-rest-graphdb</artifactId>
             <version>1.5-SNAPSHOT</version>
@@ -82,74 +82,74 @@
             <artifactId>neo4j-server</artifactId>
             <version>${neo4j.version}</version>
             <scope>test</scope>
-          <exclusions>
-              <exclusion>
-                  <groupId>org.slf4j</groupId>
-                  <artifactId>log4j-over-slf4j</artifactId>
-              </exclusion>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>log4j-over-slf4j</artifactId>
+                </exclusion>
 
-              <exclusion>
-                  <groupId>org.neo4j</groupId>
-                  <artifactId>neo4j</artifactId>
-              </exclusion>
-              <exclusion>
-                  <groupId>org.mortbay.jetty</groupId>
-                  <artifactId>jetty</artifactId>
-              </exclusion>
-              <exclusion>
-                  <groupId>com.sun.jersey</groupId>
-                  <artifactId>jersey-server</artifactId>
-              </exclusion>
-              <exclusion>
-                  <groupId>org.codehaus.jackson</groupId>
-                  <artifactId>jackson-jaxrs</artifactId>
-              </exclusion>
-              <exclusion>
-                  <groupId>org.codehaus.jackson</groupId>
-                  <artifactId>jackson-mapper-asl</artifactId>
-              </exclusion>
-              <exclusion>
-                  <groupId>de.huxhorn.lilith</groupId>
-                  <artifactId>de.huxhorn.lilith.3rdparty.rrd4j</artifactId>
-              </exclusion>
-              <exclusion>
-                  <groupId>com.sun.jersey.contribs</groupId>
-                  <artifactId>jersey-multipart</artifactId>
-              </exclusion>
-              <exclusion>
-                  <groupId>org.apache.felix</groupId>
-                  <artifactId>org.apache.felix.main</artifactId>
-              </exclusion>
-              <exclusion>
-                  <groupId>org.apache.felix</groupId>
-                  <artifactId>org.apache.felix.fileinstall</artifactId>
-              </exclusion>
-              <exclusion>
-                  <groupId>org.neo4j</groupId>
-                  <artifactId>neo4j-shell</artifactId>
-              </exclusion>
-              <exclusion>
-                  <groupId>org.slf4j</groupId>
-                  <artifactId>slf4j-jdk14</artifactId>
-              </exclusion>
-          </exclusions>
+                <exclusion>
+                    <groupId>org.neo4j</groupId>
+                    <artifactId>neo4j</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.mortbay.jetty</groupId>
+                    <artifactId>jetty</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.sun.jersey</groupId>
+                    <artifactId>jersey-server</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.codehaus.jackson</groupId>
+                    <artifactId>jackson-jaxrs</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.codehaus.jackson</groupId>
+                    <artifactId>jackson-mapper-asl</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>de.huxhorn.lilith</groupId>
+                    <artifactId>de.huxhorn.lilith.3rdparty.rrd4j</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.sun.jersey.contribs</groupId>
+                    <artifactId>jersey-multipart</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.apache.felix</groupId>
+                    <artifactId>org.apache.felix.main</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.apache.felix</groupId>
+                    <artifactId>org.apache.felix.fileinstall</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.neo4j</groupId>
+                    <artifactId>neo4j-shell</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-jdk14</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <dependency>
-          <groupId>com.tinkerpop.blueprints</groupId>
-          <artifactId>blueprints-core</artifactId>
-          <optional>true</optional>
+            <groupId>com.tinkerpop.blueprints</groupId>
+            <artifactId>blueprints-core</artifactId>
+            <optional>true</optional>
         </dependency>
         <dependency>
-          <groupId>com.tinkerpop.blueprints</groupId>
-          <artifactId>blueprints-neo4j-graph</artifactId>
-          <optional>true</optional>
+            <groupId>com.tinkerpop.blueprints</groupId>
+            <artifactId>blueprints-neo4j-graph</artifactId>
+            <optional>true</optional>
         </dependency>
 
         <dependency>
-          <groupId>com.tinkerpop</groupId>
-          <artifactId>gremlin</artifactId>
-          <optional>true</optional>
+            <groupId>com.tinkerpop</groupId>
+            <artifactId>gremlin</artifactId>
+            <optional>true</optional>
         </dependency>
 
         <dependency>
@@ -186,10 +186,10 @@
             <version>${jersey.version}</version>
         </dependency>
         <dependency>
-          <groupId>org.neo4j</groupId>
-          <artifactId>neo4j-kernel</artifactId>
-          <type>test-jar</type>
-          <scope>test</scope>
+            <groupId>org.neo4j</groupId>
+            <artifactId>neo4j-kernel</artifactId>
+            <type>test-jar</type>
+            <scope>test</scope>
         </dependency>
 
         <!-- Logging -->
@@ -234,6 +234,17 @@
     </dependencies>
     <build>
         <plugins>
+            <plugin>
+                <artifactId>maven-jar-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>attach-test-jar</id>
+                        <goals>
+                            <goal>test-jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
             <plugin>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <configuration>
