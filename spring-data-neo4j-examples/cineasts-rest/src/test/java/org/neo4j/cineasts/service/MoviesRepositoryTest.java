@@ -5,6 +5,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.neo4j.cineasts.domain.Movie;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.neo4j.rest.support.RestTestBase;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,12 +24,11 @@ import static org.junit.Assert.assertTrue;
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration({"/movies-test-context.xml"})
 @Transactional
-public class MoviesRepositoryTest {
+public class MoviesRepositoryTest extends RestTestBase {
     @Autowired
     CineastsRepository repository;
 
     @Test
-    @Ignore("Fails over REST")
     public void testGetMovie() throws Exception {
         Movie movie = new Movie("1", "Test-Movie").persist();
         Movie found = repository.getMovie("1");
@@ -37,7 +37,6 @@ public class MoviesRepositoryTest {
     }
 
     @Test
-    @Ignore("Fails over REST")
     public void testFindTwoMovies() throws Exception {
         Movie movie1 = new Movie("1", "Test-Movie1").persist();
         Movie movie2 = new Movie("2", "Test-Movie2").persist();
@@ -48,7 +47,6 @@ public class MoviesRepositoryTest {
     }
 
     @Test
-    @Ignore("Fails over REST")
     public void testFindTwoMoviesButRestrictToOne() throws Exception {
         Movie movie1 = new Movie("1", "Test-Movie1").persist();
         Movie movie2 = new Movie("2", "Test-Movie2").persist();

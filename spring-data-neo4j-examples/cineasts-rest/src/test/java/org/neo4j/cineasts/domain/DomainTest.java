@@ -1,7 +1,5 @@
 package org.neo4j.cineasts.domain;
 
-import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.neo4j.cineasts.repository.MovieRepository;
@@ -26,13 +24,9 @@ public class DomainTest extends RestTestBase {
     @Autowired
     protected UserRepository userRepository;
 
-    @Before
-    public void setUp() throws Exception {
-    }
-
     @Test
     public void actorCanPlayARoleInAMovie() {
-        Person tomHanks = new Person("1","Tom Hanks").persist();
+        Person tomHanks = new Person("1", "Tom Hanks").persist();
         Movie forestGump = new Movie("1", "Forrest Gump").persist();
 
         Role role = tomHanks.playedIn(forestGump, "Forrest");
@@ -41,16 +35,15 @@ public class DomainTest extends RestTestBase {
 
         assertEquals("created and looked up movie equal", forestGump, foundForestGump);
         Role firstRole = foundForestGump.getRoles().iterator().next();
-        assertEquals("role forrest",role, firstRole);
-        assertEquals("role forrest","Forrest", firstRole.getName());
+        assertEquals("role forrest", role, firstRole);
+        assertEquals("role forrest", "Forrest", firstRole.getName());
     }
 
     @Test
-    @Ignore("Fails over REST")
     public void canFindMovieByTitleQuery() {
         Movie forestGump = new Movie("1", "Forrest Gump").persist();
         Iterator<Movie> queryResults = movieRepository.findAllByQuery("search", "title", "Forre*").iterator();
-        assertTrue("found movie by query",queryResults.hasNext());
+        assertTrue("found movie by query", queryResults.hasNext());
         Movie foundMovie = queryResults.next();
         assertEquals("created and looked up movie equal", forestGump, foundMovie);
         assertFalse("found only one movie by query", queryResults.hasNext());
@@ -58,23 +51,22 @@ public class DomainTest extends RestTestBase {
 
     @Test
     public void userCanRateMovie() {
-        Movie movie= new Movie("1","Forrest Gump").persist();
-        User user = new User("ich","Micha","password").persist();
+        Movie movie = new Movie("1", "Forrest Gump").persist();
+        User user = new User("ich", "Micha", "password").persist();
         Rating awesome = user.rate(movie, 5, "Awesome");
 
 
         User foundUser = userRepository.findByPropertyValue("login", "ich");
         Rating rating = user.getRatings().iterator().next();
-        assertEquals(awesome,rating);
-        assertEquals("Awesome",rating.getComment());
-        assertEquals(5,rating.getStars());
-        assertEquals(5,movie.getStars(),0);
+        assertEquals(awesome, rating);
+        assertEquals("Awesome", rating.getComment());
+        assertEquals(5, rating.getStars());
+        assertEquals(5, movie.getStars(), 0);
     }
 
     @Test
-    @Ignore("Fails over REST")
     public void canFindUserByLogin() {
-        User user = new User("ich","Micha","password").persist();
+        User user = new User("ich", "Micha", "password").persist();
         User foundUser = userRepository.findByPropertyValue("login", "ich");
         assertEquals(user, foundUser);
     }

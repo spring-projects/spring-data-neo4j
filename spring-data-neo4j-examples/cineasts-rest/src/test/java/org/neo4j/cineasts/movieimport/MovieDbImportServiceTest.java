@@ -1,5 +1,6 @@
 package org.neo4j.cineasts.movieimport;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.neo4j.cineasts.domain.Movie;
@@ -20,6 +21,7 @@ import static org.junit.Assert.assertEquals;
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration({"/movies-test-context.xml"})
 @Transactional
+@Ignore("Should not be run nilly-willy - talks with http://api.themoviedb.org")
 public class MovieDbImportServiceTest extends RestTestBase {
 
     @Autowired
