@@ -1,0 +1,13 @@
+label {
+  display: block;
+  float: left;
+  width: 120px;
+}
+
+/**
+ * Label for radio buttons, normal buttons and checkboxes.
+ */
+label.button-label {
+  display:inline;
+  float:none;
+}
