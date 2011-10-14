@@ -61,8 +61,6 @@ import java.util.Map;
 public class GraphDatabaseContext {
 
     private static final Log log = LogFactory.getLog(GraphDatabaseContext.class);
-    public static final String DEFAULT_NODE_INDEX_NAME = "node";
-    public static final String DEFAULT_RELATIONSHIP_INDEX_NAME = "relationship";
 
     private GraphDatabaseService graphDatabaseService;
     private ConversionService conversionService;
@@ -301,12 +299,10 @@ public class GraphDatabaseContext {
 
     public boolean isNodeEntity(Class<?> targetType) {
         return targetType.isAnnotationPresent(NodeEntity.class);
-        //return mappingContext.isNodeEntity(targetType);
     }
 
     public boolean isRelationshipEntity(Class targetType) {
         return targetType.isAnnotationPresent(RelationshipEntity.class);
-        // return mappingContext.isRelationshipEntity(targetType);
     }
 
     public Object save(Object entity) {
