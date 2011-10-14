@@ -56,7 +56,7 @@
             <para>
                 <mediaobject>
                     <imageobject>
-                        <imagedata fileref="tutorial/cineasts.png" scale="80" align="center"/>
+                        <imagedata fileref="cineasts.png" scale="80" align="center"/>
                     </imageobject>
                 </mediaobject>
             </para>
@@ -101,7 +101,7 @@
             <para>
                 <mediaobject>
            	        <imageobject>
-           	            <imagedata fileref="introduction/springdatagraph.png" scalefit="1" contentwidth="15cm"/>
+           	            <imagedata fileref="springdatagraph.png" scalefit="1" contentwidth="15cm"/>
            	        </imageobject>
            	    </mediaobject>
             </para>
