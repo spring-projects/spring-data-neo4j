@@ -159,7 +159,7 @@
 
 		<dependency>
 			<groupId>org.springframework.data</groupId>
-			<artifactId>spring-data-neo4j-rest</artifactId>
+			<artifactId>spring-data-neo4j-aspects</artifactId>
 			<version>${spring-data-graph.version}</version>
 			<exclusions>
 				<exclusion>
