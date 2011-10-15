@@ -14,10 +14,8 @@ import javax.persistence.ManyToMany;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
-import javax.persistence.Transient;
 import javax.persistence.Version;
 
-import org.neo4j.graphdb.DynamicRelationshipType;
 import org.springframework.data.neo4j.annotation.GraphProperty;
 import org.springframework.data.neo4j.annotation.GraphTraversal;
 import org.springframework.data.neo4j.annotation.NodeEntity;
@@ -46,7 +44,7 @@ public class UserAccount {
     @RelatedToVia(type = "recommends", elementClass = Recommendation.class)
     Iterable<Recommendation> recommendations;
 
-    @GraphTraversal(traversalBuilder = TopRatedRestaurantTraverser.class, elementClass = Restaurant.class)
+    @GraphTraversal(traversal = TopRatedRestaurantTraverser.class, elementClass = Restaurant.class)
     Iterable<Restaurant> topRatedRestaurants;
 
     public Collection<RatedRestaurant> getTopNRatedRestaurants(int n) {

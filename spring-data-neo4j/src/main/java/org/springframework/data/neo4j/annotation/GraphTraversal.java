@@ -40,7 +40,7 @@ public @interface GraphTraversal {
      * @return Builder for the {@link org.neo4j.graphdb.traversal.TraversalDescription} to be applied
      */
     // FQN is a fix for javac compiler bug
-    Class<? extends org.springframework.data.neo4j.core.FieldTraversalDescriptionBuilder> traversalBuilder() default org.springframework.data.neo4j.core.FieldTraversalDescriptionBuilder.class;
+    Class<? extends org.springframework.data.neo4j.core.FieldTraversalDescriptionBuilder> traversal() default org.springframework.data.neo4j.core.FieldTraversalDescriptionBuilder.class;
 
     /**
      * @return target graph entity to be iterated over.

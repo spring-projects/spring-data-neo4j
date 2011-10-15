@@ -21,7 +21,7 @@ import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 
 /**
  * Interface for classes that build traversal descriptions. Those classes can be referred to by
- * {@link org.springframework.data.neo4j.annotation.GraphTraversal#traversalBuilder()} to  provide fields that return
+ * {@link org.springframework.data.neo4j.annotation.GraphTraversal#traversal()} to  provide fields that return
  * a dynamic traversal on access.
  *
  * @author Michael Hunger

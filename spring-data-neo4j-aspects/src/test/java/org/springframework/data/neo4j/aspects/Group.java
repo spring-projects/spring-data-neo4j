@@ -41,13 +41,13 @@ public class Group {
     @RelatedTo(type = "persons", elementClass = Person.class)
     private Iterable<Person> readOnlyPersons;
 
-    @GraphTraversal(traversalBuilder = PeopleTraversalBuilder.class, elementClass = Person.class, params = "persons")
+    @GraphTraversal(traversal = PeopleTraversalBuilder.class, elementClass = Person.class, params = "persons")
     private Iterable<Person> people;
 
-    @GraphTraversal(traversalBuilder = PeopleTraversalBuilder.class, params = "persons")
+    @GraphTraversal(traversal = PeopleTraversalBuilder.class, params = "persons")
     private Iterable<Node> peopleNodes;
 
-    @GraphTraversal(traversalBuilder = PeopleTraversalBuilder.class, params = "persons")
+    @GraphTraversal(traversal = PeopleTraversalBuilder.class, params = "persons")
     private Iterable<Relationship> peopleRelationships;
 
     @GraphProperty

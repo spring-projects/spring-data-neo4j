@@ -71,16 +71,16 @@ public class Person {
 	@RelatedToVia(type = "knows", elementClass = Friendship.class)
 	private Iterable<Friendship> friendships;
 
-    @Query(value = "start person=node({self}) match (person)<-[?:boss]-(boss) return boss")
+    @Query("start person=node({self}) match (person)<-[?:boss]-(boss) return boss")
     private Person bossByQuery;
 
-    @Query(value = "start person=node({self}) match (person)<-[?:boss]-(boss) return boss.name")
+    @Query("start person=node({self}) match (person)<-[?:boss]-(boss) return boss.name")
     private String bossName;
 
-    @Query(value = "start person=node({self}) match (person)<-[:persons]-(team)-[:persons]->(member) return member")
+    @Query("start person=node({self}) match (person)<-[:persons]-(team)-[:persons]->(member) return member")
     private Iterable<Person> otherTeamMembers;
 
-    @Query(value = "start person=node({self}) match (person)<-[:persons]-(team)-[:persons]->(member) return member.name, member.age")
+    @Query("start person=node({self}) match (person)<-[:persons]-(team)-[:persons]->(member) return member.name, member.age")
     private Iterable<Map<String,Object>> otherTeamMemberData;
 
     public Person(Node n) {

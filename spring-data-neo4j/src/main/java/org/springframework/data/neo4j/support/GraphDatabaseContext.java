@@ -31,6 +31,7 @@ import org.springframework.core.convert.ConversionService;
 import org.springframework.data.neo4j.annotation.Indexed;
 import org.springframework.data.neo4j.annotation.NodeEntity;
 import org.springframework.data.neo4j.annotation.RelationshipEntity;
+import org.springframework.data.neo4j.core.EntityPath;
 import org.springframework.data.neo4j.core.TypeRepresentationStrategy;
 import org.springframework.data.neo4j.fieldaccess.GraphBackedEntityIterableWrapper;
 import org.springframework.data.neo4j.mapping.Neo4jEntityPersister;
@@ -38,6 +39,8 @@ import org.springframework.data.neo4j.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.support.node.EntityStateFactory;
 import org.springframework.data.neo4j.support.node.NodeEntityInstantiator;
+import org.springframework.data.neo4j.support.path.ConvertingEntityPath;
+import org.springframework.data.neo4j.support.path.EntityPathPathIterableWrapper;
 import org.springframework.data.neo4j.support.query.CypherQueryExecutor;
 import org.springframework.data.neo4j.support.relationship.RelationshipEntityInstantiator;
 import org.springframework.data.util.TypeInformation;
@@ -330,6 +333,7 @@ public class GraphDatabaseContext {
     public <T> Iterable<T> convertResultsTo(Traverser traverser, Class<T> targetType) {
         if (Node.class.isAssignableFrom(targetType)) return (Iterable<T>) traverser.nodes();
         if (Relationship.class.isAssignableFrom(targetType)) return (Iterable<T>) traverser.relationships();
+        if (EntityPath.class.isAssignableFrom(targetType)) return new EntityPathPathIterableWrapper(traverser,this);
         if (Path.class.isAssignableFrom(targetType)) return (Iterable<T>) traverser;
         if (isNodeEntity(targetType)) {
             return GraphBackedEntityIterableWrapper.create(traverser.nodes(), targetType, this);

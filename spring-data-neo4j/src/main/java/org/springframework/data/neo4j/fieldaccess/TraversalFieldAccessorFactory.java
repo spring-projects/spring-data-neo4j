@@ -43,7 +43,7 @@ public class TraversalFieldAccessorFactory implements FieldAccessorFactory {
     public boolean accept(final Neo4jPersistentProperty f) {
         final GraphTraversal graphEntityTraversal = f.getAnnotation(GraphTraversal.class);
         return graphEntityTraversal != null
-                && graphEntityTraversal.traversalBuilder() != FieldTraversalDescriptionBuilder.class
+                && graphEntityTraversal.traversal() != FieldTraversalDescriptionBuilder.class
                 && f.getType().equals(Iterable.class);
     }
 
@@ -110,7 +110,7 @@ public class TraversalFieldAccessorFactory implements FieldAccessorFactory {
 
 	    private FieldTraversalDescriptionBuilder createTraversalDescription(final GraphTraversal graphEntityTraversal) {
 	        try {
-	            final Class<? extends FieldTraversalDescriptionBuilder> traversalDescriptionClass = graphEntityTraversal.traversalBuilder();
+	            final Class<? extends FieldTraversalDescriptionBuilder> traversalDescriptionClass = graphEntityTraversal.traversal();
 	            final Constructor<? extends FieldTraversalDescriptionBuilder> constructor = traversalDescriptionClass.getDeclaredConstructor();
 	            constructor.setAccessible(true);
 	            return constructor.newInstance();
