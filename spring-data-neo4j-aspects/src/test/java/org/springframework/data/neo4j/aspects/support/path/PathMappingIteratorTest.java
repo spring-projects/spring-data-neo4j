@@ -18,6 +18,7 @@ package org.springframework.data.neo4j.aspects.support.path;
 
 import org.junit.Test;
 import org.neo4j.graphdb.Path;
+import org.springframework.data.neo4j.aspects.support.EntityTestBase;
 import org.springframework.data.neo4j.support.path.IterationController;
 import org.springframework.data.neo4j.support.path.PathMapper;
 import org.springframework.data.neo4j.support.path.PathMappingIterator;
@@ -34,7 +35,7 @@ import static org.mockito.Mockito.mock;
  * @author mh
  * @since 22.02.11
  */
-public class PathMappingIteratorTest {
+public class PathMappingIteratorTest extends EntityTestBase {
 
     private static final int PATHS_COUNT = 3;
 

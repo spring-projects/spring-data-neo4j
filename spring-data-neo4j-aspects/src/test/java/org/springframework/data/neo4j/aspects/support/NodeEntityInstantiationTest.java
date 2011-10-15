@@ -45,7 +45,7 @@ import static org.springframework.data.neo4j.aspects.Person.persistedPerson;
         "classpath:org/springframework/data/neo4j/aspects/support/PersonDirectCreator-context.xml" })
 @TestExecutionListeners({CleanContextCacheTestExecutionListener.class, DependencyInjectionTestExecutionListener.class, TransactionalTestExecutionListener.class})
 
-    public class NodeEntityInstantiationTest {
+    public class NodeEntityInstantiationTest extends EntityTestBase {
 
 	protected final Log log = LogFactory.getLog(getClass());
 
@@ -64,7 +64,7 @@ import static org.springframework.data.neo4j.aspects.Person.persistedPerson;
     @Transactional
     public void testCreatePersonWithCreator() {
         Person p = persistedPerson("Rod", 39);
-        long nodeId = p.getNodeId();
+        long nodeId = getNodeId(p);
 
         Node node = graphDatabaseContext.getNodeById(nodeId);
         Person person1 = (Person) graphDatabaseContext.createEntityFromStoredType(node);

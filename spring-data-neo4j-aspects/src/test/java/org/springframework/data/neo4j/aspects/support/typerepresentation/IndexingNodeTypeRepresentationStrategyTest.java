@@ -14,12 +14,11 @@
  * limitations under the License.
  */
 
-package org.springframework.data.neo4j.aspects.support;
+package org.springframework.data.neo4j.aspects.support.typerepresentation;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.graphdb.index.Index;
@@ -27,7 +26,7 @@ import org.neo4j.graphdb.index.IndexHits;
 import org.neo4j.helpers.collection.IteratorUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.neo4j.annotation.NodeEntity;
-import org.springframework.data.neo4j.support.node.Neo4jHelper;
+import org.springframework.data.neo4j.aspects.support.EntityTestBase;
 import org.springframework.data.neo4j.support.typerepresentation.IndexingNodeTypeRepresentationStrategy;
 import org.springframework.test.context.CleanContextCacheTestExecutionListener;
 import org.springframework.test.context.ContextConfiguration;
@@ -40,7 +39,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
@@ -49,10 +47,8 @@ import static org.junit.Assert.assertNull;
 @ContextConfiguration(locations = {"classpath:org/springframework/data/neo4j/aspects/support/Neo4jGraphPersistenceTest-context.xml",
         "classpath:org/springframework/data/neo4j/aspects/support/IndexingTypeRepresentationStrategyOverride-context.xml"})
 @TestExecutionListeners({CleanContextCacheTestExecutionListener.class, DependencyInjectionTestExecutionListener.class, TransactionalTestExecutionListener.class})
-public class IndexingNodeTypeRepresentationStrategyTest {
+public class IndexingNodeTypeRepresentationStrategyTest extends EntityTestBase {
 
-	@Autowired
-	private GraphDatabaseService graphDatabaseService;
 	@Autowired
 	private IndexingNodeTypeRepresentationStrategy nodeTypeRepresentationStrategy;
 
@@ -61,7 +57,7 @@ public class IndexingNodeTypeRepresentationStrategyTest {
 
     @BeforeTransaction
 	public void cleanDb() {
-		Neo4jHelper.cleanDb(graphDatabaseService);
+		super.cleanDb();
 	}
 
 	@Before
@@ -165,19 +161,19 @@ public class IndexingNodeTypeRepresentationStrategyTest {
         assertEquals("thing", other.getName());
 	}
 
-	private static Node node(Thing thing) {
-		return thing.getPersistentState();
+	private Node node(Thing thing) {
+        return getNodeState(thing);
 	}
 
 	private Thing createThingsAndLinks() {
 		Transaction tx = graphDatabaseService.beginTx();
 		try {
             Node n1 = graphDatabaseService.createNode();
-            thing = new Thing(n1);
+            thing = graphDatabaseContext.setPersistentState(new Thing(),n1);
 			nodeTypeRepresentationStrategy.postEntityCreation(n1, Thing.class);
             thing.setName("thing");
             Node n2 = graphDatabaseService.createNode();
-            subThing = new SubThing(n2);
+            subThing = graphDatabaseContext.setPersistentState(new SubThing(),n2);
 			nodeTypeRepresentationStrategy.postEntityCreation(n2, SubThing.class);
             subThing.setName("subThing");
 			tx.success();
@@ -200,10 +196,6 @@ public class IndexingNodeTypeRepresentationStrategyTest {
 	public static class Thing {
 		String name;
 
-        public Thing(Node node) {
-            setPersistentState(node);
-        }
-
         public void setName(String name) {
             this.name = name;
         }
@@ -214,23 +206,5 @@ public class IndexingNodeTypeRepresentationStrategyTest {
     }
 
 	public static class SubThing extends Thing {
-        public SubThing(Node node) {
-            super(node);
-        }
-
     }
-
-	private static Set<Node> set(Node... nodes) {
-		return new HashSet<Node>(Arrays.asList(nodes));
-	}
-
-	private void manualCleanDb() {
-		Transaction tx = graphDatabaseService.beginTx();
-		try {
-			cleanDb();
-			tx.success();
-		} finally {
-			tx.finish();
-		}
-	}
 }

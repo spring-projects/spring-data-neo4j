@@ -19,14 +19,13 @@ package org.springframework.data.neo4j.aspects.support.query;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.neo4j.graphdb.Node;
 import org.neo4j.helpers.collection.IteratorUtil;
 import org.neo4j.helpers.collection.MapUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.data.neo4j.annotation.QueryType;
 import org.springframework.data.neo4j.aspects.Person;
-import org.springframework.data.neo4j.aspects.core.NodeBacked;
+import org.springframework.data.neo4j.aspects.support.EntityTestBase;
 import org.springframework.data.neo4j.aspects.support.TestTeam;
 import org.springframework.data.neo4j.core.GraphDatabase;
 import org.springframework.data.neo4j.support.DelegatingGraphDatabase;
@@ -39,7 +38,6 @@ import org.springframework.test.context.transaction.BeforeTransaction;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
-import java.util.Map;
 
 import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
@@ -52,7 +50,7 @@ import static org.junit.Assert.assertEquals;
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = {"classpath:org/springframework/data/neo4j/aspects/support/Neo4jGraphPersistenceTest-context.xml"})
 @Transactional
-public class GremlinQueryEngineTest {
+public class GremlinQueryEngineTest extends EntityTestBase {
     @Autowired
     protected ConversionService conversionService;
     @Autowired
@@ -60,11 +58,10 @@ public class GremlinQueryEngineTest {
     private QueryEngine<Object> queryEngine;
     private TestTeam testTeam;
     private Person michael;
-    private GraphDatabase graphDatabase;
 
     @Before
     public void setUp() throws Exception {
-        graphDatabase = createGraphDatabase();
+        GraphDatabase graphDatabase = createGraphDatabase();
         testTeam = new TestTeam();
         testTeam.createSDGTeam();
         queryEngine = graphDatabase.queryEngineFor(QueryType.Gremlin);
@@ -82,79 +79,14 @@ public class GremlinQueryEngineTest {
         return graphDatabase;
     }
 
+    @SuppressWarnings("unchecked")
     @Test
     @Transactional
     public void testQueryList() throws Exception {
         final String queryString = "t = new Table(); [g.v(michael),g.v(david)].each{ n -> n.as('person.name').as('person.age').table(t,['person.name','person.age']){ it.age }{ it.name } >> -1}; t;" ;
-        final Collection<Object> result = IteratorUtil.asCollection(queryEngine.query(queryString, MapUtil.map("michael", idFor(michael), "david", idFor(testTeam.david))));
+        final Collection<Object> result = IteratorUtil.asCollection(queryEngine.query(queryString, MapUtil.map("michael", getNodeId(michael), "david", getNodeId(testTeam.david))));
 
         assertEquals(asList(testTeam.simpleRowFor(michael, "person"), testTeam.simpleRowFor(testTeam.david, "person")), result);
     }
 
-    /*
-    @Test
-    public void testQueryListOfTypeNode() throws Exception {
-        final String queryString = "start person=(name_index,name,\"{name}\") match (person) <-[:boss]- (boss) return boss";
-        final Collection<Node> result = IteratorUtil.asCollection(queryEngine.query(queryString, michaelsName()).to(Node.class));
-
-        assertEquals(asList(nodeFor(testTeam.emil)),result);
-    }
-    @Test
-    public void testQueryListOfTypePerson() throws Exception {
-        final String queryString = "start person=(name_index,name,\"{name}\") match (person) <-[:boss]- (boss) return boss";
-        final Collection<Person> result = IteratorUtil.asCollection(queryEngine.query(queryString, michaelsName()).to(Person.class, new EntityResultConverter(graphDatabaseContext)));
-
-        assertEquals(asList(testTeam.emil),result);
-    }
-
-
-    @Test
-    public void testQuerySingleOfTypePerson() throws Exception {
-        final String queryString = "start person=(name_index,name,\"{name}\") match (person) <-[:boss]- (boss) return boss";
-        final Person result = queryEngine.query(queryString, michaelsName()).to(Person.class, new EntityResultConverter<Map<String,Object>,Person>(graphDatabaseContext)).single();
-
-        assertEquals(testTeam.emil,result);
-    }
-
-    @Test
-    public void testQueryListWithCustomConverter() throws Exception {
-        final String queryString = String.format("start person=(name_index,name,\"%s\") match (person) <-[:boss]- (boss) return boss", michael.getName());
-        final Collection<String> result = IteratorUtil.asCollection(queryEngine.query(queryString, michaelsName()).to(String.class, new ResultConverter<Map<String, Object>, String>() {
-            @Override
-            public String convert(Map<String, Object> row, Class<String> target) {
-                return (String) ((Node) row.get("boss")).getProperty("name");
-            }
-        }));
-
-        assertEquals(asList("Emil"),result);
-    }
-
-
-    @Test
-    public void testQueryForObjectAsString() throws Exception {
-        final String queryString = "start person=(name_index,name,\"{name}\") match (person) <-[:persons]- (team) return team.name";
-        final String result = queryEngine.query(queryString, michaelsName()).to(String.class).single();
-
-        assertEquals(testTeam.sdg.getName(),result);
-    }
-    @Test
-    public void testQueryForObjectAsEnum() throws Exception {
-        final String queryString = "start person=(name_index,name,\"{name}\") return person.personality";
-        final Personality result = queryEngine.query(queryString, michaelsName()).to(Personality.class).single();
-
-        assertEquals(michael.getPersonality(),result);
-    }
-
-    */
-    private Node nodeFor(final NodeBacked entity) {
-        return entity.getPersistentState();
-    }
-
-    private long idFor(final NodeBacked entity) {
-        return entity.getNodeId();
-    }
-
-    private Map<String, Object> michaelsName() {
-        return MapUtil.map("name", michael.getName());
-    }
 }

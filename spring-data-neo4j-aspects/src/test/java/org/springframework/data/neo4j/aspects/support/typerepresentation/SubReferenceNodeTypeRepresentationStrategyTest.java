@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.data.neo4j.aspects.support;
+package org.springframework.data.neo4j.aspects.support.typerepresentation;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -28,7 +28,11 @@ import org.neo4j.graphdb.Transaction;
 import org.neo4j.helpers.collection.IteratorUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.neo4j.annotation.NodeEntity;
-import org.springframework.data.neo4j.aspects.*;
+import org.springframework.data.neo4j.aspects.Car;
+import org.springframework.data.neo4j.aspects.Person;
+import org.springframework.data.neo4j.aspects.Toyota;
+import org.springframework.data.neo4j.aspects.Volvo;
+import org.springframework.data.neo4j.aspects.support.EntityTestBase;
 import org.springframework.data.neo4j.repository.DirectGraphRepositoryFactory;
 import org.springframework.data.neo4j.repository.GraphRepository;
 import org.springframework.data.neo4j.support.GraphDatabaseContext;
@@ -58,7 +62,7 @@ import static org.springframework.data.neo4j.aspects.Person.persistedPerson;
 @ContextConfiguration(locations = {"classpath:org/springframework/data/neo4j/aspects/support/Neo4jGraphPersistenceTest-context.xml",
         "classpath:org/springframework/data/neo4j/aspects/support/SubReferenceTypeRepresentationStrategyOverride-context.xml"})
 @TestExecutionListeners({CleanContextCacheTestExecutionListener.class, DependencyInjectionTestExecutionListener.class, TransactionalTestExecutionListener.class})
-public class SubReferenceNodeTypeRepresentationStrategyTest {
+public class SubReferenceNodeTypeRepresentationStrategyTest extends EntityTestBase {
 
     protected final Log log = LogFactory.getLog(getClass());
 
@@ -107,11 +111,11 @@ public class SubReferenceNodeTypeRepresentationStrategyTest {
         Transaction tx = graphDatabaseContext.beginTx();
         try {
             thingNode = graphDatabaseContext.createNode();
-            thing = new Thing(thingNode);
+            thing = graphDatabaseContext.setPersistentState(new Thing(),thingNode);
             nodeTypeRepresentationStrategy.postEntityCreation(thingNode, Thing.class);
             thing.setName("thing");
             subThingNode = graphDatabaseContext.createNode();
-            subThing = new SubThing(subThingNode);
+            subThing = graphDatabaseContext.setPersistentState(new SubThing(),subThingNode);
             nodeTypeRepresentationStrategy.postEntityCreation(subThingNode, SubThing.class);
             subThing.setName("subThing");
             tx.success();
@@ -120,8 +124,8 @@ public class SubReferenceNodeTypeRepresentationStrategyTest {
         }
     }
 
-    private static Node node(Thing thing) {
-        return thing.getPersistentState();
+    private Node node(Thing thing) {
+        return getNodeState(thing);
     }
 
     @Test
@@ -176,7 +180,7 @@ public class SubReferenceNodeTypeRepresentationStrategyTest {
 	public void testInstantiateConcreteClass() {
 		log.debug("testInstantiateConcreteClass");
         Person p = persistedPerson("Michael", 35);
-		Car c = new Volvo().persist();
+        Car c = persist(new Volvo());
 		p.setCar(c);
 		assertEquals("Wrong concrete class.", Volvo.class, p.getCar().getClass());
 	}
@@ -185,7 +189,7 @@ public class SubReferenceNodeTypeRepresentationStrategyTest {
 	@Transactional
 	public void testInstantiateConcreteClassWithFinder() {
 		log.debug("testInstantiateConcreteClassWithFinder");
-		Volvo v=new Volvo().persist();
+        Volvo v = persist(new Volvo());
         GraphRepository<Car> finder = graphRepositoryFactory.createGraphRepository(Car.class);
 		assertEquals("Wrong concrete class.", Volvo.class, finder.findAll().iterator().next().getClass());
 	}
@@ -194,9 +198,9 @@ public class SubReferenceNodeTypeRepresentationStrategyTest {
 	@Transactional
 	public void testCountSubclasses() {
 		log.warn("testCountSubclasses");
-		new Volvo().persist();
+        persist(new Volvo());
 		log.warn("Created volvo");
-		new Toyota().persist();
+        persist(new Toyota());
 		log.warn("Created volvo");
         assertEquals("Wrong count for Volvo.", 1L, graphRepositoryFactory.createGraphRepository(Volvo.class).count());
         assertEquals("Wrong count for Toyota.", 1L, graphRepositoryFactory.createGraphRepository(Toyota.class).count());
@@ -245,13 +249,6 @@ public class SubReferenceNodeTypeRepresentationStrategyTest {
     public static class Thing {
         String name;
 
-        public Thing() {
-        }
-
-        public Thing(Node n) {
-            setPersistentState(n);
-        }
-
         public String getName() {
             return name;
         }
@@ -262,11 +259,5 @@ public class SubReferenceNodeTypeRepresentationStrategyTest {
     }
 
     public static class SubThing extends Thing {
-        public SubThing(Node n) {
-            super(n);
-        }
-
-        public SubThing() {
-        }
     }
 }

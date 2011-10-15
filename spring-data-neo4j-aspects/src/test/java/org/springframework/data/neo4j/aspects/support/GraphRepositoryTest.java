@@ -54,7 +54,7 @@ import static org.neo4j.helpers.collection.IteratorUtil.asCollection;
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = {"classpath:org/springframework/data/neo4j/aspects/support/repository-namespace-config-context.xml"})
 @TestExecutionListeners({CleanContextCacheTestExecutionListener.class, DependencyInjectionTestExecutionListener.class, TransactionalTestExecutionListener.class})
-public class GraphRepositoryTest {
+public class GraphRepositoryTest extends EntityTestBase {
 
 	protected final Log log = LogFactory.getLog(getClass());
 

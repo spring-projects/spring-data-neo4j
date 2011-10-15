@@ -39,7 +39,6 @@ import org.springframework.data.neo4j.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.support.node.EntityStateFactory;
 import org.springframework.data.neo4j.support.node.NodeEntityInstantiator;
-import org.springframework.data.neo4j.support.path.ConvertingEntityPath;
 import org.springframework.data.neo4j.support.path.EntityPathPathIterableWrapper;
 import org.springframework.data.neo4j.support.query.CypherQueryExecutor;
 import org.springframework.data.neo4j.support.relationship.RelationshipEntityInstantiator;
@@ -222,8 +221,9 @@ public class GraphDatabaseContext {
 
     // todo depending on type of mapping
     @SuppressWarnings("unchecked")
-    public <S extends PropertyContainer> void setPersistentState(Object entity, S state) {
+    public <S extends PropertyContainer,T> T setPersistentState(T entity, S state) {
         entityPersister.setPersistentState(entity, state);
+        return entity;
     }
 
     @Deprecated() // TODO remove

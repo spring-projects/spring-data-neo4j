@@ -26,7 +26,6 @@ import org.springframework.data.neo4j.aspects.Named;
 import org.springframework.data.neo4j.repository.DirectGraphRepositoryFactory;
 import org.springframework.data.neo4j.support.GraphDatabaseContext;
 import org.springframework.data.neo4j.support.node.Neo4jHelper;
-
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.transaction.BeforeTransaction;
@@ -37,7 +36,7 @@ import static org.junit.Assert.assertEquals;
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = {"classpath:org/springframework/data/neo4j/aspects/support/Neo4jGraphPersistenceTest-context.xml"})
 
-public class ProjectionTest {
+public class ProjectionTest extends EntityTestBase {
 
 	protected final Log log = LogFactory.getLog(getClass());
 
@@ -55,12 +54,12 @@ public class ProjectionTest {
     @Test
     @Transactional
     public void testProjectGroupToNamed() {
-        Group group = new Group().persist();
+        Group group = persist(new Group());
         group.setName("developers");
 
         Named named = (Named)group.projectTo(Named.class);
         assertEquals("named.name","developers", named.getName());
-        assertEquals("nameds node name property","developers", named.getPersistentState().getProperty("name"));
+        assertEquals("nameds node name property","developers", getNodeState(named).getProperty("name"));
     }
 
 }

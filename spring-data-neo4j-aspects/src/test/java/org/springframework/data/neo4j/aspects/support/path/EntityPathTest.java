@@ -20,10 +20,9 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.neo4j.graphdb.Node;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.neo4j.aspects.Person;
+import org.springframework.data.neo4j.aspects.support.EntityTestBase;
 import org.springframework.data.neo4j.core.EntityPath;
-import org.springframework.data.neo4j.support.GraphDatabaseContext;
 import org.springframework.data.neo4j.support.path.ConvertingEntityPath;
 import org.springframework.data.neo4j.support.path.NodePath;
 import org.springframework.test.context.ContextConfiguration;
@@ -36,18 +35,15 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = {"classpath:org/springframework/data/neo4j/aspects/support/Neo4jGraphPersistenceTest-context.xml"})
-public class EntityPathTest {
-
-    @Autowired
-    private GraphDatabaseContext ctx;
+public class EntityPathTest extends EntityTestBase {
 
     @Test
     @Transactional
     public void shouldConvertNodePathToEntityPath() throws Exception {
-        Person michael = new Person("Michael", 36).persist();
-        Node node = michael.getPersistentState();
+        Person michael = persist(new Person("Michael", 36));
+        Node node = getNodeState(michael);
         NodePath path = new NodePath(node);
-        EntityPath<Person, Person> entityPath = new ConvertingEntityPath<Person, Person>(ctx, path);
+        EntityPath<Person, Person> entityPath = new ConvertingEntityPath<Person, Person>(graphDatabaseContext, path);
 
         Assert.assertEquals("start entity",michael, entityPath.startEntity());
         Assert.assertEquals("start node",node, path.startNode());

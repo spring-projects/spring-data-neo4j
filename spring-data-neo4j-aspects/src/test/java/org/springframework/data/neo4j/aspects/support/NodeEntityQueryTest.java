@@ -41,7 +41,7 @@ import static org.junit.internal.matchers.IsCollectionContaining.hasItems;
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = {"classpath:org/springframework/data/neo4j/aspects/support/Neo4jGraphPersistenceTest-context.xml"})
 @Transactional
-public class NodeEntityQueryTest {
+public class NodeEntityQueryTest extends EntityTestBase {
     @Autowired
     GraphDatabaseContext graphDatabaseContext;
     private TestTeam testTeam;

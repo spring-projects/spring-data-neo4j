@@ -24,9 +24,11 @@ import org.junit.runner.RunWith;
 import org.neo4j.graphdb.NotFoundException;
 import org.neo4j.graphdb.Transaction;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.neo4j.aspects.*;
+import org.springframework.data.neo4j.aspects.Attribute;
+import org.springframework.data.neo4j.aspects.Group;
+import org.springframework.data.neo4j.aspects.Person;
+import org.springframework.data.neo4j.aspects.PersonRepository;
 import org.springframework.data.neo4j.repository.DirectGraphRepositoryFactory;
-import org.springframework.data.neo4j.repository.GraphRepository;
 import org.springframework.data.neo4j.support.GraphDatabaseContext;
 import org.springframework.data.neo4j.support.node.Neo4jHelper;
 import org.springframework.test.context.ContextConfiguration;
@@ -40,12 +42,9 @@ import static org.springframework.data.neo4j.aspects.Person.persistedPerson;
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = {"classpath:org/springframework/data/neo4j/aspects/support/Neo4jGraphPersistenceTest-context.xml"})
 
-    public class NodeEntityTest {
+    public class NodeEntityTest extends EntityTestBase {
 
 	protected final Log log = LogFactory.getLog(getClass());
-
-	@Autowired
-	private GraphDatabaseContext graphDatabaseContext;
 
 	@Autowired
 	private DirectGraphRepositoryFactory graphRepositoryFactory;
@@ -55,18 +54,18 @@ import static org.springframework.data.neo4j.aspects.Person.persistedPerson;
 
     @BeforeTransaction
     public void cleanDb() {
-        Neo4jHelper.cleanDb(graphDatabaseContext);
+        super.cleanDb();
     }
 
     @Test
     @Transactional
     public void testUserConstructor() {
         Person p = persistedPerson("Rod", 39);
-        assertEquals(p.getName(), p.getPersistentState().getProperty("name"));
-        assertEquals(p.getAge(), p.getPersistentState().getProperty("age"));
-        Person found = graphDatabaseContext.createEntityFromState(graphDatabaseContext.getNodeById(p.getNodeId()), Person.class);
-        assertEquals("Rod", found.getPersistentState().getProperty("name"));
-        assertEquals(39, found.getPersistentState().getProperty("age"));
+        assertEquals(p.getName(), getNodeState(p).getProperty("name"));
+        assertEquals(p.getAge(), getNodeState(p).getProperty("age"));
+        Person found = graphDatabaseContext.createEntityFromState(graphDatabaseContext.getNodeById(getNodeId(p)), Person.class);
+        assertEquals("Rod", getNodeState(found).getProperty("name"));
+        assertEquals(39, getNodeState(found).getProperty("age"));
     }
 
     @Test
@@ -80,8 +79,8 @@ import static org.springframework.data.neo4j.aspects.Person.persistedPerson;
         p.setName( name );
         p.setAge( age );
         p.setHeight( height );
-        assertEquals( name, p.getPersistentState().getProperty( "name" ) );
-        assertEquals( age, p.getPersistentState().getProperty("age"));
+        assertEquals( name, getNodeState(p).getProperty("name") );
+        assertEquals( age, getNodeState(p).getProperty("age"));
         assertEquals((Short)height, p.getHeight());
     }
 
@@ -91,14 +90,14 @@ import static org.springframework.data.neo4j.aspects.Person.persistedPerson;
         Person p = persistedPerson("Foo", 2);
         p.setHeight((short)182);
         assertEquals((Short)(short)182, p.getHeight());
-        assertEquals((short)182, p.getPersistentState().getProperty("height"));
+        assertEquals((short)182, getNodeState(p).getProperty("height"));
     }
     @Test
     @Transactional
     public void testSetShortNameProperty() {
-        Group group = new Group().persist();
+        Group group = persist(new Group());
         group.setName("developers");
-        assertEquals("developers", group.getPersistentState().getProperty("name"));
+        assertEquals("developers", getNodeState(group).getProperty("name"));
     }
     // own transaction handling because of http://wiki.neo4j.org/content/Delete_Semantics
     @Test(expected = NotFoundException.class)
@@ -137,6 +136,6 @@ import static org.springframework.data.neo4j.aspects.Person.persistedPerson;
     public void testPersistGenericEntity() {
         final Attribute<String> attribute = new Attribute<String>();
         attribute.setValue("test");
-        attribute.persist();
+        persist(attribute);
     }
 }

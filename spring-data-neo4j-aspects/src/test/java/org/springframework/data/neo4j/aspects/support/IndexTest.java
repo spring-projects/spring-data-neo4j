@@ -22,17 +22,13 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.neo4j.graphdb.*;
+import org.neo4j.graphdb.DynamicRelationshipType;
+import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.Relationship;
+import org.neo4j.graphdb.Transaction;
 import org.neo4j.graphdb.index.Index;
-import org.neo4j.graphdb.index.IndexHits;
 import org.neo4j.helpers.collection.IteratorUtil;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.neo4j.aspects.Friendship;
-import org.springframework.data.neo4j.aspects.Group;
-import org.springframework.data.neo4j.aspects.GroupRepository;
-import org.springframework.data.neo4j.aspects.Person;
-import org.springframework.data.neo4j.aspects.PersonRepository;
-import org.springframework.data.neo4j.aspects.SubGroup;
 import org.springframework.data.neo4j.annotation.Indexed;
 import org.springframework.data.neo4j.annotation.NodeEntity;
 import org.springframework.data.neo4j.aspects.*;
@@ -55,7 +51,7 @@ import static org.springframework.data.neo4j.aspects.Person.persistedPerson;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = {"classpath:org/springframework/data/neo4j/aspects/support/Neo4jGraphPersistenceTest-context.xml"})
-public class IndexTest {
+public class IndexTest extends EntityTestBase {
 
     private static final String NAME = "name";
     private static final String NAME_VALUE = "aName";
@@ -111,9 +107,9 @@ public class IndexTest {
     public void testRemovePropertyFromIndex() {
         Transaction tx = graphDatabaseContext.beginTx();
         try {
-            Group group = new Group().persist();
+            Group group = persist(new Group());
             group.setName(NAME_VALUE);
-            getGroupIndex().remove(group.getPersistentState(), NAME);
+            getGroupIndex().remove(getNodeState(group), NAME);
             tx.success();
         } finally {
             tx.finish();
@@ -128,9 +124,9 @@ public class IndexTest {
     public void testRemoveNodeFromIndex() {
         Transaction tx = graphDatabaseContext.beginTx();
         try {
-            Group group = new Group().persist();
+            Group group = persist(new Group());
             group.setName(NAME_VALUE);
-            getGroupIndex().remove(group.getPersistentState());
+            getGroupIndex().remove(getNodeState(group));
             tx.success();
         } finally {
             tx.finish();
@@ -146,7 +142,7 @@ public class IndexTest {
     @Test
     @Transactional
     public void testFindGroupByIndex() {
-        Group group = new Group().persist();
+        Group group = persist(new Group());
         group.setName(NAME_VALUE);
         final Group found = groupFinder.findByPropertyValue(NAME, NAME_VALUE);
         assertEquals(group, found);
@@ -155,7 +151,7 @@ public class IndexTest {
     @Test
     @Transactional
     public void testFindGroupByInstanceIndex() {
-        Group group = new SubGroup().persist();
+        Group group = persist(new SubGroup());
         group.setIndexLevelName("indexLevelNameValue");
         Index<Node> subGroupIndex = graphDatabaseContext.getIndex(SubGroup.class);
         final Node found = subGroupIndex.get("indexLevelName", "indexLevelNameValue").getSingle();
@@ -166,7 +162,7 @@ public class IndexTest {
     @Test
     @Transactional
     public void testFindGroupByAlternativeFieldNameIndex() {
-        Group group = new Group().persist();
+        Group group = persist(new Group());
         group.setOtherName(NAME_VALUE);
         final Group found = groupFinder.findByPropertyValue(Group.OTHER_NAME_INDEX, NAME_VALUE);
         assertEquals(group, found);
@@ -202,14 +198,14 @@ public class IndexTest {
     @Test(expected = IllegalStateException.class)
     @Transactional
     public void indexAccessWithFullAndNoIndexNameShouldFail() {
-        InvalidIndexed invalidIndexed = new InvalidIndexed().persist();
+        InvalidIndexed invalidIndexed = persist(new InvalidIndexed());
         invalidIndexed.setFulltextNoIndexName(NAME_VALUE);
     }
 
     @Test(expected = IllegalStateException.class)
     @Transactional
     public void indexAccessWithFullAndDefaultIndexNameShouldFail() {
-        InvalidIndexed invalidIndexed = new InvalidIndexed().persist();
+        InvalidIndexed invalidIndexed = persist(new InvalidIndexed());
         invalidIndexed.setFullTextDefaultIndexName(NAME_VALUE);
     }
 
@@ -217,7 +213,7 @@ public class IndexTest {
     @Test
     @Transactional
     public void testDontFindGroupByNonIndexedFieldWithAnnotation() {
-        Group group = new Group().persist();
+        Group group = persist(new Group());
         group.setUnindexedName("value-unindexedName");
         final Group found = groupFinder.findByPropertyValue("unindexedName", "value-unindexedName");
         assertNull(found);
@@ -226,7 +222,7 @@ public class IndexTest {
     @Test
     @Transactional
     public void testDontFindGroupByNonIndexedField() {
-        Group group = new Group().persist();
+        Group group = persist(new Group());
         group.setUnindexedName2("value-unindexedName2");
         final Group found = groupFinder.findByPropertyValue( "unindexedName2", "value-unindexedName2");
         assertNull(found);
@@ -235,9 +231,9 @@ public class IndexTest {
     @Test
     @Transactional
     public void testFindAllGroupsByIndex() {
-        Group group = new Group().persist();
+        Group group = persist(new Group());
         group.setName(NAME_VALUE);
-        Group group2 = new Group().persist();
+        Group group2 = persist(new Group());
         group2.setName(NAME_VALUE);
         final Iterable<Group> found = groupFinder.findAllByPropertyValue(NAME, NAME_VALUE);
         final Collection<Group> result = IteratorUtil.addToCollection(found.iterator(), new HashSet<Group>());
@@ -247,7 +243,7 @@ public class IndexTest {
     @Test
     @Transactional
     public void shouldFindGroupyByQueryString() {
-        Group group = new Group().persist();
+        Group group = persist(new Group());
         group.setFullTextName("queryableName");
         final Iterable<Group> found = groupRepository.findAllByQuery(Group.SEARCH_GROUPS_INDEX, "fullTextName", "queryable*");
         final Collection<Group> result = IteratorUtil.addToCollection(found.iterator(), new HashSet<Group>());
@@ -360,7 +356,7 @@ public class IndexTest {
     @Test
     @Transactional
     public void testUpdateBooleanPropertyIsReflectedInIndex() {
-        Group group = new Group().persist();
+        Group group = persist(new Group());
         group.setAdmin(true);
         assertEquals(1,IteratorUtil.asCollection(groupRepository.findAllByPropertyValue("admin",true)).size());
         group.setAdmin(false);

@@ -23,26 +23,25 @@ import org.junit.runner.RunWith;
 import org.neo4j.graphdb.*;
 import org.neo4j.helpers.collection.IteratorUtil;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import static org.junit.Assert.assertFalse;
-import static org.springframework.data.neo4j.aspects.Person.persistedPerson;
-
-import org.springframework.data.neo4j.aspects.*;
+import org.springframework.data.neo4j.aspects.Friendship;
+import org.springframework.data.neo4j.aspects.FriendshipRepository;
+import org.springframework.data.neo4j.aspects.Person;
 import org.springframework.data.neo4j.repository.DirectGraphRepositoryFactory;
 import org.springframework.data.neo4j.support.GraphDatabaseContext;
 import org.springframework.data.neo4j.support.node.Neo4jHelper;
-
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.transaction.BeforeTransaction;
 import org.springframework.transaction.annotation.Transactional;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.springframework.data.neo4j.aspects.Person.persistedPerson;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = {"classpath:org/springframework/data/neo4j/aspects/support/Neo4jGraphPersistenceTest-context.xml"})
 
-public class RelationshipEntityTest {
+public class RelationshipEntityTest extends EntityTestBase {
 
 	protected final Log log = LogFactory.getLog(getClass());
 
@@ -67,9 +66,9 @@ public class RelationshipEntityTest {
         Person p = persistedPerson("Michael", 35);
         Person p2 = persistedPerson("David", 25);
         Friendship f = p.knows(p2);
-        Relationship rel = p.getPersistentState().getSingleRelationship(DynamicRelationshipType.withName("knows"), Direction.OUTGOING);
-        assertEquals(f.getPersistentState(), rel);
-        assertEquals(p2.getPersistentState(), rel.getEndNode());
+        Relationship rel = getNodeState(p).getSingleRelationship(DynamicRelationshipType.withName("knows"), Direction.OUTGOING);
+        assertEquals(getRelationshipState(f), rel);
+        assertEquals(getNodeState(p2), rel.getEndNode());
     }
 
     @Test
@@ -90,7 +89,7 @@ public class RelationshipEntityTest {
         Person p2 = persistedPerson("David", 25);
         Friendship f = p.knows(p2);
         f.setYears(1);
-        assertEquals(1, f.getPersistentState().getProperty("Friendship.years"));
+        assertEquals(1, getRelationshipState(f).getProperty("Friendship.years"));
     }
 
     @Test
@@ -99,7 +98,7 @@ public class RelationshipEntityTest {
         Person p = persistedPerson("Michael", 35);
         Person p2 = persistedPerson("David", 25);
         Friendship f = p.knows(p2);
-        f.getPersistentState().setProperty("Friendship.years", 1);
+        getRelationshipState(f).setProperty("Friendship.years", 1);
         assertEquals(1, f.getYears());
     }
 

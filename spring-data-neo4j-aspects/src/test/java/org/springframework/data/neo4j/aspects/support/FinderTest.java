@@ -25,12 +25,6 @@ import org.neo4j.helpers.collection.IteratorUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.neo4j.aspects.Friendship;
-import org.springframework.data.neo4j.aspects.FriendshipRepository;
-import org.springframework.data.neo4j.aspects.Group;
-import org.springframework.data.neo4j.aspects.GroupRepository;
-import org.springframework.data.neo4j.aspects.Person;
-import org.springframework.data.neo4j.aspects.PersonRepository;
 import org.springframework.data.neo4j.aspects.*;
 import org.springframework.data.neo4j.support.GraphDatabaseContext;
 import org.springframework.data.neo4j.support.node.Neo4jHelper;
@@ -51,7 +45,7 @@ import static org.springframework.data.neo4j.aspects.Person.persistedPerson;
 @RunWith(SpringJUnit4ClassRunner.class)
 //@ContextConfiguration(locations = {"classpath:repository-namespace-config-context.xml"})
 @ContextConfiguration(locations = {"classpath:org/springframework/data/neo4j/aspects/support/Neo4jGraphPersistenceTest-context.xml"})
-public class FinderTest {
+public class FinderTest extends EntityTestBase {
 
 	protected final Log log = LogFactory.getLog(getClass());
 
@@ -96,6 +90,7 @@ public class FinderTest {
         Person boss = personRepository.findBoss(testTeam.michael);
         assertThat(boss, is(testTeam.emil));
     }
+    @SuppressWarnings("unchecked")
     @Test
     @Transactional
     public void testFindIterableMapsWithQueryAnnotation() {
@@ -120,8 +115,8 @@ public class FinderTest {
         Person p1 = new Person("Michael", 35);
         Person p2 = new Person("David", 25);
         personRepository.save(asList(p1,p2));
-        assertEquals("persisted person 1",true,p1.hasPersistentState());
-        assertEquals("persisted person 2",true,p2.hasPersistentState());
+        assertEquals("persisted person 1", true, hasPersistentState(p1));
+        assertEquals("persisted person 2", true, hasPersistentState(p2));
         assertThat(asCollection(personRepository.findAll()), hasItems(p2, p1));
     }
 
@@ -130,7 +125,7 @@ public class FinderTest {
     public void testSavePerson() {
         Person p1 = new Person("Michael", 35);
         personRepository.save(p1);
-        assertEquals("persisted person",true,p1.hasPersistentState());
+        assertEquals("persisted person", true, hasPersistentState(p1));
         assertThat(personRepository.findOne(p1.getId()), is(p1));
     }
     @Test
@@ -154,7 +149,7 @@ public class FinderTest {
         Person p2 = persistedPerson("David", 27);
         Friendship friendship = p1.knows(p2);
         assertEquals("Wrong friendship count.", 1L, (long) friendshipRepository.count());
-        assertEquals(friendship, friendshipRepository.findOne(friendship.getRelationshipId()));
+        assertEquals(friendship, friendshipRepository.findOne(getRelationshipId(friendship)));
         assertEquals("Did not find friendship.", Collections.singleton(friendship), new HashSet<Friendship>(IteratorUtil.asCollection(friendshipRepository.findAll())));
     }
 
@@ -162,7 +157,7 @@ public class FinderTest {
     @Transactional
     public void testFinderFindById() {
         Person p = persistedPerson("Michael", 35);
-        Person pById = personRepository.findOne(p.getNodeId());
+        Person pById = personRepository.findOne(getNodeId(p));
         assertEquals(p, pById);
     }
 
@@ -170,7 +165,7 @@ public class FinderTest {
     @Transactional
     public void testExists() {
         Person p = persistedPerson("Michael", 35);
-        boolean found = personRepository.exists(p.getNodeId());
+        boolean found = personRepository.exists(getNodeId(p));
         assertTrue("Found persisted entity", found);
     }
     @Test
@@ -200,9 +195,9 @@ public class FinderTest {
 	@Transactional
 	public void testFindAllOnGroup() {
 	    log.debug("FindAllOnGroup start");
-        Group g = new Group().persist();
+        Group g = persist(new Group());
         g.setName("test");
-        Group g2 = new Group().persist();
+        Group g2 = persist(new Group());
         g.setName("test");
         Collection<Group> groups = IteratorUtil.addToCollection(groupRepository.findAll().iterator(), new HashSet<Group>());
         assertEquals(2, groups.size());

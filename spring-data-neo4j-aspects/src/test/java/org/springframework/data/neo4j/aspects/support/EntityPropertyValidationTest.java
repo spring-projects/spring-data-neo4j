@@ -21,12 +21,8 @@ import org.apache.commons.logging.LogFactory;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import static org.springframework.data.neo4j.aspects.Person.persistedPerson;
-
 import org.springframework.data.neo4j.support.GraphDatabaseContext;
 import org.springframework.data.neo4j.support.node.Neo4jHelper;
-
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.transaction.BeforeTransaction;
@@ -34,12 +30,12 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.validation.ValidationException;
 
-import static org.junit.Assert.assertEquals;
+import static org.springframework.data.neo4j.aspects.Person.persistedPerson;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = {"classpath:org/springframework/data/neo4j/aspects/support/Neo4jGraphPersistenceTest-context.xml"})
 
-public class EntityPropertyValidationTest {
+public class EntityPropertyValidationTest extends EntityTestBase {
 
 	protected final Log log = LogFactory.getLog(getClass());
 

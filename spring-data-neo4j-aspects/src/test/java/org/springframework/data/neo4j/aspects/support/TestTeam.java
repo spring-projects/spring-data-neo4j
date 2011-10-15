@@ -17,7 +17,9 @@
 package org.springframework.data.neo4j.aspects.support;
 
 import org.neo4j.helpers.collection.MapUtil;
-import org.springframework.data.neo4j.aspects.*;
+import org.springframework.data.neo4j.aspects.Group;
+import org.springframework.data.neo4j.aspects.Person;
+import org.springframework.data.neo4j.aspects.Personality;
 
 import java.util.Map;
 

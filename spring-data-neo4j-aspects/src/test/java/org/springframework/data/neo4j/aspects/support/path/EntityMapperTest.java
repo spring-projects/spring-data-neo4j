@@ -19,10 +19,9 @@ package org.springframework.data.neo4j.aspects.support.path;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.neo4j.aspects.Person;
+import org.springframework.data.neo4j.aspects.support.EntityTestBase;
 import org.springframework.data.neo4j.core.EntityPath;
-import org.springframework.data.neo4j.support.GraphDatabaseContext;
 import org.springframework.data.neo4j.support.path.EntityMapper;
 import org.springframework.data.neo4j.support.path.NodePath;
 import org.springframework.test.context.ContextConfiguration;
@@ -35,22 +34,19 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = {"classpath:org/springframework/data/neo4j/aspects/support/Neo4jGraphPersistenceTest-context.xml"})
-public class EntityMapperTest {
-
-    @Autowired
-    private GraphDatabaseContext ctx;
+public class EntityMapperTest extends EntityTestBase {
 
     @Test
     @Transactional
     public void entityMapperShouldForwardEntityPath() throws Exception {
-        Person michael = new Person("Michael", 36).persist();
-        EntityMapper<Person, Person, String> mapper = new EntityMapper<Person, Person, String>(ctx) {
+        Person michael = persist(new Person("Michael", 36));
+        EntityMapper<Person, Person, String> mapper = new EntityMapper<Person, Person, String>(graphDatabaseContext) {
             @Override
             public String mapPath(EntityPath<Person, Person> entityPath) {
                 return entityPath.<Person>startEntity().getName();
             }
         };
-        String name = mapper.mapPath(new NodePath(michael.getPersistentState()));
+        String name = mapper.mapPath(new NodePath(getNodeState(michael)));
         Assert.assertEquals(michael.getName(), name);
     }
 }

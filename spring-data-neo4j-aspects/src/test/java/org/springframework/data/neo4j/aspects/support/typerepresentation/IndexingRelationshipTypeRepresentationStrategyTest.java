@@ -14,17 +14,21 @@
  * limitations under the License.
  */
 
-package org.springframework.data.neo4j.aspects.support;
+package org.springframework.data.neo4j.aspects.support.typerepresentation;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.neo4j.graphdb.*;
+import org.neo4j.graphdb.DynamicRelationshipType;
+import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.Relationship;
+import org.neo4j.graphdb.Transaction;
 import org.neo4j.graphdb.index.Index;
 import org.neo4j.graphdb.index.IndexHits;
 import org.neo4j.helpers.collection.IteratorUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.neo4j.annotation.RelationshipEntity;
+import org.springframework.data.neo4j.aspects.support.EntityTestBase;
 import org.springframework.data.neo4j.support.node.Neo4jHelper;
 import org.springframework.data.neo4j.support.typerepresentation.IndexingNodeTypeRepresentationStrategy;
 import org.springframework.data.neo4j.support.typerepresentation.IndexingRelationshipTypeRepresentationStrategy;
@@ -39,8 +43,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
@@ -49,10 +51,8 @@ import static org.junit.Assert.assertNull;
 @ContextConfiguration(locations = {"classpath:org/springframework/data/neo4j/aspects/support/Neo4jGraphPersistenceTest-context.xml",
         "classpath:org/springframework/data/neo4j/aspects/support/IndexingTypeRepresentationStrategyOverride-context.xml"})
 @TestExecutionListeners({CleanContextCacheTestExecutionListener.class, DependencyInjectionTestExecutionListener.class, TransactionalTestExecutionListener.class})
-public class IndexingRelationshipTypeRepresentationStrategyTest {
+public class IndexingRelationshipTypeRepresentationStrategyTest extends EntityTestBase {
 
-	@Autowired
-	private GraphDatabaseService graphDatabaseService;
 	@Autowired
 	private IndexingRelationshipTypeRepresentationStrategy relationshipTypeRepresentationStrategy;
 
@@ -142,8 +142,8 @@ public class IndexingRelationshipTypeRepresentationStrategyTest {
         assertEquals("link", other.getLabel());
 	}
 
-    private static Relationship rel(Link link) {
-        return link.getPersistentState();
+    private Relationship rel(Link link) {
+        return getRelationshipState(link);
     }
 
 	private void createThingsAndLinks() {
@@ -152,7 +152,8 @@ public class IndexingRelationshipTypeRepresentationStrategyTest {
 			Node n1 = graphDatabaseService.createNode();
 	        Node n2 = graphDatabaseService.createNode();
             Relationship rel = n1.createRelationshipTo(n2, DynamicRelationshipType.withName("link"));
-            link = new Link(rel);
+            link = new Link();
+            graphDatabaseContext.setPersistentState(link,rel);
             relationshipTypeRepresentationStrategy.postEntityCreation(rel, Link.class);
             link.setLabel("link");
 			tx.success();
@@ -177,10 +178,6 @@ public class IndexingRelationshipTypeRepresentationStrategyTest {
         public Link() {
         }
 
-        public Link(Relationship rel) {
-            setPersistentState(rel);
-        }
-
         public String getLabel() {
             return label;
         }
@@ -191,25 +188,6 @@ public class IndexingRelationshipTypeRepresentationStrategyTest {
     }
 
     public static class SubLink extends Link {
-        public SubLink() {
-        }
-
-        public SubLink(Relationship rel) {
-            super(rel);
-        }
     }
 
-	private static Set<Node> set(Node... nodes) {
-		return new HashSet<Node>(Arrays.asList(nodes));
-	}
-
-	private void manualCleanDb() {
-		Transaction tx = graphDatabaseService.beginTx();
-		try {
-			cleanDb();
-			tx.success();
-		} finally {
-			tx.finish();
-		}
-	}
 }

@@ -42,7 +42,7 @@ import static org.springframework.data.neo4j.aspects.Person.persistedPerson;
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = {"classpath:org/springframework/data/neo4j/aspects/support/Neo4jGraphPersistenceTest-context.xml"})
 
-public class PropertyTest {
+public class PropertyTest extends EntityTestBase {
 
 	protected final Log log = LogFactory.getLog(getClass());
 
@@ -61,14 +61,14 @@ public class PropertyTest {
     public void testSetPropertyEnum() {
         Person p = persistedPerson("Michael", 35);
         p.setPersonality(Personality.EXTROVERT);
-        assertEquals("Wrong enum serialization.", "EXTROVERT", p.getPersistentState().getProperty("personality"));
+        assertEquals("Wrong enum serialization.", "EXTROVERT", getNodeState(p).getProperty("personality"));
     }
 
     @Test
     @Transactional
     public void testGetPropertyEnum() {
         Person p = persistedPerson("Michael", 35);
-        p.getPersistentState().setProperty("personality", "EXTROVERT");
+        getNodeState(p).setProperty("personality", "EXTROVERT");
         assertEquals("Did not deserialize property value properly.", Personality.EXTROVERT, p.getPersonality());
     }
 
@@ -77,7 +77,7 @@ public class PropertyTest {
     public void testSetTransientPropertyFieldNotManaged() {
         Person p = persistedPerson("Michael", 35);
         p.setThought("food");
-        p.getPersistentState().getProperty("thought");
+        getNodeState(p).getProperty("thought");
     }
 
     @Test
@@ -85,7 +85,7 @@ public class PropertyTest {
     public void testGetTransientPropertyFieldNotManaged() {
         Person p = persistedPerson("Michael", 35);
         p.setThought("food");
-        p.getPersistentState().setProperty("thought", "sleep");
+        getNodeState(p).setProperty("thought", "sleep");
         assertEquals("Should not have read transient value from graph.", "food", p.getThought());
     }
     @Test
@@ -96,7 +96,7 @@ public class PropertyTest {
         Person p2 = persistedPerson("David", 25);
         Friendship f = p.knows(p2);
         f.setFirstMeetingDate(new Date(3));
-        assertEquals("Date not serialized properly.", "3", f.getPersistentState().getProperty("Friendship.firstMeetingDate"));
+        assertEquals("Date not serialized properly.", "3", getRelationshipState(f).getProperty("Friendship.firstMeetingDate"));
     }
 
     @Test
@@ -105,7 +105,7 @@ public class PropertyTest {
         Person p = persistedPerson("Michael", 35);
         Person p2 = persistedPerson("David", 25);
         Friendship f = p.knows(p2);
-        f.getPersistentState().setProperty("Friendship.firstMeetingDate", "3");
+        getRelationshipState(f).setProperty("Friendship.firstMeetingDate", "3");
         assertEquals("Date not deserialized properly.", new Date(3), f.getFirstMeetingDate());
     }
 
@@ -116,7 +116,7 @@ public class PropertyTest {
         Person p2 = persistedPerson("David", 25);
         Friendship f = p.knows(p2);
         f.setLatestLocation("Menlo Park");
-        f.getPersistentState().getProperty("Friendship.latestLocation");
+        getRelationshipState(f).getProperty("Friendship.latestLocation");
     }
 
     @Test
@@ -126,7 +126,7 @@ public class PropertyTest {
         Person p2 = persistedPerson("David", 25);
         Friendship f = p.knows(p2);
         f.setLatestLocation("Menlo Park");
-        f.getPersistentState().setProperty("Friendship.latestLocation", "Palo Alto");
+        getRelationshipState(f).setProperty("Friendship.latestLocation", "Palo Alto");
         assertEquals("Should not have read transient value from graph.", "Menlo Park", f.getLatestLocation());
     }
 
@@ -134,7 +134,7 @@ public class PropertyTest {
     @Transactional
     public void testEntityIdField() {
         Person p = persistedPerson("Michael", 35);
-        assertEquals("Wrong ID.", p.getPersistentState().getId(), p.getId());
+        assertEquals("Wrong ID.", getNodeState(p).getId(), p.getId());
     }
 
     @Test
@@ -143,6 +143,6 @@ public class PropertyTest {
         Person p = persistedPerson("Michael", 35);
         Person p2 = persistedPerson("David", 25);
         Friendship f = p.knows(p2);
-		assertEquals("Wrong ID.", (Long)f.getPersistentState().getId(), f.getRelationshipId());
+		assertEquals("Wrong ID.", (Long) getRelationshipState(f).getId(), getRelationshipId(f));
     }
 }

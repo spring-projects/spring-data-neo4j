@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.data.neo4j.aspects.support;
+package org.springframework.data.neo4j.aspects.support.typerepresentation;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -26,7 +26,7 @@ import org.neo4j.graphdb.Transaction;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.neo4j.annotation.NodeEntity;
 import org.springframework.data.neo4j.annotation.RelationshipEntity;
-import org.springframework.data.neo4j.support.GraphDatabaseContext;
+import org.springframework.data.neo4j.aspects.support.EntityTestBase;
 import org.springframework.data.neo4j.support.typerepresentation.NoopNodeTypeRepresentationStrategy;
 import org.springframework.data.neo4j.support.typerepresentation.NoopRelationshipTypeRepresentationStrategy;
 import org.springframework.test.context.CleanContextCacheTestExecutionListener;
@@ -40,10 +40,8 @@ import org.springframework.test.context.transaction.TransactionalTestExecutionLi
 @ContextConfiguration(locations = {"classpath:org/springframework/data/neo4j/aspects/support/Neo4jGraphPersistenceTest-context.xml",
         "classpath:org/springframework/data/neo4j/aspects/support/NoopTypeRepresentationStrategyOverride-context.xml"})
 @TestExecutionListeners({CleanContextCacheTestExecutionListener.class, DependencyInjectionTestExecutionListener.class, TransactionalTestExecutionListener.class})
-public class NoopTypeRepresentationStrategyTest {
+public class NoopTypeRepresentationStrategyTest extends EntityTestBase {
 
-	@Autowired
-	private GraphDatabaseContext graphDatabaseContext;
 	@Autowired
 	private NoopNodeTypeRepresentationStrategy noopNodeStrategy;
     @Autowired
@@ -97,22 +95,24 @@ public class NoopTypeRepresentationStrategyTest {
         noopRelationshipStrategy.preEntityRemoval(rel(link));
     }
 
-	private static Node node(Thing thing) {
-		return thing.getPersistentState();
+	private Node node(Thing thing) {
+        return getNodeState(thing);
 	}
 
-	private static Relationship rel(Link link) {
-		return link.getPersistentState();
+	private Relationship rel(Link link) {
+        return getRelationshipState(link);
 	}
 
 	private Thing createThing() {
 		Transaction tx = graphDatabaseContext.beginTx();
 		try {
 			Node node = graphDatabaseContext.createNode();
-			thing = new Thing(node);
+			thing = new Thing();
+            graphDatabaseContext.setPersistentState(thing,node);
 			noopNodeStrategy.postEntityCreation(node, Thing.class);
             Relationship rel = node.createRelationshipTo(graphDatabaseContext.createNode(), DynamicRelationshipType.withName("link"));
-            link = new Link(rel);
+            link = new Link();
+            graphDatabaseContext.setPersistentState(link,rel);
             noopRelationshipStrategy.postEntityCreation(rel, Link.class);
 			tx.success();
 			return thing;
@@ -124,23 +124,9 @@ public class NoopTypeRepresentationStrategyTest {
 	@NodeEntity
 	public static class Thing {
 		String name;
-
-		public Thing() {
-		}
-
-		public Thing(Node n) {
-			setPersistentState(n);
-		}
 	}
 
     @RelationshipEntity
     public static class Link {
-
-        public Link() {
-        }
-
-        public Link(Relationship rel) {
-            setPersistentState(rel);
-        }
     }
 }

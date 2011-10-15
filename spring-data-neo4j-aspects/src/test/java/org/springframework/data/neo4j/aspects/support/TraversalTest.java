@@ -36,7 +36,6 @@ import org.springframework.data.neo4j.repository.DirectGraphRepositoryFactory;
 import org.springframework.data.neo4j.repository.GraphRepository;
 import org.springframework.data.neo4j.support.GraphDatabaseContext;
 import org.springframework.data.neo4j.support.node.Neo4jHelper;
-import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.transaction.BeforeTransaction;
@@ -51,26 +50,19 @@ import static org.springframework.data.neo4j.aspects.Person.persistedPerson;
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = {"classpath:org/springframework/data/neo4j/aspects/support/Neo4jGraphPersistenceTest-context.xml"})
 
-public class TraversalTest {
+public class TraversalTest extends EntityTestBase {
 
 	protected final Log log = LogFactory.getLog(getClass());
 
 	@Autowired
-	private GraphDatabaseContext graphDatabaseContext;
-
-	@Autowired
 	private DirectGraphRepositoryFactory graphRepositoryFactory;
 
-    @BeforeTransaction
-    public void cleanDb() {
-        Neo4jHelper.cleanDb(graphDatabaseContext);
-    }
 
     @Test
     @Transactional
     public void testTraverseFromGroupToPeople() {
         Person p = persistedPerson("Michael", 35);
-        Group group = new Group().persist();
+        Group group = persist(new Group());
         group.setName("dev");
         group.addPerson(p);
         final TraversalDescription traversalDescription = Traversal.description().relationships(DynamicRelationshipType.withName("persons")).evaluator(Evaluators.excludeStartPosition());
@@ -85,7 +77,7 @@ public class TraversalTest {
     @Transactional
     public void testTraverseFromGroupToPeoplePaths() {
         Person p = persistedPerson("Michael", 35);
-        Group group = new Group().persist();
+        Group group = persist(new Group());
         group.setName("dev");
         group.addPerson(p);
         final TraversalDescription traversalDescription = Traversal.description().relationships(DynamicRelationshipType.withName("persons"), Direction.OUTGOING).evaluator(Evaluators.excludeStartPosition());
@@ -101,7 +93,7 @@ public class TraversalTest {
     @Transactional
     public void testTraverseFieldFromGroupToPeople() {
         Person p = persistedPerson("Michael", 35);
-        Group group = new Group().persist();
+        Group group = persist(new Group());
         group.addPerson(p);
         assertEquals(Collections.singletonList(p),IteratorUtil.asCollection(group.getPeople()));
     }
@@ -109,18 +101,18 @@ public class TraversalTest {
     @Transactional
     public void testTraverseFieldFromGroupToPeopleNodes() {
         Person p = persistedPerson("Michael", 35);
-        Group group = new Group().persist();
+        Group group = persist(new Group());
         group.addPerson(p);
-        assertEquals(Collections.singletonList(p.getPersistentState()), IteratorUtil.asCollection(group.getPeopleNodes()));
+        assertEquals(Collections.singletonList(getNodeState(p)), IteratorUtil.asCollection(group.getPeopleNodes()));
     }
 
     @Test
     @Transactional
     public void testTraverseFieldFromGroupToPeopleRelationships() {
         Person p = persistedPerson("Michael", 35);
-        Group group = new Group().persist();
+        Group group = persist(new Group());
         group.addPerson(p);
-        Relationship personRelationship = group.getPersistentState().getSingleRelationship(DynamicRelationshipType.withName("persons"),Direction.OUTGOING);
+        Relationship personRelationship = getNodeState(group).getSingleRelationship(DynamicRelationshipType.withName("persons"), Direction.OUTGOING);
         assertEquals(Collections.singletonList(personRelationship), IteratorUtil.asCollection(group.getPeopleRelationships()));
     }
 
@@ -129,7 +121,7 @@ public class TraversalTest {
     public void testTraverseFromGroupToPeopleWithFinder() {
         final GraphRepository<Person> finder = graphRepositoryFactory.createGraphRepository(Person.class);
         Person p = persistedPerson("Michael", 35);
-        Group group = new Group().persist();
+        Group group = persist(new Group());
         group.setName("dev");
         group.addPerson(p);
         final TraversalDescription traversalDescription = new TraversalDescriptionImpl().relationships(DynamicRelationshipType.withName("persons")).filter(Traversal.returnAllButStartNode());

@@ -25,7 +25,9 @@ import org.junit.runner.RunWith;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.NotInTransactionException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.neo4j.aspects.*;
+import org.springframework.data.neo4j.aspects.Friendship;
+import org.springframework.data.neo4j.aspects.Group;
+import org.springframework.data.neo4j.aspects.Person;
 import org.springframework.data.neo4j.repository.DirectGraphRepositoryFactory;
 import org.springframework.data.neo4j.repository.GraphRepository;
 import org.springframework.data.neo4j.support.GraphDatabaseContext;
@@ -44,8 +46,7 @@ import static org.springframework.data.neo4j.aspects.support.HasRelationshipMatc
 
 @RunWith( SpringJUnit4ClassRunner.class )
 @ContextConfiguration( locations = {"classpath:org/springframework/data/neo4j/aspects/support/Neo4jGraphPersistenceTest-context.xml"} )
-public class ModificationOutsideOfTransactionTest
-{
+public class ModificationOutsideOfTransactionTest extends EntityTestBase {
 
     protected final Log log = LogFactory.getLog( getClass() );
 
@@ -67,7 +68,7 @@ public class ModificationOutsideOfTransactionTest
 		p.setAge(36);
 		assertEquals(36, p.getAge());
 		assertFalse(hasPersistentState(p));
-		p.persist();
+        persist(p);
 		assertEquals(36, nodeFor(p).getProperty("age"));
 	}
 
@@ -81,7 +82,7 @@ public class ModificationOutsideOfTransactionTest
 		assertEquals(emil, michael.getBoss());
 		assertFalse(hasPersistentState(michael));
 		assertFalse(hasPersistentState(emil));
-		michael.persist();
+        persist(michael);
 		assertThat(nodeFor(michael), hasRelationship("boss", nodeFor(emil)));
 		assertThat(nodeFor(emil), hasRelationship("boss", nodeFor(michael)));
 
@@ -99,7 +100,7 @@ public class ModificationOutsideOfTransactionTest
 		assertEquals(michael, emil.getBoss());
 		assertFalse(hasPersistentState(michael));
 		assertFalse(hasPersistentState(emil));
-		michael.persist();
+        persist(michael);
 		assertThat(nodeFor(michael), hasRelationship("boss", nodeFor(emil)));
 		assertThat(nodeFor(emil), hasRelationship("boss", nodeFor(michael)));
 	}
@@ -120,7 +121,7 @@ public class ModificationOutsideOfTransactionTest
 		assertFalse(hasPersistentState(michael));
 		assertFalse(hasPersistentState(david));
 		assertFalse(hasPersistentState(emil));
-		michael.persist();
+        persist(michael);
 		assertThat(nodeFor(michael), hasRelationship("boss", nodeFor(emil)));
 		assertThat(nodeFor(michael), hasRelationship("boss", nodeFor(david)));
 		assertThat(nodeFor(david), hasRelationship("boss", nodeFor(michael)));
@@ -140,7 +141,7 @@ public class ModificationOutsideOfTransactionTest
 		assertEquals(emil, michael.getBoss());
 		assertFalse(hasPersistentState(michael));
 		assertFalse(hasPersistentState(emil));
-		emil.persist();
+        persist(emil);
 		assertThat(nodeFor(michael), hasRelationship("boss", nodeFor(emil)));
 		assertThat(nodeFor(emil), hasRelationship("boss", nodeFor(michael)));
 	}
@@ -173,9 +174,9 @@ public class ModificationOutsideOfTransactionTest
 
         assertEquals(Collections.singleton(p), group.getPersons());
 
-        group.persist();
-        assertThat(group.getPersistentState(), hasRelationship("persons", p.getPersistentState()));
-        assertThat(p.getPersistentState(), hasRelationship("persons", group.getPersistentState()));
+        persist(group);
+        assertThat(getNodeState(group), hasRelationship("persons", getNodeState(p)));
+        assertThat(getNodeState(p), hasRelationship("persons", getNodeState(group)));
     }
 
     @Test
@@ -192,9 +193,9 @@ public class ModificationOutsideOfTransactionTest
         assertEquals( Collections.singleton(p), group.getPersons() );
 
 
-        group.persist();
-        assertThat(group.getPersistentState(), hasRelationship("persons", p.getPersistentState()));
-        assertThat(p.getPersistentState(), hasRelationship("persons", group.getPersistentState()));
+        persist(group);
+        assertThat(getNodeState(group), hasRelationship("persons", getNodeState(p)));
+        assertThat(getNodeState(p), hasRelationship("persons", getNodeState(group)));
     }
 
     @Test
@@ -206,7 +207,7 @@ public class ModificationOutsideOfTransactionTest
         p.setSpouse( spouse );
 
         assertEquals( spouse, p.getSpouse() );
-        assertThat( nodeFor( p ), hasNoRelationship( "spouse",spouse.getPersistentState() ) );
+        assertThat( nodeFor( p ), hasNoRelationship("spouse", getNodeState(spouse)) );
 
 
         Person spouse2 = persistedPerson( "Rana", 5 );
@@ -221,7 +222,7 @@ public class ModificationOutsideOfTransactionTest
         Person spouse = persistedPerson( "Tina", 36 );
 
         p.setSpouse( spouse );
-        p.persist();
+        persist(p);
 
         assertEquals( spouse, p.getSpouse() );
         assertThat( nodeFor( p ), hasRelationship( "spouse" ) );
@@ -232,14 +233,9 @@ public class ModificationOutsideOfTransactionTest
         assertEquals( spouse2, p.getSpouse() );
     }
 
-    private boolean hasPersistentState( Person person )
-    {
-        return person.hasPersistentState();
-    }
-
     private Node nodeFor( Person person )
     {
-        return person.getPersistentState();
+        return getNodeState(person);
     }
 
     @Test

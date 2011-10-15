@@ -27,7 +27,7 @@ import org.springframework.core.convert.ConversionService;
 import org.springframework.data.neo4j.annotation.QueryType;
 import org.springframework.data.neo4j.aspects.Person;
 import org.springframework.data.neo4j.aspects.Personality;
-import org.springframework.data.neo4j.aspects.core.NodeBacked;
+import org.springframework.data.neo4j.aspects.support.EntityTestBase;
 import org.springframework.data.neo4j.aspects.support.TestTeam;
 import org.springframework.data.neo4j.conversion.QueryResult;
 import org.springframework.data.neo4j.conversion.ResultConverter;
@@ -56,7 +56,7 @@ import static org.junit.Assert.assertEquals;
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = {"classpath:org/springframework/data/neo4j/aspects/support/Neo4jGraphPersistenceTest-context.xml"})
 @Transactional
-public class QueryEngineTest {
+public class QueryEngineTest extends EntityTestBase {
     @Autowired
     protected ConversionService conversionService;
     @Autowired
@@ -89,7 +89,7 @@ public class QueryEngineTest {
     @Test
     public void testQueryList() throws Exception {
         final String queryString = "start person=node({people}) return person.name, person.age";
-        final Collection<Map<String,Object>> result = IteratorUtil.asCollection(queryEngine.query(queryString, MapUtil.map("people",asList(idFor(michael),idFor(testTeam.david)))));
+        final Collection<Map<String,Object>> result = IteratorUtil.asCollection(queryEngine.query(queryString, MapUtil.map("people",asList(getNodeId(michael), getNodeId(testTeam.david)))));
 
         assertEquals(asList(testTeam.simpleRowFor(michael,"person"),testTeam.simpleRowFor(testTeam.david,"person")),result);
     }
@@ -100,7 +100,7 @@ public class QueryEngineTest {
         final QueryResult<Map<String,Object>> queryResult = queryEngine.query(queryString, michaelsName());
         final Collection<Node> result = IteratorUtil.asCollection(queryResult.to(Node.class));
 
-        assertEquals(asList(nodeFor(testTeam.emil)),result);
+        assertEquals(asList(getNodeState(testTeam.emil)),result);
     }
     @Test
     public void testQueryListOfTypePerson() throws Exception {
@@ -133,13 +133,6 @@ public class QueryEngineTest {
         }));
 
         assertEquals(asList("Emil"),result);
-    }
-
-    private Node nodeFor(final NodeBacked entity) {
-        return entity.getPersistentState();
-    }
-    private long idFor(final NodeBacked entity) {
-        return entity.getNodeId();
     }
 
     @Test
