@@ -24,7 +24,7 @@ import org.neo4j.index.lucene.ValueContext;
 import org.springframework.data.neo4j.annotation.Indexed;
 
 import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
-import org.springframework.data.neo4j.support.GraphDatabaseContext;
+import org.springframework.data.neo4j.support.Neo4jTemplate;
 
 import java.lang.reflect.AnnotatedElement;
 
@@ -34,11 +34,11 @@ public class IndexingPropertyFieldAccessorListenerFactory<S extends PropertyCont
     private final PropertyFieldAccessorFactory propertyFieldAccessorFactory;
     private final ConvertingNodePropertyFieldAccessorFactory convertingNodePropertyFieldAccessorFactory;
     private final IndexProvider indexProvider;
-    private final GraphDatabaseContext graphDatabaseContext;
+    private final Neo4jTemplate template;
 
-    public IndexingPropertyFieldAccessorListenerFactory(final GraphDatabaseContext graphDatabaseContext, final PropertyFieldAccessorFactory propertyFieldAccessorFactory, final ConvertingNodePropertyFieldAccessorFactory convertingNodePropertyFieldAccessorFactory) {
-        this.graphDatabaseContext = graphDatabaseContext;
-        indexProvider = new IndexProvider<S,T>(graphDatabaseContext);
+    public IndexingPropertyFieldAccessorListenerFactory(final Neo4jTemplate template, final PropertyFieldAccessorFactory propertyFieldAccessorFactory, final ConvertingNodePropertyFieldAccessorFactory convertingNodePropertyFieldAccessorFactory) {
+        this.template = template;
+        indexProvider = new IndexProvider<S,T>(template);
     	this.propertyFieldAccessorFactory = propertyFieldAccessorFactory;
         this.convertingNodePropertyFieldAccessorFactory = convertingNodePropertyFieldAccessorFactory;
     }
@@ -55,15 +55,15 @@ public class IndexingPropertyFieldAccessorListenerFactory<S extends PropertyCont
 
     @Override
     public FieldAccessListener forField(Neo4jPersistentProperty property) {
-        return new IndexingPropertyFieldAccessorListener(property, indexProvider,graphDatabaseContext);
+        return new IndexingPropertyFieldAccessorListener(property, indexProvider, template);
     }
 
 
     public static class IndexProvider<S extends PropertyContainer, T> {
-        private final GraphDatabaseContext graphDatabaseContext;
+        private final Neo4jTemplate template;
 
-        public IndexProvider(GraphDatabaseContext graphDatabaseContext) {
-            this.graphDatabaseContext = graphDatabaseContext;
+        public IndexProvider(Neo4jTemplate template) {
+            this.template = template;
         }
 
         private String getIndexKey(Neo4jPersistentProperty property) {
@@ -82,12 +82,12 @@ public class IndexingPropertyFieldAccessorListenerFactory<S extends PropertyCont
             final String providedIndexName = indexedAnnotation.indexName().isEmpty() ? null : indexedAnnotation.indexName();
             String indexName = Indexed.Name.get(indexedAnnotation.level(), type, providedIndexName, instance.getClass());
             if (!property.getIndexInfo().isFulltext()) {
-                return graphDatabaseContext.getIndex(type, indexName, false);
+                return template.getIndex(type, indexName, false);
             }
             if (providedIndexName == null) throw new IllegalStateException("@Indexed(fullext=true) on "+property+" requires an providedIndexName too ");
             String defaultIndexName = Indexed.Name.get(indexedAnnotation.level(), type, null, instance.getClass());
             if (providedIndexName.equals(defaultIndexName)) throw new IllegalStateException("Full-index name for "+property+" must differ from the default name: "+defaultIndexName);
-            return graphDatabaseContext.getIndex(type, indexName, true);
+            return template.getIndex(type, indexName, true);
         }
     }
 
@@ -102,12 +102,12 @@ public class IndexingPropertyFieldAccessorListenerFactory<S extends PropertyCont
 	    protected final String indexKey;
         private final Neo4jPersistentProperty property;
         private final IndexProvider indexProvider;
-        private final GraphDatabaseContext graphDatabaseContext;
+        private final Neo4jTemplate template;
 
-        public IndexingPropertyFieldAccessorListener(final Neo4jPersistentProperty property, IndexProvider indexProvider, GraphDatabaseContext graphDatabaseContext) {
+        public IndexingPropertyFieldAccessorListener(final Neo4jPersistentProperty property, IndexProvider indexProvider, Neo4jTemplate template) {
             this.property = property;
             this.indexProvider = indexProvider;
-            this.graphDatabaseContext = graphDatabaseContext;
+            this.template = template;
             indexKey = indexProvider.getIndexKey(property);
         }
 
@@ -116,7 +116,7 @@ public class IndexingPropertyFieldAccessorListenerFactory<S extends PropertyCont
             @SuppressWarnings("unchecked") Index<T> index = indexProvider.getIndex(property, entity);
             if (newVal instanceof Number) newVal = ValueContext.numeric((Number) newVal);
 
-            final T state = graphDatabaseContext.getPersistentState(entity);
+            final T state = template.getPersistentState(entity);
             index.remove(state, indexKey);
             if (newVal != null) {
                 index.add(state, indexKey, newVal);

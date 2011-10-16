@@ -18,19 +18,19 @@
 	
 	
 	<bean id="neo4jNodeBacking" class="org.springframework.data.neo4j.aspects.support.node.Neo4jNodeBacking" factory-method="aspectOf">
-		<property name="graphDatabaseContext" ref="graphDatabaseContext"/>
+		<property name="template" ref="template"/>
 		<property name="nodeEntityStateFactory" ref="nodeEntityStateFactory"/>
 	</bean>
 
 	<bean class="org.springframework.data.neo4j.aspects.support.relationship.Neo4jRelationshipBacking" factory-method="aspectOf">
-		<property name="graphDatabaseContext" ref="graphDatabaseContext"/>
+		<property name="template" ref="template"/>
 		<property name="relationshipEntityStateFactory" ref="relationshipEntityStateFactory"/>
 	</bean>
 
 	<bean id="graphDatabaseService" class="org.neo4j.test.ImpermanentGraphDatabase" destroy-method="shutdown" scope="singleton"/>
 
     <bean id="conversionService" class="org.springframework.data.neo4j.fieldaccess.Neo4jConversionServiceFactoryBean"/>
-    <bean id="graphDatabaseContext" class="org.springframework.data.neo4j.support.GraphDatabaseContext" init-method="postConstruct">
+    <bean id="template" class="org.springframework.data.neo4j.support.Neo4jTemplate" init-method="postConstruct">
         <property name="graphDatabaseService" ref="graphDatabaseService"/>
         <property name="conversionService" ref="conversionService"/>
         <property name="mappingContext" ref="mappingContext"/>
@@ -52,6 +52,9 @@
 
     <bean id="entityStateHandler" class="org.springframework.data.neo4j.support.EntityStateHandler">
         <constructor-arg ref="mappingContext"/>
+        <constructor-arg ref="graphDatabase"/>
+    </bean>
+    <bean id="graphDatabase" class="org.springframework.data.neo4j.support.DelegatingGraphDatabase">
         <constructor-arg ref="graphDatabaseService"/>
     </bean>
     <bean id="relationshipEntityInstantiator" class="org.springframework.data.neo4j.support.relationship.RelationshipEntityInstantiator">
@@ -74,10 +77,10 @@
     <bean id="nodeEntityStateFactory" class="org.springframework.data.neo4j.support.node.NodeEntityStateFactory">
     	<property name="nodeDelegatingFieldAccessorFactory">
 		    <bean class="org.springframework.data.neo4j.fieldaccess.NodeDelegatingFieldAccessorFactory">
-		        <constructor-arg ref="graphDatabaseContext"/>
+		        <constructor-arg ref="template"/>
 		    </bean>
     	</property>
-    	<property name="graphDatabaseContext" ref="graphDatabaseContext"/>
+    	<property name="template" ref="template"/>
     	<property name="mappingContext" ref="mappingContext"/>
     </bean>
 
@@ -86,10 +89,10 @@
     <bean id="relationshipEntityStateFactory" class="org.springframework.data.neo4j.support.relationship.RelationshipEntityStateFactory">
         <property name="relationshipDelegatingFieldAccessorFactory">
 		    <bean class="org.springframework.data.neo4j.fieldaccess.RelationshipDelegatingFieldAccessorFactory">
-		        <constructor-arg ref="graphDatabaseContext"/>
+		        <constructor-arg ref="template"/>
 		    </bean>
     	</property>
-    	<property name="graphDatabaseContext" ref="graphDatabaseContext"/>
+    	<property name="template" ref="template"/>
     	<property name="mappingContext" ref="mappingContext"/>
     </bean>
 
@@ -114,7 +117,7 @@
 
     <bean id="personRepository" class="org.springframework.data.neo4j.repository.GraphRepositoryFactoryBean">
         <property name="repositoryInterface" value="org.springframework.data.neo4j.aspects.PersonRepository" />
-        <property name="graphDatabaseContext" ref="graphDatabaseContext"/>
+        <property name="neo4jTemplate" ref="template"/>
         <property name="namedQueries">
             <bean class="org.springframework.data.repository.core.support.PropertiesBasedNamedQueries">
                 <constructor-arg>
@@ -125,11 +128,11 @@
     </bean>
     <bean id="groupRepository" class="org.springframework.data.neo4j.repository.GraphRepositoryFactoryBean">
         <property name="repositoryInterface" value="org.springframework.data.neo4j.aspects.GroupRepository" />
-        <property name="graphDatabaseContext" ref="graphDatabaseContext"/>
+        <property name="neo4jTemplate" ref="template"/>
     </bean>
     <bean id="friendshipRepository" class="org.springframework.data.neo4j.repository.GraphRepositoryFactoryBean">
         <property name="repositoryInterface" value="org.springframework.data.neo4j.aspects.FriendshipRepository" />
-        <property name="graphDatabaseContext" ref="graphDatabaseContext"/>
+        <property name="neo4jTemplate" ref="template"/>
     </bean>
 
     <bean class="org.springframework.dao.annotation.PersistenceExceptionTranslationPostProcessor" />

@@ -16,7 +16,7 @@
 
 package org.springframework.data.neo4j.fieldaccess;
 
-import org.springframework.data.neo4j.support.GraphDatabaseContext;
+import org.springframework.data.neo4j.support.Neo4jTemplate;
 
 /**
  * @author Michael Hunger
@@ -24,10 +24,10 @@ import org.springframework.data.neo4j.support.GraphDatabaseContext;
  */
 public abstract class NodeRelationshipFieldAccessorFactory implements FieldAccessorFactory {
 
-    protected GraphDatabaseContext graphDatabaseContext;
+    protected Neo4jTemplate template;
     
-    public NodeRelationshipFieldAccessorFactory(GraphDatabaseContext graphDatabaseContext) {
-		this.graphDatabaseContext = graphDatabaseContext;
+    public NodeRelationshipFieldAccessorFactory(Neo4jTemplate template) {
+		this.template = template;
 	}
 
 }

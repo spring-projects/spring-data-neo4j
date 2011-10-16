@@ -21,10 +21,8 @@ import org.springframework.data.neo4j.aspects.core.NodeBacked;
 import org.springframework.data.neo4j.core.EntityState;
 import org.springframework.data.neo4j.fieldaccess.DetachedEntityState;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentEntity;
-import org.springframework.data.neo4j.support.node.NodeEntityState;
 import org.springframework.data.neo4j.support.node.NodeEntityStateFactory;
 
-import javax.annotation.PostConstruct;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.PersistenceUnitUtil;
 
@@ -42,10 +40,10 @@ public class CrossStoreNodeEntityStateFactory extends NodeEntityStateFactory {
             final Neo4jPersistentEntity<?> persistentEntity = mappingContext.getPersistentEntity(entityType);
             @SuppressWarnings("unchecked") final CrossStoreNodeEntityState<NodeBacked> partialNodeEntityState =
                     new CrossStoreNodeEntityState<NodeBacked>(null, (NodeBacked)entity, (Class<? extends NodeBacked>) entityType,
-                            graphDatabaseContext, getPersistenceUnitUtils(), delegatingFieldAccessorFactory,
+                            template, getPersistenceUnitUtils(), delegatingFieldAccessorFactory,
                             persistentEntity);
             if (!detachable) return partialNodeEntityState;
-            return new DetachedEntityState<Node>(partialNodeEntityState, graphDatabaseContext) {
+            return new DetachedEntityState<Node>(partialNodeEntityState, template) {
                 @Override
                 protected boolean isDetached() {
                     return super.isDetached() || partialNodeEntityState.getId(entity) == null;
@@ -71,7 +69,7 @@ public class CrossStoreNodeEntityStateFactory extends NodeEntityStateFactory {
     }
 
     public void postConstruct() {
-         this.delegatingFieldAccessorFactory = new CrossStoreNodeEntityState.CrossStoreNodeDelegatingFieldAccessorFactory(graphDatabaseContext);
+         this.delegatingFieldAccessorFactory = new CrossStoreNodeEntityState.CrossStoreNodeDelegatingFieldAccessorFactory(template);
     }
 
 }

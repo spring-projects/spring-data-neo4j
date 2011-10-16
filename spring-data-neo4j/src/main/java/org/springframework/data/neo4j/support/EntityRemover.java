@@ -17,7 +17,7 @@ package org.springframework.data.neo4j.support;
 
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
-import org.neo4j.graphdb.index.IndexManager;
+import org.springframework.data.neo4j.core.GraphDatabase;
 import org.springframework.data.neo4j.core.TypeRepresentationStrategy;
 
 /**
@@ -29,13 +29,13 @@ public class EntityRemover {
     private EntityStateHandler entityStateHandler;
     private TypeRepresentationStrategy<Node> nodeTypeRepresentationStrategy;
     private TypeRepresentationStrategy<Relationship> relationshipTypeRepresentationStrategy;
-    private IndexManager indexManager;
+    private final GraphDatabase graphDatabase;
 
-    public EntityRemover(EntityStateHandler entityStateHandler, TypeRepresentationStrategy<Node> nodeTypeRepresentationStrategy, TypeRepresentationStrategy<Relationship> relationshipTypeRepresentationStrategy, IndexManager indexManager) {
+    public EntityRemover(EntityStateHandler entityStateHandler, TypeRepresentationStrategy<Node> nodeTypeRepresentationStrategy, TypeRepresentationStrategy<Relationship> relationshipTypeRepresentationStrategy, GraphDatabase graphDatabase) {
         this.entityStateHandler = entityStateHandler;
         this.nodeTypeRepresentationStrategy = nodeTypeRepresentationStrategy;
         this.relationshipTypeRepresentationStrategy = relationshipTypeRepresentationStrategy;
-        this.indexManager = indexManager;
+        this.graphDatabase = graphDatabase;
     }
 
     public void removeNodeEntity(Object entity) {
@@ -45,8 +45,7 @@ public class EntityRemover {
         for (Relationship relationship : node.getRelationships()) {
             removeRelationship(relationship);
         }
-        removeFromIndexes(node);
-        node.delete();
+        graphDatabase.remove(node);
     }
 
     public void removeRelationshipEntity(Object entity) {
@@ -57,20 +56,7 @@ public class EntityRemover {
 
     private void removeRelationship(Relationship relationship) {
         relationshipTypeRepresentationStrategy.preEntityRemoval(relationship);
-        removeFromIndexes(relationship);
-        relationship.delete();
-    }
-
-    private void removeFromIndexes(Node node) {
-        for (String indexName : indexManager.nodeIndexNames()) {
-            indexManager.forNodes(indexName).remove(node);
-        }
-    }
-
-    private void removeFromIndexes(Relationship relationship) {
-        for (String indexName : indexManager.relationshipIndexNames()) {
-            indexManager.forRelationships(indexName).remove(relationship);
-        }
+        graphDatabase.remove(relationship);
     }
 
     public void removeRelationshipTo(Object start, Object target, String type) {

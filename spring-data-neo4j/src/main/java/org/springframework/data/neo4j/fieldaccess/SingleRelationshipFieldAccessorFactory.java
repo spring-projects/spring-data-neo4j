@@ -22,7 +22,7 @@ import org.neo4j.graphdb.RelationshipType;
 
 import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.mapping.RelationshipInfo;
-import org.springframework.data.neo4j.support.GraphDatabaseContext;
+import org.springframework.data.neo4j.support.Neo4jTemplate;
 
 import java.util.Collections;
 import java.util.Set;
@@ -31,8 +31,8 @@ import static org.springframework.data.neo4j.support.DoReturn.doReturn;
 
 public class SingleRelationshipFieldAccessorFactory extends NodeRelationshipFieldAccessorFactory {
 
-	public SingleRelationshipFieldAccessorFactory(GraphDatabaseContext graphDatabaseContext) {
-		super(graphDatabaseContext);
+	public SingleRelationshipFieldAccessorFactory(Neo4jTemplate template) {
+		super(template);
 	}
 
 	@Override
@@ -43,12 +43,12 @@ public class SingleRelationshipFieldAccessorFactory extends NodeRelationshipFiel
 	@Override
 	public FieldAccessor forField(final Neo4jPersistentProperty property) {
         final RelationshipInfo relationshipInfo = property.getRelationshipInfo();
-        return new SingleRelationshipFieldAccessor(relationshipInfo.getRelationshipType(), relationshipInfo.getDirection(), (Class<?>) relationshipInfo.getTargetType().getType(), graphDatabaseContext,property);
+        return new SingleRelationshipFieldAccessor(relationshipInfo.getRelationshipType(), relationshipInfo.getDirection(), (Class<?>) relationshipInfo.getTargetType().getType(), template,property);
 	}
 
 	public static class SingleRelationshipFieldAccessor extends NodeToNodesRelationshipFieldAccessor {
-	    public SingleRelationshipFieldAccessor(final RelationshipType type, final Direction direction, final Class<?> clazz, final GraphDatabaseContext graphDatabaseContext, Neo4jPersistentProperty property) {
-	        super(clazz, graphDatabaseContext, direction, type, property);
+	    public SingleRelationshipFieldAccessor(final RelationshipType type, final Direction direction, final Class<?> clazz, final Neo4jTemplate template, Neo4jPersistentProperty property) {
+	        super(clazz, template, direction, type, property);
 	    }
 
 		@Override

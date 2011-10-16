@@ -20,7 +20,7 @@ import org.springframework.beans.factory.annotation.Configurable;
 import org.springframework.core.convert.ConversionService;
 
 import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
-import org.springframework.data.neo4j.support.GraphDatabaseContext;
+import org.springframework.data.neo4j.support.Neo4jTemplate;
 
 /**
  * @author Michael Hunger
@@ -30,14 +30,14 @@ import org.springframework.data.neo4j.support.GraphDatabaseContext;
 public class ConvertingNodePropertyFieldAccessorFactory implements FieldAccessorFactory {
 
 
-    private final GraphDatabaseContext graphDatabaseContext;
+    private final Neo4jTemplate template;
 
-    public ConvertingNodePropertyFieldAccessorFactory(GraphDatabaseContext graphDatabaseContext) {
-        this.graphDatabaseContext = graphDatabaseContext;
+    public ConvertingNodePropertyFieldAccessorFactory(Neo4jTemplate template) {
+        this.template = template;
     }
 
     private ConversionService getConversionService() {
-        return graphDatabaseContext.getConversionService();
+        return template.getConversionService();
     }
 
 
@@ -49,13 +49,13 @@ public class ConvertingNodePropertyFieldAccessorFactory implements FieldAccessor
 
     @Override
     public FieldAccessor forField(final Neo4jPersistentProperty property) {
-        return new ConvertingNodePropertyFieldAccessor(property,graphDatabaseContext);
+        return new ConvertingNodePropertyFieldAccessor(property, template);
     }
 
     public static class ConvertingNodePropertyFieldAccessor extends PropertyFieldAccessorFactory.PropertyFieldAccessor {
 
-        public ConvertingNodePropertyFieldAccessor(Neo4jPersistentProperty property, GraphDatabaseContext graphDatabaseContext) {
-            super(graphDatabaseContext, property);
+        public ConvertingNodePropertyFieldAccessor(Neo4jPersistentProperty property, Neo4jTemplate template) {
+            super(template, property);
         }
 
         @Override
@@ -70,11 +70,11 @@ public class ConvertingNodePropertyFieldAccessorFactory implements FieldAccessor
         }
 
         private Object serializePropertyValue(final Object newVal) {
-            return graphDatabaseContext.getConversionService().convert(newVal, String.class);
+            return template.getConversionService().convert(newVal, String.class);
         }
 
         private Object deserializePropertyValue(final Object value) {
-            return graphDatabaseContext.getConversionService().convert(value, fieldType);
+            return template.getConversionService().convert(value, fieldType);
         }
 
     }

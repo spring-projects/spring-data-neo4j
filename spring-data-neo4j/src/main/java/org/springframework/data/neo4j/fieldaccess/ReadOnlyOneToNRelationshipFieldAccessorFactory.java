@@ -22,12 +22,12 @@ import org.springframework.dao.InvalidDataAccessApiUsageException;
 
 import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.mapping.RelationshipInfo;
-import org.springframework.data.neo4j.support.GraphDatabaseContext;
+import org.springframework.data.neo4j.support.Neo4jTemplate;
 
 public class ReadOnlyOneToNRelationshipFieldAccessorFactory extends NodeRelationshipFieldAccessorFactory {
 
-	public ReadOnlyOneToNRelationshipFieldAccessorFactory(GraphDatabaseContext graphDatabaseContext) {
-		super(graphDatabaseContext);
+	public ReadOnlyOneToNRelationshipFieldAccessorFactory(Neo4jTemplate template) {
+		super(template);
 	}
 
 	@Override
@@ -40,13 +40,13 @@ public class ReadOnlyOneToNRelationshipFieldAccessorFactory extends NodeRelation
 	@Override
 	public FieldAccessor forField(final Neo4jPersistentProperty property) {
         final RelationshipInfo relationshipInfo = property.getRelationshipInfo();
-        return new ReadOnlyOneToNRelationshipFieldAccessor(relationshipInfo.getRelationshipType(), relationshipInfo.getDirection(), (Class<?>) property.getRelationshipInfo().getTargetType().getType(), graphDatabaseContext,property);
+        return new ReadOnlyOneToNRelationshipFieldAccessor(relationshipInfo.getRelationshipType(), relationshipInfo.getDirection(), (Class<?>) property.getRelationshipInfo().getTargetType().getType(), template,property);
 	}
 
 	public static class ReadOnlyOneToNRelationshipFieldAccessor extends OneToNRelationshipFieldAccessorFactory.OneToNRelationshipFieldAccessor {
 
-		public ReadOnlyOneToNRelationshipFieldAccessor(final RelationshipType type, final Direction direction, final Class<?> elementClass, final GraphDatabaseContext graphDatabaseContext, Neo4jPersistentProperty field) {
-	        super(type,direction,elementClass, graphDatabaseContext, field);
+		public ReadOnlyOneToNRelationshipFieldAccessor(final RelationshipType type, final Direction direction, final Class<?> elementClass, final Neo4jTemplate template, Neo4jPersistentProperty field) {
+	        super(type,direction,elementClass, template, field);
 		}
 
 	    @Override

@@ -45,7 +45,7 @@ public class NodeEntityQueryTest extends EntityTestBase {
 
     @Before
     public void setUp() throws Exception {
-        testTeam = new TestTeam(graphDatabaseContext);
+        testTeam = new TestTeam(neo4jTemplate);
         testTeam.createSDGTeam();
         michael = testTeam.michael;
     }

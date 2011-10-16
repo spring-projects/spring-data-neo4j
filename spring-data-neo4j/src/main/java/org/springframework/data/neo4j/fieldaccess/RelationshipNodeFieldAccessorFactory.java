@@ -24,7 +24,7 @@ import org.springframework.data.neo4j.annotation.StartNode;
 
 
 import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
-import org.springframework.data.neo4j.support.GraphDatabaseContext;
+import org.springframework.data.neo4j.support.Neo4jTemplate;
 
 import static org.springframework.data.neo4j.support.DoReturn.doReturn;
 
@@ -34,11 +34,11 @@ import static org.springframework.data.neo4j.support.DoReturn.doReturn;
  */
 public class RelationshipNodeFieldAccessorFactory implements FieldAccessorFactory {
 
-	private GraphDatabaseContext graphDatabaseContext;
+	private Neo4jTemplate template;
 
-    public RelationshipNodeFieldAccessorFactory(GraphDatabaseContext graphDatabaseContext) {
+    public RelationshipNodeFieldAccessorFactory(Neo4jTemplate template) {
 		super();
-		this.graphDatabaseContext = graphDatabaseContext;
+		this.template = template;
 	}
 
 	@Override
@@ -57,7 +57,7 @@ public class RelationshipNodeFieldAccessorFactory implements FieldAccessorFactor
     @Override
     public FieldAccessor forField(final Neo4jPersistentProperty property) {
         if (isStartNodeField(property)) {
-            return new RelationshipNodeFieldAccessor(property, graphDatabaseContext) {
+            return new RelationshipNodeFieldAccessor(property, template) {
                 @Override
                 protected Node getNode(final Relationship relationship) {
                     return relationship.getStartNode();
@@ -66,7 +66,7 @@ public class RelationshipNodeFieldAccessorFactory implements FieldAccessorFactor
 
         }
         if (isEndNodeField(property)) {
-            return new RelationshipNodeFieldAccessor(property, graphDatabaseContext) {
+            return new RelationshipNodeFieldAccessor(property, template) {
                 @Override
                 protected Node getNode(final Relationship relationship) {
                     return relationship.getEndNode();
@@ -79,11 +79,11 @@ public class RelationshipNodeFieldAccessorFactory implements FieldAccessorFactor
     public static abstract class RelationshipNodeFieldAccessor implements FieldAccessor {
 
         private final Neo4jPersistentProperty property;
-        private final GraphDatabaseContext graphDatabaseContext;
+        private final Neo4jTemplate template;
 
-        public RelationshipNodeFieldAccessor(final Neo4jPersistentProperty property, final GraphDatabaseContext graphDatabaseContext) {
+        public RelationshipNodeFieldAccessor(final Neo4jPersistentProperty property, final Neo4jTemplate template) {
             this.property = property;
-            this.graphDatabaseContext = graphDatabaseContext;
+            this.template = template;
         }
 
         @Override
@@ -93,12 +93,12 @@ public class RelationshipNodeFieldAccessorFactory implements FieldAccessorFactor
 
         @Override
         public Object getValue(final Object entity) {
-            final Relationship relationship = graphDatabaseContext.getPersistentState(entity);
+            final Relationship relationship = template.getPersistentState(entity);
             final Node node = getNode(relationship);
             if (node == null) {
                 return null;
             }
-            final Object result = graphDatabaseContext.createEntityFromState(node, (Class<?>) property.getType());
+            final Object result = template.createEntityFromState(node, (Class<?>) property.getType());
             return doReturn(result);
         }
 

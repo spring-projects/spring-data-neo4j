@@ -26,7 +26,7 @@ import org.springframework.data.mapping.model.BeanWrapper;
 import org.springframework.data.mapping.model.MappingException;
 import org.springframework.data.neo4j.core.EntityState;
 import org.springframework.data.neo4j.support.DoReturn;
-import org.springframework.data.neo4j.support.GraphDatabaseContext;
+import org.springframework.data.neo4j.support.Neo4jTemplate;
 import org.springframework.data.neo4j.support.node.EntityStateFactory;
 
 import java.lang.reflect.InvocationTargetException;
@@ -75,8 +75,8 @@ public class SourceStateTransmitter<S extends PropertyContainer> {
         entityState.setValue(property, value);
     }
 
-    private GraphDatabaseContext getGraphDatabaseContext() {
-        return entityStateFactory.getGraphDatabaseContext();
+    private Neo4jTemplate getGraphDatabaseContext() {
+        return entityStateFactory.getTemplate();
     }
 
     private <T> T getProperty(BeanWrapper<Neo4jPersistentEntity<Object>, Object> wrapper, Neo4jPersistentProperty property, Class<T> type, boolean fieldAccessOnly) {

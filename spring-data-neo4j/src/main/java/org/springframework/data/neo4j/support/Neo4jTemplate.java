@@ -20,12 +20,9 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.index.Index;
-import org.neo4j.graphdb.index.IndexManager;
 import org.neo4j.graphdb.traversal.TraversalDescription;
 import org.neo4j.graphdb.traversal.Traverser;
 import org.neo4j.helpers.collection.ClosableIterable;
-import org.neo4j.index.impl.lucene.LuceneIndexImplementation;
-import org.neo4j.kernel.AbstractGraphDatabase;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
@@ -63,12 +60,8 @@ import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallback;
 import org.springframework.transaction.support.TransactionTemplate;
-import org.springframework.util.ObjectUtils;
 
 import javax.annotation.PostConstruct;
-import javax.transaction.Status;
-import javax.transaction.SystemException;
-import javax.transaction.TransactionManager;
 import javax.validation.Validator;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -83,9 +76,9 @@ import java.util.Map;
  * @author Michael Hunger
  * @since 13.09.2010
  */
-public class GraphDatabaseContext implements Neo4jOperations {
+public class Neo4jTemplate implements Neo4jOperations {
 
-    private static final Log log = LogFactory.getLog(GraphDatabaseContext.class);
+    private static final Log log = LogFactory.getLog(Neo4jTemplate.class);
 
     private GraphDatabaseService graphDatabaseService;
     private ConversionService conversionService;
@@ -113,20 +106,20 @@ public class GraphDatabaseContext implements Neo4jOperations {
     /**
      * default constructor for dependency injection, TODO provide dependencies at creation time
      */
-    public GraphDatabaseContext() {
+    public Neo4jTemplate() {
     }
 
     /**
      * @param graphDatabase the neo4j graph database
      * @param transactionManager if passed in, will be used to create implicit transactions whenever needed
      */
-    public GraphDatabaseContext(final GraphDatabase graphDatabase, PlatformTransactionManager transactionManager) {
+    public Neo4jTemplate(final GraphDatabase graphDatabase, PlatformTransactionManager transactionManager) {
         notNull(graphDatabase, "graphDatabase");
         this.transactionManager = transactionManager;
         this.graphDatabase = graphDatabase;
     }
 
-    public GraphDatabaseContext(final GraphDatabase graphDatabase) {
+    public Neo4jTemplate(final GraphDatabase graphDatabase) {
         notNull(graphDatabase, "graphDatabase");
         transactionManager = null;
         this.graphDatabase = graphDatabase;
@@ -145,12 +138,12 @@ public class GraphDatabaseContext implements Neo4jOperations {
     }
 
     static class IndexProvider {
-        private IndexManager indexManager;
         private Neo4jMappingContext mappingContext;
+        private final GraphDatabase graphDatabase;
 
-        IndexProvider(IndexManager indexManager, Neo4jMappingContext mappingContext) {
-            this.indexManager = indexManager;
+        IndexProvider(Neo4jMappingContext mappingContext, GraphDatabase graphDatabase) {
             this.mappingContext = mappingContext;
+            this.graphDatabase = graphDatabase;
         }
 
         public <S extends PropertyContainer, T> Index<S> getIndex(Class<T> type) {
@@ -173,8 +166,8 @@ public class GraphDatabaseContext implements Neo4jOperations {
             final boolean useExistingIndex = fullText == null;
 
             if (useExistingIndex) {
-                if (persistentEntity.isNodeEntity()) return (Index<S>) getIndexManager().forNodes(indexName);
-                if (persistentEntity.isRelationshipEntity()) return (Index<S>) getIndexManager().forRelationships(indexName);
+                if (persistentEntity.isNodeEntity()) return (Index<S>) graphDatabase.getIndex(indexName);
+                if (persistentEntity.isRelationshipEntity()) return (Index<S>) graphDatabase.getIndex(indexName);
                 throw new IllegalArgumentException("Wrong index type supplied: " + type + " expected Node- or Relationship-Entity");
             }
 
@@ -183,15 +176,9 @@ public class GraphDatabaseContext implements Neo4jOperations {
             throw new IllegalArgumentException("Wrong index type supplied: " + type + " expected Node- or Relationship-Entity");
         }
 
-        public IndexManager getIndexManager() {
-            return indexManager;
-        }
-
         @SuppressWarnings("unchecked")
         public <T extends PropertyContainer> Index<T> getIndex(String indexName) {
-            if (indexManager.existsForNodes(indexName)) return (Index<T>) indexManager.forNodes(indexName);
-            if (indexManager.existsForRelationships(indexName)) return (Index<T>) indexManager.forRelationships(indexName);
-            throw new IllegalArgumentException("Index "+indexName+" does not exist.");
+            return graphDatabase.getIndex(indexName);
         }
 
         public boolean isNode(Class<? extends PropertyContainer> type) {
@@ -203,32 +190,8 @@ public class GraphDatabaseContext implements Neo4jOperations {
         // TODO handle existing indexes
         @SuppressWarnings("unchecked")
         public <T extends PropertyContainer> Index<T> createIndex(Class<T> type, String indexName, boolean fullText) {
-            if (isNode(type)) {
-                if (indexManager.existsForNodes(indexName))
-                    return (Index<T>) checkAndGetExistingIndex(indexName, fullText, indexManager.forNodes(indexName));
-                return (Index<T>) indexManager.forNodes(indexName, indexConfigFor(fullText));
-            } else {
-                if (indexManager.existsForRelationships(indexName))
-                    return (Index<T>) checkAndGetExistingIndex(indexName, fullText, indexManager.forRelationships(indexName));
-                return (Index<T>) indexManager.forRelationships(indexName, indexConfigFor(fullText));
-            }
+            return graphDatabase.createIndex(type,indexName,fullText);
         }
-
-        private <T extends PropertyContainer> Index<T> checkAndGetExistingIndex(final String indexName, boolean fullText, final Index<T> index) {
-            Map<String, String> existingConfig = indexManager.getConfiguration(index);
-            Map<String, String> config = indexConfigFor(fullText);
-            if (configCheck(config, existingConfig, "provider") && configCheck(config, existingConfig, "type")) return index;
-            throw new IllegalArgumentException("Setup for index "+indexName+" does not match. Existing: "+existingConfig+" required "+config);
-         }
-
-        private boolean configCheck(Map<String, String> config, Map<String, String> existingConfig, String setting) {
-            return ObjectUtils.nullSafeEquals(config.get(setting), existingConfig.get(setting));
-        }
-
-        private Map<String, String> indexConfigFor(boolean fullText) {
-            return fullText ? LuceneIndexImplementation.FULLTEXT_CONFIG : LuceneIndexImplementation.EXACT_CONFIG;
-        }
-
     }
 
     public <S extends PropertyContainer, T> Index<S> getIndex(Class<T> type) {
@@ -251,16 +214,7 @@ public class GraphDatabaseContext implements Neo4jOperations {
      * @return true if a transaction manager is available and a transaction is currently running
      */
     public boolean transactionIsRunning() {
-        if (!(graphDatabaseService instanceof AbstractGraphDatabase)) {
-            return true; // assume always running tx (e.g. for REST or other remotes)
-        }
-        try {
-            final TransactionManager txManager = ((AbstractGraphDatabase) graphDatabaseService).getConfig().getTxModule().getTxManager();
-            return txManager.getStatus() != Status.STATUS_NO_TRANSACTION;
-        } catch (SystemException e) {
-            log.error("Error accessing TransactionManager", e);
-            return false;
-        }
+        return graphDatabase.transactionIsRunning();
     }
 
 
@@ -334,7 +288,7 @@ public class GraphDatabaseContext implements Neo4jOperations {
      */
     @Override
     public Node createNode() {
-        return graphDatabaseService.createNode();
+        return graphDatabase.createNode(null);
     }
 
     @Override
@@ -375,20 +329,13 @@ public class GraphDatabaseContext implements Neo4jOperations {
      * Delegates to {@link GraphDatabaseService}
      */
     public Node getNodeById(final long nodeId) {
-        return graphDatabaseService.getNodeById(nodeId);
+        return graphDatabase.getNodeById(nodeId);
     }
 
     /**
      * Delegates to {@link GraphDatabaseService}
      */
-    public Result<Node> getAllNodes() {
-        return convert(graphDatabaseService.getAllNodes());
-    }
-
-    /**
-     * Delegates to {@link GraphDatabaseService}
-     */
-    public Transaction beginTx() {
+    public Transaction beginTx() { // todo remove !
         return graphDatabaseService.beginTx();
     }
 
@@ -396,18 +343,18 @@ public class GraphDatabaseContext implements Neo4jOperations {
      * Delegates to {@link GraphDatabaseService}
      */
     public Relationship getRelationshipById(final long id) {
-        return graphDatabaseService.getRelationshipById(id);
+        return graphDatabase.getRelationshipById(id);
     }
 
     @PostConstruct
-    public void postConstruct() {
+    public Neo4jTemplate postConstruct() {
         this.resultConverter = new EntityResultConverter<Object, Object>(this);
         if (this.graphDatabase==null) {
             this.graphDatabase=new DelegatingGraphDatabase(graphDatabaseService,resultConverter);
         }
         this.typeRepresentationStrategies = new TypeRepresentationStrategies(mappingContext, nodeTypeRepresentationStrategy, relationshipTypeRepresentationStrategy);
         this.cypherQueryExecutor = new CypherQueryExecutor(this);
-        final EntityStateHandler entityStateHandler = new EntityStateHandler(mappingContext, graphDatabaseService);
+        final EntityStateHandler entityStateHandler = new EntityStateHandler(mappingContext, graphDatabase);
         if (nodeEntityInstantiator==null) {
             nodeEntityInstantiator = new NodeEntityInstantiator(entityStateHandler);
         }
@@ -417,8 +364,9 @@ public class GraphDatabaseContext implements Neo4jOperations {
         }
         EntityTools<Relationship> relationshipEntityTools = new EntityTools<Relationship>(relationshipTypeRepresentationStrategy, relationshipEntityStateFactory, relationshipEntityInstantiator);
         this.entityPersister = new Neo4jEntityPersister(conversionService, nodeEntityTools, relationshipEntityTools,mappingContext, entityStateHandler);
-        this.entityRemover = new EntityRemover(this.entityStateHandler, nodeTypeRepresentationStrategy, relationshipTypeRepresentationStrategy, graphDatabaseService.index());
-        this.indexProvider = new IndexProvider(graphDatabaseService.index(), mappingContext);
+        this.entityRemover = new EntityRemover(this.entityStateHandler, nodeTypeRepresentationStrategy, relationshipTypeRepresentationStrategy, graphDatabase);
+        this.indexProvider = new IndexProvider(mappingContext,graphDatabase);
+        return this;
     }
 
 
@@ -542,9 +490,9 @@ public class GraphDatabaseContext implements Neo4jOperations {
     }
 
     @Override
-    public Node getReferenceNode() {
+    public <T> T getReferenceNode(Class<T> target) {
         try {
-            return graphDatabase.getReferenceNode();
+            return convert(graphDatabase.getReferenceNode(), target);
         } catch (RuntimeException e) {
             throw translateExceptionIfPossible(e);
         }

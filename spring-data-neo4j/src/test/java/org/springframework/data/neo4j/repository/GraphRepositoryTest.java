@@ -16,15 +16,6 @@
 
 package org.springframework.data.neo4j.repository;
 
-import static java.util.Arrays.*;
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
-import static org.junit.internal.matchers.IsCollectionContaining.*;
-import static org.neo4j.helpers.collection.IteratorUtil.*;
-
-import java.util.HashSet;
-import java.util.Map;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.junit.Before;
@@ -36,7 +27,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.neo4j.model.Group;
 import org.springframework.data.neo4j.model.Person;
-import org.springframework.data.neo4j.support.GraphDatabaseContext;
+import org.springframework.data.neo4j.support.Neo4jTemplate;
 import org.springframework.data.neo4j.support.node.Neo4jHelper;
 import org.springframework.test.context.CleanContextCacheTestExecutionListener;
 import org.springframework.test.context.ContextConfiguration;
@@ -47,6 +38,18 @@ import org.springframework.test.context.transaction.BeforeTransaction;
 import org.springframework.test.context.transaction.TransactionalTestExecutionListener;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashSet;
+import java.util.Map;
+
+import static java.util.Arrays.asList;
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
+import static org.junit.internal.matchers.IsCollectionContaining.hasItem;
+import static org.junit.internal.matchers.IsCollectionContaining.hasItems;
+import static org.neo4j.helpers.collection.IteratorUtil.addToCollection;
+import static org.neo4j.helpers.collection.IteratorUtil.asCollection;
+
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
 @TestExecutionListeners({CleanContextCacheTestExecutionListener.class, DependencyInjectionTestExecutionListener.class, TransactionalTestExecutionListener.class})
@@ -56,7 +59,7 @@ public class GraphRepositoryTest {
     protected final Log log = LogFactory.getLog(getClass());
 
     @Autowired
-    private GraphDatabaseContext graphDatabaseContext;
+    private Neo4jTemplate neo4jTemplate;
 
     @Autowired
     private PersonRepository personRepository;
@@ -67,7 +70,7 @@ public class GraphRepositoryTest {
 
     @BeforeTransaction
     public void cleanDb() {
-        Neo4jHelper.cleanDb(graphDatabaseContext);
+        Neo4jHelper.cleanDb(neo4jTemplate);
     }
     @Before
     public void setUp() throws Exception {

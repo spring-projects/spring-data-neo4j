@@ -14,7 +14,7 @@
 
 
     <neo4j:config storeDirectory="target/neo4j-db"/>
-    <neo4j:repositories base-package="org.neo4j.examples.imdb.domain" graph-database-context-ref="graphDatabaseContext"/>
+    <neo4j:repositories base-package="org.neo4j.examples.imdb.domain" graph-database-context-ref="template"/>
 
     <tx:annotation-driven mode="aspectj" transaction-manager="transactionManager"/>
 

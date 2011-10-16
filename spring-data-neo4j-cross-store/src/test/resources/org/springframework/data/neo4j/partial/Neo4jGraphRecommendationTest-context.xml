@@ -71,12 +71,12 @@
     -->
 
 	<bean id="neo4jNodeBacking" class="org.springframework.data.neo4j.aspects.support.node.Neo4jNodeBacking" factory-method="aspectOf">
-		<property name="graphDatabaseContext" ref="graphDatabaseContext"/>
+		<property name="template" ref="neo4jTemplate"/>
 		<property name="nodeEntityStateFactory" ref="nodeEntityStateFactory"/>
 	</bean>
 
 	<bean class="org.springframework.data.neo4j.aspects.support.relationship.Neo4jRelationshipBacking" factory-method="aspectOf">
-		<property name="graphDatabaseContext" ref="graphDatabaseContext"/>
+		<property name="template" ref="neo4jTemplate"/>
 		<property name="relationshipEntityStateFactory" ref="relationshipEntityStateFactory"/>
 	</bean>
 
@@ -86,7 +86,11 @@
 		 <constructor-arg index="0" value="target/data/recommendation" />
 	</bean>
 
-    <bean id="graphDatabaseContext" class="org.springframework.data.neo4j.support.GraphDatabaseContext">
+    <bean id="graphDatabase" class="org.springframework.data.neo4j.support.DelegatingGraphDatabase">
+        <constructor-arg ref="graphDatabaseService"/>
+    </bean>
+
+    <bean id="neo4jTemplate" class="org.springframework.data.neo4j.support.Neo4jTemplate">
         <property name="graphDatabaseService" ref="graphDatabaseService"/>
         <property name="conversionService">
             <bean class="org.springframework.data.neo4j.fieldaccess.Neo4jConversionServiceFactoryBean"/>
@@ -95,6 +99,8 @@
         <property name="relationshipTypeRepresentationStrategy" ref="relationshipTypeRepresentationStrategy"/>
         <property name="entityStateHandler" ref="entityStateHandler"/>
         <property name="mappingContext" ref="mappingContext"/>
+        <property name="graphDatabase" ref="graphDatabase"/>
+        <property name="transactionManager" ref="transactionManager"/>
     </bean>
     <bean id="graphEntityInstantiator" class="org.springframework.data.neo4j.cross_store.support.node.CrossStoreNodeEntityInstantiator">
         <constructor-arg ref="nodeEntityInstantiator"/>
@@ -102,7 +108,7 @@
     </bean>
     <bean id="entityStateHandler" class="org.springframework.data.neo4j.support.EntityStateHandler">
         <constructor-arg ref="mappingContext"/>
-        <constructor-arg ref="graphDatabaseService"/>
+        <constructor-arg ref="graphDatabase"/>
     </bean>
     <bean id="relationshipEntityInstantiator" class="org.springframework.data.neo4j.support.relationship.RelationshipEntityInstantiator">
         <constructor-arg ref="entityStateHandler"/>
@@ -124,10 +130,10 @@
     <bean id="nodeEntityStateFactory" class="org.springframework.data.neo4j.cross_store.support.node.CrossStoreNodeEntityStateFactory" init-method="postConstruct">
     	<property name="nodeDelegatingFieldAccessorFactory">
 		    <bean class="org.springframework.data.neo4j.fieldaccess.NodeDelegatingFieldAccessorFactory">
-		        <constructor-arg ref="graphDatabaseContext"/>
+		        <constructor-arg ref="neo4jTemplate"/>
 		    </bean>
     	</property>
-    	<property name="graphDatabaseContext" ref="graphDatabaseContext"/>
+    	<property name="template" ref="neo4jTemplate"/>
 		<property name="entityManagerFactory" ref="entityManagerFactory"/>
 		<property name="mappingContext" ref="mappingContext"/>
     </bean>
@@ -138,10 +144,10 @@
     <bean id="relationshipEntityStateFactory" class="org.springframework.data.neo4j.support.relationship.RelationshipEntityStateFactory">
     	<property name="relationshipDelegatingFieldAccessorFactory">
 		    <bean class="org.springframework.data.neo4j.fieldaccess.RelationshipDelegatingFieldAccessorFactory">
-		        <constructor-arg ref="graphDatabaseContext"/>
+		        <constructor-arg ref="neo4jTemplate"/>
 		    </bean>
     	</property>
-    	<property name="graphDatabaseContext" ref="graphDatabaseContext"/>
+    	<property name="template" ref="neo4jTemplate"/>
     	<property name="mappingContext" ref="mappingContext"/>
     </bean>
     

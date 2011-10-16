@@ -169,11 +169,11 @@ public class IndexingNodeTypeRepresentationStrategyTest extends EntityTestBase {
 		Transaction tx = graphDatabaseService.beginTx();
 		try {
             Node n1 = graphDatabaseService.createNode();
-            thing = graphDatabaseContext.setPersistentState(new Thing(),n1);
+            thing = neo4jTemplate.setPersistentState(new Thing(),n1);
 			nodeTypeRepresentationStrategy.postEntityCreation(n1, Thing.class);
             thing.setName("thing");
             Node n2 = graphDatabaseService.createNode();
-            subThing = graphDatabaseContext.setPersistentState(new SubThing(),n2);
+            subThing = neo4jTemplate.setPersistentState(new SubThing(),n2);
 			nodeTypeRepresentationStrategy.postEntityCreation(n2, SubThing.class);
             subThing.setName("subThing");
 			tx.success();

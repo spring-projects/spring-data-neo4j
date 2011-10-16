@@ -96,7 +96,7 @@ public class RelationshipEntityTest extends EntityTestBase {
         Person p = persistedPerson("Michael", 35);
         Person p2 = persistedPerson("David", 25);
         Friendship f = p.knows(p2);
-        assertEquals(f,graphDatabaseContext.getRelationshipTo(p,p2, Friendship.class, "knows"));
+        assertEquals(f, neo4jTemplate.getRelationshipTo(p,p2, Friendship.class, "knows"));
     }
 
     @Test
@@ -118,7 +118,7 @@ public class RelationshipEntityTest extends EntityTestBase {
         Transaction tx2 = graphDatabaseService.beginTx();
         try
         {
-            graphDatabaseContext.removeRelationshipEntity(f);
+            neo4jTemplate.removeRelationshipEntity(f);
             tx2.success();
         }
         finally
@@ -147,7 +147,7 @@ public class RelationshipEntityTest extends EntityTestBase {
         Transaction tx2 = graphDatabaseService.beginTx();
         try
         {
-            graphDatabaseContext.removeNodeEntity(p);
+            neo4jTemplate.removeNodeEntity(p);
             tx2.success();
         }
         finally

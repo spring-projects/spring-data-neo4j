@@ -23,7 +23,7 @@ import org.neo4j.kernel.EmbeddedGraphDatabase;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.data.neo4j.model.PersonRepository;
-import org.springframework.data.neo4j.support.GraphDatabaseContext;
+import org.springframework.data.neo4j.support.Neo4jTemplate;
 import org.springframework.transaction.PlatformTransactionManager;
 
 /**
@@ -37,7 +37,7 @@ public class DataGraphNamespaceHandlerTest {
         @Autowired
         GraphDatabaseService graphDatabaseService;
         @Autowired
-        GraphDatabaseContext graphDatabaseContext;
+        Neo4jTemplate neo4jTemplate;
         @Autowired
         PlatformTransactionManager transactionManager;
         @Autowired(required = false)
@@ -62,9 +62,9 @@ public class DataGraphNamespaceHandlerTest {
     private Config assertInjected(String testCase) {
         ClassPathXmlApplicationContext ctx = new ClassPathXmlApplicationContext("classpath:org/springframework/data/neo4j/config/DataGraphNamespaceHandlerTest" + testCase + "-context.xml");
         Config config = ctx.getBean("config", Config.class);
-        GraphDatabaseContext graphDatabaseContext = config.graphDatabaseContext;
-        Assert.assertNotNull("graphDatabaseContext", graphDatabaseContext);
-        EmbeddedGraphDatabase graphDatabaseService = (EmbeddedGraphDatabase) graphDatabaseContext.getGraphDatabaseService();
+        Neo4jTemplate template = config.neo4jTemplate;
+        Assert.assertNotNull("template", template);
+        EmbeddedGraphDatabase graphDatabaseService = (EmbeddedGraphDatabase) template.getGraphDatabaseService();
         Assert.assertEquals("store-dir", "target/config-test", graphDatabaseService.getStoreDir());
         Assert.assertNotNull("graphDatabaseService",config.graphDatabaseService);
         Assert.assertNotNull("transactionManager",config.transactionManager);

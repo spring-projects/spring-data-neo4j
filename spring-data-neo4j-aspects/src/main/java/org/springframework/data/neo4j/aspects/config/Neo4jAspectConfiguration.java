@@ -34,7 +34,7 @@ public class Neo4jAspectConfiguration extends Neo4jConfiguration
     @Bean
     public Neo4jRelationshipBacking neo4jRelationshipBacking() throws Exception {
         Neo4jRelationshipBacking aspect = Neo4jRelationshipBacking.aspectOf();
-        aspect.setGraphDatabaseContext(graphDatabaseContext());
+        aspect.setTemplate(neo4jTemplate());
         aspect.setRelationshipEntityStateFactory(relationshipEntityStateFactory());
         return aspect;
     }
@@ -42,7 +42,7 @@ public class Neo4jAspectConfiguration extends Neo4jConfiguration
     @Bean
 	public Neo4jNodeBacking neo4jNodeBacking() throws Exception {
 		Neo4jNodeBacking aspect = Neo4jNodeBacking.aspectOf();
-		aspect.setGraphDatabaseContext(graphDatabaseContext());
+		aspect.setTemplate(neo4jTemplate());
         NodeEntityStateFactory entityStateFactory = nodeEntityStateFactory();
 		aspect.setNodeEntityStateFactory(entityStateFactory);
 		return aspect;

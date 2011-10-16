@@ -13,28 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.springframework.data.neo4j.support.index;
 
-package org.springframework.data.neo4j.mapping;
-
-import org.neo4j.graphdb.PropertyContainer;
-import org.springframework.data.mapping.PersistentEntity;
+import org.springframework.dao.DataRetrievalFailureException;
 
 /**
- * Interface for Neo4J specific {@link PersistentEntity}.
- * 
- * @author Oliver Gierke
- */
-public interface Neo4jPersistentEntity<T> extends PersistentEntity<T, Neo4jPersistentProperty> {
+* @author mh
+* @since 16.10.11
+*/
+public class NoSuchIndexException extends DataRetrievalFailureException {
 
-    boolean useShortNames();
+    private final String index;
 
-    boolean isNodeEntity();
+    public NoSuchIndexException(String index) {
+        super("No such index: "+index);
+        this.index = index;
+    }
 
-    boolean isRelationshipEntity();
-
-    void setPersistentState(Object entity, PropertyContainer pc);
-
-    Object getPersistentId(Object entity);
-
-    RelationshipProperties getRelationshipProperties();
+    public String getIndex() {
+        return index;
+    }
 }

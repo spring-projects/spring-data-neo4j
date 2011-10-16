@@ -57,7 +57,7 @@ public class GremlinQueryEngineTest extends EntityTestBase {
     }
 
     protected GraphDatabase createGraphDatabase() throws Exception {
-        final DelegatingGraphDatabase graphDatabase = new DelegatingGraphDatabase(graphDatabaseContext.getGraphDatabaseService());
+        final DelegatingGraphDatabase graphDatabase = new DelegatingGraphDatabase(neo4jTemplate.getGraphDatabaseService());
         graphDatabase.setConversionService(conversionService);
         return graphDatabase;
     }

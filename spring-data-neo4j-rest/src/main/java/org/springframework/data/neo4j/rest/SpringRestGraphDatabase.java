@@ -23,6 +23,7 @@ import org.neo4j.graphdb.index.Index;
 import org.neo4j.graphdb.traversal.TraversalDescription;
 import org.neo4j.rest.graphdb.*;
 import org.neo4j.rest.graphdb.RestRequest;
+import org.neo4j.rest.graphdb.index.RestIndexManager;
 import org.neo4j.rest.graphdb.query.RestCypherQueryEngine;
 import org.neo4j.rest.graphdb.query.RestGremlinQueryEngine;
 import org.springframework.core.convert.ConversionService;
@@ -115,4 +116,36 @@ public class SpringRestGraphDatabase extends org.neo4j.rest.graphdb.RestGraphDat
             return resultConverter.convert(value,target);
         }
     }
+
+    @Override
+    public boolean transactionIsRunning() {
+        return true;
+    }
+
+    @Override
+    public void remove(Node node) {
+        removeFromIndexes(node);
+        node.delete();
+    }
+
+    @Override
+    public void remove(Relationship relationship) {
+       removeFromIndexes(relationship);
+       relationship.delete();
+    }
+
+    private void removeFromIndexes(Node node) {
+        final RestIndexManager indexManager = index();
+        for (String indexName : indexManager.nodeIndexNames()) {
+            indexManager.forNodes(indexName).remove(node);
+        }
+    }
+
+    private void removeFromIndexes(Relationship relationship) {
+        final RestIndexManager indexManager = index();
+        for (String indexName : indexManager.relationshipIndexNames()) {
+            indexManager.forRelationships(indexName).remove(relationship);
+        }
+    }
+
 }

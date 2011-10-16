@@ -70,7 +70,7 @@ public class FinderTest extends EntityTestBase {
     @Test
     @Transactional
     public void testFindIterableMapsWithQueryAnnotation() {
-        final TestTeam testTeam = new TestTeam(graphDatabaseContext);
+        final TestTeam testTeam = new TestTeam(neo4jTemplate);
         testTeam.createSDGTeam();
         Iterable<Map<String,Object>> teamMembers = personRepository.findAllTeamMemberData(testTeam.sdg);
         assertThat(asCollection(teamMembers), hasItems(testTeam.simpleRowFor(testTeam.michael,"member"),testTeam.simpleRowFor(testTeam.david,"member"),testTeam.simpleRowFor(testTeam.emil,"member")));
@@ -79,7 +79,7 @@ public class FinderTest extends EntityTestBase {
     @Test
     @Transactional
     public void testFindByNamedQuery() {
-        final TestTeam testTeam = new TestTeam(graphDatabaseContext);
+        final TestTeam testTeam = new TestTeam(neo4jTemplate);
         testTeam.createSDGTeam();
         Group team = personRepository.findTeam(testTeam.michael);
         assertThat(team, is(testTeam.sdg));

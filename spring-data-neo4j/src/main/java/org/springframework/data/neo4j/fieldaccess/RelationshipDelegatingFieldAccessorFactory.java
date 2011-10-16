@@ -20,20 +20,20 @@ import java.util.Collection;
 
 
 
-import org.springframework.data.neo4j.support.GraphDatabaseContext;
+import org.springframework.data.neo4j.support.Neo4jTemplate;
 
 public class RelationshipDelegatingFieldAccessorFactory extends DelegatingFieldAccessorFactory {
-    public RelationshipDelegatingFieldAccessorFactory(GraphDatabaseContext graphDatabaseContext) {
-        super(graphDatabaseContext);
+    public RelationshipDelegatingFieldAccessorFactory(Neo4jTemplate template) {
+        super(template);
     }
 
     @Override
     protected Collection<FieldAccessorListenerFactory> createListenerFactories() {
         return Arrays.<FieldAccessorListenerFactory>asList(
                 new IndexingPropertyFieldAccessorListenerFactory(
-                        graphDatabaseContext,
-                        new PropertyFieldAccessorFactory(graphDatabaseContext),
-                        new ConvertingNodePropertyFieldAccessorFactory(graphDatabaseContext)
+                        template,
+                        new PropertyFieldAccessorFactory(template),
+                        new ConvertingNodePropertyFieldAccessorFactory(template)
                 ));
     }
 
@@ -41,11 +41,11 @@ public class RelationshipDelegatingFieldAccessorFactory extends DelegatingFieldA
     protected Collection<? extends FieldAccessorFactory> createAccessorFactories() {
         return Arrays.<FieldAccessorFactory>asList(
                 new TransientFieldAccessorFactory(),
-                new IdFieldAccessorFactory(graphDatabaseContext),
-                new RelationshipNodeFieldAccessorFactory(graphDatabaseContext),
-                new PropertyFieldAccessorFactory(graphDatabaseContext),
-                new ConvertingNodePropertyFieldAccessorFactory(graphDatabaseContext),
-                new DynamicPropertiesFieldAccessorFactory(graphDatabaseContext)
+                new IdFieldAccessorFactory(template),
+                new RelationshipNodeFieldAccessorFactory(template),
+                new PropertyFieldAccessorFactory(template),
+                new ConvertingNodePropertyFieldAccessorFactory(template),
+                new DynamicPropertiesFieldAccessorFactory(template)
         );
     }
 }

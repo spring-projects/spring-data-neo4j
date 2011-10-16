@@ -29,11 +29,11 @@
     <para>
         <example>
             <title>First test case</title>
-            <programlisting language="java" ><![CDATA[@Autowired GraphDatabaseContext graphDatabaseContext;
+            <programlisting language="java" ><![CDATA[@Autowired GraphDatabaseContext template;
 
 @Test public void persistedMovieShouldBeRetrievableFromGraphDb() {
     Movie forrestGump = new Movie("Forrest Gump", 1994).persist();
-    Movie retrievedMovie = graphDatabaseContext.getById(forrestGump.getNodeId());
+    Movie retrievedMovie = template.getById(forrestGump.getNodeId());
     assertEqual("retrieved movie matches persisted one", forrestGump, retrievedMovie);
     assertEqual("retrieved movie title matches", "Forrest Gump", retrievedMovie.getTitle());
 }

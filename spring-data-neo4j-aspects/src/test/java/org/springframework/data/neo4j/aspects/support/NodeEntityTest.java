@@ -42,7 +42,7 @@ public class NodeEntityTest extends EntityTestBase {
         Person p = persistedPerson("Rod", 39);
         assertEquals(p.getName(), getNodeState(p).getProperty("name"));
         assertEquals(p.getAge(), getNodeState(p).getProperty("age"));
-        Person found = graphDatabaseContext.createEntityFromState(graphDatabaseContext.getNodeById(getNodeId(p)), Person.class);
+        Person found = neo4jTemplate.createEntityFromState(neo4jTemplate.getNodeById(getNodeId(p)), Person.class);
         assertEquals("Rod", getNodeState(found).getProperty("name"));
         assertEquals(39, getNodeState(found).getProperty("age"));
     }
@@ -81,34 +81,34 @@ public class NodeEntityTest extends EntityTestBase {
     // own transaction handling because of http://wiki.neo4j.org/content/Delete_Semantics
     @Test(expected = NotFoundException.class)
     public void testDeleteEntityFromGDC() {
-        Transaction tx = graphDatabaseContext.beginTx();
+        Transaction tx = neo4jTemplate.beginTx();
         Person p = persistedPerson("Michael", 35);
         Person spouse = persistedPerson("Tina", 36);
         p.setSpouse(spouse);
         long id = spouse.getId();
-        graphDatabaseContext.removeNodeEntity(spouse);
+        neo4jTemplate.removeNodeEntity(spouse);
         tx.success();
         tx.finish();
         Assert.assertNull("spouse removed " + p.getSpouse(), p.getSpouse());
         Person spouseFromIndex = personRepository.findByPropertyValue(Person.NAME_INDEX, "name", "Tina");
         Assert.assertNull("spouse not found in index",spouseFromIndex);
-        Assert.assertNull("node deleted " + id, graphDatabaseContext.getNodeById(id));
+        Assert.assertNull("node deleted " + id, neo4jTemplate.getNodeById(id));
     }
 
     @Test(expected = NotFoundException.class)
     public void testDeleteEntity() {
-        Transaction tx = graphDatabaseContext.beginTx();
+        Transaction tx = neo4jTemplate.beginTx();
         Person p = persistedPerson("Michael", 35);
         Person spouse = persistedPerson("Tina", 36);
         p.setSpouse(spouse);
         long id = spouse.getId();
-        graphDatabaseContext.remove(spouse);
+        neo4jTemplate.remove(spouse);
         tx.success();
         tx.finish();
         Assert.assertNull("spouse removed " + p.getSpouse(), p.getSpouse());
         Person spouseFromIndex = personRepository.findByPropertyValue(Person.NAME_INDEX, "name", "Tina");
         Assert.assertNull("spouse not found in index", spouseFromIndex);
-        Assert.assertNull("node deleted " + id, graphDatabaseContext.getNodeById(id));
+        Assert.assertNull("node deleted " + id, neo4jTemplate.getNodeById(id));
     }
 
     @Test

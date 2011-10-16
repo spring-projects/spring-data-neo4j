@@ -16,23 +16,31 @@
 
 package org.springframework.data.neo4j.support;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.index.Index;
 import org.neo4j.graphdb.index.IndexManager;
 import org.neo4j.graphdb.traversal.TraversalDescription;
 import org.neo4j.index.impl.lucene.LuceneIndexImplementation;
+import org.neo4j.kernel.AbstractGraphDatabase;
 import org.neo4j.kernel.Traversal;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.data.neo4j.annotation.QueryType;
 import org.springframework.data.neo4j.conversion.Result;
 import org.springframework.data.neo4j.conversion.ResultConverter;
 import org.springframework.data.neo4j.core.GraphDatabase;
+import org.springframework.data.neo4j.support.index.NoSuchIndexException;
 import org.springframework.data.neo4j.support.query.ConversionServiceQueryResultConverter;
 import org.springframework.data.neo4j.support.query.CypherQueryEngine;
 import org.springframework.data.neo4j.support.query.GremlinQueryEngine;
 import org.springframework.data.neo4j.support.query.QueryEngine;
 import org.springframework.util.ClassUtils;
+import org.springframework.util.ObjectUtils;
 
+import javax.transaction.Status;
+import javax.transaction.SystemException;
+import javax.transaction.TransactionManager;
 import java.util.Map;
 
 /**
@@ -44,6 +52,7 @@ public class DelegatingGraphDatabase implements GraphDatabase {
     protected GraphDatabaseService delegate;
     private ConversionService conversionService;
     private ResultConverter resultConverter;
+    private static final Log log = LogFactory.getLog(DelegatingGraphDatabase.class);
 
     public DelegatingGraphDatabase(final GraphDatabaseService delegate) {
         this.delegate = delegate;
@@ -80,6 +89,20 @@ public class DelegatingGraphDatabase implements GraphDatabase {
         return primitive;
     }
 
+    private void removeFromIndexes(Node node) {
+        final IndexManager indexManager = delegate.index();
+        for (String indexName : indexManager.nodeIndexNames()) {
+            indexManager.forNodes(indexName).remove(node);
+        }
+    }
+
+    private void removeFromIndexes(Relationship relationship) {
+        final IndexManager indexManager = delegate.index();
+        for (String indexName : indexManager.relationshipIndexNames()) {
+            indexManager.forRelationships(indexName).remove(relationship);
+        }
+    }
+
     @Override
     public Relationship getRelationshipById(long id) {
         return delegate.getRelationshipById(id);
@@ -96,7 +119,7 @@ public class DelegatingGraphDatabase implements GraphDatabase {
         IndexManager indexManager = delegate.index();
         if (indexManager.existsForNodes(indexName)) return (Index<T>) indexManager.forNodes(indexName);
         if (indexManager.existsForRelationships(indexName)) return (Index<T>) indexManager.forRelationships(indexName);
-        throw new IllegalArgumentException("Index "+indexName+" does not exist.");
+        throw new NoSuchIndexException(indexName);
     }
 
     // TODO handle existing indexes
@@ -124,10 +147,13 @@ public class DelegatingGraphDatabase implements GraphDatabase {
     private <T extends PropertyContainer> Index<T> checkAndGetExistingIndex(final String indexName, boolean fullText, final Index<T> index) {
         Map<String, String> existingConfig = delegate.index().getConfiguration(index);
         Map<String, String> config = indexConfigFor(fullText);
-        if (config.equals(existingConfig)) return index;
-        throw new IllegalArgumentException("Setup for index name '"+indexName+"' does not match "+(fullText ? "fulltext":"exact"));
+        if (configCheck(config, existingConfig, "provider") && configCheck(config, existingConfig, "type")) return index;
+        throw new IllegalArgumentException("Setup for index "+indexName+" does not match. Existing: "+existingConfig+" required "+config);
      }
 
+    private boolean configCheck(Map<String, String> config, Map<String, String> existingConfig, String setting) {
+        return ObjectUtils.nullSafeEquals(config.get(setting), existingConfig.get(setting));
+    }
     private Map<String, String> indexConfigFor(boolean fullText) {
         return fullText ? LuceneIndexImplementation.FULLTEXT_CONFIG : LuceneIndexImplementation.EXACT_CONFIG;
     }
@@ -159,6 +185,32 @@ public class DelegatingGraphDatabase implements GraphDatabase {
             }
         }
         throw new IllegalArgumentException("Unknown Query Engine Type "+type);
+    }
+
+    @Override
+    public boolean transactionIsRunning() {
+        if (!(delegate instanceof AbstractGraphDatabase)) {
+            return true; // assume always running tx (e.g. for REST or other remotes)
+        }
+        try {
+            final TransactionManager txManager = ((AbstractGraphDatabase) delegate).getConfig().getTxModule().getTxManager();
+            return txManager.getStatus() != Status.STATUS_NO_TRANSACTION;
+        } catch (SystemException e) {
+            log.error("Error accessing TransactionManager", e);
+            return false;
+        }
+    }
+
+    @Override
+    public void remove(Node node) {
+        removeFromIndexes(node);
+        node.delete();
+    }
+
+    @Override
+    public void remove(Relationship relationship) {
+       removeFromIndexes(relationship);
+       relationship.delete();
     }
 
     private ResultConverter createResultConverter() {

@@ -21,18 +21,18 @@ import org.neo4j.graphdb.traversal.Evaluation;
 import org.neo4j.graphdb.traversal.Evaluator;
 import org.springframework.data.neo4j.core.EntityPath;
 
-import org.springframework.data.neo4j.support.GraphDatabaseContext;
+import org.springframework.data.neo4j.support.Neo4jTemplate;
 
 /**
  * @author mh
  * @since 26.02.11
  */
 public abstract class EntityEvaluator<S, E> implements Evaluator {
-    private GraphDatabaseContext graphDatabaseContext;
+    private Neo4jTemplate template;
 
     @Override
     public Evaluation evaluate(Path path) {
-        return evaluate(new ConvertingEntityPath<S,E>(graphDatabaseContext, path));
+        return evaluate(new ConvertingEntityPath<S,E>(template, path));
     }
     public abstract Evaluation evaluate(EntityPath<S,E> path);
 

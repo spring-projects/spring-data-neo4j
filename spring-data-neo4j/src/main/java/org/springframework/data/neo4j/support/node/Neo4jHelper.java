@@ -18,12 +18,12 @@ package org.springframework.data.neo4j.support.node;
 
 import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.index.IndexManager;
-import org.springframework.data.neo4j.support.GraphDatabaseContext;
+import org.springframework.data.neo4j.support.Neo4jTemplate;
 
 public abstract class Neo4jHelper {
 
-    public static void cleanDb(GraphDatabaseContext graphDatabaseContext) {
-        cleanDb(graphDatabaseContext.getGraphDatabaseService());
+    public static void cleanDb(Neo4jTemplate template) {
+        cleanDb(template.getGraphDatabaseService());
     }
 
     public static void cleanDb(GraphDatabaseService graphDatabaseService) {

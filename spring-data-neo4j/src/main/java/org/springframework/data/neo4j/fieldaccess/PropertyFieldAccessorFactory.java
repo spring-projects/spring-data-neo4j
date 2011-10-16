@@ -18,9 +18,8 @@ package org.springframework.data.neo4j.fieldaccess;
 
 import org.neo4j.graphdb.PropertyContainer;
 
-import org.springframework.core.convert.ConversionService;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
-import org.springframework.data.neo4j.support.GraphDatabaseContext;
+import org.springframework.data.neo4j.support.Neo4jTemplate;
 
 import static org.springframework.data.neo4j.support.DoReturn.doReturn;
 
@@ -30,10 +29,10 @@ import static org.springframework.data.neo4j.support.DoReturn.doReturn;
  */
 public class PropertyFieldAccessorFactory implements FieldAccessorFactory {
 
-    private final GraphDatabaseContext graphDatabaseContext;
+    private final Neo4jTemplate template;
 
-    public PropertyFieldAccessorFactory(GraphDatabaseContext graphDatabaseContext) {
-        this.graphDatabaseContext = graphDatabaseContext;
+    public PropertyFieldAccessorFactory(Neo4jTemplate template) {
+        this.template = template;
     }
 
     @Override
@@ -43,17 +42,17 @@ public class PropertyFieldAccessorFactory implements FieldAccessorFactory {
 
     @Override
     public FieldAccessor forField(final Neo4jPersistentProperty field) {
-        return new PropertyFieldAccessor(graphDatabaseContext, field);
+        return new PropertyFieldAccessor(template, field);
     }
 
     public static class PropertyFieldAccessor implements FieldAccessor {
-        protected final GraphDatabaseContext graphDatabaseContext;
+        protected final Neo4jTemplate template;
         protected final Neo4jPersistentProperty property;
         protected final String propertyName;
         protected final Class<?> fieldType;
 
-        public PropertyFieldAccessor(GraphDatabaseContext graphDatabaseContext, Neo4jPersistentProperty property) {
-            this.graphDatabaseContext = graphDatabaseContext;
+        public PropertyFieldAccessor(Neo4jTemplate template, Neo4jPersistentProperty property) {
+            this.template = template;
             this.property = property;
             this.propertyName = property.getNeo4jPropertyName();
             this.fieldType = property.getType() ;
@@ -66,7 +65,7 @@ public class PropertyFieldAccessorFactory implements FieldAccessorFactory {
 
         @Override
         public Object setValue(final Object entity, final Object newVal) {
-            final PropertyContainer propertyContainer = graphDatabaseContext.getPersistentState(entity);
+            final PropertyContainer propertyContainer = template.getPersistentState(entity);
             if (newVal==null) {
                 propertyContainer.removeProperty(propertyName);
             } else {
@@ -81,12 +80,12 @@ public class PropertyFieldAccessorFactory implements FieldAccessorFactory {
         }
 
         protected Object doGetValue(final Object entity) {
-            PropertyContainer element = graphDatabaseContext.getPersistentState(entity);
+            PropertyContainer element = template.getPersistentState(entity);
             if (element.hasProperty(propertyName)) {
                 Object value = element.getProperty(propertyName);
                 if (value == null || fieldType.isInstance(value)) return value;
-                if (graphDatabaseContext.getConversionService() !=null) {
-                    return graphDatabaseContext.getConversionService().convert(value, fieldType);
+                if (template.getConversionService() !=null) {
+                    return template.getConversionService().convert(value, fieldType);
                 }
                 return value;
             }

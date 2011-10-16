@@ -21,7 +21,7 @@ import org.springframework.data.mapping.context.MappingContext;
 import org.springframework.data.neo4j.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentEntity;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
-import org.springframework.data.neo4j.support.GraphDatabaseContext;
+import org.springframework.data.neo4j.support.Neo4jTemplate;
 import org.springframework.data.repository.core.support.RepositoryFactorySupport;
 import org.springframework.data.repository.core.support.TransactionalRepositoryFactoryBeanSupport;
 import org.springframework.util.Assert;
@@ -33,11 +33,11 @@ import org.springframework.util.Assert;
 public class GraphRepositoryFactoryBean<S extends PropertyContainer, R extends CRUDRepository<T>, T> extends
 TransactionalRepositoryFactoryBeanSupport<R, T, Long> {
 
-    private GraphDatabaseContext graphDatabaseContext;
+    private Neo4jTemplate template;
     private MappingContext<? extends Neo4jPersistentEntity<?>, Neo4jPersistentProperty> mappingContext;
 
-    public void setGraphDatabaseContext(GraphDatabaseContext graphDatabaseContext) {
-        this.graphDatabaseContext = graphDatabaseContext;
+    public void setNeo4jTemplate(Neo4jTemplate template) {
+        this.template = template;
     }
 
     /**
@@ -50,17 +50,17 @@ TransactionalRepositoryFactoryBeanSupport<R, T, Long> {
 
     @Override
     protected RepositoryFactorySupport doCreateRepositoryFactory() {
-        return createRepositoryFactory(graphDatabaseContext);
+        return createRepositoryFactory(template);
     }
 
-    protected RepositoryFactorySupport createRepositoryFactory(GraphDatabaseContext graphDatabaseContext) {
+    protected RepositoryFactorySupport createRepositoryFactory(Neo4jTemplate template) {
 
-        return new GraphRepositoryFactory(graphDatabaseContext, mappingContext);
+        return new GraphRepositoryFactory(template, mappingContext);
     }
 
     @Override
     public void afterPropertiesSet() {
-        Assert.notNull(graphDatabaseContext, "GraphDatabaseContext must not be null!");
+        Assert.notNull(template, "Neo4jTemplate must not be null!");
 
         if (mappingContext == null) {
             Neo4jMappingContext context = new Neo4jMappingContext();

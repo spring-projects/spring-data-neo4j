@@ -6,7 +6,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.neo4j.graphdb.Node;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.neo4j.support.GraphDatabaseContext;
+import org.springframework.data.neo4j.support.Neo4jTemplate;
 import org.springframework.data.neo4j.support.node.Neo4jHelper;
 import org.springframework.jdbc.core.simple.SimpleJdbcTemplate;
 import org.springframework.test.annotation.DirtiesContext;
@@ -36,7 +36,7 @@ import static java.util.Arrays.asList;
 @Transactional
 public class TopRatedRestaurantFinderTest {
     @Autowired
-    private GraphDatabaseContext graphDatabaseContext;
+    private Neo4jTemplate template;
 
     @PersistenceContext
     EntityManager em;
@@ -50,7 +50,7 @@ public class TopRatedRestaurantFinderTest {
     @Before
     @BeforeTransaction
     public void cleanDb() {
-        Neo4jHelper.cleanDb(graphDatabaseContext);
+        Neo4jHelper.cleanDb(template);
     }
 
     @Test

@@ -46,7 +46,7 @@ import org.springframework.data.neo4j.support.node.NodeEntityStateFactory;
 import org.springframework.data.neo4j.support.DoReturn;
 import org.springframework.data.neo4j.core.EntityPath;
 import org.springframework.data.neo4j.core.EntityState;
-import org.springframework.data.neo4j.support.GraphDatabaseContext;
+import org.springframework.data.neo4j.support.Neo4jTemplate;
 
 import org.springframework.data.neo4j.support.path.EntityPathPathIterableWrapper;
 import org.springframework.data.neo4j.support.query.CypherQueryExecutor;
@@ -74,11 +74,11 @@ public privileged aspect Neo4jNodeBacking { // extends AbstractTypeAnnotatingMix
 
     //declare @type: NodeBacked+: @Configurable;
 
-    private GraphDatabaseContext graphDatabaseContext;
+    private Neo4jTemplate template;
     private NodeEntityStateFactory entityStateFactory;
 
-    public void setGraphDatabaseContext(GraphDatabaseContext graphDatabaseContext) {
-        this.graphDatabaseContext = graphDatabaseContext;
+    public void setTemplate(Neo4jTemplate template) {
+        this.template = template;
     }
     public void setNodeEntityStateFactory(NodeEntityStateFactory entityStateFactory) {
         this.entityStateFactory = entityStateFactory;
@@ -226,8 +226,8 @@ public privileged aspect Neo4jNodeBacking { // extends AbstractTypeAnnotatingMix
         return (R)graphDatabaseContext().getRelationshipTo(this,target,relationshipClass,type);
     }
 
-    public static GraphDatabaseContext graphDatabaseContext() {
-        return Neo4jNodeBacking.aspectOf().graphDatabaseContext;
+    public static Neo4jTemplate graphDatabaseContext() {
+        return Neo4jNodeBacking.aspectOf().template;
     }
 
     /**

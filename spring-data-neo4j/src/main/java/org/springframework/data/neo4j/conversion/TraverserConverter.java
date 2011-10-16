@@ -21,7 +21,7 @@ import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.traversal.Traverser;
 import org.neo4j.helpers.collection.IterableWrapper;
 import org.springframework.data.neo4j.core.EntityPath;
-import org.springframework.data.neo4j.support.GraphDatabaseContext;
+import org.springframework.data.neo4j.support.Neo4jTemplate;
 import org.springframework.data.neo4j.support.path.EntityPathPathIterableWrapper;
 
 /**
@@ -30,9 +30,9 @@ import org.springframework.data.neo4j.support.path.EntityPathPathIterableWrapper
  */ // todo integrate in result conversion handling
 public class TraverserConverter<T> {
 
-    private final GraphDatabaseContext ctx;
+    private final Neo4jTemplate ctx;
 
-    public TraverserConverter(GraphDatabaseContext ctx) {
+    public TraverserConverter(Neo4jTemplate ctx) {
         this.ctx = ctx;
     }
 

@@ -16,12 +16,10 @@
 
 package org.springframework.data.neo4j.aspects.fieldaccess;
 
-import org.springframework.data.neo4j.core.EntityState;
-import org.springframework.data.neo4j.aspects.core.NodeBacked;
 import org.springframework.data.neo4j.fieldaccess.FieldAccessListener;
 import org.springframework.data.neo4j.fieldaccess.FieldAccessorListenerFactory;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
-import org.springframework.data.neo4j.support.GraphDatabaseContext;
+import org.springframework.data.neo4j.support.Neo4jTemplate;
 
 import javax.persistence.Id;
 
@@ -31,10 +29,10 @@ import javax.persistence.Id;
  */
 public class JpaIdFieldAccessListenerFactory implements FieldAccessorListenerFactory
 {
-    private final GraphDatabaseContext graphDatabaseContext;
+    private final Neo4jTemplate template;
 
-    public JpaIdFieldAccessListenerFactory(GraphDatabaseContext graphDatabaseContext) {
-        this.graphDatabaseContext = graphDatabaseContext;
+    public JpaIdFieldAccessListenerFactory(Neo4jTemplate template) {
+        this.template = template;
     }
 
     @Override
@@ -44,22 +42,22 @@ public class JpaIdFieldAccessListenerFactory implements FieldAccessorListenerFac
 
     @Override
     public FieldAccessListener forField(final Neo4jPersistentProperty property) {
-        return new JpaIdFieldListener(property,graphDatabaseContext);
+        return new JpaIdFieldListener(property, template);
     }
 
     public static class JpaIdFieldListener implements FieldAccessListener {
         protected final Neo4jPersistentProperty property;
-        private final GraphDatabaseContext graphDatabaseContext;
+        private final Neo4jTemplate template;
 
-        public JpaIdFieldListener(final Neo4jPersistentProperty property, GraphDatabaseContext graphDatabaseContext) {
+        public JpaIdFieldListener(final Neo4jPersistentProperty property, Neo4jTemplate template) {
             this.property = property;
-            this.graphDatabaseContext = graphDatabaseContext;
+            this.template = template;
         }
 
         @Override
         public void valueChanged(Object entity, Object oldVal, Object newVal) {
             if (newVal != null) {
-                graphDatabaseContext.save(entity);
+                template.save(entity);
 /* TODO                EntityState entityState = entity.getEntityState();
                 entityState.persist();
 */

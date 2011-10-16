@@ -29,7 +29,7 @@ import org.springframework.data.neo4j.mapping.Neo4jPersistentEntity;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.repository.query.DerivedCypherRepositoryQuery;
 import org.springframework.data.neo4j.support.GenericTypeExtractor;
-import org.springframework.data.neo4j.support.GraphDatabaseContext;
+import org.springframework.data.neo4j.support.Neo4jTemplate;
 import org.springframework.data.neo4j.support.conversion.EntityResultConverter;
 import org.springframework.data.neo4j.support.query.CypherQueryExecutor;
 import org.springframework.data.neo4j.support.query.GremlinQueryEngine;
@@ -53,22 +53,22 @@ import java.util.Map;
  */
 public class GraphRepositoryFactory extends RepositoryFactorySupport {
 
-    private final GraphDatabaseContext graphDatabaseContext;
+    private final Neo4jTemplate template;
     private final MappingContext<? extends Neo4jPersistentEntity<?>, Neo4jPersistentProperty> mappingContext;
 
     /**
-     * Creates a new {@link GraphRepositoryFactory} from the given {@link GraphDatabaseContext} and
+     * Creates a new {@link GraphRepositoryFactory} from the given {@link org.springframework.data.neo4j.support.Neo4jTemplate} and
      * {@link MappingContext}.
      * 
-     * @param graphDatabaseContext must not be {@literal null}.
+     * @param template must not be {@literal null}.
      * @param mappingContext must not be {@literal null}.
      */
-    public GraphRepositoryFactory(GraphDatabaseContext graphDatabaseContext, MappingContext<? extends Neo4jPersistentEntity<?>, Neo4jPersistentProperty> mappingContext) {
+    public GraphRepositoryFactory(Neo4jTemplate template, MappingContext<? extends Neo4jPersistentEntity<?>, Neo4jPersistentProperty> mappingContext) {
 
-        Assert.notNull(graphDatabaseContext);
+        Assert.notNull(template);
         Assert.notNull(mappingContext);
 
-        this.graphDatabaseContext = graphDatabaseContext;
+        this.template = template;
         this.mappingContext = mappingContext;
     }
 
@@ -82,19 +82,19 @@ public class GraphRepositoryFactory extends RepositoryFactorySupport {
      */
     @Override
     protected Object getTargetRepository(RepositoryMetadata metadata) {
-        return getTargetRepository(metadata, graphDatabaseContext);
+        return getTargetRepository(metadata, template);
     }
 
     @SuppressWarnings({ "unchecked", "rawtypes" })
-    protected Object getTargetRepository(RepositoryMetadata metadata, GraphDatabaseContext graphDatabaseContext) {
+    protected Object getTargetRepository(RepositoryMetadata metadata, Neo4jTemplate template) {
 
         Class<?> type = metadata.getDomainClass();
         GraphEntityInformation entityInformation = (GraphEntityInformation)getEntityInformation(type);
         // todo entityInformation.isGraphBacked();
         if (entityInformation.isNodeEntity()) {
-            return new NodeGraphRepository(type,graphDatabaseContext);
+            return new NodeGraphRepository(type, template);
         } else {
-            return new RelationshipGraphRepository(type,graphDatabaseContext);
+            return new RelationshipGraphRepository(type, template);
         }
     }
 
@@ -116,7 +116,7 @@ public class GraphRepositoryFactory extends RepositoryFactorySupport {
     @Override
     @SuppressWarnings({"unchecked", "rawtypes"})
     public <T, ID extends Serializable> EntityInformation<T, ID> getEntityInformation(Class<T> type) {
-        return new GraphMetamodelEntityInformation(type,graphDatabaseContext);
+        return new GraphMetamodelEntityInformation(type, template);
     }
 
 
@@ -129,10 +129,10 @@ public class GraphRepositoryFactory extends RepositoryFactorySupport {
                 final GraphQueryMethod queryMethod = new GraphQueryMethod(method, repositoryMetadata,namedQueries);
 
                 if (!queryMethod.hasAnnotation() && !namedQueries.hasQuery(queryMethod.getNamedQueryName())) {
-                    return new DerivedCypherRepositoryQuery(mappingContext, queryMethod, graphDatabaseContext);
+                    return new DerivedCypherRepositoryQuery(mappingContext, queryMethod, template);
                 }
 
-                return queryMethod.createQuery(repositoryMetadata, GraphRepositoryFactory.this.graphDatabaseContext);
+                return queryMethod.createQuery(repositoryMetadata, GraphRepositoryFactory.this.template);
             }
         };
     }
@@ -183,11 +183,11 @@ public class GraphRepositoryFactory extends RepositoryFactorySupport {
         }
 
 
-        private Map<String, Object> resolveParams(Object[] parameters, GraphDatabaseContext graphDatabaseContext) {
+        private Map<String, Object> resolveParams(Object[] parameters, Neo4jTemplate template) {
             Map<String,Object> params=new HashMap<String, Object>();
             for (Parameter parameter : getParameters().getBindableParameters()) {
                 final Object value = parameters[parameter.getIndex()];
-                params.put(parameter.getName(),resolveParameter(value,graphDatabaseContext));
+                params.put(parameter.getName(),resolveParameter(value, template));
             }
             return params;
         }
@@ -227,13 +227,13 @@ public class GraphRepositoryFactory extends RepositoryFactorySupport {
             return result;
         }
 
-        private Object resolveParameter(Object parameter, GraphDatabaseContext graphDatabaseContext) {
+        private Object resolveParameter(Object parameter, Neo4jTemplate template) {
             final Class<?> type = parameter.getClass();
-            final PropertyContainer state = graphDatabaseContext.getPersistentState(parameter);
-            if (graphDatabaseContext.isNodeEntity(type)) {
+            final PropertyContainer state = template.getPersistentState(parameter);
+            if (template.isNodeEntity(type)) {
                 return ((Node) state).getId();
             }
-            if (graphDatabaseContext.isRelationshipEntity(type)) {
+            if (template.isRelationshipEntity(type)) {
                 return ((Relationship)state).getId();
             }
             return parameter;
@@ -266,7 +266,7 @@ public class GraphRepositoryFactory extends RepositoryFactorySupport {
             return Iterable.class.isAssignableFrom(getReturnType());
         }
 
-        private RepositoryQuery createQuery(RepositoryMetadata repositoryMetadata, final GraphDatabaseContext context) {
+        private RepositoryQuery createQuery(RepositoryMetadata repositoryMetadata, final Neo4jTemplate context) {
             if (!isValid()) {
                 return null;
             }
@@ -289,9 +289,9 @@ public class GraphRepositoryFactory extends RepositoryFactorySupport {
 
         private CypherQueryExecutor queryExecutor;
 
-        public CypherGraphRepositoryQuery(GraphQueryMethod queryMethod, RepositoryMetadata metadata, final GraphDatabaseContext graphDatabaseContext) {
-            super(queryMethod, metadata, graphDatabaseContext);
-            queryExecutor = new CypherQueryExecutor(graphDatabaseContext);
+        public CypherGraphRepositoryQuery(GraphQueryMethod queryMethod, RepositoryMetadata metadata, final Neo4jTemplate template) {
+            super(queryMethod, metadata, template);
+            queryExecutor = new CypherQueryExecutor(template);
         }
 
         @Override
@@ -319,9 +319,9 @@ public class GraphRepositoryFactory extends RepositoryFactorySupport {
 
         private GremlinQueryEngine queryExecutor;
 
-        public GremlinGraphRepositoryQuery(GraphQueryMethod queryMethod, RepositoryMetadata metadata, final GraphDatabaseContext graphDatabaseContext) {
-            super(queryMethod, metadata, graphDatabaseContext);
-            queryExecutor = new GremlinQueryEngine(graphDatabaseContext.getGraphDatabaseService(), new EntityResultConverter<Object, Object>(graphDatabaseContext));
+        public GremlinGraphRepositoryQuery(GraphQueryMethod queryMethod, RepositoryMetadata metadata, final Neo4jTemplate template) {
+            super(queryMethod, metadata, template);
+            queryExecutor = new GremlinQueryEngine(template.getGraphDatabaseService(), new EntityResultConverter<Object, Object>(template));
         }
 
         @Override
@@ -345,16 +345,16 @@ public class GraphRepositoryFactory extends RepositoryFactorySupport {
 
     private static abstract class GraphRepositoryQuery implements RepositoryQuery {
         private final GraphQueryMethod queryMethod;
-        private final GraphDatabaseContext graphDatabaseContext;
+        private final Neo4jTemplate template;
 
-        public GraphRepositoryQuery(GraphQueryMethod queryMethod, RepositoryMetadata metadata, final GraphDatabaseContext graphDatabaseContext) {
+        public GraphRepositoryQuery(GraphQueryMethod queryMethod, RepositoryMetadata metadata, final Neo4jTemplate template) {
             this.queryMethod = queryMethod;
-            this.graphDatabaseContext = graphDatabaseContext;
+            this.template = template;
         }
 
         @Override
         public Object execute(Object[] parameters) {
-            Map<String, Object> params = queryMethod.resolveParams(parameters,graphDatabaseContext);
+            Map<String, Object> params = queryMethod.resolveParams(parameters, template);
             final String queryString = queryMethod.prepareQuery(parameters);
             return dispatchQuery(queryString,params,queryMethod.getPageable(parameters));
         }

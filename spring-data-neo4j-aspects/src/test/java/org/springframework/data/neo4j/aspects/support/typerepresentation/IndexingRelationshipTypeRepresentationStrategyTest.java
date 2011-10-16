@@ -153,7 +153,7 @@ public class IndexingRelationshipTypeRepresentationStrategyTest extends EntityTe
 	        Node n2 = graphDatabaseService.createNode();
             Relationship rel = n1.createRelationshipTo(n2, DynamicRelationshipType.withName("link"));
             link = new Link();
-            graphDatabaseContext.setPersistentState(link,rel);
+            neo4jTemplate.setPersistentState(link,rel);
             relationshipTypeRepresentationStrategy.postEntityCreation(rel, Link.class);
             link.setLabel("link");
 			tx.success();

@@ -20,21 +20,21 @@ import org.neo4j.graphdb.Path;
 import org.neo4j.helpers.collection.IterableWrapper;
 import org.springframework.data.neo4j.core.EntityPath;
 
-import org.springframework.data.neo4j.support.GraphDatabaseContext;
+import org.springframework.data.neo4j.support.Neo4jTemplate;
 
 /**
 * @author mh
 * @since 04.04.11
 */
 public class EntityPathPathIterableWrapper<S, E> extends IterableWrapper<EntityPath<S,E>, Path> {
-    private final GraphDatabaseContext graphDatabaseContext;
+    private final Neo4jTemplate template;
 
-    public EntityPathPathIterableWrapper(Iterable<Path> paths, GraphDatabaseContext graphDatabaseContext) {
+    public EntityPathPathIterableWrapper(Iterable<Path> paths, Neo4jTemplate template) {
         super(paths);
-        this.graphDatabaseContext = graphDatabaseContext;
+        this.template = template;
     }
 
     protected EntityPath<S, E> underlyingObjectToObject(Path path) {
-        return new ConvertingEntityPath<S,E>(graphDatabaseContext,path);
+        return new ConvertingEntityPath<S,E>(template,path);
     }
 }

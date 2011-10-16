@@ -4,11 +4,10 @@ import com.springone.myrestaurants.domain.Restaurant;
 import junit.framework.Assert;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.neo4j.support.GraphDatabaseContext;
+import org.springframework.data.neo4j.support.Neo4jTemplate;
 import org.springframework.data.neo4j.support.node.Neo4jHelper;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -32,7 +31,7 @@ public class RestaurantRepositoryTest {
     PlatformTransactionManager transactionManager;
 
     @Autowired
-    private GraphDatabaseContext graphDatabaseContext;
+    private Neo4jTemplate template;
 
     @PersistenceContext
     EntityManager em;
@@ -43,7 +42,7 @@ public class RestaurantRepositoryTest {
     @Transactional
     @BeforeTransaction
     public void cleanDb() {
-        Neo4jHelper.cleanDb(graphDatabaseContext);
+        Neo4jHelper.cleanDb(template);
     }
 
     @Transactional

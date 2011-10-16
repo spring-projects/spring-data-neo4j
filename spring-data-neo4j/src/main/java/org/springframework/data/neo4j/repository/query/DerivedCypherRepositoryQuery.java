@@ -24,7 +24,7 @@ import org.springframework.data.mapping.context.MappingContext;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentEntity;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.repository.GraphRepositoryFactory.GraphQueryMethod;
-import org.springframework.data.neo4j.support.GraphDatabaseContext;
+import org.springframework.data.neo4j.support.Neo4jTemplate;
 import org.springframework.data.neo4j.support.query.CypherQueryExecutor;
 import org.springframework.data.repository.core.EntityMetadata;
 import org.springframework.data.repository.query.ParameterAccessor;
@@ -47,13 +47,13 @@ public class DerivedCypherRepositoryQuery implements RepositoryQuery {
 
     /**
      * Creates a new {@link DerivedCypherRepositoryQuery} from the given {@link MappingContext},
-     * {@link GraphQueryMethod} and {@link GraphDatabaseContext}.
+     * {@link GraphQueryMethod} and {@link org.springframework.data.neo4j.support.Neo4jTemplate}.
      * 
      * @param context must not be {@literal null}.
      * @param method must not be {@literal null}.
      * @param database must not be {@literal null}.
      */
-    public DerivedCypherRepositoryQuery(MappingContext<? extends Neo4jPersistentEntity<?>, Neo4jPersistentProperty> context, GraphQueryMethod method, GraphDatabaseContext database) {
+    public DerivedCypherRepositoryQuery(MappingContext<? extends Neo4jPersistentEntity<?>, Neo4jPersistentProperty> context, GraphQueryMethod method, Neo4jTemplate database) {
 
         Assert.notNull(context);
         Assert.notNull(method);

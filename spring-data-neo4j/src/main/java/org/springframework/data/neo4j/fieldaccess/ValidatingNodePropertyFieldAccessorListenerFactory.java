@@ -22,7 +22,7 @@ import org.neo4j.graphdb.PropertyContainer;
 
 import org.springframework.data.neo4j.mapping.Neo4jPersistentEntity;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
-import org.springframework.data.neo4j.support.GraphDatabaseContext;
+import org.springframework.data.neo4j.support.Neo4jTemplate;
 
 import javax.validation.Constraint;
 import javax.validation.ConstraintViolation;
@@ -34,10 +34,10 @@ import java.util.Set;
 
 class ValidatingNodePropertyFieldAccessorListenerFactory implements FieldAccessorListenerFactory {
 
-    private final GraphDatabaseContext graphDatabaseContext;
+    private final Neo4jTemplate template;
 
-    ValidatingNodePropertyFieldAccessorListenerFactory(final GraphDatabaseContext graphDatabaseContext) {
-    	this.graphDatabaseContext = graphDatabaseContext;
+    ValidatingNodePropertyFieldAccessorListenerFactory(final Neo4jTemplate template) {
+    	this.template = template;
     }
 
     @Override
@@ -54,7 +54,7 @@ class ValidatingNodePropertyFieldAccessorListenerFactory implements FieldAccesso
 
     @Override
     public FieldAccessListener forField(Neo4jPersistentProperty property) {
-        return new ValidatingNodePropertyFieldAccessorListener(property,graphDatabaseContext.getValidator());
+        return new ValidatingNodePropertyFieldAccessorListener(property, template.getValidator());
     }
 
 

@@ -23,7 +23,7 @@ import org.springframework.dao.InvalidDataAccessResourceUsageException;
 import org.springframework.data.neo4j.fieldaccess.DefaultEntityState;
 import org.springframework.data.neo4j.fieldaccess.DelegatingFieldAccessorFactory;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentEntity;
-import org.springframework.data.neo4j.support.GraphDatabaseContext;
+import org.springframework.data.neo4j.support.Neo4jTemplate;
 import org.springframework.data.neo4j.support.ManagedEntity;
 
 /**
@@ -32,11 +32,11 @@ import org.springframework.data.neo4j.support.ManagedEntity;
  */
 public class NodeEntityState extends DefaultEntityState<Node> {
 
-    private final GraphDatabaseContext graphDatabaseContext;
+    private final Neo4jTemplate template;
 
-    public NodeEntityState(final Node underlyingState, final Object entity, final Class<? extends Object> type, final GraphDatabaseContext graphDatabaseContext, final DelegatingFieldAccessorFactory nodeDelegatingFieldAccessorFactory, Neo4jPersistentEntity<Object> persistentEntity) {
+    public NodeEntityState(final Node underlyingState, final Object entity, final Class<? extends Object> type, final Neo4jTemplate template, final DelegatingFieldAccessorFactory nodeDelegatingFieldAccessorFactory, Neo4jPersistentEntity<Object> persistentEntity) {
         super(underlyingState, entity, type, nodeDelegatingFieldAccessorFactory,persistentEntity);
-        this.graphDatabaseContext = graphDatabaseContext;
+        this.template = template;
     }
 
     @Override
@@ -48,17 +48,17 @@ public class NodeEntityState extends DefaultEntityState<Node> {
         try {
             final Object id = getIdFromEntity();
             if (id instanceof Number) {
-                final Node node = graphDatabaseContext.getNodeById(((Number) id).longValue());
+                final Node node = template.getNodeById(((Number) id).longValue());
                 setPersistentState(node);
                 if (log.isInfoEnabled())
                     log.info("Entity reattached " + entity.getClass() + "; used Node [" + getPersistentState() + "];");
                 return;
             }
 
-            final Node node = graphDatabaseContext.createNode();
+            final Node node = template.createNode();
             setPersistentState(node);
             if (log.isInfoEnabled()) log.info("User-defined constructor called on class " + entity.getClass() + "; created Node [" + getPersistentState() + "]; Updating metamodel");
-            graphDatabaseContext.postEntityCreation(node, type);
+            template.postEntityCreation(node, type);
         } catch (NotInTransactionException e) {
             throw new InvalidDataAccessResourceUsageException("Not in a Neo4j transaction.", e);
         }
@@ -67,7 +67,7 @@ public class NodeEntityState extends DefaultEntityState<Node> {
     @Override
     public void setPersistentState(Node node) {
         if (!(entity instanceof ManagedEntity)) {
-            graphDatabaseContext.setPersistentState(entity, node);
+            template.setPersistentState(entity, node);
         }
         super.setPersistentState(node);
     }

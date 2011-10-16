@@ -21,7 +21,7 @@ import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.RelationshipType;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
-import org.springframework.data.neo4j.support.GraphDatabaseContext;
+import org.springframework.data.neo4j.support.Neo4jTemplate;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -31,8 +31,8 @@ import java.util.Set;
  * @since 12.09.2010
  */
 public abstract class NodeToNodesRelationshipFieldAccessor extends AbstractNodeRelationshipFieldAccessor<Node, Node> {
-    public NodeToNodesRelationshipFieldAccessor(final Class<?> clazz, final GraphDatabaseContext graphDatabaseContext, final Direction direction, final RelationshipType type, Neo4jPersistentProperty property) {
-        super(clazz, graphDatabaseContext, direction, type,property);
+    public NodeToNodesRelationshipFieldAccessor(final Class<?> clazz, final Neo4jTemplate template, final Direction direction, final RelationshipType type, Neo4jPersistentProperty property) {
+        super(clazz, template, direction, type,property);
     }
 
     @Override
@@ -56,7 +56,7 @@ public abstract class NodeToNodesRelationshipFieldAccessor extends AbstractNodeR
 
     @Override
     protected Node getState(final Object entity) {
-        return graphDatabaseContext.getPersistentState(entity);
+        return template.getPersistentState(entity);
     }
 
 }

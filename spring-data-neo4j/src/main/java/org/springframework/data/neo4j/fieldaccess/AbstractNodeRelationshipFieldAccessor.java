@@ -20,7 +20,7 @@ import org.neo4j.graphdb.*;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 
 import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
-import org.springframework.data.neo4j.support.GraphDatabaseContext;
+import org.springframework.data.neo4j.support.Neo4jTemplate;
 import org.springframework.util.Assert;
 
 import java.util.HashSet;
@@ -35,11 +35,11 @@ public abstract class AbstractNodeRelationshipFieldAccessor<STATE extends Proper
     protected final Neo4jPersistentProperty property;
     protected final Direction direction;
     protected final Class<?> relatedType;
-    protected final GraphDatabaseContext graphDatabaseContext;
+    protected final Neo4jTemplate template;
 
-    public AbstractNodeRelationshipFieldAccessor(Class<?> clazz, GraphDatabaseContext graphDatabaseContext, Direction direction, RelationshipType type, Neo4jPersistentProperty property) {
+    public AbstractNodeRelationshipFieldAccessor(Class<?> clazz, Neo4jTemplate template, Direction direction, RelationshipType type, Neo4jPersistentProperty property) {
         this.relatedType = clazz;
-        this.graphDatabaseContext = graphDatabaseContext;
+        this.template = template;
         this.direction = direction;
         this.type = type;
         this.property = property;
@@ -89,21 +89,21 @@ public abstract class AbstractNodeRelationshipFieldAccessor<STATE extends Proper
     protected STATE getOrCreateState(Object value) {
         final STATE state = getState(value);
         if (state != null) return state;
-        final Object saved = graphDatabaseContext.save(value);
+        final Object saved = template.save(value);
         final STATE newState = getState(saved);
         Assert.notNull(newState);
         return newState;
     }
 
     protected <T> ManagedFieldAccessorSet<T> createManagedSet(Object entity, Set<T> result) {
-        return new ManagedFieldAccessorSet<T>(entity, result, property,graphDatabaseContext,this);
+        return new ManagedFieldAccessorSet<T>(entity, result, property, template,this);
     }
 
     protected Set<Object> createEntitySetFromRelationshipEndNodes(Object entity) {
         final Iterable<TSTATE> nodes = getStatesFromEntity(entity);
         final Set<Object> result = new HashSet<Object>();
         for (final TSTATE otherNode : nodes) {
-            Object target=graphDatabaseContext.createEntityFromState(otherNode, relatedType);
+            Object target= template.createEntityFromState(otherNode, relatedType);
             result.add(target);
 		}
         return result;

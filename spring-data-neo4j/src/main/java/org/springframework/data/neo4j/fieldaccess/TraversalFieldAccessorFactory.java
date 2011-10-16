@@ -26,17 +26,17 @@ import org.springframework.data.neo4j.core.FieldTraversalDescriptionBuilder;
 
 
 import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
-import org.springframework.data.neo4j.support.GraphDatabaseContext;
+import org.springframework.data.neo4j.support.Neo4jTemplate;
 
 import java.lang.reflect.Constructor;
 
 import static org.springframework.data.neo4j.support.DoReturn.doReturn;
 
 public class TraversalFieldAccessorFactory implements FieldAccessorFactory {
-    private final GraphDatabaseContext graphDatabaseContext;
+    private final Neo4jTemplate template;
 
-    public TraversalFieldAccessorFactory(GraphDatabaseContext graphDatabaseContext) {
-        this.graphDatabaseContext = graphDatabaseContext;
+    public TraversalFieldAccessorFactory(Neo4jTemplate template) {
+        this.template = template;
     }
 
     @Override
@@ -50,7 +50,7 @@ public class TraversalFieldAccessorFactory implements FieldAccessorFactory {
 
     @Override
     public FieldAccessor forField(final Neo4jPersistentProperty property) {
-        return new TraversalFieldAccessor(property,graphDatabaseContext);
+        return new TraversalFieldAccessor(property, template);
     }
 
 	/**
@@ -59,14 +59,14 @@ public class TraversalFieldAccessorFactory implements FieldAccessorFactory {
 	 */
 	public static class TraversalFieldAccessor implements FieldAccessor {
 	    protected final Neo4jPersistentProperty property;
-        private final GraphDatabaseContext graphDatabaseContext;
+        private final Neo4jTemplate template;
         private final FieldTraversalDescriptionBuilder fieldTraversalDescriptionBuilder;
 	    private Class<?> target;
         protected String[] params;
 
-        public TraversalFieldAccessor(final Neo4jPersistentProperty property, GraphDatabaseContext graphDatabaseContext) {
+        public TraversalFieldAccessor(final Neo4jPersistentProperty property, Neo4jTemplate template) {
 	        this.property = property;
-            this.graphDatabaseContext = graphDatabaseContext;
+            this.template = template;
             final GraphTraversal graphEntityTraversal = property.getAnnotation(GraphTraversal.class);
 	        this.target = resolveTarget(graphEntityTraversal,property);
             this.params = graphEntityTraversal.params();
@@ -76,8 +76,8 @@ public class TraversalFieldAccessorFactory implements FieldAccessorFactory {
         private Class<?> resolveTarget(GraphTraversal graphTraversal, Neo4jPersistentProperty property) {
             if (!graphTraversal.elementClass().equals(Object.class)) return graphTraversal.elementClass();
             final Class<?> result = property.getTypeInformation().getActualType().getType();
-            if (graphDatabaseContext.isNodeEntity(result)) return result;
-            if (graphDatabaseContext.isRelationshipEntity(result)) return result;
+            if (template.isNodeEntity(result)) return result;
+            if (template.isRelationshipEntity(result)) return result;
             Class<?>[] allowedTypes={Node.class,Relationship.class, Path.class};
             if (!checkTypes(result,allowedTypes)) throw new IllegalArgumentException("The target result type "+result+" of the traversal is no subclass of the allowed types: "+property+" "+allowedTypes);
             return result;
@@ -104,7 +104,7 @@ public class TraversalFieldAccessorFactory implements FieldAccessorFactory {
 	    @Override
 	    public Object getValue(final Object entity) {
 	        final TraversalDescription traversalDescription = fieldTraversalDescriptionBuilder.build(entity, property,params);
-            return doReturn(graphDatabaseContext.findAllByTraversal(entity,target, traversalDescription));
+            return doReturn(template.findAllByTraversal(entity,target, traversalDescription));
 	    }
 
 

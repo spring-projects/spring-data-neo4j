@@ -24,7 +24,7 @@ import org.springframework.core.convert.ConversionService;
 import org.springframework.data.neo4j.aspects.FriendshipRepository;
 import org.springframework.data.neo4j.aspects.GroupRepository;
 import org.springframework.data.neo4j.aspects.PersonRepository;
-import org.springframework.data.neo4j.support.GraphDatabaseContext;
+import org.springframework.data.neo4j.support.Neo4jTemplate;
 import org.springframework.data.neo4j.support.node.Neo4jHelper;
 import org.springframework.test.context.transaction.BeforeTransaction;
 
@@ -39,7 +39,7 @@ import java.util.Set;
 public class EntityTestBase {
     protected final Log log = LogFactory.getLog(getClass());
 
-    @Autowired protected GraphDatabaseContext graphDatabaseContext;
+    @Autowired protected Neo4jTemplate neo4jTemplate;
     @Autowired protected ConversionService conversionService;
 
     @Autowired protected GraphDatabaseService graphDatabaseService;
@@ -51,32 +51,32 @@ public class EntityTestBase {
 
     @Before
     public void createTeam() throws Exception {
-        testTeam = new TestTeam(graphDatabaseContext);
+        testTeam = new TestTeam(neo4jTemplate);
     }
 
     protected Node getNodeState(Object entity) {
-        return graphDatabaseContext.getPersistentState(entity);
+        return neo4jTemplate.getPersistentState(entity);
     }
     protected Long getNodeId(Object entity) {
-        final Node node = graphDatabaseContext.getPersistentState(entity);
+        final Node node = neo4jTemplate.getPersistentState(entity);
         return node == null ? null : node.getId();
     }
     protected Long getRelationshipId(Object entity) {
-        final Relationship rel = graphDatabaseContext.getPersistentState(entity);
+        final Relationship rel = neo4jTemplate.getPersistentState(entity);
         return rel == null ? null : rel.getId();
     }
 
     protected boolean hasPersistentState(Object entity) {
-        return graphDatabaseContext.getPersistentState(entity)!=null;
+        return neo4jTemplate.getPersistentState(entity)!=null;
     }
 
     protected Relationship getRelationshipState(Object entity) {
-        return graphDatabaseContext.getPersistentState(entity);
+        return neo4jTemplate.getPersistentState(entity);
     }
 
     @SuppressWarnings("unchecked")
     public <T> T persist(T entity) {
-        return (T) graphDatabaseContext.save(entity);
+        return (T) neo4jTemplate.save(entity);
     }
 
     protected <T> Set<T> set(T... values) {
@@ -95,6 +95,6 @@ public class EntityTestBase {
 
     @BeforeTransaction
     public void cleanDb() {
-        Neo4jHelper.cleanDb(graphDatabaseContext);
+        Neo4jHelper.cleanDb(neo4jTemplate);
     }
 }

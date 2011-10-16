@@ -16,8 +16,9 @@
 
 package org.springframework.data.neo4j.config;
 
+import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Transaction;
-import org.springframework.data.neo4j.support.GraphDatabaseContext;
+import org.springframework.data.neo4j.support.Neo4jTemplate;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionStatus;
 
@@ -27,11 +28,11 @@ import javax.annotation.PostConstruct;
  * Validates correct configuration of Neo4j and Spring, especially transaction-managers
  */
 public class ConfigurationCheck {
-    GraphDatabaseContext graphDatabaseContext;
+    Neo4jTemplate template;
     PlatformTransactionManager transactionManager;
 
-    public ConfigurationCheck(GraphDatabaseContext graphDatabaseContext, PlatformTransactionManager transactionManager) {
-        this.graphDatabaseContext = graphDatabaseContext;
+    public ConfigurationCheck(Neo4jTemplate template, PlatformTransactionManager transactionManager) {
+        this.template = template;
         this.transactionManager = transactionManager;
     }
 
@@ -43,7 +44,7 @@ public class ConfigurationCheck {
     }
 
     private void checkInjection() {
-        assert graphDatabaseContext.getGraphDatabaseService()!=null : "graphDatabaseService not correctly configured, please refer to the manual, setup section";
+        assert template.getGraphDatabaseService()!=null : "graphDatabaseService not correctly configured, please refer to the manual, setup section";
     }
 
     private void checkSpringTransactionManager() {
@@ -61,7 +62,7 @@ public class ConfigurationCheck {
     private void checkNeo4jTransactionManager() {
         Transaction tx = null;
         try {
-            tx = graphDatabaseContext.beginTx();
+            tx = template.beginTx();
             updateStartTime();
             tx.success();
         } catch (Exception e) {
@@ -78,6 +79,6 @@ public class ConfigurationCheck {
     }
 
     private void updateStartTime() {
-        graphDatabaseContext.getReferenceNode().setProperty("startTime", System.currentTimeMillis());
+        template.getReferenceNode(Node.class).setProperty("startTime", System.currentTimeMillis());
     }
 }

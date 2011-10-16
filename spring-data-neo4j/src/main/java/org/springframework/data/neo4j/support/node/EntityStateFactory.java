@@ -15,10 +15,9 @@
  */
 package org.springframework.data.neo4j.support.node;
 
-import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.PropertyContainer;
 import org.springframework.data.neo4j.core.EntityState;
-import org.springframework.data.neo4j.support.GraphDatabaseContext;
+import org.springframework.data.neo4j.support.Neo4jTemplate;
 
 /**
  * @author mh
@@ -27,5 +26,5 @@ import org.springframework.data.neo4j.support.GraphDatabaseContext;
 public interface EntityStateFactory<S extends PropertyContainer> {
     EntityState<S> getEntityState(final Object entity, boolean detachable);
 
-    GraphDatabaseContext getGraphDatabaseContext();
+    Neo4jTemplate getTemplate();
 }

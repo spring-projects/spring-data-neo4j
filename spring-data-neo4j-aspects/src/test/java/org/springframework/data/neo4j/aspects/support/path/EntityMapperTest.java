@@ -40,7 +40,7 @@ public class EntityMapperTest extends EntityTestBase {
     @Transactional
     public void entityMapperShouldForwardEntityPath() throws Exception {
         Person michael = persist(new Person("Michael", 36));
-        EntityMapper<Person, Person, String> mapper = new EntityMapper<Person, Person, String>(graphDatabaseContext) {
+        EntityMapper<Person, Person, String> mapper = new EntityMapper<Person, Person, String>(neo4jTemplate) {
             @Override
             public String mapPath(EntityPath<Person, Person> entityPath) {
                 return entityPath.<Person>startEntity().getName();

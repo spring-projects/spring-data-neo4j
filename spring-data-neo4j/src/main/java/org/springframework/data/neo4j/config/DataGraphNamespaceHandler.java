@@ -47,15 +47,15 @@ public class DataGraphNamespaceHandler extends NamespaceHandlerSupport {
 
         @Override
         protected void postProcessBeanDefinition(DataGraphRepositoryConfiguration context, BeanDefinitionBuilder builder, BeanDefinitionRegistry registry, Object beanSource) {
-            builder.addPropertyReference("graphDatabaseContext", context.getGraphDatabaseContextRef());
+            builder.addPropertyReference("neo4jTemplate", context.getNeo4jTemplateRef());
         }
 
 
         public interface DataGraphRepositoryConfiguration extends SingleRepositoryConfigInformation<SimpleDataGraphRepositoryConfiguration> {
-            String GRAPH_DATABASE_CONTEXT_REF = "graph-database-context-ref";
-            String DEFAULT_GRAPH_DATABASE_CONTEXT_REF = "graphDatabaseContext";
+            String NEO4J_TEMPLATE_REF = "neo4j-template-ref";
+            String DEFAULT_NEO4J_TEMPLATE_REF = "neo4jTemplate";
 
-            String getGraphDatabaseContextRef();
+            String getNeo4jTemplateRef();
         }
 
         public static class SimpleDataGraphRepositoryConfiguration extends RepositoryConfig<DataGraphRepositoryConfiguration, SimpleDataGraphRepositoryConfiguration> {
@@ -84,10 +84,10 @@ public class DataGraphNamespaceHandler extends NamespaceHandlerSupport {
                 return CRUDRepository.class;
             }
 
-            public String getGraphDatabaseContextRef() {
+            public String getNeo4jTemplateRef() {
 
-                String contextRef = getSource().getAttribute(DataGraphRepositoryConfiguration.GRAPH_DATABASE_CONTEXT_REF);
-                return StringUtils.hasText(contextRef) ? contextRef : DataGraphRepositoryConfiguration.DEFAULT_GRAPH_DATABASE_CONTEXT_REF;
+                String contextRef = getSource().getAttribute(DataGraphRepositoryConfiguration.NEO4J_TEMPLATE_REF);
+                return StringUtils.hasText(contextRef) ? contextRef : DataGraphRepositoryConfiguration.DEFAULT_NEO4J_TEMPLATE_REF;
             }
 
             private static class ManualDataGraphRepositoryConfiguration extends ManualRepositoryConfigInformation<SimpleDataGraphRepositoryConfiguration> implements DataGraphRepositoryConfiguration {
@@ -97,8 +97,8 @@ public class DataGraphNamespaceHandler extends NamespaceHandlerSupport {
                 }
 
                 @Override
-                public String getGraphDatabaseContextRef() {
-                    return getAttribute(DataGraphRepositoryConfiguration.GRAPH_DATABASE_CONTEXT_REF);
+                public String getNeo4jTemplateRef() {
+                    return getAttribute(DataGraphRepositoryConfiguration.NEO4J_TEMPLATE_REF);
                 }
             }
 
@@ -109,8 +109,8 @@ public class DataGraphNamespaceHandler extends NamespaceHandlerSupport {
                 }
 
                 @Override
-                public String getGraphDatabaseContextRef() {
-                    return getParent().getGraphDatabaseContextRef();
+                public String getNeo4jTemplateRef() {
+                    return getParent().getNeo4jTemplateRef();
                 }
             }
         }

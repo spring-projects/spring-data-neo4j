@@ -29,19 +29,19 @@ import org.springframework.data.neo4j.annotation.RelationshipEntity;
 
 
 
-import org.springframework.data.neo4j.support.GraphDatabaseContext;
+import org.springframework.data.neo4j.support.Neo4jTemplate;
 import org.springframework.data.repository.core.support.AbstractEntityInformation;
 
 public class GraphMetamodelEntityInformation<S extends PropertyContainer, T> extends AbstractEntityInformation<T,Long> implements GraphEntityInformation<S,T> {
 
-    private GraphDatabaseContext graphDatabaseContext;
+    private Neo4jTemplate template;
     private final RelationshipEntity relationshipEntity;
     private final NodeEntity nodeEntity;
 
     @SuppressWarnings("unchecked")
-    public GraphMetamodelEntityInformation(Class domainClass, GraphDatabaseContext graphDatabaseContext) {
+    public GraphMetamodelEntityInformation(Class domainClass, Neo4jTemplate template) {
         super(domainClass);
-        this.graphDatabaseContext = graphDatabaseContext;
+        this.template = template;
         nodeEntity = getJavaType().getAnnotation(NodeEntity.class);
         relationshipEntity = getJavaType().getAnnotation(RelationshipEntity.class);
 
@@ -64,13 +64,13 @@ public class GraphMetamodelEntityInformation<S extends PropertyContainer, T> ext
 
     @Override
     public boolean isNew(T entity) {
-        return graphDatabaseContext.getPersistentState(entity)!=null;
+        return template.getPersistentState(entity)!=null;
     }
 
 
     @Override
     public Long getId(T entity) {
-        final PropertyContainer state = graphDatabaseContext.getPersistentState(entity);
+        final PropertyContainer state = template.getPersistentState(entity);
         if (isNodeEntity()) {
             return ((Node)state).getId();
         }

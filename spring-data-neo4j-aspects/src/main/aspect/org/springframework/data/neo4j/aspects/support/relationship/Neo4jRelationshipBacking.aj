@@ -26,7 +26,7 @@ import org.springframework.data.neo4j.aspects.core.NodeBacked;
 import org.springframework.data.neo4j.aspects.core.RelationshipBacked;
 import org.springframework.data.neo4j.support.DoReturn;
 import org.springframework.data.neo4j.core.EntityState;
-import org.springframework.data.neo4j.support.GraphDatabaseContext;
+import org.springframework.data.neo4j.support.Neo4jTemplate;
 import org.springframework.data.neo4j.support.relationship.RelationshipEntityStateFactory;
 
 import java.lang.reflect.Field;
@@ -56,12 +56,12 @@ public aspect Neo4jRelationshipBacking {
             args(newVal) &&
             !set(* RelationshipBacked.*);
 
-	private GraphDatabaseContext graphDatabaseContext;
+	private Neo4jTemplate template;
     private RelationshipEntityStateFactory entityStateFactory;
 
 
-    public void setGraphDatabaseContext(GraphDatabaseContext graphDatabaseContext) {
-        this.graphDatabaseContext = graphDatabaseContext;
+    public void setTemplate(Neo4jTemplate template) {
+        this.template = template;
     }
 
     public void setRelationshipEntityStateFactory(RelationshipEntityStateFactory entityStateFactory) {
@@ -125,11 +125,11 @@ public aspect Neo4jRelationshipBacking {
     }
 
 	public void RelationshipBacked.remove() {
-	     Neo4jRelationshipBacking.aspectOf().graphDatabaseContext.removeRelationshipEntity(this);
+	     Neo4jRelationshipBacking.aspectOf().template.removeRelationshipEntity(this);
 	}
 
     public <R extends RelationshipBacked> R  RelationshipBacked.projectTo(Class<R> targetType) {
-        return (R)Neo4jRelationshipBacking.aspectOf().graphDatabaseContext.projectTo(this, targetType);
+        return (R)Neo4jRelationshipBacking.aspectOf().template.projectTo(this, targetType);
     }
 
     Object around(RelationshipBacked entity): entityFieldGet(entity) {

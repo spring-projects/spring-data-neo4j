@@ -16,6 +16,7 @@
 package org.springframework.data.neo4j.support;
 
 import org.neo4j.graphdb.*;
+import org.springframework.data.neo4j.core.GraphDatabase;
 import org.springframework.data.neo4j.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentEntityImpl;
 import org.springframework.data.neo4j.mapping.RelationshipProperties;
@@ -27,11 +28,11 @@ import org.springframework.data.neo4j.mapping.RelationshipProperties;
 public class EntityStateHandler {
 
     private Neo4jMappingContext mappingContext;
-    private final GraphDatabaseService service;
+    private final GraphDatabase graphDatabase;
 
-    public EntityStateHandler(Neo4jMappingContext mappingContext, GraphDatabaseService service) {
+    public EntityStateHandler(Neo4jMappingContext mappingContext, GraphDatabase graphDatabase) {
         this.mappingContext = mappingContext;
-        this.service = service;
+        this.graphDatabase = graphDatabase;
     }
 
     @SuppressWarnings("unchecked")
@@ -86,10 +87,10 @@ public class EntityStateHandler {
         long graphId = id.longValue();
         final Neo4jPersistentEntityImpl<?> persistentEntity = mappingContext.getPersistentEntity(entity.getClass());
         if (persistentEntity.isNodeEntity()) {
-            return (S) service.getNodeById(graphId);
+            return (S) graphDatabase.getNodeById(graphId);
         }
         if (persistentEntity.isRelationshipEntity()) {
-            return (S) service.getRelationshipById(graphId);
+            return (S) graphDatabase.getRelationshipById(graphId);
         }
         throw new IllegalArgumentException("The entity " + persistentEntity.getEntityName() + " has to be either annotated with @NodeEntity or @RelationshipEntity");
     }
@@ -110,7 +111,7 @@ public class EntityStateHandler {
         final Class<?> type = entity.getClass();
         final Neo4jPersistentEntityImpl<?> persistentEntity = mappingContext.getPersistentEntity(type);
         if (persistentEntity.isNodeEntity()) {
-            return (S) service.createNode();
+            return (S) graphDatabase.createNode(null);
         }
         if (persistentEntity.isRelationshipEntity()) {
             return createRelationship(entity, persistentEntity);

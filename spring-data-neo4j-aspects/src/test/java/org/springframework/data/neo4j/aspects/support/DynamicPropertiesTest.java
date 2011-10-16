@@ -25,7 +25,7 @@ import org.springframework.data.neo4j.aspects.Friendship;
 import org.springframework.data.neo4j.aspects.Person;
 import org.springframework.data.neo4j.aspects.PersonRepository;
 import org.springframework.data.neo4j.fieldaccess.DynamicProperties;
-import org.springframework.data.neo4j.support.GraphDatabaseContext;
+import org.springframework.data.neo4j.support.Neo4jTemplate;
 import org.springframework.data.neo4j.support.node.Neo4jHelper;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -43,14 +43,14 @@ import static org.springframework.data.neo4j.aspects.Person.persistedPerson;
 @ContextConfiguration(locations = {"classpath:org/springframework/data/neo4j/aspects/support/Neo4jGraphPersistenceTest-context.xml"})
 public class DynamicPropertiesTest extends EntityTestBase {
     @Autowired
-    private GraphDatabaseContext graphDatabaseContext;
+    private Neo4jTemplate template;
 
     @Autowired
     private PersonRepository personRepository;
 
     @BeforeTransaction
     public void cleanDb() {
-        Neo4jHelper.cleanDb(graphDatabaseContext);
+        Neo4jHelper.cleanDb(template);
     }
 
     /**

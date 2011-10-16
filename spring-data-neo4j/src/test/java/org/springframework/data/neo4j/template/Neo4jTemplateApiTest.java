@@ -18,7 +18,10 @@ package org.springframework.data.neo4j.template;
 
 import org.apache.lucene.index.Term;
 import org.apache.lucene.search.TermQuery;
-import org.junit.*;
+import org.junit.After;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
 import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.index.Index;
 import org.neo4j.graphdb.traversal.TraversalDescription;
@@ -29,8 +32,10 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.data.neo4j.conversion.ResultConverter;
 import org.springframework.data.neo4j.core.GraphDatabase;
 import org.springframework.data.neo4j.support.DelegatingGraphDatabase;
+import org.springframework.data.neo4j.support.Neo4jTemplate;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.jta.JtaTransactionManager;
 import org.springframework.transaction.support.TransactionCallbackWithoutResult;
 import org.springframework.transaction.support.TransactionTemplate;
@@ -65,6 +70,7 @@ public class Neo4jTemplateApiTest {
         transactionManager = createTransactionManager();
         referenceNode = graphDatabase.getReferenceNode();
         template = new Neo4jTemplate(graphDatabase, transactionManager);
+        template.postConstruct(); // todo defaults
         createData();
     }
 
@@ -197,19 +203,29 @@ public class Neo4jTemplateApiTest {
 
     @Test
     public void testGetReferenceNode() throws Exception {
-        assertEquals(referenceNode,template.getReferenceNode());
+        assertEquals(referenceNode,template.getReferenceNode(Node.class));
     }
 
     @Test
     public void testCreateNode() throws Exception {
-        Node node= template.createNode(null);
-        assertNotNull("created node",node);
+        new TransactionTemplate(transactionManager).execute(new TransactionCallbackWithoutResult() {
+            @Override
+            protected void doInTransactionWithoutResult(TransactionStatus status) {
+                Node node = template.createNode(null);
+                assertNotNull("created node", node);
+            }
+        });
     }
 
     @Test
     public void testCreateNodeWithProperties() throws Exception {
-        Node node=template.createNode(map("test", "testCreateNodeWithProperties"));
-        assertTestPropertySet(node, "testCreateNodeWithProperties");
+        new TransactionTemplate(transactionManager).execute(new TransactionCallbackWithoutResult() {
+            @Override
+            protected void doInTransactionWithoutResult(TransactionStatus status) {
+                Node node = template.createNode(map("test", "testCreateNodeWithProperties"));
+                assertTestPropertySet(node, "testCreateNodeWithProperties");
+            }
+        });
     }
 
     private void assertTestPropertySet(Node node, String testName) {

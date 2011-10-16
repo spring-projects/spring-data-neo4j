@@ -20,11 +20,10 @@ import java.util.Set;
 
 import org.neo4j.graphdb.PropertyContainer;
 import org.neo4j.helpers.collection.IteratorUtil;
-import org.springframework.core.convert.ConversionService;
 
 import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.support.DoReturn;
-import org.springframework.data.neo4j.support.GraphDatabaseContext;
+import org.springframework.data.neo4j.support.Neo4jTemplate;
 
 /**
  * This accessor factory creates {@link DynamicPropertiesFieldAccessor}s for @NodeEntity properties of type
@@ -32,10 +31,10 @@ import org.springframework.data.neo4j.support.GraphDatabaseContext;
  */
 public class DynamicPropertiesFieldAccessorFactory implements FieldAccessorFactory {
 
-    private final GraphDatabaseContext graphDatabaseContext;
+    private final Neo4jTemplate template;
 
-    public DynamicPropertiesFieldAccessorFactory(final GraphDatabaseContext graphDatabaseContext) {
-        this.graphDatabaseContext = graphDatabaseContext;
+    public DynamicPropertiesFieldAccessorFactory(final Neo4jTemplate template) {
+        this.template = template;
     }
 
     @Override
@@ -45,24 +44,24 @@ public class DynamicPropertiesFieldAccessorFactory implements FieldAccessorFacto
 
     @Override
     public FieldAccessor forField(Neo4jPersistentProperty field) {
-        return new DynamicPropertiesFieldAccessor(graphDatabaseContext,
+        return new DynamicPropertiesFieldAccessor(template,
                 field.getNeo4jPropertyName(), field);
     }
 
     public static class DynamicPropertiesFieldAccessor implements FieldAccessor {
         private final String propertyNamePrefix;
         private final Neo4jPersistentProperty field;
-        private final GraphDatabaseContext graphDatabaseContext;
+        private final Neo4jTemplate template;
 
-        public DynamicPropertiesFieldAccessor(GraphDatabaseContext graphDatabaseContext, String propertyName, Neo4jPersistentProperty field) {
-            this.graphDatabaseContext = graphDatabaseContext;
+        public DynamicPropertiesFieldAccessor(Neo4jTemplate template, String propertyName, Neo4jPersistentProperty field) {
+            this.template = template;
             this.propertyNamePrefix = propertyName;
             this.field = field;
         }
 
         @Override
         public Object setValue(final Object entity, final Object newVal) {
-        	final PropertyContainer propertyContainer = graphDatabaseContext.getPersistentState(entity);
+        	final PropertyContainer propertyContainer = template.getPersistentState(entity);
         	PrefixedDynamicProperties dynamicProperties;
             if (newVal instanceof ManagedPrefixedDynamicProperties) {
                 // newVal is already a managed container
@@ -108,8 +107,8 @@ public class DynamicPropertiesFieldAccessorFactory implements FieldAccessorFacto
 
         @Override
         public Object getValue(final Object entity) {
-            PropertyContainer element = graphDatabaseContext.getPersistentState(entity);
-            ManagedPrefixedDynamicProperties props = ManagedPrefixedDynamicProperties.create(propertyNamePrefix, field, entity,graphDatabaseContext,this);
+            PropertyContainer element = template.getPersistentState(entity);
+            ManagedPrefixedDynamicProperties props = ManagedPrefixedDynamicProperties.create(propertyNamePrefix, field, entity, template,this);
             for (String key : element.getPropertyKeys()) {
                 props.setPropertyIfPrefixed(key, element.getProperty(key));
             }

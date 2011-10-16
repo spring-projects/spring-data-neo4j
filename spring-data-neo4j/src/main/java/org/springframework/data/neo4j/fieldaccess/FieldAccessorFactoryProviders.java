@@ -17,7 +17,7 @@
 package org.springframework.data.neo4j.fieldaccess;
 
 import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
-import org.springframework.data.neo4j.support.GraphDatabaseContext;
+import org.springframework.data.neo4j.support.Neo4jTemplate;
 import org.springframework.data.util.TypeInformation;
 
 import java.util.ArrayList;
@@ -67,9 +67,9 @@ public class FieldAccessorFactoryProviders<T> {
     private final IdFieldAccessorFactory idFieldAccessorFactory;
     private Neo4jPersistentProperty idProperty;
 
-    FieldAccessorFactoryProviders(TypeInformation<?> type, GraphDatabaseContext graphDatabaseContext) {
+    FieldAccessorFactoryProviders(TypeInformation<?> type, Neo4jTemplate template) {
         this.type = type;
-        idFieldAccessorFactory= new IdFieldAccessorFactory(graphDatabaseContext);
+        idFieldAccessorFactory= new IdFieldAccessorFactory(template);
     }
 
     public Map<Neo4jPersistentProperty, FieldAccessor> getFieldAccessors() {

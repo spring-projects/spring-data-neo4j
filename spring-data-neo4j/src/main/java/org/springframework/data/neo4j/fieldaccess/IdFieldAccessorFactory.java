@@ -22,7 +22,7 @@ import org.neo4j.graphdb.PropertyContainer;
 import org.neo4j.graphdb.Relationship;
 import org.springframework.data.mapping.model.MappingException;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
-import org.springframework.data.neo4j.support.GraphDatabaseContext;
+import org.springframework.data.neo4j.support.Neo4jTemplate;
 
 import static org.springframework.data.neo4j.support.DoReturn.doReturn;
 
@@ -31,10 +31,10 @@ import static org.springframework.data.neo4j.support.DoReturn.doReturn;
  * @since 12.09.2010
  */
 public class IdFieldAccessorFactory implements FieldAccessorFactory {
-    private final GraphDatabaseContext graphDatabaseContext;
+    private final Neo4jTemplate template;
 
-    public IdFieldAccessorFactory(GraphDatabaseContext graphDatabaseContext) {
-        this.graphDatabaseContext = graphDatabaseContext;
+    public IdFieldAccessorFactory(Neo4jTemplate template) {
+        this.template = template;
     }
 
     @Override
@@ -44,16 +44,16 @@ public class IdFieldAccessorFactory implements FieldAccessorFactory {
 
 	@Override
 	public FieldAccessor forField(final Neo4jPersistentProperty property) {
-	    return new IdFieldAccessor(property,graphDatabaseContext);
+	    return new IdFieldAccessor(property, template);
 	}
 
 	public static class IdFieldAccessor implements FieldAccessor {
 	    protected final Neo4jPersistentProperty property;
-        private final GraphDatabaseContext graphDatabaseContext;
+        private final Neo4jTemplate template;
 
-        public IdFieldAccessor(final Neo4jPersistentProperty property, GraphDatabaseContext graphDatabaseContext) {
+        public IdFieldAccessor(final Neo4jPersistentProperty property, Neo4jTemplate template) {
 	        this.property = property;
-            this.graphDatabaseContext = graphDatabaseContext;
+            this.template = template;
         }
 
 	    @Override
@@ -68,7 +68,7 @@ public class IdFieldAccessorFactory implements FieldAccessorFactory {
 
 	    @Override
 	    public Object getValue(final Object entity) {
-            final PropertyContainer state = graphDatabaseContext.getPersistentState(entity);
+            final PropertyContainer state = template.getPersistentState(entity);
             if (state instanceof Node) {
                 return doReturn(((Node)state).getId());
             }

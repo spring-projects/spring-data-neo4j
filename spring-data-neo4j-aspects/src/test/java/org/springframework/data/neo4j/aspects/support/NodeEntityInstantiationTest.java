@@ -46,13 +46,13 @@ public class NodeEntityInstantiationTest extends EntityTestBase {
         Person p = persistedPerson("Rod", 39);
         long nodeId = getNodeId(p);
 
-        Node node = graphDatabaseContext.getNodeById(nodeId);
-        Person person1 = (Person) graphDatabaseContext.createEntityFromStoredType(node);
+        Node node = neo4jTemplate.getNodeById(nodeId);
+        Person person1 = (Person) neo4jTemplate.createEntityFromStoredType(node);
         assertEquals("Rod", person1.getName());
-        Person person2 = graphDatabaseContext.createEntityFromState(node,Person.class);
+        Person person2 = neo4jTemplate.createEntityFromState(node,Person.class);
         assertEquals("Rod", person2.getName());
 
-        GraphRepository<Person> finder = graphDatabaseContext.repositoryFor(Person.class);
+        GraphRepository<Person> finder = neo4jTemplate.repositoryFor(Person.class);
         Person found = finder.findOne(nodeId);
         assertEquals("Rod", found.getName());
     }

@@ -20,7 +20,7 @@ import org.neo4j.helpers.collection.MapUtil;
 import org.springframework.data.neo4j.aspects.Group;
 import org.springframework.data.neo4j.aspects.Person;
 import org.springframework.data.neo4j.aspects.Personality;
-import org.springframework.data.neo4j.support.GraphDatabaseContext;
+import org.springframework.data.neo4j.support.Neo4jTemplate;
 
 import java.util.Map;
 
@@ -33,10 +33,10 @@ public class TestTeam {
     public Person emil;
     public Person david;
     public Group sdg;
-    private final GraphDatabaseContext graphDatabaseContext;
+    private final Neo4jTemplate template;
 
-    public TestTeam(GraphDatabaseContext graphDatabaseContext) {
-        this.graphDatabaseContext = graphDatabaseContext;
+    public TestTeam(Neo4jTemplate template) {
+        this.template = template;
     }
 
     public void createSDGTeam() {
@@ -46,16 +46,16 @@ public class TestTeam {
         michael.setPersonality(Personality.EXTROVERT);
         david = Person.persistedPerson("David", 25);
         david.setBoss(emil);
-        sdg = graphDatabaseContext.save(new Group());
+        sdg = template.save(new Group());
         sdg.setName("SDG");
         sdg.addPerson(michael);
         sdg.addPerson(emil);
         sdg.addPerson(david);
         // todo those should be attached and automatically written through to the db
-        graphDatabaseContext.save(david);
-        graphDatabaseContext.save(emil);
-        graphDatabaseContext.save(michael);
-        graphDatabaseContext.save(sdg);
+        template.save(david);
+        template.save(emil);
+        template.save(michael);
+        template.save(sdg);
     }
 
     public Map<String, Object> simpleRowFor(final Person person, String prefix) {

@@ -232,9 +232,9 @@ public class NodeEntityRelationshipTest extends EntityTestBase {
     public void multipleRelationshipsOfSameTypeBetweenTwoEntities() {
         Person michael = persistedPerson("Michael", 35);
         Person david = persistedPerson("David", 25);
-        Friendship friendship1 = graphDatabaseContext.relateTo(michael,david, Friendship.class, "knows", true);
+        Friendship friendship1 = neo4jTemplate.relateTo(michael,david, Friendship.class, "knows", true);
         friendship1.setYears(1);
-        Friendship friendship2 = graphDatabaseContext.relateTo(michael,david, Friendship.class, "knows",true);
+        Friendship friendship2 = neo4jTemplate.relateTo(michael,david, Friendship.class, "knows",true);
         friendship2.setYears(2);
         assertTrue("two different relationships", friendship1 != friendship2);
         assertTrue("two different relationships", getRelationshipState(friendship1) != getRelationshipState(friendship2));

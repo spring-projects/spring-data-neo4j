@@ -22,7 +22,7 @@ import org.neo4j.graphdb.Transaction;
 import org.springframework.data.neo4j.core.EntityState;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentEntity;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
-import org.springframework.data.neo4j.support.GraphDatabaseContext;
+import org.springframework.data.neo4j.support.Neo4jTemplate;
 import org.springframework.util.ObjectUtils;
 
 import java.lang.reflect.Field;
@@ -40,13 +40,13 @@ public class DetachedEntityState<STATE> implements EntityState<STATE> {
     private final Map<Field, ExistingValue> dirty = new HashMap<Field, ExistingValue>();
     protected final EntityState<STATE> delegate;
     private final static Log log = LogFactory.getLog(DetachedEntityState.class);
-    private GraphDatabaseContext graphDatabaseContext;
+    private Neo4jTemplate template;
     private Neo4jPersistentEntity<?> persistentEntity;
 
-    public DetachedEntityState(final EntityState<STATE> delegate, GraphDatabaseContext graphDatabaseContext) {
+    public DetachedEntityState(final EntityState<STATE> delegate, Neo4jTemplate template) {
         this.delegate = delegate;
         this.persistentEntity = delegate.getPersistentEntity();
-        this.graphDatabaseContext = graphDatabaseContext;
+        this.template = template;
     }
 
     @Override
@@ -77,7 +77,7 @@ public class DetachedEntityState<STATE> implements EntityState<STATE> {
     @Override
     public Object getValue(final Field field) {
         if (isDetached()) {
-            if (graphDatabaseContext.getPersistentState(getEntity())==null || isDirty(field)) {
+            if (template.getPersistentState(getEntity())==null || isDirty(field)) {
                 if (log.isDebugEnabled()) log.debug("Outside of transaction, GET value from field " + field);
                 Object entityValue = getValueFromEntity(field);
                 if (entityValue != null) {
@@ -108,7 +108,7 @@ public class DetachedEntityState<STATE> implements EntityState<STATE> {
     }
 
     protected boolean transactionIsRunning() {
-        return getGraphDatabaseContext().transactionIsRunning();
+        return getTemplate().transactionIsRunning();
     }
 
     static class ExistingValue {
@@ -170,7 +170,7 @@ public class DetachedEntityState<STATE> implements EntityState<STATE> {
     @SuppressWarnings("deprecation")
     @Override
     public void createAndAssignState() {
-        if (graphDatabaseContext.transactionIsRunning()) {
+        if (template.transactionIsRunning()) {
             delegate.createAndAssignState();
         } else {
             log.warn("New Nodebacked created outside of transaction " + delegate.getEntity().getClass());
@@ -263,15 +263,15 @@ public class DetachedEntityState<STATE> implements EntityState<STATE> {
     }
 
 
-    public GraphDatabaseContext getGraphDatabaseContext() {
-        return graphDatabaseContext;
+    public Neo4jTemplate getTemplate() {
+        return template;
     }
 
     // todo always create an transaction for persist, atomic operation when no outside tx exists
     @Override
     public Object persist() {
         if (!isDetached()) return getEntity();
-        Transaction tx = graphDatabaseContext.beginTx();
+        Transaction tx = template.beginTx();
         try {
             Object result = delegate.persist();
 

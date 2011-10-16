@@ -32,7 +32,7 @@ import org.springframework.data.neo4j.conversion.Result;
 import org.springframework.data.neo4j.conversion.ResultConverter;
 import org.springframework.data.neo4j.core.GraphDatabase;
 import org.springframework.data.neo4j.support.DelegatingGraphDatabase;
-import org.springframework.data.neo4j.support.GraphDatabaseContext;
+import org.springframework.data.neo4j.support.Neo4jTemplate;
 import org.springframework.data.neo4j.support.conversion.EntityResultConverter;
 import org.springframework.data.neo4j.support.query.QueryEngine;
 import org.springframework.test.context.ContextConfiguration;
@@ -57,7 +57,7 @@ public class QueryEngineTest extends EntityTestBase {
     @Autowired
     protected ConversionService conversionService;
     @Autowired
-    private GraphDatabaseContext graphDatabaseContext;
+    private Neo4jTemplate template;
     private QueryEngine<Map<String,Object>> queryEngine;
     private Person michael;
 
@@ -70,7 +70,7 @@ public class QueryEngineTest extends EntityTestBase {
     }
 
     protected GraphDatabase createGraphDatabase() throws Exception {
-        final DelegatingGraphDatabase graphDatabase = new DelegatingGraphDatabase(graphDatabaseContext.getGraphDatabaseService());
+        final DelegatingGraphDatabase graphDatabase = new DelegatingGraphDatabase(template.getGraphDatabaseService());
         graphDatabase.setConversionService(conversionService);
         return graphDatabase;
     }
@@ -95,7 +95,7 @@ public class QueryEngineTest extends EntityTestBase {
     @Test
     public void testQueryListOfTypePerson() throws Exception {
         final String queryString = "start person=node:name_index(name={name}) match (person) <-[:boss]- (boss) return boss";
-        final Collection<Person> result = IteratorUtil.asCollection(queryEngine.query(queryString, michaelsName()).to(Person.class, new EntityResultConverter(graphDatabaseContext)));
+        final Collection<Person> result = IteratorUtil.asCollection(queryEngine.query(queryString, michaelsName()).to(Person.class, new EntityResultConverter(template)));
 
         assertEquals(asList(testTeam.emil),result);
     }
@@ -107,7 +107,7 @@ public class QueryEngineTest extends EntityTestBase {
     @Test
     public void testQuerySingleOfTypePerson() throws Exception {
         final String queryString = "start person=node:name_index(name={name}) match (person) <-[:boss]- (boss) return boss";
-        final Person result = queryEngine.query(queryString, michaelsName()).to(Person.class, new EntityResultConverter<Map<String,Object>,Person>(graphDatabaseContext)).single();
+        final Person result = queryEngine.query(queryString, michaelsName()).to(Person.class, new EntityResultConverter<Map<String,Object>,Person>(template)).single();
 
         assertEquals(testTeam.emil,result);
     }

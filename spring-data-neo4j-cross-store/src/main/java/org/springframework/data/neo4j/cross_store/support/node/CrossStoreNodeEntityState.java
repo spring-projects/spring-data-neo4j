@@ -28,7 +28,7 @@ import org.springframework.data.neo4j.aspects.fieldaccess.JpaIdFieldAccessListen
 import org.springframework.data.neo4j.fieldaccess.*;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentEntity;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
-import org.springframework.data.neo4j.support.GraphDatabaseContext;
+import org.springframework.data.neo4j.support.Neo4jTemplate;
 
 import javax.persistence.PersistenceUnitUtil;
 import java.lang.reflect.Field;
@@ -44,12 +44,12 @@ public class CrossStoreNodeEntityState<ENTITY extends NodeBacked> extends Defaul
     public static final String FOREIGN_ID = "foreignId";
     public static final String FOREIGN_ID_INDEX = "foreign_id";
 
-    private final GraphDatabaseContext graphDatabaseContext;
+    private final Neo4jTemplate template;
     private PersistenceUnitUtil persistenceUnitUtil;
 
-    public CrossStoreNodeEntityState(final Node underlyingState, final ENTITY entity, final Class<? extends ENTITY> type, final GraphDatabaseContext graphDatabaseContext, PersistenceUnitUtil persistenceUnitUtil, final CrossStoreNodeDelegatingFieldAccessorFactory delegatingFieldAccessorFactory, final Neo4jPersistentEntity persistentEntity) {
+    public CrossStoreNodeEntityState(final Node underlyingState, final ENTITY entity, final Class<? extends ENTITY> type, final Neo4jTemplate template, PersistenceUnitUtil persistenceUnitUtil, final CrossStoreNodeDelegatingFieldAccessorFactory delegatingFieldAccessorFactory, final Neo4jPersistentEntity persistentEntity) {
     	super(underlyingState, entity, type, delegatingFieldAccessorFactory, persistentEntity);
-        this.graphDatabaseContext = graphDatabaseContext;
+        this.template = template;
         this.persistenceUnitUtil = persistenceUnitUtil;
     }
 
@@ -65,11 +65,11 @@ public class CrossStoreNodeEntityState<ENTITY extends NodeBacked> extends Defaul
             IndexHits<Node> indexHits = getForeignIdIndex().get(FOREIGN_ID, foreignId);
             Node node = indexHits.hasNext() ? indexHits.next() : null;
             if (node == null) {
-                node = graphDatabaseContext.createNode();
+                node = template.createNode();
                 persistForeignId(node, id);
                 setPersistentState(node);
                 log.info("User-defined constructor called on class " + entity.getClass() + "; created Node [" + entity.getPersistentState() + "]; Updating metamodel");
-                graphDatabaseContext.postEntityCreation(node, type);
+                template.postEntityCreation(node, type);
             } else {
                 setPersistentState(node);
                 entity.setPersistentState(node);
@@ -104,7 +104,7 @@ public class CrossStoreNodeEntityState<ENTITY extends NodeBacked> extends Defaul
     }
 
     private Index<Node> getForeignIdIndex() {
-        return graphDatabaseContext.getIndex(type);
+        return template.getIndex(type,null,false);
     }
 
     private String createForeignId(Object id) {
@@ -117,15 +117,15 @@ public class CrossStoreNodeEntityState<ENTITY extends NodeBacked> extends Defaul
 
     public static class CrossStoreNodeDelegatingFieldAccessorFactory extends DelegatingFieldAccessorFactory {
 
-        public CrossStoreNodeDelegatingFieldAccessorFactory(GraphDatabaseContext graphDatabaseContext) {
-            super(graphDatabaseContext);
+        public CrossStoreNodeDelegatingFieldAccessorFactory(Neo4jTemplate template) {
+            super(template);
         }
 
         @Override
         protected Collection<FieldAccessorListenerFactory> createListenerFactories() {
             return Arrays.asList(
                     new IndexingPropertyFieldAccessorListenerFactory(
-                            getGraphDatabaseContext(),
+                            getTemplate(),
                             newPropertyFieldAccessorFactory(),
                             newConvertingNodePropertyFieldAccessorFactory()) {
                         @Override
@@ -133,7 +133,7 @@ public class CrossStoreNodeEntityState<ENTITY extends NodeBacked> extends Defaul
                             return property.isAnnotationPresent(GraphProperty.class) && super.accept(property);
                         }
                     },
-                    new JpaIdFieldAccessListenerFactory(graphDatabaseContext));
+                    new JpaIdFieldAccessListenerFactory(template));
         }
 
         @Override
@@ -141,24 +141,24 @@ public class CrossStoreNodeEntityState<ENTITY extends NodeBacked> extends Defaul
             return Arrays.asList(
                     //new IdFieldAccessorFactory(),
                     //new TransientFieldAccessorFactory(),
-                    new TraversalFieldAccessorFactory(graphDatabaseContext),
-                    new QueryFieldAccessorFactory(graphDatabaseContext),
+                    new TraversalFieldAccessorFactory(template),
+                    new QueryFieldAccessorFactory(template),
                     newPropertyFieldAccessorFactory(),
                     newConvertingNodePropertyFieldAccessorFactory(),
-                    new SingleRelationshipFieldAccessorFactory(getGraphDatabaseContext()) {
+                    new SingleRelationshipFieldAccessorFactory(getTemplate()) {
                         @Override
                         public boolean accept(Neo4jPersistentProperty property) {
                             return property.isAnnotationPresent(RelatedTo.class) && super.accept(property);
                         }
                     },
-                    new OneToNRelationshipFieldAccessorFactory(getGraphDatabaseContext()),
-                    new ReadOnlyOneToNRelationshipFieldAccessorFactory(getGraphDatabaseContext()),
-                    new OneToNRelationshipEntityFieldAccessorFactory(getGraphDatabaseContext())
+                    new OneToNRelationshipFieldAccessorFactory(getTemplate()),
+                    new ReadOnlyOneToNRelationshipFieldAccessorFactory(getTemplate()),
+                    new OneToNRelationshipEntityFieldAccessorFactory(getTemplate())
             );
         }
 
         private ConvertingNodePropertyFieldAccessorFactory newConvertingNodePropertyFieldAccessorFactory() {
-            return new ConvertingNodePropertyFieldAccessorFactory(getGraphDatabaseContext()) {
+            return new ConvertingNodePropertyFieldAccessorFactory(getTemplate()) {
                 @Override
                 public boolean accept(Neo4jPersistentProperty property) {
                     return property.isAnnotationPresent(GraphProperty.class) && super.accept(property);
@@ -167,7 +167,7 @@ public class CrossStoreNodeEntityState<ENTITY extends NodeBacked> extends Defaul
         }
 
         private PropertyFieldAccessorFactory newPropertyFieldAccessorFactory() {
-            return new PropertyFieldAccessorFactory(getGraphDatabaseContext()) {
+            return new PropertyFieldAccessorFactory(getTemplate()) {
                 @Override
                 public boolean accept(Neo4jPersistentProperty property) {
                     return property.isAnnotationPresent(GraphProperty.class) && super.accept(property);

@@ -18,7 +18,7 @@ package org.springframework.data.neo4j.support.query;
 
 import org.springframework.data.neo4j.annotation.QueryType;
 import org.springframework.data.neo4j.conversion.Result;
-import org.springframework.data.neo4j.support.GraphDatabaseContext;
+import org.springframework.data.neo4j.support.Neo4jTemplate;
 import org.springframework.util.ClassUtils;
 
 import java.util.Map;
@@ -31,7 +31,7 @@ import java.util.Map;
 public class CypherQueryExecutor implements QueryOperations<Map<String,Object>> {
     private final QueryEngine<Map<String,Object>> queryEngine;
 
-    public CypherQueryExecutor(GraphDatabaseContext ctx) {
+    public CypherQueryExecutor(Neo4jTemplate ctx) {
         if (ClassUtils.isPresent("org.neo4j.cypher.javacompat.ExecutionEngine",getClass().getClassLoader())) {
             queryEngine = ctx.queryEngineFor(QueryType.Cypher);
         } else {

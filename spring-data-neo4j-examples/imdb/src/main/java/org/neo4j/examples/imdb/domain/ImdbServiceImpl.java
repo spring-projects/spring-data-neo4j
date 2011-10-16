@@ -5,7 +5,7 @@ import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Path;
 import org.neo4j.kernel.StandardExpander;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.neo4j.support.GraphDatabaseContext;
+import org.springframework.data.neo4j.support.Neo4jTemplate;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
@@ -15,7 +15,7 @@ import java.util.NoSuchElementException;
 
 class ImdbServiceImpl implements ImdbService {
     @Autowired
-    private GraphDatabaseContext graphDatabaseContext;
+    private Neo4jTemplate template;
     @Autowired
     private ImdbSearchEngine searchEngine;
     @Autowired
@@ -58,7 +58,7 @@ class ImdbServiceImpl implements ImdbService {
 
     @Transactional
     public void setupReferenceRelationship() {
-        Node referenceNode = graphDatabaseContext.getReferenceNode();
+        Node referenceNode = template.getReferenceNode(Node.class);
         Actor bacon = actorRepository.findByPropertyValue("name", "Bacon, Kevin");
 
         if (bacon == null) throw new NoSuchElementException("Unable to find Kevin Bacon actor");
@@ -81,9 +81,9 @@ class ImdbServiceImpl implements ImdbService {
         int mod = 0;
         for (Node node : list.nodes()) {
             if (mod++ % 2 == 0) {
-                actorAndMovieList.add(graphDatabaseContext.createEntityFromState(node, Actor.class));
+                actorAndMovieList.add(template.createEntityFromState(node, Actor.class));
             } else {
-                actorAndMovieList.add(graphDatabaseContext.createEntityFromState(node, Movie.class));
+                actorAndMovieList.add(template.createEntityFromState(node, Movie.class));
             }
         }
         return actorAndMovieList;

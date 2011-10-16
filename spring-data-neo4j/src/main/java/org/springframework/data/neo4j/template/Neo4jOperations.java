@@ -40,12 +40,6 @@ public interface Neo4jOperations {
 
     /**
      * Delegates to the GraphDatabase
-     * @return the reference node of the underlying graph database
-     */
-    Node getReferenceNode();
-
-    /**
-     * Delegates to the GraphDatabase
      * @param id node id
      * @return the requested node of the underlying graph database
      * @throws NotFoundException
@@ -143,4 +137,10 @@ public interface Neo4jOperations {
 
     @SuppressWarnings("unchecked")
     <T> T convert(Object value, Class<T> type);
+
+    /**
+     * Delegates to the GraphDatabase
+     * @return the reference node of the underlying graph database
+     */
+    <T> T getReferenceNode(Class<T> target);
 }

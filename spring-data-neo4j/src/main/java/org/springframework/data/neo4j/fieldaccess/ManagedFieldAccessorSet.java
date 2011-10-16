@@ -19,7 +19,7 @@ package org.springframework.data.neo4j.fieldaccess;
 import org.springframework.data.neo4j.core.EntityState;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.support.DoReturn;
-import org.springframework.data.neo4j.support.GraphDatabaseContext;
+import org.springframework.data.neo4j.support.Neo4jTemplate;
 import org.springframework.data.neo4j.support.ManagedEntity;
 
 import java.util.AbstractSet;
@@ -34,11 +34,11 @@ public class ManagedFieldAccessorSet<T> extends AbstractSet<T> {
 	private final Object entity;
 	final Set<T> delegate;
 	private final Neo4jPersistentProperty property;
-    private final GraphDatabaseContext ctx;
+    private final Neo4jTemplate ctx;
     private final FieldAccessor fieldAccessor;
 
     @SuppressWarnings("unchecked")
-    public ManagedFieldAccessorSet(final Object entity, final Object newVal, final Neo4jPersistentProperty property, GraphDatabaseContext ctx, FieldAccessor fieldAccessor) {
+    public ManagedFieldAccessorSet(final Object entity, final Object newVal, final Neo4jPersistentProperty property, Neo4jTemplate ctx, FieldAccessor fieldAccessor) {
 		this.entity = entity;
 		this.property = property;
         this.ctx = ctx;

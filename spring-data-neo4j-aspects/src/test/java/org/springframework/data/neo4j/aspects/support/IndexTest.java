@@ -60,7 +60,7 @@ public class IndexTest extends EntityTestBase {
         Person p2 = persistedPerson(NAME_VALUE2, 25);
         Friendship friendship = p.knows(p2);
         friendship.setYears(1);
-        GraphRepository<Friendship> friendshipFinder = graphDatabaseContext.repositoryFor(Friendship.class);
+        GraphRepository<Friendship> friendshipFinder = neo4jTemplate.repositoryFor(Friendship.class);
         assertEquals(friendship, friendshipFinder.findByPropertyValue("Friendship.years", 1));
     }
 
@@ -78,7 +78,7 @@ public class IndexTest extends EntityTestBase {
     //@Transactional
     //@Ignore("remove property from index not workin")
     public void testRemovePropertyFromIndex() {
-        Transaction tx = graphDatabaseContext.beginTx();
+        Transaction tx = neo4jTemplate.beginTx();
         try {
             Group group = persist(new Group());
             group.setName(NAME_VALUE);
@@ -95,7 +95,7 @@ public class IndexTest extends EntityTestBase {
     //@Transactional
     //@Ignore("remove property from index not workin")
     public void testRemoveNodeFromIndex() {
-        Transaction tx = graphDatabaseContext.beginTx();
+        Transaction tx = neo4jTemplate.beginTx();
         try {
             Group group = persist(new Group());
             group.setName(NAME_VALUE);
@@ -109,7 +109,7 @@ public class IndexTest extends EntityTestBase {
     }
 
     private Index<Node> getGroupIndex() {
-        return graphDatabaseContext.getIndex(Group.class);
+        return neo4jTemplate.getIndex(Group.class);
     }
 
     @Test
@@ -126,9 +126,9 @@ public class IndexTest extends EntityTestBase {
     public void testFindGroupByInstanceIndex() {
         Group group = persist(new SubGroup());
         group.setIndexLevelName("indexLevelNameValue");
-        Index<Node> subGroupIndex = graphDatabaseContext.getIndex(SubGroup.class);
+        Index<Node> subGroupIndex = neo4jTemplate.getIndex(SubGroup.class);
         final Node found = subGroupIndex.get("indexLevelName", "indexLevelNameValue").getSingle();
-        final SubGroup foundEntity = graphDatabaseContext.createEntityFromState(found, SubGroup.class);
+        final SubGroup foundEntity = neo4jTemplate.createEntityFromState(found, SubGroup.class);
         assertEquals(group, foundEntity);
     }
 
@@ -259,9 +259,9 @@ public class IndexTest extends EntityTestBase {
     @Test
     @Transactional
     public void testNodeIsIndexed() {
-        Node node = graphDatabaseContext.createNode();
+        Node node = neo4jTemplate.createNode();
         node.setProperty(NAME, NAME_VALUE);
-        Index<Node> nodeIndex = graphDatabaseContext.getGraphDatabaseService().index().forNodes("node");
+        Index<Node> nodeIndex = neo4jTemplate.getGraphDatabaseService().index().forNodes("node");
         nodeIndex.add(node, NAME, NAME_VALUE);
         Assert.assertEquals("indexed node found", node, nodeIndex.get(NAME, NAME_VALUE).next());
     }
@@ -281,7 +281,7 @@ public class IndexTest extends EntityTestBase {
         Transaction tx = null;
         final Person p;
         try {
-            tx = graphDatabaseContext.beginTx();
+            tx = neo4jTemplate.beginTx();
             p = persistedPerson(NAME_VALUE2, 30);
             tx.success();
         } finally {
@@ -289,7 +289,7 @@ public class IndexTest extends EntityTestBase {
         }
         Assert.assertEquals(p, personRepository.findByPropertyValue(NAME_INDEX, "name", NAME_VALUE2));
         try {
-            tx = graphDatabaseContext.beginTx();
+            tx = neo4jTemplate.beginTx();
             p.setName(NAME_VALUE);
             tx.success();
         } finally {
@@ -297,7 +297,7 @@ public class IndexTest extends EntityTestBase {
         }
         Assert.assertEquals(p,  personRepository.findByPropertyValue(NAME_INDEX, "name", NAME_VALUE));
         try {
-            tx = graphDatabaseContext.beginTx();
+            tx = neo4jTemplate.beginTx();
             p.setName(NAME_VALUE2);
             tx.success();
         } finally {
@@ -309,11 +309,11 @@ public class IndexTest extends EntityTestBase {
     @Test
     @Transactional
     public void testRelationshipIsIndexed() {
-        Node node = graphDatabaseContext.createNode();
-        Node node2 = graphDatabaseContext.createNode();
+        Node node = neo4jTemplate.createNode();
+        Node node2 = neo4jTemplate.createNode();
         Relationship indexedRelationship = node.createRelationshipTo(node2, DynamicRelationshipType.withName("relatesTo"));
         indexedRelationship.setProperty(NAME, NAME_VALUE);
-        Index<Relationship> relationshipIndex = graphDatabaseContext.getGraphDatabaseService().index().forRelationships("relationship");
+        Index<Relationship> relationshipIndex = neo4jTemplate.getGraphDatabaseService().index().forRelationships("relationship");
         relationshipIndex.add(indexedRelationship, NAME, NAME_VALUE);
         Assert.assertEquals("indexed relationship found", indexedRelationship, relationshipIndex.get(NAME, NAME_VALUE).next());
     }

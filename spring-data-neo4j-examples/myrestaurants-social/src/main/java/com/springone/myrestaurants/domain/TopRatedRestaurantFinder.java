@@ -8,7 +8,7 @@ import org.neo4j.kernel.Traversal;
 import org.neo4j.kernel.impl.traversal.TraversalDescriptionImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
-import org.springframework.data.neo4j.support.GraphDatabaseContext;
+import org.springframework.data.neo4j.support.Neo4jTemplate;
 
 import java.util.*;
 
@@ -20,7 +20,7 @@ import java.util.*;
 public class TopRatedRestaurantFinder {
 
     @Autowired
-    GraphDatabaseContext graphDatabaseContext;
+    Neo4jTemplate template;
 
     private static final int MAXIMUM_DEPTH = 5;
     public Collection<RatedRestaurant> getTopNRatedRestaurants(final UserAccount user, final int n) {
@@ -64,9 +64,9 @@ public class TopRatedRestaurantFinder {
             }
 
             private RatedRestaurant toRatedRestaurant(final CalculateRatingPredicate calculateRatingPredicate) {
-                final RatedRestaurant ratedRestaurant = new RatedRestaurant(graphDatabaseContext.createEntityFromState(restaurant, Restaurant.class));
+                final RatedRestaurant ratedRestaurant = new RatedRestaurant(template.createEntityFromState(restaurant, Restaurant.class));
                 for (final Relationship recommendation : recommendations) {
-                    ratedRestaurant.add(graphDatabaseContext.createEntityFromState(recommendation, Recommendation.class));
+                    ratedRestaurant.add(template.createEntityFromState(recommendation, Recommendation.class));
                 }
                 return ratedRestaurant;
             }

@@ -21,7 +21,7 @@ import org.apache.commons.logging.LogFactory;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.neo4j.support.GraphDatabaseContext;
+import org.springframework.data.neo4j.support.Neo4jTemplate;
 import org.springframework.data.neo4j.support.node.Neo4jHelper;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -40,11 +40,11 @@ public class EntityPropertyValidationTest extends EntityTestBase {
 	protected final Log log = LogFactory.getLog(getClass());
 
 	@Autowired
-	private GraphDatabaseContext graphDatabaseContext;
+	private Neo4jTemplate template;
 
 	@BeforeTransaction
 	public void cleanDb() {
-		Neo4jHelper.cleanDb(graphDatabaseContext);
+		Neo4jHelper.cleanDb(template);
     }
 
     @Test(expected = ValidationException.class)

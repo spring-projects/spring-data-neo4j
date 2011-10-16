@@ -22,12 +22,12 @@ import org.springframework.data.neo4j.core.EntityState;
 import org.springframework.data.neo4j.fieldaccess.DelegatingFieldAccessorFactory;
 import org.springframework.data.neo4j.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentEntity;
-import org.springframework.data.neo4j.support.GraphDatabaseContext;
+import org.springframework.data.neo4j.support.Neo4jTemplate;
 import org.springframework.data.neo4j.support.node.EntityStateFactory;
 
 public class RelationshipEntityStateFactory implements EntityStateFactory<Relationship> {
 
-	private GraphDatabaseContext graphDatabaseContext;
+	private Neo4jTemplate template;
 	
     private DelegatingFieldAccessorFactory relationshipDelegatingFieldAccessorFactory;
     private Neo4jMappingContext mappingContext;
@@ -35,11 +35,11 @@ public class RelationshipEntityStateFactory implements EntityStateFactory<Relati
     @SuppressWarnings("unchecked")
     public EntityState<Relationship> getEntityState(final Object entity, boolean detachable) {
         final Class<?> entityType = entity.getClass();
-        return new RelationshipEntityState(null,entity, entityType, graphDatabaseContext, relationshipDelegatingFieldAccessorFactory, (Neo4jPersistentEntity) mappingContext.getPersistentEntity(entityType));
+        return new RelationshipEntityState(null,entity, entityType, template, relationshipDelegatingFieldAccessorFactory, (Neo4jPersistentEntity) mappingContext.getPersistentEntity(entityType));
 	}
 
-	public void setGraphDatabaseContext(GraphDatabaseContext graphDatabaseContext) {
-		this.graphDatabaseContext = graphDatabaseContext;
+	public void setTemplate(Neo4jTemplate template) {
+		this.template = template;
 	}
 
 	public void setRelationshipDelegatingFieldAccessorFactory(
@@ -52,7 +52,7 @@ public class RelationshipEntityStateFactory implements EntityStateFactory<Relati
     }
 
     @Override
-    public GraphDatabaseContext getGraphDatabaseContext() {
-        return graphDatabaseContext;
+    public Neo4jTemplate getTemplate() {
+        return template;
     }
 }

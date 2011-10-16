@@ -21,7 +21,7 @@ import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.neo4j.annotation.Query;
 
 import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
-import org.springframework.data.neo4j.support.GraphDatabaseContext;
+import org.springframework.data.neo4j.support.Neo4jTemplate;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -29,10 +29,10 @@ import java.util.Map;
 import static org.springframework.data.neo4j.support.DoReturn.doReturn;
 
 public class QueryFieldAccessorFactory implements FieldAccessorFactory {
-    private final GraphDatabaseContext graphDatabaseContext;
+    private final Neo4jTemplate template;
 
-    public QueryFieldAccessorFactory(GraphDatabaseContext graphDatabaseContext) {
-        this.graphDatabaseContext = graphDatabaseContext;
+    public QueryFieldAccessorFactory(Neo4jTemplate template) {
+        this.template = template;
     }
 
     @Override
@@ -44,7 +44,7 @@ public class QueryFieldAccessorFactory implements FieldAccessorFactory {
 
     @Override
     public FieldAccessor forField(final Neo4jPersistentProperty property) {
-        return new QueryFieldAccessor(property,graphDatabaseContext);
+        return new QueryFieldAccessor(property, template);
     }
 
 	/**
@@ -53,15 +53,15 @@ public class QueryFieldAccessorFactory implements FieldAccessorFactory {
 	 */
 	public static class QueryFieldAccessor implements FieldAccessor {
 	    protected final Neo4jPersistentProperty property;
-        private final GraphDatabaseContext graphDatabaseContext;
+        private final Neo4jTemplate template;
         private final String query;
 	    private Class<?> target;
         protected String[] annotationParams;
         private boolean iterableResult;
 
-        public QueryFieldAccessor(final Neo4jPersistentProperty property, GraphDatabaseContext graphDatabaseContext) {
+        public QueryFieldAccessor(final Neo4jPersistentProperty property, Neo4jTemplate template) {
 	        this.property = property;
-            this.graphDatabaseContext = graphDatabaseContext;
+            this.template = template;
             final Query query = property.getAnnotation(Query.class);
             this.annotationParams = query.params();
             if ((this.annotationParams.length % 2) != 0) {
@@ -93,12 +93,12 @@ public class QueryFieldAccessorFactory implements FieldAccessorFactory {
 	    }
 
         private Object executeQuery(Object entity, String queryString, Map<String, Object> params) {
-            return graphDatabaseContext.query(queryString, params, property.getTypeInformation());
+            return template.query(queryString, params, property.getTypeInformation());
         }
 
         private Map<String, Object> createPlaceholderParams(Object entity) {
             Map<String,Object> params=new HashMap<String, Object>();
-            final Node startNode = graphDatabaseContext.<Node>getPersistentState(entity);
+            final Node startNode = template.<Node>getPersistentState(entity);
             params.put("self", startNode.getId());
             if (annotationParams.length==0) return params;
             for (int i = 0; i < annotationParams.length; i+=2) {

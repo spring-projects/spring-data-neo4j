@@ -23,18 +23,18 @@ import org.neo4j.graphdb.RelationshipType;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.mapping.RelationshipInfo;
-import org.springframework.data.neo4j.support.GraphDatabaseContext;
+import org.springframework.data.neo4j.support.Neo4jTemplate;
 
 import static org.springframework.data.neo4j.support.DoReturn.doReturn;
 
 public class OneToNRelationshipEntityFieldAccessorFactory implements FieldAccessorFactory {
 
-	private GraphDatabaseContext graphDatabaseContext;
+	private Neo4jTemplate template;
 	
 	public OneToNRelationshipEntityFieldAccessorFactory(
-			GraphDatabaseContext graphDatabaseContext) {
+			Neo4jTemplate template) {
 		super();
-		this.graphDatabaseContext = graphDatabaseContext;
+		this.template = template;
 	}
 
 	@Override
@@ -45,12 +45,12 @@ public class OneToNRelationshipEntityFieldAccessorFactory implements FieldAccess
 	@Override
 	public FieldAccessor forField(final Neo4jPersistentProperty property) {
         final RelationshipInfo relationshipInfo = property.getRelationshipInfo();
-		return new OneToNRelationshipEntityFieldAccessor(relationshipInfo.getRelationshipType(), relationshipInfo.getDirection(), (Class<?>) relationshipInfo.getTargetType().getType(), graphDatabaseContext,property);
+		return new OneToNRelationshipEntityFieldAccessor(relationshipInfo.getRelationshipType(), relationshipInfo.getDirection(), (Class<?>) relationshipInfo.getTargetType().getType(), template,property);
 	}
 	public static class OneToNRelationshipEntityFieldAccessor extends AbstractNodeRelationshipFieldAccessor<Node, Relationship> {
 
-	    public OneToNRelationshipEntityFieldAccessor(final RelationshipType type, final Direction direction, final Class<?> elementClass, final GraphDatabaseContext graphDatabaseContext, Neo4jPersistentProperty property) {
-	        super(elementClass, graphDatabaseContext, direction, type, property);
+	    public OneToNRelationshipEntityFieldAccessor(final RelationshipType type, final Direction direction, final Class<?> elementClass, final Neo4jTemplate template, Neo4jPersistentProperty property) {
+	        super(elementClass, template, direction, type, property);
 	    }
 
 	    @Override
@@ -70,7 +70,7 @@ public class OneToNRelationshipEntityFieldAccessorFactory implements FieldAccess
         }
 
         private GraphBackedEntityIterableWrapper<Relationship, ?> iterableFrom(final Object entity) {
-            return GraphBackedEntityIterableWrapper.create(getStatesFromEntity(entity), relatedType, graphDatabaseContext);
+            return GraphBackedEntityIterableWrapper.create(getStatesFromEntity(entity), relatedType, template);
         }
 
 	    @Override
@@ -86,7 +86,7 @@ public class OneToNRelationshipEntityFieldAccessorFactory implements FieldAccess
 
 	    @Override
 	    protected Node getState(final Object entity) {
-	        return graphDatabaseContext.getPersistentState(entity);
+	        return template.getPersistentState(entity);
 	    }
 
 	}

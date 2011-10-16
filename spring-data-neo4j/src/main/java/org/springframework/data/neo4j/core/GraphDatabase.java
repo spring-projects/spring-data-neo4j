@@ -105,4 +105,10 @@ public interface GraphDatabase {
     void setConversionService(ConversionService conversionService);
 
     <T> QueryEngine<T> queryEngineFor(QueryType type, ResultConverter resultConverter);
+
+    boolean transactionIsRunning();
+
+    void remove(Node node);
+
+    void remove(Relationship relationship);
 }

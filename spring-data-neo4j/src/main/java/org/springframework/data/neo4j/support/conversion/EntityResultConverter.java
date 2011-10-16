@@ -19,7 +19,7 @@ package org.springframework.data.neo4j.support.conversion;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.data.neo4j.conversion.DefaultConverter;
 import org.springframework.data.neo4j.core.EntityPath;
-import org.springframework.data.neo4j.support.GraphDatabaseContext;
+import org.springframework.data.neo4j.support.Neo4jTemplate;
 import org.springframework.data.neo4j.support.path.ConvertingEntityPath;
 
 /**
@@ -27,10 +27,10 @@ import org.springframework.data.neo4j.support.path.ConvertingEntityPath;
  * @since 28.06.11
  */
 public class EntityResultConverter<T,R> extends DefaultConverter<T,R> {
-    private final GraphDatabaseContext ctx;
+    private final Neo4jTemplate ctx;
     private final ConversionService conversionService;
 
-    public EntityResultConverter(GraphDatabaseContext ctx) {
+    public EntityResultConverter(Neo4jTemplate ctx) {
         this.ctx = ctx;
         conversionService = this.ctx.getConversionService();
     }
@@ -39,10 +39,10 @@ public class EntityResultConverter<T,R> extends DefaultConverter<T,R> {
     @Override
     protected Object doConvert(Object value, Class<?> sourceType, Class targetType) {
         if (ctx.isNodeEntity(targetType)) {
-            return ctx.projectTo(toNode(value,sourceType),targetType);
+            return ctx.projectTo(toNode(value, sourceType), targetType);
         }
         if (ctx.isRelationshipEntity(targetType)) {
-            return ctx.projectTo(toRelationship(value,sourceType),targetType);
+            return ctx.projectTo(toRelationship(value, sourceType), targetType);
         }
         if (EntityPath.class.isAssignableFrom(targetType)) {
             return new ConvertingEntityPath(ctx,toPath(value,sourceType));

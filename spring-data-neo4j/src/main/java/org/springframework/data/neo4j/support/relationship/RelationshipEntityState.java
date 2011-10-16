@@ -24,7 +24,7 @@ import org.springframework.dao.InvalidDataAccessResourceUsageException;
 import org.springframework.data.neo4j.fieldaccess.DefaultEntityState;
 import org.springframework.data.neo4j.fieldaccess.DelegatingFieldAccessorFactory;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentEntity;
-import org.springframework.data.neo4j.support.GraphDatabaseContext;
+import org.springframework.data.neo4j.support.Neo4jTemplate;
 
 
 /**
@@ -33,28 +33,28 @@ import org.springframework.data.neo4j.support.GraphDatabaseContext;
  */
 public class RelationshipEntityState extends DefaultEntityState<Relationship> {
 
-    private final GraphDatabaseContext graphDatabaseContext;
+    private final Neo4jTemplate template;
     
-    public RelationshipEntityState(final Relationship underlyingState, final Object entity, final Class<? extends Object> type, final GraphDatabaseContext graphDatabaseContext, final DelegatingFieldAccessorFactory delegatingFieldAccessorFactory, Neo4jPersistentEntity<Object> persistentEntity) {
+    public RelationshipEntityState(final Relationship underlyingState, final Object entity, final Class<? extends Object> type, final Neo4jTemplate template, final DelegatingFieldAccessorFactory delegatingFieldAccessorFactory, Neo4jPersistentEntity<Object> persistentEntity) {
         super(underlyingState, entity, type, delegatingFieldAccessorFactory, persistentEntity);
-        this.graphDatabaseContext = graphDatabaseContext;
+        this.template = template;
     }
 
     @Override
     public void createAndAssignState() {
-        final PropertyContainer state = graphDatabaseContext.getPersistentState(entity);
+        final PropertyContainer state = template.getPersistentState(entity);
         if (state !=null) return;
         try {
             final Object id = getIdFromEntity();
             if (id instanceof Number) {
-                final Relationship relationship = graphDatabaseContext.getRelationshipById(((Number) id).longValue());
+                final Relationship relationship = template.getRelationshipById(((Number) id).longValue());
                 setPersistentState(relationship);
                 if (log.isInfoEnabled())
                     log.info("Entity reattached " + entity.getClass() + "; used Relationship [" + state + "];");
                 return;
             }
 
-            final Relationship relationship = null; // TODO graphDatabaseContext.create();
+            final Relationship relationship = null; // TODO template.create();
             setPersistentState(relationship);
             if (log.isInfoEnabled()) log.info("User-defined constructor called on class " + entity.getClass() + "; created Relationship [" + getPersistentState() + "]; Updating metamodel");
         } catch (NotInTransactionException e) {

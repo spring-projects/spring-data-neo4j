@@ -23,7 +23,7 @@ import org.springframework.data.mapping.AssociationHandler;
 import org.springframework.data.mapping.PropertyHandler;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentEntity;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
-import org.springframework.data.neo4j.support.GraphDatabaseContext;
+import org.springframework.data.neo4j.support.Neo4jTemplate;
 import org.springframework.data.util.TypeInformation;
 
 import java.util.*;
@@ -33,21 +33,21 @@ public abstract class DelegatingFieldAccessorFactory implements FieldAccessorFac
 
 	private final static Log log = LogFactory.getLog(DelegatingFieldAccessorFactory.class);
 
-	protected final GraphDatabaseContext graphDatabaseContext;
+	protected final Neo4jTemplate template;
 
     protected abstract Collection<FieldAccessorListenerFactory> createListenerFactories();
 
     protected abstract Collection<? extends FieldAccessorFactory> createAccessorFactories();
 
-    public DelegatingFieldAccessorFactory(final GraphDatabaseContext graphDatabaseContext) {
-        this.graphDatabaseContext = graphDatabaseContext;
+    public DelegatingFieldAccessorFactory(final Neo4jTemplate template) {
+        this.template = template;
         this.fieldAccessorFactories.addAll(createAccessorFactories());
         this.fieldAccessorListenerFactories.addAll(createListenerFactories());
     }
 
     
-    public GraphDatabaseContext getGraphDatabaseContext() {
-		return graphDatabaseContext;
+    public Neo4jTemplate getTemplate() {
+		return template;
 	}
 
 	@Override
@@ -106,7 +106,7 @@ public abstract class DelegatingFieldAccessorFactory implements FieldAccessorFac
             final TypeInformation<?> typeInformation = type.getTypeInformation();
             final FieldAccessorFactoryProviders<T> fieldAccessorFactoryProviders = accessorFactoryProviderCache.get(typeInformation);
             if (fieldAccessorFactoryProviders != null) return fieldAccessorFactoryProviders;
-            final FieldAccessorFactoryProviders<T> newFieldAccessorFactories = new FieldAccessorFactoryProviders<T>(typeInformation,graphDatabaseContext);
+            final FieldAccessorFactoryProviders<T> newFieldAccessorFactories = new FieldAccessorFactoryProviders<T>(typeInformation, template);
             type.doWithProperties(new PropertyHandler<Neo4jPersistentProperty>() {
                 @Override
                 public void doWithPersistentProperty(Neo4jPersistentProperty property) {

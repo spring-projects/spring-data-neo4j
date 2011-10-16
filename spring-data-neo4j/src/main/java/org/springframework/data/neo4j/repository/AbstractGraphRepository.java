@@ -21,16 +21,17 @@ import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.NotFoundException;
 import org.neo4j.graphdb.PropertyContainer;
 import org.neo4j.graphdb.Relationship;
-import org.neo4j.graphdb.index.Index;
 import org.neo4j.graphdb.index.IndexHits;
+import org.neo4j.graphdb.index.ReadableIndex;
 import org.neo4j.helpers.collection.ClosableIterable;
 import org.neo4j.helpers.collection.IterableWrapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-
-import org.springframework.data.neo4j.support.GraphDatabaseContext;
+import org.springframework.data.neo4j.support.Neo4jTemplate;
+import org.springframework.data.neo4j.support.index.NoSuchIndexException;
+import org.springframework.data.neo4j.support.index.NullReadableIndex;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -60,10 +61,10 @@ public abstract class AbstractGraphRepository<S extends PropertyContainer, T> im
      * Target graphbacked type
      */
     protected final Class<T> clazz;
-    protected final GraphDatabaseContext graphDatabaseContext;
+    protected final Neo4jTemplate template;
 
-    public AbstractGraphRepository(final GraphDatabaseContext graphDatabaseContext, final Class<T> clazz) {
-        this.graphDatabaseContext = graphDatabaseContext;
+    public AbstractGraphRepository(final Neo4jTemplate template, final Class<T> clazz) {
+        this.template = template;
         this.clazz = clazz;
     }
 
@@ -72,7 +73,7 @@ public abstract class AbstractGraphRepository<S extends PropertyContainer, T> im
      */
     @Override
     public long count() {
-        return graphDatabaseContext.count(clazz);
+        return template.count(clazz);
     }
 
     /**
@@ -80,7 +81,7 @@ public abstract class AbstractGraphRepository<S extends PropertyContainer, T> im
      */
     @Override
     public ClosableIterable<T> findAll() {
-        return graphDatabaseContext.findAll(clazz);
+        return template.findAll(clazz);
     }
 
     /**
@@ -136,12 +137,16 @@ public abstract class AbstractGraphRepository<S extends PropertyContainer, T> im
         return getIndex(indexName).get(property, value);
     }
 
-    protected Index<S> getIndex(String indexName) {
-        return graphDatabaseContext.getIndex(clazz,indexName);
+    protected ReadableIndex<S> getIndex(String indexName) {
+        try {
+            return template.getIndex(clazz,indexName);
+        } catch(NoSuchIndexException nsie) {
+            return new NullReadableIndex<S>(nsie.getIndex());
+        }
     }
 
     protected T createEntity(S node) {
-        return graphDatabaseContext.createEntityFromState(node, clazz);
+        return template.createEntityFromState(node, clazz);
     }
 
     /**
@@ -155,7 +160,7 @@ public abstract class AbstractGraphRepository<S extends PropertyContainer, T> im
     @Override
     public ClosableIterable<T> findAllByPropertyValue(final String indexName, final String property, final Object value) {
         return query(indexName, new Query<S>() {
-            public IndexHits<S> query(Index<S> index) {
+            public IndexHits<S> query(ReadableIndex<S> index) {
                 return getIndexHits(indexName, property, value);
             }
         });
@@ -191,14 +196,14 @@ public abstract class AbstractGraphRepository<S extends PropertyContainer, T> im
     @Override
     public ClosableIterable<T> findAllByQuery(final String indexName, final String key, final Object query) {
         return query(indexName, new Query<S>() {
-            public IndexHits<S> query(Index<S> index) {
+            public IndexHits<S> query(ReadableIndex<S> index) {
                 return getIndex(indexName).query(key, query);
             }
         });
     }
 
     interface Query<S extends PropertyContainer> {
-        IndexHits<S> query(Index<S> index);
+        IndexHits<S> query(ReadableIndex<S> index);
     }
     private ClosableIterable<T> query(String indexName, Query<S> query) {
         try {
@@ -222,7 +227,7 @@ public abstract class AbstractGraphRepository<S extends PropertyContainer, T> im
     @Override
     public ClosableIterable<T> findAllByRange(final String indexName, final String property, final Number from, final Number to) {
         return query(indexName, new Query<S>() {
-            public IndexHits<S> query(Index<S> index) {
+            public IndexHits<S> query(ReadableIndex<S> index) {
                 return index.query(property, createInclusiveRangeQuery(property, from, to));
             }
         });
@@ -250,7 +255,7 @@ public abstract class AbstractGraphRepository<S extends PropertyContainer, T> im
 
     @Override
     public void delete(T entity) {
-        final PropertyContainer state = graphDatabaseContext.getPersistentState(entity);
+        final PropertyContainer state = template.getPersistentState(entity);
         if (state instanceof Node) {
             Node node = (Node) state;
             node.delete();
@@ -336,4 +341,5 @@ public abstract class AbstractGraphRepository<S extends PropertyContainer, T> im
            this.indexHits.close();
         }
     }
+
 }

@@ -234,7 +234,7 @@ public class ModificationOutsideOfTransactionTest extends EntityTestBase {
     @Test
     public void testFindOutsideTransaction()
     {
-        final GraphRepository<Person> finder = graphDatabaseContext.repositoryFor(Person.class);
+        final GraphRepository<Person> finder = neo4jTemplate.repositoryFor(Person.class);
         assertEquals( false, finder.findAll().iterator().hasNext() );
     }
 

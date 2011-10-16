@@ -19,12 +19,13 @@ package org.springframework.data.neo4j.template;
 import org.junit.After;
 import org.junit.Before;
 import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.test.ImpermanentGraphDatabase;
 import org.neo4j.kernel.impl.transaction.SpringTransactionManager;
+import org.neo4j.test.ImpermanentGraphDatabase;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.data.neo4j.core.GraphDatabase;
 import org.springframework.data.neo4j.fieldaccess.Neo4jConversionServiceFactoryBean;
 import org.springframework.data.neo4j.support.DelegatingGraphDatabase;
+import org.springframework.data.neo4j.support.Neo4jTemplate;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.jta.JtaTransactionManager;
 
@@ -42,7 +43,7 @@ public abstract class NeoApiTest {
         conversionService = createConversionService();
         graph = createGraphDatabase();
         transactionManager = createTransactionManager();
-        template = new Neo4jTemplate(graph, transactionManager);
+        template = new Neo4jTemplate(graph, transactionManager).postConstruct();
     }
 
     private ConversionService createConversionService() throws Exception {

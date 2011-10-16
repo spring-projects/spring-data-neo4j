@@ -17,7 +17,7 @@
 package org.springframework.data.neo4j.fieldaccess;
 
 
-import org.springframework.data.neo4j.support.GraphDatabaseContext;
+import org.springframework.data.neo4j.support.Neo4jTemplate;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -28,35 +28,35 @@ import java.util.Collection;
 */
 public class NodeDelegatingFieldAccessorFactory extends DelegatingFieldAccessorFactory {
 	
-    public NodeDelegatingFieldAccessorFactory(GraphDatabaseContext graphDatabaseContext) {
-        super(graphDatabaseContext);
+    public NodeDelegatingFieldAccessorFactory(Neo4jTemplate template) {
+        super(template);
     }
 
     @Override
     protected Collection<FieldAccessorListenerFactory> createListenerFactories() {
         return Arrays.<FieldAccessorListenerFactory>asList(
                 new IndexingPropertyFieldAccessorListenerFactory(
-                		graphDatabaseContext,
-                		new PropertyFieldAccessorFactory(graphDatabaseContext),
-                		new ConvertingNodePropertyFieldAccessorFactory(graphDatabaseContext)),
-                new ValidatingNodePropertyFieldAccessorListenerFactory(graphDatabaseContext)
+                        template,
+                		new PropertyFieldAccessorFactory(template),
+                		new ConvertingNodePropertyFieldAccessorFactory(template)),
+                new ValidatingNodePropertyFieldAccessorListenerFactory(template)
         );
     }
 
     @Override
     protected Collection<? extends FieldAccessorFactory> createAccessorFactories() {
         return Arrays.<FieldAccessorFactory>asList(
-                new IdFieldAccessorFactory(graphDatabaseContext),
+                new IdFieldAccessorFactory(template),
                 new TransientFieldAccessorFactory(),
-                new TraversalFieldAccessorFactory(graphDatabaseContext),
-                new QueryFieldAccessorFactory(graphDatabaseContext),
-                new PropertyFieldAccessorFactory(graphDatabaseContext),
-                new ConvertingNodePropertyFieldAccessorFactory(graphDatabaseContext),
-                new SingleRelationshipFieldAccessorFactory(graphDatabaseContext),
-                new OneToNRelationshipFieldAccessorFactory(graphDatabaseContext),
-                new ReadOnlyOneToNRelationshipFieldAccessorFactory(graphDatabaseContext),
-                new OneToNRelationshipEntityFieldAccessorFactory(graphDatabaseContext),
-                new DynamicPropertiesFieldAccessorFactory(graphDatabaseContext)
+                new TraversalFieldAccessorFactory(template),
+                new QueryFieldAccessorFactory(template),
+                new PropertyFieldAccessorFactory(template),
+                new ConvertingNodePropertyFieldAccessorFactory(template),
+                new SingleRelationshipFieldAccessorFactory(template),
+                new OneToNRelationshipFieldAccessorFactory(template),
+                new ReadOnlyOneToNRelationshipFieldAccessorFactory(template),
+                new OneToNRelationshipEntityFieldAccessorFactory(template),
+                new DynamicPropertiesFieldAccessorFactory(template)
         );
     }
 }

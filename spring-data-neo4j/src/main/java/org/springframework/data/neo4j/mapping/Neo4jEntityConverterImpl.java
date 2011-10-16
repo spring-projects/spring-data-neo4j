@@ -144,12 +144,12 @@ public class Neo4jEntityConverterImpl<T,S extends PropertyContainer> implements 
         final Neo4jPersistentProperty idProperty = persistentEntity.getIdProperty();
         final Long id = getProperty(wrapper, idProperty, Long.class, true);
         if (id == null) {
-            final Node newNode = getGraphDatabaseContext().createNode();
+            final Node newNode = getTemplate().createNode();
             setProperty(wrapper, idProperty, newNode.getId());
             return newNode;
         }
         try {
-            return getGraphDatabaseContext().getNodeById(id);
+            return getTemplate().getNodeById(id);
         } catch (NotFoundException nfe) {
             throw new MappingException("Could not find node with id " + id);
         }

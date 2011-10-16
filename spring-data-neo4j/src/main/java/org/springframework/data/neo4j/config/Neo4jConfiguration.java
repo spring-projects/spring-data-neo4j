@@ -40,7 +40,7 @@ import org.springframework.data.neo4j.mapping.*;
 import org.springframework.data.neo4j.support.DelegatingGraphDatabase;
 import org.springframework.data.neo4j.support.EntityInstantiator;
 import org.springframework.data.neo4j.support.EntityStateHandler;
-import org.springframework.data.neo4j.support.GraphDatabaseContext;
+import org.springframework.data.neo4j.support.Neo4jTemplate;
 import org.springframework.data.neo4j.support.node.NodeEntityInstantiator;
 import org.springframework.data.neo4j.support.node.NodeEntityStateFactory;
 import org.springframework.data.neo4j.support.relationship.RelationshipEntityInstantiator;
@@ -80,29 +80,29 @@ public abstract class Neo4jConfiguration {
     }
 
     @Bean
-	public GraphDatabaseContext graphDatabaseContext() throws Exception {
+	public Neo4jTemplate neo4jTemplate() throws Exception {
 
-        GraphDatabaseContext gdc = new GraphDatabaseContext();
-        gdc.setGraphDatabaseService(getGraphDatabaseService());
-        gdc.setConversionService(conversionService());
-        gdc.setMappingContext(mappingContext());
-        gdc.setEntityStateHandler(entityStateHandler());
+        Neo4jTemplate neo4jTemplate = new Neo4jTemplate();
+        neo4jTemplate.setGraphDatabaseService(getGraphDatabaseService());
+        neo4jTemplate.setConversionService(conversionService());
+        neo4jTemplate.setMappingContext(mappingContext());
+        neo4jTemplate.setEntityStateHandler(entityStateHandler());
 
-        gdc.setNodeEntityStateFactory(nodeEntityStateFactory());
-        gdc.setNodeTypeRepresentationStrategy(nodeTypeRepresentationStrategy());
-        gdc.setNodeEntityInstantiator(graphEntityInstantiator());
+        neo4jTemplate.setNodeEntityStateFactory(nodeEntityStateFactory());
+        neo4jTemplate.setNodeTypeRepresentationStrategy(nodeTypeRepresentationStrategy());
+        neo4jTemplate.setNodeEntityInstantiator(graphEntityInstantiator());
 
-        gdc.setRelationshipEntityStateFactory(relationshipEntityStateFactory());
-        gdc.setRelationshipTypeRepresentationStrategy(relationshipTypeRepresentationStrategy());
-        gdc.setRelationshipEntityInstantiator(graphRelationshipInstantiator());
+        neo4jTemplate.setRelationshipEntityStateFactory(relationshipEntityStateFactory());
+        neo4jTemplate.setRelationshipTypeRepresentationStrategy(relationshipTypeRepresentationStrategy());
+        neo4jTemplate.setRelationshipEntityInstantiator(graphRelationshipInstantiator());
 
-        gdc.setTransactionManager(neo4jTransactionManager());
-        gdc.setGraphDatabase(graphDatabase());
+        neo4jTemplate.setTransactionManager(neo4jTransactionManager());
+        neo4jTemplate.setGraphDatabase(graphDatabase());
 
         if (validator!=null) {
-            gdc.setValidator(validator);
+            neo4jTemplate.setValidator(validator);
         }
-		return gdc;
+		return neo4jTemplate;
 	}
 
     @Bean
@@ -122,7 +122,7 @@ public abstract class Neo4jConfiguration {
 
     @Bean
     public EntityStateHandler entityStateHandler() {
-        return new EntityStateHandler(mappingContext(),graphDatabaseService);
+        return new EntityStateHandler(mappingContext(),graphDatabase());
     }
 
 
@@ -181,12 +181,12 @@ public abstract class Neo4jConfiguration {
     @PostConstruct
     public void wireEntityStateFactories() throws Exception {
         final NodeEntityStateFactory nodeEntityStateFactory = nodeEntityStateFactory();
-        nodeEntityStateFactory.setGraphDatabaseContext(graphDatabaseContext());
+        nodeEntityStateFactory.setTemplate(neo4jTemplate());
         nodeEntityStateFactory.setMappingContext(mappingContext());
         nodeEntityStateFactory.setNodeDelegatingFieldAccessorFactory(nodeDelegatingFieldAccessorFactory());
 
         final RelationshipEntityStateFactory relationshipEntityStateFactory = relationshipEntityStateFactory();
-        relationshipEntityStateFactory.setGraphDatabaseContext(graphDatabaseContext());
+        relationshipEntityStateFactory.setTemplate(neo4jTemplate());
         relationshipEntityStateFactory.setMappingContext(mappingContext());
         relationshipEntityStateFactory.setRelationshipDelegatingFieldAccessorFactory(relationshipDelegatingFieldAccessorFactory());
 
@@ -194,12 +194,12 @@ public abstract class Neo4jConfiguration {
 
     @Bean
     public DelegatingFieldAccessorFactory nodeDelegatingFieldAccessorFactory() throws Exception {
-        return new NodeDelegatingFieldAccessorFactory(graphDatabaseContext());
+        return new NodeDelegatingFieldAccessorFactory(neo4jTemplate());
     }
     
     @Bean
     public DelegatingFieldAccessorFactory relationshipDelegatingFieldAccessorFactory() throws Exception {
-        return new RelationshipDelegatingFieldAccessorFactory(graphDatabaseContext());
+        return new RelationshipDelegatingFieldAccessorFactory(neo4jTemplate());
     }
 
     @Bean(name = {"neo4jTransactionManager","transactionManager"})
@@ -229,7 +229,7 @@ public abstract class Neo4jConfiguration {
 
     @Bean
     public ConfigurationCheck configurationCheck() throws Exception {
-        return new ConfigurationCheck(graphDatabaseContext(),neo4jTransactionManager());
+        return new ConfigurationCheck(neo4jTemplate(),neo4jTransactionManager());
     }
 
     @Bean

@@ -104,15 +104,15 @@ public class NoopTypeRepresentationStrategyTest extends EntityTestBase {
 	}
 
 	private Thing createThing() {
-		Transaction tx = graphDatabaseContext.beginTx();
+		Transaction tx = neo4jTemplate.beginTx();
 		try {
-			Node node = graphDatabaseContext.createNode();
+			Node node = neo4jTemplate.createNode();
 			thing = new Thing();
-            graphDatabaseContext.setPersistentState(thing,node);
+            neo4jTemplate.setPersistentState(thing,node);
 			noopNodeStrategy.postEntityCreation(node, Thing.class);
-            Relationship rel = node.createRelationshipTo(graphDatabaseContext.createNode(), DynamicRelationshipType.withName("link"));
+            Relationship rel = node.createRelationshipTo(neo4jTemplate.createNode(), DynamicRelationshipType.withName("link"));
             link = new Link();
-            graphDatabaseContext.setPersistentState(link,rel);
+            neo4jTemplate.setPersistentState(link,rel);
             noopRelationshipStrategy.postEntityCreation(rel, Link.class);
 			tx.success();
 			return thing;

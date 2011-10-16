@@ -21,7 +21,7 @@ import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.RelationshipType;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.mapping.RelationshipInfo;
-import org.springframework.data.neo4j.support.GraphDatabaseContext;
+import org.springframework.data.neo4j.support.Neo4jTemplate;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -30,8 +30,8 @@ import static org.springframework.data.neo4j.support.DoReturn.doReturn;
 
 public class OneToNRelationshipFieldAccessorFactory extends NodeRelationshipFieldAccessorFactory {
 	
-	public OneToNRelationshipFieldAccessorFactory(GraphDatabaseContext graphDatabaseContext) {
-		super(graphDatabaseContext);
+	public OneToNRelationshipFieldAccessorFactory(Neo4jTemplate template) {
+		super(template);
 	}
 
     @Override
@@ -45,13 +45,13 @@ public class OneToNRelationshipFieldAccessorFactory extends NodeRelationshipFiel
 	public FieldAccessor forField(final Neo4jPersistentProperty property) {
         final RelationshipInfo relationshipInfo = property.getRelationshipInfo();
         final Class<?> targetType = relationshipInfo.getTargetType().getType();
-        return new OneToNRelationshipFieldAccessor(relationshipInfo.getRelationshipType(), relationshipInfo.getDirection(), targetType, graphDatabaseContext,property);
+        return new OneToNRelationshipFieldAccessor(relationshipInfo.getRelationshipType(), relationshipInfo.getDirection(), targetType, template,property);
 	}
 
 	public static class OneToNRelationshipFieldAccessor extends NodeToNodesRelationshipFieldAccessor {
 
-	    public OneToNRelationshipFieldAccessor(final RelationshipType type, final Direction direction, final Class<?> elementClass, final GraphDatabaseContext graphDatabaseContext, Neo4jPersistentProperty property) {
-	        super(elementClass, graphDatabaseContext, direction, type,property);
+	    public OneToNRelationshipFieldAccessor(final RelationshipType type, final Direction direction, final Class<?> elementClass, final Neo4jTemplate template, Neo4jPersistentProperty property) {
+	        super(elementClass, template, direction, type,property);
 	    }
 
 	    public Object setValue(final Object entity, final Object newVal) {

@@ -30,10 +30,10 @@
    <xsd:complexType name="neo4j-repository">
     <xsd:complexContent>
       <xsd:extension base="repository:repository">
-        <xsd:attribute name="graph-database-context-ref" type="graphDatabaseContextRef" default="graphDatabaseContext">
+        <xsd:attribute name="neo4j-template-ref" type="neo4jTemplateRef" default="template">
           <xsd:annotation>
             <xsd:documentation>
-              The reference to a GraphDatabaseContext. Will default to 'graphDatabaseContext'.
+              The reference to a GraphDatabaseContext. Will default to 'neo4jTemplate'.
             </xsd:documentation>
           </xsd:annotation>
         </xsd:attribute>
@@ -49,18 +49,18 @@
           <xsd:sequence>
             <xsd:element name="repository" minOccurs="0" maxOccurs="unbounded" type="neo4j-repository"/>
           </xsd:sequence>
-          <xsd:attribute name="graph-database-context-ref" type="graphDatabaseContextRef"/>
+          <xsd:attribute name="neo4j-template-ref" type="neo4jTemplateRef"/>
           <xsd:attributeGroup ref="repository:repository-attributes"/>
         </xsd:extension>
       </xsd:complexContent>
     </xsd:complexType>
   </xsd:element>
 
-  <xsd:simpleType name="graphDatabaseContextRef">
+  <xsd:simpleType name="neo4jTemplateRef">
     <xsd:annotation>
       <xsd:appinfo>
         <tool:annotation kind="ref">
-          <tool:assignable-to type="org.springframework.data.neo4j.support.GraphDatabaseContext"/>
+          <tool:assignable-to type="org.springframework.data.neo4j.support.Neo4jTemplate"/>
         </tool:annotation>
       </xsd:appinfo>
     </xsd:annotation>

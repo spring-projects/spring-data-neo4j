@@ -17,7 +17,7 @@ package org.springframework.data.neo4j.fieldaccess;
 
 import org.neo4j.graphdb.PropertyContainer;
 import org.neo4j.helpers.collection.IterableWrapper;
-import org.springframework.data.neo4j.support.GraphDatabaseContext;
+import org.springframework.data.neo4j.support.Neo4jTemplate;
 
 /**
  * Simple wrapper to create an Iterable over @NodeEntities or @RelationshipEntities from an iterable over Nodes or Relationships.
@@ -25,21 +25,21 @@ import org.springframework.data.neo4j.support.GraphDatabaseContext;
  */
 public class GraphBackedEntityIterableWrapper<STATE extends PropertyContainer, ENTITY> extends IterableWrapper<ENTITY, STATE> {
     private final Class<ENTITY> targetType;
-    private final GraphDatabaseContext graphDatabaseContext;
+    private final Neo4jTemplate template;
 
-    public GraphBackedEntityIterableWrapper(Iterable<STATE> iterable, Class<ENTITY> targetType, final GraphDatabaseContext graphDatabaseContext) {
+    public GraphBackedEntityIterableWrapper(Iterable<STATE> iterable, Class<ENTITY> targetType, final Neo4jTemplate template) {
         super(iterable);
         this.targetType = targetType;
-        this.graphDatabaseContext = graphDatabaseContext;
+        this.template = template;
     }
 
     @Override
     protected ENTITY underlyingObjectToObject(STATE s) {
-        return graphDatabaseContext.createEntityFromState(s, targetType);
+        return template.createEntityFromState(s, targetType);
     }
 
     public static <S extends PropertyContainer, E> GraphBackedEntityIterableWrapper<S, E> create(
-            Iterable<S> iterable, Class<E> targetType, final GraphDatabaseContext graphDatabaseContext) {
-        return new GraphBackedEntityIterableWrapper<S, E>(iterable, targetType, graphDatabaseContext);
+            Iterable<S> iterable, Class<E> targetType, final Neo4jTemplate template) {
+        return new GraphBackedEntityIterableWrapper<S, E>(iterable, targetType, template);
     }
 }

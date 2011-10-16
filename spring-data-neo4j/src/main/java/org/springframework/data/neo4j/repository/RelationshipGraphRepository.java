@@ -20,17 +20,17 @@ import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.traversal.TraversalDescription;
 
 
-import org.springframework.data.neo4j.support.GraphDatabaseContext;
+import org.springframework.data.neo4j.support.Neo4jTemplate;
 
 public class RelationshipGraphRepository<T> extends AbstractGraphRepository<Relationship, T> implements GraphRepository<T> {
 
-    public RelationshipGraphRepository(final Class<T> clazz, final GraphDatabaseContext graphDatabaseContext) {
-        super(graphDatabaseContext, clazz);
+    public RelationshipGraphRepository(final Class<T> clazz, final Neo4jTemplate template) {
+        super(template, clazz);
     }
 
     @Override
     protected Relationship getById(long id) {
-        return graphDatabaseContext.getRelationshipById(id);
+        return template.getRelationshipById(id);
     }
 
     @Override

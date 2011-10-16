@@ -43,7 +43,7 @@ public class EntityPathTest extends EntityTestBase {
         Person michael = persist(new Person("Michael", 36));
         Node node = getNodeState(michael);
         NodePath path = new NodePath(node);
-        EntityPath<Person, Person> entityPath = new ConvertingEntityPath<Person, Person>(graphDatabaseContext, path);
+        EntityPath<Person, Person> entityPath = new ConvertingEntityPath<Person, Person>(neo4jTemplate, path);
 
         Assert.assertEquals("start entity",michael, entityPath.startEntity());
         Assert.assertEquals("start node",node, path.startNode());

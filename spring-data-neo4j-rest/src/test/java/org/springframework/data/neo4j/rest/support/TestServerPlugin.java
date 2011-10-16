@@ -23,7 +23,7 @@ import org.neo4j.server.plugins.*;
 import org.springframework.context.ApplicationContext;
 import org.springframework.data.neo4j.aspects.*;
 import org.springframework.data.neo4j.server.ProvidedClassPathXmlApplicationContext;
-import org.springframework.data.neo4j.support.GraphDatabaseContext;
+import org.springframework.data.neo4j.support.Neo4jTemplate;
 
 /**
  * @author mh
@@ -34,7 +34,7 @@ public class TestServerPlugin extends ServerPlugin {
 
     private ApplicationContext ctx;
     private PersonRepository personRepository;
-    private GraphDatabaseContext graphDatabaseContext;
+    private Neo4jTemplate template;
 
     public TestServerPlugin() {
         System.out.println("Initializing ServerPlugin");
@@ -52,7 +52,7 @@ public class TestServerPlugin extends ServerPlugin {
         if (ctx==null) {
             ctx = new ProvidedClassPathXmlApplicationContext(graphDb, "Plugin-context.xml");
             personRepository = ctx.getBean(PersonRepository.class);
-            graphDatabaseContext = ctx.getBean(GraphDatabaseContext.class);
+            template = ctx.getBean(Neo4jTemplate.class);
         }
         return ctx;
     }
@@ -62,7 +62,7 @@ public class TestServerPlugin extends ServerPlugin {
     @PluginTarget(Node.class)
     public Iterable<Node> allFriendsOf(@Source Node target) {
         context(target.getGraphDatabase());
-        final Person person = graphDatabaseContext.createEntityFromState(target, Person.class);
+        final Person person = template.createEntityFromState(target, Person.class);
         return new IterableWrapper<Node, Friendship>(person.getFriendships()) {
             @Override
             protected Node underlyingObjectToObject(Friendship friendship) {

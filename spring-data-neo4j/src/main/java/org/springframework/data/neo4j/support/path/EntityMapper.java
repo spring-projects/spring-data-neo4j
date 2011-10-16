@@ -19,29 +19,29 @@ package org.springframework.data.neo4j.support.path;
 import org.neo4j.graphdb.Path;
 import org.springframework.data.neo4j.core.EntityPath;
 
-import org.springframework.data.neo4j.support.GraphDatabaseContext;
+import org.springframework.data.neo4j.support.Neo4jTemplate;
 
 /**
  * @author mh
  * @since 26.02.11
  */
 public abstract class EntityMapper<S, E, T> implements PathMapper<T> {
-    private GraphDatabaseContext graphDatabaseContext;
+    private Neo4jTemplate template;
 
-    protected EntityMapper(GraphDatabaseContext graphDatabaseContext) {
-        this.graphDatabaseContext = graphDatabaseContext;
+    protected EntityMapper(Neo4jTemplate template) {
+        this.template = template;
     }
 
     public abstract T mapPath(EntityPath<S,E> entityPath);
 
     @Override
     public T mapPath(Path path) {
-        return mapPath(new ConvertingEntityPath<S,E>(graphDatabaseContext, path));
+        return mapPath(new ConvertingEntityPath<S,E>(template, path));
     }
 
     public abstract static class WithoutResult<S,E> extends EntityMapper<S,E,Void> {
-        protected WithoutResult(GraphDatabaseContext graphDatabaseContext) {
-            super(graphDatabaseContext);
+        protected WithoutResult(Neo4jTemplate template) {
+            super(template);
         }
 
         @Override

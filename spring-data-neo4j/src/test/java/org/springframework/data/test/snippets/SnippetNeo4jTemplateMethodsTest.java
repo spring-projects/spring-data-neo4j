@@ -24,14 +24,12 @@ import org.neo4j.graphdb.RelationshipType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.neo4j.conversion.ResultConverter;
 import org.springframework.data.neo4j.core.GraphDatabase;
+import org.springframework.data.neo4j.support.Neo4jTemplate;
 import org.springframework.data.neo4j.template.Neo4jOperations;
-import org.springframework.data.neo4j.template.Neo4jTemplate;
 import org.springframework.data.test.DocumentingTestBase;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Arrays;
 
 import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
@@ -57,7 +55,8 @@ public class SnippetNeo4jTemplateMethodsTest extends DocumentingTestBase {
         snippet = "template";
 
         // SNIPPET template
-        Neo4jOperations neo = new Neo4jTemplate(graphDatabase);
+        // TODO auto-post-construct !!
+        Neo4jOperations neo = new Neo4jTemplate(graphDatabase).postConstruct();
 
         Node mark = neo.createNode(map("name", "Mark"));
         Node thomas = neo.createNode(map("name", "Thomas"));

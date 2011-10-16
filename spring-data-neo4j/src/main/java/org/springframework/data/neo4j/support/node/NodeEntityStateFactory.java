@@ -23,11 +23,11 @@ import org.springframework.data.neo4j.fieldaccess.DelegatingFieldAccessorFactory
 import org.springframework.data.neo4j.fieldaccess.DetachedEntityState;
 import org.springframework.data.neo4j.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentEntity;
-import org.springframework.data.neo4j.support.GraphDatabaseContext;
+import org.springframework.data.neo4j.support.Neo4jTemplate;
 
 public class NodeEntityStateFactory implements EntityStateFactory<Node> {
 
-	protected GraphDatabaseContext graphDatabaseContext;
+	protected Neo4jTemplate template;
 
     protected DelegatingFieldAccessorFactory nodeDelegatingFieldAccessorFactory;
 
@@ -37,12 +37,12 @@ public class NodeEntityStateFactory implements EntityStateFactory<Node> {
         final Class<?> entityType = entity.getClass();
         @SuppressWarnings("unchecked") final Neo4jPersistentEntity<Object> persistentEntity =
                 (Neo4jPersistentEntity<Object>) mappingContext.getPersistentEntity(entityType);
-        NodeEntityState nodeEntityState = new NodeEntityState(null, entity, entityType, graphDatabaseContext,
+        NodeEntityState nodeEntityState = new NodeEntityState(null, entity, entityType, template,
                 nodeDelegatingFieldAccessorFactory, persistentEntity);
         if (!detachable) {
             return nodeEntityState;
         }
-        return new DetachedEntityState<Node>(nodeEntityState, graphDatabaseContext);
+        return new DetachedEntityState<Node>(nodeEntityState, template);
     }
 
     public void setNodeDelegatingFieldAccessorFactory(
@@ -50,8 +50,8 @@ public class NodeEntityStateFactory implements EntityStateFactory<Node> {
 		this.nodeDelegatingFieldAccessorFactory = nodeDelegatingFieldAccessorFactory;
 	}
 	
-	public void setGraphDatabaseContext(GraphDatabaseContext graphDatabaseContext) {
-		this.graphDatabaseContext = graphDatabaseContext;
+	public void setTemplate(Neo4jTemplate template) {
+		this.template = template;
 	}
 
     public Neo4jMappingContext getMappingContext() {
@@ -62,8 +62,8 @@ public class NodeEntityStateFactory implements EntityStateFactory<Node> {
         this.mappingContext = mappingContext;
     }
 
-    public GraphDatabaseContext getGraphDatabaseContext() {
-        return graphDatabaseContext;
+    public Neo4jTemplate getTemplate() {
+        return template;
     }
 
 }

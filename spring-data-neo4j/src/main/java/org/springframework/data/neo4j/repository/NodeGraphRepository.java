@@ -19,28 +19,28 @@ package org.springframework.data.neo4j.repository;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.traversal.TraversalDescription;
 
-import org.springframework.data.neo4j.support.GraphDatabaseContext;
+import org.springframework.data.neo4j.support.Neo4jTemplate;
 
 public class NodeGraphRepository<T> extends AbstractGraphRepository<Node, T> implements GraphRepository<T> {
 
-    public NodeGraphRepository(final Class<T> clazz, final GraphDatabaseContext graphDatabaseContext) {
-        super(graphDatabaseContext, clazz);
+    public NodeGraphRepository(final Class<T> clazz, final Neo4jTemplate template) {
+        super(template, clazz);
     }
 
     @Override
     protected Node getById(long id) {
-        return graphDatabaseContext.getNodeById(id);
+        return template.getNodeById(id);
     }
 
     @Override
     public <N> Iterable<T> findAllByTraversal(final N start, final TraversalDescription traversalDescription) {
-        return graphDatabaseContext.findAllByTraversal(start, clazz, traversalDescription);
+        return template.findAllByTraversal(start, clazz, traversalDescription);
     }
 
     @SuppressWarnings("unchecked")
     @Override
     public T save(T entity) {
-        return (T)graphDatabaseContext.save(entity);
+        return (T) template.save(entity);
     }
 
     @SuppressWarnings("unchecked")

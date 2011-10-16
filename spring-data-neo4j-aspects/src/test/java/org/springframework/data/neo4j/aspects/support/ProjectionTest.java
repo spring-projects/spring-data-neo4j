@@ -37,7 +37,7 @@ public class ProjectionTest extends EntityTestBase {
         Group group = persist(new Group());
         group.setName("developers");
 
-        Named named = graphDatabaseContext.projectTo(group,Named.class);
+        Named named = neo4jTemplate.projectTo(group,Named.class);
         assertEquals("named.name","developers", named.getName());
         assertEquals("nameds node name property","developers", getNodeState(named).getProperty("name"));
     }

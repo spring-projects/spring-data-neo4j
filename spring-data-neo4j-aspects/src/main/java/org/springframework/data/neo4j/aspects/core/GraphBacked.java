@@ -42,7 +42,7 @@ public interface GraphBacked<STATE,ENTITY extends GraphBacked<STATE,ENTITY>> ext
     boolean hasPersistentState();
 
     /**
-     * removes the entity using @{link GraphDatabaseContext.removeNodeEntity}
+     * removes the entity using @{link Neo4jTemplate.removeNodeEntity}
      * the entity and relationship are still accessible after removal but before transaction commit
      * but all modifications will throw an exception
      */
