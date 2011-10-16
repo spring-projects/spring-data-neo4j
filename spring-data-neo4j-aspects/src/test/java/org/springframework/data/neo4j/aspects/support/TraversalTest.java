@@ -16,8 +16,6 @@
 
 package org.springframework.data.neo4j.aspects.support;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.neo4j.graphdb.Direction;
@@ -28,17 +26,12 @@ import org.neo4j.graphdb.traversal.TraversalDescription;
 import org.neo4j.helpers.collection.IteratorUtil;
 import org.neo4j.kernel.Traversal;
 import org.neo4j.kernel.impl.traversal.TraversalDescriptionImpl;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.neo4j.aspects.Group;
 import org.springframework.data.neo4j.aspects.Person;
 import org.springframework.data.neo4j.core.EntityPath;
-import org.springframework.data.neo4j.repository.DirectGraphRepositoryFactory;
 import org.springframework.data.neo4j.repository.GraphRepository;
-import org.springframework.data.neo4j.support.GraphDatabaseContext;
-import org.springframework.data.neo4j.support.node.Neo4jHelper;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.springframework.test.context.transaction.BeforeTransaction;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
@@ -52,12 +45,6 @@ import static org.springframework.data.neo4j.aspects.Person.persistedPerson;
 
 public class TraversalTest extends EntityTestBase {
 
-	protected final Log log = LogFactory.getLog(getClass());
-
-	@Autowired
-	private DirectGraphRepositoryFactory graphRepositoryFactory;
-
-
     @Test
     @Transactional
     public void testTraverseFromGroupToPeople() {
@@ -66,13 +53,14 @@ public class TraversalTest extends EntityTestBase {
         group.setName("dev");
         group.addPerson(p);
         final TraversalDescription traversalDescription = Traversal.description().relationships(DynamicRelationshipType.withName("persons")).evaluator(Evaluators.excludeStartPosition());
-        Iterable<Person> people = (Iterable<Person>) group.findAllByTraversal(Person.class, traversalDescription);
+        Iterable<Person> people = graphDatabaseContext.<Person>findAllByTraversal(group,Person.class, traversalDescription);
         final HashSet<Person> found = new HashSet<Person>();
         for (Person person : people) {
             found.add(person);
         }
         assertEquals(Collections.singleton(p),found);
     }
+    @SuppressWarnings("unchecked")
     @Test
     @Transactional
     public void testTraverseFromGroupToPeoplePaths() {
@@ -81,7 +69,7 @@ public class TraversalTest extends EntityTestBase {
         group.setName("dev");
         group.addPerson(p);
         final TraversalDescription traversalDescription = Traversal.description().relationships(DynamicRelationshipType.withName("persons"), Direction.OUTGOING).evaluator(Evaluators.excludeStartPosition());
-        Iterable<EntityPath<Group,Person>> paths = group.<Group,Person>findAllPathsByTraversal(traversalDescription);
+        Iterable<EntityPath<Group,Person>> paths = graphDatabaseContext.<EntityPath<Group,Person>>findAllByTraversal(group, EntityPath.class, traversalDescription);
         for (EntityPath<Group, Person> path : paths) {
             assertEquals(group, path.startEntity());
             assertEquals(p, path.endEntity());

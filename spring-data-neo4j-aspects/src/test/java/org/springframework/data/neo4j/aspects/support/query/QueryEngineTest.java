@@ -28,18 +28,15 @@ import org.springframework.data.neo4j.annotation.QueryType;
 import org.springframework.data.neo4j.aspects.Person;
 import org.springframework.data.neo4j.aspects.Personality;
 import org.springframework.data.neo4j.aspects.support.EntityTestBase;
-import org.springframework.data.neo4j.aspects.support.TestTeam;
 import org.springframework.data.neo4j.conversion.QueryResult;
 import org.springframework.data.neo4j.conversion.ResultConverter;
 import org.springframework.data.neo4j.core.GraphDatabase;
 import org.springframework.data.neo4j.support.DelegatingGraphDatabase;
 import org.springframework.data.neo4j.support.GraphDatabaseContext;
 import org.springframework.data.neo4j.support.conversion.EntityResultConverter;
-import org.springframework.data.neo4j.support.node.Neo4jHelper;
 import org.springframework.data.neo4j.support.query.QueryEngine;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.springframework.test.context.transaction.BeforeTransaction;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
@@ -62,22 +59,14 @@ public class QueryEngineTest extends EntityTestBase {
     @Autowired
     private GraphDatabaseContext graphDatabaseContext;
     private QueryEngine<Map<String,Object>> queryEngine;
-    private TestTeam testTeam;
     private Person michael;
-    private GraphDatabase graphDatabase;
 
     @Before
     public void setUp() throws Exception {
-        graphDatabase = createGraphDatabase();
-        testTeam = new TestTeam();
+        GraphDatabase graphDatabase = createGraphDatabase();
         testTeam.createSDGTeam();
         queryEngine = graphDatabase.queryEngineFor(QueryType.Cypher);
         michael = testTeam.michael;
-    }
-
-    @BeforeTransaction
-    public void cleanDb() {
-        Neo4jHelper.cleanDb(graphDatabaseContext);
     }
 
     protected GraphDatabase createGraphDatabase() throws Exception {
@@ -86,6 +75,7 @@ public class QueryEngineTest extends EntityTestBase {
         return graphDatabase;
     }
 
+    @SuppressWarnings("unchecked")
     @Test
     public void testQueryList() throws Exception {
         final String queryString = "start person=node({people}) return person.name, person.age";

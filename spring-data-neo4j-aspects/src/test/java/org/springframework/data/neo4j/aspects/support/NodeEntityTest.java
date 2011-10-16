@@ -16,24 +16,16 @@
 
 package org.springframework.data.neo4j.aspects.support;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.neo4j.graphdb.NotFoundException;
 import org.neo4j.graphdb.Transaction;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.neo4j.aspects.Attribute;
 import org.springframework.data.neo4j.aspects.Group;
 import org.springframework.data.neo4j.aspects.Person;
-import org.springframework.data.neo4j.aspects.PersonRepository;
-import org.springframework.data.neo4j.repository.DirectGraphRepositoryFactory;
-import org.springframework.data.neo4j.support.GraphDatabaseContext;
-import org.springframework.data.neo4j.support.node.Neo4jHelper;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.springframework.test.context.transaction.BeforeTransaction;
 import org.springframework.transaction.annotation.Transactional;
 
 import static org.junit.Assert.assertEquals;
@@ -42,20 +34,7 @@ import static org.springframework.data.neo4j.aspects.Person.persistedPerson;
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = {"classpath:org/springframework/data/neo4j/aspects/support/Neo4jGraphPersistenceTest-context.xml"})
 
-    public class NodeEntityTest extends EntityTestBase {
-
-	protected final Log log = LogFactory.getLog(getClass());
-
-	@Autowired
-	private DirectGraphRepositoryFactory graphRepositoryFactory;
-
-	@Autowired
-	private PersonRepository personRepository;
-
-    @BeforeTransaction
-    public void cleanDb() {
-        super.cleanDb();
-    }
+public class NodeEntityTest extends EntityTestBase {
 
     @Test
     @Transactional
@@ -123,7 +102,7 @@ import static org.springframework.data.neo4j.aspects.Person.persistedPerson;
         Person spouse = persistedPerson("Tina", 36);
         p.setSpouse(spouse);
         long id = spouse.getId();
-        spouse.remove();
+        graphDatabaseContext.remove(spouse);
         tx.success();
         tx.finish();
         Assert.assertNull("spouse removed " + p.getSpouse(), p.getSpouse());

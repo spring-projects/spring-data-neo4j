@@ -20,9 +20,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.neo4j.helpers.collection.IteratorUtil;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.neo4j.aspects.Person;
-import org.springframework.data.neo4j.support.GraphDatabaseContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
@@ -42,18 +40,17 @@ import static org.junit.internal.matchers.IsCollectionContaining.hasItems;
 @ContextConfiguration(locations = {"classpath:org/springframework/data/neo4j/aspects/support/Neo4jGraphPersistenceTest-context.xml"})
 @Transactional
 public class NodeEntityQueryTest extends EntityTestBase {
-    @Autowired
-    GraphDatabaseContext graphDatabaseContext;
     private TestTeam testTeam;
     private Person michael;
 
     @Before
     public void setUp() throws Exception {
-        testTeam = new TestTeam();
+        testTeam = new TestTeam(graphDatabaseContext);
         testTeam.createSDGTeam();
         michael = testTeam.michael;
     }
 
+    @SuppressWarnings("unchecked")
     @Test
     @Transactional
     public void testQueryVariableRelationshipSingleResult() throws Exception {

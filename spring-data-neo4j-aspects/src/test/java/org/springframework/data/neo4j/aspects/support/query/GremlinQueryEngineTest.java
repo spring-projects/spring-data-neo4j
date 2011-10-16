@@ -21,20 +21,14 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.neo4j.helpers.collection.IteratorUtil;
 import org.neo4j.helpers.collection.MapUtil;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.convert.ConversionService;
 import org.springframework.data.neo4j.annotation.QueryType;
 import org.springframework.data.neo4j.aspects.Person;
 import org.springframework.data.neo4j.aspects.support.EntityTestBase;
-import org.springframework.data.neo4j.aspects.support.TestTeam;
 import org.springframework.data.neo4j.core.GraphDatabase;
 import org.springframework.data.neo4j.support.DelegatingGraphDatabase;
-import org.springframework.data.neo4j.support.GraphDatabaseContext;
-import org.springframework.data.neo4j.support.node.Neo4jHelper;
 import org.springframework.data.neo4j.support.query.QueryEngine;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.springframework.test.context.transaction.BeforeTransaction;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
@@ -51,26 +45,15 @@ import static org.junit.Assert.assertEquals;
 @ContextConfiguration(locations = {"classpath:org/springframework/data/neo4j/aspects/support/Neo4jGraphPersistenceTest-context.xml"})
 @Transactional
 public class GremlinQueryEngineTest extends EntityTestBase {
-    @Autowired
-    protected ConversionService conversionService;
-    @Autowired
-    private GraphDatabaseContext graphDatabaseContext;
     private QueryEngine<Object> queryEngine;
-    private TestTeam testTeam;
     private Person michael;
 
     @Before
     public void setUp() throws Exception {
         GraphDatabase graphDatabase = createGraphDatabase();
-        testTeam = new TestTeam();
         testTeam.createSDGTeam();
         queryEngine = graphDatabase.queryEngineFor(QueryType.Gremlin);
         michael = testTeam.michael;
-    }
-
-    @BeforeTransaction
-    public void cleanDb() {
-        Neo4jHelper.cleanDb(graphDatabaseContext);
     }
 
     protected GraphDatabase createGraphDatabase() throws Exception {

@@ -16,8 +16,6 @@
 
 package org.springframework.data.neo4j.aspects.support.typerepresentation;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -33,17 +31,13 @@ import org.springframework.data.neo4j.aspects.Person;
 import org.springframework.data.neo4j.aspects.Toyota;
 import org.springframework.data.neo4j.aspects.Volvo;
 import org.springframework.data.neo4j.aspects.support.EntityTestBase;
-import org.springframework.data.neo4j.repository.DirectGraphRepositoryFactory;
 import org.springframework.data.neo4j.repository.GraphRepository;
-import org.springframework.data.neo4j.support.GraphDatabaseContext;
-import org.springframework.data.neo4j.support.node.Neo4jHelper;
 import org.springframework.data.neo4j.support.typerepresentation.SubReferenceNodeTypeRepresentationStrategy;
 import org.springframework.test.context.CleanContextCacheTestExecutionListener;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestExecutionListeners;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
-import org.springframework.test.context.transaction.BeforeTransaction;
 import org.springframework.test.context.transaction.TransactionalTestExecutionListener;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -64,24 +58,12 @@ import static org.springframework.data.neo4j.aspects.Person.persistedPerson;
 @TestExecutionListeners({CleanContextCacheTestExecutionListener.class, DependencyInjectionTestExecutionListener.class, TransactionalTestExecutionListener.class})
 public class SubReferenceNodeTypeRepresentationStrategyTest extends EntityTestBase {
 
-    protected final Log log = LogFactory.getLog(getClass());
-
-    @Autowired
-    GraphDatabaseContext graphDatabaseContext;
-    @Autowired
-    private DirectGraphRepositoryFactory graphRepositoryFactory;
 	@Autowired
     private SubReferenceNodeTypeRepresentationStrategy nodeTypeRepresentationStrategy;
     private Node thingNode;
     private Thing thing;
     private SubThing subThing;
     private Node subThingNode;
-
-
-    @BeforeTransaction
-    public void cleanDb() {
-        Neo4jHelper.cleanDb(graphDatabaseContext);
-    }
 
     @Before
     public void setUp() {

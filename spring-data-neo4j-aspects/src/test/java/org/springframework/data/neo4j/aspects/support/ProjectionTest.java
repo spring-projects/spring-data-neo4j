@@ -16,19 +16,12 @@
 
 package org.springframework.data.neo4j.aspects.support;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.neo4j.aspects.Group;
 import org.springframework.data.neo4j.aspects.Named;
-import org.springframework.data.neo4j.repository.DirectGraphRepositoryFactory;
-import org.springframework.data.neo4j.support.GraphDatabaseContext;
-import org.springframework.data.neo4j.support.node.Neo4jHelper;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.springframework.test.context.transaction.BeforeTransaction;
 import org.springframework.transaction.annotation.Transactional;
 
 import static org.junit.Assert.assertEquals;
@@ -38,26 +31,13 @@ import static org.junit.Assert.assertEquals;
 
 public class ProjectionTest extends EntityTestBase {
 
-	protected final Log log = LogFactory.getLog(getClass());
-
-	@Autowired
-	private GraphDatabaseContext graphDatabaseContext;
-
-	@Autowired
-	private DirectGraphRepositoryFactory graphRepositoryFactory;
-
-    @BeforeTransaction
-    public void cleanDb() {
-        Neo4jHelper.cleanDb(graphDatabaseContext);
-    }
-
     @Test
     @Transactional
     public void testProjectGroupToNamed() {
         Group group = persist(new Group());
         group.setName("developers");
 
-        Named named = (Named)group.projectTo(Named.class);
+        Named named = graphDatabaseContext.projectTo(group,Named.class);
         assertEquals("named.name","developers", named.getName());
         assertEquals("nameds node name property","developers", getNodeState(named).getProperty("name"));
     }

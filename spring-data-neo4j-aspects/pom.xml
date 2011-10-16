@@ -44,6 +44,11 @@
 		<dependency>
 			<groupId>org.springframework.data</groupId>
 			<artifactId>spring-data-neo4j</artifactId>
+            <type>test-jar</type>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.data</groupId>
+			<artifactId>spring-data-neo4j</artifactId>
             <version>${project.version}</version>
             <type>test-jar</type>
 		</dependency>
@@ -235,6 +240,8 @@
 					</execution>
 				</executions>
 				<configuration>
+                    <weaveDependencies>
+                    </weaveDependencies>
 					<outxml>true</outxml>
 					<aspectLibraries>
 						<aspectLibrary>

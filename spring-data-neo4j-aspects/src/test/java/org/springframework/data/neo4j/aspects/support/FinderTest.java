@@ -16,21 +16,17 @@
 
 package org.springframework.data.neo4j.aspects.support;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.neo4j.helpers.collection.IteratorUtil;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.neo4j.aspects.*;
-import org.springframework.data.neo4j.support.GraphDatabaseContext;
-import org.springframework.data.neo4j.support.node.Neo4jHelper;
+import org.springframework.data.neo4j.aspects.Friendship;
+import org.springframework.data.neo4j.aspects.Group;
+import org.springframework.data.neo4j.aspects.Person;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.springframework.test.context.transaction.BeforeTransaction;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
@@ -47,23 +43,6 @@ import static org.springframework.data.neo4j.aspects.Person.persistedPerson;
 @ContextConfiguration(locations = {"classpath:org/springframework/data/neo4j/aspects/support/Neo4jGraphPersistenceTest-context.xml"})
 public class FinderTest extends EntityTestBase {
 
-	protected final Log log = LogFactory.getLog(getClass());
-
-	@Autowired
-	private GraphDatabaseContext graphDatabaseContext;
-
-    @Autowired
-    private PersonRepository personRepository;
-    @Autowired
-    private GroupRepository groupRepository;
-    @Autowired
-    private FriendshipRepository friendshipRepository;
-
-    @BeforeTransaction
-    public void cleanDb() {
-        Neo4jHelper.cleanDb(graphDatabaseContext);
-    }
-
     @Test
     @Transactional
     public void testFinderFindAll() {
@@ -76,7 +55,6 @@ public class FinderTest extends EntityTestBase {
     @Test
     @Transactional
     public void testFindIterableOfPersonWithQueryAnnotation() {
-        final TestTeam testTeam = new TestTeam();
         testTeam.createSDGTeam();
         Iterable<Person> teamMembers = personRepository.findAllTeamMembers(testTeam.sdg);
         assertThat(asCollection(teamMembers), hasItems(testTeam.michael,testTeam.david,testTeam.emil));
@@ -85,7 +63,6 @@ public class FinderTest extends EntityTestBase {
     @Test
     @Transactional
     public void testFindPersonWithQueryAnnotation() {
-        final TestTeam testTeam = new TestTeam();
         testTeam.createSDGTeam();
         Person boss = personRepository.findBoss(testTeam.michael);
         assertThat(boss, is(testTeam.emil));
@@ -94,7 +71,7 @@ public class FinderTest extends EntityTestBase {
     @Test
     @Transactional
     public void testFindIterableMapsWithQueryAnnotation() {
-        final TestTeam testTeam = new TestTeam();
+        final TestTeam testTeam = new TestTeam(graphDatabaseContext);
         testTeam.createSDGTeam();
         Iterable<Map<String,Object>> teamMembers = personRepository.findAllTeamMemberData(testTeam.sdg);
         assertThat(asCollection(teamMembers), hasItems(testTeam.simpleRowFor(testTeam.michael,"member"),testTeam.simpleRowFor(testTeam.david,"member"),testTeam.simpleRowFor(testTeam.emil,"member")));
@@ -103,7 +80,7 @@ public class FinderTest extends EntityTestBase {
     @Test
     @Transactional
     public void testFindByNamedQuery() {
-        final TestTeam testTeam = new TestTeam();
+        final TestTeam testTeam = new TestTeam(graphDatabaseContext);
         testTeam.createSDGTeam();
         Group team = personRepository.findTeam(testTeam.michael);
         assertThat(team, is(testTeam.sdg));

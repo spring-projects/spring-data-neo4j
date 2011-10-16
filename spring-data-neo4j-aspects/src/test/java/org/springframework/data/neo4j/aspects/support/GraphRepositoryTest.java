@@ -16,26 +16,19 @@
 
 package org.springframework.data.neo4j.aspects.support;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.neo4j.aspects.Group;
 import org.springframework.data.neo4j.aspects.Person;
-import org.springframework.data.neo4j.aspects.PersonRepository;
-import org.springframework.data.neo4j.support.GraphDatabaseContext;
-import org.springframework.data.neo4j.support.node.Neo4jHelper;
 import org.springframework.test.context.CleanContextCacheTestExecutionListener;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestExecutionListeners;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
-import org.springframework.test.context.transaction.BeforeTransaction;
 import org.springframework.test.context.transaction.TransactionalTestExecutionListener;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -56,22 +49,8 @@ import static org.neo4j.helpers.collection.IteratorUtil.asCollection;
 @TestExecutionListeners({CleanContextCacheTestExecutionListener.class, DependencyInjectionTestExecutionListener.class, TransactionalTestExecutionListener.class})
 public class GraphRepositoryTest extends EntityTestBase {
 
-	protected final Log log = LogFactory.getLog(getClass());
-
-	@Autowired
-	private GraphDatabaseContext graphDatabaseContext;
-
-    @Autowired
-    private PersonRepository personRepository;
-    private TestTeam testTeam;
-
-    @BeforeTransaction
-    public void cleanDb() {
-        Neo4jHelper.cleanDb(graphDatabaseContext);
-    }
     @Before
     public void setUp() throws Exception {
-        testTeam = new TestTeam();
         testTeam.createSDGTeam();
     }
 
@@ -94,6 +73,7 @@ public class GraphRepositoryTest extends EntityTestBase {
         Person boss = personRepository.findBoss(testTeam.michael);
         assertThat(boss, is(testTeam.emil));
     }
+    @SuppressWarnings("unchecked")
     @Test
     @Transactional
     public void testFindIterableMapsWithQueryAnnotation() {
@@ -116,6 +96,7 @@ public class GraphRepositoryTest extends EntityTestBase {
         assertEquals(asList(testTeam.michael, testTeam.emil), asCollection(teamMemberPage1));
         assertThat(teamMemberPage1.isFirstPage(), is(true));
     }
+    @SuppressWarnings("unchecked")
     @Test
     @Transactional
     public void testFindPagedNull() {
