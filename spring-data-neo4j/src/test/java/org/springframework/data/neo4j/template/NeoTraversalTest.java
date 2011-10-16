@@ -23,7 +23,7 @@ import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.graphdb.traversal.TraversalDescription;
 import org.neo4j.kernel.Traversal;
 import org.springframework.data.neo4j.conversion.Handler;
-import org.springframework.data.neo4j.conversion.QueryResult;
+import org.springframework.data.neo4j.conversion.Result;
 import org.springframework.data.neo4j.core.GraphDatabase;
 
 import java.util.HashSet;
@@ -52,7 +52,7 @@ public class NeoTraversalTest extends NeoApiTest {
 
         final Set<String> resultSet = new HashSet<String>();
         @SuppressWarnings("deprecation") final TraversalDescription description = Traversal.description().relationships(HAS).filter(returnAllButStartNode()).prune(Traversal.pruneAfterDepth(2));
-        final QueryResult<Path> queryResult = template.traverse(template.getReferenceNode(), description);
+        final Result<Path> queryResult = template.traverse(template.getReferenceNode(), description);
         queryResult.handle(new Handler<Path>() {
             @Override
             public void handle(Path value) {

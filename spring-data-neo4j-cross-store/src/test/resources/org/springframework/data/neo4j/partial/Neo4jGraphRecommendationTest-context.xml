@@ -146,10 +146,6 @@
     </bean>
     
 
-	<bean id="graphRepositoryFactory" class="org.springframework.data.neo4j.repository.DirectGraphRepositoryFactory">
-		<constructor-arg ref="graphDatabaseContext" />
-	</bean>
-	
     <bean id="transactionManager" class="org.springframework.data.neo4j.transaction.ChainedTransactionManager" >
 		<constructor-arg>
             <list>

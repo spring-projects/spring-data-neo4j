@@ -17,10 +17,8 @@
 package org.springframework.data.neo4j.support.conversion;
 
 import org.springframework.core.convert.ConversionService;
-import org.springframework.data.neo4j.core.EntityPath;
-
-
 import org.springframework.data.neo4j.conversion.DefaultConverter;
+import org.springframework.data.neo4j.core.EntityPath;
 import org.springframework.data.neo4j.support.GraphDatabaseContext;
 import org.springframework.data.neo4j.support.path.ConvertingEntityPath;
 
@@ -41,10 +39,10 @@ public class EntityResultConverter<T,R> extends DefaultConverter<T,R> {
     @Override
     protected Object doConvert(Object value, Class<?> sourceType, Class targetType) {
         if (ctx.isNodeEntity(targetType)) {
-            return ctx.createEntityFromState(toNode(value,sourceType),targetType);
+            return ctx.projectTo(toNode(value,sourceType),targetType);
         }
         if (ctx.isRelationshipEntity(targetType)) {
-            return ctx.createEntityFromState(toRelationship(value,sourceType),targetType);
+            return ctx.projectTo(toRelationship(value,sourceType),targetType);
         }
         if (EntityPath.class.isAssignableFrom(targetType)) {
             return new ConvertingEntityPath(ctx,toPath(value,sourceType));

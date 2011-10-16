@@ -23,7 +23,7 @@ import org.neo4j.cypher.javacompat.ExecutionResult;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.springframework.dao.InvalidDataAccessResourceUsageException;
 import org.springframework.data.neo4j.conversion.DefaultConverter;
-import org.springframework.data.neo4j.conversion.QueryResult;
+import org.springframework.data.neo4j.conversion.Result;
 import org.springframework.data.neo4j.conversion.QueryResultBuilder;
 import org.springframework.data.neo4j.conversion.ResultConverter;
 
@@ -47,7 +47,7 @@ public class CypherQueryEngine implements QueryEngine<Map<String,Object>> {
 
     @SuppressWarnings("unchecked")
     @Override
-    public QueryResult<Map<String, Object>> query(String statement, Map<String, Object> params) {
+    public Result<Map<String, Object>> query(String statement, Map<String, Object> params) {
         try {
             ExecutionResult result = parseAndExecuteQuery(statement,params);
             return new QueryResultBuilder<Map<String,Object>>(result,resultConverter);

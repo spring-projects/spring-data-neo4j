@@ -108,4 +108,12 @@ public class TypeRepresentationStrategies implements TypeRepresentationStrategy<
     public <U> U projectEntity(PropertyContainer state, Class<U> type) {
         return getTypeRepresentationStrategy(state).projectEntity(state, type);
     }
+
+    public TypeRepresentationStrategy<Node> getNodeTypeRepresentationStrategy() {
+        return nodeTypeRepresentationStrategy;
+    }
+
+    public TypeRepresentationStrategy<Relationship> getRelationshipTypeRepresentationStrategy() {
+        return relationshipTypeRepresentationStrategy;
+    }
 }

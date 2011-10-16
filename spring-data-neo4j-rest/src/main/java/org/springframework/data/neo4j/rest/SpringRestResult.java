@@ -17,30 +17,36 @@ package org.springframework.data.neo4j.rest;
 
 import org.neo4j.rest.graphdb.util.ConvertedResult;
 import org.neo4j.rest.graphdb.util.ResultConverter;
+import org.springframework.data.neo4j.conversion.EndResult;
+import org.springframework.data.neo4j.conversion.Result;
 
 import java.util.Iterator;
 
 
-class SpringRestQueryResult<T> implements org.springframework.data.neo4j.conversion.QueryResult<T> {
+class SpringRestResult<T> implements Result<T> {
+    org.neo4j.rest.graphdb.util.QueryResult<T> queryResult;
 
-    @Override
-    public <R> org.springframework.data.neo4j.conversion.ConvertedResult<R> to(final Class<R> type) {
-        return new SpringConvertedResult<R>(queryResult.to(type));
+    SpringRestResult(org.neo4j.rest.graphdb.util.QueryResult<T> queryResult) {
+        this.queryResult = queryResult;
     }
 
-    public <R> org.springframework.data.neo4j.conversion.ConvertedResult<R> to(Class<R> type, final org.springframework.data.neo4j.conversion.ResultConverter<T, R> trResultConverter) {
+    @Override
+    public <R> EndResult<R> to(final Class<R> type) {
+        return new SpringEndResult<R>(queryResult.to(type));
+    }
 
+    public <R> EndResult<R> to(Class<R> type, final org.springframework.data.neo4j.conversion.ResultConverter<T, R> converter) {
         ConvertedResult<R> result = queryResult.to(type, new ResultConverter<T, R>() {
             @Override
             public R convert(T value, Class<R> type) {
-                return trResultConverter.convert(value,type);
+                return converter.convert(value,type);
             }
         });
-        return new SpringConvertedResult<R>(result);
+        return new SpringEndResult<R>(result);
     }
 
-    public void handle(org.springframework.data.neo4j.conversion.Handler<T> tHandler) {
-        queryResult.handle(new SpringHandler<T>(tHandler));
+    public void handle(org.springframework.data.neo4j.conversion.Handler<T> handler) {
+        queryResult.handle(new SpringHandler<T>(handler));
     }
 
     @Override
@@ -48,11 +54,11 @@ class SpringRestQueryResult<T> implements org.springframework.data.neo4j.convers
         return queryResult.iterator();
     }
 
-    SpringRestQueryResult(org.neo4j.rest.graphdb.util.QueryResult<T> queryResult) {
-        this.queryResult = queryResult;
+
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public T single() {
+       return (T) to(Object.class).single();
     }
-
-    org.neo4j.rest.graphdb.util.QueryResult<T> queryResult;
-
-
 }

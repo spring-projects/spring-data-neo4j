@@ -22,7 +22,6 @@ import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.kernel.EmbeddedGraphDatabase;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.data.neo4j.repository.DirectGraphRepositoryFactory;
 import org.springframework.data.neo4j.support.GraphDatabaseContext;
 import org.springframework.transaction.PlatformTransactionManager;
 
@@ -36,8 +35,6 @@ public class DataGraphNamespaceHandlerCrossStoreTest {
     static class Config {
         @Autowired
         GraphDatabaseService graphDatabaseService;
-        @Autowired
-        DirectGraphRepositoryFactory graphRepositoryFactory;
         @Autowired
         GraphDatabaseContext graphDatabaseContext;
         @Autowired
@@ -56,7 +53,6 @@ public class DataGraphNamespaceHandlerCrossStoreTest {
         Assert.assertNotNull("graphDatabaseContext", graphDatabaseContext);
         EmbeddedGraphDatabase graphDatabaseService = (EmbeddedGraphDatabase) graphDatabaseContext.getGraphDatabaseService();
         Assert.assertEquals("store-dir", "target/config-test", graphDatabaseService.getStoreDir());
-        Assert.assertNotNull("graphRepositoryFactory", config.graphRepositoryFactory);
         Assert.assertNotNull("graphDatabaseService", config.graphDatabaseService);
         Assert.assertNotNull("transactionManager", config.transactionManager);
         config.graphDatabaseService.shutdown();

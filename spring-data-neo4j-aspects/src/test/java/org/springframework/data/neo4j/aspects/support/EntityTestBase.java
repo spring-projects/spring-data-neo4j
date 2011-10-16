@@ -24,7 +24,6 @@ import org.springframework.core.convert.ConversionService;
 import org.springframework.data.neo4j.aspects.FriendshipRepository;
 import org.springframework.data.neo4j.aspects.GroupRepository;
 import org.springframework.data.neo4j.aspects.PersonRepository;
-import org.springframework.data.neo4j.repository.DirectGraphRepositoryFactory;
 import org.springframework.data.neo4j.support.GraphDatabaseContext;
 import org.springframework.data.neo4j.support.node.Neo4jHelper;
 import org.springframework.test.context.transaction.BeforeTransaction;
@@ -44,8 +43,6 @@ public class EntityTestBase {
     @Autowired protected ConversionService conversionService;
 
     @Autowired protected GraphDatabaseService graphDatabaseService;
-
-    @Autowired protected DirectGraphRepositoryFactory graphRepositoryFactory;
 
     @Autowired protected PersonRepository personRepository;
     @Autowired protected GroupRepository groupRepository;

@@ -16,7 +16,7 @@
 
 package org.springframework.data.neo4j.support.query;
 
-import org.springframework.data.neo4j.conversion.QueryResult;
+import org.springframework.data.neo4j.conversion.Result;
 
 import java.util.Map;
 
@@ -25,6 +25,6 @@ import java.util.Map;
  * @since 22.06.11
  */
 public interface QueryEngine<T> {
-    QueryResult<T> query(String statement, Map<String, Object> params);
+    Result<T> query(String statement, Map<String, Object> params);
 
 }

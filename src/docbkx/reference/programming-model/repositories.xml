@@ -201,8 +201,8 @@
         </para>
         <example>
             <title>Using GraphRepositories</title>
-            <programlisting language="java"><![CDATA[GraphRepository<Person> graphRepository = graphRepositoryFactory
-        .createGraphRepository(Person.class);
+            <programlisting language="java"><![CDATA[GraphRepository<Person> graphRepository = template
+        .repositoryFor(Person.class);
 
 Person michael = graphRepository.save(new Person("Michael", 36));
 

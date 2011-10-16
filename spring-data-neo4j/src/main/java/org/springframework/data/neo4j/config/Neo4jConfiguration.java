@@ -37,7 +37,6 @@ import org.springframework.data.neo4j.fieldaccess.Neo4jConversionServiceFactoryB
 import org.springframework.data.neo4j.fieldaccess.NodeDelegatingFieldAccessorFactory;
 import org.springframework.data.neo4j.fieldaccess.RelationshipDelegatingFieldAccessorFactory;
 import org.springframework.data.neo4j.mapping.*;
-import org.springframework.data.neo4j.repository.DirectGraphRepositoryFactory;
 import org.springframework.data.neo4j.support.DelegatingGraphDatabase;
 import org.springframework.data.neo4j.support.EntityInstantiator;
 import org.springframework.data.neo4j.support.EntityStateHandler;
@@ -96,6 +95,9 @@ public abstract class Neo4jConfiguration {
         gdc.setRelationshipEntityStateFactory(relationshipEntityStateFactory());
         gdc.setRelationshipTypeRepresentationStrategy(relationshipTypeRepresentationStrategy());
         gdc.setRelationshipEntityInstantiator(graphRelationshipInstantiator());
+
+        gdc.setTransactionManager(neo4jTransactionManager());
+        gdc.setGraphDatabase(graphDatabase());
 
         if (validator!=null) {
             gdc.setValidator(validator);
@@ -160,12 +162,6 @@ public abstract class Neo4jConfiguration {
 	protected EntityInstantiator<Node> graphEntityInstantiator() throws Exception {
 	   return new NodeEntityInstantiator(entityStateHandler());
 	}
-
-	@Bean
-	public DirectGraphRepositoryFactory directGraphRepositoryFactory() throws Exception {
-		return new DirectGraphRepositoryFactory(graphDatabaseContext());
-	}
-
 
     @Bean
     public Neo4jMappingContext mappingContext() {

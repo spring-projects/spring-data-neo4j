@@ -49,7 +49,7 @@
     public HelloWorldInitializer() {
         super(new String[]{"spring/helloWorldServer-Context.xml"},
               Pair.of("worldRepository", WorldRepository.class),
-              Pair.of("graphRepositoryFactory", GraphRepositoryFactory.class));
+              Pair.of("template", Neo4jTemplate.class));
     }
 }
 ]]></programlisting>

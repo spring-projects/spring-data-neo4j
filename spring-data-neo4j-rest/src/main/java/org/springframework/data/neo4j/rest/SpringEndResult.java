@@ -16,13 +16,14 @@
 package org.springframework.data.neo4j.rest;
 
 import org.neo4j.rest.graphdb.util.ConvertedResult;
+import org.springframework.data.neo4j.conversion.EndResult;
 
 import java.util.Iterator;
 
-class SpringConvertedResult<R> implements org.springframework.data.neo4j.conversion.ConvertedResult<R> {
+class SpringEndResult<R> implements EndResult<R> {
     private final ConvertedResult<R> result;
 
-    public SpringConvertedResult(ConvertedResult<R> result) {
+    public SpringEndResult(ConvertedResult<R> result) {
         this.result = result;
     }
 

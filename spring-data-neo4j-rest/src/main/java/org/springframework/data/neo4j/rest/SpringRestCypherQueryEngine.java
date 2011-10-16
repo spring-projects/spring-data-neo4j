@@ -31,8 +31,8 @@ public class SpringRestCypherQueryEngine implements QueryEngine<Map<String,Objec
     }
 
     @Override
-    public SpringRestQueryResult<Map<String,Object>> query(String statement, Map<String, Object> params) {
-        return new SpringRestQueryResult<Map<String, Object>>(restCypherQueryEngine.query(statement, params));
+    public SpringRestResult<Map<String,Object>> query(String statement, Map<String, Object> params) {
+        return new SpringRestResult<Map<String, Object>>(restCypherQueryEngine.query(statement, params));
     }
 
 }

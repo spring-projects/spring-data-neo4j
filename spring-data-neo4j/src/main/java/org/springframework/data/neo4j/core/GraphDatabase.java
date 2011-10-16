@@ -24,6 +24,7 @@ import org.neo4j.graphdb.index.Index;
 import org.neo4j.graphdb.traversal.TraversalDescription;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.data.neo4j.annotation.QueryType;
+import org.springframework.data.neo4j.conversion.ResultConverter;
 import org.springframework.data.neo4j.support.query.QueryEngine;
 
 import java.util.Map;
@@ -102,4 +103,6 @@ public interface GraphDatabase {
     <T> QueryEngine<T> queryEngineFor(QueryType type);
 
     void setConversionService(ConversionService conversionService);
+
+    <T> QueryEngine<T> queryEngineFor(QueryType type, ResultConverter resultConverter);
 }

@@ -38,24 +38,24 @@ public class ConvertingEntityPath<S,E> implements EntityPath<S,E> {
 
     @Override
     public <T> T startEntity(Class<T>... types) {
-        return createNodeEntityFromFirstParameterOrStoredType(startNode(), types);
+        return projectEntityToFirstParameterOrCreateFromStoredType(startNode(), types);
     }
 
-    private <T> T createNodeEntityFromFirstParameterOrStoredType(Node node, Class<T>...types) {
+    private <T> T projectEntityToFirstParameterOrCreateFromStoredType(Node node, Class<T>... types) {
         if (node==null) return null;
         if (types==null || types.length==0) return graphDatabaseContext.createEntityFromStoredType(node);
-        return graphDatabaseContext.createEntityFromState(node,types[0]);
+        return graphDatabaseContext.projectTo(node, types[0]);
     }
 
     @Override
     public <T> T endEntity(Class<T>... types) {
-        return createNodeEntityFromFirstParameterOrStoredType(endNode(),types);
+        return projectEntityToFirstParameterOrCreateFromStoredType(endNode(), types);
     }
     @Override
     public <T> T lastRelationshipEntity(Class<T>... types) {
         Relationship relationship = lastRelationship();
         if (relationship==null) return null;
-        return graphDatabaseContext.createEntityFromState(relationship, getFirstOrDefault((Class<T>) DefaultRelationshipBacked.class, types));
+        return graphDatabaseContext.projectTo(relationship, getFirstOrDefault((Class<T>) DefaultRelationshipBacked.class, types));
     }
 
     private static <T> T getFirstOrDefault(final T defaultValue, T... values) {
@@ -78,7 +78,7 @@ public class ConvertingEntityPath<S,E> implements EntityPath<S,E> {
         return new IterableWrapper<T,Relationship>(relationships()) {
             @Override
             protected T underlyingObjectToObject(Relationship relationship) {
-                return graphDatabaseContext.createEntityFromState(relationship, getFirstOrDefault((Class<T>)DefaultRelationshipBacked.class, relationships));
+                return graphDatabaseContext.projectTo(relationship, getFirstOrDefault((Class<T>) DefaultRelationshipBacked.class, relationships));
             }
         };
     }
@@ -88,7 +88,7 @@ public class ConvertingEntityPath<S,E> implements EntityPath<S,E> {
         return new IterableWrapper<T,PropertyContainer>(delegate) {
             @Override
             protected T underlyingObjectToObject(PropertyContainer element) {
-                return graphDatabaseContext.createEntityFromState(element, getFirstOrDefault((Class<T>)DefaultRelationshipBacked.class, relationships));
+                return graphDatabaseContext.projectTo(element, getFirstOrDefault((Class<T>) DefaultRelationshipBacked.class, relationships));
             }
         };
     }

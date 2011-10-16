@@ -31,8 +31,8 @@ public class SpringRestGremlinQueryEngine implements QueryEngine<Object> {
     }
 
     @Override
-    public SpringRestQueryResult<Object> query(String statement, Map<String, Object> params) {
-        return new SpringRestQueryResult<Object>(restGremlinQueryEngine.query(statement, params));
+    public SpringRestResult<Object> query(String statement, Map<String, Object> params) {
+        return new SpringRestResult<Object>(restGremlinQueryEngine.query(statement, params));
     }
 
 }

@@ -93,10 +93,6 @@
     	<property name="mappingContext" ref="mappingContext"/>
     </bean>
 
-	<bean id="graphRepositoryFactory" class="org.springframework.data.neo4j.repository.DirectGraphRepositoryFactory">
-		<constructor-arg ref="graphDatabaseContext" />
-	</bean>
-
     <!--bean id="transactionManager" class="org.springframework.transaction.jta.JtaTransactionManager">
         <property name="transactionManager">
             <bean class="org.neo4j.kernel.impl.transaction.SpringTransactionManager">

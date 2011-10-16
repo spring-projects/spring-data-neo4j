@@ -16,22 +16,16 @@
 
 package org.springframework.data.neo4j.aspects.support;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.NotInTransactionException;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.neo4j.aspects.Friendship;
 import org.springframework.data.neo4j.aspects.Group;
 import org.springframework.data.neo4j.aspects.Person;
-import org.springframework.data.neo4j.repository.DirectGraphRepositoryFactory;
 import org.springframework.data.neo4j.repository.GraphRepository;
-import org.springframework.data.neo4j.support.GraphDatabaseContext;
-import org.springframework.data.neo4j.support.node.Neo4jHelper;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -48,17 +42,9 @@ import static org.springframework.data.neo4j.aspects.support.HasRelationshipMatc
 @ContextConfiguration( locations = {"classpath:org/springframework/data/neo4j/aspects/support/Neo4jGraphPersistenceTest-context.xml"} )
 public class ModificationOutsideOfTransactionTest extends EntityTestBase {
 
-    protected final Log log = LogFactory.getLog( getClass() );
-
-    @Autowired
-    private GraphDatabaseContext graphDatabaseContext;
-
-    @Autowired
-    private DirectGraphRepositoryFactory graphRepositoryFactory;
-
     @Before
-    public void cleanDb() {
-        Neo4jHelper.cleanDb(graphDatabaseContext);
+    public void cleanUp() {
+        manualCleanDb();
     }
 
     @Test
@@ -248,7 +234,7 @@ public class ModificationOutsideOfTransactionTest extends EntityTestBase {
     @Test
     public void testFindOutsideTransaction()
     {
-        final GraphRepository<Person> finder = graphRepositoryFactory.createGraphRepository(Person.class);
+        final GraphRepository<Person> finder = graphDatabaseContext.repositoryFor(Person.class);
         assertEquals( false, finder.findAll().iterator().hasNext() );
     }
 

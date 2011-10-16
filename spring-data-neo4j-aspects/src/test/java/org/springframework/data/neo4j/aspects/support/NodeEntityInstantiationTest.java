@@ -16,23 +16,16 @@
 
 package org.springframework.data.neo4j.aspects.support;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.neo4j.graphdb.Node;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.neo4j.aspects.Person;
-import org.springframework.data.neo4j.repository.DirectGraphRepositoryFactory;
 import org.springframework.data.neo4j.repository.GraphRepository;
-import org.springframework.data.neo4j.support.GraphDatabaseContext;
-import org.springframework.data.neo4j.support.node.Neo4jHelper;
 import org.springframework.test.context.CleanContextCacheTestExecutionListener;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestExecutionListeners;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
-import org.springframework.test.context.transaction.BeforeTransaction;
 import org.springframework.test.context.transaction.TransactionalTestExecutionListener;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -45,20 +38,7 @@ import static org.springframework.data.neo4j.aspects.Person.persistedPerson;
         "classpath:org/springframework/data/neo4j/aspects/support/PersonDirectCreator-context.xml" })
 @TestExecutionListeners({CleanContextCacheTestExecutionListener.class, DependencyInjectionTestExecutionListener.class, TransactionalTestExecutionListener.class})
 
-    public class NodeEntityInstantiationTest extends EntityTestBase {
-
-	protected final Log log = LogFactory.getLog(getClass());
-
-	@Autowired
-	private GraphDatabaseContext graphDatabaseContext;
-
-	@Autowired
-	private DirectGraphRepositoryFactory graphRepositoryFactory;
-
-    @BeforeTransaction
-    public void cleanDb() {
-        Neo4jHelper.cleanDb(graphDatabaseContext);
-    }
+public class NodeEntityInstantiationTest extends EntityTestBase {
 
     @Test
     @Transactional
@@ -72,7 +52,7 @@ import static org.springframework.data.neo4j.aspects.Person.persistedPerson;
         Person person2 = graphDatabaseContext.createEntityFromState(node,Person.class);
         assertEquals("Rod", person2.getName());
 
-        GraphRepository<Person> finder = graphRepositoryFactory.createGraphRepository(Person.class);
+        GraphRepository<Person> finder = graphDatabaseContext.repositoryFor(Person.class);
         Person found = finder.findOne(nodeId);
         assertEquals("Rod", found.getName());
     }

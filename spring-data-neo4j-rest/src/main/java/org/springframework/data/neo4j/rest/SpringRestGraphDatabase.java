@@ -27,6 +27,7 @@ import org.neo4j.rest.graphdb.query.RestCypherQueryEngine;
 import org.neo4j.rest.graphdb.query.RestGremlinQueryEngine;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.data.neo4j.annotation.QueryType;
+import org.springframework.data.neo4j.conversion.DefaultConverter;
 import org.springframework.data.neo4j.conversion.ResultConverter;
 import org.springframework.data.neo4j.core.GraphDatabase;
 import org.springframework.data.neo4j.support.query.ConversionServiceQueryResultConverter;
@@ -77,13 +78,19 @@ public class SpringRestGraphDatabase extends org.neo4j.rest.graphdb.RestGraphDat
         return super.getRestAPI().createTraversalDescription();
     }
 
+    @SuppressWarnings("unchecked")
+    @Override
+    public <T> QueryEngine<T> queryEngineFor(QueryType type, final ResultConverter resultConverter) {
+        switch (type) {
+             case Cypher: return (QueryEngine<T>)new SpringRestCypherQueryEngine(new RestCypherQueryEngine(getRestAPI(), new SpringResultConverter(resultConverter)));
+             case Gremlin: return (QueryEngine<T>)new SpringRestGremlinQueryEngine(new RestGremlinQueryEngine(getRestAPI(),new SpringResultConverter(resultConverter)));
+         }
+         throw new IllegalArgumentException("Unknown Query Engine Type "+type);
+    }
+
     @Override
     public <T> QueryEngine<T> queryEngineFor(QueryType type) {
-       switch (type) {
-            case Cypher: return (QueryEngine<T>)new SpringRestCypherQueryEngine(new RestCypherQueryEngine(super.getRestAPI()));
-            case Gremlin: return (QueryEngine<T>)new SpringRestGremlinQueryEngine(new RestGremlinQueryEngine(super.getRestAPI()));
-        }
-        throw new IllegalArgumentException("Unknown Query Engine Type "+type);
+        return queryEngineFor(type,createResultConverter());
     }
 
     @Override
@@ -92,8 +99,20 @@ public class SpringRestGraphDatabase extends org.neo4j.rest.graphdb.RestGraphDat
     }
 
     private ResultConverter createResultConverter() {
-        if (conversionService==null) return null;
+        if (conversionService==null) return new DefaultConverter();
         return new ConversionServiceQueryResultConverter(conversionService);
     }
 
+    private static class SpringResultConverter implements org.neo4j.rest.graphdb.util.ResultConverter {
+        private final ResultConverter resultConverter;
+
+        public SpringResultConverter(ResultConverter resultConverter) {
+            this.resultConverter = resultConverter;
+        }
+
+        @Override
+        public Object convert(Object value, Class target) {
+            return resultConverter.convert(value,target);
+        }
+    }
 }

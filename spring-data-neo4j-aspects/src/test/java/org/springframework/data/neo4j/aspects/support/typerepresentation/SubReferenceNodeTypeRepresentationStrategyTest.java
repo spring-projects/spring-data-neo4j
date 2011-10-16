@@ -172,7 +172,7 @@ public class SubReferenceNodeTypeRepresentationStrategyTest extends EntityTestBa
 	public void testInstantiateConcreteClassWithFinder() {
 		log.debug("testInstantiateConcreteClassWithFinder");
         Volvo v = persist(new Volvo());
-        GraphRepository<Car> finder = graphRepositoryFactory.createGraphRepository(Car.class);
+        GraphRepository<Car> finder = graphDatabaseContext.repositoryFor(Car.class);
 		assertEquals("Wrong concrete class.", Volvo.class, finder.findAll().iterator().next().getClass());
 	}
 
@@ -184,16 +184,16 @@ public class SubReferenceNodeTypeRepresentationStrategyTest extends EntityTestBa
 		log.warn("Created volvo");
         persist(new Toyota());
 		log.warn("Created volvo");
-        assertEquals("Wrong count for Volvo.", 1L, graphRepositoryFactory.createGraphRepository(Volvo.class).count());
-        assertEquals("Wrong count for Toyota.", 1L, graphRepositoryFactory.createGraphRepository(Toyota.class).count());
-        assertEquals("Wrong count for Car.", 2L, graphRepositoryFactory.createGraphRepository(Car.class).count());
+        assertEquals("Wrong count for Volvo.", 1L, graphDatabaseContext.repositoryFor(Volvo.class).count());
+        assertEquals("Wrong count for Toyota.", 1L, graphDatabaseContext.repositoryFor(Toyota.class).count());
+        assertEquals("Wrong count for Car.", 2L, graphDatabaseContext.repositoryFor(Car.class).count());
 	}
 	@Test
 	@Transactional
 	public void testCountClasses() {
         persistedPerson("Michael", 36);
         persistedPerson("David", 25);
-        assertEquals("Wrong Person instance count.", 2L, graphRepositoryFactory.createGraphRepository(Person.class).count());
+        assertEquals("Wrong Person instance count.", 2L, graphDatabaseContext.repositoryFor(Person.class).count());
 	}
 
 

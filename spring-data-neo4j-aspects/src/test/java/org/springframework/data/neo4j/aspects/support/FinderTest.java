@@ -39,7 +39,6 @@ import static org.neo4j.helpers.collection.IteratorUtil.asCollection;
 import static org.springframework.data.neo4j.aspects.Person.persistedPerson;
 
 @RunWith(SpringJUnit4ClassRunner.class)
-//@ContextConfiguration(locations = {"classpath:repository-namespace-config-context.xml"})
 @ContextConfiguration(locations = {"classpath:org/springframework/data/neo4j/aspects/support/Neo4jGraphPersistenceTest-context.xml"})
 public class FinderTest extends EntityTestBase {
 

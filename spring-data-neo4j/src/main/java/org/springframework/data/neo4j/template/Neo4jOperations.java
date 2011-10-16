@@ -18,7 +18,7 @@ package org.springframework.data.neo4j.template;
 
 import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.traversal.TraversalDescription;
-import org.springframework.data.neo4j.conversion.QueryResult;
+import org.springframework.data.neo4j.conversion.Result;
 
 import java.util.Map;
 
@@ -102,36 +102,45 @@ public interface Neo4jOperations {
      * Converts the Iterable into a QueryResult object for uniform handling. E.g.
      * template.convert(node.getRelationships());
      */
-    <T> QueryResult<T> convert(Iterable<T> iterable);
+    <T> Result<T> convert(Iterable<T> iterable);
 
     /**
      * Runs the given cypher statement and packages the result in a QueryResult, simple conversions via the
      * registered converter-factories are already executed via this method.
      */
-    QueryResult<Map<String, Object>> query(String statement,Map<String,Object> params);
+    Result<Map<String, Object>> query(String statement,Map<String,Object> params);
 
     /**
      * Executes the given Gremlin statement and returns the result packaged as QueryResult as Neo4j types, not
      * Gremlin types. Table rows are converted to Map<String,Object>.
      */
-    QueryResult<Object> execute(String statement, Map<String,Object> params);
+    Result<Object> execute(String statement, Map<String,Object> params);
 
     /**
      * Traverses the graph starting at the given node with the provided traversal description. The Path's of the
      * traversal will be packaged into a QueryResult which can be easily converted into Nodes, Relationships or
      * Graph-Entities.
      */
-    QueryResult<Path> traverse(Node startNode, TraversalDescription traversal);
+    Result<Path> traverse(Node startNode, TraversalDescription traversal);
 
     /**
      * The value is looked up in the Neo4j index returning the IndexHits wrapped in a QueryResult to be converted
      * into Paths or Entities.
      */
-    <T extends PropertyContainer> QueryResult<T> lookup(String indexName, String field, Object value);
+    <T extends PropertyContainer> Result<T> lookup(String indexName, String field, Object value);
 
     /**
      * The query is executed on the index returning the IndexHits wrapped in a QueryResult to be converted
      * into Paths or Entities.
      */
-    <T extends PropertyContainer> QueryResult<T> lookup(String indexName, Object query);
+    <T extends PropertyContainer> Result<T> lookup(String indexName, Object query);
+
+    Result<Path> traverse(Object start, TraversalDescription traversal);
+
+    <T extends PropertyContainer> Result<T> lookup(Class<?> indexedType, Object query);
+
+    Node createNode();
+
+    @SuppressWarnings("unchecked")
+    <T> T convert(Object value, Class<T> type);
 }

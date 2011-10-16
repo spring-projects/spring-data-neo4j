@@ -69,7 +69,7 @@ public class TraversalTest extends EntityTestBase {
         group.setName("dev");
         group.addPerson(p);
         final TraversalDescription traversalDescription = Traversal.description().relationships(DynamicRelationshipType.withName("persons"), Direction.OUTGOING).evaluator(Evaluators.excludeStartPosition());
-        Iterable<EntityPath<Group,Person>> paths = graphDatabaseContext.<EntityPath<Group,Person>>findAllByTraversal(group, EntityPath.class, traversalDescription);
+        Iterable<EntityPath<Group,Person>> paths = (Iterable<EntityPath<Group, Person>>) graphDatabaseContext.<EntityPath<Group,Person>>findAllByTraversal(group, EntityPath.class, traversalDescription);
         for (EntityPath<Group, Person> path : paths) {
             assertEquals(group, path.startEntity());
             assertEquals(p, path.endEntity());
@@ -107,7 +107,7 @@ public class TraversalTest extends EntityTestBase {
     @Test
     @Transactional
     public void testTraverseFromGroupToPeopleWithFinder() {
-        final GraphRepository<Person> finder = graphRepositoryFactory.createGraphRepository(Person.class);
+        final GraphRepository<Person> finder = graphDatabaseContext.repositoryFor(Person.class);
         Person p = persistedPerson("Michael", 35);
         Group group = persist(new Group());
         group.setName("dev");

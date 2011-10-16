@@ -16,13 +16,9 @@
 
 package org.springframework.data.neo4j.aspects.support;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.neo4j.aspects.Developer;
-import org.springframework.data.neo4j.repository.DirectGraphRepositoryFactory;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
@@ -34,11 +30,6 @@ import static org.junit.Assert.assertNull;
 @ContextConfiguration(locations = {"classpath:org/springframework/data/neo4j/aspects/support/Neo4jGraphPersistenceTest-context.xml"})
 
 public class AttachEntityTest extends EntityTestBase {
-
-    protected final Log log = LogFactory.getLog(getClass());
-
-    @Autowired
-    private DirectGraphRepositoryFactory graphRepositoryFactory;
 
     @Test
     @Transactional

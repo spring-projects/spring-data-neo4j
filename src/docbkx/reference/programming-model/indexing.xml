@@ -45,8 +45,7 @@ class Person {
     @Indexed int age;
 }
 
-GraphRepository<Person> graphRepository = graphRepositoryFactory
-        .createGraphRepository(Person.class);
+GraphRepository<Person> graphRepository = template.repositoryFor(Person.class);
 
 // Exact match, in named index
 Person mark = graphRepository.findByPropertyValue("people", "name", "mark");
@@ -84,8 +83,8 @@ class Person {
     @Indexed(indexName = "people-search", fulltext=true) String name;
 }
 
-GraphRepository<Person> graphRepository = graphRepositoryFactory
-        .createGraphRepository(Person.class);
+GraphRepository<Person> graphRepository =
+             template.repositoryFor(Person.class);
 
 Person mark = graphRepository.findAllByQuery("people-search", "name", "ma*");
 ]]></programlisting>

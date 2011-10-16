@@ -16,9 +16,9 @@
 
 package org.springframework.data.neo4j.support.query;
 
-import org.springframework.data.neo4j.conversion.QueryResult;
+import org.springframework.data.neo4j.annotation.QueryType;
+import org.springframework.data.neo4j.conversion.Result;
 import org.springframework.data.neo4j.support.GraphDatabaseContext;
-import org.springframework.data.neo4j.support.conversion.EntityResultConverter;
 import org.springframework.util.ClassUtils;
 
 import java.util.Map;
@@ -32,13 +32,12 @@ public class CypherQueryExecutor implements QueryOperations<Map<String,Object>> 
     private final QueryEngine<Map<String,Object>> queryEngine;
 
     public CypherQueryExecutor(GraphDatabaseContext ctx) {
-        EntityResultConverter converter = new EntityResultConverter(ctx);
         if (ClassUtils.isPresent("org.neo4j.cypher.javacompat.ExecutionEngine",getClass().getClassLoader())) {
-            queryEngine = new CypherQueryEngine(ctx.getGraphDatabaseService(), converter);
+            queryEngine = ctx.queryEngineFor(QueryType.Cypher);
         } else {
             queryEngine = new QueryEngine<Map<String, Object>>() {
                 @Override
-                public QueryResult<Map<String, Object>> query(String statement, Map<String, Object> params) {
+                public Result<Map<String, Object>> query(String statement, Map<String, Object> params) {
                     throw new IllegalStateException("Cypher is not available, please add it to your dependencies to execute: "+statement);
                 }
             };

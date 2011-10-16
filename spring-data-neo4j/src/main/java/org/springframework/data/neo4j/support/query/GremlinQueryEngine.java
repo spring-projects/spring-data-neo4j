@@ -19,7 +19,7 @@ package org.springframework.data.neo4j.support.query;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.springframework.dao.InvalidDataAccessResourceUsageException;
 import org.springframework.data.neo4j.conversion.DefaultConverter;
-import org.springframework.data.neo4j.conversion.QueryResult;
+import org.springframework.data.neo4j.conversion.Result;
 import org.springframework.data.neo4j.conversion.QueryResultBuilder;
 import org.springframework.data.neo4j.conversion.ResultConverter;
 
@@ -42,7 +42,7 @@ public class GremlinQueryEngine implements QueryEngine<Object> {
 
     @SuppressWarnings("unchecked")
     @Override
-    public QueryResult<Object> query(String statement, Map<String, Object> params) {
+    public Result<Object> query(String statement, Map<String, Object> params) {
         try {
             Iterable<Object> result = gremlinExecutor.query(statement, params);
             return new QueryResultBuilder<Object>(result,resultConverter);

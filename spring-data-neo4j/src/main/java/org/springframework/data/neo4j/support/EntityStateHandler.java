@@ -206,4 +206,9 @@ public class EntityStateHandler {
     }
 
 
+    public Node getNodeState(Object entity) {
+        final PropertyContainer result = getPersistentState(entity);
+        if (result==null || result instanceof Node) return (Node) result;
+        throw new IllegalArgumentException("State of "+entity+" is no Node but "+result);
+    }
 }

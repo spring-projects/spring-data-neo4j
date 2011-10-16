@@ -22,7 +22,7 @@ import org.neo4j.graphdb.traversal.TraversalDescription;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.neo4j.annotation.QueryType;
-import org.springframework.data.neo4j.conversion.QueryResult;
+import org.springframework.data.neo4j.conversion.Result;
 import org.springframework.data.neo4j.conversion.QueryResultBuilder;
 import org.springframework.data.neo4j.core.GraphDatabase;
 import org.springframework.data.neo4j.support.query.QueryEngine;
@@ -154,7 +154,7 @@ public class Neo4jTemplate implements Neo4jOperations {
     }
 
     @Override
-    public <T> QueryResult<T> convert(Iterable<T> iterable) {
+    public <T> Result<T> convert(Iterable<T> iterable) {
         return new QueryResultBuilder<T>(iterable);
     }
 
@@ -174,20 +174,20 @@ public class Neo4jTemplate implements Neo4jOperations {
     }
 
     @SuppressWarnings("unchecked")
-    public QueryResult<Map<String, Object>> query(String statement, Map<String, Object> params) {
+    public Result<Map<String, Object>> query(String statement, Map<String, Object> params) {
         notNull(statement, "statement");
         return queryEngineFor(QueryType.Cypher).query(statement, params);
     }
 
     @SuppressWarnings("unchecked")
     @Override
-    public QueryResult<Object> execute(String statement, Map<String, Object> params) {
+    public Result<Object> execute(String statement, Map<String, Object> params) {
         notNull(statement, "statement");
         return queryEngineFor(QueryType.Gremlin).query(statement, params);
     }
 
     @Override
-    public QueryResult<Path> traverse(Node startNode, TraversalDescription traversal) {
+    public Result<Path> traverse(Node startNode, TraversalDescription traversal) {
         notNull(startNode, "startNode", traversal, "traversal");
         try {
             return new QueryResultBuilder<Path>(traversal.traverse(startNode));
@@ -197,7 +197,7 @@ public class Neo4jTemplate implements Neo4jOperations {
     }
 
     @Override
-    public <T extends PropertyContainer> QueryResult<T> lookup(String indexName, String field, Object value) {
+    public <T extends PropertyContainer> Result<T> lookup(String indexName, String field, Object value) {
         notNull(field, "field", value, "value", indexName, "indexName");
         try {
             Index<T> index = graphDatabase.getIndex(indexName);
@@ -207,7 +207,7 @@ public class Neo4jTemplate implements Neo4jOperations {
         }
     }
     @Override
-    public <T extends PropertyContainer> QueryResult<T> lookup(String indexName, Object query) {
+    public <T extends PropertyContainer> Result<T> lookup(String indexName, Object query) {
         notNull(query, "valueOrQueryObject", indexName, "indexName");
         try {
             Index<T> index = graphDatabase.getIndex(indexName);
@@ -215,6 +215,26 @@ public class Neo4jTemplate implements Neo4jOperations {
         } catch (RuntimeException e) {
             throw translateExceptionIfPossible(e);
         }
+    }
+
+    @Override
+    public Result<Path> traverse(Object start, TraversalDescription traversal) {
+        return null;
+    }
+
+    @Override
+    public <T extends PropertyContainer> Result<T> lookup(Class<?> indexedType, Object query) {
+        return null;
+    }
+
+    @Override
+    public Node createNode() {
+        return null;
+    }
+
+    @Override
+    public <T> T convert(Object value, Class<T> type) {
+        return null;
     }
 }
 

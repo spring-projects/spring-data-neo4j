@@ -53,7 +53,8 @@ public class Neo4jEntityPersister implements Neo4jEntityConverter<Object,Node> {
     public <S extends PropertyContainer, T> T createEntityFromStoredType(S state) {
         return createEntityFromState(state,null);
     }
-    
+
+
     static class StackedEntityCache {
         private long depth;
         private final Map<PropertyContainer,Object> objects =new HashMap<PropertyContainer, Object>();

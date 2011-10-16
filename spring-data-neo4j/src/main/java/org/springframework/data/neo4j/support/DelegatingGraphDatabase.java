@@ -24,11 +24,14 @@ import org.neo4j.index.impl.lucene.LuceneIndexImplementation;
 import org.neo4j.kernel.Traversal;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.data.neo4j.annotation.QueryType;
+import org.springframework.data.neo4j.conversion.Result;
+import org.springframework.data.neo4j.conversion.ResultConverter;
 import org.springframework.data.neo4j.core.GraphDatabase;
 import org.springframework.data.neo4j.support.query.ConversionServiceQueryResultConverter;
 import org.springframework.data.neo4j.support.query.CypherQueryEngine;
 import org.springframework.data.neo4j.support.query.GremlinQueryEngine;
 import org.springframework.data.neo4j.support.query.QueryEngine;
+import org.springframework.util.ClassUtils;
 
 import java.util.Map;
 
@@ -40,9 +43,14 @@ public class DelegatingGraphDatabase implements GraphDatabase {
 
     protected GraphDatabaseService delegate;
     private ConversionService conversionService;
+    private ResultConverter resultConverter;
 
     public DelegatingGraphDatabase(final GraphDatabaseService delegate) {
         this.delegate = delegate;
+    }
+    public DelegatingGraphDatabase(final GraphDatabaseService delegate, ResultConverter resultConverter) {
+        this.delegate = delegate;
+        this.resultConverter = resultConverter;
     }
 
     public void setConversionService(ConversionService conversionService) {
@@ -117,7 +125,7 @@ public class DelegatingGraphDatabase implements GraphDatabase {
         Map<String, String> existingConfig = delegate.index().getConfiguration(index);
         Map<String, String> config = indexConfigFor(fullText);
         if (config.equals(existingConfig)) return index;
-        throw new IllegalArgumentException("Setup for index "+indexName+" does not match "+(fullText ? "fulltext":"exact"));
+        throw new IllegalArgumentException("Setup for index name '"+indexName+"' does not match "+(fullText ? "fulltext":"exact"));
      }
 
     private Map<String, String> indexConfigFor(boolean fullText) {
@@ -129,18 +137,36 @@ public class DelegatingGraphDatabase implements GraphDatabase {
         return Traversal.description();
     }
 
-    @SuppressWarnings("unchecked")
+    // todo create query engines only once
     public <T> QueryEngine<T> queryEngineFor(QueryType type) {
+        return queryEngineFor(type,createResultConverter());
+    }
+
+    @SuppressWarnings("unchecked")
+    public <T> QueryEngine<T> queryEngineFor(QueryType type,ResultConverter resultConverter) {
         switch (type) {
-            case Cypher:  return (QueryEngine<T>)new CypherQueryEngine(delegate, createResultConverter());
-            case Gremlin: return (QueryEngine<T>) new GremlinQueryEngine(delegate);
+            case Cypher:  {
+                if (!ClassUtils.isPresent("org.neo4j.cypher.javacompat.ExecutionEngine", getClass().getClassLoader())) {
+                    return new FailingQueryEngine<T>("Cypher");
+                }
+                return (QueryEngine<T>)new CypherQueryEngine(delegate, resultConverter);
+            }
+            case Gremlin: {
+                if (!ClassUtils.isPresent("com.tinkerpop.blueprints.pgm.impls.neo4j.Neo4jGraph", getClass().getClassLoader())) {
+                    return new FailingQueryEngine<T>("Gremlin");
+                }
+                return (QueryEngine<T>) new GremlinQueryEngine(delegate,resultConverter);
+            }
         }
         throw new IllegalArgumentException("Unknown Query Engine Type "+type);
     }
 
-    private ConversionServiceQueryResultConverter createResultConverter() {
-        if (conversionService == null) return null;
-        return new ConversionServiceQueryResultConverter(conversionService);
+    private ResultConverter createResultConverter() {
+        if (resultConverter!=null) return resultConverter;
+        if (conversionService != null) {
+            this.resultConverter = new ConversionServiceQueryResultConverter(conversionService);
+        }
+        return null;
     }
 
     public void shutdown() {
@@ -150,5 +176,18 @@ public class DelegatingGraphDatabase implements GraphDatabase {
     @Override
     public Node getReferenceNode() {
         return delegate.getReferenceNode();
+    }
+
+    private static class FailingQueryEngine<T> implements QueryEngine<T> {
+        private String dependency;
+
+        private FailingQueryEngine(final String dependency) {
+            this.dependency = dependency;
+        }
+
+        @Override
+        public Result<T> query(String statement, Map<String, Object> params) {
+            throw new IllegalStateException(dependency + " is not available, please add it to your dependencies to execute: " +statement);
+        }
     }
 }

@@ -28,7 +28,7 @@ import org.springframework.data.neo4j.annotation.QueryType;
 import org.springframework.data.neo4j.aspects.Person;
 import org.springframework.data.neo4j.aspects.Personality;
 import org.springframework.data.neo4j.aspects.support.EntityTestBase;
-import org.springframework.data.neo4j.conversion.QueryResult;
+import org.springframework.data.neo4j.conversion.Result;
 import org.springframework.data.neo4j.conversion.ResultConverter;
 import org.springframework.data.neo4j.core.GraphDatabase;
 import org.springframework.data.neo4j.support.DelegatingGraphDatabase;
@@ -87,7 +87,7 @@ public class QueryEngineTest extends EntityTestBase {
     @Test
     public void testQueryListOfTypeNode() throws Exception {
         final String queryString = "start person=node:name_index(name={name}) match (person) <-[:boss]- (boss) return boss";
-        final QueryResult<Map<String,Object>> queryResult = queryEngine.query(queryString, michaelsName());
+        final Result<Map<String,Object>> queryResult = queryEngine.query(queryString, michaelsName());
         final Collection<Node> result = IteratorUtil.asCollection(queryResult.to(Node.class));
 
         assertEquals(asList(getNodeState(testTeam.emil)),result);

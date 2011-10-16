@@ -24,31 +24,54 @@ import org.neo4j.graphdb.index.IndexManager;
 import org.neo4j.graphdb.traversal.TraversalDescription;
 import org.neo4j.graphdb.traversal.Traverser;
 import org.neo4j.helpers.collection.ClosableIterable;
-import org.neo4j.helpers.collection.IterableWrapper;
 import org.neo4j.index.impl.lucene.LuceneIndexImplementation;
 import org.neo4j.kernel.AbstractGraphDatabase;
 import org.springframework.core.convert.ConversionService;
+import org.springframework.dao.DataAccessException;
+import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.neo4j.annotation.Indexed;
 import org.springframework.data.neo4j.annotation.NodeEntity;
+import org.springframework.data.neo4j.annotation.QueryType;
 import org.springframework.data.neo4j.annotation.RelationshipEntity;
+import org.springframework.data.neo4j.conversion.QueryResultBuilder;
+import org.springframework.data.neo4j.conversion.Result;
+import org.springframework.data.neo4j.conversion.ResultConverter;
+import org.springframework.data.neo4j.conversion.TraverserConverter;
 import org.springframework.data.neo4j.core.EntityPath;
+import org.springframework.data.neo4j.core.GraphDatabase;
 import org.springframework.data.neo4j.core.TypeRepresentationStrategy;
+import org.springframework.data.neo4j.core.UncategorizedGraphStoreException;
 import org.springframework.data.neo4j.fieldaccess.GraphBackedEntityIterableWrapper;
 import org.springframework.data.neo4j.mapping.Neo4jEntityPersister;
 import org.springframework.data.neo4j.mapping.Neo4jMappingContext;
-import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
+import org.springframework.data.neo4j.mapping.Neo4jPersistentEntityImpl;
+import org.springframework.data.neo4j.repository.GraphRepository;
+import org.springframework.data.neo4j.repository.NodeGraphRepository;
+import org.springframework.data.neo4j.repository.RelationshipGraphRepository;
+import org.springframework.data.neo4j.support.conversion.EntityResultConverter;
 import org.springframework.data.neo4j.support.node.EntityStateFactory;
 import org.springframework.data.neo4j.support.node.NodeEntityInstantiator;
 import org.springframework.data.neo4j.support.path.EntityPathPathIterableWrapper;
 import org.springframework.data.neo4j.support.query.CypherQueryExecutor;
+import org.springframework.data.neo4j.support.query.QueryEngine;
 import org.springframework.data.neo4j.support.relationship.RelationshipEntityInstantiator;
+import org.springframework.data.neo4j.template.GraphCallback;
+import org.springframework.data.neo4j.template.Neo4jExceptionTranslator;
+import org.springframework.data.neo4j.template.Neo4jOperations;
 import org.springframework.data.util.TypeInformation;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.support.TransactionCallback;
+import org.springframework.transaction.support.TransactionTemplate;
+import org.springframework.util.ObjectUtils;
 
 import javax.annotation.PostConstruct;
 import javax.transaction.Status;
 import javax.transaction.SystemException;
 import javax.transaction.TransactionManager;
 import javax.validation.Validator;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Map;
 
 /**
@@ -60,7 +83,7 @@ import java.util.Map;
  * @author Michael Hunger
  * @since 13.09.2010
  */
-public class GraphDatabaseContext {
+public class GraphDatabaseContext implements Neo4jOperations {
 
     private static final Log log = LogFactory.getLog(GraphDatabaseContext.class);
 
@@ -81,13 +104,44 @@ public class GraphDatabaseContext {
     private TypeRepresentationStrategies typeRepresentationStrategies;
     private EntityInstantiator<Relationship> relationshipEntityInstantiator;
     private EntityInstantiator<Node> nodeEntityInstantiator;
+    private PlatformTransactionManager transactionManager;
+    private GraphDatabase graphDatabase;
+    private ResultConverter resultConverter;
+    private IndexProvider indexProvider;
 
-    public void setRelationshipEntityInstantiator(EntityInstantiator<Relationship> relationshipEntityInstantiator) {
-        this.relationshipEntityInstantiator = relationshipEntityInstantiator;
+
+    /**
+     * default constructor for dependency injection, TODO provide dependencies at creation time
+     */
+    public GraphDatabaseContext() {
     }
 
-    public void setNodeEntityInstantiator(EntityInstantiator<Node> nodeEntityInstantiator) {
-        this.nodeEntityInstantiator = nodeEntityInstantiator;
+    /**
+     * @param graphDatabase the neo4j graph database
+     * @param transactionManager if passed in, will be used to create implicit transactions whenever needed
+     */
+    public GraphDatabaseContext(final GraphDatabase graphDatabase, PlatformTransactionManager transactionManager) {
+        notNull(graphDatabase, "graphDatabase");
+        this.transactionManager = transactionManager;
+        this.graphDatabase = graphDatabase;
+    }
+
+    public GraphDatabaseContext(final GraphDatabase graphDatabase) {
+        notNull(graphDatabase, "graphDatabase");
+        transactionManager = null;
+        this.graphDatabase = graphDatabase;
+    }
+
+
+    @SuppressWarnings({"unchecked"})
+    public <T> GraphRepository<T> repositoryFor(Class<T> clazz) {
+        if (isNodeEntity(clazz)) return new NodeGraphRepository(clazz, this);
+        if (isRelationshipEntity(clazz)) return new RelationshipGraphRepository(clazz, this);
+        throw new IllegalArgumentException("Can't create graph repository for non graph entity of type "+clazz);
+    }
+
+    public GraphDatabase getGraphDatabase() {
+        return graphDatabase;
     }
 
     static class IndexProvider {
@@ -109,29 +163,79 @@ public class GraphDatabaseContext {
 
         @SuppressWarnings("unchecked")
         public <S extends PropertyContainer, T> Index<S> getIndex(Class<T> type, String indexName, Boolean fullText) {
-            if (indexName == null) indexName = Indexed.Name.get(type);
-            if (fullText == null) {
-                if (mappingContext.isNodeEntity(type)) return (Index<S>) getIndexManager().forNodes(indexName);
-                if (mappingContext.isRelationshipEntity(type))
-                    return (Index<S>) getIndexManager().forRelationships(indexName);
-                throw new IllegalArgumentException("Wrong index type supplied: " + type + " expected Node- or Relationship-Entity");
-
+            if (type==null) {
+                notNull(indexName,"indexName");
+                return getIndex(indexName);
             }
-            Map<String, String> config = fullText ? LuceneIndexImplementation.FULLTEXT_CONFIG : LuceneIndexImplementation.EXACT_CONFIG;
 
-            if (mappingContext.isNodeEntity(type)) return (Index<S>) getIndexManager().forNodes(indexName, config);
-            if (mappingContext.isRelationshipEntity(type))
-                return (Index<S>) getIndexManager().forRelationships(indexName, config);
+            final Neo4jPersistentEntityImpl<?> persistentEntity = mappingContext.getPersistentEntity(type);
+            if (indexName == null) indexName = Indexed.Name.get(type);
+            final boolean useExistingIndex = fullText == null;
+
+            if (useExistingIndex) {
+                if (persistentEntity.isNodeEntity()) return (Index<S>) getIndexManager().forNodes(indexName);
+                if (persistentEntity.isRelationshipEntity()) return (Index<S>) getIndexManager().forRelationships(indexName);
+                throw new IllegalArgumentException("Wrong index type supplied: " + type + " expected Node- or Relationship-Entity");
+            }
+
+            if (persistentEntity.isNodeEntity()) return (Index<S>) createIndex(Node.class, indexName, fullText);
+            if (persistentEntity.isRelationshipEntity()) return (Index<S>) createIndex(Relationship.class, indexName, fullText);
             throw new IllegalArgumentException("Wrong index type supplied: " + type + " expected Node- or Relationship-Entity");
         }
 
         public IndexManager getIndexManager() {
             return indexManager;
         }
+
+        @SuppressWarnings("unchecked")
+        public <T extends PropertyContainer> Index<T> getIndex(String indexName) {
+            if (indexManager.existsForNodes(indexName)) return (Index<T>) indexManager.forNodes(indexName);
+            if (indexManager.existsForRelationships(indexName)) return (Index<T>) indexManager.forRelationships(indexName);
+            throw new IllegalArgumentException("Index "+indexName+" does not exist.");
+        }
+
+        public boolean isNode(Class<? extends PropertyContainer> type) {
+            if (type.equals(Node.class)) return true;
+            if (type.equals(Relationship.class)) return false;
+            throw new IllegalArgumentException("Unknown Graph Primitive, neither Node nor Relationship"+type);
+        }
+
+        // TODO handle existing indexes
+        @SuppressWarnings("unchecked")
+        public <T extends PropertyContainer> Index<T> createIndex(Class<T> type, String indexName, boolean fullText) {
+            if (isNode(type)) {
+                if (indexManager.existsForNodes(indexName))
+                    return (Index<T>) checkAndGetExistingIndex(indexName, fullText, indexManager.forNodes(indexName));
+                return (Index<T>) indexManager.forNodes(indexName, indexConfigFor(fullText));
+            } else {
+                if (indexManager.existsForRelationships(indexName))
+                    return (Index<T>) checkAndGetExistingIndex(indexName, fullText, indexManager.forRelationships(indexName));
+                return (Index<T>) indexManager.forRelationships(indexName, indexConfigFor(fullText));
+            }
+        }
+
+        private <T extends PropertyContainer> Index<T> checkAndGetExistingIndex(final String indexName, boolean fullText, final Index<T> index) {
+            Map<String, String> existingConfig = indexManager.getConfiguration(index);
+            Map<String, String> config = indexConfigFor(fullText);
+            if (configCheck(config, existingConfig, "provider") && configCheck(config, existingConfig, "type")) return index;
+            throw new IllegalArgumentException("Setup for index "+indexName+" does not match. Existing: "+existingConfig+" required "+config);
+         }
+
+        private boolean configCheck(Map<String, String> config, Map<String, String> existingConfig, String setting) {
+            return ObjectUtils.nullSafeEquals(config.get(setting), existingConfig.get(setting));
+        }
+
+        private Map<String, String> indexConfigFor(boolean fullText) {
+            return fullText ? LuceneIndexImplementation.FULLTEXT_CONFIG : LuceneIndexImplementation.EXACT_CONFIG;
+        }
+
     }
-    IndexProvider indexProvider;
+
     public <S extends PropertyContainer, T> Index<S> getIndex(Class<T> type) {
         return indexProvider.getIndex(type, null);
+    }
+    public <S extends PropertyContainer> Index<S> getIndex(String name) {
+        return indexProvider.getIndex(null, name);
     }
 
     public <S extends PropertyContainer, T> Index<S> getIndex(Class<T> type, String indexName) {
@@ -159,39 +263,6 @@ public class GraphDatabaseContext {
         }
     }
 
-
-    @SuppressWarnings("unchecked")
-    public <T> Iterable<T> findAllByTraversal(Object entity, Class<?> targetType, TraversalDescription traversalDescription) {
-        final PropertyContainer state = entityPersister.getPersistentState(entity);
-        if (state == null) throw new IllegalStateException("No node attached to " + this);
-        final Traverser traverser = traversalDescription.traverse((Node) state);
-        if (Node.class.isAssignableFrom(targetType)) return (Iterable<T>) traverser.nodes();
-        if (Relationship.class.isAssignableFrom(targetType)) return (Iterable<T>) traverser.relationships();
-        if (EntityPath.class.isAssignableFrom(targetType)) return new EntityPathPathIterableWrapper(traverser,this);
-        if (Path.class.isAssignableFrom(targetType)) return (Iterable<T>) traverser;
-        return (Iterable<T>) convertToGraphEntity(traverser, targetType);
-    }
-
-    private Iterable<?> convertToGraphEntity(Traverser traverser, final Class<?> targetType) {
-        if (isNodeEntity(targetType)) {
-            return new IterableWrapper<Object, Node>(traverser.nodes()) {
-                @Override
-                protected Object underlyingObjectToObject(Node node) {
-                    return createEntityFromState(node, targetType);
-                }
-            };
-        }
-        if (isRelationshipEntity(targetType)) {
-            return new IterableWrapper<Object, Relationship>(traverser.relationships()) {
-                @Override
-                protected Object underlyingObjectToObject(Relationship relationship) {
-                    return createEntityFromState(relationship, targetType);
-                }
-            };
-        }
-        throw new IllegalStateException("Can't determine valid type for traversal target " + targetType);
-
-    }
 
     public <T> ClosableIterable<T> findAll(final Class<T> entityClass) {
         return typeRepresentationStrategies.findAll(entityClass);
@@ -231,6 +302,14 @@ public class GraphDatabaseContext {
     }
 
     public void remove(Object entity) {
+        if (entity instanceof Node) {
+            ((Node)entity).delete();
+            return;
+        }
+        if (entity instanceof Relationship) {
+            ((Relationship)entity).delete();
+            return;
+        }
         final Class<?> type = entity.getClass();
         if (isNodeEntity(type)) {
             entityRemover.removeNodeEntity(entity);
@@ -253,8 +332,43 @@ public class GraphDatabaseContext {
     /**
      * Delegates to {@link GraphDatabaseService}
      */
+    @Override
     public Node createNode() {
         return graphDatabaseService.createNode();
+    }
+
+    @Override
+    public Node createNode(final Map<String,Object> properties) {
+        return graphDatabase.createNode(properties);
+    }
+
+    public <T> T createNode(Class<T> target, Map<String,Object> properties) {
+        final Node node = createNode(properties);
+        if (isNodeEntity(target)) {
+            typeRepresentationStrategies.postEntityCreation(node,target);
+        }
+        return convert(node, target);
+    }
+
+    public Result<Node> createNodes(Map<String,Object>...allNodes) {
+        Collection<Node> result=new ArrayList<Node>(allNodes.length);
+        for (Map<String, Object> properties : allNodes) {
+            result.add(createNode(properties));
+        }
+        return convert(result);
+    }
+
+    public <T> Iterable<T> createNodes(Class<T> target, Map<String,Object>...allNodes) {
+        final TypeRepresentationStrategy<Node> nodeTypeRepresentationStrategy = isNodeEntity(target) ? typeRepresentationStrategies.getNodeTypeRepresentationStrategy() : null;
+        Collection<Node> result=new ArrayList<Node>(allNodes.length);
+        for (Map<String, Object> properties : allNodes) {
+            final Node node = createNode(properties);
+            if (nodeTypeRepresentationStrategy!=null) {
+                nodeTypeRepresentationStrategy.postEntityCreation(node,target);
+            }
+            result.add(node);
+        }
+        return convert(result).to(target);
     }
 
     /**
@@ -267,15 +381,8 @@ public class GraphDatabaseContext {
     /**
      * Delegates to {@link GraphDatabaseService}
      */
-    public Node getReferenceNode() {
-        return graphDatabaseService.getReferenceNode();
-    }
-
-    /**
-     * Delegates to {@link GraphDatabaseService}
-     */
-    public Iterable<? extends Node> getAllNodes() {
-        return graphDatabaseService.getAllNodes();
+    public Result<Node> getAllNodes() {
+        return convert(graphDatabaseService.getAllNodes());
     }
 
     /**
@@ -294,6 +401,10 @@ public class GraphDatabaseContext {
 
     @PostConstruct
     public void postConstruct() {
+        this.resultConverter = new EntityResultConverter<Object, Object>(this);
+        if (this.graphDatabase==null) {
+            this.graphDatabase=new DelegatingGraphDatabase(graphDatabaseService,resultConverter);
+        }
         this.typeRepresentationStrategies = new TypeRepresentationStrategies(mappingContext, nodeTypeRepresentationStrategy, relationshipTypeRepresentationStrategy);
         this.cypherQueryExecutor = new CypherQueryExecutor(this);
         final EntityStateHandler entityStateHandler = new EntityStateHandler(mappingContext, graphDatabaseService);
@@ -328,19 +439,19 @@ public class GraphDatabaseContext {
         return entityStateHandler.isManaged(entity);
     }
 
-    public Object executeQuery(String queryString, Map<String, Object> params, Neo4jPersistentProperty property) {
-        final TypeInformation<?> typeInformation = property.getTypeInformation();
+    public Object query(String statement, Map<String, Object> params, final TypeInformation<?> typeInformation) {
         final TypeInformation<?> actualType = typeInformation.getActualType();
         final Class<?> targetType = actualType.getType();
         if (actualType.isMap()) {
-            return cypherQueryExecutor.queryForList(queryString, params);
+            return cypherQueryExecutor.queryForList(statement, params);
         }
         if (typeInformation.isCollectionLike()) {
-            return cypherQueryExecutor.query(queryString, targetType, params);
+            return cypherQueryExecutor.query(statement, targetType, params);
         }
-        return cypherQueryExecutor.queryForObject(queryString, targetType, params);
+        return cypherQueryExecutor.queryForObject(statement, targetType, params);
     }
 
+    // todo have an result converter that is able to handle iterable input and output types
     @SuppressWarnings("unchecked")
     public <T> Iterable<T> convertResultsTo(Traverser traverser, Class<T> targetType) {
         if (Node.class.isAssignableFrom(targetType)) return (Iterable<T>) traverser.nodes();
@@ -374,6 +485,211 @@ public class GraphDatabaseContext {
             postEntityCreation(result.relationship, relationshipClass);
         }
         return createEntityFromState(result.relationship, relationshipClass);
+    }
+
+    @Override
+    public Relationship createRelationship(final Node startNode, final Node endNode, final RelationshipType relationshipType, final Map<String,Object> properties) {
+        notNull(startNode, "startNode", endNode, "endNode", relationshipType, "relationshipType", properties, "properties");
+        return exec(new GraphCallback<Relationship>() {
+            @Override
+            public Relationship doWithGraph(GraphDatabase graph) throws Exception {
+                return graph.createRelationship(startNode, endNode, relationshipType, properties);
+            }
+        });
+    }
+
+
+
+
+    private final Neo4jExceptionTranslator exceptionTranslator = new Neo4jExceptionTranslator();
+
+    private static void notNull(Object... pairs) {
+        assert pairs.length % 2 == 0 : "wrong number of pairs to check";
+        for (int i = 0; i < pairs.length; i += 2) {
+            if (pairs[i] == null) {
+                throw new InvalidDataAccessApiUsageException("[Assertion failed] - " + pairs[i + 1] + " is required; it must not be null");
+            }
+        }
+    }
+
+    public DataAccessException translateExceptionIfPossible(Exception ex) {
+        if (ex instanceof RuntimeException) {
+            return exceptionTranslator.translateExceptionIfPossible((RuntimeException) ex);
+        }
+        return new UncategorizedGraphStoreException("Error executing callback",ex);
+    }
+
+
+    private <T> T doExecute(final GraphCallback<T> callback) {
+        notNull(callback, "callback");
+        try {
+            return callback.doWithGraph(graphDatabase);
+        } catch (Exception e) {
+            throw translateExceptionIfPossible(e);
+        }
+    }
+
+    @Override
+    public <T> T exec(final GraphCallback<T> callback) {
+        if (transactionManager == null) return doExecute(callback);
+
+        TransactionTemplate template = new TransactionTemplate(transactionManager);
+        return template.execute(new TransactionCallback<T>() {
+            public T doInTransaction(TransactionStatus status) {
+                return doExecute(callback);
+            }
+        });
+    }
+
+    @Override
+    public Node getReferenceNode() {
+        try {
+            return graphDatabase.getReferenceNode();
+        } catch (RuntimeException e) {
+            throw translateExceptionIfPossible(e);
+        }
+    }
+
+    @Override
+    public Node getNode(long id) {
+        if (id < 0) throw new InvalidDataAccessApiUsageException("id is negative");
+        try {
+            return graphDatabase.getNodeById(id);
+        } catch (RuntimeException e) {
+            throw translateExceptionIfPossible(e);
+        }
+    }
+
+    @Override
+    public Relationship getRelationship(long id) {
+        if (id < 0) throw new InvalidDataAccessApiUsageException("id is negative");
+        try {
+            return graphDatabase.getRelationshipById(id);
+        } catch (RuntimeException e) {
+            throw translateExceptionIfPossible(e);
+        }
+    }
+
+    @Override
+    public <T extends PropertyContainer> T index(final String indexName, final T element, final String field, final Object value) {
+        notNull(element, "element", field, "field", value, "value",indexName,"indexName");
+        exec(new GraphCallback.WithoutResult() {
+            @Override
+            public void doWithGraphWithoutResult(GraphDatabase graph) throws Exception {
+                if (element instanceof Relationship) {
+                    Index<Relationship> relationshipIndex = graphDatabase.createIndex(Relationship.class, indexName, false);
+                    relationshipIndex.add((Relationship) element, field, value);
+                } else if (element instanceof Node) {
+                    graphDatabase.createIndex(Node.class, indexName, false).add((Node) element, field, value);
+                } else {
+                    throw new IllegalArgumentException("Provided element is neither node nor relationship " + element);
+                }
+            }
+        });
+        return element;
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public <T> Result<T> convert(Iterable<T> iterable) {
+        return new QueryResultBuilder<T>(iterable, (ResultConverter<T,?>) resultConverter);
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public <T> T convert(Object value, Class<T> type) {
+        return (T) resultConverter.convert(value,type);
+    }
+
+    public QueryEngine queryEngineFor(QueryType type) {
+        return graphDatabase.queryEngineFor(type,resultConverter);
+    }
+
+    @SuppressWarnings("unchecked")
+    public Result<Map<String, Object>> query(String statement, Map<String, Object> params) {
+        notNull(statement, "statement");
+        return queryEngineFor(QueryType.Cypher).query(statement, params);
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public Result<Object> execute(String statement, Map<String, Object> params) {
+        notNull(statement, "statement");
+        return queryEngineFor(QueryType.Gremlin).query(statement, params);
+    }
+
+    @Override
+    public Result<Path> traverse(Object start, TraversalDescription traversal) {
+        return traverse((Node)getPersistentState(start),traversal);
+    }
+
+
+    // TODO result handling !!
+    @SuppressWarnings("unchecked")
+    public <T> Iterable<T> findAllByTraversal(Object entity, Class<?> targetType, TraversalDescription traversalDescription) {
+        final PropertyContainer state = entityPersister.getPersistentState(entity);
+        if (state instanceof Node) {
+            final Traverser traverser = traversalDescription.traverse((Node) state);
+            return new TraverserConverter<T>(this).convert(traverser, (Class<T>) targetType);
+        }
+        throw new IllegalStateException("No node attached to " + entity);
+    }
+
+    @Override
+    public Result<Path> traverse(Node startNode, TraversalDescription traversal) {
+        notNull(startNode, "startNode", traversal, "traversal");
+        try {
+            return this.convert(traversal.traverse(startNode));
+        } catch (RuntimeException e) {
+            throw translateExceptionIfPossible(e);
+        }
+    }
+
+    @Override
+    public <T extends PropertyContainer> Result<T> lookup(String indexName, String field, Object value) {
+        notNull(field, "field", value, "value", indexName, "indexName");
+        try {
+            Index<T> index = getIndex(null, indexName);
+            return convert(index.get(field, value));
+        } catch (RuntimeException e) {
+            throw translateExceptionIfPossible(e);
+        }
+    }
+    @Override
+    public <T extends PropertyContainer> Result<T> lookup(final Class<?> indexedType, final Object query) {
+        notNull(query, "valueOrQueryObject", indexedType, "indexedType");
+        try {
+            Index<T> index = getIndex(indexedType);
+            return convert(index.query(query));
+        } catch (RuntimeException e) {
+            throw translateExceptionIfPossible(e);
+        }
+    }
+    @Override
+    public <T extends PropertyContainer> Result<T> lookup(String indexName, Object query) {
+        notNull(query, "valueOrQueryObject", indexName, "indexName");
+        try {
+            Index<T> index = getIndex(null, indexName);
+            return convert(index.query(query));
+        } catch (RuntimeException e) {
+            throw translateExceptionIfPossible(e);
+        }
+    }
+
+
+
+
+
+    public void setTransactionManager(PlatformTransactionManager transactionManager) {
+        this.transactionManager = transactionManager;
+    }
+
+    public void setRelationshipEntityInstantiator(EntityInstantiator<Relationship> relationshipEntityInstantiator) {
+        this.relationshipEntityInstantiator = relationshipEntityInstantiator;
+    }
+
+    public void setNodeEntityInstantiator(EntityInstantiator<Node> nodeEntityInstantiator) {
+        this.nodeEntityInstantiator = nodeEntityInstantiator;
     }
 
 
@@ -436,6 +752,10 @@ public class GraphDatabaseContext {
 
     public void setGraphDatabaseService(GraphDatabaseService graphDatabaseService) {
         this.graphDatabaseService = graphDatabaseService;
+    }
+
+    public void setGraphDatabase(GraphDatabase graphDatabase) {
+        this.graphDatabase = graphDatabase;
     }
 }
 

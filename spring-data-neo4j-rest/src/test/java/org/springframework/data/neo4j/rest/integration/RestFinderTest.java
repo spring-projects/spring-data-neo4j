@@ -52,7 +52,6 @@ public class RestFinderTest extends FinderTest {
     @AfterClass
     public static void shutdownDb() {
         RestTestBase.shutdownDb();
-
     }
 
 }

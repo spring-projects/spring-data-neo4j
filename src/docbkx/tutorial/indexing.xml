@@ -18,13 +18,13 @@
     int year;
 }
 
-@Autowired DirectGraphRepositoryFactory graphRepositoryFactory;
+@Autowired Neo4jTemplate template;
 
 @Test public void persistedMovieShouldBeRetrievableFromGraphDb() {
     int id = 1;
     Movie forrestGump = new Movie(id, "Forrest Gump", 1994).persist();
     GraphRepository<Movie> movieRepository =
-                               graphRepositoryFactory.createGraphRepository(Movie.class);
+                               template.repositoryFor(Movie.class);
     Movie retrievedMovie = movieRepository.findByPropertyValue("id", id);
     assertEqual("retrieved movie matches persisted one", forrestGump, retrievedMovie);
     assertEqual("retrieved movie title matches", "Forrest Gump", retrievedMovie.getTitle());

@@ -26,7 +26,7 @@ import java.util.Iterator;
  * @author mh
  * @since 28.06.11
  */
-public class QueryResultBuilder<T> implements QueryResult<T> {
+public class QueryResultBuilder<T> implements Result<T> {
     private Iterable<T> result;
     private final ResultConverter defaultConverter;
     private final boolean isClosableIterable;
@@ -45,13 +45,27 @@ public class QueryResultBuilder<T> implements QueryResult<T> {
 
     @SuppressWarnings("unchecked")
     @Override
-    public <R> ConvertedResult<R> to(Class<R> type) {
+    public <R> EndResult<R> to(Class<R> type) {
         return this.to(type, defaultConverter);
     }
 
     @Override
-    public <R> ConvertedResult<R> to(final Class<R> type, final ResultConverter<T, R> resultConverter) {
-        return new ConvertedResult<R>() {
+    public T single() {
+        try {
+            final Iterator<T> it = result.iterator();
+            if (!it.hasNext()) throw new IllegalStateException("Expected at least one result, got none.");
+            final T value = it.next();
+            if (it.hasNext())
+                throw new IllegalStateException("Expected at least one result, got more than one.");
+            return value;
+        } finally {
+            closeIfNeeded();
+        }
+    }
+
+    @Override
+    public <R> EndResult<R> to(final Class<R> type, final ResultConverter<T, R> resultConverter) {
+        return new EndResult<R>() {
             @Override
             public R single() {
                 try {
