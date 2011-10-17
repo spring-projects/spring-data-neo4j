@@ -84,6 +84,8 @@ public interface Neo4jOperations {
 
     <R> R getRelationshipBetween(Object start, Object end, Class<R> relationshipEntityClass, String relationshipType);
 
+	Relationship getRelationshipBetween(Object start, Object end, String relationshipType);
+    
     void removeRelationshipBetween(Object start, Object end, String type);
 
     <R> R createRelationshipBetween(Object start, Object end, Class<R> relationshipEntityClass, String relationshipType, boolean allowDuplicates);
