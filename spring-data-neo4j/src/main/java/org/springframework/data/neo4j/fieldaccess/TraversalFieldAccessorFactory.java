@@ -104,7 +104,7 @@ public class TraversalFieldAccessorFactory implements FieldAccessorFactory {
 	    @Override
 	    public Object getValue(final Object entity) {
 	        final TraversalDescription traversalDescription = fieldTraversalDescriptionBuilder.build(entity, property,params);
-            return doReturn(template.findAllByTraversal(entity,target, traversalDescription));
+            return doReturn(template.traverse(entity, target, traversalDescription));
 	    }
 
 

@@ -22,6 +22,18 @@ import org.springframework.dao.InvalidDataAccessApiUsageException;
  * @since 17.10.11
  */
 public class ParameterCheck {
+    public static void notNull(Object value, String msg) {
+        if (value==null) throw new InvalidDataAccessApiUsageException("[Assertion failed] - " + msg + " is required; it must not be null");
+    }
+    public static void notNull(Object value, String msg,Object value2, String msg2) {
+        if (value==null) throw new InvalidDataAccessApiUsageException("[Assertion failed] - " + msg + " is required; it must not be null");
+        if (value2==null) throw new InvalidDataAccessApiUsageException("[Assertion failed] - " + msg2 + " is required; it must not be null");
+    }
+    public static void notNull(Object value, String msg,Object value2, String msg2,Object value3, String msg3) {
+        if (value==null) throw new InvalidDataAccessApiUsageException("[Assertion failed] - " + msg + " is required; it must not be null");
+        if (value2==null) throw new InvalidDataAccessApiUsageException("[Assertion failed] - " + msg2 + " is required; it must not be null");
+        if (value3==null) throw new InvalidDataAccessApiUsageException("[Assertion failed] - " + msg3 + " is required; it must not be null");
+    }
     public static void notNull(Object... pairs) {
         assert pairs.length % 2 == 0 : "wrong number of pairs to check";
         for (int i = 0; i < pairs.length; i += 2) {
