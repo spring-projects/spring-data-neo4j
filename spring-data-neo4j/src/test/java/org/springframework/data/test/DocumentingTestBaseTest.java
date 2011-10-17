@@ -40,19 +40,19 @@ public class DocumentingTestBaseTest extends DocumentingTestBase {
 
     @Test
     public void testTitle() {
-        assertEquals("<title>Documents DocumentingTestBase</title>\n",createTitle());
+        assertEquals(String.format("<title>Documents DocumentingTestBase</title>%n"),createTitle());
     }
     @Test
     public void testParagraphs() {
-        assertEquals("<para>\nThis documents the documenting test base\n</para>\n"+
-                "<para>\nAnd this is a second paragraph\n</para>\n"
+        assertEquals(String.format("<para>%nThis documents the documenting test base%n</para>%n"+
+                "<para>%nAnd this is a second paragraph%n</para>%n")
                 ,createText());
     }
     @Test
     public void testCreateSnippet() {
-        assertEquals("    {\n" +
-                "        title=\"Documents DocumentingTestBase\";\n" +
-                "    }\n" +
-                "        snippetTitle = \"SnippetTitle\";\n",collectSnippet());
+        assertEquals(String.format("    {%n" +
+                "        title=\"Documents DocumentingTestBase\";%n" +
+                "    }%n" +
+                "        snippetTitle = \"SnippetTitle\";%n"),collectSnippet());
     }
 }
