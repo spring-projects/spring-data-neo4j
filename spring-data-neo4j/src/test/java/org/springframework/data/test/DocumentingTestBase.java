@@ -19,6 +19,7 @@ package org.springframework.data.test;
 import org.junit.After;
 
 import java.io.*;
+import java.util.regex.Matcher;
 
 import static org.junit.Assert.fail;
 
@@ -59,13 +60,13 @@ public abstract class DocumentingTestBase {
     }
 
     protected String createFooter() {
-        return "</section>\n";
+        return String.format("</section>%n");
     }
 
     protected String createHeader() {
-        return "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
-                "<!DOCTYPE section PUBLIC \"-//OASIS//DTD DocBook XML V4.4//EN\" \"http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd\">\n" +
-                "<section>\n";
+        return String.format("<?xml version=\"1.0\" encoding=\"UTF-8\"?>%n" +
+                "<!DOCTYPE section PUBLIC \"-//OASIS//DTD DocBook XML V4.4//EN\" \"http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd\">%n" +
+                "<section>%n");
     }
 
     protected String createTitle() {
@@ -81,10 +82,10 @@ public abstract class DocumentingTestBase {
     }
 
     protected String createSnippet() {
-        return String.format("<example>\n" +
-                "           <title>%s</title>\n" +
-                "           <programlisting language=\"java\"><![CDATA[%s]]></programlisting>\n" +
-                "       </example>\n", snippetTitle, collectSnippet());
+        return String.format("<example>%n" +
+                "           <title>%s</title>%n" +
+                "           <programlisting language=\"java\"><![CDATA[%s]]></programlisting>%n" +
+                "       </example>%n", snippetTitle, collectSnippet());
     }
 
     protected String collectSnippet() {
@@ -99,7 +100,7 @@ public abstract class DocumentingTestBase {
                     continue;
                 }
                 if (inSnippet) {
-                    snippetText.append(line).append("\n");
+                    snippetText.append(line).append(String.format("%n"));
                 }
             }
             reader.close();
@@ -110,7 +111,7 @@ public abstract class DocumentingTestBase {
     }
 
     protected File getJavaFile() {
-        final String javaFileName = getClass().getName().replaceAll("\\.", File.separator) + ".java";
+        final String javaFileName = getClass().getName().replaceAll("\\.", Matcher.quoteReplacement(File.separator)) + ".java";
         final File javaFile = new File(testSourceDirectory(), javaFileName);
         if (!javaFile.exists()) fail("Snippet File " + javaFile + " does not exist ");
         return javaFile;
