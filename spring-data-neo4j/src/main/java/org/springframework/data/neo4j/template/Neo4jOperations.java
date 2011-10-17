@@ -24,7 +24,6 @@ import org.springframework.data.neo4j.annotation.QueryType;
 import org.springframework.data.neo4j.conversion.Result;
 import org.springframework.data.neo4j.repository.GraphRepository;
 import org.springframework.data.neo4j.support.query.QueryEngine;
-import org.springframework.data.util.TypeInformation;
 
 import java.util.Map;
 
@@ -60,15 +59,34 @@ public interface Neo4jOperations {
      */
     Node getNode(long id);
 
-    Node createNode(Map<String, Object> props);
+    /**
+     * Creates a node
+     * @param properties the properties that should be initially set on the node
+     */
+    Node createNode(Map<String, Object> properties);
 
     Node createNode();
 
+    /**
+     * Creates a node mapped by the given entity class
+     * @param target mapped entity class or Node.class
+     * @param properties the properties that should be initially set on the node
+     */
     <T> T createNodeAs(Class<T> target, Map<String, Object> properties);
 
-    Result<Node> createNodes(Map<String, Object> firstNode, Map<String, Object>... otherNodes);
+    /**
+     * Creates a number of nodes in a single step
+     * @param allProperties
+     * @return the nodes as a Result, which can be converted
+     */
+    Result<Node> createNodes(Map<String, Object>... allProperties);
 
-    <T> Iterable<T> createNodesAs(Class<T> target, Map<String, Object> firstNode, Map<String, Object>... otherNodes);
+    /**
+     * Creates a number of nodes mapped by the given entity class
+     * @param target mapped entity class or Node.class
+     * @param allProperties properties for each of the created nodes
+     */
+    <T> Iterable<T> createNodesAs(Class<T> target, Map<String, Object>... allProperties);
 
 
     /**
@@ -80,22 +98,48 @@ public interface Neo4jOperations {
      */
     Relationship getRelationship(long id);
 
+    /**
+     * Creates a relationship with the given initial properties.
+     */
     Relationship createRelationshipBetween(Node startNode, Node endNode, RelationshipType type, Map<String, Object> props);
 
+    /**
+     * Retrieves a single relationship entity between two node entities with the given relationship type projected to the provided
+     * relationship entity class
+     */
     <R> R getRelationshipBetween(Object start, Object end, Class<R> relationshipEntityClass, String relationshipType);
 
+    /**
+     * Retrieves a single relationship entity between two node entities.
+     */
+    Relationship getRelationshipBetween(Object start, Object end, String relationshipType);
+
+    /**
+     * Removes the relationship of this type between the two node entities
+     */
     void removeRelationshipBetween(Object start, Object end, String type);
 
+    /**
+     * Creates a single relationship entity between two node entities with the given relationship type projected to the provided
+     * relationship entity class. If it allowDuplicates existing relationships won't be taken into account. Returns the projected
+     * relationship entity.
+     */
     <R> R createRelationshipBetween(Object start, Object end, Class<R> relationshipEntityClass, String relationshipType, boolean allowDuplicates);
 
 
+    /**
+     * Retrieves an existing index for the given class and/or name
+     * @param type entity class, might be null
+     * @param indexName might be null
+     * @return Index&lt;Node%gt; or Index&lt;Relationship&gt;
+     */
     <S extends PropertyContainer, T> Index<S> getIndex(Class<T> type, String indexName);
 
     /**
      * Indexes the given field and value for the element.
      *
      * @param indexName Name of the index, will be checked against existing indexes according to the given element
-     *                  assumes a "node" node index  or "relationship" relationship index for a null value
+     *                  assumes a "node" node index or "relationship" relationship index for a null value
      * @param element   node or relationship to index
      * @param field     field to index
      * @param value     value to index
@@ -116,10 +160,15 @@ public interface Neo4jOperations {
      */
     <T extends PropertyContainer> Result<T> lookup(String indexName, Object query);
 
+    /**
+     * The query is executed on the index for this entity type returning the IndexHits wrapped in a QueryResult to be converted
+     * into Paths or Entities.
+     */
     <T extends PropertyContainer> Result<T> lookup(Class<?> indexedType, Object query);
 
-    Object query(String statement, Map<String, Object> params, TypeInformation<?> typeInformation);
-
+    /**
+     * Provides a cypher or gremlin query engine set up with a default entity converter.
+     */
     QueryEngine queryEngineFor(QueryType type);
 
     /**
@@ -130,7 +179,7 @@ public interface Neo4jOperations {
 
     /**
      * Executes the given Gremlin statement and returns the result packaged as QueryResult as Neo4j types, not
-     * Gremlin types. Table rows are converted to Map<String,Object>.
+     * Gremlin types. The Neo4j-Graph is provided as variable "g". Table rows are converted to Map<String,Object>.
      */
     Result<Object> execute(String statement, Map<String, Object> params);
 
@@ -141,9 +190,12 @@ public interface Neo4jOperations {
      */
     Result<Path> traverse(Node startNode, TraversalDescription traversal);
 
+    /**
+     * Traverses the graph starting at the given node entity with the provided traversal description. The Path's of the
+     * traversal will be packaged into a QueryResult which can be easily converted into Nodes, Relationships or
+     * Graph-Entities.
+     */
     Result<Path> traverse(Object start, TraversalDescription traversal);
-
-    <T> Iterable<T> traverse(Object entity, Class<?> targetType, TraversalDescription traversalDescription);
 
     /**
      * Converts the Iterable into a QueryResult object for uniform handling. E.g.
@@ -151,17 +203,45 @@ public interface Neo4jOperations {
      */
     <T> Result<T> convert(Iterable<T> iterable);
 
+    /**
+     * Converts a single object according to the configured ResultConverter of the Neo4j-Template.
+     */
     <T> T convert(Object value, Class<T> type);
 
+    /**
+     * Provides all instances of a given entity type using the typerepresentation strategy configured for this template.
+     * This method is also provided by the appropriate repository.
+     */
     <T> ClosableIterable<T> findAll(Class<T> entityClass);
 
+    /**
+     * Provies the instance count a given entity type using the typerepresentation strategy configured for this template.
+     * This method is also provided by the appropriate repository.
+     */
     <T> long count(Class<T> entityClass);
 
+    /**
+     * Projects a node or relationship entity to a different type. This can be used to use the same, schema free data
+     * in different contexts.
+     */
     <S extends PropertyContainer, T> T projectTo(Object entity, Class<T> targetType);
 
+    /**
+     * Stores the given entity in the graph, if the entity is already attached to the graph, the node is updated, otherwise
+     * a new node is created. Attached relationships will be cascaded.
+     * This method is also provided by the appropriate repository.
+     */
     <T> T save(T entity);
 
+    /**
+     * Removes the given node or relationship entity or node or relationship from the graph, the entity is first removed
+     * from all indexes and then deleted.
+     */
     void remove(Object entity);
 
+    /**
+     * Returns the node or relationship that backs the given entity.
+     */
     <S extends PropertyContainer> S getPersistentState(Object entity);
+
 }

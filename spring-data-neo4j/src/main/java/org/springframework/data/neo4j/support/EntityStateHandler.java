@@ -132,17 +132,17 @@ public class EntityStateHandler {
     }
 
     public RelationshipResult relateTo(Object source, Object target, String type) {
-        return this.relateTo(source, target, type, false);
+        return this.createRelationshipBetween(source, target, type, false);
     }
 
     // todo gdc.postEntityCreation(rel), return createEntityFromState(rel)
-    public RelationshipResult relateTo(Object source, Object target, String type, boolean allowDuplicates) {
+    public RelationshipResult createRelationshipBetween(Object source, Object target, String type, boolean allowDuplicates) {
         if (source == null) throw new IllegalArgumentException("Source entity is null");
         if (target == null) throw new IllegalArgumentException("Target entity is null");
         if (type == null) throw new IllegalArgumentException("Relationshiptype is null");
 
         if (!allowDuplicates) {
-            Relationship relationship = getRelationshipTo(source, target, type);
+            Relationship relationship = getRelationshipBetween(source, target, type);
             if (relationship != null) return new RelationshipResult(relationship, RelationshipResult.Type.EXISTING);
         }
 
@@ -164,7 +164,7 @@ public class EntityStateHandler {
     }
 
     public RelationshipResult removeRelationshipTo(Object source, Object target, String relationshipType) {
-        final Relationship relationship = getRelationshipTo(source, target, relationshipType);
+        final Relationship relationship = getRelationshipBetween(source, target, relationshipType);
         if (relationship!=null) {
            relationship.delete();
            return new RelationshipResult(relationship, RelationshipResult.Type.DELETED);
@@ -172,7 +172,7 @@ public class EntityStateHandler {
         return null;
     }
 
-    public Relationship getRelationshipTo(Object source, Object target, String type) {
+    public Relationship getRelationshipBetween(Object source, Object target, String type) {
         if (source == null) throw new IllegalArgumentException("Source entity is null");
         if (target == null) throw new IllegalArgumentException("Target entity is null");
         if (type == null) throw new IllegalArgumentException("Relationshiptype is null");

@@ -59,7 +59,7 @@ public class EntityRemover {
         graphDatabase.remove(relationship);
     }
 
-    public void removeRelationshipTo(Object start, Object target, String type) {
+    public void removeRelationshipBetween(Object start, Object target, String type) {
         final RelationshipResult result = entityStateHandler.removeRelationshipTo(start, target, type);
         if (result!=null && result.type == RelationshipResult.Type.DELETED) {
             relationshipTypeRepresentationStrategy.preEntityRemoval(result.relationship);
