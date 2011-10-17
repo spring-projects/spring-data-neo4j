@@ -21,6 +21,7 @@ import java.util.Map;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mapping.context.MappingContext;
+import org.springframework.data.neo4j.annotation.QueryType;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentEntity;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.repository.GraphRepositoryFactory.GraphQueryMethod;
@@ -64,7 +65,7 @@ public class DerivedCypherRepositoryQuery implements RepositoryQuery {
 
         this.query = new CypherQueryCreator(tree, context, info.getJavaType()).createQuery();
         this.method = method;
-        this.executor = new CypherQueryExecutor(database);
+        this.executor = new CypherQueryExecutor(database.queryEngineFor(QueryType.Cypher));
     }
 
     /*

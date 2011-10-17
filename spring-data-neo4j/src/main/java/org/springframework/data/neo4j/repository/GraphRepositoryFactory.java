@@ -25,14 +25,14 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mapping.context.MappingContext;
 import org.springframework.data.neo4j.annotation.Query;
+import org.springframework.data.neo4j.annotation.QueryType;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentEntity;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.repository.query.DerivedCypherRepositoryQuery;
 import org.springframework.data.neo4j.support.GenericTypeExtractor;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
-import org.springframework.data.neo4j.support.conversion.EntityResultConverter;
 import org.springframework.data.neo4j.support.query.CypherQueryExecutor;
-import org.springframework.data.neo4j.support.query.GremlinQueryEngine;
+import org.springframework.data.neo4j.support.query.QueryEngine;
 import org.springframework.data.repository.core.EntityInformation;
 import org.springframework.data.repository.core.NamedQueries;
 import org.springframework.data.repository.core.RepositoryMetadata;
@@ -291,7 +291,12 @@ public class GraphRepositoryFactory extends RepositoryFactorySupport {
 
         public CypherGraphRepositoryQuery(GraphQueryMethod queryMethod, RepositoryMetadata metadata, final Neo4jTemplate template) {
             super(queryMethod, metadata, template);
-            queryExecutor = new CypherQueryExecutor(template);
+        }
+
+        private CypherQueryExecutor getQueryExecutor() {
+            if (this.queryExecutor!=null) return this.queryExecutor;
+            this.queryExecutor = new CypherQueryExecutor(getTemplate().queryEngineFor(QueryType.Cypher));
+            return this.queryExecutor;
         }
 
         @Override
@@ -303,27 +308,34 @@ public class GraphRepositoryFactory extends RepositoryFactorySupport {
             }
             if (queryMethod.isIterableResult()) {
                 if (compoundType.isAssignableFrom(Map.class)) {
-                    return queryExecutor.queryForList(queryString,params);
+                    return getQueryExecutor().queryForList(queryString, params);
                 }
-                return queryExecutor.query(queryString, queryMethod.getCompoundType(),params);
+                return getQueryExecutor().query(queryString, queryMethod.getCompoundType(), params);
             }
-            return queryExecutor.queryForObject(queryString, queryMethod.getReturnType(),params);
+            return getQueryExecutor().queryForObject(queryString, queryMethod.getReturnType(), params);
         }
         private Object queryPaged(String queryString, Map<String, Object> params, Pageable pageable) {
-            final Iterable<?> result = queryExecutor.query(queryString, getQueryMethod().getCompoundType(),params);
+            final Iterable<?> result = getQueryExecutor().query(queryString, getQueryMethod().getCompoundType(), params);
             return createPage(result, pageable);
         }
     }
 
     private static class GremlinGraphRepositoryQuery extends GraphRepositoryQuery {
 
-        private GremlinQueryEngine queryExecutor;
+        private QueryEngine queryEngine;
 
         public GremlinGraphRepositoryQuery(GraphQueryMethod queryMethod, RepositoryMetadata metadata, final Neo4jTemplate template) {
             super(queryMethod, metadata, template);
-            queryExecutor = new GremlinQueryEngine(template.getGraphDatabaseService(), new EntityResultConverter<Object, Object>(template));
         }
 
+        private QueryEngine getQueryEngine() {
+            if (this.queryEngine !=null) return queryEngine;
+            this.queryEngine = getTemplate().queryEngineFor(QueryType.Gremlin);
+            return this.queryEngine;
+        }
+
+
+        @SuppressWarnings("unchecked")
         @Override
         protected Object dispatchQuery(String queryString, Map<String, Object> params, Pageable pageable) {
             GraphQueryMethod queryMethod = getQueryMethod();
@@ -331,13 +343,13 @@ public class GraphRepositoryFactory extends RepositoryFactorySupport {
                 return queryPaged(queryString,params,pageable);
             }
             if (queryMethod.isIterableResult()) {
-                return queryExecutor.query(queryString,params).to(queryMethod.getCompoundType());
+                return getQueryEngine().query(queryString, params).to(queryMethod.getCompoundType());
             }
-            return queryExecutor.query(queryString, params).to(queryMethod.getReturnType()).single();
+            return getQueryEngine().query(queryString, params).to(queryMethod.getReturnType()).single();
         }
 
         private Object queryPaged(String queryString, Map<String, Object> params, Pageable pageable) {
-            final Iterable<?> result = queryExecutor.query(queryString, params).to(getQueryMethod().getCompoundType());
+            @SuppressWarnings("unchecked") final Iterable<?> result = getQueryEngine().query(queryString, params).to(getQueryMethod().getCompoundType());
             return createPage(result, pageable);
         }
 
@@ -350,6 +362,10 @@ public class GraphRepositoryFactory extends RepositoryFactorySupport {
         public GraphRepositoryQuery(GraphQueryMethod queryMethod, RepositoryMetadata metadata, final Neo4jTemplate template) {
             this.queryMethod = queryMethod;
             this.template = template;
+        }
+
+        protected Neo4jTemplate getTemplate() {
+            return template;
         }
 
         @Override

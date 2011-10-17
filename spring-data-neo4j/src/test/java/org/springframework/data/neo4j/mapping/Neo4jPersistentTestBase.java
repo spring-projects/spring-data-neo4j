@@ -30,10 +30,7 @@ import org.springframework.data.neo4j.fieldaccess.NodeDelegatingFieldAccessorFac
 import org.springframework.data.neo4j.fieldaccess.RelationshipDelegatingFieldAccessorFactory;
 import org.springframework.data.neo4j.model.Group;
 import org.springframework.data.neo4j.model.Person;
-import org.springframework.data.neo4j.support.DelegatingGraphDatabase;
-import org.springframework.data.neo4j.support.EntityStateHandler;
-import org.springframework.data.neo4j.support.EntityTools;
-import org.springframework.data.neo4j.support.Neo4jTemplate;
+import org.springframework.data.neo4j.support.*;
 import org.springframework.data.neo4j.support.node.NodeEntityInstantiator;
 import org.springframework.data.neo4j.support.node.NodeEntityStateFactory;
 import org.springframework.data.neo4j.support.relationship.RelationshipEntityInstantiator;
@@ -54,7 +51,7 @@ import static java.util.Arrays.asList;
  */
 public class Neo4jPersistentTestBase {
     private Transaction tx;
-    protected Neo4jTemplate gdc;
+    protected Neo4jTemplate template;
     protected NodeEntityStateFactory nodeEntityStateFactory;
     protected RelationshipEntityStateFactory relationshipEntityStateFactory;
     protected EntityStateHandler entityStateHandler;
@@ -85,32 +82,34 @@ public class Neo4jPersistentTestBase {
 
     @Before
     public void setUp() throws Exception {
+        // todo cleanup !!
         mappingContext = new Neo4jMappingContext();
-        gdc = createContext(mappingContext);
-        tx = gdc.beginTx();
+        MappingInfrastructure infrastructure = createInfrastructure(mappingContext);
 
+
+        template = new Neo4jTemplate(infrastructure);
         nodeEntityStateFactory = createNodeEntityStateFactory(mappingContext);
         relationshipEntityStateFactory = createRelationshipEntityStateFactory(mappingContext);
-        gdc.setNodeEntityStateFactory(nodeEntityStateFactory);
-        gdc.setRelationshipEntityStateFactory(relationshipEntityStateFactory);
+        infrastructure.setNodeEntityStateFactory(nodeEntityStateFactory);
+        infrastructure.setRelationshipEntityStateFactory(relationshipEntityStateFactory);
+        template.postConstruct();
 
-        gdc.postConstruct();
-
-        entityStateHandler = gdc.getEntityStateHandler();
+        entityStateHandler = infrastructure.getEntityStateHandler();
 
         nodeEntityInstantiator = new NodeEntityInstantiator(entityStateHandler);
         relationshipEntityInstantiator = new RelationshipEntityInstantiator(entityStateHandler);
-        nodeTypeMapper = new DefaultTypeMapper<Node>(new TRSTypeAliasAccessor<Node>(gdc.getNodeTypeRepresentationStrategy()),asList(new ClassValueTypeInformationMapper()));
+        nodeTypeMapper = new DefaultTypeMapper<Node>(new TRSTypeAliasAccessor<Node>(infrastructure.getNodeTypeRepresentationStrategy()),asList(new ClassValueTypeInformationMapper()));
         nodeStateTransmitter = new SourceStateTransmitter<Node>(nodeEntityStateFactory);
         relationshipStateTransmitter = new SourceStateTransmitter<Relationship>(relationshipEntityStateFactory);
-        conversionService = gdc.getConversionService();
+        conversionService = template.getConversionService();
 
         fetchHandler = new Neo4jEntityFetchHandler(entityStateHandler, conversionService, nodeStateTransmitter, relationshipStateTransmitter);
-        final EntityTools<Node> nodeEntityTools = new EntityTools<Node>(gdc.getNodeTypeRepresentationStrategy(), nodeEntityStateFactory, nodeEntityInstantiator);
-        final EntityTools<Relationship> relationshipEntityTools = new EntityTools<Relationship>(gdc.getRelationshipTypeRepresentationStrategy(), relationshipEntityStateFactory, relationshipEntityInstantiator);
+        final EntityTools<Node> nodeEntityTools = new EntityTools<Node>(infrastructure.getNodeTypeRepresentationStrategy(), nodeEntityStateFactory, nodeEntityInstantiator);
+        final EntityTools<Relationship> relationshipEntityTools = new EntityTools<Relationship>(infrastructure.getRelationshipTypeRepresentationStrategy(), relationshipEntityStateFactory, relationshipEntityInstantiator);
 
         entityPersister = new Neo4jEntityPersister(conversionService, nodeEntityTools, relationshipEntityTools, mappingContext, entityStateHandler);
 
+        tx = template.beginTx();
         group = new Group();
         michael = new Person("Michael", 37);
         emil = new Person("Emil", 30);
@@ -120,33 +119,32 @@ public class Neo4jPersistentTestBase {
     private NodeEntityStateFactory createNodeEntityStateFactory(Neo4jMappingContext mappingContext) {
         final NodeEntityStateFactory nodeEntityStateFactory = new NodeEntityStateFactory();
         nodeEntityStateFactory.setMappingContext(mappingContext);
-        nodeEntityStateFactory.setTemplate(gdc);
-        nodeEntityStateFactory.setNodeDelegatingFieldAccessorFactory(new NodeDelegatingFieldAccessorFactory(gdc));
+        nodeEntityStateFactory.setTemplate(template);
+        nodeEntityStateFactory.setNodeDelegatingFieldAccessorFactory(new NodeDelegatingFieldAccessorFactory(template));
         return nodeEntityStateFactory;
     }
 
     private RelationshipEntityStateFactory createRelationshipEntityStateFactory(Neo4jMappingContext mappingContext) {
         final RelationshipEntityStateFactory relationshipEntityStateFactory = new RelationshipEntityStateFactory();
         relationshipEntityStateFactory.setMappingContext(mappingContext);
-        relationshipEntityStateFactory.setTemplate(gdc);
-        relationshipEntityStateFactory.setRelationshipDelegatingFieldAccessorFactory(new RelationshipDelegatingFieldAccessorFactory(gdc));
+        relationshipEntityStateFactory.setTemplate(template);
+        relationshipEntityStateFactory.setRelationshipDelegatingFieldAccessorFactory(new RelationshipDelegatingFieldAccessorFactory(template));
         return relationshipEntityStateFactory;
     }
 
-    private Neo4jTemplate createContext(Neo4jMappingContext mappingContext) throws Exception {
-        Neo4jTemplate gdc = new Neo4jTemplate();
+    private MappingInfrastructure createInfrastructure(Neo4jMappingContext mappingContext) throws Exception {
+        MappingInfrastructure infrastructure=new MappingInfrastructure();
         final ImpermanentGraphDatabase gdb = new ImpermanentGraphDatabase();
-        gdc.setGraphDatabaseService(gdb);
+        infrastructure.setGraphDatabaseService(gdb);
         final DelegatingGraphDatabase graphDatabase = new DelegatingGraphDatabase(gdb);
-        gdc.setGraphDatabase(graphDatabase);
-
-        gdc.setMappingContext(mappingContext);
+        infrastructure.setGraphDatabase(graphDatabase);
+        infrastructure.setMappingContext(mappingContext);
         final EntityStateHandler entityStateHandler = new EntityStateHandler(mappingContext, graphDatabase);
-        gdc.setNodeTypeRepresentationStrategy(new NoopNodeTypeRepresentationStrategy(new NodeEntityInstantiator(entityStateHandler)));
-        gdc.setRelationshipTypeRepresentationStrategy(new NoopRelationshipTypeRepresentationStrategy(new RelationshipEntityInstantiator(entityStateHandler)));
-        gdc.setConversionService(new Neo4jConversionServiceFactoryBean().getObject());
-        gdc.setEntityStateHandler(entityStateHandler);
-        return gdc;
+        infrastructure.setNodeTypeRepresentationStrategy(new NoopNodeTypeRepresentationStrategy(new NodeEntityInstantiator(entityStateHandler)));
+        infrastructure.setRelationshipTypeRepresentationStrategy(new NoopRelationshipTypeRepresentationStrategy(new RelationshipEntityInstantiator(entityStateHandler)));
+        infrastructure.setConversionService(new Neo4jConversionServiceFactoryBean().getObject());
+        infrastructure.setEntityStateHandler(entityStateHandler);
+        return infrastructure;
     }
 
     protected List<Node> groupMemberNodes() {
@@ -161,21 +159,21 @@ public class Neo4jPersistentTestBase {
     public void tearDown() throws Exception {
         tx.failure();
         tx.finish();
-        gdc.getGraphDatabaseService().shutdown();
+        template.getGraphDatabaseService().shutdown();
     }
 
     protected Node michaelNode() {
-        return gdc.getNode(michael.getId());
+        return template.getNode(michael.getId());
     }
 
     protected Node createNewNode() {
-        return gdc.createNode();
+        return template.createNode();
     }
 
     protected Group storeInGraph(Group g) {
         final Long id = g.getId();
         if (id != null) {
-            write(g, gdc.getNode(id));
+            write(g, template.getNode(id));
         } else {
             write(g, null);
         }
@@ -185,7 +183,7 @@ public class Neo4jPersistentTestBase {
     protected Person storeInGraph(Person p) {
         final Long id = p.getId();
         if (id != null) {
-            write(p, gdc.getNode(id));
+            write(p, template.getNode(id));
         } else {
             write(p,null);
         }
@@ -203,7 +201,7 @@ public class Neo4jPersistentTestBase {
     }
 
     protected Node groupNode() {
-        return gdc.getNode(group.getId());
+        return template.getNode(group.getId());
     }
 
     protected <T> Set<T> set(T... objs) {
@@ -215,11 +213,11 @@ public class Neo4jPersistentTestBase {
     }
 
     protected Node andresNode() {
-        return gdc.getNode(andres.getId());
+        return template.getNode(andres.getId());
     }
 
     protected Node emilNode() {
-        return gdc.getNode(emil.getId());
+        return template.getNode(emil.getId());
     }
 
     public Person readPerson(Node node) {

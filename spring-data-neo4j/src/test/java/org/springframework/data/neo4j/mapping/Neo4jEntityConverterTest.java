@@ -75,7 +75,7 @@ public class Neo4jEntityConverterTest extends Neo4jPersistentTestBase {
     public void testFindNewlyWrittenNodeInIndex() {
         storeInGraph(michael);
         final Node createdNode = michaelNode();
-        final Index<Node> index = gdc.getIndex(Person.class, Person.NAME_INDEX);
+        final Index<Node> index = template.getIndex(Person.class, Person.NAME_INDEX);
         final Node found = index.get("name", "Michael").getSingle();
         assertEquals("node found in index", createdNode, found);
     }

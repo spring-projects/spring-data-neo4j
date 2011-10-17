@@ -92,10 +92,11 @@ public class QueryEngineTest extends EntityTestBase {
 
         assertEquals(asList(getNodeState(testTeam.emil)),result);
     }
+    @SuppressWarnings("unchecked")
     @Test
     public void testQueryListOfTypePerson() throws Exception {
         final String queryString = "start person=node:name_index(name={name}) match (person) <-[:boss]- (boss) return boss";
-        final Collection<Person> result = IteratorUtil.asCollection(queryEngine.query(queryString, michaelsName()).to(Person.class, new EntityResultConverter(template)));
+        final Collection<Person> result = IteratorUtil.asCollection(queryEngine.query(queryString, michaelsName()).to(Person.class, new EntityResultConverter(conversionService, template)));
 
         assertEquals(asList(testTeam.emil),result);
     }
@@ -107,7 +108,7 @@ public class QueryEngineTest extends EntityTestBase {
     @Test
     public void testQuerySingleOfTypePerson() throws Exception {
         final String queryString = "start person=node:name_index(name={name}) match (person) <-[:boss]- (boss) return boss";
-        final Person result = queryEngine.query(queryString, michaelsName()).to(Person.class, new EntityResultConverter<Map<String,Object>,Person>(template)).single();
+        final Person result = queryEngine.query(queryString, michaelsName()).to(Person.class, new EntityResultConverter<Map<String,Object>,Person>(conversionService, template)).single();
 
         assertEquals(testTeam.emil,result);
     }

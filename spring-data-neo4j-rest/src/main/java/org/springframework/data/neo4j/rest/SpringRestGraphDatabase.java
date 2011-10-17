@@ -38,6 +38,8 @@ import java.util.Map;
 
 public class SpringRestGraphDatabase extends org.neo4j.rest.graphdb.RestGraphDatabase implements GraphDatabase{
     private ConversionService conversionService;
+    private ResultConverter resultConverter;
+
     public SpringRestGraphDatabase( RestAPI api){
     	super(api);
     }
@@ -100,8 +102,13 @@ public class SpringRestGraphDatabase extends org.neo4j.rest.graphdb.RestGraphDat
     }
 
     private ResultConverter createResultConverter() {
-        if (conversionService==null) return new DefaultConverter();
-        return new ConversionServiceQueryResultConverter(conversionService);
+        if (resultConverter!=null) return resultConverter;
+        if (conversionService != null) {
+            this.resultConverter = new ConversionServiceQueryResultConverter(conversionService);
+        } else {
+            this.resultConverter = new DefaultConverter();
+        }
+        return resultConverter;
     }
 
     private static class SpringResultConverter implements org.neo4j.rest.graphdb.util.ResultConverter {
@@ -112,6 +119,7 @@ public class SpringRestGraphDatabase extends org.neo4j.rest.graphdb.RestGraphDat
         }
 
         @Override
+        @SuppressWarnings("unchecked")
         public Object convert(Object value, Class target) {
             return resultConverter.convert(value,target);
         }
@@ -132,6 +140,12 @@ public class SpringRestGraphDatabase extends org.neo4j.rest.graphdb.RestGraphDat
     public void remove(Relationship relationship) {
        removeFromIndexes(relationship);
        relationship.delete();
+    }
+
+    @Override
+    public void setResultConverter(ResultConverter resultConverter) {
+
+
     }
 
     private void removeFromIndexes(Node node) {

@@ -19,7 +19,7 @@ package org.springframework.data.neo4j.support.conversion;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.data.neo4j.conversion.DefaultConverter;
 import org.springframework.data.neo4j.core.EntityPath;
-import org.springframework.data.neo4j.support.Neo4jTemplate;
+import org.springframework.data.neo4j.mapping.EntityPersister;
 import org.springframework.data.neo4j.support.path.ConvertingEntityPath;
 
 /**
@@ -27,25 +27,25 @@ import org.springframework.data.neo4j.support.path.ConvertingEntityPath;
  * @since 28.06.11
  */
 public class EntityResultConverter<T,R> extends DefaultConverter<T,R> {
-    private final Neo4jTemplate template;
     private final ConversionService conversionService;
+    private final EntityPersister entityPersister;
 
-    public EntityResultConverter(Neo4jTemplate template) {
-        this.template = template;
-        conversionService = this.template.getConversionService();
+    public EntityResultConverter(ConversionService conversionService, EntityPersister entityPersister) {
+        this.conversionService = conversionService;
+        this.entityPersister = entityPersister;
     }
 
     @SuppressWarnings("unchecked")
     @Override
     protected Object doConvert(Object value, Class<?> sourceType, Class targetType) {
-        if (template.isNodeEntity(targetType)) {
-            return template.projectTo(toNode(value, sourceType), targetType);
-        }
-        if (template.isRelationshipEntity(targetType)) {
-            return template.projectTo(toRelationship(value, sourceType), targetType);
-        }
         if (EntityPath.class.isAssignableFrom(targetType)) {
-            return new ConvertingEntityPath(template,toPath(value,sourceType));
+            return new ConvertingEntityPath(entityPersister,toPath(value,sourceType));
+        }
+        if (entityPersister.isNodeEntity(targetType)) {
+            return entityPersister.projectTo(toNode(value, sourceType), targetType);
+        }
+        if (entityPersister.isRelationshipEntity(targetType)) {
+            return entityPersister.projectTo(toRelationship(value, sourceType), targetType);
         }
         final Object result = super.doConvert(value, sourceType, targetType);
 

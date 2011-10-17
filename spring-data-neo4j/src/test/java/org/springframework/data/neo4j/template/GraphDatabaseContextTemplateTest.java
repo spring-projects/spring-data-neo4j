@@ -56,6 +56,7 @@ public class GraphDatabaseContextTemplateTest {
     private static final DynamicRelationshipType HAS = DynamicRelationshipType.withName("has");
     @Autowired
     Neo4jTemplate neo4jTemplate;
+    @Autowired
     protected GraphDatabase graphDatabase;
     protected Node referenceNode;
     protected Relationship relationship1;
@@ -72,7 +73,7 @@ public class GraphDatabaseContextTemplateTest {
     @Before
     public void setUp() throws Exception {
         Neo4jHelper.cleanDb(neo4jTemplate);
-        graphDatabase = neo4jTemplate.getGraphDatabase();
+        // graphDatabase = neo4jTemplate.getGraphDatabase();
         referenceNode = graphDatabase.getReferenceNode();
         createData();
     }

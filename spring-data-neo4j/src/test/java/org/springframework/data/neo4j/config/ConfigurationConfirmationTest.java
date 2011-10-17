@@ -27,6 +27,14 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 public class ConfigurationConfirmationTest {
     @Test(expected = BeanCreationException.class)
     public void testInvalidTransactionManagerFails() {
-        ClassPathXmlApplicationContext appCtx = new ClassPathXmlApplicationContext("classpath:org/springframework/data/neo4j/config/ConfigurationCofirmationTest-context.xml");
+        ClassPathXmlApplicationContext ctx = null;
+        try {
+            ctx = new ClassPathXmlApplicationContext("classpath:org/springframework/data/neo4j/config/ConfigurationConfirmationTest-context.xml");
+            ctx.start();
+        } finally {
+            if (ctx != null) {
+                ctx.close();
+            }
+        }
     }
 }

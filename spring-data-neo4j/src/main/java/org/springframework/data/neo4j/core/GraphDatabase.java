@@ -111,4 +111,6 @@ public interface GraphDatabase {
     void remove(Node node);
 
     void remove(Relationship relationship);
+
+    void setResultConverter(ResultConverter resultConverter);
 }

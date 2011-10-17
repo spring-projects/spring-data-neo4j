@@ -15,12 +15,9 @@
  */
 package org.springframework.data.neo4j.mapping;
 
-import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.neo4j.graphdb.Node;
-import org.springframework.data.neo4j.annotation.GraphId;
-import org.springframework.data.neo4j.annotation.NodeEntity;
 import org.springframework.data.neo4j.model.Friendship;
 import org.springframework.data.neo4j.model.Person;
 import org.springframework.data.neo4j.support.ManagedEntity;
@@ -35,7 +32,7 @@ public class Neo4jEntityPersisterTest extends Neo4jPersistentTestBase {
 
     @Test
     public void testCreateEntityFromStoredType() throws Exception {
-        final Node personNode = gdc.createNode();
+        final Node personNode = template.createNode();
         personNode.setProperty("name","Michael");
         final Person person = entityPersister.createEntityFromState(personNode, Person.class);
         assertEquals("Michael",person.getName());

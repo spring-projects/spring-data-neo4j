@@ -15,8 +15,6 @@
  */
 package org.springframework.data.neo4j.mapping;
 
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.NotFoundException;
 import org.neo4j.graphdb.PropertyContainer;
 import org.neo4j.graphdb.Transaction;
 import org.springframework.data.mapping.Association;
@@ -44,7 +42,7 @@ public class SourceStateTransmitter<S extends PropertyContainer> {
 
     public <R> R copyPropertiesFrom(final BeanWrapper<Neo4jPersistentEntity<R>, R> wrapper, S source, Neo4jPersistentEntity<R> persistentEntity) {
         final R entity = wrapper.getBean();
-        final Transaction tx = getGraphDatabaseContext().beginTx();
+        final Transaction tx = getTemplate().beginTx();
         try {
             final EntityState<S> entityState = entityStateFactory.getEntityState(entity, false);
             entityState.setPersistentState(source);
@@ -75,7 +73,7 @@ public class SourceStateTransmitter<S extends PropertyContainer> {
         entityState.setValue(property, value);
     }
 
-    private Neo4jTemplate getGraphDatabaseContext() {
+    private Neo4jTemplate getTemplate() {
         return entityStateFactory.getTemplate();
     }
 
@@ -116,7 +114,7 @@ public class SourceStateTransmitter<S extends PropertyContainer> {
     }
 
     public <R> void copyPropertiesTo(final BeanWrapper<Neo4jPersistentEntity<R>, R> wrapper, S target, Neo4jPersistentEntity<R> persistentEntity) {
-        final Transaction tx = getGraphDatabaseContext().beginTx();
+        final Transaction tx = getTemplate().beginTx();
         try {
             //final Node targetNode = useGetOrCreateNode(node, persistentEntity, wrapper);
             final EntityState<S> entityState = entityStateFactory.getEntityState(wrapper.getBean(), false);
@@ -141,19 +139,4 @@ public class SourceStateTransmitter<S extends PropertyContainer> {
         }
     }
 
-    private Node useGetOrCreateNode(Node node, Neo4jPersistentEntity<?> persistentEntity, BeanWrapper<Neo4jPersistentEntity<Object>, Object> wrapper) {
-        if (node != null) return node;
-        final Neo4jPersistentProperty idProperty = persistentEntity.getIdProperty();
-        final Long id = getProperty(wrapper, idProperty, Long.class, true);
-        if (id == null) {
-            final Node newNode = getGraphDatabaseContext().createNode();
-            setProperty(wrapper, idProperty, newNode.getId());
-            return newNode;
-        }
-        try {
-            return getGraphDatabaseContext().getNode(id);
-        } catch (NotFoundException nfe) {
-            throw new MappingException("Could not find node with id " + id);
-        }
-    }
 }

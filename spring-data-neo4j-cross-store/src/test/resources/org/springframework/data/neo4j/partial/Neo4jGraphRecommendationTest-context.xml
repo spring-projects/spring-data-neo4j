@@ -90,7 +90,7 @@
         <constructor-arg ref="graphDatabaseService"/>
     </bean>
 
-    <bean id="neo4jTemplate" class="org.springframework.data.neo4j.support.Neo4jTemplate">
+    <bean id="mappingInfrastructure" class="org.springframework.data.neo4j.support.MappingInfrastructure">
         <property name="graphDatabaseService" ref="graphDatabaseService"/>
         <property name="conversionService">
             <bean class="org.springframework.data.neo4j.fieldaccess.Neo4jConversionServiceFactoryBean"/>
@@ -101,6 +101,10 @@
         <property name="mappingContext" ref="mappingContext"/>
         <property name="graphDatabase" ref="graphDatabase"/>
         <property name="transactionManager" ref="transactionManager"/>
+    </bean>
+
+    <bean id="neo4jTemplate" class="org.springframework.data.neo4j.support.Neo4jTemplate">
+        <property name="infrastructure" ref="mappingInfrastructure"/>
     </bean>
     <bean id="graphEntityInstantiator" class="org.springframework.data.neo4j.cross_store.support.node.CrossStoreNodeEntityInstantiator">
         <constructor-arg ref="nodeEntityInstantiator"/>

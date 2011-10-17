@@ -27,6 +27,7 @@ import org.neo4j.kernel.AbstractGraphDatabase;
 import org.neo4j.kernel.Traversal;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.data.neo4j.annotation.QueryType;
+import org.springframework.data.neo4j.conversion.DefaultConverter;
 import org.springframework.data.neo4j.conversion.Result;
 import org.springframework.data.neo4j.conversion.ResultConverter;
 import org.springframework.data.neo4j.core.GraphDatabase;
@@ -64,6 +65,11 @@ public class DelegatingGraphDatabase implements GraphDatabase {
 
     public void setConversionService(ConversionService conversionService) {
         this.conversionService = conversionService;
+    }
+
+    @Override
+    public void setResultConverter(ResultConverter resultConverter) {
+        this.resultConverter = resultConverter;
     }
 
     @Override
@@ -217,8 +223,10 @@ public class DelegatingGraphDatabase implements GraphDatabase {
         if (resultConverter!=null) return resultConverter;
         if (conversionService != null) {
             this.resultConverter = new ConversionServiceQueryResultConverter(conversionService);
+        } else {
+            this.resultConverter = new DefaultConverter();
         }
-        return null;
+        return resultConverter;
     }
 
     public void shutdown() {

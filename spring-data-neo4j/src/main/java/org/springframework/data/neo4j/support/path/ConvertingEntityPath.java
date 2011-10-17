@@ -22,10 +22,7 @@ import org.neo4j.graphdb.PropertyContainer;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.helpers.collection.IterableWrapper;
 import org.springframework.data.neo4j.core.EntityPath;
-
-
-
-import org.springframework.data.neo4j.support.Neo4jTemplate;
+import org.springframework.data.neo4j.mapping.EntityPersister;
 
 import java.util.Iterator;
 
@@ -43,8 +40,8 @@ public class ConvertingEntityPath<S,E> implements EntityPath<S,E> {
 
     private <T> T projectEntityToFirstParameterOrCreateFromStoredType(Node node, Class<T>... types) {
         if (node==null) return null;
-        if (types==null || types.length==0) return template.createEntityFromStoredType(node);
-        return template.projectTo(node, types[0]);
+        if (types==null || types.length==0) return persister.createEntityFromStoredType(node);
+        return persister.projectTo(node, types[0]);
     }
 
     @Override
@@ -55,7 +52,7 @@ public class ConvertingEntityPath<S,E> implements EntityPath<S,E> {
     public <T> T lastRelationshipEntity(Class<T>... types) {
         Relationship relationship = lastRelationship();
         if (relationship==null) return null;
-        return template.projectTo(relationship, getFirstOrDefault((Class<T>) DefaultRelationshipBacked.class, types));
+        return persister.projectTo(relationship, getFirstOrDefault((Class<T>) DefaultRelationshipBacked.class, types));
     }
 
     private static <T> T getFirstOrDefault(final T defaultValue, T... values) {
@@ -68,7 +65,7 @@ public class ConvertingEntityPath<S,E> implements EntityPath<S,E> {
         return new IterableWrapper<T,Node>(nodes()) {
             @Override
             protected T underlyingObjectToObject(Node node) {
-                return template.createEntityFromStoredType(node);
+                return persister.createEntityFromStoredType(node);
             }
         };
     }
@@ -78,7 +75,7 @@ public class ConvertingEntityPath<S,E> implements EntityPath<S,E> {
         return new IterableWrapper<T,Relationship>(relationships()) {
             @Override
             protected T underlyingObjectToObject(Relationship relationship) {
-                return template.projectTo(relationship, getFirstOrDefault((Class<T>) DefaultRelationshipBacked.class, relationships));
+                return persister.projectTo(relationship, getFirstOrDefault((Class<T>) DefaultRelationshipBacked.class, relationships));
             }
         };
     }
@@ -88,18 +85,18 @@ public class ConvertingEntityPath<S,E> implements EntityPath<S,E> {
         return new IterableWrapper<T,PropertyContainer>(delegate) {
             @Override
             protected T underlyingObjectToObject(PropertyContainer element) {
-                return template.projectTo(element, getFirstOrDefault((Class<T>) DefaultRelationshipBacked.class, relationships));
+                return persister.projectTo(element, getFirstOrDefault((Class<T>) DefaultRelationshipBacked.class, relationships));
             }
         };
     }
 
 
-    public ConvertingEntityPath(Neo4jTemplate template, Path delegate) {
-        this.template = template;
+    public ConvertingEntityPath(EntityPersister persister, Path delegate) {
+        this.persister = persister;
         this.delegate = delegate;
     }
 
-    private final Neo4jTemplate template;
+    private final EntityPersister persister;
     private final Path delegate;
 
     @Override

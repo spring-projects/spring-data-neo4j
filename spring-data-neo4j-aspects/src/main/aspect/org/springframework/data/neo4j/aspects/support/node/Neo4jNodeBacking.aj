@@ -28,15 +28,7 @@ import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.traversal.TraversalDescription;
 import org.neo4j.graphdb.traversal.Traverser;
 
-import org.springframework.data.neo4j.annotation.NodeEntity;
-import org.springframework.data.neo4j.annotation.NodeEntity;
-import org.springframework.data.neo4j.annotation.RelationshipEntity;
-import org.springframework.data.neo4j.annotation.RelatedTo;
-import org.springframework.data.neo4j.annotation.GraphProperty;
-import org.springframework.data.neo4j.annotation.GraphId;
-import org.springframework.data.neo4j.annotation.Query;
-import org.springframework.data.neo4j.annotation.RelatedToVia;
-import org.springframework.data.neo4j.annotation.GraphTraversal;
+import org.springframework.data.neo4j.annotation.*;
 
 import org.springframework.data.neo4j.aspects.core.NodeBacked;
 import org.springframework.data.neo4j.aspects.core.RelationshipBacked;
@@ -186,17 +178,17 @@ public privileged aspect Neo4jNodeBacking { // extends AbstractTypeAnnotatingMix
     }
 
     public  <T> Iterable<T> NodeBacked.findAllByQuery(final String query, final Class<T> targetType, Map<String,Object> params) {
-        final CypherQueryExecutor executor = new CypherQueryExecutor(template());
+        final CypherQueryExecutor executor = new CypherQueryExecutor(template().queryEngineFor(QueryType.Cypher));
         return executor.query(query, targetType,params);
     }
 
     public  Iterable<Map<String,Object>> NodeBacked.findAllByQuery(final String query,Map<String,Object> params) {
-        final CypherQueryExecutor executor = new CypherQueryExecutor(template());
+        final CypherQueryExecutor executor = new CypherQueryExecutor(template().queryEngineFor(QueryType.Cypher));
         return executor.queryForList(query,params);
     }
 
     public  <T> T NodeBacked.findByQuery(final String query, final Class<T> targetType,Map<String,Object> params) {
-        final CypherQueryExecutor executor = new CypherQueryExecutor(template());
+        final CypherQueryExecutor executor = new CypherQueryExecutor(template().queryEngineFor(QueryType.Cypher));
         return executor.queryForObject(query, targetType,params);
     }
 

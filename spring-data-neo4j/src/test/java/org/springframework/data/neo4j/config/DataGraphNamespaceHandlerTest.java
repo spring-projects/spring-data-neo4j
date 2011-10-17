@@ -61,6 +61,7 @@ public class DataGraphNamespaceHandlerTest {
 
     private Config assertInjected(String testCase) {
         ClassPathXmlApplicationContext ctx = new ClassPathXmlApplicationContext("classpath:org/springframework/data/neo4j/config/DataGraphNamespaceHandlerTest" + testCase + "-context.xml");
+        try {
         Config config = ctx.getBean("config", Config.class);
         Neo4jTemplate template = config.neo4jTemplate;
         Assert.assertNotNull("template", template);
@@ -70,6 +71,9 @@ public class DataGraphNamespaceHandlerTest {
         Assert.assertNotNull("transactionManager",config.transactionManager);
         config.graphDatabaseService.shutdown();
         return config;
+        } finally {
+            ctx.close();
+        }
     }
 
 }

@@ -32,7 +32,7 @@ import java.util.Map;
  * @author mh
  * @since 11.10.11
  */
-public class Neo4jEntityPersister implements Neo4jEntityConverter<Object,Node> {
+public class Neo4jEntityPersister implements EntityPersister, Neo4jEntityConverter<Object,Node> {
     Neo4jEntityConverter<Object,Node> nodeConverter;
     Neo4jEntityConverter<Object,Relationship> relationshipConverter;
     private EntityStateHandler entityStateHandler;

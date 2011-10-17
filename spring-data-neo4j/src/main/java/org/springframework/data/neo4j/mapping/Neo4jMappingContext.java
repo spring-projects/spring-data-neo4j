@@ -31,7 +31,7 @@ import java.lang.reflect.Field;
 /**
  * Neo4J specific {@link MappingContext} implementation. Simply creates {@link Neo4jPersistentEntityImpl} and
  * {@link Neo4jPersistentProperty} instances.
- * 
+ *
  * @author Oliver Gierke
  */
 public class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersistentEntityImpl<?>, Neo4jPersistentProperty> {
@@ -44,21 +44,29 @@ public class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersistentE
         if (type.isAnnotationPresent(RelationshipEntity.class)) {
             return new Neo4jPersistentEntityImpl<T>(typeInformation);
         }
-        throw new MappingException("Type "+type+" is neither a @NodeEntity nor a @RelationshipEntity");
+        throw new MappingException("Type " + type + " is neither a @NodeEntity nor a @RelationshipEntity");
     }
 
     @Override
     protected Neo4jPersistentProperty createPersistentProperty(Field field, PropertyDescriptor descriptor,
-            Neo4jPersistentEntityImpl<?> owner, SimpleTypeHolder simpleTypeHolder) {
+                                                               Neo4jPersistentEntityImpl<?> owner, SimpleTypeHolder simpleTypeHolder) {
         return new Neo4jPersistentPropertyImpl(field, descriptor, owner, simpleTypeHolder);
     }
 
     public boolean isNodeEntity(Class<?> type) {
-        return getPersistentEntity(type).isNodeEntity();
+        try {
+            return getPersistentEntity(type).isNodeEntity();
+        } catch (MappingException me) {
+            return false;
+        }
     }
 
     public boolean isRelationshipEntity(Class<?> type) {
-        return getPersistentEntity(type).isRelationshipEntity();
+        try {
+            return getPersistentEntity(type).isRelationshipEntity();
+        } catch (MappingException me) {
+            return false;
+        }
     }
 
     public void setPersistentState(Object entity, PropertyContainer pc) {

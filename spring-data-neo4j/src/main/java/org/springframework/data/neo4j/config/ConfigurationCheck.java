@@ -18,16 +18,17 @@ package org.springframework.data.neo4j.config;
 
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Transaction;
+import org.springframework.beans.factory.BeanCreationException;
+import org.springframework.context.ApplicationListener;
+import org.springframework.context.event.ContextStartedEvent;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionStatus;
 
-import javax.annotation.PostConstruct;
-
 /**
  * Validates correct configuration of Neo4j and Spring, especially transaction-managers
  */
-public class ConfigurationCheck {
+public class ConfigurationCheck implements ApplicationListener<ContextStartedEvent> {
     Neo4jTemplate template;
     PlatformTransactionManager transactionManager;
 
@@ -36,7 +37,12 @@ public class ConfigurationCheck {
         this.transactionManager = transactionManager;
     }
 
-    @PostConstruct
+    @Override
+    public void onApplicationEvent(ContextStartedEvent event) {
+        checkConfiguration();
+    }
+
+    //@PostConstruct
     private void checkConfiguration() {
         checkInjection();
         checkSpringTransactionManager();
@@ -44,7 +50,9 @@ public class ConfigurationCheck {
     }
 
     private void checkInjection() {
-        assert template.getGraphDatabaseService()!=null : "graphDatabaseService not correctly configured, please refer to the manual, setup section";
+        if (template.getGraphDatabaseService()==null) {
+            throw new BeanCreationException("graphDatabaseService not correctly configured, please refer to the manual, setup section");
+        }
     }
 
     private void checkSpringTransactionManager() {
@@ -53,9 +61,7 @@ public class ConfigurationCheck {
             updateStartTime();
             transactionManager.commit(transaction);
         } catch(Exception e) {
-            AssertionError error = new AssertionError("transactionManager not correctly configured, please refer to the manual, setup section");
-            error.initCause(e);
-            throw error;
+            throw new BeanCreationException("transactionManager not correctly configured, please refer to the manual, setup section",e);
         }
     }
 
@@ -66,9 +72,7 @@ public class ConfigurationCheck {
             updateStartTime();
             tx.success();
         } catch (Exception e) {
-            AssertionError error = new AssertionError("transactionManager not correctly configured, please refer to the manual, setup section");
-            error.initCause(e);
-            throw error;
+            throw new BeanCreationException("transactionManager not correctly configured, please refer to the manual, setup section",e);
         } finally {
             try {
             if (tx != null) tx.finish();
