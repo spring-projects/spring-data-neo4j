@@ -101,14 +101,15 @@ public class RelationshipEntityTest extends EntityTestBase {
         assertEquals(f, neo4jTemplate.getRelationshipBetween(p, p2, Friendship.class, "knows"));
     }
     
-    @Ignore("The NodeBacking.getRelationshipTo() method is broken at the moment")
     @Test
     @Transactional
     public void testGetRelationshipTo() {
         Person p = persistedPerson("Michael", 35);
         Person p2 = persistedPerson("David", 25);
         Friendship f = p.knows(p2);
-        assertNotNull(p.getRelationshipTo(p2, "knows"));
+        Relationship frel = p.getRelationshipTo(p2, "knows");
+        assertNotNull(frel);
+        assertEquals(f.getPersistentState().getId(), frel.getId());
     }
 
     @Test

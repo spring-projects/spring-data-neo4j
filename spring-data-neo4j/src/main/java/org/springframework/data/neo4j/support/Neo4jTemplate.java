@@ -293,6 +293,12 @@ public class Neo4jTemplate implements Neo4jOperations, EntityPersister {
     }
 
     @Override
+    public Relationship getRelationshipBetween(Object start, Object end, String relationshipType) {
+        notNull(start, "start", end, "end", relationshipType, "relationshipType");
+        return infrastructure.getEntityStateHandler().getRelationshipTo(start, end, relationshipType);
+    }
+    
+    @Override
     public <R> R getRelationshipBetween(Object start, Object end, Class<R> relationshipEntityClass, String relationshipType) {
         notNull(start,"start",end,"end",relationshipEntityClass,"relationshipEntityClass",relationshipType,"relationshipType");
         final Relationship relationship = infrastructure.getEntityStateHandler().getRelationshipTo(start, end, relationshipType);

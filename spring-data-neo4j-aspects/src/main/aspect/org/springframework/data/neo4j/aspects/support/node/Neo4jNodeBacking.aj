@@ -164,7 +164,7 @@ public privileged aspect Neo4jNodeBacking { // extends AbstractTypeAnnotatingMix
 	}
 
     public Relationship NodeBacked.getRelationshipTo(NodeBacked target, String type) {
-        return template().getRelationshipBetween(this, target, null, type);
+        return template().getRelationshipBetween(this, target, type);
     }
 
 	public Long NodeBacked.getNodeId() {
