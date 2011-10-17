@@ -231,13 +231,13 @@ class Neo4jPersistentPropertyImpl extends AbstractPersistentProperty<Neo4jPersis
     }
     @Override
     public boolean isEntity() {
-        return super.isEntity() && (isRelationshipEntity() || isNodeEntity());
+        return super.isEntity() && (hasRelationshipEntityType() || hasNodeEntityType());
     }
 
-    private boolean isRelationshipEntity() {
+    private boolean hasRelationshipEntityType() {
         return getType().isAnnotationPresent(RelationshipEntity.class);
     }
-    private boolean isNodeEntity() {
+    private boolean hasNodeEntityType() {
         return getType().isAnnotationPresent(NodeEntity.class);
     }
 }

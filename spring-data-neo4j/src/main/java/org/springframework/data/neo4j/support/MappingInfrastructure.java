@@ -213,4 +213,8 @@ public class MappingInfrastructure {
     public CypherQueryExecutor getCypherQueryExecutor() {
         return cypherQueryExecutor;
     }
+
+    public Neo4jMappingContext getMappingContext() {
+        return mappingContext;
+    }
 }

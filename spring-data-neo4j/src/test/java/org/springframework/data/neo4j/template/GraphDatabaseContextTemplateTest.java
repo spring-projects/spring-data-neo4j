@@ -203,7 +203,7 @@ public class GraphDatabaseContextTemplateTest {
     @Test
     @Transactional
     public void testCreateEntityWithProperties() throws Exception {
-        Person person = neo4jTemplate.createNode(Person.class, map("name", "name"));
+        Person person = neo4jTemplate.createNodeAs(Person.class, map("name", "name"));
         assertNotNull("created node", person);
         assertEquals("property created", "name", person.getName());
     }
@@ -211,7 +211,7 @@ public class GraphDatabaseContextTemplateTest {
     @Test
     @Transactional
     public void testCreateNodeTypeWithProperties() throws Exception {
-        Node person = neo4jTemplate.createNode(Node.class, map("name", "name"));
+        Node person = neo4jTemplate.createNodeAs(Node.class, map("name", "name"));
         assertNotNull("created node", person);
         assertEquals("property created", "name", person.getProperty("name"));
     }

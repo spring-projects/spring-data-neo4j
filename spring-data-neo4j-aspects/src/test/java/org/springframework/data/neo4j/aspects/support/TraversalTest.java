@@ -53,7 +53,7 @@ public class TraversalTest extends EntityTestBase {
         group.setName("dev");
         group.addPerson(p);
         final TraversalDescription traversalDescription = Traversal.description().relationships(DynamicRelationshipType.withName("persons")).evaluator(Evaluators.excludeStartPosition());
-        Iterable<Person> people = neo4jTemplate.<Person>findAllByTraversal(group,Person.class, traversalDescription);
+        Iterable<Person> people = neo4jTemplate.<Person>traverse(group, Person.class, traversalDescription);
         final HashSet<Person> found = new HashSet<Person>();
         for (Person person : people) {
             found.add(person);
@@ -69,7 +69,7 @@ public class TraversalTest extends EntityTestBase {
         group.setName("dev");
         group.addPerson(p);
         final TraversalDescription traversalDescription = Traversal.description().relationships(DynamicRelationshipType.withName("persons"), Direction.OUTGOING).evaluator(Evaluators.excludeStartPosition());
-        Iterable<EntityPath<Group,Person>> paths = (Iterable<EntityPath<Group, Person>>) neo4jTemplate.<EntityPath<Group,Person>>findAllByTraversal(group, EntityPath.class, traversalDescription);
+        Iterable<EntityPath<Group,Person>> paths = (Iterable<EntityPath<Group, Person>>) neo4jTemplate.<EntityPath<Group,Person>>traverse(group, EntityPath.class, traversalDescription);
         for (EntityPath<Group, Person> path : paths) {
             assertEquals(group, path.startEntity());
             assertEquals(p, path.endEntity());

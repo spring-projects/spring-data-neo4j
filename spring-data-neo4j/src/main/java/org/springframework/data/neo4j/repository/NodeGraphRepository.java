@@ -34,7 +34,7 @@ public class NodeGraphRepository<T> extends AbstractGraphRepository<Node, T> imp
 
     @Override
     public <N> Iterable<T> findAllByTraversal(final N start, final TraversalDescription traversalDescription) {
-        return template.findAllByTraversal(start, clazz, traversalDescription);
+        return template.traverse(start, clazz, traversalDescription);
     }
 
     @SuppressWarnings("unchecked")
