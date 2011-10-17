@@ -16,6 +16,7 @@
 
 package org.springframework.data.neo4j.aspects.support;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.neo4j.graphdb.Direction;
@@ -31,6 +32,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.springframework.data.neo4j.aspects.Person.persistedPerson;
 
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -97,6 +99,16 @@ public class RelationshipEntityTest extends EntityTestBase {
         Person p2 = persistedPerson("David", 25);
         Friendship f = p.knows(p2);
         assertEquals(f, neo4jTemplate.getRelationshipBetween(p, p2, Friendship.class, "knows"));
+    }
+    
+    @Ignore("The NodeBacking.getRelationshipTo() method is broken at the moment")
+    @Test
+    @Transactional
+    public void testGetRelationshipTo() {
+        Person p = persistedPerson("Michael", 35);
+        Person p2 = persistedPerson("David", 25);
+        Friendship f = p.knows(p2);
+        assertNotNull(p.getRelationshipTo(p2, "knows"));
     }
 
     @Test
