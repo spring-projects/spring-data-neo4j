@@ -46,7 +46,7 @@ public class NodeEntityInstantiationTest extends EntityTestBase {
         Person p = persistedPerson("Rod", 39);
         long nodeId = getNodeId(p);
 
-        Node node = neo4jTemplate.getNodeById(nodeId);
+        Node node = neo4jTemplate.getNode(nodeId);
         Person person1 = (Person) neo4jTemplate.createEntityFromStoredType(node);
         assertEquals("Rod", person1.getName());
         Person person2 = neo4jTemplate.createEntityFromState(node,Person.class);

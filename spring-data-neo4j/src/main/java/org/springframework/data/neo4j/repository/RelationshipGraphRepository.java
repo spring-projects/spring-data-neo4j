@@ -30,7 +30,7 @@ public class RelationshipGraphRepository<T> extends AbstractGraphRepository<Rela
 
     @Override
     protected Relationship getById(long id) {
-        return template.getRelationshipById(id);
+        return template.getRelationship(id);
     }
 
     @Override

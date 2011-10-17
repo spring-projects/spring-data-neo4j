@@ -160,7 +160,7 @@ public privileged aspect Neo4jNodeBacking { // extends AbstractTypeAnnotatingMix
     }
 
     public <T extends NodeBacked> T NodeBacked.projectTo(Class<T> targetType) {
-        return (T)graphDatabaseContext().projectTo( this, targetType);
+        return (T) template().projectTo( this, targetType);
     }
 
 	public Relationship NodeBacked.relateTo(NodeBacked target, String type) {
@@ -172,7 +172,7 @@ public privileged aspect Neo4jNodeBacking { // extends AbstractTypeAnnotatingMix
 	}
 
     public Relationship NodeBacked.getRelationshipTo(NodeBacked target, String type) {
-        return graphDatabaseContext().getRelationshipTo(this,target,null,type);
+        return template().getRelationshipBetween(this, target, null, type);
     }
 
 	public Long NodeBacked.getNodeId() {
@@ -182,51 +182,50 @@ public privileged aspect Neo4jNodeBacking { // extends AbstractTypeAnnotatingMix
 
     public  <T> Iterable<T> NodeBacked.findAllByTraversal(final Class<T> targetType, TraversalDescription traversalDescription) {
         if (!hasPersistentState()) throw new IllegalStateException("No node attached to " + this);
-        final Traverser traverser = traversalDescription.traverse(this.getPersistentState());
-        return graphDatabaseContext().convertResultsTo(traverser, targetType);
+        return template().traverse(this.getPersistentState(), traversalDescription).to(targetType);
     }
 
     public  <T> Iterable<T> NodeBacked.findAllByQuery(final String query, final Class<T> targetType, Map<String,Object> params) {
-        final CypherQueryExecutor executor = new CypherQueryExecutor(graphDatabaseContext());
+        final CypherQueryExecutor executor = new CypherQueryExecutor(template());
         return executor.query(query, targetType,params);
     }
 
     public  Iterable<Map<String,Object>> NodeBacked.findAllByQuery(final String query,Map<String,Object> params) {
-        final CypherQueryExecutor executor = new CypherQueryExecutor(graphDatabaseContext());
+        final CypherQueryExecutor executor = new CypherQueryExecutor(template());
         return executor.queryForList(query,params);
     }
 
     public  <T> T NodeBacked.findByQuery(final String query, final Class<T> targetType,Map<String,Object> params) {
-        final CypherQueryExecutor executor = new CypherQueryExecutor(graphDatabaseContext());
+        final CypherQueryExecutor executor = new CypherQueryExecutor(template());
         return executor.queryForObject(query, targetType,params);
     }
 
     public <S extends NodeBacked, E extends NodeBacked> Iterable<EntityPath<S,E>> NodeBacked.findAllPathsByTraversal(TraversalDescription traversalDescription) {
         if (!hasPersistentState()) throw new IllegalStateException("No node attached to " + this);
         final Traverser traverser = traversalDescription.traverse(this.getPersistentState());
-        return new EntityPathPathIterableWrapper<S, E>(traverser, graphDatabaseContext());
+        return new EntityPathPathIterableWrapper<S, E>(traverser, template());
     }
 
     public <R extends RelationshipBacked, N extends NodeBacked> R NodeBacked.relateTo(N target, Class<R> relationshipClass, String relationshipType) {
-        return graphDatabaseContext().relateTo(this, target, relationshipClass, relationshipType, false);
+        return template().createRelationshipBetween(this, target, relationshipClass, relationshipType, false);
     }
     public <R extends RelationshipBacked, N extends NodeBacked> R NodeBacked.relateTo(N target, Class<R> relationshipClass, String relationshipType, boolean allowDuplicates) {
-        return graphDatabaseContext().relateTo(this,target,relationshipClass, relationshipType,allowDuplicates);
+        return template().createRelationshipBetween(this, target, relationshipClass, relationshipType, allowDuplicates);
     }
 
     public void NodeBacked.remove() {
-        graphDatabaseContext().removeNodeEntity(this);
+        template().removeNodeEntity(this);
     }
 
     public void NodeBacked.removeRelationshipTo(NodeBacked target, String relationshipType) {
-        graphDatabaseContext().removeRelationshipTo(this,target,relationshipType);
+        template().removeRelationshipBetween(this, target, relationshipType);
     }
 
     public <R extends RelationshipBacked> R NodeBacked.getRelationshipTo( NodeBacked target, Class<R> relationshipClass, String type) {
-        return (R)graphDatabaseContext().getRelationshipTo(this,target,relationshipClass,type);
+        return (R) template().getRelationshipBetween(this, target, relationshipClass, type);
     }
 
-    public static Neo4jTemplate graphDatabaseContext() {
+    public static Neo4jTemplate template() {
         return Neo4jNodeBacking.aspectOf().template;
     }
 
@@ -239,7 +238,7 @@ public privileged aspect Neo4jNodeBacking { // extends AbstractTypeAnnotatingMix
 	}
 
     public static EntityStateHandler entityStateHandler() {
-        return graphDatabaseContext().getEntityStateHandler();
+        return template().getEntityStateHandler();
     }
 
     /**

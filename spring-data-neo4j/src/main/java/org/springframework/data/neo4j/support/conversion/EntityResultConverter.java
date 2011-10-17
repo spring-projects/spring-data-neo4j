@@ -27,25 +27,25 @@ import org.springframework.data.neo4j.support.path.ConvertingEntityPath;
  * @since 28.06.11
  */
 public class EntityResultConverter<T,R> extends DefaultConverter<T,R> {
-    private final Neo4jTemplate ctx;
+    private final Neo4jTemplate template;
     private final ConversionService conversionService;
 
-    public EntityResultConverter(Neo4jTemplate ctx) {
-        this.ctx = ctx;
-        conversionService = this.ctx.getConversionService();
+    public EntityResultConverter(Neo4jTemplate template) {
+        this.template = template;
+        conversionService = this.template.getConversionService();
     }
 
     @SuppressWarnings("unchecked")
     @Override
     protected Object doConvert(Object value, Class<?> sourceType, Class targetType) {
-        if (ctx.isNodeEntity(targetType)) {
-            return ctx.projectTo(toNode(value, sourceType), targetType);
+        if (template.isNodeEntity(targetType)) {
+            return template.projectTo(toNode(value, sourceType), targetType);
         }
-        if (ctx.isRelationshipEntity(targetType)) {
-            return ctx.projectTo(toRelationship(value, sourceType), targetType);
+        if (template.isRelationshipEntity(targetType)) {
+            return template.projectTo(toRelationship(value, sourceType), targetType);
         }
         if (EntityPath.class.isAssignableFrom(targetType)) {
-            return new ConvertingEntityPath(ctx,toPath(value,sourceType));
+            return new ConvertingEntityPath(template,toPath(value,sourceType));
         }
         final Object result = super.doConvert(value, sourceType, targetType);
 

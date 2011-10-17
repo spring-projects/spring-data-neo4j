@@ -165,7 +165,7 @@ public class Neo4jPersistentTestBase {
     }
 
     protected Node michaelNode() {
-        return gdc.getNodeById(michael.getId());
+        return gdc.getNode(michael.getId());
     }
 
     protected Node createNewNode() {
@@ -175,7 +175,7 @@ public class Neo4jPersistentTestBase {
     protected Group storeInGraph(Group g) {
         final Long id = g.getId();
         if (id != null) {
-            write(g, gdc.getNodeById(id));
+            write(g, gdc.getNode(id));
         } else {
             write(g, null);
         }
@@ -185,7 +185,7 @@ public class Neo4jPersistentTestBase {
     protected Person storeInGraph(Person p) {
         final Long id = p.getId();
         if (id != null) {
-            write(p, gdc.getNodeById(id));
+            write(p, gdc.getNode(id));
         } else {
             write(p,null);
         }
@@ -203,7 +203,7 @@ public class Neo4jPersistentTestBase {
     }
 
     protected Node groupNode() {
-        return gdc.getNodeById(group.getId());
+        return gdc.getNode(group.getId());
     }
 
     protected <T> Set<T> set(T... objs) {
@@ -215,11 +215,11 @@ public class Neo4jPersistentTestBase {
     }
 
     protected Node andresNode() {
-        return gdc.getNodeById(andres.getId());
+        return gdc.getNode(andres.getId());
     }
 
     protected Node emilNode() {
-        return gdc.getNodeById(emil.getId());
+        return gdc.getNode(emil.getId());
     }
 
     public Person readPerson(Node node) {

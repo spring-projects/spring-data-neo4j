@@ -20,7 +20,7 @@ package org.springframework.data.neo4j.conversion;
 * @author mh
 * @since 28.06.11
 */
-public interface Result<T> extends Iterable<T>, EndResult<T> {
+public interface Result<T> extends EndResult<T> {
     <R> EndResult<R> to(Class<R> type);
     <R> EndResult<R> to(Class<R> type, ResultConverter<T, R> resultConverter);
 }

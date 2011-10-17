@@ -25,6 +25,7 @@ import org.neo4j.graphdb.index.IndexHits;
 import org.neo4j.graphdb.index.ReadableIndex;
 import org.neo4j.helpers.collection.ClosableIterable;
 import org.neo4j.helpers.collection.IterableWrapper;
+import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -93,7 +94,7 @@ public abstract class AbstractGraphRepository<S extends PropertyContainer, T> im
     public T findOne(final Long id) {
         try {
             return createEntity(getById(id));
-        } catch (NotFoundException e) {
+        } catch (DataRetrievalFailureException e) {
             return null;
         }
     }
@@ -248,7 +249,7 @@ public abstract class AbstractGraphRepository<S extends PropertyContainer, T> im
     public boolean exists(Long id) {
         try {
             return getById(id)!=null;
-        } catch (NotFoundException e) {
+        } catch (DataRetrievalFailureException e) {
             return false;
         }
     }

@@ -151,7 +151,7 @@ public class SourceStateTransmitter<S extends PropertyContainer> {
             return newNode;
         }
         try {
-            return getGraphDatabaseContext().getNodeById(id);
+            return getGraphDatabaseContext().getNode(id);
         } catch (NotFoundException nfe) {
             throw new MappingException("Could not find node with id " + id);
         }

@@ -19,8 +19,8 @@ package org.springframework.data.neo4j.aspects.support;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.neo4j.graphdb.NotFoundException;
 import org.neo4j.graphdb.Transaction;
+import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.data.neo4j.aspects.Attribute;
 import org.springframework.data.neo4j.aspects.Group;
 import org.springframework.data.neo4j.aspects.Person;
@@ -42,7 +42,7 @@ public class NodeEntityTest extends EntityTestBase {
         Person p = persistedPerson("Rod", 39);
         assertEquals(p.getName(), getNodeState(p).getProperty("name"));
         assertEquals(p.getAge(), getNodeState(p).getProperty("age"));
-        Person found = neo4jTemplate.createEntityFromState(neo4jTemplate.getNodeById(getNodeId(p)), Person.class);
+        Person found = neo4jTemplate.createEntityFromState(neo4jTemplate.getNode(getNodeId(p)), Person.class);
         assertEquals("Rod", getNodeState(found).getProperty("name"));
         assertEquals(39, getNodeState(found).getProperty("age"));
     }
@@ -79,7 +79,7 @@ public class NodeEntityTest extends EntityTestBase {
         assertEquals("developers", getNodeState(group).getProperty("name"));
     }
     // own transaction handling because of http://wiki.neo4j.org/content/Delete_Semantics
-    @Test(expected = NotFoundException.class)
+    @Test(expected = DataRetrievalFailureException.class)
     public void testDeleteEntityFromGDC() {
         Transaction tx = neo4jTemplate.beginTx();
         Person p = persistedPerson("Michael", 35);
@@ -92,10 +92,10 @@ public class NodeEntityTest extends EntityTestBase {
         Assert.assertNull("spouse removed " + p.getSpouse(), p.getSpouse());
         Person spouseFromIndex = personRepository.findByPropertyValue(Person.NAME_INDEX, "name", "Tina");
         Assert.assertNull("spouse not found in index",spouseFromIndex);
-        Assert.assertNull("node deleted " + id, neo4jTemplate.getNodeById(id));
+        Assert.assertNull("node deleted " + id, neo4jTemplate.getNode(id));
     }
 
-    @Test(expected = NotFoundException.class)
+    @Test(expected = DataRetrievalFailureException.class)
     public void testDeleteEntity() {
         Transaction tx = neo4jTemplate.beginTx();
         Person p = persistedPerson("Michael", 35);
@@ -108,7 +108,7 @@ public class NodeEntityTest extends EntityTestBase {
         Assert.assertNull("spouse removed " + p.getSpouse(), p.getSpouse());
         Person spouseFromIndex = personRepository.findByPropertyValue(Person.NAME_INDEX, "name", "Tina");
         Assert.assertNull("spouse not found in index", spouseFromIndex);
-        Assert.assertNull("node deleted " + id, neo4jTemplate.getNodeById(id));
+        Assert.assertNull("node deleted " + id, neo4jTemplate.getNode(id));
     }
 
     @Test

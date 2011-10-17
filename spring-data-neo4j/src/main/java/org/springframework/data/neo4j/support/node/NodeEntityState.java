@@ -48,7 +48,7 @@ public class NodeEntityState extends DefaultEntityState<Node> {
         try {
             final Object id = getIdFromEntity();
             if (id instanceof Number) {
-                final Node node = template.getNodeById(((Number) id).longValue());
+                final Node node = template.getNode(((Number) id).longValue());
                 setPersistentState(node);
                 if (log.isInfoEnabled())
                     log.info("Entity reattached " + entity.getClass() + "; used Node [" + getPersistentState() + "];");

@@ -21,7 +21,6 @@ import org.apache.commons.logging.LogFactory;
 import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.index.Index;
 import org.neo4j.graphdb.traversal.TraversalDescription;
-import org.neo4j.graphdb.traversal.Traverser;
 import org.neo4j.helpers.collection.ClosableIterable;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.dao.DataAccessException;
@@ -33,12 +32,9 @@ import org.springframework.data.neo4j.annotation.RelationshipEntity;
 import org.springframework.data.neo4j.conversion.QueryResultBuilder;
 import org.springframework.data.neo4j.conversion.Result;
 import org.springframework.data.neo4j.conversion.ResultConverter;
-import org.springframework.data.neo4j.conversion.TraverserConverter;
-import org.springframework.data.neo4j.core.EntityPath;
 import org.springframework.data.neo4j.core.GraphDatabase;
 import org.springframework.data.neo4j.core.TypeRepresentationStrategy;
 import org.springframework.data.neo4j.core.UncategorizedGraphStoreException;
-import org.springframework.data.neo4j.fieldaccess.GraphBackedEntityIterableWrapper;
 import org.springframework.data.neo4j.mapping.Neo4jEntityPersister;
 import org.springframework.data.neo4j.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentEntityImpl;
@@ -48,7 +44,6 @@ import org.springframework.data.neo4j.repository.RelationshipGraphRepository;
 import org.springframework.data.neo4j.support.conversion.EntityResultConverter;
 import org.springframework.data.neo4j.support.node.EntityStateFactory;
 import org.springframework.data.neo4j.support.node.NodeEntityInstantiator;
-import org.springframework.data.neo4j.support.path.EntityPathPathIterableWrapper;
 import org.springframework.data.neo4j.support.query.CypherQueryExecutor;
 import org.springframework.data.neo4j.support.query.QueryEngine;
 import org.springframework.data.neo4j.support.relationship.RelationshipEntityInstantiator;
@@ -110,7 +105,7 @@ public class Neo4jTemplate implements Neo4jOperations {
     }
 
     /**
-     * @param graphDatabase the neo4j graph database
+     * @param graphDatabase      the neo4j graph database
      * @param transactionManager if passed in, will be used to create implicit transactions whenever needed
      */
     public Neo4jTemplate(final GraphDatabase graphDatabase, PlatformTransactionManager transactionManager) {
@@ -130,7 +125,7 @@ public class Neo4jTemplate implements Neo4jOperations {
     public <T> GraphRepository<T> repositoryFor(Class<T> clazz) {
         if (isNodeEntity(clazz)) return new NodeGraphRepository(clazz, this);
         if (isRelationshipEntity(clazz)) return new RelationshipGraphRepository(clazz, this);
-        throw new IllegalArgumentException("Can't create graph repository for non graph entity of type "+clazz);
+        throw new IllegalArgumentException("Can't create graph repository for non graph entity of type " + clazz);
     }
 
     public GraphDatabase getGraphDatabase() {
@@ -156,8 +151,8 @@ public class Neo4jTemplate implements Neo4jOperations {
 
         @SuppressWarnings("unchecked")
         public <S extends PropertyContainer, T> Index<S> getIndex(Class<T> type, String indexName, Boolean fullText) {
-            if (type==null) {
-                notNull(indexName,"indexName");
+            if (type == null) {
+                notNull(indexName, "indexName");
                 return getIndex(indexName);
             }
 
@@ -172,7 +167,8 @@ public class Neo4jTemplate implements Neo4jOperations {
             }
 
             if (persistentEntity.isNodeEntity()) return (Index<S>) createIndex(Node.class, indexName, fullText);
-            if (persistentEntity.isRelationshipEntity()) return (Index<S>) createIndex(Relationship.class, indexName, fullText);
+            if (persistentEntity.isRelationshipEntity())
+                return (Index<S>) createIndex(Relationship.class, indexName, fullText);
             throw new IllegalArgumentException("Wrong index type supplied: " + type + " expected Node- or Relationship-Entity");
         }
 
@@ -184,19 +180,20 @@ public class Neo4jTemplate implements Neo4jOperations {
         public boolean isNode(Class<? extends PropertyContainer> type) {
             if (type.equals(Node.class)) return true;
             if (type.equals(Relationship.class)) return false;
-            throw new IllegalArgumentException("Unknown Graph Primitive, neither Node nor Relationship"+type);
+            throw new IllegalArgumentException("Unknown Graph Primitive, neither Node nor Relationship" + type);
         }
 
         // TODO handle existing indexes
         @SuppressWarnings("unchecked")
         public <T extends PropertyContainer> Index<T> createIndex(Class<T> type, String indexName, boolean fullText) {
-            return graphDatabase.createIndex(type,indexName,fullText);
+            return graphDatabase.createIndex(type, indexName, fullText);
         }
     }
 
     public <S extends PropertyContainer, T> Index<S> getIndex(Class<T> type) {
         return indexProvider.getIndex(type, null);
     }
+
     public <S extends PropertyContainer> Index<S> getIndex(String name) {
         return indexProvider.getIndex(null, name);
     }
@@ -207,7 +204,7 @@ public class Neo4jTemplate implements Neo4jOperations {
 
     @SuppressWarnings("unchecked")
     public <S extends PropertyContainer, T> Index<S> getIndex(Class<T> type, String indexName, Boolean fullText) {
-        return indexProvider.getIndex(type,indexName,fullText);
+        return indexProvider.getIndex(type, indexName, fullText);
     }
 
     /**
@@ -245,7 +242,7 @@ public class Neo4jTemplate implements Neo4jOperations {
 
     // todo depending on type of mapping
     @SuppressWarnings("unchecked")
-    public <S extends PropertyContainer,T> T setPersistentState(T entity, S state) {
+    public <S extends PropertyContainer, T> T setPersistentState(T entity, S state) {
         entityPersister.setPersistentState(entity, state);
         return entity;
     }
@@ -256,25 +253,9 @@ public class Neo4jTemplate implements Neo4jOperations {
     }
 
     public void remove(Object entity) {
-        if (entity instanceof Node) {
-            ((Node)entity).delete();
-            return;
-        }
-        if (entity instanceof Relationship) {
-            ((Relationship)entity).delete();
-            return;
-        }
-        final Class<?> type = entity.getClass();
-        if (isNodeEntity(type)) {
-            entityRemover.removeNodeEntity(entity);
-            return;
-        }
-        if (isRelationshipEntity(type)) {
-            entityRemover.removeRelationshipEntity(entity);
-            return;
-        }
-        throw new IllegalArgumentException("@NodeEntity or @RelationshipEntity annotation required on domain class"+type);
+        entityRemover.remove(entity);
     }
+
     public void removeNodeEntity(Object entity) {
         entityRemover.removeNodeEntity(entity);
     }
@@ -292,44 +273,43 @@ public class Neo4jTemplate implements Neo4jOperations {
     }
 
     @Override
-    public Node createNode(final Map<String,Object> properties) {
+    public Node createNode(final Map<String, Object> properties) {
         return graphDatabase.createNode(properties);
     }
 
-    public <T> T createNode(Class<T> target, Map<String,Object> properties) {
+    public <T> T createNode(Class<T> target, Map<String, Object> properties) {
         final Node node = createNode(properties);
         if (isNodeEntity(target)) {
-            typeRepresentationStrategies.postEntityCreation(node,target);
+            typeRepresentationStrategies.postEntityCreation(node, target);
         }
         return convert(node, target);
     }
 
-    public Result<Node> createNodes(Map<String,Object>...allNodes) {
-        Collection<Node> result=new ArrayList<Node>(allNodes.length);
-        for (Map<String, Object> properties : allNodes) {
+    public Result<Node> createNodes(Map<String, Object> firstNode, Map<String, Object>... otherNodes) {
+        Collection<Node> result = new ArrayList<Node>(otherNodes.length + 1);
+        result.add(createNode(firstNode));
+        for (Map<String, Object> properties : otherNodes) {
             result.add(createNode(properties));
         }
         return convert(result);
     }
 
-    public <T> Iterable<T> createNodes(Class<T> target, Map<String,Object>...allNodes) {
+    public <T> Iterable<T> createNodes(Class<T> target, Map<String, Object> firstNode, Map<String, Object>... otherNodes) {
         final TypeRepresentationStrategy<Node> nodeTypeRepresentationStrategy = isNodeEntity(target) ? typeRepresentationStrategies.getNodeTypeRepresentationStrategy() : null;
-        Collection<Node> result=new ArrayList<Node>(allNodes.length);
-        for (Map<String, Object> properties : allNodes) {
-            final Node node = createNode(properties);
-            if (nodeTypeRepresentationStrategy!=null) {
-                nodeTypeRepresentationStrategy.postEntityCreation(node,target);
-            }
-            result.add(node);
+        Collection<Node> result = new ArrayList<Node>(otherNodes.length + 1);
+        result.add(createNode(firstNode, target, nodeTypeRepresentationStrategy));
+        for (Map<String, Object> properties : otherNodes) {
+            result.add(createNode(properties, target, nodeTypeRepresentationStrategy));
         }
         return convert(result).to(target);
     }
 
-    /**
-     * Delegates to {@link GraphDatabaseService}
-     */
-    public Node getNodeById(final long nodeId) {
-        return graphDatabase.getNodeById(nodeId);
+    private <T> Node createNode(Map<String, Object> properties, Class<T> target, TypeRepresentationStrategy<Node> nodeTypeRepresentationStrategy) {
+        final Node node = createNode(properties);
+        if (nodeTypeRepresentationStrategy != null) {
+            nodeTypeRepresentationStrategy.postEntityCreation(node, target);
+        }
+        return node;
     }
 
     /**
@@ -339,33 +319,26 @@ public class Neo4jTemplate implements Neo4jOperations {
         return graphDatabaseService.beginTx();
     }
 
-    /**
-     * Delegates to {@link GraphDatabaseService}
-     */
-    public Relationship getRelationshipById(final long id) {
-        return graphDatabase.getRelationshipById(id);
-    }
-
     @PostConstruct
     public Neo4jTemplate postConstruct() {
         this.resultConverter = new EntityResultConverter<Object, Object>(this);
-        if (this.graphDatabase==null) {
-            this.graphDatabase=new DelegatingGraphDatabase(graphDatabaseService,resultConverter);
+        if (this.graphDatabase == null) {
+            this.graphDatabase = new DelegatingGraphDatabase(graphDatabaseService, resultConverter);
         }
         this.typeRepresentationStrategies = new TypeRepresentationStrategies(mappingContext, nodeTypeRepresentationStrategy, relationshipTypeRepresentationStrategy);
         this.cypherQueryExecutor = new CypherQueryExecutor(this);
         final EntityStateHandler entityStateHandler = new EntityStateHandler(mappingContext, graphDatabase);
-        if (nodeEntityInstantiator==null) {
+        if (nodeEntityInstantiator == null) {
             nodeEntityInstantiator = new NodeEntityInstantiator(entityStateHandler);
         }
         EntityTools<Node> nodeEntityTools = new EntityTools<Node>(nodeTypeRepresentationStrategy, nodeEntityStateFactory, nodeEntityInstantiator);
-        if (relationshipEntityInstantiator==null) {
+        if (relationshipEntityInstantiator == null) {
             relationshipEntityInstantiator = new RelationshipEntityInstantiator(entityStateHandler);
         }
         EntityTools<Relationship> relationshipEntityTools = new EntityTools<Relationship>(relationshipTypeRepresentationStrategy, relationshipEntityStateFactory, relationshipEntityInstantiator);
-        this.entityPersister = new Neo4jEntityPersister(conversionService, nodeEntityTools, relationshipEntityTools,mappingContext, entityStateHandler);
+        this.entityPersister = new Neo4jEntityPersister(conversionService, nodeEntityTools, relationshipEntityTools, mappingContext, entityStateHandler);
         this.entityRemover = new EntityRemover(this.entityStateHandler, nodeTypeRepresentationStrategy, relationshipTypeRepresentationStrategy, graphDatabase);
-        this.indexProvider = new IndexProvider(mappingContext,graphDatabase);
+        this.indexProvider = new IndexProvider(mappingContext, graphDatabase);
         return this;
     }
 
@@ -380,7 +353,7 @@ public class Neo4jTemplate implements Neo4jOperations {
 
     @SuppressWarnings("unchecked")
     public <T> T save(T entity) {
-        return (T)entityPersister.persist(entity);
+        return (T) entityPersister.persist(entity);
     }
 
     public boolean isManaged(Object entity) {
@@ -399,34 +372,17 @@ public class Neo4jTemplate implements Neo4jOperations {
         return cypherQueryExecutor.queryForObject(statement, targetType, params);
     }
 
-    // todo have an result converter that is able to handle iterable input and output types
-    @SuppressWarnings("unchecked")
-    public <T> Iterable<T> convertResultsTo(Traverser traverser, Class<T> targetType) {
-        if (Node.class.isAssignableFrom(targetType)) return (Iterable<T>) traverser.nodes();
-        if (Relationship.class.isAssignableFrom(targetType)) return (Iterable<T>) traverser.relationships();
-        if (EntityPath.class.isAssignableFrom(targetType)) return new EntityPathPathIterableWrapper(traverser,this);
-        if (Path.class.isAssignableFrom(targetType)) return (Iterable<T>) traverser;
-        if (isNodeEntity(targetType)) {
-            return GraphBackedEntityIterableWrapper.create(traverser.nodes(), targetType, this);
-        }
-        if (isRelationshipEntity(targetType)) {
-            return GraphBackedEntityIterableWrapper.create(traverser.relationships(), targetType, this);
-        }
-        throw new IllegalStateException("Can't determine valid type for traversal target " + targetType);
-    }
-
-
-    public <R> R getRelationshipTo(Object source, Object target, Class<R> relationshipClass, String type) {
+    public <R> R getRelationshipBetween(Object source, Object target, Class<R> relationshipClass, String type) {
         final Relationship relationship = entityStateHandler.getRelationshipTo(source, target, type);
         if (relationship == null) return null;
         return entityPersister.createEntityFromState(relationship, relationshipClass);
     }
 
-    public void removeRelationshipTo(Object start, Object target, String type) {
+    public void removeRelationshipBetween(Object start, Object target, String type) {
         entityRemover.removeRelationshipTo(start, target, type);
     }
 
-    public <R> R relateTo(Object source, Object target, Class<R> relationshipClass, String relationshipType, boolean allowDuplicates) {
+    public <R> R createRelationshipBetween(Object source, Object target, Class<R> relationshipClass, String relationshipType, boolean allowDuplicates) {
         final RelationshipResult result = entityStateHandler.relateTo(source, target, relationshipType, allowDuplicates);
         if (result.type == RelationshipResult.Type.NEW) {
             // TODO
@@ -436,7 +392,7 @@ public class Neo4jTemplate implements Neo4jOperations {
     }
 
     @Override
-    public Relationship createRelationship(final Node startNode, final Node endNode, final RelationshipType relationshipType, final Map<String,Object> properties) {
+    public Relationship createRelationshipBetween(final Node startNode, final Node endNode, final RelationshipType relationshipType, final Map<String, Object> properties) {
         notNull(startNode, "startNode", endNode, "endNode", relationshipType, "relationshipType", properties, "properties");
         return exec(new GraphCallback<Relationship>() {
             @Override
@@ -445,9 +401,6 @@ public class Neo4jTemplate implements Neo4jOperations {
             }
         });
     }
-
-
-
 
     private final Neo4jExceptionTranslator exceptionTranslator = new Neo4jExceptionTranslator();
 
@@ -464,7 +417,7 @@ public class Neo4jTemplate implements Neo4jOperations {
         if (ex instanceof RuntimeException) {
             return exceptionTranslator.translateExceptionIfPossible((RuntimeException) ex);
         }
-        return new UncategorizedGraphStoreException("Error executing callback",ex);
+        return new UncategorizedGraphStoreException("Error executing callback", ex);
     }
 
 
@@ -520,7 +473,7 @@ public class Neo4jTemplate implements Neo4jOperations {
 
     @Override
     public <T extends PropertyContainer> T index(final String indexName, final T element, final String field, final Object value) {
-        notNull(element, "element", field, "field", value, "value",indexName,"indexName");
+        notNull(element, "element", field, "field", value, "value", indexName, "indexName");
         exec(new GraphCallback.WithoutResult() {
             @Override
             public void doWithGraphWithoutResult(GraphDatabase graph) throws Exception {
@@ -540,27 +493,29 @@ public class Neo4jTemplate implements Neo4jOperations {
     @Override
     @SuppressWarnings("unchecked")
     public <T> Result<T> convert(Iterable<T> iterable) {
-        return new QueryResultBuilder<T>(iterable, (ResultConverter<T,?>) resultConverter);
+        return new QueryResultBuilder<T>(iterable, (ResultConverter<T, ?>) resultConverter);
     }
 
     @Override
     @SuppressWarnings("unchecked")
     public <T> T convert(Object value, Class<T> type) {
-        return (T) resultConverter.convert(value,type);
+        return (T) resultConverter.convert(value, type);
     }
 
+    @Override
     public QueryEngine queryEngineFor(QueryType type) {
-        return graphDatabase.queryEngineFor(type,resultConverter);
+        return graphDatabase.queryEngineFor(type, resultConverter);
     }
 
+    @Override
     @SuppressWarnings("unchecked")
     public Result<Map<String, Object>> query(String statement, Map<String, Object> params) {
         notNull(statement, "statement");
         return queryEngineFor(QueryType.Cypher).query(statement, params);
     }
 
-    @SuppressWarnings("unchecked")
     @Override
+    @SuppressWarnings("unchecked")
     public Result<Object> execute(String statement, Map<String, Object> params) {
         notNull(statement, "statement");
         return queryEngineFor(QueryType.Gremlin).query(statement, params);
@@ -568,19 +523,14 @@ public class Neo4jTemplate implements Neo4jOperations {
 
     @Override
     public Result<Path> traverse(Object start, TraversalDescription traversal) {
-        return traverse((Node)getPersistentState(start),traversal);
+        return traverse((Node) getPersistentState(start), traversal);
     }
 
 
     // TODO result handling !!
     @SuppressWarnings("unchecked")
     public <T> Iterable<T> findAllByTraversal(Object entity, Class<?> targetType, TraversalDescription traversalDescription) {
-        final PropertyContainer state = entityPersister.getPersistentState(entity);
-        if (state instanceof Node) {
-            final Traverser traverser = traversalDescription.traverse((Node) state);
-            return new TraverserConverter<T>(this).convert(traverser, (Class<T>) targetType);
-        }
-        throw new IllegalStateException("No node attached to " + entity);
+        return traverse(entity, traversalDescription).to((Class<T>) targetType);
     }
 
     @Override
@@ -603,6 +553,7 @@ public class Neo4jTemplate implements Neo4jOperations {
             throw translateExceptionIfPossible(e);
         }
     }
+
     @Override
     public <T extends PropertyContainer> Result<T> lookup(final Class<?> indexedType, final Object query) {
         notNull(query, "valueOrQueryObject", indexedType, "indexedType");
@@ -613,6 +564,7 @@ public class Neo4jTemplate implements Neo4jOperations {
             throw translateExceptionIfPossible(e);
         }
     }
+
     @Override
     public <T extends PropertyContainer> Result<T> lookup(String indexName, Object query) {
         notNull(query, "valueOrQueryObject", indexName, "indexName");
@@ -623,9 +575,6 @@ public class Neo4jTemplate implements Neo4jOperations {
             throw translateExceptionIfPossible(e);
         }
     }
-
-
-
 
 
     public void setTransactionManager(PlatformTransactionManager transactionManager) {
@@ -706,4 +655,3 @@ public class Neo4jTemplate implements Neo4jOperations {
         this.graphDatabase = graphDatabase;
     }
 }
-

@@ -43,6 +43,7 @@ public class DefaultConverter<T,R> implements ResultConverter<T,R> {
     }
 
     protected Object extractValue(Object value) {
+        if (value instanceof Path) return value; // todo is this sensible to do?
         if (value instanceof Map) return extractSingle(((Map)value).values());
         if (value instanceof Iterable) return extractSingle((Iterable)value);
         return value;
@@ -76,6 +77,7 @@ public class DefaultConverter<T,R> implements ResultConverter<T,R> {
     protected Path toPath(Object value, Class<?> sourceType) {
         if (Node.class.isAssignableFrom(sourceType)) return new NodePath((Node) value);
         if (Relationship.class.isAssignableFrom(sourceType)) return new RelationshipPath((Relationship) value);
+        if (Path.class.isAssignableFrom(sourceType)) return (Path) value;
         return null;
     }
 

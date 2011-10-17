@@ -96,7 +96,7 @@ public class RelationshipEntityTest extends EntityTestBase {
         Person p = persistedPerson("Michael", 35);
         Person p2 = persistedPerson("David", 25);
         Friendship f = p.knows(p2);
-        assertEquals(f, neo4jTemplate.getRelationshipTo(p,p2, Friendship.class, "knows"));
+        assertEquals(f, neo4jTemplate.getRelationshipBetween(p, p2, Friendship.class, "knows"));
     }
 
     @Test

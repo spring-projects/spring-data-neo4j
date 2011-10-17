@@ -18,7 +18,9 @@ package org.springframework.data.neo4j.template;
 
 import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.traversal.TraversalDescription;
+import org.springframework.data.neo4j.annotation.QueryType;
 import org.springframework.data.neo4j.conversion.Result;
+import org.springframework.data.neo4j.support.query.QueryEngine;
 
 import java.util.Map;
 
@@ -78,7 +80,7 @@ public interface Neo4jOperations {
      * @param props optional initial properties
      * @return  the newly created relationship
      */
-    Relationship createRelationship(Node startNode, Node endNode, RelationshipType type, Map<String,Object> props);
+    Relationship createRelationshipBetween(Node startNode, Node endNode, RelationshipType type, Map<String, Object> props);
 
     /**
      * Indexes the given field and value for the element.
@@ -143,4 +145,6 @@ public interface Neo4jOperations {
      * @return the reference node of the underlying graph database
      */
     <T> T getReferenceNode(Class<T> target);
+
+    QueryEngine queryEngineFor(QueryType type);
 }

@@ -65,4 +65,25 @@ public class EntityRemover {
             relationshipTypeRepresentationStrategy.preEntityRemoval(result.relationship);
         }
     }
+
+    public void remove(Object entity) {
+        if (entity instanceof Node) {
+            graphDatabase.remove((Node)entity);
+            return;
+        }
+        if (entity instanceof Relationship) {
+            graphDatabase.remove((Relationship)entity);
+            return;
+        }
+        final Class<?> type = entity.getClass();
+        if (entityStateHandler.isNodeEntity(type)) {
+            removeNodeEntity(entity);
+            return;
+        }
+        if (entityStateHandler.isRelationshipEntity(type)) {
+            removeRelationshipEntity(entity);
+            return;
+        }
+        throw new IllegalArgumentException("@NodeEntity or @RelationshipEntity annotation required on domain class"+type);
+    }
 }

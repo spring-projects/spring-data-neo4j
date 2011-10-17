@@ -29,7 +29,7 @@ public class NodeGraphRepository<T> extends AbstractGraphRepository<Node, T> imp
 
     @Override
     protected Node getById(long id) {
-        return template.getNodeById(id);
+        return template.getNode(id);
     }
 
     @Override

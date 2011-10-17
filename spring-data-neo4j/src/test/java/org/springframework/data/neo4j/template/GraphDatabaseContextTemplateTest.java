@@ -315,7 +315,7 @@ public class GraphDatabaseContextTemplateTest {
 
     @Test
     public void shouldCreateRelationshipWithProperty() throws Exception {
-        Relationship relationship = neo4jTemplate.createRelationship(referenceNode, node1, HAS, map("name", "rel2"));
+        Relationship relationship = neo4jTemplate.createRelationshipBetween(referenceNode, node1, HAS, map("name", "rel2"));
         assertNotNull(relationship);
         assertEquals(referenceNode, relationship.getStartNode());
         assertEquals(node1, relationship.getEndNode());
