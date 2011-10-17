@@ -1,17 +1,10 @@
 package org.neo4j.cineasts.domain;
 
-import org.springframework.data.neo4j.annotation.Indexed;
-import org.springframework.data.neo4j.annotation.NodeEntity;
-import org.springframework.data.neo4j.annotation.RelatedTo;
-import org.springframework.data.neo4j.annotation.RelatedToVia;
+import org.springframework.data.neo4j.annotation.*;
 
 import java.util.Date;
 import java.util.Set;
 
-/**
- * @author mh
- * @since 12.03.11
- */
 @NodeEntity
 public class Person {
     @Indexed
@@ -122,4 +115,12 @@ public class Person {
         return role;
     }
 
+    @Query(value = "start person=node({self}) match person-->movie<--co_actor return distinct co_actor")
+    private Iterable<Person> coActors;
+
+   // Co-Actors
+
+    public Iterable<Person> getCoActors() {
+        return coActors;
+    }
 }

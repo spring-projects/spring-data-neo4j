@@ -87,7 +87,7 @@ public class SnippetRepositoryDerivedFinderTest extends DocumentingTestBase {
         title ="Derived Finder Methods";
         paragraphs = new String[] {"Use the meta information of your domain model classes to declare repository finders " +
                 "that navigate along relationships and compare properties. The path defined with the method name is used to " +
-                "create a cypher query that is executed on the graph."};
+                "create a Cypher query that is executed on the graph."};
 
         snippetTitle = "Repository and usage of derived finder methods";
         snippet = "derived";

@@ -10,9 +10,13 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Iterator;
 
 import static org.junit.Assert.*;
+import static org.junit.matchers.JUnitMatchers.hasItem;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration({"/movies-test-context.xml"})
@@ -55,13 +59,28 @@ public class DomainTest extends RestTestBase {
         User user = new User("ich", "Micha", "password").persist();
         Rating awesome = user.rate(movie, 5, "Awesome");
 
-
         User foundUser = userRepository.findByPropertyValue("login", "ich");
         Rating rating = user.getRatings().iterator().next();
         assertEquals(awesome, rating);
         assertEquals("Awesome", rating.getComment());
         assertEquals(5, rating.getStars());
         assertEquals(5, movie.getStars(), 0);
+    }
+
+    @Test
+    public void shouldBeAbleToFindCoActorsThroughCypher() throws Exception {
+        Movie citizenKane = new Movie("1", "Citizen Kane").persist();
+        Person orson = new Person("1", "Orson Wells").persist();
+        Person dorothy = new Person("2", "Dorothy Comingore").persist();
+        Person joseph = new Person("3", "Joseph Cotten").persist();
+        orson.playedIn(citizenKane, "Charles Foster Kane");
+        dorothy.playedIn(citizenKane, "Susan Alexander Kane");
+        joseph.playedIn(citizenKane, "Jedediah Leland");
+
+        Iterable<Person> coActors = orson.getCoActors();
+
+        assertThat(coActors, hasItem(dorothy));
+        assertThat(coActors, hasItem(joseph));
     }
 
     @Test
