@@ -81,12 +81,12 @@ public class MovieController {
         <para>
             Accessing the URI showed the single added movie on screen.
         </para>
-        <note>
+        <note><para>
             Pardon the misused GET parameter for that (don't try this at home, the
             <ulink url="http://restinpractice.com">REST guys</ulink> will hunt you down). This is only for
             running it from the browser address line. The next iteration of this website would use a button
             with POST.
-        </note>
+        </para></note>
     </section>
     <section>
         <title>Inspecting the datastore</title>

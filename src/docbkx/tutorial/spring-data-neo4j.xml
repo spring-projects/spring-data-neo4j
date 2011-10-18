@@ -9,7 +9,7 @@
         classes clean. Spring Data Neo4j promised to do the heavy lifting for us, so we continued investigating it.
     </para>
     <para>
-        Spring Data Neo4j depends heavily on AspectJ <xref linkend="reference:aspectj-details">features</xref>.
+        Spring Data Neo4j depends heavily on AspectJ, see <xref linkend="reference:aspectj-details" />.
         Some parts of our classes would get new behavior,
         but it would not be visible in our code. The upside of this is that you get rid of a lot of boilerplate
         code.
