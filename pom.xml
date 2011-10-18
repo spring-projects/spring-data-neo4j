@@ -140,6 +140,9 @@
 		<dist.accessKey>s3 access key</dist.accessKey>
 		<dist.secretKey>s3 secret key</dist.secretKey>
 		-->
+		<docbook.srcDir>${basedir}/src/docbkx</docbook.srcDir>
+		<docbook.snippetsDir>${basedir}/spring-data-neo4j/target/docbkx</docbook.snippetsDir>
+		<docbook.generatedDir>${basedir}/target/classes</docbook.generatedDir>
 	</properties>
 	<profiles>
 		<profile>
@@ -263,7 +266,33 @@
 				<version>3.1.0.RELEASE</version>
 			</extension>
 		</extensions>
-		<plugins>
+    <resources>
+      <resource>
+        <directory>${docbook.srcDir}</directory>
+        <filtering>false</filtering>
+      </resource>
+      <resource>
+        <directory>${docbook.snippetsDir}</directory>
+        <filtering>false</filtering>
+      </resource>
+    </resources>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-resources-plugin</artifactId>
+        <version>2.5</version>
+        <configuration>
+          <encoding>${project.build.sourceEncoding}</encoding>
+        </configuration>
+        <executions>
+          <execution>
+            <phase>generate-sources</phase>
+            <goals>
+              <goal>resources</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
             <plugin>
                 <groupId>com.agilejava.docbkx</groupId>
                 <artifactId>docbkx-maven-plugin</artifactId>
@@ -275,8 +304,9 @@
                             <goal>generate-html</goal>
                         </goals>
                         <configuration>
+                            <sourceDirectory>${docbook.generatedDir}</sourceDirectory>
                             <keepRelativeImageUris>true</keepRelativeImageUris>
-                            <htmlCustomization>${basedir}/src/docbkx/resources/xsl/html.xsl</htmlCustomization>
+                            <htmlCustomization>${docbook.generatedDir}/resources/xsl/html.xsl</htmlCustomization>
 					        <useExtensions>1</useExtensions>
 					        <highlightSource>1</highlightSource>
 					        <highlightDefaultLanguage></highlightDefaultLanguage>
@@ -285,8 +315,8 @@
                                       file="${basedir}/target/docbkx/html/index.html"/>
 
                                 <copy todir="${basedir}/target/site/reference/html" flatten="true">
-                                    <fileset dir="${basedir}/src/docbkx/">
-                                        <exclude name="${basedir}/src/docbkx/resources/*"/>
+                                    <fileset dir="${basedir}/target/classes/">
+                                        <exclude name="${docbook.generatedDir}/resources/*"/>
                                         <include name="**/*.png"/>
                                         <include name="**/*.gif"/>
                                         <include name="**/*.jpg"/>
@@ -294,7 +324,7 @@
                                 </copy>
 
                                 <copy todir="${basedir}/target/site/reference/html">
-                                    <fileset dir="${basedir}/src/docbkx/resources">
+                                    <fileset dir="${docbook.generatedDir}/resources">
                                         <include name="**/*.css"/>
                                         <include name="**/*.png"/>
                                         <include name="**/*.gif"/>
@@ -311,9 +341,9 @@
 				              <goal>generate-rtf</goal>
 				            </goals>
 				            <configuration>
-                            <imgSrcPath>${basedir}/src/docbkx/</imgSrcPath>
-                            <admonGraphicsPath>${basedir}/src/docbkx/resources/images/</admonGraphicsPath>
-                    <sourceDirectory>${basedir}/src/docbkx/</sourceDirectory>
+                            <imgSrcPath>${docbook.generatedDir}/</imgSrcPath>
+                            <admonGraphicsPath>${docbook.generatedDir}/resources/images/</admonGraphicsPath>
+                    <sourceDirectory>${docbook.generatedDir}/</sourceDirectory>
 							<fopExtensions>0</fopExtensions>
 							<fop1Extensions>0</fop1Extensions>
 					        <useExtensions>0</useExtensions>
@@ -333,9 +363,10 @@
                             <goal>generate-pdf</goal>
                         </goals>
                         <configuration>
-                            <imgSrcPath>${basedir}/src/docbkx/</imgSrcPath>
-                            <admonGraphicsPath>${basedir}/src/docbkx/resources/images/</admonGraphicsPath>
-					        <foCustomization>${basedir}/src/docbkx/resources/xsl/fopdf.xsl</foCustomization>
+                            <sourceDirectory>${docbook.generatedDir}</sourceDirectory>
+                            <imgSrcPath>${docbook.generatedDir}/</imgSrcPath>
+                            <admonGraphicsPath>${docbook.generatedDir}/resources/images/</admonGraphicsPath>
+					        <foCustomization>${docbook.generatedDir}/resources/xsl/fopdf.xsl</foCustomization>
 					        <useExtensions>1</useExtensions>
 					        <highlightSource>1</highlightSource>
 					        <highlightDefaultLanguage></highlightDefaultLanguage>
@@ -353,9 +384,10 @@
                             <goal>generate-html</goal>
                         </goals>
                         <configuration>
+                            <sourceDirectory>${docbook.generatedDir}</sourceDirectory>
                             <keepRelativeImageUris>true</keepRelativeImageUris>
                             <chunkedOutput>true</chunkedOutput>
-                            <htmlCustomization>${basedir}/src/docbkx/resources/xsl/html_chunk.xsl</htmlCustomization>
+                            <htmlCustomization>${docbook.generatedDir}/resources/xsl/html_chunk.xsl</htmlCustomization>
 					        <useExtensions>1</useExtensions>
 					        <highlightSource>1</highlightSource>
 					        <highlightDefaultLanguage></highlightDefaultLanguage>
@@ -367,15 +399,15 @@
                                     </fileset>
                                 </move>
                                 <copy todir="${basedir}/target/site/reference/multi">
-                                    <fileset dir="${basedir}/src/docbkx/resources">
+                                    <fileset dir="${docbook.generatedDir}/resources">
                                         <include name="**/*.png"/>
                                         <include name="**/*.gif"/>
                                         <include name="**/*.jpg"/>
                                     </fileset>
                                 </copy>
                                 <copy todir="${basedir}/target/site/reference/multi" flatten="true">
-                                    <fileset dir="${basedir}/src/docbkx">
-                                        <exclude name="${basedir}/src/docbkx/resources/*"/>
+                                    <fileset dir="${docbook.generatedDir}">
+                                        <exclude name="${docbook.generatedDir}/resources/*"/>
                                         <include name="**/*.css"/>
                                         <include name="**/*.png"/>
                                         <include name="**/*.gif"/>
@@ -405,8 +437,8 @@
                     <chunkedOutput>false</chunkedOutput>
                     <draftWatermarkImage/>
                     <htmlStylesheet>css/html.css</htmlStylesheet>
-                    <sourceDirectory>${basedir}/src/docbkx/</sourceDirectory>
-                    <!--foCustomization>${basedir}/src/docbkx/resources/xsl/fopdf.xsl</foCustomization-->
+                    <sourceDirectory>${docbook.generatedDir}/</sourceDirectory>
+                    <!--foCustomization>${docbook.generatedDir}/resources/xsl/fopdf.xsl</foCustomization-->
                     <xincludeSupported>true</xincludeSupported>
                     <entities>
                         <entity>
