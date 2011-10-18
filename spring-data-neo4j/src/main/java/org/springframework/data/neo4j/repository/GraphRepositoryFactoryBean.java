@@ -18,7 +18,7 @@ package org.springframework.data.neo4j.repository;
 
 import org.neo4j.graphdb.PropertyContainer;
 import org.springframework.data.mapping.context.MappingContext;
-import org.springframework.data.neo4j.mapping.Neo4jMappingContext;
+import org.springframework.data.neo4j.support.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentEntity;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.support.Neo4jTemplate;

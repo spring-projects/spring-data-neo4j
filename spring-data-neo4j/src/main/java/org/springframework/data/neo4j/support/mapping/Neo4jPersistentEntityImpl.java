@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.data.neo4j.mapping;
+package org.springframework.data.neo4j.support.mapping;
 
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.PropertyContainer;
@@ -23,7 +23,10 @@ import org.springframework.data.mapping.Association;
 import org.springframework.data.mapping.model.BasicPersistentEntity;
 import org.springframework.data.mapping.model.MappingException;
 import org.springframework.data.neo4j.annotation.*;
-import org.springframework.data.neo4j.support.ManagedEntity;
+import org.springframework.data.neo4j.mapping.ManagedEntity;
+import org.springframework.data.neo4j.mapping.Neo4jPersistentEntity;
+import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
+import org.springframework.data.neo4j.mapping.RelationshipProperties;
 import org.springframework.data.util.TypeInformation;
 
 import java.lang.annotation.Annotation;
@@ -31,7 +34,7 @@ import java.util.IdentityHashMap;
 import java.util.Map;
 
 /**
- * Implementation of {@link Neo4jPersistentEntity}.
+ * Implementation of {@link org.springframework.data.neo4j.mapping.Neo4jPersistentEntity}.
  *
  * @author Oliver Gierke
  */
@@ -165,6 +168,6 @@ public class Neo4jPersistentEntityImpl<T> extends BasicPersistentEntity<T, Neo4j
 
     @Override
     public String toString() {
-        return String.format("%s %smanaged @%sEntity Annotations: %s",getType(),isManaged() ? "" : "un", isNodeEntity() ? "Node":"Relationship",annotations.keySet());
+        return String.format("%s %smanaged @%sEntity Annotations: %s", getType(), isManaged() ? "" : "un", isNodeEntity() ? "Node" : "Relationship", annotations.keySet());
     }
 }

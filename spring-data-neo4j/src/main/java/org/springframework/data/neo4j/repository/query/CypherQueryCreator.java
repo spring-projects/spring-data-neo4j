@@ -19,7 +19,6 @@ import java.util.Iterator;
 
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mapping.context.MappingContext;
-import org.springframework.data.neo4j.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentEntity;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 import org.springframework.data.repository.query.parser.AbstractQueryCreator;
@@ -38,7 +37,7 @@ class CypherQueryCreator extends AbstractQueryCreator<CypherQueryDefinition, Cyp
     private final Class<?> domainClass;
 
     /**
-     * Creates a new {@link CypherQueryCreator} using the given {@link PartTree}, {@link Neo4jMappingContext} and domain
+     * Creates a new {@link CypherQueryCreator} using the given {@link PartTree}, {@link org.springframework.data.neo4j.support.mapping.Neo4jMappingContext} and domain
      * class.
      * 
      * @param tree must not be {@literal null}.

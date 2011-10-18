@@ -20,7 +20,7 @@ import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.springframework.data.neo4j.core.*;
-import org.springframework.data.neo4j.support.EntityInstantiator;
+import org.springframework.data.neo4j.mapping.EntityInstantiator;
 
 public class TypeRepresentationStrategyFactory {
     private GraphDatabaseService graphDatabaseService;

@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.neo4j.support;
+package org.springframework.data.neo4j.support.typerepresentation;
 
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.PropertyContainer;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.helpers.collection.ClosableIterable;
 import org.springframework.data.neo4j.core.TypeRepresentationStrategy;
-import org.springframework.data.neo4j.mapping.Neo4jMappingContext;
+import org.springframework.data.neo4j.support.mapping.Neo4jMappingContext;
 
 /**
  * @author mh
@@ -31,9 +31,9 @@ public class TypeRepresentationStrategies implements TypeRepresentationStrategy<
     private final TypeRepresentationStrategy<Node> nodeTypeRepresentationStrategy;
     private final TypeRepresentationStrategy<Relationship> relationshipTypeRepresentationStrategy;
 
-    TypeRepresentationStrategies(Neo4jMappingContext mappingContext,
-                                 TypeRepresentationStrategy<Node> nodeTypeRepresentationStrategy,
-                                 TypeRepresentationStrategy<Relationship> relationshipTypeRepresentationStrategy) {
+    public TypeRepresentationStrategies(Neo4jMappingContext mappingContext,
+                                        TypeRepresentationStrategy<Node> nodeTypeRepresentationStrategy,
+                                        TypeRepresentationStrategy<Relationship> relationshipTypeRepresentationStrategy) {
         this.mappingContext = mappingContext;
         this.nodeTypeRepresentationStrategy = nodeTypeRepresentationStrategy;
         this.relationshipTypeRepresentationStrategy = relationshipTypeRepresentationStrategy;

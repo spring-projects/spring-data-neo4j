@@ -16,7 +16,7 @@
 
 package org.springframework.data.neo4j.aspects.core;
 
-import org.springframework.data.neo4j.support.ManagedEntity;
+import org.springframework.data.neo4j.mapping.ManagedEntity;
 
 /**
  * super interface denoting entities that are graph backed, the backing STATE can be a {@link org.neo4j.graphdb.Node}

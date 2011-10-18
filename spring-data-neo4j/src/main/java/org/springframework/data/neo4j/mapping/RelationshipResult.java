@@ -13,20 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.neo4j.support;
+package org.springframework.data.neo4j.mapping;
 
-import org.springframework.data.neo4j.core.EntityState;
+import org.neo4j.graphdb.Relationship;
 
 /**
- * @author mh
- * @since 02.10.11
- */
-public interface ManagedEntity<S,T> {
-    <U extends T> U persist();
+* @author mh
+* @since 12.10.11
+*/
+public class RelationshipResult {
+    public final Relationship relationship;
+    public final Type type;
 
-    S getPersistentState();
+    public RelationshipResult(Relationship relationship, Type type) {
+        this.relationship = relationship;
+        this.type = type;
+    }
 
-    EntityState<S> getEntityState();
-
-    void setPersistentState(S state);
+    public enum Type { NEW, EXISTING, DELETED }
 }

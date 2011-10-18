@@ -17,10 +17,10 @@
 package org.springframework.data.neo4j.fieldaccess;
 
 import org.springframework.data.neo4j.core.EntityState;
+import org.springframework.data.neo4j.mapping.ManagedEntity;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.support.DoReturn;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
-import org.springframework.data.neo4j.support.ManagedEntity;
 
 import java.util.AbstractSet;
 import java.util.Collection;

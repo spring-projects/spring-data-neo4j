@@ -17,8 +17,8 @@
 package org.springframework.data.neo4j.support.node;
 
 import org.neo4j.graphdb.Node;
-import org.springframework.data.neo4j.support.AbstractConstructorEntityInstantiator;
-import org.springframework.data.neo4j.support.EntityStateHandler;
+import org.springframework.data.neo4j.support.mapping.AbstractConstructorEntityInstantiator;
+import org.springframework.data.neo4j.support.mapping.EntityStateHandler;
 
 
 /**

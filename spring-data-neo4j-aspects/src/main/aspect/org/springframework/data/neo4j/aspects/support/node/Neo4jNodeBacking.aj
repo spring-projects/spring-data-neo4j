@@ -32,8 +32,8 @@ import org.springframework.data.neo4j.annotation.*;
 
 import org.springframework.data.neo4j.aspects.core.NodeBacked;
 import org.springframework.data.neo4j.aspects.core.RelationshipBacked;
-import org.springframework.data.neo4j.support.EntityStateHandler;
-import org.springframework.data.neo4j.support.RelationshipResult;
+import org.springframework.data.neo4j.mapping.RelationshipResult;
+import org.springframework.data.neo4j.support.mapping.EntityStateHandler;
 import org.springframework.data.neo4j.support.node.NodeEntityStateFactory;
 import org.springframework.data.neo4j.support.DoReturn;
 import org.springframework.data.neo4j.core.EntityPath;

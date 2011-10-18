@@ -20,7 +20,6 @@ import org.mockito.Mockito;
 import org.neo4j.graphdb.Node;
 import org.springframework.data.neo4j.model.Friendship;
 import org.springframework.data.neo4j.model.Person;
-import org.springframework.data.neo4j.support.ManagedEntity;
 
 import static org.junit.Assert.assertEquals;
 

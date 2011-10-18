@@ -21,24 +21,18 @@ import org.apache.commons.logging.LogFactory;
 import org.neo4j.graphdb.PropertyContainer;
 import org.neo4j.graphdb.index.Index;
 import org.neo4j.index.lucene.ValueContext;
-import org.springframework.data.neo4j.annotation.Indexed;
-
 import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
-
-import java.lang.reflect.AnnotatedElement;
 
 
 public class IndexingPropertyFieldAccessorListenerFactory<S extends PropertyContainer, T> implements FieldAccessorListenerFactory {
 
     private final PropertyFieldAccessorFactory propertyFieldAccessorFactory;
     private final ConvertingNodePropertyFieldAccessorFactory convertingNodePropertyFieldAccessorFactory;
-    private final IndexProvider indexProvider;
     private final Neo4jTemplate template;
 
     public IndexingPropertyFieldAccessorListenerFactory(final Neo4jTemplate template, final PropertyFieldAccessorFactory propertyFieldAccessorFactory, final ConvertingNodePropertyFieldAccessorFactory convertingNodePropertyFieldAccessorFactory) {
         this.template = template;
-        indexProvider = new IndexProvider<S,T>(template);
     	this.propertyFieldAccessorFactory = propertyFieldAccessorFactory;
         this.convertingNodePropertyFieldAccessorFactory = convertingNodePropertyFieldAccessorFactory;
     }
@@ -55,41 +49,9 @@ public class IndexingPropertyFieldAccessorListenerFactory<S extends PropertyCont
 
     @Override
     public FieldAccessListener forField(Neo4jPersistentProperty property) {
-        return new IndexingPropertyFieldAccessorListener(property, indexProvider, template);
+        return new IndexingPropertyFieldAccessorListener(property, template);
     }
 
-
-    public static class IndexProvider<S extends PropertyContainer, T> {
-        private final Neo4jTemplate template;
-
-        public IndexProvider(Neo4jTemplate template) {
-            this.template = template;
-        }
-
-        private String getIndexKey(Neo4jPersistentProperty property) {
-            Indexed indexed = property.getAnnotation(Indexed.class);
-            if (indexed==null || indexed.fieldName().isEmpty()) return property.getNeo4jPropertyName();
-            return indexed.fieldName();
-        }
-
-        private Indexed getIndexedAnnotation(AnnotatedElement element) {
-            return element.getAnnotation(Indexed.class);
-        }
-
-        private Index<S> getIndex(Neo4jPersistentProperty property, Object instance) {
-            final Indexed indexedAnnotation = property.getAnnotation(Indexed.class);
-            @SuppressWarnings("unchecked") final Class<T> type = (Class<T>) property.getOwner().getType();
-            final String providedIndexName = indexedAnnotation.indexName().isEmpty() ? null : indexedAnnotation.indexName();
-            String indexName = Indexed.Name.get(indexedAnnotation.level(), type, providedIndexName, instance.getClass());
-            if (!property.getIndexInfo().isFulltext()) {
-                return template.getIndex(type, indexName, false);
-            }
-            if (providedIndexName == null) throw new IllegalStateException("@Indexed(fullext=true) on "+property+" requires an providedIndexName too ");
-            String defaultIndexName = Indexed.Name.get(indexedAnnotation.level(), type, null, instance.getClass());
-            if (providedIndexName.equals(defaultIndexName)) throw new IllegalStateException("Full-index name for "+property+" must differ from the default name: "+defaultIndexName);
-            return template.getIndex(type, indexName, true);
-        }
-    }
 
     /**
 	 * @author Michael Hunger
@@ -101,19 +63,17 @@ public class IndexingPropertyFieldAccessorListenerFactory<S extends PropertyCont
 
 	    protected final String indexKey;
         private final Neo4jPersistentProperty property;
-        private final IndexProvider indexProvider;
         private final Neo4jTemplate template;
 
-        public IndexingPropertyFieldAccessorListener(final Neo4jPersistentProperty property, IndexProvider indexProvider, Neo4jTemplate template) {
+        public IndexingPropertyFieldAccessorListener(final Neo4jPersistentProperty property, Neo4jTemplate template) {
             this.property = property;
-            this.indexProvider = indexProvider;
             this.template = template;
-            indexKey = indexProvider.getIndexKey(property);
+            indexKey = template.getIndexKey(property);
         }
 
 	    @Override
         public void valueChanged(Object entity, Object oldVal, Object newVal) {
-            @SuppressWarnings("unchecked") Index<T> index = indexProvider.getIndex(property, entity);
+            @SuppressWarnings("unchecked") Index<T> index = template.getIndex(property, entity.getClass());
             if (newVal instanceof Number) newVal = ValueContext.numeric((Number) newVal);
 
             final T state = template.getPersistentState(entity);

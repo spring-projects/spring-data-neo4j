@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.data.neo4j.mapping;
+package org.springframework.data.neo4j.support.mapping;
 
 import org.neo4j.graphdb.PropertyContainer;
 import org.springframework.data.mapping.context.AbstractMappingContext;
@@ -23,6 +23,7 @@ import org.springframework.data.mapping.model.MappingException;
 import org.springframework.data.mapping.model.SimpleTypeHolder;
 import org.springframework.data.neo4j.annotation.NodeEntity;
 import org.springframework.data.neo4j.annotation.RelationshipEntity;
+import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 import org.springframework.data.util.TypeInformation;
 
 import java.beans.PropertyDescriptor;
@@ -30,7 +31,7 @@ import java.lang.reflect.Field;
 
 /**
  * Neo4J specific {@link MappingContext} implementation. Simply creates {@link Neo4jPersistentEntityImpl} and
- * {@link Neo4jPersistentProperty} instances.
+ * {@link org.springframework.data.neo4j.mapping.Neo4jPersistentProperty} instances.
  *
  * @author Oliver Gierke
  */

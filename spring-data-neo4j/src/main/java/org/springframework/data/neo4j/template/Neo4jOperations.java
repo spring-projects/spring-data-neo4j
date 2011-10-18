@@ -145,21 +145,22 @@ public interface Neo4jOperations {
     <T extends PropertyContainer> Result<T> lookup(String indexName, String field, Object value);
 
     /**
+     * The value or query-object is looked up in the index indicated by the property of the indexed type, so all the customization
+     * via @Indexed annotations is taken into consideration. The resulting IndexHits are returned as a Result to be
+     * converted into Entities and other types.
+     */
+    <T extends PropertyContainer> Result<T> lookup(Class<?> indexedType, String propertyName, Object value);
+
+    /**
      * The query is executed on the index returning the IndexHits wrapped in a Result to be converted
      * into Paths or Entities.
      */
     <T extends PropertyContainer> Result<T> lookup(String indexName, Object query);
 
     /**
-     * The query is executed on the index for this entity type returning the IndexHits wrapped in a Result to be converted
-     * into Paths or Entities.
-     */
-    <T extends PropertyContainer> Result<T> lookup(Class<?> indexedType, Object query);
-
-    /**
      * Provides a cypher or gremlin query engine set up with a default entity converter.
      */
-    QueryEngine queryEngineFor(QueryType type);
+    <T> QueryEngine<T> queryEngineFor(QueryType type);
 
     /**
      * Runs the given cypher statement and packages the result in a Result, simple conversions via the
@@ -239,7 +240,13 @@ public interface Neo4jOperations {
      */
     <S extends PropertyContainer> S getPersistentState(Object entity);
 
+    /**
+     * @return a traversal description suited for the current mode of operation (aware of remote REST connections)
+     */
     TraversalDescription traversalDescription();
 
+    /**
+     * @return the graph database used by the template
+     */
     GraphDatabase getGraphDatabase();
 }

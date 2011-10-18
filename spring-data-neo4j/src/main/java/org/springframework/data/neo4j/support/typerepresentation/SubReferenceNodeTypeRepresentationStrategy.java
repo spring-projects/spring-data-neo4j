@@ -25,7 +25,7 @@ import org.neo4j.helpers.collection.CombiningIterable;
 import org.neo4j.helpers.collection.IterableWrapper;
 import org.neo4j.kernel.Traversal;
 import org.springframework.data.neo4j.core.NodeTypeRepresentationStrategy;
-import org.springframework.data.neo4j.support.EntityInstantiator;
+import org.springframework.data.neo4j.mapping.EntityInstantiator;
 
 import java.util.Collections;
 import java.util.LinkedList;

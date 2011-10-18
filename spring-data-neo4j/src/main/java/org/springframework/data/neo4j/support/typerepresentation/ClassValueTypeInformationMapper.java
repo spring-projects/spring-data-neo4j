@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.neo4j.mapping;
+package org.springframework.data.neo4j.support.typerepresentation;
 
 import org.springframework.data.convert.TypeInformationMapper;
 import org.springframework.data.util.ClassTypeInformation;

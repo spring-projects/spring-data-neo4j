@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.data.neo4j.mapping;
+package org.springframework.data.neo4j.support.mapping;
 
 import org.springframework.core.convert.ConversionService;
 import org.springframework.data.mapping.Association;
@@ -25,6 +25,10 @@ import org.springframework.data.mapping.model.SimpleTypeHolder;
 import org.springframework.data.neo4j.annotation.*;
 
 
+import org.springframework.data.neo4j.mapping.IndexInfo;
+import org.springframework.data.neo4j.mapping.Neo4jPersistentEntity;
+import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
+import org.springframework.data.neo4j.mapping.RelationshipInfo;
 import org.springframework.data.util.TypeInformation;
 
 import java.beans.PropertyDescriptor;
@@ -35,7 +39,7 @@ import java.util.IdentityHashMap;
 import java.util.Map;
 
 /**
- * Implementation of {@link Neo4jPersistentProperty}.
+ * Implementation of {@link org.springframework.data.neo4j.mapping.Neo4jPersistentProperty}.
  *
  * @author Oliver Gierke
  */
@@ -189,36 +193,6 @@ class Neo4jPersistentPropertyImpl extends AbstractPersistentProperty<Neo4jPersis
         }
     }
 
-
-    public static class IndexInfo {
-        private String indexName;
-        private boolean fulltext;
-        private final String fieldName;
-        private final Indexed.Level level;
-
-        public IndexInfo(Indexed annotation, Neo4jPersistentPropertyImpl property) {
-            this.indexName = determineIndexName(annotation,property);
-            this.fulltext = annotation.fulltext();
-            fieldName = annotation.fieldName();
-            level = annotation.level();
-        }
-
-
-        private String determineIndexName(Indexed annotation, Neo4jPersistentPropertyImpl property) {
-            final String providedIndexName = annotation.indexName().isEmpty() ? null : annotation.indexName();
-            final Class<?> declaringClass = property.getField().getDeclaringClass();
-            final Class<?> instanceType = property.getOwner().getType();
-            return Indexed.Name.get(annotation.level(), declaringClass, providedIndexName, instanceType);
-        }
-
-        public String getIndexName() {
-            return indexName;
-        }
-
-        public boolean isFulltext() {
-            return fulltext;
-        }
-    }
 
     @Override
     public String toString() {

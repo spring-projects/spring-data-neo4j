@@ -16,30 +16,43 @@
 package org.springframework.data.neo4j.support;
 
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mockito;
 import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.index.Index;
 import org.neo4j.graphdb.traversal.TraversalDescription;
 import org.neo4j.helpers.collection.MapUtil;
 import org.neo4j.kernel.Traversal;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataRetrievalFailureException;
+import org.springframework.data.neo4j.annotation.QueryType;
 import org.springframework.data.neo4j.conversion.EndResult;
+import org.springframework.data.neo4j.conversion.Result;
+import org.springframework.data.neo4j.mapping.ManagedEntity;
 import org.springframework.data.neo4j.model.Friendship;
 import org.springframework.data.neo4j.model.Group;
 import org.springframework.data.neo4j.model.Named;
 import org.springframework.data.neo4j.model.Person;
 import org.springframework.data.neo4j.repository.GraphRepository;
+import org.springframework.data.neo4j.support.query.QueryEngine;
+import org.springframework.data.neo4j.template.Neo4jOperations;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionCallbackWithoutResult;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Map;
 
 import static org.junit.Assert.*;
 import static org.neo4j.graphdb.Direction.OUTGOING;
 import static org.neo4j.helpers.collection.IteratorUtil.asCollection;
+import static org.neo4j.helpers.collection.MapUtil.map;
 
 /**
  * @author mh
@@ -47,89 +60,92 @@ import static org.neo4j.helpers.collection.IteratorUtil.asCollection;
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = {"classpath:template-config-context.xml"})
-@Transactional
 public class EntityNeo4jTemplateTest extends EntityTestBase {
 
     public static final DynamicRelationshipType KNOWS = DynamicRelationshipType.withName("knows");
 
+    @Autowired
+    PlatformTransactionManager transactionManager;
+    private Neo4jOperations neo4jOperations;
     @Before
     public void setUp() throws Exception {
         createTeam();
+        neo4jOperations = neo4jTemplate;
     }
 
-    @Test
+    @Test @Transactional
     public void testRepositoryFor() throws Exception {
-        final GraphRepository<Person> personRepository = neo4jTemplate.repositoryFor(Person.class);
-        final GraphRepository<Group> groupRepository = neo4jTemplate.repositoryFor(Group.class);
-        final GraphRepository<Friendship> friendshipRepository = neo4jTemplate.repositoryFor(Friendship.class);
+        final GraphRepository<Person> personRepository = neo4jOperations.repositoryFor(Person.class);
+        final GraphRepository<Group> groupRepository = neo4jOperations.repositoryFor(Group.class);
+        final GraphRepository<Friendship> friendshipRepository = neo4jOperations.repositoryFor(Friendship.class);
         testTeam.createSDGTeam(personRepository,groupRepository,friendshipRepository);
         final Person found = personRepository.findOne(testTeam.michael.getId());
         assertEquals(found.getId(),testTeam.michael.getId());
     }
 
-    @Test
+    @Test @Transactional
     public void testRelationshipRepositoryFor() throws Exception {
         
-        final GraphRepository<Friendship> friendshipRepository = neo4jTemplate.repositoryFor(Friendship.class);
+        final GraphRepository<Friendship> friendshipRepository = neo4jOperations.repositoryFor(Friendship.class);
         final Friendship found = friendshipRepository.findOne(testTeam.friendShip.getId());
         assertEquals(found.getId(),testTeam.friendShip.getId());
     }
 
-    @Test
+    @Test @Transactional
     public void testGetIndexForType() throws Exception {
         
         final Index<PropertyContainer> personIndex = neo4jTemplate.getIndex(Person.class);
         assertEquals("Person",personIndex.getName());
     }
 
-    @Test
+    @Test @Transactional
     public void testGetIndexForName() throws Exception {
         
         final Index<PropertyContainer> nameIndex = neo4jTemplate.getIndex(Person.NAME_INDEX);
         assertEquals(Person.NAME_INDEX, nameIndex.getName());
     }
 
-    @Test
+    @Test @Transactional
     public void testGetIndexForNoTypeAndName() throws Exception {
         
-        final Index<PropertyContainer> nameIndex = neo4jTemplate.getIndex(null,Person.NAME_INDEX);
+        final Index<PropertyContainer> nameIndex = neo4jOperations.getIndex(null,Person.NAME_INDEX);
         assertEquals(Person.NAME_INDEX,nameIndex.getName());
     }
 
-    @Test
+    @Test @Transactional
     public void testGetIndexForTypeAndNoName() throws Exception {
         
-        final Index<PropertyContainer> nameIndex = neo4jTemplate.getIndex(Person.class,null);
+        final Index<PropertyContainer> nameIndex = neo4jOperations.getIndex(Person.class,null);
         assertEquals("Person",nameIndex.getName());
     }
-    @Test
+    @Test @Transactional
     public void testGetIndexForTypeAndName() throws Exception {
         
-        final Index<PropertyContainer> nameIndex = neo4jTemplate.getIndex(Person.class,Person.NAME_INDEX);
+        final Index<PropertyContainer> nameIndex = neo4jOperations.getIndex(Person.class,Person.NAME_INDEX);
         assertEquals(Person.NAME_INDEX, nameIndex.getName());
     }
 
-    @Test
+    @Test @Transactional
     public void testFindOne() throws Exception {
         
-        final Person found = neo4jTemplate.findOne(testTeam.michael.getId(), Person.class);
+        final Person found = neo4jOperations.findOne(testTeam.michael.getId(), Person.class);
         assertEquals(found.getId(),testTeam.michael.getId());
     }
 
-    @Test
+    @Test @Transactional
     public void testFindAll() throws Exception {
         
-        final Collection<Person> people = asCollection(neo4jTemplate.findAll(Person.class));
+        final Collection<Person> people = asCollection(neo4jOperations.findAll(Person.class));
         assertEquals(3,people.size());
     }
 
-    @Test
+    @Test @Transactional
     public void testCount() throws Exception {
         
-        assertEquals(3,neo4jTemplate.count(Person.class));
+        assertEquals(3,neo4jOperations.count(Person.class));
     }
 
-    @Test
+    @Test @Transactional
     public void testCreateRelationshipEntityFromStoredType() throws Exception {
         
         final Relationship friendshipRelationship = getRelationshipState(testTeam.friendShip);
@@ -137,7 +153,7 @@ public class EntityNeo4jTemplateTest extends EntityTestBase {
         assertEquals(testTeam.friendShip.getId(),found.getId());
     }
 
-    @Test
+    @Test @Transactional
     public void testCreateNodeEntityFromStoredType() throws Exception {
         
         final Node michaelNode = getNodeState(testTeam.michael);
@@ -145,7 +161,7 @@ public class EntityNeo4jTemplateTest extends EntityTestBase {
         assertEquals(testTeam.michael.getId(),found.getId());
     }
 
-    @Test
+    @Test @Transactional
     public void testCreateEntityFromState() throws Exception {
         
         final PropertyContainer michaelNode = getNodeState(testTeam.michael);
@@ -153,162 +169,196 @@ public class EntityNeo4jTemplateTest extends EntityTestBase {
         assertEquals(testTeam.michael.getId(),found.getId());
     }
 
-    @Test
+    @Test @Transactional
     public void testProjectTo() throws Exception {
-        final Named named = neo4jTemplate.projectTo(testTeam.sdg, Named.class);
+        final Named named = neo4jOperations.projectTo(testTeam.sdg, Named.class);
         assertEquals(testTeam.sdg.getName(),named.getName());
     }
 
-    @Test
+    @Test @Transactional
     public void testGetPersistentState() throws Exception {
-        assertEquals(testTeam.michael.getId(),(Long)((Node)neo4jTemplate.getPersistentState(testTeam.michael)).getId());
+        assertEquals(testTeam.michael.getId(),(Long)((Node)neo4jOperations.getPersistentState(testTeam.michael)).getId());
     }
 
-    @Test
+    @Test @Transactional
     public void testSetPersistentState() throws Exception {
-
+        final Person clone = new Person();
+        neo4jTemplate.setPersistentState(clone, neo4jOperations.getPersistentState(testTeam.david));
+        assertEquals(testTeam.david.getId(), clone.getId());
     }
 
-
-    @Test
-    @Ignore("TODO execute non tx")
+    @Test(expected = DataRetrievalFailureException.class)
     public void testDelete() throws Exception {
         final Long id = testTeam.michael.getId();
-        neo4jTemplate.delete(testTeam.michael);
-        assertNull(neo4jTemplate.getGraphDatabase().getNodeById(id));
+        new TransactionTemplate(transactionManager).execute(new TransactionCallbackWithoutResult() {
+            protected void doInTransactionWithoutResult(TransactionStatus status) {
+                neo4jOperations.delete(testTeam.michael);
+            }
+        });
+        assertNull(neo4jOperations.getNode(id));
     }
 
-    @Test
-    @Ignore("TODO execute non tx")
+    @Test(expected = DataRetrievalFailureException.class)
     public void testRemoveNodeEntity() throws Exception {
         final Long id = testTeam.michael.getId();
-        neo4jTemplate.removeNodeEntity(testTeam.michael);
-        assertNull(neo4jTemplate.getGraphDatabase().getNodeById(id));
+        new TransactionTemplate(transactionManager).execute(new TransactionCallbackWithoutResult() {
+            protected void doInTransactionWithoutResult(TransactionStatus status) {
+                neo4jTemplate.removeNodeEntity(testTeam.michael);
+            }
+        });
+        assertNull(neo4jOperations.getNode(id));
     }
 
-    @Test
-    @Ignore("TODO execute non tx")
+    @Test(expected = DataRetrievalFailureException.class)
     public void testRemoveRelationshipEntity() throws Exception {
         final Long id = testTeam.friendShip.getId();
-        neo4jTemplate.removeRelationshipEntity(testTeam.friendShip);
-        assertNull(neo4jTemplate.getGraphDatabase().getRelationshipById(id));
+        new TransactionTemplate(transactionManager).execute(new TransactionCallbackWithoutResult() {
+            protected void doInTransactionWithoutResult(TransactionStatus status) {
+                neo4jTemplate.removeRelationshipEntity(testTeam.friendShip);
+            }
+        });
+        assertNull(neo4jOperations.getRelationship(id));
 
     }
 
 
-    @Test
+    @Test @Transactional
     public void testCreateNodeAs() throws Exception {
-
+        final Person thomas = neo4jOperations.createNodeAs(Person.class, map("name", "Thomas"));
+        assertEquals("Thomas",neo4jOperations.getNode(thomas.getId()).getProperty("name"));
+        final Person found = neo4jTemplate.createEntityFromStoredType(getNodeState(thomas));
+        assertEquals("Thomas",found.getName());
     }
 
-    @Test
+    @Test @Transactional
     public void testIsNodeEntity() throws Exception {
-
+        assertEquals(true,neo4jTemplate.isNodeEntity(Person.class));
+        assertEquals(false,neo4jTemplate.isNodeEntity(Friendship.class));
+        assertEquals(false,neo4jTemplate.isNodeEntity(Object.class));
     }
 
-    @Test
+    @Test @Transactional
     public void testIsRelationshipEntity() throws Exception {
-
+        assertEquals(true,neo4jTemplate.isRelationshipEntity(Friendship.class));
+        assertEquals(false,neo4jTemplate.isRelationshipEntity(Person.class));
+        assertEquals(false,neo4jTemplate.isRelationshipEntity(Object.class));
     }
 
-    @Test
+    @Test @Transactional
     public void testSave() throws Exception {
-
+        final Person thomas = new Person("Thomas", 30);
+        neo4jOperations.save(thomas);
+        final Node node = getNodeState(thomas);
+        assertNotNull("created node",node);
+        assertEquals("created node with id", (Long) node.getId(), thomas.getId());
+        assertEquals("created node with name", "Thomas", node.getProperty("name"));
     }
 
-    @Test
+    static abstract class ManagedTestEntity implements ManagedEntity {}
+    @Test @Transactional
     public void testIsManaged() throws Exception {
-
+        assertEquals(true,neo4jTemplate.isManaged(Mockito.mock(ManagedEntity.class)));
+        assertEquals(true,neo4jTemplate.isManaged(Mockito.mock(ManagedTestEntity.class)));
+        assertEquals(false,neo4jTemplate.isManaged(testTeam.michael));
+        assertEquals(false,neo4jTemplate.isManaged(testTeam.friendShip));
+        assertEquals(false,neo4jTemplate.isManaged(new Object()));
     }
 
-    @Test
+    @Test @Transactional
     public void testQuery() throws Exception {
+        final Person result = neo4jOperations.query("start n=node({self}) return n", map("self", testTeam.michael.getId())).to(Person.class).single();
+        assertEquals(testTeam.michael.getId(),result.getId());
 
     }
 
-    @Test
+    @Test @Transactional
     public void testGetRelationshipBetweenNodes() throws Exception {
-        
-        final Relationship knows = neo4jTemplate.getRelationshipBetween(getNodeState(testTeam.michael), getNodeState(testTeam.david), "knows");
+        final Relationship knows = neo4jOperations.getRelationshipBetween(getNodeState(testTeam.michael), getNodeState(testTeam.david), "knows");
         assertEquals(testTeam.friendShip.getId(),(Long)knows.getId());
     }
-    @Test
+    @Test @Transactional
 
     public void testGetAutoPersistedRelationshipBetweenNodes() throws Exception {
-        
         final Node emilNode = getNodeState(testTeam.emil);
         final Node michaelNode = getNodeState(testTeam.michael);
-        final Relationship boss = neo4jTemplate.getRelationshipBetween(emilNode, michaelNode, "boss");
+        final Relationship boss = neo4jOperations.getRelationshipBetween(emilNode, michaelNode, "boss");
         assertNotNull("found relationship",boss);
         assertEquals(michaelNode,boss.getEndNode());
         assertEquals(emilNode,boss.getStartNode());
     }
 
-    @Test
+    @Test @Transactional
     public void testGetRelationshipBetween() throws Exception {
-        
-        final Friendship knows = neo4jTemplate.getRelationshipBetween(testTeam.michael, testTeam.david, Friendship.class, "knows");
+        final Friendship knows = neo4jOperations.getRelationshipBetween(testTeam.michael, testTeam.david, Friendship.class, "knows");
         assertEquals(testTeam.friendShip.getId(),knows.getId());
     }
 
-    @Test
+    @Test @Transactional
     public void testDeleteRelationshipBetween() throws Exception {
-        
-        neo4jTemplate.deleteRelationshipBetween(testTeam.michael,testTeam.david,"knows");
+        neo4jOperations.deleteRelationshipBetween(testTeam.michael,testTeam.david,"knows");
         assertNull("relationship deleted", getNodeState(testTeam.michael).getSingleRelationship(KNOWS, OUTGOING));
     }
 
-    @Test
+    @Test @Transactional
     public void testCreateRelationshipBetweenNodes() throws Exception {
-        
-        final Friendship friendship = neo4jTemplate.createRelationshipBetween(testTeam.david, testTeam.emil, Friendship.class, "knows", false);
+        final Friendship friendship = neo4jOperations.createRelationshipBetween(testTeam.david, testTeam.emil, Friendship.class, "knows", false);
         assertEquals(friendship.getId(),(Long)getNodeState(testTeam.david).getSingleRelationship(KNOWS, OUTGOING).getId());
     }
-    @Test
+    @Test @Transactional
     public void testCreateDuplicateRelationshipBetweenNodes() throws Exception {
-        
-        neo4jTemplate.createRelationshipBetween(testTeam.michael, testTeam.david, Friendship.class, "knows", true);
+        neo4jOperations.createRelationshipBetween(testTeam.michael, testTeam.david, Friendship.class, "knows", true);
         assertEquals(2, asCollection(getNodeState(testTeam.michael).getRelationships(KNOWS, OUTGOING)).size());
     }
 
-    @Test
+    @Test @Transactional
     public void testCreateRelationshipBetween() throws Exception {
-        
         final Node davidNode = getNodeState(testTeam.david);
-        final Relationship friendship = neo4jTemplate.createRelationshipBetween(davidNode, getNodeState(testTeam.emil), "knows", MapUtil.map("years", 10));
+        final Relationship friendship = neo4jOperations.createRelationshipBetween(davidNode, getNodeState(testTeam.emil), "knows", MapUtil.map("years", 10));
         assertEquals(friendship.getId(),davidNode.getSingleRelationship(KNOWS, OUTGOING).getId());
         assertEquals(10,friendship.getProperty("years"));
 
     }
 
-    @Test
+    @Test @Transactional
     public void testConvertSingle() throws Exception {
-        
-        final Person p = neo4jTemplate.convert(neo4jTemplate.getPersistentState(testTeam.michael), Person.class);
+        final Person p = neo4jOperations.convert(neo4jOperations.getPersistentState(testTeam.michael), Person.class);
         assertEquals(testTeam.michael.getName(),p.getName());
     }
 
-    @Test
+    @Test @Transactional
     public void testConvert() throws Exception {
-        final EndResult<Group> groups = neo4jTemplate.convert(Arrays.asList(getNodeState(testTeam.sdg))).to(Group.class);
+        final EndResult<Group> groups = neo4jOperations.convert(Arrays.asList(getNodeState(testTeam.sdg))).to(Group.class);
         assertEquals(testTeam.sdg.getName(),groups.iterator().next().getName());
     }
 
-    @Test
-    public void testQueryEngineFor() throws Exception {
-
+    @Test @Transactional
+    public void testQueryEngineForCypher() throws Exception {
+        final QueryEngine<Result<Map<String,Object>>> engine = neo4jOperations.queryEngineFor(QueryType.Cypher);
+        final Person result = engine.query("start n=node({self}) return n", map("self", testTeam.michael.getId())).to(Person.class).single();
+        assertEquals(testTeam.michael.getId(), result.getId());
+    }
+    @Test @Transactional
+    public void testQueryEngineForGremlin() throws Exception {
+        final QueryEngine<Result<Object>> engine = neo4jOperations.queryEngineFor(QueryType.Gremlin);
+        final Person result = engine.query("g.v(self)", map("self", testTeam.michael.getId())).to(Person.class).single();
+        assertEquals(testTeam.michael.getId(), result.getId());
     }
 
-    @Test
+    @Test @Transactional
     public void testTraverse() throws Exception {
-        
-        final TraversalDescription traversalDescription = neo4jTemplate.traversalDescription().relationships(DynamicRelationshipType.withName("knows"), Direction.OUTGOING).filter(Traversal.returnAllButStartNode());
-        final Person knows = neo4jTemplate.traverse(testTeam.michael, traversalDescription).to(Person.class).single();
+        final TraversalDescription traversalDescription = neo4jOperations.traversalDescription().relationships(DynamicRelationshipType.withName("knows"), Direction.OUTGOING).filter(Traversal.returnAllButStartNode());
+        final Person knows = neo4jOperations.traverse(testTeam.michael, traversalDescription).to(Person.class).single();
         assertEquals(testTeam.david.getName(), knows.getName());
     }
 
-    @Test
+    @Test @Transactional
     public void testLookup() throws Exception {
-
+        final Person found = neo4jOperations.lookup(Person.class, "name","name:Michael").to(Person.class).single();
+        assertEquals(testTeam.michael.getId(),found.getId());
+    }
+    @Test @Transactional
+    public void testLookupExact() throws Exception {
+        final Person found = neo4jOperations.lookup(Person.class, "name","Michael").to(Person.class).single();
+        assertEquals(testTeam.michael.getId(),found.getId());
     }
 }

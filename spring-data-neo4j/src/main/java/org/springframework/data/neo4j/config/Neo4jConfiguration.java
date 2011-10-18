@@ -38,12 +38,14 @@ import org.springframework.data.neo4j.fieldaccess.NodeDelegatingFieldAccessorFac
 import org.springframework.data.neo4j.fieldaccess.RelationshipDelegatingFieldAccessorFactory;
 import org.springframework.data.neo4j.mapping.*;
 import org.springframework.data.neo4j.support.*;
+import org.springframework.data.neo4j.support.mapping.*;
 import org.springframework.data.neo4j.support.node.NodeEntityInstantiator;
 import org.springframework.data.neo4j.support.node.NodeEntityStateFactory;
 import org.springframework.data.neo4j.support.relationship.RelationshipEntityInstantiator;
 import org.springframework.data.neo4j.support.relationship.RelationshipEntityStateFactory;
+import org.springframework.data.neo4j.support.typerepresentation.ClassValueTypeInformationMapper;
 import org.springframework.data.neo4j.support.typerepresentation.TypeRepresentationStrategyFactory;
-import org.springframework.data.neo4j.template.Neo4jExceptionTranslator;
+import org.springframework.data.neo4j.support.Neo4jExceptionTranslator;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.jta.JtaTransactionManager;
 import org.springframework.transaction.jta.UserTransactionAdapter;

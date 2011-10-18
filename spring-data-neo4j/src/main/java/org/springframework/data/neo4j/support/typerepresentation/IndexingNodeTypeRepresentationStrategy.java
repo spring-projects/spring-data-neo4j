@@ -27,7 +27,7 @@ import org.neo4j.helpers.collection.FilteringIterable;
 import org.neo4j.helpers.collection.IterableWrapper;
 import org.springframework.data.neo4j.annotation.NodeEntity;
 import org.springframework.data.neo4j.core.NodeTypeRepresentationStrategy;
-import org.springframework.data.neo4j.support.EntityInstantiator;
+import org.springframework.data.neo4j.mapping.EntityInstantiator;
 
 public class IndexingNodeTypeRepresentationStrategy implements NodeTypeRepresentationStrategy {
 

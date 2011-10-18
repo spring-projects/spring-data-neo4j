@@ -32,12 +32,15 @@ import org.springframework.data.neo4j.core.GraphDatabase;
 import org.springframework.data.neo4j.core.TypeRepresentationStrategy;
 import org.springframework.data.neo4j.core.UncategorizedGraphStoreException;
 import org.springframework.data.neo4j.mapping.EntityPersister;
+import org.springframework.data.neo4j.mapping.RelationshipResult;
+import org.springframework.data.neo4j.support.mapping.EntityStateHandler;
+import org.springframework.data.neo4j.support.mapping.Neo4jPersistentEntityImpl;
+import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.repository.GraphRepository;
 import org.springframework.data.neo4j.repository.NodeGraphRepository;
 import org.springframework.data.neo4j.repository.RelationshipGraphRepository;
 import org.springframework.data.neo4j.support.query.QueryEngine;
 import org.springframework.data.neo4j.template.GraphCallback;
-import org.springframework.data.neo4j.template.Neo4jExceptionTranslator;
 import org.springframework.data.neo4j.template.Neo4jOperations;
 import org.springframework.data.util.TypeInformation;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -175,6 +178,12 @@ public class Neo4jTemplate implements Neo4jOperations, EntityPersister {
         return infrastructure.getEntityPersister().projectTo(entity, targetType);
     }
 
+    /**
+     * just sets the persistent state (i.e. Node or id) to the entity, doesn't copy any values/properties.
+     * @param entity
+     * @param <S>
+     * @return
+     */
     @Override
     public <S extends PropertyContainer> S getPersistentState(Object entity) {
         notNull(entity,"entity");
@@ -193,12 +202,13 @@ public class Neo4jTemplate implements Neo4jOperations, EntityPersister {
     }
 
     @Override
-    public void delete(Object entity) {
-        notNull(entity,"entity");
-        infrastructure.getEntityRemover().remove(entity);
+    public void delete(final Object entity) {
+        notNull(entity, "entity");
+        infrastructure.getEntityRemover().removeNodeEntity(entity);
     }
 
-    public void removeNodeEntity(Object entity) {
+    public void removeNodeEntity(final Object entity) {
+        notNull(entity, "entity");
         infrastructure.getEntityRemover().removeNodeEntity(entity);
     }
 
@@ -418,7 +428,7 @@ public class Neo4jTemplate implements Neo4jOperations, EntityPersister {
     }
 
     @Override
-    public QueryEngine queryEngineFor(QueryType type) {
+    public <T> QueryEngine<T> queryEngineFor(QueryType type) {
         return infrastructure.getGraphDatabase().queryEngineFor(type, infrastructure.getResultConverter());
     }
 
@@ -426,7 +436,8 @@ public class Neo4jTemplate implements Neo4jOperations, EntityPersister {
     @SuppressWarnings("unchecked")
     public Result<Map<String, Object>> query(String statement, Map<String, Object> params) {
         notNull(statement, "statement");
-        return queryEngineFor(QueryType.Cypher).query(statement, params);
+        final QueryEngine<Map<String,Object>> queryEngine = queryEngineFor(QueryType.Cypher);
+        return queryEngine.query(statement, params);
     }
 
     @Override
@@ -470,14 +481,21 @@ public class Neo4jTemplate implements Neo4jOperations, EntityPersister {
     }
 
     @Override
-    public <T extends PropertyContainer> Result<T> lookup(final Class<?> indexedType, final Object query) {
-        notNull(query, "valueOrQueryObject", indexedType, "indexedType");
+    public <T extends PropertyContainer> Result<T> lookup(final Class<?> indexedType, String propertyName, final Object value) {
+        notNull(propertyName, "property name", indexedType, "indexedType",value,"query value");
         try {
-            Index<T> index = getIndex(indexedType);
-            return convert(index.query(query));
+
+            final Neo4jPersistentEntityImpl<?> persistentEntity = getPersistentEntity(indexedType);
+            final Neo4jPersistentProperty property = persistentEntity.getPersistentProperty(propertyName);
+            final Index<T> index = infrastructure.getIndexProvider().getIndex(property, indexedType);
+            return convert(index.query(propertyName, value));
         } catch (RuntimeException e) {
             throw translateExceptionIfPossible(e);
         }
+    }
+
+    private Neo4jPersistentEntityImpl<?> getPersistentEntity(Class<?> type) {
+        return infrastructure.getMappingContext().getPersistentEntity(type);
     }
 
     @Override
@@ -523,5 +541,12 @@ public class Neo4jTemplate implements Neo4jOperations, EntityPersister {
     @Override
     public GraphDatabase getGraphDatabase() {
         return infrastructure.getGraphDatabase();
+    }
+
+    public String getIndexKey(Neo4jPersistentProperty property) {
+        return infrastructure.getIndexProvider().getIndexKey(property);
+    }
+    public <S extends PropertyContainer> Index<S> getIndex(Neo4jPersistentProperty property, final Class<?> instanceType) {
+        return infrastructure.getIndexProvider().getIndex(property, instanceType);
     }
 }

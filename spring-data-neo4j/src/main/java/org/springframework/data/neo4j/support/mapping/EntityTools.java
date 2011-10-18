@@ -13,15 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.neo4j.support;
+package org.springframework.data.neo4j.support.mapping;
 
 import org.neo4j.graphdb.PropertyContainer;
 import org.springframework.data.convert.DefaultTypeMapper;
 import org.springframework.data.convert.TypeMapper;
 import org.springframework.data.neo4j.core.TypeRepresentationStrategy;
-import org.springframework.data.neo4j.mapping.ClassValueTypeInformationMapper;
-import org.springframework.data.neo4j.mapping.SourceStateTransmitter;
-import org.springframework.data.neo4j.mapping.TRSTypeAliasAccessor;
+import org.springframework.data.neo4j.support.mapping.SourceStateTransmitter;
+import org.springframework.data.neo4j.support.mapping.TRSTypeAliasAccessor;
+import org.springframework.data.neo4j.support.typerepresentation.ClassValueTypeInformationMapper;
+import org.springframework.data.neo4j.mapping.EntityInstantiator;
 import org.springframework.data.neo4j.support.node.EntityStateFactory;
 
 import static java.util.Arrays.asList;

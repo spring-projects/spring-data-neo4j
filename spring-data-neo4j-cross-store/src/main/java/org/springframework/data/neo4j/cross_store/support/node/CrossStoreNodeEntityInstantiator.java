@@ -18,7 +18,7 @@ package org.springframework.data.neo4j.cross_store.support.node;
 
 import org.neo4j.graphdb.Node;
 import org.springframework.data.neo4j.aspects.core.NodeBacked;
-import org.springframework.data.neo4j.support.EntityInstantiator;
+import org.springframework.data.neo4j.mapping.EntityInstantiator;
 import org.springframework.data.neo4j.support.node.NodeEntityInstantiator;
 import org.springframework.orm.jpa.EntityManagerFactoryUtils;
 
@@ -45,7 +45,7 @@ public class CrossStoreNodeEntityInstantiator implements EntityInstantiator<Node
     /**
      * Takes the JPA id stored in the "FOREIGN_ID" property of the node for a {@link EntityManager#find(Class, Object)} operation.
      * If the entity is found its instance is associated with the graph node and returned otherwise a new node entity instance for
-     * this node is created by the original {@link EntityInstantiator}.
+     * this node is created by the original {@link org.springframework.data.neo4j.mapping.EntityInstantiator}.
      * @param n Node to instantiate an entity for
      * @param entityClass type of the entity
      * @param <T> generic type of the entity

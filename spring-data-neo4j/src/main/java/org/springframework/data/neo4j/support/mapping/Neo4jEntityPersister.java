@@ -13,17 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.neo4j.mapping;
+package org.springframework.data.neo4j.support.mapping;
 
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.PropertyContainer;
 import org.neo4j.graphdb.Relationship;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.data.mapping.context.MappingContext;
-import org.springframework.data.neo4j.support.EntityInstantiator;
-import org.springframework.data.neo4j.support.EntityStateHandler;
-import org.springframework.data.neo4j.support.EntityTools;
-import org.springframework.data.neo4j.support.ManagedEntity;
+import org.springframework.data.neo4j.mapping.*;
+import org.springframework.data.neo4j.mapping.ManagedEntity;
 
 import java.util.HashMap;
 import java.util.Map;

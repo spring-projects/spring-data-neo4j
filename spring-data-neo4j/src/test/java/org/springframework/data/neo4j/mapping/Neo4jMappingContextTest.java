@@ -18,6 +18,8 @@ package org.springframework.data.neo4j.mapping;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.data.neo4j.model.Person;
+import org.springframework.data.neo4j.support.mapping.Neo4jMappingContext;
+import org.springframework.data.neo4j.support.mapping.Neo4jPersistentEntityImpl;
 
 import static org.junit.Assert.assertEquals;
 

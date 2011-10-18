@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.neo4j.support;
+package org.springframework.data.neo4j.mapping;
 
 /**
  * Interface to be implemented by classes that can instantiate and configure entities. The framework must do this when

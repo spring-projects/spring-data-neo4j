@@ -110,7 +110,7 @@
         <constructor-arg ref="nodeEntityInstantiator"/>
         <constructor-arg ref="entityManagerFactory"/>
     </bean>
-    <bean id="entityStateHandler" class="org.springframework.data.neo4j.support.EntityStateHandler">
+    <bean id="entityStateHandler" class="org.springframework.data.neo4j.support.mapping.EntityStateHandler">
         <constructor-arg ref="mappingContext"/>
         <constructor-arg ref="graphDatabase"/>
     </bean>
@@ -142,7 +142,7 @@
 		<property name="mappingContext" ref="mappingContext"/>
     </bean>
 
-    <bean id="mappingContext" class="org.springframework.data.neo4j.mapping.Neo4jMappingContext"/>
+    <bean id="mappingContext" class="org.springframework.data.neo4j.support.mapping.Neo4jMappingContext"/>
 
 
     <bean id="relationshipEntityStateFactory" class="org.springframework.data.neo4j.support.relationship.RelationshipEntityStateFactory">

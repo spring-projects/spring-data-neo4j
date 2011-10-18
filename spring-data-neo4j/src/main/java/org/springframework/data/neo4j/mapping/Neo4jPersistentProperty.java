@@ -48,7 +48,7 @@ public interface Neo4jPersistentProperty extends PersistentProperty<Neo4jPersist
 
     boolean isIndexed();
 
-    Neo4jPersistentPropertyImpl.IndexInfo getIndexInfo();
+    IndexInfo getIndexInfo();
 
     String getNeo4jPropertyName();
 

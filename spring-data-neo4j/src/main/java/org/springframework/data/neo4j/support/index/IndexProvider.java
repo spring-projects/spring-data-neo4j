@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.neo4j.support;
+package org.springframework.data.neo4j.support.index;
 
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.PropertyContainer;
@@ -21,8 +21,9 @@ import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.index.Index;
 import org.springframework.data.neo4j.annotation.Indexed;
 import org.springframework.data.neo4j.core.GraphDatabase;
-import org.springframework.data.neo4j.mapping.Neo4jMappingContext;
-import org.springframework.data.neo4j.mapping.Neo4jPersistentEntityImpl;
+import org.springframework.data.neo4j.support.mapping.Neo4jMappingContext;
+import org.springframework.data.neo4j.support.mapping.Neo4jPersistentEntityImpl;
+import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 
 import static org.springframework.data.neo4j.support.ParameterCheck.notNull;
 
@@ -30,11 +31,11 @@ import static org.springframework.data.neo4j.support.ParameterCheck.notNull;
  * @author mh
  * @since 17.10.11
  */
-class IndexProvider {
+public class IndexProvider {
     private Neo4jMappingContext mappingContext;
     private final GraphDatabase graphDatabase;
 
-    IndexProvider(Neo4jMappingContext mappingContext, GraphDatabase graphDatabase) {
+    public IndexProvider(Neo4jMappingContext mappingContext, GraphDatabase graphDatabase) {
         this.mappingContext = mappingContext;
         this.graphDatabase = graphDatabase;
     }
@@ -85,5 +86,25 @@ class IndexProvider {
     @SuppressWarnings("unchecked")
     public <T extends PropertyContainer> Index<T> createIndex(Class<T> type, String indexName, boolean fullText) {
         return graphDatabase.createIndex(type, indexName, fullText);
+    }
+
+    public String getIndexKey(Neo4jPersistentProperty property) {
+        Indexed indexed = property.getAnnotation(Indexed.class);
+        if (indexed==null || indexed.fieldName().isEmpty()) return property.getNeo4jPropertyName();
+        return indexed.fieldName();
+    }
+
+    public <S extends PropertyContainer> Index<S> getIndex(Neo4jPersistentProperty property, final Class<?> instanceType) {
+        final Indexed indexedAnnotation = property.getAnnotation(Indexed.class);
+        final Class<?> declaringType = property.getOwner().getType();
+        final String providedIndexName = indexedAnnotation.indexName().isEmpty() ? null : indexedAnnotation.indexName();
+        String indexName = Indexed.Name.get(indexedAnnotation.level(), declaringType, providedIndexName, instanceType);
+        if (!property.getIndexInfo().isFulltext()) {
+            return getIndex(declaringType, indexName, false);
+        }
+        if (providedIndexName == null) throw new IllegalStateException("@Indexed(fullext=true) on "+property+" requires an providedIndexName too ");
+        String defaultIndexName = Indexed.Name.get(indexedAnnotation.level(), declaringType, null, instanceType.getClass());
+        if (providedIndexName.equals(defaultIndexName)) throw new IllegalStateException("Full-index name for "+property+" must differ from the default name: "+defaultIndexName);
+        return getIndex(declaringType, indexName, true);
     }
 }

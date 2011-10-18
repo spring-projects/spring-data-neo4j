@@ -28,7 +28,7 @@ import org.springframework.data.neo4j.annotation.RelationshipEntity;
 
 
 import org.springframework.data.neo4j.core.RelationshipTypeRepresentationStrategy;
-import org.springframework.data.neo4j.support.EntityInstantiator;
+import org.springframework.data.neo4j.mapping.EntityInstantiator;
 
 public class IndexingRelationshipTypeRepresentationStrategy implements RelationshipTypeRepresentationStrategy {
 

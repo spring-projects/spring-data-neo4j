@@ -17,8 +17,8 @@
 package org.springframework.data.neo4j.support.relationship;
 
 import org.neo4j.graphdb.Relationship;
-import org.springframework.data.neo4j.support.AbstractConstructorEntityInstantiator;
-import org.springframework.data.neo4j.support.EntityStateHandler;
+import org.springframework.data.neo4j.support.mapping.AbstractConstructorEntityInstantiator;
+import org.springframework.data.neo4j.support.mapping.EntityStateHandler;
 import sun.reflect.ReflectionFactory;
 
 /**

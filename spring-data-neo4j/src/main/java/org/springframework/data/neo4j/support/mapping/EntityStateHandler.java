@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.neo4j.support;
+package org.springframework.data.neo4j.support.mapping;
 
 import org.neo4j.graphdb.*;
 import org.springframework.data.neo4j.core.GraphDatabase;
-import org.springframework.data.neo4j.mapping.Neo4jMappingContext;
-import org.springframework.data.neo4j.mapping.Neo4jPersistentEntityImpl;
+import org.springframework.data.neo4j.mapping.ManagedEntity;
+import org.springframework.data.neo4j.mapping.RelationshipResult;
 import org.springframework.data.neo4j.mapping.RelationshipProperties;
 
 /**

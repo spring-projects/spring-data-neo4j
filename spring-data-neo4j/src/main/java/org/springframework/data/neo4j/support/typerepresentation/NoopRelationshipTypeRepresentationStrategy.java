@@ -20,7 +20,7 @@ import org.neo4j.graphdb.Relationship;
 import org.neo4j.helpers.collection.ClosableIterable;
 
 import org.springframework.data.neo4j.core.RelationshipTypeRepresentationStrategy;
-import org.springframework.data.neo4j.support.EntityInstantiator;
+import org.springframework.data.neo4j.mapping.EntityInstantiator;
 
 public class NoopRelationshipTypeRepresentationStrategy implements RelationshipTypeRepresentationStrategy {
 
