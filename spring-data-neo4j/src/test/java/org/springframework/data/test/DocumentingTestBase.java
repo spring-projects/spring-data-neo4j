@@ -25,7 +25,7 @@ import static org.junit.Assert.fail;
 
 public abstract class DocumentingTestBase {
 
-    private static final String DOCBOOK_DIR = "src/docbkx";
+    private static final String DOCBOOK_DIR = "target/docbkx";
     private static final String SRC_TEST_JAVA = "src/test/java";
     protected String title;
     protected String snippetTitle;
@@ -52,7 +52,7 @@ public abstract class DocumentingTestBase {
     }
 
     private File docbookDirectory() {
-        return new File(determineRoot(),DOCBOOK_DIR);
+        return new File (new File(determineRoot(),module()), DOCBOOK_DIR);
     }
 
     protected File getSnippetFileName(File directory, String name) {
@@ -130,9 +130,9 @@ public abstract class DocumentingTestBase {
 
     protected File determineRoot() {
         File currentDirectory = currentDirectory();
-        if (new File(currentDirectory,DOCBOOK_DIR).exists()) return currentDirectory;
+        if (new File(currentDirectory,module()).exists()) return currentDirectory;
         currentDirectory = currentDirectory.getParentFile();
-        if (new File(currentDirectory,DOCBOOK_DIR).exists()) return currentDirectory;
+        if (new File(currentDirectory,module()).exists()) return currentDirectory;
         throw new IllegalStateException("Can't determine root directory, started at "+currentDirectory());
     }
 }

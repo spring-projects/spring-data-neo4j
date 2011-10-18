@@ -63,12 +63,13 @@
                 persists fields explicitly annotated with <code>@GraphProperty</code>. JPA will ignore these fields.
             </para>
         </section>
+        <section><title>Example</title>
         <para>
             The following example is taken from the
             <ulink url="http://github.com/SpringSource/spring-data-neo4j-examples">Spring Data Neo4j examples</ulink>
             myrestaurants-social project:
         </para>
-        <example>
+        <para><example>
             <title>Cross-store node entity</title>
             <programlisting language="java"><![CDATA[@Entity
 @Table(name = "user_account")
@@ -114,7 +115,8 @@ public class UserAccount {
     }
 }
 ]]></programlisting>
-        </example>
+        </example></para>
+        </section>
     </section>
     <section>
         <title>Configuring cross-store persistence</title>

@@ -21,7 +21,7 @@
         </para>
 
         <para>
-            Spring Data Neo4j allows, at anytime, to drop down to the <xref linkend="neo4j" >Neo4j-API</xref> level to execute functionality with
+            Spring Data Neo4j allows, at anytime, to drop down to the Neo4j-API, see <xref linkend="neo4j" /> level to execute functionality with
             the highest performance possible.
         </para>
         <para>
@@ -46,16 +46,16 @@
     </para>
     <para>
         To use advanced functionality like traversals, Cypher and Gremlin, a basic understanding of the graph data model is required.
-        The graph data model is explained in the chapter about <xref linkend="neo4j">Neo4j</xref>.
+        The graph data model is explained in the chapter about Neo4j, see <xref linkend="neo4j" />.
     </para>
     <para>
         Relationships between entities are first class citizens in a graph database and therefore worth a separate
-        <xref linkend="reference:programming_model:relationships" >chapter</xref> describing their usage in Spring Data Neo4j.
+        chapter (<xref linkend="reference:programming_model:relationships" />) describing their usage in Spring Data Neo4j.
     </para>
     <para>
         To add fields that are just backed by graph operations is a bit more involved. First you should know
         about traversals, Cypher queries and Gremlin expressions.
-        Those are explained in the <xref linkend="neo4j" >Neo4j-API</xref> chapter. Then you can start adding purely
+        Those are explained in <xref linkend="neo4j" />Neo4j-API. Then you can start adding purely
         dynamically gathered fields to your entities.
     </para>
     <para>
@@ -124,7 +124,7 @@
     </para>
     <para>
         Being a Spring Data library, Spring Data Neo4j also implements a comprehensive template for interacting with the Neo4j graph database.
-        The <xref linkend="reference:template">Neo4jTemplate</xref> provides all basic graph operations as well as advanced querying with
+        The Neo4jTemplate (<xref linkend="reference:template" />) provides all basic graph operations as well as advanced querying with
         Indexes, Cypher, Gremlin and Traversals with a convenient API.
     </para>
     <para>

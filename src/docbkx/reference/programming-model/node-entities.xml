@@ -22,7 +22,7 @@
         <para>
             If the <code>partial</code> attribute is set to true, this entity takes part in a cross-store setting,
             where the entity lives in both the graph database and a JPA data source. See
-            <xref linkend="cross-store"/> for more information.
+            <xref linkend="reference:cross-store"/> for more information.
         </para>
         <para>
             Entity fields can be annotated with <code>@GraphProperty</code>, <code>@RelatedTo</code>,
@@ -94,11 +94,11 @@ public class Group {
 ]]></programlisting>
 
         </example>
-        <para>
-            <note>
+        <note>
+            <para>
                 Please note that this annotation can also be used on repository methods.
-            </note>
-        </para>
+            </para>
+        </note>
     </section>
     <section>
         <title>@GraphTraversal: fields as traversal result views</title>

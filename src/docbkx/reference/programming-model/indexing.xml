@@ -91,12 +91,12 @@ Person mark = graphRepository.findAllByQuery("people-search", "name", "ma*");
             </example>
 
         </para>
-        <note>
+        <note><para>
             Please note that indexes are currently created on demand, so whenever an index that doesn't exist
             is requested from a query or get operation it is created. This is subject to change but has
             currently the implication that those indexes won't be configured as fulltext which causes
             subsequent fulltext updates to those indexes to fail.
-        </note>
+        </para></note>
     </section>
     <section>
         <title>Manual index access</title>
