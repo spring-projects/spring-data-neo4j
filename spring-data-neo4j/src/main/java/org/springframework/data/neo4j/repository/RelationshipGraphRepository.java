@@ -18,9 +18,10 @@ package org.springframework.data.neo4j.repository;
 
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.traversal.TraversalDescription;
-
-
 import org.springframework.data.neo4j.support.Neo4jTemplate;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class RelationshipGraphRepository<T> extends AbstractGraphRepository<Relationship, T> implements GraphRepository<T> {
 
@@ -40,13 +41,17 @@ public class RelationshipGraphRepository<T> extends AbstractGraphRepository<Rela
 
     @Override
     public T save(T entity) {
-        return entity;
+        return template.save(entity);
     }
 
     @SuppressWarnings("unchecked")
     @Override
     public Iterable<T> save(Iterable<? extends T> entities) {
-        return (Iterable<T>) entities;
+        List<T> result=new ArrayList<T>();
+        for (T entity : entities) {
+            result.add(template.save(entity));
+        }
+        return result;
     }
 }
 

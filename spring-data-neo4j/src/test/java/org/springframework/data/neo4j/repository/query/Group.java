@@ -15,15 +15,18 @@
  */
 package org.springframework.data.neo4j.repository.query;
 
-import java.util.Set;
-
 import org.neo4j.graphdb.Direction;
+import org.springframework.data.neo4j.annotation.GraphId;
 import org.springframework.data.neo4j.annotation.Indexed;
 import org.springframework.data.neo4j.annotation.NodeEntity;
 import org.springframework.data.neo4j.annotation.RelatedTo;
 
+import java.util.Set;
+
 @NodeEntity
 class Group {
+
+    @GraphId Long id;
 
     @Indexed
     String name;

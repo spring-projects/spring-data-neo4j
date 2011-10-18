@@ -16,13 +16,11 @@
 
 package org.springframework.data.neo4j.repository;
 
+import org.neo4j.helpers.collection.MapUtil;
+import org.springframework.data.neo4j.model.*;
+
 import java.util.Arrays;
 import java.util.Map;
-
-import org.neo4j.helpers.collection.MapUtil;
-import org.springframework.data.neo4j.model.Group;
-import org.springframework.data.neo4j.model.Person;
-import org.springframework.data.neo4j.model.Personality;
 
 /**
  * @author mh
@@ -33,11 +31,12 @@ public class TestTeam {
     public Person emil;
     public Person david;
     public Group sdg;
+    public Friendship friendShip;
 
     public TestTeam() {
     }
 
-    public void createSDGTeam(PersonRepository repo, GroupRepository groupRepo) {
+    public void createSDGTeam(GraphRepository<Person> repo, GraphRepository<Group> groupRepo, GraphRepository<Friendship> friendshipRepository) {
         emil = new Person("Emil", 30);
 
         michael = new Person("Michael", 36);
@@ -46,7 +45,8 @@ public class TestTeam {
 
         david = new Person("David", 25);
         david.setBoss(emil);
-
+        friendShip = michael.knows(david);
+        friendShip.setYears(2);
         sdg = new Group();
         sdg.setName("SDG");
         sdg.addPerson(michael);
@@ -54,6 +54,7 @@ public class TestTeam {
         sdg.addPerson(david);
 
         repo.save(Arrays.asList(emil, david, michael));
+        friendshipRepository.save(friendShip);
         groupRepo.save(sdg);
 
     }

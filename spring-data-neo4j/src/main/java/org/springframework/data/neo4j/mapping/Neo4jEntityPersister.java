@@ -164,8 +164,8 @@ public class Neo4jEntityPersister implements EntityPersister, Neo4jEntityConvert
         return state instanceof Node;
     }
 
-    public <S extends PropertyContainer, T> T projectTo(Object entity, Class<T> targetType) {
-        S state = getPersistentState(entity);
+    public <T> T projectTo(Object entity, Class<T> targetType) {
+        PropertyContainer state = getPersistentState(entity);
         return createEntityFromState(state, targetType);
     }
 

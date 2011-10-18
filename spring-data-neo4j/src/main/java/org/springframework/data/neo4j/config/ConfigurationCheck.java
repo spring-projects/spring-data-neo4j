@@ -16,7 +16,6 @@
 
 package org.springframework.data.neo4j.config;
 
-import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Transaction;
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.context.ApplicationListener;
@@ -83,6 +82,6 @@ public class ConfigurationCheck implements ApplicationListener<ContextStartedEve
     }
 
     private void updateStartTime() {
-        template.getReferenceNode(Node.class).setProperty("startTime", System.currentTimeMillis());
+        template.getReferenceNode().setProperty("startTime", System.currentTimeMillis());
     }
 }

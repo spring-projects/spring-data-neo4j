@@ -23,7 +23,7 @@ import org.neo4j.graphdb.PropertyContainer;
  */
 public interface EntityPersister {
 
-    <S extends PropertyContainer, T> T projectTo(Object entity, Class<T> targetType);
+    <T> T projectTo(Object entity, Class<T> targetType);
     <S extends PropertyContainer, T> T createEntityFromState(S state, Class<T> type);
     <S extends PropertyContainer, T> T createEntityFromStoredType(S state);
     boolean isNodeEntity(Class<?> targetType);

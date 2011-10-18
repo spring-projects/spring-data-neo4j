@@ -43,16 +43,6 @@ public interface GraphDatabase {
      */
     Node getNodeById(long id);
 
-    /**
-     * Transactionally creates the node, sets the properties (if any).
-     * Two shortcut means of providing the properties (very short with static imports)
-     * <code>graphDatabase.createNode(PropertyMap._("name","value"));</code>
-     * <code>graphDatabase.createNode(PropertyMap.props().set("name","value").set("prop","anotherValue").toMap(), "name", "prop");</code>
-     *
-     *
-     * @param props properties to be set at node creation might be null
-     * @return the newly created node
-     */
     Node createNode(Map<String, Object> props);
 
     /**
@@ -62,20 +52,6 @@ public interface GraphDatabase {
      */
     Relationship getRelationshipById(long id);
 
-    /**
-     * Transactionally creates the relationship, sets the properties (if any) and indexes the given fielss (if any)
-     * Two shortcut means of providing the properties (very short with static imports)
-     * <code>graphDatabase.createRelationship(from,to,TYPE, PropertyMap._("name","value"));</code>
-     * <code>graphDatabase.createRelationship(from,to,TYPE, PropertyMap.props().set("name","value").set("prop","anotherValue").toMap(), "name", "prop");</code>
-     *
-     *
-     *
-     * @param startNode start-node of relationship
-     * @param endNode end-node of relationship
-     * @param type relationship type, might by an enum implementing RelationshipType or a DynamicRelationshipType.withName("name")
-     * @param props optional initial properties
-     * @return  the newly created relationship
-     */
     Relationship createRelationship(Node startNode, Node endNode, RelationshipType type, Map<String, Object> props);
 
     /**
@@ -98,7 +74,7 @@ public interface GraphDatabase {
     /**
      * @return a TraversalDescription as starting point for defining a traversal
      */
-    TraversalDescription createTraversalDescription();
+    TraversalDescription traversalDescription();
 
     <T> QueryEngine<T> queryEngineFor(QueryType type);
 

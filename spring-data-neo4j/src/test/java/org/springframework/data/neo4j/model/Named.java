@@ -16,6 +16,7 @@
 
 package org.springframework.data.neo4j.model;
 
+import org.springframework.data.neo4j.annotation.GraphId;
 import org.springframework.data.neo4j.annotation.NodeEntity;
 
 /**
@@ -24,6 +25,8 @@ import org.springframework.data.neo4j.annotation.NodeEntity;
  */
 @NodeEntity
 public class Named {
+    @GraphId
+    Long id;
     public String name;
 
     public String getName() {

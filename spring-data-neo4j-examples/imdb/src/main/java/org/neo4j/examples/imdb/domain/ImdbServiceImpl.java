@@ -58,7 +58,7 @@ class ImdbServiceImpl implements ImdbService {
 
     @Transactional
     public void setupReferenceRelationship() {
-        Node referenceNode = template.getReferenceNode(Node.class);
+        Node referenceNode = template.getReferenceNode();
         Actor bacon = actorRepository.findByPropertyValue("name", "Bacon, Kevin");
 
         if (bacon == null) throw new NoSuchElementException("Unable to find Kevin Bacon actor");

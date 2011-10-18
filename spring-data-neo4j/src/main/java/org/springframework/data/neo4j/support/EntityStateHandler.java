@@ -122,8 +122,8 @@ public class EntityStateHandler {
     @SuppressWarnings("unchecked")
     private <S extends PropertyContainer> S createRelationship(Object entity, Neo4jPersistentEntityImpl<?> persistentEntity) {
         final RelationshipProperties relationshipProperties = persistentEntity.getRelationshipProperties();
-        Node startNode = (Node) relationshipProperties.getStartNodeProperty().getValue(entity);
-        Node endNode = (Node) relationshipProperties.getStartNodeProperty().getValue(entity);
+        Node startNode = (Node) getPersistentState(relationshipProperties.getStartNodeProperty().getValue(entity));
+        Node endNode = (Node) getPersistentState(relationshipProperties.getEndeNodeProperty().getValue(entity));
         Object relType = relationshipProperties.getTypeProperty().getValue(entity);
         if (relType instanceof RelationshipType) {
             return (S) startNode.createRelationshipTo(endNode, (RelationshipType) relType);
@@ -207,9 +207,4 @@ public class EntityStateHandler {
     }
 
 
-    public Node getNodeState(Object entity) {
-        final PropertyContainer result = getPersistentState(entity);
-        if (result==null || result instanceof Node) return (Node) result;
-        throw new IllegalArgumentException("State of "+entity+" is no Node but "+result);
-    }
 }

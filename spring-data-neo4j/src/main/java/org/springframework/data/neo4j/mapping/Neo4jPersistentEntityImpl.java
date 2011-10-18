@@ -56,6 +56,12 @@ public class Neo4jPersistentEntityImpl<T> extends BasicPersistentEntity<T, Neo4j
         managed = ManagedEntity.class.isAssignableFrom(information.getType());
     }
 
+    @Override
+    public void verify() {
+        super.verify();
+        if (!isManaged() && getIdProperty()==null) throw new MappingException("No id property in "+this);
+    }
+
     public boolean useShortNames() {
         final NodeEntity graphEntity = getAnnotation(NodeEntity.class);
         if (graphEntity != null) return graphEntity.useShortNames();
@@ -155,5 +161,10 @@ public class Neo4jPersistentEntityImpl<T> extends BasicPersistentEntity<T, Neo4j
     @Override
     public Neo4jPersistentProperty getTypeProperty() {
         return relationshipType;
+    }
+
+    @Override
+    public String toString() {
+        return String.format("%s %smanaged @%sEntity Annotations: %s",getType(),isManaged() ? "" : "un", isNodeEntity() ? "Node":"Relationship",annotations.keySet());
     }
 }

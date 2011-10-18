@@ -14,10 +14,9 @@
  * limitations under the License.
  */
 
-package org.springframework.data.neo4j.template.util;
+package org.springframework.data.neo4j.repository;
 
-import org.neo4j.graphdb.Node;
+import org.springframework.data.neo4j.model.Friendship;
 
-public interface NodeEvaluator {
-    boolean accept(final Node node);
+public interface FriendshipRepository extends GraphRepository<Friendship> {
 }

@@ -77,7 +77,7 @@ public class SpringRestGraphDatabase extends org.neo4j.rest.graphdb.RestGraphDat
     }
 
     @Override
-    public TraversalDescription createTraversalDescription() {
+    public TraversalDescription traversalDescription() {
         return super.getRestAPI().createTraversalDescription();
     }
 
@@ -144,8 +144,7 @@ public class SpringRestGraphDatabase extends org.neo4j.rest.graphdb.RestGraphDat
 
     @Override
     public void setResultConverter(ResultConverter resultConverter) {
-
-
+       this.resultConverter = resultConverter;
     }
 
     private void removeFromIndexes(Node node) {
