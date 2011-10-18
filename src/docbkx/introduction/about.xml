@@ -63,17 +63,17 @@
             We also appreciate very much the foresight of Rod Johnson and Emil Eifrem to initiate the project, and now
             also providing great forewords. Their leadership inspired collaboration between the engineering teams at
             SpringSource and Neo Technology, a tremendous help during the making of Spring Data Neo4j.
-             
+            
         </para>
-         
+        
         <para>
             Last but not least we thank our vibrant community, both in the Spring Forums as well as on the Neo4j
             Mailing list and on many other places on the internet for giving us feedback, reporting issues and suggesting
             improvements. Without that important feedback we wouldn't be where we are today.
-             
+            
         </para>
-    </section>     
     <para>
         Enjoy the book!
     </para>
+    </section>    
 </preface>

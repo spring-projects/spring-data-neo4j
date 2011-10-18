@@ -45,7 +45,7 @@
             <ulink url="http://download.eclipse.org/tools/ajdt/36/dev/update">http://download.eclipse.org/tools/ajdt/36/dev/update</ulink>).
             The current version that does not show incorrect errors is AspectJ 1.6.12.RELEASE (included in STS 2.8.0), previous versions are reported
             to mislead the user.
-        </para>                                                                                      ¸
+        </para>
         <note>
         <para>
             There might be some issues with the eclipse maven plugin not adding AspectJ files correctly to the build path.
