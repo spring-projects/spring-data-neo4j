@@ -48,8 +48,6 @@ import org.springframework.transaction.support.TransactionTemplate;
 
 import javax.annotation.PostConstruct;
 import javax.validation.Validator;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Map;
 
 import static org.springframework.data.neo4j.support.ParameterCheck.notNull;
@@ -136,6 +134,21 @@ public class Neo4jTemplate implements Neo4jOperations, EntityPersister {
 
 
     @Override
+    public <T> T findOne(long id, final Class<T> entityClass) {
+        if (isNodeEntity(entityClass)) {
+            final Node node = getNode(id);
+            if (node==null) return null;
+            return infrastructure.getTypeRepresentationStrategies().projectEntity(node, entityClass);
+        }
+        if (isRelationshipEntity(entityClass)) {
+            final Relationship relationship = getRelationship(id);
+            if (relationship==null) return null;
+            return infrastructure.getTypeRepresentationStrategies().projectEntity(relationship, entityClass);
+        }
+        throw new IllegalArgumentException("provided entity type is not annotated with @NodeEntiy nor @RelationshipEntity");
+    }
+
+    @Override
     public <T> ClosableIterable<T> findAll(final Class<T> entityClass) {
         notNull(entityClass,"entity type");
         return infrastructure.getTypeRepresentationStrategies().findAll(entityClass);
@@ -158,7 +171,7 @@ public class Neo4jTemplate implements Neo4jOperations, EntityPersister {
     }
 
     @Override
-    public <S extends PropertyContainer, T> T projectTo(Object entity, Class<T> targetType) {
+    public <T> T projectTo(Object entity, Class<T> targetType) {
         notNull(entity,"entity",targetType,"new entity class");
         return infrastructure.getEntityPersister().projectTo(entity, targetType);
     }
@@ -183,7 +196,7 @@ public class Neo4jTemplate implements Neo4jOperations, EntityPersister {
     }
 
     @Override
-    public void remove(Object entity) {
+    public void delete(Object entity) {
         notNull(entity,"entity");
         infrastructure.getEntityRemover().remove(entity);
     }
@@ -216,25 +229,6 @@ public class Neo4jTemplate implements Neo4jOperations, EntityPersister {
             infrastructure.getTypeRepresentationStrategies().postEntityCreation(node, target);
         }
         return convert(node, target);
-    }
-
-    @Override
-    public Result<Node> createNodes(Map<String, Object>... allProperties) {
-        Collection<Node> result = new ArrayList<Node>(allProperties.length);
-        for (Map<String, Object> properties : allProperties) {
-            result.add(createNode(properties));
-        }
-        return convert(result);
-    }
-
-    @Override
-    public <T> Iterable<T> createNodesAs(Class<T> target, Map<String, Object>... allProperties) {
-        final TypeRepresentationStrategy<Node> nodeTypeRepresentationStrategy = isNodeEntity(target) ? infrastructure.getTypeRepresentationStrategies().getNodeTypeRepresentationStrategy() : null;
-        Collection<Node> result = new ArrayList<Node>(allProperties.length);
-        for (Map<String, Object> properties : allProperties) {
-            result.add(createNode(properties, target, nodeTypeRepresentationStrategy));
-        }
-        return convert(result).to(target);
     }
 
     private <T> Node createNode(Map<String, Object> properties, Class<T> target, TypeRepresentationStrategy<Node> nodeTypeRepresentationStrategy) {
@@ -304,7 +298,7 @@ public class Neo4jTemplate implements Neo4jOperations, EntityPersister {
         return infrastructure.getEntityStateHandler().getRelationshipBetween(start,end,relationshipType);
     }
     @Override
-    public void removeRelationshipBetween(Object start, Object end, String type) {
+    public void deleteRelationshipBetween(Object start, Object end, String type) {
         notNull(start,"start",end,"end",type,"relationshipType");
         infrastructure.getEntityRemover().removeRelationshipBetween(start, end, type);
     }
@@ -321,12 +315,12 @@ public class Neo4jTemplate implements Neo4jOperations, EntityPersister {
     }
 
     @Override
-    public Relationship createRelationshipBetween(final Node startNode, final Node endNode, final RelationshipType relationshipType, final Map<String, Object> properties) {
+    public Relationship createRelationshipBetween(final Node startNode, final Node endNode, final String relationshipType, final Map<String, Object> properties) {
         notNull(startNode, "startNode", endNode, "endNode", relationshipType, "relationshipType", properties, "properties");
         return exec(new GraphCallback<Relationship>() {
             @Override
             public Relationship doWithGraph(GraphDatabase graph) throws Exception {
-                return graph.createRelationship(startNode, endNode, relationshipType, properties);
+                return graph.createRelationship(startNode, endNode, DynamicRelationshipType.withName(relationshipType), properties);
             }
         });
     }
@@ -364,11 +358,9 @@ public class Neo4jTemplate implements Neo4jOperations, EntityPersister {
 
     @Override
     @SuppressWarnings("unchecked")
-    public <T> T getReferenceNode(Class<T> target) {
+    public Node getReferenceNode() {
         try {
-            final Node node = infrastructure.getGraphDatabase().getReferenceNode();
-            if (Node.class.isAssignableFrom(target)) return (T) node;
-            return convert(node, target);
+            return infrastructure.getGraphDatabase().getReferenceNode();
         } catch (RuntimeException e) {
             throw translateExceptionIfPossible(e);
         }
@@ -499,6 +491,11 @@ public class Neo4jTemplate implements Neo4jOperations, EntityPersister {
         }
     }
 
+    @Override
+    public TraversalDescription traversalDescription() {
+        return infrastructure.getGraphDatabase().traversalDescription();
+    }
+
     public EntityStateHandler getEntityStateHandler() {
         return infrastructure.getEntityStateHandler();
     }
@@ -521,5 +518,10 @@ public class Neo4jTemplate implements Neo4jOperations, EntityPersister {
 
     public MappingInfrastructure getInfrastructure() {
         return infrastructure;
+    }
+
+    @Override
+    public GraphDatabase getGraphDatabase() {
+        return infrastructure.getGraphDatabase();
     }
 }

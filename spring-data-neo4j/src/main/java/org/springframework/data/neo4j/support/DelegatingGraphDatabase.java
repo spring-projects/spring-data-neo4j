@@ -165,7 +165,7 @@ public class DelegatingGraphDatabase implements GraphDatabase {
     }
 
     @Override
-    public TraversalDescription createTraversalDescription() {
+    public TraversalDescription traversalDescription() {
         return Traversal.description();
     }
 

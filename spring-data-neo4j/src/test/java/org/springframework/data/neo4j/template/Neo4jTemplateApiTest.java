@@ -202,7 +202,7 @@ public class Neo4jTemplateApiTest {
 
     @Test
     public void testGetReferenceNode() throws Exception {
-        assertEquals(referenceNode,template.getReferenceNode(Node.class));
+        assertEquals(referenceNode,template.getReferenceNode());
     }
 
     @Test
@@ -318,7 +318,7 @@ public class Neo4jTemplateApiTest {
 
     @Test
     public void shouldCreateRelationshipWithProperty() throws Exception {
-        Relationship relationship = template.createRelationshipBetween(referenceNode, node1, HAS, map("name", "rel2"));
+        Relationship relationship = template.createRelationshipBetween(referenceNode, node1, "has", map("name", "rel2"));
         assertNotNull(relationship);
         assertEquals(referenceNode, relationship.getStartNode());
         assertEquals(node1,relationship.getEndNode());

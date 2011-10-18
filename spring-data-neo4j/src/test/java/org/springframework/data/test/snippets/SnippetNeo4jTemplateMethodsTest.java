@@ -61,7 +61,7 @@ public class SnippetNeo4jTemplateMethodsTest extends DocumentingTestBase {
         Node mark = neo.createNode(map("name", "Mark"));
         Node thomas = neo.createNode(map("name", "Thomas"));
 
-        neo.createRelationshipBetween(mark, thomas, WORKS_WITH, map("project", "spring-data"));
+        neo.createRelationshipBetween(mark, thomas, "WORKS_WITH", map("project", "spring-data"));
 
         neo.index("devs", thomas, "name", "Thomas");
         // Cypher TODO

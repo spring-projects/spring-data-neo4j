@@ -24,7 +24,7 @@ import org.springframework.dao.InvalidDataAccessResourceUsageException;
 import org.springframework.data.neo4j.annotation.GraphProperty;
 import org.springframework.data.neo4j.annotation.RelatedTo;
 import org.springframework.data.neo4j.aspects.core.NodeBacked;
-import org.springframework.data.neo4j.aspects.fieldaccess.JpaIdFieldAccessListenerFactory;
+import org.springframework.data.neo4j.cross_store.fieldaccess.JpaIdFieldAccessListenerFactory;
 import org.springframework.data.neo4j.fieldaccess.*;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentEntity;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;

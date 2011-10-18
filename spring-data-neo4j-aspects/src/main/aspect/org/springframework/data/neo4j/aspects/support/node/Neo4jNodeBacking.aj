@@ -210,7 +210,7 @@ public privileged aspect Neo4jNodeBacking { // extends AbstractTypeAnnotatingMix
     }
 
     public void NodeBacked.removeRelationshipTo(NodeBacked target, String relationshipType) {
-        template().removeRelationshipBetween(this, target, relationshipType);
+        template().deleteRelationshipBetween(this, target, relationshipType);
     }
 
     public <R extends RelationshipBacked> R NodeBacked.getRelationshipTo( NodeBacked target, Class<R> relationshipClass, String type) {

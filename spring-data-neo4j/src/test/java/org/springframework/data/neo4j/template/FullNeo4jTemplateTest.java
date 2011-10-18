@@ -51,7 +51,7 @@ import static org.neo4j.helpers.collection.MapUtil.map;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = {"classpath:template-config-context.xml"})
-public class GraphDatabaseContextTemplateTest {
+public class FullNeo4jTemplateTest {
     private static final DynamicRelationshipType KNOWS = DynamicRelationshipType.withName("knows");
     private static final DynamicRelationshipType HAS = DynamicRelationshipType.withName("has");
     @Autowired
@@ -190,7 +190,7 @@ public class GraphDatabaseContextTemplateTest {
 
     @Test
     public void testGetReferenceNode() throws Exception {
-        assertEquals(referenceNode, neo4jTemplate.getReferenceNode(Node.class));
+        assertEquals(referenceNode, neo4jTemplate.getReferenceNode());
     }
 
     @Test
@@ -316,7 +316,7 @@ public class GraphDatabaseContextTemplateTest {
 
     @Test
     public void shouldCreateRelationshipWithProperty() throws Exception {
-        Relationship relationship = neo4jTemplate.createRelationshipBetween(referenceNode, node1, HAS, map("name", "rel2"));
+        Relationship relationship = neo4jTemplate.createRelationshipBetween(referenceNode, node1, "has", map("name", "rel2"));
         assertNotNull(relationship);
         assertEquals(referenceNode, relationship.getStartNode());
         assertEquals(node1, relationship.getEndNode());

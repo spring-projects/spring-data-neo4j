@@ -80,7 +80,7 @@ public class SubReferenceNodeTypeRepresentationStrategyTest extends EntityTestBa
     }
     @Test(expected = IllegalArgumentException.class)
     public void gettingTypeFromNonTypeNodeShouldThrowAnDescriptiveException() throws Exception {
-        Node referenceNode = neo4jTemplate.getReferenceNode(Node.class);
+        Node referenceNode = neo4jTemplate.getReferenceNode();
         nodeTypeRepresentationStrategy.getJavaType(referenceNode);
     }
 

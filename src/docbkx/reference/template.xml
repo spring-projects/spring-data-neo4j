@@ -9,15 +9,15 @@
 
     <xi:include href="../snippets/SnippetNeo4jTemplateMethods.xml"/>
     <section>
-        <title>QueryResult</title>
+        <title>Result</title>
         <para>
-            All querying methods of the template return a uniform result type: <code>QueryResult&lt;T&gt;</code>
+            All querying methods of the template return a uniform result type: <code>Result&lt;T&gt;</code>
             which is also an <code>Iterable&lt;T&gt;</code>. The query result offers methods of converting each
-            element to a target type <code>queryResult.to(Type.class)</code> optionally supplying a
+            element to a target type <code>result.to(Type.class)</code> optionally supplying a
             <code>ResultConverter&lt;FROM,TO&gt;</code> which takes care of custom conversions. By default most
             query methods can already handle conversions from and to: Paths, Nodes, Relationship and GraphEntities
-            as well as conversions backed by registered ConversionServices. A converted <code>QueryResult&lt;FROM&gt;</code> is an
-            <code>Iterable&lt;TO&gt;</code>. QueryResults can be limited to a single value using the <code>queryResult.single()</code>
+            as well as conversions backed by registered ConversionServices. A converted <code>Result&lt;FROM&gt;</code> is an
+            <code>Iterable&lt;TO&gt;</code>. Results can be limited to a single value using the <code>result.single()</code>
             method. It also offers support for a pure callback function using a <code>Handler&lt;T&gt;</code>.
         </para>
     </section>
@@ -29,7 +29,7 @@
         <para>
             The <code>lookup()</code> methods either take a field/value combination to look for exact matches in the
             index, or a Lucene query object or string to handle more complex queries. All <code>lookup()</code>
-            methods return a <code>QueryResult&lt;PropertyContainer&gt;</code> to be used or transformed.
+            methods return a <code>Result&lt;PropertyContainer&gt;</code> to be used or transformed.
         </para>
     </section>
     <section>
@@ -38,7 +38,7 @@
             The traversal methods are at the core of graph operations.
             The <code>traverse()</code> method covers the full traversal operation that takes a
             <code>TraversalDescription</code> (typically built with the <code>Traversal.description()</code>
-            DSL) and runs it from the given start node. <code>traverse</code> returns a <code>QueryResult&lt;Path&gt;</code>
+            DSL) and runs it from the given start node. <code>traverse</code> returns a <code>Result&lt;Path&gt;</code>
             to be used or transformed.
         </para>
     </section>
@@ -47,7 +47,7 @@
         <para>
             The <code>Neo4jTemplate</code> also allows execution of arbitrary Cypher queries. Via the <code>query</code>
             methods the statement and parameter-Map are provided. Cypher Queries return tabular results, so the
-            <code>QueryResult&lt;Map&lt;String,Object&gt;&gt;</code> contains the rows which can be either used as they are
+            <code>Result&lt;Map&lt;String,Object&gt;&gt;</code> contains the rows which can be either used as they are
             or converted as needed.
         </para>
     </section>
@@ -56,7 +56,7 @@
         <para>
             Gremlin Scripts can run with the <code>execute</code> method, which also takes the parameters that will be
             available as variables inside the script. The result of the executions is a generic
-            <code>QueryResult&lt;Object&gt;</code> fit for conversion or usage.
+            <code>Result&lt;Object&gt;</code> fit for conversion or usage.
         </para>
     </section>
     <section>

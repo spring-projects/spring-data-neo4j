@@ -66,6 +66,8 @@ public class GraphRepositoryTest {
     @Autowired
     GroupRepository groupRepository;
 
+    @Autowired FriendshipRepository friendshipRepository;
+
     private TestTeam testTeam;
 
     @BeforeTransaction
@@ -75,7 +77,7 @@ public class GraphRepositoryTest {
     @Before
     public void setUp() throws Exception {
         testTeam = new TestTeam();
-        testTeam.createSDGTeam(personRepository, groupRepository);
+        testTeam.createSDGTeam(personRepository, groupRepository,friendshipRepository);
     }
 
     @Test

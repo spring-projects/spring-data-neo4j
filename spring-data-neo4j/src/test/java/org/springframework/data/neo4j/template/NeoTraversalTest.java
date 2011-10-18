@@ -52,13 +52,14 @@ public class NeoTraversalTest extends NeoApiTest {
 
         final Set<String> resultSet = new HashSet<String>();
         @SuppressWarnings("deprecation") final TraversalDescription description = Traversal.description().relationships(HAS).filter(returnAllButStartNode()).prune(Traversal.pruneAfterDepth(2));
-        final Result<Path> queryResult = template.traverse(template.getReferenceNode(Node.class), description);
-        queryResult.handle(new Handler<Path>() {
+        final Result<Path> result = template.traverse(template.getReferenceNode(), description);
+        result.handle(new Handler<Path>() {
             @Override
             public void handle(Path value) {
                 final String name = (String) value.endNode().getProperty("name", "");
                 resultSet.add(name);
-            }});
+            }
+        });
         assertEquals("all members", new HashSet<String>(asList("grandpa", "grandma", "daughter", "son", "man", "wife", "family")), resultSet);
     }
 

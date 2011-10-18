@@ -22,6 +22,7 @@ import org.neo4j.graphdb.traversal.TraversalDescription;
 import org.neo4j.helpers.collection.ClosableIterable;
 import org.springframework.data.neo4j.annotation.QueryType;
 import org.springframework.data.neo4j.conversion.Result;
+import org.springframework.data.neo4j.core.GraphDatabase;
 import org.springframework.data.neo4j.repository.GraphRepository;
 import org.springframework.data.neo4j.support.query.QueryEngine;
 
@@ -48,7 +49,10 @@ public interface Neo4jOperations {
 
     <T> GraphRepository<T> repositoryFor(Class<T> clazz);
 
-    <T> T getReferenceNode(Class<T> target);
+    /**
+     * Returns the reference node.
+     */
+    Node getReferenceNode();
 
     /**
      * Delegates to the GraphDatabase
@@ -74,20 +78,6 @@ public interface Neo4jOperations {
      */
     <T> T createNodeAs(Class<T> target, Map<String, Object> properties);
 
-    /**
-     * Creates a number of nodes in a single step
-     * @param allProperties
-     * @return the nodes as a Result, which can be converted
-     */
-    Result<Node> createNodes(Map<String, Object>... allProperties);
-
-    /**
-     * Creates a number of nodes mapped by the given entity class
-     * @param target mapped entity class or Node.class
-     * @param allProperties properties for each of the created nodes
-     */
-    <T> Iterable<T> createNodesAs(Class<T> target, Map<String, Object>... allProperties);
-
 
     /**
      * Delegates to the GraphDatabase
@@ -101,7 +91,7 @@ public interface Neo4jOperations {
     /**
      * Creates a relationship with the given initial properties.
      */
-    Relationship createRelationshipBetween(Node startNode, Node endNode, RelationshipType type, Map<String, Object> props);
+    Relationship createRelationshipBetween(Node startNode, Node endNode, String type, Map<String, Object> props);
 
     /**
      * Retrieves a single relationship entity between two node entities with the given relationship type projected to the provided
@@ -117,7 +107,7 @@ public interface Neo4jOperations {
     /**
      * Removes the relationship of this type between the two node entities
      */
-    void removeRelationshipBetween(Object start, Object end, String type);
+    void deleteRelationshipBetween(Object start, Object end, String type);
 
     /**
      * Creates a single relationship entity between two node entities with the given relationship type projected to the provided
@@ -149,19 +139,19 @@ public interface Neo4jOperations {
     <T extends PropertyContainer> T index(String indexName, T element, String field, Object value);
 
     /**
-     * The value is looked up in the Neo4j index returning the IndexHits wrapped in a QueryResult to be converted
+     * The value is looked up in the Neo4j index returning the IndexHits wrapped in a Result to be converted
      * into Paths or Entities.
      */
     <T extends PropertyContainer> Result<T> lookup(String indexName, String field, Object value);
 
     /**
-     * The query is executed on the index returning the IndexHits wrapped in a QueryResult to be converted
+     * The query is executed on the index returning the IndexHits wrapped in a Result to be converted
      * into Paths or Entities.
      */
     <T extends PropertyContainer> Result<T> lookup(String indexName, Object query);
 
     /**
-     * The query is executed on the index for this entity type returning the IndexHits wrapped in a QueryResult to be converted
+     * The query is executed on the index for this entity type returning the IndexHits wrapped in a Result to be converted
      * into Paths or Entities.
      */
     <T extends PropertyContainer> Result<T> lookup(Class<?> indexedType, Object query);
@@ -172,33 +162,33 @@ public interface Neo4jOperations {
     QueryEngine queryEngineFor(QueryType type);
 
     /**
-     * Runs the given cypher statement and packages the result in a QueryResult, simple conversions via the
+     * Runs the given cypher statement and packages the result in a Result, simple conversions via the
      * registered converter-factories are already executed via this method.
      */
     Result<Map<String, Object>> query(String statement, Map<String, Object> params);
 
     /**
-     * Executes the given Gremlin statement and returns the result packaged as QueryResult as Neo4j types, not
+     * Executes the given Gremlin statement and returns the result packaged as Result as Neo4j types, not
      * Gremlin types. The Neo4j-Graph is provided as variable "g". Table rows are converted to Map<String,Object>.
      */
     Result<Object> execute(String statement, Map<String, Object> params);
 
     /**
      * Traverses the graph starting at the given node with the provided traversal description. The Path's of the
-     * traversal will be packaged into a QueryResult which can be easily converted into Nodes, Relationships or
+     * traversal will be packaged into a Result which can be easily converted into Nodes, Relationships or
      * Graph-Entities.
      */
     Result<Path> traverse(Node startNode, TraversalDescription traversal);
 
     /**
      * Traverses the graph starting at the given node entity with the provided traversal description. The Path's of the
-     * traversal will be packaged into a QueryResult which can be easily converted into Nodes, Relationships or
+     * traversal will be packaged into a Result which can be easily converted into Nodes, Relationships or
      * Graph-Entities.
      */
     Result<Path> traverse(Object start, TraversalDescription traversal);
 
     /**
-     * Converts the Iterable into a QueryResult object for uniform handling. E.g.
+     * Converts the Iterable into a Result object for uniform handling. E.g.
      * template.convert(node.getRelationships());
      */
     <T> Result<T> convert(Iterable<T> iterable);
@@ -208,6 +198,11 @@ public interface Neo4jOperations {
      */
     <T> T convert(Object value, Class<T> type);
 
+    /**
+     * Retrieves a node or relationship and returns it mapped to the appropriate type
+     * @return mapped entity or null
+     */
+    <T> T findOne(long id, Class<T> type);
     /**
      * Provides all instances of a given entity type using the typerepresentation strategy configured for this template.
      * This method is also provided by the appropriate repository.
@@ -224,7 +219,7 @@ public interface Neo4jOperations {
      * Projects a node or relationship entity to a different type. This can be used to use the same, schema free data
      * in different contexts.
      */
-    <S extends PropertyContainer, T> T projectTo(Object entity, Class<T> targetType);
+    <T> T projectTo(Object entity, Class<T> targetType);
 
     /**
      * Stores the given entity in the graph, if the entity is already attached to the graph, the node is updated, otherwise
@@ -237,11 +232,14 @@ public interface Neo4jOperations {
      * Removes the given node or relationship entity or node or relationship from the graph, the entity is first removed
      * from all indexes and then deleted.
      */
-    void remove(Object entity);
+    void delete(Object entity);
 
     /**
      * Returns the node or relationship that backs the given entity.
      */
     <S extends PropertyContainer> S getPersistentState(Object entity);
 
+    TraversalDescription traversalDescription();
+
+    GraphDatabase getGraphDatabase();
 }

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.data.neo4j.aspects.fieldaccess;
+package org.springframework.data.neo4j.cross_store.fieldaccess;
 
 import org.springframework.data.neo4j.fieldaccess.FieldAccessListener;
 import org.springframework.data.neo4j.fieldaccess.FieldAccessorListenerFactory;
