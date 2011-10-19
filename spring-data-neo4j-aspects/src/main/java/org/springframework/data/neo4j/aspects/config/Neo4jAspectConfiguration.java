@@ -47,10 +47,4 @@ public class Neo4jAspectConfiguration extends Neo4jConfiguration
 		aspect.setNodeEntityStateFactory(entityStateFactory);
 		return aspect;
 	}
-
-    @Override
-    @PostConstruct
-    public void wireEntityStateFactories() throws Exception {
-        super.wireEntityStateFactories();
-    }
 }

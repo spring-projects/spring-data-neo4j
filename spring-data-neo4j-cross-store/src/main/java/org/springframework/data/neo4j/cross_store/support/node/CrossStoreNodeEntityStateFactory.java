@@ -21,6 +21,7 @@ import org.springframework.data.neo4j.aspects.core.NodeBacked;
 import org.springframework.data.neo4j.core.EntityState;
 import org.springframework.data.neo4j.fieldaccess.DetachedEntityState;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentEntity;
+import org.springframework.data.neo4j.support.Neo4jTemplate;
 import org.springframework.data.neo4j.support.node.NodeEntityStateFactory;
 
 import javax.persistence.EntityManagerFactory;
@@ -68,7 +69,9 @@ public class CrossStoreNodeEntityStateFactory extends NodeEntityStateFactory {
         this.entityManagerFactory = entityManagerFactory;
     }
 
-    public void postConstruct() {
+    @Override
+    public void setTemplate(Neo4jTemplate template) {
+        super.setTemplate(template);
          this.delegatingFieldAccessorFactory = new CrossStoreNodeEntityState.CrossStoreNodeDelegatingFieldAccessorFactory(template);
     }
 
