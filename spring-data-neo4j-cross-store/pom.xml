@@ -102,6 +102,12 @@
           <groupId>com.tinkerpop.blueprints</groupId>
           <artifactId>blueprints-core</artifactId>
           <optional>true</optional>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.neo4j</groupId>
+                    <artifactId>neo4j</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
           <groupId>com.tinkerpop.blueprints</groupId>
