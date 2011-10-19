@@ -16,7 +16,6 @@
 package org.springframework.data.neo4j.conversion;
 
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.data.neo4j.annotation.ResultColumn;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentTestBase;
@@ -30,6 +29,7 @@ import static java.util.Arrays.asList;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
 import static org.junit.matchers.JUnitMatchers.hasItems;
+import static org.neo4j.helpers.collection.IteratorUtil.asCollection;
 import static org.neo4j.helpers.collection.MapUtil.map;
 
 
@@ -64,12 +64,14 @@ public class QueryMapResultConverterTest extends Neo4jPersistentTestBase {
         storeInGraph(andres);
         storeInGraph(emil);
 
+        makeFriends(michaelNode(), andresNode(), 19);
+        makeFriends(michaelNode(), emilNode(), 6);
+
         friends = asList("Michael", "Emil", "Anders");
         simpleMap = map("name", "Andres", "age", 36L, "friends", friends);
         advancedMap = map("person", michaelNode(), "collect(r)", michaelNode().getRelationships(KNOWS));
 
-        makeFriends(michaelNode(), andresNode(), 19);
-        makeFriends(michaelNode(), emilNode(), 6);
+        michael = readPerson(michaelNode());
     }
 
     @Test
@@ -89,14 +91,13 @@ public class QueryMapResultConverterTest extends Neo4jPersistentTestBase {
         assertThat(query.getFriendNames(), hasItems("Michael", "Emil", "Anders"));
     }
 
-    @Ignore
     @Test
     public void shouldHandleANodeBackedEntity() throws Exception {
         QueryMapResulConverter<PersonAndFriendsData> converter = new QueryMapResulConverter<PersonAndFriendsData>(template);
         PersonAndFriendsData result = converter.convert(advancedMap, PersonAndFriendsData.class);
 
         assertThat(result.getPerson(), equalTo(michael));
-        assertThat(result.getFriends(), equalTo(michael.getFriendships()));
+        assertThat(asCollection(result.getFriends()), equalTo(asCollection(michael.getFriendships())));
     }
 
     private QueryMapResulConverter<SimplestQuery> getConverter() {
