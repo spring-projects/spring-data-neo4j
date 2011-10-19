@@ -1,0 +1,232 @@
+<html>
+<head>
+    <title>Spring Data Neo4j - Developer Notes</title>
+    <style type="text/css">
+        body {
+            background-color: #add8e6;
+        }
+        .note {
+            background-color: #fafad2;
+            border: 3px ridge black;
+            /*position: absolute;*/
+            padding: 1em;
+            max-width: 30em;
+            display: inline-block;
+        }
+        .note h3 {
+            font-style: italic;
+            font-family: serif;
+        }
+    </style>
+    <style type="text/css" media="print">
+        .page {
+            page-break-after:always;
+        }
+        body {
+            margin-left: 3em;
+        }
+    </style>
+</head>
+
+
+<body>
+   <h1 style="text-align: center">Developer Notes</h1>
+   <div style="padding:1em;">
+       <img src="http://neo4j.org/wp-content/uploads/2011/09/springdataNeo4j-logo-cmyk-11.png" alt="Spring Data Neo4j Logo"/>
+   </div>
+   <div class="note">
+       <h3>Neo4j - [IS_A] -> Property Graph</h3>
+       
+       <p><strong>Nodes</strong> with key-value properties are connected by <strong>typed</strong>, directed <strong>relationships</strong> with properties.</p>
+       
+       <em>TODO put in a pretty picture</em>
+       
+       <h4>Cypher is a query language:</h4>
+       <pre>
+start movie=(id) match movie<-[:ACTS_IN]-actor
+where actor.age > 20 return movie, actor.name
+order by movie.title </pre>
+       <h4>Traversals walk the graph in the prescribed way</h4>
+       <pre>
+TraversalDescription actors = Traversal.description()
+  .relationships("ACTS_IN").filter(returnAllButStartNode());
+
+for (Node actors : actors.traverse(movie))
+ ...</pre>
+
+       <h4>Transactional: TX needed for write operations</h4>
+       <pre>
+Transaction tx=graphDatabaseService.beginTx();
+try {
+  ... graph operations ...
+  tx.success();
+} catch(Exception e) {
+  tx.failure();
+} finally {
+  tx.finish();
+}
+       </pre>
+   </div>
+   <div class="note">
+       <h3> Maven Dependency</h3>
+
+<pre>
+   &lt;dependency>
+       &lt;groupId>org.springframework.data&lt;/groupId>
+       &lt;artifactId>spring-data-neo4j[-aspects]&lt;/artifactId>
+       &lt;version>2.0.0.RC1&lt;/version>
+   &lt;/dependency>
+</pre>
+   </div>
+
+   <div class="note">
+<h3>Spring-Config</h3>
+
+<pre>&lt;beans ...
+ xmlns:neo4j="http://www.swf.org/schema/data/neo4j"
+   xsi:schemaLocation=
+   "http://www.sfw.org/schema/data/neo4j" ...>
+
+...
+&lt;neo4j:config store-dir="graph.db"/>
+&lt;neo4j:repositories base-package="com.example.repositories"/>
+...
+&lt;/beans></pre>
+<h4>Testing</h4>
+<pre>&lt;neo4j:config graphDatabaseService="gds"/>
+&lt;bean id="gds" class=”...ImpermanentGraphDatabase/></pre>
+<h4>REST</h4>
+
+<pre>&lt;neo4j:config graphDatabaseService="rds"/>
+&lt;bean id="rds" class=”...SpringRestGraphDatabase/></pre>
+   </div>
+   <div class="note">
+       <h3>Entity - Annotations</h3>
+       <ul>
+           <li><code>@NodeEntity</code> marks a domain class as backed by a node in the graph</li>
+           <li><code>@RelationshipEntity</code> marks a domain class as backed by a relationship in the graph</li>
+           <li><code>@GraphId</code> Field for id</li>
+           <li><code>@Indexed([fulltext=true],[indexName=name])</code> Auto-Indexing</li>
+           <li><code>@RelatedTo([direction=Direction], [type=TYPE])</code> define type and direction of relationship on <code>Entity, Iterable&lt;E>, Set&lt;E></code> fields</li>
+           <li><code>@RelatedToVia([direction=Direction], [type=TYPE])</code> like <code>@RelatedTo,</code> but targets Relationship-Entities</li>
+           <li><code>@Query(query, [type=QueryType])</code> computed field, executes graph query in Cypher or Gremlin</li>
+           <li><code>@GraphTraversal(traversal=~TraversalBuilder.class, [elementClass=Person.class])</code> computed field, executes traversal starting from entity-node</li>
+       </ul>
+   </div>
+   <div class="note">
+       <h3>Example</h3>
+       <pre>
+@NodeEntity
+public class Movie {
+
+   @GraphId Long id;
+
+   @Indexed(fulltext = true, indexName = "search")
+   String title;
+
+   Person director;
+
+   @RelatedTo(type="ACTS_IN", direction = INCOMING)
+   Set&lt;Person> actors;
+
+   @RelatedToVia(type = "RATED")
+   Iterable&lt;Rating> ratings;
+   
+   @Query("start movie=node({self}) match
+           movie-->genre&lt;--similar return similar")
+   Iterable&lt;Movie> similarMovies;
+}</pre>
+   </div>
+   <div class="note">
+       <h3>Repositories</h3>
+       
+       <pre>
+interface MovieRepository extends GraphRepository&lt;Movie> {
+ @Query("start movie={0} match m&lt;-[rating:RATED]-user
+       return rating")
+ Iterable&lt;Rating> getRatings(Movie movie);
+ // Co-Actors
+ Iterable&lt;Person> findByActorsMoviesActorName(name)
+}
+
+&lt;neo4j:repositories base-package="com.example.dao"/></pre>
+
+       <ul>
+           <li>Provide CRUD, Finder, Query and Traversal abilities by default.</li>
+           <li>Automatic Finders can be derived from method names (like (G)Rails) or @Query annotations.</li>
+           <li>custom method implementations possible</li>
+       </ul>
+</div>
+   <div class="note">
+       <h3>Neo4jTemplate</h3>
+       <ul><li>convenience methods for graph operations, transaction and exception handling</li>
+       <li>index lookups, cypher and gremlin queries, traversal execution with fluent result converter API</li>
+       <li>preconfigured and customizable conversion of results to a variety of types</li></ul>
+   </div>
+   <div class="note">
+       <h3>AspectJ - ActiveRecordMixin</h3>
+       adds the following methods, when implementing the NodeBacked interface
+       <pre>
+getPersistentState()
+relateTo(target, ...),
+getRelationshipTo(...)
+persist(),
+remove(),
+detach()
+...</pre>
+   </div>
+<div class="note">
+    <h3>Roo Add-on</h3>
+
+<pre>
+roo> addon search graph
+roo> addon install id --searchResultId 01
+roo> project --topLevelPackage net.cineasts
+roo> graph setup --provider NEO4J --databaseLocation cineasts
+roo> graph entity --class ~.model.Movie
+roo> field string title
+roo> graph entity --class ~.model.Actor
+roo> field string name
+roo> graph relationship --to Movie --from Actor
+  --fieldName movies --type ACTS_IN --cardinality ONE_TO_MANY
+roo> controller all --package ~.web</pre>
+</div>
+<div class="note">
+    <h3>Libraries</h3>
+    <h4>spring-data-neo4j</h4>
+    Provides Repository based Object <-> Graph Mapping that copies data from and to the graph database.
+    <h4>spring-data-neo4j-aspects</h4>
+    Provides transparent property and relationship mapping inside of transactions with live read- and write-through to the graph database.
+    <h4>spring-data-neo4j-cross-store</h4>
+    Allows to partially store properties and relationships of JPA entities in the graph database.
+    <h4>spring-data-neo4j-rest</h4>
+    Provides transparent remote access to Neo4j-Server via its REST Api (uses <code>org.neo4j:neo4j-rest-graphdb</code>)
+</div>
+<div class="note">
+    <h3>AspectJ - STS / eclipse setup</h3>
+    <ul>
+    <li>STS 2.7.1</li>
+    <li>import existing maven project or set aspectj nature</li>
+    <li>Project Properties -> AspectJ -> Aspect Paths</li>
+    <li>AspectJ Configurator installed</li>
+    <li>sometimes build after restart required</li></ul>
+</div>
+<div class="note">
+    <h3>Links</h3>
+    <ul style="list-style: none">
+    <li><a href="http://neo4j.org">http://neo4j.org</a></li>
+    <li><a href="http://spring-neo4j.org/">http://spring-neo4j.org/</a></li>
+    <li><a href="http://spring-neo4j.org/guide">http://spring-neo4j.org/guide</a></li>
+    <li><a href="http://spring-neo4j.org/discussions">http://spring-neo4j.org/discussions</a></li>
+    <li><a href="http://spring-neo4j.org/docs">http://spring-neo4j.org/docs</a></li>
+    <li><a href="http://spring-neo4j.org/download">http://spring-neo4j.org/download</a></li>
+    <li><a href="http://spring-neo4j.org/issues">http://spring-neo4j.org/issues</a></li>
+    <li><a href="http://spring-neo4j.org/source">http://spring-neo4j.org/source</a></li>
+    <li><a href="http://cineats.net">http://cineasts.net</a></li>
+    </ul>
+</div>
+   <div style="background-color: white;display: inline-block;">
+        <a href="http://spring.neo4j.org" target="_blank"><img width="200" height="200" src="http://spring.neo4j.org/qr"/></a>
+   </div>
+</body>
+</html>
