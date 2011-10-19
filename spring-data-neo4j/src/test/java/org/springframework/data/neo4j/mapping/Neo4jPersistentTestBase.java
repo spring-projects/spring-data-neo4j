@@ -30,7 +30,9 @@ import org.springframework.data.neo4j.fieldaccess.NodeDelegatingFieldAccessorFac
 import org.springframework.data.neo4j.fieldaccess.RelationshipDelegatingFieldAccessorFactory;
 import org.springframework.data.neo4j.model.Group;
 import org.springframework.data.neo4j.model.Person;
-import org.springframework.data.neo4j.support.*;
+import org.springframework.data.neo4j.support.DelegatingGraphDatabase;
+import org.springframework.data.neo4j.support.MappingInfrastructure;
+import org.springframework.data.neo4j.support.Neo4jTemplate;
 import org.springframework.data.neo4j.support.mapping.*;
 import org.springframework.data.neo4j.support.node.NodeEntityInstantiator;
 import org.springframework.data.neo4j.support.node.NodeEntityStateFactory;
@@ -100,7 +102,7 @@ public class Neo4jPersistentTestBase {
 
         nodeEntityInstantiator = new NodeEntityInstantiator(entityStateHandler);
         relationshipEntityInstantiator = new RelationshipEntityInstantiator(entityStateHandler);
-        nodeTypeMapper = new DefaultTypeMapper<Node>(new TRSTypeAliasAccessor<Node>(infrastructure.getNodeTypeRepresentationStrategy()),asList(new ClassValueTypeInformationMapper()));
+        nodeTypeMapper = new DefaultTypeMapper<Node>(new TRSTypeAliasAccessor<Node>(infrastructure.getNodeTypeRepresentationStrategy()), asList(new ClassValueTypeInformationMapper()));
         nodeStateTransmitter = new SourceStateTransmitter<Node>(nodeEntityStateFactory);
         relationshipStateTransmitter = new SourceStateTransmitter<Relationship>(relationshipEntityStateFactory);
         conversionService = template.getConversionService();
@@ -135,7 +137,7 @@ public class Neo4jPersistentTestBase {
     }
 
     private MappingInfrastructure createInfrastructure(Neo4jMappingContext mappingContext) throws Exception {
-        MappingInfrastructure infrastructure=new MappingInfrastructure();
+        MappingInfrastructure infrastructure = new MappingInfrastructure();
         final ImpermanentGraphDatabase gdb = new ImpermanentGraphDatabase();
         infrastructure.setGraphDatabaseService(gdb);
         final DelegatingGraphDatabase graphDatabase = new DelegatingGraphDatabase(gdb);
@@ -187,7 +189,7 @@ public class Neo4jPersistentTestBase {
         if (id != null) {
             write(p, template.getNode(id));
         } else {
-            write(p,null);
+            write(p, null);
         }
         return p;
     }
@@ -199,7 +201,7 @@ public class Neo4jPersistentTestBase {
 
     @SuppressWarnings("unchecked")
     private <T> T storeInGraph(T obj) {
-        return (T) write(obj,null);
+        return (T) write(obj, null);
     }
 
     protected Node groupNode() {
@@ -225,6 +227,13 @@ public class Neo4jPersistentTestBase {
     public Person readPerson(Node node) {
         return entityPersister.read(Person.class, node);
     }
+
+    protected Relationship makeFriends(Node from, Node to, int years) {
+        Relationship friendship = from.createRelationshipTo(to, KNOWS);
+        friendship.setProperty("Friendship.years", years);
+        return friendship;
+    }
+
     public Group readGroup(Node node) {
         return entityPersister.read(Group.class, node);
     }

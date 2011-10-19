@@ -298,8 +298,7 @@ public class Neo4jEntityConverterTest extends Neo4jPersistentTestBase {
         storeInGraph(michael);
         storeInGraph(andres);
 
-        Relationship friendshipRelationship = michaelNode().createRelationshipTo(andresNode(), KNOWS);
-        friendshipRelationship.setProperty("Friendship.years", 19);
+        Relationship friendshipRelationship = makeFriends(michaelNode(), andresNode(), 19);
 
         Person m = readPerson(michaelNode());
         Friendship friendship = IteratorUtil.first(m.getFriendships());
