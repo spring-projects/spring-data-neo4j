@@ -14,7 +14,12 @@
         <context:exclude-filter type="annotation" expression="org.springframework.stereotype.Controller"/>
     </context:component-scan>
 
-    <neo4j:config storeDirectory="data/graph.db"/>
+    <neo4j:config graphDatabaseService="graphDatabaseService"/>
+    <bean id="graphDatabaseService" class="org.springframework.data.neo4j.rest.SpringRestGraphDatabase" scope="singleton">
+         <constructor-arg index="0" value="http://localhost:7474/db/data" />
+    </bean>
+
+    <!--<neo4j:config  storeDirectory="data/graph.db"/>-->
     <neo4j:repositories base-package="org.neo4j.cineasts.repository"/>
 
     <bean class="org.neo4j.cineasts.movieimport.MovieDbApiClient">

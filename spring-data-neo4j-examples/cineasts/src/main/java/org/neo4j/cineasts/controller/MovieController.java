@@ -7,6 +7,7 @@ import org.neo4j.cineasts.domain.User;
 import org.neo4j.cineasts.service.CineastsUserDetailsService;
 import org.neo4j.cineasts.service.DatabasePopulator;
 import org.neo4j.cineasts.service.CineastsRepository;
+import org.neo4j.helpers.collection.IteratorUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -95,6 +96,7 @@ public class MovieController {
         Person person = moviesRepository.getPerson(id);
         model.addAttribute("actor", person);
         model.addAttribute("id", id);
+        model.addAttribute("roles",  IteratorUtil.asCollection(person.getRoles()));
         addUser(model);
         return "/actors/show";
     }

@@ -4,12 +4,14 @@ import org.neo4j.cineasts.domain.Movie;
 import org.neo4j.cineasts.domain.Person;
 import org.neo4j.cineasts.domain.Rating;
 import org.neo4j.cineasts.domain.User;
+import org.neo4j.cineasts.service.CineastsRepository;
 import org.neo4j.cineasts.service.CineastsUserDetailsService;
 import org.neo4j.cineasts.service.DatabasePopulator;
-import org.neo4j.cineasts.service.CineastsRepository;
+import org.neo4j.helpers.collection.IteratorUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.neo4j.support.Neo4jTemplate;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -26,14 +28,16 @@ public class MovieController {
 
     private CineastsRepository moviesRepository;
     private CineastsUserDetailsService userDetailsService;
+    private final Neo4jTemplate template;
     private DatabasePopulator populator;
     private static final Logger log = LoggerFactory.getLogger(MovieController.class);
 
     @Autowired
-    public MovieController(CineastsRepository moviesRepository, DatabasePopulator populator, CineastsUserDetailsService userDetailsService) {
+    public MovieController(CineastsRepository moviesRepository, DatabasePopulator populator, CineastsUserDetailsService userDetailsService, Neo4jTemplate template) {
         this.moviesRepository = moviesRepository;
         this.populator = populator;
         this.userDetailsService = userDetailsService;
+        this.template = template;
     }
 
     // for web service (JSON) clients
@@ -95,6 +99,7 @@ public class MovieController {
         Person person = moviesRepository.getPerson(id);
         model.addAttribute("actor", person);
         model.addAttribute("id", id);
+        model.addAttribute("roles",  IteratorUtil.asCollection(person.getRoles()));
         addUser(model);
         return "/actors/show";
     }

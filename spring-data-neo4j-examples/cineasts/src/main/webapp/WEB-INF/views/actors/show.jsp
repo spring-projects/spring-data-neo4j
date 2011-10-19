@@ -3,6 +3,7 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <%--@elvariable id="actor" type="org.neo4j.cineasts.domain.Actor"--%>
+<%--@elvariable id="role" type="org.neo4j.cineasts.domain.Role"--%>
 <c:choose>
     <c:when test="${actor != null}">
       <div class="span-4">
@@ -20,7 +21,7 @@
         <h2>Roles</h2>
         <c:if test="${not empty actor.roles}">
           <ul>
-            <c:forEach items="${actor.roles}" var="role">
+            <c:forEach items="${roles}" var="role">
               <li>
                 <a href="/movies/${role.movie.id}"><c:out value="${role.movie.title}" /> as <c:out value="${role.name}" /> in <c:out value="${role.movie.year}"/></a><br/>
               </li>
