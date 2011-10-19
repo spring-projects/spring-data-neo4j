@@ -32,8 +32,7 @@
 
         <dependency>
             <groupId>org.springframework.data</groupId>
-            <artifactId>spring-data-neo4j</artifactId>
-            <version>${project.version}</version>
+            <artifactId>spring-data-neo4j-aspects</artifactId>
         </dependency>
 
         <dependency>
@@ -42,24 +41,6 @@
             <version>${project.version}</version>
             <scope>test</scope>
             <type>test-jar</type>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.springframework.data</groupId>
-                    <artifactId>spring-data-neo4j</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.data</groupId>
-            <artifactId>spring-data-neo4j-aspects</artifactId>
-            <scope>test</scope>
-            <version>${project.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.springframework.data</groupId>
-                    <artifactId>spring-data-neo4j</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
 
         <dependency>
