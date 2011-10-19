@@ -46,6 +46,7 @@
 			<artifactId>spring-data-neo4j</artifactId>
             <version>${project.version}</version>
             <type>test-jar</type>
+            <scope>test</scope>
 		</dependency>
 
 		<!-- Logging -->
@@ -227,8 +228,8 @@
                     </dependency>
                 </dependencies>
                 <configuration>
-                    <!--aspectDirectory>src/main/java</aspectDirectory>
-                    <testAspectDirectory>src/test/java</testAspectDirectory-->
+                    <aspectDirectory>src/main/java</aspectDirectory>
+                    <testAspectDirectory>src/test/java</testAspectDirectory>
                     <!--weaveDependencies>
                         <weaveDependency>
                             <groupId>org.springframework.data</groupId>

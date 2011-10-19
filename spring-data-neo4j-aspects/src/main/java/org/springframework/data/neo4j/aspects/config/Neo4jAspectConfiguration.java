@@ -22,8 +22,6 @@ import org.springframework.data.neo4j.aspects.support.relationship.Neo4jRelation
 import org.springframework.data.neo4j.config.Neo4jConfiguration;
 import org.springframework.data.neo4j.support.node.NodeEntityStateFactory;
 
-import javax.annotation.PostConstruct;
-
 /**
  * @author mh
  * @since 30.09.11

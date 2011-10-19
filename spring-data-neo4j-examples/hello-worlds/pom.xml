@@ -105,7 +105,7 @@
         <!-- required to resolve aspectj-enhanced class features -->
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>aspectj-maven-plugin</artifactId>
-        <version>1.0</version>
+        <version>1.2</version>
         <configuration>
           <outxml>true</outxml>
           <aspectLibraries>
