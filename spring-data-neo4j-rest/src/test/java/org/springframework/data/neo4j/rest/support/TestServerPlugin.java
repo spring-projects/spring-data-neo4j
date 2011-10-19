@@ -49,12 +49,17 @@ public class TestServerPlugin extends ServerPlugin {
     }
 
     private synchronized ApplicationContext context(GraphDatabaseService graphDb) {
-        if (ctx==null) {
-            ctx = new ProvidedClassPathXmlApplicationContext(graphDb, "Plugin-context.xml");
-            personRepository = ctx.getBean(PersonRepository.class);
-            template = ctx.getBean(Neo4jTemplate.class);
+        try {
+            if (ctx == null) {
+                ctx = new ProvidedClassPathXmlApplicationContext(graphDb, "Plugin-context.xml");
+                personRepository = ctx.getBean(PersonRepository.class);
+                template = ctx.getBean(Neo4jTemplate.class);
+            }
+            return ctx;
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
         }
-        return ctx;
     }
 
     @Name( "get_all_friends" )

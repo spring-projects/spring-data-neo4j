@@ -8,8 +8,9 @@
 		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd
 		http://www.springframework.org/schema/data/neo4j http://www.springframework.org/schema/data/neo4j/spring-neo4j-2.0.xsd http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-2.5.xsd">
 
-    <neo4j:config graphDatabaseService="graphDatabaseService"/>
+    <context:annotation-config/>
+    <neo4j:config storeDirectory="target/test-db"/>
 
-    <neo4j:repositories base-package="org.springframework.data.neo4j.rest"/>
+    <neo4j:repositories base-package="org.springframework.data.neo4j.aspects"/>
 
 </beans>
