@@ -32,7 +32,7 @@
 
         <dependency>
             <groupId>org.springframework.data</groupId>
-            <artifactId>spring-data-neo4j-aspects</artifactId>
+            <artifactId>spring-data-neo4j</artifactId>
         </dependency>
 
         <dependency>
