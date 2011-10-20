@@ -33,6 +33,7 @@ import org.springframework.data.neo4j.conversion.ResultConverter;
 import org.springframework.data.neo4j.core.GraphDatabase;
 import org.springframework.data.neo4j.support.DelegatingGraphDatabase;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
+import org.springframework.data.neo4j.support.index.IndexType;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.jta.JtaTransactionManager;
@@ -91,11 +92,11 @@ public class Neo4jTemplateApiTest {
             @Override
             protected void doInTransactionWithoutResult(TransactionStatus status) {
                 referenceNode.setProperty("name", "node0");
-                graphDatabase.createIndex(Node.class, "node", false).add(referenceNode, "name", "node0");
+                graphDatabase.createIndex(Node.class, "node", IndexType.SIMPLE).add(referenceNode, "name", "node0");
                 node1 = graphDatabase.createNode(map("name", "node1"));
                 relationship1 = referenceNode.createRelationshipTo(node1, KNOWS);
                 relationship1.setProperty("name", "rel1");
-                graphDatabase.createIndex(Relationship.class, "relationship", false).add(relationship1, "name", "rel1");
+                graphDatabase.createIndex(Relationship.class, "relationship", IndexType.SIMPLE).add(relationship1, "name", "rel1");
             }
         });
     }

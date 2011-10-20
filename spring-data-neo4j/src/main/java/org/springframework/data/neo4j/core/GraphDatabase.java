@@ -25,6 +25,7 @@ import org.neo4j.graphdb.traversal.TraversalDescription;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.data.neo4j.annotation.QueryType;
 import org.springframework.data.neo4j.conversion.ResultConverter;
+import org.springframework.data.neo4j.support.index.IndexType;
 import org.springframework.data.neo4j.support.query.QueryEngine;
 
 import java.util.Map;
@@ -68,7 +69,7 @@ public interface GraphDatabase {
      * @param fullText true if a fulltext queryable index is needed, false for exact match
      * @return node index {@link Index}
      */
-    <T extends PropertyContainer> Index<T> createIndex(Class<T> type, String indexName, boolean fullText);
+    <T extends PropertyContainer> Index<T> createIndex(Class<T> type, String indexName, IndexType indexType);
 
 
     /**
@@ -89,4 +90,5 @@ public interface GraphDatabase {
     void remove(Relationship relationship);
 
     void setResultConverter(ResultConverter resultConverter);
+
 }

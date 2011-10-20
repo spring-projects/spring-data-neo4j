@@ -23,6 +23,7 @@ import java.lang.annotation.Target;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Field;
 
+
 /**
  * Annotated fields and entities will be indexed and available for retrieval using an indexing API.
  */
@@ -34,7 +35,7 @@ public @interface Indexed {
      */
     String indexName() default "";
 
-    boolean fulltext() default false;
+    org.springframework.data.neo4j.support.index.IndexType indexType() default org.springframework.data.neo4j.support.index.IndexType.SIMPLE;
 
     String fieldName() default "";
 

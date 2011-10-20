@@ -18,6 +18,7 @@ package org.springframework.data.neo4j.mapping;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.data.neo4j.model.Person;
+import org.springframework.data.neo4j.support.index.IndexType;
 import org.springframework.data.neo4j.support.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.support.mapping.Neo4jPersistentEntityImpl;
 
@@ -50,7 +51,7 @@ public class Neo4jMappingContextTest {
         assertEquals(String.class,nameProperty.getType());
         assertEquals(true,nameProperty.isIndexed());
         assertEquals(Person.NAME_INDEX,nameProperty.getIndexInfo().getIndexName());
-        assertEquals(false,nameProperty.getIndexInfo().isFulltext());
+        assertEquals(IndexType.SIMPLE,nameProperty.getIndexInfo().getIndexType());
         assertEquals(false,nameProperty.isRelationship());
     }
 }
