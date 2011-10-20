@@ -7,4 +7,5 @@ target
 *.iws
 .classpath
 .project
+.settings
 
