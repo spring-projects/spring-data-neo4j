@@ -20,7 +20,7 @@ pageEncoding="UTF-8"%>
       <p>
         <label for="j_username">Login:</label>
         <input id="j_username" name="j_username" type="text"
-          <c:if test="${not empty param.login_error}">value="${sessionScope['SPRING_SECURITY_LAST_USERNAME']}"</c:if>  />
+            value="${not empty param.login_error ? sessionScope['SPRING_SECURITY_LAST_USERNAME'] : '' }" />
       </p>
       <p>
         <label for="j_password">Password:</label>
