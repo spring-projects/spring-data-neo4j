@@ -26,6 +26,7 @@ import org.neo4j.kernel.impl.traversal.TraversalDescriptionImpl;
 import org.springframework.data.neo4j.annotation.*;
 import org.springframework.data.neo4j.core.FieldTraversalDescriptionBuilder;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
+import org.springframework.data.neo4j.support.index.IndexType;
 
 import java.util.Collection;
 
@@ -64,7 +65,7 @@ public class Group {
     private String unindexedName2;
 
     @GraphProperty
-    @Indexed(indexName = SEARCH_GROUPS_INDEX, fulltext = true)
+    @Indexed(indexName = SEARCH_GROUPS_INDEX, indexType = IndexType.FULLTEXT)
     private String fullTextName;
 
     @Indexed(fieldName = OTHER_NAME_INDEX)
