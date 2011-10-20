@@ -33,6 +33,10 @@ import org.springframework.data.neo4j.core.GraphDatabase;
 import org.springframework.data.neo4j.core.TypeRepresentationStrategy;
 import org.springframework.data.neo4j.core.UncategorizedGraphStoreException;
 import org.springframework.data.neo4j.mapping.EntityPersister;
+import org.springframework.data.neo4j.mapping.RelationshipResult;
+import org.springframework.data.neo4j.support.index.IndexType;
+import org.springframework.data.neo4j.support.mapping.EntityStateHandler;
+import org.springframework.data.neo4j.support.mapping.Neo4jPersistentEntityImpl;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.mapping.RelationshipResult;
 import org.springframework.data.neo4j.repository.GraphRepository;
@@ -122,8 +126,8 @@ public class Neo4jTemplate implements Neo4jOperations, EntityPersister {
         return infrastructure.getIndexProvider().getIndex(type, indexName, null);
     }
 
-    public <S extends PropertyContainer, T> Index<S> getIndex(Class<T> type, String indexName, Boolean fullText) {
-        return infrastructure.getIndexProvider().getIndex(type, indexName, fullText);
+    public <S extends PropertyContainer, T> Index<S> getIndex(Class<T> type, String indexName, IndexType indexType) {
+        return infrastructure.getIndexProvider().getIndex(type, indexName, indexType);
     }
 
     /**
@@ -404,10 +408,10 @@ public class Neo4jTemplate implements Neo4jOperations, EntityPersister {
             @Override
             public void doWithGraphWithoutResult(GraphDatabase graph) throws Exception {
                 if (element instanceof Relationship) {
-                    Index<Relationship> relationshipIndex = infrastructure.getGraphDatabase().createIndex(Relationship.class, indexName, false);
+                    Index<Relationship> relationshipIndex = infrastructure.getGraphDatabase().createIndex(Relationship.class, indexName, IndexType.SIMPLE);
                     relationshipIndex.add((Relationship) element, field, value);
                 } else if (element instanceof Node) {
-                    infrastructure.getGraphDatabase().createIndex(Node.class, indexName, false).add((Node) element, field, value);
+                    infrastructure.getGraphDatabase().createIndex(Node.class, indexName, IndexType.SIMPLE).add((Node) element, field, value);
                 } else {
                     throw new IllegalArgumentException("Provided element is neither node nor relationship " + element);
                 }

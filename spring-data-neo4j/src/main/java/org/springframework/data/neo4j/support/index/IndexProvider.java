@@ -49,7 +49,7 @@ public class IndexProvider {
     }
 
     @SuppressWarnings("unchecked")
-    public <S extends PropertyContainer, T> Index<S> getIndex(Class<T> type, String indexName, Boolean fullText) {
+    public <S extends PropertyContainer, T> Index<S> getIndex(Class<T> type, String indexName, IndexType indexType) {
         if (type == null) {
             notNull(indexName, "indexName");
             return getIndex(indexName);
@@ -57,7 +57,7 @@ public class IndexProvider {
 
         final Neo4jPersistentEntityImpl<?> persistentEntity = mappingContext.getPersistentEntity(type);
         if (indexName == null) indexName = Indexed.Name.get(type);
-        final boolean useExistingIndex = fullText == null;
+        final boolean useExistingIndex = indexType == null;
 
         if (useExistingIndex) {
             if (persistentEntity.isNodeEntity()) return (Index<S>) graphDatabase.getIndex(indexName);
@@ -65,9 +65,9 @@ public class IndexProvider {
             throw new IllegalArgumentException("Wrong index type supplied: " + type + " expected Node- or Relationship-Entity");
         }
 
-        if (persistentEntity.isNodeEntity()) return (Index<S>) createIndex(Node.class, indexName, fullText);
+        if (persistentEntity.isNodeEntity()) return (Index<S>) createIndex(Node.class, indexName, indexType);
         if (persistentEntity.isRelationshipEntity())
-            return (Index<S>) createIndex(Relationship.class, indexName, fullText);
+            return (Index<S>) createIndex(Relationship.class, indexName, indexType);
         throw new IllegalArgumentException("Wrong index type supplied: " + type + " expected Node- or Relationship-Entity");
     }
 
@@ -84,7 +84,7 @@ public class IndexProvider {
 
     // TODO handle existing indexes
     @SuppressWarnings("unchecked")
-    public <T extends PropertyContainer> Index<T> createIndex(Class<T> type, String indexName, boolean fullText) {
+    public <T extends PropertyContainer> Index<T> createIndex(Class<T> type, String indexName, IndexType fullText) {
         return graphDatabase.createIndex(type, indexName, fullText);
     }
 
@@ -99,12 +99,6 @@ public class IndexProvider {
         final Class<?> declaringType = property.getOwner().getType();
         final String providedIndexName = indexedAnnotation.indexName().isEmpty() ? null : indexedAnnotation.indexName();
         String indexName = Indexed.Name.get(indexedAnnotation.level(), declaringType, providedIndexName, instanceType);
-        if (!property.getIndexInfo().isFulltext()) {
-            return getIndex(declaringType, indexName, false);
-        }
-        if (providedIndexName == null) throw new IllegalStateException("@Indexed(fullext=true) on "+property+" requires an providedIndexName too ");
-        String defaultIndexName = Indexed.Name.get(indexedAnnotation.level(), declaringType, null, instanceType.getClass());
-        if (providedIndexName.equals(defaultIndexName)) throw new IllegalStateException("Full-index name for "+property+" must differ from the default name: "+defaultIndexName);
-        return getIndex(declaringType, indexName, true);
+        return getIndex(declaringType, indexName, property.getIndexInfo().getIndexType());
     }
 }

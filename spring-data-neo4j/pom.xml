@@ -169,6 +169,13 @@
 			<groupId>commons-configuration</groupId>
 			<artifactId>commons-configuration</artifactId>
 		</dependency>
+    
+        <!-- Neo4J Spatial-->
+    
+        <dependency>
+            <groupId>org.neo4j</groupId>
+            <artifactId>neo4j-spatial</artifactId>
+        </dependency>
 
 		<!-- JPA -->
 		<dependency>

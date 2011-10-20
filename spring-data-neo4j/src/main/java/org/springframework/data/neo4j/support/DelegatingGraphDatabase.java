@@ -22,7 +22,6 @@ import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.index.Index;
 import org.neo4j.graphdb.index.IndexManager;
 import org.neo4j.graphdb.traversal.TraversalDescription;
-import org.neo4j.index.impl.lucene.LuceneIndexImplementation;
 import org.neo4j.kernel.AbstractGraphDatabase;
 import org.neo4j.kernel.Traversal;
 import org.springframework.core.convert.ConversionService;
@@ -31,6 +30,7 @@ import org.springframework.data.neo4j.conversion.DefaultConverter;
 import org.springframework.data.neo4j.conversion.Result;
 import org.springframework.data.neo4j.conversion.ResultConverter;
 import org.springframework.data.neo4j.core.GraphDatabase;
+import org.springframework.data.neo4j.support.index.IndexType;
 import org.springframework.data.neo4j.support.index.NoSuchIndexException;
 import org.springframework.data.neo4j.support.query.ConversionServiceQueryResultConverter;
 import org.springframework.data.neo4j.support.query.CypherQueryEngine;
@@ -131,16 +131,16 @@ public class DelegatingGraphDatabase implements GraphDatabase {
     // TODO handle existing indexes
     @SuppressWarnings("unchecked")
     @Override
-    public <T extends PropertyContainer> Index<T> createIndex(Class<T> type, String indexName, boolean fullText) {
+    public <T extends PropertyContainer> Index<T> createIndex(Class<T> type, String indexName, IndexType indexType) {
         IndexManager indexManager = delegate.index();
         if (isNode(type)) {
             if (indexManager.existsForNodes(indexName))
-                return (Index<T>) checkAndGetExistingIndex(indexName, fullText, indexManager.forNodes(indexName));
-            return (Index<T>) indexManager.forNodes(indexName, indexConfigFor(fullText));
+                return (Index<T>) checkAndGetExistingIndex(indexName, indexType, indexManager.forNodes(indexName));
+            return (Index<T>) indexManager.forNodes(indexName, indexConfigFor(indexType));
         } else {
             if (indexManager.existsForRelationships(indexName))
-                return (Index<T>) checkAndGetExistingIndex(indexName, fullText, indexManager.forRelationships(indexName));
-            return (Index<T>) indexManager.forRelationships(indexName, indexConfigFor(fullText));
+                return (Index<T>) checkAndGetExistingIndex(indexName, indexType, indexManager.forRelationships(indexName));
+            return (Index<T>) indexManager.forRelationships(indexName, indexConfigFor(indexType));
         }
     }
 
@@ -150,9 +150,9 @@ public class DelegatingGraphDatabase implements GraphDatabase {
         throw new IllegalArgumentException("Unknown Graph Primitive, neither Node nor Relationship"+type);
     }
 
-    private <T extends PropertyContainer> Index<T> checkAndGetExistingIndex(final String indexName, boolean fullText, final Index<T> index) {
+    private <T extends PropertyContainer> Index<T> checkAndGetExistingIndex(final String indexName, IndexType indexType, final Index<T> index) {
         Map<String, String> existingConfig = delegate.index().getConfiguration(index);
-        Map<String, String> config = indexConfigFor(fullText);
+        Map<String, String> config = indexConfigFor(indexType);
         if (configCheck(config, existingConfig, "provider") && configCheck(config, existingConfig, "type")) return index;
         throw new IllegalArgumentException("Setup for index "+indexName+" does not match. Existing: "+existingConfig+" required "+config);
      }
@@ -160,8 +160,8 @@ public class DelegatingGraphDatabase implements GraphDatabase {
     private boolean configCheck(Map<String, String> config, Map<String, String> existingConfig, String setting) {
         return ObjectUtils.nullSafeEquals(config.get(setting), existingConfig.get(setting));
     }
-    private Map<String, String> indexConfigFor(boolean fullText) {
-        return fullText ? LuceneIndexImplementation.FULLTEXT_CONFIG : LuceneIndexImplementation.EXACT_CONFIG;
+    private Map<String, String> indexConfigFor(IndexType indexType) {
+        return indexType.getConfig();
     }
 
     @Override

@@ -16,6 +16,7 @@
 package org.springframework.data.neo4j.mapping;
 
 import org.springframework.data.neo4j.annotation.Indexed;
+import org.springframework.data.neo4j.support.index.IndexType;
 
 /**
 * @author mh
@@ -23,13 +24,13 @@ import org.springframework.data.neo4j.annotation.Indexed;
 */
 public class IndexInfo {
     private String indexName;
-    private boolean fulltext;
+    private IndexType indexType;
     private final String fieldName;
     private final Indexed.Level level;
 
     public IndexInfo(Indexed annotation, Neo4jPersistentProperty property) {
         this.indexName = determineIndexName(annotation,property);
-        this.fulltext = annotation.fulltext();
+        this.indexType = annotation.indexType();
         fieldName = annotation.fieldName();
         level = annotation.level();
     }
@@ -46,7 +47,7 @@ public class IndexInfo {
         return indexName;
     }
 
-    public boolean isFulltext() {
-        return fulltext;
+    public IndexType getIndexType() {
+        return indexType;
     }
 }
