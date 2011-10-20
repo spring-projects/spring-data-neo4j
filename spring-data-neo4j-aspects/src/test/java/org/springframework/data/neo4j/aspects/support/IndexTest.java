@@ -32,6 +32,7 @@ import org.springframework.data.neo4j.aspects.Group;
 import org.springframework.data.neo4j.aspects.Person;
 import org.springframework.data.neo4j.aspects.SubGroup;
 import org.springframework.data.neo4j.repository.GraphRepository;
+import org.springframework.data.neo4j.support.index.IndexType;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
@@ -144,10 +145,10 @@ public class IndexTest extends EntityTestBase {
     @NodeEntity
     static class InvalidIndexed {
 
-        @Indexed(fulltext = true)
+        @Indexed(indexType=IndexType.FULLTEXT)
         String fulltextNoIndexName;
 
-        @Indexed(fulltext = true, indexName = "InvalidIndexed")
+        @Indexed(indexType=IndexType.FULLTEXT, indexName = "InvalidIndexed")
         String fullTextDefaultIndexName;
 
         public void setFulltextNoIndexName(String fulltextNoIndexName) {
