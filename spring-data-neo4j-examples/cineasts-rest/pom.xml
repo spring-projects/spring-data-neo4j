@@ -39,11 +39,28 @@
             <name>Spring Maven Milestone Repository</name>
             <url>http://maven.springframework.org/milestone</url>
         </repository>
-        <repository>
-            <id>neo4j-public-repository</id>
-            <url>http://m2.neo4j.org/</url>
-            <name>Publicly available Maven 2 repository for Neo4j</name>
-        </repository>
+	    <repository>
+	      <id>neo4j-release-repository</id>
+	      <name>Neo4j Maven 2 release repository</name>
+	      <url>http://m2.neo4j.org/releases</url>
+	      <releases>
+	        <enabled>true</enabled>
+	      </releases>
+	      <snapshots>
+	        <enabled>false</enabled>
+	      </snapshots>
+	    </repository>
+	    <repository>
+	      <id>neo4j-snapshot-repository</id>
+	      <name>Neo4j Maven 2 snapshot repository</name>
+	      <url>http://m2.neo4j.org/snapshots</url>
+	      <snapshots>
+	        <enabled>true</enabled>
+	      </snapshots>
+	      <releases>
+	        <enabled>false</enabled>
+	      </releases>
+	    </repository>
         <repository>
             <id>jboss-public-repo</id>
             <url>http://repository.jboss.org/maven2/</url>
