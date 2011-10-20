@@ -17,8 +17,12 @@ package org.springframework.data.neo4j.support.index;
 
 import java.util.Map;
 
+<<<<<<< HEAD
 import org.neo4j.graphdb.index.IndexManager;
 import org.neo4j.helpers.collection.MapUtil;
+=======
+import org.neo4j.gis.spatial.indexprovider.SpatialIndexProvider;
+>>>>>>> refactoring to support more index types
 import org.neo4j.index.impl.lucene.LuceneIndexImplementation;
 
 public enum IndexType
@@ -27,6 +31,6 @@ public enum IndexType
     FULLTEXT { public Map<String,String> getConfig() { return LuceneIndexImplementation.FULLTEXT_CONFIG; } },
     POINT { public Map<String,String> getConfig() { return MapUtil.stringMap(
             IndexManager.PROVIDER, "spatial", "geometry_type" , "point") ; } };
-    
+
     public abstract Map<String, String>getConfig();
 }

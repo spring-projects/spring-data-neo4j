@@ -172,11 +172,11 @@
     
         <!-- Neo4J Spatial-->
     
-        <!--dependency>
+        <dependency>
             <groupId>org.neo4j</groupId>
             <artifactId>neo4j-spatial</artifactId>
             <optional>true</optional>
-        </dependency-->
+        </dependency>
 
 		<!-- JPA -->
 		<dependency>
