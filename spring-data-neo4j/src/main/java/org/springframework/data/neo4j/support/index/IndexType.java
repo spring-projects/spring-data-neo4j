@@ -18,11 +18,16 @@ package org.springframework.data.neo4j.support.index;
 import java.util.Map;
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 import org.neo4j.graphdb.index.IndexManager;
 import org.neo4j.helpers.collection.MapUtil;
 =======
 import org.neo4j.gis.spatial.indexprovider.SpatialIndexProvider;
 >>>>>>> refactoring to support more index types
+=======
+import org.neo4j.graphdb.index.IndexManager;
+import org.neo4j.helpers.collection.MapUtil;
+>>>>>>> removing dependency on spatial
 import org.neo4j.index.impl.lucene.LuceneIndexImplementation;
 
 public enum IndexType
