@@ -19,6 +19,7 @@ package org.springframework.data.neo4j.repository;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -66,7 +67,8 @@ public class GraphRepositoryTest {
     @Autowired
     GroupRepository groupRepository;
 
-    @Autowired FriendshipRepository friendshipRepository;
+    @Autowired
+    FriendshipRepository friendshipRepository;
 
     private TestTeam testTeam;
 
@@ -74,10 +76,11 @@ public class GraphRepositoryTest {
     public void cleanDb() {
         Neo4jHelper.cleanDb(neo4jTemplate);
     }
+
     @Before
     public void setUp() throws Exception {
         testTeam = new TestTeam();
-        testTeam.createSDGTeam(personRepository, groupRepository,friendshipRepository);
+        testTeam.createSDGTeam(personRepository, groupRepository, friendshipRepository);
     }
 
     @Test
@@ -85,6 +88,7 @@ public class GraphRepositoryTest {
         Iterable<Person> teamMembers = personRepository.findAllTeamMembers(testTeam.sdg);
         assertThat(asCollection(teamMembers), hasItems(testTeam.michael, testTeam.david, testTeam.emil));
     }
+
     @Test
     public void testFindIterableOfPersonWithQueryAnnotationAndGremlin() {
         Iterable<Person> teamMembers = personRepository.findAllTeamMembersGremlin(testTeam.sdg);
@@ -96,28 +100,40 @@ public class GraphRepositoryTest {
         Person boss = personRepository.findBoss(testTeam.michael);
         assertThat(boss, is(testTeam.emil));
     }
+
+    @Test
+    @Ignore
+    public void shouldBeAbleToTurnQueryResultsToAMapResultInterface() throws Exception {
+        MemberData first = personRepository.findMemberData(testTeam.michael).iterator().next();
+
+        assertThat(first.getBoss(), is(testTeam.emil));
+        assertThat(asCollection(first.getTeams()), hasItem(testTeam.sdg));
+    }
+
     @Test
     public void testFindIterableMapsWithQueryAnnotation() {
-        Iterable<Map<String,Object>> teamMembers = personRepository.findAllTeamMemberData(testTeam.sdg);
+        Iterable<Map<String, Object>> teamMembers = personRepository.findAllTeamMemberData(testTeam.sdg);
         assertThat(asCollection(teamMembers), hasItems(testTeam.simpleRowFor(testTeam.michael, "member"), testTeam.simpleRowFor(testTeam.david, "member"), testTeam.simpleRowFor(testTeam.emil, "member")));
     }
 
     @Test
     public void testFindPaged() {
         final PageRequest page = new PageRequest(0, 1, Sort.Direction.ASC, "member.name");
-        Page<Person> teamMemberPage1 = personRepository.findAllTeamMembersPaged(testTeam.sdg,page);
+        Page<Person> teamMemberPage1 = personRepository.findAllTeamMembersPaged(testTeam.sdg, page);
         assertThat(teamMemberPage1, hasItem(testTeam.david));
     }
+
     @Test
     public void testFindPagedDescending() {
         final PageRequest page = new PageRequest(0, 2, Sort.Direction.DESC, "member.name");
-        Page<Person> teamMemberPage1 = personRepository.findAllTeamMembersPaged(testTeam.sdg,page);
+        Page<Person> teamMemberPage1 = personRepository.findAllTeamMembersPaged(testTeam.sdg, page);
         assertEquals(asList(testTeam.michael, testTeam.emil), asCollection(teamMemberPage1));
         assertThat(teamMemberPage1.isFirstPage(), is(true));
     }
+
     @Test
     public void testFindPagedNull() {
-        Page<Person> teamMemberPage1 = personRepository.findAllTeamMembersPaged(testTeam.sdg,null);
+        Page<Person> teamMemberPage1 = personRepository.findAllTeamMembersPaged(testTeam.sdg, null);
         assertEquals(new HashSet(asList(testTeam.david, testTeam.emil, testTeam.michael)), addToCollection(teamMemberPage1, new HashSet()));
         assertThat(teamMemberPage1.isFirstPage(), is(true));
         assertThat(teamMemberPage1.isLastPage(), is(false));
