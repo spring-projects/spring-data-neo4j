@@ -9,9 +9,7 @@ ajcore*
 target
 .springBeans
 .ant-targets-build.xml
-src/ant/.ant-targets-upload-dist.xml
 *.iml
 *.ipr
 *.iws
-spring-data-neo4j-examples/imdb/log.roo
 
