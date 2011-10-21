@@ -56,8 +56,12 @@ public class WorldRepositoryImpl implements MyWorldRepository {
     @Override
     @Transactional
     public World world(String name, int moons) {
-        World createdWorld = new World(name, moons);
-    	worldRepository.save(createdWorld);
+    	
+        World createdWorld = findWorldNamed(name);
+        if (createdWorld == null) {
+        	createdWorld = new World(name, moons);
+        	worldRepository.save(createdWorld);
+        }
     	return createdWorld;
     }
 
