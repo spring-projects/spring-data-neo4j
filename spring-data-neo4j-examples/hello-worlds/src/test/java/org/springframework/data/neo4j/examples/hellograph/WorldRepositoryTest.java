@@ -46,12 +46,11 @@ public class WorldRepositoryTest
     @Test
     public void shouldAllowDirectWorldCreation()
     {
-//        assertEquals(0, (long) template.count(World.class));
+        assertEquals(0, (long) template.count(World.class));
         World myWorld = galaxy.save(new World( "mine", 0 ));
         assertEquals(1, (long) template.count(World.class));
-        Iterable<World> foundWorlds = galaxy.findAll();
-        World mine = foundWorlds.iterator().next();
-        assertEquals(myWorld.getName(), mine.getName());
+        World foundWorld = galaxy.findOne(myWorld.id);
+        assertEquals(myWorld.getName(), foundWorld.getName());
     }
 
     @Test

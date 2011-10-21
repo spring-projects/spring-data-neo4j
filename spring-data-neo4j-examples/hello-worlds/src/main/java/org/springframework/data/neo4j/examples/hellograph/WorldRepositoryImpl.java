@@ -29,8 +29,11 @@ public class WorldRepositoryImpl implements MyWorldRepository {
         newWorlds.add(world("Venus", 0));
         World earth = world("Earth", 1);
         newWorlds.add(earth);
+        
         World mars = world("Mars", 2);
         mars.addRocketRouteTo(earth);
+        worldRepository.save(mars);
+        
         newWorlds.add(mars);
         newWorlds.add(world("Jupiter", 63));
         newWorlds.add(world("Saturn", 62));
@@ -43,6 +46,8 @@ public class WorldRepositoryImpl implements MyWorldRepository {
         newWorlds.add(world("Muspellheim", 2));
         newWorlds.add(world("Asgard", 63));
         newWorlds.add(world("Hel", 62));
+        
+        worldRepository.save(newWorlds);
 
         return newWorlds;
     }
