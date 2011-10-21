@@ -83,6 +83,7 @@ public abstract class Neo4jConfiguration {
     public MappingInfrastructure mappingInfrastructure() throws Exception {
         MappingInfrastructure infrastructure = new MappingInfrastructure();
         infrastructure.setGraphDatabaseService(getGraphDatabaseService());
+        infrastructure.setTypeRepresentationStrategyFactory(typeRepresentationStrategyFactory());
         infrastructure.setConversionService(conversionService());
         infrastructure.setMappingContext(mappingContext());
         infrastructure.setEntityStateHandler(entityStateHandler());
@@ -124,7 +125,7 @@ public abstract class Neo4jConfiguration {
 
     @Bean
     public TypeRepresentationStrategyFactory typeRepresentationStrategyFactory() throws Exception {
-        return new TypeRepresentationStrategyFactory(graphDatabaseService, graphEntityInstantiator(), graphRelationshipInstantiator());
+        return new TypeRepresentationStrategyFactory(graphDatabase());
     }
 
     @Bean

@@ -24,16 +24,15 @@ import org.springframework.data.neo4j.conversion.ResultConverter;
 import org.springframework.data.neo4j.core.GraphDatabase;
 import org.springframework.data.neo4j.core.TypeRepresentationStrategy;
 import org.springframework.data.neo4j.mapping.EntityInstantiator;
+import org.springframework.data.neo4j.support.conversion.EntityResultConverter;
 import org.springframework.data.neo4j.support.index.IndexProvider;
 import org.springframework.data.neo4j.support.mapping.*;
-import org.springframework.data.neo4j.support.conversion.EntityResultConverter;
 import org.springframework.data.neo4j.support.node.EntityStateFactory;
 import org.springframework.data.neo4j.support.node.NodeEntityInstantiator;
 import org.springframework.data.neo4j.support.query.CypherQueryExecutor;
 import org.springframework.data.neo4j.support.relationship.RelationshipEntityInstantiator;
-import org.springframework.data.neo4j.support.typerepresentation.NoopNodeTypeRepresentationStrategy;
-import org.springframework.data.neo4j.support.typerepresentation.NoopRelationshipTypeRepresentationStrategy;
 import org.springframework.data.neo4j.support.typerepresentation.TypeRepresentationStrategies;
+import org.springframework.data.neo4j.support.typerepresentation.TypeRepresentationStrategyFactory;
 import org.springframework.transaction.PlatformTransactionManager;
 
 import javax.validation.Validator;
@@ -48,6 +47,8 @@ public class MappingInfrastructure {
     private TypeRepresentationStrategy<Node> nodeTypeRepresentationStrategy;
 
     private TypeRepresentationStrategy<Relationship> relationshipTypeRepresentationStrategy;
+
+    private TypeRepresentationStrategyFactory typeRepresentationStrategyFactory;
 
     private Neo4jMappingContext mappingContext;
     private CypherQueryExecutor cypherQueryExecutor;
@@ -85,10 +86,15 @@ public class MappingInfrastructure {
         if (relationshipEntityInstantiator == null) {
             relationshipEntityInstantiator = new RelationshipEntityInstantiator(entityStateHandler);
         }
-        if (this.nodeTypeRepresentationStrategy == null)
-            this.nodeTypeRepresentationStrategy = new NoopNodeTypeRepresentationStrategy(nodeEntityInstantiator);
-        if (this.relationshipTypeRepresentationStrategy == null)
-            this.relationshipTypeRepresentationStrategy = new NoopRelationshipTypeRepresentationStrategy(relationshipEntityInstantiator);
+        if (this.typeRepresentationStrategyFactory==null) {
+            this.typeRepresentationStrategyFactory = new TypeRepresentationStrategyFactory(graphDatabase);
+        }
+        if (this.nodeTypeRepresentationStrategy == null) {
+            this.nodeTypeRepresentationStrategy = typeRepresentationStrategyFactory.getNodeTypeRepresentationStrategy();
+        }
+        if (this.relationshipTypeRepresentationStrategy == null) {
+            this.relationshipTypeRepresentationStrategy = typeRepresentationStrategyFactory.getRelationshipTypeRepresentationStrategy();
+        }
         this.typeRepresentationStrategies = new TypeRepresentationStrategies(mappingContext, nodeTypeRepresentationStrategy, relationshipTypeRepresentationStrategy);
 
         final EntityStateHandler entityStateHandler = new EntityStateHandler(mappingContext, graphDatabase);
@@ -218,5 +224,9 @@ public class MappingInfrastructure {
 
     public Neo4jMappingContext getMappingContext() {
         return mappingContext;
+    }
+
+    public void setTypeRepresentationStrategyFactory(TypeRepresentationStrategyFactory typeRepresentationStrategyFactory) {
+        this.typeRepresentationStrategyFactory = typeRepresentationStrategyFactory;
     }
 }

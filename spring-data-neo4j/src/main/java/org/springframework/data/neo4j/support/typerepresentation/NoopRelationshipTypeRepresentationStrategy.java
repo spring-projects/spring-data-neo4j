@@ -18,24 +18,16 @@ package org.springframework.data.neo4j.support.typerepresentation;
 
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.helpers.collection.ClosableIterable;
-
 import org.springframework.data.neo4j.core.RelationshipTypeRepresentationStrategy;
-import org.springframework.data.neo4j.mapping.EntityInstantiator;
 
 public class NoopRelationshipTypeRepresentationStrategy implements RelationshipTypeRepresentationStrategy {
-
-    private final EntityInstantiator<Relationship> relationshipEntityInstantiator;
-
-    public NoopRelationshipTypeRepresentationStrategy(EntityInstantiator<Relationship> relationshipEntityInstantiator) {
-        this.relationshipEntityInstantiator = relationshipEntityInstantiator;
-    }
 
     @Override
     public void postEntityCreation(Relationship state, Class<?> type) {
     }
 
     @Override
-    public <U> ClosableIterable<U> findAll(Class<U> clazz) {
+    public <U> ClosableIterable<Relationship> findAll(Class<U> clazz) {
         throw new UnsupportedOperationException("findAll not supported.");
     }
 
@@ -51,20 +43,5 @@ public class NoopRelationshipTypeRepresentationStrategy implements RelationshipT
     @Override
     public Class<?> getJavaType(Relationship state) {
         throw new UnsupportedOperationException("getJavaType not supported.");
-    }
-
-    @Override
-    public <U> U createEntity(Relationship state) {
-        throw new UnsupportedOperationException("Creation with stored type not supported.");
-    }
-
-    @Override
-    public <U> U createEntity(Relationship state, Class<U> type) {
-        return projectEntity(state, type);
-    }
-
-    @Override
-    public <U> U projectEntity(Relationship state, Class<U> type) {
-        return relationshipEntityInstantiator.createEntityFromState(state, type);
     }
 }

@@ -18,24 +18,15 @@ package org.springframework.data.neo4j.support.typerepresentation;
 
 import org.neo4j.graphdb.Node;
 import org.neo4j.helpers.collection.ClosableIterable;
-
 import org.springframework.data.neo4j.core.NodeTypeRepresentationStrategy;
-import org.springframework.data.neo4j.mapping.EntityInstantiator;
 
 public class NoopNodeTypeRepresentationStrategy implements NodeTypeRepresentationStrategy {
-
-    private final EntityInstantiator<Node> nodeEntiyInstantiator;
-
-    public NoopNodeTypeRepresentationStrategy(EntityInstantiator<Node> nodeEntiyInstantiator) {
-        this.nodeEntiyInstantiator = nodeEntiyInstantiator;
-    }
-
     @Override
     public void postEntityCreation(Node state, Class<?> type) {
     }
 
     @Override
-    public <U> ClosableIterable<U> findAll(Class<U> clazz) {
+    public <U> ClosableIterable<Node> findAll(Class<U> clazz) {
         throw new UnsupportedOperationException("findAll not supported.");
     }
 
@@ -51,20 +42,5 @@ public class NoopNodeTypeRepresentationStrategy implements NodeTypeRepresentatio
     @Override
     public Class<?> getJavaType(Node state) {
         throw new UnsupportedOperationException("getJavaType not supported.");
-    }
-
-    @Override
-    public <U> U createEntity(Node state) {
-        throw new UnsupportedOperationException("Creation with stored type not supported.");
-    }
-
-    @Override
-    public <U> U createEntity(Node state, Class<U> type) {
-        return projectEntity(state, type);
-    }
-
-    @Override
-    public <U> U projectEntity(Node state, Class<U> type) {
-        return nodeEntiyInstantiator.createEntityFromState(state,type);
     }
 }

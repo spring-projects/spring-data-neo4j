@@ -164,7 +164,6 @@ public class GraphRepositoryTest {
 
     @Test
     public void findByName() {
-
         Iterable<Person> findByName = personRepository.findByName(testTeam.michael.getName());
         assertThat(findByName, hasItem(testTeam.michael));
     }

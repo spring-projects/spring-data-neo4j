@@ -97,6 +97,7 @@
         </property>
         <property name="nodeTypeRepresentationStrategy" ref="nodeTypeRepresentationStrategy"/>
         <property name="relationshipTypeRepresentationStrategy" ref="relationshipTypeRepresentationStrategy"/>
+        <property name="typeRepresentationStrategyFactory" ref="typeRepresentationStrategyFactory"/>
         <property name="entityStateHandler" ref="entityStateHandler"/>
         <property name="mappingContext" ref="mappingContext"/>
         <property name="graphDatabase" ref="graphDatabase"/>
@@ -123,9 +124,7 @@
     </bean>
 
     <bean id="typeRepresentationStrategyFactory" class="org.springframework.data.neo4j.support.typerepresentation.TypeRepresentationStrategyFactory">
-        <constructor-arg ref="graphDatabaseService"/>
-        <constructor-arg ref="graphEntityInstantiator"/>
-        <constructor-arg ref="relationshipEntityInstantiator"/>
+        <constructor-arg ref="graphDatabase"/>
     </bean>
 
     <bean id="nodeTypeRepresentationStrategy" factory-bean="typeRepresentationStrategyFactory" factory-method="getNodeTypeRepresentationStrategy" />

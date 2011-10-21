@@ -33,7 +33,7 @@
         <xsd:attribute name="neo4j-template-ref" type="neo4jTemplateRef" default="template">
           <xsd:annotation>
             <xsd:documentation>
-              The reference to a GraphDatabaseContext. Will default to 'neo4jTemplate'.
+              The reference to a Neo4jTemplate. Will default to 'neo4jTemplate'.
             </xsd:documentation>
           </xsd:annotation>
         </xsd:attribute>

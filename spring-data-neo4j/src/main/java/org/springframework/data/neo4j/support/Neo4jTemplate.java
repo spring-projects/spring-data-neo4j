@@ -33,16 +33,14 @@ import org.springframework.data.neo4j.core.GraphDatabase;
 import org.springframework.data.neo4j.core.TypeRepresentationStrategy;
 import org.springframework.data.neo4j.core.UncategorizedGraphStoreException;
 import org.springframework.data.neo4j.mapping.EntityPersister;
-import org.springframework.data.neo4j.mapping.RelationshipResult;
-import org.springframework.data.neo4j.support.index.IndexType;
-import org.springframework.data.neo4j.support.mapping.EntityStateHandler;
-import org.springframework.data.neo4j.support.mapping.Neo4jPersistentEntityImpl;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.mapping.RelationshipResult;
 import org.springframework.data.neo4j.repository.GraphRepository;
 import org.springframework.data.neo4j.repository.NodeGraphRepository;
 import org.springframework.data.neo4j.repository.RelationshipGraphRepository;
 import org.springframework.data.neo4j.support.index.IndexProvider;
+import org.springframework.data.neo4j.support.index.IndexType;
+import org.springframework.data.neo4j.support.mapping.EntityCreatingClosableIterable;
 import org.springframework.data.neo4j.support.mapping.EntityStateHandler;
 import org.springframework.data.neo4j.support.mapping.Neo4jPersistentEntityImpl;
 import org.springframework.data.neo4j.support.query.QueryEngine;
@@ -139,12 +137,12 @@ public class Neo4jTemplate implements Neo4jOperations, EntityPersister {
         if (isNodeEntity(entityClass)) {
             final Node node = getNode(id);
             if (node==null) return null;
-            return infrastructure.getTypeRepresentationStrategies().projectEntity(node, entityClass);
+            return infrastructure.getEntityPersister().createEntityFromState(node, entityClass);
         }
         if (isRelationshipEntity(entityClass)) {
             final Relationship relationship = getRelationship(id);
             if (relationship==null) return null;
-            return infrastructure.getTypeRepresentationStrategies().projectEntity(relationship, entityClass);
+            return infrastructure.getEntityPersister().createEntityFromState(relationship, entityClass);
         }
         throw new IllegalArgumentException("provided entity type is not annotated with @NodeEntiy nor @RelationshipEntity");
     }
@@ -152,7 +150,8 @@ public class Neo4jTemplate implements Neo4jOperations, EntityPersister {
     @Override
     public <T> ClosableIterable<T> findAll(final Class<T> entityClass) {
         notNull(entityClass,"entity type");
-        return infrastructure.getTypeRepresentationStrategies().findAll(entityClass);
+        final ClosableIterable<PropertyContainer> all = infrastructure.getTypeRepresentationStrategies().findAll(entityClass);
+        return new EntityCreatingClosableIterable<T>(all, entityClass,infrastructure.getEntityPersister());
     }
 
     @Override
@@ -306,7 +305,7 @@ public class Neo4jTemplate implements Neo4jOperations, EntityPersister {
     @Override
     public Relationship getRelationshipBetween(Object start, Object end, String relationshipType) {
         notNull(start,"start",end,"end",relationshipType,"relationshipType");
-        return infrastructure.getEntityStateHandler().getRelationshipBetween(start,end,relationshipType);
+        return infrastructure.getEntityStateHandler().getRelationshipBetween(start, end, relationshipType);
     }
     @Override
     public void deleteRelationshipBetween(Object start, Object end, String type) {
@@ -572,4 +571,5 @@ public class Neo4jTemplate implements Neo4jOperations, EntityPersister {
     public <S extends PropertyContainer> Index<S> getIndex(Neo4jPersistentProperty property, final Class<?> instanceType) {
         return getIndexProvider().getIndex(property, instanceType);
     }
+
 }

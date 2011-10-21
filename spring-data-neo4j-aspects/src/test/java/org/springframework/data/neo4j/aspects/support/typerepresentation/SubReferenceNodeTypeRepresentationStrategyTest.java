@@ -32,6 +32,7 @@ import org.springframework.data.neo4j.aspects.Toyota;
 import org.springframework.data.neo4j.aspects.Volvo;
 import org.springframework.data.neo4j.aspects.support.EntityTestBase;
 import org.springframework.data.neo4j.repository.GraphRepository;
+import org.springframework.data.neo4j.support.mapping.EntityStateHandler;
 import org.springframework.data.neo4j.support.typerepresentation.SubReferenceNodeTypeRepresentationStrategy;
 import org.springframework.test.context.CleanContextCacheTestExecutionListener;
 import org.springframework.test.context.ContextConfiguration;
@@ -42,8 +43,6 @@ import org.springframework.test.context.transaction.TransactionalTestExecutionLi
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
 
 import static org.junit.Assert.*;
 import static org.springframework.data.neo4j.aspects.Person.persistedPerson;
@@ -60,6 +59,8 @@ public class SubReferenceNodeTypeRepresentationStrategyTest extends EntityTestBa
 
 	@Autowired
     private SubReferenceNodeTypeRepresentationStrategy nodeTypeRepresentationStrategy;
+    @Autowired
+    EntityStateHandler entityStateHandler;
     private Node thingNode;
     private Thing thing;
     private SubThing subThing;
@@ -146,15 +147,16 @@ public class SubReferenceNodeTypeRepresentationStrategyTest extends EntityTestBa
     @Test
     @Transactional
     public void testFindAllThings() throws Exception {
-        Collection<Thing> things = IteratorUtil.asCollection(nodeTypeRepresentationStrategy.findAll(Thing.class));
+        Collection<Node> things = IteratorUtil.asCollection(nodeTypeRepresentationStrategy.findAll(Thing.class));
         assertEquals("one thing created and found", 2, things.size());
     }
 
     @Test
     @Transactional
     public void testFindAllSubThings() {
-        Collection<SubThing> things = IteratorUtil.asCollection(nodeTypeRepresentationStrategy.findAll(SubThing.class));
-        assertEquals("one thing created and found", Collections.<SubThing>singleton(subThing), new HashSet<SubThing>(things));
+        Collection<Node> things = IteratorUtil.asCollection(nodeTypeRepresentationStrategy.findAll(SubThing.class));
+        assertEquals("one thing created and found", 1,things.size());
+        assertEquals("one thing created and found", entityStateHandler.<Node>getPersistentState(subThing), IteratorUtil.first(things));
     }
 
     @Test
@@ -171,7 +173,7 @@ public class SubReferenceNodeTypeRepresentationStrategyTest extends EntityTestBa
 	@Transactional
 	public void testInstantiateConcreteClassWithFinder() {
 		log.debug("testInstantiateConcreteClassWithFinder");
-        Volvo v = persist(new Volvo());
+        persist(new Volvo());
         GraphRepository<Car> finder = neo4jTemplate.repositoryFor(Car.class);
 		assertEquals("Wrong concrete class.", Volvo.class, finder.findAll().iterator().next().getClass());
 	}
@@ -200,21 +202,21 @@ public class SubReferenceNodeTypeRepresentationStrategyTest extends EntityTestBa
 	@Test
 	@Transactional
 	public void testCreateEntityAndInferType() throws Exception {
-        Thing newThing = nodeTypeRepresentationStrategy.createEntity(node(thing));
+        Thing newThing = neo4jTemplate.createEntityFromStoredType(node(thing));
         assertEquals(thing, newThing);
     }
 
 	@Test
 	@Transactional
 	public void testCreateEntityAndSpecifyType() throws Exception {
-        Thing newThing = nodeTypeRepresentationStrategy.createEntity(node(subThing), Thing.class);
+        Thing newThing = neo4jTemplate.createEntityFromState(node(subThing), Thing.class);
         assertEquals(subThing, newThing);
     }
 
     @Test
     @Transactional
 	public void testProjectEntity() throws Exception {
-        Unrelated other = nodeTypeRepresentationStrategy.projectEntity(node(thing), Unrelated.class);
+        Unrelated other = neo4jTemplate.projectTo(thing, Unrelated.class);
         assertEquals("thing", other.getName());
 	}
 

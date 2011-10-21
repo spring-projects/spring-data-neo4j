@@ -46,7 +46,7 @@ public interface TypeRepresentationStrategy<S extends PropertyContainer> {
      * @param clazz Type whose instances should be iterated over
      * @return lazy Iterable over all instances of the given type
      */
-    <U> ClosableIterable<U> findAll(final Class<U> clazz);
+    <U> ClosableIterable<S> findAll(final Class<U> clazz);
 
     /**
      * @param entityClass
@@ -67,38 +67,4 @@ public interface TypeRepresentationStrategy<S extends PropertyContainer> {
      * @param state Backing state of entity being removed
      */
     void preEntityRemoval(S state);
-
-    /**
-     * Instantiate the entity given its state. The type of the entity is inferred by the strategy
-     * from the state.
-     *
-     * @param state Backing state of entity to be instantiated
-     * @param <U> Helper parameter for castless use
-     * @throws IllegalStateException If the strategy is unable to infer any type from the state
-     * @return Entity instance
-     */
-    <U> U createEntity(S state) throws IllegalStateException;
-
-    /**
-     * Instantiate the entity given its state. The type of the desired entity is also specified.
-     * If the type is not compatible with what the strategy can infer from the state,
-     * {@link java.lang.IllegalArgumentException} is thrown.
-     *
-     * @param state Backing state of entity to be instantiated
-     * @param type Type of entity to be instantiated
-     * @throws IllegalStateException If the strategy is unable to infer any type from the state
-     * @throws IllegalArgumentException If the specified type does not match the inferred type
-     * @return Entity instance
-     */
-    <U> U createEntity(S state, Class<U> type) throws IllegalStateException, IllegalArgumentException;
-
-    /**
-     * Instantiate the entity of the given type, with the given state as backing state. No checking
-     * is done by the strategy.
-     *
-     * @param state Backing state of entity to be instantiated
-     * @param type Type of entity to be instantiated
-     * @return Entity instance.
-     */
-    <U> U projectEntity(S state, Class<U> type);
 }

@@ -16,42 +16,33 @@
 
 package org.springframework.data.neo4j.support.typerepresentation;
 
-import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.index.Index;
 import org.neo4j.graphdb.index.IndexHits;
-import org.neo4j.helpers.Predicate;
 import org.neo4j.helpers.collection.ClosableIterable;
-import org.neo4j.helpers.collection.FilteringIterable;
-import org.neo4j.helpers.collection.IterableWrapper;
 import org.springframework.data.neo4j.annotation.NodeEntity;
+import org.springframework.data.neo4j.core.GraphDatabase;
 import org.springframework.data.neo4j.core.NodeTypeRepresentationStrategy;
-import org.springframework.data.neo4j.mapping.EntityInstantiator;
+import org.springframework.data.neo4j.support.index.ClosableIndexHits;
+import org.springframework.data.neo4j.support.index.IndexType;
 
 public class IndexingNodeTypeRepresentationStrategy implements NodeTypeRepresentationStrategy {
 
     public static final String INDEX_NAME = "__types__";
     public static final String TYPE_PROPERTY_NAME = "__type__";
     public static final String INDEX_KEY = "className";
-    private EntityInstantiator<Node> graphEntityInstantiator;
-    private GraphDatabaseService graphDb;
+    private GraphDatabase graphDb;
     private final EntityTypeCache typeCache;
 
-    public IndexingNodeTypeRepresentationStrategy(GraphDatabaseService graphDb,
-                                                  EntityInstantiator<Node> graphEntityInstantiator) {
+    public IndexingNodeTypeRepresentationStrategy(GraphDatabase graphDb) {
 		this.graphDb = graphDb;
-		this.graphEntityInstantiator = graphEntityInstantiator;
         typeCache = new EntityTypeCache();
     }
 
 	private Index<Node> getNodeTypesIndex() {
-		return graphDb.index().forNodes(INDEX_NAME);
+        return graphDb.createIndex(Node.class,INDEX_NAME, IndexType.SIMPLE);
 	}
 
-	private Index<Relationship> getRelTypesIndex() {
-		return graphDb.index().forRelationships(INDEX_NAME);
-	}
 
 	@Override
 	public void postEntityCreation(Node state, Class<?> type) {
@@ -68,13 +59,13 @@ public class IndexingNodeTypeRepresentationStrategy implements NodeTypeRepresent
 	}
 
     @Override
-    public <U> ClosableIterable<U> findAll(Class<U> clazz) {
-        return findAllNodeEntity(clazz);
+    public <U> ClosableIterable<Node> findAll(Class<U> clazz) {
+        return findAllNodeBacked(clazz);
     }
 
-    private <Object> ClosableIterable<Object> findAllNodeEntity(Class<Object> clazz) {
+    private <Object> ClosableIterable<Node> findAllNodeBacked(Class<Object> clazz) {
 		final IndexHits<Node> allEntitiesOfType = getNodeTypesIndex().get(INDEX_KEY, clazz.getName());
-        return new FilteringClosableIterable<Object>(allEntitiesOfType);
+        return new ClosableIndexHits<Node>(allEntitiesOfType);
 	}
 
     @Override
@@ -99,58 +90,4 @@ public class IndexingNodeTypeRepresentationStrategy implements NodeTypeRepresent
         getNodeTypesIndex().remove(state);
 	}
 
-    @Override
-    @SuppressWarnings("unchecked")
-    public <U> U createEntity(Node state) {
-        Class<?> javaType = getJavaType(state);
-        if (javaType == null) {
-            throw new IllegalStateException("No type stored on node.");
-        }
-        return (U) graphEntityInstantiator.createEntityFromState(state, javaType);
-    }
-
-    @Override
-    @SuppressWarnings("unchecked")
-    public <U> U createEntity(Node state, Class<U> type) {
-        Class<?> javaType = getJavaType(state);
-        if (javaType == null) {
-            throw new IllegalStateException("No type stored on node.");
-        }
-        if (type.isAssignableFrom(javaType)) {
-            return (U) graphEntityInstantiator.createEntityFromState(state, javaType);
-        }
-        throw new IllegalArgumentException(String.format("Entity is not of type: %s (was %s)", type, javaType));
-    }
-
-    @Override
-    public <U> U projectEntity(Node state, Class<U> type) {
-        return graphEntityInstantiator.createEntityFromState(state, type);
-    }
-
-    private class FilteringClosableIterable<Object> extends FilteringIterable<Object> implements ClosableIterable<Object> {
-        private final IndexHits<Node> indexHits;
-
-        public FilteringClosableIterable(IndexHits<Node> indexHits) {
-            super(new IterableWrapper<Object, Node>(indexHits) {
-                        @Override
-                        @SuppressWarnings("unchecked")
-                        protected Object underlyingObjectToObject(Node node) {
-                            Class<Object> javaType = (Class<Object>) getJavaType(node);
-                            if (javaType == null) return null;
-                            return graphEntityInstantiator.createEntityFromState(node, javaType);
-                        }
-                    }, new Predicate<Object>() {
-                        @Override
-                        public boolean accept(Object item) {
-                            return item != null;
-                        }
-                    });
-            this.indexHits = indexHits;
-        }
-
-        @Override
-        public void close() {
-            indexHits.close();
-        }
-    }
 }

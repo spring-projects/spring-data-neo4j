@@ -238,6 +238,10 @@ public class DelegatingGraphDatabase implements GraphDatabase {
         return delegate.getReferenceNode();
     }
 
+    public GraphDatabaseService getGraphDatabaseService() {
+        return delegate;
+    }
+
     private static class FailingQueryEngine<T> implements QueryEngine<T> {
         private String dependency;
 

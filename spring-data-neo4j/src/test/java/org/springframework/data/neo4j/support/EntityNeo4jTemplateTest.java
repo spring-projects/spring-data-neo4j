@@ -52,6 +52,7 @@ import java.util.Map;
 import static org.junit.Assert.*;
 import static org.neo4j.graphdb.Direction.OUTGOING;
 import static org.neo4j.helpers.collection.IteratorUtil.asCollection;
+import static org.neo4j.helpers.collection.IteratorUtil.first;
 import static org.neo4j.helpers.collection.MapUtil.map;
 
 /**
@@ -67,6 +68,7 @@ public class EntityNeo4jTemplateTest extends EntityTestBase {
     @Autowired
     PlatformTransactionManager transactionManager;
     private Neo4jOperations neo4jOperations;
+
     @Before
     public void setUp() throws Exception {
         createTeam();
@@ -129,14 +131,15 @@ public class EntityNeo4jTemplateTest extends EntityTestBase {
     public void testFindOne() throws Exception {
         
         final Person found = neo4jOperations.findOne(testTeam.michael.getId(), Person.class);
-        assertEquals(found.getId(),testTeam.michael.getId());
+        assertEquals(testTeam.michael.getId(), found.getId());
+        assertEquals(testTeam.michael.getName(), found.getName());
     }
 
     @Test @Transactional
     public void testFindAll() throws Exception {
-        
         final Collection<Person> people = asCollection(neo4jOperations.findAll(Person.class));
         assertEquals(3,people.size());
+        assertNotNull("people attributes where loaded",first(people).getName());
     }
 
     @Test @Transactional

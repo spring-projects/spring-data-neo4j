@@ -11,6 +11,12 @@
     <context:annotation-config/>
     <neo4j:config graphDatabaseService="graphDatabaseService"/>
     <neo4j:repositories base-package="org.springframework.data.neo4j.repository"/>
-    <bean id="graphDatabaseService" class="org.neo4j.test.ImpermanentGraphDatabase" destroy-method="shutdown"/>
+    <bean id="graphDatabaseService" class="org.neo4j.test.ImpermanentGraphDatabase" destroy-method="shutdown">
+        <constructor-arg>
+            <map>
+                <entry key="enable_shell"><value>true</value></entry>
+            </map>
+        </constructor-arg>
+    </bean>
     
 </beans>
