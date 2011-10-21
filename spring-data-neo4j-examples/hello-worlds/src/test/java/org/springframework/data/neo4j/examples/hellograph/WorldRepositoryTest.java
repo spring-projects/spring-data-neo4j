@@ -3,7 +3,6 @@ package org.springframework.data.neo4j.examples.hellograph;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.neo4j.aspects.core.NodeBacked;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
 import org.springframework.data.neo4j.support.node.Neo4jHelper;
 import org.springframework.test.annotation.Rollback;
@@ -47,7 +46,7 @@ public class WorldRepositoryTest
     public void shouldAllowDirectWorldCreation()
     {
         assertEquals(0, (long) galaxy.count());
-        World myWorld = new World( "mine", 0 ).persist();
+        World myWorld = galaxy.save(new World( "mine", 0 ));
         assertEquals(1, (long) galaxy.count());
         Iterable<World> foundWorlds = galaxy.findAll();
         World mine = foundWorlds.iterator().next();
@@ -67,15 +66,6 @@ public class WorldRepositoryTest
     {
         galaxy.makeSomeWorlds();
         assertEquals(13, (long) galaxy.count());
-    }
-
-    @Test
-    public void shouldFindWorldsById()
-    {
-        for ( World w : galaxy.makeSomeWorlds() )
-        {
-            assertNotNull(galaxy.findOne(((NodeBacked) w).getNodeId()));
-        }
     }
 
     @Test

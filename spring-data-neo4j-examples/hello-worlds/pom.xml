@@ -95,7 +95,7 @@
     </dependency>
     <dependency>
       <groupId>org.springframework.data</groupId>
-      <artifactId>spring-data-neo4j-aspects</artifactId>
+      <artifactId>spring-data-neo4j</artifactId>
       <version>${spring-data-neo4j.version}</version>
     </dependency>
     <dependency>
@@ -118,8 +118,9 @@
         </configuration>
       </plugin>
 
+      <!--
       <plugin>
-        <!-- required to resolve aspectj-enhanced class features -->
+        < ! - - required to resolve aspectj-enhanced class features - - >
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>aspectj-maven-plugin</artifactId>
         <version>1.2</version>
@@ -159,6 +160,7 @@
           </dependency>
         </dependencies>
       </plugin>
+      -->
 
       <plugin>
         <!-- IntelliJ Idea Support -->

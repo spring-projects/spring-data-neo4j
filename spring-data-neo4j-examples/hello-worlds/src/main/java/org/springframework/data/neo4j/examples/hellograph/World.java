@@ -2,9 +2,11 @@ package org.springframework.data.neo4j.examples.hellograph;
 
 
 import org.neo4j.graphdb.Direction;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.neo4j.annotation.Indexed;
 import org.springframework.data.neo4j.annotation.NodeEntity;
 import org.springframework.data.neo4j.annotation.RelatedTo;
+import org.springframework.data.neo4j.support.Neo4jTemplate;
 
 import java.util.Set;
 
@@ -16,6 +18,10 @@ import java.util.Set;
 @NodeEntity
 public class World
 {
+	@Autowired Neo4jTemplate template;
+	
+    @Autowired private WorldRepository worldRepository;
+    
     @Indexed
     private String name;
 
@@ -53,7 +59,7 @@ public class World
 
     public void addRocketRouteTo( World otherWorld )
     {
-        relateTo( otherWorld, RelationshipTypes.REACHABLE_BY_ROCKET );
+    	template.createRelationshipBetween(this, otherWorld, null, RelationshipTypes.REACHABLE_BY_ROCKET, false);
     }
 
     public boolean canBeReachedFrom( World otherWorld )
