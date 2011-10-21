@@ -13,8 +13,8 @@ import org.springframework.data.neo4j.repository.NamedIndexRepository;
  */
 public interface MovieRepository extends GraphRepository<Movie>, NamedIndexRepository<Movie> {
 
-    @Query("START movie=node({0}) MATCH movie-[rating?:rating]->() RETURN movie, AVG(rating)")
-    MovieData getMovieData(Long movieId);
+    @Query("START movie=node:Movie(id={_0}) MATCH movie-[rating?:rating]->() RETURN movie, AVG(rating)")
+    MovieData getMovieData(String movieId);
 
     @MapResult
     interface MovieData {

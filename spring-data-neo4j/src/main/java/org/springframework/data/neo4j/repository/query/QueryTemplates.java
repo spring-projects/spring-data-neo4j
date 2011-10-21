@@ -23,11 +23,11 @@ import org.springframework.data.neo4j.mapping.RelationshipInfo;
  * 
  * @author Oliver Gierke
  */
-abstract class QueryTemplates {
+public abstract class QueryTemplates {
 
-    static final String PARAMETER = "_%d";
+    public static final String PARAMETER = "_%d";
 
-    private static final String PLACEHOLDER = String.format("{%s}", PARAMETER);
+    public static final String PLACEHOLDER = String.format("{%s}", PARAMETER);
     private static final String DIRECTION_INCOMING = "<-[:%s]-";
     private static final String DIRECTION_OUTGOING = "-[:%s]->";
     private static final String DIRECTION_BOTH = "-[:%s]-";
