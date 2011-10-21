@@ -1,5 +1,6 @@
 package org.springframework.data.neo4j.examples.hellograph;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,6 +23,7 @@ import static org.junit.Assert.assertNull;
 @ContextConfiguration(locations = "classpath:spring/helloWorldContext.xml")
 @RunWith(SpringJUnit4ClassRunner.class)
 @Transactional
+@Ignore("TODO ABK")
 public class WorldTest
 {
 
