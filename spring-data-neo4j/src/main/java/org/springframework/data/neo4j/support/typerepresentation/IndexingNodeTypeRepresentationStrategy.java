@@ -69,10 +69,10 @@ public class IndexingNodeTypeRepresentationStrategy implements NodeTypeRepresent
 
     @Override
     public <U> ClosableIterable<U> findAll(Class<U> clazz) {
-        return findAllNodeBacked(clazz);
+        return findAllNodeEntity(clazz);
     }
 
-    private <Object> ClosableIterable<Object> findAllNodeBacked(Class<Object> clazz) {
+    private <Object> ClosableIterable<Object> findAllNodeEntity(Class<Object> clazz) {
 		final IndexHits<Node> allEntitiesOfType = getNodeTypesIndex().get(INDEX_KEY, clazz.getName());
         return new FilteringClosableIterable<Object>(allEntitiesOfType);
 	}

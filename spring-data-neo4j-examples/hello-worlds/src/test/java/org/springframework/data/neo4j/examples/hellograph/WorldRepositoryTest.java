@@ -27,7 +27,6 @@ import static org.junit.internal.matchers.StringContains.containsString;
 @ContextConfiguration(locations = "classpath:spring/helloWorldContext.xml")
 @RunWith(SpringJUnit4ClassRunner.class)
 @Transactional
-@Ignore("TODO ABK")
 public class WorldRepositoryTest
 {
 
@@ -47,9 +46,9 @@ public class WorldRepositoryTest
     @Test
     public void shouldAllowDirectWorldCreation()
     {
-        assertEquals(0, (long) galaxy.count());
+//        assertEquals(0, (long) template.count(World.class));
         World myWorld = galaxy.save(new World( "mine", 0 ));
-        assertEquals(1, (long) galaxy.count());
+        assertEquals(1, (long) template.count(World.class));
         Iterable<World> foundWorlds = galaxy.findAll();
         World mine = foundWorlds.iterator().next();
         assertEquals(myWorld.getName(), mine.getName());

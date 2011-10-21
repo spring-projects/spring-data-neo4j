@@ -22,7 +22,7 @@ import org.springframework.data.neo4j.support.mapping.EntityStateHandler;
 
 
 /**
- * Implementation of an entity instantiator for neo4j graphdb nodes, binding the entity type to a NodeBacked and the
+ * Implementation of an entity instantiator for neo4j graphdb nodes, binding the entity type to a @NodeEntity pojo and the
  * underlying state to a neo4j {@link Node}.
  * Part of the SPI, not intended for public use.
  * 

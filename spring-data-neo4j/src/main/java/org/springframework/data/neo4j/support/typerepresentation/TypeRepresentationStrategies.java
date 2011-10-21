@@ -46,7 +46,7 @@ public class TypeRepresentationStrategies implements TypeRepresentationStrategy<
         } else if (mappingContext.isRelationshipEntity(type)) {
             return (TypeRepresentationStrategy<?>) relationshipTypeRepresentationStrategy;
         }
-        throw new IllegalArgumentException("Type is not NodeBacked nor RelationshipBacked.");
+        throw new IllegalArgumentException("Type is not @NodeEntity nor @RelationshipEntity.");
     }
 
     @SuppressWarnings("unchecked")
@@ -56,7 +56,7 @@ public class TypeRepresentationStrategies implements TypeRepresentationStrategy<
         } else if (state instanceof Relationship && mappingContext.isRelationshipEntity(type)) {
             return (TypeRepresentationStrategy<S>) relationshipTypeRepresentationStrategy;
         }
-        throw new IllegalArgumentException("Type " + type + " is not NodeBacked nor RelationshipBacked.");
+        throw new IllegalArgumentException("Type is not @NodeEntity nor @RelationshipEntity.");
     }
 
     @SuppressWarnings("unchecked")
@@ -66,7 +66,7 @@ public class TypeRepresentationStrategies implements TypeRepresentationStrategy<
         } else if (state instanceof Relationship) {
             return (TypeRepresentationStrategy<S>) relationshipTypeRepresentationStrategy;
         }
-        throw new IllegalArgumentException("Type is not NodeBacked nor RelationshipBacked.");
+        throw new IllegalArgumentException("Type is not @NodeEntity nor @RelationshipEntity.");
     }
 
     @Override

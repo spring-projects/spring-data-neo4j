@@ -3,6 +3,7 @@ package org.springframework.data.neo4j.examples.hellograph;
 
 import org.neo4j.graphdb.Direction;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.neo4j.annotation.GraphId;
 import org.springframework.data.neo4j.annotation.Indexed;
 import org.springframework.data.neo4j.annotation.NodeEntity;
 import org.springframework.data.neo4j.annotation.RelatedTo;
@@ -16,11 +17,13 @@ import java.util.Set;
  * This is the initial POJO in the Universe.
  */
 @NodeEntity
-public class World
+public class World 
 {
 	@Autowired Neo4jTemplate template;
 	
     @Autowired private WorldRepository worldRepository;
+    
+    @GraphId Long id;
     
     @Indexed
     private String name;

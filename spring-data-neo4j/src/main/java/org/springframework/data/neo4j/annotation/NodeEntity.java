@@ -19,8 +19,8 @@ package org.springframework.data.neo4j.annotation;
 import java.lang.annotation.*;
 
 /**
- * Annotation to declare an Pojo-Entity as graph backed. It is used by the {@link org.springframework.data.neo4j.support.node.Neo4jNodeBacking} aspect to
- * introduce constructor and field advices as well as add the {@link org.springframework.data.neo4j.core.NodeBacked} interface.
+ * Annotation to declare an Pojo-Entity as graph backed.
+ * 
  * @author Michael Hunger
  * @since 27.08.2010
  */
