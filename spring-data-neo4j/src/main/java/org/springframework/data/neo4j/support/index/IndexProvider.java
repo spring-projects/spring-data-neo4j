@@ -99,6 +99,11 @@ public class IndexProvider {
         final Class<?> declaringType = property.getOwner().getType();
         final String providedIndexName = indexedAnnotation.indexName().isEmpty() ? null : indexedAnnotation.indexName();
         String indexName = Indexed.Name.get(indexedAnnotation.level(), declaringType, providedIndexName, instanceType);
+        if (property.getIndexInfo().getIndexType() == IndexType.SIMPLE) {
+            return getIndex(declaringType, indexName, IndexType.SIMPLE);
+        }
+        String defaultIndexName = Indexed.Name.get(indexedAnnotation.level(), declaringType, null, instanceType.getClass());
+        if (providedIndexName==null || providedIndexName.equals(defaultIndexName)) throw new IllegalStateException("Index name for "+property+" must differ from the default name: "+defaultIndexName);
         return getIndex(declaringType, indexName, property.getIndexInfo().getIndexType());
     }
 }

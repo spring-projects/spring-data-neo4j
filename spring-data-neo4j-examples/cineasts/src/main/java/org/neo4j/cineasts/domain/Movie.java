@@ -6,6 +6,7 @@ import org.springframework.data.neo4j.annotation.NodeEntity;
 import org.springframework.data.neo4j.annotation.RelatedTo;
 import org.springframework.data.neo4j.annotation.RelatedToVia;
 import org.springframework.data.neo4j.annotation.Indexed;
+import org.springframework.data.neo4j.support.index.IndexType;
 
 import java.util.*;
 
@@ -22,7 +23,7 @@ public class Movie {
     @Indexed
     String id;
 
-    @Indexed(fulltext = true, indexName = "search")
+    @Indexed(indexType=IndexType.FULLTEXT, indexName = "search")
     String title;
 
     String description;

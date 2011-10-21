@@ -21,7 +21,6 @@ import org.junit.BeforeClass;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.neo4j.aspects.support.query.GremlinQueryEngineTest;
-import org.springframework.data.neo4j.aspects.support.query.QueryEngineTest;
 import org.springframework.data.neo4j.core.GraphDatabase;
 import org.springframework.data.neo4j.rest.SpringRestGraphDatabase;
 import org.springframework.test.context.CleanContextCacheTestExecutionListener;

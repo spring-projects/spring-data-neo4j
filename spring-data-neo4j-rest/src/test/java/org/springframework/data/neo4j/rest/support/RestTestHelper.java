@@ -17,12 +17,11 @@
 package org.springframework.data.neo4j.rest.support;
 
 
+import java.net.URISyntaxException;
+
 import org.apache.log4j.BasicConfigurator;
 import org.springframework.data.neo4j.core.GraphDatabase;
 import org.springframework.data.neo4j.rest.SpringRestGraphDatabase;
-
-import java.net.URI;
-import java.net.URISyntaxException;
 
 public class RestTestHelper
 {

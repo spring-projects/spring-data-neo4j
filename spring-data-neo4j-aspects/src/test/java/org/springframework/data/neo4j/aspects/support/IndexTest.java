@@ -16,7 +16,18 @@
 
 package org.springframework.data.neo4j.aspects.support;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
+import static org.springframework.data.neo4j.aspects.Person.NAME_INDEX;
+import static org.springframework.data.neo4j.aspects.Person.persistedPerson;
+
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashSet;
+
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.neo4j.graphdb.DynamicRelationshipType;
@@ -36,14 +47,6 @@ import org.springframework.data.neo4j.support.index.IndexType;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashSet;
-
-import static org.junit.Assert.*;
-import static org.springframework.data.neo4j.aspects.Person.NAME_INDEX;
-import static org.springframework.data.neo4j.aspects.Person.persistedPerson;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = {"classpath:org/springframework/data/neo4j/aspects/support/Neo4jGraphPersistenceTest-context.xml"})
@@ -151,6 +154,12 @@ public class IndexTest extends EntityTestBase {
         @Indexed(indexType=IndexType.FULLTEXT, indexName = "InvalidIndexed")
         String fullTextDefaultIndexName;
 
+        @Indexed(indexType=IndexType.POINT, indexName = "InvalidIndexed")
+        double[] latlon;
+
+        @Indexed(indexType=IndexType.POINT)
+        double[] latlonNoIndexName;
+
         public void setFulltextNoIndexName(String fulltextNoIndexName) {
             this.fulltextNoIndexName = fulltextNoIndexName;
         }
@@ -159,8 +168,56 @@ public class IndexTest extends EntityTestBase {
             this.fullTextDefaultIndexName = fullTextDefaultIndexName;
         }
     }
+    
+    @NodeEntity
+    static class InvalidSpatialIndexed {
 
+        @Indexed(indexType=IndexType.POINT, indexName = "InvalidSpatialIndexed")
+        double[] latlon;
 
+        @Indexed(indexType=IndexType.POINT)
+        double[] latlonNoIndexName;
+
+        @Indexed(indexType=IndexType.POINT, indexName = "pointLayer")
+        double[] latlonValid;
+        
+        public void setLatlonNoIndexName(double[] latlonNoIndexName) {
+            this.latlonNoIndexName = latlonNoIndexName;
+        }
+
+        public void setLatlon(double[] latlon) {
+            this.latlon = latlon;
+        }
+        public void setLatlonValid(double[] latlonValid) {
+            this.latlonValid = latlonValid;
+        }
+    }
+
+    @Test(expected = IllegalStateException.class)
+    @Transactional
+    public void indexAccessWithFullAndNoSpatialIndexNameShouldFail() {
+        InvalidSpatialIndexed invalidIndexed = persist(new InvalidSpatialIndexed());
+        double[] latlon = {15.0,65};
+        invalidIndexed.setLatlonNoIndexName(latlon);
+    }
+    
+    @Test(expected = IllegalStateException.class)
+    @Transactional
+    public void indexAccessWithDefaultSpatialIndexNameShouldFail() {
+        InvalidSpatialIndexed invalidIndexed = persist(new InvalidSpatialIndexed());
+        double[] latlon = {15.0,65};
+        invalidIndexed.setLatlon( latlon);
+    }
+    
+    @Test
+    @Ignore
+    @Transactional
+    public void indexAccessWithValidSpatialIndexName() {
+        InvalidSpatialIndexed invalidIndexed = persist(new InvalidSpatialIndexed());
+        double[] latlon = {15.0,65};
+        invalidIndexed.setLatlonValid( latlon);
+    }
+    
     @Test(expected = IllegalStateException.class)
     @Transactional
     public void indexAccessWithFullAndNoIndexNameShouldFail() {

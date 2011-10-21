@@ -23,7 +23,6 @@ import org.junit.Ignore;
 import org.junit.runner.RunWith;
 import org.springframework.data.neo4j.aspects.support.NodeEntityTest;
 import org.springframework.data.neo4j.rest.support.RestTestBase;
-import org.springframework.data.neo4j.rest.support.RestTestBase;
 import org.springframework.test.context.CleanContextCacheTestExecutionListener;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestExecutionListeners;

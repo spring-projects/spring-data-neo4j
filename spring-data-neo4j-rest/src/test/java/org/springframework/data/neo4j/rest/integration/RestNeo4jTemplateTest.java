@@ -18,9 +18,8 @@ package org.springframework.data.neo4j.rest.integration;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
-import org.springframework.data.neo4j.rest.support.RestTestHelper;
-import org.springframework.data.neo4j.rest.support.RestTestHelper;
 import org.springframework.data.neo4j.core.GraphDatabase;
+import org.springframework.data.neo4j.rest.support.RestTestHelper;
 import org.springframework.data.neo4j.template.Neo4jTemplateTest;
 import org.springframework.transaction.PlatformTransactionManager;
 
