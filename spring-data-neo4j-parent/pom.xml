@@ -407,12 +407,12 @@
           <version>${neo4j.version}</version>
           <optional>true</optional>
       </dependency>
-      <dependency>
+      <!--dependency>
           <groupId>org.neo4j</groupId>
           <artifactId>neo4j-spatial</artifactId>
           <version>${neo4j.spatial.version}</version>
           <optional>true</optional>
-      </dependency>
+      </dependency-->
       <dependency>
         <groupId>commons-configuration</groupId>
         <artifactId>commons-configuration</artifactId>

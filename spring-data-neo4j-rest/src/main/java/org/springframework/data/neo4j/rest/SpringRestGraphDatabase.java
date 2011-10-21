@@ -32,6 +32,7 @@ import org.springframework.data.neo4j.annotation.QueryType;
 import org.springframework.data.neo4j.conversion.DefaultConverter;
 import org.springframework.data.neo4j.conversion.ResultConverter;
 import org.springframework.data.neo4j.core.GraphDatabase;
+import org.springframework.data.neo4j.support.index.IndexType;
 import org.springframework.data.neo4j.support.index.NoSuchIndexException;
 import org.springframework.data.neo4j.support.query.ConversionServiceQueryResultConverter;
 import org.springframework.data.neo4j.support.query.QueryEngine;
@@ -79,7 +80,7 @@ public class SpringRestGraphDatabase extends org.neo4j.rest.graphdb.RestGraphDat
 
     @Override
     public <T extends PropertyContainer> Index<T> createIndex(Class<T> type, String indexName, org.springframework.data.neo4j.support.index.IndexType indexType) {
-       return super.getRestAPI().createIndex(type, indexName, indexType.getConfig());
+       return super.getRestAPI().createIndex(type, indexName, indexType == IndexType.FULLTEXT);
     }
 
     @Override
