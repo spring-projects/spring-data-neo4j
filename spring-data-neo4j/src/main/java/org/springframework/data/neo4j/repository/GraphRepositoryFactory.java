@@ -17,7 +17,6 @@
 package org.springframework.data.neo4j.repository;
 
 import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.PropertyContainer;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.helpers.collection.IteratorUtil;
 import org.springframework.data.domain.PageImpl;
@@ -182,12 +181,13 @@ public class GraphRepositoryFactory extends RepositoryFactorySupport {
             return queryString;
         }
 
-
         private Map<String, Object> resolveParams(Object[] parameters, Neo4jTemplate template) {
-            Map<String,Object> params=new HashMap<String, Object>();
+            Map<String, Object> params = new HashMap<String, Object>();
             for (Parameter parameter : getParameters().getBindableParameters()) {
                 final Object value = parameters[parameter.getIndex()];
-                params.put(parameter.getName(),resolveParameter(value, template));
+                final String parameterName = parameter.getName();
+                if (parameterName != null) params.put(parameterName, resolveParameter(value, template));
+                else params.put(String.valueOf(parameter.getIndex()), resolveParameter(value, template));
             }
             return params;
         }
@@ -229,12 +229,13 @@ public class GraphRepositoryFactory extends RepositoryFactorySupport {
 
         private Object resolveParameter(Object parameter, Neo4jTemplate template) {
             final Class<?> type = parameter.getClass();
-            final PropertyContainer state = template.getPersistentState(parameter);
             if (template.isNodeEntity(type)) {
-                return ((Node) state).getId();
+                final Node state = template.getPersistentState(parameter);
+                if (state != null) return state.getId();
             }
             if (template.isRelationshipEntity(type)) {
-                return ((Relationship)state).getId();
+                final Relationship state = template.getPersistentState(parameter);
+                if (state != null) return state.getId();
             }
             return parameter;
         }

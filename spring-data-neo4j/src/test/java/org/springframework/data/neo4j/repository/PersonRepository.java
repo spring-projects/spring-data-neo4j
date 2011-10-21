@@ -51,6 +51,9 @@ public interface PersonRepository extends GraphRepository<Person>, NamedIndexRep
     @Query("start person=node({p_person}) match (boss)-[:boss]->(person) return boss")
     Person findBoss(@Param("p_person") Person person);
 
+    @Query("start person=node({p_person}) match (boss)-[:boss]->(person) return boss")
+    Person findBoss(@Param("p_person") Long person);
+
     Group findTeam(@Param("p_person") Person person);
 
     @Query("start team=node({p_team}) match (team)-[:persons]->(member) return member")

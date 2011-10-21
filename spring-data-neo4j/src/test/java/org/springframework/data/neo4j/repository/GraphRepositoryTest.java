@@ -101,6 +101,12 @@ public class GraphRepositoryTest {
     }
 
     @Test
+    public void testFindPersonWithQueryAnnotationUsingLongAsParameter() {
+        Person boss = personRepository.findBoss(testTeam.michael.getId());
+        assertThat(boss, is(testTeam.emil));
+    }
+
+    @Test
     public void shouldBeAbleToTurnQueryResultsToAMapResultInterface() throws Exception {
         MemberData first = personRepository.findMemberData(testTeam.michael).iterator().next();
 
