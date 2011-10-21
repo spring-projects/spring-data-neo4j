@@ -108,20 +108,20 @@ public class EntityNeo4jTemplateTest extends EntityTestBase {
     @Test @Transactional
     public void testGetIndexForNoTypeAndName() throws Exception {
         
-        final Index<PropertyContainer> nameIndex = neo4jOperations.getIndex(null,Person.NAME_INDEX);
+        final Index<PropertyContainer> nameIndex = neo4jOperations.getIndex(Person.NAME_INDEX,null);
         assertEquals(Person.NAME_INDEX,nameIndex.getName());
     }
 
     @Test @Transactional
     public void testGetIndexForTypeAndNoName() throws Exception {
         
-        final Index<PropertyContainer> nameIndex = neo4jOperations.getIndex(Person.class,null);
+        final Index<PropertyContainer> nameIndex = neo4jOperations.getIndex(null,Person.class);
         assertEquals("Person",nameIndex.getName());
     }
     @Test @Transactional
     public void testGetIndexForTypeAndName() throws Exception {
         
-        final Index<PropertyContainer> nameIndex = neo4jOperations.getIndex(Person.class,Person.NAME_INDEX);
+        final Index<PropertyContainer> nameIndex = neo4jOperations.getIndex(Person.NAME_INDEX,Person.class);
         assertEquals(Person.NAME_INDEX, nameIndex.getName());
     }
 

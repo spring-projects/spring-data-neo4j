@@ -133,14 +133,17 @@ public abstract class AbstractGraphRepository<S extends PropertyContainer, T> im
     private IndexHits<S> getIndexHits(String indexName, String property, Object value) {
         if (value instanceof Number) {
             Number number = (Number) value;
-            return getIndex(indexName).query(property, createInclusiveRangeQuery(property, number,number));
+            return getIndex(indexName, property).query(property, createInclusiveRangeQuery(property, number,number));
         }
-        return getIndex(indexName).get(property, value);
+        return getIndex(indexName, property).get(property, value);
     }
 
-    protected ReadableIndex<S> getIndex(String indexName) {
+    protected ReadableIndex<S> getIndex(String indexName, String property) {
         try {
-            return template.getIndex(clazz,indexName);
+            if (indexName!=null) {
+                return template.getIndex(indexName,clazz);
+            }
+            return template.getIndex(clazz,property);
         } catch(NoSuchIndexException nsie) {
             return new NullReadableIndex<S>(nsie.getIndex());
         }
@@ -191,14 +194,14 @@ public abstract class AbstractGraphRepository<S extends PropertyContainer, T> im
      * Index based fulltext / query object finder.
      *
      * @param indexName or null for default index
-     * @param key key of the field to query
+     * @param property property of the field to query
      *@param query lucene query object or query-string  @return Iterable over Entities with this property and value
      */
     @Override
-    public ClosableIterable<T> findAllByQuery(final String indexName, final String key, final Object query) {
+    public ClosableIterable<T> findAllByQuery(final String indexName, final String property, final Object query) {
         return query(indexName, new Query<S>() {
             public IndexHits<S> query(ReadableIndex<S> index) {
-                return getIndex(indexName).query(key, query);
+                return getIndex(indexName, property).query(property, query);
             }
         });
     }
@@ -208,7 +211,7 @@ public abstract class AbstractGraphRepository<S extends PropertyContainer, T> im
     }
     private ClosableIterable<T> query(String indexName, Query<S> query) {
         try {
-            final IndexHits<S> indexHits = query.query(getIndex(indexName));
+            final IndexHits<S> indexHits = query.query(getIndex(indexName, null));
             if (indexHits == null) return emptyClosableIterable();
             return new IndexHitsWrapper(indexHits);
         } catch (NotFoundException e) {

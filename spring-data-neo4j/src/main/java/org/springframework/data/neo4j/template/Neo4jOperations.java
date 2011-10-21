@@ -119,11 +119,18 @@ public interface Neo4jOperations {
 
     /**
      * Retrieves an existing index for the given class and/or name
-     * @param type entity class, might be null
      * @param indexName might be null
+     * @param indexedType entity class, might be null
      * @return Index&lt;Node%gt; or Index&lt;Relationship&gt;
      */
-    <S extends PropertyContainer, T> Index<S> getIndex(Class<T> type, String indexName);
+    <T extends PropertyContainer> Index<T> getIndex(String indexName, Class<?> indexedType);
+
+
+    /**
+     * The index determined by the property of the indexed type is returned, so all the customization
+     * via @Indexed annotations is taken into consideration.
+     */
+    <T extends PropertyContainer> Index<T> getIndex(Class<?> indexedType, String propertyName);
 
     /**
      * Indexes the given field and value for the element.

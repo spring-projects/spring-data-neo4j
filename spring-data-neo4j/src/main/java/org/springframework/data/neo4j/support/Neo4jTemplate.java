@@ -42,6 +42,7 @@ import org.springframework.data.neo4j.mapping.RelationshipResult;
 import org.springframework.data.neo4j.repository.GraphRepository;
 import org.springframework.data.neo4j.repository.NodeGraphRepository;
 import org.springframework.data.neo4j.repository.RelationshipGraphRepository;
+import org.springframework.data.neo4j.support.index.IndexProvider;
 import org.springframework.data.neo4j.support.mapping.EntityStateHandler;
 import org.springframework.data.neo4j.support.mapping.Neo4jPersistentEntityImpl;
 import org.springframework.data.neo4j.support.query.QueryEngine;
@@ -113,21 +114,16 @@ public class Neo4jTemplate implements Neo4jOperations, EntityPersister {
 
     public <S extends PropertyContainer, T> Index<S> getIndex(Class<T> type) {
         notNull(type, "entity type");
-        return infrastructure.getIndexProvider().getIndex(type, null);
+        return getIndexProvider().getIndex(type, null);
     }
 
     public <S extends PropertyContainer> Index<S> getIndex(String name) {
         notNull(name, "index name");
-        return infrastructure.getIndexProvider().getIndex(null, name);
-    }
-
-    @Override
-    public <S extends PropertyContainer, T> Index<S> getIndex(Class<T> type, String indexName) {
-        return infrastructure.getIndexProvider().getIndex(type, indexName, null);
+        return getIndexProvider().getIndex(null, name);
     }
 
     public <S extends PropertyContainer, T> Index<S> getIndex(Class<T> type, String indexName, IndexType indexType) {
-        return infrastructure.getIndexProvider().getIndex(type, indexName, indexType);
+        return getIndexProvider().getIndex(type, indexName, indexType);
     }
 
     /**
@@ -487,7 +483,7 @@ public class Neo4jTemplate implements Neo4jOperations, EntityPersister {
     public <T extends PropertyContainer> Result<T> lookup(String indexName, String field, Object value) {
         notNull(field, "field", value, "value", indexName, "index name");
         try {
-            Index<T> index = getIndex(null, indexName);
+            Index<T> index = getIndex(indexName, null);
             return convert(index.get(field, value));
         } catch (RuntimeException e) {
             throw translateExceptionIfPossible(e);
@@ -499,13 +495,26 @@ public class Neo4jTemplate implements Neo4jOperations, EntityPersister {
         notNull(propertyName, "property name", indexedType, "indexedType",value,"query value");
         try {
 
-            final Neo4jPersistentEntityImpl<?> persistentEntity = getPersistentEntity(indexedType);
-            final Neo4jPersistentProperty property = persistentEntity.getPersistentProperty(propertyName);
-            final Index<T> index = infrastructure.getIndexProvider().getIndex(property, indexedType);
+            final Index<T> index = getIndex(indexedType, propertyName);
             return convert(index.query(propertyName, value));
         } catch (RuntimeException e) {
             throw translateExceptionIfPossible(e);
         }
+    }
+
+    public <T extends PropertyContainer> Index<T> getIndex(String indexName, Class<?> indexedType) {
+        return getIndexProvider().getIndex(indexedType,indexName);
+    }
+
+    public <T extends PropertyContainer> Index<T> getIndex(Class<?> indexedType, String propertyName) {
+        final Neo4jPersistentEntityImpl<?> persistentEntity = getPersistentEntity(indexedType);
+        final Neo4jPersistentProperty property = persistentEntity.getPersistentProperty(propertyName);
+        if (property==null) return getIndexProvider().getIndex(indexedType,null);
+        return getIndexProvider().getIndex(property, indexedType);
+    }
+
+    private IndexProvider getIndexProvider() {
+        return infrastructure.getIndexProvider();
     }
 
     private Neo4jPersistentEntityImpl<?> getPersistentEntity(Class<?> type) {
@@ -516,7 +525,7 @@ public class Neo4jTemplate implements Neo4jOperations, EntityPersister {
     public <T extends PropertyContainer> Result<T> lookup(String indexName, Object query) {
         notNull(query, "valueOrQueryObject", indexName, "indexName");
         try {
-            Index<T> index = getIndex(null, indexName);
+            Index<T> index = getIndex(indexName, null);
             return convert(index.query(query));
         } catch (RuntimeException e) {
             throw translateExceptionIfPossible(e);
@@ -558,9 +567,9 @@ public class Neo4jTemplate implements Neo4jOperations, EntityPersister {
     }
 
     public String getIndexKey(Neo4jPersistentProperty property) {
-        return infrastructure.getIndexProvider().getIndexKey(property);
+        return getIndexProvider().getIndexKey(property);
     }
     public <S extends PropertyContainer> Index<S> getIndex(Neo4jPersistentProperty property, final Class<?> instanceType) {
-        return infrastructure.getIndexProvider().getIndex(property, instanceType);
+        return getIndexProvider().getIndex(property, instanceType);
     }
 }

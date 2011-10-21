@@ -97,12 +97,13 @@ public class IndexProvider {
     public <S extends PropertyContainer> Index<S> getIndex(Neo4jPersistentProperty property, final Class<?> instanceType) {
         final Indexed indexedAnnotation = property.getAnnotation(Indexed.class);
         final Class<?> declaringType = property.getOwner().getType();
-        final String providedIndexName = indexedAnnotation.indexName().isEmpty() ? null : indexedAnnotation.indexName();
-        String indexName = Indexed.Name.get(indexedAnnotation.level(), declaringType, providedIndexName, instanceType);
-        if (property.getIndexInfo().getIndexType() == IndexType.SIMPLE) {
+        final String providedIndexName = indexedAnnotation==null || indexedAnnotation.indexName().isEmpty() ? null : indexedAnnotation.indexName();
+        final Indexed.Level level = indexedAnnotation == null ? Indexed.Level.CLASS : indexedAnnotation.level();
+        String indexName = Indexed.Name.get(level, declaringType, providedIndexName, instanceType);
+        if (!property.isIndexed() || property.getIndexInfo().getIndexType() == IndexType.SIMPLE) {
             return getIndex(declaringType, indexName, IndexType.SIMPLE);
         }
-        String defaultIndexName = Indexed.Name.get(indexedAnnotation.level(), declaringType, null, instanceType.getClass());
+        String defaultIndexName = Indexed.Name.get(level, declaringType, null, instanceType.getClass());
         if (providedIndexName==null || providedIndexName.equals(defaultIndexName)) throw new IllegalStateException("Index name for "+property+" must differ from the default name: "+defaultIndexName);
         return getIndex(declaringType, indexName, property.getIndexInfo().getIndexType());
     }
