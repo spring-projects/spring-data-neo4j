@@ -100,10 +100,11 @@ public class EntityResultConverter<T, R> extends DefaultConverter<T, R> {
             ResultColumn column = method.getAnnotation(ResultColumn.class);
             TypeInformation<?> returnType = ClassTypeInformation.fromReturnTypeOf(method);
             Object columnValue = map.get(column.value());
+            if(columnValue==null) return null;
 
             // If the returned value is a Scala iterable, transform it to a Java iterable first
             Class iterableLikeInterface = implementsInterface("scala.collection.Iterable", columnValue.getClass());
-            if (iterableLikeInterface!=null) { // TODO AN in Cypher
+            if (iterableLikeInterface!=null) {
                 columnValue = transformScalaIterableToJavaIterable(columnValue, iterableLikeInterface);
             }
 

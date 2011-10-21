@@ -4,6 +4,7 @@ import org.neo4j.cineasts.domain.Movie;
 import org.neo4j.cineasts.domain.Person;
 import org.neo4j.cineasts.domain.Rating;
 import org.neo4j.cineasts.domain.User;
+import org.neo4j.cineasts.repository.MovieRepository;
 import org.neo4j.cineasts.service.CineastsRepository;
 import org.neo4j.cineasts.service.CineastsUserDetailsService;
 import org.neo4j.cineasts.service.DatabasePopulator;
@@ -53,19 +54,19 @@ public class MovieController {
         return moviesRepository.getMovie(id);
     }
 
-
     @RequestMapping(value = "/movies/{movieId}", method = RequestMethod.GET, headers = "Accept=text/html")
     public String singleMovieView(final Model model, @PathVariable String movieId) {
         User user = addUser(model);
-        Movie movie = moviesRepository.getMovie(movieId);
+        MovieRepository.MovieData movieData = moviesRepository.getMovieData(Long.valueOf(movieId));
         model.addAttribute("id", movieId);
-        if (movie != null) {
+        if (movieData != null) {
+            Movie movie = movieData.getMovie();
             model.addAttribute("movie", movie);
-            final int stars = movie.getStars();
+            final Integer stars = movieData.getAverageRating();
             model.addAttribute("stars", stars);
             Rating rating = null;
             if (user!=null) rating = movie.getRelationshipTo(user, Rating.class, "RATED");
-            if (rating == null) rating = new Rating().rate(stars,null);
+            if (rating == null) rating = new Rating().rate(stars==null?0:stars,null);
             model.addAttribute("userRating",rating);
         }
         return "/movies/show";
