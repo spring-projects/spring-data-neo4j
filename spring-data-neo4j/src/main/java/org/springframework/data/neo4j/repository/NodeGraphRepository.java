@@ -20,6 +20,7 @@ import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.traversal.TraversalDescription;
 
 import org.springframework.data.neo4j.support.Neo4jTemplate;
+import org.springframework.transaction.annotation.Transactional;
 
 public class NodeGraphRepository<T> extends AbstractGraphRepository<Node, T> implements GraphRepository<T> {
 

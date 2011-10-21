@@ -13,10 +13,14 @@
         <ulink url="http://docs.neo4j.org/chunked/snapshot/indexing.html">index nodes and relationships</ulink>
         by {key, value} pairs. We also found that we could traverse relationships both imperatively using
         the core API, and declaratively using a query-like
-        <ulink url="http://wiki.neo4j.org/content/Traversal_Framework">Traversal Description</ulink>.
+        <ulink url="http://wiki.neo4j.org/content/Traversal_Framework">Traversal Description</ulink>. Besides
+        those programmatic traversals there was the new and shiny query language called "Cypher" and an interesting
+        looking DSL named Gremlin. So lots of ways of working with the graph.
     </para>
     <para>
-        We also learned that Neo4j is fully transactional and therefore upholds <ulink url="http://en.wikipedia.org/wiki/ACID">ACID</ulink> guarantees for our data.
+        We also learned that Neo4j is fully transactional and therefore upholds
+        <ulink url="http://en.wikipedia.org/wiki/ACID">ACID</ulink> guarantees for our data.
+        Durability is actually a good thing and we didn't have to scale to trillions of users and movies yet.
         This is unusual for NOSQL databases, but easier for us to get our head around than non-transactional
         eventual consistency. It also made us feel safe, though it also meant that we had to manage transactions.
         Something to keep in mind for later.
@@ -32,7 +36,7 @@
             <programlisting language="xml" ><![CDATA[<dependency>
     <groupId>org.neo4j</groupId>
     <artifactId>neo4j</artifactId>
-    <version>1.3.M05</version>
+    <version>1.5.M02</version>
 </dependency>
 ]]></programlisting>
         </example>
@@ -49,16 +53,17 @@ forrest.setProperty("year",1994);
 gds.index().forNodes("movies").add(forrest,"id",1);
 
 Node tom=gds.createNode();
-tom.setProperty("Tom Hanks");
+tom.setProperty("name","Tom Hanks");
 
 Relationship role=tom.createRelationshipTo(forrest,ACTS_IN);
-role.setProperty("role","Forrest Gump");
+role.setProperty("role","Forrest");
 
 Node movie=gds.index().forNodes("movies").get("id",1).getSingle();
-print(movie.getProperty("title"));
+assertEquals("Forrest Gump", movie.getProperty("title"));
 for (Relationship role : movie.getRelationships(ACTS_IN,INCOMING)) {
     Node actor=role.getOtherNode(movie);
-    print(actor.getProperty("name") +" as " + role.getProperty("role"));
+    assertEquals("Tom Hanks", actor.getProperty("name"));
+    assertEquals("Forrest", role.getProperty("role"));
 }
 ]]></programlisting>
         </example>

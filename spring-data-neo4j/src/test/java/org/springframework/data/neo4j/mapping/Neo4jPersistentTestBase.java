@@ -138,14 +138,14 @@ public class Neo4jPersistentTestBase {
 
     private MappingInfrastructure createInfrastructure(Neo4jMappingContext mappingContext) throws Exception {
         MappingInfrastructure infrastructure = new MappingInfrastructure();
-        final ImpermanentGraphDatabase gdb = new ImpermanentGraphDatabase();
+        final GraphDatabaseService gdb = new ImpermanentGraphDatabase();
         infrastructure.setGraphDatabaseService(gdb);
         final DelegatingGraphDatabase graphDatabase = new DelegatingGraphDatabase(gdb);
         infrastructure.setGraphDatabase(graphDatabase);
         infrastructure.setMappingContext(mappingContext);
         final EntityStateHandler entityStateHandler = new EntityStateHandler(mappingContext, graphDatabase);
-        infrastructure.setNodeTypeRepresentationStrategy(new NoopNodeTypeRepresentationStrategy(new NodeEntityInstantiator(entityStateHandler)));
-        infrastructure.setRelationshipTypeRepresentationStrategy(new NoopRelationshipTypeRepresentationStrategy(new RelationshipEntityInstantiator(entityStateHandler)));
+        infrastructure.setNodeTypeRepresentationStrategy(new NoopNodeTypeRepresentationStrategy());
+        infrastructure.setRelationshipTypeRepresentationStrategy(new NoopRelationshipTypeRepresentationStrategy());
         infrastructure.setConversionService(new Neo4jConversionServiceFactoryBean().getObject());
         infrastructure.setEntityStateHandler(entityStateHandler);
         return infrastructure;

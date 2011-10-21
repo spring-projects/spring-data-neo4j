@@ -71,9 +71,7 @@
     </bean>
 
     <bean id="typeRepresentationStrategyFactory" class="org.springframework.data.neo4j.support.typerepresentation.TypeRepresentationStrategyFactory">
-        <constructor-arg ref="graphDatabaseService"/>
-        <constructor-arg ref="graphEntityInstantiator"/>
-        <constructor-arg ref="relationshipEntityInstantiator"/>
+        <constructor-arg ref="graphDatabase"/>
     </bean>
 
     <bean id="nodeTypeRepresentationStrategy" factory-bean="typeRepresentationStrategyFactory" factory-method="getNodeTypeRepresentationStrategy" />

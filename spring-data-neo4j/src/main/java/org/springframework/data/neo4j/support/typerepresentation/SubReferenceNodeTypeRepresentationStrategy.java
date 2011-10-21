@@ -21,11 +21,10 @@ import org.apache.commons.logging.LogFactory;
 import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.traversal.TraversalDescription;
 import org.neo4j.helpers.collection.ClosableIterable;
-import org.neo4j.helpers.collection.CombiningIterable;
 import org.neo4j.helpers.collection.IterableWrapper;
 import org.neo4j.kernel.Traversal;
+import org.springframework.data.neo4j.core.GraphDatabase;
 import org.springframework.data.neo4j.core.NodeTypeRepresentationStrategy;
-import org.springframework.data.neo4j.mapping.EntityInstantiator;
 
 import java.util.Collections;
 import java.util.LinkedList;
@@ -50,13 +49,11 @@ public class SubReferenceNodeTypeRepresentationStrategy implements NodeTypeRepre
     public static final String SUBREF_PREFIX = "SUBREF_";
 	public static final String SUBREF_CLASS_KEY = "class";
 
-	private GraphDatabaseService graphDatabaseService;
-	private EntityInstantiator<Node> entityInstantiator;
+	private GraphDatabase graphDatabase;
     private final EntityTypeCache typeCache;
 
-    public SubReferenceNodeTypeRepresentationStrategy(GraphDatabaseService graphDatabaseService, EntityInstantiator<Node> entityInstantiator) {
-		this.graphDatabaseService = graphDatabaseService;
-		this.entityInstantiator = entityInstantiator;
+    public SubReferenceNodeTypeRepresentationStrategy(GraphDatabase graphDatabase) {
+		this.graphDatabase = graphDatabase;
         typeCache = new EntityTypeCache();
     }
 
@@ -163,27 +160,24 @@ public class SubReferenceNodeTypeRepresentationStrategy implements NodeTypeRepre
     }
 
     @Override
-    public <T> ClosableIterable<T> findAll(final Class<T> clazz) {
+    public <T> ClosableIterable<Node> findAll(final Class<T> clazz) {
         final Node subrefNode = findSubreferenceNode(clazz);
 		if (log.isDebugEnabled()) log.debug("Subref: " + subrefNode);
-		Iterable<Iterable<T>> relIterables = findEntityIterables(subrefNode);
-		return new ClosableCombiningIterable<T>(relIterables);
+		Iterable<Iterable<Node>> relIterables = findEntityIterables(subrefNode);
+		return new ClosableCombiningIterable<Node>(relIterables);
     }
 
-	private <T> List<Iterable<T>> findEntityIterables(Node subrefNode) {
+	private List<Iterable<Node>> findEntityIterables(Node subrefNode) {
         if (subrefNode == null) return Collections.emptyList();
-		List<Iterable<T>> result = new LinkedList<Iterable<T>>();
+		List<Iterable<Node>> result = new LinkedList<Iterable<Node>>();
 		for (Relationship relationship : subrefNode.getRelationships(SUBCLASS_OF_RELATIONSHIP_TYPE, Direction.INCOMING)) {
-            final List<Iterable<T>> entityIterables = this.<T>findEntityIterables(relationship.getStartNode());
+            final List<Iterable<Node>> entityIterables = this.findEntityIterables(relationship.getStartNode());
             result.addAll(entityIterables);
 		}
-		Iterable<T> t = new IterableWrapper<T, Relationship>(subrefNode.getRelationships(INSTANCE_OF_RELATIONSHIP_TYPE, Direction.INCOMING)) {
+		Iterable<Node> t = new IterableWrapper<Node, Relationship>(subrefNode.getRelationships(INSTANCE_OF_RELATIONSHIP_TYPE, Direction.INCOMING)) {
             @Override
-            protected T underlyingObjectToObject(final Relationship rel) {
-                final Node node = rel.getStartNode();
-	            @SuppressWarnings("unchecked") T entity = (T) entityInstantiator.createEntityFromState(node, getJavaType(node));
-	            if (log.isDebugEnabled()) log.debug("Converting node: " + node + " to entity: " + entity);
-	            return entity;
+            protected Node underlyingObjectToObject(final Relationship rel) {
+                return rel.getStartNode();
             }
         };
 		result.add(t);
@@ -196,7 +190,7 @@ public class SubReferenceNodeTypeRepresentationStrategy implements NodeTypeRepre
     }
 
     public Node findSubreferenceNode(final Class<?> entityClass) {
-        final Relationship subrefRelationship = graphDatabaseService.getReferenceNode().getSingleRelationship(subRefRelationshipType(entityClass), Direction.OUTGOING);
+        final Relationship subrefRelationship = graphDatabase.getReferenceNode().getSingleRelationship(subRefRelationshipType(entityClass), Direction.OUTGOING);
         return subrefRelationship != null ? subrefRelationship.getEndNode() : null;
     }
 
@@ -205,7 +199,7 @@ public class SubReferenceNodeTypeRepresentationStrategy implements NodeTypeRepre
     }
 
 	public Node getOrCreateSubReferenceNode(final RelationshipType relType) {
-	    return getOrCreateSingleOtherNode(graphDatabaseService.getReferenceNode(), relType, Direction.OUTGOING);
+	    return getOrCreateSingleOtherNode(graphDatabase.getReferenceNode(), relType, Direction.OUTGOING);
 	}
 
 	private Node getOrCreateSingleOtherNode(Node fromNode, RelationshipType type,
@@ -215,56 +209,10 @@ public class SubReferenceNodeTypeRepresentationStrategy implements NodeTypeRepre
 	        return singleRelationship.getOtherNode(fromNode);
 	    }
 
-	    Node otherNode = graphDatabaseService.createNode();
+	    Node otherNode = graphDatabase.createNode(null);
 	    fromNode.createRelationshipTo(otherNode, type);
 	    return otherNode;
 
 	}
 
-
-    @SuppressWarnings("unchecked")
-    @Override
-    public <U> U createEntity(Node state) {
-        Class<?> javaType = getJavaType(state);
-        if (javaType == null) {
-            throw new IllegalStateException("No type stored on node.");
-        }
-        return (U) entityInstantiator.createEntityFromState(state, javaType);
-    }
-
-    @SuppressWarnings("unchecked")
-    @Override
-    public <U> U createEntity(Node state, Class<U> type) {
-        Class<?> javaType = getJavaType(state);
-        if (javaType == null) {
-            throw new IllegalStateException("No type stored on node.");
-        }
-        if (type.isAssignableFrom(javaType)) {
-            return (U) entityInstantiator.createEntityFromState(state, javaType);
-        }
-        throw new IllegalArgumentException(String.format("Entity is not of type: %s (was %s)", type, javaType));
-    }
-
-    @Override
-    public <U> U projectEntity(Node state, Class<U> type) {
-        return entityInstantiator.createEntityFromState(state, type);
-    }
-
-    private static class ClosableCombiningIterable<T> extends CombiningIterable<T> implements ClosableIterable<T> {
-        private final Iterable<Iterable<T>> relIterables;
-
-        public ClosableCombiningIterable(Iterable<Iterable<T>> relIterables) {
-            super(relIterables);
-            this.relIterables = relIterables;
-        }
-
-        @Override
-        public void close() {
-            for (Iterable<T> it : relIterables) {
-                if (it instanceof ClosableIterable) {
-                    ((ClosableIterable) it).close();
-                }
-            }
-        }
-    }
 }

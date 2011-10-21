@@ -124,7 +124,7 @@
 		<org.mockito.version>1.8.4</org.mockito.version>
 		<org.slf4j.version>1.6.1</org.slf4j.version>
 		<org.springframework.version>3.0.6.RELEASE</org.springframework.version>
-		<data.commons.version>1.2.0.BUILD-SNAPSHOT</data.commons.version>
+		<data.commons.version>1.2.0.M2</data.commons.version>
         <neo4j.version>1.5.M02</neo4j.version>
         <neo4j.spatial.version>0.7-SNAPSHOT</neo4j.spatial.version>
         <aspectj.version>1.6.12.M1</aspectj.version>
@@ -407,12 +407,12 @@
           <version>${neo4j.version}</version>
           <optional>true</optional>
       </dependency>
-      <dependency>
+      <!--dependency>
           <groupId>org.neo4j</groupId>
           <artifactId>neo4j-spatial</artifactId>
           <version>${neo4j.spatial.version}</version>
           <optional>true</optional>
-      </dependency>
+      </dependency-->
       <dependency>
         <groupId>commons-configuration</groupId>
         <artifactId>commons-configuration</artifactId>

@@ -20,6 +20,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.PropertyContainer;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.graphdb.index.Index;
 import org.neo4j.graphdb.index.IndexHits;
@@ -27,6 +28,7 @@ import org.neo4j.helpers.collection.IteratorUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.neo4j.annotation.NodeEntity;
 import org.springframework.data.neo4j.aspects.support.EntityTestBase;
+import org.springframework.data.neo4j.support.Neo4jTemplate;
 import org.springframework.data.neo4j.support.typerepresentation.IndexingNodeTypeRepresentationStrategy;
 import org.springframework.test.context.CleanContextCacheTestExecutionListener;
 import org.springframework.test.context.ContextConfiguration;
@@ -52,6 +54,8 @@ public class IndexingNodeTypeRepresentationStrategyTest extends EntityTestBase {
 	@Autowired
 	private IndexingNodeTypeRepresentationStrategy nodeTypeRepresentationStrategy;
 
+    @Autowired
+    Neo4jTemplate neo4jTemplate;
 	private Thing thing;
 	private SubThing subThing;
 
@@ -122,9 +126,10 @@ public class IndexingNodeTypeRepresentationStrategyTest extends EntityTestBase {
 	@Test
 	@Transactional
 	public void testFindAll() throws Exception {
+
 		assertEquals("Did not find all things.",
-				new HashSet<Thing>(Arrays.asList(subThing, thing)),
-				IteratorUtil.addToCollection(nodeTypeRepresentationStrategy.findAll(Thing.class), new HashSet<Thing>()));
+                new HashSet<PropertyContainer>(Arrays.asList(neo4jTemplate.getPersistentState(subThing), neo4jTemplate.getPersistentState(thing))),
+                IteratorUtil.addToCollection(nodeTypeRepresentationStrategy.findAll(Thing.class), new HashSet<Node>()));
 	}
 
 	@Test
@@ -143,21 +148,21 @@ public class IndexingNodeTypeRepresentationStrategyTest extends EntityTestBase {
 	@Test
 	@Transactional
 	public void testCreateEntityAndInferType() throws Exception {
-        Thing newThing = nodeTypeRepresentationStrategy.createEntity(node(thing));
+        Thing newThing = neo4jTemplate.createEntityFromStoredType(node(thing));
         assertEquals(thing, newThing);
     }
 
 	@Test
 	@Transactional
 	public void testCreateEntityAndSpecifyType() throws Exception {
-        Thing newThing = nodeTypeRepresentationStrategy.createEntity(node(subThing), Thing.class);
+        Thing newThing = neo4jTemplate.createEntityFromState(node(subThing), Thing.class);
         assertEquals(subThing, newThing);
     }
 
     @Test
     @Transactional
 	public void testProjectEntity() throws Exception {
-        Unrelated other = nodeTypeRepresentationStrategy.projectEntity(node(thing), Unrelated.class);
+        Unrelated other = neo4jTemplate.projectTo(node(thing), Unrelated.class);
         assertEquals("thing", other.getName());
 	}
 

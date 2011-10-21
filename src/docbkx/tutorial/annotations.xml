@@ -5,18 +5,33 @@
     <subtitle>Decorations</subtitle>
     <para>
         Looking at the Spring Data Neo4j documentation, we found a simple
-        <ulink url="http://github.com/SpringSource/spring-data-neo4j-examples/tree/master/hello-worlds">Hello World example</ulink>
-        and tried to understand it. The entity classes were annotated with <code>@NodeEntity</code>.
+        <ulink url="http://spring.neo4j.org/helloworld2">Hello World example</ulink>
+        and tried to understand it. We also saw a <ulink url="http://spring.neo4j.org/notes">compact reference card</ulink>
+        which helped us a lot.
+        The entity classes were annotated with <code>@NodeEntity</code>.
         That was simple, so we added the annotation to our domain classes too. Entity classes representing
         relationships were instead annotated with <code>@RelationshipEntity</code>.
         Property fields were taken care of automatically.
     </para>
     <para>
+        <example>
+            <title>Movie class with annotation</title>
+            <programlisting language="java"><![CDATA[@NodeEntity
+class Movie {
+    String id;
+    String title;
+    int year;
+    Set<Role> cast;
+}
+]]></programlisting>
+        </example>
+    </para>
+    <para>
         It was time to put our entities to a test. How could we now be assured that an attribute really was persisted to
         the graph store? We wanted to load the entity and check the attribute.
 
-        Either we could have a GraphDatabaseContext injected and use its <code>getById(entityId)</code>
-        method to load the entity. Or use a more versatile Repository. We decided to keep things simple for now.
+        Either we could have a <code>Neo4jTemplate</code> injected and use its <code>findOne(id,type)</code>
+        method to load the entity. Or use a more versatile <code>Repository</code>. We decided to keep things simple for now.
 
         Looking at the documentation revealed that there are a bunch of methods introduced to the
         entities by the aspects to support working with the entities.
@@ -29,7 +44,7 @@
     <para>
         <example>
             <title>First test case</title>
-            <programlisting language="java" ><![CDATA[@Autowired GraphDatabaseContext template;
+            <programlisting language="java" ><![CDATA[@Autowired Neo4jTemplate template;
 
 @Test public void persistedMovieShouldBeRetrievableFromGraphDb() {
     Movie forrestGump = new Movie("Forrest Gump", 1994).persist();
@@ -46,18 +61,5 @@
         of a transaction automatically creates an implicit transaction. Very much like an EntityManager
         would behave. We also learned that when performing more complex operations on the entities we'd
         need external transactions, but not for this simple test.
-    </para>
-    <para>
-        <example>
-            <title>Movie class with annotation</title>
-            <programlisting language="java"><![CDATA[@NodeEntity
-class Movie {
-    String id;
-    String title;
-    int year;
-    Set<Role> cast;
-}
-]]></programlisting>
-        </example>
     </para>
 </chapter>

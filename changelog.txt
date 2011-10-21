@@ -1,6 +1,34 @@
 Spring Data Graph Changelog
 ===========================
 
+Changes in version 2.0.0.M1 (2011-10-21)
+----------------------------------------
+* updated dependencies to SpringFrameWork 3.0.6, Neo4j 1.5.M02, neo4j-java-rest-binding 1.5.M03
+* optional dependency to neo4j-spatial
+* moved to new github repository
+* included examples and cineasts in project
+* externalized java-rest-wrapper to a separate library
+* separate submodules spring-data-neo4j, spring-data-neo4j-aspects, spring-data-neo4j-cross-store, spring-data-neo4j-rest
+* spring-data-neo4j-rest does no longer depend on spring-data-neo4j-aspects (except for testing)
+* added Neo4jMappingContext to take care of mapping meta information
+* added cypher parameter support
+* added derived queries from finder method names to repositories
+* added new, non-aspectj mapping approach with cascading fetching and fetch-strategies
+* merged GraphDatabaseContext into the Neo4jTemplate offering low level graph and high level entity related methods
+* extracted configuration setup of Neo4jTemplate into a single MappingInfrastructure with sensible defaults
+* indexing methods that take the property meta-information into account
+* extension of result-conversion mechanisms, including EntityPath and generic Use-Case interfaces (e.g. for subgraphs)
+* added spatial index providers and more generic index-types
+* added Support for traversing over Nodes, Relationships, Paths, NodeEntities and RelationshipEntities
+  with the @GraphTraversal annotation DATAGRAPH-97
+* added additional examples, for the different mapping modes and remote access
+* added a developer-notes cheat sheet
+* added handling of map like structures (DynamicProperties)
+* lots of package reorganization, API and class name and responsiblity cleanup
+* cleanup and documentation updates
+* upgraded maven plugin version
+* added documentation generating tests
+
 Changes in version 1.1.0.RELEASE (2011-08-04)
 ---------------------------------------------
 

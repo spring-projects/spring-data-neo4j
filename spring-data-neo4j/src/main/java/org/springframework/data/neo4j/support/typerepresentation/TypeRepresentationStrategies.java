@@ -74,9 +74,10 @@ public class TypeRepresentationStrategies implements TypeRepresentationStrategy<
         getTypeRepresentationStrategy(state, type).postEntityCreation(state, type);
     }
 
+    @SuppressWarnings("unchecked")
     @Override
-    public <U> ClosableIterable<U> findAll(Class<U> type) {
-        return getTypeRepresentationStrategy(type).findAll(type);
+    public <U> ClosableIterable<PropertyContainer> findAll(Class<U> type) {
+        return (ClosableIterable<PropertyContainer>) getTypeRepresentationStrategy(type).findAll(type);
     }
 
     @Override
@@ -92,21 +93,6 @@ public class TypeRepresentationStrategies implements TypeRepresentationStrategy<
     @Override
     public void preEntityRemoval(PropertyContainer state) {
         getTypeRepresentationStrategy(state).preEntityRemoval(state);
-    }
-
-    @Override
-    public <U> U createEntity(PropertyContainer state) throws IllegalStateException {
-        return getTypeRepresentationStrategy(state).createEntity(state);
-    }
-
-    @Override
-    public <U> U createEntity(PropertyContainer state, Class<U> type) throws IllegalStateException, IllegalArgumentException {
-        return getTypeRepresentationStrategy(state, type).createEntity(state, type);
-    }
-
-    @Override
-    public <U> U projectEntity(PropertyContainer state, Class<U> type) {
-        return getTypeRepresentationStrategy(state).projectEntity(state, type);
     }
 
     public TypeRepresentationStrategy<Node> getNodeTypeRepresentationStrategy() {

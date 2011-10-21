@@ -16,38 +16,31 @@
 
 package org.springframework.data.neo4j.support.typerepresentation;
 
-import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.index.Index;
 import org.neo4j.graphdb.index.IndexHits;
-import org.neo4j.helpers.Predicate;
 import org.neo4j.helpers.collection.ClosableIterable;
-import org.neo4j.helpers.collection.FilteringIterable;
-import org.neo4j.helpers.collection.IterableWrapper;
 import org.springframework.data.neo4j.annotation.RelationshipEntity;
-
-
+import org.springframework.data.neo4j.core.GraphDatabase;
 import org.springframework.data.neo4j.core.RelationshipTypeRepresentationStrategy;
-import org.springframework.data.neo4j.mapping.EntityInstantiator;
+import org.springframework.data.neo4j.support.index.ClosableIndexHits;
+import org.springframework.data.neo4j.support.index.IndexType;
 
 public class IndexingRelationshipTypeRepresentationStrategy implements RelationshipTypeRepresentationStrategy {
 
     public static final String INDEX_NAME = "__rel_types__";
     public static final String TYPE_PROPERTY_NAME = "__type__";
     public static final String INDEX_KEY = "className";
-    private EntityInstantiator<Relationship> relationshipEntityInstantiator;
-    private GraphDatabaseService graphDb;
+    private GraphDatabase graphDb;
     private final EntityTypeCache typeCache;
 
-    public IndexingRelationshipTypeRepresentationStrategy(GraphDatabaseService graphDb,
-                                                          EntityInstantiator<Relationship> relationshipEntityInstantiator) {
+    public IndexingRelationshipTypeRepresentationStrategy(GraphDatabase graphDb) {
 		this.graphDb = graphDb;
-        this.relationshipEntityInstantiator = relationshipEntityInstantiator;
         typeCache = new EntityTypeCache();
     }
 
 	private Index<Relationship> getRelTypesIndex() {
-		return graphDb.index().forRelationships(INDEX_NAME);
+		return graphDb.createIndex(Relationship.class,INDEX_NAME, IndexType.SIMPLE);
 	}
 
 	@Override
@@ -65,14 +58,13 @@ public class IndexingRelationshipTypeRepresentationStrategy implements Relations
 	}
 
     @Override
-    public <U> ClosableIterable<U> findAll(Class<U> clazz) {
+    public <U> ClosableIterable<Relationship> findAll(Class<U> clazz) {
         return findAllRelBacked(clazz);
     }
 
-    private <Object> ClosableIterable<Object> findAllRelBacked(Class<Object> clazz) {
+    private <Object> ClosableIterable<Relationship> findAllRelBacked(Class<Object> clazz) {
         final IndexHits<Relationship> allEntitiesOfType = getRelTypesIndex().get(INDEX_KEY, clazz.getName());
-        return new FilteringClosableEntityIterable<Object>(allEntitiesOfType);
-
+        return new ClosableIndexHits<Relationship>(allEntitiesOfType);
     }
 
 
@@ -101,58 +93,4 @@ public class IndexingRelationshipTypeRepresentationStrategy implements Relations
         getRelTypesIndex().remove(state);
     }
 
-    @Override
-    @SuppressWarnings("unchecked")
-    public <U> U createEntity(Relationship state) {
-        Class<?> javaType = getJavaType(state);
-        if (javaType == null) {
-            throw new IllegalStateException("No type stored on relationship.");
-        }
-        return (U) relationshipEntityInstantiator.createEntityFromState(state, javaType);
-    }
-
-    @Override
-    @SuppressWarnings("unchecked")
-    public <U> U createEntity(Relationship state, Class<U> type) {
-        Class<?> javaType = getJavaType(state);
-        if (javaType == null) {
-            throw new IllegalStateException("No type stored on relationship.");
-        }
-        if (type.isAssignableFrom(javaType)) {
-            return (U) relationshipEntityInstantiator.createEntityFromState(state, javaType);
-        }
-        throw new IllegalArgumentException(String.format("Entity is not of type: %s (was %s)", type, javaType));
-    }
-
-    @Override
-    public <U> U projectEntity(Relationship state, Class<U> type) {
-        return relationshipEntityInstantiator.createEntityFromState(state, type);
-    }
-
-    private class FilteringClosableEntityIterable<Object> extends FilteringIterable<Object> implements ClosableIterable<Object> {
-        private final IndexHits<Relationship> indexHits;
-
-        public FilteringClosableEntityIterable(IndexHits<Relationship> indexHits) {
-            super(new IterableWrapper<Object, Relationship>(indexHits) {
-                        @Override
-                        @SuppressWarnings("unchecked")
-                        protected Object underlyingObjectToObject(Relationship rel) {
-                            Class<Object> javaType = (Class<Object>) IndexingRelationshipTypeRepresentationStrategy.this.getJavaType(rel);
-                            if (javaType == null) return null;
-                            return IndexingRelationshipTypeRepresentationStrategy.this.relationshipEntityInstantiator.createEntityFromState(rel, javaType);
-                        }
-                    }, new Predicate<Object>() {
-                        @Override
-                        public boolean accept(Object item) {
-                            return item != null;
-                        }
-                    });
-            this.indexHits = indexHits;
-        }
-
-        @Override
-        public void close() {
-           this.indexHits.close();
-        }
-    }
 }

@@ -25,10 +25,11 @@ import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.graphdb.index.Index;
 import org.neo4j.graphdb.index.IndexHits;
-import org.neo4j.helpers.collection.IteratorUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.neo4j.annotation.RelationshipEntity;
 import org.springframework.data.neo4j.aspects.support.EntityTestBase;
+import org.springframework.data.neo4j.support.Neo4jTemplate;
+import org.springframework.data.neo4j.support.mapping.EntityStateHandler;
 import org.springframework.data.neo4j.support.node.Neo4jHelper;
 import org.springframework.data.neo4j.support.typerepresentation.IndexingNodeTypeRepresentationStrategy;
 import org.springframework.data.neo4j.support.typerepresentation.IndexingRelationshipTypeRepresentationStrategy;
@@ -41,11 +42,12 @@ import org.springframework.test.context.transaction.BeforeTransaction;
 import org.springframework.test.context.transaction.TransactionalTestExecutionListener;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collection;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
+import static org.neo4j.helpers.collection.IteratorUtil.asCollection;
+import static org.neo4j.helpers.collection.IteratorUtil.first;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = {"classpath:org/springframework/data/neo4j/aspects/support/Neo4jGraphPersistenceTest-context.xml",
@@ -55,6 +57,9 @@ public class IndexingRelationshipTypeRepresentationStrategyTest extends EntityTe
 
 	@Autowired
 	private IndexingRelationshipTypeRepresentationStrategy relationshipTypeRepresentationStrategy;
+
+    @Autowired EntityStateHandler entityStateHandler;
+    @Autowired Neo4jTemplate neo4jTemplate;
 
     private Link link;
 
@@ -104,9 +109,9 @@ public class IndexingRelationshipTypeRepresentationStrategyTest extends EntityTe
 	@Test
 	@Transactional
 	public void testFindAllOfRelationshipBacked() throws Exception {
-		assertEquals("Did not find all links.",
-				Arrays.asList(link),
-				IteratorUtil.addToCollection(relationshipTypeRepresentationStrategy.findAll(Link.class), new ArrayList<Link>()));
+        final Collection<Relationship> links = asCollection(relationshipTypeRepresentationStrategy.findAll(Link.class));
+        assertEquals(1,links.size());
+        assertEquals("Did not find all links.", neo4jTemplate.getPersistentState(link), first(links));
 	}
 
 	@Test
@@ -124,21 +129,21 @@ public class IndexingRelationshipTypeRepresentationStrategyTest extends EntityTe
 	@Test
 	@Transactional
 	public void testCreateEntityAndInferType() throws Exception {
-        Link newLink = relationshipTypeRepresentationStrategy.createEntity(rel(link));
+        Link newLink = neo4jTemplate.createEntityFromStoredType(rel(link));
         assertEquals(link, newLink);
     }
 
 	@Test
 	@Transactional
 	public void testCreateEntityAndSpecifyType() throws Exception {
-        Link newLink = relationshipTypeRepresentationStrategy.createEntity(rel(link), Link.class);
+        Link newLink = neo4jTemplate.createEntityFromState(rel(link), Link.class);
         assertEquals(link, newLink);
     }
 
     @Test
     @Transactional
 	public void testProjectEntity() throws Exception {
-        UnrelatedLink other = relationshipTypeRepresentationStrategy.projectEntity(rel(link), UnrelatedLink.class);
+        UnrelatedLink other = neo4jTemplate.projectTo(rel(link), UnrelatedLink.class);
         assertEquals("link", other.getLabel());
 	}
 

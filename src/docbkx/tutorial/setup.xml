@@ -33,7 +33,7 @@
             <example>
                 <title>Project pom.xml</title>
                 <programlisting language="xml"><![CDATA[<properties>
-    <spring.version>3.0.5.RELEASE</spring.version>
+    <spring.version>3.0.6.RELEASE</spring.version>
 </properties>
 
 <dependencies>
@@ -89,11 +89,6 @@
             With this setup in place we were ready for the first spike: creating a simple MovieController
             showing a static view. See the Spring Framework documentation for information on doing this.
         </para>
-        <!--<para>-->
-            <!--Next was the setting up of Spring Data Neo4j. We looked at the README at the Spring Data Neo4j-->
-            <!--Github, and then checked the Spring Data Neo4j manual. There was a bit of Maven setup for AspectJ-->
-            <!--but apart from that, not much new stuff. Time to add a few lines to our Spring configuration.-->
-        <!--</para>-->
         <para>
             <example>
                 <title>Project applicationContext.xml</title>
@@ -134,7 +129,8 @@
 
         </para>
         <para>
-            We spun up Jetty by doing <code>mvn jetty:run</code> to see if there were any obvious
+            We spun up Tomcat in STS with the App and it worked fine. For completeness we also added Jetty to the config
+            and tested it by invoking <code>mvn jetty:run</code> to see if there were any obvious
             issues with the config. It all seemed to work just fine.
         </para>
     </section>
