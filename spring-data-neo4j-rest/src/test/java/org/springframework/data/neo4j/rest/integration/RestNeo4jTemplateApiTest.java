@@ -16,21 +16,20 @@
 
 package org.springframework.data.neo4j.rest.integration;
 
+import java.io.IOException;
+
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.springframework.dao.DataAccessException;
-import org.springframework.data.neo4j.core.GraphDatabase;
 import org.springframework.data.neo4j.config.NullTransactionManager;
-import org.springframework.data.neo4j.rest.support.RestTestHelper;
+import org.springframework.data.neo4j.core.GraphDatabase;
 import org.springframework.data.neo4j.rest.support.RestTestHelper;
 import org.springframework.data.neo4j.template.Neo4jTemplateApiTest;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.jta.JtaTransactionManager;
-
-import java.io.IOException;
 
 public class RestNeo4jTemplateApiTest extends Neo4jTemplateApiTest
 {

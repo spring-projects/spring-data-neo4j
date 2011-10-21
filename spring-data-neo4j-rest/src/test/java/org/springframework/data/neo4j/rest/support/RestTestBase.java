@@ -17,6 +17,8 @@
 package org.springframework.data.neo4j.rest.support;
 
 
+import java.util.Iterator;
+
 import org.apache.log4j.BasicConfigurator;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -26,9 +28,6 @@ import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.springframework.data.neo4j.rest.SpringRestGraphDatabase;
-
-import java.net.URI;
-import java.util.Iterator;
 
 public class RestTestBase {
 

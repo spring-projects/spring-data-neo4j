@@ -1,6 +1,7 @@
 package org.neo4j.cineasts.domain;
 
 import org.springframework.data.neo4j.annotation.*;
+import org.springframework.data.neo4j.support.index.IndexType;
 
 import java.util.Date;
 import java.util.Set;
@@ -9,7 +10,7 @@ import java.util.Set;
 public class Person {
     @Indexed
     String id;
-    @Indexed(fulltext = true, indexName = "people")
+    @Indexed(indexType=IndexType.FULLTEXT, indexName = "people")
     String name;
     private Date birthday;
     private String birthplace;

@@ -15,13 +15,16 @@
  */
 package org.springframework.data.neo4j.rest;
 
+import java.util.Map;
+
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.PropertyContainer;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.graphdb.index.Index;
 import org.neo4j.graphdb.traversal.TraversalDescription;
-import org.neo4j.rest.graphdb.*;
+import org.neo4j.rest.graphdb.ExecutingRestRequest;
+import org.neo4j.rest.graphdb.RestAPI;
 import org.neo4j.rest.graphdb.RestRequest;
 import org.neo4j.rest.graphdb.index.RestIndexManager;
 import org.neo4j.rest.graphdb.query.RestCypherQueryEngine;
@@ -33,8 +36,6 @@ import org.springframework.data.neo4j.conversion.ResultConverter;
 import org.springframework.data.neo4j.core.GraphDatabase;
 import org.springframework.data.neo4j.support.query.ConversionServiceQueryResultConverter;
 import org.springframework.data.neo4j.support.query.QueryEngine;
-
-import java.util.Map;
 
 public class SpringRestGraphDatabase extends org.neo4j.rest.graphdb.RestGraphDatabase implements GraphDatabase{
     private ConversionService conversionService;
@@ -72,8 +73,8 @@ public class SpringRestGraphDatabase extends org.neo4j.rest.graphdb.RestGraphDat
     }
 
     @Override
-    public <T extends PropertyContainer> Index<T> createIndex(Class<T> type, String indexName, boolean fullText) {
-       return super.getRestAPI().createIndex(type, indexName, fullText);
+    public <T extends PropertyContainer> Index<T> createIndex(Class<T> type, String indexName, org.springframework.data.neo4j.support.index.IndexType indexType) {
+       return super.getRestAPI().createIndex(type, indexName, indexType.getConfig());
     }
 
     @Override

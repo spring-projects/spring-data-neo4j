@@ -29,6 +29,7 @@ import org.springframework.data.neo4j.fieldaccess.*;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentEntity;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
+import org.springframework.data.neo4j.support.index.IndexType;
 
 import javax.persistence.PersistenceUnitUtil;
 import java.lang.reflect.Field;
@@ -104,7 +105,7 @@ public class CrossStoreNodeEntityState<ENTITY extends NodeBacked> extends Defaul
     }
 
     private Index<Node> getForeignIdIndex() {
-        return template.getIndex(type,null,false);
+        return template.getIndex(type,null,IndexType.SIMPLE);
     }
 
     private String createForeignId(Object id) {
