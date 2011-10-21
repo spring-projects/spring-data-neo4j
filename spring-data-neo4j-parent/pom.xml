@@ -5,7 +5,7 @@
 	<groupId>org.springframework.data</groupId>
 	<artifactId>spring-data-neo4j-parent</artifactId>
 	<name>Spring Data Neo4j Parent</name>
-	<version>2.0.0.BUILD-SNAPSHOT</version>
+	<version>2.0.0.M1</version>
 	<packaging>pom</packaging>
     <description><![CDATA[Spring Data Neo4j parent project. Defines dependencies and common configuration for the build process.
     ]]></description>
@@ -124,7 +124,7 @@
 		<org.mockito.version>1.8.4</org.mockito.version>
 		<org.slf4j.version>1.6.1</org.slf4j.version>
 		<org.springframework.version>3.0.6.RELEASE</org.springframework.version>
-		<data.commons.version>1.2.0.BUILD-SNAPSHOT</data.commons.version>
+		<data.commons.version>1.2.0.M2</data.commons.version>
         <neo4j.version>1.5.M02</neo4j.version>
         <neo4j.spatial.version>0.7-SNAPSHOT</neo4j.spatial.version>
         <aspectj.version>1.6.12.M1</aspectj.version>

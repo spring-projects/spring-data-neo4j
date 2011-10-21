@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>org.springframework.data</groupId>
 		<artifactId>spring-data-neo4j-parent</artifactId>
-		<version>2.0.0.BUILD-SNAPSHOT</version>
+		<version>2.0.0.M1</version>
 		<relativePath>../spring-data-neo4j-parent/pom.xml</relativePath>
 	</parent>
 	<artifactId>spring-data-neo4j-aspects</artifactId>

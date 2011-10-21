@@ -11,7 +11,7 @@
     <aspectj.version>1.6.12.M1</aspectj.version>
     <slf4j.version>1.6.1</slf4j.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <data-graph.version>2.0.0.BUILD-SNAPSHOT</data-graph.version>
+    <data-graph.version>2.0.0.M1</data-graph.version>
   </properties>
 
   <repositories>
