@@ -60,7 +60,7 @@ public class Person {
 	private Car car;
 
 	private DynamicProperties personalProperties;
-	
+
 	@RelatedTo
 	private Person mother;
 

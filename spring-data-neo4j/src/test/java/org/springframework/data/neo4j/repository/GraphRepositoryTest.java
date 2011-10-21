@@ -19,7 +19,6 @@ package org.springframework.data.neo4j.repository;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -102,7 +101,6 @@ public class GraphRepositoryTest {
     }
 
     @Test
-    @Ignore
     public void shouldBeAbleToTurnQueryResultsToAMapResultInterface() throws Exception {
         MemberData first = personRepository.findMemberData(testTeam.michael).iterator().next();
 

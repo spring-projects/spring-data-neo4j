@@ -20,11 +20,14 @@ import org.springframework.core.convert.ConversionService;
 import org.springframework.data.neo4j.annotation.MapResult;
 import org.springframework.data.neo4j.annotation.ResultColumn;
 import org.springframework.data.neo4j.conversion.DefaultConverter;
+import org.springframework.data.neo4j.conversion.QueryResultBuilder;
 import org.springframework.data.neo4j.core.EntityPath;
 import org.springframework.data.neo4j.mapping.EntityPersister;
 import org.springframework.data.neo4j.support.path.ConvertingEntityPath;
 import org.springframework.data.util.ClassTypeInformation;
 import org.springframework.data.util.TypeInformation;
+import scala.collection.IterableLike;
+import scala.collection.JavaConversions;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
@@ -95,20 +98,15 @@ public class EntityResultConverter<T, R> extends DefaultConverter<T, R> {
         @Override
         public Object invoke(Object o, Method method, Object[] objects) throws Throwable {
             ResultColumn column = method.getAnnotation(ResultColumn.class);
-            TypeInformation<Object> returnType = ClassTypeInformation.fromReturnTypeOf(method);
+            TypeInformation<?> returnType = ClassTypeInformation.fromReturnTypeOf(method);
             Object columnValue = map.get(column.value());
-
-            Object result;
+            if (columnValue instanceof IterableLike) { // TODO AN in Cypher
+                columnValue = JavaConversions.asJavaIterable(((IterableLike) columnValue).toIterable());
+            }
             if (returnType.isCollectionLike())
-                throw new RuntimeException("apa");
-//                    result = template.convert((Iterable) columnValue).to(returnType.getActualType().getType());
+                return new QueryResultBuilder((Iterable)columnValue, EntityResultConverter.this).to(returnType.getActualType().getType());
             else
-                result = convert(columnValue, returnType.getType());
-
-
-            return result;
+                return convert(columnValue, returnType.getType());
         }
-
     }
-
 }

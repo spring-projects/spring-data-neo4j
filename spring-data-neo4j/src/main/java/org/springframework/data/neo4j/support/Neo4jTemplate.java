@@ -25,6 +25,7 @@ import org.neo4j.helpers.collection.ClosableIterable;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
+import org.springframework.data.mapping.model.MappingException;
 import org.springframework.data.neo4j.annotation.QueryType;
 import org.springframework.data.neo4j.conversion.QueryResultBuilder;
 import org.springframework.data.neo4j.conversion.Result;
@@ -32,13 +33,13 @@ import org.springframework.data.neo4j.core.GraphDatabase;
 import org.springframework.data.neo4j.core.TypeRepresentationStrategy;
 import org.springframework.data.neo4j.core.UncategorizedGraphStoreException;
 import org.springframework.data.neo4j.mapping.EntityPersister;
-import org.springframework.data.neo4j.mapping.RelationshipResult;
-import org.springframework.data.neo4j.support.mapping.EntityStateHandler;
-import org.springframework.data.neo4j.support.mapping.Neo4jPersistentEntityImpl;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
+import org.springframework.data.neo4j.mapping.RelationshipResult;
 import org.springframework.data.neo4j.repository.GraphRepository;
 import org.springframework.data.neo4j.repository.NodeGraphRepository;
 import org.springframework.data.neo4j.repository.RelationshipGraphRepository;
+import org.springframework.data.neo4j.support.mapping.EntityStateHandler;
+import org.springframework.data.neo4j.support.mapping.Neo4jPersistentEntityImpl;
 import org.springframework.data.neo4j.support.query.QueryEngine;
 import org.springframework.data.neo4j.template.GraphCallback;
 import org.springframework.data.neo4j.template.Neo4jOperations;
@@ -413,6 +414,15 @@ public class Neo4jTemplate implements Neo4jOperations, EntityPersister {
             }
         });
         return element;
+    }
+
+    @SuppressWarnings("unchecked")
+    public <T> T fetch(T value) {
+        final PropertyContainer state = getPersistentState(value);
+        if (state != null) {
+            return (T) infrastructure.getEntityPersister().createEntityFromState(state, value.getClass());
+        }
+        throw new MappingException("No state information available in "+ value);
     }
 
     @Override
