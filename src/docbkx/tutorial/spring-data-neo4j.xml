@@ -9,10 +9,11 @@
         classes clean. Spring Data Neo4j promised to do the heavy lifting for us, so we continued investigating it.
     </para>
     <para>
-        Spring Data Neo4j depends heavily on AspectJ, see <xref linkend="reference:aspectj-details" />.
-        Some parts of our classes would get new behavior,
-        but it would not be visible in our code. The upside of this is that you get rid of a lot of boilerplate
-        code.
+        One of the mapping modes of Spring Data Neo4j depends heavily on AspectJ, see <xref linkend="reference:aspectj-details" />.
+        Via the SpringFramework we were already used to Aspects doing the work behind the scenes in lots of places, so
+        we were not afraid.
+        Some parts of our classes would get new behavior, but it would not be visible in our code.
+        The upside of this is that you get rid of a lot of boilerplate code.
     </para>
     <para>
         The first step was to configure Maven:
@@ -24,8 +25,8 @@
 
 <dependency>
   <groupId>org.springframework.data</groupId>
-  <artifactId>spring-data-neo4j</artifactId>
-  <version>2.0.0.RELEASE</version>
+  <artifactId>spring-data-neo4j-aspects</artifactId>
+  <version>2.0.0.RC1</version>
 </dependency>
 
 <dependency>
@@ -67,7 +68,7 @@
             </aspectLibrary>
             <aspectLibrary>
                 <groupId>org.springframework.data</groupId>
-                <artifactId>spring-data-neo4j</artifactId>
+                <artifactId>spring-data-neo4j-aspects</artifactId>
             </aspectLibrary>
         </aspectLibraries>
         <source>1.6</source>
@@ -93,5 +94,9 @@
 </beans>
 ]]></programlisting>
         </example>
+    </para>
+    <para>
+        We made sure that the AspectJ nature was enabled for this project in our STS 2.7.1 and the Aspect-Path settings
+        of our Project-Properties pointed to the configured aspect-libraries.
     </para>
 </chapter>

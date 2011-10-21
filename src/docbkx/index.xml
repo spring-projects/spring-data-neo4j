@@ -10,6 +10,11 @@
     * New Template Query API
     * Spring Roo Addon, Intro, Example Session
     * Update tutorial to include some of the new features (cypher, gremlin)
+    * eclipse / STS setup with m2e, AspectJConfigurator and Weaving enabled etc. https://jira.springsource.org/browse/DATAGRAPH-104
+
+    * fetch-strategies / behaviour
+    * cascading persist/save
+    * @Indexed(level)
     *
     * more on Gremlin / Cypher over REST
     -->
@@ -72,7 +77,7 @@
                 The tutorial takes the reader through the steps necessary to create the application.
                 It provides the configuration and code examples that are needed to understand what's
                 happening in Spring Data Neo4j. The complete source code for the app is available on
-                <ulink url="http://github.com/jexp/cineasts">Github</ulink>.
+                <ulink url="http://spring.neo4j.org/cineasts">Github</ulink>.
             </para>
         </partintro>
 
