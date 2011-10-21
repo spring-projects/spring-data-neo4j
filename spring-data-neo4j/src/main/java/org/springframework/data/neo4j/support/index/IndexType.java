@@ -35,7 +35,6 @@ public enum IndexType
     SIMPLE{ public Map<String,String> getConfig() { return LuceneIndexImplementation.EXACT_CONFIG; } },
     FULLTEXT { public Map<String,String> getConfig() { return LuceneIndexImplementation.FULLTEXT_CONFIG; } },
     POINT { public Map<String,String> getConfig() { return MapUtil.stringMap(
-            IndexManager.PROVIDER, "spatial", "geometry_type" , "point") ; } };
-
+            IndexManager.PROVIDER, "spatial", "geometry_type" , "point","wkt","wkt") ; } };
     public abstract Map<String, String>getConfig();
 }

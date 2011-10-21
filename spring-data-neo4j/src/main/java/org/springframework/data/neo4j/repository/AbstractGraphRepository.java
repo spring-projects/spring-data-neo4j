@@ -16,6 +16,11 @@
 
 package org.springframework.data.neo4j.repository;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+
 import org.apache.lucene.search.NumericRangeQuery;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.NotFoundException;
@@ -34,11 +39,6 @@ import org.springframework.data.neo4j.support.Neo4jTemplate;
 import org.springframework.data.neo4j.support.index.NoSuchIndexException;
 import org.springframework.data.neo4j.support.index.NullReadableIndex;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
-
 /**
  * Repository like finder for Node and Relationship-Entities. Provides finder methods for direct access, access via {@link org.springframework.data.neo4j.core.TypeRepresentationStrategy}
  * and indexing.
@@ -47,7 +47,14 @@ import java.util.List;
  * @param <S> Type of backing state, either Node or Relationship
  */
 @org.springframework.stereotype.Repository
-public abstract class AbstractGraphRepository<S extends PropertyContainer, T> implements GraphRepository<T>, NamedIndexRepository<T> {
+public abstract class AbstractGraphRepository<S extends PropertyContainer, T> implements GraphRepository<T>, NamedIndexRepository<T>, SpatialRepository<T> {
+    @Override
+    public ClosableIterable<T> findByBoundingBox( String indexName, double lowerLeftLat,
+            double lowerLeftLon, double upperRightLat, double upperRightLon )
+    {
+        return findAllByQuery( indexName, "bbox", String.format("[%f, %f, %f, %f]", lowerLeftLon, upperRightLon, lowerLeftLat, upperRightLat) );
+    }
+
     public static final ClosableIterable EMPTY_CLOSABLE_ITERABLE = new ClosableIterable() {
         @Override
         public void close() {

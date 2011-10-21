@@ -42,9 +42,11 @@ public class TestTeam {
         michael = new Person("Michael", 36);
         michael.setBoss(emil);
         michael.setPersonality(Personality.EXTROVERT);
+        michael.setLocation( "POINT(16 56)" );
 
         david = new Person("David", 25);
         david.setBoss(emil);
+        david.setLocation( "POINT (16 56)" );
         friendShip = michael.knows(david);
         friendShip.setYears(2);
         sdg = new Group();

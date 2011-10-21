@@ -27,7 +27,6 @@ import java.util.Collection;
 import java.util.HashSet;
 
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.neo4j.graphdb.DynamicRelationshipType;
@@ -154,12 +153,6 @@ public class IndexTest extends EntityTestBase {
         @Indexed(indexType=IndexType.FULLTEXT, indexName = "InvalidIndexed")
         String fullTextDefaultIndexName;
 
-        @Indexed(indexType=IndexType.POINT, indexName = "InvalidIndexed")
-        double[] latlon;
-
-        @Indexed(indexType=IndexType.POINT)
-        double[] latlonNoIndexName;
-
         public void setFulltextNoIndexName(String fulltextNoIndexName) {
             this.fulltextNoIndexName = fulltextNoIndexName;
         }
@@ -173,22 +166,22 @@ public class IndexTest extends EntityTestBase {
     static class InvalidSpatialIndexed {
 
         @Indexed(indexType=IndexType.POINT, indexName = "InvalidSpatialIndexed")
-        double[] latlon;
+        String latlon;
 
         @Indexed(indexType=IndexType.POINT)
-        double[] latlonNoIndexName;
+        String latlonNoIndexName;
 
         @Indexed(indexType=IndexType.POINT, indexName = "pointLayer")
-        double[] latlonValid;
+        String latlonValid;
         
-        public void setLatlonNoIndexName(double[] latlonNoIndexName) {
+        public void setLatlonNoIndexName(String latlonNoIndexName) {
             this.latlonNoIndexName = latlonNoIndexName;
         }
 
-        public void setLatlon(double[] latlon) {
+        public void setLatlon(String latlon) {
             this.latlon = latlon;
         }
-        public void setLatlonValid(double[] latlonValid) {
+        public void setLatlonValid(String latlonValid) {
             this.latlonValid = latlonValid;
         }
     }
@@ -197,7 +190,7 @@ public class IndexTest extends EntityTestBase {
     @Transactional
     public void indexAccessWithFullAndNoSpatialIndexNameShouldFail() {
         InvalidSpatialIndexed invalidIndexed = persist(new InvalidSpatialIndexed());
-        double[] latlon = {15.0,65};
+        String latlon = "POINT (55 15)";
         invalidIndexed.setLatlonNoIndexName(latlon);
     }
     
@@ -205,16 +198,15 @@ public class IndexTest extends EntityTestBase {
     @Transactional
     public void indexAccessWithDefaultSpatialIndexNameShouldFail() {
         InvalidSpatialIndexed invalidIndexed = persist(new InvalidSpatialIndexed());
-        double[] latlon = {15.0,65};
+        String latlon = "POINT (55 15)";
         invalidIndexed.setLatlon( latlon);
     }
     
     @Test
-    @Ignore
     @Transactional
     public void indexAccessWithValidSpatialIndexName() {
         InvalidSpatialIndexed invalidIndexed = persist(new InvalidSpatialIndexed());
-        double[] latlon = {15.0,65};
+        String latlon = "POINT (55 15)";
         invalidIndexed.setLatlonValid( latlon);
     }
     

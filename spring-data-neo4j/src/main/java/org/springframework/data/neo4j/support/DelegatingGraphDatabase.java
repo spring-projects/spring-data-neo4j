@@ -136,7 +136,8 @@ public class DelegatingGraphDatabase implements GraphDatabase {
         if (isNode(type)) {
             if (indexManager.existsForNodes(indexName))
                 return (Index<T>) checkAndGetExistingIndex(indexName, indexType, indexManager.forNodes(indexName));
-            return (Index<T>) indexManager.forNodes(indexName, indexConfigFor(indexType));
+            Index<Node> index = indexManager.forNodes(indexName, indexConfigFor(indexType));
+            return (Index<T>) index;
         } else {
             if (indexManager.existsForRelationships(indexName))
                 return (Index<T>) checkAndGetExistingIndex(indexName, indexType, indexManager.forRelationships(indexName));
