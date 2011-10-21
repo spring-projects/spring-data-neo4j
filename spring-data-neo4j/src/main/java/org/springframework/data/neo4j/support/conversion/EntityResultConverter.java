@@ -69,15 +69,15 @@ public class EntityResultConverter<T, R> extends DefaultConverter<T, R> {
         return result;
     }
 
+    @SuppressWarnings("unchecked")
     public R extractMapResult(Object value, Class returnType) {
         if (!Map.class.isAssignableFrom(value.getClass())) {
             throw new RuntimeException("MapResult can only be extracted from Map<String,Object>.");
         }
 
-        InvocationHandler apa = new QueryResultProxy((Map<String, Object>) value);
+        InvocationHandler handler = new QueryResultProxy((Map<String, Object>) value);
 
-        R resultProxy = (R) Proxy.newProxyInstance(this.getClass().getClassLoader(), new Class[]{returnType}, apa);
-        return resultProxy;
+        return (R) Proxy.newProxyInstance(returnType.getClassLoader(), new Class[]{returnType}, handler);
     }
 
     @Override
@@ -85,7 +85,7 @@ public class EntityResultConverter<T, R> extends DefaultConverter<T, R> {
         if (type.isAnnotationPresent(MapResult.class)) {
             return extractMapResult(value, type);
         } else
-            return super.convert(value, type);    //To change body of overridden methods use File | Settings | File Templates.
+            return super.convert(value, type);
     }
 
     private class QueryResultProxy implements InvocationHandler {
@@ -95,6 +95,7 @@ public class EntityResultConverter<T, R> extends DefaultConverter<T, R> {
             this.map = map;
         }
 
+        @SuppressWarnings("unchecked")
         @Override
         public Object invoke(Object o, Method method, Object[] objects) throws Throwable {
             ResultColumn column = method.getAnnotation(ResultColumn.class);
