@@ -102,6 +102,12 @@
 
         <dependency>
             <groupId>org.neo4j</groupId>
+            <artifactId>neo4j-spatial</artifactId>
+            <optional>true</optional>
+        </dependency>
+
+        <dependency>
+            <groupId>org.neo4j</groupId>
             <artifactId>server-api</artifactId>
             <optional>true</optional>
         </dependency>
