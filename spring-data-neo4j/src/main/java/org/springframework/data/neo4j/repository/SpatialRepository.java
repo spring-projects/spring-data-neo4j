@@ -18,16 +18,21 @@ package org.springframework.data.neo4j.repository;
 
 import org.neo4j.helpers.collection.ClosableIterable;
 
-
-
 /**
- * @author mh
- * @since 29.03.11
+ * Repository for spatial queries.
+ * WKT is well known text format like POINT( LON LAT ) POLYGON (( LON1 LAT1 LON2 LAT2 LON3 LAT3 LON1 LAT1 ))
+ * @see <a href="http://en.wikipedia.org/wiki/Well-known_text">Well Known Text Spatial Format</a>
+ * Right now requires a field: @Indexed(type = POINT, indexName = "...") String wkt;
+ * inside the entity.
  */
 public interface SpatialRepository<T> {
-    ClosableIterable<T> findByBoundingBox(String indexName, double lowerLeftLat, 
-            double lowerLeftLon,
-            double upperRightLat,
-            double upperRightLon);
+    ClosableIterable<T> findWithinBoundingBox(String indexName, double lowerLeftLat,
+                                              double lowerLeftLon,
+                                              double upperRightLat,
+                                              double upperRightLon);
 
+    ClosableIterable<T> findWithinDistance( final String indexName, final double lat, double lon, double distanceKm);
+
+    ClosableIterable<T> findWithinWellKnownText( final String indexName, String wellKnownText);
 }
+

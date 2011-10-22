@@ -16,10 +16,6 @@
 
 package org.springframework.data.neo4j.repository;
 
-import static org.junit.Assert.assertThat;
-import static org.junit.internal.matchers.IsCollectionContaining.hasItems;
-import static org.neo4j.helpers.collection.IteratorUtil.asCollection;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.junit.Before;
@@ -41,6 +37,10 @@ import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionCallbackWithoutResult;
 import org.springframework.transaction.support.TransactionTemplate;
+
+import static org.junit.Assert.assertThat;
+import static org.junit.internal.matchers.IsCollectionContaining.hasItems;
+import static org.neo4j.helpers.collection.IteratorUtil.asCollection;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @TestExecutionListeners({CleanContextCacheTestExecutionListener.class, DependencyInjectionTestExecutionListener.class, TransactionalTestExecutionListener.class})
@@ -81,8 +81,20 @@ public class SpatialGraphRepositoryTest {
     }
 
     @Test
-    public void testFindIterableOfPersonWithQueryAnnotationSpatial() {
-        Iterable<Person> teamMembers = personRepository.findByBoundingBox( "personLayer", 55, 15, 57, 17 );
-        assertThat(asCollection(teamMembers), hasItems(testTeam.michael, testTeam.david, testTeam.emil));
+    public void testFindPeopleWithinBoundingBox() {
+        Iterable<Person> teamMembers = personRepository.findWithinBoundingBox("personLayer", 55, 15, 57, 17);
+        assertThat(asCollection(teamMembers), hasItems(testTeam.michael, testTeam.david));
+    }
+
+    @Test
+    public void testFindPeopleWithinPolygon() {
+        Iterable<Person> teamMembers = personRepository.findWithinWellKnownText("personLayer", "POLYGON ((15 55, 15 57, 17 57, 17 55, 15 55))");
+        assertThat(asCollection(teamMembers), hasItems(testTeam.michael, testTeam.david));
+    }
+
+    @Test
+    public void testFindPeopleWithinDistance() {
+        Iterable<Person> teamMembers = personRepository.findWithinDistance("personLayer", 16,56,70);
+        assertThat(asCollection(teamMembers), hasItems(testTeam.michael, testTeam.david));
     }
 }

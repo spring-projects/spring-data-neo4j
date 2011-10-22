@@ -45,7 +45,7 @@ public class Person {
 
 	@Indexed(indexType = IndexType.POINT, indexName="personLayer")
     private String wkt;
-	
+
 	@Max(100)
 	@Min(0)
     @Indexed
@@ -166,6 +166,10 @@ public class Person {
 	
 	public void setLocation(String locationInWkt) {
         this.wkt = locationInWkt;
+    }
+
+    public void setLocation(double lon, double lat) {
+        this.wkt = "POINT ( "+lon+" "+lat+" )";
     }
 
 	@Override

@@ -46,7 +46,7 @@ public class TestTeam {
 
         david = new Person("David", 25);
         david.setBoss(emil);
-        david.setLocation( "POINT (16 56)" );
+        david.setLocation( 16.5, 56.5 );
         friendShip = michael.knows(david);
         friendShip.setYears(2);
         sdg = new Group();

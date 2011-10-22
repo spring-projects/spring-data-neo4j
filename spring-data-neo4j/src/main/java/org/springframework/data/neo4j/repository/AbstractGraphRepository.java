@@ -16,11 +16,6 @@
 
 package org.springframework.data.neo4j.repository;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
-
 import org.apache.lucene.search.NumericRangeQuery;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.NotFoundException;
@@ -39,6 +34,14 @@ import org.springframework.data.neo4j.support.Neo4jTemplate;
 import org.springframework.data.neo4j.support.index.NoSuchIndexException;
 import org.springframework.data.neo4j.support.index.NullReadableIndex;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+
+import static java.lang.String.format;
+import static org.neo4j.helpers.collection.MapUtil.map;
+
 /**
  * Repository like finder for Node and Relationship-Entities. Provides finder methods for direct access, access via {@link org.springframework.data.neo4j.core.TypeRepresentationStrategy}
  * and indexing.
@@ -48,11 +51,35 @@ import org.springframework.data.neo4j.support.index.NullReadableIndex;
  */
 @org.springframework.stereotype.Repository
 public abstract class AbstractGraphRepository<S extends PropertyContainer, T> implements GraphRepository<T>, NamedIndexRepository<T>, SpatialRepository<T> {
+
+    /*
+    index.query( LayerNodeIndex.WITHIN_WKT_GEOMETRY_QUERY,
+                    "withinWKTGeometry:POLYGON ((15 56, 15 57, 16 57, 16 56, 15 56))" );
+
+     hits = index.query( LayerNodeIndex.WITHIN_WKT_GEOMETRY_QUERY,
+                     "POLYGON ((15 56, 15 57, 16 57, 16 56, 15 56))" ); lon,lat
+             assertTrue( hits.hasNext() );
+        final String poly = String.format("POLYGON (())", lowerLeftLon, upperRightLon, lowerLeftLat, upperRightLat);
+     */
+
     @Override
-    public ClosableIterable<T> findByBoundingBox( String indexName, double lowerLeftLat,
-            double lowerLeftLon, double upperRightLat, double upperRightLon )
-    {
-        return findAllByQuery( indexName, "bbox", String.format("[%f, %f, %f, %f]", lowerLeftLon, upperRightLon, lowerLeftLat, upperRightLat) );
+    public ClosableIterable<T> findWithinWellKnownText( final String indexName, String wellKnownText) {
+        return geoQuery(indexName, "withinWKTGeometry", wellKnownText);
+    }
+    @Override
+    public ClosableIterable<T> findWithinDistance( final String indexName, final double lat, double lon, double distanceKm) {
+        return geoQuery(indexName, "withinDistance", map("point", new Double[] { lon, lat}, "distanceInKm", distanceKm));
+    }
+
+    @Override
+    public ClosableIterable<T> findWithinBoundingBox(final String indexName, final double lowerLeftLat,
+                                                     final double lowerLeftLon, final double upperRightLat, final double upperRightLon) {
+        return geoQuery(indexName, "bbox", format("[%s, %s, %s, %s]", lowerLeftLon, upperRightLon, lowerLeftLat, upperRightLat));
+    }
+
+    private ClosableIterable<T> geoQuery(String indexName, String geoQuery, Object params) {
+        final IndexHits<S> indexHits = getIndex(indexName,null).query(geoQuery, params);
+        return new GeoNodeIndexHitsWrapper(indexHits);
     }
 
     public static final ClosableIterable EMPTY_CLOSABLE_ITERABLE = new ClosableIterable() {
@@ -353,4 +380,16 @@ public abstract class AbstractGraphRepository<S extends PropertyContainer, T> im
         }
     }
 
+    private class GeoNodeIndexHitsWrapper extends IndexHitsWrapper {
+        public GeoNodeIndexHitsWrapper(IndexHits<S> indexHits) {
+            super(indexHits);
+        }
+
+        @Override
+        protected T underlyingObjectToObject(S result) {
+            final Number objectNodeId = (Number) result.getProperty("id");
+            if (objectNodeId==null) return null;
+            return super.underlyingObjectToObject(getById(objectNodeId.longValue()));
+        }
+    }
 }
