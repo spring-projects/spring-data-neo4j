@@ -8,9 +8,9 @@
         pages. Of course the pages that were only meant for logged-in users had to be secured as well.
     </para>
     <para>
-        Being Spring users, we naturally used Spring Security for this. We wrote  a simple UserDetailsService
+        Being Spring users, we naturally used Spring Security for this. We wrote  a simple <code>UserDetailsService</code>
         that used a repository for looking up the users and validating their credentials. The config is located
-        in a separate applicationContext-security.xml. But first, as always, Maven and web.xml setup.
+        in a separate <code>applicationContext-security.xml</code>. But first, as always, Maven and <code>web.xml</code> setup.
     </para>
     <para>
         <example>
@@ -61,14 +61,15 @@
             <programlisting language="xml" ><![CDATA[<security:global-method-security secured-annotations="enabled">
 </security:global-method-security>
 
-<security:http auto-config="true" access-denied-page="/auth/denied"> <!-- use-expressions="true" -->
+<security:http auto-config="true" access-denied-page="/auth/denied">
     <security:intercept-url pattern="/admin/*" access="ROLE_ADMIN"/>
     <security:intercept-url pattern="/import/*" access="ROLE_ADMIN"/>
     <security:intercept-url pattern="/user/*" access="ROLE_USER"/>
     <security:intercept-url pattern="/auth/login" access="IS_AUTHENTICATED_ANONYMOUSLY"/>
     <security:intercept-url pattern="/auth/register" access="IS_AUTHENTICATED_ANONYMOUSLY"/>
     <security:intercept-url pattern="/**" access="IS_AUTHENTICATED_ANONYMOUSLY"/>
-    <security:form-login login-page="/auth/login" authentication-failure-url="/auth/login?login_error=true"
+    <security:form-login login-page="/auth/login" 
+	   authentication-failure-url="/auth/login?login_error=true"
     default-target-url="/user"/>
     <security:logout logout-url="/auth/logout" logout-success-url="/" invalidate-session="true"/>
 </security:http>
@@ -100,7 +101,7 @@ public class CineastsUserDetailsService implements UserDetailsService, Initializ
     }
 
     public User findUser(String login) {
-        return userRepository.findByPropertyValue("login",login);
+        return userRepository.findByLogin(login);
     }
     public User getUserFromSession() {
         SecurityContext context = SecurityContextHolder.getContext();

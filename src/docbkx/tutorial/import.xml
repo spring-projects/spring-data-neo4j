@@ -86,13 +86,13 @@
     </para>
     <para>
         For the import process we created a separate importer using Jackson (a JSON library) to fetch
-        and parse the data, and then some transactional methods in the MovieDbImportService to actually
+        and parse the data, and then some transactional methods in the <code>MovieDbImportService</code> to actually
         import it as movies, roles, and actors.
-        <!--User data was not available so I created an anonymous user called 'Cineast' that I attributed all the ratings and comments to.-->
         The importer used a simple caching mechanism to keep downloaded actor and movie data on the
         filesystem, so that we didn't have to overload the remote API.
         In the code below you can see that we've changed the actor to a person so that we can also accommodate
         the other folks that participate in movie production.
+<!-- todo polymorphic querying -->
     </para>
     <para>
         <example>
@@ -101,12 +101,12 @@
 public Movie importMovie(String movieId) {
     Movie movie = repository.getMovie(movieId);
     if (movie == null) { // Not found: Create fresh
-        movie = new Movie(movieId,null);
+        movie = new Movie(movieId);
     }
 
     Map data = loadMovieData(movieId);
     if (data.containsKey("not_found"))
-            throw new RuntimeException("Data for Movie "+movieId+" not found.");
+            throw new ImportException("Data for Movie "+movieId+" not found.");
     movieDbJsonMapper.mapToMovie(data, movie);
     movie.persist();
     relatePersonsToMovie(movie, data);

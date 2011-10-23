@@ -25,14 +25,14 @@
         <example>
             <title>Domain model</title>
             <programlisting lang="java" language="java" role="java" ><![CDATA[class Movie {
-    int id;
+    String id;
     String title;
     int year;
     Set<Role> cast;
 }
 
 class Actor {
-    int id;
+    String id;
     String name;
     Set<Movie> filmography;
     Role playedIn(Movie movie, String role) { ... }

@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" "http://www.docbook.org/xml/4.4/docbookx.dtd">
+<chapter id="tutorial_relationships">
+    <title>Neo4j Server</title>
+    <subtitle>Remotely related</subtitle>
+    <para>
+		Right now our application was running with the embedded mode of Neo4j which was fine and high performant.
+		In certain environments you didn't have the luxury of file-system access for your webapps and had to talk
+		to a remote database service instead. Neo4j comes along as a Server that runs stand-alone and exposes
+		its operations via a HTTP based REST API.
+    </para>
+	<para>
+		We decided to have a look to be at least knowledgeable about this deployment scenario. Of course we were
+		aware of the difference of local, in-memory calls and higher latency network hops. That would be something
+		we would also look out for.
+	</para>
+    <section>
+        <title>Getting Neo4j-Server</title>
+        <para>
+			Getting the Neo4j-Server was easy, we just went to <ulink url="http://neo4j.org">neo4j.org</ulink> and
+			downloaded the latest version. Starting it on the command-line (or installing it as a service) was a 
+			no-brainer as well.
+		</para>	
+		<para>
+			We copied our store-directory into the <code>data/graph.db</code> directory of the server and started it
+			up again.
+			Despite the visualization options we already encountered the admin console of Neo4j-Server, called "Web-Admin" 
+			is pretty. It uses javascript to render the graph visually in a highly configurable way.
+		</para>
+        <para>
+            <mediaobject>
+                <imageobject>
+                    <imagedata fileref="webadmin.png" align="center"/>
+                </imageobject>
+            </mediaobject>
+        </para>
+		<para>
+			So, how would we get our app connect to this server? It turned out the changes in configuration and setup
+			where minimal. Spring Data Neo4j already came with a module that takes care of the remote protocol. We
+			added that maven dependency and changed the graph database used in the Spring
+			Configuration.
+        </para>
+        <para>
+            <example>
+                <title>Maven Dependency</title>
+                <programlisting language="xml"><![CDATA[
+<dependency>
+    <groupId>org.springframework.data</groupId>
+    <artifactId>spring-data-neo4j-rest</artifactId>
+    <version>2.0.0.RC1</version>
+</dependency>
+]]></programlisting>
+            </example>
+        </para>
+        <para>
+            <example>
+                <title>Spring Config</title>
+                <programlisting language="xml"><![CDATA[
+<neo4j:config graphDatabaseService="graphDatabaseService"/>
+<bean id="graphDatabaseService" 
+	class="org.springframework.data.neo4j.rest.SpringRestGraphDatabase">
+  <constructor-arg index="0" value="http://localhost:7474/db/data" />
+</bean>
+]]></programlisting>
+            </example>
+        </para>
+
+        <para>
+			After those two changes we restarted the app, and ... it worked. Impressive that transparent handling
+			of the remote API. We learned that it uses a library called <code>java-rest-graphdb</code> under the
+			hood which is also usable without the Spring Framework.
+		</para>
+		<para>
+			Of course we noticed performance implications. Especially after moving the server to another machine.
+			It turned out that the server supported remote execution of a lot of things, allowing us to run the
+			graph traversal and querying inside the server. That means looking at our graph interactions and
+			changing them in a way that switched from the transparent, direct graph access via the entities to
+			a different interaction pattern.
+        </para>
+        <para>
+<!--		So the first step would be moving away from the aspectj-direct mapping to loading and storing the
+			entities via the repositories which would manage.
+-->
+			We looked into the different modes of remote execution and found traversals, cypher and gremlin queries
+			and index lookups. Most of them already matched our needs but the cypher and gremlin approaches were best 
+			suited, because they also handled index operations and allowed to return partial attribute sets and subgraphs.
+        </para>
+        <para>
+			So we looked at our use-case (aka page) -based interactions with the graph entities and converted them to 
+			cypher queries on repositories where appropriate, measuring the performance improvements as we went.
+        </para>
+		<para>
+			There was also a nice mechanism of mapping Cypher Query results to Domain Concepts. You just had to declare
+			and annotate an interface that represents the query results as domain entities and the nodes and relationships
+			returned by cypher were converted into the appropriate entities.
+		</para>
+        <para>
+            <example>
+                <title></title>
+                <programlisting language="java" ><![CDATA[
+public interface MovieRepository extends GraphRepository<Movie> {
+
+    @Query("START movie=node:Movie(id={0}) 
+            MATCH movie-[rating?:rating]->(),
+                  movie<-[:ACTS_IN]-actor 
+            RETURN movie, COLLECT(actor), AVG(rating.stars)")
+    MovieData getMovieData(String movieId);
+
+    @MapResult
+    public interface MovieData {
+        @ResultColumn("movie")
+        Movie getMovie();
+
+        @ResultColumn("AVG(rating.stars)")
+        Double getRating();
+
+        @ResultColumn("COLLECT(actor)")
+        Iterable<Actor> getCast();
+    }
+}]]></programlisting>
+            </example>
+        </para>
+    </section>
+	<section>
+		<title>Other approaches</title>
+			<para>
+				Another approach using the Neo4j-Server would be to write a custom server extension using the 
+				<code>SpringPluginInitializer</code> provided by <code>spring-data-neo4j-rest</code>. This extension
+				would use the well known entities and approaches as it runs inside the server atop a embedded graph
+				database. From the extension we would expose custom, domain and use-case oriented REST endpoints that
+				could then be consumable by any kind of webapp, even a pure Javascript based browser app.
+			</para>
+	</section>
+</chapter>

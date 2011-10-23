@@ -20,9 +20,6 @@
                 <programlisting language="java"><![CDATA[@Service
 public class DatabasePopulator {
 
-    @Autowired GraphDatabaseContext ctx;
-    @Autowired CineastsRepository repository;
-
     @Transactional
     public List<Movie> populateDatabase() {
         Actor tomHanks = new Actor("1", "Tom Hanks").persist();
@@ -35,14 +32,9 @@ public class DatabasePopulator {
 @Controller
 public class MovieController {
 
-    private DatabasePopulator populator;
+    @Autowired private DatabasePopulator populator;
 
-    @Autowired
-    public MovieController(DatabasePopulator populator) {
-        this.populator = populator;
-    }
-
-    @RequestMapping(value = "/populate", method = RequestMethod.GET)
+    @RequestMapping(value = "/populate", method = RequestMethod.POST)
     public String populateDatabase(Model model) {
         Collection<Movie> movies = populator.populateDatabase();
         model.addAttribute("movies",movies);
@@ -51,48 +43,16 @@ public class MovieController {
 }
 ]]></programlisting>
             </example>
-            <example>
-                <title>Populating the database - JSP</title>
-                <programlisting language="xml"><![CDATA[<%@ page session="false" %>
-<%@ taglib uri="http://www.springframework.org/tags" prefix="s" %>
-<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
-
-<c:choose>
-  <c:when test="${not empty movie}">
-    <h2>${movie.title}</h2>
-    <c:if test="${not empty movie.roles}">
-    <ul>
-    <c:forEach items="${movie.roles}" var="role">
-      <li>
-        <a href="/actors/${role.actor.id}"><c:out value="${role.actor.name}" /> as
-        <c:out value="${role.name}" /></a><br/>
-      </li>
-    </c:forEach>
-    </ul>
-    </c:if>
-  </c:when>
-  <c:otherwise>
-      No Movie with id ${id} found!
-  </c:otherwise>
-</c:choose>
-]]></programlisting>
-            </example>
         </para>
         <para>
-            Accessing the URI showed the single added movie on screen.
+            Accessing the URI showed added movies on screen.
         </para>
-        <note><para>
-            Pardon the misused GET parameter for that (don't try this at home, the
-            <ulink url="http://restinpractice.com">REST guys</ulink> will hunt you down). This is only for
-            running it from the browser address line. The next iteration of this website would use a button
-            with POST.
-        </para></note>
     </section>
     <section>
         <title>Inspecting the datastore</title>
         <para>
             Being the geeks we are, we also wanted to inspect the raw data in the database. Reading the
-            Neo4j docs, there were a couple of different ways of going about this.
+            <ulink url="http://docs.neo4j.org/">Neo4j docs</ulink>, there were a couple of different ways of going about this.
         </para>
         <section>
             <title>Neoclipse visualization</title>
@@ -113,19 +73,21 @@ public class MovieController {
             <title>The Neo4j Shell</title>
             <para>
                 For console junkies there was also a shell that was able to connect to a running Neo4j instance
-                (if it was started with enable_remote_shell=true), or directly open an existing graph store.
+                (if it was started with the <code>enable_remote_shell=true</code> parameter), or reads an existing 
+				graph store directly.
             </para>
             <para>
                 <example>
                     <title>Starting the Neo4j Shell</title>
-                    <programlisting><![CDATA[neo4j-shell -readonly -path data/graph.db
+                    <programlisting><![CDATA[bash# neo4j-shell -readonly -path data/graph.db
+bash# neo4j-shell -readonly -port 1337
 ]]></programlisting>
                 </example>
             </para>
             <para>
                 The shell was very similar to a standard Bash shell. We were able to <code>cd</code> to
                 between the nodes, and <code>ls</code> the relationships and properties. There were also
-                more advanced commands for indexing and traversals.
+                more advanced commands for indexing, queries and traversals.
             </para>
             <para>
                 <example>

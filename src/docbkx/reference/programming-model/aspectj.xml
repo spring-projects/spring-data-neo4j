@@ -4,7 +4,7 @@
     <title>AspectJ support</title>
     <para>
         Behind the scenes, Spring Data Neo4j leverages <ulink url="http://www.eclipse.org/aspectj/">AspectJ</ulink>
-        aspects to modify the behavior of simple annotated POJO entities
+        aspects to modify the behavior of annotated POJO entities
         (see <xref linkend="reference:aspectj-details"/>). Each node entity is backed by a graph node that holds its
         properties and relationships to other entities. AspectJ is used for intercepting field access, so that
         Spring Data Neo4j can retrieve the information from the entity's backing node or relationship in the database.

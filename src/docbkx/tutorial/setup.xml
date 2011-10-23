@@ -107,7 +107,8 @@
  <context:annotation-config/>
  <context:spring-configured/>
  <context:component-scan base-package="org.neo4j.cineasts">
-     <context:exclude-filter type="annotation" expression="org.springframework.stereotype.Controller"/>
+     <context:exclude-filter type="annotation" 
+	          expression="org.springframework.stereotype.Controller"/>
  </context:component-scan>
 
  <tx:annotation-driven mode="aspectj"/>
@@ -121,7 +122,9 @@
 <mvc:resources mapping="/resources/**" location="/resources/"/>
 <context:component-scan base-package="org.neo4j.cineasts.controller"/>
 
-<bean id="viewResolver" class="org.springframework.web.servlet.view.InternalResourceViewResolver" p:prefix="/WEB-INF/views/" p:suffix=".jsp"/>
+<bean id="viewResolver" 
+	  class="org.springframework.web.servlet.view.InternalResourceViewResolver" 
+	  p:prefix="/WEB-INF/views/" p:suffix=".jsp"/>
 
 <tx:annotation-driven mode="aspectj"/>
 ]]></programlisting>

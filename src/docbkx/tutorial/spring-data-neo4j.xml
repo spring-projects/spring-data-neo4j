@@ -33,8 +33,8 @@
     <groupId>org.aspectj</groupId>
     <artifactId>aspectjrt</artifactId>
     <version>${aspectj.version}</version>
-</dependency>
-
+</dependency>]]></programlisting>
+<programlisting language="xml"><![CDATA[
 <build> <plugins> <plugin>
     <groupId>org.codehaus.mojo</groupId>
     <artifactId>aspectj-maven-plugin</artifactId>

@@ -4,23 +4,36 @@
     <title>Repositories</title>
     <subtitle>Serving a good cause</subtitle>
     <para>
-        We wanted to add repositories with domain-specific operations. We started by creating a
-        movie-specific repository, simply by creating an empty interface. It is more convenient to
-        work with a named interface rather than different versions of a generic one.
+        We wanted to add repositories with domain-specific operations. Interestingly there was support for
+		a very advanced repository infrastructure. You just declare an entity specific repository interface
+		and get all commonly used methods for free without implementing a line of boilerplate code.
+	</para>
+	<para>	
+		So we started by creating a movie-related repository, simply by creating an empty interface. 
         <example>
             <title>Movie repository</title>
             <programlisting language="java"><![CDATA[package org.neo4j.cineasts.repository;
 public interface MovieRepository extends GraphRepository<Movie> {}
 ]]></programlisting>
         </example>
-        Then we added it to the Spring context configuration by simply adding:
+        Then we enabled repository supprt in the Spring context configuration by simply adding:
         <example>
             <title>Repository context configuration</title>
             <programlisting language="xml"><![CDATA[<neo4j:repositories base-package="org.neo4j.cineasts.repository"/>
 ]]></programlisting>
         </example>
-        We then created the domain-specific repository class, annotating it with <code>@Repository</code> and
-        <code>@Transactional</code>, and injected the movie repository.
+<!--		Besides the existing repository operations (like CRUD, and lots of querying) it was possible to declare
+		custom methods that were either annotated with queries or were named like a query. Those methods could
+		be more domain centric and expressive than the generic ones.
+-->		
+		For simple use-cases like finding by id's this is good enough. So we first let Spring autowire our 
+		<code>MovieController</code> with the <code>MovieRepository</code>. So we could perform simple persistence operations.
+    </para>
+    <para>
+		We felt that a domain oriented repository would more useful, especially as it only exposed the needed operations
+		under domain-specific (vs. generic) names.
+        We then created the domain-specific <code>CineastsRepository</code> class, annotating it with <code>@Repository</code> and
+        <code>@Transactional</code>, and injected the basic movie repository.
     </para>
     <para>
         <example>
@@ -29,14 +42,42 @@ public interface MovieRepository extends GraphRepository<Movie> {}
 public class CineastsRepostory {
   @Autowired MovieRepository movieRepository;
 
-  public Movie getMovie(int id) {
+  public Movie getMovie(String id) {
       return movieRepository.findByPropertyValue("id", id);
   }
-}
-]]></programlisting>
+}]]></programlisting>
         </example>
     </para>
     <para>
-        We did the same for the actors and users.
+	    We went on exploring the repository infrastructure. A very cool feature was something that we so far only heard
+	    from Grails developers. Deriving queries from method names. The simplest use-case could help us get rid of that
+	    custom implementation for the <p>getMovie()</p> method. Impressive.
+	</para>
+    <para>
+        <example>
+            <title>Derived movie-repository query method</title>
+            <programlisting language="java"><![CDATA[
+public interface MovieRepository extends GraphRepository<Movie> {
+  Movie getMovieById(String id);
+}]]></programlisting>
+        </example>
     </para>
+    <para>
+	    In our wildest dreams we imagined the method names we would come up with and what kinds of queries those could
+	    generate. But some, more complex queries would be cumbersome to read and write. So in those cases it is better
+	    to just annotate the finder method. We did this much later, and just wanted to give you a peek in the future.
+	    There is much more, you can do with repositories, it is worthwile to explore.
+	    <!-- TODO mention geo-queries, query-result projections ?? -->
+	</para>
+    <para>
+        <example>
+            <title>Annotated movie-repository query method</title>
+            <programlisting language="java"><![CDATA[
+public interface MovieRepository extends GraphRepository<Movie> {
+ @Query("start user=node:User({0}) match user-[r:RATED]->movie return movie order by r.stars desc limit 10")
+ Iterable<Movie> getTopRatedMovies(User uer);
+}]]></programlisting>
+        </example>
+    </para>
+    
 </chapter>
