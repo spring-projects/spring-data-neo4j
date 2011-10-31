@@ -37,8 +37,8 @@
     <para>
         The explanation of Spring Data Neo4js programming model starts with some underlying details.
         The basic internal workings of the Spring Data Neo4j mapping modes are explained in the initial chapter.
-		<xref linkend="reference:mapping"> covers the basic one and
- 		<xref linkend="reference:aspectj"> contains details about the AspectJ version.
+		<xref linkend="reference:mapping"/> covers the basic mapping and
+ 		<xref linkend="reference:aspectj"/> contains details about the AspectJ version.
         It also explains some of the common issues around AspectJ tooling with the current IDEs.
     </para>
     <para>

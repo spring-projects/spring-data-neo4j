@@ -7,7 +7,7 @@
         database.
     </para>
 
-    <xi:include href="../snippets/SnippetNeo4jTemplateMethods.xml"/>
+    <xi:include href="../../snippets/SnippetNeo4jTemplateMethods.xml"/>
     <section>
         <title>Result</title>
         <para>

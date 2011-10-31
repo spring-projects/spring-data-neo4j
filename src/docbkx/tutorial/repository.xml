@@ -51,7 +51,7 @@ public class CineastsRepostory {
     <para>
 	    We went on exploring the repository infrastructure. A very cool feature was something that we so far only heard
 	    from Grails developers. Deriving queries from method names. The simplest use-case could help us get rid of that
-	    custom implementation for the <p>getMovie()</p> method. Impressive.
+	    custom implementation for the <code>getMovie()</code> method. Impressive.
 	</para>
     <para>
         <example>

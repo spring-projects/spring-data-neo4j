@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" "http://www.docbook.org/xml/4.4/docbookx.dtd">
-<chapter id="tutorial_relationships">
+<chapter id="tutorial_server">
     <title>Neo4j Server</title>
     <subtitle>Remotely related</subtitle>
     <para>
@@ -48,7 +48,7 @@
 <dependency>
     <groupId>org.springframework.data</groupId>
     <artifactId>spring-data-neo4j-rest</artifactId>
-    <version>2.0.0.RC1</version>
+    <version>2.0.0.M1</version>
 </dependency>
 ]]></programlisting>
             </example>

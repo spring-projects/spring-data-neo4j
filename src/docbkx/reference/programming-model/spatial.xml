@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE section PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
+<section id="reference:mapping">
+    <title>Geospatial Queries</title>
+    <para>
+	<code>SpatialRepository</code> is a dedicated Repository for spatial queries. 
+	 Spring Data Neo4j provides an optional dependency to <code>neo4j-spatial</code> which is an advanced library
+	 for gis operations. So if you include the maven dependency in your <code>pom.xml</code>, Neo4j-Spatial and
+     the required <code>SPATIAL</code> index provider is available.
+	</para>
+	<para>
+		<example>
+			<title>Neo4j-Spatial Dependencies</title>
+	<programlisting language="java"><![CDATA[
+<dependency>
+    <groupId>org.neo4j</groupId>
+    <artifactId>neo4j-spatial</artifactId>
+    <version>0.7-SNAPSHOT</version>
+</dependency>
+]]></programlisting>
+</example>
+</para>
+<para>
+	 For having your entities available for spatial index queries, please include a String property containing
+	 a "well known text", location string.
+	 WKT is the <ulink url="http://en.wikipedia.org/wiki/Well-known_text">Well Known Text Spatial Format</ulink>
+	 eg. <code>POINT( LON LAT ) or POLYGON (( LON1 LAT1 LON2 LAT2 LON3 LAT3 LON1 LAT1 ))</code>        
+</para>
+<para>
+	<example>
+		<title>Fields of </title>
+<programlisting language="java"><![CDATA[
+@NodeEntity
+class Venue {
+   String name;
+   @Indexed(type = POINT, indexName = "...") String wkt;
+   public void setLocation(float lon, float lat) {
+      this.wkt = String.format("POINT( %.2f %.2f )",lon,lat);
+   }
+}
+
+venue.setLocation(56,15);
+]]></programlisting>
+</example>
+</para>
+<para>
+   After adding the <code>SpatialRepository</code> to your repository you can use the 
+   <code>findWithinBoundingBox, findWithinDistance, findWithinWellKnownText</code>.
+</para>
+<para>
+		<example>
+			<title>Spatial Queries</title>
+	<programlisting language="java"><![CDATA[    Iterable<Person> teamMembers = personRepository.findWithinBoundingBox("personLayer", 55, 15, 57, 17);
+Iterable<Person> teamMembers = personRepository.findWithinWellKnownText("personLayer", "POLYGON ((15 55, 15 57, 17 57, 17 55, 15 55))");
+Iterable<Person> teamMembers = personRepository.findWithinDistance("personLayer", 16,56,70);
+]]></programlisting>
+	</example>
+	</para>
+<para>
+		<example>
+			<title>Methods of the Spatial Repository</title>
+	<programlisting language="java"><![CDATA[public interface SpatialRepository<T> {
+    ClosableIterable<T> findWithinBoundingBox(String indexName, double lowerLeftLat,
+                                              double lowerLeftLon,
+                                              double upperRightLat,
+                                              double upperRightLon);
+
+    ClosableIterable<T> findWithinDistance( final String indexName, final double lat, double lon, double distanceKm);
+
+    ClosableIterable<T> findWithinWellKnownText( final String indexName, String wellKnownText);
+}
+]]></programlisting>
+</example>
+</para>
+</section>

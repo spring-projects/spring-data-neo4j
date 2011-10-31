@@ -17,5 +17,4 @@
 	<para>
 		Otherwise the two approaches are sharing lots of the infrastructure. E.g. for creating new entity instances from type information store in the graph (<xref linkend="reference:programming-model:typerepresentationstrategy"/>), the infrastructure for mapping individual fields to graph properties and relationships and everything related to indexing and querying. A certain part of that is also exposed via the Neo4jTemplate for direct use.
 	</para>
-    </section>
 </section>

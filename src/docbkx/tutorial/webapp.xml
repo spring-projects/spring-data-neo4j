@@ -51,8 +51,7 @@ public String singleMovieView(final Model model, @PathVariable String movieId) {
 		</c:choose>
 		]]></programlisting>
 		</example>
-		</para>
-    </para>
+	</para>
     <para>
         The UI had now evolved to this:
         <mediaobject>
@@ -93,7 +92,7 @@ public String singleMovieView(final Model model, @PathVariable String movieId) {
         ClosableIterable<Movie> searchResults = movieRepository.findAllByQuery("title", query);
         for (Movie movie : searchResults) {
             movies.add(movie);
-            if (count-- == 0) break;
+            if (count- - == 0) break;
         }
         searchResults.close();
         return movies;

@@ -15,7 +15,7 @@
             Relationships without properties ("anonymous" relationships) don't require any <code>@RelationshipEntity</code>
             classes. "Unfortunately" we had none of those, because our relationships were richer.
             Therefore we went with the <code>Role</code> relationship between <code>Movie</code> and <code>Actor</code>.
-            It had to be annotated with <code>@RelationshipEntity</code> and the <cod>@StartNode</cod> and <code>@EndNode</code> 
+            It had to be annotated with <code>@RelationshipEntity</code> and the <code>@StartNode</code> and <code>@EndNode</code>
             had to be marked.
             So our Role looked like this:
         </para>

@@ -80,7 +80,7 @@ for (Person middleAgedDeveloper : graphRepository.findAllByRange("age", 20, 40))
                 <title>Fulltext indexing</title>
                 <programlisting language="java"><![CDATA[@NodeEntity
 class Person {
-    @Indexed(indexName = "people-search", fulltext=true) String name;
+    @Indexed(indexName = "people-search", type=FULLTEXT) String name;
 }
 
 GraphRepository<Person> graphRepository =

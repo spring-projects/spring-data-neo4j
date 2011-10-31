@@ -54,7 +54,6 @@ interface UserRepository extends GraphRepository<User> {
 ]]></programlisting>
 	    </example>
 	</para>
-	</para>
     <!-- move to reference para>
         In the last part of this exercise we wanted to add recommendations to the app. One
         obvious recommendation was movies that our friends liked (and their friends too, but
