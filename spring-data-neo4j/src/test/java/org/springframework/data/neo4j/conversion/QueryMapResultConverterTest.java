@@ -21,6 +21,7 @@ import org.springframework.data.neo4j.annotation.ResultColumn;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentTestBase;
 import org.springframework.data.neo4j.model.Friendship;
 import org.springframework.data.neo4j.model.Person;
+import org.springframework.data.neo4j.support.conversion.NoSuchColumnFoundException;
 
 import java.util.List;
 import java.util.Map;
@@ -40,67 +41,76 @@ public class QueryMapResultConverterTest extends Neo4jPersistentTestBase {
     private Map<String, Object> advancedMap;
 
     public interface PersonAndFriendsData {
-        @ResultColumn("person")
+        @ResultColumn( "person" )
         Person getPerson();
 
-        @ResultColumn("collect(r)")
+        @ResultColumn( "collect(r)" )
         Iterable<Friendship> getFriends();
     }
 
     public interface SimplestQuery {
-        @ResultColumn("name")
+        @ResultColumn( "name" )
         String getName();
 
-        @ResultColumn("age")
+        @ResultColumn( "age" )
         Integer getAge();
 
-        @ResultColumn("friends")
+        @ResultColumn( "friends" )
         Iterable<String> getFriendNames();
     }
 
     @Before
     public void init() throws Exception {
-        storeInGraph(michael);
-        storeInGraph(andres);
-        storeInGraph(emil);
+        storeInGraph( michael );
+        storeInGraph( andres );
+        storeInGraph( emil );
 
-        makeFriends(michaelNode(), andresNode(), 19);
-        makeFriends(michaelNode(), emilNode(), 6);
+        makeFriends( michaelNode(), andresNode(), 19 );
+        makeFriends( michaelNode(), emilNode(), 6 );
 
-        friends = asList("Michael", "Emil", "Anders");
-        simpleMap = map("name", "Andres", "age", 36L, "friends", friends);
-        advancedMap = map("person", michaelNode(), "collect(r)", michaelNode().getRelationships(KNOWS));
+        friends = asList( "Michael", "Emil", "Anders" );
+        simpleMap = map( "name", "Andres", "age", 36L, "friends", friends );
+        advancedMap = map( "person", michaelNode(), "collect(r)", michaelNode().getRelationships( KNOWS ) );
 
-        michael = readPerson(michaelNode());
+        michael = readPerson( michaelNode() );
     }
 
     @Test
     public void shouldBeAbleToGetAStringFromAResultMap() throws Exception {
         QueryMapResulConverter<SimplestQuery> converter = getConverter();
-        SimplestQuery query = converter.convert(simpleMap, SimplestQuery.class);
+        SimplestQuery query = converter.convert( simpleMap, SimplestQuery.class );
 
-        assertThat(query.getName(), equalTo("Andres"));
-        assertThat(query.getAge(), equalTo(36));
+        assertThat( query.getName(), equalTo( "Andres" ) );
+        assertThat( query.getAge(), equalTo( 36 ) );
     }
 
     @Test
     public void shouldBeAbleToHandleAnIterableOfString() throws Exception {
         QueryMapResulConverter<SimplestQuery> converter = getConverter();
-        SimplestQuery query = converter.convert(simpleMap, SimplestQuery.class);
+        SimplestQuery query = converter.convert( simpleMap, SimplestQuery.class );
 
-        assertThat(query.getFriendNames(), hasItems("Michael", "Emil", "Anders"));
+        assertThat( query.getFriendNames(), hasItems( "Michael", "Emil", "Anders" ) );
     }
 
     @Test
     public void shouldHandleANodeBackedEntity() throws Exception {
-        QueryMapResulConverter<PersonAndFriendsData> converter = new QueryMapResulConverter<PersonAndFriendsData>(template);
-        PersonAndFriendsData result = converter.convert(advancedMap, PersonAndFriendsData.class);
+        QueryMapResulConverter<PersonAndFriendsData> converter = new QueryMapResulConverter<PersonAndFriendsData>(
+                template );
+        PersonAndFriendsData result = converter.convert( advancedMap, PersonAndFriendsData.class );
 
-        assertThat(result.getPerson(), equalTo(michael));
-        assertThat(asCollection(result.getFriends()), equalTo(asCollection(michael.getFriendships())));
+        assertThat( result.getPerson(), equalTo( michael ) );
+        assertThat( asCollection( result.getFriends() ), equalTo( asCollection( michael.getFriendships() ) ) );
+    }
+
+    @Test( expected = NoSuchColumnFoundException.class )
+    public void shouldThrowNiceException() throws Exception {
+        QueryMapResulConverter<PersonAndFriendsData> converter = new QueryMapResulConverter<PersonAndFriendsData>(
+                template );
+        PersonAndFriendsData convert = converter.convert( map(), PersonAndFriendsData.class );
+         convert.getFriends();
     }
 
     private QueryMapResulConverter<SimplestQuery> getConverter() {
-        return new QueryMapResulConverter<SimplestQuery>(template);
+        return new QueryMapResulConverter<SimplestQuery>( template );
     }
 }
