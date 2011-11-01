@@ -10,6 +10,7 @@
     </para>
     <xi:include href="mapping.xml"/>
     <xi:include href="aspectj.xml"/>
+    <xi:include href="simple_mapping.xml"/>
     <xi:include href="node-entities.xml"/>
     <xi:include href="relationships.xml"/>
     <xi:include href="indexing.xml"/>

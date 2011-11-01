@@ -3,7 +3,7 @@
 <section id="reference:mapping">
     <title>Object Graph Mapping</title>
     <para>
-       Until recently Spring Data Neo4j supported the only more advanced and flexible <xref linkend="reference:aspectj">AspectJ based mapping approach</xref>. Feedback about complications with the AspectJ tooling and other implications supported us in adding a <xref linkend="reference:simple-mapping">simpler mapping</xref> to Spring Data Neo4j.
+       Until recently Spring Data Neo4j supported the only more advanced and flexible AspectJ based mapping approach, see <xref linkend="reference:aspectj" />. Feedback about complications with the AspectJ tooling and other implications supported us in adding a simpler mapping (see <xref linkend="reference:simple-mapping" />) to Spring Data Neo4j.
 	   Both versions work with the same annotations and provide similar API's but different behaviour.
     </para>
 	<para>
