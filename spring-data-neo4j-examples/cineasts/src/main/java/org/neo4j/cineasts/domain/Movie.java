@@ -31,7 +31,7 @@ public class Movie {
     @RelatedTo(type="DIRECTED", direction = INCOMING)
     Person director;
 
-    @RelatedTo(elementClass = Person.class, type = "ACTS_IN", direction = INCOMING)
+    @RelatedTo(type = "ACTS_IN", direction = INCOMING)
     Set<Person> actors;
 
     @RelatedToVia(elementClass = Role.class, type = "ACTS_IN", direction = INCOMING)

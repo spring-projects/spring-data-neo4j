@@ -88,12 +88,6 @@ public class IndexProvider {
         return graphDatabase.createIndex(type, indexName, fullText);
     }
 
-    public String getIndexKey(Neo4jPersistentProperty property) {
-        Indexed indexed = property.getAnnotation(Indexed.class);
-        if (indexed==null || indexed.fieldName().isEmpty()) return property.getNeo4jPropertyName();
-        return indexed.fieldName();
-    }
-
     public <S extends PropertyContainer> Index<S> getIndex(Neo4jPersistentProperty property, final Class<?> instanceType) {
         final Indexed indexedAnnotation = property.getAnnotation(Indexed.class);
         final Class<?> declaringType = property.getOwner().getType();

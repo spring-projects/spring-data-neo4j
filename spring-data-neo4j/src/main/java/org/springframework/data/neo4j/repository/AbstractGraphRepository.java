@@ -293,16 +293,7 @@ public abstract class AbstractGraphRepository<S extends PropertyContainer, T> im
 
     @Override
     public void delete(T entity) {
-        final PropertyContainer state = template.getPersistentState(entity);
-        if (state instanceof Node) {
-            Node node = (Node) state;
-            node.delete();
-        }
-        if (state instanceof Relationship) {
-            Relationship relationship = (Relationship) state;
-            relationship.delete();
-        }
-
+        template.delete(entity);
     }
 
     @Override

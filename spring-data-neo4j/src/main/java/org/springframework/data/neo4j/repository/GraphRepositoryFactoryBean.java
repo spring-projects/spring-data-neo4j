@@ -34,7 +34,7 @@ public class GraphRepositoryFactoryBean<S extends PropertyContainer, R extends C
 TransactionalRepositoryFactoryBeanSupport<R, T, Long> {
 
     private Neo4jTemplate template;
-    private MappingContext<? extends Neo4jPersistentEntity<?>, Neo4jPersistentProperty> mappingContext;
+    private Neo4jMappingContext mappingContext;
 
     public void setNeo4jTemplate(Neo4jTemplate template) {
         this.template = template;
@@ -44,7 +44,7 @@ TransactionalRepositoryFactoryBeanSupport<R, T, Long> {
      * @param mappingContext the mappingContext to set
      */
     public void setMappingContext(
-            MappingContext<Neo4jPersistentEntity<?>, Neo4jPersistentProperty> mappingContext) {
+            Neo4jMappingContext mappingContext) {
         this.mappingContext = mappingContext;
     }
 

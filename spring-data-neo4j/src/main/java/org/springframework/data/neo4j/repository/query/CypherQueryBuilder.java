@@ -76,14 +76,15 @@ class CypherQueryBuilder implements CypherQueryDefinition {
         PersistentPropertyPath<Neo4jPersistentProperty> path = context.getPersistentPropertyPath(part.getProperty());
         String variable = variableContext.getVariableFor(path);
 
-        Neo4jPersistentProperty leafProperty = path.getLeafProperty();
-        if (!leafProperty.isRelationship()) {
-            if (leafProperty.isIndexed()) {
-                startClauses.add(new StartClause(path, variable, index++));
+        final PartInfo partInfo = new PartInfo(path, variable, part, index);
+        if (partInfo.isPrimitiveProperty()) {
+            if (partInfo.isIndexed()) {
+                startClauses.add(new StartClause(partInfo));
             } else {
-                whereClauses.add(new WhereClause(path, variable, part.getType(), index++));
+                whereClauses.add(new WhereClause(path, variable, part.getType(), index, partInfo));
             }
         }
+        index += 1;
 
         MatchClause matchClause = new MatchClause(path);
 
@@ -94,10 +95,21 @@ class CypherQueryBuilder implements CypherQueryDefinition {
         return this;
     }
 
+    public PartInfo getPartInfo(int parameterIndex) {
+        for (StartClause startClause : startClauses) {
+            if (startClause.getPartInfo().getParameterIndex()==parameterIndex) return startClause.getPartInfo();
+        }
+        for (WhereClause whereClause : whereClauses) {
+            if (whereClause.getPartInfo().getParameterIndex()==parameterIndex) return whereClause.getPartInfo();
+        }
+        throw new IllegalArgumentException("Index "+parameterIndex+" not valid");
+    }
+
+
     /*
-     * (non-Javadoc)
-     * @see java.lang.Object#toString()
-     */
+    * (non-Javadoc)
+    * @see java.lang.Object#toString()
+    */
     @Override
     public String toString() {
 

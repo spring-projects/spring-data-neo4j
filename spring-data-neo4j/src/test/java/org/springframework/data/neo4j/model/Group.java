@@ -40,7 +40,8 @@ import org.springframework.util.ObjectUtils;
 public class Group {
 
     public final static String OTHER_NAME_INDEX = "other_name";
-    public static final String SEARCH_GROUPS_INDEX = "search-groups";
+    public static final String SEARCH_GROUPS_INDEX = "search_groups";
+    public static final String SEARCH_GROUPS_INDEX_BUG = "search-groups";
 
     @RelatedTo(direction = Direction.OUTGOING)
     private Collection<Person> persons = new HashSet<Person>();
@@ -68,6 +69,10 @@ public class Group {
     @Indexed(indexName = SEARCH_GROUPS_INDEX, indexType = IndexType.FULLTEXT)
     private String fullTextName;
 
+    @GraphProperty
+    @Indexed(indexName = SEARCH_GROUPS_INDEX_BUG, indexType = IndexType.FULLTEXT)
+    private String fullTextNameBug;
+
     @Indexed(fieldName = OTHER_NAME_INDEX)
     private String otherName;
 
@@ -79,6 +84,14 @@ public class Group {
 
     @Indexed(level = Indexed.Level.INSTANCE)
     private String indexLevelName;
+
+    public String getFullTextNameBug() {
+        return fullTextNameBug;
+    }
+
+    public void setFullTextNameBug(String fullTextNameBug) {
+        this.fullTextNameBug = fullTextNameBug;
+    }
 
     @GraphId
     private Long id;

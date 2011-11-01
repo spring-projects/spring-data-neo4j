@@ -24,6 +24,9 @@ import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 import org.springframework.data.repository.query.parser.Part.Type;
 import org.springframework.util.Assert;
 
+import static org.springframework.data.neo4j.repository.query.QueryTemplates.WHERE_CLAUSE_0;
+import static org.springframework.data.neo4j.repository.query.QueryTemplates.WHERE_CLAUSE_1;
+
 /**
  * Representation of a Cypher {@literal where} clause.
  * 
@@ -42,34 +45,24 @@ class WhereClause {
         symbols.put(Type.LESS_THAN_EQUAL, "<=");
         symbols.put(Type.NEGATING_SIMPLE_PROPERTY, "!=");
         symbols.put(Type.SIMPLE_PROPERTY, "=");
-
+        symbols.put(Type.LIKE, "=~"); // n.name =~ /Tob.*/
+        //symbols.put(Type.EXISTS, ""); // property exists n.name
+                                      // compare when exists WHERE n.belt? = 'white'
+        symbols.put(Type.IS_NULL, "is null"); // WHERE r is null
         SYMBOLS = Collections.unmodifiableMap(symbols);
     }
 
-    private final PersistentPropertyPath<Neo4jPersistentProperty> path;
-    private final String variable;
-    private final Type type;
-    private final int index;
+    private final PartInfo partInfo;
 
     /**
      * Creates a new {@link WhereClause} for the given {@link Neo4jPersistentProperty}, variable, type and parameter
      * index.
-     * 
-     * @param path must not be {@literal null}.
-     * @param variable must not be {@literal null} or empty.
-     * @param type must not be {@literal null}.
-     * @param index
+     *
+     * @param partInfo
      */
-    public WhereClause(PersistentPropertyPath<Neo4jPersistentProperty> path, String variable, Type type, int index) {
-
-        Assert.notNull(path);
-        Assert.hasText(variable);
-        Assert.notNull(type);
-
-        this.path = path;
-        this.variable = variable;
-        this.type = type;
-        this.index = index;
+    public WhereClause(PersistentPropertyPath<Neo4jPersistentProperty> path, String variable, Type type, int index, PartInfo partInfo) {
+        Assert.notNull(partInfo.getType());
+        this.partInfo = partInfo;
     }
 
     /*
@@ -78,7 +71,17 @@ class WhereClause {
      */
     @Override
     public String toString() {
-        return String.format(QueryTemplates.WHERE_CLAUSE, variable, path.getLeafProperty().getNeo4jPropertyName(),
-                SYMBOLS.get(type), index);
+        final String propertyName = partInfo.getNeo4jPropertyName();
+        final String operator = SYMBOLS.get(partInfo.getType());
+        final String variable = partInfo.getVariable();
+
+        if (partInfo.getType().getNumberOfArguments()==0) {
+            return String.format(WHERE_CLAUSE_0, variable, propertyName, operator);
+        }
+        return String.format(WHERE_CLAUSE_1, variable, propertyName, operator, partInfo.getParameterIndex());
+    }
+
+    public PartInfo getPartInfo() {
+        return partInfo;
     }
 }

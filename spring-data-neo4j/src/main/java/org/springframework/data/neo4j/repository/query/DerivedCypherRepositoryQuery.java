@@ -15,22 +15,13 @@
  */
 package org.springframework.data.neo4j.repository.query;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mapping.context.MappingContext;
-import org.springframework.data.neo4j.annotation.QueryType;
-import org.springframework.data.neo4j.mapping.Neo4jPersistentEntity;
-import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
-import org.springframework.data.neo4j.repository.GraphRepositoryFactory.GraphQueryMethod;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
-import org.springframework.data.neo4j.support.query.CypherQueryExecutor;
+import org.springframework.data.neo4j.support.mapping.Neo4jMappingContext;
 import org.springframework.data.repository.core.EntityMetadata;
 import org.springframework.data.repository.query.ParameterAccessor;
-import org.springframework.data.repository.query.ParametersParameterAccessor;
-import org.springframework.data.repository.query.QueryMethod;
 import org.springframework.data.repository.query.RepositoryQuery;
 import org.springframework.data.repository.query.parser.PartTree;
 import org.springframework.util.Assert;
@@ -40,78 +31,45 @@ import org.springframework.util.Assert;
  * 
  * @author Oliver Gierke
  */
-public class DerivedCypherRepositoryQuery implements RepositoryQuery {
+public class DerivedCypherRepositoryQuery extends CypherGraphRepositoryQuery {
 
-    private final GraphQueryMethod method;
-    private final CypherQueryExecutor executor;
     private final CypherQueryDefinition query;
 
     /**
      * Creates a new {@link DerivedCypherRepositoryQuery} from the given {@link MappingContext},
      * {@link GraphQueryMethod} and {@link org.springframework.data.neo4j.support.Neo4jTemplate}.
      * 
-     * @param context must not be {@literal null}.
-     * @param method must not be {@literal null}.
-     * @param database must not be {@literal null}.
+     * @param mappingContext must not be {@literal null}.
+     * @param queryMethod must not be {@literal null}.
+     * @param template must not be {@literal null}.
      */
-    public DerivedCypherRepositoryQuery(MappingContext<? extends Neo4jPersistentEntity<?>, Neo4jPersistentProperty> context, GraphQueryMethod method, Neo4jTemplate database) {
+    public DerivedCypherRepositoryQuery(Neo4jMappingContext mappingContext, GraphQueryMethod queryMethod, Neo4jTemplate template) {
+        super(queryMethod, template);
+        Assert.notNull(mappingContext);
 
-        Assert.notNull(context);
-        Assert.notNull(method);
-        Assert.notNull(database);
+        EntityMetadata<?> info = queryMethod.getEntityInformation();
+        PartTree tree = new PartTree(queryMethod.getName(), info.getJavaType());
 
-        EntityMetadata<?> info = method.getEntityInformation();
-        PartTree tree = new PartTree(method.getName(), info.getJavaType());
-
-        this.query = new CypherQueryCreator(tree, context, info.getJavaType()).createQuery();
-        this.method = method;
-        this.executor = new CypherQueryExecutor(database.queryEngineFor(QueryType.Cypher));
+        this.query = new CypherQueryCreator(tree, mappingContext, info.getJavaType()).createQuery();
     }
 
-    /*
-     * (non-Javadoc)
-     * @see org.springframework.data.repository.query.RepositoryQuery#execute(java.lang.Object[])
-     */
     @Override
-    public Object execute(Object[] parameters) {
-
-        ParameterAccessor accessor = new ParametersParameterAccessor(method.getParameters(), parameters);
-
-        Map<String, Object> paramMap = new HashMap<String, Object>();
-        int counter = 0;
-
-        for (Object parameter : accessor) {
-            paramMap.put(String.format(QueryTemplates.PARAMETER, counter++), parameter);
+    public Object resolveParameter(Object value, String parameterName, int index) {
+        final Object newValue = super.resolveParameter(value, parameterName, index);
+        PartInfo info = query.getPartInfo(index);
+        if (info.isFullText()) {
+            return String.format(QueryTemplates.PARAMETER_INDEX_QUERY,info.getIndexKey(),newValue);
         }
-
-        Class<?> type = method.getEntityInformation().getJavaType();
-        String query = getQuery(this.query, accessor);
-
-        if (method.isCollectionQuery()) {
-            return executor.query(query, type, paramMap);
-        } else {
-            return executor.queryForObject(query, type, paramMap);
-        }
-    }
-
-    /*
-     * (non-Javadoc)
-     * @see org.springframework.data.repository.query.RepositoryQuery#getQueryMethod()
-     */
-    @Override
-    public QueryMethod getQueryMethod() {
-        return method;
+        return newValue;
     }
 
     /**
      * Returns the actual Cypher query applying {@link Pageable} or {@link Sort} instances.
      * 
-     * @param query
-     * @param accessor
-     * @return
+     * @param accessor parameters
+     * @return query string
      */
-    private String getQuery(CypherQueryDefinition query, ParameterAccessor accessor) {
-
+    protected String createQueryWithPagingAndSorting(ParameterAccessor accessor) {
         if (accessor.getPageable() != null) {
             return query.toString(accessor.getPageable());
         } else if (accessor.getSort() != null) {

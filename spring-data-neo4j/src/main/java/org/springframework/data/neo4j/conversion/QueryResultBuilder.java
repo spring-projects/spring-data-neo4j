@@ -18,6 +18,7 @@ package org.springframework.data.neo4j.conversion;
 
 import org.neo4j.graphdb.index.IndexHits;
 import org.neo4j.helpers.collection.ClosableIterable;
+import org.neo4j.helpers.collection.IteratorUtil;
 import org.neo4j.helpers.collection.IteratorWrapper;
 
 import java.util.Iterator;
@@ -52,12 +53,15 @@ public class QueryResultBuilder<T> implements Result<T> {
     @Override
     public T single() {
         try {
-            final Iterator<T> it = result.iterator();
-            if (!it.hasNext()) throw new IllegalStateException("Expected at least one result, got none.");
-            final T value = it.next();
-            if (it.hasNext())
-                throw new IllegalStateException("Expected at least one result, got more than one.");
-            return value;
+            return IteratorUtil.single(result);
+        } finally {
+            closeIfNeeded();
+        }
+    }
+    @Override
+    public T singleOrNull() {
+        try {
+            return IteratorUtil.singleOrNull(result);
         } finally {
             closeIfNeeded();
         }
@@ -69,11 +73,16 @@ public class QueryResultBuilder<T> implements Result<T> {
             @Override
             public R single() {
                 try {
-                    final Iterator<T> it = result.iterator();
-                    if (!it.hasNext()) throw new IllegalStateException("Expected at least one result, got none.");
-                    final T value = it.next();
-                    if (it.hasNext())
-                        throw new IllegalStateException("Expected at least one result, got more than one.");
+                    final T value = IteratorUtil.single(result);
+                    return resultConverter.convert(value, type);
+                } finally {
+                    closeIfNeeded();
+                }
+            }
+            @Override
+            public R singleOrNull() {
+                try {
+                    final T value = IteratorUtil.singleOrNull(result);
                     return resultConverter.convert(value, type);
                 } finally {
                     closeIfNeeded();

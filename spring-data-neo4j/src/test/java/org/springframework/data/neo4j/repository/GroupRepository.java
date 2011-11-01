@@ -16,6 +16,8 @@
 
 package org.springframework.data.neo4j.repository;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.neo4j.model.Group;
 
 
@@ -24,4 +26,6 @@ import org.springframework.data.neo4j.model.Group;
  * @since 29.03.11
  */
 public interface GroupRepository extends GraphRepository<Group>, NamedIndexRepository<Group> {
+    Iterable<Group> findByFullTextNameLike(String name);
+    Page<Group> findByName(String name, Pageable page);
 }

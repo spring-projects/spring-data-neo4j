@@ -34,7 +34,8 @@ import org.springframework.data.repository.query.parser.Part;
 public class CypherQueryBuilderUnitTests {
 
     CypherQueryBuilder query;
-    private final String className = Person.class.getName();
+    private final String CLASS_NAME = Person.class.getName();
+    private String DEFAULT_START_CLAUSE = "start person=node:__types__(className=\"" + CLASS_NAME + "\")";
 
     @Before
     public void setUp() {
@@ -49,6 +50,40 @@ public class CypherQueryBuilderUnitTests {
         query.addRestriction(part);
 
         assertThat(query.toString(), is("start person=node:Person(name={_0}) return person"));
+    }
+
+    @Test
+    public void createsQueryForLikePropertyIndex() {
+
+        Part part = new Part("titleLike", Person.class);
+        query.addRestriction(part);
+
+        assertThat(query.toString(), is("start person=node:title({_0}) return person"));
+    }
+    @Test
+    public void createsQueryForLikeProperty() {
+
+        Part part = new Part("infoLike", Person.class);
+        query.addRestriction(part);
+
+        assertThat(query.toString(), is(DEFAULT_START_CLAUSE+" where person.info =~ {_0} return person"));
+    }
+    @Test
+    public void createsQueryForGreaterThanPropertyReference() {
+
+        Part part = new Part("ageGreaterThan", Person.class);
+        query.addRestriction(part);
+
+        assertThat(query.toString(), is(DEFAULT_START_CLAUSE+" where person.age > {_0} return person"));
+    }
+
+    @Test
+    public void createsQueryForIsNullPropertyReference() {
+
+        Part part = new Part("ageIsNull", Person.class);
+        query.addRestriction(part);
+
+        assertThat(query.toString(), is(DEFAULT_START_CLAUSE+" where person.age is null  return person"));
     }
 
     @Test
@@ -76,13 +111,12 @@ public class CypherQueryBuilderUnitTests {
         query.addRestriction(new Part("age", Person.class));
 
         final String className = Person.class.getName();
-        assertThat(query.toString(), is("start person=node:__types__(className=\"" + className + "\") where person.age = {_0} return person"));
+        assertThat(query.toString(), is(DEFAULT_START_CLAUSE +" where person.age = {_0} return person"));
     }
     @Test
     public void createsSimpleTraversalClauseCorrectly() {
         query.addRestriction(new Part("group", Person.class));
-
-        assertThat(query.toString(), is("start person=node:__types__(className=\"" + className + "\") match person<-[:members]-person_group return person"));
+        assertThat(query.toString(), is(DEFAULT_START_CLAUSE + " match person<-[:members]-person_group return person"));
     }
 
 

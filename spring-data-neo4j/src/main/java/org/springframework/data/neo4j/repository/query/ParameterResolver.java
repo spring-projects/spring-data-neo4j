@@ -13,16 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-package org.springframework.data.neo4j.conversion;
+package org.springframework.data.neo4j.repository.query;
 
 /**
 * @author mh
-* @since 28.06.11
+* @since 31.10.11
 */
-public interface EndResult<R> extends Iterable<R> {
-    R single();
-    R singleOrNull();
-    void handle(Handler<R> handler);
-
+public interface ParameterResolver {
+    Object resolveParameter(Object value, String parameterName, int index);
 }

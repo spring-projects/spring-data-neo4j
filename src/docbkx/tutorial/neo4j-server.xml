@@ -9,8 +9,8 @@
 		to a remote database service instead. Neo4j can also run as a server. It exposes its operations via a HTTP
 		based REST API.
     </para>
-	<para>
-		We decided to have a look to be at least knowledgeable about this deployment scenario. We were aware of the
+    <para>
+		We decided to have a look, to be at least knowledgeable about this deployment scenario. We were aware of the
 		difference of local, in-memory calls and higher latency network hops. That would be something
 		we would also look out for.
 	</para>
