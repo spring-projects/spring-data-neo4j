@@ -128,6 +128,11 @@
 			<artifactId>neo4j-cypher</artifactId>
             <optional>true</optional>
 		</dependency>
+        <dependency>
+            <groupId>org.neo4j</groupId>
+            <artifactId>neo4j-shell</artifactId>
+            <optional>true</optional>
+        </dependency>
 
 		<dependency>
 			<groupId>org.neo4j</groupId>
@@ -172,11 +177,11 @@
     
         <!-- Neo4J Spatial-->
     
-        <!--dependency>
+        <dependency>
             <groupId>org.neo4j</groupId>
             <artifactId>neo4j-spatial</artifactId>
             <optional>true</optional>
-        </dependency-->
+        </dependency>
 
 		<!-- JPA -->
 		<dependency>

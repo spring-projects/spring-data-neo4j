@@ -8,15 +8,18 @@
         Examples for this section are taken from the "IMDB" project of
         <ulink url="http://github.com/SpringSource/spring-data-neo4j-examples">Spring Data Neo4j examples</ulink>.
     </para>
+    <xi:include href="mapping.xml"/>
     <xi:include href="aspectj.xml"/>
     <xi:include href="node-entities.xml"/>
     <xi:include href="relationships.xml"/>
-    <xi:include href="introducedmethods.xml"/>
     <xi:include href="indexing.xml"/>
+    <xi:include href="template.xml" />
     <xi:include href="repositories.xml"/>
+    <xi:include href="projection.xml"/>
+    <xi:include href="spatial.xml"/>
+    <xi:include href="introducedmethods.xml"/>
     <xi:include href="transactions.xml"/>
     <xi:include href="attachdetach.xml"/>
     <xi:include href="typerepresentationstrategy.xml"/>
-    <xi:include href="projection.xml"/>
     <xi:include href="beanvalidation.xml"/>
 </chapter>

@@ -28,6 +28,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.neo4j.model.Group;
 import org.springframework.data.neo4j.model.Person;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
+import org.springframework.data.neo4j.support.conversion.NoSuchColumnFoundException;
 import org.springframework.data.neo4j.support.node.Neo4jHelper;
 import org.springframework.test.context.CleanContextCacheTestExecutionListener;
 import org.springframework.test.context.ContextConfiguration;
@@ -45,6 +46,7 @@ import static java.util.Arrays.asList;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 import static org.junit.internal.matchers.IsCollectionContaining.hasItem;
 import static org.junit.internal.matchers.IsCollectionContaining.hasItems;
 import static org.neo4j.helpers.collection.IteratorUtil.addToCollection;
@@ -79,31 +81,37 @@ public class GraphRepositoryTest {
     @Before
     public void setUp() throws Exception {
         testTeam = new TestTeam();
-        testTeam.createSDGTeam(personRepository, groupRepository, friendshipRepository);
+        testTeam.createSDGTeam( personRepository, groupRepository, friendshipRepository );
     }
 
     @Test
     public void testFindIterableOfPersonWithQueryAnnotation() {
         Iterable<Person> teamMembers = personRepository.findAllTeamMembers(testTeam.sdg);
-        assertThat(asCollection(teamMembers), hasItems(testTeam.michael, testTeam.david, testTeam.emil));
+        assertThat( asCollection( teamMembers ), hasItems( testTeam.michael, testTeam.david, testTeam.emil ) );
+    }
+
+    @Test
+    public void testFindIterableOfPersonWithQueryAnnotationSpatial() {
+        Iterable<Person> teamMembers = personRepository.findWithinBoundingBox("personLayer", 55, 15, 57, 17);
+        assertThat(asCollection(teamMembers), hasItems(testTeam.michael, testTeam.david));
     }
 
     @Test
     public void testFindIterableOfPersonWithQueryAnnotationAndGremlin() {
-        Iterable<Person> teamMembers = personRepository.findAllTeamMembersGremlin(testTeam.sdg);
-        assertThat(asCollection(teamMembers), hasItems(testTeam.michael, testTeam.david, testTeam.emil));
+        Iterable<Person> teamMembers = personRepository.findAllTeamMembersGremlin( testTeam.sdg );
+        assertThat( asCollection( teamMembers ), hasItems( testTeam.michael, testTeam.david, testTeam.emil ) );
     }
 
     @Test
     public void testFindPersonWithQueryAnnotation() {
-        Person boss = personRepository.findBoss(testTeam.michael);
-        assertThat(boss, is(testTeam.emil));
+        Person boss = personRepository.findBoss( testTeam.michael );
+        assertThat(boss, is( testTeam.emil ));
     }
 
     @Test
     public void testFindPersonWithQueryAnnotationUsingLongAsParameter() {
-        Person boss = personRepository.findBoss(testTeam.michael.getId());
-        assertThat(boss, is(testTeam.emil));
+        Person boss = personRepository.findBoss( testTeam.michael.getId() );
+        assertThat(boss, is( testTeam.emil ));
     }
 
     @Test
@@ -166,5 +174,11 @@ public class GraphRepositoryTest {
     public void findByName() {
         Iterable<Person> findByName = personRepository.findByName(testTeam.michael.getName());
         assertThat(findByName, hasItem(testTeam.michael));
+    }
+
+    @Test( expected = NoSuchColumnFoundException.class)
+    public void missingColumnIsReportedNicely() {
+        Iterable<MemberData> findByName = personRepository.nonWorkingQuery( testTeam.michael );
+        Person boss = findByName.iterator().next().getBoss();
     }
 }

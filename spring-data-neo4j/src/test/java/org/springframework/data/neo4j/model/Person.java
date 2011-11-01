@@ -20,6 +20,7 @@ import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.Node;
 import org.springframework.data.neo4j.annotation.*;
 import org.springframework.data.neo4j.fieldaccess.DynamicProperties;
+import org.springframework.data.neo4j.support.index.IndexType;
 
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
@@ -41,6 +42,9 @@ public class Person {
 
 	@Indexed
 	private String nickname;
+
+	@Indexed(indexType = IndexType.POINT, indexName="personLayer")
+    private String wkt;
 
 	@Max(100)
 	@Min(0)
@@ -159,6 +163,14 @@ public class Person {
 	public void setBoss(Person boss) {
 		this.boss = boss;
 	}
+	
+	public void setLocation(String locationInWkt) {
+        this.wkt = locationInWkt;
+    }
+
+    public void setLocation(double lon, double lat) {
+        this.wkt = "POINT ( "+lon+" "+lat+" )";
+    }
 
 	@Override
 	public String toString() {

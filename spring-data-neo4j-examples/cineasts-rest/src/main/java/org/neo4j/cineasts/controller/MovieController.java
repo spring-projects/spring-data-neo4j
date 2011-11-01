@@ -57,7 +57,7 @@ public class MovieController {
     @RequestMapping(value = "/movies/{movieId}", method = RequestMethod.GET, headers = "Accept=text/html")
     public String singleMovieView(final Model model, @PathVariable String movieId) {
         User user = addUser(model);
-        MovieRepository.MovieData movieData = moviesRepository.getMovieData(Long.valueOf(movieId));
+        MovieRepository.MovieData movieData = moviesRepository.getMovieData(movieId);
         model.addAttribute("id", movieId);
         if (movieData != null) {
             Movie movie = movieData.getMovie();

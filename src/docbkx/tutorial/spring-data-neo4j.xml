@@ -20,21 +20,21 @@
         <example>
             <title>Spring Data Neo4j Maven configuration</title>
             <programlisting language="xml"><![CDATA[<properties>
-    <aspectj.version>1.6.12.RELEASE</aspectj.version>
+    <aspectj.version>1.6.12.M1</aspectj.version>
 </properties>
 
 <dependency>
   <groupId>org.springframework.data</groupId>
   <artifactId>spring-data-neo4j-aspects</artifactId>
-  <version>2.0.0.RC1</version>
+  <version>2.0.0.M1</version>
 </dependency>
 
 <dependency>
     <groupId>org.aspectj</groupId>
     <artifactId>aspectjrt</artifactId>
     <version>${aspectj.version}</version>
-</dependency>
-
+</dependency>]]></programlisting>
+<programlisting language="xml"><![CDATA[
 <build> <plugins> <plugin>
     <groupId>org.codehaus.mojo</groupId>
     <artifactId>aspectj-maven-plugin</artifactId>

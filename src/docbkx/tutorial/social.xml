@@ -24,10 +24,10 @@ class User {
     String name;
     String password;
 
-    @RelatedToVia(elementClass = Rating.class, type = RATED)
+    @RelatedToVia(type = RATED)
     Iterable<Rating> ratings;
 
-    @RelatedTo(elementClass = User.class, type = "FRIEND", direction=Direction.BOTH)
+    @RelatedTo(type = "FRIEND", direction=Direction.BOTH)
     Set<User> friends;
 
     public Rating rate(Movie movie, int stars, String comment) {
@@ -64,11 +64,10 @@ public List<Movie> populateDatabase() {
     Movie forestGump = new Movie("1", "Forrest Gump").persist();
     tomHanks.playedIn(forestGump, "Forrest");
 
-    User me = new User("micha", "Micha", "password",
-        User.Roles.ROLE_ADMIN, User.Roles.ROLE_USER).persist();
+    User me = new User("micha", "Micha", "password").persist();
     Rating awesome = me.rate(forestGump, 5, "Awesome");
 
-    User ollie = new User("ollie", "Olliver", "password", User.Roles.ROLE_USER).persist();
+    User ollie = new User("ollie", "Oliver", "password").persist();
     ollie.rate(forestGump, 2, "ok");
     me.addFriend(ollie);
     return asList(forestGump);
@@ -86,10 +85,11 @@ public List<Movie> populateDatabase() {
         <para>
             <example>
                 <title>Getting the rating of a movie</title>
+<!-- todo move the avg(r.stars) to a cypher query -->
                 <programlisting language="java" ><![CDATA[class Movie {
     ...
 
-    @RelatedToVia(elementClass=Rating.class, type="RATED", direction = Direction.INCOMING)
+    @RelatedToVia(type="RATED", direction = Direction.INCOMING)
     Iterable<Rating> ratings;
 
     public int getStars() {

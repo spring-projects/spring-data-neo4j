@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE section PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
+<section id="reference:mapping">
+    <title>Object Graph Mapping</title>
+    <para>
+       Until recently Spring Data Neo4j supported the only more advanced and flexible <xref linkend="reference:aspectj">AspectJ based mapping approach</xref>. Feedback about complications with the AspectJ tooling and other implications supported us in adding a <xref linkend="reference:simple-mapping">simpler mapping</xref> to Spring Data Neo4j.
+	   Both versions work with the same annotations and provide similar API's but different behaviour.
+    </para>
+	<para>
+		Reflection and Annotation-based metadata is collected about persistent entities in the <code>Neo4jMappingContext</code>
+		which provides it to any part of the library. The information is stored in <code>Neo4jPersistentEntiy</code> instances
+		which hold all the <code>Neo4jPersistentProperty</code>'s of the type. Each entity can be queried if it represents a Node or a Relationship. Properties declare detailed data about their indexing and relationship information as well as type information that also covers nested generic types. With all that information available it is simple to select the appropriate strategy for mapping each entity and field to elements, relationships and properties of the graph.
+	</para>
+	<para>
+		The main difference lies in the way of accessing the graph. In the conversion based mapping the required information is copied into the entity on load and only saved back when an explicit save operation occurs. In the AspectJ approach a node or relationship is stored in an additional field of the entity and all read- and write (inside of tx) access happens through that.
+	</para>
+	<para>
+		Otherwise the two approaches are sharing lots of the infrastructure. E.g. for creating new entity instances from type information store in the graph (<xref linkend="reference:programming-model:typerepresentationstrategy"/>), the infrastructure for mapping individual fields to graph properties and relationships and everything related to indexing and querying. A certain part of that is also exposed via the Neo4jTemplate for direct use.
+	</para>
+</section>

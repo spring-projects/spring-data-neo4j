@@ -16,6 +16,7 @@
 package org.springframework.data.neo4j.conversion;
 
 import org.springframework.data.neo4j.annotation.ResultColumn;
+import org.springframework.data.neo4j.support.conversion.NoSuchColumnFoundException;
 import org.springframework.data.neo4j.template.Neo4jOperations;
 import org.springframework.data.util.ClassTypeInformation;
 import org.springframework.data.util.TypeInformation;
@@ -42,7 +43,14 @@ public class QueryMapResulConverter<T> implements ResultConverter<Map<String, Ob
             public Object invoke(Object o, Method method, Object[] objects) throws Throwable {
                 ResultColumn column = method.getAnnotation(ResultColumn.class);
                 TypeInformation<Object> returnType = ClassTypeInformation.fromReturnTypeOf(method);
-                Object columnValue = valueCopy.get(column.value());
+
+                String columnName = column.value();
+                if(!valueCopy.containsKey( columnName )) {
+                    throw new NoSuchColumnFoundException( columnName );
+                }
+
+                Object columnValue = valueCopy.get( columnName );
+
 
                 Object result;
                 if (returnType.isCollectionLike())

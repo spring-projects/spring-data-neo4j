@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE section PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
+<section id="reference:simple-mapping">
+    <title>Simple Object Graph Mapping</title>
+    <para>
+		The simple object graph mapping comes into action whenever an entity is constructed from a node or relationship.
+		That could be explicitely like during the findOne or createNodeAs operations but also implicitely while executing
+		any graph operation that returns nodes or relationships and expecting mapped entities to be returned.
+	</para>
+	<para>
+		It uses the available meta information about the persistent entity to iterate over its properties and relationships,
+		fetching them from the graph while doing so. It also executes computed fields and stores the resulting values 
+		in the properties. 
+	</para>
+	<para>
+		TODO implement that way !
+		We try to avoid loading the whole graph into memory by not following too many relationships eagerly. A dedicated 
+		<code>@Fetch</code> annotation controls instead if related entities are loaded or not. 
+		Whenever an entity is not fully loaded, then only its id is stored. Those
+		entities or collections of entities can then later be loaded explictely.
+		<!-- TODO fetch depth on entity or query, aka stack size of the cache ? -->
+	</para>
+	<para>
+		<example>
+			<title>Examples for loading entities from the graph</title>
+<programlisting language="java"><![CDATA[
+	
+]]></programlisting>
+</example>
+</para>	
+</section>

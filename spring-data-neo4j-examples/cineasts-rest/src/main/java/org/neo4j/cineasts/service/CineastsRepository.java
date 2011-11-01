@@ -60,7 +60,7 @@ public class CineastsRepository {
         return movieRecommendations.getRecommendationsFor(user);
     }
 
-    public MovieRepository.MovieData getMovieData(Long movieId) {
+    public MovieRepository.MovieData getMovieData(String movieId) {
         return movieRepository.getMovieData(movieId);
     }
 }

@@ -28,6 +28,7 @@ import org.springframework.data.neo4j.annotation.QueryType;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentEntity;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.repository.query.DerivedCypherRepositoryQuery;
+import org.springframework.data.neo4j.repository.query.QueryTemplates;
 import org.springframework.data.neo4j.support.GenericTypeExtractor;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
 import org.springframework.data.neo4j.support.query.CypherQueryExecutor;
@@ -187,7 +188,7 @@ public class GraphRepositoryFactory extends RepositoryFactorySupport {
                 final Object value = parameters[parameter.getIndex()];
                 final String parameterName = parameter.getName();
                 if (parameterName != null) params.put(parameterName, resolveParameter(value, template));
-                else params.put(String.valueOf(parameter.getIndex()), resolveParameter(value, template));
+                else params.put(String.format(QueryTemplates.PARAMETER, parameter.getIndex()), resolveParameter(value, template));
             }
             return params;
         }

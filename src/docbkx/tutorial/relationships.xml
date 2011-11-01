@@ -12,10 +12,11 @@
     <section>
         <title>Creating relationships</title>
         <para>
-            Relationships without properties ("anonymous" relationships) don't require any @RelationshipEntity
-            classes. Unfortunately we had none of those, because our relationships were richer.
-            Therefore we went with the Role relationship between Movie and Actor.
-            It had to be annotated with @RelationshipEntity and the @StartNode and @EndNode had to be marked.
+            Relationships without properties ("anonymous" relationships) don't require any <code>@RelationshipEntity</code>
+            classes. "Unfortunately" we had none of those, because our relationships were richer.
+            Therefore we went with the <code>Role</code> relationship between <code>Movie</code> and <code>Actor</code>.
+            It had to be annotated with <code>@RelationshipEntity</code> and the <code>@StartNode</code> and <code>@EndNode</code>
+            had to be marked.
             So our Role looked like this:
         </para>
         <para>
@@ -38,9 +39,10 @@ class Role {
             </example>
         </para>
         <para>
-            When writing a test for that we tried to create the relationship entity with the <code>new</code>
-            keyword, but we got an exception saying that it was not allowed. At first this surprised us, but
-            then we realized that a relationship entity must have a starting entity and ending entity. It
+            When writing a test for the <code>Role</code> we tried to create the relationship entity just by 
+            instantiating it with <code>new</code>, but we got an exception saying that it was not allowed. 
+            At first this surprised us, but
+            then we realized that a relationship entity must have two related entities. It
             turned out that the aspect had introduced a <code>entity.relateTo</code> method in the node entities.
             It turned out to be exactly what we needed. We simply added a method to the Actor class, connecting
             it to movies.
@@ -65,8 +67,7 @@ class Role {
         <para>
             Now we wanted to find connected entities.
             We already had fields for the relationships in both classes. It was time to annotate them
-            correctly. It turned out that we needed to provide the target type of the fields again, due to
-            Java's type erasure. The Neo4j relationship type and direction were easy to figure out.
+            correctly. The Neo4j relationship type and direction were easy to figure out.
             The direction even defaulted to outgoing, so we only had to specify it for the movie.
         </para>
         <para>
@@ -77,7 +78,7 @@ class Movie {
     @Indexed int id;
     String title;
     int year;
-    @RelatedTo(elementClass = Actor.class, type = "ACTS_IN", direction = Direction.INCOMING)
+    @RelatedTo(type = "ACTS_IN", direction = Direction.INCOMING)
     Set<Actor> cast;
 }
 
@@ -85,7 +86,7 @@ class Movie {
 class Actor {
     @Indexed int id;
     String name;
-    @RelatedTo(elementClass = Movie.class, type = "ACTS_IN")
+    @RelatedTo(type = "ACTS_IN")
     Set<Movie> movies;
 
     public Role playedIn(Movie movie, String roleName) {
@@ -99,12 +100,12 @@ class Actor {
         </para>
         <para>
             While reading about these relationship collections, we learned that they are actually
-            Spring Data Neo4j-managed sets. So whenever we add or remove something from the set,
-            it automatically gets reflected in the underlying relationships. That's neat! But this
+            Spring Data Neo4j-managed sets. So whenever we added or removed something from the set,
+            the change automatically gets reflected in the underlying relationships. That's neat! But this
             also meant we did not need to initialize the fields. That could be easy to forget.
         </para>
         <para>
-            We made sure to add a test for those, so we were assured that the collections worked as
+            We made sure to add some tests for using the relationshhips, so we were assured that the collections worked as
             advertised.
         </para>
     </section>
@@ -113,9 +114,9 @@ class Actor {
         <para>
             But we still couldn't access the Role relationships. It turned out that there was a separate
             annotation <code>@RelatedToVia</code> for accessing the actual relationship entities. And we had
-            to declare the field as an Iterable&lt;Role&gt;, with read-only semantics. This appeared to mean
-            that we were not able to add new roles through the field. Adding relationship entities seemed like
-            it had to be done by using <code>entity.relateTo()</code>. The annotation attributes were similar to
+            to declare the field as an <code>Iterable&lt;Role&gt;</code>, with read-only semantics. This appeared to mean
+            that we were not able to add new roles through the field. Adding relationship entities seemed to 
+            require <code>entity.relateTo()</code>. The annotation attributes were similar to
             those used for <code>@RelatedTo</code>. So off we went, creating our first real relationship (just kidding).
         </para>
         <para>
@@ -126,10 +127,10 @@ class Movie {
     @Indexed int id;
     String title;
     int year;
-    @RelatedTo(elementClass = Actor.class, type = "ACTS_IN", direction = Direction.INCOMING)
+    @RelatedTo(type = "ACTS_IN", direction = Direction.INCOMING)
     Set<Actor> cast;
 
-    @RelatedToVia(elementClass = Role.class, type = "ACTS_IN", direction = Direction.INCOMING)
+    @RelatedToVia(type = "ACTS_IN", direction = Direction.INCOMING)
     Iterable<Roles> roles;
 }
 ]]></programlisting>
@@ -137,7 +138,7 @@ class Movie {
         </para>
         <para>
             After watching the tests pass, we were confident that the relationship fields really mirrored
-            the underlying relationships in the graph. We were pretty satisfied with our domain.
+            the underlying relationships in the graph. We were pretty satisfied with persisting our domain.
         </para>
     </section>
 </chapter>

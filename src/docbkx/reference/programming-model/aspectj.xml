@@ -4,7 +4,7 @@
     <title>AspectJ support</title>
     <para>
         Behind the scenes, Spring Data Neo4j leverages <ulink url="http://www.eclipse.org/aspectj/">AspectJ</ulink>
-        aspects to modify the behavior of simple annotated POJO entities
+        aspects to modify the behavior of annotated POJO entities
         (see <xref linkend="reference:aspectj-details"/>). Each node entity is backed by a graph node that holds its
         properties and relationships to other entities. AspectJ is used for intercepting field access, so that
         Spring Data Neo4j can retrieve the information from the entity's backing node or relationship in the database.
@@ -43,7 +43,7 @@
             <ulink url="http://download.eclipse.org/tools/ajdt/36/update/">http://download.eclipse.org/tools/ajdt/37/update/</ulink>
             (it might be necessary to use the latest development snapshot of the plugin
             <ulink url="http://download.eclipse.org/tools/ajdt/36/dev/update">http://download.eclipse.org/tools/ajdt/36/dev/update</ulink>).
-            The current version that does not show incorrect errors is AspectJ 1.6.12.RELEASE (included in STS 2.8.0), previous versions are reported
+            The current version that does not show incorrect errors is AspectJ 1.6.12.M1 (included in STS 2.8.0), previous versions are reported
             to mislead the user.
         </para>
         <note>

@@ -7,7 +7,7 @@
         After having put some data in the graph database, we also wanted to show it to the user. Adding
         the controller method to show a single movie with its attributes and cast in a JSP was
         straightforward. It basically just involved using the repository to look the movie up and add
-        it to the model, and then forwarding to the /movies/show view and voilá.
+        it to the model, and then forwarding to the <code>/movies/show</code> view and voilá.
     </para>
     <para>
         <example>
@@ -25,7 +25,33 @@ public String singleMovieView(final Model model, @PathVariable String movieId) {
 }
 ]]></programlisting>
         </example>
-    </para>
+		<example>
+		   <title>Populating the database - JSP /movies/show</title>
+			<programlisting language="xml"><![CDATA[<%@ page session="false" %>
+		<%@ taglib uri="http://www.springframework.org/tags" prefix="s" %>
+		<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+
+		<c:choose>
+		  <c:when test="${not empty movie}">
+		    <h2>${movie.title} (${stars} Stars)</h2>
+		    <c:if test="${not empty movie.roles}">
+		    <ul>
+		    <c:forEach items="${movie.roles}" var="role">
+		      <li>
+		        <a href="/actors/${role.actor.id}"><c:out value="${role.actor.name}" /> as
+		        <c:out value="${role.name}" /></a><br/>
+		      </li>
+		    </c:forEach>
+		    </ul>
+		    </c:if>
+		  </c:when>
+		  <c:otherwise>
+		      No Movie with id ${id} found!
+		  </c:otherwise>
+		</c:choose>
+		]]></programlisting>
+		</example>
+	</para>
     <para>
         The UI had now evolved to this:
         <mediaobject>
@@ -38,40 +64,53 @@ public String singleMovieView(final Model model, @PathVariable String movieId) {
         <title>Searching</title>
         <para>
             The next thing was to allow users to search for movies, so we needed some fulltext search
-            capabilities. As the index provider implementation of Neo4j is based on <ulink url="http://lucene.apache.org/java/docs/index.html">Apache Lucene</ulink>,
+            capabilities. As the default index provider implementation of Neo4j is based on <ulink url="http://lucene.apache.org/java/docs/index.html">Apache Lucene</ulink>,
             we were delighted to see that fulltext indexes were supported out of the box.
         </para>
         <para>
-            We happily annotated the title field of the Movie class with @Indexed(fulltext = true).
-            We got an exception back telling us that we have to specify a separate index name.
-            So we simply changed it to @Indexed(fulltext = true, indexName = "search"). The corresponding
-            repository method is called findAllByQuery. To restrict the size of the returned set we simply
-            added a limit that truncates the result.
+            We happily annotated the title field of the Movie class with <code>@Indexed(fulltext = true)</code>.
+            Next thing we got an exception telling us that we had to specify a separate index name.
+            So we simply changed it to <code>@Indexed(fulltext = true, indexName = "search")</code>.
+        </para>
+        <para>
+	        Finding the seemed to be a sweetspot of derived finder methods. Just a method name, no annotations.
+	        Cool stuff and you could even tell it that it should return pages of movies, its size and offset specified by a 
+	        <code>PathRequest</code> which also contains sort information. 
         </para>
         <para>
             <example>
                 <title>Searching for movies</title>
-                <programlisting language="java"><![CDATA[public class CineastRepository {
+<programlisting language="java"><![CDATA[public interface MovieRepository ... {
+    Page<Movie> findByTitle(String title, PageRequest page);
+}
+]]></programlisting>
+                <!-- MOVE TO REFERENCE programlisting language="java"><![CDATA[public class CineastRepository {
+    Page<Movie> findByTitle(String title, PageRequest page);
     ....
     public void List<Movie> findMovies(String query, int count) {
         List<Movie> movies=new ArrayList<Movie>(count);
         ClosableIterable<Movie> searchResults = movieRepository.findAllByQuery("title", query);
         for (Movie movie : searchResults) {
             movies.add(movie);
-            if (count-- == 0) break;
+            if (count- - == 0) break;
         }
         searchResults.close();
         return movies;
     }
 }
-]]></programlisting>
+
+The corresponding
+            repository method is called <code>findAllByQuery</code>. To restrict the size of the returned set we simply
+            added a limit that truncates the result.
+
+]]></programlisting-->
             </example>
         </para>
     </section>
     <section>
         <title>Listing results</title>
         <para>
-            We then used this result in the controller to render a list of movies, driven by a
+            We then used this result in the controller to render a page of movies, driven by a
             search box. The movie properties and the cast were accessible through the getters
             in the domain classes.
         </para>
@@ -81,7 +120,7 @@ public String singleMovieView(final Model model, @PathVariable String movieId) {
                 <programlisting language="java"><![CDATA[@RequestMapping(value = "/movies",
 method = RequestMethod.GET, headers = "Accept=text/html")
 public String findMovies(Model model, @RequestParam("q") String query) {
-    List<Movie> movies = repository.findMovies(query, 20);
+    Page<Movie> movies = repository.findByTitle(query, new PageRequest(0,20));
     model.addAttribute("movies", movies);
     model.addAttribute("query", query);
     return "/movies/list";

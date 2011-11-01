@@ -34,7 +34,7 @@ import java.util.Map;
  * @author Oliver Gierke
  * @since 29.03.11
  */
-public interface PersonRepository extends GraphRepository<Person>, NamedIndexRepository<Person> {
+public interface PersonRepository extends GraphRepository<Person>, NamedIndexRepository<Person>, SpatialRepository<Person> {
 
     @Query("start team=node({p_team}) match (team)-[:persons]->(member) return member")
     Iterable<Person> findAllTeamMembers(@Param("p_team") Group team);
@@ -47,6 +47,10 @@ public interface PersonRepository extends GraphRepository<Person>, NamedIndexRep
 
     @Query("start member=node({p_person}) match team-[:persons]->member<-[?:boss]-boss return collect(team), boss")
     Iterable<MemberData> findMemberData(@Param("p_person") Person person);
+
+    @Query("start member=node({p_person}) match team-[:persons]->member<-[?:boss]-boss return member")
+    Iterable<MemberData> nonWorkingQuery(@Param("p_person") Person person);
+
 
     @Query("start person=node({p_person}) match (boss)-[:boss]->(person) return boss")
     Person findBoss(@Param("p_person") Person person);
@@ -61,6 +65,7 @@ public interface PersonRepository extends GraphRepository<Person>, NamedIndexRep
 
     @Query("start team=node({p_team}) match (team)-[:persons]->(member) return member")
     Iterable<Person> findAllTeamMembersSorted(@Param("p_team") Group team, Sort sort);
+
 
     // Derived queries
     Iterable<Person> findByName(String name);

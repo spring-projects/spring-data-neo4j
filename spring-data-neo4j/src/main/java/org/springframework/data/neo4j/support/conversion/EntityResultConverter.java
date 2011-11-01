@@ -99,7 +99,13 @@ public class EntityResultConverter<T, R> extends DefaultConverter<T, R> {
         public Object invoke(Object o, Method method, Object[] objects) throws Throwable {
             ResultColumn column = method.getAnnotation(ResultColumn.class);
             TypeInformation<?> returnType = ClassTypeInformation.fromReturnTypeOf(method);
-            Object columnValue = map.get(column.value());
+
+            String columnName = column.value();
+            if(!map.containsKey( columnName )) {
+                throw new NoSuchColumnFoundException( columnName );
+            }
+
+            Object columnValue = map.get( columnName );
             if(columnValue==null) return null;
 
             // If the returned value is a Scala iterable, transform it to a Java iterable first
