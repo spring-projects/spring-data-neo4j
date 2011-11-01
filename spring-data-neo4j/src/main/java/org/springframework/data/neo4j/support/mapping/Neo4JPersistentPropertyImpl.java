@@ -214,4 +214,8 @@ class Neo4jPersistentPropertyImpl extends AbstractPersistentProperty<Neo4jPersis
     private boolean hasNodeEntityType() {
         return getType().isAnnotationPresent(NodeEntity.class);
     }
+
+    public String getIndexKey() {
+        return getIndexInfo().getIndexKey();
+    }
 }

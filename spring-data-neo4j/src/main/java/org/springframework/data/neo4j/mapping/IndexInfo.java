@@ -27,11 +27,13 @@ public class IndexInfo {
     private IndexType indexType;
     private final String fieldName;
     private final Indexed.Level level;
+    private String indexKey;
 
     public IndexInfo(Indexed annotation, Neo4jPersistentProperty property) {
         this.indexName = determineIndexName(annotation,property);
         this.indexType = annotation.indexType();
         fieldName = annotation.fieldName();
+        this.indexKey = fieldName.isEmpty() ? property.getNeo4jPropertyName() : fieldName;
         level = annotation.level();
     }
 
@@ -49,5 +51,13 @@ public class IndexInfo {
 
     public IndexType getIndexType() {
         return indexType;
+    }
+
+    public boolean isFullText() {
+        return indexType == IndexType.FULLTEXT;
+    }
+
+    public String getIndexKey() {
+        return indexKey;
     }
 }

@@ -14,4 +14,4 @@ src/ant/.ant-targets-upload-dist.xml
 *.ipr
 *.iws
 spring-data-neo4j-examples/imdb/log.roo
-
+src/docbkx/snippets

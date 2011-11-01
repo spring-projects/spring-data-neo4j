@@ -49,4 +49,6 @@ interface CypherQueryDefinition {
      * @return
      */
     String toString(Pageable pageable);
+
+    PartInfo getPartInfo(int index);
 }

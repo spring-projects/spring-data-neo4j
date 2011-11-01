@@ -15,6 +15,7 @@
  */
 package org.springframework.data.neo4j.rest;
 
+import org.neo4j.helpers.collection.IteratorUtil;
 import org.neo4j.rest.graphdb.util.ConvertedResult;
 import org.springframework.data.neo4j.conversion.EndResult;
 
@@ -30,6 +31,11 @@ class SpringEndResult<R> implements EndResult<R> {
     @Override
     public R single() {
         return result.single();
+    }
+
+    @Override
+    public R singleOrNull() {
+        return IteratorUtil.singleOrNull(result);
     }
 
     @Override

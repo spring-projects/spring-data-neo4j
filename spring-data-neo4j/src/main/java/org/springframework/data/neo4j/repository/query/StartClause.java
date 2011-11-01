@@ -15,9 +15,7 @@
  */
 package org.springframework.data.neo4j.repository.query;
 
-import org.springframework.data.mapping.context.PersistentPropertyPath;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
-import org.springframework.util.Assert;
 
 /**
  * Representation of a Cypher {@literal start} clause.
@@ -26,26 +24,16 @@ import org.springframework.util.Assert;
  */
 class StartClause {
 
-    private final PersistentPropertyPath<Neo4jPersistentProperty> path;
-    private final String variable;
-    private final int index;
+    private final PartInfo partInfo;
 
     /**
      * Creates a new {@link StartClause} from the given {@link Neo4jPersistentProperty}, variable and the given
      * parameter index.
-     * 
-     * @param property must not be {@literal null}.
-     * @param variable must not be {@literal null} or empty.
-     * @param index
+     *
+     * @param partInfo
      */
-    public StartClause(PersistentPropertyPath<Neo4jPersistentProperty> property, String variable, int index) {
-
-        Assert.notNull(property);
-        Assert.hasText(variable);
-
-        this.path = property;
-        this.variable = variable;
-        this.index = index;
+    public StartClause(PartInfo partInfo) {
+        this.partInfo = partInfo;
     }
 
     /*
@@ -54,11 +42,16 @@ class StartClause {
      */
     @Override
     public String toString() {
+        final String variable = partInfo.getVariable();
+        final String indexName = partInfo.getIndexName();
+        final int parameterIndex = partInfo.getParameterIndex();
+        if (partInfo.isFullText()) {
+            return String.format(QueryTemplates.START_CLAUSE_FULLTEXT, variable, indexName, parameterIndex);
+        }
+        return String.format(QueryTemplates.START_CLAUSE, variable, indexName, partInfo.getNeo4jPropertyName(), parameterIndex);
+    }
 
-        Neo4jPersistentProperty leafProperty = path.getLeafProperty();
-        String indexName = leafProperty.getIndexInfo().getIndexName();
-        String propertyName = leafProperty.getNeo4jPropertyName();
-
-        return String.format(QueryTemplates.START_CLAUSE, variable, indexName, propertyName, index);
+    public PartInfo getPartInfo() {
+        return partInfo;
     }
 }

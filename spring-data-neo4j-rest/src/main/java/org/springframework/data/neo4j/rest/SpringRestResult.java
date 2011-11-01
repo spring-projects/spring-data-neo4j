@@ -55,6 +55,11 @@ class SpringRestResult<T> implements Result<T> {
     }
 
 
+    @SuppressWarnings({"unchecked"})
+    @Override
+    public T singleOrNull() {
+        return (T) to(Object.class).singleOrNull();
+    }
 
     @SuppressWarnings("unchecked")
     @Override

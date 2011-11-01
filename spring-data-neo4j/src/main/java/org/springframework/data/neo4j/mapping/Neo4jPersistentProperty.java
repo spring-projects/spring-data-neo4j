@@ -73,4 +73,6 @@ public interface Neo4jPersistentProperty extends PersistentProperty<Neo4jPersist
     Object getValue(final Object entity);
 
     Neo4jPersistentEntity<?> getOwner();
+
+    String getIndexKey();
 }

@@ -38,15 +38,11 @@ import org.springframework.data.neo4j.support.index.IndexType;
 import org.springframework.data.neo4j.support.mapping.EntityStateHandler;
 import org.springframework.data.neo4j.support.mapping.Neo4jPersistentEntityImpl;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
-import org.springframework.data.neo4j.mapping.RelationshipResult;
 import org.springframework.data.neo4j.repository.GraphRepository;
 import org.springframework.data.neo4j.repository.NodeGraphRepository;
 import org.springframework.data.neo4j.repository.RelationshipGraphRepository;
 import org.springframework.data.neo4j.support.index.IndexProvider;
-import org.springframework.data.neo4j.support.index.IndexType;
 import org.springframework.data.neo4j.support.mapping.EntityCreatingClosableIterable;
-import org.springframework.data.neo4j.support.mapping.EntityStateHandler;
-import org.springframework.data.neo4j.support.mapping.Neo4jPersistentEntityImpl;
 import org.springframework.data.neo4j.support.query.QueryEngine;
 import org.springframework.data.neo4j.template.GraphCallback;
 import org.springframework.data.neo4j.template.Neo4jOperations;
@@ -570,7 +566,7 @@ public class Neo4jTemplate implements Neo4jOperations, EntityPersister {
     }
 
     public String getIndexKey(Neo4jPersistentProperty property) {
-        return getIndexProvider().getIndexKey(property);
+        return property.getIndexKey();
     }
     public <S extends PropertyContainer> Index<S> getIndex(Neo4jPersistentProperty property, final Class<?> instanceType) {
         return getIndexProvider().getIndex(property, instanceType);

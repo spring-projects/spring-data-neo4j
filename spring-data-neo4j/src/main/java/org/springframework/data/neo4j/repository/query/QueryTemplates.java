@@ -26,6 +26,7 @@ import org.springframework.data.neo4j.mapping.RelationshipInfo;
 public abstract class QueryTemplates {
 
     public static final String PARAMETER = "_%d";
+    public static final String PARAMETER_INDEX_QUERY = "%s:%s";
 
     public static final String PLACEHOLDER = String.format("{%s}", PARAMETER);
     private static final String DIRECTION_INCOMING = "<-[:%s]-";
@@ -35,7 +36,9 @@ public abstract class QueryTemplates {
     static final String DEFAULT_START_CLAUSE = "%s=node:__types__(className=\"%s\")";
     static final String SKIP_LIMIT = " skip %d limit %d";
     static final String START_CLAUSE = "%s=node:%s(%s=" + PLACEHOLDER + ")";
-    static final String WHERE_CLAUSE = "%s.%s %s " + PLACEHOLDER;
+    static final String START_CLAUSE_FULLTEXT = "%s=node:%s(" + PLACEHOLDER + ")";
+    static final String WHERE_CLAUSE_1 = "%s.%s %s " + PLACEHOLDER;
+    static final String WHERE_CLAUSE_0 = "%s.%s %s ";
     static final String SORT_CLAUSE = "%s %s";
     static final String ORDER_BY_CLAUSE = " order by %s";
 
