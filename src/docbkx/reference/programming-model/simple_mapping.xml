@@ -13,7 +13,7 @@
 		in the properties. 
 	</para>
 	<para>
-		TODO implement that way !
+		<!--TODO implement that way !-->
 		We try to avoid loading the whole graph into memory by not following too many relationships eagerly. A dedicated 
 		<code>@Fetch</code> annotation controls instead if related entities are loaded or not. 
 		Whenever an entity is not fully loaded, then only its id is stored. Those
@@ -24,7 +24,28 @@
 		<example>
 			<title>Examples for loading entities from the graph</title>
 <programlisting language="java"><![CDATA[
-	
+  @Autowired Neo4jOperations template;
+
+
+  @NodeEntity class Person {
+    String name;
+    @Fetch Person boss;
+    Person spouse;
+
+    @RelatedTo(type = "FRIEND", direction = BOTH)
+    @Fetch Set<Person> friends;
+  }
+  Person person = template.findOne(personId);
+  assertNotNull(person.getBoss().getName());
+
+  assertNotNull(person.getSpouse().getId());
+  assertNull(person.getSpouse().getName());
+
+  template.load(person.getSpouse());
+  assertNotNull(person.getSpouse().getName());
+
+  assertEquals(10,person.getFriends().size());
+  assertNotNull(firstFriend.getName());
 ]]></programlisting>
 </example>
 </para>	
