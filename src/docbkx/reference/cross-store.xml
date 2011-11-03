@@ -66,7 +66,7 @@
         <section><title>Example</title>
         <para>
             The following example is taken from the
-            <ulink url="http://github.com/SpringSource/spring-data-neo4j-examples">Spring Data Neo4j examples</ulink>
+            <ulink url="http://spring.neo4j.org/examples">Spring Data Neo4j examples</ulink>
             myrestaurants-social project:
         </para>
         <para><example>

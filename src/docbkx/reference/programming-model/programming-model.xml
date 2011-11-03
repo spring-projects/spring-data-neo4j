@@ -6,7 +6,7 @@
         This chapter covers the fundamentals of the programming model behind Spring Data Neo4j. It discusses the
         AspectJ features used and the annotations provided by Spring Data Neo4j and how to use them.
         Examples for this section are taken from the "IMDB" project of
-        <ulink url="http://github.com/SpringSource/spring-data-neo4j-examples">Spring Data Neo4j examples</ulink>.
+        <ulink url="http://spring.neo4j.org/examples">Spring Data Neo4j examples</ulink>.
     </para>
     <xi:include href="mapping.xml"/>
     <xi:include href="aspectj.xml"/>

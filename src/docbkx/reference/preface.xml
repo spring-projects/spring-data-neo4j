@@ -136,7 +136,7 @@
         the slightly different behavior and setup of a Graph-JPA interaction are described.
     </para>
     <para>
-        The provided samples, which are also publicly hosted on <ulink url="http://github.com/springsource/spring-data-neo4j-examples">github</ulink> are explained in
+        The provided samples, which are also publicly hosted on <ulink url="http://spring.neo4j.org/examples">github</ulink> are explained in
         <xref linkend="reference:samples"/>.
     </para>
     <para>

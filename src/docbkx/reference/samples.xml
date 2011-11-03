@@ -8,7 +8,7 @@
         <title>Introduction</title>
         <para>
             Spring Data Neo4j comes with a number of sample applications. The source code of the samples can be found on
-            <ulink url="http://github.com/SpringSource/spring-data-neo4j-examples">Github</ulink>. The different sample
+            <ulink url="http://spring.neo4j.org/exampless">Github</ulink>. The different sample
             projects are introduced below.
         </para>
     </section>

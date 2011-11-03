@@ -8,7 +8,7 @@
         and configure the AspectJ weaving. After the build setup is complete, the Spring application needs to be
         configured to make use of Spring Data Neo4j.
 		<!--Examples for this setup can be found in the -->
-        <!--<ulink url="http://github.com/SpringSource/spring-data-neo4j-examples">Spring Data Neo4j examples</ulink>.-->
+        <!--<ulink url="http://spring.neo4j.org/examples">Spring Data Neo4j examples</ulink>.-->
     </para>
     <para>
         Spring Data Neo4j projects can be built using maven, we also added means to build them with gradle and ant/ivy.
