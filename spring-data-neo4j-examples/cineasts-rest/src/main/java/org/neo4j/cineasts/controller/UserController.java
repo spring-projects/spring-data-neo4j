@@ -28,7 +28,7 @@ public class UserController {
     public String profile(Model model) {
         final User user = userDetailsService.getUserFromSession();
         model.addAttribute("user", user);
-        model.addAttribute("recommendations", repository.recommendMovies(user, 3));
+        model.addAttribute("recommendations", repository.recommendMovies(user));
         return "/user/index";
     }
 

@@ -6,61 +6,46 @@ import org.neo4j.cineasts.domain.Rating;
 import org.neo4j.cineasts.domain.User;
 import org.neo4j.cineasts.repository.MovieRepository;
 import org.neo4j.cineasts.repository.PersonRepository;
-import org.neo4j.helpers.collection.ClosableIterable;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
-/**
- * @author mh
- * @since 04.03.11
- */
 @Repository
 @Transactional
 public class CineastsRepository {
 
-    @Autowired private PersonRepository personRepository;
-    @Autowired private MovieRepository movieRepository;
+    @Autowired
+    private PersonRepository personRepository;
+    @Autowired
+    private MovieRepository movieRepository;
 
 
-    public Movie getMovie(String id) {
-        return movieRepository.findByPropertyValue("id", id);
+    public Movie getMovie( String id ) {
+        return movieRepository.findById( id );
     }
 
-    public List<Movie> findMovies(String query, int max) {
-        if (query.isEmpty()) return Collections.emptyList();
-        if (max < 1 || max > 1000) max = 100;
-
-        ClosableIterable<Movie> searchResult = movieRepository.findAllByQuery("search", "title", query);
-        List<Movie> result=new ArrayList<Movie>(max);
-        for (Movie movie : searchResult) {
-            result.add(movie);
-            if (--max == 0) break;
-        }
-        searchResult.close();
-        return result;
+    public Page<Movie> findMovies( String query, int max ) {
+        return movieRepository.findByTitleLike( query, new PageRequest( 0, max ) );
     }
 
-    public Person getPerson(String id) {
-        return personRepository.findByPropertyValue("id",id);
+    public Person getPerson( String id ) {
+        return personRepository.findById( id );
     }
 
-    public Rating rateMovie(Movie movie, User user, int stars, String comment) {
-        if (user == null || movie==null) return null;
-        return user.rate(movie, stars,comment);
+    public Rating rateMovie( Movie movie, User user, int stars, String comment ) {
+        if( user == null || movie == null ) return null;
+        return user.rate( movie, stars, comment );
     }
 
-    public Map<Movie,?> recommendMovies(User user, final int ratingDistance) {
-        final FriendsMovieRecommendations movieRecommendations = new FriendsMovieRecommendations(ratingDistance);
-        return movieRecommendations.getRecommendationsFor(user);
+    public List<MovieRepository.MovieRecommendation> recommendMovies( User user ) {
+        return movieRepository.getRecommendations( user );
     }
 
-    public MovieRepository.MovieData getMovieData(String movieId) {
-        return movieRepository.getMovieData(movieId);
+    public MovieRepository.MovieData getMovieData( String movieId ) {
+        return movieRepository.getMovieData( movieId );
     }
 }
