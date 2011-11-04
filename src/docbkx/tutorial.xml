@@ -27,9 +27,17 @@
             <para>
                 Copyright 2010-2011 Neo Technology
             </para>
+            <para>
+                This is an excerpt from the Spring Data Neo4j Guide Book "Good Relationships", which
+                is available at <ulink url="http://spring.neo4j.org/guide">http://spring.neo4j.org/guide</ulink>
+                and will be published as an InfoQ Book Q4 2011.
+   	        </para>
 	    </legalnotice>
 
 	</bookinfo>
+
+    <xi:include href="introduction/rod.xml"/>
+    <xi:include href="introduction/emil.xml"/>
 
     <part id="tutorial">
         <title>Tutorial</title>
