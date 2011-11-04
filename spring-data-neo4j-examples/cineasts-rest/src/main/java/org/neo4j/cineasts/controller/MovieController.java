@@ -90,7 +90,7 @@ public class MovieController {
     @RequestMapping(value = "/movies", method = RequestMethod.GET, headers = "Accept=text/html")
     public String findMovies(Model model, @RequestParam("q") String query) {
         Page<Movie> movies = cineastsRepository.findMovies( query, 20 );
-        model.addAttribute("movies", movies);
+        model.addAttribute("movies", movies.iterator());
         model.addAttribute("query", query);
         addUser(model);
         return "/movies/list";

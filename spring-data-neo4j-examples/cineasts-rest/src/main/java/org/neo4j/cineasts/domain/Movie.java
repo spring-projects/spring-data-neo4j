@@ -1,11 +1,7 @@
 package org.neo4j.cineasts.domain;
 
-import org.neo4j.graphdb.Direction;
 import org.neo4j.helpers.collection.IteratorUtil;
-import org.springframework.data.neo4j.annotation.NodeEntity;
-import org.springframework.data.neo4j.annotation.RelatedTo;
-import org.springframework.data.neo4j.annotation.RelatedToVia;
-import org.springframework.data.neo4j.annotation.Indexed;
+import org.springframework.data.neo4j.annotation.*;
 import org.springframework.data.neo4j.support.index.IndexType;
 
 import java.util.*;
@@ -37,8 +33,9 @@ public class Movie {
     @RelatedToVia(elementClass = Role.class, type = "ACTS_IN", direction = INCOMING)
     Iterable<Role> roles;
 
-    @RelatedToVia(elementClass = Rating.class, type = "RATED", direction = INCOMING)
+    @Query("start movie=node({self}) match movie<-[rating:RATED]-() return rating")
     Iterable<Rating> ratings;
+
     private String language;
     private String imdbId;
     private String tagline;
