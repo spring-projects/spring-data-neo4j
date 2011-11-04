@@ -4,7 +4,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.neo4j.cineasts.domain.Movie;
 import org.neo4j.cineasts.domain.Person;
-import org.neo4j.cineasts.service.CineastsRepository;
+import org.neo4j.cineasts.repository.MovieRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -25,7 +25,7 @@ public class MovieDbImportServiceTest {
     MovieDbImportService importService;
 
     @Autowired
-    CineastsRepository cineastsRepository;
+    MovieRepository movieRepository;
 
     @Test
     public void testImportMovie() throws Exception {
@@ -38,7 +38,7 @@ public class MovieDbImportServiceTest {
     public void testImportMovieTwice() throws Exception {
         Movie movie = importService.importMovie("2");
         Movie movie2 = importService.importMovie("2");
-        final Movie foundMovie = cineastsRepository.getMovie("2");
+        final Movie foundMovie = movieRepository.findById("2");
         assertEquals("movie-id", movie, foundMovie);
     }
 

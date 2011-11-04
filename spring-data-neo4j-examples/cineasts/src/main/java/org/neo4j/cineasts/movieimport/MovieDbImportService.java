@@ -1,6 +1,8 @@
 package org.neo4j.cineasts.movieimport;
 
 import org.neo4j.cineasts.domain.*;
+import org.neo4j.cineasts.repository.MovieRepository;
+import org.neo4j.cineasts.repository.PersonRepository;
 import org.neo4j.cineasts.service.CineastsRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,7 +21,9 @@ public class MovieDbImportService {
     MovieDbJsonMapper movieDbJsonMapper = new MovieDbJsonMapper();
 
     @Autowired
-    CineastsRepository moviesRepository;
+    MovieRepository movieRepository;
+    @Autowired
+    PersonRepository personRepository;
 
     @Autowired
     MovieDbApiClient client;
@@ -56,7 +60,7 @@ public class MovieDbImportService {
     private Movie doImportMovie(String movieId) {
         logger.debug("Importing movie " + movieId);
 
-        Movie movie = moviesRepository.getMovie(movieId);
+        Movie movie = movieRepository.findById(movieId);
         if (movie == null) { // Not found: Create fresh
             movie = new Movie(movieId,null);
         }
@@ -108,7 +112,7 @@ public class MovieDbImportService {
 
     private Person doImportPerson(String personId) {
         logger.debug("Importing person " + personId);
-        Person person = moviesRepository.getPerson(personId);
+        Person person = personRepository.findById(personId);
         if (person!=null) return person;
         Map data = loadPersonData(personId);
         if (data.containsKey("not_found")) throw new RuntimeException("Data for Person "+personId+" not found.");

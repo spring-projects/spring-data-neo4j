@@ -1,5 +1,6 @@
 package org.neo4j.cineasts.service;
 
+import org.neo4j.cineasts.repository.MovieRepository;
 import org.neo4j.kernel.AbstractGraphDatabase;
 import org.neo4j.cineasts.domain.*;
 import org.neo4j.cineasts.movieimport.MovieDbImportService;
@@ -25,7 +26,7 @@ public class DatabasePopulator {
     @Autowired
     Neo4jTemplate ctx;
     @Autowired
-    CineastsRepository repository;
+    MovieRepository movieRepository;
 
     @Autowired
     MovieDbImportService importService;
@@ -43,7 +44,7 @@ public class DatabasePopulator {
         }
 
         //me.rate(repository.getMovie("13"),5,"Inspiring");
-        me.rate(repository.getMovie("603"),5,"Best of the series");
+        me.rate(movieRepository.findById("603"),5,"Best of the series");
         return result;
     }
 
