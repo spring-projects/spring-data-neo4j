@@ -21,11 +21,16 @@ import org.springframework.data.neo4j.support.Neo4jTemplate;
 import org.springframework.data.neo4j.support.mapping.Neo4jMappingContext;
 import org.springframework.data.repository.core.NamedQueries;
 import org.springframework.data.repository.core.RepositoryMetadata;
-import org.springframework.data.repository.query.*;
+import org.springframework.data.repository.query.Parameter;
+import org.springframework.data.repository.query.ParameterAccessor;
+import org.springframework.data.repository.query.QueryMethod;
+import org.springframework.data.repository.query.RepositoryQuery;
 
 import java.lang.reflect.Method;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 /**
 * @author mh
@@ -105,7 +110,7 @@ public class GraphQueryMethod extends QueryMethod {
     }
 
     boolean isIterableResult() {
-        return Iterable.class.isAssignableFrom(getReturnType());
+        return hasResultOfType(Iterable.class);
     }
 
     public RepositoryQuery createQuery(final Neo4jTemplate template) {
@@ -124,5 +129,18 @@ public class GraphQueryMethod extends QueryMethod {
         default:
             throw new IllegalStateException("@Query Annotation has to be configured as Cypher or Gremlin Query");
         }
+    }
+
+    public boolean isSetResult() {
+        final Class<Set> superClass = Set.class;
+        return hasResultOfType(superClass);
+    }
+
+    public boolean hasResultOfType(Class<?> superClass) {
+        return superClass.isAssignableFrom(getReturnType());
+    }
+
+    public boolean isCollectionResult() {
+        return hasResultOfType(Collection.class);
     }
 }

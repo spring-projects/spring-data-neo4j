@@ -20,6 +20,7 @@ import org.neo4j.graphdb.Relationship;
 import org.neo4j.helpers.collection.IteratorUtil;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.neo4j.conversion.EndResult;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
 import org.springframework.data.neo4j.support.query.QueryEngine;
 import org.springframework.data.repository.query.ParameterAccessor;
@@ -27,9 +28,7 @@ import org.springframework.data.repository.query.ParametersParameterAccessor;
 import org.springframework.data.repository.query.RepositoryQuery;
 import org.springframework.util.Assert;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
 * @author mh
@@ -89,7 +88,10 @@ abstract class GraphRepositoryQuery implements RepositoryQuery, ParameterResolve
             return createPage(result, accessor.getPageable());
         }
         if (queryMethod.isIterableResult()) {
-            return queryEngine.query(queryString, params).to(compoundType);
+            final EndResult<?> result = queryEngine.query(queryString, params).to(compoundType);
+            if (queryMethod.isSetResult()) return IteratorUtil.addToCollection(result,new LinkedHashSet());
+            if (queryMethod.isCollectionResult()) return IteratorUtil.addToCollection(result,new ArrayList());
+            return result;
         }
         return queryEngine.query(queryString, params).to(queryMethod.getReturnType()).singleOrNull();
     }
