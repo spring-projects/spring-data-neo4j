@@ -11,6 +11,7 @@ import org.neo4j.helpers.collection.IteratorUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -72,7 +73,9 @@ public class MovieController {
     public String updateMovie(Model model, @PathVariable String movieId, @RequestParam(value = "rated",required = false) Integer stars, @RequestParam(value = "comment",required = false) String comment) {
         Movie movie = moviesRepository.getMovie(movieId);
         User user = userDetailsService.getUserFromSession();
-        moviesRepository.rateMovie(movie,user, stars==null ? -1 : stars,comment!=null ? comment.trim() : null);
+        if (user != null && movie != null) {
+            moviesRepository.rateMovie(movie,user, stars==null ? -1 : stars,comment!=null ? comment.trim() : null);
+        }
         return singleMovieView(model,movieId);
     }
 
@@ -84,8 +87,8 @@ public class MovieController {
 
     @RequestMapping(value = "/movies", method = RequestMethod.GET, headers = "Accept=text/html")
     public String findMovies(Model model, @RequestParam("q") String query) {
-        List<Movie> movies = moviesRepository.findMovies(query, 20);
-        model.addAttribute("movies", movies);
+        Page<Movie> movies = moviesRepository.findMovies(query, 20);
+        model.addAttribute("movies", movies.getContent());
         model.addAttribute("query", query);
         addUser(model);
         return "/movies/list";

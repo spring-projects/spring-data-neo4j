@@ -8,4 +8,5 @@ import org.springframework.data.neo4j.repository.GraphRepository;
  * @since 02.04.11
  */
 public interface PersonRepository extends GraphRepository<Person> {
+    Person findById(String id);
 }
