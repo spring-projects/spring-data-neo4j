@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
+<book xmlns:xi="http://www.w3.org/2001/XInclude">
+	<bookinfo>
+	    <title>Cineasts.net - The Social Movie Database</title>
+	    <subtitle>The Spring Data Neo4j Tutorial</subtitle>
+	    <date/>
+
+	    <authorgroup>
+	        <author>
+	            <firstname>Michael</firstname>
+	            <surname>Hunger</surname>
+	        </author>
+	        <author>
+	            <firstname>David</firstname>
+	            <surname>Montag</surname>
+	        </author>
+	    </authorgroup>
+
+	    <legalnotice>
+	        <para>
+	            Copies of this document may be made for your own use and for distribution
+	            to others, provided that you do not charge any fee for such copies and
+	            further provided that each copy contains this Copyright Notice, whether
+	            distributed in print or electronically.
+	        </para>
+            <para>
+                Copyright 2010-2011 Neo Technology
+            </para>
+	    </legalnotice>
+
+	</bookinfo>
+
+    <part id="tutorial">
+        <title>Tutorial</title>
+        <partintro>
+            <para>
+                <mediaobject>
+                    <imageobject>
+                        <imagedata fileref="cineasts.png" scale="80" align="center"/>
+                    </imageobject>
+                </mediaobject>
+            </para>
+
+            <para>
+                This tutorial walks through the creation of a complete web
+                application called cineasts.net, built with Spring Data Neo4j.
+                Cineasts are people who love movies, and the site is a gathering place for moviegoers. For
+                cineasts.net we decided to add a social aspect to the rating of movies, allowing friends to
+                share their scores and get recommendations for new friends and movies.
+            </para>
+            <para>
+                The tutorial takes the reader through the steps necessary to create the application.
+                It provides the configuration and code examples that are needed to understand what's
+                happening in Spring Data Neo4j. The complete source code for the app is available on
+                <ulink url="http://spring.neo4j.org/cineasts">Github</ulink>.
+            </para>
+        </partintro>
+        <xi:include href="tutorial/about-tutorial.xml"/>
+        <xi:include href="tutorial/setup.xml"/>
+        <xi:include href="tutorial/domain.xml"/>
+        <xi:include href="tutorial/neo4j.xml"/>
+        <xi:include href="tutorial/spring-data-neo4j.xml"/>
+        <xi:include href="tutorial/annotations.xml"/>
+        <xi:include href="tutorial/indexing.xml"/>
+        <xi:include href="tutorial/repository.xml"/>
+        <xi:include href="tutorial/relationships.xml"/>
+        <xi:include href="tutorial/running.xml"/>
+        <xi:include href="tutorial/webapp.xml"/>
+        <xi:include href="tutorial/social.xml"/>
+        <xi:include href="tutorial/security.xml"/>
+        <xi:include href="tutorial/user-experience.xml"/>
+        <xi:include href="tutorial/import.xml"/>
+        <xi:include href="tutorial/recommendations.xml"/>
+        <xi:include href="tutorial/conclusion.xml"/>
+    </part>
+</book>

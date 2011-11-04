@@ -22,36 +22,16 @@ public interface MovieRepository extends GraphRepository<Movie> {}
             <programlisting language="xml"><![CDATA[<neo4j:repositories base-package="org.neo4j.cineasts.repository"/>
 ]]></programlisting>
         </example>
-<!--		Besides the existing repository operations (like CRUD, and lots of querying) it was possible to declare
-		custom methods that were either annotated with queries or were named like a query. Those methods could
-		be more domain centric and expressive than the generic ones.
--->		
-		For simple use-cases like finding by id's this is good enough. So we first let Spring autowire our 
-		<code>MovieController</code> with the <code>MovieRepository</code>. So we could perform simple persistence operations.
-    </para>
-    <para>
-		We felt that a domain oriented repository would more useful, especially as it only exposed the needed operations
-		under domain-specific (vs. generic) names.
-        We then created the domain-specific <code>CineastsRepository</code> class, annotating it with <code>@Repository</code> and
-        <code>@Transactional</code>, and injected the basic movie repository.
-    </para>
-    <para>
-        <example>
-            <title>Domain-specific repository</title>
-            <programlisting language="java"><![CDATA[@Repository @Transactional
-public class CineastsRepostory {
-  @Autowired MovieRepository movieRepository;
+		Besides the existing repository operations (like CRUD, and lots of querying) it was possible to declare
+		custom methods, we dived into that later.
+        Those methods' names could be more domain centric and expressive than the generic operations.
 
-  public Movie getMovie(String id) {
-      return movieRepository.findByPropertyValue("id", id);
-  }
-}]]></programlisting>
-        </example>
+		For simple use-cases like finding by id's this is good enough. So we first let Spring autowire our
+		<code>MovieController</code> with the <code>MovieRepository</code>. That way we could perform simple persistence operations.
     </para>
     <para>
 	    We went on exploring the repository infrastructure. A very cool feature was something that we so far only heard
-	    from Grails developers. Deriving queries from method names. The simplest use-case could help us get rid of that
-	    custom implementation for the <code>getMovie()</code> method. Impressive.
+	    from Grails developers. Deriving queries from method names. Impressive.
 	</para>
     <para>
         <example>

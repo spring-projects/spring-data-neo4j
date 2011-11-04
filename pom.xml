@@ -368,12 +368,35 @@
                             <imgSrcPath>${docbook.generatedDir}/</imgSrcPath>
                             <admonGraphicsPath>${docbook.generatedDir}/resources/images/</admonGraphicsPath>
 					        <foCustomization>${docbook.generatedDir}/resources/xsl/fopdf.xsl</foCustomization>
+                            <includes>index.xml</includes>
 					        <useExtensions>1</useExtensions>
 					        <highlightSource>1</highlightSource>
 					        <highlightDefaultLanguage></highlightDefaultLanguage>
                             <postProcess>
                                 <copy file="${basedir}/target/docbkx/pdf/index.pdf"
                                       tofile="${basedir}/target/site/reference/pdf/spring-data-neo4j-reference.pdf"
+                                      failonerror="false"/>
+                            </postProcess>
+                        </configuration>
+                        <phase>pre-site</phase>
+                    </execution>
+                    <execution>
+                        <id>tutorial-pdf</id>
+                        <goals>
+                            <goal>generate-pdf</goal>
+                        </goals>
+                        <configuration>
+                            <sourceDirectory>${docbook.generatedDir}</sourceDirectory>
+                            <imgSrcPath>${docbook.generatedDir}/</imgSrcPath>
+                            <admonGraphicsPath>${docbook.generatedDir}/resources/images/</admonGraphicsPath>
+					        <foCustomization>${docbook.generatedDir}/resources/xsl/fopdf.xsl</foCustomization>
+					        <useExtensions>1</useExtensions>
+					        <highlightSource>1</highlightSource>
+                            <includes>tutorial.xml</includes>
+					        <highlightDefaultLanguage></highlightDefaultLanguage>
+                            <postProcess>
+                                <copy file="${basedir}/target/docbkx/pdf/tutorial.pdf"
+                                      tofile="${basedir}/target/site/reference/pdf/spring-data-neo4j-tutorial.pdf"
                                       failonerror="false"/>
                             </postProcess>
                         </configuration>
