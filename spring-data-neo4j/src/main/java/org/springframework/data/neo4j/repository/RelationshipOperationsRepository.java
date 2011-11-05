@@ -13,16 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.data.neo4j.repository;
-
-
-import org.springframework.data.repository.NoRepositoryBean;
 
 /**
  * @author mh
- * @since 12.01.11
+ * @since 05.11.11
  */
-@NoRepositoryBean
-public interface GraphRepository<T> extends CRUDRepository<T>, IndexRepository<T>, TraversalRepository<T> {
+public interface RelationshipOperationsRepository<T> {
+    <R> R createRelationshipBetween(T start, Object end, Class<R> relationshipEntityClass, String relationshipType);
+    <R> R getRelationshipBetween(T start, Object end, Class<R> relationshipEntityClass, String relationshipType);
+    void deleteRelationshipBetween(T start, Object end, String type);
 }

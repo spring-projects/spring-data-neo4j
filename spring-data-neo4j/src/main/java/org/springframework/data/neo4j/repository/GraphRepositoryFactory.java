@@ -75,7 +75,7 @@ public class GraphRepositoryFactory extends RepositoryFactorySupport {
         GraphEntityInformation entityInformation = (GraphEntityInformation)getEntityInformation(type);
         // todo entityInformation.isGraphBacked();
         if (entityInformation.isNodeEntity()) {
-            return new NodeGraphRepository(type, template);
+            return new NodeGraphRepositoryImpl(type, template);
         } else {
             return new RelationshipGraphRepository(type, template);
         }
@@ -88,7 +88,7 @@ public class GraphRepositoryFactory extends RepositoryFactorySupport {
         @SuppressWarnings("rawtypes")
         final GraphEntityInformation entityInformation = (GraphEntityInformation) getEntityInformation(domainClass);
         if (entityInformation.isNodeEntity()) {
-            return NodeGraphRepository.class;
+            return NodeGraphRepositoryImpl.class;
         }
         if (entityInformation.isRelationshipEntity()) {
             return RelationshipGraphRepository.class;

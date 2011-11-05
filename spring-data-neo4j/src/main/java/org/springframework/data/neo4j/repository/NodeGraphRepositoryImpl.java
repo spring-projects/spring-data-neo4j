@@ -18,13 +18,11 @@ package org.springframework.data.neo4j.repository;
 
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.traversal.TraversalDescription;
-
 import org.springframework.data.neo4j.support.Neo4jTemplate;
-import org.springframework.transaction.annotation.Transactional;
 
-public class NodeGraphRepository<T> extends AbstractGraphRepository<Node, T> implements GraphRepository<T> {
+public class NodeGraphRepositoryImpl<T> extends AbstractGraphRepository<Node, T> implements GraphRepository<T>, RelationshipOperationsRepository<T> {
 
-    public NodeGraphRepository(final Class<T> clazz, final Neo4jTemplate template) {
+    public NodeGraphRepositoryImpl(final Class<T> clazz, final Neo4jTemplate template) {
         super(template, clazz);
     }
 
@@ -49,8 +47,26 @@ public class NodeGraphRepository<T> extends AbstractGraphRepository<Node, T> imp
     public Iterable<T> save(Iterable<? extends T> entities) {
         for (T entity : entities) {
             save(entity);
+
+
+
         }
         return (Iterable<T>) entities;
+    }
+
+    @Override
+    public <R> R createRelationshipBetween(T start, Object end, Class<R> relationshipEntityClass, String relationshipType) {
+        return template.createRelationshipBetween(start,end,relationshipEntityClass,relationshipType,false);
+    }
+
+    @Override
+    public <R> R getRelationshipBetween(T start, Object end, Class<R> relationshipEntityClass, String relationshipType) {
+        return template.getRelationshipBetween(start,end,relationshipEntityClass,relationshipType);
+    }
+
+    @Override
+    public void deleteRelationshipBetween(T start, Object end, String type) {
+        template.deleteRelationshipBetween(start,end,type);
     }
 }
 
