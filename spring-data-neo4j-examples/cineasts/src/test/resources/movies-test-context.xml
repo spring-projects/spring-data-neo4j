@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:neo4j="http://www.springframework.org/schema/data/neo4j"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd
+		http://www.springframework.org/schema/data/neo4j http://www.springframework.org/schema/data/neo4j/spring-neo4j-2.0.xsd http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-2.5.xsd">
+
+    <context:annotation-config/>
+    <context:spring-configured/>
+    <context:component-scan base-package="org.neo4j.cineasts"/>
+
+    <neo4j:config graphDatabaseService="graphDatabaseService"/>
+    <neo4j:repositories base-package="org.neo4j.cineasts.repository"/>
+
+    <bean id="graphDatabaseService" class="org.neo4j.test.ImpermanentGraphDatabase"/>
+
+    <bean class="org.neo4j.cineasts.movieimport.MovieDbApiClient">
+        <constructor-arg value="926d2a79e82920b62f03b1cb57e532e6"/>
+    </bean>
+    <bean class="org.neo4j.cineasts.movieimport.MovieDbLocalStorage">
+        <constructor-arg value="target/json-data"/>
+    </bean>
+    <tx:annotation-driven mode="aspectj"/>
+</beans>

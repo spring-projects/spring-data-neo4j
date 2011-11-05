@@ -1,0 +1,32 @@
+
+body {
+	font-family:tahoma,verdana,sans-serif,serif;
+  color: #666666;
+  font-size:13px;
+}
+
+h2 {
+  color: #314718; /*#99CC33;*/
+  font-size: 16px;
+  text-transform: uppercase;
+}
+
+h3 {
+  color: #314718; /*#ff6600;*/
+  font-size: 14px;
+  text-transform: uppercase;
+  border-bottom: 1px solid #333333;
+}
+
+h4 {
+  margin: 5px 0;
+}
+
+.tiny-link {	
+	color: #222;
+	font-size:12px;
+	text-decoration:none;
+}
+.tiny-link:hover {
+	text-decoration:underline;	
+}

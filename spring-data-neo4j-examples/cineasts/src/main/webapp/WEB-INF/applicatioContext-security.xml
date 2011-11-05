@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:security="http://www.springframework.org/schema/security"
+       xsi:schemaLocation="
+        http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+        http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-3.0.xsd">
+
+    <security:global-method-security secured-annotations="enabled">
+    </security:global-method-security>
+
+    <security:http auto-config="true" access-denied-page="/auth/denied"> <!-- use-expressions="true" -->
+        <security:intercept-url pattern="/admin/*" access="ROLE_ADMIN"/>
+        <security:intercept-url pattern="/import/*" access="ROLE_ADMIN"/>
+        <security:intercept-url pattern="/user/*" access="ROLE_USER"/>
+        <security:intercept-url pattern="/auth/login" access="IS_AUTHENTICATED_ANONYMOUSLY"/>
+        <security:intercept-url pattern="/auth/register" access="IS_AUTHENTICATED_ANONYMOUSLY"/>
+        <security:intercept-url pattern="/**" access="IS_AUTHENTICATED_ANONYMOUSLY"/>
+        <security:form-login login-page="/auth/login" authentication-failure-url="/auth/login?login_error=true"
+        default-target-url="/user"/>
+        <security:logout logout-url="/auth/logout" logout-success-url="/" invalidate-session="true"/>
+    </security:http>
+
+    <security:authentication-manager>
+        <security:authentication-provider user-service-ref="cineastsUserDetailsService">
+            <security:password-encoder hash="md5">
+                <security:salt-source system-wide="cewuiqwzie"/>
+            </security:password-encoder>
+        </security:authentication-provider>
+    </security:authentication-manager>
+
+</beans>
