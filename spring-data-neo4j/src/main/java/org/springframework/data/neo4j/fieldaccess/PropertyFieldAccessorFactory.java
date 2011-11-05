@@ -84,12 +84,16 @@ public class PropertyFieldAccessorFactory implements FieldAccessorFactory {
             if (element.hasProperty(propertyName)) {
                 Object value = element.getProperty(propertyName);
                 if (value == null || fieldType.isInstance(value)) return value;
-                if (template.getConversionService() !=null) {
-                    return template.getConversionService().convert(value, fieldType);
-                }
-                return value;
+                return convertSimplePropertyValue(value);
             }
             return getDefaultValue(fieldType);
+        }
+
+        protected Object convertSimplePropertyValue(Object value) {
+            if (template.getConversionService() !=null) {
+                return template.getConversionService().convert(value, fieldType);
+            }
+            return value;
         }
 
         private Object getDefaultValue(final Class<?> type) {

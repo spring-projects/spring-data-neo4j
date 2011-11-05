@@ -52,11 +52,7 @@ public interface Neo4jPersistentProperty extends PersistentProperty<Neo4jPersist
 
     String getNeo4jPropertyName();
 
-    boolean isSimpleValueField();
-
-    boolean isSerializableField(final ConversionService conversionService);
-
-    boolean isDeserializableField(final ConversionService conversionService);
+    boolean isSerializablePropertyField(final ConversionService conversionService);
 
     boolean isNeo4jPropertyType();
 

@@ -28,6 +28,12 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
+
+import static java.util.Arrays.asList;
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.springframework.data.neo4j.aspects.Person.persistedPerson;
 
@@ -49,7 +55,7 @@ public class NodeEntityTest extends EntityTestBase {
 
     @Test
     @Transactional
-    public void testSetProperties() {
+    public void testSetSimpleProperties() {
         String name = "Michael";
         int age = 35;
         short height = 182;
@@ -61,6 +67,80 @@ public class NodeEntityTest extends EntityTestBase {
         assertEquals( name, getNodeState(p).getProperty("name") );
         assertEquals( age, getNodeState(p).getProperty("age"));
         assertEquals((Short)height, p.getHeight());
+    }
+
+    @Test
+    @Transactional
+    public void testArrayProperties() {
+        Group g = new Group().persist();
+        final String[] roleNames = {"a", "b", "c"};
+        g.setRoleNames(roleNames);
+        assertArrayEquals(roleNames, (String[])getNodeState(g).getProperty("roleNames"));
+        assertArrayEquals(roleNames, g.getRoleNames());
+    }
+
+    @Test
+    @Transactional
+    public void testConvertedArrayProperties() {
+        Group g = new Group().persist();
+        g.setRoles(Group.Role.values());
+        assertArrayEquals(new String[] {"ADMIN","USER"}, (String[])getNodeState(g).getProperty("roles"));
+        assertArrayEquals(Group.Role.values(), g.getRoles());
+    }
+    @Test
+    @Transactional
+    public void testCollectionProperties() {
+        Group g = new Group().persist();
+        final List<String> roleNames = asList("a", "b", "c");
+        g.setRoleNamesColl(roleNames);
+        assertArrayEquals(roleNames.toArray(), (String[])getNodeState(g).getProperty("roleNamesColl"));
+        assertEquals(roleNames, g.getRoleNamesColl());
+    }
+
+    @Test
+    @Transactional
+    public void testConvertedCollectionProperties() {
+        Group g = new Group().persist();
+        g.setRolesColl(asList(Group.Role.values()));
+        assertArrayEquals(new String[] {"ADMIN","USER"}, (String[])getNodeState(g).getProperty("rolesColl"));
+        assertEquals(asList(Group.Role.values()), g.getRolesColl());
+    }
+    @Test
+    @Transactional
+    public void testIterableProperties() {
+        Group g = new Group().persist();
+        final List<String> roleNames = asList("a", "b", "c");
+        g.setRoleNamesIterable(roleNames);
+        assertArrayEquals(roleNames.toArray(), (String[])getNodeState(g).getProperty("roleNamesIterable"));
+        assertEquals(roleNames, g.getRoleNamesIterable());
+    }
+
+    @Test
+    @Transactional
+    public void testConvertedIterableProperties() {
+        Group g = new Group().persist();
+        g.setRolesIterable(asList(Group.Role.values()));
+        assertArrayEquals(new String[] {"ADMIN","USER"}, (String[])getNodeState(g).getProperty("rolesIterable"));
+        assertEquals(asList(Group.Role.values()), g.getRolesIterable());
+    }
+    @Test
+    @Transactional
+    public void testSetProperties() {
+        Group g = new Group().persist();
+        final Set<String> roleNames = new LinkedHashSet<String>(asList("a", "b", "c"));
+        g.setRoleNamesSet(roleNames);
+        assertArrayEquals(roleNames.toArray(), (String[])getNodeState(g).getProperty("roleNamesSet"));
+        assertEquals(roleNames, g.getRoleNamesSet());
+    }
+
+    @Test
+    @Transactional
+    public void testConvertedSetProperties() {
+        Group g = new Group().persist();
+        final LinkedHashSet<Group.Role> roles = new LinkedHashSet<Group.Role>(asList(Group.Role.values()));
+        g.setRolesSet(roles);
+        assertArrayEquals(new String[] {"ADMIN","USER"}, (String[])getNodeState(g).getProperty("rolesSet"));
+        assertEquals(roles, g.getRolesSet());
     }
 
     @Test

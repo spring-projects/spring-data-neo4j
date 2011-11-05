@@ -29,6 +29,7 @@ import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.support.index.IndexType;
 
 import java.util.Collection;
+import java.util.Set;
 
 @NodeEntity
 public class Group {
@@ -79,6 +80,7 @@ public class Group {
 
     @Indexed(level=Indexed.Level.INSTANCE)
     private String indexLevelName;
+    private String[] roleNames;
 
     public String getFullTextName() {
         return fullTextName;
@@ -123,6 +125,33 @@ public class Group {
     public void setOtherName(String otherName) {
         this.otherName = otherName;
     }
+
+    public void setRoleNames(String...roleNames) {
+        this.roleNames=roleNames;
+    }
+
+    public String[] getRoleNames() {
+        return roleNames;
+    }
+
+    public enum Role { ADMIN, USER }
+    Role[] roles;
+
+    public Role[] getRoles() {
+        return roles;
+    }
+
+    public void setRoles(Role...roles) {
+        this.roles = roles;
+    }
+
+    Collection<String> roleNamesColl;
+    Collection<Role> rolesColl;
+    Set<String> roleNamesSet;
+    Set<Role> rolesSet;
+    Iterable<String> roleNamesIterable;
+    Iterable<Role> rolesIterable;
+
 
     private static class PeopleTraversalBuilder implements FieldTraversalDescriptionBuilder {
         @Override
@@ -176,5 +205,53 @@ public class Group {
 
     public Iterable<Relationship> getPeopleRelationships() {
         return peopleRelationships;
+    }
+
+    public Collection<String> getRoleNamesColl() {
+        return roleNamesColl;
+    }
+
+    public void setRoleNamesColl(Collection<String> roleNamesColl) {
+        this.roleNamesColl = roleNamesColl;
+    }
+
+    public Collection<Role> getRolesColl() {
+        return rolesColl;
+    }
+
+    public void setRolesColl(Collection<Role> rolesColl) {
+        this.rolesColl = rolesColl;
+    }
+
+    public Set<String> getRoleNamesSet() {
+        return roleNamesSet;
+    }
+
+    public void setRoleNamesSet(Set<String> roleNamesSet) {
+        this.roleNamesSet = roleNamesSet;
+    }
+
+    public Set<Role> getRolesSet() {
+        return rolesSet;
+    }
+
+    public void setRolesSet(Set<Role> rolesSet) {
+        this.rolesSet = rolesSet;
+    }
+
+    public Iterable<String> getRoleNamesIterable() {
+        return roleNamesIterable;
+    }
+
+    public void setRoleNamesIterable(Iterable<String> roleNamesIterable) {
+        this.roleNamesIterable = roleNamesIterable;
+    }
+
+    public Iterable<Role> getRolesIterable() {
+        return rolesIterable;
+    }
+
+    public void setRolesIterable(Iterable<Role> rolesIterable) {
+        this.rolesIterable = rolesIterable;
     }
 }

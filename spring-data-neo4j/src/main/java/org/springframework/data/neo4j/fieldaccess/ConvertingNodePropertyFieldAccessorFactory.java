@@ -18,7 +18,6 @@ package org.springframework.data.neo4j.fieldaccess;
 
 import org.springframework.beans.factory.annotation.Configurable;
 import org.springframework.core.convert.ConversionService;
-
 import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
 
@@ -44,7 +43,7 @@ public class ConvertingNodePropertyFieldAccessorFactory implements FieldAccessor
 	@Override
     public boolean accept(final Neo4jPersistentProperty property) {
         final ConversionService conversionService = getConversionService();
-        return property.isSerializableField(conversionService) && property.isDeserializableField(conversionService);
+        return property.isSerializablePropertyField(conversionService);
     }
 
     @Override
@@ -54,28 +53,31 @@ public class ConvertingNodePropertyFieldAccessorFactory implements FieldAccessor
 
     public static class ConvertingNodePropertyFieldAccessor extends PropertyFieldAccessorFactory.PropertyFieldAccessor {
 
+        private final Class<String> targetType = String.class;
+        private final PropertyConverter propertyConverter;
+
         public ConvertingNodePropertyFieldAccessor(Neo4jPersistentProperty property, Neo4jTemplate template) {
             super(template, property);
+            propertyConverter = new PropertyConverter(template.getConversionService(),property);
         }
 
         @Override
         public Object setValue(final Object entity, final Object newVal) {
-            super.setValue(entity, serializePropertyValue(newVal));
+            super.setValue(entity, propertyConverter.serializePropertyValue(newVal,targetType));
             return newVal;
         }
 
         @Override
         public Object doGetValue(final Object entity) {
-            return deserializePropertyValue(super.doGetValue(entity));
+            return propertyConverter.deserializePropertyValue(super.doGetValue(entity));
         }
 
-        private Object serializePropertyValue(final Object newVal) {
-            return template.getConversionService().convert(newVal, String.class);
+        @Override
+        protected Object convertSimplePropertyValue(Object value) {
+            return value;
         }
 
-        private Object deserializePropertyValue(final Object value) {
-            return template.getConversionService().convert(value, fieldType);
-        }
 
     }
+
 }
