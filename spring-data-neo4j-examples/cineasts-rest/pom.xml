@@ -3,11 +3,11 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>org.neo4j</groupId>
-    <artifactId>movies-rest</artifactId>
+    <artifactId>cineasts-rest</artifactId>
     <version>2.0-SNAPSHOT</version>
     <packaging>war</packaging>
 
-    <name>Movies over REST</name>
+    <name>Cineasts over REST</name>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

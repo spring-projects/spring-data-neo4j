@@ -7,7 +7,7 @@
 	<version>2.0-SNAPSHOT</version>
 	<packaging>war</packaging>
 
-	<name>Movies</name>
+	<name>Cineasts.net</name>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -16,7 +16,6 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<neo4j.version>1.5.M02</neo4j.version>
 		<spring-data-graph.version>2.0.0.BUILD-SNAPSHOT</spring-data-graph.version>
-		<aspectj.version>1.6.12.M1</aspectj.version>
 		<org.slf4j-version>1.6.1</org.slf4j-version>
 	</properties>
 
@@ -176,7 +175,7 @@
 
 		<dependency>
 			<groupId>org.springframework.data</groupId>
-			<artifactId>spring-data-neo4j-aspects</artifactId>
+			<artifactId>spring-data-neo4j</artifactId>
 			<version>${spring-data-graph.version}</version>
 			<exclusions>
 				<exclusion>
@@ -222,22 +221,16 @@
 			<version>1.7.2</version>
 		</dependency>
 
-		<dependency>
+		<!--dependency>
 			<groupId>org.aspectj</groupId>
 			<artifactId>aspectjrt</artifactId>
 			<version>${aspectj.version}</version>
-		</dependency>
+		</dependency-->
 
 		<dependency>
 			<groupId>cglib</groupId>
 			<artifactId>cglib-nodep</artifactId>
 			<version>2.2</version>
-		</dependency>
-
-		<dependency>
-			<groupId>org.hibernate.javax.persistence</groupId>
-			<artifactId>hibernate-jpa-2.0-api</artifactId>
-			<version>1.0.0.Final</version>
 		</dependency>
 
 		<!-- Neo4j Libraries -->
@@ -318,7 +311,7 @@
                 </configuration>
             </plugin>
 
-			<plugin>
+			<!--plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>aspectj-maven-plugin</artifactId>
 				<version>1.2</version>
@@ -357,7 +350,7 @@
 					<source>1.6</source>
 					<target>1.6</target>
 				</configuration>
-			</plugin>
+			</plugin-->
 		</plugins>
 	</build>
 

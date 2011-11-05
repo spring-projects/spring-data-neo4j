@@ -6,7 +6,7 @@ import org.neo4j.cineasts.domain.Rating;
 import org.neo4j.cineasts.domain.User;
 import org.neo4j.cineasts.repository.MovieRepository;
 import org.neo4j.cineasts.repository.PersonRepository;
-import org.neo4j.cineasts.service.CineastsRepository;
+import org.neo4j.cineasts.repository.UserRepository;
 import org.neo4j.cineasts.service.CineastsUserDetailsService;
 import org.neo4j.cineasts.service.DatabasePopulator;
 import org.neo4j.helpers.collection.IteratorUtil;
@@ -15,6 +15,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.neo4j.template.Neo4jOperations;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -34,7 +35,11 @@ public class MovieController {
     @Autowired
     private PersonRepository personRepository;
     @Autowired
+    private UserRepository userRepository;
+    @Autowired
     private CineastsUserDetailsService userDetailsService;
+    @Autowired
+    Neo4jOperations template;
     @Autowired
     private DatabasePopulator populator;
     private static final Logger log = LoggerFactory.getLogger(MovieController.class);
@@ -61,7 +66,7 @@ public class MovieController {
             final int stars = movie.getStars();
             model.addAttribute("stars", stars);
             Rating rating = null;
-            if (user!=null) rating = movie.getRelationshipTo(user, Rating.class, "RATED");
+            if (user!=null) rating = template.getRelationshipBetween(movie, user, Rating.class, "RATED");
             if (rating == null) rating = new Rating().rate(stars,null);
             model.addAttribute("userRating",rating);
         }
@@ -75,7 +80,7 @@ public class MovieController {
         if (user != null && movie != null) {
             int stars1 = stars==null ? -1 : stars;
             String comment1 = comment!=null ? comment.trim() : null;
-            user.rate(movie, stars1, comment1);
+            user.rate(template,movie, stars1, comment1);
         }
         return singleMovieView(model,movieId);
     }

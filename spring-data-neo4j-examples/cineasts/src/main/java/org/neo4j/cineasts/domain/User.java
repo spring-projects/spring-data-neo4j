@@ -2,10 +2,8 @@ package org.neo4j.cineasts.domain;
 
 import org.neo4j.graphdb.Direction;
 import org.neo4j.helpers.collection.IteratorUtil;
-import org.springframework.data.neo4j.annotation.Indexed;
-import org.springframework.data.neo4j.annotation.NodeEntity;
-import org.springframework.data.neo4j.annotation.RelatedTo;
-import org.springframework.data.neo4j.annotation.RelatedToVia;
+import org.springframework.data.neo4j.annotation.*;
+import org.springframework.data.neo4j.template.Neo4jOperations;
 import org.springframework.security.authentication.encoding.Md5PasswordEncoder;
 import org.springframework.security.core.GrantedAuthority;
 
@@ -14,6 +12,8 @@ import java.util.Set;
 
 @NodeEntity
 public class User {
+    @GraphId Long nodeId;
+
     private static final String SALT = "cewuiqwzie";
     public static final String FRIEND = "FRIEND";
     public static final String RATED = "RATED";
@@ -38,22 +38,23 @@ public class User {
         return new Md5PasswordEncoder().encodePassword(password, SALT);
     }
 
-    @RelatedToVia(elementClass = Rating.class, type = RATED)
-    Iterable<Rating> ratings;
+    @RelatedToVia(type = RATED)
+    @Fetch Iterable<Rating> ratings;
 
-    @RelatedTo(elementClass = Movie.class, type = RATED)
+    @RelatedTo(type = RATED)
     Set<Movie> favorites;
 
 
-    @RelatedTo(elementClass = User.class, type = FRIEND, direction = Direction.BOTH)
-    Set<User> friends;
+    @RelatedTo(type = FRIEND, direction = Direction.BOTH)
+    @Fetch Set<User> friends;
 
     public void addFriend(User friend) {
         this.friends.add(friend);
     }
 
-    public Rating rate(Movie movie, int stars, String comment) {
-        return relateTo(movie, Rating.class, RATED).rate(stars, comment);
+    public Rating rate(Neo4jOperations template, Movie movie, int stars, String comment) {
+        final Rating rating = template.createRelationshipBetween(this, movie, Rating.class, RATED, false).rate(stars, comment);
+        return template.save(rating);
     }
 
     public Collection<Rating> getRatings() {
@@ -113,5 +114,21 @@ public class User {
         public String getAuthority() {
             return name();
         }
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        User user = (User) o;
+        if (nodeId == null) return super.equals(o);
+        return nodeId.equals(user.nodeId);
+
+    }
+
+    @Override
+    public int hashCode() {
+        return nodeId != null ? nodeId.hashCode() : super.hashCode();
     }
 }

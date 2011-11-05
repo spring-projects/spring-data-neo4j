@@ -1,8 +1,6 @@
 package org.neo4j.cineasts.domain;
 
-import org.springframework.data.neo4j.annotation.EndNode;
-import org.springframework.data.neo4j.annotation.RelationshipEntity;
-import org.springframework.data.neo4j.annotation.StartNode;
+import org.springframework.data.neo4j.annotation.*;
 
 /**
  * @author mh
@@ -12,9 +10,9 @@ import org.springframework.data.neo4j.annotation.StartNode;
 public class Rating {
     private static final int MAX_STARS = 5;
     private static final int MIN_STARS = 0;
+    @GraphId Long id;
 
-    @StartNode
-    User user;
+    @StartNode User user;
     @EndNode Movie movie;
 
     int stars;
@@ -49,4 +47,21 @@ public class Rating {
         if (comment!=null && !comment.isEmpty()) this.comment = comment;
         return this;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Rating rating = (Rating) o;
+        if (id == null) return super.equals(o);
+        return id.equals(rating.id);
+
+    }
+
+    @Override
+    public int hashCode() {
+        return id != null ? id.hashCode() : super.hashCode();
+    }
+
 }

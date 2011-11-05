@@ -1,12 +1,14 @@
 package org.neo4j.cineasts.movieimport;
 
-import org.neo4j.cineasts.domain.*;
+import org.neo4j.cineasts.domain.Movie;
+import org.neo4j.cineasts.domain.Person;
+import org.neo4j.cineasts.domain.Roles;
 import org.neo4j.cineasts.repository.MovieRepository;
 import org.neo4j.cineasts.repository.PersonRepository;
-import org.neo4j.cineasts.service.CineastsRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.neo4j.template.Neo4jOperations;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,15 +23,16 @@ public class MovieDbImportService {
     MovieDbJsonMapper movieDbJsonMapper = new MovieDbJsonMapper();
 
     @Autowired
-    MovieRepository movieRepository;
+    private MovieRepository movieRepository;
     @Autowired
-    PersonRepository personRepository;
+    private PersonRepository personRepository;
 
     @Autowired
-    MovieDbApiClient client;
+    private MovieDbApiClient client;
 
     @Autowired
-    MovieDbLocalStorage localStorage;
+    private MovieDbLocalStorage localStorage;
+    @Autowired private Neo4jOperations template;
 
     @Transactional
     public Map<Integer, String> importMovies(Map<Integer, Integer> ranges) {
@@ -68,7 +71,7 @@ public class MovieDbImportService {
         Map data = loadMovieData(movieId);
         if (data.containsKey("not_found")) throw new RuntimeException("Data for Movie "+movieId+" not found.");
         movieDbJsonMapper.mapToMovie(data, movie);
-        movie.persist();
+        movieRepository.save(movie);
         relatePersonsToMovie(movie, data);
         return movie;
     }
@@ -84,7 +87,7 @@ public class MovieDbImportService {
     }
 
     private void relatePersonsToMovie(Movie movie, Map data) {
-        Collection<Map> cast = (Collection<Map>) data.get("cast");
+        @SuppressWarnings("unchecked") Collection<Map> cast = (Collection<Map>) data.get("cast");
         for (Map entry : cast) {
             String id = "" + entry.get("id");
             String jobName = (String) entry.get("job");
@@ -99,7 +102,7 @@ public class MovieDbImportService {
                     person.directed(movie);
                     break;
                 case ACTS_IN:
-                    person.playedIn(movie, (String) entry.get("character"));
+                    person.playedIn(template,movie, (String) entry.get("character"));
                     break;
             }
         }
@@ -118,7 +121,7 @@ public class MovieDbImportService {
         if (data.containsKey("not_found")) throw new RuntimeException("Data for Person "+personId+" not found.");
         Person newPerson=new Person(personId,null);
         movieDbJsonMapper.mapToPerson(data, newPerson);
-        return newPerson.persist();
+        return personRepository.save(newPerson);
     }
 
     private Map loadPersonData(String personId) {

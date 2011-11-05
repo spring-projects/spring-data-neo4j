@@ -1,12 +1,11 @@
 package org.neo4j.cineasts.domain;
 
-import org.springframework.data.neo4j.annotation.Indexed;
-import org.springframework.data.neo4j.annotation.NodeEntity;
-import org.springframework.data.neo4j.annotation.RelatedTo;
-import org.springframework.data.neo4j.annotation.RelatedToVia;
+import org.springframework.data.neo4j.annotation.*;
 import org.springframework.data.neo4j.support.index.IndexType;
+import org.springframework.data.neo4j.template.Neo4jOperations;
 
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -15,6 +14,7 @@ import java.util.Set;
  */
 @NodeEntity
 public class Person {
+    @GraphId Long nodeId;
     @Indexed
     String id;
     @Indexed(indexType=IndexType.FULLTEXT, indexName = "people")
@@ -100,7 +100,7 @@ public class Person {
     }
 
     @RelatedTo(elementClass = Movie.class, type = "DIRECTED")
-    private Set<Movie> directedMovies;
+    private Set<Movie> directedMovies=new HashSet<Movie>();
 
     public Set<Movie> getDirectedMovies() {
         return directedMovies;
@@ -117,10 +117,27 @@ public class Person {
         return roles;
     }
 
-    public Role playedIn(Movie movie, String roleName) {
-        Role role = relateTo(movie, Role.class, "ACTS_IN");
+    public Role playedIn(Neo4jOperations template,Movie movie, String roleName) {
+        Role role = template.createRelationshipBetween(this, movie, Role.class, "ACTS_IN",false);
         role.setName(roleName);
-        return role;
+        return template.save(role);
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Person person = (Person) o;
+        if (nodeId == null) return super.equals(o);
+        return nodeId.equals(person.nodeId);
+
+    }
+
+    @Override
+    public int hashCode() {
+        return nodeId != null ? nodeId.hashCode() : super.hashCode();
+    }
+
 
 }

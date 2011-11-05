@@ -4,8 +4,10 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.neo4j.cineasts.repository.MovieRepository;
+import org.neo4j.cineasts.repository.PersonRepository;
 import org.neo4j.cineasts.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.neo4j.template.Neo4jOperations;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,18 +32,21 @@ public class DomainTest {
     @Autowired
     protected UserRepository userRepository;
 
+    @Autowired Neo4jOperations template;
+    @Autowired PersonRepository personRepository;
+
     @Before
     public void setUp() throws Exception {
     }
 
     @Test
     public void actorCanPlayARoleInAMovie() {
-        Person tomHanks = new Person("1","Tom Hanks").persist();
-        Movie forestGump = new Movie("1", "Forrest Gump").persist();
+        Person tomHanks = template.save(new Person("1", "Tom Hanks"));
+        Movie forestGump = template.save(new Movie("1", "Forrest Gump"));
 
-        Role role = tomHanks.playedIn(forestGump, "Forrest");
+        Role role = tomHanks.playedIn(template, forestGump, "Forrest");
 
-        Movie foundForestGump = this.movieRepository.findByPropertyValue(null, "id", "1");
+        Movie foundForestGump = this.movieRepository.findById("1");
 
         assertEquals("created and looked up movie equal", forestGump, foundForestGump);
         Role firstRole = foundForestGump.getRoles().iterator().next();
@@ -51,7 +56,7 @@ public class DomainTest {
 
     @Test
     public void canFindMovieByTitleQuery() {
-        Movie forestGump = new Movie("1", "Forrest Gump").persist();
+        Movie forestGump = template.save(new Movie("1", "Forrest Gump"));
         Iterator<Movie> queryResults = movieRepository.findAllByQuery("search", "title", "Forre*").iterator();
         assertTrue("found movie by query",queryResults.hasNext());
         Movie foundMovie = queryResults.next();
@@ -61,12 +66,12 @@ public class DomainTest {
 
     @Test
     public void userCanRateMovie() {
-        Movie movie= new Movie("1","Forrest Gump").persist();
-        User user = new User("ich","Micha","password").persist();
-        Rating awesome = user.rate(movie, 5, "Awesome");
+        Movie movie = template.save(new Movie("1", "Forrest Gump"));
+        User user = template.save(new User("ich", "Micha", "password"));
+        Rating awesome = user.rate(template, movie, 5, "Awesome");
 
-
-        User foundUser = userRepository.findByPropertyValue("login", "ich");
+        user = userRepository.findByPropertyValue("login", "ich");
+        movie = movieRepository.findById("1");
         Rating rating = user.getRatings().iterator().next();
         assertEquals(awesome,rating);
         assertEquals("Awesome",rating.getComment());
@@ -75,7 +80,7 @@ public class DomainTest {
     }
     @Test
     public void canFindUserByLogin() {
-        User user = new User("ich","Micha","password").persist();
+        User user = template.save(new User("ich", "Micha", "password"));
         User foundUser = userRepository.findByPropertyValue("login", "ich");
         assertEquals(user, foundUser);
     }

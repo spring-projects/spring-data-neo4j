@@ -1,11 +1,7 @@
 package org.neo4j.cineasts.domain;
 
-import org.neo4j.graphdb.Direction;
 import org.neo4j.helpers.collection.IteratorUtil;
-import org.springframework.data.neo4j.annotation.NodeEntity;
-import org.springframework.data.neo4j.annotation.RelatedTo;
-import org.springframework.data.neo4j.annotation.RelatedToVia;
-import org.springframework.data.neo4j.annotation.Indexed;
+import org.springframework.data.neo4j.annotation.*;
 import org.springframework.data.neo4j.support.index.IndexType;
 
 import java.util.*;
@@ -19,6 +15,7 @@ import static org.neo4j.graphdb.Direction.INCOMING;
  */
 @NodeEntity
 public class Movie {
+    @GraphId Long nodeId;
 
     @Indexed
     String id;
@@ -34,11 +31,11 @@ public class Movie {
     @RelatedTo(type = "ACTS_IN", direction = INCOMING)
     Set<Person> actors;
 
-    @RelatedToVia(elementClass = Role.class, type = "ACTS_IN", direction = INCOMING)
+    @RelatedToVia(type = "ACTS_IN", direction = INCOMING)
     Iterable<Role> roles;
 
-    @RelatedToVia(elementClass = Rating.class, type = "RATED", direction = INCOMING)
-    Iterable<Rating> ratings;
+    @RelatedToVia(type = "RATED", direction = INCOMING)
+    @Fetch Iterable<Rating> ratings;
     private String language;
     private String imdbId;
     private String tagline;
@@ -224,5 +221,22 @@ public class Movie {
         int numberOfParts = parts.length;
         return numberOfParts > 0 ? parts[numberOfParts-1] : null;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Movie movie = (Movie) o;
+        if (nodeId == null) return super.equals(o);
+        return nodeId.equals(movie.nodeId);
+
+    }
+
+    @Override
+    public int hashCode() {
+        return nodeId != null ? nodeId.hashCode() : super.hashCode();
+    }
+
 }
 

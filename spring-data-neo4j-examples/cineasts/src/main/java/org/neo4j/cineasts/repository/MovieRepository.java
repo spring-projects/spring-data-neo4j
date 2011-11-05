@@ -8,6 +8,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.neo4j.annotation.Query;
 import org.springframework.data.neo4j.repository.GraphRepository;
 import org.springframework.data.neo4j.repository.NamedIndexRepository;
+import org.springframework.data.neo4j.repository.RelationshipOperationsRepository;
 
 import java.util.List;
 
@@ -15,7 +16,7 @@ import java.util.List;
  * @author mh
  * @since 02.04.11
  */
-public interface MovieRepository extends GraphRepository<Movie>, NamedIndexRepository<Movie> {
+public interface MovieRepository extends GraphRepository<Movie>, NamedIndexRepository<Movie>, RelationshipOperationsRepository<Movie> {
     Movie findById(String id);
 
     Page<Movie> findByTitleLike(String title, Pageable page);
