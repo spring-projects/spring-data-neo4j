@@ -25,12 +25,9 @@
 	            distributed in print or electronically.
 	        </para>
             <para>
-                Copyright 2010-2011 Neo Technology
-            </para>
-            <para>
                 This is an excerpt from the Spring Data Neo4j Guide Book "Good Relationships", which
-                is available at <ulink url="http://spring.neo4j.org/guide">http://spring.neo4j.org/guide</ulink>
-                and will be published as an InfoQ Book Q4 2011.
+                is available at <ulink url="http://spring.neo4j.org">http://spring.neo4j.org</ulink>
+                and will be published as an InfoQ Book.
    	        </para>
 	    </legalnotice>
 
