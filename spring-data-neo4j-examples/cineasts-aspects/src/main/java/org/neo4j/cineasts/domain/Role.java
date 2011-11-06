@@ -8,12 +8,21 @@ import org.springframework.data.neo4j.annotation.StartNode;
  * @author mh
  * @since 04.03.11
  */
-@RelationshipEntity
+@RelationshipEntity(type = "ACTS_IN")
 public class Role {
     @EndNode Movie movie;
     @StartNode Person actor;
 
     String name;
+
+    public Role() {
+    }
+
+    public Role(Movie movie, Person actor, String roleName) {
+        this.movie = movie;
+        this.actor = actor;
+        this.name = roleName;
+    }
 
     public String getName() {
         return name;

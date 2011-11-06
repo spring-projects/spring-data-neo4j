@@ -104,7 +104,7 @@ public class MovieController {
         Person person = personRepository.findById(id);
         model.addAttribute("actor", person);
         model.addAttribute("id", id);
-        model.addAttribute("roles",  IteratorUtil.asCollection(person.getRoles()));
+        model.addAttribute("roles",  person.getRoles());
         addUser(model);
         return "/actors/show";
     }

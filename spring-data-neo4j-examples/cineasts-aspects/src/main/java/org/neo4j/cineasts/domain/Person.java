@@ -110,16 +110,16 @@ public class Person {
         this.directedMovies.add(movie);
     }
 
-    @RelatedToVia(elementClass = Role.class, type = "ACTS_IN")
-    Iterable<Role> roles;
+    @RelatedToVia
+    Set<Role> roles;
 
-    public Iterable<Role> getRoles() {
+    public Set<Role> getRoles() {
         return roles;
     }
 
     public Role playedIn(Movie movie, String roleName) {
-        Role role = relateTo(movie, Role.class, "ACTS_IN");
-        role.setName(roleName);
+        final Role role = new Role(movie,this,roleName);
+        getRoles().add(role);
         return role;
     }
 
