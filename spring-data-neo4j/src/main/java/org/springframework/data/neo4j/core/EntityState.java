@@ -44,6 +44,10 @@ public interface EntityState<STATE> {
      * @return value of the field either from the state and/or the entity
      */
     Object getValue(Field field);
+    /**
+     * @return value of the property either from the state and/or the entity
+     */
+    Object getValue(Neo4jPersistentProperty property);
 
     /**
      * @param field

@@ -19,13 +19,11 @@ package org.springframework.data.neo4j.mapping;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.DynamicRelationshipType;
 import org.neo4j.graphdb.RelationshipType;
-import org.springframework.data.mapping.model.MappingException;
-import org.springframework.data.neo4j.annotation.NodeEntity;
 import org.springframework.data.neo4j.annotation.RelatedTo;
 import org.springframework.data.neo4j.annotation.RelatedToVia;
 import org.springframework.data.neo4j.annotation.RelationshipEntity;
-
-
+import org.springframework.data.neo4j.support.mapping.Neo4jMappingContext;
+import org.springframework.data.neo4j.support.mapping.Neo4jPersistentEntityImpl;
 import org.springframework.data.util.ClassTypeInformation;
 import org.springframework.data.util.TypeInformation;
 
@@ -39,6 +37,7 @@ public class RelationshipInfo {
     private final TypeInformation<?> targetType;
     private final boolean targetsNodes;
     private boolean readonly;
+    private Neo4jPersistentEntity targetEntity;
 
     public Direction getDirection() {
         return direction;
@@ -55,42 +54,51 @@ public class RelationshipInfo {
         return isMultiple;
     }
 
-    public RelationshipInfo(String type, Direction direction, TypeInformation<?> typeInformation, TypeInformation<?> concreteActualType, boolean targetsNode) {
+    public RelationshipInfo(String type, Direction direction, TypeInformation<?> typeInformation, TypeInformation<?> concreteActualType, Neo4jMappingContext ctx) {
         this.type = type;
         this.direction = direction;
+        this.targetEntity = targetEntity;
         isMultiple = typeInformation.isCollectionLike();
         targetType = concreteActualType!=null ? concreteActualType : typeInformation.getActualType();
-        targetsNodes = isNodeEntity(targetType);
+        this.targetEntity = ctx.getPersistentEntity(targetType);
+        targetsNodes = targetEntity.isNodeEntity();
         this.readonly = isMultiple() && typeInformation.getType().equals(Iterable.class);
     }
 
-    private boolean isNodeEntity(TypeInformation<?> targetType) {
-        final Class<?> type = targetType.getType();
-        if (type.isAnnotationPresent(NodeEntity.class)) return true;
-        if (type.isAnnotationPresent(RelationshipEntity.class)) return false;
-        throw new MappingException("Target type for relationship " + this.type + " field is invalid " + type);
+    public static RelationshipInfo fromField(Field field, TypeInformation<?> typeInformation, Neo4jMappingContext ctx) {
+        return new RelationshipInfo(field.getName(), Direction.OUTGOING, typeInformation,null, ctx);
     }
 
-    public static RelationshipInfo fromField(Field field, TypeInformation<?> typeInformation) {
-        return new RelationshipInfo(field.getName(), Direction.OUTGOING, typeInformation,null,true);
-    }
-
-    public static RelationshipInfo fromField(Field field, RelatedTo annotation, TypeInformation<?> typeInformation) {
+    public static RelationshipInfo fromField(Field field, RelatedTo annotation, TypeInformation<?> typeInformation, Neo4jMappingContext ctx) {
         return new RelationshipInfo(
                 annotation.type().isEmpty() ? field.getName() : annotation.type(),
                 annotation.direction(),
                 typeInformation,
                 annotation.elementClass() != Object.class ? ClassTypeInformation.from(annotation.elementClass()) : null,
-                true);
+                ctx);
     }
 
-    public static RelationshipInfo fromField(Field field, RelatedToVia annotation, TypeInformation<?> typeInformation) {
+    public static RelationshipInfo fromField(Field field, RelatedToVia annotation, TypeInformation<?> typeInformation, Neo4jMappingContext ctx) {
+        final TypeInformation<?> elementClass = elementClass(annotation, typeInformation);
+        final Neo4jPersistentEntityImpl<?> targetEntity = ctx.getPersistentEntity(elementClass);
         return new RelationshipInfo(
-                annotation.type().isEmpty() ? field.getName() : annotation.type(),
+                relationshipType(field,annotation,typeInformation),
                 annotation.direction(),
                 typeInformation,
-                annotation.elementClass() != Object.class ? ClassTypeInformation.from(annotation.elementClass()) : null,
-                false);
+                elementClass,
+                ctx);
+    }
+
+    private static String relationshipType(Field field, RelatedToVia annotation, TypeInformation<?> typeInformation) {
+        if (!annotation.type().isEmpty()) return annotation.type();
+        final TypeInformation<?> relationshipEntityType = elementClass(annotation, typeInformation);
+        final RelationshipEntity relationshipEntity = relationshipEntityType.getType().getAnnotation(RelationshipEntity.class);
+        if (!relationshipEntity.type().isEmpty()) return relationshipEntity.type();
+        return field.getName();
+    }
+
+    private static TypeInformation<?> elementClass(RelatedToVia annotation, TypeInformation<?> typeInformation) {
+        return annotation.elementClass() != Object.class ? ClassTypeInformation.from(annotation.elementClass()) : typeInformation.getActualType();
     }
 
     public TypeInformation<?> getTargetType() {
@@ -103,5 +111,9 @@ public class RelationshipInfo {
 
     public boolean isReadonly() {
         return readonly;
+    }
+
+    public Neo4jPersistentEntity getTargetEntity() {
+        return targetEntity;
     }
 }

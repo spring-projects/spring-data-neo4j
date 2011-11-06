@@ -44,6 +44,32 @@ public aspect Neo4jRelationshipBacking {
 
     declare parents : (@RelationshipEntity *) implements RelationshipBacked;
 
+    /**
+     * pointcut for constructors not taking a node to be handled by the aspect and the {@link org.springframework.data.neo4j.core.EntityState}
+     */
+	pointcut arbitraryUserConstructorOfRelationshipBackedObject(RelationshipBacked entity) :
+		execution((@RelationshipEntity *).new(..)) &&
+		!execution((@RelationshipEntity *).new(Relationship)) &&
+		this(entity) && !cflowbelow(call(* fromStateInternal(..)));
+
+
+    /**
+     * Handle outside entity instantiation by either creating an appropriate backing node in the graph or in the case
+     * of a reinstantiated partial entity by assigning the original node to the entity, the concrete behaviour is delegated
+     * to the {@link org.springframework.data.neo4j.core.EntityState}. Also handles the java type representation in the graph.
+     * When running outside of a transaction, no node is created, this is handled later when the entity is accessed within
+     * a transaction again.
+     */
+    before(RelationshipBacked entity): arbitraryUserConstructorOfRelationshipBackedObject(entity) {
+        if (entityStateFactory == null) {
+            log.error("entityStateFactory not set, not creating accessors for " + entity.getClass());
+        } else {
+            if (entity.entityState != null) return;
+            entity.entityState = entityStateFactory.getEntityState(entity, true);
+        }
+    }
+
+
     protected pointcut entityFieldGet(RelationshipBacked entity) :
             get(* RelationshipBacked+.*) &&
             this(entity) &&

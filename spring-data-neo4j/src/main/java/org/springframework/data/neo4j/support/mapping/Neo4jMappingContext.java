@@ -51,7 +51,7 @@ public class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersistentE
     @Override
     protected Neo4jPersistentProperty createPersistentProperty(Field field, PropertyDescriptor descriptor,
                                                                Neo4jPersistentEntityImpl<?> owner, SimpleTypeHolder simpleTypeHolder) {
-        return new Neo4jPersistentPropertyImpl(field, descriptor, owner, simpleTypeHolder);
+        return new Neo4jPersistentPropertyImpl(field, descriptor, owner, simpleTypeHolder,this);
     }
 
     public boolean isNodeEntity(Class<?> type) {

@@ -16,15 +16,18 @@
 
 package org.springframework.data.neo4j.support.relationship;
 
+import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.NotInTransactionException;
 import org.neo4j.graphdb.PropertyContainer;
 import org.neo4j.graphdb.Relationship;
+import org.neo4j.graphdb.RelationshipType;
 import org.springframework.dao.InvalidDataAccessResourceUsageException;
-
 import org.springframework.data.neo4j.fieldaccess.DefaultEntityState;
 import org.springframework.data.neo4j.fieldaccess.DelegatingFieldAccessorFactory;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentEntity;
+import org.springframework.data.neo4j.mapping.RelationshipProperties;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
+import org.springframework.data.neo4j.support.ParameterCheck;
 
 
 /**
@@ -53,8 +56,7 @@ public class RelationshipEntityState extends DefaultEntityState<Relationship> {
                     log.info("Entity reattached " + entity.getClass() + "; used Relationship [" + state + "];");
                 return;
             }
-
-            final Relationship relationship = null; // TODO template.create();
+            final Relationship relationship = createRelationshipFromEntity();
             setPersistentState(relationship);
             if (log.isInfoEnabled()) log.info("User-defined constructor called on class " + entity.getClass() + "; created Relationship [" + getPersistentState() + "]; Updating metamodel");
         } catch (NotInTransactionException e) {
@@ -62,9 +64,32 @@ public class RelationshipEntityState extends DefaultEntityState<Relationship> {
         }
     }
 
+    private Relationship createRelationshipFromEntity() {
+        final RelationshipProperties relationshipProperties = getPersistentEntity().getRelationshipProperties();
+        final Node startNode = template.getPersistentState(relationshipProperties.getStartNodeProperty().getValue(entity));
+        final Node endNode = template.getPersistentState(relationshipProperties.getEndeNodeProperty().getValue(entity));
+        final String type = getRelationshipTypeFromEntity(getPersistentEntity());
+        ParameterCheck.notNull(startNode,"start node property",endNode,"end node property",type, "relationship type property from field or annotation");
+        return template.createRelationshipBetween(startNode, endNode,type,null);
+    }
+
+    private String getRelationshipTypeFromEntity(Neo4jPersistentEntity<?> persistentEntity) {
+        final RelationshipProperties relationshipProperties = persistentEntity.getRelationshipProperties();
+        final Object value = relationshipProperties.getTypeProperty().getValue(entity);
+        if (value==null) {
+            return relationshipProperties.getRelationshipType();
+        }
+        if (value instanceof RelationshipType) {
+            return ((RelationshipType)value).name();
+        }
+        return (String) value;
+    }
+
     @Override
     public Object persist() {
-        createAndAssignState();
+        if (getPersistentState() == null) {
+            createAndAssignState();
+        }
         return entity;
     }
 }

@@ -167,6 +167,13 @@ public class Neo4jPersistentEntityImpl<T> extends BasicPersistentEntity<T, Neo4j
     }
 
     @Override
+    public String getRelationshipType() {
+        if (!isRelationshipEntity()) return null;
+        final RelationshipEntity annotation = getAnnotation(RelationshipEntity.class);
+        return annotation.type().isEmpty() ? null : annotation.type();
+    }
+
+    @Override
     public String toString() {
         return String.format("%s %smanaged @%sEntity Annotations: %s", getType(), isManaged() ? "" : "un", isNodeEntity() ? "Node" : "Relationship", annotations.keySet());
     }

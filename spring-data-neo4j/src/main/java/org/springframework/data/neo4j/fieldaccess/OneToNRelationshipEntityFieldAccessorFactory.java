@@ -20,10 +20,16 @@ import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.RelationshipType;
+import org.neo4j.helpers.collection.IteratorUtil;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
+import org.springframework.data.neo4j.mapping.Neo4jPersistentEntity;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.mapping.RelationshipInfo;
+import org.springframework.data.neo4j.mapping.RelationshipProperties;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
+
+import java.util.HashSet;
+import java.util.Set;
 
 import static org.springframework.data.neo4j.support.DoReturn.doReturn;
 
@@ -49,24 +55,62 @@ public class OneToNRelationshipEntityFieldAccessorFactory implements FieldAccess
 	}
 	public static class OneToNRelationshipEntityFieldAccessor extends AbstractNodeRelationshipFieldAccessor<Node, Relationship> {
 
-	    public OneToNRelationshipEntityFieldAccessor(final RelationshipType type, final Direction direction, final Class<?> elementClass, final Neo4jTemplate template, Neo4jPersistentProperty property) {
+        private final boolean isEditableSet;
+
+        public OneToNRelationshipEntityFieldAccessor(final RelationshipType type, final Direction direction, final Class<?> elementClass, final Neo4jTemplate template, Neo4jPersistentProperty property) {
 	        super(elementClass, template, direction, type, property);
-	    }
+            isEditableSet = Set.class.isAssignableFrom(this.property.getType());
+        }
 
 	    @Override
 	    public Object setValue(final Object entity, final Object newVal) {
-	        throw new InvalidDataAccessApiUsageException("Cannot set read-only relationship entity field.");
+	        if (!isEditableSet) throw new InvalidDataAccessApiUsageException("Cannot set read-only relationship entity field.");
+            final Node startNode = checkUnderlyingState(entity);
+            if (newVal == null) {
+   	            return null;
+   	        }
+            final Set<Node> targetNodes = createSetOfTargetNodes(newVal,startNode);
+   	        removeMissingRelationships(startNode, targetNodes);
+   	        createAddedRelationships(startNode, targetNodes);
+   	        return createManagedSet(entity, (Set<?>) newVal);
 	    }
+
+        protected Set<Node> createSetOfTargetNodes(Object newVal, Node startNode) {
+            if (!(newVal instanceof Set)) {
+                throw new IllegalArgumentException("New value must be a Set, was: " + newVal.getClass());
+            }
+            Set<Node> nodes=new HashSet<Node>();
+            for (Object entry : (Set<Object>) newVal) {
+                if (!relatedType.isInstance(entry)) {
+                    throw new IllegalArgumentException("New value elements must be "+relatedType);
+                }
+                Neo4jPersistentEntity relationshipPEntity = property.getRelationshipInfo().getTargetEntity();
+                final RelationshipProperties relationshipProperties = relationshipPEntity.getRelationshipProperties();
+                final Node endNode = getState(relationshipProperties.getEndeNodeProperty().getValue(entry));
+                if (!endNode.equals(startNode)) {
+                    nodes.add(endNode);
+                } else {
+                    final Node otherNode = getState(relationshipProperties.getStartNodeProperty().getValue(entry));
+                    nodes.add(otherNode);
+                }
+            }
+            return nodes;
+        }
 
 	    @Override
 	    public boolean isWriteable(Object entity) {
-	        return false;
+	        return isEditableSet;
 	    }
 
 	    @Override
 	    public Object getValue(final Object entity) {
-	        checkUnderlyingNode(entity);
-            return doReturn(iterableFrom(entity));
+	        checkUnderlyingState(entity);
+            final GraphBackedEntityIterableWrapper<Relationship, ?> result = iterableFrom(entity);
+            if (isEditableSet) {
+                @SuppressWarnings("unchecked") final ManagedFieldAccessorSet managedSet = createManagedSet(entity, IteratorUtil.addToCollection(result, new HashSet()));
+                return doReturn(managedSet);
+            }
+            return doReturn(result);
         }
 
         private GraphBackedEntityIterableWrapper<Relationship, ?> iterableFrom(final Object entity) {
@@ -75,18 +119,18 @@ public class OneToNRelationshipEntityFieldAccessorFactory implements FieldAccess
 
 	    @Override
 	    protected Iterable<Relationship> getStatesFromEntity(final Object entity) {
-            final Node persistentState = getState(entity);
-            return persistentState.getRelationships(type, direction);
+            final Node node = getState(entity);
+            return node.getRelationships(type, direction);
 	    }
 
 	    @Override
-	    protected Relationship obtainSingleRelationship(final Node start, final Relationship end) {
+	    protected Relationship obtainSingleRelationship(final Node start, final Node end) {
 	        return null;
 	    }
 
 	    @Override
 	    protected Node getState(final Object entity) {
-	        return template.getPersistentState(entity);
+            return template.getPersistentState(entity);
 	    }
 
 	}

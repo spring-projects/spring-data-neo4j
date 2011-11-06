@@ -18,11 +18,11 @@ package org.springframework.data.neo4j.support.relationship;
 
 import org.neo4j.graphdb.Relationship;
 import org.springframework.data.neo4j.core.EntityState;
-
 import org.springframework.data.neo4j.fieldaccess.DelegatingFieldAccessorFactory;
-import org.springframework.data.neo4j.support.mapping.Neo4jMappingContext;
+import org.springframework.data.neo4j.fieldaccess.DetachedEntityState;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentEntity;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
+import org.springframework.data.neo4j.support.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.support.node.EntityStateFactory;
 
 public class RelationshipEntityStateFactory implements EntityStateFactory<Relationship> {
@@ -35,7 +35,13 @@ public class RelationshipEntityStateFactory implements EntityStateFactory<Relati
     @SuppressWarnings("unchecked")
     public EntityState<Relationship> getEntityState(final Object entity, boolean detachable) {
         final Class<?> entityType = entity.getClass();
-        return new RelationshipEntityState(null,entity, entityType, template, relationshipDelegatingFieldAccessorFactory, (Neo4jPersistentEntity) mappingContext.getPersistentEntity(entityType));
+        final Neo4jPersistentEntity persistentEntity = (Neo4jPersistentEntity) mappingContext.getPersistentEntity(entityType);
+        final RelationshipEntityState relationshipEntityState = new RelationshipEntityState(null, entity, entityType, template, relationshipDelegatingFieldAccessorFactory, persistentEntity);
+        if (!detachable) {
+            return relationshipEntityState;
+        }
+        return new DetachedEntityState<Relationship>(relationshipEntityState, template);
+
 	}
 
 	public void setTemplate(Neo4jTemplate template) {

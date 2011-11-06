@@ -53,12 +53,12 @@ public class SingleRelationshipFieldAccessorFactory extends NodeRelationshipFiel
 
 		@Override
 	    public Object setValue(final Object entity, final Object newVal) {
-	        final Node node=checkUnderlyingNode(entity);
+	        final Node node= checkUnderlyingState(entity);
 	        if (newVal == null) {
 	            removeMissingRelationships(node, Collections.<Node>emptySet());
 	            return null;
 	        }
-	        final Set<Node> target=checkTargetIsSetOfNodebacked(Collections.singleton(newVal));
+	        final Set<Node> target= createSetOfTargetNodes(Collections.singleton(newVal));
 	        removeMissingRelationships(node, target);
 			createAddedRelationships(node,target);
 	        return newVal;
@@ -66,7 +66,7 @@ public class SingleRelationshipFieldAccessorFactory extends NodeRelationshipFiel
 
 	    @Override
 		public Object getValue(final Object entity) {
-	        checkUnderlyingNode(entity);
+	        checkUnderlyingState(entity);
 	        final Set<Object> result = createEntitySetFromRelationshipEndNodes(entity);
             final Object singleEntity = result.isEmpty() ? null : result.iterator().next();
             return doReturn(singleEntity);

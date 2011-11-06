@@ -326,7 +326,7 @@ public class Neo4jTemplate implements Neo4jOperations, EntityPersister {
 
     @Override
     public Relationship createRelationshipBetween(final Node startNode, final Node endNode, final String relationshipType, final Map<String, Object> properties) {
-        notNull(startNode, "startNode", endNode, "endNode", relationshipType, "relationshipType", properties, "properties");
+        notNull(startNode, "startNode", endNode, "endNode", relationshipType, "relationshipType");
         return exec(new GraphCallback<Relationship>() {
             @Override
             public Relationship doWithGraph(GraphDatabase graph) throws Exception {

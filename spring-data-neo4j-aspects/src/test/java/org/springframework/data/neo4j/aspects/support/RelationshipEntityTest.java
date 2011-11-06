@@ -16,23 +16,20 @@
 
 package org.springframework.data.neo4j.aspects.support;
 
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.neo4j.graphdb.Direction;
-import org.neo4j.graphdb.DynamicRelationshipType;
-import org.neo4j.graphdb.Relationship;
-import org.neo4j.graphdb.Transaction;
+import org.neo4j.graphdb.*;
 import org.neo4j.helpers.collection.IteratorUtil;
+import org.neo4j.helpers.collection.IteratorWrapper;
 import org.springframework.data.neo4j.aspects.Friendship;
 import org.springframework.data.neo4j.aspects.Person;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
+import java.util.*;
+
+import static org.junit.Assert.*;
 import static org.springframework.data.neo4j.aspects.Person.persistedPerson;
 
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -60,6 +57,43 @@ public class RelationshipEntityTest extends EntityTestBase {
         Friendship f2 = p.knows(p2);
         assertEquals(f, f2);
         assertEquals(1, IteratorUtil.count(p.getFriendships()));
+    }
+
+    @Test
+    @Transactional
+    public void shouldSupportSetOfRelationshipEntities() {
+        Person p = persistedPerson("Michael", 35);
+        Person p2 = persistedPerson("David", 25);
+        final Friendship friendship = p.knows(p2);
+        final Set<Friendship> result = p.getFriendshipsSet();
+        assertEquals(1, IteratorUtil.count(result));
+        assertEquals(friendship,IteratorUtil.first(result));
+    }
+
+    @Test
+    @Transactional
+    public void shouldSupportManagedSetAddOfRelationshipEntities() {
+        Person p = persistedPerson("Michael", 35);
+        Person p2 = persistedPerson("David", 25);
+        final Set<Friendship> friends = p.getFriendshipsSet();
+        assertEquals(0, IteratorUtil.count(friends));
+        final Friendship friendship = new Friendship(p, p2, 10);
+        friends.add(friendship);
+        assertEquals(1, IteratorUtil.count(friends));
+        assertEquals(friendship,IteratorUtil.first(friends));
+    }
+
+    @Test
+    @Transactional
+    public void shouldSupportManagedSetRemoveOfRelationshipEntities() {
+        Person p = persistedPerson("Michael", 35);
+        Person p2 = persistedPerson("David", 25);
+        final Friendship friendship = p.knows(p2);
+        final Set<Friendship> friends = p.getFriendshipsSet();
+        assertEquals(1, friends.size());
+        assertEquals(friendship,IteratorUtil.first(friends));
+        friends.remove(friendship);
+        assertEquals(0, IteratorUtil.count(friends));
     }
 
     @Test

@@ -55,14 +55,14 @@ public class OneToNRelationshipFieldAccessorFactory extends NodeRelationshipFiel
 	    }
 
 	    public Object setValue(final Object entity, final Object newVal) {
-	        final Node node = checkUnderlyingNode(entity);
+	        final Node node = checkUnderlyingState(entity);
 	        if (newVal == null) {
 /* null should not remove existing relationships but leave them alone
 	            removeMissingRelationships(node, Collections.<Node>emptySet());
 */
 	            return null;
 	        }
-	        final Set<Node> targetNodes = checkTargetIsSetOfNodebacked(newVal);
+	        final Set<Node> targetNodes = createSetOfTargetNodes(newVal);
 	        removeMissingRelationships(node, targetNodes);
 	        createAddedRelationships(node, targetNodes);
 	        return createManagedSet(entity, (Set<?>) newVal);
@@ -70,7 +70,7 @@ public class OneToNRelationshipFieldAccessorFactory extends NodeRelationshipFiel
 
         @Override
 	    public Object getValue(final Object entity) {
-	        checkUnderlyingNode(entity);
+	        checkUnderlyingState(entity);
 	        final Set<?> result = createEntitySetFromRelationshipEndNodes(entity);
 	        return doReturn(createManagedSet(entity, result));
 	    }

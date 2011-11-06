@@ -16,22 +16,17 @@
 
 package org.springframework.data.neo4j.aspects;
 
-import java.util.Date;
-import java.util.Map;
+import org.neo4j.graphdb.Direction;
+import org.neo4j.graphdb.Node;
+import org.springframework.data.neo4j.annotation.*;
+import org.springframework.data.neo4j.fieldaccess.DynamicProperties;
 
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.Size;
-
-import org.neo4j.graphdb.Direction;
-import org.neo4j.graphdb.Node;
-import org.springframework.data.neo4j.annotation.GraphId;
-import org.springframework.data.neo4j.annotation.Indexed;
-import org.springframework.data.neo4j.annotation.NodeEntity;
-import org.springframework.data.neo4j.annotation.Query;
-import org.springframework.data.neo4j.annotation.RelatedTo;
-import org.springframework.data.neo4j.annotation.RelatedToVia;
-import org.springframework.data.neo4j.fieldaccess.DynamicProperties;
+import java.util.Date;
+import java.util.Map;
+import java.util.Set;
 
 
 @NodeEntity
@@ -75,6 +70,9 @@ public class Person {
 
 	@RelatedToVia(type = "knows", elementClass = Friendship.class)
 	private Iterable<Friendship> friendships;
+
+	@RelatedToVia
+	private Set<Friendship> friendshipsSet;
 
     @Query(value = "start person=node({self}) match (person)<-[:boss]-(boss) return boss")
     private Person bossByQuery;
@@ -240,5 +238,9 @@ public class Person {
 
     public static Person persistedPerson(String name, int age) {
         return new Person(name,age).persist();
+    }
+
+    public Set<Friendship> getFriendshipsSet() {
+        return friendshipsSet;
     }
 }

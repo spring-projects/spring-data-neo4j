@@ -23,4 +23,6 @@ public interface RelationshipProperties {
     Neo4jPersistentProperty getStartNodeProperty();
     Neo4jPersistentProperty getEndeNodeProperty();
     Neo4jPersistentProperty getTypeProperty();
+
+    String getRelationshipType();
 }

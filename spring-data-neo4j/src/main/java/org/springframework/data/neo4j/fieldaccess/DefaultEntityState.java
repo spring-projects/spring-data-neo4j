@@ -19,7 +19,6 @@ package org.springframework.data.neo4j.fieldaccess;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.data.neo4j.core.EntityState;
-
 import org.springframework.data.neo4j.mapping.Neo4jPersistentEntity;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 
@@ -40,7 +39,7 @@ public abstract class DefaultEntityState<STATE> implements EntityState<STATE> {
     private STATE state;
     protected final static Log log= LogFactory.getLog(DefaultEntityState.class);
     private final FieldAccessorFactoryProviders<Object> fieldAccessorFactoryProviders;
-    private final Neo4jPersistentEntity<?> persistentEntity;
+    protected final Neo4jPersistentEntity<?> persistentEntity;
 
     public DefaultEntityState(final STATE underlyingState, final Object entity, final Class<? extends Object> type, final DelegatingFieldAccessorFactory delegatingFieldAccessorFactory, Neo4jPersistentEntity<?> persistentEntity) {
         this.state = underlyingState;
@@ -91,11 +90,17 @@ public abstract class DefaultEntityState<STATE> implements EntityState<STATE> {
     }
 
     @Override
-    public Object getValue(final Field field) {
-        final FieldAccessor accessor = accessorFor(property(field));
+    public Object getValue(final Neo4jPersistentProperty property) {
+        final FieldAccessor accessor = accessorFor(property);
         if (accessor == null) return null;
         else return accessor.getValue(entity);
     }
+
+    @Override
+    public Object getValue(final Field field) {
+        return getValue(property(field));
+    }
+
     @Override
     public Object setValue(final Field field, final Object newVal) {
         return setValue(property(field),newVal);

@@ -52,10 +52,10 @@ class Neo4jPersistentPropertyImpl extends AbstractPersistentProperty<Neo4jPersis
     private Map<Class<? extends Annotation>, ? extends Annotation> annotations;
 
     public Neo4jPersistentPropertyImpl(Field field, PropertyDescriptor propertyDescriptor,
-                                       PersistentEntity<?, Neo4jPersistentProperty> owner, SimpleTypeHolder simpleTypeHolder) {
+                                       PersistentEntity<?, Neo4jPersistentProperty> owner, SimpleTypeHolder simpleTypeHolder, Neo4jMappingContext ctx) {
         super(field, propertyDescriptor, owner, simpleTypeHolder);
         this.annotations = extractAnnotations(field);
-        this.relationshipInfo = extractRelationshipInfo(field);
+        this.relationshipInfo = extractRelationshipInfo(field,ctx);
         this.indexInfo = extractIndexInfo();
         this.isIdProperty = annotations.containsKey(GraphId.class);
     }
@@ -78,16 +78,16 @@ class Neo4jPersistentPropertyImpl extends AbstractPersistentProperty<Neo4jPersis
         return (T) annotations.get(annotationType);
     }
 
-    private RelationshipInfo extractRelationshipInfo(final Field field) {
+    private RelationshipInfo extractRelationshipInfo(final Field field, Neo4jMappingContext ctx) {
         if (isAnnotationPresent(RelatedTo.class)) {
-            return RelationshipInfo.fromField(field, getAnnotation(RelatedTo.class), getTypeInformation());
+            return RelationshipInfo.fromField(field, getAnnotation(RelatedTo.class), getTypeInformation(), ctx);
         }
 
         if (isAnnotationPresent(RelatedToVia.class)) {
-            return RelationshipInfo.fromField(field, getAnnotation(RelatedToVia.class), getTypeInformation());
+            return RelationshipInfo.fromField(field, getAnnotation(RelatedToVia.class), getTypeInformation(),ctx);
         }
         if (hasAnnotation(getTypeInformation(), NodeEntity.class)) {
-            return RelationshipInfo.fromField(field, getTypeInformation());
+            return RelationshipInfo.fromField(field, getTypeInformation(), ctx);
         }
         return null;
     }

@@ -75,6 +75,11 @@ public class DetachedEntityState<STATE> implements EntityState<STATE> {
     }
 
     @Override
+    public Object getValue(Neo4jPersistentProperty property) {
+        return getValue(property.getField());
+    }
+
+    @Override
     public Object getValue(final Field field) {
         if (isDetached()) {
             if (template.getPersistentState(getEntity())==null || isDirty(field)) {

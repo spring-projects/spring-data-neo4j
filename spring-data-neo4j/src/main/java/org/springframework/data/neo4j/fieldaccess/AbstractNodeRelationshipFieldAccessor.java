@@ -50,7 +50,7 @@ public abstract class AbstractNodeRelationshipFieldAccessor<STATE extends Proper
         return true;
     }
 
-    protected STATE checkUnderlyingNode(Object entity) {
+    protected STATE checkUnderlyingState(Object entity) {
         if (entity==null) throw new IllegalStateException("Entity is null");
         STATE node = getState(entity);
         if (node != null) return node;
@@ -64,24 +64,23 @@ public abstract class AbstractNodeRelationshipFieldAccessor<STATE extends Proper
         }
     }
 
-    protected void createAddedRelationships(STATE node, Set<TSTATE> targetNodes) {
-        for (TSTATE targetNode : targetNodes) {
+    protected void createAddedRelationships(Node node, Set<Node> targetNodes) {
+        for (Node targetNode : targetNodes) {
             createSingleRelationship(node,targetNode);
         }
     }
     // adding cascade
     @SuppressWarnings("unchecked")
-    protected Set<STATE> checkTargetIsSetOfNodebacked(Object newVal) {
+    protected Set<Node> createSetOfTargetNodes(Object newVal) {
         if (!(newVal instanceof Set)) {
             throw new IllegalArgumentException("New value must be a Set, was: " + newVal.getClass());
         }
-        Set<STATE> nodes=new HashSet<STATE>();
+        Set<Node> nodes=new HashSet<Node>();
         for (Object value : (Set<Object>) newVal) {
             if (!relatedType.isInstance(value)) {
                 throw new IllegalArgumentException("New value elements must be "+relatedType);
             }
-//            nodes.add(getState(value));
-              nodes.add(getOrCreateState(value));
+            nodes.add((Node)getOrCreateState(value));
         }
         return nodes;
     }
@@ -111,7 +110,7 @@ public abstract class AbstractNodeRelationshipFieldAccessor<STATE extends Proper
 
 
     @SuppressWarnings("unchecked")
-    protected void createSingleRelationship(STATE start, TSTATE end) {
+    protected void createSingleRelationship(Node start, Node end) {
         if (end==null) return;
         switch(direction) {
             case OUTGOING :
@@ -120,7 +119,7 @@ public abstract class AbstractNodeRelationshipFieldAccessor<STATE extends Proper
                 break;
             }
             case INCOMING :
-                obtainSingleRelationship((STATE)end, (TSTATE)start);
+                obtainSingleRelationship(end, start);
                 break;
             default : throw new InvalidDataAccessApiUsageException("invalid direction " + direction);
         }
@@ -130,10 +129,9 @@ public abstract class AbstractNodeRelationshipFieldAccessor<STATE extends Proper
         return null;
 	}
 	
-    protected abstract Relationship obtainSingleRelationship(STATE start, TSTATE end);
+    protected abstract Relationship obtainSingleRelationship(Node start, Node end);
 
     protected abstract Iterable<TSTATE> getStatesFromEntity(Object entity);
 
-    protected abstract STATE
-    getState(Object entity);
+    protected abstract STATE getState(Object entity);
 }

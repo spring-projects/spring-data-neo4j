@@ -17,16 +17,12 @@
 package org.springframework.data.neo4j.aspects;
 
 
-import java.util.Date;
-
-import org.springframework.data.neo4j.aspects.Person;
-import org.springframework.data.neo4j.annotation.EndNode;
-import org.springframework.data.neo4j.annotation.Indexed;
-import org.springframework.data.neo4j.annotation.RelationshipEntity;
-import org.springframework.data.neo4j.annotation.StartNode;
+import org.springframework.data.neo4j.annotation.*;
 import org.springframework.data.neo4j.fieldaccess.DynamicProperties;
 
-@RelationshipEntity(useShortNames = false)
+import java.util.Date;
+
+@RelationshipEntity(useShortNames = false, type = "knows")
 public class Friendship {
 
     public Friendship() {
@@ -51,6 +47,9 @@ public class Friendship {
 
     @Indexed
 	private int years;
+
+    @RelationshipType
+    String type;
 
 	private Date firstMeetingDate;
 

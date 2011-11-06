@@ -44,7 +44,7 @@ public @interface RelatedToVia {
     /**
      * @return name of the relationship type, optional, can be inferred from the field name
      */
-    String type();
+    String type() default "";
 
     /**
      * @return direction for the relationship, by default outgoing
