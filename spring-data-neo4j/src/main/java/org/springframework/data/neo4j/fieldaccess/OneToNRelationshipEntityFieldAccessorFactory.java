@@ -28,7 +28,9 @@ import org.springframework.data.neo4j.mapping.RelationshipInfo;
 import org.springframework.data.neo4j.mapping.RelationshipProperties;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
 
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import static org.springframework.data.neo4j.support.DoReturn.doReturn;
@@ -69,17 +71,24 @@ public class OneToNRelationshipEntityFieldAccessorFactory implements FieldAccess
             if (newVal == null) {
    	            return null;
    	        }
-            final Set<Node> targetNodes = createSetOfTargetNodes(newVal,startNode);
-   	        removeMissingRelationships(startNode, targetNodes);
-   	        createAddedRelationships(startNode, targetNodes);
-   	        return createManagedSet(entity, (Set<?>) newVal);
+            final Map<Node, Object> targetNodes = createSetOfTargetNodes(newVal, startNode);
+   	        removeMissingRelationships(startNode, targetNodes.keySet());
+   	        //createAddedRelationships(startNode, targetNodes.keySet());
+            persistEntities(targetNodes);
+            return createManagedSet(entity, (Set<?>) newVal);
 	    }
 
-        protected Set<Node> createSetOfTargetNodes(Object newVal, Node startNode) {
+        private void persistEntities(Map<Node, Object> targetNodes) {
+            for (Object entry : targetNodes.values()) {
+                template.save(entry);
+            }
+        }
+
+        protected Map<Node, Object> createSetOfTargetNodes(Object newVal, Node startNode) {
             if (!(newVal instanceof Set)) {
                 throw new IllegalArgumentException("New value must be a Set, was: " + newVal.getClass());
             }
-            Set<Node> nodes=new HashSet<Node>();
+            Map<Node,Object> targetNodes=new HashMap<Node,Object>();
             for (Object entry : (Set<Object>) newVal) {
                 if (!relatedType.isInstance(entry)) {
                     throw new IllegalArgumentException("New value elements must be "+relatedType);
@@ -88,13 +97,13 @@ public class OneToNRelationshipEntityFieldAccessorFactory implements FieldAccess
                 final RelationshipProperties relationshipProperties = relationshipPEntity.getRelationshipProperties();
                 final Node endNode = getState(relationshipProperties.getEndeNodeProperty().getValue(entry));
                 if (!endNode.equals(startNode)) {
-                    nodes.add(endNode);
+                    targetNodes.put(endNode, entry);
                 } else {
                     final Node otherNode = getState(relationshipProperties.getStartNodeProperty().getValue(entry));
-                    nodes.add(otherNode);
+                    targetNodes.put(otherNode, entry);
                 }
             }
-            return nodes;
+            return targetNodes;
         }
 
 	    @Override

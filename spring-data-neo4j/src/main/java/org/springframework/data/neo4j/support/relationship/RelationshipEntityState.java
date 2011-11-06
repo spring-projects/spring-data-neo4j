@@ -25,6 +25,7 @@ import org.springframework.dao.InvalidDataAccessResourceUsageException;
 import org.springframework.data.neo4j.fieldaccess.DefaultEntityState;
 import org.springframework.data.neo4j.fieldaccess.DelegatingFieldAccessorFactory;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentEntity;
+import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.mapping.RelationshipProperties;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
 import org.springframework.data.neo4j.support.ParameterCheck;
@@ -59,6 +60,7 @@ public class RelationshipEntityState extends DefaultEntityState<Relationship> {
             final Relationship relationship = createRelationshipFromEntity();
             setPersistentState(relationship);
             if (log.isInfoEnabled()) log.info("User-defined constructor called on class " + entity.getClass() + "; created Relationship [" + getPersistentState() + "]; Updating metamodel");
+            template.postEntityCreation(relationship, type);
         } catch (NotInTransactionException e) {
             throw new InvalidDataAccessResourceUsageException("Not in a Neo4j transaction.", e);
         }
@@ -75,7 +77,8 @@ public class RelationshipEntityState extends DefaultEntityState<Relationship> {
 
     private String getRelationshipTypeFromEntity(Neo4jPersistentEntity<?> persistentEntity) {
         final RelationshipProperties relationshipProperties = persistentEntity.getRelationshipProperties();
-        final Object value = relationshipProperties.getTypeProperty().getValue(entity);
+        final Neo4jPersistentProperty typeProperty = relationshipProperties.getTypeProperty();
+        final Object value = typeProperty!=null ? typeProperty.getValue(entity) : null;
         if (value==null) {
             return relationshipProperties.getRelationshipType();
         }
