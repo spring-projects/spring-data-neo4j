@@ -40,8 +40,8 @@ public class MoviesRepositoryTest {
         Movie movie = movieRepository.save(new Movie("1", "Test-Movie"));
         Movie found = movieRepository.findById("1");
         assertEquals("movie found by id", movie, found);
-
     }
+
     @Test
     public void testGetMovieRecommendations() throws Exception {
         Movie movie = movieRepository.save(new Movie("1", "Test-Movie"));

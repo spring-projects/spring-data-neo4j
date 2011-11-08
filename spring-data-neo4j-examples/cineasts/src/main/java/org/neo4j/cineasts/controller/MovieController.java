@@ -80,7 +80,7 @@ public class MovieController {
         if (user != null && movie != null) {
             int stars1 = stars==null ? -1 : stars;
             String comment1 = comment!=null ? comment.trim() : null;
-            user.rate(template,movie, stars1, comment1);
+            userDetailsService.rate(movie, user, stars1, comment1);
         }
         return singleMovieView(model,movieId);
     }

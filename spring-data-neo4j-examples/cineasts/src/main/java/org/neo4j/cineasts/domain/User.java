@@ -127,8 +127,13 @@ public class User {
 
     }
 
+    public Long getId() {
+        return nodeId;
+    }
+
     @Override
     public int hashCode() {
+
         return nodeId != null ? nodeId.hashCode() : super.hashCode();
     }
 }

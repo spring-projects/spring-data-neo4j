@@ -17,6 +17,7 @@
 		<neo4j.version>1.5.M02</neo4j.version>
 		<spring-data-graph.version>2.0.0.BUILD-SNAPSHOT</spring-data-graph.version>
 		<org.slf4j-version>1.6.1</org.slf4j-version>
+        <aspectj.version>1.6.12.M1</aspectj.version>
 	</properties>
 
 	<repositories>
@@ -221,11 +222,11 @@
 			<version>1.7.2</version>
 		</dependency>
 
-		<!--dependency>
+		<dependency>
 			<groupId>org.aspectj</groupId>
 			<artifactId>aspectjrt</artifactId>
 			<version>${aspectj.version}</version>
-		</dependency-->
+		</dependency>
 
 		<dependency>
 			<groupId>cglib</groupId>
@@ -304,7 +305,6 @@
                 <!-- The ajdtVersion configuration parameter is optional. The valid values are none, 1.4, and 1.5. none indicates that AJDT should not be enabled even though Aspectj is enabled in maven. 1.4 generates the org.eclipse.ajdt.ui.prefs file in the .settings directory. 1.5 (or later) includes the configuration into the .classpath file and is the default value. -->
                     <ajdtVersion>1.5</ajdtVersion>
                     <additionalProjectnatures>
-                        <projectnature>org.eclipse.ajdt.ui.ajnature</projectnature>
                         <projectnature>org.eclipse.jdt.core.javanature</projectnature>
                         <projectnature>org.springframework.ide.eclipse.core.springnature</projectnature>
                     </additionalProjectnatures>

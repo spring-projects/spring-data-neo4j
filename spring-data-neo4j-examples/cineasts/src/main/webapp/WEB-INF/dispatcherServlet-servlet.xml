@@ -16,13 +16,13 @@
 		http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-3.0.xsd
 		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd">
 
+    <context:annotation-config/>
+
     <mvc:annotation-driven/>
     <mvc:resources mapping="/images/**" location="/images/"/>
     <mvc:resources mapping="/resources/**" location="/resources/"/>
     <context:component-scan base-package="org.neo4j.cineasts.controller"/>
 
     <bean id="viewResolver" class="org.springframework.web.servlet.view.InternalResourceViewResolver" p:prefix="/WEB-INF/views/" p:suffix=".jsp"/>
-
-    <tx:annotation-driven mode="aspectj" transaction-manager="transactionManager"/>
 
 </beans>

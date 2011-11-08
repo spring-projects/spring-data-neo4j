@@ -14,9 +14,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Iterator;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
+import static org.junit.Assert.assertNotNull;
 
 /**
  * @author mh
@@ -68,7 +67,7 @@ public class DomainTest {
     public void userCanRateMovie() {
         Movie movie = template.save(new Movie("1", "Forrest Gump"));
         User user = template.save(new User("ich", "Micha", "password"));
-        Rating awesome = user.rate(template, movie, 5, "Awesome");
+        Rating awesome = user.rate(template,movie, 5, "Awesome");
 
         user = userRepository.findByPropertyValue("login", "ich");
         movie = movieRepository.findById("1");
@@ -83,5 +82,17 @@ public class DomainTest {
         User user = template.save(new User("ich", "Micha", "password"));
         User foundUser = userRepository.findByPropertyValue("login", "ich");
         assertEquals(user, foundUser);
+    }
+    @Test
+    public void testCreateUser() throws Exception {
+        User user = userRepository.save(new User("me", "me", "me", User.Roles.ROLE_USER));
+        assertEquals("user login", "me",user.getLogin());
+        assertNotNull("user roles", user.getRole());
+        assertEquals("user role", User.Roles.ROLE_USER,user.getRole()[0]);
+        User user2=userRepository.findOne(user.getId());
+        assertEquals("loaded user id", user.getId(),user2.getId());
+        assertEquals("loaded user login", "me",user2.getLogin());
+        assertNotNull("loaded user roles", user2.getRole());
+        assertEquals("loaded user login", User.Roles.ROLE_USER,user2.getRole()[0]);
     }
 }

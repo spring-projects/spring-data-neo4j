@@ -21,7 +21,7 @@
         <constructor-arg value="926d2a79e82920b62f03b1cb57e532e6"/>
     </bean>
     <bean class="org.neo4j.cineasts.movieimport.MovieDbLocalStorage">
-        <constructor-arg value="target/json-data"/>
+        <constructor-arg value="data/json"/>
     </bean>
-    <tx:annotation-driven mode="aspectj"/>
+    <tx:annotation-driven mode="proxy"/>
 </beans>

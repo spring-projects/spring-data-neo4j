@@ -9,10 +9,11 @@
         http://www.springframework.org/schema/data/neo4j http://www.springframework.org/schema/data/neo4j/spring-neo4j-2.0.xsd http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-2.5.xsd">
 
     <context:annotation-config/>
-    <context:spring-configured/>
     <context:component-scan base-package="org.neo4j.cineasts">
         <context:exclude-filter type="annotation" expression="org.springframework.stereotype.Controller"/>
     </context:component-scan>
+
+    <context:spring-configured/>
 
     <neo4j:config storeDirectory="data/graph.db"/>
     <neo4j:repositories base-package="org.neo4j.cineasts.repository"/>
@@ -29,7 +30,7 @@
         <constructor-arg value="data/json"/>
     </bean>
 
-    <tx:annotation-driven mode="aspectj" transaction-manager="transactionManager"/>
+    <tx:annotation-driven mode="proxy" transaction-manager="transactionManager"/>
 
     <!--import resource="applicatioContext-security.xml"/-->
 </beans>
