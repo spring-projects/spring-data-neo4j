@@ -18,15 +18,16 @@ package org.springframework.data.neo4j.repository;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hibernate.ejb.criteria.expression.function.AggregationFunction;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.neo4j.helpers.collection.IteratorUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.neo4j.model.Friendship;
 import org.springframework.data.neo4j.model.Group;
 import org.springframework.data.neo4j.model.Person;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
@@ -51,8 +52,8 @@ import java.util.Map;
 import static java.util.Arrays.asList;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
 import static org.junit.internal.matchers.IsCollectionContaining.hasItem;
 import static org.junit.internal.matchers.IsCollectionContaining.hasItems;
 import static org.neo4j.helpers.collection.IteratorUtil.addToCollection;
@@ -255,5 +256,14 @@ public class GraphRepositoryTest {
     public void findPageByName() {
         final Iterable<Group> groups = groupRepository.findByName(testTeam.sdg.getName(), new PageRequest(0, 1));
         assertThat(groups, hasItem(testTeam.sdg));
+    }
+
+    @Test @Transactional
+    public void testCustomImplementation() {
+        final Friendship friendship = personRepository.befriend(testTeam.michael, testTeam.emil);
+        assertNotNull(friendship.getId());
+        final Person loaded = personRepository.findOne(testTeam.michael.getId());
+        assertEquals(2, IteratorUtil.count(loaded.getFriendships()));
+        assertThat(loaded.getFriendships(),hasItem(friendship));
     }
 }
