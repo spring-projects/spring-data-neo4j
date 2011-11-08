@@ -30,7 +30,6 @@
         <constructor-arg value="data/json"/>
     </bean>
 
-    <tx:annotation-driven mode="proxy" transaction-manager="transactionManager"/>
+    <tx:annotation-driven mode="proxy"/>
 
-    <!--import resource="applicatioContext-security.xml"/-->
 </beans>

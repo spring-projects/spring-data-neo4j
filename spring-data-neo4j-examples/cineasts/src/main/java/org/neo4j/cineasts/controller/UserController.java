@@ -3,7 +3,7 @@ package org.neo4j.cineasts.controller;
 
 import org.neo4j.cineasts.domain.User;
 import org.neo4j.cineasts.repository.MovieRepository;
-import org.neo4j.cineasts.service.CineastsUserDetailsService;
+import org.neo4j.cineasts.repository.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,7 +19,8 @@ import org.springframework.web.bind.annotation.RequestMethod;
 @Controller
 public class UserController {
 
-    @Autowired CineastsUserDetailsService userDetailsService;
+    @Autowired
+    UserRepository userRepository;
     @Autowired
     MovieRepository movieRepository;
 
@@ -27,7 +28,7 @@ public class UserController {
 
     @RequestMapping(value = "/user", method = RequestMethod.GET)
     public String profile(Model model) {
-        final User user = userDetailsService.getUserFromSession();
+        final User user = userRepository.getUserFromSession();
         model.addAttribute("user", user);
         if (user!=null) {
             model.addAttribute("recommendations", movieRepository.getRecommendations(user));
@@ -37,14 +38,14 @@ public class UserController {
 
     @RequestMapping(value = "/user/{login}/friends", method = RequestMethod.POST)
     public String addFriend(Model model, @PathVariable("login") String login) {
-        userDetailsService.addFriend(login);
+        userRepository.addFriend(login, userRepository.getUserFromSession());
 		return "forward:/user/"+login;
     }
 
     @RequestMapping(value = "/user/{login}")
     public String publicProfile(Model model, @PathVariable("login") String login) {
-        User profiled = userDetailsService.findUser(login);
-        User user = userDetailsService.getUserFromSession();
+        User profiled = userRepository.findByLogin(login);
+        User user = userRepository.getUserFromSession();
 
         return publicProfile(model, profiled, user);
     }

@@ -25,7 +25,7 @@
     </security:http>
 
     <security:authentication-manager>
-        <security:authentication-provider user-service-ref="cineastsUserDetailsServiceImpl">
+        <security:authentication-provider user-service-ref="userRepository">
             <security:password-encoder hash="md5">
                 <security:salt-source system-wide="cewuiqwzie"/>
             </security:password-encoder>

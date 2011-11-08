@@ -7,7 +7,6 @@ import org.neo4j.cineasts.domain.User;
 import org.neo4j.cineasts.repository.MovieRepository;
 import org.neo4j.cineasts.repository.PersonRepository;
 import org.neo4j.cineasts.repository.UserRepository;
-import org.neo4j.cineasts.service.CineastsUserDetailsService;
 import org.neo4j.cineasts.service.DatabasePopulator;
 import org.neo4j.helpers.collection.IteratorUtil;
 import org.slf4j.Logger;
@@ -36,8 +35,6 @@ public class MovieController {
     private PersonRepository personRepository;
     @Autowired
     private UserRepository userRepository;
-    @Autowired
-    private CineastsUserDetailsService userDetailsService;
     @Autowired
     Neo4jOperations template;
     @Autowired
@@ -76,17 +73,17 @@ public class MovieController {
     @RequestMapping(value = "/movies/{movieId}", method = RequestMethod.POST, headers = "Accept=text/html")
     public String updateMovie(Model model, @PathVariable String movieId, @RequestParam(value = "rated",required = false) Integer stars, @RequestParam(value = "comment",required = false) String comment) {
         Movie movie = movieRepository.findById(movieId);
-        User user = userDetailsService.getUserFromSession();
+        User user = userRepository.getUserFromSession();
         if (user != null && movie != null) {
             int stars1 = stars==null ? -1 : stars;
             String comment1 = comment!=null ? comment.trim() : null;
-            userDetailsService.rate(movie, user, stars1, comment1);
+            userRepository.rate(movie, user, stars1, comment1);
         }
         return singleMovieView(model,movieId);
     }
 
     private User addUser(Model model) {
-        User user = userDetailsService.getUserFromSession();
+        User user = userRepository.getUserFromSession();
         model.addAttribute("user", user);
         return user;
     }

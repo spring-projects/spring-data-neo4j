@@ -1,7 +1,7 @@
 package org.neo4j.cineasts.controller;
 
 
-import org.neo4j.cineasts.service.CineastsUserDetailsService;
+import org.neo4j.cineasts.repository.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,7 +21,7 @@ public class AuthController {
     private final static Logger logger = LoggerFactory.getLogger(AuthController.class);
 
     @Autowired
-    CineastsUserDetailsService userDetailsService;
+    UserRepository userRepository;
     @RequestMapping(value = "/login", method = RequestMethod.GET)
     public String login(@RequestParam(value = "login_error", required = false) boolean error, Model model) {
         logger.debug("Received request to show login page, error "+error);
@@ -39,7 +39,7 @@ public class AuthController {
             Model model) {
 
         try {
-            userDetailsService.register(login,name,password);
+            userRepository.register(login,name,password);
             return "forward:/user/"+login;
         } catch(Exception e) {
             model.addAttribute("j_username",login);

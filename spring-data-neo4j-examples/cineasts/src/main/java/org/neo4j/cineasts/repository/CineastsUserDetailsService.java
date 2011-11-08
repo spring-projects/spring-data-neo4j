@@ -1,10 +1,10 @@
-package org.neo4j.cineasts.service;
+package org.neo4j.cineasts.repository;
 
 import org.neo4j.cineasts.domain.Movie;
 import org.neo4j.cineasts.domain.Rating;
 import org.neo4j.cineasts.domain.User;
+import org.neo4j.cineasts.service.CineastsUserDetails;
 import org.springframework.dao.DataAccessException;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,9 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
  */
 public interface CineastsUserDetailsService extends UserDetailsService {
     @Override
-    UserDetails loadUserByUsername(String login) throws UsernameNotFoundException, DataAccessException;
-
-    User findUser(String login);
+    CineastsUserDetails loadUserByUsername(String login) throws UsernameNotFoundException, DataAccessException;
 
     User getUserFromSession();
 
@@ -28,5 +26,5 @@ public interface CineastsUserDetailsService extends UserDetailsService {
     User register(String login, String name, String password);
 
     @Transactional
-    void addFriend(String login);
+    void addFriend(String login, final User userFromSession);
 }

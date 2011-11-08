@@ -8,5 +8,6 @@ import org.springframework.data.neo4j.repository.RelationshipOperationsRepositor
  * @author mh
  * @since 02.04.11
  */
-public interface UserRepository extends GraphRepository<User>, RelationshipOperationsRepository<User> {
+public interface UserRepository extends GraphRepository<User>, RelationshipOperationsRepository<User>, CineastsUserDetailsService {
+    User findByLogin(String login);
 }
