@@ -18,6 +18,7 @@ package org.springframework.data.neo4j.fieldaccess;
 
 import org.neo4j.graphdb.PropertyContainer;
 
+import org.springframework.data.neo4j.mapping.MappingPolicy;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
 
@@ -64,7 +65,7 @@ public class PropertyFieldAccessorFactory implements FieldAccessorFactory {
         }
 
         @Override
-        public Object setValue(final Object entity, final Object newVal) {
+        public Object setValue(final Object entity, final Object newVal, MappingPolicy mappingPolicy) {
             final PropertyContainer propertyContainer = template.getPersistentState(entity);
             if (newVal==null) {
                 propertyContainer.removeProperty(propertyName);
@@ -75,7 +76,7 @@ public class PropertyFieldAccessorFactory implements FieldAccessorFactory {
         }
 
         @Override
-        public final Object getValue(final Object entity) {
+        public final Object getValue(final Object entity, MappingPolicy mappingPolicy) {
             return doReturn(doGetValue(entity));
         }
 
@@ -105,7 +106,7 @@ public class PropertyFieldAccessorFactory implements FieldAccessorFactory {
         }
 
 		@Override
-		public Object getDefaultImplementation() {
+		public Object getDefaultValue() {
 			return null;
 		}
 

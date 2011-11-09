@@ -66,9 +66,15 @@ public interface Neo4jPersistentProperty extends PersistentProperty<Neo4jPersist
 
     void setValue(Object entity, Object newValue);
 
-    Object getValue(final Object entity);
+    Object getValue(final Object entity, final MappingPolicy mappingPolicy);
 
     Neo4jPersistentEntity<?> getOwner();
 
     String getIndexKey();
+
+    MappingPolicy getMappingPolicy();
+
+    boolean isReallyTransient();
+
+    Object getValueFromEntity(Object entity, MappingPolicy mappingPolicy);
 }

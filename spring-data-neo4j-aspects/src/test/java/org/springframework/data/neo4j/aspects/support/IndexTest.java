@@ -129,7 +129,7 @@ public class IndexTest extends EntityTestBase {
         group.setIndexLevelName("indexLevelNameValue");
         Index<Node> subGroupIndex = neo4jTemplate.getIndex(SubGroup.class);
         final Node found = subGroupIndex.get("indexLevelName", "indexLevelNameValue").getSingle();
-        final SubGroup foundEntity = neo4jTemplate.createEntityFromState(found, SubGroup.class);
+        final SubGroup foundEntity = neo4jTemplate.createEntityFromState(found, SubGroup.class, neo4jTemplate.getMappingPolicy(SubGroup.class));
         assertEquals(group, foundEntity);
     }
 

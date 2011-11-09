@@ -32,7 +32,6 @@ import org.springframework.data.neo4j.support.Neo4jTemplate;
 import org.springframework.data.neo4j.support.index.IndexType;
 
 import javax.persistence.PersistenceUnitUtil;
-import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.Collection;
 
@@ -90,8 +89,8 @@ public class CrossStoreNodeEntityState<ENTITY extends NodeBacked> extends Defaul
     }
 
     @Override
-    public boolean isWritable(Field field) {
-        final FieldAccessor accessor = accessorFor(property(field));
+    public boolean isWritable(Neo4jPersistentProperty property) {
+        final FieldAccessor accessor = accessorFor(property);
         if (accessor == null) return false; // difference to default behaviour, we don't care for non-managed fields here
         return accessor.isWriteable(entity);
     }

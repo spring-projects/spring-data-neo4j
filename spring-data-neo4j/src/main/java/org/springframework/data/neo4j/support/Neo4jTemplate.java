@@ -29,10 +29,12 @@ import org.springframework.data.mapping.model.MappingException;
 import org.springframework.data.neo4j.annotation.QueryType;
 import org.springframework.data.neo4j.conversion.QueryResultBuilder;
 import org.springframework.data.neo4j.conversion.Result;
+import org.springframework.data.neo4j.conversion.ResultConverter;
 import org.springframework.data.neo4j.core.GraphDatabase;
 import org.springframework.data.neo4j.core.TypeRepresentationStrategy;
 import org.springframework.data.neo4j.core.UncategorizedGraphStoreException;
 import org.springframework.data.neo4j.mapping.EntityPersister;
+import org.springframework.data.neo4j.mapping.MappingPolicy;
 import org.springframework.data.neo4j.mapping.RelationshipResult;
 import org.springframework.data.neo4j.support.index.IndexType;
 import org.springframework.data.neo4j.support.mapping.EntityStateHandler;
@@ -46,6 +48,7 @@ import org.springframework.data.neo4j.support.mapping.EntityCreatingClosableIter
 import org.springframework.data.neo4j.support.query.QueryEngine;
 import org.springframework.data.neo4j.template.GraphCallback;
 import org.springframework.data.neo4j.template.Neo4jOperations;
+import org.springframework.data.util.ClassTypeInformation;
 import org.springframework.data.util.TypeInformation;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionStatus;
@@ -134,15 +137,16 @@ public class Neo4jTemplate implements Neo4jOperations, EntityPersister {
 
     @Override
     public <T> T findOne(long id, final Class<T> entityClass) {
-        if (isNodeEntity(entityClass)) {
+        final Neo4jPersistentEntityImpl<?> persistentEntity = getPersistentEntity(entityClass);
+        if (persistentEntity.isNodeEntity()) {
             final Node node = getNode(id);
             if (node==null) return null;
-            return infrastructure.getEntityPersister().createEntityFromState(node, entityClass);
+            return infrastructure.getEntityPersister().createEntityFromState(node, entityClass, persistentEntity.getMappingPolicy());
         }
-        if (isRelationshipEntity(entityClass)) {
+        if (persistentEntity.isRelationshipEntity()) {
             final Relationship relationship = getRelationship(id);
             if (relationship==null) return null;
-            return infrastructure.getEntityPersister().createEntityFromState(relationship, entityClass);
+            return infrastructure.getEntityPersister().createEntityFromState(relationship, entityClass, persistentEntity.getMappingPolicy());
         }
         throw new IllegalArgumentException("provided entity type is not annotated with @NodeEntiy nor @RelationshipEntity");
     }
@@ -161,21 +165,31 @@ public class Neo4jTemplate implements Neo4jOperations, EntityPersister {
     }
 
     @Override
-    public <S extends PropertyContainer, T> T createEntityFromStoredType(S state) {
+    public <S extends PropertyContainer, T> T createEntityFromStoredType(S state, MappingPolicy mappingPolicy) {
         notNull(state,"node or relationship");
-        return infrastructure.getEntityPersister().createEntityFromStoredType(state);
+        return infrastructure.getEntityPersister().createEntityFromStoredType(state, mappingPolicy);
     }
 
     @Override
-    public <S extends PropertyContainer, T> T createEntityFromState(S state, Class<T> type) {
+    public <S extends PropertyContainer, T> T createEntityFromState(S state, Class<T> type, MappingPolicy mappingPolicy) {
         notNull(state,"node or relationship",type,"entity class");
-        return infrastructure.getEntityPersister().createEntityFromState(state, type);
+        return infrastructure.getEntityPersister().createEntityFromState(state, type, mappingPolicy);
+    }
+    @Override
+    public <S extends PropertyContainer, T> T load(S state, Class<T> type) {
+        notNull(state,"node or relationship",type,"entity class");
+        return infrastructure.getEntityPersister().createEntityFromState(state, type, getMappingPolicy(type));
     }
 
     @Override
     public <T> T projectTo(Object entity, Class<T> targetType) {
         notNull(entity,"entity",targetType,"new entity class");
         return infrastructure.getEntityPersister().projectTo(entity, targetType);
+    }
+    @Override
+    public <T> T projectTo(Object entity, Class<T> targetType, MappingPolicy mappingPolicy) {
+        notNull(entity,"entity",targetType,"new entity class");
+        return infrastructure.getEntityPersister().projectTo(entity, targetType, mappingPolicy);
     }
 
     /**
@@ -186,12 +200,12 @@ public class Neo4jTemplate implements Neo4jOperations, EntityPersister {
      */
     @Override
     public <S extends PropertyContainer> S getPersistentState(Object entity) {
-        notNull(entity,"entity");
+        notNull(entity, "entity");
         return infrastructure.getEntityPersister().getPersistentState(entity);
     }
 
     public <S extends PropertyContainer, T> T setPersistentState(T entity, S state) {
-        notNull(entity,"entity",state,"node or relationship");
+        notNull(entity, "entity", state, "node or relationship");
         infrastructure.getEntityPersister().setPersistentState(entity, state);
         return entity;
     }
@@ -274,7 +288,7 @@ public class Neo4jTemplate implements Neo4jOperations, EntityPersister {
     @Override
     @SuppressWarnings("unchecked")
     public <T> T save(T entity) {
-        return (T) infrastructure.getEntityPersister().persist(entity);
+        return (T) infrastructure.getEntityPersister().persist(entity, getMappingPolicy(entity));
     }
 
     public boolean isManaged(Object entity) {
@@ -285,12 +299,12 @@ public class Neo4jTemplate implements Neo4jOperations, EntityPersister {
         final TypeInformation<?> actualType = typeInformation.getActualType();
         final Class<?> targetType = actualType.getType();
         if (actualType.isMap()) {
-            return infrastructure.getCypherQueryExecutor().queryForList(statement, params);
+            return queryEngineFor(QueryType.Cypher).query(statement, params);
         }
         if (typeInformation.isCollectionLike()) {
-            return infrastructure.getCypherQueryExecutor().query(statement, targetType, params);
+           return queryEngineFor(QueryType.Cypher).query(statement, params).to(targetType);
         }
-        return infrastructure.getCypherQueryExecutor().queryForObject(statement, targetType, params);
+        return queryEngineFor(QueryType.Cypher).query(statement, params).to(targetType).single();
     }
 
     @Override
@@ -299,7 +313,8 @@ public class Neo4jTemplate implements Neo4jOperations, EntityPersister {
         final Relationship relationship = infrastructure.getEntityStateHandler().getRelationshipBetween(start, end, relationshipType);
         if (relationship == null) return null;
         if (Relationship.class.isAssignableFrom(relationshipEntityClass)) return (R)relationship;
-        return infrastructure.getEntityPersister().createEntityFromState(relationship, relationshipEntityClass);
+        final Neo4jPersistentEntityImpl<?> persistentEntity = getPersistentEntity(relationshipEntityClass);
+        return infrastructure.getEntityPersister().createEntityFromState(relationship, relationshipEntityClass, persistentEntity.getMappingPolicy());
     }
 
     @Override
@@ -321,7 +336,7 @@ public class Neo4jTemplate implements Neo4jOperations, EntityPersister {
             // TODO
             postEntityCreation(result.relationship, relationshipEntityClass);
         }
-        return createEntityFromState(result.relationship, relationshipEntityClass);
+        return createEntityFromState(result.relationship, relationshipEntityClass, getMappingPolicy(relationshipEntityClass));
     }
 
     @Override
@@ -415,30 +430,46 @@ public class Neo4jTemplate implements Neo4jOperations, EntityPersister {
         return element;
     }
 
+    @Override
     @SuppressWarnings("unchecked")
     public <T> T fetch(T value) {
         final PropertyContainer state = getPersistentState(value);
         if (state != null) {
-            return (T) infrastructure.getEntityPersister().createEntityFromState(state, value.getClass());
+            final Class<?> targetType = value.getClass();
+            final TypeInformation<?> targetTypeInformation = ClassTypeInformation.from(targetType);
+            if (targetTypeInformation.isCollectionLike()) {
+                return (T) infrastructure.getEntityPersister().createEntityFromState(state, targetType, getMappingPolicy(targetTypeInformation.getActualType().getType())); // todo handle collections
+            }
+            return (T) infrastructure.getEntityPersister().createEntityFromState(state, targetType, getMappingPolicy(targetType)); // todo handle collections
         }
         throw new MappingException("No state information available in "+ value);
     }
 
     @Override
+    public MappingPolicy getMappingPolicy(Class<?> targetType) {
+        return getPersistentEntity(targetType).getMappingPolicy();
+    }
+
+    @Override
     @SuppressWarnings("unchecked")
     public <T> Result<T> convert(Iterable<T> iterable) {
-        return new QueryResultBuilder<T>(iterable, infrastructure.getResultConverter());
+        return new QueryResultBuilder<T>(iterable, getDefaultConverter());
     }
 
     @Override
     @SuppressWarnings("unchecked")
     public <T> T convert(Object value, Class<T> type) {
-        return (T) infrastructure.getResultConverter().convert(value, type);
+        return (T) getDefaultConverter().convert(value, type);
+    }
+
+    @Override
+    public ResultConverter getDefaultConverter() {
+        return infrastructure.getResultConverter();
     }
 
     @Override
     public <T> QueryEngine<T> queryEngineFor(QueryType type) {
-        return infrastructure.getGraphDatabase().queryEngineFor(type, infrastructure.getResultConverter());
+        return infrastructure.getGraphDatabase().queryEngineFor(type, getDefaultConverter());
     }
 
     @Override
@@ -502,7 +533,7 @@ public class Neo4jTemplate implements Neo4jOperations, EntityPersister {
     }
 
     public <T extends PropertyContainer> Index<T> getIndex(String indexName, Class<?> indexedType) {
-        return getIndexProvider().getIndex(indexedType,indexName);
+        return getIndexProvider().getIndex(indexedType, indexName);
     }
 
     public <T extends PropertyContainer> Index<T> getIndex(Class<?> indexedType, String propertyName) {
@@ -572,4 +603,9 @@ public class Neo4jTemplate implements Neo4jOperations, EntityPersister {
         return getIndexProvider().getIndex(property, instanceType);
     }
 
+
+    public MappingPolicy getMappingPolicy(Object entity) {
+        ParameterCheck.notNull(entity,"entity");
+        return getMappingPolicy(entity.getClass());
+    }
 }

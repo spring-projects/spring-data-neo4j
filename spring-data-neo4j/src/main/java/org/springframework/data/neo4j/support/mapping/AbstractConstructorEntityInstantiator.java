@@ -18,6 +18,7 @@ package org.springframework.data.neo4j.support.mapping;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.data.neo4j.mapping.EntityInstantiator;
+import org.springframework.data.neo4j.mapping.MappingPolicy;
 import org.springframework.data.persistence.StateBackedCreator;
 import org.springframework.data.persistence.StateProvider;
 import org.springframework.util.ClassUtils;
@@ -39,7 +40,7 @@ public abstract class AbstractConstructorEntityInstantiator<STATE> implements En
 	private final Map<Class<?>, StateBackedCreator<?, STATE>> cache = new HashMap<Class<?>, StateBackedCreator<?, STATE>>();
 
 	@SuppressWarnings("unchecked")
-    public <T> T createEntityFromState(STATE n, Class<T> c) {
+    public <T> T createEntityFromState(STATE n, Class<T> c, final MappingPolicy mappingPolicy) {
 		try {
 			StateBackedCreator<T, STATE> creator = (StateBackedCreator<T, STATE>) cache.get(c);
 			if (creator != null)

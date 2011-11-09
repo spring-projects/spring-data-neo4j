@@ -245,7 +245,7 @@ public privileged aspect Neo4jNodeBacking { // extends AbstractTypeAnnotatingMix
      */
     Object around(NodeBacked entity): entityFieldGet(entity) {
         if (entity.entityState==null) return proceed(entity);
-        Object result=entity.entityState.getValue(field(thisJoinPoint));
+        Object result=entity.entityState.getValue(field(thisJoinPoint),null);
         if (result instanceof DoReturn) return unwrap(result);
         return proceed(entity);
     }
@@ -255,7 +255,7 @@ public privileged aspect Neo4jNodeBacking { // extends AbstractTypeAnnotatingMix
      */
     Object around(NodeBacked entity, Object newVal) : entityFieldSet(entity, newVal) {
         if (entity.entityState==null) return proceed(entity,newVal);
-        Object result=entity.entityState.setValue(field(thisJoinPoint),newVal);
+        Object result=entity.entityState.setValue(field(thisJoinPoint),newVal,null);
         if (result instanceof DoReturn) return unwrap(result);
         return proceed(entity,result);
 	}

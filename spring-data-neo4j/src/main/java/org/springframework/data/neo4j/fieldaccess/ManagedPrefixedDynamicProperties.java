@@ -16,6 +16,7 @@
 package org.springframework.data.neo4j.fieldaccess;
 
 import org.springframework.data.neo4j.core.EntityState;
+import org.springframework.data.neo4j.mapping.MappingPolicy;
 import org.springframework.data.neo4j.mapping.ManagedEntity;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.support.DoReturn;
@@ -33,22 +34,24 @@ public class ManagedPrefixedDynamicProperties extends PrefixedDynamicProperties 
     private final FieldAccessor fieldAccessor;
     private final Neo4jPersistentProperty property;
     private boolean isNode;
+    private MappingPolicy mappingPolicy;
 
-    public ManagedPrefixedDynamicProperties(String prefix, final Neo4jPersistentProperty property, final Object entity, Neo4jTemplate template, FieldAccessor fieldAccessor) {
-        this(prefix,10,property,entity, template,fieldAccessor);
+    public ManagedPrefixedDynamicProperties(String prefix, final Neo4jPersistentProperty property, final Object entity, Neo4jTemplate template, FieldAccessor fieldAccessor, final MappingPolicy mappingPolicy) {
+        this(prefix,10,property,entity, template,fieldAccessor, mappingPolicy);
     }
 
-    public ManagedPrefixedDynamicProperties(String prefix, int initialCapacity, final Neo4jPersistentProperty property, final Object entity, Neo4jTemplate template, FieldAccessor fieldAccessor) {
+    public ManagedPrefixedDynamicProperties(String prefix, int initialCapacity, final Neo4jPersistentProperty property, final Object entity, Neo4jTemplate template, FieldAccessor fieldAccessor, final MappingPolicy mappingPolicy) {
         super(prefix, initialCapacity);
         this.property = property;
         this.entity = entity;
         this.template = template;
         this.fieldAccessor = fieldAccessor;
         this.isNode = property.getOwner().isNodeEntity();
+        this.mappingPolicy = mappingPolicy;
     }
 
-    public static ManagedPrefixedDynamicProperties create(String prefix, final Neo4jPersistentProperty property, final Object entity, Neo4jTemplate template, FieldAccessor fieldAccessor) {
-        return new ManagedPrefixedDynamicProperties(prefix, property, entity, template,fieldAccessor);
+    public static ManagedPrefixedDynamicProperties create(String prefix, final Neo4jPersistentProperty property, final Object entity, Neo4jTemplate template, FieldAccessor fieldAccessor, final MappingPolicy mappingPolicy) {
+        return new ManagedPrefixedDynamicProperties(prefix, property, entity, template,fieldAccessor, mappingPolicy);
     }
 
     @Override
@@ -72,13 +75,13 @@ public class ManagedPrefixedDynamicProperties extends PrefixedDynamicProperties 
 
     @Override
     public DynamicProperties createFrom(Map<String, Object> map) {
-        DynamicProperties d = new ManagedPrefixedDynamicProperties(prefix, map.size(), property, entity, template,fieldAccessor);
+        DynamicProperties d = new ManagedPrefixedDynamicProperties(prefix, map.size(), property, entity, template,fieldAccessor, property.getMappingPolicy());
         d.setPropertiesFrom(map);
         return d;
     }
 
     private Object updateValue() {
-        final Object newValue = fieldAccessor.setValue(entity, this);
+        final Object newValue = fieldAccessor.setValue(entity, this, mappingPolicy);
         if (newValue instanceof DoReturn)
             return DoReturn.unwrap(newValue);
         property.setValue(entity, newValue);
@@ -94,7 +97,7 @@ public class ManagedPrefixedDynamicProperties extends PrefixedDynamicProperties 
     }
 
     private Object updateValueWithState(EntityState entityState) {
-        final Object newValue = entityState.setValue(property, this);
+        final Object newValue = entityState.setValue(property, this, mappingPolicy);
         if (newValue instanceof DoReturn) return DoReturn.unwrap(newValue);
         property.setValue(entity, newValue);
         return newValue;

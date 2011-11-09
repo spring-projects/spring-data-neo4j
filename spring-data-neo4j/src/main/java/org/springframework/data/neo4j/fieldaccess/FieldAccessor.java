@@ -16,6 +16,8 @@
 
 package org.springframework.data.neo4j.fieldaccess;
 
+import org.springframework.data.neo4j.mapping.MappingPolicy;
+
 /**
  * interface for field accessors, encapsulates reading and writing from fields and write support information about the field.
  * It is used by the {@link org.springframework.data.neo4j.core.EntityState}.
@@ -29,23 +31,27 @@ public interface FieldAccessor {
 	 * when the value of the field is get. 
 	 * @return a default implementation for a field or {@code null} if none is provided.
 	 */
-	Object getDefaultImplementation();
+	Object getDefaultValue();
 	
     /**
      * handles field write modification.
+     *
      * @param entity
      * @param newVal
+     * @param mappingPolicy
      * @return the written value or a DoReturn wrapper with the written value or null.
      * DoReturn indicates that the aspect should not proceed to the original field access but instead return immediately.
      */
-	Object setValue(Object entity, Object newVal);
+	Object setValue(Object entity, Object newVal, MappingPolicy mappingPolicy);
 
     /**
+     *
      * @param entity
+     * @param mappingPolicy
      * @return the value or a DoReturn wrapper with the value for the field.
      * DoReturn indicates that the aspect should not proceed to the original field access but instead return immediately.
      */
-	Object getValue(Object entity);
+	Object getValue(Object entity, MappingPolicy mappingPolicy);
 
     /**
      * @param entity

@@ -195,7 +195,7 @@ public class Neo4jPersistentTestBase {
     }
 
     protected Object write(Object entity, Node node) {
-        entityPersister.write(entity, node);
+        entityPersister.write(entity, node, template.getMappingPolicy(entity));
         return entity;
     }
 
@@ -225,7 +225,7 @@ public class Neo4jPersistentTestBase {
     }
 
     public Person readPerson(Node node) {
-        return entityPersister.read(Person.class, node);
+        return entityPersister.read(Person.class, node, template.getMappingPolicy(Person.class));
     }
 
     protected Relationship makeFriends(Node from, Node to, int years) {
@@ -235,7 +235,7 @@ public class Neo4jPersistentTestBase {
     }
 
     public Group readGroup(Node node) {
-        return entityPersister.read(Group.class, node);
+        return entityPersister.read(Group.class, node,template.getMappingPolicy(Group.class));
     }
 
     protected List<Node> getRelatedNodes(Node startNode, String type, Direction direction) {

@@ -21,7 +21,7 @@ package org.springframework.data.neo4j.mapping;
  */
 public interface RelationshipProperties {
     Neo4jPersistentProperty getStartNodeProperty();
-    Neo4jPersistentProperty getEndeNodeProperty();
+    Neo4jPersistentProperty getEndNodeProperty();
     Neo4jPersistentProperty getTypeProperty();
 
     String getRelationshipType();

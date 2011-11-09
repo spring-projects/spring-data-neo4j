@@ -20,6 +20,7 @@ import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.RelationshipType;
 
+import org.springframework.data.neo4j.mapping.MappingPolicy;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.mapping.RelationshipInfo;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
@@ -52,7 +53,7 @@ public class SingleRelationshipFieldAccessorFactory extends NodeRelationshipFiel
 	    }
 
 		@Override
-	    public Object setValue(final Object entity, final Object newVal) {
+	    public Object setValue(final Object entity, final Object newVal, MappingPolicy mappingPolicy) {
 	        final Node node= checkUnderlyingState(entity);
 	        if (newVal == null) {
 	            removeMissingRelationships(node, Collections.<Node>emptySet());
@@ -65,9 +66,9 @@ public class SingleRelationshipFieldAccessorFactory extends NodeRelationshipFiel
 		}
 
 	    @Override
-		public Object getValue(final Object entity) {
+		public Object getValue(final Object entity, MappingPolicy mappingPolicy) {
 	        checkUnderlyingState(entity);
-	        final Set<Object> result = createEntitySetFromRelationshipEndNodes(entity);
+	        final Set<Object> result = createEntitySetFromRelationshipEndNodes(entity, updateMappingPolicy(mappingPolicy));
             final Object singleEntity = result.isEmpty() ? null : result.iterator().next();
             return doReturn(singleEntity);
 		}

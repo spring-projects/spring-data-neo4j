@@ -16,6 +16,8 @@
 
 package org.springframework.data.neo4j.conversion;
 
+import org.springframework.data.neo4j.mapping.MappingPolicy;
+
 /**
 * @author mh
 * @since 28.06.11
@@ -23,4 +25,6 @@ package org.springframework.data.neo4j.conversion;
 public interface Result<T> extends EndResult<T> {
     <R> EndResult<R> to(Class<R> type);
     <R> EndResult<R> to(Class<R> type, ResultConverter<T, R> resultConverter);
+    Result<T> with(MappingPolicy mappingPolicy);
+
 }

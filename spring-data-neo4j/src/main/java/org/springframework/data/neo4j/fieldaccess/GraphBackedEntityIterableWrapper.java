@@ -35,7 +35,7 @@ public class GraphBackedEntityIterableWrapper<STATE extends PropertyContainer, E
 
     @Override
     protected ENTITY underlyingObjectToObject(STATE s) {
-        return template.createEntityFromState(s, targetType);
+        return template.createEntityFromState(s, targetType, template.getMappingPolicy(targetType));
     }
 
     public static <S extends PropertyContainer, E> GraphBackedEntityIterableWrapper<S, E> create(

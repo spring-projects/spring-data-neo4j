@@ -81,9 +81,9 @@ class ImdbServiceImpl implements ImdbService {
         int mod = 0;
         for (Node node : list.nodes()) {
             if (mod++ % 2 == 0) {
-                actorAndMovieList.add(template.createEntityFromState(node, Actor.class));
+                actorAndMovieList.add(template.load(node, Actor.class));
             } else {
-                actorAndMovieList.add(template.createEntityFromState(node, Movie.class));
+                actorAndMovieList.add(template.load(node, Movie.class));
             }
         }
         return actorAndMovieList;

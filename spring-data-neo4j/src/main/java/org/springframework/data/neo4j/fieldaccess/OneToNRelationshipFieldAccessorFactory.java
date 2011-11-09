@@ -19,6 +19,7 @@ package org.springframework.data.neo4j.fieldaccess;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.RelationshipType;
+import org.springframework.data.neo4j.mapping.MappingPolicy;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.mapping.RelationshipInfo;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
@@ -54,7 +55,7 @@ public class OneToNRelationshipFieldAccessorFactory extends NodeRelationshipFiel
 	        super(elementClass, template, direction, type,property);
 	    }
 
-	    public Object setValue(final Object entity, final Object newVal) {
+	    public Object setValue(final Object entity, final Object newVal, MappingPolicy mappingPolicy) {
 	        final Node node = checkUnderlyingState(entity);
 	        if (newVal == null) {
 /* null should not remove existing relationships but leave them alone
@@ -65,18 +66,19 @@ public class OneToNRelationshipFieldAccessorFactory extends NodeRelationshipFiel
 	        final Set<Node> targetNodes = createSetOfTargetNodes(newVal);
 	        removeMissingRelationships(node, targetNodes);
 	        createAddedRelationships(node, targetNodes);
-	        return createManagedSet(entity, (Set<?>) newVal);
+	        return createManagedSet(entity, (Set<?>) newVal, updateMappingPolicy(mappingPolicy));
 	    }
 
         @Override
-	    public Object getValue(final Object entity) {
+	    public Object getValue(final Object entity, MappingPolicy mappingPolicy) {
 	        checkUnderlyingState(entity);
-	        final Set<?> result = createEntitySetFromRelationshipEndNodes(entity);
-	        return doReturn(createManagedSet(entity, result));
+            final MappingPolicy currentPolicy = updateMappingPolicy(mappingPolicy);
+            final Set<?> result = createEntitySetFromRelationshipEndNodes(entity, currentPolicy);
+	        return doReturn(createManagedSet(entity, result, currentPolicy));
 	    }
 
         @Override
-        public Object getDefaultImplementation() {
+        public Object getDefaultValue() {
             return new HashSet();
         }
     }

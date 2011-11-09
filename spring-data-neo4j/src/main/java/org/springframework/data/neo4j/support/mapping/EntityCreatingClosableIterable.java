@@ -18,6 +18,7 @@ package org.springframework.data.neo4j.support.mapping;
 import org.neo4j.graphdb.PropertyContainer;
 import org.neo4j.helpers.collection.ClosableIterable;
 import org.neo4j.helpers.collection.IterableWrapper;
+import org.springframework.data.neo4j.mapping.MappingPolicy;
 
 /**
 * @author mh
@@ -27,17 +28,19 @@ public class EntityCreatingClosableIterable<T> extends IterableWrapper<T,Propert
     private final ClosableIterable<PropertyContainer> iterable;
     private final Class<T> entityClass;
     private final Neo4jEntityPersister entityPersister;
+    private final MappingPolicy mappingPolicy;
 
     public EntityCreatingClosableIterable(ClosableIterable<PropertyContainer> iterable, Class<T> entityClass, Neo4jEntityPersister entityPersister) {
         super(iterable);
         this.iterable = iterable;
         this.entityClass = entityClass;
         this.entityPersister = entityPersister;
+        mappingPolicy = this.entityPersister.getMappingPolicy(this.entityClass);
     }
 
     @Override
     protected T underlyingObjectToObject(PropertyContainer state) {
-        return entityPersister.createEntityFromState(state, entityClass);
+        return entityPersister.createEntityFromState(state, entityClass, mappingPolicy);
     }
 
     @Override

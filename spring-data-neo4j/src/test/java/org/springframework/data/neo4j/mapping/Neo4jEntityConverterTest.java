@@ -16,7 +16,10 @@
 package org.springframework.data.neo4j.mapping;
 
 import org.junit.Test;
-import org.neo4j.graphdb.*;
+import org.neo4j.graphdb.Direction;
+import org.neo4j.graphdb.DynamicRelationshipType;
+import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.index.Index;
 import org.neo4j.helpers.collection.IteratorUtil;
 import org.springframework.data.neo4j.model.Friendship;
@@ -24,11 +27,15 @@ import org.springframework.data.neo4j.model.Group;
 import org.springframework.data.neo4j.model.Person;
 import org.springframework.data.neo4j.model.Personality;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Date;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.singleton;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.neo4j.helpers.collection.IteratorUtil.first;
 
 /**
  * @author mh
@@ -72,12 +79,32 @@ public class Neo4jEntityConverterTest extends Neo4jPersistentTestBase {
     }
 
     @Test
+    public void testLoadPolicy() {
+        storeInGraph(emil);
+        michael.setHeight((short)182);
+        michael.setPersonality(Personality.EXTROVERT);
+        michael.setBoss(emil);
+        storeInGraph(michael);
+        final Person loaded = template.findOne(michael.getId(), Person.class);
+        assertEquals("loaded id", michael.getId(),loaded.getId());
+        assertEquals("loaded simple property", michael.getName(),loaded.getName());
+        assertEquals("loaded simple short property", michael.getHeight(),loaded.getHeight());
+        assertEquals("loaded simple converted property", michael.getPersonality(),loaded.getPersonality());
+        final Person boss = loaded.getBoss();
+        assertNotNull("instance non-fetch relationship", boss);
+        assertEquals("id of non-fetch relationship", emil.getId(), boss.getId());
+        assertNull("no properties of non-fetch relationship", boss.getName());
+
+    }
+
+    @Test
     public void testFindNewlyWrittenNodeInIndex() {
         storeInGraph(michael);
         final Node createdNode = michaelNode();
         final Index<Node> index = template.getIndex(Person.NAME_INDEX, Person.class);
         final Node found = index.get("name", "Michael").getSingle();
         assertEquals("node found in index", createdNode, found);
+        assertEquals("node property loaded", michael.getName() , found.getProperty("name"));
     }
 
     @Test
@@ -282,15 +309,26 @@ public class Neo4jEntityConverterTest extends Neo4jPersistentTestBase {
 
 
     @Test
-    public void testCascadingReadWithProperties() {
+    public void testCascadingReadWithOutProperties() {
         Node groupNode = createNewNode();
         Node julianNode = createNewNode();
         julianNode.setProperty("name", "Julian");
         groupNode.createRelationshipTo(julianNode, PERSONS);
 
         Group g = readGroup(groupNode);
-        Person julian = IteratorUtil.first(g.getPersons());
-        assertEquals("Julian", julian.getName());
+
+        assertNull(first(g.getPersons()).getName());
+    }
+    @Test
+    public void testCascadingReadWithProperties() {
+        Node groupNode = createNewNode();
+        Node julianNode = createNewNode();
+        julianNode.setProperty("name", "Julian");
+        groupNode.createRelationshipTo(julianNode, DynamicRelationshipType.withName("fetchedPersons"));
+
+        Group g = readGroup(groupNode);
+
+        assertEquals("Julian", first(g.getFetchedPersons()).getName());
     }
 
     @Test
@@ -301,7 +339,7 @@ public class Neo4jEntityConverterTest extends Neo4jPersistentTestBase {
         Relationship friendshipRelationship = makeFriends(michaelNode(), andresNode(), 19);
 
         Person m = readPerson(michaelNode());
-        Friendship friendship = IteratorUtil.first(m.getFriendships());
+        Friendship friendship = first(m.getFriendships());
 
         assertEquals((Long) friendshipRelationship.getId(), friendship.getId());
         assertEquals(19, friendship.getYears());

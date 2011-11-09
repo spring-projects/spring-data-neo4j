@@ -17,23 +17,21 @@
 package org.springframework.data.neo4j.support.mapping;
 
 import org.springframework.core.convert.ConversionService;
+import org.springframework.data.annotation.Transient;
 import org.springframework.data.mapping.Association;
 import org.springframework.data.mapping.PersistentEntity;
 import org.springframework.data.mapping.model.AbstractPersistentProperty;
 import org.springframework.data.mapping.model.MappingException;
 import org.springframework.data.mapping.model.SimpleTypeHolder;
 import org.springframework.data.neo4j.annotation.*;
-
-
-import org.springframework.data.neo4j.mapping.IndexInfo;
-import org.springframework.data.neo4j.mapping.Neo4jPersistentEntity;
-import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
-import org.springframework.data.neo4j.mapping.RelationshipInfo;
+import org.springframework.data.neo4j.mapping.*;
+import org.springframework.data.neo4j.support.DoReturn;
 import org.springframework.data.util.TypeInformation;
 
 import java.beans.PropertyDescriptor;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.util.Collection;
 import java.util.IdentityHashMap;
 import java.util.Map;
@@ -50,6 +48,7 @@ class Neo4jPersistentPropertyImpl extends AbstractPersistentProperty<Neo4jPersis
     private final boolean isIdProperty;
     private IndexInfo indexInfo;
     private Map<Class<? extends Annotation>, ? extends Annotation> annotations;
+    private Association<Neo4jPersistentProperty> myAssociation;
 
     public Neo4jPersistentPropertyImpl(Field field, PropertyDescriptor propertyDescriptor,
                                        PersistentEntity<?, Neo4jPersistentProperty> owner, SimpleTypeHolder simpleTypeHolder, Neo4jMappingContext ctx) {
@@ -58,6 +57,12 @@ class Neo4jPersistentPropertyImpl extends AbstractPersistentProperty<Neo4jPersis
         this.relationshipInfo = extractRelationshipInfo(field,ctx);
         this.indexInfo = extractIndexInfo();
         this.isIdProperty = annotations.containsKey(GraphId.class);
+        this.myAssociation = isAssociation() ? super.getAssociation() == null ? createAssociation() : super.getAssociation() : null;
+    }
+
+    @Override
+    public Association<Neo4jPersistentProperty> getAssociation() {
+        return myAssociation;
     }
 
     private Map<Class<? extends Annotation>,? extends Annotation> extractAnnotations(Field field) {
@@ -121,6 +126,11 @@ class Neo4jPersistentPropertyImpl extends AbstractPersistentProperty<Neo4jPersis
     }
 
     @Override
+    public boolean isAssociation() {
+        return super.isAssociation() || isRelationship();
+    }
+
+    @Override
     public boolean isRelationship() {
         return this.relationshipInfo != null;
     }
@@ -151,7 +161,9 @@ class Neo4jPersistentPropertyImpl extends AbstractPersistentProperty<Neo4jPersis
         if (isRelationship()) return false;
         final Class<?> type = getType();
         final Class<String> targetType = String.class;
-        if (getTypeInformation().isCollectionLike()) return isConvertibleBetween(conversionService, getComponentType(), targetType);
+        if (getTypeInformation().isCollectionLike()) {
+            return isConvertibleBetween(conversionService, getComponentType(), targetType);
+        }
         return isConvertibleBetween(conversionService, type, targetType);
     }
 
@@ -183,7 +195,15 @@ class Neo4jPersistentPropertyImpl extends AbstractPersistentProperty<Neo4jPersis
         return annotations.values();
     }
 
-    public Object getValue(final Object entity) {
+    public Object getValue(final Object entity, final MappingPolicy mappingPolicy) {
+        if (entity instanceof ManagedEntity && !mappingPolicy.accessField()) {
+            return DoReturn.unwrap(((ManagedEntity) entity).getEntityState().getValue(this, mappingPolicy));
+        }
+        return getValueFromEntity(entity, mappingPolicy);
+    }
+
+    @Override
+    public Object getValueFromEntity(Object entity, final MappingPolicy mappingPolicy) {
         try {
             final Field field = getField();
             if (!field.isAccessible()) field.setAccessible(true);
@@ -217,5 +237,32 @@ class Neo4jPersistentPropertyImpl extends AbstractPersistentProperty<Neo4jPersis
 
     public String getIndexKey() {
         return getIndexInfo().getIndexKey();
+    }
+
+    @Override
+    public MappingPolicy getMappingPolicy() {
+        if (isAnnotationPresent(Fetch.class))
+            return MappingPolicy.LOAD_POLICY;
+        else
+            return MappingPolicy.DEFAULT_POLICY;
+    }
+
+    /**
+     * @deprecated todo remove when SD-Commons handles transient properties differently
+     */
+    public boolean isReallyTransient() {
+   		return Modifier.isTransient(field.getModifiers()) || isAnnotationPresent(Transient.class) || isAnnotationPresent("javax.persistence.Transient");
+   	}
+
+    private boolean isAnnotationPresent(String className) {
+        for (Class<? extends Annotation> annotationType : annotations.keySet()) {
+            if (annotationType.getName().equals(className)) return true;
+        }
+        return false;
+    }
+
+    @Override
+    public boolean isTransient() {
+        return false;
     }
 }

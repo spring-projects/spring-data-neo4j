@@ -39,6 +39,6 @@ public interface EntityInstantiator<STATE> {
 		 * code to instantiate entities without invoking a constructor.
 		 */
 
-	<T> T createEntityFromState(STATE s, Class<T> c);
+	<T> T createEntityFromState(STATE s, Class<T> c, final MappingPolicy mappingPolicy);
 
 }

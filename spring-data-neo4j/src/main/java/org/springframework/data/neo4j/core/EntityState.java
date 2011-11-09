@@ -17,6 +17,7 @@
 package org.springframework.data.neo4j.core;
 
 import org.springframework.data.neo4j.fieldaccess.FieldAccessor;
+import org.springframework.data.neo4j.mapping.MappingPolicy;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentEntity;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 
@@ -34,35 +35,39 @@ public interface EntityState<STATE> {
     void setPersistentState(STATE state);
 
     /**
-     * @param field field of the entity class
-     * @return a default value for the given field by its {@link FieldAccessor} or {@code null} if none is provided.
+     *
+     * @param property@return a default value for the given field by its {@link FieldAccessor} or {@code null} if none is provided.
      */
-    Object getDefaultImplementation(Field field);
+    Object getDefaultValue(Neo4jPersistentProperty property);
     
-    /**
-     * @param field
-     * @return value of the field either from the state and/or the entity
-     */
-    Object getValue(Field field);
-    /**
-     * @return value of the property either from the state and/or the entity
-     */
-    Object getValue(Neo4jPersistentProperty property);
-
-    /**
-     * @param field
-     * @return true if the field can be written
-     */
-    boolean isWritable(Field field);
-
     /**
      *
      * @param field
+     * @param mappingPolicy
+     * @return value of the field either from the state and/or the entity
+     */
+    Object getValue(Field field, MappingPolicy mappingPolicy);
+    /**
+     * @return value of the property either from the state and/or the entity
+     */
+    Object getValue(Neo4jPersistentProperty property, MappingPolicy mappingPolicy);
+
+    /**
+     *
+     * @param property@return true if the field can be written
+     */
+    boolean isWritable(Neo4jPersistentProperty property);
+
+    /**
+     *
+     *
+     * @param field
      * @param newVal
+     * @param mappingPolicy
      * @return sets the value in the entity and/or the state
      */
-    Object setValue(Field field, Object newVal);
-    Object setValue(Neo4jPersistentProperty property, Object newVal);
+    Object setValue(Field field, Object newVal, MappingPolicy mappingPolicy);
+    Object setValue(Neo4jPersistentProperty property, Object newVal, MappingPolicy mappingPolicy);
 
     /**
      * callback for creating and initializing an initial state

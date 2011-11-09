@@ -15,14 +15,10 @@
  */
 package org.springframework.data.neo4j.conversion;
 
-import org.springframework.data.neo4j.annotation.ResultColumn;
-import org.springframework.data.neo4j.support.conversion.NoSuchColumnFoundException;
+import org.springframework.data.neo4j.mapping.MappingPolicy;
+import org.springframework.data.neo4j.support.conversion.QueryResultProxy;
 import org.springframework.data.neo4j.template.Neo4jOperations;
-import org.springframework.data.util.ClassTypeInformation;
-import org.springframework.data.util.TypeInformation;
 
-import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.Map;
 
@@ -33,35 +29,15 @@ public class QueryMapResulConverter<T> implements ResultConverter<Map<String, Ob
         this.template = template;
     }
 
+    @SuppressWarnings("unchecked")
+    @Override
+    public T convert(Map<String, Object> value, Class<T> type, MappingPolicy mappingPolicy) {
+        return (T) Proxy.newProxyInstance(this.getClass().getClassLoader(), new Class[]{type}, new QueryResultProxy(value,mappingPolicy,template.getDefaultConverter()));
+    }
+
+    @SuppressWarnings("unchecked")
     @Override
     public T convert(Map<String, Object> value, Class<T> type) {
-        final Map<String, Object> valueCopy = value;
-
-
-        T resultProxy = (T) Proxy.newProxyInstance(this.getClass().getClassLoader(), new Class[]{type}, new InvocationHandler() {
-            @Override
-            public Object invoke(Object o, Method method, Object[] objects) throws Throwable {
-                ResultColumn column = method.getAnnotation(ResultColumn.class);
-                TypeInformation<Object> returnType = ClassTypeInformation.fromReturnTypeOf(method);
-
-                String columnName = column.value();
-                if(!valueCopy.containsKey( columnName )) {
-                    throw new NoSuchColumnFoundException( columnName );
-                }
-
-                Object columnValue = valueCopy.get( columnName );
-
-
-                Object result;
-                if (returnType.isCollectionLike())
-                    result = template.convert((Iterable) columnValue).to(returnType.getActualType().getType());
-                else
-                    result = template.convert(columnValue, returnType.getType());
-
-
-                return result;
-            }
-        });
-        return resultProxy;
+        return convert(value,type,null);
     }
 }

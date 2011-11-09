@@ -66,7 +66,7 @@ public class Neo4jEntityConverterImpl<T,S extends PropertyContainer> implements 
     }
 
     @Override
-    public <R extends T> R read(Class<R> requestedType, S source) {
+    public <R extends T> R read(Class<R> requestedType, S source, MappingPolicy mappingPolicy) {
         // 1) source -> type alias
         // 2) type alias -> type
         // 3) check for subtype matching / enforcement
@@ -77,31 +77,33 @@ public class Neo4jEntityConverterImpl<T,S extends PropertyContainer> implements 
         @SuppressWarnings("unchecked") final Neo4jPersistentEntityImpl<R> persistentEntity = (Neo4jPersistentEntityImpl<R>) mappingContext.getPersistentEntity(targetType);
 
         // 4) create object instance
-        final R createdEntity = entityInstantiator.createEntityFromState(source, targetType.getType());
+        final R createdEntity = entityInstantiator.createEntityFromState(source, targetType.getType(), mappingPolicy);
 
         // 5) connect state
         entityStateHandler.setPersistentState(createdEntity,source);
 
-        if (!persistentEntity.isManaged()) {
-            // 5a) depending on mode -> copy data
+        if (persistentEntity.isManaged()) return createdEntity;
+        if (mappingPolicy.shouldLoad()) {
             final BeanWrapper<Neo4jPersistentEntity<R>, R> wrapper = BeanWrapper.create(createdEntity, conversionService);
-            sourceStateTransmitter.copyPropertiesFrom(wrapper, source, persistentEntity);
+            sourceStateTransmitter.copyPropertiesFrom(wrapper, source, persistentEntity,mappingPolicy);
             // 6) handle cascading fetches
-            cascadeFetch(persistentEntity, wrapper);
+            cascadeFetch(persistentEntity, wrapper, mappingPolicy);
         }
         return createdEntity;
     }
 
-    private <R extends T> void cascadeFetch(Neo4jPersistentEntityImpl<R> persistentEntity, final BeanWrapper<Neo4jPersistentEntity<R>, R> wrapper) {
+    private <R extends T> void cascadeFetch(Neo4jPersistentEntityImpl<R> persistentEntity, final BeanWrapper<Neo4jPersistentEntity<R>, R> wrapper, final MappingPolicy policy) {
         persistentEntity.doWithAssociations(new AssociationHandler<Neo4jPersistentProperty>() {
             @Override
             public void doWithAssociation(Association<Neo4jPersistentProperty> association) {
                 final Neo4jPersistentProperty property = association.getInverse();
-                if (property.isRelationship()) {
+                // MappingPolicy mappingPolicy = policy.combineWith(property.getMappingPolicy());
+                final MappingPolicy mappingPolicy = property.getMappingPolicy();
+                if (mappingPolicy.shouldLoad() && property.isRelationship()) {
                     final Object value = getProperty(wrapper, property);
                     @SuppressWarnings("unchecked") final Neo4jPersistentEntityImpl<Object> persistentEntity =
                             (Neo4jPersistentEntityImpl<Object>) mappingContext.getPersistentEntity(property.getTypeInformation().getActualType());
-                    final Object fetchedValue = entityFetchHandler.fetch(value, persistentEntity, property);
+                    final Object fetchedValue = entityFetchHandler.fetch(value, persistentEntity, property, mappingPolicy);
                     // replace fetched one-time iterables and similiar managed values
                     sourceStateTransmitter.setProperty(wrapper, property, fetchedValue);
                 }
@@ -120,7 +122,7 @@ public class Neo4jEntityConverterImpl<T,S extends PropertyContainer> implements 
     }
 
     @Override
-    public void write(T source, S sink) {
+    public void write(T source, S sink, MappingPolicy mappingPolicy) {
         final Class<?> sourceType = source.getClass();
         @SuppressWarnings("unchecked") final Neo4jPersistentEntityImpl<T> persistentEntity = (Neo4jPersistentEntityImpl<T>) mappingContext.getPersistentEntity(sourceType);
         if (persistentEntity.isManaged()) { // todo check if typerepreentationstragegy is called ??
@@ -134,7 +136,7 @@ public class Neo4jEntityConverterImpl<T,S extends PropertyContainer> implements 
             entityStateHandler.setPersistentState(source, sink);
             typeMapper.writeType(sourceType, sink);
         }
-        sourceStateTransmitter.copyPropertiesTo(wrapper, sink, persistentEntity);
+        sourceStateTransmitter.copyPropertiesTo(wrapper, sink, persistentEntity,mappingPolicy);
     }
 /*
     private Node useGetOrCreateNode(S node, Neo4jPersistentEntity<?> persistentEntity, BeanWrapper<Neo4jPersistentEntity<Object>, Object> wrapper) {

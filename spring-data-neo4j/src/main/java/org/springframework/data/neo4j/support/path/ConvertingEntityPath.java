@@ -23,6 +23,7 @@ import org.neo4j.graphdb.Relationship;
 import org.neo4j.helpers.collection.IterableWrapper;
 import org.springframework.data.neo4j.core.EntityPath;
 import org.springframework.data.neo4j.mapping.EntityPersister;
+import org.springframework.data.neo4j.mapping.MappingPolicy;
 
 import java.util.Iterator;
 
@@ -40,7 +41,7 @@ public class ConvertingEntityPath<S,E> implements EntityPath<S,E> {
 
     private <T> T projectEntityToFirstParameterOrCreateFromStoredType(Node node, Class<T>... types) {
         if (node==null) return null;
-        if (types==null || types.length==0) return persister.createEntityFromStoredType(node);
+        if (types==null || types.length==0) return persister.createEntityFromStoredType(node, MappingPolicy.LOAD_POLICY);
         return persister.projectTo(node, types[0]);
     }
 
@@ -65,7 +66,7 @@ public class ConvertingEntityPath<S,E> implements EntityPath<S,E> {
         return new IterableWrapper<T,Node>(nodes()) {
             @Override
             protected T underlyingObjectToObject(Node node) {
-                return persister.createEntityFromStoredType(node);
+                return persister.createEntityFromStoredType(node, null);
             }
         };
     }

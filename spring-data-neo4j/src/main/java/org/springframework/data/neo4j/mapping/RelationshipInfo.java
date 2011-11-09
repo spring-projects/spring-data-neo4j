@@ -23,7 +23,6 @@ import org.springframework.data.neo4j.annotation.RelatedTo;
 import org.springframework.data.neo4j.annotation.RelatedToVia;
 import org.springframework.data.neo4j.annotation.RelationshipEntity;
 import org.springframework.data.neo4j.support.mapping.Neo4jMappingContext;
-import org.springframework.data.neo4j.support.mapping.Neo4jPersistentEntityImpl;
 import org.springframework.data.util.ClassTypeInformation;
 import org.springframework.data.util.TypeInformation;
 
@@ -57,7 +56,6 @@ public class RelationshipInfo {
     public RelationshipInfo(String type, Direction direction, TypeInformation<?> typeInformation, TypeInformation<?> concreteActualType, Neo4jMappingContext ctx) {
         this.type = type;
         this.direction = direction;
-        this.targetEntity = targetEntity;
         isMultiple = typeInformation.isCollectionLike();
         targetType = concreteActualType!=null ? concreteActualType : typeInformation.getActualType();
         this.targetEntity = ctx.getPersistentEntity(targetType);
@@ -75,18 +73,19 @@ public class RelationshipInfo {
                 annotation.direction(),
                 typeInformation,
                 annotation.elementClass() != Object.class ? ClassTypeInformation.from(annotation.elementClass()) : null,
-                ctx);
+                ctx
+        );
     }
 
     public static RelationshipInfo fromField(Field field, RelatedToVia annotation, TypeInformation<?> typeInformation, Neo4jMappingContext ctx) {
         final TypeInformation<?> elementClass = elementClass(annotation, typeInformation);
-        final Neo4jPersistentEntityImpl<?> targetEntity = ctx.getPersistentEntity(elementClass);
         return new RelationshipInfo(
                 relationshipType(field,annotation,typeInformation),
                 annotation.direction(),
                 typeInformation,
                 elementClass,
-                ctx);
+                ctx
+        );
     }
 
     private static String relationshipType(Field field, RelatedToVia annotation, TypeInformation<?> typeInformation) {

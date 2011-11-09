@@ -17,10 +17,8 @@
 package org.springframework.data.neo4j.repository;
 
 import org.apache.lucene.search.NumericRangeQuery;
-import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.NotFoundException;
 import org.neo4j.graphdb.PropertyContainer;
-import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.index.IndexHits;
 import org.neo4j.graphdb.index.ReadableIndex;
 import org.neo4j.helpers.collection.ClosableIterable;
@@ -184,7 +182,7 @@ public abstract class AbstractGraphRepository<S extends PropertyContainer, T> im
     }
 
     protected T createEntity(S node) {
-        return template.createEntityFromState(node, clazz);
+        return template.createEntityFromState(node, clazz, template.getMappingPolicy(clazz));
     }
 
     /**

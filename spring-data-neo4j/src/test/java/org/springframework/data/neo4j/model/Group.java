@@ -16,25 +16,20 @@
 
 package org.springframework.data.neo4j.model;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
-
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.DynamicRelationshipType;
 import org.neo4j.graphdb.traversal.TraversalDescription;
 import org.neo4j.kernel.Traversal;
 import org.neo4j.kernel.impl.traversal.TraversalDescriptionImpl;
-import org.springframework.data.neo4j.annotation.GraphId;
-import org.springframework.data.neo4j.annotation.GraphProperty;
-import org.springframework.data.neo4j.annotation.GraphTraversal;
-import org.springframework.data.neo4j.annotation.Indexed;
-import org.springframework.data.neo4j.annotation.NodeEntity;
-import org.springframework.data.neo4j.annotation.RelatedTo;
+import org.springframework.data.neo4j.annotation.*;
 import org.springframework.data.neo4j.core.FieldTraversalDescriptionBuilder;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.support.index.IndexType;
 import org.springframework.util.ObjectUtils;
+
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
 
 @NodeEntity
 public class Group {
@@ -44,12 +39,15 @@ public class Group {
     public static final String SEARCH_GROUPS_INDEX_BUG = "search-groups";
 
     @RelatedTo(direction = Direction.OUTGOING)
-    private Collection<Person> persons = new HashSet<Person>();
+    private Collection<Person> persons;
+
+    @Fetch @RelatedTo
+    private Collection<Person> fetchedPersons;
 
     @RelatedTo(type = "persons", elementClass = Person.class)
     private Iterable<Person> readOnlyPersons;
 
-    @GraphTraversal(traversal = PeopleTraversalBuilder.class, elementClass = Person.class, params = "persons")
+    @GraphTraversal(traversal = PeopleTraversalBuilder.class, params = "persons")
     private Iterable<Person> people;
 
     @GraphProperty
@@ -117,6 +115,7 @@ public class Group {
     }
 
     public void addPerson(Person person) {
+        if (persons==null) persons=new HashSet<Person>();
         persons.add(person);
     }
 
@@ -214,5 +213,9 @@ public class Group {
     @Override
     public int hashCode() {
         return ObjectUtils.nullSafeHashCode(this.id);
+    }
+
+    public Collection<Person> getFetchedPersons() {
+        return fetchedPersons;
     }
 }

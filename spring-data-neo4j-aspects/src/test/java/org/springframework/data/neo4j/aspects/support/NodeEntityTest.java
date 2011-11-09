@@ -48,7 +48,7 @@ public class NodeEntityTest extends EntityTestBase {
         Person p = persistedPerson("Rod", 39);
         assertEquals(p.getName(), getNodeState(p).getProperty("name"));
         assertEquals(p.getAge(), getNodeState(p).getProperty("age"));
-        Person found = neo4jTemplate.createEntityFromState(neo4jTemplate.getNode(getNodeId(p)), Person.class);
+        Person found = neo4jTemplate.createEntityFromState(neo4jTemplate.getNode(getNodeId(p)), Person.class, neo4jTemplate.getMappingPolicy(p));
         assertEquals("Rod", getNodeState(found).getProperty("name"));
         assertEquals(39, getNodeState(found).getProperty("age"));
     }

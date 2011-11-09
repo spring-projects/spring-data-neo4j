@@ -67,7 +67,7 @@ public class TestServerPlugin extends ServerPlugin {
     @PluginTarget(Node.class)
     public Iterable<Node> allFriendsOf(@Source Node target) {
         context(target.getGraphDatabase());
-        final Person person = template.createEntityFromState(target, Person.class);
+        final Person person = template.load(target, Person.class);
         return new IterableWrapper<Node, Friendship>(person.getFriendships()) {
             @Override
             protected Node underlyingObjectToObject(Friendship friendship) {

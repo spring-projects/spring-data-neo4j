@@ -16,14 +16,13 @@
 
 package org.springframework.data.neo4j.fieldaccess;
 
-import org.neo4j.graphdb.PropertyContainer;
-
+import org.springframework.data.neo4j.mapping.MappingPolicy;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 
 public class TransientFieldAccessorFactory implements FieldAccessorFactory {
     @Override
     public boolean accept(final Neo4jPersistentProperty property) {
-        return property.isTransient();
+        return property.isReallyTransient();
     }
 
     @Override
@@ -43,7 +42,7 @@ public class TransientFieldAccessorFactory implements FieldAccessorFactory {
         }
 
         @Override
-        public Object setValue(final Object entity, final Object newVal) {
+        public Object setValue(final Object entity, final Object newVal, MappingPolicy mappingPolicy) {
             return newVal;
         }
 
@@ -53,12 +52,12 @@ public class TransientFieldAccessorFactory implements FieldAccessorFactory {
         }
 
         @Override
-        public Object getValue(final Object entity) {
+        public Object getValue(final Object entity, MappingPolicy mappingPolicy) {
             return null;
         }
 
 		@Override
-		public Object getDefaultImplementation() {
+		public Object getDefaultValue() {
 			return null;
 		}
 

@@ -42,7 +42,7 @@ import java.util.Set;
 public class EntityTestBase {
     protected final Log log = LogFactory.getLog(getClass());
 
-    @Autowired protected Neo4jTemplate neo4jTemplate;
+    @Autowired protected Neo4jTemplate template;
     @Autowired protected ConversionService conversionService;
 
     @Autowired protected GraphDatabaseService graphDatabaseService;
@@ -57,28 +57,28 @@ public class EntityTestBase {
     }
 
     protected Node getNodeState(Object entity) {
-        return neo4jTemplate.getPersistentState(entity);
+        return template.getPersistentState(entity);
     }
     protected Long getNodeId(Object entity) {
-        final Node node = neo4jTemplate.getPersistentState(entity);
+        final Node node = template.getPersistentState(entity);
         return node == null ? null : node.getId();
     }
     protected Long getRelationshipId(Object entity) {
-        final Relationship rel = neo4jTemplate.getPersistentState(entity);
+        final Relationship rel = template.getPersistentState(entity);
         return rel == null ? null : rel.getId();
     }
 
     protected boolean hasPersistentState(Object entity) {
-        return neo4jTemplate.getPersistentState(entity)!=null;
+        return template.getPersistentState(entity)!=null;
     }
 
     protected Relationship getRelationshipState(Object entity) {
-        return neo4jTemplate.getPersistentState(entity);
+        return template.getPersistentState(entity);
     }
 
     @SuppressWarnings("unchecked")
     public <T> T persist(T entity) {
-        return (T) neo4jTemplate.save(entity);
+        return (T) template.save(entity);
     }
 
     protected <T> Set<T> set(T... values) {
@@ -97,11 +97,11 @@ public class EntityTestBase {
 
     @Before
     public void cleanDbBeforeTest() {
-        Neo4jHelper.cleanDb(neo4jTemplate);
+        Neo4jHelper.cleanDb(template);
     }
 
     @BeforeTransaction
     public void cleanDb() {
-        Neo4jHelper.cleanDb(neo4jTemplate);
+        Neo4jHelper.cleanDb(template);
     }
 }

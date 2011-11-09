@@ -21,6 +21,7 @@ import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.PropertyContainer;
 import org.neo4j.graphdb.Relationship;
 import org.springframework.data.mapping.model.MappingException;
+import org.springframework.data.neo4j.mapping.MappingPolicy;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
 
@@ -62,12 +63,12 @@ public class IdFieldAccessorFactory implements FieldAccessorFactory {
 	    }
 
 	    @Override
-	    public Object setValue(final Object entity, final Object newVal) {
+	    public Object setValue(final Object entity, final Object newVal, MappingPolicy mappingPolicy) {
 	        return newVal;
 	    }
 
 	    @Override
-	    public Object getValue(final Object entity) {
+	    public Object getValue(final Object entity, MappingPolicy mappingPolicy) {
             final PropertyContainer state = template.getPersistentState(entity);
             if (state instanceof Node) {
                 return doReturn(((Node)state).getId());
@@ -79,7 +80,7 @@ public class IdFieldAccessorFactory implements FieldAccessorFactory {
 	    }
 
 		@Override
-		public Object getDefaultImplementation() {
+		public Object getDefaultValue() {
 			return null;
 		}
 

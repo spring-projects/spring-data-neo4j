@@ -19,6 +19,7 @@ package org.springframework.data.neo4j.cross_store.support.node;
 import org.neo4j.graphdb.Node;
 import org.springframework.data.neo4j.aspects.core.NodeBacked;
 import org.springframework.data.neo4j.mapping.EntityInstantiator;
+import org.springframework.data.neo4j.mapping.MappingPolicy;
 import org.springframework.data.neo4j.support.node.NodeEntityInstantiator;
 import org.springframework.orm.jpa.EntityManagerFactoryUtils;
 
@@ -48,17 +49,18 @@ public class CrossStoreNodeEntityInstantiator implements EntityInstantiator<Node
      * this node is created by the original {@link org.springframework.data.neo4j.mapping.EntityInstantiator}.
      * @param n Node to instantiate an entity for
      * @param entityClass type of the entity
+     * @param mappingPolicy
      * @param <T> generic type of the entity
      * @return
      */
-	public <T> T createEntityFromState(Node n, Class<T> entityClass) {
+	public <T> T createEntityFromState(Node n, Class<T> entityClass, final MappingPolicy mappingPolicy) {
         if (n.hasProperty(CrossStoreNodeEntityState.FOREIGN_ID)) {
             final Object foreignId = n.getProperty(CrossStoreNodeEntityState.FOREIGN_ID);
             final T result = entityManager().find(entityClass, foreignId);
             ((NodeBacked)result).setPersistentState(n);
             return result;
         }
-        return delegate.createEntityFromState(n, entityClass);
+        return delegate.createEntityFromState(n, entityClass, mappingPolicy);
     }
 
     private EntityManager entityManager() {

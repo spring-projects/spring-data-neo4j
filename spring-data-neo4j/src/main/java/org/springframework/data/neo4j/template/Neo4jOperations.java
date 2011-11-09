@@ -22,7 +22,9 @@ import org.neo4j.graphdb.traversal.TraversalDescription;
 import org.neo4j.helpers.collection.ClosableIterable;
 import org.springframework.data.neo4j.annotation.QueryType;
 import org.springframework.data.neo4j.conversion.Result;
+import org.springframework.data.neo4j.conversion.ResultConverter;
 import org.springframework.data.neo4j.core.GraphDatabase;
+import org.springframework.data.neo4j.mapping.MappingPolicy;
 import org.springframework.data.neo4j.repository.GraphRepository;
 import org.springframework.data.neo4j.support.query.QueryEngine;
 
@@ -256,4 +258,13 @@ public interface Neo4jOperations {
      * @return the graph database used by the template
      */
     GraphDatabase getGraphDatabase();
+
+    <T> T fetch(T value);
+
+    <S extends PropertyContainer, T> T load(S state, Class<T> type);
+
+
+    MappingPolicy getMappingPolicy(Class<?> targetType);
+
+    ResultConverter getDefaultConverter();
 }

@@ -15,17 +15,18 @@
  */
 package org.springframework.data.neo4j.mapping;
 
-import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.PropertyContainer;
-import org.springframework.data.convert.EntityConverter;
-import org.springframework.data.convert.EntityReader;
-import org.springframework.data.convert.EntityWriter;
+import org.springframework.core.convert.ConversionService;
+import org.springframework.data.mapping.context.MappingContext;
 
 /**
  * @author mh
  * @since 27.09.11
  */
-public interface Neo4jEntityConverter<T, S extends PropertyContainer> extends EntityConverter<Neo4jPersistentEntity<?>, Neo4jPersistentProperty, T, S>, EntityWriter<T,S>,
-        EntityReader<T, S> {
+public interface Neo4jEntityConverter<T, S extends PropertyContainer> {
+    <R extends T> R read(Class<R> type, S source, MappingPolicy mappingPolicy);
+    void write(T source, S sink, MappingPolicy mappingPolicy);
+    MappingContext<? extends Neo4jPersistentEntity<?>, Neo4jPersistentProperty> getMappingContext();
+   	ConversionService getConversionService();
 
 }

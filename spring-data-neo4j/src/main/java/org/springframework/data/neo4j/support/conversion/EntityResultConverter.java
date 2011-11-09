@@ -18,18 +18,13 @@ package org.springframework.data.neo4j.support.conversion;
 
 import org.springframework.core.convert.ConversionService;
 import org.springframework.data.neo4j.annotation.MapResult;
-import org.springframework.data.neo4j.annotation.ResultColumn;
 import org.springframework.data.neo4j.conversion.DefaultConverter;
-import org.springframework.data.neo4j.conversion.QueryResultBuilder;
 import org.springframework.data.neo4j.core.EntityPath;
 import org.springframework.data.neo4j.mapping.EntityPersister;
+import org.springframework.data.neo4j.mapping.MappingPolicy;
 import org.springframework.data.neo4j.support.path.ConvertingEntityPath;
-import org.springframework.data.util.ClassTypeInformation;
-import org.springframework.data.util.TypeInformation;
 
 import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.Map;
 
@@ -48,17 +43,17 @@ public class EntityResultConverter<T, R> extends DefaultConverter<T, R> {
 
     @SuppressWarnings("unchecked")
     @Override
-    protected Object doConvert(Object value, Class<?> sourceType, Class targetType) {
+    protected Object doConvert(Object value, Class<?> sourceType, Class targetType, MappingPolicy mappingPolicy) {
         if (EntityPath.class.isAssignableFrom(targetType)) {
             return new ConvertingEntityPath(entityPersister, toPath(value, sourceType));
         }
         if (entityPersister.isNodeEntity(targetType)) {
-            return entityPersister.projectTo(toNode(value, sourceType), targetType);
+            return entityPersister.projectTo(toNode(value, sourceType), targetType, mappingPolicy);
         }
         if (entityPersister.isRelationshipEntity(targetType)) {
-            return entityPersister.projectTo(toRelationship(value, sourceType), targetType);
+            return entityPersister.projectTo(toRelationship(value, sourceType), targetType, mappingPolicy);
         }
-        final Object result = super.doConvert(value, sourceType, targetType);
+        final Object result = super.doConvert(value, sourceType, targetType, mappingPolicy);
 
         if (result != null) return result;
 
@@ -69,83 +64,22 @@ public class EntityResultConverter<T, R> extends DefaultConverter<T, R> {
     }
 
     @SuppressWarnings("unchecked")
-    public R extractMapResult(Object value, Class returnType) {
+    public R extractMapResult(Object value, Class returnType, MappingPolicy mappingPolicy) {
         if (!Map.class.isAssignableFrom(value.getClass())) {
             throw new RuntimeException("MapResult can only be extracted from Map<String,Object>.");
         }
 
-        InvocationHandler handler = new QueryResultProxy((Map<String, Object>) value);
+        InvocationHandler handler = new QueryResultProxy((Map<String, Object>) value,mappingPolicy,this);
 
         return (R) Proxy.newProxyInstance(returnType.getClassLoader(), new Class[]{returnType}, handler);
     }
 
     @Override
-    public R convert(Object value, Class type) {
+    public R convert(Object value, Class type, MappingPolicy mappingPolicy) {
         if (type.isAnnotationPresent(MapResult.class)) {
-            return extractMapResult(value, type);
+            return extractMapResult(value, type,mappingPolicy);
         } else
-            return super.convert(value, type);
+            return super.convert(value, type,mappingPolicy);
     }
 
-    private class QueryResultProxy implements InvocationHandler {
-        private final Map<String, Object> map;
-
-        private QueryResultProxy(Map<String,Object> map) {
-            this.map = map;
-        }
-
-        @SuppressWarnings("unchecked")
-        @Override
-        public Object invoke(Object o, Method method, Object[] objects) throws Throwable {
-            ResultColumn column = method.getAnnotation(ResultColumn.class);
-            TypeInformation<?> returnType = ClassTypeInformation.fromReturnTypeOf(method);
-
-            String columnName = column.value();
-            if(!map.containsKey( columnName )) {
-                throw new NoSuchColumnFoundException( columnName );
-            }
-
-            Object columnValue = map.get( columnName );
-            if(columnValue==null) return null;
-
-            // If the returned value is a Scala iterable, transform it to a Java iterable first
-            Class iterableLikeInterface = implementsInterface("scala.collection.Iterable", columnValue.getClass());
-            if (iterableLikeInterface!=null) {
-                columnValue = transformScalaIterableToJavaIterable(columnValue, iterableLikeInterface);
-            }
-
-            if (returnType.isCollectionLike())
-                return new QueryResultBuilder((Iterable)columnValue, EntityResultConverter.this).to(returnType.getActualType().getType());
-            else
-                return convert(columnValue, returnType.getType());
-        }
-    }
-
-    public Object transformScalaIterableToJavaIterable(Object scalaIterable, Class iterableLikeIface) throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, IllegalAccessException {
-        // This is equivalent to doing this:
-        // JavaConversions.asJavaIterable(((IterableLike) columnValue).toIterable());
-
-        Class<?> javaConversions = iterableLikeIface.getClassLoader().loadClass("scala.collection.JavaConversions");
-        Method asJavaIterable = javaConversions.getMethod("asJavaIterable", iterableLikeIface);
-        Iterable<?> javaIterable = (Iterable<?>) asJavaIterable.invoke(null, scalaIterable);
-        return javaIterable;
-    }
-
-    private Class implementsInterface(String interfaceName, Class clazz) {
-        if(clazz.getCanonicalName().equals(interfaceName)) return clazz;
-
-        Class superclass = clazz.getSuperclass();
-        if(superclass != null) {
-            Class iface = implementsInterface(interfaceName, superclass);
-            if (iface!= null)  return iface;
-        }
-
-        for(Class iface : clazz.getInterfaces()) {
-            Class superIface = implementsInterface(interfaceName, iface);
-            if(superIface!=null)
-                return superIface;
-        }
-
-        return null;
-    }
 }

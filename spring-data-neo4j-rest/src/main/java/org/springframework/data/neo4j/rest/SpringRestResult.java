@@ -19,12 +19,14 @@ import org.neo4j.rest.graphdb.util.ConvertedResult;
 import org.neo4j.rest.graphdb.util.ResultConverter;
 import org.springframework.data.neo4j.conversion.EndResult;
 import org.springframework.data.neo4j.conversion.Result;
+import org.springframework.data.neo4j.mapping.MappingPolicy;
 
 import java.util.Iterator;
 
 
 class SpringRestResult<T> implements Result<T> {
     org.neo4j.rest.graphdb.util.QueryResult<T> queryResult;
+    private MappingPolicy mappingPolicy;
 
     SpringRestResult(org.neo4j.rest.graphdb.util.QueryResult<T> queryResult) {
         this.queryResult = queryResult;
@@ -39,7 +41,7 @@ class SpringRestResult<T> implements Result<T> {
         ConvertedResult<R> result = queryResult.to(type, new ResultConverter<T, R>() {
             @Override
             public R convert(T value, Class<R> type) {
-                return converter.convert(value,type);
+                return converter.convert(value,type,mappingPolicy);
             }
         });
         return new SpringEndResult<R>(result);
@@ -65,5 +67,11 @@ class SpringRestResult<T> implements Result<T> {
     @Override
     public T single() {
        return (T) to(Object.class).single();
+    }
+
+    @Override
+    public Result<T> with(MappingPolicy mappingPolicy) {
+        this.mappingPolicy = mappingPolicy;
+        return this;
     }
 }

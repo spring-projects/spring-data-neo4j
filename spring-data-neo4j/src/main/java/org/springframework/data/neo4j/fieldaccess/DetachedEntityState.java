@@ -20,6 +20,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.neo4j.graphdb.Transaction;
 import org.springframework.data.neo4j.core.EntityState;
+import org.springframework.data.neo4j.mapping.MappingPolicy;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentEntity;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
@@ -37,7 +38,7 @@ import static org.springframework.data.neo4j.support.DoReturn.unwrap;
  * @since 15.09.2010
  */
 public class DetachedEntityState<STATE> implements EntityState<STATE> {
-    private final Map<Field, ExistingValue> dirty = new HashMap<Field, ExistingValue>();
+    private final Map<Neo4jPersistentProperty, ExistingValue> dirty = new HashMap<Neo4jPersistentProperty, ExistingValue>();
     protected final EntityState<STATE> delegate;
     private final static Log log = LogFactory.getLog(DetachedEntityState.class);
     private Neo4jTemplate template;
@@ -50,8 +51,8 @@ public class DetachedEntityState<STATE> implements EntityState<STATE> {
     }
 
     @Override
-    public boolean isWritable(final Field field) {
-        return delegate.isWritable(field);
+    public boolean isWritable(Neo4jPersistentProperty property) {
+        return delegate.isWritable(property);
     }
 
     @Override
@@ -75,37 +76,33 @@ public class DetachedEntityState<STATE> implements EntityState<STATE> {
     }
 
     @Override
-    public Object getValue(Neo4jPersistentProperty property) {
-        return getValue(property.getField());
-    }
-
-    @Override
-    public Object getValue(final Field field) {
+    public Object getValue(Neo4jPersistentProperty property, MappingPolicy mappingPolicy) {
+        mappingPolicy = mappingPolicy == null ? property.getMappingPolicy() : mappingPolicy;
         if (isDetached()) {
-            if (template.getPersistentState(getEntity())==null || isDirty(field)) {
-                if (log.isDebugEnabled()) log.debug("Outside of transaction, GET value from field " + field);
-                Object entityValue = getValueFromEntity(field);
+            if (template.getPersistentState(getEntity())==null || isDirty(property)) {
+                if (log.isDebugEnabled()) log.debug("Outside of transaction, GET value from field " + property);
+                Object entityValue = getValueFromEntity(property, MappingPolicy.MAP_FIELD_DIRECT_POLICY);
                 if (entityValue != null) {
                 	return entityValue;
                 }
-                
-                Object defaultValue = getDefaultImplementation(field);
+
+                Object defaultValue = getDefaultValue(property);
                 if (defaultValue != null) {
                     final Object entity = getEntity();
-                    try {
-                        field.setAccessible(true);
-                        field.set(entity, defaultValue);
-                        addDirty(field, defaultValue, false);
-                    } catch(IllegalAccessException e) {
-                    	throw new RuntimeException("Error setting default value for field " + field + " in " + entity.getClass(), e);
-                    }
+                    property.setValue(entity, defaultValue);
+                    addDirty(property, defaultValue, false);
                 }
                 return defaultValue;
             }
         } else {
 //            flushDirty();
         }
-        return delegate.getValue(field);
+        return delegate.getValue(property, mappingPolicy);
+    }
+
+    @Override
+    public Object getValue(final Field field, MappingPolicy mappingPolicy) {
+        return getValue(property(field), mappingPolicy);
     }
 
     protected boolean isDetached() {
@@ -135,8 +132,8 @@ public class DetachedEntityState<STATE> implements EntityState<STATE> {
         }
     }
     @Override
-    public Object setValue(final Field field, final Object newVal) {
-        return setValue(property(field),newVal);
+    public Object setValue(final Field field, final Object newVal, MappingPolicy mappingPolicy) {
+        return setValue(property(field),newVal, mappingPolicy);
     }
 
     private Neo4jPersistentProperty property(Field field) {
@@ -144,25 +141,24 @@ public class DetachedEntityState<STATE> implements EntityState<STATE> {
     }
 
     @Override
-    public Object setValue(final Neo4jPersistentProperty property, final Object newVal) {
+    public Object setValue(final Neo4jPersistentProperty property, final Object newVal, MappingPolicy mappingPolicy) {
         if (isDetached()) {
-            final Field field = property.getField();
-            if (!isDirty(field) && isWritable(field)) {
+            if (!isDirty(property) && isWritable(property)) {
                 if (hasPersistentState()) {
-                    addDirty(field, unwrap(delegate.getValue(field)), true);
+                    addDirty(property, unwrap(delegate.getValue(property, MappingPolicy.MAP_FIELD_DIRECT_POLICY)), true);
                 }
                 else {
-                    addDirty(field, newVal, false);
+                    addDirty(property, newVal, false);
                 }
             }
             return newVal;
         }
         // flushDirty();
-        return delegate.setValue(property, newVal);
+        return delegate.setValue(property, newVal, mappingPolicy);
     }
 	@Override
-	public Object getDefaultImplementation(Field field) {
-        return delegate.getDefaultImplementation(field);
+	public Object getDefaultValue(Neo4jPersistentProperty property) {
+        return delegate.getDefaultValue(property);
 	}
     private Object getDefaultValue(final Class<?> type) {
         if (type.isPrimitive()) {
@@ -193,15 +189,16 @@ public class DetachedEntityState<STATE> implements EntityState<STATE> {
         }
 
         if (isDirty()) {
-            final Map<Field, ExistingValue> dirtyCopy = new HashMap<Field, ExistingValue>(dirty);
+            final Map<Neo4jPersistentProperty, ExistingValue> dirtyCopy = new HashMap<Neo4jPersistentProperty, ExistingValue>(dirty);
             clearDirty();
-            for (final Map.Entry<Field, ExistingValue> entry : dirtyCopy.entrySet()) {
-                final Field field = entry.getKey();
-                Object valueFromEntity = getValueFromEntity(field);
+            for (final Map.Entry<Neo4jPersistentProperty, ExistingValue> entry : dirtyCopy.entrySet()) {
+                final Neo4jPersistentProperty property = entry.getKey();
+                final MappingPolicy mappingPolicy = property.getMappingPolicy();
+                Object valueFromEntity = getValueFromEntity(property, MappingPolicy.MAP_FIELD_DIRECT_POLICY);
                 cascadePersist(valueFromEntity);
-                if (log.isDebugEnabled()) log.debug("Flushing dirty Entity new node " + entity + " field " + field+ " with value "+ valueFromEntity);
-                checkConcurrentModification(entity, entry, field);
-                delegate.setValue(field, valueFromEntity);
+                if (log.isDebugEnabled()) log.debug("Flushing dirty Entity new node " + entity + " field " + property+ " with value "+ valueFromEntity);
+                checkConcurrentModification(entity, entry, property, mappingPolicy);
+                delegate.setValue(property, valueFromEntity, mappingPolicy);
             }
         }
     }
@@ -227,22 +224,17 @@ public class DetachedEntityState<STATE> implements EntityState<STATE> {
     }
 
 
-    private Object getValueFromEntity(final Field field) {
+    private Object getValueFromEntity(final Neo4jPersistentProperty property, MappingPolicy mappingPolicy) {
         final Object entity = getEntity();
-        try {
-            field.setAccessible(true);
-            return field.get(entity);
-        } catch (IllegalAccessException e) {
-            throw new RuntimeException("Error accessing field " + field + " in " + entity.getClass(), e);
-        }
+        return property.getValue(entity, mappingPolicy);
     }
 
-    private void checkConcurrentModification(final Object entity, final Map.Entry<Field, ExistingValue> entry, final Field field) {
+    private void checkConcurrentModification(final Object entity, final Map.Entry<Neo4jPersistentProperty, ExistingValue> entry, final Neo4jPersistentProperty property, final MappingPolicy mappingPolicy) {
         final ExistingValue previousValue = entry.getValue();
         if (previousValue.mustCheckConcurrentModification()) {
-            final Object nodeValue = unwrap(delegate.getValue(field));
+            final Object nodeValue = unwrap(delegate.getValue(property, mappingPolicy));
             if (!ObjectUtils.nullSafeEquals(nodeValue, previousValue.value)) {
-                throw new ConcurrentModificationException("Node " + entity + " field " + field + " changed in between previous " + previousValue + " current " + nodeValue); // todo or just overwrite
+                throw new ConcurrentModificationException("Node " + entity + " field " + property + " changed in between previous " + previousValue + " current " + nodeValue); // todo or just overwrite
             }
         }
     }
@@ -251,8 +243,8 @@ public class DetachedEntityState<STATE> implements EntityState<STATE> {
         return !this.dirty.isEmpty();
     }
 
-    private boolean isDirty(final Field f) {
-        return this.dirty.containsKey(f);
+    private boolean isDirty(final Neo4jPersistentProperty property) {
+        return this.dirty.containsKey(property);
     }
 
     private void clearDirty() {
@@ -263,8 +255,8 @@ public class DetachedEntityState<STATE> implements EntityState<STATE> {
         this.dirty.remove(f);
     }
 
-    private void addDirty(final Field f, final Object previousValue, boolean fromGraph) {
-        this.dirty.put(f, new ExistingValue(previousValue,fromGraph));
+    private void addDirty(final Neo4jPersistentProperty property, final Object previousValue, boolean fromGraph) {
+        this.dirty.put(property, new ExistingValue(previousValue,fromGraph));
     }
 
 

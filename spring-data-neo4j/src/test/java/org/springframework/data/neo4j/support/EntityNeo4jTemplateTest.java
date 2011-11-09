@@ -72,7 +72,7 @@ public class EntityNeo4jTemplateTest extends EntityTestBase {
     @Before
     public void setUp() throws Exception {
         createTeam();
-        neo4jOperations = neo4jTemplate;
+        neo4jOperations = template;
     }
 
     @Test @Transactional
@@ -96,14 +96,14 @@ public class EntityNeo4jTemplateTest extends EntityTestBase {
     @Test @Transactional
     public void testGetIndexForType() throws Exception {
         
-        final Index<PropertyContainer> personIndex = neo4jTemplate.getIndex(Person.class);
+        final Index<PropertyContainer> personIndex = template.getIndex(Person.class);
         assertEquals("Person",personIndex.getName());
     }
 
     @Test @Transactional
     public void testGetIndexForName() throws Exception {
         
-        final Index<PropertyContainer> nameIndex = neo4jTemplate.getIndex(Person.NAME_INDEX);
+        final Index<PropertyContainer> nameIndex = template.getIndex(Person.NAME_INDEX);
         assertEquals(Person.NAME_INDEX, nameIndex.getName());
     }
 
@@ -152,7 +152,7 @@ public class EntityNeo4jTemplateTest extends EntityTestBase {
     public void testCreateRelationshipEntityFromStoredType() throws Exception {
         
         final Relationship friendshipRelationship = getRelationshipState(testTeam.friendShip);
-        Friendship found = neo4jTemplate.createEntityFromStoredType(friendshipRelationship);
+        Friendship found = template.createEntityFromStoredType(friendshipRelationship, template.getMappingPolicy(testTeam.michael));
         assertEquals(testTeam.friendShip.getId(),found.getId());
     }
 
@@ -160,7 +160,7 @@ public class EntityNeo4jTemplateTest extends EntityTestBase {
     public void testCreateNodeEntityFromStoredType() throws Exception {
         
         final Node michaelNode = getNodeState(testTeam.michael);
-        Person found = neo4jTemplate.createEntityFromStoredType(michaelNode);
+        Person found = template.createEntityFromStoredType(michaelNode, template.getMappingPolicy(testTeam.michael));
         assertEquals(testTeam.michael.getId(),found.getId());
     }
 
@@ -168,7 +168,7 @@ public class EntityNeo4jTemplateTest extends EntityTestBase {
     public void testCreateEntityFromState() throws Exception {
         
         final PropertyContainer michaelNode = getNodeState(testTeam.michael);
-        Person found = neo4jTemplate.createEntityFromStoredType(michaelNode);
+        Person found = template.createEntityFromStoredType(michaelNode, template.getMappingPolicy(testTeam.michael));
         assertEquals(testTeam.michael.getId(),found.getId());
     }
 
@@ -186,7 +186,7 @@ public class EntityNeo4jTemplateTest extends EntityTestBase {
     @Test @Transactional
     public void testSetPersistentState() throws Exception {
         final Person clone = new Person();
-        neo4jTemplate.setPersistentState(clone, neo4jOperations.getPersistentState(testTeam.david));
+        template.setPersistentState(clone, neo4jOperations.getPersistentState(testTeam.david));
         assertEquals(testTeam.david.getId(), clone.getId());
     }
 
@@ -206,7 +206,7 @@ public class EntityNeo4jTemplateTest extends EntityTestBase {
         final Long id = testTeam.michael.getId();
         new TransactionTemplate(transactionManager).execute(new TransactionCallbackWithoutResult() {
             protected void doInTransactionWithoutResult(TransactionStatus status) {
-                neo4jTemplate.removeNodeEntity(testTeam.michael);
+                template.removeNodeEntity(testTeam.michael);
             }
         });
         assertNull(neo4jOperations.getNode(id));
@@ -217,7 +217,7 @@ public class EntityNeo4jTemplateTest extends EntityTestBase {
         final Long id = testTeam.friendShip.getId();
         new TransactionTemplate(transactionManager).execute(new TransactionCallbackWithoutResult() {
             protected void doInTransactionWithoutResult(TransactionStatus status) {
-                neo4jTemplate.removeRelationshipEntity(testTeam.friendShip);
+                template.removeRelationshipEntity(testTeam.friendShip);
             }
         });
         assertNull(neo4jOperations.getRelationship(id));
@@ -229,22 +229,22 @@ public class EntityNeo4jTemplateTest extends EntityTestBase {
     public void testCreateNodeAs() throws Exception {
         final Person thomas = neo4jOperations.createNodeAs(Person.class, map("name", "Thomas"));
         assertEquals("Thomas",neo4jOperations.getNode(thomas.getId()).getProperty("name"));
-        final Person found = neo4jTemplate.createEntityFromStoredType(getNodeState(thomas));
+        final Person found = template.createEntityFromStoredType(getNodeState(thomas), template.getMappingPolicy(Person.class));
         assertEquals("Thomas",found.getName());
     }
 
     @Test @Transactional
     public void testIsNodeEntity() throws Exception {
-        assertEquals(true,neo4jTemplate.isNodeEntity(Person.class));
-        assertEquals(false,neo4jTemplate.isNodeEntity(Friendship.class));
-        assertEquals(false,neo4jTemplate.isNodeEntity(Object.class));
+        assertEquals(true, template.isNodeEntity(Person.class));
+        assertEquals(false, template.isNodeEntity(Friendship.class));
+        assertEquals(false, template.isNodeEntity(Object.class));
     }
 
     @Test @Transactional
     public void testIsRelationshipEntity() throws Exception {
-        assertEquals(true,neo4jTemplate.isRelationshipEntity(Friendship.class));
-        assertEquals(false,neo4jTemplate.isRelationshipEntity(Person.class));
-        assertEquals(false,neo4jTemplate.isRelationshipEntity(Object.class));
+        assertEquals(true, template.isRelationshipEntity(Friendship.class));
+        assertEquals(false, template.isRelationshipEntity(Person.class));
+        assertEquals(false, template.isRelationshipEntity(Object.class));
     }
 
     @Test @Transactional
@@ -260,11 +260,11 @@ public class EntityNeo4jTemplateTest extends EntityTestBase {
     static abstract class ManagedTestEntity implements ManagedEntity {}
     @Test @Transactional
     public void testIsManaged() throws Exception {
-        assertEquals(true,neo4jTemplate.isManaged(Mockito.mock(ManagedEntity.class)));
-        assertEquals(true,neo4jTemplate.isManaged(Mockito.mock(ManagedTestEntity.class)));
-        assertEquals(false,neo4jTemplate.isManaged(testTeam.michael));
-        assertEquals(false,neo4jTemplate.isManaged(testTeam.friendShip));
-        assertEquals(false,neo4jTemplate.isManaged(new Object()));
+        assertEquals(true, template.isManaged(Mockito.mock(ManagedEntity.class)));
+        assertEquals(true, template.isManaged(Mockito.mock(ManagedTestEntity.class)));
+        assertEquals(false, template.isManaged(testTeam.michael));
+        assertEquals(false, template.isManaged(testTeam.friendShip));
+        assertEquals(false, template.isManaged(new Object()));
     }
 
     @Test @Transactional

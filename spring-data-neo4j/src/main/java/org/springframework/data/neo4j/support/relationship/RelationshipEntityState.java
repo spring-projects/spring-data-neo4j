@@ -24,6 +24,7 @@ import org.neo4j.graphdb.RelationshipType;
 import org.springframework.dao.InvalidDataAccessResourceUsageException;
 import org.springframework.data.neo4j.fieldaccess.DefaultEntityState;
 import org.springframework.data.neo4j.fieldaccess.DelegatingFieldAccessorFactory;
+import org.springframework.data.neo4j.mapping.MappingPolicy;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentEntity;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.mapping.RelationshipProperties;
@@ -38,10 +39,12 @@ import org.springframework.data.neo4j.support.ParameterCheck;
 public class RelationshipEntityState extends DefaultEntityState<Relationship> {
 
     private final Neo4jTemplate template;
-    
+    private MappingPolicy mappingPolicy;
+
     public RelationshipEntityState(final Relationship underlyingState, final Object entity, final Class<? extends Object> type, final Neo4jTemplate template, final DelegatingFieldAccessorFactory delegatingFieldAccessorFactory, Neo4jPersistentEntity<Object> persistentEntity) {
         super(underlyingState, entity, type, delegatingFieldAccessorFactory, persistentEntity);
         this.template = template;
+        this.mappingPolicy = persistentEntity.getMappingPolicy();
     }
 
     @Override
@@ -68,8 +71,8 @@ public class RelationshipEntityState extends DefaultEntityState<Relationship> {
 
     private Relationship createRelationshipFromEntity() {
         final RelationshipProperties relationshipProperties = getPersistentEntity().getRelationshipProperties();
-        final Node startNode = template.getPersistentState(relationshipProperties.getStartNodeProperty().getValue(entity));
-        final Node endNode = template.getPersistentState(relationshipProperties.getEndeNodeProperty().getValue(entity));
+        final Node startNode = template.getPersistentState(relationshipProperties.getStartNodeProperty().getValue(entity, mappingPolicy));
+        final Node endNode = template.getPersistentState(relationshipProperties.getEndNodeProperty().getValue(entity, mappingPolicy));
         final String type = getRelationshipTypeFromEntity(getPersistentEntity());
         ParameterCheck.notNull(startNode,"start node property",endNode,"end node property",type, "relationship type property from field or annotation");
         return template.createRelationshipBetween(startNode, endNode,type,null);
@@ -78,7 +81,7 @@ public class RelationshipEntityState extends DefaultEntityState<Relationship> {
     private String getRelationshipTypeFromEntity(Neo4jPersistentEntity<?> persistentEntity) {
         final RelationshipProperties relationshipProperties = persistentEntity.getRelationshipProperties();
         final Neo4jPersistentProperty typeProperty = relationshipProperties.getTypeProperty();
-        final Object value = typeProperty!=null ? typeProperty.getValue(entity) : null;
+        final Object value = typeProperty!=null ? typeProperty.getValue(entity, mappingPolicy) : null;
         if (value==null) {
             return relationshipProperties.getRelationshipType();
         }

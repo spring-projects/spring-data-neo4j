@@ -23,6 +23,7 @@ import org.springframework.data.neo4j.annotation.EndNode;
 import org.springframework.data.neo4j.annotation.StartNode;
 
 
+import org.springframework.data.neo4j.mapping.MappingPolicy;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
 
@@ -87,18 +88,18 @@ public class RelationshipNodeFieldAccessorFactory implements FieldAccessorFactor
         }
 
         @Override
-        public Object setValue(final Object entity, final Object newVal) {
+        public Object setValue(final Object entity, final Object newVal, MappingPolicy mappingPolicy) {
             throw new InvalidDataAccessApiUsageException("Cannot change start or end node of existing relationship.");
         }
 
         @Override
-        public Object getValue(final Object entity) {
+        public Object getValue(final Object entity, MappingPolicy mappingPolicy) {
             final Relationship relationship = template.getPersistentState(entity);
             final Node node = getNode(relationship);
             if (node == null) {
                 return null;
             }
-            final Object result = template.createEntityFromState(node, (Class<?>) property.getType());
+            final Object result = template.createEntityFromState(node, (Class<?>) property.getType(), mappingPolicy);
             return doReturn(result);
         }
 
@@ -110,7 +111,7 @@ public class RelationshipNodeFieldAccessorFactory implements FieldAccessorFactor
         }
         
 		@Override
-		public Object getDefaultImplementation() {
+		public Object getDefaultValue() {
 			return null;
 		}
     }

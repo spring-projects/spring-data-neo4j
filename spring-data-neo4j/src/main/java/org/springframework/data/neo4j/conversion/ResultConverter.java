@@ -16,17 +16,25 @@
 
 package org.springframework.data.neo4j.conversion;
 
+import org.springframework.data.neo4j.mapping.MappingPolicy;
+
 /**
 * @author mh
 * @since 28.06.11
 */
 public interface ResultConverter<T, R> {
     R convert(T value, Class<R> type);
+    R convert(T value, Class<R> type, MappingPolicy mappingPolicy);
 
-    ResultConverter NO_OP_RESULT_CONVERTER = new ResultConverter() {
+    public class ResultConverterAdapter<T,R> implements ResultConverter<T,R> {
         @Override
-        public Object convert(Object value, Class type) {
+        public R convert(T value, Class<R> type) {
             return null;
+        }
+
+        @Override
+        public R convert(T value, Class<R> type, MappingPolicy mappingPolicy) {
+            return convert(value,type);
         }
     };
 

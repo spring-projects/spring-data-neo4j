@@ -18,6 +18,7 @@ package org.springframework.data.neo4j.support.query;
 
 import org.springframework.core.convert.ConversionService;
 import org.springframework.data.neo4j.conversion.DefaultConverter;
+import org.springframework.data.neo4j.mapping.MappingPolicy;
 
 /**
  * @author mh
@@ -32,7 +33,7 @@ public class ConversionServiceQueryResultConverter<R> extends DefaultConverter<O
 
     @SuppressWarnings("unchecked")
     @Override
-    protected Object doConvert(Object value, Class<?> sourceType, Class type) {
+    protected Object doConvert(Object value, Class<?> sourceType, Class type, MappingPolicy mappingPolicy) {
         if (conversionService.canConvert(sourceType, type)) {
             return conversionService.convert(value, type);
         }

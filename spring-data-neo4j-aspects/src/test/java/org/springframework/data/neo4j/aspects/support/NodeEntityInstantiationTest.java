@@ -20,6 +20,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.neo4j.graphdb.Node;
 import org.springframework.data.neo4j.aspects.Person;
+import org.springframework.data.neo4j.mapping.MappingPolicy;
 import org.springframework.data.neo4j.repository.GraphRepository;
 import org.springframework.test.context.CleanContextCacheTestExecutionListener;
 import org.springframework.test.context.ContextConfiguration;
@@ -47,9 +48,10 @@ public class NodeEntityInstantiationTest extends EntityTestBase {
         long nodeId = getNodeId(p);
 
         Node node = neo4jTemplate.getNode(nodeId);
-        Person person1 = (Person) neo4jTemplate.createEntityFromStoredType(node);
+        final MappingPolicy mappingPolicy = neo4jTemplate.getMappingPolicy(Person.class);
+        Person person1 = (Person) neo4jTemplate.createEntityFromStoredType(node, mappingPolicy);
         assertEquals("Rod", person1.getName());
-        Person person2 = neo4jTemplate.createEntityFromState(node,Person.class);
+        Person person2 = neo4jTemplate.createEntityFromState(node,Person.class, mappingPolicy);
         assertEquals("Rod", person2.getName());
 
         GraphRepository<Person> finder = neo4jTemplate.repositoryFor(Person.class);

@@ -20,6 +20,7 @@ import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.RelationshipType;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 
+import org.springframework.data.neo4j.mapping.MappingPolicy;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.mapping.RelationshipInfo;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
@@ -54,7 +55,7 @@ public class ReadOnlyOneToNRelationshipFieldAccessorFactory extends NodeRelation
 	        return false;
 	    }
 
-	    public Object setValue(final Object entity, final Object newVal) {
+	    public Object setValue(final Object entity, final Object newVal, MappingPolicy mappingPolicy) {
 			throw new InvalidDataAccessApiUsageException("Cannot set read-only relationship entity field.");
 		}
 

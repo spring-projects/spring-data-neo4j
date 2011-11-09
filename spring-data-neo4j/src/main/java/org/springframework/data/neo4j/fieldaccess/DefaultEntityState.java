@@ -19,6 +19,7 @@ package org.springframework.data.neo4j.fieldaccess;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.data.neo4j.core.EntityState;
+import org.springframework.data.neo4j.mapping.MappingPolicy;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentEntity;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 
@@ -33,7 +34,7 @@ import java.util.Map;
  */
 public abstract class DefaultEntityState<STATE> implements EntityState<STATE> {
     protected final Object entity;
-    protected final Class<? extends Object> type;
+    protected final Class<?> type;
     private final Map<Neo4jPersistentProperty, FieldAccessor> fieldAccessors = new HashMap<Neo4jPersistentProperty, FieldAccessor>();
     private final Map<Neo4jPersistentProperty,List<FieldAccessListener>> fieldAccessorListeners = new HashMap<Neo4jPersistentProperty, List<FieldAccessListener>>();
     private STATE state;
@@ -41,7 +42,7 @@ public abstract class DefaultEntityState<STATE> implements EntityState<STATE> {
     private final FieldAccessorFactoryProviders<Object> fieldAccessorFactoryProviders;
     protected final Neo4jPersistentEntity<?> persistentEntity;
 
-    public DefaultEntityState(final STATE underlyingState, final Object entity, final Class<? extends Object> type, final DelegatingFieldAccessorFactory delegatingFieldAccessorFactory, Neo4jPersistentEntity<?> persistentEntity) {
+    public DefaultEntityState(final STATE underlyingState, final Object entity, final Class<?> type, final DelegatingFieldAccessorFactory delegatingFieldAccessorFactory, Neo4jPersistentEntity<?> persistentEntity) {
         this.state = underlyingState;
         this.entity = entity;
         this.type = type;
@@ -83,43 +84,43 @@ public abstract class DefaultEntityState<STATE> implements EntityState<STATE> {
     }
 
     @Override
-    public boolean isWritable(Field field) {
-        final FieldAccessor accessor = accessorFor(property(field));
+    public boolean isWritable(Neo4jPersistentProperty property) {
+        final FieldAccessor accessor = accessorFor(property);
         if (accessor == null) return true;
         return accessor.isWriteable(entity);
     }
 
     @Override
-    public Object getValue(final Neo4jPersistentProperty property) {
+    public Object getValue(final Neo4jPersistentProperty property, MappingPolicy mappingPolicy) {
         final FieldAccessor accessor = accessorFor(property);
         if (accessor == null) return null;
-        else return accessor.getValue(entity);
+        else return accessor.getValue(entity, mappingPolicy);
     }
 
     @Override
-    public Object getValue(final Field field) {
-        return getValue(property(field));
+    public Object getValue(final Field field, MappingPolicy mappingPolicy) {
+        return getValue(property(field), mappingPolicy);
     }
 
     @Override
-    public Object setValue(final Field field, final Object newVal) {
-        return setValue(property(field),newVal);
+    public Object setValue(final Field field, final Object newVal, MappingPolicy mappingPolicy) {
+        return setValue(property(field),newVal, mappingPolicy);
     }
 
     @Override
-    public Object setValue(final Neo4jPersistentProperty property, final Object newVal) {
+    public Object setValue(final Neo4jPersistentProperty property, final Object newVal, MappingPolicy mappingPolicy) {
         final FieldAccessor accessor = accessorFor(property);
-        final Object result=accessor!=null ? accessor.setValue(entity, newVal) : newVal;
+        final Object result=accessor!=null ? accessor.setValue(entity, newVal, mappingPolicy) : newVal;
         notifyListeners(property, result);
         return result;
     }
 
 
 	@Override
-	public Object getDefaultImplementation(Field field) {
-        final FieldAccessor accessor = accessorFor(property(field));
+	public Object getDefaultValue(Neo4jPersistentProperty property) {
+        final FieldAccessor accessor = accessorFor(property);
         if (accessor == null) return null;
-        else return accessor.getDefaultImplementation();
+        else return accessor.getDefaultValue();
 	}
 
     protected Neo4jPersistentProperty property(Field field) {
@@ -140,6 +141,6 @@ public abstract class DefaultEntityState<STATE> implements EntityState<STATE> {
     protected Object getIdFromEntity() {
         final Neo4jPersistentProperty idProperty = fieldAccessorFactoryProviders.getIdProperty();
         if (idProperty==null) return null;
-        return idProperty.getValue(entity);
+        return idProperty.getValue(entity, idProperty.getMappingPolicy());
     }
 }

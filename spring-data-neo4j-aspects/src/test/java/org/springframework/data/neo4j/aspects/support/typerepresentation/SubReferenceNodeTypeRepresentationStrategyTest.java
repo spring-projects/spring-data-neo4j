@@ -202,14 +202,14 @@ public class SubReferenceNodeTypeRepresentationStrategyTest extends EntityTestBa
 	@Test
 	@Transactional
 	public void testCreateEntityAndInferType() throws Exception {
-        Thing newThing = neo4jTemplate.createEntityFromStoredType(node(thing));
+        Thing newThing = neo4jTemplate.createEntityFromStoredType(node(thing), neo4jTemplate.getMappingPolicy(thing));
         assertEquals(thing, newThing);
     }
 
 	@Test
 	@Transactional
 	public void testCreateEntityAndSpecifyType() throws Exception {
-        Thing newThing = neo4jTemplate.createEntityFromState(node(subThing), Thing.class);
+        Thing newThing = neo4jTemplate.createEntityFromState(node(subThing), Thing.class, neo4jTemplate.getMappingPolicy(subThing));
         assertEquals(subThing, newThing);
     }
 

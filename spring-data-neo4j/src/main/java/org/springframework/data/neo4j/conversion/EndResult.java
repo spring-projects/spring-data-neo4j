@@ -24,5 +24,4 @@ public interface EndResult<R> extends Iterable<R> {
     R single();
     R singleOrNull();
     void handle(Handler<R> handler);
-
 }

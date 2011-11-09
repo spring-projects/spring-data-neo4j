@@ -33,7 +33,7 @@ public class Neo4jEntityPersisterTest extends Neo4jPersistentTestBase {
     public void testCreateEntityFromStoredType() throws Exception {
         final Node personNode = template.createNode();
         personNode.setProperty("name","Michael");
-        final Person person = entityPersister.createEntityFromState(personNode, Person.class);
+        final Person person = entityPersister.createEntityFromState(personNode, Person.class, template.getMappingPolicy(Person.class));
         assertEquals("Michael",person.getName());
     }
 
@@ -58,7 +58,7 @@ public class Neo4jEntityPersisterTest extends Neo4jPersistentTestBase {
 
     @Test
     public void testPersist() throws Exception {
-        entityPersister.persist(michael);
+        entityPersister.persist(michael, template.getMappingPolicy(michael));
         assertEquals((Long) michaelNode().getId(), michael.getId());
         assertEquals(michaelNode(), entityPersister.getPersistentState(michael));
         assertEquals(michaelNode().getProperty("name"), michael.getName());

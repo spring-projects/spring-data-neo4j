@@ -64,9 +64,9 @@ public class TopRatedRestaurantFinder {
             }
 
             private RatedRestaurant toRatedRestaurant(final CalculateRatingPredicate calculateRatingPredicate) {
-                final RatedRestaurant ratedRestaurant = new RatedRestaurant(template.createEntityFromState(restaurant, Restaurant.class));
+                final RatedRestaurant ratedRestaurant = new RatedRestaurant(template.load(restaurant, Restaurant.class));
                 for (final Relationship recommendation : recommendations) {
-                    ratedRestaurant.add(template.createEntityFromState(recommendation, Recommendation.class));
+                    ratedRestaurant.add(template.load(recommendation, Recommendation.class));
                 }
                 return ratedRestaurant;
             }

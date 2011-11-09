@@ -20,8 +20,13 @@ import org.neo4j.graphdb.Node;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.neo4j.annotation.Query;
 
+import org.springframework.data.neo4j.annotation.QueryType;
+import org.springframework.data.neo4j.conversion.Result;
+import org.springframework.data.neo4j.mapping.MappingPolicy;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
+import org.springframework.data.neo4j.support.query.QueryEngine;
+import org.springframework.data.util.TypeInformation;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -58,6 +63,7 @@ public class QueryFieldAccessorFactory implements FieldAccessorFactory {
 	    private Class<?> target;
         protected String[] annotationParams;
         private boolean iterableResult;
+        private final QueryEngine<Object> queryEngine;
 
         public QueryFieldAccessor(final Neo4jPersistentProperty property, Neo4jTemplate template) {
 	        this.property = property;
@@ -70,6 +76,7 @@ public class QueryFieldAccessorFactory implements FieldAccessorFactory {
             this.query = query.value();
             this.iterableResult = Iterable.class.isAssignableFrom(property.getType());
             this.target = resolveTarget(query,property);
+            queryEngine = this.template.queryEngineFor(QueryType.Cypher);
         }
 
         private Class<?> resolveTarget(Query query, Neo4jPersistentProperty property) {
@@ -83,17 +90,27 @@ public class QueryFieldAccessorFactory implements FieldAccessorFactory {
 	    }
 
 	    @Override
-	    public Object setValue(final Object entity, final Object newVal) {
+	    public Object setValue(final Object entity, final Object newVal, MappingPolicy mappingPolicy) {
 	        throw new InvalidDataAccessApiUsageException("Cannot set readonly query field " + property);
 	    }
 
 	    @Override
-	    public Object getValue(final Object entity) {
-            return doReturn(executeQuery(entity, this.query, createPlaceholderParams(entity)));
+	    public Object getValue(final Object entity, MappingPolicy mappingPolicy) {
+            return doReturn(executeQuery(entity, this.query, createPlaceholderParams(entity),mappingPolicy));
 	    }
 
-        private Object executeQuery(Object entity, String queryString, Map<String, Object> params) {
-            return template.query(queryString, params, property.getTypeInformation());
+        private Object executeQuery(Object entity, String queryString, Map<String, Object> params, MappingPolicy mappingPolicy) {
+            final TypeInformation<?> typeInformation = property.getTypeInformation();
+            final TypeInformation<?> actualType = typeInformation.getActualType();
+            final Class<?> targetType = actualType.getType();
+            final Result<Object> result = queryEngine.query(queryString, params).with(mappingPolicy);
+            if (actualType.isMap()) {
+                return result;
+            }
+            if (typeInformation.isCollectionLike()) {
+               return result.to(targetType);
+            }
+            return result.to(targetType).single();
         }
 
         private Map<String, Object> createPlaceholderParams(Object entity) {
@@ -108,7 +125,7 @@ public class QueryFieldAccessorFactory implements FieldAccessorFactory {
         }
 
 		@Override
-		public Object getDefaultImplementation() {
+		public Object getDefaultValue() {
 			return null;
 		}
     }

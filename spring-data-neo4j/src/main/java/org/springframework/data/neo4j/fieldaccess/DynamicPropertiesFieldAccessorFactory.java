@@ -15,15 +15,15 @@
  */
 package org.springframework.data.neo4j.fieldaccess;
 
-import java.util.HashSet;
-import java.util.Set;
-
 import org.neo4j.graphdb.PropertyContainer;
 import org.neo4j.helpers.collection.IteratorUtil;
-
+import org.springframework.data.neo4j.mapping.MappingPolicy;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.support.DoReturn;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
+
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * This accessor factory creates {@link DynamicPropertiesFieldAccessor}s for @NodeEntity properties of type
@@ -60,7 +60,7 @@ public class DynamicPropertiesFieldAccessorFactory implements FieldAccessorFacto
         }
 
         @Override
-        public Object setValue(final Object entity, final Object newVal) {
+        public Object setValue(final Object entity, final Object newVal, MappingPolicy mappingPolicy) {
         	final PropertyContainer propertyContainer = template.getPersistentState(entity);
         	PrefixedDynamicProperties dynamicProperties;
             if (newVal instanceof ManagedPrefixedDynamicProperties) {
@@ -106,9 +106,9 @@ public class DynamicPropertiesFieldAccessorFactory implements FieldAccessorFacto
         }
 
         @Override
-        public Object getValue(final Object entity) {
+        public Object getValue(final Object entity, MappingPolicy mappingPolicy) {
             PropertyContainer element = template.getPersistentState(entity);
-            ManagedPrefixedDynamicProperties props = ManagedPrefixedDynamicProperties.create(propertyNamePrefix, field, entity, template,this);
+            ManagedPrefixedDynamicProperties props = ManagedPrefixedDynamicProperties.create(propertyNamePrefix, field, entity, template,this, field.getMappingPolicy());
             for (String key : element.getPropertyKeys()) {
                 props.setPropertyIfPrefixed(key, element.getProperty(key));
             }
@@ -121,7 +121,7 @@ public class DynamicPropertiesFieldAccessorFactory implements FieldAccessorFacto
         }
 
 		@Override
-		public Object getDefaultImplementation() {
+		public Object getDefaultValue() {
 			return new DynamicPropertiesContainer();
 		}
     }

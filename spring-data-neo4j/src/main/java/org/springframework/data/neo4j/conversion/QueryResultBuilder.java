@@ -20,6 +20,7 @@ import org.neo4j.graphdb.index.IndexHits;
 import org.neo4j.helpers.collection.ClosableIterable;
 import org.neo4j.helpers.collection.IteratorUtil;
 import org.neo4j.helpers.collection.IteratorWrapper;
+import org.springframework.data.neo4j.mapping.MappingPolicy;
 
 import java.util.Iterator;
 
@@ -32,6 +33,7 @@ public class QueryResultBuilder<T> implements Result<T> {
     private final ResultConverter defaultConverter;
     private final boolean isClosableIterable;
     private boolean isClosed;
+    private MappingPolicy mappingPolicy;
 
     @SuppressWarnings("unchecked")
     public QueryResultBuilder(Iterable<T> result) {
@@ -74,7 +76,7 @@ public class QueryResultBuilder<T> implements Result<T> {
             public R single() {
                 try {
                     final T value = IteratorUtil.single(result);
-                    return resultConverter.convert(value, type);
+                    return convert(value);
                 } finally {
                     closeIfNeeded();
                 }
@@ -83,17 +85,21 @@ public class QueryResultBuilder<T> implements Result<T> {
             public R singleOrNull() {
                 try {
                     final T value = IteratorUtil.singleOrNull(result);
-                    return resultConverter.convert(value, type);
+                    return convert(value);
                 } finally {
                     closeIfNeeded();
                 }
+            }
+
+            private R convert(T value) {
+                return resultConverter.convert(value, type, mappingPolicy);
             }
 
             @Override
             public void handle(Handler<R> handler) {
                 try {
                     for (T value : result) {
-                        handler.handle(resultConverter.convert(value, type));
+                        handler.handle(convert(value));
                     }
                 } finally {
                     closeIfNeeded();
@@ -104,7 +110,7 @@ public class QueryResultBuilder<T> implements Result<T> {
             public Iterator<R> iterator() {
                 return new IteratorWrapper<R, T>(result.iterator()) {
                     protected R underlyingObjectToObject(T value) {
-                        return resultConverter.convert(value, type);
+                        return convert(value);
                     }
                 };
             }
@@ -137,5 +143,10 @@ public class QueryResultBuilder<T> implements Result<T> {
     @Override
     public Iterator<T> iterator() {
         return result.iterator();
+    }
+
+    public Result<T> with(MappingPolicy mappingPolicy) {
+        this.mappingPolicy = mappingPolicy;
+        return this;
     }
 }

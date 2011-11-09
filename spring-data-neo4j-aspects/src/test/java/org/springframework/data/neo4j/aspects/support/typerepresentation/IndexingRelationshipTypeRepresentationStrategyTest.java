@@ -129,14 +129,14 @@ public class IndexingRelationshipTypeRepresentationStrategyTest extends EntityTe
 	@Test
 	@Transactional
 	public void testCreateEntityAndInferType() throws Exception {
-        Link newLink = neo4jTemplate.createEntityFromStoredType(rel(link));
+        Link newLink = neo4jTemplate.createEntityFromStoredType(rel(link), neo4jTemplate.getMappingPolicy(link));
         assertEquals(link, newLink);
     }
 
 	@Test
 	@Transactional
 	public void testCreateEntityAndSpecifyType() throws Exception {
-        Link newLink = neo4jTemplate.createEntityFromState(rel(link), Link.class);
+        Link newLink = neo4jTemplate.createEntityFromState(rel(link), Link.class, neo4jTemplate.getMappingPolicy(link));
         assertEquals(link, newLink);
     }
 

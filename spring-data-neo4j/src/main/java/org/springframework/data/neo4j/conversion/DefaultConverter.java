@@ -19,6 +19,7 @@ package org.springframework.data.neo4j.conversion;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Path;
 import org.neo4j.graphdb.Relationship;
+import org.springframework.data.neo4j.mapping.MappingPolicy;
 import org.springframework.data.neo4j.support.path.NodePath;
 import org.springframework.data.neo4j.support.path.RelationshipPath;
 
@@ -32,11 +33,14 @@ import java.util.Map;
 public class DefaultConverter<T,R> implements ResultConverter<T,R> {
     @SuppressWarnings("unchecked")
     public R convert(Object value, Class type) {
+        return convert(value,type, null);
+    }
+    public R convert(Object value, Class type, MappingPolicy mappingPolicy) {
         if (value == null || type.isInstance(value)) return (R) value;
         Object singleValue = extractValue(value);
         if (singleValue == null || type.isInstance(singleValue)) return (R) singleValue;
         final Class<?> sourceType = singleValue.getClass();
-        Object result = doConvert(singleValue, sourceType, type);
+        Object result = doConvert(singleValue, sourceType, type,mappingPolicy);
         if (result == null)
             throw new RuntimeException("Cannot automatically convert " + sourceType + " to " + type + " please use a custom converter");
         return (R) result;
@@ -58,7 +62,7 @@ public class DefaultConverter<T,R> implements ResultConverter<T,R> {
     }
 
     @SuppressWarnings("unchecked")
-    protected Object doConvert(Object value, Class<?> sourceType, Class type) {
+    protected Object doConvert(Object value, Class<?> sourceType, Class type, MappingPolicy mappingPolicy) {
         if (Node.class.isAssignableFrom(type)) {
             return toNode(value, sourceType);
         }

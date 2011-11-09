@@ -37,4 +37,6 @@ public interface Neo4jPersistentEntity<T> extends PersistentEntity<T, Neo4jPersi
     Object getPersistentId(Object entity);
 
     RelationshipProperties getRelationshipProperties();
+
+    MappingPolicy getMappingPolicy();
 }

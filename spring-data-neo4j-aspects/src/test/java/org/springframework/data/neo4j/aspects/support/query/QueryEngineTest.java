@@ -116,7 +116,7 @@ public class QueryEngineTest extends EntityTestBase {
     @Test
     public void testQueryListWithCustomConverter() throws Exception {
         final String queryString = "start person=node:name_index(name={name}) match (person) <-[:boss]- (boss) return boss";
-        final Collection<String> result = IteratorUtil.asCollection(queryEngine.query(queryString, michaelsName()).to(String.class, new ResultConverter<Map<String, Object>, String>() {
+        final Collection<String> result = IteratorUtil.asCollection(queryEngine.query(queryString, michaelsName()).to(String.class, new ResultConverter.ResultConverterAdapter<Map<String, Object>, String>() {
             @Override
             public String convert(Map<String, Object> row, Class<String> target) {
                 return (String) ((Node) row.get("boss")).getProperty("name");

@@ -17,6 +17,7 @@
 package org.springframework.data.neo4j.fieldaccess;
 
 import org.springframework.data.neo4j.core.EntityState;
+import org.springframework.data.neo4j.mapping.MappingPolicy;
 import org.springframework.data.neo4j.mapping.ManagedEntity;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.support.DoReturn;
@@ -36,15 +37,17 @@ public class ManagedFieldAccessorSet<T> extends AbstractSet<T> {
 	private final Neo4jPersistentProperty property;
     private final Neo4jTemplate ctx;
     private final FieldAccessor fieldAccessor;
+    private final MappingPolicy mappingPolicy;
 
     @SuppressWarnings("unchecked")
-    public ManagedFieldAccessorSet(final Object entity, final Object newVal, final Neo4jPersistentProperty property, Neo4jTemplate ctx, FieldAccessor fieldAccessor) {
+    public ManagedFieldAccessorSet(final Object entity, final Object newVal, final Neo4jPersistentProperty property, Neo4jTemplate ctx, FieldAccessor fieldAccessor, final MappingPolicy mappingPolicy) {
 		this.entity = entity;
 		this.property = property;
         this.ctx = ctx;
         this.fieldAccessor = fieldAccessor;
         delegate = (Set<T>) newVal;
-	}
+        this.mappingPolicy = mappingPolicy;
+    }
 
 	@Override
 	public Iterator<T> iterator() {
@@ -77,14 +80,14 @@ public class ManagedFieldAccessorSet<T> extends AbstractSet<T> {
     }
 
     private Object updateValueWithState(EntityState entityState) {
-        final Object newValue = entityState.setValue(property, delegate);
+        final Object newValue = entityState.setValue(property, delegate, mappingPolicy);
         if (newValue instanceof DoReturn) return DoReturn.unwrap(newValue);
         property.setValue(entity, newValue);
         return newValue;
     }
 
     private Object updateValue() {
-        final Object newValue = fieldAccessor.setValue(entity,delegate);
+        final Object newValue = fieldAccessor.setValue(entity,delegate, mappingPolicy);
         if (newValue instanceof DoReturn) return DoReturn.unwrap(newValue);
         property.setValue(entity, newValue);
         return newValue;

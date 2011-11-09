@@ -18,6 +18,7 @@ package org.springframework.data.neo4j.fieldaccess;
 
 import org.springframework.beans.factory.annotation.Configurable;
 import org.springframework.core.convert.ConversionService;
+import org.springframework.data.neo4j.mapping.MappingPolicy;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
 
@@ -62,8 +63,8 @@ public class ConvertingNodePropertyFieldAccessorFactory implements FieldAccessor
         }
 
         @Override
-        public Object setValue(final Object entity, final Object newVal) {
-            super.setValue(entity, propertyConverter.serializePropertyValue(newVal,targetType));
+        public Object setValue(final Object entity, final Object newVal, MappingPolicy mappingPolicy) {
+            super.setValue(entity, propertyConverter.serializePropertyValue(newVal,targetType), mappingPolicy);
             return newVal;
         }
 

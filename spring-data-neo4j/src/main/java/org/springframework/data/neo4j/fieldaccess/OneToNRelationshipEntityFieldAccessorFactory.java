@@ -22,10 +22,7 @@ import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.helpers.collection.IteratorUtil;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
-import org.springframework.data.neo4j.mapping.Neo4jPersistentEntity;
-import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
-import org.springframework.data.neo4j.mapping.RelationshipInfo;
-import org.springframework.data.neo4j.mapping.RelationshipProperties;
+import org.springframework.data.neo4j.mapping.*;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
 
 import java.util.HashMap;
@@ -65,7 +62,7 @@ public class OneToNRelationshipEntityFieldAccessorFactory implements FieldAccess
         }
 
 	    @Override
-	    public Object setValue(final Object entity, final Object newVal) {
+	    public Object setValue(final Object entity, final Object newVal, MappingPolicy mappingPolicy) {
 	        if (!isEditableSet) throw new InvalidDataAccessApiUsageException("Cannot set read-only relationship entity field.");
             final Node startNode = checkUnderlyingState(entity);
             if (newVal == null) {
@@ -75,7 +72,7 @@ public class OneToNRelationshipEntityFieldAccessorFactory implements FieldAccess
    	        removeMissingRelationships(startNode, targetNodes.keySet());
    	        //createAddedRelationships(startNode, targetNodes.keySet());
             persistEntities(targetNodes);
-            return createManagedSet(entity, (Set<?>) newVal);
+            return createManagedSet(entity, (Set<?>) newVal, updateMappingPolicy(mappingPolicy));
 	    }
 
         private void persistEntities(Map<Node, Object> targetNodes) {
@@ -95,11 +92,14 @@ public class OneToNRelationshipEntityFieldAccessorFactory implements FieldAccess
                 }
                 Neo4jPersistentEntity relationshipPEntity = property.getRelationshipInfo().getTargetEntity();
                 final RelationshipProperties relationshipProperties = relationshipPEntity.getRelationshipProperties();
-                final Node endNode = getState(relationshipProperties.getEndeNodeProperty().getValue(entry));
+                final Neo4jPersistentProperty endNodeProperty = relationshipProperties.getEndNodeProperty();
+                final Object endNodeEntity = endNodeProperty.getValue(entry, endNodeProperty.getMappingPolicy());
+                final Node endNode = getState(endNodeEntity);
                 if (!endNode.equals(startNode)) {
                     targetNodes.put(endNode, entry);
                 } else {
-                    final Node otherNode = getState(relationshipProperties.getStartNodeProperty().getValue(entry));
+                    final Neo4jPersistentProperty startNodeProperty = relationshipProperties.getStartNodeProperty();
+                    final Node otherNode = getState(startNodeProperty.getValue(entry, startNodeProperty.getMappingPolicy()));
                     targetNodes.put(otherNode, entry);
                 }
             }
@@ -112,11 +112,11 @@ public class OneToNRelationshipEntityFieldAccessorFactory implements FieldAccess
 	    }
 
 	    @Override
-	    public Object getValue(final Object entity) {
+	    public Object getValue(final Object entity, MappingPolicy mappingPolicy) {
 	        checkUnderlyingState(entity);
             final GraphBackedEntityIterableWrapper<Relationship, ?> result = iterableFrom(entity);
             if (isEditableSet) {
-                @SuppressWarnings("unchecked") final ManagedFieldAccessorSet managedSet = createManagedSet(entity, IteratorUtil.addToCollection(result, new HashSet()));
+                @SuppressWarnings("unchecked") final ManagedFieldAccessorSet managedSet = createManagedSet(entity, IteratorUtil.addToCollection(result, new HashSet()), updateMappingPolicy(mappingPolicy));
                 return doReturn(managedSet);
             }
             return doReturn(result);

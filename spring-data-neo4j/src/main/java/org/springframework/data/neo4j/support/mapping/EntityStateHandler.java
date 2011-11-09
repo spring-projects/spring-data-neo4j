@@ -17,9 +17,7 @@ package org.springframework.data.neo4j.support.mapping;
 
 import org.neo4j.graphdb.*;
 import org.springframework.data.neo4j.core.GraphDatabase;
-import org.springframework.data.neo4j.mapping.ManagedEntity;
-import org.springframework.data.neo4j.mapping.RelationshipResult;
-import org.springframework.data.neo4j.mapping.RelationshipProperties;
+import org.springframework.data.neo4j.mapping.*;
 
 /**
  * @author mh
@@ -110,6 +108,8 @@ public class EntityStateHandler {
         if (containedState != null) return containedState;
         final Class<?> type = entity.getClass();
         final Neo4jPersistentEntityImpl<?> persistentEntity = mappingContext.getPersistentEntity(type);
+        final MappingPolicy mappingPolicy = persistentEntity.getMappingPolicy();
+        // todo observer load policy
         if (persistentEntity.isNodeEntity()) {
             return (S) graphDatabase.createNode(null);
         }
@@ -122,9 +122,12 @@ public class EntityStateHandler {
     @SuppressWarnings("unchecked")
     private <S extends PropertyContainer> S createRelationship(Object entity, Neo4jPersistentEntityImpl<?> persistentEntity) {
         final RelationshipProperties relationshipProperties = persistentEntity.getRelationshipProperties();
-        Node startNode = (Node) getPersistentState(relationshipProperties.getStartNodeProperty().getValue(entity));
-        Node endNode = (Node) getPersistentState(relationshipProperties.getEndeNodeProperty().getValue(entity));
-        Object relType = relationshipProperties.getTypeProperty().getValue(entity);
+        final Neo4jPersistentProperty startNodeProperty = relationshipProperties.getStartNodeProperty();
+        Node startNode = (Node) getPersistentState(startNodeProperty.getValue(entity, startNodeProperty.getMappingPolicy()));
+        final Neo4jPersistentProperty endNodeProperty = relationshipProperties.getEndNodeProperty();
+        Node endNode = (Node) getPersistentState(endNodeProperty.getValue(entity, endNodeProperty.getMappingPolicy()));
+        final Neo4jPersistentProperty typeProperty = relationshipProperties.getTypeProperty();
+        Object relType = typeProperty.getValue(entity, typeProperty.getMappingPolicy());
         if (relType instanceof RelationshipType) {
             return (S) startNode.createRelationshipTo(endNode, (RelationshipType) relType);
         }

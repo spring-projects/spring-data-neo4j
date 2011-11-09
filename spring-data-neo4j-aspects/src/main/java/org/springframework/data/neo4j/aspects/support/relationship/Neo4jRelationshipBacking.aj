@@ -160,14 +160,14 @@ public aspect Neo4jRelationshipBacking {
 
     Object around(RelationshipBacked entity): entityFieldGet(entity) {
         if (entity.entityState == null) return proceed(entity);
-        Object result = entity.entityState.getValue(field(thisJoinPoint));
+        Object result = entity.entityState.getValue(field(thisJoinPoint),null);
         if (result instanceof DoReturn) return unwrap(result);
         return proceed(entity);
     }
 
     Object around(RelationshipBacked entity, Object newVal) : entityFieldSet(entity, newVal) {
         if (entity.entityState == null) return proceed(entity,newVal);
-        Object result=entity.entityState.setValue(field(thisJoinPoint),newVal);
+        Object result=entity.entityState.setValue(field(thisJoinPoint),newVal,null);
         if (result instanceof DoReturn) return unwrap(result);
         return proceed(entity,result);
 	}

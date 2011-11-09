@@ -325,28 +325,28 @@ public class FullNeo4jTemplateTest {
         assertEquals("rel2", relationship.getProperty("name", "not set"));
     }
 
-    private static class PathRelationshipNameMapper implements ResultConverter<Path, String> {
+    private static class PathRelationshipNameMapper extends ResultConverter.ResultConverterAdapter<Path, String> {
         @Override
         public String convert(Path path, Class<String> type) {
             return (String) path.lastRelationship().getProperty("name", "not set");
         }
     }
 
-    private static class PathNodeNameMapper implements ResultConverter<Path, String> {
+    private static class PathNodeNameMapper extends ResultConverter.ResultConverterAdapter<Path, String> {
         @Override
         public String convert(Path path, Class<String> type) {
             return (String) path.endNode().getProperty("name", "not set");
         }
     }
 
-    private static class RelationshipNameConverter implements ResultConverter<Relationship, String> {
+    private static class RelationshipNameConverter extends ResultConverter.ResultConverterAdapter<Relationship, String> {
         @Override
         public String convert(Relationship value, Class<String> type) {
             return (String) value.getProperty("name");
         }
     }
 
-    private static class PropertyContainerNameConverter implements ResultConverter<PropertyContainer, String> {
+    private static class PropertyContainerNameConverter extends ResultConverter.ResultConverterAdapter<PropertyContainer, String> {
         @Override
         public String convert(PropertyContainer value, Class<String> type) {
             return (String) value.getProperty("name");

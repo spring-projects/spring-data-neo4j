@@ -21,7 +21,6 @@ import org.neo4j.graphdb.Relationship;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.data.mapping.context.MappingContext;
 import org.springframework.data.neo4j.mapping.*;
-import org.springframework.data.neo4j.mapping.ManagedEntity;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -48,14 +47,40 @@ public class Neo4jEntityPersister implements EntityPersister, Neo4jEntityConvert
 
     }
 
-    public <S extends PropertyContainer, T> T createEntityFromStoredType(S state) {
-        return createEntityFromState(state,null);
+    public <S extends PropertyContainer, T> T createEntityFromStoredType(S state, MappingPolicy mappingPolicy) {
+        return createEntityFromState(state,null, mappingPolicy);
     }
 
 
     static class StackedEntityCache {
+        private static class Entry {
+            PropertyContainer state;
+            //MappingPolicy mappingPolicy;
+
+            Entry(PropertyContainer state, MappingPolicy mappingPolicy) {
+//                ParameterCheck.notNull(state, "state",mappingPolicy,"mappingPolicy");
+            //    this.mappingPolicy = mappingPolicy;
+                this.state = state;
+            }
+
+            @Override
+            public boolean equals(Object o) {
+                if (this == o) return true;
+                if (o == null || getClass() != o.getClass()) return false;
+
+                Entry entry = (Entry) o;
+                // mappingPolicy.equals(entry.mappingPolicy) &&
+                return state.equals(entry.state);
+
+            }
+
+            @Override
+            public int hashCode() {
+                return 31 * state.hashCode(); //+ mappingPolicy.hashCode();
+            }
+        }
         private long depth;
-        private final Map<PropertyContainer,Object> objects =new HashMap<PropertyContainer, Object>();
+        private final Map<Entry,Object> objects =new HashMap<Entry,Object>();
         private static ThreadLocal<StackedEntityCache> stackedEntityCache = new ThreadLocal<StackedEntityCache>() {
             @Override
             protected StackedEntityCache initialValue() {
@@ -72,11 +97,11 @@ public class Neo4jEntityPersister implements EntityPersister, Neo4jEntityConvert
             }
         }
         @SuppressWarnings("unchecked")
-        public static <T> T get(PropertyContainer state) {
-            return (T) cache().objects.get(state);
+        public static <T> T get(PropertyContainer state, MappingPolicy mappingPolicy) {
+            return (T) cache().objects.get(new Entry(state, mappingPolicy));
         }
-        public static <T> T add(PropertyContainer state, T value) {
-            cache().objects.put(state, value);
+        public static <T> T add(PropertyContainer state, T value, MappingPolicy mappingPolicy) {
+            cache().objects.put(new Entry(state, mappingPolicy), value);
             return value;
         }
 
@@ -84,8 +109,8 @@ public class Neo4jEntityPersister implements EntityPersister, Neo4jEntityConvert
             return stackedEntityCache.get();
         }
 
-        public static boolean contains(PropertyContainer state) {
-            return cache().objects.containsKey(state);
+        public static boolean contains(PropertyContainer state, MappingPolicy mappingPolicy) {
+            return cache().objects.containsKey(new Entry(state,mappingPolicy));
         }
     }
     public static class CachedInstantiator<S extends PropertyContainer> implements EntityInstantiator<S> {
@@ -96,12 +121,13 @@ public class Neo4jEntityPersister implements EntityPersister, Neo4jEntityConvert
         }
 
         @Override
-        public <T> T createEntityFromState(S state, Class<T> type) {
+        public <T> T createEntityFromState(S state, Class<T> type, final MappingPolicy mappingPolicy) {
             try {
                 if (state==null) throw new IllegalArgumentException("State must not be null");
                 StackedEntityCache.push();
-                if (StackedEntityCache.contains(state)) return StackedEntityCache.get(state);
-                return StackedEntityCache.add(state, delegate.createEntityFromState(state, type));
+                if (StackedEntityCache.contains(state, mappingPolicy)) return StackedEntityCache.get(state, mappingPolicy);
+                final T newInstance = delegate.createEntityFromState(state, type, mappingPolicy);
+                return StackedEntityCache.add(state, newInstance, mappingPolicy);
             } finally {
                 StackedEntityCache.pop();
             }
@@ -125,31 +151,33 @@ public class Neo4jEntityPersister implements EntityPersister, Neo4jEntityConvert
         }
 
         @Override
-        public <R> R read(Class<R> type, S state) {
+        public <R> R read(Class<R> type, S state, MappingPolicy mappingPolicy) {
             try {
                 if (state==null) throw new IllegalArgumentException("State must not be null");
                 StackedEntityCache.push();
-                if (StackedEntityCache.contains(state)) return StackedEntityCache.get(state);
-                return StackedEntityCache.add(state, delegate.read(type, state));
+                if (StackedEntityCache.contains(state, mappingPolicy)) return StackedEntityCache.get(state,mappingPolicy);
+                return StackedEntityCache.add(state, delegate.read(type, state,mappingPolicy),mappingPolicy);
             } finally {
                 StackedEntityCache.pop();
             }
         }
 
         @Override
-        public void write(Object source, S sink) {
-            delegate.write(source,sink);
+        public void write(Object source, S sink,MappingPolicy mappingPolicy) {
+            delegate.write(source,sink,mappingPolicy);
         }
     }
 
     @SuppressWarnings("unchecked")
-    public <S extends PropertyContainer, T> T createEntityFromState(S state, Class<T> type) {
-        if (state == null) throw new IllegalArgumentException("state has to be either a Node or Relationship");
+    public <S extends PropertyContainer, T> T createEntityFromState(S state, Class<T> type, MappingPolicy mappingPolicy) {
+        if (state == null) {
+            throw new IllegalArgumentException("state has to be either a Node or Relationship, but is null");
+        }
         if (isNode(state)) {
-            return nodeConverter.read(type, (Node) state);
+            return nodeConverter.read(type, (Node) state,mappingPolicy);
         }
         if (isRelationship(state)) {
-            return relationshipConverter.read(type, (Relationship) state);
+            return relationshipConverter.read(type, (Relationship) state,mappingPolicy);
         }
         throw new IllegalArgumentException("state has to be either a Node or Relationship");
     }
@@ -163,8 +191,13 @@ public class Neo4jEntityPersister implements EntityPersister, Neo4jEntityConvert
     }
 
     public <T> T projectTo(Object entity, Class<T> targetType) {
+        return projectTo(entity,targetType,getMappingPolicy(targetType));
+    }
+
+    public <T> T projectTo(Object entity, Class<T> targetType, MappingPolicy mappingPolicy) {
         PropertyContainer state = getPersistentState(entity);
-        return createEntityFromState(state, targetType);
+        final MappingPolicy newPolicy = mappingPolicy == null ? getMappingPolicy(targetType) : mappingPolicy;
+        return createEntityFromState(state, targetType, newPolicy);
     }
 
     @SuppressWarnings("unchecked")
@@ -173,12 +206,12 @@ public class Neo4jEntityPersister implements EntityPersister, Neo4jEntityConvert
     }
 
 
-    public Object persist(Object entity) {
+    public Object persist(Object entity, final MappingPolicy mappingPolicy) {
         final Class<?> type = entity.getClass();
         if (isManaged(entity)) {
             return ((ManagedEntity)entity).persist();
         } else {
-            return persist(entity, type);
+            return persist(entity, type, mappingPolicy);
         }
     }
 
@@ -186,22 +219,33 @@ public class Neo4jEntityPersister implements EntityPersister, Neo4jEntityConvert
         return entityStateHandler.isManaged(entity);
     }
 
-    private Object persist(Object entity, Class<?> type) {
+    private Object persist(Object entity, Class<?> type,MappingPolicy mappingPolicy) {
         if (isNodeEntity(type)) {
             final Node node = this.<Node>getPersistentState(entity);
-            this.nodeConverter.write(entity, node);
-            return entity; // TODO ?
+            this.nodeConverter.write(entity, node,mappingPolicy);
+            return createEntityFromState(getPersistentState(entity),type, getMappingPolicy(type));
+            //return entity; // TODO ?
         }
         if (isRelationshipEntity(type)) {
             final Relationship relationship = this.<Relationship>getPersistentState(entity);
-            this.relationshipConverter.write(entity, relationship);
-            return entity; // TODO ?
+            this.relationshipConverter.write(entity, relationship,mappingPolicy);
+            return createEntityFromState(getPersistentState(entity),type, getMappingPolicy(type));
+//            return entity; // TODO ?
         }
         throw new IllegalArgumentException("@NodeEntity or @RelationshipEntity annotation required on domain class"+type);
     }
 
     public boolean isNodeEntity(Class<?> targetType) {
         return mappingContext.isNodeEntity(targetType);
+    }
+
+    @Override
+    public MappingPolicy getMappingPolicy(Class<?> targetType) {
+        return getPersistentEntity(targetType).getMappingPolicy();
+    }
+
+    private Neo4jPersistentEntityImpl<?> getPersistentEntity(Class<?> targetType) {
+        return mappingContext.getPersistentEntity(targetType);
     }
 
     public boolean isRelationshipEntity(Class targetType) {
@@ -223,13 +267,13 @@ public class Neo4jEntityPersister implements EntityPersister, Neo4jEntityConvert
     }
 
     @Override
-    public <R> R read(Class<R> type, Node source) {
-        return createEntityFromState(source, type);
+    public <R> R read(Class<R> type, Node source, MappingPolicy mappingPolicy) {
+        return createEntityFromState(source, type, mappingPolicy);
     }
 
     @Override
-    public void write(Object source, Node sink) {
-        nodeConverter.write(source,sink);
+    public void write(Object source, Node sink, MappingPolicy mappingPolicy) {
+        nodeConverter.write(source,sink,mappingPolicy);
     }
 }
 

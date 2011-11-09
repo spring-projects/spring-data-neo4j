@@ -23,10 +23,7 @@ import org.springframework.data.mapping.Association;
 import org.springframework.data.mapping.model.BasicPersistentEntity;
 import org.springframework.data.mapping.model.MappingException;
 import org.springframework.data.neo4j.annotation.*;
-import org.springframework.data.neo4j.mapping.ManagedEntity;
-import org.springframework.data.neo4j.mapping.Neo4jPersistentEntity;
-import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
-import org.springframework.data.neo4j.mapping.RelationshipProperties;
+import org.springframework.data.neo4j.mapping.*;
 import org.springframework.data.util.TypeInformation;
 
 import java.lang.annotation.Annotation;
@@ -115,7 +112,7 @@ public class Neo4jPersistentEntityImpl<T> extends BasicPersistentEntity<T, Neo4j
     public Object getPersistentId(Object entity) {
         final Neo4jPersistentProperty idProperty = getIdProperty();
         if (idProperty==null) throw new MappingException("No field annotated with @GraphId found in "+ getEntityName());
-        return idProperty.getValue(entity);
+        return idProperty.getValue(entity, idProperty.getMappingPolicy());
     }
 
     @Override
@@ -157,7 +154,7 @@ public class Neo4jPersistentEntityImpl<T> extends BasicPersistentEntity<T, Neo4j
     }
 
     @Override
-    public Neo4jPersistentProperty getEndeNodeProperty() {
+    public Neo4jPersistentProperty getEndNodeProperty() {
         return endNodeProperty;
     }
 
@@ -176,5 +173,10 @@ public class Neo4jPersistentEntityImpl<T> extends BasicPersistentEntity<T, Neo4j
     @Override
     public String toString() {
         return String.format("%s %smanaged @%sEntity Annotations: %s", getType(), isManaged() ? "" : "un", isNodeEntity() ? "Node" : "Relationship", annotations.keySet());
+    }
+
+    @Override
+    public MappingPolicy getMappingPolicy() {
+        return MappingPolicy.LOAD_POLICY;
     }
 }

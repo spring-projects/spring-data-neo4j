@@ -19,6 +19,7 @@ package org.springframework.data.neo4j.fieldaccess;
 import org.neo4j.graphdb.*;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 
+import org.springframework.data.neo4j.mapping.MappingPolicy;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
 import org.springframework.util.Assert;
@@ -43,6 +44,11 @@ public abstract class AbstractNodeRelationshipFieldAccessor<STATE extends Proper
         this.direction = direction;
         this.type = type;
         this.property = property;
+    }
+
+    protected MappingPolicy updateMappingPolicy(MappingPolicy mappingPolicy) {
+        if (mappingPolicy !=null) return mappingPolicy;
+        return property.getMappingPolicy();
     }
 
     @Override
@@ -94,15 +100,15 @@ public abstract class AbstractNodeRelationshipFieldAccessor<STATE extends Proper
         return newState;
     }
 
-    protected <T> ManagedFieldAccessorSet<T> createManagedSet(Object entity, Set<T> result) {
-        return new ManagedFieldAccessorSet<T>(entity, result, property, template,this);
+    protected <T> ManagedFieldAccessorSet<T> createManagedSet(Object entity, Set<T> result, MappingPolicy mappingPolicy) {
+        return new ManagedFieldAccessorSet<T>(entity, result, property, template,this, mappingPolicy);
     }
 
-    protected Set<Object> createEntitySetFromRelationshipEndNodes(Object entity) {
+    protected Set<Object> createEntitySetFromRelationshipEndNodes(Object entity, final MappingPolicy mappingPolicy) {
         final Iterable<TSTATE> nodes = getStatesFromEntity(entity);
         final Set<Object> result = new HashSet<Object>();
         for (final TSTATE otherNode : nodes) {
-            Object target= template.createEntityFromState(otherNode, relatedType);
+            Object target= template.createEntityFromState(otherNode, relatedType, mappingPolicy);
             result.add(target);
 		}
         return result;
@@ -125,7 +131,7 @@ public abstract class AbstractNodeRelationshipFieldAccessor<STATE extends Proper
         }
     }
 
-	public Object getDefaultImplementation() {
+	public Object getDefaultValue() {
         return null;
 	}
 	

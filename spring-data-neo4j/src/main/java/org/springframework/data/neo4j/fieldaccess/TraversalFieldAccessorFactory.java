@@ -25,6 +25,7 @@ import org.springframework.data.neo4j.annotation.GraphTraversal;
 import org.springframework.data.neo4j.core.FieldTraversalDescriptionBuilder;
 
 
+import org.springframework.data.neo4j.mapping.MappingPolicy;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
 
@@ -97,12 +98,12 @@ public class TraversalFieldAccessorFactory implements FieldAccessorFactory {
 	    }
 
 	    @Override
-	    public Object setValue(final Object entity, final Object newVal) {
+	    public Object setValue(final Object entity, final Object newVal, MappingPolicy mappingPolicy) {
 	        throw new InvalidDataAccessApiUsageException("Cannot set readonly traversal description field " + property);
 	    }
 
 	    @Override
-	    public Object getValue(final Object entity) {
+	    public Object getValue(final Object entity, MappingPolicy mappingPolicy) {
 	        final TraversalDescription traversalDescription = fieldTraversalDescriptionBuilder.build(entity, property,params);
             return doReturn(template.traverse(entity, target, traversalDescription));
 	    }
@@ -120,7 +121,7 @@ public class TraversalFieldAccessorFactory implements FieldAccessorFactory {
 	    }
 
 		@Override
-		public Object getDefaultImplementation() {
+		public Object getDefaultValue() {
 			return null;
 		}
 

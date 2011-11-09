@@ -83,7 +83,7 @@ public class SnippetNeo4jTemplateMethodsTest extends DocumentingTestBase {
         assertEquals(thomas, neo.lookup("devs", "name", "Thomas").to(Node.class).single());
 
         // Index lookup with Result Converter
-        assertEquals("Thomas", neo.lookup("devs", "name", "Thomas").to(String.class, new ResultConverter<PropertyContainer, String>() {
+        assertEquals("Thomas", neo.lookup("devs", "name", "Thomas").to(String.class, new ResultConverter.ResultConverterAdapter<PropertyContainer, String>() {
             public String convert(PropertyContainer element, Class<String> type) {
                 return (String) element.getProperty("name");
             }

@@ -47,5 +47,4 @@ class SpringEndResult<R> implements EndResult<R> {
     public Iterator<R> iterator() {
         return result.iterator();
     }
-
 }
