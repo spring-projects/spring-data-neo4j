@@ -1,11 +1,8 @@
 package org.neo4j.cineasts.controller;
 
-import org.neo4j.cineasts.domain.Movie;
-import org.neo4j.cineasts.domain.Person;
-import org.neo4j.cineasts.domain.Rating;
-import org.neo4j.cineasts.domain.User;
+import org.neo4j.cineasts.domain.*;
 import org.neo4j.cineasts.repository.MovieRepository;
-import org.neo4j.cineasts.repository.PersonRepository;
+import org.neo4j.cineasts.repository.ActorRepository;
 import org.neo4j.cineasts.repository.UserRepository;
 import org.neo4j.cineasts.service.DatabasePopulator;
 import org.neo4j.helpers.collection.IteratorUtil;
@@ -32,7 +29,7 @@ public class MovieController {
     @Autowired
     private MovieRepository movieRepository;
     @Autowired
-    private PersonRepository personRepository;
+    private ActorRepository actorRepository;
     @Autowired
     private UserRepository userRepository;
     @Autowired
@@ -103,10 +100,10 @@ public class MovieController {
 
     @RequestMapping(value = "/actors/{id}", method = RequestMethod.GET, headers = "Accept=text/html")
     public String singleActorView(Model model, @PathVariable String id) {
-        Person person = personRepository.findById(id);
-        model.addAttribute("actor", person);
+        Actor actor = actorRepository.findById(id);
+        model.addAttribute("actor", actor);
         model.addAttribute("id", id);
-        model.addAttribute("roles",  IteratorUtil.asCollection(person.getRoles()));
+        model.addAttribute("roles",  IteratorUtil.asCollection(actor.getRoles()));
         addUser(model);
         return "/actors/show";
     }

@@ -26,12 +26,12 @@ public class Person {
     private Date lastModified;
     private String profileImageUrl;
 
-    public Person(String id, String name) {
+    protected Person(String id, String name) {
         this.id = id;
         this.name = name;
     }
 
-    public Person() {
+    protected Person() {
     }
 
     public String getId() {
@@ -97,30 +97,6 @@ public class Person {
 
     public String getProfileImageUrl() {
         return profileImageUrl;
-    }
-
-    @RelatedTo(elementClass = Movie.class, type = "DIRECTED")
-    private Set<Movie> directedMovies=new HashSet<Movie>();
-
-    public Set<Movie> getDirectedMovies() {
-        return directedMovies;
-    }
-
-    public void directed(Movie movie) {
-        this.directedMovies.add(movie);
-    }
-
-    @RelatedToVia(elementClass = Role.class, type = "ACTS_IN")
-    Iterable<Role> roles;
-
-    public Iterable<Role> getRoles() {
-        return roles;
-    }
-
-    public Role playedIn(Neo4jOperations template,Movie movie, String roleName) {
-        Role role = template.createRelationshipBetween(this, movie, Role.class, "ACTS_IN",false);
-        role.setName(roleName);
-        return template.save(role);
     }
 
     @Override

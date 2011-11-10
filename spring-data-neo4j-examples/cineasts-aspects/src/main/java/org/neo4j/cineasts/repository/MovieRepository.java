@@ -20,7 +20,7 @@ public interface MovieRepository extends GraphRepository<Movie>, NamedIndexRepos
 
     Page<Movie> findByTitleLike(String title, Pageable page);
 
-    @Query("start user=node({_0}) " +
+    @Query("start user=node({0}) " +
             " match user-[r:RATED]->movie<-[r2:RATED]-other-[r3:RATED]->otherMovie " +
             " where r.stars >= 3 and r2.stars >= 3 and r3.stars >= 3 " +
             " return otherMovie, avg(r3.stars) " +

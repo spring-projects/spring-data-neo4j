@@ -2,6 +2,7 @@ package org.neo4j.cineasts.movieimport;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.neo4j.cineasts.domain.Actor;
 import org.neo4j.cineasts.domain.Movie;
 import org.neo4j.cineasts.domain.Person;
 import org.neo4j.cineasts.repository.MovieRepository;
@@ -44,7 +45,7 @@ public class MovieDbImportServiceTest {
 
     @Test
     public void testImportPerson() throws Exception {
-        Person actor = importService.importPerson("105955");
+        Person actor = importService.importPerson("105955", new Actor("105955",null));
         assertEquals("movie-id","105955", actor.getId());
         assertEquals("movie-title","George M. Williamson", actor.getName());
     }

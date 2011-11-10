@@ -4,7 +4,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.neo4j.cineasts.repository.MovieRepository;
-import org.neo4j.cineasts.repository.PersonRepository;
+import org.neo4j.cineasts.repository.ActorRepository;
 import org.neo4j.cineasts.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.neo4j.template.Neo4jOperations;
@@ -31,7 +31,8 @@ public class DomainTest {
     protected UserRepository userRepository;
 
     @Autowired Neo4jOperations template;
-    @Autowired PersonRepository personRepository;
+    @Autowired
+    ActorRepository actorRepository;
 
     @Before
     public void setUp() throws Exception {
@@ -39,10 +40,11 @@ public class DomainTest {
 
     @Test
     public void actorCanPlayARoleInAMovie() {
-        Person tomHanks = template.save(new Person("1", "Tom Hanks"));
+        Actor tomHanks = template.save(new Actor("1", "Tom Hanks"));
         Movie forestGump = template.save(new Movie("1", "Forrest Gump"));
 
-        Role role = tomHanks.playedIn(template, forestGump, "Forrest");
+        Role role = tomHanks.playedIn(forestGump, "Forrest");
+        template.save(role);
 
         Movie foundForestGump = this.movieRepository.findById("1");
 

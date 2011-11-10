@@ -1,10 +1,9 @@
 package org.neo4j.cineasts.movieimport;
 
-import org.neo4j.cineasts.domain.Movie;
-import org.neo4j.cineasts.domain.Person;
-import org.neo4j.cineasts.domain.Roles;
+import org.neo4j.cineasts.domain.*;
+import org.neo4j.cineasts.repository.DirectorRepository;
 import org.neo4j.cineasts.repository.MovieRepository;
-import org.neo4j.cineasts.repository.PersonRepository;
+import org.neo4j.cineasts.repository.ActorRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,7 +24,9 @@ public class MovieDbImportService {
     @Autowired
     private MovieRepository movieRepository;
     @Autowired
-    private PersonRepository personRepository;
+    private ActorRepository actorRepository;
+    @Autowired
+    private DirectorRepository directorRepository;
 
     @Autowired
     private MovieDbApiClient client;
@@ -96,32 +97,34 @@ public class MovieDbImportService {
                 if (logger.isInfoEnabled()) logger.info("Could not add person with job "+jobName+" "+entry);
                 continue;
             }
-            Person person = doImportPerson(id);
             switch (job) {
                 case DIRECTED:
-                    person.directed(movie);
+                    final Director director = doImportPerson(id, new Director(id));
+                    director.directed(movie);
+                    directorRepository.save(director);
                     break;
                 case ACTS_IN:
-                    person.playedIn(template,movie, (String) entry.get("character"));
+                    final Actor actor = doImportPerson(id, new Actor(id));
+                    actor.playedIn(movie, (String) entry.get("character"));
+                    actorRepository.save(actor);
                     break;
             }
         }
     }
 
     @Transactional
-    public Person importPerson(String personId) {
-        return doImportPerson(personId);
+    public <T extends Person> T importPerson(String personId, T person) {
+        return doImportPerson(personId,person);
     }
 
-    private Person doImportPerson(String personId) {
+    private <T extends Person> T doImportPerson(String personId, T newPerson) {
         logger.debug("Importing person " + personId);
-        Person person = personRepository.findById(personId);
-        if (person!=null) return person;
+        Person person = template.lookup(Person.class,"id",personId).to(Person.class).singleOrNull();
+        if (person!=null) return (T)person;
         Map data = loadPersonData(personId);
         if (data.containsKey("not_found")) throw new RuntimeException("Data for Person "+personId+" not found.");
-        Person newPerson=new Person(personId,null);
         movieDbJsonMapper.mapToPerson(data, newPerson);
-        return personRepository.save(newPerson);
+        return template.save(newPerson);
     }
 
     private Map loadPersonData(String personId) {
