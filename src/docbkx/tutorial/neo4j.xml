@@ -10,12 +10,13 @@
         The Neo4j data model consists of nodes and relationships, both of which can have key/value-style
         properties. Relationships are first-class citizens in Neo4j, meaning we can link together nodes
         into semantically rich networks. This really appealed to us. Then we found that we were also able to
-        <ulink url="http://docs.neo4j.org/chunked/snapshot/indexing.html">index nodes and relationships</ulink>
+        <ulink url="http://docs.neo4j.org/chunked/milestone/indexing.html">index nodes and relationships</ulink>
         by {key, value} pairs. We also found that we could traverse relationships both imperatively using
         the core API, and declaratively using a query-like
-        <ulink url="http://wiki.neo4j.org/content/Traversal_Framework">Traversal Description</ulink>. Besides
-        those programmatic traversals there was the new and shiny query language called "Cypher" and an interesting
-        looking DSL named Gremlin. So lots of ways of working with the graph.
+        <ulink url="http://docs.neo4j.org/chunked/milestone/tutorials-java-embedded-traversal.html">Traversal Description</ulink>. Besides
+        those programmatic traversals there was the powerful graph query language called
+        <ulink url="http://docs.neo4j.org/chunked/milestone/cypher-query-lang.html">Cypher</ulink> and an interesting
+        looking DSL named <ulink url="https://github.com/tinkerpop/gremlin/wiki">Gremlin</ulink>. So lots of ways of working with the graph.
     </para>
     <para>
         We also learned that Neo4j is fully transactional and therefore upholds
@@ -36,7 +37,7 @@
             <programlisting language="xml" ><![CDATA[<dependency>
     <groupId>org.neo4j</groupId>
     <artifactId>neo4j</artifactId>
-    <version>1.5.M02</version>
+    <version>1.5</version>
 </dependency>
 ]]></programlisting>
         </example>

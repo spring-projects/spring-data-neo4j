@@ -9,77 +9,24 @@
         classes clean. Spring Data Neo4j promised to do the heavy lifting for us, so we continued investigating it.
     </para>
     <para>
-        One of the mapping modes of Spring Data Neo4j depends heavily on AspectJ, see <xref linkend="reference:aspectj-details" />.
-        Via the SpringFramework we were already used to Aspects doing the work behind the scenes in lots of places, so
-        we were not afraid.
-        Some parts of our classes would get new behavior, but it would not be visible in our code.
-        The upside of this is that you get rid of a lot of boilerplate code.
+        Spring Data Neo4j comes with two mapping modes. The more powerful one depends heavily on AspectJ,
+        see <xref linkend="reference:aspectj-details" />, so we ignored it for the time being. The simple direct
+        POJO-mapping copies the data out of the graph and into our entities. Good enough for a web-application like
+        ours.
     </para>
     <para>
         The first step was to configure Maven:
         <example>
             <title>Spring Data Neo4j Maven configuration</title>
-            <programlisting language="xml"><![CDATA[<properties>
-    <aspectj.version>1.6.12.M1</aspectj.version>
-</properties>
-
-<dependency>
+            <programlisting language="xml"><![CDATA[<dependency>
   <groupId>org.springframework.data</groupId>
-  <artifactId>spring-data-neo4j-aspects</artifactId>
-  <version>2.0.0.M1</version>
-</dependency>
-
-<dependency>
-    <groupId>org.aspectj</groupId>
-    <artifactId>aspectjrt</artifactId>
-    <version>${aspectj.version}</version>
+  <artifactId>spring-data-neo4j</artifactId>
+  <version>2.0.0.RC1</version>
 </dependency>]]></programlisting>
-<programlisting language="xml"><![CDATA[
-<build> <plugins> <plugin>
-    <groupId>org.codehaus.mojo</groupId>
-    <artifactId>aspectj-maven-plugin</artifactId>
-    <version>1.2</version>
-    <dependencies>
-        <dependency>
-            <groupId>org.aspectj</groupId>
-            <artifactId>aspectjrt</artifactId>
-            <version>${aspectj.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.aspectj</groupId>
-            <artifactId>aspectjtools</artifactId>
-            <version>${aspectj.version}</version>
-        </dependency>
-    </dependencies>
-    <executions>
-        <execution>
-            <goals>
-                <goal>compile</goal>
-                <goal>test-compile</goal>
-            </goals>
-        </execution>
-    </executions>
-    <configuration>
-        <outxml>true</outxml>
-        <aspectLibraries>
-            <aspectLibrary>
-                <groupId>org.springframework</groupId>
-                <artifactId>spring-aspects</artifactId>
-            </aspectLibrary>
-            <aspectLibrary>
-                <groupId>org.springframework.data</groupId>
-                <artifactId>spring-data-neo4j-aspects</artifactId>
-            </aspectLibrary>
-        </aspectLibraries>
-        <source>1.6</source>
-        <target>1.6</target>
-    </configuration>
-</plugin> </plugins> </build>
-]]></programlisting>
       </example>
     </para>
     <para>
-        The Spring context configuration was much easier, thanks to a provided namespace:
+        The Spring context configuration was even easier, thanks to a provided namespace:
     </para>
     <para>
         <example>
@@ -94,9 +41,5 @@
 </beans>
 ]]></programlisting>
         </example>
-    </para>
-    <para>
-        We made sure that the AspectJ nature was enabled for this project in our STS 2.7.1 and the Aspect-Path settings
-        of our Project-Properties pointed to the configured aspect-libraries.
     </para>
 </chapter>

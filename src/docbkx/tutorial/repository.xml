@@ -16,13 +16,13 @@
 public interface MovieRepository extends GraphRepository<Movie> {}
 ]]></programlisting>
         </example>
-        Then we enabled repository supprt in the Spring context configuration by simply adding:
+        Then we enabled repository support in the Spring context configuration by simply adding:
         <example>
             <title>Repository context configuration</title>
             <programlisting language="xml"><![CDATA[<neo4j:repositories base-package="org.neo4j.cineasts.repository"/>
 ]]></programlisting>
         </example>
-		Besides the existing repository operations (like CRUD, and lots of querying) it was possible to declare
+		Besides the existing repository operations (like CRUD, and lots of different querying) it was possible to declare
 		custom methods, we dived into that later.
         Those methods' names could be more domain centric and expressive than the generic operations.
 
@@ -30,8 +30,19 @@ public interface MovieRepository extends GraphRepository<Movie> {}
 		<code>MovieController</code> with the <code>MovieRepository</code>. That way we could perform simple persistence operations.
     </para>
     <para>
+        <example>
+            <title>Usage of a repository</title>
+            <programlisting language="java"><![CDATA[
+@Autowired MovieRepository repo;
+...
+  Movie movie = repo.findByPropertyValue("id",movieId);
+]]></programlisting>
+        </example>
+    </para>
+    <para>
 	    We went on exploring the repository infrastructure. A very cool feature was something that we so far only heard
-	    from Grails developers. Deriving queries from method names. Impressive.
+	    from Grails developers. Deriving queries from method names. Impressive. So we had a more explict method for the
+        id lookup.
 	</para>
     <para>
         <example>
