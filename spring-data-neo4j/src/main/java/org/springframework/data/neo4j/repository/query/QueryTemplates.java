@@ -25,7 +25,7 @@ import org.springframework.data.neo4j.mapping.RelationshipInfo;
  */
 public abstract class QueryTemplates {
 
-    public static final String PARAMETER = "_%d";
+    public static final String PARAMETER = "%d";
     public static final String PARAMETER_INDEX_QUERY = "%s:%s";
 
     public static final String PLACEHOLDER = String.format("{%s}", PARAMETER);

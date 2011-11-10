@@ -49,7 +49,7 @@ public class CypherQueryBuilderUnitTests {
         Part part = new Part("name", Person.class);
         query.addRestriction(part);
 
-        assertThat(query.toString(), is("start person=node:Person(name={_0}) return person"));
+        assertThat(query.toString(), is("start person=node:Person(name={0}) return person"));
     }
 
     @Test
@@ -58,7 +58,7 @@ public class CypherQueryBuilderUnitTests {
         Part part = new Part("titleLike", Person.class);
         query.addRestriction(part);
 
-        assertThat(query.toString(), is("start person=node:title({_0}) return person"));
+        assertThat(query.toString(), is("start person=node:title({0}) return person"));
     }
     @Test
     public void createsQueryForLikeProperty() {
@@ -66,7 +66,7 @@ public class CypherQueryBuilderUnitTests {
         Part part = new Part("infoLike", Person.class);
         query.addRestriction(part);
 
-        assertThat(query.toString(), is(DEFAULT_START_CLAUSE+" where person.info =~ {_0} return person"));
+        assertThat(query.toString(), is(DEFAULT_START_CLAUSE+" where person.info =~ {0} return person"));
     }
     @Test
     public void createsQueryForGreaterThanPropertyReference() {
@@ -74,7 +74,7 @@ public class CypherQueryBuilderUnitTests {
         Part part = new Part("ageGreaterThan", Person.class);
         query.addRestriction(part);
 
-        assertThat(query.toString(), is(DEFAULT_START_CLAUSE+" where person.age > {_0} return person"));
+        assertThat(query.toString(), is(DEFAULT_START_CLAUSE+" where person.age > {0} return person"));
     }
 
     @Test
@@ -92,7 +92,7 @@ public class CypherQueryBuilderUnitTests {
         Part part = new Part("group.name", Person.class);
         query.addRestriction(part);
 
-        assertThat(query.toString(), is("start person_group=node:Group(name={_0}) match person<-[:members]-person_group return person"));
+        assertThat(query.toString(), is("start person_group=node:Group(name={0}) match person<-[:members]-person_group return person"));
     }
 
     @Test
@@ -102,7 +102,7 @@ public class CypherQueryBuilderUnitTests {
         query.addRestriction(new Part("group.name", Person.class));
 
         assertThat(query.toString(),
-                is("start person=node:Person(name={_0}), person_group=node:Group(name={_1}) match person<-[:members]-person_group return person"));
+                is("start person=node:Person(name={0}), person_group=node:Group(name={1}) match person<-[:members]-person_group return person"));
     }
 
     @Test
@@ -111,7 +111,7 @@ public class CypherQueryBuilderUnitTests {
         query.addRestriction(new Part("age", Person.class));
 
         final String className = Person.class.getName();
-        assertThat(query.toString(), is(DEFAULT_START_CLAUSE +" where person.age = {_0} return person"));
+        assertThat(query.toString(), is(DEFAULT_START_CLAUSE +" where person.age = {0} return person"));
     }
     @Test
     public void createsSimpleTraversalClauseCorrectly() {
@@ -130,9 +130,9 @@ public class CypherQueryBuilderUnitTests {
 
         System.out.println(query.toString());
         assertThat(query.toString(), is(
-                "start person=node:Person(name={_0}), person_group=node:Group(name={_1}) " +
+                "start person=node:Person(name={0}), person_group=node:Group(name={1}) " +
                         "match person<-[:members]-person_group, person<-[:members]-person_group-[:members]->person_group_members " +
-                        "where person.age > {_2}, person_group_members.age = {_3} " +
+                        "where person.age > {2}, person_group_members.age = {3} " +
                         "return person"
                 ));
     }
@@ -140,19 +140,19 @@ public class CypherQueryBuilderUnitTests {
     @Test
     public void buildsQueryWithSort() {
         query.addRestriction(new Part("name",Person.class));
-        assertThat(query.toString(new Sort("person.name")), is("start person=node:Person(name={_0}) return person order by person.name ASC"));
+        assertThat(query.toString(new Sort("person.name")), is("start person=node:Person(name={0}) return person order by person.name ASC"));
     }
     @Test
     public void buildsQueryWithTwoSorts() {
         query.addRestriction(new Part("name",Person.class));
         Sort sort = new Sort(new Sort.Order("person.name"),new Sort.Order(Sort.Direction.DESC, "person.age"));
-        assertThat(query.toString(sort), is("start person=node:Person(name={_0}) return person order by person.name ASC,person.age DESC"));
+        assertThat(query.toString(sort), is("start person=node:Person(name={0}) return person order by person.name ASC,person.age DESC"));
     }
 
     @Test
     public void buildsQueryWithPage() {
         query.addRestriction(new Part("name",Person.class));
         Pageable pageable = new PageRequest(3,10,new Sort("person.name"));
-        assertThat(query.toString(pageable), is("start person=node:Person(name={_0}) return person order by person.name ASC skip 30 limit 10"));
+        assertThat(query.toString(pageable), is("start person=node:Person(name={0}) return person order by person.name ASC skip 30 limit 10"));
     }
 }
