@@ -22,7 +22,8 @@ import org.neo4j.helpers.collection.IteratorUtil;
 import org.neo4j.helpers.collection.IteratorWrapper;
 import org.springframework.data.neo4j.mapping.MappingPolicy;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Iterator;
 
 /**
  * @author mh
@@ -159,5 +160,12 @@ public class QueryResultBuilder<T> implements Result<T> {
     public Result<T> with(MappingPolicy mappingPolicy) {
         this.mappingPolicy = mappingPolicy;
         return this;
+    }
+
+    public static <T> QueryResultBuilder<T> from(Iterable<T> values) {
+        return new QueryResultBuilder<T>(values);
+    }
+    public static <T> QueryResultBuilder<T> from(T...values) {
+        return from(Arrays.<T>asList(values));
     }
 }

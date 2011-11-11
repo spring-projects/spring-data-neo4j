@@ -21,6 +21,7 @@ import org.junit.Test;
 import static java.util.Arrays.asList;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
+import static org.springframework.data.neo4j.conversion.QueryResultBuilder.from;
 
 /**
  * @author mh
@@ -41,7 +42,7 @@ public class QueryResultBuilderTest {
 
     @Test
     public void testSingle() throws Exception {
-        assertThat(result.single(), is(1));
+        assertThat(from(1).single(), is(1));
     }
 
     @Test
