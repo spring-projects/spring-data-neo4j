@@ -17,6 +17,7 @@ package org.springframework.data.neo4j.rest;
 
 import org.neo4j.helpers.collection.IteratorUtil;
 import org.neo4j.rest.graphdb.util.ConvertedResult;
+import org.springframework.data.neo4j.conversion.ContainerConverter;
 import org.springframework.data.neo4j.conversion.EndResult;
 
 import java.util.Iterator;
@@ -46,5 +47,10 @@ class SpringEndResult<R> implements EndResult<R> {
     @Override
     public Iterator<R> iterator() {
         return result.iterator();
+    }
+
+    @Override
+    public <C extends Iterable<R>> C as(Class<C> container) {
+        return ContainerConverter.toContainer(container,this);
     }
 }

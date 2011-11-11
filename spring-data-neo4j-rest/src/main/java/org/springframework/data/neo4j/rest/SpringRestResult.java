@@ -23,6 +23,8 @@ import org.springframework.data.neo4j.mapping.MappingPolicy;
 
 import java.util.Iterator;
 
+import static org.springframework.data.neo4j.conversion.ContainerConverter.toContainer;
+
 
 class SpringRestResult<T> implements Result<T> {
     org.neo4j.rest.graphdb.util.QueryResult<T> queryResult;
@@ -73,5 +75,10 @@ class SpringRestResult<T> implements Result<T> {
     public Result<T> with(MappingPolicy mappingPolicy) {
         this.mappingPolicy = mappingPolicy;
         return this;
+    }
+
+    @Override
+    public <C extends Iterable<T>> C as(Class<C> container) {
+        return toContainer(container, this);
     }
 }

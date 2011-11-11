@@ -27,6 +27,7 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.mapping.model.MappingException;
 import org.springframework.data.neo4j.annotation.QueryType;
+import org.springframework.data.neo4j.conversion.EndResult;
 import org.springframework.data.neo4j.conversion.QueryResultBuilder;
 import org.springframework.data.neo4j.conversion.Result;
 import org.springframework.data.neo4j.conversion.ResultConverter;
@@ -35,16 +36,16 @@ import org.springframework.data.neo4j.core.TypeRepresentationStrategy;
 import org.springframework.data.neo4j.core.UncategorizedGraphStoreException;
 import org.springframework.data.neo4j.mapping.EntityPersister;
 import org.springframework.data.neo4j.mapping.MappingPolicy;
-import org.springframework.data.neo4j.mapping.RelationshipResult;
-import org.springframework.data.neo4j.support.index.IndexType;
-import org.springframework.data.neo4j.support.mapping.EntityStateHandler;
-import org.springframework.data.neo4j.support.mapping.Neo4jPersistentEntityImpl;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
+import org.springframework.data.neo4j.mapping.RelationshipResult;
 import org.springframework.data.neo4j.repository.GraphRepository;
 import org.springframework.data.neo4j.repository.NodeGraphRepositoryImpl;
 import org.springframework.data.neo4j.repository.RelationshipGraphRepository;
 import org.springframework.data.neo4j.support.index.IndexProvider;
+import org.springframework.data.neo4j.support.index.IndexType;
 import org.springframework.data.neo4j.support.mapping.EntityCreatingClosableIterable;
+import org.springframework.data.neo4j.support.mapping.EntityStateHandler;
+import org.springframework.data.neo4j.support.mapping.Neo4jPersistentEntityImpl;
 import org.springframework.data.neo4j.support.query.QueryEngine;
 import org.springframework.data.neo4j.template.GraphCallback;
 import org.springframework.data.neo4j.template.Neo4jOperations;
@@ -295,16 +296,22 @@ public class Neo4jTemplate implements Neo4jOperations, EntityPersister {
         return infrastructure.getEntityStateHandler().isManaged(entity);
     }
 
+    @SuppressWarnings("unchecked")
     public Object query(String statement, Map<String, Object> params, final TypeInformation<?> typeInformation) {
         final TypeInformation<?> actualType = typeInformation.getActualType();
-        final Class<?> targetType = actualType.getType();
+        final Class<Object> targetType = (Class<Object>) actualType.getType();
+        final Result<Object> result = queryEngineFor(QueryType.Cypher).query(statement, params);
+        final Class<? extends Iterable<Object>> containerType = (Class<? extends Iterable<Object>>) typeInformation.getType();
+        if (EndResult.class.isAssignableFrom(containerType)) {
+            return result;
+        }
         if (actualType.isMap()) {
-            return queryEngineFor(QueryType.Cypher).query(statement, params);
+            return result;
         }
         if (typeInformation.isCollectionLike()) {
-           return queryEngineFor(QueryType.Cypher).query(statement, params).to(targetType);
+            return result.to(targetType).as(containerType);
         }
-        return queryEngineFor(QueryType.Cypher).query(statement, params).to(targetType).single();
+        return result.to(targetType).single();
     }
 
     @Override
