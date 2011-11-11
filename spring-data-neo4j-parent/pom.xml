@@ -411,7 +411,7 @@
           <groupId>org.neo4j</groupId>
           <artifactId>neo4j-cypher-dsl</artifactId>
           <version>1.5-SNAPSHOT</version>
-          <optional>true</optional>
+          <!--optional>true</optional-->
       </dependency>
       <!--dependency>
           <groupId>org.neo4j</groupId>
