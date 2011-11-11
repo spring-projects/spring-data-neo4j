@@ -16,7 +16,9 @@ import java.util.List;
  * @author mh
  * @since 02.04.11
  */
-public interface MovieRepository extends GraphRepository<Movie>, NamedIndexRepository<Movie>, RelationshipOperationsRepository<Movie> {
+public interface MovieRepository extends GraphRepository<Movie>,
+        NamedIndexRepository<Movie>,
+        RelationshipOperationsRepository<Movie> {
     Movie findById(String id);
 
     Page<Movie> findByTitleLike(String title, Pageable page);

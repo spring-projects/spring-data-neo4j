@@ -22,10 +22,11 @@ public class DatabasePopulator {
 
     @Transactional
     public List<Movie> populateDatabase() {
-        Actor tomHanks = new Actor("1", "Tom Hanks").persist();
-        Movie forestGump = new Movie("1", "Forrest Gump").persist();
-        tomHanks.playedIn(forestGump,"Forrest");
-        return asList(forestGump);
+        Actor tomHanks = new Actor("1", "Tom Hanks");
+        Movie forrestGump = new Movie("1", "Forrest Gump");
+        tomHanks.playedIn(forrestGump,"Forrest");
+        template.save(forrestGump);
+        return asList(forrestGump);
     }
 }
 

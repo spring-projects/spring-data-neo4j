@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" "http://www.docbook.org/xml/4.4/docbookx.dtd">
+<chapter id="tutorial_about-spring-data">
+    <title>Spring Data Neo4j</title>
+    <subtitle>Conjuring magic</subtitle>
+    <para>
+        So far it had all been pure Spring Framework and Neo4j. However, using the Neo4j code in our domain
+        classes polluted them with graph database details. For this application, we wanted to keep the domain
+        classes clean. Spring Data Neo4j promised to do the heavy lifting for us, so we continued investigating it.
+    </para>
+    <para>
+        One of the more advanced mapping modes of Spring Data Neo4j depends heavily on AspectJ, see <xref linkend="reference:aspectj-details" />.
+        Via the SpringFramework we were already used to Aspects doing the work behind the scenes in lots of places, so
+        we were not afraid.
+        Some parts of our classes would get a bit of new behavior, but it would not be visible in our code.
+        The upside of this is that you get rid of a lot of boilerplate code.
+    </para>
+    <para>
+        The first step was to configure Maven:
+        <example>
+            <title>Spring Data Neo4j Maven configuration</title>
+            <programlisting language="xml"><![CDATA[<properties>
+    <aspectj.version>1.6.12</aspectj.version>
+</properties>
+
+<dependency>
+  <groupId>org.springframework.data</groupId>
+  <artifactId>spring-data-neo4j-aspects</artifactId>
+  <version>2.0.0.RC1</version>
+</dependency>
+
+<dependency>
+    <groupId>org.aspectj</groupId>
+    <artifactId>aspectjrt</artifactId>
+    <version>${aspectj.version}</version>
+</dependency>]]></programlisting>
+<programlisting language="xml"><![CDATA[
+<build> <plugins> <plugin>
+    <groupId>org.codehaus.mojo</groupId>
+    <artifactId>aspectj-maven-plugin</artifactId>
+    <version>1.2</version>
+    <dependencies>
+        <dependency>
+            <groupId>org.aspectj</groupId>
+            <artifactId>aspectjrt</artifactId>
+            <version>${aspectj.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.aspectj</groupId>
+            <artifactId>aspectjtools</artifactId>
+            <version>${aspectj.version}</version>
+        </dependency>
+    </dependencies>
+    <executions>
+        <execution>
+            <goals>
+                <goal>compile</goal>
+                <goal>test-compile</goal>
+            </goals>
+        </execution>
+    </executions>
+    <configuration>
+        <outxml>true</outxml>
+        <aspectLibraries>
+            <aspectLibrary>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-aspects</artifactId>
+            </aspectLibrary>
+            <aspectLibrary>
+                <groupId>org.springframework.data</groupId>
+                <artifactId>spring-data-neo4j-aspects</artifactId>
+            </aspectLibrary>
+        </aspectLibraries>
+        <source>1.6</source>
+        <target>1.6</target>
+    </configuration>
+</plugin> </plugins> </build>
+]]></programlisting>
+      </example>
+    </para>
+    <para>
+        The Spring context configuration was much easier, thanks to a provided namespace:
+    </para>
+    <para>
+        <example>
+            <title>Spring Data Neo4j context configuration</title>
+            <programlisting language="xml"><![CDATA[<beans xmlns="http://www.springframework.org/schema/beans" ...
+       xmlns:neo4j="http://www.springframework.org/schema/data/neo4j"
+       xsi:schemaLocation="... http://www.springframework.org/schema/data/neo4j
+       http://www.springframework.org/schema/data/neo4j/spring-neo4j-2.0.xsd">
+    ...
+    <neo4j:config storeDirectory="data/graph.db"/>
+    ...
+</beans>
+]]></programlisting>
+        </example>
+    </para>
+    <para>
+        We made sure that the AspectJ nature was enabled for this project in our STS 2.7.1 and the Aspect-Path settings
+        of our Project-Properties pointed to the configured aspect-libraries.
+    </para>
+</chapter>
