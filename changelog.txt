@@ -1,6 +1,24 @@
 Spring Data Graph Changelog
 ===========================
 
+Changes in version 2.0.0.RC1 (2011-11-11)
+-----------------------------------------
+* Updated Neo4j to 1.5 AspectJ to 1.6.12
+* added support for cypher-dsl (1.5.M1) (which also comes with query-dsl support) in CypherDslRepository
+* updated cypher syntax changes for 1.5
+* extended result-dsl to allow changes of container classes
+* added examples for hello-worlds and cypher for both mapping options
+* @RelationshipEntity has an fallback relationship-type attribute
+* support for (mutable) @RelatedToVia collections (like Set)
+* Relationship-Entities can now be directly instantiated in both mapping modes and saved or added to @RelatedToVia collections
+* introduced the concept of a MappingPolicy which is taken into account with the POJO mapping (currently @Fetch)
+* simplified cineasts using the new annotated and derived queries on repositories, updated docs for that
+* added repository for access of relationship-related methods
+* support for arrays, iterables, collections, sets and lists of primitive and convertible values as node/rel properties
+* List, Set, Collection, Page as return types on derived and annotated query methods
+* added eclipse-maven-plugins to poms with aspectj-natures
+*
+
 Changes in version 2.0.0.M1 (2011-10-21)
 ----------------------------------------
 * updated dependencies to SpringFrameWork 3.0.6, Neo4j 1.5.M02, neo4j-java-rest-binding 1.5.M03
