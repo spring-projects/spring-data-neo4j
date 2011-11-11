@@ -17,6 +17,8 @@
 package org.springframework.data.neo4j.repository;
 
 import org.apache.lucene.search.NumericRangeQuery;
+import org.neo4j.cypherdsl.Execute;
+import org.neo4j.cypherdsl.Skip;
 import org.neo4j.graphdb.NotFoundException;
 import org.neo4j.graphdb.PropertyContainer;
 import org.neo4j.graphdb.index.IndexHits;
@@ -28,14 +30,13 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.neo4j.annotation.QueryType;
+import org.springframework.data.neo4j.conversion.EndResult;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
 import org.springframework.data.neo4j.support.index.NoSuchIndexException;
 import org.springframework.data.neo4j.support.index.NullReadableIndex;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 import static java.lang.String.format;
 import static org.neo4j.helpers.collection.MapUtil.map;
@@ -48,7 +49,7 @@ import static org.neo4j.helpers.collection.MapUtil.map;
  * @param <S> Type of backing state, either Node or Relationship
  */
 @org.springframework.stereotype.Repository
-public abstract class AbstractGraphRepository<S extends PropertyContainer, T> implements GraphRepository<T>, NamedIndexRepository<T>, SpatialRepository<T> {
+public abstract class AbstractGraphRepository<S extends PropertyContainer, T> implements GraphRepository<T>, NamedIndexRepository<T>, SpatialRepository<T>, CypherDslRepository<T> {
 
     /*
     index.query( LayerNodeIndex.WITHIN_WKT_GEOMETRY_QUERY,
@@ -380,5 +381,18 @@ public abstract class AbstractGraphRepository<S extends PropertyContainer, T> im
             if (objectNodeId==null) return null;
             return super.underlyingObjectToObject(getById(objectNodeId.longValue()));
         }
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public Page<T> query(Execute query, Map<String, Object> params, Pageable page) {
+        final Execute limitedQuery = ((Skip)query).skip(page.getOffset()).limit(page.getPageSize());
+        return template.queryEngineFor(QueryType.Cypher).query(limitedQuery.toString(), params).to(clazz).as(Page.class);
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public EndResult<T> query(Execute query, Map<String, Object> params) {
+        return template.queryEngineFor(QueryType.Cypher).query(query.toString(), params).to(clazz);
     }
 }

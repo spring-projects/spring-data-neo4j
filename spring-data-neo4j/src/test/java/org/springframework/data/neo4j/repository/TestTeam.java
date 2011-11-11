@@ -18,6 +18,7 @@ package org.springframework.data.neo4j.repository;
 
 import org.neo4j.helpers.collection.MapUtil;
 import org.springframework.data.neo4j.model.*;
+import org.springframework.data.neo4j.template.Neo4jOperations;
 
 import java.util.Arrays;
 import java.util.Map;
@@ -36,7 +37,7 @@ public class TestTeam {
     public TestTeam() {
     }
 
-    public void createSDGTeam(GraphRepository<Person> repo, GraphRepository<Group> groupRepo, GraphRepository<Friendship> friendshipRepository) {
+    public TestTeam createSDGTeam(GraphRepository<Person> repo, GraphRepository<Group> groupRepo, GraphRepository<Friendship> friendshipRepository) {
         emil = new Person("Emil", 30);
 
         michael = new Person("Michael", 36);
@@ -58,10 +59,14 @@ public class TestTeam {
         repo.save(Arrays.asList(emil, david, michael));
         friendshipRepository.save(friendShip);
         groupRepo.save(sdg);
-
+        return this;
     }
 
     public Map<String, Object> simpleRowFor(final Person person, String prefix) {
         return MapUtil.map(prefix+".name", person.getName(), prefix+".age", person.getAge());
+    }
+
+    public TestTeam createSDGTeam(Neo4jOperations template) {
+        return createSDGTeam(template.repositoryFor(Person.class), template.repositoryFor(Group.class), template.repositoryFor(Friendship.class));
     }
 }
