@@ -15,7 +15,7 @@
             <programlisting language="java"><![CDATA[@RequestMapping(value = "/movies/{movieId}",
 method = RequestMethod.GET, headers = "Accept=text/html")
 public String singleMovieView(final Model model, @PathVariable String movieId) {
-    Movie movie = repository.getMovie(movieId);
+    Movie movie = repository.findById(movieId);
     model.addAttribute("id", movieId);
     if (movie != null) {
         model.addAttribute("movie", movie);
@@ -68,20 +68,21 @@ public String singleMovieView(final Model model, @PathVariable String movieId) {
             we were delighted to see that fulltext indexes were supported out of the box.
         </para>
         <para>
-            We happily annotated the title field of the Movie class with <code>@Indexed(fulltext = true)</code>.
+            We happily annotated the title field of the Movie class with <code>@Indexed(type = FULLTEXT)</code>.
             Next thing we got an exception telling us that we had to specify a separate index name.
-            So we simply changed it to <code>@Indexed(fulltext = true, indexName = "search")</code>.
+            So we simply changed it to <code>@Indexed(type = FULLTEXT, indexName = "search")</code>.
         </para>
         <para>
 	        Finding the seemed to be a sweetspot of derived finder methods. Just a method name, no annotations.
 	        Cool stuff and you could even tell it that it should return pages of movies, its size and offset specified by a 
-	        <code>PathRequest</code> which also contains sort information. 
+	        <code>Pageable</code> which also contains sort information. Using the <code>like</code> operator indicates
+            the fulltext search (instead of an exact search).
         </para>
         <para>
             <example>
                 <title>Searching for movies</title>
 <programlisting language="java"><![CDATA[public interface MovieRepository ... {
-    Page<Movie> findByTitle(String title, PageRequest page);
+    Page<Movie> findByTitleLike(String title, Pageable page);
 }
 ]]></programlisting>
                 <!-- MOVE TO REFERENCE programlisting language="java"><![CDATA[public class CineastRepository {
@@ -120,7 +121,7 @@ The corresponding
                 <programlisting language="java"><![CDATA[@RequestMapping(value = "/movies",
 method = RequestMethod.GET, headers = "Accept=text/html")
 public String findMovies(Model model, @RequestParam("q") String query) {
-    Page<Movie> movies = repository.findByTitle(query, new PageRequest(0,20));
+    Page<Movie> movies = repository.findByTitleLike(query, new PageRequest(0,20));
     model.addAttribute("movies", movies);
     model.addAttribute("query", query);
     return "/movies/list";

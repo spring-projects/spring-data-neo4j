@@ -4,8 +4,9 @@
 	<title>Environment setup</title>
 	<para>
         Spring Data Neo4j dramatically simplifies development, but some setup is naturally required.
-        For building the application, Maven needs to be configured to include the Spring Data Neo4j dependencies,
-        and configure the AspectJ weaving. After the build setup is complete, the Spring application needs to be
+        For building the application, Maven needs to be configured to include the Spring Data Neo4j dependencies.
+        It is necessary to configure the AspectJ weaving for using the AspectJ mapping.
+        After the build setup is complete, the Spring application needs to be
         configured to make use of Spring Data Neo4j.
 		<!--Examples for this setup can be found in the -->
         <!--<ulink url="http://spring.neo4j.org/examples">Spring Data Neo4j examples</ulink>.-->
@@ -13,11 +14,30 @@
     <para>
         Spring Data Neo4j projects can be built using maven, we also added means to build them with gradle and ant/ivy.
     </para>
+
+    <section>
+           <title>Dependencies for Spring Data Neo4j POJO Mapping</title>
+           <para>
+               For the POJO mapping it is enough to add the <code>org.springframework.data:spring-data-neo4j:2.0.0.RC1</code> dependency
+               to your project. If you want to use the cypher query language please add <code>org.neo4j:neo4j-cypher:1.5</code>
+           </para>
+        <example>
+            <title>Maven dependencies for Spring Data Neo4j</title>
+            <programlisting language="xml"><![CDATA[<dependency>
+<groupId>org.springframework.data</groupId>
+<artifactId>spring-data-neo4j</artifactId>
+<version>2.0.0.RC1</version>
+</dependency>
+]]></programlisting>
+        </example>
+
+    </section>
+
 	<section>
-        <title>Gradle configuration</title>
+        <title>Gradle configuration for AspectJ Mapping</title>
         <para>
             The necessary build plugin to build Spring Data Neo4j projects with gradle is available as part of the
-            SDG distribution or on github which makes the usage as easy as:
+            Spring Data Neo4j distribution or on github which makes the usage as easy as:
         </para>
         <example>
             <title>Gradle Build Configuration</title>
@@ -73,8 +93,8 @@ repositories {
     <section>
 		<title>Maven configuration</title>
 		<para>
-			Spring Data Neo4j projects are easiest to build with Apache Maven. The main dependencies are: Spring
-            Data Neo4j itself, Spring Data Commons, parts of the Spring Framework, and the Neo4j graph database.
+			Spring Data Neo4j projects are easiest to build with Apache Maven. The core dependencies is Spring
+            Data Neo4j which comes with transitive dependencies to Spring Data Commons, parts of the Spring Framework, and the Neo4j graph database.
 		</para>
 
         <section>
@@ -97,16 +117,17 @@ repositories {
         <section>
 		    <title>Dependencies</title>
             <para>
-                The dependency on <code>spring-data-neo4j</code> will transitively pull in the necessary parts of
+                The dependency on <code>spring-data-neo4j-aspects</code> will transitively pull in the necessary parts of
                 Spring Framework (core, context, aop, aspects, tx), Aspectj, Neo4j, and Spring Data Commons. If you
                 already use these (or different versions of these) in your project, then include those dependencies
-                on your own.
+                on your own. If you want to use Cypher or Gremlin, please add the dependencies (which are optional in SDN)
+                accordingly.
             </para>
             <example>
                 <title>Maven dependencies</title>
                 <programlisting language="xml"><![CDATA[<dependency>
     <groupId>org.springframework.data</groupId>
-    <artifactId>spring-data-neo4j</artifactId>
+    <artifactId>spring-data-neo4j-aspects</artifactId>
     <version>2.0.0.RC1</version>
 </dependency>
 
@@ -115,6 +136,11 @@ repositories {
     <artifactId>aspectjrt</artifactId>
     <version>1.6.12</version>
 </dependency>
+[<dependency>
+    <groupId>org.neo4j</groupId>
+    <artifactId>neo4j-cypher</artifactId>
+    <version>1.5</version>
+</dependency>]
 ]]></programlisting>
             </example>
         </section>
@@ -122,9 +148,9 @@ repositories {
         <section>
             <title>AspectJ build configuration</title>
             <para>
-                Since Spring Data Neo4j uses AspectJ for build-time aspect weaving of entities, it is necessary to
+                Since transparent mapping uses AspectJ for build-time aspect weaving of entities, it is necessary to
                 hook in the AspectJ Maven plugin to the build process. The plugin also has its own dependencies. You
-                also need to explicitly specify the aspect libraries (spring-aspects and spring-data-neo4j).
+                also need to explicitly specify the aspect libraries (spring-aspects and spring-data-neo4j-aspects).
             </para>
             <example>
                 <title>AspectJ configuration</title>
@@ -162,7 +188,7 @@ repositories {
             </aspectLibrary>
             <aspectLibrary>
                 <groupId>org.springframework.data</groupId>
-                <artifactId>spring-datastore-neo4j</artifactId>
+                <artifactId>spring-data-neo4j-aspects</artifactId>
             </aspectLibrary>
         </aspectLibraries>
         <source>1.6</source>
@@ -213,12 +239,19 @@ repositories {
 ]]></programlisting>
             </example>
             <example>
-                <title>XML configuration with bean</title>
+                <title>XML configuration with GraphDatabaseService bean</title>
                 <programlisting language="xml"><![CDATA[<context:annotation-config/>
 
 <bean id="graphDatabaseService" class="org.neo4j.kernel.EmbeddedGraphDatabase"
         destroy-method="shutdown">
-    <constructor-arg index="0" value="target/config-test" />
+    <constructor-arg index="0" value="target/config-test"/>
+<!-- optionally pass in neo4j-config parameters to the graph database
+    <constructor-arg index="1">
+        <map>
+            <entry key="allow_store_upgrade" value="true"/>
+        </map>
+    </constructor-arg>
+-->
 </bean>
 
 <neo4j:config graphDatabaseService="graphDatabaseService"/>

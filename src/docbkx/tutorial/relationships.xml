@@ -44,7 +44,8 @@ class Role {
             but we got an exception saying that it misses the relationship-type.
         </para>
         <para>
-            We had to add it to the <code>@RelationshipEntity</code> as an attribute. Another way to create
+            We had to add it to the <code>@RelationshipEntity</code> as an attribute (or as a @RelationshipType annotated
+            field in the RelationshipEntity). Another way to create
             instances of relationship-entities is to use the methods provided by the template, like
             <code>createRelationshipBetween</code>.
 <!--            At first this surprised us, but
@@ -57,7 +58,13 @@ class Role {
         <para>
             <example>
                 <title>Relating actors to movies</title>
-                <programlisting language="java" ><![CDATA[class Actor {
+                <programlisting language="java" ><![CDATA[@RelationshipEntity(type="ACTS_IN")
+class Role {
+    @StartNode Actor actor;
+    @EndNode Movie movie;
+    String role;
+}
+class Actor {
 ...
     public Role playedIn(Movie movie, String roleName) {
         Role role = new Role(this, movie, roleName);
@@ -74,7 +81,8 @@ class Role {
     template.save(role);
 
     // alternative approach
-    Role role = template.createRelationshipBetween(actor,movie, Role.class, "ACTS_IN");
+    Role role = template.createRelationshipBetween(actor,movie,
+                           Role.class, "ACTS_IN");
 
 ]]></programlisting>
             </example>
@@ -87,6 +95,8 @@ class Role {
             We already had fields for the relationships in both classes. It was time to annotate them
             correctly. The Neo4j relationship type and direction were easy to figure out.
             The direction even defaulted to outgoing, so we only had to specify it for the movie.
+            If we want to use the same relationship between the two entities we have to make sure to provide a
+            dedicated type, otherwise the field-names would be used resulting in different relationships.
         </para>
         <para>
             <example>
@@ -131,10 +141,10 @@ class Actor {
     <section>
         <title>Accessing the relationship entities</title>
         <para>
-            But we still couldn't access the Role relationships. It turned out that there was a separate
+            But we still couldn't access the Role relationship entities themselves. It turned out that there was a separate
             annotation <code>@RelatedToVia</code> for accessing the actual relationship entities. And we could
             to declare the field as an <code>Iterable&lt;Role&gt;</code>, with read-only semantics or on a
-            <code>Collection</code> or <code>Set</code> field with modifying semantics.
+            <code>Collection</code> or <code>Set&lt;Role&gt;</code> field with modifying semantics.
 <!--
             This appeared to mean
             that we were not able to add new roles through the field. Adding relationship entities seemed to 
@@ -144,6 +154,11 @@ class Actor {
             So off we went, creating our first real relationship (just kidding).
         </para>
         <para>
+            To have the collections of relationships being read eagerly during the loading of the Movie we have to annotate it
+            with the @Fetch annotation. Otherwise Spring Data Neo4j refrains from doing following relationships automatically.
+            The risk of loading the whole graph into memory would be too high.
+        </para>
+        <para>
             <example>
                 <title>@RelatedToVia usage</title>
                 <programlisting language="java" ><![CDATA[@NodeEntity
@@ -151,10 +166,8 @@ class Movie {
     @Indexed int id;
     String title;
     int year;
-    @RelatedTo(type = "ACTS_IN", direction = Direction.INCOMING)
-    Set<Actor> cast;
 
-    @RelatedToVia(type = "ACTS_IN", direction = Direction.INCOMING)
+    @Fetch @RelatedToVia(type = "ACTS_IN", direction = Direction.INCOMING)
     Iterable<Roles> roles;
 }
 ]]></programlisting>
