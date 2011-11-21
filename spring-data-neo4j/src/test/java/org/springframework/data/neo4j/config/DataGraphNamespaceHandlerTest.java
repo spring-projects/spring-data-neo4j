@@ -17,14 +17,20 @@
 package org.springframework.data.neo4j.config;
 
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.kernel.AbstractGraphDatabase;
+import org.neo4j.kernel.Config;
 import org.neo4j.kernel.EmbeddedGraphDatabase;
+import org.neo4j.kernel.HighlyAvailableGraphDatabase;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.data.neo4j.model.PersonRepository;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
 import org.springframework.transaction.PlatformTransactionManager;
+
+import static org.junit.Assert.assertEquals;
 
 /**
  * @author mh
@@ -51,7 +57,20 @@ public class DataGraphNamespaceHandlerTest {
     }
     @Test
     public void injectionForExistingGraphDatabaseService() {
-        assertInjected("-external-embedded");
+        final Config config = assertInjected("-external-embedded");
+        final AbstractGraphDatabase gds = (AbstractGraphDatabase) config.graphDatabaseService;
+        assertEquals(EmbeddedGraphDatabase.class, gds.getClass());
+        final org.neo4j.kernel.Config neoConfig = gds.getConfig();
+        assertEquals("true", neoConfig.getParams().get("allow_store_upgrade"));
+    }
+    @Test
+    @Ignore("todo setup zk-cluster")
+    public void injectionForExistingHighlyAvailableGraphDatabaseService() {
+        final Config config = assertInjected("-external-ha");
+        final AbstractGraphDatabase gds = (AbstractGraphDatabase) config.graphDatabaseService;
+        final org.neo4j.kernel.Config neoConfig = gds.getConfig();
+        assertEquals(HighlyAvailableGraphDatabase.class, gds.getClass());
+        assertEquals("1", neoConfig.getParams().get("ha.server_id"));
     }
 
     @Test
@@ -65,7 +84,7 @@ public class DataGraphNamespaceHandlerTest {
         Config config = ctx.getBean("config", Config.class);
         Neo4jTemplate template = config.neo4jTemplate;
         Assert.assertNotNull("template", template);
-        EmbeddedGraphDatabase graphDatabaseService = (EmbeddedGraphDatabase) template.getGraphDatabaseService();
+        AbstractGraphDatabase graphDatabaseService = (AbstractGraphDatabase) template.getGraphDatabaseService();
         Assert.assertEquals("store-dir", "target/config-test", graphDatabaseService.getStoreDir());
         Assert.assertNotNull("graphDatabaseService",config.graphDatabaseService);
         Assert.assertNotNull("transactionManager",config.transactionManager);

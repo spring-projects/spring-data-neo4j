@@ -146,6 +146,13 @@
 			<scope>test</scope>
 		</dependency>
 
+        <dependency>
+			<groupId>org.neo4j</groupId>
+			<artifactId>neo4j-ha</artifactId>
+			<scope>test</scope>
+            <version>${neo4j.version}</version>
+		</dependency>
+
 		<dependency>
 			<groupId>org.neo4j</groupId>
 			<artifactId>server-api</artifactId>

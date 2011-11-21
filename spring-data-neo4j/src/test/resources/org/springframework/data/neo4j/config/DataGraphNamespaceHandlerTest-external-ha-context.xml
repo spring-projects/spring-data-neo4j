@@ -10,16 +10,18 @@
 
     <context:annotation-config/>
 
-    <bean id="graphDatabaseService" class="org.neo4j.kernel.EmbeddedGraphDatabase"
-            destroy-method="shutdown" scope="singleton">
-        <constructor-arg value="target/config-test"/>
-        <constructor-arg>
-            <map>
-                <entry key="allow_store_upgrade" value="true"/>
-            </map>
-        </constructor-arg>
+    <bean id="haDatabase" class="org.neo4j.kernel.HighlyAvailableGraphDatabase"
+           destroy-method="shutdown">
+       <constructor-arg index="0" value="target/config-test"/>
+       <constructor-arg index="1">
+           <map>
+               <entry key="ha.server_id" value="1"/>
+               <entry key="ha.server" value="localhost:6001"/>
+               <entry key="ha.coordinators" value="localhost:2181,localhost:2182,localhost:2183"/>
+           </map>
+       </constructor-arg>
     </bean>
 
-    <neo4j:config graphDatabaseService="graphDatabaseService"/>
+    <neo4j:config graphDatabaseService="haDatabase"/>
     <bean id="config" class="org.springframework.data.neo4j.config.DataGraphNamespaceHandlerTest$Config"/>
 </beans>
