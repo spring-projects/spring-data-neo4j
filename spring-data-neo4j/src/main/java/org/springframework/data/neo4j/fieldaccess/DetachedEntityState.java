@@ -190,7 +190,6 @@ public class DetachedEntityState<STATE> implements EntityState<STATE> {
 
         if (isDirty()) {
             final Map<Neo4jPersistentProperty, ExistingValue> dirtyCopy = new HashMap<Neo4jPersistentProperty, ExistingValue>(dirty);
-            clearDirty();
             for (final Map.Entry<Neo4jPersistentProperty, ExistingValue> entry : dirtyCopy.entrySet()) {
                 final Neo4jPersistentProperty property = entry.getKey();
                 final MappingPolicy mappingPolicy = property.getMappingPolicy();
@@ -199,6 +198,7 @@ public class DetachedEntityState<STATE> implements EntityState<STATE> {
                 if (log.isDebugEnabled()) log.debug("Flushing dirty Entity new node " + entity + " field " + property+ " with value "+ valueFromEntity);
                 checkConcurrentModification(entity, entry, property, mappingPolicy);
                 delegate.setValue(property, valueFromEntity, mappingPolicy);
+                dirty.remove(property);
             }
         }
     }

@@ -28,6 +28,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.validation.ValidationException;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -35,6 +36,7 @@ import java.util.Set;
 import static java.util.Arrays.asList;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 import static org.springframework.data.neo4j.aspects.Person.persistedPerson;
 
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -67,6 +69,19 @@ public class NodeEntityTest extends EntityTestBase {
         assertEquals( name, getNodeState(p).getProperty("name") );
         assertEquals( age, getNodeState(p).getProperty("age"));
         assertEquals((Short)height, p.getHeight());
+    }
+
+    @Test
+    public void testEntityIsStillDetachedAfterValidationException() {
+        Person p = new Person("Foo", 2);
+        try {
+            p.setName("A");
+            p.persist();
+            fail("should fail to validate");
+        } catch(ValidationException ve) {
+            System.out.println(ve.getClass());
+        }
+        assertEquals("A",p.getName());
     }
 
     @Test
