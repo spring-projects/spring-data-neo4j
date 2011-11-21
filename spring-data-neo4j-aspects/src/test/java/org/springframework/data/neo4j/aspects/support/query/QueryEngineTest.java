@@ -16,7 +16,9 @@
 
 package org.springframework.data.neo4j.aspects.support.query;
 
+import org.apache.lucene.search.NumericRangeQuery;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.neo4j.graphdb.Node;
@@ -44,6 +46,8 @@ import java.util.Map;
 
 import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.neo4j.helpers.collection.MapUtil.map;
 
 
 /**
@@ -113,6 +117,72 @@ public class QueryEngineTest extends EntityTestBase {
         assertEquals(testTeam.emil,result);
     }
 
+    @Test
+    public void testQueryNumericallyIndexedPropertiesWithNumericRangeQuery() {
+        final String queryString = "start person=node:Person({age}) return person.name";
+        final NumericRangeQuery<Integer> rangeQuery = NumericRangeQuery.newIntRange("age", michael.getAge(), michael.getAge(), true, true);
+        System.out.println("rangeQuery = " + rangeQuery.toString());
+        final Map<String, Object> result = queryEngine.query(queryString, map("age", rangeQuery)).singleOrNull();
+        assertNotNull("result is null",result);
+        assertEquals("found correct person", michael.getName(), result.get("person.name"));
+    }
+    @Test
+    @Ignore("fix numeric queries in cypher")
+    public void testQueryNumericallyIndexedPropertiesWithNumericRangeQueryString() {
+        final String queryString = "start person=node:Person({age}) return person.name";
+        final String rangeQuery = String.format("age:[%d TO %d]", michael.getAge()-1,michael.getAge()+1);
+        System.out.println("rangeQuery = " + rangeQuery);
+        final Map<String, Object> result = queryEngine.query(queryString, map("age", rangeQuery)).singleOrNull();
+        assertNotNull("result is null",result);
+        assertEquals("found correct person", michael.getName(), result.get("person.name"));
+    }
+    @Test
+    @Ignore("fix numeric queries in cypher")
+    public void testQueryNumericallyIndexedProperties() {
+        final String queryString = "start person=node:Person(age={age}) return person.name";
+        final Map<String, Object> result = queryEngine.query(queryString, map("age", michael.getAge())).singleOrNull();
+        assertNotNull("result is null",result);
+        assertEquals("found correct person", michael.getName(), result.get("person.name"));
+
+/*
+    public void getWorldsByMoons() {
+    @Query(value = "start Orig = node:moonIndex({num}) return Orig", type = QueryType.Cypher)
+    Iterable<World> getAllByMoonNumber(@Param("num")Object query);
+
+    @Query(value = "start Orig = node:moonIndex(moons = {num}) return Orig", type = QueryType.Cypher)
+    Iterable<World> getAllByMoonNumber(@Param("num")int moons);
+
+    @Query(value = "start Orig = node:moonIndex(moons = {num}) return Orig", type = QueryType.Cypher)
+    Iterable<World> getAllByMoonNumber(@Param("num")String moons);
+
+        galaxy.makeSomeWorlds();
+        final World neptune = galaxy.findByPropertyValue("name", "Neptune");
+        // works
+        final World world = galaxy.findByPropertyValue("moons",13);
+        assertEquals("findByPropertyValue:Neptune", neptune,world);
+
+        // works
+        final NumericRangeQuery<Integer> query = NumericRangeQuery.newIntRange("moons", 13, 13, true, true);
+        final Iterable<World> worlds1 = galaxy.findAllByQuery("moons", query);
+        assertEquals("findAllByQuery:Neptune",neptune,IteratorUtil.firstOrNull(worlds1));
+
+        // doesn't work
+        final Iterable<World> worldsByNumberString = galaxy.getAllByMoonNumber("13");
+        assertEquals("worldsByNumberString: Neptune",neptune,IteratorUtil.firstOrNull(worldsByNumberString));
+
+        // doesn't work
+        final Iterable<World> worldsByNumber = galaxy.getAllByMoonNumber(13);
+        assertEquals("worldsByNumber: Neptune",neptune,IteratorUtil.firstOrNull(worldsByNumber));
+
+        // doesn't work
+        final Iterable<World> worldsByQueryString = galaxy.getAllByMoonNumber((Object)"moons:[13 TO 13]");
+        assertEquals("worldsByQueryString: Neptune",neptune,IteratorUtil.firstOrNull(worldsByQueryString));
+
+        // doesn't work
+        final Iterable<World> worldsByQuery = galaxy.getAllByMoonNumber(query);
+        assertEquals("worldsByQuery:Neptune",neptune,IteratorUtil.firstOrNull(worldsByQuery));
+*/
+    }
     @Test
     public void testQueryListWithCustomConverter() throws Exception {
         final String queryString = "start person=node:name_index(name={name}) match (person) <-[:boss]- (boss) return boss";
