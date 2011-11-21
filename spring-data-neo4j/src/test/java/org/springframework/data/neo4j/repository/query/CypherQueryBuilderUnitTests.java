@@ -76,6 +76,14 @@ public class CypherQueryBuilderUnitTests {
 
         assertThat(query.toString(), is(DEFAULT_START_CLAUSE+" where person.age > {0} return person"));
     }
+    @Test
+    public void createsQueryForTwoPropertyExpressions() {
+
+        query.addRestriction(new Part("ageGreaterThan", Person.class));
+        query.addRestriction(new Part("info", Person.class));
+
+        assertThat(query.toString(), is(DEFAULT_START_CLAUSE+" where person.age > {0} and person.info = {1} return person"));
+    }
 
     @Test
     public void createsQueryForIsNullPropertyReference() {
@@ -132,7 +140,7 @@ public class CypherQueryBuilderUnitTests {
         assertThat(query.toString(), is(
                 "start person=node:Person(name={0}), person_group=node:Group(name={1}) " +
                         "match person<-[:members]-person_group, person<-[:members]-person_group-[:members]->person_group_members " +
-                        "where person.age > {2}, person_group_members.age = {3} " +
+                        "where person.age > {2} and person_group_members.age = {3} " +
                         "return person"
                 ));
     }

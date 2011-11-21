@@ -115,7 +115,7 @@ class CypherQueryBuilder implements CypherQueryDefinition {
 
         String startClauses = collectionToDelimitedString(this.startClauses, ", ");
         String matchClauses = toString(this.matchClauses);
-        String whereClauses = collectionToDelimitedString(this.whereClauses, ", ");
+        String whereClauses = collectionToDelimitedString(this.whereClauses, " and ");
 
         StringBuilder builder = new StringBuilder("start ");
 
