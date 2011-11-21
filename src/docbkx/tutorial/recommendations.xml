@@ -8,8 +8,8 @@
 		One obvious recommendation was movies that our fiends liked.
 	</para>
 	<para>
-		And there was this query language called Cypher that looked a bit like SQL but
-		expressed graph query conditions. So we gave it a try, using the <code>neo4j-shell</code>,
+		There was this query language called Cypher that looked a bit like SQL but
+		expressed graph matching queries. So we gave it a try, using the <code>neo4j-shell</code>,
 		to incrementally expand the query, just by declaring what relationships we wanted to
 		be taken into account and which properties of nodes and relationships to filter and
 		sort on.
@@ -17,7 +17,7 @@
 	    <para>
 	        <example>
 	            <title>Cypher based movie recommendation on Repository</title>
-	            <programlisting language="java"><![CDATA[interface Movie extends GraphRepository<Movie> {
+	            <programlisting language="java"><![CDATA[interface MovieRepository extends GraphRepository<Movie> {
 	@Query("
 	start user=node({0}) 
 	match user-[:FRIEND]-friend-[r:RATED]->movie
@@ -30,7 +30,7 @@
 	  </example>
     </para>
 	<para>
-		But we didn't have enough friends, so it was time to get some suggested. That would be likeminded
+		But we didn't have enough friends, so it was time to get some suggested. That would be like-minded
 		cineasts that rated movies similiarly to us. Again cypher for the rescue, this time only a bit 
 		more complex. Something that became obvious with both queries is that graph queries are always
 		local, so they start a node or set of nodes or relationships and expand outwards.
@@ -44,12 +44,12 @@ interface UserRepository extends GraphRepository<User> {
 	start user=node({0}) 
 	match user-[r:RATED]->movie<-[r2:RATED]-likeminded,
 	  user-[:FRIEND]-friend
-	where r.stars > 3 and r2.stars => r.stars
+	where r.stars > 3 and r2.stars >= 3
 	return likeminded
 	order by count(*) desc
 	limit 10
 	")
-    Iterabe<User> findFriends(User me);
+    Iterabe<User> suggestFriends(User me);
 }
 ]]></programlisting>
 	    </example>

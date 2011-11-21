@@ -4,7 +4,7 @@
     <title>Neo4j Server</title>
     <subtitle>Remotely related</subtitle>
     <para>
-		Right now our application was running with the embedded mode of Neo4j which was fine and high performant.
+		Right now our application was running with the embedded mode of Neo4j which was fine and highly performant.
 		In certain environments you don't have the luxury of file-system access for your webapps and have to talk
 		to a remote database service instead. Neo4j can also run as a server. It exposes its operations via a HTTP
 		based REST API.
@@ -24,7 +24,7 @@
 		<para>
 			We copied our store-directory into the <code>data/graph.db</code> directory of the server and started it
 			up again.
-			The admin console of Neo4j-Server, called 'web-admin' is pretty. Using javascript, it renders the graph
+			The admin console of Neo4j-Server, called 'web-admin' is pretty. Using JavaScript, it renders the graph
 			visually in a highly configurable way. It also gave us the possibility to issue queries over a console, 
 			another handy feature.
 		</para>
@@ -37,7 +37,7 @@
         </para>
 		<para>
 			So, how would we get our app connect to this server? It turned out the changes in configuration and setup
-			where minimal. Spring Data Neo4j already came with a module that takes care of the remote protocol. We
+			where minimal. Spring Data Neo4j already came with a module that took care of the remote protocol. We
 			added that maven dependency and changed the graph database used in the Spring
 			Configuration.
         </para>
@@ -68,12 +68,13 @@
 
         <para>
 			After those two changes we restarted the app, and ... it worked. The transparent handling of the 
-			remote API was impressive. We learned that it uses a library called <code>java-rest-graphdb</code>
+			remote API was impressive. We learned that it uses a library called
+            <ulink url="https://github.com/neo4j/java-rest-binding">java-rest-binding</ulink>
 			under the hood which is also usable without the Spring Framework.
 		</para>
 		<para>
 			Of course we noticed performance implications. Especially after moving the server to remote machine.
-			It turned out that the server supported remote execution of a lot of things, allowing us to run the
+			It turned out that the server supported remote execution of many operations, allowing us to run the
 			graph traversal and querying inside the server. That means looking at our graph interactions and
 			changing them in a way that switched from the transparent, direct graph access via the entities to
 			a different interaction pattern.
@@ -82,12 +83,12 @@
 <!--		So the first step would be moving away from the aspectj-direct mapping to loading and storing the
 			entities via the repositories which would manage.
 -->
-			We looked into the different modes of remote execution and found traversals, Cypher and Gremlin queries
+			We looked into the different modes of remotely executed operations and found traversals, Cypher and Gremlin queries
 			and index lookups. Most of them already matched our needs but the Cypher and Gremlin approaches were best 
 			suited, because they also handled index operations and allowed to return partial attribute sets and subgraphs.
         </para>
         <para>
-			So we looked at our use-case (aka page) -based interactions with the graph entities and converted them to 
+			So we looked at our use-case (aka page)-based interactions with the graph entities and converted them to
 			Cypher queries on repositories where appropriate, measuring the performance improvements as we went.
         </para>
 		<para>
@@ -97,7 +98,7 @@
 		</para>
         <para>
             <example>
-                <title></title>
+                <title>Example of query result mapping</title>
                 <programlisting language="java" ><![CDATA[
 public interface MovieRepository extends GraphRepository<Movie> {
 

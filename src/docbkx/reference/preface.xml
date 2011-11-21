@@ -16,8 +16,8 @@
         <para>
             The Spring Data Neo4j project, as part of the Spring Data initiative, aims to simplify development
             with the Neo4j graph database. Like JPA, it uses annotations on simple POJO domain objects.
-            The annotations activate one of the supported mapping approaches, either the copying, repository based one 
-			or the direct, attached, read- and write-through AspectJ based one.
+            The annotations activate one of the supported mapping approaches, either the simple mapping
+			or the transparent AspectJ mapping.
 			Both use the annotation and reflection metadata for mapping the POJO entities
             and their fields to nodes, relationships, and properties in the graph database.
         </para>

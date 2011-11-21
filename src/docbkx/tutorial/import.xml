@@ -99,44 +99,51 @@
             <title>Importing the data</title>
             <programlisting language="java" ><![CDATA[@Transactional
 public Movie importMovie(String movieId) {
-    Movie movie = repository.getMovie(movieId);
-    if (movie == null) { // Not found: Create fresh
-        movie = new Movie(movieId);
-    }
+  Movie movie = movieRepository.findById(movieId);
+  if (movie == null) { // Not found: Create fresh
+      movie = new Movie(movieId,null);
+  }
 
-    Map data = loadMovieData(movieId);
-    if (data.containsKey("not_found"))
-            throw new ImportException("Data for Movie "+movieId+" not found.");
-    movieDbJsonMapper.mapToMovie(data, movie);
-    movie.persist();
-    relatePersonsToMovie(movie, data);
-    return movie;
+  Map data = loadMovieData(movieId);
+  if (data.containsKey("not_found")) throw
+     new RuntimeException("Data for Movie "+movieId+" not found.");
+  movieDbJsonMapper.mapToMovie(data, movie);
+  movieRepository.save(movie);
+  relatePersonsToMovie(movie, data);
+  return movie;
 }
 
 private void relatePersonsToMovie(Movie movie, Map data) {
-    Collection<Map> cast = (Collection<Map>) data.get("cast");
-    for (Map entry : cast) {
-        String id = entry.get("id");
-        Roles job = entry.get("job");
-        Person person = importPerson(id);
-        switch (job) {
-            case DIRECTED:
-                person.directed(movie);
-                break;
-            case ACTS_IN:
-                person.playedIn(movie, (String) entry.get("character"));
-                break;
-        }
+  Collection<Map> cast = (Collection<Map>) data.get("cast");
+  for (Map entry : cast) {
+    String id = "" + entry.get("id");
+    String jobName = (String) entry.get("job");
+    Roles job = movieDbJsonMapper.mapToRole(jobName);
+    if (job==null) {
+      continue;
     }
+    switch (job) {
+      case DIRECTED:
+        final Director director = doImportPerson(id, new Director(id));
+        director.directed(movie);
+        directorRepository.save(director);
+        break;
+      case ACTS_IN:
+        final Actor actor = doImportPerson(id, new Actor(id));
+        actor.playedIn(movie, (String) entry.get("character"));
+        actorRepository.save(actor);
+        break;
+    }
+  }
 }
 
 public void mapToMovie(Map data, Movie movie) {
-   movie.setTitle((String) data.get("name"));
-   movie.setLanguage((String) data.get("language"));
-   movie.setTagline((String) data.get("tagline"));
-   movie.setReleaseDate(toDate(data, "released", "yyyy-MM-dd"));
+  movie.setTitle((String) data.get("name"));
+  movie.setLanguage((String) data.get("language"));
+  movie.setTagline((String) data.get("tagline"));
+  movie.setReleaseDate(toDate(data, "released", "yyyy-MM-dd"));
 ...
-   movie.setImageUrl(selectImageUrl((List<Map>) data.get("posters"), "poster", "mid"));
+  movie.setImageUrl(selectImageUrl((List<Map>) data.get("posters"), "poster", "mid"));
 }
 
         ]]></programlisting>
