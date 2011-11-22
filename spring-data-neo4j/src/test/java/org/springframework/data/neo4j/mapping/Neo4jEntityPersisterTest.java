@@ -20,7 +20,9 @@ import org.mockito.Mockito;
 import org.neo4j.graphdb.Node;
 import org.springframework.data.neo4j.model.Friendship;
 import org.springframework.data.neo4j.model.Person;
+import org.springframework.transaction.annotation.Transactional;
 
+import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
 
 /**
@@ -82,5 +84,24 @@ public class Neo4jEntityPersisterTest extends Neo4jPersistentTestBase {
         assertEquals(false,entityPersister.isRelationshipEntity(Person.class));
         assertEquals(true, entityPersister.isRelationshipEntity(Friendship.class));
 
+    }
+
+    @Test
+    @Transactional
+    public void testFetchSingleEntity() {
+        final Node node = template.getReferenceNode();
+        node.setProperty("name","Fetch");
+        final Person p = new Person(node.getId());
+        template.fetch(p);
+        assertEquals("Fetch",p.getName());
+    }
+    @Test
+    @Transactional
+    public void testFetchEntityCollection() {
+        final Node node = template.getReferenceNode();
+        node.setProperty("name","Fetch");
+        final Person p = new Person(node.getId());
+        template.fetch(asList(p));
+        assertEquals("Fetch",p.getName());
     }
 }

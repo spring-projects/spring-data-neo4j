@@ -260,4 +260,8 @@ public class Person {
 	public void setNickname(String nickname) {
 		this.nickname = nickname;
 	}
+
+    public Person(Long graphId) {
+        this.graphId = graphId;
+    }
 }

@@ -45,6 +45,7 @@ import org.springframework.data.neo4j.support.index.IndexProvider;
 import org.springframework.data.neo4j.support.index.IndexType;
 import org.springframework.data.neo4j.support.mapping.EntityCreatingClosableIterable;
 import org.springframework.data.neo4j.support.mapping.EntityStateHandler;
+import org.springframework.data.neo4j.support.mapping.Neo4jEntityPersister;
 import org.springframework.data.neo4j.support.mapping.Neo4jPersistentEntityImpl;
 import org.springframework.data.neo4j.support.query.QueryEngine;
 import org.springframework.data.neo4j.template.GraphCallback;
@@ -440,16 +441,26 @@ public class Neo4jTemplate implements Neo4jOperations, EntityPersister {
     @Override
     @SuppressWarnings("unchecked")
     public <T> T fetch(T value) {
-        final PropertyContainer state = getPersistentState(value);
-        if (state != null) {
-            final Class<?> targetType = value.getClass();
-            final TypeInformation<?> targetTypeInformation = ClassTypeInformation.from(targetType);
-            if (targetTypeInformation.isCollectionLike()) {
-                return (T) infrastructure.getEntityPersister().createEntityFromState(state, targetType, getMappingPolicy(targetTypeInformation.getActualType().getType())); // todo handle collections
+        if (value == null) return null;
+        final Class<T> targetType = (Class<T>) value.getClass();
+        final TypeInformation<T> targetTypeInformation = ClassTypeInformation.from(targetType);
+
+        final Neo4jEntityPersister entityPersister = infrastructure.getEntityPersister();
+        if (targetTypeInformation.isCollectionLike()) {
+            Iterable<?> collection = (Iterable<?>) value;
+            for (Object entry : collection) {
+                fetch(entry);
             }
-            return (T) infrastructure.getEntityPersister().createEntityFromState(state, targetType, getMappingPolicy(targetType)); // todo handle collections
+            return value;
+        } else {
+            final PropertyContainer state = getPersistentState(value);
+            if (state != null) {
+                return entityPersister.loadEntity(value, (Node) state, MappingPolicy.LOAD_POLICY, (Neo4jPersistentEntityImpl<T>) getPersistentEntity(targetType));
+            } else {
+                // todo do nothing?
+                throw new MappingException("No state information available in " + value);
+            }
         }
-        throw new MappingException("No state information available in "+ value);
     }
 
     @Override

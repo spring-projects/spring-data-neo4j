@@ -77,4 +77,6 @@ public interface Neo4jPersistentProperty extends PersistentProperty<Neo4jPersist
     boolean isReallyTransient();
 
     Object getValueFromEntity(Object entity, MappingPolicy mappingPolicy);
+
+    <T> T getDefaultValue(ConversionService conversionService, final Class<T> targetType);
 }

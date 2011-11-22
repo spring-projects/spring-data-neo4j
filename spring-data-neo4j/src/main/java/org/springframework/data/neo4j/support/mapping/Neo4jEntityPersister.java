@@ -151,6 +151,11 @@ public class Neo4jEntityPersister implements EntityPersister, Neo4jEntityConvert
         }
 
         @Override
+        public <R> R loadEntity(R entity, S source, MappingPolicy mappingPolicy, Neo4jPersistentEntityImpl<R> persistentEntity) {
+            return delegate.loadEntity(entity,source,mappingPolicy,persistentEntity);
+        }
+
+        @Override
         public <R> R read(Class<R> type, S state, MappingPolicy mappingPolicy) {
             try {
                 if (state==null) throw new IllegalArgumentException("State must not be null");
@@ -269,6 +274,11 @@ public class Neo4jEntityPersister implements EntityPersister, Neo4jEntityConvert
     @Override
     public <R> R read(Class<R> type, Node source, MappingPolicy mappingPolicy) {
         return createEntityFromState(source, type, mappingPolicy);
+    }
+
+    @Override
+    public <R> R loadEntity(R entity, Node source, MappingPolicy mappingPolicy, Neo4jPersistentEntityImpl<R> persistentEntity) {
+        return nodeConverter.loadEntity(entity,source,mappingPolicy,persistentEntity);
     }
 
     @Override
