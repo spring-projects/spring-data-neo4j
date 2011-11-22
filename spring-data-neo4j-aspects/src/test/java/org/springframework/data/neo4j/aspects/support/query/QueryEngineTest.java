@@ -24,6 +24,7 @@ import org.junit.runner.RunWith;
 import org.neo4j.graphdb.Node;
 import org.neo4j.helpers.collection.IteratorUtil;
 import org.neo4j.helpers.collection.MapUtil;
+import org.neo4j.index.lucene.ValueContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.data.neo4j.annotation.QueryType;
@@ -133,6 +134,15 @@ public class QueryEngineTest extends EntityTestBase {
         final String rangeQuery = String.format("age:[%d TO %d]", michael.getAge()-1,michael.getAge()+1);
         System.out.println("rangeQuery = " + rangeQuery);
         final Map<String, Object> result = queryEngine.query(queryString, map("age", rangeQuery)).singleOrNull();
+        assertNotNull("result is null",result);
+        assertEquals("found correct person", michael.getName(), result.get("person.name"));
+    }
+
+    @Test
+    @Ignore("fix numeric queries in cypher")
+    public void testQueryNumericallyIndexedPropertiesWithValueContext() {
+        final String queryString = "start person=node:Person(age={age}) return person.name";
+        final Map<String, Object> result = queryEngine.query(queryString, map("age", ValueContext.numeric(michael.getAge()))).singleOrNull();
         assertNotNull("result is null",result);
         assertEquals("found correct person", michael.getName(), result.get("person.name"));
     }

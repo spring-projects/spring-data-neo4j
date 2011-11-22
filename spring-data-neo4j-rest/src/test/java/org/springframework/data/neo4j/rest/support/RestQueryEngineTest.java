@@ -18,6 +18,8 @@ package org.springframework.data.neo4j.rest.support;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
+import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.neo4j.aspects.support.query.QueryEngineTest;
@@ -57,6 +59,11 @@ public class RestQueryEngineTest extends QueryEngineTest {
     @AfterClass
     public static void shutdownDb() {
         RestTestBase.shutdownDb();
+    }
+
+    @Test
+    @Ignore
+    public void testQueryNumericallyIndexedPropertiesWithNumericRangeQuery() {
     }
 
     @Override
