@@ -98,16 +98,12 @@ public class PropertyFieldAccessorFactory implements FieldAccessorFactory {
         }
 
         private Object getDefaultValue(final Class<?> type) {
-            if (type.isPrimitive()) {
-                if (type.equals(boolean.class)) return false;
-                return 0;
-            }
-            return null;
+            return property.getDefaultValue(template.getConversionService(), type);
         }
 
 		@Override
 		public Object getDefaultValue() {
-			return null;
+			return getDefaultValue(fieldType);
 		}
 
     }

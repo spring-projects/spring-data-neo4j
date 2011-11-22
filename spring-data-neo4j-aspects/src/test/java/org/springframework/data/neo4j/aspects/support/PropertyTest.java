@@ -126,4 +126,13 @@ public class PropertyTest extends EntityTestBase {
         Friendship f = p.knows(p2);
 		assertEquals("Wrong ID.", (Long) getRelationshipState(f).getId(), getRelationshipId(f));
     }
+
+    public void testGetDefaultValues() {
+        final Person p = persistedPerson("Michael", 35);
+        assertEquals(Personality.EXTROVERT,p.getDefaultedPersonality());
+        assertEquals("defaultValue",p.getDefaultedName());
+        assertEquals(0,(short)p.getHeight());
+        assertEquals(null, p.getBirthdate());
+
+    }
 }

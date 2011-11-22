@@ -61,7 +61,13 @@ public class Person {
 	private Car car;
 
 	private DynamicProperties personalProperties;
-	
+
+    @GraphProperty(defaultValue = "EXTROVERT")
+    private Personality defaultedPersonality;
+
+    @GraphProperty(defaultValue = "defaultValue")
+    private String defaultedName;
+
 	@RelatedTo
 	private Person mother;
 
@@ -242,5 +248,13 @@ public class Person {
 
     public Set<Friendship> getFriendshipsSet() {
         return friendshipsSet;
+    }
+
+    public Personality getDefaultedPersonality() {
+        return defaultedPersonality;
+    }
+
+    public String getDefaultedName() {
+        return defaultedName;
     }
 }

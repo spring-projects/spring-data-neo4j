@@ -32,4 +32,8 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.FIELD,ElementType.METHOD})
 public @interface GraphProperty {
+
+    String UNSET_DEFAULT = "\0";
+
+    String defaultValue() default UNSET_DEFAULT;
 }

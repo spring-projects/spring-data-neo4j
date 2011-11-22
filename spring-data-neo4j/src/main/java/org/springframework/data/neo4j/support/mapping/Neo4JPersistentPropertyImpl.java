@@ -49,15 +49,25 @@ class Neo4jPersistentPropertyImpl extends AbstractPersistentProperty<Neo4jPersis
     private IndexInfo indexInfo;
     private Map<Class<? extends Annotation>, ? extends Annotation> annotations;
     private Association<Neo4jPersistentProperty> myAssociation;
+    private String defaultValue;
 
     public Neo4jPersistentPropertyImpl(Field field, PropertyDescriptor propertyDescriptor,
                                        PersistentEntity<?, Neo4jPersistentProperty> owner, SimpleTypeHolder simpleTypeHolder, Neo4jMappingContext ctx) {
         super(field, propertyDescriptor, owner, simpleTypeHolder);
         this.annotations = extractAnnotations(field);
-        this.relationshipInfo = extractRelationshipInfo(field,ctx);
+        this.relationshipInfo = extractRelationshipInfo(field, ctx);
         this.indexInfo = extractIndexInfo();
         this.isIdProperty = annotations.containsKey(GraphId.class);
+        this.defaultValue = extractDefaultValue();
         this.myAssociation = isAssociation() ? super.getAssociation() == null ? createAssociation() : super.getAssociation() : null;
+    }
+
+    private String extractDefaultValue() {
+        final GraphProperty graphProperty = getAnnotation(GraphProperty.class);
+        if (graphProperty==null) return null;
+        final String value = graphProperty.defaultValue();
+        if (value.equals(GraphProperty.UNSET_DEFAULT)) return null;
+        return value;
     }
 
     @Override
@@ -211,6 +221,23 @@ class Neo4jPersistentPropertyImpl extends AbstractPersistentProperty<Neo4jPersis
         } catch (IllegalAccessException e) {
             throw new MappingException("Could not access field "+field);
         }
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public <T> T getDefaultValue(ConversionService conversionService, final Class<T> targetType) {
+        if (defaultValue == null) return (T) getDefaultValue(targetType);
+        if (targetType.isAssignableFrom(String.class)) return (T) defaultValue;
+        if (conversionService == null) return (T) getDefaultValue(targetType);
+        return conversionService.convert(defaultValue, targetType);
+    }
+
+    private Object getDefaultValue(Class<?> type) {
+        if (type!=null && type.isPrimitive()) {
+            if (type.equals(boolean.class)) return false;
+            return 0;
+        }
+        return null;
     }
 
 
