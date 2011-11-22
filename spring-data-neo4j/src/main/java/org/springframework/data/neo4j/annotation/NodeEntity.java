@@ -16,6 +16,8 @@
 
 package org.springframework.data.neo4j.annotation;
 
+import org.springframework.data.annotation.Persistent;
+
 import java.lang.annotation.*;
 
 /**
@@ -27,6 +29,7 @@ import java.lang.annotation.*;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
 @Inherited
+@Persistent
 public @interface NodeEntity {
     /**
      * @return true if the property names default to field names, otherwise the FQN of the class will be prepended
