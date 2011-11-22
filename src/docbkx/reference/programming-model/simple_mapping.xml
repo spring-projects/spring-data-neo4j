@@ -3,8 +3,15 @@
 <section id="reference:simple-mapping">
     <title>Simple Object Graph Mapping</title>
     <para>
-		The simple object graph mapping comes into action whenever an entity is constructed from a node or relationship.
-		That could be explicitely like during the findOne or createNodeAs operations but also implicitely while executing
+        In addition to the advanced object graph mapping using AspectJ, Spring Data Neo4j also supports a simpler mode
+        that converts graph data into domain objects and vice versa. It does not require any additional set up and should
+        work out of the box. The simple mapping approach uses the same annotations (<xref linked="reference:programming-model:annotations"/>)
+        as the advanced mapping to declare mapping meta-information.
+    </para>
+    <para>
+		The simple object graph mapping comes into play whenever an entity is constructed from a node or relationship.
+		That could be explicitely like during the lookup or create operations of the repositories and the
+        <code>Neo4jTemplate</code> but also implicitely while executing
 		any graph operation that returns nodes or relationships and expecting mapped entities to be returned.
 	</para>
 	<para>
@@ -13,13 +20,16 @@
 		in the properties. 
 	</para>
 	<para>
-		<!--TODO implement that way !-->
-		We try to avoid loading the whole graph into memory by not following too many relationships eagerly. A dedicated 
+		We try to avoid loading the whole graph into memory by not following relationships eagerly. A dedicated
 		<code>@Fetch</code> annotation controls instead if related entities are loaded or not. 
 		Whenever an entity is not fully loaded, then only its id is stored. Those
-		entities or collections of entities can then later be loaded explictely.
-		<!-- TODO fetch depth on entity or query, aka stack size of the cache ? -->
+		entities or collections of entities can then later be loaded explictely using the <code>template.fetch()</code> operation.
 	</para>
+    <para>
+        The additional fetch information is stored in a <code>MappingPolicy</code> which can be retrieved via the <code>Neo4jTemplate</code>
+        for classes. Both <code>Neo4jPersistentEntitity</code> as well as <code>Neo4jPersistentProperty</code> provide access to that
+        information on their scope.
+    </para>
 	<para>
 		<example>
 			<title>Examples for loading entities from the graph</title>
@@ -41,12 +51,24 @@
   assertNotNull(person.getSpouse().getId());
   assertNull(person.getSpouse().getName());
 
-  template.load(person.getSpouse());
+  template.fetch(person.getSpouse());
   assertNotNull(person.getSpouse().getName());
 
   assertEquals(10,person.getFriends().size());
   assertNotNull(firstFriend.getName());
 ]]></programlisting>
 </example>
-</para>	
+</para>
+    <para>
+        <note>
+            Both the simple mapping approach as well as the fetch strategies (<code>MappingPolicy</code>) debuted in Spring Data Neo4j 2.0.
+            So there might be rough edges and there are certainly many areas for improvement and extension. We look forward to your feedback
+            on this topic.
+        </note>
+    </para>
+    <para>
+        As we tried to encapsulate each aspect of the mapping process into a separate class the resulting fabric of responsibilities is quite
+        intricate. All of them are set up in the <code>MappingInfrastructure</code> that is part of the <code>Neo4jTemplate</code> setup.
+        <!-- todo list classes and responsibilities, how to discuss extension / modification of behaviour ?? -->
+    </para>
 </section>

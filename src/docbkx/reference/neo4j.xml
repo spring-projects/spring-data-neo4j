@@ -11,9 +11,9 @@
             structures. Properties can be added to nodes and relationships.
         </para>
         <para>
-            Graph databases are well suited for storing most kinds of domain models. In almost all domain models,
+            Graph databases are well suited for storing most kinds of domain models. In almost all domains,
             there are certain things connected to other things. In most other modeling approaches, the relationships
-            between things are reduced to a single link without identity and attributes. Graph databases allow one
+            between things are reduced to a single link without identity and attributes. Graph databases allow
             to keep the rich relationships that originate from the domain, equally well-represented in the database
             without resorting to also modeling the relationships as "things". There is very little "impedance
             mismatch" when putting real-life domains into a graph database.
@@ -22,7 +22,7 @@
     <section>
         <title>About Neo4j</title>
         <para>
-            <ulink url="http://neo4j.org/">Neo4j</ulink> is a graph database. It is a fully transactional database
+            <ulink url="http://neo4j.org/">Neo4j</ulink> is a NOSQL graph database. It is a fully transactional database
             (ACID) that stores data structured as graphs. A graph consists of nodes, connected by relationships.
             Inspired by the structure of the human brain, it allows for high query performance on complex data,
             while remaining intuitive and simple for the developer.
@@ -31,7 +31,7 @@
             Neo4j has been in commercial development for 10 years and in production for over 7 years.
             Most importantly it has a helpful and contributing community surrounding it, but it also:
             <itemizedlist>
-            <listitem><simpara>has an intuitive graph-oriented model for data representation. Instead of tables, rows,
+            <listitem><simpara>has an intuitive, rich graph-oriented model for data representation. Instead of tables, rows,
                 and columns, you work with a graph consisting of
                 <ulink url="http://wiki.neo4j.org/content/Getting_Started">nodes, relationships, and properties</ulink>.
             </simpara></listitem>
@@ -41,12 +41,12 @@
             <listitem><simpara>is scalable. Neo4j can handle graphs with many billions of nodes/relationships/properties on
                 a single machine, but can also be scaled out across multiple machines for high availability.
             </simpara></listitem>
-            <listitem><simpara>has a powerful traversal framework for traversing in the node space.
+            <listitem><simpara>has a powerful traversal framework and query languages for traversing the graph.
             </simpara></listitem>
             <listitem><simpara>can be deployed as a standalone server or an embedded database with a very small
-                distribution footprint (~700k jar).
+                distribution footprint.
             </simpara></listitem>
-            <listitem><simpara>has a Java <ulink url="http://api.neo4j.org/">API</ulink>.
+            <listitem><simpara>has a core Java <ulink url="http://api.neo4j.org/">API</ulink>.
             </simpara></listitem>
             </itemizedlist>
         </para>
@@ -59,7 +59,7 @@
 	<section>
 		<title>GraphDatabaseService</title>
 		<para>
-            The interface <code>org.neo4j.graphdb.GraphDatabaseService</code> provides access to the
+            The API of <code>org.neo4j.graphdb.GraphDatabaseService</code> provides access to the
             storage engine. Its features include creating and retrieving nodes and relationships, managing
             indexes (via the IndexManager), database life cycle callbacks, transaction management, and more.
 		</para>
@@ -75,7 +75,7 @@
 		<para>
             Using the API of GraphDatabaseService, it is easy to create nodes and relate them to each other.
             Relationships are typed. Both nodes and relationships can have properties. Property values can be
-            primitive Java types and Strings, or arrays of Java primitives or Strings. Node creation and
+            primitive Java types and Strings, or arrays of both. Node creation and
             modification has to happen within a transaction, while reading from the graph store can be
             done with or without a transaction.
         </para>
@@ -85,8 +85,8 @@
 Transaction tx = graphDb.beginTx();
 try {
 	Node firstNode = graphDb.createNode();
-	Node secondNode = graphDb.createNode();
 	firstNode.setProperty( "message", "Hello, " );
+	Node secondNode = graphDb.createNode();
 	secondNode.setProperty( "message", "world!" );
 
 	Relationship relationship = firstNode.createRelationshipTo( secondNode,
@@ -99,37 +99,37 @@ try {
 ]]></programlisting>
         </example>
 	</section>
-	<section>
-		<title>Graph traversal</title>
-		<para>
-            Getting a single node or relationship and examining it is not the main use case of a graph database.
-            Fast graph traversal and application of graph algorithms are. Neo4j provides a DSL for defining
-            <code>TraversalDescription</code>s that can then be applied to a start node and will produce a
-            lazy <code>java.lang.Iterable</code> result of nodes and/or relationships.
-        </para>
-        <example>
-            <title>Traversal usage</title>
-            <programlisting language="java" ><![CDATA[TraversalDescription traversalDescription = Traversal.description()
-        .depthFirst()
-        .relationships(KNOWS)
-        .relationships(LIKES, Direction.INCOMING)
-        .evaluator(Evaluators.toDepth(5));
+    <section>
+   		<title>Graph traversal</title>
+   		<para>
+               Getting a single node or relationship and examining it is not the main use case of a graph database.
+               Fast graph traversal of complex, interconnected data and application of graph algorithms are. Neo4j provides a DSL for defining
+               <code>TraversalDescription</code>s that can then be applied to a start node and will produce a
+               lazy <code>java.lang.Iterable</code> result of nodes and/or relationships.
+           </para>
+           <example>
+               <title>Traversal usage</title>
+<programlisting language="java" ><![CDATA[TraversalDescription traversalDescription = Traversal.description()
+   .depthFirst()
+   .relationships(KNOWS)
+   .relationships(LIKES, Direction.INCOMING)
+   .evaluator(Evaluators.toDepth(5));
 for (Path position : traversalDescription.traverse(myStartNode)) {
-    System.out.println("Path from start node to current position is " + position);
+   System.out.println("Path from start node to current position is " + position);
 }
 ]]></programlisting>
-        </example>
-	</section>
+           </example>
+   	</section>
 	<section>
 		<title>Indexing</title>
 		<para>
-            The best way for retrieving start nodes for traversals is by using Neo4j's integrated index
-            facilities. The GraphDatabaseService provides access to the IndexManager which in turn provides
+            The best way for retrieving start nodes for traversals and queries is by using Neo4j's integrated index
+            facilities. The <code>GraphDatabaseService</code> provides access to the <code>IndexManager</code> which in turn provides
             named indexes for nodes and relationships. Both can be indexed with property names and values.
-            Retrieval is done with query methods on indexes, returning an IndexHits iterator.
+            Retrieval is done with query methods on indexes, returning an <code>IndexHits</code> iterator.
         </para>
         <para>
-            Spring Data Neo4j provides automatic indexing via the @Indexed annotation, eliminating the need
+            Spring Data Neo4j provides automatic indexing via the <code>@Indexed</code> annotation, eliminating the need
             for manual index management.
         </para>
         <note><para>
@@ -154,22 +154,20 @@ for (Node foundNode : nodeIndex.get("property","value")) {
         </example>
     </section>
     <section>
-        <title>Querying with Cypher</title>
+        <title>Querying the Graph with Cypher</title>
         <para>
-            With version 1.4.M04 Neo4j introduced a textual query language called
+            Neo4j provides a graph query language called
             <ulink url="http://docs.neo4j.org/chunked/milestone/cypher-query-lang.html">"Cypher"</ulink> which draws from many
-            sources. From graph matching like in SPARQL, some keywords and query structure that reminds of SQL and
-            some iconic representation. A screencast presenting cypher queries on the cineasts.net dataset is available
-            at <ulink url="http://video.neo4j.org/U2Y/introduction-to-cypher">video.neo4j.org</ulink>. Cypher was written
-            in Scala to leverage the high expressiveness for lazy sequence operations of the language and the great
+            sources. It resembles SQL but with an iconic representation of patterns in the graph (concepts drawn from SPARQL).
+            Cypher was written in Scala to leverage the high expressiveness for lazy sequence operations of the language and the
             parser combinator library.
         </para>
         <para>
             Cypher queries always begin with a <code>start</code> set of nodes. Those can be either expressed by their
             id's or by a index lookup expression. Those start-nodes are then related to other nodes in the
-            <code>match</code> clause to other nodes. Start and match clause can introduce new identifiers for nodes and
+            <code>match</code> clause. Start and match clause can introduce new identifiers for nodes and
             relationships. In the <code>where</code> clause additional filtering of the result set is applied by evaluating
-            boolean expressions. The <code>return</code> clause defines which part of the query result will be available.
+            expressions. The <code>return</code> clause defines which part of the query result will be available.
             Aggregation also happens in the return clause by using aggregation functions on some of the values.
             Sorting can happen in the <code>order by</code> clause and the <code>skip</code> and <code>limit</code> parts
             restrict the result set to a certain window.
@@ -184,27 +182,27 @@ for (Node foundNode : nodeIndex.get("property","value")) {
             <title>Cypher Examples on the Cineasts.net Dataset</title>
             <programlisting><![CDATA[
 // Actors of Forrest Gump:
-start movie=(Movie,id,'13') match (movie)<-[:ACTS_IN]-(actor)
+start movie=node:Movie("title:Matr*") match movie<-[:ACTS_IN]-actor
     return actor.name, actor.birthplace?
 
 // User-Ratings:
-start user=(User,login,'micha') match (user)-[r,:RATED]->(movie) where r.stars > 3
+start user=node:User(login='micha') match user-[r,:RATED]->movie where r.stars > 3
     return movie.title, r.stars, r.comment
 
 // Mutual Friend recommendations:
-start user=(User,login,'micha') match (user)-[:FRIEND]-(friend)-[r,:RATED]->(movie) where r.stars > 3
+start user=node:Micha(login='micha') match user-[:FRIEND]-friend-[r,:RATED]->movie where r.stars > 3
     return friend.name, movie.title, r.stars, r.comment?
 
 // Movie suggestions based on a movie:
-start movie=(Movie,id,'13') match (movie)<-[:ACTS_IN]-()-[:ACTS_IN]->(suggestion)
+start movie=node:Movie(id='13') match (movie)<-[:ACTS_IN]-()-[:ACTS_IN]->(suggestion)
     return suggestion.title, count(*) order by count(*) desc limit 5
 
 // Co-Actors, sorted by count and name of Lucy Liu
-start lucy=(1000) match (lucy)-[:ACTS_IN]->(movie)<-[:ACTS_IN]-(co_actor)
+start lucy=node(1000) match lucy-[:ACTS_IN]->movie<-[:ACTS_IN]-co_actor
     return count(*), co_actor.name order by count(*) desc,co_actor.name limit 20
 
 // recommendations including counts, grouping and sorting
-start user=(User,login,'micha') match (user)-[:FRIEND]-(friend)-[r,:RATED]->(movie)
+start user=node:User(login='micha') match user-[:FRIEND]-()-[r,:RATED]->movie
     return movie.title, AVG(r.stars), count(*) order by AVG(r.stars) desc, count(*) desc
 ]]></programlisting>
         </example>
