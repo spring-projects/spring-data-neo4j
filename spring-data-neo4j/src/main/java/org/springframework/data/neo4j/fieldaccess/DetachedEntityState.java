@@ -190,15 +190,21 @@ public class DetachedEntityState<STATE> implements EntityState<STATE> {
 
         if (isDirty()) {
             final Map<Neo4jPersistentProperty, ExistingValue> dirtyCopy = new HashMap<Neo4jPersistentProperty, ExistingValue>(dirty);
-            for (final Map.Entry<Neo4jPersistentProperty, ExistingValue> entry : dirtyCopy.entrySet()) {
-                final Neo4jPersistentProperty property = entry.getKey();
-                final MappingPolicy mappingPolicy = property.getMappingPolicy();
-                Object valueFromEntity = getValueFromEntity(property, MappingPolicy.MAP_FIELD_DIRECT_POLICY);
-                cascadePersist(valueFromEntity);
-                if (log.isDebugEnabled()) log.debug("Flushing dirty Entity new node " + entity + " field " + property+ " with value "+ valueFromEntity);
-                checkConcurrentModification(entity, entry, property, mappingPolicy);
-                delegate.setValue(property, valueFromEntity, mappingPolicy);
-                dirty.remove(property);
+            try {
+                for (final Map.Entry<Neo4jPersistentProperty, ExistingValue> entry : dirtyCopy.entrySet()) {
+                    final Neo4jPersistentProperty property = entry.getKey();
+                    Object valueFromEntity = getValueFromEntity(property, MappingPolicy.MAP_FIELD_DIRECT_POLICY);
+                    cascadePersist(valueFromEntity);
+                    if (log.isDebugEnabled()) log.debug("Flushing dirty Entity new node " + entity + " field " + property+ " with value "+ valueFromEntity);
+                    final MappingPolicy mappingPolicy = property.getMappingPolicy();
+                    checkConcurrentModification(entity, entry, property, mappingPolicy);
+                    delegate.setValue(property, valueFromEntity, mappingPolicy);
+                    dirty.remove(property);
+                }
+            } finally {
+                if (!dirty.isEmpty()) { // restore all dirty data
+                    dirty.putAll(dirtyCopy);
+                }
             }
         }
     }
