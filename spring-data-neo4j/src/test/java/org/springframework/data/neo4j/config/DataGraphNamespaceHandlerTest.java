@@ -21,14 +21,19 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.kernel.AbstractGraphDatabase;
-import org.neo4j.kernel.Config;
 import org.neo4j.kernel.EmbeddedGraphDatabase;
 import org.neo4j.kernel.HighlyAvailableGraphDatabase;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.core.convert.ConversionService;
+import org.springframework.core.convert.TypeDescriptor;
+import org.springframework.core.convert.converter.GenericConverter;
 import org.springframework.data.neo4j.model.PersonRepository;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
 import org.springframework.transaction.PlatformTransactionManager;
+
+import java.util.Collections;
+import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
 
@@ -50,6 +55,17 @@ public class DataGraphNamespaceHandlerTest {
         PersonRepository personRepository;
     }
 
+    public static class TestConverter implements GenericConverter {
+        @Override
+        public Set<ConvertiblePair> getConvertibleTypes() {
+            return Collections.singleton(new ConvertiblePair(Config.class, Integer.class));
+        }
+
+        @Override
+        public Object convert(Object source, TypeDescriptor sourceType, TypeDescriptor targetType) {
+            return source.hashCode();
+        }
+    }
     @Test
     public void injectionForJustStoreDir() {
         final Config config = assertInjected("");
@@ -76,6 +92,13 @@ public class DataGraphNamespaceHandlerTest {
     @Test
     public void injectionForCodeConfiguredExistingGraphDatabaseService() {
         assertInjected("-code");
+    }
+    @Test
+    public void injectionForConversionService() {
+        final Config config = assertInjected("-conversion");
+        final ConversionService conversionService = config.neo4jTemplate.getConversionService();
+        assertEquals(true, conversionService.canConvert(Enum.class,String.class));
+        assertEquals(true, conversionService.canConvert(Config.class, Integer.class));
     }
 
     private Config assertInjected(String testCase) {

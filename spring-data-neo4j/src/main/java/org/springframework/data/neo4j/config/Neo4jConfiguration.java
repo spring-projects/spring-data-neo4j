@@ -66,7 +66,6 @@ import static java.util.Arrays.asList;
 public abstract class Neo4jConfiguration {
     private GraphDatabaseService graphDatabaseService;
 
-    @Autowired(required = false)
     private ConversionService conversionService;
 
     @Autowired(required = false)
@@ -76,6 +75,11 @@ public abstract class Neo4jConfiguration {
         return graphDatabaseService;
     }
 
+    @Qualifier("conversionService")
+    @Autowired(required = false)
+    public void setConversionService(ConversionService conversionService) {
+        this.conversionService = conversionService;
+    }
 
     @Autowired
     public void setGraphDatabaseService(GraphDatabaseService graphDatabaseService) {
@@ -165,6 +169,7 @@ public abstract class Neo4jConfiguration {
         final Neo4jConversionServiceFactoryBean neo4jConversionServiceFactoryBean = new Neo4jConversionServiceFactoryBean();
         if (conversionService!=null) {
             neo4jConversionServiceFactoryBean.addConverters(conversionService);
+            return conversionService;
         }
         return neo4jConversionServiceFactoryBean.getObject();
     }
