@@ -67,6 +67,9 @@ public abstract class Neo4jConfiguration {
     private GraphDatabaseService graphDatabaseService;
 
     @Autowired(required = false)
+    private ConversionService conversionService;
+
+    @Autowired(required = false)
     private Validator validator;
 
     public GraphDatabaseService getGraphDatabaseService() {
@@ -84,7 +87,7 @@ public abstract class Neo4jConfiguration {
         MappingInfrastructure infrastructure = new MappingInfrastructure();
         infrastructure.setGraphDatabaseService(getGraphDatabaseService());
         infrastructure.setTypeRepresentationStrategyFactory(typeRepresentationStrategyFactory());
-        infrastructure.setConversionService(conversionService());
+        infrastructure.setConversionService(neo4jConversionService());
         infrastructure.setMappingContext(mappingContext());
         infrastructure.setEntityStateHandler(entityStateHandler());
 
@@ -148,7 +151,7 @@ public abstract class Neo4jConfiguration {
     public Neo4jEntityFetchHandler entityFetchHandler() throws Exception {
         final SourceStateTransmitter<Node> nodeSourceStateTransmitter = nodeStateTransmitter();
         final SourceStateTransmitter<Relationship> relationshipSourceStateTransmitter = new SourceStateTransmitter<Relationship>(relationshipEntityStateFactory());
-        return new Neo4jEntityFetchHandler(entityStateHandler(), conversionService(), nodeSourceStateTransmitter, relationshipSourceStateTransmitter);
+        return new Neo4jEntityFetchHandler(entityStateHandler(), neo4jConversionService(), nodeSourceStateTransmitter, relationshipSourceStateTransmitter);
     }
 
     @Bean
@@ -158,8 +161,12 @@ public abstract class Neo4jConfiguration {
 
     //@Scope(BeanDefinition.SCOPE_PROTOTYPE)
     @Bean
-    protected ConversionService conversionService() throws Exception {
-        return new Neo4jConversionServiceFactoryBean().getObject();
+    protected ConversionService neo4jConversionService() throws Exception {
+        final Neo4jConversionServiceFactoryBean neo4jConversionServiceFactoryBean = new Neo4jConversionServiceFactoryBean();
+        if (conversionService!=null) {
+            neo4jConversionServiceFactoryBean.addConverters(conversionService);
+        }
+        return neo4jConversionServiceFactoryBean.getObject();
     }
 
     @Bean

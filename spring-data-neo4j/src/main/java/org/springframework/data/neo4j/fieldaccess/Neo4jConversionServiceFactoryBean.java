@@ -20,48 +20,48 @@ import org.springframework.beans.factory.FactoryBean;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.core.convert.converter.ConverterFactory;
+import org.springframework.core.convert.converter.ConverterRegistry;
 import org.springframework.core.convert.support.ConversionServiceFactory;
 import org.springframework.core.convert.support.GenericConversionService;
 
 import java.util.Date;
 
-public class Neo4jConversionServiceFactoryBean implements FactoryBean<ConversionService>
-{
+public class Neo4jConversionServiceFactoryBean implements FactoryBean<ConversionService> {
 
     @Override
-    public ConversionService getObject() throws Exception
-    {
+    public ConversionService getObject() throws Exception {
         GenericConversionService conversionService = new GenericConversionService();
         addConverters(conversionService);
-        ConversionServiceFactory.addDefaultConverters( conversionService );
+        ConversionServiceFactory.addDefaultConverters(conversionService);
         return conversionService;
     }
 
-    private void addConverters( GenericConversionService conversionService )
-    {
-        conversionService.addConverter(new DateToLongConverter());
-        conversionService.addConverter(new LongToDateConverter());
-        conversionService.addConverter(new EnumToStringConverter());
-        conversionService.addConverterFactory(new StringToEnumConverterFactory());
+    public void addConverters(ConversionService service) {
+        if (service instanceof ConverterRegistry) {
+            ConverterRegistry registry = (ConverterRegistry) service;
+            registry.addConverter(new DateToLongConverter());
+            registry.addConverter(new LongToDateConverter());
+            registry.addConverter(new EnumToStringConverter());
+            registry.addConverterFactory(new StringToEnumConverterFactory());
+        } else {
+            throw new IllegalArgumentException("conversionservice is no ConverterRegistry:" + service);
+        }
     }
 
     @Override
-    public Class<?> getObjectType()
-    {
+    public Class<?> getObjectType() {
         return GenericConversionService.class;
     }
 
     @Override
-    public boolean isSingleton()
-    {
+    public boolean isSingleton() {
         return true;
     }
 
     public static class DateToLongConverter implements Converter<Date, String> {
 
         @Override
-        public String convert( Date source )
-        {
+        public String convert(Date source) {
             return String.valueOf(source.getTime());
         }
     }
@@ -69,8 +69,7 @@ public class Neo4jConversionServiceFactoryBean implements FactoryBean<Conversion
     public static class LongToDateConverter implements Converter<String, Date> {
 
         @Override
-        public Date convert( String source )
-        {
+        public Date convert(String source) {
             return new Date(Long.valueOf(source));
         }
     }
@@ -78,8 +77,7 @@ public class Neo4jConversionServiceFactoryBean implements FactoryBean<Conversion
     public static class EnumToStringConverter implements Converter<Enum, String> {
 
         @Override
-        public String convert( Enum source )
-        {
+        public String convert(Enum source) {
             return source.name();
         }
     }
@@ -98,12 +96,13 @@ public class Neo4jConversionServiceFactoryBean implements FactoryBean<Conversion
             public StringToEnum(Class<T> enumType) {
                 this.enumType = enumType;
             }
+
             @SuppressWarnings("RedundantCast")
             public T convert(String source) {
                 if (source == null) return null;
-                final String trimmed=source.trim();
+                final String trimmed = source.trim();
                 if (trimmed.isEmpty()) return null;
-                return (T)Enum.valueOf(this.enumType, trimmed);
+                return (T) Enum.valueOf(this.enumType, trimmed);
             }
 
         }
