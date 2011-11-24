@@ -164,7 +164,7 @@ public class RelationshipEntityTest extends EntityTestBase {
         Transaction tx2 = graphDatabaseService.beginTx();
         try
         {
-            neo4jTemplate.removeRelationshipEntity(f);
+            neo4jTemplate.delete(f);
             tx2.success();
         }
         finally
@@ -193,7 +193,7 @@ public class RelationshipEntityTest extends EntityTestBase {
         Transaction tx2 = graphDatabaseService.beginTx();
         try
         {
-            neo4jTemplate.removeNodeEntity(p);
+            neo4jTemplate.delete(p);
             tx2.success();
         }
         finally

@@ -76,6 +76,10 @@ public class Neo4jEntityConverterImpl<T,S extends PropertyContainer> implements 
         // retrieve meta-information about the type
         @SuppressWarnings("unchecked") final Neo4jPersistentEntityImpl<R> persistentEntity = (Neo4jPersistentEntityImpl<R>) mappingContext.getPersistentEntity(targetType);
 
+        if (mappingPolicy==null) {
+            mappingPolicy = persistentEntity.getMappingPolicy();
+        }
+
         // 4) create object instance
         final R createdEntity = entityInstantiator.createEntityFromState(source, targetType.getType(), mappingPolicy);
 

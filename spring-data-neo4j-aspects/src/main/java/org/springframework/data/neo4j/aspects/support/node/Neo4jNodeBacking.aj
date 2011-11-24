@@ -42,6 +42,7 @@ import org.springframework.data.neo4j.support.Neo4jTemplate;
 
 import org.springframework.data.neo4j.support.path.EntityPathPathIterableWrapper;
 import org.springframework.data.neo4j.support.query.CypherQueryExecutor;
+import org.springframework.data.neo4j.template.Neo4jOperations;
 
 import javax.persistence.Transient;
 import javax.persistence.Entity;
@@ -167,6 +168,10 @@ public privileged aspect Neo4jNodeBacking { // extends AbstractTypeAnnotatingMix
         return template().getRelationshipBetween(this,target,type);
     }
 
+    public Neo4jTemplate NodeBacked.getTemplate() {
+        return Neo4jNodeBacking.aspectOf().template;
+    }
+
 	public Long NodeBacked.getNodeId() {
         if (!hasPersistentState()) return null;
 		return getPersistentState().getId();
@@ -206,7 +211,7 @@ public privileged aspect Neo4jNodeBacking { // extends AbstractTypeAnnotatingMix
     }
 
     public void NodeBacked.remove() {
-        template().removeNodeEntity(this);
+        template().delete(this);
     }
 
     public void NodeBacked.removeRelationshipTo(NodeBacked target, String relationshipType) {

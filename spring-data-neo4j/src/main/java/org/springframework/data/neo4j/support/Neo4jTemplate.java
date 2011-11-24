@@ -167,6 +167,11 @@ public class Neo4jTemplate implements Neo4jOperations, EntityPersister {
     }
 
     @Override
+    public <S extends PropertyContainer, T> T createEntityFromStoredType(S state) {
+        notNull(state,"node or relationship");
+        return infrastructure.getEntityPersister().createEntityFromStoredType(state);
+    }
+    @Override
     public <S extends PropertyContainer, T> T createEntityFromStoredType(S state, MappingPolicy mappingPolicy) {
         notNull(state,"node or relationship");
         return infrastructure.getEntityPersister().createEntityFromStoredType(state, mappingPolicy);
@@ -220,16 +225,7 @@ public class Neo4jTemplate implements Neo4jOperations, EntityPersister {
     @Override
     public void delete(final Object entity) {
         notNull(entity, "entity");
-        infrastructure.getEntityRemover().removeNodeEntity(entity);
-    }
-
-    public void removeNodeEntity(final Object entity) {
-        notNull(entity, "entity");
-        infrastructure.getEntityRemover().removeNodeEntity(entity);
-    }
-
-    public void removeRelationshipEntity(Object entity) {
-        infrastructure.getEntityRemover().removeRelationshipEntity(entity);
+        infrastructure.getEntityRemover().remove(entity);
     }
 
     /**

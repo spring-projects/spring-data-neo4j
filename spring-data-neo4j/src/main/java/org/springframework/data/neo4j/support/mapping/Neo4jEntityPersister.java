@@ -51,6 +51,10 @@ public class Neo4jEntityPersister implements EntityPersister, Neo4jEntityConvert
         return createEntityFromState(state,null, mappingPolicy);
     }
 
+    public <S extends PropertyContainer, T> T createEntityFromStoredType(S state) {
+        return createEntityFromState(state,null, null);
+    }
+
 
     static class StackedEntityCache {
         private static class Entry {
@@ -199,7 +203,11 @@ public class Neo4jEntityPersister implements EntityPersister, Neo4jEntityConvert
         return projectTo(entity,targetType,getMappingPolicy(targetType));
     }
 
+    @SuppressWarnings("unchecked")
     public <T> T projectTo(Object entity, Class<T> targetType, MappingPolicy mappingPolicy) {
+        if (targetType.isInstance(entity)) {
+            return (T)entity;
+        }
         PropertyContainer state = getPersistentState(entity);
         final MappingPolicy newPolicy = mappingPolicy == null ? getMappingPolicy(targetType) : mappingPolicy;
         return createEntityFromState(state, targetType, newPolicy);

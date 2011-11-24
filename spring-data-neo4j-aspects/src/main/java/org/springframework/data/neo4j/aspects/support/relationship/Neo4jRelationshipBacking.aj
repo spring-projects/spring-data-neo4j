@@ -28,6 +28,7 @@ import org.springframework.data.neo4j.support.DoReturn;
 import org.springframework.data.neo4j.core.EntityState;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
 import org.springframework.data.neo4j.support.relationship.RelationshipEntityStateFactory;
+import org.springframework.data.neo4j.template.Neo4jOperations;
 
 import java.lang.reflect.Field;
 
@@ -99,6 +100,11 @@ public aspect Neo4jRelationshipBacking {
      */
     private EntityState<Relationship> RelationshipBacked.entityState;
 
+
+    public Neo4jTemplate RelationshipBacked.getTemplate() {
+        return Neo4jRelationshipBacking.aspectOf().template;
+    }
+
 	public void RelationshipBacked.setPersistentState(Relationship r) {
         if (this.entityState == null) {
             this.entityState = Neo4jRelationshipBacking.aspectOf().entityStateFactory.getEntityState(this, true);
@@ -151,7 +157,7 @@ public aspect Neo4jRelationshipBacking {
     }
 
 	public void RelationshipBacked.remove() {
-	     Neo4jRelationshipBacking.aspectOf().template.removeRelationshipEntity(this);
+	     Neo4jRelationshipBacking.aspectOf().template.delete(this);
 	}
 
     public <R extends RelationshipBacked> R  RelationshipBacked.projectTo(Class<R> targetType) {

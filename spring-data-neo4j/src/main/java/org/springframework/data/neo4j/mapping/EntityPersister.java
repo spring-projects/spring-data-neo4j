@@ -27,6 +27,7 @@ public interface EntityPersister {
     <T> T projectTo(Object entity, Class<T> targetType, MappingPolicy mappingPolicy);
     <S extends PropertyContainer, T> T createEntityFromState(S state, Class<T> type, MappingPolicy mappingPolicy);
     <S extends PropertyContainer, T> T createEntityFromStoredType(S state, MappingPolicy mappingPolicy);
+    <S extends PropertyContainer, T> T createEntityFromStoredType(S state);
     boolean isNodeEntity(Class<?> targetType);
     boolean isRelationshipEntity(Class<?> targetType);
     MappingPolicy getMappingPolicy(Class<?> targetType);

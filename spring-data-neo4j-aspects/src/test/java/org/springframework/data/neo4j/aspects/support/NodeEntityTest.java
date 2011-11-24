@@ -181,7 +181,7 @@ public class NodeEntityTest extends EntityTestBase {
         Person spouse = persistedPerson("Tina", 36);
         p.setSpouse(spouse);
         long id = spouse.getId();
-        neo4jTemplate.removeNodeEntity(spouse);
+        neo4jTemplate.delete(spouse);
         tx.success();
         tx.finish();
         Assert.assertNull("spouse removed " + p.getSpouse(), p.getSpouse());

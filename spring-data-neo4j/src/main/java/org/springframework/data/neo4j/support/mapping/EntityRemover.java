@@ -42,6 +42,10 @@ public class EntityRemover {
     public void removeNodeEntity(Object entity) {
         Node node = entityStateHandler.getPersistentState(entity, Node.class);
         if (node == null) return;
+        removeNode(node);
+    }
+
+    private void removeNode(Node node) {
         nodeTypeRepresentationStrategy.preEntityRemoval(node);
         for (Relationship relationship : node.getRelationships()) {
             removeRelationship(relationship);
@@ -69,11 +73,11 @@ public class EntityRemover {
 
     public void remove(Object entity) {
         if (entity instanceof Node) {
-            graphDatabase.remove((Node)entity);
+            removeNode((Node)entity);
             return;
         }
         if (entity instanceof Relationship) {
-            graphDatabase.remove((Relationship)entity);
+            removeRelationship((Relationship)entity);
             return;
         }
         final Class<?> type = entity.getClass();

@@ -206,7 +206,7 @@ public class EntityNeo4jTemplateTest extends EntityTestBase {
         final Long id = testTeam.michael.getId();
         new TransactionTemplate(transactionManager).execute(new TransactionCallbackWithoutResult() {
             protected void doInTransactionWithoutResult(TransactionStatus status) {
-                template.removeNodeEntity(testTeam.michael);
+                template.delete(testTeam.michael);
             }
         });
         assertNull(neo4jOperations.getNode(id));
@@ -217,7 +217,7 @@ public class EntityNeo4jTemplateTest extends EntityTestBase {
         final Long id = testTeam.friendShip.getId();
         new TransactionTemplate(transactionManager).execute(new TransactionCallbackWithoutResult() {
             protected void doInTransactionWithoutResult(TransactionStatus status) {
-                template.removeRelationshipEntity(testTeam.friendShip);
+                template.delete(testTeam.friendShip);
             }
         });
         assertNull(neo4jOperations.getRelationship(id));
