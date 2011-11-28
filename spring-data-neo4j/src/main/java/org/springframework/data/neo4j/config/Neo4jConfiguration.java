@@ -16,6 +16,10 @@
 
 package org.springframework.data.neo4j.config;
 
+import static java.util.Arrays.*;
+
+import javax.validation.Validator;
+
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
@@ -41,7 +45,13 @@ import org.springframework.data.neo4j.support.DelegatingGraphDatabase;
 import org.springframework.data.neo4j.support.MappingInfrastructure;
 import org.springframework.data.neo4j.support.Neo4jExceptionTranslator;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
-import org.springframework.data.neo4j.support.mapping.*;
+import org.springframework.data.neo4j.support.index.IndexProvider;
+import org.springframework.data.neo4j.support.index.IndexProviderImpl;
+import org.springframework.data.neo4j.support.mapping.EntityStateHandler;
+import org.springframework.data.neo4j.support.mapping.Neo4jEntityFetchHandler;
+import org.springframework.data.neo4j.support.mapping.Neo4jMappingContext;
+import org.springframework.data.neo4j.support.mapping.SourceStateTransmitter;
+import org.springframework.data.neo4j.support.mapping.TRSTypeAliasAccessor;
 import org.springframework.data.neo4j.support.node.NodeEntityInstantiator;
 import org.springframework.data.neo4j.support.node.NodeEntityStateFactory;
 import org.springframework.data.neo4j.support.relationship.RelationshipEntityInstantiator;
@@ -51,10 +61,6 @@ import org.springframework.data.neo4j.support.typerepresentation.TypeRepresentat
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.jta.JtaTransactionManager;
 import org.springframework.transaction.jta.UserTransactionAdapter;
-
-import javax.validation.Validator;
-
-import static java.util.Arrays.asList;
 
 /**
  * Abstract base class for code based configuration of Spring managed Neo4j infrastructure.
@@ -105,6 +111,8 @@ public abstract class Neo4jConfiguration {
 
         infrastructure.setTransactionManager(neo4jTransactionManager());
         infrastructure.setGraphDatabase(graphDatabase());
+        
+        infrastructure.setIndexProvider(indexProvider());
 
         if (validator!=null) {
             infrastructure.setValidator(validator);
@@ -251,5 +259,10 @@ public abstract class Neo4jConfiguration {
     @Bean
     public PersistenceExceptionTranslator persistenceExceptionTranslator() {
         return new Neo4jExceptionTranslator();
+    }
+
+    @Bean
+    public IndexProvider indexProvider() throws Exception {
+        return new IndexProviderImpl(mappingContext(), graphDatabase());
     }
 }
