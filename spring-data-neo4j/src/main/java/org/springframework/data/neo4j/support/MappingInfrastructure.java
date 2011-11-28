@@ -15,6 +15,8 @@
  */
 package org.springframework.data.neo4j.support;
 
+import javax.validation.Validator;
+
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
@@ -26,7 +28,12 @@ import org.springframework.data.neo4j.core.TypeRepresentationStrategy;
 import org.springframework.data.neo4j.mapping.EntityInstantiator;
 import org.springframework.data.neo4j.support.conversion.EntityResultConverter;
 import org.springframework.data.neo4j.support.index.IndexProvider;
-import org.springframework.data.neo4j.support.mapping.*;
+import org.springframework.data.neo4j.support.index.IndexProviderImpl;
+import org.springframework.data.neo4j.support.mapping.EntityRemover;
+import org.springframework.data.neo4j.support.mapping.EntityStateHandler;
+import org.springframework.data.neo4j.support.mapping.EntityTools;
+import org.springframework.data.neo4j.support.mapping.Neo4jEntityPersister;
+import org.springframework.data.neo4j.support.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.support.node.EntityStateFactory;
 import org.springframework.data.neo4j.support.node.NodeEntityInstantiator;
 import org.springframework.data.neo4j.support.query.CypherQueryExecutor;
@@ -34,8 +41,6 @@ import org.springframework.data.neo4j.support.relationship.RelationshipEntityIns
 import org.springframework.data.neo4j.support.typerepresentation.TypeRepresentationStrategies;
 import org.springframework.data.neo4j.support.typerepresentation.TypeRepresentationStrategyFactory;
 import org.springframework.transaction.PlatformTransactionManager;
-
-import javax.validation.Validator;
 
 /**
  * @author mh
@@ -102,12 +107,14 @@ public class MappingInfrastructure {
         EntityTools<Relationship> relationshipEntityTools = new EntityTools<Relationship>(relationshipTypeRepresentationStrategy, relationshipEntityStateFactory, relationshipEntityInstantiator);
         this.entityPersister = new Neo4jEntityPersister(conversionService, nodeEntityTools, relationshipEntityTools, mappingContext, entityStateHandler);
         this.entityRemover = new EntityRemover(this.entityStateHandler, nodeTypeRepresentationStrategy, relationshipTypeRepresentationStrategy, graphDatabase);
-        this.indexProvider = new IndexProvider(mappingContext, graphDatabase);
         if (this.resultConverter==null) {
             this.resultConverter = new EntityResultConverter<Object, Object>(conversionService,entityPersister);
         }
         this.graphDatabase.setResultConverter(resultConverter);
         this.cypherQueryExecutor = new CypherQueryExecutor(graphDatabase.queryEngineFor(QueryType.Cypher, resultConverter));
+        if (this.indexProvider == null) {
+            this.indexProvider = new IndexProviderImpl(this.mappingContext, graphDatabase);
+        }
     }
 
 
@@ -228,5 +235,9 @@ public class MappingInfrastructure {
 
     public void setTypeRepresentationStrategyFactory(TypeRepresentationStrategyFactory typeRepresentationStrategyFactory) {
         this.typeRepresentationStrategyFactory = typeRepresentationStrategyFactory;
+    }
+    
+    public void setIndexProvider(IndexProvider indexProvider) {
+        this.indexProvider = indexProvider;
     }
 }

@@ -15,90 +15,31 @@
  */
 package org.springframework.data.neo4j.support.index;
 
-import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.PropertyContainer;
-import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.index.Index;
-import org.springframework.data.neo4j.annotation.Indexed;
-import org.springframework.data.neo4j.core.GraphDatabase;
-import org.springframework.data.neo4j.support.mapping.Neo4jMappingContext;
-import org.springframework.data.neo4j.support.mapping.Neo4jPersistentEntityImpl;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 
-import static org.springframework.data.neo4j.support.ParameterCheck.notNull;
+public interface IndexProvider {
 
-/**
- * @author mh
- * @since 17.10.11
- */
-public class IndexProvider {
-    private Neo4jMappingContext mappingContext;
-    private final GraphDatabase graphDatabase;
+    public abstract <S extends PropertyContainer, T> Index<S> getIndex(Class<T> type);
 
-    public IndexProvider(Neo4jMappingContext mappingContext, GraphDatabase graphDatabase) {
-        this.mappingContext = mappingContext;
-        this.graphDatabase = graphDatabase;
-    }
-
-    public <S extends PropertyContainer, T> Index<S> getIndex(Class<T> type) {
-        return getIndex(type, null);
-    }
-
-    public <S extends PropertyContainer, T> Index<S> getIndex(Class<T> type, String indexName) {
-        return getIndex(type, indexName, null);
-    }
+    public abstract <S extends PropertyContainer, T> Index<S> getIndex(Class<T> type, String indexName);
 
     @SuppressWarnings("unchecked")
-    public <S extends PropertyContainer, T> Index<S> getIndex(Class<T> type, String indexName, IndexType indexType) {
-        if (type == null) {
-            notNull(indexName, "indexName");
-            return getIndex(indexName);
-        }
-
-        final Neo4jPersistentEntityImpl<?> persistentEntity = mappingContext.getPersistentEntity(type);
-        if (indexName == null) indexName = Indexed.Name.get(type);
-        final boolean useExistingIndex = indexType == null;
-
-        if (useExistingIndex) {
-            if (persistentEntity.isNodeEntity()) return (Index<S>) graphDatabase.getIndex(indexName);
-            if (persistentEntity.isRelationshipEntity()) return (Index<S>) graphDatabase.getIndex(indexName);
-            throw new IllegalArgumentException("Wrong index type supplied: " + type + " expected Node- or Relationship-Entity");
-        }
-
-        if (persistentEntity.isNodeEntity()) return (Index<S>) createIndex(Node.class, indexName, indexType);
-        if (persistentEntity.isRelationshipEntity())
-            return (Index<S>) createIndex(Relationship.class, indexName, indexType);
-        throw new IllegalArgumentException("Wrong index type supplied: " + type + " expected Node- or Relationship-Entity");
-    }
+    public abstract <S extends PropertyContainer, T> Index<S> getIndex(Class<T> type, String indexName,
+            IndexType indexType);
 
     @SuppressWarnings("unchecked")
-    public <T extends PropertyContainer> Index<T> getIndex(String indexName) {
-        return graphDatabase.getIndex(indexName);
-    }
+    public abstract <T extends PropertyContainer> Index<T> getIndex(String indexName);
 
-    public boolean isNode(Class<? extends PropertyContainer> type) {
-        if (type.equals(Node.class)) return true;
-        if (type.equals(Relationship.class)) return false;
-        throw new IllegalArgumentException("Unknown Graph Primitive, neither Node nor Relationship" + type);
-    }
+    public abstract boolean isNode(Class<? extends PropertyContainer> type);
 
     // TODO handle existing indexes
     @SuppressWarnings("unchecked")
-    public <T extends PropertyContainer> Index<T> createIndex(Class<T> type, String indexName, IndexType fullText) {
-        return graphDatabase.createIndex(type, indexName, fullText);
-    }
+    public abstract <T extends PropertyContainer> Index<T> createIndex(Class<T> type, String indexName,
+            IndexType fullText);
 
-    public <S extends PropertyContainer> Index<S> getIndex(Neo4jPersistentProperty property, final Class<?> instanceType) {
-        final Indexed indexedAnnotation = property.getAnnotation(Indexed.class);
-        final Class<?> declaringType = property.getOwner().getType();
-        final String providedIndexName = indexedAnnotation==null || indexedAnnotation.indexName().isEmpty() ? null : indexedAnnotation.indexName();
-        final Indexed.Level level = indexedAnnotation == null ? Indexed.Level.CLASS : indexedAnnotation.level();
-        String indexName = Indexed.Name.get(level, declaringType, providedIndexName, instanceType);
-        if (!property.isIndexed() || property.getIndexInfo().getIndexType() == IndexType.SIMPLE) {
-            return getIndex(declaringType, indexName, IndexType.SIMPLE);
-        }
-        String defaultIndexName = Indexed.Name.get(level, declaringType, null, instanceType.getClass());
-        if (providedIndexName==null || providedIndexName.equals(defaultIndexName)) throw new IllegalStateException("Index name for "+property+" must differ from the default name: "+defaultIndexName);
-        return getIndex(declaringType, indexName, property.getIndexInfo().getIndexType());
-    }
+    public abstract <S extends PropertyContainer> Index<S> getIndex(Neo4jPersistentProperty property,
+            final Class<?> instanceType);
+
 }
