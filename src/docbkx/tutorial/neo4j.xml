@@ -24,10 +24,10 @@
         Durability is actually a good thing and we didn't have to scale to trillions of users and movies yet.
         This is unusual for NOSQL databases, but easier for us to get our head around than non-transactional
         eventual consistency. It also made us feel safe, though it also meant that we had to manage transactions.
-        Something to keep in mind for later.
+        Something to keep in mind later.
     </para>
     <para>
-        We started out by doing some prototyping with the Neo4j core API to get a feeling for that. And also
+        We started out by doing some prototyping with the Neo4j core API to get a feeling for how it works. And also
         to see, what the domain might look like when it's saved in the graph database. After adding the Maven
         dependency for Neo4j, we were ready to go.
     </para>

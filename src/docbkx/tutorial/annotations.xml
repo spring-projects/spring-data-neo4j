@@ -29,7 +29,7 @@ class Movie {
         </example>
     </para>
     <para>
-        It was time to put our entities to a test. How could we now be assured that an attribute really was persisted to
+        It was time to put our entities to the test. How could we now be assured that an attribute really was persisted to
         the graph store? We wanted to load the entity and check the attribute.
 
         Either we could have a <code>Neo4jTemplate</code> injected and use its <code>findOne(id,type)</code>

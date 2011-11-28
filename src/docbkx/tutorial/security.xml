@@ -8,9 +8,9 @@
         pages. Of course the pages that were only meant for logged-in users had to be secured as well.
     </para>
     <para>
-        Being Spring users, we naturally used Spring Security for this. We wrote  a simple <code>UserDetailsService</code>
+        Being Spring users, we naturally used Spring Security for this. We wrote a simple <code>UserDetailsService</code>
         by extending a repository with a custom implementation that takes care of  looking up the users and validating their credentials.
-        The config is located  in a separate <code>applicationContext-security.xml</code>. But first, as always, Maven and <code>web.xml</code> setup.
+        The config is located in a separate <code>applicationContext-security.xml</code>. But first, as always, Maven and <code>web.xml</code> setup.
     </para>
     <para>
         <example>

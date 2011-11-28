@@ -23,8 +23,8 @@
     <section>
         <title>Required setup</title>
         <para>
-            To set up the project we created a public github account and began setting up the
-            infrastructure for a spring web project using Maven as the build system. So we added
+            To set up the project we created a public Github account and began setting up the
+            infrastructure for a Spring web project using Maven as the build system. So we added
             the dependencies for the Spring Framework libraries, added the <code>web.xml</code> for the <code>DispatcherServlet</code>,
             and the <code>applicationContext.xml</code> in the webapp directory.
         </para>
