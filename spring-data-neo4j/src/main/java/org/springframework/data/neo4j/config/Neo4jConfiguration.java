@@ -111,7 +111,8 @@ public abstract class Neo4jConfiguration {
         }
         return infrastructure;
     }
-    @Bean
+
+    @Bean(initMethod="postConstruct")
 	public Neo4jTemplate neo4jTemplate() throws Exception {
         final Neo4jTemplate neo4jTemplate = new Neo4jTemplate();
         neo4jTemplate.setInfrastructure(mappingInfrastructure());
