@@ -5,18 +5,17 @@
 	<para>
         Spring Data Neo4j dramatically simplifies development, but some setup is naturally required.
         For building the application, Maven needs to be configured to include the Spring Data Neo4j dependencies.
-        It is necessary to configure the AspectJ weaving for using the AspectJ mapping.
+		For the advanced mapping mode, it is necessary to configure the AspectJ weaving.
         After the build setup is complete, the Spring application needs to be
         configured to make use of Spring Data Neo4j.
-		<!--Examples for this setup can be found in the -->
-        <!--<ulink url="http://spring.neo4j.org/examples">Spring Data Neo4j examples</ulink>.-->
+		Examples for these different setups can be found in the <ulink url="http://spring.neo4j.org/examples">Spring Data Neo4j examples</ulink>.
     </para>
     <para>
         Spring Data Neo4j projects can be built using Maven. There are also means to build them with Gradle or Ant/Ivy.
     </para>
 
     <section>
-           <title>Dependencies for Spring Data Neo4j POJO Mapping</title>
+           <title>Dependencies for Spring Data Neo4j Simple Mapping</title>
            <para>
                For the POJO mapping it is enough to add the <code>org.springframework.data:spring-data-neo4j:2.0.0.RC1</code> dependency
                to your project. If you want to use the Cypher query language please add <code>org.neo4j:neo4j-cypher:1.5</code>
@@ -34,7 +33,7 @@
     </section>
 
 	<section>
-        <title>Gradle configuration for AspectJ Mapping</title>
+        <title>Gradle configuration for Advanced Mapping (AspectJ)</title>
         <para>
             The necessary build plugin to build Spring Data Neo4j projects with Gradle is available as part of the
             Spring Data Neo4j distribution or on Github which makes the usage as easy as:
@@ -62,15 +61,15 @@ repositories {
 }]]></programlisting>
         </example>
         <para>
-            The actual springdataneo4j.gradle file is very simple, just decorating the javac tasks with the iajc ant task.
+            The actual <code>springdataneo4j.gradle</code> is very simple, just decorating the <code>javac</code> tasks with the <code>iajc</code> ant task.
         </para>
     </section>
     <section>
-        <title>Ant/Ivy configuration</title>
+        <title>Ant/Ivy configuration for Advanced Mapping (AspectJ)</title>
         <para>
             The supplied sample ant <ulink
                 url="https://github.com/SpringSource/spring-data-neo4j/raw/master/build/ivy">build configuration</ulink> is mainly about resolving
-            the dependencies for Spring Data Neo4j and AspectJ using Ivy and integrating the iajc ant task in the build.
+            the dependencies for Spring Data Neo4j Aspects and AspectJ using Ivy and integrating the iajc ant task in the build.
         </para>
         <example>
             <title>Ant/Ivy Build Configuration</title>
@@ -84,17 +83,17 @@ repositories {
 			<pathelement location="${lib.dir}/spring-aspects.jar"/>
 		</aspectpath>
 		<aspectpath>
-			<pathelement location="${lib.dir}/spring-data-neo4j.jar"/>
+			<pathelement location="${lib.dir}/spring-data-neo4j-aspects.jar"/>
 		</aspectpath>
 	</iajc>
 </target>]]></programlisting>
         </example>
     </section>
     <section>
-		<title>Maven configuration</title>
+		<title>Maven configuration for Advanced Mapping</title>
 		<para>
 			Spring Data Neo4j projects are easiest to build with Apache Maven. The core dependency is Spring
-            Data Neo4j, which comes with transitive dependencies to Spring Data Commons, parts of the Spring Framework, and the Neo4j graph database.
+            Data Neo4j Aspects which comes with transitive dependencies to Spring Data Neo4j, Spring Data Commons, parts of the Spring Framework, AspectJ and the Neo4j graph database.
 		</para>
 
         <section>
@@ -118,9 +117,10 @@ repositories {
 		    <title>Dependencies</title>
             <para>
                 The dependency on <code>spring-data-neo4j-aspects</code> will transitively pull in the necessary parts of
-                Spring Framework (core, context, aop, aspects, tx), Aspectj, Neo4j, and Spring Data Commons. If you
+                Spring Framework (core, context, aop, aspects, tx), AspectJ, Neo4j, and Spring Data Commons. If you
                 already use these (or different versions of these) in your project, then include those dependencies
-                on your own. If you want to use Cypher or Gremlin, please add the dependencies (which are optional in SDN)
+                on your own. In this case, please make sure that the versions match. 
+				If you want to use Cypher or Gremlin, please add the dependencies (which are optional in SDN)
                 accordingly.
             </para>
             <example>
@@ -146,10 +146,10 @@ repositories {
         </section>
 
         <section>
-            <title>AspectJ build configuration</title>
+            <title>Maven AspectJ build configuration</title>
             <para>
-                Since transparent mapping uses AspectJ for build-time aspect weaving of entities, it is necessary to
-                hook in the AspectJ Maven plugin to the build process. The plugin also has its own dependencies. You
+                Since the advanced mapping uses AspectJ for build-time aspect weaving of entities, it is necessary to
+                hook the AspectJ Maven plugin into the build process. The plugin also has its own dependencies. You
                 also need to explicitly specify the aspect libraries (spring-aspects and spring-data-neo4j-aspects).
             </para>
             <example>
@@ -281,9 +281,9 @@ repositories {
                 <para>
                     For those not familiar with Java-based bean metadata in Spring, we recommend that you
                     read up on it first. The Spring documentation has a
-                    <ulink url="http://static.springsource.org/spring/docs/3.0.x/spring-framework-reference/html/new-in-3.html#new-java-configuration" userlevel="">high-level introduction</ulink>
+                    <ulink url="http://static.springsource.org/spring/docs/3.1.x/spring-framework-reference/html/new-in-3.0.html#new-java-configuration">high-level introduction</ulink>
                     as well as
-                    <ulink url="http://static.springsource.org/spring/docs/3.0.x/spring-framework-reference/html/beans.html#beans-java-instantiating-container">detailed documentation</ulink>
+                    <ulink url="http://static.springsource.org/spring/docs/3.1.x/spring-framework-reference/html/beans.html#beans-java-instantiating-container">detailed documentation</ulink>
                     on it.
                 </para>
             </note>
@@ -315,6 +315,12 @@ repositories {
                 </example>
 
             </para>
+			<para>
+				Additional beans can be configured to be included in the Neo4j-Configuration. ConversionService for custom conversions,
+				Validators for bean validation, TypeRepresentationStrategyFactory for configuring the in graph type representation,
+				IndexProviders for custom index handling (e.g. for multi-tenancy),
+				Entity-Instantiators (with their config) to have more control over the creation of entity instances and much more.
+			</para>
         </section>
 	</section>
 </chapter>

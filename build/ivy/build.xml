@@ -34,7 +34,7 @@
 				<pathelement location="${lib.dir}/spring-aspects.jar"/>
 			</aspectpath>
 			<aspectpath>
-				<pathelement location="${lib.dir}/spring-data-neo4j.jar"/>
+				<pathelement location="${lib.dir}/spring-data-neo4j-aspects.jar"/>
 			</aspectpath>
 		</iajc>
 	</target>
@@ -49,7 +49,7 @@
                 <pathelement location="${lib.dir}/spring-aspects.jar"/>
             </aspectpath>
             <aspectpath>
-                <pathelement location="${lib.dir}/spring-data-neo4j.jar"/>
+                <pathelement location="${lib.dir}/spring-data-neo4j-aspects.jar"/>
             </aspectpath>
         </iajc>
 	</target>
