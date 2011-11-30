@@ -131,7 +131,7 @@
 		<dependency>
 			<groupId>org.neo4j</groupId>
 			<artifactId>neo4j-cypher-dsl</artifactId>
-            <!--optional>true</optional-->
+            <optional>true</optional>
 		</dependency>
         <dependency>
             <groupId>org.neo4j</groupId>
