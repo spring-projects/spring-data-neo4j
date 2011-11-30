@@ -31,9 +31,9 @@
     </para>
 	<para>
 		But we didn't have enough friends, so it was time to get some suggested. That would be like-minded
-		cineasts that rated movies similiarly to us. Again cypher for the rescue, this time only a bit 
+		cineasts that rated movies similarly to us. Again Cypher to the rescue, this time only a bit
 		more complex. Something that became obvious with both queries is that graph queries are always
-		local, so they start a node or set of nodes or relationships and expand outwards.
+		local, so they start from a node, or set of nodes or relationships, and then expand outwards from there.
     </para>
     <para>
         <example>

@@ -5,7 +5,7 @@
     <subtitle>Setting the stage</subtitle>
     <para>
         We wanted to outline the domain model before diving into library details. We also looked at the
-        data model of the TheMoviedb.org data to confirm that it matched our expectations.
+        data model of the themoviedb.org data to confirm that it matched our expectations.
     </para>
     <para>
         <mediaobject>
@@ -65,6 +65,6 @@ class Rating {
     </para>
     <para>
         Then we wrote some simple tests to show that the basic design of the domain is good enough so far. Just creating
-        a movie populating it with actors and having it rated by a user and its friends.
+        a movie, populating it with actors, and allowing users to rate it.
     </para>
 </chapter>

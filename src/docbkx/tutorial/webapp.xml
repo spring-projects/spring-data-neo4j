@@ -73,15 +73,17 @@ public String singleMovieView(final Model model, @PathVariable String movieId) {
             So we simply changed it to <code>@Indexed(type = FULLTEXT, indexName = "search")</code>.
         </para>
         <para>
-	        Finding the seemed to be a sweetspot of derived finder methods. Just a method name, no annotations.
+            With derived finder methods, finding things became easy. By simply declaring a finder-method name that expressed
+            the required properties, it worked without annotations.
 	        Cool stuff and you could even tell it that it should return pages of movies, its size and offset specified by a 
 	        <code>Pageable</code> which also contains sort information. Using the <code>like</code> operator indicates
-            the fulltext search (instead of an exact search).
+            that fulltext search should be used, instead of an exact search.
         </para>
         <para>
             <example>
                 <title>Searching for movies</title>
 <programlisting language="java"><![CDATA[public interface MovieRepository ... {
+    Movie findById(String id);
     Page<Movie> findByTitleLike(String title, Pageable page);
 }
 ]]></programlisting>

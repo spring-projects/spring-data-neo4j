@@ -4,14 +4,14 @@
     <title>Adding social</title>
     <subtitle>Movies 2.0</subtitle>
     <para>
-        So far, the website had only been a plain old movie database (POMD?). We now wanted to add
+        So far, the website had only been a plain old movie database. We now wanted to add
         a touch of social to it.
     </para>
     <section>
         <title>Users</title>
         <para>
             So we started out by taking the User class that we'd already coded and made it a
-            full-fledged Spring Data Neo4j entity. We added the ability to make friends and to
+            full-fledged Spring Data Neo4j entity. We added the ability to create friends and to
             rate movies. With that we also added a simple UserRepository that was able to look
             up users by ID.
         </para>

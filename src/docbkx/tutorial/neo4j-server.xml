@@ -12,7 +12,7 @@
     <para>
 		We decided to have a look, to be at least knowledgeable about this deployment scenario. We were aware of the
 		difference of local, in-memory calls and higher latency network hops. That would be something
-		we would also look out for.
+		we would also take into careful consideration.
 	</para>
     <section>
         <title>Getting Neo4j-Server</title>
@@ -36,7 +36,7 @@
             </mediaobject>
         </para>
 		<para>
-			So, how would we get our app connect to this server? It turned out the changes in configuration and setup
+			So, how would we get our app connected to this server? It turned out the changes in configuration and setup
 			where minimal. Spring Data Neo4j already came with a module that took care of the remote protocol. We
 			added that maven dependency and changed the graph database used in the Spring
 			Configuration.
@@ -73,7 +73,7 @@
 			under the hood which is also usable without the Spring Framework.
 		</para>
 		<para>
-			Of course we noticed performance implications. Especially after moving the server to remote machine.
+			Of course we noticed performance implications. Especially after moving the server to a remote machine.
 			It turned out that the server supported remote execution of many operations, allowing us to run the
 			graph traversal and querying inside the server. That means looking at our graph interactions and
 			changing them in a way that switched from the transparent, direct graph access via the entities to
@@ -92,7 +92,7 @@
 			Cypher queries on repositories where appropriate, measuring the performance improvements as we went.
         </para>
 		<para>
-			There was also a nice mechanism of mapping Cypher Query results to Domain Concepts. You just had to declare
+			There was also a nice mechanism of mapping Cypher query results to Domain Concepts. You just had to declare
 			and annotate an interface that represents the query results as domain entities and the nodes and relationships
 			returned by Cypher were converted into the appropriate entities.
 		</para>

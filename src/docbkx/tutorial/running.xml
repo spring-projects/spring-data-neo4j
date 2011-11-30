@@ -46,7 +46,7 @@ public class MovieController {
             </example>
         </para>
         <para>
-            Accessing the URI showed added movies on screen.
+            Accessing the URI we could see the list of movies we had added.
         </para>
     </section>
     <section>

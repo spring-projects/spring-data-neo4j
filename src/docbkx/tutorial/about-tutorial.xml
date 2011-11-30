@@ -6,11 +6,11 @@
     <para>
         Once upon a time we wanted to build a social movie database. At first there was only the name: Cineasts,
         the movie enthusiasts who have a burning passion for movies. So we went ahead and bought the domain
-        <ulink url="http://cineasts.net">cineasts.net</ulink>, and so the project was almost done.
+        <ulink url="http://cineasts.net">cineasts.net</ulink>, and so we were off to a good start.
     </para>
     <para>
         We had some ideas about the domain model too. There would obviously be actors playing roles in movies.
-        We also needed someone to rate the movies - enter the cineast. And cineasts being the social people they are,
+        We also needed someone to rate the movies - enter the cineast. And cineasts, being the social people they are,
         they wanted to make friends with other fellow cineasts. Imagine instantly finding someone to watch a movie
         with, or share movie preferences with. Even better, finding new friends and movies based on what you and
         your friends like.
@@ -18,7 +18,7 @@
     <para>
         When we looked for possible sources of data, IMDB was our first stop. But they're a bit expensive
         for our taste, charging $15k USD for data access. Fortunately, we found
-        <ulink url="http://themoviedb.org">TheMoviedb.org</ulink> which provides user-generated data for free.
+        <ulink url="http://themoviedb.org">themoviedb.org</ulink> which provides user-generated data for free.
         They also have liberal terms and conditions, and a nice API for retrieving the data.
     </para>
     <para>

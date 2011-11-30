@@ -4,9 +4,9 @@
     <title>Relationships</title>
     <subtitle>A convincing act</subtitle>
     <para>
-        Our application was not yet very much fun yet, just storing movies and actors. After all,
+        Our application was not very much fun yet, just storing movies and actors. After all,
         the power is in the relationships between them. Fortunately, Neo4j treats relationships as first class citizens,
-        allowing them to be addressed individually and assigned properties. That allows for representing them as entities
+        allowing them to be addressed individually and have properties assigned to them. That allows for representing them as entities
         if needed.
     </para>
     <section>
@@ -143,7 +143,7 @@ class Actor {
         <para>
             But we still couldn't access the Role relationship entities themselves. It turned out that there was a separate
             annotation <code>@RelatedToVia</code> for accessing the actual relationship entities. And we could
-            to declare the field as an <code>Iterable&lt;Role&gt;</code>, with read-only semantics or on a
+            declare the field as an <code>Iterable&lt;Role&gt;</code>, with read-only semantics or on a
             <code>Collection</code> or <code>Set&lt;Role&gt;</code> field with modifying semantics.
 <!--
             This appeared to mean
@@ -155,7 +155,7 @@ class Actor {
         </para>
         <para>
             To have the collections of relationships being read eagerly during the loading of the Movie we have to annotate it
-            with the @Fetch annotation. Otherwise Spring Data Neo4j refrains from doing following relationships automatically.
+            with the @Fetch annotation. Otherwise Spring Data Neo4j refrains from following relationships automatically.
             The risk of loading the whole graph into memory would be too high.
         </para>
         <para>
