@@ -52,9 +52,13 @@ public class MovieDbJsonMapper {
     }
 
     private Date toDate(Map data, String field, final String pattern) throws ParseException {
-        String dateString = (String) data.get(field);
-        if (dateString == null || dateString.isEmpty()) return null;
-        return new SimpleDateFormat(pattern).parse(dateString);
+        try {
+            String dateString = (String) data.get(field);
+            if (dateString == null || dateString.isEmpty()) return null;
+            return new SimpleDateFormat(pattern).parse(dateString);
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     /*
