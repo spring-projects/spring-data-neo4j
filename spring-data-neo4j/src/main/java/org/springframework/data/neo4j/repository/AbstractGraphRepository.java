@@ -48,7 +48,6 @@ import static org.neo4j.helpers.collection.MapUtil.map;
  * @param <T> GraphBacked target of this finder, enables the finder methods to return this concrete type
  * @param <S> Type of backing state, either Node or Relationship
  */
-@org.springframework.stereotype.Repository
 public abstract class AbstractGraphRepository<S extends PropertyContainer, T> implements GraphRepository<T>, NamedIndexRepository<T>, SpatialRepository<T>, CypherDslRepository<T> {
 
     /*
@@ -102,6 +101,20 @@ public abstract class AbstractGraphRepository<S extends PropertyContainer, T> im
         this.clazz = clazz;
     }
 
+    @Override
+    public T save(T entity) {
+        return (T) template.save(entity);
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public Iterable<T> save(Iterable<? extends T> entities) {
+        for (T entity : entities) {
+            save(entity);
+        }
+        return (Iterable<T>) entities;
+    }
+    
     /**
      * @return Number of instances of the target type in the graph.
      */
