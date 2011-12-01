@@ -29,7 +29,7 @@
     <para>
         To use the advanced, AspectJ based mapping, please add <code>spring-data-neo4j-aspects</code> as a dependency
         and set up the AspectJ integration in Maven or other build tools as explained in <xref linkend="setup"/>.
-        Some hints your IDE setup are described below.
+        Some hints for your IDE setup are described below.
     </para>
     <section>
         <title>AspectJ IDE support</title>
@@ -41,7 +41,7 @@
         </para>
         <para>
             IDE's not providing the full AJ support might mark parts of your code as errors.
-            You should rely on your build-system and test to verify the correctness of the code. You might also have
+            You should rely on your build-system and tests to verify the correctness of the code. You might also have
             your Entities (or their interfaces) implement the <code>NodeBacked</code> and <code>RelationshipBacked</code>
             interfaces directly to benefit from completion support and error checking.
         </para>

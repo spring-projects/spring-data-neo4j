@@ -71,9 +71,9 @@ public class Actor {
             </para>
         </note>
         <para>
-            When you use an Interface as target type for the <code>Set</code> and/or as <code>elementClass</code>
+            When you use an interface as target type for the <code>Set</code> and/or as <code>elementClass</code>
             please make sure that it implements <code>NodeBacked</code> either by extending that Super-Interface manually
-            or by annotating the Interface with <code>@NodeEntity</code> too.
+            or by annotating the interface with <code>@NodeEntity</code> too.
         </para>
         <para>
             By setting direction to <code>BOTH</code>, relationships are created in the outgoing direction, but when the

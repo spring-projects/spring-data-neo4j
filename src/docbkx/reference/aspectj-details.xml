@@ -14,12 +14,12 @@
     </para>
     <para>
         The AspectJ pointcut language can be intimidating, but a developer using Spring Data Neo4j will not have
-        to deal with that. Users don't have care about to hooking into a framework mechanism, or having to extend
+        to deal with that. Users don't have care about hooking into a framework mechanism, or having to extend
         a framework superclass.
     </para>
     <para>
-        AspectJ uses a declarative approach, defining concrete advice, which is just pieces of code that contain
-        the implementation of the concern. AspectJ advice can for instance be applied before, after, or instead
+        AspectJ uses a declarative approach, defining concrete "advice", which is just pieces of code that contain
+        the implementation of the "concern", as it is called. AspectJ advice can for instance be applied before, after, or instead
         of a method or constructor call. It can also be applied on variable and field access. This is declared
         using AspectJ's expressive pointcut language, able to express any place within a code structure or flow.
         AspectJ is also able to introduce new methods, fields, annotations, interfaces, and superclasses to

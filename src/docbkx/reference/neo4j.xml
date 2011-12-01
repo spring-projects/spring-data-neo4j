@@ -24,7 +24,7 @@
         <para>
             <ulink url="http://neo4j.org/">Neo4j</ulink> is a NOSQL graph database. It is a fully transactional database
             (ACID) that stores data structured as graphs. A graph consists of nodes, connected by relationships.
-            Inspired by the structure of the human brain, it allows for high query performance on complex data,
+            Inspired by the structure of the human mind, it allows for high query performance on complex data,
             while remaining intuitive and simple for the developer.
         </para>
         <para>
@@ -159,13 +159,13 @@ for (Node foundNode : nodeIndex.get("property","value")) {
             Neo4j provides a graph query language called
             <ulink url="http://docs.neo4j.org/chunked/milestone/cypher-query-lang.html">"Cypher"</ulink> which draws from many
             sources. It resembles SQL but with an iconic representation of patterns in the graph (concepts drawn from SPARQL).
-            Cypher was written in Scala to leverage the high expressiveness for lazy sequence operations of the language and the
+            The Cypher execution engine was written in Scala to leverage the high expressiveness for lazy sequence operations of the language and the
             parser combinator library.
         </para>
         <para>
             Cypher queries always begin with a <code>start</code> set of nodes. Those can be either expressed by their
             id's or by a index lookup expression. Those start-nodes are then related to other nodes in the
-            <code>match</code> clause. Start and match clause can introduce new identifiers for nodes and
+            <code>match</code> clause. Start and match clauses can introduce new identifiers for nodes and
             relationships. In the <code>where</code> clause additional filtering of the result set is applied by evaluating
             expressions. The <code>return</code> clause defines which part of the query result will be available.
             Aggregation also happens in the return clause by using aggregation functions on some of the values.
@@ -173,7 +173,7 @@ for (Node foundNode : nodeIndex.get("property","value")) {
             restrict the result set to a certain window.
         </para>
         <para>
-            Cypher can be executed on an embedded graph db using <code>ExecutionEngine</code> and
+            Cypher can be executed on an embedded graph db using an <code>ExecutionEngine</code> and
             <code>CypherParser</code>. This is encapsulated in Spring Data Neo4j with
             <code>CypherQueryEngine</code>. The Neo4j-REST-Server comes with a Cypher-Plugin that is accessible remotely and is
             available in the Spring Data Neo4j REST-Binding.
@@ -211,11 +211,11 @@ start user=node:User(login='micha') match user-[:FRIEND]-()-[r,:RATED]->movie
         <title>Gremlin a Graph Traversal DSL</title>
         <para>
             Gremlin is an expressive Groovy DSL developed by <ulink url="http://markorodriguez.com">Marko Rodriguez</ulink>
-            as part of the <ulink url="http://tinkerpop.com">tinkerpop</ulink> stack. It builds on top of a pipe implementation
+            as part of the <ulink url="http://tinkerpop.com">Tinkerpop</ulink> stack. It builds on top of a pipe implementation
             (Blueprints Pipes) that uses connected operations to traverse a graph. Gremlin has a concise syntax but is
-            turing complete.
+            Turing complete.
         </para>
-        <para>Gremlin can be executed by including the tinkerpop and blueprints dependencies and then requesting a <code>ScriptEngine</code>
+        <para>Gremlin can be executed by including the Tinkerpop and Blueprints dependencies and then requesting a <code>ScriptEngine</code>
         of type "gremlin" from the <code>javax.Script*</code> facilities. In Spring Data Neo4j this is encapsulated in
         <code>GremlinQueryEngine</code>. The Neo4j-REST-Server also comes with a Gremlin-Plugin that is accessible remotely and is
             available in the Spring Data Neo4j REST-Binding.

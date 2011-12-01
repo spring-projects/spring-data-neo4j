@@ -13,7 +13,7 @@
         doesn't support mixins one would put the sum of all of those into the entity class and thereby making it
         very big, brittle and hard to understand. Being able to take a basic order and project it to a different
         (not related in the inheritance hierarchy or even an interface) order type that is valid in the current
-        context and only offers the attributes and methods needed here would be very benefitial.
+        context and only offers the attributes and methods needed here would be very beneficial.
     </para>
     <para>Spring Data Neo4j offers initial support for projecting node and relationship entities to different target
         types. All instances of this projected entity share the same backing node or relationship, so data changes are
@@ -33,7 +33,7 @@ class Trainee {
     Set<Training> trainings;
 }
 
-for (Person person : graphRepository.findAllByProperyValue("occupation","developer")) {
+for (Person person : graphRepository.findAllByPropertyValue("occupation","developer")) {
     Developer developer = person.projectTo(Developer.class);
     if (developer.isJavaDeveloper()) {
         trainInSpringData(developer.projectTo(Trainee.class));

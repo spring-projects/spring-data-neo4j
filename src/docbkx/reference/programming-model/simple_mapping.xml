@@ -10,8 +10,8 @@
     </para>
     <para>
 		The simple object graph mapping comes into play whenever an entity is constructed from a node or relationship.
-		That could be explicitely like during the lookup or create operations of the repositories and the
-        <code>Neo4jTemplate</code> but also implicitely while executing
+		This could be done explicitly like during the lookup or create operations of the repositories and the
+        <code>Neo4jTemplate</code> but also implicitly while executing
 		any graph operation that returns nodes or relationships and expecting mapped entities to be returned.
 	</para>
 	<para>
@@ -23,7 +23,7 @@
 		We try to avoid loading the whole graph into memory by not following relationships eagerly. A dedicated
 		<code>@Fetch</code> annotation controls instead if related entities are loaded or not. 
 		Whenever an entity is not fully loaded, then only its id is stored. Those
-		entities or collections of entities can then later be loaded explictely using the <code>template.fetch()</code> operation.
+		entities or collections of entities can then later be loaded explicitly using the <code>template.fetch()</code> operation.
 	</para>
     <para>
         The additional fetch information is stored in a <code>MappingPolicy</code> which can be retrieved via the <code>Neo4jTemplate</code>

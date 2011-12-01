@@ -3,7 +3,7 @@
 <section id="reference:programming-model:lifecycle">
     <title>Detached node entities</title>
     <para>
-        Node entities can be in two different persistence state: attached or detached. By default, newly created node
+        Node entities can be in two different persistence states: attached or detached. By default, newly created node
         entities are in the detached state. When <code>persist()</code> is called on the entity, it becomes
         attached to the graph, and its properties and relationships are stores in the database. If
         <code>persist()</code> is not called within a transaction, it automatically creates an implicit
@@ -87,10 +87,10 @@ movie.setTopActor(actor);
             POJO as the underlying backing node handles the read-through transparently. If multiple
             object instances that point to the same node are persisted, the ordering is not important
             as long as they contain distinct changes. For concurrent changes a concurrent modification
-            exception is thrown (subject to be parametrizable in the future).
+            exception is thrown (subject to be parameterized in the future).
         </para>
         <para>
-            If the relationships form a cycle, then the entities will first all be assigned a node in
+            If the relationships form a cycle, then the entities will first of all be assigned a node in
             the database, and then the relationships will be created. The cascading of <code>persist()</code>
             is however only cascaded to related entity fields that have been modified.
         </para>

@@ -20,7 +20,7 @@
             The Neo4j Server has two built-in extension mechanisms. It is possible to extend existing URI endpoints
             like the graph database, nodes, or relationships, adding new URIs or methods to those. This is achieved
             by writing a <ulink url="http://docs.neo4j.org/chunked/milestone/server-plugins.html">server plugin</ulink>.
-            This plugin type has some restrictions though.
+            This plugin type has some restrictions however.
         </para>
         <para>
             For complete freedom in the implementation, an
@@ -55,7 +55,7 @@
 ]]></programlisting>
             </example>
 
-            Now, your resources can require the spring-beans they need, annotated with <code>@Context</code> like this:
+            Now, your resources can require the Spring beans they need, annotated with <code>@Context</code> like this:
             <example>
                 <title>Jersey resource</title>
                 <programlisting language="java"><![CDATA[@Path( "/path" )
@@ -88,7 +88,7 @@ public void foo( @Context WorldRepository repo ) {
         </note>
         <para>
             Please also keep in mind that performing graph operations via the REST-API is about one order of
-            magnitude slower than location operations. Try to use the Neo4j Cypher query language,
+            magnitude slower than local operations. Try to use the Neo4j Cypher query language,
             server-side traversals (<code>RestTraversal</code>) or Gremlin expressions whenever possible for retrieving large sets of data.
             Future versions of Spring Data Neo4j will use the more performant batching as well as a binary protocol.
         </para>
@@ -119,7 +119,7 @@ public void foo( @Context WorldRepository repo ) {
         </para>
         <para>
             The remote REST implementation works for both the Neo4jTemplate as well as the GraphEntities. For traversals
-            and cypher-graph-queries it is sensible to forward those to the remote and execute them there instead of
+            and Cypher graph queries it is sensible to forward those to the remote endpoint and execute them there instead of
             walking the graph over the wire. RestGraphDatabase already supports that by providing methods that forward
             to the remote instance. (e.g. <code>queryEngineFor(), index() and createTraversalDescription()</code>).
             Please use those methods when interacting with a remote server for optimal performance.

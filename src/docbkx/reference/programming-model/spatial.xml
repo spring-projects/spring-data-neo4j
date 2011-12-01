@@ -5,7 +5,7 @@
     <para>
 	<code>SpatialRepository</code> is a dedicated Repository for spatial queries. 
 	 Spring Data Neo4j provides an optional dependency to <code>neo4j-spatial</code> which is an advanced library
-	 for gis operations. So if you include the maven dependency in your <code>pom.xml</code>, Neo4j-Spatial and
+	 for GIS operations. So if you include the maven dependency in your <code>pom.xml</code>, Neo4j-Spatial and
      the required <code>SPATIAL</code> index provider is available.
 	</para>
 	<para>
@@ -21,7 +21,7 @@
 </example>
 </para>
 <para>
-	 For having your entities available for spatial index queries, please include a String property containing
+	 To have your entities available for spatial index queries, please include a String property containing
 	 a "well known text", location string.
 	 WKT is the <ulink url="http://en.wikipedia.org/wiki/Well-known_text">Well Known Text Spatial Format</ulink>
 	 eg. <code>POINT( LON LAT ) or POLYGON (( LON1 LAT1 LON2 LAT2 LON3 LAT3 LON1 LAT1 ))</code>        
