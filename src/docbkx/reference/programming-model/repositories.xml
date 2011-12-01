@@ -128,13 +128,13 @@
     </section>
 
     <section>
-        <title>Cypher-Queries</title>
+        <title>Cypher queries</title>
         <section>
-            <title>Annotated Queries</title>
+            <title>Annotated queries</title>
         <para>
-            Queries for the cypher graph-query language can be supplied with the <code>@Query</code> annotation.
+            Queries using the Cypher graph query language can be supplied with the <code>@Query</code> annotation.
             That means every method annotated with <code>@Query("start n=(%node) match (n)-->(m) return m")</code>
-            will use the query string. The named parameter <code>%node</code> will be replaced by the actual method parameters.
+            will use the supplied query string. The named parameter <code>%node</code> will be replaced by the actual method parameters.
             Node and Relationship-Entities are resolved to their respective id's and all other parameters are
             replaced directly (i.e. Strings, Longs, etc). There is special support for the <code>Sort</code> and <code>Pageable</code>
             parameters from Spring Data Commons, which are supported to add programmatic paging and sorting (alternatively
@@ -146,7 +146,7 @@
         </section>
 
         <section>
-            <title>Named Queries</title>
+            <title>Named queries</title>
         <para>Spring Data Neo4j also supports the notion of named queries which are externalized in property-config-files
             (<code>META-INF/neo4j-named-queries.properties</code>). Those files have the format:
             <code>Entity.finderName=query</code> (e.g. <code>Person.findBoss=start p=({p_person}) match (p)&lt;-[:BOSS]-(boss) return boss</code>).
@@ -162,28 +162,28 @@
             </para>
         </section>
         <section>
-            <title>Cypher Examples</title>
+            <title>Cypher examples</title>
             <para>There is a <ulink url="http://neo4j.vidcaster.com/U2Y/introduction-to-cypher">screencast</ulink> available showing many features of the query language.
                 The following examples are taken from the cineasts dataset of the tutorial section.
                 <variablelist>
                     <varlistentry>
-                        <term><code>start n=(0) return n</code></term>
+                        <term><code>start n=node(0) return n</code></term>
                         <listitem><para>returns the node with id 0</para></listitem>
                     </varlistentry>
                     <varlistentry>
-                        <term><code>start movie=(Movie,title,'Matrix') return movie</code></term>
-                        <listitem><para>returns the nodes which are indexed as 'Matrix'</para></listitem>
+                        <term><code>start movie=node:Movie(title='Matrix') return movie</code></term>
+                        <listitem><para>returns the nodes which are indexed with title equal to 'Matrix'</para></listitem>
                     </varlistentry>
                     <varlistentry>
-                        <term><code>start movie=(Movie,title,'Matrix') match (movie)&lt;-[:ACTS_IN]-(actor) return actor.name</code></term>
-                        <listitem><para>returns the names of the actors that have a ACTS_IN relationship to the movie node for matrix</para></listitem>
+                        <term><code>start movie=node:Movie(title='Matrix') match (movie)&lt;-[:ACTS_IN]-(actor) return actor.name</code></term>
+                        <listitem><para>returns the names of the actors that have a ACTS_IN relationship to the movie node for 'Matrix'</para></listitem>
                     </varlistentry>
                     <varlistentry>
-                        <term><code>start movie=(Movie,title,'Matrix') match (movie)&lt;-[r,:RATED]-(user) where r.stars > 3 return user.name, r.stars, r.comment</code></term>
-                        <listitem><para>returns users names and their ratings (>3) of the movie matrix</para></listitem>
+                        <term><code>start movie=node:Movie(title='Matrix') match (movie)&lt;-[r:RATED]-(user) where r.stars > 3 return user.name, r.stars, r.comment</code></term>
+                        <listitem><para>returns users names and their ratings (>3) of the movie titled 'Matrix'</para></listitem>
                     </varlistentry>
                     <varlistentry>
-                        <term><code>start user=(User,login,'micha') match (user)-[:FRIEND]-(friend)-[r,:RATED]->(movie) return movie.title, AVG(r.stars), count(*) order by AVG(r.stars) desc, count(*) desc</code></term>
+                        <term><code>start user=node:User(login='micha') match (user)-[:FRIEND]-(friend)-[r:RATED]->(movie) return movie.title, AVG(r.stars), COUNT(*) order by AVG(r.stars) desc, COUNT(*) desc</code></term>
                         <listitem><para>returns the movies rate by the friends of the user 'micha', aggregated by movie.title, with averaged ratings and rating-counts sorted by both</para></listitem>
                     </varlistentry>
                 </variablelist>
@@ -268,7 +268,7 @@ Person michael = personRepository.save(new Person("Michael",36));
 
 Person dave=personRepository.findOne(123);
 
-Iterable<Person> devs = personRepository.findAllByProperyValue("occupation","developer");
+Iterable<Person> devs = personRepository.findAllByPropertyValue("occupation","developer");
 
 Iterable<Person> aTeam = graphRepository.findAllByQuery( "name","A*");
 

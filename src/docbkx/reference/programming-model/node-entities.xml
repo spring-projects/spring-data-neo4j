@@ -49,10 +49,6 @@ public class Movie {
             Transient fields are not persisted.
         </para>
         <para>
-            Currently there is no support for handling arbitrary collections of primitive or convertable values.
-            Support for this will be added by the 1.1. release.
-        </para>
-        <para>
             This annotation is typically used with cross-store persistence. When a node entity is configured
             as partial, then all fields that should be persisted to the graph must be explicitly annotated
             with <code>@GraphProperty</code>.
@@ -78,8 +74,8 @@ public class Movie {
             Spring Data Neo4j aspects. It provides dynamic fields which, when accessed, return the values
             selected by the provided query language expression. The provided query must contain a placeholder named <code>{self}</code>
             for the id of the current entity. For instance <code>start n=({self}) match n-[:FRIEND]->friend return friend</code>.
-            Graph queries can return variable number of entities. That's why annotation can be put onto fields
-            with a single value, an Iterable of a concrete type or an Iterable of <code>Map&lt;String,Object&gt;</code>.
+            Graph queries can return variable number of entities. That's why annotations can be put onto fields
+            with a single value, an Iterable of a concrete type or an Iterable of type <code>Map&lt;String,Object&gt;</code>.
             Additional parameters are taken from the params attribute of the <code>@Query</code> annotation.
             The tuples form key-value pairs that are provided to the query at execution time.
         </para>

@@ -3,9 +3,9 @@
 <section id="reference:mapping">
     <title>Object Graph Mapping</title>
     <para>
-       Up until recently Spring Data Neo4j supported the only more advanced and flexible AspectJ based mapping approach, see <xref linkend="reference:aspectj" />.
+       Up until recently Spring Data Neo4j supported only the more advanced and flexible AspectJ based mapping approach, see <xref linkend="reference:aspectj" />.
         Feedback about issues with the AspectJ tooling and other implications supported us in adding a simpler mapping (see <xref linkend="reference:simple-mapping" />) to Spring Data Neo4j.
-	   Both versions work with the same annotations and provide similar API's but different behaviour.
+	   Both versions work with the same annotations and provide similar API's, but different behaviour.
     </para>
 	<para>
 		Reflection and Annotation-based metadata is collected about persistent entities in the <code>Neo4jMappingContext</code>
