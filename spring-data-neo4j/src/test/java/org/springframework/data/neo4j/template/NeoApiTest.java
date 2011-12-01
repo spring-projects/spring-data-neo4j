@@ -43,7 +43,8 @@ public abstract class NeoApiTest {
         conversionService = createConversionService();
         graph = createGraphDatabase();
         transactionManager = createTransactionManager();
-        template = new Neo4jTemplate(graph, transactionManager).postConstruct();
+        template = new Neo4jTemplate(graph, transactionManager);
+        template.postConstruct();
     }
 
     private ConversionService createConversionService() throws Exception {

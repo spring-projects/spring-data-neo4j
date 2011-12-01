@@ -25,7 +25,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.neo4j.conversion.ResultConverter;
 import org.springframework.data.neo4j.core.GraphDatabase;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
-import org.springframework.data.neo4j.template.Neo4jOperations;
 import org.springframework.data.test.DocumentingTestBase;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -56,7 +55,8 @@ public class SnippetNeo4jTemplateMethodsTest extends DocumentingTestBase {
 
         // SNIPPET template
         // TODO auto-post-construct !!
-        Neo4jOperations neo = new Neo4jTemplate(graphDatabase).postConstruct();
+        final Neo4jTemplate neo = new Neo4jTemplate(graphDatabase);
+        neo.postConstruct();
 
         Node mark = neo.createNode(map("name", "Mark"));
         Node thomas = neo.createNode(map("name", "Thomas"));
