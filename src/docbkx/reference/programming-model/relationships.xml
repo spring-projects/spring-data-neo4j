@@ -24,30 +24,31 @@
             The simplest kind of relationship is a single field pointing to another node entity (1:1).
             In this case, the field does not have to be annotated at all, although the annotation may be
             used to control the direction and type of the relationship. When setting the field, a
-            relationship is created. If the field is set to <code>null</code>, the relationship is removed.
+            relationship is created when the entity is persisted.
+            If the field is set to <code>null</code>, the relationship is removed.
         </para>
 
         <example>
             <title>Single relationship field</title>
             <programlisting language="java"><![CDATA[@NodeEntity
 public class Movie {
-    private Actor mostPaidActor;
+    private Actor topActor;
 }
 ]]></programlisting>
         </example>
 
         <para>
             It is also possible to have fields that reference a set of node entities (1:N). These fields come in
-            two forms, modifiable or read-only. Modifiable fields are of the type <code>java.util.Set&lt;T></code>,
-            and read-only fields are <code>java.lang.Iterable&lt;T></code>, where T is a @NodeEntity-annotated
+            two forms, modifiable or read-only. Modifiable fields are of the type <code>Set&lt;T></code>,
+            and read-only fields are <code>Iterable&lt;T></code>, where T is a @NodeEntity-annotated
             class.
         </para>
         <example>
             <title>Node entity with relationships</title>
             <programlisting language="java"><![CDATA[@NodeEntity
 public class Actor {
-    @RelatedTo(type = "mostPaidActor", direction = Direction.INCOMING)
-    private Set<Movie> mostPaidIn;
+    @RelatedTo(type = "topActor", direction = Direction.INCOMING)
+    private Set<Movie> topActorIn;
 
     @RelatedTo(type = "ACTS_IN")
     private Set<Movie> movies;
@@ -55,15 +56,31 @@ public class Actor {
 ]]></programlisting>
         </example>
         <para>
+            For the simple mapping, the automatic transitive loading of related entities depends on declaration of
+            <code>@Fetch</code> at the property. Otherwise the related node or relationship entities will just be initialized
+            with their id for later loading.
+        </para>
+        <para>
+            When using the advanced mapping,
             Fields referencing other entities should not be manually initialized, as they are managed by
-            Spring Data Neo4j under the hood. 1:N fields can be accessed immediately, and Spring Data Neo4j
-            will provide a java.util.Set representing the relationships. If the returned set is modified,
-            the changes are reflected in the graph. Spring Data Neo4j also ensures that there is only one
-            relationship of a given type between any two given entities.
+            Spring Data Neo4j Aspects under the hood. 1:N fields can be accessed immediately, and Spring Data Neo4j
+            will provide a <code>Set</code> representing the relationships. 
+        </para>
+        <para>
+            If this <code>Set</code> of related entities is modified, the changes are reflected in the graph, 
+			relationships are added, removed or updated accordingly.
         </para>
         <note>
             <para>
-                Before an entity has been attached with <code>persist()</code> for the first time, it will
+                Spring Data Neo4j ensures by default that there is only one
+                relationship of a given type between any two given entities. This can be circumvented by using the 	
+				<code>createRelationshipBetween()</code> method with the <code>allowDuplicates</code> parameter on 
+				repositories or entities.
+            </para>
+        </note>
+        <note>
+            <para>
+                Before an entity has been persisted for the first time, it will
                 not have its state managed by Spring Data Neo4j. For example, given the Actor class defined above,
                 if <code>actor.movies</code> was accessed in a non-persisted entity, it would return
                 <code>null</code>, whereas if it was accessed in a persisted entity, it would return
@@ -71,9 +88,8 @@ public class Actor {
             </para>
         </note>
         <para>
-            When you use an interface as target type for the <code>Set</code> and/or as <code>elementClass</code>
-            please make sure that it implements <code>NodeBacked</code> either by extending that Super-Interface manually
-            or by annotating the interface with <code>@NodeEntity</code> too.
+            When an Interface is used as target type for the <code>Set</code> and/or as <code>elementClass</code>
+            it should be marked as <code>@NodeEntity</code> too.
         </para>
         <para>
             By setting direction to <code>BOTH</code>, relationships are created in the outgoing direction, but when the
@@ -81,13 +97,16 @@ public class Actor {
             not necessary because relationships can be navigated in both directions.
         </para>
         <para>
-            The relationships can also be accessed by using the aspect-introduced methods
-            <code>entity.getRelationshipTo(target, type)</code> and
+            In the advanced mapping mode, the relationships can also be accessed by using the methods
+            <code>entity.getRelationshipBetween(target, type)</code> and
             <code>entity.relateTo(target, type)</code> available on each NodeEntity.
             These methods find and create Neo4j relationships. It is also possible to manually remove
             relationships by using <code>entity.removeRelationshipTo(target, type)</code>.
             Using these methods is significantly faster than adding/removing from the collection of
             relationships as it doesn't have to re-synchronize a whole set of relationships with the graph.
+        </para>
+        <para>
+            Methods of the same semantics exist in the repositories to be used in the simple mapping mode.
         </para>
         <note>
             <para>
@@ -107,13 +126,15 @@ public class Actor {
             via relationships, but it provides no way of accessing the relationships themselves.
         </para>
         <para>
-            Relationship entities cannot be instantiated directly but are rather created via
-            node entities, either by @RelatedToVia-annotated fields
-            (see <xref linkend="reference:programming_model:relationships:relatedtovia"/>),
-            or by the introduced
-            <code>entity.relateTo(target, relationshipClass, type)</code> and
-            <code>entity.getRelationshipTo(target, relationshipClass, type)</code> methods
-            (see <xref linkend="reference:programming-model:introduced-methods"/>).
+            Relationship entities can be accessed via by @RelatedToVia-annotated (<xref linkend="reference:programming_model:relationships:relatedtovia"/>)
+            fields or methods like <code>entity.getRelationshipTo()</code>
+            or <code>template|repository.getRelationshipsBetween()</code>.
+        </para>
+        <para>
+            Relationship entities either be instantiated directly and added to
+            <code>Set's</code> of <code>@RelatedToVia</code> fields or created by the introduced
+            <code>entity.relateTo(), template|repository.createRelationshipBetween()</code> methods
+            (see <xref linkend="reference:programming-model:introduced-methods"/>)
         </para>
         <para>
             Fields in relationship entities are, similarly to node entities, persisted as properties on
@@ -122,12 +143,18 @@ public class Actor {
             one of these annotations will provide read-only access to the corresponding endpoint, depending
             on the chosen annotation.
         </para>
+        <para>
+            For the relationship-type a <code>String</code> or <code>RelationshipType</code>
+            field annotated with <code>@RelationshipType</code> is available.
+            When Relationship-Entities are instantiated directly, the relationship type has to be provided either in this
+            annotated field or as part of the <code>@RelationshipEntity</code> annotation.
+        </para>
         <example>
-            <title>Relationship entity</title>
+            <title>Relationship entity (in advanced mapping)</title>
             <programlisting language="java"><![CDATA[@NodeEntity
 public class Actor {
     public Role playedIn(Movie movie, String title) {
-        return relatedTo(movie, Role.class, "ACTS_IN");
+        return relateTo(movie, Role.class, "ACTS_IN");
     }
 }
 
@@ -147,23 +174,30 @@ public class Role {
         <para>
             To provide easy programmatic access to the richer relationship entities of the data model,
             the annotation <code>@RelatedToVia</code> can be added on fields of type
-            <code>java.lang.Iterable&lt;T></code>, where T is a <code>@RelationshipEntity</code>-annotated
-            class. These fields provide read-only access to relationship entities.
+            <code>Iterable&lt;T></code> or <code>Set&lt;T></code>, where T is a <code>@RelationshipEntity</code>-annotated
+            class. These fields provide access to relationship entities.
         </para>
         <example>
-            <title>Accessing relationship entities using @RelatedToVia</title>
+            <title>Relationship entity (in simple mapping)</title>
             <programlisting language="java"><![CDATA[@NodeEntity
 public class Actor {
-    @RelatedToVia(type = "ACTS_IN")
-    private Iterable<Role> roles;
-
+    @Set<Role> roles=new HashSet<Role>();
     public Role playedIn(Movie movie, String title) {
-        Role role = relateTo(movie, Role.class, "ACTS_IN");
-        role.setTitle(title);
+        Role role=new Role(this,movie,title);
+        roles.add(role);
         return role;
     }
 }
-]]></programlisting>
+
+@RelationshipEntity(type = "ACTS_IN")
+public class Role {
+    String title;
+
+    @StartNode private Actor actor;
+    @EndNode private Movie movie;
+}
+        ]]></programlisting>
+
         </example>
     </section>
 </section>

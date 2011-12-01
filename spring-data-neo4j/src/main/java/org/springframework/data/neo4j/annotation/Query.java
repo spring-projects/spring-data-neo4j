@@ -22,11 +22,11 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Field that provides access to an iterator which is created by applying the traversal that is built by the supplied
- * traversal builder to the current node. The result elements are automatically converted to appropriate element
+ * Field that provides access to an iterator which is created by applying the provided query starting at the current
+ * entity-node. The result elements are automatically converted to appropriate element
  * entity class instances.
  * <pre>
- * &#64;GraphTraversal(traversalBuilder=FriendTraversalBuilder.class, elementClass=Person.class)
+ * &#64;Query(value = "start n=node({self}) match n-[:KNOWS]->other return other", elementClass=Person.class)
  * Iterable&lt;Person&gt; friends;
  * </pre>
  * @author Michael Hunger

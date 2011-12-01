@@ -27,7 +27,7 @@ import java.lang.annotation.Target;
  * traversal builder to the current node. The result elements are automatically converted to appropriate element
  * entity class instances.
  * <pre>
- * &#64;GraphTraversal(traversalBuilder=FriendTraversalBuilder.class, elementClass=Person.class)
+ * &#64;GraphTraversal(traversal=FriendTraversalBuilder.class, elementClass=Person.class)
  * Iterable&lt;Person&gt; friends;
  * </pre>
  * @author Michael Hunger

@@ -10,13 +10,13 @@
     </para>
     <para>
 		The simple object graph mapping comes into play whenever an entity is constructed from a node or relationship.
-		This could be done explicitly like during the lookup or create operations of the repositories and the
+		This could be done explicitly like during the lookup- or create-operations of the repositories and the
         <code>Neo4jTemplate</code> but also implicitly while executing
 		any graph operation that returns nodes or relationships and expecting mapped entities to be returned.
 	</para>
 	<para>
-		It uses the available meta information about the persistent entity to iterate over its properties and relationships,
-		fetching them from the graph while doing so. It also executes computed fields and stores the resulting values 
+		It uses the available meta-information about the persistent entity to iterate over its properties and relationships,
+		fetching their data from the graph while doing so. It also executes computed fields and stores the resulting values
 		in the properties. 
 	</para>
 	<para>

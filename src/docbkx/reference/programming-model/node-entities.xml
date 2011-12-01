@@ -30,7 +30,7 @@
             <code>@GraphTraversal</code>.
         </para>
         <example>
-            <title>Simple node entity</title>
+            <title>Simplest node entity</title>
             <programlisting language="java"><![CDATA[@NodeEntity
 public class Movie {
     String title;
@@ -42,11 +42,15 @@ public class Movie {
     <section>
         <title>@GraphProperty: Optional annotation for property fields</title>
         <para>
-            It is not necessary to annotate data fields, as they are persisted by default; all fields that
-            contain primitive values are persisted directly to the graph. All fields convertible to String
+            It is not necessary to annotate property fields, as they are persisted by default; all fields that
+            contain primitive values are persisted directly to the graph. All fields convertible to a <code>String</code>
             using the Spring conversion services will be stored as a string. Spring Data Neo4j includes a
             custom conversion factory that comes with converters for <code>Enum</code>s and <code>Date</code>s.
             Transient fields are not persisted.
+        </para>
+        <para>
+            Collections of collections of primitive or convertable values are stored as well. They are converted to
+            arrays of their type or strings respectively.
         </para>
         <para>
             This annotation is typically used with cross-store persistence. When a node entity is configured
@@ -70,20 +74,20 @@ public class Movie {
     <section>
         <title>@Query: fields as query result views</title>
         <para>
-            The <code>@Query</code> annotation leverages the delegation infrastructure used by the
-            Spring Data Neo4j aspects. It provides dynamic fields which, when accessed, return the values
+            The <code>@Query</code> annotation leverages the delegation infrastructure supported by
+            Spring Data Neo4j. It provides dynamic fields which, when accessed, return the values
             selected by the provided query language expression. The provided query must contain a placeholder named <code>{self}</code>
-            for the id of the current entity. For instance <code>start n=({self}) match n-[:FRIEND]->friend return friend</code>.
-            Graph queries can return variable number of entities. That's why annotations can be put onto fields
-            with a single value, an Iterable of a concrete type or an Iterable of type <code>Map&lt;String,Object&gt;</code>.
+            for the the current entity. For instance the query <code>start n=node({self}) match n-[:FRIEND]->friend return friend</code>.
+            Graph queries can return variable number of entities. That's why annotation can be put onto fields
+            with a single value, a subclass of Iterable of a concrete type or an Iterable of <code>Map&lt;String,Object&gt;</code>.
             Additional parameters are taken from the params attribute of the <code>@Query</code> annotation.
-            The tuples form key-value pairs that are provided to the query at execution time.
+            These parameter tuples form key-value pairs that are provided to the query at execution time.
         </para>
         <example>
             <title>@Graph on a node entity field</title>
             <programlisting language="java"><![CDATA[@NodeEntity
 public class Group {
-    @Query(value = "start n=({self}) match (n)-[:%relType]->(friend) return friend",
+    @Query(value = "start n=({self}) match (n)-[r]->(friend) where r.type = {relType} return friend",
                 params = {"relType", "FRIEND"})
     private Iterable<Person> friends;
 }
@@ -92,18 +96,18 @@ public class Group {
         </example>
         <note>
             <para>
-                Please note that this annotation can also be used on repository methods.
+                Please note that this annotation can also be used on repository methods. (<xref linkend="reference:programming-model:repositories"/>)
             </para>
         </note>
     </section>
     <section>
         <title>@GraphTraversal: fields as traversal result views</title>
         <para>
-            The <code>@GraphTraversal</code> annotation leverages the delegation infrastructure used by the
-            Spring Data Neo4j aspects. It provides dynamic fields which, when accessed, return an Iterable
-            of node entities that are the result of a traversal starting at the entity containing the field.
+            The <code>@GraphTraversal</code> annotation also leverages the delegation infrastructure supported by
+            Spring Data aspects. It provides dynamic fields which, when accessed, return an <code>Iterable</code>
+            of node or relationship entities that are the result of a traversal starting at the entity containing the field.
             The <code>TraversalDescription</code> used for this is created by the
-            <code>FieldTraversalDescriptionBuilder</code> class defined by the <code>traversalBuilder</code>
+            <code>FieldTraversalDescriptionBuilder</code> class defined by the <code>traversal</code>
             attribute. The class of the resulting node entities must be provided with the
             <code>elementClass</code> attribute.
         </para>
@@ -111,7 +115,7 @@ public class Group {
             <title>@GraphTraversal from a node entity</title>
             <programlisting language="java"><![CDATA[@NodeEntity
 public class Group {
-    @GraphTraversal(traversalBuilder = PeopleTraversalBuilder.class,
+    @GraphTraversal(traversal = PeopleTraversalBuilder.class,
             elementClass = Person.class, params = "persons")
     private Iterable<Person> people;
 
