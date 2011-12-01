@@ -63,6 +63,8 @@
 		<context:exclude-filter expression=".*_Roo_.*" type="regex"/>
 		<context:exclude-filter expression="org.springframework.stereotype.Controller" type="annotation"/>
 		<context:exclude-filter expression="org.springframework.context.annotation.Configuration" type="annotation"/>
+		<!-- Avoid the instantiation of the base repositories -->
+		<context:exclude-filter expression="org.springframework.data.neo4j.repository.*" type="regex"/>
 	</context:component-scan>
 	
 	

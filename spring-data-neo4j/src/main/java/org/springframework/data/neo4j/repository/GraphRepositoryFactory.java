@@ -75,10 +75,24 @@ public class GraphRepositoryFactory extends RepositoryFactorySupport {
         GraphEntityInformation entityInformation = (GraphEntityInformation)getEntityInformation(type);
         // todo entityInformation.isGraphBacked();
         if (entityInformation.isNodeEntity()) {
-            return new NodeGraphRepositoryImpl(type, template);
+            if (isCypherDslRepo(metadata)) {
+                return new NodeCypherDslGraphRepository(type, template);
+            }
+            else {
+                return new NodeGraphRepository(type, template);
+            }
         } else {
-            return new RelationshipGraphRepository(type, template);
+            if (isCypherDslRepo(metadata)) {
+                return new RelationshipCypherDslGraphRepository(type, template);
+            }
+            else {
+                return new RelationshipGraphRepository(type, template);
+            }
         }
+    }
+
+    private boolean isCypherDslRepo(RepositoryMetadata repositoryMetadata) {
+        return CypherDslRepository.class.isAssignableFrom(repositoryMetadata.getRepositoryInterface());
     }
 
     @Override
@@ -88,10 +102,20 @@ public class GraphRepositoryFactory extends RepositoryFactorySupport {
         @SuppressWarnings("rawtypes")
         final GraphEntityInformation entityInformation = (GraphEntityInformation) getEntityInformation(domainClass);
         if (entityInformation.isNodeEntity()) {
-            return NodeGraphRepositoryImpl.class;
+            if (isCypherDslRepo(repositoryMetadata)) {
+                return NodeCypherDslGraphRepository.class;
+            }
+            else {
+                return NodeGraphRepository.class;
+            }
         }
         if (entityInformation.isRelationshipEntity()) {
-            return RelationshipGraphRepository.class;
+            if (isCypherDslRepo(repositoryMetadata)) {
+                return RelationshipCypherDslGraphRepository.class;
+            }
+            else {
+                return RelationshipGraphRepository.class;
+            }
         }
         throw new IllegalArgumentException("Invalid Domain Class "+ domainClass+" neither Node- nor RelationshipEntity");
     }

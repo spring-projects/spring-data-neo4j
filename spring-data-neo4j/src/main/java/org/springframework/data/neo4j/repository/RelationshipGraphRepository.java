@@ -19,10 +19,12 @@ package org.springframework.data.neo4j.repository;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.traversal.TraversalDescription;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
+import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
 import java.util.List;
 
+@Repository
 public class RelationshipGraphRepository<T> extends AbstractGraphRepository<Relationship, T> implements GraphRepository<T> {
 
     public RelationshipGraphRepository(final Class<T> clazz, final Neo4jTemplate template) {
@@ -37,21 +39,6 @@ public class RelationshipGraphRepository<T> extends AbstractGraphRepository<Rela
     @Override
     public <N> Iterable<T> findAllByTraversal(final N startNode, final TraversalDescription traversalDescription) {
         throw new UnsupportedOperationException("Traversal not able to start at relationship");
-    }
-
-    @Override
-    public T save(T entity) {
-        return template.save(entity);
-    }
-
-    @SuppressWarnings("unchecked")
-    @Override
-    public Iterable<T> save(Iterable<? extends T> entities) {
-        List<T> result=new ArrayList<T>();
-        for (T entity : entities) {
-            result.add(template.save(entity));
-        }
-        return result;
     }
 }
 

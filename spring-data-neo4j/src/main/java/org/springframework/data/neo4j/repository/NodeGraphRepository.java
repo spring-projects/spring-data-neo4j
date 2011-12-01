@@ -19,10 +19,12 @@ package org.springframework.data.neo4j.repository;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.traversal.TraversalDescription;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
+import org.springframework.stereotype.Repository;
 
-public class NodeGraphRepositoryImpl<T> extends AbstractGraphRepository<Node, T> implements GraphRepository<T>, RelationshipOperationsRepository<T> {
+@Repository
+public class NodeGraphRepository<T> extends AbstractGraphRepository<Node, T> implements GraphRepository<T>, RelationshipOperationsRepository<T> {
 
-    public NodeGraphRepositoryImpl(final Class<T> clazz, final Neo4jTemplate template) {
+    public NodeGraphRepository(final Class<T> clazz, final Neo4jTemplate template) {
         super(template, clazz);
     }
 
@@ -34,24 +36,6 @@ public class NodeGraphRepositoryImpl<T> extends AbstractGraphRepository<Node, T>
     @Override
     public <N> Iterable<T> findAllByTraversal(final N start, final TraversalDescription traversalDescription) {
         return template.traverse(start, clazz, traversalDescription);
-    }
-
-    @SuppressWarnings("unchecked")
-    @Override
-    public T save(T entity) {
-        return (T) template.save(entity);
-    }
-
-    @SuppressWarnings("unchecked")
-    @Override
-    public Iterable<T> save(Iterable<? extends T> entities) {
-        for (T entity : entities) {
-            save(entity);
-
-
-
-        }
-        return (Iterable<T>) entities;
     }
 
     @Override
