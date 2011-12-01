@@ -13,32 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.data.neo4j.repository;
 
-import org.neo4j.graphdb.Relationship;
-import org.neo4j.graphdb.traversal.TraversalDescription;
+import java.util.Map;
+
+import org.neo4j.cypherdsl.Execute;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.neo4j.conversion.EndResult;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
 import org.springframework.stereotype.Repository;
 
-import java.util.ArrayList;
-import java.util.List;
-
 @Repository
-public class RelationshipGraphRepository<T> extends AbstractGraphRepository<Relationship, T> implements GraphRepository<T> {
+public class NodeCypherDslGraphRepository<T> extends NodeGraphRepository<T>implements CypherDslRepository<T> {
 
-    public RelationshipGraphRepository(final Class<T> clazz, final Neo4jTemplate template) {
-        super(template, clazz);
+    public NodeCypherDslGraphRepository(final Class<T> clazz, final Neo4jTemplate template) {
+    	super(clazz, template);
+    }
+	
+    @Override
+    public Page<T> query(Execute query, Map<String, Object> params, Pageable page) {
+        return CypherDslQueryUtil.query(template, clazz, query, params, page);
     }
 
     @Override
-    protected Relationship getById(long id) {
-        return template.getRelationship(id);
-    }
-
-    @Override
-    public <N> Iterable<T> findAllByTraversal(final N startNode, final TraversalDescription traversalDescription) {
-        throw new UnsupportedOperationException("Traversal not able to start at relationship");
+    public EndResult<T> query(Execute query, Map<String, Object> params) {
+        return CypherDslQueryUtil.query(template, clazz, query, params);
     }
 }
-

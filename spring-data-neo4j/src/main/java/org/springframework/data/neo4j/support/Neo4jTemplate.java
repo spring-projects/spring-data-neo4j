@@ -52,7 +52,7 @@ import org.springframework.data.neo4j.mapping.MappingPolicy;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.mapping.RelationshipResult;
 import org.springframework.data.neo4j.repository.GraphRepository;
-import org.springframework.data.neo4j.repository.NodeGraphRepositoryImpl;
+import org.springframework.data.neo4j.repository.NodeGraphRepository;
 import org.springframework.data.neo4j.repository.RelationshipGraphRepository;
 import org.springframework.data.neo4j.support.index.IndexProvider;
 import org.springframework.data.neo4j.support.index.IndexType;
@@ -116,7 +116,7 @@ public class Neo4jTemplate implements Neo4jOperations, EntityPersister {
     @Override
     public <T> GraphRepository<T> repositoryFor(Class<T> clazz) {
         notNull(clazz,"entity type");
-        if (isNodeEntity(clazz)) return new NodeGraphRepositoryImpl<T>(clazz, this);
+        if (isNodeEntity(clazz)) return new NodeGraphRepository<T>(clazz, this);
         if (isRelationshipEntity(clazz)) return new RelationshipGraphRepository<T>(clazz, this);
         throw new IllegalArgumentException("Can't create graph repository for non graph entity of type " + clazz);
     }

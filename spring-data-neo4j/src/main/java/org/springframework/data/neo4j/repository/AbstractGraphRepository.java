@@ -49,7 +49,7 @@ import static org.neo4j.helpers.collection.MapUtil.map;
  * @param <S> Type of backing state, either Node or Relationship
  */
 @org.springframework.stereotype.Repository
-public abstract class AbstractGraphRepository<S extends PropertyContainer, T> implements GraphRepository<T>, NamedIndexRepository<T>, SpatialRepository<T>, CypherDslRepository<T> {
+public abstract class AbstractGraphRepository<S extends PropertyContainer, T> implements GraphRepository<T>, NamedIndexRepository<T>, SpatialRepository<T> {
 
     /*
     index.query( LayerNodeIndex.WITHIN_WKT_GEOMETRY_QUERY,
@@ -102,6 +102,20 @@ public abstract class AbstractGraphRepository<S extends PropertyContainer, T> im
         this.clazz = clazz;
     }
 
+    @Override
+    public T save(T entity) {
+        return template.save(entity);
+    }
+
+    @Override
+    public Iterable<T> save(Iterable<? extends T> entities) {
+        List<T> result=new ArrayList<T>();
+        for (T entity : entities) {
+            result.add(template.save(entity));
+        }
+        return result;
+    }
+    
     /**
      * @return Number of instances of the target type in the graph.
      */
@@ -381,18 +395,5 @@ public abstract class AbstractGraphRepository<S extends PropertyContainer, T> im
             if (objectNodeId==null) return null;
             return super.underlyingObjectToObject(getById(objectNodeId.longValue()));
         }
-    }
-
-    @SuppressWarnings("unchecked")
-    @Override
-    public Page<T> query(Execute query, Map<String, Object> params, Pageable page) {
-        final Execute limitedQuery = ((Skip)query).skip(page.getOffset()).limit(page.getPageSize());
-        return template.queryEngineFor(QueryType.Cypher).query(limitedQuery.toString(), params).to(clazz).as(Page.class);
-    }
-
-    @SuppressWarnings("unchecked")
-    @Override
-    public EndResult<T> query(Execute query, Map<String, Object> params) {
-        return template.queryEngineFor(QueryType.Cypher).query(query.toString(), params).to(clazz);
     }
 }
