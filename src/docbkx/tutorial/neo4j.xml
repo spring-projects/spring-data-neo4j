@@ -8,7 +8,10 @@
         First we read up about graph databases, in particular our chosen one,
         <ulink url="http://neo4j.org">Neo4j</ulink>.
         The Neo4j data model consists of nodes and relationships, both of which can have key/value-style
-        properties. Relationships are first-class citizens in Neo4j, meaning we can link together nodes
+        properties. What does that mean, exactly? Nodes are the graph database name for records, 
+        with property keys instead of column names. That's normal enough. Relationships are the special part.
+        In Neo4j, relationships are first-class citizens, meaning they are more than a simple foreign-key 
+        reference to another record, relationships carry information. So we can link together nodes
         into semantically rich networks. This really appealed to us. Then we found that we were also able to
         <ulink url="http://docs.neo4j.org/chunked/milestone/indexing.html">index nodes and relationships</ulink>
         by {key, value} pairs. We also found that we could traverse relationships both imperatively using
@@ -27,9 +30,9 @@
         Something to keep in mind later.
     </para>
     <para>
-        We started out by doing some prototyping with the Neo4j core API to get a feeling for how it works. And also
-        to see, what the domain might look like when it's saved in the graph database. After adding the Maven
-        dependency for Neo4j, we were ready to go.
+        We started out by doing some prototyping with the Neo4j core API to get a feeling for how it works. And 
+        also, to see what the domain might look like when it's saved in the graph database. After adding the Maven
+        dependency for Neo4j, we were ready to go. 
     </para>
     <para>
         <example>
