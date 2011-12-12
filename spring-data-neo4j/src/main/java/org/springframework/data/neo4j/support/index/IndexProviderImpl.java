@@ -107,4 +107,10 @@ public class IndexProviderImpl implements IndexProvider {
         if (providedIndexName==null || providedIndexName.equals(defaultIndexName)) throw new IllegalStateException("Index name for "+property+" must differ from the default name: "+defaultIndexName);
         return getIndex(declaringType, indexName, property.getIndexInfo().getIndexType());
     }
+    
+    @Override
+    public String createIndexValueForType(Class<?> type) {
+        return type.getName();
+    }
+ 
 }
