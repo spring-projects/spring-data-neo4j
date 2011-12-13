@@ -51,6 +51,8 @@ public class Person {
     @Indexed
     private int age;
 
+	private Object dynamicProperty;
+
 	private Short height;
 
 	private transient String thought;
@@ -259,6 +261,14 @@ public class Person {
 	
 	public void setNickname(String nickname) {
 		this.nickname = nickname;
+	}
+
+	public void setDynamicProperty(Object dynamicProperty) {
+		this.dynamicProperty = dynamicProperty;
+	}
+
+	public Object getDynamicProperty() {
+		return dynamicProperty;
 	}
 
     public Person(Long graphId) {
