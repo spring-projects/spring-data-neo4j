@@ -24,6 +24,7 @@ import org.springframework.data.neo4j.annotation.NodeEntity;
 import org.springframework.data.neo4j.core.GraphDatabase;
 import org.springframework.data.neo4j.core.NodeTypeRepresentationStrategy;
 import org.springframework.data.neo4j.support.index.ClosableIndexHits;
+import org.springframework.data.neo4j.support.index.IndexProvider;
 import org.springframework.data.neo4j.support.index.IndexType;
 
 public class IndexingNodeTypeRepresentationStrategy implements NodeTypeRepresentationStrategy {
@@ -31,32 +32,39 @@ public class IndexingNodeTypeRepresentationStrategy implements NodeTypeRepresent
     public static final String INDEX_NAME = "__types__";
     public static final String TYPE_PROPERTY_NAME = "__type__";
     public static final String INDEX_KEY = "className";
-    private GraphDatabase graphDb;
+    private final GraphDatabase graphDb;
     private final EntityTypeCache typeCache;
+    
+    private final IndexProvider indexProvider;
 
-    public IndexingNodeTypeRepresentationStrategy(GraphDatabase graphDb) {
+    public IndexingNodeTypeRepresentationStrategy(GraphDatabase graphDb, IndexProvider indexProvider) {
 		this.graphDb = graphDb;
+		this.indexProvider = indexProvider;
         typeCache = new EntityTypeCache();
     }
 
-	private Index<Node> getNodeTypesIndex() {
-        return graphDb.createIndex(Node.class,INDEX_NAME, IndexType.SIMPLE);
-	}
+    private Index<Node> getNodeTypesIndex() {
+        return graphDb.createIndex(Node.class, INDEX_NAME, IndexType.SIMPLE);
+    }
 
-
-	@Override
-	public void postEntityCreation(Node state, Class<?> type) {
+    @Override
+    public void postEntityCreation(Node state, Class<?> type) {
         addToNodeTypesIndex(state, type);
         state.setProperty(TYPE_PROPERTY_NAME, type.getName());
-	}
+    }
 
     private void addToNodeTypesIndex(Node node, Class<?> entityClass) {
-		Class<?> klass = entityClass;
-		while (klass.getAnnotation(NodeEntity.class) != null) {
-			getNodeTypesIndex().add(node, INDEX_KEY, klass.getName());
-			klass = klass.getSuperclass();
-		}
-	}
+        Class<?> klass = entityClass;
+
+        while (klass.getAnnotation(NodeEntity.class) != null) {
+            String value = klass.getName();
+            if (indexProvider != null)
+                value = indexProvider.createIndexValueForType(klass);
+
+            getNodeTypesIndex().add(node, INDEX_KEY, value);
+            klass = klass.getSuperclass();
+        }
+    }
 
     @Override
     public <U> ClosableIterable<Node> findAll(Class<U> clazz) {
@@ -64,9 +72,13 @@ public class IndexingNodeTypeRepresentationStrategy implements NodeTypeRepresent
     }
 
     private <Object> ClosableIterable<Node> findAllNodeBacked(Class<Object> clazz) {
-		final IndexHits<Node> allEntitiesOfType = getNodeTypesIndex().get(INDEX_KEY, clazz.getName());
+        String value = clazz.getName();
+        if (indexProvider != null)
+            value = indexProvider.createIndexValueForType(clazz);
+
+        final IndexHits<Node> allEntitiesOfType = getNodeTypesIndex().get(INDEX_KEY, value);
         return new ClosableIndexHits<Node>(allEntitiesOfType);
-	}
+    }
 
     @Override
     public long count(Class<?> entityClass) {
