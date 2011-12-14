@@ -141,7 +141,7 @@ public abstract class Neo4jConfiguration {
 
     @Bean
     public TypeRepresentationStrategyFactory typeRepresentationStrategyFactory() throws Exception {
-        return new TypeRepresentationStrategyFactory(graphDatabase());
+        return new TypeRepresentationStrategyFactory(graphDatabase(), indexProvider());
     }
 
     @Bean
