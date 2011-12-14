@@ -196,6 +196,14 @@ class Neo4jPersistentPropertyImpl extends AbstractPersistentProperty<Neo4jPersis
                 || (fieldType.isArray() && !fieldType.getComponentType().isArray() && isNeo4jPropertyType(fieldType.getComponentType()));
     }
 
+    @Override
+    public boolean isNeo4jPropertyValue(Object value) {
+	if (value == null || value.getClass().isArray()) {
+	    return false;
+	}
+	return isNeo4jPropertyType(value.getClass());
+    }
+
     public boolean isSyntheticField() {
         return getName().contains("$");
     }

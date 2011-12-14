@@ -62,15 +62,36 @@ public class ConvertingNodePropertyFieldAccessorFactory implements FieldAccessor
             propertyConverter = new PropertyConverter(template.getConversionService(),property);
         }
 
+        private boolean doConvert(final Object value) {
+            // Do convert by default
+            boolean doConvert = true;
+            // If the value if of type Object and a neo4j supported type, do not convert it
+            if (property.getType().equals(Object.class) && property.isNeo4jPropertyValue(value)) {
+                doConvert = false;
+            }
+
+            return doConvert;
+        }
+
         @Override
         public Object setValue(final Object entity, final Object newVal, MappingPolicy mappingPolicy) {
-            super.setValue(entity, propertyConverter.serializePropertyValue(newVal,targetType), mappingPolicy);
+            Object value = newVal;
+            // Convert the value if it's not of a neo4j supported type
+            if (doConvert(value)) {
+                value = propertyConverter.serializePropertyValue(value, targetType);
+            }
+            super.setValue(entity, value, mappingPolicy);
             return newVal;
         }
 
         @Override
         public Object doGetValue(final Object entity) {
-            return propertyConverter.deserializePropertyValue(super.doGetValue(entity));
+            Object ret = super.doGetValue(entity);
+            if (doConvert(ret)) {
+                ret = propertyConverter.deserializePropertyValue(ret);
+            }
+
+            return ret;
         }
 
         @Override

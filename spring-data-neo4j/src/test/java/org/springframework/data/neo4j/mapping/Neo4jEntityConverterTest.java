@@ -26,6 +26,7 @@ import org.springframework.data.neo4j.model.Friendship;
 import org.springframework.data.neo4j.model.Group;
 import org.springframework.data.neo4j.model.Person;
 import org.springframework.data.neo4j.model.Personality;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
 import java.util.Date;
@@ -149,6 +150,33 @@ public class Neo4jEntityConverterTest extends Neo4jPersistentTestBase {
         assertEquals(36, p.getAge());
         assertEquals(new Date(100), p.getBirthdate());
         assertEquals(Personality.EXTROVERT, p.getPersonality());
+    }
+
+    private <T> void neo4jPropertyTest(final T value) {
+        michael.setDynamicProperty(value);
+        storeInGraph(michael);
+        final Person loaded = template.findOne(michael.getId(), Person.class);
+        assertEquals(value, loaded.getDynamicProperty());
+    }
+
+    @Test
+    public void testIntProperty() {
+	neo4jPropertyTest(123);
+    }
+
+    @Test
+    public void testDoubleProperty() {
+	neo4jPropertyTest(3.1415);
+    }
+
+    @Test
+    public void testBooleanProperty() {
+	neo4jPropertyTest(true);
+    }
+
+    @Test
+    public void testIntegerProperty() {
+	neo4jPropertyTest(Integer.valueOf(3));
     }
 
     @Test
