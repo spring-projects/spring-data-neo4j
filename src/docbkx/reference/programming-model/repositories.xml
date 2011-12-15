@@ -232,8 +232,8 @@ Iterable<Person> findByParentAgeAndMarried(int age, boolean married)
 	        <title>CypherDSL repository</title>
 	        <para>
 	            Spring Data Neo4j supports the new cypher-dsl to write Cypher queries in a statically typed way. Just by including 
-				<code>CypherDslRepository</code> to your repository you get the <code>Page<T> query(Execute query, params, Pageable page)</code>
-				and the <code>EndResult<T> query(Execute query, params);</code>. The result type of the Cypher-DSL builder is called
+				<code>CypherDslRepository</code> to your repository you get the <code>Page&lt;T> query(Execute query, params, Pageable page)</code>
+				and the <code>EndResult&lt;T> query(Execute query, params);</code>. The result type of the Cypher-DSL builder is called
 				<code>Execute</code>
 	        </para>
 	        <example>

@@ -39,6 +39,7 @@
 			<code>level</code> attribute declares what will be used as index. <code>Level.CLASS</code>
 			uses the class where the field was declared and <code>Level.INSTANCE</code> uses the class
 			that is provided or of the actual entity instance.
+        </para>
         <para>
             The indexes can be queried by using a repository (see
             <xref linkend="reference:programming-model:repositories" />).
@@ -170,7 +171,7 @@ personFulltextIndex.query("{name:*cha*}");
     <section>
         <title>Neo4j Auto Indexes</title>
         <para>
-		    Neo4j allows to configure <ulink url="http://docs.neo4j.org/chunked/milestone/auto-indexing.html">auto-indexing</a> 
+		    Neo4j allows to configure <ulink url="http://docs.neo4j.org/chunked/milestone/auto-indexing.html">auto-indexing</ulink>
 			for certain properties on nodes and relationships. This auto-indexing differs
 		    from the approach used in Spring Data Neo4j because it only updates the indexes when the transaction is committed. So the
 		    index modifications will only be available after the successful commit. 
