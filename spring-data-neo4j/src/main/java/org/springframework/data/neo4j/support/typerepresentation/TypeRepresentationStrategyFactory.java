@@ -79,7 +79,7 @@ public class TypeRepresentationStrategyFactory {
     }
 
     public RelationshipTypeRepresentationStrategy getRelationshipTypeRepresentationStrategy() {
-        return strategy.getRelationshipTypeRepresentationStrategy(graphDatabaseService);
+        return strategy.getRelationshipTypeRepresentationStrategy(graphDatabaseService, indexProvider);
     }
     
     public void setIndexProvider(IndexProvider indexProvider) {
@@ -94,7 +94,7 @@ public class TypeRepresentationStrategyFactory {
             }
 
             @Override
-            public RelationshipTypeRepresentationStrategy getRelationshipTypeRepresentationStrategy(GraphDatabase graphDatabaseService) {
+            public RelationshipTypeRepresentationStrategy getRelationshipTypeRepresentationStrategy(GraphDatabase graphDatabaseService, IndexProvider indexProvider) {
                 return new NoopRelationshipTypeRepresentationStrategy();
             }
         },
@@ -105,8 +105,8 @@ public class TypeRepresentationStrategyFactory {
             }
 
             @Override
-            public RelationshipTypeRepresentationStrategy getRelationshipTypeRepresentationStrategy(GraphDatabase graphDatabaseService) {
-                return new IndexingRelationshipTypeRepresentationStrategy(graphDatabaseService);
+            public RelationshipTypeRepresentationStrategy getRelationshipTypeRepresentationStrategy(GraphDatabase graphDatabaseService, IndexProvider indexProvider) {
+                return new IndexingRelationshipTypeRepresentationStrategy(graphDatabaseService, indexProvider);
             }
         },
         Noop {
@@ -116,13 +116,13 @@ public class TypeRepresentationStrategyFactory {
             }
 
             @Override
-            public RelationshipTypeRepresentationStrategy getRelationshipTypeRepresentationStrategy(GraphDatabase graphDatabaseService) {
+            public RelationshipTypeRepresentationStrategy getRelationshipTypeRepresentationStrategy(GraphDatabase graphDatabaseService, IndexProvider indexProvider) {
                 return new NoopRelationshipTypeRepresentationStrategy();
             }
         };
 
         public abstract NodeTypeRepresentationStrategy getNodeTypeRepresentationStrategy(GraphDatabase graphDatabaseService, IndexProvider indexProvider);
 
-        public abstract RelationshipTypeRepresentationStrategy getRelationshipTypeRepresentationStrategy(GraphDatabase graphDatabaseService);
+        public abstract RelationshipTypeRepresentationStrategy getRelationshipTypeRepresentationStrategy(GraphDatabase graphDatabaseService, IndexProvider indexProvider);
     }
 }
