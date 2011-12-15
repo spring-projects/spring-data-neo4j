@@ -16,8 +16,8 @@
         context and only offers the attributes and methods needed here would be very beneficial.
     </para>
     <para>Spring Data Neo4j offers initial support for projecting node and relationship entities to different target
-        types. All instances of this projected entity share the same backing node or relationship, so data changes are
-        reflected immediately.
+        types. All instances of this projected entity share the same backing node or relationship, so changes are
+        reflected on the same data.
     </para>
     <para>
         This could for instance also be used to handle nodes of a traversal with a unified (simpler) type (e.g. for
@@ -41,6 +41,4 @@ for (Person person : graphRepository.findAllByPropertyValue("occupation","develo
 }
 ]]></programlisting>
     </example>
-
-
 </section>

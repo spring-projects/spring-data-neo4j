@@ -1,10 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
 <section id="reference:template" xmlns:xi="http://www.w3.org/2001/XInclude">
+
     <title>Neo4jTemplate</title>
+    <!-- todo make sure that all template methods are covered in this chapter -->
     <para>
         The <code>Neo4jTemplate</code> offers the convenient API of Spring templates for the Neo4j graph
-        database.
+        database. The Spring Data Neo4j Object Graph mapping builds upon the core functionality of the 
+		template to persist objects to the graph and load them in a variety of ways. 
+		The template handles the active mapping mode (<xref linkend="reference:mapping"/>) transparently.
+    </para>
+    <para>
+        Besides methods for creating, storing and deleting entities, nodes and relationships in the graph, <code>Neo4jTemplate</code> 
+		also offers a wide range of query methods. To reduce the proliferation of query methods a simple result handling
+		DSL was added.
     </para>
 
     <xi:include href="../../snippets/SnippetNeo4jTemplateMethods.xml"/>
@@ -17,8 +26,9 @@
             <code>ResultConverter&lt;FROM,TO&gt;</code> which takes care of custom conversions. By default most
             query methods can already handle conversions from and to: Paths, Nodes, Relationship and GraphEntities
             as well as conversions backed by registered ConversionServices. A converted <code>Result&lt;FROM&gt;</code> is an
-            <code>Iterable&lt;TO&gt;</code>. Results can be limited to a single value using the <code>result.single()</code>
-            method. It also offers support for a pure callback function using a <code>Handler&lt;T&gt;</code>.
+            <code>Iterable&lt;TO&gt;</code>. Results can be limited to a single value using the 
+			<code>result.single() or result.singleOrNull()</code>
+            methods. It also offers support for a pure callback function using a <code>Handler&lt;T&gt;</code>.
         </para>
     </section>
     <section>
@@ -37,7 +47,7 @@
         <para>
             The traversal methods are at the core of graph operations.
             The <code>traverse()</code> method covers the full traversal operation that takes a
-            <code>TraversalDescription</code> (typically built with the <code>Traversal.description()</code>
+            <code>TraversalDescription</code> (typically built with the <code>template.getGraphDatabase().traversalDescription()</code>
             DSL) and runs it from the given start node. <code>traverse</code> returns a <code>Result&lt;Path&gt;</code>
             to be used or transformed.
         </para>
@@ -62,18 +72,21 @@
     <section>
         <title>Transactions</title>
         <para>
-            The <code>Neo4jTemplate</code> provides configurable implicit transactions for all its methods. By
-            default it creates a transaction for each call (which is a no-op if there is already a transaction
-            running). If you call the constructor with the <code>useExplicitTransactions</code> parameter set to
-            true, it won't create any transactions so you have to provide them using <code>@Transactional</code>
-            or the <code>TransactionTemplate</code>.
+            The <code>Neo4jTemplate</code> provides implicit transactions for some of its methods. For instance
+			<code>save</code> uses them. For other modifying operations please provide Spring Transaction management
+			using <code>@Transactional</code> or the <code>TransactionTemplate</code>.
         </para>
     </section>
     <section>
         <title>Neo4j REST Server</title>
-        <para>If the template is configured to use a <code>RestGraphDatabase</code> the expensive operations
+        <para>If the template is configured to use a <code>SpringRestGraphDatabase</code> the operations that would
+        be expensive over the wire,
         like traversals and querying are executed efficiently on the server side by using the REST API to forward
-        those calls. All the other template methods require single network operations.
+        those calls. All the other template methods require individual network operations.
         </para>
+        <para>
+	        The REST-batch-mode of the <code>SpringRestGraphDatabase</code> is not yet exposed via the template, but it is available
+	        via the graph database.  
+	    </para>
     </section>
 </section>
