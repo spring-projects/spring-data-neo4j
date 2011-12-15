@@ -24,6 +24,7 @@ import org.springframework.data.neo4j.annotation.RelationshipEntity;
 import org.springframework.data.neo4j.core.GraphDatabase;
 import org.springframework.data.neo4j.core.RelationshipTypeRepresentationStrategy;
 import org.springframework.data.neo4j.support.index.ClosableIndexHits;
+import org.springframework.data.neo4j.support.index.IndexProvider;
 import org.springframework.data.neo4j.support.index.IndexType;
 
 public class IndexingRelationshipTypeRepresentationStrategy implements RelationshipTypeRepresentationStrategy {
@@ -31,11 +32,14 @@ public class IndexingRelationshipTypeRepresentationStrategy implements Relations
     public static final String INDEX_NAME = "__rel_types__";
     public static final String TYPE_PROPERTY_NAME = "__type__";
     public static final String INDEX_KEY = "className";
-    private GraphDatabase graphDb;
+    private final GraphDatabase graphDb;
     private final EntityTypeCache typeCache;
+    
+    private final IndexProvider indexProvider;
 
-    public IndexingRelationshipTypeRepresentationStrategy(GraphDatabase graphDb) {
+    public IndexingRelationshipTypeRepresentationStrategy(GraphDatabase graphDb, IndexProvider indexProvider) {
 		this.graphDb = graphDb;
+		this.indexProvider = indexProvider;
         typeCache = new EntityTypeCache();
     }
 
@@ -50,12 +54,16 @@ public class IndexingRelationshipTypeRepresentationStrategy implements Relations
 	}
 
     private void addToTypesIndex(Relationship node, Class<?> entityClass) {
-		Class<?> type = entityClass;
-		while (type.getAnnotation(RelationshipEntity.class) != null) {
-			getRelTypesIndex().add(node, INDEX_KEY, type.getName());
-			type = type.getSuperclass();
-		}
-	}
+        Class<?> type = entityClass;
+        while (type.getAnnotation(RelationshipEntity.class) != null) {
+            String value = entityClass.getName();
+            if (indexProvider != null)
+                value = indexProvider.createIndexValueForType(entityClass);
+
+            getRelTypesIndex().add(node, INDEX_KEY, value);
+            type = type.getSuperclass();
+        }
+    }
 
     @Override
     public <U> ClosableIterable<Relationship> findAll(Class<U> clazz) {
@@ -63,7 +71,11 @@ public class IndexingRelationshipTypeRepresentationStrategy implements Relations
     }
 
     private <Object> ClosableIterable<Relationship> findAllRelBacked(Class<Object> clazz) {
-        final IndexHits<Relationship> allEntitiesOfType = getRelTypesIndex().get(INDEX_KEY, clazz.getName());
+        String value = clazz.getName();
+        if (indexProvider != null)
+            value = indexProvider.createIndexValueForType(clazz);
+        
+        final IndexHits<Relationship> allEntitiesOfType = getRelTypesIndex().get(INDEX_KEY, value);
         return new ClosableIndexHits<Relationship>(allEntitiesOfType);
     }
 
