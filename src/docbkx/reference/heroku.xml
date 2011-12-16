@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
+<chapter id="reference:heroku">
+  <title>Heroku: seeding the coud</title>
+  <para>
+    
+    *To scale your apps you just add new dynos, so 'heroku scale web=2' etc...
+
+When your app fails to deploy on the first push, we dont automatically launch a single web dyno on a subsequent push, we should probably document that better.
+
+*Dynos have 500MB of physical ram available, plus much more than that in swap (Which you really never want to hit with a jvm). Your Procfile that launches java can use that in any way you like, but we do set a config var called JAVA_OPTS for you with some sensible defaults.
+
+So if you run 'heroku config' you will see the JAVA_OPTS var.  you can use it in your Procfile like so
+
+#Procfile
+web: java $JAVA_OPTS ....set up claspath and main class, etc...
+
+*For logging whatever you use should end up writing to System.out. if you are using a logging framework you should set up its appender to write to system.out (ConsoleAppender in log4j for instance)
+
+All stdout output is captured by our logplex log routing mesh so you can tail it by running 'heroku logs -t'  or use the loggly addon or your own syslog server to capture log output for later analysis.
+
+*You have no limitation on the version of spring tomcat jetty netty or any other library or framework you can use.  As long as it is in a public maven repo (or even a private maven repo) accessible by your build, maven will pull in the dependency and use it.
+
+*For ides we have both intellij and eclipse. We are working on a project that will make it much easier for tooling providers to do this type of integration, I will let you know when the details are public!
+    
+  </para>
+    <para>
+        The Spring Data Neo4j project support cross-store persistence, which allows for parts of the data to be
+        stored in a traditional JPA data store (RDBMS), and other parts in a graph store. This means that an entity
+        can be partially stored in e.g. MySQL, and partially stored in Neo4j.
+    </para>
+    <para>
+        This allows existing JPA-based applications to embrace NOSQL data stores for evolving certain parts
+        of their data model. Possible use cases include adding social networking or geospatial information to
+        existing applications.
+    </para>
+    <section>
+        <title>Partial entities</title>
+        <para>
+            Partial graph persistence is achieved by restricting the Spring Data Neo4j aspects to manage only
+            explicitly annotated parts of the entity. Those fields will be made <code>@Transient</code> by the
+            aspect so that JPA ignores them.
+        </para>
+        <para>
+            A backing node in the graph store is only created when the entity has been assigned a JPA ID. Only
+            then will the association between the two stores be established. Until the entity has been persisted,
+            its state is just kept inside the POJO (in detached state), and then flushed to the backing graph
+            database on <code>persist()</code>.
+        </para>
+        <para>
+            The association between the two entities is maintained via a FOREIGN_ID field in the node, that
+            contains the JPA ID. Currently only single-value IDs are supported. The entity class can be resolved
+            via the <code>TypeRepresentationStrategy</code> that manages the Java type hierarchy within the graph
+            database. Given the ID and class, you can then retrieve the appropriate JPA entity for a given node.
+        </para>
+        <para>
+            The other direction is handled by indexing the Node with the FOREIGN_ID index which contains a
+            concatenation of the fully qualified class name of the JPA entity and the ID. The matching node
+            can then be found using the indexing facilities, and the two entities can be reassociated.
+        </para>
+        <para>
+            Using these mechanisms and the Spring Data Neo4j aspects, a single POJO can contain some fields
+            handled by JPA and others handles by Spring Data Neo4j. This also includes relationship fields persisted
+            in the graph database.
+        </para>
+    </section>
+    <section>
+        <title>Cross-store annotations</title>
+        <para>
+            Cross-store persistence only requires the use of one additional annotation: <code>@GraphProperty</code>.
+            See below for details and an example.
+        </para>
+        <section>
+            <title>@NodeEntity(partial = "true")</title>
+            <para>
+                When annotating an entity with <code>partial = true</code>, this marks it as a cross-store entity.
+                Spring Data Neo4j will thus only manage fields explicitly annotated with <code>@GraphProperty</code>.
+            </para>
+        </section>
+        <section>
+            <title>@GraphProperty</title>
+            <para>
+                Fields of primitive or convertible types do not normally have to be annotated in order to be
+                persisted by Spring Data Neo4j. In cross-store mode, Spring Data Neo4j <emphasis>only</emphasis>
+                persists fields explicitly annotated with <code>@GraphProperty</code>. JPA will ignore these fields.
+            </para>
+        </section>
+        <section><title>Example</title>
+        <para>
+            The following example is taken from the
+            <ulink url="http://spring.neo4j.org/examples">Spring Data Neo4j examples</ulink>
+            myrestaurants-social project:
+        </para>
+        <para><example>
+            <title>Cross-store node entity</title>
+            <programlisting language="java"><![CDATA[@Entity
+@Table(name = "user_account")
+@NodeEntity(partial = true)
+public class UserAccount {
+    private String userName;
+    private String firstName;
+    private String lastName;
+
+    @GraphProperty
+    String nickname;
+
+    @RelatedTo
+    Set<UserAccount> friends;
+
+    @RelatedToVia(type = "recommends")
+    Iterable<Recommendation> recommendations;
+
+    @Temporal(TemporalType.TIMESTAMP)
+    @DateTimeFormat(style = "S-")
+    private Date birthDate;
+
+    @ManyToMany(cascade = CascadeType.ALL)
+    private Set<Restaurant> favorites;
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    @Column(name = "id")
+    private Long id;
+
+    public void knows(UserAccount friend) {
+        relateTo(friend, "friends");
+    }
+
+    public Recommendation rate(Restaurant restaurant, int stars, String comment) {
+        Recommendation recommendation = relateTo(restaurant, Recommendation.class, "recommends");
+        recommendation.rate(stars, comment);
+        return recommendation;
+    }
+
+    public Iterable<Recommendation> getRecommendations() {
+        return recommendations;
+    }
+}
+]]></programlisting>
+        </example></para>
+        </section>
+    </section>
+    <section>
+        <title>Configuring cross-store persistence</title>
+        <para>
+            Configuring cross-store persistence is done similarly to the default Spring Data Neo4j configuration.
+            All you need to do is to specify an <code>entityManagerFactory</code> in the XML namespace
+            <code>config</code> element, and Spring Data Neo4j will configure itself for cross-store use.
+        </para>
+        <example>
+            <title>Cross-store Spring configuration</title>
+            <programlisting language="xml"><![CDATA[<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:context="http://www.springframework.org/schema/context"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:datagraph="http://www.springframework.org/schema/data/neo4j"
+    xsi:schemaLocation="
+        http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+        http://www.springframework.org/schema/context
+        http://www.springframework.org/schema/context/spring-context-3.0.xsd
+        http://www.springframework.org/schema/data/neo4j
+        http://www.springframework.org/schema/data/neo4j/spring-neo4j-2.0.xsd
+        ">
+
+    <context:annotation-config/>
+
+    <neo4j:config storeDirectory="target/config-test"
+        entityManagerFactory="entityManagerFactory"/>
+
+    <bean class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean"
+            id="entityManagerFactory">
+        <property name="dataSource" ref="dataSource"/>
+        <property name="persistenceXmlLocation" value="classpath:META-INF/persistence.xml"/>
+    </bean>
+</beans>
+]]></programlisting>
+        </example>
+
+
+    </section>
+</chapter>
