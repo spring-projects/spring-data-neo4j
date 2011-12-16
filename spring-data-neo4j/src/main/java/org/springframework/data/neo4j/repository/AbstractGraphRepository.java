@@ -32,6 +32,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.neo4j.annotation.QueryType;
 import org.springframework.data.neo4j.conversion.EndResult;
+import org.springframework.data.neo4j.conversion.QueryResultBuilder;
+import org.springframework.data.neo4j.conversion.Result;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
 import org.springframework.data.neo4j.support.index.NoSuchIndexException;
 import org.springframework.data.neo4j.support.index.NullReadableIndex;
@@ -61,23 +63,23 @@ public abstract class AbstractGraphRepository<S extends PropertyContainer, T> im
      */
 
     @Override
-    public ClosableIterable<T> findWithinWellKnownText( final String indexName, String wellKnownText) {
+    public EndResult<T> findWithinWellKnownText( final String indexName, String wellKnownText) {
         return geoQuery(indexName, "withinWKTGeometry", wellKnownText);
     }
     @Override
-    public ClosableIterable<T> findWithinDistance( final String indexName, final double lat, double lon, double distanceKm) {
+    public EndResult<T> findWithinDistance( final String indexName, final double lat, double lon, double distanceKm) {
         return geoQuery(indexName, "withinDistance", map("point", new Double[] { lon, lat}, "distanceInKm", distanceKm));
     }
 
     @Override
-    public ClosableIterable<T> findWithinBoundingBox(final String indexName, final double lowerLeftLat,
+    public EndResult<T> findWithinBoundingBox(final String indexName, final double lowerLeftLat,
                                                      final double lowerLeftLon, final double upperRightLat, final double upperRightLon) {
         return geoQuery(indexName, "bbox", format("[%s, %s, %s, %s]", lowerLeftLon, upperRightLon, lowerLeftLat, upperRightLat));
     }
 
-    private ClosableIterable<T> geoQuery(String indexName, String geoQuery, Object params) {
+    private Result<T> geoQuery(String indexName, String geoQuery, Object params) {
         final IndexHits<S> indexHits = getIndex(indexName,null).query(geoQuery, params);
-        return new GeoNodeIndexHitsWrapper(indexHits);
+        return template.convert(new GeoNodeIndexHitsWrapper(indexHits));
     }
 
     public static final ClosableIterable EMPTY_CLOSABLE_ITERABLE = new ClosableIterable() {
@@ -127,7 +129,7 @@ public abstract class AbstractGraphRepository<S extends PropertyContainer, T> im
      * @return lazy Iterable over all instances of the target type.
      */
     @Override
-    public ClosableIterable<T> findAll() {
+    public EndResult<T> findAll() {
         return template.findAll(clazz);
     }
 
@@ -208,8 +210,8 @@ public abstract class AbstractGraphRepository<S extends PropertyContainer, T> im
      * @return Iterable over Entities with this property and value
      */
     @Override
-    public ClosableIterable<T> findAllByPropertyValue(final String indexName, final String property, final Object value) {
-        return query(indexName, new Query<S>() {
+    public EndResult<T> findAllByPropertyValue(final String indexName, final String property, final Object value) {
+        return queryResult(indexName, new Query<S>() {
             public IndexHits<S> query(ReadableIndex<S> index) {
                 return getIndexHits(indexName, property, value);
             }
@@ -222,7 +224,7 @@ public abstract class AbstractGraphRepository<S extends PropertyContainer, T> im
      * @return Iterable over Entities with this property and value
      */
     @Override
-    public ClosableIterable<T> findAllByPropertyValue(final String property, final Object value) {
+    public EndResult<T> findAllByPropertyValue(final String property, final Object value) {
         return findAllByPropertyValue(null, property, value);
     }
 
@@ -233,7 +235,7 @@ public abstract class AbstractGraphRepository<S extends PropertyContainer, T> im
      *@param query lucene query object or query-string  @return Iterable over Entities with this property and value
      */
     @Override
-    public ClosableIterable<T> findAllByQuery(final String key, final Object query) {
+    public EndResult<T> findAllByQuery(final String key, final Object query) {
         return findAllByQuery(null, key,query);
     }
     /**
@@ -244,8 +246,8 @@ public abstract class AbstractGraphRepository<S extends PropertyContainer, T> im
      *@param query lucene query object or query-string  @return Iterable over Entities with this property and value
      */
     @Override
-    public ClosableIterable<T> findAllByQuery(final String indexName, final String property, final Object query) {
-        return query(indexName, new Query<S>() {
+    public EndResult<T> findAllByQuery(final String indexName, final String property, final Object query) {
+        return queryResult(indexName, new Query<S>() {
             public IndexHits<S> query(ReadableIndex<S> index) {
                 return getIndex(indexName, property).query(property, query);
             }
@@ -255,11 +257,20 @@ public abstract class AbstractGraphRepository<S extends PropertyContainer, T> im
     interface Query<S extends PropertyContainer> {
         IndexHits<S> query(ReadableIndex<S> index);
     }
-    private ClosableIterable<T> query(String indexName, Query<S> query) {
+    private ClosableIterable<T> quxery(String indexName, Query<S> query) {
         try {
             final IndexHits<S> indexHits = query.query(getIndex(indexName, null));
             if (indexHits == null) return emptyClosableIterable();
             return new IndexHitsWrapper(indexHits);
+        } catch (NotFoundException e) {
+            return null;
+        }
+    }
+
+    private EndResult<T> queryResult(String indexName, Query<S> query) {
+        try {
+            final IndexHits<S> indexHits = query.query(getIndex(indexName, null));
+            return template.convert(indexHits).to(clazz);
         } catch (NotFoundException e) {
             return null;
         }
@@ -271,12 +282,12 @@ public abstract class AbstractGraphRepository<S extends PropertyContainer, T> im
     }
 
     @Override
-    public ClosableIterable<T> findAllByRange(final String property, final Number from, final Number to) {
+    public EndResult<T> findAllByRange(final String property, final Number from, final Number to) {
         return findAllByRange(null,property,from,to);
     }
     @Override
-    public ClosableIterable<T> findAllByRange(final String indexName, final String property, final Number from, final Number to) {
-        return query(indexName, new Query<S>() {
+    public EndResult<T> findAllByRange(final String indexName, final String property, final Number from, final Number to) {
+        return queryResult(indexName, new Query<S>() {
             public IndexHits<S> query(ReadableIndex<S> index) {
                 return index.query(property, createInclusiveRangeQuery(property, from, to));
             }
@@ -326,7 +337,7 @@ public abstract class AbstractGraphRepository<S extends PropertyContainer, T> im
     }
 
     @Override
-    public ClosableIterable<T> findAll(Sort sort) {
+    public EndResult<T> findAll(Sort sort) {
         return findAll(); // todo
     }
 
@@ -334,10 +345,10 @@ public abstract class AbstractGraphRepository<S extends PropertyContainer, T> im
     public Page<T> findAll(final Pageable pageable) {
         int count = pageable.getPageSize();
         int offset = pageable.getOffset();
-        ClosableIterable<T> foundEntities = findAll(pageable.getSort());
+        EndResult<T> foundEntities = findAll(pageable.getSort());
         final Iterator<T> iterator = foundEntities.iterator();
         final PageImpl<T> page = extractPage(pageable, count, offset, iterator);
-        foundEntities.close();
+        foundEntities.finish();
         return page;
     }
 

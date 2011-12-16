@@ -81,4 +81,9 @@ class SpringRestResult<T> implements Result<T> {
     public <C extends Iterable<T>> C as(Class<C> container) {
         return toContainer(container, this);
     }
+
+    @Override
+    public void finish()
+    {
+    }
 }

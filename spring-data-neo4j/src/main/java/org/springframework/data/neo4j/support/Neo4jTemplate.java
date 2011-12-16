@@ -161,10 +161,10 @@ public class Neo4jTemplate implements Neo4jOperations, EntityPersister {
     }
 
     @Override
-    public <T> ClosableIterable<T> findAll(final Class<T> entityClass) {
+    public <T> EndResult<T> findAll(final Class<T> entityClass) {
         notNull(entityClass,"entity type");
         final ClosableIterable<PropertyContainer> all = infrastructure.getTypeRepresentationStrategies().findAll(entityClass);
-        return new EntityCreatingClosableIterable<T>(all, entityClass,infrastructure.getEntityPersister());
+        return new QueryResultBuilder<PropertyContainer>(all, getDefaultConverter()).to(entityClass);
     }
 
     @Override

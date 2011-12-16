@@ -21,6 +21,7 @@ import org.neo4j.graphdb.index.Index;
 import org.neo4j.graphdb.traversal.TraversalDescription;
 import org.neo4j.helpers.collection.ClosableIterable;
 import org.springframework.data.neo4j.annotation.QueryType;
+import org.springframework.data.neo4j.conversion.EndResult;
 import org.springframework.data.neo4j.conversion.Result;
 import org.springframework.data.neo4j.conversion.ResultConverter;
 import org.springframework.data.neo4j.core.GraphDatabase;
@@ -217,7 +218,7 @@ public interface Neo4jOperations {
      * Provides all instances of a given entity type using the typerepresentation strategy configured for this template.
      * This method is also provided by the appropriate repository.
      */
-    <T> ClosableIterable<T> findAll(Class<T> entityClass);
+    <T> EndResult<T> findAll(Class<T> entityClass);
 
     /**
      * Provies the instance count a given entity type using the typerepresentation strategy configured for this template.

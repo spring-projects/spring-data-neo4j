@@ -71,6 +71,12 @@ public class QueryResultBuilder<T> implements Result<T> {
     }
 
     @Override
+    public void finish()
+    {
+        closeIfNeeded();
+    }
+
+    @Override
     public <R> EndResult<R> to(final Class<R> type, final ResultConverter<T, R> resultConverter) {
         return new EndResult<R>() {
             @Override
@@ -119,6 +125,12 @@ public class QueryResultBuilder<T> implements Result<T> {
             @Override
             public <C extends Iterable<R>> C as(Class<C> container) {
                 return ContainerConverter.toContainer(container, this);
+            }
+
+            @Override
+            public void finish()
+            {
+                closeIfNeeded();
             }
         };
     }

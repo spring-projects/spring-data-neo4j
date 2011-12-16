@@ -53,4 +53,9 @@ class SpringEndResult<R> implements EndResult<R> {
     public <C extends Iterable<R>> C as(Class<C> container) {
         return ContainerConverter.toContainer(container,this);
     }
+
+    @Override
+    public void finish()
+    {
+    }
 }

@@ -16,7 +16,7 @@
 
 package org.springframework.data.neo4j.repository;
 
-import org.neo4j.helpers.collection.ClosableIterable;
+import org.springframework.data.neo4j.conversion.EndResult;
 
 /**
  * Repository for spatial queries.
@@ -26,13 +26,13 @@ import org.neo4j.helpers.collection.ClosableIterable;
  * inside the entity.
  */
 public interface SpatialRepository<T> {
-    ClosableIterable<T> findWithinBoundingBox(String indexName, double lowerLeftLat,
+    EndResult<T> findWithinBoundingBox(String indexName, double lowerLeftLat,
                                               double lowerLeftLon,
                                               double upperRightLat,
                                               double upperRightLon);
 
-    ClosableIterable<T> findWithinDistance( final String indexName, final double lat, double lon, double distanceKm);
+    EndResult<T> findWithinDistance( final String indexName, final double lat, double lon, double distanceKm);
 
-    ClosableIterable<T> findWithinWellKnownText( final String indexName, String wellKnownText);
+    EndResult<T> findWithinWellKnownText( final String indexName, String wellKnownText);
 }
 

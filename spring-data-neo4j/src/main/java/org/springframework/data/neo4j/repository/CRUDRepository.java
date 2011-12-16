@@ -21,6 +21,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 
+import org.springframework.data.neo4j.conversion.EndResult;
 import org.springframework.data.repository.NoRepositoryBean;
 import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.transaction.annotation.Transactional;
@@ -68,7 +69,7 @@ public interface CRUDRepository<T> extends PagingAndSortingRepository<T, Long> {
      * @return all entities of the given type
      * NOTE: please close the iterable if it is not fully looped through
      */
-    ClosableIterable<T> findAll();
+    EndResult<T> findAll();
 
 
     /**
@@ -109,7 +110,7 @@ public interface CRUDRepository<T> extends PagingAndSortingRepository<T, Long> {
      * @return all elements of the repository type, sorted according to the sort
      * NOTE: please close the iterable if it is not fully looped through
      */
-    ClosableIterable<T> findAll(Sort sort);
+    EndResult<T> findAll(Sort sort);
 
 
     /**

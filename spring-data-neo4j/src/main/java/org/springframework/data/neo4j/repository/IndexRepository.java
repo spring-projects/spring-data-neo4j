@@ -16,7 +16,7 @@
 
 package org.springframework.data.neo4j.repository;
 
-import org.neo4j.helpers.collection.ClosableIterable;
+import org.springframework.data.neo4j.conversion.EndResult;
 
 
 /**
@@ -26,10 +26,10 @@ import org.neo4j.helpers.collection.ClosableIterable;
 public interface IndexRepository<T> {
     T findByPropertyValue(String property, Object value);
 
-    ClosableIterable<T> findAllByPropertyValue(String property, Object value);
+    EndResult<T> findAllByPropertyValue(String property, Object value);
 
-    ClosableIterable<T> findAllByQuery(String key, Object query);
+    EndResult<T> findAllByQuery(String key, Object query);
 
-    ClosableIterable<T> findAllByRange(String property, Number from, Number to);
+    EndResult<T> findAllByRange(String property, Number from, Number to);
 
 }
