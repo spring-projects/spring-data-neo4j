@@ -54,9 +54,9 @@
                 </varlistentry>
                 <varlistentry>
                     <term>Iterate over all nodes of a node entity type</term>
-                    <listitem><para><code>Iterable&lt;T&gt; findAll()</code>
+                    <listitem><para><code>EndResult&lt;T&gt; findAll()</code>
                         (supported in future versions:
-                        <code>Iterable&lt;T&gt; findAll(Sort)</code> and
+                        <code>EndResult&lt;T&gt; findAll(Sort)</code> and
                         <code>Page&lt;T&gt; findAll(Pageable)</code>)</para></listitem>
                 </varlistentry>
                 <varlistentry>
@@ -91,7 +91,7 @@
             <variablelist>
                 <varlistentry>
                     <term>Iterate over all indexed entity instances with a certain field value</term>
-                    <listitem><para><code>Iterable&lt;T> findAllByPropertyValue(key, value)</code></para></listitem>
+                    <listitem><para><code>EndResult&lt;T> findAllByPropertyValue(key, value)</code></para></listitem>
                 </varlistentry>
                 <varlistentry>
                     <term>Get a single entity instance with a certain field value</term>
@@ -99,11 +99,11 @@
                 </varlistentry>
                 <varlistentry>
                     <term>Iterate over all indexed entity instances with field values in a certain numerical range (inclusive)</term>
-                    <listitem><para><code>Iterable&lt;T> findAllByRange(key, from, to)</code></para></listitem>
+                    <listitem><para><code>EndResult&lt;T> findAllByRange(key, from, to)</code></para></listitem>
                 </varlistentry>
                 <varlistentry>
                     <term>Iterate over all indexed entity instances with field values matching the given fulltext string or QueryContext query</term>
-                    <listitem><para><code>Iterable&lt;T> findAllByQuery(key, queryOrQueryContext)</code></para></listitem>
+                    <listitem><para><code>EndResult&lt;T> findAllByQuery(key, queryOrQueryContext)</code></para></listitem>
                 </varlistentry>
             </variablelist>
         </para>
@@ -212,11 +212,11 @@ Long numberOfPeople = graphRepository.count();
 
 Person mark = graphRepository.findByPropertyValue("name", "mark");
 
-Iterable<Person> devs = graphRepository.findAllByProperyValue("occupation", "developer");
+EndResult<Person> devs = graphRepository.findAllByProperyValue("occupation", "developer");
 
-Iterable<Person> middleAgedPeople = graphRepository.findAllByRange("age", 20, 40);
+EndResult<Person> middleAgedPeople = graphRepository.findAllByRange("age", 20, 40);
 
-Iterable<Person> aTeam = graphRepository.findAllByQuery("name", "A*");
+EndResult<Person> aTeam = graphRepository.findAllByQuery("name", "A*");
 
 Iterable<Person> davesFriends = graphRepository.findAllByTraversal(dave,
     Traversal.description().pruneAfterDepth(1)
@@ -268,9 +268,9 @@ Person michael = personRepository.save(new Person("Michael",36));
 
 Person dave=personRepository.findOne(123);
 
-Iterable<Person> devs = personRepository.findAllByPropertyValue("occupation","developer");
+EndResult<Person> devs = personRepository.findAllByPropertyValue("occupation","developer");
 
-Iterable<Person> aTeam = graphRepository.findAllByQuery( "name","A*");
+EndResult<Person> aTeam = graphRepository.findAllByQuery( "name","A*");
 
 Iterable<Person> friends = personRepository.findFriends(dave);
 ]]></programlisting>
