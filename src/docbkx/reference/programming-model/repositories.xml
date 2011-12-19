@@ -314,7 +314,7 @@ Iterable<Person> davesFriends = repo.findAllByTraversal(dave,
             <title>Composing repositories</title>
             <programlisting language="java"><![CDATA[public interface PersonRepository extends GraphRepository<Person>, PersonRepositoryExtension {}
 
-// configure the repositories, preferably via the datagraph:repositories namespace
+// configure the repositories, preferably via the neo4j:repositories namespace
 // (template reference is optional)
 <neo4j:repositories base-package="org.example.repository"
     graph-database-context-ref="template"/>

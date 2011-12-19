@@ -8,16 +8,16 @@
         this type information is saved in the graph database.
     </para>
     <para>
-        Implementations of <code>TypeRepresentationStrategy</code> take care of persisting this information on entity instance
+        Implementations of <code>TypeRepresentationStrategy</code> take care of persisting this information during entity instance
         creation. They also provide the repository methods that use this type information to perform their operations,
-        like findAll and count.
+        like <code>findAll</code> and <code>count</code>. The derived finderMethods also use the type information for graph global queries.
     </para>
     <para>
         There are three available implementations for node entities to choose from.
         <itemizedlist>
             <listitem>
                 <para>
-                    <code>IndexingNodeTypeRepresentationStrategy</code>
+                    <code>IndexingNodeTypeRepresentationStrategy</code> this is the default strategy used.
                 </para>
                 <para>
                     Stores entity types in the integrated index. Each entity node gets indexed with its type and
@@ -25,7 +25,7 @@
                     is called<code>__types__</code>. Additionally, in order to get the type of an entity node, each
                     node has a property
                     <code>__type__</code>
-                    with the type of that entity.
+                    with the fully qualified type of that entity.
                 </para>
             </listitem>
             <listitem>

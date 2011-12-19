@@ -24,6 +24,10 @@
             The unit tests demonstrate some other features of Spring Data Neo4j as well. The sample comes
             with a minimal configuration for Maven and Spring to get up and running quickly.
         </para>
+		<para>
+			The Hello Worlds application is available both for the simple mapping (<code>hello-worlds</code>)
+			and for the advanced mapping (<code>hello-world-aspects</code>).
+		</para>
         <para>
             Executing the application creates the following graph in the graph database:
         </para>
@@ -42,7 +46,7 @@
             roles in different movies. It also uses graph traversal operations to calculate the
             <ulink url="http://en.wikipedia.org/wiki/Bacon_number">Bacon number</ulink> of any given actor.
             This sample application shows the usage of Spring Data Neo4j in a more complex setting, using several
-            annotated entities and relationships as well as indexes and graph traversals.
+            annotated entities and relationships as well as indexes and in-graph indexes and graph traversals.
         </para>
         <para>
             See the readme file for instructions on how to compile and run the application.
@@ -95,6 +99,34 @@
         <mediaobject>
             <imageobject>
                 <imagedata fileref="restaurant-social-graph.png" contentwidth="15cm" scalefit="1"/>
+            </imageobject>
+        </mediaobject>
+    </section>
+    <section id="samples:cineasts">
+        <title>Cineasts social movie database</title>
+        <para>
+			The cineasts.net application was introduced extensively in the first part of this guide, the 
+			tutorial. The tutorial covers the development of the simple mapping version of cineasts.
+		</para>
+        <para>
+			To document the differences, versions for the advanced mapping (<code>cineasts-aspects</code>)
+			and accessing the remote server (<code>cineasts-rest</code>) are also available.
+		</para>
+        <para>
+			A online version of cineasts can be found on <ulink url="http://cineasts.net">cineasts.net</ulink>.
+            A sample dataset of the cineasts databse is available at the neo4j <ulink url="http://sample-data.neo4j.org">sample-data page</ulink>.
+        </para>
+		<para>
+			This is a subset of the visualization of the cineasts graph for the "Matrix" movie.
+		</para>
+        <mediaobject>
+            <imageobject>
+                <imagedata fileref="../tutorial/cineasts_graph.png" contentwidth="15cm" scalefit="1"/>
+            </imageobject>
+        </mediaobject>
+        <mediaobject>
+            <imageobject>
+                <imagedata fileref="../tutorial/cineasts_main.png" contentwidth="15cm" scalefit="1"/>
             </imageobject>
         </mediaobject>
     </section>

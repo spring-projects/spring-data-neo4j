@@ -82,7 +82,7 @@
     </example>
     <para>
         One can also configure a stock XA transaction manager (e.g. Atomikos, JOTM, App-Server-TM) to be
-        used with Neo4j and the other resources. For a bit less secure but fast 1 phase commit best effort,
+        used with Neo4j and the other resources. For a bit less secure but fast 1-phase-commit-best-effort,
         use <code>ChainedTransactionManager</code>, which comes bundled with Spring Data Neo4j. It takes a
         list of transaction managers as constructor params and will handle them in order for transaction
         start and commit (or rollback) in the reverse order.
