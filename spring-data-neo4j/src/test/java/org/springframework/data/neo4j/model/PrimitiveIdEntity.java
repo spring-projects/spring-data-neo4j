@@ -13,21 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.data.neo4j.model;
 
-import org.neo4j.graphdb.Node;
 import org.springframework.data.neo4j.annotation.GraphId;
 import org.springframework.data.neo4j.annotation.NodeEntity;
 
+/**
+ * @author mh
+ * @since 14.12.11
+ */
 @NodeEntity
-public abstract class Car {
-	@GraphId
-    Long id;
-    public Car() {
-	}
-
-	public Car(Node n) {
-		this.id = n.getId();
-	}
+public class PrimitiveIdEntity {
+    @GraphId long id;
 }
