@@ -22,6 +22,7 @@ import org.mockito.Mockito;
 import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.index.Index;
 import org.neo4j.graphdb.traversal.TraversalDescription;
+import org.neo4j.helpers.collection.IteratorUtil;
 import org.neo4j.helpers.collection.MapUtil;
 import org.neo4j.kernel.Traversal;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,9 +46,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionCallbackWithoutResult;
 import org.springframework.transaction.support.TransactionTemplate;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Map;
+import java.util.*;
 
 import static org.junit.Assert.*;
 import static org.neo4j.graphdb.Direction.OUTGOING;
@@ -306,6 +305,10 @@ public class EntityNeo4jTemplateTest extends EntityTestBase {
     public void testCreateRelationshipBetweenNodes() throws Exception {
         final Friendship friendship = neo4jOperations.createRelationshipBetween(testTeam.david, testTeam.emil, Friendship.class, "knows", false);
         assertEquals(friendship.getId(),(Long)getNodeState(testTeam.david).getSingleRelationship(KNOWS, OUTGOING).getId());
+        final List<Friendship> friendships = IteratorUtil.addToCollection(friendshipRepository.findAll(), new ArrayList<Friendship>());
+        assertEquals(2,friendships.size());
+        assertEquals(testTeam.friendShip,friendships.get(0));
+        assertEquals(friendship,friendships.get(1));
     }
     @Test @Transactional
     public void testCreateDuplicateRelationshipBetweenNodes() throws Exception {
