@@ -4,14 +4,24 @@
     <title>Transactions</title>
     <para>
         Neo4j is a transactional database, only allowing modifications to be performed within transaction
-        boundaries. Reading data does however not require transactions.
+        boundaries. Reading data does however not require transactions. Spring Data Neo4j integrates nicely
+        with both the declarative transaction support with <code>@Transactional</code> as well as the
+        manual transaction handling with <code>TransactionTemplate</code>. It also supports the rollback
+		mechanisms of the Spring Testing library.
     </para>
     <para>
         Spring Data Neo4j integrates with transaction managers configured using Spring. The simplest
-        scenario of just running the graph database uses a SpringTransactionManager provided by the
-        Neo4j kernel to be used with Spring's JtaTransactionManager. That is, configuring Spring to
+        scenario of just running the graph database uses a <code>SpringTransactionManager</code> provided by the
+        Neo4j kernel to be used with Spring's <code>JtaTransactionManager</code>. That is, configuring Spring to
         use Neo4j's transaction manager.
     </para>
+    <note>
+        <para>
+			To avoid name collisons the transaction manager configured by Spring Data Neo4j is called <code>neo4jTransactionManager</code>
+			and is aliased to <code>transactionManager</code>. So defining a separate <code>transactionManager</code> bean should not
+			interfere with Spring Data Neo4j operations.
+        </para>
+    </note>
     <note>
         <para>
             The explicit XML configuration given below is encoded in the <code>Neo4jConfiguration</code>
@@ -22,7 +32,8 @@
     </note>
     <example>
         <title>Simple transaction manager configuration</title>
-        <programlisting language="xml"><![CDATA[<bean id="transactionManager" class="org.springframework.transaction.jta.JtaTransactionManager">
+        <programlisting language="xml"><![CDATA[<bean id="neo4jTransactionManager" 
+	   class="org.springframework.transaction.jta.JtaTransactionManager">
     <property name="transactionManager">
         <bean class="org.neo4j.kernel.impl.transaction.SpringTransactionManager">
             <constructor-arg ref="graphDatabaseService"/>
@@ -35,12 +46,12 @@
     </property>
 </bean>
 
-<tx:annotation-driven mode="aspectj" transaction-manager="transactionManager"/>
+<tx:annotation-driven mode="aspectj" transaction-manager="neo4jTransactionManager"/>
 ]]></programlisting>
     </example>
     <para>
         For scenarios with multiple transactional resources there are two options. The first option
-        is to have Neo4j participate in the externally configured transaction manager by using the
+        is to have Neo4j participate in the externally configured transaction manager using the
         Spring support in Neo4j by enabling the configuration parameter for your graph database.
         Neo4j will then use Spring's transaction manager instead of its own.
     </para>
@@ -49,13 +60,15 @@
         <programlisting language="xml"><![CDATA[<![CDATA[<context:annotation-config />
 <context:spring-configured/>
 
-<bean id="transactionManager" class="org.springframework.transaction.jta.JtaTransactionManager">
+<bean id="transactionManager" 
+	         class="org.springframework.transaction.jta.JtaTransactionManager">
     <property name="transactionManager">
         <bean id="jotm" class="org.springframework.data.neo4j.transaction.JotmFactoryBean"/>
     </property>
 </bean>
 
-<bean class="org.neo4j.kernel.EmbeddedGraphDatabase" destroy-method="shutdown">
+<bean id="graphDatabaseService" class="org.neo4j.kernel.EmbeddedGraphDatabase" 
+	   destroy-method="shutdown">
     <constructor-arg value="target/test-db"/>
     <constructor-arg>
         <map>
@@ -69,7 +82,7 @@
     </example>
     <para>
         One can also configure a stock XA transaction manager (e.g. Atomikos, JOTM, App-Server-TM) to be
-        used with Neo4j and the other resources. For a bit less secure but fast 1 phase commit best effort,
+        used with Neo4j and the other resources. For a bit less secure but fast 1-phase-commit-best-effort,
         use <code>ChainedTransactionManager</code>, which comes bundled with Spring Data Neo4j. It takes a
         list of transaction managers as constructor params and will handle them in order for transaction
         start and commit (or rollback) in the reverse order.

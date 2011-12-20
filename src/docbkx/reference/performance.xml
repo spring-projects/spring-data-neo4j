@@ -8,7 +8,7 @@
         of using Spring Data Neo4j instead of the Neo4j API directly.
     </para>
     <section>
-        <title>When is Spring Data Neo4j right</title>
+        <title>When to use Spring Data Neo4j</title>
         <para>
             The focus of Spring Data Neo4j is to add a convenience layer on top of the Neo4j API. This enables
             developers to get up and running with a graph database very quickly, having their domain objects
@@ -16,23 +16,38 @@
             more efficient ways to explore and process the graph - if the performance requirements demand it.
         </para>
         <para>
-            Like any other object mapping framework, the domain entities that are created, read, or persisted
+            Like with any other object mapping framework, the domain entities that are created, read, or persisted
             represent only a small fraction of the data stored in the database. This is the set needed for a
             certain use-case to be displayed, edited or processed in a low throughput fashion. The main advantages
             of using an object mapper in this case are the ease of use of real domain objects in your business
-            logic and also with existing
+            logic and also the integration with existing
             frameworks and libraries that expect Java POJOs as input or create them as results.
         </para>
         <para>
             Spring Data Neo4j, however, was not designed with a major focus on performance. It does add some overhead
-            to pure graph operations. Something to keep in mind is that any access of properties and relationships
-            will in general read through down to the database. To avoid multiple reads, it is sensible to store the
-            result in a local variable in suitable scope (e.g. method, class or jsp).
-        </para>
+            to pure graph operations.
+		</para>
         <para>
             Most of the overhead comes from the use of the Java Reflection API, which is used to provide
             information about annotations, fields and constructors. Some of the information is already cached
-            by the JVM and the library, so that only the first access gets a performance penalty.
+            by the JVM and the library infrastructure from Spring-Data-Commons, so that only the first access gets a performance penalty.
+			Other reflection penalties like field or method access will occur all the time.
         </para>
+		<para>
+			For the <emphasis>simple mapping</emphasis> it is important to be aware of the size graph of data that is pulled out of the 
+			graph database in a single read and copied to domain entities. That's why Spring Data Neo4j loads
+			related data not by default. You have to provide an indicator (<code>@Fetch</code>) to do so. Alternatively
+			the <code>Neo4jTemplate.fetch</code> method offers means of of loading entities and collections of those.
+		</para>
+		<para>
+			For the <emphasis>advanced mapping mode</emphasis> keep in mind that any access of properties and relationships
+            will in general read through down to the database. To avoid multiple reads, it is sensible to store the
+            result in a local variable in suitable scope (e.g. method, class or jsp).
+        </para>
+		<para>
+			To evaluate if the performance of Spring Data Neo4j impacts a certain use-case it is sensible to define
+			performance requirements and measure the actual time in realistic test scenarios for the use-case. Only if
+			Spring Data Neo4j doesn't perform as fast as required it is recommended to drop down to the native Neo4j API.
+		</para>
     </section>
 </chapter>

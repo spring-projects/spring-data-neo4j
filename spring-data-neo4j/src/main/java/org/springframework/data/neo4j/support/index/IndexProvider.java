@@ -21,25 +21,41 @@ import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 
 public interface IndexProvider {
 
-    public abstract <S extends PropertyContainer, T> Index<S> getIndex(Class<T> type);
+    <S extends PropertyContainer, T> Index<S> getIndex(Class<T> type);
 
-    public abstract <S extends PropertyContainer, T> Index<S> getIndex(Class<T> type, String indexName);
+    <S extends PropertyContainer, T> Index<S> getIndex(Class<T> type, String indexName);
 
     @SuppressWarnings("unchecked")
-    public abstract <S extends PropertyContainer, T> Index<S> getIndex(Class<T> type, String indexName,
+    <S extends PropertyContainer, T> Index<S> getIndex(Class<T> type, String indexName,
             IndexType indexType);
 
     @SuppressWarnings("unchecked")
-    public abstract <T extends PropertyContainer> Index<T> getIndex(String indexName);
+    <T extends PropertyContainer> Index<T> getIndex(String indexName);
 
-    public abstract boolean isNode(Class<? extends PropertyContainer> type);
+    boolean isNode(Class<? extends PropertyContainer> type);
 
     // TODO handle existing indexes
     @SuppressWarnings("unchecked")
-    public abstract <T extends PropertyContainer> Index<T> createIndex(Class<T> type, String indexName,
+    <T extends PropertyContainer> Index<T> createIndex(Class<T> type, String indexName,
             IndexType fullText);
 
-    public abstract <S extends PropertyContainer> Index<S> getIndex(Neo4jPersistentProperty property,
+    <S extends PropertyContainer> Index<S> getIndex(Neo4jPersistentProperty property,
             final Class<?> instanceType);
+    /**
+     * adjust your indexName for the "__types__" indices
+     * 
+     * @param type
+     * @return prefixed indexName for Type
+     */
+    String createIndexValueForType(Class<?> type);
+    
+    /**
+     * possibility to do something with the high level index name 
+     * 
+     * @param indexName
+     * @param type
+     * @return
+     */
+    String customizeIndexName(String indexName, Class<?> type);
 
 }

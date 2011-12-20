@@ -3,7 +3,8 @@
 <chapter id="reference:cross-store">
     <title>Cross-store persistence</title>
     <para>
-        The Spring Data Neo4j project support cross-store persistence, which allows for parts of the data to be
+        The Spring Data Neo4j project support cross-store persistence for the advanced mapping mode,
+		which allows for parts of the data to be
         stored in a traditional JPA data store (RDBMS), and other parts in a graph store. This means that an entity
         can be partially stored in e.g. MySQL, and partially stored in Neo4j.
     </para>
@@ -23,7 +24,7 @@
             A backing node in the graph store is only created when the entity has been assigned a JPA ID. Only
             then will the association between the two stores be established. Until the entity has been persisted,
             its state is just kept inside the POJO (in detached state), and then flushed to the backing graph
-            database on <code>persist()</code>.
+            database on the persist operation.
         </para>
         <para>
             The association between the two entities is maintained via a FOREIGN_ID field in the node, that

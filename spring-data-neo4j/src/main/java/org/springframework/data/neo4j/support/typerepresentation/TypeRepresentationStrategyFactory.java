@@ -23,16 +23,29 @@ import org.neo4j.graphdb.index.Index;
 import org.springframework.data.neo4j.core.GraphDatabase;
 import org.springframework.data.neo4j.core.NodeTypeRepresentationStrategy;
 import org.springframework.data.neo4j.core.RelationshipTypeRepresentationStrategy;
+import org.springframework.data.neo4j.support.index.IndexProvider;
 import org.springframework.data.neo4j.support.index.NoSuchIndexException;
 
 public class TypeRepresentationStrategyFactory {
-    private GraphDatabase graphDatabaseService;
-    private Strategy strategy;
+    private final GraphDatabase graphDatabaseService;
+    private final Strategy strategy;
+    private IndexProvider indexProvider;
 
     public TypeRepresentationStrategyFactory(GraphDatabase graphDatabaseService) {
-        this(graphDatabaseService,chooseStrategy(graphDatabaseService));
+        this(graphDatabaseService,chooseStrategy(graphDatabaseService), null);
     }
+    
+    public TypeRepresentationStrategyFactory(GraphDatabase graphDatabaseService, IndexProvider indexProvider) {
+        this(graphDatabaseService,chooseStrategy(graphDatabaseService), indexProvider);
+    }
+    
     public TypeRepresentationStrategyFactory(GraphDatabase graphDatabaseService,Strategy strategy) {
+        this.graphDatabaseService = graphDatabaseService;
+        this.strategy = strategy;
+    }
+    
+    public TypeRepresentationStrategyFactory(GraphDatabase graphDatabaseService,Strategy strategy, IndexProvider indexProvider) {
+        this.indexProvider = indexProvider;
         this.graphDatabaseService = graphDatabaseService;
         this.strategy = strategy;
     }
@@ -62,50 +75,54 @@ public class TypeRepresentationStrategyFactory {
     }
 
     public NodeTypeRepresentationStrategy getNodeTypeRepresentationStrategy() {
-        return strategy.getNodeTypeRepresentationStrategy(graphDatabaseService);
+        return strategy.getNodeTypeRepresentationStrategy(graphDatabaseService, indexProvider);
     }
 
     public RelationshipTypeRepresentationStrategy getRelationshipTypeRepresentationStrategy() {
-        return strategy.getRelationshipTypeRepresentationStrategy(graphDatabaseService);
+        return strategy.getRelationshipTypeRepresentationStrategy(graphDatabaseService, indexProvider);
+    }
+    
+    public void setIndexProvider(IndexProvider indexProvider) {
+        this.indexProvider = indexProvider;
     }
 
     private enum Strategy {
         SubRef {
             @Override
-            public NodeTypeRepresentationStrategy getNodeTypeRepresentationStrategy(GraphDatabase graphDatabaseService) {
+            public NodeTypeRepresentationStrategy getNodeTypeRepresentationStrategy(GraphDatabase graphDatabaseService, IndexProvider indexProvider) {
                 return new SubReferenceNodeTypeRepresentationStrategy(graphDatabaseService);
             }
 
             @Override
-            public RelationshipTypeRepresentationStrategy getRelationshipTypeRepresentationStrategy(GraphDatabase graphDatabaseService) {
+            public RelationshipTypeRepresentationStrategy getRelationshipTypeRepresentationStrategy(GraphDatabase graphDatabaseService, IndexProvider indexProvider) {
                 return new NoopRelationshipTypeRepresentationStrategy();
             }
         },
         Indexed {
             @Override
-            public NodeTypeRepresentationStrategy getNodeTypeRepresentationStrategy(GraphDatabase graphDatabaseService) {
-                return new IndexingNodeTypeRepresentationStrategy(graphDatabaseService);
+            public NodeTypeRepresentationStrategy getNodeTypeRepresentationStrategy(GraphDatabase graphDatabaseService, IndexProvider indexProvider) {
+                return new IndexingNodeTypeRepresentationStrategy(graphDatabaseService, indexProvider);
             }
 
             @Override
-            public RelationshipTypeRepresentationStrategy getRelationshipTypeRepresentationStrategy(GraphDatabase graphDatabaseService) {
-                return new IndexingRelationshipTypeRepresentationStrategy(graphDatabaseService);
+            public RelationshipTypeRepresentationStrategy getRelationshipTypeRepresentationStrategy(GraphDatabase graphDatabaseService, IndexProvider indexProvider) {
+                return new IndexingRelationshipTypeRepresentationStrategy(graphDatabaseService, indexProvider);
             }
         },
         Noop {
             @Override
-            public NodeTypeRepresentationStrategy getNodeTypeRepresentationStrategy(GraphDatabase graphDatabaseService) {
+            public NodeTypeRepresentationStrategy getNodeTypeRepresentationStrategy(GraphDatabase graphDatabaseService, IndexProvider indexProvider) {
                 return new NoopNodeTypeRepresentationStrategy();
             }
 
             @Override
-            public RelationshipTypeRepresentationStrategy getRelationshipTypeRepresentationStrategy(GraphDatabase graphDatabaseService) {
+            public RelationshipTypeRepresentationStrategy getRelationshipTypeRepresentationStrategy(GraphDatabase graphDatabaseService, IndexProvider indexProvider) {
                 return new NoopRelationshipTypeRepresentationStrategy();
             }
         };
 
-        public abstract NodeTypeRepresentationStrategy getNodeTypeRepresentationStrategy(GraphDatabase graphDatabaseService);
+        public abstract NodeTypeRepresentationStrategy getNodeTypeRepresentationStrategy(GraphDatabase graphDatabaseService, IndexProvider indexProvider);
 
-        public abstract RelationshipTypeRepresentationStrategy getRelationshipTypeRepresentationStrategy(GraphDatabase graphDatabaseService);
+        public abstract RelationshipTypeRepresentationStrategy getRelationshipTypeRepresentationStrategy(GraphDatabase graphDatabaseService, IndexProvider indexProvider);
     }
 }

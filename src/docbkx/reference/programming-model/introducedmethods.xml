@@ -1,8 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE section PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
 <section id="reference:programming-model:introduced-methods">
-    <title>Introduced methods</title>
+    <title>Active Record Methods for Advanced Mapping Mode</title>
     <para>
+		This chapter only applies to the advanced mapping. Currently the Aspects introduce the following
+		methods by default, this will change in the future, there will be separate Mixin-Interfaces that
+		can selectively mixed into the domain entities if needed. Otherwise the AspectJ interaction will
+		be restricted to field access interception and post constructor handling.
+	</para>
+	<para>
         The node and relationship aspects introduce (via AspectJ ITD - inter type declaration) several
         methods to the entities.
         <variablelist>
@@ -114,7 +120,7 @@
                 </listitem>
             </varlistentry>
             <varlistentry>
-                <term>Executes the given query, providing the  <code>{self}</code> variable with the node-id and returning the results converted to the target type.</term>
+                <term>Executes the given Cypher query, providing the  <code>{self}</code> variable with the node-id and returning the results converted to the target type.</term>
                 <listitem>
                     <para><code>&lt;T&gt; Iterable&lt;T&gt; NodeBacked.findAllByQuery(final String query, final Class&lt;T&gt; targetType)</code></para>
                 </listitem>

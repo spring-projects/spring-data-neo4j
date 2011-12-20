@@ -40,6 +40,26 @@ public class Movie {
     </section>
 
     <section>
+        <title>@GraphId: Neo4j -id field</title>
+        <para>
+			For the simple mapping this is a required field which must be of type <code>Long</code>. It is used
+			by Spring Data Neo4j to store the node or relationship-id to re-connect the entity to the graph. 
+        </para>
+		<note>
+        <para>
+			It must not be a primitive type because then the "non-attached" case can not be represented as the
+			default value 0 would point to the reference node. Please make also sure that 
+			an <code>equals()</code> and <code>hashCode()</code> method have to be provided which take the <code>id</code>
+			field into account (and also handle the "non-attached", null case).
+        </para>
+		</note>
+        <para>
+			For the advanced mapping such a field is optional. Only if the underlying id has to be accessed, it is
+			needed.
+        </para>
+    </section>
+
+    <section>
         <title>@GraphProperty: Optional annotation for property fields</title>
         <para>
             It is not necessary to annotate property fields, as they are persisted by default; all fields that

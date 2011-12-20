@@ -54,7 +54,24 @@ public interface Neo4jPersistentProperty extends PersistentProperty<Neo4jPersist
 
     boolean isSerializablePropertyField(final ConversionService conversionService);
 
+    /**
+     * Returns {@code true} if the type of this property is a natively supported neo4j property type. Supported type are listed here:
+     * {@link PropertyContainer#setProperty(String, Object)}.
+     *
+     * @return {@code true} if the given object is a natively supported neo4j property type.
+     * @see PropertyContainer#setProperty(String, Object)
+     */
     boolean isNeo4jPropertyType();
+
+    /**
+     * Returns {@code true} if the given object {@code value} is a natively supported neo4j property type, but not an array. Supported type are listed here:
+     * {@link PropertyContainer#setProperty(String, Object)}.
+     *
+     * @param value the object to check
+     * @return {@code true} if the given object is a natively supported neo4j property type. {@code false} is returned, if {@code value} is an array.
+     * @see PropertyContainer#setProperty(String, Object)
+     */
+    boolean isNeo4jPropertyValue(Object value);
 
     boolean isSyntheticField();
 

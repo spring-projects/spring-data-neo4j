@@ -58,16 +58,16 @@ public class IndexProviderImpl implements IndexProvider {
         }
 
         final Neo4jPersistentEntityImpl<?> persistentEntity = mappingContext.getPersistentEntity(type);
-        if (indexName == null) indexName = Indexed.Name.get(type);
+        if (indexName == null) indexName = customizeIndexName(Indexed.Name.get(type), type);
         final boolean useExistingIndex = indexType == null;
 
         if (useExistingIndex) {
-            if (persistentEntity.isNodeEntity()) return (Index<S>) graphDatabase.getIndex(indexName);
-            if (persistentEntity.isRelationshipEntity()) return (Index<S>) graphDatabase.getIndex(indexName);
+            if (persistentEntity.isNodeEntity() || persistentEntity.isRelationshipEntity()) return (Index<S>) graphDatabase.getIndex(indexName);
             throw new IllegalArgumentException("Wrong index type supplied: " + type + " expected Node- or Relationship-Entity");
         }
 
-        if (persistentEntity.isNodeEntity()) return (Index<S>) createIndex(Node.class, indexName, indexType);
+        if (persistentEntity.isNodeEntity())
+            return (Index<S>) createIndex(Node.class, indexName, indexType);
         if (persistentEntity.isRelationshipEntity())
             return (Index<S>) createIndex(Relationship.class, indexName, indexType);
         throw new IllegalArgumentException("Wrong index type supplied: " + type + " expected Node- or Relationship-Entity");
@@ -99,12 +99,23 @@ public class IndexProviderImpl implements IndexProvider {
         final Class<?> declaringType = property.getOwner().getType();
         final String providedIndexName = indexedAnnotation==null || indexedAnnotation.indexName().isEmpty() ? null : indexedAnnotation.indexName();
         final Indexed.Level level = indexedAnnotation == null ? Indexed.Level.CLASS : indexedAnnotation.level();
-        String indexName = Indexed.Name.get(level, declaringType, providedIndexName, instanceType);
+        String indexName = customizeIndexName(Indexed.Name.get(level, declaringType, providedIndexName, instanceType), instanceType);
         if (!property.isIndexed() || property.getIndexInfo().getIndexType() == IndexType.SIMPLE) {
             return getIndex(declaringType, indexName, IndexType.SIMPLE);
         }
-        String defaultIndexName = Indexed.Name.get(level, declaringType, null, instanceType.getClass());
+        String defaultIndexName = customizeIndexName(Indexed.Name.get(level, declaringType, null, instanceType.getClass()), instanceType);
         if (providedIndexName==null || providedIndexName.equals(defaultIndexName)) throw new IllegalStateException("Index name for "+property+" must differ from the default name: "+defaultIndexName);
         return getIndex(declaringType, indexName, property.getIndexInfo().getIndexType());
     }
+    
+    @Override
+    public String createIndexValueForType(Class<?> type) {
+        return type.getName();
+    }
+    
+    @Override
+    public String customizeIndexName(String indexName, Class<?> type) {
+        return indexName;
+    }
+ 
 }

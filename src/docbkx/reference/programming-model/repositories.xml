@@ -4,37 +4,32 @@
     <title>CRUD with repositories</title>
     <para>
         The repositories provided by Spring Data Neo4j build on the composable repository infrastructure
-        in <ulink url="http://static.springsource.org/spring-data/data-jpa/docs/current/reference/html/#repositories.custom-implementations">Spring Data Commons</ulink>.
+        in <ulink url="http://static.springsource.org/spring-data/data-commons/docs/current/reference/html/#repositories">Spring Data Commons</ulink>.
         They allow for interface based composition of repositories consisting of provided default
         implementations for certain interfaces and additional custom implementations for other methods.
     </para>
-    <!--<note>-->
-        <!--<para>-->
-            <!--Spring Data Neo4j provides only the infrastructure and some default repository implementations-->
-            <!--so far. Future releases will support finders derived from method names, named queries, and-->
-            <!--annotated query methods.-->
-            <!--(e.g.-->
-            <!--<code>findByName(name)</code>,-->
-            <!--<code>@Query(name="find-by-name-query") findByName(name)</code>, and-->
-            <!--<code>@Query(query="{name:%s}") findByName(name)</code>)-->
-        <!--</para>-->
-    <!--</note>-->
     <para>
         Spring Data Neo4j repositories support annotated and named queries for the Neo4j
-        <ulink url="http://docs.neo4j.org/chunked/milestone/query-lang.html">Cypher</ulink> query-language.
+        <ulink url="http://docs.neo4j.org/chunked/milestone/query-lang.html">Cypher</ulink> query-language and 
+		<code>Gremlin</code> graph DSL.
     </para>
     <para>
         Spring Data Neo4j comes with typed repository implementations that provide methods for
-        locating node and relationship entities. There are 3 types of basic repository interfaces
+        locating node and relationship entities. There are several types of basic repository interfaces
         and implementations. <code>CRUDRepository</code> provides basic operations,
         <code>IndexRepository</code> and <code>NamedIndexRepository</code> delegate to Neo4j's internal
         indexing subsystem for queries, and <code>TraversalRepository</code> handles Neo4j traversals.
     </para>
     <para>
-        <code>GraphRepository</code> is a convenience repository interface, extending <code>CRUDRepository</code>,
+        With the <code>RelationshipOperationsRepository</code> it is possible to access, create and delete
+		relationships between entitites or nodes.
+		The <code>SpatialRepository</code> allows geographic searches (<xref linkend="reference:spatial"/>)
+    </para>
+    <para>
+        <code>GraphRepository</code> is a convenience repository interface, combining <code>CRUDRepository</code>,
         <code>IndexRepository</code>, and <code>TraversalRepository</code>. Generally, it has all the
-        desired repository methods. If named index operations are required, then <code>NamedIndexRepository</code>
-        may also be included.
+        desired repository methods. If other operations are required then the additional repository interfaces should
+        be added to the individual interface declaration.
     </para>
 
     <section>
@@ -45,40 +40,37 @@
             for type based queries.
             <variablelist>
                 <varlistentry>
-                    <term>Load an instance via a Neo4j node id</term>
+                    <term>Load an entity instance via an id</term>
                     <listitem><para><code>T findOne(id)</code></para></listitem>
                 </varlistentry>
                 <varlistentry>
-                    <term>Check for existence of a Neo4j node id</term>
+                    <term>Check for existence of a id in the graph</term>
                     <listitem><para><code>boolean exists(id)</code></para></listitem>
                 </varlistentry>
                 <varlistentry>
-                    <term>Iterate over all nodes of a node entity type</term>
-                    <listitem><para><code>Iterable&lt;T&gt; findAll()</code>
-                        (supported in future versions:
-                        <code>Iterable&lt;T&gt; findAll(Sort)</code> and
-                        <code>Page&lt;T&gt; findAll(Pageable)</code>)</para></listitem>
+                    <term>Iterate over all entities instances of the repository entity type</term>
+                    <listitem>
+						<para>
+							<code>Iterable&lt;T&gt; findAll()</code>
+                        	<code>Iterable&lt;T&gt; findAll(Sort)</code>
+                        	<code>Page&lt;T&gt; findAll(Pageable)</code>
+						</para>
+					</listitem>
                 </varlistentry>
                 <varlistentry>
-                    <term>Count the instances of a node entity type</term>
+                    <term>Count the instances of the repository entity type</term>
                     <listitem><para><code>Long count()</code></para></listitem>
                 </varlistentry>
                 <varlistentry>
-                    <term>Save a graph entity</term>
+                    <term>Save entities</term>
                     <listitem><para><code>T save(T)</code> and <code>Iterable&lt;T&gt; save(Iterable&lt;T&gt;)</code></para></listitem>
                 </varlistentry>
                 <varlistentry>
-                    <term>Delete a graph entity</term>
+                    <term>Delete graph entities</term>
                     <listitem><para><code>void delete(T)</code>, <code>void; delete(Iterable&lt;T&gt;)</code>,
                         and <code>deleteAll()</code></para></listitem>
                 </varlistentry>
             </variablelist>
-        </para>
-        <para>
-            Important to note here is that the <code>save</code>, <code>delete</code>, and <code>deleteAll</code>
-            methods are only there to conform to the <code>org.springframework.data.repository.Repository</code>
-            interface. The recommended way of saving and deleting entities is by using <code>entity.persist()</code>
-            and <code>entity.remove()</code>.
         </para>
     </section>
 
@@ -128,30 +120,33 @@
     </section>
 
     <section>
-        <title>Cypher queries</title>
+        <title>Query and Finder Methods</title>
         <section>
             <title>Annotated queries</title>
         <para>
             Queries using the Cypher graph query language can be supplied with the <code>@Query</code> annotation.
-            That means every method annotated with <code>@Query("start n=(%node) match (n)-->(m) return m")</code>
-            will use the supplied query string. The named parameter <code>%node</code> will be replaced by the actual method parameters.
-            Node and Relationship-Entities are resolved to their respective id's and all other parameters are
+            That means every method annotated with <code>@Query("start n=node:IndexName(key={node or 0}) match (n)-->(m) return m")</code>
+            will use the supplied query string. The named or indexed parameter <code>{node}</code> will be substituted by the actual method parameter.
+            Node and Relationship-Entities are handled directly, Iterables thereof as well. All other parameters are
             replaced directly (i.e. Strings, Longs, etc). There is special support for the <code>Sort</code> and <code>Pageable</code>
             parameters from Spring Data Commons, which are supported to add programmatic paging and sorting (alternatively
             static paging and sorting can be supplied in the query string itself).
 
             For using the named parameters you have to either annotate the parameters of the method with the
-            <code>@Param("node")</code> annotation or enable debug symbols.
+            <code>@Param("node")</code> annotation or enable debug symbols. Indexed parameters are always usable.
         </para>
+		<para>
+			Gremlin queries can be used similarly, the <code>@Query</code> annotation would just need a <code>type=QueryType.GREMLIN</code> attribute.
+			Parameters are supported in the same way.
+		</para>
         </section>
 
         <section>
             <title>Named queries</title>
         <para>Spring Data Neo4j also supports the notion of named queries which are externalized in property-config-files
             (<code>META-INF/neo4j-named-queries.properties</code>). Those files have the format:
-            <code>Entity.finderName=query</code> (e.g. <code>Person.findBoss=start p=({p_person}) match (p)&lt;-[:BOSS]-(boss) return boss</code>).
-            Otherwise named queries support the same parameters as annotated queries. For using the named parameters you have to either
-            annotate the parameters of the method with the <code>@Param("p_person")</code> annotation or enable debug symbols.
+            <code>Entity.finderName=query</code> (e.g. <code>Person.findBoss=start p=node({0}) match (p)&lt;-[:BOSS]-(boss) return boss</code>).
+            Otherwise named queries support the same parameters as annotated queries. 
         </para>
         </section>
         <section>
@@ -163,7 +158,7 @@
         </section>
         <section>
             <title>Cypher examples</title>
-            <para>There is a <ulink url="http://neo4j.vidcaster.com/U2Y/introduction-to-cypher">screencast</ulink> available showing many features of the query language.
+            <para>There is a <ulink url="http://video.neo4j.org/ybMbf/screencast-introduction-to-cypher">screencast</ulink> available showing many features of the query language.
                 The following examples are taken from the cineasts dataset of the tutorial section.
                 <variablelist>
                     <varlistentry>
@@ -189,36 +184,118 @@
                 </variablelist>
             </para>
         </section>
+		        <section>
+		            <title>Queries derived from finder-method names</title>
+		        <para>As known from Rails or Grails it is possible to derive queries for domain entities from finder method names 
+						like <code>Iterable&lt;Person> findByNameAndAgeGreaterThan(String name, int age)</code>.
+
+					Using the infrastructure in Spring Data Commons that allows to collect the meta information about entities and their properties a finder method
+					name can be split into its semantic parts and converted into a cypher query. 
+					<code>@Indexed</code> fields will be converted into index-lookups of the <code>start</code> clause, 
+					navigation along relationships will be reflected in the <code>match</code> clause properties with operators will end up as expressions in the
+					<code>where</code> clause. Order and limiting of the query will by handled by provided <code>Pageable</code> or <Sort></Sort> parameters.
+					The other parameters will be used in the order they appear in the method signature so that should align with the expressions stated in the method name.
+				</para>
+				<para>
+		        <example>
+		            <title>Some examples of methods and resulting cypher queries of a PersonRepository</title>
+            <programlisting language="java"><![CDATA[
+public interface PersonRepository 
+               extends GraphRepository<Person> {
+
+// start person=node:Person(id={0}) return person
+Person findById(String id)
+
+// start person=node:Person({0}) return person - {0} will be "id:"+name
+Iterable<Person> findByNameLike(String name)
+
+// start person=node:__types__("className"="com...Person") 
+// where person.age = {0} and person.married = {1}
+// return person
+Iterable<Person> findByAgeAndMarried(int age, boolean married)
+
+// start person=node:__types__("className"="com...Person")
+// match person<-[:CHILD]-parent
+// where parent.age > {0} and person.married = {1}
+// return person
+Iterable<Person> findByParentAgeAndMarried(int age, boolean married)
+}
+]]></programlisting>
+					        </example>			
+						</para>
+		        </section>
         <xi:include href="../../snippets/SnippetRepositoryDerivedFinder.xml"/>
     </section>
+
+	    <section>
+		<!-- todo Rickard -->
+	        <title>CypherDSL repository</title>
+	        <para>
+	            Spring Data Neo4j supports the new cypher-dsl to write Cypher queries in a statically typed way. Just by including 
+				<code>CypherDslRepository</code> to your repository you get the <code>Page&lt;T> query(Execute query, params, Pageable page)</code>
+				and the <code>EndResult&lt;T> query(Execute query, params);</code>. The result type of the Cypher-DSL builder is called
+				<code>Execute</code>
+	        </para>
+	        <example>
+	            <title>Examples for Cypher-DSL repository</title>
+			    <!-- TODO QueryDSL -->							
+	            <programlisting language="java"><![CDATA[
+	public interface PersonRepository extends GraphRepository<Person>,
+	  CypherDslRepository<Person> {}
+
+	@Autowired PersonRepository repo;
+	// START company=node:Company(name={name}) MATCH company<-[:WORKS_AT]->person RETURN person
+
+	Execute query = start( lookup( "company", "Company", "name", param("name") ) ).
+	                          match( path().from( "company" ).in( "WORKS_AT" ).to( "person" )).
+	                          returns( nodes( "person" ))
+	Page<Person> people = repo.query(query , map("name","Neo4j"), new PageRequest(1,10));
+
+	QPerson person = QPerson.person;
+	QCompany company = QCompany.company;
+	Execute query = start( lookup( company, "Company", company.name, param("name") ) ).
+	                          match( path().from( company ).in( "WORKS_AT" ).to( person ).
+	                          .where(person.firstName.like("P*").and(person.age.gt(25))).
+	                          returns( nodes( person ))
+	EndResult<Person> people = repo.query(query , map("name","Neo4j"));
+
+	]]></programlisting>
+	        </example>
+	    </section>
+
+<!-- todo spatial repositories, cypherdsl-repositories -->
 
     <section>
         <title>Creating repositories</title>
         <para>
-            The <code>Repository</code> instances are either created manually via a
-            <code>DirectGraphRepositoryFactory</code>, bound to a concrete node or relationship entity class.
-            The <code>DirectGraphRepositoryFactory</code> is configured in the Spring context and can be injected.
+            The <code>Repository</code> instances should normally be injected but can also be created manually via the
+            <code>Neo4jTemplate</code>.
         </para>
         <example>
-            <title>Using GraphRepositories</title>
-            <programlisting language="java"><![CDATA[GraphRepository<Person> graphRepository = template
-        .repositoryFor(Person.class);
+            <title>Using basic GraphRepository methods</title>
+            <programlisting language="java"><![CDATA[
+public interface PersonRepository extends GraphRepository<Person> {}
 
-Person michael = graphRepository.save(new Person("Michael", 36));
+@Autowired PersonRepository repo;
+// OR
+GraphRepository<Person> repo = template
+                           .repositoryFor(Person.class);
 
-Person dave = graphRepository.findOne(123);
+Person michael = repo.save(new Person("Michael", 36));
 
-Long numberOfPeople = graphRepository.count();
+Person dave = repo.findOne(123);
 
-Person mark = graphRepository.findByPropertyValue("name", "mark");
+Long numberOfPeople = repo.count();
 
-Iterable<Person> devs = graphRepository.findAllByProperyValue("occupation", "developer");
+Person mark = repo.findByPropertyValue("name", "mark");
 
-Iterable<Person> middleAgedPeople = graphRepository.findAllByRange("age", 20, 40);
+Iterable<Person> devs = repo.findAllByProperyValue("occupation", "developer");
 
-Iterable<Person> aTeam = graphRepository.findAllByQuery("name", "A*");
+Iterable<Person> middleAgedPeople = repo.findAllByRange("age", 20, 40);
 
-Iterable<Person> davesFriends = graphRepository.findAllByTraversal(dave,
+Iterable<Person> aTeam = repo.findAllByQuery("name", "A*");
+
+Iterable<Person> davesFriends = repo.findAllByTraversal(dave,
     Traversal.description().pruneAfterDepth(1)
     .relationships(KNOWS).filter(returnAllButStartNode()));
 ]]></programlisting>
@@ -237,6 +314,29 @@ Iterable<Person> davesFriends = graphRepository.findAllByTraversal(dave,
             <title>Composing repositories</title>
             <programlisting language="java"><![CDATA[public interface PersonRepository extends GraphRepository<Person>, PersonRepositoryExtension {}
 
+// configure the repositories, preferably via the neo4j:repositories namespace
+// (template reference is optional)
+<neo4j:repositories base-package="org.example.repository"
+    graph-database-context-ref="template"/>
+
+// have it injected
+@Autowired
+PersonRepository personRepository;
+// or created via the template
+PersonRepository personRepository = template.repositoryFor(Person.class);
+
+
+Person michael = personRepository.save(new Person("Michael",36));
+
+Person dave=personRepository.findOne(123);
+
+Iterable<Person> devs = personRepository.findAllByPropertyValue("occupation","developer");
+
+Iterable<Person> aTeam = graphRepository.findAllByQuery( "name","A*");
+
+Iterable<Person> friends = personRepository.findFriends(dave);
+
+
 // alternatively select some of the required repositories individually
 public interface PersonRepository extends CRUDGraphRepository<Node,Person>,
         IndexQueryExecutor<Node,Person>, TraversalQueryExecutor<Node,Person>,
@@ -254,27 +354,14 @@ public class PersonRepositoryImpl implements PersonRepositoryExtension {
         return baseRepository.findAllByTraversal(person, friendsTraversal);
     }
 }
-
-// configure the repositories, preferably via the datagraph:repositories namespace
-// (template reference is optional)
-<neo4j:repositories base-package="org.springframework.data.neo4j"
-    graph-database-context-ref="template"/>
-
-// have it injected
-@Autowired
-PersonRepository personRepository;
-
-Person michael = personRepository.save(new Person("Michael",36));
-
-Person dave=personRepository.findOne(123);
-
-Iterable<Person> devs = personRepository.findAllByPropertyValue("occupation","developer");
-
-Iterable<Person> aTeam = graphRepository.findAllByQuery( "name","A*");
-
-Iterable<Person> friends = personRepository.findFriends(dave);
 ]]></programlisting>
         </example>
-
+		<note>
+		<para>
+		If you use <code>&lt;context:component-scan></code> in your spring config, please make sure to put it behind
+		<code>&lt;neo4j:repositories></code>, as the RepositoryFactoryBean adds new bean definitions for all the declared
+		repositories, the context scan doesn't pick them up otherwise.
+		</para>
+		</note>
     </section>
 </section>
