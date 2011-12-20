@@ -3,7 +3,7 @@
 <chapter id="reference:aspectj-details">
     <title>AspectJ details</title>
     <para>
-        The object graph mapper of Spring Data Neo4j relies heavily on AspectJ. AspectJ is a Java implementation
+        The advanced mapping mode of Spring Data Neo4j relies heavily on AspectJ. AspectJ is a Java implementation
         of the <ulink url="https://secure.wikimedia.org/wikipedia/en/wiki/Aspect-oriented_programming">aspect-oriented
         programming</ulink> paradigm that allows easy extraction and controlled application of so-called
         cross-cutting concerns. Cross-cutting concerns are typically repetitive tasks in a system (e.g. logging,

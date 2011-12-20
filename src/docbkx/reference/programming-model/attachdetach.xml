@@ -1,24 +1,35 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE section PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
 <section id="reference:programming-model:lifecycle">
-    <title>Detached node entities</title>
+    <title>Detached node entities in advanced mapping mode</title>
+    <para>
+		This section only applies to the advanced mapping (AspectJ-backed). The simple mapping always detaches entities on 
+		load as it copies the data out of the graph into the entities and stores it back fully too.
+	</para>
     <para>
         Node entities can be in two different persistence states: attached or detached. By default, newly created node
-        entities are in the detached state. When <code>persist()</code> is called on the entity, it becomes
+        entities are in the detached state. When <code>persist() or template.save()</code> is called on the entity, it becomes
         attached to the graph, and its properties and relationships are stores in the database. If
-        <code>persist()</code> is not called within a transaction, it automatically creates an implicit
-        transaction for the operation.
+        the save operation is not called within a transaction, it automatically creates an implicit
+        transaction only for the operation.
     </para>
     <para>
         Changing an attached entity inside a transaction will immediately write through the changes to
         the datastore. Whenever an entity is changed outside of a transaction it becomes detached. The
-        changes are stored in the entity itself until the next call to <code>persist()</code>.
+        changes are stored in the entity (its fields) itself until the next call to a save operation.
     </para>
     <para>
         All entities returned by library functions are initially in an attached state.
         Just as with any other entity, changing them outside of a transaction detaches them, and they
         must be reattached with <code>persist()</code> for the data to be saved.
     </para>
+
+    <mediaobject>
+        <imageobject>
+            <imagedata fileref="attachdetach.png" scalefit="1" contentwidth="15cm"/>
+        </imageobject>
+    </mediaobject>
+
     <!--<para>-->
         <!--Persisting an entity not only persists that single entity but will traverse its existing and new relationships-->
         <!--and persist the cluster of detached entities that it is part of. The borders of this cluster are formed by-->
@@ -82,7 +93,7 @@ movie.setTopActor(actor);
             It is a matter of Java references and is not related to the data model in the database.
         </para>
         <para>
-            The persist operation (merge) stores all properties of the entity to the graph database
+            The save operation (merge) stores all properties of the entity to the graph database
             and puts the entity in attached mode. There is no need to update the reference to the Java
             POJO as the underlying backing node handles the read-through transparently. If multiple
             object instances that point to the same node are persisted, the ordering is not important

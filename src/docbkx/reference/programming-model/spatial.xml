@@ -4,7 +4,7 @@
     <title>Geospatial Queries</title>
     <para>
 	<code>SpatialRepository</code> is a dedicated Repository for spatial queries. 
-	 Spring Data Neo4j provides an optional dependency to <code>neo4j-spatial</code> which is an advanced library
+	 Spring Data Neo4j provides an optional dependency to <ulink url="https://github.com/neo4j/spatial">neo4j-spatial</ulink> which is an advanced library
 	 for GIS operations. So if you include the maven dependency in your <code>pom.xml</code>, Neo4j-Spatial and
      the required <code>SPATIAL</code> index provider is available.
 	</para>
@@ -28,12 +28,12 @@
 </para>
 <para>
 	<example>
-		<title>Fields of </title>
+		<title>Fields of Well Known Text</title>
 <programlisting language="java"><![CDATA[
 @NodeEntity
 class Venue {
    String name;
-   @Indexed(type = POINT, indexName = "...") String wkt;
+   @Indexed(type = POINT, indexName = "VenueLocation") String wkt;
    public void setLocation(float lon, float lat) {
       this.wkt = String.format("POINT( %.2f %.2f )",lon,lat);
    }

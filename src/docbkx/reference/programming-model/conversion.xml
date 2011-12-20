@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE section PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
+<section id="reference:programming-model:conversion">
+    <title>Conversion</title>
+    <para>
+	<code>Neo4jTemplate</code> has a generic convert method which might also use projection underneath.
+	The same conversion facilities that are used by default in the result handling DSL are offered here for individual use.
+	</para>
+    <para>
+    Supported conversions are: Nodes to Paths and to Entities, Relationships to Paths and to Entities, Paths to Node (EndNode),
+    Relationships (LastRelationship) and to EntityPaths. Entities to Nodes or Relationships.
+    </para>
+    <para>
+	It is also possible to provide a custom ResultConverter that additionally takes care of conversions.
+	</para>
+</section>

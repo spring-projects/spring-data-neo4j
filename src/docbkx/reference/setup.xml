@@ -17,15 +17,15 @@
     <section>
            <title>Dependencies for Spring Data Neo4j Simple Mapping</title>
            <para>
-               For the POJO mapping it is enough to add the <code>org.springframework.data:spring-data-neo4j:2.0.0.RC1</code> dependency
-               to your project. If you want to use the Cypher query language please add <code>org.neo4j:neo4j-cypher:1.5</code>
+               For the simple POJO mapping it is enough to add the <code>org.springframework.data:spring-data-neo4j:2.0.0.RELEASE</code> dependency
+               to your project. If you want to use the Cypher query language please add <code>org.neo4j:neo4j-cypher:1.6.M02</code>
            </para>
         <example>
             <title>Maven dependencies for Spring Data Neo4j</title>
             <programlisting language="xml"><![CDATA[<dependency>
 <groupId>org.springframework.data</groupId>
 <artifactId>spring-data-neo4j</artifactId>
-<version>2.0.0.RC1</version>
+<version>2.0.0.RELEASE</version>
 </dependency>
 ]]></programlisting>
         </example>
@@ -43,8 +43,8 @@
             <programlisting language="java"><![CDATA[sourceCompatibility = 1.6
 targetCompatibility = 1.6
 
-springVersion = "3.0.6.RELEASE"
-springDataNeo4jVersion = "2.0.0.RC1"
+springVersion = "3.0.7.RELEASE"
+springDataNeo4jVersion = "2.0.0.RELEASE"
 aspectjVersion = "1.6.12"
 
 apply from:'https://github.com/SpringSource/spring-data-neo4j/raw/master/build/
@@ -128,7 +128,7 @@ repositories {
                 <programlisting language="xml"><![CDATA[<dependency>
     <groupId>org.springframework.data</groupId>
     <artifactId>spring-data-neo4j-aspects</artifactId>
-    <version>2.0.0.RC1</version>
+    <version>2.0.0.RELEASE</version>
 </dependency>
 
 <dependency>
@@ -139,7 +139,7 @@ repositories {
 [<dependency>
     <groupId>org.neo4j</groupId>
     <artifactId>neo4j-cypher</artifactId>
-    <version>1.5</version>
+    <version>1.6.M02</version>
 </dependency>]
 ]]></programlisting>
             </example>
@@ -272,6 +272,29 @@ repositories {
 ]]></programlisting>
             </example>
         </section>
+		        <section>
+		            <title>Repository Configuration</title>
+		            <para>
+		                Spring Data Neo4j repositories are configured using the <code>&lt;neo4j:repositories></code> 
+						element which defines the base-package (or packages) for the repositories.
+						A reference to an existing <code>Neo4jTemplate</code> bean reference can be passed in as well.
+		            </para>
+					<para>
+						As Spring Data Neo4j repositories build upon the infrastructure provided by 
+						<ulink url="http://static.springsource.org/spring-data/data-commons/docs/current/reference/html/#repositories.create-instances">
+						Spring Data Commons</ulink>,
+						the configuration options for repositories described there work here as well.
+					</para>
+		            <example>
+		                <title>XML configuration for repositories</title>
+		                <programlisting language="xml"><![CDATA[
+<neo4j:repositories base-package="org.example.repository"/>		
+
+<!-- with template bean reference -->
+<neo4j:repositories base-package="org.example.repository" graph-database-context-ref="template"/>		
+		]]></programlisting>
+		            </example>
+				</section>
         <section>
             <title>Java-based bean configuration</title>
             <para>
@@ -279,7 +302,7 @@ repositories {
             </para>
             <note>
                 <para>
-                    For those not familiar with Java-based bean metadata in Spring, we recommend that you
+                    For those not familiar with Java-based bean configuration in Spring, we recommend that you
                     read up on it first. The Spring documentation has a
                     <ulink url="http://static.springsource.org/spring/docs/3.1.x/spring-framework-reference/html/new-in-3.0.html#new-java-configuration">high-level introduction</ulink>
                     as well as
@@ -316,7 +339,8 @@ repositories {
 
             </para>
 			<para>
-				Additional beans can be configured to be included in the Neo4j-Configuration. ConversionService for custom conversions,
+				Additional beans can be configured to be included in the Neo4j-Configuration just by defining them in the Spring context. 
+				ConversionService for custom conversions,
 				Validators for bean validation, TypeRepresentationStrategyFactory for configuring the in graph type representation,
 				IndexProviders for custom index handling (e.g. for multi-tenancy),
 				Entity-Instantiators (with their config) to have more control over the creation of entity instances and much more.

@@ -13,7 +13,7 @@ import org.springframework.data.neo4j.annotation.StartNode;
 public class Role {
     @GraphId Long id;
     @EndNode Movie movie;
-    @StartNode Person actor;
+    @StartNode Actor actor;
 
     String name;
 
@@ -38,7 +38,7 @@ public class Role {
         return movie;
     }
 
-    public Person getActor() {
+    public Actor getActor() {
         return actor;
     }
 

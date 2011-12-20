@@ -30,6 +30,13 @@
         for classes. Both <code>Neo4jPersistentEntitity</code> as well as <code>Neo4jPersistentProperty</code> provide access to that
         information on their scope.
     </para>
+	<note>
+    <para>
+		Please note that if you have two collections in an entity pointing to the same relationship and one of them has data and the other is
+		empty due to the nature of persisting it, one will override the other in the graph so that you might end up with no data. If you want
+		a relationship-collection to be ignored on save set it to null.
+	</para>
+	</note>
 	<para>
 		<example>
 			<title>Examples for loading entities from the graph</title>

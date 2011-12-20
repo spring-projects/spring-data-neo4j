@@ -26,10 +26,10 @@ public class Movie {
     String description;
 
     @RelatedTo(type="DIRECTED", direction = INCOMING)
-    Person director;
+    Director director;
 
     @RelatedTo(type = "ACTS_IN", direction = INCOMING)
-    Set<Person> actors;
+    Set<Actor> actors;
 
     @RelatedToVia(type = "ACTS_IN", direction = INCOMING)
     Iterable<Role> roles;
@@ -57,7 +57,7 @@ public class Movie {
         this.title = title;
     }
 
-    public Collection<Person> getActors() {
+    public Collection<Actor> getActors() {
         return actors;
     }
 
@@ -106,7 +106,7 @@ public class Movie {
         return allRatings == null ? Collections.<Rating>emptyList() : IteratorUtil.asCollection(allRatings);
     }
 
-    public Person getDirector() {
+    public Director getDirector() {
         return director;
     }
 
