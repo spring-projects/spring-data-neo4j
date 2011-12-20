@@ -158,7 +158,7 @@
         </section>
         <section>
             <title>Cypher examples</title>
-            <para>There is a <ulink url="http://neo4j.vidcaster.com/U2Y/introduction-to-cypher">screencast</ulink> available showing many features of the query language.
+            <para>There is a <ulink url="http://video.neo4j.org/ybMbf/screencast-introduction-to-cypher">screencast</ulink> available showing many features of the query language.
                 The following examples are taken from the cineasts dataset of the tutorial section.
                 <variablelist>
                     <varlistentry>
