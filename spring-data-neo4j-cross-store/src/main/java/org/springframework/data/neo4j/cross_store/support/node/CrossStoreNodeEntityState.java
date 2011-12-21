@@ -64,6 +64,7 @@ public class CrossStoreNodeEntityState<ENTITY extends NodeBacked> extends Defaul
             final String foreignId = createForeignId(id);
             IndexHits<Node> indexHits = getForeignIdIndex().get(FOREIGN_ID, foreignId);
             Node node = indexHits.hasNext() ? indexHits.next() : null;
+            indexHits.close();
             if (node == null) {
                 node = template.createNode();
                 persistForeignId(node, id);
