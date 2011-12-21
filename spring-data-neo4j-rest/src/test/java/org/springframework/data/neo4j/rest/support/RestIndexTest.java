@@ -37,6 +37,7 @@ public class RestIndexTest extends RestTestBase {
         IndexHits<Node> hits = nodeIndex().get("name", "test");
         Assert.assertEquals("index results", true, hits.hasNext());
         Assert.assertEquals(node(), hits.next());
+        hits.close();
     }
 
     @Test
@@ -45,6 +46,7 @@ public class RestIndexTest extends RestTestBase {
         IndexHits<Node> hits = nodeIndex().query("name", "tes*");
         Assert.assertEquals("index results", true, hits.hasNext());
         Assert.assertEquals(node(), hits.next());
+        hits.close();
     }
 
         @Test
@@ -53,12 +55,14 @@ public class RestIndexTest extends RestTestBase {
         IndexHits<Node> hits = nodeIndex().query("age", "age:[30 TO 40]");
         Assert.assertEquals("index results", true, hits.hasNext());
         Assert.assertEquals(node(), hits.next());
+        hits.close();
     }
 
     @Test
     public void testNotFoundInNodeIndex() {
         IndexHits<Node> hits = nodeIndex().get("foo", "bar");
         Assert.assertEquals("no index results", false, hits.hasNext());
+        hits.close();
     }
 
     @Test
@@ -68,12 +72,14 @@ public class RestIndexTest extends RestTestBase {
         IndexHits<Relationship> hits = relationshipIndex().get("name", value);
         Assert.assertEquals("index results", true, hits.hasNext());
         Assert.assertEquals(relationship(), hits.next());
+        hits.close();
     }
 
     @Test
     public void testNotFoundInRelationshipIndex() {
         IndexHits<Relationship> hits = relationshipIndex().get("foo", "bar");
         Assert.assertEquals("no index results", false, hits.hasNext());
+        hits.close();
     }
 
     @Test
@@ -86,6 +92,8 @@ public class RestIndexTest extends RestTestBase {
         nodeIndex().remove(node(), "time", value);
         IndexHits<Node> hitsAfterRemove = nodeIndex().get("time", value);
         Assert.assertEquals("not found in index results", false, hitsAfterRemove.hasNext());
+        hits.close();
+        hitsAfterRemove.close();
     }
 
     @Test
@@ -98,6 +106,8 @@ public class RestIndexTest extends RestTestBase {
         relationshipIndex().remove(relationship(), "time", value);
         IndexHits<Relationship> hitsAfterRemove = relationshipIndex().get("time", value);
         Assert.assertEquals("not found in index results", false, hitsAfterRemove.hasNext());
+        hits.close();
+        hitsAfterRemove.close();
     }
 
     private Index<Node> nodeIndex() {
