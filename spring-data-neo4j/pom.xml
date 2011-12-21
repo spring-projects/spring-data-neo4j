@@ -156,6 +156,32 @@
 		    <optional>true</optional>
 		</dependency>
 
+        <!-- Query DSL -->
+        <dependency>
+            <groupId>com.mysema.querydsl</groupId>
+            <artifactId>querydsl-core</artifactId>
+            <version>2.2.3</version>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>com.mysema.querydsl</groupId>
+            <artifactId>querydsl-lucene</artifactId>
+            <version>2.2.3</version>
+            <optional>true</optional>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.apache.lucene</groupId>
+                    <artifactId>lucene-core</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>com.mysema.querydsl</groupId>
+            <artifactId>querydsl-apt</artifactId>
+            <version>2.2.3</version>
+            <scope>provided</scope>
+        </dependency>
+
         <dependency>
           <groupId>com.tinkerpop.blueprints</groupId>
           <artifactId>blueprints-core</artifactId>
@@ -260,6 +286,26 @@
 				<groupId>com.springsource.bundlor</groupId>
 				<artifactId>com.springsource.bundlor.maven</artifactId>
 			</plugin>
+            <plugin>
+                <groupId>com.mysema.maven</groupId>
+                <artifactId>maven-apt-plugin</artifactId>
+                <version>1.0.2</version>
+                <configuration>
+                    <processor>org.springframework.data.neo4j.querydsl.SDNAnnotationProcessor</processor>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>test-sources</id>
+                        <phase>generate-test-sources</phase>
+                        <goals>
+                            <goal>test-process</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>target/generated-sources/test</outputDirectory>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
 
 		</plugins>
 	</build>

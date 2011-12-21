@@ -15,17 +15,26 @@
  */
 package org.springframework.data.neo4j.repository;
 
+import com.mysema.query.types.expr.Param;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.neo4j.cypherdsl.CypherQuery;
+import org.neo4j.cypherdsl.Execute;
 import org.neo4j.cypherdsl.OrderBy;
+import org.neo4j.cypherdsl.query.Expression;
 import org.neo4j.cypherdsl.query.ReturnExpression;
 import org.neo4j.cypherdsl.query.StartExpression;
+import org.neo4j.cypherdsl.query.WhereExpression;
+import org.neo4j.cypherdsl.querydsl.CypherQueryDSL;
+import org.neo4j.cypherdsl.querydsl.QueryDSLReturnExpression;
+import org.neo4j.cypherdsl.querydsl.QueryDSLStartExpression;
+import org.neo4j.cypherdsl.querydsl.QueryDSLWhere;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.neo4j.model.Person;
+import org.springframework.data.neo4j.model.QPerson;
 import org.springframework.data.neo4j.template.Neo4jOperations;
 import org.springframework.test.context.CleanContextCacheTestExecutionListener;
 import org.springframework.test.context.ContextConfiguration;
@@ -57,7 +66,10 @@ public class CypherDslRepositoryTest {
     @Autowired Neo4jOperations template;
     private TestTeam team;
     private Map<String,Object> peopleParams;
-    private OrderBy query = CypherQuery.start(StartExpression.node("n", "people")).returns(ReturnExpression.nodes("n"));
+    private Execute query = CypherQuery.start(StartExpression.node("n", "people")).returns(ReturnExpression.nodes("n"));
+    private Execute query2 = CypherQueryDSL.start(QueryDSLStartExpression.node(QPerson.person, "people")).
+                                            where(QPerson.person.name.eq("Michael")).
+                                            returns(QueryDSLReturnExpression.nodes(QPerson.person));
 
     @Before
     public void setUp() throws Exception {
@@ -75,5 +87,11 @@ public class CypherDslRepositoryTest {
     public void testQuery() throws Exception {
         final List<Person> result = personRepository.query(query, peopleParams).as(List.class);
         assertThat(result, hasItems(team.michael, team.david, team.emil));
+    }
+
+    @Test
+    public void testQueryDSL() throws Exception {
+        final List<Person> michaelOnly = personRepository.query(query2, peopleParams).as(List.class);
+        assertThat(michaelOnly, hasItems(team.michael));
     }
 }

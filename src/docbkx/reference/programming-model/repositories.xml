@@ -258,7 +258,41 @@ Iterable<Person> findByParentAgeAndMarried(int age, boolean married)
 
 	]]></programlisting>
 	        </example>
+
 	    </section>
+        <section>
+            <title>CypherDSL and QueryDSL</title>
+            <para>
+                It is possible to use the Cypher DSL along with the predicates and code generation features of the QueryDSL project. This will allow
+                you to use Java objects as part of the query, rather than strings, for the names of properties and such. In order to get this to work you first have
+                to add a code processor to your Maven build, which will parse your domain entities marked with @NodeEntity, and from that generate QPerson-style classes,
+                as shown in the previous section. Here is what you need to include in your Maven POM file.
+            </para>
+            <programlisting language="xml"><![CDATA[            <plugin>
+                <groupId>com.mysema.maven</groupId>
+                <artifactId>maven-apt-plugin</artifactId>
+                <version>1.0.2</version>
+                <configuration>
+                    <processor>org.springframework.data.neo4j.querydsl.SDNAnnotationProcessor</processor>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>test-sources</id>
+                        <phase>generate-test-sources</phase>
+                        <goals>
+                            <goal>test-process</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>target/generated-sources/test</outputDirectory>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+]]></programlisting>
+            <para>
+                This custom QueryDSL AnnotationProcessor will generate the query classes that can be used when constructing CypherDSL queries, as in the previous section.
+            </para>
+        </section>
 
 <!-- todo spatial repositories, cypherdsl-repositories -->
 
