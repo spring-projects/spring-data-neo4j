@@ -76,7 +76,7 @@
         <dependency>
             <groupId>org.neo4j</groupId>
             <artifactId>neo4j-rest-graphdb</artifactId>
-            <version>1.5</version>
+            <version>1.6-SNAPSHOT</version>
             <exclusions>
                <exclusion>
                    <groupId>org.neo4j</groupId>
@@ -178,8 +178,8 @@
         </dependency>
 
         <dependency>
-            <groupId>com.tinkerpop</groupId>
-            <artifactId>gremlin</artifactId>
+            <groupId>com.tinkerpop.gremlin</groupId>
+            <artifactId>gremlin-groovy</artifactId>
             <optional>true</optional>
         </dependency>
 

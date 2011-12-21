@@ -44,6 +44,11 @@ public class NodeGraphRepositoryImpl<T> extends AbstractGraphRepository<Node, T>
     }
 
     @Override
+    public <R> R createDuplicateRelationshipBetween(T start, Object end, Class<R> relationshipEntityClass, String relationshipType) {
+        return template.createRelationshipBetween(start,end,relationshipEntityClass,relationshipType,true);
+    }
+
+    @Override
     public <R> R getRelationshipBetween(T start, Object end, Class<R> relationshipEntityClass, String relationshipType) {
         return template.getRelationshipBetween(start,end,relationshipEntityClass,relationshipType);
     }

@@ -17,6 +17,7 @@ package org.springframework.data.neo4j.support;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.internal.matchers.IsCollectionContaining;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.neo4j.graphdb.*;
@@ -307,9 +308,9 @@ public class EntityNeo4jTemplateTest extends EntityTestBase {
         assertEquals(friendship.getId(),(Long)getNodeState(testTeam.david).getSingleRelationship(KNOWS, OUTGOING).getId());
         final List<Friendship> friendships = IteratorUtil.addToCollection(friendshipRepository.findAll(), new ArrayList<Friendship>());
         assertEquals(2,friendships.size());
-        assertEquals(testTeam.friendShip,friendships.get(0));
-        assertEquals(friendship,friendships.get(1));
+        assertThat(friendships, IsCollectionContaining.hasItems(testTeam.friendShip, friendship));
     }
+
     @Test @Transactional
     public void testCreateDuplicateRelationshipBetweenNodes() throws Exception {
         neo4jOperations.createRelationshipBetween(testTeam.michael, testTeam.david, Friendship.class, "knows", true);

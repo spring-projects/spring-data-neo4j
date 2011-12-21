@@ -22,6 +22,7 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.neo4j.graphdb.Node;
 import org.neo4j.helpers.collection.IteratorUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -46,14 +47,13 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionCallbackWithoutResult;
 import org.springframework.transaction.support.TransactionTemplate;
 
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Map;
 
 import static java.util.Arrays.asList;
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
+import static org.junit.Assert.*;
 import static org.junit.internal.matchers.IsCollectionContaining.hasItem;
 import static org.junit.internal.matchers.IsCollectionContaining.hasItems;
 import static org.neo4j.helpers.collection.IteratorUtil.addToCollection;
@@ -145,7 +145,7 @@ public class GraphRepositoryTest {
         assertThat( asCollection( teamMembers ), hasItems( testTeam.michael, testTeam.david, testTeam.emil ) );
     }
 
-    @Test @Transactional 
+    @Test @Transactional
     public void testFindIterableOfPersonWithQueryAnnotationSpatial() {
         Iterable<Person> teamMembers = personRepository.findWithinBoundingBox("personLayer", 55, 15, 57, 17);
         assertThat(asCollection(teamMembers), hasItems(testTeam.michael, testTeam.david));
@@ -224,7 +224,7 @@ public class GraphRepositoryTest {
 
     @Test @Transactional 
     public void testFindSortedNull() {
-        Iterable<Person> teamMembers = personRepository.findAllTeamMembersSorted(testTeam.sdg, null);
+        Collection<Person> teamMembers = IteratorUtil.asCollection(personRepository.findAllTeamMembersSorted(testTeam.sdg, null));
         assertThat(teamMembers, hasItems(testTeam.michael, testTeam.emil, testTeam.david));
     }
 
@@ -265,5 +265,12 @@ public class GraphRepositoryTest {
         final Person loaded = personRepository.findOne(testTeam.michael.getId());
         assertEquals(2, IteratorUtil.count(loaded.getFriendships()));
         assertThat(loaded.getFriendships(),hasItem(friendship));
+    }
+
+    @Test @Transactional
+    public void testCreateDuplicateRelationship() {
+        assertEquals(1, IteratorUtil.count(neo4jTemplate.<Node>getPersistentState(testTeam.michael).getRelationships(Person.KNOWS)));
+        personRepository.createDuplicateRelationshipBetween(testTeam.michael, testTeam.david, Friendship.class, "knows");
+        assertEquals(2, IteratorUtil.count(neo4jTemplate.<Node>getPersistentState(testTeam.michael).getRelationships(Person.KNOWS)));
     }
 }
