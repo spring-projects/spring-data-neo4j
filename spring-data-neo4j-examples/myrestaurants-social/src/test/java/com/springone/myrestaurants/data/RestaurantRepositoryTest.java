@@ -2,10 +2,10 @@ package com.springone.myrestaurants.data;
 
 import com.springone.myrestaurants.domain.Restaurant;
 import junit.framework.Assert;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
 import org.springframework.data.neo4j.support.node.Neo4jHelper;
@@ -25,7 +25,7 @@ import java.util.List;
 @DirtiesContext
 public class RestaurantRepositoryTest {
 
-    protected final Log log = LogFactory.getLog(getClass());
+    protected final Logger log = LoggerFactory.getLogger(getClass());
 
     @Autowired
     PlatformTransactionManager transactionManager;

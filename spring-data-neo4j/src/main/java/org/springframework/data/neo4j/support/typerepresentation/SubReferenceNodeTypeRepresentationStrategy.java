@@ -16,13 +16,13 @@
 
 package org.springframework.data.neo4j.support.typerepresentation;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.traversal.TraversalDescription;
 import org.neo4j.helpers.collection.ClosableIterable;
 import org.neo4j.helpers.collection.IterableWrapper;
 import org.neo4j.kernel.Traversal;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.neo4j.core.GraphDatabase;
 import org.springframework.data.neo4j.core.NodeTypeRepresentationStrategy;
 
@@ -40,7 +40,7 @@ import java.util.List;
  * @since 13.09.2010
  */
 public class SubReferenceNodeTypeRepresentationStrategy implements NodeTypeRepresentationStrategy {
-    private final static Log log = LogFactory.getLog(SubReferenceNodeTypeRepresentationStrategy.class);
+    private final static Logger log = LoggerFactory.getLogger(SubReferenceNodeTypeRepresentationStrategy.class);
 
     public final static RelationshipType INSTANCE_OF_RELATIONSHIP_TYPE = DynamicRelationshipType.withName("INSTANCE_OF");
     public final static RelationshipType SUBCLASS_OF_RELATIONSHIP_TYPE = DynamicRelationshipType.withName("SUBCLASS_OF");

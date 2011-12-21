@@ -16,11 +16,11 @@
 
 package org.springframework.data.neo4j.aspects.support.relationship;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.reflect.FieldSignature;
 import org.neo4j.graphdb.Relationship;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.neo4j.annotation.RelationshipEntity;
 import org.springframework.data.neo4j.aspects.core.NodeBacked;
 import org.springframework.data.neo4j.aspects.core.RelationshipBacked;
@@ -41,7 +41,7 @@ import static org.springframework.data.neo4j.support.DoReturn.unwrap;
  */
 public aspect Neo4jRelationshipBacking {
 	
-    protected final Log log = LogFactory.getLog(getClass());
+    protected final Logger log = LoggerFactory.getLogger(getClass());
 
     declare parents : (@RelationshipEntity *) implements RelationshipBacked;
 

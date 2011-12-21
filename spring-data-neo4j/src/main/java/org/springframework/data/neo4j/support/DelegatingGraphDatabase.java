@@ -16,14 +16,14 @@
 
 package org.springframework.data.neo4j.support;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.index.Index;
 import org.neo4j.graphdb.index.IndexManager;
 import org.neo4j.graphdb.traversal.TraversalDescription;
 import org.neo4j.kernel.AbstractGraphDatabase;
 import org.neo4j.kernel.Traversal;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.data.neo4j.annotation.QueryType;
 import org.springframework.data.neo4j.conversion.DefaultConverter;
@@ -50,10 +50,11 @@ import java.util.Map;
  */
 public class DelegatingGraphDatabase implements GraphDatabase {
 
+    private static final Logger log = LoggerFactory.getLogger(DelegatingGraphDatabase.class);
+
     protected GraphDatabaseService delegate;
     private ConversionService conversionService;
     private ResultConverter resultConverter;
-    private static final Log log = LogFactory.getLog(DelegatingGraphDatabase.class);
 
     public DelegatingGraphDatabase(final GraphDatabaseService delegate) {
         this.delegate = delegate;

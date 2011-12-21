@@ -15,8 +15,8 @@
  */
 package org.springframework.data.neo4j.support.mapping;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.neo4j.mapping.EntityInstantiator;
 import org.springframework.data.neo4j.mapping.MappingPolicy;
 import org.springframework.data.persistence.StateBackedCreator;
@@ -36,7 +36,7 @@ import java.util.Map;
  */
 public abstract class AbstractConstructorEntityInstantiator<STATE> implements EntityInstantiator<STATE> {
 
-	private final Log log = LogFactory.getLog(getClass());
+	private final Logger log = LoggerFactory.getLogger(getClass());
 	private final Map<Class<?>, StateBackedCreator<?, STATE>> cache = new HashMap<Class<?>, StateBackedCreator<?, STATE>>();
 
 	@SuppressWarnings("unchecked")

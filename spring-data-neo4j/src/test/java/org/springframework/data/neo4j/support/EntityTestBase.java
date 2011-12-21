@@ -15,13 +15,13 @@
  */
 package org.springframework.data.neo4j.support;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.junit.Before;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.Transaction;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.data.neo4j.model.FriendshipRepository;
@@ -40,7 +40,7 @@ import java.util.Set;
  * @since 15.10.11
  */
 public class EntityTestBase {
-    protected final Log log = LogFactory.getLog(getClass());
+    protected final Logger log = LoggerFactory.getLogger(getClass());
 
     @Autowired protected Neo4jTemplate template;
     @Autowired protected ConversionService conversionService;

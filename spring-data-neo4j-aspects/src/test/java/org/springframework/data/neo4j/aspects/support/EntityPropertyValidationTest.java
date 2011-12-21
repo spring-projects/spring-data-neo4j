@@ -16,10 +16,10 @@
 
 package org.springframework.data.neo4j.aspects.support;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
 import org.springframework.data.neo4j.support.node.Neo4jHelper;
@@ -37,7 +37,7 @@ import static org.springframework.data.neo4j.aspects.Person.persistedPerson;
 
 public class EntityPropertyValidationTest extends EntityTestBase {
 
-	protected final Log log = LogFactory.getLog(getClass());
+	protected final Logger log = LoggerFactory.getLogger(getClass());
 
 	@Autowired
 	private Neo4jTemplate template;

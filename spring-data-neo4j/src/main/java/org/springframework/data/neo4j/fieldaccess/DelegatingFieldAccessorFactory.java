@@ -16,8 +16,8 @@
 
 package org.springframework.data.neo4j.fieldaccess;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.mapping.Association;
 import org.springframework.data.mapping.AssociationHandler;
 import org.springframework.data.mapping.PropertyHandler;
@@ -31,7 +31,7 @@ import java.util.*;
 
 public abstract class DelegatingFieldAccessorFactory implements FieldAccessorFactory {
 
-	private final static Log log = LogFactory.getLog(DelegatingFieldAccessorFactory.class);
+	private final static Logger log = LoggerFactory.getLogger(DelegatingFieldAccessorFactory.class);
 
 	protected final Neo4jTemplate template;
 

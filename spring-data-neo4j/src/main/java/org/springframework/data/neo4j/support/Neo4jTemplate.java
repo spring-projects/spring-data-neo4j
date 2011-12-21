@@ -16,25 +16,12 @@
 
 package org.springframework.data.neo4j.support;
 
-import static org.springframework.data.neo4j.support.ParameterCheck.*;
-
-import java.util.Map;
-
-import javax.annotation.PostConstruct;
-import javax.validation.Validator;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.neo4j.graphdb.DynamicRelationshipType;
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Path;
-import org.neo4j.graphdb.PropertyContainer;
-import org.neo4j.graphdb.Relationship;
-import org.neo4j.graphdb.Transaction;
+import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.index.Index;
 import org.neo4j.graphdb.traversal.TraversalDescription;
 import org.neo4j.helpers.collection.ClosableIterable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
@@ -56,7 +43,6 @@ import org.springframework.data.neo4j.repository.NodeGraphRepositoryImpl;
 import org.springframework.data.neo4j.repository.RelationshipGraphRepository;
 import org.springframework.data.neo4j.support.index.IndexProvider;
 import org.springframework.data.neo4j.support.index.IndexType;
-import org.springframework.data.neo4j.support.mapping.EntityCreatingClosableIterable;
 import org.springframework.data.neo4j.support.mapping.EntityStateHandler;
 import org.springframework.data.neo4j.support.mapping.Neo4jEntityPersister;
 import org.springframework.data.neo4j.support.mapping.Neo4jPersistentEntityImpl;
@@ -69,6 +55,12 @@ import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallback;
 import org.springframework.transaction.support.TransactionTemplate;
+
+import javax.annotation.PostConstruct;
+import javax.validation.Validator;
+import java.util.Map;
+
+import static org.springframework.data.neo4j.support.ParameterCheck.notNull;
 
 /**
  * Mediator class for the graph related services like the {@link GraphDatabaseService}, the used
@@ -83,7 +75,7 @@ import org.springframework.transaction.support.TransactionTemplate;
 TODO This is a  merge of GraphDatabaseContext and the previous Neo4jTemplate, so it still contains inconsistencies, if you spot them, please mark them with a TODO
  */
 public class Neo4jTemplate implements Neo4jOperations, EntityPersister {
-    private static final Log log = LogFactory.getLog(Neo4jTemplate.class);
+    private static final Logger log = LoggerFactory.getLogger(Neo4jTemplate.class);
 
     private MappingInfrastructure infrastructure = new MappingInfrastructure();
 

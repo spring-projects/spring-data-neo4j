@@ -17,8 +17,6 @@
 package org.springframework.data.neo4j.aspects.support.node;
 
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.reflect.FieldSignature;
 import org.neo4j.graphdb.DynamicRelationshipType;
@@ -28,6 +26,8 @@ import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.traversal.TraversalDescription;
 import org.neo4j.graphdb.traversal.Traverser;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.neo4j.annotation.*;
 
 import org.springframework.data.neo4j.aspects.core.NodeBacked;
@@ -61,7 +61,7 @@ import static org.springframework.data.neo4j.support.DoReturn.unwrap;
  */
 public privileged aspect Neo4jNodeBacking { // extends AbstractTypeAnnotatingMixinFields<NodeEntity, NodeBacked> {
 
-    protected final Log log = LogFactory.getLog(getClass());
+    protected final Logger log = LoggerFactory.getLogger(getClass());
 
     declare parents : (@NodeEntity *) implements NodeBacked;
 

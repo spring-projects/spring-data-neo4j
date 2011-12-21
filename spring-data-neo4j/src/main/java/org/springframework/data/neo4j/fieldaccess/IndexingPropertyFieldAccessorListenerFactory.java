@@ -16,11 +16,11 @@
 
 package org.springframework.data.neo4j.fieldaccess;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.neo4j.graphdb.PropertyContainer;
 import org.neo4j.graphdb.index.Index;
 import org.neo4j.index.lucene.ValueContext;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
 
@@ -59,7 +59,7 @@ public class IndexingPropertyFieldAccessorListenerFactory<S extends PropertyCont
 	 */
 	public static class IndexingPropertyFieldAccessorListener<T extends PropertyContainer> implements FieldAccessListener {
 
-	    private final static Log log = LogFactory.getLog( IndexingPropertyFieldAccessorListener.class );
+	    private final static Logger log = LoggerFactory.getLogger(IndexingPropertyFieldAccessorListener.class);
 
 	    protected final String indexKey;
         private final Neo4jPersistentProperty property;

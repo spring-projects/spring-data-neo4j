@@ -16,8 +16,8 @@
 
 package org.springframework.data.neo4j.transaction;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.transaction.*;
 
 import java.util.ArrayList;
@@ -33,7 +33,7 @@ import static java.util.Arrays.asList;
  */
 public class ChainedTransactionManager implements PlatformTransactionManager {
 
-    private final static Log logger = LogFactory.getLog(ChainedTransactionManager.class);
+    private final static Logger logger = LoggerFactory.getLogger(ChainedTransactionManager.class);
 
     private final List<PlatformTransactionManager> transactionManagers;
     private final SynchronizationManager synchronizationManager;

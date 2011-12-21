@@ -53,17 +53,13 @@
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-api</artifactId>
-            <scope>runtime</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>jcl-over-slf4j</artifactId>
-			<scope>compile</scope>
+            <scope>compile</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-log4j12</artifactId>
 			<scope>runtime</scope>
+            <optional>true</optional>
 		</dependency>
 		<dependency>
 			<groupId>log4j</groupId>
@@ -86,7 +82,8 @@
 					<artifactId>jmxri</artifactId>
 				</exclusion>
 			</exclusions>
-			<scope>runtime</scope>
+            <scope>runtime</scope>
+            <optional>true</optional>
 		</dependency>
 
 		<dependency>

@@ -16,9 +16,9 @@
 
 package org.springframework.data.neo4j.fieldaccess;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.neo4j.graphdb.Transaction;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.neo4j.core.EntityState;
 import org.springframework.data.neo4j.mapping.MappingPolicy;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentEntity;
@@ -38,9 +38,10 @@ import static org.springframework.data.neo4j.support.DoReturn.unwrap;
  * @since 15.09.2010
  */
 public class DetachedEntityState<STATE> implements EntityState<STATE> {
+    private final static Logger log = LoggerFactory.getLogger(DetachedEntityState.class);
+
     private final Map<Neo4jPersistentProperty, ExistingValue> dirty = new HashMap<Neo4jPersistentProperty, ExistingValue>();
     protected final EntityState<STATE> delegate;
-    private final static Log log = LogFactory.getLog(DetachedEntityState.class);
     private Neo4jTemplate template;
     private Neo4jPersistentEntity<?> persistentEntity;
 
