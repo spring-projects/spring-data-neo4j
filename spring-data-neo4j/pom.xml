@@ -301,12 +301,19 @@
                             <goal>test-process</goal>
                         </goals>
                         <configuration>
-                            <outputDirectory>target/generated-sources/test</outputDirectory>
+                            <outputDirectory>target/generated-test-sources/querydsl</outputDirectory>
                         </configuration>
                     </execution>
                 </executions>
             </plugin>
 
 		</plugins>
-	</build>
+<!--
+        <testResources>
+            <testResource>
+                <directory>target/generated-test-sources/test</directory>
+            </testResource>
+        </testResources>
+-->
+    </build>
 </project>
