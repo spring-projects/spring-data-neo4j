@@ -83,6 +83,7 @@ public class IndexingRelationshipTypeRepresentationStrategyTest extends EntityTe
         Relationship rel = linkHits.getSingle();
         assertEquals(rel(link), rel);
 		assertEquals(link.getClass().getName(), rel.getProperty("__type__"));
+		linkHits.close();
 	}
 
 	@Test
@@ -104,6 +105,7 @@ public class IndexingRelationshipTypeRepresentationStrategyTest extends EntityTe
 
         IndexHits<Relationship> linkHits = typesIndex.get(IndexingNodeTypeRepresentationStrategy.INDEX_KEY, link.getClass().getName());
         assertNull(linkHits.getSingle());
+        linkHits.close();
 	}
 
 	@Test

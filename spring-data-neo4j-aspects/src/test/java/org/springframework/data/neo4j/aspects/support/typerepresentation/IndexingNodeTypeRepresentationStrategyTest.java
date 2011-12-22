@@ -81,6 +81,8 @@ public class IndexingNodeTypeRepresentationStrategyTest extends EntityTestBase {
 		assertEquals(node(subThing), subThingHits.getSingle());
 		assertEquals(thing.getClass().getName(), node(thing).getProperty(IndexingNodeTypeRepresentationStrategy.TYPE_PROPERTY_NAME));
 		assertEquals(subThing.getClass().getName(), node(subThing).getProperty(IndexingNodeTypeRepresentationStrategy.TYPE_PROPERTY_NAME));
+		thingHits.close();
+		subThingHits.close();
 	}
 
 	@Test
