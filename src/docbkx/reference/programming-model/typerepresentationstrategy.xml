@@ -21,11 +21,9 @@
                 </para>
                 <para>
                     Stores entity types in the integrated index. Each entity node gets indexed with its type and
-                    any supertypes that are also<code>@NodeEntity</code>-annotated. The special index used for this
-                    is called<code>__types__</code>. Additionally, in order to get the type of an entity node, each
-                    node has a property
-                    <code>__type__</code>
-                    with the fully qualified type of that entity.
+                    all supertypes that are also <code>@NodeEntity</code>-annotated. The special index used for this
+                    is named <code>__types__</code>. Additionally, in order to retrieve the type of an entity node, each
+                    node has a property <code>__type__</code> with the fully qualified type of that entity.
                 </para>
             </listitem>
             <listitem>
@@ -56,6 +54,12 @@
             <listitem>
                 <para>
                     <code>IndexingRelationshipTypeRepresentationStrategy</code>
+                </para>
+                <para>
+                    Stores relationship entity types in the integrated index. Each entity relationship gets indexed with its type and
+                    all supertypes that are also <code>@RelationshipEntity</code>-annotated. The special index used for this
+                    is named <code>__rel_types__</code>. Additionally, in order to retrieve the type of an entity relationship, each
+                    relationship has a property <code>__type__</code> with the fully qualified type of that entity.
                 </para>
             </listitem>
             <listitem>
