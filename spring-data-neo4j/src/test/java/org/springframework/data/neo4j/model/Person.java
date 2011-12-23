@@ -26,6 +26,7 @@ import javax.validation.constraints.Min;
 import javax.validation.constraints.Size;
 import java.util.Date;
 import java.util.Map;
+import java.util.Set;
 
 
 @NodeEntity
@@ -88,6 +89,23 @@ public class Person {
 
     @Query("start person=node({self}) match (person)<-[:persons]-(team)-[:persons]->(member) return member.name?, member.age?")
     private Iterable<Map<String,Object>> otherTeamMemberData;
+
+    @RelatedTo(elementClass = Group.class, type = "interface_test", direction = Direction.OUTGOING)
+    private Set<IGroup> groups;
+
+    RootEntity root;
+
+    public RootEntity getRoot() {
+        return root;
+    }
+
+    public void setRoot(RootEntity root) {
+        this.root = root;
+    }
+
+    public Set<IGroup> getGroups() {
+        return groups;
+    }
 
     public Person(Node n) {
         this.graphId = n.getId();

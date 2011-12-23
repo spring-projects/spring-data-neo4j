@@ -1,6 +1,12 @@
 Spring Data Graph Changelog
 ===========================
 
+Changes in version 2.0.0.RELEASE (2011-12-23)
+---------------------------------------------
+* Updated Neo4j to 1.6.M02, SpringFramework to 3.0.7.RELEASE, Spring-Data-Commons to 1.2.0.RELEASE
+* updated documentation and examples
+*
+
 Changes in version 2.0.0.RC1 (2011-11-11)
 -----------------------------------------
 * Updated Neo4j to 1.5 AspectJ to 1.6.12

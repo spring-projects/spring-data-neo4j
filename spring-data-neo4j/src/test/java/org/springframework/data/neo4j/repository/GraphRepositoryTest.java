@@ -31,6 +31,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.neo4j.model.Friendship;
 import org.springframework.data.neo4j.model.Group;
 import org.springframework.data.neo4j.model.Person;
+import org.springframework.data.neo4j.model.RootEntity;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
 import org.springframework.data.neo4j.support.conversion.NoSuchColumnFoundException;
 import org.springframework.data.neo4j.support.node.Neo4jHelper;
@@ -272,5 +273,32 @@ public class GraphRepositoryTest {
         assertEquals(1, IteratorUtil.count(neo4jTemplate.<Node>getPersistentState(testTeam.michael).getRelationships(Person.KNOWS)));
         personRepository.createDuplicateRelationshipBetween(testTeam.michael, testTeam.david, Friendship.class, "knows");
         assertEquals(2, IteratorUtil.count(neo4jTemplate.<Node>getPersistentState(testTeam.michael).getRelationships(Person.KNOWS)));
+    }
+
+    @Test @Transactional
+    public void testUseInterfaceInRelationships() {
+        final Person p = neo4jTemplate.save(new Person());
+        final Group group = neo4jTemplate.save(new Group());
+        neo4jTemplate.createRelationshipBetween(neo4jTemplate.<Node>getPersistentState(p),neo4jTemplate.<Node>getPersistentState(group),"interface_test",null);
+        final Person p2 = neo4jTemplate.fetch(p);
+        assertEquals(group,IteratorUtil.firstOrNull(p2.getGroups()));
+    }
+
+    @Test @Transactional
+    public void testConnectToRootEntity() {
+        final Node referenceNode = neo4jTemplate.getReferenceNode();
+        neo4jTemplate.postEntityCreation(referenceNode,RootEntity.class);
+        final RootEntity root = neo4jTemplate.findOne(referenceNode.getId(), RootEntity.class);
+        root.setRootName("RootName");
+        neo4jTemplate.save(root);
+        assertEquals(referenceNode.getId(), (long) root.getId());
+        assertEquals("RootName", referenceNode.getProperty("rootName"));
+        assertEquals("RootName", root.getRootName());
+
+        final Person person = new Person();
+        person.setRoot(root);
+        neo4jTemplate.save(person);
+        final Person p2 = neo4jTemplate.findOne(person.getId(), Person.class);
+        assertEquals(root.getId(),p2.getRoot().getId());
     }
 }

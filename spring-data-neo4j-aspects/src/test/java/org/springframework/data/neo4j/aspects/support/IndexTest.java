@@ -65,6 +65,7 @@ public class IndexTest extends EntityTestBase {
         assertEquals(friendship, friendshipFinder.findByPropertyValue("Friendship.years", 1));
     }
 
+
     @Test
     @Transactional
     public void testGetRelationshipFromLookedUpNode() {
