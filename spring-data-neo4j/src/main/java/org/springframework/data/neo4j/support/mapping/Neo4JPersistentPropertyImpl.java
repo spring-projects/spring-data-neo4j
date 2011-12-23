@@ -34,6 +34,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.Collection;
 import java.util.IdentityHashMap;
+import java.util.Iterator;
 import java.util.Map;
 
 /**
@@ -260,14 +261,15 @@ class Neo4jPersistentPropertyImpl extends AbstractPersistentProperty<Neo4jPersis
     }
     @Override
     public boolean isEntity() {
-        return super.isEntity() && (hasRelationshipEntityType() || hasNodeEntityType());
+        return super.isEntity() && (isRelationshipEntity(getType()) || isNodeEntity(getType()));
     }
 
-    private boolean hasRelationshipEntityType() {
-        return getType().isAnnotationPresent(RelationshipEntity.class);
+    private boolean isRelationshipEntity(final Class<?> type) {
+        return type.isAnnotationPresent(RelationshipEntity.class);
     }
-    private boolean hasNodeEntityType() {
-        return getType().isAnnotationPresent(NodeEntity.class);
+
+    private boolean isNodeEntity(Class<?> type) {
+        return type.isAnnotationPresent(NodeEntity.class);
     }
 
     public String getIndexKey() {
@@ -299,5 +301,18 @@ class Neo4jPersistentPropertyImpl extends AbstractPersistentProperty<Neo4jPersis
     @Override
     public boolean isTransient() {
         return false;
+    }
+
+    @Override
+    public Iterable<? extends TypeInformation<?>> getPersistentEntityType() {
+        final Iterable<? extends TypeInformation<?>> result = super.getPersistentEntityType();
+        for (Iterator<? extends TypeInformation<?>> it = result.iterator(); it.hasNext(); ) {
+            final TypeInformation<?> typeInformation = it.next();
+            final Class type = typeInformation.getType();
+            if (isNodeEntity(type) || isRelationshipEntity(type)) continue;
+            System.out.println("removing "+getName()+" "+type+" "+typeInformation.getActualType().getType());
+            it.remove();
+        }
+        return result;
     }
 }
