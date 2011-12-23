@@ -16,7 +16,7 @@
     <listitem><para>git command line</para></listitem>
     <listitem><para>maven-based project</para></listitem>
     <listitem><para>standard Spring MV Servlet application</para></listitem>
-    <listitem><para>well, and Spring Data Neo4j</para></listitem>
+    <listitem><para>well, and Spring Data Neo4j REST</para></listitem>
   </itemizedlist>
 
   <para>
@@ -68,11 +68,11 @@
                   </example>
     <para>
       We could provide a complicated command-line to Heroku to launch the app. Instead, we'll simplify
-      the command-line by using the appassembler-maven-plugin to create a launch script. Add the plugin
-      to your pom's build/plugins section:
+      the command-line by using the <code>appassembler-maven-plugin</code> to create a launch script. Add the plugin
+      to your pom's <code>build/plugins</code> section:
     </para>
       <example>
-          <title>REST-Client configuration - pom.xml</title>
+          <title>appassembler-maven-plugin configuration pom.xml</title>
           <programlisting language="xml"><![CDATA[
 <plugin>
 <groupId>org.codehaus.mojo</groupId>
@@ -136,11 +136,11 @@ public class Main {
       to Neo4j itself.
     </para>
     <para>
-      In the SDN Todos example, <code>src/main/resources/META-INF/spring/applicationContext-graph.xml</code>
+      In the SDN Todos example, <code>src/main/resources/META-INF/spring/ applicationContext-graph.xml</code>
       was modified to look like this:
     </para>
       <example>
-          <title>Spring configuration - applicationContext-graph.xml</title>
+          <title>Spring Data Neo4j REST configuration - applicationContext-graph.xml</title>
           <programlisting language="xml"><![CDATA[
 <neo4j:config graphDatabaseService="graphDatabaseService"/>
 <bean id="graphDatabaseService"
@@ -162,8 +162,7 @@ public class Main {
 export NEO4J_REST_URL=http://localhost:7474/db/data
 export NEO4J_LOGIN=""
 export NEO4J_PASSWORD=""
-      </dependency>
-      ]]></programlisting>
+]]></programlisting>
                   </example>
     <para>
       Now you can launch the app by running <code>sh target/bin/webapp</code>. If running the SDN Todos
@@ -171,7 +170,7 @@ export NEO4J_PASSWORD=""
       JSON array, since no todos have been created yet.
     </para>
     <para>
-      For details about the <code>todos</code> script, see the readmen included with the example.
+      For details about the <code>todos</code> script, see the <code>readme</code> included with the example.
     </para>
   </section>
 
@@ -179,7 +178,7 @@ export NEO4J_PASSWORD=""
     <title>Deploy to Heroku</title>
     <para>
       With a self-hosted application ready, deploying to Heroku needs a few more steps. First,
-      create a <code>Profile</code> at the top-level of the project, which will contain a single
+      create a <code>Procfile</code> at the top-level of the project, which will contain a single
       line identifying the command line which launches the application.
     </para>
     <para>
