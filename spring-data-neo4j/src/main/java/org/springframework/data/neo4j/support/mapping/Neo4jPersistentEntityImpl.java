@@ -59,7 +59,12 @@ public class Neo4jPersistentEntityImpl<T> extends BasicPersistentEntity<T, Neo4j
     @Override
     public void verify() {
         super.verify();
-        if (!isManaged() && getIdProperty()==null) throw new MappingException("No id property in "+this);
+        if (isManaged()) {
+            return;
+        }
+        final Neo4jPersistentProperty idProperty = getIdProperty();
+        if (idProperty == null) throw new MappingException("No id property in " + this);
+        if (idProperty.getType().isPrimitive()) throw new MappingException("The type of the id-property in " + idProperty+" must not be a primitive type but an object type like java.lang.Long");
     }
 
     public boolean useShortNames() {

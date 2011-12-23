@@ -7,7 +7,7 @@
   <version>2.0.0-BUILD-SNAPSHOT</version>
   <name>imdb</name>
   <properties>
-    <spring.version>3.0.6.RELEASE</spring.version>
+    <spring.version>3.0.7.RELEASE</spring.version>
     <aspectj.version>1.6.12</aspectj.version>
     <slf4j.version>1.6.1</slf4j.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

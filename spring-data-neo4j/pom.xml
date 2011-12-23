@@ -177,8 +177,8 @@
         </dependency>
 
         <dependency>
-          <groupId>com.tinkerpop</groupId>
-          <artifactId>gremlin</artifactId>
+          <groupId>com.tinkerpop.gremlin</groupId>
+          <artifactId>gremlin-groovy</artifactId>
           <optional>true</optional>
         </dependency>
 

@@ -108,7 +108,7 @@ public class DataGraphNamespaceHandlerTest {
         Neo4jTemplate template = config.neo4jTemplate;
         Assert.assertNotNull("template", template);
         AbstractGraphDatabase graphDatabaseService = (AbstractGraphDatabase) template.getGraphDatabaseService();
-        Assert.assertEquals("store-dir", "target/config-test", graphDatabaseService.getStoreDir());
+        Assert.assertTrue("store-dir", graphDatabaseService.getStoreDir().endsWith("target/config-test"));
         Assert.assertNotNull("graphDatabaseService",config.graphDatabaseService);
         Assert.assertNotNull("transactionManager",config.transactionManager);
         config.graphDatabaseService.shutdown();

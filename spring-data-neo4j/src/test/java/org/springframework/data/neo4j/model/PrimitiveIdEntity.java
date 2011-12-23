@@ -13,15 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.neo4j.repository;
+package org.springframework.data.neo4j.model;
+
+import org.springframework.data.neo4j.annotation.GraphId;
+import org.springframework.data.neo4j.annotation.NodeEntity;
 
 /**
  * @author mh
- * @since 05.11.11
+ * @since 14.12.11
  */
-public interface RelationshipOperationsRepository<T> {
-    <R> R createRelationshipBetween(T start, Object end, Class<R> relationshipEntityClass, String relationshipType);
-    <R> R createDuplicateRelationshipBetween(T start, Object end, Class<R> relationshipEntityClass, String relationshipType);
-    <R> R getRelationshipBetween(T start, Object end, Class<R> relationshipEntityClass, String relationshipType);
-    void deleteRelationshipBetween(T start, Object end, String type);
+@NodeEntity
+public class PrimitiveIdEntity {
+    @GraphId long id;
 }

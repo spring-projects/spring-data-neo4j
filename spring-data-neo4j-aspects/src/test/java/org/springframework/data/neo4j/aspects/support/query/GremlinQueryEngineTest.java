@@ -66,7 +66,7 @@ public class GremlinQueryEngineTest extends EntityTestBase {
     @Test
     @Transactional
     public void testQueryList() throws Exception {
-        final String queryString = "t = new Table(); [g.v(michael),g.v(david)].each{ n -> n.as('person.name').as('person.age').table(t,['person.name','person.age']){ it.age }{ it.name } >> -1}; t;" ;
+        final String queryString = "t = new Table(); [g.v(michael),g.v(david)].each{ n -> n.as('person.name').as('person.age').table(t,['person.name','person.age']){ it.age }{ it.name }.iterate()}; t;" ;
         final Collection<Object> result = IteratorUtil.asCollection(queryEngine.query(queryString, MapUtil.map("michael", getNodeId(michael), "david", getNodeId(testTeam.david))));
 
         assertEquals(asList(testTeam.simpleRowFor(michael, "person"), testTeam.simpleRowFor(testTeam.david, "person")), result);

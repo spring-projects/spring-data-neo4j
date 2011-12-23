@@ -32,7 +32,7 @@
             <example>
                 <title>Project pom.xml</title>
                 <programlisting language="xml"><![CDATA[<properties>
-    <spring.version>3.0.6.RELEASE</spring.version>
+    <spring.version>3.0.7.RELEASE</spring.version>
 </properties>
 
 <dependencies>

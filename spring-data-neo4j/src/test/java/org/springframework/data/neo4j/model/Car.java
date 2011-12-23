@@ -23,7 +23,7 @@ import org.springframework.data.neo4j.annotation.NodeEntity;
 @NodeEntity
 public abstract class Car {
 	@GraphId
-    long id;
+    Long id;
     public Car() {
 	}
 
