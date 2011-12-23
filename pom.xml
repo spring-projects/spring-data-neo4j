@@ -161,6 +161,7 @@
            		<module>spring-data-neo4j-examples/cineasts-aspects</module>
            		<module>spring-data-neo4j-examples/cineasts-rest</module>
            		<module>spring-data-neo4j-examples/myrestaurants-social</module>
+           		<module>spring-data-neo4j-examples/todos</module>
            	</modules>
         </profile>
 		<profile>
