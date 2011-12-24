@@ -14,7 +14,7 @@
 		<spring.version>3.0.7.RELEASE</spring.version>
 		<slf4j.version>1.6.1</slf4j.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<spring-data-graph.version>2.0.0.RELEASE</spring-data-graph.version>
+		<spring-data-graph.version>2.1.0.BUILD-SNAPSHOT</spring-data-graph.version>
 		<org.slf4j-version>1.6.1</org.slf4j-version>
         <aspectj.version>1.6.12</aspectj.version>
         <neo4j.version>1.6.M02</neo4j.version>
