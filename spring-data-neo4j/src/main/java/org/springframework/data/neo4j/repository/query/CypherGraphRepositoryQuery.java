@@ -23,8 +23,6 @@ import org.springframework.data.neo4j.support.query.QueryEngine;
 import org.springframework.data.repository.query.ParameterAccessor;
 import org.springframework.data.repository.query.Parameters;
 
-import java.util.Map;
-
 /**
  * @author mh
  * @since 31.10.11
@@ -66,6 +64,7 @@ class CypherGraphRepositoryQuery extends GraphRepositoryQuery {
     private String getSortOrder(Sort sort) {
         String result = "";
         for (Sort.Order order : sort) {
+            if (!result.isEmpty()) result += ", ";
             result += order.getProperty() + " " + order.getDirection();
         }
         return result;

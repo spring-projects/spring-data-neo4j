@@ -195,7 +195,7 @@ public class GraphRepositoryTest {
 
     @Test @Transactional 
     public void testFindPaged() {
-        final PageRequest page = new PageRequest(0, 1, Sort.Direction.ASC, "member.name");
+        final PageRequest page = new PageRequest(0, 1, Sort.Direction.ASC, "member.name","member.age");
         Page<Person> teamMemberPage1 = personRepository.findAllTeamMembersPaged(testTeam.sdg, page);
         assertThat(teamMemberPage1, hasItem(testTeam.david));
     }
