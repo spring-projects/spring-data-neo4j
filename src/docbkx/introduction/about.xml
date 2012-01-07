@@ -60,6 +60,10 @@
             answers.
         </para>
         <para>
+			Many thanks to our colleagues David Montag, Andreas Kollegger and Rickard Öberg who not only contributed to
+			Spring Data Neo4j but also provided content and feedback for this book.
+        </para>
+        <para>
             We also appreciate very much the foresight of Rod Johnson and Emil Eifrem to initiate the project, and now
             also providing great forewords. Their leadership inspired collaboration between the engineering teams at
             SpringSource and Neo Technology, a tremendous help during the making of Spring Data Neo4j.
