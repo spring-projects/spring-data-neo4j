@@ -55,6 +55,7 @@ import java.util.Map;
 import static java.util.Arrays.asList;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 import static org.junit.internal.matchers.IsCollectionContaining.hasItem;
 import static org.junit.internal.matchers.IsCollectionContaining.hasItems;
 import static org.neo4j.helpers.collection.IteratorUtil.addToCollection;
@@ -222,6 +223,24 @@ public class GraphRepositoryTest {
         Iterable<Person> teamMembers = personRepository.findAllTeamMembersSorted(testTeam.sdg, sort);
         assertEquals(asList(testTeam.michael, testTeam.emil, testTeam.david), asCollection(teamMembers));
     }
+
+    @Test
+    @Transactional
+    public void testGetStoredJavaType() {
+        Person p = personRepository.save(new Person());
+        assertEquals(Person.class, personRepository.getStoredJavaType(p));
+        assertEquals(Person.class, personRepository.getStoredJavaType(neo4jTemplate.getPersistentState(p)));
+        assertEquals(null, personRepository.getStoredJavaType(new Person()));
+    }
+    @Test
+    @Transactional
+    public void testTemplateGetStoredJavaType() {
+        Person p = neo4jTemplate.save(new Person());
+        assertEquals(Person.class, neo4jTemplate.getStoredJavaType(p));
+        assertEquals(Person.class, neo4jTemplate.getStoredJavaType(neo4jTemplate.getPersistentState(p)));
+        assertEquals(null, neo4jTemplate.getStoredJavaType(new Person()));
+    }
+
 
     @Test @Transactional 
     public void testFindSortedNull() {

@@ -16,22 +16,9 @@
 
 package org.springframework.data.neo4j.support;
 
-import static org.springframework.data.neo4j.support.ParameterCheck.*;
-
-import java.util.Map;
-
-import javax.annotation.PostConstruct;
-import javax.validation.Validator;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.neo4j.graphdb.DynamicRelationshipType;
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Path;
-import org.neo4j.graphdb.PropertyContainer;
-import org.neo4j.graphdb.Relationship;
-import org.neo4j.graphdb.Transaction;
+import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.index.Index;
 import org.neo4j.graphdb.traversal.TraversalDescription;
 import org.neo4j.helpers.collection.ClosableIterable;
@@ -69,6 +56,12 @@ import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallback;
 import org.springframework.transaction.support.TransactionTemplate;
+
+import javax.annotation.PostConstruct;
+import javax.validation.Validator;
+import java.util.Map;
+
+import static org.springframework.data.neo4j.support.ParameterCheck.notNull;
 
 /**
  * Mediator class for the graph related services like the {@link GraphDatabaseService}, the used
@@ -629,5 +622,12 @@ public class Neo4jTemplate implements Neo4jOperations, EntityPersister {
     public MappingPolicy getMappingPolicy(Object entity) {
         ParameterCheck.notNull(entity,"entity");
         return getMappingPolicy(entity.getClass());
+    }
+
+    @Override
+    public Class getStoredJavaType(Object entity) {
+        final PropertyContainer container = entity instanceof PropertyContainer ? (PropertyContainer)entity: getPersistentState(entity);
+        if (container==null) return null;
+        return getInfrastructure().getTypeRepresentationStrategies().getJavaType(container);
     }
 }

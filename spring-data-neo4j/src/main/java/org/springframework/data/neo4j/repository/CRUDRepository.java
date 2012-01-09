@@ -122,4 +122,6 @@ public interface CRUDRepository<T> extends PagingAndSortingRepository<T, Long> {
      */
     Page<T> findAll(Pageable pageable);
 
+    Class getStoredJavaType(Object entity);
+
 }
