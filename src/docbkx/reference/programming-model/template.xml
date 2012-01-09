@@ -7,7 +7,7 @@
     <para>
         The <code>Neo4jTemplate</code> offers the convenient API of Spring templates for the Neo4j graph
         database. The Spring Data Neo4j Object Graph mapping builds upon the core functionality of the 
-		template to persist objects to the graph and load them in a variety of ways. 
+		template to persist objects to the graph and load them in a variety of ways.
 		The template handles the active mapping mode (<xref linkend="reference:mapping"/>) transparently.
     </para>
     <para>
@@ -18,6 +18,24 @@
 
     <xi:include href="../../snippets/SnippetNeo4jTemplateMethods.xml"/>
     <section>
+        <title>Core-Operations</title>
+        <para>
+            <code>Neo4jTemplate</code> provides access to some of the methods of the Neo4j-Core-API directly. So accessing
+            nodes and relationships (<code>getReferenceNode, getNode, getRelationship, getRelationshipBetween</code>),
+            creating nodes and relationships (<code>createNode, createNodeAs, createRelationshipBetween</code>)
+            and deleting them (<code>delete, deleteRelationshipBetween</code>) are supported. It also provides access to
+            the underlying GraphDatabase via <code>getGraphDatabase</code>.
+        </para>
+    </section>
+    <section>
+        <title>Entity-Persistence</title>
+        <para>
+            <code>Neo4jTemplate</code> allows to <code>save</code>,<code>find(One/All)</code>,<code>count</code><code>delete</code>
+            and <code>projectTo</code> entities. It provides the stored type information via <code>getStoredJavaType</code>
+            and can <code>fetch</code> lazy-loaded entities or <code>load</code> them alltogether.
+        </para>
+    </section>
+    <section>
         <title>Result</title>
         <para>
             All querying methods of the template return a uniform result type: <code>Result&lt;T&gt;</code>
@@ -26,7 +44,7 @@
             <code>ResultConverter&lt;FROM,TO&gt;</code> which takes care of custom conversions. By default most
             query methods can already handle conversions from and to: Paths, Nodes, Relationship and GraphEntities
             as well as conversions backed by registered ConversionServices. A converted <code>Result&lt;FROM&gt;</code> is an
-            <code>Iterable&lt;TO&gt;</code>. Results can be limited to a single value using the 
+            <code>Iterable&lt;TO&gt;</code>. Results can be limited to a single value using the
 			<code>result.single() or result.singleOrNull()</code>
             methods. It also offers support for a pure callback function using a <code>Handler&lt;T&gt;</code>.
         </para>
