@@ -29,10 +29,6 @@
 	            <firstname>Michael</firstname>
 	            <surname>Hunger</surname>
 	        </author>
-	        <author>
-	            <firstname>David</firstname>
-	            <surname>Montag</surname>
-	        </author>
 	    </authorgroup>
 
 	    <legalnotice>
@@ -134,6 +130,7 @@
         <xi:include href="reference/setup.xml"/>
         <xi:include href="reference/cross-store.xml"/>
         <xi:include href="reference/samples.xml"/>
+        <xi:include href="reference/heroku.xml"/>
         <xi:include href="reference/performance.xml" />
         <xi:include href="reference/aspectj-details.xml" />
         <xi:include href="reference/neo4j-server.xml" />

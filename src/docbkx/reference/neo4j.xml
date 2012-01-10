@@ -160,7 +160,8 @@ for (Node foundNode : nodeIndex.get("property","value")) {
             <ulink url="http://docs.neo4j.org/chunked/milestone/cypher-query-lang.html">"Cypher"</ulink> which draws from many
             sources. It resembles SQL but with an iconic representation of patterns in the graph (concepts drawn from SPARQL).
             The Cypher execution engine was written in Scala to leverage the high expressiveness for lazy sequence operations of the language and the
-            parser combinator library.
+            parser combinator library. A screencast explaining the possibilities in detail can be found on the 
+			<ulink url="http://video.neo4j.org/ybMbf/screencast-introduction-to-cypher/">Neo4j video site</ulink>.
         </para>
         <para>
             Cypher queries always begin with a <code>start</code> set of nodes. Those can be either expressed by their

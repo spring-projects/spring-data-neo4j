@@ -7,7 +7,7 @@
 	<name>Spring Data Neo4j Distribution</name>
     <description><![CDATA[Within the Spring Data project the Spring Data Neo4j library provides integration with the Neo4j graph database, offering object graph mapping, a Neo4jTemplate and Spring-Data-Commons Repository implementations.
     ]]></description>
-	<version>2.0.0.BUILD-SNAPSHOT</version>
+	<version>2.1.0.BUILD-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	<modules>
 		<module>spring-data-neo4j-parent</module>
@@ -161,6 +161,7 @@
            		<module>spring-data-neo4j-examples/cineasts-aspects</module>
            		<module>spring-data-neo4j-examples/cineasts-rest</module>
            		<module>spring-data-neo4j-examples/myrestaurants-social</module>
+           		<module>spring-data-neo4j-examples/todos</module>
            	</modules>
         </profile>
 		<profile>
@@ -243,7 +244,7 @@
 			</build>
 		</profile>
 	</profiles>
-	<!--distributionManagement>
+	<distributionManagement>
 		<downloadUrl>http://www.springsource.com/spring-data</downloadUrl>
 		<site>
 			<id>static.springframework.org</id>
@@ -259,7 +260,7 @@
 			<name>Spring Snapshot Repository</name>
 			<url>s3://maven.springframework.org/snapshot</url>
 		</snapshotRepository>
-	</distributionManagement-->
+	</distributionManagement>
 	<build>
 		<extensions>
 			<extension>

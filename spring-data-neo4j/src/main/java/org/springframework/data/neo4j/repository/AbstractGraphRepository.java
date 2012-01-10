@@ -315,6 +315,11 @@ public abstract class AbstractGraphRepository<S extends PropertyContainer, T> im
     }
 
     @Override
+    public Class getStoredJavaType(Object entity) {
+        return template.getStoredJavaType(entity);
+    }
+
+    @Override
     public void delete(T entity) {
         template.delete(entity);
     }

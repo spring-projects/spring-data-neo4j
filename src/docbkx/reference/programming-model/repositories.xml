@@ -155,7 +155,7 @@
         </section>
         <section>
             <title>Cypher examples</title>
-            <para>There is a <ulink url="http://neo4j.vidcaster.com/U2Y/introduction-to-cypher">screencast</ulink> available showing many features of the query language.
+            <para>There is a <ulink url="http://video.neo4j.org/ybMbf/screencast-introduction-to-cypher">screencast</ulink> available showing many features of the query language.
                 The following examples are taken from the cineasts dataset of the tutorial section.
                 <variablelist>
                     <varlistentry>
@@ -190,7 +190,7 @@
 					name can be split into its semantic parts and converted into a cypher query. 
 					<code>@Indexed</code> fields will be converted into index-lookups of the <code>start</code> clause, 
 					navigation along relationships will be reflected in the <code>match</code> clause properties with operators will end up as expressions in the
-					<code>where</code> clause. Order and limiting of the query will by handled by provided <code>Pageable</code> or <Sort></Sort> parameters.
+					<code>where</code> clause. Order and limiting of the query will by handled by provided <code>Pageable</code> or <code>Sort</code> parameters.
 					The other parameters will be used in the order they appear in the method signature so that should align with the expressions stated in the method name.
 				</para>
 				<para>

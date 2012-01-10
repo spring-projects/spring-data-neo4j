@@ -66,7 +66,7 @@ public void foo( @Context WorldRepository repo ) {
 }
 ]]></programlisting>
             </example>
-            The <code>SpringPluginInitializer</code> merges the GraphDatabaseService with the Spring configuration
+            The <code>SpringPluginInitializer</code> merges the server provided <code>GraphDatabaseService</code> with the Spring configuration
             and registers the named beans as Jersey <code>Injectables</code>. It is still necessary to list the
             initializer's fully qualified class name in a file named
             <code>META-INF/services/org.neo4j.server.plugins.PluginLifecycle</code>. The Neo4j Server can then pick
@@ -76,21 +76,27 @@ public void foo( @Context WorldRepository repo ) {
     <section>
         <title>Using Spring Data Neo4j as a REST client</title>
         <para>
-            Spring Data Neo4j can use a set of Java REST bindings which come as a drop in replacement for the
-            GraphDatabaseService API. By simply configuring the <code>graphDatabaseService</code> to be a
-            <code>RestGraphDatabase</code> pointing to a Neo4j Server instance.
+            To use REST-API the Neo4j Server exposes, one would either go with REST libraries on the lower level or choose one of the Neo4j related
+            rest drivers in various languages. For Java Neo4j provides the <ulink url="https://github.com/neo4j/java-rest-binding">Neo4j Java REST bindings</ulink>
+            which come as a drop in replacement for the <code>GraphDatabaseService</code> API. Spring Data Neo4j REST uses those bindings to provide seamless
+            access to a remote Neo4j Database.
+        </para>
+        <para>
+            By simply configuring the <code>graphDatabaseService</code> to be a <code>SpringRestGraphDatabase</code> pointing to a Neo4j Server instance and
+            referring to that from <code>&lt;neo4j:config&gt;</code> Spring Data Neo4j will use the server side database for both the simple mapping as
+            well as the advanced mapping.
         </para>
         <note>
             <para>
                 The Neo4j Server REST API does not allow for transactions to span across requests, which means
-                that Spring Data Neo4j is not transactional when running with a <code>RestGraphDatabase</code>.
+                that Spring Data Neo4j is not transactional across multiple operations when running with a <code>SpringRestGraphDatabase</code>.
             </para>
         </note>
         <para>
             Please also keep in mind that performing graph operations via the REST-API is about one order of
             magnitude slower than local operations. Try to use the Neo4j Cypher query language,
             server-side traversals (<code>RestTraversal</code>) or Gremlin expressions whenever possible for retrieving large sets of data.
-            Future versions of Spring Data Neo4j will use the more performant batching as well as a binary protocol.
+            Future versions of Spring Data Neo4j will use the more performant batch API as well as a binary protocol.
         </para>
         <para>
         To set up your project to use the REST bindings, add this dependency to your pom.xml:
@@ -100,7 +106,7 @@ public void foo( @Context WorldRepository repo ) {
 <dependency>
   <groupId>org.springframework.data</groupId>
   <artifactId>spring-data-neo4j-rest</artifactId>
-  <version>2.0.0.RC1</version>
+  <version>2.0.0.RELEASE</version>
 </dependency>
 ]]></programlisting>
             </example>
@@ -111,18 +117,22 @@ public void foo( @Context WorldRepository repo ) {
                 <programlisting language="xml"><![CDATA[<neo4j:config graphDatabaseService="graphDatabaseService"/>
 
 <bean id="graphDatabaseService" class="org.springframework.data.neo4j.rest.SpringRestGraphDatabase">
-    <constructor-arg value="http://localhost:7474/db/data/"/>
+    <constructor-arg value="http://localhost:7474/db/data/" index="0"/>
+<!-- for running against a server requiring authentication
+    <constructor-arg value="username" index="1"/>
+    <constructor-arg value="password" index="2"/>
+-->
 </bean>
 ]]></programlisting>
             </example>
             Your project is now set up to work against a remote Neo4j Server.
         </para>
         <para>
-            The remote REST implementation works for both the Neo4jTemplate as well as the GraphEntities. For traversals
-            and Cypher graph queries it is sensible to forward those to the remote endpoint and execute them there instead of
-            walking the graph over the wire. RestGraphDatabase already supports that by providing methods that forward
+            For traversals and Cypher and Gremlin graph queries it is sensible to forward those to the remote endpoint and execute them there
+            instead of walking the graph over the wire. SpringRestGraphDatabase already supports that by providing methods that forward
             to the remote instance. (e.g. <code>queryEngineFor(), index() and createTraversalDescription()</code>).
-            Please use those methods when interacting with a remote server for optimal performance.
+            Please use those methods when interacting with a remote server for optimal performance. Those methods are also
+            used by the Neo4jTemplate and the mapping infrastructure automatically.
         </para>
         <para>
 

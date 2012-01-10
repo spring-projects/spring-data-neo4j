@@ -32,7 +32,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 @NodeEntity
-public class Group {
+public class Group implements  IGroup {
 
     public final static String OTHER_NAME_INDEX = "other_name";
     public static final String SEARCH_GROUPS_INDEX = "search_groups";

@@ -1,0 +1,235 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
+<chapter id="reference:heroku">
+  <title>Heroku: Seeding the Cloud</title>
+  <para>
+    Deploying your application into the cloud is a great way to scale from from "wouldn't it be cool if.." to 
+    giving interviews to Forbes, Fast Company, and Jimmy Fallon. Heroku makes it super easy to provision everying
+    you need, including a Neo4j Add-on. With a few simple adjustments, your Spring Data Neo4j application is 
+    ready to take that first step into the cloud. 
+  </para>
+  <para>
+    To deploy your Spring Data Neo4j web application to Heroku, you'll need:
+  </para>
+  <itemizedlist mark="circle">
+    <listitem><para>account on <ulink url="http://heroku.com">Heroku</ulink></para></listitem>
+    <listitem><para>git command line</para></listitem>
+    <listitem><para>maven-based project</para></listitem>
+    <listitem><para>standard Spring MV Servlet application</para></listitem>
+    <listitem><para>well, and Spring Data Neo4j REST</para></listitem>
+  </itemizedlist>
+
+  <para>
+  For reference, the following sections detail the steps taken to make the Spring Data Neo4j Todos
+  example ready for deployment to Heroku.
+  </para>
+
+  <section>
+    <title>Create a Self-Hosted Web Application</title>
+    <para>
+      Usually, a Spring MVC application is bundled into a war and deployed to an application server
+      like Tomcat. But Heroku can host any kind of java application. It just needs to know what to
+      launch. So, we'll transform the war into a self-hosted servlet using an embedded Jetty server,
+      then add a startup script to launch it. 
+    </para>
+    <para>
+      First, we'll add the dependencies for Jetty to the <code>pom.xml</code>:
+    </para>
+      <example>
+          <title>Jetty dependencies - pom.xml</title>
+          <programlisting language="xml"><![CDATA[
+<dependency>
+    <groupId>org.eclipse.jetty</groupId>
+    <artifactId>jetty-webapp</artifactId>
+    <version>7.4.4.v20110707</version>
+</dependency>
+<dependency>
+    <groupId>org.mortbay.jetty</groupId>
+    <artifactId>jsp-2.1-glassfish</artifactId>
+    <version>2.1.v20100127</version>
+</dependency>
+      ]]></programlisting>
+                  </example>
+    <para>
+      Then we'll change the scope of the servlet-api artifact from <code>provided</code> to <code>compile</code>.
+      This library is normally provided at runtime by the application container. Since we're self-hosting,
+      it needs to be included directly.  Make sure the servlet-api dependency looks like this:
+    </para>
+      <example>
+          <title>servlet-api dependencies - pom.xml</title>
+          <programlisting language="xml"><![CDATA[
+<dependency>
+    <groupId>javax.servlet</groupId>
+    <artifactId>servlet-api</artifactId>
+    <version>2.5</version>
+    <scope>compile</scope>
+</dependency>
+      ]]></programlisting>
+                  </example>
+    <para>
+      We could provide a complicated command-line to Heroku to launch the app. Instead, we'll simplify
+      the command-line by using the <code>appassembler-maven-plugin</code> to create a launch script. Add the plugin
+      to your pom's <code>build/plugins</code> section:
+    </para>
+      <example>
+          <title>appassembler-maven-plugin configuration pom.xml</title>
+          <programlisting language="xml"><![CDATA[
+<plugin>
+<groupId>org.codehaus.mojo</groupId>
+<artifactId>appassembler-maven-plugin</artifactId>
+<version>1.1.1</version>
+<executions>
+  <execution>
+    <phase>package</phase>
+    <goals><goal>assemble</goal></goals>
+    <configuration>
+      <assembleDirectory>target</assembleDirectory>
+      <extraJvmArguments>-Xmx512m</extraJvmArguments>
+      <programs>
+        <program>
+          <mainClass>Main</mainClass>
+          <name>webapp</name>
+        </program>
+      </programs>
+    </configuration>
+  </execution>
+</executions>
+</plugin>
+      ]]></programlisting>
+                  </example>
+    <para>
+      Finally, switch the packaging from <code>war</code> to <code>jar</code>. That's it for the pom.
+    </para>
+    <para>
+      Now that the application is ready to be self-hosted, create a simple <code>Main</code> to 
+      bootstrap Jetty and host the servlet.
+    </para>
+      <example>
+          <title>src/main/java/Main.java</title>
+          <programlisting language="java"><![CDATA[
+import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.webapp.WebAppContext;
+public class Main {
+    public static void main(String[] args) throws Exception {
+        String webappDirLocation = "src/main/webapp/";
+        String webPort = System.getenv("PORT");
+        if(webPort == null || webPort.isEmpty()) {
+            webPort = "8080";
+        }
+        Server server = new Server(Integer.valueOf(webPort));
+        WebAppContext root = new WebAppContext();
+        root.setContextPath("/");
+        root.setDescriptor(webappDirLocation+"/WEB-INF/web.xml");
+        root.setResourceBase(webappDirLocation);
+        root.setParentLoaderPriority(true);
+        server.setHandler(root);
+        server.start();
+        server.join();
+    }
+}
+      ]]></programlisting>
+    </example>
+    <para>
+      Notice the use of environment variable "PORT" for discovering which port to use. Heroku and the
+      Neo4j Add-on use a number of environment variable to configure the application. Next, we'll
+      modify the Spring application context to use the Neo4j variables for specifying the connection
+      to Neo4j itself.
+    </para>
+    <para>
+      In the SDN Todos example, <code>src/main/resources/META-INF/spring/ applicationContext-graph.xml</code>
+      was modified to look like this:
+    </para>
+      <example>
+          <title>Spring Data Neo4j REST configuration - applicationContext-graph.xml</title>
+          <programlisting language="xml"><![CDATA[
+<neo4j:config graphDatabaseService="graphDatabaseService"/>
+<bean id="graphDatabaseService"
+    class="org.springframework.data.neo4j.rest.SpringRestGraphDatabase">
+    <constructor-arg index="0" value="${NEO4J_REST_URL}" />
+    <constructor-arg index="1" value="${NEO4J_LOGIN}" />
+    <constructor-arg index="2" value="${NEO4J_PASSWORD}" />
+</bean>
+]]></programlisting>
+                  </example>
+    <para>
+      Before provisioning at Heroku, test the application locally. First make sure you've got
+      Neo4j server running locally, using default configuration. Then set the following
+      environment variables:
+    </para>
+      <example>
+          <title>environment variables</title>
+          <programlisting><![CDATA[
+export NEO4J_REST_URL=http://localhost:7474/db/data
+export NEO4J_LOGIN=""
+export NEO4J_PASSWORD=""
+]]></programlisting>
+                  </example>
+    <para>
+      Now you can launch the app by running <code>sh target/bin/webapp</code>. If running the SDN Todos
+      example, you can test it by running <code>./bin/todos list</code>. That should return an empty
+      JSON array, since no todos have been created yet.
+    </para>
+    <para>
+      For details about the <code>todos</code> script, see the <code>readme</code> included with the example.
+    </para>
+  </section>
+
+    <section>
+    <title>Deploy to Heroku</title>
+    <para>
+      With a self-hosted application ready, deploying to Heroku needs a few more steps. First,
+      create a <code>Procfile</code> at the top-level of the project, which will contain a single
+      line identifying the command line which launches the application.
+    </para>
+    <para>
+      The contents of the <code>Procfile</code> should contain:
+    </para>
+        <example>
+            <title>Procfile</title>
+            <programlisting><![CDATA[
+web: sh target/bin/webapp
+]]></programlisting>
+    </example>
+    <para>
+
+        <example>
+            <title>deploy to heroku</title>
+            <programlisting><![CDATA[
+# Initialize a local git repository, adding all the project files
+  git init
+  git add .
+  git commit -m "initial commit"
+
+# Provision a Heroku stack, add the Neo4j Add-on and deploy the appication
+
+  heroku create --stack cedar
+  heroku addons:add neo4j
+  git push heroku master
+
+]]></programlisting>
+</example>
+    </para>
+    <note>
+    <para>
+      Note that the stack must be "cedar" to support running Java. Check that the process
+      is running by using <code>heroku ps</code>, which should show a "web.1" process
+      in the "up" state. Success!
+    </para>
+    </note>
+    <para>
+      For the SDN Todos application, you can try out the remote application using the <code>-r</code>
+      switch with the <code>bin/todo</code> script like this:
+    </para>
+        <example>
+            <title>Session with todo script</title>
+            <programlisting><![CDATA[
+./bin/todo -r mk "tweet thanks for the good work @mesirii @akollegger"
+./bin/todo -r list
+]]></programlisting>
+</example>
+    <para>
+      To see the Neo4j graph you just created through Heroku, use <code>heroku config</code> to reveal 
+      the <code>NEO4J_URL</code> environment variable, which will take you to Neo4j's Webadmin.
+    </para>
+  </section>
+</chapter>

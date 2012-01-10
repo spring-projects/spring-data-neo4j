@@ -18,6 +18,7 @@ package org.springframework.data.neo4j.querydsl;
 import com.mysema.query.annotations.*;
 import com.mysema.query.apt.DefaultConfiguration;
 import com.mysema.query.apt.Processor;
+import org.springframework.data.annotation.Persistent;
 import org.springframework.data.neo4j.annotation.NodeEntity;
 
 import javax.annotation.processing.AbstractProcessor;

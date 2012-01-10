@@ -11,7 +11,7 @@
         <mediaobject>
             <imageobject>
                 <!--
-                        http://yuml.me/diagram/scruffy;dir:lr/class/%23%20Cineasts.net%20Domain,%20%5BActor%7Cname;%7CplayedIn()%5D*-ACTS_IN-%3E%5BRole%7Cname;%5D,%20%5BRole%5D-ACTS_IN-%3E*%5BMovie%7Ctitle;year%5D,%20%5BUser%7Clogin;name;password;%7Crate();befriend();%5D*-RATED-%3E%5BRating%7Cstars;comment;%5D,%20%5BRating%5D-RATED-%3E*%5BMovie%5D,%20%5BUser%5D*-FRIEND-%3E*%5BUser%5D.png
+                        http://yuml.me/diagram/scruffy;dir:lr/class/%23%20Cineasts.net%20Domain,%20%5BActor%7Cname;%7CplayedIn()%5D-ACTS_IN-%3E%5BRole%7Cname;%5D,%20%5BRole%5D-ACTS_IN-%3E%5BMovie%7Ctitle;year%5D,%20%5BUser%7Clogin;name;password;%7Crate();befriend();%5D-RATED-%3E%5BRating%7Cstars;comment;%5D,%20%5BRating%5D-RATED-%3E%5BMovie%5D,%20%5BUser%5D-FRIEND-%3E%5BUser%5D.png
                 -->
                 <imagedata fileref="domain.png"/>
             </imageobject>

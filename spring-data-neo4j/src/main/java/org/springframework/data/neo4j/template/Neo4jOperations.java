@@ -268,4 +268,6 @@ public interface Neo4jOperations {
     MappingPolicy getMappingPolicy(Class<?> targetType);
 
     ResultConverter getDefaultConverter();
+
+    Class getStoredJavaType(Object entity);
 }

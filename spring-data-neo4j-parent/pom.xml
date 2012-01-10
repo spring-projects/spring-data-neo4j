@@ -5,7 +5,7 @@
 	<groupId>org.springframework.data</groupId>
 	<artifactId>spring-data-neo4j-parent</artifactId>
 	<name>Spring Data Neo4j Parent</name>
-	<version>2.0.0.BUILD-SNAPSHOT</version>
+	<version>2.1.0.BUILD-SNAPSHOT</version>
 	<packaging>pom</packaging>
     <description><![CDATA[Spring Data Neo4j parent project. Defines dependencies and common configuration for the build process.
     ]]></description>
@@ -124,12 +124,13 @@
 		<org.mockito.version>1.8.4</org.mockito.version>
 		<org.slf4j.version>1.6.1</org.slf4j.version>
 		<org.springframework.version>3.0.6.RELEASE</org.springframework.version>
-		<data.commons.version>1.2.0.M2</data.commons.version>
-        <neo4j.version>1.5</neo4j.version>
+		<data.commons.version>1.2.0.RC1</data.commons.version>
+        <neo4j.version>1.6.M02</neo4j.version>
         <neo4j.spatial.version>0.7-SNAPSHOT</neo4j.spatial.version>
         <aspectj.version>1.6.12</aspectj.version>
-        <blueprints.version>1.0</blueprints.version>
-        <gremlin.version>1.3</gremlin.version>
+        <blueprints.version>1.1</blueprints.version>
+        <gremlin.version>1.4</gremlin.version>
+        <pipes.version>1.4</pipes.version>
 	</properties>
 	<profiles>
 		<profile>
@@ -339,6 +340,61 @@
 
 
             <dependency>
+                <groupId>com.tinkerpop.gremlin</groupId>
+                <artifactId>gremlin-groovy</artifactId>
+                <version>${gremlin.version}</version>
+                <type>jar</type>
+                <exclusions>
+                    <exclusion>
+                        <groupId>org.neo4j</groupId>
+                        <artifactId>neo4j</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.neo4j</groupId>
+                        <artifactId>neo4j-ha</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.neo4j</groupId>
+                        <artifactId>neo4j-management</artifactId>
+                    </exclusion>
+                    <!-- Sail support not needed -->
+                    <exclusion>
+                        <groupId>com.tinkerpop.blueprints</groupId>
+                        <artifactId>blueprints-sail-graph</artifactId>
+                    </exclusion>
+                    <!-- Maven support in groovy not needed -->
+                    <exclusion>
+                        <groupId>org.codehaus.groovy.maven</groupId>
+                        <artifactId>gmaven-plugin</artifactId>
+                    </exclusion>
+                    <!-- "readline" not needed - we only expose gremlin through webadmin -->
+                    <exclusion>
+                        <groupId>jline</groupId>
+                        <artifactId>jline</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>com.tinkerpop.blueprints</groupId>
+                <artifactId>blueprints-neo4j-graph</artifactId>
+                <version>${blueprints.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>org.neo4j</groupId>
+                        <artifactId>neo4j</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.neo4j</groupId>
+                        <artifactId>neo4j-ha</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.neo4j</groupId>
+                        <artifactId>neo4j-management</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+
+            <dependency>
               <groupId>com.tinkerpop.blueprints</groupId>
               <artifactId>blueprints-core</artifactId>
               <version>${blueprints.version}</version>
@@ -352,8 +408,8 @@
             </dependency>
 
             <dependency>
-              <groupId>com.tinkerpop</groupId>
-              <artifactId>gremlin</artifactId>
+              <groupId>com.tinkerpop.gremlin</groupId>
+              <artifactId>gremlin-groovy</artifactId>
               <version>${gremlin.version}</version>
               <optional>true</optional>
             </dependency>
@@ -414,7 +470,7 @@
       <dependency>
           <groupId>org.neo4j</groupId>
           <artifactId>neo4j-cypher-dsl</artifactId>
-          <version>${neo4j.version}</version>
+          <version>1.6.M02</version>
           <!--optional>true</optional-->
       </dependency>
       <!--dependency>
@@ -439,6 +495,12 @@
           <groupId>org.neo4j</groupId>
           <artifactId>neo4j-spatial</artifactId>
           <version>${neo4j.spatial.version}</version>
+          <exclusions>
+              <exclusion>
+                  <groupId>org.neo4j</groupId>
+                  <artifactId>neo4j</artifactId>
+              </exclusion>
+          </exclusions>
       </dependency>
       <dependency>
         <groupId>commons-configuration</groupId>

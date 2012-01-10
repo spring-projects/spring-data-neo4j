@@ -83,13 +83,7 @@ public class SourceStateTransmitter<S extends PropertyContainer> {
     }
 
     private <T> T getProperty(BeanWrapper<Neo4jPersistentEntity<Object>, Object> wrapper, Neo4jPersistentProperty property, Class<T> type, boolean fieldAccessOnly) {
-        try {
-            return wrapper.getProperty(property, type, fieldAccessOnly);
-        } catch (IllegalAccessException e) {
-            throw new MappingException("Error retrieving property " + property.getName() + " from " + wrapper.getBean(), e);
-        } catch (InvocationTargetException e) {
-            throw new MappingException("Error retrieving property " + property.getName() + " from " + wrapper.getBean(), e.getTargetException());
-        }
+        return wrapper.getProperty(property, type, fieldAccessOnly);
     }
 
     private <R> Object getProperty(BeanWrapper<Neo4jPersistentEntity<R>, R> wrapper, Neo4jPersistentProperty property) {

@@ -52,7 +52,7 @@ public class DataGraphNamespaceHandlerCrossStoreTest {
         Neo4jTemplate template = config.template;
         Assert.assertNotNull("template", template);
         EmbeddedGraphDatabase graphDatabaseService = (EmbeddedGraphDatabase) template.getGraphDatabaseService();
-        Assert.assertEquals("store-dir", "target/config-test", graphDatabaseService.getStoreDir());
+        Assert.assertTrue("store-dir", graphDatabaseService.getStoreDir().endsWith("target/config-test"));
         Assert.assertNotNull("graphDatabaseService", config.graphDatabaseService);
         Assert.assertNotNull("transactionManager", config.transactionManager);
         config.graphDatabaseService.shutdown();

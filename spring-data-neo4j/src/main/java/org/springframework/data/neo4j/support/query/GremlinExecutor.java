@@ -38,7 +38,7 @@ public class GremlinExecutor {
     private volatile ScriptEngine engine;
 
     private ScriptEngine createScriptEngine() {
-        return new ScriptEngineManager().getEngineByName("gremlin");
+        return new ScriptEngineManager().getEngineByName("gremlin-groovy");
     }
 
     private static final AtomicInteger executionCount = new AtomicInteger();
@@ -62,7 +62,7 @@ public class GremlinExecutor {
 
     private Bindings createBindings(Map<String, Object> params) {
         final Bindings bindings = new SimpleBindings();
-        bindings.put(GRAPH_VARIABLE, new Neo4jGraph(graphDatabaseService));
+        bindings.put(GRAPH_VARIABLE, new Neo4jGraph(graphDatabaseService,false));
         if (params==null) return bindings;
         for (Map.Entry<String, Object> entry : params.entrySet()) {
             bindings.put(entry.getKey(),entry.getValue());

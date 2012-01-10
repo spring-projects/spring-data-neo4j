@@ -21,6 +21,7 @@ package org.springframework.data.neo4j.repository;
  */
 public interface RelationshipOperationsRepository<T> {
     <R> R createRelationshipBetween(T start, Object end, Class<R> relationshipEntityClass, String relationshipType);
+    <R> R createDuplicateRelationshipBetween(T start, Object end, Class<R> relationshipEntityClass, String relationshipType);
     <R> R getRelationshipBetween(T start, Object end, Class<R> relationshipEntityClass, String relationshipType);
     void deleteRelationshipBetween(T start, Object end, String type);
 }

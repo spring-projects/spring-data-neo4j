@@ -23,7 +23,6 @@ import org.mortbay.jetty.Server;
 import org.mortbay.jetty.handler.RequestLogHandler;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.kernel.AbstractGraphDatabase;
-import org.neo4j.server.AddressResolver;
 import org.neo4j.server.Bootstrapper;
 import org.neo4j.server.NeoServerWithEmbeddedWebServer;
 import org.neo4j.server.configuration.PropertyFileConfigurator;
@@ -38,7 +37,6 @@ import org.neo4j.server.web.Jetty6WebServer;
 import org.neo4j.test.ImpermanentGraphDatabase;
 
 import java.io.File;
-import java.io.IOException;
 import java.net.URI;
 import java.net.URL;
 import java.util.Arrays;
@@ -78,11 +76,7 @@ public class LocalTestServer {
                 return new GraphDatabaseFactory() {
                     @Override
                     public AbstractGraphDatabase createDatabase(String databaseStoreDirectory, Map<String, String> databaseProperties) {
-                        try {
-                            return new ImpermanentGraphDatabase();
-                        } catch (IOException e) {
-                            throw new RuntimeException(e);
-                        }
+                       return new ImpermanentGraphDatabase();
                     }
                 };
             }
@@ -95,12 +89,6 @@ public class LocalTestServer {
             @Override
             protected Iterable<Class<? extends ServerModule>> getServerModules() {
                 return serverModules;
-            }
-        };
-        final AddressResolver addressResolver = new AddressResolver() {
-            @Override
-            public String getHostname() {
-                return hostname;
             }
         };
         final JettyStartupListener startupListener = new JettyStartupListener();
@@ -123,8 +111,7 @@ public class LocalTestServer {
                 super.stop();
             }
         };
-        neoServer = new NeoServerWithEmbeddedWebServer(bootstrapper
-        , addressResolver, new StartupHealthCheck(), new PropertyFileConfigurator(new File(url.getPath())), jettyWebServer, serverModules) {
+        neoServer = new NeoServerWithEmbeddedWebServer(bootstrapper, new StartupHealthCheck(), new PropertyFileConfigurator(new File(url.getPath())), jettyWebServer, serverModules) {
             @Override
             protected int getWebServerPort() {
                 return port;

@@ -5,11 +5,8 @@ apply plugin: 'idea'
 apply plugin: 'eclipse'
 
 
-springVersion = "3.0.5.RELEASE"
-springDataNeo4jVersion = "1.1.0.RELEASE"
-aspectjVersion = "1.6.11.RELEASE"
-
-apply from:'https://github.com/SpringSource/spring-data-neo4j/raw/master/build/gradle/springdataneo4j.gradle'
+springVersion = "3.0.7.RELEASE"
+springDataNeo4jVersion = "2.0.0.RELEASE"
 
 configurations {
     runtime

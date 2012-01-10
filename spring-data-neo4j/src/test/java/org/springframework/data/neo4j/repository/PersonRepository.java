@@ -34,7 +34,7 @@ import java.util.Map;
  * @author Oliver Gierke
  * @since 29.03.11
  */
-public interface PersonRepository extends GraphRepository<Person>, NamedIndexRepository<Person>, SpatialRepository<Person>, PersonRepositoryFriendship, CypherDslRepository<Person> {
+public interface PersonRepository extends GraphRepository<Person>, NamedIndexRepository<Person>, SpatialRepository<Person>, PersonRepositoryFriendship, CypherDslRepository<Person>, RelationshipOperationsRepository<Person> {
 
     @Query("start team=node({p_team}) match (team)-[:persons]->(member) return member")
     Iterable<Person> findAllTeamMembers(@Param("p_team") Group team);

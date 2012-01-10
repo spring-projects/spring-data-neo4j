@@ -622,4 +622,11 @@ public class Neo4jTemplate implements Neo4jOperations, EntityPersister {
         ParameterCheck.notNull(entity,"entity");
         return getMappingPolicy(entity.getClass());
     }
+
+    @Override
+    public Class getStoredJavaType(Object entity) {
+        final PropertyContainer container = entity instanceof PropertyContainer ? (PropertyContainer)entity: getPersistentState(entity);
+        if (container==null) return null;
+        return getInfrastructure().getTypeRepresentationStrategies().getJavaType(container);
+    }
 }

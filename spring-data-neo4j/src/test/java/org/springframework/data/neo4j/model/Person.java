@@ -16,8 +16,7 @@
 
 package org.springframework.data.neo4j.model;
 
-import org.neo4j.graphdb.Direction;
-import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.*;
 import org.springframework.data.neo4j.annotation.*;
 import org.springframework.data.neo4j.fieldaccess.DynamicProperties;
 import org.springframework.data.neo4j.support.index.IndexType;
@@ -27,12 +26,14 @@ import javax.validation.constraints.Min;
 import javax.validation.constraints.Size;
 import java.util.Date;
 import java.util.Map;
+import java.util.Set;
 
 
 @NodeEntity
 public class Person {
 
     public static final String NAME_INDEX = "name_index";
+    public static final org.neo4j.graphdb.RelationshipType KNOWS = DynamicRelationshipType.withName("knows");
     @GraphId
 	private Long graphId;
 
@@ -86,8 +87,25 @@ public class Person {
     @Query("start person=node({self}) match (person)<-[:persons]-(team)-[:persons]->(member) return member")
     private Iterable<Person> otherTeamMembers;
 
-    @Query("start person=node({self}) match (person)<-[:persons]-(team)-[:persons]->(member) return member.name, member.age")
+    @Query("start person=node({self}) match (person)<-[:persons]-(team)-[:persons]->(member) return member.name?, member.age?")
     private Iterable<Map<String,Object>> otherTeamMemberData;
+
+    @RelatedTo(elementClass = Group.class, type = "interface_test", direction = Direction.OUTGOING)
+    private Set<IGroup> groups;
+
+    RootEntity root;
+
+    public RootEntity getRoot() {
+        return root;
+    }
+
+    public void setRoot(RootEntity root) {
+        this.root = root;
+    }
+
+    public Set<IGroup> getGroups() {
+        return groups;
+    }
 
     public Person(Node n) {
         this.graphId = n.getId();
