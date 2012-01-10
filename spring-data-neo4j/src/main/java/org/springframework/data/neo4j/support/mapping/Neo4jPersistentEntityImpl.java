@@ -184,4 +184,5 @@ public class Neo4jPersistentEntityImpl<T> extends BasicPersistentEntity<T, Neo4j
     public MappingPolicy getMappingPolicy() {
         return MappingPolicy.LOAD_POLICY;
     }
+
 }
