@@ -59,7 +59,7 @@ public class Neo4jPersistentEntityImpl<T> extends BasicPersistentEntity<T, Neo4j
     @Override
     public void verify() {
         super.verify();
-        if (isManaged()) {
+        if (isManaged() || getType().isInterface()) {
             return;
         }
         final Neo4jPersistentProperty idProperty = getIdProperty();

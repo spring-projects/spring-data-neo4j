@@ -15,8 +15,6 @@
  */
 package org.springframework.data.neo4j.support.typerepresentation;
 
-import java.lang.annotation.Annotation;
-
 import org.neo4j.graphdb.PropertyContainer;
 import org.neo4j.graphdb.index.Index;
 import org.neo4j.graphdb.index.IndexHits;
@@ -26,6 +24,8 @@ import org.springframework.data.neo4j.core.TypeRepresentationStrategy;
 import org.springframework.data.neo4j.support.index.ClosableIndexHits;
 import org.springframework.data.neo4j.support.index.IndexProvider;
 import org.springframework.data.neo4j.support.index.IndexType;
+
+import java.lang.annotation.Annotation;
 
 public abstract class AbstractIndexingTypeRepresentationStrategy<S extends PropertyContainer> implements
         TypeRepresentationStrategy<S> {
@@ -90,15 +90,16 @@ public abstract class AbstractIndexingTypeRepresentationStrategy<S extends Prope
         return typeCache.getClassForName(className);
     }
 
-    protected void addToTypesIndex(S relationshipOrNode, Class<?> entityClass) {
-        Class<?> type = entityClass;
-        while (type.getAnnotation(typeEntityClass) != null) {
-            String value = entityClass.getName();
-            if (indexProvider != null)
-                value = indexProvider.createIndexValueForType(entityClass);
-
-            getTypesIndex().add(relationshipOrNode, INDEX_KEY, value);
-            type = type.getSuperclass();
+    protected void addToTypesIndex(S relationshipOrNode, Class<?> type) {
+        if (type == null || !type.isAnnotationPresent(typeEntityClass)) return;
+        String value = type.getName();
+        if (indexProvider != null) {
+            value = indexProvider.createIndexValueForType(type);
+        }
+        getTypesIndex().add(relationshipOrNode, INDEX_KEY, value);
+        addToTypesIndex(relationshipOrNode, type.getSuperclass());
+        for (Class<?> anInterface : type.getInterfaces()) {
+            addToTypesIndex(relationshipOrNode, anInterface);
         }
     }
 

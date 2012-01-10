@@ -23,6 +23,7 @@ import org.neo4j.helpers.collection.IterableWrapper;
 import org.neo4j.kernel.Traversal;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.neo4j.annotation.NodeEntity;
 import org.springframework.data.neo4j.core.GraphDatabase;
 import org.springframework.data.neo4j.core.NodeTypeRepresentationStrategy;
 
@@ -95,22 +96,27 @@ public class SubReferenceNodeTypeRepresentationStrategy implements NodeTypeRepre
 
         incrementAndGetCounter(subReference, SUBREFERENCE_NODE_COUNTER_KEY);
 
-	    updateSuperClassSubrefs(type, subReference);
+	    updateSuperClassSubrefs(type.getSuperclass(), subReference);
+        for (Class<?> anInterface : type.getInterfaces()) {
+            updateSuperClassSubrefs(anInterface, subReference);
+        }
     }
 
-    private void updateSuperClassSubrefs(Class<?> clazz, Node subReference) {
-	    Class<?> superClass = clazz.getSuperclass();
-	    if (superClass != null) {
-		    Node superClassSubref = obtainSubreferenceNode(superClass);
-		    if (getSingleOtherNode(subReference, SUBCLASS_OF_RELATIONSHIP_TYPE, Direction.OUTGOING) == null) {
-			    subReference.createRelationshipTo(superClassSubref, SUBCLASS_OF_RELATIONSHIP_TYPE);
-		    }
-		    superClassSubref.setProperty(SUBREF_CLASS_KEY, superClass.getName());
-		    Integer count = incrementAndGetCounter(superClassSubref, SUBREFERENCE_NODE_COUNTER_KEY);
-		    if (log.isDebugEnabled()) log.debug("count on ref " + superClassSubref + " for class " + superClass.getSimpleName() + " = " + count);
-		    updateSuperClassSubrefs(superClass, superClassSubref);
-	    }
-	}
+    private void updateSuperClassSubrefs(Class<?> type, Node subReference) {
+        if (type == null || !type.isAnnotationPresent(NodeEntity.class)) return;
+
+        Node superClassSubref = obtainSubreferenceNode(type);
+        if (getSingleOtherNode(subReference, SUBCLASS_OF_RELATIONSHIP_TYPE, Direction.OUTGOING) == null) {
+            subReference.createRelationshipTo(superClassSubref, SUBCLASS_OF_RELATIONSHIP_TYPE);
+        }
+        superClassSubref.setProperty(SUBREF_CLASS_KEY, type.getName());
+        Integer count = incrementAndGetCounter(superClassSubref, SUBREFERENCE_NODE_COUNTER_KEY);
+        if (log.isDebugEnabled()) log.debug("count on ref " + superClassSubref + " for class " + type.getSimpleName() + " = " + count);
+        updateSuperClassSubrefs(type.getSuperclass(), superClassSubref);
+        for (Class<?> anInterface : type.getInterfaces()) {
+            updateSuperClassSubrefs(anInterface, subReference);
+        }
+    }
 
 	@Override
     public long count(final Class<?> entityClass) {

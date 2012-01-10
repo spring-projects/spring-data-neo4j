@@ -30,7 +30,7 @@ import java.util.Set;
 
 
 @NodeEntity
-public class Person {
+public class Person implements Being {
 
     public static final String NAME_INDEX = "name-index";
     public static final org.neo4j.graphdb.RelationshipType KNOWS = DynamicRelationshipType.withName("knows");

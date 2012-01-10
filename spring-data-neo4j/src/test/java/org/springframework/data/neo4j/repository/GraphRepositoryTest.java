@@ -28,10 +28,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.neo4j.model.Friendship;
-import org.springframework.data.neo4j.model.Group;
-import org.springframework.data.neo4j.model.Person;
-import org.springframework.data.neo4j.model.RootEntity;
+import org.springframework.data.neo4j.model.*;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
 import org.springframework.data.neo4j.support.conversion.NoSuchColumnFoundException;
 import org.springframework.data.neo4j.support.node.Neo4jHelper;
@@ -50,12 +47,12 @@ import org.springframework.transaction.support.TransactionTemplate;
 
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 
 import static java.util.Arrays.asList;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.*;
-import static org.junit.Assert.assertEquals;
 import static org.junit.internal.matchers.IsCollectionContaining.hasItem;
 import static org.junit.internal.matchers.IsCollectionContaining.hasItems;
 import static org.neo4j.helpers.collection.IteratorUtil.addToCollection;
@@ -76,6 +73,8 @@ public class GraphRepositoryTest {
 
     @Autowired
     private PersonRepository personRepository;
+    @Autowired
+    private BeingRepository beingRepository;
     @Autowired
     GroupRepository groupRepository;
 
@@ -319,5 +318,11 @@ public class GraphRepositoryTest {
         neo4jTemplate.save(person);
         final Person p2 = neo4jTemplate.findOne(person.getId(), Person.class);
         assertEquals(root.getId(),p2.getRoot().getId());
+    }
+
+    @Test
+    public void testUseInterfaceAsPersistentEntity() {
+        final List<Being> beings = beingRepository.findAll().as(List.class);
+        assertEquals(3,beings.size());
     }
 }

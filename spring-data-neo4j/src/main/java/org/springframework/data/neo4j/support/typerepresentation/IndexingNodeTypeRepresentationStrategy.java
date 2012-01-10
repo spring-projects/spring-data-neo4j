@@ -30,18 +30,4 @@ public class IndexingNodeTypeRepresentationStrategy extends AbstractIndexingType
     public IndexingNodeTypeRepresentationStrategy(GraphDatabase graphDb, IndexProvider indexProvider) {
         super(graphDb, indexProvider, INDEX_NAME, Node.class, NodeEntity.class);
     }
-
-    @Override
-    protected void addToTypesIndex(Node node, Class<?> entityClass) {
-        Class<?> klass = entityClass;
-        while (klass.getAnnotation(NodeEntity.class) != null) {
-            String value = klass.getName();
-            if (indexProvider != null)
-                value = indexProvider.createIndexValueForType(klass);
-
-            getTypesIndex().add(node, INDEX_KEY, value);
-            klass = klass.getSuperclass();
-        }
-    }
-
 }
