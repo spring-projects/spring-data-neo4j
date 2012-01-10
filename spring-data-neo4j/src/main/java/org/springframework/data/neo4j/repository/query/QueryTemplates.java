@@ -27,18 +27,21 @@ public abstract class QueryTemplates {
 
     public static final String PARAMETER = "%d";
     public static final String PARAMETER_INDEX_QUERY = "%s:%s";
+    public static final String VARIABLE = "`%s`";
 
     public static final String PLACEHOLDER = String.format("{%s}", PARAMETER);
-    private static final String DIRECTION_INCOMING = "<-[:%s]-";
-    private static final String DIRECTION_OUTGOING = "-[:%s]->";
-    private static final String DIRECTION_BOTH = "-[:%s]-";
+    private static final String DIRECTION_INCOMING = "<-[:`%s`]-";
+    private static final String DIRECTION_OUTGOING = "-[:`%s`]->";
+    private static final String DIRECTION_BOTH = "-[:`%s`]-";
+    static final String MATCH_CLAUSE = "`%s`%s`%s`";
+    static final String MATCH_CLAUSE2 = "%s%s`%s`";
 
-    static final String DEFAULT_START_CLAUSE = "%s=node:__types__(className=\"%s\")";
+    static final String DEFAULT_START_CLAUSE = "`%s`=node:__types__(className=\"%s\")";
     static final String SKIP_LIMIT = " skip %d limit %d";
-    static final String START_CLAUSE = "%s=node:%s(%s=" + PLACEHOLDER + ")";
-    static final String START_CLAUSE_FULLTEXT = "%s=node:%s(" + PLACEHOLDER + ")";
-    static final String WHERE_CLAUSE_1 = "%s.%s %s " + PLACEHOLDER;
-    static final String WHERE_CLAUSE_0 = "%s.%s %s ";
+    static final String START_CLAUSE = "`%s`=node:`%s`(`%s`=" + PLACEHOLDER + ")";
+    static final String START_CLAUSE_FULLTEXT = "`%s`=node:`%s`(" + PLACEHOLDER + ")";
+    static final String WHERE_CLAUSE_1 = "`%s`.`%s` %s " + PLACEHOLDER;
+    static final String WHERE_CLAUSE_0 = "`%s`.`%s` %s ";
     static final String SORT_CLAUSE = "%s %s";
     static final String ORDER_BY_CLAUSE = " order by %s";
 

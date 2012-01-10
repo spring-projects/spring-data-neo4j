@@ -32,7 +32,7 @@ import java.util.Set;
 @NodeEntity
 public class Person {
 
-    public static final String NAME_INDEX = "name_index";
+    public static final String NAME_INDEX = "name-index";
     public static final org.neo4j.graphdb.RelationshipType KNOWS = DynamicRelationshipType.withName("knows");
     @GraphId
 	private Long graphId;

@@ -15,11 +15,6 @@
  */
 package org.springframework.data.neo4j.repository.query;
 
-import static org.springframework.util.StringUtils.*;
-
-import java.util.ArrayList;
-import java.util.List;
-
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mapping.context.MappingContext;
@@ -28,6 +23,11 @@ import org.springframework.data.neo4j.mapping.Neo4jPersistentEntity;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 import org.springframework.data.repository.query.parser.Part;
 import org.springframework.util.Assert;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.springframework.util.StringUtils.*;
 
 /**
  * Value object to create Cypher queries.
@@ -133,7 +133,7 @@ class CypherQueryBuilder implements CypherQueryDefinition {
             builder.append(" where ").append(whereClauses);
         }
 
-        builder.append(" return ").append(variableContext.getVariableFor(entity));
+        builder.append(" return ").append(String.format(QueryTemplates.VARIABLE, variableContext.getVariableFor(entity)));
         return builder.toString();
     }
 

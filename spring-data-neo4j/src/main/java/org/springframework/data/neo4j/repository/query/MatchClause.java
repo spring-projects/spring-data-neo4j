@@ -65,11 +65,20 @@ class MatchClause {
     private String matchPattern(VariableContext variableContext, PersistentPropertyPath<Neo4jPersistentProperty> relPath) {
         if (relPath.getLength() == 1) {
             final Neo4jPersistentProperty property = relPath.getBaseProperty();
-            return variableContext.getVariableFor(property.getOwner()) + QueryTemplates.getArrow(property.getRelationshipInfo())
-                    + variableContext.getVariableFor(relPath);
+            return formatMatch(variableContext.getVariableFor(property.getOwner()),
+                    QueryTemplates.getArrow(property.getRelationshipInfo()),
+                    variableContext.getVariableFor(relPath));
         }
         final RelationshipInfo info = relPath.getLeafProperty().getRelationshipInfo();
-        return matchPattern(variableContext, relPath.getParentPath()) + QueryTemplates.getArrow(info)
-                + variableContext.getVariableFor(relPath);
+        return formatMatch2(matchPattern(variableContext, relPath.getParentPath()),
+                QueryTemplates.getArrow(info),
+                variableContext.getVariableFor(relPath));
+    }
+
+    private String formatMatch(String first, String arrow, String second) {
+        return String.format(QueryTemplates.MATCH_CLAUSE, first, arrow, second);
+    }
+    private String formatMatch2(String first, String arrow, String second) {
+        return String.format(QueryTemplates.MATCH_CLAUSE2, first, arrow, second);
     }
 }
