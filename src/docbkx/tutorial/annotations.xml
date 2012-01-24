@@ -55,8 +55,8 @@ class Movie {
 @Test @Transactional public void persistedMovieShouldBeRetrievableFromGraphDb() {
     Movie forrestGump = template.save(new Movie("Forrest Gump", 1994));
     Movie retrievedMovie = template.findOne(forrestGump.getNodeId(), Movie.class);
-    assertEqual("retrieved movie matches persisted one", forrestGump, retrievedMovie);
-    assertEqual("retrieved movie title matches", "Forrest Gump", retrievedMovie.getTitle());
+    assertEquals("retrieved movie matches persisted one", forrestGump, retrievedMovie);
+    assertEquals("retrieved movie title matches", "Forrest Gump", retrievedMovie.getTitle());
 }
 ]]></programlisting>
         </example>

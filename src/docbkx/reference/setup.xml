@@ -257,6 +257,25 @@ repositories {
 <neo4j:config graphDatabaseService="graphDatabaseService"/>
 ]]></programlisting>
             </example>
+			<example>
+                <title>XML configuration with GraphDatabaseService bean</title>
+                <programlisting language="xml"><![CDATA[<context:annotation-config/>
+
+<bean id="graphDatabaseService" class="org.neo4j.kernel.EmbeddedGraphDatabase"
+    destroy-method="shutdown">
+	<constructor-arg index="0" value="foo/db" />
+	<constructor-arg index="1">
+		<map><entry key="enable_remote_shell" value="true"/></map>
+    </constructor-arg>
+</bean>
+
+<bean id="serverWrapper" class="org.neo4j.server.WrappingNeoServerBootstrapper" 
+	init-method="start" destroy-method="stop">
+	<constructor-arg ref="graphDatabaseService"/>
+</bean>]]></programlisting>
+</example>
+
+
             <example>
                 <title>XML configuration with cross-store</title>
                 <programlisting language="xml"><![CDATA[<context:annotation-config/>
@@ -311,7 +330,7 @@ repositories {
                 </para>
             </note>
             <para>
-                In order to configure Spring Data Neo4j with Java-based bean metadata, the class
+                In order to configure Spring Data Neo4j with Java-based bean config, the class
                 <code>Neo4jConfiguration</code> is registered with the context. This is either done
                 explicitly in the context configuration, or via classpath scanning for classes that
                 have the @Configuration annotation. The only thing that must be provided is the
