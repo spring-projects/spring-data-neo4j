@@ -191,7 +191,7 @@ public abstract class AbstractGraphRepository<S extends PropertyContainer, T> im
             }
             return template.getIndex(clazz,property);
         } catch(NoSuchIndexException nsie) {
-            return new NullReadableIndex<S>(nsie.getIndex());
+            return new NullReadableIndex<S>(nsie.getIndex(),template.getGraphDatabaseService());
         }
     }
 
