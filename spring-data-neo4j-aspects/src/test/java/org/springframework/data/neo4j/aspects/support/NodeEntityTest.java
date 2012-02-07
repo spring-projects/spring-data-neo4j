@@ -212,4 +212,10 @@ public class NodeEntityTest extends EntityTestBase {
         attribute.setValue("test");
         persist(attribute);
     }
+    @Test
+    public void testAccessReadOnlyCollectionMakesEntityDirty() {
+	    Group g = new Group();
+	    g.getReadOnlyPersons();
+	    g.persist();
+    }
 }
