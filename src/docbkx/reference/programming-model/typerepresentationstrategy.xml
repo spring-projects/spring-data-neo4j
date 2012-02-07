@@ -21,7 +21,7 @@
                 </para>
                 <para>
                     Stores entity types in the integrated index. Each entity node gets indexed with its type and
-                    all supertypes that are also <code>@NodeEntity</code>-annotated. The special index used for this
+                    all supertypes and interfaces that are also <code>@NodeEntity</code>-annotated. The special index used for this
                     is named <code>__types__</code>. Additionally, in order to retrieve the type of an entity node, each
                     node has a property <code>__type__</code> with the fully qualified type of that entity.
                 </para>
@@ -31,7 +31,7 @@
                     <code>SubReferenceNodeTypeRepresentationStrategy</code>
                 </para>
                 <para>
-                    Stores entity types in a tree in the graph representing the type hierarchy. Each entity
+                    Stores entity types in a tree in the graph representing the type and interface hierarchy. Each entity
                     has a INSTANCE_OF relationship to a type node representing that entity's type. The type may or
                     may not have a SUBCLASS_OF relationship to another type node.
                 </para>
@@ -57,7 +57,7 @@
                 </para>
                 <para>
                     Stores relationship entity types in the integrated index. Each entity relationship gets indexed with its type and
-                    all supertypes that are also <code>@RelationshipEntity</code>-annotated. The special index used for this
+                    all supertypes and interfaces that are also <code>@RelationshipEntity</code>-annotated. The special index used for this
                     is named <code>__rel_types__</code>. Additionally, in order to retrieve the type of an entity relationship, each
                     relationship has a property <code>__type__</code> with the fully qualified type of that entity.
                 </para>

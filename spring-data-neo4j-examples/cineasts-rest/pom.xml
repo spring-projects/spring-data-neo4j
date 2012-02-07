@@ -14,13 +14,18 @@
         <spring.version>3.0.7.RELEASE</spring.version>
         <slf4j.version>1.6.1</slf4j.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <neo4j.version>1.6.M02</neo4j.version>
+        <neo4j.version>1.6</neo4j.version>
         <spring-data-graph.version>2.1.0.BUILD-SNAPSHOT</spring-data-graph.version>
         <aspectj.version>1.6.12</aspectj.version>
         <org.slf4j-version>1.6.1</org.slf4j-version>
+        <jersey.version>1.4</jersey.version>
     </properties>
 
     <repositories>
+        <repository>
+            <id>Sun</id>
+            <url>http://download.java.net/maven/2</url>
+        </repository>
         <repository>
             <id>spring-maven-release</id>
             <name>Spring Maven Release Repository</name>
@@ -274,6 +279,19 @@
             <groupId>org.neo4j</groupId>
             <artifactId>neo4j-cypher</artifactId>
             <version>${neo4j.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.sun.jersey</groupId>
+            <artifactId>jersey-client</artifactId>
+            <version>${jersey.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.sun.jersey</groupId>
+            <artifactId>jersey-server</artifactId>
+            <version>${jersey.version}</version>
+            <scope>test</scope>
         </dependency>
 
         <dependency>

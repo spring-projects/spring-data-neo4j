@@ -11,8 +11,8 @@
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<neo4j.version>1.5</neo4j.version>
-		<spring.version>3.0.6.RELEASE</spring.version>
+		<neo4j.version>1.6</neo4j.version>
+		<spring.version>3.0.7.RELEASE</spring.version>
 		<spring-data-neo4j.version>${project.version}</spring-data-neo4j.version>
 		<aspectj.version>1.6.12</aspectj.version>
 		<slf4j.version>1.6.1</slf4j.version>
@@ -26,7 +26,7 @@
 		</repository>
 		<repository>
 			<id>neo4j-public-repository</id>
-			<url>http://m2.neo4j.org/</url>
+			<url>http://m2.neo4j.org/releases</url>
 			<name>Publicly available Maven 2 repository for Neo4j</name>
 		</repository>
 		<repository>

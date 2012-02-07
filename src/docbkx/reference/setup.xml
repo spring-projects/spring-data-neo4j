@@ -18,7 +18,7 @@
            <title>Dependencies for Spring Data Neo4j Simple Mapping</title>
            <para>
                For the simple POJO mapping it is enough to add the <code>org.springframework.data:spring-data-neo4j:2.0.0.RELEASE</code> dependency
-               to your project. If you want to use the Cypher query language please add <code>org.neo4j:neo4j-cypher:1.6.M02</code>
+               to your project. If you want to use the Cypher query language please add <code>org.neo4j:neo4j-cypher:1.6</code>
            </para>
         <example>
             <title>Maven dependencies for Spring Data Neo4j</title>
@@ -139,7 +139,7 @@ repositories {
 [<dependency>
     <groupId>org.neo4j</groupId>
     <artifactId>neo4j-cypher</artifactId>
-    <version>1.6.M02</version>
+    <version>1.6</version>
 </dependency>]
 ]]></programlisting>
             </example>

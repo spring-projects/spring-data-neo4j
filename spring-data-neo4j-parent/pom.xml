@@ -123,10 +123,10 @@
 		<log4j.version>1.2.15</log4j.version>
 		<org.mockito.version>1.8.4</org.mockito.version>
 		<org.slf4j.version>1.6.1</org.slf4j.version>
-		<org.springframework.version>3.0.6.RELEASE</org.springframework.version>
-		<data.commons.version>1.2.0.RC1</data.commons.version>
-        <neo4j.version>1.6.M02</neo4j.version>
-        <neo4j.spatial.version>0.7-SNAPSHOT</neo4j.spatial.version>
+		<org.springframework.version>3.0.7.RELEASE</org.springframework.version>
+		<data.commons.version>1.2.0.RELEASE</data.commons.version>
+        <neo4j.version>1.6</neo4j.version>
+        <neo4j.spatial.version>0.7</neo4j.spatial.version>
         <aspectj.version>1.6.12</aspectj.version>
         <blueprints.version>1.1</blueprints.version>
         <gremlin.version>1.4</gremlin.version>
@@ -473,12 +473,6 @@
           <version>1.6.M02</version>
           <!--optional>true</optional-->
       </dependency>
-      <!--dependency>
-          <groupId>org.neo4j</groupId>
-          <artifactId>neo4j-spatial</artifactId>
-          <version>${neo4j.spatial.version}</version>
-          <optional>true</optional>
-      </dependency-->
       <dependency>
           <groupId>org.neo4j</groupId>
           <artifactId>neo4j-shell</artifactId>
@@ -495,6 +489,7 @@
           <groupId>org.neo4j</groupId>
           <artifactId>neo4j-spatial</artifactId>
           <version>${neo4j.spatial.version}</version>
+          <optional>true</optional>
           <exclusions>
               <exclusion>
                   <groupId>org.neo4j</groupId>
@@ -798,7 +793,21 @@
 			<name>Spring Framework Maven Snapshot Repository</name>
 			<url>http://maven.springframework.org/snapshot</url>
 		</repository>
-	</repositories>
+        <repository>
+            <id>neo4j-public-snapshot-repository</id>
+            <name>Neo4J Public Snapshot Repository</name>
+            <url>http://m2.neo4j.org/snapshots</url>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
+        <repository>
+            <id>neo4j-public-release-repository</id>
+            <name>Neo4J Public Release Repository</name>
+            <url>http://m2.neo4j.org/releases</url>
+        </repository>
+
+    </repositories>
 	<reporting>
 		<plugins>
 			<plugin>

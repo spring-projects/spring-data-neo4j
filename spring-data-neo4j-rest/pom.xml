@@ -20,10 +20,6 @@
 
     <repositories>
         <repository>
-            <id>neo4j</id>
-            <url>http://m2.neo4j.org</url>
-        </repository>
-        <repository>
             <id>Sun</id>
             <url>http://download.java.net/maven/2</url>
         </repository>
@@ -41,14 +37,14 @@
             </exclusions>
         </dependency>
 
-        <!--dependency>
+        <dependency>
             <groupId>org.neo4j</groupId>
             <artifactId>neo4j</artifactId>
-        </dependency-->
+        </dependency>
         <dependency>
             <groupId>org.neo4j</groupId>
             <artifactId>neo4j-rest-graphdb</artifactId>
-            <version>1.6.M02</version>
+            <version>1.6</version>
             <exclusions>
                <exclusion>
                    <groupId>org.neo4j</groupId>

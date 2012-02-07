@@ -15,6 +15,7 @@
  */
 package org.springframework.data.neo4j.support.index;
 
+import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.PropertyContainer;
 import org.neo4j.graphdb.index.IndexHits;
 import org.neo4j.graphdb.index.ReadableIndex;
@@ -25,14 +26,21 @@ import org.neo4j.graphdb.index.ReadableIndex;
  */
 public class NullReadableIndex<S extends PropertyContainer> implements ReadableIndex<S> {
     private final String indexName;
+    private final GraphDatabaseService graphDatabaseService;
 
-    public NullReadableIndex(String indexName) {
+    public NullReadableIndex(String indexName, GraphDatabaseService graphDatabaseService) {
         this.indexName = indexName;
+        this.graphDatabaseService = graphDatabaseService;
     }
 
     @Override
     public String getName() {
         return indexName;
+    }
+
+    @Override
+    public GraphDatabaseService getGraphDatabase() {
+        return graphDatabaseService;
     }
 
     @Override

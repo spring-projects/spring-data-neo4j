@@ -40,7 +40,7 @@
             <programlisting language="xml" ><![CDATA[<dependency>
     <groupId>org.neo4j</groupId>
     <artifactId>neo4j</artifactId>
-    <version>1.6.M02</version>
+    <version>1.6</version>
 </dependency>
 ]]></programlisting>
         </example>

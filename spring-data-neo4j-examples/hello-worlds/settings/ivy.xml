@@ -6,7 +6,7 @@
 			<exclude module="jmxtools"/>
 			<exclude module="jmxri"/>
 		</dependency>
-		<dependency org="org.neo4j" name="neo4j-community" rev="1.6.M02"/>
+		<dependency org="org.neo4j" name="neo4j-community" rev="1.6"/>
 		<dependency org="junit" name="junit" rev="4.8.1"/>
 	</dependencies>
 </ivy-module>
