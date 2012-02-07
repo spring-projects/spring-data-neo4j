@@ -29,7 +29,6 @@ import org.springframework.transaction.PlatformTransactionManager;
  * @author mh
  * @since 31.01.11
  */
-
 public class DataGraphNamespaceHandlerCrossStoreTest {
 
     static class Config {
@@ -52,7 +51,8 @@ public class DataGraphNamespaceHandlerCrossStoreTest {
         Neo4jTemplate template = config.template;
         Assert.assertNotNull("template", template);
         EmbeddedGraphDatabase graphDatabaseService = (EmbeddedGraphDatabase) template.getGraphDatabaseService();
-        Assert.assertTrue("store-dir", graphDatabaseService.getStoreDir().endsWith("target/config-test"));
+        String fileSeparator = "target" + System.getProperty("file.separator") + "config-test";
+        Assert.assertTrue("store-dir", graphDatabaseService.getStoreDir().endsWith(fileSeparator));
         Assert.assertNotNull("graphDatabaseService", config.graphDatabaseService);
         Assert.assertNotNull("transactionManager", config.transactionManager);
         config.graphDatabaseService.shutdown();
