@@ -59,5 +59,9 @@ public class ReadOnlyOneToNRelationshipFieldAccessorFactory extends NodeRelation
 			throw new InvalidDataAccessApiUsageException("Cannot set read-only relationship entity field.");
 		}
 
+        @Override
+		public Object getDefaultValue() {
+		    return null;
+		}
 	}
 }
