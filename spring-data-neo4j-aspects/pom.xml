@@ -138,6 +138,7 @@
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
+			<scope>test</scope>
 		</dependency>
 
 		<dependency>
@@ -199,9 +200,17 @@
 
 	<repositories>
 		<repository>
+			<id>neo4j-public-snapshot-repository</id>
+			<name>Neo4J Public Repository</name>
+			<url>http://m2.neo4j.org/snapshots</url>
+			<snapshots>
+				<enabled>true</enabled>
+			</snapshots>
+		</repository>
+		<repository>
 			<id>neo4j-public-repository</id>
 			<name>Neo4J Public Repository</name>
-			<url>http://m2.neo4j.org</url>
+			<url>http://m2.neo4j.org/releases</url>
 			<snapshots>
 				<enabled>true</enabled>
 			</snapshots>
