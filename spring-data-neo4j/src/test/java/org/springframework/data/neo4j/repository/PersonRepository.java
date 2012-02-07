@@ -23,6 +23,7 @@ import org.springframework.data.neo4j.annotation.Query;
 import org.springframework.data.neo4j.annotation.QueryType;
 import org.springframework.data.neo4j.model.Group;
 import org.springframework.data.neo4j.model.Person;
+import org.springframework.data.neo4j.model.Personality;
 import org.springframework.data.repository.query.Param;
 
 import java.util.Map;
@@ -71,5 +72,7 @@ public interface PersonRepository extends GraphRepository<Person>, NamedIndexRep
 
     // Derived queries
     Iterable<Person> findByName(String name);
+
+    Iterable<Person> findByPersonality(String personality);
 }
 

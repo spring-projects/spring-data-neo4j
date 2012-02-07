@@ -66,7 +66,7 @@ public class CypherQueryBuilderUnitTests {
         Part part = new Part("infoLike", Person.class);
         query.addRestriction(part);
 
-        assertThat(query.toString(), is(DEFAULT_START_CLAUSE+" where `person`.`info` =~ {0} return `person`"));
+        assertThat(query.toString(), is(DEFAULT_START_CLAUSE+" where `person`.`info` AND `person`.`info` =~ {0} return `person`"));
     }
     @Test
     public void createsQueryForGreaterThanPropertyReference() {
@@ -74,7 +74,7 @@ public class CypherQueryBuilderUnitTests {
         Part part = new Part("ageGreaterThan", Person.class);
         query.addRestriction(part);
 
-        assertThat(query.toString(), is(DEFAULT_START_CLAUSE+" where `person`.`age` > {0} return `person`"));
+        assertThat(query.toString(), is(DEFAULT_START_CLAUSE+" where `person`.`age` AND `person`.`age` > {0} return `person`"));
     }
     @Test
     public void createsQueryForTwoPropertyExpressions() {
@@ -82,7 +82,7 @@ public class CypherQueryBuilderUnitTests {
         query.addRestriction(new Part("ageGreaterThan", Person.class));
         query.addRestriction(new Part("info", Person.class));
 
-        assertThat(query.toString(), is(DEFAULT_START_CLAUSE+" where `person`.`age` > {0} and `person`.`info` = {1} return `person`"));
+        assertThat(query.toString(), is(DEFAULT_START_CLAUSE+" where `person`.`age` AND `person`.`age` > {0} and `person`.`info` AND `person`.`info` = {1} return `person`"));
     }
 
     @Test
@@ -91,7 +91,7 @@ public class CypherQueryBuilderUnitTests {
         Part part = new Part("ageIsNull", Person.class);
         query.addRestriction(part);
 
-        assertThat(query.toString(), is(DEFAULT_START_CLAUSE+" where `person`.`age` is null  return `person`"));
+        assertThat(query.toString(), is(DEFAULT_START_CLAUSE+" where `person`.`age` AND `person`.`age` is null  return `person`"));
     }
 
     @Test
@@ -119,7 +119,7 @@ public class CypherQueryBuilderUnitTests {
         query.addRestriction(new Part("age", Person.class));
 
         final String className = Person.class.getName();
-        assertThat(query.toString(), is(DEFAULT_START_CLAUSE +" where `person`.`age` = {0} return `person`"));
+        assertThat(query.toString(), is(DEFAULT_START_CLAUSE +" where `person`.`age` AND `person`.`age` = {0} return `person`"));
     }
     @Test
     public void createsSimpleTraversalClauseCorrectly() {
@@ -140,7 +140,7 @@ public class CypherQueryBuilderUnitTests {
         assertThat(query.toString(), is(
                 "start `person`=node:`Person`(`name`={0}), `person_group`=node:`Group`(`name`={1}) " +
                         "match `person`<-[:`members`]-`person_group`, `person`<-[:`members`]-`person_group`-[:`members`]->`person_group_members` " +
-                        "where `person`.`age` > {2} and `person_group_members`.`age` = {3} " +
+                        "where `person`.`age` AND `person`.`age` > {2} and `person_group_members`.`age` AND `person_group_members`.`age` = {3} " +
                         "return `person`"
                 ));
     }

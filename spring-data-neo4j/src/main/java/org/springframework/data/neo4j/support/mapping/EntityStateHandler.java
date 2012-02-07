@@ -157,13 +157,14 @@ public class EntityStateHandler {
         if (target == null) throw new IllegalArgumentException("Target entity is null");
         if (type == null) throw new IllegalArgumentException("Relationshiptype is null");
 
+        final Node sourceNode = getPersistentState(source, Node.class);
+        final Node targetNode = getPersistentState(target, Node.class);
+
         if (!allowDuplicates) {
-            Relationship relationship = getRelationshipBetween(source, target, type);
+            Relationship relationship = getRelationshipBetween(sourceNode, targetNode, type);
             if (relationship != null) return new RelationshipResult(relationship, RelationshipResult.Type.EXISTING);
         }
 
-        final Node sourceNode = getPersistentState(source, Node.class);
-        final Node targetNode = getPersistentState(target, Node.class);
 
         if (sourceNode == null) throw new IllegalArgumentException("Source Node  is null");
         if (targetNode == null) throw new IllegalArgumentException("Target Node is null");
@@ -197,7 +198,7 @@ public class EntityStateHandler {
         if (node == null || targetNode == null) return null;
         Iterable<Relationship> relationships = node.getRelationships(DynamicRelationshipType.withName(type),Direction.OUTGOING);
         for (Relationship relationship : relationships) {
-            if (relationship.getOtherNode(node).equals(targetNode)) return relationship;
+            if (relationship.getEndNode().equals(targetNode)) return relationship;
         }
         return null;
     }

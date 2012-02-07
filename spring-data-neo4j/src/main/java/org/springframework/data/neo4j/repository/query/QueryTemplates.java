@@ -40,8 +40,8 @@ public abstract class QueryTemplates {
     static final String SKIP_LIMIT = " skip %d limit %d";
     static final String START_CLAUSE = "`%s`=node:`%s`(`%s`=" + PLACEHOLDER + ")";
     static final String START_CLAUSE_FULLTEXT = "`%s`=node:`%s`(" + PLACEHOLDER + ")";
-    static final String WHERE_CLAUSE_1 = "`%s`.`%s` %s " + PLACEHOLDER;
-    static final String WHERE_CLAUSE_0 = "`%s`.`%s` %s ";
+    static final String WHERE_CLAUSE_1 = "`%1$s`.`%2$s` AND `%1$s`.`%2$s` %3$s {%4$d}";
+    static final String WHERE_CLAUSE_0 = "`%1$s`.`%2$s` AND `%1$s`.`%2$s` %3$s ";
     static final String SORT_CLAUSE = "%s %s";
     static final String ORDER_BY_CLAUSE = " order by %s";
 

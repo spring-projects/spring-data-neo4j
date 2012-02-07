@@ -258,6 +258,14 @@ public class GraphRepositoryTest {
         Iterable<Person> findByName = personRepository.findByName(testTeam.michael.getName());
         assertThat(findByName, hasItem(testTeam.michael));
     }
+
+    @Test @Transactional
+    public void findByPersonalityEnum() {
+        testTeam.michael.setPersonality(Personality.EXTROVERT);
+        neo4jTemplate.save(testTeam.michael);
+        Iterable<Person> result = personRepository.findByPersonality(Personality.EXTROVERT.name());
+        assertThat(result, hasItem(testTeam.michael));
+    }
     @Test( expected = NoSuchColumnFoundException.class) @Transactional
     public void missingColumnIsReportedNicely() {
         Iterable<MemberData> findByName = personRepository.nonWorkingQuery( testTeam.michael );

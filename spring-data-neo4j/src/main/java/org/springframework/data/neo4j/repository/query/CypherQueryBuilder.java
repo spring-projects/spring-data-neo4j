@@ -143,11 +143,9 @@ class CypherQueryBuilder implements CypherQueryDefinition {
     @Override
     public String toString(Pageable pageable) {
 
+        if (pageable==null) return "";
         StringBuilder builder = new StringBuilder(toString(pageable.getSort()));
-
-        if (pageable != null) {
-            builder.append(String.format(QueryTemplates.SKIP_LIMIT, pageable.getOffset(), pageable.getPageSize()));
-        }
+        builder.append(String.format(QueryTemplates.SKIP_LIMIT, pageable.getOffset(), pageable.getPageSize()));
 
         return builder.toString();
     }
