@@ -3,6 +3,7 @@ package org.springframework.data.neo4j.examples.hellograph;
 
 import org.neo4j.graphdb.Direction;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.neo4j.annotation.Fetch;
 import org.springframework.data.neo4j.annotation.GraphId;
 import org.springframework.data.neo4j.annotation.Indexed;
 import org.springframework.data.neo4j.annotation.NodeEntity;
@@ -28,8 +29,9 @@ public class World
     @Indexed(indexName = "moon-index")
     private int moons;
 
-    @RelatedTo(type = "REACHABLE_BY_ROCKET", elementClass = World.class, direction = Direction.BOTH)
-    private Set<World> reachableByRocket = new HashSet<World>();
+    @Fetch
+    @RelatedTo(type = "REACHABLE_BY_ROCKET", direction = Direction.BOTH)
+    Set<World> reachableByRocket = new HashSet<World>();
 
     public World( String name, int moons )
     {
@@ -69,26 +71,16 @@ public class World
 
 	@Override
 	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + ((id == null) ? 0 : id.hashCode());
-		return result;
+        return (id == null) ? 0 : id.hashCode();
 	}
 
 	@Override
 	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
+		if (this == obj) return true;
+		if (obj == null) return false;
+		if (getClass() != obj.getClass()) return false;
 		World other = (World) obj;
-		if (id == null) {
-			if (other.id != null)
-				return false;
-		} else if (!id.equals(other.id))
-			return false;
-		return true;
-	}
+		if (id == null) return other.id == null;
+        return id.equals(other.id);
+    }
 }

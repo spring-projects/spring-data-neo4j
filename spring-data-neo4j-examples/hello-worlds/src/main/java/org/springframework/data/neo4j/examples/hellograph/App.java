@@ -19,13 +19,10 @@ public class App
 
         WorldRepositoryImpl galaxy = applicationContext.getBean(WorldRepositoryImpl.class);
 
-        Iterable<World> worlds = galaxy.makeSomeWorlds();
+        galaxy.makeSomeWorlds();
 
-        World homeWorld = worlds.iterator().next();
-        System.out.println("At home on: " + homeWorld);
-
-        World foundHomeWorld = galaxy.findWorldNamed( homeWorld.getName() );
-        System.out.println( "found home world: " + foundHomeWorld );
+        World homeWorld = galaxy.findWorldNamed( "Earth" );
+        System.out.println( "At home on: " + homeWorld );
 
         Iterable<World> worldsBeyond = galaxy.exploreWorldsBeyond( homeWorld );
         for (World world : worldsBeyond) {

@@ -111,9 +111,11 @@ public class WorldRepositoryTest
 
         World earth = galaxy.findWorldNamed( "Earth" );
         World mars = galaxy.findWorldNamed( "Mars" );
+        System.err.println(earth.reachableByRocket);
+        System.err.println(mars.reachableByRocket);
 
-        assertTrue( mars.canBeReachedFrom( earth ) );
-        assertTrue( earth.canBeReachedFrom( mars ) );
+        assertTrue("mars can be reached from earth", mars.canBeReachedFrom( earth ) );
+        assertTrue("earth can be reached from mars", earth.canBeReachedFrom( mars ) );
     }
 
 }
