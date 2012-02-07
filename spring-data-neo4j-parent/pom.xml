@@ -455,7 +455,7 @@
       <dependency>
           <groupId>org.neo4j</groupId>
           <artifactId>neo4j-cypher-dsl</artifactId>
-          <version>1.6.M02</version>
+          <version>${neo4j.version}</version>
          	<exclusions>
 				<exclusion>
 					<groupId>org.neo4j</groupId>
