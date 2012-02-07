@@ -17,6 +17,8 @@ package org.springframework.data.neo4j.rest;
 
 
 import org.neo4j.rest.graphdb.query.RestCypherQueryEngine;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.neo4j.support.query.QueryEngine;
 
 import java.util.Map;
@@ -24,7 +26,9 @@ import java.util.Map;
 
 public class SpringRestCypherQueryEngine implements QueryEngine<Map<String,Object>> {
 
-    org.neo4j.rest.graphdb.query.RestCypherQueryEngine restCypherQueryEngine;
+    public static final Logger log = LoggerFactory.getLogger(SpringRestCypherQueryEngine.class);
+
+    private final RestCypherQueryEngine restCypherQueryEngine;
 
     public SpringRestCypherQueryEngine(RestCypherQueryEngine restCypherQueryEngine) {
         this.restCypherQueryEngine = restCypherQueryEngine;
@@ -32,6 +36,8 @@ public class SpringRestCypherQueryEngine implements QueryEngine<Map<String,Objec
 
     @Override
     public SpringRestResult<Map<String,Object>> query(String statement, Map<String, Object> params) {
+        if (log.isDebugEnabled()) log.debug(String.format("Executing remote cypher query: %s params %s",statement,params));
+
         return new SpringRestResult<Map<String, Object>>(restCypherQueryEngine.query(statement, params));
     }
 

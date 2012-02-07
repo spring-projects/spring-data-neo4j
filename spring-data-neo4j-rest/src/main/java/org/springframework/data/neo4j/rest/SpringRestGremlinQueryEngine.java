@@ -17,6 +17,8 @@ package org.springframework.data.neo4j.rest;
 
 
 import org.neo4j.rest.graphdb.query.RestGremlinQueryEngine;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.neo4j.support.query.QueryEngine;
 
 import java.util.Map;
@@ -24,7 +26,9 @@ import java.util.Map;
 
 public class SpringRestGremlinQueryEngine implements QueryEngine<Object> {
 
-    RestGremlinQueryEngine restGremlinQueryEngine;
+    public static final Logger log = LoggerFactory.getLogger(SpringRestGremlinQueryEngine.class);
+
+    private final RestGremlinQueryEngine restGremlinQueryEngine;
 
     public SpringRestGremlinQueryEngine(RestGremlinQueryEngine restGremlinQueryEngine) {
         this.restGremlinQueryEngine = restGremlinQueryEngine;
@@ -32,6 +36,8 @@ public class SpringRestGremlinQueryEngine implements QueryEngine<Object> {
 
     @Override
     public SpringRestResult<Object> query(String statement, Map<String, Object> params) {
+        if (log.isDebugEnabled()) log.debug(String.format("Executing remote gremlin query: %s params %s",statement,params));
+
         return new SpringRestResult<Object>(restGremlinQueryEngine.query(statement, params));
     }
 

@@ -15,6 +15,8 @@
  */
 package org.springframework.data.neo4j.repository.query;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mapping.context.MappingContext;
@@ -33,6 +35,7 @@ import org.springframework.util.Assert;
  */
 public class DerivedCypherRepositoryQuery extends CypherGraphRepositoryQuery {
 
+    public static final Logger log = LoggerFactory.getLogger(DerivedCypherRepositoryQuery.class);
     private final CypherQueryDefinition query;
 
     /**
@@ -51,6 +54,7 @@ public class DerivedCypherRepositoryQuery extends CypherGraphRepositoryQuery {
         PartTree tree = new PartTree(queryMethod.getName(), info.getJavaType());
 
         this.query = new CypherQueryCreator(tree, mappingContext, info.getJavaType()).createQuery();
+        if (log.isDebugEnabled()) log.debug("Derived query: "+query+ "from method "+queryMethod);
     }
 
     @Override

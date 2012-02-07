@@ -24,6 +24,8 @@ import com.tinkerpop.blueprints.pgm.impls.neo4j.Neo4jVertex;
 import com.tinkerpop.pipes.util.Table;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.helpers.collection.IterableWrapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.script.*;
 import java.util.Collections;
@@ -33,6 +35,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class GremlinExecutor {
 
+    public static final Logger log = LoggerFactory.getLogger(GremlinExecutor.class);
     public static final int REFRESH_ENGINE_COUNT = 10000;
     private static final String GRAPH_VARIABLE = "g";
     private volatile ScriptEngine engine;
@@ -51,6 +54,8 @@ public class GremlinExecutor {
     @SuppressWarnings("unchecked")
     public Iterable<Object> query(String statement, Map<String,Object> params) {
         try {
+            if (log.isDebugEnabled()) log.debug(String.format("Executing gremlin query: %s params %s",statement,params));
+
             final Bindings bindings = createBindings(params);
             final ScriptEngine engine = engine();
             final Object result = engine.eval(statement, bindings);

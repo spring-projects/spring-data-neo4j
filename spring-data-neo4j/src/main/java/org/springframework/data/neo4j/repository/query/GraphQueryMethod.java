@@ -143,4 +143,9 @@ public class GraphQueryMethod extends QueryMethod {
     public boolean isCollectionResult() {
         return hasResultOfType(Collection.class);
     }
+
+    @Override
+    public String toString() {
+        return "Repository-Graph-Query-Method for "+method;
+    }
 }

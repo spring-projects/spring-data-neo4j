@@ -16,15 +16,15 @@
 
 package org.springframework.data.neo4j.support.query;
 
-import org.neo4j.cypher.commands.Query;
-import org.neo4j.cypher.javacompat.CypherParser;
 import org.neo4j.cypher.javacompat.ExecutionEngine;
 import org.neo4j.cypher.javacompat.ExecutionResult;
 import org.neo4j.graphdb.GraphDatabaseService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.dao.InvalidDataAccessResourceUsageException;
 import org.springframework.data.neo4j.conversion.DefaultConverter;
-import org.springframework.data.neo4j.conversion.Result;
 import org.springframework.data.neo4j.conversion.QueryResultBuilder;
+import org.springframework.data.neo4j.conversion.Result;
 import org.springframework.data.neo4j.conversion.ResultConverter;
 
 import java.util.Collections;
@@ -32,6 +32,7 @@ import java.util.Map;
 
 public class CypherQueryEngine implements QueryEngine<Map<String,Object>> {
 
+    private final static Logger log = LoggerFactory.getLogger(CypherQueryEngine.class);
     final ExecutionEngine executionEngine;
     private ResultConverter resultConverter;
 
@@ -58,11 +59,16 @@ public class CypherQueryEngine implements QueryEngine<Map<String,Object>> {
 
     private ExecutionResult parseAndExecuteQuery(String statement, Map<String, Object> params) {
         try {
-            CypherParser parser = new CypherParser();
-            Query query = parser.parse(statement);
-            return executionEngine.execute(query,params==null ? Collections.<String,Object>emptyMap() : params);
+            final Map<String, Object> queryParams = queryParams(params);
+            if (log.isDebugEnabled()) log.debug(String.format("Executing cypher query: %s params %s",statement,queryParams));
+
+            return executionEngine.execute(statement, queryParams);
         } catch(Exception e) {
             throw new InvalidDataAccessResourceUsageException("Error executing statement " + statement, e);
         }
+    }
+
+    private Map<String, Object> queryParams(Map<String, Object> params) {
+        return params == null ? Collections.<String, Object>emptyMap() : params;
     }
 }
