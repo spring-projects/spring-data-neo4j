@@ -118,7 +118,7 @@
 
     <section>
         <title>Query and Finder Methods</title>
-        <section>
+        <section id="reference:programming-model:annotatedQueries">
             <title>Annotated queries</title>
         <para>
             Queries using the Cypher graph query language can be supplied with the <code>@Query</code> annotation.
@@ -179,6 +179,74 @@
                         <listitem><para>returns the movies rate by the friends of the user 'micha', aggregated by movie.title, with averaged ratings and rating-counts sorted by both</para></listitem>
                     </varlistentry>
                 </variablelist>
+            </para>
+            <para>Using these examples and a couple more we can place those queries onto repository methods with @Query and replace values with method parameters, as described
+                in the <xref linkend="reference:programming-model:annotatedQueries" />) section.
+                <variablelist>
+                    <varlistentry>
+                        <example>
+            <programlisting language="java"><![CDATA[
+public interface MovieRepository extends GraphRepository<Movie> {
+ @Query("start n=node({0}) return n")
+ Movie getMovieFromId(Integer idOfMovie);
+}]]></programlisting>
+
+        </example>
+                        <listitem><para>returns the node with id equal to idOfMovie parameter</para></listitem>
+                    </varlistentry>
+                    <varlistentry>
+                    <example>
+            <programlisting language="java"><![CDATA[
+public interface MovieRepository extends GraphRepository<Movie> {
+ @Query("start movie=node:Movie(title={0}) return movie")
+ Movie getMovieFromTitle(String movieTitle);
+}]]></programlisting>
+
+        </example>
+                        <listitem><para>returns the nodes which are indexed with title equal to movieTitle parameter</para></listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <example>
+            <programlisting language="java"><![CDATA[
+public interface MovieRepository extends GraphRepository<Movie> {
+ @Query("start movie=node:Movie(title={0}) match (movie)&lt;-[:ACTS_IN]-(actor) return actor")
+ Page<Actor> getActorsThatActInMovieFromTitle(String movieTitle, PageRequest);
+}]]></programlisting>
+
+        </example>
+                        <listitem><para>returns the Actors that have a ACTS_IN relationship to the movie node with the title equal to movieTitle parameter. 
+                        (The parenthesis around 'movie' and 'actor' in the match clause are optional.)</para></listitem>
+                    </varlistentry>
+                    <varlistentry>
+                    <example>
+            <programlisting language="java"><![CDATA[
+public interface MovieRepository extends GraphRepository<Movie> {
+ @Query("start movie=node:({0}) " +
+         "match (movie)&lt;-[r:RATED]-(user) " +
+         "where r.stars > {1} " +
+         "return user")
+ Iterable<User> getUsersWhoRatedMovieFromTitle(Movie movie, Integer rating);
+}]]></programlisting>
+
+        </example>
+                        <listitem><para>returns users who rate a movie (movie parameter) higher than rating (rating parameter)</para></listitem>
+                    </varlistentry>
+                    <varlistentry>
+                    <example>
+            <programlisting language="java"><![CDATA[
+public interface MovieRepository extends GraphRepository<Movie> {
+ @Query("start movie=node:Movie(title={0}) " +
+         "match (movie)&lt;-[r:RATED]-(user) " +
+         "where r.stars > {1} " +
+         "return user")
+ Iterable<User> getUsersWhoRatedMovieFromTitle(String movieTitle, Integer rating);
+}]]></programlisting>
+
+        </example>
+                        <listitem><para>returns users who rate a movie based on movie title (movieTitle parameter) higher than rating (rating parameter)</para></listitem>
+                    </varlistentry>                    
+                </variablelist>
+            
             </para>
         </section>
 		        <section>
