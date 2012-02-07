@@ -65,10 +65,13 @@ public class QueryEngineTest extends EntityTestBase {
     private Neo4jTemplate template;
     private QueryEngine<Map<String,Object>> queryEngine;
     private Person michael;
+    private EntityResultConverter entityResultConverter;
 
     @Before
     public void setUp() throws Exception {
         GraphDatabase graphDatabase = createGraphDatabase();
+        graphDatabase.setConversionService(conversionService);
+        entityResultConverter = new EntityResultConverter(conversionService, neo4jTemplate);
         testTeam.createSDGTeam();
         queryEngine = graphDatabase.queryEngineFor(QueryType.Cypher);
         michael = testTeam.michael;
@@ -76,7 +79,7 @@ public class QueryEngineTest extends EntityTestBase {
 
     protected GraphDatabase createGraphDatabase() throws Exception {
         final DelegatingGraphDatabase graphDatabase = new DelegatingGraphDatabase(template.getGraphDatabaseService());
-        graphDatabase.setConversionService(conversionService);
+        //graphDatabase.setResultConverter(entityResultConverter);
         return graphDatabase;
     }
 
@@ -219,5 +222,15 @@ public class QueryEngineTest extends EntityTestBase {
         final Personality result = queryEngine.query(queryString, michaelsName()).to(Personality.class).single();
 
         assertEquals(michael.getPersonality(),result);
+    }
+
+    @Test
+    public void testQueryWithSpaceInParameter() throws Exception {
+        michael.setName("Michael Hunger");
+        personRepository.save(michael);
+        final String queryString = "start person=node:`name-index`({name}) return person";
+        final Person result = (Person)queryEngine.query(queryString, map("name","name:\"Michael Hunger\"")).to(Person.class,entityResultConverter).singleOrNull();
+
+        assertEquals(michael,result);
     }
 }
