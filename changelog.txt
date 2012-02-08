@@ -1,5 +1,10 @@
 Spring Data Graph Changelog
 ===========================
+Changes in version 2.0.1.RELEASE (2012-02-09)
+---------------------------------------------
+* Updated dependencies to SpringFramework 3.0.7, Spring-Data-Commons 1.2.1, Neo4j, Cypher-DSL, Neo4j-Spatial 1.6
+* Updated repository configuration
+* DATAGRAPH-186 default value for readonly relationship collections
 
 Changes in version 2.0.0.RELEASE (2011-12-23)
 ---------------------------------------------
