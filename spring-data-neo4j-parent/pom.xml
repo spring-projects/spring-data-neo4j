@@ -753,7 +753,12 @@
 		</pluginRepository>
 	</pluginRepositories>
 	<repositories>
-        <repository>
+		<repository>
+		   <id>tinkerpop-repository</id>
+		   <name>TinkerPop Maven2 Repository</name>
+		   <url>http://tinkerpop.com/maven2</url>
+		</repository>
+		<repository>
             <id>jboss-repository</id>
             <name>JBoss Public Repository</name>
             <url>http://repository.jboss.org/nexus/content/groups/public-jboss</url>
