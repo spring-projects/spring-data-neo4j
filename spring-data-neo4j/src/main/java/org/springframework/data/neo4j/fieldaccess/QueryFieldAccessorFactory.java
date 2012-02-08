@@ -110,7 +110,7 @@ public class QueryFieldAccessorFactory implements FieldAccessorFactory {
             if (typeInformation.isCollectionLike()) {
                return result.to(targetType);
             }
-            return result.to(targetType).single();
+            return result.to(targetType).singleOrNull();
         }
 
         private Map<String, Object> createPlaceholderParams(Object entity) {

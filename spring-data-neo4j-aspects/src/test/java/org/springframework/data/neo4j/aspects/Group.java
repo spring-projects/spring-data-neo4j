@@ -60,6 +60,10 @@ public class Group {
     @Indexed
     private Boolean admin;
 
+    @Query("start n=node({self}) match n-[:persons]->() return count(*)")
+    private Long memberCount;
+
+
     @GraphProperty
     private String unindexedName;
 
@@ -132,6 +136,10 @@ public class Group {
 
     public String[] getRoleNames() {
         return roleNames;
+    }
+
+    public Long getMemberCount() {
+        return memberCount;
     }
 
     public enum Role { ADMIN, USER }
