@@ -20,6 +20,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.neo4j.helpers.collection.IteratorUtil;
+import org.springframework.data.neo4j.aspects.Group;
 import org.springframework.data.neo4j.aspects.Person;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -29,6 +30,7 @@ import java.util.Collection;
 import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.internal.matchers.IsCollectionContaining.hasItems;
 
@@ -73,5 +75,11 @@ public class NodeEntityQueryTest extends EntityTestBase {
     @Test
     public void testQueryVariableStringResult() throws Exception {
         assertEquals(testTeam.emil.getName(),michael.getBossName());
+    }
+
+    @Test
+    public void testEmptyQueryReturnsNull() {
+        final Group group = neo4jTemplate.save(new Group());
+        assertNull("empty result leads to null value", group.getMemberCount());
     }
 }
