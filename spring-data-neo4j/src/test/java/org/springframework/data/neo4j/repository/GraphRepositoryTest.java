@@ -91,7 +91,7 @@ public class GraphRepositoryTest {
     @Before
     public void setUp() throws Exception {
         testTeam = new TestTeam();
-        testTeam.createSDGTeam( personRepository, groupRepository, friendshipRepository );
+        testTeam.createSDGTeam(personRepository, groupRepository, friendshipRepository);
     }
 
     @Test
@@ -154,8 +154,8 @@ public class GraphRepositoryTest {
 
     @Test @Transactional
     public void testFindIterableOfPersonWithQueryAnnotationAndGremlin() {
-        Iterable<Person> teamMembers = personRepository.findAllTeamMembersGremlin( testTeam.sdg );
-        assertThat( asCollection( teamMembers ), hasItems( testTeam.michael, testTeam.david, testTeam.emil ) );
+        Iterable<Person> teamMembers = personRepository.findAllTeamMembersGremlin(testTeam.sdg);
+        assertThat( asCollection( teamMembers ), hasItems(testTeam.michael, testTeam.david, testTeam.emil) );
     }
 
     @Test @Transactional 
@@ -164,10 +164,21 @@ public class GraphRepositoryTest {
         assertThat(boss, is( testTeam.emil ));
     }
 
+    @Test @Transactional
+    public void testCypherQueryWithNoResultsReturnsNullForSingleType() {
+        Person boss = personRepository.findBoss( testTeam.emil );
+        assertThat(boss, is( (Person)null ));
+    }
+    @Test @Transactional
+    public void testCypherQueryWithNoResultsReturnsNullForPage() {
+        Page<Person> people = personRepository.findSubordinates(testTeam.michael, new PageRequest(0, 10));
+        assertEquals(true, people.getContent().isEmpty());
+    }
+
     @Test @Transactional 
     public void testFindPersonWithQueryAnnotationUsingLongAsParameter() {
-        Person boss = personRepository.findBoss( testTeam.michael.getId() );
-        assertThat(boss, is( testTeam.emil ));
+        Person boss = personRepository.findBoss(testTeam.michael.getId());
+        assertThat(boss, is(testTeam.emil));
     }
 
     @Test @Transactional 
