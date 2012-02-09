@@ -21,6 +21,7 @@ import org.neo4j.graphdb.index.Index;
 import org.neo4j.index.lucene.ValueContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
 
@@ -79,8 +80,18 @@ public class IndexingPropertyFieldAccessorListenerFactory<S extends PropertyCont
             final T state = template.getPersistentState(entity);
             index.remove(state, indexKey);
             if (newVal != null) {
-                index.add(state, indexKey, newVal);
+                if (property.isUnique()) {
+                    addUniquely(index, state, newVal);
+                } else {
+                    index.add(state, indexKey, newVal);
+                }
             }
+        }
+
+        private void addUniquely(Index<T> index, T state, Object newVal) {
+            final T existingState = index.putIfAbsent(state, indexKey, newVal);
+            if (existingState == null || existingState.equals(state)) return;
+            throw new DataIntegrityViolationException("Unique property "+property+" was to be set to duplicate value "+newVal);
         }
     }
 }

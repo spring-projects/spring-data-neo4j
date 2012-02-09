@@ -256,6 +256,7 @@ public abstract class Neo4jConfiguration {
 
     @Bean
     public GraphDatabase graphDatabase() {
+        if (graphDatabaseService instanceof GraphDatabase) return (GraphDatabase) graphDatabaseService;
         return new DelegatingGraphDatabase(graphDatabaseService);
     }
 

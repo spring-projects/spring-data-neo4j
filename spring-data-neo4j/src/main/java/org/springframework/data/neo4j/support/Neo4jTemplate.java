@@ -35,6 +35,7 @@ import org.springframework.data.neo4j.core.GraphDatabase;
 import org.springframework.data.neo4j.core.TypeRepresentationStrategy;
 import org.springframework.data.neo4j.core.UncategorizedGraphStoreException;
 import org.springframework.data.neo4j.mapping.EntityPersister;
+import org.springframework.data.neo4j.mapping.IndexInfo;
 import org.springframework.data.neo4j.mapping.MappingPolicy;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.mapping.RelationshipResult;
@@ -60,6 +61,7 @@ import org.springframework.transaction.support.TransactionTemplate;
 
 import javax.annotation.PostConstruct;
 import javax.validation.Validator;
+import java.util.Collections;
 import java.util.Map;
 
 import static org.springframework.data.neo4j.support.ParameterCheck.notNull;
@@ -237,9 +239,22 @@ public class Neo4jTemplate implements Neo4jOperations, EntityPersister {
         return infrastructure.getGraphDatabase().createNode(null);
     }
 
+    /**
+     * creates the node uniquely or returns an existing node with the same index-key-value combination.
+     * properties are used to initialize the node.
+     */
     @Override
     public Node createNode(final Map<String, Object> properties) {
         return infrastructure.getGraphDatabase().createNode(properties);
+    }
+
+    /**
+     * creates the node uniquely or returns an existing node with the same index-key-value combination.
+     * properties are used to initialize the node.
+     */
+    @Override
+    public Node getOrCreateNode(String index, String key, Object value, final Map<String,Object> properties) {
+        return infrastructure.getGraphDatabase().getOrCreateNode(index,key,value,properties);
     }
 
     @Override
@@ -647,5 +662,14 @@ public class Neo4jTemplate implements Neo4jOperations, EntityPersister {
 
     private Neo4jMappingContext getMappingContext() {
         return infrastructure.getMappingContext();
+    }
+
+    public Node createUniqueNode(Object entity) {
+        final Neo4jPersistentEntityImpl<?> persistentEntity = getPersistentEntity(entity.getClass());
+        final Neo4jPersistentProperty uniqueProperty = persistentEntity.getUniqueProperty();
+        final Object value = uniqueProperty.getValueFromEntity(entity, MappingPolicy.MAP_FIELD_DIRECT_POLICY);
+        if (value==null) return createNode();
+        final IndexInfo indexInfo = uniqueProperty.getIndexInfo();
+        return getGraphDatabase().getOrCreateNode(indexInfo.getIndexName(), indexInfo.getIndexKey(), value, Collections.<String, Object>emptyMap());
     }
 }

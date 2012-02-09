@@ -16,9 +16,14 @@
 
 package org.springframework.data.neo4j.support;
 
-import org.neo4j.graphdb.*;
+import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.PropertyContainer;
+import org.neo4j.graphdb.Relationship;
+import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.graphdb.index.Index;
 import org.neo4j.graphdb.index.IndexManager;
+import org.neo4j.graphdb.index.UniqueFactory;
 import org.neo4j.graphdb.traversal.TraversalDescription;
 import org.neo4j.kernel.AbstractGraphDatabase;
 import org.neo4j.kernel.Traversal;
@@ -255,5 +260,15 @@ public class DelegatingGraphDatabase implements GraphDatabase {
         public Result<T> query(String statement, Map<String, Object> params) {
             throw new IllegalStateException(dependency + " is not available, please add it to your dependencies to execute: " +statement);
         }
+    }
+
+    public Node getOrCreateNode(String index, String key, Object value, final Map<String,Object> nodeProperties) {
+        if (index==null || key == null || value==null) throw new IllegalArgumentException("Unique index "+index+" key "+key+" value must not be null");
+        UniqueFactory.UniqueNodeFactory factory = new UniqueFactory.UniqueNodeFactory(delegate, index) {
+            protected void initialize(Node node, Map<String, Object> _) {
+                setProperties(node,nodeProperties);
+            }
+        };
+        return factory.getOrCreate(key, value);
     }
 }
