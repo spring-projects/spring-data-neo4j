@@ -180,74 +180,43 @@
                     </varlistentry>
                 </variablelist>
             </para>
-            <para>Using these examples and a couple more we can place those queries onto repository methods with @Query and replace values with method parameters, as described
-                in the <xref linkend="reference:programming-model:annotatedQueries" />) section.
-                <variablelist>
-                    <varlistentry>
-                        <example>
-            <programlisting language="java"><![CDATA[
+                <example>
+                    <title>Examples of Cypher queries placed on repository methods with @Query where values are replaced with method parameters, as described
+                        in the <xref linkend="reference:programming-model:annotatedQueries" />) section.</title>            
+                    <programlisting language="java"><![CDATA[
 public interface MovieRepository extends GraphRepository<Movie> {
- @Query("start n=node({0}) return n")
- Movie getMovieFromId(Integer idOfMovie);
-}]]></programlisting>
+    
+    // returns the node with id equal to idOfMovie parameter  
+    @Query("start n=node({0}) return n")
+    Movie getMovieFromId(Integer idOfMovie);
 
-        </example>
-                        <listitem><para>returns the node with id equal to idOfMovie parameter</para></listitem>
-                    </varlistentry>
-                    <varlistentry>
-                    <example>
-            <programlisting language="java"><![CDATA[
-public interface MovieRepository extends GraphRepository<Movie> {
- @Query("start movie=node:Movie(title={0}) return movie")
- Movie getMovieFromTitle(String movieTitle);
-}]]></programlisting>
+    // returns the nodes which will use index named title equal to movieTitle parameter
+    // movieTitle String must not contain any spaces, otherwise you will receive a NullPointerException.
+    @Query("start movie=node:Movie(title={0}) return movie")
+    Movie getMovieFromTitle(String movieTitle);
 
-        </example>
-                        <listitem><para>returns the nodes which are indexed with title equal to movieTitle parameter</para></listitem>
-                    </varlistentry>
-                    <varlistentry>
-                        <example>
-            <programlisting language="java"><![CDATA[
-public interface MovieRepository extends GraphRepository<Movie> {
- @Query("start movie=node:Movie(title={0}) match (movie)&lt;-[:ACTS_IN]-(actor) return actor")
- Page<Actor> getActorsThatActInMovieFromTitle(String movieTitle, PageRequest);
-}]]></programlisting>
+    // returns the Actors that have a ACTS_IN relationship to the movie node with the title equal to movieTitle parameter. 
+    // (The parenthesis around 'movie' and 'actor' in the match clause are optional.)                       
+    @Query("start movie=node:Movie(title={0}) match (movie)&lt;-[:ACTS_IN]-(actor) return actor")
+    Page<Actor> getActorsThatActInMovieFromTitle(String movieTitle, PageRequest);
 
-        </example>
-                        <listitem><para>returns the Actors that have a ACTS_IN relationship to the movie node with the title equal to movieTitle parameter. 
-                        (The parenthesis around 'movie' and 'actor' in the match clause are optional.)</para></listitem>
-                    </varlistentry>
-                    <varlistentry>
-                    <example>
-            <programlisting language="java"><![CDATA[
-public interface MovieRepository extends GraphRepository<Movie> {
- @Query("start movie=node:({0}) " +
-         "match (movie)&lt;-[r:RATED]-(user) " +
-         "where r.stars > {1} " +
-         "return user")
- Iterable<User> getUsersWhoRatedMovieFromTitle(Movie movie, Integer rating);
-}]]></programlisting>
+    // returns users who rate a movie (movie parameter) higher than rating (rating parameter)
+    @Query("start movie=node:({0}) " +
+           "match (movie)&lt;-[r:RATED]-(user) " +
+           "where r.stars > {1} " +
+           "return user")
+    Iterable<User> getUsersWhoRatedMovieFromTitle(Movie movie, Integer rating);
 
-        </example>
-                        <listitem><para>returns users who rate a movie (movie parameter) higher than rating (rating parameter)</para></listitem>
-                    </varlistentry>
-                    <varlistentry>
-                    <example>
-            <programlisting language="java"><![CDATA[
-public interface MovieRepository extends GraphRepository<Movie> {
- @Query("start movie=node:Movie(title={0}) " +
-         "match (movie)&lt;-[r:RATED]-(user) " +
-         "where r.stars > {1} " +
-         "return user")
- Iterable<User> getUsersWhoRatedMovieFromTitle(String movieTitle, Integer rating);
-}]]></programlisting>
-
-        </example>
-                        <listitem><para>returns users who rate a movie based on movie title (movieTitle parameter) higher than rating (rating parameter)</para></listitem>
-                    </varlistentry>                    
-                </variablelist>
+    // returns users who rate a movie based on movie title (movieTitle parameter) higher than rating (rating parameter)
+    @Query("start movie=node:Movie(title={0}) " +
+           "match (movie)&lt;-[r:RATED]-(user) " +
+           "where r.stars > {1} " +
+           "return user")
+     Iterable<User> getUsersWhoRatedMovieFromTitle(String movieTitle, Integer rating);
+ }
+                ]]></programlisting>
+                </example>            
             
-            </para>
         </section>
 		        <section>
 		            <title>Queries derived from finder-method names</title>
