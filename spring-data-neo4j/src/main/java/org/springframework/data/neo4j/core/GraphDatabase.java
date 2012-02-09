@@ -44,7 +44,16 @@ public interface GraphDatabase {
      */
     Node getNodeById(long id);
 
+    /**
+     * creates the node and initializes its properties
+     */
     Node createNode(Map<String, Object> props);
+
+    /**
+     * creates the node uniquely or returns an existing node with the same index-key-value combination.
+     * properties are used to initialize the node.
+     */
+    Node getOrCreateNode(String index, String key, Object value, final Map<String,Object> properties);
 
     /**
      * @param id relationship id

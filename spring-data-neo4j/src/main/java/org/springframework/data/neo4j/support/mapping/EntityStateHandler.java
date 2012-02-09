@@ -15,10 +15,23 @@
  */
 package org.springframework.data.neo4j.support.mapping;
 
-import org.neo4j.graphdb.*;
+import org.neo4j.graphdb.Direction;
+import org.neo4j.graphdb.DynamicRelationshipType;
+import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.PropertyContainer;
+import org.neo4j.graphdb.Relationship;
+import org.neo4j.graphdb.RelationshipType;
 import org.springframework.data.mapping.model.MappingException;
 import org.springframework.data.neo4j.core.GraphDatabase;
-import org.springframework.data.neo4j.mapping.*;
+import org.springframework.data.neo4j.mapping.IndexInfo;
+import org.springframework.data.neo4j.mapping.ManagedEntity;
+import org.springframework.data.neo4j.mapping.MappingPolicy;
+import org.springframework.data.neo4j.mapping.Neo4jPersistentEntity;
+import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
+import org.springframework.data.neo4j.mapping.RelationshipProperties;
+import org.springframework.data.neo4j.mapping.RelationshipResult;
+
+import java.util.Collections;
 
 /**
  * @author mh
@@ -112,12 +125,20 @@ public class EntityStateHandler {
         final MappingPolicy mappingPolicy = persistentEntity.getMappingPolicy();
         // todo observe load policy
         if (persistentEntity.isNodeEntity()) {
+            if (persistentEntity.isUnique()) return (S)createUniqueNode(persistentEntity.getUniqueProperty(),entity);
             return (S) graphDatabase.createNode(null);
         }
         if (persistentEntity.isRelationshipEntity()) {
             return createRelationship(entity, persistentEntity);
         }
         throw new IllegalArgumentException("The entity " + persistentEntity.getEntityName() + " has to be either annotated with @NodeEntity or @RelationshipEntity");
+    }
+
+    private Node createUniqueNode(Neo4jPersistentProperty uniqueProperty, Object entity) {
+        final IndexInfo indexInfo = uniqueProperty.getIndexInfo();
+        final Object value = uniqueProperty.getValueFromEntity(entity, MappingPolicy.MAP_FIELD_DIRECT_POLICY);
+        if (value==null) return graphDatabase.createNode(null);
+        return graphDatabase.getOrCreateNode(indexInfo.getIndexName(),indexInfo.getIndexKey(), value, Collections.<String,Object>emptyMap());
     }
 
     @SuppressWarnings("unchecked")

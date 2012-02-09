@@ -78,6 +78,12 @@ public interface Neo4jOperations {
     Node createNode();
 
     /**
+     * creates the node uniquely or returns an existing node with the same index-key-value combination.
+     * properties are used to initialize the node.
+     */
+    Node getOrCreateNode(String index, String key, Object value, Map<String, Object> properties);
+
+    /**
      * Creates a node mapped by the given entity class
      * @param target mapped entity class or Node.class
      * @param properties the properties that should be initially set on the node
@@ -263,8 +269,14 @@ public interface Neo4jOperations {
      */
     GraphDatabase getGraphDatabase();
 
+    /**
+     * fully loades the single entity or collection thereof which has been loaded lazily (i.e. just with the id but w/o values)
+     */
     <T> T fetch(T value);
 
+    /**
+     * loades the provided node or relationship to be used as an entity of the given type
+     */
     <S extends PropertyContainer, T> T load(S state, Class<T> type);
 
 
@@ -272,5 +284,9 @@ public interface Neo4jOperations {
 
     ResultConverter getDefaultConverter();
 
+    /**
+     * @param entity
+     * @return the java type stored for this entity
+     */
     Class<?> getStoredJavaType(Object entity);
 }

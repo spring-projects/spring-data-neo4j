@@ -55,7 +55,7 @@ public class NodeEntityState extends DefaultEntityState<Node> {
                 return;
             }
 
-            final Node node = template.createNode();
+            final Node node = persistentEntity.isUnique() ? template.createUniqueNode(entity) : template.createNode();
             setPersistentState(node);
             if (log.isInfoEnabled()) log.info("User-defined constructor called on class " + entity.getClass() + "; created Node [" + getPersistentState() + "]; Updating metamodel");
             template.postEntityCreation(node, type);

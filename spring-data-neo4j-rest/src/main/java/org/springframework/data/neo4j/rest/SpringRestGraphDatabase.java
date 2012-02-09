@@ -15,15 +15,15 @@
  */
 package org.springframework.data.neo4j.rest;
 
-import java.util.Map;
-
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.PropertyContainer;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.graphdb.index.Index;
 import org.neo4j.graphdb.traversal.TraversalDescription;
+import org.neo4j.helpers.collection.MapUtil;
 import org.neo4j.rest.graphdb.ExecutingRestRequest;
+import org.neo4j.rest.graphdb.RequestResult;
 import org.neo4j.rest.graphdb.RestAPI;
 import org.neo4j.rest.graphdb.RestRequest;
 import org.neo4j.rest.graphdb.index.RestIndexManager;
@@ -34,10 +34,12 @@ import org.springframework.data.neo4j.annotation.QueryType;
 import org.springframework.data.neo4j.conversion.DefaultConverter;
 import org.springframework.data.neo4j.conversion.ResultConverter;
 import org.springframework.data.neo4j.core.GraphDatabase;
-import org.springframework.data.neo4j.support.index.IndexType;
 import org.springframework.data.neo4j.support.index.NoSuchIndexException;
 import org.springframework.data.neo4j.support.query.ConversionServiceQueryResultConverter;
 import org.springframework.data.neo4j.support.query.QueryEngine;
+
+import javax.ws.rs.core.Response;
+import java.util.Map;
 
 public class SpringRestGraphDatabase extends org.neo4j.rest.graphdb.RestGraphDatabase implements GraphDatabase{
     private ConversionService conversionService;
@@ -63,6 +65,18 @@ public class SpringRestGraphDatabase extends org.neo4j.rest.graphdb.RestGraphDat
     public Node createNode(Map<String, Object> props) {
         return super.getRestAPI().createNode(props);
     }
+
+    // TODO move to RestAPI
+    public Node getOrCreateNode(String index, String key, Object value, final Map<String,Object> properties) {
+        if (index==null || key == null || value==null) throw new IllegalArgumentException("Unique index "+index+" key "+key+" value must not be null");
+        final RequestResult result = getRestAPI().getRestRequest().post("index/node/" + index + "?unique", MapUtil.map("key",key,"value",value,"properties",properties));
+        if (result.statusIs(Response.Status.CREATED) || result.statusIs(Response.Status.OK)) {
+            return (Node)getRestAPI().createExtractor().convertFromRepresentation(result);
+        }
+        throw new RuntimeException(String.format("Error retrieving or creating node for key %s and value %s with index %s", key, value, index));
+    }
+
+
 
     @Override
     public Relationship createRelationship(Node startNode, Node endNode, RelationshipType type, Map<String, Object> props) {

@@ -66,7 +66,7 @@ public class CrossStoreNodeEntityState<ENTITY extends NodeBacked> extends Defaul
             Node node = indexHits.hasNext() ? indexHits.next() : null;
             indexHits.close();
             if (node == null) {
-                node = template.createNode();
+                node = persistentEntity.isUnique() ? template.createUniqueNode(entity) : template.createNode();
                 persistForeignId(node, id);
                 setPersistentState(node);
                 log.info("User-defined constructor called on class " + entity.getClass() + "; created Node [" + entity.getPersistentState() + "]; Updating metamodel");

@@ -115,6 +115,47 @@ Person mark = graphRepository.findAllByQuery("people-search", "name", "ma*");
         </para></note>
     </section>
     <section>
+        <title>Unique indexes</title>
+        <para>
+            Unique indexing with <code>index.putIfAbsent</code> and <code>UniqueFactory</code> was introduced in Neo4j 1.6.
+            In Spring Data Neo4j this is made available via <code>Neo4jTemplate.getOrCreateNode</code>.
+
+        </para>
+        <para>In an entity at most one field can be annotated with <code>@Indexed(unique=true)</code> regardless of the index-type used.
+            The uniqueness will be taken into account when creating the entity by reusing an existing entity if that unique key-combination
+            already exists. On saving of the field it will be cross-checked against the index and fail with a DataIntegrityViolationException
+            if the field was changed to an already existing unique value.
+        </para>
+        <para>
+            <example>
+                <title>Unique indexing</title>
+                <programlisting language="java"><![CDATA[
+// creates or finds a node with the unique index-key-value combination
+// and initializes it with the properties given
+template.getOrCreateNode("users", "login", "mh", map("name","Michael","age",37));
+
+@NodeEntity class Person {
+    @Indexed(unique = true) String name;
+}
+
+Person mark1 = repository.save(new Person("mark"));
+Person mark2 = repository.save(new Person("mark"));
+
+// just one node is created
+assertEquals(mark1,mark2);
+assertEquals(1, personRepository.count());
+
+Person thomas = repository.save(new Person("thomas"));
+thomas.setName("mark");
+repository.save(thomas); // fails with a DataIntegrityViolationException
+
+]]></programlisting>
+            </example>
+
+        </para>
+    </section>
+
+    <section>
         <title>Manual index access</title>
         <para>
             The index for a domain class is also available from <code>Neo4jTemplate</code> via
