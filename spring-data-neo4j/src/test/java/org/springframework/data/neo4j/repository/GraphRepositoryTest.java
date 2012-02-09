@@ -227,6 +227,19 @@ public class GraphRepositoryTest {
         assertThat(teamMemberPage1.isLastPage(), is(false));
     }
 
+    @Test @Transactional
+    public void testFindPagedEmptyResult() {
+        final Group group = neo4jTemplate.save(new Group());
+        Page<Person> result = personRepository.findAllTeamMembersPaged(group, new PageRequest(0,10));
+        assertThat(result.isFirstPage(), is(true));
+        assertThat(result.hasContent(), is(false));
+        assertThat(result.hasNextPage(), is(false));
+        assertThat(result.hasPreviousPage(), is(false));
+        assertThat(result.isLastPage(), is(true));
+        assertEquals(true, result.getContent().isEmpty());
+    }
+
+
     @Test @Transactional 
     public void testFindSortedDescending() {
         final Sort sort = new Sort(Sort.Direction.DESC, "member.name");
