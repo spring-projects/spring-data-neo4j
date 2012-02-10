@@ -138,7 +138,7 @@ public abstract class AbstractConstructorEntityInstantiator<STATE> implements En
 
 	protected <T> StateBackedCreator<T, STATE> stateTakingConstructorInstantiator(
 			Class<T> type, Class<STATE> stateType) {
-		@SuppressWarnings("unchecked") Class<? extends STATE> stateInterface = (Class<? extends STATE>) stateType.getInterfaces()[0];
+		@SuppressWarnings("unchecked") Class<? extends STATE> stateInterface = (Class<? extends STATE>) ClassUtils.getAllInterfaces(stateType)[0];
 		final Constructor<T> constructor = ClassUtils.getConstructorIfAvailable(type, stateInterface);
 		if (constructor == null)
 			return null;
