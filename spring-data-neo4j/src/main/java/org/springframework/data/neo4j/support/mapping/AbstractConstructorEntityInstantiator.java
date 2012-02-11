@@ -36,7 +36,7 @@ import java.util.Map;
  */
 public abstract class AbstractConstructorEntityInstantiator<STATE> implements EntityInstantiator<STATE> {
 
-	private final static Log log = LogFactory.getLog(EntityInstantiator.class);
+	private final static Logger log = LoggerFactory.getLogger(EntityInstantiator.class);
 
 	private final Map<Class<?>, StateBackedCreator<?, STATE>> cache = new HashMap<Class<?>, StateBackedCreator<?, STATE>>();
 
