@@ -53,4 +53,8 @@ public class RelationshipEntityInstantiator extends AbstractConstructorEntityIns
         return createFailingInstantiator(stateType);
     }
     */
+
+	@Override
+	protected Class<Relationship> getStateInterface() { return Relationship.class; }
+
 }

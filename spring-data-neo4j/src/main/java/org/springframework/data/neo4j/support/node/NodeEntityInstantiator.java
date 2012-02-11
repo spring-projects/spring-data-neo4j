@@ -51,4 +51,7 @@ public class NodeEntityInstantiator extends AbstractConstructorEntityInstantiato
     protected String getFailingMessageForClass(Class<?> entityClass, Class<Node> stateClass) {
         return entityClass.getSimpleName() + ": entity must have a no-arg constructor.";
     }
+
+    @Override
+    protected Class<Node> getStateInterface() { return Node.class; }
 }
