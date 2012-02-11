@@ -36,7 +36,8 @@ import java.util.Map;
  */
 public abstract class AbstractConstructorEntityInstantiator<STATE> implements EntityInstantiator<STATE> {
 
-	private final Logger log = LoggerFactory.getLogger(getClass());
+	private final static Log log = LogFactory.getLog(EntityInstantiator.class);
+
 	private final Map<Class<?>, StateBackedCreator<?, STATE>> cache = new HashMap<Class<?>, StateBackedCreator<?, STATE>>();
 
 	@SuppressWarnings("unchecked")
@@ -138,12 +139,11 @@ public abstract class AbstractConstructorEntityInstantiator<STATE> implements En
 
 	protected <T> StateBackedCreator<T, STATE> stateTakingConstructorInstantiator(
 			Class<T> type, Class<STATE> stateType) {
-		@SuppressWarnings("unchecked") Class<? extends STATE> stateInterface = (Class<? extends STATE>) stateType.getInterfaces()[0];
-		final Constructor<T> constructor = ClassUtils.getConstructorIfAvailable(type, stateInterface);
+		final Constructor<T> constructor = ClassUtils.getConstructorIfAvailable(type, getStateInterface());
 		if (constructor == null)
 			return null;
-
-		log.info("Using " + type + " constructor taking " + stateInterface);
+		if (log.isDebugEnabled())
+  			log.debug("Using " + type + " constructor taking " + getStateInterface());
 		return new StateBackedCreator<T, STATE>() {
 			public T create(STATE n, Class<T> c) throws Exception {
 				return constructor.newInstance(n);
@@ -169,4 +169,9 @@ public abstract class AbstractConstructorEntityInstantiator<STATE> implements En
 	 */
 	protected abstract void setState(Object entity, STATE s);
 
+    /**
+    * subclasses have to provide the concrete state interface
+    **/
+    protected abstract Class<STATE> getStateInterface();
+    
 }
