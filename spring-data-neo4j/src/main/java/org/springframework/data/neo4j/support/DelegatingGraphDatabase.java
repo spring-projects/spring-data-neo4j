@@ -19,6 +19,7 @@ package org.springframework.data.neo4j.support;
 import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.index.Index;
 import org.neo4j.graphdb.index.IndexManager;
+import org.neo4j.graphdb.index.UniqueFactory;
 import org.neo4j.graphdb.traversal.TraversalDescription;
 import org.neo4j.kernel.AbstractGraphDatabase;
 import org.neo4j.kernel.Traversal;
@@ -59,6 +60,7 @@ public class DelegatingGraphDatabase implements GraphDatabase {
     public DelegatingGraphDatabase(final GraphDatabaseService delegate) {
         this.delegate = delegate;
     }
+
     public DelegatingGraphDatabase(final GraphDatabaseService delegate, ResultConverter resultConverter) {
         this.delegate = delegate;
         this.resultConverter = resultConverter;
@@ -85,9 +87,9 @@ public class DelegatingGraphDatabase implements GraphDatabase {
 
     private <T extends PropertyContainer> T setProperties(T primitive, Map<String, Object> properties) {
         assert primitive != null;
-        if (properties==null || properties.isEmpty()) return primitive;
+        if (properties == null || properties.isEmpty()) return primitive;
         for (Map.Entry<String, Object> prop : properties.entrySet()) {
-            if (prop.getValue()==null) {
+            if (prop.getValue() == null) {
                 primitive.removeProperty(prop.getKey());
             } else {
                 primitive.setProperty(prop.getKey(), prop.getValue());
@@ -117,7 +119,7 @@ public class DelegatingGraphDatabase implements GraphDatabase {
 
     @Override
     public Relationship createRelationship(Node startNode, Node endNode, RelationshipType type, Map<String, Object> props) {
-        return setProperties(startNode.createRelationshipTo(endNode,type),props);
+        return setProperties(startNode.createRelationshipTo(endNode, type), props);
     }
 
     @SuppressWarnings("unchecked")
@@ -149,19 +151,21 @@ public class DelegatingGraphDatabase implements GraphDatabase {
     public boolean isNode(Class<? extends PropertyContainer> type) {
         if (type.equals(Node.class)) return true;
         if (type.equals(Relationship.class)) return false;
-        throw new IllegalArgumentException("Unknown Graph Primitive, neither Node nor Relationship"+type);
+        throw new IllegalArgumentException("Unknown Graph Primitive, neither Node nor Relationship" + type);
     }
 
     private <T extends PropertyContainer> Index<T> checkAndGetExistingIndex(final String indexName, IndexType indexType, final Index<T> index) {
         Map<String, String> existingConfig = delegate.index().getConfiguration(index);
         Map<String, String> config = indexConfigFor(indexType);
-        if (configCheck(config, existingConfig, "provider") && configCheck(config, existingConfig, "type")) return index;
-        throw new IllegalArgumentException("Setup for index "+indexName+" does not match. Existing: "+existingConfig+" required "+config);
-     }
+        if (configCheck(config, existingConfig, "provider") && configCheck(config, existingConfig, "type"))
+            return index;
+        throw new IllegalArgumentException("Setup for index " + indexName + " does not match. Existing: " + existingConfig + " required " + config);
+    }
 
     private boolean configCheck(Map<String, String> config, Map<String, String> existingConfig, String setting) {
         return ObjectUtils.nullSafeEquals(config.get(setting), existingConfig.get(setting));
     }
+
     private Map<String, String> indexConfigFor(IndexType indexType) {
         return indexType.getConfig();
     }
@@ -173,26 +177,26 @@ public class DelegatingGraphDatabase implements GraphDatabase {
 
     // todo create query engines only once
     public <T> QueryEngine<T> queryEngineFor(QueryType type) {
-        return queryEngineFor(type,createResultConverter());
+        return queryEngineFor(type, createResultConverter());
     }
 
     @SuppressWarnings("unchecked")
-    public <T> QueryEngine<T> queryEngineFor(QueryType type,ResultConverter resultConverter) {
+    public <T> QueryEngine<T> queryEngineFor(QueryType type, ResultConverter resultConverter) {
         switch (type) {
-            case Cypher:  {
+            case Cypher: {
                 if (!ClassUtils.isPresent("org.neo4j.cypher.javacompat.ExecutionEngine", getClass().getClassLoader())) {
                     return new FailingQueryEngine<T>("Cypher");
                 }
-                return (QueryEngine<T>)new CypherQueryEngine(delegate, resultConverter);
+                return (QueryEngine<T>) new CypherQueryEngine(delegate, resultConverter);
             }
             case Gremlin: {
                 if (!ClassUtils.isPresent("com.tinkerpop.blueprints.pgm.impls.neo4j.Neo4jGraph", getClass().getClassLoader())) {
                     return new FailingQueryEngine<T>("Gremlin");
                 }
-                return (QueryEngine<T>) new GremlinQueryEngine(delegate,resultConverter);
+                return (QueryEngine<T>) new GremlinQueryEngine(delegate, resultConverter);
             }
         }
-        throw new IllegalArgumentException("Unknown Query Engine Type "+type);
+        throw new IllegalArgumentException("Unknown Query Engine Type " + type);
     }
 
     @Override
@@ -217,12 +221,12 @@ public class DelegatingGraphDatabase implements GraphDatabase {
 
     @Override
     public void remove(Relationship relationship) {
-       removeFromIndexes(relationship);
-       relationship.delete();
+        removeFromIndexes(relationship);
+        relationship.delete();
     }
 
     private ResultConverter createResultConverter() {
-        if (resultConverter!=null) return resultConverter;
+        if (resultConverter != null) return resultConverter;
         if (conversionService != null) {
             this.resultConverter = new ConversionServiceQueryResultConverter(conversionService);
         } else {
@@ -244,6 +248,17 @@ public class DelegatingGraphDatabase implements GraphDatabase {
         return delegate;
     }
 
+    public Node createUniqueNode(String uniqueIndex, final String uniqueKey, final Object value) {
+        UniqueFactory.UniqueNodeFactory factory = new UniqueFactory.UniqueNodeFactory(delegate, uniqueIndex) {
+            @Override
+            protected void initialize(Node node, Map<String, Object> properties) {
+                node.setProperty(uniqueKey, properties.get(uniqueKey));
+            }
+        };
+        return factory.getOrCreate(uniqueKey, value);
+    }
+
+
     private static class FailingQueryEngine<T> implements QueryEngine<T> {
         private String dependency;
 
@@ -253,7 +268,7 @@ public class DelegatingGraphDatabase implements GraphDatabase {
 
         @Override
         public Result<T> query(String statement, Map<String, Object> params) {
-            throw new IllegalStateException(dependency + " is not available, please add it to your dependencies to execute: " +statement);
+            throw new IllegalStateException(dependency + " is not available, please add it to your dependencies to execute: " + statement);
         }
     }
 }

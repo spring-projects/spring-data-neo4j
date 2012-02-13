@@ -42,6 +42,7 @@ public class Neo4jPersistentEntityImpl<T> extends BasicPersistentEntity<T, Neo4j
     private Neo4jPersistentProperty startNodeProperty;
     private Neo4jPersistentProperty endNodeProperty;
     private Neo4jPersistentProperty relationshipType;
+    private Neo4jPersistentProperty uniqueProperty;
 
     /**
      * Creates a new {@link Neo4jPersistentEntityImpl} instance.
@@ -139,6 +140,9 @@ public class Neo4jPersistentEntityImpl<T> extends BasicPersistentEntity<T, Neo4j
         if (property.isAnnotationPresent(RelationshipType.class)) {
             this.relationshipType = property;
         }
+        if (property.isUnique()) {
+            this.uniqueProperty = property;
+        }
     }
 
     @Override
@@ -183,5 +187,20 @@ public class Neo4jPersistentEntityImpl<T> extends BasicPersistentEntity<T, Neo4j
     @Override
     public MappingPolicy getMappingPolicy() {
         return MappingPolicy.LOAD_POLICY;
+    }
+
+    public Neo4jPersistentProperty getUniqueProperty() {
+        return uniqueProperty;
+    }
+
+    public Object getUniquePropertyValue(Object entity) {
+        if (uniqueProperty == null) return null;
+        return uniqueProperty.getValue(entity, getMappingPolicy());
+    }
+
+    public String getUniqueIndexName() {
+        if (uniqueProperty == null) return null;
+        return (useShortNames() ? String.format("%s.%s", getType().getSimpleName(), getName()) :
+            uniqueProperty.getNeo4jPropertyName());
     }
 }

@@ -96,4 +96,7 @@ public interface Neo4jPersistentProperty extends PersistentProperty<Neo4jPersist
     Object getValueFromEntity(Object entity, MappingPolicy mappingPolicy);
 
     <T> T getDefaultValue(ConversionService conversionService, final Class<T> targetType);
+
+    boolean isUnique();
+
 }

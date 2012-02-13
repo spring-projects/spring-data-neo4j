@@ -19,6 +19,7 @@ import org.neo4j.graphdb.*;
 import org.springframework.data.mapping.model.MappingException;
 import org.springframework.data.neo4j.core.GraphDatabase;
 import org.springframework.data.neo4j.mapping.*;
+import org.springframework.data.neo4j.support.DelegatingGraphDatabase;
 
 /**
  * @author mh
@@ -112,7 +113,13 @@ public class EntityStateHandler {
         final MappingPolicy mappingPolicy = persistentEntity.getMappingPolicy();
         // todo observe load policy
         if (persistentEntity.isNodeEntity()) {
-            return (S) graphDatabase.createNode(null);
+            Neo4jPersistentProperty uniqueProperty = persistentEntity.getUniqueProperty();
+            if (uniqueProperty != null) {
+                final Object value = persistentEntity.getUniquePropertyValue(entity);
+                return (S) ((DelegatingGraphDatabase) graphDatabase).createUniqueNode(persistentEntity.getUniqueIndexName(), uniqueProperty.getNeo4jPropertyName(), value);
+            } else {
+                return (S) graphDatabase.createNode(null);
+            }
         }
         if (persistentEntity.isRelationshipEntity()) {
             return createRelationship(entity, persistentEntity);
