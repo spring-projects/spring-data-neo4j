@@ -24,6 +24,7 @@ import org.springframework.data.neo4j.fieldaccess.DefaultEntityState;
 import org.springframework.data.neo4j.fieldaccess.DelegatingFieldAccessorFactory;
 import org.springframework.data.neo4j.mapping.ManagedEntity;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentEntity;
+import org.springframework.data.neo4j.support.DelegatingGraphDatabase;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
 
 /**
@@ -55,7 +56,8 @@ public class NodeEntityState extends DefaultEntityState<Node> {
                 return;
             }
 
-            final Node node = template.createNode();
+            //final Node node = template.createNode();
+            final Node node = new DelegatingGraphDatabase(template.getGraphDatabaseService()).createNodeConsideringUnique(persistentEntity, entity);
             setPersistentState(node);
             if (log.isInfoEnabled()) log.info("User-defined constructor called on class " + entity.getClass() + "; created Node [" + getPersistentState() + "]; Updating metamodel");
             template.postEntityCreation(node, type);

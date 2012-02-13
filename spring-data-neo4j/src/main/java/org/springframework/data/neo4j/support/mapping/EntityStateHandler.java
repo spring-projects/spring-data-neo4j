@@ -113,13 +113,7 @@ public class EntityStateHandler {
         final MappingPolicy mappingPolicy = persistentEntity.getMappingPolicy();
         // todo observe load policy
         if (persistentEntity.isNodeEntity()) {
-            Neo4jPersistentProperty uniqueProperty = persistentEntity.getUniqueProperty();
-            if (uniqueProperty != null) {
-                final Object value = persistentEntity.getUniquePropertyValue(entity);
-                return (S) ((DelegatingGraphDatabase) graphDatabase).createUniqueNode(persistentEntity.getUniqueIndexName(), uniqueProperty.getNeo4jPropertyName(), value);
-            } else {
-                return (S) graphDatabase.createNode(null);
-            }
+            return ((DelegatingGraphDatabase) graphDatabase).createNodeConsideringUnique(persistentEntity, entity);
         }
         if (persistentEntity.isRelationshipEntity()) {
             return createRelationship(entity, persistentEntity);

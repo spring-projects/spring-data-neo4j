@@ -31,6 +31,8 @@ import org.springframework.data.neo4j.conversion.DefaultConverter;
 import org.springframework.data.neo4j.conversion.Result;
 import org.springframework.data.neo4j.conversion.ResultConverter;
 import org.springframework.data.neo4j.core.GraphDatabase;
+import org.springframework.data.neo4j.mapping.Neo4jPersistentEntity;
+import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.support.index.IndexType;
 import org.springframework.data.neo4j.support.index.NoSuchIndexException;
 import org.springframework.data.neo4j.support.query.ConversionServiceQueryResultConverter;
@@ -58,7 +60,7 @@ public class DelegatingGraphDatabase implements GraphDatabase {
     private ResultConverter resultConverter;
 
     public DelegatingGraphDatabase(final GraphDatabaseService delegate) {
-        this.delegate = delegate;
+        this(delegate, null);
     }
 
     public DelegatingGraphDatabase(final GraphDatabaseService delegate, ResultConverter resultConverter) {
@@ -248,8 +250,8 @@ public class DelegatingGraphDatabase implements GraphDatabase {
         return delegate;
     }
 
-    public Node createUniqueNode(String uniqueIndex, final String uniqueKey, final Object value) {
-        UniqueFactory.UniqueNodeFactory factory = new UniqueFactory.UniqueNodeFactory(delegate, uniqueIndex) {
+    private Node createUniqueNode(String uniqueIndex, final String uniqueKey, final Object value) {
+        UniqueFactory.UniqueNodeFactory factory= new UniqueFactory.UniqueNodeFactory(delegate, uniqueIndex) {
             @Override
             protected void initialize(Node node, Map<String, Object> properties) {
                 node.setProperty(uniqueKey, properties.get(uniqueKey));
@@ -258,6 +260,15 @@ public class DelegatingGraphDatabase implements GraphDatabase {
         return factory.getOrCreate(uniqueKey, value);
     }
 
+    public <S extends PropertyContainer> S createNodeConsideringUnique(Neo4jPersistentEntity<?> persistentEntity, Object entity) {
+        Neo4jPersistentProperty uniqueProperty = persistentEntity.getUniqueProperty();
+        if (uniqueProperty != null) {
+            final Object value = persistentEntity.getUniquePropertyValue(entity);
+            return (S) createUniqueNode(persistentEntity.getUniqueIndexName(), uniqueProperty.getNeo4jPropertyName(), value);
+        } else {
+            return (S) createNode(null);
+        }
+    }
 
     private static class FailingQueryEngine<T> implements QueryEngine<T> {
         private String dependency;

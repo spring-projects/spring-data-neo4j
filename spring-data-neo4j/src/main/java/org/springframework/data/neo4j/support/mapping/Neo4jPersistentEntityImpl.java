@@ -24,6 +24,7 @@ import org.springframework.data.mapping.model.BasicPersistentEntity;
 import org.springframework.data.mapping.model.MappingException;
 import org.springframework.data.neo4j.annotation.*;
 import org.springframework.data.neo4j.mapping.*;
+import org.springframework.data.neo4j.support.DelegatingGraphDatabase;
 import org.springframework.data.util.TypeInformation;
 
 import java.lang.annotation.Annotation;
@@ -141,6 +142,9 @@ public class Neo4jPersistentEntityImpl<T> extends BasicPersistentEntity<T, Neo4j
             this.relationshipType = property;
         }
         if (property.isUnique()) {
+            if (this.uniqueProperty != null) {
+                throw new MappingException("A unique property " + uniqueProperty.getNeo4jPropertyName() + " has already been defined. Only one unique property is allowed per type");
+            }
             this.uniqueProperty = property;
         }
     }
