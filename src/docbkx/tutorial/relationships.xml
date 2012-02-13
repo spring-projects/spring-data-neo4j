@@ -87,6 +87,11 @@ class Actor {
 ]]></programlisting>
             </example>
         </para>
+        <para>
+            Saving just the actor would take care of relationships with the same type between two entities and remove the duplicates.
+            Whereas just saving the role happily creates another relationship with the same type.
+            <!-- TODO This should probably changed -->
+        </para>
     </section>
     <section>
         <title>Accessing related entities</title>
