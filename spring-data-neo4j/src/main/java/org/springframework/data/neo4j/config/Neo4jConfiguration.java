@@ -16,10 +16,6 @@
 
 package org.springframework.data.neo4j.config;
 
-import static java.util.Arrays.*;
-
-import javax.validation.Validator;
-
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
@@ -47,6 +43,8 @@ import org.springframework.data.neo4j.support.Neo4jExceptionTranslator;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
 import org.springframework.data.neo4j.support.index.IndexProvider;
 import org.springframework.data.neo4j.support.index.IndexProviderImpl;
+import org.springframework.data.neo4j.support.mapping.ClassNameAlias;
+import org.springframework.data.neo4j.support.mapping.EntityAlias;
 import org.springframework.data.neo4j.support.mapping.EntityStateHandler;
 import org.springframework.data.neo4j.support.mapping.Neo4jEntityFetchHandler;
 import org.springframework.data.neo4j.support.mapping.Neo4jMappingContext;
@@ -61,6 +59,10 @@ import org.springframework.data.neo4j.support.typerepresentation.TypeRepresentat
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.jta.JtaTransactionManager;
 import org.springframework.transaction.jta.UserTransactionAdapter;
+
+import javax.validation.Validator;
+
+import static java.util.Arrays.asList;
 
 /**
  * Abstract base class for code based configuration of Spring managed Neo4j infrastructure.
@@ -98,7 +100,7 @@ public abstract class Neo4jConfiguration {
         infrastructure.setGraphDatabaseService(getGraphDatabaseService());
         infrastructure.setTypeRepresentationStrategyFactory(typeRepresentationStrategyFactory());
         infrastructure.setConversionService(neo4jConversionService());
-        infrastructure.setMappingContext(mappingContext());
+        infrastructure.setMappingContext(neo4jMappingContext());
         infrastructure.setEntityStateHandler(entityStateHandler());
 
         infrastructure.setNodeEntityStateFactory(nodeEntityStateFactory());
@@ -146,7 +148,7 @@ public abstract class Neo4jConfiguration {
 
     @Bean
     public EntityStateHandler entityStateHandler() throws Exception {
-        return new EntityStateHandler(mappingContext(),graphDatabase());
+        return new EntityStateHandler(neo4jMappingContext(),graphDatabase());
     }
 
 
@@ -194,12 +196,18 @@ public abstract class Neo4jConfiguration {
 	}
 
     @Bean
-    public Neo4jMappingContext mappingContext() throws Exception {
+    public Neo4jMappingContext neo4jMappingContext() throws Exception {
         final Neo4jMappingContext mappingContext = new Neo4jMappingContext();
+        mappingContext.setEntityAlias(entityAlias());
         nodeEntityStateFactory().setMappingContext(mappingContext);
         relationshipEntityStateFactory().setMappingContext(mappingContext);
 
         return mappingContext;
+    }
+
+    @Bean
+    protected EntityAlias entityAlias() {
+        return new ClassNameAlias();
     }
 
     @Bean
@@ -263,6 +271,6 @@ public abstract class Neo4jConfiguration {
 
     @Bean
     public IndexProvider indexProvider() throws Exception {
-        return new IndexProviderImpl(mappingContext(), graphDatabase());
+        return new IndexProviderImpl(neo4jMappingContext(), graphDatabase());
     }
 }

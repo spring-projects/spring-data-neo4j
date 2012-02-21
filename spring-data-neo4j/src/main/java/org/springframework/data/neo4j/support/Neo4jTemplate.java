@@ -45,7 +45,9 @@ import org.springframework.data.neo4j.support.index.IndexProvider;
 import org.springframework.data.neo4j.support.index.IndexType;
 import org.springframework.data.neo4j.support.mapping.EntityStateHandler;
 import org.springframework.data.neo4j.support.mapping.Neo4jEntityPersister;
+import org.springframework.data.neo4j.support.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.support.mapping.Neo4jPersistentEntityImpl;
+import org.springframework.data.neo4j.support.mapping.StoredEntityType;
 import org.springframework.data.neo4j.support.query.QueryEngine;
 import org.springframework.data.neo4j.template.GraphCallback;
 import org.springframework.data.neo4j.template.Neo4jOperations;
@@ -155,14 +157,14 @@ public class Neo4jTemplate implements Neo4jOperations, EntityPersister {
     @Override
     public <T> EndResult<T> findAll(final Class<T> entityClass) {
         notNull(entityClass,"entity type");
-        final ClosableIterable<PropertyContainer> all = infrastructure.getTypeRepresentationStrategies().findAll(entityClass);
+        final ClosableIterable<PropertyContainer> all = infrastructure.getTypeRepresentationStrategies().findAll(getEntityType(entityClass));
         return new QueryResultBuilder<PropertyContainer>(all, getDefaultConverter()).to(entityClass);
     }
 
     @Override
     public <T> long count(final Class<T> entityClass) {
         notNull(entityClass,"entity type");
-        return infrastructure.getTypeRepresentationStrategies().count(entityClass);
+        return infrastructure.getTypeRepresentationStrategies().count(getEntityType(entityClass));
     }
 
     @Override
@@ -218,7 +220,7 @@ public class Neo4jTemplate implements Neo4jOperations, EntityPersister {
 
     @Deprecated() // TODO remove
     public <S extends PropertyContainer, T> void postEntityCreation(S node, Class<T> entityClass) {
-        infrastructure.getTypeRepresentationStrategies().postEntityCreation(node, entityClass);
+        infrastructure.getTypeRepresentationStrategies().writeTypeTo(node, getEntityType(entityClass));
     }
 
     @Override
@@ -244,16 +246,21 @@ public class Neo4jTemplate implements Neo4jOperations, EntityPersister {
     public <T> T createNodeAs(Class<T> target, Map<String, Object> properties) {
         final Node node = createNode(properties);
         if (isNodeEntity(target)) {
-            infrastructure.getTypeRepresentationStrategies().postEntityCreation(node, target);
+            final StoredEntityType entityType = getEntityType(target);
+            infrastructure.getTypeRepresentationStrategies().writeTypeTo(node, entityType);
         }
         return convert(node, target);
+    }
+
+    public <T> StoredEntityType getEntityType(Class<T> target) {
+        return getMappingContext().getStoredEntityType(target);
     }
 
     @SuppressWarnings("unused")
     private <T> Node createNode(Map<String, Object> properties, Class<T> target, TypeRepresentationStrategy<Node> nodeTypeRepresentationStrategy) {
         final Node node = createNode(properties);
         if (nodeTypeRepresentationStrategy != null) {
-            nodeTypeRepresentationStrategy.postEntityCreation(node, target);
+            nodeTypeRepresentationStrategy.writeTypeTo(node, getEntityType(target));
         }
         return node;
     }
@@ -273,12 +280,12 @@ public class Neo4jTemplate implements Neo4jOperations, EntityPersister {
 
     @Override
     public boolean isNodeEntity(Class<?> targetType) {
-        return infrastructure.getMappingContext().isNodeEntity(targetType);
+        return getMappingContext().isNodeEntity(targetType);
     }
 
     @Override
     public boolean isRelationshipEntity(Class<?> targetType) {
-        return infrastructure.getMappingContext().isRelationshipEntity(targetType);
+        return getMappingContext().isRelationshipEntity(targetType);
     }
 
     @Override
@@ -562,7 +569,7 @@ public class Neo4jTemplate implements Neo4jOperations, EntityPersister {
     }
 
     private Neo4jPersistentEntityImpl<?> getPersistentEntity(Class<?> type) {
-        return infrastructure.getMappingContext().getPersistentEntity(type);
+        return getMappingContext().getPersistentEntity(type);
     }
 
     @Override
@@ -623,10 +630,22 @@ public class Neo4jTemplate implements Neo4jOperations, EntityPersister {
         return getMappingPolicy(entity.getClass());
     }
 
+    public StoredEntityType getStoredEntityType(Object entity) {
+        final PropertyContainer container = entity instanceof PropertyContainer ? (PropertyContainer)entity: getPersistentState(entity);
+        if (container==null) return null;
+        final Object alias = getInfrastructure().getTypeRepresentationStrategies().readAliasFrom(container);
+        return getMappingContext().getPersistentEntity(alias).getEntityType();
+    }
+
     @Override
     public Class getStoredJavaType(Object entity) {
         final PropertyContainer container = entity instanceof PropertyContainer ? (PropertyContainer)entity: getPersistentState(entity);
         if (container==null) return null;
-        return getInfrastructure().getTypeRepresentationStrategies().getJavaType(container);
+        final Object alias = getInfrastructure().getTypeRepresentationStrategies().readAliasFrom(container);
+        return getMappingContext().getPersistentEntity(alias).getType();
+    }
+
+    private Neo4jMappingContext getMappingContext() {
+        return infrastructure.getMappingContext();
     }
 }

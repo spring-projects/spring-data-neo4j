@@ -17,10 +17,7 @@ package org.springframework.data.neo4j.support.mapping;
 
 import org.neo4j.graphdb.PropertyContainer;
 import org.springframework.data.convert.TypeAliasAccessor;
-import org.springframework.data.convert.TypeInformationMapper;
 import org.springframework.data.neo4j.core.TypeRepresentationStrategy;
-import org.springframework.data.util.ClassTypeInformation;
-import org.springframework.data.util.TypeInformation;
 
 /**
  * @author mh
@@ -36,15 +33,20 @@ public class TRSTypeAliasAccessor<S extends PropertyContainer> implements TypeAl
     @Override
     public Object readAliasFrom(S source) {
         try {
-            return typeRepresentationStrategy.getJavaType(source);
+            return typeRepresentationStrategy.readAliasFrom(source);
         } catch (UnsupportedOperationException uoe) {
             return null;
         }
     }
 
     @Override
-    public void writeTypeTo(S sink, Object alias) {
-        typeRepresentationStrategy.postEntityCreation(sink, (Class) alias);
+    public void writeTypeTo(S sink, Object type) {
+        if (type==null) return;
+        if (type instanceof StoredEntityType) {
+            typeRepresentationStrategy.writeTypeTo(sink, (StoredEntityType) type);
+        } else {
+            throw new IllegalArgumentException("TypeRepresentationStrategies can only store StoredEntityType instances, not "+type.getClass());
+        }
     }
 
 }

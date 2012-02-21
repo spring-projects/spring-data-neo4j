@@ -108,8 +108,8 @@ public class Neo4jPersistentTestBase {
         conversionService = template.getConversionService();
 
         fetchHandler = new Neo4jEntityFetchHandler(entityStateHandler, conversionService, nodeStateTransmitter, relationshipStateTransmitter);
-        final EntityTools<Node> nodeEntityTools = new EntityTools<Node>(infrastructure.getNodeTypeRepresentationStrategy(), nodeEntityStateFactory, nodeEntityInstantiator);
-        final EntityTools<Relationship> relationshipEntityTools = new EntityTools<Relationship>(infrastructure.getRelationshipTypeRepresentationStrategy(), relationshipEntityStateFactory, relationshipEntityInstantiator);
+        final EntityTools<Node> nodeEntityTools = new EntityTools<Node>(infrastructure.getNodeTypeRepresentationStrategy(), nodeEntityStateFactory, nodeEntityInstantiator, mappingContext);
+        final EntityTools<Relationship> relationshipEntityTools = new EntityTools<Relationship>(infrastructure.getRelationshipTypeRepresentationStrategy(), relationshipEntityStateFactory, relationshipEntityInstantiator, mappingContext);
 
         entityPersister = new Neo4jEntityPersister(conversionService, nodeEntityTools, relationshipEntityTools, mappingContext, entityStateHandler);
 

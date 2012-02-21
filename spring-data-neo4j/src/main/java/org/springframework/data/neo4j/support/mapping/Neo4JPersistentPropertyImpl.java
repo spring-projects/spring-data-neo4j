@@ -16,6 +16,8 @@
 
 package org.springframework.data.neo4j.support.mapping;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.data.annotation.Transient;
 import org.springframework.data.mapping.Association;
@@ -23,8 +25,20 @@ import org.springframework.data.mapping.PersistentEntity;
 import org.springframework.data.mapping.model.AbstractPersistentProperty;
 import org.springframework.data.mapping.model.MappingException;
 import org.springframework.data.mapping.model.SimpleTypeHolder;
-import org.springframework.data.neo4j.annotation.*;
-import org.springframework.data.neo4j.mapping.*;
+import org.springframework.data.neo4j.annotation.Fetch;
+import org.springframework.data.neo4j.annotation.GraphId;
+import org.springframework.data.neo4j.annotation.GraphProperty;
+import org.springframework.data.neo4j.annotation.Indexed;
+import org.springframework.data.neo4j.annotation.NodeEntity;
+import org.springframework.data.neo4j.annotation.RelatedTo;
+import org.springframework.data.neo4j.annotation.RelatedToVia;
+import org.springframework.data.neo4j.annotation.RelationshipEntity;
+import org.springframework.data.neo4j.mapping.IndexInfo;
+import org.springframework.data.neo4j.mapping.ManagedEntity;
+import org.springframework.data.neo4j.mapping.MappingPolicy;
+import org.springframework.data.neo4j.mapping.Neo4jPersistentEntity;
+import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
+import org.springframework.data.neo4j.mapping.RelationshipInfo;
 import org.springframework.data.neo4j.support.DoReturn;
 import org.springframework.data.util.TypeInformation;
 
@@ -44,6 +58,8 @@ import java.util.Map;
  */
 class Neo4jPersistentPropertyImpl extends AbstractPersistentProperty<Neo4jPersistentProperty> implements
         Neo4jPersistentProperty {
+
+    private final static Logger log = LoggerFactory.getLogger(Neo4jPersistentProperty.class);
 
     private final RelationshipInfo relationshipInfo;
     private final boolean isIdProperty;
@@ -323,7 +339,7 @@ class Neo4jPersistentPropertyImpl extends AbstractPersistentProperty<Neo4jPersis
             final TypeInformation<?> typeInformation = it.next();
             final Class type = typeInformation.getType();
             if (isNodeEntity(type) || isRelationshipEntity(type)) continue;
-            System.out.println("removing "+getName()+" "+type+" "+typeInformation.getActualType().getType());
+            if (log.isInfoEnabled()) log.info("ignoring "+getName()+" "+type+" "+typeInformation.getActualType().getType());
             it.remove();
         }
         return result;

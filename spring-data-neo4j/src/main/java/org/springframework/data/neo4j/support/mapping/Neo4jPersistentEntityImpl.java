@@ -42,6 +42,7 @@ public class Neo4jPersistentEntityImpl<T> extends BasicPersistentEntity<T, Neo4j
     private Neo4jPersistentProperty startNodeProperty;
     private Neo4jPersistentProperty endNodeProperty;
     private Neo4jPersistentProperty relationshipType;
+    private StoredEntityType storedType;
 
     /**
      * Creates a new {@link Neo4jPersistentEntityImpl} instance.
@@ -54,6 +55,10 @@ public class Neo4jPersistentEntityImpl<T> extends BasicPersistentEntity<T, Neo4j
             annotations.put(annotation.annotationType(),annotation);
         }
         managed = ManagedEntity.class.isAssignableFrom(information.getType());
+    }
+
+    void updateStoredType(StoredEntityType storedType) {
+        this.storedType = storedType;
     }
 
     @Override
@@ -185,4 +190,13 @@ public class Neo4jPersistentEntityImpl<T> extends BasicPersistentEntity<T, Neo4j
         return MappingPolicy.LOAD_POLICY;
     }
 
+    @Override
+    public StoredEntityType getEntityType() {
+        return storedType;
+    }
+
+
+    public boolean matchesAlias(Object alias) {
+        return storedType.matchesAlias(alias);
+    }
 }

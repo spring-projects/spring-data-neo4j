@@ -24,8 +24,9 @@ import org.springframework.data.neo4j.core.TypeRepresentationStrategy;
 import org.springframework.data.neo4j.support.index.ClosableIndexHits;
 import org.springframework.data.neo4j.support.index.IndexProvider;
 import org.springframework.data.neo4j.support.index.IndexType;
+import org.springframework.data.neo4j.support.mapping.StoredEntityType;
 
-import java.lang.annotation.Annotation;
+import java.lang.Object;
 
 public abstract class AbstractIndexingTypeRepresentationStrategy<S extends PropertyContainer> implements
         TypeRepresentationStrategy<S> {
@@ -34,20 +35,15 @@ public abstract class AbstractIndexingTypeRepresentationStrategy<S extends Prope
     public static final String INDEX_KEY = "className";
     protected String INDEX_NAME;
     protected final GraphDatabase graphDb;
-    protected final EntityTypeCache typeCache;
     protected final IndexProvider indexProvider;
     private final Class<? extends PropertyContainer> clazz;
-    private final Class<? extends Annotation> typeEntityClass;
 
     public AbstractIndexingTypeRepresentationStrategy(GraphDatabase graphDb, IndexProvider indexProvider,
-            final String indexName, final Class<? extends PropertyContainer> clazz,
-            final Class<? extends Annotation> typeEntityClass) {
+                                                      final String indexName, final Class<? extends PropertyContainer> clazz) {
         this.graphDb = graphDb;
         this.indexProvider = indexProvider;
-        typeCache = new EntityTypeCache();
         INDEX_NAME = indexName;
         this.clazz = clazz;
-        this.typeEntityClass = typeEntityClass;
     }
 
     @SuppressWarnings("unchecked")
@@ -56,15 +52,15 @@ public abstract class AbstractIndexingTypeRepresentationStrategy<S extends Prope
     }
 
     @Override
-    public void postEntityCreation(S state, Class<?> type) {
+    public void writeTypeTo(S state, StoredEntityType type) {
         addToTypesIndex(state, type);
-        state.setProperty(TYPE_PROPERTY_NAME, type.getName());
+        state.setProperty(TYPE_PROPERTY_NAME, type.getAlias());
     }
 
     @Override
-    public long count(Class<?> entityClass) {
+    public long count(StoredEntityType type) {
         long count = 0;
-        final IndexHits<S> hits = getTypesIndex().get(INDEX_KEY, entityClass.getName());
+        final IndexHits<S> hits = getTypesIndex().get(INDEX_KEY, type.getAlias());
         while (hits.hasNext()) {
             hits.next();
             count++;
@@ -78,36 +74,34 @@ public abstract class AbstractIndexingTypeRepresentationStrategy<S extends Prope
     }
 
     @Override
-    public <U> ClosableIterable<S> findAll(Class<U> clazz) {
-        return findAllRelBacked(clazz);
+    public <U> ClosableIterable<S> findAll(StoredEntityType type) {
+        return findAllRelBacked(type);
     }
 
     @Override
-    public <U> Class<U> getJavaType(S propertyContainer) {
+    public Object readAliasFrom(S propertyContainer) {
         if (propertyContainer == null)
             throw new IllegalArgumentException("Relationship or Node is null");
-        String className = (String) propertyContainer.getProperty(TYPE_PROPERTY_NAME);
-        return typeCache.getClassForName(className);
+        return propertyContainer.getProperty(TYPE_PROPERTY_NAME);
     }
 
-    protected void addToTypesIndex(S relationshipOrNode, Class<?> type) {
-        if (type == null || !type.isAnnotationPresent(typeEntityClass)) return;
-        String value = type.getName();
+    protected void addToTypesIndex(S element, StoredEntityType type) {
+        if (type == null) return;
+        Object value = type.getAlias();
         if (indexProvider != null) {
-            value = indexProvider.createIndexValueForType(type);
+            value = indexProvider.createIndexValueForType(type.getAlias());
         }
-        getTypesIndex().add(relationshipOrNode, INDEX_KEY, value);
-        addToTypesIndex(relationshipOrNode, type.getSuperclass());
-        for (Class<?> anInterface : type.getInterfaces()) {
-            addToTypesIndex(relationshipOrNode, anInterface);
+        getTypesIndex().add(element, INDEX_KEY, value);
+        for (StoredEntityType superType : type.getSuperTypes()) {
+            addToTypesIndex(element,superType);
         }
     }
 
     @SuppressWarnings("hiding")
-    private <Object> ClosableIterable<S> findAllRelBacked(Class<Object> clazz) {
-        String value = clazz.getName();
+    private ClosableIterable<S> findAllRelBacked(StoredEntityType type) {
+        Object value = type.getAlias();
         if (indexProvider != null)
-            value = indexProvider.createIndexValueForType(clazz);
+            value = indexProvider.createIndexValueForType(type.getAlias());
 
         final IndexHits<S> allEntitiesOfType = getTypesIndex().get(INDEX_KEY, value);
         return new ClosableIndexHits<S>(allEntitiesOfType);

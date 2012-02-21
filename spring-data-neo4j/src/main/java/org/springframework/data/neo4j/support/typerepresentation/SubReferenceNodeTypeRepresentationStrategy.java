@@ -16,16 +16,21 @@
 
 package org.springframework.data.neo4j.support.typerepresentation;
 
-import org.neo4j.graphdb.*;
+import org.neo4j.graphdb.Direction;
+import org.neo4j.graphdb.DynamicRelationshipType;
+import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.PropertyContainer;
+import org.neo4j.graphdb.Relationship;
+import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.graphdb.traversal.TraversalDescription;
 import org.neo4j.helpers.collection.ClosableIterable;
 import org.neo4j.helpers.collection.IterableWrapper;
 import org.neo4j.kernel.Traversal;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.data.neo4j.annotation.NodeEntity;
 import org.springframework.data.neo4j.core.GraphDatabase;
 import org.springframework.data.neo4j.core.NodeTypeRepresentationStrategy;
+import org.springframework.data.neo4j.support.mapping.StoredEntityType;
 
 import java.util.Collections;
 import java.util.LinkedList;
@@ -88,75 +93,62 @@ public class SubReferenceNodeTypeRepresentationStrategy implements NodeTypeRepre
     }
 
     @Override
-    public void postEntityCreation(Node state, Class<?> type) {
+    public void writeTypeTo(Node state, StoredEntityType type) {
 	    final Node subReference = obtainSubreferenceNode(type);
         state.createRelationshipTo(subReference, INSTANCE_OF_RELATIONSHIP_TYPE);
-	    subReference.setProperty(SUBREF_CLASS_KEY, type.getName());
-	    if (log.isDebugEnabled()) log.debug("Created link to subref node: " + subReference + " with type: " + type.getName());
+	    subReference.setProperty(SUBREF_CLASS_KEY, type.getAlias());
+	    if (log.isDebugEnabled()) log.debug("Created link to subref node: " + subReference + " with type: " + type.getType().getSimpleName()+" alias "+type.getAlias());
 
         incrementAndGetCounter(subReference, SUBREFERENCE_NODE_COUNTER_KEY);
 
-	    updateSuperClassSubrefs(type.getSuperclass(), subReference);
-        for (Class<?> anInterface : type.getInterfaces()) {
-            updateSuperClassSubrefs(anInterface, subReference);
+        for (StoredEntityType superType : type.getSuperTypes()) {
+            updateSuperClassSubrefs(superType,subReference);
         }
     }
 
-    private void updateSuperClassSubrefs(Class<?> type, Node subReference) {
-        if (type == null || !type.isAnnotationPresent(NodeEntity.class)) return;
+    private void updateSuperClassSubrefs(StoredEntityType type, Node subReference) {
+        if (type == null || !type.isNodeEntity()) return;
 
         Node superClassSubref = obtainSubreferenceNode(type);
         if (getSingleOtherNode(subReference, SUBCLASS_OF_RELATIONSHIP_TYPE, Direction.OUTGOING) == null) {
             subReference.createRelationshipTo(superClassSubref, SUBCLASS_OF_RELATIONSHIP_TYPE);
         }
-        superClassSubref.setProperty(SUBREF_CLASS_KEY, type.getName());
+        superClassSubref.setProperty(SUBREF_CLASS_KEY, type.getAlias());
         Integer count = incrementAndGetCounter(superClassSubref, SUBREFERENCE_NODE_COUNTER_KEY);
-        if (log.isDebugEnabled()) log.debug("count on ref " + superClassSubref + " for class " + type.getSimpleName() + " = " + count);
-        updateSuperClassSubrefs(type.getSuperclass(), superClassSubref);
-        for (Class<?> anInterface : type.getInterfaces()) {
-            updateSuperClassSubrefs(anInterface, subReference);
+        if (log.isDebugEnabled()) log.debug("count on ref " + superClassSubref + " for class " + type.getType().getSimpleName()+" alias: "+ type.getAlias() + " = " + count);
+        for (StoredEntityType superType : type.getSuperTypes()) {
+            updateSuperClassSubrefs(superType,subReference);
         }
     }
 
 	@Override
-    public long count(final Class<?> entityClass) {
-        final Node subrefNode = findSubreferenceNode(entityClass);
+    public long count(final StoredEntityType type) {
+        final Node subrefNode = findSubreferenceNode(type);
         if (subrefNode == null) return 0;
         return (Integer) subrefNode.getProperty(SUBREFERENCE_NODE_COUNTER_KEY, 0);
     }
 
 	@Override
-	@SuppressWarnings("unchecked")
-	public <T> Class<T> getJavaType(Node node) {
+	public Object readAliasFrom(Node node) {
         if (node == null) throw new IllegalArgumentException("Node is null");
         Relationship instanceOfRelationship = node.getSingleRelationship(INSTANCE_OF_RELATIONSHIP_TYPE, Direction.OUTGOING);
         if (instanceOfRelationship == null)
             throw new IllegalArgumentException("The node " + node + " is not attached to a type hierarchy.");
         Node subrefNode = instanceOfRelationship.getEndNode();
-        final String typeName = (String) subrefNode.getProperty(SUBREF_CLASS_KEY);
-        Class<T> clazz = resolveType(node, typeName);
-        if (log.isDebugEnabled()) log.debug("Found class " + clazz.getSimpleName() + " for node: " + node);
-        return clazz;
-    }
-
-    @SuppressWarnings("unchecked")
-    private <T> Class<T> resolveType(Node node, String typeName) {
-        final Class<?> type = typeCache.getClassForName(typeName);
-        if (type == null) {
-      	    throw new IllegalStateException("Unable to get type for node: " + node);
-        }
-        return (Class<T>) type;
+        final Object typeAlias = subrefNode.getProperty(SUBREF_CLASS_KEY);
+        if (log.isDebugEnabled()) log.debug("Found alias " + typeAlias + " for node: " + node);
+        return typeAlias;
     }
 
     @Override
     public void preEntityRemoval(Node state) {
-        Class<?> clazz = getJavaType(state);
-        if (clazz == null) return;
-        final Node subReference = obtainSubreferenceNode(clazz);
+        Object alias = readAliasFrom(state);
+        if (alias == null) return;
+        final Node subReference = obtainSubreferenceNode(alias);
         Relationship instanceOf = state.getSingleRelationship(INSTANCE_OF_RELATIONSHIP_TYPE, Direction.OUTGOING);
         instanceOf.delete();
         if (log.isDebugEnabled())
-            log.debug("Removed link to subref node: " + subReference + " with type: " + clazz.getName());
+            log.debug("Removed link to subref node: " + subReference + " with alias: " + alias);
         TraversalDescription traversal = Traversal.description().depthFirst().relationships(SUBCLASS_OF_RELATIONSHIP_TYPE, Direction.OUTGOING);
         for (Node node : traversal.traverse(subReference).nodes()) {
             Integer count = (Integer) node.getProperty(SUBREFERENCE_NODE_COUNTER_KEY);
@@ -166,8 +158,8 @@ public class SubReferenceNodeTypeRepresentationStrategy implements NodeTypeRepre
     }
 
     @Override
-    public <T> ClosableIterable<Node> findAll(final Class<T> clazz) {
-        final Node subrefNode = findSubreferenceNode(clazz);
+    public <T> ClosableIterable<Node> findAll(final StoredEntityType type) {
+        final Node subrefNode = findSubreferenceNode(type);
 		if (log.isDebugEnabled()) log.debug("Subref: " + subrefNode);
 		Iterable<Iterable<Node>> relIterables = findEntityIterables(subrefNode);
 		return new ClosableCombiningIterable<Node>(relIterables);
@@ -191,17 +183,26 @@ public class SubReferenceNodeTypeRepresentationStrategy implements NodeTypeRepre
 	}
 
 
-	public Node obtainSubreferenceNode(final Class<?> entityClass) {
-        return getOrCreateSubReferenceNode(subRefRelationshipType(entityClass));
+	public Node obtainSubreferenceNode(final StoredEntityType type) {
+        return getOrCreateSubReferenceNode(subRefRelationshipType(type));
+    }
+	public Node obtainSubreferenceNode(final Object alias) {
+        return getOrCreateSubReferenceNode(subRefRelationshipType(alias));
     }
 
-    public Node findSubreferenceNode(final Class<?> entityClass) {
-        final Relationship subrefRelationship = graphDatabase.getReferenceNode().getSingleRelationship(subRefRelationshipType(entityClass), Direction.OUTGOING);
+    public Node findSubreferenceNode(final StoredEntityType type) {
+        return findSubreferenceNode(type.getAlias());
+    }
+    public Node findSubreferenceNode(final Object alias) {
+        final Relationship subrefRelationship = graphDatabase.getReferenceNode().getSingleRelationship(subRefRelationshipType(alias), Direction.OUTGOING);
         return subrefRelationship != null ? subrefRelationship.getEndNode() : null;
     }
 
-    private DynamicRelationshipType subRefRelationshipType(Class<?> clazz) {
-        return DynamicRelationshipType.withName(SUBREF_PREFIX + clazz.getName());
+    private DynamicRelationshipType subRefRelationshipType(Object alias) {
+        return DynamicRelationshipType.withName(SUBREF_PREFIX + alias);
+    }
+    private DynamicRelationshipType subRefRelationshipType(StoredEntityType type) {
+        return subRefRelationshipType(type.getAlias());
     }
 
 	public Node getOrCreateSubReferenceNode(final RelationshipType relType) {
@@ -216,7 +217,11 @@ public class SubReferenceNodeTypeRepresentationStrategy implements NodeTypeRepre
 	    }
 
 	    Node otherNode = graphDatabase.createNode(null);
-	    fromNode.createRelationshipTo(otherNode, type);
+
+        if (direction == Direction.OUTGOING)
+	        fromNode.createRelationshipTo(otherNode, type);
+        else
+            otherNode.createRelationshipTo(fromNode,type);
 	    return otherNode;
 
 	}

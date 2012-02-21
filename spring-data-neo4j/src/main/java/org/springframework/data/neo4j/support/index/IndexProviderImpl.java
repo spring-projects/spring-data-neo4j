@@ -15,8 +15,6 @@
  */
 package org.springframework.data.neo4j.support.index;
 
-import static org.springframework.data.neo4j.support.ParameterCheck.*;
-
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.PropertyContainer;
 import org.neo4j.graphdb.Relationship;
@@ -26,6 +24,8 @@ import org.springframework.data.neo4j.core.GraphDatabase;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.support.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.support.mapping.Neo4jPersistentEntityImpl;
+
+import static org.springframework.data.neo4j.support.ParameterCheck.notNull;
 
 /**
  * @author mh
@@ -97,8 +97,8 @@ public class IndexProviderImpl implements IndexProvider {
     public <S extends PropertyContainer> Index<S> getIndex(Neo4jPersistentProperty property, final Class<?> instanceType) {
         final Indexed indexedAnnotation = property.getAnnotation(Indexed.class);
         final Class<?> declaringType = property.getOwner().getType();
-        final String providedIndexName = indexedAnnotation==null || indexedAnnotation.indexName().isEmpty() ? null : indexedAnnotation.indexName();
-        final Indexed.Level level = indexedAnnotation == null ? Indexed.Level.CLASS : indexedAnnotation.level();
+        final String providedIndexName = providedIndexName(indexedAnnotation);
+        final Indexed.Level level = indexingLevel(indexedAnnotation);
         String indexName = customizeIndexName(Indexed.Name.get(level, declaringType, providedIndexName, instanceType), instanceType);
         if (!property.isIndexed() || property.getIndexInfo().getIndexType() == IndexType.SIMPLE) {
             return getIndex(declaringType, indexName, IndexType.SIMPLE);
@@ -107,10 +107,19 @@ public class IndexProviderImpl implements IndexProvider {
         if (providedIndexName==null || providedIndexName.equals(defaultIndexName)) throw new IllegalStateException("Index name for "+property+" must differ from the default name: "+defaultIndexName);
         return getIndex(declaringType, indexName, property.getIndexInfo().getIndexType());
     }
-    
+
+    private Indexed.Level indexingLevel(Indexed indexedAnnotation) {
+        return indexedAnnotation == null ? Indexed.Level.CLASS : indexedAnnotation.level();
+    }
+
+    private String providedIndexName(Indexed indexedAnnotation) {
+        return indexedAnnotation==null || indexedAnnotation.indexName().isEmpty() ? null : indexedAnnotation.indexName();
+    }
+
     @Override
-    public String createIndexValueForType(Class<?> type) {
-        return type.getName();
+    public String createIndexValueForType(Object value) {
+        if (value==null) throw new IllegalArgumentException("Value to be indexed must not be null "+value);
+        return value.toString();
     }
     
     @Override

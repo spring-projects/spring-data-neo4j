@@ -21,6 +21,7 @@ import org.neo4j.graphdb.Relationship;
 import org.neo4j.helpers.collection.ClosableIterable;
 import org.springframework.data.neo4j.core.TypeRepresentationStrategy;
 import org.springframework.data.neo4j.support.mapping.Neo4jMappingContext;
+import org.springframework.data.neo4j.support.mapping.StoredEntityType;
 
 /**
  * @author mh
@@ -40,20 +41,20 @@ public class TypeRepresentationStrategies implements TypeRepresentationStrategy<
     }
 
     @SuppressWarnings("unchecked")
-    private <T> TypeRepresentationStrategy<?> getTypeRepresentationStrategy(Class<T> type) {
-        if (mappingContext.isNodeEntity(type)) {
+    private <T> TypeRepresentationStrategy<?> getTypeRepresentationStrategy(StoredEntityType type) {
+        if (type.isNodeEntity()) {
             return (TypeRepresentationStrategy<?>) nodeTypeRepresentationStrategy;
-        } else if (mappingContext.isRelationshipEntity(type)) {
+        } else if (type.isRelationshipEntity()) {
             return (TypeRepresentationStrategy<?>) relationshipTypeRepresentationStrategy;
         }
         throw new IllegalArgumentException("Type is not @NodeEntity nor @RelationshipEntity.");
     }
 
     @SuppressWarnings("unchecked")
-    private <S extends PropertyContainer, T> TypeRepresentationStrategy<S> getTypeRepresentationStrategy(S state, Class<T> type) {
-        if (state instanceof Node && mappingContext.isNodeEntity(type)) {
+    private <S extends PropertyContainer, T> TypeRepresentationStrategy<S> getTypeRepresentationStrategy(PropertyContainer state, StoredEntityType type) {
+        if (state instanceof Node && type.isNodeEntity()) {
             return (TypeRepresentationStrategy<S>) nodeTypeRepresentationStrategy;
-        } else if (state instanceof Relationship && mappingContext.isRelationshipEntity(type)) {
+        } else if (state instanceof Relationship && type.isRelationshipEntity()) {
             return (TypeRepresentationStrategy<S>) relationshipTypeRepresentationStrategy;
         }
         throw new IllegalArgumentException("Type is not @NodeEntity nor @RelationshipEntity.");
@@ -70,24 +71,24 @@ public class TypeRepresentationStrategies implements TypeRepresentationStrategy<
     }
 
     @Override
-    public void postEntityCreation(PropertyContainer state, Class<?> type) {
-        getTypeRepresentationStrategy(state, type).postEntityCreation(state, type);
+    public void writeTypeTo(PropertyContainer state, StoredEntityType type) {
+        getTypeRepresentationStrategy(state, type).writeTypeTo(state, type);
     }
 
     @SuppressWarnings("unchecked")
     @Override
-    public <U> ClosableIterable<PropertyContainer> findAll(Class<U> type) {
+    public <U> ClosableIterable<PropertyContainer> findAll(StoredEntityType type) {
         return (ClosableIterable<PropertyContainer>) getTypeRepresentationStrategy(type).findAll(type);
     }
 
     @Override
-    public long count(Class<?> type) {
+    public long count(StoredEntityType type) {
         return getTypeRepresentationStrategy(type).count(type);
     }
 
     @Override
-    public <U> Class<U> getJavaType(PropertyContainer state) {
-        return getTypeRepresentationStrategy(state).getJavaType(state);
+    public Object readAliasFrom(PropertyContainer state) {
+        return getTypeRepresentationStrategy(state).readAliasFrom(state);
     }
 
     @Override

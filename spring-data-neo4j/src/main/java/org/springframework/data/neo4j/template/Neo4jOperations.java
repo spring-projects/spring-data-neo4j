@@ -16,10 +16,13 @@
 
 package org.springframework.data.neo4j.template;
 
-import org.neo4j.graphdb.*;
+import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.NotFoundException;
+import org.neo4j.graphdb.Path;
+import org.neo4j.graphdb.PropertyContainer;
+import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.index.Index;
 import org.neo4j.graphdb.traversal.TraversalDescription;
-import org.neo4j.helpers.collection.ClosableIterable;
 import org.springframework.data.neo4j.annotation.QueryType;
 import org.springframework.data.neo4j.conversion.EndResult;
 import org.springframework.data.neo4j.conversion.Result;
@@ -269,5 +272,5 @@ public interface Neo4jOperations {
 
     ResultConverter getDefaultConverter();
 
-    Class getStoredJavaType(Object entity);
+    Class<?> getStoredJavaType(Object entity);
 }

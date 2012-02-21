@@ -17,7 +17,6 @@
 package org.springframework.data.neo4j.support.typerepresentation;
 
 import org.neo4j.graphdb.Relationship;
-import org.springframework.data.neo4j.annotation.RelationshipEntity;
 import org.springframework.data.neo4j.core.GraphDatabase;
 import org.springframework.data.neo4j.core.RelationshipTypeRepresentationStrategy;
 import org.springframework.data.neo4j.support.index.IndexProvider;
@@ -28,7 +27,7 @@ public class IndexingRelationshipTypeRepresentationStrategy extends
     public static final String INDEX_NAME = "__rel_types__";
 
     public IndexingRelationshipTypeRepresentationStrategy(GraphDatabase graphDb, IndexProvider indexProvider) {
-        super(graphDb, indexProvider, INDEX_NAME, Relationship.class, RelationshipEntity.class);
+        super(graphDb, indexProvider, INDEX_NAME, Relationship.class);
     }
 
 }

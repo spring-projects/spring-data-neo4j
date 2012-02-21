@@ -62,7 +62,7 @@ class CypherQueryBuilder implements CypherQueryDefinition {
 
     private String defaultStartClause() {
         return String.format(QueryTemplates.DEFAULT_START_CLAUSE, this.variableContext.getVariableFor(entity), entity
-                .getType().getName());
+                .getEntityType().getAlias());
     }
 
     /**

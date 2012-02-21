@@ -48,14 +48,17 @@ public class DataGraphNamespaceHandler extends NamespaceHandlerSupport {
         @Override
         protected void postProcessBeanDefinition(DataGraphRepositoryConfiguration context, BeanDefinitionBuilder builder, BeanDefinitionRegistry registry, Object beanSource) {
             builder.addPropertyReference("neo4jTemplate", context.getNeo4jTemplateRef());
+            builder.addPropertyReference("neo4jMappingContext", context.getNeo4jMappingContextRef());
         }
 
 
         public interface DataGraphRepositoryConfiguration extends SingleRepositoryConfigInformation<SimpleDataGraphRepositoryConfiguration> {
             String NEO4J_TEMPLATE_REF = "neo4j-template-ref";
             String DEFAULT_NEO4J_TEMPLATE_REF = "neo4jTemplate";
+            String DEFAULT_NEO4J_MAPPING_CONTEXT_REF = "neo4jMappingContext";
 
             String getNeo4jTemplateRef();
+            String getNeo4jMappingContextRef();
         }
 
         public static class SimpleDataGraphRepositoryConfiguration extends RepositoryConfig<DataGraphRepositoryConfiguration, SimpleDataGraphRepositoryConfiguration> {
@@ -85,9 +88,11 @@ public class DataGraphNamespaceHandler extends NamespaceHandlerSupport {
             }
 
             public String getNeo4jTemplateRef() {
-
                 String contextRef = getSource().getAttribute(DataGraphRepositoryConfiguration.NEO4J_TEMPLATE_REF);
                 return StringUtils.hasText(contextRef) ? contextRef : DataGraphRepositoryConfiguration.DEFAULT_NEO4J_TEMPLATE_REF;
+            }
+            public String getNeo4jMappingContextRef() {
+                return DataGraphRepositoryConfiguration.DEFAULT_NEO4J_MAPPING_CONTEXT_REF;
             }
 
             private static class ManualDataGraphRepositoryConfiguration extends ManualRepositoryConfigInformation<SimpleDataGraphRepositoryConfiguration> implements DataGraphRepositoryConfiguration {
@@ -99,6 +104,11 @@ public class DataGraphNamespaceHandler extends NamespaceHandlerSupport {
                 @Override
                 public String getNeo4jTemplateRef() {
                     return getAttribute(DataGraphRepositoryConfiguration.NEO4J_TEMPLATE_REF);
+                }
+
+                @Override
+                public String getNeo4jMappingContextRef() {
+                    return DEFAULT_NEO4J_MAPPING_CONTEXT_REF;
                 }
             }
 
@@ -112,6 +122,11 @@ public class DataGraphNamespaceHandler extends NamespaceHandlerSupport {
                 public String getNeo4jTemplateRef() {
                     return getParent().getNeo4jTemplateRef();
                 }
+                @Override
+                public String getNeo4jMappingContextRef() {
+                    return getParent().getNeo4jMappingContextRef();
+                }
+
             }
         }
 

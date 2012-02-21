@@ -17,11 +17,8 @@
 package org.springframework.data.neo4j.repository;
 
 import org.neo4j.graphdb.PropertyContainer;
-import org.springframework.data.mapping.context.MappingContext;
-import org.springframework.data.neo4j.support.mapping.Neo4jMappingContext;
-import org.springframework.data.neo4j.mapping.Neo4jPersistentEntity;
-import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
+import org.springframework.data.neo4j.support.mapping.Neo4jMappingContext;
 import org.springframework.data.repository.core.support.RepositoryFactorySupport;
 import org.springframework.data.repository.core.support.TransactionalRepositoryFactoryBeanSupport;
 import org.springframework.util.Assert;
@@ -34,18 +31,18 @@ public class GraphRepositoryFactoryBean<S extends PropertyContainer, R extends C
 TransactionalRepositoryFactoryBeanSupport<R, T, Long> {
 
     private Neo4jTemplate template;
-    private Neo4jMappingContext mappingContext;
+    private Neo4jMappingContext neo4jMappingContext;
 
     public void setNeo4jTemplate(Neo4jTemplate template) {
         this.template = template;
     }
 
     /**
-     * @param mappingContext the mappingContext to set
+     * @param neo4jMappingContext the mappingContext to set
      */
-    public void setMappingContext(
-            Neo4jMappingContext mappingContext) {
-        this.mappingContext = mappingContext;
+    public void setNeo4jMappingContext(
+            Neo4jMappingContext neo4jMappingContext) {
+        this.neo4jMappingContext = neo4jMappingContext;
     }
 
     @Override
@@ -55,17 +52,17 @@ TransactionalRepositoryFactoryBeanSupport<R, T, Long> {
 
     protected RepositoryFactorySupport createRepositoryFactory(Neo4jTemplate template) {
 
-        return new GraphRepositoryFactory(template, mappingContext);
+        return new GraphRepositoryFactory(template, neo4jMappingContext);
     }
 
     @Override
     public void afterPropertiesSet() {
         Assert.notNull(template, "Neo4jTemplate must not be null!");
 
-        if (mappingContext == null) {
+        if (neo4jMappingContext == null) {
             Neo4jMappingContext context = new Neo4jMappingContext();
             context.afterPropertiesSet();
-            this.mappingContext = context;
+            this.neo4jMappingContext = context;
         }
 
         super.afterPropertiesSet();

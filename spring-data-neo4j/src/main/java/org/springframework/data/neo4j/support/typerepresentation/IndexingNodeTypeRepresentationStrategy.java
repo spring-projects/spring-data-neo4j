@@ -17,7 +17,6 @@
 package org.springframework.data.neo4j.support.typerepresentation;
 
 import org.neo4j.graphdb.Node;
-import org.springframework.data.neo4j.annotation.NodeEntity;
 import org.springframework.data.neo4j.core.GraphDatabase;
 import org.springframework.data.neo4j.core.NodeTypeRepresentationStrategy;
 import org.springframework.data.neo4j.support.index.IndexProvider;
@@ -28,6 +27,6 @@ public class IndexingNodeTypeRepresentationStrategy extends AbstractIndexingType
     public static final String INDEX_NAME = "__types__";
 
     public IndexingNodeTypeRepresentationStrategy(GraphDatabase graphDb, IndexProvider indexProvider) {
-        super(graphDb, indexProvider, INDEX_NAME, Node.class, NodeEntity.class);
+        super(graphDb, indexProvider, INDEX_NAME, Node.class);
     }
 }
