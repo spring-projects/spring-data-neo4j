@@ -18,6 +18,7 @@ package org.springframework.data.neo4j.core;
 
 import org.neo4j.graphdb.PropertyContainer;
 import org.neo4j.helpers.collection.ClosableIterable;
+import org.springframework.data.neo4j.support.mapping.StoredEntityType;
 
 /**
  * Strategy to handle representation of java types in the graph. Possible implementation are type/class nodes
@@ -39,26 +40,27 @@ public interface TypeRepresentationStrategy<S extends PropertyContainer> {
      * @param state Backing state of entity being created
      * @param type Type of entity being created
      */
-    void postEntityCreation(S state, Class<?> type);
+    void writeTypeTo(S state, StoredEntityType type);
 
     /**
      *
-     * @param clazz Type whose instances should be iterated over
-     * @return lazy Iterable over all instances of the given type
+     *
+     * @param type@return lazy Iterable over all instances of the given type
      */
-    <U> ClosableIterable<S> findAll(final Class<U> clazz);
+    <U> ClosableIterable<S> findAll(final StoredEntityType type);
 
     /**
-     * @param entityClass
-     * @return number of instances of this class contained in the graph
+     *
+     * @param type@return number of instances of this class contained in the graph
      */
-    long count(final Class<?> entityClass);
+    long count(final StoredEntityType type);
 
     /**
+     *
      * @param state
      * @return java type that of the node entity of this node
      */
-	<U> Class<U> getJavaType(S state);
+	Object readAliasFrom(S state);
 
     /**
      * Callback for cleaning up type information before removal. If state does not have any

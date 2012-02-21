@@ -44,7 +44,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.springframework.data.neo4j.aspects.Person.persistedPerson;
 
 /**
@@ -76,18 +78,18 @@ public class SubReferenceNodeTypeRepresentationStrategyTest extends EntityTestBa
     public void testPostEntityCreation() throws Exception {
         Node typeNode = getInstanceofRelationship(thingNode).getOtherNode(thingNode);
         assertNotNull("type node for thing exists", typeNode);
-        assertEquals("type node has property of type Thing.class", Thing.class.getName(), typeNode.getProperty(SubReferenceNodeTypeRepresentationStrategy.SUBREF_CLASS_KEY));
+        assertEquals("type node has property of type Thing.class", typeOf(Thing.class).getAlias(), typeNode.getProperty(SubReferenceNodeTypeRepresentationStrategy.SUBREF_CLASS_KEY));
         assertEquals("one thing has been created", 2, typeNode.getProperty(SubReferenceNodeTypeRepresentationStrategy.SUBREFERENCE_NODE_COUNTER_KEY));
     }
     @Test(expected = IllegalArgumentException.class)
     public void gettingTypeFromNonTypeNodeShouldThrowAnDescriptiveException() throws Exception {
         Node referenceNode = neo4jTemplate.getReferenceNode();
-        nodeTypeRepresentationStrategy.getJavaType(referenceNode);
+        nodeTypeRepresentationStrategy.readAliasFrom(referenceNode);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void gettingTypeFromNullShouldFail() throws Exception {
-        nodeTypeRepresentationStrategy.getJavaType(null);
+        nodeTypeRepresentationStrategy.readAliasFrom(null);
     }
 
     private void createThing() {
@@ -95,11 +97,12 @@ public class SubReferenceNodeTypeRepresentationStrategyTest extends EntityTestBa
         try {
             thingNode = neo4jTemplate.createNode();
             thing = neo4jTemplate.setPersistentState(new Thing(),thingNode);
-            nodeTypeRepresentationStrategy.postEntityCreation(thingNode, Thing.class);
+
+            nodeTypeRepresentationStrategy.writeTypeTo(thingNode, typeOf(Thing.class));
             thing.setName("thing");
             subThingNode = neo4jTemplate.createNode();
             subThing = neo4jTemplate.setPersistentState(new SubThing(),subThingNode);
-            nodeTypeRepresentationStrategy.postEntityCreation(subThingNode, SubThing.class);
+            nodeTypeRepresentationStrategy.writeTypeTo(subThingNode, typeOf(SubThing.class));
             subThing.setName("subThing");
             tx.success();
         } finally {
@@ -133,28 +136,29 @@ public class SubReferenceNodeTypeRepresentationStrategyTest extends EntityTestBa
     @Test
     @Transactional
     public void testCount() throws Exception {
-        assertEquals("one thing created", 2, nodeTypeRepresentationStrategy.count(Thing.class));
-        assertEquals("one thing created", 1, nodeTypeRepresentationStrategy.count(SubThing.class));
+        assertEquals("one thing created", 2, nodeTypeRepresentationStrategy.count(typeOf(Thing.class)));
+        assertEquals("one thing created", 1, nodeTypeRepresentationStrategy.count(typeOf(SubThing.class)));
     }
 
     @Test
     @Transactional
     public void testGetJavaType() throws Exception {
-        assertEquals("class in graph is thing", Thing.class, nodeTypeRepresentationStrategy.getJavaType(thingNode));
+        assertEquals("class in graph is thing", typeOf(Thing.class).getAlias(), nodeTypeRepresentationStrategy.readAliasFrom(thingNode));
+        assertEquals("class in graph is thing", Thing.class, neo4jTemplate.getStoredJavaType(thingNode));
 
     }
 
     @Test
     @Transactional
     public void testFindAllThings() throws Exception {
-        Collection<Node> things = IteratorUtil.asCollection(nodeTypeRepresentationStrategy.findAll(Thing.class));
+        Collection<Node> things = IteratorUtil.asCollection(nodeTypeRepresentationStrategy.findAll(typeOf(Thing.class)));
         assertEquals("one thing created and found", 2, things.size());
     }
 
     @Test
     @Transactional
     public void testFindAllSubThings() {
-        Collection<Node> things = IteratorUtil.asCollection(nodeTypeRepresentationStrategy.findAll(SubThing.class));
+        Collection<Node> things = IteratorUtil.asCollection(nodeTypeRepresentationStrategy.findAll(typeOf(SubThing.class)));
         assertEquals("one thing created and found", 1,things.size());
         assertEquals("one thing created and found", entityStateHandler.<Node>getPersistentState(subThing), IteratorUtil.first(things));
     }

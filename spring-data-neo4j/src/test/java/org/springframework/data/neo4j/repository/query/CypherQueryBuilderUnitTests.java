@@ -34,7 +34,7 @@ import static org.junit.Assert.assertThat;
 public class CypherQueryBuilderUnitTests {
 
     CypherQueryBuilder query;
-    private final String CLASS_NAME = Person.class.getName();
+    private final String CLASS_NAME = Person.class.getSimpleName();
     private String DEFAULT_START_CLAUSE = "start `person`=node:__types__(className=\"" + CLASS_NAME + "\")";
 
     @Before

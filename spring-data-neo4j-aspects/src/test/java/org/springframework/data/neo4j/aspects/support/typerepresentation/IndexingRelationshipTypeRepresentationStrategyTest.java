@@ -79,10 +79,11 @@ public class IndexingRelationshipTypeRepresentationStrategyTest extends EntityTe
 	@Transactional
 	public void testPostEntityCreationOfRelationshipBacked() throws Exception {
 		Index<Relationship> typesIndex = graphDatabaseService.index().forRelationships(IndexingRelationshipTypeRepresentationStrategy.INDEX_NAME);
-		IndexHits<Relationship> linkHits = typesIndex.get(IndexingNodeTypeRepresentationStrategy.INDEX_KEY, link.getClass().getName());
+        final Object alias = neo4jTemplate.getEntityType(Link.class).getAlias();
+        IndexHits<Relationship> linkHits = typesIndex.get(IndexingNodeTypeRepresentationStrategy.INDEX_KEY, alias);
         Relationship rel = linkHits.getSingle();
         assertEquals(rel(link), rel);
-		assertEquals(link.getClass().getName(), rel.getProperty("__type__"));
+		assertEquals(alias, rel.getProperty("__type__"));
 		linkHits.close();
 	}
 
@@ -111,7 +112,7 @@ public class IndexingRelationshipTypeRepresentationStrategyTest extends EntityTe
 	@Test
 	@Transactional
 	public void testFindAllOfRelationshipBacked() throws Exception {
-        final Collection<Relationship> links = asCollection(relationshipTypeRepresentationStrategy.findAll(Link.class));
+        final Collection<Relationship> links = asCollection(relationshipTypeRepresentationStrategy.findAll(typeOf(Link.class)));
         assertEquals(1,links.size());
         assertEquals("Did not find all links.", neo4jTemplate.getPersistentState(link), first(links));
 	}
@@ -119,13 +120,14 @@ public class IndexingRelationshipTypeRepresentationStrategyTest extends EntityTe
 	@Test
 	@Transactional
 	public void testCountOfRelationshipBacked() throws Exception {
-		assertEquals(1, relationshipTypeRepresentationStrategy.count(Link.class));
+		assertEquals(1, relationshipTypeRepresentationStrategy.count(typeOf(Link.class)));
 	}
 
     @Test
     @Transactional
     public void testGetJavaTypeOfRelationshipBacked() throws Exception {
-        assertEquals(Link.class, relationshipTypeRepresentationStrategy.getJavaType(rel(link)));
+        assertEquals(typeOf(Link.class).getAlias(), relationshipTypeRepresentationStrategy.readAliasFrom(rel(link)));
+        assertEquals(Link.class, neo4jTemplate.getStoredJavaType(link));
     }
 
 	@Test
@@ -161,7 +163,7 @@ public class IndexingRelationshipTypeRepresentationStrategyTest extends EntityTe
             Relationship rel = n1.createRelationshipTo(n2, DynamicRelationshipType.withName("link"));
             link = new Link();
             neo4jTemplate.setPersistentState(link,rel);
-            relationshipTypeRepresentationStrategy.postEntityCreation(rel, Link.class);
+            relationshipTypeRepresentationStrategy.writeTypeTo(rel, neo4jTemplate.getEntityType(Link.class));
             link.setLabel("link");
 			tx.success();
 		} finally {

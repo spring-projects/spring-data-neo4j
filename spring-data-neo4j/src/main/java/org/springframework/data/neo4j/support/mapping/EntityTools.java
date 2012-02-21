@@ -19,9 +19,6 @@ import org.neo4j.graphdb.PropertyContainer;
 import org.springframework.data.convert.DefaultTypeMapper;
 import org.springframework.data.convert.TypeMapper;
 import org.springframework.data.neo4j.core.TypeRepresentationStrategy;
-import org.springframework.data.neo4j.support.mapping.SourceStateTransmitter;
-import org.springframework.data.neo4j.support.mapping.TRSTypeAliasAccessor;
-import org.springframework.data.neo4j.support.typerepresentation.ClassValueTypeInformationMapper;
 import org.springframework.data.neo4j.mapping.EntityInstantiator;
 import org.springframework.data.neo4j.support.node.EntityStateFactory;
 
@@ -38,12 +35,12 @@ public class EntityTools<S extends PropertyContainer> {
     private SourceStateTransmitter<S> sourceStateTransmitter;
     private TypeMapper<S> typeMapper;
 
-    public EntityTools(TypeRepresentationStrategy<S> typeRepresentationStrategy, EntityStateFactory<S> entityStateFactory, EntityInstantiator<S> entityInstantiator) {
+    public EntityTools(TypeRepresentationStrategy<S> typeRepresentationStrategy, EntityStateFactory<S> entityStateFactory, EntityInstantiator<S> entityInstantiator, Neo4jMappingContext ctx) {
         this.typeRepresentationStrategy = typeRepresentationStrategy;
         this.entityStateFactory = entityStateFactory;
         this.entityInstantiator = entityInstantiator;
         this.sourceStateTransmitter = new SourceStateTransmitter<S>(entityStateFactory);
-        this.typeMapper = new DefaultTypeMapper<S>(new TRSTypeAliasAccessor<S>(typeRepresentationStrategy), asList(new ClassValueTypeInformationMapper()));
+        this.typeMapper = new DefaultTypeMapper<S>(new TRSTypeAliasAccessor<S>(typeRepresentationStrategy), asList(new HierarchicalTypeInformationMapper(ctx))); // new ClassValueTypeInformationMapper()
     }
 
     public TypeRepresentationStrategy<S> getTypeRepresentationStrategy() {

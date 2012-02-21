@@ -262,6 +262,23 @@ public class GraphRepositoryTest {
         assertEquals(Person.class, neo4jTemplate.getStoredJavaType(p));
         assertEquals(Person.class, neo4jTemplate.getStoredJavaType(neo4jTemplate.getPersistentState(p)));
         assertEquals(null, neo4jTemplate.getStoredJavaType(new Person()));
+        final Object alias = neo4jTemplate.getEntityType(Person.class).getAlias();
+        assertEquals(alias, neo4jTemplate.getStoredEntityType(p).getAlias());
+        assertEquals(alias, neo4jTemplate.getStoredEntityType(neo4jTemplate.getPersistentState(p)).getAlias());
+        assertEquals(null, neo4jTemplate.getStoredEntityType(new Person()));
+    }
+
+    @Test
+    @Transactional
+    public void testTemplateGetStoredJavaTypeWithAlias() {
+        Group g = neo4jTemplate.save(new Group());
+        assertEquals(Group.class, neo4jTemplate.getStoredJavaType(g));
+        assertEquals(Group.class, neo4jTemplate.getStoredJavaType(neo4jTemplate.getPersistentState(g)));
+        assertEquals(null, neo4jTemplate.getStoredJavaType(new Group()));
+        assertEquals("g", neo4jTemplate.getStoredEntityType(g).getAlias());
+        assertEquals("g", neo4jTemplate.getStoredEntityType(neo4jTemplate.getPersistentState(g)).getAlias());
+        assertEquals(null, neo4jTemplate.getStoredEntityType(new Group()));
+        assertEquals("g", neo4jTemplate.getEntityType(Group.class).getAlias());
     }
 
 

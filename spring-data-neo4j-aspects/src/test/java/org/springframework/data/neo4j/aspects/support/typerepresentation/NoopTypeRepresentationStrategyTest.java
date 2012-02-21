@@ -36,6 +36,8 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
 import org.springframework.test.context.transaction.TransactionalTestExecutionListener;
 
+import static org.junit.Assert.assertNull;
+
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = {"classpath:org/springframework/data/neo4j/aspects/support/Neo4jGraphPersistenceTest-context.xml",
         "classpath:org/springframework/data/neo4j/aspects/support/NoopTypeRepresentationStrategyOverride-context.xml"})
@@ -61,32 +63,32 @@ public class NoopTypeRepresentationStrategyTest extends EntityTestBase {
 
 	@Test(expected = UnsupportedOperationException.class)
 	public void testFindAllForNodeStrategy() throws Exception {
-		noopNodeStrategy.findAll(Thing.class);
+		noopNodeStrategy.findAll(typeOf(Thing.class));
 	}
 
 	@Test(expected = UnsupportedOperationException.class)
 	public void testFindAllForRelationshipStrategy() throws Exception {
-		noopRelationshipStrategy.findAll(Link.class);
+		noopRelationshipStrategy.findAll(typeOf(Link.class));
 	}
 
 	@Test(expected = UnsupportedOperationException.class)
 	public void testCountForNodeStrategy() throws Exception {
-		noopNodeStrategy.count(Thing.class);
+		noopNodeStrategy.count(typeOf(Thing.class));
 	}
 
 	@Test(expected = UnsupportedOperationException.class)
 	public void testCountForRelationshipStrategy() throws Exception {
-		noopRelationshipStrategy.count(Link.class);
+		noopRelationshipStrategy.count(typeOf(Link.class));
 	}
 
-	@Test(expected = UnsupportedOperationException.class)
+	@Test
 	public void testGetJavaTypeOnNodeStrategy() throws Exception {
-		noopNodeStrategy.getJavaType(null);
+        assertNull(noopNodeStrategy.readAliasFrom(null));
 	}
 
-	@Test(expected = UnsupportedOperationException.class)
+	@Test
 	public void testGetJavaTypeOnRelationshipStrategy() throws Exception {
-		noopRelationshipStrategy.getJavaType(null);
+		assertNull(noopRelationshipStrategy.readAliasFrom(null));
 	}
 
 	@Test
@@ -109,11 +111,11 @@ public class NoopTypeRepresentationStrategyTest extends EntityTestBase {
 			Node node = neo4jTemplate.createNode();
 			thing = new Thing();
             neo4jTemplate.setPersistentState(thing,node);
-			noopNodeStrategy.postEntityCreation(node, Thing.class);
+            noopNodeStrategy.writeTypeTo(node, typeOf(Thing.class));
             Relationship rel = node.createRelationshipTo(neo4jTemplate.createNode(), DynamicRelationshipType.withName("link"));
             link = new Link();
             neo4jTemplate.setPersistentState(link,rel);
-            noopRelationshipStrategy.postEntityCreation(rel, Link.class);
+            noopRelationshipStrategy.writeTypeTo(rel, typeOf(Link.class));
 			tx.success();
 			return thing;
 		} finally {
@@ -121,7 +123,7 @@ public class NoopTypeRepresentationStrategyTest extends EntityTestBase {
 		}
 	}
 
-	@NodeEntity
+    @NodeEntity
 	public static class Thing {
 		String name;
 	}

@@ -28,6 +28,7 @@ import org.springframework.data.neo4j.aspects.FriendshipRepository;
 import org.springframework.data.neo4j.aspects.GroupRepository;
 import org.springframework.data.neo4j.aspects.PersonRepository;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
+import org.springframework.data.neo4j.support.mapping.StoredEntityType;
 import org.springframework.data.neo4j.support.node.Neo4jHelper;
 import org.springframework.test.context.transaction.BeforeTransaction;
 
@@ -99,5 +100,9 @@ public class EntityTestBase {
     @BeforeTransaction
     public void cleanDb() {
         Neo4jHelper.cleanDb(neo4jTemplate);
+    }
+
+    protected StoredEntityType typeOf(Class<?> type) {
+        return neo4jTemplate.getEntityType(type);
     }
 }

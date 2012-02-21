@@ -19,19 +19,20 @@ package org.springframework.data.neo4j.support.typerepresentation;
 import org.neo4j.graphdb.Node;
 import org.neo4j.helpers.collection.ClosableIterable;
 import org.springframework.data.neo4j.core.NodeTypeRepresentationStrategy;
+import org.springframework.data.neo4j.support.mapping.StoredEntityType;
 
 public class NoopNodeTypeRepresentationStrategy implements NodeTypeRepresentationStrategy {
     @Override
-    public void postEntityCreation(Node state, Class<?> type) {
+    public void writeTypeTo(Node state, StoredEntityType type) {
     }
 
     @Override
-    public <U> ClosableIterable<Node> findAll(Class<U> clazz) {
+    public <U> ClosableIterable<Node> findAll(StoredEntityType type) {
         throw new UnsupportedOperationException("findAll not supported.");
     }
 
     @Override
-    public long count(Class<?> entityClass) {
+    public long count(StoredEntityType type) {
         throw new UnsupportedOperationException("count not supported.");
     }
 
@@ -40,7 +41,7 @@ public class NoopNodeTypeRepresentationStrategy implements NodeTypeRepresentatio
     }
 
     @Override
-    public Class<?> getJavaType(Node state) {
-        throw new UnsupportedOperationException("getJavaType not supported.");
+    public Class<?> readAliasFrom(Node state) {
+        return null;
     }
 }

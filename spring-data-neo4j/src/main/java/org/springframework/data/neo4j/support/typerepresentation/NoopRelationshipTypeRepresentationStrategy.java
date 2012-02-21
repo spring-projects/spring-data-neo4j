@@ -19,20 +19,21 @@ package org.springframework.data.neo4j.support.typerepresentation;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.helpers.collection.ClosableIterable;
 import org.springframework.data.neo4j.core.RelationshipTypeRepresentationStrategy;
+import org.springframework.data.neo4j.support.mapping.StoredEntityType;
 
 public class NoopRelationshipTypeRepresentationStrategy implements RelationshipTypeRepresentationStrategy {
 
     @Override
-    public void postEntityCreation(Relationship state, Class<?> type) {
+    public void writeTypeTo(Relationship state, StoredEntityType type) {
     }
 
     @Override
-    public <U> ClosableIterable<Relationship> findAll(Class<U> clazz) {
+    public <U> ClosableIterable<Relationship> findAll(StoredEntityType type) {
         throw new UnsupportedOperationException("findAll not supported.");
     }
 
     @Override
-    public long count(Class<?> entityClass) {
+    public long count(StoredEntityType type) {
         throw new UnsupportedOperationException("count not supported.");
     }
 
@@ -41,7 +42,7 @@ public class NoopRelationshipTypeRepresentationStrategy implements RelationshipT
     }
 
     @Override
-    public Class<?> getJavaType(Relationship state) {
-        throw new UnsupportedOperationException("getJavaType not supported.");
+    public Object readAliasFrom(Relationship state) {
+        return null;
     }
 }

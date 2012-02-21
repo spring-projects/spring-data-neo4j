@@ -28,6 +28,8 @@ import org.springframework.data.neo4j.annotation.GraphTraversal;
 import org.springframework.data.neo4j.annotation.Indexed;
 import org.springframework.data.neo4j.annotation.NodeEntity;
 import org.springframework.data.neo4j.annotation.RelatedTo;
+import org.springframework.data.annotation.TypeAlias;
+import org.springframework.data.neo4j.annotation.*;
 import org.springframework.data.neo4j.core.FieldTraversalDescriptionBuilder;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.support.index.IndexType;
@@ -39,6 +41,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 @NodeEntity
+@TypeAlias("g")
 public class Group implements  IGroup {
 
     public final static String OTHER_NAME_INDEX = "other_name";
