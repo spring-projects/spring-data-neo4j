@@ -29,6 +29,7 @@ import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.support.index.IndexType;
 
 import java.util.Collection;
+import java.util.Date;
 import java.util.Set;
 
 @NodeEntity
@@ -85,6 +86,18 @@ public class Group {
     @Indexed(level=Indexed.Level.INSTANCE)
     private String indexLevelName;
     private String[] roleNames;
+
+    public Date getCreationDate() {
+        return creationDate;
+    }
+
+    public void setCreationDate(Date creationDate) {
+        this.creationDate = creationDate;
+    }
+
+    @GraphProperty(propertyType = Long.class)
+    private Date creationDate;
+
 
     public String getFullTextName() {
         return fullTextName;

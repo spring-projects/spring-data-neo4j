@@ -20,6 +20,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.neo4j.graphdb.NotFoundException;
 import org.springframework.data.neo4j.aspects.Friendship;
+import org.springframework.data.neo4j.aspects.Group;
 import org.springframework.data.neo4j.aspects.Person;
 import org.springframework.data.neo4j.aspects.Personality;
 import org.springframework.test.annotation.Rollback;
@@ -134,5 +135,18 @@ public class PropertyTest extends EntityTestBase {
         assertEquals(0,(short)p.getHeight());
         assertEquals(null, p.getBirthdate());
 
+    }
+
+    @Test
+    @Transactional
+    public void testStoreConvertedValueAsDeclaredType() {
+        Group group = persist(new Group());
+        final Date date = new Date(10000L);
+        group.setCreationDate(date);
+        final Long nodeId = group.getNodeId();
+        final Group found = this.groupRepository.findOne(nodeId);
+        assertEquals(date, found.getCreationDate());
+        Long dateAsLong = ((Number) neo4jTemplate.getNode(nodeId).getProperty("creationDate")).longValue();
+        assertEquals(date.getTime(), (long)dateAsLong);
     }
 }

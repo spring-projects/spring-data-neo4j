@@ -54,7 +54,6 @@ public class ConvertingNodePropertyFieldAccessorFactory implements FieldAccessor
 
     public static class ConvertingNodePropertyFieldAccessor extends PropertyFieldAccessorFactory.PropertyFieldAccessor {
 
-        private final Class<String> targetType = String.class;
         private final PropertyConverter propertyConverter;
 
         public ConvertingNodePropertyFieldAccessor(Neo4jPersistentProperty property, Neo4jTemplate template) {
@@ -78,7 +77,7 @@ public class ConvertingNodePropertyFieldAccessorFactory implements FieldAccessor
             Object value = newVal;
             // Convert the value if it's not of a neo4j supported type
             if (doConvert(value)) {
-                value = propertyConverter.serializePropertyValue(value, targetType);
+                value = propertyConverter.serializePropertyValue(value);
             }
             super.setValue(entity, value, mappingPolicy);
             return newVal;

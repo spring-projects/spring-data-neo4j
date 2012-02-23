@@ -36,4 +36,5 @@ public @interface GraphProperty {
     String UNSET_DEFAULT = "\0";
 
     String defaultValue() default UNSET_DEFAULT;
+    Class<?> propertyType() default String.class;
 }

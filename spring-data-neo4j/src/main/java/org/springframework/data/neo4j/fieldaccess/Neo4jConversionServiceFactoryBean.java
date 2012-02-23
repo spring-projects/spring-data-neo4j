@@ -39,8 +39,10 @@ public class Neo4jConversionServiceFactoryBean implements FactoryBean<Conversion
     public void addConverters(ConversionService service) {
         if (service instanceof ConverterRegistry) {
             ConverterRegistry registry = (ConverterRegistry) service;
+            registry.addConverter(new DateToStringConverter());
             registry.addConverter(new DateToLongConverter());
-            registry.addConverter(new LongToDateConverter());
+            registry.addConverter(new StringToDateConverter());
+            registry.addConverter(new NumberToDateConverter());
             registry.addConverter(new EnumToStringConverter());
             registry.addConverterFactory(new StringToEnumConverterFactory());
         } else {
@@ -58,7 +60,7 @@ public class Neo4jConversionServiceFactoryBean implements FactoryBean<Conversion
         return true;
     }
 
-    public static class DateToLongConverter implements Converter<Date, String> {
+    public static class DateToStringConverter implements Converter<Date, String> {
 
         @Override
         public String convert(Date source) {
@@ -66,7 +68,22 @@ public class Neo4jConversionServiceFactoryBean implements FactoryBean<Conversion
         }
     }
 
-    public static class LongToDateConverter implements Converter<String, Date> {
+    public static class DateToLongConverter implements Converter<Date, Long> {
+
+        @Override
+        public Long convert(Date source) {
+            return source.getTime();
+        }
+    }
+
+    public static class NumberToDateConverter implements Converter<Number, Date> {
+
+        @Override
+        public Date convert(Number source) {
+            return new Date(source.longValue());
+        }
+    }
+    public static class StringToDateConverter implements Converter<String, Date> {
 
         @Override
         public Date convert(String source) {

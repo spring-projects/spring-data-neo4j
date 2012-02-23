@@ -32,14 +32,16 @@ public class PropertyConverter {
     private final ConversionService conversionService;
     private final Neo4jPersistentProperty property;
     private final TypeInformation<?> typeInformation;
+    private final Class<?> targetType;
 
     public PropertyConverter(ConversionService conversionService, Neo4jPersistentProperty property) {
         this.conversionService = conversionService;
         this.property = property;
         this.typeInformation = property.getTypeInformation();
+        targetType = property.getPropertyType();
     }
 
-    public Object serializePropertyValue(final Object newVal, Class<?> targetType) {
+    public Object serializePropertyValue(final Object newVal) {
         if (newVal == null) return null;
         final TypeInformation<?> typeInformation = property.getTypeInformation();
         if (typeInformation.isCollectionLike()) {
