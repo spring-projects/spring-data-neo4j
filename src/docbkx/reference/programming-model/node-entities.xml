@@ -77,6 +77,18 @@ public class Movie {
             as partial, then all fields that should be persisted to the graph must be explicitly annotated
             with <code>@GraphProperty</code>.
         </para>
+        <para>
+            <code>@GraphProperty</code> can specify default values for properties that are not in the graph.
+            Default values are specified as String representations and will be converted to the correct target
+            type using the existing conversion facilities.
+            For example <code>@GraphProperty(defaultValue="20") Integer age</code>.
+        </para>
+        <para>
+            It is also possible to declare the type that should be used for the storage inside of Neo4j. For instance
+            if a <code>Date</code> property should be stored as an Long value instead of the default String, the
+            annotation would look like <code>@GraphProperty(propertyType = Long.class)</code> For the actual mapping of
+            the Field-Type to the Neo4j-Property type there has to be a Converter registered in the Spring-Config.
+        </para>
     </section>
 
     <section>

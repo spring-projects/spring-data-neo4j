@@ -39,9 +39,12 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Date;
 import java.util.HashSet;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
 import static org.springframework.data.neo4j.aspects.Person.NAME_INDEX;
 import static org.springframework.data.neo4j.aspects.Person.persistedPerson;
 

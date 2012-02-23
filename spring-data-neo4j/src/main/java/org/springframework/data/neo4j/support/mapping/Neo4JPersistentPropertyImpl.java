@@ -51,6 +51,7 @@ class Neo4jPersistentPropertyImpl extends AbstractPersistentProperty<Neo4jPersis
     private Map<Class<? extends Annotation>, ? extends Annotation> annotations;
     private Association<Neo4jPersistentProperty> myAssociation;
     private String defaultValue;
+    private Class<?> propertyType;
 
     public Neo4jPersistentPropertyImpl(Field field, PropertyDescriptor propertyDescriptor,
                                        PersistentEntity<?, Neo4jPersistentProperty> owner, SimpleTypeHolder simpleTypeHolder, Neo4jMappingContext ctx) {
@@ -61,6 +62,13 @@ class Neo4jPersistentPropertyImpl extends AbstractPersistentProperty<Neo4jPersis
         this.isIdProperty = annotations.containsKey(GraphId.class);
         this.defaultValue = extractDefaultValue();
         this.myAssociation = isAssociation() ? super.getAssociation() == null ? createAssociation() : super.getAssociation() : null;
+        this.propertyType = extractPropertyType();
+    }
+
+    private Class<?> extractPropertyType() {
+        final GraphProperty graphProperty = getAnnotation(GraphProperty.class);
+        if (graphProperty==null) return String.class;
+        return graphProperty.propertyType();
     }
 
     private String extractDefaultValue() {
@@ -239,6 +247,11 @@ class Neo4jPersistentPropertyImpl extends AbstractPersistentProperty<Neo4jPersis
         if (targetType.isAssignableFrom(String.class)) return (T) defaultValue;
         if (conversionService == null) return (T) getDefaultValue(targetType);
         return conversionService.convert(defaultValue, targetType);
+    }
+
+    @Override
+    public Class<?> getPropertyType() {
+        return propertyType;
     }
 
     private Object getDefaultValue(Class<?> type) {
