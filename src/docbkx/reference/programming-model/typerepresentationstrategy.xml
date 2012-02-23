@@ -5,7 +5,15 @@
     <para>
         There are several ways to represent the Java type hierarchy of the data model in the graph. In general, for all
         node and relationship entities, type information is needed to perform certain repository operations. Some of
-        this type information is saved in the graph database.
+        this type information hierarchy is saved in the graph database.
+    </para>
+    <para>
+        As the type information is also stored in node/relationship-properties and/or indexes it might amount to a substantial
+        amount of data in the graph. It is possible to use an <code>@TypeAlias("name")</code> annotation on nodes and relationships to have a
+        short constant name for each type which is (unlike the default approach) renaming-refactoring-safe.
+        For using the simple class name by default, register a <code>Neo4jMappingContext</code> bean configured with an
+        instance of <code>EntityAlias</code>.
+        It is also possible to opt out of storing type information using the <code>NoopTypeRepresentationStrategies</code>.
     </para>
     <para>
         Implementations of <code>TypeRepresentationStrategy</code> take care of persisting this information during entity instance
