@@ -49,7 +49,11 @@ public class ManagedFieldAccessorSet<T> extends AbstractSet<T> {
         this.mappingPolicy = mappingPolicy;
     }
 
-	@Override
+    public static <T> ManagedFieldAccessorSet<T> create(Object entity, Set<T> result, MappingPolicy mappingPolicy, final Neo4jPersistentProperty property, final Neo4jTemplate template, final FieldAccessor fieldAccessor) {
+        return new ManagedFieldAccessorSet<T>(entity, result, property, template, fieldAccessor, mappingPolicy);
+    }
+
+    @Override
 	public Iterator<T> iterator() {
         final Iterator<T> iterator = delegate.iterator();
         return new Iterator<T>() {

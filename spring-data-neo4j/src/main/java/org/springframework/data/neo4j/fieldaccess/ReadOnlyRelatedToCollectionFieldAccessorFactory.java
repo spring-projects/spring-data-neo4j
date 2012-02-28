@@ -25,28 +25,30 @@ import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.mapping.RelationshipInfo;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
 
-public class ReadOnlyOneToNRelationshipFieldAccessorFactory extends NodeRelationshipFieldAccessorFactory {
+public class ReadOnlyRelatedToCollectionFieldAccessorFactory implements FieldAccessorFactory {
 
-	public ReadOnlyOneToNRelationshipFieldAccessorFactory(Neo4jTemplate template) {
-		super(template);
-	}
+    protected Neo4jTemplate template;
+
+    public ReadOnlyRelatedToCollectionFieldAccessorFactory(Neo4jTemplate template) {
+        this.template = template;
+    }
 
 	@Override
-	public boolean accept(final Neo4jPersistentProperty f) {
-	    if (!f.isRelationship()) return false;
-        final RelationshipInfo info = f.getRelationshipInfo();
-        return info.isMultiple() && info.targetsNodes() && info.isReadonly();
+	public boolean accept(final Neo4jPersistentProperty property) {
+	    if (!property.isRelationship()) return false;
+        final RelationshipInfo info = property.getRelationshipInfo();
+        return info.isCollection() && info.isRelatedTo() && info.isReadonly();
 	}
 
 	@Override
 	public FieldAccessor forField(final Neo4jPersistentProperty property) {
         final RelationshipInfo relationshipInfo = property.getRelationshipInfo();
-        return new ReadOnlyOneToNRelationshipFieldAccessor(relationshipInfo.getRelationshipType(), relationshipInfo.getDirection(), (Class<?>) property.getRelationshipInfo().getTargetType().getType(), template,property);
+        return new ReadOnlyRelatedToCollectionFieldAccessor(relationshipInfo.getRelationshipType(), relationshipInfo.getDirection(), (Class<?>) property.getRelationshipInfo().getTargetType().getType(), template,property);
 	}
 
-	public static class ReadOnlyOneToNRelationshipFieldAccessor extends OneToNRelationshipFieldAccessorFactory.OneToNRelationshipFieldAccessor {
+	public static class ReadOnlyRelatedToCollectionFieldAccessor extends RelatedToCollectionFieldAccessorFactory.RelatedToCollectionFieldAccessor {
 
-		public ReadOnlyOneToNRelationshipFieldAccessor(final RelationshipType type, final Direction direction, final Class<?> elementClass, final Neo4jTemplate template, Neo4jPersistentProperty field) {
+		public ReadOnlyRelatedToCollectionFieldAccessor(final RelationshipType type, final Direction direction, final Class<?> elementClass, final Neo4jTemplate template, Neo4jPersistentProperty field) {
 	        super(type,direction,elementClass, template, field);
 		}
 

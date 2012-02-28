@@ -50,6 +50,7 @@ import org.springframework.transaction.support.TransactionTemplate;
 import java.util.*;
 
 import static org.junit.Assert.*;
+import static org.junit.internal.matchers.IsCollectionContaining.hasItems;
 import static org.neo4j.graphdb.Direction.OUTGOING;
 import static org.neo4j.helpers.collection.IteratorUtil.asCollection;
 import static org.neo4j.helpers.collection.IteratorUtil.first;
@@ -294,6 +295,13 @@ public class EntityNeo4jTemplateTest extends EntityTestBase {
     public void testGetRelationshipBetween() throws Exception {
         final Friendship knows = neo4jOperations.getRelationshipBetween(testTeam.michael, testTeam.david, Friendship.class, "knows");
         assertEquals(testTeam.friendShip.getId(),knows.getId());
+    }
+    @Test @Transactional
+    public void testGetMultipleRelationshipBetween() throws Exception {
+        final Friendship friendship = neo4jOperations.getRelationshipBetween(testTeam.michael, testTeam.david, Friendship.class, "knows");
+        final Friendship friendship2 = neo4jOperations.createRelationshipBetween(testTeam.michael, testTeam.david, Friendship.class, "knows", true);
+        final Iterable<Friendship> allFriendships = neo4jOperations.getRelationshipsBetween(testTeam.michael, testTeam.david, Friendship.class, "knows");
+        assertThat(allFriendships, hasItems(friendship, friendship2));
     }
 
     @Test @Transactional

@@ -30,31 +30,34 @@ import java.util.Set;
 
 import static org.springframework.data.neo4j.support.DoReturn.doReturn;
 
-public class SingleRelationshipFieldAccessorFactory extends NodeRelationshipFieldAccessorFactory {
+public class RelatedToSingleFieldAccessorFactory implements FieldAccessorFactory {
 
-	public SingleRelationshipFieldAccessorFactory(Neo4jTemplate template) {
-		super(template);
+    protected Neo4jTemplate template;
+
+    public RelatedToSingleFieldAccessorFactory(Neo4jTemplate template) {
+		this.template = template;
 	}
 
 	@Override
 	public boolean accept(final Neo4jPersistentProperty property) {
-	    return property.isRelationship() && property.getRelationshipInfo().targetsNodes() && !property.getRelationshipInfo().isMultiple();
+	    if (!property.isRelationship()) return false;
+        return property.getRelationshipInfo().isRelatedTo() && property.getRelationshipInfo().isSingle();
 	}
 
 	@Override
 	public FieldAccessor forField(final Neo4jPersistentProperty property) {
         final RelationshipInfo relationshipInfo = property.getRelationshipInfo();
-        return new SingleRelationshipFieldAccessor(relationshipInfo.getRelationshipType(), relationshipInfo.getDirection(), (Class<?>) relationshipInfo.getTargetType().getType(), template,property);
+        return new RelatedToSingleFieldAccessor(relationshipInfo.getRelationshipType(), relationshipInfo.getDirection(), (Class<?>) relationshipInfo.getTargetType().getType(), template,property);
 	}
 
-	public static class SingleRelationshipFieldAccessor extends NodeToNodesRelationshipFieldAccessor {
-	    public SingleRelationshipFieldAccessor(final RelationshipType type, final Direction direction, final Class<?> clazz, final Neo4jTemplate template, Neo4jPersistentProperty property) {
+	public static class RelatedToSingleFieldAccessor extends RelatedToFieldAccessor {
+	    public RelatedToSingleFieldAccessor(final RelationshipType type, final Direction direction, final Class<?> clazz, final Neo4jTemplate template, Neo4jPersistentProperty property) {
 	        super(clazz, template, direction, type, property);
 	    }
 
 		@Override
 	    public Object setValue(final Object entity, final Object newVal, MappingPolicy mappingPolicy) {
-	        final Node node= checkUnderlyingState(entity);
+	        final Node node= checkAndGetNode(entity);
 	        if (newVal == null) {
 	            removeMissingRelationships(node, Collections.<Node>emptySet());
 	            return null;
@@ -67,8 +70,8 @@ public class SingleRelationshipFieldAccessorFactory extends NodeRelationshipFiel
 
 	    @Override
 		public Object getValue(final Object entity, MappingPolicy mappingPolicy) {
-	        checkUnderlyingState(entity);
-	        final Set<Object> result = createEntitySetFromRelationshipEndNodes(entity, updateMappingPolicy(mappingPolicy));
+	        checkAndGetNode(entity);
+	        final Set<Object> result = createEntitySetFromRelationshipEndNodes(entity, property.obtainMappingPolicy(mappingPolicy));
             final Object singleEntity = result.isEmpty() ? null : result.iterator().next();
             return doReturn(singleEntity);
 		}

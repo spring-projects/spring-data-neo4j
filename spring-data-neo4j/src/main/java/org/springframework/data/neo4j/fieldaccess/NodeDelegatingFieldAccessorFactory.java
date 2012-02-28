@@ -52,10 +52,11 @@ public class NodeDelegatingFieldAccessorFactory extends DelegatingFieldAccessorF
                 new QueryFieldAccessorFactory(template),
                 new PropertyFieldAccessorFactory(template),
                 new ConvertingNodePropertyFieldAccessorFactory(template),
-                new SingleRelationshipFieldAccessorFactory(template),
-                new OneToNRelationshipFieldAccessorFactory(template),
-                new ReadOnlyOneToNRelationshipFieldAccessorFactory(template),
-                new OneToNRelationshipEntityFieldAccessorFactory(template),
+                new RelatedToSingleFieldAccessorFactory(template),
+                new RelatedToCollectionFieldAccessorFactory(template),
+                new ReadOnlyRelatedToCollectionFieldAccessorFactory(template),
+                new RelatedToViaCollectionFieldAccessorFactory(template),
+                new RelatedToViaSingleFieldAccessorFactory(template),
                 new DynamicPropertiesFieldAccessorFactory(template)
         );
     }

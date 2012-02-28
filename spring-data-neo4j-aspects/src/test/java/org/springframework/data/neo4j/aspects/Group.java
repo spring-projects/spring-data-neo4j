@@ -64,6 +64,8 @@ public class Group {
     @Query("start n=node({self}) match n-[:persons]->() return count(*)")
     private Long memberCount;
 
+    @RelatedToVia(type="mentors", direction = Direction.INCOMING)
+    Mentorship mentorship;
 
     @GraphProperty
     private String unindexedName;
@@ -274,5 +276,13 @@ public class Group {
 
     public void setRolesIterable(Iterable<Role> rolesIterable) {
         this.rolesIterable = rolesIterable;
+    }
+
+    public Mentorship getMentorship() {
+        return mentorship;
+    }
+
+    public void setMentorship(Mentorship mentorship) {
+        this.mentorship = mentorship;
     }
 }

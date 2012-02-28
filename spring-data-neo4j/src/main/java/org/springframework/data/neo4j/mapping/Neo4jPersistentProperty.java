@@ -92,4 +92,6 @@ public interface Neo4jPersistentProperty extends PersistentProperty<Neo4jPersist
     Class<?> getPropertyType();
 
     boolean isUnique();
+
+    MappingPolicy obtainMappingPolicy(MappingPolicy currentMappingPolicy);
 }

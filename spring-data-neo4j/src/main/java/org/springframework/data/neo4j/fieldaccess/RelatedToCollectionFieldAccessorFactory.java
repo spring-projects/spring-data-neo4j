@@ -24,61 +24,63 @@ import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.mapping.RelationshipInfo;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import static org.springframework.data.neo4j.support.DoReturn.doReturn;
 
-public class OneToNRelationshipFieldAccessorFactory extends NodeRelationshipFieldAccessorFactory {
-	
-	public OneToNRelationshipFieldAccessorFactory(Neo4jTemplate template) {
-		super(template);
-	}
+public class RelatedToCollectionFieldAccessorFactory implements FieldAccessorFactory {
+
+    protected Neo4jTemplate template;
+
+    public RelatedToCollectionFieldAccessorFactory(Neo4jTemplate template) {
+        this.template = template;
+    }
 
     @Override
     public boolean accept(final Neo4jPersistentProperty property) {
         if (!property.isRelationship()) return false;
         final RelationshipInfo info = property.getRelationshipInfo();
-        return info.isMultiple() && info.targetsNodes() && !info.isReadonly();
+        return info.isCollection() && info.isRelatedTo() && !info.isReadonly();
     }
 
     @Override
 	public FieldAccessor forField(final Neo4jPersistentProperty property) {
         final RelationshipInfo relationshipInfo = property.getRelationshipInfo();
         final Class<?> targetType = relationshipInfo.getTargetType().getType();
-        return new OneToNRelationshipFieldAccessor(relationshipInfo.getRelationshipType(), relationshipInfo.getDirection(), targetType, template,property);
+        return new RelatedToCollectionFieldAccessor(relationshipInfo.getRelationshipType(), relationshipInfo.getDirection(), targetType, template,property);
 	}
 
-	public static class OneToNRelationshipFieldAccessor extends NodeToNodesRelationshipFieldAccessor {
+	public static class RelatedToCollectionFieldAccessor extends RelatedToFieldAccessor {
 
-	    public OneToNRelationshipFieldAccessor(final RelationshipType type, final Direction direction, final Class<?> elementClass, final Neo4jTemplate template, Neo4jPersistentProperty property) {
+	    public RelatedToCollectionFieldAccessor(final RelationshipType type, final Direction direction, final Class<?> elementClass, final Neo4jTemplate template, Neo4jPersistentProperty property) {
 	        super(elementClass, template, direction, type,property);
 	    }
 
 	    public Object setValue(final Object entity, final Object newVal, MappingPolicy mappingPolicy) {
-	        final Node node = checkUnderlyingState(entity);
-	        if (newVal == null) {
-/* null should not remove existing relationships but leave them alone
-	            removeMissingRelationships(node, Collections.<Node>emptySet());
-*/
-	            return null;
-	        }
+	        final Node node = checkAndGetNode(entity);
+// null should not remove existing relationships but leave them alone
+	        if (newVal == null) return null;
 	        final Set<Node> targetNodes = createSetOfTargetNodes(newVal);
 	        removeMissingRelationships(node, targetNodes);
 	        createAddedRelationships(node, targetNodes);
-	        return createManagedSet(entity, (Set<?>) newVal, updateMappingPolicy(mappingPolicy));
+	        return createManagedSet(entity, (Set<?>) newVal, property.obtainMappingPolicy(mappingPolicy));
 	    }
 
         @Override
 	    public Object getValue(final Object entity, MappingPolicy mappingPolicy) {
-	        checkUnderlyingState(entity);
-            final MappingPolicy currentPolicy = updateMappingPolicy(mappingPolicy);
+	        checkAndGetNode(entity);
+            final MappingPolicy currentPolicy = property.obtainMappingPolicy(mappingPolicy);
             final Set<?> result = createEntitySetFromRelationshipEndNodes(entity, currentPolicy);
 	        return doReturn(createManagedSet(entity, result, currentPolicy));
 	    }
 
         @Override
         public Object getDefaultValue() {
+            // todo delegate to property
+            if (List.class.isAssignableFrom(property.getType())) return new ArrayList();
             return new HashSet();
         }
     }

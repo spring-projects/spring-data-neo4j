@@ -348,4 +348,9 @@ class Neo4jPersistentPropertyImpl extends AbstractPersistentProperty<Neo4jPersis
         }
         return result;
     }
+
+    public MappingPolicy obtainMappingPolicy(MappingPolicy providedMappingPolicy) {
+        if (providedMappingPolicy != null) return providedMappingPolicy;
+        return getMappingPolicy();
+    }
 }
