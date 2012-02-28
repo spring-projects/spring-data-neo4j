@@ -251,24 +251,6 @@
 		</dependency>
 	</dependencies>
 
-	<repositories>
-		<repository>
-			<id>neo4j-public-repository</id>
-			<name>Neo4J Public Repository</name>
-			<url>http://m2.neo4j.org</url>
-			<snapshots>
-				<enabled>true</enabled>
-			</snapshots>
-		</repository>
-		<repository>
-			<id>spring-maven-snapshot</id>
-			<snapshots>
-				<enabled>true</enabled>
-			</snapshots>
-			<name>Springframework Maven SNAPSHOT Repository</name>
-			<url>http://maven.springframework.org/snapshot</url>
-		</repository>
-	</repositories>
 	<build>
 		<plugins>
 			<plugin>
