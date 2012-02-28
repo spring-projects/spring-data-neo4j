@@ -17,6 +17,7 @@ package org.springframework.data.neo4j.fieldaccess;
 
 import org.neo4j.graphdb.PropertyContainer;
 import org.neo4j.helpers.collection.IterableWrapper;
+import org.springframework.data.neo4j.mapping.MappingPolicy;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
 
 /**
@@ -26,16 +27,18 @@ import org.springframework.data.neo4j.support.Neo4jTemplate;
 public class GraphBackedEntityIterableWrapper<STATE extends PropertyContainer, ENTITY> extends IterableWrapper<ENTITY, STATE> {
     private final Class<ENTITY> targetType;
     private final Neo4jTemplate template;
+    private final MappingPolicy mappingPolicy;
 
     public GraphBackedEntityIterableWrapper(Iterable<STATE> iterable, Class<ENTITY> targetType, final Neo4jTemplate template) {
         super(iterable);
         this.targetType = targetType;
         this.template = template;
+        mappingPolicy = this.template.getMappingPolicy(this.targetType);
     }
 
     @Override
     protected ENTITY underlyingObjectToObject(STATE s) {
-        return template.createEntityFromState(s, targetType, template.getMappingPolicy(targetType));
+        return template.createEntityFromState(s, targetType, mappingPolicy);
     }
 
     public static <S extends PropertyContainer, E> GraphBackedEntityIterableWrapper<S, E> create(

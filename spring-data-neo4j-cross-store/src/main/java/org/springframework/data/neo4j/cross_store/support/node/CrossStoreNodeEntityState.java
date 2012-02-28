@@ -146,15 +146,16 @@ public class CrossStoreNodeEntityState<ENTITY extends NodeBacked> extends Defaul
                     new QueryFieldAccessorFactory(template),
                     newPropertyFieldAccessorFactory(),
                     newConvertingNodePropertyFieldAccessorFactory(),
-                    new SingleRelationshipFieldAccessorFactory(getTemplate()) {
+                    new RelatedToSingleFieldAccessorFactory(getTemplate()) {
                         @Override
                         public boolean accept(Neo4jPersistentProperty property) {
                             return property.isAnnotationPresent(RelatedTo.class) && super.accept(property);
                         }
                     },
-                    new OneToNRelationshipFieldAccessorFactory(getTemplate()),
-                    new ReadOnlyOneToNRelationshipFieldAccessorFactory(getTemplate()),
-                    new OneToNRelationshipEntityFieldAccessorFactory(getTemplate())
+                    new RelatedToCollectionFieldAccessorFactory(getTemplate()),
+                    new ReadOnlyRelatedToCollectionFieldAccessorFactory(getTemplate()),
+                    new RelatedToViaSingleFieldAccessorFactory(getTemplate()),
+                    new RelatedToViaCollectionFieldAccessorFactory(getTemplate())
             );
         }
 

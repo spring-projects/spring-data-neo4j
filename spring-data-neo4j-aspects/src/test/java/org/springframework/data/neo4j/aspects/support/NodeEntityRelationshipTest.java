@@ -27,14 +27,23 @@ import org.neo4j.helpers.collection.IteratorUtil;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.neo4j.aspects.Friendship;
 import org.springframework.data.neo4j.aspects.Group;
+import org.springframework.data.neo4j.aspects.Mentorship;
 import org.springframework.data.neo4j.aspects.Person;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.springframework.data.neo4j.aspects.Person.persistedPerson;
 
@@ -254,4 +263,51 @@ public class NodeEntityRelationshipTest extends EntityTestBase {
         group.setReadOnlyPersons(new HashSet<Person>());
     }
 
+    @Test
+    @Transactional
+    public void testSingleRelatedToViaField() {
+        Group group = persist(new Group());
+        Person mentor = persist(new Person());
+        group.setMentorship(new Mentorship(mentor,group));
+        persist(group);
+        final Node node = neo4jTemplate.getPersistentState(group);
+        assertEquals(1,IteratorUtil.count(node.getRelationships(Direction.INCOMING,DynamicRelationshipType.withName("mentors"))));
+        final Group loaded = neo4jTemplate.load(node, Group.class);
+        assertEquals(group.getMentorship(),loaded.getMentorship());
+        assertEquals(group.getMentorship().getId(),loaded.getMentorship().getId());
+        assertEquals(mentor, group.getMentorship().getMentor());
+        assertEquals(group, group.getMentorship().getGroup());
+    }
+    
+    @Test
+    @Transactional
+    public void testRemoveSingleRelatedToViaField() {
+        Group group = persist(new Group());
+        Person mentor = persist(new Person());
+        group.setMentorship(new Mentorship(mentor,group));
+        persist(group);
+        group.setMentorship(null);
+        persist(group);
+        final Node node = neo4jTemplate.getPersistentState(group);
+        assertEquals(0,IteratorUtil.count(node.getRelationships(Direction.INCOMING,DynamicRelationshipType.withName("mentors"))));
+        final Group loaded = neo4jTemplate.load(node, Group.class);
+        assertThat(loaded.getMentorship(), is(nullValue()));
+    }
+    @Test
+    @Transactional
+    public void testUpdateSingleRelatedToViaField() {
+        Group group = persist(new Group());
+        group.setMentorship(new Mentorship(persist(new Person()),group));
+        persist(group);
+        final Long firstMentorshipId = group.getMentorship().getId();
+        final Person mentor2 = new Person();
+        group.setMentorship(new Mentorship(persist(mentor2),group));
+        persist(group);
+        final Node node = neo4jTemplate.getPersistentState(group);
+        assertEquals(1,IteratorUtil.count(node.getRelationships(Direction.INCOMING,DynamicRelationshipType.withName("mentors"))));
+        final Group loaded = neo4jTemplate.load(node, Group.class);
+        assertFalse(loaded.getMentorship().getId().equals(firstMentorshipId));
+        assertEquals(mentor2, group.getMentorship().getMentor());
+        assertEquals(group, group.getMentorship().getGroup());
+    }
 }

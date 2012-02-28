@@ -31,7 +31,9 @@ import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.mapping.RelationshipProperties;
 import org.springframework.data.neo4j.mapping.RelationshipResult;
 
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 
 /**
  * @author mh
@@ -245,4 +247,17 @@ public class EntityStateHandler {
     }
 
 
+    public Iterable<Relationship> getRelationshipsBetween(Object source, Object target, String type) {
+        if (source == null) throw new IllegalArgumentException("Source entity is null");
+        if (target == null) throw new IllegalArgumentException("Target entity is null");
+        if (type == null) throw new IllegalArgumentException("Relationshiptype is null");
+        Node node = getPersistentState(source);
+        Node targetNode = getPersistentState(target);
+        if (node == null || targetNode == null) return null;
+        List<Relationship> result=new ArrayList<Relationship>();
+        for (Relationship relationship : node.getRelationships(DynamicRelationshipType.withName(type),Direction.OUTGOING)) {
+            if (relationship.getEndNode().equals(targetNode)) result.add(relationship);
+        }
+        return result;
+    }
 }

@@ -30,11 +30,11 @@ import java.lang.reflect.Field;
 
 public class RelationshipInfo {
 
-    private boolean isMultiple;
+    private boolean isCollection;
     private final Direction direction;
     private final String type;
     private final TypeInformation<?> targetType;
-    private final boolean targetsNodes;
+    private final boolean relatedTo;
     private boolean readonly;
     private Neo4jPersistentEntity targetEntity;
 
@@ -49,18 +49,21 @@ public class RelationshipInfo {
         return DynamicRelationshipType.withName(type);
     }
 
-    public boolean isMultiple() {
-        return isMultiple;
+    public boolean isCollection() {
+        return isCollection;
+    }
+    public boolean isSingle() {
+        return !isCollection;
     }
 
     public RelationshipInfo(String type, Direction direction, TypeInformation<?> typeInformation, TypeInformation<?> concreteActualType, Neo4jMappingContext ctx) {
         this.type = type;
         this.direction = direction;
-        isMultiple = typeInformation.isCollectionLike();
+        isCollection = typeInformation.isCollectionLike();
         targetType = concreteActualType!=null ? concreteActualType : typeInformation.getActualType();
         this.targetEntity = ctx.getPersistentEntity(targetType);
-        targetsNodes = targetEntity.isNodeEntity();
-        this.readonly = isMultiple() && typeInformation.getType().equals(Iterable.class);
+        relatedTo = targetEntity.isNodeEntity();
+        this.readonly = isCollection() && typeInformation.getType().equals(Iterable.class);
     }
 
     public static RelationshipInfo fromField(Field field, TypeInformation<?> typeInformation, Neo4jMappingContext ctx) {
@@ -104,8 +107,11 @@ public class RelationshipInfo {
         return targetType;
     }
 
-    public boolean targetsNodes() {
-        return targetsNodes;
+    public boolean isRelatedTo() {
+        return relatedTo;
+    }
+    public boolean isRelatedToVia() {
+        return !isRelatedTo();
     }
 
     public boolean isReadonly() {

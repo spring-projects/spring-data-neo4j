@@ -34,6 +34,7 @@ import org.springframework.data.neo4j.conversion.ResultConverter;
 import org.springframework.data.neo4j.core.GraphDatabase;
 import org.springframework.data.neo4j.core.TypeRepresentationStrategy;
 import org.springframework.data.neo4j.core.UncategorizedGraphStoreException;
+import org.springframework.data.neo4j.fieldaccess.GraphBackedEntityIterableWrapper;
 import org.springframework.data.neo4j.mapping.EntityPersister;
 import org.springframework.data.neo4j.mapping.IndexInfo;
 import org.springframework.data.neo4j.mapping.MappingPolicy;
@@ -253,8 +254,8 @@ public class Neo4jTemplate implements Neo4jOperations, EntityPersister {
      * properties are used to initialize the node.
      */
     @Override
-    public Node getOrCreateNode(String index, String key, Object value, final Map<String,Object> properties) {
-        return infrastructure.getGraphDatabase().getOrCreateNode(index,key,value,properties);
+    public Node getOrCreateNode(String index, String key, Object value, final Map<String, Object> properties) {
+        return infrastructure.getGraphDatabase().getOrCreateNode(index, key, value, properties);
     }
 
     @Override
@@ -339,6 +340,15 @@ public class Neo4jTemplate implements Neo4jOperations, EntityPersister {
         if (Relationship.class.isAssignableFrom(relationshipEntityClass)) return (R)relationship;
         final Neo4jPersistentEntityImpl<?> persistentEntity = getPersistentEntity(relationshipEntityClass);
         return infrastructure.getEntityPersister().createEntityFromState(relationship, relationshipEntityClass, persistentEntity.getMappingPolicy());
+    }
+
+    @Override
+    public <R> Iterable<R> getRelationshipsBetween(Object start, Object end, Class<R> relationshipEntityClass, String relationshipType) {
+        notNull(start,"start",end,"end",relationshipEntityClass,"relationshipEntityClass",relationshipType,"relationshipType");
+        final Iterable<Relationship> relationships = infrastructure.getEntityStateHandler().getRelationshipsBetween(start, end, relationshipType);
+        if (relationships == null) return null;
+        if (Relationship.class.isAssignableFrom(relationshipEntityClass)) return (Iterable<R>)relationships;
+        return GraphBackedEntityIterableWrapper.create(relationships, relationshipEntityClass, this);
     }
 
     @Override

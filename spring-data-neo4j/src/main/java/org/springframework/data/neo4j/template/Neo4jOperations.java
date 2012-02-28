@@ -112,6 +112,12 @@ public interface Neo4jOperations {
     <R> R getRelationshipBetween(Object start, Object end, Class<R> relationshipEntityClass, String relationshipType);
 
     /**
+     * Retrieves all relationship entities between two node entities with the given relationship type projected to the provided
+     * relationship entity class
+     */
+    <R> Iterable<R> getRelationshipsBetween(Object start, Object end, Class<R> relationshipEntityClass, String relationshipType);
+
+    /**
      * Retrieves a single relationship entity between two node entities.
      */
     Relationship getRelationshipBetween(Object start, Object end, String relationshipType);
