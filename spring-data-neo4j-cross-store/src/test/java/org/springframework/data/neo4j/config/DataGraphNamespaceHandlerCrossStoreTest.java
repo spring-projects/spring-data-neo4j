@@ -18,11 +18,13 @@ package org.springframework.data.neo4j.config;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.kernel.EmbeddedGraphDatabase;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.PlatformTransactionManager;
 
 /**
@@ -30,33 +32,19 @@ import org.springframework.transaction.PlatformTransactionManager;
  * @since 31.01.11
  */
 
+@RunWith(SpringJUnit4ClassRunner.class)
+@ContextConfiguration("classpath:org/springframework/data/neo4j/config/DataGraphNamespaceHandlerTest-cross-store-context.xml")
 public class DataGraphNamespaceHandlerCrossStoreTest {
 
-    static class Config {
-        @Autowired
-        GraphDatabaseService graphDatabaseService;
-        @Autowired
-        Neo4jTemplate template;
-        @Autowired
-        PlatformTransactionManager transactionManager;
-    }
+    @Autowired GraphDatabaseService graphDatabaseService;
+    @Autowired Neo4jTemplate template;
+    @Autowired PlatformTransactionManager transactionManager;
 
-    @Test
-    public void injectionForCrossStore() {
-        assertInjected("-cross-store");
-    }
-
-    private Config assertInjected(String testCase) {
-        ClassPathXmlApplicationContext ctx = new ClassPathXmlApplicationContext("classpath:org/springframework/data/neo4j/config/DataGraphNamespaceHandlerTest" + testCase + "-context.xml");
-        Config config = ctx.getBean("config", Config.class);
-        Neo4jTemplate template = config.template;
+    @Test public void injectionForCrossStore() {
         Assert.assertNotNull("template", template);
         EmbeddedGraphDatabase graphDatabaseService = (EmbeddedGraphDatabase) template.getGraphDatabaseService();
         Assert.assertTrue("store-dir", graphDatabaseService.getStoreDir().endsWith("target/config-test"));
-        Assert.assertNotNull("graphDatabaseService", config.graphDatabaseService);
-        Assert.assertNotNull("transactionManager", config.transactionManager);
-        config.graphDatabaseService.shutdown();
-        return config;
+        Assert.assertNotNull("graphDatabaseService", graphDatabaseService);
+        Assert.assertNotNull("transactionManager", transactionManager);
     }
-
 }

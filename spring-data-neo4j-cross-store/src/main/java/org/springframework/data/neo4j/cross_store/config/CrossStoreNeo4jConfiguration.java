@@ -25,6 +25,7 @@ import org.springframework.data.neo4j.cross_store.support.node.CrossStoreNodeEnt
 import org.springframework.data.neo4j.cross_store.support.node.CrossStoreNodeEntityStateFactory;
 import org.springframework.data.neo4j.mapping.EntityInstantiator;
 import org.springframework.data.neo4j.support.node.NodeEntityInstantiator;
+import org.springframework.data.neo4j.support.node.NodeEntityStateFactory;
 import org.springframework.data.neo4j.transaction.ChainedTransactionManager;
 import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -77,7 +78,7 @@ public class CrossStoreNeo4jConfiguration extends Neo4jAspectConfiguration {
 	}
 
     @Bean
-    public CrossStoreNodeEntityStateFactory nodeEntityStateFactory() throws Exception {
+    public NodeEntityStateFactory nodeEntityStateFactory() throws Exception {
         final CrossStoreNodeEntityStateFactory nodeEntityStateFactory = new CrossStoreNodeEntityStateFactory();
         nodeEntityStateFactory.setEntityManagerFactory(entityManagerFactory);
         return nodeEntityStateFactory;
