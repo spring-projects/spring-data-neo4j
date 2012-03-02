@@ -14,7 +14,6 @@
     <spring.version>3.0.7.RELEASE</spring.version>
     <aspectj.version>1.6.12</aspectj.version>
     <slf4j.version>1.6.1</slf4j.version>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <spring-data-neo4j.version>2.1.0.BUILD-SNAPSHOT</spring-data-neo4j.version>
   </properties>
 
@@ -187,8 +186,8 @@
           <dependenciesAsLibraries>true</dependenciesAsLibraries>
         </configuration>
       </plugin>
-      
-      
+
+
       <plugin>
         <!-- Execute the main class -->
         <groupId>org.codehaus.mojo</groupId>
