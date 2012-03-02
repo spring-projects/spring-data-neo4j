@@ -1,6 +1,31 @@
 Spring Data Graph Changelog
 ===========================
 
+Changes in version 2.1.M1 (2012-03-02)
+--------------------------------------
+thanks to Mark Spitzler, Oliver Gierke, Rajaram Ganeshan, Laurent Pireyn
+* DATAGRAPH-181 added support for unique entities with template.getOrCreateNode and @Indexed(unique=true)
+* DATAGRAPH-198 added support for custom target type, e.g. storing a Date converted to a Long @GraphProperty(propertyType=Long.class)
+* DATAGRAPH-102 fixed type representation in graph with support for @TypeAlias to allow shorter type-identifiers in the graph
+* DATAGRAPH-204 pom.xml cleanup (repositories) and dependency to SFW is now range from 3.0.7.RELEASE - 3.2
+* DATAGRAPH-185 cypher queries for single fields return null on no results
+* DATAGRAPH-182 allow @RelatedTo on Single RelationshipEntity fields + internal refactorings
+* DATAGRAPH-202 provide a getRelationshipsBetween() method in Neo4jTemplate
+* GH-#34 Fix for using Neo4j High-Availability
+* DATAGRAPH-176 Added debug log output for cypher and gremlin query as well as derived query methods
+* DATAGRAPH-186 default value for readonly relationship collections
+* DATAGRAPH-173 fixed verify method for interfaces, added interface support for type-representation strategies
+* DATAGRAPH-169 Backquoting all variable parts of derived finder queries to accommodate for non-identifier names.
+* DATAGRAPH-164 Added methods to determine stored java type to neo4j-template and crud-repository
+* DATAGRAPH-166 fixed multiple sort parameters
+* documentation updates
+
+Changes in version 2.0.1.RELEASE (2012-02-09)
+---------------------------------------------
+* Updated dependencies to SpringFramework 3.0.7, Spring-Data-Commons 1.2.1, Neo4j, Cypher-DSL, Neo4j-Spatial 1.6
+* Updated repository configuration
+* DATAGRAPH-186 default value for readonly relationship collections
+
 Changes in version 2.0.0.RELEASE (2011-12-23)
 ---------------------------------------------
 * Updated Neo4j, Cypher-DSL to 1.6.M02, SpringFramework to 3.0.7.RELEASE, Spring-Data-Commons to 1.2.0.RELEASE
