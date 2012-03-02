@@ -9,6 +9,7 @@
 		http://www.springframework.org/schema/data/neo4j http://www.springframework.org/schema/data/neo4j/spring-neo4j-2.0.xsd http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-2.5.xsd">
 
 
+	<context:spring-configured/>
 	<context:annotation-config/>
 
     <neo4j:config storeDirectory="target/config-test" entityManagerFactory="entityManagerFactory"/>
@@ -23,7 +24,5 @@
         <property name="username" value="sa"/>
         <property name="password" value=""/>
     </bean>
-
-    <bean id="config" class="org.springframework.data.neo4j.config.DataGraphNamespaceHandlerCrossStoreTest$Config"/>
 
 </beans>
