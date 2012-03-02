@@ -4,11 +4,11 @@
 	<groupId>com.springone.myrestaurants</groupId>
 	<artifactId>myrestaurants-social</artifactId>
 	<packaging>war</packaging>
-	<version>2.1.0.M1</version>
+	<version>2.1.0.BUILD-SNAPSHOT</version>
 	<name>myrestaurants-social</name>
 	<properties>
 		<spring.version>3.0.7.RELEASE</spring.version>
-		<spring-data-neo4j.version>${project.version}</spring-data-neo4j.version>
+		<spring-data-graph.version>2.1.0.BUILD-SNAPSHOT</spring-data-graph.version>
 		<aspectj.version>1.6.12</aspectj.version>
 		<slf4j.version>1.6.1</slf4j.version>
 		<neo4j.version>1.6</neo4j.version>
@@ -415,7 +415,7 @@
 		<dependency>
 			<groupId>org.springframework.data</groupId>
 			<artifactId>spring-data-neo4j-cross-store</artifactId>
-			<version>${spring-data-neo4j.version}</version>
+			<version>${spring-data-graph.version}</version>
 		</dependency>
 	</dependencies>
 	<build>
