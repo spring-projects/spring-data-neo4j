@@ -4,14 +4,14 @@
   <groupId>org.neo4j.examples</groupId>
   <artifactId>imdb</artifactId>
   <packaging>war</packaging>
-  <version>2.0.0-BUILD-SNAPSHOT</version>
+  <version>2.1.0.BUILD-SNAPSHOT</version>
   <name>imdb</name>
   <properties>
     <spring.version>3.0.7.RELEASE</spring.version>
     <aspectj.version>1.6.12</aspectj.version>
     <slf4j.version>1.6.1</slf4j.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <data-graph.version>2.1.0.BUILD-SNAPSHOT</data-graph.version>
+    <spring-data-neo4j.version>${project.version}</spring-data-neo4j.version>
   </properties>
 
   <repositories>
@@ -164,7 +164,7 @@
     <dependency>
       <groupId>org.springframework.data</groupId>
       <artifactId>spring-data-neo4j-aspects</artifactId>
-      <version>${data-graph.version}</version>
+      <version>${spring-data-neo4j.version}</version>
     </dependency>
     <dependency>
       <groupId>javax.validation</groupId>
