@@ -231,18 +231,21 @@ public privileged aspect Neo4jNodeBacking { // extends AbstractTypeAnnotatingMix
      * @return result of equals operation fo the underlying node, false if there is none
      */
 	public boolean NodeBacked.equals(Object obj) {
-        return entityStateHandler().equals(this, obj);
+        final EntityStateHandler entityStateHandler = entityStateHandler();
+        return entityStateHandler!=null ? entityStateHandler.equals(this, obj) : obj == this;
 	}
 
     public static EntityStateHandler entityStateHandler() {
-        return template().getEntityStateHandler();
+        final Neo4jTemplate template = template();
+        return template!=null ? template.getEntityStateHandler() : null;
     }
 
     /**
      * @return result of the hashCode of the underlying node (if any, otherwise identityHashCode)
      */
 	public int NodeBacked.hashCode() {
-        return entityStateHandler().hashCode(this);
+        final EntityStateHandler entityStateHandler = entityStateHandler();
+        return entityStateHandler!=null ? entityStateHandler.hashCode(this) : System.identityHashCode(this);
 	}
 
     /**
