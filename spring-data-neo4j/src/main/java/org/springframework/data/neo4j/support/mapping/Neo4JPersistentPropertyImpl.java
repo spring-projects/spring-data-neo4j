@@ -353,4 +353,12 @@ class Neo4jPersistentPropertyImpl extends AbstractPersistentProperty<Neo4jPersis
         if (providedMappingPolicy != null) return providedMappingPolicy;
         return getMappingPolicy();
     }
+    public boolean equals(Object other) {
+        if (other==this) return true;
+        if (!AbstractPersistentProperty.class.isInstance(other)) return false;
+        return getField().equals(((AbstractPersistentProperty)other).getField());
+    }
+    public int hashCode() {
+        return getField().hashCode();
+    }
 }
