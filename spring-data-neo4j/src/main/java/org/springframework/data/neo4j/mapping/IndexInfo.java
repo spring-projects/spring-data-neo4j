@@ -29,6 +29,7 @@ public class IndexInfo {
     private final Indexed.Level level;
     private String indexKey;
     private final boolean unique;
+    private boolean numeric;
 
     public IndexInfo(Indexed annotation, Neo4jPersistentProperty property) {
         this.indexName = determineIndexName(annotation, property);
@@ -37,6 +38,7 @@ public class IndexInfo {
         this.indexKey = fieldName.isEmpty() ? property.getNeo4jPropertyName() : fieldName;
         unique = annotation.unique();
         level = annotation.level();
+        numeric = annotation.numeric();
     }
 
 
@@ -65,5 +67,9 @@ public class IndexInfo {
 
     public boolean isUnique() {
         return unique;
+    }
+
+    public boolean isNumeric() {
+        return numeric;
     }
 }

@@ -21,6 +21,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.neo4j.graphdb.DynamicRelationshipType;
 import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.PropertyContainer;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.graphdb.index.Index;
@@ -263,6 +264,22 @@ public class IndexTest extends EntityTestBase {
         final Iterable<Group> found = this.groupRepository.findAllByPropertyValue(NAME, NAME_VALUE);
         final Collection<Group> result = IteratorUtil.addToCollection(found.iterator(), new HashSet<Group>());
         assertEquals(new HashSet<Group>(Arrays.asList(group, group2)), result);
+    }
+
+    @Test
+    @Transactional
+    public void testFindAllGroupsByNonNumericIndexedNumber() {
+        final Group group = new Group();
+        final byte value = (byte) 100;
+        group.setSecret(value);
+        groupRepository.save(group);
+        final PropertyContainer node = neo4jTemplate.getPersistentState(group);
+        final Iterable<Group> found = this.groupRepository.findAllByPropertyValue("secret", value);
+        assertEquals(1, IteratorUtil.count(found));
+        final Node foundWithTemplate = neo4jTemplate.lookup("Group","secret", value).to(Node.class).singleOrNull();
+        assertEquals(node, foundWithTemplate);
+        final Node foundGroup = neo4jTemplate.getGraphDatabaseService().index().forNodes("Group").get("secret", value).getSingle();
+        assertEquals(node, foundGroup);
     }
 
     @Test

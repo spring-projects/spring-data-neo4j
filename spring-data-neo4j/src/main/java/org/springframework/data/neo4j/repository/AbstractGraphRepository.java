@@ -33,6 +33,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.neo4j.annotation.QueryType;
 import org.springframework.data.neo4j.conversion.EndResult;
 import org.springframework.data.neo4j.conversion.Result;
+import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
 import org.springframework.data.neo4j.support.index.NoSuchIndexException;
 import org.springframework.data.neo4j.support.index.NullReadableIndex;
@@ -177,12 +178,13 @@ public abstract class AbstractGraphRepository<S extends PropertyContainer, T> im
 
     }
 
-    private IndexHits<S> getIndexHits(String indexName, String property, Object value) {
-        if (value instanceof Number) {
+    private IndexHits<S> getIndexHits(String indexName, String propertyName, Object value) {
+        final Neo4jPersistentProperty property = template.getPersistentProperty(clazz, propertyName);
+        if (value instanceof Number && (property==null || property.getIndexInfo().isNumeric())) {
             Number number = (Number) value;
-            return getIndex(indexName, property).query(property, createInclusiveRangeQuery(property, number,number));
+            return getIndex(indexName, propertyName).query(propertyName, createInclusiveRangeQuery(propertyName, number,number));
         }
-        return getIndex(indexName, property).get(property, value);
+        return getIndex(indexName, propertyName).get(propertyName, value);
     }
 
     protected ReadableIndex<S> getIndex(String indexName, String property) {

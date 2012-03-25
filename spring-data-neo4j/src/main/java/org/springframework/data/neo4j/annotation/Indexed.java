@@ -41,6 +41,8 @@ public @interface Indexed {
 
     boolean unique() default false;
 
+    boolean numeric() default true;
+
     // FQN is a fix for javac compiler bug http://bugs.sun.com/view_bug.do?bug_id=6512707
     org.springframework.data.neo4j.annotation.Indexed.Level level() default org.springframework.data.neo4j.annotation.Indexed.Level.CLASS;
 

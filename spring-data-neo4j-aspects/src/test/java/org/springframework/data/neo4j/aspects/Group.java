@@ -89,6 +89,9 @@ public class Group {
     private String indexLevelName;
     private String[] roleNames;
 
+    @Indexed(numeric = false)
+    private Byte secret;
+
     public Date getCreationDate() {
         return creationDate;
     }
@@ -284,5 +287,13 @@ public class Group {
 
     public void setMentorship(Mentorship mentorship) {
         this.mentorship = mentorship;
+    }
+
+    public Byte getSecret() {
+        return secret;
+    }
+
+    public void setSecret(Byte secret) {
+        this.secret = secret;
     }
 }

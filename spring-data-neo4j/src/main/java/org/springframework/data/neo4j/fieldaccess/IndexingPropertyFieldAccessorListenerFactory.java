@@ -75,7 +75,7 @@ public class IndexingPropertyFieldAccessorListenerFactory<S extends PropertyCont
 	    @Override
         public void valueChanged(Object entity, Object oldVal, Object newVal) {
             @SuppressWarnings("unchecked") Index<T> index = template.getIndex(property, entity.getClass());
-            if (newVal instanceof Number) newVal = ValueContext.numeric((Number) newVal);
+            if (newVal instanceof Number && property.getIndexInfo().isNumeric()) newVal = ValueContext.numeric((Number) newVal);
 
             final T state = template.getPersistentState(entity);
             index.remove(state, indexKey);
