@@ -24,6 +24,8 @@ import org.springframework.beans.factory.FactoryBean;
 import org.springframework.transaction.jta.JtaTransactionManager;
 import org.springframework.transaction.jta.UserTransactionAdapter;
 
+import javax.transaction.TransactionManager;
+
 /**
  * @author mh
  * @since 09.04.11
@@ -50,8 +52,9 @@ public class TestTransactionManagerFactoryBean implements FactoryBean<JtaTransac
     private JtaTransactionManager createJtaTransactionManager(GraphDatabaseService gds) {
         JtaTransactionManager jtaTm = new JtaTransactionManager();
         if (gds instanceof AbstractGraphDatabase) {
+            final TransactionManager txManager = ((AbstractGraphDatabase) gds).getTxManager();
             jtaTm.setTransactionManager(new SpringTransactionManager(gds));
-            jtaTm.setUserTransaction(new UserTransactionImpl(gds));
+            jtaTm.setUserTransaction(new UserTransactionImpl(txManager));
         } else {
             final NullTransactionManager tm = new NullTransactionManager();
             jtaTm.setTransactionManager(tm);

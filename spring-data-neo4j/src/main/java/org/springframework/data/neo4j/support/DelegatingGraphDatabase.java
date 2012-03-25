@@ -206,7 +206,7 @@ public class DelegatingGraphDatabase implements GraphDatabase {
             return true; // assume always running tx (e.g. for REST or other remotes)
         }
         try {
-            final TransactionManager txManager = ((AbstractGraphDatabase) delegate).getConfig().getTxModule().getTxManager();
+            final TransactionManager txManager = ((AbstractGraphDatabase) delegate).getTxManager();
             return txManager.getStatus() != Status.STATUS_NO_TRANSACTION;
         } catch (SystemException e) {
             log.error("Error accessing TransactionManager", e);

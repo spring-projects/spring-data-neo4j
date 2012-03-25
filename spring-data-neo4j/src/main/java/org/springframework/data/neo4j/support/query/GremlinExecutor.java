@@ -21,7 +21,8 @@ import com.tinkerpop.blueprints.pgm.Vertex;
 import com.tinkerpop.blueprints.pgm.impls.neo4j.Neo4jEdge;
 import com.tinkerpop.blueprints.pgm.impls.neo4j.Neo4jGraph;
 import com.tinkerpop.blueprints.pgm.impls.neo4j.Neo4jVertex;
-import com.tinkerpop.pipes.util.Table;
+import com.tinkerpop.pipes.util.structures.Row;
+import com.tinkerpop.pipes.util.structures.Table;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.helpers.collection.IterableWrapper;
 import org.slf4j.Logger;
@@ -89,9 +90,9 @@ public class GremlinExecutor {
         if (result instanceof Iterable) {
             if (result instanceof Table) {
                 final Table table = (Table) result;
-                return new IterableWrapper<Map<String,Object>,Table.Row>(table) {
+                return new IterableWrapper<Map<String,Object>,Row>(table) {
                     @Override
-                    protected Map<String, Object> underlyingObjectToObject(Table.Row row) {
+                    protected Map<String, Object> underlyingObjectToObject(Row row) {
                         Map<String,Object> result=new LinkedHashMap<String, Object>();
                         for (String column : table.getColumnNames()) {
                             result.put(column, row.getColumn(column));
