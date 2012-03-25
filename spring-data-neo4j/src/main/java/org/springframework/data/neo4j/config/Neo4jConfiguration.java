@@ -60,6 +60,7 @@ import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.jta.JtaTransactionManager;
 import org.springframework.transaction.jta.UserTransactionAdapter;
 
+import javax.transaction.TransactionManager;
 import javax.validation.Validator;
 
 import static java.util.Arrays.asList;
@@ -244,8 +245,9 @@ public abstract class Neo4jConfiguration {
         JtaTransactionManager jtaTm = new JtaTransactionManager();
         final GraphDatabaseService gds = getGraphDatabaseService();
         if (gds instanceof AbstractGraphDatabase) {
+            final TransactionManager txManager = ((AbstractGraphDatabase) gds).getTxManager();
             jtaTm.setTransactionManager(new SpringTransactionManager(gds));
-            jtaTm.setUserTransaction(new UserTransactionImpl(gds));
+            jtaTm.setUserTransaction(new UserTransactionImpl(txManager));
         } else {
             final NullTransactionManager tm = new NullTransactionManager();
             jtaTm.setTransactionManager(tm);

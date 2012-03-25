@@ -127,12 +127,12 @@
 		<org.springframework.version.40>4.0.0.RELEASE</org.springframework.version.40>
 		<org.springframework.version>[${org.springframework.version.30}, ${org.springframework.version.40})</org.springframework.version>
 		<data.commons.version>1.2.1.RELEASE</data.commons.version>
-        <neo4j.version>1.6</neo4j.version>
+        <neo4j.version>1.7-SNAPSHOT</neo4j.version>
         <neo4j.spatial.version>0.7</neo4j.spatial.version>
         <aspectj.version>1.6.12</aspectj.version>
-        <blueprints.version>1.1</blueprints.version>
-        <gremlin.version>1.4</gremlin.version>
-        <pipes.version>1.4</pipes.version>
+        <blueprints.version>1.2</blueprints.version>
+        <gremlin.version>1.5</gremlin.version>
+        <pipes.version>1.5</pipes.version>
 	</properties>
 	<profiles>
 		<profile>
@@ -394,17 +394,12 @@
                         <artifactId>neo4j-management</artifactId>
                     </exclusion>
                 </exclusions>
+                <optional>true</optional>
             </dependency>
 
             <dependency>
               <groupId>com.tinkerpop.blueprints</groupId>
               <artifactId>blueprints-core</artifactId>
-              <version>${blueprints.version}</version>
-              <optional>true</optional>
-            </dependency>
-            <dependency>
-              <groupId>com.tinkerpop.blueprints</groupId>
-              <artifactId>blueprints-neo4j-graph</artifactId>
               <version>${blueprints.version}</version>
               <optional>true</optional>
             </dependency>

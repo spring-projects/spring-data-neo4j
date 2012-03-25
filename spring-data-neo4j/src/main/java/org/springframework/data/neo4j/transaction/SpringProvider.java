@@ -35,7 +35,7 @@ public class SpringProvider extends TransactionManagerProvider
     }
 
     @Override
-    protected AbstractTransactionManager loadTransactionManager(String s, KernelPanicEventGenerator kernelPanicEventGenerator, TxHook txHook, StringLogger stringLogger, FileSystemAbstraction fileSystemAbstraction) {
+    public AbstractTransactionManager loadTransactionManager(String s, KernelPanicEventGenerator kernelPanicEventGenerator, TxHook txHook, StringLogger stringLogger, FileSystemAbstraction fileSystemAbstraction) {
         return new SpringServiceImpl();
     }
 }
