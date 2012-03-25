@@ -25,9 +25,11 @@ import org.springframework.data.mapping.model.MappingException;
 import org.springframework.data.neo4j.unique.domain.Club;
 import org.springframework.data.neo4j.unique.domain.InvalidClub;
 import org.springframework.data.neo4j.unique.domain.UniqueClub;
+import org.springframework.data.neo4j.unique.domain.UniqueNumericIdClub;
 import org.springframework.data.neo4j.unique.repository.ClubRepository;
 import org.springframework.data.neo4j.unique.repository.InvalidClubRepository;
 import org.springframework.data.neo4j.unique.repository.UniqueClubRepository;
+import org.springframework.data.neo4j.unique.repository.UniqueNumericIdClubRepository;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
@@ -51,6 +53,9 @@ public class UniqueEntityTest {
     @Autowired
     protected GraphDatabaseService graphDatabaseService;
 
+    @Autowired
+    private UniqueNumericIdClubRepository uniqueNumericIdClubRepository;
+
     @Before
     public void setup() {
         clubRepository.deleteAll();
@@ -68,6 +73,17 @@ public class UniqueEntityTest {
         uniqueClubRepository.save(club);
 
         assertEquals(1, uniqueClubRepository.count());
+    }
+    @Test
+    public void shouldOnlyCreateSingleInstanceForUniqueNumericNodeEntity() {
+        UniqueNumericIdClub club = new UniqueNumericIdClub();
+        club.setClubId(100L);
+        uniqueNumericIdClubRepository.save(club);
+
+        club = new UniqueNumericIdClub(100L);
+        uniqueNumericIdClubRepository.save(club);
+
+        assertEquals(1, uniqueNumericIdClubRepository.count());
     }
 
     @Test

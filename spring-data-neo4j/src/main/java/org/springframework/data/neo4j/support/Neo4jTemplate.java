@@ -20,6 +20,7 @@ import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.index.Index;
 import org.neo4j.graphdb.traversal.TraversalDescription;
 import org.neo4j.helpers.collection.ClosableIterable;
+import org.neo4j.index.lucene.ValueContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.convert.ConversionService;
@@ -583,10 +584,17 @@ public class Neo4jTemplate implements Neo4jOperations, EntityPersister {
 
     @Override
     public <T extends PropertyContainer> Index<T> getIndex(Class<?> indexedType, String propertyName) {
-        final Neo4jPersistentEntityImpl<?> persistentEntity = getPersistentEntity(indexedType);
-        final Neo4jPersistentProperty property = persistentEntity.getPersistentProperty(propertyName);
+        final Neo4jPersistentProperty property = getPersistentProperty(indexedType, propertyName);
         if (property==null) return getIndexProvider().getIndex(indexedType,null);
         return getIndexProvider().getIndex(property, indexedType);
+    }
+
+    public Neo4jPersistentProperty getPersistentProperty(Class<?> type, String propertyName) {
+        if (type==null || propertyName==null) return null;
+        final Neo4jPersistentEntityImpl<?> persistentEntity = getPersistentEntity(type);
+        final int dotIndex = propertyName.lastIndexOf(".");
+        if (dotIndex >-1) propertyName = propertyName.substring(dotIndex, propertyName.length());
+        return persistentEntity.getPersistentProperty(propertyName);
     }
 
     private IndexProvider getIndexProvider() {
@@ -677,9 +685,10 @@ public class Neo4jTemplate implements Neo4jOperations, EntityPersister {
     public Node createUniqueNode(Object entity) {
         final Neo4jPersistentEntityImpl<?> persistentEntity = getPersistentEntity(entity.getClass());
         final Neo4jPersistentProperty uniqueProperty = persistentEntity.getUniqueProperty();
-        final Object value = uniqueProperty.getValueFromEntity(entity, MappingPolicy.MAP_FIELD_DIRECT_POLICY);
+        Object value = uniqueProperty.getValueFromEntity(entity, MappingPolicy.MAP_FIELD_DIRECT_POLICY);
         if (value==null) return createNode();
         final IndexInfo indexInfo = uniqueProperty.getIndexInfo();
+        if (value instanceof Number && indexInfo.isNumeric()) value=ValueContext.numeric((Number)value);
         return getGraphDatabase().getOrCreateNode(indexInfo.getIndexName(), indexInfo.getIndexKey(), value, Collections.<String, Object>emptyMap());
     }
 }
