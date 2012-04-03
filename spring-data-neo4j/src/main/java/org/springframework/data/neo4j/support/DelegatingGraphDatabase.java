@@ -26,6 +26,7 @@ import org.neo4j.graphdb.index.IndexManager;
 import org.neo4j.graphdb.index.UniqueFactory;
 import org.neo4j.graphdb.traversal.TraversalDescription;
 import org.neo4j.kernel.AbstractGraphDatabase;
+import org.neo4j.kernel.GraphDatabaseAPI;
 import org.neo4j.kernel.Traversal;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -202,11 +203,11 @@ public class DelegatingGraphDatabase implements GraphDatabase {
 
     @Override
     public boolean transactionIsRunning() {
-        if (!(delegate instanceof AbstractGraphDatabase)) {
+        if (!(delegate instanceof GraphDatabaseAPI)) {
             return true; // assume always running tx (e.g. for REST or other remotes)
         }
         try {
-            final TransactionManager txManager = ((AbstractGraphDatabase) delegate).getTxManager();
+            final TransactionManager txManager = ((GraphDatabaseAPI) delegate).getTxManager();
             return txManager.getStatus() != Status.STATUS_NO_TRANSACTION;
         } catch (SystemException e) {
             log.error("Error accessing TransactionManager", e);

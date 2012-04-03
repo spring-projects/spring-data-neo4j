@@ -38,7 +38,7 @@
         <dependency>
             <groupId>org.neo4j</groupId>
             <artifactId>neo4j-rest-graphdb</artifactId>
-            <version>1.6</version>
+            <version>1.7-SNAPSHOT</version>
             <exclusions>
                <exclusion>
                    <groupId>org.neo4j</groupId>
@@ -55,6 +55,12 @@
             <artifactId>neo4j-cypher-plugin</artifactId>
             <version>${neo4j.version}</version>
             <optional>true</optional>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.neo4j</groupId>
+            <artifactId>neo4j-shell</artifactId>
+            <version>${neo4j.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -110,10 +116,6 @@
                 <exclusion>
                     <groupId>org.apache.felix</groupId>
                     <artifactId>org.apache.felix.fileinstall</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.neo4j</groupId>
-                    <artifactId>neo4j-shell</artifactId>
                 </exclusion>
                 <exclusion>
                     <groupId>org.slf4j</groupId>
