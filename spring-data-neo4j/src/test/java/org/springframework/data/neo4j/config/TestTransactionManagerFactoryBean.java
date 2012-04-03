@@ -18,6 +18,7 @@ package org.springframework.data.neo4j.config;
 
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.kernel.AbstractGraphDatabase;
+import org.neo4j.kernel.GraphDatabaseAPI;
 import org.neo4j.kernel.impl.transaction.SpringTransactionManager;
 import org.neo4j.kernel.impl.transaction.UserTransactionImpl;
 import org.springframework.beans.factory.FactoryBean;
@@ -51,8 +52,8 @@ public class TestTransactionManagerFactoryBean implements FactoryBean<JtaTransac
 
     private JtaTransactionManager createJtaTransactionManager(GraphDatabaseService gds) {
         JtaTransactionManager jtaTm = new JtaTransactionManager();
-        if (gds instanceof AbstractGraphDatabase) {
-            final TransactionManager txManager = ((AbstractGraphDatabase) gds).getTxManager();
+        if (gds instanceof GraphDatabaseAPI) {
+            final TransactionManager txManager = ((GraphDatabaseAPI) gds).getTxManager();
             jtaTm.setTransactionManager(new SpringTransactionManager(gds));
             jtaTm.setUserTransaction(new UserTransactionImpl(txManager));
         } else {

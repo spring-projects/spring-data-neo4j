@@ -141,14 +141,13 @@
 			    </property>
 			    <property name="userTransaction">
                     <bean  class="org.neo4j.kernel.impl.transaction.UserTransactionImpl">
-                        <constructor-arg ref="graphDatabaseService" />
+                        <constructor-arg value="#{graphDatabaseService.txManager}" />
                     </bean>
 			    </property>
 			</bean>
             </list>
 		</constructor-arg>
 	</bean>
-
 
 	<bean class="org.springframework.jdbc.datasource.DriverManagerDataSource" id="dataSource">
         <property name="driverClassName" value="${database.driverClassName}"/>
