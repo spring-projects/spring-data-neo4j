@@ -42,7 +42,7 @@ public class NodeEntityState extends DefaultEntityState<Node> {
     @Override
     public void createAndAssignState() {
         if (hasPersistentState()) {
-            if (log.isInfoEnabled()) log.info("Entity "+entity.getClass()+" already has persistent state "+getPersistentState());
+            if (log.isDebugEnabled()) log.debug("Entity "+entity.getClass()+" already has persistent state "+getPersistentState());
             return;
         }
         try {
@@ -50,14 +50,14 @@ public class NodeEntityState extends DefaultEntityState<Node> {
             if (id instanceof Number) {
                 final Node node = template.getNode(((Number) id).longValue());
                 setPersistentState(node);
-                if (log.isInfoEnabled())
-                    log.info("Entity reattached " + entity.getClass() + "; used Node [" + getPersistentState() + "];");
+                if (log.isDebugEnabled())
+                    log.debug("Entity reattached " + entity.getClass() + "; used Node [" + getPersistentState() + "];");
                 return;
             }
 
             final Node node = persistentEntity.isUnique() ? template.createUniqueNode(entity) : template.createNode();
             setPersistentState(node);
-            if (log.isInfoEnabled()) log.info("User-defined constructor called on class " + entity.getClass() + "; created Node [" + getPersistentState() + "]; Updating metamodel");
+            if (log.isDebugEnabled()) log.debug("User-defined constructor called on class " + entity.getClass() + "; created Node [" + getPersistentState() + "]; Updating metamodel");
             template.postEntityCreation(node, type);
         } catch (NotInTransactionException e) {
             throw new InvalidDataAccessResourceUsageException("Not in a Neo4j transaction.", e);

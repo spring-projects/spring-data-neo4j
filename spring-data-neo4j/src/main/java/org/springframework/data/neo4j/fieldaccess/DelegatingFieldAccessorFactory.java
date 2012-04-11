@@ -67,11 +67,11 @@ public abstract class DelegatingFieldAccessorFactory implements FieldAccessorFac
         if (property.isSyntheticField()) return null;
         for (final FieldAccessorFactory fieldAccessorFactory : fieldAccessorFactories) {
             if (fieldAccessorFactory.accept(property)) {
-                if (log.isInfoEnabled()) log.info("Factory " + fieldAccessorFactory + " used for field: " + property);
+                if (log.isDebugEnabled()) log.debug("Factory " + fieldAccessorFactory + " used for field: " + property);
                 return fieldAccessorFactory;
             }
         }
-        if (log.isWarnEnabled()) log.warn("No FieldAccessor configured for field: " + property);
+        if (log.isInfoEnabled()) log.info("No FieldAccessor configured for field: " + property);
         return null;
     }
 
