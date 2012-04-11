@@ -100,7 +100,7 @@ public abstract class AbstractConstructorEntityInstantiator<STATE> implements En
 		if (constructor == null)
 			return null;
 
-		log.info("Using " + type + " no-arg constructor");
+        if (log.isDebugEnabled()) log.debug("Using " + type + " no-arg constructor");
 
 		return new StateBackedCreator<T, STATE>() {
 			public T create(STATE state, Class<T> c) throws Exception {

@@ -56,13 +56,13 @@ public class RelationshipEntityState extends DefaultEntityState<Relationship> {
             if (id instanceof Number) {
                 final Relationship relationship = template.getRelationship(((Number) id).longValue());
                 setPersistentState(relationship);
-                if (log.isInfoEnabled())
-                    log.info("Entity reattached " + entity.getClass() + "; used Relationship [" + state + "];");
+                if (log.isDebugEnabled())
+                    log.debug("Entity reattached " + entity.getClass() + "; used Relationship [" + state + "];");
                 return;
             }
             final Relationship relationship = createRelationshipFromEntity();
             setPersistentState(relationship);
-            if (log.isInfoEnabled()) log.info("User-defined constructor called on class " + entity.getClass() + "; created Relationship [" + getPersistentState() + "]; Updating metamodel");
+            if (log.isDebugEnabled()) log.debug("User-defined constructor called on class " + entity.getClass() + "; created Relationship [" + getPersistentState() + "]; Updating metamodel");
             template.postEntityCreation(relationship, type);
         } catch (NotInTransactionException e) {
             throw new InvalidDataAccessResourceUsageException("Not in a Neo4j transaction.", e);

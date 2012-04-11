@@ -69,7 +69,8 @@ public class CrossStoreNodeEntityState<ENTITY extends NodeBacked> extends Defaul
                 node = persistentEntity.isUnique() ? template.createUniqueNode(entity) : template.createNode();
                 persistForeignId(node, id);
                 setPersistentState(node);
-                log.info("User-defined constructor called on class " + entity.getClass() + "; created Node [" + entity.getPersistentState() + "]; Updating metamodel");
+                if (log.isDebugEnabled())
+                    log.debug("User-defined constructor called on class " + entity.getClass() + "; created Node [" + entity.getPersistentState() + "]; Updating metamodel");
                 template.postEntityCreation(node, type);
             } else {
                 setPersistentState(node);
