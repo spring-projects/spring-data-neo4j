@@ -22,7 +22,7 @@ import org.springframework.data.neo4j.annotation.NodeEntity;
 @NodeEntity
 public class UniqueNumericIdClub {
 
-    @Indexed(unique = true, numeric = false)
+    @Indexed(unique = true)
     private Long clubId;
 
     @GraphId
