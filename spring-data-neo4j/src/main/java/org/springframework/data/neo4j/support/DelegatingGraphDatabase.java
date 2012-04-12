@@ -16,6 +16,7 @@
 
 package org.springframework.data.neo4j.support;
 
+import org.neo4j.graphdb.DynamicRelationshipType;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.PropertyContainer;
@@ -25,6 +26,7 @@ import org.neo4j.graphdb.index.Index;
 import org.neo4j.graphdb.index.IndexManager;
 import org.neo4j.graphdb.index.UniqueFactory;
 import org.neo4j.graphdb.traversal.TraversalDescription;
+import org.neo4j.index.lucene.ValueContext;
 import org.neo4j.kernel.AbstractGraphDatabase;
 import org.neo4j.kernel.GraphDatabaseAPI;
 import org.neo4j.kernel.Traversal;
@@ -122,8 +124,8 @@ public class DelegatingGraphDatabase implements GraphDatabase {
     }
 
     @Override
-    public Relationship createRelationship(Node startNode, Node endNode, RelationshipType type, Map<String, Object> props) {
-        return setProperties(startNode.createRelationshipTo(endNode,type),props);
+    public Relationship createRelationship(Node startNode, Node endNode, RelationshipType type, Map<String, Object> properties) {
+        return setProperties(startNode.createRelationshipTo(endNode,type), properties);
     }
 
     @SuppressWarnings("unchecked")
@@ -263,11 +265,27 @@ public class DelegatingGraphDatabase implements GraphDatabase {
         }
     }
 
-    public Node getOrCreateNode(String index, String key, Object value, final Map<String,Object> nodeProperties) {
-        if (index==null || key == null || value==null) throw new IllegalArgumentException("Unique index "+index+" key "+key+" value must not be null");
-        UniqueFactory.UniqueNodeFactory factory = new UniqueFactory.UniqueNodeFactory(delegate, index) {
+    public Node getOrCreateNode(String indexName, String key, Object value, final Map<String,Object> nodeProperties) {
+        if (indexName ==null || key == null || value==null) throw new IllegalArgumentException("Unique index "+ indexName +" key "+key+" value must not be null");
+        if (value instanceof Number) value= ValueContext.numeric((Number)value);
+        UniqueFactory.UniqueNodeFactory factory = new UniqueFactory.UniqueNodeFactory(delegate, indexName) {
             protected void initialize(Node node, Map<String, Object> _) {
                 setProperties(node,nodeProperties);
+            }
+        };
+        return factory.getOrCreate(key, value);
+    }
+
+    @Override
+    public Relationship getOrCreateRelationship(String indexName, String key, Object value, final Node startNode, final Node endNode, final String type, final Map<String, Object> properties) {
+        if (indexName ==null || key == null || value==null) throw new IllegalArgumentException("Unique index "+ indexName +" key "+key+" value must not be null");
+        if (startNode ==null || endNode == null || type==null) throw new IllegalArgumentException("StartNode "+ startNode +" EndNode "+ endNode +" and type "+type+" must not be null");
+        if (value instanceof Number) value= ValueContext.numeric((Number)value);
+        UniqueFactory.UniqueRelationshipFactory factory = new UniqueFactory.UniqueRelationshipFactory(delegate, indexName) {
+            @Override
+            protected Relationship create(Map<String, Object> _) {
+                final Relationship relationship = startNode.createRelationshipTo(endNode, DynamicRelationshipType.withName(type));
+                return setProperties(relationship, properties);
             }
         };
         return factory.getOrCreate(key, value);

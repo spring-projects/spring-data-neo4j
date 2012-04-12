@@ -20,12 +20,15 @@ import org.neo4j.graphdb.PropertyContainer;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.graphdb.index.Index;
+import org.neo4j.graphdb.index.RelationshipIndex;
 import org.neo4j.graphdb.traversal.TraversalDescription;
 import org.neo4j.helpers.collection.MapUtil;
 import org.neo4j.rest.graphdb.ExecutingRestRequest;
 import org.neo4j.rest.graphdb.RequestResult;
 import org.neo4j.rest.graphdb.RestAPI;
 import org.neo4j.rest.graphdb.RestRequest;
+import org.neo4j.rest.graphdb.entity.RestNode;
+import org.neo4j.rest.graphdb.index.RestIndex;
 import org.neo4j.rest.graphdb.index.RestIndexManager;
 import org.neo4j.rest.graphdb.query.RestCypherQueryEngine;
 import org.neo4j.rest.graphdb.query.RestGremlinQueryEngine;
@@ -66,21 +69,23 @@ public class SpringRestGraphDatabase extends org.neo4j.rest.graphdb.RestGraphDat
         return super.getRestAPI().createNode(props);
     }
 
-    // TODO move to RestAPI
-    public Node getOrCreateNode(String index, String key, Object value, final Map<String,Object> properties) {
-        if (index==null || key == null || value==null) throw new IllegalArgumentException("Unique index "+index+" key "+key+" value must not be null");
-        final RequestResult result = getRestAPI().getRestRequest().post("index/node/" + index + "?unique", MapUtil.map("key",key,"value",value,"properties",properties));
-        if (result.statusIs(Response.Status.CREATED) || result.statusIs(Response.Status.OK)) {
-            return (Node)getRestAPI().createExtractor().convertFromRepresentation(result);
-        }
-        throw new RuntimeException(String.format("Error retrieving or creating node for key %s and value %s with index %s", key, value, index));
+    @Override
+    public Node getOrCreateNode(String indexName, String key, Object value, final Map<String,Object> properties) {
+        if (indexName ==null || key == null || value==null) throw new IllegalArgumentException("Unique index "+ indexName +" key "+key+" value must not be null");
+        final RestIndex<Node> nodeIndex = index().forNodes(indexName);
+        return getRestAPI().getOrCreateNode(nodeIndex, key, value, properties);
     }
 
 
+    @Override
+    public Relationship getOrCreateRelationship(String indexName, String key, Object value, Node startNode, Node endNode, String type, Map<String, Object> properties) {
+        @SuppressWarnings("unchecked") final RestIndex<Relationship> relIndex = (RestIndex<Relationship>) index().forRelationships(indexName);
+        return getRestAPI().getOrCreateRelationship(relIndex,key,value,(RestNode) startNode,(RestNode) endNode,type, properties);
+    }
 
     @Override
-    public Relationship createRelationship(Node startNode, Node endNode, RelationshipType type, Map<String, Object> props) {
-       return super.getRestAPI().createRelationship(startNode, endNode, type, props);
+    public Relationship createRelationship(Node startNode, Node endNode, RelationshipType type, Map<String, Object> properties) {
+       return super.getRestAPI().createRelationship(startNode, endNode, type, properties);
     }
 
     @Override
