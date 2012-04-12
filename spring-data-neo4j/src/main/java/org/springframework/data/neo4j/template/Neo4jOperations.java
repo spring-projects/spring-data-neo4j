@@ -103,7 +103,13 @@ public interface Neo4jOperations {
     /**
      * Creates a relationship with the given initial properties.
      */
-    Relationship createRelationshipBetween(Node startNode, Node endNode, String type, Map<String, Object> props);
+    Relationship createRelationshipBetween(Node startNode, Node endNode, String type, Map<String, Object> properties);
+
+    /**
+     * Creates the relationship uniquely, uses the given index,key,value to achieve that.
+     * If the relationship for this combination already existed it is returned otherwise created and populated with the provided properties.
+     */
+    Relationship getOrCreateRelationship(String indexName, String key, Object value, Node startNode, Node endNode, String type, Map<String, Object> properties);
 
     /**
      * Retrieves a single relationship entity between two node entities with the given relationship type projected to the provided

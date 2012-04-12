@@ -53,7 +53,7 @@ public interface GraphDatabase {
      * creates the node uniquely or returns an existing node with the same index-key-value combination.
      * properties are used to initialize the node.
      */
-    Node getOrCreateNode(String index, String key, Object value, final Map<String,Object> properties);
+    Node getOrCreateNode(String indexName, String key, Object value, final Map<String,Object> properties);
 
     /**
      * @param id relationship id
@@ -62,7 +62,27 @@ public interface GraphDatabase {
      */
     Relationship getRelationshipById(long id);
 
-    Relationship createRelationship(Node startNode, Node endNode, RelationshipType type, Map<String, Object> props);
+    /**
+     * creates the relationship between the startNode, endNode with the given type which will be populated with the provided properties
+     */
+    Relationship createRelationship(Node startNode, Node endNode, RelationshipType type, Map<String, Object> properties);
+
+
+    /**
+     * Creates the relationship uniquely, uses the given index,key,value to achieve that.
+     * If the relationship for this combination already existed it is returned otherwise created and populated with the provided properties.
+     */
+    Relationship getOrCreateRelationship(String indexName, String key, Object value, Node startNode, Node endNode, String type, Map<String, Object> properties);
+
+    /**
+     * deletes the Node and its index entries
+     */
+    void remove(Node node);
+
+    /**
+     * deletes the relationship and its index entries
+     */
+    void remove(Relationship relationship);
 
     /**
      * @param indexName existing index name, not null
@@ -86,18 +106,28 @@ public interface GraphDatabase {
      */
     TraversalDescription traversalDescription();
 
+    /**
+     * returns a query engine for the provided type (Cypher or Gremlin) which is initialized with the default result converter
+     */
     <T> QueryEngine<T> queryEngineFor(QueryType type);
 
-    void setConversionService(ConversionService conversionService);
-
+    /**
+     * returns a query engine for the provided type (Cypher or Gremlin) which is initialized with the provided result converter
+     */
     <T> QueryEngine<T> queryEngineFor(QueryType type, ResultConverter resultConverter);
 
-    boolean transactionIsRunning();
+    /**
+     * @param conversionService the conversion service to be used for the default result converter of this database
+     */
+    void setConversionService(ConversionService conversionService);
 
-    void remove(Node node);
-
-    void remove(Relationship relationship);
-
+    /**
+     * @param resultConverter the default result converter to be used with this database
+     */
     void setResultConverter(ResultConverter resultConverter);
 
+    /**
+     * @return true if a transaction is currently running
+     */
+    boolean transactionIsRunning();
 }

@@ -238,7 +238,7 @@ public class Neo4jTemplate implements Neo4jOperations, EntityPersister {
      */
     @Override
     public Node createNode() {
-        return infrastructure.getGraphDatabase().createNode(null);
+        return getGraphDatabase().createNode(null);
     }
 
     /**
@@ -247,7 +247,7 @@ public class Neo4jTemplate implements Neo4jOperations, EntityPersister {
      */
     @Override
     public Node createNode(final Map<String, Object> properties) {
-        return infrastructure.getGraphDatabase().createNode(properties);
+        return getGraphDatabase().createNode(properties);
     }
 
     /**
@@ -256,7 +256,7 @@ public class Neo4jTemplate implements Neo4jOperations, EntityPersister {
      */
     @Override
     public Node getOrCreateNode(String index, String key, Object value, final Map<String, Object> properties) {
-        return infrastructure.getGraphDatabase().getOrCreateNode(index, key, value, properties);
+        return getGraphDatabase().getOrCreateNode(index, key, value, properties);
     }
 
     @Override
@@ -383,6 +383,11 @@ public class Neo4jTemplate implements Neo4jOperations, EntityPersister {
                 return graph.createRelationship(startNode, endNode, DynamicRelationshipType.withName(relationshipType), properties);
             }
         });
+    }
+
+    @Override
+    public Relationship getOrCreateRelationship(String indexName, String key, Object value, Node startNode, Node endNode, String type, Map<String, Object> properties) {
+        return getGraphDatabase().getOrCreateRelationship(indexName,key,value,startNode,endNode,type,properties);
     }
 
     private final Neo4jExceptionTranslator exceptionTranslator = new Neo4jExceptionTranslator();
