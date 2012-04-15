@@ -104,17 +104,17 @@ public abstract class AbstractGraphRepository<S extends PropertyContainer, T> im
     }
 
     @Override
-    public T save(T entity) {
-        return (T) template.save(entity);
+    public <U extends T> U save(U entity) {
+        return template.save(entity);
     }
 
     @SuppressWarnings("unchecked")
     @Override
-    public Iterable<T> save(Iterable<? extends T> entities) {
-        for (T entity : entities) {
+    public <U extends T> Iterable<U> save(Iterable<U> entities) {
+        for (U entity : entities) {
             save(entity);
         }
-        return (Iterable<T>) entities;
+        return (Iterable<U>) entities;
     }
     
     /**
@@ -356,6 +356,33 @@ public abstract class AbstractGraphRepository<S extends PropertyContainer, T> im
         final PageImpl<T> page = extractPage(pageable, count, offset, iterator);
         foundEntities.finish();
         return page;
+    }
+
+    @Override
+    public Iterable<T> findAll(final Iterable<Long> ids) {
+        return new Iterable<T>() {
+            @Override
+            public Iterator<T> iterator() {
+                final Iterator<Long> idIterator = ids.iterator();
+                return new Iterator<T>() {
+
+                     @Override
+                     public boolean hasNext() {
+                         return idIterator.hasNext();
+                     }
+
+                     @Override
+                     public T next() {
+                          return template.findOne(idIterator.next(), clazz);
+                     }
+
+                     @Override
+                     public void remove() {
+                          throw new UnsupportedOperationException();
+                     }
+                };
+            }
+        };
     }
 
     private PageImpl<T> extractPage(Pageable pageable, int count, int offset, Iterator<T> iterator) {
