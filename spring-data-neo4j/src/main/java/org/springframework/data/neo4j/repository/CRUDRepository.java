@@ -38,7 +38,7 @@ public interface CRUDRepository<T> extends PagingAndSortingRepository<T, Long> {
      * @return the saved entity (being the same reference as the parameter)
      */
     @Transactional
-    T save(T entity);
+    <U extends T> U save(U entity);
 
 
     /**
@@ -47,7 +47,7 @@ public interface CRUDRepository<T> extends PagingAndSortingRepository<T, Long> {
      * @return the input iterable
      */
     @Transactional
-    Iterable<T> save(Iterable<? extends T> entities);
+    <U extends T> Iterable<U> save(Iterable<U> entities);
 
 
     /**
