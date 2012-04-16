@@ -345,7 +345,7 @@
                 <groupId>com.tinkerpop.gremlin</groupId>
                 <artifactId>gremlin-groovy</artifactId>
                 <version>${gremlin.version}</version>
-                <type>jar</type>
+                <optional>true</optional>
                 <exclusions>
                     <exclusion>
                         <groupId>org.neo4j</groupId>
@@ -401,13 +401,6 @@
               <groupId>com.tinkerpop.blueprints</groupId>
               <artifactId>blueprints-core</artifactId>
               <version>${blueprints.version}</version>
-              <optional>true</optional>
-            </dependency>
-
-            <dependency>
-              <groupId>com.tinkerpop.gremlin</groupId>
-              <artifactId>gremlin-groovy</artifactId>
-              <version>${gremlin.version}</version>
               <optional>true</optional>
             </dependency>
 
@@ -467,7 +460,7 @@
       <dependency>
           <groupId>org.neo4j</groupId>
           <artifactId>neo4j-cypher-dsl</artifactId>
-          <version>1.6.M02</version>
+          <version>${neo4j.version}</version>
           <!--optional>true</optional-->
       </dependency>
       <dependency>
@@ -771,14 +764,23 @@
 		<repository>
 		   <id>tinkerpop-repository</id>
 		   <url>http://tinkerpop.com/maven2</url>
+		   <snapshots>
+		      <enabled>false</enabled>
+		   </snapshots>
 		</repository>
 		<repository>
             <id>jboss-repository</id>
             <url>http://repository.jboss.org/nexus/content/groups/public-jboss</url>
+            <snapshots>
+		      <enabled>false</enabled>
+		   </snapshots>
         </repository>
         <repository>
             <id>neo4j-public-release-repository</id>
             <url>http://m2.neo4j.org/releases</url>
+            <snapshots>
+		      <enabled>false</enabled>
+		   </snapshots>
         </repository>        
         <repository>
             <id>neo4j-public-snapshot-repository</id>
