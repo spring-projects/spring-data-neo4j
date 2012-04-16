@@ -17,7 +17,7 @@
 
     <!--<bean id="graphDatabaseService" class="org.neo4j.test.ImpermanentGraphDatabase"/>-->
     <bean id="graphDatabaseService" class="org.springframework.data.neo4j.rest.SpringRestGraphDatabase" scope="singleton">
-         <constructor-arg index="0" value="http://localhost:7473/db/data" />
+         <constructor-arg index="0" value="http://localhost:7470/db/data" />
     </bean>
     <bean class="org.neo4j.cineasts.movieimport.MovieDbApiClient">
         <constructor-arg value="926d2a79e82920b62f03b1cb57e532e6"/>

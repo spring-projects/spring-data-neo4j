@@ -42,7 +42,7 @@ public class SpringPluginInitializerTest extends SpringPluginInitializer impleme
 
     private static int touched = 0;
     private static final String HOSTNAME = "localhost";
-    private static final int PORT = 7473;
+    private static final int PORT = 7470;
 
     @Path( "/testInterface" )
     @POST
@@ -87,7 +87,7 @@ public class SpringPluginInitializerTest extends SpringPluginInitializer impleme
 
     private RequestResult sendRequest( String method ) {
         return RequestResult.extractFrom(Client.create().
-                resource( "http://localhost:7473/test/" + method ).
+                resource( "http://"+HOSTNAME+":"+PORT+"/test/" + method ).
                 type( MediaType.APPLICATION_JSON ).
                 accept( MediaType.APPLICATION_JSON ).post( ClientResponse.class ));
     }

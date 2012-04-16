@@ -28,7 +28,7 @@ public class RestTestHelper
 
     protected SpringRestGraphDatabase graphDb;
     private static final String HOSTNAME = "localhost";
-    private static final int PORT = 7473;
+    private static final int PORT = 7470;
     private static LocalTestServer neoServer;
     private static final String SERVER_ROOT_URI = "http://" + HOSTNAME + ":" + PORT + "/db/data/";
 
