@@ -74,9 +74,9 @@ public class FullNeo4jTemplateTest {
     @Before
     public void setUp() throws Exception {
         Neo4jHelper.cleanDb(neo4jTemplate);
-        // graphDatabase = neo4jTemplate.getGraphDatabase();
         referenceNode = graphDatabase.getReferenceNode();
         createData();
+        Neo4jHelper.dumpDb(neo4jTemplate.getGraphDatabaseService());
     }
 
     private void createData() {
@@ -285,17 +285,17 @@ public class FullNeo4jTemplateTest {
 
     @Test
     public void shouldFindNextNodeViaCypher() throws Exception {
-        assertSingleResult(node1, neo4jTemplate.query("start n=node(0) match n-->m return m", null).to(Node.class));
+        assertSingleResult(node1, neo4jTemplate.query("start n=node(0) match n-[:knows]->m return m", null).to(Node.class));
     }
 
     @Test
     public void shouldFindNextNodeViaGremlin() throws Exception {
-        assertSingleResult(node1, neo4jTemplate.execute("g.v(0).out", null).to(Node.class));
+        assertSingleResult(node1, neo4jTemplate.execute("g.v(0).outE.filter{it.label=='knows'}.inV", null).to(Node.class));
     }
 
     @Test
     public void shouldGetDirectRelationship() throws Exception {
-        assertSingleResult("rel1", neo4jTemplate.convert(referenceNode.getRelationships()).to(String.class, new RelationshipNameConverter()));
+        assertSingleResult("rel1", neo4jTemplate.convert(referenceNode.getRelationships(DynamicRelationshipType.withName("knows"))).to(String.class, new RelationshipNameConverter()));
     }
 
     @Test
