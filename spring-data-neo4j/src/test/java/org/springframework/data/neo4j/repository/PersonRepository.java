@@ -77,5 +77,7 @@ public interface PersonRepository extends GraphRepository<Person>, NamedIndexRep
     Iterable<Person> findByName(String name);
 
     Iterable<Person> findByPersonality(String personality);
+
+    Iterable<Person> findByAge(int age);
 }
 

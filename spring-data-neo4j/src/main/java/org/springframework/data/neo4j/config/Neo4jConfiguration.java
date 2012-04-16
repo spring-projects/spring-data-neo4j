@@ -46,6 +46,7 @@ import org.springframework.data.neo4j.support.index.IndexProviderImpl;
 import org.springframework.data.neo4j.support.mapping.ClassNameAlias;
 import org.springframework.data.neo4j.support.mapping.EntityAlias;
 import org.springframework.data.neo4j.support.mapping.EntityStateHandler;
+import org.springframework.data.neo4j.support.mapping.IndexCreationMappingEventListener;
 import org.springframework.data.neo4j.support.mapping.Neo4jEntityFetchHandler;
 import org.springframework.data.neo4j.support.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.support.mapping.SourceStateTransmitter;
@@ -240,6 +241,11 @@ public abstract class Neo4jConfiguration {
 	public PlatformTransactionManager neo4jTransactionManager() {
         return createJtaTransactionManager();
 	}
+
+    @Bean
+    public IndexCreationMappingEventListener indexCreationMappingEventListener() throws Exception {
+        return new IndexCreationMappingEventListener(neo4jTemplate());
+    }
 
     protected JtaTransactionManager createJtaTransactionManager() {
         JtaTransactionManager jtaTm = new JtaTransactionManager();
