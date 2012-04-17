@@ -23,4 +23,15 @@ class Person {
 ]]></programlisting>
     </example>
 
+<para>
+	The validation supports needs the bean validation API and a reference implementation configured, right now this is the Hibernate Validator by default (which not integrated with Hibernate ORM). Tthe maven dependency is:
+</para>
+<example>
+    <title>Hibernate Validator Dependency</title>
+    <programlisting language="java"><![CDATA[<dependency>
+  <groupId>org.hibernate</groupId>
+  <artifactId>hibernate-validator</artifactId>
+  <version>4.2.0.Final</version>
+</dependency>]]></programlisting>
+</example>
 </section>
