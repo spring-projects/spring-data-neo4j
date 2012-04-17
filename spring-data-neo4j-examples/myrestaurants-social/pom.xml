@@ -11,7 +11,7 @@
 		<spring-data-neo4j.version>${project.version}</spring-data-neo4j.version>
 		<aspectj.version>1.6.12</aspectj.version>
 		<slf4j.version>1.6.1</slf4j.version>
-		<neo4j.version>1.6</neo4j.version>
+		<neo4j.version>1.7-SNAPSHOT</neo4j.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	    <spring-security.version>3.0.7.RELEASE</spring-security.version>
     </properties>
