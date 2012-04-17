@@ -13,7 +13,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <spring.version>3.0.7.RELEASE</spring.version>
         <slf4j.version>1.6.1</slf4j.version>
-        <neo4j.version>1.6</neo4j.version>
+        <neo4j.version>1.7-SNAPSHOT</neo4j.version>
         <spring-data-neo4j.version>${project.version}</spring-data-neo4j.version>
         <aspectj.version>1.6.12</aspectj.version>
         <org.slf4j-version>1.6.1</org.slf4j-version>
@@ -340,10 +340,10 @@
                     <groupId>org.apache.felix</groupId>
                     <artifactId>org.apache.felix.fileinstall</artifactId>
                 </exclusion>
-                <exclusion>
+                <!--exclusion>
                     <groupId>org.neo4j</groupId>
                     <artifactId>neo4j-shell</artifactId>
-                </exclusion>
+                </exclusion-->
                 <exclusion>
                     <groupId>org.slf4j</groupId>
                     <artifactId>slf4j-jdk14</artifactId>
