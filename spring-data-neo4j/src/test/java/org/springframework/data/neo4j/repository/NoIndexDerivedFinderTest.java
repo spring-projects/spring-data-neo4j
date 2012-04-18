@@ -18,7 +18,13 @@ package org.springframework.data.neo4j.repository;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.neo4j.cypher.javacompat.ExecutionEngine;
+import org.neo4j.cypher.javacompat.ExecutionResult;
+import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.Transaction;
+import org.neo4j.graphdb.index.Index;
 import org.neo4j.helpers.collection.IteratorUtil;
+import org.neo4j.test.ImpermanentGraphDatabase;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -55,4 +61,22 @@ public class NoIndexDerivedFinderTest {
         assertEquals(0,IteratorUtil.count(result));
     }
 
+    @Test
+    public void testWithSeparateTransactions() throws Exception {
+        final ImpermanentGraphDatabase gdb = new ImpermanentGraphDatabase();
+        final Thread t = new Thread() {
+            @Override
+            public void run() {
+                final Transaction tx = gdb.beginTx();
+                final Index<Node> index = gdb.index().forNodes("Test");
+                assertEquals("Test", gdb.index().nodeIndexNames()[0]);
+                tx.success();
+                tx.finish();
+            }
+        };
+        t.start();t.join();
+        final ExecutionResult result = new ExecutionEngine(gdb).execute("start n=node:Test('name:*') return n");
+        assertEquals(0,IteratorUtil.count(result));
+        assertEquals("Test", gdb.index().nodeIndexNames()[0]);
+    }
 }
