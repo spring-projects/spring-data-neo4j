@@ -74,6 +74,9 @@ public class Person implements Being {
 	@RelatedTo(type = "boss", direction = Direction.INCOMING)
 	private Person boss;
 
+    @RelatedToVia
+    private BestFriend bestFriend;
+
     @Fetch
 	@RelatedToVia(type = "knows", elementClass = Friendship.class)
 	private Iterable<Friendship> friendships;
@@ -291,5 +294,17 @@ public class Person implements Being {
 
     public Person(Long graphId) {
         this.graphId = graphId;
+    }
+
+    public void setBestFriend(Person p2, String secret) {
+        if (p2==null) {
+            this.bestFriend = null;
+        } else {
+            this.bestFriend = new BestFriend(this, p2,secret);
+        }
+    }
+
+    public BestFriend getBestFriend() {
+        return bestFriend;
     }
 }

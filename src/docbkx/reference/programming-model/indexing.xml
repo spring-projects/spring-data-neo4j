@@ -118,13 +118,21 @@ Person mark = graphRepository.findAllByQuery("people-search", "name", "ma*");
         <title>Unique indexes</title>
         <para>
             Unique indexing with <code>index.putIfAbsent</code> and <code>UniqueFactory</code> was introduced in Neo4j 1.6.
-            In Spring Data Neo4j this is made available via <code>Neo4jTemplate.getOrCreateNode</code>.
-
+            It is also available via the REST API.
+            In Spring Data Neo4j this is made available via <code>Neo4jTemplate.getOrCreateNode</code> and
+            <code>Neo4jTemplate.getOrCreateRelationship</code>.
         </para>
         <para>In an entity at most one field can be annotated with <code>@Indexed(unique=true)</code> regardless of the index-type used.
             The uniqueness will be taken into account when creating the entity by reusing an existing entity if that unique key-combination
             already exists. On saving of the field it will be cross-checked against the index and fail with a DataIntegrityViolationException
-            if the field was changed to an already existing unique value.
+            if the field was changed to an already existing unique value. Null values are no longer allowed for these properties.
+        </para>
+        <para>
+            <note>
+            This works for both Node-Entities as well as Relationship-Entities. Relationship-Uniqueness in Neo4j is global so that
+            a existing unique instance of this relationship may connect two completely different nodes and might also have a
+            different type.
+            </note>
         </para>
         <para>
             <example>

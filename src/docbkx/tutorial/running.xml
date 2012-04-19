@@ -10,8 +10,7 @@
         <title>Populating the database</title>
         <para>
             Before we opened the gates we needed to add some movie data. So we wrote a small class for
-            populating the database which could be called from our controller. To make it safe to call
-            several times we added index lookups to check for existing entries. A simple <code>/populate</code> endpoint
+            populating the database which could be called from our controller. A simple <code>/populate</code> endpoint
             for the controller that called it would be enough for now.
         </para>
         <para>

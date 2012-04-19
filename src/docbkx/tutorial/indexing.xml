@@ -7,13 +7,14 @@
         There is an @Indexed annotation for fields. We wanted to try this out, and use it to guide the
         next test. We added @Indexed to the <code>id</code> field of the Movie class. This field is intended to represent
         the external ID that will be used in URIs and will be stable across database imports and updates.
+        That's why we also declare it as unique.
         This time we went with a simple GraphRepository to retrieve the indexed movie.
     </para>
     <para>
         <example>
             <title>Exact Indexing for Movie id</title>
             <programlisting language="java" ><![CDATA[@NodeEntity class Movie {
-    @Indexed String id;
+    @Indexed(unique=true) String id;
     String title;
     int year;
 }

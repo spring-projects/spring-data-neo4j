@@ -15,7 +15,7 @@ import java.util.Set;
 @NodeEntity
 public class Person {
     @GraphId Long nodeId;
-    @Indexed
+    @Indexed(unique=true)
     String id;
     @Indexed(indexType=IndexType.FULLTEXT, indexName = "people")
     String name;
