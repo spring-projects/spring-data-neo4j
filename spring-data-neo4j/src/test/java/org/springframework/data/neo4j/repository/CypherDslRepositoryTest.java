@@ -15,21 +15,14 @@
  */
 package org.springframework.data.neo4j.repository;
 
-import com.mysema.query.types.expr.Param;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.neo4j.cypherdsl.CypherQuery;
+
+import static org.neo4j.cypherdsl.CypherQuery.*;
+import static org.neo4j.cypherdsl.querydsl.CypherQueryDSL.*;
 import org.neo4j.cypherdsl.Execute;
-import org.neo4j.cypherdsl.OrderBy;
-import org.neo4j.cypherdsl.query.Expression;
-import org.neo4j.cypherdsl.query.ReturnExpression;
-import org.neo4j.cypherdsl.query.StartExpression;
-import org.neo4j.cypherdsl.query.WhereExpression;
 import org.neo4j.cypherdsl.querydsl.CypherQueryDSL;
-import org.neo4j.cypherdsl.querydsl.QueryDSLReturnExpression;
-import org.neo4j.cypherdsl.querydsl.QueryDSLStartExpression;
-import org.neo4j.cypherdsl.querydsl.QueryDSLWhere;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -66,10 +59,10 @@ public class CypherDslRepositoryTest {
     @Autowired Neo4jOperations template;
     private TestTeam team;
     private Map<String,Object> peopleParams;
-    private Execute query = CypherQuery.start(StartExpression.node("n", "people")).returns(ReturnExpression.nodes("n"));
-    private Execute query2 = CypherQueryDSL.start(QueryDSLStartExpression.node(QPerson.person, "people")).
+    private Execute query = start(node("n", "people")).returns(identifier("n"));
+    private Execute query2 = CypherQueryDSL.start(CypherQueryDSL.node(QPerson.person, "people")).
                                             where(QPerson.person.name.eq("Michael")).
-                                            returns(QueryDSLReturnExpression.nodes(QPerson.person));
+                                            returns(identifier(QPerson.person));
 
     @Before
     public void setUp() throws Exception {
