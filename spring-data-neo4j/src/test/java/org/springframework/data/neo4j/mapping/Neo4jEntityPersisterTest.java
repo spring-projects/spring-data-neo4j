@@ -17,13 +17,22 @@ package org.springframework.data.neo4j.mapping;
 
 import org.junit.Test;
 import org.mockito.Mockito;
+import org.neo4j.graphdb.Direction;
+import org.neo4j.graphdb.DynamicRelationshipType;
 import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.PropertyContainer;
+import org.neo4j.graphdb.Relationship;
+import org.springframework.data.neo4j.model.BestFriend;
 import org.springframework.data.neo4j.model.Friendship;
 import org.springframework.data.neo4j.model.Person;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collections;
+
 import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotSame;
 
 /**
  * @author mh

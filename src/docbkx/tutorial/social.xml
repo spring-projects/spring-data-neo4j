@@ -27,7 +27,7 @@
                 <title>Social entities</title>
                 <programlisting language="java" ><![CDATA[@NodeEntity
 class User {
-    @Indexed String login;
+    @Indexed(unique=true) String login;
     String name;
     String password;
 

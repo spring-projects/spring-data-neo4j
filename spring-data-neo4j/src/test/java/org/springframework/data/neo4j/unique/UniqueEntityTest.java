@@ -74,6 +74,14 @@ public class UniqueEntityTest {
 
         assertEquals(1, uniqueClubRepository.count());
     }
+
+    @Test(expected = MappingException.class)
+    public void shouldFailOnNullPropertyValue() {
+        UniqueClub club = new UniqueClub();
+        club.setName(null);
+        uniqueClubRepository.save(club);
+    }
+
     @Test
     public void shouldOnlyCreateSingleInstanceForUniqueNumericNodeEntity() {
         UniqueNumericIdClub club = new UniqueNumericIdClub();
@@ -84,6 +92,13 @@ public class UniqueEntityTest {
         uniqueNumericIdClubRepository.save(club);
 
         assertEquals(1, uniqueNumericIdClubRepository.count());
+    }
+
+    @Test(expected = MappingException.class)
+    public void shouldFailOnNullNumericPropertyValue() {
+        UniqueNumericIdClub club = new UniqueNumericIdClub();
+        club.setClubId(null);
+        uniqueNumericIdClubRepository.save(club);
     }
 
     @Test

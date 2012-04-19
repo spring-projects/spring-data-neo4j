@@ -108,7 +108,7 @@ class Actor {
                 <title>@RelatedTo usage</title>
                 <programlisting language="java" ><![CDATA[@NodeEntity
 class Movie {
-    @Indexed int id;
+    @Indexed(unique=true) String id;
     String title;
     int year;
     @RelatedTo(type = "ACTS_IN", direction = Direction.INCOMING)
@@ -117,7 +117,7 @@ class Movie {
 
 @NodeEntity
 class Actor {
-    @Indexed int id;
+    @Indexed(unique=true) int id;
     String name;
     @RelatedTo(type = "ACTS_IN")
     Set<Movie> movies;
@@ -168,7 +168,7 @@ class Actor {
                 <title>@RelatedToVia usage</title>
                 <programlisting language="java" ><![CDATA[@NodeEntity
 class Movie {
-    @Indexed int id;
+    @Indexed(unique=true) String id;
     String title;
     int year;
 

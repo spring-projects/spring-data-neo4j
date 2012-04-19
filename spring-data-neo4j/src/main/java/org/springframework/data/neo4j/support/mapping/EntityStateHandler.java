@@ -131,7 +131,7 @@ public class EntityStateHandler {
             return (S) graphDatabase.createNode(null);
         }
         if (persistentEntity.isRelationshipEntity()) {
-            return createRelationship(entity, persistentEntity);
+            return getOrCreateRelationship(entity, persistentEntity);
         }
         throw new IllegalArgumentException("The entity " + persistentEntity.getEntityName() + " has to be either annotated with @NodeEntity or @RelationshipEntity");
     }
@@ -139,19 +139,28 @@ public class EntityStateHandler {
     private Node createUniqueNode(Neo4jPersistentProperty uniqueProperty, Object entity) {
         final IndexInfo indexInfo = uniqueProperty.getIndexInfo();
         final Object value = uniqueProperty.getValueFromEntity(entity, MappingPolicy.MAP_FIELD_DIRECT_POLICY);
-        if (value==null) return graphDatabase.createNode(null);
-        return graphDatabase.getOrCreateNode(indexInfo.getIndexName(),indexInfo.getIndexKey(), value, Collections.<String,Object>emptyMap());
+        if (value==null) throw new MappingException("Error creating "+uniqueProperty.getOwner().getName()+" with "+entity+" unique property "+uniqueProperty.getName()+" has null value");
+        return graphDatabase.getOrCreateNode(indexInfo.getIndexName(), indexInfo.getIndexKey(), value, Collections.<String,Object>emptyMap());
     }
 
     @SuppressWarnings("unchecked")
-    private <S extends PropertyContainer> S createRelationship(Object entity, Neo4jPersistentEntity<?> persistentEntity) {
+    private <S extends PropertyContainer> S getOrCreateRelationship(Object entity, Neo4jPersistentEntity<?> persistentEntity) {
         final RelationshipProperties relationshipProperties = persistentEntity.getRelationshipProperties();
         final Neo4jPersistentProperty startNodeProperty = relationshipProperties.getStartNodeProperty();
         Node startNode = (Node) getPersistentState(startNodeProperty.getValue(entity, startNodeProperty.getMappingPolicy()));
         final Neo4jPersistentProperty endNodeProperty = relationshipProperties.getEndNodeProperty();
         Node endNode = (Node) getPersistentState(endNodeProperty.getValue(entity, endNodeProperty.getMappingPolicy()));
         RelationshipType relationshipType = getRelationshipType(persistentEntity,entity);
-        return (S) startNode.createRelationshipTo(endNode, relationshipType);
+        if (persistentEntity.isUnique()) {
+            final Neo4jPersistentProperty uniqueProperty = persistentEntity.getUniqueProperty();
+            final IndexInfo indexInfo = uniqueProperty.getIndexInfo();
+            final Object value = uniqueProperty.getValueFromEntity(entity, MappingPolicy.MAP_FIELD_DIRECT_POLICY);
+            if (value == null) {
+                throw new MappingException("Error creating "+uniqueProperty.getOwner().getName()+" with "+entity+" unique property "+uniqueProperty.getName()+" has null value");
+            }
+            return (S) graphDatabase.getOrCreateRelationship(indexInfo.getIndexName(),indexInfo.getIndexKey(), value, startNode,endNode,relationshipType.name(), Collections.<String,Object>emptyMap());
+        }
+        return (S) graphDatabase.createRelationship(startNode, endNode, relationshipType, Collections.<String,Object>emptyMap());
     }
 
     private RelationshipType getRelationshipType(Neo4jPersistentEntity persistentEntity, Object entity) {
@@ -206,7 +215,7 @@ public class EntityStateHandler {
     public RelationshipResult removeRelationshipTo(Object source, Object target, String relationshipType) {
         final Relationship relationship = getRelationshipBetween(source, target, relationshipType);
         if (relationship!=null) {
-           relationship.delete();
+           graphDatabase.remove(relationship);
            return new RelationshipResult(relationship, RelationshipResult.Type.DELETED);
         }
         return null;

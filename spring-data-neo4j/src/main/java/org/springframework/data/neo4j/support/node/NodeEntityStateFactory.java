@@ -37,6 +37,7 @@ public class NodeEntityStateFactory implements EntityStateFactory<Node> {
         final Class<?> entityType = entity.getClass();
         @SuppressWarnings("unchecked") final Neo4jPersistentEntity<Object> persistentEntity =
                 (Neo4jPersistentEntity<Object>) mappingContext.getPersistentEntity(entityType);
+
         NodeEntityState nodeEntityState = new NodeEntityState(null, entity, entityType, template,
                 nodeDelegatingFieldAccessorFactory, persistentEntity);
         if (!detachable) {

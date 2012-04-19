@@ -70,7 +70,7 @@ public class RelationshipHelper {
     protected void removeMissingRelationshipsInStoreAndKeepOnlyNewRelationShipsInSet(Node node, Set<Node> targetNodes) {
         for (Relationship relationship : node.getRelationships(type, direction)) {
             if (!targetNodes.remove(relationship.getOtherNode(node)))
-                relationship.delete();
+                template.delete(relationship);
         }
     }
 
