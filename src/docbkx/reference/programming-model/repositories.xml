@@ -272,8 +272,10 @@ Iterable<Person> findByParentAgeAndMarried(int age, boolean married)
 	        </para>
 	        <example>
 	            <title>Examples for Cypher-DSL repository</title>
-			    <!-- TODO QueryDSL -->							
 	            <programlisting language="java"><![CDATA[
+import static org.neo4j.cypherdsl.CypherQuery.*;
+import static org.neo4j.cypherdsl.querydsl.CypherQueryDSL.*;
+
 	public interface PersonRepository extends GraphRepository<Person>,
 	  CypherDslRepository<Person> {}
 
@@ -282,7 +284,7 @@ Iterable<Person> findByParentAgeAndMarried(int age, boolean married)
 
 	Execute query = start( lookup( "company", "Company", "name", param("name") ) ).
 	                          match( path().from( "company" ).in( "WORKS_AT" ).to( "person" )).
-	                          returns( nodes( "person" ))
+	                          returns( identifier( "person" ))
 	Page<Person> people = repo.query(query , map("name","Neo4j"), new PageRequest(1,10));
 
 	QPerson person = QPerson.person;
@@ -290,7 +292,7 @@ Iterable<Person> findByParentAgeAndMarried(int age, boolean married)
 	Execute query = start( lookup( company, "Company", company.name, param("name") ) ).
 	                          match( path().from( company ).in( "WORKS_AT" ).to( person ).
 	                          .where(person.firstName.like("P*").and(person.age.gt(25))).
-	                          returns( nodes( person ))
+	                          returns( identifier(person) )
 	EndResult<Person> people = repo.query(query , map("name","Neo4j"));
 
 	]]></programlisting>
@@ -299,6 +301,36 @@ Iterable<Person> findByParentAgeAndMarried(int age, boolean married)
 	    </section>
         <section>
             <title>CypherDSL and QueryDSL</title>
+            <para>
+                To use Cypher-DSL with QueryDSL the Mysema dependencies have to be declared explicitly as they are
+                optional in the CypherDSL project.
+            </para>
+            <programlisting language="xml"><![CDATA[<dependency>
+    <groupId>com.mysema.querydsl</groupId>
+    <artifactId>querydsl-core</artifactId>
+    <version>2.2.3</version>
+    <optional>true</optional>
+</dependency>
+<dependency>
+    <groupId>com.mysema.querydsl</groupId>
+    <artifactId>querydsl-lucene</artifactId>
+    <version>2.2.3</version>
+    <optional>true</optional>
+    <exclusions>
+        <exclusion>
+            <groupId>org.apache.lucene</groupId>
+            <artifactId>lucene-core</artifactId>
+        </exclusion>
+    </exclusions>
+</dependency>
+<dependency>
+    <groupId>com.mysema.querydsl</groupId>
+    <artifactId>querydsl-apt</artifactId>
+    <version>2.2.3</version>
+    <scope>provided</scope>
+</dependency>
+]]></programlisting>
+
             <para>
                 It is possible to use the Cypher DSL along with the predicates and code generation features of the QueryDSL project. This will allow
                 you to use Java objects as part of the query, rather than strings, for the names of properties and such. In order to get this to work you first have
