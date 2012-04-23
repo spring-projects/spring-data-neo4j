@@ -27,13 +27,11 @@ import org.springframework.data.neo4j.support.Neo4jTemplate;
 
 public class NodeEntityStateFactory implements EntityStateFactory<Node> {
 
-	protected Neo4jTemplate template;
-
     protected DelegatingFieldAccessorFactory nodeDelegatingFieldAccessorFactory;
 
     protected Neo4jMappingContext mappingContext;
 
-    public EntityState<Node> getEntityState(final Object entity, boolean detachable) {
+    public EntityState<Node> getEntityState(final Object entity, boolean detachable, Neo4jTemplate template) {
         final Class<?> entityType = entity.getClass();
         @SuppressWarnings("unchecked") final Neo4jPersistentEntity<Object> persistentEntity =
                 (Neo4jPersistentEntity<Object>) mappingContext.getPersistentEntity(entityType);
@@ -50,11 +48,12 @@ public class NodeEntityStateFactory implements EntityStateFactory<Node> {
     		DelegatingFieldAccessorFactory nodeDelegatingFieldAccessorFactory) {
 		this.nodeDelegatingFieldAccessorFactory = nodeDelegatingFieldAccessorFactory;
 	}
-	
+
+    /*
 	public void setTemplate(Neo4jTemplate template) {
 		this.template = template;
 	}
-
+    */
     public Neo4jMappingContext getMappingContext() {
         return mappingContext;
     }
@@ -62,9 +61,4 @@ public class NodeEntityStateFactory implements EntityStateFactory<Node> {
     public void setMappingContext(Neo4jMappingContext mappingContext) {
         this.mappingContext = mappingContext;
     }
-
-    public Neo4jTemplate getTemplate() {
-        return template;
-    }
-
 }

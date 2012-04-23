@@ -120,7 +120,7 @@ public privileged aspect Neo4jNodeBacking { // extends AbstractTypeAnnotatingMix
             log.error("entityStateFactory not set, not creating accessors for " + entity.getClass());
         } else {
             if (entity.entityState != null) return;
-            entity.entityState = entityStateFactory.getEntityState(entity, true);
+            entity.entityState = entityStateFactory.getEntityState(entity, true, template);
         }
     }
 
@@ -135,7 +135,7 @@ public privileged aspect Neo4jNodeBacking { // extends AbstractTypeAnnotatingMix
 
 	public void NodeBacked.setPersistentState(Node n) {
         if (this.entityState == null) {
-            this.entityState = Neo4jNodeBacking.aspectOf().entityStateFactory.getEntityState(this, false);
+            this.entityState = Neo4jNodeBacking.aspectOf().entityStateFactory.getEntityState(this, false, getTemplate());
         }
         this.entityState.setPersistentState(n);
 	}

@@ -43,12 +43,12 @@ public class SourceStateTransmitter<S extends PropertyContainer> {
         this.entityStateFactory = entityStateFactory;
     }
 
-    public <R> R copyPropertiesFrom(final BeanWrapper<Neo4jPersistentEntity<R>, R> wrapper, S source, Neo4jPersistentEntity<R> persistentEntity, final MappingPolicy mappingPolicy) {
+    public <R> R copyPropertiesFrom(final BeanWrapper<Neo4jPersistentEntity<R>, R> wrapper, S source, Neo4jPersistentEntity<R> persistentEntity, final MappingPolicy mappingPolicy, final Neo4jTemplate template) {
         final R entity = wrapper.getBean();
 /*        final Transaction tx = getTemplate().beginTx();
         try {
 */
-            final EntityState<S> entityState = entityStateFactory.getEntityState(entity, false);
+            final EntityState<S> entityState = entityStateFactory.getEntityState(entity, false, template);
             entityState.setPersistentState(source);
 //            entityState.persist();
             persistentEntity.doWithProperties(new PropertyHandler<Neo4jPersistentProperty>() {
@@ -76,10 +76,6 @@ public class SourceStateTransmitter<S extends PropertyContainer> {
         if (!entityState.isWritable(property)) return;
         final Object value = getProperty(wrapper, property);
         entityState.setValue(property, value, mappingPolicy);
-    }
-
-    private Neo4jTemplate getTemplate() {
-        return entityStateFactory.getTemplate();
     }
 
     private <T> T getProperty(BeanWrapper<Neo4jPersistentEntity<Object>, Object> wrapper, Neo4jPersistentProperty property, Class<T> type, boolean fieldAccessOnly) {
@@ -112,11 +108,11 @@ public class SourceStateTransmitter<S extends PropertyContainer> {
         return value;
     }
 
-    public <R> void copyPropertiesTo(final BeanWrapper<Neo4jPersistentEntity<R>, R> wrapper, S target, Neo4jPersistentEntity<R> persistentEntity, MappingPolicy mappingPolicy) {
-        final Transaction tx = getTemplate().beginTx();
+    public <R> void copyPropertiesTo(final BeanWrapper<Neo4jPersistentEntity<R>, R> wrapper, S target, Neo4jPersistentEntity<R> persistentEntity, MappingPolicy mappingPolicy, final Neo4jTemplate template) {
+        final Transaction tx = template.beginTx();
         try {
             //final Node targetNode = useGetOrCreateNode(node, persistentEntity, wrapper);
-            final EntityState<S> entityState = entityStateFactory.getEntityState(wrapper.getBean(), false);
+            final EntityState<S> entityState = entityStateFactory.getEntityState(wrapper.getBean(), false, template);
             entityState.setPersistentState(target);
             entityState.persist();
             // todo take mapping policies for attributes into account

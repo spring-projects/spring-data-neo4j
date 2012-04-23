@@ -123,7 +123,6 @@ public class Neo4jPersistentTestBase {
     private NodeEntityStateFactory createNodeEntityStateFactory(Neo4jMappingContext mappingContext) {
         final NodeEntityStateFactory nodeEntityStateFactory = new NodeEntityStateFactory();
         nodeEntityStateFactory.setMappingContext(mappingContext);
-        nodeEntityStateFactory.setTemplate(template);
         nodeEntityStateFactory.setNodeDelegatingFieldAccessorFactory(new NodeDelegatingFieldAccessorFactory(template));
         return nodeEntityStateFactory;
     }
@@ -131,7 +130,6 @@ public class Neo4jPersistentTestBase {
     private RelationshipEntityStateFactory createRelationshipEntityStateFactory(Neo4jMappingContext mappingContext) {
         final RelationshipEntityStateFactory relationshipEntityStateFactory = new RelationshipEntityStateFactory();
         relationshipEntityStateFactory.setMappingContext(mappingContext);
-        relationshipEntityStateFactory.setTemplate(template);
         relationshipEntityStateFactory.setRelationshipDelegatingFieldAccessorFactory(new RelationshipDelegatingFieldAccessorFactory(template));
         return relationshipEntityStateFactory;
     }
@@ -195,7 +193,7 @@ public class Neo4jPersistentTestBase {
     }
 
     protected Object write(Object entity, Node node) {
-        entityPersister.write(entity, node, template.getMappingPolicy(entity));
+        entityPersister.write(entity, node, template.getMappingPolicy(entity), template);
         return entity;
     }
 
@@ -225,7 +223,7 @@ public class Neo4jPersistentTestBase {
     }
 
     public Person readPerson(Node node) {
-        return entityPersister.read(Person.class, node, template.getMappingPolicy(Person.class));
+        return entityPersister.read(Person.class, node, template.getMappingPolicy(Person.class), template);
     }
 
     protected Relationship makeFriends(Node from, Node to, int years) {
@@ -235,7 +233,7 @@ public class Neo4jPersistentTestBase {
     }
 
     public Group readGroup(Node node) {
-        return entityPersister.read(Group.class, node,template.getMappingPolicy(Group.class));
+        return entityPersister.read(Group.class, node,template.getMappingPolicy(Group.class), template);
     }
 
     protected List<Node> getRelatedNodes(Node startNode, String type, Direction direction) {

@@ -19,9 +19,12 @@ package org.springframework.data.neo4j.support.conversion;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.data.neo4j.annotation.MapResult;
 import org.springframework.data.neo4j.conversion.DefaultConverter;
+import org.springframework.data.neo4j.conversion.ResultConverter;
 import org.springframework.data.neo4j.core.EntityPath;
 import org.springframework.data.neo4j.mapping.EntityPersister;
 import org.springframework.data.neo4j.mapping.MappingPolicy;
+import org.springframework.data.neo4j.support.Neo4jTemplate;
+import org.springframework.data.neo4j.support.Neo4jTemplateAware;
 import org.springframework.data.neo4j.support.path.ConvertingEntityPath;
 
 import java.lang.reflect.InvocationHandler;
@@ -32,26 +35,34 @@ import java.util.Map;
  * @author mh
  * @since 28.06.11
  */
-public class EntityResultConverter<T, R> extends DefaultConverter<T, R> {
+public class EntityResultConverter<T, R> extends DefaultConverter<T, R> implements Neo4jTemplateAware<T,R> {
     private final ConversionService conversionService;
-    private final EntityPersister entityPersister;
 
-    public EntityResultConverter(ConversionService conversionService, EntityPersister entityPersister) {
+    public EntityResultConverter(ConversionService conversionService) {
         this.conversionService = conversionService;
-        this.entityPersister = entityPersister;
     }
+
+    private static ThreadLocal<Neo4jTemplate> holder = new ThreadLocal<Neo4jTemplate>();
+
+    @Override
+    public ResultConverter<T,R> with(Neo4jTemplate template) {
+        holder.set(template);
+        return this;
+    }
+
 
     @SuppressWarnings("unchecked")
     @Override
     protected Object doConvert(Object value, Class<?> sourceType, Class targetType, MappingPolicy mappingPolicy) {
+        Neo4jTemplate template = holder.get();
         if (EntityPath.class.isAssignableFrom(targetType)) {
-            return new ConvertingEntityPath(entityPersister, toPath(value, sourceType));
+            return new ConvertingEntityPath(toPath(value, sourceType),template);
         }
-        if (entityPersister.isNodeEntity(targetType)) {
-            return entityPersister.projectTo(toNode(value, sourceType), targetType, mappingPolicy);
+        if (template.isNodeEntity(targetType)) {
+            return template.projectTo(toNode(value, sourceType), targetType, mappingPolicy);
         }
-        if (entityPersister.isRelationshipEntity(targetType)) {
-            return entityPersister.projectTo(toRelationship(value, sourceType), targetType, mappingPolicy);
+        if (template.isRelationshipEntity(targetType)) {
+            return template.projectTo(toRelationship(value, sourceType), targetType, mappingPolicy);
         }
         final Object result = super.doConvert(value, sourceType, targetType, mappingPolicy);
 

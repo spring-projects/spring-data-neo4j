@@ -108,7 +108,7 @@ public class MappingInfrastructure {
         this.entityPersister = new Neo4jEntityPersister(conversionService, nodeEntityTools, relationshipEntityTools, mappingContext, entityStateHandler);
         this.entityRemover = new EntityRemover(this.entityStateHandler, nodeTypeRepresentationStrategy, relationshipTypeRepresentationStrategy, graphDatabase);
         if (this.resultConverter==null) {
-            this.resultConverter = new EntityResultConverter<Object, Object>(conversionService,entityPersister);
+            this.resultConverter = new EntityResultConverter<Object, Object>(conversionService);
         }
         this.graphDatabase.setResultConverter(resultConverter);
         this.cypherQueryExecutor = new CypherQueryExecutor(graphDatabase.queryEngineFor(QueryType.Cypher, resultConverter));

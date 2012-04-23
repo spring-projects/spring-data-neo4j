@@ -83,7 +83,7 @@
 		        <constructor-arg ref="template"/>
 		    </bean>
     	</property>
-    	<property name="template" ref="template"/>
+    	<!--property name="template" ref="template"/-->
     	<property name="mappingContext" ref="mappingContext"/>
     </bean>
 
@@ -95,7 +95,7 @@
 		        <constructor-arg ref="template"/>
 		    </bean>
     	</property>
-    	<property name="template" ref="template"/>
+    	<!--property name="template" ref="template"/-->
     	<property name="mappingContext" ref="mappingContext"/>
     </bean>
 
