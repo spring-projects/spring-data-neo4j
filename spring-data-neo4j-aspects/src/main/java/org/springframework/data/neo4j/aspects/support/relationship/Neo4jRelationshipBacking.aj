@@ -66,7 +66,7 @@ public aspect Neo4jRelationshipBacking {
             log.error("entityStateFactory not set, not creating accessors for " + entity.getClass());
         } else {
             if (entity.entityState != null) return;
-            entity.entityState = entityStateFactory.getEntityState(entity, true);
+            entity.entityState = entityStateFactory.getEntityState(entity, true, template);
         }
     }
 
@@ -107,7 +107,7 @@ public aspect Neo4jRelationshipBacking {
 
 	public void RelationshipBacked.setPersistentState(Relationship r) {
         if (this.entityState == null) {
-            this.entityState = Neo4jRelationshipBacking.aspectOf().entityStateFactory.getEntityState(this, true);
+            this.entityState = Neo4jRelationshipBacking.aspectOf().entityStateFactory.getEntityState(this, true, getTemplate());
         }
         this.entityState.setPersistentState(r);
 	}

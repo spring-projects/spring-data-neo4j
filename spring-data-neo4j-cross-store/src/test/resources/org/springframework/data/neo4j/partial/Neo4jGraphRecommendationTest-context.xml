@@ -103,11 +103,10 @@
 
     <bean id="nodeEntityStateFactory" class="org.springframework.data.neo4j.cross_store.support.node.CrossStoreNodeEntityStateFactory">
     	<property name="nodeDelegatingFieldAccessorFactory">
-		    <bean class="org.springframework.data.neo4j.fieldaccess.NodeDelegatingFieldAccessorFactory">
+		    <bean class="org.springframework.data.neo4j.cross_store.support.node.CrossStoreNodeEntityState$CrossStoreNodeDelegatingFieldAccessorFactory">
 		        <constructor-arg ref="neo4jTemplate"/>
 		    </bean>
     	</property>
-    	<property name="template" ref="neo4jTemplate"/>
 		<property name="entityManagerFactory" ref="entityManagerFactory"/>
 		<property name="mappingContext" ref="mappingContext"/>
     </bean>
@@ -121,7 +120,6 @@
 		        <constructor-arg ref="neo4jTemplate"/>
 		    </bean>
     	</property>
-    	<property name="template" ref="neo4jTemplate"/>
     	<property name="mappingContext" ref="mappingContext"/>
     </bean>
     

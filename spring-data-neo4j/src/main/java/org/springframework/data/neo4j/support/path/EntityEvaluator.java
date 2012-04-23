@@ -21,21 +21,23 @@ import org.neo4j.graphdb.traversal.Evaluation;
 import org.neo4j.graphdb.traversal.Evaluator;
 import org.springframework.data.neo4j.core.EntityPath;
 import org.springframework.data.neo4j.mapping.EntityPersister;
+import org.springframework.data.neo4j.support.Neo4jTemplate;
 
 /**
  * @author mh
  * @since 26.02.11
  */
 public abstract class EntityEvaluator<S, E> implements Evaluator {
-    private EntityPersister persister;
 
-    protected EntityEvaluator(EntityPersister persister) {
-        this.persister = persister;
+    private final Neo4jTemplate template;
+
+    protected EntityEvaluator(Neo4jTemplate template) {
+        this.template = template;
     }
 
     @Override
     public Evaluation evaluate(Path path) {
-        return evaluate(new ConvertingEntityPath<S,E>(persister, path));
+        return evaluate(new ConvertingEntityPath<S,E>(path, template));
     }
     public abstract Evaluation evaluate(EntityPath<S,E> path);
 

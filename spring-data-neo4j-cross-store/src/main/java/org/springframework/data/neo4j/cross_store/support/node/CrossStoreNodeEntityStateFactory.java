@@ -32,16 +32,15 @@ import javax.persistence.PersistenceUnitUtil;
  * @since 30.09.11
  */
 public class CrossStoreNodeEntityStateFactory extends NodeEntityStateFactory {
-    private CrossStoreNodeEntityState.CrossStoreNodeDelegatingFieldAccessorFactory delegatingFieldAccessorFactory;
     private EntityManagerFactory entityManagerFactory;
 
-    public EntityState<Node> getEntityState(final Object entity, boolean detachable) {
+    public EntityState<Node> getEntityState(final Object entity, boolean detachable, Neo4jTemplate template) {
         final Class<?> entityType = entity.getClass();
         if (isPartial(entityType)) {
             final Neo4jPersistentEntity<?> persistentEntity = mappingContext.getPersistentEntity(entityType);
             @SuppressWarnings("unchecked") final CrossStoreNodeEntityState<NodeBacked> partialNodeEntityState =
                     new CrossStoreNodeEntityState<NodeBacked>(null, (NodeBacked)entity, (Class<? extends NodeBacked>) entityType,
-                            template, getPersistenceUnitUtils(), delegatingFieldAccessorFactory,
+                            template, getPersistenceUnitUtils(), nodeDelegatingFieldAccessorFactory,
                             persistentEntity);
             if (!detachable) return partialNodeEntityState;
             return new DetachedEntityState<Node>(partialNodeEntityState, template) {
@@ -51,7 +50,7 @@ public class CrossStoreNodeEntityStateFactory extends NodeEntityStateFactory {
                 }
             };
         } else {
-            return super.getEntityState(entity,detachable);
+            return super.getEntityState(entity,detachable, template);
         }
     }
 
@@ -68,11 +67,4 @@ public class CrossStoreNodeEntityStateFactory extends NodeEntityStateFactory {
     public void setEntityManagerFactory(EntityManagerFactory entityManagerFactory) {
         this.entityManagerFactory = entityManagerFactory;
     }
-
-    @Override
-    public void setTemplate(Neo4jTemplate template) {
-        super.setTemplate(template);
-         this.delegatingFieldAccessorFactory = new CrossStoreNodeEntityState.CrossStoreNodeDelegatingFieldAccessorFactory(template);
-    }
-
 }

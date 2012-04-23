@@ -36,7 +36,7 @@ public abstract class EntityMapper<S, E, T> implements PathMapper<T> {
 
     @Override
     public T mapPath(Path path) {
-        return mapPath(new ConvertingEntityPath<S,E>(template, path));
+        return mapPath(new ConvertingEntityPath<S,E>(path, template));
     }
 
     public abstract static class WithoutResult<S,E> extends EntityMapper<S,E,Void> {

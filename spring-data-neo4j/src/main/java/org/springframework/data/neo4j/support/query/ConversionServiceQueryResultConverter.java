@@ -33,7 +33,7 @@ public class ConversionServiceQueryResultConverter<R> extends DefaultConverter<O
 
     @SuppressWarnings("unchecked")
     @Override
-    protected Object doConvert(Object value, Class<?> sourceType, Class type, MappingPolicy mappingPolicy) {
+    public Object doConvert(Object value, Class<?> sourceType, Class type, MappingPolicy mappingPolicy) {
         if (conversionService.canConvert(sourceType, type)) {
             return conversionService.convert(value, type);
         }

@@ -17,17 +17,10 @@ package org.springframework.data.neo4j.mapping;
 
 import org.junit.Test;
 import org.mockito.Mockito;
-import org.neo4j.graphdb.Direction;
-import org.neo4j.graphdb.DynamicRelationshipType;
 import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.PropertyContainer;
-import org.neo4j.graphdb.Relationship;
-import org.springframework.data.neo4j.model.BestFriend;
 import org.springframework.data.neo4j.model.Friendship;
 import org.springframework.data.neo4j.model.Person;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Collections;
 
 import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
@@ -44,7 +37,7 @@ public class Neo4jEntityPersisterTest extends Neo4jPersistentTestBase {
     public void testCreateEntityFromStoredType() throws Exception {
         final Node personNode = template.createNode();
         personNode.setProperty("name","Michael");
-        final Person person = entityPersister.createEntityFromState(personNode, Person.class, template.getMappingPolicy(Person.class));
+        final Person person = entityPersister.createEntityFromState(personNode, Person.class, template.getMappingPolicy(Person.class), template);
         assertEquals("Michael",person.getName());
     }
 
@@ -56,7 +49,7 @@ public class Neo4jEntityPersisterTest extends Neo4jPersistentTestBase {
     @Test
     public void testProjectTo() throws Exception {
         storeInGraph(michael);
-        final Developer developer = entityPersister.projectTo(michael, Developer.class);
+        final Developer developer = entityPersister.projectTo(michael, Developer.class, template);
         assertEquals(michael.getId(),  developer.id);
         assertEquals(michael.getName(),  developer.name);
     }
@@ -69,7 +62,7 @@ public class Neo4jEntityPersisterTest extends Neo4jPersistentTestBase {
 
     @Test
     public void testPersist() throws Exception {
-        entityPersister.persist(michael, template.getMappingPolicy(michael));
+        entityPersister.persist(michael, template.getMappingPolicy(michael), template);
         assertEquals((Long) michaelNode().getId(), michael.getId());
         assertEquals(michaelNode(), entityPersister.getPersistentState(michael));
         assertEquals(michaelNode().getProperty("name"), michael.getName());

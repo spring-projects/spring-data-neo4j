@@ -27,13 +27,11 @@ import org.springframework.data.neo4j.support.node.EntityStateFactory;
 
 public class RelationshipEntityStateFactory implements EntityStateFactory<Relationship> {
 
-	private Neo4jTemplate template;
-	
     private DelegatingFieldAccessorFactory relationshipDelegatingFieldAccessorFactory;
     private Neo4jMappingContext mappingContext;
 
     @SuppressWarnings("unchecked")
-    public EntityState<Relationship> getEntityState(final Object entity, boolean detachable) {
+    public EntityState<Relationship> getEntityState(final Object entity, boolean detachable, Neo4jTemplate template) {
         final Class<?> entityType = entity.getClass();
         final Neo4jPersistentEntity persistentEntity = (Neo4jPersistentEntity) mappingContext.getPersistentEntity(entityType);
         final RelationshipEntityState relationshipEntityState = new RelationshipEntityState(null, entity, entityType, template, relationshipDelegatingFieldAccessorFactory, persistentEntity);
@@ -44,10 +42,6 @@ public class RelationshipEntityStateFactory implements EntityStateFactory<Relati
 
 	}
 
-	public void setTemplate(Neo4jTemplate template) {
-		this.template = template;
-	}
-
 	public void setRelationshipDelegatingFieldAccessorFactory(
 			DelegatingFieldAccessorFactory delegatingFieldAccessorFactory) {
 		this.relationshipDelegatingFieldAccessorFactory = delegatingFieldAccessorFactory;
@@ -55,10 +49,5 @@ public class RelationshipEntityStateFactory implements EntityStateFactory<Relati
 
     public void setMappingContext(Neo4jMappingContext mappingContext) {
         this.mappingContext = mappingContext;
-    }
-
-    @Override
-    public Neo4jTemplate getTemplate() {
-        return template;
     }
 }

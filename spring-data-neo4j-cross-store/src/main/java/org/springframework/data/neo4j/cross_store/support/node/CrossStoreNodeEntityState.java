@@ -47,7 +47,7 @@ public class CrossStoreNodeEntityState<ENTITY extends NodeBacked> extends Defaul
     private final Neo4jTemplate template;
     private PersistenceUnitUtil persistenceUnitUtil;
 
-    public CrossStoreNodeEntityState(final Node underlyingState, final ENTITY entity, final Class<? extends ENTITY> type, final Neo4jTemplate template, PersistenceUnitUtil persistenceUnitUtil, final CrossStoreNodeDelegatingFieldAccessorFactory delegatingFieldAccessorFactory, final Neo4jPersistentEntity persistentEntity) {
+    public CrossStoreNodeEntityState(final Node underlyingState, final NodeBacked entity, final Class<? extends NodeBacked> type, final Neo4jTemplate template, PersistenceUnitUtil persistenceUnitUtil, final DelegatingFieldAccessorFactory delegatingFieldAccessorFactory, final Neo4jPersistentEntity persistentEntity) {
     	super(underlyingState, entity, type, delegatingFieldAccessorFactory, persistentEntity);
         this.template = template;
         this.persistenceUnitUtil = persistenceUnitUtil;
