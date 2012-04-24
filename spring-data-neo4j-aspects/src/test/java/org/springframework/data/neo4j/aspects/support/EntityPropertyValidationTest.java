@@ -21,6 +21,7 @@ import org.junit.runner.RunWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.neo4j.model.NonNullNamed;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
 import org.springframework.data.neo4j.support.node.Neo4jHelper;
 import org.springframework.test.context.ContextConfiguration;
@@ -62,5 +63,10 @@ public class EntityPropertyValidationTest extends EntityTestBase {
     @Transactional
     public void shouldFailValidationOnBigAge() {
         persistedPerson("Michael", 110);
+    }
+    @Test(expected = ValidationException.class)
+    @Transactional
+    public void shouldFailValidationOnNullName() {
+        template.save(new NonNullNamed());
     }
 }
