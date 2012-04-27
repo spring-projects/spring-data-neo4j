@@ -38,17 +38,6 @@
 			<artifactId>spring-data-commons-core</artifactId>
 		</dependency>
 
-		<dependency>
-			<groupId>org.ow2.jotm</groupId>
-			<artifactId>jotm-core</artifactId>
-			<scope>provided</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.ow2.spec.ee</groupId>
-			<artifactId>ow2-connector-1.5-spec</artifactId>
-			<scope>provided</scope>
-		</dependency>
-
 		<!-- Logging -->
 		<dependency>
 			<groupId>org.slf4j</groupId>
@@ -222,6 +211,7 @@
 			<groupId>org.hibernate.javax.persistence</groupId>
 			<artifactId>hibernate-jpa-2.0-api</artifactId>
 			<version>1.0.0.Final</version>
+            <optional>true</optional>
 		</dependency>
 
 		<!-- For Tests -->

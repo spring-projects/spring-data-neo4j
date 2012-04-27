@@ -17,9 +17,9 @@
 package org.springframework.data.neo4j.transaction;
 
 import org.neo4j.kernel.impl.transaction.AbstractTransactionManager;
-import org.neo4j.kernel.impl.transaction.XaDataSourceManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
+import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.jta.JtaTransactionManager;
 
 import javax.transaction.*;
@@ -30,8 +30,7 @@ import javax.transaction.*;
 @Configurable
 class SpringServiceImpl extends AbstractTransactionManager
 {
-    @Autowired
-    private JtaTransactionManager jtaTransactionManager;
+    private PlatformTransactionManager transactionManager;
 
     private TransactionManager delegate;
 
@@ -41,7 +40,11 @@ class SpringServiceImpl extends AbstractTransactionManager
 
     @Override
     public void init() throws Throwable {
-        delegate = jtaTransactionManager.getTransactionManager();
+        if (transactionManager instanceof JtaTransactionManager) {
+            delegate = ((JtaTransactionManager) transactionManager).getTransactionManager();
+        } else {
+            throw new IllegalStateException("Injected transaction manager is not of type JtaTransactionManager but "+ transactionManager.getClass().getName());
+        }
     }
 
     @Override
@@ -107,5 +110,14 @@ class SpringServiceImpl extends AbstractTransactionManager
     public void stop()
     {
         // Currently a no-op
+    }
+
+    public PlatformTransactionManager getTransactionManager() {
+        return transactionManager;
+    }
+
+    @Autowired
+    public void setTransactionManager(PlatformTransactionManager transactionManager) {
+        this.transactionManager = transactionManager;
     }
 }

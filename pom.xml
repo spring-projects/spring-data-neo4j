@@ -13,6 +13,7 @@
 		<module>spring-data-neo4j-parent</module>
 		<module>spring-data-neo4j</module>
 		<module>spring-data-neo4j-rest</module>
+		<module>spring-data-neo4j-tx</module>
 		<module>spring-data-neo4j-aspects</module>
 		<module>spring-data-neo4j-cross-store</module>
 	</modules>
