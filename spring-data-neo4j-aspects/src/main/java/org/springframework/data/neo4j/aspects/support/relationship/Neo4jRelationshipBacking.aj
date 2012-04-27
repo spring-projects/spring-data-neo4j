@@ -72,13 +72,13 @@ public aspect Neo4jRelationshipBacking {
 
 
     protected pointcut entityFieldGet(RelationshipBacked entity) :
-            get(* RelationshipBacked+.*) &&
+            get(!transient * RelationshipBacked+.*) &&
             this(entity) &&
             !get(* RelationshipBacked.*);
 
 
     protected pointcut entityFieldSet(RelationshipBacked entity, Object newVal) :
-            set(* RelationshipBacked+.*) &&
+            set(!transient * RelationshipBacked+.*) &&
             this(entity) &&
             args(newVal) &&
             !set(* RelationshipBacked.*);
