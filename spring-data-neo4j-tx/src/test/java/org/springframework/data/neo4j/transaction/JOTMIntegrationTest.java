@@ -17,8 +17,8 @@
 package org.springframework.data.neo4j.transaction;
 
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
@@ -27,7 +27,6 @@ import org.neo4j.kernel.AbstractGraphDatabase;
 import org.neo4j.kernel.configuration.Config;
 import org.objectweb.jotm.Current;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.data.neo4j.support.node.Neo4jHelper;
 import org.springframework.transaction.jta.JtaTransactionManager;
 import org.springframework.transaction.jta.ManagedTransactionAdapter;
 
@@ -43,7 +42,6 @@ import static org.junit.Assert.assertNotNull;
  * @since 21.02.11
  */
 
-@Ignore("TODO")
 public class JOTMIntegrationTest {
     private ClassPathXmlApplicationContext ctx;
     private GraphDatabaseService gds;
@@ -52,7 +50,6 @@ public class JOTMIntegrationTest {
     public void setUp() throws Exception {
         ctx = new ClassPathXmlApplicationContext("classpath:spring-tx-text-context.xml");
         gds = ctx.getBean(GraphDatabaseService.class);
-        Neo4jHelper.cleanDb(gds);
     }
 
     @After
@@ -72,11 +69,11 @@ public class JOTMIntegrationTest {
             transaction.finish();
         }
         Node readBackOutsideOfTx = gds.getNodeById(node.getId());
-        assertEquals(node, readBackOutsideOfTx);
+        Assert.assertEquals(node, readBackOutsideOfTx);
         try {
             transaction = gds.beginTx();
             Node readBackInsideOfTx = gds.getNodeById(node.getId());
-            assertEquals(node, readBackInsideOfTx);
+            Assert.assertEquals(node, readBackInsideOfTx);
             transaction.success();
         } finally {
             transaction.finish();
@@ -95,7 +92,7 @@ public class JOTMIntegrationTest {
             transaction.finish();
         }
         Node retrievedNode = gds.index().forNodes("node").get("name", "value").getSingle();
-        assertEquals(node,retrievedNode);
+        Assert.assertEquals(node, retrievedNode);
     }
 
     @Test(expected = NotFoundException.class)
@@ -115,12 +112,12 @@ public class JOTMIntegrationTest {
     @Test
     public void databaseConfiguredWithSpringJtaShouldUseJtaTransactionManager() throws SystemException, NotSupportedException {
         final Config config = ((AbstractGraphDatabase) gds).getConfig();
-        assertEquals("spring-jta", config.getParams().get(Config.TXMANAGER_IMPLEMENTATION));
+        Assert.assertEquals("spring-jta", config.getParams().get(Config.TXMANAGER_IMPLEMENTATION));
 
         JtaTransactionManager tm = ctx.getBean("transactionManager", JtaTransactionManager.class);
         Transaction transaction = tm.createTransaction("jotm", 1000);
 
-        assertEquals(ManagedTransactionAdapter.class, transaction.getClass());
+        Assert.assertEquals(ManagedTransactionAdapter.class, transaction.getClass());
         assertEquals(Current.class, ((ManagedTransactionAdapter) transaction).getTransactionManager().getClass());
     }
 }
