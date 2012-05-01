@@ -29,7 +29,7 @@ import org.springframework.data.neo4j.core.EntityState;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
 import org.springframework.data.neo4j.support.relationship.RelationshipEntityStateFactory;
 import org.springframework.data.neo4j.template.Neo4jOperations;
-
+import javax.persistence.Transient;
 import java.lang.reflect.Field;
 
 import static org.springframework.data.neo4j.support.DoReturn.unwrap;
@@ -98,7 +98,7 @@ public aspect Neo4jRelationshipBacking {
     /**
      * field for {@link org.springframework.data.neo4j.core.EntityState} that takes care of all entity operations
      */
-    private EntityState<Relationship> RelationshipBacked.entityState;
+    private transient @Transient EntityState<Relationship> RelationshipBacked.entityState;
 
 
     public Neo4jTemplate RelationshipBacked.getTemplate() {

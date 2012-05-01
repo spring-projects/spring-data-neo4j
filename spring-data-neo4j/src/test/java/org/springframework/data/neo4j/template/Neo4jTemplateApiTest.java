@@ -70,7 +70,6 @@ public class Neo4jTemplateApiTest {
         transactionManager = createTransactionManager();
         referenceNode = graphDatabase.getReferenceNode();
         template = new Neo4jTemplate(graphDatabase, transactionManager);
-        template.postConstruct(); // todo defaults
         createData();
     }
 

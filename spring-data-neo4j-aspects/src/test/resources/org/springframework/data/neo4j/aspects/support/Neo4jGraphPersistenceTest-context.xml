@@ -32,7 +32,7 @@
     <bean id="conversionService" class="org.springframework.data.neo4j.fieldaccess.Neo4jConversionServiceFactoryBean"/>
 
 
-    <bean id="mappingInfrastructure" class="org.springframework.data.neo4j.support.MappingInfrastructure">
+    <bean id="mappingInfrastructure" class="org.springframework.data.neo4j.support.MappingInfrastructureFactoryBean">
         <property name="graphDatabaseService" ref="graphDatabaseService"/>
         <property name="conversionService" ref="conversionService"/>
         <property name="mappingContext" ref="mappingContext"/>
@@ -50,8 +50,8 @@
         </property>
     </bean>
 
-    <bean id="template" class="org.springframework.data.neo4j.support.Neo4jTemplate"  init-method="postConstruct">
-        <property name="infrastructure" ref="mappingInfrastructure"/>
+    <bean id="template" class="org.springframework.data.neo4j.support.Neo4jTemplate">
+        <constructor-arg name="infrastructure" ref="mappingInfrastructure"/>
     </bean>
 
 
@@ -78,25 +78,19 @@
     <bean id="relationshipTypeRepresentationStrategy" factory-bean="typeRepresentationStrategyFactory" factory-method="getRelationshipTypeRepresentationStrategy"/>
 
     <bean id="nodeEntityStateFactory" class="org.springframework.data.neo4j.support.node.NodeEntityStateFactory">
-    	<property name="nodeDelegatingFieldAccessorFactory">
-		    <bean class="org.springframework.data.neo4j.fieldaccess.NodeDelegatingFieldAccessorFactory">
-		        <constructor-arg ref="template"/>
-		    </bean>
-    	</property>
-    	<!--property name="template" ref="template"/-->
-    	<property name="mappingContext" ref="mappingContext"/>
+        <constructor-arg ref="mappingContext"/>
+        <constructor-arg>
+            <bean class="org.springframework.data.neo4j.fieldaccess.NodeDelegatingFieldAccessorFactory$Factory"/>
+        </constructor-arg>
     </bean>
 
     <bean id="mappingContext" class="org.springframework.data.neo4j.support.mapping.Neo4jMappingContext"/>
 
     <bean id="relationshipEntityStateFactory" class="org.springframework.data.neo4j.support.relationship.RelationshipEntityStateFactory">
-        <property name="relationshipDelegatingFieldAccessorFactory">
-		    <bean class="org.springframework.data.neo4j.fieldaccess.RelationshipDelegatingFieldAccessorFactory">
-		        <constructor-arg ref="template"/>
-		    </bean>
-    	</property>
-    	<!--property name="template" ref="template"/-->
-    	<property name="mappingContext" ref="mappingContext"/>
+        <constructor-arg ref="mappingContext"/>
+        <constructor-arg>
+            <bean class="org.springframework.data.neo4j.fieldaccess.RelationshipDelegatingFieldAccessorFactory$Factory"/>
+        </constructor-arg>
     </bean>
 
     <!--bean id="transactionManager" class="org.springframework.transaction.jta.JtaTransactionManager">
