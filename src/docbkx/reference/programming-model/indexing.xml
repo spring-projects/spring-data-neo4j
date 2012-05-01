@@ -26,7 +26,8 @@
         </para>
         <para>
             Numerical fields are indexed numerically so that they are available for range queries. All
-            other fields are indexed with their string representation.
+            other fields are indexed with their string representation. If a numeric field should not be
+            indexed numerically, it is possible to switch it off with <code>@Indexed(numeric=false)</code>.
         </para>
         <para>
             The <code>@Indexed</code> annotation also provides the option of using a custom index name. The default index

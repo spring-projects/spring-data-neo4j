@@ -17,15 +17,15 @@
     <section>
            <title>Dependencies for Spring Data Neo4j Simple Mapping</title>
            <para>
-               For the simple POJO mapping it is enough to add the <code>org.springframework.data:spring-data-neo4j:2.0.0.RELEASE</code> dependency
-               to your project. If you want to use the Cypher query language please add <code>org.neo4j:neo4j-cypher:1.6</code>
+               For the simple POJO mapping it is enough to add the <code>org.springframework.data:spring-data-neo4j:2.1.0.RC1</code> dependency
+               to your project. If you want to use the Cypher query language please add <code>org.neo4j:neo4j-cypher:1.7</code>
            </para>
         <example>
             <title>Maven dependencies for Spring Data Neo4j</title>
             <programlisting language="xml"><![CDATA[<dependency>
 <groupId>org.springframework.data</groupId>
 <artifactId>spring-data-neo4j</artifactId>
-<version>2.0.0.RELEASE</version>
+<version>2.1.0.RC1</version>
 </dependency>
 ]]></programlisting>
         </example>
@@ -44,7 +44,7 @@
 targetCompatibility = 1.6
 
 springVersion = "3.0.7.RELEASE"
-springDataNeo4jVersion = "2.0.0.RELEASE"
+springDataNeo4jVersion = "2.1.0.RC1"
 aspectjVersion = "1.6.12"
 
 apply from:'https://github.com/SpringSource/spring-data-neo4j/raw/master/build/
@@ -128,7 +128,7 @@ repositories {
                 <programlisting language="xml"><![CDATA[<dependency>
     <groupId>org.springframework.data</groupId>
     <artifactId>spring-data-neo4j-aspects</artifactId>
-    <version>2.0.0.RELEASE</version>
+    <version>2.1.0.RC1</version>
 </dependency>
 
 <dependency>
@@ -139,7 +139,7 @@ repositories {
 [<dependency>
     <groupId>org.neo4j</groupId>
     <artifactId>neo4j-cypher</artifactId>
-    <version>1.6</version>
+    <version>1.7</version>
 </dependency>]
 ]]></programlisting>
             </example>
