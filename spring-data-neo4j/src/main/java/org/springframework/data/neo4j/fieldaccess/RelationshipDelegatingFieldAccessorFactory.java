@@ -48,4 +48,11 @@ public class RelationshipDelegatingFieldAccessorFactory extends DelegatingFieldA
                 new DynamicPropertiesFieldAccessorFactory(template)
         );
     }
+
+    public static class Factory extends FieldAccessorFactoryFactory {
+        @Override
+        public DelegatingFieldAccessorFactory create(Neo4jTemplate template) {
+            return new RelationshipDelegatingFieldAccessorFactory(template);
+        }
+    }
 }

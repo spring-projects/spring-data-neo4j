@@ -19,17 +19,21 @@ package org.springframework.data.neo4j.support.node;
 import org.neo4j.graphdb.Node;
 import org.springframework.data.neo4j.core.EntityState;
 
-import org.springframework.data.neo4j.fieldaccess.DelegatingFieldAccessorFactory;
 import org.springframework.data.neo4j.fieldaccess.DetachedEntityState;
+import org.springframework.data.neo4j.fieldaccess.FieldAccessorFactoryFactory;
 import org.springframework.data.neo4j.support.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentEntity;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
 
 public class NodeEntityStateFactory implements EntityStateFactory<Node> {
 
-    protected DelegatingFieldAccessorFactory nodeDelegatingFieldAccessorFactory;
+    protected final FieldAccessorFactoryFactory nodeDelegatingFieldAccessorFactory;
+    protected final Neo4jMappingContext mappingContext;
 
-    protected Neo4jMappingContext mappingContext;
+    public NodeEntityStateFactory(Neo4jMappingContext mappingContext, FieldAccessorFactoryFactory nodeDelegatingFieldAccessorFactory) {
+        this.nodeDelegatingFieldAccessorFactory = nodeDelegatingFieldAccessorFactory;
+        this.mappingContext = mappingContext;
+    }
 
     public EntityState<Node> getEntityState(final Object entity, boolean detachable, Neo4jTemplate template) {
         final Class<?> entityType = entity.getClass();
@@ -37,28 +41,10 @@ public class NodeEntityStateFactory implements EntityStateFactory<Node> {
                 (Neo4jPersistentEntity<Object>) mappingContext.getPersistentEntity(entityType);
 
         NodeEntityState nodeEntityState = new NodeEntityState(null, entity, entityType, template,
-                nodeDelegatingFieldAccessorFactory, persistentEntity);
+                nodeDelegatingFieldAccessorFactory.provideFactoryFor(template), persistentEntity);
         if (!detachable) {
             return nodeEntityState;
         }
         return new DetachedEntityState<Node>(nodeEntityState, template);
-    }
-
-    public void setNodeDelegatingFieldAccessorFactory(
-    		DelegatingFieldAccessorFactory nodeDelegatingFieldAccessorFactory) {
-		this.nodeDelegatingFieldAccessorFactory = nodeDelegatingFieldAccessorFactory;
-	}
-
-    /*
-	public void setTemplate(Neo4jTemplate template) {
-		this.template = template;
-	}
-    */
-    public Neo4jMappingContext getMappingContext() {
-        return mappingContext;
-    }
-
-    public void setMappingContext(Neo4jMappingContext mappingContext) {
-        this.mappingContext = mappingContext;
     }
 }

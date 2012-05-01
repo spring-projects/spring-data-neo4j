@@ -127,7 +127,7 @@ public privileged aspect Neo4jNodeBacking { // extends AbstractTypeAnnotatingMix
     /**
      * State accessors that encapsulate the underlying state and the behaviour related to it (field access, creation)
      */
-    private transient EntityState<Node> NodeBacked.entityState;
+    private transient @Transient EntityState<Node> NodeBacked.entityState;
 
     public <T extends NodeBacked> T NodeBacked.persist() {
         return (T)this.entityState.persist();

@@ -732,7 +732,7 @@
                         <groupId>com.springsource.bundlor</groupId>
                         <artifactId>com.springsource.bundlor.maven</artifactId>
                         <configuration>
-                            <failOnWarnings>true</failOnWarnings>
+                            <failOnWarnings>false</failOnWarnings>
                         </configuration>
                         <executions>
                             <execution>

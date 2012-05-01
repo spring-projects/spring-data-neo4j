@@ -56,7 +56,6 @@ public class SnippetNeo4jTemplateMethodsTest extends DocumentingTestBase {
         // SNIPPET template
         // TODO auto-post-construct !!
         final Neo4jTemplate neo = new Neo4jTemplate(graphDatabase);
-        neo.postConstruct();
 
         Node mark = neo.createNode(map("name", "Mark"));
         Node thomas = neo.createNode(map("name", "Thomas"));

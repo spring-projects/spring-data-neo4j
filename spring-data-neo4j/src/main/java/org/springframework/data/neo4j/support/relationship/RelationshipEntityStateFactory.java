@@ -20,6 +20,7 @@ import org.neo4j.graphdb.Relationship;
 import org.springframework.data.neo4j.core.EntityState;
 import org.springframework.data.neo4j.fieldaccess.DelegatingFieldAccessorFactory;
 import org.springframework.data.neo4j.fieldaccess.DetachedEntityState;
+import org.springframework.data.neo4j.fieldaccess.FieldAccessorFactoryFactory;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentEntity;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
 import org.springframework.data.neo4j.support.mapping.Neo4jMappingContext;
@@ -27,27 +28,24 @@ import org.springframework.data.neo4j.support.node.EntityStateFactory;
 
 public class RelationshipEntityStateFactory implements EntityStateFactory<Relationship> {
 
-    private DelegatingFieldAccessorFactory relationshipDelegatingFieldAccessorFactory;
-    private Neo4jMappingContext mappingContext;
+    private final FieldAccessorFactoryFactory relationshipDelegatingFieldAccessorFactory;
+    private final Neo4jMappingContext mappingContext;
+
+    public RelationshipEntityStateFactory(Neo4jMappingContext mappingContext, FieldAccessorFactoryFactory relationshipDelegatingFieldAccessorFactory) {
+        this.mappingContext = mappingContext;
+        this.relationshipDelegatingFieldAccessorFactory = relationshipDelegatingFieldAccessorFactory;
+    }
 
     @SuppressWarnings("unchecked")
     public EntityState<Relationship> getEntityState(final Object entity, boolean detachable, Neo4jTemplate template) {
         final Class<?> entityType = entity.getClass();
         final Neo4jPersistentEntity persistentEntity = (Neo4jPersistentEntity) mappingContext.getPersistentEntity(entityType);
-        final RelationshipEntityState relationshipEntityState = new RelationshipEntityState(null, entity, entityType, template, relationshipDelegatingFieldAccessorFactory, persistentEntity);
+        final DelegatingFieldAccessorFactory fieldAccessorFactory = relationshipDelegatingFieldAccessorFactory.provideFactoryFor(template);
+        final RelationshipEntityState relationshipEntityState = new RelationshipEntityState(null, entity, entityType, template, fieldAccessorFactory, persistentEntity);
         if (!detachable) {
             return relationshipEntityState;
         }
         return new DetachedEntityState<Relationship>(relationshipEntityState, template);
 
 	}
-
-	public void setRelationshipDelegatingFieldAccessorFactory(
-			DelegatingFieldAccessorFactory delegatingFieldAccessorFactory) {
-		this.relationshipDelegatingFieldAccessorFactory = delegatingFieldAccessorFactory;
-	}
-
-    public void setMappingContext(Neo4jMappingContext mappingContext) {
-        this.mappingContext = mappingContext;
-    }
 }

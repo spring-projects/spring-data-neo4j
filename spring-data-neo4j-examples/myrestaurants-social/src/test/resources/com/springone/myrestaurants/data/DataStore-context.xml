@@ -20,7 +20,8 @@
 	<!-- 
 	    neo4j datastore config
     -->
-    <context:annotation-config/>
+    <!--context:annotation-config/-->
+    <context:spring-configured/>
 
     <neo4j:config storeDirectory="target/db-test" entityManagerFactory="entityManagerFactory"/>
 
@@ -33,4 +34,5 @@
         <property name="dataSource" ref="dataSource"/>
         <property name="persistenceXmlLocation" value="classpath:META-INF/persistence.xml"/>
     </bean>
+    <tx:annotation-driven mode="aspectj" transaction-manager="transactionManager"/>
 </beans>
