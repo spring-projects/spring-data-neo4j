@@ -60,4 +60,11 @@ public class NodeDelegatingFieldAccessorFactory extends DelegatingFieldAccessorF
                 new DynamicPropertiesFieldAccessorFactory(template)
         );
     }
+
+    public static class Factory extends FieldAccessorFactoryFactory {
+        @Override
+        public DelegatingFieldAccessorFactory create(Neo4jTemplate template) {
+            return new NodeDelegatingFieldAccessorFactory(template);
+        }
+    }
 }

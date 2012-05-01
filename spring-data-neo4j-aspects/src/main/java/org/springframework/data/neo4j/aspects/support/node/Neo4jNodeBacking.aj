@@ -120,14 +120,14 @@ public privileged aspect Neo4jNodeBacking { // extends AbstractTypeAnnotatingMix
             log.error("entityStateFactory not set, not creating accessors for " + entity.getClass());
         } else {
             if (entity.entityState != null) return;
-            entity.entityState = entityStateFactory.getEntityState(entity, true);
+            entity.entityState = entityStateFactory.getEntityState(entity, true, template);
         }
     }
 
     /**
      * State accessors that encapsulate the underlying state and the behaviour related to it (field access, creation)
      */
-    private transient EntityState<Node> NodeBacked.entityState;
+    private transient @Transient EntityState<Node> NodeBacked.entityState;
 
     public <T extends NodeBacked> T NodeBacked.persist() {
         return (T)this.entityState.persist();
@@ -135,7 +135,7 @@ public privileged aspect Neo4jNodeBacking { // extends AbstractTypeAnnotatingMix
 
 	public void NodeBacked.setPersistentState(Node n) {
         if (this.entityState == null) {
-            this.entityState = Neo4jNodeBacking.aspectOf().entityStateFactory.getEntityState(this, false);
+            this.entityState = Neo4jNodeBacking.aspectOf().entityStateFactory.getEntityState(this, false, getTemplate());
         }
         this.entityState.setPersistentState(n);
 	}

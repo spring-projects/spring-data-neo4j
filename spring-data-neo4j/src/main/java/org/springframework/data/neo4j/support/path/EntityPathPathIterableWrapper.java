@@ -35,6 +35,6 @@ public class EntityPathPathIterableWrapper<S, E> extends IterableWrapper<EntityP
     }
 
     protected EntityPath<S, E> underlyingObjectToObject(Path path) {
-        return new ConvertingEntityPath<S,E>(template,path);
+        return new ConvertingEntityPath<S,E>(path, template);
     }
 }

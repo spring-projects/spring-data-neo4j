@@ -47,7 +47,7 @@ public class CrossStoreNodeEntityState<ENTITY extends NodeBacked> extends Defaul
     private final Neo4jTemplate template;
     private PersistenceUnitUtil persistenceUnitUtil;
 
-    public CrossStoreNodeEntityState(final Node underlyingState, final ENTITY entity, final Class<? extends ENTITY> type, final Neo4jTemplate template, PersistenceUnitUtil persistenceUnitUtil, final CrossStoreNodeDelegatingFieldAccessorFactory delegatingFieldAccessorFactory, final Neo4jPersistentEntity persistentEntity) {
+    public CrossStoreNodeEntityState(final Node underlyingState, final NodeBacked entity, final Class<? extends NodeBacked> type, final Neo4jTemplate template, PersistenceUnitUtil persistenceUnitUtil, final DelegatingFieldAccessorFactory delegatingFieldAccessorFactory, final Neo4jPersistentEntity persistentEntity) {
     	super(underlyingState, entity, type, delegatingFieldAccessorFactory, persistentEntity);
         this.template = template;
         this.persistenceUnitUtil = persistenceUnitUtil;
@@ -117,65 +117,4 @@ public class CrossStoreNodeEntityState<ENTITY extends NodeBacked> extends Defaul
         return persistenceUnitUtil!=null ? persistenceUnitUtil.getIdentifier(entity) : null;
     }
 
-    public static class CrossStoreNodeDelegatingFieldAccessorFactory extends DelegatingFieldAccessorFactory {
-
-        public CrossStoreNodeDelegatingFieldAccessorFactory(Neo4jTemplate template) {
-            super(template);
-        }
-
-        @Override
-        protected Collection<FieldAccessorListenerFactory> createListenerFactories() {
-            return Arrays.asList(
-                    new IndexingPropertyFieldAccessorListenerFactory(
-                            getTemplate(),
-                            newPropertyFieldAccessorFactory(),
-                            newConvertingNodePropertyFieldAccessorFactory()) {
-                        @Override
-                        public boolean accept(Neo4jPersistentProperty property) {
-                            return property.isAnnotationPresent(GraphProperty.class) && super.accept(property);
-                        }
-                    },
-                    new JpaIdFieldAccessListenerFactory(template));
-        }
-
-        @Override
-        protected Collection<? extends FieldAccessorFactory> createAccessorFactories() {
-            return Arrays.asList(
-                    //new IdFieldAccessorFactory(),
-                    //new TransientFieldAccessorFactory(),
-                    new TraversalFieldAccessorFactory(template),
-                    new QueryFieldAccessorFactory(template),
-                    newPropertyFieldAccessorFactory(),
-                    newConvertingNodePropertyFieldAccessorFactory(),
-                    new RelatedToSingleFieldAccessorFactory(getTemplate()) {
-                        @Override
-                        public boolean accept(Neo4jPersistentProperty property) {
-                            return property.isAnnotationPresent(RelatedTo.class) && super.accept(property);
-                        }
-                    },
-                    new RelatedToCollectionFieldAccessorFactory(getTemplate()),
-                    new ReadOnlyRelatedToCollectionFieldAccessorFactory(getTemplate()),
-                    new RelatedToViaSingleFieldAccessorFactory(getTemplate()),
-                    new RelatedToViaCollectionFieldAccessorFactory(getTemplate())
-            );
-        }
-
-        private ConvertingNodePropertyFieldAccessorFactory newConvertingNodePropertyFieldAccessorFactory() {
-            return new ConvertingNodePropertyFieldAccessorFactory(getTemplate()) {
-                @Override
-                public boolean accept(Neo4jPersistentProperty property) {
-                    return property.isAnnotationPresent(GraphProperty.class) && super.accept(property);
-                }
-            };
-        }
-
-        private PropertyFieldAccessorFactory newPropertyFieldAccessorFactory() {
-            return new PropertyFieldAccessorFactory(getTemplate()) {
-                @Override
-                public boolean accept(Neo4jPersistentProperty property) {
-                    return property.isAnnotationPresent(GraphProperty.class) && super.accept(property);
-                }
-            };
-        }
-    }
 }

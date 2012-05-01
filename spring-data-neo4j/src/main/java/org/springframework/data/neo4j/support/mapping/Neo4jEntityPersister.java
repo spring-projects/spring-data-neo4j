@@ -21,6 +21,7 @@ import org.neo4j.graphdb.Relationship;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.data.mapping.context.MappingContext;
 import org.springframework.data.neo4j.mapping.*;
+import org.springframework.data.neo4j.support.Neo4jTemplate;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -47,12 +48,12 @@ public class Neo4jEntityPersister implements EntityPersister, Neo4jEntityConvert
 
     }
 
-    public <S extends PropertyContainer, T> T createEntityFromStoredType(S state, MappingPolicy mappingPolicy) {
-        return createEntityFromState(state,null, mappingPolicy);
+    public <S extends PropertyContainer, T> T createEntityFromStoredType(S state, MappingPolicy mappingPolicy, final Neo4jTemplate template) {
+        return createEntityFromState(state,null, mappingPolicy, template);
     }
 
-    public <S extends PropertyContainer, T> T createEntityFromStoredType(S state) {
-        return createEntityFromState(state,null, null);
+    public <S extends PropertyContainer, T> T createEntityFromStoredType(S state, final Neo4jTemplate template) {
+        return createEntityFromState(state,null, null, template);
     }
 
 
@@ -155,38 +156,38 @@ public class Neo4jEntityPersister implements EntityPersister, Neo4jEntityConvert
         }
 
         @Override
-        public <R> R loadEntity(R entity, S source, MappingPolicy mappingPolicy, Neo4jPersistentEntityImpl<R> persistentEntity) {
-            return delegate.loadEntity(entity,source,mappingPolicy,persistentEntity);
+        public <R> R loadEntity(R entity, S source, MappingPolicy mappingPolicy, Neo4jPersistentEntityImpl<R> persistentEntity, final Neo4jTemplate template) {
+            return delegate.loadEntity(entity,source,mappingPolicy,persistentEntity, template);
         }
 
         @Override
-        public <R> R read(Class<R> type, S state, MappingPolicy mappingPolicy) {
+        public <R> R read(Class<R> type, S state, MappingPolicy mappingPolicy, final Neo4jTemplate template) {
             try {
                 if (state==null) throw new IllegalArgumentException("State must not be null");
                 StackedEntityCache.push();
                 if (StackedEntityCache.contains(state, mappingPolicy)) return StackedEntityCache.get(state,mappingPolicy);
-                return StackedEntityCache.add(state, delegate.read(type, state,mappingPolicy),mappingPolicy);
+                return StackedEntityCache.add(state, delegate.read(type, state,mappingPolicy, template),mappingPolicy);
             } finally {
                 StackedEntityCache.pop();
             }
         }
 
         @Override
-        public void write(Object source, S sink,MappingPolicy mappingPolicy) {
-            delegate.write(source,sink,mappingPolicy);
+        public void write(Object source, S sink, MappingPolicy mappingPolicy, final Neo4jTemplate template) {
+            delegate.write(source,sink,mappingPolicy, template);
         }
     }
 
     @SuppressWarnings("unchecked")
-    public <S extends PropertyContainer, T> T createEntityFromState(S state, Class<T> type, MappingPolicy mappingPolicy) {
+    public <S extends PropertyContainer, T> T createEntityFromState(S state, Class<T> type, MappingPolicy mappingPolicy, final Neo4jTemplate template) {
         if (state == null) {
             throw new IllegalArgumentException("state has to be either a Node or Relationship, but is null");
         }
         if (isNode(state)) {
-            return nodeConverter.read(type, (Node) state,mappingPolicy);
+            return nodeConverter.read(type, (Node) state,mappingPolicy, template);
         }
         if (isRelationship(state)) {
-            return relationshipConverter.read(type, (Relationship) state,mappingPolicy);
+            return relationshipConverter.read(type, (Relationship) state,mappingPolicy, template);
         }
         throw new IllegalArgumentException("state has to be either a Node or Relationship");
     }
@@ -199,18 +200,18 @@ public class Neo4jEntityPersister implements EntityPersister, Neo4jEntityConvert
         return state instanceof Node;
     }
 
-    public <T> T projectTo(Object entity, Class<T> targetType) {
-        return projectTo(entity,targetType,getMappingPolicy(targetType));
+    public <T> T projectTo(Object entity, Class<T> targetType, final Neo4jTemplate template) {
+        return projectTo(entity,targetType,getMappingPolicy(targetType), template);
     }
 
     @SuppressWarnings("unchecked")
-    public <T> T projectTo(Object entity, Class<T> targetType, MappingPolicy mappingPolicy) {
+    public <T> T projectTo(Object entity, Class<T> targetType, MappingPolicy mappingPolicy, final Neo4jTemplate template) {
         if (targetType.isInstance(entity)) {
             return (T)entity;
         }
         PropertyContainer state = getPersistentState(entity);
         final MappingPolicy newPolicy = mappingPolicy == null ? getMappingPolicy(targetType) : mappingPolicy;
-        return createEntityFromState(state, targetType, newPolicy);
+        return createEntityFromState(state, targetType, newPolicy, template);
     }
 
     @SuppressWarnings("unchecked")
@@ -219,12 +220,12 @@ public class Neo4jEntityPersister implements EntityPersister, Neo4jEntityConvert
     }
 
 
-    public Object persist(Object entity, final MappingPolicy mappingPolicy) {
+    public Object persist(Object entity, final MappingPolicy mappingPolicy, final Neo4jTemplate template) {
         final Class<?> type = entity.getClass();
         if (isManaged(entity)) {
             return ((ManagedEntity)entity).persist();
         } else {
-            return persist(entity, type, mappingPolicy);
+            return persist(entity, type, mappingPolicy, template);
         }
     }
 
@@ -232,17 +233,17 @@ public class Neo4jEntityPersister implements EntityPersister, Neo4jEntityConvert
         return entityStateHandler.isManaged(entity);
     }
 
-    private Object persist(Object entity, Class<?> type,MappingPolicy mappingPolicy) {
+    private Object persist(Object entity, Class<?> type, MappingPolicy mappingPolicy, final Neo4jTemplate template) {
         if (isNodeEntity(type)) {
             final Node node = this.<Node>getPersistentState(entity);
-            this.nodeConverter.write(entity, node,mappingPolicy);
-            return createEntityFromState(getPersistentState(entity),type, getMappingPolicy(type));
+            this.nodeConverter.write(entity, node,mappingPolicy, template);
+            return createEntityFromState(getPersistentState(entity),type, getMappingPolicy(type), template);
             //return entity; // TODO ?
         }
         if (isRelationshipEntity(type)) {
             final Relationship relationship = this.<Relationship>getPersistentState(entity);
-            this.relationshipConverter.write(entity, relationship,mappingPolicy);
-            return createEntityFromState(getPersistentState(entity),type, getMappingPolicy(type));
+            this.relationshipConverter.write(entity, relationship,mappingPolicy, template);
+            return createEntityFromState(getPersistentState(entity),type, getMappingPolicy(type), template);
 //            return entity; // TODO ?
         }
         throw new IllegalArgumentException("@NodeEntity or @RelationshipEntity annotation required on domain class"+type);
@@ -280,18 +281,18 @@ public class Neo4jEntityPersister implements EntityPersister, Neo4jEntityConvert
     }
 
     @Override
-    public <R> R read(Class<R> type, Node source, MappingPolicy mappingPolicy) {
-        return createEntityFromState(source, type, mappingPolicy);
+    public <R> R read(Class<R> type, Node source, MappingPolicy mappingPolicy, final Neo4jTemplate template) {
+        return createEntityFromState(source, type, mappingPolicy, template);
     }
 
     @Override
-    public <R> R loadEntity(R entity, Node source, MappingPolicy mappingPolicy, Neo4jPersistentEntityImpl<R> persistentEntity) {
-        return nodeConverter.loadEntity(entity,source,mappingPolicy,persistentEntity);
+    public <R> R loadEntity(R entity, Node source, MappingPolicy mappingPolicy, Neo4jPersistentEntityImpl<R> persistentEntity, final Neo4jTemplate template) {
+        return nodeConverter.loadEntity(entity,source,mappingPolicy,persistentEntity, template);
     }
 
     @Override
-    public void write(Object source, Node sink, MappingPolicy mappingPolicy) {
-        nodeConverter.write(source,sink,mappingPolicy);
+    public void write(Object source, Node sink, MappingPolicy mappingPolicy, final Neo4jTemplate template) {
+        nodeConverter.write(source,sink,mappingPolicy, template);
     }
 }
 

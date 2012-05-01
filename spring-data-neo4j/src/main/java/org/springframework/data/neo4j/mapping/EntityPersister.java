@@ -16,6 +16,7 @@
 package org.springframework.data.neo4j.mapping;
 
 import org.neo4j.graphdb.PropertyContainer;
+import org.springframework.data.neo4j.support.Neo4jTemplate;
 
 /**
  * @author mh
@@ -23,11 +24,11 @@ import org.neo4j.graphdb.PropertyContainer;
  */
 public interface EntityPersister {
 
-    <T> T projectTo(Object entity, Class<T> targetType);
-    <T> T projectTo(Object entity, Class<T> targetType, MappingPolicy mappingPolicy);
-    <S extends PropertyContainer, T> T createEntityFromState(S state, Class<T> type, MappingPolicy mappingPolicy);
-    <S extends PropertyContainer, T> T createEntityFromStoredType(S state, MappingPolicy mappingPolicy);
-    <S extends PropertyContainer, T> T createEntityFromStoredType(S state);
+    <T> T projectTo(Object entity, Class<T> targetType, final Neo4jTemplate template);
+    <T> T projectTo(Object entity, Class<T> targetType, MappingPolicy mappingPolicy, final Neo4jTemplate template);
+    <S extends PropertyContainer, T> T createEntityFromState(S state, Class<T> type, MappingPolicy mappingPolicy, final Neo4jTemplate template);
+    <S extends PropertyContainer, T> T createEntityFromStoredType(S state, MappingPolicy mappingPolicy, final Neo4jTemplate template);
+    <S extends PropertyContainer, T> T createEntityFromStoredType(S state, final Neo4jTemplate template);
     boolean isNodeEntity(Class<?> targetType);
     boolean isRelationshipEntity(Class<?> targetType);
     MappingPolicy getMappingPolicy(Class<?> targetType);

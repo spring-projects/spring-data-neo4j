@@ -36,7 +36,7 @@ import org.springframework.data.neo4j.core.GraphDatabase;
 import org.springframework.data.neo4j.core.TypeRepresentationStrategy;
 import org.springframework.data.neo4j.core.UncategorizedGraphStoreException;
 import org.springframework.data.neo4j.fieldaccess.GraphBackedEntityIterableWrapper;
-import org.springframework.data.neo4j.mapping.EntityPersister;
+import org.springframework.data.neo4j.mapping.EntityPersister2;
 import org.springframework.data.neo4j.mapping.IndexInfo;
 import org.springframework.data.neo4j.mapping.MappingPolicy;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
@@ -80,17 +80,10 @@ import static org.springframework.data.neo4j.support.ParameterCheck.notNull;
 /*
 TODO This is a  merge of GraphDatabaseContext and the previous Neo4jTemplate, so it still contains inconsistencies, if you spot them, please mark them with a TODO
  */
-public class Neo4jTemplate implements Neo4jOperations, EntityPersister {
+public class Neo4jTemplate implements Neo4jOperations , EntityPersister2 {
     private static final Logger log = LoggerFactory.getLogger(Neo4jTemplate.class);
 
-    private MappingInfrastructure infrastructure = new MappingInfrastructure();
-
-    /**
-     * default constructor for dependency injection, TODO provide dependencies at creation time
-     */
-    public Neo4jTemplate() {
-        this.infrastructure = new MappingInfrastructure();
-    }
+    private final Infrastructure infrastructure;
 
     /**
      * @param graphDatabase      the neo4j graph database
@@ -98,15 +91,15 @@ public class Neo4jTemplate implements Neo4jOperations, EntityPersister {
      */
     public Neo4jTemplate(final GraphDatabase graphDatabase, PlatformTransactionManager transactionManager) {
         notNull(graphDatabase, "graphDatabase");
-        this.infrastructure = new MappingInfrastructure(graphDatabase,transactionManager);
+        this.infrastructure = MappingInfrastructureFactoryBean.createDirect(graphDatabase,transactionManager);
     }
 
     public Neo4jTemplate(final GraphDatabase graphDatabase) {
         notNull(graphDatabase, "graphDatabase");
-        this.infrastructure = new MappingInfrastructure(graphDatabase,null);
+        this.infrastructure = MappingInfrastructureFactoryBean.createDirect(graphDatabase,null);
     }
 
-    public Neo4jTemplate(MappingInfrastructure infrastructure) {
+    public Neo4jTemplate(Infrastructure infrastructure) {
         this.infrastructure = infrastructure;
     }
 
@@ -148,12 +141,12 @@ public class Neo4jTemplate implements Neo4jOperations, EntityPersister {
         if (persistentEntity.isNodeEntity()) {
             final Node node = getNode(id);
             if (node==null) return null;
-            return infrastructure.getEntityPersister().createEntityFromState(node, entityClass, persistentEntity.getMappingPolicy());
+            return infrastructure.getEntityPersister().createEntityFromState(node, entityClass, persistentEntity.getMappingPolicy(), this);
         }
         if (persistentEntity.isRelationshipEntity()) {
             final Relationship relationship = getRelationship(id);
             if (relationship==null) return null;
-            return infrastructure.getEntityPersister().createEntityFromState(relationship, entityClass, persistentEntity.getMappingPolicy());
+            return infrastructure.getEntityPersister().createEntityFromState(relationship, entityClass, persistentEntity.getMappingPolicy(), this);
         }
         throw new IllegalArgumentException("provided entity type is not annotated with @NodeEntiy nor @RelationshipEntity");
     }
@@ -174,34 +167,34 @@ public class Neo4jTemplate implements Neo4jOperations, EntityPersister {
     @Override
     public <S extends PropertyContainer, T> T createEntityFromStoredType(S state) {
         notNull(state,"node or relationship");
-        return infrastructure.getEntityPersister().createEntityFromStoredType(state);
+        return infrastructure.getEntityPersister().createEntityFromStoredType(state, this);
     }
     @Override
     public <S extends PropertyContainer, T> T createEntityFromStoredType(S state, MappingPolicy mappingPolicy) {
         notNull(state,"node or relationship");
-        return infrastructure.getEntityPersister().createEntityFromStoredType(state, mappingPolicy);
+        return infrastructure.getEntityPersister().createEntityFromStoredType(state, mappingPolicy, this);
     }
 
     @Override
     public <S extends PropertyContainer, T> T createEntityFromState(S state, Class<T> type, MappingPolicy mappingPolicy) {
         notNull(state,"node or relationship",type,"entity class");
-        return infrastructure.getEntityPersister().createEntityFromState(state, type, mappingPolicy);
+        return infrastructure.getEntityPersister().createEntityFromState(state, type, mappingPolicy, this);
     }
     @Override
     public <S extends PropertyContainer, T> T load(S state, Class<T> type) {
         notNull(state,"node or relationship",type,"entity class");
-        return infrastructure.getEntityPersister().createEntityFromState(state, type, getMappingPolicy(type));
+        return infrastructure.getEntityPersister().createEntityFromState(state, type, getMappingPolicy(type), this);
     }
 
     @Override
     public <T> T projectTo(Object entity, Class<T> targetType) {
         notNull(entity,"entity",targetType,"new entity class");
-        return infrastructure.getEntityPersister().projectTo(entity, targetType);
+        return infrastructure.getEntityPersister().projectTo(entity, targetType, this);
     }
     @Override
     public <T> T projectTo(Object entity, Class<T> targetType, MappingPolicy mappingPolicy) {
         notNull(entity,"entity",targetType,"new entity class");
-        return infrastructure.getEntityPersister().projectTo(entity, targetType, mappingPolicy);
+        return infrastructure.getEntityPersister().projectTo(entity, targetType, mappingPolicy, this);
     }
 
     /**
@@ -289,12 +282,6 @@ public class Neo4jTemplate implements Neo4jOperations, EntityPersister {
         return infrastructure.getGraphDatabaseService().beginTx();
     }
 
-    @SuppressWarnings("unused")
-    @PostConstruct
-    public void postConstruct() {
-        infrastructure.postConstruct();
-    }
-
     @Override
     public boolean isNodeEntity(Class<?> targetType) {
         return getMappingContext().isNodeEntity(targetType);
@@ -308,7 +295,7 @@ public class Neo4jTemplate implements Neo4jOperations, EntityPersister {
     @Override
     @SuppressWarnings("unchecked")
     public <T> T save(T entity) {
-        return (T) infrastructure.getEntityPersister().persist(entity, getMappingPolicy(entity));
+        return (T) infrastructure.getEntityPersister().persist(entity, getMappingPolicy(entity), this);
     }
 
     public boolean isManaged(Object entity) {
@@ -340,7 +327,7 @@ public class Neo4jTemplate implements Neo4jOperations, EntityPersister {
         if (relationship == null) return null;
         if (Relationship.class.isAssignableFrom(relationshipEntityClass)) return (R)relationship;
         final Neo4jPersistentEntityImpl<?> persistentEntity = getPersistentEntity(relationshipEntityClass);
-        return infrastructure.getEntityPersister().createEntityFromState(relationship, relationshipEntityClass, persistentEntity.getMappingPolicy());
+        return infrastructure.getEntityPersister().createEntityFromState(relationship, relationshipEntityClass, persistentEntity.getMappingPolicy(), this);
     }
 
     @Override
@@ -487,7 +474,7 @@ public class Neo4jTemplate implements Neo4jOperations, EntityPersister {
         } else {
             final PropertyContainer state = getPersistentState(value);
             if (state != null) {
-                return entityPersister.loadEntity(value, (Node) state, MappingPolicy.LOAD_POLICY, (Neo4jPersistentEntityImpl<T>) getPersistentEntity(targetType));
+                return entityPersister.loadEntity(value, (Node) state, MappingPolicy.LOAD_POLICY, (Neo4jPersistentEntityImpl<T>) getPersistentEntity(targetType), this);
             } else {
                 // todo do nothing?
                 throw new MappingException("No state information available in " + value);
@@ -514,7 +501,11 @@ public class Neo4jTemplate implements Neo4jOperations, EntityPersister {
 
     @Override
     public ResultConverter getDefaultConverter() {
-        return infrastructure.getResultConverter();
+        final ResultConverter resultConverter = infrastructure.getResultConverter();
+        if (resultConverter instanceof Neo4jTemplateAware) {
+            return ((Neo4jTemplateAware)resultConverter).with(this);
+        }
+        return resultConverter;
     }
 
     @Override
@@ -642,11 +633,7 @@ public class Neo4jTemplate implements Neo4jOperations, EntityPersister {
         return infrastructure.getGraphDatabaseService();
     }
 
-    public void setInfrastructure(MappingInfrastructure infrastructure) {
-        this.infrastructure = infrastructure;
-    }
-
-    public MappingInfrastructure getInfrastructure() {
+    public Infrastructure getInfrastructure() {
         return infrastructure;
     }
 

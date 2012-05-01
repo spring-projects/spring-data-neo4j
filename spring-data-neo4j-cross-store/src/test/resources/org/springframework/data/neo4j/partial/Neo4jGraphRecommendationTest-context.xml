@@ -14,33 +14,9 @@
 		http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-3.0.xsd
 		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd">
 
-	<!--
-		This will automatically locate any and all property files you have
-		within your classpath, provided they fall under the META-INF/spring
-		directory. The located property files are parsed and their values can
-		then be used within application context files in the form of
-		${propertyKey}.
-	-->
 	<context:property-placeholder location="classpath*:META-INF/spring/database.properties"/>
 
-	<!--
-		Turn on AspectJ @Configurable support. As a result, any time you
-		instantiate an object, Spring will attempt to perform dependency
-		injection on that object. This occurs for instantiation via the "new"
-		keyword, as well as via reflection. This is possible because AspectJ
-		is used to "weave" Roo-based applications at compile time. In effect
-		this feature allows dependency injection of any object at all in your
-		system, which is a very useful feature (without @Configurable you'd
-		only be able to dependency inject objects acquired from Spring or
-		subsequently presented to a specific Spring dependency injection
-		method). Roo applications use this useful feature in a number of
-		areas, such as @PersistenceContext injection into entities.
-	-->
 	<context:spring-configured/>
-
-	<!-- 
-	    Start datastore config
-    -->
 
 	<bean id="neo4jNodeBacking" class="org.springframework.data.neo4j.aspects.support.node.Neo4jNodeBacking" factory-method="aspectOf">
 		<property name="template" ref="neo4jTemplate"/>
@@ -61,7 +37,7 @@
         <constructor-arg ref="graphDatabaseService"/>
     </bean>
 
-    <bean id="mappingInfrastructure" class="org.springframework.data.neo4j.support.MappingInfrastructure">
+    <bean id="mappingInfrastructure" class="org.springframework.data.neo4j.support.MappingInfrastructureFactoryBean">
         <property name="graphDatabaseService" ref="graphDatabaseService"/>
         <property name="conversionService">
             <bean class="org.springframework.data.neo4j.fieldaccess.Neo4jConversionServiceFactoryBean"/>
@@ -76,7 +52,7 @@
     </bean>
 
     <bean id="neo4jTemplate" class="org.springframework.data.neo4j.support.Neo4jTemplate">
-        <property name="infrastructure" ref="mappingInfrastructure"/>
+        <constructor-arg name="infrastructure" ref="mappingInfrastructure"/>
     </bean>
     <bean id="graphEntityInstantiator" class="org.springframework.data.neo4j.cross_store.support.node.CrossStoreNodeEntityInstantiator">
         <constructor-arg ref="nodeEntityInstantiator"/>
@@ -102,27 +78,21 @@
     <bean id="relationshipTypeRepresentationStrategy" factory-bean="typeRepresentationStrategyFactory" factory-method="getRelationshipTypeRepresentationStrategy"/>
 
     <bean id="nodeEntityStateFactory" class="org.springframework.data.neo4j.cross_store.support.node.CrossStoreNodeEntityStateFactory">
-    	<property name="nodeDelegatingFieldAccessorFactory">
-		    <bean class="org.springframework.data.neo4j.fieldaccess.NodeDelegatingFieldAccessorFactory">
-		        <constructor-arg ref="neo4jTemplate"/>
-		    </bean>
-    	</property>
-    	<property name="template" ref="neo4jTemplate"/>
-		<property name="entityManagerFactory" ref="entityManagerFactory"/>
-		<property name="mappingContext" ref="mappingContext"/>
+        <constructor-arg ref="mappingContext"/>
+        <constructor-arg>
+            <bean class="org.springframework.data.neo4j.cross_store.support.node.CrossStoreNodeDelegatingFieldAccessorFactory$Factory"/>
+        </constructor-arg>
+		<constructor-arg name="entityManagerFactory" ref="entityManagerFactory"/>
     </bean>
 
     <bean id="mappingContext" class="org.springframework.data.neo4j.support.mapping.Neo4jMappingContext"/>
 
 
     <bean id="relationshipEntityStateFactory" class="org.springframework.data.neo4j.support.relationship.RelationshipEntityStateFactory">
-    	<property name="relationshipDelegatingFieldAccessorFactory">
-		    <bean class="org.springframework.data.neo4j.fieldaccess.RelationshipDelegatingFieldAccessorFactory">
-		        <constructor-arg ref="neo4jTemplate"/>
-		    </bean>
-    	</property>
-    	<property name="template" ref="neo4jTemplate"/>
-    	<property name="mappingContext" ref="mappingContext"/>
+        <constructor-arg ref="mappingContext"/>
+        <constructor-arg>
+            <bean class="org.springframework.data.neo4j.fieldaccess.RelationshipDelegatingFieldAccessorFactory$Factory"/>
+        </constructor-arg>
     </bean>
     
 

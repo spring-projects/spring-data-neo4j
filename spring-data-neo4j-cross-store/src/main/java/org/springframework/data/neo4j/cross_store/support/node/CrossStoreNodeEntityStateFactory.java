@@ -19,9 +19,12 @@ import org.neo4j.graphdb.Node;
 import org.springframework.data.neo4j.annotation.NodeEntity;
 import org.springframework.data.neo4j.aspects.core.NodeBacked;
 import org.springframework.data.neo4j.core.EntityState;
+import org.springframework.data.neo4j.fieldaccess.DelegatingFieldAccessorFactory;
 import org.springframework.data.neo4j.fieldaccess.DetachedEntityState;
+import org.springframework.data.neo4j.fieldaccess.FieldAccessorFactoryFactory;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentEntity;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
+import org.springframework.data.neo4j.support.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.support.node.NodeEntityStateFactory;
 
 import javax.persistence.EntityManagerFactory;
@@ -32,16 +35,21 @@ import javax.persistence.PersistenceUnitUtil;
  * @since 30.09.11
  */
 public class CrossStoreNodeEntityStateFactory extends NodeEntityStateFactory {
-    private CrossStoreNodeEntityState.CrossStoreNodeDelegatingFieldAccessorFactory delegatingFieldAccessorFactory;
-    private EntityManagerFactory entityManagerFactory;
+    private final EntityManagerFactory entityManagerFactory;
 
-    public EntityState<Node> getEntityState(final Object entity, boolean detachable) {
+    public CrossStoreNodeEntityStateFactory(Neo4jMappingContext neo4jMappingContext, FieldAccessorFactoryFactory factory, EntityManagerFactory entityManagerFactory) {
+        super(neo4jMappingContext, factory);
+        this.entityManagerFactory = entityManagerFactory;
+    }
+
+    public EntityState<Node> getEntityState(final Object entity, boolean detachable, Neo4jTemplate template) {
         final Class<?> entityType = entity.getClass();
         if (isPartial(entityType)) {
             final Neo4jPersistentEntity<?> persistentEntity = mappingContext.getPersistentEntity(entityType);
+            final DelegatingFieldAccessorFactory fieldAccessorFactory = nodeDelegatingFieldAccessorFactory.provideFactoryFor(template);
             @SuppressWarnings("unchecked") final CrossStoreNodeEntityState<NodeBacked> partialNodeEntityState =
                     new CrossStoreNodeEntityState<NodeBacked>(null, (NodeBacked)entity, (Class<? extends NodeBacked>) entityType,
-                            template, getPersistenceUnitUtils(), delegatingFieldAccessorFactory,
+                            template, getPersistenceUnitUtils(), fieldAccessorFactory,
                             persistentEntity);
             if (!detachable) return partialNodeEntityState;
             return new DetachedEntityState<Node>(partialNodeEntityState, template) {
@@ -51,7 +59,7 @@ public class CrossStoreNodeEntityStateFactory extends NodeEntityStateFactory {
                 }
             };
         } else {
-            return super.getEntityState(entity,detachable);
+            return super.getEntityState(entity,detachable, template);
         }
     }
 
@@ -64,15 +72,4 @@ public class CrossStoreNodeEntityStateFactory extends NodeEntityStateFactory {
         if (entityManagerFactory == null|| !entityManagerFactory.isOpen()) return null;
         return entityManagerFactory.getPersistenceUnitUtil();
     }
-
-    public void setEntityManagerFactory(EntityManagerFactory entityManagerFactory) {
-        this.entityManagerFactory = entityManagerFactory;
-    }
-
-    @Override
-    public void setTemplate(Neo4jTemplate template) {
-        super.setTemplate(template);
-         this.delegatingFieldAccessorFactory = new CrossStoreNodeEntityState.CrossStoreNodeDelegatingFieldAccessorFactory(template);
-    }
-
 }

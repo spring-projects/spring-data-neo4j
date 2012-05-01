@@ -13,16 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.neo4j.support.node;
+package org.springframework.data.neo4j.support;
 
-import org.neo4j.graphdb.PropertyContainer;
-import org.springframework.data.neo4j.core.EntityState;
-import org.springframework.data.neo4j.support.Neo4jTemplate;
+import org.springframework.data.neo4j.conversion.ResultConverter;
 
 /**
- * @author mh
- * @since 07.10.11
- */
-public interface EntityStateFactory<S extends PropertyContainer> {
-    EntityState<S> getEntityState(final Object entity, boolean detachable, Neo4jTemplate template);
+* @author mh
+* @since 19.04.12
+*/
+public interface Neo4jTemplateAware<T,R> {
+    ResultConverter<T,R> with(Neo4jTemplate template);
 }

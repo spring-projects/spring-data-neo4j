@@ -21,8 +21,10 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.neo4j.aspects.config.Neo4jAspectConfiguration;
+import org.springframework.data.neo4j.cross_store.support.node.CrossStoreNodeDelegatingFieldAccessorFactory;
 import org.springframework.data.neo4j.cross_store.support.node.CrossStoreNodeEntityInstantiator;
 import org.springframework.data.neo4j.cross_store.support.node.CrossStoreNodeEntityStateFactory;
+import org.springframework.data.neo4j.fieldaccess.FieldAccessorFactoryFactory;
 import org.springframework.data.neo4j.mapping.EntityInstantiator;
 import org.springframework.data.neo4j.support.node.NodeEntityInstantiator;
 import org.springframework.data.neo4j.support.node.NodeEntityStateFactory;
@@ -77,10 +79,14 @@ public class CrossStoreNeo4jConfiguration extends Neo4jAspectConfiguration {
 		}
 	}
 
+    @Override
+    public FieldAccessorFactoryFactory nodeDelegatingFieldAccessorFactory() throws Exception {
+        return new CrossStoreNodeDelegatingFieldAccessorFactory.Factory();
+    }
+
     @Bean
     public NodeEntityStateFactory nodeEntityStateFactory() throws Exception {
-        final CrossStoreNodeEntityStateFactory nodeEntityStateFactory = new CrossStoreNodeEntityStateFactory();
-        nodeEntityStateFactory.setEntityManagerFactory(entityManagerFactory);
-        return nodeEntityStateFactory;
+        return new CrossStoreNodeEntityStateFactory(neo4jMappingContext(),nodeDelegatingFieldAccessorFactory(),entityManagerFactory);
     }
+
 }

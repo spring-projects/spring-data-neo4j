@@ -13,16 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.neo4j.support.node;
+package org.springframework.data.neo4j.fieldaccess;
 
-import org.neo4j.graphdb.PropertyContainer;
-import org.springframework.data.neo4j.core.EntityState;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
 
 /**
  * @author mh
- * @since 07.10.11
+ * @since 24.04.12
  */
-public interface EntityStateFactory<S extends PropertyContainer> {
-    EntityState<S> getEntityState(final Object entity, boolean detachable, Neo4jTemplate template);
+public abstract class FieldAccessorFactoryFactory {
+
+    private DelegatingFieldAccessorFactory accessorFactory;
+
+    public abstract DelegatingFieldAccessorFactory create(Neo4jTemplate template);
+
+    public DelegatingFieldAccessorFactory provideFactoryFor(Neo4jTemplate template) {
+        if (accessorFactory != null) return accessorFactory;
+        synchronized (this) {
+            if (accessorFactory != null) return accessorFactory;
+            accessorFactory = create(template);
+            return accessorFactory;
+        }
+    }
 }

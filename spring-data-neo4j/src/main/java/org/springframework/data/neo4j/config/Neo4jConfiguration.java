@@ -26,19 +26,20 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.DependsOn;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.dao.support.PersistenceExceptionTranslator;
 import org.springframework.data.convert.DefaultTypeMapper;
 import org.springframework.data.convert.TypeMapper;
 import org.springframework.data.neo4j.core.GraphDatabase;
 import org.springframework.data.neo4j.core.TypeRepresentationStrategy;
-import org.springframework.data.neo4j.fieldaccess.DelegatingFieldAccessorFactory;
+import org.springframework.data.neo4j.fieldaccess.FieldAccessorFactoryFactory;
 import org.springframework.data.neo4j.fieldaccess.Neo4jConversionServiceFactoryBean;
 import org.springframework.data.neo4j.fieldaccess.NodeDelegatingFieldAccessorFactory;
 import org.springframework.data.neo4j.fieldaccess.RelationshipDelegatingFieldAccessorFactory;
 import org.springframework.data.neo4j.mapping.EntityInstantiator;
 import org.springframework.data.neo4j.support.DelegatingGraphDatabase;
-import org.springframework.data.neo4j.support.MappingInfrastructure;
+import org.springframework.data.neo4j.support.MappingInfrastructureFactoryBean;
 import org.springframework.data.neo4j.support.Neo4jExceptionTranslator;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
 import org.springframework.data.neo4j.support.index.IndexProvider;
@@ -91,46 +92,42 @@ public abstract class Neo4jConfiguration {
         this.conversionService = conversionService;
     }
 
-    @Autowired
+    @Autowired(required = true)
     public void setGraphDatabaseService(GraphDatabaseService graphDatabaseService) {
         this.graphDatabaseService = graphDatabaseService;
     }
 
     @Bean
-    public MappingInfrastructure mappingInfrastructure() throws Exception {
-        MappingInfrastructure infrastructure = new MappingInfrastructure();
-        infrastructure.setGraphDatabaseService(getGraphDatabaseService());
-        infrastructure.setTypeRepresentationStrategyFactory(typeRepresentationStrategyFactory());
-        infrastructure.setConversionService(neo4jConversionService());
-        infrastructure.setMappingContext(neo4jMappingContext());
-        infrastructure.setEntityStateHandler(entityStateHandler());
+    public MappingInfrastructureFactoryBean mappingInfrastructure() throws Exception {
+        MappingInfrastructureFactoryBean factoryBean = new MappingInfrastructureFactoryBean();
+        factoryBean.setGraphDatabaseService(getGraphDatabaseService());
+        factoryBean.setTypeRepresentationStrategyFactory(typeRepresentationStrategyFactory());
+        factoryBean.setConversionService(neo4jConversionService());
+        factoryBean.setMappingContext(neo4jMappingContext());
+        factoryBean.setEntityStateHandler(entityStateHandler());
 
-        infrastructure.setNodeEntityStateFactory(nodeEntityStateFactory());
-        infrastructure.setNodeTypeRepresentationStrategy(nodeTypeRepresentationStrategy());
-        infrastructure.setNodeEntityInstantiator(graphEntityInstantiator());
+        factoryBean.setNodeEntityStateFactory(nodeEntityStateFactory());
+        factoryBean.setNodeTypeRepresentationStrategy(nodeTypeRepresentationStrategy());
+        factoryBean.setNodeEntityInstantiator(graphEntityInstantiator());
 
-        infrastructure.setRelationshipEntityStateFactory(relationshipEntityStateFactory());
-        infrastructure.setRelationshipTypeRepresentationStrategy(relationshipTypeRepresentationStrategy());
-        infrastructure.setRelationshipEntityInstantiator(graphRelationshipInstantiator());
+        factoryBean.setRelationshipEntityStateFactory(relationshipEntityStateFactory());
+        factoryBean.setRelationshipTypeRepresentationStrategy(relationshipTypeRepresentationStrategy());
+        factoryBean.setRelationshipEntityInstantiator(graphRelationshipInstantiator());
 
-        infrastructure.setTransactionManager(neo4jTransactionManager());
-        infrastructure.setGraphDatabase(graphDatabase());
+        factoryBean.setTransactionManager(neo4jTransactionManager());
+        factoryBean.setGraphDatabase(graphDatabase());
         
-        infrastructure.setIndexProvider(indexProvider());
+        factoryBean.setIndexProvider(indexProvider());
 
         if (validator!=null) {
-            infrastructure.setValidator(validator);
+            factoryBean.setValidator(validator);
         }
-        return infrastructure;
+        return factoryBean;
     }
 
-    @Bean(initMethod="postConstruct")
+    @Bean
     public Neo4jTemplate neo4jTemplate() throws Exception {
-        final Neo4jTemplate neo4jTemplate = new Neo4jTemplate();
-        neo4jTemplate.setInfrastructure(mappingInfrastructure());
-        nodeEntityStateFactory().setTemplate(neo4jTemplate);
-        relationshipEntityStateFactory().setTemplate(neo4jTemplate);
-        return neo4jTemplate;
+        return new Neo4jTemplate(mappingInfrastructure().getObject());
 	}
 
     @Bean
@@ -201,9 +198,6 @@ public abstract class Neo4jConfiguration {
     public Neo4jMappingContext neo4jMappingContext() throws Exception {
         final Neo4jMappingContext mappingContext = new Neo4jMappingContext();
         mappingContext.setEntityAlias(entityAlias());
-        nodeEntityStateFactory().setMappingContext(mappingContext);
-        relationshipEntityStateFactory().setMappingContext(mappingContext);
-
         return mappingContext;
     }
 
@@ -214,26 +208,22 @@ public abstract class Neo4jConfiguration {
 
     @Bean
     public RelationshipEntityStateFactory relationshipEntityStateFactory() throws Exception {
-        return new RelationshipEntityStateFactory();
+        return new RelationshipEntityStateFactory(neo4jMappingContext(),relationshipDelegatingFieldAccessorFactory());
     }
 
     @Bean
     public NodeEntityStateFactory nodeEntityStateFactory() throws Exception {
-        return new NodeEntityStateFactory();
+        return new NodeEntityStateFactory(neo4jMappingContext(), nodeDelegatingFieldAccessorFactory());
     }
 
     @Bean
-    public DelegatingFieldAccessorFactory nodeDelegatingFieldAccessorFactory() throws Exception {
-        final NodeDelegatingFieldAccessorFactory nodeDelegatingFieldAccessorFactory = new NodeDelegatingFieldAccessorFactory(neo4jTemplate());
-        nodeEntityStateFactory().setNodeDelegatingFieldAccessorFactory(nodeDelegatingFieldAccessorFactory);
-        return nodeDelegatingFieldAccessorFactory;
+    public FieldAccessorFactoryFactory nodeDelegatingFieldAccessorFactory() throws Exception {
+        return new NodeDelegatingFieldAccessorFactory.Factory();
     }
-    
+
     @Bean
-    public DelegatingFieldAccessorFactory relationshipDelegatingFieldAccessorFactory() throws Exception {
-        final RelationshipDelegatingFieldAccessorFactory relationshipDelegatingFieldAccessorFactory = new RelationshipDelegatingFieldAccessorFactory(neo4jTemplate());
-        relationshipEntityStateFactory().setRelationshipDelegatingFieldAccessorFactory(relationshipDelegatingFieldAccessorFactory);
-        return relationshipDelegatingFieldAccessorFactory;
+    public FieldAccessorFactoryFactory relationshipDelegatingFieldAccessorFactory() throws Exception {
+        return new RelationshipDelegatingFieldAccessorFactory.Factory();
     }
 
     @Bean(name = {"neo4jTransactionManager","transactionManager"})
@@ -263,6 +253,8 @@ public abstract class Neo4jConfiguration {
     }
 
     @Bean
+    @Autowired
+    @DependsOn("graphDatabaseService")
     public GraphDatabase graphDatabase() {
         if (graphDatabaseService instanceof GraphDatabase) return (GraphDatabase) graphDatabaseService;
         return new DelegatingGraphDatabase(graphDatabaseService);
@@ -282,4 +274,5 @@ public abstract class Neo4jConfiguration {
     public IndexProvider indexProvider() throws Exception {
         return new IndexProviderImpl(neo4jMappingContext(), graphDatabase());
     }
+
 }

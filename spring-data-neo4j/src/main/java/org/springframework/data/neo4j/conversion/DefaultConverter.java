@@ -78,21 +78,21 @@ public class DefaultConverter<T,R> implements ResultConverter<T,R> {
         return null;
     }
 
-    protected Path toPath(Object value, Class<?> sourceType) {
+    public Path toPath(Object value, Class<?> sourceType) {
         if (Node.class.isAssignableFrom(sourceType)) return new NodePath((Node) value);
         if (Relationship.class.isAssignableFrom(sourceType)) return new RelationshipPath((Relationship) value);
         if (Path.class.isAssignableFrom(sourceType)) return (Path) value;
         return null;
     }
 
-    protected Relationship toRelationship(Object value, Class<?> sourceType) {
+    public Relationship toRelationship(Object value, Class<?> sourceType) {
         if (Relationship.class.isAssignableFrom(sourceType)) return ((Relationship) value);
         if (Path.class.isAssignableFrom(sourceType)) return ((Path) value).lastRelationship();
         if (Node.class.isAssignableFrom(sourceType)) return ((Node) value).getRelationships().iterator().next();
         return null;
     }
 
-    protected Node toNode(Object value, Class<?> sourceType) {
+    public Node toNode(Object value, Class<?> sourceType) {
         if (Node.class.isAssignableFrom(sourceType)) return (Node)value;
         if (Path.class.isAssignableFrom(sourceType)) return ((Path) value).endNode();
         if (Relationship.class.isAssignableFrom(sourceType)) return ((Relationship) value).getEndNode();

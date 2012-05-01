@@ -106,7 +106,7 @@ public void foo( @Context WorldRepository repo ) {
 <dependency>
   <groupId>org.springframework.data</groupId>
   <artifactId>spring-data-neo4j-rest</artifactId>
-  <version>2.0.0.RELEASE</version>
+  <version>2.1.0.RC1</version>
 </dependency>
 ]]></programlisting>
             </example>
