@@ -36,7 +36,6 @@ import org.springframework.data.neo4j.core.GraphDatabase;
 import org.springframework.data.neo4j.core.TypeRepresentationStrategy;
 import org.springframework.data.neo4j.core.UncategorizedGraphStoreException;
 import org.springframework.data.neo4j.fieldaccess.GraphBackedEntityIterableWrapper;
-import org.springframework.data.neo4j.mapping.EntityPersister2;
 import org.springframework.data.neo4j.mapping.IndexInfo;
 import org.springframework.data.neo4j.mapping.MappingPolicy;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
@@ -80,7 +79,7 @@ import static org.springframework.data.neo4j.support.ParameterCheck.notNull;
 /*
 TODO This is a  merge of GraphDatabaseContext and the previous Neo4jTemplate, so it still contains inconsistencies, if you spot them, please mark them with a TODO
  */
-public class Neo4jTemplate implements Neo4jOperations , EntityPersister2 {
+public class Neo4jTemplate implements Neo4jOperations {
     private static final Logger log = LoggerFactory.getLogger(Neo4jTemplate.class);
 
     private final Infrastructure infrastructure;
