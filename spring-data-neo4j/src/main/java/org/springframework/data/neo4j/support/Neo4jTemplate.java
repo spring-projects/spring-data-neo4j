@@ -163,18 +163,15 @@ public class Neo4jTemplate implements Neo4jOperations {
         return infrastructure.getTypeRepresentationStrategies().count(getEntityType(entityClass));
     }
 
-    @Override
     public <S extends PropertyContainer, T> T createEntityFromStoredType(S state) {
         notNull(state,"node or relationship");
         return infrastructure.getEntityPersister().createEntityFromStoredType(state, this);
     }
-    @Override
     public <S extends PropertyContainer, T> T createEntityFromStoredType(S state, MappingPolicy mappingPolicy) {
         notNull(state,"node or relationship");
         return infrastructure.getEntityPersister().createEntityFromStoredType(state, mappingPolicy, this);
     }
 
-    @Override
     public <S extends PropertyContainer, T> T createEntityFromState(S state, Class<T> type, MappingPolicy mappingPolicy) {
         notNull(state,"node or relationship",type,"entity class");
         return infrastructure.getEntityPersister().createEntityFromState(state, type, mappingPolicy, this);
@@ -190,7 +187,6 @@ public class Neo4jTemplate implements Neo4jOperations {
         notNull(entity,"entity",targetType,"new entity class");
         return infrastructure.getEntityPersister().projectTo(entity, targetType, this);
     }
-    @Override
     public <T> T projectTo(Object entity, Class<T> targetType, MappingPolicy mappingPolicy) {
         notNull(entity,"entity",targetType,"new entity class");
         return infrastructure.getEntityPersister().projectTo(entity, targetType, mappingPolicy, this);
@@ -281,12 +277,10 @@ public class Neo4jTemplate implements Neo4jOperations {
         return infrastructure.getGraphDatabaseService().beginTx();
     }
 
-    @Override
     public boolean isNodeEntity(Class<?> targetType) {
         return getMappingContext().isNodeEntity(targetType);
     }
 
-    @Override
     public boolean isRelationshipEntity(Class<?> targetType) {
         return getMappingContext().isRelationshipEntity(targetType);
     }
