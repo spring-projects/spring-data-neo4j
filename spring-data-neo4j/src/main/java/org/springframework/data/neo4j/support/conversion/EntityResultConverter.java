@@ -27,6 +27,7 @@ import org.springframework.data.neo4j.support.Neo4jTemplate;
 import org.springframework.data.neo4j.support.Neo4jTemplateAware;
 import org.springframework.data.neo4j.support.path.ConvertingEntityPath;
 
+import javax.inject.Provider;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Proxy;
 import java.util.Map;
