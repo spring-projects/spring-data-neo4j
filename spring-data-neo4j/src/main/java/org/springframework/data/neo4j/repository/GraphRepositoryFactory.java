@@ -71,7 +71,7 @@ public class GraphRepositoryFactory extends RepositoryFactorySupport {
     @SuppressWarnings({ "unchecked", "rawtypes" })
     protected Object getTargetRepository(RepositoryMetadata metadata, Neo4jTemplate template) {
 
-        Class<?> type = metadata.getDomainClass();
+        Class<?> type = metadata.getDomainType();
         GraphEntityInformation entityInformation = (GraphEntityInformation)getEntityInformation(type);
         // todo entityInformation.isGraphBacked();
         if (entityInformation.isNodeEntity()) {
@@ -83,7 +83,7 @@ public class GraphRepositoryFactory extends RepositoryFactorySupport {
 
     @Override
     protected Class<?> getRepositoryBaseClass(RepositoryMetadata repositoryMetadata) {
-        Class<?> domainClass = repositoryMetadata.getDomainClass();
+        Class<?> domainClass = repositoryMetadata.getDomainType();
 
         @SuppressWarnings("rawtypes")
         final GraphEntityInformation entityInformation = (GraphEntityInformation) getEntityInformation(domainClass);
