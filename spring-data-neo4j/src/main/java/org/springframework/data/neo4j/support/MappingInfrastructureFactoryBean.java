@@ -20,11 +20,15 @@ import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.data.neo4j.annotation.QueryType;
 import org.springframework.data.neo4j.conversion.ResultConverter;
 import org.springframework.data.neo4j.core.GraphDatabase;
 import org.springframework.data.neo4j.core.TypeRepresentationStrategy;
+import org.springframework.data.neo4j.fieldaccess.Neo4jConversionServiceFactoryBean;
+import org.springframework.data.neo4j.fieldaccess.NodeDelegatingFieldAccessorFactory;
+import org.springframework.data.neo4j.fieldaccess.RelationshipDelegatingFieldAccessorFactory;
 import org.springframework.data.neo4j.mapping.EntityInstantiator;
 import org.springframework.data.neo4j.support.conversion.EntityResultConverter;
 import org.springframework.data.neo4j.support.index.IndexProvider;
@@ -36,12 +40,15 @@ import org.springframework.data.neo4j.support.mapping.Neo4jEntityPersister;
 import org.springframework.data.neo4j.support.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.support.node.EntityStateFactory;
 import org.springframework.data.neo4j.support.node.NodeEntityInstantiator;
+import org.springframework.data.neo4j.support.node.NodeEntityStateFactory;
 import org.springframework.data.neo4j.support.query.CypherQueryExecutor;
 import org.springframework.data.neo4j.support.relationship.RelationshipEntityInstantiator;
+import org.springframework.data.neo4j.support.relationship.RelationshipEntityStateFactory;
 import org.springframework.data.neo4j.support.typerepresentation.TypeRepresentationStrategies;
 import org.springframework.data.neo4j.support.typerepresentation.TypeRepresentationStrategyFactory;
 import org.springframework.transaction.PlatformTransactionManager;
 
+import javax.inject.Provider;
 import javax.validation.Validator;
 
 /**
@@ -88,9 +95,13 @@ public class MappingInfrastructureFactoryBean implements FactoryBean<Infrastruct
 
     @Override
     public void afterPropertiesSet() {
+        try {
         if (this.mappingContext == null) this.mappingContext = new Neo4jMappingContext();
         if (this.graphDatabase == null) {
             this.graphDatabase = new DelegatingGraphDatabase(graphDatabaseService);
+        }
+        if (this.conversionService==null) {
+            this.conversionService=new Neo4jConversionServiceFactoryBean().getObject();
         }
         if (nodeEntityInstantiator == null) {
             nodeEntityInstantiator = new NodeEntityInstantiator(entityStateHandler);
@@ -106,6 +117,12 @@ public class MappingInfrastructureFactoryBean implements FactoryBean<Infrastruct
         }
         if (this.relationshipTypeRepresentationStrategy == null) {
             this.relationshipTypeRepresentationStrategy = typeRepresentationStrategyFactory.getRelationshipTypeRepresentationStrategy();
+        }
+        if (this.nodeEntityStateFactory==null) {
+            this.nodeEntityStateFactory = new NodeEntityStateFactory(mappingContext, new NodeDelegatingFieldAccessorFactory.Factory());
+        }
+        if (this.relationshipEntityStateFactory==null) {
+            this.relationshipEntityStateFactory = new RelationshipEntityStateFactory(mappingContext, new RelationshipDelegatingFieldAccessorFactory.Factory());
         }
         this.typeRepresentationStrategies = new TypeRepresentationStrategies(mappingContext, nodeTypeRepresentationStrategy, relationshipTypeRepresentationStrategy);
 
@@ -123,6 +140,9 @@ public class MappingInfrastructureFactoryBean implements FactoryBean<Infrastruct
             this.indexProvider = new IndexProviderImpl(this.mappingContext, graphDatabase);
         }
         this.mappingInfrastructure = new MappingInfrastructure(graphDatabase, graphDatabaseService, indexProvider, resultConverter, transactionManager, typeRepresentationStrategies, entityRemover, entityPersister, entityStateHandler, cypherQueryExecutor, mappingContext, relationshipTypeRepresentationStrategy, nodeTypeRepresentationStrategy, validator, conversionService);
+        } catch (Exception e) {
+            throw new RuntimeException("error initializing "+getClass().getName(),e);
+        }
     }
 
     public void setTransactionManager(PlatformTransactionManager transactionManager) {
