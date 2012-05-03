@@ -128,7 +128,7 @@
 		<org.springframework.version>[${org.springframework.version.30}, ${org.springframework.version.40})</org.springframework.version>
 		<data.commons.version>1.3.0.RC2</data.commons.version>
         <neo4j.version>1.7</neo4j.version>
-        <neo4j.spatial.version>0.8-SNAPSHOT</neo4j.spatial.version>
+        <neo4j.spatial.version>0.8</neo4j.spatial.version>
         <aspectj.version>1.6.12</aspectj.version>
         <blueprints.version>1.2</blueprints.version>
         <gremlin.version>1.5</gremlin.version>
@@ -467,7 +467,7 @@
       <dependency>
           <groupId>org.neo4j</groupId>
           <artifactId>neo4j-cypher-dsl</artifactId>
-          <version>1.7-SNAPSHOT</version> <!-- TODO -->
+          <version>1.7</version> <!-- TODO -->
           <!--optional>true</optional-->
       </dependency>
       <dependency>
