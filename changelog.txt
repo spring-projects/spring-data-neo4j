@@ -1,6 +1,16 @@
 Spring Data Graph Changelog
 ===========================
 
+Changes in version 2.1.RC1 (2012-05-04)
+--------------------------------------
+* DATAGRAPH-228 update to Neo4j 1.7, SD-Commons 1.3.0.RC2, Neo4j-Spatial 0.8, Neo4j-Java-Rest-Binding 1.7
+* DATAGRAPH-206 Neo4jTemplate can now also be instantiated directly, MappingInfrastructureFactoryBean takes care of providing dependencies
+* DATAGRAPH-219, DATAGRAPH-210 unique relationships with annotation and via template, and documentation for unique entities
+* DATAGRAPH-221 indexed needed by the persistent entities are now created upfront by an MappingContextListener to satisfy cypher checks
+* DATAGRAPH-214 numeric fields can be indexed non-numerically
+* DATAGRAPH-181 fix for creating unique entities with numeric unique fields
+* DATAGRAPH-213 support inheritance (querying) of relationship-entities
+
 Changes in version 2.1.M1 (2012-03-02)
 --------------------------------------
 thanks to Mark Spitzler, Oliver Gierke, Rajaram Ganeshan, Laurent Pireyn
