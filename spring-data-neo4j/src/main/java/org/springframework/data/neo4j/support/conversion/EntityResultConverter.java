@@ -36,18 +36,24 @@ import java.util.Map;
  * @author mh
  * @since 28.06.11
  */
-public class EntityResultConverter<T, R> extends DefaultConverter<T, R> implements Neo4jTemplateAware<T,R> {
+public class EntityResultConverter<T, R> extends DefaultConverter<T, R> implements Neo4jTemplateAware<EntityResultConverter<T,R>> {
     private final ConversionService conversionService;
+    private Neo4jTemplate template;
 
     public EntityResultConverter(ConversionService conversionService) {
         this.conversionService = conversionService;
     }
 
-    private Neo4jTemplate template;
+    public EntityResultConverter( ConversionService conversionService, Neo4jTemplate template )
+    {
+        this.conversionService = conversionService;
+        this.template = template;
+    }
+
     @Override
-    public ResultConverter<T,R> with(Neo4jTemplate template) {
-        if (template==null) throw new IllegalArgumentException( "Template for EntityResultConverter is null" );
-        this.template=template;
+    public EntityResultConverter<T,R> with(Neo4jTemplate template) {
+        if (template == null) throw new IllegalArgumentException( "Template for EntityResultConverter must not be null" );
+        this.template = template;
         return this;
     }
 

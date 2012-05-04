@@ -71,7 +71,7 @@ public class QueryEngineTest extends EntityTestBase {
     public void setUp() throws Exception {
         GraphDatabase graphDatabase = createGraphDatabase();
         graphDatabase.setConversionService(conversionService);
-        entityResultConverter = new EntityResultConverter(conversionService);
+        entityResultConverter = new EntityResultConverter(conversionService).with( template );
         testTeam.createSDGTeam();
         queryEngine = graphDatabase.queryEngineFor(QueryType.Cypher);
         michael = testTeam.michael;
@@ -104,7 +104,7 @@ public class QueryEngineTest extends EntityTestBase {
     @Test
     public void testQueryListOfTypePerson() throws Exception {
         final String queryString = "start person=node:`name-index`(name={name}) match (person) <-[:boss]- (boss) return boss";
-        final Collection<Person> result = IteratorUtil.asCollection(queryEngine.query(queryString, michaelsName()).to(Person.class, new EntityResultConverter(conversionService)));
+        final Collection<Person> result = IteratorUtil.asCollection(queryEngine.query(queryString, michaelsName()).to(Person.class, new EntityResultConverter(conversionService, template )));
 
         assertEquals(asList(testTeam.emil),result);
     }
@@ -116,7 +116,7 @@ public class QueryEngineTest extends EntityTestBase {
     @Test
     public void testQuerySingleOfTypePerson() throws Exception {
         final String queryString = "start person=node:`name-index`(name={name}) match (person) <-[:boss]- (boss) return boss";
-        final Person result = queryEngine.query(queryString, michaelsName()).to(Person.class, new EntityResultConverter<Map<String,Object>,Person>(conversionService)).single();
+        final Person result = queryEngine.query(queryString, michaelsName()).to(Person.class, new EntityResultConverter<Map<String,Object>,Person>(conversionService,template)).single();
 
         assertEquals(testTeam.emil,result);
     }
