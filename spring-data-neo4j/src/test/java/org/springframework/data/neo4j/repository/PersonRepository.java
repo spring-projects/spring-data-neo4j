@@ -19,11 +19,12 @@ package org.springframework.data.neo4j.repository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.neo4j.annotation.MapResult;
 import org.springframework.data.neo4j.annotation.Query;
 import org.springframework.data.neo4j.annotation.QueryType;
+import org.springframework.data.neo4j.annotation.ResultColumn;
 import org.springframework.data.neo4j.model.Group;
 import org.springframework.data.neo4j.model.Person;
-import org.springframework.data.neo4j.model.Personality;
 import org.springframework.data.repository.query.Param;
 
 import java.util.Map;
@@ -79,5 +80,18 @@ public interface PersonRepository extends GraphRepository<Person>, NamedIndexRep
     Iterable<Person> findByPersonality(String personality);
 
     Iterable<Person> findByAge(int age);
+
+    @Query("start person=node:`name-index`('name:*') return person.name as name, person order by name asc ")
+    Iterable<NameAndPersonResult> getAllNamesAndPeople();
+
+    @MapResult
+    interface NameAndPersonResult
+    {
+        @ResultColumn("name")
+        String getName();
+
+        @ResultColumn("person")
+        Person getPerson();
+    }
 }
 
