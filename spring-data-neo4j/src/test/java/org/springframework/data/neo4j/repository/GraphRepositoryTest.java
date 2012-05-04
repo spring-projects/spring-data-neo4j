@@ -374,4 +374,14 @@ public class GraphRepositoryTest {
         final List<Being> beings = beingRepository.findAll().as(List.class);
         assertEquals(3,beings.size());
     }
+
+    @Test
+    public void findWithMapResult() throws InterruptedException
+    {
+        Iterable<PersonRepository.NameAndPersonResult> result = personRepository.getAllNamesAndPeople();
+        PersonRepository.NameAndPersonResult nameAndPerson = IteratorUtil.first( result );
+        assertEquals( testTeam.david.getName(), nameAndPerson.getName() );
+        assertEquals( testTeam.david, nameAndPerson.getPerson() );
+    }
+
 }
