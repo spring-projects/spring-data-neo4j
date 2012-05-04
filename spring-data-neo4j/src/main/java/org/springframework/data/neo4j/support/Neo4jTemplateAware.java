@@ -21,6 +21,6 @@ import org.springframework.data.neo4j.conversion.ResultConverter;
 * @author mh
 * @since 19.04.12
 */
-public interface Neo4jTemplateAware<T,R> {
-    ResultConverter<T,R> with(Neo4jTemplate template);
+public interface Neo4jTemplateAware<T> {
+    T with(Neo4jTemplate template);
 }

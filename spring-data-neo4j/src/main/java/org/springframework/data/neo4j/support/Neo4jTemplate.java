@@ -496,7 +496,7 @@ public class Neo4jTemplate implements Neo4jOperations {
     public ResultConverter getDefaultConverter() {
         final ResultConverter resultConverter = infrastructure.getResultConverter();
         if (resultConverter instanceof Neo4jTemplateAware) {
-            return ((Neo4jTemplateAware)resultConverter).with(this);
+            return ((Neo4jTemplateAware<ResultConverter>)resultConverter).with(this);
         }
         return resultConverter;
     }
