@@ -43,11 +43,11 @@ public class EntityResultConverter<T, R> extends DefaultConverter<T, R> implemen
         this.conversionService = conversionService;
     }
 
-    private static ThreadLocal<Neo4jTemplate> holder = new ThreadLocal<Neo4jTemplate>();
-
+    private Neo4jTemplate template;
     @Override
     public ResultConverter<T,R> with(Neo4jTemplate template) {
-        holder.set(template);
+        if (template==null) throw new IllegalArgumentException( "Template for EntityResultConverter is null" );
+        this.template=template;
         return this;
     }
 
@@ -55,7 +55,6 @@ public class EntityResultConverter<T, R> extends DefaultConverter<T, R> implemen
     @SuppressWarnings("unchecked")
     @Override
     protected Object doConvert(Object value, Class<?> sourceType, Class targetType, MappingPolicy mappingPolicy) {
-        Neo4jTemplate template = holder.get();
         if (EntityPath.class.isAssignableFrom(targetType)) {
             return new ConvertingEntityPath(toPath(value, sourceType),template);
         }
