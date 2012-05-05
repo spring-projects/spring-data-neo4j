@@ -38,7 +38,7 @@
         <dependency>
             <groupId>org.neo4j</groupId>
             <artifactId>neo4j-rest-graphdb</artifactId>
-            <version>1.7-SNAPSHOT</version>
+            <version>1.7</version>
             <exclusions>
                <exclusion>
                    <groupId>org.neo4j</groupId>
