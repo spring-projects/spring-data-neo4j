@@ -376,6 +376,7 @@ public class GraphRepositoryTest {
     }
 
     @Test
+    @Transactional
     public void findWithMapResult() throws InterruptedException
     {
         Iterable<PersonRepository.NameAndPersonResult> result = personRepository.getAllNamesAndPeople();
