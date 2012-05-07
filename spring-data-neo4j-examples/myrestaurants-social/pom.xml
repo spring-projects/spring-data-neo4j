@@ -4,7 +4,7 @@
 	<groupId>com.springone.myrestaurants</groupId>
 	<artifactId>myrestaurants-social</artifactId>
 	<packaging>war</packaging>
-	<version>2.1.0.BUILD-SNAPSHOT</version>
+	<version>2.1.0.RC1</version>
 	<name>myrestaurants-social</name>
 	<properties>
 		<spring.version>3.1.0.RELEASE</spring.version>
