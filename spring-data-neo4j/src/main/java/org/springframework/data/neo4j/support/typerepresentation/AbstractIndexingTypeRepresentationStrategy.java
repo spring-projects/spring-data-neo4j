@@ -44,6 +44,7 @@ public abstract class AbstractIndexingTypeRepresentationStrategy<S extends Prope
         this.indexProvider = indexProvider;
         INDEX_NAME = indexName;
         this.clazz = clazz;
+        getTypesIndex();
     }
 
     @SuppressWarnings("unchecked")
