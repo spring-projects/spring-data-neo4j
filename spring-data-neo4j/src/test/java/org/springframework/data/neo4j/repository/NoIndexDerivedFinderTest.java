@@ -28,6 +28,7 @@ import org.neo4j.test.ImpermanentGraphDatabase;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.neo4j.conversion.EndResult;
 import org.springframework.data.neo4j.model.Person;
 import org.springframework.test.context.CleanContextCacheTestExecutionListener;
 import org.springframework.test.context.ContextConfiguration;
@@ -53,6 +54,12 @@ public class NoIndexDerivedFinderTest {
     public void findByAge() {
         Iterable<Person> result = personRepository.findByAge(0);
         assertEquals(0,IteratorUtil.count(result));
+    }
+
+    @Test @Transactional
+    public void findAllInitiallyWithoutIndexCreation() {
+        EndResult<Person> result = personRepository.findByHeight( (short) 100 );
+        assertEquals(0,IteratorUtil.count( result ));
     }
 
     @Test @Transactional
