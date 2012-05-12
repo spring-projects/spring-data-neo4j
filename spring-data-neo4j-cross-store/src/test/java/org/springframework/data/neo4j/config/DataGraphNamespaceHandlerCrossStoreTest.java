@@ -27,6 +27,8 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.PlatformTransactionManager;
 
+import java.io.File;
+
 /**
  * @author mh
  * @since 31.01.11
@@ -43,7 +45,8 @@ public class DataGraphNamespaceHandlerCrossStoreTest {
     @Test public void injectionForCrossStore() {
         Assert.assertNotNull("template", template);
         EmbeddedGraphDatabase graphDatabaseService = (EmbeddedGraphDatabase) template.getGraphDatabaseService();
-        Assert.assertTrue("store-dir", graphDatabaseService.getStoreDir().endsWith("target/config-test"));
+        File directory = new File("target", "config-test");
+        Assert.assertTrue("store-dir", graphDatabaseService.getStoreDir().equals(directory.getAbsolutePath()));
         Assert.assertNotNull("graphDatabaseService", graphDatabaseService);
         Assert.assertNotNull("transactionManager", transactionManager);
     }
