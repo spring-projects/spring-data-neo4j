@@ -33,6 +33,7 @@ import org.springframework.data.neo4j.model.PersonRepository;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
 import org.springframework.transaction.PlatformTransactionManager;
 
+import java.io.File;
 import java.util.Collections;
 import java.util.Set;
 
@@ -109,7 +110,8 @@ public class DataGraphNamespaceHandlerTest {
         Neo4jTemplate template = config.neo4jTemplate;
         Assert.assertNotNull("template", template);
         AbstractGraphDatabase graphDatabaseService = (AbstractGraphDatabase) template.getGraphDatabaseService();
-        Assert.assertTrue("store-dir", graphDatabaseService.getStoreDir().endsWith("target/config-test"));
+        File directory = new File("target", "config-test");
+        Assert.assertTrue("store-dir", graphDatabaseService.getStoreDir().equals(directory.getAbsolutePath()));
         Assert.assertNotNull("graphDatabaseService",config.graphDatabaseService);
         Assert.assertNotNull("transactionManager",config.transactionManager);
         config.graphDatabaseService.shutdown();
