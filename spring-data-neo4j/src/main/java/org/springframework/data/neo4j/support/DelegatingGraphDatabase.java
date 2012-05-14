@@ -16,12 +16,7 @@
 
 package org.springframework.data.neo4j.support;
 
-import org.neo4j.graphdb.DynamicRelationshipType;
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.PropertyContainer;
-import org.neo4j.graphdb.Relationship;
-import org.neo4j.graphdb.RelationshipType;
+import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.index.Index;
 import org.neo4j.graphdb.index.IndexManager;
 import org.neo4j.graphdb.index.UniqueFactory;
@@ -30,6 +25,7 @@ import org.neo4j.index.lucene.ValueContext;
 import org.neo4j.kernel.AbstractGraphDatabase;
 import org.neo4j.kernel.GraphDatabaseAPI;
 import org.neo4j.kernel.Traversal;
+import org.neo4j.kernel.impl.transaction.SpringTransactionManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.convert.ConversionService;
@@ -215,6 +211,16 @@ public class DelegatingGraphDatabase implements GraphDatabase {
             log.error("Error accessing TransactionManager", e);
             return false;
         }
+    }
+
+    @Override
+    public TransactionManager getTransactionManager() {
+        return new SpringTransactionManager(delegate);
+    }
+
+    @Override
+    public Transaction beginTx() {
+        return delegate.beginTx();
     }
 
     @Override

@@ -20,7 +20,6 @@ import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.data.neo4j.annotation.QueryType;
 import org.springframework.data.neo4j.conversion.ResultConverter;
@@ -47,8 +46,8 @@ import org.springframework.data.neo4j.support.relationship.RelationshipEntitySta
 import org.springframework.data.neo4j.support.typerepresentation.TypeRepresentationStrategies;
 import org.springframework.data.neo4j.support.typerepresentation.TypeRepresentationStrategyFactory;
 import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.jta.JtaTransactionManager;
 
-import javax.inject.Provider;
 import javax.validation.Validator;
 
 /**
@@ -97,8 +96,14 @@ public class MappingInfrastructureFactoryBean implements FactoryBean<Infrastruct
     public void afterPropertiesSet() {
         try {
         if (this.mappingContext == null) this.mappingContext = new Neo4jMappingContext();
+        if (this.graphDatabaseService == null && graphDatabase instanceof DelegatingGraphDatabase) {
+            this.graphDatabaseService = ((DelegatingGraphDatabase) graphDatabase).getGraphDatabaseService();
+        }
         if (this.graphDatabase == null) {
             this.graphDatabase = new DelegatingGraphDatabase(graphDatabaseService);
+        }
+        if (this.transactionManager == null) {
+            this.transactionManager = new JtaTransactionManager(graphDatabase.getTransactionManager());
         }
         if (this.conversionService==null) {
             this.conversionService=new Neo4jConversionServiceFactoryBean().getObject();
@@ -284,6 +289,11 @@ public class MappingInfrastructureFactoryBean implements FactoryBean<Infrastruct
     }
 
     public static Infrastructure createDirect(GraphDatabase graphDatabase, PlatformTransactionManager transactionManager) {
+        final MappingInfrastructureFactoryBean factoryBean = new MappingInfrastructureFactoryBean(graphDatabase, transactionManager);
+        factoryBean.afterPropertiesSet();
+        return factoryBean.getObject();
+    }
+    public static Infrastructure createDirect(GraphDatabaseService graphDatabase, PlatformTransactionManager transactionManager) {
         final MappingInfrastructureFactoryBean factoryBean = new MappingInfrastructureFactoryBean(graphDatabase, transactionManager);
         factoryBean.afterPropertiesSet();
         return factoryBean.getObject();
