@@ -15,16 +15,10 @@
  */
 package org.springframework.data.neo4j.rest;
 
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.PropertyContainer;
-import org.neo4j.graphdb.Relationship;
-import org.neo4j.graphdb.RelationshipType;
+import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.index.Index;
-import org.neo4j.graphdb.index.RelationshipIndex;
 import org.neo4j.graphdb.traversal.TraversalDescription;
-import org.neo4j.helpers.collection.MapUtil;
 import org.neo4j.rest.graphdb.ExecutingRestRequest;
-import org.neo4j.rest.graphdb.RequestResult;
 import org.neo4j.rest.graphdb.RestAPI;
 import org.neo4j.rest.graphdb.RestRequest;
 import org.neo4j.rest.graphdb.entity.RestNode;
@@ -34,6 +28,7 @@ import org.neo4j.rest.graphdb.query.RestCypherQueryEngine;
 import org.neo4j.rest.graphdb.query.RestGremlinQueryEngine;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.data.neo4j.annotation.QueryType;
+import org.springframework.data.neo4j.config.NullTransactionManager;
 import org.springframework.data.neo4j.conversion.DefaultConverter;
 import org.springframework.data.neo4j.conversion.ResultConverter;
 import org.springframework.data.neo4j.core.GraphDatabase;
@@ -41,7 +36,7 @@ import org.springframework.data.neo4j.support.index.NoSuchIndexException;
 import org.springframework.data.neo4j.support.query.ConversionServiceQueryResultConverter;
 import org.springframework.data.neo4j.support.query.QueryEngine;
 
-import javax.ws.rs.core.Response;
+import javax.transaction.TransactionManager;
 import java.util.Map;
 
 public class SpringRestGraphDatabase extends org.neo4j.rest.graphdb.RestGraphDatabase implements GraphDatabase{
@@ -154,6 +149,11 @@ public class SpringRestGraphDatabase extends org.neo4j.rest.graphdb.RestGraphDat
     @Override
     public boolean transactionIsRunning() {
         return true;
+    }
+
+    @Override
+    public TransactionManager getTransactionManager() {
+        return new NullTransactionManager();
     }
 
     @Override

@@ -60,7 +60,6 @@ import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallback;
 import org.springframework.transaction.support.TransactionTemplate;
 
-import javax.annotation.PostConstruct;
 import javax.validation.Validator;
 import java.util.Collections;
 import java.util.Map;
@@ -96,6 +95,11 @@ public class Neo4jTemplate implements Neo4jOperations {
     public Neo4jTemplate(final GraphDatabase graphDatabase) {
         notNull(graphDatabase, "graphDatabase");
         this.infrastructure = MappingInfrastructureFactoryBean.createDirect(graphDatabase,null);
+    }
+
+    public Neo4jTemplate(final GraphDatabaseService graphDatabaseService) {
+        notNull(graphDatabaseService, "graphDatabaseService");
+        this.infrastructure = MappingInfrastructureFactoryBean.createDirect(graphDatabaseService,null);
     }
 
     public Neo4jTemplate(Infrastructure infrastructure) {
@@ -271,10 +275,11 @@ public class Neo4jTemplate implements Neo4jOperations {
     }
 
     /**
-     * Delegates to {@link GraphDatabaseService}
+     * Delegates to {@link GraphDatabase}
      */
+    @Deprecated
     public Transaction beginTx() { // TODO remove !
-        return infrastructure.getGraphDatabaseService().beginTx();
+        return infrastructure.getGraphDatabase().beginTx();
     }
 
     public boolean isNodeEntity(Class<?> targetType) {

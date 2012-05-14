@@ -18,10 +18,7 @@ package org.springframework.data.neo4j.template;
 
 import org.apache.lucene.index.Term;
 import org.apache.lucene.search.TermQuery;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.*;
 import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.index.Index;
 import org.neo4j.graphdb.traversal.TraversalDescription;
@@ -81,12 +78,22 @@ public class Neo4jTemplateApiTest {
         return new DelegatingGraphDatabase(graphDatabaseService);
     }
 
+    @Test
+    public void testBeginTxWithoutConfiguredTxManager() throws Exception {
+        Neo4jTemplate template = new Neo4jTemplate(graphDatabase);
+        Transaction tx = template.beginTx();
+        Node node = template.createNode();
+        node.setProperty("name","foo");
+        tx.success();
+        tx.finish();
+        assertNotNull(node.getProperty("name"));
+    }
+
     protected PlatformTransactionManager createTransactionManager() {
         return new JtaTransactionManager(new SpringTransactionManager(graphDatabaseService));
     }
 
     private void createData() {
-
         new TransactionTemplate(transactionManager).execute(new TransactionCallbackWithoutResult() {
             @Override
             protected void doInTransactionWithoutResult(TransactionStatus status) {
@@ -165,6 +172,7 @@ public class Neo4jTemplateApiTest {
     }
 
     @Test(expected = DataAccessException.class)
+    @Ignore
     public void shouldConvertMissingTransactionExceptionToDataAccessException() {
         Neo4jTemplate template = new Neo4jTemplate(graphDatabase, null);
         template.exec(new GraphCallback.WithoutResult() {

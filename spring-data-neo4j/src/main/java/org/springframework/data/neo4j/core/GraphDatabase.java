@@ -16,10 +16,7 @@
 
 package org.springframework.data.neo4j.core;
 
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.PropertyContainer;
-import org.neo4j.graphdb.Relationship;
-import org.neo4j.graphdb.RelationshipType;
+import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.index.Index;
 import org.neo4j.graphdb.traversal.TraversalDescription;
 import org.springframework.core.convert.ConversionService;
@@ -28,6 +25,7 @@ import org.springframework.data.neo4j.conversion.ResultConverter;
 import org.springframework.data.neo4j.support.index.IndexType;
 import org.springframework.data.neo4j.support.query.QueryEngine;
 
+import javax.transaction.TransactionManager;
 import java.util.Map;
 
 
@@ -95,7 +93,7 @@ public interface GraphDatabase {
      * creates a index
      * @param type type of index requested - either Node.class or Relationship.class
      * @param indexName, not null
-     * @param fullText true if a fulltext queryable index is needed, false for exact match
+     * @param indexType SIMPLE, FULLTEXT or POINT declaring the requested index-type
      * @return node index {@link Index}
      */
     <T extends PropertyContainer> Index<T> createIndex(Class<T> type, String indexName, IndexType indexType);
@@ -130,4 +128,8 @@ public interface GraphDatabase {
      * @return true if a transaction is currently running
      */
     boolean transactionIsRunning();
+
+    TransactionManager getTransactionManager();
+
+    Transaction beginTx();
 }
