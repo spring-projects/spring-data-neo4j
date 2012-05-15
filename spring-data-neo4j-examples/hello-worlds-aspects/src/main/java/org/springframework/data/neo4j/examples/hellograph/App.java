@@ -3,37 +3,28 @@ package org.springframework.data.neo4j.examples.hellograph;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
-/**
- * Hello world(s)!
- * <p/>
- * An example application for exploring Spring Data Neo4j.
- */
-public class App
-{
+public class App {
+    public static void main(String[] args) {
+    	ConfigurableApplicationContext applicationContext =  
+        	new ClassPathXmlApplicationContext("/spring/helloWorldContext.xml");
 
-    public static void main( String[] args )
-    {
-    	
-        ConfigurableApplicationContext applicationContext =  
-        	new ClassPathXmlApplicationContext( "/spring/helloWorldContext.xml");
+    	MyWorldRepository galaxy = applicationContext.getBean(WorldRepositoryImpl.class);
+        galaxy.makeSureGalaxyIsNotEmpty();
+         
+        System.out.println("Trying to find the Earth by its name:");
+        World earth = galaxy.findWorldNamed("Earth");
+        System.out.printf("Found Earth: %s\n", earth);
 
-        WorldRepositoryImpl galaxy = applicationContext.getBean(WorldRepositoryImpl.class);
-
-        Iterable<World> worlds = galaxy.makeSomeWorlds();
-
-        World homeWorld = worlds.iterator().next();
-        System.out.println("At home on: " + homeWorld);
-
-        World foundHomeWorld = galaxy.findWorldNamed( homeWorld.getName() );
-        System.out.println( "found home world: " + foundHomeWorld );
-
-        Iterable<World> worldsBeyond = galaxy.exploreWorldsBeyond( homeWorld );
-        for (World world : worldsBeyond) {
-            System.out.println( "found worlds beyond: " + world );
+        System.out.println("Retrieveing the list of worlds that can be reached from the Earth:");
+        for(World world : earth.getReachableWorlds()) {
+            System.out.printf("Can travel between %s and %s\n", earth, world);
+        }
+        
+        System.out.println("Here's the list of all worlds in the galaxy:");
+        for(World world : galaxy.findAllWorlds()) {
+        	System.out.printf("There's a world: %s\n", world);
         }
 
         applicationContext.close();
-        
     }
-
 }
