@@ -95,7 +95,7 @@ public class Neo4jEntityConverterImpl<T,S extends PropertyContainer> implements 
     @Override
     public <R extends T> R loadEntity(R entity, S source, MappingPolicy mappingPolicy, Neo4jPersistentEntityImpl<R> persistentEntity, final Neo4jTemplate template) {
         if (mappingPolicy.shouldLoad()) {
-            final BeanWrapper<Neo4jPersistentEntity<R>, R> wrapper = BeanWrapper.create(entity, conversionService);
+            final BeanWrapper<Neo4jPersistentEntity<R>, R> wrapper = BeanWrapper.<Neo4jPersistentEntity<R>, R>create(entity, conversionService);
             sourceStateTransmitter.copyPropertiesFrom(wrapper, source, persistentEntity,mappingPolicy, template);
             // 6) handle cascading fetches
             cascadeFetch(persistentEntity, wrapper, mappingPolicy, template);
@@ -141,7 +141,7 @@ public class Neo4jEntityConverterImpl<T,S extends PropertyContainer> implements 
             return;
         }
 
-        final BeanWrapper<Neo4jPersistentEntity<T>, T> wrapper = BeanWrapper.create(source, conversionService);
+        final BeanWrapper<Neo4jPersistentEntity<T>, T> wrapper = BeanWrapper.<Neo4jPersistentEntity<T>, T>create(source, conversionService);
         if (sink == null) {
             sink = entityStateHandler.useOrCreateState(source,sink); // todo handling of changed state
             entityStateHandler.setPersistentState(source, sink);
