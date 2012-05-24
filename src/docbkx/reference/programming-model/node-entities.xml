@@ -119,7 +119,7 @@ public class Movie {
             <title>@Graph on a node entity field</title>
             <programlisting language="java"><![CDATA[@NodeEntity
 public class Group {
-    @Query(value = "start n=({self}) match (n)-[r]->(friend) where r.type = {relType} return friend",
+    @Query(value = "start n=node({self}) match (n)-[r]->(friend) where r.type = {relType} return friend",
                 params = {"relType", "FRIEND"})
     private Iterable<Person> friends;
 }
