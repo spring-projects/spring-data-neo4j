@@ -258,7 +258,7 @@ repositories {
 ]]></programlisting>
             </example>
 			<example>
-                <title>XML configuration with GraphDatabaseService bean</title>
+                <title>XML configuration with <ulink url="http://docs.neo4j.org/chunked/milestone/server-embedded.html">embedded Neo4j-Server</ulink></title>
                 <programlisting language="xml"><![CDATA[<context:annotation-config/>
 
 <bean id="graphDatabaseService" class="org.neo4j.kernel.EmbeddedGraphDatabase"
@@ -272,7 +272,16 @@ repositories {
 <bean id="serverWrapper" class="org.neo4j.server.WrappingNeoServerBootstrapper" 
 	init-method="start" destroy-method="stop">
 	<constructor-arg ref="graphDatabaseService"/>
-</bean>]]></programlisting>
+</bean>
+
+// also add the static server-assets dependency to your pom.xml
+<dependency>
+    <groupId>org.neo4j.app</groupId>
+    <artifactId>neo4j-server</artifactId>
+    <classifier>static-web</classifier>
+    <version>${neo4j-version}</version>
+</dependency>
+]]></programlisting>
 </example>
 
 
