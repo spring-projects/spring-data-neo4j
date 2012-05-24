@@ -6,10 +6,8 @@ import org.neo4j.cineasts.domain.Rating;
 import org.neo4j.cineasts.domain.User;
 import org.neo4j.cineasts.repository.MovieRepository;
 import org.neo4j.cineasts.repository.PersonRepository;
-import org.neo4j.cineasts.service.CineastsRepository;
 import org.neo4j.cineasts.service.CineastsUserDetailsService;
 import org.neo4j.cineasts.service.DatabasePopulator;
-import org.neo4j.helpers.collection.IteratorUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -62,7 +60,7 @@ public class MovieController {
             model.addAttribute("stars", stars);
             Rating rating = null;
             if (user!=null) rating = movie.getRelationshipTo(user, Rating.class, "RATED");
-            if (rating == null) rating = new Rating().rate(stars,null);
+            if (rating == null) rating = new Rating().rate(stars, null);
             model.addAttribute("userRating",rating);
         }
         return "/movies/show";
@@ -72,11 +70,7 @@ public class MovieController {
     public String updateMovie(Model model, @PathVariable String movieId, @RequestParam(value = "rated",required = false) Integer stars, @RequestParam(value = "comment",required = false) String comment) {
         Movie movie = movieRepository.findById(movieId);
         User user = userDetailsService.getUserFromSession();
-        if (user != null && movie != null) {
-            int stars1 = stars==null ? -1 : stars;
-            String comment1 = comment!=null ? comment.trim() : null;
-            user.rate(movie, stars1, comment1);
-        }
+        userDetailsService.rate(user, movie, stars, comment);
         return singleMovieView(model,movieId);
     }
 
