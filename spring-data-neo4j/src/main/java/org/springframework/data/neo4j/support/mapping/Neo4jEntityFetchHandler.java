@@ -55,7 +55,7 @@ public class Neo4jEntityFetchHandler {
         if (property.getTypeInformation().isCollectionLike()) {
             List<Object> replacement = new ArrayList<Object>();
             for (Object inner : ((Iterable) value)) {
-                final BeanWrapper<Neo4jPersistentEntity<Object>, Object> innerWrapper = BeanWrapper.create(inner, conversionService);
+                final BeanWrapper<Neo4jPersistentEntity<Object>, Object> innerWrapper = BeanWrapper.<Neo4jPersistentEntity<Object>, Object>create(inner, conversionService);
                 final PropertyContainer state = entityStateHandler.getPersistentState(inner);
                 fetchValue(innerWrapper, state, persistentEntity, mappingPolicy, template);
                 replacement.add(inner);
@@ -63,7 +63,7 @@ public class Neo4jEntityFetchHandler {
             }
             return replacement;
         } else {
-            final BeanWrapper<Neo4jPersistentEntity<Object>, Object> innerWrapper = BeanWrapper.create(value, conversionService);
+            final BeanWrapper<Neo4jPersistentEntity<Object>, Object> innerWrapper = BeanWrapper.<Neo4jPersistentEntity<Object>, Object>create(value, conversionService);
             final PropertyContainer state = entityStateHandler.getPersistentState(value);
             fetchValue(innerWrapper, state, persistentEntity, mappingPolicy, template);
 //                        sourceStateTransmitter.copyPropertiesFrom(innerWrapper, entityStateHandler.<S>getPersistentState(value), persistentEntity);

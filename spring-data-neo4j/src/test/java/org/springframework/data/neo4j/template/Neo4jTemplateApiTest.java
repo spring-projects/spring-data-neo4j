@@ -28,11 +28,13 @@ import org.neo4j.test.ImpermanentGraphDatabase;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.neo4j.conversion.ResultConverter;
 import org.springframework.data.neo4j.core.GraphDatabase;
+import org.springframework.data.neo4j.model.Person;
 import org.springframework.data.neo4j.support.DelegatingGraphDatabase;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
 import org.springframework.data.neo4j.support.index.IndexType;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.jta.JtaTransactionManager;
 import org.springframework.transaction.support.TransactionCallbackWithoutResult;
 import org.springframework.transaction.support.TransactionTemplate;
@@ -87,6 +89,14 @@ public class Neo4jTemplateApiTest {
         tx.success();
         tx.finish();
         assertNotNull(node.getProperty("name"));
+    }
+
+    @Test
+    public void testInstantiateEntity() throws Exception {
+        Neo4jTemplate template = new Neo4jTemplate(graphDatabase,transactionManager);
+        Transaction tx = template.beginTx();
+        Person michael = template.save(new Person("Michael", 37));
+        assertNotNull(michael.getId());
     }
 
     protected PlatformTransactionManager createTransactionManager() {

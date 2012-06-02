@@ -108,6 +108,9 @@ public class MappingInfrastructureFactoryBean implements FactoryBean<Infrastruct
         if (this.conversionService==null) {
             this.conversionService=new Neo4jConversionServiceFactoryBean().getObject();
         }
+        if (entityStateHandler == null) {
+            entityStateHandler = new EntityStateHandler(mappingContext,graphDatabase);
+        }
         if (nodeEntityInstantiator == null) {
             nodeEntityInstantiator = new NodeEntityInstantiator(entityStateHandler);
         }

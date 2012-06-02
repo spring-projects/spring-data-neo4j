@@ -1,5 +1,6 @@
 package org.neo4j.cineasts.service;
 
+import org.neo4j.cineasts.domain.Movie;
 import org.neo4j.cineasts.domain.User;
 import org.neo4j.cineasts.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -73,5 +74,13 @@ public class CineastsUserDetailsService implements UserDetailsService {
         if (!user.equals(friend)) {
             user.addFriend(friend);
         }
+    }
+
+    @Transactional
+    public void rate(User user, Movie movie, Integer stars, String comment) {
+        if (user == null || movie == null) return;
+        int stars1 = stars==null ? -1 : stars;
+        String comment1 = comment!=null ? comment.trim() : null;
+        user.rate(movie, stars1, comment1);
     }
 }
