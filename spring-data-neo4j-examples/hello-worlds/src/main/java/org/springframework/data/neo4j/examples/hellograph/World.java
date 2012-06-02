@@ -6,7 +6,6 @@ import org.springframework.data.neo4j.annotation.GraphId;
 import org.springframework.data.neo4j.annotation.Indexed;
 import org.springframework.data.neo4j.annotation.NodeEntity;
 import org.springframework.data.neo4j.annotation.RelatedTo;
-import java.util.HashSet;
 import java.util.Set;
 
 @NodeEntity
@@ -21,7 +20,7 @@ public class World {
 
     @Fetch
     @RelatedTo(type = RelationshipTypes.REACHABLE_BY_ROCKET, direction = Direction.BOTH)
-    private Set<World> reachableByRocket = new HashSet<World>();
+    private Set<World> reachableByRocket;
 
     public World(String name, int moons) {
         this.name = name;

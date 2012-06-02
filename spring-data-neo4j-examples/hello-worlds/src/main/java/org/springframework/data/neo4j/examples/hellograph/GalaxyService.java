@@ -24,7 +24,6 @@ public class GalaxyService {
         World mars = resolveWorld("Mars", 2);        
         mars.addRocketRouteTo(earth);
         worldRepository.save(mars);
-        /*worldRepository.save(earth);*/
         
         resolveWorld("Jupiter", 63);
         resolveWorld("Saturn", 62);
@@ -43,7 +42,7 @@ public class GalaxyService {
     	World createdWorld = worldRepository.findByPropertyValue("name", name);
     	if (createdWorld == null) {
     		createdWorld = new World(name, moons);
-    		createdWorld = worldRepository.save(createdWorld);
+    		createdWorld = worldRepository.save(createdWorld);    		 
     	}
     	
     	return createdWorld;
