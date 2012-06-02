@@ -34,7 +34,7 @@ public class GalaxyServiceTest {
 	}
 	
 	@Test
-	public void populatedGalaxyShouldHaveEarth() {
+	public void populatedGalaxyShouldHaveEarth() {		
 		galaxyService.makeSureGalaxyIsNotEmpty();
 		WorldDto earth = galaxyService.findWorldNamed("Earth");
 		assertNotNull(earth);
@@ -55,4 +55,5 @@ public class GalaxyServiceTest {
 		WorldDto planetPopsicle = galaxyService.findWorldNamed("Krypton");
 		assertNull(planetPopsicle);
 	}
+	
 }
