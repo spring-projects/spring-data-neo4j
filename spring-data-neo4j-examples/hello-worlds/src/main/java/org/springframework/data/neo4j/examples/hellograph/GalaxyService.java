@@ -1,6 +1,5 @@
 package org.springframework.data.neo4j.examples.hellograph;
 
-
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,6 +24,7 @@ public class GalaxyService {
         World mars = resolveWorld("Mars", 2);        
         mars.addRocketRouteTo(earth);
         worldRepository.save(mars);
+        /*worldRepository.save(earth);*/
         
         resolveWorld("Jupiter", 63);
         resolveWorld("Saturn", 62);
@@ -45,11 +45,12 @@ public class GalaxyService {
     		createdWorld = new World(name, moons);
     		createdWorld = worldRepository.save(createdWorld);
     	}
+    	
     	return createdWorld;
     }
 
     public WorldDto findWorldNamed(String name) {
-    	World world = worldRepository.findByPropertyValue("name", name); 
+    	World world = worldRepository.findByPropertyValue("name", name);
         return mapper.worldDtoFromWorld(world);
     }
     

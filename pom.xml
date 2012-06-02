@@ -156,7 +156,6 @@
             <id>examples</id>
             <modules>
            		<module>spring-data-neo4j-examples/hello-worlds</module>
-           		<module>spring-data-neo4j-examples/hello-worlds-aspects</module>
            		<module>spring-data-neo4j-examples/imdb</module>
            		<module>spring-data-neo4j-examples/cineasts</module>
            		<module>spring-data-neo4j-examples/cineasts-aspects</module>

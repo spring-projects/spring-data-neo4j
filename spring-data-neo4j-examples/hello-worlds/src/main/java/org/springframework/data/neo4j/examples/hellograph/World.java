@@ -12,7 +12,7 @@ import java.util.Set;
 @NodeEntity
 public class World {   
     @GraphId
-    Long id;
+    private Long id;
     
     @Indexed
     private String name;
@@ -21,7 +21,7 @@ public class World {
 
     @Fetch
     @RelatedTo(type = RelationshipTypes.REACHABLE_BY_ROCKET, direction = Direction.BOTH)
-    Set<World> reachableByRocket = new HashSet<World>();
+    private Set<World> reachableByRocket = new HashSet<World>();
 
     public World(String name, int moons) {
         this.name = name;
@@ -31,6 +31,10 @@ public class World {
     public World() {
     }
 
+    public Long getId() {
+    	return id;
+    }
+    
     public String getName() {
         return name;
     }
@@ -41,7 +45,7 @@ public class World {
 
     @Override
     public String toString() {
-        return String.format("World{name='%s, moons=%d}", name, moons);
+        return String.format("World{name='%s', moons=%d}", name, moons);
     }
 
     public void addRocketRouteTo(World otherWorld) {
