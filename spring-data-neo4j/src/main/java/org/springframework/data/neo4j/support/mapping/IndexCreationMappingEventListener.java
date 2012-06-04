@@ -15,6 +15,7 @@
  */
 package org.springframework.data.neo4j.support.mapping;
 
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.ApplicationListener;
 import org.springframework.data.mapping.PropertyHandler;
 import org.springframework.data.mapping.event.MappingContextEvent;
@@ -23,13 +24,17 @@ import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
 import org.springframework.data.neo4j.support.index.IndexType;
 
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
+
 /**
  * @author mh
  * @since 12.04.12
  */
-public class IndexCreationMappingEventListener implements ApplicationListener<MappingContextEvent<Neo4jPersistentEntity<?>, Neo4jPersistentProperty>> {
+public class IndexCreationMappingEventListener implements ApplicationListener<MappingContextEvent<Neo4jPersistentEntity<?>, Neo4jPersistentProperty>>, InitializingBean {
     private Neo4jTemplate template;
-
+    private Queue<Neo4jPersistentEntity> initialEntities=new ConcurrentLinkedQueue<Neo4jPersistentEntity>();
+    private boolean isInitialized=false;
     public IndexCreationMappingEventListener(Neo4jTemplate template) {
         this.template = template;
     }
@@ -37,8 +42,16 @@ public class IndexCreationMappingEventListener implements ApplicationListener<Ma
     @Override
     public void onApplicationEvent(MappingContextEvent<Neo4jPersistentEntity<?>, Neo4jPersistentProperty> event) {
         if (!(event.getSource() instanceof Neo4jPersistentEntity)) return;
-
         final Neo4jPersistentEntity entity = event.getPersistentEntity();
+        if (!isInitialized) {
+            initialEntities.add(entity);
+        }
+        else {
+            ensureEntityIndexes(entity);
+        }
+    }
+
+    private void ensureEntityIndexes(Neo4jPersistentEntity entity) {
         final Class entityType = entity.getType();
         template.getIndex(entityType, null, IndexType.SIMPLE);
         entity.doWithProperties(new PropertyHandler<Neo4jPersistentProperty>() {
@@ -49,5 +62,14 @@ public class IndexCreationMappingEventListener implements ApplicationListener<Ma
                 }
             }
         });
+    }
+
+
+    @Override
+    public void afterPropertiesSet() throws Exception {
+        isInitialized = true;
+        for (Neo4jPersistentEntity entity : initialEntities) {
+            ensureEntityIndexes(entity);
+        }
     }
 }
