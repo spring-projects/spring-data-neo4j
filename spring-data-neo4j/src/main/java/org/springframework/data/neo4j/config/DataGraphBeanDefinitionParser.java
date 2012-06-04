@@ -16,23 +16,30 @@
 
 package org.springframework.data.neo4j.config;
 
+import antlr.StringUtils;
 import org.neo4j.kernel.EmbeddedGraphDatabase;
 import org.springframework.beans.factory.annotation.Autowire;
-import org.springframework.beans.factory.support.AbstractBeanDefinition;
-import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.beans.factory.support.BeanDefinitionRegistry;
-import org.springframework.beans.factory.support.BeanNameGenerator;
+import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.beans.factory.support.*;
 import org.springframework.beans.factory.xml.AbstractBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
 import org.springframework.context.annotation.ConfigurationClassPostProcessor;
+import org.springframework.core.type.filter.AnnotationTypeFilter;
+import org.springframework.data.annotation.Persistent;
+import org.springframework.data.neo4j.annotation.NodeEntity;
+import org.springframework.data.neo4j.annotation.RelationshipEntity;
 import org.springframework.util.ClassUtils;
 import org.w3c.dom.Element;
+
+import java.util.Set;
 
 import static org.springframework.util.StringUtils.hasText;
 
 public class DataGraphBeanDefinitionParser extends AbstractBeanDefinitionParser {
 
     private static final String GRAPH_DATABASE_SERVICE = "graphDatabaseService";
+    private static final String BASE_PACKAGE = "base-package";
     public static final String ASPECTJ_CONFIG = "org.springframework.data.neo4j.aspects.config.Neo4jAspectConfiguration";
     public static final String CROSS_STORE_CONFIG = "org.springframework.data.neo4j.cross_store.config.CrossStoreNeo4jConfiguration";
 
@@ -41,9 +48,39 @@ public class DataGraphBeanDefinitionParser extends AbstractBeanDefinitionParser 
         BeanDefinitionBuilder configBuilder = createConfigurationBeanDefinition(element);
         setupGraphDatabase(element, context, configBuilder);
         setupEntityManagerFactory(element, configBuilder);
+        setupBaseEntities(element, configBuilder);
         setupConfigurationClassPostProcessor(context);
         return getSourcedBeanDefinition(configBuilder, element, context);
     }
+
+    private void setupBaseEntities(Element element, BeanDefinitionBuilder configBuilder) {
+        Set<String> initialEntityClasses = getInitialEntityClasses(element);
+        if (initialEntityClasses!=null) {
+            configBuilder.addPropertyValue("initialEntitySet", initialEntityClasses);
+        }
+    }
+
+
+    public Set<String> getInitialEntityClasses(Element element) {
+
+    		String basePackage = element.getAttribute(BASE_PACKAGE);
+
+    		if (!hasText(basePackage)) {
+    			return null;
+    		}
+
+    		ClassPathScanningCandidateComponentProvider componentProvider = new ClassPathScanningCandidateComponentProvider(false);
+    		componentProvider.addIncludeFilter(new AnnotationTypeFilter(NodeEntity.class));
+    		componentProvider.addIncludeFilter(new AnnotationTypeFilter(RelationshipEntity.class));
+    		componentProvider.addIncludeFilter(new AnnotationTypeFilter(Persistent.class));
+
+    		Set<String> classes = new ManagedSet<String>();
+    		for (BeanDefinition candidate : componentProvider.findCandidateComponents(basePackage)) {
+    			classes.add(candidate.getBeanClassName());
+    		}
+
+    		return classes;
+    	}
 
 
     private BeanDefinitionBuilder createConfigurationBeanDefinition(Element element) {

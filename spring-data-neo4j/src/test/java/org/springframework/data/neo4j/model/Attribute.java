@@ -16,6 +16,7 @@
 
 package org.springframework.data.neo4j.model;
 
+import org.springframework.data.neo4j.annotation.GraphId;
 import org.springframework.data.neo4j.annotation.Indexed;
 import org.springframework.data.neo4j.annotation.NodeEntity;
 
@@ -25,6 +26,8 @@ import org.springframework.data.neo4j.annotation.NodeEntity;
  */
 @NodeEntity
 public class Attribute<T> {
+    private @GraphId Long id;
+
     @Indexed
     T value;
 
