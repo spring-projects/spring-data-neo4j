@@ -48,7 +48,13 @@ class RelationshipEntities {
     }
 
     public Node getOtherNode(Node startNode, Object relationshipEntity) {
-        final Node endNode = relationshipHelper.getNode(endNodeProperty.getValue(relationshipEntity, endNodeMappingPolicy));
+        Object fieldValue = endNodeProperty.getValue(relationshipEntity, endNodeMappingPolicy);
+
+        if (fieldValue == null)
+            throw new IllegalArgumentException("End node must not be null (" + relationshipEntity.getClass().getName() + ")");
+
+        final Node endNode = relationshipHelper.getNode(fieldValue);
+
         if (startNode.equals(endNode)) {
             return relationshipHelper.getNode(startNodeProperty.getValue(relationshipEntity, startNodeMappingPolicy));
         } else {
@@ -61,7 +67,8 @@ class RelationshipEntities {
         for (Object entry : values) {
             if (!relatedType.isInstance(entry))
                 throw new IllegalArgumentException("Elements of " + property + " collection must be of " + relatedType);
-            endNodeToEntityMapping.put(getOtherNode(startNode, entry), entry);
+            Node endNode = getOtherNode(startNode, entry);
+            endNodeToEntityMapping.put(endNode, entry);
         }
         return endNodeToEntityMapping;
     }
