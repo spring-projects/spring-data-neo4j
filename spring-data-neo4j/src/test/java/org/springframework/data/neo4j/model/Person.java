@@ -24,9 +24,7 @@ import org.springframework.data.neo4j.support.index.IndexType;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.Size;
-import java.util.Date;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 
 @NodeEntity
@@ -97,6 +95,10 @@ public class Person implements Being {
     private Set<IGroup> groups;
 
     RootEntity root;
+
+    @RelatedToVia(type = "schoolMate")
+    @Fetch
+    private Set<Friendship> schoolMates = new HashSet<Friendship>();
 
     public RootEntity getRoot() {
         return root;
@@ -306,5 +308,13 @@ public class Person implements Being {
 
     public BestFriend getBestFriend() {
         return bestFriend;
+    }
+
+    public void wentToSchoolWith(Person person) {
+        schoolMates.add(new Friendship(this, person, "schoolMate"));
+    }
+
+    public Set<Friendship> getSchoolMates() {
+        return schoolMates;
     }
 }
