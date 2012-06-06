@@ -14,33 +14,12 @@
  * limitations under the License.
  */
 
-package org.springframework.data.neo4j.model;
+package org.springframework.data.neo4j.config;
 
+import org.springframework.data.neo4j.annotation.GraphId;
 import org.springframework.data.neo4j.annotation.NodeEntity;
 
-/**
- * @author mh
- * @since 18.02.11
- */
 @NodeEntity
-public class Developer {
-    String name;
-
-    Person spouse;
-
-    public Developer(String name) {
-        this.name = name;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public Person getSpouse() {
-        return spouse;
-    }
-
-    public void setSpouse(Person spouse) {
-        this.spouse = spouse;
-    }
+public class TestEntity {
+	@GraphId public Long id;
 }
