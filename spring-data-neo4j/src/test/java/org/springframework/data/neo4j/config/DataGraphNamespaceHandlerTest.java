@@ -107,6 +107,7 @@ public class DataGraphNamespaceHandlerTest {
         Collection<Neo4jPersistentEntityImpl<?>> entities = config.mappingContext.getPersistentEntities();
         System.out.println(entities);
         assertTrue(entities.size() > 0);
+        assertEquals(TestEntity.class, entities.iterator().next().getType());
     }
     @Test
     public void injectionForConversionService() {
