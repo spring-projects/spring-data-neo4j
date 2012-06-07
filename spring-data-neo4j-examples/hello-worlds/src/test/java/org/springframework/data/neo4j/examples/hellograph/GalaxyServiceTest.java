@@ -21,7 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 @ContextConfiguration(locations = "classpath:/spring/helloWorldContext.xml")
 @RunWith(SpringJUnit4ClassRunner.class)
 @Transactional
-public class WorldsTest {
+public class GalaxyServiceTest {
 	
 	@Autowired
 	private GalaxyService galaxyService;
