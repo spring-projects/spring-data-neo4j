@@ -9,17 +9,20 @@ import org.springframework.data.neo4j.annotation.RelatedTo;
 import java.util.Set;
 
 @NodeEntity
-public class World {   
+public class World {
+	private final static String REACHABLE_BY_ROCKET = "REACHABLE_BY_ROCKET";
+	
     @GraphId
     private Long id;
     
     @Indexed
     private String name;
 
+    @Indexed(indexName = "moon-index")
     private int moons;
 
     @Fetch
-    @RelatedTo(type = RelationshipTypes.REACHABLE_BY_ROCKET, direction = Direction.BOTH)
+    @RelatedTo(type = REACHABLE_BY_ROCKET, direction = Direction.BOTH)
     private Set<World> reachableByRocket;
 
     public World(String name, int moons) {
@@ -40,19 +43,14 @@ public class World {
 
     public int getMoons() {
         return moons;
-    }
-
-    @Override
-    public String toString() {
-        return String.format("World{name='%s', moons=%d}", name, moons);
-    }
+    }    
 
     public void addRocketRouteTo(World otherWorld) {
     	reachableByRocket.add(otherWorld);
     }
-
-    public Iterable<World> getReachableWorlds() {
-    	return reachableByRocket;
+    
+    public boolean canBeReachedFrom(World otherWorld) {
+    	return reachableByRocket.contains(otherWorld);
     }
 
 	@Override
@@ -68,5 +66,10 @@ public class World {
 		World other = (World) obj;
 		if (id == null) return other.id == null;
         return id.equals(other.id);
+    }
+	
+	@Override
+    public String toString() {
+        return String.format("World{name='%s', moons=%d}", name, moons);
     }
 }
