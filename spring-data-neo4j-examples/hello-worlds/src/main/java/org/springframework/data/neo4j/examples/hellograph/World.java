@@ -1,27 +1,19 @@
 package org.springframework.data.neo4j.examples.hellograph;
 
-
 import org.neo4j.graphdb.Direction;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.neo4j.annotation.Fetch;
 import org.springframework.data.neo4j.annotation.GraphId;
 import org.springframework.data.neo4j.annotation.Indexed;
 import org.springframework.data.neo4j.annotation.NodeEntity;
 import org.springframework.data.neo4j.annotation.RelatedTo;
-import org.springframework.data.neo4j.support.Neo4jTemplate;
-
-import java.util.HashSet;
 import java.util.Set;
 
-/**
- * A Spring Data Neo4j enhanced World entity.
- * <p/>
- * This is the initial POJO in the Universe.
- */
 @NodeEntity
-public class World 
-{   
-    @GraphId Long id;
+public class World {
+	private final static String REACHABLE_BY_ROCKET = "REACHABLE_BY_ROCKET";
+	
+    @GraphId
+    private Long id;
     
     @Indexed
     private String name;
@@ -30,43 +22,35 @@ public class World
     private int moons;
 
     @Fetch
-    @RelatedTo(type = "REACHABLE_BY_ROCKET", direction = Direction.BOTH)
-    Set<World> reachableByRocket = new HashSet<World>();
+    @RelatedTo(type = REACHABLE_BY_ROCKET, direction = Direction.BOTH)
+    private Set<World> reachableByRocket;
 
-    public World( String name, int moons )
-    {
+    public World(String name, int moons) {
         this.name = name;
         this.moons = moons;
     }
 
-    public World()
-    {
+    public World() {
     }
 
-    public String getName()
-    {
+    public Long getId() {
+    	return id;
+    }
+    
+    public String getName() {
         return name;
     }
 
-    public int getMoons()
-    {
+    public int getMoons() {
         return moons;
-    }
+    }    
 
-    @Override
-    public String toString()
-    {
-        return String.format("World{name='%s, moons=%d}", name, moons);
-    }
-
-    public void addRocketRouteTo( World otherWorld )
-    {
+    public void addRocketRouteTo(World otherWorld) {
     	reachableByRocket.add(otherWorld);
     }
-
-    public boolean canBeReachedFrom( World otherWorld )
-    {
-        return reachableByRocket.contains( otherWorld );
+    
+    public boolean canBeReachedFrom(World otherWorld) {
+    	return reachableByRocket.contains(otherWorld);
     }
 
 	@Override
@@ -82,5 +66,10 @@ public class World
 		World other = (World) obj;
 		if (id == null) return other.id == null;
         return id.equals(other.id);
+    }
+	
+	@Override
+    public String toString() {
+        return String.format("World{name='%s', moons=%d}", name, moons);
     }
 }
