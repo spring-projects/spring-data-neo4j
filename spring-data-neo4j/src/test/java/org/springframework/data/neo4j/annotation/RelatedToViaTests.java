@@ -15,18 +15,6 @@
  */
 package org.springframework.data.neo4j.annotation;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.InvalidDataAccessApiUsageException;
-import org.springframework.data.neo4j.model.Person;
-import org.springframework.data.neo4j.model.PersonRepository;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.springframework.transaction.annotation.Transactional;
-
 import static java.util.Arrays.asList;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;
@@ -34,43 +22,68 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 import static org.junit.matchers.JUnitMatchers.hasItem;
 
+import java.io.IOException;
+
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.InvalidDataAccessApiUsageException;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.transaction.annotation.Transactional;
+
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = {"classpath:related-to-via-test-context.xml"})
 @Transactional
-public class RelatedToViaTests {
+public class RelatedToViaTests
+{
+    public static final String DISTRICT_LINE = "District Line";
+    public static final String CENTRAL_LINE = "Central Line";
+
     @Autowired
-    private PersonRepository personRepository;
+    private UndergroundRepository tfl;
 
     @Before
-    public void before() {
-        personRepository.deleteAll();
+    public void before()
+    {
+        tfl.deleteAll();
     }
 
     @Test
-    public void shouldMapRelationshipAsFirstClassEditableCitizen() throws Exception {
-        Person ronald = personRepository.save(new Person("Ronald", 13));
-        Person hermione = personRepository.save(new Person("Hermione", 12));
-        Person harry = new Person("Harry", 14);
-        harry.wentToSchoolWith(ronald);
-        harry.wentToSchoolWith(hermione);
+    public void shouldMapRelationshipAsFirstClassCitizen() throws Exception
+    {
+        TubeStation westHam = tfl.save( new TubeStation( "West Ham" ) );
+        TubeStation stratford = tfl.save( new TubeStation( "Stratford" ) );
+        TubeStation mileEnd = new TubeStation( "Mile End" );
+        mileEnd.connectsTo( westHam, DISTRICT_LINE );
+        mileEnd.connectsTo( stratford, CENTRAL_LINE );
 
-        personRepository.save(harry);
+        tfl.save( mileEnd );
 
-        harry = personRepository.findOne(harry.getId());
-        assertThat(asList(ronald.getId(), hermione.getId()), hasItem(harry.getSchoolMates().iterator().next().getPerson2().getId()));
+        mileEnd = tfl.findOne( mileEnd.getId() );
+        Line line = mileEnd.getLines().iterator().next();
+        assertThat( mileEnd.getId(), is( equalTo( line.getOrigin().getId() ) ) );
+        assertThat( asList( DISTRICT_LINE, CENTRAL_LINE ), hasItem( line.getName() ) );
+        assertThat( asList( westHam.getId(), stratford.getId() ), hasItem( line.getDestination().getId() ) );
     }
 
     @Test
-    public void shouldValidateEndNode() throws Exception {
-        Person billy = new Person("Billy", 42);
-        billy.wentToSchoolWith(null);
+    public void shouldValidateEndNode() throws Exception
+    {
+        TubeStation mileEnd = new TubeStation( "East Ham" );
+        mileEnd.connectsTo( null, DISTRICT_LINE );
 
-        try {
-            personRepository.save(billy);
+        try
+        {
+            tfl.save( mileEnd );
 
             fail();
-        } catch (InvalidDataAccessApiUsageException e) {
-            assertThat(e.getCause().getMessage(), is(equalTo("End node must not be null (org.springframework.data.neo4j.model.Friendship)")));
+        }
+        catch ( InvalidDataAccessApiUsageException e )
+        {
+            assertThat( e.getCause().getMessage(), is( equalTo( "End node must not be null (org.springframework.data" +
+                    ".neo4j.annotation.Line)" ) ) );
         }
     }
 }

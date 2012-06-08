@@ -96,10 +96,6 @@ public class Person implements Being {
 
     RootEntity root;
 
-    @RelatedToVia(type = "schoolMate")
-    @Fetch
-    private Set<Friendship> schoolMates = new HashSet<Friendship>();
-
     public RootEntity getRoot() {
         return root;
     }
@@ -308,13 +304,5 @@ public class Person implements Being {
 
     public BestFriend getBestFriend() {
         return bestFriend;
-    }
-
-    public void wentToSchoolWith(Person person) {
-        schoolMates.add(new Friendship(this, person, "schoolMate"));
-    }
-
-    public Set<Friendship> getSchoolMates() {
-        return schoolMates;
     }
 }
