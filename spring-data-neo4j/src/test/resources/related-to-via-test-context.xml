@@ -15,7 +15,7 @@
 
     <bean id="graphDatabaseService" class="org.neo4j.test.ImpermanentGraphDatabase" destroy-method="shutdown"/>
 
-    <neo4j:repositories base-package="org.springframework.data.neo4j.model"/>
+    <neo4j:repositories base-package="org.springframework.data.neo4j.annotation"/>
 
 </beans>
 
