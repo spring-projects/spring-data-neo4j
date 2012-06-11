@@ -19,6 +19,7 @@ package org.springframework.data.neo4j.support.mapping;
 import org.neo4j.graphdb.PropertyContainer;
 import org.springframework.data.mapping.context.AbstractMappingContext;
 import org.springframework.data.mapping.context.MappingContext;
+import org.springframework.data.mapping.model.MappingException;
 import org.springframework.data.mapping.model.SimpleTypeHolder;
 import org.springframework.data.neo4j.annotation.NodeEntity;
 import org.springframework.data.neo4j.annotation.RelationshipEntity;
@@ -92,6 +93,36 @@ public class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersistentE
     public Neo4jPersistentEntity<?> getPersistentEntity(Object alias) {
         for (Neo4jPersistentEntityImpl<?> entity : getPersistentEntities()) {
             if (entity.matchesAlias(alias)) return entity;
+        }
+        return tryToResolveAliasAsEntityClassName(alias);
+    }
+
+    @Override
+    public void afterPropertiesSet() {
+        try {
+            super.afterPropertiesSet();
+        } catch(Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private Neo4jPersistentEntity<?> tryToResolveAliasAsEntityClassName(Object alias) {
+        if (alias instanceof Class) {
+            try {
+                return getPersistentEntity((Class)alias);
+            } catch(MappingException me) {
+                // ignores
+            }
+        }
+        if (alias instanceof String && alias.toString().contains(".")) {
+            try {
+                return tryToResolveAliasAsEntityClassName(Class.forName(alias.toString()));
+            } catch (ClassNotFoundException cnfe) {
+                // ignore
+            }
+        }
+        if (alias instanceof StoredEntityType) {
+            return ((StoredEntityType)alias).getEntity();
         }
         return null;
     }

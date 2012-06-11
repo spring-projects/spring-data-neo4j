@@ -65,6 +65,9 @@ import org.springframework.transaction.jta.UserTransactionAdapter;
 import javax.transaction.TransactionManager;
 import javax.validation.Validator;
 
+import java.util.Collection;
+import java.util.Set;
+
 import static java.util.Arrays.asList;
 
 /**
@@ -78,6 +81,8 @@ public abstract class Neo4jConfiguration {
     private GraphDatabaseService graphDatabaseService;
 
     private ConversionService conversionService;
+
+    private Set<? extends Class<?>> initialEntitySet;
 
     @Autowired(required = false)
     private Validator validator;
@@ -197,6 +202,9 @@ public abstract class Neo4jConfiguration {
     @Bean
     public Neo4jMappingContext neo4jMappingContext() throws Exception {
         final Neo4jMappingContext mappingContext = new Neo4jMappingContext();
+        if (initialEntitySet!=null) {
+            mappingContext.setInitialEntitySet(initialEntitySet);
+        }
         mappingContext.setEntityAlias(entityAlias());
         return mappingContext;
     }
@@ -275,4 +283,11 @@ public abstract class Neo4jConfiguration {
         return new IndexProviderImpl(neo4jMappingContext(), graphDatabase());
     }
 
+    public Set<? extends Class<?>> getInitialEntitySet() {
+        return initialEntitySet;
+    }
+
+    public void setInitialEntitySet(Set<? extends Class<?>> initialEntitySet) {
+   		this.initialEntitySet = initialEntitySet;
+   	}
 }

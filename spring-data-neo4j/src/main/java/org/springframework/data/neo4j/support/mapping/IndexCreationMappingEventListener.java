@@ -29,7 +29,6 @@ import org.springframework.data.neo4j.support.index.IndexType;
  */
 public class IndexCreationMappingEventListener implements ApplicationListener<MappingContextEvent<Neo4jPersistentEntity<?>, Neo4jPersistentProperty>> {
     private Neo4jTemplate template;
-
     public IndexCreationMappingEventListener(Neo4jTemplate template) {
         this.template = template;
     }
@@ -37,8 +36,11 @@ public class IndexCreationMappingEventListener implements ApplicationListener<Ma
     @Override
     public void onApplicationEvent(MappingContextEvent<Neo4jPersistentEntity<?>, Neo4jPersistentProperty> event) {
         if (!(event.getSource() instanceof Neo4jPersistentEntity)) return;
-
         final Neo4jPersistentEntity entity = event.getPersistentEntity();
+        ensureEntityIndexes(entity);
+    }
+
+    private void ensureEntityIndexes(Neo4jPersistentEntity entity) {
         final Class entityType = entity.getType();
         template.getIndex(entityType, null, IndexType.SIMPLE);
         entity.doWithProperties(new PropertyHandler<Neo4jPersistentProperty>() {

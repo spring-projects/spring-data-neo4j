@@ -18,9 +18,29 @@
       <xsd:complexType>
          <xsd:complexContent>
             <xsd:extension base="beans:identifiedType">
-               <xsd:attribute name="storeDirectory" type="xsd:string" />
+               <xsd:attribute name="storeDirectory" type="xsd:string">
+                   <xsd:annotation>
+                       <xsd:documentation>
+                           default store-directory of the Neo4j database
+                       </xsd:documentation>
+                   </xsd:annotation>
+               </xsd:attribute>
+
                <xsd:attribute name="graphDatabaseService" type="graphDatabaseServiceRef" />
-               <xsd:attribute name="entityManagerFactory" type="xsd:string" />
+               <xsd:attribute name="base-package" type="xsd:string" use="optional">
+                   <xsd:annotation>
+                       <xsd:documentation>
+                           base package for persistent entities.
+                       </xsd:documentation>
+                   </xsd:annotation>
+               </xsd:attribute>
+               <xsd:attribute name="entityManagerFactory" type="xsd:string" use="optional">
+                   <xsd:annotation>
+                       <xsd:documentation>
+                           entity manager factory bean reference for cross-store configuration
+                       </xsd:documentation>
+                   </xsd:annotation>
+               </xsd:attribute>
             </xsd:extension>
          </xsd:complexContent>
       </xsd:complexType>

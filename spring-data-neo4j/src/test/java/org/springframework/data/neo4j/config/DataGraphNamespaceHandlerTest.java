@@ -31,13 +31,17 @@ import org.springframework.core.convert.TypeDescriptor;
 import org.springframework.core.convert.converter.GenericConverter;
 import org.springframework.data.neo4j.model.PersonRepository;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
+import org.springframework.data.neo4j.support.mapping.Neo4jMappingContext;
+import org.springframework.data.neo4j.support.mapping.Neo4jPersistentEntityImpl;
 import org.springframework.transaction.PlatformTransactionManager;
 
 import java.io.File;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author mh
@@ -53,6 +57,8 @@ public class DataGraphNamespaceHandlerTest {
         Neo4jTemplate neo4jTemplate;
         @Autowired
         PlatformTransactionManager transactionManager;
+        @Autowired
+        Neo4jMappingContext mappingContext;
         @Autowired(required = false)
         PersonRepository personRepository;
     }
@@ -94,6 +100,14 @@ public class DataGraphNamespaceHandlerTest {
     @Test
     public void injectionForCodeConfiguredExistingGraphDatabaseService() {
         assertInjected("-code");
+    }
+    @Test
+    public void injectionForBasePackageOfEntities() {
+        Config config = assertInjected("-entities");
+        Collection<Neo4jPersistentEntityImpl<?>> entities = config.mappingContext.getPersistentEntities();
+        System.out.println(entities);
+        assertTrue(entities.size() > 0);
+        assertEquals(TestEntity.class, entities.iterator().next().getType());
     }
     @Test
     public void injectionForConversionService() {
