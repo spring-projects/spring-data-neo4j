@@ -99,12 +99,12 @@ public class MovieDbImportService {
             }
             switch (job) {
                 case DIRECTED:
-                    final Director director = doImportPerson(id, new Director(id));
+                    final Director director = template.projectTo(doImportPerson(id, new Director(id)), Director.class);
                     director.directed(movie);
                     directorRepository.save(director);
                     break;
                 case ACTS_IN:
-                    final Actor actor = doImportPerson(id, new Actor(id));
+                    final Actor actor = template.projectTo(doImportPerson(id, new Actor(id)), Actor.class);
                     actor.playedIn(movie, (String) entry.get("character"));
                     actorRepository.save(actor);
                     break;
