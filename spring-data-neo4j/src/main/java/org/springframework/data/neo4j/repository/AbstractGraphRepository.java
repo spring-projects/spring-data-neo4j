@@ -387,8 +387,10 @@ public abstract class AbstractGraphRepository<S extends PropertyContainer, T> im
 
     private PageImpl<T> extractPage(Pageable pageable, int count, int offset, Iterator<T> iterator) {
         final List<T> result = new ArrayList<T>(count);
-        int total=subList(offset, count, iterator, result);
-        if (iterator.hasNext()) total++;
+        int total = subList(offset, count, iterator, result);
+        for (; iterator.hasNext(); ++total) {
+        	iterator.next();
+        }
         return new PageImpl<T>(result, pageable, total);
     }
 
