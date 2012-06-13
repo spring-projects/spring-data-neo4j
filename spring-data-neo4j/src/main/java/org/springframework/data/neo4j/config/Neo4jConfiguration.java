@@ -68,6 +68,7 @@ import javax.validation.Validator;
 
 import static java.util.Arrays.asList;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 
 /**
@@ -252,6 +253,16 @@ public abstract class Neo4jConfiguration {
 
     private Object[] createTransactionManagerAndUserTransaction( GraphDatabaseService gds )
     {
+        for ( Constructor<?> constructor : SpringTransactionManager.class.getDeclaredConstructors() )
+        {
+            System.out.println(constructor.toGenericString());
+        }
+
+        for ( Constructor<?> constructor : UserTransactionImpl.class.getDeclaredConstructors() )
+        {
+            System.out.println(constructor.toGenericString());
+        }
+
         if (onePointEight()) return new Object[]{createTransactionManagerForOnePointEight( gds ), createUserTransactionForOnePointEight( gds )};
         if (onePointSeven()) return new Object[]{createTransactionManagerForOnePointSeven( gds ), createUserTransactionForOnePointSeven( gds )};
         if (onePointSix()) return new Object[]{createTransactionManagerForOnePointSix( gds ), createUserTransactionForOnePointSix( gds )};
@@ -278,17 +289,25 @@ public abstract class Neo4jConfiguration {
 
     private boolean onePointSeven()
     {
-        throw new UnsupportedOperationException( "TODO" );
+        try
+        {
+            UserTransactionImpl.class.getDeclaredConstructor( TransactionManager.class );
+            return true;
+        }
+        catch ( NoSuchMethodException e )
+        {
+            return false;
+        }
     }
 
     private TransactionManager createTransactionManagerForOnePointSeven( GraphDatabaseService gds )
     {
-        throw new UnsupportedOperationException( "TODO" );
+        return createDynamically( gds, SpringTransactionManager.class, "org.neo4j.graphdb.GraphDatabaseService" );
     }
 
     private UserTransaction createUserTransactionForOnePointSeven( GraphDatabaseService gds )
     {
-        throw new UnsupportedOperationException( "TODO" );
+        return createDynamically( ((GraphDatabaseAPI) gds).getTxManager(), UserTransactionImpl.class, "javax.transaction.TransactionManager" );
     }
 
     private boolean onePointEight()
@@ -298,21 +317,21 @@ public abstract class Neo4jConfiguration {
 
     private TransactionManager createTransactionManagerForOnePointEight( GraphDatabaseService gds )
     {
-        return createDynamically( gds, SpringTransactionManager.class );
+        return createDynamically( gds, SpringTransactionManager.class, "org.neo4j.kernel.GraphDatabaseAPI" );
     }
 
     private UserTransaction createUserTransactionForOnePointEight( GraphDatabaseService gds )
     {
-        return createDynamically( gds, UserTransactionImpl.class );
+        return createDynamically( gds, UserTransactionImpl.class, "org.neo4j.kernel.GraphDatabaseAPI" );
     }
 
-    private <T> T createDynamically( GraphDatabaseService gds, Class<T> objectClass )
+    private <T> T createDynamically( Object parameter, Class<T> objectClass, String parameterClassName )
     {
         try
         {
-            Class<?> parameterClass = Class.forName( "org.neo4j.kernel.GraphDatabaseAPI" );
+            Class<?> parameterClass = Class.forName( parameterClassName );
 
-            return objectClass.getDeclaredConstructor( parameterClass ).newInstance( gds );
+            return objectClass.getDeclaredConstructor( parameterClass ).newInstance( parameter );
         }
         catch ( ClassNotFoundException e )
         {
