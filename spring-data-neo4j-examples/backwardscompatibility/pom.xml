@@ -13,9 +13,7 @@
 
   <properties>
     <spring.version>3.0.7.RELEASE</spring.version>
-    <!--<neo4j.version>1.6</neo4j.version>-->
     <neo4j.version>1.7</neo4j.version>
-    <!--<neo4j.version>1.8-SNAPSHOT</neo4j.version>-->
   </properties>
 
   <dependencies>
@@ -56,4 +54,26 @@
       </releases>
     </repository>
   </repositories>
+
+  <profiles>
+    <profile>
+      <id>1.6</id>
+      <properties>
+        <neo4j.version>1.6</neo4j.version>
+      </properties>
+    </profile>
+    <profile>
+      <id>1.7</id>
+      <properties>
+        <neo4j.version>1.7</neo4j.version>
+      </properties>
+    </profile>
+    <profile>
+      <id>1.8-SNAPSHOT</id>
+      <properties>
+        <neo4j.version>1.8-SNAPSHOT</neo4j.version>
+      </properties>
+    </profile>
+  </profiles>
+
 </project>
