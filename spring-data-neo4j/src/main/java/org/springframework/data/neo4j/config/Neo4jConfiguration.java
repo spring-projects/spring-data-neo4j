@@ -19,6 +19,7 @@ package org.springframework.data.neo4j.config;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
+import org.neo4j.kernel.AbstractGraphDatabase;
 import org.neo4j.kernel.GraphDatabaseAPI;
 import org.neo4j.kernel.impl.transaction.SpringTransactionManager;
 import org.neo4j.kernel.impl.transaction.UserTransactionImpl;
@@ -66,6 +67,8 @@ import javax.transaction.TransactionManager;
 import javax.validation.Validator;
 
 import static java.util.Arrays.asList;
+
+import java.lang.reflect.InvocationTargetException;
 
 /**
  * Abstract base class for code based configuration of Spring managed Neo4j infrastructure.
@@ -158,7 +161,7 @@ public abstract class Neo4jConfiguration {
 
     @Bean
     public TypeMapper<Relationship> relationshipTypeMapper() throws Exception {
-        return new DefaultTypeMapper<Relationship>(new TRSTypeAliasAccessor<Relationship>(relationshipTypeRepresentationStrategy()),asList(new ClassValueTypeInformationMapper()));
+        return new DefaultTypeMapper<Relationship>(new TRSTypeAliasAccessor<Relationship>(relationshipTypeRepresentationStrategy()),asList( new ClassValueTypeInformationMapper() ));
     }
 
     @Bean
@@ -240,16 +243,59 @@ public abstract class Neo4jConfiguration {
     protected JtaTransactionManager createJtaTransactionManager() {
         JtaTransactionManager jtaTm = new JtaTransactionManager();
         final GraphDatabaseService gds = getGraphDatabaseService();
-        if (gds instanceof GraphDatabaseAPI) {
-            final TransactionManager txManager = ((GraphDatabaseAPI) gds).getTxManager();
-            jtaTm.setTransactionManager(new SpringTransactionManager(gds));
-            jtaTm.setUserTransaction(new UserTransactionImpl(txManager));
-        } else {
-            final NullTransactionManager tm = new NullTransactionManager();
-            jtaTm.setTransactionManager(tm);
-            jtaTm.setUserTransaction(new UserTransactionAdapter(tm));
+        try
+        {
+            if (gds instanceof GraphDatabaseAPI) {
+                final TransactionManager txManager = ((GraphDatabaseAPI) gds).getTxManager();
+                jtaTm.setTransactionManager(new SpringTransactionManager(gds));
+                jtaTm.setUserTransaction(new UserTransactionImpl(txManager));
+            } else {
+                final NullTransactionManager tm = new NullTransactionManager();
+                jtaTm.setTransactionManager(tm);
+                jtaTm.setUserTransaction(new UserTransactionAdapter(tm));
+            }
+        }
+        catch ( NoClassDefFoundError e )
+        {
+            // aha! not 1.7!
+            // let's try 1.6
+            try
+            {
+                if (gds instanceof AbstractGraphDatabase) {
+                    jtaTm.setTransactionManager(new SpringTransactionManager(gds));
+                    jtaTm.setUserTransaction( createUserTransaction( gds ) );
+                } else {
+                    final NullTransactionManager tm = new NullTransactionManager();
+                    jtaTm.setTransactionManager(tm);
+                    jtaTm.setUserTransaction(new UserTransactionAdapter(tm));
+                }
+            }
+            catch ( NoSuchMethodException e1 )
+            {
+                throw new RuntimeException( e1 );
+            }
+            catch ( InvocationTargetException e1 )
+            {
+                throw new RuntimeException( e1 );
+            }
+            catch ( IllegalAccessException e1 )
+            {
+                throw new RuntimeException( e1 );
+            }
+            catch ( InstantiationException e1 )
+            {
+                throw new RuntimeException( e1 );
+            }
         }
         return jtaTm;
+    }
+
+    private UserTransactionImpl createUserTransaction( GraphDatabaseService gds ) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException, InstantiationException
+    {
+
+        return UserTransactionImpl.class.getDeclaredConstructor( GraphDatabaseService
+                .class ).newInstance( gds );
+//        return new UserTransactionImpl(gds);
     }
 
     @Bean
