@@ -19,6 +19,7 @@ package org.springframework.data.neo4j.config;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
+import org.neo4j.kernel.AbstractGraphDatabase;
 import org.neo4j.kernel.impl.transaction.SpringTransactionManager;
 import org.neo4j.kernel.impl.transaction.UserTransactionImpl;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -254,23 +255,24 @@ public abstract class Neo4jConfiguration {
     private Object[] createTransactionManagerAndUserTransaction( GraphDatabaseService gds )
     {
         if (onePointEight()) return new Object[]{createTransactionManagerForOnePointEight( gds ), createUserTransactionForOnePointEight( gds )};
-        if (onePointSeven()) return new Object[]{createTransactionManagerForOnePointSeven( gds ), createUserTransactionForOnePointSeven( gds )};
-        if (onePointSix()) return new Object[]{createTransactionManagerForOnePointSix( gds ), createUserTransactionForOnePointSix( gds )};
+        if (onePointSeven(gds)) return new Object[]{createTransactionManagerForOnePointSeven( gds ), createUserTransactionForOnePointSeven( gds )};
+        if (onePointSix(gds)) return new Object[]{createTransactionManagerForOnePointSix( gds ), createUserTransactionForOnePointSix( gds )};
 
         TransactionManager transactionManager = new NullTransactionManager();
         UserTransaction userTransaction = new UserTransactionAdapter( transactionManager );
         return new Object[] {transactionManager, userTransaction};
     }
 
-    private boolean onePointSix()
+    private boolean onePointSix( GraphDatabaseService gds )
     {
         try
         {
+
             Class<?> possibleConstructorParameterClass = Class.forName( "org.neo4j.graphdb.GraphDatabaseService" );
 
             UserTransactionImpl.class.getDeclaredConstructor( possibleConstructorParameterClass );
 
-            return true;
+            return AbstractGraphDatabase.class.isInstance( gds );
         }
         catch ( ClassNotFoundException e )
         {
@@ -292,14 +294,20 @@ public abstract class Neo4jConfiguration {
         return createDynamically( gds, UserTransactionImpl.class, "org.neo4j.graphdb.GraphDatabaseService" );
     }
 
-    private boolean onePointSeven()
+    private boolean onePointSeven( GraphDatabaseService gds )
     {
         try
         {
             UserTransactionImpl.class.getDeclaredConstructor( TransactionManager.class );
-            return true;
+            Class<?> gdaClass = Class.forName( "org.neo4j.kernel.GraphDatabaseAPI" );
+            gds.getClass().getMethod( "getTxManager" );
+            return gdaClass.isInstance( gds );
         }
         catch ( NoSuchMethodException e )
+        {
+            return false;
+        }
+        catch ( ClassNotFoundException e )
         {
             return false;
         }
@@ -314,7 +322,7 @@ public abstract class Neo4jConfiguration {
     {
         try
         {
-            Method getTxManagerMethod = gds.getClass().getDeclaredMethod( "getTxManager" );
+            Method getTxManagerMethod = gds.getClass().getMethod( "getTxManager" );
 
             TransactionManager txManager = (TransactionManager) getTxManagerMethod.invoke( gds );
 
