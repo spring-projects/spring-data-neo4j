@@ -19,7 +19,6 @@ package org.springframework.data.neo4j.config;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
-import org.neo4j.kernel.AbstractGraphDatabase;
 import org.neo4j.kernel.GraphDatabaseAPI;
 import org.neo4j.kernel.impl.transaction.SpringTransactionManager;
 import org.neo4j.kernel.impl.transaction.UserTransactionImpl;
@@ -64,6 +63,7 @@ import org.springframework.transaction.jta.JtaTransactionManager;
 import org.springframework.transaction.jta.UserTransactionAdapter;
 
 import javax.transaction.TransactionManager;
+import javax.transaction.UserTransaction;
 import javax.validation.Validator;
 
 import static java.util.Arrays.asList;
@@ -241,61 +241,99 @@ public abstract class Neo4jConfiguration {
     }
 
     protected JtaTransactionManager createJtaTransactionManager() {
-        JtaTransactionManager jtaTm = new JtaTransactionManager();
         final GraphDatabaseService gds = getGraphDatabaseService();
-        try
-        {
-            if (gds instanceof GraphDatabaseAPI) {
-                final TransactionManager txManager = ((GraphDatabaseAPI) gds).getTxManager();
-                jtaTm.setTransactionManager(new SpringTransactionManager(gds));
-                jtaTm.setUserTransaction(new UserTransactionImpl(txManager));
-            } else {
-                final NullTransactionManager tm = new NullTransactionManager();
-                jtaTm.setTransactionManager(tm);
-                jtaTm.setUserTransaction(new UserTransactionAdapter(tm));
-            }
-        }
-        catch ( NoClassDefFoundError e )
-        {
-            // aha! not 1.7!
-            // let's try 1.6
-            try
-            {
-                if (gds instanceof AbstractGraphDatabase) {
-                    jtaTm.setTransactionManager(new SpringTransactionManager(gds));
-                    jtaTm.setUserTransaction( createUserTransaction( gds ) );
-                } else {
-                    final NullTransactionManager tm = new NullTransactionManager();
-                    jtaTm.setTransactionManager(tm);
-                    jtaTm.setUserTransaction(new UserTransactionAdapter(tm));
-                }
-            }
-            catch ( NoSuchMethodException e1 )
-            {
-                throw new RuntimeException( e1 );
-            }
-            catch ( InvocationTargetException e1 )
-            {
-                throw new RuntimeException( e1 );
-            }
-            catch ( IllegalAccessException e1 )
-            {
-                throw new RuntimeException( e1 );
-            }
-            catch ( InstantiationException e1 )
-            {
-                throw new RuntimeException( e1 );
-            }
-        }
+
+        JtaTransactionManager jtaTm = new JtaTransactionManager();
+        Object[] transactionManagerAndUserTransaction = createTransactionManagerAndUserTransaction( gds );
+        jtaTm.setTransactionManager( (TransactionManager) transactionManagerAndUserTransaction[0] );
+        jtaTm.setUserTransaction( (UserTransaction) transactionManagerAndUserTransaction[1] );
         return jtaTm;
     }
 
-    private UserTransactionImpl createUserTransaction( GraphDatabaseService gds ) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException, InstantiationException
+    private Object[] createTransactionManagerAndUserTransaction( GraphDatabaseService gds )
     {
+        if (onePointEight()) return new Object[]{createTransactionManagerForOnePointEight( gds ), createUserTransactionForOnePointEight( gds )};
+        if (onePointSeven()) return new Object[]{createTransactionManagerForOnePointSeven( gds ), createUserTransactionForOnePointSeven( gds )};
+        if (onePointSix()) return new Object[]{createTransactionManagerForOnePointSix( gds ), createUserTransactionForOnePointSix( gds )};
 
-        return UserTransactionImpl.class.getDeclaredConstructor( GraphDatabaseService
-                .class ).newInstance( gds );
-//        return new UserTransactionImpl(gds);
+        TransactionManager transactionManager = new NullTransactionManager();
+        UserTransaction userTransaction = new UserTransactionAdapter( transactionManager );
+        return new Object[] {transactionManager, userTransaction};
+    }
+
+    private boolean onePointSix()
+    {
+        throw new UnsupportedOperationException( "TODO" );
+    }
+
+    private TransactionManager createTransactionManagerForOnePointSix( GraphDatabaseService gds )
+    {
+        throw new UnsupportedOperationException( "TODO" );
+    }
+
+    private UserTransaction createUserTransactionForOnePointSix( GraphDatabaseService gds )
+    {
+        throw new UnsupportedOperationException( "TODO" );
+    }
+
+    private boolean onePointSeven()
+    {
+        throw new UnsupportedOperationException( "TODO" );
+    }
+
+    private TransactionManager createTransactionManagerForOnePointSeven( GraphDatabaseService gds )
+    {
+        throw new UnsupportedOperationException( "TODO" );
+    }
+
+    private UserTransaction createUserTransactionForOnePointSeven( GraphDatabaseService gds )
+    {
+        throw new UnsupportedOperationException( "TODO" );
+    }
+
+    private boolean onePointEight()
+    {
+        return UserTransactionImpl.class.getDeclaredConstructors().length == 1;
+    }
+
+    private TransactionManager createTransactionManagerForOnePointEight( GraphDatabaseService gds )
+    {
+        return createDynamically( gds, SpringTransactionManager.class );
+    }
+
+    private UserTransaction createUserTransactionForOnePointEight( GraphDatabaseService gds )
+    {
+        return createDynamically( gds, UserTransactionImpl.class );
+    }
+
+    private <T> T createDynamically( GraphDatabaseService gds, Class<T> objectClass )
+    {
+        try
+        {
+            Class<?> parameterClass = Class.forName( "org.neo4j.kernel.GraphDatabaseAPI" );
+
+            return objectClass.getDeclaredConstructor( parameterClass ).newInstance( gds );
+        }
+        catch ( ClassNotFoundException e )
+        {
+            throw new RuntimeException( e );
+        }
+        catch ( InstantiationException e )
+        {
+            throw new RuntimeException( e );
+        }
+        catch ( IllegalAccessException e )
+        {
+            throw new RuntimeException( e );
+        }
+        catch ( InvocationTargetException e )
+        {
+            throw new RuntimeException( e );
+        }
+        catch ( NoSuchMethodException e )
+        {
+            throw new RuntimeException( e );
+        }
     }
 
     @Bean
