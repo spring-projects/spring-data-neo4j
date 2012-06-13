@@ -19,9 +19,6 @@ package org.springframework.data.neo4j.config;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
-import org.neo4j.kernel.GraphDatabaseAPI;
-import org.neo4j.kernel.impl.transaction.SpringTransactionManager;
-import org.neo4j.kernel.impl.transaction.UserTransactionImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
@@ -59,10 +56,6 @@ import org.springframework.data.neo4j.support.relationship.RelationshipEntitySta
 import org.springframework.data.neo4j.support.typerepresentation.ClassValueTypeInformationMapper;
 import org.springframework.data.neo4j.support.typerepresentation.TypeRepresentationStrategyFactory;
 import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.transaction.jta.JtaTransactionManager;
-import org.springframework.transaction.jta.UserTransactionAdapter;
-
-import javax.transaction.TransactionManager;
 import javax.validation.Validator;
 
 import static java.util.Arrays.asList;
@@ -158,7 +151,7 @@ public abstract class Neo4jConfiguration {
 
     @Bean
     public TypeMapper<Relationship> relationshipTypeMapper() throws Exception {
-        return new DefaultTypeMapper<Relationship>(new TRSTypeAliasAccessor<Relationship>(relationshipTypeRepresentationStrategy()),asList(new ClassValueTypeInformationMapper()));
+        return new DefaultTypeMapper<Relationship>(new TRSTypeAliasAccessor<Relationship>(relationshipTypeRepresentationStrategy()),asList( new ClassValueTypeInformationMapper() ));
     }
 
     @Bean
@@ -228,28 +221,13 @@ public abstract class Neo4jConfiguration {
 
     @Bean(name = {"neo4jTransactionManager","transactionManager"})
     @Qualifier("neo4jTransactionManager")
-	public PlatformTransactionManager neo4jTransactionManager() {
-        return createJtaTransactionManager();
+	public PlatformTransactionManager neo4jTransactionManager() throws Exception {
+        return new JtaTransactionManagerFactoryBean(getGraphDatabaseService()).getObject();
 	}
 
     @Bean
     public IndexCreationMappingEventListener indexCreationMappingEventListener() throws Exception {
         return new IndexCreationMappingEventListener(neo4jTemplate());
-    }
-
-    protected JtaTransactionManager createJtaTransactionManager() {
-        JtaTransactionManager jtaTm = new JtaTransactionManager();
-        final GraphDatabaseService gds = getGraphDatabaseService();
-        if (gds instanceof GraphDatabaseAPI) {
-            final TransactionManager txManager = ((GraphDatabaseAPI) gds).getTxManager();
-            jtaTm.setTransactionManager(new SpringTransactionManager(gds));
-            jtaTm.setUserTransaction(new UserTransactionImpl(txManager));
-        } else {
-            final NullTransactionManager tm = new NullTransactionManager();
-            jtaTm.setTransactionManager(tm);
-            jtaTm.setUserTransaction(new UserTransactionAdapter(tm));
-        }
-        return jtaTm;
     }
 
     @Bean

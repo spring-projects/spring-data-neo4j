@@ -106,8 +106,8 @@
         </property>
     </bean-->
 
-    <bean id="transactionManager" class="org.springframework.data.neo4j.config.TestTransactionManagerFactoryBean">
-        <property name="graphDatabaseService" ref="graphDatabaseService"/>
+    <bean id="transactionManager" class="org.springframework.data.neo4j.config.JtaTransactionManagerFactoryBean">
+        <constructor-arg ref="graphDatabaseService"/>
     </bean>
 
     <tx:annotation-driven mode="aspectj" transaction-manager="transactionManager"/>
