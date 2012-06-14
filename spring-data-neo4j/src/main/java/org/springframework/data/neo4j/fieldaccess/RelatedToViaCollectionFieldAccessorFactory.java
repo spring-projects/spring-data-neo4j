@@ -90,13 +90,13 @@ public class RelatedToViaCollectionFieldAccessorFactory implements FieldAccessor
 
             final Map<Node, Object> endNodeToEntityMapping = loadEndNodeToRelationshipEntityMapping(newVal, startNode);
             relationshipHelper.removeMissingRelationshipsInStoreAndKeepOnlyNewRelationShipsInSet(startNode, endNodeToEntityMapping.keySet());
-            persistEntities(endNodeToEntityMapping.values());
+            persistEntities(endNodeToEntityMapping.values(), relationshipHelper.getRelationshipType());
             return createManagedSet(entity, (Set<?>) newVal, property.obtainMappingPolicy(mappingPolicy));
 	    }
 
-        private void persistEntities(final Collection<Object> relationshipEntities) {
+        private void persistEntities( final Collection<Object> relationshipEntities, RelationshipType relationshipType ) {
             for (Object entity : relationshipEntities) {
-                template.save(entity);
+                template.save(entity, relationshipType);
             }
         }
 

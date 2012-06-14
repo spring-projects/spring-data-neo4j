@@ -16,6 +16,7 @@
 package org.springframework.data.neo4j.mapping;
 
 import org.neo4j.graphdb.PropertyContainer;
+import org.neo4j.graphdb.RelationshipType;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.data.mapping.context.MappingContext;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
@@ -27,7 +28,8 @@ import org.springframework.data.neo4j.support.mapping.Neo4jPersistentEntityImpl;
  */
 public interface Neo4jEntityConverter<T, S extends PropertyContainer> {
     <R extends T> R read(Class<R> type, S source, MappingPolicy mappingPolicy, final Neo4jTemplate template);
-    void write(T source, S sink, MappingPolicy mappingPolicy, final Neo4jTemplate template);
+    void write( T source, S sink, MappingPolicy mappingPolicy, final Neo4jTemplate template, RelationshipType
+            annotationProvidedRelationshipType );
     MappingContext<? extends Neo4jPersistentEntity<?>, Neo4jPersistentProperty> getMappingContext();
    	ConversionService getConversionService();
     <R extends T> R loadEntity(R entity, S source, MappingPolicy mappingPolicy, Neo4jPersistentEntityImpl<R> persistentEntity, final Neo4jTemplate template);

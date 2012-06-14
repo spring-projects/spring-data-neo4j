@@ -148,4 +148,9 @@ public class RelationshipHelper {
     public Relationship getSingleRelationship(Node node) {
         return node.getSingleRelationship(type,direction);
     }
+
+    public RelationshipType getRelationshipType()
+    {
+        return type;
+    }
 }

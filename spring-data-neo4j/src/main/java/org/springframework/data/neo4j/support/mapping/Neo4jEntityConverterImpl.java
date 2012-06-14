@@ -16,6 +16,7 @@
 package org.springframework.data.neo4j.support.mapping;
 
 import org.neo4j.graphdb.PropertyContainer;
+import org.neo4j.graphdb.RelationshipType;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.data.convert.TypeMapper;
 import org.springframework.data.mapping.Association;
@@ -133,7 +134,8 @@ public class Neo4jEntityConverterImpl<T,S extends PropertyContainer> implements 
     }
 
     @Override
-    public void write(T source, S sink, MappingPolicy mappingPolicy, final Neo4jTemplate template) {
+    public void write( T source, S sink, MappingPolicy mappingPolicy, final Neo4jTemplate template, RelationshipType
+            annotationProvidedRelationshipType ) {
         final Class<?> sourceType = source.getClass();
         @SuppressWarnings("unchecked") final Neo4jPersistentEntityImpl<T> persistentEntity = (Neo4jPersistentEntityImpl<T>) mappingContext.getPersistentEntity(sourceType);
         if (persistentEntity.isManaged()) { // todo check if typerepreentationstragegy is called ??
@@ -143,7 +145,7 @@ public class Neo4jEntityConverterImpl<T,S extends PropertyContainer> implements 
 
         final BeanWrapper<Neo4jPersistentEntity<T>, T> wrapper = BeanWrapper.<Neo4jPersistentEntity<T>, T>create(source, conversionService);
         if (sink == null) {
-            sink = entityStateHandler.useOrCreateState(source,sink); // todo handling of changed state
+            sink = entityStateHandler.useOrCreateState(source,sink, annotationProvidedRelationshipType ); // todo handling of changed state
             entityStateHandler.setPersistentState(source, sink);
             typeMapper.writeType(sourceType, sink);
         }

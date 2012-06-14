@@ -18,6 +18,7 @@ package org.springframework.data.neo4j.support.mapping;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.PropertyContainer;
 import org.neo4j.graphdb.Relationship;
+import org.neo4j.graphdb.RelationshipType;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.data.mapping.context.MappingContext;
 import org.springframework.data.neo4j.mapping.*;
@@ -173,8 +174,9 @@ public class Neo4jEntityPersister implements EntityPersister, Neo4jEntityConvert
         }
 
         @Override
-        public void write(Object source, S sink, MappingPolicy mappingPolicy, final Neo4jTemplate template) {
-            delegate.write(source,sink,mappingPolicy, template);
+        public void write( Object source, S sink, MappingPolicy mappingPolicy, final Neo4jTemplate template,
+                           RelationshipType annotationProvidedRelationshipType ) {
+            delegate.write(source,sink,mappingPolicy, template, annotationProvidedRelationshipType );
         }
     }
 
@@ -220,12 +222,13 @@ public class Neo4jEntityPersister implements EntityPersister, Neo4jEntityConvert
     }
 
 
-    public Object persist(Object entity, final MappingPolicy mappingPolicy, final Neo4jTemplate template) {
+    public Object persist( Object entity, final MappingPolicy mappingPolicy, final Neo4jTemplate template,
+                           RelationshipType annotationProvidedRelationshipType ) {
         final Class<?> type = entity.getClass();
         if (isManaged(entity)) {
             return ((ManagedEntity)entity).persist();
         } else {
-            return persist(entity, type, mappingPolicy, template);
+            return persist(entity, type, mappingPolicy, template, annotationProvidedRelationshipType );
         }
     }
 
@@ -233,16 +236,17 @@ public class Neo4jEntityPersister implements EntityPersister, Neo4jEntityConvert
         return entityStateHandler.isManaged(entity);
     }
 
-    private Object persist(Object entity, Class<?> type, MappingPolicy mappingPolicy, final Neo4jTemplate template) {
+    private Object persist( Object entity, Class<?> type, MappingPolicy mappingPolicy, final Neo4jTemplate template,
+                            RelationshipType annotationProvidedRelationshipType ) {
         if (isNodeEntity(type)) {
             final Node node = this.<Node>getPersistentState(entity);
-            this.nodeConverter.write(entity, node,mappingPolicy, template);
+            this.nodeConverter.write(entity, node,mappingPolicy, template, null );
             return createEntityFromState(getPersistentState(entity),type, getMappingPolicy(type), template);
             //return entity; // TODO ?
         }
         if (isRelationshipEntity(type)) {
             final Relationship relationship = this.<Relationship>getPersistentState(entity);
-            this.relationshipConverter.write(entity, relationship,mappingPolicy, template);
+            this.relationshipConverter.write(entity, relationship,mappingPolicy, template, annotationProvidedRelationshipType );
             return createEntityFromState(getPersistentState(entity),type, getMappingPolicy(type), template);
 //            return entity; // TODO ?
         }
@@ -291,8 +295,9 @@ public class Neo4jEntityPersister implements EntityPersister, Neo4jEntityConvert
     }
 
     @Override
-    public void write(Object source, Node sink, MappingPolicy mappingPolicy, final Neo4jTemplate template) {
-        nodeConverter.write(source,sink,mappingPolicy, template);
+    public void write( Object source, Node sink, MappingPolicy mappingPolicy, final Neo4jTemplate template,
+                       RelationshipType annotationProvidedRelationshipType ) {
+        nodeConverter.write(source,sink,mappingPolicy, template, annotationProvidedRelationshipType );
     }
 }
 

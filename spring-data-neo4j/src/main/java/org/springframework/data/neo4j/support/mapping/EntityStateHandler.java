@@ -118,7 +118,8 @@ public class EntityStateHandler {
     }
 
     @SuppressWarnings("unchecked")
-    public <S extends PropertyContainer> S useOrCreateState(Object entity, S state) {
+    public <S extends PropertyContainer> S useOrCreateState( Object entity, S state, RelationshipType
+            annotationProvidedRelationshipType ) {
         if (state != null) return state;
         final S containedState = getPersistentState(entity);
         if (containedState != null) return containedState;
@@ -131,7 +132,7 @@ public class EntityStateHandler {
             return (S) graphDatabase.createNode(null);
         }
         if (persistentEntity.isRelationshipEntity()) {
-            return getOrCreateRelationship(entity, persistentEntity);
+            return getOrCreateRelationship(entity, persistentEntity, annotationProvidedRelationshipType );
         }
         throw new IllegalArgumentException("The entity " + persistentEntity.getEntityName() + " has to be either annotated with @NodeEntity or @RelationshipEntity");
     }
@@ -144,13 +145,13 @@ public class EntityStateHandler {
     }
 
     @SuppressWarnings("unchecked")
-    private <S extends PropertyContainer> S getOrCreateRelationship(Object entity, Neo4jPersistentEntity<?> persistentEntity) {
+    private <S extends PropertyContainer> S getOrCreateRelationship( Object entity, Neo4jPersistentEntity<?> persistentEntity, RelationshipType annotationProvidedRelationshipType ) {
         final RelationshipProperties relationshipProperties = persistentEntity.getRelationshipProperties();
         final Neo4jPersistentProperty startNodeProperty = relationshipProperties.getStartNodeProperty();
         Node startNode = (Node) getPersistentState(startNodeProperty.getValue(entity, startNodeProperty.getMappingPolicy()));
         final Neo4jPersistentProperty endNodeProperty = relationshipProperties.getEndNodeProperty();
         Node endNode = (Node) getPersistentState(endNodeProperty.getValue(entity, endNodeProperty.getMappingPolicy()));
-        RelationshipType relationshipType = getRelationshipType(persistentEntity,entity);
+        RelationshipType relationshipType = getRelationshipType(persistentEntity,entity, annotationProvidedRelationshipType );
         if (persistentEntity.isUnique()) {
             final Neo4jPersistentProperty uniqueProperty = persistentEntity.getUniqueProperty();
             final IndexInfo indexInfo = uniqueProperty.getIndexInfo();
@@ -163,20 +164,36 @@ public class EntityStateHandler {
         return (S) graphDatabase.createRelationship(startNode, endNode, relationshipType, Collections.<String,Object>emptyMap());
     }
 
-    private RelationshipType getRelationshipType(Neo4jPersistentEntity persistentEntity, Object entity) {
+    private RelationshipType getRelationshipType( Neo4jPersistentEntity persistentEntity, Object entity,
+                                                  RelationshipType annotationProvidedRelationshipType )
+    {
         final RelationshipProperties relationshipProperties = persistentEntity.getRelationshipProperties();
         final Neo4jPersistentProperty typeProperty = relationshipProperties.getTypeProperty();
-        Object relType;
-        if (typeProperty!=null) {
-            relType = typeProperty.getValue(entity, typeProperty.getMappingPolicy());
-        } else {
-            relType = relationshipProperties.getRelationshipType();
+
+        if ( typeProperty != null )
+        {
+            Object value = typeProperty.getValue( entity, typeProperty.getMappingPolicy() );
+
+            if ( value != null )
+            {
+                return value instanceof RelationshipType ? (RelationshipType) value : DynamicRelationshipType
+                        .withName( value.toString() );
+            }
         }
-        if (relType instanceof RelationshipType) {
-            return (RelationshipType) relType;
+
+        if ( annotationProvidedRelationshipType != null )
+        {
+            return annotationProvidedRelationshipType;
         }
-        if (relType==null) throw new MappingException("Could not determine relationship-type for "+persistentEntity.getName());
-        return DynamicRelationshipType.withName(relType.toString());
+
+        String relationshipTypeAsString = relationshipProperties.getRelationshipType();
+
+        if ( relationshipTypeAsString == null )
+        {
+            throw new MappingException( "Could not determine relationship-type for " + persistentEntity.getName() );
+        }
+
+        return DynamicRelationshipType.withName( relationshipTypeAsString );
     }
 
     public RelationshipResult relateTo(Object source, Object target, String type) {

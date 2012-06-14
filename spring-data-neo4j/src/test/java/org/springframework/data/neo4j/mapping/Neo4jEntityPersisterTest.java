@@ -62,7 +62,7 @@ public class Neo4jEntityPersisterTest extends Neo4jPersistentTestBase {
 
     @Test
     public void testPersist() throws Exception {
-        entityPersister.persist(michael, template.getMappingPolicy(michael), template);
+        entityPersister.persist(michael, template.getMappingPolicy(michael), template, null );
         assertEquals((Long) michaelNode().getId(), michael.getId());
         assertEquals(michaelNode(), entityPersister.getPersistentState(michael));
         assertEquals(michaelNode().getProperty("name"), michael.getName());
