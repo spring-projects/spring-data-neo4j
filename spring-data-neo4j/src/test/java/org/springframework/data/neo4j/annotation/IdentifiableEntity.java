@@ -15,33 +15,21 @@
  */
 package org.springframework.data.neo4j.annotation;
 
-import java.util.HashSet;
-import java.util.Set;
+public abstract class IdentifiableEntity {
+    @GraphId
+    private Long id;
 
-@NodeEntity
-public class TubeStation extends IdentifiableEntity {
-    private String name;
-
-    @RelatedToVia
-    private Set<Line> lines = new HashSet<Line>();
-
-    public TubeStation() {
-
+    public Long getId() {
+        return id;
     }
 
-    TubeStation( String name ) {
-        this.name = name;
+    @Override
+    public boolean equals( Object obj ) {
+        return obj instanceof IdentifiableEntity && id.equals( ((IdentifiableEntity) obj).getId() );
     }
 
-    public void connectsTo( TubeStation tubeStation, String line ) {
-        lines.add( new Line( this, tubeStation, line ) );
-    }
-
-    public Set<Line> getLines() {
-        return lines;
-    }
-
-    public String getName() {
-        return name;
+    @Override
+    public int hashCode() {
+        return 0;
     }
 }

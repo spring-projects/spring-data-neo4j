@@ -15,33 +15,25 @@
  */
 package org.springframework.data.neo4j.annotation;
 
-import java.util.HashSet;
-import java.util.Set;
-
 @NodeEntity
-public class TubeStation extends IdentifiableEntity {
+public class SuperState extends IdentifiableEntity {
     private String name;
 
-    @RelatedToVia
-    private Set<Line> lines = new HashSet<Line>();
+    @RelatedToVia(type = "alliedWith")
+    private PerpetualRelations neighbour;
 
-    public TubeStation() {
-
+    public SuperState() {
     }
 
-    TubeStation( String name ) {
+    public SuperState( String name ) {
         this.name = name;
     }
 
-    public void connectsTo( TubeStation tubeStation, String line ) {
-        lines.add( new Line( this, tubeStation, line ) );
+    public void isAlliedWith( SuperState superState ) {
+        neighbour = new PerpetualRelations( this, superState );
     }
 
-    public Set<Line> getLines() {
-        return lines;
-    }
-
-    public String getName() {
-        return name;
+    public void isAtWarWith( SuperState superState ) {
+        neighbour = new PerpetualRelations( this, superState, "atWarWith" );
     }
 }

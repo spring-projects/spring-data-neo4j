@@ -19,29 +19,25 @@ import java.util.HashSet;
 import java.util.Set;
 
 @NodeEntity
-public class TubeStation extends IdentifiableEntity {
+public class Team extends IdentifiableEntity
+{
     private String name;
 
-    @RelatedToVia
-    private Set<Line> lines = new HashSet<Line>();
+    @RelatedToVia(type = "starter")
+    private Set<PlayerStatus> starters = new HashSet<PlayerStatus>();
 
-    public TubeStation() {
+    public Team()
+    {
 
     }
 
-    TubeStation( String name ) {
+    public Team( String name )
+    {
         this.name = name;
     }
 
-    public void connectsTo( TubeStation tubeStation, String line ) {
-        lines.add( new Line( this, tubeStation, line ) );
-    }
-
-    public Set<Line> getLines() {
-        return lines;
-    }
-
-    public String getName() {
-        return name;
+    public void add( PlayerStatus playerStatus )
+    {
+        starters.add( playerStatus );
     }
 }

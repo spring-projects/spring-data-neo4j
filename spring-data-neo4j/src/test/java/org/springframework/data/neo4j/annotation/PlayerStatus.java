@@ -15,33 +15,36 @@
  */
 package org.springframework.data.neo4j.annotation;
 
-import java.util.HashSet;
-import java.util.Set;
+@RelationshipEntity(type = "notplaying")
+public class PlayerStatus
+{
+    @GraphId
+    private Long id;
 
-@NodeEntity
-public class TubeStation extends IdentifiableEntity {
-    private String name;
+    @StartNode
+    private Team team;
 
-    @RelatedToVia
-    private Set<Line> lines = new HashSet<Line>();
+    @EndNode
+    private Player player;
 
-    public TubeStation() {
+    @RelationshipType
+    private String status;
+
+    public PlayerStatus()
+    {
 
     }
 
-    TubeStation( String name ) {
-        this.name = name;
+    public PlayerStatus( Team team, Player player )
+    {
+        this.team = team;
+        this.player = player;
     }
 
-    public void connectsTo( TubeStation tubeStation, String line ) {
-        lines.add( new Line( this, tubeStation, line ) );
-    }
+    public PlayerStatus( Team team, Player player, String status )
+    {
+        this( team, player );
 
-    public Set<Line> getLines() {
-        return lines;
-    }
-
-    public String getName() {
-        return name;
+        this.status = status;
     }
 }
