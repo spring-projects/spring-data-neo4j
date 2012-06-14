@@ -78,7 +78,7 @@ public class RelatedToViaSingleFieldAccessorFactory implements FieldAccessorFact
             final Node startNode = relationshipHelper.checkAndGetNode(entity);
             final Map<Node,Object> endNodeToEntityMapping = relationshipEntities.loadEndNodeToRelationshipEntityMapping(startNode, toSet(newVal), relatedType);
             relationshipHelper.removeMissingRelationshipsInStoreAndKeepOnlyNewRelationShipsInSet(startNode, endNodeToEntityMapping.keySet());
-            persistEntities(endNodeToEntityMapping.values());
+            persistEntities(endNodeToEntityMapping.values(), relationshipHelper.getRelationshipType() );
             return newVal;
 	    }
 
@@ -87,9 +87,9 @@ public class RelatedToViaSingleFieldAccessorFactory implements FieldAccessorFact
             return Collections.singleton(newVal);
         }
 
-        private void persistEntities(final Collection<Object> relationshipEntities) {
+        private void persistEntities( final Collection<Object> relationshipEntities, RelationshipType relationshipType ) {
             for (Object entity : relationshipEntities) {
-                template.save(entity);
+                template.save(entity, relationshipType);
             }
         }
 

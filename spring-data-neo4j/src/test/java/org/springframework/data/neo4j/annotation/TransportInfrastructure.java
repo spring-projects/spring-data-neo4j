@@ -15,33 +15,35 @@
  */
 package org.springframework.data.neo4j.annotation;
 
-import java.util.HashSet;
-import java.util.Set;
+@RelationshipEntity(type = "existing")
+public class TransportInfrastructure
+{
+    @GraphId
+    private Long id;
 
-@NodeEntity
-public class TubeStation extends IdentifiableEntity {
-    private String name;
+    @StartNode
+    private City city;
 
-    @RelatedToVia
-    private Set<Line> lines = new HashSet<Line>();
+    @EndNode
+    private MetroLine metroLine;
 
-    public TubeStation() {
-
+    public TransportInfrastructure()
+    {
     }
 
-    TubeStation( String name ) {
-        this.name = name;
+    public TransportInfrastructure( City city, MetroLine metroLine )
+    {
+        this.city = city;
+        this.metroLine = metroLine;
     }
 
-    public void connectsTo( TubeStation tubeStation, String line ) {
-        lines.add( new Line( this, tubeStation, line ) );
+    public Long getId()
+    {
+        return id;
     }
 
-    public Set<Line> getLines() {
-        return lines;
-    }
-
-    public String getName() {
-        return name;
+    public MetroLine getMetroLine()
+    {
+        return metroLine;
     }
 }

@@ -19,6 +19,7 @@ package org.springframework.data.neo4j.mapping;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.DynamicRelationshipType;
 import org.neo4j.graphdb.RelationshipType;
+import org.springframework.data.mapping.model.MappingException;
 import org.springframework.data.neo4j.annotation.RelatedTo;
 import org.springframework.data.neo4j.annotation.RelatedToVia;
 import org.springframework.data.neo4j.annotation.RelationshipEntity;
@@ -96,7 +97,8 @@ public class RelationshipInfo {
         final TypeInformation<?> relationshipEntityType = elementClass(annotation, typeInformation);
         final RelationshipEntity relationshipEntity = relationshipEntityType.getType().getAnnotation(RelationshipEntity.class);
         if (!relationshipEntity.type().isEmpty()) return relationshipEntity.type();
-        return field.getName();
+
+        throw new MappingException( "Relationship entity must have a default type" );
     }
 
     private static TypeInformation<?> elementClass(RelatedToVia annotation, TypeInformation<?> typeInformation) {

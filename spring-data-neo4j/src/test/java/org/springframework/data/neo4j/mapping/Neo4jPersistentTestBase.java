@@ -192,7 +192,7 @@ public class Neo4jPersistentTestBase {
     }
 
     protected Object write(Object entity, Node node) {
-        entityPersister.write(entity, node, template.getMappingPolicy(entity), template);
+        entityPersister.write(entity, node, template.getMappingPolicy(entity), template, null );
         return entity;
     }
 

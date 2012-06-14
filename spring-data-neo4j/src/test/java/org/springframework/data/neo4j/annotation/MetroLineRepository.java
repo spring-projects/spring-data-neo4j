@@ -15,33 +15,8 @@
  */
 package org.springframework.data.neo4j.annotation;
 
-import java.util.HashSet;
-import java.util.Set;
+import org.springframework.data.neo4j.repository.CRUDRepository;
 
-@NodeEntity
-public class TubeStation extends IdentifiableEntity {
-    private String name;
-
-    @RelatedToVia
-    private Set<Line> lines = new HashSet<Line>();
-
-    public TubeStation() {
-
-    }
-
-    TubeStation( String name ) {
-        this.name = name;
-    }
-
-    public void connectsTo( TubeStation tubeStation, String line ) {
-        lines.add( new Line( this, tubeStation, line ) );
-    }
-
-    public Set<Line> getLines() {
-        return lines;
-    }
-
-    public String getName() {
-        return name;
-    }
+public interface MetroLineRepository extends CRUDRepository<MetroLine>
+{
 }

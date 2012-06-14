@@ -293,7 +293,12 @@ public class Neo4jTemplate implements Neo4jOperations {
     @Override
     @SuppressWarnings("unchecked")
     public <T> T save(T entity) {
-        return (T) infrastructure.getEntityPersister().persist(entity, getMappingPolicy(entity), this);
+        return save( entity, null );
+    }
+
+    public <T> T save( T entity, RelationshipType annotationProvidedRelationshipType )
+    {
+        return (T) infrastructure.getEntityPersister().persist(entity, getMappingPolicy(entity), this, annotationProvidedRelationshipType );
     }
 
     public boolean isManaged(Object entity) {
@@ -650,7 +655,7 @@ public class Neo4jTemplate implements Neo4jOperations {
 
     public MappingPolicy getMappingPolicy(Object entity) {
         ParameterCheck.notNull(entity,"entity");
-        return getMappingPolicy(entity.getClass());
+        return getMappingPolicy( entity.getClass() );
     }
 
     public StoredEntityType getStoredEntityType(Object entity) {
