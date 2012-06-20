@@ -15,33 +15,34 @@
  */
 package org.springframework.data.neo4j.annotation;
 
-import java.util.HashSet;
-import java.util.Set;
+@RelationshipEntity(type = "unrelated")
+public class PerpetualRelations
+{
+    @GraphId
+    private Long id;
 
-@NodeEntity
-public class TubeStation extends IdentifiableEntity {
-    private String name;
+    @StartNode
+    private SuperState ss1;
 
-    @RelatedToVia
-    private Set<Line> lines = new HashSet<Line>();
+    @EndNode
+    private SuperState ss2;
 
-    public TubeStation() {
+    @RelationshipType
+    private String status;
 
+    public PerpetualRelations()
+    {
     }
 
-    TubeStation( String name ) {
-        this.name = name;
+    public PerpetualRelations( SuperState ss1, SuperState ss2 )
+    {
+        this.ss1 = ss1;
+        this.ss2 = ss2;
     }
 
-    public void connectsTo( TubeStation tubeStation, String line ) {
-        lines.add( new Line( this, tubeStation, line ) );
-    }
-
-    public Set<Line> getLines() {
-        return lines;
-    }
-
-    public String getName() {
-        return name;
+    public PerpetualRelations( SuperState ss1, SuperState ss2, String status )
+    {
+        this(ss1, ss2 );
+        this.status = status;
     }
 }

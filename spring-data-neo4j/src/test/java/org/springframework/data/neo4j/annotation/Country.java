@@ -15,33 +15,33 @@
  */
 package org.springframework.data.neo4j.annotation;
 
-import java.util.HashSet;
-import java.util.Set;
-
 @NodeEntity
-public class TubeStation extends IdentifiableEntity {
+public class Country extends IdentifiableEntity
+{
     private String name;
 
     @RelatedToVia
-    private Set<Line> lines = new HashSet<Line>();
+    private InterCountryRelationship acquaintance;
 
-    public TubeStation() {
+    @RelatedToVia(type = "special")
+    private InterCountryRelationship friend;
 
+    public Country()
+    {
     }
 
-    TubeStation( String name ) {
+    public Country( String name )
+    {
         this.name = name;
     }
 
-    public void connectsTo( TubeStation tubeStation, String line ) {
-        lines.add( new Line( this, tubeStation, line ) );
+    public void hasCordialRelationsWith( Country country, String description )
+    {
+        acquaintance = new InterCountryRelationship(this, country, description );
     }
 
-    public Set<Line> getLines() {
-        return lines;
-    }
-
-    public String getName() {
-        return name;
+    public void hasSpecialRelationsWith( Country country )
+    {
+        friend = new InterCountryRelationship( this, country, "The Special Relationship" );
     }
 }
