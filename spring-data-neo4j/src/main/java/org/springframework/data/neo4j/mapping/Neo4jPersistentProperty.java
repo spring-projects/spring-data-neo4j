@@ -94,4 +94,8 @@ public interface Neo4jPersistentProperty extends PersistentProperty<Neo4jPersist
     boolean isUnique();
 
     MappingPolicy obtainMappingPolicy(MappingPolicy currentMappingPolicy);
+
+    boolean hasQuery();
+
+    String getQuery();
 }

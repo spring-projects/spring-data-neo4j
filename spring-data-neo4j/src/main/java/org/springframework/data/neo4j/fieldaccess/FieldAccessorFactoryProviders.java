@@ -50,9 +50,10 @@ public class FieldAccessorFactoryProviders<T> {
 
         public List<FieldAccessListener> listeners() {
             if (fieldAccessorListenerFactories == null) return null;
-            final List<FieldAccessListener> listeners = new ArrayList<FieldAccessListener>(fieldAccessorListenerFactories.size());
-            for (final FieldAccessorListenerFactory fieldAccessorListenerFactory : fieldAccessorListenerFactories) {
-                listeners.add(fieldAccessorListenerFactory.forField(property));
+            int count = fieldAccessorListenerFactories.size();
+            final List<FieldAccessListener> listeners = new ArrayList<FieldAccessListener>(count);
+            for (int i=0;i<count;i++) {
+                listeners.add(fieldAccessorListenerFactories.get(i).forField(property));
             }
             return listeners;
         }
@@ -73,8 +74,10 @@ public class FieldAccessorFactoryProviders<T> {
     }
 
     public Map<Neo4jPersistentProperty, FieldAccessor> getFieldAccessors() {
-        final Map<Neo4jPersistentProperty, FieldAccessor> result = new HashMap<Neo4jPersistentProperty, FieldAccessor>(fieldAccessorFactoryProviders.size(),1);
-        for (final FieldAccessorFactoryProvider<T> fieldAccessorFactoryProvider : fieldAccessorFactoryProviders) {
+        int count = fieldAccessorFactoryProviders.size();
+        final Map<Neo4jPersistentProperty, FieldAccessor> result = new HashMap<Neo4jPersistentProperty, FieldAccessor>(count,1);
+        for (int i = 0; i < count; i++) {
+            FieldAccessorFactoryProvider<T> fieldAccessorFactoryProvider = fieldAccessorFactoryProviders.get(i);
             final FieldAccessor accessor = fieldAccessorFactoryProvider.accessor();
             result.put(fieldAccessorFactoryProvider.getProperty(), accessor);
         }
@@ -82,8 +85,10 @@ public class FieldAccessorFactoryProviders<T> {
     }
 
     public Map<Neo4jPersistentProperty, List<FieldAccessListener>> getFieldAccessListeners() {
-        final Map<Neo4jPersistentProperty, List<FieldAccessListener>> result = new HashMap<Neo4jPersistentProperty, List<FieldAccessListener>>(fieldAccessorFactoryProviders.size(),1);
-        for (final FieldAccessorFactoryProvider<T> fieldAccessorFactoryProvider : fieldAccessorFactoryProviders) {
+        int count = fieldAccessorFactoryProviders.size();
+        final Map<Neo4jPersistentProperty, List<FieldAccessListener>> result = new HashMap<Neo4jPersistentProperty, List<FieldAccessListener>>(count,1);
+        for (int i = 0; i < count; i++) {
+            FieldAccessorFactoryProvider<T> fieldAccessorFactoryProvider = fieldAccessorFactoryProviders.get(i);
             final List<FieldAccessListener> listeners = (List<FieldAccessListener>) fieldAccessorFactoryProvider.listeners();
             result.put(fieldAccessorFactoryProvider.getProperty(), listeners);
         }
