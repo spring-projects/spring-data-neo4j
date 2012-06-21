@@ -25,14 +25,7 @@ import org.springframework.data.mapping.PersistentEntity;
 import org.springframework.data.mapping.model.AbstractPersistentProperty;
 import org.springframework.data.mapping.model.MappingException;
 import org.springframework.data.mapping.model.SimpleTypeHolder;
-import org.springframework.data.neo4j.annotation.Fetch;
-import org.springframework.data.neo4j.annotation.GraphId;
-import org.springframework.data.neo4j.annotation.GraphProperty;
-import org.springframework.data.neo4j.annotation.Indexed;
-import org.springframework.data.neo4j.annotation.NodeEntity;
-import org.springframework.data.neo4j.annotation.RelatedTo;
-import org.springframework.data.neo4j.annotation.RelatedToVia;
-import org.springframework.data.neo4j.annotation.RelationshipEntity;
+import org.springframework.data.neo4j.annotation.*;
 import org.springframework.data.neo4j.mapping.IndexInfo;
 import org.springframework.data.neo4j.mapping.ManagedEntity;
 import org.springframework.data.neo4j.mapping.MappingPolicy;
@@ -68,17 +61,33 @@ class Neo4jPersistentPropertyImpl extends AbstractPersistentProperty<Neo4jPersis
     private Association<Neo4jPersistentProperty> myAssociation;
     private String defaultValue;
     private Class<?> propertyType;
+    private String query;
+    private final boolean isNeo4jEntityType;
+    private final String neo4jPropertyName;
+    private final int hash;
 
     public Neo4jPersistentPropertyImpl(Field field, PropertyDescriptor propertyDescriptor,
                                        PersistentEntity<?, Neo4jPersistentProperty> owner, SimpleTypeHolder simpleTypeHolder, Neo4jMappingContext ctx) {
         super(field, propertyDescriptor, owner, simpleTypeHolder);
+        this.hash = getField().hashCode();
         this.annotations = extractAnnotations(field);
         this.relationshipInfo = extractRelationshipInfo(field, ctx);
+        this.propertyType = extractPropertyType();
+        this.isNeo4jEntityType = isNeo4jPropertyType(getType());
+        this.neo4jPropertyName = createNeo4jPropertyName();
+
         this.indexInfo = extractIndexInfo();
         this.isIdProperty = annotations.containsKey(GraphId.class);
         this.defaultValue = extractDefaultValue();
         this.myAssociation = isAssociation() ? super.getAssociation() == null ? createAssociation() : super.getAssociation() : null;
-        this.propertyType = extractPropertyType();
+        this.query = extractQuery();
+    }
+
+    private String extractQuery() {
+        final Query query = getAnnotation(Query.class);
+        if (query == null) return null;
+        String value = query.value();
+        return value.trim().isEmpty() ? null : value;
     }
 
     private Class<?> extractPropertyType() {
@@ -186,6 +195,10 @@ class Neo4jPersistentPropertyImpl extends AbstractPersistentProperty<Neo4jPersis
     }
 
     public String getNeo4jPropertyName() {
+        return neo4jPropertyName;
+    }
+
+    private String createNeo4jPropertyName() {
         final Neo4jPersistentEntity entityClass = (Neo4jPersistentEntity) getOwner();
         if (entityClass.useShortNames()) return getName();
         return String.format("%s.%s", entityClass.getType().getSimpleName(), getName());
@@ -208,7 +221,7 @@ class Neo4jPersistentPropertyImpl extends AbstractPersistentProperty<Neo4jPersis
 
     @Override
     public boolean isNeo4jPropertyType() {
-        return isNeo4jPropertyType(getType());
+        return isNeo4jEntityType;
     }
 
     private static boolean isNeo4jPropertyType(final Class<?> fieldType) {
@@ -359,6 +372,14 @@ class Neo4jPersistentPropertyImpl extends AbstractPersistentProperty<Neo4jPersis
         return getField().equals(((AbstractPersistentProperty)other).getField());
     }
     public int hashCode() {
-        return getField().hashCode();
+        return hash;
+    }
+
+    public boolean hasQuery() {
+        return this.query!=null;
+    }
+
+    public String getQuery() {
+        return query;
     }
 }

@@ -44,6 +44,7 @@ public class Neo4jPersistentEntityImpl<T> extends BasicPersistentEntity<T, Neo4j
     private Neo4jPersistentProperty relationshipType;
     private StoredEntityType storedType;
     private Neo4jPersistentProperty uniqueProperty;
+    private final boolean shouldUseShortNames;
 
     /**
      * Creates a new {@link Neo4jPersistentEntityImpl} instance.
@@ -56,6 +57,7 @@ public class Neo4jPersistentEntityImpl<T> extends BasicPersistentEntity<T, Neo4j
             annotations.put(annotation.annotationType(),annotation);
         }
         managed = ManagedEntity.class.isAssignableFrom(information.getType());
+        shouldUseShortNames = shouldUseShortNames();
     }
 
     void updateStoredType(StoredEntityType storedType) {
@@ -74,6 +76,10 @@ public class Neo4jPersistentEntityImpl<T> extends BasicPersistentEntity<T, Neo4j
     }
 
     public boolean useShortNames() {
+        return shouldUseShortNames;
+    }
+
+    private boolean shouldUseShortNames() {
         final NodeEntity graphEntity = getAnnotation(NodeEntity.class);
         if (graphEntity != null) return graphEntity.useShortNames();
         final RelationshipEntity graphRelationship = getAnnotation(RelationshipEntity.class);

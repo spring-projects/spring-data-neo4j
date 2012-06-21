@@ -44,12 +44,18 @@ public class StoredEntityType {
     private final Neo4jPersistentEntity<?> entity;
     private final Collection<StoredEntityType> superTypes;
     private final EntityAlias entityAlias;
+    private final Class<?> type;
+    private final boolean isNodeEntity;
+    private final boolean isRelationshipEntity;
 
     StoredEntityType(Neo4jPersistentEntity<?> entity, Collection<Neo4jPersistentEntity<?>> superTypeEntities, final EntityAlias entityAlias) {
         this.entity = entity;
         this.entityAlias = entityAlias;
         this.superTypes = collectSuperTypes(superTypeEntities);
         this.alias = createAlias();
+        type = this.entity.getType();
+        isNodeEntity = this.entity.isNodeEntity();
+        isRelationshipEntity = this.entity.isRelationshipEntity();
     }
 
     private Collection<StoredEntityType> collectSuperTypes(Collection<Neo4jPersistentEntity<?>> superTypeEntities) {
@@ -92,15 +98,15 @@ public class StoredEntityType {
     }
 
     public Class<?> getType() {
-        return entity.getType();
+        return type;
     }
 
     public boolean isNodeEntity() {
-        return entity.isNodeEntity();
+        return isNodeEntity;
     }
 
     public boolean isRelationshipEntity() {
-        return entity.isRelationshipEntity();
+        return isRelationshipEntity;
     }
 
     @Override

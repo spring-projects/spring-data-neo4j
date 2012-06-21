@@ -41,9 +41,8 @@ public class QueryFieldAccessorFactory implements FieldAccessorFactory {
     }
 
     @Override
-    public boolean accept(final Neo4jPersistentProperty f) {
-        final Query query = f.getAnnotation(Query.class);
-        return query != null && !query.value().isEmpty();
+    public boolean accept(final Neo4jPersistentProperty property) {
+        return property.hasQuery();
     }
 
 
@@ -73,7 +72,7 @@ public class QueryFieldAccessorFactory implements FieldAccessorFactory {
             if ((this.annotationParams.length % 2) != 0) {
                 throw new IllegalArgumentException("Number of parameters has to be even to construct a parameter map");
             }
-            this.query = query.value();
+            this.query = property.getQuery();
             this.iterableResult = Iterable.class.isAssignableFrom(property.getType());
             this.target = resolveTarget(query,property);
             queryEngine = this.template.queryEngineFor(QueryType.Cypher);

@@ -37,6 +37,7 @@ public abstract class AbstractIndexingTypeRepresentationStrategy<S extends Prope
     protected final GraphDatabase graphDb;
     protected final IndexProvider indexProvider;
     private final Class<? extends PropertyContainer> clazz;
+    private Index<S> typesIndex;
 
     public AbstractIndexingTypeRepresentationStrategy(GraphDatabase graphDb, IndexProvider indexProvider,
                                                       final String indexName, final Class<? extends PropertyContainer> clazz) {
@@ -44,11 +45,11 @@ public abstract class AbstractIndexingTypeRepresentationStrategy<S extends Prope
         this.indexProvider = indexProvider;
         INDEX_NAME = indexName;
         this.clazz = clazz;
-        getTypesIndex();
+        typesIndex = createTypesIndex();
     }
 
     @SuppressWarnings("unchecked")
-    public Index<S> getTypesIndex() {
+    private Index<S> createTypesIndex() {
         return (Index<S>) graphDb.createIndex(clazz, INDEX_NAME, IndexType.SIMPLE);
     }
 
@@ -61,7 +62,8 @@ public abstract class AbstractIndexingTypeRepresentationStrategy<S extends Prope
     @Override
     public long count(StoredEntityType type) {
         long count = 0;
-        final IndexHits<S> hits = getTypesIndex().get(INDEX_KEY, type.getAlias());
+        Object value = type.getAlias();
+        final IndexHits<S> hits = get(value);
         while (hits.hasNext()) {
             hits.next();
             count++;
@@ -69,9 +71,27 @@ public abstract class AbstractIndexingTypeRepresentationStrategy<S extends Prope
         return count;
     }
 
+    private IndexHits<S> get(Object value) {
+        try {
+            return typesIndex.get(INDEX_KEY, value);
+        } catch(IllegalStateException ise) {
+            typesIndex=createTypesIndex();
+            return typesIndex.get(INDEX_KEY, value);
+        }
+    }
+
     @Override
     public void preEntityRemoval(S state) {
-        getTypesIndex().remove(state);
+        remove(state);
+    }
+
+    private void remove(S state) {
+        try {
+            typesIndex.remove(state);
+        } catch(IllegalStateException ise) {
+            typesIndex=createTypesIndex();
+            typesIndex.remove(state);
+        }
     }
 
     @Override
@@ -92,9 +112,18 @@ public abstract class AbstractIndexingTypeRepresentationStrategy<S extends Prope
         if (indexProvider != null) {
             value = indexProvider.createIndexValueForType(type.getAlias());
         }
-        getTypesIndex().add(element, INDEX_KEY, value);
+        add(element, value);
         for (StoredEntityType superType : type.getSuperTypes()) {
             addToTypesIndex(element,superType);
+        }
+    }
+
+    private void add(S element, Object value) {
+        try {
+            typesIndex.add(element, INDEX_KEY, value);
+        } catch(IllegalStateException ise) {
+            typesIndex = createTypesIndex();
+            typesIndex.add(element, INDEX_KEY, value);
         }
     }
 
@@ -104,7 +133,7 @@ public abstract class AbstractIndexingTypeRepresentationStrategy<S extends Prope
         if (indexProvider != null)
             value = indexProvider.createIndexValueForType(type.getAlias());
 
-        final IndexHits<S> allEntitiesOfType = getTypesIndex().get(INDEX_KEY, value);
+        final IndexHits<S> allEntitiesOfType = get(value);
         return new ClosableIndexHits<S>(allEntitiesOfType);
     }
 
