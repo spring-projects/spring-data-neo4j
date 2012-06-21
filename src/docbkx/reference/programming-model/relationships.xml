@@ -210,4 +210,39 @@ public class Friendship {
 
         </example>
     </section>
+  <section id="reference:programming_model:relationships:relationshiptypeprecedence">
+    <title>Relationship Type Precedence</title>
+    <para>In the example above we show how to specify a default relationship type, and how to provide the relationship
+      type using an annotation property. Here is an example of using the @RelationshipType annotation on a member
+      variable on the relationship entity; we call this dynamic relationship type.</para>
+    <example>
+      <title>Dynamic Relationship Type (simple mapping)</title>
+      <programlisting language="java"><![CDATA[
+@RelationshipEntity(type = "colleague")
+public class Acquaintance {
+      @StartNode private Actor actor;
+      @EndNode private Person acquaintance;
+      @RelationshipType private String connection;
+
+      public Acquaintance(Actor actor, Person acquaintance, String connection) {
+          ...
+
+Actor frankSinatra = ...
+Person carloGambino = ...
+new Acquaintance(frankSinatra, carloGambino, "its_complicated")
+]]>
+      </programlisting>
+    </example>
+    <note>Because dynamic type information is, well, dynamic, it is generally not possible to read the mapping backwards
+      using SDN. The relationship still exists, but SDN cannot help you access it because it does not know what type you
+      gave it. Also, for this reason, we require you to specify a default relationship type, so that we can at least
+      attempt the reverse mapping.</note>
+    <para>Should you happen to provide conflicting relationship types, we have established the following precedence, in
+      priority order:</para>
+    <orderedlist>
+      <listitem>Dynamic</listitem>
+      <listitem>Annotation-provided</listitem>
+      <listitem>Default</listitem>
+    </orderedlist>
+  </section>
 </section>
