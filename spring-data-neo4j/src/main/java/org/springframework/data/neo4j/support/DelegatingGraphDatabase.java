@@ -215,7 +215,7 @@ public class DelegatingGraphDatabase implements GraphDatabase {
 
     @Override
     public TransactionManager getTransactionManager() {
-        return new SpringTransactionManager(delegate);
+        return new SpringTransactionManager((GraphDatabaseAPI)delegate);
     }
 
     @Override

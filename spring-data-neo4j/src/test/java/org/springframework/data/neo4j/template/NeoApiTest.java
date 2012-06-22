@@ -19,6 +19,7 @@ package org.springframework.data.neo4j.template;
 import org.junit.After;
 import org.junit.Before;
 import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.kernel.GraphDatabaseAPI;
 import org.neo4j.kernel.impl.transaction.SpringTransactionManager;
 import org.neo4j.test.ImpermanentGraphDatabase;
 import org.springframework.core.convert.ConversionService;
@@ -52,7 +53,7 @@ public abstract class NeoApiTest {
 
     protected PlatformTransactionManager createTransactionManager()
     {
-        return new JtaTransactionManager(new SpringTransactionManager(graphDatabaseService));
+        return new JtaTransactionManager(new SpringTransactionManager((GraphDatabaseAPI)graphDatabaseService));
     }
 
     protected GraphDatabase createGraphDatabase() throws Exception

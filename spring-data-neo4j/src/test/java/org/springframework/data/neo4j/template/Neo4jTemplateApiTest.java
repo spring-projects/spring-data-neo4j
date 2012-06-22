@@ -20,6 +20,7 @@ import org.apache.lucene.index.Term;
 import org.apache.lucene.search.TermQuery;
 import org.junit.*;
 import org.neo4j.graphdb.*;
+import org.neo4j.kernel.GraphDatabaseAPI;
 import org.neo4j.graphdb.index.Index;
 import org.neo4j.graphdb.traversal.TraversalDescription;
 import org.neo4j.kernel.Traversal;
@@ -100,7 +101,7 @@ public class Neo4jTemplateApiTest {
     }
 
     protected PlatformTransactionManager createTransactionManager() {
-        return new JtaTransactionManager(new SpringTransactionManager(graphDatabaseService));
+        return new JtaTransactionManager(new SpringTransactionManager((GraphDatabaseAPI)graphDatabaseService));
     }
 
     private void createData() {

@@ -102,19 +102,9 @@
             <bean class="org.springframework.orm.jpa.JpaTransactionManager" id="jpaTransactionManager">
                 <property name="entityManagerFactory" ref="entityManagerFactory"/>
             </bean>
-			<bean
-			    class="org.springframework.transaction.jta.JtaTransactionManager">
-			    <property name="transactionManager">
-                    <bean class="org.neo4j.kernel.impl.transaction.SpringTransactionManager">
-                        <constructor-arg ref="graphDatabaseService" />
-                    </bean>
-			    </property>
-			    <property name="userTransaction">
-                    <bean  class="org.neo4j.kernel.impl.transaction.UserTransactionImpl">
-                        <constructor-arg value="#{graphDatabaseService.txManager}" />
-                    </bean>
-			    </property>
-			</bean>
+		    <bean class="org.springframework.data.neo4j.config.JtaTransactionManagerFactoryBean">
+		        <constructor-arg ref="graphDatabaseService"/>
+		    </bean>
             </list>
 		</constructor-arg>
 	</bean>
