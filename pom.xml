@@ -480,7 +480,6 @@
 				<artifactId>maven-javadoc-plugin</artifactId>
 				<version>2.7</version>
 				<configuration>
-					<javadoc:aggregate>true</javadoc:aggregate>
 					<breakiterator>true</breakiterator>
 					<header>Spring Data Neo4j</header>
 					<source>1.6</source>
