@@ -1,6 +1,12 @@
 Spring Data Graph Changelog
 ===========================
 
+Changes in version 2.1.RC2 (2012-??-??)
+--------------------------------------
+* DATAGRAPH-255 Created a transaction manager factory bean to allow backwards-compatibility. We now support Neo 1.7-1.8
+* DATAGRAPH-251 Fixed issue with annotation-provided relationship type (@RelatedToVia), firmed up relationship type precedence
+* DATAGRAPH-205 Improved error message
+
 Changes in version 2.1.RC1 (2012-05-04)
 --------------------------------------
 * DATAGRAPH-228 update to Neo4j 1.7, SD-Commons 1.3.0.RC2, Neo4j-Spatial 0.8, Neo4j-Java-Rest-Binding 1.7
