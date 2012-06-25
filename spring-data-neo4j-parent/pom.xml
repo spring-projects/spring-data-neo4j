@@ -1,11 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.springframework.data</groupId>
 	<artifactId>spring-data-neo4j-parent</artifactId>
 	<name>Spring Data Neo4j Parent</name>
-	<version>2.1.0.BUILD-SNAPSHOT</version>
+	<version>2.1.0.RC2</version>
 	<packaging>pom</packaging>
     <description><![CDATA[Spring Data Neo4j parent project. Defines dependencies and common configuration for the build process.
     ]]></description>
@@ -291,17 +290,17 @@
 			<dependency>
 				<groupId>org.springframework.data</groupId>
 				<artifactId>spring-data-neo4j</artifactId>
-				<version>${project.version}</version>
+				<version>2.1.0.RC2</version>
 			</dependency>
 			<dependency>
 				<groupId>org.springframework.data</groupId>
 				<artifactId>spring-data-neo4j-aspects</artifactId>
-				<version>${project.version}</version>
+				<version>2.1.0.RC2</version>
 			</dependency>
 			<dependency>
 				<groupId>org.springframework.data</groupId>
 				<artifactId>spring-data-neo4j-tx</artifactId>
-				<version>${project.version}</version>
+				<version>2.1.0.RC2</version>
 			</dependency>
 
 			<!-- Logging -->
