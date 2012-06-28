@@ -60,4 +60,9 @@ public @interface RelatedTo {
      * @return target class, required for collection based fields (no generic inferring)
      */
     Class<?> elementClass() default Object.class;
+
+    /**
+     * Used to discriminate between relationships with the same type based on end node type
+     */
+    boolean enforceTargetType() default false;
 }

@@ -27,6 +27,8 @@ import org.springframework.util.Assert;
 import java.util.HashSet;
 import java.util.Set;
 
+import static java.lang.String.format;
+
 /**
  * @author mh
  * @since 28.02.12
@@ -67,10 +69,25 @@ public class RelationshipHelper {
         throw new IllegalStateException("Entity must have a backing Node");
     }
 
-    protected void removeMissingRelationshipsInStoreAndKeepOnlyNewRelationShipsInSet(Node node, Set<Node> targetNodes) {
-        for (Relationship relationship : node.getRelationships(type, direction)) {
-            if (!targetNodes.remove(relationship.getOtherNode(node)))
-                template.delete(relationship);
+    protected void removeMissingRelationshipsInStoreAndKeepOnlyNewRelationShipsInSet( Node node,
+                                                                                      Set<Node> targetNodes,
+                                                                                      Class targetType ) {
+        for ( Relationship relationship : node.getRelationships( type, direction ) ) {
+            if ( !targetNodes.remove( relationship.getOtherNode( node ) ) ) {
+                if ( targetType != null ) {
+                    Object actualTargetType = relationship.getOtherNode( node ).getProperty( "__type__" );
+
+                    try {
+                        if (! targetType.isAssignableFrom(Class.forName((String) actualTargetType))) {
+                            continue;
+                        }
+                    } catch (ClassNotFoundException e) {
+                        throw new IllegalStateException(format("Could not read type '%s' - type does not exist", actualTargetType), e);
+                    }
+                }
+
+                template.delete( relationship );
+            }
         }
     }
 

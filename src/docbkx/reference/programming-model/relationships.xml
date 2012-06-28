@@ -245,4 +245,55 @@ new Acquaintance(frankSinatra, carloGambino, "its_complicated")
       <listitem>Default</listitem>
     </orderedlist>
   </section>
+    <section id="reference:programming_model:relationships:relationshiptypediscrimination">
+        <title>Discriminating Relationships Based On End Node Type</title>
+        <para>In some cases, you want to model two different aspects of a conceptual relationship using the same relationship type. Here is a canonical example:</para>
+        <example>
+            <title>Clashing Relationship Types</title>
+            <programlisting language="java">
+                <![CDATA[
+                @NodeEntity
+                class Person {
+                    @RelatedTo(type="OWNS")
+                    Car car;
+
+                    @RelatedTo(type="OWNS")
+                    Pet pet;
+                ...]]>
+            </programlisting>
+        </example>
+        <para>It is clear how we can map these relationships: by looking at the type of the end node. To enable this, we have introduced an boolean annotation parameter <code>enforceTargetType</code>, which is disabled by default. Our example now reads:</para>
+        <example>
+            <title>Discriminating Relationship Types Using End Node Type</title>
+            <programlisting language="java">
+                <![CDATA[
+                @NodeEntity
+                class Person {
+                    @RelatedTo(type="OWNS", enforceTargetType=true)
+                    Car car;
+
+                    @RelatedTo(type="OWNS", enforceTargetType=true)
+                    Pet pet;
+                ...]]>
+            </programlisting>
+        </example>
+        <para>The example easily generalises to collections too of course, but there are a few note-worthy rules and corner cases:</para>
+        <itemizedlist>
+            <listitem>
+                <para>You need to annotate <emphasis>all</emphasis> clashing relationships.</para>
+            </listitem>
+            <listitem>
+                <para>You can't have a two fields, two collections, or a field and a collection, with the same relationship type and identical end node types. SDN does not store metadata about the origin of a relationship. So when saving the entity, the first field or collection would be overwritten by the second, with the processing order being non-deterministic.</para>
+            </listitem>
+            <listitem>
+                <para>You <emphasis>can</emphasis> have clashing relation ship types when end nodes share a supertype.</para>
+            </listitem>
+            <listitem>
+                <para>A variation on the above, you <emphasis>cannot</emphasis> have two fields or two collections with the same relationship type and substitutable end node types.</para>
+            </listitem>
+            <listitem>
+                <para>You <emphasis>can</emphasis> however have a field and a collection where end node types inherit from eachother.</para>
+            </listitem>
+        </itemizedlist>
+    </section>
 </section>

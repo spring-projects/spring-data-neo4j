@@ -167,17 +167,13 @@ public class Neo4jTemplate implements Neo4jOperations {
         return infrastructure.getTypeRepresentationStrategies().count(getEntityType(entityClass));
     }
 
-    public <S extends PropertyContainer, T> T createEntityFromStoredType(S state) {
-        notNull(state,"node or relationship");
-        return infrastructure.getEntityPersister().createEntityFromStoredType(state, this);
-    }
     public <S extends PropertyContainer, T> T createEntityFromStoredType(S state, MappingPolicy mappingPolicy) {
         notNull(state,"node or relationship");
         return infrastructure.getEntityPersister().createEntityFromStoredType(state, mappingPolicy, this);
     }
 
     public <S extends PropertyContainer, T> T createEntityFromState(S state, Class<T> type, MappingPolicy mappingPolicy) {
-        notNull(state,"node or relationship",type,"entity class");
+        notNull(state,"node or relationship");
         return infrastructure.getEntityPersister().createEntityFromState(state, type, mappingPolicy, this);
     }
     @Override

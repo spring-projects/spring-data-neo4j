@@ -47,35 +47,47 @@ public class RelatedToCollectionFieldAccessorFactory implements FieldAccessorFac
     }
 
     @Override
-	public FieldAccessor forField(final Neo4jPersistentProperty property) {
+    public FieldAccessor forField(final Neo4jPersistentProperty property) {
         final RelationshipInfo relationshipInfo = property.getRelationshipInfo();
         final Class<?> targetType = relationshipInfo.getTargetType().getType();
-        return new RelatedToCollectionFieldAccessor(relationshipInfo.getRelationshipType(), relationshipInfo.getDirection(), targetType, template,property);
-	}
+        return new RelatedToCollectionFieldAccessor(relationshipInfo.getRelationshipType(), relationshipInfo.getDirection(), targetType, template, property);
+    }
 
-	public static class RelatedToCollectionFieldAccessor extends RelatedToFieldAccessor {
+    public static class RelatedToCollectionFieldAccessor extends RelatedToFieldAccessor {
 
-	    public RelatedToCollectionFieldAccessor(final RelationshipType type, final Direction direction, final Class<?> elementClass, final Neo4jTemplate template, Neo4jPersistentProperty property) {
-	        super(elementClass, template, direction, type,property);
-	    }
+        public RelatedToCollectionFieldAccessor(final RelationshipType type, final Direction direction, final Class<?> elementClass, final Neo4jTemplate template, Neo4jPersistentProperty property) {
+            super(elementClass, template, direction, type, property);
+        }
 
-	    public Object setValue(final Object entity, final Object newVal, MappingPolicy mappingPolicy) {
-	        final Node node = checkAndGetNode(entity);
+        public Object setValue(final Object entity, final Object newVal, MappingPolicy mappingPolicy) {
+            final Node node = checkAndGetNode(entity);
 // null should not remove existing relationships but leave them alone
-	        if (newVal == null) return null;
-	        final Set<Node> targetNodes = createSetOfTargetNodes(newVal);
-	        removeMissingRelationships(node, targetNodes);
-	        createAddedRelationships(node, targetNodes);
-	        return createManagedSet(entity, (Set<?>) newVal, property.obtainMappingPolicy(mappingPolicy));
-	    }
+            if (newVal == null) return null;
+            final Set<Node> targetNodes = createSetOfTargetNodes(newVal);
+            removeMissingRelationships(node, targetNodes, property.getTargetType());
+            createAddedRelationships(node, targetNodes);
+            return createManagedSet(entity, (Set<?>) newVal, property.obtainMappingPolicy(mappingPolicy));
+        }
 
         @Override
-	    public Object getValue(final Object entity, MappingPolicy mappingPolicy) {
-	        checkAndGetNode(entity);
+        public Object getValue(final Object entity, MappingPolicy mappingPolicy) {
+            checkAndGetNode(entity);
             final MappingPolicy currentPolicy = property.obtainMappingPolicy(mappingPolicy);
-            final Set<?> result = createEntitySetFromRelationshipEndNodes(entity, currentPolicy);
-	        return doReturn(createManagedSet(entity, result, currentPolicy));
-	    }
+            final Set<?> result = property.isTargetTypeEnforced() ?
+                    createEntitySetFromRelationshipEndNodesUsingTypeProperty(entity, currentPolicy) :
+                    createEntitySetFromRelationshipEndNodes(entity, currentPolicy);
+
+            Set<Object> values = new HashSet<Object>();
+            Class<?> targetType = property.getTargetType();
+
+            for (Object value : result) {
+                if (targetType == null || targetType.isAssignableFrom(value.getClass())) {
+                    values.add(value);
+                }
+            }
+
+            return doReturn(createManagedSet(entity, values, currentPolicy));
+        }
 
         @Override
         public Object getDefaultValue() {
