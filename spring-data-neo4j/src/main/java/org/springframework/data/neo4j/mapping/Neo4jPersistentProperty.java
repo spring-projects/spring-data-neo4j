@@ -98,4 +98,8 @@ public interface Neo4jPersistentProperty extends PersistentProperty<Neo4jPersist
     boolean hasQuery();
 
     String getQuery();
+
+    Class<?> getTargetType();
+
+    boolean isTargetTypeEnforced();
 }
