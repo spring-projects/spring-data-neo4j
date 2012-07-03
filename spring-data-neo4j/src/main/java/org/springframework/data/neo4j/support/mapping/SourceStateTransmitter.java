@@ -45,12 +45,8 @@ public class SourceStateTransmitter<S extends PropertyContainer> {
 
     public <R> R copyPropertiesFrom(final BeanWrapper<Neo4jPersistentEntity<R>, R> wrapper, S source, Neo4jPersistentEntity<R> persistentEntity, final MappingPolicy mappingPolicy, final Neo4jTemplate template) {
         final R entity = wrapper.getBean();
-/*        final Transaction tx = getTemplate().beginTx();
-        try {
-*/
             final EntityState<S> entityState = entityStateFactory.getEntityState(entity, false, template);
             entityState.setPersistentState(source);
-//            entityState.persist();
             persistentEntity.doWithProperties(new PropertyHandler<Neo4jPersistentProperty>() {
                 @Override
                 public void doWithPersistentProperty(Neo4jPersistentProperty property) {
@@ -64,12 +60,7 @@ public class SourceStateTransmitter<S extends PropertyContainer> {
                     copyEntityStatePropertyValue(property, entityState, wrapper, property.getMappingPolicy());  // TODO intelligent mappingPolicy.combineWith(property.getMappingPolicy())
                 }
             });
-  //          tx.success();
             return entity;
-/*        } finally {
-            tx.finish();
-        }
-*/
     }
 
     private <R> void setEntityStateValue(Neo4jPersistentProperty property, EntityState<S> entityState, BeanWrapper<Neo4jPersistentEntity<R>, R> wrapper, final MappingPolicy mappingPolicy) {
@@ -111,7 +102,6 @@ public class SourceStateTransmitter<S extends PropertyContainer> {
     public <R> void copyPropertiesTo(final BeanWrapper<Neo4jPersistentEntity<R>, R> wrapper, S target, Neo4jPersistentEntity<R> persistentEntity, MappingPolicy mappingPolicy, final Neo4jTemplate template) {
         final Transaction tx = template.beginTx();
         try {
-            //final Node targetNode = useGetOrCreateNode(node, persistentEntity, wrapper);
             final EntityState<S> entityState = entityStateFactory.getEntityState(wrapper.getBean(), false, template);
             entityState.setPersistentState(target);
             entityState.persist();
@@ -131,6 +121,11 @@ public class SourceStateTransmitter<S extends PropertyContainer> {
                 }
             });
             tx.success();
+        } catch(Throwable t) {
+			tx.failure();
+			if (t instanceof Error) throw (Error)t;
+			if (t instanceof RuntimeException) throw (RuntimeException)t;
+			throw new org.springframework.data.neo4j.core.UncategorizedGraphStoreException("Error copying properties from "+persistentEntity+" to "+target,t);
         } finally {
             tx.finish();
         }
