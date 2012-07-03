@@ -71,6 +71,7 @@ public class ConfigurationCheck implements ApplicationListener<ContextStartedEve
             updateStartTime();
             tx.success();
         } catch (Exception e) {
+	        tx.failure();
             throw new BeanCreationException("transactionManager not correctly configured, please refer to the manual, setup section",e);
         } finally {
             try {

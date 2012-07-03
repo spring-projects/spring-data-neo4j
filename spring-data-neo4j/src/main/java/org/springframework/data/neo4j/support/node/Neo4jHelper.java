@@ -62,6 +62,9 @@ public abstract class Neo4jHelper {
             removeNodes(graphDatabaseService);
             clearIndex(graphDatabaseService);
             tx.success();
+        } catch(Throwable t) {
+			tx.failure();
+			throw new org.springframework.data.neo4j.core.UncategorizedGraphStoreException("Error cleaning database ",t);
         } finally {
             tx.finish();
         }
