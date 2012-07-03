@@ -25,8 +25,8 @@ import org.springframework.data.neo4j.support.mapping.StoredEntityType;
  * (forming an inheritance chain) that is linked to from the instance and keeps a count of the instances. Another
  * approach could use indexing and a type property on the instance fields.
  *
- * Contains a callback on entity creation that can setup the type representation. The finder methods are delegated to
- * for the appropriate calls for the strategy set for the datastore.
+ * Contains a callback on entity creation that can set up the type representation. The finder methods are delegated to
+ * the appropriate calls for the strategy set for the datastore.
  *
  * TODO use SDC TypeMapper implementations to delegate to for concrete implementation
  *
