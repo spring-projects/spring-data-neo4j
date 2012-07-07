@@ -190,7 +190,7 @@ public class DelegatingGraphDatabase implements GraphDatabase {
                 return (QueryEngine<T>)new CypherQueryEngine(delegate, resultConverter);
             }
             case Gremlin: {
-                if (!ClassUtils.isPresent("com.tinkerpop.blueprints.pgm.impls.neo4j.Neo4jGraph", getClass().getClassLoader())) {
+                if (!ClassUtils.isPresent("com.tinkerpop.blueprints.impls.neo4j.Neo4jGraph", getClass().getClassLoader())) {
                     return new FailingQueryEngine<T>("Gremlin");
                 }
                 return (QueryEngine<T>) new GremlinQueryEngine(delegate,resultConverter);
