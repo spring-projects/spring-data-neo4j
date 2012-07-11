@@ -21,7 +21,7 @@ import org.junit.runner.RunWith;
 
 import static org.neo4j.cypherdsl.CypherQuery.*;
 import static org.neo4j.cypherdsl.querydsl.CypherQueryDSL.*;
-import org.neo4j.cypherdsl.Execute;
+import org.neo4j.cypherdsl.grammar.Execute;
 import org.neo4j.cypherdsl.querydsl.CypherQueryDSL;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -59,9 +59,9 @@ public class CypherDslRepositoryTest {
     @Autowired Neo4jOperations template;
     private TestTeam team;
     private Map<String,Object> peopleParams;
-    private Execute query = start(node("n", "people")).returns(identifier("n"));
-    private Execute query2 = CypherQueryDSL.start(CypherQueryDSL.node(QPerson.person, "people")).
-                                            where(QPerson.person.name.eq("Michael")).
+    private Execute query = start(nodeByParameter("n", "people")).returns(identifier("n"));
+    private Execute query2 = CypherQueryDSL.start(CypherQueryDSL.nodeByParameter(identifier(QPerson.person), "people")).
+                                            where(toBooleanExpression(QPerson.person.name.eq("Michael"))).
                                             returns(identifier(QPerson.person));
 
     @Before

@@ -17,8 +17,8 @@
 package org.springframework.data.neo4j.repository;
 
 import org.apache.lucene.search.NumericRangeQuery;
-import org.neo4j.cypherdsl.Execute;
-import org.neo4j.cypherdsl.Skip;
+import org.neo4j.cypherdsl.grammar.Execute;
+import org.neo4j.cypherdsl.grammar.Skip;
 import org.neo4j.graphdb.NotFoundException;
 import org.neo4j.graphdb.PropertyContainer;
 import org.neo4j.graphdb.index.IndexHits;
