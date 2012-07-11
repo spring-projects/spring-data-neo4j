@@ -18,117 +18,25 @@ package org.springframework.data.neo4j.config;
 
 /**
  * @author mh
+ * @author Oliver Gierke
  * @since 31.01.11
  */
-
-import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.xml.NamespaceHandlerSupport;
-import org.springframework.data.neo4j.repository.CRUDRepository;
-import org.springframework.data.neo4j.repository.GraphRepositoryFactoryBean;
-import org.springframework.data.repository.config.*;
-import org.springframework.util.StringUtils;
-import org.w3c.dom.Element;
+import org.springframework.data.repository.config.RepositoryBeanDefinitionParser;
+import org.springframework.data.repository.config.RepositoryConfigurationExtension;
 
 public class DataGraphNamespaceHandler extends NamespaceHandlerSupport {
 
-    public void init() {
-        registerBeanDefinitionParser("config", new DataGraphBeanDefinitionParser());
-        registerBeanDefinitionParser("repositories", new DataGraphRepositoryConfigDefinitionParser());
-    }
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.beans.factory.xml.NamespaceHandler#init()
+	 */
+	public void init() {
 
+		RepositoryConfigurationExtension extension = new Neo4jRepositoryConfigurationExtension();
+		RepositoryBeanDefinitionParser parser = new RepositoryBeanDefinitionParser(extension);
 
-    private static class DataGraphRepositoryConfigDefinitionParser extends AbstractRepositoryConfigDefinitionParser<DataGraphRepositoryConfigDefinitionParser.SimpleDataGraphRepositoryConfiguration, DataGraphRepositoryConfigDefinitionParser.DataGraphRepositoryConfiguration> {
-
-        @Override
-        protected SimpleDataGraphRepositoryConfiguration getGlobalRepositoryConfigInformation(Element element) {
-            return new SimpleDataGraphRepositoryConfiguration(element);
-        }
-
-        @Override
-        protected void postProcessBeanDefinition(DataGraphRepositoryConfiguration context, BeanDefinitionBuilder builder, BeanDefinitionRegistry registry, Object beanSource) {
-            builder.addPropertyReference("neo4jTemplate", context.getNeo4jTemplateRef());
-            builder.addPropertyReference("neo4jMappingContext", context.getNeo4jMappingContextRef());
-        }
-
-
-        public interface DataGraphRepositoryConfiguration extends SingleRepositoryConfigInformation<SimpleDataGraphRepositoryConfiguration> {
-            String NEO4J_TEMPLATE_REF = "neo4j-template-ref";
-            String DEFAULT_NEO4J_TEMPLATE_REF = "neo4jTemplate";
-            String DEFAULT_NEO4J_MAPPING_CONTEXT_REF = "neo4jMappingContext";
-
-            String getNeo4jTemplateRef();
-            String getNeo4jMappingContextRef();
-        }
-
-        public static class SimpleDataGraphRepositoryConfiguration extends RepositoryConfig<DataGraphRepositoryConfiguration, SimpleDataGraphRepositoryConfiguration> {
-
-            protected SimpleDataGraphRepositoryConfiguration(Element repositoriesElement) {
-                super(repositoriesElement, GraphRepositoryFactoryBean.class.getName());
-            }
-
-            @Override
-            public String getNamedQueriesLocation() {
-                return "classpath*:META-INF/neo4j-named-queries.properties";
-            }
-
-            @Override
-            protected DataGraphRepositoryConfiguration createSingleRepositoryConfigInformationFor(Element element) {
-                return new ManualDataGraphRepositoryConfiguration(element, this);
-            }
-
-            @Override
-            public DataGraphRepositoryConfiguration getAutoconfigRepositoryInformation(String interfaceName) {
-                return new AutomaticDataGraphRepositoryConfiguration(interfaceName, this);
-            }
-
-            @Override
-            public Class<?> getRepositoryBaseInterface() {
-                return CRUDRepository.class;
-            }
-
-            public String getNeo4jTemplateRef() {
-                String contextRef = getSource().getAttribute(DataGraphRepositoryConfiguration.NEO4J_TEMPLATE_REF);
-                return StringUtils.hasText(contextRef) ? contextRef : DataGraphRepositoryConfiguration.DEFAULT_NEO4J_TEMPLATE_REF;
-            }
-            public String getNeo4jMappingContextRef() {
-                return DataGraphRepositoryConfiguration.DEFAULT_NEO4J_MAPPING_CONTEXT_REF;
-            }
-
-            private static class ManualDataGraphRepositoryConfiguration extends ManualRepositoryConfigInformation<SimpleDataGraphRepositoryConfiguration> implements DataGraphRepositoryConfiguration {
-
-                public ManualDataGraphRepositoryConfiguration(Element element, SimpleDataGraphRepositoryConfiguration parent) {
-                    super(element, parent);
-                }
-
-                @Override
-                public String getNeo4jTemplateRef() {
-                    return getAttribute(DataGraphRepositoryConfiguration.NEO4J_TEMPLATE_REF);
-                }
-
-                @Override
-                public String getNeo4jMappingContextRef() {
-                    return DEFAULT_NEO4J_MAPPING_CONTEXT_REF;
-                }
-            }
-
-            private static class AutomaticDataGraphRepositoryConfiguration extends AutomaticRepositoryConfigInformation<SimpleDataGraphRepositoryConfiguration> implements DataGraphRepositoryConfiguration {
-
-                public AutomaticDataGraphRepositoryConfiguration(String interfaceName, SimpleDataGraphRepositoryConfiguration parent) {
-                    super(interfaceName, parent);
-                }
-
-                @Override
-                public String getNeo4jTemplateRef() {
-                    return getParent().getNeo4jTemplateRef();
-                }
-                @Override
-                public String getNeo4jMappingContextRef() {
-                    return getParent().getNeo4jMappingContextRef();
-                }
-
-            }
-        }
-
-    }
+		registerBeanDefinitionParser("config", new DataGraphBeanDefinitionParser());
+		registerBeanDefinitionParser("repositories", parser);
+	}
 }
