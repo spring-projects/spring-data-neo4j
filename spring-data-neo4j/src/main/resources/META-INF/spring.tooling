@@ -1,0 +1,4 @@
+# Tooling related information for the Neo4j namespace
+http\://www.springframework.org/schema/data/neo4j@name=Neo4j Namespace
+http\://www.springframework.org/schema/data/neo4j@prefix=neo4j
+http\://www.springframework.org/schema/data/neo4j@icon=org/springframework/jdbc/config/spring-jdbc.gif
