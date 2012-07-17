@@ -757,10 +757,10 @@
 	</pluginRepositories>
 	<repositories>
 		<repository>
-			<id>spring-releases</id>
-			<url>http://repo.springsource.org/libs-release</url>
+			<id>spring-snapshots</id>
+			<url>http://repo.springsource.org/libs-snapshot</url>
 		   	<snapshots>
-		      <enabled>false</enabled>
+		      		<enabled>true</enabled>
 		   	</snapshots>
 		</repository>
 		<repository>
