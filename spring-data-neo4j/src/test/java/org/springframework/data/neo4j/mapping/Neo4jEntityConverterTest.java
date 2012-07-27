@@ -33,9 +33,7 @@ import java.util.Date;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.singleton;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import static org.junit.Assert.*;
 import static org.neo4j.helpers.collection.IteratorUtil.first;
 
 /**
@@ -265,7 +263,7 @@ public class Neo4jEntityConverterTest extends Neo4jPersistentTestBase {
         group.setPersons(set(storeInGraph(emil), storeInGraph(michael), storeInGraph(andres)));
         storeInGraph(group);
 
-        group.getPersons().remove(emil);
+        assertTrue(group.getPersons().remove(emil));
         storeInGraph(group);
 
         assertEquals(set(andresNode(), michaelNode()), set(groupMemberNodes()));
