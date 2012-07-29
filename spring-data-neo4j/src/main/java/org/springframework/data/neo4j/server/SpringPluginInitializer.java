@@ -27,7 +27,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 /**
- * Initializer to run Spring Data Graph based Server Plugins in a Neo4j REST-server. It takes the list of
+ * Initializer to run Spring Data Neo4j based Server Plugins in a Neo4j REST-server. It takes the list of
  * config locations and a number of spring beans from those contexts that should be exposed
  * as injectable dependencies with a Jersey @Context.<br/>
  * For example:</br>
