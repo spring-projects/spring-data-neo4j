@@ -51,7 +51,7 @@ order by movie.title </pre>
 TraversalDescription actors = Traversal.description()
   .relationships("ACTS_IN").filter(returnAllButStartNode());
 
-for (Node actors : actors.traverse(movie))
+for (Node actor : actors.traverse(movie))
  ...</pre>
 
        <h4>Transactional: TX needed for write operations</h4>
@@ -94,11 +94,11 @@ try {
 &lt;/beans></pre>
 <h4>Testing</h4>
 <pre>&lt;neo4j:config graphDatabaseService="gds"/>
-&lt;bean id="gds" class=”...ImpermanentGraphDatabase/></pre>
+&lt;bean id="gds" class="...ImpermanentGraphDatabase"/></pre>
 <h4>REST</h4>
 
 <pre>&lt;neo4j:config graphDatabaseService="rds"/>
-&lt;bean id="rds" class=”...SpringRestGraphDatabase/></pre>
+&lt;bean id="rds" class="...SpringRestGraphDatabase"/></pre>
    </div>
    <div class="note">
        <h3>Entity - Annotations</h3>

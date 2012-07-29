@@ -40,31 +40,31 @@
             classes, and generified introduced methods.
         </para>
         <para>
-            IDE's not providing the full AJ support might mark parts of your code as errors.
+            IDEs not providing the full AJ support might mark parts of your code as errors.
             You should rely on your build-system and tests to verify the correctness of the code. You might also have
             your Entities (or their interfaces) implement the <code>NodeBacked</code> and <code>RelationshipBacked</code>
             interfaces directly to benefit from completion support and error checking.
         </para>
         <para>
-            Eclipse and STS support AspectJ via the AJDT plugin which can be installed from the update-site:
-            <ulink url="http://download.eclipse.org/tools/ajdt/36/update/">http://download.eclipse.org/tools/ajdt/37/update/</ulink>
-            (it might be necessary to use the latest development snapshot of the plugin
-            <ulink url="http://download.eclipse.org/tools/ajdt/36/dev/update">http://download.eclipse.org/tools/ajdt/36/dev/update</ulink>).
+            Eclipse and STS support AspectJ via the AJDT plugin which can be installed from the update-site listed at 
+            <ulink url="http://www.eclipse.org/ajdt/downloads/">http://www.eclipse.org/ajdt/downloads/</ulink>
+            (it might be necessary to use the latest development snapshot of the plugin).
             The current version that does not show incorrect errors is AspectJ 1.6.12 (included in STS 2.8.0), previous versions are reported
-            to mislead the user.
+            to mislead the user. Note that as of Spring Data Neo4j version 2.0.1 the AspectJ version 1.7.0 is not yet supported. This also
+            means that AJDT 2.2.0 on Eclipse 4.2 is not yet supported as this version of AJDT internally uses AspectJ 1.7.0.
         </para>
         <note>
         <para>
             There might be some issues with the eclipse maven plugin not adding AspectJ files correctly to the build path.
             If you encounter issues, please try the following:
 
-            Try editing the build path to <code>include **/*.aj</code> for the spring-data-neo4j project.
+            Try editing the build path to <code>include **/*.aj</code> for the spring-data-neo4j-aspects project.
             You can do this by selecting "Build Path -> Configure Build Path ..." from the Package Explorer.
-            Then for the <code>spring-data-neo4j/src/main/java</code> add <code>**/*.aj</code> to the Included path.
+            Then for the <code>spring-data-neo4j-aspects/src/main/java</code> add <code>**/*.aj</code> to the Included path.
 
-            For importing an Spring Data Graph project into Eclipse with m2e.
-            Please make sure that the <ulink url="http://dist.springsource.org/release/AJDT/configurator">AspectJ Configurator</ulink> is installed and
-
+            When importing a Spring Data Neo4j project into Eclipse with m2e, please make sure the AspectJ Configurator is 
+            installed from the following update-site: 
+            <ulink url="http://dist.springsource.org/release/AJDT/configurator">http://dist.springsource.org/release/AJDT/configurator</ulink> 
         </para>
         </note>
         <para>
