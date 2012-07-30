@@ -77,7 +77,7 @@ public class RelatedToViaSingleFieldAccessorFactory implements FieldAccessorFact
 	    public Object setValue(final Object entity, final Object newVal, MappingPolicy mappingPolicy) {
             final Node startNode = relationshipHelper.checkAndGetNode(entity);
             final Map<Node,Object> endNodeToEntityMapping = relationshipEntities.loadEndNodeToRelationshipEntityMapping(startNode, toSet(newVal), relatedType);
-            relationshipHelper.removeMissingRelationshipsInStoreAndKeepOnlyNewRelationShipsInSet(startNode, endNodeToEntityMapping.keySet());
+            relationshipHelper.removeMissingRelationshipsInStoreAndKeepOnlyNewRelationShipsInSet(startNode, endNodeToEntityMapping.keySet(), null);
             persistEntities(endNodeToEntityMapping.values(), relationshipHelper.getRelationshipType() );
             return newVal;
 	    }
