@@ -38,7 +38,7 @@ public class MovieController {
     private static final Logger log = LoggerFactory.getLogger(MovieController.class);
 
     /**
-     * Only matches 'GET /moviies/{id}}' requests for JSON content; a 404 is sent otherwise.
+     * Only matches 'GET /movies/{id}}' requests for JSON content; a 404 is sent otherwise.
      * TODO send a 406 if an unsupported representation, such as XML, is requested.  See SPR-7353.
      */
     @RequestMapping(value = "/movies/{id}", method = RequestMethod.GET, headers = "Accept=application/json")
