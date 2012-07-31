@@ -511,7 +511,7 @@
                     <execution>
                         <id>javadoc</id>
                         <goals>
-                            <goal>jar</goal>
+                            <goal>aggregate</goal>
                         </goals>
                         <phase>package</phase>
                     </execution>
