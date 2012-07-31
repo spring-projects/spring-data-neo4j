@@ -294,6 +294,10 @@ public class Neo4jEntityPersister implements EntityPersister, Neo4jEntityConvert
         return nodeConverter.loadEntity(entity,source,mappingPolicy,persistentEntity, template);
     }
 
+    public <R> R loadRelationshipEntity(R entity, Relationship source, MappingPolicy mappingPolicy, Neo4jPersistentEntityImpl<R> persistentEntity, final Neo4jTemplate template) {
+        return relationshipConverter.loadEntity(entity,source,mappingPolicy,persistentEntity, template);
+    }
+
     @Override
     public void write( Object source, Node sink, MappingPolicy mappingPolicy, final Neo4jTemplate template,
                        RelationshipType annotationProvidedRelationshipType ) {
