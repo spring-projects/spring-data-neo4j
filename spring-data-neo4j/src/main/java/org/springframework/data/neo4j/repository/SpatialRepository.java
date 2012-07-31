@@ -20,10 +20,13 @@ import org.springframework.data.neo4j.conversion.EndResult;
 
 /**
  * Repository for spatial queries.
+ *
  * WKT is well known text format like POINT( LON LAT ) POLYGON (( LON1 LAT1 LON2 LAT2 LON3 LAT3 LON1 LAT1 ))
- * @see <a href="http://en.wikipedia.org/wiki/Well-known_text">Well Known Text Spatial Format</a>
+ *
  * Right now requires a field: @Indexed(type = POINT, indexName = "...") String wkt;
  * inside the entity.
+ *
+ * @see <a href="http://en.wikipedia.org/wiki/Well-known_text">Well Known Text Spatial Format</a>
  */
 public interface SpatialRepository<T> {
     EndResult<T> findWithinBoundingBox(String indexName, double lowerLeftLat,

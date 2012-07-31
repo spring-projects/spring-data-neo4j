@@ -49,9 +49,7 @@ public class CrossStoreNodeEntityInstantiator implements EntityInstantiator<Node
      * this node is created by the original {@link org.springframework.data.neo4j.mapping.EntityInstantiator}.
      * @param n Node to instantiate an entity for
      * @param entityClass type of the entity
-     * @param mappingPolicy
      * @param <T> generic type of the entity
-     * @return
      */
 	public <T> T createEntityFromState(Node n, Class<T> entityClass, final MappingPolicy mappingPolicy) {
         if (n.hasProperty(CrossStoreNodeEntityState.FOREIGN_ID)) {

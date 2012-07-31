@@ -27,7 +27,7 @@ import org.springframework.data.neo4j.fieldaccess.DynamicPropertiesFieldAccessor
  * This dynamic property only is available inside a transaction, i.e. when the entity has been saved.
  * <p>
  * The key/value pairs of the {@link DynamicProperties} property are stored on the node with the keys
- * prefixed with the property name that is returned by {@link DelegatingFieldAccessorFactory#getNeo4jPropertyName(Field)}. 
+ * prefixed with the property name that is returned by {@link org.springframework.data.neo4j.mapping.Neo4jPersistentProperty#getNeo4jPropertyName()}.
  * <pre>
  * &#064;NodeEntity
  * class Person {
@@ -87,7 +87,6 @@ public interface DynamicProperties {
     /**
      * Removes the property with the given key
      * 
-     * @param key
      * @return the property that has been removed or null if no such property exists and {@link #hasProperty} returns
      *         <tt>false</tt>
      */

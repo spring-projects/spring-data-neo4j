@@ -92,7 +92,6 @@ public interface GraphDatabase {
     /**
      * creates a index
      * @param type type of index requested - either Node.class or Relationship.class
-     * @param indexName, not null
      * @param indexType SIMPLE, FULLTEXT or POINT declaring the requested index-type
      * @return node index {@link Index}
      */

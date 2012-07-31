@@ -28,7 +28,7 @@ import org.springframework.data.annotation.Reference;
 /**
  * Annotation for {@link org.springframework.data.neo4j.annotation.NodeEntity} fields that relate to other entities via
  * relationships. The fields represent read only iterators that provide the relationship-entities
- * {@link org.springframework.persistence.RelatedEntity} of the relationships. The iterator reflects the underlying relationships.
+ * {@link RelationshipEntity} of the relationships. The iterator reflects the underlying relationships.
  *
  * <pre>
  * &#64;RelatedToVia([type=&quot;roles&quot;], elementClass=Role.class)

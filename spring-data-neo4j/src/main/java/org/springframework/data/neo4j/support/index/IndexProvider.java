@@ -44,18 +44,12 @@ public interface IndexProvider {
     /**
      * adjust your indexName for the "__types__" indices
      * 
-     *
-     * @param type
      * @return prefixed indexName for Type
      */
     String createIndexValueForType(Object type);
     
     /**
      * possibility to do something with the high level index name 
-     * 
-     * @param indexName
-     * @param type
-     * @return
      */
     String customizeIndexName(String indexName, Class<?> type);
 

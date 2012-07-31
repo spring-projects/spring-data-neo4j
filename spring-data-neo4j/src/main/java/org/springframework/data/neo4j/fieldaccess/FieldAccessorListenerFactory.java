@@ -28,13 +28,15 @@ import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 public interface FieldAccessorListenerFactory {
     /**
      *
-     * @param property@return true if this factory is able to create a listener for the field
+     * @param property
+     * @return true if this factory is able to create a listener for the field
      */
     boolean accept(Neo4jPersistentProperty property);
 
     /**
      *
-     * @param property@return newly created field listener
+     * @param property
+     * @return newly created field listener
      */
     FieldAccessListener forField(Neo4jPersistentProperty property);
 }

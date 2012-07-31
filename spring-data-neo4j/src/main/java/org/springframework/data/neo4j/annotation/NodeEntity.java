@@ -46,7 +46,7 @@ public @interface NodeEntity {
      * Currently, only JPA storage is supported for partial node entities.
      * </p>
      *
-     * @return true if the entity is only partially managed by the {@link org.springframework.data.neo4j.support.node.Neo4jNodeBacking} aspect.
+     * @return true if the entity is only partially managed by the Neo4jNodeBacking aspect.
      */
     boolean partial() default false;
 

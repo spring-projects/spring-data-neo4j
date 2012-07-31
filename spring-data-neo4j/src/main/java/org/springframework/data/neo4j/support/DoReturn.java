@@ -29,12 +29,6 @@ public class DoReturn<T> {
         this.value = value;
     }
 
-    /**
-     * static factory method
-     * @param value
-     * @param <T>
-     * @return
-     */
     public static <T> DoReturn<T> doReturn(T value) {
         return new DoReturn<T>(value);
     }
