@@ -66,11 +66,16 @@ public abstract class RelatedToFieldAccessor implements FieldAccessor {
     }
 
     protected void removeMissingRelationships(Node node, Set<Node> targetNodes) {
-        relationshipHelper.removeMissingRelationshipsInStoreAndKeepOnlyNewRelationShipsInSet(node, targetNodes);
+        removeMissingRelationships( node, targetNodes, null );
+    }
+
+    protected void removeMissingRelationships( Node node, Set<Node> targetNodes, Class targetType ) {
+        relationshipHelper.removeMissingRelationshipsInStoreAndKeepOnlyNewRelationShipsInSet( node, targetNodes,
+                targetType );
     }
 
     protected void createAddedRelationships(Node node, Set<Node> targetNodes) {
-        relationshipHelper.createAddedRelationships(node, targetNodes);
+        relationshipHelper.createAddedRelationships( node, targetNodes );
     }
 
     protected Set<Node> createSetOfTargetNodes(Object newVal) {
@@ -78,6 +83,11 @@ public abstract class RelatedToFieldAccessor implements FieldAccessor {
     }
 
     protected Set<Object> createEntitySetFromRelationshipEndNodes(Object entity, MappingPolicy mappingPolicy) {
-        return relationshipHelper.createEntitySetFromRelationshipEndNodes(entity, mappingPolicy, relatedType);
+        return relationshipHelper.createEntitySetFromRelationshipEndNodes( entity, mappingPolicy, relatedType );
+    }
+
+    protected Set<Object> createEntitySetFromRelationshipEndNodesUsingTypeProperty( Object entity, MappingPolicy
+            mappingPolicy ) {
+        return relationshipHelper.createEntitySetFromRelationshipEndNodes(entity, mappingPolicy, null);
     }
 }

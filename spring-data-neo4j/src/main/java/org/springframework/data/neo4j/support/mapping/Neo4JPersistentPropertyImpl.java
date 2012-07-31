@@ -382,4 +382,18 @@ class Neo4jPersistentPropertyImpl extends AbstractPersistentProperty<Neo4jPersis
     public String getQuery() {
         return query;
     }
+
+    @Override
+    public Class<?> getTargetType() {
+        if (! isTargetTypeEnforced()) return null;
+
+        if (isCollectionLike()) return getComponentType();
+
+        return getType();
+    }
+
+    @Override
+    public boolean isTargetTypeEnforced() {
+        return getAnnotation( RelatedTo.class ) != null && getAnnotation( RelatedTo.class ).enforceTargetType();
+    }
 }

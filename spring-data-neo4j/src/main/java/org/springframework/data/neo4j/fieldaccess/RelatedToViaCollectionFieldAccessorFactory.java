@@ -89,7 +89,7 @@ public class RelatedToViaCollectionFieldAccessorFactory implements FieldAccessor
             if (newVal == null) return null;
 
             final Map<Node, Object> endNodeToEntityMapping = loadEndNodeToRelationshipEntityMapping(newVal, startNode);
-            relationshipHelper.removeMissingRelationshipsInStoreAndKeepOnlyNewRelationShipsInSet(startNode, endNodeToEntityMapping.keySet());
+            relationshipHelper.removeMissingRelationshipsInStoreAndKeepOnlyNewRelationShipsInSet(startNode, endNodeToEntityMapping.keySet(), null);
             persistEntities(endNodeToEntityMapping.values(), relationshipHelper.getRelationshipType());
             return createManagedSet(entity, (Set<?>) newVal, property.obtainMappingPolicy(mappingPolicy));
 	    }
