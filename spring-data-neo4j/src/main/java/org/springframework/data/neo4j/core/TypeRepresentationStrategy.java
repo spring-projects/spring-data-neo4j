@@ -45,19 +45,20 @@ public interface TypeRepresentationStrategy<S extends PropertyContainer> {
     /**
      *
      *
-     * @param type@return lazy Iterable over all instances of the given type
+     * @param type
+     * @return lazy Iterable over all instances of the given type
      */
     <U> ClosableIterable<S> findAll(final StoredEntityType type);
 
     /**
      *
-     * @param type@return number of instances of this class contained in the graph
+     * @param type
+     * @return number of instances of this class contained in the graph
      */
     long count(final StoredEntityType type);
 
     /**
      *
-     * @param state
      * @return java type that of the node entity of this node
      */
 	Object readAliasFrom(S state);

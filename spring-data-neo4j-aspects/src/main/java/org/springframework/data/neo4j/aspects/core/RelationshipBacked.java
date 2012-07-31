@@ -19,7 +19,7 @@ package org.springframework.data.neo4j.aspects.core;
 import org.neo4j.graphdb.Relationship;
 
 /**
- * concrete interface introduced onto Relationship entities by the {@link org.springframework.data.neo4j.support.relationship.Neo4jRelationshipBacking}
+ * concrete interface introduced onto Relationship entities by the Neo4jRelationshipBacking
  * aspect, encapsulates a neo4j relationship as backing state
  */
 public interface RelationshipBacked extends GraphBacked<Relationship,RelationshipBacked>{

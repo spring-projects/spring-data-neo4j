@@ -22,8 +22,7 @@ import java.lang.annotation.*;
 
 /**
  * Annotation to declare a Pojo-Entity as graph backed relationship entity.
- * It is used by the {@link org.springframework.data.neo4j.support.relationship.Neo4jRelationshipBacking} aspect to add
- * field advices as well as the {@link org.springframework.data.neo4j.core.RelationshipBacked} interface.
+ * It is used by the Neo4jRelationshipBacking aspect to add field advices as well as the RelationshipBacked interface.
  *
  * Relationship entities cannot be instantiated directly. The will be provided by relationship fields and the
  * methods relatedTo and getRelationshipTo introduced to the node entities.

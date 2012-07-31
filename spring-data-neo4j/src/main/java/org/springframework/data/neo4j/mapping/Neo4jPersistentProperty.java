@@ -33,8 +33,6 @@ public interface Neo4jPersistentProperty extends PersistentProperty<Neo4jPersist
     /**
      * Returns whether the property represents a relationship. If this returns {@literal true}, clients can expect
      * {@link #getRelationshipInfo()} to return a non-{@literal null} value.
-     * 
-     * @return
      */
     boolean isRelationship();
 
@@ -42,7 +40,6 @@ public interface Neo4jPersistentProperty extends PersistentProperty<Neo4jPersist
      * Returns the {@link RelationshipInfo} for the given property if it is a relationship or {@literal null} otherwise.
      * 
      * @see #isRelationship()
-     * @return
      */
     RelationshipInfo getRelationshipInfo();
 
@@ -56,7 +53,7 @@ public interface Neo4jPersistentProperty extends PersistentProperty<Neo4jPersist
 
     /**
      * Returns {@code true} if the type of this property is a natively supported neo4j property type. Supported type are listed here:
-     * {@link PropertyContainer#setProperty(String, Object)}.
+     * {@link org.neo4j.graphdb.PropertyContainer#setProperty(String, Object)}.
      */
     boolean isNeo4jPropertyType();
 

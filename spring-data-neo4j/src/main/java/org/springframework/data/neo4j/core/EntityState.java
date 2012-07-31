@@ -35,35 +35,29 @@ public interface EntityState<STATE> {
     void setPersistentState(STATE state);
 
     /**
-     *
-     * @param property@return a default value for the given field by its {@link FieldAccessor} or {@code null} if none is provided.
+     * @return a default value for the given field by its {@link FieldAccessor} or {@code null} if none is provided.
      */
     Object getDefaultValue(Neo4jPersistentProperty property);
     
     /**
      *
-     * @param field
-     * @param mappingPolicy
      * @return value of the field either from the state and/or the entity
      */
     Object getValue(Field field, MappingPolicy mappingPolicy);
+
     /**
      * @return value of the property either from the state and/or the entity
      */
     Object getValue(Neo4jPersistentProperty property, MappingPolicy mappingPolicy);
 
     /**
-     *
-     * @param property@return true if the field can be written
+     * @return true if the field can be written
      */
     boolean isWritable(Neo4jPersistentProperty property);
 
     /**
      *
      *
-     * @param field
-     * @param newVal
-     * @param mappingPolicy
      * @return sets the value in the entity and/or the state
      */
     Object setValue(Field field, Object newVal, MappingPolicy mappingPolicy);

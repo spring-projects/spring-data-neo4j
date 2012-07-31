@@ -194,9 +194,6 @@ public class Neo4jTemplate implements Neo4jOperations {
 
     /**
      * just sets the persistent state (i.e. Node or id) to the entity, doesn't copy any values/properties.
-     * @param entity
-     * @param <S>
-     * @return
      */
     @Override
     public <S extends PropertyContainer> S getPersistentState(Object entity) {
