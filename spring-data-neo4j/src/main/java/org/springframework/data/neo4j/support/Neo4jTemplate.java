@@ -472,12 +472,11 @@ public class Neo4jTemplate implements Neo4jOperations {
             return value;
         } else {
             final PropertyContainer state = getPersistentState(value);
-            if (state != null) {
+            if (state instanceof Node)
                 return entityPersister.loadEntity(value, (Node) state, MappingPolicy.LOAD_POLICY, (Neo4jPersistentEntityImpl<T>) getPersistentEntity(targetType), this);
-            } else {
-                // todo do nothing?
-                throw new MappingException("No state information available in " + value);
-            }
+            if (state instanceof Relationship)
+                return entityPersister.loadRelationshipEntity(value, (Relationship) state, MappingPolicy.LOAD_POLICY, (Neo4jPersistentEntityImpl<T>) getPersistentEntity(targetType), this);
+            throw new MappingException("No state information available in " + value);
         }
     }
 

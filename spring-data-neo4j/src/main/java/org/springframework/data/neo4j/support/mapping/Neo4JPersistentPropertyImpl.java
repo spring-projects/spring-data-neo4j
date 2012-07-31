@@ -63,6 +63,7 @@ class Neo4jPersistentPropertyImpl extends AbstractPersistentProperty<Neo4jPersis
     private Class<?> propertyType;
     private String query;
     private final boolean isNeo4jEntityType;
+    private final Boolean isAssociation;
     private final String neo4jPropertyName;
     private final int hash;
 
@@ -73,6 +74,7 @@ class Neo4jPersistentPropertyImpl extends AbstractPersistentProperty<Neo4jPersis
         this.annotations = extractAnnotations(field);
         this.relationshipInfo = extractRelationshipInfo(field, ctx);
         this.propertyType = extractPropertyType();
+        this.isAssociation = super.isAssociation();
         this.isNeo4jEntityType = isNeo4jPropertyType(getType());
         this.neo4jPropertyName = createNeo4jPropertyName();
 
@@ -171,7 +173,7 @@ class Neo4jPersistentPropertyImpl extends AbstractPersistentProperty<Neo4jPersis
 
     @Override
     public boolean isAssociation() {
-        return super.isAssociation() || isRelationship();
+        return isAssociation==null ? super.isAssociation() : isAssociation|| isRelationship();
     }
 
     @Override
