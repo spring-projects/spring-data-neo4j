@@ -102,7 +102,7 @@ public class RelatedToViaSingleFieldAccessorFactory implements FieldAccessorFact
 	    public Object getValue(final Object entity, MappingPolicy mappingPolicy) {
             final Node node = relationshipHelper.checkAndGetNode(entity);
             Relationship rel = relationshipHelper.getSingleRelationship(node);
-            return doReturn(rel==null ? null : template.load(rel,relatedType));
+            return doReturn(rel==null ? null :  template.createEntityFromState(rel,relatedType,mappingPolicy)); // template.load(rel,relatedType));
         }
     }
 }
