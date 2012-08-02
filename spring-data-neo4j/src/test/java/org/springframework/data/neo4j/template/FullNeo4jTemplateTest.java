@@ -77,7 +77,6 @@ public class FullNeo4jTemplateTest {
         Neo4jHelper.cleanDb(neo4jTemplate);
         referenceNode = graphDatabase.getReferenceNode();
         createData();
-        Neo4jHelper.dumpDb(neo4jTemplate.getGraphDatabaseService());
     }
 
     private void createData() {
@@ -120,7 +119,7 @@ public class FullNeo4jTemplateTest {
                 }
             });
         } catch (RuntimeException re) {
-            System.out.println(re.getMessage());
+
         }
         Assert.assertThat((String) graphDatabase.getReferenceNode().getProperty("test", "not set"), not("shouldRollbackTransactionOnException"));
     }

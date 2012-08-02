@@ -105,7 +105,6 @@ public class DataGraphNamespaceHandlerTest {
     public void injectionForBasePackageOfEntities() {
         Config config = assertInjected("-entities");
         Collection<Neo4jPersistentEntityImpl<?>> entities = config.mappingContext.getPersistentEntities();
-        System.out.println(entities);
         assertTrue(entities.size() > 0);
         assertEquals(TestEntity.class, entities.iterator().next().getType());
     }
