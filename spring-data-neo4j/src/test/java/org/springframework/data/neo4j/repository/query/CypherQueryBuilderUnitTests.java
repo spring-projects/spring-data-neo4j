@@ -136,7 +136,6 @@ public class CypherQueryBuilderUnitTests {
         query.addRestriction(new Part("ageGreaterThan", Person.class));
         query.addRestriction(new Part("groupMembersAge", Person.class));
 
-        System.out.println(query.toString());
         assertThat(query.toString(), is(
                 "start `person`=node:`Person`(`name`={0}), `person_group`=node:`Group`(`name`={1}) " +
                         "match `person`<-[:`members`]-`person_group`, `person`<-[:`members`]-`person_group`-[:`members`]->`person_group_members` " +
