@@ -22,6 +22,8 @@ import org.springframework.data.mapping.model.MappingException;
  * @since 21.10.11
  */
 public class InvalidEntityTypeException extends MappingException {
+    private static final long serialVersionUID = -162835100413817687L;
+
     public InvalidEntityTypeException(String s) {
         super(s);
     }

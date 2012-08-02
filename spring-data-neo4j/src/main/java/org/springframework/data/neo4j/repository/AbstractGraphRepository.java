@@ -114,7 +114,7 @@ public abstract class AbstractGraphRepository<S extends PropertyContainer, T> im
         for (U entity : entities) {
             save(entity);
         }
-        return (Iterable<U>) entities;
+        return entities;
     }
     
     /**

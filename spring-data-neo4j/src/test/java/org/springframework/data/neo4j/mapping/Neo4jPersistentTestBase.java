@@ -95,7 +95,7 @@ public class Neo4jPersistentTestBase {
         conversionService = template.getConversionService();
 
 
-        tx = template.beginTx();
+        tx = template.getGraphDatabase().beginTx();
         group = new Group();
         michael = new Person("Michael", 37);
         emil = new Person("Emil", 30);

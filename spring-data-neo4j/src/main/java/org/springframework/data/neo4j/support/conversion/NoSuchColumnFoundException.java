@@ -18,6 +18,8 @@ package org.springframework.data.neo4j.support.conversion;
 import org.springframework.data.mapping.model.MappingException;
 
 public class NoSuchColumnFoundException extends MappingException {
+    private static final long serialVersionUID = 3426743116009442464L;
+
     public NoSuchColumnFoundException( String column ) {
         super( "Expexted a column named "+ column + " to be in the result set." );
     }

@@ -22,6 +22,7 @@ import org.springframework.dao.DataRetrievalFailureException;
 * @since 16.10.11
 */
 public class NoSuchIndexException extends DataRetrievalFailureException {
+    private static final long serialVersionUID = -5708027180371353224L;
 
     private final String index;
 

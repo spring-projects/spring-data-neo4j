@@ -70,14 +70,15 @@ class ValidatingNodePropertyFieldAccessorListenerFactory implements FieldAccesso
 
         public ValidatingNodePropertyFieldAccessorListener(final Neo4jPersistentProperty field, Validator validator) {
             this.propertyName = field.getName();
-            this.entityType = (Neo4jPersistentEntity<?>) field.getOwner();
+            this.entityType = field.getOwner();
             this.validator = validator;
         }
 
 	    @Override
         public void valueChanged(Object entity, Object oldVal, Object newVal) {
             if (validator==null) return;
-            Set<ConstraintViolation<T>> constraintViolations = validator.validateValue((Class<T>)entityType.getType(), propertyName, newVal);
+            @SuppressWarnings("unchecked") Class<T> type = (Class<T>) entityType.getType();
+            Set<ConstraintViolation<T>> constraintViolations = validator.validateValue(type, propertyName, newVal);
             if (!constraintViolations.isEmpty()) throw new ValidationException("Error validating field "+propertyName+ " of "+entityType+": "+constraintViolations);
         }
     }

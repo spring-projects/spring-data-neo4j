@@ -29,6 +29,7 @@ public abstract class StateProvider {
 	private StateProvider() {
 	}
 
+    @SuppressWarnings("unchecked")
 	public static <STATE> void setUnderlyingState(STATE state) {
 		if (stateHolder.get() != null)
 			throw new IllegalStateException("StateHolder already contains state " + stateHolder.get() + " in thread "
@@ -37,7 +38,7 @@ public abstract class StateProvider {
 	}
 
 	public static <STATE> STATE retrieveState() {
-		STATE result = (STATE) stateHolder.get();
+        @SuppressWarnings("unchecked") STATE result = (STATE) stateHolder.get();
 		stateHolder.remove();
 		return result;
 	}

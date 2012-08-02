@@ -40,7 +40,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Date;
 import java.util.HashSet;
 
 import static org.junit.Assert.assertEquals;
@@ -84,7 +83,7 @@ public class IndexTest extends EntityTestBase {
     //@Transactional
     //@Ignore("remove property from index not workin")
     public void testRemovePropertyFromIndex() {
-        Transaction tx = neo4jTemplate.beginTx();
+        Transaction tx = neo4jTemplate.getGraphDatabase().beginTx();
         try {
             Group group = persist(new Group());
             group.setName(NAME_VALUE);
@@ -101,7 +100,7 @@ public class IndexTest extends EntityTestBase {
     //@Transactional
     //@Ignore("remove property from index not workin")
     public void testRemoveNodeFromIndex() {
-        Transaction tx = neo4jTemplate.beginTx();
+        Transaction tx = neo4jTemplate.getGraphDatabase().beginTx();
         try {
             Group group = persist(new Group());
             group.setName(NAME_VALUE);
@@ -358,7 +357,7 @@ public class IndexTest extends EntityTestBase {
         Transaction tx = null;
         final Person p;
         try {
-            tx = neo4jTemplate.beginTx();
+            tx = neo4jTemplate.getGraphDatabase().beginTx();
             p = persistedPerson(NAME_VALUE2, 30);
             tx.success();
         } finally {
@@ -366,7 +365,7 @@ public class IndexTest extends EntityTestBase {
         }
         Assert.assertEquals(p, personRepository.findByPropertyValue(NAME_INDEX, "name", NAME_VALUE2));
         try {
-            tx = neo4jTemplate.beginTx();
+            tx = neo4jTemplate.getGraphDatabase().beginTx();
             p.setName(NAME_VALUE);
             tx.success();
         } finally {
@@ -374,7 +373,7 @@ public class IndexTest extends EntityTestBase {
         }
         Assert.assertEquals(p,  personRepository.findByPropertyValue(NAME_INDEX, "name", NAME_VALUE));
         try {
-            tx = neo4jTemplate.beginTx();
+            tx = neo4jTemplate.getGraphDatabase().beginTx();
             p.setName(NAME_VALUE2);
             tx.success();
         } finally {

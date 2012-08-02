@@ -161,13 +161,6 @@ public class DetachedEntityState<STATE> implements EntityState<STATE> {
 	public Object getDefaultValue(Neo4jPersistentProperty property) {
         return delegate.getDefaultValue(property);
 	}
-    private Object getDefaultValue(final Class<?> type) {
-        if (type.isPrimitive()) {
-            if (type.equals(boolean.class)) return false;
-            return 0;
-        }
-        return null;
-    }
 
     @SuppressWarnings("deprecation")
     @Override
@@ -254,14 +247,6 @@ public class DetachedEntityState<STATE> implements EntityState<STATE> {
         return this.dirty.containsKey(property);
     }
 
-    private void clearDirty() {
-        this.dirty.clear();
-    }
-    
-    private void clearDirty(final Field f) {
-        this.dirty.remove(f);
-    }
-
     private void addDirty(final Neo4jPersistentProperty property, final Object previousValue, boolean fromGraph) {
         this.dirty.put(property, new ExistingValue(previousValue,fromGraph));
     }
@@ -275,7 +260,7 @@ public class DetachedEntityState<STATE> implements EntityState<STATE> {
     @Override
     public Object persist() {
         if (!isDetached()) return getEntity();
-        Transaction tx = template.beginTx();
+        Transaction tx = template.getGraphDatabase().beginTx();
         try {
             Object result = delegate.persist();
 

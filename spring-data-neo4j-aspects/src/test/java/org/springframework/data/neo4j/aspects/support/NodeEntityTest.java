@@ -176,7 +176,7 @@ public class NodeEntityTest extends EntityTestBase {
     // own transaction handling because of http://wiki.neo4j.org/content/Delete_Semantics
     @Test(expected = DataRetrievalFailureException.class)
     public void testDeleteEntityFromGDC() {
-        Transaction tx = neo4jTemplate.beginTx();
+        Transaction tx = neo4jTemplate.getGraphDatabase().beginTx();
         Person p = persistedPerson("Michael", 35);
         Person spouse = persistedPerson("Tina", 36);
         p.setSpouse(spouse);
@@ -192,7 +192,7 @@ public class NodeEntityTest extends EntityTestBase {
 
     @Test(expected = DataRetrievalFailureException.class)
     public void testDeleteEntity() {
-        Transaction tx = neo4jTemplate.beginTx();
+        Transaction tx = neo4jTemplate.getGraphDatabase().beginTx();
         Person p = persistedPerson("Michael", 35);
         Person spouse = persistedPerson("Tina", 36);
         p.setSpouse(spouse);

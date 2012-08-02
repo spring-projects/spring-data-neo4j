@@ -17,8 +17,6 @@
 package org.springframework.data.neo4j.fieldaccess;
 
 import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
-import org.springframework.data.neo4j.support.Neo4jTemplate;
-import org.springframework.data.util.TypeInformation;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -63,15 +61,10 @@ public class FieldAccessorFactoryProviders<T> {
         }
     }
 
-    private final TypeInformation<?> type;
     private final List<FieldAccessorFactoryProvider<T>> fieldAccessorFactoryProviders = new ArrayList<FieldAccessorFactoryProvider<T>>();
-    private final IdFieldAccessorFactory idFieldAccessorFactory;
     private Neo4jPersistentProperty idProperty;
 
-    FieldAccessorFactoryProviders(TypeInformation<?> type, Neo4jTemplate template) {
-        this.type = type;
-        idFieldAccessorFactory= new IdFieldAccessorFactory(template);
-    }
+    FieldAccessorFactoryProviders() {}
 
     public Map<Neo4jPersistentProperty, FieldAccessor> getFieldAccessors() {
         int count = fieldAccessorFactoryProviders.size();
@@ -89,7 +82,7 @@ public class FieldAccessorFactoryProviders<T> {
         final Map<Neo4jPersistentProperty, List<FieldAccessListener>> result = new HashMap<Neo4jPersistentProperty, List<FieldAccessListener>>(count,1);
         for (int i = 0; i < count; i++) {
             FieldAccessorFactoryProvider<T> fieldAccessorFactoryProvider = fieldAccessorFactoryProviders.get(i);
-            final List<FieldAccessListener> listeners = (List<FieldAccessListener>) fieldAccessorFactoryProvider.listeners();
+            final List<FieldAccessListener> listeners = fieldAccessorFactoryProvider.listeners();
             result.put(fieldAccessorFactoryProvider.getProperty(), listeners);
         }
         return result;

@@ -106,7 +106,7 @@ public abstract class DelegatingFieldAccessorFactory implements FieldAccessorFac
             final TypeInformation<?> typeInformation = type.getTypeInformation();
             final FieldAccessorFactoryProviders<T> fieldAccessorFactoryProviders = accessorFactoryProviderCache.get(typeInformation);
             if (fieldAccessorFactoryProviders != null) return fieldAccessorFactoryProviders;
-            final FieldAccessorFactoryProviders<T> newFieldAccessorFactories = new FieldAccessorFactoryProviders<T>(typeInformation, template);
+            final FieldAccessorFactoryProviders<T> newFieldAccessorFactories = new FieldAccessorFactoryProviders<T>();
             type.doWithProperties(new PropertyHandler<Neo4jPersistentProperty>() {
                 @Override
                 public void doWithPersistentProperty(Neo4jPersistentProperty property) {
