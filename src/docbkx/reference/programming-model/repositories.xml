@@ -387,7 +387,7 @@ Person dave = repo.findOne(123);
 
 Long numberOfPeople = repo.count();
 
-EndResult<Person> devs = graphRepository.findAllByProperyValue("occupation", "developer");
+EndResult<Person> devs = graphRepository.findAllByPropertyValue("occupation", "developer");
 
 EndResult<Person> middleAgedPeople = graphRepository.findAllByRange("age", 20, 40);
 
