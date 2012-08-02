@@ -67,11 +67,13 @@ public class ConfigurationCheck implements ApplicationListener<ContextStartedEve
     private void checkNeo4jTransactionManager() {
         Transaction tx = null;
         try {
-            tx = template.beginTx();
+            tx = template.getGraphDatabase().beginTx();
             updateStartTime();
             tx.success();
         } catch (Exception e) {
-	        tx.failure();
+            if (tx != null) {
+                tx.failure();
+            }
             throw new BeanCreationException("transactionManager not correctly configured, please refer to the manual, setup section",e);
         } finally {
             try {

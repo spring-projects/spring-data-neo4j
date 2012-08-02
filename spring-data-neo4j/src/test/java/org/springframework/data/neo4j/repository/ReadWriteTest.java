@@ -16,7 +16,6 @@
 package org.springframework.data.neo4j.repository;
 
 import org.junit.Ignore;
-import org.neo4j.graphdb.NotFoundException;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.kernel.impl.util.FileUtils;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -42,7 +41,7 @@ public class ReadWriteTest {
                 delete = true;
                 assertEquals(Volvo.class, car.getClass());
             } else {
-                Transaction tx = template.beginTx();
+                Transaction tx = template.getGraphDatabase().beginTx();
                 Volvo volvo = template.save(new Volvo());
                 assertEquals(1, volvo.id.intValue());
                 tx.success();

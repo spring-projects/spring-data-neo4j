@@ -22,7 +22,6 @@ import org.neo4j.graphdb.index.IndexManager;
 import org.neo4j.graphdb.index.UniqueFactory;
 import org.neo4j.graphdb.traversal.TraversalDescription;
 import org.neo4j.index.lucene.ValueContext;
-import org.neo4j.kernel.AbstractGraphDatabase;
 import org.neo4j.kernel.GraphDatabaseAPI;
 import org.neo4j.kernel.Traversal;
 import org.neo4j.kernel.impl.transaction.SpringTransactionManager;

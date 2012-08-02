@@ -335,6 +335,7 @@ class Neo4jPersistentPropertyImpl extends AbstractPersistentProperty<Neo4jPersis
     /**
      * @deprecated todo remove when SD-Commons handles transient properties differently
      */
+    @Deprecated
     public boolean isReallyTransient() {
    		return Modifier.isTransient(field.getModifiers()) || isAnnotationPresent(Transient.class) || isAnnotationPresent("javax.persistence.Transient");
    	}

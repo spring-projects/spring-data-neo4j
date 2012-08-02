@@ -93,7 +93,7 @@ public class SubReferenceNodeTypeRepresentationStrategyTest extends EntityTestBa
     }
 
     private void createThing() {
-        Transaction tx = neo4jTemplate.beginTx();
+        Transaction tx = neo4jTemplate.getGraphDatabase().beginTx();
         try {
             thingNode = neo4jTemplate.createNode();
             thing = neo4jTemplate.setPersistentState(new Thing(),thingNode);

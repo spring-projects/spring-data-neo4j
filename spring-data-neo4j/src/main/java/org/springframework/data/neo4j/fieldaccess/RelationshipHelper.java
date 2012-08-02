@@ -71,7 +71,7 @@ public class RelationshipHelper {
 
     protected void removeMissingRelationshipsInStoreAndKeepOnlyNewRelationShipsInSet( Node node,
                                                                                       Set<Node> targetNodes,
-                                                                                      Class targetType ) {
+                                                                                      Class<?> targetType ) {
         for ( Relationship relationship : node.getRelationships( type, direction ) ) {
             if ( !targetNodes.remove( relationship.getOtherNode( node ) ) ) {
                 if ( targetType != null ) {

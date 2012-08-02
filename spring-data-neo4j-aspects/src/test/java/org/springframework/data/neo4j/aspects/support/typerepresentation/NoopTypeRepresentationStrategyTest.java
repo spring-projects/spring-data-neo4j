@@ -106,7 +106,7 @@ public class NoopTypeRepresentationStrategyTest extends EntityTestBase {
 	}
 
 	private Thing createThing() {
-		Transaction tx = neo4jTemplate.beginTx();
+        Transaction tx = neo4jTemplate.getGraphDatabase().beginTx();
 		try {
 			Node node = neo4jTemplate.createNode();
 			thing = new Thing();

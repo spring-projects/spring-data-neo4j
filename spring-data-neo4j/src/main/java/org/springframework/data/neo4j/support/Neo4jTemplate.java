@@ -267,14 +267,6 @@ public class Neo4jTemplate implements Neo4jOperations {
         return node;
     }
 
-    /**
-     * Delegates to {@link GraphDatabase}
-     */
-    @Deprecated
-    public Transaction beginTx() { // TODO remove !
-        return infrastructure.getGraphDatabase().beginTx();
-    }
-
     public boolean isNodeEntity(Class<?> targetType) {
         return getMappingContext().isNodeEntity(targetType);
     }
@@ -289,8 +281,8 @@ public class Neo4jTemplate implements Neo4jOperations {
         return save( entity, null );
     }
 
-    public <T> T save( T entity, RelationshipType annotationProvidedRelationshipType )
-    {
+    @SuppressWarnings("unchecked")
+    public <T> T save( T entity, RelationshipType annotationProvidedRelationshipType ) {
         return (T) infrastructure.getEntityPersister().persist(entity, getMappingPolicy(entity), this, annotationProvidedRelationshipType );
     }
 
@@ -317,6 +309,7 @@ public class Neo4jTemplate implements Neo4jOperations {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public <R> R getRelationshipBetween(Object start, Object end, Class<R> relationshipEntityClass, String relationshipType) {
         notNull(start,"start",end,"end",relationshipEntityClass,"relationshipEntityClass",relationshipType,"relationshipType");
         final Relationship relationship = infrastructure.getEntityStateHandler().getRelationshipBetween(start, end, relationshipType);
@@ -327,6 +320,7 @@ public class Neo4jTemplate implements Neo4jOperations {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public <R> Iterable<R> getRelationshipsBetween(Object start, Object end, Class<R> relationshipEntityClass, String relationshipType) {
         notNull(start,"start",end,"end",relationshipEntityClass,"relationshipEntityClass",relationshipType,"relationshipType");
         final Iterable<Relationship> relationships = infrastructure.getEntityStateHandler().getRelationshipsBetween(start, end, relationshipType);
@@ -495,6 +489,7 @@ public class Neo4jTemplate implements Neo4jOperations {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public ResultConverter getDefaultConverter() {
         final ResultConverter resultConverter = infrastructure.getResultConverter();
         if (resultConverter instanceof Neo4jTemplateAware) {

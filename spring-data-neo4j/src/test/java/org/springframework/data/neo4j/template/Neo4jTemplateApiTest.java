@@ -35,7 +35,6 @@ import org.springframework.data.neo4j.support.Neo4jTemplate;
 import org.springframework.data.neo4j.support.index.IndexType;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionStatus;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.jta.JtaTransactionManager;
 import org.springframework.transaction.support.TransactionCallbackWithoutResult;
 import org.springframework.transaction.support.TransactionTemplate;
@@ -84,7 +83,7 @@ public class Neo4jTemplateApiTest {
     @Test
     public void testBeginTxWithoutConfiguredTxManager() throws Exception {
         Neo4jTemplate template = new Neo4jTemplate(graphDatabase);
-        Transaction tx = template.beginTx();
+        Transaction tx = template.getGraphDatabase().beginTx();
         Node node = template.createNode();
         node.setProperty("name","foo");
         tx.success();
@@ -95,7 +94,7 @@ public class Neo4jTemplateApiTest {
     @Test
     public void testInstantiateEntity() throws Exception {
         Neo4jTemplate template = new Neo4jTemplate(graphDatabase,transactionManager);
-        Transaction tx = template.beginTx();
+        Transaction tx = template.getGraphDatabase().beginTx();
         Person michael = template.save(new Person("Michael", 37));
         assertNotNull(michael.getId());
     }
@@ -345,12 +344,6 @@ public class Neo4jTemplateApiTest {
         assertEquals("rel2",relationship.getProperty("name","not set"));
     }
 
-    private static class PathRelationshipNameMapper extends ResultConverter.ResultConverterAdapter<Path,String> {
-        @Override
-        public String convert(Path path, Class<String> type) {
-            return (String) path.lastRelationship().getProperty("name","not set");
-        }
-    }
     private static class PathNodeNameMapper extends ResultConverter.ResultConverterAdapter<Path,String> {
         @Override
         public String convert(Path path, Class<String> type) {

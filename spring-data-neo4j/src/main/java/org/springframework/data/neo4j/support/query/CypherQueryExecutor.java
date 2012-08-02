@@ -52,6 +52,6 @@ public class CypherQueryExecutor implements QueryOperations<Map<String,Object>> 
     }
 
     public <T> T queryForObject(String statement, Class<T> type, Map<String,Object> params) {
-        return (T) queryEngine.query(statement, params).to(type).single();
+        return queryEngine.query(statement, params).to(type).single();
     }
 }
