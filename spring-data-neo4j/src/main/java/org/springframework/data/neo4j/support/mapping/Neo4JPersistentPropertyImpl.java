@@ -348,11 +348,6 @@ class Neo4jPersistentPropertyImpl extends AbstractPersistentProperty<Neo4jPersis
     }
 
     @Override
-    public boolean isTransient() {
-        return false;
-    }
-
-    @Override
     public Iterable<? extends TypeInformation<?>> getPersistentEntityType() {
         final Iterable<? extends TypeInformation<?>> result = super.getPersistentEntityType();
         for (Iterator<? extends TypeInformation<?>> it = result.iterator(); it.hasNext(); ) {
