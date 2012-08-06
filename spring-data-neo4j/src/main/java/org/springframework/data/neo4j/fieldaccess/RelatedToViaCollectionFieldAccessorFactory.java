@@ -101,7 +101,7 @@ public class RelatedToViaCollectionFieldAccessorFactory implements FieldAccessor
         }
 
         protected Map<Node, Object> loadEndNodeToRelationshipEntityMapping(Object newVal, Node startNode) {
-            if (!(newVal instanceof Set)) {
+            if (!(newVal instanceof Iterable)) {
                 throw new IllegalArgumentException("New value must be at least an Iterable, was: " + newVal.getClass());
             }
             @SuppressWarnings("unchecked") Iterable<Object> iterable = (Iterable<Object>) newVal;
