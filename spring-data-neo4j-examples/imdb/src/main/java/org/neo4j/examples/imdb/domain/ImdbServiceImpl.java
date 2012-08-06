@@ -3,6 +3,7 @@ package org.neo4j.examples.imdb.domain;
 import org.neo4j.graphalgo.GraphAlgoFactory;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Path;
+import org.neo4j.graphdb.PathExpander;
 import org.neo4j.kernel.StandardExpander;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
@@ -71,7 +72,7 @@ class ImdbServiceImpl implements ImdbService {
 
         Actor bacon = actorRepository.findByPropertyValue("name", "Bacon, Kevin");
 
-        Path path = GraphAlgoFactory.shortestPath(StandardExpander.DEFAULT.add(RelTypes.ACTS_IN), 10).findSinglePath(bacon.getPersistentState(), actor.getPersistentState());
+        Path path = GraphAlgoFactory.shortestPath((PathExpander)StandardExpander.DEFAULT.add(RelTypes.ACTS_IN), 10).findSinglePath(bacon.getPersistentState(), actor.getPersistentState());
         if (path==null) return Collections.emptyList();
         return convertNodesToActorsAndMovies(path);
     }

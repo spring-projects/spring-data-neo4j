@@ -49,7 +49,7 @@ public class ServerPluginTest extends RestTestBase {
         Person person = persistedPerson("Michael", 35);
         final RequestResult requestResult = RequestResult.extractFrom(createRequest("ext/TestServerPlugin/graphdb/person").post(ClientResponse.class, "{\"name\":\"" + person.getName() + "\"}"));
         assertEquals(200, requestResult.getStatus());
-        final String result = requestResult.getEntity();
+        final String result = requestResult.getText();
         final Map data = (Map) new ObjectMapper().readValue(result, Object.class);
         assertEquals(person.getName(),((Map)data.get("data")).get("name"));
 

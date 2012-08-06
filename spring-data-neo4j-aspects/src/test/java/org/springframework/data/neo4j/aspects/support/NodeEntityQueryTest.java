@@ -78,8 +78,8 @@ public class NodeEntityQueryTest extends EntityTestBase {
     }
 
     @Test
-    public void testEmptyQueryReturnsNull() {
+    public void testEmptyQueryReturnsZero() {
         final Group group = neo4jTemplate.save(new Group());
-        assertNull("empty result leads to null value", group.getMemberCount());
+        assertEquals("empty result leads to zero",(Long)0L, group.getMemberCount());
     }
 }

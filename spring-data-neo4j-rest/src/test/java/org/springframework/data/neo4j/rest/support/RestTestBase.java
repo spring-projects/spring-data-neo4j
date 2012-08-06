@@ -27,7 +27,12 @@ import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
+import org.neo4j.rest.graphdb.ExecutingRestRequest;
+import org.neo4j.rest.graphdb.RequestResult;
+import org.neo4j.rest.graphdb.RestRequest;
 import org.springframework.data.neo4j.rest.SpringRestGraphDatabase;
+
+import static org.junit.Assert.assertEquals;
 
 public class RestTestBase {
 
@@ -41,6 +46,23 @@ public class RestTestBase {
     public static void startDb() throws Exception {
         BasicConfigurator.configure();
         neoServer.start();
+
+        tryConnect();
+    }
+
+    private static void tryConnect() throws InterruptedException {
+        int retryCount = 3;
+        for (int i = 0; i < retryCount; i++) {
+            try {
+                RequestResult result = new ExecutingRestRequest(SERVER_ROOT_URI).get("");
+                assertEquals(200, result.getStatus());
+                System.err.println("Successful HTTP connection to "+SERVER_ROOT_URI);
+                return;
+            } catch (Exception e) {
+                System.err.println("Error retrieving ROOT URI " + e.getMessage());
+                Thread.sleep(500);
+            }
+        }
     }
 
     @Before

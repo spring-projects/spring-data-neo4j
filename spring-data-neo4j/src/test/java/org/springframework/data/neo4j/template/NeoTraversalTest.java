@@ -20,6 +20,7 @@ import org.junit.Test;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Path;
 import org.neo4j.graphdb.RelationshipType;
+import org.neo4j.graphdb.traversal.Evaluators;
 import org.neo4j.graphdb.traversal.TraversalDescription;
 import org.neo4j.kernel.Traversal;
 import org.springframework.data.neo4j.conversion.Handler;
@@ -32,7 +33,7 @@ import java.util.Set;
 import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
 import static org.neo4j.helpers.collection.MapUtil.map;
-import static org.neo4j.kernel.Traversal.returnAllButStartNode;
+// TODO import static org.neo4j.kernel.Traversal.returnAllButStartNode;
 import static org.springframework.data.neo4j.template.NeoTraversalTest.Type.HAS;
 
 public class NeoTraversalTest extends NeoApiTest {
@@ -51,7 +52,9 @@ public class NeoTraversalTest extends NeoApiTest {
         });
 
         final Set<String> resultSet = new HashSet<String>();
-        @SuppressWarnings("deprecation") final TraversalDescription description = Traversal.description().relationships(HAS).filter(returnAllButStartNode()).prune(Traversal.pruneAfterDepth(2));
+//        @SuppressWarnings("deprecation") final TraversalDescription description = Traversal.description().relationships(HAS).filter(returnAllButStartNode()).prune(Traversal.pruneAfterDepth(2));
+        final TraversalDescription description = Traversal.description().relationships(HAS).evaluator(Evaluators.excludeStartPosition()).evaluator(Evaluators.toDepth(2));
+
         final Result<Path> result = template.traverse(template.getReferenceNode(), description);
         result.handle(new Handler<Path>() {
             @Override

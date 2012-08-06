@@ -11,12 +11,11 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <spring.version>3.0.7.RELEASE</spring.version>
+        <spring.version>3.1.0.RELEASE</spring.version>
         <slf4j.version>1.6.1</slf4j.version>
-        <neo4j.version>1.7</neo4j.version>
+        <neo4j.version>1.8.M06</neo4j.version>
         <spring-data-neo4j.version>${project.version}</spring-data-neo4j.version>
         <aspectj.version>1.6.12</aspectj.version>
-        <org.slf4j-version>1.6.1</org.slf4j-version>
         <jersey.version>1.4</jersey.version>
     </properties>
 
@@ -166,17 +165,17 @@
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
-            <version>${org.slf4j-version}</version>
+            <version>${slf4j.version}</version>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>jcl-over-slf4j</artifactId>
-            <version>${org.slf4j-version}</version>
+            <version>${slf4j.version}</version>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-log4j12</artifactId>
-            <version>${org.slf4j-version}</version>
+            <version>${slf4j.version}</version>
             <scope>runtime</scope>
         </dependency>
         <dependency>
@@ -400,6 +399,7 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <configuration>
+                    <forkMode>once</forkMode>
                     <useFile>true</useFile>
                     <includes>
                         <include>**/*Tests.java</include>

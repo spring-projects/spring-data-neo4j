@@ -1,7 +1,7 @@
 package com.springone.myrestaurants.domain;
 
 import org.neo4j.graphdb.*;
-import org.neo4j.graphdb.traversal.TraversalDescription;
+import org.neo4j.graphdb.traversal.*;
 import org.neo4j.graphdb.traversal.Traverser;
 import org.neo4j.helpers.Predicate;
 import org.neo4j.kernel.Traversal;
@@ -28,8 +28,8 @@ public class TopRatedRestaurantFinder {
         final Node userNode=user.getPersistentState();
         final TraversalDescription traversalDescription = new TraversalDescriptionImpl()
                 .order(Traversal.postorderBreadthFirst())
-                .prune(Traversal.pruneAfterDepth(MAXIMUM_DEPTH))
-                .filter(calculateRatingPredicate)
+                .evaluator(Evaluators.toDepth(MAXIMUM_DEPTH))
+                .evaluator(calculateRatingPredicate)
                 .relationships(DynamicRelationshipType.withName("friends"));
         final Traverser traverser = traversalDescription.traverse(userNode);
         final Iterator<Node> it = traverser.nodes().iterator();
@@ -39,7 +39,8 @@ public class TopRatedRestaurantFinder {
         return calculateRatingPredicate.getRecommendedRestaurants(n);
     }
 
-    private class CalculateRatingPredicate implements Predicate<Path> {
+    private class CalculateRatingPredicate implements Evaluator {
+
         class AggregatedRecommendation implements Comparable<AggregatedRecommendation> {
             private Node restaurant;
             private Collection<Relationship> recommendations=new HashSet<Relationship>();
@@ -77,7 +78,8 @@ public class TopRatedRestaurantFinder {
         public CalculateRatingPredicate() {
         }
 
-        public boolean accept(final Path path) {
+        @Override
+        public Evaluation evaluate(Path path) {
             final int distance = path.length();
             final Node friend = path.endNode();
             for (final Relationship recommendation : friend.getRelationships(DynamicRelationshipType.withName("recommends"))) {
@@ -87,7 +89,7 @@ public class TopRatedRestaurantFinder {
                 }
                 recommendedRestaurants.get(restaurant).add(recommendation,distance);
             }
-            return true;
+            return Evaluation.INCLUDE_AND_CONTINUE;
         }
 
         public Collection<RatedRestaurant> getRecommendedRestaurants(final int n) {

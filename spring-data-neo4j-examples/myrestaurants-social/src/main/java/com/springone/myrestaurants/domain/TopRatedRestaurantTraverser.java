@@ -1,10 +1,8 @@
 package com.springone.myrestaurants.domain;
 
 import org.neo4j.graphdb.DynamicRelationshipType;
-import org.neo4j.graphdb.traversal.BranchOrderingPolicy;
-import org.neo4j.graphdb.traversal.BranchSelector;
-import org.neo4j.graphdb.traversal.TraversalBranch;
-import org.neo4j.graphdb.traversal.TraversalDescription;
+import org.neo4j.graphdb.PathExpander;
+import org.neo4j.graphdb.traversal.*;
 import org.neo4j.kernel.impl.traversal.TraversalDescriptionImpl;
 import org.springframework.data.neo4j.core.FieldTraversalDescriptionBuilder;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
@@ -23,17 +21,18 @@ class TopRatedRestaurantTraverser implements FieldTraversalDescriptionBuilder {
                 .relationships(DynamicRelationshipType.withName("friends"))
                 .order(new BranchOrderingPolicy() {
                     @Override
-                    public BranchSelector create(final TraversalBranch startBranch) {
+                    public BranchSelector create(final TraversalBranch startBranch, final PathExpander expander) {
                         return new BranchSelector(){
                             @Override
-                            public TraversalBranch next() {
+                            public TraversalBranch next(TraversalContext metadata) {
                                 TraversalBranch branch=startBranch;
                                 while (branch!=null) {
-                                    if (branch.depth()<branch.next().depth()) return branch;
-                                    branch=branch.next();
+                                    if (branch.length()<branch.next(expander,metadata).length()) return branch;
+                                    branch=branch.next(expander,metadata);
                                 }
                                 return null;
                             }
+
                         };
                     }
                 });

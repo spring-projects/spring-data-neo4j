@@ -20,6 +20,7 @@ import org.apache.lucene.index.Term;
 import org.apache.lucene.search.TermQuery;
 import org.junit.*;
 import org.neo4j.graphdb.*;
+import org.neo4j.graphdb.traversal.Evaluators;
 import org.neo4j.kernel.GraphDatabaseAPI;
 import org.neo4j.graphdb.index.Index;
 import org.neo4j.graphdb.traversal.TraversalDescription;
@@ -300,7 +301,8 @@ public class Neo4jTemplateApiTest {
     @SuppressWarnings("deprecation")
     @Test
     public void testTraverse() throws Exception {
-        final TraversalDescription description = Traversal.description().relationships(KNOWS).prune(Traversal.pruneAfterDepth(1)).filter(Traversal.returnAllButStartNode());
+        //final TraversalDescription description = Traversal.description().relationships(KNOWS).prune(Traversal.pruneAfterDepth(1)).filter(Traversal.returnAllButStartNode());
+        final TraversalDescription description = Traversal.description().relationships(KNOWS).evaluator(Evaluators.toDepth(1)).evaluator(Evaluators.excludeStartPosition());
         assertSingleResult("node1",template.traverse(referenceNode, description).to(String.class,new PathNodeNameMapper()));
     }
 

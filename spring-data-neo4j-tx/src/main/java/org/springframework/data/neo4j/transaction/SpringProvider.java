@@ -22,6 +22,7 @@ import org.neo4j.kernel.impl.nioneo.store.FileSystemAbstraction;
 import org.neo4j.kernel.impl.transaction.AbstractTransactionManager;
 import org.neo4j.kernel.impl.transaction.TransactionManagerProvider;
 import org.neo4j.kernel.impl.transaction.TxHook;
+import org.neo4j.kernel.impl.transaction.XaDataSourceManager;
 import org.neo4j.kernel.impl.util.StringLogger;
 import org.springframework.beans.factory.annotation.Configurable;
 
@@ -35,7 +36,7 @@ public class SpringProvider extends TransactionManagerProvider
     }
 
     @Override
-    public AbstractTransactionManager loadTransactionManager(String s, KernelPanicEventGenerator kernelPanicEventGenerator, TxHook txHook, StringLogger stringLogger, FileSystemAbstraction fileSystemAbstraction) {
+    public AbstractTransactionManager loadTransactionManager(String txLogDir, XaDataSourceManager xaDataSourceManager, KernelPanicEventGenerator kpe, TxHook rollbackHook, StringLogger msgLog, FileSystemAbstraction fileSystem) {
         return new SpringServiceImpl();
     }
 }
