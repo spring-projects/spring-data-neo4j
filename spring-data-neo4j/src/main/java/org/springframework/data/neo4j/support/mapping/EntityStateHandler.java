@@ -90,6 +90,9 @@ public class EntityStateHandler {
 
     @SuppressWarnings("unchecked")
     public <S extends PropertyContainer> S getPersistentState(Object entity) {
+        return getPersistentState(entity,true);
+    }
+    public <S extends PropertyContainer> S getPersistentState(Object entity, boolean check) {
         if (entity instanceof PropertyContainer) {
             return (S) entity;
         }
@@ -106,7 +109,8 @@ public class EntityStateHandler {
         if (persistentEntity.isRelationshipEntity()) {
             return (S) graphDatabase.getRelationshipById(graphId);
         }
-        throw new IllegalArgumentException("The entity " + persistentEntity.getEntityName() + " has to be either annotated with @NodeEntity or @RelationshipEntity");
+        if (check) throw new IllegalArgumentException("The entity " + persistentEntity.getEntityName() + " has to be either annotated with @NodeEntity or @RelationshipEntity");
+        return null;
     }
 
     public boolean isNodeEntity(Class<?> targetType) {
@@ -255,9 +259,9 @@ public class EntityStateHandler {
     public final boolean equals(Object first, Object second) {
         if (second == first) return true;
         if (second == null) return false;
-        final PropertyContainer firstState = getPersistentState(first);
+        final PropertyContainer firstState = getPersistentState(first,false);
         if (firstState == null) return false;
-        final PropertyContainer secondState = getPersistentState(second);
+        final PropertyContainer secondState = getPersistentState(second,false);
         if (secondState == null) return false;
         return firstState.equals(secondState);
     }

@@ -22,6 +22,7 @@ import org.junit.Test;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.kernel.AbstractGraphDatabase;
 import org.neo4j.kernel.EmbeddedGraphDatabase;
+import org.neo4j.kernel.GraphDatabaseAPI;
 import org.neo4j.kernel.HighlyAvailableGraphDatabase;
 import org.neo4j.kernel.configuration.Config;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -82,9 +83,9 @@ public class DataGraphNamespaceHandlerTest {
     @Test
     public void injectionForExistingGraphDatabaseService() {
         final Config config = assertInjected("-external-embedded");
-        final AbstractGraphDatabase gds = (AbstractGraphDatabase) config.graphDatabaseService;
+        final GraphDatabaseAPI gds = (GraphDatabaseAPI) config.graphDatabaseService;
         assertEquals(EmbeddedGraphDatabase.class, gds.getClass());
-        final org.neo4j.kernel.configuration.Config neoConfig = gds.getConfig();
+        final org.neo4j.kernel.configuration.Config neoConfig = gds.getKernelData().getConfig();
         assertEquals("true", neoConfig.getParams().get("allow_store_upgrade"));
     }
     @Test
@@ -92,7 +93,7 @@ public class DataGraphNamespaceHandlerTest {
     public void injectionForExistingHighlyAvailableGraphDatabaseService() {
         final Config config = assertInjected("-external-ha");
         final AbstractGraphDatabase gds = (AbstractGraphDatabase) config.graphDatabaseService;
-        final org.neo4j.kernel.configuration.Config neoConfig = gds.getConfig();
+        final org.neo4j.kernel.configuration.Config neoConfig = gds.getKernelData().getConfig();
         assertEquals(HighlyAvailableGraphDatabase.class, gds.getClass());
         assertEquals("1", neoConfig.getParams().get("ha.server_id"));
     }

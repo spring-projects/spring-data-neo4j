@@ -22,6 +22,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.index.Index;
+import org.neo4j.graphdb.traversal.Evaluators;
 import org.neo4j.graphdb.traversal.TraversalDescription;
 import org.neo4j.helpers.collection.IteratorUtil;
 import org.neo4j.helpers.collection.MapUtil;
@@ -361,7 +362,8 @@ public class EntityNeo4jTemplateTest extends EntityTestBase {
 
     @Test @Transactional
     public void testTraverse() throws Exception {
-        final TraversalDescription traversalDescription = neo4jOperations.traversalDescription().relationships(DynamicRelationshipType.withName("knows"), Direction.OUTGOING).filter(Traversal.returnAllButStartNode());
+//        final TraversalDescription traversalDescription = neo4jOperations.traversalDescription().relationships(DynamicRelationshipType.withName("knows"), Direction.OUTGOING).filter(Traversal.returnAllButStartNode());
+        final TraversalDescription traversalDescription = neo4jOperations.traversalDescription().relationships(DynamicRelationshipType.withName("knows"), Direction.OUTGOING).evaluator(Evaluators.excludeStartPosition());
         final Person knows = neo4jOperations.traverse(testTeam.michael, traversalDescription).to(Person.class).single();
         assertEquals(testTeam.david.getName(), knows.getName());
     }

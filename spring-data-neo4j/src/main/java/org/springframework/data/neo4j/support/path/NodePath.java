@@ -59,7 +59,17 @@ public class NodePath implements Path {
     }
 
     @Override
+    public Iterable<Relationship> reverseRelationships() {
+        return Collections.emptyList();
+    }
+
+    @Override
     public Iterable<Node> nodes() {
+        return asList(node);
+    }
+
+    @Override
+    public Iterable<Node> reverseNodes() {
         return asList(node);
     }
 

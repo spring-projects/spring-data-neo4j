@@ -112,7 +112,7 @@ public class TraversalTest extends EntityTestBase {
         Group group = persist(new Group());
         group.setName("dev");
         group.addPerson(p);
-        final TraversalDescription traversalDescription = new TraversalDescriptionImpl().relationships(DynamicRelationshipType.withName("persons")).filter(Traversal.returnAllButStartNode());
+        final TraversalDescription traversalDescription = new TraversalDescriptionImpl().relationships(DynamicRelationshipType.withName("persons")).evaluator(Evaluators.excludeStartPosition());
         Iterable<Person> people = finder.findAllByTraversal(group, traversalDescription);
         final HashSet<Person> found = new HashSet<Person>();
         for (Person person : people) {

@@ -111,7 +111,7 @@ public class JOTMIntegrationTest {
 
     @Test
     public void databaseConfiguredWithSpringJtaShouldUseJtaTransactionManager() throws SystemException, NotSupportedException {
-        final Config config = ((AbstractGraphDatabase) gds).getConfig();
+        final Config config = ((AbstractGraphDatabase) gds).getKernelData().getConfig();
         Assert.assertEquals("spring-jta", config.getParams().get(Config.TXMANAGER_IMPLEMENTATION));
 
         JtaTransactionManager tm = ctx.getBean("transactionManager", JtaTransactionManager.class);

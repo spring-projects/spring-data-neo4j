@@ -128,8 +128,8 @@
     <!--<org.springframework.version>[${org.springframework.version.30}, ${org.springframework.version.40})-->
     <org.springframework.version>3.1.2.RELEASE</org.springframework.version>
     <data.commons.version>1.4.0.M1</data.commons.version>
-    <neo4j.version>1.7.1</neo4j.version>
-    <neo4j.spatial.version>0.8</neo4j.spatial.version>
+    <neo4j.version>1.8.M06</neo4j.version>
+    <neo4j.spatial.version>0.9.M01</neo4j.spatial.version>
     <aspectj.version>1.6.12</aspectj.version>
     <blueprints.version>1.2</blueprints.version>
     <gremlin.version>1.5</gremlin.version>
@@ -443,12 +443,6 @@
         <groupId>org.neo4j</groupId>
         <artifactId>neo4j</artifactId>
         <version>${neo4j.version}</version>
-        <exclusions>
-          <exclusion>
-            <groupId>org.neo4j</groupId>
-            <artifactId>neo4j-cypher</artifactId>
-          </exclusion>
-        </exclusions>
       </dependency>
 
       <dependency>
@@ -471,11 +465,10 @@
         <optional>true</optional>
       </dependency>
       <dependency>
-        <groupId>org.neo4j</groupId>
-        <artifactId>neo4j-cypher-dsl</artifactId>
-        <version>1.7</version>
-        <!-- TODO -->
-        <!--optional>true</optional-->
+          <groupId>org.neo4j</groupId>
+          <artifactId>neo4j-cypher-dsl</artifactId>
+          <version>1.8.M06</version>
+          <!--optional>true</optional-->
       </dependency>
       <dependency>
         <groupId>org.neo4j</groupId>

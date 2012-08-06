@@ -123,6 +123,16 @@ public class ConvertingEntityPath<S,E> implements EntityPath<S,E> {
     }
 
     @Override
+    public Iterable<Relationship> reverseRelationships() {
+        return delegate.reverseRelationships();
+    }
+
+    @Override
+    public Iterable<Node> reverseNodes() {
+        return delegate.reverseNodes();
+    }
+
+    @Override
     public Iterable<Node> nodes() {
         return delegate.nodes();
     }

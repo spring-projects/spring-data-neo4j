@@ -15,7 +15,7 @@
  */
 package org.springframework.data.neo4j.repository;
 
-import org.neo4j.cypherdsl.Execute;
+import org.neo4j.cypherdsl.grammar.Execute;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.neo4j.conversion.EndResult;

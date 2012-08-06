@@ -17,6 +17,7 @@
 package org.springframework.data.neo4j.aspects.support;
 
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.neo4j.graphdb.Transaction;
@@ -211,6 +212,13 @@ public class NodeEntityTest extends EntityTestBase {
         final Attribute<String> attribute = new Attribute<String>();
         attribute.setValue("test");
         persist(attribute);
+    }
+
+    @Test
+    @Ignore
+    public void testNotEqualToNonNodebackedObject() {
+        final Attribute<String> attribute = new Attribute<String>();
+        assertEquals(false, persist(attribute).equals("foo"));
     }
     @Test
     public void testAccessReadOnlyCollectionMakesEntityDirty() {

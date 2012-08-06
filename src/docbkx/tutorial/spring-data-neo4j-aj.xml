@@ -26,7 +26,7 @@
 <dependency>
   <groupId>org.springframework.data</groupId>
   <artifactId>spring-data-neo4j-aspects</artifactId>
-  <version>2.1.0.RC1</version>
+  <version>2.1.0.RC3</version>
 </dependency>
 
 <dependency>
@@ -87,7 +87,7 @@
             <programlisting language="xml"><![CDATA[<beans xmlns="http://www.springframework.org/schema/beans" ...
        xmlns:neo4j="http://www.springframework.org/schema/data/neo4j"
        xsi:schemaLocation="... http://www.springframework.org/schema/data/neo4j
-       http://www.springframework.org/schema/data/neo4j/spring-neo4j-2.0.xsd">
+       http://www.springframework.org/schema/data/neo4j/spring-neo4j.xsd">
     ...
     <neo4j:config storeDirectory="data/graph.db"/>
     ...

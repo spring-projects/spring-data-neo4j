@@ -58,8 +58,18 @@ public class RelationshipPath implements Path {
     }
 
     @Override
+    public Iterable<Relationship> reverseRelationships() {
+        return relationships();
+    }
+
+    @Override
     public Iterable<Node> nodes() {
         return asList(startNode(),endNode());
+    }
+
+    @Override
+    public Iterable<Node> reverseNodes() {
+        return asList(endNode(),startNode());
     }
 
     @Override

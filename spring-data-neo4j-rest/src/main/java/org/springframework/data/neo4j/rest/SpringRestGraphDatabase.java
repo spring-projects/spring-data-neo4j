@@ -18,17 +18,17 @@ package org.springframework.data.neo4j.rest;
 import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.index.Index;
 import org.neo4j.graphdb.traversal.TraversalDescription;
-import org.neo4j.rest.graphdb.ExecutingRestRequest;
 import org.neo4j.rest.graphdb.RestAPI;
-import org.neo4j.rest.graphdb.RestRequest;
+import org.neo4j.rest.graphdb.RestAPIFacade;
 import org.neo4j.rest.graphdb.entity.RestNode;
 import org.neo4j.rest.graphdb.index.RestIndex;
 import org.neo4j.rest.graphdb.index.RestIndexManager;
 import org.neo4j.rest.graphdb.query.RestCypherQueryEngine;
 import org.neo4j.rest.graphdb.query.RestGremlinQueryEngine;
+import org.neo4j.rest.graphdb.transaction.NullTransaction;
+import org.neo4j.rest.graphdb.transaction.NullTransactionManager;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.data.neo4j.annotation.QueryType;
-import org.springframework.data.neo4j.config.NullTransactionManager;
 import org.springframework.data.neo4j.conversion.DefaultConverter;
 import org.springframework.data.neo4j.conversion.ResultConverter;
 import org.springframework.data.neo4j.core.GraphDatabase;
@@ -48,20 +48,27 @@ public class SpringRestGraphDatabase extends org.neo4j.rest.graphdb.RestGraphDat
     }
 
     public SpringRestGraphDatabase( String uri ) {
-        this( new ExecutingRestRequest( uri ));
+        this( new RestAPIFacade( uri ) );
     }
 
     public SpringRestGraphDatabase( String uri, String user, String password ) {
-        this(new ExecutingRestRequest( uri, user, password ));
-    }
-
-    public SpringRestGraphDatabase( RestRequest restRequest){
-    	this(new RestAPI(restRequest));
+        this(new RestAPIFacade( uri, user, password ));
     }
 
     @Override
     public Node createNode(Map<String, Object> props) {
         return super.getRestAPI().createNode(props);
+    }
+
+    @Override
+    public Transaction beginTx() {
+        // return super.beginTx();
+        return new NullTransaction();
+    }
+
+    @Override
+    public TransactionManager getTxManager() {
+        return new NullTransactionManager();
     }
 
     @Override

@@ -17,15 +17,15 @@
     <section>
            <title>Dependencies for Spring Data Neo4j Simple Mapping</title>
            <para>
-               For the simple POJO mapping it is enough to add the <code>org.springframework.data:spring-data-neo4j:2.1.0.RC1</code> dependency
-               to your project. If you want to use the Cypher query language please add <code>org.neo4j:neo4j-cypher:1.7</code>
+               For the simple POJO mapping it is enough to add the <code>org.springframework.data:spring-data-neo4j:2.1.0.RC3</code> dependency
+               to your project.
            </para>
         <example>
             <title>Maven dependencies for Spring Data Neo4j</title>
             <programlisting language="xml"><![CDATA[<dependency>
 <groupId>org.springframework.data</groupId>
 <artifactId>spring-data-neo4j</artifactId>
-<version>2.1.0.RC1</version>
+<version>2.1.0.RC3</version>
 </dependency>
 ]]></programlisting>
         </example>
@@ -43,8 +43,8 @@
             <programlisting language="java"><![CDATA[sourceCompatibility = 1.6
 targetCompatibility = 1.6
 
-springVersion = "3.0.7.RELEASE"
-springDataNeo4jVersion = "2.1.0.RC1"
+springVersion = "3.1.0.RELEASE"
+springDataNeo4jVersion = "2.1.0.RC3"
 aspectjVersion = "1.6.12"
 
 apply from:'https://github.com/SpringSource/spring-data-neo4j/raw/master/build/
@@ -120,7 +120,7 @@ repositories {
                 Spring Framework (core, context, aop, aspects, tx), AspectJ, Neo4j, and Spring Data Commons. If you
                 already use these (or different versions of these) in your project, then include those dependencies
                 on your own. In this case, please make sure that the versions match. 
-				If you want to use Cypher or Gremlin, please add the dependencies (which are optional in SDN)
+				If you want to use Gremlin, please add the dependency (which is optional in SDN)
                 accordingly.
             </para>
             <example>
@@ -128,7 +128,7 @@ repositories {
                 <programlisting language="xml"><![CDATA[<dependency>
     <groupId>org.springframework.data</groupId>
     <artifactId>spring-data-neo4j-aspects</artifactId>
-    <version>2.1.0.RC1</version>
+    <version>2.1.0.RC3</version>
 </dependency>
 
 <dependency>
@@ -136,11 +136,6 @@ repositories {
     <artifactId>aspectjrt</artifactId>
     <version>1.6.12</version>
 </dependency>
-[<dependency>
-    <groupId>org.neo4j</groupId>
-    <artifactId>neo4j-cypher</artifactId>
-    <version>1.7</version>
-</dependency>]
 ]]></programlisting>
             </example>
         </section>
@@ -226,11 +221,11 @@ repositories {
         xmlns:neo4j="http://www.springframework.org/schema/data/neo4j"
         xsi:schemaLocation="
             http://www.springframework.org/schema/beans
-            http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+            http://www.springframework.org/schema/beans/spring-beans.xsd
             http://www.springframework.org/schema/context
-            http://www.springframework.org/schema/context/spring-context-3.0.xsd
+            http://www.springframework.org/schema/context/spring-context.xsd
             http://www.springframework.org/schema/data/neo4j
-            http://www.springframework.org/schema/data/neo4j/spring-neo4j-2.0.xsd">
+            http://www.springframework.org/schema/data/neo4j/spring-neo4j.xsd">
 
     <context:annotation-config/>
     <neo4j:config storeDirectory="target/config-test"/>

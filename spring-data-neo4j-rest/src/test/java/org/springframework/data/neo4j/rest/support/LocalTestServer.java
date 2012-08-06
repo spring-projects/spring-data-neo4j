@@ -16,45 +16,35 @@
 
 package org.springframework.data.neo4j.rest.support;
 
-import org.apache.commons.configuration.Configuration;
 import org.mortbay.component.LifeCycle;
-import org.mortbay.jetty.NCSARequestLog;
 import org.mortbay.jetty.Server;
-import org.mortbay.jetty.handler.RequestLogHandler;
 import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.kernel.AbstractGraphDatabase;
-import org.neo4j.server.Bootstrapper;
-import org.neo4j.server.NeoServerWithEmbeddedWebServer;
+import org.neo4j.server.CommunityNeoServer;
 import org.neo4j.server.configuration.PropertyFileConfigurator;
 import org.neo4j.server.database.Database;
-import org.neo4j.server.database.GraphDatabaseFactory;
+import org.neo4j.server.database.WrappingDatabase;
 import org.neo4j.server.modules.RESTApiModule;
 import org.neo4j.server.modules.ServerModule;
 import org.neo4j.server.modules.ThirdPartyJAXRSModule;
 import org.neo4j.server.startup.healthcheck.StartupHealthCheck;
-import org.neo4j.server.startup.healthcheck.StartupHealthCheckRule;
 import org.neo4j.server.web.Jetty6WebServer;
+import org.neo4j.server.web.WebServer;
 import org.neo4j.test.ImpermanentGraphDatabase;
 
 import java.io.File;
 import java.net.URI;
 import java.net.URL;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-/**
- * @author mh
- * @since 24.03.11
- */
+import static java.util.Arrays.asList;
+
 public class LocalTestServer {
-    private NeoServerWithEmbeddedWebServer neoServer;
+    private CommunityNeoServer neoServer;
     private final int port;
     private final String hostname;
     protected String propertiesFile = "test-db.properties";
+    private final ImpermanentGraphDatabase graphDatabase;
 
     public LocalTestServer() {
         this("localhost",7473);
@@ -63,69 +53,69 @@ public class LocalTestServer {
     public LocalTestServer(String hostname, int port) {
         this.port = port;
         this.hostname = hostname;
+        graphDatabase = new ImpermanentGraphDatabase();
     }
 
     public void start() {
         if (neoServer!=null) throw new IllegalStateException("Server already running");
         URL url = getClass().getResource("/" + propertiesFile);
         if (url==null) throw new IllegalArgumentException("Could not resolve properties file "+propertiesFile);
-        final List<Class<? extends ServerModule>> serverModules = Arrays.asList(RESTApiModule.class, ThirdPartyJAXRSModule.class);
-        final Bootstrapper bootstrapper = new Bootstrapper() {
-            @Override
-            protected GraphDatabaseFactory getGraphDatabaseFactory(Configuration configuration) {
-                return new GraphDatabaseFactory() {
-                    @Override
-                    public AbstractGraphDatabase createDatabase(String databaseStoreDirectory, Map<String, String> databaseProperties) {
-                       return new ImpermanentGraphDatabase();
-                    }
-                };
-            }
-
-            @Override
-            protected Iterable<StartupHealthCheckRule> getHealthCheckRules() {
-                return Collections.emptyList();
-            }
-
-            @Override
-            protected Iterable<Class<? extends ServerModule>> getServerModules() {
-                return serverModules;
-            }
-        };
-        final JettyStartupListener startupListener = new JettyStartupListener();
         final Jetty6WebServer jettyWebServer = new Jetty6WebServer() {
             @Override
             protected void startJetty() {
                 final Server jettyServer = getJetty();
                 jettyServer.setStopAtShutdown(true);
-                final Server server = jettyServer.getServer();
-                server.addLifeCycleListener(startupListener);
-                // addAccessLogHandler(server);
+                final JettyStartupListener startupListener = new JettyStartupListener();
+                jettyServer.getServer().addLifeCycleListener(startupListener);
+                // System.err.println("jetty is started before notification " + jettyServer.isStarted());
+
                 super.startJetty();
 
                 startupListener.await();
+                jettyServer.removeLifeCycleListener(startupListener);
+                // System.err.println("jetty is started after notification " + jettyServer.isStarted());
             }
 
             @Override
             public void stop() {
-                getJetty().setStopAtShutdown(false);
+                final Server jettyServer = getJetty();
+                final JettyStartupListener listener = new JettyStartupListener();
+                jettyServer.getServer().addLifeCycleListener(listener);
+
                 super.stop();
+
+                listener.await();
+                jettyServer.removeLifeCycleListener(listener);
             }
         };
-        neoServer = new NeoServerWithEmbeddedWebServer(bootstrapper, new StartupHealthCheck(), new PropertyFileConfigurator(new File(url.getPath())), jettyWebServer, serverModules) {
+        neoServer = new CommunityNeoServer(new PropertyFileConfigurator(new File(url.getPath()))) {
             @Override
             protected int getWebServerPort() {
                 return port;
             }
-        };
-        System.err.println(neoServer.getConfiguration());
-        neoServer.start();
-    }
 
-    private void addAccessLogHandler(Server server) {
-        final RequestLogHandler logHandler = new RequestLogHandler();
-        final NCSARequestLog requestLog = new NCSARequestLog("/tmp/NCSARequestLog.log");
-        logHandler.setRequestLog(requestLog);
-        server.addHandler(logHandler);
+            @Override
+            protected StartupHealthCheck createHealthCheck() {
+                return new StartupHealthCheck();
+            }
+
+            @Override
+            protected Database createDatabase() {
+                return new WrappingDatabase(graphDatabase);
+            }
+
+
+            @Override
+            protected WebServer createWebServer() {
+                return jettyWebServer;
+            }
+
+            @Override
+            protected Iterable<ServerModule> createServerModules() {
+                return asList(new RESTApiModule(webServer,database,configurator.configuration()),new ThirdPartyJAXRSModule(webServer,configurator));
+            }
+        };
+        neoServer.start();
     }
 
     public void stop() {
@@ -170,35 +160,39 @@ public class LocalTestServer {
         CountDownLatch latch=new CountDownLatch(1);
         public void await() {
             try {
-                latch.await(5, TimeUnit.SECONDS);
+                latch.await(10, TimeUnit.SECONDS);
             } catch(InterruptedException ie) {
-                Thread.currentThread().interrupt();
-                throw new RuntimeException(ie);
+                System.err.println("ERROR startup took too long - await()");
+                throw new RuntimeException("Jetty did not start correctly",ie);
             }
         }
 
         @Override
         public void lifeCycleStarting(LifeCycle event) {
+            System.err.println("STARTING");
         }
 
         @Override
         public void lifeCycleStarted(LifeCycle event) {
+            System.err.println("STARTED");
             latch.countDown();
         }
 
         @Override
         public void lifeCycleFailure(LifeCycle event, Throwable cause) {
+            System.out.println("FAILURE "+cause.getMessage());
             latch.countDown();
             throw new RuntimeException(cause);
         }
 
         @Override
         public void lifeCycleStopping(LifeCycle event) {
-
+            System.err.println("STOPPING");
         }
 
         @Override
         public void lifeCycleStopped(LifeCycle event) {
+            System.err.println("STOPPED");
             latch.countDown();
         }
     }
