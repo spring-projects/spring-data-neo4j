@@ -1,6 +1,11 @@
 Spring Data Graph Changelog
 ===========================
 
+Changes in version 2.1.RC3 (2012-08-07)
+--------------------------------------
+* DATAGRAPH-276 Fixed issue to make @RelatedToVia support Iterable and not just Set
+* DATAGRAPH-250 Introduced 'enforceTargetType' flag to help discriminate clashing relationship types based on end node type
+
 Changes in version 2.1.RC2 (2012-06-25)
 --------------------------------------
 * DATAGRAPH-255 Created a transaction manager factory bean to allow backwards-compatibility. We now support Neo 1.7-1.8
