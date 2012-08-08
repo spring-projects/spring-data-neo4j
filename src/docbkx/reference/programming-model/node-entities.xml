@@ -57,6 +57,102 @@ public class Movie {
 			For the advanced mapping such a field is optional. Only if the underlying id has to be accessed, it is
 			needed.
         </para>
+        <section>
+            <title>Entity Equality</title>
+            <para>
+                Entity equality can be a grey area, and it is debatable whether natural keys or database ids best describe equality, there is the issue of versioning over time, etc. For Spring Data Neo4j we have adopted the convention that database-issued ids are the basis for equality, and that has some consequences:
+            </para>
+            <orderedlist>
+                <listitem>Before you attach an entity to the database, i.e. before the entity has had it's id-field populated, we suggest you rely on object identity for comparisons</listitem>
+                <listitem>Once an entity is attached, we suggest you rely solely on the id-field for equality</listitem>
+                <listitem>When you attach an entity, it's hashcode changes - because you keep equals and hashcode consistent and rely on the database ID, and because Spring Data Neo4j populates the database ID on save</listitem>
+            </orderedlist>
+            <para>
+                That causes problems if you had inserted the newly created entity into a hash-based collection before saving. While that can be worked around, we strongly advise you adopt a convention of not working with un-attached entities, to keep your code simple. This is best illustrated in code.
+            </para>
+            <example>
+                <title>Entity using id-field for equality and attaching new entity immediately</title>
+                <programlisting language="java"><![CDATA[@NodeEntity
+public class Studio {
+    @GraphId
+    Long id
+
+    String name;
+
+    public boolean equals(Object other) {
+        if (this == other) return true;
+
+        if (id == null) return false;
+
+        if (! (other instanceof Studio)) return false;
+
+        return id.equals(((Studio) other).id);
+    }
+
+    public int hashCode() {
+        return id == null ? System.identityHashCode(this) : id.hashCode();
+    }
+}
+
+...
+Set<Studio> studios = new HashSet<Studio>();
+Studio studio = studioRepository.save(new Studio("Ghibli"));
+studios.add(studio);
+Studio sameStudio = studioRepository.findOne(studio.id);
+assertThat(studio, is(equalTo(sameStudio));
+assertThat(studios.contains(sameStudio), is(true);
+assertThat(studios.remove(sameStudio), is(true);
+]]></programlisting>
+            </example>
+            <para>
+                A work-around for the problem of un-attached entities having their hashcode change when they get saved is to cache the hashcode. The hashcode will change next time you load the entity, but at least if you have the entity sitting in a collection, you will still be able to find it:
+            </para>
+            <example>
+                <title>Caching hashcode</title>
+                <programlisting language="java"><![CDATA[@NodeEntity
+public class Studio {
+    @GraphId
+    Long id
+
+    String name;
+
+    transient private Integer hash;
+
+    public boolean equals(Object other) {
+        if (this == other) return true;
+
+        if (id == null) return false;
+
+        if (! (other instanceof Studio)) return false;
+
+        return id.equals(((Studio) other).id);
+    }
+
+    public int hashCode() {
+        if (hash == null) hash = id == null ? System.identityHashCode(this) : id.hashCode();
+
+        return hash.hashCode();
+    }
+}
+
+...
+Set<Studio> studios = new HashSet<Studio>();
+Studio studio = new Studio("Ghibli")
+studios.add(studio);
+studioRepository.save(studio);
+assertThat(studios.contains(studio), is(true);
+assertThat(studios.remove(studio), is(true);
+Studio sameStudio = studioRepository.findOne(studio.id);
+assertThat(studio, is(equalTo(sameStudio));
+assertThat(studio.hashCode(), is(not(equalTo(sameStudio.hashCode())));
+]]></programlisting>
+            </example>
+            <note>
+                <para>
+                    Remember, transient fields are <emphasis>not</emphasis> saved.
+                </para>
+            </note>
+        </section>
     </section>
 
     <section>
