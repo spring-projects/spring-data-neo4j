@@ -54,4 +54,8 @@ class StartClause {
     public PartInfo getPartInfo() {
         return partInfo;
     }
+
+    public void merge(PartInfo partInfo) {
+
+    }
 }

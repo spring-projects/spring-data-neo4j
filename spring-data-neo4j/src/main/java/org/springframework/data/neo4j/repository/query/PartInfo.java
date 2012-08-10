@@ -90,4 +90,12 @@ public class PartInfo {
     public String getIndexKey() {
         return getIndexInfo().getIndexKey();
     }
+
+    boolean sameIndex(PartInfo startPartInfo) {
+        return startPartInfo.getIndexName().equals(getIndexName());
+    }
+
+    boolean sameVariable(PartInfo startPartInfo) {
+        return startPartInfo.getVariable().equals(getVariable());
+    }
 }
