@@ -77,10 +77,11 @@ class CypherQueryBuilder implements CypherQueryDefinition {
         String variable = variableContext.getVariableFor(path);
 
         final PartInfo partInfo = new PartInfo(path, variable, part, index);
+        // index("a:foo AND b:bar")
+        // a=index1(a="foo"), b=index2(b="bar") where a=b - not good b/c of cross product
+        // index1(a=foo) where a.foo=bar
         if (partInfo.isPrimitiveProperty()) {
-            if (partInfo.isIndexed()) {
-                startClauses.add(new StartClause(partInfo));
-            } else {
+            if (!addedStartClause(partInfo)) {
                 whereClauses.add(new WhereClause(path, variable, part.getType(), index, partInfo));
             }
         }
@@ -93,6 +94,19 @@ class CypherQueryBuilder implements CypherQueryDefinition {
         }
 
         return this;
+    }
+
+    private boolean addedStartClause(PartInfo partInfo) {
+        if (!partInfo.isIndexed()) return false;
+        for (StartClause startClause : startClauses) {
+            PartInfo startPartInfo = startClause.getPartInfo();
+            if (!partInfo.sameVariable(startPartInfo)) continue;
+            if (!partInfo.sameIndex(startPartInfo)) return false;
+            startClause.merge(partInfo);
+            return true;
+        }
+        startClauses.add(new StartClause(partInfo));
+        return true;
     }
 
     public PartInfo getPartInfo(int parameterIndex) {
