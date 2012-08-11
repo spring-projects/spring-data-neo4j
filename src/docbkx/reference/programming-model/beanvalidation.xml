@@ -24,7 +24,7 @@ class Person {
     </example>
 
 <para>
-	The validation supports needs the bean validation API and a reference implementation configured, right now this is the Hibernate Validator by default (which not integrated with Hibernate ORM). Tthe maven dependency is:
+	The validation supports needs the bean validation API and a reference implementation configured. Right now this is the Hibernate Validator by default (which is not integrated with Hibernate ORM). The maven dependency is:
 </para>
 <example>
     <title>Validation setup</title>

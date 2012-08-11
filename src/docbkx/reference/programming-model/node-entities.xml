@@ -63,9 +63,9 @@ public class Movie {
                 Entity equality can be a grey area, and it is debatable whether natural keys or database ids best describe equality, there is the issue of versioning over time, etc. For Spring Data Neo4j we have adopted the convention that database-issued ids are the basis for equality, and that has some consequences:
             </para>
             <orderedlist>
-                <listitem>Before you attach an entity to the database, i.e. before the entity has had it's id-field populated, we suggest you rely on object identity for comparisons</listitem>
+                <listitem>Before you attach an entity to the database, i.e. before the entity has had its id-field populated, we suggest you rely on object identity for comparisons</listitem>
                 <listitem>Once an entity is attached, we suggest you rely solely on the id-field for equality</listitem>
-                <listitem>When you attach an entity, it's hashcode changes - because you keep equals and hashcode consistent and rely on the database ID, and because Spring Data Neo4j populates the database ID on save</listitem>
+                <listitem>When you attach an entity, its hashcode changes - because you keep equals and hashcode consistent and rely on the database ID, and because Spring Data Neo4j populates the database ID on save</listitem>
             </orderedlist>
             <para>
                 That causes problems if you had inserted the newly created entity into a hash-based collection before saving. While that can be worked around, we strongly advise you adopt a convention of not working with un-attached entities, to keep your code simple. This is best illustrated in code.

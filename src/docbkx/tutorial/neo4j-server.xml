@@ -130,11 +130,11 @@ public interface MovieRepository extends GraphRepository<Movie> {
 	<section>
 		<title>Other approaches</title>
 			<para>
-				Another approach using the Neo4j-Server would be to write a custom server extension using the 
+				Another approach to using the Neo4j-Server would be to write a custom server extension using the
 				<code>SpringPluginInitializer</code> provided by <code>spring-data-neo4j-rest</code>. This extension
-				would use the well known entities and approaches as it runs inside the server atop a embedded graph
+				would use the well known entities and approaches as it runs inside the server atop an embedded graph
 				database. From the extension we would expose custom, domain and use-case oriented REST endpoints that
-				could then be consumable by any kind of webapp, even a pure Javascript based browser app.
+				could then be consumed by any kind of webapp, even a pure Javascript based browser app.
 			</para>
 	</section>
 </chapter>

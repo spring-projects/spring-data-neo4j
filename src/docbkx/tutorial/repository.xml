@@ -57,7 +57,7 @@ public interface MovieRepository extends GraphRepository<Movie> {
 	    In our wildest dreams we imagined the method names we would come up with, and what kinds of queries those could
 	    generate. But some, more complex queries would be cumbersome to read and write. So in those cases it is better
 	    to just annotate the finder method. We did this much later, and just wanted to give you a peek into the future.
-	    There is much more, you can do with repositories, it is worthwile to explore.
+	    There is much more, you can do with repositories, it is worthwhile to explore.
 	    <!-- TODO mention geo-queries, query-result projections ?? -->
 	</para>
     <para>

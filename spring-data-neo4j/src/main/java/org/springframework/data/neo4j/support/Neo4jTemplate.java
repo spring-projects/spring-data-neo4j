@@ -112,7 +112,7 @@ public class Neo4jTemplate implements Neo4jOperations {
         notNull(clazz,"entity type");
         if (isNodeEntity(clazz)) return new NodeGraphRepositoryImpl<T>(clazz, this);
         if (isRelationshipEntity(clazz)) return new RelationshipGraphRepository<T>(clazz, this);
-        throw new IllegalArgumentException("Can't create graph repository for non graph entity of type " + clazz);
+        throw new IllegalArgumentException("Can't create graph repository for non-graph entity of type " + clazz);
     }
 
 
@@ -151,7 +151,7 @@ public class Neo4jTemplate implements Neo4jOperations {
             if (relationship==null) return null;
             return infrastructure.getEntityPersister().createEntityFromState(relationship, entityClass, persistentEntity.getMappingPolicy(), this);
         }
-        throw new IllegalArgumentException("provided entity type is not annotated with @NodeEntiy nor @RelationshipEntity");
+        throw new IllegalArgumentException("provided entity type is neither annotated with @NodeEntiy nor @RelationshipEntity");
     }
 
     @Override

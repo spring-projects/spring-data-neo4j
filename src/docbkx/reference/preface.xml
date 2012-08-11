@@ -23,19 +23,22 @@
         </para>
 
         <para>
-            Spring Data Neo4j allows, at any time, to drop down to the Neo4j-API, see <xref linkend="neo4j" />
-			level to execute functionality with the highest performance possible.
+            Spring Data Neo4j allows, at any time, to drop down to the Neo4j-API level, see <xref linkend="neo4j" />
+			to execute functionality with the highest performance possible.
         </para>
         <para>
-            For Integration of Neo4j and Grails/GORM please refer to the Neo4j
-            <ulink url="http://www.grails.org/plugin/neo4j">grails plugin</ulink>. For other language bindings or frameworks
-            visit the <ulink url="http://wiki.neo4j.org/content/Main_Page#Language_and_framework_bindings">Neo4j Wiki</ulink>.
+            For integration of Neo4j and Grails/GORM please refer to the Neo4j
+            <ulink url="http://www.grails.org/plugin/neo4j">grails plugin</ulink>. There are also
+            <ulink url="http://docs.neo4j.org/chunked/milestone/python-embedded.html">Python bindings</ulink>
+            as well as community-provided bindings to use Neo4j in
+            <ulink url="http://docs.neo4j.org/chunked/milestone/languages.html">embedded</ulink>
+            or <ulink url="http://docs.neo4j.org/chunked/milestone/tutorials-rest.html">REST mode</ulink>.
         </para>
     </section>
     <section>
         <title>Reference Documentation Overview</title>
     <para>
-        The explanation of Spring Data Neo4js programming model starts with some underlying details.
+        The explanation of Spring Data Neo4j's programming model starts with some underlying details.
         The basic internal workings of the two mapping modes are explained in the initial chapter.
 		<xref linkend="reference:mapping"/> covers the simple mapping and
  		<xref linkend="reference:aspectj"/> contains details about the advanced mapping.
@@ -92,7 +95,7 @@
     <para>
         Using computed fields that are dynamically backed by graph operations is a bit more involved. First you should know
         about traversals, Cypher queries and Gremlin expressions.
-        Those are explained in the <xref linkend="neo4j" />Neo4j-API. Then you can start using virtual, computed fields
+        Those are explained in <xref linkend="neo4j" />. Then you can start using virtual, computed fields
 		in your entities <xref linkend="reference:programming-model:projection"/> .
     </para>
     <para>
@@ -104,14 +107,14 @@
         Those methods also provide the means to execute the mentioned graph operations with your entity as a starting point.
     </para>
     <para>
-        Neo4j is a fully ACID, enterprise grade database. It uses Java transactions, and internally a 2 phase commit protocol, to guarantee the
+        Neo4j is a fully ACID, enterprise grade database. It uses Java transactions, and internally a 2-phase commit protocol, to guarantee the
         safety of your data. The implications of that are described in the chapter around transactions. (<xref linkend="reference:programming-model:transactions"/>)
     </para>
     <para>
         The need of an active transaction for mutating the state of nodes or relationships implies that direct changes to
         the graph are only possible in a transactional context. Unfortunately many higher level application layers don't
         want to care about transactions and the open-session-in-view pattern is not widely used. Therefore Spring Data
-        Neo4j advanced mapping introduced an entity lifecyle and added support for detached entities which can be used for temporary
+        Neo4j's advanced mappings introduced an entity lifecyle and added support for detached entities which can be used for temporary
         domain objects that are not intended to be stored in the graph or which will be attached to the graph only later.
         (<xref linkend="reference:programming-model:lifecycle"/>)
     </para>
@@ -161,9 +164,8 @@
     <para>
         <note>
             <para>
-                As the advanced mapping mode of Spring Data Neo4j is based on AspectJ and use some advanced features of that
-				toolset, please
-                be aware of that. Please see the section on AspectJ (<xref linkend="reference:aspectj"/>) for
+                Please be aware that the advanced mapping mode of Spring Data Neo4j is based on AspectJ and uses some
+                advanced features of that toolset. See the section on AspectJ (<xref linkend="reference:aspectj"/>) for
                 details if you run into any problems.
             </para>
         </note>
