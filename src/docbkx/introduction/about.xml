@@ -6,7 +6,7 @@
     <section>
         <title>The Spring Data Neo4j Project</title>
         <para>
-            Welcome to the Spring Data Neo4j Guide Book. Thank you for taking the time to get an in depth look
+            Welcome to the Spring Data Neo4j Guide Book. Thank you for taking the time to get an in-depth look
             into <ulink url="http://spring.neo4j.org">Spring Data Neo4j</ulink>.
             This project is part of the <ulink url="http://springsource.org/spring-data">Spring Data project</ulink>,
             which brings the convenient programming model of the Spring Framework to modern NOSQL databases.

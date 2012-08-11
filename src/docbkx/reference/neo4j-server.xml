@@ -77,7 +77,7 @@ public void foo( @Context WorldRepository repo ) {
         <title>Using Spring Data Neo4j as a REST client</title>
         <para>
             To use REST-API the Neo4j Server exposes, one would either go with REST libraries on the lower level or choose one of the Neo4j related
-            rest drivers in various languages. For Java Neo4j provides the <ulink url="https://github.com/neo4j/java-rest-binding">Neo4j Java REST bindings</ulink>
+            REST drivers in various languages. For Java Neo4j provides the <ulink url="https://github.com/neo4j/java-rest-binding">Neo4j Java REST bindings</ulink>
             which come as a drop in replacement for the <code>GraphDatabaseService</code> API. Spring Data Neo4j REST uses those bindings to provide seamless
             access to a remote Neo4j Database.
         </para>

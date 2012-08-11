@@ -19,9 +19,9 @@
     </para>
     <para>
         AspectJ uses a declarative approach, defining concrete "advice", which is just pieces of code that contain
-        the implementation of the "concern", as it is called. AspectJ advice can for instance be applied before, after, or instead
+        the implementation of the "concern", as it is called. An AspectJ advice can for instance be applied before, after, or instead
         of a method or constructor call. It can also be applied on variable and field access. This is declared
-        using AspectJ's expressive pointcut language, able to express any place within a code structure or flow.
+        using AspectJ's expressive pointcut language, which is able to express any place within a code structure or flow.
         AspectJ is also able to introduce new methods, fields, annotations, interfaces, and superclasses to
         existing classes.
     </para>

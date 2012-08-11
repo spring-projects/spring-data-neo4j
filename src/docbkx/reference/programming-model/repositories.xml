@@ -44,7 +44,7 @@
                     <listitem><para><code>T findOne(id)</code></para></listitem>
                 </varlistentry>
                 <varlistentry>
-                    <term>Check for existence of a id in the graph</term>
+                    <term>Check for existence of an id in the graph</term>
                     <listitem><para><code>boolean exists(id)</code></para></listitem>
                 </varlistentry>
                 <varlistentry>
@@ -176,7 +176,7 @@
                     </varlistentry>
                     <varlistentry>
                         <term><code>start user=node:User(login='micha') match (user)-[:FRIEND]-(friend)-[r:RATED]->(movie) return movie.title, AVG(r.stars), COUNT(*) order by AVG(r.stars) desc, COUNT(*) desc</code></term>
-                        <listitem><para>returns the movies rate by the friends of the user 'micha', aggregated by movie.title, with averaged ratings and rating-counts sorted by both</para></listitem>
+                        <listitem><para>returns the movies rated by the friends of the user 'micha', aggregated by movie.title, with averaged ratings and rating-counts sorted by both</para></listitem>
                     </varlistentry>
                 </variablelist>
             </para>
@@ -200,14 +200,14 @@ public interface MovieRepository extends GraphRepository<Movie> {
     @Query("start movie=node:Movie(title={0}) match (movie)&lt;-[:ACTS_IN]-(actor) return actor")
     Page<Actor> getActorsThatActInMovieFromTitle(String movieTitle, PageRequest);
 
-    // returns users who rate a movie (movie parameter) higher than rating (rating parameter)
+    // returns users who rated a movie (movie parameter) higher than rating (rating parameter)
     @Query("start movie=node:({0}) " +
            "match (movie)&lt;-[r:RATED]-(user) " +
            "where r.stars > {1} " +
            "return user")
     Iterable<User> getUsersWhoRatedMovieFromTitle(Movie movie, Integer rating);
 
-    // returns users who rate a movie based on movie title (movieTitle parameter) higher than rating (rating parameter)
+    // returns users who rated a movie based on movie title (movieTitle parameter) higher than rating (rating parameter)
     @Query("start movie=node:Movie(title={0}) " +
            "match (movie)&lt;-[r:RATED]-(user) " +
            "where r.stars > {1} " +
@@ -228,11 +228,11 @@ public interface MovieRepository extends GraphRepository<Movie> {
 					<code>@Indexed</code> fields will be converted into index-lookups of the <code>start</code> clause, 
 					navigation along relationships will be reflected in the <code>match</code> clause properties with operators will end up as expressions in the
 					<code>where</code> clause. Order and limiting of the query will by handled by provided <code>Pageable</code> or <code>Sort</code> parameters.
-					The other parameters will be used in the order they appear in the method signature so that should align with the expressions stated in the method name.
+					The other parameters will be used in the order they appear in the method signature so they should align with the expressions stated in the method name.
 				</para>
 				<para>
 		        <example>
-		            <title>Some examples of methods and resulting cypher queries of a PersonRepository</title>
+		            <title>Some examples of methods and resulting Cypher queries of a PersonRepository</title>
             <programlisting language="java"><![CDATA[
 public interface PersonRepository 
                extends GraphRepository<Person> {
@@ -263,12 +263,12 @@ Iterable<Person> findByParentAgeAndMarried(int age, boolean married)
 
 	    <section>
 		<!-- todo Rickard -->
-	        <title>CypherDSL repository</title>
+	        <title>Cypher-DSL repository</title>
 	        <para>
-	            Spring Data Neo4j supports the new cypher-dsl to write Cypher queries in a statically typed way. Just by including 
+	            Spring Data Neo4j supports the new Cypher-DSL to write Cypher queries in a statically typed way. Just by including 
 				<code>CypherDslRepository</code> to your repository you get the <code>Page&lt;T> query(Execute query, params, Pageable page)</code>
 				and the <code>EndResult&lt;T> query(Execute query, params);</code>. The result type of the Cypher-DSL builder is called
-				<code>Execute</code>
+				<code>Execute</code>.
 	        </para>
 	        <example>
 	            <title>Examples for Cypher-DSL repository</title>
@@ -300,10 +300,10 @@ import static org.neo4j.cypherdsl.querydsl.CypherQueryDSL.*;
 
 	    </section>
         <section>
-            <title>CypherDSL and QueryDSL</title>
+            <title>Cypher-DSL and QueryDSL</title>
             <para>
-                To use Cypher-DSL with QueryDSL the Mysema dependencies have to be declared explicitly as they are
-                optional in the CypherDSL project.
+                To use Cypher-DSL with Query-DSL the Mysema dependencies have to be declared explicitly as they are
+                optional in the Cypher-DSL project.
             </para>
             <programlisting language="xml"><![CDATA[<dependency>
     <groupId>com.mysema.querydsl</groupId>
@@ -332,7 +332,7 @@ import static org.neo4j.cypherdsl.querydsl.CypherQueryDSL.*;
 ]]></programlisting>
 
             <para>
-                It is possible to use the Cypher DSL along with the predicates and code generation features of the QueryDSL project. This will allow
+                It is possible to use the Cypher-DSL along with the predicates and code generation features of the QueryDSL project. This will allow
                 you to use Java objects as part of the query, rather than strings, for the names of properties and such. In order to get this to work you first have
                 to add a code processor to your Maven build, which will parse your domain entities marked with @NodeEntity, and from that generate QPerson-style classes,
                 as shown in the previous section. Here is what you need to include in your Maven POM file.
@@ -359,7 +359,7 @@ import static org.neo4j.cypherdsl.querydsl.CypherQueryDSL.*;
             </plugin>
 ]]></programlisting>
             <para>
-                This custom QueryDSL AnnotationProcessor will generate the query classes that can be used when constructing CypherDSL queries, as in the previous section.
+                This custom QueryDSL AnnotationProcessor will generate the query classes that can be used when constructing Cypher-DSL queries, as in the previous section.
             </para>
         </section>
 
