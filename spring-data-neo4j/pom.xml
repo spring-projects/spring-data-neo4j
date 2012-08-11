@@ -13,6 +13,9 @@
     <description><![CDATA[Spring Data Neo4j core support for Neo4j graph database, offering object graph mapping, a Neo4jTemplate and Spring-Data-Commons Repository implementations.
     ]]></description>
     <url>http://www.springsource.org/spring-data/neo4j</url>
+    <properties>
+	   <querydsl.version>2.5.0</querydsl.version>
+	</properties>
 	<dependencies>
 		<!--  Spring -->
 		<dependency>
@@ -148,13 +151,13 @@
         <dependency>
             <groupId>com.mysema.querydsl</groupId>
             <artifactId>querydsl-core</artifactId>
-            <version>2.2.3</version>
+            <version>${querydsl.version}</version>
             <optional>true</optional>
         </dependency>
         <dependency>
             <groupId>com.mysema.querydsl</groupId>
             <artifactId>querydsl-lucene</artifactId>
-            <version>2.2.3</version>
+            <version>${querydsl.version}</version>
             <optional>true</optional>
             <exclusions>
                 <exclusion>
@@ -166,7 +169,7 @@
         <dependency>
             <groupId>com.mysema.querydsl</groupId>
             <artifactId>querydsl-apt</artifactId>
-            <version>2.2.3</version>
+            <version>${querydsl.version}</version>
             <scope>provided</scope>
         </dependency>
 
