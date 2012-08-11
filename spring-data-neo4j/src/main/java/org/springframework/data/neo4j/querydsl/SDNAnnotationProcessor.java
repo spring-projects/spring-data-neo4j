@@ -16,51 +16,36 @@
 package org.springframework.data.neo4j.querydsl;
 
 import com.mysema.query.annotations.*;
+import com.mysema.query.apt.AbstractQuerydslProcessor;
+import com.mysema.query.apt.Configuration;
 import com.mysema.query.apt.DefaultConfiguration;
-import com.mysema.query.apt.Processor;
-import org.springframework.data.annotation.Persistent;
 import org.springframework.data.neo4j.annotation.NodeEntity;
 
-import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.RoundEnvironment;
 import javax.annotation.processing.SupportedAnnotationTypes;
+import javax.annotation.processing.SupportedSourceVersion;
 import javax.lang.model.SourceVersion;
-import javax.lang.model.element.TypeElement;
 import javax.tools.Diagnostic;
-import java.lang.annotation.Annotation;
 import java.util.Collections;
-import java.util.Set;
 
 /**
  * TODO
  */
 @SupportedAnnotationTypes({"com.mysema.query.annotations.*","org.springframework.data.neo4j.annotation.*"})
-public class SDNAnnotationProcessor
-    extends AbstractProcessor
-{
-    private static final Boolean ALLOW_OTHER_PROCESSORS_TO_CLAIM_ANNOTATIONS = Boolean.FALSE;
+@SuppressWarnings("restriction")
+@SupportedSourceVersion(SourceVersion.RELEASE_6)
+public class SDNAnnotationProcessor extends AbstractQuerydslProcessor {
 
-    @Override
-    public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
-        processingEnv.getMessager().printMessage(Diagnostic.Kind.NOTE, "Running " + getClass().getSimpleName());
-        Class<? extends Annotation> entities = QueryEntities.class;
-        Class<? extends Annotation> entity = NodeEntity.class;
-        Class<? extends Annotation> superType = QuerySupertype.class;
-        Class<? extends Annotation> embeddable = QueryEmbeddable.class;
-        Class<? extends Annotation> embedded = QueryEmbedded.class;
-        Class<? extends Annotation> skip = QueryTransient.class;
+	@Override
+	protected Configuration createConfiguration(RoundEnvironment roundEnv) {
 
-        DefaultConfiguration configuration = new DefaultConfiguration(
-                roundEnv, processingEnv.getOptions(), Collections.<String>emptySet(), entities, entity, superType, embeddable, embedded, skip);
+		processingEnv.getMessager().printMessage(Diagnostic.Kind.NOTE, "Running " + getClass().getSimpleName());
 
-        Processor processor = new Processor(processingEnv, roundEnv, configuration);
-        processor.process();
-        return ALLOW_OTHER_PROCESSORS_TO_CLAIM_ANNOTATIONS;
-    }
+		DefaultConfiguration configuration = new DefaultConfiguration(roundEnv, processingEnv.getOptions(),
+				Collections.<String> emptySet(), QueryEntities.class, NodeEntity.class, QuerySupertype.class,
+				QueryEmbeddable.class, QueryEmbedded.class, QueryTransient.class);
+		// configuration.setUnknownAsEmbedded(true);
 
-    @Override
-    public SourceVersion getSupportedSourceVersion() {
-        return SourceVersion.latest();
-    }
-
+		return configuration;
+	}
 }
