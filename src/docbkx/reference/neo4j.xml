@@ -33,7 +33,7 @@
             <itemizedlist>
             <listitem><simpara>has an intuitive, rich graph-oriented model for data representation. Instead of tables, rows,
                 and columns, you work with a graph consisting of
-                <ulink url="http://wiki.neo4j.org/content/Getting_Started">nodes, relationships, and properties</ulink>.
+                <ulink url="http://docs.neo4j.org/chunked/milestone/what-is-a-graphdb.html">nodes, relationships, and properties</ulink>.
             </simpara></listitem>
             <listitem><simpara>has a disk-based, native storage manager optimized for storing graph structures
                 with maximum performance and scalability.
@@ -91,7 +91,7 @@ try {
 
 	Relationship relationship = firstNode.createRelationshipTo( secondNode,
 		DynamicRelationshipType.of("KNOWS") );
-	relationship.setProperty( "message", "brave Neo4j " );
+	relationship.setProperty( "message", "brave Neo4j" );
 	tx.success();
 } finally {
 	tx.finish();
@@ -165,7 +165,7 @@ for (Node foundNode : nodeIndex.get("property","value")) {
         </para>
         <para>
             Cypher queries always begin with a <code>start</code> set of nodes. Those can be either expressed by their
-            id's or by a index lookup expression. Those start-nodes are then related to other nodes in the
+            IDs or by an index lookup expression. Those start-nodes are then related to other nodes in the
             <code>match</code> clause. Start and match clauses can introduce new identifiers for nodes and
             relationships. In the <code>where</code> clause additional filtering of the result set is applied by evaluating
             expressions. The <code>return</code> clause defines which part of the query result will be available.
@@ -174,7 +174,7 @@ for (Node foundNode : nodeIndex.get("property","value")) {
             restrict the result set to a certain window.
         </para>
         <para>
-            Cypher can be executed on an embedded graph db using an <code>ExecutionEngine</code> and
+            Cypher can be executed on an embedded graph database using an <code>ExecutionEngine</code> and
             <code>CypherParser</code>. This is encapsulated in Spring Data Neo4j with
             <code>CypherQueryEngine</code>. The Neo4j-REST-Server comes with a Cypher-Plugin that is accessible remotely and is
             available in the Spring Data Neo4j REST-Binding.
@@ -182,16 +182,16 @@ for (Node foundNode : nodeIndex.get("property","value")) {
         <example>
             <title>Cypher Examples on the Cineasts.net Dataset</title>
             <programlisting><![CDATA[
-// Actors of Forrest Gump:
-start movie=node:Movie("title:Matr*") match movie<-[:ACTS_IN]-actor
+// Actors who played a Matrix movie:
+start movie=node:Movie("title:Matrix*") match movie<-[:ACTS_IN]-actor
     return actor.name, actor.birthplace?
 
 // User-Ratings:
-start user=node:User(login='micha') match user-[r,:RATED]->movie where r.stars > 3
+start user=node:User(login='micha') match user-[r:RATED]->movie where r.stars > 3
     return movie.title, r.stars, r.comment
 
 // Mutual Friend recommendations:
-start user=node:Micha(login='micha') match user-[:FRIEND]-friend-[r,:RATED]->movie where r.stars > 3
+start user=node:Micha(login='micha') match user-[:FRIEND]-friend-[r:RATED]->movie where r.stars > 3
     return friend.name, movie.title, r.stars, r.comment?
 
 // Movie suggestions based on a movie:
@@ -202,14 +202,14 @@ start movie=node:Movie(id='13') match (movie)<-[:ACTS_IN]-()-[:ACTS_IN]->(sugges
 start lucy=node(1000) match lucy-[:ACTS_IN]->movie<-[:ACTS_IN]-co_actor
     return count(*), co_actor.name order by count(*) desc,co_actor.name limit 20
 
-// recommendations including counts, grouping and sorting
-start user=node:User(login='micha') match user-[:FRIEND]-()-[r,:RATED]->movie
+// Recommendations including counts, grouping and sorting
+start user=node:User(login='micha') match user-[:FRIEND]-()-[r:RATED]->movie
     return movie.title, AVG(r.stars), count(*) order by AVG(r.stars) desc, count(*) desc
 ]]></programlisting>
         </example>
     </section>
     <section>
-        <title>Gremlin a Graph Traversal DSL</title>
+        <title>Gremlin - a Graph Traversal DSL</title>
         <para>
             Gremlin is an expressive Groovy DSL developed by <ulink url="http://markorodriguez.com">Marko Rodriguez</ulink>
             as part of the <ulink url="http://tinkerpop.com">Tinkerpop</ulink> stack. It builds on top of a pipe implementation

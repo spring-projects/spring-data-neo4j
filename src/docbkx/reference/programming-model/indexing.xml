@@ -131,7 +131,7 @@ Person mark = graphRepository.findAllByQuery("people-search", "name", "ma*");
         <para>
             <note>
             This works for both Node-Entities as well as Relationship-Entities. Relationship-Uniqueness in Neo4j is global so that
-            a existing unique instance of this relationship may connect two completely different nodes and might also have a
+            an existing unique instance of this relationship may connect two completely different nodes and might also have a
             different type.
             </note>
         </para>
@@ -215,7 +215,7 @@ personFulltextIndex.query("{name:*cha*}");
         <para>
             For querying the index, the template offers query methods that take either the exact match
             parameters or a query object/expression, return the results as <code>Result</code> objects which
-			then can be converted and projected further using the result-conversion-dsl (see <xref linkend="reference:template"/>).
+			can then be converted and projected further using the result-conversion-dsl (see <xref linkend="reference:template"/>).
         </para>
     </section>
     <section>

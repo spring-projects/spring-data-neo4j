@@ -30,9 +30,9 @@
     <section>
         <title>Entity-Persistence</title>
         <para>
-            <code>Neo4jTemplate</code> allows to <code>save</code>,<code>find(One/All)</code>,<code>count</code><code>delete</code>
+            <code>Neo4jTemplate</code> allows to <code>save</code>, <code>find(One/All)</code>, <code>count</code>, <code>delete</code>
             and <code>projectTo</code> entities. It provides the stored type information via <code>getStoredJavaType</code>
-            and can <code>fetch</code> lazy-loaded entities or <code>load</code> them alltogether.
+            and can <code>fetch</code> lazy-loaded entities or <code>load</code> them altogether.
         </para>
     </section>
     <section>

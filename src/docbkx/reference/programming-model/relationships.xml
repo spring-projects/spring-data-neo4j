@@ -283,7 +283,7 @@ new Acquaintance(frankSinatra, carloGambino, "its_complicated")
                 <para>You need to annotate <emphasis>all</emphasis> clashing relationships.</para>
             </listitem>
             <listitem>
-                <para>You can't have a two fields, two collections, or a field and a collection, with the same relationship type and identical end node types. SDN does not store metadata about the origin of a relationship. So when saving the entity, the first field or collection would be overwritten by the second, with the processing order being non-deterministic.</para>
+                <para>You can't have two fields, two collections, or a field and a collection, with the same relationship type and identical end node types. SDN does not store metadata about the origin of a relationship. So when saving the entity, the first field or collection would be overwritten by the second, with the processing order being non-deterministic.</para>
             </listitem>
             <listitem>
                 <para>You <emphasis>can</emphasis> have clashing relation ship types when end nodes share a supertype.</para>
@@ -292,7 +292,7 @@ new Acquaintance(frankSinatra, carloGambino, "its_complicated")
                 <para>A variation on the above, you <emphasis>cannot</emphasis> have two fields or two collections with the same relationship type and substitutable end node types.</para>
             </listitem>
             <listitem>
-                <para>You <emphasis>can</emphasis> however have a field and a collection where end node types inherit from eachother.</para>
+                <para>You <emphasis>can</emphasis> however have a field and a collection where end node types inherit from each other.</para>
             </listitem>
         </itemizedlist>
     </section>

@@ -57,7 +57,7 @@ public class MovieController {
         <section>
             <title>Neoclipse visualization</title>
             <para>
-                First we tried Neoclipse, an Eclipse RCP application/plugin that opens an existing graph store
+                First we tried Neoclipse, an Eclipse RCP application that opens an existing graph store
                 and visualizes its content. After getting an exception about concurrent access, we learned that
                 we have to use Neoclipse in read-only mode when our webapp was still running. Good to know.
             </para>
