@@ -10,8 +10,8 @@
         Spring Data Neo4j can retrieve the appropriate information from the entity's backing node or relationship.
     </para>
     <para>
-        The aspect introduces a internal field (<code>entityState</code>)and some public methods
-        (see <xref linkend="reference:programming-model:introduced-methods"/>) to the entities, for instance as
+        The aspect introduces an internal field (<code>entityState</code>) and some public methods
+        (see <xref linkend="reference:programming-model:introduced-methods"/>) to the entities, for instance
         <code>entity.getPersistentState()</code> and <code>entity.relateTo</code>.
         It also introduces some methods for graph operations that start at the current entity.
         Introduced methods for <code>equals()</code> and <code>hashCode()</code> use the underlying node or relationship.
@@ -40,7 +40,7 @@
             classes, and generified introduced methods.
         </para>
         <para>
-            IDEs not providing the full AJ support might mark parts of your code as errors.
+            IDEs not providing full AspectJ support might mark parts of your code as having errors.
             You should rely on your build-system and tests to verify the correctness of the code. You might also have
             your Entities (or their interfaces) implement the <code>NodeBacked</code> and <code>RelationshipBacked</code>
             interfaces directly to benefit from completion support and error checking.

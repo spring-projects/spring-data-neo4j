@@ -12,7 +12,7 @@
         That was simple, so we added the annotation to our domain classes too. Entity classes representing
         relationships were instead annotated with <code>@RelationshipEntity</code>.
         Property fields were taken care of automatically. The only additional field we had to provide for all
-        entities was a id-field to store the node- and relationship-ids.
+        entities was an id-field to store the node- and relationship-ids.
     </para>
     <para>
         <example>

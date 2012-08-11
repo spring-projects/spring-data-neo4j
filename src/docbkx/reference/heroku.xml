@@ -136,7 +136,7 @@ public class Main {
       to Neo4j itself.
     </para>
     <para>
-      In the SDN Todos example, <code>src/main/resources/META-INF/spring/ applicationContext-graph.xml</code>
+      In the SDN Todos example, <code>src/main/resources/META-INF/spring/applicationContext-graph.xml</code>
       was modified to look like this:
     </para>
       <example>

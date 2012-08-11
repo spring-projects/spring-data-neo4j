@@ -56,7 +56,7 @@
         </itemizedlist>
     </para>
     <para>
-        There are two implementations for relationship entities available, same behavior as the corresponding ones
+        There are two implementations for relationship entities available, with the same behavior as the corresponding ones
         above:
         <itemizedlist>
             <listitem>

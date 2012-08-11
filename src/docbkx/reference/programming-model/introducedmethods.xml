@@ -5,11 +5,11 @@
     <para>
 		This chapter only applies to the advanced mapping. Currently the Aspects introduce the following
 		methods by default, this will change in the future, there will be separate Mixin-Interfaces that
-		can selectively mixed into the domain entities if needed. Otherwise the AspectJ interaction will
-		be restricted to field access interception and post constructor handling.
+		can selectively be mixed into the domain entities if needed. Otherwise the AspectJ interaction will
+		be restricted to field access interception and post-constructor handling.
 	</para>
 	<para>
-        The node and relationship aspects introduce (via AspectJ ITD - inter type declaration) several
+        The node and relationship aspects introduce (via AspectJ ITD - inter-type declaration) several
         methods to the entities.
         <variablelist>
             <varlistentry>

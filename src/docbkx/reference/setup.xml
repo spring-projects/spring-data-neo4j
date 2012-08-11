@@ -365,7 +365,7 @@ repositories {
 				Additional beans can be configured to be included in the Neo4j-Configuration just by defining them in the Spring context. 
 				ConversionService for custom conversions,
 				Validators for bean validation, TypeRepresentationStrategyFactory for configuring the in graph type representation,
-				IndexProviders for custom index handling (e.g. for multi-tenancy),
+				IndexProviders for custom index handling (e.g. for multi-tenancy) or
 				Entity-Instantiators (with their config) to have more control over the creation of entity instances and much more.
 			</para>
         </section>
