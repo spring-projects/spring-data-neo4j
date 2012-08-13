@@ -17,6 +17,7 @@ package org.springframework.data.neo4j.config;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
+import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
@@ -37,6 +38,7 @@ import org.springframework.data.repository.query.QueryLookupStrategy.Key;
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
+@Inherited
 @Import(Neo4jRepositoriesRegistrar.class)
 public @interface EnableNeo4jRepositories {
 
