@@ -20,7 +20,11 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.convert.ConverterNotFoundException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
+import org.springframework.data.mapping.context.MappingContext;
+import org.springframework.data.mapping.model.MappingException;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
+import org.springframework.data.neo4j.support.mapping.Neo4jMappingContext;
+import org.springframework.data.neo4j.support.mapping.Neo4jPersistentEntityImpl;
 import org.springframework.data.neo4j.support.node.Neo4jHelper;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -34,6 +38,7 @@ import static org.hamcrest.core.IsEqual.equalTo;
 import static org.hamcrest.core.IsInstanceOf.instanceOf;
 import static org.hamcrest.core.IsNot.not;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.junit.matchers.JUnitMatchers.either;
 import static org.junit.matchers.JUnitMatchers.hasItem;
@@ -225,11 +230,16 @@ public class RelatedToTests {
         assertThat(thrall.getAdvisors(), is(equalTo(asSet(garrosh, rehgar))));
     }
 
+    @Autowired
+    Neo4jMappingContext context;
     /**
      * stacked entity cache means we do not load the node back polymorphically - should we?
      */
     @Test
     public void shouldNotDifferentiateByEndNodeClassWhenTargetTypeNotEnforced() throws Exception {
+        Neo4jPersistentEntityImpl<?> entity = context.getPersistentEntity(CoffeeMachine.class);
+        assertTrue(entity.getPersistentProperty("dripBrew").isRelationship());
+        assertTrue(entity.getPersistentProperty("espressoBasedCoffee").isRelationship());
         DripBrew filteredCoffee = dripBrews.save(new DripBrew("Filtered Coffee"));
         EspressoBasedCoffee americano = americanos.save(new EspressoBasedCoffee("Americano"));
         CoffeeMachine coffeeMachine = new CoffeeMachine();
@@ -240,7 +250,9 @@ public class RelatedToTests {
             coffeeMachines.save(coffeeMachine);
 
             fail();
-        } catch (ConverterNotFoundException e) {
+        } catch (MappingException me) {
+            assertTrue("converter not found",me.getCause() instanceof ConverterNotFoundException);
+            ConverterNotFoundException e= (ConverterNotFoundException) me.getCause();
             assertThat(asSet(DripBrew.class.getName(), EspressoBasedCoffee.class.getName()), hasItem(e.getSourceType().getName()));
             assertThat(asSet(DripBrew.class.getName(), EspressoBasedCoffee.class.getName()), hasItem(e.getTargetType().getName()));
             assertThat(e.getSourceType().getName(), is(not(equalTo(e.getTargetType().getName()))));

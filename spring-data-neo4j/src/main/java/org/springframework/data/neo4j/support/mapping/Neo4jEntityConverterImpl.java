@@ -126,10 +126,8 @@ public class Neo4jEntityConverterImpl<T,S extends PropertyContainer> implements 
     private <R> Object getProperty(BeanWrapper<Neo4jPersistentEntity<R>, R> wrapper, Neo4jPersistentProperty property) {
         try {
             return wrapper.getProperty(property);
-        } catch (IllegalAccessException e) {
+        } catch (Exception e) {
             throw new MappingException("Error retrieving property " + property.getName() + " from " + wrapper.getBean(), e);
-        } catch (InvocationTargetException e) {
-            throw new MappingException("Error retrieving property " + property.getName() + " from " + wrapper.getBean(), e.getTargetException());
         }
     }
 

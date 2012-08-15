@@ -17,6 +17,7 @@ package org.springframework.data.neo4j.support.mapping;
 
 import org.neo4j.graphdb.PropertyContainer;
 import org.neo4j.graphdb.Transaction;
+import org.springframework.core.convert.ConverterNotFoundException;
 import org.springframework.data.mapping.Association;
 import org.springframework.data.mapping.AssociationHandler;
 import org.springframework.data.mapping.PropertyHandler;
@@ -72,20 +73,16 @@ public class SourceStateTransmitter<S extends PropertyContainer> {
     private <R> Object getProperty(BeanWrapper<Neo4jPersistentEntity<R>, R> wrapper, Neo4jPersistentProperty property) {
         try {
             return wrapper.getProperty(property);
-        } catch (IllegalAccessException e) {
+        } catch (Exception e) {
             throw new MappingException("Error retrieving property " + property.getName() + " from " + wrapper.getBean(), e);
-        } catch (InvocationTargetException e) {
-            throw new MappingException("Error retrieving property " + property.getName() + " from " + wrapper.getBean(), e.getTargetException());
         }
     }
 
     public <R> void setProperty(BeanWrapper<Neo4jPersistentEntity<R>, ?> wrapper, Neo4jPersistentProperty property, Object value) {
         try {
             wrapper.setProperty(property,value);
-        } catch (IllegalAccessException e) {
+        } catch (Exception e) {
             throw new MappingException("Setting property " + property.getName() + " to " + value + " on " + wrapper.getBean(), e);
-        } catch (InvocationTargetException e) {
-            throw new MappingException("Setting property " + property.getName() + " to " + value + " on " + wrapper.getBean(), e.getTargetException());
         }
     }
 
