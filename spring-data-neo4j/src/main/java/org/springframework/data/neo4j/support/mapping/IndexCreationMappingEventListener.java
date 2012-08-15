@@ -18,7 +18,7 @@ package org.springframework.data.neo4j.support.mapping;
 import org.neo4j.graphdb.index.Index;
 import org.springframework.context.ApplicationListener;
 import org.springframework.data.mapping.PropertyHandler;
-import org.springframework.data.mapping.event.MappingContextEvent;
+import org.springframework.data.mapping.context.MappingContextEvent;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentEntity;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
@@ -36,7 +36,7 @@ public class IndexCreationMappingEventListener implements ApplicationListener<Ma
 
     @Override
     public void onApplicationEvent(MappingContextEvent<Neo4jPersistentEntity<?>, Neo4jPersistentProperty> event) {
-        if (!(event.getSource() instanceof Neo4jPersistentEntity)) return;
+        if (!(event.getSource() instanceof Neo4jMappingContext)) return;
         final Neo4jPersistentEntity entity = event.getPersistentEntity();
         ensureEntityIndexes(entity);
     }
