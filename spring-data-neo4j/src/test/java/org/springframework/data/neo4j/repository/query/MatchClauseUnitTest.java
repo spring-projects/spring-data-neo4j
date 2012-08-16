@@ -42,7 +42,7 @@ public class MatchClauseUnitTest {
     public void setUp() {
         context = new Neo4jMappingContext();
         context.setInitialEntitySet(Collections.singleton(Person.class));
-        context.afterPropertiesSet();
+        context.initialize();
         variableContext = new VariableContext();
     }
 
