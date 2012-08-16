@@ -61,7 +61,7 @@ TransactionalRepositoryFactoryBeanSupport<R, T, Long> {
 
         if (neo4jMappingContext == null) {
             Neo4jMappingContext context = new Neo4jMappingContext();
-            context.afterPropertiesSet();
+            context.initialize();
             this.neo4jMappingContext = context;
         }
 

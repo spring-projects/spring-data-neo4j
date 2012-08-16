@@ -97,15 +97,6 @@ public class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersistentE
         return tryToResolveAliasAsEntityClassName(alias);
     }
 
-    @Override
-    public void afterPropertiesSet() {
-        try {
-            super.afterPropertiesSet();
-        } catch(Exception e) {
-            e.printStackTrace();
-        }
-    }
-
     private Neo4jPersistentEntity<?> tryToResolveAliasAsEntityClassName(Object alias) {
         if (alias instanceof Class) {
             try {
@@ -147,7 +138,8 @@ public class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersistentE
     private void cacheType(Class<?> type) {
         try {
             final Neo4jPersistentEntityImpl<?> entity = getPersistentEntity(type);
-            if (entity.isNodeEntity()) annotationCheckCache.put(type, NodeEntity.class);
+            if (entity == null) annotationCheckCache.put(type, type);
+            else if (entity.isNodeEntity()) annotationCheckCache.put(type, NodeEntity.class);
             else if (entity.isRelationshipEntity()) annotationCheckCache.put(type, RelationshipEntity.class);
             else annotationCheckCache.put(type, type);
         } catch (InvalidEntityTypeException me) {
