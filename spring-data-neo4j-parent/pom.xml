@@ -124,10 +124,8 @@
     <org.mockito.version>1.8.4</org.mockito.version>
     <org.slf4j.version>1.6.1</org.slf4j.version>
     <org.springframework.version.30>3.0.7.RELEASE</org.springframework.version.30>
-    <org.springframework.version.40>4.0.0.RELEASE</org.springframework.version.40>
-    <!--<org.springframework.version>[${org.springframework.version.30}, ${org.springframework.version.40})-->
     <org.springframework.version>3.1.2.RELEASE</org.springframework.version>
-    <data.commons.version>1.4.0.BUILD-SNAPSHOT</data.commons.version>
+    <data.commons.version>1.4.0.RC1</data.commons.version>
     <neo4j.version>1.8.M07</neo4j.version>
     <neo4j.spatial.version>0.9.M02</neo4j.spatial.version>
     <aspectj.version>1.6.12</aspectj.version>
@@ -753,11 +751,8 @@
   </pluginRepositories>
   <repositories>
     <repository>
-      <id>spring-snapshots</id>
-      <url>http://repo.springsource.org/libs-snapshot</url>
-      <snapshots>
-        <enabled>true</enabled>
-      </snapshots>
+      <id>spring-libs-milestone</id>
+      <url>http://repo.springsource.org/libs-milestone</url>
     </repository>
     <repository>
       <id>tinkerpop-repository</id>
