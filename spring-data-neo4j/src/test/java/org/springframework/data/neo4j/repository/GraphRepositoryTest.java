@@ -20,7 +20,12 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.neo4j.cypher.ExecutionEngine;
+import org.neo4j.cypher.ExecutionResult;
+import org.neo4j.graphdb.DynamicRelationshipType;
+import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.Transaction;
 import org.neo4j.helpers.collection.IteratorUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,13 +47,15 @@ import org.springframework.test.context.transaction.TransactionalTestExecutionLi
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionCallback;
 import org.springframework.transaction.support.TransactionCallbackWithoutResult;
 import org.springframework.transaction.support.TransactionTemplate;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static java.util.Arrays.asList;
 import static org.hamcrest.CoreMatchers.is;
@@ -57,6 +64,7 @@ import static org.junit.internal.matchers.IsCollectionContaining.hasItem;
 import static org.junit.internal.matchers.IsCollectionContaining.hasItems;
 import static org.neo4j.helpers.collection.IteratorUtil.addToCollection;
 import static org.neo4j.helpers.collection.IteratorUtil.asCollection;
+import static org.neo4j.helpers.collection.MapUtil.map;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
@@ -385,4 +393,46 @@ public class GraphRepositoryTest {
         assertEquals( testTeam.david, nameAndPerson.getPerson() );
     }
 
+    @Autowired
+    Neo4jTemplate template;
+
+    @Autowired
+    UserRepository userRepository;
+
+    @Autowired
+    GraphDatabaseService gdb;
+
+    @Test
+    @Ignore
+    public void testFindMultiThreaded() throws Exception {
+        final Car car = new TransactionTemplate(transactionManager).execute(new TransactionCallback<Car>() {
+            @Override
+            public Car doInTransaction(TransactionStatus transactionStatus) {
+                Car car = template.save(new Car());
+                User user = template.save(new User("foo").setCar(car));
+                return car;
+            }
+        });
+        final ExecutorService pool = Executors.newFixedThreadPool(16);
+        final AtomicInteger counter=new AtomicInteger();
+        int count = 50;
+        for (int i=0;i< count;i++) {
+            pool.submit(new Runnable() {
+                public void run() {
+                    try {
+                    Car singleCar = template.query("start user=node:User(name={name}) match user-[:Loves]->car return car limit 1",map("name","foo")).to(Car.class).singleOrNull();
+                    //Car singleCar = userRepository.getSingleCar("foo");
+                    assertEquals(singleCar.id,car.id);
+                        counter.incrementAndGet();
+                    } catch(Exception e) {
+                        e.printStackTrace();
+                        fail(e.getMessage());
+                    }
+                }
+            });
+        }
+        pool.shutdown();
+        pool.awaitTermination(10, TimeUnit.HOURS);
+        assertEquals(count,counter.get());
+    }
 }
