@@ -58,6 +58,8 @@ public class DelegatingGraphDatabase implements GraphDatabase {
     protected GraphDatabaseService delegate;
     private ConversionService conversionService;
     private ResultConverter resultConverter;
+    private volatile QueryEngine<Object> cypherQueryEngine;
+    private volatile QueryEngine<Object> gremlinQueryEngine;
 
     public DelegatingGraphDatabase(final GraphDatabaseService delegate) {
         this.delegate = delegate;
@@ -183,19 +185,36 @@ public class DelegatingGraphDatabase implements GraphDatabase {
     public <T> QueryEngine<T> queryEngineFor(QueryType type,ResultConverter resultConverter) {
         switch (type) {
             case Cypher:  {
-                if (!ClassUtils.isPresent("org.neo4j.cypher.javacompat.ExecutionEngine", getClass().getClassLoader())) {
-                    return new FailingQueryEngine<T>("Cypher");
-                }
-                return (QueryEngine<T>)new CypherQueryEngine(delegate, resultConverter);
+                if (cypherQueryEngine==null)
+                    synchronized (this) {
+                        if (cypherQueryEngine==null) cypherQueryEngine = createCypherQueryEngine(resultConverter);
+                    }
+                return (QueryEngine<T>) cypherQueryEngine;
             }
             case Gremlin: {
-                if (!ClassUtils.isPresent("com.tinkerpop.blueprints.pgm.impls.neo4j.Neo4jGraph", getClass().getClassLoader())) {
-                    return new FailingQueryEngine<T>("Gremlin");
+                if (gremlinQueryEngine==null) {
+                    synchronized (this) {
+                        if (gremlinQueryEngine==null) gremlinQueryEngine=createGremlinQueryEngine(resultConverter);
+                    }
                 }
-                return (QueryEngine<T>) new GremlinQueryEngine(delegate,resultConverter);
+                return (QueryEngine<T>) gremlinQueryEngine;
             }
         }
         throw new IllegalArgumentException("Unknown Query Engine Type "+type);
+    }
+
+    private <T> QueryEngine<T> createGremlinQueryEngine(ResultConverter resultConverter) {
+        if (!ClassUtils.isPresent("com.tinkerpop.blueprints.pgm.impls.neo4j.Neo4jGraph", getClass().getClassLoader())) {
+            return new FailingQueryEngine<T>("Gremlin");
+        }
+        return (QueryEngine<T>) new GremlinQueryEngine(delegate,resultConverter);
+    }
+
+    private <T> QueryEngine<T> createCypherQueryEngine(ResultConverter resultConverter) {
+        if (!ClassUtils.isPresent("org.neo4j.cypher.javacompat.ExecutionEngine", getClass().getClassLoader())) {
+            return new FailingQueryEngine<T>("Cypher");
+        }
+        return (QueryEngine<T>)new CypherQueryEngine(delegate, resultConverter);
     }
 
     @Override
