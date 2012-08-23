@@ -210,15 +210,14 @@ class Neo4jPersistentPropertyImpl extends AbstractPersistentProperty<Neo4jPersis
     public boolean isSerializablePropertyField(final ConversionService conversionService) {
         if (isRelationship()) return false;
         final Class<?> type = getType();
-        final Class<String> targetType = String.class;
         if (getTypeInformation().isCollectionLike()) {
-            return isConvertibleBetween(conversionService, getComponentType(), targetType);
+            return isConvertible(conversionService, getComponentType());
         }
-        return isConvertibleBetween(conversionService, type, targetType);
+        return isConvertible(conversionService, type);
     }
 
-    private boolean isConvertibleBetween(ConversionService conversionService, Class<?> type, Class<String> targetType) {
-        return conversionService.canConvert(type, targetType) && conversionService.canConvert(targetType, type);
+    private boolean isConvertible(ConversionService conversionService, Class<?> type) {
+        return conversionService.canConvert(type, propertyType) && conversionService.canConvert(propertyType, type);
     }
 
     @Override
