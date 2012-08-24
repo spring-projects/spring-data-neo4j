@@ -31,15 +31,11 @@ import java.util.Collections;
 import java.util.Map;
 
 public class CypherQueryEngine implements QueryEngine<Map<String,Object>> {
-
     private final static Logger log = LoggerFactory.getLogger(CypherQueryEngine.class);
-    final ExecutionEngine executionEngine;
-    private ResultConverter resultConverter;
 
-    public CypherQueryEngine(GraphDatabaseService graphDatabaseService) {
-        this(graphDatabaseService, new DefaultConverter());
-    }
-
+    private final ExecutionEngine executionEngine;
+    private final ResultConverter resultConverter;
+    private final QueryParameterConverter queryParameterConverter = new QueryParameterConverter();
 
     public CypherQueryEngine(GraphDatabaseService graphDatabaseService, ResultConverter resultConverter) {
         this.resultConverter = resultConverter != null ? resultConverter : new DefaultConverter();
@@ -69,6 +65,6 @@ public class CypherQueryEngine implements QueryEngine<Map<String,Object>> {
     }
 
     private Map<String, Object> queryParams(Map<String, Object> params) {
-        return params == null ? Collections.<String, Object>emptyMap() : params;
+        return queryParameterConverter.convert(params);
     }
 }
