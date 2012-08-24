@@ -56,30 +56,32 @@ public abstract class Neo4jHelper {
     }
 
     public static void cleanDb(GraphDatabaseService graphDatabaseService) {
+        cleanDb(graphDatabaseService, false);
+    }
 
+    public static void cleanDb( GraphDatabaseService graphDatabaseService, boolean includeReferenceNode ) {
         Transaction tx = graphDatabaseService.beginTx();
         try {
-            removeNodes(graphDatabaseService);
+            removeNodes(graphDatabaseService, includeReferenceNode);
             clearIndex(graphDatabaseService);
             tx.success();
         } catch(Throwable t) {
-			tx.failure();
-			throw new org.springframework.data.neo4j.core.UncategorizedGraphStoreException("Error cleaning database ",t);
+            tx.failure();
+            throw new org.springframework.data.neo4j.core.UncategorizedGraphStoreException("Error cleaning database ",t);
         } finally {
             tx.finish();
         }
     }
 
-    private static void removeNodes(GraphDatabaseService graphDatabaseService) {
+    private static void removeNodes(GraphDatabaseService graphDatabaseService, boolean includeReferenceNode) {
         final GlobalGraphOperations globalGraphOperations = GlobalGraphOperations.at(graphDatabaseService);
-        Node refNode = graphDatabaseService.getReferenceNode();
         for (Node node : globalGraphOperations.getAllNodes()) {
             for (Relationship rel : node.getRelationships(Direction.OUTGOING)) {
                 rel.delete();
             }
         }
         for (Node node : globalGraphOperations.getAllNodes()) {
-            if (!refNode.equals(node)) {
+            if (includeReferenceNode || !graphDatabaseService.getReferenceNode().equals(node)) {
                 node.delete();
             }
         }
