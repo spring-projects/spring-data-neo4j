@@ -73,9 +73,8 @@ class CypherQueryCreator extends AbstractQueryCreator<CypherQueryDefinition, Cyp
      * @see org.springframework.data.repository.query.parser.AbstractQueryCreator#and(org.springframework.data.repository.query.parser.Part, java.lang.Object, java.util.Iterator)
      */
     @Override
-    protected CypherQueryBuilder and(Part part, CypherQueryBuilder base, Iterator<Object> iterator) {
-
-        return base.addRestriction(part);
+    protected CypherQueryBuilder and(Part part, CypherQueryBuilder builder, Iterator<Object> iterator) {
+        return builder.addRestriction(part);
     }
 
     /*
@@ -83,7 +82,7 @@ class CypherQueryCreator extends AbstractQueryCreator<CypherQueryDefinition, Cyp
      * @see org.springframework.data.repository.query.parser.AbstractQueryCreator#or(java.lang.Object, java.lang.Object)
      */
     @Override
-    protected CypherQueryBuilder or(CypherQueryBuilder base, CypherQueryBuilder criteria) {
+    protected CypherQueryBuilder or(CypherQueryBuilder base, CypherQueryBuilder builder) {
         throw new UnsupportedOperationException("Or is not supported currently!");
     }
 
@@ -92,7 +91,7 @@ class CypherQueryCreator extends AbstractQueryCreator<CypherQueryDefinition, Cyp
      * @see org.springframework.data.repository.query.parser.AbstractQueryCreator#complete(java.lang.Object, org.springframework.data.domain.Sort)
      */
     @Override
-    protected CypherQueryDefinition complete(CypherQueryBuilder criteria, Sort sort) {
-        return criteria;
+    protected CypherQueryDefinition complete(CypherQueryBuilder builder, Sort sort) {
+        return builder.buildQuery(sort);
     }
 }

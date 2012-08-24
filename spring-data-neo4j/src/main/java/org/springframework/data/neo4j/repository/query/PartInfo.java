@@ -27,16 +27,16 @@ import org.springframework.util.Assert;
  */
 public class PartInfo {
     private final PersistentPropertyPath<Neo4jPersistentProperty> path;
-    private final String variable;
+    private final String identifier;
     private final Part part;
     private final int index;
 
-    public PartInfo(PersistentPropertyPath<Neo4jPersistentProperty> path, String variable, Part part, int index) {
+    public PartInfo(PersistentPropertyPath<Neo4jPersistentProperty> path, String identifier, Part part, int index) {
         Assert.notNull(path);
-        Assert.hasText(variable);
+        Assert.hasText(identifier);
 
         this.path = path;
-        this.variable = variable;
+        this.identifier = identifier;
         this.part = part;
         this.index = index;
     }
@@ -62,8 +62,8 @@ public class PartInfo {
         return getLeafProperty().isIndexed();
     }
 
-    public String getVariable() {
-        return variable;
+    public String getIdentifier() {
+        return identifier;
     }
 
     public int getParameterIndex() {
@@ -95,7 +95,7 @@ public class PartInfo {
         return startPartInfo.getIndexName().equals(getIndexName());
     }
 
-    boolean sameVariable(PartInfo startPartInfo) {
-        return startPartInfo.getVariable().equals(getVariable());
+    boolean sameIdentifier(PartInfo startPartInfo) {
+        return startPartInfo.getIdentifier().equals(getIdentifier());
     }
 }

@@ -27,10 +27,7 @@ import org.springframework.data.repository.query.QueryMethod;
 import org.springframework.data.repository.query.RepositoryQuery;
 
 import java.lang.reflect.Method;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
 * @author mh
@@ -72,12 +69,24 @@ public class GraphQueryMethod extends QueryMethod {
     }
 
     protected Map<String, Object> resolveParams(ParameterAccessor accessor, ParameterResolver parameterResolver) {
-        Map<String, Object> params = new HashMap<String, Object>();
+        Map<Parameter, Object> parameters = parameterResolver.resolveParameters(getParameterValues(accessor));
+
+        return nameParameters(parameters);
+    }
+
+    private Map<Parameter, Object> getParameterValues(ParameterAccessor accessor) {
+        Map<Parameter,Object> parameters=new LinkedHashMap<Parameter, Object>();
         for (Parameter parameter : getParameters().getBindableParameters()) {
             final Object value = accessor.getBindableValue(parameter.getIndex());
-            final String parameterName = getParameterName(parameter);
+            parameters.put(parameter,value);
+        }
+        return parameters;
+    }
 
-            params.put(parameterName, parameterResolver.resolveParameter(value, parameterName, parameter.getIndex()));
+    private Map<String, Object> nameParameters(Map<Parameter, Object> parameters) {
+        Map<String, Object> params = new HashMap<String, Object>();
+        for (Map.Entry<Parameter, Object> entry : parameters.entrySet()) {
+            params.put(getParameterName(entry.getKey()), entry.getValue());
         }
         return params;
     }
@@ -87,7 +96,7 @@ public class GraphQueryMethod extends QueryMethod {
         if (parameterName != null) {
             return parameterName;
         }
-        return String.format(QueryTemplates.PARAMETER, parameter.getIndex());
+        return String.valueOf(parameter.getIndex());
     }
 
     Class<?> getCompoundType() {
