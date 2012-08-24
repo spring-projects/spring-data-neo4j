@@ -1,16 +1,16 @@
 Spring Data Graph Changelog
 ===========================
 
-Changes in version 2.1.RC3 (2012-08-12)
---------------------------------------
-* Updates to stable versions of Neo4j 1.8.M06, spatial, cypher-dsl and java-rest-binding, adopted to API changes
+Changes in version 2.1.RC3 (2012-08-24)
+---------------------------------------
+* Updates to stable versions of Neo4j 1.8.M07, spatial, cypher-dsl and java-rest-binding, adopted to API changes
 * DATAGRAPH-276 Fixed issue to make @RelatedToVia support Iterable and not just Set
 * DATAGRAPH-250 Introduced 'enforceTargetType' flag to help discriminate clashing relationship types based on end node type
 * DATAGRAPH-274 Fixed that @RelatedToVia on single entities fetched eagerly by default, also check of correct annotation for target entity
 * DATAGRAPH-266 - Added support for @EnableNeo4jRepositories on JavaConfig, Fixed reference to repositories namespace in XSD.
 * Documentation updates
 * DATAGRAPH-264 Handle Exceptions for nested internal transactions with an explicit tx.failure()
-
+* DATAGRAPH-286 Conversions to arbitrary target property types
 
 Changes in version 2.1.RC2 (2012-06-25)
 --------------------------------------
