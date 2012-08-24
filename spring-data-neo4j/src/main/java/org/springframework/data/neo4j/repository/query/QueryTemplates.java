@@ -38,8 +38,8 @@ public abstract class QueryTemplates {
 
     static final String DEFAULT_START_CLAUSE = "`%s`=node:__types__(className=\"%s\")";
     static final String SKIP_LIMIT = " skip %d limit %d";
-    static final String START_CLAUSE = "`%s`=node:`%s`(`%s`=" + PLACEHOLDER + ")";
-    static final String START_CLAUSE_FULLTEXT = "`%s`=node:`%s`(" + PLACEHOLDER + ")";
+    static final String START_CLAUSE_INDEX_LOOKUP = "`%s`=node:`%s`(`%s`=" + PLACEHOLDER + ")";
+    static final String START_CLAUSE_INDEX_QUERY = "`%s`=node:`%s`(" + PLACEHOLDER + ")";
     static final String WHERE_CLAUSE_1 = "`%1$s`.`%2$s`! %3$s {%4$d}";
     static final String WHERE_CLAUSE_0 = "`%1$s`.`%2$s`! %3$s ";
     static final String SORT_CLAUSE = "%s %s";

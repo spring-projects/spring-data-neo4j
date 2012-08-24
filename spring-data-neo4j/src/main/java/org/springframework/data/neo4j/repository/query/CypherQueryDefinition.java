@@ -17,6 +17,9 @@ package org.springframework.data.neo4j.repository.query;
 
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.repository.query.Parameter;
+
+import java.util.Map;
 
 /**
  * Interface to abstract Cypher query creation.
@@ -24,7 +27,7 @@ import org.springframework.data.domain.Sort;
  *
  * @author Oliver Gierke
  */
-interface CypherQueryDefinition {
+interface CypherQueryDefinition extends ParameterResolver {
 
     /**
      * Returns a Cypher query without adding any sort or pagination.
@@ -49,6 +52,4 @@ interface CypherQueryDefinition {
      * @return
      */
     String toString(Pageable pageable);
-
-    PartInfo getPartInfo(int index);
 }

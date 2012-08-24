@@ -23,10 +23,13 @@ import org.springframework.data.mapping.context.MappingContext;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
 import org.springframework.data.neo4j.support.mapping.Neo4jMappingContext;
 import org.springframework.data.repository.core.EntityMetadata;
+import org.springframework.data.repository.query.Parameter;
 import org.springframework.data.repository.query.ParameterAccessor;
 import org.springframework.data.repository.query.RepositoryQuery;
 import org.springframework.data.repository.query.parser.PartTree;
 import org.springframework.util.Assert;
+
+import java.util.Map;
 
 /**
  * {@link RepositoryQuery} implementation that derives a Cypher query from the {@link GraphQueryMethod}'s method name.
@@ -58,13 +61,9 @@ public class DerivedCypherRepositoryQuery extends CypherGraphRepositoryQuery {
     }
 
     @Override
-    public Object resolveParameter(Object value, String parameterName, int index) {
-        final Object newValue = super.resolveParameter(value, parameterName, index);
-        PartInfo info = query.getPartInfo(index);
-        if (info.isFullText()) {
-            return String.format(QueryTemplates.PARAMETER_INDEX_QUERY,info.getIndexKey(),newValue);
-        }
-        return newValue;
+    public Map<Parameter, Object> resolveParameters(Map<Parameter, Object> parameters) {
+        query.resolveParameters(parameters);
+        super.resolveParameters(parameters);
     }
 
     /**

@@ -73,7 +73,7 @@ class WhereClause {
     public String toString() {
         final String propertyName = partInfo.getNeo4jPropertyName();
         final String operator = SYMBOLS.get(partInfo.getType());
-        final String variable = partInfo.getVariable();
+        final String variable = partInfo.getIdentifier();
 
         if (partInfo.getType().getNumberOfArguments()==0) {
             return String.format(WHERE_CLAUSE_0, variable, propertyName, operator);
