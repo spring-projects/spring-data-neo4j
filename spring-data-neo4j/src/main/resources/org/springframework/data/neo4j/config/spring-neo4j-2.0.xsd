@@ -12,7 +12,7 @@
     <xsd:import namespace="http://www.springframework.org/schema/tool"/>
     <xsd:import namespace="http://www.springframework.org/schema/beans"/>
     <xsd:import namespace="http://www.springframework.org/schema/data/repository"
-                schemaLocation="http://www.springframework.org/schema/data/repository/spring-repository.xsd"/>
+                schemaLocation="http://www.springframework.org/schema/data/repository/spring-repository-1.0.xsd"/>
 
    <xsd:element name="config">
       <xsd:complexType>
