@@ -135,6 +135,11 @@ public class SourceStateTransmitter<S extends PropertyContainer> {
                 }
             });
             tx.success();
+        } catch(Throwable t) {
+            tx.failure();
+            if (t instanceof Error) throw (Error)t;
+            if (t instanceof RuntimeException) throw (RuntimeException)t;
+            throw new org.springframework.data.neo4j.core.UncategorizedGraphStoreException("Error copying properties from "+persistentEntity+" to "+target,t);
         } finally {
             tx.finish();
         }
