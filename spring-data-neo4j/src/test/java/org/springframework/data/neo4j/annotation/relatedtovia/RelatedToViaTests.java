@@ -32,8 +32,8 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 import static org.junit.matchers.JUnitMatchers.hasItem;
 import static org.neo4j.helpers.collection.IteratorUtil.first;
+import static org.springframework.data.neo4j.SetHelper.asSet;
 import static org.springframework.data.neo4j.annotation.RelationshipDelegates.getRelationshipNames;
-import static org.springframework.data.neo4j.annotation.SetHelper.asSet;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = {"classpath:related-to-via-test-context.xml"})

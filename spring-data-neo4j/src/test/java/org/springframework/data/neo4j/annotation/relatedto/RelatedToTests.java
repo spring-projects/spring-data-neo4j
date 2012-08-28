@@ -20,7 +20,6 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.convert.ConverterNotFoundException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
-import org.springframework.data.mapping.context.MappingContext;
 import org.springframework.data.mapping.model.MappingException;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
 import org.springframework.data.neo4j.support.mapping.Neo4jMappingContext;
@@ -37,15 +36,13 @@ import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;
 import static org.hamcrest.core.IsInstanceOf.instanceOf;
 import static org.hamcrest.core.IsNot.not;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.*;
 import static org.junit.matchers.JUnitMatchers.either;
 import static org.junit.matchers.JUnitMatchers.hasItem;
 import static org.neo4j.helpers.collection.IteratorUtil.single;
+import static org.springframework.data.neo4j.SetHelper.asSet;
 import static org.springframework.data.neo4j.annotation.RelationshipDelegates.getNumberOfRelationships;
 import static org.springframework.data.neo4j.annotation.RelationshipDelegates.getRelationshipNames;
-import static org.springframework.data.neo4j.annotation.SetHelper.asSet;
 import static org.springframework.data.neo4j.annotation.relatedto.Mondrian.*;
 
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -232,6 +229,7 @@ public class RelatedToTests {
 
     @Autowired
     Neo4jMappingContext context;
+
     /**
      * stacked entity cache means we do not load the node back polymorphically - should we?
      */
@@ -251,8 +249,8 @@ public class RelatedToTests {
 
             fail();
         } catch (MappingException me) {
-            assertTrue("converter not found",me.getCause() instanceof ConverterNotFoundException);
-            ConverterNotFoundException e= (ConverterNotFoundException) me.getCause();
+            assertTrue("converter not found", me.getCause() instanceof ConverterNotFoundException);
+            ConverterNotFoundException e = (ConverterNotFoundException) me.getCause();
             assertThat(asSet(DripBrew.class.getName(), EspressoBasedCoffee.class.getName()), hasItem(e.getSourceType().getName()));
             assertThat(asSet(DripBrew.class.getName(), EspressoBasedCoffee.class.getName()), hasItem(e.getTargetType().getName()));
             assertThat(e.getSourceType().getName(), is(not(equalTo(e.getTargetType().getName()))));
