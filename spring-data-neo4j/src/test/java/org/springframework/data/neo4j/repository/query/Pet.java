@@ -15,31 +15,10 @@
  */
 package org.springframework.data.neo4j.repository.query;
 
-import org.neo4j.graphdb.Direction;
 import org.springframework.data.neo4j.annotation.GraphId;
-import org.springframework.data.neo4j.annotation.Indexed;
 import org.springframework.data.neo4j.annotation.NodeEntity;
-import org.springframework.data.neo4j.annotation.RelatedTo;
-import org.springframework.data.neo4j.support.index.IndexType;
 
 @NodeEntity
-class Person {
-
+public class Pet {
     @GraphId Long id;
-
-    @Indexed
-    String name;
-
-    @Indexed(indexType = IndexType.FULLTEXT,indexName = "title")
-    String title;
-
-    String info;
-
-    int age;
-
-    @RelatedTo(type = "members", direction = Direction.INCOMING)
-    Group group;
-
-    @RelatedTo(type = "owns")
-    Pet pet;
 }

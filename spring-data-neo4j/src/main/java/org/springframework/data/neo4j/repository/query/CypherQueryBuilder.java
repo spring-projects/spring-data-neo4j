@@ -19,11 +19,13 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mapping.context.MappingContext;
 import org.springframework.data.mapping.context.PersistentPropertyPath;
+import org.springframework.data.neo4j.annotation.NodeEntity;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentEntity;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 import org.springframework.data.repository.query.parser.Part;
 import org.springframework.util.Assert;
 
+import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -77,6 +79,16 @@ class CypherQueryBuilder implements CypherQueryDefinition {
         String variable = variableContext.getVariableFor(path);
 
         final PartInfo partInfo = new PartInfo(path, variable, part, index);
+
+        if (isNodeEntity(part) && ! partInfo.isPrimitiveProperty()) {
+            startClauses.add(new IndexRestrictingStartClause(new PartInfo(path, variableContext.getVariableFor(entity), part, -1), entity.getEntityType().getAlias().toString()));
+            startClauses.add(new NodeEntityMatchingStartClause(new PartInfo(path, variable, part, index)));
+            matchClauses.add(new MatchClause(path));
+
+            index ++;
+            return this;
+        }
+
         // index("a:foo AND b:bar")
         // a=index1(a="foo"), b=index2(b="bar") where a=b - not good b/c of cross product
         // index1(a=foo) where a.foo=bar
@@ -94,6 +106,16 @@ class CypherQueryBuilder implements CypherQueryDefinition {
         }
 
         return this;
+    }
+
+    private boolean isNodeEntity(Part part) {
+        Annotation[] annotations = part.getProperty().getType().getAnnotations();
+
+        for (Annotation annotation : annotations) {
+            if (annotation instanceof NodeEntity) return true;
+        }
+
+        return false;
     }
 
     private boolean addedStartClause(PartInfo partInfo) {
