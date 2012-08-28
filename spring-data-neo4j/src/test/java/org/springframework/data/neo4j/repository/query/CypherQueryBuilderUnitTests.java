@@ -35,7 +35,7 @@ public class CypherQueryBuilderUnitTests {
 
     CypherQueryBuilder query;
     private final String CLASS_NAME = Person.class.getSimpleName();
-    private String DEFAULT_START_CLAUSE = "start `person`=node:__types__(className=\"" + CLASS_NAME + "\")";
+    private final String DEFAULT_START_CLAUSE = "start `person`=node:__types__(className=\"" + CLASS_NAME + "\")";
 
     @Before
     public void setUp() {
@@ -118,15 +118,8 @@ public class CypherQueryBuilderUnitTests {
 
         query.addRestriction(new Part("age", Person.class));
 
-        final String className = Person.class.getName();
         assertThat(query.toString(), is(DEFAULT_START_CLAUSE +" where `person`.`age`! = {0} return `person`"));
     }
-    @Test
-    public void createsSimpleTraversalClauseCorrectly() {
-        query.addRestriction(new Part("group", Person.class));
-        assertThat(query.toString(), is(DEFAULT_START_CLAUSE + " match `person`<-[:`members`]-`person_group` return `person`"));
-    }
-
 
     @Test
     public void buildsComplexQueryCorrectly() {
@@ -161,5 +154,19 @@ public class CypherQueryBuilderUnitTests {
         query.addRestriction(new Part("name",Person.class));
         Pageable pageable = new PageRequest(3,10,new Sort("person.name"));
         assertThat(query.toString(pageable), is("start `person`=node:`Person`(`name`={0}) return `person` order by person.name ASC skip 30 limit 10"));
+    }
+
+    @Test
+    public void shouldFindByNodeEntity() throws Exception {
+        query.addRestriction(new Part("pet", Person.class));
+
+        assertThat(query.toString(), is("start `person`=node:__types__(className=\"Person\"), `person_pet`=node({0}) match `person`-[:`owns`]->`person_pet` return `person`"));
+    }
+
+    @Test
+    public void shouldFindByNodeEntityForIncomingRelationship() {
+        query.addRestriction(new Part("group", Person.class));
+
+        assertThat(query.toString(), is("start `person`=node:__types__(className=\"Person\"), `person_group`=node({0}) match `person`<-[:`members`]-`person_group` return `person`"));
     }
 }

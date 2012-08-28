@@ -13,15 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.neo4j.annotation;
+package org.springframework.data.neo4j.repository.query;
 
-import java.util.HashSet;
-import java.util.Set;
+public class IndexRestrictingStartClause extends StartClause {
+    private final String className;
 
-import static java.util.Arrays.asList;
+    public IndexRestrictingStartClause(PartInfo partInfo, String className) {
+        super(partInfo);
 
-public class SetHelper {
-    public static <T> Set<T> asSet(T... ts) {
-        return new HashSet<T>(asList(ts));
+        this.className = className;
+    }
+
+    @Override
+    public String toString() {
+        return String.format("`%s`=node:__types__(className=\"%s\")", partInfo.getVariable(), className);
     }
 }

@@ -24,7 +24,7 @@ import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
  */
 class StartClause {
 
-    private final PartInfo partInfo;
+    protected final PartInfo partInfo;
 
     /**
      * Creates a new {@link StartClause} from the given {@link Neo4jPersistentProperty}, variable and the given
@@ -56,6 +56,6 @@ class StartClause {
     }
 
     public void merge(PartInfo partInfo) {
-
+        throw new UnsupportedOperationException("Merge is not supported");
     }
 }
