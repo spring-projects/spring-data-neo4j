@@ -16,7 +16,6 @@
 package org.springframework.data.neo4j.repository.query.cypher;
 
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.neo4j.graphdb.GraphDatabaseService;
@@ -45,58 +44,59 @@ class SimpleTypeEntity {
     @GraphId
     Long id;
 
-    boolean bo;
-    byte by;
-    short sh;
-    int i;
-    long l;
-    float f;
-    double d;
-    char c;
-    String st = UUID.randomUUID().toString();
+    boolean aBoolean;
+    byte aByte;
+    short aShort;
+    int anInt;
+    long aLong;
+    float aFloat;
+    double aDouble;
+    char aChar;
+    String aString = UUID.randomUUID().toString();
 
     SimpleTypeEntity() {
     }
 
-    SimpleTypeEntity(boolean bo, byte by, short sh, int i, long l, float f, double d, char c, String st) {
-        this.bo = bo;
-        this.by = by;
-        this.sh = sh;
-        this.i = i;
-        this.l = l;
-        this.f = f;
-        this.d = d;
-        this.c = c;
-        this.st = st;
+    SimpleTypeEntity(boolean aBoolean, byte aByte, short aShort, int anInt, long aLong, float aFloat,
+                     double aDouble, char aChar, String aString) {
+        this.aBoolean = aBoolean;
+        this.aByte = aByte;
+        this.aShort = aShort;
+        this.anInt = anInt;
+        this.aLong = aLong;
+        this.aFloat = aFloat;
+        this.aDouble = aDouble;
+        this.aChar = aChar;
+        this.aString = aString;
     }
 }
 
 interface SimpleTypeEntityRepository extends CRUDRepository<SimpleTypeEntity> {
-    @Query("start n=node(*) where n.bo in {0} return n")
+    @Query("start n=node(*) where n.aBoolean in {0} return n")
     SimpleTypeEntity findUsingBoolean(boolean... value);
 
-    @Query("start n=node(*) where n.by in {0} return n")
+    @Query("start n=node(*) where n.aByte in {0} return n")
     SimpleTypeEntity findUsingByte(byte... value);
 
-    @Query("start n=node(*) where n.sh in {0} return n")
+    @Query("start n=node(*) where n.aShort in {0} return n")
     SimpleTypeEntity findUsingShort(short... value);
 
-    @Query("start n=node(*) where n.i in {0} return n")
+    @Query("start n=node(*) where n.anInt in {0} return n")
     SimpleTypeEntity findUsingInt(int... value);
 
-    @Query("start n=node(*) where n.l in {0} return n")
+    @Query("start n=node(*) where n.aLong in {0} return n")
     SimpleTypeEntity findUsingLong(long... value);
 
-    @Query("start n=node(*) where n.f in {0} return n")
+    @Query("start n=node(*) where n.aFloat in {0} return n")
     SimpleTypeEntity findUsingFloat(float... value);
 
-    @Query("start n=node(*) where n.d in {0} return n")
+    @Query("start n=node(*) where n.aDouble in {0} return n")
     SimpleTypeEntity findUsingDouble(double... value);
 
-    @Query("start n=node(*) where n.c in {0} return n")
+    @Query("start n=node(*) where n.aChar in {0} return n")
     SimpleTypeEntity findUsingChar(char... value);
 
-    @Query("start n=node(*) where n.st in {0} return n")
+    @Query("start n=node(*) where n.aString in {0} return n")
     SimpleTypeEntity findUsingString(String... value);
 }
 
@@ -112,16 +112,15 @@ public class InParameterisedBySimpleTypeTests {
         }
     }
 
-    public static final byte BY = 0x42;
-    public static final boolean BO = true;
-    public static final short S = 23;
-    public static final int I = 63;
-    public static final long L = 87l;
-    public static final float F = 3.14f;
-    public static final double D = 2.97;
-    public static final char C = '!';
-
-    public static final String ST = "dub";
+    public static final byte BYTE = 0x42;
+    public static final boolean BOOLEAN = true;
+    public static final short SHORT = 23;
+    public static final int INT = 63;
+    public static final long LONG = 87l;
+    public static final float FLOAT = 3.14f;
+    public static final double DOUBLE = 2.97;
+    public static final char CHAR = '!';
+    public static final String STRING = "dub";
 
     @Autowired
     GraphDatabaseService graphDatabaseService;
@@ -137,7 +136,8 @@ public class InParameterisedBySimpleTypeTests {
 
         try {
             simpleTypeEntityRepository.save(new SimpleTypeEntity());
-            simpleTypeEntityRepository.save(new SimpleTypeEntity(BO, BY, S, I, L, F, D, C, ST));
+            simpleTypeEntityRepository.save(new SimpleTypeEntity(BOOLEAN, BYTE, SHORT, INT, LONG, FLOAT, DOUBLE,
+                    CHAR, STRING));
 
             transaction.success();
         } finally {
@@ -147,19 +147,14 @@ public class InParameterisedBySimpleTypeTests {
 
     @Test
     public void shouldSupportSimpleTypesAsParametersForIn() throws Exception {
-        assertThat(simpleTypeEntityRepository.findUsingBoolean(BO).bo, is(BO));
-        assertThat(simpleTypeEntityRepository.findUsingShort(S).sh, is(S));
-        assertThat(simpleTypeEntityRepository.findUsingInt(I).i, is(I));
-        assertThat(simpleTypeEntityRepository.findUsingLong(L).l, is(L));
-        assertThat(simpleTypeEntityRepository.findUsingFloat(F).f, is(F));
-        assertThat(simpleTypeEntityRepository.findUsingDouble(D).d, is(D));
-        assertThat(simpleTypeEntityRepository.findUsingChar(C).c, is(C));
-        assertThat(simpleTypeEntityRepository.findUsingString(ST).st, is(ST));
-    }
-
-    @Test
-    @Ignore("see https://github.com/neo4j/community/issues/788")
-    public void shouldSupportByteAsParameterForIn() throws Exception {
-        assertThat(simpleTypeEntityRepository.findUsingByte(BY).by, is(BY));
+        assertThat(simpleTypeEntityRepository.findUsingBoolean(BOOLEAN).aBoolean, is(BOOLEAN));
+        assertThat(simpleTypeEntityRepository.findUsingByte(BYTE).aByte, is(BYTE));
+        assertThat(simpleTypeEntityRepository.findUsingShort(SHORT).aShort, is(SHORT));
+        assertThat(simpleTypeEntityRepository.findUsingInt(INT).anInt, is(INT));
+        assertThat(simpleTypeEntityRepository.findUsingLong(LONG).aLong, is(LONG));
+        assertThat(simpleTypeEntityRepository.findUsingFloat(FLOAT).aFloat, is(FLOAT));
+        assertThat(simpleTypeEntityRepository.findUsingDouble(DOUBLE).aDouble, is(DOUBLE));
+        assertThat(simpleTypeEntityRepository.findUsingChar(CHAR).aChar, is(CHAR));
+        assertThat(simpleTypeEntityRepository.findUsingString(STRING).aString, is(STRING));
     }
 }

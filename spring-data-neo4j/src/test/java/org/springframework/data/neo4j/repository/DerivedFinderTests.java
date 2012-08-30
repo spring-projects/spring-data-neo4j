@@ -193,11 +193,6 @@ public class DerivedFinderTests {
     public void shouldFindUsingMultipleProperties() throws Exception {
         Set<Recipe> recipes = recipeRepository.findByAuthorAndTitle("Hugh", "pear frangipane");
 
-        for (Recipe recipe : recipes) {
-            System.out.println(recipe.title);
-        }
-
-
         assertThat(single(recipes).ingredient.name, is(equalTo("pear")));
     }
 
