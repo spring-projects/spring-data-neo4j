@@ -107,4 +107,35 @@
 	        via the graph database.  
 	    </para>
     </section>
+    <section>
+        <title>Lifecycle Events</title>
+        <para>Neo4j Template offers basic lifecycle events via Spring's event mechanism using ApplicationListener and ApplicationEvent. The following hooks are available in the form of types of application event:</para>
+        <itemizedlist>
+            <listitem><para>BeforeSaveEvent</para></listitem>
+            <listitem><para>AfterSaveEvent</para></listitem>
+            <listitem><para>DeleteEvent - after the event has been deleted</para></listitem>
+        </itemizedlist>
+        <para>The following example demostrates how to register a listener and perform behaviour across types of entities</para>
+        <example>
+            <title>Timestamping Entities</title>
+            <programlisting language="java">
+                <![CDATA[@Configuration
+    @EnableNeo4jRepositories
+    public class ApplicationConfig extends Neo4jConfiguration {
+        ...
+        @Bean
+        ApplicationListener<BeforeSaveEvent> beforeSaveEventApplicationListener() {
+            return new ApplicationListener<BeforeSaveEvent>() {
+                @Override
+                public void onApplicationEvent(BeforeSaveEvent event) {
+                    Auditable entity = (Auditable) event.getEntity();
+                    entity.setLastUpdated(new Date());
+                }
+            };
+        }
+        ...]]>
+            </programlisting>
+        </example>
+        <para>Changes made to entities in the before-save event handler are reflected in the stored entity - after-save ones are not.</para>
+    </section>
 </section>
