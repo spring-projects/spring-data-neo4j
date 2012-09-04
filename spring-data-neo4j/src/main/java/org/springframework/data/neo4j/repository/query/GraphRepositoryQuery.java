@@ -37,7 +37,7 @@ import java.util.*;
 */
 abstract class GraphRepositoryQuery implements RepositoryQuery, ParameterResolver {
     private final GraphQueryMethod queryMethod;
-    private final Neo4jTemplate template;
+    protected final Neo4jTemplate template;
 
     public GraphRepositoryQuery(GraphQueryMethod queryMethod, final Neo4jTemplate template) {
         Assert.notNull(queryMethod);

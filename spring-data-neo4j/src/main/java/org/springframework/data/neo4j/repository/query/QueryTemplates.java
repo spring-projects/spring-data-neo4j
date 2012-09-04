@@ -26,7 +26,14 @@ import org.springframework.data.neo4j.mapping.RelationshipInfo;
 public abstract class QueryTemplates {
 
     public static final String PARAMETER = "%d";
+
     public static final String PARAMETER_INDEX_QUERY = "%s:%s";
+    public static final String PARAMETER_INDEX_QUERY_STARTS_WITH = "%s:%s*";
+    public static final String PARAMETER_INDEX_QUERY_CONTAINS = "%s:*%s*";
+    public static final String PARAMETER_INDEX_QUERY_ENDSWITH = "%s:*%s";
+    public static final String PARAMETER_INDEX_QUERY_QUOTED = "%s:\"%s\"";
+
+
     public static final String VARIABLE = "`%s`";
 
     public static final String PLACEHOLDER = String.format("{%s}", PARAMETER);
@@ -37,13 +44,15 @@ public abstract class QueryTemplates {
     static final String MATCH_CLAUSE2 = "%s%s`%s`";
 
     static final String DEFAULT_START_CLAUSE = "`%s`=node:__types__(className=\"%s\")";
-    static final String SKIP_LIMIT = " skip %d limit %d";
+    static final String SKIP_LIMIT = " SKIP %d LIMIT %d";
     static final String START_CLAUSE_INDEX_LOOKUP = "`%s`=node:`%s`(`%s`=" + PLACEHOLDER + ")";
     static final String START_CLAUSE_INDEX_QUERY = "`%s`=node:`%s`(" + PLACEHOLDER + ")";
     static final String WHERE_CLAUSE_1 = "`%1$s`.`%2$s`! %3$s {%4$d}";
     static final String WHERE_CLAUSE_0 = "`%1$s`.`%2$s`! %3$s ";
     static final String SORT_CLAUSE = "%s %s";
-    static final String ORDER_BY_CLAUSE = " order by %s";
+    static final String ORDER_BY_CLAUSE = " ORDER BY %s";
+    public static final String REGEX_WILDCARD = ".*";
+    public static final String LUCENE_WILDCARD = "*";
 
 
     static String getArrow(RelationshipInfo info) {
@@ -66,5 +75,51 @@ public abstract class QueryTemplates {
 
     private QueryTemplates() {
 
+    }
+
+    public static String formatIndexQuery(PartInfo partInfo, Object value) {
+        value = formatIndexValue(partInfo,value);
+        return String.format(QueryTemplates.PARAMETER_INDEX_QUERY, partInfo.getIndexKey(), value);
+    }
+
+    private static Object formatIndexValue(PartInfo partInfo, Object value) {
+        if (value==null) return null;
+        switch (partInfo.getType()) {
+            case CONTAINING: checkWhiteSpace(partInfo,value); return append(prepend(value, LUCENE_WILDCARD), LUCENE_WILDCARD);
+            case STARTING_WITH: checkWhiteSpace(partInfo,value); return append(value, LUCENE_WILDCARD);
+            case ENDING_WITH: checkWhiteSpace(partInfo,value); return prepend(value, LUCENE_WILDCARD);
+            default : if (containsWhiteSpace(value)) return "\""+value+"\"";
+        }
+        return value;
+    }
+
+    private static boolean containsWhiteSpace(Object value) {
+        return value instanceof String && value.toString().contains(" ");
+    }
+
+    private static String prepend(Object value, String prefix) {
+        String stringValue = value.toString();
+        if (stringValue.startsWith(prefix)) return stringValue;
+        return prefix+stringValue;
+    }
+
+    private static void checkWhiteSpace(PartInfo partInfo,Object value) {
+        if (containsWhiteSpace(value)) throw new RepositoryQueryException("Value for "+partInfo.getLeafProperty()+" contains whitespace. It cannot be used with wildcards "+value);
+    }
+
+    private static String append(Object value, String suffix) {
+        String stringValue = value.toString();
+        if (stringValue.endsWith(suffix)) return stringValue;
+        return stringValue+ suffix;
+    }
+
+    public static Object formatExpression(PartInfo partInfo, Object value) {
+        if (value==null) return null;
+        switch (partInfo.getType()) {
+            case CONTAINING: return append(prepend(value, REGEX_WILDCARD), REGEX_WILDCARD);
+            case STARTING_WITH: return append(prepend(value, "^"),REGEX_WILDCARD);
+            case ENDING_WITH: return append(prepend(value,REGEX_WILDCARD), "$");
+        }
+        return value;
     }
 }

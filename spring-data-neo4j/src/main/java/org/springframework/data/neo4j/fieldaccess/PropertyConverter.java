@@ -94,4 +94,8 @@ public class PropertyConverter {
             return (Iterable<?>) newVal;
         }
     }
+
+    boolean isObjectOrSupportedType(final Object value, Neo4jPersistentProperty property) {
+        return property.getType().equals(Object.class) && property.isNeo4jPropertyValue(value);
+    }
 }

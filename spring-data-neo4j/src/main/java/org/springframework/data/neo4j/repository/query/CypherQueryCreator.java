@@ -21,6 +21,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.mapping.context.MappingContext;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentEntity;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
+import org.springframework.data.neo4j.support.Neo4jTemplate;
 import org.springframework.data.repository.query.parser.AbstractQueryCreator;
 import org.springframework.data.repository.query.parser.Part;
 import org.springframework.data.repository.query.parser.PartTree;
@@ -35,22 +36,26 @@ class CypherQueryCreator extends AbstractQueryCreator<CypherQueryDefinition, Cyp
 
     private final MappingContext<? extends Neo4jPersistentEntity<?>, Neo4jPersistentProperty> context;
     private final Class<?> domainClass;
+    private final Neo4jTemplate template;
 
     /**
      * Creates a new {@link CypherQueryCreator} using the given {@link PartTree}, {@link org.springframework.data.neo4j.support.mapping.Neo4jMappingContext} and domain
      * class.
-     * 
+     *
      * @param tree must not be {@literal null}.
      * @param context must not be {@literal null}.
      * @param domainClass must not be {@literal null}.
+     * @param template
      */
-    public CypherQueryCreator(PartTree tree, MappingContext<? extends Neo4jPersistentEntity<?>, Neo4jPersistentProperty> context, Class<?> domainClass) {
+    public CypherQueryCreator(PartTree tree, MappingContext<? extends Neo4jPersistentEntity<?>, Neo4jPersistentProperty> context, Class<?> domainClass, Neo4jTemplate template) {
 
         super(tree);
 
         Assert.notNull(context);
         Assert.notNull(domainClass);
+        Assert.notNull(template);
 
+        this.template = template;
         this.context = context;
         this.domainClass = domainClass;
     }
@@ -62,7 +67,7 @@ class CypherQueryCreator extends AbstractQueryCreator<CypherQueryDefinition, Cyp
     @Override
     protected CypherQueryBuilder create(Part part, Iterator<Object> iterator) {
 
-        CypherQueryBuilder builder = new CypherQueryBuilder(context, domainClass);
+        CypherQueryBuilder builder = new CypherQueryBuilder(context, domainClass,template);
         builder.addRestriction(part);
 
         return builder;
