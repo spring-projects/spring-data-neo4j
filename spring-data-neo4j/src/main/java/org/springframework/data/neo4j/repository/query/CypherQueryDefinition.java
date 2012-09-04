@@ -34,7 +34,7 @@ interface CypherQueryDefinition extends ParameterResolver {
      * 
      * @return
      */
-    String toString();
+    String toQueryString();
 
     /**
      * Returns a Cypher query adding the given {@link Sort}.
@@ -42,7 +42,7 @@ interface CypherQueryDefinition extends ParameterResolver {
      * @param sort
      * @return
      */
-    String toString(Sort sort);
+    String toQueryString(Sort sort);
 
     /**
      * Returns a Cypher query restricting the result to the given {@link Pageable} and applying the {@link Sort}
@@ -51,5 +51,5 @@ interface CypherQueryDefinition extends ParameterResolver {
      * @param pageable
      * @return
      */
-    String toString(Pageable pageable);
+    String toQueryString(Pageable pageable);
 }

@@ -56,14 +56,13 @@ public class DerivedCypherRepositoryQuery extends CypherGraphRepositoryQuery {
         EntityMetadata<?> info = queryMethod.getEntityInformation();
         PartTree tree = new PartTree(queryMethod.getName(), info.getJavaType());
 
-        this.query = new CypherQueryCreator(tree, mappingContext, info.getJavaType()).createQuery();
+        this.query = new CypherQueryCreator(tree, mappingContext, info.getJavaType(),template).createQuery();
         if (log.isDebugEnabled()) log.debug("Derived query: "+query+ "from method "+queryMethod);
     }
 
     @Override
     public Map<Parameter, Object> resolveParameters(Map<Parameter, Object> parameters) {
-        query.resolveParameters(parameters);
-        super.resolveParameters(parameters);
+        return super.resolveParameters(query.resolveParameters(parameters));
     }
 
     /**
@@ -74,11 +73,11 @@ public class DerivedCypherRepositoryQuery extends CypherGraphRepositoryQuery {
      */
     protected String createQueryWithPagingAndSorting(ParameterAccessor accessor) {
         if (accessor.getPageable() != null) {
-            return query.toString(accessor.getPageable());
+            return query.toQueryString(accessor.getPageable());
         } else if (accessor.getSort() != null) {
-            return query.toString(accessor.getSort());
+            return query.toQueryString(accessor.getSort());
         } else {
-            return query.toString();
+            return query.toQueryString();
         }
     }
 }
