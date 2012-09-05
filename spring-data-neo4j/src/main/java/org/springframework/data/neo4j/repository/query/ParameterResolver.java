@@ -15,10 +15,14 @@
  */
 package org.springframework.data.neo4j.repository.query;
 
+import org.springframework.data.repository.query.Parameter;
+
+import java.util.Map;
+
 /**
 * @author mh
 * @since 31.10.11
 */
 public interface ParameterResolver {
-    Object resolveParameter(Object value, String parameterName, int index);
+    Map<Parameter, Object> resolveParameters(Map<Parameter, Object> parameters);
 }

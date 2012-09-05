@@ -15,16 +15,8 @@
  */
 package org.springframework.data.neo4j.repository.query;
 
-public class IndexRestrictingStartClause extends StartClause {
-    private final String className;
-
-    public IndexRestrictingStartClause(PartInfo partInfo, String className) {
-        super(partInfo);
-        this.className = className;
-    }
-
-    @Override
-    public String toString() {
-        return String.format(QueryTemplates.DEFAULT_START_CLAUSE, getPartInfo().getIdentifier(), className);
+public class RepositoryQueryException extends RuntimeException {
+    public RepositoryQueryException(String msg) {
+        super(msg);
     }
 }

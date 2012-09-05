@@ -17,9 +17,12 @@ package org.springframework.data.neo4j.repository.query;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.neo4j.support.Neo4jTemplate;
 import org.springframework.data.neo4j.support.mapping.Neo4jMappingContext;
 import org.springframework.data.repository.query.parser.Part;
 
@@ -34,13 +37,14 @@ import static org.junit.Assert.assertThat;
 public class CypherQueryBuilderUnitTests {
 
     CypherQueryBuilder query;
-    private final String CLASS_NAME = Person.class.getSimpleName();
-    private final String DEFAULT_START_CLAUSE = "start `person`=node:__types__(className=\"" + CLASS_NAME + "\")";
+    private final static String CLASS_NAME = Person.class.getSimpleName();
+    private final static String DEFAULT_START_CLAUSE = "START `person`=node:__types__(className=\"" + CLASS_NAME + "\")";
 
     @Before
     public void setUp() {
         Neo4jMappingContext context = new Neo4jMappingContext();
-        query = new CypherQueryBuilder(context, Person.class);
+        Neo4jTemplate template = Mockito.mock(Neo4jTemplate.class);
+        query = new CypherQueryBuilder(context, Person.class, template);
     }
 
     @Test
@@ -49,7 +53,7 @@ public class CypherQueryBuilderUnitTests {
         Part part = new Part("name", Person.class);
         query.addRestriction(part);
 
-        assertThat(query.toString(), is("start `person`=node:`Person`(`name`={0}) return `person`"));
+        assertThat(query.toString(), is("START `person`=node:`Person`(`name`={0}) RETURN `person`"));
     }
 
     @Test
@@ -58,7 +62,7 @@ public class CypherQueryBuilderUnitTests {
         Part part = new Part("titleLike", Person.class);
         query.addRestriction(part);
 
-        assertThat(query.toString(), is("start `person`=node:`title`({0}) return `person`"));
+        assertThat(query.toString(), is("START `person`=node:`title`({0}) RETURN `person`"));
     }
     @Test
     public void createsQueryForLikeProperty() {
@@ -66,7 +70,7 @@ public class CypherQueryBuilderUnitTests {
         Part part = new Part("infoLike", Person.class);
         query.addRestriction(part);
 
-        assertThat(query.toString(), is(DEFAULT_START_CLAUSE+" where `person`.`info`! =~ {0} return `person`"));
+        assertThat(query.toString(), is(DEFAULT_START_CLAUSE+" WHERE `person`.`info`! =~ {0} RETURN `person`"));
     }
     @Test
     public void createsQueryForGreaterThanPropertyReference() {
@@ -74,7 +78,7 @@ public class CypherQueryBuilderUnitTests {
         Part part = new Part("ageGreaterThan", Person.class);
         query.addRestriction(part);
 
-        assertThat(query.toString(), is(DEFAULT_START_CLAUSE+" where `person`.`age`! > {0} return `person`"));
+        assertThat(query.toString(), is(DEFAULT_START_CLAUSE+" WHERE `person`.`age`! > {0} RETURN `person`"));
     }
     @Test
     public void createsQueryForTwoPropertyExpressions() {
@@ -82,7 +86,7 @@ public class CypherQueryBuilderUnitTests {
         query.addRestriction(new Part("ageGreaterThan", Person.class));
         query.addRestriction(new Part("info", Person.class));
 
-        assertThat(query.toString(), is(DEFAULT_START_CLAUSE+" where `person`.`age`! > {0} and `person`.`info`! = {1} return `person`"));
+        assertThat(query.toString(), is(DEFAULT_START_CLAUSE+" WHERE `person`.`age`! > {0} AND `person`.`info`! = {1} RETURN `person`"));
     }
 
     @Test
@@ -91,7 +95,7 @@ public class CypherQueryBuilderUnitTests {
         Part part = new Part("ageIsNull", Person.class);
         query.addRestriction(part);
 
-        assertThat(query.toString(), is(DEFAULT_START_CLAUSE+" where `person`.`age`! is null  return `person`"));
+        assertThat(query.toString(), is(DEFAULT_START_CLAUSE+" WHERE `person`.`age`! is null  RETURN `person`"));
     }
 
     @Test
@@ -100,7 +104,7 @@ public class CypherQueryBuilderUnitTests {
         Part part = new Part("group.name", Person.class);
         query.addRestriction(part);
 
-        assertThat(query.toString(), is("start `person_group`=node:`Group`(`name`={0}) match `person`<-[:`members`]-`person_group` return `person`"));
+        assertThat(query.toString(), is("START `person_group`=node:`Group`(`name`={0}) MATCH `person`<-[:`members`]-`person_group` RETURN `person`"));
     }
 
     @Test
@@ -110,15 +114,19 @@ public class CypherQueryBuilderUnitTests {
         query.addRestriction(new Part("group.name", Person.class));
 
         assertThat(query.toString(),
-                is("start `person`=node:`Person`(`name`={0}), `person_group`=node:`Group`(`name`={1}) match `person`<-[:`members`]-`person_group` return `person`"));
+                is("START `person`=node:`Person`(`name`={0}), `person_group`=node:`Group`(`name`={1}) MATCH `person`<-[:`members`]-`person_group` RETURN `person`"));
     }
 
     @Test
     public void createsSimpleWhereClauseCorrectly() {
-
         query.addRestriction(new Part("age", Person.class));
+        assertThat(query.toString(), is(DEFAULT_START_CLAUSE +" WHERE `person`.`age`! = {0} RETURN `person`"));
+    }
 
-        assertThat(query.toString(), is(DEFAULT_START_CLAUSE +" where `person`.`age`! = {0} return `person`"));
+    @Test
+    public void createsSimpleTraversalClauseCorrectly() {
+        query.addRestriction(new Part("group", Person.class));
+        assertThat(query.toString(), is("START `person_group`=node({0}) MATCH `person`<-[:`members`]-`person_group` WHERE `person`.__type__! IN ['Person'] RETURN `person`"));
     }
 
     @Test
@@ -130,43 +138,43 @@ public class CypherQueryBuilderUnitTests {
         query.addRestriction(new Part("groupMembersAge", Person.class));
 
         assertThat(query.toString(), is(
-                "start `person`=node:`Person`(`name`={0}), `person_group`=node:`Group`(`name`={1}) " +
-                        "match `person`<-[:`members`]-`person_group`, `person`<-[:`members`]-`person_group`-[:`members`]->`person_group_members` " +
-                        "where `person`.`age`! > {2} and `person_group_members`.`age`! = {3} " +
-                        "return `person`"
+                "START `person`=node:`Person`(`name`={0}), `person_group`=node:`Group`(`name`={1}) " +
+                        "MATCH `person`<-[:`members`]-`person_group`, `person`<-[:`members`]-`person_group`-[:`members`]->`person_group_members` " +
+                        "WHERE `person`.`age`! > {2} AND `person_group_members`.`age`! = {3} " +
+                        "RETURN `person`"
                 ));
     }
 
     @Test
     public void buildsQueryWithSort() {
         query.addRestriction(new Part("name",Person.class));
-        assertThat(query.toString(new Sort("person.name")), is("start `person`=node:`Person`(`name`={0}) return `person` order by person.name ASC"));
+        assertThat(query.buildQuery(new Sort("person.name")).toQueryString(), is("START `person`=node:`Person`(`name`={0}) RETURN `person` ORDER BY person.name ASC"));
     }
     @Test
     public void buildsQueryWithTwoSorts() {
         query.addRestriction(new Part("name",Person.class));
         Sort sort = new Sort(new Sort.Order("person.name"),new Sort.Order(Sort.Direction.DESC, "person.age"));
-        assertThat(query.toString(sort), is("start `person`=node:`Person`(`name`={0}) return `person` order by person.name ASC,person.age DESC"));
+        assertThat(query.buildQuery(sort).toQueryString(), is("START `person`=node:`Person`(`name`={0}) RETURN `person` ORDER BY person.name ASC,person.age DESC"));
     }
 
     @Test
     public void buildsQueryWithPage() {
         query.addRestriction(new Part("name",Person.class));
         Pageable pageable = new PageRequest(3,10,new Sort("person.name"));
-        assertThat(query.toString(pageable), is("start `person`=node:`Person`(`name`={0}) return `person` order by person.name ASC skip 30 limit 10"));
+        assertThat(query.buildQuery().toQueryString(pageable), is("START `person`=node:`Person`(`name`={0}) RETURN `person` ORDER BY person.name ASC SKIP 30 LIMIT 10"));
     }
 
     @Test
     public void shouldFindByNodeEntity() throws Exception {
         query.addRestriction(new Part("pet", Person.class));
 
-        assertThat(query.toString(), is("start `person`=node:__types__(className=\"Person\"), `person_pet`=node({0}) match `person`-[:`owns`]->`person_pet` return `person`"));
+        assertThat(query.toString(), is("START `person_pet`=node({0}) MATCH `person`-[:`owns`]->`person_pet` WHERE `person`.__type__! IN ['Person'] RETURN `person`"));
     }
 
     @Test
     public void shouldFindByNodeEntityForIncomingRelationship() {
         query.addRestriction(new Part("group", Person.class));
 
-        assertThat(query.toString(), is("start `person`=node:__types__(className=\"Person\"), `person_group`=node({0}) match `person`<-[:`members`]-`person_group` return `person`"));
+        assertThat(query.toString(), is("START `person_group`=node({0}) MATCH `person`<-[:`members`]-`person_group` WHERE `person`.__type__! IN ['Person'] RETURN `person`"));
     }
 }

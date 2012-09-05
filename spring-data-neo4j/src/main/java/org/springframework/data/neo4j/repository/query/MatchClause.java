@@ -18,7 +18,10 @@ package org.springframework.data.neo4j.repository.query;
 import org.springframework.data.mapping.context.PersistentPropertyPath;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.mapping.RelationshipInfo;
+import org.springframework.data.repository.query.Parameter;
 import org.springframework.util.Assert;
+
+import java.util.Map;
 
 /**
  * Value object to build the {@literal match} clause of a Cypher query.
@@ -31,11 +34,8 @@ class MatchClause {
 
     /**
      * Creates a new {@link MatchClause} using the given {@link PersistentPropertyPath}.
-     * 
-     * @param path must not be {@literal null}.
      */
     public MatchClause(PersistentPropertyPath<Neo4jPersistentProperty> path) {
-        Assert.notNull(path);
         this.path = relationshipPath(path);
     }
 
@@ -80,5 +80,9 @@ class MatchClause {
     }
     private String formatMatch2(String first, String arrow, String second) {
         return String.format(QueryTemplates.MATCH_CLAUSE2, first, arrow, second);
+    }
+
+    public Map<Parameter, Object> resolveParameters(Map<Parameter, Object> parameters) {
+        return parameters;
     }
 }

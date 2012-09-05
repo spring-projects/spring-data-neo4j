@@ -15,6 +15,11 @@
  */
 package org.springframework.data.neo4j.repository.query;
 
+import org.springframework.data.neo4j.support.Neo4jTemplate;
+import org.springframework.data.repository.query.Parameter;
+
+import java.util.Map;
+
 public class NodeEntityMatchingStartClause extends StartClause {
     public NodeEntityMatchingStartClause(PartInfo partInfo) {
         super(partInfo);
@@ -22,6 +27,11 @@ public class NodeEntityMatchingStartClause extends StartClause {
 
     @Override
     public String toString() {
-        return String.format("`%s`=node({%d})", partInfo.getVariable(), partInfo.getParameterIndex());
+        return String.format(QueryTemplates.START_NODE_LOOKUP, getPartInfo().getIdentifier(), getPartInfo().getParameterIndex());
+    }
+
+    @Override
+    public Map<Parameter, Object> resolveParameters(Map<Parameter, Object> parameters, Neo4jTemplate template) {
+        return parameters;
     }
 }

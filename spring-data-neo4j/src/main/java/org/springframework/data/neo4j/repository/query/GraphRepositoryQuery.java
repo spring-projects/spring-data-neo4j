@@ -23,6 +23,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.neo4j.conversion.EndResult;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
 import org.springframework.data.neo4j.support.query.QueryEngine;
+import org.springframework.data.repository.query.Parameter;
 import org.springframework.data.repository.query.ParameterAccessor;
 import org.springframework.data.repository.query.ParametersParameterAccessor;
 import org.springframework.data.repository.query.RepositoryQuery;
@@ -36,7 +37,7 @@ import java.util.*;
 */
 abstract class GraphRepositoryQuery implements RepositoryQuery, ParameterResolver {
     private final GraphQueryMethod queryMethod;
-    private final Neo4jTemplate template;
+    protected final Neo4jTemplate template;
 
     public GraphRepositoryQuery(GraphQueryMethod queryMethod, final Neo4jTemplate template) {
         Assert.notNull(queryMethod);
@@ -49,7 +50,16 @@ abstract class GraphRepositoryQuery implements RepositoryQuery, ParameterResolve
         return template;
     }
 
-    public Object resolveParameter(Object value, String parameterName, int index) {
+    @Override
+    public Map<Parameter, Object> resolveParameters(Map<Parameter, Object> parameters) {
+        Map<Parameter, Object> result=new LinkedHashMap<Parameter, Object>();
+        for (Map.Entry<Parameter, Object> entry : parameters.entrySet()) {
+            result.put(entry.getKey(), convertGraphEntityToId(entry.getValue()));
+        }
+        return result;
+    }
+
+    private Object convertGraphEntityToId(Object value) {
         final Class<?> type = value.getClass();
         if (template.isNodeEntity(type)) {
             final Node state = template.getPersistentState(value);

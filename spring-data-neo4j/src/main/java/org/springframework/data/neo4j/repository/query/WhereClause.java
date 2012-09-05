@@ -15,12 +15,14 @@
  */
 package org.springframework.data.neo4j.repository.query;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 import org.springframework.data.mapping.context.PersistentPropertyPath;
+import org.springframework.data.neo4j.fieldaccess.PropertyConverter;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
+import org.springframework.data.neo4j.support.Neo4jTemplate;
+import org.springframework.data.repository.query.Parameter;
+import org.springframework.data.repository.query.parser.Part;
 import org.springframework.data.repository.query.parser.Part.Type;
 import org.springframework.util.Assert;
 
@@ -34,54 +36,87 @@ import static org.springframework.data.neo4j.repository.query.QueryTemplates.WHE
  */
 class WhereClause {
 
-    private static final Map<Type, String> SYMBOLS;
+    protected static final Map<Type, String> SYMBOLS;
 
     static {
 
         Map<Type, String> symbols = new HashMap<Type, String>();
         symbols.put(Type.GREATER_THAN, ">");
+        symbols.put(Type.AFTER, ">");
         symbols.put(Type.GREATER_THAN_EQUAL, ">=");
         symbols.put(Type.LESS_THAN, "<");
+        symbols.put(Type.BEFORE, "<");
         symbols.put(Type.LESS_THAN_EQUAL, "<=");
-        symbols.put(Type.NEGATING_SIMPLE_PROPERTY, "!=");
+        symbols.put(Type.NEGATING_SIMPLE_PROPERTY, "<>");
+
         symbols.put(Type.SIMPLE_PROPERTY, "=");
-        symbols.put(Type.LIKE, "=~"); // n.name =~ /Tob.*/
-        //symbols.put(Type.EXISTS, ""); // property exists n.name
-                                      // compare when exists WHERE n.belt? = 'white'
-        symbols.put(Type.IS_NULL, "is null"); // WHERE r is null
+
+        symbols.put(Type.REGEX, "=~");
+        symbols.put(Type.STARTING_WITH, "=~");
+        symbols.put(Type.CONTAINING, "=~");
+        symbols.put(Type.ENDING_WITH, "=~");
+        symbols.put(Type.LIKE, "=~"); // n.name =~ "Tob.*"
+        symbols.put(Type.NOT_LIKE, "=~");
+        symbols.put(Type.EXISTS, ""); // property exists n.name
+        symbols.put(Type.IS_NULL, "is null");
+        symbols.put(Type.IN, "in");
+        symbols.put(Type.NOT_IN, "in");
+        symbols.put(Type.TRUE, "= true");
+        symbols.put(Type.FALSE, "= false");
         SYMBOLS = Collections.unmodifiableMap(symbols);
     }
 
-    private final PartInfo partInfo;
+    protected final PartInfo partInfo;
+    private final Type type;
+    private PropertyConverter propertyConverter;
 
-    /**
-     * Creates a new {@link WhereClause} for the given {@link Neo4jPersistentProperty}, variable, type and parameter
-     * index.
-     *
-     * @param partInfo
-     */
-    public WhereClause(PersistentPropertyPath<Neo4jPersistentProperty> path, String variable, Type type, int index, PartInfo partInfo) {
+    public WhereClause(PartInfo partInfo, Neo4jTemplate template) {
         Assert.notNull(partInfo.getType());
         this.partInfo = partInfo;
+        this.type = this.partInfo.getType();
+        Neo4jPersistentProperty property = partInfo.getLeafProperty();
+        if (!property.isNeo4jPropertyType()) {
+            propertyConverter = new PropertyConverter(template.getConversionService(), property);
+        }
     }
 
-    /*
-     * (non-Javadoc)
-     * @see java.lang.Object#toString()
-     */
     @Override
     public String toString() {
         final String propertyName = partInfo.getNeo4jPropertyName();
-        final String operator = SYMBOLS.get(partInfo.getType());
-        final String variable = partInfo.getVariable();
+        final String operator = SYMBOLS.get(type);
+        final String variable = partInfo.getIdentifier();
 
-        if (partInfo.getType().getNumberOfArguments()==0) {
-            return String.format(WHERE_CLAUSE_0, variable, propertyName, operator);
+        String result;
+        if (type.getNumberOfArguments()==0) {
+            result = String.format(WHERE_CLAUSE_0, variable, propertyName, operator);
+        } else {
+            result = String.format(WHERE_CLAUSE_1, variable, propertyName, operator, partInfo.getParameterIndex());
         }
-        return String.format(WHERE_CLAUSE_1, variable, propertyName, operator, partInfo.getParameterIndex());
+        if (type==Type.EXISTS) {
+            result = "has("+ result +")";
+        }
+        if (EnumSet.of(Type.NOT_IN,Type.NOT_LIKE).contains(type)) {
+            result = "not( "+result+" )";
+        }
+        return result;
     }
 
     public PartInfo getPartInfo() {
         return partInfo;
+    }
+
+    public Map<Parameter, Object> resolveParameters(Map<Parameter, Object> parameters) {
+        for (Map.Entry<Parameter, Object> entry : parameters.entrySet()) {
+            if (partInfo.getParameterIndex() == entry.getKey().getIndex()) {
+                Object value = entry.getValue();
+                if (EnumSet.of(Type.CONTAINING,Type.STARTING_WITH,Type.ENDING_WITH).contains(type))
+                    value = QueryTemplates.formatExpression(partInfo, value);
+                else if (propertyConverter!=null) {
+                    value = propertyConverter.serializePropertyValue(value);
+                }
+                entry.setValue(value);
+            }
+        }
+        return parameters;
     }
 }

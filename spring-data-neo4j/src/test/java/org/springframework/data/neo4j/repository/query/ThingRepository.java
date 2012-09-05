@@ -17,6 +17,37 @@ package org.springframework.data.neo4j.repository.query;
 
 import org.springframework.data.neo4j.repository.GraphRepository;
 
-interface ThingRepository extends GraphRepository<DerivedFinderMethodTest.Thing> {
+import java.util.Collection;
+import java.util.Date;
+
+public interface ThingRepository extends GraphRepository<DerivedFinderMethodTest.Thing> {
     public DerivedFinderMethodTest.Thing findByFirstNameAndLastName(String firstName, String lastName);
+    public DerivedFinderMethodTest.Thing findByFirstName(String firstName);
+    public DerivedFinderMethodTest.Thing findByDescription(String firstName);
+    public DerivedFinderMethodTest.Thing findByDescriptionAndFirstName(String description,String firstName);
+    public DerivedFinderMethodTest.Thing findByFirstNameAndDescription(String firstName,String description);
+    public DerivedFinderMethodTest.Thing findByAge(int age);
+    public DerivedFinderMethodTest.Thing findByAgeAndFirstName(int age,String firstName);
+    public DerivedFinderMethodTest.Thing findByFirstNameLike(String firstName);
+    public DerivedFinderMethodTest.Thing findByFirstNameContains(String firstName);
+    public DerivedFinderMethodTest.Thing findByFirstNameEndsWith(String firstName);
+    public DerivedFinderMethodTest.Thing findByFirstNameStartsWith(String firstName);
+
+    public DerivedFinderMethodTest.Thing findByName(String name);
+    public DerivedFinderMethodTest.Thing findByNameStartsWith(String name);
+    public DerivedFinderMethodTest.Thing findByNameEndsWith(String name);
+    public DerivedFinderMethodTest.Thing findByNameContains(String name);
+
+    public DerivedFinderMethodTest.Thing findByNameLike(String name);
+    public DerivedFinderMethodTest.Thing findByNameNotLike(String name);
+    public DerivedFinderMethodTest.Thing findByNameMatches(String name);
+    public DerivedFinderMethodTest.Thing findByTaggedIsTrue();
+    public DerivedFinderMethodTest.Thing findByTaggedIsFalse();
+
+    public DerivedFinderMethodTest.Thing findByNameExists();
+    public DerivedFinderMethodTest.Thing findByNameIn(Collection<String> values);
+    public DerivedFinderMethodTest.Thing findByNameNotIn(Collection<String> values);
+
+    public DerivedFinderMethodTest.Thing findByBornBefore(Date date);
+    public DerivedFinderMethodTest.Thing findByBornAfter(Date date);
 }
