@@ -1,13 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.springframework.data</groupId>
 	<artifactId>spring-data-neo4j-dist</artifactId>
 	<name>Spring Data Neo4j Distribution</name>
     <description><![CDATA[Within the Spring Data project the Spring Data Neo4j library provides integration with the Neo4j graph database, offering object graph mapping, a Neo4jTemplate and Spring-Data-Commons Repository implementations.
     ]]></description>
-	<version>2.0.2.BUILD-SNAPSHOT</version>
+	<version>2.0.2.RELEASE</version>
 	<packaging>pom</packaging>
 	<modules>
 		<module>spring-data-neo4j-parent</module>
@@ -313,26 +312,25 @@
                             <htmlCustomization>${docbook.generatedDir}/resources/xsl/html.xsl</htmlCustomization>
 					        <useExtensions>1</useExtensions>
 					        <highlightSource>1</highlightSource>
-					        <highlightDefaultLanguage></highlightDefaultLanguage>
+					        <highlightDefaultLanguage />
                             <postProcess>
-                                <move tofile="${basedir}/target/site/reference/html/index.html"
-                                      file="${basedir}/target/docbkx/html/index.html"/>
+                                <move tofile="${basedir}/target/site/reference/html/index.html" file="${basedir}/target/docbkx/html/index.html" />
 
                                 <copy todir="${basedir}/target/site/reference/html" flatten="true">
                                     <fileset dir="${basedir}/target/classes/">
-                                        <exclude name="${docbook.generatedDir}/resources/*"/>
-                                        <include name="**/*.png"/>
-                                        <include name="**/*.gif"/>
-                                        <include name="**/*.jpg"/>
+                                        <exclude name="${docbook.generatedDir}/resources/*" />
+                                        <include name="**/*.png" />
+                                        <include name="**/*.gif" />
+                                        <include name="**/*.jpg" />
                                     </fileset>
                                 </copy>
 
                                 <copy todir="${basedir}/target/site/reference/html">
                                     <fileset dir="${docbook.generatedDir}/resources">
-                                        <include name="**/*.css"/>
-                                        <include name="**/*.png"/>
-                                        <include name="**/*.gif"/>
-                                        <include name="**/*.jpg"/>
+                                        <include name="**/*.css" />
+                                        <include name="**/*.png" />
+                                        <include name="**/*.gif" />
+                                        <include name="**/*.jpg" />
                                     </fileset>
                                 </copy>
                             </postProcess>
@@ -374,11 +372,9 @@
                             <includes>index.xml</includes>
 					        <useExtensions>1</useExtensions>
 					        <highlightSource>1</highlightSource>
-					        <highlightDefaultLanguage></highlightDefaultLanguage>
+					        <highlightDefaultLanguage />
                             <postProcess>
-                                <copy file="${basedir}/target/docbkx/pdf/index.pdf"
-                                      tofile="${basedir}/target/site/reference/pdf/spring-data-neo4j-reference.pdf"
-                                      failonerror="false"/>
+                                <copy file="${basedir}/target/docbkx/pdf/index.pdf" tofile="${basedir}/target/site/reference/pdf/spring-data-neo4j-reference.pdf" failonerror="false" />
                             </postProcess>
                         </configuration>
                         <phase>pre-site</phase>
@@ -396,11 +392,9 @@
 					        <useExtensions>1</useExtensions>
 					        <highlightSource>1</highlightSource>
                             <includes>tutorial.xml</includes>
-					        <highlightDefaultLanguage></highlightDefaultLanguage>
+					        <highlightDefaultLanguage />
                             <postProcess>
-                                <copy file="${basedir}/target/docbkx/pdf/tutorial.pdf"
-                                      tofile="${basedir}/target/site/reference/pdf/spring-data-neo4j-tutorial.pdf"
-                                      failonerror="false"/>
+                                <copy file="${basedir}/target/docbkx/pdf/tutorial.pdf" tofile="${basedir}/target/site/reference/pdf/spring-data-neo4j-tutorial.pdf" failonerror="false" />
                             </postProcess>
                         </configuration>
                         <phase>pre-site</phase>
@@ -417,28 +411,28 @@
                             <htmlCustomization>${docbook.generatedDir}/resources/xsl/html_chunk.xsl</htmlCustomization>
 					        <useExtensions>1</useExtensions>
 					        <highlightSource>1</highlightSource>
-					        <highlightDefaultLanguage></highlightDefaultLanguage>
+					        <highlightDefaultLanguage />
                             <targetDirectory>${basedir}/target/docbkx/multi/</targetDirectory>
                             <postProcess>
                                 <move todir="${basedir}/target/site/reference/multi">
                                     <fileset dir="${basedir}/target/docbkx/multi">
-                                        <include name="**/*.html"/>
+                                        <include name="**/*.html" />
                                     </fileset>
                                 </move>
                                 <copy todir="${basedir}/target/site/reference/multi">
                                     <fileset dir="${docbook.generatedDir}/resources">
-                                        <include name="**/*.png"/>
-                                        <include name="**/*.gif"/>
-                                        <include name="**/*.jpg"/>
+                                        <include name="**/*.png" />
+                                        <include name="**/*.gif" />
+                                        <include name="**/*.jpg" />
                                     </fileset>
                                 </copy>
                                 <copy todir="${basedir}/target/site/reference/multi" flatten="true">
                                     <fileset dir="${docbook.generatedDir}">
-                                        <exclude name="${docbook.generatedDir}/resources/*"/>
-                                        <include name="**/*.css"/>
-                                        <include name="**/*.png"/>
-                                        <include name="**/*.gif"/>
-                                        <include name="**/*.jpg"/>
+                                        <exclude name="${docbook.generatedDir}/resources/*" />
+                                        <include name="**/*.css" />
+                                        <include name="**/*.png" />
+                                        <include name="**/*.gif" />
+                                        <include name="**/*.jpg" />
                                     </fileset>
                                 </copy>
                             </postProcess>
@@ -462,7 +456,7 @@
                 <configuration>
                     <includes>index.xml</includes>
                     <chunkedOutput>false</chunkedOutput>
-                    <draftWatermarkImage/>
+                    <draftWatermarkImage />
                     <htmlStylesheet>css/html.css</htmlStylesheet>
                     <sourceDirectory>${docbook.generatedDir}/</sourceDirectory>
                     <!--foCustomization>${docbook.generatedDir}/resources/xsl/fopdf.xsl</foCustomization-->
@@ -536,7 +530,7 @@
 						<configuration>
 							<tasks>
 								<ant antfile="${basedir}/src/ant/upload-dist.xml">
-									<target name="upload-dist"/>
+									<target name="upload-dist" />
 								</ant>
 							</tasks>
 						</configuration>
