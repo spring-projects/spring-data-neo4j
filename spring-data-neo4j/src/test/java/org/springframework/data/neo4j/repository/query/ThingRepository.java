@@ -50,4 +50,6 @@ public interface ThingRepository extends GraphRepository<DerivedFinderMethodTest
 
     public DerivedFinderMethodTest.Thing findByBornBefore(Date date);
     public DerivedFinderMethodTest.Thing findByBornAfter(Date date);
+    public DerivedFinderMethodTest.Thing findById(long id);
+    public DerivedFinderMethodTest.Thing findByOwnerId(long id);
 }

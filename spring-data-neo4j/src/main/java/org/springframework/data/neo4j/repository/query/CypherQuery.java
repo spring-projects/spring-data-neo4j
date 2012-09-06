@@ -63,11 +63,15 @@ public class CypherQuery implements CypherQueryDefinition {
         // index("a:foo AND b:bar")
         // a=index1(a="foo"), b=index2(b="bar") where a=b - not good b/c of cross product
         // index1(a=foo) where a.foo=bar
-        if (partInfo.isPrimitiveProperty()) {
+        Neo4jPersistentProperty leafProperty = partInfo.getLeafProperty();
+        if (partInfo.isPrimitiveProperty() && !leafProperty.isIdProperty()) {
             if (!addedStartClause(partInfo)) {
                 whereClauses.add(new WhereClause(partInfo,template));
             }
-        } else if (partInfo.getLeafProperty().isEntity()) {
+        } else if (leafProperty.isEntity()) {
+            startClauses.add(new NodeEntityMatchingStartClause(partInfo));
+            whereClauses.add(new TypeRestrictingWhereClause(new PartInfo(path, variableContext.getVariableFor(entity), part, -1), entity, template));
+        } else if (leafProperty.isIdProperty()) {
             startClauses.add(new NodeEntityMatchingStartClause(partInfo));
             whereClauses.add(new TypeRestrictingWhereClause(new PartInfo(path, variableContext.getVariableFor(entity), part, -1), entity, template));
         } else {
