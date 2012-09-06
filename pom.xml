@@ -475,35 +475,34 @@
                     </entities>
                 </configuration>
             </plugin>
-			<plugin>
-				<artifactId>maven-javadoc-plugin</artifactId>
-				<version>2.7</version>
-				<configuration>
-					<javadoc:aggregate>true</javadoc:aggregate>
-					<breakiterator>true</breakiterator>
-					<header>Spring Data Neo4j</header>
-					<source>1.6</source>
-					<quiet>true</quiet>
-					<javadocDirectory>${project.basedir}/src/main/javadoc</javadocDirectory>
-					<overview>${project.basedir}/src/main/javadoc/overview.html</overview>
-					<stylesheetfile>${project.basedir}/src/main/javadoc/spring-javadoc.css</stylesheetfile>
-					<!-- copies doc-files subdirectory which contains image resources -->
-					<docfilessubdirs>true</docfilessubdirs>
-					<links>
-						<link>http://static.springframework.org/spring/docs/3.0.x/javadoc-api</link>
-						<link>http://java.sun.com/javase/6/docs/api</link>
-					</links>
-				</configuration>
-				<executions>
-					<execution>
-						<id>javadoc</id>
-						<goals>
-							<goal>jar</goal>
-						</goals>
-						<phase>package</phase>
-					</execution>
-				</executions>
-			</plugin>
+            <plugin>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>2.7</version>
+                <configuration>
+                    <breakiterator>true</breakiterator>
+                    <header>Spring Data Neo4j</header>
+                    <source>1.6</source>
+                    <quiet>true</quiet>
+                    <javadocDirectory>${project.basedir}/src/main/javadoc</javadocDirectory>
+                    <overview>${project.basedir}/src/main/javadoc/overview.html</overview>
+                    <stylesheetfile>${project.basedir}/src/main/javadoc/spring-javadoc.css</stylesheetfile>
+                    <!-- copies doc-files subdirectory which contains image resources -->
+                    <docfilessubdirs>true</docfilessubdirs>
+                    <links>
+                        <link>http://static.springframework.org/spring/docs/3.0.x/javadoc-api</link>
+                        <link>http://java.sun.com/javase/6/docs/api</link>
+                    </links>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>javadoc</id>
+                        <goals>
+                            <goal>aggregate</goal>
+                        </goals>
+                        <phase>package</phase>
+                    </execution>
+                </executions>
+            </plugin>
 			<plugin><!--
 				run `mvn package assembly:assembly` to trigger assembly creation.
 				see http://www.sonatype.com/books/mvnref-book/reference/assemblies-set-dist-assemblies.html -->
