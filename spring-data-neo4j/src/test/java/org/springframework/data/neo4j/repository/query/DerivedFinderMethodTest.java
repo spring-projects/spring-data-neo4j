@@ -67,6 +67,8 @@ public class DerivedFinderMethodTest {
 
         @Indexed(indexType = IndexType.FULLTEXT, indexName = "search") String description;
 
+        Person owner;
+
         int age;
 
         public Thing() {
@@ -93,6 +95,20 @@ public class DerivedFinderMethodTest {
         builder.addRestriction(new Part("lastName",Thing.class));
         CypherQueryDefinition query = builder.buildQuery();
         assertEquals("START `thing`=node:`Thing`({0}) RETURN `thing`", query.toQueryString());
+    }
+
+    @Test
+    public void testQueryWithGraphId() throws Exception {
+        assertRepositoryQueryMethod(ThingRepository.class, "findById",new Object[]{123},
+                "START `thing`=node({0})",
+                123);
+    }
+
+    @Test
+    public void testQueryWithEntityGraphId() throws Exception {
+        assertRepositoryQueryMethod(ThingRepository.class, "findByOwnerId",new Object[]{123},
+                "START `thing_owner`=node({0}) MATCH `thing`-[:`owner`]->`thing_owner` WHERE `thing`.__type__! IN ['org.springframework.data.neo4j.repository.query.DerivedFinderMethodTest$Thing'] ",
+                123);
     }
 
     @Test

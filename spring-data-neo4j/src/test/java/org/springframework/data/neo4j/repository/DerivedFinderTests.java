@@ -104,6 +104,10 @@ class Recipe {
 }
 
 interface RecipeRepository extends GraphRepository<Recipe> {
+    Set<Recipe> findById(long id);
+
+    Set<Recipe> findByIngredientId(long id);
+
     Set<Recipe> findByAuthor(String author);
 
     Set<Recipe> findByIngredient(Ingredient ingredient);
@@ -147,6 +151,8 @@ public class DerivedFinderTests {
 
     private CookBook nakedChef, baking101;
 
+    private Recipe focaccia;
+
     @Before
     public void setUp() throws Exception {
         Neo4jHelper.cleanDb(graphDatabaseService, true);
@@ -165,7 +171,7 @@ public class DerivedFinderTests {
             recipeRepository.save(new Recipe("Hugh", "pear frangipane", pear, null, baking101));
             recipeRepository.save(new Recipe("The Colonel", "fried chicken", null, spice, null));
             recipeRepository.save(new Recipe("Jamie", "pesto", oliveOil, null, nakedChef));
-            recipeRepository.save(new Recipe("Hugh", "focaccia", oliveOil, null, baking101));
+            focaccia = recipeRepository.save(new Recipe("Hugh", "focaccia", oliveOil, null, baking101));
             transaction.success();
         } finally {
             transaction.finish();
@@ -201,6 +207,20 @@ public class DerivedFinderTests {
         Set<Recipe> recipes = recipeRepository.findByIngredient(fish);
 
         assertThat(single(recipes).author, is(equalTo("Hugh")));
+    }
+
+    @Test
+    public void shouldFindUsingEntityId() throws Exception {
+        Set<Recipe> recipes = recipeRepository.findByIngredientId(fish.id);
+
+        assertThat(single(recipes).author, is(equalTo("Hugh")));
+    }
+
+    @Test
+    public void shouldFindUsingOwnGraphId() throws Exception {
+        Set<Recipe> recipes = recipeRepository.findById(focaccia.id);
+
+        assertThat(single(recipes).id, is(equalTo(focaccia.id)));
     }
 
     @Test
