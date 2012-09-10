@@ -46,6 +46,8 @@ import java.util.concurrent.TimeUnit;
 import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
 
+import org.neo4j.index.lucene.ValueContext;
+
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
 @TestExecutionListeners({CleanContextCacheTestExecutionListener.class, DependencyInjectionTestExecutionListener.class, TransactionalTestExecutionListener.class})
@@ -57,6 +59,8 @@ public class DerivedFinderMethodTest {
         Long id;
         @Indexed
         String firstName;
+    	@Indexed
+    	int number;
         @Indexed
         String lastName;
 
@@ -299,6 +303,13 @@ public class DerivedFinderMethodTest {
                 param.getTime());
     }
 
+    @Test
+    public void testFindByNumericIndexedField() throws Exception {
+        assertRepositoryQueryMethod(ThingRepository.class, "findByNumber", new Object[]{10},
+                "START `thing`=node:`Thing`(`number`={0})",
+                ValueContext.numeric(10));
+    }
+
     private void assertRepositoryQueryMethod(Class<ThingRepository> repositoryClass, String methodName, Object[] paramValues, String expectedQuery, Object...expectedParam) {
         Method method = methodFor(repositoryClass, methodName);
         DerivedCypherRepositoryQuery derivedCypherRepositoryQuery = new DerivedCypherRepositoryQuery(ctx, new GraphQueryMethod(method, new DefaultRepositoryMetadata(repositoryClass), null, ctx), template);
@@ -310,7 +321,11 @@ public class DerivedFinderMethodTest {
         assertEquals(expectedQuery,query.substring(query.indexOf(firstWord)).substring(0,expectedQuery.length()));
         assertEquals(expectedParam.length,params.size());
         for (int i = 0; i < expectedParam.length; i++) {
-            assertEquals(expectedParam[i],params.get(String.valueOf(i)));
+            if (expectedParam[i] instanceof ValueContext) {
+                assertEquals(((ValueContext)expectedParam[i]).getValue(),((ValueContext)params.get(String.valueOf(i))).getValue());
+            } else {
+                assertEquals(expectedParam[i],params.get(String.valueOf(i)));
+            }
         }
     }
 

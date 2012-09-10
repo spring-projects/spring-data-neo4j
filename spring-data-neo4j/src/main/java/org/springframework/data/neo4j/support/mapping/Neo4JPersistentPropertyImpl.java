@@ -225,22 +225,33 @@ class Neo4jPersistentPropertyImpl extends AbstractPersistentProperty<Neo4jPersis
         return isNeo4jEntityType;
     }
 
+    public static boolean isNumeric(final Class<?> fieldType) {
+        return (fieldType.isPrimitive() && !fieldType.equals(boolean.class) && !fieldType.equals(void.class)) 
+            || fieldType.equals(Character.class)
+            || (fieldType.getName().startsWith("java.lang") && Number.class.isAssignableFrom(fieldType));
+    }
+
+    public boolean isIndexedNumerically() {
+        if (!isIndexed() || !getIndexInfo().isNumeric()) return false;
+        return isNumeric(getType()) || isNumeric(getPropertyType()) || 
+               (getType().isArray() && !getType().getComponentType().isArray() && isNumeric(getType().getComponentType()));
+    }
+
     private static boolean isNeo4jPropertyType(final Class<?> fieldType) {
         // todo: add array support
-        return fieldType.isPrimitive()
-                || fieldType.equals(String.class)
-                || fieldType.equals(Character.class)
+        return fieldType.equals(String.class)
                 || fieldType.equals(Boolean.class)
-                || (fieldType.getName().startsWith("java.lang") && Number.class.isAssignableFrom(fieldType))
+                || fieldType.equals(boolean.class)
+                || isNumeric(fieldType)
                 || (fieldType.isArray() && !fieldType.getComponentType().isArray() && isNeo4jPropertyType(fieldType.getComponentType()));
     }
 
     @Override
     public boolean isNeo4jPropertyValue(Object value) {
-	if (value == null || value.getClass().isArray()) {
-	    return false;
-	}
-	return isNeo4jPropertyType(value.getClass());
+    if (value == null || value.getClass().isArray()) {
+        return false;
+    }
+    return isNeo4jPropertyType(value.getClass());
     }
 
     public boolean isSyntheticField() {
@@ -336,8 +347,8 @@ class Neo4jPersistentPropertyImpl extends AbstractPersistentProperty<Neo4jPersis
      */
     @Deprecated
     public boolean isReallyTransient() {
-   		return Modifier.isTransient(field.getModifiers()) || isAnnotationPresent(Transient.class) || isAnnotationPresent("javax.persistence.Transient");
-   	}
+        return Modifier.isTransient(field.getModifiers()) || isAnnotationPresent(Transient.class) || isAnnotationPresent("javax.persistence.Transient");
+    }
 
     private boolean isAnnotationPresent(String className) {
         for (Class<? extends Annotation> annotationType : annotations.keySet()) {

@@ -21,6 +21,7 @@ import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
 import org.springframework.data.repository.query.Parameter;
 import org.springframework.data.repository.query.parser.Part;
+import org.neo4j.index.lucene.ValueContext;
 
 import java.util.*;
 
@@ -73,7 +74,8 @@ class StartClause {
         if (shouldRenderQuery()) {
             result.put(firstParam, renderQuery(values));
         } else {
-            result.put(firstParam, IteratorUtil.first(values.values()));
+            Object value=IteratorUtil.first(values.values());
+            result.put(firstParam, value);
         }
         return result;
     }
@@ -102,6 +104,7 @@ class StartClause {
     }
 
     private Object convertIfNecessary(Neo4jTemplate template, Object value, Neo4jPersistentProperty property) {
+		if (property.isIndexedNumerically()) return new ValueContext(value).indexNumeric();
         if (property.isNeo4jPropertyType() && property.isNeo4jPropertyValue(value)) return value;
 
         PropertyConverter converter = new PropertyConverter(template.getConversionService(), property);

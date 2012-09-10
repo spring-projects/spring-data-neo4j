@@ -99,4 +99,6 @@ public interface Neo4jPersistentProperty extends PersistentProperty<Neo4jPersist
     Class<?> getTargetType();
 
     boolean isTargetTypeEnforced();
+    
+    boolean isIndexedNumerically();
 }
