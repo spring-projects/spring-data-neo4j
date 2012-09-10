@@ -24,10 +24,7 @@ import org.neo4j.test.ImpermanentGraphDatabase;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.neo4j.annotation.Fetch;
-import org.springframework.data.neo4j.annotation.GraphId;
-import org.springframework.data.neo4j.annotation.NodeEntity;
-import org.springframework.data.neo4j.annotation.RelatedTo;
+import org.springframework.data.neo4j.annotation.*;
 import org.springframework.data.neo4j.config.EnableNeo4jRepositories;
 import org.springframework.data.neo4j.config.Neo4jConfiguration;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
@@ -57,6 +54,20 @@ class Ingredient {
 
     Ingredient(String name) {
         this.name = name;
+    }
+}
+@NodeEntity
+class Dish {
+    @GraphId
+    Long id;
+
+    @Indexed(unique = true) int number;
+
+    Dish() {
+    }
+
+    Dish(int number) {
+        this.number = number;
     }
 }
 
@@ -103,6 +114,10 @@ class Recipe {
     }
 }
 
+interface DishRepository extends GraphRepository<Dish> {
+    Dish findByNumber(int number);
+}
+
 interface RecipeRepository extends GraphRepository<Recipe> {
     Set<Recipe> findById(long id);
 
@@ -127,6 +142,8 @@ interface RecipeRepository extends GraphRepository<Recipe> {
 @ContextConfiguration
 public class DerivedFinderTests {
 
+    private Dish dish;
+
     @Configuration
     @EnableNeo4jRepositories
     static class TestConfig extends Neo4jConfiguration {
@@ -146,6 +163,9 @@ public class DerivedFinderTests {
 
     @Autowired
     private RecipeRepository recipeRepository;
+
+    @Autowired
+    private DishRepository dishRepository;
 
     private Ingredient fish, spice, oliveOil, pear;
 
@@ -172,6 +192,7 @@ public class DerivedFinderTests {
             recipeRepository.save(new Recipe("The Colonel", "fried chicken", null, spice, null));
             recipeRepository.save(new Recipe("Jamie", "pesto", oliveOil, null, nakedChef));
             focaccia = recipeRepository.save(new Recipe("Hugh", "focaccia", oliveOil, null, baking101));
+            dish = dishRepository.save(new Dish(100));
             transaction.success();
         } finally {
             transaction.finish();
@@ -249,5 +270,11 @@ public class DerivedFinderTests {
         Set<Recipe> recipes = recipeRepository.findByIngredientAndCookBookTitle(oliveOil, "Naked Chef");
 
         assertThat(single(recipes).title, is(equalTo("pesto")));
+    }
+    @Test
+    public void shouldFindUsingIndexedNumericValue() throws Exception {
+        Dish foundDish = dishRepository.findByNumber(100);
+
+        assertThat(foundDish.number, is(equalTo(dish.number)));
     }
 }

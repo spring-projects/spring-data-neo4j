@@ -21,35 +21,36 @@ import java.util.Collection;
 import java.util.Date;
 
 public interface ThingRepository extends GraphRepository<DerivedFinderMethodTest.Thing> {
-    public DerivedFinderMethodTest.Thing findByFirstNameAndLastName(String firstName, String lastName);
-    public DerivedFinderMethodTest.Thing findByFirstName(String firstName);
-    public DerivedFinderMethodTest.Thing findByDescription(String firstName);
-    public DerivedFinderMethodTest.Thing findByDescriptionAndFirstName(String description,String firstName);
-    public DerivedFinderMethodTest.Thing findByFirstNameAndDescription(String firstName,String description);
-    public DerivedFinderMethodTest.Thing findByAge(int age);
-    public DerivedFinderMethodTest.Thing findByAgeAndFirstName(int age,String firstName);
-    public DerivedFinderMethodTest.Thing findByFirstNameLike(String firstName);
-    public DerivedFinderMethodTest.Thing findByFirstNameContains(String firstName);
-    public DerivedFinderMethodTest.Thing findByFirstNameEndsWith(String firstName);
-    public DerivedFinderMethodTest.Thing findByFirstNameStartsWith(String firstName);
-
-    public DerivedFinderMethodTest.Thing findByName(String name);
-    public DerivedFinderMethodTest.Thing findByNameStartsWith(String name);
-    public DerivedFinderMethodTest.Thing findByNameEndsWith(String name);
-    public DerivedFinderMethodTest.Thing findByNameContains(String name);
-
-    public DerivedFinderMethodTest.Thing findByNameLike(String name);
-    public DerivedFinderMethodTest.Thing findByNameNotLike(String name);
-    public DerivedFinderMethodTest.Thing findByNameMatches(String name);
-    public DerivedFinderMethodTest.Thing findByTaggedIsTrue();
-    public DerivedFinderMethodTest.Thing findByTaggedIsFalse();
-
-    public DerivedFinderMethodTest.Thing findByNameExists();
-    public DerivedFinderMethodTest.Thing findByNameIn(Collection<String> values);
-    public DerivedFinderMethodTest.Thing findByNameNotIn(Collection<String> values);
-
-    public DerivedFinderMethodTest.Thing findByBornBefore(Date date);
-    public DerivedFinderMethodTest.Thing findByBornAfter(Date date);
-    public DerivedFinderMethodTest.Thing findById(long id);
-    public DerivedFinderMethodTest.Thing findByOwnerId(long id);
+    DerivedFinderMethodTest.Thing findByFirstNameAndLastName(String firstName, String lastName);
+    DerivedFinderMethodTest.Thing findByFirstName(String firstName);
+    DerivedFinderMethodTest.Thing findByDescription(String firstName);
+    DerivedFinderMethodTest.Thing findByDescriptionAndFirstName(String description,String firstName);
+    DerivedFinderMethodTest.Thing findByFirstNameAndDescription(String firstName,String description);
+    DerivedFinderMethodTest.Thing findByAge(int age);
+    DerivedFinderMethodTest.Thing findByAgeAndFirstName(int age,String firstName);
+    DerivedFinderMethodTest.Thing findByFirstNameLike(String firstName);
+    DerivedFinderMethodTest.Thing findByFirstNameContains(String firstName);
+    DerivedFinderMethodTest.Thing findByFirstNameEndsWith(String firstName);
+    DerivedFinderMethodTest.Thing findByFirstNameStartsWith(String firstName);
+    DerivedFinderMethodTest.Thing findByNumber(int number);
+    
+    DerivedFinderMethodTest.Thing findByName(String name);
+    DerivedFinderMethodTest.Thing findByNameStartsWith(String name);
+    DerivedFinderMethodTest.Thing findByNameEndsWith(String name);
+    DerivedFinderMethodTest.Thing findByNameContains(String name);
+    
+    DerivedFinderMethodTest.Thing findByNameLike(String name);
+    DerivedFinderMethodTest.Thing findByNameNotLike(String name);
+    DerivedFinderMethodTest.Thing findByNameMatches(String name);
+    DerivedFinderMethodTest.Thing findByTaggedIsTrue();
+    DerivedFinderMethodTest.Thing findByTaggedIsFalse();
+    
+    DerivedFinderMethodTest.Thing findByNameExists();
+    DerivedFinderMethodTest.Thing findByNameIn(Collection<String> values);
+    DerivedFinderMethodTest.Thing findByNameNotIn(Collection<String> values);
+    
+    DerivedFinderMethodTest.Thing findByBornBefore(Date date);
+    DerivedFinderMethodTest.Thing findByBornAfter(Date date);
+    DerivedFinderMethodTest.Thing findById(long id);
+    DerivedFinderMethodTest.Thing findByOwnerId(long id);
 }
