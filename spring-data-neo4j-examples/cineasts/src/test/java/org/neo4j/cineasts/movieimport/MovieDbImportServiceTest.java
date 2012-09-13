@@ -3,6 +3,7 @@ package org.neo4j.cineasts.movieimport;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.neo4j.cineasts.domain.Actor;
+import org.neo4j.cineasts.domain.Director;
 import org.neo4j.cineasts.domain.Movie;
 import org.neo4j.cineasts.domain.Person;
 import org.neo4j.cineasts.repository.MovieRepository;
@@ -11,7 +12,11 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Set;
+
+import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
 
 /**
  * @author mh
@@ -48,5 +53,14 @@ public class MovieDbImportServiceTest {
         Person actor = importService.importPerson("105955", new Actor("105955",null));
         assertEquals("movie-id","105955", actor.getId());
         assertEquals("movie-title","George M. Williamson", actor.getName());
+    }
+
+    @Test
+    public void shouldImportMovieWithTwoDirectors() throws Exception {
+        Movie movie = importService.importMovie("603");
+
+        movie = movieRepository.findById(movie.getId());
+
+        assertThat(movie.getDirectors().size(), is(2));
     }
 }
