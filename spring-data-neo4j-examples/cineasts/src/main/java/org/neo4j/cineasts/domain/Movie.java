@@ -26,7 +26,7 @@ public class Movie {
     String description;
 
     @RelatedTo(type="DIRECTED", direction = INCOMING)
-    Director director;
+    Set<Director> directors;
 
     @RelatedTo(type = "ACTS_IN", direction = INCOMING)
     Set<Actor> actors;
@@ -104,10 +104,6 @@ public class Movie {
     public Collection<Rating> getRatings() {
         Iterable<Rating> allRatings = ratings;
         return allRatings == null ? Collections.<Rating>emptyList() : IteratorUtil.asCollection(allRatings);
-    }
-
-    public Director getDirector() {
-        return director;
     }
 
     public void setTitle(String title) {
