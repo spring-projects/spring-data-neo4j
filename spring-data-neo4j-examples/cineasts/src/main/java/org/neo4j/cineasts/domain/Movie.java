@@ -234,5 +234,8 @@ public class Movie {
         return nodeId != null ? nodeId.hashCode() : super.hashCode();
     }
 
+    public Set<Director> getDirectors() {
+        return directors;
+    }
 }
 
