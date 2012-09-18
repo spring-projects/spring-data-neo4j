@@ -50,8 +50,7 @@
             <ulink url="http://www.eclipse.org/ajdt/downloads/">http://www.eclipse.org/ajdt/downloads/</ulink>
             (it might be necessary to use the latest development snapshot of the plugin).
             The current version that does not show incorrect errors is AspectJ 1.6.12 (included in STS 2.8.0), previous versions are reported
-            to mislead the user. Note that as of Spring Data Neo4j version 2.0.1 the AspectJ version 1.7.0 is not yet supported. This also
-            means that AJDT 2.2.0 on Eclipse 4.2 is not yet supported as this version of AJDT internally uses AspectJ 1.7.0.
+            to mislead the user.
         </para>
         <note>
         <para>
