@@ -1,6 +1,17 @@
 Spring Data Graph Changelog
 ===========================
 
+Changes in version 2.1.RC4 (2012-09-19)
+---------------------------------------
+* DATAGRAPH-296 Updates to stable versions of Neo4j 1.8.RC1, spatial, cypher-dsl and java-rest-binding, adopted to API changes
+* DATAGRAPH-285 adding application events for save and delete
+* DATAGRAPH-263, DATAGRAPH-212, DATAGRAPH-272, DATAGRAPH-147 refactored derived query creation, added support for multiple indexed fields and all query keywords
+* DATAGRAPH-294 derived finder methods for numerically indexed values
+* DATAGRAPH-293 find objects by graph-id
+* DATAGRAPH-275 non graceful fallback on empty graph for TypeRepresentationStrategyFactory
+* DATAGRAPH-246 allowing entity as parameter to derived finders
+* DATAGRAPH-281 Added support for Enums and Dates as parameters to Cypher
+
 Changes in version 2.1.RC3 (2012-08-24)
 ---------------------------------------
 * Updates to stable versions of Neo4j 1.8.M07, spatial, cypher-dsl and java-rest-binding, adopted to API changes
