@@ -4,12 +4,12 @@
     <parent>
         <groupId>org.springframework.data</groupId>
         <artifactId>spring-data-neo4j-parent</artifactId>
-        <version>2.1.0.BUILD-SNAPSHOT</version>
+        <version>2.1.0.RC4</version>
         <relativePath>../spring-data-neo4j-parent/pom.xml</relativePath>
     </parent>
     <artifactId>spring-data-neo4j-rest</artifactId>
     <packaging>jar</packaging>
-    <version>2.1.0.BUILD-SNAPSHOT</version>
+    <version>2.1.0.RC4</version>
     <name>Spring Data Neo4j REST Wrapper</name>
     <description><![CDATA[Spring Data Neo4j Wrapper for the Neo4j REST API, provides a Graph Database proxy for the remote invocation.
     ]]></description>
@@ -233,7 +233,7 @@
         <dependency>
             <groupId>org.springframework.data</groupId>
             <artifactId>spring-data-neo4j</artifactId>
-            <version>${project.version}</version>
+            <version>2.1.0.RC4</version>
             <scope>test</scope>
             <type>test-jar</type>
         </dependency>
@@ -241,7 +241,7 @@
         <dependency>
             <groupId>org.springframework.data</groupId>
             <artifactId>spring-data-neo4j-aspects</artifactId>
-            <version>${project.version}</version>
+            <version>2.1.0.RC4</version>
             <scope>test</scope>
             <type>test-jar</type>
         </dependency>
