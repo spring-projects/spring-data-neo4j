@@ -29,6 +29,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.neo4j.conversion.EndResult;
+import org.springframework.data.neo4j.model.Group;
 import org.springframework.data.neo4j.model.Person;
 import org.springframework.test.context.CleanContextCacheTestExecutionListener;
 import org.springframework.test.context.ContextConfiguration;
@@ -49,6 +50,8 @@ public class NoIndexDerivedFinderTest {
 
     @Autowired
     private PersonRepository personRepository;
+    @Autowired
+    private GroupRepository groupRepository;
 
     @Test @Transactional
     public void findByAge() {
@@ -59,6 +62,12 @@ public class NoIndexDerivedFinderTest {
     @Test @Transactional
     public void findAllInitiallyWithoutIndexCreation() {
         EndResult<Person> result = personRepository.findByHeight( (short) 100 );
+        assertEquals(0,IteratorUtil.count( result ));
+    }
+
+    @Test @Transactional
+    public void findFullTextWithoutIndexCreation() {
+        Iterable<Group> result = groupRepository.findByFullTextNameLike( "foo" );
         assertEquals(0,IteratorUtil.count( result ));
     }
 
