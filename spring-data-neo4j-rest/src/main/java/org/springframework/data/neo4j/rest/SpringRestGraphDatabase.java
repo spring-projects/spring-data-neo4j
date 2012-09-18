@@ -27,6 +27,7 @@ import org.neo4j.rest.graphdb.query.RestCypherQueryEngine;
 import org.neo4j.rest.graphdb.query.RestGremlinQueryEngine;
 import org.neo4j.rest.graphdb.transaction.NullTransaction;
 import org.neo4j.rest.graphdb.transaction.NullTransactionManager;
+import org.neo4j.rest.graphdb.util.Config;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.data.neo4j.annotation.QueryType;
 import org.springframework.data.neo4j.conversion.DefaultConverter;
@@ -40,6 +41,9 @@ import javax.transaction.TransactionManager;
 import java.util.Map;
 
 public class SpringRestGraphDatabase extends org.neo4j.rest.graphdb.RestGraphDatabase implements GraphDatabase{
+    static {
+        System.setProperty(Config.CONFIG_BATCH_TRANSACTION,"false");
+    }
     private ConversionService conversionService;
     private ResultConverter resultConverter;
 
