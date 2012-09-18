@@ -6,7 +6,7 @@
     <name>Spring Data Neo4j Distribution</name>
     <description><![CDATA[Within the Spring Data project the Spring Data Neo4j library provides integration with the Neo4j graph database, offering object graph mapping, a Neo4jTemplate and Spring-Data-Commons Repository implementations.
     ]]></description>
-    <version>2.1.0.BUILD-SNAPSHOT</version>
+    <version>2.1.0.RC4</version>
     <packaging>pom</packaging>
     <modules>
         <module>spring-data-neo4j-parent</module>
