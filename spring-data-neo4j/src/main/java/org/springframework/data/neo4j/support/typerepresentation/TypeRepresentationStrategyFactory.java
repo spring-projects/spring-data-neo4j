@@ -17,9 +17,11 @@
 package org.springframework.data.neo4j.support.typerepresentation;
 
 import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.NotFoundException;
 import org.neo4j.graphdb.PropertyContainer;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.index.Index;
+import org.neo4j.server.rest.web.NodeNotFoundException;
 import org.springframework.data.neo4j.core.GraphDatabase;
 import org.springframework.data.neo4j.core.NodeTypeRepresentationStrategy;
 import org.springframework.data.neo4j.core.RelationshipTypeRepresentationStrategy;
@@ -66,10 +68,14 @@ public class TypeRepresentationStrategyFactory {
     }
 
     private static boolean isAlreadySubRef(GraphDatabase graphDatabaseService) {
-        for (Relationship rel : graphDatabaseService.getReferenceNode().getRelationships()) {
-            if (rel.getType().name().startsWith(SubReferenceNodeTypeRepresentationStrategy.SUBREF_PREFIX)) {
-                return true;
+        try {
+            for (Relationship rel : graphDatabaseService.getReferenceNode().getRelationships()) {
+                if (rel.getType().name().startsWith(SubReferenceNodeTypeRepresentationStrategy.SUBREF_PREFIX)) {
+                    return true;
+                }
             }
+        } catch(NotFoundException nfe) {
+            // ignore
         }
         return false;
     }
