@@ -65,9 +65,8 @@ public class DomainTest {
         User user = new User("ich","Micha","password").persist();
         Rating awesome = user.rate(movie, 5, "Awesome");
 
-
         User foundUser = userRepository.findByPropertyValue("login", "ich");
-        Rating rating = user.getRatings().iterator().next();
+        Rating rating = foundUser.getRatings().iterator().next();
         assertEquals(awesome,rating);
         assertEquals("Awesome",rating.getComment());
         assertEquals(5,rating.getStars());
