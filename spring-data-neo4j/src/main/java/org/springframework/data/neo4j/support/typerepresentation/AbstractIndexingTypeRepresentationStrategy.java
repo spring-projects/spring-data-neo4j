@@ -50,6 +50,10 @@ public abstract class AbstractIndexingTypeRepresentationStrategy<S extends Prope
         this.typeEntityClass = typeEntityClass;
     }
 
+    private String indexValueForType(Class<?> entityClass) {
+        return indexProvider != null ? indexProvider.createIndexValueForType(entityClass) : entityClass.getName();
+    }
+    
     @SuppressWarnings("unchecked")
     public Index<S> getTypesIndex() {
         return (Index<S>) graphDb.createIndex(clazz, INDEX_NAME, IndexType.SIMPLE);
@@ -64,7 +68,7 @@ public abstract class AbstractIndexingTypeRepresentationStrategy<S extends Prope
     @Override
     public long count(Class<?> entityClass) {
         long count = 0;
-        final IndexHits<S> hits = getTypesIndex().get(INDEX_KEY, entityClass.getName());
+        final IndexHits<S> hits = getTypesIndex().get(INDEX_KEY, indexValueForType(entityClass));
         while (hits.hasNext()) {
             hits.next();
             count++;
@@ -93,11 +97,7 @@ public abstract class AbstractIndexingTypeRepresentationStrategy<S extends Prope
     protected void addToTypesIndex(S relationshipOrNode, Class<?> entityClass) {
         Class<?> type = entityClass;
         while (type.getAnnotation(typeEntityClass) != null) {
-            String value = entityClass.getName();
-            if (indexProvider != null)
-                value = indexProvider.createIndexValueForType(entityClass);
-
-            getTypesIndex().add(relationshipOrNode, INDEX_KEY, value);
+            getTypesIndex().add(relationshipOrNode, INDEX_KEY, indexValueForType(entityClass));
             type = type.getSuperclass();
         }
     }
