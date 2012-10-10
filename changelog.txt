@@ -1,6 +1,11 @@
 Spring Data Graph Changelog
 ===========================
 
+Changes in version 2.1.RELEASE (2012-10-10)
+-------------------------------------------
+* DATAGRAPH-303 Upgrade to Neo4j 1.8, Spring Data Commons 1.4.RELEASE
+* Documentation updates
+
 Changes in version 2.1.RC4 (2012-09-19)
 ---------------------------------------
 * DATAGRAPH-296 Updates to stable versions of Neo4j 1.8.RC1, spatial, cypher-dsl and java-rest-binding, adopted to API changes
