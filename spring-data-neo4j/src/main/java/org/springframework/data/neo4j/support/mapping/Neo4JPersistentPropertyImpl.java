@@ -310,7 +310,6 @@ class Neo4jPersistentPropertyImpl extends AbstractPersistentProperty<Neo4jPersis
             final TypeInformation<?> typeInformation = it.next();
             final Class type = typeInformation.getType();
             if (isNodeEntity(type) || isRelationshipEntity(type)) continue;
-            System.out.println("removing "+getName()+" "+type+" "+typeInformation.getActualType().getType());
             it.remove();
         }
         return result;
