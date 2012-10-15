@@ -26,7 +26,7 @@ import java.lang.annotation.Target;
 /**
  * Annotation for {@link org.springframework.data.neo4j.annotation.NodeEntity} fields that relate to other entities via
  * relationships. Works for one-to-one and one-to-many relationships. It is optionally possible to define the relationship type,
- * relationship direction and target class (required for one-many-relationships).
+ * relationship direction and target class (required for one-to-many relationships).
  *
  * Collection based one-to-many relationships return managed collections that reflect addition and removal to the underlying relationships.
  *

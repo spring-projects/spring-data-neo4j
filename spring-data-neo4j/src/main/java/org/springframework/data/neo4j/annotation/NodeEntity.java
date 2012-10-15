@@ -21,7 +21,7 @@ import org.springframework.data.annotation.Persistent;
 import java.lang.annotation.*;
 
 /**
- * Annotation to declare an Pojo-Entity as graph backed.
+ * Annotation to declare an POJO-entity as graph-backed.
  * 
  * @author Michael Hunger
  * @since 27.08.2010
