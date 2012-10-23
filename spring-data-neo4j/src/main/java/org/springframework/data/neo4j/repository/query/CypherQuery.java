@@ -68,7 +68,7 @@ public class CypherQuery implements CypherQueryDefinition {
             if (!addedStartClause(partInfo)) {
                 whereClauses.add(new WhereClause(partInfo,template));
             }
-        } else if (leafProperty.isEntity()) {
+        } else if (leafProperty.isRelationship()) {
             startClauses.add(new NodeEntityMatchingStartClause(partInfo));
             whereClauses.add(new TypeRestrictingWhereClause(new PartInfo(path, variableContext.getVariableFor(entity), part, -1), entity, template));
         } else if (leafProperty.isIdProperty()) {
