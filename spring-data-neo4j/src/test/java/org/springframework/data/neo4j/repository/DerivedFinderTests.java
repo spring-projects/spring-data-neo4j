@@ -102,6 +102,9 @@ class Recipe {
     @Fetch
     Ingredient secret;
 
+    @RelatedTo(direction = INCOMING, type ="secret")
+    Set<Ingredient> secrets;
+
     Recipe() {
     }
 
@@ -136,6 +139,7 @@ interface RecipeRepository extends GraphRepository<Recipe> {
     Set<Recipe> findByIngredientAndCookBookTitle(Ingredient ingredient, String cookBookTitle);
 
     Set<Recipe> findByIngredientAndCookBook(Ingredient ingredient, CookBook cookBook);
+    Set<Recipe> findBySecrets(Ingredient ingredient);
 }
 
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -249,6 +253,13 @@ public class DerivedFinderTests {
         Set<Recipe> recipes = recipeRepository.findByIngredientAndCookBook(pear, baking101);
 
         assertThat(single(recipes).title, is(equalTo("pear frangipane")));
+    }
+
+    @Test
+    public void shouldFindByRelationshipPropertyEntities() throws Exception {
+        Set<Recipe> recipes = recipeRepository.findBySecrets(spice);
+
+        assertThat(single(recipes).author, is(equalTo("The Colonel")));
     }
 
     @Test
