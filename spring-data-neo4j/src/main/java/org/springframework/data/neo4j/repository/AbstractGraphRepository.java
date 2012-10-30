@@ -79,8 +79,14 @@ public abstract class AbstractGraphRepository<S extends PropertyContainer, T> im
 
     private Result<T> geoQuery(String indexName, String geoQuery, Object params) {
         final IndexHits<S> indexHits = getIndex(indexName,null).query(geoQuery, params);
-        return template.convert(new GeoNodeIndexHitsWrapper(indexHits));
+		// We don't need the GeoNodeIndexHitsWrapper any more, the objects have
+		// been extracted by the index layer. This is the same behaviour seen in
+		// the Lucene index.
+        
+//        return template.convert(new GeoNodeIndexHitsWrapper(indexHits));
+        return template.convert(new IndexHitsWrapper(indexHits));
     }
+    
 
     public static final ClosableIterable EMPTY_CLOSABLE_ITERABLE = new ClosableIterable() {
         @Override
