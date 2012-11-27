@@ -211,6 +211,13 @@ public class GraphRepositoryTest {
         Iterable<Person> teamMembers = personRepository.findSomeTeamMembers(testTeam.sdg.getName(), 0, limit, depth);
         assertThat(asCollection(teamMembers), hasItems(testTeam.michael, testTeam.david));
     }
+    
+    @Test @Transactional
+    public void testFindAllPaged() {
+    	final PageRequest page = new PageRequest(0, 1, Sort.Direction.ASC, "member.name","member.age");
+    	Page<Person> teamMemberPage1 = personRepository.findAll(page);
+    	assertEquals(3, teamMemberPage1.getTotalPages());
+    }
 
     @Test @Transactional 
     public void testFindPaged() {
