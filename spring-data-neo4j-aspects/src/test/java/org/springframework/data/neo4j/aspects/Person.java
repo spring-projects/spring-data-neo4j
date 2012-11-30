@@ -238,6 +238,10 @@ public class Person {
 		this.personalProperties = personalProperties;
 	}
 	
+	public void personalPropertiesFromMap(Map<String, Object> props) {
+		this.personalProperties.setPropertiesFrom(props);
+	}
+
 	public void setNickname(String nickname) {
 		this.nickname = nickname;
 	}

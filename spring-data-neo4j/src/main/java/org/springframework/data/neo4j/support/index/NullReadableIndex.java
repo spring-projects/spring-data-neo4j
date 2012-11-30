@@ -39,13 +39,13 @@ public class NullReadableIndex<S extends PropertyContainer> implements ReadableI
     }
 
     @Override
-    public GraphDatabaseService getGraphDatabase() {
-        return graphDatabaseService;
+    public Class<S> getEntityType() {
+        return null;
     }
 
     @Override
-    public Class<S> getEntityType() {
-        return null;
+    public GraphDatabaseService getGraphDatabase() {
+        return graphDatabaseService;
     }
 
     @Override

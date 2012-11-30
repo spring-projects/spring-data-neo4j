@@ -46,7 +46,6 @@ import static org.junit.Assert.assertTrue;
  * @author mh
  * @since 31.01.11
  */
-
 public class DataGraphNamespaceHandlerTests {
 
     static class Config {
@@ -122,8 +121,8 @@ public class DataGraphNamespaceHandlerTests {
         Neo4jTemplate template = config.neo4jTemplate;
         Assert.assertNotNull("template", template);
         AbstractGraphDatabase graphDatabaseService = (AbstractGraphDatabase) template.getGraphDatabaseService();
-        File directory = new File("target", "config-test");
-        Assert.assertEquals("store-dir", directory.getPath(),graphDatabaseService.getStoreDir());
+        String fileSeparator = "target" + System.getProperty("file.separator") + "config-test";
+        Assert.assertTrue("store-dir", graphDatabaseService.getStoreDir().endsWith(fileSeparator));
         Assert.assertNotNull("graphDatabaseService",config.graphDatabaseService);
         Assert.assertNotNull("transactionManager",config.transactionManager);
         config.graphDatabaseService.shutdown();

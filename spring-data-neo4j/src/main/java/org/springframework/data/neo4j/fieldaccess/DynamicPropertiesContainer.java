@@ -70,6 +70,7 @@ public class DynamicPropertiesContainer implements DynamicProperties {
 
 	@Override
 	public void setPropertiesFrom(Map<String, Object> m) {
+		map.clear();
 		map.putAll(m);
 	}
 

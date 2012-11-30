@@ -195,10 +195,10 @@
 			<artifactId>blueprints-neo4j-graph</artifactId>
 			<version>${blueprints.version}</version>
 			<exclusions>
-               <exclusion>
-                        <groupId>org.neo4j</groupId>
-                        <artifactId>neo4j-management</artifactId>
-                </exclusion>
+				<exclusion>
+						<groupId>org.neo4j</groupId>
+						<artifactId>neo4j-management</artifactId>
+				</exclusion>
 				<exclusion>
 					<groupId>org.neo4j</groupId>
 					<artifactId>neo4j</artifactId>
@@ -254,7 +254,26 @@
 					</execution>
 				</executions>
 			</plugin>
-
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>build-helper-maven-plugin</artifactId>
+				<version>1.7</version>
+				<executions>
+					<execution>
+						<id>add-test-source</id>
+						<!-- Why is it not working with the generate-test-sources phase and add-test-source goal? -->
+						<phase>generate-sources</phase>
+						<goals>
+							<goal>add-source</goal>
+						</goals>
+						<configuration>
+							<sources>
+								<source>${project.build.directory}/generated-test-sources/querydsl</source>
+							</sources>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
 		</plugins>
 	</build>
 

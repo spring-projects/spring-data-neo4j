@@ -189,9 +189,10 @@ public class PrefixedDynamicProperties implements DynamicProperties {
     }
 
     @Override
-    public void setPropertiesFrom(final Map<String, Object> map) {
-        for (String key : map.keySet()) {
-        	baseSetProperty(key, map.get(key));
+    public void setPropertiesFrom(final Map<String, Object> propertiesMap) {
+        this.map.clear();
+        for (String key : propertiesMap.keySet()) {
+            baseSetProperty(key, propertiesMap.get(key));
         }
     }
 
