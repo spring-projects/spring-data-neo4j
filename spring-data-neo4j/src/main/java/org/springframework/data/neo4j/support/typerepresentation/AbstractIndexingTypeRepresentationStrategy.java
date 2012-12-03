@@ -48,6 +48,10 @@ public abstract class AbstractIndexingTypeRepresentationStrategy<S extends Prope
         typesIndex = createTypesIndex();
     }
 
+    private Object indexValueForType(Object alias) {
+        return indexProvider == null ? alias : indexProvider.createIndexValueForType(alias);
+    }
+    
     @SuppressWarnings("unchecked")
     private Index<S> createTypesIndex() {
         return (Index<S>) graphDb.createIndex(clazz, INDEX_NAME, IndexType.SIMPLE);
@@ -63,8 +67,7 @@ public abstract class AbstractIndexingTypeRepresentationStrategy<S extends Prope
     @Override
     public long count(StoredEntityType type) {
         long count = 0;
-        Object value = type.getAlias();
-        final IndexHits<S> hits = get(value);
+        final IndexHits<S> hits = get(type.getAlias());
         while (hits.hasNext()) {
             hits.next();
             count++;
@@ -74,10 +77,10 @@ public abstract class AbstractIndexingTypeRepresentationStrategy<S extends Prope
 
     private IndexHits<S> get(Object value) {
         try {
-            return typesIndex.get(INDEX_KEY, value);
+            return typesIndex.get(INDEX_KEY, indexValueForType(value));
         } catch(IllegalStateException ise) {
             typesIndex=createTypesIndex();
-            return typesIndex.get(INDEX_KEY, value);
+            return typesIndex.get(INDEX_KEY, indexValueForType(value));
         }
     }
 
@@ -109,11 +112,7 @@ public abstract class AbstractIndexingTypeRepresentationStrategy<S extends Prope
 
     protected void addToTypesIndex(S element, StoredEntityType type) {
         if (type == null) return;
-        Object value = type.getAlias();
-        if (indexProvider != null) {
-            value = indexProvider.createIndexValueForType(type.getAlias());
-        }
-        add(element, value);
+        add(element, type.getAlias());
         for (StoredEntityType superType : type.getSuperTypes()) {
             addToTypesIndex(element,superType);
         }
@@ -121,20 +120,16 @@ public abstract class AbstractIndexingTypeRepresentationStrategy<S extends Prope
 
     private void add(S element, Object value) {
         try {
-            typesIndex.add(element, INDEX_KEY, value);
+            typesIndex.add(element, INDEX_KEY, indexValueForType(value));
         } catch(IllegalStateException ise) {
             typesIndex = createTypesIndex();
-            typesIndex.add(element, INDEX_KEY, value);
+            typesIndex.add(element, INDEX_KEY, indexValueForType(value));
         }
     }
 
     @SuppressWarnings("hiding")
     private ClosableIterable<S> findAllRelBacked(StoredEntityType type) {
-        Object value = type.getAlias();
-        if (indexProvider != null)
-            value = indexProvider.createIndexValueForType(type.getAlias());
-
-        final IndexHits<S> allEntitiesOfType = get(value);
+        final IndexHits<S> allEntitiesOfType = get(type.getAlias());
         return new ClosableIndexHits<S>(allEntitiesOfType);
     }
 

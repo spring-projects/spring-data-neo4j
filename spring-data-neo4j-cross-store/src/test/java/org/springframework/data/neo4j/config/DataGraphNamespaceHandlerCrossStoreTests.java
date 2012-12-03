@@ -33,7 +33,6 @@ import java.io.File;
  * @author mh
  * @since 31.01.11
  */
-
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration("classpath:org/springframework/data/neo4j/config/DataGraphNamespaceHandlerTest-cross-store-context.xml")
 public class DataGraphNamespaceHandlerCrossStoreTests {
@@ -45,8 +44,8 @@ public class DataGraphNamespaceHandlerCrossStoreTests {
     @Test public void injectionForCrossStore() {
         Assert.assertNotNull("template", template);
         EmbeddedGraphDatabase graphDatabaseService = (EmbeddedGraphDatabase) template.getGraphDatabaseService();
-        File directory = new File("target", "config-test");
-        Assert.assertTrue("store-dir", graphDatabaseService.getStoreDir().equals(directory.getPath()));
+        String fileSeparator = "target" + System.getProperty("file.separator") + "config-test";
+        Assert.assertTrue("store-dir", graphDatabaseService.getStoreDir().endsWith(fileSeparator));
         Assert.assertNotNull("graphDatabaseService", graphDatabaseService);
         Assert.assertNotNull("transactionManager", transactionManager);
     }

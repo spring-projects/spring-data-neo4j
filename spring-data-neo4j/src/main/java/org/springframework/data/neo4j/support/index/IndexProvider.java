@@ -29,7 +29,6 @@ public interface IndexProvider {
     @SuppressWarnings("unchecked")
     <S extends PropertyContainer, T> Index<S> getIndex(Neo4jPersistentEntity<T> persistentEntity, String indexName, IndexType indexType);
 
-    @SuppressWarnings("unchecked")
     <T extends PropertyContainer> Index<T> getIndex(String indexName);
 
     boolean isNode(Class<? extends PropertyContainer> type);

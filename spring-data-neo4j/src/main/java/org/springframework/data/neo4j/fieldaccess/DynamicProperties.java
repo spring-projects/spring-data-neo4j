@@ -24,10 +24,15 @@ import org.springframework.data.neo4j.fieldaccess.DynamicPropertiesFieldAccessor
  * A {@link DynamicProperties} property on a @NodeEntity stores all its properties dynamically
  * on the underlying node itself.
  * <p>
+<<<<<<< HEAD
  * This dynamic property only is available inside a transaction, i.e. when the entity has been saved.
  * <p>
  * The key/value pairs of the {@link DynamicProperties} property are stored on the node with the keys
  * prefixed with the property name that is returned by {@link org.springframework.data.neo4j.mapping.Neo4jPersistentProperty#getNeo4jPropertyName()}.
+=======
+ * The key/value pairs of the {@link DynamicProperties} member are stored on the node with the keys
+ * prefixed with the property name that is returned by {@link DelegatingFieldAccessorFactory#getNeo4jPropertyName(Field)}. 
+>>>>>>> 2.0.x
  * <pre>
  * &#064;NodeEntity
  * class Person {

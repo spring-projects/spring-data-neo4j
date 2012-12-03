@@ -46,8 +46,12 @@ import static org.junit.Assert.assertTrue;
  * @author mh
  * @since 31.01.11
  */
+<<<<<<< HEAD:spring-data-neo4j/src/test/java/org/springframework/data/neo4j/config/DataGraphNamespaceHandlerTests.java
 
 public class DataGraphNamespaceHandlerTests {
+=======
+public class DataGraphNamespaceHandlerTest {
+>>>>>>> Merging the 2.0.x branch into master:spring-data-neo4j/src/test/java/org/springframework/data/neo4j/config/DataGraphNamespaceHandlerTest.java
 
     static class Config {
         @Autowired
@@ -122,8 +126,13 @@ public class DataGraphNamespaceHandlerTests {
         Neo4jTemplate template = config.neo4jTemplate;
         Assert.assertNotNull("template", template);
         AbstractGraphDatabase graphDatabaseService = (AbstractGraphDatabase) template.getGraphDatabaseService();
+<<<<<<< HEAD:spring-data-neo4j/src/test/java/org/springframework/data/neo4j/config/DataGraphNamespaceHandlerTests.java
         File directory = new File("target", "config-test");
         Assert.assertEquals("store-dir", directory.getPath(),graphDatabaseService.getStoreDir());
+=======
+        String fileSeparator = "target" + System.getProperty("file.separator") + "config-test";
+        Assert.assertTrue("store-dir", graphDatabaseService.getStoreDir().endsWith(fileSeparator));
+>>>>>>> Merging the 2.0.x branch into master:spring-data-neo4j/src/test/java/org/springframework/data/neo4j/config/DataGraphNamespaceHandlerTest.java
         Assert.assertNotNull("graphDatabaseService",config.graphDatabaseService);
         Assert.assertNotNull("transactionManager",config.transactionManager);
         config.graphDatabaseService.shutdown();

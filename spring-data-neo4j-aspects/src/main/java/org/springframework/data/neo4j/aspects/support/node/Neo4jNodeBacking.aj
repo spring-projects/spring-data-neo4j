@@ -87,13 +87,13 @@ public privileged aspect Neo4jNodeBacking { // extends AbstractTypeAnnotatingMix
 
 
     protected pointcut entityFieldGet(NodeBacked entity) :
-            get(* NodeBacked+.*) &&
+            get(!transient * NodeBacked+.*) &&
             this(entity) &&
             !get(* NodeBacked.*);
 
 
     protected pointcut entityFieldSet(NodeBacked entity, Object newVal) :
-            set(* NodeBacked+.*) &&
+            set(!transient * NodeBacked+.*) &&
             this(entity) &&
             args(newVal) &&
             !set(* NodeBacked.*);
