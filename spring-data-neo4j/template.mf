@@ -33,8 +33,8 @@ Import-Template:
  javax.persistence.*;version="[1.0.0, 3.0.0)";resolution:=optional,
  javax.persistence.spi.*;version="[1.0.0, 3.0.0)";resolution:=optional,
  javax.transaction.*;version="[1.0.1, 2.0.0)";resolution:=optional,
- com.mysema.query.annotations.*;version="0",
- com.mysema.query.apt.*;version="0",
+ com.mysema.query.annotations.*;version="0";resolution:=optional,
+ com.mysema.query.apt.*;version="0";resolution:=optional,
  com.tinkerpop.blueprints.*;version="[0.8,1.0)";resolution:=optional,
  com.tinkerpop.gremlin.*;version="[1.1,2.0)";resolution:=optional,
  com.tinkerpop.pipes.util.*;version="[0.8,1.0)";resolution:=optional
