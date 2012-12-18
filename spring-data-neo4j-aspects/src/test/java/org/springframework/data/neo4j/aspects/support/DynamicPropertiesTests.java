@@ -137,6 +137,32 @@ public class DynamicPropertiesTests extends EntityTestBase {
 
     @Test
     @Transactional
+    public void testRemovePropertyFromMap() {
+        Person p = persistedPerson("James", 36);
+
+        Map<String, Object> propertyMap = new HashMap<String, Object>();
+        propertyMap.put("s", "String");
+        propertyMap.put("x", 100);
+        propertyMap.put("pi", 3.1415);
+
+        p.personalPropertiesFromMap(propertyMap);
+        persist(p);
+        assertEquals(3, IteratorUtil.count(p.getPersonalProperties().getPropertyKeys()));
+        assertProperties(nodeFor(p));
+
+        propertyMap.remove("s");
+
+        p.personalPropertiesFromMap(propertyMap);
+        persist(p);
+        Node node = nodeFor(p);
+        assertEquals(2, IteratorUtil.count(p.getPersonalProperties().getPropertyKeys()));
+        assertFalse(node.hasProperty("personalProperties-s"));
+        assertEquals(100, node.getProperty("personalProperties-x"));
+        assertEquals(3.1415, ((Double) node.getProperty("personalProperties-pi")).doubleValue(), 0.000000001);
+    }
+
+    @Test
+    @Transactional
     public void testAsMap() {
         Person p = createTestPerson();
         Map<String, Object> propertyMap = p.getPersonalProperties().asMap();
