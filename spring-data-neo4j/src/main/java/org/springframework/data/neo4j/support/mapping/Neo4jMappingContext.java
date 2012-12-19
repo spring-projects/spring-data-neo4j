@@ -17,6 +17,7 @@
 package org.springframework.data.neo4j.support.mapping;
 
 import org.neo4j.graphdb.PropertyContainer;
+import org.springframework.data.annotation.Reference;
 import org.springframework.data.mapping.context.AbstractMappingContext;
 import org.springframework.data.mapping.context.MappingContext;
 import org.springframework.data.mapping.model.MappingException;
@@ -29,13 +30,9 @@ import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 import org.springframework.data.util.TypeInformation;
 
 import java.beans.PropertyDescriptor;
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.IdentityHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Neo4J specific {@link MappingContext} implementation. Simply creates {@link Neo4jPersistentEntityImpl} and
@@ -45,6 +42,8 @@ import java.util.Map;
  */
 public class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersistentEntityImpl<?>, Neo4jPersistentProperty> {
 
+    private final Map<Annotation, Boolean> referenceAnnotations = new IdentityHashMap<Annotation, java.lang.Boolean>();
+    
     protected <T> Neo4jPersistentEntityImpl<?> createPersistentEntity(TypeInformation<T> typeInformation) {
         final Class<T> type = typeInformation.getType();
         if (type.isAnnotationPresent(NodeEntity.class)) {
@@ -170,5 +169,17 @@ public class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersistentE
 
     public void setEntityAlias(EntityAlias entityAlias) {
         this.entityAlias = entityAlias;
+    }
+    
+    public boolean isReference(Neo4jPersistentProperty property) {
+        for (Annotation annotation : property.getAnnotations()) {
+            Boolean isReference = referenceAnnotations.get(annotation);
+            if (isReference == null) {
+                isReference = Reference.class.isInstance(annotation) || annotation.annotationType().isAnnotationPresent(Reference.class);
+                referenceAnnotations.put(annotation, isReference);
+            } 
+            if (isReference) return true;
+        }
+        return false;
     }
 }
