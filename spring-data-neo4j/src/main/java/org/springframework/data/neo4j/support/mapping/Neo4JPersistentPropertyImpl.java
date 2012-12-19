@@ -74,7 +74,7 @@ class Neo4jPersistentPropertyImpl extends AbstractPersistentProperty<Neo4jPersis
         this.annotations = extractAnnotations(field);
         this.relationshipInfo = extractRelationshipInfo(field, ctx);
         this.propertyType = extractPropertyType();
-        this.isAssociation = super.isAssociation();
+        this.isAssociation = ctx.isReference(this);
         this.isNeo4jEntityType = isNeo4jPropertyType(getType());
         this.neo4jPropertyName = createNeo4jPropertyName();
 
