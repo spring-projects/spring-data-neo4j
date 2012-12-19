@@ -95,6 +95,10 @@ public class SubReferenceNodeTypeRepresentationStrategy implements NodeTypeRepre
     @Override
     public void writeTypeTo(Node state, StoredEntityType type) {
 	    final Node subReference = obtainSubreferenceNode(type);
+        for ( Relationship relationship : state.getRelationships( INSTANCE_OF_RELATIONSHIP_TYPE, Direction.OUTGOING ) )
+        {
+            if (relationship.getEndNode().equals( subReference )) return;  // already there
+        }
         state.createRelationshipTo(subReference, INSTANCE_OF_RELATIONSHIP_TYPE);
 	    subReference.setProperty(SUBREF_CLASS_KEY, type.getAlias());
 	    if (log.isDebugEnabled()) log.debug("Created link to subref node: " + subReference + " with type: " + type.getType().getSimpleName()+" alias "+type.getAlias());

@@ -218,6 +218,16 @@ public class SubReferenceNodeTypeRepresentationStrategyTest extends EntityTestBa
     }
 
     @Test
+    public void testSaveTwice() throws Exception {
+        Thing thing = new Thing();
+        thing.setName("Foo");
+        thing = neo4jTemplate.save(thing);
+        thing.setName("Bar");
+        thing = neo4jTemplate.save(thing);
+        neo4jTemplate.findOne(thing.getNodeId(),Thing.class);
+    }
+
+    @Test
     @Transactional
 	public void testProjectEntity() throws Exception {
         Unrelated other = neo4jTemplate.projectTo(thing, Unrelated.class);
