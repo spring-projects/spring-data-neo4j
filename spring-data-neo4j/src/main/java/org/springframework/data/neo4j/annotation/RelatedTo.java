@@ -57,12 +57,12 @@ public @interface RelatedTo {
     org.neo4j.graphdb.Direction direction() default org.neo4j.graphdb.Direction.OUTGOING;
 
     /**
-     * @return target class, required for collection based fields (no generic inferring)
+     * @return target class, possible to specify it optionally or with use of {@link #enforceTargetType}
      */
     Class<?> elementClass() default Object.class;
 
     /**
-     * Used to discriminate between relationships with the same type based on end node type
+     * Used to discriminate between relationships with the same type based on end node type (inferred or from {@link #elementClass}
      */
     boolean enforceTargetType() default false;
 }
