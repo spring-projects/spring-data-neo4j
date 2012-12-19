@@ -79,6 +79,7 @@ public class MappingInfrastructureFactoryBean implements FactoryBean<Infrastruct
 
 
     private MappingInfrastructure mappingInfrastructure;
+    private TypeRepresentationStrategyFactory.Strategy typeRepresentationStrategy;
 
     public MappingInfrastructureFactoryBean(GraphDatabase graphDatabase, PlatformTransactionManager transactionManager) {
         this.graphDatabase = graphDatabase;
@@ -118,7 +119,7 @@ public class MappingInfrastructureFactoryBean implements FactoryBean<Infrastruct
             relationshipEntityInstantiator = new RelationshipEntityInstantiator(entityStateHandler);
         }
         if (this.typeRepresentationStrategyFactory == null) {
-            this.typeRepresentationStrategyFactory = new TypeRepresentationStrategyFactory(graphDatabase);
+            this.typeRepresentationStrategyFactory = typeRepresentationStrategy!=null ? new TypeRepresentationStrategyFactory(graphDatabase,typeRepresentationStrategy) : new TypeRepresentationStrategyFactory(graphDatabase);
         }
         if (this.nodeTypeRepresentationStrategy == null) {
             this.nodeTypeRepresentationStrategy = typeRepresentationStrategyFactory.getNodeTypeRepresentationStrategy();
@@ -270,6 +271,9 @@ public class MappingInfrastructureFactoryBean implements FactoryBean<Infrastruct
 
     public void setTypeRepresentationStrategyFactory(TypeRepresentationStrategyFactory typeRepresentationStrategyFactory) {
         this.typeRepresentationStrategyFactory = typeRepresentationStrategyFactory;
+    }
+    public void setTypeRepresentationStrategy(TypeRepresentationStrategyFactory.Strategy strategy) {
+        this.typeRepresentationStrategy = strategy;
     }
 
     public void setIndexProvider(IndexProvider indexProvider) {

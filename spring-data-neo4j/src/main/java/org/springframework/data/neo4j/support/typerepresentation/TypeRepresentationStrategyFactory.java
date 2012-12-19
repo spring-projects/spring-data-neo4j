@@ -16,6 +16,7 @@
 
 package org.springframework.data.neo4j.support.typerepresentation;
 
+import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.NotFoundException;
 import org.neo4j.graphdb.PropertyContainer;
@@ -45,7 +46,7 @@ public class TypeRepresentationStrategyFactory {
         this.graphDatabaseService = graphDatabaseService;
         this.strategy = strategy;
     }
-    
+
     public TypeRepresentationStrategyFactory(GraphDatabase graphDatabaseService,Strategy strategy, IndexProvider indexProvider) {
         this.indexProvider = indexProvider;
         this.graphDatabaseService = graphDatabaseService;
@@ -92,7 +93,7 @@ public class TypeRepresentationStrategyFactory {
         this.indexProvider = indexProvider;
     }
 
-    private enum Strategy {
+    public enum Strategy {
         SubRef {
             @Override
             public NodeTypeRepresentationStrategy getNodeTypeRepresentationStrategy(GraphDatabase graphDatabaseService, IndexProvider indexProvider) {

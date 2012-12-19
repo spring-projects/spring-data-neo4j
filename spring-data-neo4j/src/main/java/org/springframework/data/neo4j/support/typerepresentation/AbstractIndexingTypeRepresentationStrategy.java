@@ -55,6 +55,7 @@ public abstract class AbstractIndexingTypeRepresentationStrategy<S extends Prope
 
     @Override
     public void writeTypeTo(S state, StoredEntityType type) {
+        if (type.getAlias().equals(state.getProperty(TYPE_PROPERTY_NAME, null))) return; // already there
         addToTypesIndex(state, type);
         state.setProperty(TYPE_PROPERTY_NAME, type.getAlias());
     }
