@@ -53,7 +53,7 @@ public @interface RelatedToVia {
     org.neo4j.graphdb.Direction direction() default org.neo4j.graphdb.Direction.OUTGOING;
 
     /**
-     * @return target relationship entity class
+     * @return target relationship entity class, optional
      */
     Class<?> elementClass() default Object.class;
 }
