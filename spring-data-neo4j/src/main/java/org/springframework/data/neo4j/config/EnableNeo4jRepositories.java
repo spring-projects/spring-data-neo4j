@@ -90,7 +90,7 @@ public @interface EnableNeo4jRepositories {
 	 * Returns the key of the {@link QueryLookupStrategy} to be used for lookup queries for query methods. Defaults to
 	 * {@link Key#CREATE_IF_NOT_FOUND}.
 	 */
-	Key queryLookupStrategy() default Key.CREATE_IF_NOT_FOUND;
+	Key queryLookupStrategy() default org.springframework.data.repository.query.QueryLookupStrategy.Key.CREATE_IF_NOT_FOUND;
 
 	/**
 	 * Returns the {@link FactoryBean} class to be used for each repository instance. Defaults to
