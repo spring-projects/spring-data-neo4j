@@ -73,6 +73,9 @@
     <bean id="nodeEntityStateFactory" class="org.springframework.data.neo4j.cross_store.support.node.CrossStoreNodeEntityStateFactory">
         <constructor-arg ref="mappingContext"/>
         <constructor-arg>
+            <bean class="org.springframework.data.neo4j.fieldaccess.NodeDelegatingFieldAccessorFactory$Factory"/>
+        </constructor-arg>
+        <constructor-arg>
             <bean class="org.springframework.data.neo4j.cross_store.support.node.CrossStoreNodeDelegatingFieldAccessorFactory$Factory"/>
         </constructor-arg>
 		<constructor-arg name="entityManagerFactory" ref="entityManagerFactory"/>

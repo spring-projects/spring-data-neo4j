@@ -81,14 +81,13 @@ public class CrossStoreNeo4jConfiguration extends Neo4jAspectConfiguration {
 		}
 	}
 
-    @Override
-    public FieldAccessorFactoryFactory nodeDelegatingFieldAccessorFactory() throws Exception {
+    public FieldAccessorFactoryFactory crossStoreNodeDelegatingFieldAccessorFactory() throws Exception {
         return new CrossStoreNodeDelegatingFieldAccessorFactory.Factory();
     }
 
     @Bean
     public NodeEntityStateFactory nodeEntityStateFactory() throws Exception {
-        return new CrossStoreNodeEntityStateFactory(neo4jMappingContext(),nodeDelegatingFieldAccessorFactory(),entityManagerFactory);
+        return new CrossStoreNodeEntityStateFactory(neo4jMappingContext(), nodeDelegatingFieldAccessorFactory(), crossStoreNodeDelegatingFieldAccessorFactory(),entityManagerFactory);
     }
 
 }

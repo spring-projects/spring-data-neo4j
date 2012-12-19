@@ -35,10 +35,12 @@ import javax.persistence.PersistenceUnitUtil;
  * @since 30.09.11
  */
 public class CrossStoreNodeEntityStateFactory extends NodeEntityStateFactory {
+    private final FieldAccessorFactoryFactory crossStoreFactory;
     private final EntityManagerFactory entityManagerFactory;
 
-    public CrossStoreNodeEntityStateFactory(Neo4jMappingContext neo4jMappingContext, FieldAccessorFactoryFactory factory, EntityManagerFactory entityManagerFactory) {
+    public CrossStoreNodeEntityStateFactory(Neo4jMappingContext neo4jMappingContext, FieldAccessorFactoryFactory factory, FieldAccessorFactoryFactory crossStoreFactory, EntityManagerFactory entityManagerFactory) {
         super(neo4jMappingContext, factory);
+        this.crossStoreFactory = crossStoreFactory;
         this.entityManagerFactory = entityManagerFactory;
     }
 
@@ -46,7 +48,7 @@ public class CrossStoreNodeEntityStateFactory extends NodeEntityStateFactory {
         final Class<?> entityType = entity.getClass();
         if (isPartial(entityType)) {
             final Neo4jPersistentEntity<?> persistentEntity = mappingContext.getPersistentEntity(entityType);
-            final DelegatingFieldAccessorFactory fieldAccessorFactory = nodeDelegatingFieldAccessorFactory.provideFactoryFor(template);
+            final DelegatingFieldAccessorFactory fieldAccessorFactory = crossStoreFactory.provideFactoryFor(template);
             @SuppressWarnings("unchecked") final CrossStoreNodeEntityState<NodeBacked> partialNodeEntityState =
                     new CrossStoreNodeEntityState<NodeBacked>(null, (NodeBacked)entity, (Class<? extends NodeBacked>) entityType,
                             template, getPersistenceUnitUtils(), fieldAccessorFactory,
