@@ -3,7 +3,7 @@
 <chapter id="reference:cross-store">
     <title>Cross-store persistence</title>
     <para>
-        The Spring Data Neo4j project support cross-store persistence for the advanced mapping mode,
+        The Spring Data Neo4j project supports cross-store persistence for the <emphasis>advanced mapping mode</emphasis>,
 		which allows for parts of the data to be
         stored in a traditional JPA data store (RDBMS), and other parts in a graph store. This means that an entity
         can be partially stored in e.g. MySQL, and partially stored in Neo4j.
@@ -18,7 +18,7 @@
         <para>
             Partial graph persistence is achieved by restricting the Spring Data Neo4j aspects to manage only
             explicitly annotated parts of the entity. Those fields will be made <code>@Transient</code> by the
-            aspect so that JPA ignores them.
+            <emphasis>aspect</emphasis> so that JPA ignores them.
         </para>
         <para>
             A backing node in the graph store is only created when the entity has been assigned a JPA ID. Only
@@ -154,7 +154,48 @@ public class UserAccount {
 </beans>
 ]]></programlisting>
         </example>
+        <example>
+        <title>Using Spring java based configuration</title>
+            <programlisting language="java"><![CDATA[
+@Configuration
+@EnableNeo4jRepositories(basePackages = "com.apackage.repository")
+@EnableJpaRepositories(basePackages = "com.apackage.repository")
+@EnableTransactionManagement(mode = AdviceMode.ASPECTJ)
+public class BeanConfiguration extends CrossStoreNeo4jConfiguration {
 
+    @Bean(destroyMethod = "shutdown")
+    public GraphDatabaseService graphDatabaseService() {
+        GraphDatabaseService graphDatabaseService = new EmbeddedGraphDatabase("db/data");
+        return graphDatabaseService;
+    }
 
+    // Spring's EmbeddedDatabaseBuilder creates an in memory Hypersonic database and creates tables and data
+    // from running scripts you provide. In production this would be a real datasource pointing to your
+    // RDBMS location
+    @Bean
+    public DataSource dataSource() {
+      EmbeddedDatabaseBuilder builder = new EmbeddedDatabaseBuilder();
+      builder.addScript("classpath:sqlscripts/create-tables.sql");
+      builder.addScript("classpath:sqlscripts/insert-data.sql");
+      return builder.setType(EmbeddedDatabaseType.HSQL).build();
+    }
+
+    @Bean
+    public EntityManagerFactory entityManagerFactory() {
+
+        HibernateJpaVendorAdapter vendorAdapter = new HibernateJpaVendorAdapter();
+
+        LocalContainerEntityManagerFactoryBean factory = new LocalContainerEntityManagerFactoryBean();
+        factory.setJpaVendorAdapter(vendorAdapter);
+        factory.setPackagesToScan("com.apackage.domain");
+        factory.setDataSource(dataSource());
+        factory.afterPropertiesSet();
+
+        EntityManagerFactory emf = factory.getObject();
+        this.setEntityManagerFactory(emf);
+        return emf;
+    }]]
+            </programlisting>
+        </example>
     </section>
 </chapter>
