@@ -156,6 +156,14 @@ public class UserAccount {
         </example>
         <example>
         <title>Using Spring java based configuration</title>
+            <para>
+                When using Spring's Java Based @Configuration, you configuration class needs to extend
+                <code>CrossStoreNeo4jConfiguration</code> so that it has a property for <code>entityManagerFactory</code>
+                which by default is @Autowired. Like in xml (described here in <ulink url="http://static.springsource.org/spring-data/data-commons/docs/current/reference/html/#repositories.create-instances">
+                Spring Data Commons</ulink>, <code>@EnableNeo4jRepositories</code> allows for
+                <code>include-filters</code> and <code>exclude-filters</code>, in case there are other Spring Data
+                repositories within the same package as your Neo4j repositories.
+            </para>
             <programlisting language="java"><![CDATA[
 @Configuration
 @EnableNeo4jRepositories(basePackages = "com.apackage.repository")
