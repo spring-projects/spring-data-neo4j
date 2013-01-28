@@ -19,6 +19,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import static org.hamcrest.CoreMatchers.is;
 import static org.neo4j.cypherdsl.CypherQuery.*;
 import static org.neo4j.cypherdsl.querydsl.CypherQueryDSL.*;
 import org.neo4j.cypherdsl.grammar.Execute;
@@ -60,6 +61,7 @@ public class CypherDslRepositoryTest {
     private TestTeam team;
     private Map<String,Object> peopleParams;
     private Execute query = start(nodeByParameter("n", "people")).returns(identifier("n"));
+    private Execute countQuery = start(nodeByParameter("n", "people")).returns(count());
     private Execute query2 = CypherQueryDSL.start(CypherQueryDSL.nodeByparameter(identifier(QPerson.person), "people")).
                                             where(toBooleanExpression(QPerson.person.name.eq("Michael"))).
                                             returns(identifier(QPerson.person));
@@ -74,6 +76,13 @@ public class CypherDslRepositoryTest {
     public void testQueryPaged() throws Exception {
         final Page<Person> result = personRepository.query(query, peopleParams, new PageRequest(0, 2));
         assertThat(result.getContent(), hasItems(team.michael,team.david));
+    }
+
+    @Test
+    public void testQueryPagedWithCount() throws Exception {
+        final Page<Person> result = personRepository.query(query, countQuery, peopleParams, new PageRequest(0, 1));
+        assertThat(result.getContent(), hasItems(team.michael));
+        assertThat(result.getTotalElements(), is(3L));
     }
 
     @Test

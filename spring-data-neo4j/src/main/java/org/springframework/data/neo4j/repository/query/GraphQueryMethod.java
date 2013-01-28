@@ -25,6 +25,7 @@ import org.springframework.data.repository.query.Parameter;
 import org.springframework.data.repository.query.ParameterAccessor;
 import org.springframework.data.repository.query.QueryMethod;
 import org.springframework.data.repository.query.RepositoryQuery;
+import org.springframework.util.StringUtils;
 
 import java.lang.reflect.Method;
 import java.util.*;
@@ -49,21 +50,36 @@ public class GraphQueryMethod extends QueryMethod {
     }
 
     public String getQueryString() {
-        return queryAnnotation != null ? queryAnnotation.value() : getNamedQuery();
+        return queryAnnotation != null ? queryAnnotation.value() : getNamedQuery(getNamedQueryName());
+    }
+
+    @Override
+    public String getNamedQueryName() {
+		String annotatedName = queryAnnotation != null ? queryAnnotation.queryName() : null;
+        return StringUtils.hasText(annotatedName) ? annotatedName : super.getNamedQueryName();
+    }
+
+    public String getCountQueryString() {
+        return queryAnnotation != null ? queryAnnotation.countQuery() : getNamedQuery(getNamedCountQueryName());
     }
 
     public boolean isValid() {
         return this.getQueryString() != null; // && this.compoundType != null
     }
 
-    private String getNamedQuery() {
-        final String namedQueryName = getNamedQueryName();
+    private String getNamedQuery(String namedQueryName) {
         if (namedQueries.hasQuery(namedQueryName)) {
             return namedQueries.getQuery(namedQueryName);
         }
         return null;
     }
 
+    String getNamedCountQueryName() {
+		String annotatedName = queryAnnotation != null ? queryAnnotation.countQueryName() : null;
+		return StringUtils.hasText(annotatedName) ? annotatedName : getNamedQueryName() + ".count";
+	}
+
+    
     public Class<?> getReturnType() {
         return method.getReturnType();
     }

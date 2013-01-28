@@ -41,6 +41,11 @@ public @interface Query {
     String value() default "";
 
     /**
+     * @return simpler count-query to be executed for @{see Pageable}-support {self} will be provided by the node-id of the current entity other parameters (e.g. {name}) by the given named params
+     */
+    String countQuery() default "";
+
+    /**
      * @return target type to convert the single result column (if any) to.
      */
     Class<?> elementClass() default Object.class;
@@ -52,4 +57,14 @@ public @interface Query {
 
     // FQN is a fix for javac compiler bug
     org.springframework.data.neo4j.annotation.QueryType type() default org.springframework.data.neo4j.annotation.QueryType.Cypher;
+
+    /**
+     * @return name of the named query to be used for this annotated method, instead of Class.method
+     */
+    String queryName() default "";
+    
+    /**
+     * @return name of the named count query to be used for this annotated method, instead of Class.method.count
+     */
+    String countQueryName() default "";
 }

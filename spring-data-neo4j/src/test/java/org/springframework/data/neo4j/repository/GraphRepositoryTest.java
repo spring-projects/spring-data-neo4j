@@ -177,10 +177,28 @@ public class GraphRepositoryTest {
         Person boss = personRepository.findBoss( testTeam.emil );
         assertThat(boss, is( (Person)null ));
     }
+
+
     @Test @Transactional
     public void testCypherQueryWithNoResultsReturnsNullForPage() {
         Page<Person> people = personRepository.findSubordinates(testTeam.michael, new PageRequest(0, 10));
         assertEquals(true, people.getContent().isEmpty());
+    }
+
+    @Test @Transactional
+    public void testCypherQueryForPage() {
+        Page<Person> people = personRepository.findSubordinates(testTeam.emil, new PageRequest(0, 10));
+        assertEquals(2, people.getContent().size());
+        assertEquals(2, people.getTotalElements());
+        assertEquals(1, people.getTotalPages());
+    }
+
+    @Test @Transactional
+    public void testCypherQueryForPageWithCount() {
+        Page<Person> people = personRepository.findSubordinatesWithCount(testTeam.emil, new PageRequest(0, 1));
+        assertEquals(1, people.getContent().size());
+        assertEquals(2, people.getTotalElements());
+        assertEquals(2, people.getTotalPages());
     }
 
     @Test @Transactional 
@@ -204,12 +222,11 @@ public class GraphRepositoryTest {
     }
 
     @Test @Transactional 
-    @Ignore("untyil cypher supports parameters in path's and skip, limit")
     public void testFindWithMultipleParameters() {
         final int depth = 1;
         final int limit = 2;
         Iterable<Person> teamMembers = personRepository.findSomeTeamMembers(testTeam.sdg.getName(), 0, limit, depth);
-        assertThat(asCollection(teamMembers), hasItems(testTeam.michael, testTeam.david));
+        assertThat(asCollection(teamMembers), hasItems(testTeam.david, testTeam.emil));
     }
 
     @Test @Transactional 
@@ -403,7 +420,6 @@ public class GraphRepositoryTest {
     GraphDatabaseService gdb;
 
     @Test
-    @Ignore
     public void testFindMultiThreaded() throws Exception {
         final Car car = new TransactionTemplate(transactionManager).execute(new TransactionCallback<Car>() {
             @Override

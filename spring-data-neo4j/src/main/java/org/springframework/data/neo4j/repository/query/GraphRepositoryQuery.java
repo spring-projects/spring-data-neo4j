@@ -28,6 +28,7 @@ import org.springframework.data.repository.query.ParameterAccessor;
 import org.springframework.data.repository.query.ParametersParameterAccessor;
 import org.springframework.data.repository.query.RepositoryQuery;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 import java.util.*;
 
@@ -95,7 +96,8 @@ abstract class GraphRepositoryQuery implements RepositoryQuery, ParameterResolve
         final Class<?> compoundType = queryMethod.getCompoundType();
         if (queryMethod.isPageQuery()) {
             @SuppressWarnings("unchecked") final Iterable<?> result = queryEngine.query(queryString, params).to(compoundType);
-            return createPage(result, accessor.getPageable());
+            Long count = computeCount(params);
+            return createPage(result, accessor.getPageable(),count);
         }
         if (queryMethod.isIterableResult()) {
             final EndResult<?> result = queryEngine.query(queryString, params).to(compoundType);
@@ -106,6 +108,12 @@ abstract class GraphRepositoryQuery implements RepositoryQuery, ParameterResolve
         return queryEngine.query(queryString, params).to(queryMethod.getReturnType()).singleOrNull();
     }
 
+    private Long computeCount(Map<String, Object> params) {
+        String countQuery = queryMethod.getCountQueryString();
+        if (countQuery == null || !StringUtils.hasText(countQuery)) return null;
+        return getQueryEngine().query(countQuery,params).to(Long.class).singleOrNull();
+    }
+
     @Override
     public GraphQueryMethod getQueryMethod() {
         return queryMethod;
@@ -113,12 +121,20 @@ abstract class GraphRepositoryQuery implements RepositoryQuery, ParameterResolve
 
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    protected Object createPage(Iterable<?> result, Pageable pageable) {
+    protected Object createPage(Iterable<?> result, Pageable pageable, Long count) {
         final List resultList = IteratorUtil.addToCollection(result, new ArrayList());
         if (pageable==null) {
             return new PageImpl(resultList);
         }
-        final int currentTotal = pageable.getOffset() + pageable.getPageSize();
+        long currentTotal;
+        if (count!=null) {
+            currentTotal = count;
+        } else {
+            int pageSize = pageable.getPageSize();
+            long requestedCountStart = pageable.getOffset() * pageSize;
+            long resultSize = resultList.size();
+            currentTotal = resultSize == pageSize ? requestedCountStart + pageSize : requestedCountStart+resultSize;
+        }
         return new PageImpl(resultList, pageable, currentTotal);
     }
 

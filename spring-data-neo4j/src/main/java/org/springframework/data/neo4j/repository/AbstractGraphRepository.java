@@ -37,6 +37,7 @@ import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
 import org.springframework.data.neo4j.support.index.NoSuchIndexException;
 import org.springframework.data.neo4j.support.index.NullReadableIndex;
+import org.springframework.data.neo4j.support.query.QueryEngine;
 
 import java.util.*;
 
@@ -348,6 +349,11 @@ public abstract class AbstractGraphRepository<S extends PropertyContainer, T> im
     }
 
     @Override
+    public EndResult<T> query(String query, Map<String, Object> params) {
+        return template.query(query, params).to(clazz);
+    }
+
+    @Override
     public Page<T> findAll(final Pageable pageable) {
         int count = pageable.getPageSize();
         int offset = pageable.getOffset();
@@ -442,9 +448,21 @@ public abstract class AbstractGraphRepository<S extends PropertyContainer, T> im
 
     @SuppressWarnings("unchecked")
     @Override
-    public Page<T> query(Execute query, Map<String, Object> params, Pageable page) {
+    public Page<T> query(Execute query, Execute countQuery, Map<String, Object> params, Pageable page) {
         final Execute limitedQuery = ((Skip)query).skip(page.getOffset()).limit(page.getPageSize());
-        return template.queryEngineFor(QueryType.Cypher).query(limitedQuery.toString(), params).to(clazz).as(Page.class);
+        QueryEngine<Object> engine = template.queryEngineFor(QueryType.Cypher);
+        Page result = engine.query(limitedQuery.toString(), params).to(clazz).as(Page.class);
+        if (countQuery==null || result.getNumberOfElements() < page.getPageSize()) {
+            return result; 
+        }
+        Long count = engine.query(countQuery.toString(), params).to(Long.class).singleOrNull();
+        if (count==null) return result;
+        return new PageImpl<T>(result.getContent(),page, count);
+    }
+    @SuppressWarnings("unchecked")
+    @Override
+    public Page<T> query(Execute query, Map<String, Object> params, Pageable page) {
+        return query(query, null, params, page);
     }
 
     @SuppressWarnings("unchecked")

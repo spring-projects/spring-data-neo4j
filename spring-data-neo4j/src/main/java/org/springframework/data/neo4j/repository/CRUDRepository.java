@@ -26,6 +26,8 @@ import org.springframework.data.repository.NoRepositoryBean;
 import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Map;
+
 /**
  * CRUD interface for graph repositories, used as base repository for crud operations
  */
@@ -124,5 +126,7 @@ public interface CRUDRepository<T> extends PagingAndSortingRepository<T, Long> {
     Page<T> findAll(Pageable pageable);
 
     Class getStoredJavaType(Object entity);
+
+    EndResult<T> query(String query, Map<String, Object> params);
 
 }
