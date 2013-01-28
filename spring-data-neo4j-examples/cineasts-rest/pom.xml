@@ -13,7 +13,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <spring.version>3.1.0.RELEASE</spring.version>
         <slf4j.version>1.6.1</slf4j.version>
-        <neo4j.version>1.8.M06</neo4j.version>
+        <neo4j.version>1.8</neo4j.version>
         <spring-data-neo4j.version>${project.version}</spring-data-neo4j.version>
         <aspectj.version>1.6.12</aspectj.version>
         <jersey.version>1.4</jersey.version>

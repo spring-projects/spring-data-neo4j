@@ -12,6 +12,6 @@ public interface MovieRecommendation {
     @ResultColumn("otherMovie")
     Movie getMovie();
 
-    @ResultColumn("avg(r3.stars)")
+    @ResultColumn("rating")
     int getRating();
 }

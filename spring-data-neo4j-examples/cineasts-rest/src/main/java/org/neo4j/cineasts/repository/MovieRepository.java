@@ -20,9 +20,9 @@ public interface MovieRepository extends GraphRepository<Movie>, NamedIndexRepos
 
     @Query( "start user=node({0}) " +
                     " match user-[r:RATED]->movie<-[r2:RATED]-other-[r3:RATED]->otherMovie " +
-                    " where r.stars > 3 and r2.stars >= r.stars and r3.stars >= r.stars " +
-                    " return otherMovie, avg(r3.stars) " +
-                    " order by avg(r3.stars) desc, count(*) desc" +
+                    " where r.stars >= 3 and r2.stars >= r.stars and r3.stars >= r.stars " +
+                    " return otherMovie, avg(r3.stars) as rating, count(*) as cnt" +
+                    " order by rating desc, cnt desc" +
                     " limit 10" )
     List<MovieRecommendation> getRecommendations( User user );
 
@@ -31,7 +31,7 @@ public interface MovieRepository extends GraphRepository<Movie>, NamedIndexRepos
         @ResultColumn( "otherMovie" )
         Movie getMovie();
 
-        @ResultColumn( "count(*)" )
+        @ResultColumn( "rating" )
         int getRating();
     }
 
