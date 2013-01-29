@@ -124,7 +124,7 @@
     <org.slf4j.version>1.6.1</org.slf4j.version>
     <org.springframework.version.30>3.0.7.RELEASE</org.springframework.version.30>
     <org.springframework.version>3.1.2.RELEASE</org.springframework.version>
-    <data.commons.version>1.4.0.RELEASE</data.commons.version>
+    <data.commons.version>1.5.0.BUILD-SNAPSHOT</data.commons.version>
     <neo4j.version>1.8</neo4j.version>
     <neo4j.spatial.version>0.9</neo4j.spatial.version>
     <aspectj.version>1.6.12</aspectj.version>
@@ -281,9 +281,15 @@
       </dependency>
 
       <!--  Spring Data -->
+        <dependency>
+            <groupId>joda-time</groupId>
+            <artifactId>joda-time</artifactId>
+            <version>1.6</version>
+            <optional>true</optional>
+        </dependency>
       <dependency>
         <groupId>org.springframework.data</groupId>
-        <artifactId>spring-data-commons-core</artifactId>
+        <artifactId>spring-data-commons</artifactId>
         <version>${data.commons.version}</version>
       </dependency>
       <dependency>
@@ -751,6 +757,10 @@
     <repository>
       <id>spring-libs-milestone</id>
       <url>http://repo.springsource.org/libs-milestone</url>
+    </repository>
+    <repository>
+      <id>spring-libs-snapshot</id>
+      <url>http://repo.springsource.org/libs-snapshot</url>
     </repository>
     <repository>
       <id>tinkerpop-repository</id>

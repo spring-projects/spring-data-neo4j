@@ -15,22 +15,8 @@
  */
 package org.springframework.data.neo4j.lifecycle;
 
-import org.springframework.context.ApplicationEvent;
-
-public class BeforeSaveEvent<T> extends ApplicationEvent {
-    private final T entity;
-
-    /**
-     * @param source the component that published the event (never <code>null</code>)
-     * @param entity the entity that is about to be saved
-     */
+public class BeforeSaveEvent<T> extends Neo4jLifecycleEvent<T> {
     public BeforeSaveEvent(Object source, T entity) {
-        super(source);
-
-        this.entity = entity;
-    }
-
-    public T getEntity() {
-        return entity;
+        super(source, entity);
     }
 }

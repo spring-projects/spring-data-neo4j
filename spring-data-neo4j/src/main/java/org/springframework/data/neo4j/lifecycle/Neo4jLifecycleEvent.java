@@ -13,21 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.springframework.data.neo4j.lifecycle;
 
-package org.springframework.data.neo4j.annotation;
+import org.springframework.context.ApplicationEvent;
 
-import org.springframework.data.annotation.Id;
+public class Neo4jLifecycleEvent<T> extends ApplicationEvent {
+    private final T entity;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+    public Neo4jLifecycleEvent(Object source,T entity) {
+        super(source);
+        this.entity = entity;
+    }
 
-/**
- * Annotation fot the field that virtually provides the Id of the graph entity (node or relationship), type of the field should be long
- */
-@Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.FIELD,ElementType.METHOD})
-@Id
-public @interface GraphId {
+    public T getEntity() {
+        return entity;
+    }
 }

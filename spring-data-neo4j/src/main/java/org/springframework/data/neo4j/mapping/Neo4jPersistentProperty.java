@@ -66,7 +66,7 @@ public interface Neo4jPersistentProperty extends PersistentProperty<Neo4jPersist
 
     Collection<? extends Annotation> getAnnotations();
 
-    <T extends Annotation> T getAnnotation(Class<T> annotationType);
+    <T extends Annotation> T getAnnotation(Class<? extends T> annotationType);
 
     <T extends Annotation> boolean isAnnotationPresent(Class<T> annotationType);
 

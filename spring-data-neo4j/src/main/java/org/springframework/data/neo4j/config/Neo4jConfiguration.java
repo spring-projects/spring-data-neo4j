@@ -28,6 +28,7 @@ import org.springframework.core.convert.ConversionService;
 import org.springframework.dao.support.PersistenceExceptionTranslator;
 import org.springframework.data.convert.DefaultTypeMapper;
 import org.springframework.data.convert.TypeMapper;
+import org.springframework.data.mapping.context.MappingContextIsNewStrategyFactory;
 import org.springframework.data.neo4j.core.GraphDatabase;
 import org.springframework.data.neo4j.core.TypeRepresentationStrategy;
 import org.springframework.data.neo4j.fieldaccess.FieldAccessorFactoryFactory;
@@ -55,6 +56,7 @@ import org.springframework.data.neo4j.support.relationship.RelationshipEntityIns
 import org.springframework.data.neo4j.support.relationship.RelationshipEntityStateFactory;
 import org.springframework.data.neo4j.support.typerepresentation.ClassValueTypeInformationMapper;
 import org.springframework.data.neo4j.support.typerepresentation.TypeRepresentationStrategyFactory;
+import org.springframework.data.support.IsNewStrategyFactory;
 import org.springframework.transaction.PlatformTransactionManager;
 import javax.validation.Validator;
 
@@ -114,6 +116,7 @@ public abstract class Neo4jConfiguration {
 
         factoryBean.setTransactionManager(neo4jTransactionManager());
         factoryBean.setGraphDatabase(graphDatabase());
+        factoryBean.setIsNewStrategyFactory(isNewStrategyFactory());
         
         factoryBean.setIndexProvider(indexProvider());
 
@@ -121,6 +124,11 @@ public abstract class Neo4jConfiguration {
             factoryBean.setValidator(validator);
         }
         return factoryBean;
+    }
+    
+    @Bean
+    public IsNewStrategyFactory isNewStrategyFactory() throws Exception {
+        return new MappingContextIsNewStrategyFactory(neo4jMappingContext());
     }
 
     @Bean

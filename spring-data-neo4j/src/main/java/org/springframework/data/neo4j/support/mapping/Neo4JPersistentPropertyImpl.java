@@ -20,6 +20,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.data.annotation.Transient;
+import org.springframework.data.annotation.Version;
 import org.springframework.data.mapping.Association;
 import org.springframework.data.mapping.PersistentEntity;
 import org.springframework.data.mapping.model.AbstractPersistentProperty;
@@ -66,6 +67,7 @@ class Neo4jPersistentPropertyImpl extends AbstractPersistentProperty<Neo4jPersis
     private final Boolean isAssociation;
     private final String neo4jPropertyName;
     private final int hash;
+    private final boolean isVersionProperty;
 
     public Neo4jPersistentPropertyImpl(Field field, PropertyDescriptor propertyDescriptor,
                                        PersistentEntity<?, Neo4jPersistentProperty> owner, SimpleTypeHolder simpleTypeHolder, Neo4jMappingContext ctx) {
@@ -83,6 +85,7 @@ class Neo4jPersistentPropertyImpl extends AbstractPersistentProperty<Neo4jPersis
         this.defaultValue = extractDefaultValue();
         this.myAssociation = isAssociation() ? super.getAssociation() == null ? createAssociation() : super.getAssociation() : null;
         this.query = extractQuery();
+        this.isVersionProperty = isAnnotationPresent(Version.class);
     }
 
     private String extractQuery() {
@@ -124,11 +127,16 @@ class Neo4jPersistentPropertyImpl extends AbstractPersistentProperty<Neo4jPersis
         return annotation!=null ? new IndexInfo(annotation,this) : null;
     }
 
-    @SuppressWarnings("unchecked")
-    public <T extends Annotation> T getAnnotation(Class<T> annotationType) {
-        return (T) annotations.get(annotationType);
+    public <T extends Annotation> T getAnnotation(Class<? extends T> annotationType) {
+        return findAnnotation(annotationType);
     }
 
+    @SuppressWarnings("unchecked")
+    public <A extends Annotation> A findAnnotation(Class<? extends A> annotationType) {
+        return (A) annotations.get(annotationType);
+    }
+
+    
     private RelationshipInfo extractRelationshipInfo(final Field field, Neo4jMappingContext ctx) {
         if (isAnnotationPresent(RelatedTo.class)) {
             return RelationshipInfo.fromField(field, getAnnotation(RelatedTo.class), getTypeInformation(), ctx);
@@ -165,6 +173,11 @@ class Neo4jPersistentPropertyImpl extends AbstractPersistentProperty<Neo4jPersis
     public boolean isIdProperty() {
         return this.isIdProperty;
     }
+
+    @Override
+    public boolean isVersionProperty() {
+		return isVersionProperty;
+	}
 
     @Override
     protected Association<Neo4jPersistentProperty> createAssociation() {

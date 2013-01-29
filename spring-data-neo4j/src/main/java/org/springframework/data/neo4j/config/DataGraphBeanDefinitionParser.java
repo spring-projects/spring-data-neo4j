@@ -29,6 +29,8 @@ import org.springframework.core.type.filter.AnnotationTypeFilter;
 import org.springframework.data.annotation.Persistent;
 import org.springframework.data.neo4j.annotation.NodeEntity;
 import org.springframework.data.neo4j.annotation.RelationshipEntity;
+import org.springframework.data.repository.config.RepositoryBeanDefinitionParser;
+import org.springframework.data.repository.config.RepositoryConfigurationExtension;
 import org.springframework.util.ClassUtils;
 import org.w3c.dom.Element;
 
@@ -43,6 +45,7 @@ public class DataGraphBeanDefinitionParser extends AbstractBeanDefinitionParser 
     public static final String ASPECTJ_CONFIG = "org.springframework.data.neo4j.aspects.config.Neo4jAspectConfiguration";
     public static final String CROSS_STORE_CONFIG = "org.springframework.data.neo4j.cross_store.config.CrossStoreNeo4jConfiguration";
 
+    
     @Override
     protected AbstractBeanDefinition parseInternal(Element element, ParserContext context) {
         BeanDefinitionBuilder configBuilder = createConfigurationBeanDefinition(element);

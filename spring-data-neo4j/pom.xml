@@ -36,9 +36,14 @@
 		</dependency>
 
 		<!--  Spring Data -->
+        <dependency>
+            <groupId>joda-time</groupId>
+            <artifactId>joda-time</artifactId>
+            <optional>true</optional>
+        </dependency>
 		<dependency>
 			<groupId>org.springframework.data</groupId>
-			<artifactId>spring-data-commons-core</artifactId>
+			<artifactId>spring-data-commons</artifactId>
 		</dependency>
 
 		<!-- Logging -->
