@@ -80,7 +80,7 @@ public abstract class AbstractGraphRepository<S extends PropertyContainer, T> im
 
     private Result<T> geoQuery(String indexName, String geoQuery, Object params) {
         final IndexHits<S> indexHits = getIndex(indexName,null).query(geoQuery, params);
-        return template.convert(new GeoNodeIndexHitsWrapper(indexHits));
+        return template.convert(new IndexHitsWrapper(indexHits));
     }
 
     public static final ClosableIterable EMPTY_CLOSABLE_ITERABLE = new ClosableIterable() {
@@ -430,19 +430,6 @@ public abstract class AbstractGraphRepository<S extends PropertyContainer, T> im
         @Override
         public void close() {
            this.indexHits.close();
-        }
-    }
-
-    private class GeoNodeIndexHitsWrapper extends IndexHitsWrapper {
-        public GeoNodeIndexHitsWrapper(IndexHits<S> indexHits) {
-            super(indexHits);
-        }
-
-        @Override
-        protected T underlyingObjectToObject(S result) {
-            final Number objectNodeId = (Number) result.getProperty("id");
-            if (objectNodeId==null) return null;
-            return super.underlyingObjectToObject(getById(objectNodeId.longValue()));
         }
     }
 

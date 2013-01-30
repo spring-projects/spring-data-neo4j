@@ -63,10 +63,10 @@ public interface PersonRepository extends GraphRepository<Person>, NamedIndexRep
     @Query("start person=node({p_person}) match (boss)-[:boss]->(person) return boss")
     Person findBoss(@Param("p_person") Long person);
 
-    @Query("start boss=node({0}) match (boss)-[:boss]->(person) return person order by count(*)")
+    @Query("start boss=node({0}) match (boss)-[:boss]->(person) with person, count(*) as cnt order by cnt return person")
     Page<Person> findSubordinates(Person boss,Pageable page);
 
-    @Query(value = "start boss=node({0}) match (boss)-[:boss]->(person) return person order by count(*)",countQuery = "start boss=node({0}) match (boss)-[:boss]->(person) with person return count(*)")
+    @Query(value = "start boss=node({0}) match (boss)-[:boss]->(person) with person, count(*) as cnt order by cnt return person",countQuery = "start boss=node({0}) match (boss)-[:boss]->(person) with person return count(*)")
     Page<Person> findSubordinatesWithCount(Person boss,Pageable page);
 
     Group findTeam(@Param("p_person") Person person);

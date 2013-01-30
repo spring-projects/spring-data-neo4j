@@ -51,7 +51,7 @@ public abstract class QueryTemplates {
     static final String START_CLAUSE_INDEX_LOOKUP = "`%s`=node:`%s`(`%s`=" + PLACEHOLDER + ")";
     static final String START_CLAUSE_INDEX_QUERY = "`%s`=node:`%s`(" + PLACEHOLDER + ")";
     static final String WHERE_CLAUSE_1 = "`%1$s`.`%2$s`! %3$s {%4$d}";
-    static final String WHERE_TYPE_CHECK = "`%s`.__type__! IN [%s]";
+    static final String WHERE_TYPE_CHECK = "(has(`%1$s`.__type__) AND `%1$s`.__type__ IN [%2$s])";
     static final String WHERE_CLAUSE_0 = "`%1$s`.`%2$s`! %3$s ";
     static final String SORT_CLAUSE = "%s %s";
     static final String ORDER_BY_CLAUSE = " ORDER BY %s";

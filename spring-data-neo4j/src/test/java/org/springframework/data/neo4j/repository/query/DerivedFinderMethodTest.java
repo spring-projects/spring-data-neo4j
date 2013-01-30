@@ -111,7 +111,7 @@ public class DerivedFinderMethodTest {
     @Test
     public void testQueryWithEntityGraphId() throws Exception {
         assertRepositoryQueryMethod(ThingRepository.class, "findByOwnerId",new Object[]{123},
-                "START `thing_owner`=node({0}) MATCH `thing`-[:`owner`]->`thing_owner` WHERE `thing`.__type__! IN ['org.springframework.data.neo4j.repository.query.DerivedFinderMethodTest$Thing'] ",
+                "START `thing_owner`=node({0}) MATCH `thing`-[:`owner`]->`thing_owner` WHERE (has(`thing`.__type__) AND `thing`.__type__ IN ['org.springframework.data.neo4j.repository.query.DerivedFinderMethodTest$Thing']) ",
                 123);
     }
 

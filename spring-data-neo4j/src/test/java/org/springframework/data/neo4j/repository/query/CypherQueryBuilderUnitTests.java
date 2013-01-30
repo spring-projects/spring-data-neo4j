@@ -126,7 +126,7 @@ public class CypherQueryBuilderUnitTests {
     @Test
     public void createsSimpleTraversalClauseCorrectly() {
         query.addRestriction(new Part("group", Person.class));
-        assertThat(query.toString(), is("START `person_group`=node({0}) MATCH `person`<-[:`members`]-`person_group` WHERE `person`.__type__! IN ['Person'] RETURN `person`"));
+        assertThat(query.toString(), is("START `person_group`=node({0}) MATCH `person`<-[:`members`]-`person_group` WHERE (has(`person`.__type__) AND `person`.__type__ IN ['Person']) RETURN `person`"));
     }
 
     @Test
@@ -168,13 +168,13 @@ public class CypherQueryBuilderUnitTests {
     public void shouldFindByNodeEntity() throws Exception {
         query.addRestriction(new Part("pet", Person.class));
 
-        assertThat(query.toString(), is("START `person_pet`=node({0}) MATCH `person`-[:`owns`]->`person_pet` WHERE `person`.__type__! IN ['Person'] RETURN `person`"));
+        assertThat(query.toString(), is("START `person_pet`=node({0}) MATCH `person`-[:`owns`]->`person_pet` WHERE (has(`person`.__type__) AND `person`.__type__ IN ['Person']) RETURN `person`"));
     }
 
     @Test
     public void shouldFindByNodeEntityForIncomingRelationship() {
         query.addRestriction(new Part("group", Person.class));
 
-        assertThat(query.toString(), is("START `person_group`=node({0}) MATCH `person`<-[:`members`]-`person_group` WHERE `person`.__type__! IN ['Person'] RETURN `person`"));
+        assertThat(query.toString(), is("START `person_group`=node({0}) MATCH `person`<-[:`members`]-`person_group` WHERE (has(`person`.__type__) AND `person`.__type__ IN ['Person']) RETURN `person`"));
     }
 }
