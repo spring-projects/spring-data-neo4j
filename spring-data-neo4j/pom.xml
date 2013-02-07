@@ -144,6 +144,16 @@
 			<artifactId>neo4j-ha</artifactId>
 			<scope>test</scope>
             <version>${neo4j.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.neo4j</groupId>
+        			<artifactId>neo4j-backup</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>ch.qos.logback</groupId>
+        			<artifactId>logback-classic</artifactId>
+                </exclusion>
+            </exclusions>
 		</dependency>
 
 		<dependency>

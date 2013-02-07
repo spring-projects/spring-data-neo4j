@@ -11,6 +11,6 @@
     <context:annotation-config/>
     <neo4j:config graphDatabaseService="graphDatabaseService"/>
     <neo4j:repositories base-package="org.springframework.data.neo4j.model"/>
-    <bean id="graphDatabaseService" class="org.neo4j.test.ImpermanentGraphDatabase"/>
+    <bean id="graphDatabaseService" class="org.neo4j.test.ImpermanentGraphDatabase" destroy-method="shutdown"/>
     <tx:annotation-driven mode="aspectj"/>
 </beans>

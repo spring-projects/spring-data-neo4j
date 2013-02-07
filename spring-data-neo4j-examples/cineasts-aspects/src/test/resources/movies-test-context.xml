@@ -15,7 +15,7 @@
     <neo4j:config graphDatabaseService="graphDatabaseService"/>
     <neo4j:repositories base-package="org.neo4j.cineasts.repository"/>
 
-    <bean id="graphDatabaseService" class="org.neo4j.test.ImpermanentGraphDatabase"/>
+    <bean id="graphDatabaseService" class="org.neo4j.test.ImpermanentGraphDatabase" destroy-method="shutdown"/>
 
     <bean class="org.neo4j.cineasts.movieimport.MovieDbApiClient">
         <constructor-arg value="926d2a79e82920b62f03b1cb57e532e6"/>

@@ -23,8 +23,6 @@ import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.kernel.AbstractGraphDatabase;
 import org.neo4j.kernel.EmbeddedGraphDatabase;
 import org.neo4j.kernel.GraphDatabaseAPI;
-import org.neo4j.kernel.HighlyAvailableGraphDatabase;
-import org.neo4j.kernel.configuration.Config;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.core.convert.ConversionService;
@@ -80,7 +78,7 @@ public class DataGraphNamespaceHandlerTest {
         final Config config = assertInjected("");
         Assert.assertNotNull(config.personRepository);
     }
-    @Test
+    @Test                                                                       
     public void injectionForExistingGraphDatabaseService() {
         final Config config = assertInjected("-external-embedded");
         final GraphDatabaseAPI gds = (GraphDatabaseAPI) config.graphDatabaseService;
@@ -94,7 +92,7 @@ public class DataGraphNamespaceHandlerTest {
         final Config config = assertInjected("-external-ha");
         final AbstractGraphDatabase gds = (AbstractGraphDatabase) config.graphDatabaseService;
         final org.neo4j.kernel.configuration.Config neoConfig = gds.getKernelData().getConfig();
-        assertEquals(HighlyAvailableGraphDatabase.class, gds.getClass());
+        assertEquals("HighlyAvailableGraphDatabase", gds.getClass().getSimpleName());
         assertEquals("1", neoConfig.getParams().get("ha.server_id"));
     }
 
@@ -125,7 +123,7 @@ public class DataGraphNamespaceHandlerTest {
         Assert.assertNotNull("template", template);
         AbstractGraphDatabase graphDatabaseService = (AbstractGraphDatabase) template.getGraphDatabaseService();
         File directory = new File("target", "config-test");
-        Assert.assertTrue("store-dir", graphDatabaseService.getStoreDir().equals(directory.getAbsolutePath()));
+        Assert.assertEquals("store-dir", directory.getAbsolutePath(),graphDatabaseService.getStoreDir());
         Assert.assertNotNull("graphDatabaseService",config.graphDatabaseService);
         Assert.assertNotNull("transactionManager",config.transactionManager);
         config.graphDatabaseService.shutdown();

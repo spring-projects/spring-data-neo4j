@@ -259,7 +259,8 @@ public abstract class AbstractGraphRepository<S extends PropertyContainer, T> im
     interface Query<S extends PropertyContainer> {
         IndexHits<S> query(ReadableIndex<S> index);
     }
-    private ClosableIterable<T> quxery(String indexName, Query<S> query) {
+
+    private ClosableIterable<T> query(String indexName, Query<S> query) {
         try {
             final IndexHits<S> indexHits = query.query(getIndex(indexName, null));
             if (indexHits == null) return emptyClosableIterable();

@@ -14,6 +14,6 @@
             </bean>
         </constructor-arg>
     </bean>
-    <bean id="graphDatabaseService" class="org.neo4j.test.ImpermanentGraphDatabase"/>
+    <bean id="graphDatabaseService" class="org.neo4j.test.ImpermanentGraphDatabase" destroy-method="shutdown"/>
 	
 </beans>
