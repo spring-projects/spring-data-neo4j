@@ -440,7 +440,7 @@ public abstract class AbstractGraphRepository<S extends PropertyContainer, T> im
         final Execute limitedQuery = ((Skip)query).skip(page.getOffset()).limit(page.getPageSize());
         QueryEngine<Object> engine = template.queryEngineFor(QueryType.Cypher);
         Page result = engine.query(limitedQuery.toString(), params).to(clazz).as(Page.class);
-        if (countQuery==null || result.getNumberOfElements() < page.getPageSize()) {
+        if (countQuery == null) {
             return result; 
         }
         Long count = engine.query(countQuery.toString(), params).to(Long.class).singleOrNull();
