@@ -58,7 +58,7 @@
 			<artifactId>spring-data-neo4j</artifactId>
             <type>test-jar</type>
             <scope>test</scope>
-            <version>2.2.0.BUILD-SNAPSHOT</version>
+            <version>${project.version}</version>
 		</dependency>
 
 		<!-- Logging -->

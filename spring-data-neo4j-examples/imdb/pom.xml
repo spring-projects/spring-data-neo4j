@@ -4,7 +4,7 @@
   <groupId>org.neo4j.examples</groupId>
   <artifactId>imdb</artifactId>
   <packaging>war</packaging>
-  <version>2.1.0.BUILD-SNAPSHOT</version>
+  <version>2.2.0.BUILD-SNAPSHOT</version>
   <name>imdb</name>
   <properties>
     <spring.version>3.0.7.RELEASE</spring.version>
