@@ -20,37 +20,39 @@ import org.springframework.data.neo4j.repository.GraphRepository;
 import java.util.Collection;
 import java.util.Date;
 
-public interface ThingRepository extends GraphRepository<DerivedFinderMethodTest.Thing> {
-    DerivedFinderMethodTest.Thing findByFirstNameAndLastName(String firstName, String lastName);
-    DerivedFinderMethodTest.Thing findByFirstName(String firstName);
-    DerivedFinderMethodTest.Thing findByDescription(String firstName);
-    DerivedFinderMethodTest.Thing findByDescriptionAndFirstName(String description,String firstName);
-    DerivedFinderMethodTest.Thing findByFirstNameAndDescription(String firstName,String description);
-    DerivedFinderMethodTest.Thing findByAge(int age);
-    DerivedFinderMethodTest.Thing findByAgeAndFirstName(int age,String firstName);
-    DerivedFinderMethodTest.Thing findByFirstNameLike(String firstName);
-    DerivedFinderMethodTest.Thing findByFirstNameContains(String firstName);
-    DerivedFinderMethodTest.Thing findByFirstNameEndsWith(String firstName);
-    DerivedFinderMethodTest.Thing findByFirstNameStartsWith(String firstName);
-    DerivedFinderMethodTest.Thing findByNumber(int number);
+import static org.springframework.data.neo4j.repository.query.DerivedFinderMethodTests.Thing;
+
+public interface ThingRepository extends GraphRepository<DerivedFinderMethodTests.Thing> {
+    Thing findByFirstNameAndLastName(String firstName, String lastName);
+    Thing findByFirstName(String firstName);
+    Thing findByDescription(String firstName);
+    Thing findByDescriptionAndFirstName(String description,String firstName);
+    Thing findByFirstNameAndDescription(String firstName,String description);
+    Thing findByAge(int age);
+    Thing findByAgeAndFirstName(int age,String firstName);
+    Thing findByFirstNameLike(String firstName);
+    Thing findByFirstNameContains(String firstName);
+    Thing findByFirstNameEndsWith(String firstName);
+    Thing findByFirstNameStartsWith(String firstName);
+    Thing findByNumber(int number);
     
-    DerivedFinderMethodTest.Thing findByName(String name);
-    DerivedFinderMethodTest.Thing findByNameStartsWith(String name);
-    DerivedFinderMethodTest.Thing findByNameEndsWith(String name);
-    DerivedFinderMethodTest.Thing findByNameContains(String name);
+    Thing findByName(String name);
+    Thing findByNameStartsWith(String name);
+    Thing findByNameEndsWith(String name);
+    Thing findByNameContains(String name);
     
-    DerivedFinderMethodTest.Thing findByNameLike(String name);
-    DerivedFinderMethodTest.Thing findByNameNotLike(String name);
-    DerivedFinderMethodTest.Thing findByNameMatches(String name);
-    DerivedFinderMethodTest.Thing findByTaggedIsTrue();
-    DerivedFinderMethodTest.Thing findByTaggedIsFalse();
+    Thing findByNameLike(String name);
+    Thing findByNameNotLike(String name);
+    Thing findByNameMatches(String name);
+    Thing findByTaggedIsTrue();
+    Thing findByTaggedIsFalse();
     
-    DerivedFinderMethodTest.Thing findByNameExists();
-    DerivedFinderMethodTest.Thing findByNameIn(Collection<String> values);
-    DerivedFinderMethodTest.Thing findByNameNotIn(Collection<String> values);
+    Thing findByNameExists();
+    Thing findByNameIn(Collection<String> values);
+    Thing findByNameNotIn(Collection<String> values);
     
-    DerivedFinderMethodTest.Thing findByBornBefore(Date date);
-    DerivedFinderMethodTest.Thing findByBornAfter(Date date);
-    DerivedFinderMethodTest.Thing findById(long id);
-    DerivedFinderMethodTest.Thing findByOwnerId(long id);
+    Thing findByBornBefore(Date date);
+    Thing findByBornAfter(Date date);
+    Thing findById(long id);
+    Thing findByOwnerId(long id);
 }

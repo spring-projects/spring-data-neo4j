@@ -17,10 +17,12 @@ package org.springframework.data.test.snippets;
 
 import org.springframework.data.neo4j.repository.GraphRepository;
 
+import static org.springframework.data.test.snippets.SnippetRepositoryDerivedFinderTests.Person;
+
 /**
 * @author mh
 * @since 14.10.11
 */
-public interface PersonRepository extends GraphRepository<SnippetRepositoryDerivedFinderTest.Person> {
-    Iterable<SnippetRepositoryDerivedFinderTest.Person> findByGroupTitle(String name);
+public interface PersonRepository extends GraphRepository<Person> {
+    Iterable<Person> findByGroupTitle(String name);
 }

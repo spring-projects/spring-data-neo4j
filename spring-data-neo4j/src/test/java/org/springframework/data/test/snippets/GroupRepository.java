@@ -17,8 +17,10 @@ package org.springframework.data.test.snippets;
 
 import org.springframework.data.neo4j.repository.GraphRepository;
 
+import static org.springframework.data.test.snippets.SnippetRepositoryDerivedFinderTests.Group;
+
 /**
 * @author mh
 * @since 14.10.11
 */
-public interface GroupRepository extends GraphRepository<SnippetRepositoryDerivedFinderTest.Group> { }
+public interface GroupRepository extends GraphRepository<Group> { }
