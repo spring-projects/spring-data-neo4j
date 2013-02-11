@@ -3,9 +3,9 @@
 
 	<modelVersion>4.0.0</modelVersion>
 	
-    <groupId>org.springframework.data</groupId>
+	<groupId>org.springframework.data</groupId>
 	<artifactId>spring-data-neo4j-distribution</artifactId>
-    <version>2.2.0.BUILD-SNAPSHOT</version>
+	<version>2.2.0.BUILD-SNAPSHOT</version>
 
 	<packaging>pom</packaging>
 

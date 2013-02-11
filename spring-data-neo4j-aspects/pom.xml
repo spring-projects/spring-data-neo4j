@@ -5,9 +5,9 @@
 	
 	<artifactId>spring-data-neo4j-aspects</artifactId>
 
-	<name>Spring Data Neo4j AspectJ Advanced Mapping</name>
+	<name>Spring Data Neo4j - AspectJ Advanced Mapping</name>
 	<description>Advanced Mapping support for Spring Data Neo4j</description>
-    <version>2.2.0.BUILD-SNAPSHOT</version>
+	<version>2.2.0.BUILD-SNAPSHOT</version>
 
 	<parent>
 		<groupId>org.springframework.data</groupId>
@@ -59,8 +59,8 @@
 				</exclusion>
 			</exclusions>
 		</dependency>
-        
-        <!-- JSR 303 Validation -->
+		
+		<!-- JSR 303 Validation -->
 		<dependency>
 			<groupId>javax.validation</groupId>
 			<artifactId>validation-api</artifactId>
@@ -76,130 +76,130 @@
 		</dependency>
 
 
-        <dependency>
+		<dependency>
 			<groupId>org.neo4j</groupId>
 			<artifactId>neo4j-kernel</artifactId>
-            <version>${neo4j.version}</version>
+			<version>${neo4j.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.neo4j</groupId>
 			<artifactId>neo4j-lucene-index</artifactId>
-            <version>${neo4j.version}</version>
-            <scope>test</scope>
+			<version>${neo4j.version}</version>
+			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.neo4j</groupId>
 			<artifactId>neo4j-kernel</artifactId>
-            <version>${neo4j.version}</version>
-            <scope>test</scope>
-            <type>test-jar</type>
+			<version>${neo4j.version}</version>
+			<scope>test</scope>
+			<type>test-jar</type>
 		</dependency>
 
-        <dependency>
-            <groupId>org.springframework.data</groupId>
-            <artifactId>spring-data-neo4j</artifactId>
-            <version>2.2.0.BUILD-SNAPSHOT</version>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.data</groupId>
-            <artifactId>spring-data-neo4j</artifactId>
-            <version>2.2.0.BUILD-SNAPSHOT</version>
-            <type>test-jar</type>
-            <scope>test</scope>
-        </dependency>
+		<dependency>
+			<groupId>org.springframework.data</groupId>
+			<artifactId>spring-data-neo4j</artifactId>
+			<version>2.2.0.BUILD-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.data</groupId>
+			<artifactId>spring-data-neo4j</artifactId>
+			<version>2.2.0.BUILD-SNAPSHOT</version>
+			<type>test-jar</type>
+			<scope>test</scope>
+		</dependency>
 
-        <!-- JPA annotations for spring-aspects compilation which uses @Transactional -->
-        <dependency>
-            <groupId>org.hibernate.javax.persistence</groupId>
-            <artifactId>hibernate-jpa-2.0-api</artifactId>
-            <version>1.0.0.Final</version>
-            <optional>true</optional>
-            <scope>compile</scope>
-        </dependency>
+		<!-- JPA annotations for spring-aspects compilation which uses @Transactional -->
+		<dependency>
+			<groupId>org.hibernate.javax.persistence</groupId>
+			<artifactId>hibernate-jpa-2.0-api</artifactId>
+			<version>1.0.0.Final</version>
+			<optional>true</optional>
+			<scope>compile</scope>
+		</dependency>
 
-        <dependency>
+		<dependency>
 			<groupId>org.aspectj</groupId>
 			<artifactId>aspectjrt</artifactId>
 			<version>${aspectj}</version>
 		</dependency>
 
-        <dependency>
-            <groupId>cglib</groupId>
-            <artifactId>cglib</artifactId>
-            <version>2.2</version>
-        </dependency>
-        
-        <dependency>
-            <groupId>org.neo4j</groupId>
-            <artifactId>neo4j-spatial</artifactId>
-            <version>${neo4j.spatial.version}</version>
-            <scope>test</scope>
-        </dependency>
+		<dependency>
+			<groupId>cglib</groupId>
+			<artifactId>cglib</artifactId>
+			<version>2.2</version>
+		</dependency>
+		
+		<dependency>
+			<groupId>org.neo4j</groupId>
+			<artifactId>neo4j-spatial</artifactId>
+			<version>${neo4j.spatial.version}</version>
+			<scope>test</scope>
+		</dependency>
 
-        <dependency>
-            <groupId>org.neo4j</groupId>
-            <artifactId>neo4j-cypher-dsl</artifactId>
-            <version>${neo4j-cypher-dsl.version}</version>
-            <scope>test</scope>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.neo4j</groupId>
-                    <artifactId>neo4j</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
+		<dependency>
+			<groupId>org.neo4j</groupId>
+			<artifactId>neo4j-cypher-dsl</artifactId>
+			<version>${neo4j-cypher-dsl.version}</version>
+			<scope>test</scope>
+		<exclusions>
+				<exclusion>
+					<groupId>org.neo4j</groupId>
+					<artifactId>neo4j</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
 
-        
-        <dependency>
-            <groupId>com.tinkerpop.blueprints</groupId>
-            <artifactId>blueprints-core</artifactId>
-            <version>${blueprints.version}</version>
-            <scope>test</scope>
-            <optional>true</optional>
-        </dependency>
-        <dependency>
-            <groupId>com.tinkerpop.blueprints</groupId>
-            <artifactId>blueprints-neo4j-graph</artifactId>
-            <version>${blueprints.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.neo4j</groupId>
-                    <artifactId>neo4j</artifactId>
-                </exclusion>
-            </exclusions>
-            <scope>test</scope>
-            <optional>true</optional>
-        </dependency>
+		
+		<dependency>
+			<groupId>com.tinkerpop.blueprints</groupId>
+			<artifactId>blueprints-core</artifactId>
+			<version>${blueprints.version}</version>
+			<scope>test</scope>
+			<optional>true</optional>
+		</dependency>
+		<dependency>
+			<groupId>com.tinkerpop.blueprints</groupId>
+			<artifactId>blueprints-neo4j-graph</artifactId>
+			<version>${blueprints.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.neo4j</groupId>
+					<artifactId>neo4j</artifactId>
+				</exclusion>
+			</exclusions>
+			<scope>test</scope>
+			<optional>true</optional>
+		</dependency>
 
-        <dependency>
-            <groupId>com.tinkerpop.gremlin</groupId>
-            <artifactId>gremlin-groovy</artifactId>
-            <version>${gremlin.version}</version>
-            <optional>true</optional>
-            <scope>test</scope>
-        </dependency>
+		<dependency>
+			<groupId>com.tinkerpop.gremlin</groupId>
+			<artifactId>gremlin-groovy</artifactId>
+			<version>${gremlin.version}</version>
+			<optional>true</optional>
+			<scope>test</scope>
+		</dependency>
 
-    </dependencies>
+	</dependencies>
 	
 	<build>
 		<plugins>
-            <plugin>
+			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
-                <version>3.0</version>
-                <executions>
-                    <execution>
-                        <id>default-compile</id>
-                        <phase>none</phase>
-                    </execution>
-                    <execution>
-                        <id>default-testCompile</id>
-                        <phase>none</phase>
-                    </execution>
-                </executions>
-            </plugin>
+				<version>3.0</version>
+				<executions>
+					<execution>
+						<id>default-compile</id>
+						<phase>none</phase>
+					</execution>
+					<execution>
+						<id>default-testCompile</id>
+						<phase>none</phase>
+					</execution>
+				</executions>
+			</plugin>
 
-            <plugin>
+			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-jar-plugin</artifactId>
 				<executions>
@@ -228,17 +228,17 @@
 					</dependency>
 				</dependencies>
 				<executions>
-                    <execution>
-                        <phase>process-sources</phase>
-                        <goals>
-                            <goal>compile</goal>
-                            <goal>test-compile</goal>
-                        </goals>
-                    </execution>
-                </executions>
+					<execution>
+						<phase>process-sources</phase>
+						<goals>
+							<goal>compile</goal>
+							<goal>test-compile</goal>
+						</goals>
+					</execution>
+				</executions>
 				<configuration>
-                    <aspectDirectory>src/main/java</aspectDirectory>
-                    <testAspectDirectory>src/test/java</testAspectDirectory>
+					<aspectDirectory>src/main/java</aspectDirectory>
+					<testAspectDirectory>src/test/java</testAspectDirectory>
 					<outxml>true</outxml>
 					<aspectLibraries>
 						<aspectLibrary>
@@ -248,25 +248,25 @@
 					</aspectLibraries>
 					<source>${source.level}</source>
 					<target>${source.level}</target>
-                    <complianceLevel>${source.level}</complianceLevel>
+					<complianceLevel>${source.level}</complianceLevel>
 				</configuration>
 			</plugin>
-            <!-- the eclipse plugin interacts with the aspectj-maven-plugin 
-                 BUT ONLY if the ajdtVersion config value is set (remove it and it won't) -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-eclipse-plugin</artifactId>
-                <version>2.8</version>
-                <configuration>
-                    <!-- The ajdtVersion configuration parameter is optional. The valid values are none, 1.4, and 1.5. none indicates that AJDT should not be enabled even though Aspectj is enabled in maven. 1.4 generates the org.eclipse.ajdt.ui.prefs file in the .settings directory. 1.5 (or later) includes the configuration into the .classpath file and is the default value. -->
-                    <ajdtVersion>1.5</ajdtVersion>
-                    <additionalProjectnatures>
-                        <projectnature>org.eclipse.ajdt.ui.ajnature</projectnature>
-                        <projectnature>org.eclipse.jdt.core.javanature</projectnature>
-                        <projectnature>org.springframework.ide.eclipse.core.springnature</projectnature>
-                    </additionalProjectnatures>
-                </configuration>
-            </plugin>
+			<!-- the eclipse plugin interacts with the aspectj-maven-plugin 
+				 BUT ONLY if the ajdtVersion config value is set (remove it and it won't) -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-eclipse-plugin</artifactId>
+				<version>2.8</version>
+				<configuration>
+					<!-- The ajdtVersion configuration parameter is optional. The valid values are none, 1.4, and 1.5. none indicates that AJDT should not be enabled even though Aspectj is enabled in maven. 1.4 generates the org.eclipse.ajdt.ui.prefs file in the .settings directory. 1.5 (or later) includes the configuration into the .classpath file and is the default value. -->
+					<ajdtVersion>1.5</ajdtVersion>
+					<additionalProjectnatures>
+						<projectnature>org.eclipse.ajdt.ui.ajnature</projectnature>
+						<projectnature>org.eclipse.jdt.core.javanature</projectnature>
+						<projectnature>org.springframework.ide.eclipse.core.springnature</projectnature>
+					</additionalProjectnatures>
+				</configuration>
+			</plugin>
 		</plugins>
 	</build>
 

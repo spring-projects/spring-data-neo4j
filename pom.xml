@@ -8,7 +8,7 @@
 	<version>2.2.0.BUILD-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
-	<name>Spring Data Neo4j Parent</name>
+	<name>Spring Data Neo4j - Parent</name>
 	<description>Neo4j support for Spring Data</description>
 	<url>http://www.springsource.org/spring-data/neo4j</url>
 
@@ -21,57 +21,56 @@
 	
 	<modules>
 		<module>spring-data-neo4j</module>
-        <module>spring-data-neo4j-aspects</module>
-        <module>spring-data-neo4j-cross-store</module>
-        <module>spring-data-neo4j-tx</module>
+		<module>spring-data-neo4j-aspects</module>
+		<module>spring-data-neo4j-cross-store</module>
+		<module>spring-data-neo4j-tx</module>
 		<module>spring-data-neo4j-rest</module>
 		<module>spring-data-neo4j-distribution</module>
 	</modules>
 
 
 	<properties>
-        <source.level>1.6</source.level>
-        <target.level>1.6</target.level>
+		<source.level>1.6</source.level>
+		<target.level>1.6</target.level>
 
 		<project.type>multi</project.type>
-		<dist.name>spring-data-neo4j</dist.name>
 		<dist.id>spring-data-neo4j</dist.id>
-        
+		
 		<springdata.commons>1.5.0.RELEASE</springdata.commons>
 		<neo4j.version>1.8.1</neo4j.version>
 
-        <neo4j.spatial.version>0.10.1</neo4j.spatial.version>
-        <neo4j.graph-collections.version>0.5</neo4j.graph-collections.version>
-        <blueprints.version>1.2</blueprints.version>
-        <gremlin.version>1.5</gremlin.version>
-        <pipes.version>1.5</pipes.version>
-        <neo4j-cypher-dsl.version>1.9.M04</neo4j-cypher-dsl.version>
-    </properties>
+		<neo4j.spatial.version>0.10.1</neo4j.spatial.version>
+		<neo4j.graph-collections.version>0.5</neo4j.graph-collections.version>
+		<blueprints.version>1.2</blueprints.version>
+		<gremlin.version>1.5</gremlin.version>
+		<pipes.version>1.5</pipes.version>
+		<neo4j-cypher-dsl.version>1.9.M04</neo4j-cypher-dsl.version>
+	</properties>
 
 
-    <profiles>
-        <profile>
-            <id>fast</id>
-            <properties>
-                <maven.test.skip>true</maven.test.skip>
-            </properties>
-        </profile>
-        <profile>
-            <id>examples</id>
-            <modules>
-                <module>spring-data-neo4j-examples/hello-worlds</module>
-                <module>spring-data-neo4j-examples/imdb</module>
-                <module>spring-data-neo4j-examples/cineasts</module>
-                <module>spring-data-neo4j-examples/cineasts-aspects</module>
-                <module>spring-data-neo4j-examples/cineasts-rest</module>
-                <module>spring-data-neo4j-examples/myrestaurants-social</module>
-                <module>spring-data-neo4j-examples/todos</module>
-                <module>spring-data-neo4j-examples/backwardscompatibility</module>
-            </modules>
-        </profile>
-    </profiles>
+	<profiles>
+		<profile>
+			<id>fast</id>
+			<properties>
+				<maven.test.skip>true</maven.test.skip>
+			</properties>
+		</profile>
+		<profile>
+			<id>examples</id>
+			<modules>
+				<module>spring-data-neo4j-examples/hello-worlds</module>
+				<module>spring-data-neo4j-examples/imdb</module>
+				<module>spring-data-neo4j-examples/cineasts</module>
+				<module>spring-data-neo4j-examples/cineasts-aspects</module>
+				<module>spring-data-neo4j-examples/cineasts-rest</module>
+				<module>spring-data-neo4j-examples/myrestaurants-social</module>
+				<module>spring-data-neo4j-examples/todos</module>
+				<module>spring-data-neo4j-examples/backwardscompatibility</module>
+			</modules>
+		</profile>
+	</profiles>
 
-    <developers>
+	<developers>
 		<developer>
 			<id>mhunger</id>
 			<name>Michael Hunger</name>
@@ -118,31 +117,31 @@
 		</developer>
 	</developers>
 
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <version>2.12</version>
-                <configuration>
-                    <forkMode>once</forkMode>
-                    <redirectTestOutputToFile>true</redirectTestOutputToFile>
-                    <useFile>false</useFile>
-                    <includes>
-                        <include>**/*Tests.java</include>
-                    </includes>
-                    <excludes>
-                        <exclude>**/PerformanceTests.java</exclude>
-                    </excludes>
-                    <systemPropertyVariables>
-                        <java.util.logging.config.file>src/test/resources/logging.properties
-                        </java.util.logging.config.file>
-                    </systemPropertyVariables>
-                </configuration>
-            </plugin>
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<version>2.12</version>
+				<configuration>
+					<forkMode>once</forkMode>
+					<redirectTestOutputToFile>true</redirectTestOutputToFile>
+					<useFile>false</useFile>
+					<includes>
+						<include>**/*Tests.java</include>
+					</includes>
+					<excludes>
+						<exclude>**/PerformanceTests.java</exclude>
+					</excludes>
+					<systemPropertyVariables>
+						<java.util.logging.config.file>src/test/resources/logging.properties
+						</java.util.logging.config.file>
+					</systemPropertyVariables>
+				</configuration>
+			</plugin>
 
-        </plugins>
-    </build>
+		</plugins>
+	</build>
 	<dependencies>
 		<!-- Neo4j -->
 		<dependency>
@@ -159,25 +158,25 @@
 			<groupId>org.neo4j</groupId>
 			<artifactId>neo4j-kernel</artifactId>
 			<version>${neo4j.version}</version>
-            <scope>test</scope>
-            <type>test-jar</type>
+			<scope>test</scope>
+			<type>test-jar</type>
 		</dependency>
 	</dependencies>
-    <repositories>
-        <repository>
-            <id>neo4j-public-release-repository</id>
-            <url>http://m2.neo4j.org/releases</url>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
-        </repository>
-        <repository>
-            <id>tinkerpop-repository</id>
-            <url>http://tinkerpop.com/maven2</url>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
-        </repository>
-    </repositories>
+	<repositories>
+		<repository>
+			<id>neo4j-public-release-repository</id>
+			<url>http://m2.neo4j.org/releases</url>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+		</repository>
+		<repository>
+			<id>tinkerpop-repository</id>
+			<url>http://tinkerpop.com/maven2</url>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+		</repository>
+	</repositories>
 
 </project>

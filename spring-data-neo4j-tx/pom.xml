@@ -5,9 +5,9 @@
 	
 	<artifactId>spring-data-neo4j-tx</artifactId>
 
-	<name>Spring Data Neo4j Transactions</name>
+	<name>Spring Data Neo4j - Transactions</name>
 	<description>External transaction manager support for Spring Data Neo4j</description>
-    <version>2.2.0.BUILD-SNAPSHOT</version>
+	<version>2.2.0.BUILD-SNAPSHOT</version>
 
 	<parent>
 		<groupId>org.springframework.data</groupId>
@@ -60,55 +60,55 @@
 			</exclusions>
 		</dependency>
 
-        <dependency>
+		<dependency>
 			<groupId>org.neo4j</groupId>
 			<artifactId>neo4j-kernel</artifactId>
-            <version>${neo4j.version}</version>
+			<version>${neo4j.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.neo4j</groupId>
 			<artifactId>neo4j-lucene-index</artifactId>
-            <version>${neo4j.version}</version>
-            <scope>test</scope>
+			<version>${neo4j.version}</version>
+			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.neo4j</groupId>
 			<artifactId>neo4j-kernel</artifactId>
-            <version>${neo4j.version}</version>
-            <scope>test</scope>
-            <type>test-jar</type>
+			<version>${neo4j.version}</version>
+			<scope>test</scope>
+			<type>test-jar</type>
 		</dependency>
 
-        <dependency>
-            <groupId>org.ow2.jotm</groupId>
-            <artifactId>jotm-core</artifactId>
-            <version>2.1.9</version>
-            <optional>true</optional>
-        </dependency>
-        <dependency>
-            <groupId>org.ow2.spec.ee</groupId>
-            <artifactId>ow2-connector-1.5-spec</artifactId>
-            <version>1.0-M1</version>
-            <optional>true</optional>
-        </dependency>
+		<dependency>
+			<groupId>org.ow2.jotm</groupId>
+			<artifactId>jotm-core</artifactId>
+			<version>2.1.9</version>
+			<optional>true</optional>
+		</dependency>
+		<dependency>
+			<groupId>org.ow2.spec.ee</groupId>
+			<artifactId>ow2-connector-1.5-spec</artifactId>
+			<version>1.0-M1</version>
+			<optional>true</optional>
+		</dependency>
 
-        <!-- JPA annotations for spring-aspects compilation which uses @Transactional -->
-        <dependency>
-            <groupId>org.hibernate.javax.persistence</groupId>
-            <artifactId>hibernate-jpa-2.0-api</artifactId>
-            <version>1.0.0.Final</version>
-            <optional>true</optional>
-            <scope>compile</scope>
-        </dependency>
+		<!-- JPA annotations for spring-aspects compilation which uses @Transactional -->
+		<dependency>
+			<groupId>org.hibernate.javax.persistence</groupId>
+			<artifactId>hibernate-jpa-2.0-api</artifactId>
+			<version>1.0.0.Final</version>
+			<optional>true</optional>
+			<scope>compile</scope>
+		</dependency>
 
 
-        <dependency>
+		<dependency>
 			<groupId>org.aspectj</groupId>
 			<artifactId>aspectjrt</artifactId>
 			<version>${aspectj}</version>
 		</dependency>
 
-    </dependencies>
+	</dependencies>
 	
 	<build>
 		<plugins>
@@ -148,22 +148,22 @@
 					<target>${source.level}</target>
 				</configuration>
 			</plugin>
-            <!-- the eclipse plugin interacts with the aspectj-maven-plugin 
-                 BUT ONLY if the ajdtVersion config value is set (remove it and it won't) -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-eclipse-plugin</artifactId>
-                <version>2.8</version>
-                <configuration>
-                    <!-- The ajdtVersion configuration parameter is optional. The valid values are none, 1.4, and 1.5. none indicates that AJDT should not be enabled even though Aspectj is enabled in maven. 1.4 generates the org.eclipse.ajdt.ui.prefs file in the .settings directory. 1.5 (or later) includes the configuration into the .classpath file and is the default value. -->
-                    <ajdtVersion>1.5</ajdtVersion>
-                    <additionalProjectnatures>
-                        <projectnature>org.eclipse.ajdt.ui.ajnature</projectnature>
-                        <projectnature>org.eclipse.jdt.core.javanature</projectnature>
-                        <projectnature>org.springframework.ide.eclipse.core.springnature</projectnature>
-                    </additionalProjectnatures>
-                </configuration>
-            </plugin>
+			<!-- the eclipse plugin interacts with the aspectj-maven-plugin 
+				 BUT ONLY if the ajdtVersion config value is set (remove it and it won't) -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-eclipse-plugin</artifactId>
+				<version>2.8</version>
+				<configuration>
+					<!-- The ajdtVersion configuration parameter is optional. The valid values are none, 1.4, and 1.5. none indicates that AJDT should not be enabled even though Aspectj is enabled in maven. 1.4 generates the org.eclipse.ajdt.ui.prefs file in the .settings directory. 1.5 (or later) includes the configuration into the .classpath file and is the default value. -->
+					<ajdtVersion>1.5</ajdtVersion>
+					<additionalProjectnatures>
+						<projectnature>org.eclipse.ajdt.ui.ajnature</projectnature>
+						<projectnature>org.eclipse.jdt.core.javanature</projectnature>
+						<projectnature>org.springframework.ide.eclipse.core.springnature</projectnature>
+					</additionalProjectnatures>
+				</configuration>
+			</plugin>
 		</plugins>
 	</build>
 
