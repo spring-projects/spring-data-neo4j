@@ -1,6 +1,16 @@
 Spring Data Graph Changelog
 ===========================
 
+Changes in version 2.2.0.RELEASE (2013-02-11)
+---------------------------------------------
+* DATAGRAPH-332 Updated project to new build system and new dependencies
+* DATAGRAPH-329 Updated dependencies to Neo4j 1.8.1 (but also works with 1.9.x)
+* DATAGRAPH-328 Added Auditing Support, SD-commons 1.5.x
+* DATAGRAPH-323 - Support for count-queries for page results
+* DATAGRAPH-318 NodeEntity fields are not persisted in CrossStore setup
+* DATAGRAPH-320 Performance improvement regarding reference annotations in Neo4jMappingContext
+* Update examples and tests for new cypher syntax rules (order by)
+
 Changes in version 2.1.RELEASE (2012-10-10)
 -------------------------------------------
 * DATAGRAPH-303 Upgrade to Neo4j 1.8, Spring Data Commons 1.4.RELEASE
