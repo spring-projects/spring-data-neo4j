@@ -263,7 +263,55 @@ Iterable<Person> findByParentAgeAndMarried(int age, boolean married)
 					        </example>			
 						</para>
 		        </section>
-        <xi:include href="../../snippets/SnippetRepositoryDerivedFinder.xml"/>
+<section>
+<title>Derived Finder Methods</title>
+<para>
+Use the meta information of your domain model classes to declare repository finders that navigate along relationships and compare properties. The path defined with the method name is used to create a Cypher query that is executed on the graph.
+</para>
+<example>
+           <title>Repository and usage of derived finder methods</title>
+           <programlisting language="java"><![CDATA[    @NodeEntity
+    public static class Person {
+        @GraphId Long id;
+        private String name;
+        private Group group;
+
+        private Person(){}
+        public Person(String name) {
+            this.name = name;
+        }
+    }
+
+    @NodeEntity
+    public static class Group {
+        @GraphId Long id;
+        private String title;
+        // incoming relationship for the person -> group
+        @RelatedTo(type = "group", direction = Direction.INCOMING)
+        private Set<Person> members=new HashSet<Person>();
+
+        private Group(){}
+        public Group(String title, Person...people) {
+            this.title = title;
+            members.addAll(asList(people));
+        }
+    }
+    public interface PersonRepository extends GraphRepository<Person> {
+        Iterable<Person> findByGroupTitle(String name);
+    }
+
+    @Autowired PersonRepository personRepository;
+
+    Person oliver=personRepository.save(new Person("Oliver"));
+    final Group springData = new Group("spring-data",oliver);
+    groupRepository.save(springData);
+
+    final Iterable<Person> members = personRepository.findByGroupTitle("spring-data");
+    assertThat(members.iterator().next().name, is(oliver.name));
+]]></programlisting>
+       </example>
+</section>
+
     </section>
 
 	    <section>
