@@ -68,12 +68,6 @@ public class Neo4jPersistentEntityImpl<T> extends BasicPersistentEntity<T, Neo4j
     @Override
     public void verify() {
         super.verify();
-        if (isManaged() || getType().isInterface()) {
-            return;
-        }
-        final Neo4jPersistentProperty idProperty = getIdProperty();
-        if (idProperty == null) throw new MappingException("No id property in " + this);
-        if (idProperty.getType().isPrimitive()) throw new MappingException("The type of the id-property in " + idProperty+" must not be a primitive type but an object type like java.lang.Long");
         doWithProperties(new PropertyHandler<Neo4jPersistentProperty>() {
             Neo4jPersistentProperty unique = null;
             public void doWithPersistentProperty(Neo4jPersistentProperty persistentProperty) {
@@ -83,6 +77,12 @@ public class Neo4jPersistentEntityImpl<T> extends BasicPersistentEntity<T, Neo4j
                 }
             }
         });
+        if (isManaged() || getType().isInterface()) {
+            return;
+        }
+        final Neo4jPersistentProperty idProperty = getIdProperty();
+        if (idProperty == null) throw new MappingException("No id property in " + this);
+        if (idProperty.getType().isPrimitive()) throw new MappingException("The type of the id-property in " + idProperty+" must not be a primitive type but an object type like java.lang.Long");
     }
 
     public boolean useShortNames() {
