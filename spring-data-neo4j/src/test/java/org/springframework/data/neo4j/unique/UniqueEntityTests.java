@@ -30,6 +30,7 @@ import org.springframework.data.neo4j.unique.repository.ClubRepository;
 import org.springframework.data.neo4j.unique.repository.InvalidClubRepository;
 import org.springframework.data.neo4j.unique.repository.UniqueClubRepository;
 import org.springframework.data.neo4j.unique.repository.UniqueNumericIdClubRepository;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;

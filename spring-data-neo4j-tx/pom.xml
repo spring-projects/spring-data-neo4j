@@ -1,41 +1,66 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
 	<modelVersion>4.0.0</modelVersion>
+	
+	<artifactId>spring-data-neo4j-tx</artifactId>
+
+	<name>Spring Data Neo4j Transactions</name>
+	<description>External transaction manager support for Spring Data Neo4j</description>
+    <version>2.2.0.BUILD-SNAPSHOT</version>
+
 	<parent>
 		<groupId>org.springframework.data</groupId>
 		<artifactId>spring-data-neo4j-parent</artifactId>
 		<version>2.2.0.BUILD-SNAPSHOT</version>
-		<relativePath>../spring-data-neo4j-parent/pom.xml</relativePath>
+		<relativePath>../pom.xml</relativePath>
 	</parent>
-	<artifactId>spring-data-neo4j-tx</artifactId>
-	<packaging>jar</packaging>
-	<name>Neo4j Spring XA Transaction Integration</name>
-    <description><![CDATA[Integration of external XA-Transaction-Managers configured in Spring with Neo4j, via the "tx_manager_impl=spring-jta" config setting.
-    ]]></description>
-    <url>http://neo4j.org</url>
+
+	<properties>
+		<validation>1.0.0.GA</validation>
+	</properties>
+
 	<dependencies>
+		
 		<!--  Spring -->
 		<dependency>
 			<groupId>org.springframework</groupId>
-			<artifactId>spring-beans</artifactId>
+			<artifactId>spring-tx</artifactId>
+			<version>${spring}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-context</artifactId>
+			<version>${spring}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework</groupId>
-			<artifactId>spring-tx</artifactId>
+			<artifactId>spring-beans</artifactId>
+			<version>${spring}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-aspects</artifactId>
+			<version>${spring}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-aop</artifactId>
+			<version>${spring}</version>
 		</dependency>
 		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-core</artifactId>
+			<version>${spring}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>commons-logging</groupId>
+					<artifactId>commons-logging</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+
+        <dependency>
 			<groupId>org.neo4j</groupId>
 			<artifactId>neo4j-kernel</artifactId>
             <version>${neo4j.version}</version>
@@ -67,37 +92,6 @@
             <optional>true</optional>
         </dependency>
 
-		<dependency>
-			<groupId>junit</groupId>
-			<artifactId>junit</artifactId>
-		</dependency>
-
-		<dependency>
-			<groupId>org.aspectj</groupId>
-			<artifactId>aspectjrt</artifactId>
-			<version>${aspectj.version}</version>
-		</dependency>
-
-        <!-- Logging -->
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-log4j12</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>log4j</groupId>
-            <artifactId>log4j</artifactId>
-        </dependency>
-
-        <dependency>
-			<groupId>cglib</groupId>
-			<artifactId>cglib</artifactId>
-			<version>2.2</version>
-		</dependency>
-
         <!-- JPA annotations for spring-aspects compilation which uses @Transactional -->
         <dependency>
             <groupId>org.hibernate.javax.persistence</groupId>
@@ -106,79 +100,71 @@
             <optional>true</optional>
             <scope>compile</scope>
         </dependency>
-    </dependencies>
 
+
+        <dependency>
+			<groupId>org.aspectj</groupId>
+			<artifactId>aspectjrt</artifactId>
+			<version>${aspectj}</version>
+		</dependency>
+
+    </dependencies>
+	
 	<build>
-        <plugins>
-                  <plugin>
-                      <groupId>org.codehaus.mojo</groupId>
-                      <artifactId>aspectj-maven-plugin</artifactId>
-                      <version>1.2</version>
-                      <dependencies>
-                          <dependency>
-                              <groupId>org.aspectj</groupId>
-                              <artifactId>aspectjrt</artifactId>
-                              <version>${aspectj.version}</version>
-                          </dependency>
-                          <dependency>
-                              <groupId>org.aspectj</groupId>
-                              <artifactId>aspectjtools</artifactId>
-                              <version>${aspectj.version}</version>
-                          </dependency>
-                      </dependencies>
-                      <configuration>
-                          <!--aspectDirectory>src/main/java</aspectDirectory>
-                          <testAspectDirectory>src/test/java</testAspectDirectory-->
-                          <!--weaveDependencies>
-                              <weaveDependency>
-                                  <groupId>org.springframework.data</groupId>
-                                  <artifactId>spring-data-neo4j</artifactId>
-                                  <type>test-jar</type>
-                              </weaveDependency>
-                          </weaveDependencies-->
-                          <aspectLibraries>
-                              <aspectLibrary>
-                                  <groupId>org.springframework</groupId>
-                                  <artifactId>spring-aspects</artifactId>
-                                  <!--includes>
-                                      <include>org.springframework.beans.factory.aspectj.AnnotationBeanConfigurerAspect</include>
-                                  </includes-->
-                              </aspectLibrary>
-                          </aspectLibraries>
-                          <source>1.6</source>
-                          <target>1.6</target>
-                      </configuration>
-                      <executions>
-                          <execution>
-                              <id>default-compile</id>
-                              <goals>
-                                  <goal>compile</goal>
-                              </goals>
-                          </execution>
-                          <execution>
-                              <id>test-compile</id>
-                              <goals>
-                                  <goal>test-compile</goal>
-                              </goals>
-                          </execution>
-                      </executions>
-                  </plugin>
-                  <!-- the eclipse plugin interacts with the aspectj-maven-plugin
-                  BUT ONLY if the ajdtVersion config value is set (remove it and it won't) -->
-                  <plugin>
-                      <groupId>org.apache.maven.plugins</groupId>
-                      <artifactId>maven-eclipse-plugin</artifactId>
-                      <version>2.8</version>
-                      <configuration>
-                      <!-- The ajdtVersion configuration parameter is optional. The valid values are none, 1.4, and 1.5. none indicates that AJDT should not be enabled even though Aspectj is enabled in maven. 1.4 generates the org.eclipse.ajdt.ui.prefs file in the .settings directory. 1.5 (or later) includes the configuration into the .classpath file and is the default value. -->
-                          <ajdtVersion>1.5</ajdtVersion>
-                          <additionalProjectnatures>
-                              <projectnature>org.eclipse.ajdt.ui.ajnature</projectnature>
-                              <projectnature>org.eclipse.jdt.core.javanature</projectnature>
-                              <projectnature>org.springframework.ide.eclipse.core.springnature</projectnature>
-                          </additionalProjectnatures>
-                      </configuration>
-                  </plugin>
-      		</plugins>
+		<plugins>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>aspectj-maven-plugin</artifactId>
+				<version>1.4</version>
+				<dependencies>
+					<dependency>
+						<groupId>org.aspectj</groupId>
+						<artifactId>aspectjrt</artifactId>
+						<version>${aspectj}</version>
+					</dependency>
+					<dependency>
+						<groupId>org.aspectj</groupId>
+						<artifactId>aspectjtools</artifactId>
+						<version>${aspectj}</version>
+					</dependency>
+				</dependencies>
+				<executions>
+					<execution>
+						<goals>
+							<goal>compile</goal>
+							<goal>test-compile</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<outxml>true</outxml>
+					<aspectLibraries>
+						<aspectLibrary>
+							<groupId>org.springframework</groupId>
+							<artifactId>spring-aspects</artifactId>
+						</aspectLibrary>
+					</aspectLibraries>
+					<source>${source.level}</source>
+					<target>${source.level}</target>
+				</configuration>
+			</plugin>
+            <!-- the eclipse plugin interacts with the aspectj-maven-plugin 
+                 BUT ONLY if the ajdtVersion config value is set (remove it and it won't) -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-eclipse-plugin</artifactId>
+                <version>2.8</version>
+                <configuration>
+                    <!-- The ajdtVersion configuration parameter is optional. The valid values are none, 1.4, and 1.5. none indicates that AJDT should not be enabled even though Aspectj is enabled in maven. 1.4 generates the org.eclipse.ajdt.ui.prefs file in the .settings directory. 1.5 (or later) includes the configuration into the .classpath file and is the default value. -->
+                    <ajdtVersion>1.5</ajdtVersion>
+                    <additionalProjectnatures>
+                        <projectnature>org.eclipse.ajdt.ui.ajnature</projectnature>
+                        <projectnature>org.eclipse.jdt.core.javanature</projectnature>
+                        <projectnature>org.springframework.ide.eclipse.core.springnature</projectnature>
+                    </additionalProjectnatures>
+                </configuration>
+            </plugin>
+		</plugins>
 	</build>
+
 </project>

@@ -104,7 +104,9 @@ public class IndexProviderImpl implements IndexProvider {
             return getIndex(declaringType, indexName, IndexType.SIMPLE);
         }
         String defaultIndexName = customizeIndexName(Indexed.Name.get(level, declaringType, null, instanceType.getClass()), instanceType);
-        if (providedIndexName==null || providedIndexName.equals(defaultIndexName)) throw new IllegalStateException("Index name for "+property+" must differ from the default name: "+defaultIndexName);
+        if (providedIndexName==null || providedIndexName.equals(defaultIndexName)) {
+            throw new IllegalStateException("Index name for "+property+" must differ from the default name: "+defaultIndexName);
+        }
         return getIndex(declaringType, indexName, property.getIndexInfo().getIndexType());
     }
 

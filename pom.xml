@@ -1,149 +1,54 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-    <modelVersion>4.0.0</modelVersion>
-    <groupId>org.springframework.data</groupId>
-    <artifactId>spring-data-neo4j-dist</artifactId>
-    <name>Spring Data Neo4j Distribution</name>
-    <description><![CDATA[Within the Spring Data project the Spring Data Neo4j library provides integration with the Neo4j graph database, offering object graph mapping, a Neo4jTemplate and Spring-Data-Commons Repository implementations.
-    ]]></description>
-    <version>2.2.0.BUILD-SNAPSHOT</version>
-    <packaging>pom</packaging>
-    <modules>
-        <module>spring-data-neo4j-parent</module>
-        <module>spring-data-neo4j</module>
-        <module>spring-data-neo4j-rest</module>
-        <module>spring-data-neo4j-tx</module>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+	<modelVersion>4.0.0</modelVersion>
+	
+	<groupId>org.springframework.data</groupId>
+	<artifactId>spring-data-neo4j-parent</artifactId>
+	<version>2.2.0.BUILD-SNAPSHOT</version>
+	<packaging>pom</packaging>
+
+	<name>Spring Data Neo4j Parent</name>
+	<description>Neo4j support for Spring Data</description>
+	<url>http://www.springsource.org/spring-data/neo4j</url>
+
+	<parent>
+		<groupId>org.springframework.data.build</groupId>
+		<artifactId>spring-data-parent</artifactId>
+		<version>1.0.0.RELEASE</version>
+		<relativePath>../spring-data-build/parent/pom.xml</relativePath>
+	</parent>
+	
+	<modules>
+		<module>spring-data-neo4j</module>
         <module>spring-data-neo4j-aspects</module>
         <module>spring-data-neo4j-cross-store</module>
-    </modules>
-    <url>http://www.springsource.org/spring-data/neo4j</url>
-    <organization>
-        <name>SpringSource</name>
-        <url>http://www.springsource.com</url>
-    </organization>
-    <scm>
-        <url>http://github.com/SpringSource/spring-data-neo4j</url>
-        <connection>scm:git:git://github.com/SpringSource/spring-data-neo4j.git</connection>
-        <developerConnection>scm:git:git://github.com/SpringSource/spring-data-neo4j.git</developerConnection>
-    </scm>
-    <issueManagement>
-        <system>JIRA</system>
-        <url>https://jira.springsource.org/browse/DATAGRAPH</url>
-    </issueManagement>
-    <mailingLists>
-        <mailingList>
-            <name>Spring Data Forums</name>
-            <post>http://forum.springsource.org/forumdisplay.php?f=80</post>
-            <archive>http://forum.springsource.org/forumdisplay.php?f=80</archive>
-        </mailingList>
-    </mailingLists>
-    <ciManagement>
-        <system>Bamboo</system>
-        <url>https://build.springsource.org/browse/SPRINGDATA-DATAGRAPH</url>
-    </ciManagement>
+        <module>spring-data-neo4j-tx</module>
+		<module>spring-data-neo4j-rest</module>
+		<module>spring-data-neo4j-distribution</module>
+	</modules>
 
-    <developers>
-        <developer>
-            <id>trisberg</id>
-            <name>Thomas Risberg</name>
-            <email>trisberg at vmware.com</email>
-            <organization>SpringSource</organization>
-            <organizationUrl>http://www.SpringSource.com</organizationUrl>
-            <roles>
-                <role>Project Admin</role>
-            </roles>
-            <timezone>-5</timezone>
-        </developer>
-        <developer>
-            <id>mpollack</id>
-            <name>Mark Pollack</name>
-            <email>mpollack at vmware.com</email>
-            <organization>SpringSource</organization>
-            <organizationUrl>http://www.SpringSource.com</organizationUrl>
-            <roles>
-                <role>Project Admin</role>
-            </roles>
-            <timezone>-5</timezone>
-        </developer>
-        <developer>
-            <id>mhunger</id>
-            <name>Michael Hunger</name>
-            <email>michael.hunger at neotechnology.com</email>
-            <organization>Neo Technology</organization>
-            <organizationUrl>http://www.neotechnology.com</organizationUrl>
-            <roles>
-                <role>Project Admin</role>
-                <role>Developer</role>
-            </roles>
-            <timezone>+1</timezone>
-        </developer>
-        <developer>
-            <id>dmontag</id>
-            <name>David Montag</name>
-            <email>david.montag at neotechnology.com</email>
-            <organization>Neo Technology</organization>
-            <organizationUrl>http://www.neotechnology.com</organizationUrl>
-            <roles>
-                <role>Developer</role>
-            </roles>
-            <timezone>-7</timezone>
-        </developer>
-        <developer>
-            <id>systay</id>
-            <name>Andres Taylor</name>
-            <email>andres at neotechnology.com</email>
-            <organization>Neo Technology</organization>
-            <organizationUrl>http://www.neotechnology.com</organizationUrl>
-            <roles>
-                <role>Developer</role>
-            </roles>
-            <timezone>+1</timezone>
-        </developer>
-    </developers>
 
-    <licenses>
-        <license>
-            <name>Apache License, Version 2.0</name>
-            <url>http://www.apache.org/licenses/LICENSE-2.0</url>
-            <comments>
-                Copyright 2010 the original author or authors.
+	<properties>
+        <source.level>1.6</source.level>
+        <target.level>1.6</target.level>
 
-                Licensed under the Apache License, Version 2.0 (the "License");
-                you may not use this file except in compliance with the License.
-                You may obtain a copy of the License at
+		<project.type>multi</project.type>
+		<dist.name>spring-data-neo4j</dist.name>
+		<dist.id>spring-data-neo4j</dist.id>
+        
+		<springdata.commons>1.5.0.RELEASE</springdata.commons>
+		<neo4j.version>1.8.1</neo4j.version>
 
-                http://www.apache.org/licenses/LICENSE-2.0
-
-                Unless required by applicable law or agreed to in writing, software
-                distributed under the License is distributed on an "AS IS" BASIS,
-                WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
-                implied.
-                See the License for the specific language governing permissions and
-                limitations under the License.
-            </comments>
-        </license>
-    </licenses>
-
-    <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <!-- dist.* properties are used by the antrun tasks below -->
-        <dist.id>spring-data-neo4j</dist.id>
-        <dist.name>Spring Data Neo4j</dist.name>
-        <dist.key>SDNEO4J</dist.key>
-        <dist.version>${project.version}</dist.version>
-        <dist.releaseType>snapshot</dist.releaseType>
-        <dist.finalName>${dist.id}-${dist.version}</dist.finalName>
-        <dist.fileName>${dist.finalName}.zip</dist.fileName>
-        <dist.filePath>target/${dist.fileName}</dist.filePath>
-        <dist.bucketName>dist.springframework.org</dist.bucketName>
-        <!-- these properties should be in ~/.m2/settings.xml
-          <dist.accessKey>s3 access key</dist.accessKey>
-          <dist.secretKey>s3 secret key</dist.secretKey>
-          -->
-        <docbook.srcDir>${basedir}/src/docbkx</docbook.srcDir>
-        <docbook.snippetsDir>${basedir}/spring-data-neo4j/target/docbkx</docbook.snippetsDir>
-        <docbook.generatedDir>${basedir}/target/classes</docbook.generatedDir>
+        <neo4j.spatial.version>0.10.1</neo4j.spatial.version>
+        <neo4j.graph-collections.version>0.5</neo4j.graph-collections.version>
+        <blueprints.version>1.2</blueprints.version>
+        <gremlin.version>1.5</gremlin.version>
+        <pipes.version>1.5</pipes.version>
+        <neo4j-cypher-dsl.version>1.9.M04</neo4j-cypher-dsl.version>
     </properties>
+
+
     <profiles>
         <profile>
             <id>fast</id>
@@ -164,450 +69,115 @@
                 <module>spring-data-neo4j-examples/backwardscompatibility</module>
             </modules>
         </profile>
-        <profile>
-            <id>staging</id>
-            <distributionManagement>
-                <site>
-                    <id>spring-site-staging</id>
-                    <url>file:///${java.io.tmpdir}/spring-data/data-neo4j/docs/${project.version}</url>
-                </site>
-                <repository>
-                    <id>spring-milestone-staging</id>
-                    <url>file:///${java.io.tmpdir}/spring-data/data-neo4j/milestone</url>
-                </repository>
-                <snapshotRepository>
-                    <id>spring-snapshot-staging</id>
-                    <url>file:///${java.io.tmpdir}/spring-data/data-neo4j/snapshot</url>
-                </snapshotRepository>
-            </distributionManagement>
-        </profile>
-        <profile>
-            <id>snapshot</id>
-            <distributionManagement>
-                <downloadUrl>http://www.springsource.com/spring-data</downloadUrl>
-                <site>
-                    <id>static.springframework.org</id>
-                    <url>
-                        scp://static.springframework.org/var/www/domains/springframework.org/static/htdocs/spring-data/data-graph/snapshot-site/
-                    </url>
-                </site>
-                <repository>
-                    <id>spring-release</id>
-                    <name>Spring Release Repository</name>
-                    <url>s3://maven.springframework.org/release</url>
-                </repository>
-                <snapshotRepository>
-                    <id>spring-snapshot</id>
-                    <name>Spring Snapshot Repository</name>
-                    <url>s3://maven.springframework.org/snapshot</url>
-                </snapshotRepository>
-            </distributionManagement>
-        </profile>
-        <profile>
-            <id>milestone</id>
-            <distributionManagement>
-                <repository>
-                    <id>spring-milestone</id>
-                    <name>Spring Milestone Repository</name>
-                    <url>s3://maven.springframework.org/milestone</url>
-                </repository>
-            </distributionManagement>
-        </profile>
-        <profile>
-            <id>central</id>
-            <distributionManagement>
-                <snapshotRepository>
-                    <id>sonatype-nexus-snapshots</id>
-                    <name>Sonatype Nexus Snapshots</name>
-                    <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
-                </snapshotRepository>
-                <repository>
-                    <id>sonatype-nexus-staging</id>
-                    <name>Nexus Release Repository</name>
-                    <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
-                </repository>
-            </distributionManagement>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-gpg-plugin</artifactId>
-                        <executions>
-                            <execution>
-                                <id>sign-artifacts</id>
-                                <phase>verify</phase>
-                                <goals>
-                                    <goal>sign</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
     </profiles>
-    <distributionManagement>
-        <downloadUrl>http://www.springsource.com/spring-data</downloadUrl>
-        <site>
-            <id>static.springframework.org</id>
-            <url>
-                scp://static.springframework.org/var/www/domains/springframework.org/static/htdocs/spring-data/data-graph/snapshot-site/
-            </url>
-        </site>
-        <repository>
-            <id>spring-release</id>
-            <name>Spring Release Repository</name>
-            <url>s3://maven.springframework.org/release</url>
-        </repository>
-        <snapshotRepository>
-            <id>spring-snapshot</id>
-            <name>Spring Snapshot Repository</name>
-            <url>s3://maven.springframework.org/snapshot</url>
-        </snapshotRepository>
-    </distributionManagement>
+
+    <developers>
+		<developer>
+			<id>mhunger</id>
+			<name>Michael Hunger</name>
+			<email>michael.hunger at neotechnology.com</email>
+			<organization>Neo Technology</organization>
+			<organizationUrl>http://www.neotechnology.com</organizationUrl>
+			<roles>
+				<role>Project Lead</role>
+			</roles>
+			<timezone>+1</timezone>
+		</developer>
+		<developer>
+			<id>ogierke</id>
+			<name>Oliver Gierke</name>
+			<email>ogierke at vmware.com</email>
+			<organization>SpringSource</organization>
+			<organizationUrl>http://www.springsource.com</organizationUrl>
+			<roles>
+				<role>Developer</role>
+			</roles>
+			<timezone>+1</timezone>
+		</developer>
+		<developer>
+			<id>trisberg</id>
+			<name>Thomas Risberg</name>
+			<email>trisberg at vmware.com</email>
+			<organization>SpringSource</organization>
+			<organizationUrl>http://www.springsource.com</organizationUrl>
+			<roles>
+				<role>Developer</role>
+			</roles>
+			<timezone>-5</timezone>
+		</developer>
+		<developer>
+			<id>mpollack</id>
+			<name>Mark Pollack</name>
+			<email>mpollack at vmware.com</email>
+			<organization>SpringSource</organization>
+			<organizationUrl>http://www.springsource.com</organizationUrl>
+			<roles>
+				<role>Developer</role>
+			</roles>
+			<timezone>-5</timezone>
+		</developer>
+	</developers>
+
     <build>
-        <extensions>
-            <extension>
-                <!-- available only in the springframework maven repository. see <repositories> section below -->
-                <groupId>org.springframework.build.aws</groupId>
-                <artifactId>org.springframework.build.aws.maven</artifactId>
-                <version>3.1.0.RELEASE</version>
-            </extension>
-        </extensions>
-        <resources>
-            <resource>
-                <directory>${docbook.srcDir}</directory>
-                <filtering>false</filtering>
-            </resource>
-            <resource>
-                <directory>${docbook.snippetsDir}</directory>
-                <filtering>false</filtering>
-            </resource>
-        </resources>
-        <pluginManagement>
-            <plugins>
-                <plugin>
-                    <groupId>com.agilejava.docbkx</groupId>
-                    <artifactId>docbkx-maven-plugin</artifactId>
-                    <version>2.0.14</version>
-                </plugin>
-            </plugins>
-        </pluginManagement>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-resources-plugin</artifactId>
-                <version>2.5</version>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>2.12</version>
                 <configuration>
-                    <encoding>${project.build.sourceEncoding}</encoding>
+                    <forkMode>once</forkMode>
+                    <redirectTestOutputToFile>true</redirectTestOutputToFile>
+                    <useFile>false</useFile>
+                    <includes>
+                        <include>**/*Tests.java</include>
+                    </includes>
+                    <excludes>
+                        <exclude>**/PerformanceTests.java</exclude>
+                    </excludes>
+                    <systemPropertyVariables>
+                        <java.util.logging.config.file>src/test/resources/logging.properties
+                        </java.util.logging.config.file>
+                    </systemPropertyVariables>
                 </configuration>
-                <executions>
-                    <execution>
-                        <phase>generate-sources</phase>
-                        <goals>
-                            <goal>resources</goal>
-                        </goals>
-                    </execution>
-                </executions>
             </plugin>
-            <plugin>
-                <groupId>com.agilejava.docbkx</groupId>
-                <artifactId>docbkx-maven-plugin</artifactId>
-                <version>2.0.14</version>
-                <executions>
-                    <execution>
-                        <id>single-page</id>
-                        <goals>
-                            <goal>generate-html</goal>
-                        </goals>
-                        <configuration>
-                            <sourceDirectory>${docbook.generatedDir}</sourceDirectory>
-                            <keepRelativeImageUris>true</keepRelativeImageUris>
-                            <htmlCustomization>${docbook.generatedDir}/resources/xsl/html.xsl</htmlCustomization>
-                            <useExtensions>1</useExtensions>
-                            <highlightSource>1</highlightSource>
-                            <highlightDefaultLanguage />
-                            <postProcess>
-                                <move tofile="${basedir}/target/site/reference/html/index.html" file="${basedir}/target/docbkx/html/index.html" />
 
-                                <copy todir="${basedir}/target/site/reference/html" flatten="true">
-                                    <fileset dir="${basedir}/target/classes/">
-                                        <exclude name="${docbook.generatedDir}/resources/*" />
-                                        <include name="**/*.png" />
-                                        <include name="**/*.gif" />
-                                        <include name="**/*.jpg" />
-                                    </fileset>
-                                </copy>
-
-                                <copy todir="${basedir}/target/site/reference/html">
-                                    <fileset dir="${docbook.generatedDir}/resources">
-                                        <include name="**/*.css" />
-                                        <include name="**/*.png" />
-                                        <include name="**/*.gif" />
-                                        <include name="**/*.jpg" />
-                                    </fileset>
-                                </copy>
-                            </postProcess>
-                        </configuration>
-                        <phase>pre-site</phase>
-                    </execution>
-                    <!--execution>
-                                 <id>generate-rtf</id>
-                                 <goals>
-                                   <goal>generate-rtf</goal>
-                                 </goals>
-                                 <configuration>
-                                 <imgSrcPath>${docbook.generatedDir}/</imgSrcPath>
-                                 <admonGraphicsPath>${docbook.generatedDir}/resources/images/</admonGraphicsPath>
-                         <sourceDirectory>${docbook.generatedDir}/</sourceDirectory>
-                                 <fopExtensions>0</fopExtensions>
-                                 <fop1Extensions>0</fop1Extensions>
-                                 <useExtensions>0</useExtensions>
-                                 <!- -highlightSource>1</highlightSource>
-                                 <highlightDefaultLanguage></highlightDefaultLanguage- ->
-                                 <postProcess>
-                                     <copy file="${basedir}/target/docbkx/rtf/index.rtf"
-                                           tofile="${basedir}/target/site/reference/rtf/spring-data-neo4j-reference.rtf"
-                                           failonerror="false"/>
-                                 </postProcess>
-                                 </configuration>
-                                 <phase>pre-site</phase>
-                         </execution-->
-                    <execution>
-                        <id>single-pdf</id>
-                        <goals>
-                            <goal>generate-pdf</goal>
-                        </goals>
-                        <configuration>
-                            <sourceDirectory>${docbook.generatedDir}</sourceDirectory>
-                            <imgSrcPath>${docbook.generatedDir}/</imgSrcPath>
-                            <admonGraphicsPath>${docbook.generatedDir}/resources/images/</admonGraphicsPath>
-                            <foCustomization>${docbook.generatedDir}/resources/xsl/fopdf.xsl</foCustomization>
-                            <includes>index.xml</includes>
-                            <useExtensions>1</useExtensions>
-                            <highlightSource>1</highlightSource>
-                            <highlightDefaultLanguage />
-                            <postProcess>
-                                <copy file="${basedir}/target/docbkx/pdf/index.pdf" tofile="${basedir}/target/site/reference/pdf/spring-data-neo4j-reference.pdf" failonerror="false" />
-                            </postProcess>
-                        </configuration>
-                        <phase>pre-site</phase>
-                    </execution>
-                    <execution>
-                        <id>tutorial-pdf</id>
-                        <goals>
-                            <goal>generate-pdf</goal>
-                        </goals>
-                        <configuration>
-                            <sourceDirectory>${docbook.generatedDir}</sourceDirectory>
-                            <imgSrcPath>${docbook.generatedDir}/</imgSrcPath>
-                            <admonGraphicsPath>${docbook.generatedDir}/resources/images/</admonGraphicsPath>
-                            <foCustomization>${docbook.generatedDir}/resources/xsl/fopdf.xsl</foCustomization>
-                            <useExtensions>1</useExtensions>
-                            <highlightSource>1</highlightSource>
-                            <includes>tutorial.xml</includes>
-                            <highlightDefaultLanguage />
-                            <postProcess>
-                                <copy file="${basedir}/target/docbkx/pdf/tutorial.pdf" tofile="${basedir}/target/site/reference/pdf/spring-data-neo4j-tutorial.pdf" failonerror="false" />
-                            </postProcess>
-                        </configuration>
-                        <phase>pre-site</phase>
-                    </execution>
-                    <execution>
-                        <id>multi-page</id>
-                        <goals>
-                            <goal>generate-html</goal>
-                        </goals>
-                        <configuration>
-                            <sourceDirectory>${docbook.generatedDir}</sourceDirectory>
-                            <keepRelativeImageUris>true</keepRelativeImageUris>
-                            <chunkedOutput>true</chunkedOutput>
-                            <htmlCustomization>${docbook.generatedDir}/resources/xsl/html_chunk.xsl</htmlCustomization>
-                            <useExtensions>1</useExtensions>
-                            <highlightSource>1</highlightSource>
-                            <highlightDefaultLanguage />
-                            <targetDirectory>${basedir}/target/docbkx/multi/</targetDirectory>
-                            <postProcess>
-                                <move todir="${basedir}/target/site/reference/multi">
-                                    <fileset dir="${basedir}/target/docbkx/multi">
-                                        <include name="**/*.html" />
-                                    </fileset>
-                                </move>
-                                <copy todir="${basedir}/target/site/reference/multi">
-                                    <fileset dir="${docbook.generatedDir}/resources">
-                                        <include name="**/*.png" />
-                                        <include name="**/*.gif" />
-                                        <include name="**/*.jpg" />
-                                    </fileset>
-                                </copy>
-                                <copy todir="${basedir}/target/site/reference/multi" flatten="true">
-                                    <fileset dir="${docbook.generatedDir}">
-                                        <exclude name="${docbook.generatedDir}/resources/*" />
-                                        <include name="**/*.css" />
-                                        <include name="**/*.png" />
-                                        <include name="**/*.gif" />
-                                        <include name="**/*.jpg" />
-                                    </fileset>
-                                </copy>
-                            </postProcess>
-                        </configuration>
-                        <phase>pre-site</phase>
-                    </execution>
-                </executions>
-                <dependencies>
-                    <dependency>
-                        <groupId>org.docbook</groupId>
-                        <artifactId>docbook-xml</artifactId>
-                        <version>4.4</version>
-                        <scope>runtime</scope>
-                    </dependency>
-                    <dependency>
-                        <groupId>org.apache.xmlgraphics</groupId>
-                        <artifactId>fop</artifactId>
-                        <version>1.0</version>
-                    </dependency>
-                </dependencies>
-                <configuration>
-                    <includes>index.xml</includes>
-                    <chunkedOutput>false</chunkedOutput>
-                    <draftWatermarkImage />
-                    <htmlStylesheet>css/html.css</htmlStylesheet>
-                    <sourceDirectory>${docbook.generatedDir}/</sourceDirectory>
-                    <!--foCustomization>${docbook.generatedDir}/resources/xsl/fopdf.xsl</foCustomization-->
-                    <xincludeSupported>true</xincludeSupported>
-                    <entities>
-                        <entity>
-                            <name>version</name>
-                            <value>${project.version}</value>
-                        </entity>
-                    </entities>
-                </configuration>
-            </plugin>
-            <plugin>
-                <artifactId>maven-javadoc-plugin</artifactId>
-                <version>2.7</version>
-                <configuration>
-                    <breakiterator>true</breakiterator>
-                    <header>Spring Data Neo4j</header>
-                    <source>1.6</source>
-                    <quiet>true</quiet>
-                    <javadocDirectory>${project.basedir}/src/main/javadoc</javadocDirectory>
-                    <overview>${project.basedir}/src/main/javadoc/overview.html</overview>
-                    <stylesheetfile>${project.basedir}/src/main/javadoc/spring-javadoc.css</stylesheetfile>
-                    <!-- copies doc-files subdirectory which contains image resources -->
-                    <docfilessubdirs>true</docfilessubdirs>
-                    <links>
-                        <link>http://static.springframework.org/spring/docs/3.0.x/javadoc-api</link>
-                        <link>http://java.sun.com/javase/6/docs/api</link>
-                    </links>
-                </configuration>
-                <executions>
-                    <execution>
-                        <id>javadoc</id>
-                        <goals>
-                            <goal>aggregate</goal>
-                        </goals>
-                        <phase>package</phase>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin><!--
-				run `mvn package assembly:assembly` to trigger assembly creation.
-				see http://www.sonatype.com/books/mvnref-book/reference/assemblies-set-dist-assemblies.html -->
-                <artifactId>maven-assembly-plugin</artifactId>
-                <version>2.2-beta-5</version>
-                <inherited>false</inherited>
-                <configuration>
-                    <descriptors>
-                        <descriptor>${project.basedir}/src/assembly/distribution.xml</descriptor>
-                    </descriptors>
-                    <appendAssemblyId>false</appendAssemblyId>
-                </configuration>
-                <executions>
-                    <execution>
-                        <id>distribution</id>
-                        <goals>
-                            <goal>single</goal>
-                        </goals>
-                        <phase>package</phase>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-antrun-plugin</artifactId>
-                <version>1.4</version>
-                <executions>
-                    <execution>
-                        <id>upload-dist</id>
-                        <phase>deploy</phase>
-                        <configuration>
-                            <tasks>
-                                <ant antfile="${basedir}/src/ant/upload-dist.xml">
-                                    <target name="upload-dist" />
-                                </ant>
-                            </tasks>
-                        </configuration>
-                        <goals>
-                            <goal>run</goal>
-                        </goals>
-                    </execution>
-                </executions>
-                <dependencies>
-                    <dependency>
-                        <groupId>org.springframework.build</groupId>
-                        <artifactId>org.springframework.build.aws.ant</artifactId>
-                        <version>3.0.5.RELEASE</version>
-                    </dependency>
-                    <dependency>
-                        <groupId>net.java.dev.jets3t</groupId>
-                        <artifactId>jets3t</artifactId>
-                        <version>0.7.2</version>
-                    </dependency>
-                </dependencies>
-            </plugin>
         </plugins>
-        <!-- the name of this project is 'spring-data-neo4j-dist';
-               make sure the zip file is just 'spring-data-neo4j'. -->
-        <finalName>${dist.finalName}</finalName>
     </build>
-    <pluginRepositories>
-        <pluginRepository>
-            <id>repository.springsource.maven.bundles.release</id>
-            <name>SpringSource Maven Release Repository</name>
-            <url>http://repository.springsource.com/maven/bundles/release</url>
-        </pluginRepository>
-        <pluginRepository>
-            <id>repository.springframework.maven.release</id>
-            <name>Spring Framework Maven Release Repository</name>
-            <url>http://maven.springframework.org/release</url>
-        </pluginRepository>
-        <pluginRepository>
-            <id>jboss-legacy-repository</id>
-            <name>Old JBoss Public Repository</name>
-            <url>http://repository.jboss.org/maven2/</url>
-        </pluginRepository>
-    </pluginRepositories>
+	<dependencies>
+		<!-- Neo4j -->
+		<dependency>
+			<groupId>org.neo4j</groupId>
+			<artifactId>neo4j</artifactId>
+			<version>${neo4j.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.neo4j</groupId>
+			<artifactId>neo4j-cypher</artifactId>
+			<version>${neo4j.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.neo4j</groupId>
+			<artifactId>neo4j-kernel</artifactId>
+			<version>${neo4j.version}</version>
+            <scope>test</scope>
+            <type>test-jar</type>
+		</dependency>
+	</dependencies>
     <repositories>
         <repository>
-            <id>central</id>
-            <url>http://uk.maven.org/maven2</url>
+            <id>neo4j-public-release-repository</id>
+            <url>http://m2.neo4j.org/releases</url>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
         </repository>
         <repository>
-            <id>jboss-legacy-repository</id>
-            <name>Old JBoss Public Repository</name>
-            <url>http://repository.jboss.org/maven2/</url>
-        </repository>
-        <repository>
-            <!-- necessary for org.springframework.build.aws.maven dependency -->
-            <id>repository.source.maven.release</id>
-            <name>SpringSource Maven Release Repository</name>
-            <url>http://repository.springsource.com/maven/bundles/release</url>
-        </repository>
-        <repository>
-            <id>jboss-repository</id>
-            <name>JBoss Public Repository</name>
-            <url>http://repository.jboss.org/nexus/content/groups/public-jboss</url>
+            <id>tinkerpop-repository</id>
+            <url>http://tinkerpop.com/maven2</url>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
         </repository>
     </repositories>
+
 </project>

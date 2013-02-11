@@ -15,6 +15,8 @@
  */
 package org.springframework.data.neo4j.lifecycle;
 
+import org.hamcrest.Matcher;
+import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -26,6 +28,7 @@ import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.neo4j.annotation.*;
+import org.springframework.data.neo4j.annotation.relatedto.Experience;
 import org.springframework.data.neo4j.config.EnableNeo4jRepositories;
 import org.springframework.data.neo4j.config.Neo4jConfiguration;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
@@ -39,11 +42,8 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Set;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
-import static org.junit.matchers.JUnitMatchers.either;
+import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.*;
 import static org.springframework.data.neo4j.SetHelper.asSet;
 
 @RelationshipEntity(type = "slew")
@@ -184,7 +184,6 @@ public class SaveEventTests {
         @Bean
         ApplicationListener<BeforeSaveEvent> beforeSaveEventApplicationListener() {
             return new ApplicationListener<BeforeSaveEvent>() {
-                @Override
                 public void onApplicationEvent(BeforeSaveEvent event) {
                     entities.add(event.getEntity());
                 }
@@ -256,8 +255,8 @@ public class SaveEventTests {
 
         assertThat(entities.size(), is(3));
         assertThat(((FictionalCharacter) entities.get(0)).id, is(turin.id));
-        assertThat(((Slaying) entities.get(1)).slayee.id, is(either(equalTo(beleg.id)).or(equalTo(brandir.id))));
-        assertThat(((Slaying) entities.get(2)).slayee.id, is(either(equalTo(beleg.id)).or(equalTo(brandir.id))));
+        assertThat(((Slaying) entities.get(1)).slayee.id, is(Matchers.<Long>either(equalTo(beleg.id)).or(equalTo(brandir.id))));
+        assertThat(((Slaying) entities.get(2)).slayee.id, is(Matchers.<Long>either(equalTo(beleg.id)).or(equalTo(brandir.id))));
     }
 
     @Test

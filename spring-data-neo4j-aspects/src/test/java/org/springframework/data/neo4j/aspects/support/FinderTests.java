@@ -34,7 +34,7 @@ import java.util.*;
 import static java.util.Arrays.asList;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.*;
-import static org.junit.internal.matchers.IsCollectionContaining.hasItems;
+import static org.hamcrest.Matchers.*;
 import static org.neo4j.helpers.collection.IteratorUtil.asCollection;
 import static org.springframework.data.neo4j.aspects.Person.persistedPerson;
 

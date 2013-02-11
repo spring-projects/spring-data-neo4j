@@ -43,7 +43,7 @@ import java.util.Map;
 
 import static java.util.Arrays.asList;
 import static org.junit.Assert.assertThat;
-import static org.junit.internal.matchers.IsCollectionContaining.hasItems;
+import static org.hamcrest.Matchers.*;
 import static org.neo4j.helpers.collection.MapUtil.map;
 
 /**

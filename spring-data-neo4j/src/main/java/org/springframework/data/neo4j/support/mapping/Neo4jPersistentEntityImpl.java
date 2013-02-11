@@ -20,6 +20,7 @@ import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.PropertyContainer;
 import org.neo4j.graphdb.Relationship;
 import org.springframework.data.mapping.Association;
+import org.springframework.data.mapping.PropertyHandler;
 import org.springframework.data.mapping.model.BasicPersistentEntity;
 import org.springframework.data.mapping.model.MappingException;
 import org.springframework.data.neo4j.annotation.*;
@@ -73,6 +74,15 @@ public class Neo4jPersistentEntityImpl<T> extends BasicPersistentEntity<T, Neo4j
         final Neo4jPersistentProperty idProperty = getIdProperty();
         if (idProperty == null) throw new MappingException("No id property in " + this);
         if (idProperty.getType().isPrimitive()) throw new MappingException("The type of the id-property in " + idProperty+" must not be a primitive type but an object type like java.lang.Long");
+        doWithProperties(new PropertyHandler<Neo4jPersistentProperty>() {
+            Neo4jPersistentProperty unique = null;
+            public void doWithPersistentProperty(Neo4jPersistentProperty persistentProperty) {
+                if (persistentProperty.isUnique()) {
+                    if (unique!=null) throw new MappingException("Duplicate unique property " + persistentProperty.getName()+ ", " + unique.getName() + " has already been defined. Only one unique property is allowed per type");
+                    unique = persistentProperty;
+                }
+            }
+        });
     }
 
     public boolean useShortNames() {
@@ -157,8 +167,9 @@ public class Neo4jPersistentEntityImpl<T> extends BasicPersistentEntity<T, Neo4j
             this.relationshipType = property;
         }
         if (property.isUnique()) {
-            if (this.uniqueProperty!=null) throw new MappingException("A unique property " + uniqueProperty.getName() + " has already been defined. Only one unique property is allowed per type");
-            this.uniqueProperty = property;
+            if (this.uniqueProperty==null) {
+                this.uniqueProperty = property;
+            }
         }
     }
 

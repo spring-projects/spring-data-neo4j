@@ -15,6 +15,7 @@
  */
 package org.springframework.data.neo4j.annotation.relatedto;
 
+import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,14 +32,10 @@ import org.springframework.test.context.transaction.BeforeTransaction;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
+import java.util.Set;
 
-import static org.hamcrest.core.Is.is;
-import static org.hamcrest.core.IsEqual.equalTo;
-import static org.hamcrest.core.IsInstanceOf.instanceOf;
-import static org.hamcrest.core.IsNot.not;
+import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
-import static org.junit.matchers.JUnitMatchers.either;
-import static org.junit.matchers.JUnitMatchers.hasItem;
 import static org.neo4j.helpers.collection.IteratorUtil.single;
 import static org.springframework.data.neo4j.SetHelper.asSet;
 import static org.springframework.data.neo4j.annotation.RelationshipDelegates.getNumberOfRelationships;
@@ -342,8 +339,8 @@ public class RelatedToTests {
 
         assertThat(getRelationshipNames(template, student), is(equalTo(asSet("attends"))));
         student = students.findOne(student.getId());
-        assertThat(student.getFavouriteCourses(), is(either(equalTo(asSet(probabilityTheory, geometry))).or(equalTo(asSet(statistics, calculus)))));
-        assertThat(student.getDislikedCourses(), is(either(equalTo(asSet(probabilityTheory, geometry))).or(equalTo(asSet(statistics, calculus)))));
+        assertThat(student.getFavouriteCourses(), is(Matchers.<Set<Course>>either(equalTo(asSet(probabilityTheory, geometry))).or(equalTo(asSet(statistics, calculus)))));
+        assertThat(student.getDislikedCourses(), is(Matchers.<Set<Course>>either(equalTo(asSet(probabilityTheory, geometry))).or(equalTo(asSet(statistics, calculus)))));
     }
 
     /**
@@ -462,8 +459,8 @@ public class RelatedToTests {
 
         assertThat(getRelationshipNames(template, steveJobs), is(equalTo(asSet("experience"))));
         steveJobs = linkedin.findOne(steveJobs.getId());
-        assertThat(steveJobs.getExperience(), is(either(equalTo(asSet(college, sabbatical))).or(equalTo(asSet(college, sabbatical, atari, apple)))));
-        assertThat(steveJobs.getJobs(), is(either(equalTo(Collections.<Job>emptySet())).or(equalTo(asSet(atari, apple)))));
+        assertThat(steveJobs.getExperience(), is(Matchers.<Set<Experience>>either(equalTo(asSet(college, sabbatical))).or(equalTo(asSet(college, sabbatical, atari, apple)))));
+        assertThat(steveJobs.getJobs(), is(Matchers.<Set<Job>>either(equalTo(Collections.<Job>emptySet())).or(equalTo(asSet(atari, apple)))));
     }
 
     @Test

@@ -39,7 +39,7 @@ import org.springframework.transaction.support.TransactionCallbackWithoutResult;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import static org.junit.Assert.assertThat;
-import static org.junit.internal.matchers.IsCollectionContaining.hasItems;
+import static org.hamcrest.Matchers.*;
 import static org.neo4j.helpers.collection.IteratorUtil.asCollection;
 
 @RunWith(SpringJUnit4ClassRunner.class)
