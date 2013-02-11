@@ -11,11 +11,11 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <spring.version>3.1.0.RELEASE</spring.version>
+        <spring.version>3.1.3.RELEASE</spring.version>
         <slf4j.version>1.6.1</slf4j.version>
         <neo4j.version>1.8.1</neo4j.version>
         <spring-data-neo4j.version>${project.version}</spring-data-neo4j.version>
-        <aspectj.version>1.6.12</aspectj.version>
+        <aspectj.version>1.7.1</aspectj.version>
         <jersey.version>1.4</jersey.version>
     </properties>
 
@@ -24,51 +24,25 @@
             <id>Sun</id>
             <url>http://download.java.net/maven/2</url>
         </repository>
-        <repository>
-            <id>spring-maven-release</id>
-            <name>Spring Maven Release Repository</name>
-            <url>http://maven.springframework.org/release</url>
-        </repository>
-        <repository>
-            <id>spring-maven-snapshot</id>
-            <name>Spring Maven Snapshot Repository</name>
-            <snapshots>
-                <enabled>true</enabled>
-            </snapshots>
-            <url>http://maven.springframework.org/snapshot</url>
-        </repository>
-        <repository>
-            <id>spring-maven-milestone</id>
-            <name>Spring Maven Milestone Repository</name>
-            <url>http://maven.springframework.org/milestone</url>
-        </repository>
-	    <repository>
-	      <id>neo4j-release-repository</id>
-	      <name>Neo4j Maven 2 release repository</name>
-	      <url>http://m2.neo4j.org/releases</url>
-	      <releases>
-	        <enabled>true</enabled>
-	      </releases>
-	      <snapshots>
-	        <enabled>false</enabled>
-	      </snapshots>
-	    </repository>
-	    <repository>
-	      <id>neo4j-snapshot-repository</id>
-	      <name>Neo4j Maven 2 snapshot repository</name>
-	      <url>http://m2.neo4j.org/snapshots</url>
-	      <snapshots>
-	        <enabled>true</enabled>
-	      </snapshots>
-	      <releases>
-	        <enabled>false</enabled>
-	      </releases>
-	    </repository>
-        <repository>
+		<repository>
+			<id>spring-libs-release</id>
+			<url>http://repo.springsource.org/libs-release</url>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+		</repository>
+		<repository>
+			<id>neo4j-public-release-repository</id>
+			<url>http://m2.neo4j.org/releases</url>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+		</repository>
+        <!--repository>
             <id>jboss-public-repo</id>
             <url>http://repository.jboss.org/maven2/</url>
             <name>JBoss public available repo</name>
-        </repository>
+        </repository-->
     </repositories>
 
     <pluginRepositories>
