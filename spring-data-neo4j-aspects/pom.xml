@@ -141,6 +141,12 @@
             <artifactId>neo4j-cypher-dsl</artifactId>
             <version>${neo4j-cypher-dsl.version}</version>
             <scope>test</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.neo4j</groupId>
+                    <artifactId>neo4j</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         
