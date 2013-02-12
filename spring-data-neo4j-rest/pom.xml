@@ -239,13 +239,6 @@
 			<artifactId>jersey-client</artifactId>
 			<version>${jersey.version}</version>
 		</dependency>
-		<dependency>
-			<groupId>org.neo4j</groupId>
-			<artifactId>neo4j-kernel</artifactId>
-			<version>${neo4j.version}</version>
-			<type>test-jar</type>
-			<scope>test</scope>
-		</dependency>
 
 				<!-- Testing -->
 		<dependency>
