@@ -64,6 +64,7 @@ TransactionalRepositoryFactoryBeanSupport<R, T, Long> {
             context.initialize();
             this.neo4jMappingContext = context;
         }
+	      setMappingContext(neo4jMappingContext);
 
         super.afterPropertiesSet();
     }
