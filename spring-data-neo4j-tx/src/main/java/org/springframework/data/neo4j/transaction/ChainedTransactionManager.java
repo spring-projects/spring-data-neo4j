@@ -20,10 +20,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.transaction.*;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 import static java.util.Arrays.asList;
 
@@ -57,8 +54,26 @@ public class ChainedTransactionManager implements PlatformTransactionManager {
             mts.setNewSynchonization();
         }
 
-        for (PlatformTransactionManager transactionManager : transactionManagers) {
-            mts.registerTransactionManager(definition, transactionManager);
+        try {
+            for (PlatformTransactionManager transactionManager : transactionManagers) {
+                mts.registerTransactionManager(definition, transactionManager);
+            }
+        } catch (Exception ex) {
+            Map<PlatformTransactionManager, TransactionStatus> transactionStatuses = mts.getTransactionStatuses();
+            for (PlatformTransactionManager transactionManager : transactionManagers) {
+                try {
+                    if (transactionStatuses.get(transactionManager) != null)
+                        transactionManager.rollback(transactionStatuses.get(transactionManager));
+                } catch (Exception ex2) {
+                    logger.warn("Rollback exception (" + transactionManager + ") " + ex2.getMessage(), ex2);
+                }
+            }
+
+            if (mts.isNewSynchonization()){
+                synchronizationManager.clearSynchronization();
+            }
+
+            throw new CannotCreateTransactionException(ex.getMessage(), ex);
         }
 
         return mts;

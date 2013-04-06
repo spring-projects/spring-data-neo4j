@@ -44,7 +44,7 @@ public class MultiTransactionStatus implements TransactionStatus {
     }
 
 
-    private Map<PlatformTransactionManager, TransactionStatus> getTransactionStatuses() {
+    protected Map<PlatformTransactionManager, TransactionStatus> getTransactionStatuses() {
         return transactionStatuses;
     }
 
