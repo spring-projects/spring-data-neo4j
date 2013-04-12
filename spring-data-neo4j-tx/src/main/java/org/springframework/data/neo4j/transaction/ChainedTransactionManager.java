@@ -1,5 +1,5 @@
 /**
- * Copyright 2011 the original author or authors.
+ * Copyright 2011-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,9 +25,11 @@ import java.util.*;
 import static java.util.Arrays.asList;
 
 /**
+ * @deprecated use org.springframework.data.transaction.ChainedTransactionManager instead
  * @author mh
  * @since 14.02.11
  */
+@Deprecated
 public class ChainedTransactionManager implements PlatformTransactionManager {
 
     private final static Logger logger = LoggerFactory.getLogger(ChainedTransactionManager.class);
