@@ -51,24 +51,16 @@ The Spring Data Neo4j project provides a simplified POJO based programming model
 
 h2. Maven configuration
 
-* Add the maven repository and dependency:
+* Add the maven dependency:
 
 <pre>
 <dependencies>
     <dependency>
         <groupId>org.springframework.data</groupId>
         <artifactId>spring-data-neo4j</artifactId>
-        <version>1.0.0.RELEASE</version>
+        <version>2.2.1.RELEASE</version>
     </dependency>
 </dependencies>
-<repositories>
-    <repository>
-        <id>spring-maven-snapshot</id>
-        <snapshots><enabled>true</enabled></snapshots>
-        <name>Springframework Maven MILESTONE Repository</name>
-        <url>http://maven.springframework.org/milestone</url>
-    </repository>
-</repositories>
 </pre>
 
 * Configure AspectJ: Include the following plugin XML in your pom.xml to hook AspectJ into the build process:

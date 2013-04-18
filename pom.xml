@@ -15,7 +15,7 @@
 	<parent>
 		<groupId>org.springframework.data.build</groupId>
 		<artifactId>spring-data-parent</artifactId>
-		<version>1.0.2.RELEASE</version>
+		<version>1.0.3.RELEASE</version>
 		<relativePath>../spring-data-build/parent/pom.xml</relativePath>
 	</parent>
 	
@@ -36,7 +36,7 @@
 		<project.type>multi</project.type>
 		<dist.id>spring-data-neo4j</dist.id>
 		
-		<springdata.commons>1.5.1.BUILD-SNAPSHOT</springdata.commons>
+		<springdata.commons>1.5.1.RELEASE</springdata.commons>
 		<neo4j.version>1.8.1</neo4j.version>
 
 		<neo4j.spatial.version>0.10.1</neo4j.spatial.version>
@@ -163,10 +163,6 @@
 		</dependency>
 	</dependencies>
 	<repositories>
-		<repository>
-			<id>spring-libs-snapshot</id>
-			<url>http://repo.springsource.org/libs-snapshot</url>
-		</repository>
 		<repository>
 			<id>neo4j-public-release-repository</id>
 			<url>http://m2.neo4j.org/releases</url>

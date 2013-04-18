@@ -1,6 +1,11 @@
 Spring Data Graph Changelog
 ===========================
 
+Changes in version 2.2.1.RELEASE (2013-04-18)
+---------------------------------------------
+* DATAGRAPH-191 - ChainedTransactionManager does not return connection to DataSource on failure
+* DATAGRAPH-348 - Release 2.2.1
+
 Changes in version 2.2.0.RELEASE (2013-02-11)
 ---------------------------------------------
 * DATAGRAPH-332 Updated project to new build system and new dependencies
