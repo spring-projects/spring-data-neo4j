@@ -15,7 +15,7 @@
 	<parent>
 		<groupId>org.springframework.data.build</groupId>
 		<artifactId>spring-data-parent</artifactId>
-		<version>1.0.2.RELEASE</version>
+		<version>1.1.0.BUILD-SNAPSHOT</version>
 		<relativePath>../spring-data-build/parent/pom.xml</relativePath>
 	</parent>
 	
@@ -163,6 +163,11 @@
 		</dependency>
 	</dependencies>
 	<repositories>
+		<repository>
+			<id>spring-libs-snapshot-local</id>
+			<name>Spring snapshots</name>
+			<url>http://repo.springsource.org/libs-snapshot-local</url>
+		</repository>
 		<repository>
 			<id>neo4j-public-release-repository</id>
 			<url>http://m2.neo4j.org/releases</url>
