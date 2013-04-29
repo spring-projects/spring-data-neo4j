@@ -15,6 +15,9 @@
  */
 package org.springframework.data.neo4j.cross_store.support.node;
 
+import java.util.Arrays;
+import java.util.Collection;
+
 import org.springframework.data.neo4j.annotation.GraphProperty;
 import org.springframework.data.neo4j.annotation.RelatedTo;
 import org.springframework.data.neo4j.cross_store.fieldaccess.JpaIdFieldAccessListenerFactory;
@@ -35,9 +38,6 @@ import org.springframework.data.neo4j.fieldaccess.TraversalFieldAccessorFactory;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
 
-import java.util.Arrays;
-import java.util.Collection;
-
 /**
 * @author mh
 * @since 30.04.12
@@ -57,7 +57,7 @@ public class CrossStoreNodeDelegatingFieldAccessorFactory extends DelegatingFiel
                         newConvertingNodePropertyFieldAccessorFactory()) {
                     @Override
                     public boolean accept(Neo4jPersistentProperty property) {
-                        return property.isAnnotationPresent(GraphProperty.class) && super.accept(property);
+                        return property.getAnnotation(GraphProperty.class) != null && super.accept(property);
                     }
                 },
                 new JpaIdFieldAccessListenerFactory(template));
@@ -75,7 +75,7 @@ public class CrossStoreNodeDelegatingFieldAccessorFactory extends DelegatingFiel
                 new RelatedToSingleFieldAccessorFactory(getTemplate()) {
                     @Override
                     public boolean accept(Neo4jPersistentProperty property) {
-                        return property.isAnnotationPresent(RelatedTo.class) && super.accept(property);
+                        return property.getAnnotation(RelatedTo.class) != null && super.accept(property);
                     }
                 },
                 new RelatedToCollectionFieldAccessorFactory(getTemplate()),
@@ -89,7 +89,7 @@ public class CrossStoreNodeDelegatingFieldAccessorFactory extends DelegatingFiel
         return new ConvertingNodePropertyFieldAccessorFactory(getTemplate()) {
             @Override
             public boolean accept(Neo4jPersistentProperty property) {
-                return property.isAnnotationPresent(GraphProperty.class) && super.accept(property);
+                return property.getAnnotation(GraphProperty.class) != null && super.accept(property);
             }
         };
     }
@@ -98,7 +98,7 @@ public class CrossStoreNodeDelegatingFieldAccessorFactory extends DelegatingFiel
         return new PropertyFieldAccessorFactory(getTemplate()) {
             @Override
             public boolean accept(Neo4jPersistentProperty property) {
-                return property.isAnnotationPresent(GraphProperty.class) && super.accept(property);
+                return property.getAnnotation(GraphProperty.class) != null && super.accept(property);
             }
         };
     }

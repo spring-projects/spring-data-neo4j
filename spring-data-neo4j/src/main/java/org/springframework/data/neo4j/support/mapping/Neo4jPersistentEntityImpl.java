@@ -16,6 +16,10 @@
 
 package org.springframework.data.neo4j.support.mapping;
 
+import java.lang.annotation.Annotation;
+import java.util.IdentityHashMap;
+import java.util.Map;
+
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.PropertyContainer;
 import org.neo4j.graphdb.Relationship;
@@ -23,13 +27,14 @@ import org.springframework.data.mapping.Association;
 import org.springframework.data.mapping.PropertyHandler;
 import org.springframework.data.mapping.model.BasicPersistentEntity;
 import org.springframework.data.mapping.model.MappingException;
-import org.springframework.data.neo4j.annotation.*;
-import org.springframework.data.neo4j.mapping.*;
+import org.springframework.data.neo4j.annotation.NodeEntity;
+import org.springframework.data.neo4j.annotation.RelationshipEntity;
+import org.springframework.data.neo4j.mapping.ManagedEntity;
+import org.springframework.data.neo4j.mapping.MappingPolicy;
+import org.springframework.data.neo4j.mapping.Neo4jPersistentEntity;
+import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
+import org.springframework.data.neo4j.mapping.RelationshipProperties;
 import org.springframework.data.util.TypeInformation;
-
-import java.lang.annotation.Annotation;
-import java.util.IdentityHashMap;
-import java.util.Map;
 
 /**
  * Implementation of {@link org.springframework.data.neo4j.mapping.Neo4jPersistentEntity}.
@@ -163,7 +168,7 @@ public class Neo4jPersistentEntityImpl<T> extends BasicPersistentEntity<T, Neo4j
     @Override
     public void addPersistentProperty(Neo4jPersistentProperty property) {
         super.addPersistentProperty(property);
-        if (property.isAnnotationPresent(RelationshipType.class)) {
+        if (property.isRelationshipType()) {
             this.relationshipType = property;
         }
         if (property.isUnique()) {
@@ -177,10 +182,10 @@ public class Neo4jPersistentEntityImpl<T> extends BasicPersistentEntity<T, Neo4j
     public void addAssociation(Association<Neo4jPersistentProperty> neo4jPersistentPropertyAssociation) {
         super.addAssociation(neo4jPersistentPropertyAssociation);
         final Neo4jPersistentProperty property = neo4jPersistentPropertyAssociation.getInverse();
-        if (property.isAnnotationPresent(StartNode.class)) {
+        if (property.isStartNode()) {
             this.startNodeProperty = property;
         }
-        if (property.isAnnotationPresent(EndNode.class)) {
+        if (property.isEndNode()) {
             this.endNodeProperty = property;
         }
     }

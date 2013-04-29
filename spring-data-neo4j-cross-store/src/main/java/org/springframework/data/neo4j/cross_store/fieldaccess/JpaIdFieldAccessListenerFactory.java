@@ -16,52 +16,51 @@
 
 package org.springframework.data.neo4j.cross_store.fieldaccess;
 
+import javax.persistence.Id;
+
 import org.springframework.data.neo4j.fieldaccess.FieldAccessListener;
 import org.springframework.data.neo4j.fieldaccess.FieldAccessorListenerFactory;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
 
-import javax.persistence.Id;
-
 /**
  * @author Michael Hunger
  * @since 12.09.2010
  */
-public class JpaIdFieldAccessListenerFactory implements FieldAccessorListenerFactory
-{
-    private final Neo4jTemplate template;
+public class JpaIdFieldAccessListenerFactory implements FieldAccessorListenerFactory {
+	private final Neo4jTemplate template;
 
-    public JpaIdFieldAccessListenerFactory(Neo4jTemplate template) {
-        this.template = template;
-    }
+	public JpaIdFieldAccessListenerFactory(Neo4jTemplate template) {
+		this.template = template;
+	}
 
-    @Override
-    public boolean accept(final Neo4jPersistentProperty property) {
-        return property.isAnnotationPresent(Id.class);
-    }
+	@Override
+	public boolean accept(final Neo4jPersistentProperty property) {
+		return property.getAnnotation(Id.class) != null;
+	}
 
-    @Override
-    public FieldAccessListener forField(final Neo4jPersistentProperty property) {
-        return new JpaIdFieldListener(property, template);
-    }
+	@Override
+	public FieldAccessListener forField(final Neo4jPersistentProperty property) {
+		return new JpaIdFieldListener(property, template);
+	}
 
-    public static class JpaIdFieldListener implements FieldAccessListener {
-        protected final Neo4jPersistentProperty property;
-        private final Neo4jTemplate template;
+	public static class JpaIdFieldListener implements FieldAccessListener {
+		protected final Neo4jPersistentProperty property;
+		private final Neo4jTemplate template;
 
-        public JpaIdFieldListener(final Neo4jPersistentProperty property, Neo4jTemplate template) {
-            this.property = property;
-            this.template = template;
-        }
+		public JpaIdFieldListener(final Neo4jPersistentProperty property, Neo4jTemplate template) {
+			this.property = property;
+			this.template = template;
+		}
 
-        @Override
-        public void valueChanged(Object entity, Object oldVal, Object newVal) {
-            if (newVal != null) {
-                template.save(entity);
-/* TODO                EntityState entityState = entity.getEntityState();
-                entityState.persist();
-*/
-            }
-        }
-    }
+		@Override
+		public void valueChanged(Object entity, Object oldVal, Object newVal) {
+			if (newVal != null) {
+				template.save(entity);
+				/* TODO                EntityState entityState = entity.getEntityState();
+				                entityState.persist();
+				*/
+			}
+		}
+	}
 }

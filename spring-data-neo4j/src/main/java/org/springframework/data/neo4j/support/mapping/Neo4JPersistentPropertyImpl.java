@@ -16,26 +16,6 @@
 
 package org.springframework.data.neo4j.support.mapping;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.core.convert.ConversionService;
-import org.springframework.data.annotation.Transient;
-import org.springframework.data.annotation.Version;
-import org.springframework.data.mapping.Association;
-import org.springframework.data.mapping.PersistentEntity;
-import org.springframework.data.mapping.model.AbstractPersistentProperty;
-import org.springframework.data.mapping.model.MappingException;
-import org.springframework.data.mapping.model.SimpleTypeHolder;
-import org.springframework.data.neo4j.annotation.*;
-import org.springframework.data.neo4j.mapping.IndexInfo;
-import org.springframework.data.neo4j.mapping.ManagedEntity;
-import org.springframework.data.neo4j.mapping.MappingPolicy;
-import org.springframework.data.neo4j.mapping.Neo4jPersistentEntity;
-import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
-import org.springframework.data.neo4j.mapping.RelationshipInfo;
-import org.springframework.data.neo4j.support.DoReturn;
-import org.springframework.data.util.TypeInformation;
-
 import java.beans.PropertyDescriptor;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
@@ -45,12 +25,42 @@ import java.util.IdentityHashMap;
 import java.util.Iterator;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.core.convert.ConversionService;
+import org.springframework.data.annotation.Transient;
+import org.springframework.data.mapping.Association;
+import org.springframework.data.mapping.PersistentEntity;
+import org.springframework.data.mapping.model.AnnotationBasedPersistentProperty;
+import org.springframework.data.mapping.model.MappingException;
+import org.springframework.data.mapping.model.SimpleTypeHolder;
+import org.springframework.data.neo4j.annotation.EndNode;
+import org.springframework.data.neo4j.annotation.Fetch;
+import org.springframework.data.neo4j.annotation.GraphId;
+import org.springframework.data.neo4j.annotation.GraphProperty;
+import org.springframework.data.neo4j.annotation.Indexed;
+import org.springframework.data.neo4j.annotation.NodeEntity;
+import org.springframework.data.neo4j.annotation.Query;
+import org.springframework.data.neo4j.annotation.RelatedTo;
+import org.springframework.data.neo4j.annotation.RelatedToVia;
+import org.springframework.data.neo4j.annotation.RelationshipEntity;
+import org.springframework.data.neo4j.annotation.RelationshipType;
+import org.springframework.data.neo4j.annotation.StartNode;
+import org.springframework.data.neo4j.mapping.IndexInfo;
+import org.springframework.data.neo4j.mapping.ManagedEntity;
+import org.springframework.data.neo4j.mapping.MappingPolicy;
+import org.springframework.data.neo4j.mapping.Neo4jPersistentEntity;
+import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
+import org.springframework.data.neo4j.mapping.RelationshipInfo;
+import org.springframework.data.neo4j.support.DoReturn;
+import org.springframework.data.util.TypeInformation;
+
 /**
  * Implementation of {@link org.springframework.data.neo4j.mapping.Neo4jPersistentProperty}.
  *
  * @author Oliver Gierke
  */
-class Neo4jPersistentPropertyImpl extends AbstractPersistentProperty<Neo4jPersistentProperty> implements
+class Neo4jPersistentPropertyImpl extends AnnotationBasedPersistentProperty<Neo4jPersistentProperty> implements
         Neo4jPersistentProperty {
 
     private final static Logger log = LoggerFactory.getLogger(Neo4jPersistentProperty.class);
@@ -67,25 +77,22 @@ class Neo4jPersistentPropertyImpl extends AbstractPersistentProperty<Neo4jPersis
     private final Boolean isAssociation;
     private final String neo4jPropertyName;
     private final int hash;
-    private final boolean isVersionProperty;
 
     public Neo4jPersistentPropertyImpl(Field field, PropertyDescriptor propertyDescriptor,
                                        PersistentEntity<?, Neo4jPersistentProperty> owner, SimpleTypeHolder simpleTypeHolder, Neo4jMappingContext ctx) {
         super(field, propertyDescriptor, owner, simpleTypeHolder);
         this.hash = getField().hashCode();
-        this.annotations = extractAnnotations(field);
         this.relationshipInfo = extractRelationshipInfo(field, ctx);
+        this.annotations = extractAnnotations(field);
         this.propertyType = extractPropertyType();
         this.isAssociation = ctx.isReference(this);
         this.isNeo4jEntityType = isNeo4jPropertyType(getType());
         this.neo4jPropertyName = createNeo4jPropertyName();
-
         this.indexInfo = extractIndexInfo();
-        this.isIdProperty = annotations.containsKey(GraphId.class);
+        this.isIdProperty = super.isIdProperty() || getAnnotation(GraphId.class) != null;
         this.defaultValue = extractDefaultValue();
         this.myAssociation = isAssociation() ? super.getAssociation() == null ? createAssociation() : super.getAssociation() : null;
         this.query = extractQuery();
-        this.isVersionProperty = isAnnotationPresent(Version.class);
     }
 
     private String extractQuery() {
@@ -131,12 +138,6 @@ class Neo4jPersistentPropertyImpl extends AbstractPersistentProperty<Neo4jPersis
         return findAnnotation(annotationType);
     }
 
-    @SuppressWarnings("unchecked")
-    public <A extends Annotation> A findAnnotation(Class<? extends A> annotationType) {
-        return (A) annotations.get(annotationType);
-    }
-
-    
     private RelationshipInfo extractRelationshipInfo(final Field field, Neo4jMappingContext ctx) {
         if (isAnnotationPresent(RelatedTo.class)) {
             return RelationshipInfo.fromField(field, getAnnotation(RelatedTo.class), getTypeInformation(), ctx);
@@ -151,9 +152,6 @@ class Neo4jPersistentPropertyImpl extends AbstractPersistentProperty<Neo4jPersis
         return null;
     }
 
-    public <T extends Annotation> boolean isAnnotationPresent(Class<T> annotationType) {
-        return annotations.containsKey(annotationType);
-    }
 
     @Override
     public void setValue(Object entity, Object newValue) {
@@ -168,16 +166,6 @@ class Neo4jPersistentPropertyImpl extends AbstractPersistentProperty<Neo4jPersis
     private static boolean hasAnnotation(TypeInformation<?> typeInformation, final Class<NodeEntity> annotationClass) {
         return typeInformation.getActualType().getType().isAnnotationPresent(annotationClass);
     }
-
-    @Override
-    public boolean isIdProperty() {
-        return this.isIdProperty;
-    }
-
-    @Override
-    public boolean isVersionProperty() {
-		return isVersionProperty;
-	}
 
     @Override
     protected Association<Neo4jPersistentProperty> createAssociation() {
@@ -273,6 +261,11 @@ class Neo4jPersistentPropertyImpl extends AbstractPersistentProperty<Neo4jPersis
 
     @Override
     public Collection<? extends Annotation> getAnnotations() {
+    	
+    	  if (annotations == null) {
+    	  	
+    	  }
+    	
         return annotations.values();
     }
 
@@ -328,7 +321,7 @@ class Neo4jPersistentPropertyImpl extends AbstractPersistentProperty<Neo4jPersis
 
     @Override
     public Neo4jPersistentEntity<?> getOwner() {
-        return (Neo4jPersistentEntity<?>)super.getOwner();
+        return (Neo4jPersistentEntity<?>) super.getOwner();
     }
     @Override
     public boolean isEntity() {
@@ -392,11 +385,7 @@ class Neo4jPersistentPropertyImpl extends AbstractPersistentProperty<Neo4jPersis
         if (providedMappingPolicy != null) return providedMappingPolicy;
         return getMappingPolicy();
     }
-    public boolean equals(Object other) {
-        if (other==this) return true;
-        if (!AbstractPersistentProperty.class.isInstance(other)) return false;
-        return getField().equals(((AbstractPersistentProperty)other).getField());
-    }
+ 
     public int hashCode() {
         return hash;
     }
@@ -422,4 +411,40 @@ class Neo4jPersistentPropertyImpl extends AbstractPersistentProperty<Neo4jPersis
     public boolean isTargetTypeEnforced() {
         return getAnnotation( RelatedTo.class ) != null && getAnnotation( RelatedTo.class ).enforceTargetType();
     }
+    
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.neo4j.mapping.Neo4jPersistentProperty#isStartNode()
+	 */
+	@Override
+	public boolean isStartNode() {
+		return isAnnotationPresent(StartNode.class);
+	}
+	
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.neo4j.mapping.Neo4jPersistentProperty#isEndNode()
+	 */
+	@Override
+	public boolean isEndNode() {
+		return isAnnotationPresent(EndNode.class);
+	}
+	
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.neo4j.mapping.Neo4jPersistentProperty#isRelationshipType()
+	 */
+	@Override
+	public boolean isRelationshipType() {
+		return isAnnotationPresent(RelationshipType.class);
+	}
+	
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.mapping.model.AnnotationBasedPersistentProperty#isIdProperty()
+	 */
+	@Override
+	public boolean isIdProperty() {
+		return isIdProperty;
+	}
 }

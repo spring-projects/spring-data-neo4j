@@ -16,11 +16,11 @@
 
 package org.springframework.data.neo4j.mapping;
 
-import org.springframework.core.convert.ConversionService;
-import org.springframework.data.mapping.PersistentProperty;
-
 import java.lang.annotation.Annotation;
 import java.util.Collection;
+
+import org.springframework.core.convert.ConversionService;
+import org.springframework.data.mapping.PersistentProperty;
 
 /**
  * Interface for Neo4J specific {@link PersistentProperty}s. Declares additional metadata to lookup relationship
@@ -67,8 +67,12 @@ public interface Neo4jPersistentProperty extends PersistentProperty<Neo4jPersist
     Collection<? extends Annotation> getAnnotations();
 
     <T extends Annotation> T getAnnotation(Class<? extends T> annotationType);
-
-    <T extends Annotation> boolean isAnnotationPresent(Class<T> annotationType);
+    
+    boolean isStartNode();
+    
+    boolean isEndNode();
+    
+    boolean isRelationshipType();
 
     void setValue(Object entity, Object newValue);
 

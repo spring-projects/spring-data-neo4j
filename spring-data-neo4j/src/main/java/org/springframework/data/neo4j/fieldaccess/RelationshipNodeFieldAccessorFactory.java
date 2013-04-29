@@ -16,21 +16,18 @@
 
 package org.springframework.data.neo4j.fieldaccess;
 
+import static org.springframework.data.neo4j.support.DoReturn.*;
+
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
-import org.springframework.data.neo4j.annotation.EndNode;
-import org.springframework.data.neo4j.annotation.StartNode;
-
-
 import org.springframework.data.neo4j.mapping.MappingPolicy;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
 
-import static org.springframework.data.neo4j.support.DoReturn.doReturn;
-
 /**
  * @author Michael Hunger
+ * @author Oliver Gierke
  * @since 21.09.2010
  */
 public class RelationshipNodeFieldAccessorFactory implements FieldAccessorFactory {
@@ -48,11 +45,11 @@ public class RelationshipNodeFieldAccessorFactory implements FieldAccessorFactor
     }
 
     private boolean isEndNodeField(final Neo4jPersistentProperty f) {
-        return f.isAnnotationPresent(EndNode.class);
+        return f.isEndNode();
     }
 
     private boolean isStartNodeField(final Neo4jPersistentProperty f) {
-        return f.isAnnotationPresent(StartNode.class);
+        return f.isStartNode();
     }
 
     @Override
