@@ -7,7 +7,6 @@
 
 	<name>Spring Data Neo4j</name>
 	<description>Neo4j support for Spring Data</description>
-	<version>2.3.0.BUILD-SNAPSHOT</version>
 
 	<parent>
 		<groupId>org.springframework.data</groupId>
@@ -18,6 +17,7 @@
 
 	<properties>
 		<validation>1.0.0.GA</validation>
+		<querydsl>2.9.0</querydsl>
 	</properties>
 
 	<dependencies>

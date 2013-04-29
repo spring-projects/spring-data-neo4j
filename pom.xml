@@ -30,13 +30,10 @@
 
 
 	<properties>
-		<source.level>1.6</source.level>
-		<target.level>1.6</target.level>
-
 		<project.type>multi</project.type>
 		<dist.id>spring-data-neo4j</dist.id>
 		
-		<springdata.commons>1.5.0.RELEASE</springdata.commons>
+		<springdata.commons>1.6.0.BUILD-SNAPSHOT</springdata.commons>
 		<neo4j.version>1.8.1</neo4j.version>
 
 		<neo4j.spatial.version>0.10.1</neo4j.spatial.version>
