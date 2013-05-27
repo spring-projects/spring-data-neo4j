@@ -35,7 +35,9 @@ import org.springframework.data.neo4j.fieldaccess.FieldAccessorFactoryFactory;
 import org.springframework.data.neo4j.fieldaccess.Neo4jConversionServiceFactoryBean;
 import org.springframework.data.neo4j.fieldaccess.NodeDelegatingFieldAccessorFactory;
 import org.springframework.data.neo4j.fieldaccess.RelationshipDelegatingFieldAccessorFactory;
+import org.springframework.data.neo4j.mapping.DefaultTypeSafetyPolicy;
 import org.springframework.data.neo4j.mapping.EntityInstantiator;
+import org.springframework.data.neo4j.mapping.TypeSafetyPolicy;
 import org.springframework.data.neo4j.support.DelegatingGraphDatabase;
 import org.springframework.data.neo4j.support.MappingInfrastructureFactoryBean;
 import org.springframework.data.neo4j.support.Neo4jExceptionTranslator;
@@ -77,6 +79,9 @@ public abstract class Neo4jConfiguration {
 
     private ConversionService conversionService;
 
+    @Autowired(required = false)
+    private TypeSafetyPolicy typeSafetyPolicy;
+
     private Set<? extends Class<?>> initialEntitySet;
 
     @Autowired(required = false)
@@ -84,6 +89,13 @@ public abstract class Neo4jConfiguration {
 
     public GraphDatabaseService getGraphDatabaseService() {
         return graphDatabaseService;
+    }
+
+    public TypeSafetyPolicy getTypeSafetyPolicy() {
+        if (typeSafetyPolicy == null) {
+            typeSafetyPolicy = new DefaultTypeSafetyPolicy();
+        }
+        return typeSafetyPolicy;
     }
 
     @Qualifier("conversionService")
@@ -133,7 +145,7 @@ public abstract class Neo4jConfiguration {
 
     @Bean
     public Neo4jTemplate neo4jTemplate() throws Exception {
-        return new Neo4jTemplate(mappingInfrastructure().getObject());
+        return new Neo4jTemplate(mappingInfrastructure().getObject(), getTypeSafetyPolicy());
 	}
 
     @Bean
