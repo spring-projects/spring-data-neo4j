@@ -12,6 +12,8 @@
     <neo4j:config graphDatabaseService="graphDatabaseService"/>
     <neo4j:repositories base-package="org.springframework.data.neo4j.model"/>
     <bean id="graphDatabaseService" class="org.neo4j.test.ImpermanentGraphDatabase" destroy-method="shutdown"/>
-    <bean id="typeSafetyPolicy" class="org.springframework.data.neo4j.mapping.NullReturningTypeSafetyPolicy"/>
+    <bean id="typeSafetyPolicy" class="org.springframework.data.neo4j.support.typesafety.TypeSafetyPolicy">
+        <constructor-arg type="org.springframework.data.neo4j.support.typesafety.TypeSafetyOption"><value>RETURNS_NULL</value></constructor-arg>
+    </bean>
     <tx:annotation-driven mode="aspectj"/>
 </beans>

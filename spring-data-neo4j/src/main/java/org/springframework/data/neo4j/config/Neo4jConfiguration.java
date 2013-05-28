@@ -35,9 +35,8 @@ import org.springframework.data.neo4j.fieldaccess.FieldAccessorFactoryFactory;
 import org.springframework.data.neo4j.fieldaccess.Neo4jConversionServiceFactoryBean;
 import org.springframework.data.neo4j.fieldaccess.NodeDelegatingFieldAccessorFactory;
 import org.springframework.data.neo4j.fieldaccess.RelationshipDelegatingFieldAccessorFactory;
-import org.springframework.data.neo4j.mapping.DefaultTypeSafetyPolicy;
 import org.springframework.data.neo4j.mapping.EntityInstantiator;
-import org.springframework.data.neo4j.mapping.TypeSafetyPolicy;
+import org.springframework.data.neo4j.support.typesafety.TypeSafetyPolicy;
 import org.springframework.data.neo4j.support.DelegatingGraphDatabase;
 import org.springframework.data.neo4j.support.MappingInfrastructureFactoryBean;
 import org.springframework.data.neo4j.support.Neo4jExceptionTranslator;
@@ -62,7 +61,6 @@ import org.springframework.data.support.IsNewStrategyFactory;
 import org.springframework.transaction.PlatformTransactionManager;
 import javax.validation.Validator;
 
-import java.util.Collection;
 import java.util.Set;
 
 import static java.util.Arrays.asList;
@@ -79,9 +77,6 @@ public abstract class Neo4jConfiguration {
 
     private ConversionService conversionService;
 
-    @Autowired(required = false)
-    private TypeSafetyPolicy typeSafetyPolicy;
-
     private Set<? extends Class<?>> initialEntitySet;
 
     @Autowired(required = false)
@@ -89,13 +84,6 @@ public abstract class Neo4jConfiguration {
 
     public GraphDatabaseService getGraphDatabaseService() {
         return graphDatabaseService;
-    }
-
-    public TypeSafetyPolicy getTypeSafetyPolicy() {
-        if (typeSafetyPolicy == null) {
-            typeSafetyPolicy = new DefaultTypeSafetyPolicy();
-        }
-        return typeSafetyPolicy;
     }
 
     @Qualifier("conversionService")
@@ -132,6 +120,8 @@ public abstract class Neo4jConfiguration {
         
         factoryBean.setIndexProvider(indexProvider());
 
+        factoryBean.setTypeSafetyPolicy(typeSafetyPolicy());
+
         if (validator!=null) {
             factoryBean.setValidator(validator);
         }
@@ -145,7 +135,7 @@ public abstract class Neo4jConfiguration {
 
     @Bean
     public Neo4jTemplate neo4jTemplate() throws Exception {
-        return new Neo4jTemplate(mappingInfrastructure().getObject(), getTypeSafetyPolicy());
+        return new Neo4jTemplate(mappingInfrastructure().getObject());
 	}
 
     @Bean
@@ -279,6 +269,11 @@ public abstract class Neo4jConfiguration {
     @Bean
     public IndexProvider indexProvider() throws Exception {
         return new IndexProviderImpl(neo4jMappingContext(), graphDatabase());
+    }
+
+    @Bean
+    public TypeSafetyPolicy typeSafetyPolicy() throws Exception {
+        return new TypeSafetyPolicy();
     }
 
     public Set<? extends Class<?>> getInitialEntitySet() {

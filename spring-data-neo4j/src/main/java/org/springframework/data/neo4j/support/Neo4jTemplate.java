@@ -81,7 +81,6 @@ public class Neo4jTemplate implements Neo4jOperations, ApplicationContextAware {
     private static final Logger log = LoggerFactory.getLogger(Neo4jTemplate.class);
 
     private final Infrastructure infrastructure;
-    private final TypeSafetyPolicy typeSafetyPolicy;
     private ApplicationContext applicationContext;
 
     /**
@@ -91,53 +90,21 @@ public class Neo4jTemplate implements Neo4jOperations, ApplicationContextAware {
     public Neo4jTemplate(final GraphDatabase graphDatabase, PlatformTransactionManager transactionManager) {
         notNull(graphDatabase, "graphDatabase");
         this.infrastructure = MappingInfrastructureFactoryBean.createDirect(graphDatabase, transactionManager);
-        this.typeSafetyPolicy = new DefaultTypeSafetyPolicy();
     }
 
     public Neo4jTemplate(final GraphDatabase graphDatabase) {
         notNull(graphDatabase, "graphDatabase");
         this.infrastructure = MappingInfrastructureFactoryBean.createDirect(graphDatabase, null);
-        this.typeSafetyPolicy = new DefaultTypeSafetyPolicy();
     }
 
     public Neo4jTemplate(final GraphDatabaseService graphDatabaseService) {
         notNull(graphDatabaseService, "graphDatabaseService");
         this.infrastructure = MappingInfrastructureFactoryBean.createDirect(graphDatabaseService, null);
-        this.typeSafetyPolicy = new DefaultTypeSafetyPolicy();
     }
 
     public Neo4jTemplate(Infrastructure infrastructure) {
         this.infrastructure = infrastructure;
-        this.typeSafetyPolicy = new DefaultTypeSafetyPolicy();
     }
-
-    public Neo4jTemplate(final GraphDatabase graphDatabase, PlatformTransactionManager transactionManager, TypeSafetyPolicy typeSafetyPolicy) {
-        notNull(graphDatabase, "graphDatabase");
-        notNull(typeSafetyPolicy, "typeSafetyPolicy");
-        this.infrastructure = MappingInfrastructureFactoryBean.createDirect(graphDatabase, transactionManager);
-        this.typeSafetyPolicy = typeSafetyPolicy;
-    }
-
-    public Neo4jTemplate(final GraphDatabase graphDatabase, TypeSafetyPolicy typeSafetyPolicy) {
-        notNull(graphDatabase, "graphDatabase");
-        notNull(typeSafetyPolicy, "typeSafetyPolicy");
-        this.infrastructure = MappingInfrastructureFactoryBean.createDirect(graphDatabase, null);
-        this.typeSafetyPolicy = typeSafetyPolicy;
-    }
-
-    public Neo4jTemplate(final GraphDatabaseService graphDatabaseService, TypeSafetyPolicy typeSafetyPolicy) {
-        notNull(graphDatabaseService, "graphDatabaseService");
-        notNull(typeSafetyPolicy, "typeSafetyPolicy");
-        this.infrastructure = MappingInfrastructureFactoryBean.createDirect(graphDatabaseService, null);
-        this.typeSafetyPolicy = typeSafetyPolicy;
-    }
-
-    public Neo4jTemplate(Infrastructure infrastructure, TypeSafetyPolicy typeSafetyPolicy) {
-        notNull(typeSafetyPolicy, "typeSafetyPolicy");
-        this.infrastructure = infrastructure;
-        this.typeSafetyPolicy = typeSafetyPolicy;
-    }
-
 
     @Override
     public <T> GraphRepository<T> repositoryFor(Class<T> clazz) {
@@ -717,9 +684,5 @@ public class Neo4jTemplate implements Neo4jOperations, ApplicationContextAware {
     @Override
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
         this.applicationContext = applicationContext;
-    }
-
-    public TypeSafetyPolicy getTypeSafetyPolicy() {
-        return typeSafetyPolicy;
     }
 }

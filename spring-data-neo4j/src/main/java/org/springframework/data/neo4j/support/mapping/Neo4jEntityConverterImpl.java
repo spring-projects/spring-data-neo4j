@@ -26,6 +26,8 @@ import org.springframework.data.mapping.model.BeanWrapper;
 import org.springframework.data.mapping.model.MappingException;
 import org.springframework.data.neo4j.mapping.*;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
+import org.springframework.data.neo4j.support.typesafety.TypeSafetyOption;
+import org.springframework.data.neo4j.support.typesafety.TypeSafetyPolicy;
 import org.springframework.data.util.ClassTypeInformation;
 import org.springframework.data.util.TypeInformation;
 
@@ -76,12 +78,12 @@ public class Neo4jEntityConverterImpl<T,S extends PropertyContainer> implements 
         @SuppressWarnings("unchecked") final Neo4jPersistentEntityImpl<R> persistentEntity = (Neo4jPersistentEntityImpl<R>) mappingContext.getPersistentEntity(targetType);
 
         // 4) check type safety
-        TypeSafetyPolicy typeSafetyPolicy = template.getTypeSafetyPolicy();
+        TypeSafetyPolicy typeSafetyPolicy = template.getInfrastructure().getTypeSafetyPolicy();
         if (typeSafetyPolicy.isTypeSafetyEnabled() && !storedAndRequestedTypesMatch(requestedType, source)) {
-            if (typeSafetyPolicy.getTypeSafetyOption() == TypeSafetyPolicy.TypeSafetyOption.RETURNS_NULL) {
+            if (typeSafetyPolicy.getTypeSafetyOption() == TypeSafetyOption.RETURNS_NULL) {
                 return null;
             }
-            if (typeSafetyPolicy.getTypeSafetyOption() == TypeSafetyPolicy.TypeSafetyOption.THROWS_EXCEPTION) {
+            if (typeSafetyPolicy.getTypeSafetyOption() == TypeSafetyOption.THROWS_EXCEPTION) {
                 throw new InvalidEntityTypeException("Requested a entity of type '" + requestedType + "', but the stored entity is of type '" + typeMapper.readType(source).getType() + "'.");
             }
         }
