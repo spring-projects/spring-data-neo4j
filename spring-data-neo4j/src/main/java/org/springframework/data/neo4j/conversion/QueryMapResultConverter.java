@@ -22,10 +22,10 @@ import org.springframework.data.neo4j.template.Neo4jOperations;
 import java.lang.reflect.Proxy;
 import java.util.Map;
 
-public class QueryMapResulConverter<T> implements ResultConverter<Map<String, Object>, T> {
+public class QueryMapResultConverter<T> implements ResultConverter<Map<String, Object>, T> {
     private final Neo4jOperations template;
 
-    public QueryMapResulConverter(Neo4jOperations template) {
+    public QueryMapResultConverter(Neo4jOperations template) {
         this.template = template;
     }
 
