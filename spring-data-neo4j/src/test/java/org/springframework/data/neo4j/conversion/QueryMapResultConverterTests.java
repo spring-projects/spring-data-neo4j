@@ -23,11 +23,15 @@ import org.springframework.data.neo4j.model.Friendship;
 import org.springframework.data.neo4j.model.Person;
 import org.springframework.data.neo4j.support.conversion.NoSuchColumnFoundException;
 
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static java.util.Arrays.asList;
 import static org.hamcrest.CoreMatchers.equalTo;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 import static org.junit.matchers.JUnitMatchers.hasItems;
 import static org.neo4j.helpers.collection.IteratorUtil.asCollection;
@@ -77,7 +81,7 @@ public class QueryMapResultConverterTests extends Neo4jPersistentTestBase {
 
     @Test
     public void shouldBeAbleToGetAStringFromAResultMap() throws Exception {
-        QueryMapResulConverter<SimplestQuery> converter = getConverter();
+        QueryMapResultConverter<SimplestQuery> converter = getConverter();
         SimplestQuery query = converter.convert( simpleMap, SimplestQuery.class );
 
         assertThat( query.getName(), equalTo( "Andres" ) );
@@ -86,7 +90,7 @@ public class QueryMapResultConverterTests extends Neo4jPersistentTestBase {
 
     @Test
     public void shouldBeAbleToHandleAnIterableOfString() throws Exception {
-        QueryMapResulConverter<SimplestQuery> converter = getConverter();
+        QueryMapResultConverter<SimplestQuery> converter = getConverter();
         SimplestQuery query = converter.convert( simpleMap, SimplestQuery.class );
 
         assertThat( query.getFriendNames(), hasItems( "Michael", "Emil", "Anders" ) );
@@ -94,7 +98,7 @@ public class QueryMapResultConverterTests extends Neo4jPersistentTestBase {
 
     @Test
     public void shouldHandleANodeBackedEntity() throws Exception {
-        QueryMapResulConverter<PersonAndFriendsData> converter = new QueryMapResulConverter<PersonAndFriendsData>(
+        QueryMapResultConverter<PersonAndFriendsData> converter = new QueryMapResultConverter<PersonAndFriendsData>(
                 template );
         PersonAndFriendsData result = converter.convert( advancedMap, PersonAndFriendsData.class );
 
@@ -104,13 +108,47 @@ public class QueryMapResultConverterTests extends Neo4jPersistentTestBase {
 
     @Test( expected = NoSuchColumnFoundException.class )
     public void shouldThrowNiceException() throws Exception {
-        QueryMapResulConverter<PersonAndFriendsData> converter = new QueryMapResulConverter<PersonAndFriendsData>(
+        QueryMapResultConverter<PersonAndFriendsData> converter = new QueryMapResultConverter<PersonAndFriendsData>(
                 template );
         PersonAndFriendsData convert = converter.convert( map(), PersonAndFriendsData.class );
          convert.getFriends();
     }
 
-    private QueryMapResulConverter<SimplestQuery> getConverter() {
-        return new QueryMapResulConverter<SimplestQuery>( template );
+    @Test
+    public void testShouldBeAbleToCompareTwoResults() throws Exception {
+        QueryMapResultConverter<SimplestQuery> converter = getConverter();
+
+        final SimplestQuery query1 = converter.convert(simpleMap, SimplestQuery.class);
+        final SimplestQuery query2 = converter.convert(simpleMap, SimplestQuery.class);
+        final SimplestQuery query1Clone = converter.convert(new HashMap<String, Object>(simpleMap), SimplestQuery.class);
+
+        final HashMap<String, Object> copy = new HashMap<String, Object>(simpleMap);
+        copy.put("name", "Michael");
+        final SimplestQuery otherQuery = converter.convert(copy, SimplestQuery.class);
+
+        assertEquals(query1.hashCode(),query2.hashCode());
+        assertEquals(query1,query2);
+        assertEquals(query1, query1Clone);
+        assertEquals(query1.hashCode(), query1Clone.hashCode());
+        assertEquals(false, query1.equals(otherQuery));
+        assertEquals(false, query1.hashCode() == otherQuery.hashCode());
+    }
+
+    @Test
+    public void testPutQueryResultsInSet() throws Exception {
+        QueryMapResultConverter<SimplestQuery> converter = getConverter();
+
+        final SimplestQuery query1 = converter.convert(simpleMap, SimplestQuery.class);
+        final SimplestQuery query2 = converter.convert(simpleMap, SimplestQuery.class);
+        Set<SimplestQuery> set=new HashSet<SimplestQuery>();
+        set.add(query1);
+
+        assertEquals(true,set.contains(query1));
+        assertEquals(true,set.contains(query2));
+
+    }
+
+    private QueryMapResultConverter<SimplestQuery> getConverter() {
+        return new QueryMapResultConverter<SimplestQuery>( template );
     }
 }

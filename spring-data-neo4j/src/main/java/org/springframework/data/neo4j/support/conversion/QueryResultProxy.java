@@ -25,6 +25,7 @@ import org.springframework.data.util.TypeInformation;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
 import java.util.Map;
 
 /**
@@ -44,7 +45,15 @@ public class QueryResultProxy implements InvocationHandler {
 
     @SuppressWarnings("unchecked")
     @Override
-    public Object invoke(Object o, Method method, Object[] objects) throws Throwable {
+    public Object invoke(Object proxy, Method method, Object[] params) throws Throwable {
+        if (OBJECT_EQUALS.equals(method)) {
+            return equalsInternal(proxy, params[0]);
+        }
+
+        if (OBJECT_HASHCODE.equals(method)) {
+          return map.hashCode();
+        }
+
         ResultColumn column = method.getAnnotation(ResultColumn.class);
         TypeInformation<?> returnType = ClassTypeInformation.fromReturnTypeOf(method);
 
@@ -92,5 +101,29 @@ public class QueryResultProxy implements InvocationHandler {
         }
 
         return null;
+    }
+
+    private static final Method OBJECT_EQUALS = getObjectMethod("equals", Object.class);
+
+    private static final Method OBJECT_HASHCODE = getObjectMethod("hashCode");
+
+    private boolean equalsInternal(Object me, Object other) {
+        if (other == null) {
+            return false;
+        }
+        if (other.getClass() != me.getClass()) {
+            return false;
+        }
+        InvocationHandler handler = Proxy.getInvocationHandler(other);
+        if (!(handler instanceof QueryResultProxy)) return false;
+        return ((QueryResultProxy) handler).map.equals(map);
+    }
+
+    private static Method getObjectMethod(String name, Class... types) {
+        try {
+            return Object.class.getMethod(name, types);
+        } catch (NoSuchMethodException e) {
+            throw new IllegalArgumentException(e);
+        }
     }
 }
