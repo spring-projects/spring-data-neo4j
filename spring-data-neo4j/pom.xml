@@ -17,7 +17,6 @@
 
 	<properties>
 		<validation>1.0.0.GA</validation>
-		<querydsl>2.9.0</querydsl>
 	</properties>
 
 	<dependencies>
@@ -196,6 +195,10 @@
 			<artifactId>blueprints-neo4j-graph</artifactId>
 			<version>${blueprints.version}</version>
 			<exclusions>
+               <exclusion>
+                        <groupId>org.neo4j</groupId>
+                        <artifactId>neo4j-management</artifactId>
+                </exclusion>
 				<exclusion>
 					<groupId>org.neo4j</groupId>
 					<artifactId>neo4j</artifactId>

@@ -41,7 +41,7 @@ public class ServerPluginTests extends RestTestBase {
 
     @BeforeClass
     public static void init() {
-        new ProvidedClassPathXmlApplicationContext(neoServer.getGraphDatabase(), "Plugin-context.xml");
+        new ProvidedClassPathXmlApplicationContext(db, "Plugin-context.xml");
     }
 
     @Test

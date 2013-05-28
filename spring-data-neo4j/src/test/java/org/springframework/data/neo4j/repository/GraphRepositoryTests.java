@@ -247,7 +247,7 @@ public class GraphRepositoryTests {
         Page<Person> teamMemberPage1 = personRepository.findAllTeamMembersPaged(testTeam.sdg, null);
         assertEquals(new HashSet(asList(testTeam.david, testTeam.emil, testTeam.michael)), addToCollection(teamMemberPage1, new HashSet()));
         assertThat(teamMemberPage1.isFirstPage(), is(true));
-        assertThat(teamMemberPage1.isLastPage(), is(false));
+        assertThat(teamMemberPage1.isLastPage(), is(true));
     }
 
     @Test @Transactional
@@ -392,7 +392,7 @@ public class GraphRepositoryTests {
         assertEquals(root.getId(),p2.getRoot().getId());
     }
 
-    @Test
+    @Test @Transactional
     public void testUseInterfaceAsPersistentEntity() {
         final List<Being> beings = beingRepository.findAll().as(List.class);
         assertEquals(3,beings.size());

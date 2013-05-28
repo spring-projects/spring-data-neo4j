@@ -16,13 +16,17 @@
 
 package org.springframework.data.neo4j.transaction;
 
+import org.neo4j.kernel.impl.core.TransactionState;
 import org.neo4j.kernel.impl.transaction.AbstractTransactionManager;
+import org.neo4j.kernel.impl.transaction.TransactionStateFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.jta.JtaTransactionManager;
 
 import javax.transaction.*;
+import java.util.Map;
+import java.util.WeakHashMap;
 
 /**
  * @author Chris Gioran
@@ -34,8 +38,12 @@ class SpringServiceImpl extends AbstractTransactionManager
 
     private TransactionManager delegate;
 
-    SpringServiceImpl()
+    private final Map<Transaction, TransactionState> states = new WeakHashMap<Transaction, TransactionState>();
+    private final TransactionStateFactory stateFactory;
+
+    SpringServiceImpl(TransactionStateFactory stateFactory)
     {
+        this.stateFactory = stateFactory;
     }
 
     @Override
@@ -48,25 +56,51 @@ class SpringServiceImpl extends AbstractTransactionManager
     }
 
     @Override
+    public void doRecovery() throws Throwable {
+    }
+
+    @Override
+    public TransactionState getTransactionState() {
+        try
+        {
+            TransactionState state = states.get( getTransaction() );
+            return state != null ? state : TransactionState.NO_STATE;
+        }
+        catch ( SystemException e )
+        {
+            throw new RuntimeException( e );
+        }
+    }
+
+    @Override
+    public int getEventIdentifier() {
+        return 0;
+    }
+
+    @Override
     public void start() throws Throwable {
 
     }
 
     @Override
     public void shutdown() throws Throwable {
-
+        states.clear();
     }
 
     public void begin() throws NotSupportedException, SystemException
     {
         delegate.begin();
+        Transaction tx = getTransaction();
+        states.put(tx, stateFactory.create(tx));
     }
 
     public void commit() throws RollbackException, HeuristicMixedException,
             HeuristicRollbackException, SecurityException,
             IllegalStateException, SystemException
     {
+        Transaction tx = getTransaction();
         delegate.commit();
+        states.remove(tx);
     }
 
     public int getStatus() throws SystemException
@@ -88,7 +122,9 @@ class SpringServiceImpl extends AbstractTransactionManager
     public void rollback() throws IllegalStateException, SecurityException,
             SystemException
     {
+        Transaction tx = getTransaction();
         delegate.rollback();
+        states.remove(tx);
     }
 
     public void setRollbackOnly() throws IllegalStateException, SystemException

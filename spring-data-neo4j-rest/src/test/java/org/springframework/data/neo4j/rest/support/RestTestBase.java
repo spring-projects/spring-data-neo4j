@@ -30,22 +30,33 @@ import org.neo4j.graphdb.Relationship;
 import org.neo4j.rest.graphdb.ExecutingRestRequest;
 import org.neo4j.rest.graphdb.RequestResult;
 import org.neo4j.rest.graphdb.RestRequest;
+import org.neo4j.server.NeoServer;
+import org.neo4j.server.WrappingNeoServerBootstrapper;
+import org.neo4j.server.configuration.Configurator;
+import org.neo4j.server.configuration.PropertyFileConfigurator;
+import org.neo4j.server.configuration.ServerConfigurator;
+import org.neo4j.test.ImpermanentGraphDatabase;
 import org.springframework.data.neo4j.rest.SpringRestGraphDatabase;
 
 import static org.junit.Assert.assertEquals;
 
 public class RestTestBase {
 
+    protected static ImpermanentGraphDatabase db;
     protected SpringRestGraphDatabase restGraphDatabase;
     private static final String HOSTNAME = "127.0.0.1";
     public static final int PORT = 7470;
-    protected static LocalTestServer neoServer = new LocalTestServer(HOSTNAME,PORT).withPropertiesFile("test-db.properties");
+    protected static NeoServer neoServer = null;
     public static final String SERVER_ROOT_URI = "http://" + HOSTNAME + ":" + PORT + "/db/data/";
 
     @BeforeClass
     public static void startDb() throws Exception {
-        BasicConfigurator.configure();
-        neoServer.start();
+        db = new ImpermanentGraphDatabase();
+        final ServerConfigurator configurator = new ServerConfigurator(db);
+        configurator.configuration().setProperty(Configurator.WEBSERVER_PORT_PROPERTY_KEY,PORT);
+        final WrappingNeoServerBootstrapper bootstrapper = new WrappingNeoServerBootstrapper(db, configurator);
+        bootstrapper.start();
+        neoServer = bootstrapper.getServer();
 
         tryConnect();
     }
@@ -72,7 +83,8 @@ public class RestTestBase {
     }
 
     public static void cleanDb() {
-        neoServer.cleanDb();
+        new Neo4jDatabaseCleaner(db).cleanDb();
+        //db.cleanContent(true);
     }
 
     @AfterClass
@@ -81,7 +93,7 @@ public class RestTestBase {
     }
 
     public GraphDatabaseService getGraphDatabase() {
-        return neoServer.getGraphDatabase();
+        return db;
     }
 
 

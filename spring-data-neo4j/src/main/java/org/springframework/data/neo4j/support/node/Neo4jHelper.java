@@ -77,12 +77,21 @@ public abstract class Neo4jHelper {
         final GlobalGraphOperations globalGraphOperations = GlobalGraphOperations.at(graphDatabaseService);
         for (Node node : globalGraphOperations.getAllNodes()) {
             for (Relationship rel : node.getRelationships(Direction.OUTGOING)) {
-                rel.delete();
+                try {
+                    rel.delete();
+                } catch(IllegalStateException ise) {
+                    if (!ise.getMessage().contains("since it has already been deleted")) throw ise;
+                }
+
             }
         }
         for (Node node : globalGraphOperations.getAllNodes()) {
             if (includeReferenceNode || !graphDatabaseService.getReferenceNode().equals(node)) {
-                node.delete();
+                try {
+                    node.delete();
+                } catch(IllegalStateException ise) {
+                    if (!ise.getMessage().contains("since it has already been deleted")) throw ise;
+                }
             }
         }
     }

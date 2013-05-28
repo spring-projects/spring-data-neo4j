@@ -18,12 +18,19 @@ package org.springframework.data.neo4j.rest.support;
 
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientResponse;
+import org.apache.commons.configuration.Configuration;
 import org.apache.log4j.BasicConfigurator;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.neo4j.rest.graphdb.RequestResult;
+import org.neo4j.server.NeoServer;
+import org.neo4j.server.WrappingNeoServerBootstrapper;
+import org.neo4j.server.configuration.Configurator;
+import org.neo4j.server.configuration.ServerConfigurator;
+import org.neo4j.server.configuration.ThirdPartyJaxRsPackage;
+import org.neo4j.test.ImpermanentGraphDatabase;
 import org.springframework.data.neo4j.server.SpringPluginInitializer;
 
 import javax.ws.rs.POST;
@@ -31,10 +38,12 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
+import java.util.Collections;
+import java.util.Set;
 
 @Path( "/" )
 public class SpringPluginInitializerTests extends SpringPluginInitializer implements TestInterface {
-    private LocalTestServer neoServer;
+    private NeoServer neoServer;
 
     public SpringPluginInitializerTests() {
         super( new String[]{"ServerTests-context.xml"}, expose("testObject", TestInterface.class) );
@@ -59,10 +68,19 @@ public class SpringPluginInitializerTests extends SpringPluginInitializer implem
 
     @Before
     public void setUp() throws Exception {
-        BasicConfigurator.configure();
-        neoServer = new LocalTestServer( HOSTNAME, PORT ).withPropertiesFile( "server-test-db.properties" );
-        neoServer.start();
+        ImpermanentGraphDatabase db = new ImpermanentGraphDatabase();
+        final ServerConfigurator configurator = new ServerConfigurator(db) {
+            @Override
+            public Set<ThirdPartyJaxRsPackage> getThirdpartyJaxRsClasses() {
+                return Collections.singleton(new ThirdPartyJaxRsPackage("org.springframework.data.neo4j.rest.support","/test"));
+            }
+        };
+        final Configuration configuration = configurator.configuration();
+        configuration.setProperty(Configurator.WEBSERVER_PORT_PROPERTY_KEY, PORT);
+        final WrappingNeoServerBootstrapper bootstrapper = new WrappingNeoServerBootstrapper(db, configurator);
         touched=0;
+        bootstrapper.start();
+        neoServer = bootstrapper.getServer();
     }
 
     @After

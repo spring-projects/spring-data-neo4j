@@ -19,7 +19,7 @@
 	<properties>
 		<validation>1.0.0.GA</validation>
 		<jersey.version>1.4</jersey.version>
-		<neo4j-rest-graphdb.version>1.8.1</neo4j-rest-graphdb.version>
+		<neo4j-rest-graphdb.version>1.9</neo4j-rest-graphdb.version>
 	</properties>
 
 	<dependencies>
@@ -197,6 +197,10 @@
 			<version>${blueprints.version}</version>
 			<optional>true</optional>
 			<exclusions>
+                <exclusion>
+                        <groupId>org.neo4j</groupId>
+                        <artifactId>neo4j-management</artifactId>
+                </exclusion>
 				<exclusion>
 					<groupId>org.neo4j</groupId>
 					<artifactId>neo4j</artifactId>

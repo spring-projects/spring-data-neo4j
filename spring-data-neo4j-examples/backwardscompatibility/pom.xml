@@ -86,7 +86,7 @@
     <profile>
       <id>1.8.M07</id>
       <properties>
-        <neo4j.version>1.8.M06</neo4j.version>
+        <neo4j.version>1.8.M07</neo4j.version>
       </properties>
     </profile>
   </profiles>

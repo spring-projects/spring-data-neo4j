@@ -102,7 +102,7 @@ public class GraphRepositoryTests extends EntityTestBase {
         Page<Person> teamMemberPage1 = personRepository.findAllTeamMembersPaged(testTeam.sdg,null);
         assertEquals(new HashSet(asList(testTeam.david, testTeam.emil, testTeam.michael)), addToCollection(teamMemberPage1, new HashSet()));
         assertThat(teamMemberPage1.isFirstPage(), is(true));
-        assertThat(teamMemberPage1.isLastPage(), is(false));
+        assertThat(teamMemberPage1.isLastPage(), is(true));
     }
 
     @Test

@@ -20,22 +20,30 @@ package org.springframework.data.neo4j.rest.support;
 import java.net.URISyntaxException;
 
 import org.apache.log4j.BasicConfigurator;
+import org.neo4j.server.NeoServer;
+import org.neo4j.server.WrappingNeoServerBootstrapper;
+import org.neo4j.server.configuration.Configurator;
+import org.neo4j.server.configuration.ServerConfigurator;
+import org.neo4j.test.ImpermanentGraphDatabase;
 import org.springframework.data.neo4j.core.GraphDatabase;
 import org.springframework.data.neo4j.rest.SpringRestGraphDatabase;
 
 public class RestTestHelper
 {
 
-    protected SpringRestGraphDatabase graphDb;
     private static final String HOSTNAME = "localhost";
     private static final int PORT = 7470;
-    private static LocalTestServer neoServer;
+    private static NeoServer neoServer;
     private static final String SERVER_ROOT_URI = "http://" + HOSTNAME + ":" + PORT + "/db/data/";
+    private static ImpermanentGraphDatabase db;
 
     public void startServer() throws Exception {
-        BasicConfigurator.configure();
-        neoServer = new LocalTestServer(HOSTNAME,PORT).withPropertiesFile("test-db.properties");
-        neoServer.start();
+        db = new ImpermanentGraphDatabase();
+        final ServerConfigurator configurator = new ServerConfigurator(db);
+        configurator.configuration().setProperty(Configurator.WEBSERVER_PORT_PROPERTY_KEY,PORT);
+        final WrappingNeoServerBootstrapper bootstrapper = new WrappingNeoServerBootstrapper(db, configurator);
+        bootstrapper.start();
+        neoServer = bootstrapper.getServer();
     }
 
     public GraphDatabase createGraphDatabase() throws URISyntaxException {
@@ -43,7 +51,7 @@ public class RestTestHelper
     }
 
     public void cleanDb() {
-        neoServer.cleanDb();
+        db.cleanContent(true);
     }
 
     public static void shutdownServer() {
