@@ -46,11 +46,11 @@ public class QueryResultProxy implements InvocationHandler {
     @SuppressWarnings("unchecked")
     @Override
     public Object invoke(Object proxy, Method method, Object[] params) throws Throwable {
-        if (OBJECT_EQUALS.equals(method)) {
+        if (method.getName().equals("equals") && params!=null && params.length == 1) {
             return equalsInternal(proxy, params[0]);
         }
 
-        if (OBJECT_HASHCODE.equals(method)) {
+        if (method.getName().equals("hashCode") && (params==null || params.length == 0)) {
           return map.hashCode();
         }
 
@@ -103,10 +103,6 @@ public class QueryResultProxy implements InvocationHandler {
         return null;
     }
 
-    private static final Method OBJECT_EQUALS = getObjectMethod("equals", Object.class);
-
-    private static final Method OBJECT_HASHCODE = getObjectMethod("hashCode");
-
     private boolean equalsInternal(Object me, Object other) {
         if (other == null) {
             return false;
@@ -117,13 +113,5 @@ public class QueryResultProxy implements InvocationHandler {
         InvocationHandler handler = Proxy.getInvocationHandler(other);
         if (!(handler instanceof QueryResultProxy)) return false;
         return ((QueryResultProxy) handler).map.equals(map);
-    }
-
-    private static Method getObjectMethod(String name, Class... types) {
-        try {
-            return Object.class.getMethod(name, types);
-        } catch (NoSuchMethodException e) {
-            throw new IllegalArgumentException(e);
-        }
     }
 }
