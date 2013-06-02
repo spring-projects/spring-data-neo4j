@@ -78,7 +78,10 @@ public class DetachedEntityState<STATE> implements EntityState<STATE> {
 
     @Override
     public Object getValue(Neo4jPersistentProperty property, MappingPolicy mappingPolicy) {
-        mappingPolicy = mappingPolicy == null ? property.getMappingPolicy() : mappingPolicy;
+        if (mappingPolicy == null) {
+            if (property!=null) mappingPolicy = property.getMappingPolicy();
+            else mappingPolicy = MappingPolicy.MAP_FIELD_DIRECT_POLICY;
+        }
         if (isDetached()) {
             if (template.getPersistentState(getEntity())==null || isDirty(property)) {
                 if (log.isDebugEnabled()) log.debug("Outside of transaction, GET value from field " + property);

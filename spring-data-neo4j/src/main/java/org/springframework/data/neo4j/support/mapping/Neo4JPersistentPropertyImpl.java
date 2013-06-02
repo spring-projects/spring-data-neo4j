@@ -348,23 +348,14 @@ class Neo4jPersistentPropertyImpl extends AnnotationBasedPersistentProperty<Neo4
             return MappingPolicy.DEFAULT_POLICY;
     }
 
-    /**
-     * @deprecated todo remove when SD-Commons handles transient properties differently
-     */
-    @Deprecated
-    public boolean isReallyTransient() {
-        return Modifier.isTransient(field.getModifiers()) || isAnnotationPresent(Transient.class) || isAnnotationPresent("javax.persistence.Transient");
+    public boolean isTransient() {
+        return super.isTransient() || Modifier.isTransient(field.getModifiers()); //  || isAnnotationPresent(Transient.class) || isAnnotationPresent("javax.persistence.Transient");
     }
 
     private boolean isAnnotationPresent(String className) {
         for (Class<? extends Annotation> annotationType : annotations.keySet()) {
             if (annotationType.getName().equals(className)) return true;
         }
-        return false;
-    }
-
-    @Override
-    public boolean isTransient() {
         return false;
     }
 

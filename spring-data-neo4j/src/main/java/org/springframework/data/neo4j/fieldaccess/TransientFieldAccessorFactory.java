@@ -22,7 +22,7 @@ import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 public class TransientFieldAccessorFactory implements FieldAccessorFactory {
     @Override
     public boolean accept(final Neo4jPersistentProperty property) {
-        return property.isReallyTransient();
+        return property.isTransient();
     }
 
     @Override
