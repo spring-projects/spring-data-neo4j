@@ -27,6 +27,8 @@ import org.springframework.data.mapping.model.MappingException;
 import org.springframework.data.neo4j.mapping.*;
 import org.springframework.data.neo4j.mapping.ManagedEntity;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
+import org.springframework.data.neo4j.support.typesafety.TypeSafetyOption;
+import org.springframework.data.neo4j.support.typesafety.TypeSafetyPolicy;
 import org.springframework.data.util.ClassTypeInformation;
 import org.springframework.data.util.TypeInformation;
 
@@ -78,14 +80,24 @@ public class Neo4jEntityConverterImpl<T,S extends PropertyContainer> implements 
         // retrieve meta-information about the type
         @SuppressWarnings("unchecked") final Neo4jPersistentEntityImpl<R> persistentEntity = (Neo4jPersistentEntityImpl<R>) mappingContext.getPersistentEntity(targetType);
 
-        if (mappingPolicy==null) {
-            mappingPolicy = persistentEntity.getMappingPolicy();
+        // 4) check type safety
+        TypeSafetyPolicy typeSafetyPolicy = template.getInfrastructure().getTypeSafetyPolicy();
+        if (typeSafetyPolicy.isTypeSafetyEnabled() && !storedAndRequestedTypesMatch(requestedType, source)) {
+            if (typeSafetyPolicy.getTypeSafetyOption() == TypeSafetyOption.RETURNS_NULL) {
+                return null;
+            }
+            if (typeSafetyPolicy.getTypeSafetyOption() == TypeSafetyOption.THROWS_EXCEPTION) {
+                throw new InvalidEntityTypeException("Requested a entity of type '" + requestedType + "', but the stored entity is of type '" + typeMapper.readType(source).getType() + "'.");
+            }
         }
 
-        // 4) create object instance
+        // 5) create object instance
+        if (mappingPolicy == null) {
+            mappingPolicy = persistentEntity.getMappingPolicy();
+        }
         final R createdEntity = entityInstantiator.createEntityFromState(source, targetType.getType(), mappingPolicy);
 
-        // 5) connect state
+        // 6) connect state
         entityStateHandler.setPersistentState(createdEntity,source);
 
         if (persistentEntity.isManaged()) return createdEntity;
@@ -102,6 +114,11 @@ public class Neo4jEntityConverterImpl<T,S extends PropertyContainer> implements 
             cascadeFetch(persistentEntity, wrapper, mappingPolicy, template);
         }
         return entity;
+    }
+
+    private <R extends T> boolean storedAndRequestedTypesMatch(Class<R> requestedType, S source) {
+        TypeInformation<?> storedType = typeMapper.readType(source);
+        return storedType.getType().isAssignableFrom(requestedType);
     }
 
     private <R extends T> void cascadeFetch(Neo4jPersistentEntityImpl<R> persistentEntity, final BeanWrapper<Neo4jPersistentEntity<R>, R> wrapper, final MappingPolicy policy, final Neo4jTemplate template) {

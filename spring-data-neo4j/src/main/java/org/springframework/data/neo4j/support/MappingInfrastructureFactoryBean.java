@@ -47,6 +47,7 @@ import org.springframework.data.neo4j.support.relationship.RelationshipEntityIns
 import org.springframework.data.neo4j.support.relationship.RelationshipEntityStateFactory;
 import org.springframework.data.neo4j.support.typerepresentation.TypeRepresentationStrategies;
 import org.springframework.data.neo4j.support.typerepresentation.TypeRepresentationStrategyFactory;
+import org.springframework.data.neo4j.support.typesafety.TypeSafetyPolicy;
 import org.springframework.data.support.IsNewStrategyFactory;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.jta.JtaTransactionManager;
@@ -80,6 +81,7 @@ public class MappingInfrastructureFactoryBean implements FactoryBean<Infrastruct
     private GraphDatabaseService graphDatabaseService;
     private GraphDatabase graphDatabase;
     private IsNewStrategyFactory isNewStrategyFactory;
+    private TypeSafetyPolicy typeSafetyPolicy;
 
     private MappingInfrastructure mappingInfrastructure;
     private TypeRepresentationStrategyFactory.Strategy typeRepresentationStrategy;
@@ -154,7 +156,10 @@ public class MappingInfrastructureFactoryBean implements FactoryBean<Infrastruct
         if (this.indexProvider == null) {
             this.indexProvider = new IndexProviderImpl(this.mappingContext, graphDatabase);
         }
-        this.mappingInfrastructure = new MappingInfrastructure(graphDatabase, graphDatabaseService, indexProvider, resultConverter, transactionManager, typeRepresentationStrategies, entityRemover, entityPersister, entityStateHandler, cypherQueryExecutor, mappingContext, relationshipTypeRepresentationStrategy, nodeTypeRepresentationStrategy, validator, conversionService);
+        if (this.typeSafetyPolicy == null) {
+            this.typeSafetyPolicy = new TypeSafetyPolicy();
+        }
+        this.mappingInfrastructure = new MappingInfrastructure(graphDatabase, graphDatabaseService, indexProvider, resultConverter, transactionManager, typeRepresentationStrategies, entityRemover, entityPersister, entityStateHandler, cypherQueryExecutor, mappingContext, relationshipTypeRepresentationStrategy, nodeTypeRepresentationStrategy, validator, conversionService, typeSafetyPolicy);
         } catch (Exception e) {
             throw new RuntimeException("error initializing "+getClass().getName(),e);
         }
@@ -292,6 +297,14 @@ public class MappingInfrastructureFactoryBean implements FactoryBean<Infrastruct
 
     public void setIsNewStrategyFactory(IsNewStrategyFactory newStrategyFactory) {
         isNewStrategyFactory = newStrategyFactory;
+    }
+
+    public void setTypeSafetyPolicy(TypeSafetyPolicy typeSafetyPolicy) {
+        this.typeSafetyPolicy = typeSafetyPolicy;
+    }
+
+    public TypeSafetyPolicy getTypeSafetyPolicy() {
+        return typeSafetyPolicy;
     }
 
     @Override
