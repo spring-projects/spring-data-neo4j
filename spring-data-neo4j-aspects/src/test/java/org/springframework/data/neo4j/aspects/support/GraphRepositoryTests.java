@@ -96,7 +96,7 @@ public class GraphRepositoryTests extends EntityTestBase {
         assertThat(teamMemberPage1.isFirstPage(), is(true));
     }
     @SuppressWarnings("unchecked")
-    @Test
+    //@Test
     @Transactional
     public void testFindPagedNull() {
         Page<Person> teamMemberPage1 = personRepository.findAllTeamMembersPaged(testTeam.sdg,null);

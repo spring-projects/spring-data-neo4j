@@ -155,7 +155,7 @@ public class FullNeo4jTemplateTests {
     @Test(expected = DataAccessException.class)
     @Ignore
     public void shouldConvertMissingTransactionExceptionToDataAccessException() {
-        Neo4jTemplate template = new Neo4jTemplate(graphDatabase, null);
+        Neo4jTemplate template = new Neo4jTemplate(graphDatabase, (PlatformTransactionManager) null);
         template.exec(new GraphCallback.WithoutResult() {
             @Override
             public void doWithGraphWithoutResult(GraphDatabase graph) throws Exception {

@@ -42,10 +42,7 @@ import org.springframework.data.neo4j.fieldaccess.GraphBackedEntityIterableWrapp
 import org.springframework.data.neo4j.lifecycle.AfterSaveEvent;
 import org.springframework.data.neo4j.lifecycle.BeforeSaveEvent;
 import org.springframework.data.neo4j.lifecycle.DeleteEvent;
-import org.springframework.data.neo4j.mapping.IndexInfo;
-import org.springframework.data.neo4j.mapping.MappingPolicy;
-import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
-import org.springframework.data.neo4j.mapping.RelationshipResult;
+import org.springframework.data.neo4j.mapping.*;
 import org.springframework.data.neo4j.repository.GraphRepository;
 import org.springframework.data.neo4j.repository.NodeGraphRepositoryImpl;
 import org.springframework.data.neo4j.repository.RelationshipGraphRepository;
@@ -108,7 +105,6 @@ public class Neo4jTemplate implements Neo4jOperations, ApplicationContextAware {
     public Neo4jTemplate(Infrastructure infrastructure) {
         this.infrastructure = infrastructure;
     }
-
 
     @Override
     public <T> GraphRepository<T> repositoryFor(Class<T> clazz) {
