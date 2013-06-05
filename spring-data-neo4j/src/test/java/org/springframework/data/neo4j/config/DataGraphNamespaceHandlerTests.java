@@ -56,7 +56,7 @@ public class DataGraphNamespaceHandlerTests {
         Neo4jTemplate neo4jTemplate;
         @Autowired
         PlatformTransactionManager transactionManager;
-        @Autowired
+        @Autowired(required = false)
         Neo4jMappingContext mappingContext;
         @Autowired(required = false)
         PersonRepository personRepository;
@@ -100,7 +100,7 @@ public class DataGraphNamespaceHandlerTests {
     public void injectionForCodeConfiguredExistingGraphDatabaseService() {
         assertInjected("-code");
     }
-    @Test @Ignore("BeanCreationException DATAGRAPH-354")
+    @Test
     public void injectionForBasePackageOfEntities() {
         Config config = assertInjected("-entities");
         Collection<Neo4jPersistentEntityImpl<?>> entities = config.mappingContext.getPersistentEntities();

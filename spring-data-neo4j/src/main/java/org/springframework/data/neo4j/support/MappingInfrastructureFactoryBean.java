@@ -21,7 +21,6 @@ import org.neo4j.graphdb.Relationship;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.core.convert.ConversionService;
-import org.springframework.data.auditing.IsNewAwareAuditingHandler;
 import org.springframework.data.mapping.context.MappingContextIsNewStrategyFactory;
 import org.springframework.data.neo4j.annotation.QueryType;
 import org.springframework.data.neo4j.conversion.ResultConverter;
@@ -152,7 +151,7 @@ public class MappingInfrastructureFactoryBean implements FactoryBean<Infrastruct
         this.graphDatabase.setResultConverter(resultConverter);
         this.cypherQueryExecutor = new CypherQueryExecutor(graphDatabase.queryEngineFor(QueryType.Cypher, resultConverter));
         if (this.indexProvider == null) {
-            this.indexProvider = new IndexProviderImpl(this.mappingContext, graphDatabase);
+            this.indexProvider = new IndexProviderImpl(graphDatabase);
         }
         this.mappingInfrastructure = new MappingInfrastructure(graphDatabase, graphDatabaseService, indexProvider, resultConverter, transactionManager, typeRepresentationStrategies, entityRemover, entityPersister, entityStateHandler, cypherQueryExecutor, mappingContext, relationshipTypeRepresentationStrategy, nodeTypeRepresentationStrategy, validator, conversionService);
         } catch (Exception e) {

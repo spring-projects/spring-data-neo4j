@@ -121,7 +121,7 @@ public class Neo4jTemplate implements Neo4jOperations, ApplicationContextAware {
 
     public <S extends PropertyContainer, T> Index<S> getIndex(Class<T> type) {
         notNull(type, "entity type");
-        return getIndexProvider().getIndex(type, null);
+        return getIndexProvider().getIndex(getPersistentEntity(type), null);
     }
 
     public <S extends PropertyContainer> Index<S> getIndex(String name) {
@@ -130,7 +130,7 @@ public class Neo4jTemplate implements Neo4jOperations, ApplicationContextAware {
     }
 
     public <S extends PropertyContainer, T> Index<S> getIndex(Class<T> type, String indexName, IndexType indexType) {
-        return getIndexProvider().getIndex(type, indexName, indexType);
+        return getIndexProvider().getIndex(getPersistentEntity(type), indexName, indexType);
     }
 
     /**
@@ -575,13 +575,14 @@ public class Neo4jTemplate implements Neo4jOperations, ApplicationContextAware {
 
     @Override
     public <T extends PropertyContainer> Index<T> getIndex(String indexName, Class<?> indexedType) {
-        return getIndexProvider().getIndex(indexedType, indexName);
+        final Neo4jPersistentEntityImpl<?> persistentEntity = indexedType==null ? null : getPersistentEntity(indexedType);
+        return getIndexProvider().getIndex(persistentEntity, indexName);
     }
 
     @Override
     public <T extends PropertyContainer> Index<T> getIndex(Class<?> indexedType, String propertyName) {
         final Neo4jPersistentProperty property = getPersistentProperty(indexedType, propertyName);
-        if (property == null) return getIndexProvider().getIndex(indexedType, null);
+        if (property == null) return getIndexProvider().getIndex(getPersistentEntity(indexedType), null);
         return getIndexProvider().getIndex(property, indexedType);
     }
 

@@ -60,7 +60,6 @@ import org.springframework.data.support.IsNewStrategyFactory;
 import org.springframework.transaction.PlatformTransactionManager;
 import javax.validation.Validator;
 
-import java.util.Collection;
 import java.util.Set;
 
 import static java.util.Arrays.asList;
@@ -243,7 +242,7 @@ public abstract class Neo4jConfiguration {
 
     @Bean
     public IndexCreationMappingEventListener indexCreationMappingEventListener() throws Exception {
-        return new IndexCreationMappingEventListener(neo4jTemplate());
+        return new IndexCreationMappingEventListener(indexProvider());
     }
 
     @Bean
@@ -254,6 +253,7 @@ public abstract class Neo4jConfiguration {
         return new DelegatingGraphDatabase(graphDatabaseService);
     }
 
+    // didn't help @DependsOn({"neo4jTemplate","neo4jTransactionManager","neo4jMappingContext"})
     @Bean
     public ConfigurationCheck configurationCheck() throws Exception {
         return new ConfigurationCheck(neo4jTemplate(),neo4jTransactionManager());
@@ -266,7 +266,7 @@ public abstract class Neo4jConfiguration {
 
     @Bean
     public IndexProvider indexProvider() throws Exception {
-        return new IndexProviderImpl(neo4jMappingContext(), graphDatabase());
+        return new IndexProviderImpl(graphDatabase());
     }
 
     public Set<? extends Class<?>> getInitialEntitySet() {

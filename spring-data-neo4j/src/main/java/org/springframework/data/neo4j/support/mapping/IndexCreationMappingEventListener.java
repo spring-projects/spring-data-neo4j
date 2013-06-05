@@ -21,7 +21,7 @@ import org.springframework.data.mapping.PropertyHandler;
 import org.springframework.data.mapping.context.MappingContextEvent;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentEntity;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
-import org.springframework.data.neo4j.support.Neo4jTemplate;
+import org.springframework.data.neo4j.support.index.IndexProvider;
 import org.springframework.data.neo4j.support.index.IndexType;
 
 /**
@@ -29,9 +29,9 @@ import org.springframework.data.neo4j.support.index.IndexType;
  * @since 12.04.12
  */
 public class IndexCreationMappingEventListener implements ApplicationListener<MappingContextEvent<Neo4jPersistentEntity<?>, Neo4jPersistentProperty>> {
-    private Neo4jTemplate template;
-    public IndexCreationMappingEventListener(Neo4jTemplate template) {
-        this.template = template;
+    private IndexProvider indexProvider;
+    public IndexCreationMappingEventListener(IndexProvider indexProvider) {
+        this.indexProvider = indexProvider;
     }
 
     @Override
@@ -43,12 +43,12 @@ public class IndexCreationMappingEventListener implements ApplicationListener<Ma
 
     private void ensureEntityIndexes(Neo4jPersistentEntity<?> entity) {
         final Class entityType = entity.getType();
-        @SuppressWarnings("unchecked") Index index = template.getIndex(entityType, null, IndexType.SIMPLE);
+        indexProvider.getIndex(entity, null, IndexType.SIMPLE);
         entity.doWithProperties(new PropertyHandler<Neo4jPersistentProperty>() {
             @Override
             public void doWithPersistentProperty(Neo4jPersistentProperty property) {
                 if (property.isIndexed()) {
-                    template.getIndex(property, entityType);
+                    indexProvider.getIndex(property, entityType);
                 }
             }
         });
