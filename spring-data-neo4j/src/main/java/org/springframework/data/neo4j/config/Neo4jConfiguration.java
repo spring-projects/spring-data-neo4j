@@ -60,7 +60,6 @@ import org.springframework.data.support.IsNewStrategyFactory;
 import org.springframework.transaction.PlatformTransactionManager;
 import javax.validation.Validator;
 
-import java.util.Collection;
 import java.util.Set;
 
 import static java.util.Arrays.asList;
@@ -98,6 +97,7 @@ public abstract class Neo4jConfiguration {
     }
 
     @Bean
+    @DependsOn("neo4jMappingContext")
     public MappingInfrastructureFactoryBean mappingInfrastructure() throws Exception {
         MappingInfrastructureFactoryBean factoryBean = new MappingInfrastructureFactoryBean();
         factoryBean.setGraphDatabaseService(getGraphDatabaseService());
@@ -243,7 +243,7 @@ public abstract class Neo4jConfiguration {
 
     @Bean
     public IndexCreationMappingEventListener indexCreationMappingEventListener() throws Exception {
-        return new IndexCreationMappingEventListener(neo4jTemplate());
+        return new IndexCreationMappingEventListener(indexProvider());
     }
 
     @Bean
@@ -266,7 +266,7 @@ public abstract class Neo4jConfiguration {
 
     @Bean
     public IndexProvider indexProvider() throws Exception {
-        return new IndexProviderImpl(neo4jMappingContext(), graphDatabase());
+        return new IndexProviderImpl(graphDatabase());
     }
 
     public Set<? extends Class<?>> getInitialEntitySet() {

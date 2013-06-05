@@ -56,7 +56,7 @@ public class DataGraphNamespaceHandlerTests {
         Neo4jTemplate neo4jTemplate;
         @Autowired
         PlatformTransactionManager transactionManager;
-        @Autowired
+        @Autowired(required = false)
         Neo4jMappingContext mappingContext;
         @Autowired(required = false)
         PersonRepository personRepository;

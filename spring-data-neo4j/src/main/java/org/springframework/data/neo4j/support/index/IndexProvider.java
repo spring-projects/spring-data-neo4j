@@ -17,17 +17,17 @@ package org.springframework.data.neo4j.support.index;
 
 import org.neo4j.graphdb.PropertyContainer;
 import org.neo4j.graphdb.index.Index;
+import org.springframework.data.neo4j.mapping.Neo4jPersistentEntity;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 
 public interface IndexProvider {
 
-    <S extends PropertyContainer, T> Index<S> getIndex(Class<T> type);
+    <S extends PropertyContainer, T> Index<S> getIndex(Neo4jPersistentEntity<T> type);
 
-    <S extends PropertyContainer, T> Index<S> getIndex(Class<T> type, String indexName);
+    <S extends PropertyContainer, T> Index<S> getIndex(Neo4jPersistentEntity<T> type, String indexName);
 
     @SuppressWarnings("unchecked")
-    <S extends PropertyContainer, T> Index<S> getIndex(Class<T> type, String indexName,
-            IndexType indexType);
+    <S extends PropertyContainer, T> Index<S> getIndex(Neo4jPersistentEntity<T> persistentEntity, String indexName, IndexType indexType);
 
     @SuppressWarnings("unchecked")
     <T extends PropertyContainer> Index<T> getIndex(String indexName);
@@ -36,11 +36,10 @@ public interface IndexProvider {
 
     // TODO handle existing indexes
     @SuppressWarnings("unchecked")
-    <T extends PropertyContainer> Index<T> createIndex(Class<T> type, String indexName,
+    <T extends PropertyContainer> Index<T> createIndex(Class<T> propertyContainerType, String indexName,
             IndexType fullText);
 
-    <S extends PropertyContainer> Index<S> getIndex(Neo4jPersistentProperty property,
-            final Class<?> instanceType);
+    <S extends PropertyContainer> Index<S> getIndex(Neo4jPersistentProperty property, final Class<?> instanceType);
     /**
      * adjust your indexName for the "__types__" indices
      * 
