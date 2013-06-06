@@ -7,7 +7,6 @@
 
 	<name>Spring Data Neo4j - AspectJ Advanced Mapping</name>
 	<description>Advanced Mapping support for Spring Data Neo4j</description>
-	<version>2.3.0.BUILD-SNAPSHOT</version>
 
 	<parent>
 		<groupId>org.springframework.data</groupId>

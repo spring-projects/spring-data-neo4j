@@ -97,6 +97,7 @@ public abstract class Neo4jConfiguration {
     }
 
     @Bean
+    @DependsOn("neo4jMappingContext")
     public MappingInfrastructureFactoryBean mappingInfrastructure() throws Exception {
         MappingInfrastructureFactoryBean factoryBean = new MappingInfrastructureFactoryBean();
         factoryBean.setGraphDatabaseService(getGraphDatabaseService());
@@ -253,7 +254,6 @@ public abstract class Neo4jConfiguration {
         return new DelegatingGraphDatabase(graphDatabaseService);
     }
 
-    // didn't help @DependsOn({"neo4jTemplate","neo4jTransactionManager","neo4jMappingContext"})
     @Bean
     public ConfigurationCheck configurationCheck() throws Exception {
         return new ConfigurationCheck(neo4jTemplate(),neo4jTransactionManager());
