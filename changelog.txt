@@ -1,5 +1,13 @@
-Spring Data Graph Changelog
+Spring Data Neo4j Changelog
 ===========================
+
+Changes in version 2.3.0.M1 (2013-06-07)
+----------------------------------------
+* DATAGRAPH-355 Update to Neo4j 1.9, SD-Commons 1.6.M1, QueryDSL 3.2.0
+* DATAGRAPH-354 fixed behaviour with neo4j:config base-package
+* DATAGRAPH-356 Handle transient fields consistently with Spring Data & SD Rest
+* DATAGRAPH-325 Cannot return a set from a query with Neo4j
+* Infrastructure updates for Neo4jPersistentProperty, Neo4jPersistentEntity and Neo4jMappingContext
 
 Changes in version 2.2.0.RELEASE (2013-02-11)
 ---------------------------------------------
