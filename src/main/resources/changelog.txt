@@ -1,91 +1,97 @@
 Spring Data Neo4j Changelog
 ===========================
 
-Changes in version 2.3.0.M1 (2013-06-07)
+Changes in version 2.3.0.M1 (2013-06-09)
 ----------------------------------------
-* DATAGRAPH-355 Update to Neo4j 1.9, SD-Commons 1.6.M1, QueryDSL 3.2.0
-* DATAGRAPH-354 fixed behaviour with neo4j:config base-package
-* DATAGRAPH-356 Handle transient fields consistently with Spring Data & SD Rest
-* DATAGRAPH-325 Cannot return a set from a query with Neo4j
+* DATAGRAPH-355 - Update to Neo4j 1.9, SD-Commons 1.6.M1, QueryDSL 3.2.0
+* DATAGRAPH-354 - Fixed behaviour with neo4j:config base-package
+* DATAGRAPH-346 - Deprecated ChainedTransactionManager
+* DATAGRAPH-356 - Handle transient fields consistently with Spring Data & SD Rest
+* DATAGRAPH-325 - Cannot return a set from a query with Neo4j
 * Infrastructure updates for Neo4jPersistentProperty, Neo4jPersistentEntity and Neo4jMappingContext
+
+Changes in version 2.2.1.RELEASE (2013-04-18)
+---------------------------------------------
+* DATAGRAPH-191 - ChainedTransactionManager does not return connection to DataSource on failure
+* DATAGRAPH-348 - Release 2.2.1
 
 Changes in version 2.2.0.RELEASE (2013-02-11)
 ---------------------------------------------
-* DATAGRAPH-332 Updated project to new build system and new dependencies
-* DATAGRAPH-329 Updated dependencies to Neo4j 1.8.1 (but also works with 1.9.x)
-* DATAGRAPH-328 Added Auditing Support, SD-commons 1.5.x
+* DATAGRAPH-332 - Updated project to new build system and new dependencies
+* DATAGRAPH-329 - Updated dependencies to Neo4j 1.8.1 (but also works with 1.9.x)
+* DATAGRAPH-328 - Added Auditing Support, SD-commons 1.5.x
 * DATAGRAPH-323 - Support for count-queries for page results
-* DATAGRAPH-318 NodeEntity fields are not persisted in CrossStore setup
-* DATAGRAPH-320 Performance improvement regarding reference annotations in Neo4jMappingContext
+* DATAGRAPH-318 - NodeEntity fields are not persisted in CrossStore setup
+* DATAGRAPH-320 - Performance improvement regarding reference annotations in Neo4jMappingContext
 * Update examples and tests for new cypher syntax rules (order by)
 
 Changes in version 2.1.RELEASE (2012-10-10)
 -------------------------------------------
-* DATAGRAPH-303 Upgrade to Neo4j 1.8, Spring Data Commons 1.4.RELEASE
+* DATAGRAPH-303 - Upgrade to Neo4j 1.8, Spring Data Commons 1.4.RELEASE
 * Documentation updates
 
 Changes in version 2.1.RC4 (2012-09-19)
 ---------------------------------------
-* DATAGRAPH-296 Updates to stable versions of Neo4j 1.8.RC1, spatial, cypher-dsl and java-rest-binding, adopted to API changes
-* DATAGRAPH-285 adding application events for save and delete
-* DATAGRAPH-263, DATAGRAPH-212, DATAGRAPH-272, DATAGRAPH-147 refactored derived query creation, added support for multiple indexed fields and all query keywords
-* DATAGRAPH-294 derived finder methods for numerically indexed values
-* DATAGRAPH-293 find objects by graph-id
-* DATAGRAPH-275 non graceful fallback on empty graph for TypeRepresentationStrategyFactory
-* DATAGRAPH-246 allowing entity as parameter to derived finders
-* DATAGRAPH-281 Added support for Enums and Dates as parameters to Cypher
+* DATAGRAPH-296 - Updates to stable versions of Neo4j 1.8.RC1, spatial, cypher-dsl and java-rest-binding, adopted to API changes
+* DATAGRAPH-285 - Adding application events for save and delete
+* DATAGRAPH-263, DATAGRAPH-212, DATAGRAPH-272, DATAGRAPH-147 - Refactored derived query creation, added support for multiple indexed fields and all query keywords
+* DATAGRAPH-294 - Derived finder methods for numerically indexed values
+* DATAGRAPH-293 - find objects by graph-id
+* DATAGRAPH-275 - non graceful fallback on empty graph for TypeRepresentationStrategyFactory
+* DATAGRAPH-246 - allowing entity as parameter to derived finders
+* DATAGRAPH-281 - Added support for Enums and Dates as parameters to Cypher
 
 Changes in version 2.1.RC3 (2012-08-24)
 ---------------------------------------
 * Updates to stable versions of Neo4j 1.8.M07, spatial, cypher-dsl and java-rest-binding, adopted to API changes
-* DATAGRAPH-276 Fixed issue to make @RelatedToVia support Iterable and not just Set
-* DATAGRAPH-250 Introduced 'enforceTargetType' flag to help discriminate clashing relationship types based on end node type
-* DATAGRAPH-274 Fixed that @RelatedToVia on single entities fetched eagerly by default, also check of correct annotation for target entity
+* DATAGRAPH-276 - Fixed issue to make @RelatedToVia support Iterable and not just Set
+* DATAGRAPH-250 - Introduced 'enforceTargetType' flag to help discriminate clashing relationship types based on end node type
+* DATAGRAPH-274 - Fixed that @RelatedToVia on single entities fetched eagerly by default, also check of correct annotation for target entity
 * DATAGRAPH-266 - Added support for @EnableNeo4jRepositories on JavaConfig, Fixed reference to repositories namespace in XSD.
 * Documentation updates
-* DATAGRAPH-264 Handle Exceptions for nested internal transactions with an explicit tx.failure()
-* DATAGRAPH-286 Conversions to arbitrary target property types
+* DATAGRAPH-264 - Handle Exceptions for nested internal transactions with an explicit tx.failure()
+* DATAGRAPH-286 - Conversions to arbitrary target property types
 
 Changes in version 2.1.RC2 (2012-06-25)
 --------------------------------------
-* DATAGRAPH-255 Created a transaction manager factory bean to allow backwards-compatibility. We now support Neo 1.7-1.8
-* DATAGRAPH-251 Fixed issue with annotation-provided relationship type (@RelatedToVia), firmed up relationship type precedence
-* DATAGRAPH-205 Improved error message
+* DATAGRAPH-255 - Created a transaction manager factory bean to allow backwards-compatibility. We now support Neo 1.7-1.8
+* DATAGRAPH-251 - Fixed issue with annotation-provided relationship type (@RelatedToVia), firmed up relationship type precedence
+* DATAGRAPH-205 - Improved error message
 
 Changes in version 2.1.RC1 (2012-05-04)
 --------------------------------------
-* DATAGRAPH-228 update to Neo4j 1.7, SD-Commons 1.3.0.RC2, Neo4j-Spatial 0.8, Neo4j-Java-Rest-Binding 1.7
-* DATAGRAPH-206 Neo4jTemplate can now also be instantiated directly, MappingInfrastructureFactoryBean takes care of providing dependencies
-* DATAGRAPH-219, DATAGRAPH-210 unique relationships with annotation and via template, and documentation for unique entities
-* DATAGRAPH-221 indexed needed by the persistent entities are now created upfront by an MappingContextListener to satisfy cypher checks
-* DATAGRAPH-214 numeric fields can be indexed non-numerically
-* DATAGRAPH-181 fix for creating unique entities with numeric unique fields
-* DATAGRAPH-213 support inheritance (querying) of relationship-entities
+* DATAGRAPH-228 - Update to Neo4j 1.7, SD-Commons 1.3.0.RC2, Neo4j-Spatial 0.8, Neo4j-Java-Rest-Binding 1.7
+* DATAGRAPH-206 - Neo4jTemplate can now also be instantiated directly, MappingInfrastructureFactoryBean takes care of providing dependencies
+* DATAGRAPH-219, DATAGRAPH-210 - Unique relationships with annotation and via template, and documentation for unique entities
+* DATAGRAPH-221 - Indexed needed by the persistent entities are now created upfront by an MappingContextListener to satisfy cypher checks
+* DATAGRAPH-214 - Numeric fields can be indexed non-numerically
+* DATAGRAPH-181 - Fix for creating unique entities with numeric unique fields
+* DATAGRAPH-213 - Support inheritance (querying) of relationship-entities
 
 Changes in version 2.1.M1 (2012-03-02)
 --------------------------------------
 thanks to Mark Spitzler, Oliver Gierke, Rajaram Ganeshan, Laurent Pireyn
-* DATAGRAPH-181 added support for unique entities with template.getOrCreateNode and @Indexed(unique=true)
-* DATAGRAPH-198 added support for custom target type, e.g. storing a Date converted to a Long @GraphProperty(propertyType=Long.class)
-* DATAGRAPH-102 fixed type representation in graph with support for @TypeAlias to allow shorter type-identifiers in the graph
-* DATAGRAPH-204 pom.xml cleanup (repositories) and dependency to SFW is now range from 3.0.7.RELEASE - 3.2
-* DATAGRAPH-185 cypher queries for single fields return null on no results
-* DATAGRAPH-182 allow @RelatedTo on Single RelationshipEntity fields + internal refactorings
-* DATAGRAPH-202 provide a getRelationshipsBetween() method in Neo4jTemplate
-* GH-#34 Fix for using Neo4j High-Availability
-* DATAGRAPH-176 Added debug log output for cypher and gremlin query as well as derived query methods
-* DATAGRAPH-186 default value for readonly relationship collections
-* DATAGRAPH-173 fixed verify method for interfaces, added interface support for type-representation strategies
-* DATAGRAPH-169 Backquoting all variable parts of derived finder queries to accommodate for non-identifier names.
-* DATAGRAPH-164 Added methods to determine stored java type to neo4j-template and crud-repository
-* DATAGRAPH-166 fixed multiple sort parameters
-* documentation updates
+* DATAGRAPH-181 - Added support for unique entities with template.getOrCreateNode and @Indexed(unique=true)
+* DATAGRAPH-198 - Added support for custom target type, e.g. storing a Date converted to a Long @GraphProperty(propertyType=Long.class)
+* DATAGRAPH-102 - Fixed type representation in graph with support for @TypeAlias to allow shorter type-identifiers in the graph
+* DATAGRAPH-204 - Pom.xml cleanup (repositories) and dependency to SFW is now range from 3.0.7.RELEASE - 3.2
+* DATAGRAPH-185 - Cypher queries for single fields return null on no results
+* DATAGRAPH-182 - Allow @RelatedTo on Single RelationshipEntity fields + internal refactorings
+* DATAGRAPH-202 - Provide a getRelationshipsBetween() method in Neo4jTemplate
+* GH-#34 - Fix for using Neo4j High-Availability
+* DATAGRAPH-176 - Added debug log output for cypher and gremlin query as well as derived query methods
+* DATAGRAPH-186 - Default value for readonly relationship collections
+* DATAGRAPH-173 - Fixed verify method for interfaces, added interface support for type-representation strategies
+* DATAGRAPH-169 - Backquoting all variable parts of derived finder queries to accommodate for non-identifier names.
+* DATAGRAPH-164 - Added methods to determine stored java type to neo4j-template and crud-repository
+* DATAGRAPH-166 - Fixed multiple sort parameters
+* Documentation updates
 
 Changes in version 2.0.1.RELEASE (2012-02-09)
 ---------------------------------------------
 * Updated dependencies to SpringFramework 3.0.7, Spring-Data-Commons 1.2.1, Neo4j, Cypher-DSL, Neo4j-Spatial 1.6
 * Updated repository configuration
-* DATAGRAPH-186 default value for readonly relationship collections
+* DATAGRAPH-186 - default value for readonly relationship collections
 
 Changes in version 2.0.0.RELEASE (2011-12-23)
 ---------------------------------------------
