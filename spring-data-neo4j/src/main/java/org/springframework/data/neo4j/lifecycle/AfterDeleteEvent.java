@@ -15,8 +15,8 @@
  */
 package org.springframework.data.neo4j.lifecycle;
 
-public class DeleteEvent<T> extends Neo4jLifecycleEvent<T> {
-    public DeleteEvent(Object source, T entity) {
-        super(source, entity);
-    }
+public class AfterDeleteEvent<T> extends Neo4jLifecycleEvent<T> {
+	public AfterDeleteEvent(Object source, T entity) {
+		super(source, entity);
+	}
 }
