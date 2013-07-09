@@ -17,6 +17,7 @@
 package org.springframework.data.neo4j.repository;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.neo4j.graphdb.GraphDatabaseService;
@@ -153,6 +154,20 @@ public class GraphRepositoryTests {
     @Test
     public void findAllSortedAscending() {
         Sort sort = new Sort(Sort.Direction.ASC, "name");
+        Iterable<Person> allPersons = personRepository.findAll(sort);
+        assertEquals(asList(testTeam.david, testTeam.emil, testTeam.michael), asCollection(allPersons));
+    }
+
+    @Test
+    @Ignore
+    public void findAllSortedWithFunction() {
+
+        // The case below does not fit into the general sorting and paging fix and will fail, you need to
+        // know what the prefix is (person in this case) and provide it in order to make
+        // use i.e. the following would work, but requires internal impl knowledge which is not good
+        //    Sort sort = new Sort(Sort.Direction.ASC, "lower(person.name)");
+        Sort sort = new Sort(Sort.Direction.ASC, "lower(name)");
+
         Iterable<Person> allPersons = personRepository.findAll(sort);
         assertEquals(asList(testTeam.david, testTeam.emil, testTeam.michael), asCollection(allPersons));
     }
