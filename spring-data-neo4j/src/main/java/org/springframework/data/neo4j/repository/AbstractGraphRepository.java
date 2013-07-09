@@ -34,6 +34,7 @@ import org.springframework.data.neo4j.annotation.QueryType;
 import org.springframework.data.neo4j.conversion.EndResult;
 import org.springframework.data.neo4j.conversion.Result;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
+import org.springframework.data.neo4j.repository.query.CypherQuery;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
 import org.springframework.data.neo4j.support.index.NoSuchIndexException;
 import org.springframework.data.neo4j.support.index.NullReadableIndex;
@@ -346,7 +347,8 @@ public abstract class AbstractGraphRepository<S extends PropertyContainer, T> im
 
     @Override
     public EndResult<T> findAll(Sort sort) {
-        return findAll(); // todo
+        CypherQuery cq = new CypherQuery(template.getEntityType(clazz).getEntity(),template);
+        return query(cq.toQueryString(sort), Collections.EMPTY_MAP);
     }
 
     @Override
