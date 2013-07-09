@@ -25,6 +25,7 @@ import org.springframework.data.repository.query.Parameter;
 import org.springframework.data.repository.query.parser.Part;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -89,6 +90,26 @@ public class CypherQuery implements CypherQueryDefinition {
     public CypherQueryDefinition withSort(Sort sorts) {
         this.defaultSorts=sorts;
         return this;
+    }
+
+    private Sort getCypherEntityRefAwareSort(Sort sorts) {
+        List<Sort.Order> entityAwareOrders = new ArrayList<Sort.Order>();
+        Iterator<Sort.Order> i = sorts.iterator();
+        while( i.hasNext()) {
+            Sort.Order o = i.next();
+            entityAwareOrders.add( getEntityAwareOrderRef(o) );
+        }
+        Sort entityAwareSort = new Sort(entityAwareOrders);
+        return entityAwareSort;
+    }
+
+    private Sort.Order getEntityAwareOrderRef(Sort.Order o) {
+        // Cater for cases which cause 80% of the reported grief, i.e. assumes a string
+        // with no period refers to a property on entity - however this will
+        // not always be the case .. confirm with Michael ..
+        return (o.getProperty().contains("."))
+            ? o
+            : new Sort.Order(o.getDirection(),getEntityName(entity)+"."+o.getProperty());
     }
 
     private boolean addedStartClause(PartInfo partInfo) {
@@ -192,8 +213,15 @@ public class CypherQuery implements CypherQueryDefinition {
 
     @Override
     public String toQueryString(Sort sort) {
+        return toQueryString(sort,true);
+    }
+
+    private String toQueryString(Sort sort,boolean applyMissingRefs) {
         StringBuilder builder = new StringBuilder(render());
-        if (sort != null) builder.append(addSorts(sort));
+        if (sort != null) {
+            builder.append(addSorts(
+                    applyMissingRefs ? getCypherEntityRefAwareSort(sort) : sort));
+        }
         return builder.toString();
     }
 
