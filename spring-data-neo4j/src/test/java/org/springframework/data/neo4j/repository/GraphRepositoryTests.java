@@ -145,13 +145,13 @@ public class GraphRepositoryTests {
         assertThat(personRepository.exists(testTeam.michael.getId()), is(false));
     }
 
-    @Test
+    @Test   @Transactional
     public void findAll() {
         Iterable<Person> allPersons = personRepository.findAll();
         assertThat(asCollection(allPersons), hasItems(testTeam.michael, testTeam.david, testTeam.emil));
     }
 
-    @Test
+    @Test   @Transactional
     public void findAllSortedAscending() {
         Sort sort = new Sort(Sort.Direction.ASC, "name");
         Iterable<Person> allPersons = personRepository.findAll(sort);
@@ -172,14 +172,14 @@ public class GraphRepositoryTests {
         assertEquals(asList(testTeam.david, testTeam.emil, testTeam.michael), asCollection(allPersons));
     }
 
-    @Test
+    @Test   @Transactional
     public void findAllSortedDescending() {
         Sort sort = new Sort(Sort.Direction.DESC, "name");
         Iterable<Person> allPersons = personRepository.findAll(sort);
         assertEquals(asList(testTeam.michael, testTeam.emil, testTeam.david), asCollection(allPersons));
     }
 
-    @Test
+    @Test  @Transactional
     public void findAllPageableWithSortDescending() {
         Sort sort = new Sort(Sort.Direction.DESC, "name");
         PageRequest page1Request = new PageRequest(0, 1, sort);
