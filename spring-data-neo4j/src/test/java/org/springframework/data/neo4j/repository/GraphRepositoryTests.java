@@ -20,12 +20,8 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.neo4j.cypher.ExecutionEngine;
-import org.neo4j.cypher.ExecutionResult;
-import org.neo4j.graphdb.DynamicRelationshipType;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Transaction;
 import org.neo4j.helpers.collection.IteratorUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,7 +47,10 @@ import org.springframework.transaction.support.TransactionCallback;
 import org.springframework.transaction.support.TransactionCallbackWithoutResult;
 import org.springframework.transaction.support.TransactionTemplate;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -146,7 +145,57 @@ public class GraphRepositoryTests {
         assertThat(personRepository.exists(testTeam.michael.getId()), is(false));
     }
 
-    @Test @Transactional 
+    @Test   @Transactional
+    public void findAll() {
+        Iterable<Person> allPersons = personRepository.findAll();
+        assertThat(asCollection(allPersons), hasItems(testTeam.michael, testTeam.david, testTeam.emil));
+    }
+
+    @Test   @Transactional
+    public void findAllSortedAscending() {
+        Sort sort = new Sort(Sort.Direction.ASC, "name");
+        Iterable<Person> allPersons = personRepository.findAll(sort);
+        assertEquals(asList(testTeam.david, testTeam.emil, testTeam.michael), asCollection(allPersons));
+    }
+
+    @Test
+    @Ignore
+    public void findAllSortedWithFunction() {
+
+        // The case below does not fit into the general sorting and paging fix and will fail, you need to
+        // know what the prefix is (person in this case) and provide it in order to make
+        // use i.e. the following would work, but requires internal impl knowledge which is not good
+        //    Sort sort = new Sort(Sort.Direction.ASC, "lower(person.name)");
+        Sort sort = new Sort(Sort.Direction.ASC, "lower(name)");
+
+        Iterable<Person> allPersons = personRepository.findAll(sort);
+        assertEquals(asList(testTeam.david, testTeam.emil, testTeam.michael), asCollection(allPersons));
+    }
+
+    @Test   @Transactional
+    public void findAllSortedDescending() {
+        Sort sort = new Sort(Sort.Direction.DESC, "name");
+        Iterable<Person> allPersons = personRepository.findAll(sort);
+        assertEquals(asList(testTeam.michael, testTeam.emil, testTeam.david), asCollection(allPersons));
+    }
+
+    @Test  @Transactional
+    public void findAllPageableWithSortDescending() {
+        Sort sort = new Sort(Sort.Direction.DESC, "name");
+        PageRequest page1Request = new PageRequest(0, 1, sort);
+        PageRequest page2Request = new PageRequest(1, 1, sort);
+        PageRequest page3Request = new PageRequest(2, 1, sort);
+
+        Iterable<Person> page1Result = personRepository.findAll(page1Request);
+        Iterable<Person> page2Result = personRepository.findAll(page2Request);
+        Iterable<Person> page3Result = personRepository.findAll(page3Request);
+
+        assertEquals (asList(testTeam.michael), asCollection(page1Result));
+        assertEquals (asList(testTeam.emil), asCollection(page2Result));
+        assertEquals (asList(testTeam.david), asCollection(page3Result));
+    }
+
+    @Test @Transactional
     public void testFindIterableOfPersonWithQueryAnnotation() {
         Iterable<Person> teamMembers = personRepository.findAllTeamMembers(testTeam.sdg);
         assertThat( asCollection( teamMembers ), hasItems( testTeam.michael, testTeam.david, testTeam.emil ) );

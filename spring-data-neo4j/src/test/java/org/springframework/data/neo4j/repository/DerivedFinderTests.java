@@ -20,10 +20,12 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Transaction;
+import org.neo4j.helpers.collection.IteratorUtil;
 import org.neo4j.test.ImpermanentGraphDatabase;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.neo4j.annotation.*;
 import org.springframework.data.neo4j.config.EnableNeo4jRepositories;
 import org.springframework.data.neo4j.config.Neo4jConfiguration;
@@ -31,14 +33,17 @@ import org.springframework.data.neo4j.support.Neo4jTemplate;
 import org.springframework.data.neo4j.support.node.Neo4jHelper;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
+import static java.util.Arrays.asList;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 import static org.neo4j.graphdb.Direction.INCOMING;
+import static org.neo4j.helpers.collection.IteratorUtil.asCollection;
 import static org.neo4j.helpers.collection.IteratorUtil.single;
 import static org.springframework.data.neo4j.SetHelper.asSet;
 
@@ -130,6 +135,12 @@ interface RecipeRepository extends GraphRepository<Recipe> {
 
     Set<Recipe> findByIngredient(Ingredient ingredient);
 
+    Iterable<Recipe> findByIngredient(Ingredient ingredient, Sort sort);
+
+    Iterable<Recipe> findByIngredientOrderByAuthorAsc(Ingredient ingredient);
+
+    Iterable<Recipe> findByIngredientOrderByAuthorDesc(Ingredient ingredient);
+
     Set<Recipe> findBySecret(Ingredient ingredient);
 
     Set<Recipe> findByIngredientAndAuthor(Ingredient ingredient, String author);
@@ -171,11 +182,11 @@ public class DerivedFinderTests {
     @Autowired
     private DishRepository dishRepository;
 
-    private Ingredient fish, spice, oliveOil, pear;
+    private Ingredient fish, spice, oliveOil, pear, chocolate;
 
     private CookBook nakedChef, baking101;
 
-    private Recipe focaccia;
+    private Recipe focaccia, chocolateFudgeCake, whiteChocolateSquares;
 
     @Before
     public void setUp() throws Exception {
@@ -185,6 +196,7 @@ public class DerivedFinderTests {
 
         Transaction transaction = graphDatabaseService.beginTx();
         try {
+            chocolate = ingredientRepository.save(new Ingredient("chocolate"));
             fish = ingredientRepository.save(new Ingredient("fish"));
             spice = ingredientRepository.save(new Ingredient("spice x"));
             oliveOil = ingredientRepository.save(new Ingredient("olive oil"));
@@ -196,6 +208,10 @@ public class DerivedFinderTests {
             recipeRepository.save(new Recipe("The Colonel", "fried chicken", null, spice, null));
             recipeRepository.save(new Recipe("Jamie", "pesto", oliveOil, null, nakedChef));
             focaccia = recipeRepository.save(new Recipe("Hugh", "focaccia", oliveOil, null, baking101));
+
+            chocolateFudgeCake = recipeRepository.save(new Recipe("Nigella", "Chocolate Fudge cake", chocolate, null, null));
+            whiteChocolateSquares = recipeRepository.save(new Recipe("Heston", "White Chocolate squares", chocolate, null, null));
+
             dish = dishRepository.save(new Dish(100));
             transaction.success();
         } finally {
@@ -287,5 +303,34 @@ public class DerivedFinderTests {
         Dish foundDish = dishRepository.findByNumber(100);
 
         assertThat(foundDish.number, is(equalTo(dish.number)));
+    }
+
+    @Test
+    public void shouldFindCorrectlyOrderedUsingMethodSignatureAscending() {
+        Iterable<Recipe> recipes = recipeRepository.findByIngredientOrderByAuthorAsc(chocolate);
+        List<Recipe> recs = (List<Recipe>)asCollection(recipes);
+        assertThat( recs.size(), equalTo(2));
+        assertEquals("Heston" , recs.get(0).author);
+        assertEquals("Nigella" , recs.get(1).author);
+    }
+
+    @Test
+    public void shouldFindCorrectlyOrderedUsingMethodSignatureDescending() {
+        Iterable<Recipe> recipes = recipeRepository.findByIngredientOrderByAuthorDesc(chocolate);
+        List<Recipe> recs = (List<Recipe>)asCollection(recipes);
+        assertThat( recs.size(), equalTo(2));
+        assertEquals("Nigella" , recs.get(0).author);
+        assertEquals("Heston" , recs.get(1).author);
+    }
+
+    @Test
+    public void shouldFindCorrectlyOrderedUsingSortParam() {
+        Sort.Order order = new Sort.Order(Sort.Direction.DESC,"author");
+        Sort sort = new Sort(order);
+        Iterable<Recipe> recipes = recipeRepository.findByIngredient(chocolate, sort);
+        List<Recipe> recs = (List<Recipe>)asCollection(recipes);
+        assertThat( recs.size(), equalTo(2));
+        assertEquals("Nigella" , recs.get(0).author);
+        assertEquals("Heston" , recs.get(1).author);
     }
 }
