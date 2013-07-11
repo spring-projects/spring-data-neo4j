@@ -94,9 +94,7 @@ public class CypherQuery implements CypherQueryDefinition {
 
     private Sort getCypherEntityRefAwareSort(Sort sorts) {
         List<Sort.Order> entityAwareOrders = new ArrayList<Sort.Order>();
-        Iterator<Sort.Order> i = sorts.iterator();
-        while( i.hasNext()) {
-            Sort.Order o = i.next();
+        for (Sort.Order o : sorts) {
             entityAwareOrders.add( getEntityAwareOrderRef(o) );
         }
         Sort entityAwareSort = new Sort(entityAwareOrders);
@@ -104,9 +102,7 @@ public class CypherQuery implements CypherQueryDefinition {
     }
 
     private Sort.Order getEntityAwareOrderRef(Sort.Order o) {
-        // Cater for cases which cause 80% of the reported grief, i.e. assumes a string
-        // with no period refers to a property on entity - however this will
-        // not always be the case .. confirm with Michael ..
+        // Assumes a string with no period refers to a property on entity
         return (o.getProperty().contains("."))
             ? o
             : new Sort.Order(o.getDirection(),getEntityName(entity)+"."+o.getProperty());
