@@ -134,7 +134,11 @@ public class DetachedEntityState<STATE> implements EntityState<STATE> {
     }
     @Override
     public Object setValue(final Field field, final Object newVal, MappingPolicy mappingPolicy) {
-        return setValue(property(field),newVal, mappingPolicy);
+        Neo4jPersistentProperty property = property(field);
+        if (property != null) {
+            return setValue(property, newVal, mappingPolicy);
+        }
+        return delegate.setValue(property, newVal, mappingPolicy);
     }
 
     private Neo4jPersistentProperty property(Field field) {
