@@ -62,6 +62,26 @@ public class PropertyTests extends EntityTestBase {
         getNodeState(p).getProperty("thought");
     }
 
+    /**
+     * @see DATAGRAPH-368
+     * */
+    @Test
+    @Transactional
+    public void testSetTransientPropertyBeforePersist() {
+        Person p = new Person();
+        p.setThought("detached");
+        p.persist();
+        // test asserts that no NPE is thrown
+    }
+
+    @Test
+    @Transactional
+    public void testSetTransientPropertyAfterPersist() {
+        Person p = persistedPerson("Michael", 35);
+        p.setThought("attached");
+        assertEquals("Transient property should be saved in the entity", "attached", p.getThought());
+    }
+
     @Test
     @Transactional
     public void testGetTransientPropertyFieldNotManaged() {
