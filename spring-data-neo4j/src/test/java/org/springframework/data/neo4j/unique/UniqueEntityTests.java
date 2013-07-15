@@ -30,12 +30,11 @@ import org.springframework.data.neo4j.unique.repository.ClubRepository;
 import org.springframework.data.neo4j.unique.repository.InvalidClubRepository;
 import org.springframework.data.neo4j.unique.repository.UniqueClubRepository;
 import org.springframework.data.neo4j.unique.repository.UniqueNumericIdClubRepository;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
 
-import static junit.framework.Assert.assertEquals;
+import static org.junit.Assert.assertEquals;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = {"classpath:unique-test-context.xml"})

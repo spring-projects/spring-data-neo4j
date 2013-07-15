@@ -16,19 +16,18 @@
 package org.springframework.data.neo4j.typerepresentation;
 
 import org.junit.Test;
+import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Transaction;
-import org.neo4j.test.ImpermanentGraphDatabase;
+import org.neo4j.test.TestGraphDatabaseFactory;
 import org.springframework.data.neo4j.model.Person;
-import org.springframework.data.neo4j.support.MappingInfrastructure;
 import org.springframework.data.neo4j.support.MappingInfrastructureFactoryBean;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
-import org.springframework.data.neo4j.support.typerepresentation.SubReferenceNodeTypeRepresentationStrategy;
 import org.springframework.data.neo4j.support.typerepresentation.TypeRepresentationStrategyFactory;
 
 public class TypeRepresentationTests {
     @Test
     public void testSavingTwiceResultsOnlyInOneTRSCall() throws Exception {
-        ImpermanentGraphDatabase db = new ImpermanentGraphDatabase();
+        GraphDatabaseService db = new TestGraphDatabaseFactory().newImpermanentDatabase();
         MappingInfrastructureFactoryBean factoryBean = new MappingInfrastructureFactoryBean(db, null);
         factoryBean.setTypeRepresentationStrategy(TypeRepresentationStrategyFactory.Strategy.SubRef);
         factoryBean.afterPropertiesSet();

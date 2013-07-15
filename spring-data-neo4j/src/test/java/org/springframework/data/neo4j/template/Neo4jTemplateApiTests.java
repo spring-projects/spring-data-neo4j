@@ -26,7 +26,7 @@ import org.neo4j.graphdb.index.Index;
 import org.neo4j.graphdb.traversal.TraversalDescription;
 import org.neo4j.kernel.Traversal;
 import org.neo4j.kernel.impl.transaction.SpringTransactionManager;
-import org.neo4j.test.ImpermanentGraphDatabase;
+import org.neo4j.test.TestGraphDatabaseFactory;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.neo4j.conversion.ResultConverter;
 import org.springframework.data.neo4j.core.GraphDatabase;
@@ -74,7 +74,7 @@ public class Neo4jTemplateApiTests {
     }
 
     protected GraphDatabaseService createGraphDatabaseService() throws IOException {
-        return new ImpermanentGraphDatabase();
+        return new TestGraphDatabaseFactory().newImpermanentDatabase();
     }
 
     protected GraphDatabase createGraphDatabase() throws Exception {

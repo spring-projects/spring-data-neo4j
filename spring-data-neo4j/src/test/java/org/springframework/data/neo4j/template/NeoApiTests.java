@@ -21,7 +21,7 @@ import org.junit.Before;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.kernel.GraphDatabaseAPI;
 import org.neo4j.kernel.impl.transaction.SpringTransactionManager;
-import org.neo4j.test.ImpermanentGraphDatabase;
+import org.neo4j.test.TestGraphDatabaseFactory;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.data.neo4j.core.GraphDatabase;
 import org.springframework.data.neo4j.fieldaccess.Neo4jConversionServiceFactoryBean;
@@ -58,7 +58,7 @@ public abstract class NeoApiTests {
 
     protected GraphDatabase createGraphDatabase() throws Exception
     {
-        graphDatabaseService = new ImpermanentGraphDatabase( );
+        graphDatabaseService = new TestGraphDatabaseFactory().newImpermanentDatabase();
         return new DelegatingGraphDatabase(graphDatabaseService);
     }
 

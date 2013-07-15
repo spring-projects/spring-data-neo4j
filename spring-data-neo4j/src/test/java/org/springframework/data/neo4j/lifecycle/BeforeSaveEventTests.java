@@ -18,7 +18,7 @@ package org.springframework.data.neo4j.lifecycle;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.test.ImpermanentGraphDatabase;
+import org.neo4j.test.TestGraphDatabaseFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.Bean;
@@ -53,7 +53,7 @@ public class BeforeSaveEventTests {
     static class TestConfig extends Neo4jConfiguration {
         @Bean
         GraphDatabaseService graphDatabaseService() {
-            return new ImpermanentGraphDatabase();
+            return new TestGraphDatabaseFactory().newImpermanentDatabase();
         }
 
         @Bean
