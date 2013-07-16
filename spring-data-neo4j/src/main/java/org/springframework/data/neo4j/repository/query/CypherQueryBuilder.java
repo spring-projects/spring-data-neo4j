@@ -38,6 +38,11 @@ class CypherQueryBuilder {
         this.query = new CypherQuery(entity, template);
     }
 
+    public CypherQueryBuilder asCountQuery() {
+        query.setIsCountQuery(true);
+        return this;
+    }
+
     public CypherQueryBuilder addRestriction(Part part) {
         query.addPart(part, context.getPersistentPropertyPath(part.getProperty()));
         return this;
