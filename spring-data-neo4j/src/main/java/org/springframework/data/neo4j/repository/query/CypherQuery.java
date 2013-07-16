@@ -25,13 +25,10 @@ import org.springframework.data.repository.query.Parameter;
 import org.springframework.data.repository.query.parser.Part;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import static org.springframework.util.StringUtils.collectionToCommaDelimitedString;
-import static org.springframework.util.StringUtils.collectionToDelimitedString;
-import static org.springframework.util.StringUtils.hasText;
+import static org.springframework.util.StringUtils.*;
 
 public class CypherQuery implements CypherQueryDefinition {
     private final VariableContext variableContext = new VariableContext();
@@ -42,6 +39,7 @@ public class CypherQuery implements CypherQueryDefinition {
     private int index = 0;
     private final Neo4jPersistentEntity<?> entity;
     private final Neo4jTemplate template;
+    private boolean isCountQuery = false;
 
     public CypherQuery(final Neo4jPersistentEntity<?> entity, Neo4jTemplate template) {
         this.entity = entity;
@@ -176,7 +174,12 @@ public class CypherQuery implements CypherQueryDefinition {
             builder.append(" WHERE ").append(whereClauses);
         }
 
-        builder.append(" RETURN ").append(String.format(QueryTemplates.VARIABLE, getEntityName(entity)));
+        String returnEntity = String.format(QueryTemplates.VARIABLE,getEntityName(entity));
+        if (isCountQuery) {
+            builder.append(" RETURN ").append("count(").append(returnEntity).append(")");
+        } else {
+            builder.append(" RETURN ").append(returnEntity);
+        }
         return builder.toString();
     }
 
@@ -234,5 +237,9 @@ public class CypherQuery implements CypherQueryDefinition {
     @Override
     public String toString() {
         return toQueryString();
+    }
+
+    public void setIsCountQuery(boolean isCountQuery) {
+        this.isCountQuery = isCountQuery;
     }
 }

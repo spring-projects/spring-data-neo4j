@@ -151,6 +151,14 @@ interface RecipeRepository extends GraphRepository<Recipe> {
 
     Set<Recipe> findByIngredientAndCookBook(Ingredient ingredient, CookBook cookBook);
     Set<Recipe> findBySecrets(Ingredient ingredient);
+
+    Long countByAuthor(String author);
+
+    Long countByIngredientAndAuthor(Ingredient ingredient, String author);
+
+    Long countByIngredient(Ingredient ingredient);
+
+    Integer countByCookBookTitle(String title);
 }
 
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -291,6 +299,31 @@ public class DerivedFinderTests {
 
         assertThat(single(recipes).author, is(equalTo("Jamie")));
     }
+
+    @Test
+    public void shouldCountCorrectlyUsingProperty() throws Exception {
+        Long actualCountVal = recipeRepository.countByAuthor("Hugh");
+        assertThat(actualCountVal, is(equalTo(3L)));
+    }
+
+    @Test
+    public void shouldCountCorrectlyUsingEntityAndProperty() throws Exception {
+        Long actualCountVal = recipeRepository.countByIngredientAndAuthor(oliveOil,"Hugh");
+        assertThat(actualCountVal, is(equalTo(1L)));
+    }
+
+    @Test
+    public void shouldCountCorrectlyUsingEntity() throws Exception {
+        Long actualCountVal = recipeRepository.countByIngredient(chocolate);
+        assertThat(actualCountVal, is(equalTo(2L)));
+    }
+
+    @Test
+    public void shouldCountCorrectlyUsingPropertyTraversal() throws Exception {
+        Integer actualCountVal = recipeRepository.countByCookBookTitle("Naked Chef");
+        assertThat(actualCountVal, is(equalTo(1)));
+    }
+
 
     @Test
     public void shouldFindUsingEntityAndPropertyTraversal() throws Exception {
