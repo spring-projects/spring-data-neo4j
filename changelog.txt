@@ -1,6 +1,11 @@
 Spring Data Graph Changelog
 ===========================
 
+Changes in version 2.2.2.RELEASE (2013-07-16)
+---------------------------------------------
+* DATAGRAPH-330 - Sort and Order By for repository.findAll
+* DATAGRAPH-325 - Cannot return a set from a query with Neo4j
+
 Changes in version 2.2.1.RELEASE (2013-04-18)
 ---------------------------------------------
 * DATAGRAPH-191 - ChainedTransactionManager does not return connection to DataSource on failure
