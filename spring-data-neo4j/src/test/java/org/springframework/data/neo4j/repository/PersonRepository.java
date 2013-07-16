@@ -78,6 +78,8 @@ public interface PersonRepository extends GraphRepository<Person>, NamedIndexRep
     Iterable<Person> findAllTeamMembersSorted(@Param("p_team") Group team, Sort sort);
 
 
+    Long countByName(String name);
+
     // Derived queries
     Iterable<Person> findByName(String name);
 

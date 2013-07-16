@@ -37,6 +37,7 @@ class CypherQueryCreator extends AbstractQueryCreator<CypherQueryDefinition, Cyp
     private final MappingContext<? extends Neo4jPersistentEntity<?>, Neo4jPersistentProperty> context;
     private final Class<?> domainClass;
     private final Neo4jTemplate template;
+    private boolean isCountProjection = false;
 
     /**
      * Creates a new {@link CypherQueryCreator} using the given {@link PartTree}, {@link org.springframework.data.neo4j.support.mapping.Neo4jMappingContext} and domain
@@ -58,6 +59,7 @@ class CypherQueryCreator extends AbstractQueryCreator<CypherQueryDefinition, Cyp
         this.template = template;
         this.context = context;
         this.domainClass = domainClass;
+        this.isCountProjection = tree.isCountProjection();
     }
 
     /*
@@ -68,6 +70,9 @@ class CypherQueryCreator extends AbstractQueryCreator<CypherQueryDefinition, Cyp
     protected CypherQueryBuilder create(Part part, Iterator<Object> iterator) {
 
         CypherQueryBuilder builder = new CypherQueryBuilder(context, domainClass,template);
+        if (isCountProjection) {
+            builder = builder.asCountQuery();
+        }
         builder.addRestriction(part);
 
         return builder;
