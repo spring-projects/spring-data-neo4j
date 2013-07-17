@@ -21,7 +21,7 @@ import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.core.convert.converter.ConverterFactory;
 import org.springframework.core.convert.converter.ConverterRegistry;
-import org.springframework.core.convert.support.ConversionServiceFactory;
+import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.core.convert.support.GenericConversionService;
 
 import java.util.Date;
@@ -32,7 +32,7 @@ public class Neo4jConversionServiceFactoryBean implements FactoryBean<Conversion
     public ConversionService getObject() throws Exception {
         GenericConversionService conversionService = new GenericConversionService();
         addConverters(conversionService);
-        ConversionServiceFactory.addDefaultConverters(conversionService);
+        DefaultConversionService.addDefaultConverters(conversionService);
         return conversionService;
     }
 

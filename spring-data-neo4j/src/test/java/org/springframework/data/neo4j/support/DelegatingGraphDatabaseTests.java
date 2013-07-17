@@ -18,11 +18,11 @@ package org.springframework.data.neo4j.support;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.Transaction;
-import org.neo4j.helpers.collection.MapUtil;
-import org.neo4j.test.ImpermanentGraphDatabase;
+import org.neo4j.test.TestGraphDatabaseFactory;
 
 import static org.junit.Assert.assertEquals;
 import static org.neo4j.helpers.collection.MapUtil.map;
@@ -34,11 +34,11 @@ import static org.neo4j.helpers.collection.MapUtil.map;
 public class DelegatingGraphDatabaseTests {
 
     private DelegatingGraphDatabase graphDatabase;
-    private ImpermanentGraphDatabase gdb;
+    private GraphDatabaseService gdb;
 
     @Before
     public void setUp() throws Exception {
-        gdb = new ImpermanentGraphDatabase();
+        gdb = new TestGraphDatabaseFactory().newImpermanentDatabase();
         graphDatabase = new DelegatingGraphDatabase(gdb);
     }
 

@@ -19,7 +19,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.test.ImpermanentGraphDatabase;
+import org.neo4j.test.TestGraphDatabaseFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.Bean;
@@ -38,7 +38,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.LinkedList;
 
 import static org.junit.Assert.assertThat;
-import static org.junit.matchers.JUnitMatchers.hasItem;
+import static org.hamcrest.CoreMatchers.hasItem;
 
 @NodeEntity
 class Program {
@@ -64,7 +64,7 @@ public class DeleteEventTests {
     static class TestConfig extends Neo4jConfiguration {
         @Bean
         GraphDatabaseService graphDatabaseService() {
-            return new ImpermanentGraphDatabase();
+            return new TestGraphDatabaseFactory().newImpermanentDatabase();
         }
 
         @Bean

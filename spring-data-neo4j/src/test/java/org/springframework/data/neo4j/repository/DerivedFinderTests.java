@@ -21,7 +21,7 @@ import org.junit.runner.RunWith;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.helpers.collection.IteratorUtil;
-import org.neo4j.test.ImpermanentGraphDatabase;
+import org.neo4j.test.TestGraphDatabaseFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -173,7 +173,7 @@ public class DerivedFinderTests {
 
         @Bean
         GraphDatabaseService graphDatabaseService() {
-            return new ImpermanentGraphDatabase();
+            return new TestGraphDatabaseFactory().newImpermanentDatabase();
         }
 
     }
