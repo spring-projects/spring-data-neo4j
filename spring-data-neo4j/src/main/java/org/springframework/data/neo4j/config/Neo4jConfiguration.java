@@ -56,6 +56,7 @@ import org.springframework.data.neo4j.support.relationship.RelationshipEntityIns
 import org.springframework.data.neo4j.support.relationship.RelationshipEntityStateFactory;
 import org.springframework.data.neo4j.support.typerepresentation.ClassValueTypeInformationMapper;
 import org.springframework.data.neo4j.support.typerepresentation.TypeRepresentationStrategyFactory;
+import org.springframework.data.neo4j.support.typesafety.TypeSafetyPolicy;
 import org.springframework.data.support.IsNewStrategyFactory;
 import org.springframework.transaction.PlatformTransactionManager;
 import javax.validation.Validator;
@@ -117,6 +118,7 @@ public abstract class Neo4jConfiguration {
         factoryBean.setTransactionManager(neo4jTransactionManager());
         factoryBean.setGraphDatabase(graphDatabase());
         factoryBean.setIsNewStrategyFactory(isNewStrategyFactory());
+        factoryBean.setTypeSafetyPolicy(typeSafetyPolicy());
         
         factoryBean.setIndexProvider(indexProvider());
 
@@ -267,6 +269,11 @@ public abstract class Neo4jConfiguration {
     @Bean
     public IndexProvider indexProvider() throws Exception {
         return new IndexProviderImpl(graphDatabase());
+    }
+
+    @Bean
+    public TypeSafetyPolicy typeSafetyPolicy() throws Exception {
+        return new TypeSafetyPolicy();
     }
 
     public Set<? extends Class<?>> getInitialEntitySet() {

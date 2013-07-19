@@ -32,6 +32,7 @@ import org.springframework.data.neo4j.support.node.EntityStateFactory;
 import org.springframework.data.neo4j.support.query.CypherQueryExecutor;
 import org.springframework.data.neo4j.support.typerepresentation.TypeRepresentationStrategies;
 import org.springframework.data.neo4j.support.typerepresentation.TypeRepresentationStrategyFactory;
+import org.springframework.data.neo4j.support.typesafety.TypeSafetyPolicy;
 import org.springframework.transaction.PlatformTransactionManager;
 
 import javax.validation.Validator;
@@ -68,4 +69,6 @@ public interface Infrastructure {
     TypeRepresentationStrategy<Node> getNodeTypeRepresentationStrategy();
 
     TypeRepresentationStrategy<Relationship> getRelationshipTypeRepresentationStrategy();
+
+    TypeSafetyPolicy getTypeSafetyPolicy();
 }
