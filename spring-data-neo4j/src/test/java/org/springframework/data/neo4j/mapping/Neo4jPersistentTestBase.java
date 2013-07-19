@@ -19,7 +19,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.neo4j.graphdb.*;
 import org.neo4j.helpers.collection.IteratorUtil;
-import org.neo4j.test.ImpermanentGraphDatabase;
+import org.neo4j.test.TestGraphDatabaseFactory;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.data.convert.DefaultTypeMapper;
 import org.springframework.data.convert.TypeMapper;
@@ -104,7 +104,7 @@ public class Neo4jPersistentTestBase {
 
     private Infrastructure createInfrastructure(Neo4jMappingContext mappingContext) throws Exception {
         MappingInfrastructureFactoryBean factoryBean = new MappingInfrastructureFactoryBean();
-        final GraphDatabaseService gdb = new ImpermanentGraphDatabase();
+        final GraphDatabaseService gdb = new TestGraphDatabaseFactory().newImpermanentDatabase();
         factoryBean.setGraphDatabaseService(gdb);
         final DelegatingGraphDatabase graphDatabase = new DelegatingGraphDatabase(gdb);
         factoryBean.setGraphDatabase(graphDatabase);

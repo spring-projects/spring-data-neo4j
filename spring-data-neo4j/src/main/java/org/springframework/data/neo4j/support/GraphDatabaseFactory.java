@@ -71,7 +71,7 @@ public class GraphDatabaseFactory implements FactoryBean<GraphDatabase> {
         }
         File file = new File( path );
         // if (!file.isDirectory()) file=file.getParentFile();
-        return new DelegatingGraphDatabase(new EmbeddedGraphDatabase(file.getAbsolutePath()));
+        return new DelegatingGraphDatabase(new org.neo4j.graphdb.factory.GraphDatabaseFactory().newEmbeddedDatabase(file.getAbsolutePath()));
     }
 
     private GraphDatabase createRestGraphDatabase(String url, String username, String password) throws Exception {
