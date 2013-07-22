@@ -35,6 +35,7 @@ Import-Template:
  javax.transaction.*;version="[1.0.1, 2.0.0)";resolution:=optional,
  com.mysema.query.annotations.*;version="0";resolution:=optional,
  com.mysema.query.apt.*;version="0";resolution:=optional,
+ com.mysema.query.types.*;version="0";resolution:=optional,
  com.tinkerpop.blueprints.*;version="[0.8,1.0)";resolution:=optional,
  com.tinkerpop.gremlin.*;version="[1.1,2.0)";resolution:=optional,
  com.tinkerpop.pipes.util.*;version="[0.8,1.0)";resolution:=optional
