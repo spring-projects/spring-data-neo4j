@@ -26,6 +26,7 @@ import org.springframework.data.neo4j.support.Neo4jTemplate;
 import org.springframework.data.neo4j.support.index.IndexType;
 import org.springframework.data.neo4j.support.mapping.Neo4jMappingContext;
 import org.springframework.data.repository.core.support.DefaultRepositoryMetadata;
+import org.springframework.data.repository.query.DefaultParameters;
 import org.springframework.data.repository.query.Parameters;
 import org.springframework.data.repository.query.ParametersParameterAccessor;
 import org.springframework.data.repository.query.parser.Part;
@@ -313,7 +314,7 @@ public class DerivedFinderMethodTests {
     private void assertRepositoryQueryMethod(Class<ThingRepository> repositoryClass, String methodName, Object[] paramValues, String expectedQuery, Object...expectedParam) {
         Method method = methodFor(repositoryClass, methodName);
         DerivedCypherRepositoryQuery derivedCypherRepositoryQuery = new DerivedCypherRepositoryQuery(ctx, new GraphQueryMethod(method, new DefaultRepositoryMetadata(repositoryClass), null, ctx), template);
-        Parameters parameters = new Parameters(method);
+        Parameters<?, ?> parameters = new DefaultParameters(method);
         ParametersParameterAccessor accessor = new ParametersParameterAccessor(parameters, paramValues);
         String query = derivedCypherRepositoryQuery.createQueryWithPagingAndSorting(accessor);
         Map<String, Object> params = derivedCypherRepositoryQuery.resolveParams(accessor);

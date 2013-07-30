@@ -72,7 +72,7 @@ class CypherGraphRepositoryQuery extends GraphRepositoryQuery {
 
     protected String createQueryWithPagingAndSorting(final ParameterAccessor accessor) {
         final GraphQueryMethod queryMethod = getQueryMethod();
-        final Parameters parameters = queryMethod.getParameters();
+        final Parameters<?, ?> parameters = queryMethod.getParameters();
         String queryString = queryMethod.getQueryString();
         if (parameters.hasSortParameter()) {
             queryString = addSorting(queryString, accessor.getSort());
