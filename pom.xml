@@ -162,7 +162,7 @@
 	<repositories>
 		<repository>
 			<id>spring-libs-milestone-local</id>
-			<name>Spring snapshots</name>
+			<name>Spring Milestones</name>
 			<url>http://repo.springsource.org/libs-milestone-local</url>
 		</repository>
 		<repository>
