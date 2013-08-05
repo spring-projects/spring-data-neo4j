@@ -1,6 +1,16 @@
 Spring Data Neo4j Changelog
 ===========================
 
+Changes in version 2.3.0.RC1 (2013-08-05)
+----------------------------------------
+* DATAGRAPH-375 Upgrade to SD-Commons 1.6.0.RC1
+* made querydsl optional, fix for deleting dynamic properties
+* Add type safety mechanism for repositories / finder-methods
+* DATAGRAPH-345 support for countBy projections for derived queries
+* DATAGRAPH-368 fix for handling transient properties on detached entities
+* DATAGRAPH-352/330 : Fixed issues relating to Sorting and Paging for repository.findAll
+
+
 Changes in version 2.3.0.M1 (2013-06-09)
 ----------------------------------------
 * DATAGRAPH-355 - Update to Neo4j 1.9, SD-Commons 1.6.M1, QueryDSL 3.2.0
