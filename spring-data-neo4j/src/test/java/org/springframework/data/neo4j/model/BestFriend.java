@@ -25,10 +25,14 @@ import org.springframework.data.neo4j.annotation.RelationshipType;
 import org.springframework.data.neo4j.annotation.StartNode;
 import org.springframework.data.neo4j.fieldaccess.DynamicProperties;
 
+import java.io.Serializable;
 import java.util.Date;
 
 @RelationshipEntity(type = "BEST_FRIEND")
-public class BestFriend {
+public class BestFriend implements Serializable {
+
+    private static final long serialVersionUID = 1L;
+
     @GraphId
     private Long id;
 

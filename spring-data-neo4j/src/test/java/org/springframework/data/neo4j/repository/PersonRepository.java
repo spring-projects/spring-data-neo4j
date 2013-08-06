@@ -51,6 +51,9 @@ public interface PersonRepository extends GraphRepository<Person>, NamedIndexRep
     @Query("start member=node({p_person}) match team-[:persons]->member<-[?:boss]-boss return collect(team), boss")
     Iterable<MemberData> findMemberData(@Param("p_person") Person person);
 
+    @Query("start member=node({p_person}) match team-[:persons]->member<-[?:boss]-boss return collect(team), boss, boss.name as someonesName, boss.age as someonesAge ")
+    MemberDataPOJO findMemberDataPojo(@Param("p_person") Person person);
+
     @Query("start member=node({p_person}) match team-[:persons]->member<-[?:boss]-boss return member")
     Iterable<MemberData> nonWorkingQuery(@Param("p_person") Person person);
 

@@ -29,10 +29,13 @@ import java.util.Map;
  * deleted.
  */
 public class ManagedPrefixedDynamicProperties extends PrefixedDynamicProperties {
+
+    private static final long serialVersionUID = 1L;
+
     private final Object entity;
-    private final Neo4jTemplate template;
-    private final FieldAccessor fieldAccessor;
-    private final Neo4jPersistentProperty property;
+    private transient final Neo4jTemplate template;
+    private transient final FieldAccessor fieldAccessor;
+    private transient final Neo4jPersistentProperty property;
     private boolean isNode;
     private MappingPolicy mappingPolicy;
 

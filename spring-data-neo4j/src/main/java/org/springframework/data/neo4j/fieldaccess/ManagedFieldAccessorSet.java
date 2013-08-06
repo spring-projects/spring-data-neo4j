@@ -23,20 +23,28 @@ import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.support.DoReturn;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
 
+import java.io.Serializable;
 import java.util.AbstractSet;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Set;
 
 /**
+ * This class provides a mechanism for managing and controlling access to
+ * a Set based field on a SDN managed entity. The associated field typically
+ * serves as a container for all the references to some other SDN entity(s).
+ *
  * @param <T>
  */
-public class ManagedFieldAccessorSet<T> extends AbstractSet<T> {
+public class ManagedFieldAccessorSet<T> extends AbstractSet<T> implements Serializable {
+
+    private static final long serialVersionUID = 1L;
+
 	private final Object entity;
 	final Set<T> delegate;
-	private final Neo4jPersistentProperty property;
-    private final Neo4jTemplate ctx;
-    private final FieldAccessor fieldAccessor;
+	private final transient Neo4jPersistentProperty property;
+    private final transient Neo4jTemplate ctx;
+    private final transient FieldAccessor fieldAccessor;
     private final MappingPolicy mappingPolicy;
 
     @SuppressWarnings("unchecked")

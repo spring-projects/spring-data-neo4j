@@ -13,35 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.neo4j.model;
+package org.springframework.data.neo4j.annotation;
 
-import org.springframework.data.neo4j.annotation.GraphId;
-import org.springframework.data.neo4j.annotation.NodeEntity;
-
-import java.io.Serializable;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
- * @author mh
- * @since 23.12.11
+ * Annotation to mark a POJO as being able to hold the results of a
+ * SDN based query.
+ *
+ * @author Nicki Watt
+ * @since 06.08.2013
  */
-@NodeEntity
-public class RootEntity implements Serializable {
-
-    private static final long serialVersionUID = 1L;
-
-    @GraphId Long id;
-
-    String rootName;
-
-    public Long getId() {
-        return id;
-    }
-
-    public String getRootName() {
-        return rootName;
-    }
-
-    public void setRootName(String rootName) {
-        this.rootName = rootName;
-    }
+@Retention(RetentionPolicy.RUNTIME)
+@Target({ElementType.TYPE})
+public @interface POJOResult {
+    String value() default "";
 }

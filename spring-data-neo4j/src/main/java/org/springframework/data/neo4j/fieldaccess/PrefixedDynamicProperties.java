@@ -15,6 +15,7 @@
  */
 package org.springframework.data.neo4j.fieldaccess;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -27,7 +28,10 @@ import java.util.Set;
  * <p>
  * The methods *PrefixedProperty() allow to access the prefixed property key/values pairs directly.
  */
-public class PrefixedDynamicProperties implements DynamicProperties {
+public class PrefixedDynamicProperties implements DynamicProperties , Serializable {
+
+    private static final long serialVersionUID = 1L;
+
     private final Map<String, Object> map;
     protected final String prefix;
 

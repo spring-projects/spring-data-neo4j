@@ -17,6 +17,7 @@
 package org.springframework.data.neo4j.model;
 
 import org.neo4j.graphdb.*;
+import org.springframework.data.annotation.Transient;
 import org.springframework.data.neo4j.annotation.*;
 import org.springframework.data.neo4j.fieldaccess.DynamicProperties;
 import org.springframework.data.neo4j.support.index.IndexType;
@@ -24,11 +25,14 @@ import org.springframework.data.neo4j.support.index.IndexType;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.Size;
+import java.io.Serializable;
 import java.util.*;
 
 
 @NodeEntity
-public class Person implements Being {
+public class Person implements Being , Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     public static final String NAME_INDEX = "name-index";
     public static final org.neo4j.graphdb.RelationshipType KNOWS = DynamicRelationshipType.withName("knows");
@@ -77,19 +81,23 @@ public class Person implements Being {
 
     @Fetch
 	@RelatedToVia(type = "knows", elementClass = Friendship.class)
-	private Iterable<Friendship> friendships;
+    private Iterable<Friendship> friendships;
 
     @Query("start person=node({self}) match (person)<-[?:boss]-(boss) return boss")
-    private Person bossByQuery;
+    transient private Person bossByQuery;
+    // NW - all queries should be transient
 
     @Query("start person=node({self}) match (person)<-[?:boss]-(boss) return boss.name")
-    private String bossName;
+    transient private String bossName;
+    // NW - all queries should be transient
 
     @Query("start person=node({self}) match (person)<-[:persons]-(team)-[:persons]->(member) return member")
-    private Iterable<Person> otherTeamMembers;
+    transient private Iterable<Person> otherTeamMembers;
+    // NW - all queries should be transient
 
     @Query("start person=node({self}) match (person)<-[:persons]-(team)-[:persons]->(member) return member.name?, member.age?")
-    private Iterable<Map<String,Object>> otherTeamMemberData;
+    transient private Iterable<Map<String,Object>> otherTeamMemberData;
+    // NW - all queries should be transient
 
     @RelatedTo(elementClass = Group.class, type = "interface_test", direction = Direction.OUTGOING)
     private Set<IGroup> groups;

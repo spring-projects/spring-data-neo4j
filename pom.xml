@@ -33,7 +33,7 @@
 		<project.type>multi</project.type>
 		<dist.id>spring-data-neo4j</dist.id>
 		
-		<springdata.commons>1.6.0.RC1</springdata.commons>
+		<springdata.commons>1.6.0.BUILD-SNAPSHOT</springdata.commons>
 		<neo4j.version>1.9</neo4j.version>
 
 		<neo4j.spatial.version>0.11-neo4j-1.9</neo4j.spatial.version>

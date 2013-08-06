@@ -13,35 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.neo4j.model;
+package org.springframework.data.neo4j.support.conversion;
 
-import org.springframework.data.neo4j.annotation.GraphId;
-import org.springframework.data.neo4j.annotation.NodeEntity;
-
-import java.io.Serializable;
+import org.springframework.data.mapping.model.MappingException;
 
 /**
- * @author mh
- * @since 23.12.11
+ * Exception which occurs whilst trying to build and map a POJO
+ * from a Query result.
+ *
+ * @author Nicki Watt
+ * @since 06.08.2013
  */
-@NodeEntity
-public class RootEntity implements Serializable {
+public class POJOResultBuildingException extends MappingException {
 
     private static final long serialVersionUID = 1L;
 
-    @GraphId Long id;
-
-    String rootName;
-
-    public Long getId() {
-        return id;
+    public POJOResultBuildingException(String message, Throwable t) {
+        super( message , t );
     }
 
-    public String getRootName() {
-        return rootName;
-    }
-
-    public void setRootName(String rootName) {
-        this.rootName = rootName;
-    }
 }
