@@ -38,8 +38,9 @@ public class ResultColumnValueExtractor {
         IllegalAccessException,
         InvocationTargetException {
         ResultColumn column = field.getAnnotation(ResultColumn.class);
-        TypeInformation<?> returnType = ClassTypeInformation.fromTypeOf(field);
-        return extractFromAccessibleObject(column,returnType);
+        TypeInformation<?> classInfo = ClassTypeInformation.from(field.getDeclaringClass());
+        TypeInformation<?> fieldInfo = classInfo.getProperty(field.getName());
+        return extractFromAccessibleObject(column,fieldInfo);
     }
 
     public Object extractFromMethod(Method method) throws ClassNotFoundException,
