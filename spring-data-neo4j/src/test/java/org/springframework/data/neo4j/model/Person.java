@@ -102,6 +102,9 @@ public class Person implements Being , Serializable {
     @RelatedTo(elementClass = Group.class, type = "interface_test", direction = Direction.OUTGOING)
     private Set<IGroup> groups;
 
+    @RelatedTo(elementClass = Person.class, type = "serialiation_test", direction = Direction.OUTGOING)
+    private Set<Person> serialFriends;
+
     RootEntity root;
 
     public RootEntity getRoot() {
@@ -312,5 +315,16 @@ public class Person implements Being , Serializable {
 
     public BestFriend getBestFriend() {
         return bestFriend;
+    }
+
+    public Set<Person> getSerialFriends() {
+        if (serialFriends == null) {
+            serialFriends = new HashSet<Person>();
+        }
+        return serialFriends;
+    }
+
+    public void addSerialFriend(Person serialFriend) {
+        getSerialFriends().add(serialFriend);
     }
 }

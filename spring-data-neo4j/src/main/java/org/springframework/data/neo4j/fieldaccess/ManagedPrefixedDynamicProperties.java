@@ -16,28 +16,40 @@
 package org.springframework.data.neo4j.fieldaccess;
 
 import org.springframework.data.neo4j.core.EntityState;
-import org.springframework.data.neo4j.mapping.MappingPolicy;
 import org.springframework.data.neo4j.mapping.ManagedEntity;
+import org.springframework.data.neo4j.mapping.MappingPolicy;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.support.DoReturn;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
 
+import java.io.InvalidObjectException;
+import java.io.ObjectInputStream;
+import java.io.Serializable;
 import java.util.Map;
 
 /**
  * Updates the entity containing such a ManagedPrefixedDynamicProperties when some property is added, changed or
  * deleted.
  */
-public class ManagedPrefixedDynamicProperties extends PrefixedDynamicProperties {
+public class ManagedPrefixedDynamicProperties extends PrefixedDynamicProperties  implements Serializable
+{
 
     private static final long serialVersionUID = 1L;
 
-    private final Object entity;
+    private Object writeReplace() {
+        return new SerializationProxy(this);
+    }
+
+    private void readObject(ObjectInputStream ois) throws InvalidObjectException {
+        throw new InvalidObjectException("Proxy required");
+    }
+
+    private transient final Object entity;
     private transient final Neo4jTemplate template;
     private transient final FieldAccessor fieldAccessor;
     private transient final Neo4jPersistentProperty property;
-    private boolean isNode;
-    private MappingPolicy mappingPolicy;
+    private transient boolean isNode;
+    private transient MappingPolicy mappingPolicy;
 
     public ManagedPrefixedDynamicProperties(String prefix, final Neo4jPersistentProperty property, final Object entity, Neo4jTemplate template, FieldAccessor fieldAccessor, final MappingPolicy mappingPolicy) {
         this(prefix,10,property,entity, template,fieldAccessor, mappingPolicy);
@@ -104,5 +116,29 @@ public class ManagedPrefixedDynamicProperties extends PrefixedDynamicProperties 
         if (newValue instanceof DoReturn) return DoReturn.unwrap(newValue);
         property.setValue(entity, newValue);
         return newValue;
+    }
+
+    /**
+     * Implementation of the Serialization Proxy Pattern (ref Item 78
+     * of Effective Java - 2nd edition)
+     * @param <T> Type of the underlying class being stored in the Set.
+     */
+    private static class SerializationProxy<T> implements Serializable {
+
+        private static final long serialVersionUID = 1L;
+        private Map actualMapContent;
+        private String prefix;
+
+        SerializationProxy(ManagedPrefixedDynamicProperties prefixedDynamicProperties) {
+            this.actualMapContent = prefixedDynamicProperties.asMap();
+            this.prefix = prefixedDynamicProperties.prefix;
+        }
+
+        private Object readResolve() {
+            PrefixedDynamicProperties val = new PrefixedDynamicProperties(prefix);
+            val.setPropertiesFrom(actualMapContent);
+            return val;
+        }
+
     }
 }
