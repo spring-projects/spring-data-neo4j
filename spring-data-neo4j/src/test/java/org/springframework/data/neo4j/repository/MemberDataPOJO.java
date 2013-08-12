@@ -15,7 +15,7 @@
  */
 package org.springframework.data.neo4j.repository;
 
-import org.springframework.data.neo4j.annotation.POJOResult;
+import org.springframework.data.neo4j.annotation.QueryResult;
 import org.springframework.data.neo4j.annotation.ResultColumn;
 import org.springframework.data.neo4j.model.Group;
 import org.springframework.data.neo4j.model.Person;
@@ -24,7 +24,7 @@ import java.io.Serializable;
 import java.util.Set;
 
 
-@POJOResult
+@QueryResult
 public class MemberDataPOJO implements Serializable {
 
     private static final long serialVersionUID = 1L;

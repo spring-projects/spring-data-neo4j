@@ -21,7 +21,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Annotation to mark a POJO as being able to hold the results of a
+ * Annotation to mark either a POJO or interface as being able to hold the results of a
  * SDN based query.
  *
  * @author Nicki Watt
@@ -29,6 +29,6 @@ import java.lang.annotation.Target;
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.TYPE})
-public @interface POJOResult {
-    String value() default "";
+public @interface QueryResult {
+
 }

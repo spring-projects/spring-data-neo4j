@@ -19,8 +19,8 @@ package org.springframework.data.neo4j.repository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.neo4j.annotation.MapResult;
 import org.springframework.data.neo4j.annotation.Query;
+import org.springframework.data.neo4j.annotation.QueryResult;
 import org.springframework.data.neo4j.annotation.QueryType;
 import org.springframework.data.neo4j.annotation.ResultColumn;
 import org.springframework.data.neo4j.conversion.EndResult;
@@ -95,7 +95,7 @@ public interface PersonRepository extends GraphRepository<Person>, NamedIndexRep
 
     EndResult<Person> findByHeight( short height );
 
-    @MapResult
+    @QueryResult
     interface NameAndPersonResult
     {
         @ResultColumn("name")

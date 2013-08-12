@@ -21,7 +21,7 @@ import org.springframework.beans.BeanWrapper;
 import org.springframework.beans.BeanWrapperImpl;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.data.neo4j.annotation.MapResult;
-import org.springframework.data.neo4j.annotation.POJOResult;
+import org.springframework.data.neo4j.annotation.QueryResult;
 import org.springframework.data.neo4j.annotation.ResultColumn;
 import org.springframework.data.neo4j.conversion.DefaultConverter;
 import org.springframework.data.neo4j.conversion.QueryResultBuilder;
@@ -90,7 +90,7 @@ public class EntityResultConverter<T, R> extends DefaultConverter<T, R> implemen
     public R extractPOJOResult(Object value, Class returnType, MappingPolicy mappingPolicy) {
         String errorMessage = "Error extracting and setting value for POJO Result : " + returnType;
         if (!Map.class.isAssignableFrom(value.getClass())) {
-            throw new RuntimeException("POJOResult can only be extracted from Map<String,Object>.");
+            throw new RuntimeException("QueryResult can only be extracted from Map<String,Object>.");
         }
 
         Object newThing = null;
@@ -145,7 +145,7 @@ public class EntityResultConverter<T, R> extends DefaultConverter<T, R> implemen
     }
 
     @SuppressWarnings("unchecked")
-    public R extractMapResult(Object value, Class returnType, MappingPolicy mappingPolicy) {
+    public R extractProxyBasedResult(Object value, Class returnType, MappingPolicy mappingPolicy) {
         if (!Map.class.isAssignableFrom(value.getClass())) {
             throw new RuntimeException("MapResult can only be extracted from Map<String,Object>.");
         }
@@ -157,12 +157,23 @@ public class EntityResultConverter<T, R> extends DefaultConverter<T, R> implemen
 
     @Override
     public R convert(Object value, Class type, MappingPolicy mappingPolicy) {
-        if (type.isAnnotationPresent(MapResult.class)) {
-            return extractMapResult(value, type,mappingPolicy);
-        } else if (type.isAnnotationPresent(POJOResult.class)) {
+        if (isInterfaceBasedMappingRequest(type)) {
+            return extractProxyBasedResult(value, type, mappingPolicy);
+        } else if (isPojoBasedMappingReqest(type)) {
             return extractPOJOResult(value, type,mappingPolicy);
         } else
             return super.convert(value, type,mappingPolicy);
+    }
+
+    boolean isInterfaceBasedMappingRequest(Class type) {
+        // MapResult is deprecated now but we still need to check for it
+        return type.isInterface() &&
+                (type.isAnnotationPresent(MapResult.class) ||
+                 type.isAnnotationPresent(QueryResult.class));
+    }
+
+    boolean isPojoBasedMappingReqest(Class type) {
+        return !type.isInterface() && type.isAnnotationPresent(QueryResult.class);
     }
 
 }
