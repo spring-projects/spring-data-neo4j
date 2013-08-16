@@ -57,7 +57,7 @@ public class RelationshipEntityState extends DefaultEntityState<Relationship> {
                 final Relationship relationship = template.getRelationship(((Number) id).longValue());
                 setPersistentState(relationship);
                 if (log.isDebugEnabled())
-                    log.debug("Entity reattached " + entity.getClass() + "; used Relationship [" + state + "];");
+                    log.debug("Entity reattached " + entity.getClass() + "; used Relationship [" + relationship + "];");
                 return;
             }
             final Relationship relationship = createRelationshipFromEntity();
