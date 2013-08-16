@@ -159,6 +159,13 @@
             </para>
         </section>
         <section>
+            <title>Type-safety of query results</title>
+            <para>When querying repositories using IDs e.g. via the <code>findOne()</code> method, the returned entity is projected to the type of the repository if needed.
+            Starting from version 2.3.0 this behaviour can be configured. By defining a bean <code>typeSafetyPolicy</code>, the behaviour can be set to return <code>null</code>
+            instead or to throw an exception. See class <code>org.springframework.data.neo4j.support.typesafety.TypeSafetyPolicy</code>.
+            </para>
+        </section>
+        <section>
             <title>Cypher examples</title>
             <para>There is a <ulink url="http://video.neo4j.org/ybMbf/screencast-introduction-to-cypher">screencast</ulink> available showing many features of the query language.
                 The following examples are taken from the cineasts dataset of the tutorial section.

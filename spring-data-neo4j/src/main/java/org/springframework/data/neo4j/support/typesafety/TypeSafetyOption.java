@@ -7,7 +7,10 @@ package org.springframework.data.neo4j.support.typesafety;
  */
 public enum TypeSafetyOption {
 
-    /** Sets the system to not be type safe (default setting). */
+    /**
+     * Sets the system to not be type safe. Results are projected to the
+     * requested type as needed (default setting).
+     */
     NONE,
 
     /** Sets the system to return null if a entity should be loaded which is not of the requested type. */
