@@ -15,15 +15,10 @@
  */
 package org.springframework.data.neo4j.support.conversion;
 
-import org.springframework.data.neo4j.annotation.ResultColumn;
-import org.springframework.data.neo4j.conversion.QueryResultBuilder;
 import org.springframework.data.neo4j.conversion.ResultConverter;
 import org.springframework.data.neo4j.mapping.MappingPolicy;
-import org.springframework.data.util.ClassTypeInformation;
-import org.springframework.data.util.TypeInformation;
 
 import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.Map;
@@ -36,11 +31,13 @@ public class QueryResultProxy implements InvocationHandler {
     private final Map<String, Object> map;
     private final MappingPolicy mappingPolicy;
     private final ResultConverter converter;
+    private final ResultColumnValueExtractor resultColumnValueExtractor;
 
     public QueryResultProxy(Map<String, Object> map, MappingPolicy mappingPolicy, ResultConverter converter) {
         this.map = map;
         this.mappingPolicy = mappingPolicy;
         this.converter = converter;
+        this.resultColumnValueExtractor = new ResultColumnValueExtractor(map,mappingPolicy,converter);
     }
 
     @SuppressWarnings("unchecked")
@@ -51,57 +48,13 @@ public class QueryResultProxy implements InvocationHandler {
         }
 
         if (method.getName().equals("hashCode") && (params==null || params.length == 0)) {
-          return map.hashCode();
+           return map.hashCode();
         }
 
-        ResultColumn column = method.getAnnotation(ResultColumn.class);
-        TypeInformation<?> returnType = ClassTypeInformation.fromReturnTypeOf(method);
+        return resultColumnValueExtractor.extractFromMethod(method);
 
-        String columnName = column.value();
-        if(!map.containsKey( columnName )) {
-            throw new NoSuchColumnFoundException( columnName );
-        }
-
-        Object columnValue = map.get( columnName );
-        if(columnValue==null) return null;
-
-        // If the returned value is a Scala iterable, transform it to a Java iterable first
-        Class iterableLikeInterface = implementsInterface("scala.collection.Iterable", columnValue.getClass());
-        if (iterableLikeInterface!=null) {
-            columnValue = transformScalaIterableToJavaIterable(columnValue, iterableLikeInterface);
-        }
-
-        if (returnType.isCollectionLike())
-            return new QueryResultBuilder((Iterable)columnValue, converter).to(returnType.getActualType().getType());
-        else
-            return converter.convert(columnValue, returnType.getType(), mappingPolicy);
     }
-    public Object transformScalaIterableToJavaIterable(Object scalaIterable, Class iterableLikeIface) throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, IllegalAccessException {
-        // This is equivalent to doing this:
-        // JavaConversions.asJavaIterable(((IterableLike) columnValue).toIterable());
 
-        Class<?> javaConversions = iterableLikeIface.getClassLoader().loadClass("scala.collection.JavaConversions");
-        Method asJavaIterable = javaConversions.getMethod("asJavaIterable", iterableLikeIface);
-        Iterable<?> javaIterable = (Iterable<?>) asJavaIterable.invoke(null, scalaIterable);
-        return javaIterable;
-    }
-    private Class implementsInterface(String interfaceName, Class clazz) {
-        if(clazz.getCanonicalName().equals(interfaceName)) return clazz;
-
-        Class superclass = clazz.getSuperclass();
-        if(superclass != null) {
-            Class iface = implementsInterface(interfaceName, superclass);
-            if (iface!= null)  return iface;
-        }
-
-        for(Class iface : clazz.getInterfaces()) {
-            Class superIface = implementsInterface(interfaceName, iface);
-            if(superIface!=null)
-                return superIface;
-        }
-
-        return null;
-    }
 
     private boolean equalsInternal(Object me, Object other) {
         if (other == null) {

@@ -20,10 +20,14 @@ package org.springframework.data.neo4j.model;
 import org.springframework.data.neo4j.annotation.*;
 import org.springframework.data.neo4j.fieldaccess.DynamicProperties;
 
+import java.io.Serializable;
 import java.util.Date;
 
 @RelationshipEntity(useShortNames = false)
-public class Friendship {
+public class Friendship implements Serializable {
+
+    private static final long serialVersionUID = 1L;
+
     @GraphId
     private Long id;
 
@@ -56,7 +60,6 @@ public class Friendship {
 	private Date firstMeetingDate;
 
 	private DynamicProperties personalProperties;
-	
 	private transient String latestLocation;
 
     public Friendship(Person start, Person end, String type) {

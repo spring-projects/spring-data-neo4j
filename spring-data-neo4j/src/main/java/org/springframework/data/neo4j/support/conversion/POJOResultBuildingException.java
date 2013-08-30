@@ -13,19 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.neo4j.repository;
+package org.springframework.data.neo4j.support.conversion;
 
-import org.springframework.data.neo4j.annotation.QueryResult;
-import org.springframework.data.neo4j.annotation.ResultColumn;
-import org.springframework.data.neo4j.model.Group;
-import org.springframework.data.neo4j.model.Person;
+import org.springframework.data.mapping.model.MappingException;
 
-@QueryResult
-public interface MemberData {
+/**
+ * Exception which occurs whilst trying to build and map a POJO
+ * from a Query result.
+ *
+ * @author Nicki Watt
+ * @since 06.08.2013
+ */
+public class POJOResultBuildingException extends MappingException {
 
-    @ResultColumn("collect(team)")
-    Iterable<Group> getTeams();
+    private static final long serialVersionUID = 1L;
 
-    @ResultColumn("boss")
-    Person getBoss();
+    public POJOResultBuildingException(String message, Throwable t) {
+        super( message , t );
+    }
+
 }

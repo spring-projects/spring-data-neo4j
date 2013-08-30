@@ -36,6 +36,7 @@ import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.support.index.IndexType;
 import org.springframework.util.ObjectUtils;
 
+import java.io.Serializable;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
@@ -43,7 +44,9 @@ import java.util.Set;
 
 @NodeEntity
 @TypeAlias("g")
-public class Group implements  IGroup {
+public class Group implements  IGroup , Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     public final static String OTHER_NAME_INDEX = "other_name";
     public static final String SEARCH_GROUPS_INDEX = "search_groups";
@@ -59,7 +62,7 @@ public class Group implements  IGroup {
     private Iterable<Person> readOnlyPersons;
 
     @GraphTraversal(traversal = PeopleTraversalBuilder.class, params = "persons")
-    private Iterable<Person> people;
+    transient private Iterable<Person> people;
 
     @GraphProperty
     @Indexed

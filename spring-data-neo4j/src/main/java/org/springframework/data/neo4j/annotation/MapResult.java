@@ -22,6 +22,10 @@ import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.FIELD, ElementType.TYPE})
+@Deprecated
+/**
+ * @deprecated  replaced by {@link QueryResult}
+ */
 public @interface MapResult {
     String value() default "";
 }
