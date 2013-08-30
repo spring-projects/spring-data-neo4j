@@ -17,9 +17,15 @@ package org.springframework.data.neo4j.conversion;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.data.neo4j.annotation.MapResult;
+import org.springframework.data.neo4j.support.conversion.EntityResultConverter;
+
+import java.util.Collections;
+import java.util.Map;
 
 import static java.util.Arrays.asList;
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
 import static org.springframework.data.neo4j.conversion.QueryResultBuilder.from;
 
@@ -31,6 +37,11 @@ public class QueryResultBuilderTests {
 
     private final DefaultConverter defaultConverter = new DefaultConverter();
     private QueryResultBuilder<Integer> result = new QueryResultBuilder<Integer>(asList(1, 2, 3));
+
+    @MapResult
+    interface TestResult {
+        Integer getValue();
+    }
 
     @Before
     public void setUp() throws Exception {
@@ -47,7 +58,8 @@ public class QueryResultBuilderTests {
 
     @Test
     public void testSingleOrNull() throws Exception {
-
+        QueryResultBuilder<Map<String,Object>> builder = new QueryResultBuilder<Map<String,Object>>(Collections.<Map<String,Object>>emptyList(), new EntityResultConverter<Map<String, Object>, Object>(null));
+        assertThat(builder.to(TestResult.class).singleOrNull(), is(nullValue()));
     }
 
     @Test

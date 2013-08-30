@@ -92,6 +92,7 @@ public class QueryResultBuilder<T> implements Result<T> {
             public R singleOrNull() {
                 try {
                     final T value = IteratorUtil.singleOrNull(result);
+                    if (value==null) return null;
                     return convert(value);
                 } finally {
                     closeIfNeeded();
