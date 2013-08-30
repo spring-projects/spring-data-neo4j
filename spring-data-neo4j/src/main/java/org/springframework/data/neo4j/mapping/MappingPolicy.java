@@ -15,6 +15,7 @@
  */
 package org.springframework.data.neo4j.mapping;
 
+import java.io.Serializable;
 import java.util.*;
 
 import static java.util.Arrays.asList;
@@ -32,7 +33,10 @@ public interface MappingPolicy {
     boolean shouldLoad();
     MappingPolicy combineWith(MappingPolicy mappingPolicy);
 
-    public class DefaultMappingPolicy implements MappingPolicy {
+    public class DefaultMappingPolicy implements MappingPolicy , Serializable {
+
+        private static final long serialVersionUID = 1L;
+
         private Set<Option> options;
 
         public DefaultMappingPolicy(Option... options) {

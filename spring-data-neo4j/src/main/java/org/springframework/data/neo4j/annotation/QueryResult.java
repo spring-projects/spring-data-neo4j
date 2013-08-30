@@ -13,19 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.neo4j.repository;
+package org.springframework.data.neo4j.annotation;
 
-import org.springframework.data.neo4j.annotation.QueryResult;
-import org.springframework.data.neo4j.annotation.ResultColumn;
-import org.springframework.data.neo4j.model.Group;
-import org.springframework.data.neo4j.model.Person;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-@QueryResult
-public interface MemberData {
+/**
+ * Annotation to mark either a POJO or interface as being able to hold the results of a
+ * SDN based query.
+ *
+ * @author Nicki Watt
+ * @since 06.08.2013
+ */
+@Retention(RetentionPolicy.RUNTIME)
+@Target({ElementType.TYPE})
+public @interface QueryResult {
 
-    @ResultColumn("collect(team)")
-    Iterable<Group> getTeams();
-
-    @ResultColumn("boss")
-    Person getBoss();
 }

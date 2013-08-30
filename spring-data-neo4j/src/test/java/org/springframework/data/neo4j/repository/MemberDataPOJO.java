@@ -20,12 +20,56 @@ import org.springframework.data.neo4j.annotation.ResultColumn;
 import org.springframework.data.neo4j.model.Group;
 import org.springframework.data.neo4j.model.Person;
 
+import java.io.Serializable;
+import java.util.Set;
+
+
 @QueryResult
-public interface MemberData {
+public class MemberDataPOJO implements Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     @ResultColumn("collect(team)")
-    Iterable<Group> getTeams();
+    private Set<Group> teams;
 
     @ResultColumn("boss")
-    Person getBoss();
+    private Person boss;
+
+    @ResultColumn("someonesAge")
+    private int anInt;
+
+    @ResultColumn("someonesName")
+    private String aName;
+
+    public Set<Group> getTeams() {
+        return teams;
+    }
+
+    public void setTeams(Set<Group> teams) {
+        this.teams = teams;
+    }
+
+    public Person getBoss() {
+        return boss;
+    }
+
+    public void setBoss(Person boss) {
+        this.boss = boss;
+    }
+
+    public int getAnInt() {
+        return anInt;
+    }
+
+    public void setAnInt(int anInt) {
+        this.anInt = anInt;
+    }
+
+    public String getAName() {
+        return aName;
+    }
+
+    public void setAName(String name) {
+        this.aName = name;
+    }
 }

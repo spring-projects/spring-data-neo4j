@@ -16,19 +16,24 @@
 
 package org.springframework.data.neo4j.support.conversion;
 
+import org.neo4j.helpers.collection.IteratorUtil;
+import org.springframework.beans.BeanWrapper;
+import org.springframework.beans.BeanWrapperImpl;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.data.neo4j.annotation.MapResult;
+import org.springframework.data.neo4j.annotation.QueryResult;
+import org.springframework.data.neo4j.annotation.ResultColumn;
 import org.springframework.data.neo4j.conversion.DefaultConverter;
-import org.springframework.data.neo4j.conversion.ResultConverter;
+import org.springframework.data.neo4j.conversion.QueryResultBuilder;
 import org.springframework.data.neo4j.core.EntityPath;
-import org.springframework.data.neo4j.mapping.EntityPersister;
 import org.springframework.data.neo4j.mapping.MappingPolicy;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
 import org.springframework.data.neo4j.support.Neo4jTemplateAware;
 import org.springframework.data.neo4j.support.path.ConvertingEntityPath;
 
-import javax.inject.Provider;
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Proxy;
 import java.util.Map;
 
@@ -80,8 +85,67 @@ public class EntityResultConverter<T, R> extends DefaultConverter<T, R> implemen
         return result;
     }
 
+
     @SuppressWarnings("unchecked")
-    public R extractMapResult(Object value, Class returnType, MappingPolicy mappingPolicy) {
+    public R extractPOJOResult(Object value, Class returnType, MappingPolicy mappingPolicy) {
+        String errorMessage = "Error extracting and setting value for POJO Result : " + returnType;
+        if (!Map.class.isAssignableFrom(value.getClass())) {
+            throw new RuntimeException("QueryResult can only be extracted from Map<String,Object>.");
+        }
+
+        Object newThing = null;
+        ResultColumnValueExtractor resultColumnValueExtractor = new ResultColumnValueExtractor((Map<String, Object>) value,mappingPolicy,this);
+        try {
+            newThing = returnType.newInstance();
+            BeanWrapper wrapper = new BeanWrapperImpl( newThing );
+            for (Field field: returnType.getDeclaredFields()) {
+                extractAndSetValueOfField(wrapper, field, resultColumnValueExtractor);
+            }
+        } catch (IllegalAccessException e1) {
+            throw new POJOResultBuildingException(errorMessage, e1);
+        } catch (InstantiationException e2) {
+            throw new POJOResultBuildingException(errorMessage, e2);
+        } catch (InvocationTargetException e3) {
+            throw new POJOResultBuildingException(errorMessage, e3);
+        } catch (NoSuchMethodException e4) {
+            throw new POJOResultBuildingException(errorMessage, e4);
+        } catch (ClassNotFoundException e5) {
+            throw new POJOResultBuildingException(errorMessage, e5);
+        }
+
+        return (R) newThing;
+    }
+
+    private void extractAndSetValueOfField(BeanWrapper wrapper, Field field,
+                                           ResultColumnValueExtractor resultColumnValueExtractor)
+        throws InvocationTargetException , NoSuchMethodException , ClassNotFoundException , IllegalAccessException{
+        if (!isPOJOMappableField(field))
+            return;
+
+        Object val = resultColumnValueExtractor.extractFromField(field);
+        if (val != null) {
+            if (val.getClass().getEnclosingClass() != null &&
+                val.getClass().getEnclosingClass().equals(QueryResultBuilder.class)) {
+                val = IteratorUtil.asCollection((Iterable) val);
+            }
+            wrapper.setPropertyValue( field.getName(), val );
+        }
+
+    }
+
+    /**
+     * At present, the only fields which can be mapped to a POJO are those
+     * annotated with the ResultColumn annotation
+     *
+     * @param field
+     * @return
+     */
+    private boolean isPOJOMappableField(Field field) {
+        return field.getAnnotation(ResultColumn.class) != null;
+    }
+
+    @SuppressWarnings("unchecked")
+    public R extractProxyBasedResult(Object value, Class returnType, MappingPolicy mappingPolicy) {
         if (!Map.class.isAssignableFrom(value.getClass())) {
             throw new RuntimeException("MapResult can only be extracted from Map<String,Object>.");
         }
@@ -93,10 +157,23 @@ public class EntityResultConverter<T, R> extends DefaultConverter<T, R> implemen
 
     @Override
     public R convert(Object value, Class type, MappingPolicy mappingPolicy) {
-        if (type.isAnnotationPresent(MapResult.class)) {
-            return extractMapResult(value, type,mappingPolicy);
+        if (isInterfaceBasedMappingRequest(type)) {
+            return extractProxyBasedResult(value, type, mappingPolicy);
+        } else if (isPojoBasedMappingReqest(type)) {
+            return extractPOJOResult(value, type,mappingPolicy);
         } else
             return super.convert(value, type,mappingPolicy);
+    }
+
+    boolean isInterfaceBasedMappingRequest(Class type) {
+        // MapResult is deprecated now but we still need to check for it
+        return type.isInterface() &&
+                (type.isAnnotationPresent(MapResult.class) ||
+                 type.isAnnotationPresent(QueryResult.class));
+    }
+
+    boolean isPojoBasedMappingReqest(Class type) {
+        return !type.isInterface() && type.isAnnotationPresent(QueryResult.class);
     }
 
 }

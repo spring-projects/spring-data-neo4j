@@ -18,12 +18,17 @@ package org.springframework.data.neo4j.model;
 import org.springframework.data.neo4j.annotation.GraphId;
 import org.springframework.data.neo4j.annotation.NodeEntity;
 
+import java.io.Serializable;
+
 /**
  * @author mh
  * @since 23.12.11
  */
 @NodeEntity
-public class RootEntity {
+public class RootEntity implements Serializable {
+
+    private static final long serialVersionUID = 1L;
+
     @GraphId Long id;
 
     String rootName;

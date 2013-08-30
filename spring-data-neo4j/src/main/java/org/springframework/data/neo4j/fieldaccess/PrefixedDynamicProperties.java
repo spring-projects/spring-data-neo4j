@@ -15,6 +15,9 @@
  */
 package org.springframework.data.neo4j.fieldaccess;
 
+import java.io.InvalidObjectException;
+import java.io.ObjectInputStream;
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -27,9 +30,20 @@ import java.util.Set;
  * <p>
  * The methods *PrefixedProperty() allow to access the prefixed property key/values pairs directly.
  */
-public class PrefixedDynamicProperties implements DynamicProperties {
-    private final Map<String, Object> map;
-    protected final String prefix;
+public class PrefixedDynamicProperties implements DynamicProperties , Serializable {
+
+    private static final long serialVersionUID = 1L;
+
+    private Object writeReplace() {
+        return new SerializationProxy(this);
+    }
+
+    private void readObject(ObjectInputStream ois) throws InvalidObjectException {
+        throw new InvalidObjectException("Proxy required");
+    }
+
+    private transient final Map<String, Object> map;
+    protected final transient String prefix;
 
     /**
      * Handles key prefixing
@@ -291,4 +305,28 @@ public class PrefixedDynamicProperties implements DynamicProperties {
 		}
 		return true;
 	}
+
+    /**
+     * Implementation of the Serialization Proxy Pattern (ref Item 78
+     * of Effective Java - 2nd edition)
+     * @param <T> Type of the underlying class being stored in the Set.
+     */
+    private static class SerializationProxy<T> implements Serializable {
+
+        private static final long serialVersionUID = 1L;
+        private Map actualMapContent;
+        private String prefix;
+
+        SerializationProxy(PrefixedDynamicProperties prefixedDynamicProperties) {
+            this.actualMapContent = prefixedDynamicProperties.map;
+            this.prefix = prefixedDynamicProperties.prefix;
+        }
+
+        private Object readResolve() {
+            PrefixedDynamicProperties val = new PrefixedDynamicProperties(prefix);
+            val.setPropertiesFrom(actualMapContent);
+            return val;
+        }
+
+    }
 }

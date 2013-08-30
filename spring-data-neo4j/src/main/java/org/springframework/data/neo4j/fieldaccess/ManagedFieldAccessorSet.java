@@ -17,27 +17,45 @@
 package org.springframework.data.neo4j.fieldaccess;
 
 import org.springframework.data.neo4j.core.EntityState;
-import org.springframework.data.neo4j.mapping.MappingPolicy;
 import org.springframework.data.neo4j.mapping.ManagedEntity;
+import org.springframework.data.neo4j.mapping.MappingPolicy;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.support.DoReturn;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
 
+import java.io.InvalidObjectException;
+import java.io.ObjectInputStream;
+import java.io.Serializable;
 import java.util.AbstractSet;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Set;
 
 /**
+ * This class provides a mechanism for managing and controlling access to
+ * a Set based field on a SDN managed entity. The associated field typically
+ * serves as a container for all the references to some other SDN entity(s).
+ *
  * @param <T>
  */
-public class ManagedFieldAccessorSet<T> extends AbstractSet<T> {
-	private final Object entity;
-	final Set<T> delegate;
-	private final Neo4jPersistentProperty property;
-    private final Neo4jTemplate ctx;
-    private final FieldAccessor fieldAccessor;
-    private final MappingPolicy mappingPolicy;
+public class ManagedFieldAccessorSet<T> extends AbstractSet<T> implements Serializable {
+
+    private static final long serialVersionUID = 1L;
+
+    private Object writeReplace() {
+        return new SerializationProxy<T>(this);
+    }
+
+    private void readObject(ObjectInputStream ois) throws InvalidObjectException {
+        throw new InvalidObjectException("Proxy required");
+    }
+
+	private final transient Object entity;
+	final transient Set<T> delegate;
+	private final transient Neo4jPersistentProperty property;
+    private final transient Neo4jTemplate ctx;
+    private final transient FieldAccessor fieldAccessor;
+    private final transient MappingPolicy mappingPolicy;
 
     @SuppressWarnings("unchecked")
     public ManagedFieldAccessorSet(final Object entity, final Object newVal, final Neo4jPersistentProperty property, Neo4jTemplate ctx, FieldAccessor fieldAccessor, final MappingPolicy mappingPolicy) {
@@ -141,4 +159,26 @@ public class ManagedFieldAccessorSet<T> extends AbstractSet<T> {
         delegate.clear();
         update();
     }
+
+    /**
+     * Implementation of the Serialization Proxy Pattern (ref Item 78
+     * of Effective Java - 2nd edition)
+     * @param <T> Type of the underlying class being stored in the Set.
+     */
+    private static class SerializationProxy<T> implements Serializable {
+
+        private static final long serialVersionUID = 1L;
+        private Set<T> delegateSet;
+
+        SerializationProxy(ManagedFieldAccessorSet<T> managedFieldAccessorSet) {
+            this.delegateSet = managedFieldAccessorSet.delegate;
+        }
+
+        private Object readResolve() {
+            return delegateSet;
+        }
+
+    }
+
 }
+
