@@ -28,7 +28,10 @@ import java.util.Set;
  * The methods *PrefixedProperty() allow to access the prefixed property key/values pairs directly.
  */
 public class PrefixedDynamicProperties implements DynamicProperties {
-    private final Map<String, Object> map;
+	
+	private static final long serialVersionUID = 2957585039599536816L;
+	
+	private final Map<String, Object> map;
     protected final String prefix;
 
     /**

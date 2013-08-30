@@ -15,6 +15,7 @@
  */
 package org.springframework.data.neo4j.fieldaccess;
 
+import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.util.Map;
 
@@ -44,7 +45,7 @@ import org.springframework.data.neo4j.fieldaccess.DynamicPropertiesFieldAccessor
  * "personalProperties-City" => "Zuerich"
  * </pre>
  */
-public interface DynamicProperties {
+public interface DynamicProperties extends Serializable {
 
     /**
      * @param key

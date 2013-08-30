@@ -20,6 +20,8 @@ import java.util.Map;
 
 public class DynamicPropertiesContainer implements DynamicProperties {
 
+	private static final long serialVersionUID = -1096894554562186463L;
+	
 	private final Map<String, Object> map = new HashMap<String, Object>();
 	
 	public DynamicPropertiesContainer() {
