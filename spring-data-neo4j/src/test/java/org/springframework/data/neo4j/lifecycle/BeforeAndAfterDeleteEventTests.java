@@ -15,11 +15,13 @@
  */
 package org.springframework.data.neo4j.lifecycle;
 
+import static org.junit.Assert.assertEquals;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.test.TestGraphDatabaseFactory;
+import org.neo4j.test.ImpermanentGraphDatabase;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.Bean;
@@ -34,11 +36,6 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.transaction.BeforeTransaction;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.LinkedList;
-
-import static org.junit.Assert.assertThat;
-import static org.hamcrest.CoreMatchers.hasItem;
 
 @NodeEntity
 class Program {
@@ -58,21 +55,35 @@ class Program {
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
 @Transactional
-public class DeleteEventTests {
+public class BeforeAndAfterDeleteEventTests {
     @Configuration
     @EnableNeo4jRepositories
     static class TestConfig extends Neo4jConfiguration {
         @Bean
         GraphDatabaseService graphDatabaseService() {
-            return new TestGraphDatabaseFactory().newImpermanentDatabase();
+            return new ImpermanentGraphDatabase();
         }
 
         @Bean
-        ApplicationListener<DeleteEvent<Program>> deleteEventApplicationListener() {
-            return new ApplicationListener<DeleteEvent<Program>>() {
+        ApplicationListener<BeforeDeleteEvent<Program>> beforeDeleteEventApplicationListener() {
+            return new ApplicationListener<BeforeDeleteEvent<Program>>() {
+            	
                 @Override
-                public void onApplicationEvent(DeleteEvent<Program> event) {
-                    deletions.add(event.getEntity());
+                public void onApplicationEvent(BeforeDeleteEvent<Program> event) {
+                	assertEquals(Event.NONE, lastEvent);
+                	lastEvent = Event.BEFORE_DELETE;
+                }
+            };
+        }
+        
+        @Bean
+        ApplicationListener<AfterDeleteEvent<Program>> afterDeleteEventApplicationListener() {
+            return new ApplicationListener<AfterDeleteEvent<Program>>() {
+            	
+                @Override
+                public void onApplicationEvent(AfterDeleteEvent<Program> event) {
+                	assertEquals(Event.BEFORE_DELETE, lastEvent);
+                	lastEvent = Event.AFTER_DELETE;
                 }
             };
         }
@@ -83,8 +94,10 @@ public class DeleteEventTests {
 
     @Autowired
     GraphDatabaseService graphDatabaseService;
-
-    static final LinkedList<Program> deletions = new LinkedList<Program>();
+    
+    enum Event { NONE, BEFORE_DELETE, AFTER_DELETE }
+    
+    static Event lastEvent  = Event.NONE;
 
     @BeforeTransaction
     public void beforeTransaction() {
@@ -93,15 +106,14 @@ public class DeleteEventTests {
 
     @Before
     public void before() {
-        deletions.clear();
+        lastEvent = Event.NONE;
     }
 
     @Test
-    public void shouldFireEventOnNodeDeletion() throws Exception {
+    public void shouldFireBeforeAndAfterEventsOnNodeDeletion() throws Exception {
+    	assertEquals(Event.NONE, lastEvent);
         Program sark = template.save(new Program("Sark"));
-
         template.delete(sark);
-
-        assertThat(deletions, hasItem(sark));
+        assertEquals(Event.AFTER_DELETE, lastEvent);
     }
 }
