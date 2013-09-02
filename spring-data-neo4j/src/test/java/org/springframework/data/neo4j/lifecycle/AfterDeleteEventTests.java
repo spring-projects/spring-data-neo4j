@@ -24,8 +24,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.neo4j.annotation.GraphId;
-import org.springframework.data.neo4j.annotation.NodeEntity;
 import org.springframework.data.neo4j.config.EnableNeo4jRepositories;
 import org.springframework.data.neo4j.config.Neo4jConfiguration;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
@@ -42,25 +40,11 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 
-@NodeEntity
-class Program {
-    @GraphId
-    Long id;
-
-    String name;
-
-    Program() {
-    }
-
-    public Program(String name) {
-        this.name = name;
-    }
-}
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
 @Transactional
-public class BeforeAndAfterDeleteEventTests {
+public class AfterDeleteEventTests {
     @Configuration
     @EnableNeo4jRepositories
     static class TestConfig extends Neo4jConfiguration {
@@ -70,28 +54,18 @@ public class BeforeAndAfterDeleteEventTests {
         }
 
         @Bean
-        ApplicationListener<BeforeDeleteEvent<Program>> beforeDeleteEventApplicationListener() {
-            return new ApplicationListener<BeforeDeleteEvent<Program>>() {
-
-                @Override
-                public void onApplicationEvent(BeforeDeleteEvent<Program> event) {
-                    beforeProgramEvents.add(event.getEntity());
-                    lastEvent = Event.BEFORE_DELETE;
-                }
-            };
-        }
-
-        @Bean
         ApplicationListener<AfterDeleteEvent<Program>> afterDeleteEventApplicationListener() {
             return new ApplicationListener<AfterDeleteEvent<Program>>() {
 
                 @Override
                 public void onApplicationEvent(AfterDeleteEvent<Program> event) {
-                    afterProgramEvents.add(event.getEntity());
+                    afterProgramDeleteEvents.add(event.getEntity());
                     lastEvent = Event.AFTER_DELETE;
                 }
             };
         }
+
+
     }
 
     @Autowired
@@ -103,8 +77,8 @@ public class BeforeAndAfterDeleteEventTests {
     enum Event { NONE, BEFORE_DELETE, AFTER_DELETE }
 
     static Event lastEvent = Event.NONE;
-    static List<Program> beforeProgramEvents = new ArrayList<Program>();
-    static List<Program> afterProgramEvents = new ArrayList<Program>();
+    static List<Program> afterProgramDeleteEvents = new ArrayList<Program>();
+
 
     @BeforeTransaction
     public void beforeTransaction() {
@@ -114,21 +88,18 @@ public class BeforeAndAfterDeleteEventTests {
     @Before
     public void before() {
         lastEvent = Event.NONE;
-        beforeProgramEvents.clear();
-        afterProgramEvents.clear();
+        afterProgramDeleteEvents.clear();
     }
 
     @Test
-    public void shouldFireBeforeAndAfterEventsOnNodeDeletion() throws Exception {
+    public void shouldFireAfterEntityIsDeleted() throws Exception {
         assertEquals(Event.NONE, lastEvent);
-        assertThat( beforeProgramEvents, hasSize(0));
-        assertThat( afterProgramEvents, hasSize(0));
+        assertThat(afterProgramDeleteEvents, hasSize(0));
 
         Program sark = template.save(new Program("Sark"));
         template.delete(sark);
 
-        assertThat( beforeProgramEvents, hasSize(1));
-        assertThat( afterProgramEvents, hasSize(1));
+        assertThat(afterProgramDeleteEvents, hasSize(1));
         assertEquals(Event.AFTER_DELETE, lastEvent);
     }
 
