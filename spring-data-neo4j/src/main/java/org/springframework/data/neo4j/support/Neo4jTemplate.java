@@ -39,9 +39,10 @@ import org.springframework.data.neo4j.core.GraphDatabase;
 import org.springframework.data.neo4j.core.TypeRepresentationStrategy;
 import org.springframework.data.neo4j.core.UncategorizedGraphStoreException;
 import org.springframework.data.neo4j.fieldaccess.GraphBackedEntityIterableWrapper;
+import org.springframework.data.neo4j.lifecycle.AfterDeleteEvent;
 import org.springframework.data.neo4j.lifecycle.AfterSaveEvent;
+import org.springframework.data.neo4j.lifecycle.BeforeDeleteEvent;
 import org.springframework.data.neo4j.lifecycle.BeforeSaveEvent;
-import org.springframework.data.neo4j.lifecycle.DeleteEvent;
 import org.springframework.data.neo4j.mapping.IndexInfo;
 import org.springframework.data.neo4j.mapping.MappingPolicy;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
@@ -219,9 +220,9 @@ public class Neo4jTemplate implements Neo4jOperations, ApplicationContextAware {
 
     @Override
     public void delete(final Object entity) {
-        infrastructure.getEntityRemover().remove(entity);
-
-        if (applicationContext != null) applicationContext.publishEvent(new DeleteEvent<Object>(this, entity));
+		if (applicationContext != null) applicationContext.publishEvent(new BeforeDeleteEvent<Object>(this, entity));
+		infrastructure.getEntityRemover().remove(entity);
+		if (applicationContext != null)	applicationContext.publishEvent(new AfterDeleteEvent<Object>(this, entity));
     }
 
     /**
