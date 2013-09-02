@@ -35,32 +35,36 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.transaction.BeforeTransaction;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.LinkedList;
 
-import static org.hamcrest.Matchers.hasSize;
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
+import static org.hamcrest.CoreMatchers.hasItem;
 
+@Deprecated
 @NodeEntity
-class Program {
+class DeprecatedProgram {
     @GraphId
     Long id;
 
     String name;
 
-    Program() {
+    DeprecatedProgram() {
     }
 
-    public Program(String name) {
+    public DeprecatedProgram(String name) {
         this.name = name;
     }
 }
 
+// This test should be deprecated moving forward as it is replaced by
+// BeforeAndAfterDeleteEventTests, however as we are leaving the
+// DeleteEvent class for backwards compatibility, we leave this test
+// here too to ensure we don't break anything.
+@Deprecated
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
 @Transactional
-public class BeforeAndAfterDeleteEventTests {
+public class DeleteEventTests {
     @Configuration
     @EnableNeo4jRepositories
     static class TestConfig extends Neo4jConfiguration {
@@ -70,25 +74,11 @@ public class BeforeAndAfterDeleteEventTests {
         }
 
         @Bean
-        ApplicationListener<BeforeDeleteEvent<Program>> beforeDeleteEventApplicationListener() {
-            return new ApplicationListener<BeforeDeleteEvent<Program>>() {
-
+        ApplicationListener<DeleteEvent<DeprecatedProgram>> deleteEventApplicationListener() {
+            return new ApplicationListener<DeleteEvent<DeprecatedProgram>>() {
                 @Override
-                public void onApplicationEvent(BeforeDeleteEvent<Program> event) {
-                    beforeProgramEvents.add(event.getEntity());
-                    lastEvent = Event.BEFORE_DELETE;
-                }
-            };
-        }
-
-        @Bean
-        ApplicationListener<AfterDeleteEvent<Program>> afterDeleteEventApplicationListener() {
-            return new ApplicationListener<AfterDeleteEvent<Program>>() {
-
-                @Override
-                public void onApplicationEvent(AfterDeleteEvent<Program> event) {
-                    afterProgramEvents.add(event.getEntity());
-                    lastEvent = Event.AFTER_DELETE;
+                public void onApplicationEvent(DeleteEvent<DeprecatedProgram> event) {
+                    deletions.add(event.getEntity());
                 }
             };
         }
@@ -100,11 +90,7 @@ public class BeforeAndAfterDeleteEventTests {
     @Autowired
     GraphDatabaseService graphDatabaseService;
 
-    enum Event { NONE, BEFORE_DELETE, AFTER_DELETE }
-
-    static Event lastEvent = Event.NONE;
-    static List<Program> beforeProgramEvents = new ArrayList<Program>();
-    static List<Program> afterProgramEvents = new ArrayList<Program>();
+    static final LinkedList<DeprecatedProgram> deletions = new LinkedList<DeprecatedProgram>();
 
     @BeforeTransaction
     public void beforeTransaction() {
@@ -113,24 +99,15 @@ public class BeforeAndAfterDeleteEventTests {
 
     @Before
     public void before() {
-        lastEvent = Event.NONE;
-        beforeProgramEvents.clear();
-        afterProgramEvents.clear();
+        deletions.clear();
     }
 
     @Test
-    public void shouldFireBeforeAndAfterEventsOnNodeDeletion() throws Exception {
-        assertEquals(Event.NONE, lastEvent);
-        assertThat( beforeProgramEvents, hasSize(0));
-        assertThat( afterProgramEvents, hasSize(0));
+    public void shouldFireEventOnNodeDeletion() throws Exception {
+        DeprecatedProgram sark = template.save(new DeprecatedProgram("Sark"));
 
-        Program sark = template.save(new Program("Sark"));
         template.delete(sark);
 
-        assertThat( beforeProgramEvents, hasSize(1));
-        assertThat( afterProgramEvents, hasSize(1));
-        assertEquals(Event.AFTER_DELETE, lastEvent);
+        assertThat(deletions, hasItem(sark));
     }
-
 }
-
