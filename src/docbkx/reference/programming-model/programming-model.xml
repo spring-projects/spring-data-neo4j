@@ -16,6 +16,7 @@
     <xi:include href="indexing.xml"/>
     <xi:include href="template.xml" />
     <xi:include href="repositories.xml"/>
+    <xi:include href="conversion.xml"/>
     <xi:include href="projection.xml"/>
     <xi:include href="spatial.xml"/>
     <xi:include href="introducedmethods.xml"/>

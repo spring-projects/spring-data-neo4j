@@ -13,4 +13,57 @@
     <para>
 	It is also possible to provide a custom ResultConverter that additionally takes care of conversions.
 	</para>
+
+    <section id="reference:programming-model:mapresult">
+        <title>Mapping Query Results</title>
+        <para>
+            For both queries executed via the result conversion DSL as well as repository methods, it is possible to specify
+            a conversion of complex query results to POJO interfaces or objects. Those result objects are then populated with
+            the query result data and can be serialized and sent to a different part of the applicaton, e.g. a frontend-ui.
+        </para>
+        <para>
+            Use an interface annotated with <code>@QueryResult</code> and getter methods which might be annotated with
+            <code>@ResultColumn("columnName")</code> to match the query-result column names. Or use a plain POJO, both work.
+        </para>
+    <para>
+        <example>
+            <title>Example of query result mapping</title>
+            <programlisting language="java" ><![CDATA[
+public interface MovieRepository extends GraphRepository<Movie> {
+
+@Query("START movie=node:Movie(id={0})
+        MATCH movie-[rating?:rating]->(),
+              movie<-[:ACTS_IN]-actor
+        RETURN movie, COLLECT(actor), AVG(rating.stars)")
+MovieData getMovieData(String movieId);
+
+@QueryResult
+public class MovieData {
+    Movie movie;
+
+    @ResultColumn("AVG(rating.stars)")
+    Double rating;
+
+    @ResultColumn("COLLECT(actor)")
+    Collection<Actor> cast;
+}
+
+// alternatively use
+@QueryResult
+public interface MovieData {
+    @ResultColumn("movie")
+    Movie getMovie();
+
+    @ResultColumn("AVG(rating.stars)")
+    Double getRating();
+
+    @ResultColumn("COLLECT(actor)")
+    Iterable<Actor> getCast();
+}
+}]]></programlisting>
+        </example>
+    </para>
+
+
+</section>
 </section>
