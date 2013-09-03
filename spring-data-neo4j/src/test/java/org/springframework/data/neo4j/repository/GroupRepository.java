@@ -18,7 +18,11 @@ package org.springframework.data.neo4j.repository;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.neo4j.annotation.Query;
 import org.springframework.data.neo4j.model.Group;
+import org.springframework.data.neo4j.model.Person;
+
+import java.util.Set;
 
 
 /**
@@ -28,4 +32,7 @@ import org.springframework.data.neo4j.model.Group;
 public interface GroupRepository extends GraphRepository<Group>, NamedIndexRepository<Group> {
     Iterable<Group> findByFullTextNameLike(String name);
     Page<Group> findByName(String name, Pageable page);
+
+    @Query("start group=node:Group(name = {0}) match (group)-[:persons]->(aMember) return aMember")
+    Set<Person> getTeamMembersAsSetViaQuery(String groupName);
 }

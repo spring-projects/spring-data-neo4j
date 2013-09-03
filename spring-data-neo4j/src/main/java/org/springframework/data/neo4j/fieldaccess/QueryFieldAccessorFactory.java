@@ -24,12 +24,12 @@ import org.springframework.data.neo4j.annotation.QueryType;
 import org.springframework.data.neo4j.conversion.Result;
 import org.springframework.data.neo4j.mapping.MappingPolicy;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
+import org.springframework.data.neo4j.repository.query.CollectionLikeQueryResultExtractionUtil;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
 import org.springframework.data.neo4j.support.query.QueryEngine;
 import org.springframework.data.util.TypeInformation;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 import static org.springframework.data.neo4j.support.DoReturn.doReturn;
 
@@ -107,7 +107,7 @@ public class QueryFieldAccessorFactory implements FieldAccessorFactory {
                 return result;
             }
             if (typeInformation.isCollectionLike()) {
-               return result.to(targetType);
+                return CollectionLikeQueryResultExtractionUtil.extractCollectionLikeResult(result, targetType, typeInformation.getType());
             }
             return result.to(targetType).singleOrNull();
         }

@@ -20,15 +20,7 @@ import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.DynamicRelationshipType;
 import org.neo4j.graphdb.traversal.Evaluators;
 import org.neo4j.graphdb.traversal.TraversalDescription;
-import org.neo4j.kernel.Traversal;
 import org.neo4j.kernel.impl.traversal.TraversalDescriptionImpl;
-import org.springframework.data.neo4j.annotation.Fetch;
-import org.springframework.data.neo4j.annotation.GraphId;
-import org.springframework.data.neo4j.annotation.GraphProperty;
-import org.springframework.data.neo4j.annotation.GraphTraversal;
-import org.springframework.data.neo4j.annotation.Indexed;
-import org.springframework.data.neo4j.annotation.NodeEntity;
-import org.springframework.data.neo4j.annotation.RelatedTo;
 import org.springframework.data.annotation.TypeAlias;
 import org.springframework.data.neo4j.annotation.*;
 import org.springframework.data.neo4j.core.FieldTraversalDescriptionBuilder;
@@ -38,7 +30,6 @@ import org.springframework.util.ObjectUtils;
 
 import java.io.Serializable;
 import java.util.Collection;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -62,7 +53,21 @@ public class Group implements  IGroup , Serializable {
     private Iterable<Person> readOnlyPersons;
 
     @GraphTraversal(traversal = PeopleTraversalBuilder.class, params = "persons")
-    transient private Iterable<Person> people;
+    private transient Iterable<Person> people;
+
+    // @Fetch (breaks Neo4jEntityConverterTests - investigate)
+    @Query("start g1=node({self}) match (g1)-[:persons]-(member1) return member1")
+    private transient Set<Person> fetchedTeamMembersAsSetViaQuery;
+
+    @Query("start g2=node({self}) match (g2)-[:persons]->(member) return member")
+    private transient Set<Person> teamMembersAsSetViaQuery;
+
+    @Query("start g3=node({self}) match (g3)-[:persons]->(member) return member")
+    private transient Iterable<Person> teamMembersAsIterableViaQuery;
+
+    // @Fetch (breaks Neo4jEntityConverterTests - investigate)
+    @Query("start g4=node({self}) match (g4)-[:persons]->(member) return member")
+    private transient Iterable<Person> fetchedTeamMembersAsIterableViaQuery;
 
     @GraphProperty
     @Indexed
@@ -155,6 +160,22 @@ public class Group implements  IGroup , Serializable {
 
     public Long getId() {
         return id;
+    }
+
+   public Iterable<Person> getFetchedTeamMembersAsIterableViaQuery() {
+        return fetchedTeamMembersAsIterableViaQuery;
+   }
+
+   public Iterable<Person> getTeamMembersAsIterableViaQuery() {
+        return teamMembersAsIterableViaQuery;
+   }
+
+    public Set<Person> getTeamMembersAsSetViaQuery() {
+        return teamMembersAsSetViaQuery;
+    }
+
+    public Set<Person> getFetchedTeamMembersAsSetViaQuery() {
+        return fetchedTeamMembersAsSetViaQuery;
     }
 
     private static class PeopleTraversalBuilder implements FieldTraversalDescriptionBuilder {
