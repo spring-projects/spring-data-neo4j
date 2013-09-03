@@ -18,6 +18,7 @@ package org.springframework.data.neo4j.support.mapping;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.neo4j.mapping.EntityInstantiator;
+import org.springframework.data.neo4j.mapping.InvalidEntityTypeException;
 import org.springframework.data.neo4j.mapping.MappingPolicy;
 import org.springframework.data.persistence.StateBackedCreator;
 import org.springframework.data.persistence.StateProvider;
@@ -26,6 +27,7 @@ import sun.reflect.ReflectionFactory;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Modifier;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -100,6 +102,9 @@ public abstract class AbstractConstructorEntityInstantiator<STATE> implements En
 		if (constructor == null)
 			return null;
 
+        if (Modifier.isAbstract(constructor.getDeclaringClass().getModifiers())) {
+            throw new InvalidEntityTypeException("Unabled to create entity using base abstract class : " + type);
+        }
         if (log.isDebugEnabled()) log.debug("Using " + type + " no-arg constructor");
 
 		return new StateBackedCreator<T, STATE>() {
