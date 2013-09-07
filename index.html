@@ -1,0 +1,156 @@
+---
+# The name of your project
+title: Spring Data Neo4j
+
+badges:
+
+  # Specify your project's twitter handle, if any. Delete if none.
+  twitter: SpringData
+
+  # Customize your project's badges. Delete any entries that do not apply.
+  custom:
+    - name: Source (GitHub)
+      url:  https://github.com/SpringSource/spring-data-neo4j
+      icon: github
+
+    - name: Issues (JIRA)
+      url:  http://jira.springsource.org/browse/DATAGRAPH
+      icon: tracking
+
+    - name: CI (Bamboo)
+      url:  https://build.springsource.org/browse/SPRINGDATA
+      icon: ci
+
+    - name: Forum
+      url:  http://forum.spring.io/forum/spring-projects/data
+      icon: forum
+
+    - name: StackOverflow
+      url:  http://stackoverflow.com/questions/tagged/spring-data-neo4j
+      icon: stackoverflow
+
+#   - name: Metrics (SonarQube)
+#     url:  https://sonar.springsource.org/dashboard/index/org.springframework.data:spring-data-jpa
+#     icon: metrics
+---
+<!DOCTYPE HTML>
+<html lang="en-US">
+
+<!-- Specify the parent of this project (or delete if none) to influence the rendering of the breadcrumb -->
+{% capture parent_link %}
+[Spring Parent]({{ site.projects_site_url }}/spring-parent)
+{% endcapture %}
+
+
+{% capture billboard_description %}
+Enables POJO based development for the [Neo4j](http://neo4j.org/) Graph Database and with Spring's familiar template programming model.
+{% endcapture %}
+
+{% capture main_content %}
+
+Spring Data Neo4J offers advanced features to map annotated entity classes to the Neo4j Graph Database. The template programming model is equivalent to well known Spring templates and builds the basis for interaction with the graph and is also used for the advanced repository support.
+Spring Data Neo4j is part of the Spring Data project which aims to provide convenient support for NoSQL databases.
+
+
+## Features
+
+- Support for property graphs (nodes connected via relationships, each with arbitrary properties)
+- Object-Graph-Mapping of annotated POJO entities
+- additional advanced mapping mode via AspectJ
+- Neo4jTemplate with convenient API, exception translation and optional transaction - management
+- extensive Spring Data Commons Repositories Support, including annotated, derived - and geospatial finder methods
+- Dynamic type projections (duck typing)
+- Supports the Cypher and Gremlin query languages
+- Different type representation strategies for keeping type information in the graph
+- Cross-store support for partial JPA - Graph Entities
+- Neo4j Traversal support on dynamic fields and via repository methods
+- Neo4j Indexing support (including unique entities, full-text, spatial and numeric - range queries)
+- Support for transparently accessing the Neo4j Server via its REST API
+- Support for running as extensions in the Neo4j Server
+
+<span id="quick-start"></span>
+## Quick Start
+
+{% include download_widget.md %}
+
+## Example
+
+```java
+@NodeEntity
+public class Movie {
+
+  @GraphId Long id;
+
+  @Indexed(type = FULLTEXT, indexName = "search")
+  String title;
+
+  Person director;
+
+  @RelatedTo(type="ACTS_IN", direction = INCOMING)
+  Set<Person> actors;
+
+  @RelatedToVia(type = "RATED")
+  Iterable<Rating> ratings;
+
+  @Query("start movie=node({self}) match 
+          movie-->genre<--similar return similar")
+  Iterable<Movie> similarMovies;
+}
+```
+
+## Repositories
+
+Declare a repository interface
+
+```java
+interface MovieRepository extends GraphRepository<Movie> {
+  
+  @Query("start movie={0} match m<-[rating:RATED]-user
+          return rating")
+  Iterable<Rating> getRatings(Movie movie);
+  
+  // Co-Actors
+  Iterable<Person> findByActorsMoviesActorName(name)
+}
+```
+
+Activate Spring Data Neo4j repositories
+
+```xml
+<neo4j:repositories base-package="com.example.dao"/>
+```
+
+Use the repository
+
+```java    
+@Autowired MovieRepository repo;
+  
+Iterable<Movie> movies = repo.findAll();
+Movie movie = repo.findByPropertyValue("title","Matrix");
+repo.save(movie);
+
+Iterable<Rating> ratings = repo.getRatings(movie);
+```
+
+{% endcapture %}
+
+{% capture related_resources %}
+
+### Sample Projects
+
+* [Spring Data Book - Neo4j](https://github.com/SpringSource/spring-data-book/tree/master/neo4j)
+
+### Getting Started Guides
+
+* [Accessing Data with Neo4j]({{site.main_site_url}}/guides/gs/accessing-data-neo4j)
+
+### Tutorials
+
+* [Persisting Data with Spring]({{site.main_site_url}}/guides/tutorials/data)
+* [Social Movie Database Tutorial](http://spring.neo4j.org/guide)
+* [Spring Data Neo4j](http://docs.spring.io/spring-data/data-neo4j/docs/current/reference/htmlsingle/)
+
+{% endcapture %}
+
+{% include project_page.html %}
+</html>
