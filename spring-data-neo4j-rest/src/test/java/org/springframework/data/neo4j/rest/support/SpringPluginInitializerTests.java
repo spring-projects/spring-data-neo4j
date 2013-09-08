@@ -74,6 +74,10 @@ public class SpringPluginInitializerTests extends SpringPluginInitializer implem
             public Set<ThirdPartyJaxRsPackage> getThirdpartyJaxRsClasses() {
                 return Collections.singleton(new ThirdPartyJaxRsPackage("org.springframework.data.neo4j.rest.support","/test"));
             }
+            @Override
+            public Set<ThirdPartyJaxRsPackage> getThirdpartyJaxRsPackages() {
+                return Collections.singleton(new ThirdPartyJaxRsPackage("org.springframework.data.neo4j.rest.support","/test"));
+            }
         };
         final Configuration configuration = configurator.configuration();
         configuration.setProperty(Configurator.WEBSERVER_PORT_PROPERTY_KEY, PORT);
