@@ -28,6 +28,7 @@ import org.neo4j.kernel.impl.transaction.IllegalResourceException;
 import org.neo4j.kernel.impl.transaction.LockException;
 import org.springframework.dao.*;
 import org.springframework.dao.support.PersistenceExceptionTranslator;
+import org.springframework.data.neo4j.mapping.InvalidEntityTypeException;
 
 /**
  * @author mh
@@ -40,6 +41,9 @@ public class Neo4jExceptionTranslator implements PersistenceExceptionTranslator 
         try {
             throw ex;
         } catch(IllegalArgumentException iae) {
+            if (iae.getCause() != null && iae.getCause() instanceof InvalidEntityTypeException) {
+                throw (InvalidEntityTypeException)iae.getCause();
+            }
             throw new InvalidDataAccessApiUsageException(iae.getMessage(),iae);
         } catch(DataAccessException dae) {
             throw dae;
