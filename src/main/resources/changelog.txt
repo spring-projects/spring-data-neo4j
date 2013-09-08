@@ -1,6 +1,15 @@
 Spring Data Neo4j Changelog
 ===========================
 
+Changes in version 2.3.0.GA (2013-09-09)
+----------------------------------------
+* DATAGRAPH-377 Upgrade to Neo4 1.9.3
+* DATAGRAPH-298 Better handling of invalid target types for repositories (e.g. abstract types, interfaces)
+* DATAGARPH-365 Before- and After-Delete events
+* DATAGRAPH-259 Handle empty query results for ResultConverter
+* DATAGRAPH-311 Serializable ManagedFieldAccessorSet and DynamicProperties
+* DATAGRAPH-311 @QueryResult annotated, serializable POJOS as query results
+
 Changes in version 2.3.0.RC1 (2013-08-05)
 ----------------------------------------
 * DATAGRAPH-375 - Upgrade to SD-Commons 1.6.0.RC1
