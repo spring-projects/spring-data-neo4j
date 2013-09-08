@@ -35,36 +35,18 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.transaction.BeforeTransaction;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
+import java.util.List;
 
+import static org.hamcrest.Matchers.hasSize;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
-import static org.hamcrest.CoreMatchers.hasItem;
 
-@Deprecated
-@NodeEntity
-class DeprecatedProgram {
-    @GraphId
-    Long id;
 
-    String name;
-
-    DeprecatedProgram() {
-    }
-
-    public DeprecatedProgram(String name) {
-        this.name = name;
-    }
-}
-
-// This test should be deprecated moving forward as it is replaced by
-// BeforeAndAfterDeleteEventTests, however as we are leaving the
-// DeleteEvent class for backwards compatibility, we leave this test
-// here too to ensure we don't break anything.
-@Deprecated
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
 @Transactional
-public class DeleteEventTests {
+public class BeforeDeleteEventTests {
     @Configuration
     @EnableNeo4jRepositories
     static class TestConfig extends Neo4jConfiguration {
@@ -74,14 +56,18 @@ public class DeleteEventTests {
         }
 
         @Bean
-        ApplicationListener<DeleteEvent<DeprecatedProgram>> deleteEventApplicationListener() {
-            return new ApplicationListener<DeleteEvent<DeprecatedProgram>>() {
+        ApplicationListener<BeforeDeleteEvent<Program>> beforeDeleteEventApplicationListener() {
+            return new ApplicationListener<BeforeDeleteEvent<Program>>() {
+
                 @Override
-                public void onApplicationEvent(DeleteEvent<DeprecatedProgram> event) {
-                    deletions.add(event.getEntity());
+                public void onApplicationEvent(BeforeDeleteEvent<Program> event) {
+                    beforeProgramDeleteEvents.add(event.getEntity());
+                    lastEvent = Event.BEFORE_DELETE;
                 }
             };
         }
+
+
     }
 
     @Autowired
@@ -90,7 +76,11 @@ public class DeleteEventTests {
     @Autowired
     GraphDatabaseService graphDatabaseService;
 
-    static final LinkedList<DeprecatedProgram> deletions = new LinkedList<DeprecatedProgram>();
+    enum Event { NONE, BEFORE_DELETE, AFTER_DELETE }
+
+    static Event lastEvent = Event.NONE;
+    static List<Program> beforeProgramDeleteEvents = new ArrayList<Program>();
+
 
     @BeforeTransaction
     public void beforeTransaction() {
@@ -99,15 +89,36 @@ public class DeleteEventTests {
 
     @Before
     public void before() {
-        deletions.clear();
+        lastEvent = Event.NONE;
+        beforeProgramDeleteEvents.clear();
     }
 
     @Test
-    public void shouldFireEventOnNodeDeletion() throws Exception {
-        DeprecatedProgram sark = template.save(new DeprecatedProgram("Sark"));
+    public void shouldFireBeforeEntityIsDeleted() throws Exception {
+        assertEquals(Event.NONE, lastEvent);
+        assertThat(beforeProgramDeleteEvents, hasSize(0));
 
+        Program sark = template.save(new Program("Sark"));
         template.delete(sark);
 
-        assertThat(deletions, hasItem(sark));
+        assertThat(beforeProgramDeleteEvents, hasSize(1));
+        assertEquals(Event.BEFORE_DELETE, lastEvent);
+    }
+
+}
+
+@NodeEntity
+class Program {
+    @GraphId
+    Long id;
+
+    String name;
+
+    Program() {
+    }
+
+    public Program(String name) {
+        this.name = name;
     }
 }
+
