@@ -18,6 +18,7 @@ package org.springframework.data.neo4j.support.mapping;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.neo4j.mapping.EntityInstantiator;
+import org.springframework.data.neo4j.mapping.InvalidEntityTypeException;
 import org.springframework.data.neo4j.mapping.MappingPolicy;
 import org.springframework.data.persistence.StateBackedCreator;
 import org.springframework.data.persistence.StateProvider;
@@ -26,6 +27,7 @@ import sun.reflect.ReflectionFactory;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Modifier;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -38,6 +40,7 @@ public abstract class AbstractConstructorEntityInstantiator<STATE> implements En
 
 	private final static Logger log = LoggerFactory.getLogger(EntityInstantiator.class);
 
+    private final Map<Class<?>, Boolean> invalidInstantiationCheck = new HashMap<Class<?>, Boolean>();
 	private final Map<Class<?>, StateBackedCreator<?, STATE>> cache = new HashMap<Class<?>, StateBackedCreator<?, STATE>>();
 
 	@SuppressWarnings("unchecked")
@@ -56,15 +59,30 @@ public abstract class AbstractConstructorEntityInstantiator<STATE> implements En
 				return creator.create(n, c);
 			}
 		} catch (IllegalArgumentException e) {
-			throw e;
+            throw e;
 		} catch (InvocationTargetException e) {
 			throw new IllegalArgumentException(e.getTargetException());
+        } catch (InstantiationException e) {
+            if (isAbstractOrInterface(c)) {
+                // This is the same exception that is being used in the TypeSafetyPolicy
+                throw new InvalidEntityTypeException("Unable to legally create entity : abstract/interface class specified : " + c);
+            }
+            throw new IllegalArgumentException(e);
 		} catch (Exception e) {
 			throw new IllegalArgumentException(e);
 		}
 	}
 
-	public void setInstantiators(
+    protected boolean isAbstractOrInterface(Class c) {
+        Boolean result = invalidInstantiationCheck.get(c);
+        if (result == null) {
+            result = Modifier.isAbstract(c.getModifiers()) || Modifier.isInterface(c.getModifiers());
+            invalidInstantiationCheck.put(c, result);
+        }
+        return result;
+    }
+
+    public void setInstantiators(
 			Map<Class<?>, StateBackedCreator<?, STATE>> instantiators) {
 		this.cache.putAll(instantiators);
 	}

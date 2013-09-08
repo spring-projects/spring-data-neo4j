@@ -118,7 +118,7 @@ public class Neo4jEntityConverterImpl<T,S extends PropertyContainer> implements 
 
     private <R extends T> boolean storedAndRequestedTypesMatch(Class<R> requestedType, S source) {
         TypeInformation<?> storedType = typeMapper.readType(source);
-        return storedType.getType().isAssignableFrom(requestedType);
+        return requestedType.isAssignableFrom(storedType.getType());
     }
 
     private <R extends T> void cascadeFetch(Neo4jPersistentEntityImpl<R> persistentEntity, final BeanWrapper<Neo4jPersistentEntity<R>, R> wrapper, final MappingPolicy policy, final Neo4jTemplate template) {
