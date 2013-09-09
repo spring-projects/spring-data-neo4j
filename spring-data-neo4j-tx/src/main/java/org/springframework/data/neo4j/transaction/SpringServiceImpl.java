@@ -16,6 +16,8 @@
 
 package org.springframework.data.neo4j.transaction;
 
+import org.neo4j.kernel.api.KernelAPI;
+import org.neo4j.kernel.api.KernelTransaction;
 import org.neo4j.kernel.impl.core.TransactionState;
 import org.neo4j.kernel.impl.transaction.AbstractTransactionManager;
 import org.neo4j.kernel.impl.transaction.TransactionStateFactory;
@@ -25,6 +27,7 @@ import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.jta.JtaTransactionManager;
 
 import javax.transaction.*;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.WeakHashMap;
 
@@ -39,7 +42,9 @@ class SpringServiceImpl extends AbstractTransactionManager
     private TransactionManager delegate;
 
     private final Map<Transaction, TransactionState> states = new WeakHashMap<Transaction, TransactionState>();
+    private final Map<Transaction, KernelTransaction> kernelTransactions = new WeakHashMap<Transaction, KernelTransaction>();
     private final TransactionStateFactory stateFactory;
+    private KernelAPI kernelAPI;
 
     SpringServiceImpl(TransactionStateFactory stateFactory)
     {
@@ -92,6 +97,7 @@ class SpringServiceImpl extends AbstractTransactionManager
         delegate.begin();
         Transaction tx = getTransaction();
         states.put(tx, stateFactory.create(tx));
+        kernelTransactions.put( tx, kernelAPI.newTransaction() );
     }
 
     public void commit() throws RollbackException, HeuristicMixedException,
@@ -155,5 +161,25 @@ class SpringServiceImpl extends AbstractTransactionManager
     @Autowired
     public void setTransactionManager(PlatformTransactionManager transactionManager) {
         this.transactionManager = transactionManager;
+    }
+
+    @Override
+    public void setKernel(KernelAPI kernelAPI) {
+        this.kernelAPI = kernelAPI;
+    }
+
+    @Override
+    public KernelTransaction getKernelTransaction()
+    {
+        Transaction transaction;
+        try
+        {
+            transaction = getTransaction();
+        }
+        catch ( SystemException e )
+        {
+            return null;
+        }
+        return kernelTransactions.get( transaction );
     }
 }

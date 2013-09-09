@@ -7,19 +7,19 @@
 
 	<name>Spring Data Neo4j - Rest Binding</name>
 	<description>pring Data Neo4j Wrapper for the Neo4j REST API, provides a Graph Database proxy for the remote invocation.</description>
-	<version>2.3.0.BUILD-SNAPSHOT</version>
+	<version>3.0.0.BUILD-SNAPSHOT</version>
 
 	<parent>
 		<groupId>org.springframework.data</groupId>
 		<artifactId>spring-data-neo4j-parent</artifactId>
-		<version>2.3.0.BUILD-SNAPSHOT</version>
+		<version>3.0.0.BUILD-SNAPSHOT</version>
 		<relativePath>../pom.xml</relativePath>
 	</parent>
 
 	<properties>
 		<validation>1.0.0.GA</validation>
 		<jersey.version>1.4</jersey.version>
-		<neo4j-rest-graphdb.version>1.9</neo4j-rest-graphdb.version>
+		<neo4j-rest-graphdb.version>2.0-SNAPSHOT</neo4j-rest-graphdb.version>
 	</properties>
 
 	<dependencies>
@@ -84,7 +84,7 @@
 		<dependency>
 			<groupId>org.springframework.data</groupId>
 			<artifactId>spring-data-neo4j</artifactId>
-			<version>2.3.0.BUILD-SNAPSHOT</version>
+			<version>3.0.0.BUILD-SNAPSHOT</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.neo4j</groupId>
@@ -127,7 +127,7 @@
 		<dependency>
 			<groupId>org.neo4j.server.plugin</groupId>
 			<artifactId>neo4j-gremlin-plugin</artifactId>
-			<version>${neo4j.version}</version>
+			<version>1.9.2</version>
 			<optional>true</optional>
 			<scope>test</scope>
 		</dependency>
@@ -248,14 +248,14 @@
 		<dependency>
 			<groupId>org.springframework.data</groupId>
 			<artifactId>spring-data-neo4j-aspects</artifactId>
-			<version>2.3.0.BUILD-SNAPSHOT</version>
+			<version>3.0.0.BUILD-SNAPSHOT</version>
 			<scope>test</scope>
 		</dependency>
 
 		<dependency>
 			<groupId>org.springframework.data</groupId>
 			<artifactId>spring-data-neo4j</artifactId>
-			<version>2.3.0.BUILD-SNAPSHOT</version>
+			<version>3.0.0.BUILD-SNAPSHOT</version>
 			<scope>test</scope>
 			<type>test-jar</type>
 		</dependency>
@@ -263,7 +263,7 @@
 		<dependency>
 			<groupId>org.springframework.data</groupId>
 			<artifactId>spring-data-neo4j-aspects</artifactId>
-			<version>2.3.0.BUILD-SNAPSHOT</version>
+			<version>3.0.0.BUILD-SNAPSHOT</version>
 			<scope>test</scope>
 			<type>test-jar</type>
 		</dependency>

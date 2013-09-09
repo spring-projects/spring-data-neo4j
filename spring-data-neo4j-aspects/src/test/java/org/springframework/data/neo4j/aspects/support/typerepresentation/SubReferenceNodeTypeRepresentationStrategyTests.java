@@ -31,9 +31,11 @@ import org.springframework.data.neo4j.aspects.Person;
 import org.springframework.data.neo4j.aspects.Toyota;
 import org.springframework.data.neo4j.aspects.Volvo;
 import org.springframework.data.neo4j.aspects.support.EntityTestBase;
+import org.springframework.data.neo4j.core.GraphDatabase;
 import org.springframework.data.neo4j.repository.GraphRepository;
 import org.springframework.data.neo4j.support.mapping.EntityStateHandler;
 import org.springframework.data.neo4j.support.typerepresentation.SubReferenceNodeTypeRepresentationStrategy;
+import org.springframework.data.neo4j.template.GraphCallback;
 import org.springframework.test.context.CleanContextCacheTestExecutionListener;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestExecutionListeners;
@@ -82,6 +84,7 @@ public class SubReferenceNodeTypeRepresentationStrategyTests extends EntityTestB
         assertEquals("one thing has been created", 2, typeNode.getProperty(SubReferenceNodeTypeRepresentationStrategy.SUBREFERENCE_NODE_COUNTER_KEY));
     }
     @Test(expected = IllegalArgumentException.class)
+    @Transactional
     public void gettingTypeFromNonTypeNodeShouldThrowAnDescriptiveException() throws Exception {
         Node referenceNode = neo4jTemplate.getReferenceNode();
         nodeTypeRepresentationStrategy.readAliasFrom(referenceNode);
@@ -219,12 +222,21 @@ public class SubReferenceNodeTypeRepresentationStrategyTests extends EntityTestB
 
     @Test
     public void testSaveTwice() throws Exception {
-        Thing thing = new Thing();
-        thing.setName("Foo");
-        thing = neo4jTemplate.save(thing);
-        thing.setName("Bar");
-        thing = neo4jTemplate.save(thing);
-        neo4jTemplate.findOne(thing.getNodeId(),Thing.class);
+        final Thing thing = neo4jTemplate.exec(new GraphCallback<Thing>() {
+
+            public Thing doWithGraph(GraphDatabase graph) throws Exception {
+                Thing thing = new Thing();
+                thing.setName("Foo");
+                return neo4jTemplate.save(thing);
+            }
+        });
+        neo4jTemplate.exec(new GraphCallback.WithoutResult() {
+            public void doWithGraphWithoutResult(GraphDatabase graph) throws Exception {
+                thing.setName("Bar");
+                Thing found = neo4jTemplate.save(thing);
+                neo4jTemplate.findOne(found.getNodeId(),Thing.class);
+            }
+        });
     }
 
     @Test
