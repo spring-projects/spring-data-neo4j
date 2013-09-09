@@ -87,6 +87,12 @@ public class Neo4jTemplate implements Neo4jOperations, ApplicationContextAware {
     private final Infrastructure infrastructure;
     private ApplicationContext applicationContext;
 
+    // required purely for CDI purposes ???
+    // check if there is a better way
+    protected Neo4jTemplate() {
+        this.infrastructure = null;
+    }
+
     /**
      * @param graphDatabase      the neo4j graph database
      * @param transactionManager if passed in, will be used to create implicit transactions whenever needed
