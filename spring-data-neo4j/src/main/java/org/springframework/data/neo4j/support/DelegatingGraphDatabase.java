@@ -138,16 +138,21 @@ public class DelegatingGraphDatabase implements GraphDatabase {
     @SuppressWarnings("unchecked")
     @Override
     public <T extends PropertyContainer> Index<T> createIndex(Class<T> type, String indexName, IndexType indexType) {
-        IndexManager indexManager = delegate.index();
-        if (isNode(type)) {
-            if (indexManager.existsForNodes(indexName))
-                return (Index<T>) checkAndGetExistingIndex(indexName, indexType, indexManager.forNodes(indexName));
-            Index<Node> index = indexManager.forNodes(indexName, indexConfigFor(indexType));
-            return (Index<T>) index;
-        } else {
-            if (indexManager.existsForRelationships(indexName))
-                return (Index<T>) checkAndGetExistingIndex(indexName, indexType, indexManager.forRelationships(indexName));
-            return (Index<T>) indexManager.forRelationships(indexName, indexConfigFor(indexType));
+        Transaction tx = delegate.beginTx();
+        try {
+            IndexManager indexManager = delegate.index();
+            if (isNode(type)) {
+                if (indexManager.existsForNodes(indexName))
+                    return (Index<T>) checkAndGetExistingIndex(indexName, indexType, indexManager.forNodes(indexName));
+                Index<Node> index = indexManager.forNodes(indexName, indexConfigFor(indexType));
+                return (Index<T>) index;
+            } else {
+                if (indexManager.existsForRelationships(indexName))
+                    return (Index<T>) checkAndGetExistingIndex(indexName, indexType, indexManager.forRelationships(indexName));
+                return (Index<T>) indexManager.forRelationships(indexName, indexConfigFor(indexType));
+            }
+        } finally {
+            tx.success();tx.finish();
         }
     }
 

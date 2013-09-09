@@ -16,10 +16,7 @@
 
 package org.springframework.data.neo4j.support.typerepresentation;
 
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.NotFoundException;
-import org.neo4j.graphdb.PropertyContainer;
-import org.neo4j.graphdb.Relationship;
+import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.index.Index;
 import org.springframework.data.neo4j.core.GraphDatabase;
 import org.springframework.data.neo4j.core.NodeTypeRepresentationStrategy;
@@ -52,9 +49,14 @@ public class TypeRepresentationStrategyFactory {
     }
 
     private static Strategy chooseStrategy(GraphDatabase graphDatabaseService) {
-        if (isAlreadyIndexed(graphDatabaseService)) return Strategy.Indexed;
-        if (isAlreadySubRef(graphDatabaseService)) return Strategy.SubRef;
-        return Strategy.Indexed;
+        Transaction tx = graphDatabaseService.beginTx();
+        try {
+            if (isAlreadyIndexed(graphDatabaseService)) return Strategy.Indexed;
+            if (isAlreadySubRef(graphDatabaseService)) return Strategy.SubRef;
+            return Strategy.Indexed;
+        } finally {
+            tx.success();tx.finish();
+        }
     }
 
     private static boolean isAlreadyIndexed(GraphDatabase graphDatabaseService) {

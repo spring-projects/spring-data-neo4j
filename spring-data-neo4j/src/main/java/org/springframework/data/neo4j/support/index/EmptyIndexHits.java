@@ -16,6 +16,7 @@
 package org.springframework.data.neo4j.support.index;
 
 import org.neo4j.graphdb.PropertyContainer;
+import org.neo4j.graphdb.ResourceIterator;
 import org.neo4j.graphdb.index.IndexHits;
 
 import java.util.Iterator;
@@ -46,7 +47,7 @@ public class EmptyIndexHits<S extends PropertyContainer> implements IndexHits<S>
     }
 
     @Override
-    public Iterator<S> iterator() {
+    public ResourceIterator<S> iterator() {
         return this;
     }
 

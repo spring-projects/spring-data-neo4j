@@ -16,7 +16,6 @@
 
 package org.springframework.data.neo4j.config;
 
-import antlr.StringUtils;
 import org.neo4j.kernel.EmbeddedGraphDatabase;
 import org.springframework.beans.factory.annotation.Autowire;
 import org.springframework.beans.factory.config.BeanDefinition;
@@ -29,8 +28,6 @@ import org.springframework.core.type.filter.AnnotationTypeFilter;
 import org.springframework.data.annotation.Persistent;
 import org.springframework.data.neo4j.annotation.NodeEntity;
 import org.springframework.data.neo4j.annotation.RelationshipEntity;
-import org.springframework.data.repository.config.RepositoryBeanDefinitionParser;
-import org.springframework.data.repository.config.RepositoryConfigurationExtension;
 import org.springframework.util.ClassUtils;
 import org.w3c.dom.Element;
 

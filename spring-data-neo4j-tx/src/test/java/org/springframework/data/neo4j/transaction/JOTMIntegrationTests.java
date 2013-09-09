@@ -23,6 +23,7 @@ import org.junit.Test;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.NotFoundException;
+import org.neo4j.graphdb.factory.GraphDatabaseSettings;
 import org.neo4j.kernel.AbstractGraphDatabase;
 import org.neo4j.kernel.configuration.Config;
 import org.objectweb.jotm.Current;
@@ -68,8 +69,15 @@ public class JOTMIntegrationTests {
         } finally {
             transaction.finish();
         }
-        Node readBackOutsideOfTx = gds.getNodeById(node.getId());
-        Assert.assertEquals(node, readBackOutsideOfTx);
+
+        transaction = gds.beginTx();
+        try {
+            Node readBackOutsideOfTx = gds.getNodeById(node.getId());
+            Assert.assertEquals(node, readBackOutsideOfTx);
+        } finally {
+            transaction.success();
+            transaction.finish();
+        }
         try {
             transaction = gds.beginTx();
             Node readBackInsideOfTx = gds.getNodeById(node.getId());
@@ -91,8 +99,14 @@ public class JOTMIntegrationTests {
         } finally {
             transaction.finish();
         }
-        Node retrievedNode = gds.index().forNodes("node").get("name", "value").getSingle();
-        Assert.assertEquals(node, retrievedNode);
+        transaction = gds.beginTx();
+        try {
+            Node retrievedNode = gds.index().forNodes("node").get("name", "value").getSingle();
+            Assert.assertEquals(node, retrievedNode);
+        } finally {
+            transaction.success();
+            transaction.finish();
+        }
     }
 
     @Test(expected = NotFoundException.class)
@@ -106,13 +120,19 @@ public class JOTMIntegrationTests {
         } finally {
             tx.finish();
         }
-        gds.getNodeById(nodeId);
+        tx = gds.beginTx();
+        try {
+            gds.getNodeById(nodeId);
+        } finally {
+            tx.success();
+            tx.finish();
+        }
     }
 
     @Test
     public void databaseConfiguredWithSpringJtaShouldUseJtaTransactionManager() throws SystemException, NotSupportedException {
         final Config config = ((AbstractGraphDatabase) gds).getKernelData().getConfig();
-        Assert.assertEquals("spring-jta", config.getParams().get(Config.TXMANAGER_IMPLEMENTATION));
+        Assert.assertEquals("spring-jta", config.getParams().get(GraphDatabaseSettings.tx_manager_impl.name()));
 
         JtaTransactionManager tm = ctx.getBean("transactionManager", JtaTransactionManager.class);
         Transaction transaction = tm.createTransaction("jotm", 1000);

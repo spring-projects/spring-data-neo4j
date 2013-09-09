@@ -21,8 +21,10 @@ import org.neo4j.helpers.collection.IteratorUtil;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.neo4j.conversion.EndResult;
+import org.springframework.data.neo4j.core.GraphDatabase;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
 import org.springframework.data.neo4j.support.query.QueryEngine;
+import org.springframework.data.neo4j.template.GraphCallback;
 import org.springframework.data.repository.query.Parameter;
 import org.springframework.data.repository.query.ParameterAccessor;
 import org.springframework.data.repository.query.ParametersParameterAccessor;
@@ -74,11 +76,16 @@ abstract class GraphRepositoryQuery implements RepositoryQuery, ParameterResolve
     }
 
     @Override
-    public Object execute(Object[] parameters) {
-        final ParameterAccessor accessor = new ParametersParameterAccessor(queryMethod.getParameters(), parameters);
-        Map<String, Object> params = resolveParams(accessor);
-        final String queryString = createQueryWithPagingAndSorting(accessor);
-        return dispatchQuery(queryString, params, accessor);
+    public Object execute(final Object[] parameters) {
+        return template.exec(new GraphCallback<Object>() {
+            @Override
+            public Object doWithGraph(GraphDatabase graph) throws Exception {
+                final ParameterAccessor accessor = new ParametersParameterAccessor(queryMethod.getParameters(), parameters);
+                Map<String, Object> params = resolveParams(accessor);
+                final String queryString = createQueryWithPagingAndSorting(accessor);
+                return dispatchQuery(queryString, params, accessor);
+            }
+        });
     }
 
     protected Map<String, Object> resolveParams(ParameterAccessor accessor) {

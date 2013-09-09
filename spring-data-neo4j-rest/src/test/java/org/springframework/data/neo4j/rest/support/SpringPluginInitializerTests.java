@@ -71,10 +71,6 @@ public class SpringPluginInitializerTests extends SpringPluginInitializer implem
         ImpermanentGraphDatabase db = new ImpermanentGraphDatabase();
         final ServerConfigurator configurator = new ServerConfigurator(db) {
             @Override
-            public Set<ThirdPartyJaxRsPackage> getThirdpartyJaxRsClasses() {
-                return Collections.singleton(new ThirdPartyJaxRsPackage("org.springframework.data.neo4j.rest.support","/test"));
-            }
-            @Override
             public Set<ThirdPartyJaxRsPackage> getThirdpartyJaxRsPackages() {
                 return Collections.singleton(new ThirdPartyJaxRsPackage("org.springframework.data.neo4j.rest.support","/test"));
             }

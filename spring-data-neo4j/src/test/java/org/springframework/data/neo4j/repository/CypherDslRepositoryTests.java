@@ -16,6 +16,7 @@
 package org.springframework.data.neo4j.repository;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -54,6 +55,7 @@ import static org.neo4j.helpers.collection.MapUtil.map;
 @ContextConfiguration(locations = {"classpath:org/springframework/data/neo4j/repository/GraphRepositoryTests-context.xml"})
 @TestExecutionListeners({CleanContextCacheTestExecutionListener.class, DependencyInjectionTestExecutionListener.class, TransactionalTestExecutionListener.class})
 @Transactional
+@Ignore
 public class CypherDslRepositoryTests {
 
     @Autowired PersonRepository personRepository;
