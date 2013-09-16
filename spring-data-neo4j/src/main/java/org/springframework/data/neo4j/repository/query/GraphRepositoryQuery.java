@@ -21,6 +21,7 @@ import org.neo4j.helpers.collection.IteratorUtil;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.neo4j.conversion.EndResult;
+import org.springframework.data.neo4j.conversion.Result;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
 import org.springframework.data.neo4j.support.query.QueryEngine;
 import org.springframework.data.repository.query.Parameter;
@@ -100,10 +101,8 @@ abstract class GraphRepositoryQuery implements RepositoryQuery, ParameterResolve
             return createPage(result, accessor.getPageable(),count);
         }
         if (queryMethod.isIterableResult()) {
-            final EndResult<?> result = queryEngine.query(queryString, params).to(compoundType);
-            if (queryMethod.isSetResult()) return IteratorUtil.addToCollection(result,new LinkedHashSet());
-            if (queryMethod.isCollectionResult()) return IteratorUtil.addToCollection(result,new ArrayList());
-            return result;
+            Result<?> intialResult = queryEngine.query(queryString, params);
+            return CollectionLikeQueryResultExtractionUtil.extractCollectionLikeResult(intialResult, compoundType, queryMethod.getReturnType());
         }
         return queryEngine.query(queryString, params).to(queryMethod.getReturnType()).singleOrNull();
     }

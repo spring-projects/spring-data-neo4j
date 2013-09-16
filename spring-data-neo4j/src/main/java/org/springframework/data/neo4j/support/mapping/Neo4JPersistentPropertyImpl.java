@@ -261,11 +261,11 @@ class Neo4jPersistentPropertyImpl extends AnnotationBasedPersistentProperty<Neo4
 
     @Override
     public Collection<? extends Annotation> getAnnotations() {
-    	
+
     	  if (annotations == null) {
-    	  	
+
     	  }
-    	
+
         return annotations.values();
     }
 
@@ -349,7 +349,13 @@ class Neo4jPersistentPropertyImpl extends AnnotationBasedPersistentProperty<Neo4
     }
 
     public boolean isTransient() {
-        return super.isTransient() || Modifier.isTransient(field.getModifiers()); //  || isAnnotationPresent(Transient.class) || isAnnotationPresent("javax.persistence.Transient");
+        return super.isTransient();
+               // TODO - Add this back (but it appears to break other things)
+               // || isJpaTransientAnnotationPresent();
+    }
+
+    private boolean isJpaTransientAnnotationPresent() {
+        return isAnnotationPresent("javax.persistence.Transient");
     }
 
     private boolean isAnnotationPresent(String className) {
