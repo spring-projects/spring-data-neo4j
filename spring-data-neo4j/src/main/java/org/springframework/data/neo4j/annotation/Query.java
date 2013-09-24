@@ -1,5 +1,5 @@
 /**
- * Copyright 2011 the original author or authors.
+ * Copyright 2011-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,8 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+import org.springframework.data.annotation.QueryAnnotation;
+
 /**
  * Field that provides access to an iterator which is created by applying the provided query starting at the current
  * entity-node. The result elements are automatically converted to appropriate element
@@ -30,10 +32,12 @@ import java.lang.annotation.Target;
  * Iterable&lt;Person&gt; friends;
  * </pre>
  * @author Michael Hunger
+ * @author Thomas Darimont
  * @since 15.09.2010
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.FIELD,ElementType.METHOD})
+@QueryAnnotation
 public @interface Query {
     /**
      * @return Query to be executed {self} will be provided by the node-id of the current entity other parameters (e.g. {name}) by the given named params
