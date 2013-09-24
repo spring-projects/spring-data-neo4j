@@ -93,8 +93,13 @@ public class NoIndexDerivedFinderTests {
             }
         };
         t.start();t.join();
-        final ExecutionResult result = new ExecutionEngine(gdb).execute("start n=node:Test('name:*') return n");
-        assertEquals(0,IteratorUtil.count(result));
-        assertEquals("Test", gdb.index().nodeIndexNames()[0]);
+        Transaction tx = gdb.beginTx();
+        try {
+            final ExecutionResult result = new ExecutionEngine(gdb).execute("start n=node:Test('name:*') return n");
+            assertEquals(0,IteratorUtil.count(result));
+            assertEquals("Test", gdb.index().nodeIndexNames()[0]);
+        } finally {
+            tx.success();tx.finish();
+        }
     }
 }

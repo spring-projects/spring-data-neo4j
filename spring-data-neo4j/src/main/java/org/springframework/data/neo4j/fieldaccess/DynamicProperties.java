@@ -44,7 +44,7 @@ import org.springframework.data.neo4j.fieldaccess.DynamicPropertiesFieldAccessor
  * "personalProperties-City" => "Zuerich"
  * </pre>
  */
-public interface DynamicProperties {
+public interface DynamicProperties extends DirtyValue {
 
     /**
      * @param key

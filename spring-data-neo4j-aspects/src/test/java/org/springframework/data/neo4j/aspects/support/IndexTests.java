@@ -107,14 +107,11 @@ public class IndexTests extends EntityTestBase {
     //@Transactional
     //@Ignore("remove property from index not workin")
     public void testRemoveNodeFromIndex() {
-        Transaction tx = neo4jTemplate.getGraphDatabase().beginTx();
-        try {
+        try (Transaction tx = neo4jTemplate.getGraphDatabase().beginTx()) {
             Group group = persist(new Group());
             group.setName(NAME_VALUE);
             getGroupIndex().remove(getNodeState(group));
             tx.success();
-        } finally {
-            tx.finish();
         }
         final Group found = this.groupRepository.findByPropertyValue(NAME, NAME_VALUE);
         assertNull("Group.name removed from index", found);

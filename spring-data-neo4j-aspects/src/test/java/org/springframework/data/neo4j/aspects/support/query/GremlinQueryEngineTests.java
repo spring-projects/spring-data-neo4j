@@ -17,6 +17,7 @@
 package org.springframework.data.neo4j.aspects.support.query;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.neo4j.helpers.collection.IteratorUtil;
@@ -44,6 +45,7 @@ import static org.junit.Assert.assertEquals;
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = {"classpath:org/springframework/data/neo4j/aspects/support/Neo4jGraphPersistenceTests-context.xml"})
 @Transactional
+@Ignore
 public class GremlinQueryEngineTests extends EntityTestBase {
     private QueryEngine<Object> queryEngine;
     private Person michael;

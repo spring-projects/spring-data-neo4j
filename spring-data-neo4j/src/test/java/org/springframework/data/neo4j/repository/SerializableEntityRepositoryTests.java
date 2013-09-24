@@ -22,12 +22,14 @@ import org.junit.runner.RunWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.neo4j.core.GraphDatabase;
 import org.springframework.data.neo4j.fieldaccess.ManagedFieldAccessorSet;
 import org.springframework.data.neo4j.fieldaccess.ManagedPrefixedDynamicProperties;
 import org.springframework.data.neo4j.fieldaccess.PrefixedDynamicProperties;
 import org.springframework.data.neo4j.model.Person;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
 import org.springframework.data.neo4j.support.node.Neo4jHelper;
+import org.springframework.data.neo4j.template.GraphCallback;
 import org.springframework.test.context.CleanContextCacheTestExecutionListener;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestExecutionListeners;
@@ -187,31 +189,38 @@ public class SerializableEntityRepositoryTests {
     }
 
     private Person assertPreSerializationSetupThenGetDeserializedPerson() throws Exception {
-        addSerialFriend(serialTesters.nicki.getId(), serialTesters.michael);
+        return neo4jTemplate.exec(new GraphCallback<Person>() {
+            @Override
+            public Person doWithGraph(GraphDatabase graph) throws Exception {
 
-        // 1A. Make sure that before we deal with any serialization, we are still operating
-        //    with the expected ManagedFieldAccessorSet class
-        final Person person = personRepository.findOne(serialTesters.nicki.getId());
-        assertEquals(ManagedFieldAccessorSet.class, person.getSerialFriends().getClass());
-        assertEquals(1, person.getSerialFriends().size());
+                addSerialFriend(serialTesters.nicki.getId(), serialTesters.michael);
 
-        // 1B. Make sure that before we deal with any serialization, we are still operating
-        //    with the expected ManagedPrefixedDynamicProperties class
-        assertEquals(ManagedPrefixedDynamicProperties.class, person.getPersonalProperties().getClass());
-        assertEquals(2, person.getPersonalProperties().asMap().size());
-        assertThat(asCollection( person.getPersonalProperties().getPropertyKeys()) , hasItems("addressLine1","addressLine2"));
+                // 1A. Make sure that before we deal with any serialization, we are still operating
+                //    with the expected ManagedFieldAccessorSet class
+                final Person person = personRepository.findOne(serialTesters.nicki.getId());
+                assertEquals(ManagedFieldAccessorSet.class, person.getSerialFriends().getClass());
+                assertEquals(1, person.getSerialFriends().size());
 
-        // 2. Do Serialization and return serialized object
-        byte[] bos = serializeIt(person);
-        return deserializeIt(bos);
+                // 1B. Make sure that before we deal with any serialization, we are still operating
+                //    with the expected ManagedPrefixedDynamicProperties class
+                assertEquals(ManagedPrefixedDynamicProperties.class, person.getPersonalProperties().getClass());
+                assertEquals(2, person.getPersonalProperties().asMap().size());
+                assertThat(asCollection(person.getPersonalProperties().getPropertyKeys()), hasItems("addressLine1", "addressLine2"));
+
+                // 2. Do Serialization and return serialized object
+                byte[] bos = serializeIt(person);
+                return deserializeIt(bos);
+            }
+
+        });
     }
 
 
-    private void addSerialFriend(Long sourcePersonId, final Person target) {
-        final Person person1 = personRepository.findOne(sourcePersonId);
-        new TransactionTemplate(transactionManager).execute(new TransactionCallbackWithoutResult() {
+    private void addSerialFriend(final Long sourcePersonId, final Person target) {
+        neo4jTemplate.exec(new GraphCallback.WithoutResult(){
             @Override
-            protected void doInTransactionWithoutResult(TransactionStatus status) {
+            public void doWithGraphWithoutResult(GraphDatabase graph) throws Exception {
+                final Person person1 = personRepository.findOne(sourcePersonId);
                 person1.addSerialFriend(target);
                 personRepository.save(person1);
             }

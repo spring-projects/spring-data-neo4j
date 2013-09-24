@@ -19,6 +19,7 @@ import org.neo4j.cypherdsl.grammar.Execute;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.neo4j.conversion.EndResult;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Map;
 
@@ -27,7 +28,10 @@ import java.util.Map;
  * @since 11.11.11
  */
 public interface CypherDslRepository<T> {
+    @Transactional
     Page<T> query(Execute query, Map<String, Object> params, Pageable page);
+    @Transactional
     Page<T> query(Execute query, Execute countQuery, Map<String, Object> params, Pageable page);
+    @Transactional
     EndResult<T> query(Execute query, Map<String, Object> params);
 }

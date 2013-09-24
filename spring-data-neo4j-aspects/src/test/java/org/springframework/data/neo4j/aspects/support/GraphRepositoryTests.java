@@ -17,6 +17,7 @@
 package org.springframework.data.neo4j.aspects.support;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.data.domain.Page;
@@ -61,6 +62,7 @@ public class GraphRepositoryTests extends EntityTestBase {
     }
     @Test
     @Transactional
+    @Ignore
     public void testFindIterableOfPersonWithQueryAnnotationAndGremlin() {
         Iterable<Person> teamMembers = personRepository.findAllTeamMembersGremlin(testTeam.sdg);
         assertThat(asCollection(teamMembers), hasItems(testTeam.michael, testTeam.david, testTeam.emil));

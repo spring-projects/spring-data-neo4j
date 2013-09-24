@@ -19,10 +19,7 @@ package org.springframework.data.neo4j.aspects.support;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.neo4j.graphdb.Direction;
-import org.neo4j.graphdb.DynamicRelationshipType;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Relationship;
+import org.neo4j.graphdb.*;
 import org.neo4j.helpers.collection.IteratorUtil;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.neo4j.aspects.Friendship;
@@ -161,8 +158,11 @@ public class NodeEntityRelationshipTests extends EntityTestBase {
         Group group = persist(new Group());
         group.getPersons().add(michael);
         group = persist(group);
-        Collection<Person> personsFromGet = group.getPersons();
-        assertEquals(new HashSet<Person>(Arrays.asList(michael)), personsFromGet);
+        try (Transaction tx = neo4jTemplate.getGraphDatabase().beginTx()) {
+            Collection<Person> personsFromGet = group.getPersons();
+            assertEquals(new HashSet<>(Arrays.asList(michael)), personsFromGet);
+            tx.success();
+        }
     }
 
     @Test

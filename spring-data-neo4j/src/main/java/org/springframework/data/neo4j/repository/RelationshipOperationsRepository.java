@@ -15,13 +15,19 @@
  */
 package org.springframework.data.neo4j.repository;
 
+import org.springframework.transaction.annotation.Transactional;
+
 /**
  * @author mh
  * @since 05.11.11
  */
 public interface RelationshipOperationsRepository<T> {
+    @Transactional
     <R> R createRelationshipBetween(T start, Object end, Class<R> relationshipEntityClass, String relationshipType);
+    @Transactional
     <R> R createDuplicateRelationshipBetween(T start, Object end, Class<R> relationshipEntityClass, String relationshipType);
+    @Transactional
     <R> R getRelationshipBetween(T start, Object end, Class<R> relationshipEntityClass, String relationshipType);
+    @Transactional
     void deleteRelationshipBetween(T start, Object end, String type);
 }

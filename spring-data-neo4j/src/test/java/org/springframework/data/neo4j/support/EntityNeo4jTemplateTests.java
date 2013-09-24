@@ -45,6 +45,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionCallback;
 import org.springframework.transaction.support.TransactionCallbackWithoutResult;
 import org.springframework.transaction.support.TransactionTemplate;
 
@@ -194,35 +195,52 @@ public class EntityNeo4jTemplateTests extends EntityTestBase {
 
     @Test(expected = DataRetrievalFailureException.class)
     public void testDelete() throws Exception {
-        final Long id = testTeam.michael.getId();
-        new TransactionTemplate(transactionManager).execute(new TransactionCallbackWithoutResult() {
-            protected void doInTransactionWithoutResult(TransactionStatus status) {
+        final Long id = new TransactionTemplate(transactionManager).execute(new TransactionCallback<Long>() {
+            @Override
+            public Long doInTransaction(TransactionStatus transactionStatus) {
+                final Long id = testTeam.michael.getId();
                 neo4jOperations.delete(testTeam.michael);
+                return id;
             }
         });
-        assertNull(neo4jOperations.getNode(id));
+        try (Transaction tx=graphDatabaseService.beginTx()) {
+            assertNull(neo4jOperations.getNode(id));
+            tx.success();
+        }
     }
 
     @Test(expected = DataRetrievalFailureException.class)
     public void testRemoveNodeEntity() throws Exception {
-        final Long id = testTeam.michael.getId();
-        new TransactionTemplate(transactionManager).execute(new TransactionCallbackWithoutResult() {
-            protected void doInTransactionWithoutResult(TransactionStatus status) {
+        final Long id =
+        new TransactionTemplate(transactionManager).execute(new TransactionCallback<Long>() {
+            @Override
+            public Long doInTransaction(TransactionStatus transactionStatus) {
+                final Long id = testTeam.michael.getId();
                 template.delete(testTeam.michael);
+                return id;
             }
         });
-        assertNull(neo4jOperations.getNode(id));
+        try (Transaction tx=graphDatabaseService.beginTx()) {
+            assertNull(neo4jOperations.getNode(id));
+            tx.success();
+        }
     }
 
     @Test(expected = DataRetrievalFailureException.class)
     public void testRemoveRelationshipEntity() throws Exception {
-        final Long id = testTeam.friendShip.getId();
-        new TransactionTemplate(transactionManager).execute(new TransactionCallbackWithoutResult() {
-            protected void doInTransactionWithoutResult(TransactionStatus status) {
+        final Long id =
+        new TransactionTemplate(transactionManager).execute(new TransactionCallback<Long>() {
+            @Override
+            public Long doInTransaction(TransactionStatus transactionStatus) {
+                Long id = testTeam.friendShip.getId();
                 template.delete(testTeam.friendShip);
+                return id;
             }
         });
-        assertNull(neo4jOperations.getRelationship(id));
+        try (Transaction tx=graphDatabaseService.beginTx()) {
+            assertNull(neo4jOperations.getRelationship(id));
+            tx.success();
+        }
 
     }
 

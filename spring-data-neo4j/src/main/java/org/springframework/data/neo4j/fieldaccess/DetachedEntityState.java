@@ -83,7 +83,7 @@ public class DetachedEntityState<STATE> implements EntityState<STATE> {
             else mappingPolicy = MappingPolicy.MAP_FIELD_DIRECT_POLICY;
         }
         if (isDetached()) {
-            if (template.getPersistentState(getEntity())==null || isDirty(property)) {
+            if (!template.transactionIsRunning() || template.getPersistentState(getEntity())==null || isDirty(property)) {
                 if (log.isDebugEnabled()) log.debug("Outside of transaction, GET value from field " + property);
                 Object entityValue = getValueFromEntity(property, MappingPolicy.MAP_FIELD_DIRECT_POLICY);
                 if (entityValue != null) {
@@ -95,6 +95,9 @@ public class DetachedEntityState<STATE> implements EntityState<STATE> {
                     final Object entity = getEntity();
                     property.setValue(entity, defaultValue);
                     addDirty(property, defaultValue, false);
+                    if (defaultValue instanceof DirtyValue) {
+                        ((DirtyValue)defaultValue).setDirty(true);
+                    }
                 }
                 return defaultValue;
             }
@@ -153,7 +156,11 @@ public class DetachedEntityState<STATE> implements EntityState<STATE> {
         if (isDetached()) {
             if (!isDirty(property) && isWritable(property)) {
                 if (hasPersistentState()) {
-                    addDirty(property, unwrap(delegate.getValue(property, MappingPolicy.MAP_FIELD_DIRECT_POLICY)), true);
+                    Object valueFromDb = null;
+                    if (template.transactionIsRunning()) {
+                        valueFromDb = unwrap(delegate.getValue(property, MappingPolicy.MAP_FIELD_DIRECT_POLICY));
+                    }
+                    addDirty(property, valueFromDb, true);
                 }
                 else {
                     addDirty(property, newVal, false);
@@ -201,10 +208,20 @@ public class DetachedEntityState<STATE> implements EntityState<STATE> {
                     checkConcurrentModification(entity, entry, property, mappingPolicy);
                     delegate.setValue(property, valueFromEntity, mappingPolicy);
                     dirty.remove(property);
+                    if (valueFromEntity instanceof DirtyValue) {
+                        ((DirtyValue)valueFromEntity).setDirty(false);
+                    }
                 }
             } finally {
                 if (!dirty.isEmpty()) { // restore all dirty data
                     dirty.putAll(dirtyCopy);
+                    for (Map.Entry<Neo4jPersistentProperty, ExistingValue> entry : dirtyCopy.entrySet()) {
+                        final Neo4jPersistentProperty property = entry.getKey();
+                        Object valueFromEntity = getValueFromEntity(property, MappingPolicy.MAP_FIELD_DIRECT_POLICY);
+                        if (valueFromEntity instanceof DirtyValue) {
+                            ((DirtyValue)valueFromEntity).setDirty(true);
+                        }
+                    }
                 }
             }
         }
@@ -238,11 +255,10 @@ public class DetachedEntityState<STATE> implements EntityState<STATE> {
 
     private void checkConcurrentModification(final Object entity, final Map.Entry<Neo4jPersistentProperty, ExistingValue> entry, final Neo4jPersistentProperty property, final MappingPolicy mappingPolicy) {
         final ExistingValue previousValue = entry.getValue();
-        if (previousValue.mustCheckConcurrentModification()) {
-            final Object nodeValue = unwrap(delegate.getValue(property, mappingPolicy));
-            if (!ObjectUtils.nullSafeEquals(nodeValue, previousValue.value)) {
-                throw new ConcurrentModificationException("Node " + entity + " field " + property + " changed in between previous " + previousValue + " current " + nodeValue); // todo or just overwrite
-            }
+        if (previousValue == null || !previousValue.mustCheckConcurrentModification()) return;
+        final Object nodeValue = unwrap(delegate.getValue(property, mappingPolicy));
+        if (!ObjectUtils.nullSafeEquals(nodeValue, previousValue.value)) {
+            throw new ConcurrentModificationException("Node " + entity + " field " + property + " changed in between previous " + previousValue + " current " + nodeValue); // todo or just overwrite
         }
     }
 

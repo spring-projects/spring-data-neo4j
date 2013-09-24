@@ -56,6 +56,7 @@ public interface CRUDRepository<T> extends PagingAndSortingRepository<T, Long> {
      * @param id of the node or relationship-entity
      * @return found instance or null
      */
+    @Transactional
     T findOne(Long id);
 
 
@@ -63,6 +64,7 @@ public interface CRUDRepository<T> extends PagingAndSortingRepository<T, Long> {
      * @param id
      * @return true if the entity with this id exists
      */
+    @Transactional
     boolean exists(Long id);
 
 
@@ -71,6 +73,7 @@ public interface CRUDRepository<T> extends PagingAndSortingRepository<T, Long> {
      * @return all entities of the given type
      * NOTE: please close the iterable if it is not fully looped through
      */
+    @Transactional
     EndResult<T> findAll();
 
 
@@ -79,6 +82,7 @@ public interface CRUDRepository<T> extends PagingAndSortingRepository<T, Long> {
      * approximation
      * @return number of entities of this type in the graph
      */
+    @Transactional
     long count();
 
 
@@ -112,6 +116,7 @@ public interface CRUDRepository<T> extends PagingAndSortingRepository<T, Long> {
      * @return all elements of the repository type, sorted according to the sort
      * NOTE: please close the iterable if it is not fully looped through
      */
+    @Transactional
     EndResult<T> findAll(Sort sort);
 
 
@@ -123,10 +128,12 @@ public interface CRUDRepository<T> extends PagingAndSortingRepository<T, Long> {
      * @return all elements of the repository type, sorted according to the sort
      * NOTE: please close the iterable if it is not fully looped through
      */
+    @Transactional
     Page<T> findAll(Pageable pageable);
 
+    @Transactional
     Class getStoredJavaType(Object entity);
 
+    @Transactional
     EndResult<T> query(String query, Map<String, Object> params);
-
 }

@@ -19,6 +19,7 @@ package org.springframework.data.neo4j.aspects.support;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.neo4j.graphdb.Transaction;
 import org.neo4j.helpers.collection.IteratorUtil;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -108,14 +109,20 @@ public class FinderTests extends EntityTestBase {
     public void testDeletePerson() {
         Person p1 = persistedPerson("Michael", 35);
         personRepository.delete(p1);
-        assertEquals("people deleted", false, personRepository.findAll().iterator().hasNext());
+        try (Transaction tx = graphDatabaseService.beginTx()) {
+            assertEquals("people deleted", false, personRepository.findAll().iterator().hasNext());
+            tx.success();
+        }
     }
     @Test
     public void testDeletePeople() {
         Person p1 = persistedPerson("Michael", 35);
         Person p2 = persistedPerson("David", 26);
         personRepository.delete(asList(p1,p2));
-        assertEquals("people deleted", false, personRepository.findAll().iterator().hasNext());
+        try (Transaction tx = graphDatabaseService.beginTx()) {
+            assertEquals("people deleted", false, personRepository.findAll().iterator().hasNext());
+            tx.success();
+        }
     }
 
     @Test

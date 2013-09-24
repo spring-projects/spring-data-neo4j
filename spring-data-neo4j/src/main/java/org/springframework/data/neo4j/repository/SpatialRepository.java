@@ -17,6 +17,7 @@
 package org.springframework.data.neo4j.repository;
 
 import org.springframework.data.neo4j.conversion.EndResult;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Repository for spatial queries.
@@ -29,13 +30,16 @@ import org.springframework.data.neo4j.conversion.EndResult;
  * @see <a href="http://en.wikipedia.org/wiki/Well-known_text">Well Known Text Spatial Format</a>
  */
 public interface SpatialRepository<T> {
+    @Transactional
     EndResult<T> findWithinBoundingBox(String indexName, double lowerLeftLat,
                                               double lowerLeftLon,
                                               double upperRightLat,
                                               double upperRightLon);
 
+    @Transactional
     EndResult<T> findWithinDistance( final String indexName, final double lat, double lon, double distanceKm);
 
+    @Transactional
     EndResult<T> findWithinWellKnownText( final String indexName, String wellKnownText);
 }
 

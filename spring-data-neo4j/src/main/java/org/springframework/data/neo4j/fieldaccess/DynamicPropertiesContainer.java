@@ -21,8 +21,9 @@ import java.util.Map;
 public class DynamicPropertiesContainer implements DynamicProperties {
 
 	private final Map<String, Object> map = new HashMap<String, Object>();
-	
-	public DynamicPropertiesContainer() {
+    private boolean dirty;
+
+    public DynamicPropertiesContainer() {
 		
 	}
 	
@@ -72,11 +73,21 @@ public class DynamicPropertiesContainer implements DynamicProperties {
 	public void setPropertiesFrom(Map<String, Object> m) {
 		map.clear();
 		map.putAll(m);
-	}
+        setDirty(true);
+    }
 
 	@Override
 	public DynamicProperties createFrom(Map<String, Object> map) {
 		return new DynamicPropertiesContainer(map);
 	}
 
+    @Override
+    public boolean isDirty() {
+        return dirty;
+    }
+
+    @Override
+    public void setDirty(boolean dirty) {
+        this.dirty = dirty;
+    }
 }

@@ -17,7 +17,7 @@ import static org.neo4j.graphdb.Direction.INCOMING;
 public class Movie {
     @GraphId Long nodeId;
 
-    @Indexed
+    @Indexed(unique = true)
     String id;
 
     @Indexed(indexType=IndexType.FULLTEXT, indexName = "search")
