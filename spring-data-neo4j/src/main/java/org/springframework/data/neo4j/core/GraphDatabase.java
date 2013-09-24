@@ -30,6 +30,13 @@ import java.util.Map;
 
 
 public interface GraphDatabase {
+
+    /**
+     * @return an object which is able to provide global graph
+     *         type operations
+     */
+    GraphDatabaseGlobalOperations getGlobalGraphOperations();
+
     /**
      * @return the reference node of the underlying graph database
      */

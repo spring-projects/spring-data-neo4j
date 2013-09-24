@@ -19,6 +19,7 @@ package org.springframework.data.neo4j.support.typerepresentation;
 import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.index.Index;
 import org.springframework.data.neo4j.core.GraphDatabase;
+import org.springframework.data.neo4j.core.GraphDatabaseGlobalOperations;
 import org.springframework.data.neo4j.core.NodeTypeRepresentationStrategy;
 import org.springframework.data.neo4j.core.RelationshipTypeRepresentationStrategy;
 import org.springframework.data.neo4j.support.index.IndexProvider;
@@ -53,9 +54,21 @@ public class TypeRepresentationStrategyFactory {
         try {
             if (isAlreadyIndexed(graphDatabaseService)) return Strategy.Indexed;
             if (isAlreadySubRef(graphDatabaseService)) return Strategy.SubRef;
+            if (isAlreadyLabeled(graphDatabaseService)) return Strategy.Labeled;
             return Strategy.Indexed;
         } finally {
             tx.success();tx.finish();
+        }
+    }
+
+    private static boolean isAlreadyLabeled(GraphDatabase graphDatabaseService) {
+        GraphDatabaseGlobalOperations globalOps = graphDatabaseService.getGlobalGraphOperations();
+        try {
+            return globalOps.getAllLabels().iterator().hasNext();
+        } catch (UnsupportedOperationException e) {
+            // Currently the REST DB does not support global ops
+            // TODO : Look to change REST project to support it
+            return false;
         }
     }
 
@@ -98,6 +111,17 @@ public class TypeRepresentationStrategyFactory {
             @Override
             public NodeTypeRepresentationStrategy getNodeTypeRepresentationStrategy(GraphDatabase graphDatabaseService, IndexProvider indexProvider) {
                 return new SubReferenceNodeTypeRepresentationStrategy(graphDatabaseService);
+            }
+
+            @Override
+            public RelationshipTypeRepresentationStrategy getRelationshipTypeRepresentationStrategy(GraphDatabase graphDatabaseService, IndexProvider indexProvider) {
+                return new NoopRelationshipTypeRepresentationStrategy();
+            }
+        },
+        Labeled {
+            @Override
+            public NodeTypeRepresentationStrategy getNodeTypeRepresentationStrategy(GraphDatabase graphDatabaseService, IndexProvider indexProvider) {
+                return new CoreAPIBasedLabelingNodeTypeRepresentationStrategy(graphDatabaseService);
             }
 
             @Override
