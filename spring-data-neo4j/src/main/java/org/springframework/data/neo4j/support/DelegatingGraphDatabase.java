@@ -33,6 +33,7 @@ import org.springframework.data.neo4j.conversion.DefaultConverter;
 import org.springframework.data.neo4j.conversion.Result;
 import org.springframework.data.neo4j.conversion.ResultConverter;
 import org.springframework.data.neo4j.core.GraphDatabase;
+import org.springframework.data.neo4j.core.GraphDatabaseGlobalOperations;
 import org.springframework.data.neo4j.support.index.IndexType;
 import org.springframework.data.neo4j.support.index.NoSuchIndexException;
 import org.springframework.data.neo4j.support.query.ConversionServiceQueryResultConverter;
@@ -55,6 +56,7 @@ public class DelegatingGraphDatabase implements GraphDatabase {
 
     private static final Logger log = LoggerFactory.getLogger(DelegatingGraphDatabase.class);
 
+    protected GraphDatabaseGlobalOperations globalOperations;
     protected GraphDatabaseService delegate;
     private ConversionService conversionService;
     private ResultConverter resultConverter;
@@ -62,15 +64,21 @@ public class DelegatingGraphDatabase implements GraphDatabase {
     private volatile QueryEngine<Object> gremlinQueryEngine;
 
     public DelegatingGraphDatabase(final GraphDatabaseService delegate) {
-        this.delegate = delegate;
+        this(delegate,null);
     }
     public DelegatingGraphDatabase(final GraphDatabaseService delegate, ResultConverter resultConverter) {
         this.delegate = delegate;
         this.resultConverter = resultConverter;
+        this.globalOperations = new DelegatingGraphDatabaseGlobalOperations(delegate);
     }
 
     public void setConversionService(ConversionService conversionService) {
         this.conversionService = conversionService;
+    }
+
+    @Override
+    public GraphDatabaseGlobalOperations getGlobalGraphOperations() {
+        return globalOperations;
     }
 
     @Override
