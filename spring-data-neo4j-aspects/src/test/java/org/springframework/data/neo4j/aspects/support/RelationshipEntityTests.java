@@ -149,57 +149,43 @@ public class RelationshipEntityTests extends EntityTestBase {
     public void testRemoveRelationshipEntity() {
         cleanDb();
         Friendship f;
-        Transaction tx = graphDatabaseService.beginTx();
-        try
+        try (Transaction tx = graphDatabaseService.beginTx())
         {
             Person p = persistedPerson("Michael", 35);
             Person p2 = persistedPerson("David", 25);
             f = p.knows(p2);
             tx.success();
         }
-        finally
-        {
-            tx.finish();
-        }
-        Transaction tx2 = graphDatabaseService.beginTx();
-        try
+        try (Transaction tx = graphDatabaseService.beginTx())
         {
             neo4jTemplate.delete(f);
-            tx2.success();
+            tx.success();
         }
-        finally
-        {
-            tx2.finish();
+        try (Transaction tx = graphDatabaseService.beginTx()) {
+            assertFalse("Unexpected relationship entity found.", friendshipRepository.findAll().iterator().hasNext());
+            tx.success();
         }
-        assertFalse("Unexpected relationship entity found.", friendshipRepository.findAll().iterator().hasNext());
     }
 
     @Test
     public void testRemoveRelationshipEntityIfNodeEntityIsRemoved() {
         cleanDb();
         Person p;
-        Transaction tx = graphDatabaseService.beginTx();
-        try
+        try (Transaction tx = graphDatabaseService.beginTx())
         {
             p = persistedPerson("Michael", 35);
             Person p2 = persistedPerson("David", 25);
             p.knows(p2);
             tx.success();
         }
-        finally
-        {
-            tx.finish();
-        }
-        Transaction tx2 = graphDatabaseService.beginTx();
-        try
+        try (Transaction tx = graphDatabaseService.beginTx())
         {
             neo4jTemplate.delete(p);
-            tx2.success();
+            tx.success();
         }
-        finally
-        {
-            tx2.finish();
+        try (Transaction tx = graphDatabaseService.beginTx()) {
+            assertFalse("Unexpected relationship entity found.", friendshipRepository.findAll().iterator().hasNext());
+            tx.success();
         }
-        assertFalse("Unexpected relationship entity found.", friendshipRepository.findAll().iterator().hasNext());
     }
 }

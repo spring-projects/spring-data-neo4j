@@ -91,22 +91,18 @@ public class IndexingRelationshipTypeRepresentationStrategyTests extends EntityT
 	public void testPreEntityRemovalOfRelationshipBacked() throws Exception {
         manualCleanDb();
         createThingsAndLinks();
-		Index<Relationship> typesIndex = graphDatabaseService.index().forRelationships(IndexingNodeTypeRepresentationStrategy.INDEX_NAME);
 
-        Transaction tx = graphDatabaseService.beginTx();
-        try
-        {
+        try (Transaction tx = graphDatabaseService.beginTx()) {
             relationshipTypeRepresentationStrategy.preEntityRemoval(rel(link));
             tx.success();
         }
-        finally
-        {
-            tx.finish();
-        }
 
-        IndexHits<Relationship> linkHits = typesIndex.get(IndexingNodeTypeRepresentationStrategy.INDEX_KEY, link.getClass().getName());
-        assertNull(linkHits.getSingle());
-        linkHits.close();
+        try (Transaction tx = graphDatabaseService.beginTx()) {
+            Index<Relationship> typesIndex = graphDatabaseService.index().forRelationships(IndexingNodeTypeRepresentationStrategy.INDEX_NAME);
+            IndexHits<Relationship> linkHits = typesIndex.get(IndexingNodeTypeRepresentationStrategy.INDEX_KEY, link.getClass().getName());
+            assertNull(linkHits.getSingle());
+            tx.success();
+        }
 	}
 
 	@Test

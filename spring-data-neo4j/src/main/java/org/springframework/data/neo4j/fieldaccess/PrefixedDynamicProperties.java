@@ -44,6 +44,7 @@ public class PrefixedDynamicProperties implements DynamicProperties , Serializab
 
     private transient final Map<String, Object> map;
     protected final transient String prefix;
+    protected transient boolean dirty;
 
     /**
      * Handles key prefixing
@@ -186,10 +187,13 @@ public class PrefixedDynamicProperties implements DynamicProperties , Serializab
 
     private void baseSetProperty(final String key, final Object value) {
         map.put(prefixedKey(key), value);
+        setDirty(true);
     }
 
     private Object baseRemoveProperty(final String key) {
-        return map.remove(prefixedKey(key));
+        Object result = map.remove(prefixedKey(key));
+        setDirty(true);
+        return result;
     }
     
     @Override
@@ -258,6 +262,7 @@ public class PrefixedDynamicProperties implements DynamicProperties , Serializab
 
     public void setPrefixedProperty(final String key, final Object value) {
         map.put(key, value);
+        setDirty(true);
     }
 
     public boolean hasPrefixedProperty(final String key) {
@@ -328,5 +333,13 @@ public class PrefixedDynamicProperties implements DynamicProperties , Serializab
             return val;
         }
 
+    }
+
+    public boolean isDirty() {
+        return dirty;
+    }
+
+    public void setDirty(boolean dirty) {
+        this.dirty = true;
     }
 }

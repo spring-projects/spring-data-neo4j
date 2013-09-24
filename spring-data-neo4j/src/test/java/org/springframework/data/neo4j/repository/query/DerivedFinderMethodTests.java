@@ -112,7 +112,7 @@ public class DerivedFinderMethodTests {
     @Test
     public void testQueryWithEntityGraphId() throws Exception {
         assertRepositoryQueryMethod(ThingRepository.class, "findByOwnerId",new Object[]{123},
-                "START `thing_owner`=node({0}) MATCH `thing`-[:`owner`]->`thing_owner` WHERE (has(`thing`.__type__) AND `thing`.__type__ IN ['org.springframework.data.neo4j.repository.query.DerivedFinderMethodTests$Thing']) ",
+                "START `thing_owner`=node({0}) MATCH `thing`-[:`owner`]->`thing_owner` WHERE `thing`.__type__ IN ['org.springframework.data.neo4j.repository.query.DerivedFinderMethodTests$Thing'] ",
                 123);
     }
 
@@ -140,28 +140,28 @@ public class DerivedFinderMethodTests {
     @Test
     public void testIndexQueryWithOneParamFullTextAndOneParam() throws Exception {
         assertRepositoryQueryMethod(ThingRepository.class, "findByDescriptionAndFirstName", new Object[]{"foo","bar"},
-                "START `thing`=node:`search`({0}) WHERE `thing`.`firstName`! = {1}",
+                "START `thing`=node:`search`({0}) WHERE `thing`.`firstName` = {1}",
                 "description:foo","bar");
     }
 
     @Test
     public void testIndexQueryWithOneParamAndOneParamFullText() throws Exception {
         assertRepositoryQueryMethod(ThingRepository.class, "findByFirstNameAndDescription", new Object[]{"foo","bar"},
-                "START `thing`=node:`Thing`(`firstName`={0}) WHERE `thing`.`description`! = {1}",
+                "START `thing`=node:`Thing`(`firstName`={0}) WHERE `thing`.`description` = {1}",
                 "foo","bar");
     }
 
     @Test
     public void testIndexQueryWithOneNonIndexedParam() throws Exception {
         assertRepositoryQueryMethod(ThingRepository.class, "findByAge", new Object[]{100},
-                "WHERE `thing`.`age`! = {0}",
+                "WHERE `thing`.`age` = {0}",
                 100);
     }
 
     @Test
     public void testIndexQueryWithOneNonIndexedParamAndOneIndexedParam() throws Exception {
         assertRepositoryQueryMethod(ThingRepository.class, "findByAgeAndFirstName", new Object[]{100,"foo"},
-                "START `thing`=node:`Thing`(`firstName`={1}) WHERE `thing`.`age`! = {0}",
+                "START `thing`=node:`Thing`(`firstName`={1}) WHERE `thing`.`age` = {0}",
                 100,"foo");
     }
 
@@ -208,76 +208,76 @@ public class DerivedFinderMethodTests {
     @Test
     public void testFindBySimpleStringParam() throws Exception {
         assertRepositoryQueryMethod(ThingRepository.class, "findByName", new Object[]{"foo"},
-                "WHERE `thing`.`name`! = {0}",
+                "WHERE `thing`.`name` = {0}",
                 "foo");
     }
 
     @Test
     public void testFindBySimpleStringParamStartsWith() throws Exception {
         assertRepositoryQueryMethod(ThingRepository.class, "findByNameStartsWith", new Object[]{"foo"},
-                "WHERE `thing`.`name`! =~ {0}",
+                "WHERE `thing`.`name` =~ {0}",
                 "^foo.*");
     }
     @Test
     public void testFindBySimpleStringParamEndsWith() throws Exception {
         assertRepositoryQueryMethod(ThingRepository.class, "findByNameEndsWith", new Object[]{"foo"},
-                "WHERE `thing`.`name`! =~ {0}",
+                "WHERE `thing`.`name` =~ {0}",
                 ".*foo$");
     }
 
     @Test
     public void testFindBySimpleStringParamContains() throws Exception {
         assertRepositoryQueryMethod(ThingRepository.class, "findByNameContains", new Object[]{"foo"},
-                "WHERE `thing`.`name`! =~ {0}",
+                "WHERE `thing`.`name` =~ {0}",
                 ".*foo.*");
     }
     @Test
     public void testFindBySimpleStringParamLike() throws Exception {
         assertRepositoryQueryMethod(ThingRepository.class, "findByNameLike", new Object[]{"foo"},
-                "WHERE `thing`.`name`! =~ {0}",
+                "WHERE `thing`.`name` =~ {0}",
                 "foo");
     }
     @Test
     public void testFindBySimpleStringParamNotLike() throws Exception {
         assertRepositoryQueryMethod(ThingRepository.class, "findByNameNotLike", new Object[]{"foo"},
-                "WHERE not( `thing`.`name`! =~ {0} )",
+                "WHERE not( `thing`.`name` =~ {0} )",
                 "foo");
     }
 
     @Test
     public void testFindBySimpleStringParamRegexp() throws Exception {
         assertRepositoryQueryMethod(ThingRepository.class, "findByNameMatches", new Object[]{"foo"},
-                "WHERE `thing`.`name`! =~ {0}",
+                "WHERE `thing`.`name` =~ {0}",
                 "foo");
     }
     @Test
     public void testFindBySimpleBooleanIsTrue() throws Exception {
         assertRepositoryQueryMethod(ThingRepository.class, "findByTaggedIsTrue", new Object[]{},
-                "WHERE `thing`.`tagged`! = true");
+                "WHERE `thing`.`tagged` = true");
     }
     @Test
     public void testFindBySimpleBooleanIsFalse() throws Exception {
         assertRepositoryQueryMethod(ThingRepository.class, "findByTaggedIsFalse", new Object[]{},
-                "WHERE `thing`.`tagged`! = false");
+                "WHERE `thing`.`tagged` = false");
     }
     @Test
     public void testFindBySimpleStringExists() throws Exception {
         assertRepositoryQueryMethod(ThingRepository.class, "findByNameExists", new Object[]{},
-                "WHERE has(`thing`.`name`!  )");
+                "WHERE has(`thing`.`name`  )");
     }
 
     @Test
     public void testFindBySimpleStringInCollection() throws Exception {
         List<String> param = asList("foo");
         assertRepositoryQueryMethod(ThingRepository.class, "findByNameIn", new Object[]{param},
-                "WHERE `thing`.`name`! in {0}",
+                "WHERE `thing`.`name` in {0}",
                 param);
     }
     @Test
     public void testFindBySimpleStringInCollectionOfEnums() throws Exception {
         List<TimeUnit> param = asList(TimeUnit.MINUTES);
         assertRepositoryQueryMethod(ThingRepository.class, "findByNameIn", new Object[]{param},
-                "WHERE `thing`.`name`! in {0}",
+                "WHERE `thing`.`name` in {0}",
                 param);
     }
 
@@ -285,14 +285,14 @@ public class DerivedFinderMethodTests {
     public void testFindBySimpleStringNotInCollection() throws Exception {
         List<String> param = asList("foo");
         assertRepositoryQueryMethod(ThingRepository.class, "findByNameNotIn", new Object[]{param},
-                "WHERE not( `thing`.`name`! in {0} )",
+                "WHERE not( `thing`.`name` in {0} )",
                 param);
     }
     @Test
     public void testFindBySimpleDateBefore() throws Exception {
         Date param = new Date(1337);
         assertRepositoryQueryMethod(ThingRepository.class, "findByBornBefore", new Object[]{param},
-                "WHERE `thing`.`born`! < {0}",
+                "WHERE `thing`.`born` < {0}",
                 param.getTime());
     }
 
@@ -300,7 +300,7 @@ public class DerivedFinderMethodTests {
     public void testFindBySimpleDateAfter() throws Exception {
         Date param = new Date(1337);
         assertRepositoryQueryMethod(ThingRepository.class, "findByBornAfter", new Object[]{param},
-                "WHERE `thing`.`born`! > {0}",
+                "WHERE `thing`.`born` > {0}",
                 param.getTime());
     }
 

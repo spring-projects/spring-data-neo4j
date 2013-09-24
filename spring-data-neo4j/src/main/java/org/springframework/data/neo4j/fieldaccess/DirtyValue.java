@@ -13,28 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.springframework.data.neo4j.fieldaccess;
 
-package org.springframework.data.neo4j.repository;
-
-import org.springframework.data.neo4j.conversion.EndResult;
-import org.springframework.transaction.annotation.Transactional;
-
-
-/**
- * @author mh
- * @since 29.03.11
- */
-public interface IndexRepository<T> {
-    @Transactional
-    T findByPropertyValue(String property, Object value);
-
-    @Transactional
-    EndResult<T> findAllByPropertyValue(String property, Object value);
-
-    @Transactional
-    EndResult<T> findAllByQuery(String key, Object query);
-
-    @Transactional
-    EndResult<T> findAllByRange(String property, Number from, Number to);
-
+public interface DirtyValue {
+    boolean isDirty();
+    void setDirty(boolean dirty);
 }

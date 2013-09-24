@@ -98,40 +98,39 @@ public class IndexingNodeTypeRepresentationStrategyTests extends EntityTestBase 
 	public void testPreEntityRemoval() throws Exception {
         manualCleanDb();
         createThingsAndLinks();
-		Index<Node> typesIndex = graphDatabaseService.index().forNodes(IndexingNodeTypeRepresentationStrategy.INDEX_NAME);
-		IndexHits<Node> thingHits;
-		IndexHits<Node> subThingHits;
+        Index<Node> typesIndex;
+        IndexHits<Node> thingHits;
+        IndexHits<Node> subThingHits;
+        try (Transaction tx = graphDatabaseService.beginTx()) {
+            typesIndex = graphDatabaseService.index().forNodes(IndexingNodeTypeRepresentationStrategy.INDEX_NAME);
+            tx.success();
+        }
 
-        Transaction tx = graphDatabaseService.beginTx();
-        try
-        {
+        try (Transaction tx = graphDatabaseService.beginTx()) {
             nodeTypeRepresentationStrategy.preEntityRemoval(node(thing));
             tx.success();
         }
-        finally
-        {
-            tx.finish();
+
+        try (Transaction tx = graphDatabaseService.beginTx()) {
+            thingHits = typesIndex.get(IndexingNodeTypeRepresentationStrategy.INDEX_KEY, thingType.getAlias());
+	    	assertEquals(node(subThing), thingHits.getSingle());
+		    subThingHits = typesIndex.get(IndexingNodeTypeRepresentationStrategy.INDEX_KEY, subThingType.getAlias());
+		    assertEquals(node(subThing), subThingHits.getSingle());
+            tx.success();
         }
 
-		thingHits = typesIndex.get(IndexingNodeTypeRepresentationStrategy.INDEX_KEY, thingType.getAlias());
-		assertEquals(node(subThing), thingHits.getSingle());
-		subThingHits = typesIndex.get(IndexingNodeTypeRepresentationStrategy.INDEX_KEY, subThingType.getAlias());
-		assertEquals(node(subThing), subThingHits.getSingle());
-
-        tx = graphDatabaseService.beginTx();
-        try {
+        try (Transaction tx = graphDatabaseService.beginTx()) {
             nodeTypeRepresentationStrategy.preEntityRemoval(node(subThing));
             tx.success();
         }
-        finally
-        {
-            tx.finish();
-        }
 
-		thingHits = typesIndex.get(IndexingNodeTypeRepresentationStrategy.INDEX_KEY, thingType.getAlias());
-        assertNull(thingHits.getSingle());
-		subThingHits = typesIndex.get(IndexingNodeTypeRepresentationStrategy.INDEX_KEY, subThingType.getAlias());
-        assertNull(subThingHits.getSingle());
+        try (Transaction tx = graphDatabaseService.beginTx()) {
+            thingHits = typesIndex.get(IndexingNodeTypeRepresentationStrategy.INDEX_KEY, thingType.getAlias());
+            assertNull(thingHits.getSingle());
+            subThingHits = typesIndex.get(IndexingNodeTypeRepresentationStrategy.INDEX_KEY, subThingType.getAlias());
+            assertNull(subThingHits.getSingle());
+            tx.success();
+        }
 	}
 
 	@Test

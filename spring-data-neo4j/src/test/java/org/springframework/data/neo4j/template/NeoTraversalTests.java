@@ -44,26 +44,31 @@ public class NeoTraversalTests extends NeoApiTests {
 
     @Test
     public void testSimpleTraverse() {
-        template.exec(new GraphCallback<Void>() {
-            public Void doWithGraph(GraphDatabase graph) throws Exception {
-                createFamily();
-                return null;
-            }
-        });
-
-        final Set<String> resultSet = new HashSet<String>();
-//        @SuppressWarnings("deprecation") final TraversalDescription description = Traversal.description().relationships(HAS).filter(returnAllButStartNode()).prune(Traversal.pruneAfterDepth(2));
-        final TraversalDescription description = Traversal.description().relationships(HAS).evaluator(Evaluators.excludeStartPosition()).evaluator(Evaluators.toDepth(2));
-
-        final Result<Path> result = template.traverse(template.getReferenceNode(), description);
-        result.handle(new Handler<Path>() {
+        template.exec(new GraphCallback.WithoutResult() {
             @Override
-            public void handle(Path value) {
-                final String name = (String) value.endNode().getProperty("name", "");
-                resultSet.add(name);
+            public void doWithGraphWithoutResult(GraphDatabase graph) throws Exception {
+                createFamily();
             }
         });
+
+        template.exec(new GraphCallback.WithoutResult() {
+            @Override
+            public void doWithGraphWithoutResult(GraphDatabase graph) throws Exception {
+        final Set<String> resultSet = new HashSet<String>();
+    //        @SuppressWarnings("deprecation") final TraversalDescription description = Traversal.description().relationships(HAS).filter(returnAllButStartNode()).prune(Traversal.pruneAfterDepth(2));
+            final TraversalDescription description = Traversal.description().relationships(HAS).evaluator(Evaluators.excludeStartPosition()).evaluator(Evaluators.toDepth(2));
+
+            final Result<Path> result = template.traverse(template.getReferenceNode(), description);
+            result.handle(new Handler<Path>() {
+                @Override
+                public void handle(Path value) {
+                    final String name = (String) value.endNode().getProperty("name", "");
+                    resultSet.add(name);
+                        }
+                });
         assertEquals("all members", new HashSet<String>(asList("grandpa", "grandma", "daughter", "son", "man", "wife", "family")), resultSet);
+            }
+        });
     }
 
 

@@ -27,6 +27,7 @@ import org.springframework.data.neo4j.conversion.EndResult;
 import org.springframework.data.neo4j.model.Group;
 import org.springframework.data.neo4j.model.Person;
 import org.springframework.data.repository.query.Param;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Map;
 

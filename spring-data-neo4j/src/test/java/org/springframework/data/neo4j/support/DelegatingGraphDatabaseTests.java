@@ -49,27 +49,30 @@ public class DelegatingGraphDatabaseTests {
 
     @Test
     public void testGetOrCreateNode() throws Exception {
-        final Node node = graphDatabase.getOrCreateNode("user", "name", "David", map("name", "David"));
-        final Node node2 = graphDatabase.getOrCreateNode("user", "name", "David", map("name", "David"));
-        assertEquals("David",node.getProperty("name"));
-        assertEquals(node,node2);
-        assertEquals(node,gdb.index().forNodes("user").get("name","David").getSingle());
+        try (Transaction tx = graphDatabase.beginTx()) {
+            final Node node = graphDatabase.getOrCreateNode("user", "name", "David", map("name", "David"));
+            final Node node2 = graphDatabase.getOrCreateNode("user", "name", "David", map("name", "David"));
+            assertEquals("David",node.getProperty("name"));
+            assertEquals(node,node2);
+            assertEquals(node,gdb.index().forNodes("user").get("name","David").getSingle());
+            tx.success();
+        }
     }
 
     @Test
     public void testGetOrCreateRelationship() throws Exception {
-        final Transaction tx = gdb.beginTx();
-        final Node david = graphDatabase.createNode(map("name", "David"));
-        final Node michael = graphDatabase.createNode(map("name", "Michael"));
-        final Relationship rel1 = graphDatabase.getOrCreateRelationship("knows", "whom", "david_michael", david, michael, "KNOWS", map("whom", "david_michael"));
-        final Relationship rel2 = graphDatabase.getOrCreateRelationship("knows", "whom", "david_michael", david, michael, "KNOWS", map("whom", "david_michael"));
-        assertEquals("david_michael",rel1.getProperty("whom"));
-        assertEquals("KNOWS",rel1.getType().name());
-        assertEquals(david,rel1.getStartNode());
-        assertEquals(michael,rel1.getEndNode());
-        assertEquals(rel1,rel2);
-        assertEquals(rel1,gdb.index().forRelationships("knows").get("whom","david_michael").getSingle());
-        tx.success();
-        tx.finish();
+        try (Transaction tx = graphDatabase.beginTx()) {
+            final Node david = graphDatabase.createNode(map("name", "David"));
+            final Node michael = graphDatabase.createNode(map("name", "Michael"));
+            final Relationship rel1 = graphDatabase.getOrCreateRelationship("knows", "whom", "david_michael", david, michael, "KNOWS", map("whom", "david_michael"));
+            final Relationship rel2 = graphDatabase.getOrCreateRelationship("knows", "whom", "david_michael", david, michael, "KNOWS", map("whom", "david_michael"));
+            assertEquals("david_michael",rel1.getProperty("whom"));
+            assertEquals("KNOWS",rel1.getType().name());
+            assertEquals(david,rel1.getStartNode());
+            assertEquals(michael,rel1.getEndNode());
+            assertEquals(rel1,rel2);
+            assertEquals(rel1,gdb.index().forRelationships("knows").get("whom","david_michael").getSingle());
+            tx.success();
+        }
     }
 }

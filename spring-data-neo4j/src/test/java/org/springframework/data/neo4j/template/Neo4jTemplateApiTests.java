@@ -36,6 +36,7 @@ import org.springframework.data.neo4j.support.Neo4jTemplate;
 import org.springframework.data.neo4j.support.index.IndexType;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.jta.JtaTransactionManager;
 import org.springframework.transaction.support.TransactionCallbackWithoutResult;
 import org.springframework.transaction.support.TransactionTemplate;
@@ -46,6 +47,7 @@ import java.util.Iterator;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
 import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 import static org.neo4j.helpers.collection.MapUtil.map;
 
 
@@ -59,7 +61,7 @@ public class Neo4jTemplateApiTests {
     protected Node node1;
     protected PlatformTransactionManager transactionManager;
     protected GraphDatabaseService graphDatabaseService;
-
+    private Transaction transaction;
 
 
     @Before
@@ -68,9 +70,9 @@ public class Neo4jTemplateApiTests {
         graphDatabaseService = createGraphDatabaseService();
         graphDatabase = createGraphDatabase();
         transactionManager = createTransactionManager();
-        referenceNode = graphDatabase.getReferenceNode();
         template = new Neo4jTemplate(graphDatabase, transactionManager);
         createData();
+        transaction = graphDatabase.beginTx();
     }
 
     protected GraphDatabaseService createGraphDatabaseService() throws IOException {
@@ -81,25 +83,6 @@ public class Neo4jTemplateApiTests {
         return new DelegatingGraphDatabase(graphDatabaseService);
     }
 
-    @Test
-    public void testBeginTxWithoutConfiguredTxManager() throws Exception {
-        Neo4jTemplate template = new Neo4jTemplate(graphDatabase);
-        Transaction tx = template.getGraphDatabase().beginTx();
-        Node node = template.createNode();
-        node.setProperty("name","foo");
-        tx.success();
-        tx.finish();
-        assertNotNull(node.getProperty("name"));
-    }
-
-    @Test
-    public void testInstantiateEntity() throws Exception {
-        Neo4jTemplate template = new Neo4jTemplate(graphDatabase,transactionManager);
-        Transaction tx = template.getGraphDatabase().beginTx();
-        Person michael = template.save(new Person("Michael", 37));
-        assertNotNull(michael.getId());
-    }
-
     protected PlatformTransactionManager createTransactionManager() {
         return new JtaTransactionManager(new SpringTransactionManager((GraphDatabaseAPI)graphDatabaseService));
     }
@@ -108,6 +91,7 @@ public class Neo4jTemplateApiTests {
         new TransactionTemplate(transactionManager).execute(new TransactionCallbackWithoutResult() {
             @Override
             protected void doInTransactionWithoutResult(TransactionStatus status) {
+                referenceNode = graphDatabase.getReferenceNode();
                 referenceNode.setProperty("name", "node0");
                 graphDatabase.createIndex(Node.class, "node", IndexType.SIMPLE).add(referenceNode, "name", "node0");
                 node1 = graphDatabase.createNode(map("name", "node1"));
@@ -120,130 +104,23 @@ public class Neo4jTemplateApiTests {
 
     @After
     public void tearDown() throws Exception {
+        if (transaction!=null) {
+            transaction.success();
+            transaction.finish();
+        }
         if (graphDatabaseService!=null) {
             graphDatabaseService.shutdown();
         }
     }
 
-    @Test
-    public void shouldExecuteCallbackInTransaction() throws Exception {
-        Node refNode = template.exec(new GraphCallback<Node>() {
-            @Override
-            public Node doWithGraph(GraphDatabase graph) throws Exception {
-                Node referenceNode = graph.getReferenceNode();
-                referenceNode.setProperty("test", "testDoInTransaction");
-                return referenceNode;
-            }
-        });
-        assertEquals("same reference node",referenceNode,refNode);
-        assertTestPropertySet(referenceNode, "testDoInTransaction");
-    }
-
-    @Test
-    public void shouldRollbackTransactionOnException() {
-        try {
-            template.exec(new GraphCallback.WithoutResult() {
-                @Override
-                public void doWithGraphWithoutResult(GraphDatabase graph) throws Exception {
-                    graph.getReferenceNode().setProperty("test", "shouldRollbackTransactionOnException");
-                    throw new RuntimeException("please rollback");
-                }
-            });
-        } catch(RuntimeException re){
-            //ignore
-        }
-        Assert.assertThat((String)graphDatabase.getReferenceNode().getProperty("test","not set"), not("shouldRollbackTransactionOnException"));
-    }
-
-    @Test
-    public void shouldRollbackViaStatus() throws Exception {
-        new TransactionTemplate(transactionManager).execute(new TransactionCallbackWithoutResult() {
-            @Override
-            protected void doInTransactionWithoutResult(final TransactionStatus status) {
-                template.exec(new GraphCallback.WithoutResult() {
-                    @Override
-                    public void doWithGraphWithoutResult(GraphDatabase graph) throws Exception {
-                        graph.getReferenceNode().setProperty("test", "shouldRollbackTransactionOnException");
-                        status.setRollbackOnly();
-                    }
-                });
-            }
-        });
-        Assert.assertThat((String) graphDatabase.getReferenceNode().getProperty("test","not set"), not("shouldRollbackTransactionOnException"));
-    }
-
-    @Test(expected = RuntimeException.class)
-    public void shouldNotConvertUserRuntimeExceptionToDataAccessException() {
-        template.exec(new GraphCallback.WithoutResult() {
-            @Override
-            public void doWithGraphWithoutResult(GraphDatabase graph) throws Exception {
-                throw new RuntimeException();
-            }
-        });
-    }
-
-    @Test(expected = DataAccessException.class)
-    @Ignore
-    public void shouldConvertMissingTransactionExceptionToDataAccessException() {
-        Neo4jTemplate template = new Neo4jTemplate(graphDatabase, null);
-        template.exec(new GraphCallback.WithoutResult() {
-            @Override
-            public void doWithGraphWithoutResult(GraphDatabase graph) throws Exception {
-                graph.createNode(null);
-            }
-        });
-    }
-    @Test(expected = DataAccessException.class)
-    public void shouldConvertNotFoundExceptionToDataAccessException() {
-        Neo4jTemplate template = new Neo4jTemplate(graphDatabase, transactionManager);
-        template.exec(new GraphCallback.WithoutResult() {
-            @Override
-            public void doWithGraphWithoutResult(GraphDatabase graph) throws Exception {
-                graph.getNodeById( Long.MAX_VALUE );
-            }
-        });
-    }
     @Test(expected = DataAccessException.class)
     public void shouldConvertTemplateNotFoundExceptionToDataAccessException() {
         template.getNode(Long.MAX_VALUE);
     }
 
     @Test
-    public void shouldExecuteCallback() throws Exception {
-        Long refNodeId = template.exec(new GraphCallback<Long>() {
-            @Override
-            public Long doWithGraph(GraphDatabase graph) throws Exception {
-                return graph.getReferenceNode().getId();
-            }
-        });
-        assertEquals(referenceNode.getId(),(long)refNodeId);
-    }
-
-    @Test
     public void testGetReferenceNode() throws Exception {
         assertEquals(referenceNode,template.getReferenceNode());
-    }
-
-    @Test
-    public void testCreateNode() throws Exception {
-        new TransactionTemplate(transactionManager).execute(new TransactionCallbackWithoutResult() {
-            @Override
-            protected void doInTransactionWithoutResult(TransactionStatus status) {
-                Node node = template.createNode(null);
-                assertNotNull("created node", node);
-            }
-        });
-    }
-
-    @Test
-    public void testCreateNodeWithProperties() throws Exception {
-        new TransactionTemplate(transactionManager).execute(new TransactionCallbackWithoutResult() {
-            @Override
-            protected void doInTransactionWithoutResult(TransactionStatus status) {
-                Node node = template.createNode(map("test", "testCreateNodeWithProperties"));
-                assertTestPropertySet(node, "testCreateNodeWithProperties");
-            }
-        });
     }
 
     private void assertTestPropertySet(Node node, String testName) {

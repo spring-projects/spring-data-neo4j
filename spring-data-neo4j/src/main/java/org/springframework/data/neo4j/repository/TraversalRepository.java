@@ -17,7 +17,7 @@
 package org.springframework.data.neo4j.repository;
 
 import org.neo4j.graphdb.traversal.TraversalDescription;
-
+import org.springframework.transaction.annotation.Transactional;
 
 
 /**
@@ -33,5 +33,6 @@ public interface TraversalRepository<T> {
      * @param <N>                  Start node entity type
      * @return Iterable over traversal result
      */
+    @Transactional
     <N> Iterable<T> findAllByTraversal(N startNode, TraversalDescription traversalDescription);
 }

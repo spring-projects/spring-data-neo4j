@@ -70,7 +70,7 @@ public class CypherQueryBuilderUnitTests {
         Part part = new Part("infoLike", Person.class);
         query.addRestriction(part);
 
-        assertThat(query.toString(), is(DEFAULT_START_CLAUSE+" WHERE `person`.`info`! =~ {0} RETURN `person`"));
+        assertThat(query.toString(), is(DEFAULT_START_CLAUSE+" WHERE `person`.`info` =~ {0} RETURN `person`"));
     }
     @Test
     public void createsQueryForGreaterThanPropertyReference() {
@@ -78,7 +78,7 @@ public class CypherQueryBuilderUnitTests {
         Part part = new Part("ageGreaterThan", Person.class);
         query.addRestriction(part);
 
-        assertThat(query.toString(), is(DEFAULT_START_CLAUSE+" WHERE `person`.`age`! > {0} RETURN `person`"));
+        assertThat(query.toString(), is(DEFAULT_START_CLAUSE+" WHERE `person`.`age` > {0} RETURN `person`"));
     }
     @Test
     public void createsQueryForTwoPropertyExpressions() {
@@ -86,7 +86,7 @@ public class CypherQueryBuilderUnitTests {
         query.addRestriction(new Part("ageGreaterThan", Person.class));
         query.addRestriction(new Part("info", Person.class));
 
-        assertThat(query.toString(), is(DEFAULT_START_CLAUSE+" WHERE `person`.`age`! > {0} AND `person`.`info`! = {1} RETURN `person`"));
+        assertThat(query.toString(), is(DEFAULT_START_CLAUSE+" WHERE `person`.`age` > {0} AND `person`.`info` = {1} RETURN `person`"));
     }
 
     @Test
@@ -95,7 +95,7 @@ public class CypherQueryBuilderUnitTests {
         Part part = new Part("ageIsNull", Person.class);
         query.addRestriction(part);
 
-        assertThat(query.toString(), is(DEFAULT_START_CLAUSE+" WHERE `person`.`age`! is null  RETURN `person`"));
+        assertThat(query.toString(), is(DEFAULT_START_CLAUSE+" WHERE `person`.`age` is null  RETURN `person`"));
     }
 
     @Test
@@ -120,13 +120,13 @@ public class CypherQueryBuilderUnitTests {
     @Test
     public void createsSimpleWhereClauseCorrectly() {
         query.addRestriction(new Part("age", Person.class));
-        assertThat(query.toString(), is(DEFAULT_START_CLAUSE +" WHERE `person`.`age`! = {0} RETURN `person`"));
+        assertThat(query.toString(), is(DEFAULT_START_CLAUSE +" WHERE `person`.`age` = {0} RETURN `person`"));
     }
 
     @Test
     public void createsSimpleTraversalClauseCorrectly() {
         query.addRestriction(new Part("group", Person.class));
-        assertThat(query.toString(), is("START `person_group`=node({0}) MATCH `person`<-[:`members`]-`person_group` WHERE (has(`person`.__type__) AND `person`.__type__ IN ['Person']) RETURN `person`"));
+        assertThat(query.toString(), is("START `person_group`=node({0}) MATCH `person`<-[:`members`]-`person_group` WHERE `person`.__type__ IN ['Person'] RETURN `person`"));
     }
 
     @Test
@@ -140,7 +140,7 @@ public class CypherQueryBuilderUnitTests {
         assertThat(query.toString(), is(
                 "START `person`=node:`Person`(`name`={0}), `person_group`=node:`Group`(`name`={1}) " +
                         "MATCH `person`<-[:`members`]-`person_group`, `person`<-[:`members`]-`person_group`-[:`members`]->`person_group_members` " +
-                        "WHERE `person`.`age`! > {2} AND `person_group_members`.`age`! = {3} " +
+                        "WHERE `person`.`age` > {2} AND `person_group_members`.`age` = {3} " +
                         "RETURN `person`"
                 ));
     }
@@ -168,13 +168,13 @@ public class CypherQueryBuilderUnitTests {
     public void shouldFindByNodeEntity() throws Exception {
         query.addRestriction(new Part("pet", Person.class));
 
-        assertThat(query.toString(), is("START `person_pet`=node({0}) MATCH `person`-[:`owns`]->`person_pet` WHERE (has(`person`.__type__) AND `person`.__type__ IN ['Person']) RETURN `person`"));
+        assertThat(query.toString(), is("START `person_pet`=node({0}) MATCH `person`-[:`owns`]->`person_pet` WHERE `person`.__type__ IN ['Person'] RETURN `person`"));
     }
 
     @Test
     public void shouldFindByNodeEntityForIncomingRelationship() {
         query.addRestriction(new Part("group", Person.class));
 
-        assertThat(query.toString(), is("START `person_group`=node({0}) MATCH `person`<-[:`members`]-`person_group` WHERE (has(`person`.__type__) AND `person`.__type__ IN ['Person']) RETURN `person`"));
+        assertThat(query.toString(), is("START `person_group`=node({0}) MATCH `person`<-[:`members`]-`person_group` WHERE `person`.__type__ IN ['Person'] RETURN `person`"));
     }
 }

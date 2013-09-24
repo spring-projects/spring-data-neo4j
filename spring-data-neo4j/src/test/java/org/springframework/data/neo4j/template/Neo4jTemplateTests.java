@@ -16,14 +16,13 @@
 
 package org.springframework.data.neo4j.template;
 
+import org.junit.Assert;
 import org.junit.Test;
-import org.neo4j.graphdb.Direction;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Relationship;
-import org.neo4j.graphdb.RelationshipType;
+import org.neo4j.graphdb.*;
 import org.springframework.data.neo4j.core.GraphDatabase;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
 
+import static org.hamcrest.CoreMatchers.not;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.neo4j.helpers.collection.MapUtil.map;
@@ -43,7 +42,11 @@ public class Neo4jTemplateTests extends NeoApiTests {
                 return graph.getNodeById( refNode.getId() );
             }
         });
-        assertEquals("same ref node", graph.getReferenceNode(), refNodeById);
+
+        try (Transaction tx=graph.beginTx()) {
+            assertEquals("same ref node", graph.getReferenceNode(), refNodeById);
+            tx.success();
+        }
     }
 
     @Test

@@ -22,12 +22,14 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.NotInTransactionException;
+import org.neo4j.graphdb.Transaction;
 import org.springframework.data.neo4j.aspects.Friendship;
 import org.springframework.data.neo4j.aspects.Group;
 import org.springframework.data.neo4j.aspects.Person;
 import org.springframework.data.neo4j.repository.GraphRepository;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -55,7 +57,10 @@ public class ModificationOutsideOfTransactionTests extends EntityTestBase {
 		assertEquals(36, p.getAge());
 		assertFalse(hasPersistentState(p));
         persist(p);
-		assertEquals(36, nodeFor(p).getProperty("age"));
+        try (Transaction tx = neo4jTemplate.getGraphDatabase().beginTx()) {
+            assertEquals(36, nodeFor(p).getProperty("age"));
+            tx.success();
+        }
 	}
 
 	@Test
@@ -65,14 +70,20 @@ public class ModificationOutsideOfTransactionTests extends EntityTestBase {
 
 		michael.setBoss(emil);
 
-		assertEquals(emil, michael.getBoss());
-		assertFalse(hasPersistentState(michael));
-		assertFalse(hasPersistentState(emil));
-        persist(michael);
-		assertThat(nodeFor(michael), hasRelationship("boss", nodeFor(emil)));
-		assertThat(nodeFor(emil), hasRelationship("boss", nodeFor(michael)));
+        try (Transaction tx = neo4jTemplate.getGraphDatabase().beginTx()) {
+            assertEquals(emil, michael.getBoss());
+            assertFalse(hasPersistentState(michael));
+            assertFalse(hasPersistentState(emil));
+            tx.success();
+        }
 
-	}
+        persist(michael);
+        try (Transaction tx = neo4jTemplate.getGraphDatabase().beginTx()) {
+            assertThat(nodeFor(michael), hasRelationship("boss", nodeFor(emil)));
+            assertThat(nodeFor(emil), hasRelationship("boss", nodeFor(michael)));
+            tx.success();
+        }
+    }
 
 	@Test
 	public void testCreateSubgraphOutsideOfTransactionPersistWithImmediateCycle() {
@@ -82,14 +93,21 @@ public class ModificationOutsideOfTransactionTests extends EntityTestBase {
 		michael.setBoss(emil);
 		emil.setBoss(michael);
 
-		assertEquals(emil, michael.getBoss());
-		assertEquals(michael, emil.getBoss());
-		assertFalse(hasPersistentState(michael));
-		assertFalse(hasPersistentState(emil));
+        try (Transaction tx = neo4jTemplate.getGraphDatabase().beginTx()) {
+            assertEquals(emil, michael.getBoss());
+            assertEquals(michael, emil.getBoss());
+            assertFalse(hasPersistentState(michael));
+            assertFalse(hasPersistentState(emil));
+            tx.success();
+        }
         persist(michael);
-		assertThat(nodeFor(michael), hasRelationship("boss", nodeFor(emil)));
-		assertThat(nodeFor(emil), hasRelationship("boss", nodeFor(michael)));
-	}
+
+        try (Transaction tx = neo4jTemplate.getGraphDatabase().beginTx()) {
+            assertThat(nodeFor(michael), hasRelationship("boss", nodeFor(emil)));
+            assertThat(nodeFor(emil), hasRelationship("boss", nodeFor(michael)));
+            tx.success();
+        }
+    }
 
 	@Test
 	public void testCreateSubgraphOutsideOfTransactionPersistWithCycle() {
@@ -100,20 +118,27 @@ public class ModificationOutsideOfTransactionTests extends EntityTestBase {
 		michael.setBoss(emil);
 		david.setBoss(michael);
 		emil.setBoss(david);
+        try (Transaction tx = neo4jTemplate.getGraphDatabase().beginTx()) {
+            assertEquals(emil, michael.getBoss());
+            assertEquals(michael, david.getBoss());
+            assertEquals(david, emil.getBoss());
+            assertFalse(hasPersistentState(michael));
+            assertFalse(hasPersistentState(david));
+            assertFalse(hasPersistentState(emil));
+            tx.success();
+        }
 
-		assertEquals(emil, michael.getBoss());
-		assertEquals(michael, david.getBoss());
-		assertEquals(david, emil.getBoss());
-		assertFalse(hasPersistentState(michael));
-		assertFalse(hasPersistentState(david));
-		assertFalse(hasPersistentState(emil));
         persist(michael);
-		assertThat(nodeFor(michael), hasRelationship("boss", nodeFor(emil)));
-		assertThat(nodeFor(michael), hasRelationship("boss", nodeFor(david)));
-		assertThat(nodeFor(david), hasRelationship("boss", nodeFor(michael)));
-		assertThat(nodeFor(david), hasRelationship("boss", nodeFor(emil)));
-		assertThat(nodeFor(emil), hasRelationship("boss", nodeFor(david)));
-		assertThat(nodeFor(emil), hasRelationship("boss", nodeFor(michael)));
+
+        try (Transaction tx = neo4jTemplate.getGraphDatabase().beginTx()) {
+            assertThat(nodeFor(michael), hasRelationship("boss", nodeFor(emil)));
+            assertThat(nodeFor(michael), hasRelationship("boss", nodeFor(david)));
+            assertThat(nodeFor(david), hasRelationship("boss", nodeFor(michael)));
+            assertThat(nodeFor(david), hasRelationship("boss", nodeFor(emil)));
+            assertThat(nodeFor(emil), hasRelationship("boss", nodeFor(david)));
+            assertThat(nodeFor(emil), hasRelationship("boss", nodeFor(michael)));
+            tx.success();
+        }
 	}
 
 	@Ignore("ignored until subgraph persisting is added")
@@ -146,7 +171,11 @@ public class ModificationOutsideOfTransactionTests extends EntityTestBase {
         Person p = persistedPerson( "Michael", 35 );
         p.setAge( 25 );
         assertEquals(25, p.getAge());
-        assertEquals( 35, nodeFor( p ).getProperty("age") );
+
+        try (Transaction tx = neo4jTemplate.getGraphDatabase().beginTx()) {
+            assertEquals( 35, nodeFor( p ).getProperty("age") );
+            tx.success();
+        }
     }
 
     @Test
@@ -161,8 +190,11 @@ public class ModificationOutsideOfTransactionTests extends EntityTestBase {
         assertEquals(Collections.singleton(p), group.getPersons());
 
         persist(group);
-        assertThat(getNodeState(group), hasRelationship("persons", getNodeState(p)));
-        assertThat(getNodeState(p), hasRelationship("persons", getNodeState(group)));
+        try (Transaction tx = neo4jTemplate.getGraphDatabase().beginTx()) {
+            assertThat(getNodeState(group), hasRelationship("persons", getNodeState(p)));
+            assertThat(getNodeState(p), hasRelationship("persons", getNodeState(group)));
+            tx.success();
+        }
     }
 
     @Test
@@ -180,8 +212,12 @@ public class ModificationOutsideOfTransactionTests extends EntityTestBase {
 
 
         persist(group);
-        assertThat(getNodeState(group), hasRelationship("persons", getNodeState(p)));
-        assertThat(getNodeState(p), hasRelationship("persons", getNodeState(group)));
+
+        try (Transaction tx = neo4jTemplate.getGraphDatabase().beginTx()) {
+            assertThat(getNodeState(group), hasRelationship("persons", getNodeState(p)));
+            assertThat(getNodeState(p), hasRelationship("persons", getNodeState(group)));
+            tx.success();
+        }
     }
 
     @Test
@@ -192,13 +228,19 @@ public class ModificationOutsideOfTransactionTests extends EntityTestBase {
 
         p.setSpouse( spouse );
 
-        assertEquals( spouse, p.getSpouse() );
-        assertThat( nodeFor( p ), hasNoRelationship("spouse", getNodeState(spouse)) );
+        try (Transaction tx = neo4jTemplate.getGraphDatabase().beginTx()) {
+            assertEquals( spouse, p.getSpouse() );
+            assertThat( nodeFor( p ), hasNoRelationship("spouse", getNodeState(spouse)) );
+            tx.success();
+        }
 
 
         Person spouse2 = persistedPerson( "Rana", 5 );
         p.setSpouse( spouse2 );
-        assertEquals( spouse2, p.getSpouse() );
+        try (Transaction tx = neo4jTemplate.getGraphDatabase().beginTx()) {
+            assertEquals( spouse2, p.getSpouse() );
+            tx.success();
+        }
     }
 
     @Test
@@ -210,13 +252,19 @@ public class ModificationOutsideOfTransactionTests extends EntityTestBase {
         p.setSpouse( spouse );
         persist(p);
 
-        assertEquals( spouse, p.getSpouse() );
-        assertThat( nodeFor( p ), hasRelationship( "spouse" ) );
-
+        try (Transaction tx = neo4jTemplate.getGraphDatabase().beginTx()) {
+            assertEquals( spouse, p.getSpouse() );
+            assertThat( nodeFor( p ), hasRelationship( "spouse" ) );
+            tx.success();
+        }
 
         Person spouse2 = persistedPerson( "Rana", 5 );
         p.setSpouse( spouse2 );
-        assertEquals( spouse2, p.getSpouse() );
+
+        try (Transaction tx = neo4jTemplate.getGraphDatabase().beginTx()) {
+            assertEquals( spouse2, p.getSpouse() );
+            tx.success();
+        }
     }
 
     private Node nodeFor( Person person )
@@ -225,14 +273,16 @@ public class ModificationOutsideOfTransactionTests extends EntityTestBase {
     }
 
     @Test
-    public void testGetPropertyOutsideTransaction()
+    @Transactional
+    public void testGetPropertyInsideTransaction()
     {
         Person p = persistedPerson( "Michael", 35 );
         assertEquals( "Wrong age.", 35, p.getAge() );
     }
 
     @Test
-    public void testFindOutsideTransaction()
+    @Transactional
+    public void testFindInsideTransaction()
     {
         final GraphRepository<Person> finder = neo4jTemplate.repositoryFor(Person.class);
         assertEquals( false, finder.findAll().iterator().hasNext() );
