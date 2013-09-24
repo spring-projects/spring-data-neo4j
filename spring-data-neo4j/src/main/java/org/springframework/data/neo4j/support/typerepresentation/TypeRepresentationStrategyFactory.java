@@ -18,17 +18,23 @@ package org.springframework.data.neo4j.support.typerepresentation;
 
 import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.index.Index;
+import org.springframework.data.neo4j.annotation.QueryType;
 import org.springframework.data.neo4j.core.GraphDatabase;
 import org.springframework.data.neo4j.core.GraphDatabaseGlobalOperations;
 import org.springframework.data.neo4j.core.NodeTypeRepresentationStrategy;
 import org.springframework.data.neo4j.core.RelationshipTypeRepresentationStrategy;
+import org.springframework.data.neo4j.repository.query.CypherQuery;
 import org.springframework.data.neo4j.support.index.IndexProvider;
 import org.springframework.data.neo4j.support.index.NoSuchIndexException;
+import org.springframework.data.neo4j.support.query.QueryEngine;
+
+import java.util.Collections;
 
 public class TypeRepresentationStrategyFactory {
     private final GraphDatabase graphDatabaseService;
     private final Strategy strategy;
     private IndexProvider indexProvider;
+    private QueryEngine<CypherQuery> queryEngine;
 
     public TypeRepresentationStrategyFactory(GraphDatabase graphDatabaseService) {
         this(graphDatabaseService,chooseStrategy(graphDatabaseService), null);
@@ -39,11 +45,11 @@ public class TypeRepresentationStrategyFactory {
     }
     
     public TypeRepresentationStrategyFactory(GraphDatabase graphDatabaseService,Strategy strategy) {
-        this.graphDatabaseService = graphDatabaseService;
-        this.strategy = strategy;
+        this(graphDatabaseService, strategy, null);
     }
 
-    public TypeRepresentationStrategyFactory(GraphDatabase graphDatabaseService,Strategy strategy, IndexProvider indexProvider) {
+    public TypeRepresentationStrategyFactory(GraphDatabase graphDatabaseService,Strategy strategy,
+                                             IndexProvider indexProvider) {
         this.indexProvider = indexProvider;
         this.graphDatabaseService = graphDatabaseService;
         this.strategy = strategy;
@@ -62,6 +68,18 @@ public class TypeRepresentationStrategyFactory {
     }
 
     private static boolean isAlreadyLabeled(GraphDatabase graphDatabaseService) {
+        /*
+
+        I don't think this is a very efficient query - find if there is a better way to
+        do this in Cypher, also it seems to break everything else simply by creating the
+        query engine in this manner. Sticking with GlobalGraphOps for now
+
+        QueryEngine<CypherQuery> queryEngine = graphDatabaseService.queryEngineFor(QueryType.Cypher);
+        Long numLabels = queryEngine.query("start n=node(*) return count( labels(n) ) ", Collections.EMPTY_MAP).to(Long.class).single();
+        return numLabels > 0;
+        */
+
+
         GraphDatabaseGlobalOperations globalOps = graphDatabaseService.getGlobalGraphOperations();
         try {
             return globalOps.getAllLabels().iterator().hasNext();
@@ -70,6 +88,7 @@ public class TypeRepresentationStrategyFactory {
             // TODO : Look to change REST project to support it
             return false;
         }
+
     }
 
     private static boolean isAlreadyIndexed(GraphDatabase graphDatabaseService) {
@@ -121,7 +140,7 @@ public class TypeRepresentationStrategyFactory {
         Labeled {
             @Override
             public NodeTypeRepresentationStrategy getNodeTypeRepresentationStrategy(GraphDatabase graphDatabaseService, IndexProvider indexProvider) {
-                return new CoreAPIBasedLabelingNodeTypeRepresentationStrategy(graphDatabaseService);
+                return new CypherBasedLabelingNodeTypeRepresentationStrategy(graphDatabaseService);
             }
 
             @Override
