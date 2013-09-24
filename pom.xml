@@ -37,7 +37,7 @@
 		<dist.id>spring-data-neo4j</dist.id>
 		
 		<springdata.commons>1.5.1.RELEASE</springdata.commons>
-		<neo4j.version>1.8.1</neo4j.version>
+		<neo4j.version>1.8.3</neo4j.version>
 
 		<neo4j.spatial.version>0.10.1</neo4j.spatial.version>
 		<neo4j.graph-collections.version>0.5</neo4j.graph-collections.version>
