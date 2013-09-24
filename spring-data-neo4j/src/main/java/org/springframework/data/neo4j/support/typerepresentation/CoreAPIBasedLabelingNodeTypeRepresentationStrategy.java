@@ -80,7 +80,6 @@ public class CoreAPIBasedLabelingNodeTypeRepresentationStrategy implements NodeT
 
     @Override
     public <U> ClosableIterable<Node> findAll(StoredEntityType type) {
-        long count = 0;
         GraphDatabaseGlobalOperations globalOps = graphDb.getGlobalGraphOperations();
         final ResourceIterable<Node> rin = globalOps.getAllNodesWithLabel(DynamicLabel.label(type.getAlias().toString()));
         return new ResourceIterableClosableIterable(rin);

@@ -22,6 +22,7 @@ import org.junit.runner.RunWith;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.PropertyContainer;
 import org.neo4j.graphdb.Transaction;
+import org.neo4j.helpers.collection.ClosableIterable;
 import org.neo4j.helpers.collection.IteratorUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.neo4j.annotation.NodeEntity;
@@ -30,6 +31,7 @@ import org.springframework.data.neo4j.support.Neo4jTemplate;
 import org.springframework.data.neo4j.support.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.support.mapping.StoredEntityType;
 import org.springframework.data.neo4j.support.typerepresentation.CoreAPIBasedLabelingNodeTypeRepresentationStrategy;
+import org.springframework.data.neo4j.support.typerepresentation.CypherBasedLabelingNodeTypeRepresentationStrategy;
 import org.springframework.test.context.CleanContextCacheTestExecutionListener;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestExecutionListeners;
@@ -52,7 +54,7 @@ import static org.junit.Assert.assertNull;
 public class LabelingNodeTypeRepresentationStrategyTests extends EntityTestBase {
 
 	@Autowired
-	private CoreAPIBasedLabelingNodeTypeRepresentationStrategy nodeTypeRepresentationStrategy;
+	private CypherBasedLabelingNodeTypeRepresentationStrategy nodeTypeRepresentationStrategy;
 
     @Autowired
     Neo4jTemplate neo4jTemplate;
@@ -93,9 +95,10 @@ public class LabelingNodeTypeRepresentationStrategyTests extends EntityTestBase 
 	@Transactional
 	public void testFindAll() throws Exception {
 
+        ClosableIterable<Node> allThings = nodeTypeRepresentationStrategy.findAll(thingType);
 		assertEquals("Did not find all things.",
                 new HashSet<PropertyContainer>(Arrays.asList(neo4jTemplate.getPersistentState(subThing), neo4jTemplate.getPersistentState(thing))),
-                IteratorUtil.addToCollection(nodeTypeRepresentationStrategy.findAll(thingType), new HashSet<Node>()));
+                IteratorUtil.addToCollection(allThings, new HashSet<Node>()));
 	}
 
 	@Test
