@@ -1,6 +1,12 @@
 Spring Data Graph Changelog
 ===========================
 
+Changes in version 2.2.3.RELEASE (2013-09-24)
+---------------------------------------------
+* DATAGRAPH-393 - Use supplied RestGraphDatabase as GraphDatabase in MappingInfrastructure
+* DATAGRAPH-368 - Handle transient property on detached entity.
+* DATAGRAPH-394 - Update to Neo4j 1.8.3
+
 Changes in version 2.2.2.RELEASE (2013-07-16)
 ---------------------------------------------
 * DATAGRAPH-330 - Sort and Order By for repository.findAll
