@@ -18,6 +18,7 @@ package org.springframework.data.neo4j.rest.support;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.neo4j.aspects.support.query.GremlinQueryEngineTests;
@@ -39,6 +40,7 @@ import org.springframework.test.context.transaction.TransactionalTestExecutionLi
 @ContextConfiguration(locations = {"classpath:org/springframework/data/neo4j/aspects/support/Neo4jGraphPersistenceTests-context.xml",
     "classpath:RestTests-context.xml"})
 @TestExecutionListeners({CleanContextCacheTestExecutionListener.class, DependencyInjectionTestExecutionListener.class, TransactionalTestExecutionListener.class})
+@Ignore
 public class RestGremlinQueryEngineTests extends GremlinQueryEngineTests {
 
     @Autowired

@@ -18,7 +18,7 @@
 
 	<properties>
 		<validation>1.0.0.GA</validation>
-		<jersey.version>1.4</jersey.version>
+		<jersey.version>1.9</jersey.version>
 		<neo4j-rest-graphdb.version>2.0-SNAPSHOT</neo4j-rest-graphdb.version>
 	</properties>
 
@@ -124,13 +124,13 @@
 			</exclusions>
 		</dependency>
 
-		<dependency>
+		<!--dependency>
 			<groupId>org.neo4j.server.plugin</groupId>
 			<artifactId>neo4j-gremlin-plugin</artifactId>
 			<version>1.9.2</version>
 			<optional>true</optional>
 			<scope>test</scope>
-		</dependency>
+		</dependency-->
 		<dependency>
 			<groupId>org.neo4j.app</groupId>
 			<artifactId>neo4j-server</artifactId>
@@ -185,7 +185,7 @@
 			</exclusions>
 		</dependency>
 
-		<dependency>
+		<!--dependency>
 			<groupId>com.tinkerpop.blueprints</groupId>
 			<artifactId>blueprints-core</artifactId>
 			<version>${blueprints.version}</version>
@@ -213,7 +213,7 @@
 			<artifactId>gremlin-groovy</artifactId>
 			<version>${gremlin.version}</version>
 			<optional>true</optional>
-		</dependency>
+		</dependency-->
 
 		<dependency>
 			<groupId>commons-configuration</groupId>

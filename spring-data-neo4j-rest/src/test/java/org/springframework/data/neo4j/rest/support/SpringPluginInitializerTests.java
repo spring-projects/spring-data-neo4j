@@ -19,7 +19,6 @@ package org.springframework.data.neo4j.rest.support;
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientResponse;
 import org.apache.commons.configuration.Configuration;
-import org.apache.log4j.BasicConfigurator;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;

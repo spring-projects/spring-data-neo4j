@@ -19,7 +19,6 @@ package org.springframework.data.neo4j.rest.support;
 
 import java.net.URISyntaxException;
 
-import org.apache.log4j.BasicConfigurator;
 import org.neo4j.server.NeoServer;
 import org.neo4j.server.WrappingNeoServerBootstrapper;
 import org.neo4j.server.configuration.Configurator;

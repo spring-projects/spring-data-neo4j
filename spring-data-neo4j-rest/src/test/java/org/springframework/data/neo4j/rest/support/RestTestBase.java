@@ -17,9 +17,6 @@
 package org.springframework.data.neo4j.rest.support;
 
 
-import java.util.Iterator;
-
-import org.apache.log4j.BasicConfigurator;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -29,14 +26,14 @@ import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.rest.graphdb.ExecutingRestRequest;
 import org.neo4j.rest.graphdb.RequestResult;
-import org.neo4j.rest.graphdb.RestRequest;
 import org.neo4j.server.NeoServer;
 import org.neo4j.server.WrappingNeoServerBootstrapper;
 import org.neo4j.server.configuration.Configurator;
-import org.neo4j.server.configuration.PropertyFileConfigurator;
 import org.neo4j.server.configuration.ServerConfigurator;
 import org.neo4j.test.ImpermanentGraphDatabase;
 import org.springframework.data.neo4j.rest.SpringRestGraphDatabase;
+
+import java.util.Iterator;
 
 import static org.junit.Assert.assertEquals;
 
@@ -55,7 +52,8 @@ public class RestTestBase {
         final ServerConfigurator configurator = new ServerConfigurator(db);
         configurator.configuration().setProperty(Configurator.WEBSERVER_PORT_PROPERTY_KEY,PORT);
         final WrappingNeoServerBootstrapper bootstrapper = new WrappingNeoServerBootstrapper(db, configurator);
-        bootstrapper.start();
+        int exit = bootstrapper.start();
+        if (exit != 0 ) throw new IllegalStateException("Server not started correctly.");
         neoServer = bootstrapper.getServer();
 
         tryConnect();
@@ -100,7 +98,7 @@ public class RestTestBase {
     protected Relationship relationship() {
         Iterator<Relationship> it = node().getRelationships(Direction.OUTGOING).iterator();
         if (it.hasNext()) return it.next();
-        return node().createRelationshipTo(restGraphDatabase.createNode(null), Type.TEST);
+        return node().createRelationshipTo(restGraphDatabase.createNode(), Type.TEST);
     }
 
     protected Node node() {
