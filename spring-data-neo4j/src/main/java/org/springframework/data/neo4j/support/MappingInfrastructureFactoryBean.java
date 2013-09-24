@@ -106,6 +106,9 @@ public class MappingInfrastructureFactoryBean implements FactoryBean<Infrastruct
         if (this.graphDatabaseService == null && graphDatabase instanceof DelegatingGraphDatabase) {
             this.graphDatabaseService = ((DelegatingGraphDatabase) graphDatabase).getGraphDatabaseService();
         }
+        if (this.graphDatabase == null && graphDatabaseService instanceof GraphDatabase) {
+            this.graphDatabase = (GraphDatabase)graphDatabaseService;
+        }
         if (this.graphDatabase == null) {
             this.graphDatabase = new DelegatingGraphDatabase(graphDatabaseService);
         }
