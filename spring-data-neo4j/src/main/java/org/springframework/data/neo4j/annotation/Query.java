@@ -21,6 +21,8 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+import org.springframework.data.annotation.QueryAnnotation;
+
 /**
  * Field that provides access to an iterator which is created by applying the provided query starting at the current
  * entity-node. The result elements are automatically converted to appropriate element
@@ -34,6 +36,7 @@ import java.lang.annotation.Target;
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.FIELD,ElementType.METHOD})
+@QueryAnnotation
 public @interface Query {
     /**
      * @return Query to be executed {self} will be provided by the node-id of the current entity other parameters (e.g. {name}) by the given named params
