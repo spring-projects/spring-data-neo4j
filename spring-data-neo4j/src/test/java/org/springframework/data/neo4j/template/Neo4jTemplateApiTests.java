@@ -189,6 +189,7 @@ public class Neo4jTemplateApiTests {
     }
 
     @Test
+    @Ignore
     public void shouldFindNextNodeViaGremlin() throws Exception {
         assertSingleResult(node1, template.execute("g.v(0).out", null).to(Node.class));
     }
