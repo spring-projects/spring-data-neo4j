@@ -29,7 +29,7 @@ import org.springframework.data.neo4j.support.mapping.StoredEntityType;
 
 import java.lang.Object;
 
-public abstract class AbstractIndexingTypeRepresentationStrategy<S extends PropertyContainer> implements
+public abstract class AbstractIndexBasedTypeRepresentationStrategy<S extends PropertyContainer> implements
         TypeRepresentationStrategy<S> {
 
     public static final String TYPE_PROPERTY_NAME = "__type__";
@@ -40,8 +40,8 @@ public abstract class AbstractIndexingTypeRepresentationStrategy<S extends Prope
     private final Class<? extends PropertyContainer> clazz;
     private Index<S> typesIndex;
 
-    public AbstractIndexingTypeRepresentationStrategy(GraphDatabase graphDb, IndexProvider indexProvider,
-                                                      final String indexName, final Class<? extends PropertyContainer> clazz) {
+    public AbstractIndexBasedTypeRepresentationStrategy(GraphDatabase graphDb, IndexProvider indexProvider,
+                                                        final String indexName, final Class<? extends PropertyContainer> clazz) {
         this.graphDb = graphDb;
         this.indexProvider = indexProvider;
         INDEX_NAME = indexName;

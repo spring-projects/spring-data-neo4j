@@ -65,12 +65,12 @@ public class TypeRepresentationStrategyFactory {
 
     private static boolean isAlreadyLabeled(GraphDatabase graphDatabaseService) {
         return graphDatabaseService.getReferenceNode().hasLabel(
-                LabelingNodeTypeRepresentationStrategy.SDN_LABEL_STRATEGY);
+                LabelBasedNodeTypeRepresentationStrategy.SDN_LABEL_STRATEGY);
     }
 
     private static boolean isAlreadyIndexed(GraphDatabase graphDatabaseService) {
         try {
-            final Index<PropertyContainer> index = graphDatabaseService.getIndex(IndexingNodeTypeRepresentationStrategy.INDEX_NAME);
+            final Index<PropertyContainer> index = graphDatabaseService.getIndex(IndexBasedNodeTypeRepresentationStrategy.INDEX_NAME);
             return index!=null && Node.class.isAssignableFrom(index.getEntityType());
         } catch(NoSuchIndexException nsie) {
             return false;
@@ -117,7 +117,7 @@ public class TypeRepresentationStrategyFactory {
         Labeled {
             @Override
             public NodeTypeRepresentationStrategy getNodeTypeRepresentationStrategy(GraphDatabase graphDatabaseService, IndexProvider indexProvider) {
-                return new LabelingNodeTypeRepresentationStrategy(graphDatabaseService);
+                return new LabelBasedNodeTypeRepresentationStrategy(graphDatabaseService);
             }
 
             @Override
@@ -128,12 +128,12 @@ public class TypeRepresentationStrategyFactory {
         Indexed {
             @Override
             public NodeTypeRepresentationStrategy getNodeTypeRepresentationStrategy(GraphDatabase graphDatabaseService, IndexProvider indexProvider) {
-                return new IndexingNodeTypeRepresentationStrategy(graphDatabaseService, indexProvider);
+                return new IndexBasedNodeTypeRepresentationStrategy(graphDatabaseService, indexProvider);
             }
 
             @Override
             public RelationshipTypeRepresentationStrategy getRelationshipTypeRepresentationStrategy(GraphDatabase graphDatabaseService, IndexProvider indexProvider) {
-                return new IndexingRelationshipTypeRepresentationStrategy(graphDatabaseService, indexProvider);
+                return new IndexBasedRelationshipTypeRepresentationStrategy(graphDatabaseService, indexProvider);
             }
         },
         Noop {

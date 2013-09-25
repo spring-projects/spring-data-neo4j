@@ -21,12 +21,12 @@ import org.springframework.data.neo4j.core.GraphDatabase;
 import org.springframework.data.neo4j.core.RelationshipTypeRepresentationStrategy;
 import org.springframework.data.neo4j.support.index.IndexProvider;
 
-public class IndexingRelationshipTypeRepresentationStrategy extends
-        AbstractIndexingTypeRepresentationStrategy<Relationship> implements RelationshipTypeRepresentationStrategy {
+public class IndexBasedRelationshipTypeRepresentationStrategy extends
+        AbstractIndexBasedTypeRepresentationStrategy<Relationship> implements RelationshipTypeRepresentationStrategy {
 
     public static final String INDEX_NAME = "__rel_types__";
 
-    public IndexingRelationshipTypeRepresentationStrategy(GraphDatabase graphDb, IndexProvider indexProvider) {
+    public IndexBasedRelationshipTypeRepresentationStrategy(GraphDatabase graphDb, IndexProvider indexProvider) {
         super(graphDb, indexProvider, INDEX_NAME, Relationship.class);
     }
 

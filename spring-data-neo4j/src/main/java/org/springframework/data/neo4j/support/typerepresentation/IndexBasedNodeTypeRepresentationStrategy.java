@@ -21,12 +21,12 @@ import org.springframework.data.neo4j.core.GraphDatabase;
 import org.springframework.data.neo4j.core.NodeTypeRepresentationStrategy;
 import org.springframework.data.neo4j.support.index.IndexProvider;
 
-public class IndexingNodeTypeRepresentationStrategy extends AbstractIndexingTypeRepresentationStrategy<Node> implements
+public class IndexBasedNodeTypeRepresentationStrategy extends AbstractIndexBasedTypeRepresentationStrategy<Node> implements
         NodeTypeRepresentationStrategy {
 
     public static final String INDEX_NAME = "__types__";
 
-    public IndexingNodeTypeRepresentationStrategy(GraphDatabase graphDb, IndexProvider indexProvider) {
+    public IndexBasedNodeTypeRepresentationStrategy(GraphDatabase graphDb, IndexProvider indexProvider) {
         super(graphDb, indexProvider, INDEX_NAME, Node.class);
     }
 }
