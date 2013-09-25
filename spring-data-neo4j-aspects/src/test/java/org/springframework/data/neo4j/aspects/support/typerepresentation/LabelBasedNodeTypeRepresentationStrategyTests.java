@@ -30,7 +30,7 @@ import org.springframework.data.neo4j.aspects.support.EntityTestBase;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
 import org.springframework.data.neo4j.support.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.support.mapping.StoredEntityType;
-import org.springframework.data.neo4j.support.typerepresentation.LabelingNodeTypeRepresentationStrategy;
+import org.springframework.data.neo4j.support.typerepresentation.LabelBasedNodeTypeRepresentationStrategy;
 import org.springframework.test.context.CleanContextCacheTestExecutionListener;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestExecutionListeners;
@@ -49,10 +49,10 @@ import static org.junit.Assert.*;
 @ContextConfiguration(locations = {"classpath:org/springframework/data/neo4j/aspects/support/Neo4jGraphPersistenceTests-context.xml",
         "classpath:org/springframework/data/neo4j/aspects/support/LabelingTypeRepresentationStrategyOverride-context.xml"})
 @TestExecutionListeners({CleanContextCacheTestExecutionListener.class, DependencyInjectionTestExecutionListener.class, TransactionalTestExecutionListener.class})
-public class LabelingNodeTypeRepresentationStrategyTests extends EntityTestBase {
+public class LabelBasedNodeTypeRepresentationStrategyTests extends EntityTestBase {
 
 	@Autowired
-	private LabelingNodeTypeRepresentationStrategy nodeTypeRepresentationStrategy;
+	private LabelBasedNodeTypeRepresentationStrategy nodeTypeRepresentationStrategy;
 
     @Autowired
     Neo4jTemplate neo4jTemplate;

@@ -31,7 +31,7 @@ import org.springframework.data.neo4j.aspects.support.EntityTestBase;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
 import org.springframework.data.neo4j.support.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.support.mapping.StoredEntityType;
-import org.springframework.data.neo4j.support.typerepresentation.IndexingNodeTypeRepresentationStrategy;
+import org.springframework.data.neo4j.support.typerepresentation.IndexBasedNodeTypeRepresentationStrategy;
 import org.springframework.test.context.CleanContextCacheTestExecutionListener;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestExecutionListeners;
@@ -51,10 +51,10 @@ import static org.junit.Assert.assertNull;
 @ContextConfiguration(locations = {"classpath:org/springframework/data/neo4j/aspects/support/Neo4jGraphPersistenceTests-context.xml",
         "classpath:org/springframework/data/neo4j/aspects/support/IndexingTypeRepresentationStrategyOverride-context.xml"})
 @TestExecutionListeners({CleanContextCacheTestExecutionListener.class, DependencyInjectionTestExecutionListener.class, TransactionalTestExecutionListener.class})
-public class IndexingNodeTypeRepresentationStrategyTests extends EntityTestBase {
+public class IndexBasedNodeTypeRepresentationStrategyTests extends EntityTestBase {
 
 	@Autowired
-	private IndexingNodeTypeRepresentationStrategy nodeTypeRepresentationStrategy;
+	private IndexBasedNodeTypeRepresentationStrategy nodeTypeRepresentationStrategy;
 
     @Autowired
     Neo4jTemplate neo4jTemplate;
@@ -83,13 +83,13 @@ public class IndexingNodeTypeRepresentationStrategyTests extends EntityTestBase 
 	@Test
 	@Transactional
 	public void testPostEntityCreation() throws Exception {
-		Index<Node> typesIndex = graphDatabaseService.index().forNodes(IndexingNodeTypeRepresentationStrategy.INDEX_NAME);
-		IndexHits<Node> thingHits = typesIndex.get(IndexingNodeTypeRepresentationStrategy.INDEX_KEY, thingType.getAlias());
+		Index<Node> typesIndex = graphDatabaseService.index().forNodes(IndexBasedNodeTypeRepresentationStrategy.INDEX_NAME);
+		IndexHits<Node> thingHits = typesIndex.get(IndexBasedNodeTypeRepresentationStrategy.INDEX_KEY, thingType.getAlias());
 		assertEquals(set(node(thing), node(subThing)), IteratorUtil.addToCollection((Iterable<Node>)thingHits, new HashSet<Node>()));
-		IndexHits<Node> subThingHits = typesIndex.get(IndexingNodeTypeRepresentationStrategy.INDEX_KEY, subThingType.getAlias());
+		IndexHits<Node> subThingHits = typesIndex.get(IndexBasedNodeTypeRepresentationStrategy.INDEX_KEY, subThingType.getAlias());
 		assertEquals(node(subThing), subThingHits.getSingle());
-		assertEquals(thingType.getAlias(), node(thing).getProperty(IndexingNodeTypeRepresentationStrategy.TYPE_PROPERTY_NAME));
-		assertEquals(subThingType.getAlias(), node(subThing).getProperty(IndexingNodeTypeRepresentationStrategy.TYPE_PROPERTY_NAME));
+		assertEquals(thingType.getAlias(), node(thing).getProperty(IndexBasedNodeTypeRepresentationStrategy.TYPE_PROPERTY_NAME));
+		assertEquals(subThingType.getAlias(), node(subThing).getProperty(IndexBasedNodeTypeRepresentationStrategy.TYPE_PROPERTY_NAME));
 		thingHits.close();
 		subThingHits.close();
 	}
@@ -102,7 +102,7 @@ public class IndexingNodeTypeRepresentationStrategyTests extends EntityTestBase 
         IndexHits<Node> thingHits;
         IndexHits<Node> subThingHits;
         try (Transaction tx = graphDatabaseService.beginTx()) {
-            typesIndex = graphDatabaseService.index().forNodes(IndexingNodeTypeRepresentationStrategy.INDEX_NAME);
+            typesIndex = graphDatabaseService.index().forNodes(IndexBasedNodeTypeRepresentationStrategy.INDEX_NAME);
             tx.success();
         }
 
@@ -112,9 +112,9 @@ public class IndexingNodeTypeRepresentationStrategyTests extends EntityTestBase 
         }
 
         try (Transaction tx = graphDatabaseService.beginTx()) {
-            thingHits = typesIndex.get(IndexingNodeTypeRepresentationStrategy.INDEX_KEY, thingType.getAlias());
+            thingHits = typesIndex.get(IndexBasedNodeTypeRepresentationStrategy.INDEX_KEY, thingType.getAlias());
 	    	assertEquals(node(subThing), thingHits.getSingle());
-		    subThingHits = typesIndex.get(IndexingNodeTypeRepresentationStrategy.INDEX_KEY, subThingType.getAlias());
+		    subThingHits = typesIndex.get(IndexBasedNodeTypeRepresentationStrategy.INDEX_KEY, subThingType.getAlias());
 		    assertEquals(node(subThing), subThingHits.getSingle());
             tx.success();
         }
@@ -125,9 +125,9 @@ public class IndexingNodeTypeRepresentationStrategyTests extends EntityTestBase 
         }
 
         try (Transaction tx = graphDatabaseService.beginTx()) {
-            thingHits = typesIndex.get(IndexingNodeTypeRepresentationStrategy.INDEX_KEY, thingType.getAlias());
+            thingHits = typesIndex.get(IndexBasedNodeTypeRepresentationStrategy.INDEX_KEY, thingType.getAlias());
             assertNull(thingHits.getSingle());
-            subThingHits = typesIndex.get(IndexingNodeTypeRepresentationStrategy.INDEX_KEY, subThingType.getAlias());
+            subThingHits = typesIndex.get(IndexBasedNodeTypeRepresentationStrategy.INDEX_KEY, subThingType.getAlias());
             assertNull(subThingHits.getSingle());
             tx.success();
         }

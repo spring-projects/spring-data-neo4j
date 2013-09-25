@@ -1,5 +1,6 @@
 package org.springframework.data.neo4j.support.mapping;
 
+import com.tinkerpop.gremlin.Tokens;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.ResourceIterable;
 import org.neo4j.graphdb.ResourceIterator;
@@ -11,9 +12,10 @@ import java.util.Iterator;
  * @author Nicki Watt
  * @since 24-09-2013
  */
-public class ResourceIterableClosableIterable implements ClosableIterable {
+public class ResourceIterableClosableIterable implements ClosableIterable , ResourceIterable {
 
     private ResourceIterator iterator;
+
     public ResourceIterableClosableIterable(ResourceIterable<Node> resourceIterable) {
         this.iterator = resourceIterable.iterator();
     }
@@ -24,7 +26,7 @@ public class ResourceIterableClosableIterable implements ClosableIterable {
     }
 
     @Override
-    public Iterator iterator() {
+    public ResourceIterator iterator() {
         return iterator;
     }
 };
