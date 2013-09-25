@@ -30,9 +30,11 @@ import org.springframework.data.neo4j.support.mapping.StoredEntityType;
 /**
  * Provides a Node Type Representation Strategy which makes use of Labels, and specifically
  * uses the Core API as the mechanism for dealing with this. (This is inline with how
- * the original Node Type Representation Strategies used to work - moving forward a
- * Cypher based one will be used, however this exists for comparison purposes at this
+ * the original Node Type Representation Strategies used to work - moving forward only
+ * the Cypher based one will be used, however this exists for comparison purposes at this
  * point in time in the development)
+ *
+ * TODO - Delete me!
  *
  * @author Nicki Watt
  * @since 24-09-2013

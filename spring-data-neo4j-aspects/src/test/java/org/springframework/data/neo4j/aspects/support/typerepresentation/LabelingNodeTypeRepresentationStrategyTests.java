@@ -30,8 +30,7 @@ import org.springframework.data.neo4j.aspects.support.EntityTestBase;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
 import org.springframework.data.neo4j.support.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.support.mapping.StoredEntityType;
-import org.springframework.data.neo4j.support.typerepresentation.CoreAPIBasedLabelingNodeTypeRepresentationStrategy;
-import org.springframework.data.neo4j.support.typerepresentation.CypherBasedLabelingNodeTypeRepresentationStrategy;
+import org.springframework.data.neo4j.support.typerepresentation.LabelingNodeTypeRepresentationStrategy;
 import org.springframework.test.context.CleanContextCacheTestExecutionListener;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestExecutionListeners;
@@ -44,8 +43,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Arrays;
 import java.util.HashSet;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import static org.junit.Assert.*;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = {"classpath:org/springframework/data/neo4j/aspects/support/Neo4jGraphPersistenceTests-context.xml",
@@ -54,7 +52,7 @@ import static org.junit.Assert.assertNull;
 public class LabelingNodeTypeRepresentationStrategyTests extends EntityTestBase {
 
 	@Autowired
-	private CypherBasedLabelingNodeTypeRepresentationStrategy nodeTypeRepresentationStrategy;
+	private LabelingNodeTypeRepresentationStrategy nodeTypeRepresentationStrategy;
 
     @Autowired
     Neo4jTemplate neo4jTemplate;
@@ -103,9 +101,21 @@ public class LabelingNodeTypeRepresentationStrategyTests extends EntityTestBase 
 
 	@Test
 	@Transactional
-	public void testCount() throws Exception {
-		assertEquals(2, nodeTypeRepresentationStrategy.count(thingType));
+	public void testCountOfSuperTypeIncludesSubTypes() throws Exception {
+        final int EXPECTED_NUM_THINGS = 1;
+        final int EXPECTED_NUM_SUBTHINGS = 1;
+        final int TOTAL_EXPECTED = EXPECTED_NUM_THINGS + EXPECTED_NUM_SUBTHINGS;
+		assertEquals(TOTAL_EXPECTED, nodeTypeRepresentationStrategy.count(thingType));
 	}
+
+    @Test
+    @Transactional
+    public void testCountOfSubTypeExcludesConcreteParents() throws Exception {
+        final int EXPECTED_NUM_THINGS = 1;
+        final int EXPECTED_NUM_SUBTHINGS = 1;
+        final int TOTAL_EXPECTED =  EXPECTED_NUM_SUBTHINGS;
+        assertEquals(TOTAL_EXPECTED, nodeTypeRepresentationStrategy.count(subThingType));
+    }
 
 	@Test
 	@Transactional

@@ -18,17 +18,13 @@ package org.springframework.data.neo4j.support.typerepresentation;
 
 import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.index.Index;
-import org.springframework.data.neo4j.annotation.QueryType;
 import org.springframework.data.neo4j.core.GraphDatabase;
-import org.springframework.data.neo4j.core.GraphDatabaseGlobalOperations;
 import org.springframework.data.neo4j.core.NodeTypeRepresentationStrategy;
 import org.springframework.data.neo4j.core.RelationshipTypeRepresentationStrategy;
 import org.springframework.data.neo4j.repository.query.CypherQuery;
 import org.springframework.data.neo4j.support.index.IndexProvider;
 import org.springframework.data.neo4j.support.index.NoSuchIndexException;
 import org.springframework.data.neo4j.support.query.QueryEngine;
-
-import java.util.Collections;
 
 public class TypeRepresentationStrategyFactory {
     private final GraphDatabase graphDatabaseService;
@@ -68,27 +64,8 @@ public class TypeRepresentationStrategyFactory {
     }
 
     private static boolean isAlreadyLabeled(GraphDatabase graphDatabaseService) {
-        /*
-
-        I don't think this is a very efficient query - find if there is a better way to
-        do this in Cypher, also it seems to break everything else simply by creating the
-        query engine in this manner. Sticking with GlobalGraphOps for now
-
-        QueryEngine<CypherQuery> queryEngine = graphDatabaseService.queryEngineFor(QueryType.Cypher);
-        Long numLabels = queryEngine.query("start n=node(*) return count( labels(n) ) ", Collections.EMPTY_MAP).to(Long.class).single();
-        return numLabels > 0;
-        */
-
-
-        GraphDatabaseGlobalOperations globalOps = graphDatabaseService.getGlobalGraphOperations();
-        try {
-            return globalOps.getAllLabels().iterator().hasNext();
-        } catch (UnsupportedOperationException e) {
-            // Currently the REST DB does not support global ops
-            // TODO : Look to change REST project to support it
-            return false;
-        }
-
+        return graphDatabaseService.getReferenceNode().hasLabel(
+                LabelingNodeTypeRepresentationStrategy.SDN_LABEL_STRATEGY);
     }
 
     private static boolean isAlreadyIndexed(GraphDatabase graphDatabaseService) {
@@ -140,7 +117,7 @@ public class TypeRepresentationStrategyFactory {
         Labeled {
             @Override
             public NodeTypeRepresentationStrategy getNodeTypeRepresentationStrategy(GraphDatabase graphDatabaseService, IndexProvider indexProvider) {
-                return new CypherBasedLabelingNodeTypeRepresentationStrategy(graphDatabaseService);
+                return new LabelingNodeTypeRepresentationStrategy(graphDatabaseService);
             }
 
             @Override
