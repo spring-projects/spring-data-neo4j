@@ -30,7 +30,6 @@ public class TypeRepresentationStrategyFactory {
     private final GraphDatabase graphDatabaseService;
     private final Strategy strategy;
     private IndexProvider indexProvider;
-    private QueryEngine<CypherQuery> queryEngine;
 
     public TypeRepresentationStrategyFactory(GraphDatabase graphDatabaseService) {
         this(graphDatabaseService,chooseStrategy(graphDatabaseService), null);
@@ -52,42 +51,13 @@ public class TypeRepresentationStrategyFactory {
     }
 
     private static Strategy chooseStrategy(GraphDatabase graphDatabaseService) {
-        Transaction tx = graphDatabaseService.beginTx();
-        try {
-            if (isAlreadyIndexed(graphDatabaseService)) return Strategy.Indexed;
-            if (isAlreadySubRef(graphDatabaseService)) return Strategy.SubRef;
-            if (isAlreadyLabeled(graphDatabaseService)) return Strategy.Labeled;
+        try (Transaction tx = graphDatabaseService.beginTx()) {
+            if (AbstractIndexBasedTypeRepresentationStrategy.isStrategyAlreadyInUse(graphDatabaseService)) return Strategy.Indexed;
+            if (SubReferenceNodeTypeRepresentationStrategy.isStrategyAlreadyInUse(graphDatabaseService)) return Strategy.SubRef;
+            if (LabelBasedNodeTypeRepresentationStrategy.isStrategyAlreadyInUse(graphDatabaseService)) return Strategy.Labeled;
+            tx.success();
             return Strategy.Indexed;
-        } finally {
-            tx.success();tx.finish();
         }
-    }
-
-    private static boolean isAlreadyLabeled(GraphDatabase graphDatabaseService) {
-        return graphDatabaseService.getReferenceNode().hasLabel(
-                LabelBasedNodeTypeRepresentationStrategy.SDN_LABEL_STRATEGY);
-    }
-
-    private static boolean isAlreadyIndexed(GraphDatabase graphDatabaseService) {
-        try {
-            final Index<PropertyContainer> index = graphDatabaseService.getIndex(IndexBasedNodeTypeRepresentationStrategy.INDEX_NAME);
-            return index!=null && Node.class.isAssignableFrom(index.getEntityType());
-        } catch(NoSuchIndexException nsie) {
-            return false;
-        }
-    }
-
-    private static boolean isAlreadySubRef(GraphDatabase graphDatabaseService) {
-        try {
-            for (Relationship rel : graphDatabaseService.getReferenceNode().getRelationships()) {
-                if (rel.getType().name().startsWith(SubReferenceNodeTypeRepresentationStrategy.SUBREF_PREFIX)) {
-                    return true;
-                }
-            }
-        } catch(NotFoundException nfe) {
-            // ignore
-        }
-        return false;
     }
 
     public NodeTypeRepresentationStrategy getNodeTypeRepresentationStrategy() {
