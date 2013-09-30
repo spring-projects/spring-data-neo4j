@@ -28,10 +28,6 @@ import org.springframework.data.neo4j.support.mapping.StoredEntityType;
 import org.springframework.data.neo4j.support.mapping.WrappedIterableClosableIterable;
 import org.springframework.data.neo4j.support.query.QueryEngine;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-
 /**
  * Provides a Node Type Representation Strategy which makes use of Labels, and specifically
  * uses Cypher as the mechanism for interacting with the graph database.
@@ -47,14 +43,15 @@ public class LabelBasedNodeTypeRepresentationStrategy implements NodeTypeReprese
 
     protected GraphDatabase graphDb;
     protected final Class<Node> clazz;
+    protected final LabelBasedStrategyCypherHelper cypherHelper;
     protected QueryEngine<CypherQuery> queryEngine;
-    private boolean sdnLabelStrategyPresent;
 
     public LabelBasedNodeTypeRepresentationStrategy(GraphDatabase graphDb) {
         this.graphDb = graphDb;
         this.clazz = Node.class;
         this.queryEngine = graphDb.queryEngineFor(QueryType.Cypher);
-        this.sdnLabelStrategyPresent = false;
+        this.cypherHelper = new LabelBasedStrategyCypherHelper(queryEngine);
+        markSDNLabelStrategyInUse();
     }
 
     @Override
@@ -65,10 +62,7 @@ public class LabelBasedNodeTypeRepresentationStrategy implements NodeTypeReprese
         if (state.hasLabel(sdnLabel)) {
             return; // already there
         }
-
-        markSDNLabelStrategyInUseIfNotExists();
         addLabelsForEntityHierarchy(state,type);
-
     }
 
     /**
@@ -78,56 +72,45 @@ public class LabelBasedNodeTypeRepresentationStrategy implements NodeTypeReprese
      * as the primary SDN marker Label.
      */
     private void addLabelsForEntityHierarchy(Node state, StoredEntityType type) {
-        String addLabelStatement = String.format("match n where id(n)={nodeId} set n:`%s`:`%s`" , LABELSTRATEGY_PREFIX + type.getAlias(),type.getAlias());
+        String labels = cypherHelper.buildLabelString(LABELSTRATEGY_PREFIX + type.getAlias(), (String)type.getAlias());
+        labels = buildLabelStringIncludingEachEntityInHierarchy(labels, type);
+        cypherHelper.setLabelsOnNode(state.getId(), labels);
+    }
+
+    private String buildLabelStringIncludingEachEntityInHierarchy(String labels, StoredEntityType type) {
         for (StoredEntityType superType : type.getSuperTypes()) {
-            addLabelStatement += String.format(":`%s`", superType.getAlias());
+            labels += cypherHelper.buildLabelString((String)superType.getAlias());
+            labels += buildLabelStringIncludingEachEntityInHierarchy(labels, superType);
         }
-        Map<String,Object> params = new HashMap<String,Object>();
-        params.put("nodeId",state.getId());
-        queryEngine.query( addLabelStatement, params);
+        return labels;
     }
 
     /**
-     * Checks if a special label (SDN_LABEL_STRATEGY) exists against the reference node, and
-     * if it does not, it is added. This label serves as an indicator that the Labeling strategy
-     * has/is being used on this data set.
+     * Ensures that a special label (SDN_LABEL_STRATEGY) exists against the
+     * reference node, and if it does not, it is added. This label serves
+     * as an indicator that the Labeling strategy has/is going to be used on this
+     * data set.
      */
-    private void markSDNLabelStrategyInUseIfNotExists() {
-        if (!sdnLabelStrategyPresent) {
-            String query = String.format("match n where id(n)=%d and n:`%s` return count(*) ", REFERENCE_NODE_ID, SDN_LABEL_STRATEGY.name());
-            Long labelCount = queryEngine.query(query, Collections.EMPTY_MAP).to(Long.class).single();
-
-            if (labelCount == 0) {
-                String update = String.format("match n where id(n)=%d set n:`%s` ", REFERENCE_NODE_ID, SDN_LABEL_STRATEGY.name());
-                queryEngine.query(update, Collections.EMPTY_MAP);
-            }
-            sdnLabelStrategyPresent = true;
-        }
+    private void markSDNLabelStrategyInUse() {
+        cypherHelper.setLabelOnNode(REFERENCE_NODE_ID, SDN_LABEL_STRATEGY.name());
     }
 
     @Override
     public <U> ClosableIterable<Node> findAll(StoredEntityType type) {
-        String query = String.format("match n:`%s` return n", type.getAlias().toString());
-        Iterable<Node> rin = queryEngine.query(query, Collections.EMPTY_MAP).to(Node.class);
+        Iterable<Node> rin = cypherHelper.getNodesWithLabel(type.getAlias().toString());
         return new WrappedIterableClosableIterable<Node>(rin);
-
     }
 
     @Override
     public long count(StoredEntityType type) {
-        String query = String.format("match n:`%s` return count(*)", type.getAlias().toString());
-        return queryEngine.query(query, Collections.EMPTY_MAP).to(Long.class).single();
+        return cypherHelper.countNodesWithLabel(type.getAlias().toString());
     }
 
     @Override
     public Object readAliasFrom(Node state) {
         if (state == null)
             throw new IllegalArgumentException("Node is null");
-
-        String query = String.format("match n where id(n)=%d return labels(n) as labels", state.getId());
-        Map queryResult = queryEngine.query(query, Collections.EMPTY_MAP).to(Map.class).single();
-        Iterable<String> labels = (Iterable)queryResult.get("labels");
-
+        Iterable<String> labels = cypherHelper.getLabelsForNode(state.getId());
         for (String label: labels) {
             if (label.startsWith(LABELSTRATEGY_PREFIX)) {
                 return label.substring(LABELSTRATEGY_PREFIX.length());
@@ -142,4 +125,8 @@ public class LabelBasedNodeTypeRepresentationStrategy implements NodeTypeReprese
         // don't think we need to do anything here!
     }
 
+    public static boolean isStrategyAlreadyInUse(GraphDatabase graphDatabaseService) {
+       return graphDatabaseService.getReferenceNode().hasLabel(SDN_LABEL_STRATEGY);
+
+    }
 }

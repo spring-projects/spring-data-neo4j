@@ -61,8 +61,10 @@ public class LabelBasedNodeTypeRepresentationStrategyTests extends EntityTestBas
 
 	private Thing thing;
 	private SubThing subThing;
+    private SubThing subSubThing;
     private StoredEntityType thingType;
     private StoredEntityType subThingType;
+    private StoredEntityType subSubThingType;
 
     @BeforeTransaction
 	public void cleanDb() {
@@ -76,6 +78,7 @@ public class LabelBasedNodeTypeRepresentationStrategyTests extends EntityTestBas
 		}
         thingType = typeOf(Thing.class);
         subThingType = typeOf(SubThing.class);
+        subSubThingType = typeOf(SubSubThing.class);
     }
 
 	@Test
@@ -95,7 +98,7 @@ public class LabelBasedNodeTypeRepresentationStrategyTests extends EntityTestBas
 
         ClosableIterable<Node> allThings = nodeTypeRepresentationStrategy.findAll(thingType);
 		assertEquals("Did not find all things.",
-                new HashSet<PropertyContainer>(Arrays.asList(neo4jTemplate.getPersistentState(subThing), neo4jTemplate.getPersistentState(thing))),
+                new HashSet<PropertyContainer>(Arrays.asList(neo4jTemplate.getPersistentState(subSubThing), neo4jTemplate.getPersistentState(subThing), neo4jTemplate.getPersistentState(thing))),
                 IteratorUtil.addToCollection(allThings, new HashSet<Node>()));
 	}
 
@@ -104,16 +107,17 @@ public class LabelBasedNodeTypeRepresentationStrategyTests extends EntityTestBas
 	public void testCountOfSuperTypeIncludesSubTypes() throws Exception {
         final int EXPECTED_NUM_THINGS = 1;
         final int EXPECTED_NUM_SUBTHINGS = 1;
-        final int TOTAL_EXPECTED = EXPECTED_NUM_THINGS + EXPECTED_NUM_SUBTHINGS;
+        final int EXPECTED_NUM_SUBSUBTHINGS = 1;
+        final int TOTAL_EXPECTED = EXPECTED_NUM_THINGS + EXPECTED_NUM_SUBTHINGS + EXPECTED_NUM_SUBSUBTHINGS;
 		assertEquals(TOTAL_EXPECTED, nodeTypeRepresentationStrategy.count(thingType));
 	}
 
     @Test
     @Transactional
     public void testCountOfSubTypeExcludesConcreteParents() throws Exception {
-        final int EXPECTED_NUM_THINGS = 1;
         final int EXPECTED_NUM_SUBTHINGS = 1;
-        final int TOTAL_EXPECTED =  EXPECTED_NUM_SUBTHINGS;
+        final int EXPECTED_NUM_SUBSUBTHINGS = 1;
+        final int TOTAL_EXPECTED =  EXPECTED_NUM_SUBTHINGS + EXPECTED_NUM_SUBSUBTHINGS;
         assertEquals(TOTAL_EXPECTED, nodeTypeRepresentationStrategy.count(subThingType));
     }
 
@@ -122,8 +126,10 @@ public class LabelBasedNodeTypeRepresentationStrategyTests extends EntityTestBas
 	public void testGetJavaType() throws Exception {
 		assertEquals(thingType.getAlias(), nodeTypeRepresentationStrategy.readAliasFrom(node(thing)));
 		assertEquals(subThingType.getAlias(), nodeTypeRepresentationStrategy.readAliasFrom(node(subThing)));
+        assertEquals(subSubThingType.getAlias(), nodeTypeRepresentationStrategy.readAliasFrom(node(subSubThing)));
 		assertEquals(Thing.class, neo4jTemplate.getStoredJavaType(node(thing)));
 		assertEquals(SubThing.class, neo4jTemplate.getStoredJavaType(node(subThing)));
+        assertEquals(SubSubThing.class, neo4jTemplate.getStoredJavaType(node(subSubThing)));
 	}
 
 	@Test
@@ -162,6 +168,10 @@ public class LabelBasedNodeTypeRepresentationStrategyTests extends EntityTestBas
             subThing = neo4jTemplate.setPersistentState(new SubThing(),n2);
 			nodeTypeRepresentationStrategy.writeTypeTo(n2, neo4jTemplate.getEntityType(SubThing.class));
             subThing.setName("subThing");
+            Node n3 = graphDatabaseService.createNode();
+            subSubThing = neo4jTemplate.setPersistentState(new SubSubThing(),n3);
+            nodeTypeRepresentationStrategy.writeTypeTo(n3, neo4jTemplate.getEntityType(SubSubThing.class));
+            subThing.setName("subSubThing");
 			tx.success();
 			return thing;
 		} finally {
@@ -192,5 +202,8 @@ public class LabelBasedNodeTypeRepresentationStrategyTests extends EntityTestBas
     }
 
 	public static class SubThing extends Thing {
+    }
+
+    public static class SubSubThing extends SubThing {
     }
 }
