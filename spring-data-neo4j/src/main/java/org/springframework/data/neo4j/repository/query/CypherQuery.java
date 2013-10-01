@@ -40,19 +40,28 @@ public class CypherQuery implements CypherQueryDefinition {
     private final Neo4jPersistentEntity<?> entity;
     private final Neo4jTemplate template;
     private boolean isCountQuery = false;
+    private boolean useLabels = false;
 
-    public CypherQuery(final Neo4jPersistentEntity<?> entity, Neo4jTemplate template) {
+    public CypherQuery(final Neo4jPersistentEntity<?> entity, Neo4jTemplate template, boolean useLabels) {
         this.entity = entity;
         this.template = template;
+        this.useLabels = useLabels;
     }
 
     private String getEntityName(Neo4jPersistentEntity<?> entity) {
         return variableContext.getVariableFor(entity);
     }
 
-    private String defaultStartClause(Neo4jPersistentEntity<?> entity) {
-        return String.format(QueryTemplates.DEFAULT_START_CLAUSE, getEntityName(entity), entity
-                .getEntityType().getAlias());
+    private String defaultLegacyStartClause(Neo4jPersistentEntity<?> entity) {
+        return  String.format(QueryTemplates.DEFAULT_INDEXBASED_START_CLAUSE,
+                getEntityName(entity),
+                entity.getEntityType().getAlias());
+    }
+
+    private String defaultMatchBasedStartClause(Neo4jPersistentEntity<?> entity) {
+        return  String.format(QueryTemplates.DEFAULT_LABELBASED_MATCH_START_CLAUSE,
+                getEntityName(entity),
+                entity.getEntityType().getAlias());
     }
 
     public void addPart(Part part, PersistentPropertyPath<Neo4jPersistentProperty> path) {
@@ -69,10 +78,18 @@ public class CypherQuery implements CypherQueryDefinition {
             }
         } else if (leafProperty.isRelationship()) {
             startClauses.add(new NodeEntityMatchingStartClause(partInfo));
-            whereClauses.add(new TypeRestrictingWhereClause(new PartInfo(path, variableContext.getVariableFor(entity), part, -1), entity, template));
+            if (useLabels) {
+                whereClauses.add(new LabelBasedTypeRestrictingWhereClause(new PartInfo(path, variableContext.getVariableFor(entity), part, -1), entity, template));
+            } else {
+                whereClauses.add(new IndexBasedTypeRestrictingWhereClause(new PartInfo(path, variableContext.getVariableFor(entity), part, -1), entity, template));
+            }
         } else if (leafProperty.isIdProperty()) {
             startClauses.add(new NodeEntityMatchingStartClause(partInfo));
-            whereClauses.add(new TypeRestrictingWhereClause(new PartInfo(path, variableContext.getVariableFor(entity), part, -1), entity, template));
+            if (useLabels) {
+                whereClauses.add(new LabelBasedTypeRestrictingWhereClause(new PartInfo(path, variableContext.getVariableFor(entity), part, -1), entity, template));
+            } else {
+                whereClauses.add(new IndexBasedTypeRestrictingWhereClause(new PartInfo(path, variableContext.getVariableFor(entity), part, -1), entity, template));
+            }
         } else {
             throw new IllegalStateException("Error "+part+" points neither to a primitive nor a entity property of "+entity);
         }
@@ -154,20 +171,21 @@ public class CypherQuery implements CypherQueryDefinition {
     }
 
     private String render() {
-        String startClauses = collectionToDelimitedString(this.startClauses, ", ");
+        String legacyStartClauses = collectionToDelimitedString(this.startClauses, ", ");
         String matchClauses = toQueryString(this.matchClauses);
         String whereClauses = collectionToDelimitedString(this.whereClauses, " AND ");
 
-        StringBuilder builder = new StringBuilder("START ");
+        StringBuilder builder = new StringBuilder("");
 
-        if (hasText(startClauses)) {
-            builder.append(startClauses);
-        } else {
-            builder.append(defaultStartClause(entity));
+        boolean matchKeyWordUsed = false;
+        boolean legacyStartClauseUsed = buildInLegacyStartClauses(builder,legacyStartClauses);
+        if (!legacyStartClauseUsed && useLabels) {
+            matchKeyWordUsed = true;
+            builder.append(" MATCH ").append(defaultMatchBasedStartClause(entity));
         }
-
         if (hasText(matchClauses)) {
-            builder.append(" MATCH ").append(matchClauses);
+            builder.append(matchKeyWordUsed ? " , " : " MATCH ");
+            builder.append(matchClauses);
         }
 
         if (hasText(whereClauses)) {
@@ -181,6 +199,22 @@ public class CypherQuery implements CypherQueryDefinition {
             builder.append(" RETURN ").append(returnEntity);
         }
         return builder.toString();
+    }
+
+    /**
+     * Note: This will change to get rid of the start clauses completely but
+     *       for now we just get it to work!
+     */
+    private boolean buildInLegacyStartClauses(StringBuilder builder, String legacyStartClauses) {
+        if (hasText(legacyStartClauses)) {
+            builder.append("START ").append(legacyStartClauses);
+            return true;
+        } else if (!useLabels) {
+            // TODO: Need to change index based stuff to also not use START
+            builder.append("START ").append(defaultLegacyStartClause(entity));
+            return true;
+        }
+        return false;
     }
 
 

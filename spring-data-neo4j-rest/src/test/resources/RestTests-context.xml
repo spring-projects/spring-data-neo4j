@@ -6,4 +6,5 @@
     <bean id="graphDatabaseService" class="org.springframework.data.neo4j.rest.SpringRestGraphDatabase" scope="singleton">
          <constructor-arg index="0" value="http://localhost:7470/db/data" />
     </bean>
+    <alias name="graphDatabaseService"  alias="graphDatabase"/>
 </beans>

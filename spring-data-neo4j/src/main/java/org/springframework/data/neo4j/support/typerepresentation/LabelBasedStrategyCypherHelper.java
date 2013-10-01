@@ -1,6 +1,7 @@
 package org.springframework.data.neo4j.support.typerepresentation;
 
 import org.neo4j.graphdb.Node;
+import org.springframework.data.neo4j.conversion.Result;
 import org.springframework.data.neo4j.repository.query.CypherQuery;
 import org.springframework.data.neo4j.support.query.QueryEngine;
 
@@ -45,7 +46,8 @@ public class LabelBasedStrategyCypherHelper {
 
     public boolean doesNodeHaveLabel(Long nodeId, String label) {
         String query = String.format(CYPHER_COUNT_LABELS_ON_NODE,  label);
-        long labelCount = queryEngine.query(query, getParamsWithNodeId(nodeId)).to(Long.class).single();
+        Result<CypherQuery> result =  queryEngine.query(query, getParamsWithNodeId(nodeId));
+        long labelCount = result.to(Number.class).single().longValue();
         return labelCount > 0;
     }
 
@@ -72,7 +74,8 @@ public class LabelBasedStrategyCypherHelper {
 
     public long countNodesWithLabel(String label) {
         String query = String.format(CYPHER_RETURN_COUNT_OF_NODES_WITH_LABEL,  label);
-        return queryEngine.query(query, Collections.EMPTY_MAP).to(Long.class).single();
+        Result<CypherQuery> result = queryEngine.query(query, Collections.EMPTY_MAP);
+        return result.to(Number.class).single().longValue();
     }
 
     public Iterable<String> getLabelsForNode(long nodeId) {

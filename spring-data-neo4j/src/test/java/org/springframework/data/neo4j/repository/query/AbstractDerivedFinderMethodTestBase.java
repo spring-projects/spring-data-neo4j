@@ -17,6 +17,7 @@ package org.springframework.data.neo4j.repository.query;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.neo4j.index.lucene.ValueContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.neo4j.annotation.GraphId;
 import org.springframework.data.neo4j.annotation.GraphProperty;
@@ -47,12 +48,7 @@ import java.util.concurrent.TimeUnit;
 import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
 
-import org.neo4j.index.lucene.ValueContext;
-
-@RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration
-@TestExecutionListeners({CleanContextCacheTestExecutionListener.class, DependencyInjectionTestExecutionListener.class, TransactionalTestExecutionListener.class})
-public class DerivedFinderMethodTests {
+public abstract class AbstractDerivedFinderMethodTestBase {
 
     @NodeEntity
     public static class Thing {
@@ -110,11 +106,7 @@ public class DerivedFinderMethodTests {
     }
 
     @Test
-    public void testQueryWithEntityGraphId() throws Exception {
-        assertRepositoryQueryMethod(ThingRepository.class, "findByOwnerId",new Object[]{123},
-                "START `thing_owner`=node({0}) MATCH `thing`-[:`owner`]->`thing_owner` WHERE `thing`.__type__ IN ['org.springframework.data.neo4j.repository.query.DerivedFinderMethodTests$Thing'] ",
-                123);
-    }
+    public abstract void testQueryWithEntityGraphId() throws Exception;
 
     @Test
     public void testIndexQueryWithTwoParams() throws Exception {
@@ -311,7 +303,7 @@ public class DerivedFinderMethodTests {
                 ValueContext.numeric(10));
     }
 
-    private void assertRepositoryQueryMethod(Class<ThingRepository> repositoryClass, String methodName, Object[] paramValues, String expectedQuery, Object...expectedParam) {
+    protected void assertRepositoryQueryMethod(Class<ThingRepository> repositoryClass, String methodName, Object[] paramValues, String expectedQuery, Object...expectedParam) {
         Method method = methodFor(repositoryClass, methodName);
         DerivedCypherRepositoryQuery derivedCypherRepositoryQuery = new DerivedCypherRepositoryQuery(ctx, new GraphQueryMethod(method, new DefaultRepositoryMetadata(repositoryClass), null, ctx), template);
         Parameters<?, ?> parameters = new DefaultParameters(method);

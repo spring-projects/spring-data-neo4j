@@ -33,8 +33,6 @@ import org.springframework.data.neo4j.annotation.QueryType;
 import org.springframework.data.neo4j.conversion.DefaultConverter;
 import org.springframework.data.neo4j.conversion.ResultConverter;
 import org.springframework.data.neo4j.core.GraphDatabase;
-import org.springframework.data.neo4j.core.GraphDatabaseGlobalOperations;
-import org.springframework.data.neo4j.support.DelegatingGraphDatabaseGlobalOperations;
 import org.springframework.data.neo4j.support.index.NoSuchIndexException;
 import org.springframework.data.neo4j.support.query.ConversionServiceQueryResultConverter;
 import org.springframework.data.neo4j.support.query.QueryEngine;
@@ -48,7 +46,6 @@ public class SpringRestGraphDatabase extends org.neo4j.rest.graphdb.RestGraphDat
     }
     private ConversionService conversionService;
     private ResultConverter resultConverter;
-    private GraphDatabaseGlobalOperations globalOperations;
 
     public SpringRestGraphDatabase( RestAPI api){
     	super(api);
@@ -60,14 +57,6 @@ public class SpringRestGraphDatabase extends org.neo4j.rest.graphdb.RestGraphDat
 
     public SpringRestGraphDatabase( String uri, String user, String password ) {
         this(new RestAPIFacade( uri, user, password ));
-    }
-
-    @Override
-    public GraphDatabaseGlobalOperations getGlobalGraphOperations() {
-        if (this.globalOperations == null) {
-            this.globalOperations = new DelegatingGraphDatabaseGlobalOperations(this);
-        }
-        return globalOperations;
     }
 
     @Override

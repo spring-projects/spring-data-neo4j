@@ -26,8 +26,12 @@ import org.springframework.data.neo4j.conversion.ResultConverter;
 import org.springframework.data.neo4j.core.GraphDatabase;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
 import org.springframework.data.test.DocumentingTestBase;
+import org.springframework.test.context.CleanContextCacheTestExecutionListener;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.TestExecutionListeners;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
+import org.springframework.test.context.transaction.TransactionalTestExecutionListener;
 import org.springframework.transaction.annotation.Transactional;
 
 import static java.util.Arrays.asList;
@@ -35,10 +39,16 @@ import static org.junit.Assert.assertEquals;
 import static org.neo4j.helpers.collection.MapUtil.map;
 
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(locations = {"classpath*:DocumentingTests-context.xml"})
+@ContextConfiguration(locations = {"classpath:DocumentingTests-context.xml"})
+@TestExecutionListeners({
+        CleanContextCacheTestExecutionListener.class,
+        DependencyInjectionTestExecutionListener.class,
+        TransactionalTestExecutionListener.class})
 public class SnippetNeo4jTemplateMethodsTests extends DocumentingTestBase {
+
     @Autowired
-    private GraphDatabase graphDatabase;
+    private Neo4jTemplate neo;
+
     private static final RelationshipType WORKS_WITH = DynamicRelationshipType.withName("WORKS_WITH");
 
     @Test
@@ -54,8 +64,8 @@ public class SnippetNeo4jTemplateMethodsTests extends DocumentingTestBase {
         snippet = "template";
 
         // SNIPPET template
-        // TODO auto-post-construct !!
-        final Neo4jTemplate neo = new Neo4jTemplate(graphDatabase);
+
+        // Injected Neo4jTemplate to make this test work. Impact for snippet?
 
         Node mark = neo.createNode(map("name", "Mark"));
         Node thomas = neo.createNode(map("name", "Thomas"));
