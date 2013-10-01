@@ -56,7 +56,7 @@ public class TypeRepresentationStrategyFactory {
             if (SubReferenceNodeTypeRepresentationStrategy.isStrategyAlreadyInUse(graphDatabaseService)) return Strategy.SubRef;
             if (LabelBasedNodeTypeRepresentationStrategy.isStrategyAlreadyInUse(graphDatabaseService)) return Strategy.Labeled;
             tx.success();
-            return Strategy.Indexed;
+            return Strategy.Labeled;
         }
     }
 
@@ -92,7 +92,7 @@ public class TypeRepresentationStrategyFactory {
 
             @Override
             public RelationshipTypeRepresentationStrategy getRelationshipTypeRepresentationStrategy(GraphDatabase graphDatabaseService, IndexProvider indexProvider) {
-                return new NoopRelationshipTypeRepresentationStrategy();
+                return new IndexBasedRelationshipTypeRepresentationStrategy(graphDatabaseService, indexProvider);
             }
         },
         Indexed {

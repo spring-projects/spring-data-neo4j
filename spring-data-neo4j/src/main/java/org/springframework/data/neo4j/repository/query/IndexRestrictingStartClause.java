@@ -25,6 +25,6 @@ public class IndexRestrictingStartClause extends StartClause {
 
     @Override
     public String toString() {
-        return String.format(QueryTemplates.DEFAULT_START_CLAUSE, getPartInfo().getIdentifier(), className);
+        return String.format(QueryTemplates.DEFAULT_INDEXBASED_START_CLAUSE, getPartInfo().getIdentifier(), className);
     }
 }

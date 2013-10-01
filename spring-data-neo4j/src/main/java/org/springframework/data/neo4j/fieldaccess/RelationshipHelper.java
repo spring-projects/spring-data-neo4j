@@ -15,13 +15,11 @@
  */
 package org.springframework.data.neo4j.fieldaccess;
 
-import org.neo4j.graphdb.Direction;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Relationship;
-import org.neo4j.graphdb.RelationshipType;
+import org.neo4j.graphdb.*;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.neo4j.mapping.MappingPolicy;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
+import org.springframework.data.neo4j.support.typerepresentation.LabelBasedNodeTypeRepresentationStrategy;
 import org.springframework.util.Assert;
 
 import java.util.HashSet;
@@ -75,8 +73,13 @@ public class RelationshipHelper {
         for ( Relationship relationship : node.getRelationships( type, direction ) ) {
             if ( !targetNodes.remove( relationship.getOtherNode( node ) ) ) {
                 if ( targetType != null ) {
-                    Object actualTargetType = relationship.getOtherNode( node ).getProperty( "__type__" );
-
+                    Object actualTargetType = tryDetermineTypeAssumingIndexBasedStrategy(relationship, node);
+                    if (actualTargetType == null) {
+                        actualTargetType = tryDetermineTypeAssumingLabelBasedStrategy(relationship, node);
+                    }
+                    if (actualTargetType == null) {
+                        throw new RuntimeException("Neither a property or Label could be found to work out what the type of the node is at the other end of the relationship ");
+                    }
                     try {
                         if (! targetType.isAssignableFrom(Class.forName((String) actualTargetType))) {
                             continue;
@@ -89,6 +92,28 @@ public class RelationshipHelper {
                 template.delete( relationship );
             }
         }
+    }
+
+    private Object tryDetermineTypeAssumingLabelBasedStrategy(Relationship relationship,Node node) {
+
+        ResourceIterable<Label> labels = relationship.getOtherNode(node).getLabels();
+        ResourceIterator<Label> iterator = labels.iterator();
+        try {
+            while (iterator.hasNext()) {
+                Label l = iterator.next();
+                if (l.name().startsWith(LabelBasedNodeTypeRepresentationStrategy.LABELSTRATEGY_PREFIX)) {
+                    return l.name().substring(LabelBasedNodeTypeRepresentationStrategy.LABELSTRATEGY_PREFIX.length());
+                }
+            }
+        } finally {
+            iterator.close();
+        }
+        return null;
+
+    }
+
+    private Object tryDetermineTypeAssumingIndexBasedStrategy(Relationship relationship,Node node) {
+        return relationship.getOtherNode( node ).getProperty( "__type__" , null);
     }
 
     protected void createAddedRelationships(Node node, Set<Node> targetNodes) {

@@ -39,6 +39,7 @@ import org.springframework.data.neo4j.support.Neo4jTemplate;
 import org.springframework.data.neo4j.support.index.NoSuchIndexException;
 import org.springframework.data.neo4j.support.index.NullReadableIndex;
 import org.springframework.data.neo4j.support.query.QueryEngine;
+import org.springframework.data.neo4j.support.typerepresentation.LabelBasedNodeTypeRepresentationStrategy;
 
 import java.util.*;
 
@@ -347,7 +348,9 @@ public abstract class AbstractGraphRepository<S extends PropertyContainer, T> im
 
     @Override
     public EndResult<T> findAll(Sort sort) {
-        CypherQuery cq = new CypherQuery(template.getEntityType(clazz).getEntity(),template);
+        // TODO : Do nicer mechanism for working out if labels are in play
+        boolean useLabels = template.getInfrastructure().getNodeTypeRepresentationStrategy() instanceof LabelBasedNodeTypeRepresentationStrategy;
+        CypherQuery cq = new CypherQuery(template.getEntityType(clazz).getEntity(),template,useLabels);
         return query(cq.toQueryString(sort), Collections.EMPTY_MAP);
     }
 

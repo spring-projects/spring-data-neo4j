@@ -20,6 +20,7 @@ import org.springframework.data.mapping.context.MappingContext;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentEntity;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
+import org.springframework.data.neo4j.support.typerepresentation.LabelBasedNodeTypeRepresentationStrategy;
 import org.springframework.data.repository.query.parser.Part;
 
 /**
@@ -35,7 +36,9 @@ class CypherQueryBuilder {
     public CypherQueryBuilder(MappingContext<? extends Neo4jPersistentEntity<?>, Neo4jPersistentProperty> context, Class<?> type, Neo4jTemplate template) {
         this.context = context;
         Neo4jPersistentEntity<?> entity = context.getPersistentEntity(type);
-        this.query = new CypherQuery(entity, template);
+        // TODO : Do nicer mechanism for working out if labels are in play
+        boolean useLabels = template.getInfrastructure().getNodeTypeRepresentationStrategy() instanceof LabelBasedNodeTypeRepresentationStrategy;
+        this.query = new CypherQuery(entity, template, useLabels);
     }
 
     public CypherQueryBuilder asCountQuery() {

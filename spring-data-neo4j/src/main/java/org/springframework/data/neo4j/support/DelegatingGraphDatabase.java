@@ -33,7 +33,6 @@ import org.springframework.data.neo4j.conversion.DefaultConverter;
 import org.springframework.data.neo4j.conversion.Result;
 import org.springframework.data.neo4j.conversion.ResultConverter;
 import org.springframework.data.neo4j.core.GraphDatabase;
-import org.springframework.data.neo4j.core.GraphDatabaseGlobalOperations;
 import org.springframework.data.neo4j.support.index.IndexType;
 import org.springframework.data.neo4j.support.index.NoSuchIndexException;
 import org.springframework.data.neo4j.support.query.ConversionServiceQueryResultConverter;
@@ -56,7 +55,6 @@ public class DelegatingGraphDatabase implements GraphDatabase {
 
     private static final Logger log = LoggerFactory.getLogger(DelegatingGraphDatabase.class);
 
-    protected GraphDatabaseGlobalOperations globalOperations;
     protected GraphDatabaseService delegate;
     private ConversionService conversionService;
     private ResultConverter resultConverter;
@@ -69,7 +67,6 @@ public class DelegatingGraphDatabase implements GraphDatabase {
     public DelegatingGraphDatabase(final GraphDatabaseService delegate, ResultConverter resultConverter) {
         this.delegate = delegate;
         this.resultConverter = resultConverter;
-        this.globalOperations = new DelegatingGraphDatabaseGlobalOperations(delegate);
     }
 
     public void setConversionService(ConversionService conversionService) {
@@ -77,13 +74,23 @@ public class DelegatingGraphDatabase implements GraphDatabase {
     }
 
     @Override
-    public GraphDatabaseGlobalOperations getGlobalGraphOperations() {
-        return globalOperations;
-    }
-
-    @Override
     public void setResultConverter(ResultConverter resultConverter) {
         this.resultConverter = resultConverter;
+
+        // At present, the current config may result in the scenario where
+        // the query engine was requested very early on in the lifecycle
+        // (for Type Representation Strategy) and at that stage, only the
+        // default ResultConverter was available, and thus used to create
+        // the query engines. (TODO - Try change ordering if possible)
+        //
+        // In this case we re-initialise it to ensure it uses this latest
+        // result Converter (as it is currently cached)
+        reinitQueryEngines();
+    }
+
+    private void reinitQueryEngines() {
+        if (cypherQueryEngine != null) this.cypherQueryEngine = queryEngineFor(QueryType.Cypher, resultConverter, true);
+        if (gremlinQueryEngine != null) this.gremlinQueryEngine = queryEngineFor(QueryType.Gremlin, resultConverter, true);
     }
 
     @Override
@@ -195,25 +202,30 @@ public class DelegatingGraphDatabase implements GraphDatabase {
     }
 
     @SuppressWarnings("unchecked")
-    public <T> QueryEngine<T> queryEngineFor(QueryType type,ResultConverter resultConverter) {
+    private <T> QueryEngine<T> queryEngineFor(QueryType type,ResultConverter resultConverter,boolean reinit) {
         switch (type) {
             case Cypher:  {
-                if (cypherQueryEngine==null)
+                if (reinit || cypherQueryEngine==null)
                     synchronized (this) {
-                        if (cypherQueryEngine==null) cypherQueryEngine = createCypherQueryEngine(resultConverter);
+                        if (reinit || cypherQueryEngine==null) cypherQueryEngine = createCypherQueryEngine(resultConverter);
                     }
                 return (QueryEngine<T>) cypherQueryEngine;
             }
             case Gremlin: {
-                if (gremlinQueryEngine==null) {
+                if (reinit || gremlinQueryEngine==null) {
                     synchronized (this) {
-                        if (gremlinQueryEngine==null) gremlinQueryEngine=createGremlinQueryEngine(resultConverter);
+                        if (reinit || gremlinQueryEngine==null) gremlinQueryEngine=createGremlinQueryEngine(resultConverter);
                     }
                 }
                 return (QueryEngine<T>) gremlinQueryEngine;
             }
         }
         throw new IllegalArgumentException("Unknown Query Engine Type "+type);
+    }
+
+    @SuppressWarnings("unchecked")
+    public <T> QueryEngine<T> queryEngineFor(QueryType type,ResultConverter resultConverter) {
+        return queryEngineFor(type,resultConverter,false);
     }
 
     private <T> QueryEngine<T> createGremlinQueryEngine(ResultConverter resultConverter) {

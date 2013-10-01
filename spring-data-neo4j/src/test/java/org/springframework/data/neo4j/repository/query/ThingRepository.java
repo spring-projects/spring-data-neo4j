@@ -20,9 +20,9 @@ import org.springframework.data.neo4j.repository.GraphRepository;
 import java.util.Collection;
 import java.util.Date;
 
-import static org.springframework.data.neo4j.repository.query.DerivedFinderMethodTests.Thing;
+import static org.springframework.data.neo4j.repository.query.AbstractDerivedFinderMethodTestBase.Thing;
 
-public interface ThingRepository extends GraphRepository<DerivedFinderMethodTests.Thing> {
+public interface ThingRepository extends GraphRepository<AbstractDerivedFinderMethodTestBase.Thing> {
     Thing findByFirstNameAndLastName(String firstName, String lastName);
     Thing findByFirstName(String firstName);
     Thing findByDescription(String firstName);
