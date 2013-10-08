@@ -44,8 +44,10 @@ import static org.mockito.Mockito.when;
  */
 public abstract class AbstractCypherQueryBuilderTestBase {
 
-    CypherQueryBuilder query;
-    String queryString;
+    // Allow subclasses to provide specific expectations
+    protected String   trsSpecificExpectedQuery;
+    private CypherQueryBuilder query;
+
     final static String CLASS_NAME = Person.class.getSimpleName();
 
     @Before
@@ -55,199 +57,138 @@ public abstract class AbstractCypherQueryBuilderTestBase {
         Infrastructure inf = Mockito.mock(Infrastructure.class);
         when (template.getInfrastructure()).thenReturn(inf);
         when (inf.getNodeTypeRepresentationStrategy()).thenReturn(getNodeTypeRepresentationStrategy());
-        query = new CypherQueryBuilder(context, Person.class, template);
-        queryString = null;
+        this.query = new CypherQueryBuilder(context, Person.class, template);
+        this.trsSpecificExpectedQuery = null;
     }
 
     abstract NodeTypeRepresentationStrategy getNodeTypeRepresentationStrategy();
 
-    /**
-     * To be used in conjunction with
-     * buildQueryForCreatesQueryForSimplePropertyReference()
-     */
     @Test
-    public abstract void createsQueryForSimplePropertyReference();
-    protected void buildQueryForCreatesQueryForSimplePropertyReference()
-    {
+    public void createsQueryForSimplePropertyReference() {
         Part part = new Part("name", Person.class);
         query.addRestriction(part);
-        queryString = query.toString();
+        assertThat(query.toString(),
+                is(getExpectedQuery("START `person`=node:`Person`(`name`={0}) RETURN `person`")));
     }
 
-    /**
-     * To be used in conjunction with
-     * buildQueryForCreatesQueryForLikePropertyIndex()
-     */
     @Test
-    public abstract void createsQueryForLikePropertyIndex();
-    protected void buildQueryForCreatesQueryForLikePropertyIndex() {
+    public void createsQueryForLikePropertyIndex() {
         Part part = new Part("titleLike", Person.class);
         query.addRestriction(part);
-        queryString = query.toString();
+        assertThat(query.toString(),
+                is(getExpectedQuery("START `person`=node:`title`({0}) RETURN `person`")));
     }
 
-    /**
-     * To be used in conjunction with
-     * buildQueryForCreatesQueryForLikeProperty()
-     */
     @Test
-    public abstract void createsQueryForLikeProperty();
-    public void buildQueryForCreatesQueryForLikeProperty() {
+    public void createsQueryForLikeProperty() {
         Part part = new Part("infoLike", Person.class);
         query.addRestriction(part);
-        queryString = query.toString();
+        assertThat(query.toString(), is( getExpectedQuery("trs-specific-test-subclass-expected-to-set-value")));
     }
 
-    /**
-     * To be used in conjunction with
-     * buildQueryForCreatesQueryForGreaterThanPropertyReference()
-     */
     @Test
-    public abstract void createsQueryForGreaterThanPropertyReference();
-    public void buildQueryForCreatesQueryForGreaterThanPropertyReference() {
+    public void createsQueryForGreaterThanPropertyReference() {
         Part part = new Part("ageGreaterThan", Person.class);
         query.addRestriction(part);
-        queryString = query.toString();
+        assertThat(query.toString(), is( getExpectedQuery("trs-specific-test-subclass-expected-to-set-value")));
     }
 
-    /**
-     * To be used in conjunction with
-     * buildQueryForCreatesQueryForTwoPropertyExpressions()
-     */
     @Test
-    public abstract void createsQueryForTwoPropertyExpressions();
-    public void buildQueryForCreatesQueryForTwoPropertyExpressions() {
+    public void createsQueryForTwoPropertyExpressions() {
         query.addRestriction(new Part("ageGreaterThan", Person.class));
         query.addRestriction(new Part("info", Person.class));
-        queryString = query.toString();
+        assertThat(query.toString(), is( getExpectedQuery("trs-specific-test-subclass-expected-to-set-value")));
     }
 
-    /**
-     * To be used in conjunction with
-     * buildQueryForCreatesQueryForIsNullPropertyReference()
-     */
     @Test
-    public abstract void createsQueryForIsNullPropertyReference();
-    public void buildQueryForCreatesQueryForIsNullPropertyReference() {
+    public void createsQueryForIsNullPropertyReference() {
         Part part = new Part("ageIsNull", Person.class);
         query.addRestriction(part);
-        queryString = query.toString();
+        assertThat(query.toString(), is( getExpectedQuery("trs-specific-test-subclass-expected-to-set-value")));
     }
 
-    /**
-     * To be used in conjunction with
-     * buildQueryForCreatesQueryForPropertyOnRelationShipReference()
-     */
     @Test
-    public abstract void createsQueryForPropertyOnRelationShipReference();
-    public void buildQueryForCreatesQueryForPropertyOnRelationShipReference() {
+    public void createsQueryForPropertyOnRelationShipReference() {
         Part part = new Part("group.name", Person.class);
         query.addRestriction(part);
-        queryString = query.toString();
+        assertThat(query.toString(), is( getExpectedQuery("trs-specific-test-subclass-expected-to-set-value")));
     }
 
-    /**
-     * To be used in conjunction with
-     * buildQueryForCreatesQueryForMultipleStartClauses()
-     */
     @Test
-    public abstract void createsQueryForMultipleStartClauses();
-    public void buildQueryForCreatesQueryForMultipleStartClauses() {
+    public void createsQueryForMultipleStartClauses() {
         query.addRestriction(new Part("name", Person.class));
         query.addRestriction(new Part("group.name", Person.class));
-        queryString = query.toString();
+        assertThat(query.toString(), is( getExpectedQuery("trs-specific-test-subclass-expected-to-set-value")));
     }
 
-    /**
-     * To be used in conjunction with
-     * buildQueryForCreatesSimpleWhereClauseCorrectly()
-     */
     @Test
-    public abstract void createsSimpleWhereClauseCorrectly();
-    public void buildQueryForCreatesSimpleWhereClauseCorrectly() {
+    public void createsSimpleWhereClauseCorrectly() {
         query.addRestriction(new Part("age", Person.class));
-        queryString = query.toString();
+        assertThat(query.toString(), is( getExpectedQuery("trs-specific-test-subclass-expected-to-set-value")));
     }
 
-    /**
-     * To be used in conjunction with
-     * buildQueryForCreatesSimpleTraversalClauseCorrectly()
-     */
+
     @Test
-    public abstract void createsSimpleTraversalClauseCorrectly();
-    public void buildQueryForCreatesSimpleTraversalClauseCorrectly() {
+    public void createsSimpleTraversalClauseCorrectly() {
         query.addRestriction(new Part("group", Person.class));
-        queryString = query.toString();
+        assertThat(query.toString(), is( getExpectedQuery("trs-specific-test-subclass-expected-to-set-value")));
     }
 
-    /**
-     * To be used in conjunction with
-     * buildQueryForBuildsComplexQueryCorrectly()
-     */
+
     @Test
-    public abstract void buildsComplexQueryCorrectly();
-    public void buildQueryForBuildsComplexQueryCorrectly() {
+    public void buildsComplexQueryCorrectly() {
         query.addRestriction(new Part("name", Person.class));
         query.addRestriction(new Part("groupName", Person.class));
         query.addRestriction(new Part("ageGreaterThan", Person.class));
         query.addRestriction(new Part("groupMembersAge", Person.class));
-        queryString = query.toString();
+        assertThat(query.toString(), is( getExpectedQuery("trs-specific-test-subclass-expected-to-set-value")));
     }
 
-    /**
-     * To be used in conjunction with
-     * buildQueryForBuildsQueryWithSort()
-     */
     @Test
-    public abstract void buildsQueryWithSort();
-    public void buildQueryForBuildsQueryWithSort() {
+    public void buildsQueryWithSort() {
         query.addRestriction(new Part("name",Person.class));
-        queryString = query.buildQuery(new Sort("person.name")).toQueryString();
+        String queryString = query.buildQuery(new Sort("person.name")).toQueryString();
+        assertThat(queryString, is("START `person`=node:`Person`(`name`={0}) RETURN `person` ORDER BY person.name ASC"));
     }
 
-    /**
-     * To be used in conjunction with
-     * buildQueryForBuildsQueryWithSort()
-     */
     @Test
-    public abstract void buildsQueryWithTwoSorts();
-    public void buildQueryForBuildsQueryWithTwoSorts() {
+    public void buildsQueryWithTwoSorts() {
         query.addRestriction(new Part("name",Person.class));
         Sort sort = new Sort(new Sort.Order("person.name"),new Sort.Order(Sort.Direction.DESC, "person.age"));
-        queryString = query.buildQuery(sort).toQueryString();
+        String queryString = query.buildQuery(sort).toQueryString();
+        assertThat(queryString, is("START `person`=node:`Person`(`name`={0}) RETURN `person` ORDER BY person.name ASC,person.age DESC"));
     }
 
-    /**
-     * To be used in conjunction with
-     * buildQueryForBuildsQueryWithSort()
-     */
     @Test
-    public abstract void buildsQueryWithPage();
-    public void buildQueryForBuildsQueryWithPage() {
+    public void buildsQueryWithPage() {
         query.addRestriction(new Part("name",Person.class));
         Pageable pageable = new PageRequest(3,10,new Sort("person.name"));
-        queryString = query.buildQuery().toQueryString(pageable);
+        String queryString = query.buildQuery().toQueryString(pageable);
+        assertThat(queryString, is("START `person`=node:`Person`(`name`={0}) RETURN `person` ORDER BY person.name ASC SKIP 30 LIMIT 10"));
     }
 
-    /**
-     * To be used in conjunction with
-     * buildQueryForShouldFindByNodeEntityForIncomingRelationship()
-     */
     @Test
-    public abstract void shouldFindByNodeEntity() throws Exception;
-    public void buildQueryForShouldFindByNodeEntity() throws Exception {
+    public void shouldFindByNodeEntity() throws Exception {
         query.addRestriction(new Part("pet", Person.class));
-        queryString = query.toString();
+        assertThat(query.toString(), is( getExpectedQuery("trs-specific-test-subclass-expected-to-set-value")));
+    }
+
+    @Test
+    public void shouldFindByNodeEntityForIncomingRelationship() {
+        query.addRestriction(new Part("group", Person.class));
+        assertThat(query.toString(), is( getExpectedQuery("trs-specific-test-subclass-expected-to-set-value")));
     }
 
     /**
-     * To be used in conjunction with
-     * buildQueryForShouldFindByNodeEntityForIncomingRelationship()
+     * This Abstract class defines the template for how to test, however
+     * gives subclasses an opportunity to override the expected query
+     * if it is different / specific for the TRS being used.
+     * This method will either return the trs specific query string if
+     * this was set, otherwise the default value passed in.
      */
-    @Test
-    public abstract void shouldFindByNodeEntityForIncomingRelationship();
-    public void buildQueryForShouldFindByNodeEntityForIncomingRelationship() {
-        query.addRestriction(new Part("group", Person.class));
-        queryString = query.toString();
+    private String getExpectedQuery(String defaultQueryString) {
+        return (this.trsSpecificExpectedQuery != null)
+                ? this.trsSpecificExpectedQuery
+                : defaultQueryString;
     }
 }

@@ -33,6 +33,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.neo4j.annotation.QueryType;
 import org.springframework.data.neo4j.conversion.EndResult;
 import org.springframework.data.neo4j.conversion.Result;
+import org.springframework.data.neo4j.core.TypeRepresentationStrategy;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.repository.query.CypherQuery;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
@@ -348,9 +349,8 @@ public abstract class AbstractGraphRepository<S extends PropertyContainer, T> im
 
     @Override
     public EndResult<T> findAll(Sort sort) {
-        // TODO : Do nicer mechanism for working out if labels are in play
-        boolean useLabels = template.getInfrastructure().getNodeTypeRepresentationStrategy() instanceof LabelBasedNodeTypeRepresentationStrategy;
-        CypherQuery cq = new CypherQuery(template.getEntityType(clazz).getEntity(),template,useLabels);
+        TypeRepresentationStrategy nodeTypeRepresentationStrategy = template.getInfrastructure().getNodeTypeRepresentationStrategy();
+        CypherQuery cq = new CypherQuery(template.getEntityType(clazz).getEntity(),template,nodeTypeRepresentationStrategy);
         return query(cq.toQueryString(sort), Collections.EMPTY_MAP);
     }
 

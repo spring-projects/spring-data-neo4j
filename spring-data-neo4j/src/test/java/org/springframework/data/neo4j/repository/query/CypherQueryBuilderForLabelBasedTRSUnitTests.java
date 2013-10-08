@@ -32,7 +32,7 @@ import static org.junit.Assert.assertThat;
  */
 public class CypherQueryBuilderForLabelBasedTRSUnitTests extends AbstractCypherQueryBuilderTestBase {
 
-    private final static String DEFAULT_START_CLAUSE = " MATCH `person`:`" + CLASS_NAME + "`";
+    private final static String DEFAULT_MATCH_STARTING_CLAUSE = " MATCH `person`:`" + CLASS_NAME + "`";
 
     @Before
     public void setUp() {
@@ -45,125 +45,90 @@ public class CypherQueryBuilderForLabelBasedTRSUnitTests extends AbstractCypherQ
 
     @Override
     @Test
-    public void createsQueryForSimplePropertyReference() {
-        buildQueryForCreatesQueryForSimplePropertyReference();
-        assertThat(queryString,
-                is("START `person`=node:`Person`(`name`={0}) RETURN `person`"));
-    }
-
-    @Override
-    @Test
-    public void createsQueryForLikePropertyIndex() {
-        buildQueryForCreatesQueryForLikePropertyIndex();
-        assertThat(queryString, is("START `person`=node:`title`({0}) RETURN `person`"));
-    }
-
-    @Override
-    @Test
     public void createsQueryForLikeProperty() {
-        buildQueryForCreatesQueryForLikeProperty();
-        assertThat(queryString, is(DEFAULT_START_CLAUSE+" WHERE `person`.`info` =~ {0} RETURN `person`"));
+        this.trsSpecificExpectedQuery = DEFAULT_MATCH_STARTING_CLAUSE +" WHERE `person`.`info` =~ {0} RETURN `person`";
+        super.createsQueryForLikeProperty();
     }
 
     @Override
     @Test
     public void createsQueryForGreaterThanPropertyReference() {
-        buildQueryForCreatesQueryForGreaterThanPropertyReference();
-        assertThat(queryString, is(DEFAULT_START_CLAUSE+" WHERE `person`.`age` > {0} RETURN `person`"));
+        this.trsSpecificExpectedQuery = DEFAULT_MATCH_STARTING_CLAUSE +" WHERE `person`.`age` > {0} RETURN `person`";
+        super.createsQueryForGreaterThanPropertyReference();
     }
 
     @Override
     @Test
     public void createsQueryForTwoPropertyExpressions() {
-        buildQueryForCreatesQueryForTwoPropertyExpressions();
-        assertThat(queryString, is(DEFAULT_START_CLAUSE+" WHERE `person`.`age` > {0} AND `person`.`info` = {1} RETURN `person`"));
+        this.trsSpecificExpectedQuery = DEFAULT_MATCH_STARTING_CLAUSE +" WHERE `person`.`age` > {0} AND `person`.`info` = {1} RETURN `person`";
+        super.createsQueryForTwoPropertyExpressions();
     }
 
     @Override
     @Test
     public void createsQueryForIsNullPropertyReference() {
-        buildQueryForCreatesQueryForIsNullPropertyReference();
-        assertThat(queryString, is(DEFAULT_START_CLAUSE+" WHERE `person`.`age` is null  RETURN `person`"));
+        this.trsSpecificExpectedQuery = DEFAULT_MATCH_STARTING_CLAUSE +" WHERE `person`.`age` is null  RETURN `person`";
+        super.createsQueryForIsNullPropertyReference();
     }
 
     @Override
     @Test
     public void createsQueryForPropertyOnRelationShipReference() {
-        buildQueryForCreatesQueryForPropertyOnRelationShipReference();
-        assertThat(queryString, is("START `person_group`=node:`Group`(`name`={0}) MATCH `person`<-[:`members`]-`person_group` RETURN `person`"));
+        this.trsSpecificExpectedQuery = "START `person_group`=node:`Group`(`name`={0}) MATCH `person`<-[:`members`]-`person_group` RETURN `person`";
+        super.createsQueryForPropertyOnRelationShipReference();
     }
 
     @Override
     @Test
     public void createsQueryForMultipleStartClauses() {
-        buildQueryForCreatesQueryForMultipleStartClauses();
-        assertThat(queryString,
-                is("START `person`=node:`Person`(" +
+        this.trsSpecificExpectedQuery =
+                   "START `person`=node:`Person`(" +
                         "`name`={0}), " +
                         "`person_group`=node:" +
                         "`Group`(`name`={1}) " +
                    "MATCH `person`<-[:`members`]-`person_group` " +
-                   "RETURN `person`"));
+                   "RETURN `person`";
+        super.createsQueryForMultipleStartClauses();
     }
 
     @Override
     @Test
     public void createsSimpleWhereClauseCorrectly() {
-        buildQueryForCreatesSimpleWhereClauseCorrectly();
-        assertThat(queryString, is(DEFAULT_START_CLAUSE +" WHERE `person`.`age` = {0} RETURN `person`"));
+        this.trsSpecificExpectedQuery = DEFAULT_MATCH_STARTING_CLAUSE +" WHERE `person`.`age` = {0} RETURN `person`";
+        super.createsSimpleWhereClauseCorrectly();
     }
 
     @Override
     @Test
     public void createsSimpleTraversalClauseCorrectly() {
-        buildQueryForCreatesSimpleTraversalClauseCorrectly();
-        assertThat(queryString, is("START `person_group`=node({0}) MATCH `person`<-[:`members`]-`person_group` WHERE `person`:`Person` RETURN `person`"));
+        this.trsSpecificExpectedQuery = "START `person_group`=node({0}) MATCH `person`<-[:`members`]-`person_group` WHERE `person`:`Person` RETURN `person`";
+        super.createsSimpleTraversalClauseCorrectly();
     }
 
     @Override
     @Test
     public void buildsComplexQueryCorrectly() {
-        buildQueryForBuildsComplexQueryCorrectly();
-        assertThat(queryString, is(
+        this.trsSpecificExpectedQuery =
                 "START `person`=node:`Person`(`name`={0}), `person_group`=node:`Group`(`name`={1}) " +
                         "MATCH `person`<-[:`members`]-`person_group`, `person`<-[:`members`]-`person_group`-[:`members`]->`person_group_members` " +
                         "WHERE `person`.`age` > {2} AND `person_group_members`.`age` = {3} " +
-                        "RETURN `person`"
-                ));
-    }
+                        "RETURN `person`";
+        super.buildsComplexQueryCorrectly();
 
-    @Override
-    @Test
-    public void buildsQueryWithSort() {
-        buildQueryForBuildsQueryWithSort();
-        assertThat(queryString, is("START `person`=node:`Person`(`name`={0}) RETURN `person` ORDER BY person.name ASC"));
-    }
-
-    @Override
-    @Test
-    public void buildsQueryWithTwoSorts() {
-        buildQueryForBuildsQueryWithTwoSorts();
-        assertThat(queryString, is("START `person`=node:`Person`(`name`={0}) RETURN `person` ORDER BY person.name ASC,person.age DESC"));
-    }
-
-    @Override
-    @Test
-    public void buildsQueryWithPage() {
-        buildQueryForBuildsQueryWithPage();
-        assertThat(queryString, is("START `person`=node:`Person`(`name`={0}) RETURN `person` ORDER BY person.name ASC SKIP 30 LIMIT 10"));
     }
 
     @Override
     @Test
     public void shouldFindByNodeEntity() throws Exception {
-        buildQueryForShouldFindByNodeEntity();
-        assertThat(queryString, is("START `person_pet`=node({0}) MATCH `person`-[:`owns`]->`person_pet` WHERE `person`:`Person` RETURN `person`"));
+        this.trsSpecificExpectedQuery = "START `person_pet`=node({0}) MATCH `person`-[:`owns`]->`person_pet` WHERE `person`:`Person` RETURN `person`";
+        super.shouldFindByNodeEntity();
     }
 
     @Override
     @Test
     public void shouldFindByNodeEntityForIncomingRelationship() {
-        buildQueryForShouldFindByNodeEntityForIncomingRelationship();
-        assertThat(queryString, is("START `person_group`=node({0}) MATCH `person`<-[:`members`]-`person_group` WHERE `person`:`Person` RETURN `person`"));
+        this.trsSpecificExpectedQuery = "START `person_group`=node({0}) MATCH `person`<-[:`members`]-`person_group` WHERE `person`:`Person` RETURN `person`";
+        super.shouldFindByNodeEntityForIncomingRelationship();
     }
+
 }

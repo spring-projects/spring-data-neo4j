@@ -36,9 +36,7 @@ class CypherQueryBuilder {
     public CypherQueryBuilder(MappingContext<? extends Neo4jPersistentEntity<?>, Neo4jPersistentProperty> context, Class<?> type, Neo4jTemplate template) {
         this.context = context;
         Neo4jPersistentEntity<?> entity = context.getPersistentEntity(type);
-        // TODO : Do nicer mechanism for working out if labels are in play
-        boolean useLabels = template.getInfrastructure().getNodeTypeRepresentationStrategy() instanceof LabelBasedNodeTypeRepresentationStrategy;
-        this.query = new CypherQuery(entity, template, useLabels);
+        this.query = new CypherQuery(entity, template, template.getInfrastructure().getNodeTypeRepresentationStrategy());
     }
 
     public CypherQueryBuilder asCountQuery() {
