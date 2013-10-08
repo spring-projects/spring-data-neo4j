@@ -47,6 +47,7 @@ public class DerivedFinderMethodForLabelBasedTRSTests extends AbstractDerivedFin
 
     @Before
     public void setup() {
+        super.setup();
         assertThat("The tests in this class should be configured to use the Label " +
                    "based Type Representation Strategy, however it is not ... ",
                 strategy, instanceOf(LabelBasedNodeTypeRepresentationStrategy.class));
@@ -55,8 +56,8 @@ public class DerivedFinderMethodForLabelBasedTRSTests extends AbstractDerivedFin
     @Test
     @Override
     public void testQueryWithEntityGraphId() throws Exception {
-        assertRepositoryQueryMethod(ThingRepository.class, "findByOwnerId",new Object[]{123},
-                "START `thing_owner`=node({0}) MATCH `thing`-[:`owner`]->`thing_owner` WHERE `thing`:`org.springframework.data.neo4j.repository.query.AbstractDerivedFinderMethodTestBase$Thing` ",
-                123);
+        this.trsSpecificExpectedQuery = "START `thing_owner`=node({0}) MATCH `thing`-[:`owner`]->`thing_owner` WHERE `thing`:`org.springframework.data.neo4j.repository.query.AbstractDerivedFinderMethodTestBase$Thing` ";
+        this.trsSpecificExpectedParams = new Object[] { 123 };
+        super.testQueryWithEntityGraphId();
     }
 }

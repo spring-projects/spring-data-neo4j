@@ -18,9 +18,12 @@ package org.springframework.data.neo4j.repository.query;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mapping.context.PersistentPropertyPath;
+import org.springframework.data.neo4j.core.TypeRepresentationStrategy;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentEntity;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
+import org.springframework.data.neo4j.support.typerepresentation.LabelBasedNodeTypeRepresentationStrategy;
+import org.springframework.data.neo4j.support.typerepresentation.TypeRepresentationStrategyFactory;
 import org.springframework.data.repository.query.Parameter;
 import org.springframework.data.repository.query.parser.Part;
 
@@ -42,17 +45,17 @@ public class CypherQuery implements CypherQueryDefinition {
     private boolean isCountQuery = false;
     private boolean useLabels = false;
 
-    public CypherQuery(final Neo4jPersistentEntity<?> entity, Neo4jTemplate template, boolean useLabels) {
+    public CypherQuery(final Neo4jPersistentEntity<?> entity, Neo4jTemplate template, TypeRepresentationStrategy nodeTypeRepresentationStrategy) {
         this.entity = entity;
         this.template = template;
-        this.useLabels = useLabels;
+        this.useLabels = nodeTypeRepresentationStrategy instanceof LabelBasedNodeTypeRepresentationStrategy;
     }
 
     private String getEntityName(Neo4jPersistentEntity<?> entity) {
         return variableContext.getVariableFor(entity);
     }
 
-    private String defaultLegacyStartClause(Neo4jPersistentEntity<?> entity) {
+    private String defaultIndexBasedStartClause(Neo4jPersistentEntity<?> entity) {
         return  String.format(QueryTemplates.DEFAULT_INDEXBASED_START_CLAUSE,
                 getEntityName(entity),
                 entity.getEntityType().getAlias());
@@ -171,15 +174,15 @@ public class CypherQuery implements CypherQueryDefinition {
     }
 
     private String render() {
-        String legacyStartClauses = collectionToDelimitedString(this.startClauses, ", ");
+        String startClauses = collectionToDelimitedString(this.startClauses, ", ");
         String matchClauses = toQueryString(this.matchClauses);
         String whereClauses = collectionToDelimitedString(this.whereClauses, " AND ");
 
         StringBuilder builder = new StringBuilder("");
 
         boolean matchKeyWordUsed = false;
-        boolean legacyStartClauseUsed = buildInLegacyStartClauses(builder,legacyStartClauses);
-        if (!legacyStartClauseUsed && useLabels) {
+        boolean startClauseUsed = buildStartClauseIfRequired(builder, startClauses);
+        if (!startClauseUsed && useLabels) {
             matchKeyWordUsed = true;
             builder.append(" MATCH ").append(defaultMatchBasedStartClause(entity));
         }
@@ -205,13 +208,13 @@ public class CypherQuery implements CypherQueryDefinition {
      * Note: This will change to get rid of the start clauses completely but
      *       for now we just get it to work!
      */
-    private boolean buildInLegacyStartClauses(StringBuilder builder, String legacyStartClauses) {
-        if (hasText(legacyStartClauses)) {
-            builder.append("START ").append(legacyStartClauses);
+    private boolean buildStartClauseIfRequired(StringBuilder builder, String startClauses) {
+        if (hasText(startClauses)) {
+            builder.append("START ").append(startClauses);
             return true;
         } else if (!useLabels) {
             // TODO: Need to change index based stuff to also not use START
-            builder.append("START ").append(defaultLegacyStartClause(entity));
+            builder.append("START ").append(defaultIndexBasedStartClause(entity));
             return true;
         }
         return false;
