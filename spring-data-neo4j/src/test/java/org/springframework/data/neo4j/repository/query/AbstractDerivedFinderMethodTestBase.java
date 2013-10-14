@@ -103,7 +103,7 @@ public abstract class AbstractDerivedFinderMethodTestBase {
     protected Object[] trsSpecificExpectedParams;
 
     @Test
-    public void testCreateIndexQuery() throws Exception {
+    public void testCypherQueryBuilderWithTwoIndexedParams() throws Exception {
         CypherQueryBuilder builder = new CypherQueryBuilder(ctx, Thing.class, template);
         builder.addRestriction(new Part("firstName",Thing.class));
         builder.addRestriction(new Part("lastName",Thing.class));
@@ -111,6 +111,7 @@ public abstract class AbstractDerivedFinderMethodTestBase {
         assertEquals(
                 getExpectedQuery("START `thing`=node:`Thing`({0}) RETURN `thing`"),
                 query.toQueryString());
+
     }
 
     @Test

@@ -22,6 +22,8 @@ import org.springframework.data.repository.query.parser.Part;
 import org.springframework.util.Assert;
 
 /**
+ * This class represents ....
+ * All the information about a particular part of a Neo4jPersistentProperty?
  * @author mh
  * @since 31.10.11
  */
