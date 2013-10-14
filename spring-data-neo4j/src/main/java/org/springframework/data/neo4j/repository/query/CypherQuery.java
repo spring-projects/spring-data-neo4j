@@ -23,15 +23,13 @@ import org.springframework.data.neo4j.mapping.Neo4jPersistentEntity;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
 import org.springframework.data.neo4j.support.typerepresentation.LabelBasedNodeTypeRepresentationStrategy;
-import org.springframework.data.neo4j.support.typerepresentation.TypeRepresentationStrategyFactory;
 import org.springframework.data.repository.query.Parameter;
 import org.springframework.data.repository.query.parser.Part;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static org.springframework.util.StringUtils.*;
+import static org.springframework.util.StringUtils.hasText;
 
 public class CypherQuery implements CypherQueryDefinition {
     private final VariableContext variableContext = new VariableContext();
@@ -79,15 +77,8 @@ public class CypherQuery implements CypherQueryDefinition {
             if (!addedStartClause(partInfo)) {
                 whereClauses.add(new WhereClause(partInfo,template));
             }
-        } else if (leafProperty.isRelationship()) {
-            startClauses.add(new NodeEntityMatchingStartClause(partInfo));
-            if (useLabels) {
-                whereClauses.add(new LabelBasedTypeRestrictingWhereClause(new PartInfo(path, variableContext.getVariableFor(entity), part, -1), entity, template));
-            } else {
-                whereClauses.add(new IndexBasedTypeRestrictingWhereClause(new PartInfo(path, variableContext.getVariableFor(entity), part, -1), entity, template));
-            }
-        } else if (leafProperty.isIdProperty()) {
-            startClauses.add(new NodeEntityMatchingStartClause(partInfo));
+        } else if (leafProperty.isRelationship() || leafProperty.isIdProperty()) {
+            startClauses.add(new GraphIdStartClause(partInfo));
             if (useLabels) {
                 whereClauses.add(new LabelBasedTypeRestrictingWhereClause(new PartInfo(path, variableContext.getVariableFor(entity), part, -1), entity, template));
             } else {
@@ -128,11 +119,19 @@ public class CypherQuery implements CypherQueryDefinition {
 
     private boolean addedStartClause(PartInfo partInfo) {
         if (!partInfo.isIndexed()) return false;
-        for (StartClause startClause : startClauses) {
-            // only merge when same index and same variable
+
+        ListIterator<StartClause> it = startClauses.listIterator();
+        while (it.hasNext()) {
+            StartClause startClause = it.next();
             if (startClause.sameIdentifier(partInfo)) {
                 if (startClause.sameIndex(partInfo)) {
                     startClause.merge(partInfo);
+                    if (startClause.hasMultipleParts()) {
+                        // Replace it as we could not detect this initially ...
+                        List<PartInfo> newList = new ArrayList<PartInfo>();
+                        newList.addAll(startClause.getPartInfos());
+                        it.set(StartClauseFactory.create(newList));
+                    }
                     return true;
                 } else {
                     // must stop b/c of invalid combination (same identifier but different index)
@@ -140,7 +139,7 @@ public class CypherQuery implements CypherQueryDefinition {
                 }
             }
         }
-        startClauses.add(new StartClause(partInfo));
+        startClauses.add(StartClauseFactory.create(partInfo));
         return true;
     }
 
@@ -174,50 +173,80 @@ public class CypherQuery implements CypherQueryDefinition {
     }
 
     private String render() {
+
         String startClauses = collectionToDelimitedString(this.startClauses, ", ");
         String matchClauses = toQueryString(this.matchClauses);
         String whereClauses = collectionToDelimitedString(this.whereClauses, " AND ");
 
         StringBuilder builder = new StringBuilder("");
+        boolean startClauseInUse = renderStartClauses(builder, startClauses);
+        renderMatchClauses(builder, matchClauses, startClauseInUse);
+        renderWhereClauses(builder, whereClauses);
+        renderReturnClauses(builder);
 
-        boolean matchKeyWordUsed = false;
-        boolean startClauseUsed = buildStartClauseIfRequired(builder, startClauses);
-        if (!startClauseUsed && useLabels) {
-            matchKeyWordUsed = true;
-            builder.append(" MATCH ").append(defaultMatchBasedStartClause(entity));
-        }
-        if (hasText(matchClauses)) {
-            builder.append(matchKeyWordUsed ? " , " : " MATCH ");
-            builder.append(matchClauses);
-        }
+        return builder.toString();
+    }
 
-        if (hasText(whereClauses)) {
-            builder.append(" WHERE ").append(whereClauses);
-        }
-
+    private void renderReturnClauses(StringBuilder builder) {
         String returnEntity = String.format(QueryTemplates.VARIABLE,getEntityName(entity));
         if (isCountQuery) {
             builder.append(" RETURN ").append("count(").append(returnEntity).append(")");
         } else {
             builder.append(" RETURN ").append(returnEntity);
         }
-        return builder.toString();
+    }
+
+    private void renderWhereClauses(StringBuilder builder, String whereClauses) {
+        if (hasText(whereClauses)) {
+            builder.append(" WHERE ").append(whereClauses);
+        }
+    }
+
+    private void renderMatchClauses(StringBuilder builder, String matchClauses, boolean startClauseInUse) {
+        if (hasText(matchClauses)) {
+            builder.append(" MATCH ").append(matchClauses);
+            return;
+        }
+        if (useLabelBasedTRS() && !startClauseInUse) {
+            builder.append(" MATCH ").append(defaultMatchBasedStartClause(entity));
+            return;
+        }
     }
 
     /**
-     * Note: This will change to get rid of the start clauses completely but
-     *       for now we just get it to work!
+     * From Neo4j 2.0 onwards the start clause is optional (although still needs to be
+     * used for certain cases where index lookups are required etc. This method takes
+     * the currently built up query in builder (which should be empty at this point)
+     * and begins to add in any currently defined start clauses. In the absence of
+     * any start clauses, it will add in the default start clause if using an indexing
+     * strtegy.
+     *
+     * @param builder current query which has been built up
+     * @param startClauses List of current start clauses
+     * @return true if this method resulted in the query having a START clause
+     *         applied to it otherwise false
      */
-    private boolean buildStartClauseIfRequired(StringBuilder builder, String startClauses) {
+    private boolean renderStartClauses(StringBuilder builder, String startClauses) {
         if (hasText(startClauses)) {
             builder.append("START ").append(startClauses);
             return true;
-        } else if (!useLabels) {
-            // TODO: Need to change index based stuff to also not use START
+        }
+        if (useIndexBasedTRS()) {
             builder.append("START ").append(defaultIndexBasedStartClause(entity));
             return true;
         }
+
+        // For a label based strategy, we do not use a start clause
+        // but rather begin with a MATCH clause
         return false;
+    }
+
+    private boolean useIndexBasedTRS() {
+        return !useLabels;
+    }
+
+    private boolean useLabelBasedTRS() {
+        return useLabels;
     }
 
 

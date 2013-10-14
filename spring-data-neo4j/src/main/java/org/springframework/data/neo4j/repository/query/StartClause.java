@@ -27,60 +27,33 @@ import java.util.*;
 
 /**
  * Representation of a Cypher {@literal start} clause.
- * 
+ *
  * @author Oliver Gierke
  */
-// TODO id-startclause, index-startclause (exact,point,fulltext)
-class StartClause {
+abstract class StartClause {
 
     private final SortedMap<Integer,PartInfo> partInfos=new TreeMap<Integer, PartInfo> ();
 
     /**
-     * Creates a new {@link StartClause} from the given {@link Neo4jPersistentProperty}, variable and the given
-     * parameter index.
+     * Creates a new {@link StartClause} from the given {@link Neo4jPersistentProperty},
+     * variable and the given parameter index.
      */
     public StartClause(PartInfo partInfo) {
         this.partInfos.put(partInfo.getParameterIndex(), partInfo);
     }
 
-    @Override
-    public String toString() {
-        final PartInfo partInfo = getPartInfo();
-        final String identifier = partInfo.getIdentifier();
-        final String indexName = partInfo.getIndexName();
-        final int parameterIndex = partInfo.getParameterIndex();
-        // fulltext or multiple
-        if (shouldRenderQuery()) {
-            return String.format(QueryTemplates.START_CLAUSE_INDEX_QUERY, identifier, indexName, parameterIndex);
-        }
-        // exact and single
-        return String.format(QueryTemplates.START_CLAUSE_INDEX_LOOKUP, identifier, indexName, partInfo.getNeo4jPropertyName(), parameterIndex);
+    /**
+     * Returns true if this start clause comprises of multiple parts
+     * @return
+     */
+    protected boolean hasMultipleParts() {
+        return partInfos.size() > 1;
     }
 
-    private boolean shouldRenderQuery() {
-        PartInfo partInfo = getPartInfo();
-        return partInfo.isFullText() || EnumSet.of(Part.Type.LIKE,Part.Type.STARTING_WITH,Part.Type.CONTAINING,Part.Type.ENDING_WITH).contains(partInfo.getType())|| partInfos.size() > 1;
-    }
 
-    public Map<Parameter, Object> resolveParameters(Map<Parameter, Object> parameters, Neo4jTemplate template) {
-        Map<Parameter, PartInfo> myParameters = findMyParameters(parameters.keySet());
+    public abstract Map<Parameter, Object> resolveParameters(Map<Parameter, Object> parameters, Neo4jTemplate template);
 
-        Map<Parameter, Object> result = new LinkedHashMap<Parameter, Object>(parameters);
-        result.keySet().removeAll(myParameters.keySet());
-
-        final Map<PartInfo, Object> values = matchToPartsAndConvert(myParameters, parameters,template);
-
-        Parameter firstParam = IteratorUtil.first(myParameters.keySet());
-        if (shouldRenderQuery()) {
-            result.put(firstParam, renderQuery(values));
-        } else {
-            Object value=IteratorUtil.first(values.values());
-            result.put(firstParam, value);
-        }
-        return result;
-    }
-
-    private String renderQuery(Map<PartInfo, Object> values) {
+    protected String renderQuery(Map<PartInfo, Object> values) {
         StringBuilder sb=new StringBuilder();
         for (Map.Entry<PartInfo, Object> entry : values.entrySet()) {
             if (sb.length()>0) sb.append(" AND ");
@@ -91,7 +64,7 @@ class StartClause {
         return sb.toString();
     }
 
-    private Map<PartInfo, Object> matchToPartsAndConvert(Map<Parameter, PartInfo> myParameters, Map<Parameter, Object> parameters, Neo4jTemplate template) {
+    protected Map<PartInfo, Object> matchToPartsAndConvert(Map<Parameter, PartInfo> myParameters, Map<Parameter, Object> parameters, Neo4jTemplate template) {
         Map<PartInfo, Object> result = new LinkedHashMap<PartInfo, Object>();
         for (Map.Entry<Parameter, PartInfo> entry : myParameters.entrySet()) {
             Object value = parameters.get(entry.getKey());
@@ -103,15 +76,15 @@ class StartClause {
         return result;
     }
 
-    private Object convertIfNecessary(Neo4jTemplate template, Object value, Neo4jPersistentProperty property) {
-		if (property.isIndexedNumerically()) return new ValueContext(value).indexNumeric();
+    protected Object convertIfNecessary(Neo4jTemplate template, Object value, Neo4jPersistentProperty property) {
+        if (property.isIndexedNumerically()) return new ValueContext(value).indexNumeric();
         if (property.isNeo4jPropertyType() && property.isNeo4jPropertyValue(value)) return value;
 
         PropertyConverter converter = new PropertyConverter(template.getConversionService(), property);
         return converter.serializePropertyValue(value);
     }
 
-    private Map<Parameter,PartInfo> findMyParameters(Set<Parameter> parameters) {
+    protected Map<Parameter,PartInfo> findMyParameters(Set<Parameter> parameters) {
         Map<Parameter,PartInfo> result=new LinkedHashMap<Parameter, PartInfo>();
         for (Parameter parameter : parameters) {
             PartInfo partInfo = partInfos.get(parameter.getIndex());
@@ -149,4 +122,10 @@ class StartClause {
         }
         return true;
     }
+
+    protected Collection<PartInfo> getPartInfos() {
+        return partInfos.values();
+    }
 }
+
+

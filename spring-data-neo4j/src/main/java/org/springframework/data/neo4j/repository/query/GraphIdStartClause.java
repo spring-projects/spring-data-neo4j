@@ -1,5 +1,5 @@
 /**
- * Copyright 2011 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,8 +20,15 @@ import org.springframework.data.repository.query.Parameter;
 
 import java.util.Map;
 
-public class NodeEntityMatchingStartClause extends StartClause {
-    public NodeEntityMatchingStartClause(PartInfo partInfo) {
+/**
+ * Represents a start clause where the actual graph id
+ * of the entity is used.
+ *
+ * @author Nicki Watt
+ */
+public class GraphIdStartClause extends StartClause {
+
+    public GraphIdStartClause(PartInfo partInfo) {
         super(partInfo);
     }
 
