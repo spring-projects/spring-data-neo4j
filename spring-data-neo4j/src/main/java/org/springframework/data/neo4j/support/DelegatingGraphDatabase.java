@@ -263,6 +263,7 @@ public class DelegatingGraphDatabase implements GraphDatabase {
         return resultConverter;
     }
 
+    @Override
     public void shutdown() {
         delegate.shutdown();
     }

@@ -131,4 +131,6 @@ public interface GraphDatabase {
     TransactionManager getTransactionManager();
 
     Transaction beginTx();
+
+    void shutdown();
 }
