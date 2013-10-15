@@ -15,19 +15,6 @@
  */
 package org.springframework.data.neo4j.repository.cdi;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import org.springframework.data.neo4j.support.Neo4jTemplate;
-import org.springframework.data.neo4j.support.mapping.Neo4jMappingContext;
-import org.springframework.data.repository.cdi.CdiRepositoryExtensionSupport;
-
-import javax.enterprise.event.Observes;
-import javax.enterprise.inject.UnsatisfiedResolutionException;
-import javax.enterprise.inject.spi.AfterBeanDiscovery;
-import javax.enterprise.inject.spi.Bean;
-import javax.enterprise.inject.spi.BeanManager;
-import javax.enterprise.inject.spi.ProcessBean;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 import java.util.HashMap;
@@ -35,6 +22,19 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+
+import javax.enterprise.event.Observes;
+import javax.enterprise.inject.UnsatisfiedResolutionException;
+import javax.enterprise.inject.spi.AfterBeanDiscovery;
+import javax.enterprise.inject.spi.Bean;
+import javax.enterprise.inject.spi.BeanManager;
+import javax.enterprise.inject.spi.ProcessBean;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.data.neo4j.core.GraphDatabase;
+import org.springframework.data.neo4j.support.mapping.Neo4jMappingContext;
+import org.springframework.data.repository.cdi.CdiRepositoryExtensionSupport;
 
 /**
  * CDI extension to export Neo4j repositories.
@@ -45,10 +45,9 @@ public class Neo4jCdiRepositoryExtension extends CdiRepositoryExtensionSupport {
 
 	private static final Logger LOG = LoggerFactory.getLogger(Neo4jCdiRepositoryExtension.class);
 
-	private final Map<Set<Annotation>, Bean<Neo4jMappingContext>> neo4jMappingContexts = new HashMap<Set<Annotation>, Bean<Neo4jMappingContext>>();
-    private final Map<Set<Annotation>, Bean<Neo4jTemplate>> neo4jTemplates = new HashMap<Set<Annotation>, Bean<Neo4jTemplate>>();
+	private final Map<Set<Annotation>, Bean<GraphDatabase>> graphDatabases = new HashMap<Set<Annotation>, Bean<GraphDatabase>>();
 
-    public Neo4jCdiRepositoryExtension() {
+	public Neo4jCdiRepositoryExtension() {
 		LOG.info("Activating CDI extension for Spring Data Neo4j repositories.");
 	}
 
@@ -58,23 +57,15 @@ public class Neo4jCdiRepositoryExtension extends CdiRepositoryExtensionSupport {
 		Bean<X> bean = processBean.getBean();
 
 		for (Type type : bean.getTypes()) {
-			if (type instanceof Class<?> && Neo4jMappingContext.class.isAssignableFrom((Class<?>) type)) {
+			if (type instanceof Class<?> && GraphDatabase.class.isAssignableFrom((Class<?>) type)) {
+				
 				if (LOG.isDebugEnabled()) {
-					LOG.debug(String.format("Discovered %s with qualifiers %s.", Neo4jMappingContext.class.getName(),
+					LOG.debug(String.format("Discovered %s with qualifiers %s.", GraphDatabase.class.getName(),
 							bean.getQualifiers()));
 				}
-				// Store the EntityManager bean using its qualifiers.
-				neo4jMappingContexts.put(new HashSet<Annotation>(bean.getQualifiers()), (Bean<Neo4jMappingContext>) bean);
+				
+				graphDatabases.put(new HashSet<Annotation>(bean.getQualifiers()), (Bean<GraphDatabase>) bean);
 			}
-
-            if (type instanceof Class<?> && Neo4jTemplate.class.isAssignableFrom((Class<?>) type)) {
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug(String.format("Discovered %s with qualifiers %s.", Neo4jTemplate.class.getName(),
-                            bean.getQualifiers()));
-                }
-                // Store the EntityManager bean using its qualifiers.
-                neo4jTemplates.put(new HashSet<Annotation>(bean.getQualifiers()), (Bean<Neo4jTemplate>) bean);
-            }
 		}
 	}
 
@@ -107,20 +98,14 @@ public class Neo4jCdiRepositoryExtension extends CdiRepositoryExtensionSupport {
 	 */
 	private <T> Bean<T> createRepositoryBean(Class<T> repositoryType, Set<Annotation> qualifiers, BeanManager beanManager) {
 
-		// Determine the Neo4jOperations bean which matches the qualifiers of the repository.
-		Bean<Neo4jMappingContext> neo4jMappingContextBean = this.neo4jMappingContexts.get(qualifiers);
-        Bean<Neo4jTemplate> neo4jTemplateBean = this.neo4jTemplates.get(qualifiers);
+		Bean<GraphDatabase> graphDatabase = this.graphDatabases.get(qualifiers);
 
-		if (neo4jMappingContextBean == null) {
+		if (graphDatabase == null) {
 			throw new UnsatisfiedResolutionException(String.format("Unable to resolve a bean for '%s' with qualifiers %s.",
-                    Neo4jMappingContext.class.getName(), qualifiers));
+					Neo4jMappingContext.class.getName(), qualifiers));
 		}
-        if (neo4jTemplateBean == null) {
-            throw new UnsatisfiedResolutionException(String.format("Unable to resolve a bean for '%s' with qualifiers %s.",
-                    Neo4jTemplate.class.getName(), qualifiers));
-        }
 
-		// Construct and return the repository bean.
-		return new Neo4jCdiRepositoryBean<T>(neo4jMappingContextBean, neo4jTemplateBean, qualifiers, repositoryType, beanManager);
+		return new Neo4jCdiRepositoryBean<T>(graphDatabase, qualifiers, repositoryType,
+				beanManager);
 	}
 }

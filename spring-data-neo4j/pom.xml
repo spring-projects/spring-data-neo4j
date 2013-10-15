@@ -120,7 +120,20 @@
             <groupId>org.apache.openwebbeans.test</groupId>
             <artifactId>cditest-owb</artifactId>
             <version>${webbeans}</version>
+            <exclusions>
+            	<exclusion>
+					<groupId>javassist</groupId>
+					<artifactId>javassist</artifactId>
+        		</exclusion>
+            </exclusions>
             <scope>test</scope>
+        </dependency>
+        
+        <dependency>
+        	<groupId>org.javassist</groupId>
+        	<artifactId>javassist</artifactId>
+        	<version>3.18.1-GA</version>
+        	<scope>test</scope>
         </dependency>
 
         <dependency>

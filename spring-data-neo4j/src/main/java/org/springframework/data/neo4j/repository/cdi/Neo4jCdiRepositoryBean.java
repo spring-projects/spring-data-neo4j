@@ -15,8 +15,7 @@
  */
 package org.springframework.data.neo4j.repository.cdi;
 
-
-
+import org.springframework.data.neo4j.core.GraphDatabase;
 import org.springframework.data.neo4j.repository.GraphRepositoryFactory;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
 import org.springframework.data.neo4j.support.mapping.Neo4jMappingContext;
@@ -30,37 +29,28 @@ import java.lang.annotation.Annotation;
 import java.util.Set;
 
 /**
- * {@link org.springframework.data.repository.cdi.CdiRepositoryBean} to create
- * Neo4j repository instances via CDI.
- *
+ * {@link org.springframework.data.repository.cdi.CdiRepositoryBean} to create Neo4j repository instances via CDI.
+ * 
  * @author Nicki Watt
  */
 public class Neo4jCdiRepositoryBean<T> extends CdiRepositoryBean<T> {
 
-	private final Bean<Neo4jMappingContext> neo4jMappingContext;
-    private final Bean<Neo4jTemplate> template;
+	private final Bean<GraphDatabase> graphDatabase;
 
 	/**
 	 * Creates a new {@link Neo4jCdiRepositoryBean}.
 	 * 
-	 * @param neo4jMappingContext must not be {@literal null}.
-     * @param template must not be {@literal null}.
+	 * @param graphDatabase must not be {@literal null}.
 	 * @param qualifiers must not be {@literal null}.
 	 * @param repositoryType must not be {@literal null}.
 	 * @param beanManager must not be {@literal null}.
 	 */
-	public Neo4jCdiRepositoryBean(Bean<Neo4jMappingContext> neo4jMappingContext,
-                                  Bean<Neo4jTemplate> template,
-                                  Set<Annotation> qualifiers,
-                                  Class<T> repositoryType,
-                                  BeanManager beanManager) {
+	public Neo4jCdiRepositoryBean(Bean<GraphDatabase> graphDatabase,
+			Set<Annotation> qualifiers, Class<T> repositoryType, BeanManager beanManager) {
 
 		super(qualifiers, repositoryType, beanManager);
 
-		Assert.notNull(neo4jMappingContext);
-        Assert.notNull(template);
-		this.neo4jMappingContext = neo4jMappingContext;
-        this.template = template;
+		this.graphDatabase = graphDatabase;
 	}
 
 	/* 
@@ -70,10 +60,10 @@ public class Neo4jCdiRepositoryBean<T> extends CdiRepositoryBean<T> {
 	@Override
 	protected T create(CreationalContext<T> creationalContext, Class<T> repositoryType) {
 
-        Neo4jMappingContext neo4jMapCtx = getDependencyInstance(neo4jMappingContext, Neo4jMappingContext.class);
-        Neo4jTemplate neo4jTemplate = getDependencyInstance(template, Neo4jTemplate.class);
+		Neo4jMappingContext neo4jMapCtx = new Neo4jMappingContext();
+		Neo4jTemplate neo4jTemplate = new Neo4jTemplate(getDependencyInstance(graphDatabase, GraphDatabase.class)); 
 
-        GraphRepositoryFactory factory = new GraphRepositoryFactory(neo4jTemplate,neo4jMapCtx);
+		GraphRepositoryFactory factory = new GraphRepositoryFactory(neo4jTemplate, neo4jMapCtx);
 		return factory.getRepository(repositoryType);
 	}
 }

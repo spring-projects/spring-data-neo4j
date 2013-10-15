@@ -19,7 +19,7 @@ import org.springframework.data.neo4j.model.Person;
 import org.springframework.data.neo4j.repository.CRUDRepository;
 
 
-public interface NonWorkingCdiPersonRepository extends CRUDRepository<Person> {
+public interface CdiPersonRepository3 extends CRUDRepository<Person> {
 
 
 }

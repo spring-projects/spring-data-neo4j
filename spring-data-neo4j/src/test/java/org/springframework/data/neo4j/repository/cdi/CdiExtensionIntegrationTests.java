@@ -15,24 +15,24 @@
  */
 package org.springframework.data.neo4j.repository.cdi;
 
+import static org.hamcrest.CoreMatchers.*;
+import static org.junit.Assert.*;
+
 import org.apache.webbeans.cditest.CdiTestContainer;
 import org.apache.webbeans.cditest.CdiTestContainerLoader;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.neo4j.graphdb.Transaction;
+import org.springframework.data.neo4j.core.GraphDatabase;
 import org.springframework.data.neo4j.model.Person;
-import org.springframework.data.neo4j.support.Neo4jTemplate;
-
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.junit.Assert.assertThat;
 
 /**
  * Integration tests for {@link Neo4jCdiRepositoryExtension}.
  * 
+ * @see DATAGRAPH-340
  * @author Nicki Watt
+ * @author Oliver Gierke
  */
 public class CdiExtensionIntegrationTests {
 
@@ -50,98 +50,99 @@ public class CdiExtensionIntegrationTests {
 	}
 
 	@Test
+	@SuppressWarnings("null")
 	public void testRepositoryStyle1IsCreatedCorrectly() {
 
-        Neo4jTemplate template = container.getInstance(Neo4jTemplate.class);
+		GraphDatabase database = container.getInstance(GraphDatabase.class);
 		RepositoryClient client = container.getInstance(RepositoryClient.class);
-		CdiPersonRepository repository = client.getRepository();
+		CdiPersonRepository repository = client.repository;
 
 		assertThat(repository, is(notNullValue()));
 
-        Person person = null;
-        Person result = null;
+		Person person = null;
+		Person result = null;
 
-        Transaction tx = template.getGraphDatabaseService().beginTx();
-        try {
-            repository.deleteAll();
+		Transaction tx = database.beginTx();
+		try {
+			repository.deleteAll();
 
-            person = new Person("Simon", 28);
-            result = repository.save(person);
-            tx.success();
-        } catch (Exception e) {
-            tx.failure();
-        } finally {
-            tx.finish();
-        }
+			person = new Person("Simon", 28);
+			result = repository.save(person);
+			tx.success();
+		} catch (Exception e) {
+			tx.failure();
+		} finally {
+			tx.finish();
+		}
 
-        assertThat(result, is(notNullValue()));
+		assertThat(result, is(notNullValue()));
 		Long resultId = result.getId();
-        Person lookedUpPerson = repository.findOne(person.getId());
-        assertThat(lookedUpPerson.getId(), is(resultId));
+		Person lookedUpPerson = repository.findOne(person.getId());
+		assertThat(lookedUpPerson.getId(), is(resultId));
 	}
 
-    @Test
-    public void testRepositoryStyle2IsCreatedCorrectly() {
+	@Test
+	@SuppressWarnings("null")
+	public void testRepositoryStyle2IsCreatedCorrectly() {
 
-        Neo4jTemplate template = container.getInstance(Neo4jTemplate.class);
-        RepositoryClient client = container.getInstance(RepositoryClient.class);
-        CdiPersonRepository2 repository = client.getRepository2();
+		GraphDatabase database = container.getInstance(GraphDatabase.class);
+		RepositoryClient client = container.getInstance(RepositoryClient.class);
+		CdiPersonRepository2 repository = client.repository2;
 
-        assertThat(repository, is(notNullValue()));
+		assertThat(repository, is(notNullValue()));
 
-        Person person = null;
-        Person result = null;
+		Person person = null;
+		Person result = null;
 
-        Transaction tx = template.getGraphDatabaseService().beginTx();
-        try {
-            repository.deleteAll();
+		Transaction tx = database.beginTx();
+		try {
+			repository.deleteAll();
 
-            person = new Person("Simon", 28);
-            result = repository.save(person);
-            tx.success();
-        } catch (Exception e) {
-            tx.failure();
-        } finally {
-            tx.finish();
-        }
+			person = new Person("Simon", 28);
+			result = repository.save(person);
+			tx.success();
+		} catch (Exception e) {
+			tx.failure();
+		} finally {
+			tx.finish();
+		}
 
-        assertThat(result, is(notNullValue()));
-        Long resultId = result.getId();
-        Person lookedUpPerson = repository.findOne(person.getId());
-        assertThat(lookedUpPerson.getId(), is(resultId));
-    }
+		assertThat(result, is(notNullValue()));
+		Long resultId = result.getId();
+		Person lookedUpPerson = repository.findOne(person.getId());
+		assertThat(lookedUpPerson.getId(), is(resultId));
+	}
 
-    @Test
-    @Ignore // uncomment me to see issue (Note also need to uncomment
-            // @Inject in RepositoryClient
-    public void demoNonWorkingRepository() {
+	@Test
+	@SuppressWarnings("null")
+	public void neo4jCrudRepositorySubTypeWorks() {
 
-        Neo4jTemplate template = container.getInstance(Neo4jTemplate.class);
-        RepositoryClient client = container.getInstance(RepositoryClient.class);
-        NonWorkingCdiPersonRepository repository = client.getNonWorkingRepository();
+		GraphDatabase database = container.getInstance(GraphDatabase.class);
+		RepositoryClient client = container.getInstance(RepositoryClient.class);
+		CdiPersonRepository3 repository = client.repository3;
 
-        assertThat(repository, is(notNullValue()));
+		assertThat(repository, is(notNullValue()));
 
-        Person person = null;
-        Person result = null;
+		Person person = null;
+		Person result = null;
 
-        Transaction tx = template.getGraphDatabaseService().beginTx();
-        try {
-            repository.deleteAll();
+		Transaction tx = database.beginTx();
+		try {
+			repository.deleteAll();
 
-            person = new Person("Simon", 28);
-            result = repository.save(person);
-            tx.success();
-        } catch (Exception e) {
-            tx.failure();
-        } finally {
-            tx.finish();
-        }
+			person = new Person("Simon", 28);
+			result = repository.save(person);
+			tx.success();
+		} catch (Exception e) {
+			tx.failure();
+		} finally {
+			tx.finish();
+		}
 
-        assertThat(result, is(notNullValue()));
-        Long resultId = result.getId();
-        Person lookedUpPerson = repository.findOne(person.getId());
-        assertThat(lookedUpPerson.getId(), is(resultId));
+		assertThat(result, is(notNullValue()));
+		Long resultId = result.getId();
+		Person lookedUpPerson = repository.findOne(person.getId());
+		assertThat(lookedUpPerson.getId(), is(resultId));
 
-    }
+	}
 }

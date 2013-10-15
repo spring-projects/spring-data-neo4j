@@ -15,15 +15,32 @@
  */
 package org.springframework.data.neo4j.repository.cdi;
 
-import javax.inject.Inject;
+import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.inject.Disposes;
+import javax.enterprise.inject.Produces;
+
+import org.springframework.data.neo4j.core.GraphDatabase;
+import org.springframework.data.neo4j.support.GraphDatabaseFactory;
 
 /**
+ * Simple component exposing a {@link GraphDatabase} as CDI bean.
+ * 
  * @author Nicki Watt
  * @author Oliver Gierke
  */
-class RepositoryClient {
+class Neo4jCdiProducer {
 
-	@Inject CdiPersonRepository repository;
-	@Inject CdiPersonRepository2 repository2;
-	@Inject CdiPersonRepository3 repository3;
+	@Produces
+	@ApplicationScoped
+	GraphDatabase createGraphDatabase() throws Exception {
+
+		GraphDatabaseFactory factory = new GraphDatabaseFactory();
+		factory.setStoreLocation("target/cdi-test-db");
+
+		return factory.getObject();
+	}
+	
+	void shutdown(@Disposes GraphDatabase database) {
+	  database.shutdown();
+	}
 }
