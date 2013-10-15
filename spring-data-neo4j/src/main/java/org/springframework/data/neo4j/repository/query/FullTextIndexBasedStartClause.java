@@ -69,6 +69,17 @@ public class FullTextIndexBasedStartClause extends IndexBasedStartClause {
         return result;
     }
 
+    protected String renderQuery(Map<PartInfo, Object> values) {
+        StringBuilder sb=new StringBuilder();
+        for (Map.Entry<PartInfo, Object> entry : values.entrySet()) {
+            if (sb.length()>0) sb.append(" AND ");
+            final PartInfo partInfo = entry.getKey();
+            Object value = entry.getValue();
+            sb.append(QueryTemplates.formatIndexQuery(partInfo,value));
+        }
+        return sb.toString();
+    }
+
 
 
 
