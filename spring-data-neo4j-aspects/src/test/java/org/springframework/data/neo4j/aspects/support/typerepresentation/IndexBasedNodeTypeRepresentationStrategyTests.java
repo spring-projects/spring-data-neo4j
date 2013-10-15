@@ -32,6 +32,7 @@ import org.springframework.data.neo4j.support.Neo4jTemplate;
 import org.springframework.data.neo4j.support.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.support.mapping.StoredEntityType;
 import org.springframework.data.neo4j.support.typerepresentation.IndexBasedNodeTypeRepresentationStrategy;
+import org.springframework.data.neo4j.support.typerepresentation.LabelBasedNodeTypeRepresentationStrategy;
 import org.springframework.test.context.CleanContextCacheTestExecutionListener;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestExecutionListeners;
@@ -44,83 +45,86 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Arrays;
 import java.util.HashSet;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
+/**
+ * Tests to ensure that all scenarios involved in entity creation / reading etc
+ * behave as expected, specifically where the Index Based Type Representation Strategy
+ * is being used.
+ *
+ * The common scenarios/tests are defined in the superclass and each subclass, which
+ * represents a specific strategy, needs to ensure that all is when then they
+ * are used
+ */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = {"classpath:org/springframework/data/neo4j/aspects/support/Neo4jGraphPersistenceTests-context.xml",
         "classpath:org/springframework/data/neo4j/aspects/support/IndexingTypeRepresentationStrategyOverride-context.xml"})
 @TestExecutionListeners({CleanContextCacheTestExecutionListener.class, DependencyInjectionTestExecutionListener.class, TransactionalTestExecutionListener.class})
-public class IndexBasedNodeTypeRepresentationStrategyTests extends EntityTestBase {
+public class IndexBasedNodeTypeRepresentationStrategyTests extends AbstractNodeTypeRepresentationStrategyTestBase {
 
-	@Autowired
-	private IndexBasedNodeTypeRepresentationStrategy nodeTypeRepresentationStrategy;
 
-    @Autowired
-    Neo4jTemplate neo4jTemplate;
-    @Autowired
-    Neo4jMappingContext ctx;
-
-	private Thing thing;
-	private SubThing subThing;
-    private StoredEntityType thingType;
-    private StoredEntityType subThingType;
-
-    @BeforeTransaction
-	public void cleanDb() {
-		super.cleanDb();
-	}
-
-	@Before
-	public void setUp() throws Exception {
-		if (thing == null) {
-			createThingsAndLinks();
-		}
-        thingType = typeOf(Thing.class);
-        subThingType = typeOf(SubThing.class);
+    @Before
+    @Override
+    public void setUp() throws Exception {
+        super.setUp();
+        assertThat("The tests in this class should be configured to use the Index " +
+                "based Type Representation Strategy, however it is not ... ",
+                nodeTypeRepresentationStrategy,
+                instanceOf(IndexBasedNodeTypeRepresentationStrategy.class));
     }
 
 	@Test
 	@Transactional
+    @Override
 	public void testPostEntityCreation() throws Exception {
 		Index<Node> typesIndex = graphDatabaseService.index().forNodes(IndexBasedNodeTypeRepresentationStrategy.INDEX_NAME);
-		IndexHits<Node> thingHits = typesIndex.get(IndexBasedNodeTypeRepresentationStrategy.INDEX_KEY, thingType.getAlias());
-		assertEquals(set(node(thing), node(subThing)), IteratorUtil.addToCollection((Iterable<Node>)thingHits, new HashSet<Node>()));
-		IndexHits<Node> subThingHits = typesIndex.get(IndexBasedNodeTypeRepresentationStrategy.INDEX_KEY, subThingType.getAlias());
-		assertEquals(node(subThing), subThingHits.getSingle());
-		assertEquals(thingType.getAlias(), node(thing).getProperty(IndexBasedNodeTypeRepresentationStrategy.TYPE_PROPERTY_NAME));
-		assertEquals(subThingType.getAlias(), node(subThing).getProperty(IndexBasedNodeTypeRepresentationStrategy.TYPE_PROPERTY_NAME));
+
+        // Things
+        IndexHits<Node> thingHits = typesIndex.get(IndexBasedNodeTypeRepresentationStrategy.INDEX_KEY, thingType.getAlias());
+		assertEquals(set(node(thing), node(subThing), node(subSubThing)), IteratorUtil.addToCollection((Iterable<Node>)thingHits, new HashSet<Node>()));
+
+        // SubThings
+        IndexHits<Node> subThingHits = typesIndex.get(IndexBasedNodeTypeRepresentationStrategy.INDEX_KEY, subThingType.getAlias());
+        assertEquals(set(node(subThing), node(subSubThing)), IteratorUtil.addToCollection((Iterable<Node>)subThingHits, new HashSet<Node>()));
+
+        // SubSubThings
+        IndexHits<Node> subSubThingHits = typesIndex.get(IndexBasedNodeTypeRepresentationStrategy.INDEX_KEY, subSubThingType.getAlias());
+        assertEquals(node(subSubThing), subSubThingHits.getSingle());
+
+        // General
+        assertEquals(thingType.getAlias(), node(thing).getProperty(IndexBasedNodeTypeRepresentationStrategy.TYPE_PROPERTY_NAME));
+		assertEquals(subSubThingType.getAlias(), node(subSubThing).getProperty(IndexBasedNodeTypeRepresentationStrategy.TYPE_PROPERTY_NAME));
 		thingHits.close();
-		subThingHits.close();
+		subSubThingHits.close();
 	}
 
 	@Test
+    @Override
 	public void testPreEntityRemoval() throws Exception {
         manualCleanDb();
         createThingsAndLinks();
         Index<Node> typesIndex;
-        IndexHits<Node> thingHits;
-        IndexHits<Node> subThingHits;
         try (Transaction tx = graphDatabaseService.beginTx()) {
             typesIndex = graphDatabaseService.index().forNodes(IndexBasedNodeTypeRepresentationStrategy.INDEX_NAME);
             tx.success();
         }
 
-        try (Transaction tx = graphDatabaseService.beginTx()) {
-            nodeTypeRepresentationStrategy.preEntityRemoval(node(thing));
-            tx.success();
-        }
+        testPreEntityRemovalOfThing(typesIndex);
+        testPreEntityRemovalOfSubThing(typesIndex);
+        testPreEntityRemovalOfSubSubThing(typesIndex);
+	}
 
-        try (Transaction tx = graphDatabaseService.beginTx()) {
-            thingHits = typesIndex.get(IndexBasedNodeTypeRepresentationStrategy.INDEX_KEY, thingType.getAlias());
-	    	assertEquals(node(subThing), thingHits.getSingle());
-		    subThingHits = typesIndex.get(IndexBasedNodeTypeRepresentationStrategy.INDEX_KEY, subThingType.getAlias());
-		    assertEquals(node(subThing), subThingHits.getSingle());
-            tx.success();
-        }
+    private void testPreEntityRemovalOfSubSubThing(Index<Node> typesIndex) {
+        IndexHits<Node> thingHits;
+        IndexHits<Node> subThingHits;
+        IndexHits<Node> subSubThingHits;
 
+        // 3. Remove SubSubThing
         try (Transaction tx = graphDatabaseService.beginTx()) {
-            nodeTypeRepresentationStrategy.preEntityRemoval(node(subThing));
+            nodeTypeRepresentationStrategy.preEntityRemoval(node(subSubThing));
             tx.success();
         }
 
@@ -129,99 +133,60 @@ public class IndexBasedNodeTypeRepresentationStrategyTests extends EntityTestBas
             assertNull(thingHits.getSingle());
             subThingHits = typesIndex.get(IndexBasedNodeTypeRepresentationStrategy.INDEX_KEY, subThingType.getAlias());
             assertNull(subThingHits.getSingle());
+            subSubThingHits = typesIndex.get(IndexBasedNodeTypeRepresentationStrategy.INDEX_KEY, subSubThingType.getAlias());
+            assertNull(subSubThingHits.getSingle());
             tx.success();
         }
-	}
-
-	@Test
-	@Transactional
-	public void testFindAll() throws Exception {
-
-		assertEquals("Did not find all things.",
-                new HashSet<PropertyContainer>(Arrays.asList(neo4jTemplate.getPersistentState(subThing), neo4jTemplate.getPersistentState(thing))),
-                IteratorUtil.addToCollection(nodeTypeRepresentationStrategy.findAll(thingType), new HashSet<Node>()));
-	}
-
-	@Test
-	@Transactional
-	public void testCount() throws Exception {
-		assertEquals(2, nodeTypeRepresentationStrategy.count(thingType));
-	}
-
-	@Test
-	@Transactional
-	public void testGetJavaType() throws Exception {
-		assertEquals(thingType.getAlias(), nodeTypeRepresentationStrategy.readAliasFrom(node(thing)));
-		assertEquals(subThingType.getAlias(), nodeTypeRepresentationStrategy.readAliasFrom(node(subThing)));
-		assertEquals(Thing.class, neo4jTemplate.getStoredJavaType(node(thing)));
-		assertEquals(SubThing.class, neo4jTemplate.getStoredJavaType(node(subThing)));
-	}
-
-	@Test
-	@Transactional
-	public void testCreateEntityAndInferType() throws Exception {
-        Thing newThing = neo4jTemplate.createEntityFromStoredType(node(thing), neo4jTemplate.getMappingPolicy(thing));
-        assertEquals(thing, newThing);
     }
+    private void testPreEntityRemovalOfSubThing(Index<Node> typesIndex) {
+        IndexHits<Node> thingHits;
+        IndexHits<Node> subThingHits;
+        IndexHits<Node> subSubThingHits;
 
-	@Test
-	@Transactional
-	public void testCreateEntityAndSpecifyType() throws Exception {
-        Thing newThing = neo4jTemplate.createEntityFromState(node(subThing), Thing.class, neo4jTemplate.getMappingPolicy(subThing));
-        assertEquals(subThing, newThing);
-    }
-
-    @Test
-    @Transactional
-	public void testProjectEntity() throws Exception {
-        Unrelated other = neo4jTemplate.projectTo(node(thing), Unrelated.class);
-        assertEquals("thing", other.getName());
-	}
-
-	private Node node(Thing thing) {
-        return getNodeState(thing);
-	}
-
-	private Thing createThingsAndLinks() {
-		Transaction tx = graphDatabaseService.beginTx();
-		try {
-            Node n1 = graphDatabaseService.createNode();
-            thing = neo4jTemplate.setPersistentState(new Thing(),n1);
-			nodeTypeRepresentationStrategy.writeTypeTo(n1, neo4jTemplate.getEntityType(Thing.class));
-            thing.setName("thing");
-            Node n2 = graphDatabaseService.createNode();
-            subThing = neo4jTemplate.setPersistentState(new SubThing(),n2);
-			nodeTypeRepresentationStrategy.writeTypeTo(n2, neo4jTemplate.getEntityType(SubThing.class));
-            subThing.setName("subThing");
-			tx.success();
-			return thing;
-		} finally {
-			tx.finish();
-		}
-	}
-
-    @NodeEntity
-    public static class Unrelated {
-        String name;
-
-        public String getName() {
-            return name;
-        }
-    }
-
-	@NodeEntity
-	public static class Thing {
-		String name;
-
-        public void setName(String name) {
-            this.name = name;
+        // 1. Remove SubThing
+        try (Transaction tx = graphDatabaseService.beginTx()) {
+            nodeTypeRepresentationStrategy.preEntityRemoval(node(subThing));
+            tx.success();
         }
 
-        public String getName() {
-            return name;
+        try (Transaction tx = graphDatabaseService.beginTx()) {
+            thingHits = typesIndex.get(IndexBasedNodeTypeRepresentationStrategy.INDEX_KEY, thingType.getAlias());
+            assertEquals(node(subSubThing), thingHits.getSingle());
+
+            subThingHits = typesIndex.get(IndexBasedNodeTypeRepresentationStrategy.INDEX_KEY, subThingType.getAlias());
+            assertEquals(node(subSubThing), subThingHits.getSingle());
+
+            subSubThingHits = typesIndex.get(IndexBasedNodeTypeRepresentationStrategy.INDEX_KEY, subSubThingType.getAlias());
+            assertEquals(node(subSubThing), subSubThingHits.getSingle());
+            tx.success();
         }
+
     }
 
-	public static class SubThing extends Thing {
+    private void testPreEntityRemovalOfThing(Index<Node> typesIndex) {
+        IndexHits<Node> thingHits;
+        IndexHits<Node> subThingHits;
+        IndexHits<Node> subSubThingHits;
+
+        // 1. Remove Thing
+        try (Transaction tx = graphDatabaseService.beginTx()) {
+            nodeTypeRepresentationStrategy.preEntityRemoval(node(thing));
+            tx.success();
+        }
+
+        try (Transaction tx = graphDatabaseService.beginTx()) {
+            thingHits = typesIndex.get(IndexBasedNodeTypeRepresentationStrategy.INDEX_KEY, thingType.getAlias());
+            assertEquals(set(node(subThing), node(subSubThing)), IteratorUtil.addToCollection((Iterable<Node>)thingHits, new HashSet<Node>()));
+
+            subThingHits = typesIndex.get(IndexBasedNodeTypeRepresentationStrategy.INDEX_KEY, subThingType.getAlias());
+            assertEquals(set(node(subThing), node(subSubThing)), IteratorUtil.addToCollection((Iterable<Node>)subThingHits, new HashSet<Node>()));
+
+            subSubThingHits = typesIndex.get(IndexBasedNodeTypeRepresentationStrategy.INDEX_KEY, subSubThingType.getAlias());
+            assertEquals(node(subSubThing), subSubThingHits.getSingle());
+            tx.success();
+        }
+
     }
+
+
 }

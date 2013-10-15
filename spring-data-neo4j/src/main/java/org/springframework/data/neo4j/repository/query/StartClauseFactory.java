@@ -17,6 +17,7 @@ package org.springframework.data.neo4j.repository.query;
 
 import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 import org.springframework.data.repository.query.parser.Part;
+import org.springframework.util.Assert;
 
 import java.util.EnumSet;
 import java.util.List;
@@ -30,16 +31,29 @@ import java.util.List;
 public class StartClauseFactory {
 
     /**
-     * At present, Multiple parts are always assumed to result in a
-     * a FullTextIndexBasedStartClause
+     * Create a start clause from multiple parts
      * @param partInfos The various parts which the start clause
      *                  needs to be created around/for.
-     * @return A appropriate StartClause
+     * @return An appropriate StartClause
      */
     public static StartClause create(List<PartInfo> partInfos) {
-        return (partInfos.size() == 1)
-            ? create(partInfos.get(0))
-            : new FullTextIndexBasedStartClause(partInfos);
+        Assert.notEmpty(partInfos);
+        if (partInfos.size() == 1) {
+            return create(partInfos.get(0));
+        } else if (areAllIndexedAndHaveSameIdentifiers(partInfos)) {
+            return new FullTextIndexBasedStartClause(partInfos);
+        }
+        throw new IllegalArgumentException("Cannot determine an appropriate Start Clause for multiple partInfos provided");
+    }
+
+    private static boolean areAllIndexedAndHaveSameIdentifiers(List<PartInfo> partInfos) {
+        // We use the first part to compare the others against
+        PartInfo firstPart = partInfos.get(0);
+        for (PartInfo partInfo : partInfos) {
+            if (!partInfo.isIndexed()) return false;
+            if (!partInfo.sameIdentifier(firstPart)) return false;
+        }
+        return true;
     }
 
     /**

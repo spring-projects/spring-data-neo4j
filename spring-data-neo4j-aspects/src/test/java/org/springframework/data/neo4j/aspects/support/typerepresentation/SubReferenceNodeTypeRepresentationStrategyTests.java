@@ -59,6 +59,7 @@ import static org.springframework.data.neo4j.aspects.Person.persistedPerson;
 @ContextConfiguration(locations = {"classpath:org/springframework/data/neo4j/aspects/support/Neo4jGraphPersistenceTests-context.xml",
         "classpath:org/springframework/data/neo4j/aspects/support/SubReferenceTypeRepresentationStrategyOverride-context.xml"})
 @TestExecutionListeners({CleanContextCacheTestExecutionListener.class, DependencyInjectionTestExecutionListener.class, TransactionalTestExecutionListener.class})
+// TODO extend AbstractNodeTypeRepresentationStrategyTestBase
 public class SubReferenceNodeTypeRepresentationStrategyTests extends EntityTestBase {
 
 	@Autowired
