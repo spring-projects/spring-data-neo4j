@@ -137,7 +137,7 @@ public abstract class AbstractDerivedFinderMethodTestBase {
         assertRepositoryQueryMethod(ThingRepository.class,
                 "findByFirstNameAndLastName",
                 new Object[]{"foo", "bar"},
-                getExpectedQuery("START `thing`=node:`Thing`({0})"),
+                getExpectedQuery("subclass-to-supply-trs-specific-query"),
                 getExpectedParams("firstName:foo AND lastName:bar"));
     }
 
@@ -146,7 +146,7 @@ public abstract class AbstractDerivedFinderMethodTestBase {
         assertRepositoryQueryMethod(ThingRepository.class,
                 "findByFirstName",
                 new Object[]{"foo"},
-                getExpectedQuery("START `thing`=node:`Thing`(`firstName`={0})"),
+                getExpectedQuery("subclass-to-supply-trs-specific-query"),
                 getExpectedParams("foo"));
     }
 
@@ -155,7 +155,7 @@ public abstract class AbstractDerivedFinderMethodTestBase {
         assertRepositoryQueryMethod(ThingRepository.class,
                 "findByDescription",
                 new Object[]{"foo"},
-                getExpectedQuery("START `thing`=node:`search`({0})"),
+                getExpectedQuery("subclass-to-supply-trs-specific-query"),
                 getExpectedParams("description:foo"));
     }
 
@@ -164,7 +164,7 @@ public abstract class AbstractDerivedFinderMethodTestBase {
         assertRepositoryQueryMethod(ThingRepository.class,
                 "findByDescriptionAndFirstName",
                 new Object[]{"foo","bar"},
-                getExpectedQuery("START `thing`=node:`search`({0}) WHERE `thing`.`firstName` = {1}"),
+                getExpectedQuery("subclass-to-supply-trs-specific-query"),
                 getExpectedParams("description:foo","bar"));
     }
 
@@ -173,7 +173,7 @@ public abstract class AbstractDerivedFinderMethodTestBase {
         assertRepositoryQueryMethod(ThingRepository.class,
                 "findByFirstNameAndDescription",
                 new Object[]{"foo","bar"},
-                getExpectedQuery("START `thing`=node:`Thing`(`firstName`={0}) WHERE `thing`.`description` = {1}"),
+                getExpectedQuery("subclass-to-supply-trs-specific-query"),
                 getExpectedParams("foo","bar"));
     }
 
@@ -181,7 +181,7 @@ public abstract class AbstractDerivedFinderMethodTestBase {
     public void testIndexQueryWithOneNonIndexedParam() throws Exception {
         assertRepositoryQueryMethod(ThingRepository.class,
                 "findByAge", new Object[]{100},
-                getExpectedQuery("WHERE `thing`.`age` = {0}"),
+                getExpectedQuery("subclass-to-supply-trs-specific-query"),
                 getExpectedParams(100));
     }
 
@@ -190,7 +190,7 @@ public abstract class AbstractDerivedFinderMethodTestBase {
         assertRepositoryQueryMethod(ThingRepository.class,
                 "findByAgeAndFirstName",
                 new Object[]{100, "foo"},
-                getExpectedQuery("START `thing`=node:`Thing`(`firstName`={1}) WHERE `thing`.`age` = {0}"),
+                getExpectedQuery("subclass-to-supply-trs-specific-query"),
                 getExpectedParams(100, "foo"));
     }
 
@@ -199,7 +199,7 @@ public abstract class AbstractDerivedFinderMethodTestBase {
         assertRepositoryQueryMethod(ThingRepository.class,
                 "findByFirstNameLike",
                 new Object[]{"foo"},
-                getExpectedQuery("START `thing`=node:`Thing`({0})"),
+                getExpectedQuery("subclass-to-supply-trs-specific-query"),
                 getExpectedParams("firstName:foo"));
     }
 
@@ -208,7 +208,7 @@ public abstract class AbstractDerivedFinderMethodTestBase {
         assertRepositoryQueryMethod(ThingRepository.class,
                 "findByFirstNameLike",
                 new Object[]{"foo bar"},
-                getExpectedQuery("START `thing`=node:`Thing`({0})"),
+                getExpectedQuery("subclass-to-supply-trs-specific-query"),
                 getExpectedParams("firstName:\"foo bar\""));
     }
 
@@ -217,7 +217,7 @@ public abstract class AbstractDerivedFinderMethodTestBase {
         assertRepositoryQueryMethod(ThingRepository.class,
                 "findByFirstNameContains",
                 new Object[]{"foo"},
-                getExpectedQuery("START `thing`=node:`Thing`({0})"),
+                getExpectedQuery("subclass-to-supply-trs-specific-query"),
                 getExpectedParams("firstName:*foo*"));
     }
     @Test
@@ -225,7 +225,7 @@ public abstract class AbstractDerivedFinderMethodTestBase {
         assertRepositoryQueryMethod(ThingRepository.class,
                 "findByFirstNameStartsWith",
                 new Object[]{"foo"},
-                getExpectedQuery("START `thing`=node:`Thing`({0})"),
+                getExpectedQuery("subclass-to-supply-trs-specific-query"),
                 getExpectedParams("firstName:foo*"));
     }
 
@@ -234,7 +234,7 @@ public abstract class AbstractDerivedFinderMethodTestBase {
         assertRepositoryQueryMethod(ThingRepository.class,
                 "findByFirstNameEndsWith",
                 new Object[]{"foo"},
-                getExpectedQuery("START `thing`=node:`Thing`({0})"),
+                getExpectedQuery("subclass-to-supply-trs-specific-query"),
                 getExpectedParams("firstName:*foo"));
     }
 
@@ -243,7 +243,7 @@ public abstract class AbstractDerivedFinderMethodTestBase {
         assertRepositoryQueryMethod(ThingRepository.class,
                 "findByFirstNameStartsWith",
                 new Object[]{"foo bar"},
-                getExpectedQuery("START `thing`=node:`Thing`({0})"));
+                getExpectedQuery("subclass-to-supply-trs-specific-query"));
     }
 
     @Test
@@ -251,7 +251,7 @@ public abstract class AbstractDerivedFinderMethodTestBase {
         assertRepositoryQueryMethod(ThingRepository.class,
                 "findByName",
                 new Object[]{"foo"},
-                getExpectedQuery("WHERE `thing`.`name` = {0}"),
+                getExpectedQuery("subclass-to-supply-trs-specific-query"),
                 getExpectedParams("foo"));
     }
 
@@ -260,7 +260,7 @@ public abstract class AbstractDerivedFinderMethodTestBase {
         assertRepositoryQueryMethod(ThingRepository.class,
                 "findByNameStartsWith",
                 new Object[]{"foo"},
-                getExpectedQuery("WHERE `thing`.`name` =~ {0}"),
+                getExpectedQuery("subclass-to-supply-trs-specific-query"),
                 getExpectedParams("^foo.*"));
     }
     @Test
@@ -268,7 +268,7 @@ public abstract class AbstractDerivedFinderMethodTestBase {
         assertRepositoryQueryMethod(ThingRepository.class,
                 "findByNameEndsWith",
                 new Object[]{"foo"},
-                getExpectedQuery("WHERE `thing`.`name` =~ {0}"),
+                getExpectedQuery("subclass-to-supply-trs-specific-query"),
                 getExpectedParams(".*foo$"));
     }
 
@@ -277,7 +277,7 @@ public abstract class AbstractDerivedFinderMethodTestBase {
         assertRepositoryQueryMethod(ThingRepository.class,
                 "findByNameContains",
                 new Object[]{"foo"},
-                getExpectedQuery("WHERE `thing`.`name` =~ {0}"),
+                getExpectedQuery("subclass-to-supply-trs-specific-query"),
                 getExpectedParams(".*foo.*"));
     }
     @Test
@@ -285,7 +285,7 @@ public abstract class AbstractDerivedFinderMethodTestBase {
         assertRepositoryQueryMethod(ThingRepository.class,
                 "findByNameLike",
                 new Object[]{"foo"},
-                getExpectedQuery("WHERE `thing`.`name` =~ {0}"),
+                getExpectedQuery("subclass-to-supply-trs-specific-query"),
                 getExpectedParams("foo"));
     }
     @Test
@@ -293,7 +293,7 @@ public abstract class AbstractDerivedFinderMethodTestBase {
         assertRepositoryQueryMethod(ThingRepository.class,
                 "findByNameNotLike",
                 new Object[]{"foo"},
-                getExpectedQuery("WHERE not( `thing`.`name` =~ {0} )"),
+                getExpectedQuery("subclass-to-supply-trs-specific-query"),
                 getExpectedParams("foo"));
     }
 
@@ -302,26 +302,26 @@ public abstract class AbstractDerivedFinderMethodTestBase {
         assertRepositoryQueryMethod(ThingRepository.class,
                 "findByNameMatches",
                 new Object[]{"foo"},
-                getExpectedQuery("WHERE `thing`.`name` =~ {0}"),
+                getExpectedQuery("subclass-to-supply-trs-specific-query"),
                 getExpectedParams("foo"));
     }
     @Test
     public void testFindBySimpleBooleanIsTrue() throws Exception {
         assertRepositoryQueryMethod(ThingRepository.class,
                 "findByTaggedIsTrue", new Object[]{},
-                getExpectedQuery("WHERE `thing`.`tagged` = true"));
+                getExpectedQuery("subclass-to-supply-trs-specific-query"));
     }
     @Test
     public void testFindBySimpleBooleanIsFalse() throws Exception {
         assertRepositoryQueryMethod(ThingRepository.class,
                 "findByTaggedIsFalse", new Object[]{},
-                getExpectedQuery("WHERE `thing`.`tagged` = false"));
+                getExpectedQuery("subclass-to-supply-trs-specific-query"));
     }
     @Test
     public void testFindBySimpleStringExists() throws Exception {
         assertRepositoryQueryMethod(ThingRepository.class,
                 "findByNameExists", new Object[]{},
-                getExpectedQuery("WHERE has(`thing`.`name`  )"));
+                getExpectedQuery("subclass-to-supply-trs-specific-query"));
     }
 
     @Test
@@ -329,15 +329,16 @@ public abstract class AbstractDerivedFinderMethodTestBase {
         List<String> param = asList("foo");
         assertRepositoryQueryMethod(ThingRepository.class,
                 "findByNameIn", new Object[]{param},
-                getExpectedQuery("WHERE `thing`.`name` in {0}"),
+                getExpectedQuery("subclass-to-supply-trs-specific-query"),
                 getExpectedParams(param));
     }
+
     @Test
     public void testFindBySimpleStringInCollectionOfEnums() throws Exception {
         List<TimeUnit> param = asList(TimeUnit.MINUTES);
         assertRepositoryQueryMethod(ThingRepository.class,
                 "findByNameIn", new Object[]{param},
-                getExpectedQuery("WHERE `thing`.`name` in {0}"),
+                getExpectedQuery("subclass-to-supply-trs-specific-query"),
                 getExpectedParams(param));
     }
 
@@ -346,15 +347,16 @@ public abstract class AbstractDerivedFinderMethodTestBase {
         List<String> param = asList("foo");
         assertRepositoryQueryMethod(ThingRepository.class,
                 "findByNameNotIn", new Object[]{param},
-                getExpectedQuery("WHERE not( `thing`.`name` in {0} )"),
+                getExpectedQuery("subclass-to-supply-trs-specific-query"),
                 getExpectedParams(param));
     }
+
     @Test
     public void testFindBySimpleDateBefore() throws Exception {
         Date param = new Date(1337);
         assertRepositoryQueryMethod(ThingRepository.class,
                 "findByBornBefore", new Object[]{param},
-                getExpectedQuery("WHERE `thing`.`born` < {0}"),
+                getExpectedQuery("subclass-to-supply-trs-specific-query"),
                 getExpectedParams(param.getTime()));
     }
 
@@ -363,7 +365,7 @@ public abstract class AbstractDerivedFinderMethodTestBase {
         Date param = new Date(1337);
         assertRepositoryQueryMethod(ThingRepository.class,
                 "findByBornAfter", new Object[]{param},
-                getExpectedQuery("WHERE `thing`.`born` > {0}"),
+                getExpectedQuery("subclass-to-supply-trs-specific-query"),
                 getExpectedParams(param.getTime()));
     }
 
@@ -371,7 +373,7 @@ public abstract class AbstractDerivedFinderMethodTestBase {
     public void testFindByNumericIndexedField() throws Exception {
         assertRepositoryQueryMethod(ThingRepository.class,
                 "findByNumber", new Object[]{10},
-                getExpectedQuery("START `thing`=node:`Thing`(`number`={0})"),
+                getExpectedQuery("subclass-to-supply-trs-specific-query"),
                 getExpectedParams(ValueContext.numeric(10)));
     }
 
