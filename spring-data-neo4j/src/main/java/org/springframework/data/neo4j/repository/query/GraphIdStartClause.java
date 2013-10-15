@@ -1,5 +1,5 @@
 /**
- * Copyright 2011 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,16 +15,30 @@
  */
 package org.springframework.data.neo4j.repository.query;
 
-public class IndexRestrictingStartClause extends StartClause {
-    private final String className;
+import org.springframework.data.neo4j.support.Neo4jTemplate;
+import org.springframework.data.repository.query.Parameter;
 
-    public IndexRestrictingStartClause(PartInfo partInfo, String className) {
+import java.util.Map;
+
+/**
+ * Represents a start clause where the actual graph id
+ * of the entity is used.
+ *
+ * @author Nicki Watt
+ */
+public class GraphIdStartClause extends StartClause {
+
+    public GraphIdStartClause(PartInfo partInfo) {
         super(partInfo);
-        this.className = className;
     }
 
     @Override
     public String toString() {
-        return String.format(QueryTemplates.DEFAULT_START_CLAUSE, getPartInfo().getIdentifier(), className);
+        return String.format(QueryTemplates.START_NODE_LOOKUP, getPartInfo().getIdentifier(), getPartInfo().getParameterIndex());
+    }
+
+    @Override
+    public Map<Parameter, Object> resolveParameters(Map<Parameter, Object> parameters, Neo4jTemplate template) {
+        return parameters;
     }
 }

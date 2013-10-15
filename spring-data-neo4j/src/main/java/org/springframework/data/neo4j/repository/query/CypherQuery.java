@@ -18,17 +18,18 @@ package org.springframework.data.neo4j.repository.query;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mapping.context.PersistentPropertyPath;
+import org.springframework.data.neo4j.core.TypeRepresentationStrategy;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentEntity;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
+import org.springframework.data.neo4j.support.typerepresentation.LabelBasedNodeTypeRepresentationStrategy;
 import org.springframework.data.repository.query.Parameter;
 import org.springframework.data.repository.query.parser.Part;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static org.springframework.util.StringUtils.*;
+import static org.springframework.util.StringUtils.hasText;
 
 public class CypherQuery implements CypherQueryDefinition {
     private final VariableContext variableContext = new VariableContext();
@@ -40,19 +41,28 @@ public class CypherQuery implements CypherQueryDefinition {
     private final Neo4jPersistentEntity<?> entity;
     private final Neo4jTemplate template;
     private boolean isCountQuery = false;
+    private boolean useLabels = false;
 
-    public CypherQuery(final Neo4jPersistentEntity<?> entity, Neo4jTemplate template) {
+    public CypherQuery(final Neo4jPersistentEntity<?> entity, Neo4jTemplate template, TypeRepresentationStrategy nodeTypeRepresentationStrategy) {
         this.entity = entity;
         this.template = template;
+        this.useLabels = nodeTypeRepresentationStrategy instanceof LabelBasedNodeTypeRepresentationStrategy;
     }
 
     private String getEntityName(Neo4jPersistentEntity<?> entity) {
         return variableContext.getVariableFor(entity);
     }
 
-    private String defaultStartClause(Neo4jPersistentEntity<?> entity) {
-        return String.format(QueryTemplates.DEFAULT_START_CLAUSE, getEntityName(entity), entity
-                .getEntityType().getAlias());
+    private String defaultIndexBasedStartClause(Neo4jPersistentEntity<?> entity) {
+        return  String.format(QueryTemplates.DEFAULT_INDEXBASED_START_CLAUSE,
+                getEntityName(entity),
+                entity.getEntityType().getAlias());
+    }
+
+    private String defaultMatchBasedStartClause(Neo4jPersistentEntity<?> entity) {
+        return  String.format(QueryTemplates.DEFAULT_LABELBASED_MATCH_START_CLAUSE,
+                getEntityName(entity),
+                entity.getEntityType().getAlias());
     }
 
     public void addPart(Part part, PersistentPropertyPath<Neo4jPersistentProperty> path) {
@@ -67,12 +77,13 @@ public class CypherQuery implements CypherQueryDefinition {
             if (!addedStartClause(partInfo)) {
                 whereClauses.add(new WhereClause(partInfo,template));
             }
-        } else if (leafProperty.isRelationship()) {
-            startClauses.add(new NodeEntityMatchingStartClause(partInfo));
-            whereClauses.add(new TypeRestrictingWhereClause(new PartInfo(path, variableContext.getVariableFor(entity), part, -1), entity, template));
-        } else if (leafProperty.isIdProperty()) {
-            startClauses.add(new NodeEntityMatchingStartClause(partInfo));
-            whereClauses.add(new TypeRestrictingWhereClause(new PartInfo(path, variableContext.getVariableFor(entity), part, -1), entity, template));
+        } else if (leafProperty.isRelationship() || leafProperty.isIdProperty()) {
+            startClauses.add(new GraphIdStartClause(partInfo));
+            if (useLabels) {
+                whereClauses.add(new LabelBasedTypeRestrictingWhereClause(new PartInfo(path, variableContext.getVariableFor(entity), part, -1), entity, template));
+            } else {
+                whereClauses.add(new IndexBasedTypeRestrictingWhereClause(new PartInfo(path, variableContext.getVariableFor(entity), part, -1), entity, template));
+            }
         } else {
             throw new IllegalStateException("Error "+part+" points neither to a primitive nor a entity property of "+entity);
         }
@@ -108,11 +119,19 @@ public class CypherQuery implements CypherQueryDefinition {
 
     private boolean addedStartClause(PartInfo partInfo) {
         if (!partInfo.isIndexed()) return false;
-        for (StartClause startClause : startClauses) {
-            // only merge when same index and same variable
+
+        ListIterator<StartClause> it = startClauses.listIterator();
+        while (it.hasNext()) {
+            StartClause startClause = it.next();
             if (startClause.sameIdentifier(partInfo)) {
                 if (startClause.sameIndex(partInfo)) {
                     startClause.merge(partInfo);
+                    if (startClause.hasMultipleParts()) {
+                        // Replace it as we could not detect this initially ...
+                        List<PartInfo> newList = new ArrayList<PartInfo>();
+                        newList.addAll(startClause.getPartInfos());
+                        it.set(StartClauseFactory.create(newList));
+                    }
                     return true;
                 } else {
                     // must stop b/c of invalid combination (same identifier but different index)
@@ -120,7 +139,7 @@ public class CypherQuery implements CypherQueryDefinition {
                 }
             }
         }
-        startClauses.add(new StartClause(partInfo));
+        startClauses.add(StartClauseFactory.create(partInfo));
         return true;
     }
 
@@ -154,33 +173,80 @@ public class CypherQuery implements CypherQueryDefinition {
     }
 
     private String render() {
+
         String startClauses = collectionToDelimitedString(this.startClauses, ", ");
         String matchClauses = toQueryString(this.matchClauses);
         String whereClauses = collectionToDelimitedString(this.whereClauses, " AND ");
 
-        StringBuilder builder = new StringBuilder("START ");
+        StringBuilder builder = new StringBuilder("");
+        boolean startClauseInUse = renderStartClauses(builder, startClauses);
+        renderMatchClauses(builder, matchClauses, startClauseInUse);
+        renderWhereClauses(builder, whereClauses);
+        renderReturnClauses(builder);
 
-        if (hasText(startClauses)) {
-            builder.append(startClauses);
-        } else {
-            builder.append(defaultStartClause(entity));
-        }
+        return builder.toString();
+    }
 
-        if (hasText(matchClauses)) {
-            builder.append(" MATCH ").append(matchClauses);
-        }
-
-        if (hasText(whereClauses)) {
-            builder.append(" WHERE ").append(whereClauses);
-        }
-
+    private void renderReturnClauses(StringBuilder builder) {
         String returnEntity = String.format(QueryTemplates.VARIABLE,getEntityName(entity));
         if (isCountQuery) {
             builder.append(" RETURN ").append("count(").append(returnEntity).append(")");
         } else {
             builder.append(" RETURN ").append(returnEntity);
         }
-        return builder.toString();
+    }
+
+    private void renderWhereClauses(StringBuilder builder, String whereClauses) {
+        if (hasText(whereClauses)) {
+            builder.append(" WHERE ").append(whereClauses);
+        }
+    }
+
+    private void renderMatchClauses(StringBuilder builder, String matchClauses, boolean startClauseInUse) {
+        if (hasText(matchClauses)) {
+            builder.append(" MATCH ").append(matchClauses);
+            return;
+        }
+        if (useLabelBasedTRS() && !startClauseInUse) {
+            builder.append(" MATCH ").append(defaultMatchBasedStartClause(entity));
+            return;
+        }
+    }
+
+    /**
+     * From Neo4j 2.0 onwards the start clause is optional (although still needs to be
+     * used for certain cases where index lookups are required etc. This method takes
+     * the currently built up query in builder (which should be empty at this point)
+     * and begins to add in any currently defined start clauses. In the absence of
+     * any start clauses, it will add in the default start clause if using an indexing
+     * strtegy.
+     *
+     * @param builder current query which has been built up
+     * @param startClauses List of current start clauses
+     * @return true if this method resulted in the query having a START clause
+     *         applied to it otherwise false
+     */
+    private boolean renderStartClauses(StringBuilder builder, String startClauses) {
+        if (hasText(startClauses)) {
+            builder.append("START ").append(startClauses);
+            return true;
+        }
+        if (useIndexBasedTRS()) {
+            builder.append("START ").append(defaultIndexBasedStartClause(entity));
+            return true;
+        }
+
+        // For a label based strategy, we do not use a start clause
+        // but rather begin with a MATCH clause
+        return false;
+    }
+
+    private boolean useIndexBasedTRS() {
+        return !useLabels;
+    }
+
+    private boolean useLabelBasedTRS() {
+        return useLabels;
     }
 
 

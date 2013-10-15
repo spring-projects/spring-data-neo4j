@@ -16,12 +16,7 @@
 
 package org.springframework.data.neo4j.support.typerepresentation;
 
-import org.neo4j.graphdb.Direction;
-import org.neo4j.graphdb.DynamicRelationshipType;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.PropertyContainer;
-import org.neo4j.graphdb.Relationship;
-import org.neo4j.graphdb.RelationshipType;
+import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.traversal.TraversalDescription;
 import org.neo4j.helpers.collection.ClosableIterable;
 import org.neo4j.helpers.collection.IterableWrapper;
@@ -90,6 +85,19 @@ public class SubReferenceNodeTypeRepresentationStrategy implements NodeTypeRepre
         // TODO At the moment this is the best way of doing it, if you don't want to use
         // the LockManager (and release the lock yourself)
         entity.removeProperty("___dummy_property_for_locking___");
+    }
+
+    public static boolean isStrategyAlreadyInUse(GraphDatabase graphDatabaseService) {
+        try {
+            for (Relationship rel : graphDatabaseService.getReferenceNode().getRelationships()) {
+                if (rel.getType().name().startsWith(SubReferenceNodeTypeRepresentationStrategy.SUBREF_PREFIX)) {
+                    return true;
+                }
+            }
+        } catch(NotFoundException nfe) {
+            // ignore
+        }
+        return false;
     }
 
     @Override

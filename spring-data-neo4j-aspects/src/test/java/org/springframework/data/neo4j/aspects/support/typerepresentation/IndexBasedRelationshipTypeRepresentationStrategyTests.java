@@ -31,8 +31,8 @@ import org.springframework.data.neo4j.aspects.support.EntityTestBase;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
 import org.springframework.data.neo4j.support.mapping.EntityStateHandler;
 import org.springframework.data.neo4j.support.node.Neo4jHelper;
-import org.springframework.data.neo4j.support.typerepresentation.IndexingNodeTypeRepresentationStrategy;
-import org.springframework.data.neo4j.support.typerepresentation.IndexingRelationshipTypeRepresentationStrategy;
+import org.springframework.data.neo4j.support.typerepresentation.IndexBasedNodeTypeRepresentationStrategy;
+import org.springframework.data.neo4j.support.typerepresentation.IndexBasedRelationshipTypeRepresentationStrategy;
 import org.springframework.test.context.CleanContextCacheTestExecutionListener;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestExecutionListeners;
@@ -53,10 +53,10 @@ import static org.neo4j.helpers.collection.IteratorUtil.first;
 @ContextConfiguration(locations = {"classpath:org/springframework/data/neo4j/aspects/support/Neo4jGraphPersistenceTests-context.xml",
         "classpath:org/springframework/data/neo4j/aspects/support/IndexingTypeRepresentationStrategyOverride-context.xml"})
 @TestExecutionListeners({CleanContextCacheTestExecutionListener.class, DependencyInjectionTestExecutionListener.class, TransactionalTestExecutionListener.class})
-public class IndexingRelationshipTypeRepresentationStrategyTests extends EntityTestBase {
+public class IndexBasedRelationshipTypeRepresentationStrategyTests extends EntityTestBase {
 
 	@Autowired
-	private IndexingRelationshipTypeRepresentationStrategy relationshipTypeRepresentationStrategy;
+	private IndexBasedRelationshipTypeRepresentationStrategy relationshipTypeRepresentationStrategy;
 
     @Autowired EntityStateHandler entityStateHandler;
     @Autowired Neo4jTemplate neo4jTemplate;
@@ -78,9 +78,9 @@ public class IndexingRelationshipTypeRepresentationStrategyTests extends EntityT
 	@Test
 	@Transactional
 	public void testPostEntityCreationOfRelationshipBacked() throws Exception {
-		Index<Relationship> typesIndex = graphDatabaseService.index().forRelationships(IndexingRelationshipTypeRepresentationStrategy.INDEX_NAME);
+		Index<Relationship> typesIndex = graphDatabaseService.index().forRelationships(IndexBasedRelationshipTypeRepresentationStrategy.INDEX_NAME);
         final Object alias = neo4jTemplate.getEntityType(Link.class).getAlias();
-        IndexHits<Relationship> linkHits = typesIndex.get(IndexingNodeTypeRepresentationStrategy.INDEX_KEY, alias);
+        IndexHits<Relationship> linkHits = typesIndex.get(IndexBasedNodeTypeRepresentationStrategy.INDEX_KEY, alias);
         Relationship rel = linkHits.getSingle();
         assertEquals(rel(link), rel);
 		assertEquals(alias, rel.getProperty("__type__"));
@@ -98,8 +98,8 @@ public class IndexingRelationshipTypeRepresentationStrategyTests extends EntityT
         }
 
         try (Transaction tx = graphDatabaseService.beginTx()) {
-            Index<Relationship> typesIndex = graphDatabaseService.index().forRelationships(IndexingNodeTypeRepresentationStrategy.INDEX_NAME);
-            IndexHits<Relationship> linkHits = typesIndex.get(IndexingNodeTypeRepresentationStrategy.INDEX_KEY, link.getClass().getName());
+            Index<Relationship> typesIndex = graphDatabaseService.index().forRelationships(IndexBasedNodeTypeRepresentationStrategy.INDEX_NAME);
+            IndexHits<Relationship> linkHits = typesIndex.get(IndexBasedNodeTypeRepresentationStrategy.INDEX_KEY, link.getClass().getName());
             assertNull(linkHits.getSingle());
             tx.success();
         }

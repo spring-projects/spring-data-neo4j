@@ -21,8 +21,10 @@ import org.neo4j.graphdb.index.Index;
 import org.springframework.data.neo4j.core.GraphDatabase;
 import org.springframework.data.neo4j.core.NodeTypeRepresentationStrategy;
 import org.springframework.data.neo4j.core.RelationshipTypeRepresentationStrategy;
+import org.springframework.data.neo4j.repository.query.CypherQuery;
 import org.springframework.data.neo4j.support.index.IndexProvider;
 import org.springframework.data.neo4j.support.index.NoSuchIndexException;
+import org.springframework.data.neo4j.support.query.QueryEngine;
 
 public class TypeRepresentationStrategyFactory {
     private final GraphDatabase graphDatabaseService;
@@ -38,47 +40,24 @@ public class TypeRepresentationStrategyFactory {
     }
     
     public TypeRepresentationStrategyFactory(GraphDatabase graphDatabaseService,Strategy strategy) {
-        this.graphDatabaseService = graphDatabaseService;
-        this.strategy = strategy;
+        this(graphDatabaseService, strategy, null);
     }
 
-    public TypeRepresentationStrategyFactory(GraphDatabase graphDatabaseService,Strategy strategy, IndexProvider indexProvider) {
+    public TypeRepresentationStrategyFactory(GraphDatabase graphDatabaseService,Strategy strategy,
+                                             IndexProvider indexProvider) {
         this.indexProvider = indexProvider;
         this.graphDatabaseService = graphDatabaseService;
         this.strategy = strategy;
     }
 
     private static Strategy chooseStrategy(GraphDatabase graphDatabaseService) {
-        Transaction tx = graphDatabaseService.beginTx();
-        try {
-            if (isAlreadyIndexed(graphDatabaseService)) return Strategy.Indexed;
-            if (isAlreadySubRef(graphDatabaseService)) return Strategy.SubRef;
-            return Strategy.Indexed;
-        } finally {
-            tx.success();tx.finish();
+        try (Transaction tx = graphDatabaseService.beginTx()) {
+            if (AbstractIndexBasedTypeRepresentationStrategy.isStrategyAlreadyInUse(graphDatabaseService)) return Strategy.Indexed;
+            if (SubReferenceNodeTypeRepresentationStrategy.isStrategyAlreadyInUse(graphDatabaseService)) return Strategy.SubRef;
+            if (LabelBasedNodeTypeRepresentationStrategy.isStrategyAlreadyInUse(graphDatabaseService)) return Strategy.Labeled;
+            tx.success();
+            return Strategy.Labeled;
         }
-    }
-
-    private static boolean isAlreadyIndexed(GraphDatabase graphDatabaseService) {
-        try {
-            final Index<PropertyContainer> index = graphDatabaseService.getIndex(IndexingNodeTypeRepresentationStrategy.INDEX_NAME);
-            return index!=null && Node.class.isAssignableFrom(index.getEntityType());
-        } catch(NoSuchIndexException nsie) {
-            return false;
-        }
-    }
-
-    private static boolean isAlreadySubRef(GraphDatabase graphDatabaseService) {
-        try {
-            for (Relationship rel : graphDatabaseService.getReferenceNode().getRelationships()) {
-                if (rel.getType().name().startsWith(SubReferenceNodeTypeRepresentationStrategy.SUBREF_PREFIX)) {
-                    return true;
-                }
-            }
-        } catch(NotFoundException nfe) {
-            // ignore
-        }
-        return false;
     }
 
     public NodeTypeRepresentationStrategy getNodeTypeRepresentationStrategy() {
@@ -105,15 +84,26 @@ public class TypeRepresentationStrategyFactory {
                 return new NoopRelationshipTypeRepresentationStrategy();
             }
         },
-        Indexed {
+        Labeled {
             @Override
             public NodeTypeRepresentationStrategy getNodeTypeRepresentationStrategy(GraphDatabase graphDatabaseService, IndexProvider indexProvider) {
-                return new IndexingNodeTypeRepresentationStrategy(graphDatabaseService, indexProvider);
+                return new LabelBasedNodeTypeRepresentationStrategy(graphDatabaseService);
             }
 
             @Override
             public RelationshipTypeRepresentationStrategy getRelationshipTypeRepresentationStrategy(GraphDatabase graphDatabaseService, IndexProvider indexProvider) {
-                return new IndexingRelationshipTypeRepresentationStrategy(graphDatabaseService, indexProvider);
+                return new IndexBasedRelationshipTypeRepresentationStrategy(graphDatabaseService, indexProvider);
+            }
+        },
+        Indexed {
+            @Override
+            public NodeTypeRepresentationStrategy getNodeTypeRepresentationStrategy(GraphDatabase graphDatabaseService, IndexProvider indexProvider) {
+                return new IndexBasedNodeTypeRepresentationStrategy(graphDatabaseService, indexProvider);
+            }
+
+            @Override
+            public RelationshipTypeRepresentationStrategy getRelationshipTypeRepresentationStrategy(GraphDatabase graphDatabaseService, IndexProvider indexProvider) {
+                return new IndexBasedRelationshipTypeRepresentationStrategy(graphDatabaseService, indexProvider);
             }
         },
         Noop {

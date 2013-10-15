@@ -15,6 +15,7 @@
  */
 package org.springframework.data.neo4j.support.typerepresentation;
 
+import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.PropertyContainer;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.graphdb.index.Index;
@@ -25,11 +26,12 @@ import org.springframework.data.neo4j.core.TypeRepresentationStrategy;
 import org.springframework.data.neo4j.support.index.ClosableIndexHits;
 import org.springframework.data.neo4j.support.index.IndexProvider;
 import org.springframework.data.neo4j.support.index.IndexType;
+import org.springframework.data.neo4j.support.index.NoSuchIndexException;
 import org.springframework.data.neo4j.support.mapping.StoredEntityType;
 
 import java.lang.Object;
 
-public abstract class AbstractIndexingTypeRepresentationStrategy<S extends PropertyContainer> implements
+public abstract class AbstractIndexBasedTypeRepresentationStrategy<S extends PropertyContainer> implements
         TypeRepresentationStrategy<S> {
 
     public static final String TYPE_PROPERTY_NAME = "__type__";
@@ -40,13 +42,22 @@ public abstract class AbstractIndexingTypeRepresentationStrategy<S extends Prope
     private final Class<? extends PropertyContainer> clazz;
     private Index<S> typesIndex;
 
-    public AbstractIndexingTypeRepresentationStrategy(GraphDatabase graphDb, IndexProvider indexProvider,
-                                                      final String indexName, final Class<? extends PropertyContainer> clazz) {
+    public AbstractIndexBasedTypeRepresentationStrategy(GraphDatabase graphDb, IndexProvider indexProvider,
+                                                        final String indexName, final Class<? extends PropertyContainer> clazz) {
         this.graphDb = graphDb;
         this.indexProvider = indexProvider;
         INDEX_NAME = indexName;
         this.clazz = clazz;
         typesIndex = createTypesIndex();
+    }
+
+    public static boolean isStrategyAlreadyInUse(GraphDatabase graphDatabaseService) {
+        try {
+            final Index<PropertyContainer> index = graphDatabaseService.getIndex(IndexBasedNodeTypeRepresentationStrategy.INDEX_NAME);
+            return index!=null && Node.class.isAssignableFrom(index.getEntityType());
+        } catch(NoSuchIndexException nsie) {
+            return false;
+        }
     }
 
     private Object indexValueForType(Object alias) {

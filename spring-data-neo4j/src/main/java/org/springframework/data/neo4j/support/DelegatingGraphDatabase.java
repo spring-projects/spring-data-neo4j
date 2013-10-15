@@ -62,7 +62,7 @@ public class DelegatingGraphDatabase implements GraphDatabase {
     private volatile QueryEngine<Object> gremlinQueryEngine;
 
     public DelegatingGraphDatabase(final GraphDatabaseService delegate) {
-        this.delegate = delegate;
+        this(delegate,null);
     }
     public DelegatingGraphDatabase(final GraphDatabaseService delegate, ResultConverter resultConverter) {
         this.delegate = delegate;
@@ -76,6 +76,21 @@ public class DelegatingGraphDatabase implements GraphDatabase {
     @Override
     public void setResultConverter(ResultConverter resultConverter) {
         this.resultConverter = resultConverter;
+
+        // At present, the current config may result in the scenario where
+        // the query engine was requested very early on in the lifecycle
+        // (for Type Representation Strategy) and at that stage, only the
+        // default ResultConverter was available, and thus used to create
+        // the query engines. (TODO - Try change ordering if possible)
+        //
+        // In this case we re-initialise it to ensure it uses this latest
+        // result Converter (as it is currently cached)
+        reinitQueryEngines();
+    }
+
+    private void reinitQueryEngines() {
+        if (cypherQueryEngine != null) this.cypherQueryEngine = queryEngineFor(QueryType.Cypher, resultConverter, true);
+        if (gremlinQueryEngine != null) this.gremlinQueryEngine = queryEngineFor(QueryType.Gremlin, resultConverter, true);
     }
 
     @Override
@@ -187,25 +202,30 @@ public class DelegatingGraphDatabase implements GraphDatabase {
     }
 
     @SuppressWarnings("unchecked")
-    public <T> QueryEngine<T> queryEngineFor(QueryType type,ResultConverter resultConverter) {
+    private <T> QueryEngine<T> queryEngineFor(QueryType type,ResultConverter resultConverter,boolean reinit) {
         switch (type) {
             case Cypher:  {
-                if (cypherQueryEngine==null)
+                if (reinit || cypherQueryEngine==null)
                     synchronized (this) {
-                        if (cypherQueryEngine==null) cypherQueryEngine = createCypherQueryEngine(resultConverter);
+                        if (reinit || cypherQueryEngine==null) cypherQueryEngine = createCypherQueryEngine(resultConverter);
                     }
                 return (QueryEngine<T>) cypherQueryEngine;
             }
             case Gremlin: {
-                if (gremlinQueryEngine==null) {
+                if (reinit || gremlinQueryEngine==null) {
                     synchronized (this) {
-                        if (gremlinQueryEngine==null) gremlinQueryEngine=createGremlinQueryEngine(resultConverter);
+                        if (reinit || gremlinQueryEngine==null) gremlinQueryEngine=createGremlinQueryEngine(resultConverter);
                     }
                 }
                 return (QueryEngine<T>) gremlinQueryEngine;
             }
         }
         throw new IllegalArgumentException("Unknown Query Engine Type "+type);
+    }
+
+    @SuppressWarnings("unchecked")
+    public <T> QueryEngine<T> queryEngineFor(QueryType type,ResultConverter resultConverter) {
+        return queryEngineFor(type,resultConverter,false);
     }
 
     private <T> QueryEngine<T> createGremlinQueryEngine(ResultConverter resultConverter) {

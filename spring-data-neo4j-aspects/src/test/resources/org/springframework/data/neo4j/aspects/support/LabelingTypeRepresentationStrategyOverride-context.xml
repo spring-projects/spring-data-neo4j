@@ -3,8 +3,8 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
-    <bean id="graphDatabaseService" class="org.springframework.data.neo4j.rest.SpringRestGraphDatabase" scope="singleton">
-         <constructor-arg index="0" value="http://localhost:7470/db/data" />
+    <bean id="typeRepresentationStrategyFactory" class="org.springframework.data.neo4j.support.typerepresentation.TypeRepresentationStrategyFactory">
+        <constructor-arg index="0" ref="graphDatabase"/>
+        <constructor-arg index="1" value="Labeled"/>
     </bean>
-    <alias name="graphDatabaseService"  alias="graphDatabase"/>
 </beans>

@@ -7,6 +7,12 @@
 		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd
 		http://www.springframework.org/schema/data/neo4j http://www.springframework.org/schema/data/neo4j/spring-neo4j.xsd">
     <context:annotation-config/>
+
+    <bean id="typeRepresentationStrategyFactory" class="org.springframework.data.neo4j.support.typerepresentation.TypeRepresentationStrategyFactory">
+        <constructor-arg index="0" ref="graphDatabase"/>
+        <constructor-arg index="1" value="Labeled"/>
+    </bean>
+
     <neo4j:config graphDatabaseService="graphDatabaseService"/>
     <neo4j:repositories base-package="org.springframework.data.neo4j.repository.query"/>
     <bean id="graphDatabaseService" class="org.neo4j.test.ImpermanentGraphDatabase" destroy-method="shutdown"/>
