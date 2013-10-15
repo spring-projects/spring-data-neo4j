@@ -17,7 +17,7 @@ package org.springframework.data.neo4j.repository.query;
 
 /**
  * Abstract class which represents a start clause which makes
- * use of an indexof some sort.
+ * use of an index of some sort.
  *
  * @author Nicki Watt
  */
