@@ -1,5 +1,5 @@
 /**
- * Copyright 2011 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,6 +34,7 @@ import org.springframework.data.repository.query.QueryLookupStrategy.Key;
  * Annotation to enable Neo4j repositories.
  * 
  * @author Oliver Gierke
+ * @author Thomas Darimont
  */
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
@@ -103,4 +104,10 @@ public @interface EnableNeo4jRepositories {
 	 * {@link Neo4jRepositoryConfigurationExtension#DEFAULT_NEO4J_TEMPLATE_REF}.
 	 */
 	String neo4jTemplateRef() default Neo4jRepositoryConfigurationExtension.DEFAULT_NEO4J_TEMPLATE_REF;
+
+	/**
+	 * Configures whether nested repository-interfaces (e.g. defined as inner classes) should be discovered by the
+	 * repositories infrastructure.
+	 */
+	boolean considerNestedRepositories() default false;
 }
