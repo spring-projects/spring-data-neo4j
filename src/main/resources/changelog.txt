@@ -1,6 +1,11 @@
 Spring Data Neo4j Changelog
 ===========================
 
+Changes in version 2.3.2.RELEASE (2013-10-25)
+----------------------------------------
+* DATAGRAPH-393 Use supplied RestGraphDatabase as GraphDatabase in MappingInfrastructure
+* DATAGRAPH-397 Release 2.3.2
+
 Changes in version 2.3.1.GA (2013-09-09)
 ----------------------------------------
 * DATAGRAPH-386 Upgrade to Spring Data Commons 1.6.1
