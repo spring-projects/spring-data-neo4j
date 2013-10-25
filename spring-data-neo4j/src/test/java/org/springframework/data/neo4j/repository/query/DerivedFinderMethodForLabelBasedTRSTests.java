@@ -44,7 +44,7 @@ import static org.hamcrest.Matchers.instanceOf;
 @TestExecutionListeners({CleanContextCacheTestExecutionListener.class, DependencyInjectionTestExecutionListener.class, TransactionalTestExecutionListener.class})
 public class DerivedFinderMethodForLabelBasedTRSTests extends AbstractDerivedFinderMethodTestBase {
 
-    private static final String DEFAULT_MATCH_CLAUSE = "MATCH `thing`:`org.springframework.data.neo4j.repository.query.AbstractDerivedFinderMethodTestBase$Thing`";
+    private static final String DEFAULT_MATCH_CLAUSE = "MATCH (`thing`:`org.springframework.data.neo4j.repository.query.AbstractDerivedFinderMethodTestBase$Thing`)";
 
     @Autowired
     NodeTypeRepresentationStrategy strategy;
@@ -61,7 +61,7 @@ public class DerivedFinderMethodForLabelBasedTRSTests extends AbstractDerivedFin
     @Override
     public void testQueryWithEntityGraphId() throws Exception {
         // findByOwnerId
-        this.trsSpecificExpectedQuery = "START `thing_owner`=node({0}) MATCH `thing`-[:`owner`]->`thing_owner` WHERE `thing`:`org.springframework.data.neo4j.repository.query.AbstractDerivedFinderMethodTestBase$Thing` ";
+        this.trsSpecificExpectedQuery = "START `thing_owner`=node({0}) MATCH (`thing`)-[:`owner`]->(`thing_owner`) WHERE `thing`:`org.springframework.data.neo4j.repository.query.AbstractDerivedFinderMethodTestBase$Thing` ";
         super.testQueryWithEntityGraphId();
     }
 

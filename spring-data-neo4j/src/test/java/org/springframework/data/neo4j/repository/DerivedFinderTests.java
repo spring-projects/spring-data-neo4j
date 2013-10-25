@@ -283,7 +283,6 @@ public class DerivedFinderTests {
         assertThat(single(recipes).id, is(equalTo(focaccia.id)));
     }
 
-    @Ignore
     @Test
     public void shouldFindUsingMultipleEntities() throws Exception {
         Set<Recipe> recipes = recipeRepository.findByIngredientAndCookBook(pear, baking101);

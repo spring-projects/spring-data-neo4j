@@ -42,11 +42,11 @@ public abstract class QueryTemplates {
     private static final String DIRECTION_INCOMING = "<-[:`%s`]-";
     private static final String DIRECTION_OUTGOING = "-[:`%s`]->";
     private static final String DIRECTION_BOTH = "-[:`%s`]-";
-    static final String MATCH_CLAUSE = "`%s`%s`%s`";
-    static final String MATCH_CLAUSE2 = "%s%s`%s`";
+    static final String MATCH_CLAUSE = "(`%s`)%s(`%s`)";
+    static final String MATCH_CLAUSE2 = "%s%s(`%s`)";
 
     static final String DEFAULT_INDEXBASED_START_CLAUSE = "`%s`=node:__types__(className=\"%s\")";
-    static final String DEFAULT_LABELBASED_MATCH_START_CLAUSE = "`%s`:`%s`";
+    static final String DEFAULT_LABELBASED_MATCH_START_CLAUSE = "(`%s`:`%s`)";
 
     public static final String START_NODE_LOOKUP = "`%s`=node({%d})";
     static final String SKIP_LIMIT = " SKIP %d LIMIT %d";

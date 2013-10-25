@@ -66,7 +66,7 @@ public class DerivedFinderMethodForIndexedBasedTRSTests extends AbstractDerivedF
         // findByOwnerId
         this.trsSpecificExpectedQuery =
                 "START `thing_owner`=node({0}) " +
-                "MATCH `thing`-[:`owner`]->`thing_owner` " +
+                "MATCH (`thing`)-[:`owner`]->(`thing_owner`) " +
                 "WHERE `thing`.__type__ IN ['org.springframework.data.neo4j.repository.query.AbstractDerivedFinderMethodTestBase$Thing'] ";
         super.testQueryWithEntityGraphId();
     }

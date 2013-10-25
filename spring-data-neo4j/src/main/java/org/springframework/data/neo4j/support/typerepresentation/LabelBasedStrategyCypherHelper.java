@@ -21,12 +21,12 @@ import java.util.Map;
  */
 public class LabelBasedStrategyCypherHelper {
 
-    static final String CYPHER_ADD_LABEL_TO_NODE = "match n where id(n)={nodeId} set n:`%s`";
-    static final String CYPHER_ADD_LABELS_TO_NODE = "match n where id(n)={nodeId} set n%s";
-    static final String CYPHER_COUNT_LABELS_ON_NODE = "match n where id(n)={nodeId} and n:`%s` return count(*) ";
-    static final String CYPHER_RETURN_NODES_WITH_LABEL = "match n:`%s` return n";
-    static final String CYPHER_RETURN_COUNT_OF_NODES_WITH_LABEL = "match n:`%s` return count(*)";
-    static final String CYPHER_RETURN_LABELS_FOR_NODE = "match n where id(n)={nodeId} return labels(n) as labels";
+    static final String CYPHER_ADD_LABEL_TO_NODE = "match (n) where id(n)={nodeId} set n:`%s`";
+    static final String CYPHER_ADD_LABELS_TO_NODE = "match (n) where id(n)={nodeId} set n%s";
+    static final String CYPHER_COUNT_LABELS_ON_NODE = "match (n) where id(n)={nodeId} and n:`%s` return count(*) ";
+    static final String CYPHER_RETURN_NODES_WITH_LABEL = "match (n:`%s`) return n";
+    static final String CYPHER_RETURN_COUNT_OF_NODES_WITH_LABEL = "match (n:`%s`) return count(*)";
+    static final String CYPHER_RETURN_LABELS_FOR_NODE = "match (n) where id(n)={nodeId} return labels(n) as labels";
 
     private QueryEngine<CypherQuery> queryEngine;
 

@@ -27,6 +27,7 @@ import org.neo4j.rest.graphdb.query.RestCypherQueryEngine;
 import org.neo4j.rest.graphdb.query.RestGremlinQueryEngine;
 import org.neo4j.rest.graphdb.transaction.NullTransaction;
 import org.neo4j.rest.graphdb.transaction.NullTransactionManager;
+import org.neo4j.rest.graphdb.traversal.RestTraversalDescription;
 import org.neo4j.rest.graphdb.util.Config;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.data.neo4j.annotation.QueryType;
@@ -106,11 +107,6 @@ public class SpringRestGraphDatabase extends org.neo4j.rest.graphdb.RestGraphDat
     @Override
     public <T extends PropertyContainer> Index<T> createIndex(Class<T> type, String indexName, org.springframework.data.neo4j.support.index.IndexType indexType) {
        return super.getRestAPI().createIndex(type, indexName, indexType.getConfig());
-    }
-
-    @Override
-    public TraversalDescription traversalDescription() {
-        return super.getRestAPI().createTraversalDescription();
     }
 
     @SuppressWarnings("unchecked")

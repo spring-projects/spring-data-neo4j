@@ -74,14 +74,14 @@ public class CypherQueryBuilderForIndexBasedTRSUnitTests extends AbstractCypherQ
     @Override
     @Test
     public void createsQueryForPropertyOnRelationShipReference() {
-        this.trsSpecificExpectedQuery = "START `person_group`=node:`Group`(`name`={0}) MATCH `person`<-[:`members`]-`person_group` RETURN `person`";
+        this.trsSpecificExpectedQuery = "START `person_group`=node:`Group`(`name`={0}) MATCH (`person`)<-[:`members`]-(`person_group`) RETURN `person`";
         super.createsQueryForPropertyOnRelationShipReference();
     }
 
     @Override
     @Test
     public void createsQueryForMultipleStartClauses() {
-        this.trsSpecificExpectedQuery = "START `person`=node:`Person`(`name`={0}), `person_group`=node:`Group`(`name`={1}) MATCH `person`<-[:`members`]-`person_group` RETURN `person`";
+        this.trsSpecificExpectedQuery = "START `person`=node:`Person`(`name`={0}), `person_group`=node:`Group`(`name`={1}) MATCH (`person`)<-[:`members`]-(`person_group`) RETURN `person`";
         super.createsQueryForMultipleStartClauses();
     }
 
@@ -95,7 +95,7 @@ public class CypherQueryBuilderForIndexBasedTRSUnitTests extends AbstractCypherQ
     @Override
     @Test
     public void createsSimpleTraversalClauseCorrectly() {
-        this.trsSpecificExpectedQuery = "START `person_group`=node({0}) MATCH `person`<-[:`members`]-`person_group` WHERE `person`.__type__ IN ['Person'] RETURN `person`";
+        this.trsSpecificExpectedQuery = "START `person_group`=node({0}) MATCH (`person`)<-[:`members`]-(`person_group`) WHERE `person`.__type__ IN ['Person'] RETURN `person`";
         super.createsSimpleTraversalClauseCorrectly();
     }
 
@@ -104,7 +104,7 @@ public class CypherQueryBuilderForIndexBasedTRSUnitTests extends AbstractCypherQ
     public void buildsComplexQueryCorrectly() {
         this.trsSpecificExpectedQuery =
                         "START `person`=node:`Person`(`name`={0}), `person_group`=node:`Group`(`name`={1}) " +
-                        "MATCH `person`<-[:`members`]-`person_group`, `person`<-[:`members`]-`person_group`-[:`members`]->`person_group_members` " +
+                        "MATCH (`person`)<-[:`members`]-(`person_group`), (`person`)<-[:`members`]-(`person_group`)-[:`members`]->(`person_group_members`) " +
                         "WHERE `person`.`age` > {2} AND `person_group_members`.`age` = {3} " +
                         "RETURN `person`";
         super.buildsComplexQueryCorrectly();
@@ -114,14 +114,14 @@ public class CypherQueryBuilderForIndexBasedTRSUnitTests extends AbstractCypherQ
     @Override
     @Test
     public void shouldFindByNodeEntity() throws Exception {
-        this.trsSpecificExpectedQuery = "START `person_pet`=node({0}) MATCH `person`-[:`owns`]->`person_pet` WHERE `person`.__type__ IN ['Person'] RETURN `person`";
+        this.trsSpecificExpectedQuery = "START `person_pet`=node({0}) MATCH (`person`)-[:`owns`]->(`person_pet`) WHERE `person`.__type__ IN ['Person'] RETURN `person`";
         super.shouldFindByNodeEntity();
     }
 
     @Override
     @Test
     public void shouldFindByNodeEntityForIncomingRelationship() {
-        this.trsSpecificExpectedQuery = "START `person_group`=node({0}) MATCH `person`<-[:`members`]-`person_group` WHERE `person`.__type__ IN ['Person'] RETURN `person`";
+        this.trsSpecificExpectedQuery = "START `person_group`=node({0}) MATCH (`person`)<-[:`members`]-(`person_group`) WHERE `person`.__type__ IN ['Person'] RETURN `person`";
         super.shouldFindByNodeEntityForIncomingRelationship();
     }
 
