@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN"
                  "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
-<chapter id="reference:samples">
+<chapter id="reference_samples">
     <title>Sample code</title>
 
-    <section id="samples:introduction">
+    <section id="samples_introduction">
         <title>Introduction</title>
         <para>
             Spring Data Neo4j comes with a number of sample applications. The source code of the samples can be found on
@@ -13,7 +13,7 @@
         </para>
     </section>
 
-    <section id="samples:hello-worlds">
+    <section id="samples_hello-worlds">
         <title>Hello Worlds sample application</title>
         <para>
             The Hello Worlds sample application is a simple console application. It creates some worlds
@@ -38,7 +38,7 @@
         </mediaobject>
     </section>
 
-    <section id="samples:imdb">
+    <section id="samples_imdb">
         <title>IMDB sample application</title>
         <para>
             The IMDB sample is a web application that imports datasets from the Internet Movie Database (IMDB)
@@ -65,7 +65,7 @@
         </para>
     </section>
 
-    <section id="samples:myrestaurants-original">
+    <section id="samples_myrestaurants-original">
         <title>MyRestaurants sample application</title>
         <para>
             Simple, JPA-based web application for managing users and restaurants, with the ability to add
@@ -80,7 +80,7 @@
         </mediaobject>
     </section>
 
-    <section id="samples:myrestaurants-social">
+    <section id="samples_myrestaurants-social">
         <title>MyRestaurant-Social sample application</title>
         <para>
             This application extends the MyRestaurants sample application, adding social networking
@@ -102,7 +102,7 @@
             </imageobject>
         </mediaobject>
     </section>
-    <section id="samples:cineasts">
+    <section id="samples_cineasts">
         <title>Cineasts social movie database</title>
         <para>
 			The cineasts.net application was introduced extensively in the first part of this guide, the 

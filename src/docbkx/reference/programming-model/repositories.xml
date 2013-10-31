@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE section PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
-<section id="reference:programming-model:repositories" xmlns:xi="http://www.w3.org/2001/XInclude">
+<section id="reference_programming-model_repositories" xmlns:xi="http://www.w3.org/2001/XInclude">
     <title>CRUD with repositories</title>
     <para>
         The repositories provided by Spring Data Neo4j build on the composable repository infrastructure
@@ -23,7 +23,7 @@
     <para>
         With the <code>RelationshipOperationsRepository</code> it is possible to access, create and delete
 		relationships between entitites or nodes.
-		The <code>SpatialRepository</code> allows geographic searches (<xref linkend="reference:spatial"/>)
+		The <code>SpatialRepository</code> allows geographic searches (<xref linkend="reference_spatial"/>)
     </para>
     <para>
         <code>GraphRepository</code> is a convenience repository interface, combining <code>CRUDRepository</code>,
@@ -36,7 +36,7 @@
         <title>CRUDRepository</title>
         <para>
             <code>CRUDRepository</code> delegates to the configured <code>TypeRepresentationStrategy</code>
-            (see <xref linkend="reference:programming-model:typerepresentationstrategy"/>)
+            (see <xref linkend="reference_programming-model_typerepresentationstrategy"/>)
             for type based queries.
             <variablelist>
                 <varlistentry>
@@ -118,7 +118,7 @@
 
     <section>
         <title>Query and Finder Methods</title>
-        <section id="reference:programming-model:annotatedQueries">
+        <section id="reference_programming-model_annotatedQueries">
             <title>Annotated queries</title>
         <para>
             Queries using the Cypher graph query language can be supplied with the <code>@Query</code> annotation.
@@ -187,7 +187,7 @@
             </para>
                 <example>
                     <title>Examples of Cypher queries placed on repository methods with @Query where values are replaced with method parameters, as described
-                        in the <xref linkend="reference:programming-model:annotatedQueries" />) section.</title>            
+                        in the <xref linkend="reference_programming-model_annotatedQueries" />) section.</title>
                     <programlisting language="java"><![CDATA[
 public interface MovieRepository extends GraphRepository<Movie> {
     

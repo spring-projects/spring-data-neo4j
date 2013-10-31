@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE section PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
-<section id="reference:programming_model:relationships">
+<section id="reference_programming_model_relationships">
     <title>Relating node entities</title>
     <para>
         Since relationships are first-class citizens in Neo4j, associations between node entities are represented
@@ -14,7 +14,7 @@
             As of Neo4j 1.4.M03, circular references are allowed. Spring Data Neo4j reflects this accordingly.
         </para>
     </note>
-    <section id="reference:programming_model:relationships:relatedto">
+    <section id="reference_programming_model_relationships_relatedto">
         <title>@RelatedTo: Connecting node entities</title>
         <para>
             Every field of a node entity that references one or more other node entities is backed by relationships
@@ -126,7 +126,7 @@ public class Actor {
             via relationships, but it provides no way of accessing the relationships themselves.
         </para>
         <para>
-            Relationship entities can be accessed via by @RelatedToVia-annotated (<xref linkend="reference:programming_model:relationships:relatedtovia"/>)
+            Relationship entities can be accessed via by @RelatedToVia-annotated (<xref linkend="reference_programming_model:relationships:relatedtovia"/>)
             fields or methods like <code>entity.getRelationshipTo()</code>
             or <code>template|repository.getRelationship(s)Between()</code>.
         </para>
@@ -134,7 +134,7 @@ public class Actor {
             Relationship entities either be instantiated directly and set or added to
             <code>@RelatedToVia</code>-annotated fields or created by the introduced
             <code>entity.relateTo(), template|repository.createRelationshipBetween()</code> methods
-            (see alos <xref linkend="reference:programming-model:introduced-methods"/>)
+            (see alos <xref linkend="reference_programming-model_introduced-methods"/>)
         </para>
         <para>
             Fields in relationship entities are, similarly to node entities, persisted as properties on
@@ -169,7 +169,7 @@ public class Role {
 
         </example>
     </section>
-    <section id="reference:programming_model:relationships:relatedtovia">
+    <section id="reference_programming_model_relationships_relatedtovia">
         <title>@RelatedToVia: Accessing relationship entities</title>
         <para>
             To provide easy programmatic access to the richer relationship entities of the data model,
@@ -210,7 +210,7 @@ public class Friendship {
 
         </example>
     </section>
-  <section id="reference:programming_model:relationships:relationshiptypeprecedence">
+  <section id="reference_programming_model_relationships_relationshiptypeprecedence">
     <title>Relationship Type Precedence</title>
     <para>In the example above we show how to specify a default relationship type, and how to provide the relationship
       type using an annotation property. Here is an example of using the @RelationshipType annotation on a member
@@ -245,7 +245,7 @@ new Acquaintance(frankSinatra, carloGambino, "its_complicated")
       <listitem>Default</listitem>
     </orderedlist>
   </section>
-    <section id="reference:programming_model:relationships:relationshiptypediscrimination">
+    <section id="reference_programming_model_relationships_relationshiptypediscrimination">
         <title>Discriminating Relationships Based On End Node Type</title>
         <para>In some cases, you want to model two different aspects of a conceptual relationship using the same relationship type. Here is a canonical example:</para>
         <example>

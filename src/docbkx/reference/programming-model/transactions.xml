@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE section PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
-<section id="reference:programming-model:transactions">
+<section id="reference_programming-model_transactions">
     <title>Transactions</title>
     <para>
         Neo4j is a transactional database, only allowing modifications to be performed within transaction

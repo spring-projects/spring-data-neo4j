@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE section PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
-<section id="reference:programming-model:indexing">
+<section id="reference_programming-model_indexing">
     <title>Indexing</title>
 
 	<para>
@@ -43,7 +43,7 @@
         </para>
         <para>
             The indexes can be queried by using a repository (see
-            <xref linkend="reference:programming-model:repositories" />).
+            <xref linkend="reference_programming-model_repositories" />).
             The repository is an instance of
             <code>org.springframework.data.neo4j.repository.IndexRepository</code>.
             The methods <code>findByPropertyValue()</code> and <code>findAllByPropertyValue()</code> work on
@@ -215,7 +215,7 @@ personFulltextIndex.query("{name:*cha*}");
         <para>
             For querying the index, the template offers query methods that take either the exact match
             parameters or a query object/expression, return the results as <code>Result</code> objects which
-			can then be converted and projected further using the result-conversion-dsl (see <xref linkend="reference:template"/>).
+			can then be converted and projected further using the result-conversion-dsl (see <xref linkend="reference_template"/>).
         </para>
     </section>
     <section>
@@ -233,7 +233,7 @@ personFulltextIndex.query("{name:*cha*}");
         <title>Spatial Indexes</title>
         <para>
 	        Spring Data Neo4j offers limited support for spatial queries using the <code>neo4j-spatial</code> library. See the 
-			separate chapter <xref linkend="reference:spatial"/> for details.
+			separate chapter <xref linkend="reference_spatial"/> for details.
 		</para>
     </section>
 </section>

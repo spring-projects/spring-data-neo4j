@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE section PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
-<section id="reference:programming-model:annotations">
+<section id="reference_programming-model_annotations">
     <title>Defining node entities</title>
     <para>
         Node entities are declared using the <code>@NodeEntity</code> annotation. Relationship entities use
@@ -22,7 +22,7 @@
         <para>
             If the <code>partial</code> attribute is set to true, this entity takes part in a cross-store setting,
             where the entity lives in both the graph database and a JPA data source. See
-            <xref linkend="reference:cross-store"/> for more information.
+            <xref linkend="reference_cross-store"/> for more information.
         </para>
         <para>
             Entity fields can be annotated with <code>@GraphProperty</code>, <code>@RelatedTo</code>,
@@ -194,8 +194,8 @@ assertThat(studio.hashCode(), is(not(equalTo(sameStudio.hashCode())));
             indexing facilities. The resulting index can be used to later retrieve nodes or relationships
             that contain a certain property value, e.g. a name. Often an index is used to establish the start
             node for a traversal. Indexes are accessed by a repository for a particular node or relationship
-            entity type. See <xref linkend="reference:programming-model:indexing"/> and
-            <xref linkend="reference:programming-model:repositories"/> for more information.
+            entity type. See <xref linkend="reference_programming-model_indexing"/> and
+            <xref linkend="reference_programming-model_repositories"/> for more information.
         </para>
     </section>
 
@@ -224,7 +224,7 @@ public class Group {
         </example>
         <note>
             <para>
-                Please note that this annotation can also be used on repository methods. (<xref linkend="reference:programming-model:repositories"/>)
+                Please note that this annotation can also be used on repository methods. (<xref linkend="reference_programming-model_repositories"/>)
             </para>
         </note>
     </section>

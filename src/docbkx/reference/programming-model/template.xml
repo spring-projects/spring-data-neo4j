@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
-<section id="reference:template" xmlns:xi="http://www.w3.org/2001/XInclude">
+<section id="reference_template" xmlns:xi="http://www.w3.org/2001/XInclude">
 
     <title>Neo4jTemplate</title>
     <!-- todo make sure that all template methods are covered in this chapter -->
@@ -8,7 +8,7 @@
         The <code>Neo4jTemplate</code> offers the convenient API of Spring templates for the Neo4j graph
         database. The Spring Data Neo4j Object Graph mapping builds upon the core functionality of the 
 		template to persist objects to the graph and load them in a variety of ways.
-		The template handles the active mapping mode (<xref linkend="reference:mapping"/>) transparently.
+		The template handles the active mapping mode (<xref linkend="reference_mapping"/>) transparently.
     </para>
     <para>
         Besides methods for creating, storing and deleting entities, nodes and relationships in the graph, <code>Neo4jTemplate</code> 

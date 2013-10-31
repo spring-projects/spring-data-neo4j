@@ -9,7 +9,7 @@
         classes clean. Spring Data Neo4j promised to do the heavy lifting for us, so we continued investigating it.
     </para>
     <para>
-        One of the more advanced mapping modes of Spring Data Neo4j depends heavily on AspectJ, see <xref linkend="reference:aspectj-details" />.
+        One of the more advanced mapping modes of Spring Data Neo4j depends heavily on AspectJ, see <xref linkend="reference_aspectj-details" />.
         Via the SpringFramework we were already used to Aspects doing the work behind the scenes in lots of places, so
         we were not afraid.
         Some parts of our classes would get a bit of new behavior, but it would not be visible in our code.

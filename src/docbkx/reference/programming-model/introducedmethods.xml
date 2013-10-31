@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE section PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
-<section id="reference:programming-model:introduced-methods">
+<section id="reference_programming-model_introduced-methods">
     <title>Active Record Methods for Advanced Mapping Mode</title>
     <para>
 		This chapter only applies to the advanced mapping. Currently the Aspects introduce the following

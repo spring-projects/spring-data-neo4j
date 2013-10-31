@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE section PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
-<section id="reference:programming-model:lifecycle">
+<section id="reference_programming-model_lifecycle">
     <title>Detached node entities in advanced mapping mode</title>
     <para>
 		This section only applies to the advanced mapping (AspectJ-backed). The simple mapping always detaches entities on 
@@ -48,7 +48,7 @@ class Person {
 Person p = new Person("Michael").persist();
 ]]></programlisting>
     </example>
-    <section id="reference:programming-model:detached:relating">
+    <section id="reference_programming-model_detached_relating">
         <title>Relating detached entities</title>
         <para>
             As mentioned above, an entity simply created with the <code>new</code> keyword starts out detached.

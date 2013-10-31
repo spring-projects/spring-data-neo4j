@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE section PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
-<section id="reference:mapping">
+<section id="reference_mapping">
     <title>Object Graph Mapping</title>
     <para>
-       Up until recently Spring Data Neo4j supported only the more advanced and flexible AspectJ based mapping approach, see <xref linkend="reference:aspectj" />.
-        Feedback about issues with the AspectJ tooling and other implications persuaded us to add a simpler mapping (see <xref linkend="reference:simple-mapping" />) to Spring Data Neo4j.
+       Up until recently Spring Data Neo4j supported only the more advanced and flexible AspectJ based mapping approach, see <xref linkend="reference_aspectj" />.
+        Feedback about issues with the AspectJ tooling and other implications persuaded us to add a simpler mapping (see <xref linkend="reference_simple-mapping" />) to Spring Data Neo4j.
 	   Both versions work with the same annotations and provide similar API's, but differ in behaviour.
     </para>
 	<para>
@@ -30,7 +30,7 @@
     </para>
     <para>
         Otherwise the two approaches share much of the infrastructure. E.g. for creating new entity instances from
-        type information store in the graph (<xref linkend="reference:programming-model:typerepresentationstrategy"/>),
+        type information store in the graph (<xref linkend="reference_programming-model_typerepresentationstrategy"/>),
         the infrastructure for mapping individual fields to graph properties and relationships and everything related to
         indexing and querying. A certain part of that is also exposed via the Neo4jTemplate for direct use.
     </para>

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE section PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
-<section id="reference:programming-model:typerepresentationstrategy">
+<section id="reference_programming-model_typerepresentationstrategy">
     <title>Entity type representation</title>
     <para>
         There are several ways to represent the Java type hierarchy of the data model in the graph. In general, for all
