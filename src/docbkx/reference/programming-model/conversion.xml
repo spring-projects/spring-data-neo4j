@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE section PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
-<section id="reference:programming-model:conversion">
+<section id="reference_programming-model_conversion">
     <title>Conversion</title>
     <para>
 	<code>Neo4jTemplate</code> has a generic convert method which might also use projection underneath.
@@ -14,7 +14,7 @@
 	It is also possible to provide a custom ResultConverter that additionally takes care of conversions.
 	</para>
 
-    <section id="reference:programming-model:mapresult">
+    <section id="reference_programming-model_mapresult">
         <title>Mapping Query Results</title>
         <para>
             For both queries executed via the result conversion DSL as well as repository methods, it is possible to specify

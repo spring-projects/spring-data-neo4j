@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE section PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
-<section id="reference:aspectj">
+<section id="reference_aspectj">
     <title>Advanced Mapping with AspectJ</title>
     <para>
         Behind the scenes, Spring Data Neo4j leverages <ulink url="http://www.eclipse.org/aspectj/">AspectJ</ulink>
         aspects to modify the behavior of annotated POJO entities
-        (see <xref linkend="reference:aspectj-details"/>). Each node entity is backed by a graph node that holds its
+        (see <xref linkend="reference_aspectj-details"/>). Each node entity is backed by a graph node that holds its
         properties and relationships to other entities. AspectJ is used for intercepting field access, so that
         Spring Data Neo4j can retrieve the appropriate information from the entity's backing node or relationship.
     </para>
     <para>
         The aspect introduces an internal field (<code>entityState</code>) and some public methods
-        (see <xref linkend="reference:programming-model:introduced-methods"/>) to the entities, for instance
+        (see <xref linkend="reference_programming-model_introduced-methods"/>) to the entities, for instance
         <code>entity.getPersistentState()</code> and <code>entity.relateTo</code>.
         It also introduces some methods for graph operations that start at the current entity.
         Introduced methods for <code>equals()</code> and <code>hashCode()</code> use the underlying node or relationship.

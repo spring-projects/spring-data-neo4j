@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
-<chapter id="reference:heroku">
+<chapter id="reference_heroku">
   <title>Heroku: Seeding the Cloud</title>
   <para>
     Deploying your application into the cloud is a great way to scale from from "wouldn't it be cool if.." to 

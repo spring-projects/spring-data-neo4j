@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
-<chapter id="reference:aspectj-details">
+<chapter id="reference_aspectj-details">
     <title>AspectJ details</title>
     <para>
         The advanced mapping mode of Spring Data Neo4j relies heavily on AspectJ. AspectJ is a Java implementation
@@ -29,7 +29,7 @@
         Spring Data Neo4j uses a mix of these mechanisms internally. First, when encountering the
         <code>@NodeEntity</code> or <code>@RelationshipEntity</code> annotations it introduces a new interface
         <code>NodeBacked</code> or <code>RelationshipBacked</code> to the annotated class. Secondly, it introduces
-        fields and methods to the annotated class. See <xref linkend="reference:programming-model:introduced-methods"/>
+        fields and methods to the annotated class. See <xref linkend="reference_programming-model_introduced-methods"/>
         for more information on the methods introduced.
     </para>
     <para>

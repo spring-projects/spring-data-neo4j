@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE section PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
-<section id="reference:simple-mapping">
+<section id="reference_simple-mapping">
     <title>Simple Object Graph Mapping</title>
     <para>
         In addition to the advanced object graph mapping using AspectJ, Spring Data Neo4j also supports a simpler mode
         that converts graph data into domain objects and vice versa. It does not require any additional set up and should
-        work out of the box. The simple mapping approach uses the same annotations (<xref linked="reference:programming-model:annotations"/>)
+        work out of the box. The simple mapping approach uses the same annotations (<xref linked="reference_programming-model_annotations"/>)
         as the advanced mapping to declare mapping meta-information.
     </para>
     <para>

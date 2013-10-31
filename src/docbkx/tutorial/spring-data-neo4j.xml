@@ -10,7 +10,7 @@
     </para>
     <para>
         Spring Data Neo4j comes with two mapping modes. The more powerful one depends heavily on AspectJ,
-        see <xref linkend="reference:aspectj-details" />, so we ignored it for the time being. The simple direct
+        see <xref linkend="reference_aspectj-details" />, so we ignored it for the time being. The simple direct
         POJO-mapping copies the data out of the graph and into our entities. Good enough for a web-application like
         ours.
     </para>
