@@ -330,12 +330,6 @@ public class FullNeo4jTemplateTests {
 
     @Test
     @Transactional
-    public void shouldFindNextNodeViaGremlin() throws Exception {
-        assertSingleResult(node1, neo4jTemplate.execute("g.v(0).outE.filter{it.label=='knows'}.inV", null).to(Node.class));
-    }
-
-    @Test
-    @Transactional
     public void shouldGetDirectRelationship() throws Exception {
         assertSingleResult("rel1", neo4jTemplate.convert(referenceNode.getRelationships(DynamicRelationshipType.withName("knows"))).to(String.class, new RelationshipNameConverter()));
     }

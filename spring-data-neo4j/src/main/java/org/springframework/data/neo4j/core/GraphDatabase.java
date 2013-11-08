@@ -104,12 +104,12 @@ public interface GraphDatabase {
     TraversalDescription traversalDescription();
 
     /**
-     * returns a query engine for the provided type (Cypher or Gremlin) which is initialized with the default result converter
+     * returns a query engine for the provided type (Cypher) which is initialized with the default result converter
      */
     <T> QueryEngine<T> queryEngineFor(QueryType type);
 
     /**
-     * returns a query engine for the provided type (Cypher or Gremlin) which is initialized with the provided result converter
+     * returns a query engine for the provided type (Cypher) which is initialized with the provided result converter
      */
     <T> QueryEngine<T> queryEngineFor(QueryType type, ResultConverter resultConverter);
 

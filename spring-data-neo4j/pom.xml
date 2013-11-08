@@ -219,37 +219,6 @@
 			<scope>provided</scope>
 		</dependency>
 
-
-		<dependency>
-			<groupId>com.tinkerpop.blueprints</groupId>
-			<artifactId>blueprints-core</artifactId>
-			<version>${blueprints.version}</version>
-			<optional>true</optional>
-		</dependency>
-		<dependency>
-			<groupId>com.tinkerpop.blueprints</groupId>
-			<artifactId>blueprints-neo4j-graph</artifactId>
-			<version>${blueprints.version}</version>
-			<exclusions>
-				<exclusion>
-						<groupId>org.neo4j</groupId>
-						<artifactId>neo4j-management</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>org.neo4j</groupId>
-					<artifactId>neo4j</artifactId>
-				</exclusion>
-			</exclusions>
-			<optional>true</optional>
-		</dependency>
-
-		<dependency>
-			<groupId>com.tinkerpop.gremlin</groupId>
-			<artifactId>gremlin-groovy</artifactId>
-			<version>${gremlin.version}</version>
-			<optional>true</optional>
-		</dependency>
-
 	</dependencies>
 	
 	<build>

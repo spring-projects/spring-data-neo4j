@@ -37,10 +37,7 @@ Import-Template:
  com.mysema.query.annotations.*;version="0";resolution:=optional,
  com.mysema.query.apt.*;version="0";resolution:=optional,
  com.mysema.query.types.*;version="0";resolution:=optional,
- com.tinkerpop.blueprints.*;version="[0.8,1.0)";resolution:=optional,
- com.tinkerpop.gremlin.*;version="[1.1,2.0)";resolution:=optional,
- com.tinkerpop.pipes.util.*;version="[0.8,1.0)";resolution:=optional
-Import-Package: 
+Import-Package:
  sun.reflect;version="0";resolution:=optional,
  scala.collection;version="0";resolution:=optional,
  net.sf.cglib.proxy;version="[2.2.0,3.0.0)",

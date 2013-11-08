@@ -83,8 +83,8 @@
 <!--		So the first step would be moving away from the aspectj-direct mapping to loading and storing the
 			entities via the repositories which would manage.
 -->
-			We looked into the different modes of remotely executed operations and found traversals, Cypher and Gremlin queries
-			and index lookups. Most of them already matched our needs but the Cypher and Gremlin approaches were best 
+			We looked into the different modes of remotely executed operations and found traversals, Cypher queries
+			and index lookups. Most of them already matched our needs but the Cypher approaches were best
 			suited, because they also handled index operations and allowed to return partial attribute sets and subgraphs.
         </para>
         <para>

@@ -189,7 +189,7 @@ public interface Neo4jOperations {
     <T extends PropertyContainer> Result<T> lookup(String indexName, Object query);
 
     /**
-     * Provides a cypher or gremlin query engine set up with a default entity converter.
+     * Provides a cypher query engine set up with a default entity converter.
      */
     <T> QueryEngine<T> queryEngineFor(QueryType type);
 
@@ -198,12 +198,6 @@ public interface Neo4jOperations {
      * registered converter-factories are already executed via this method.
      */
     Result<Map<String, Object>> query(String statement, Map<String, Object> params);
-
-    /**
-     * Executes the given Gremlin statement and returns the result packaged as Result as Neo4j types, not
-     * Gremlin types. The Neo4j-Graph is provided as variable "g". Table rows are converted to Map<String,Object>.
-     */
-    Result<Object> execute(String statement, Map<String, Object> params);
 
     /**
      * Traverses the graph starting at the given node with the provided traversal description. The Path's of the

@@ -120,8 +120,6 @@ repositories {
                 Spring Framework (core, context, aop, aspects, tx), AspectJ, Neo4j, and Spring Data Commons. If you
                 already use these (or different versions of these) in your project, then include those dependencies
                 on your own. In this case, please make sure that the versions match. 
-				If you want to use Gremlin, please add the dependency (which is optional in SDN)
-                accordingly.
             </para>
             <example>
                 <title>Maven dependencies</title>

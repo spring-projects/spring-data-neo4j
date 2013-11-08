@@ -5,7 +5,7 @@
 
 	<para>
 		Indexing is used in Neo4j to quickly find nodes and relationships to start graph operations from.
-		Either for manually traversing the graph, using the traversal framework, cypher or gremlin queries
+		Either for manually traversing the graph, using the traversal framework, cypher queries
 		or for "global" graph operations. Indexes are also employed to ensure uniqueness of elements with
 		certain properties.
 	</para>
@@ -226,7 +226,7 @@ personFulltextIndex.query("{name:*cha*}");
 		    from the approach used in Spring Data Neo4j because it only updates the indexes when the transaction is committed. So the
 		    index modifications will only be available after the successful commit. 
 		    It is possible to use the specific index names <code>node_auto_index</code> and <code>relationship_auto_index</code> when
-		    querying indexes in Spring Data Neo4j either with the query methods in template and repositories or via Cypher and Gremlin.
+		    querying indexes in Spring Data Neo4j either with the query methods in template and repositories or via Cypher.
 		</para>
     </section>
     <section>

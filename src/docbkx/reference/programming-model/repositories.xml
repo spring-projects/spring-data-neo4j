@@ -10,8 +10,7 @@
     </para>
     <para>
         Spring Data Neo4j repositories support annotated and named queries for the Neo4j
-        <ulink url="http://docs.neo4j.org/chunked/milestone/query-lang.html">Cypher</ulink> query-language and 
-		<code>Gremlin</code> graph DSL.
+        <ulink url="http://docs.neo4j.org/chunked/milestone/query-lang.html">Cypher</ulink> query-language.
     </para>
     <para>
         Spring Data Neo4j comes with typed repository implementations that provide methods for
@@ -136,10 +135,6 @@
             If it is required that paged results return the correct total count, the <code>@Query</code> annotation can be supplied with a count query in the <code>countQuery</code>
             attribute. This query is executed separately after the result query and its result is used to populate the <code>totalCount</code> property of the returned Page. 
         </para>
-		<para>
-			Gremlin queries can be used similarly, the <code>@Query</code> annotation would just need a <code>type=QueryType.GREMLIN</code> attribute.
-			Parameters are supported in the same way.
-		</para>
         </section>
 
         <section>

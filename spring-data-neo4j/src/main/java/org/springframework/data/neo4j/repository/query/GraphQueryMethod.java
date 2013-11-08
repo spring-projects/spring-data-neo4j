@@ -149,10 +149,8 @@ public class GraphQueryMethod extends QueryMethod {
         switch (queryAnnotation.type()) {
         case Cypher:
             return new CypherGraphRepositoryQuery(this, template);
-        case Gremlin:
-            return new GremlinGraphRepositoryQuery(this, template);
         default:
-            throw new IllegalStateException("@Query Annotation has to be configured as Cypher or Gremlin Query");
+            throw new IllegalStateException("@Query Annotation has to be configured as Cypher Query");
         }
     }
 

@@ -529,13 +529,6 @@ public class Neo4jTemplate implements Neo4jOperations, ApplicationContextAware {
     }
 
     @Override
-    @SuppressWarnings("unchecked")
-    public Result<Object> execute(String statement, Map<String, Object> params) {
-        notNull(statement, "statement");
-        return queryEngineFor(QueryType.Gremlin).query(statement, params);
-    }
-
-    @Override
     public Result<Path> traverse(Object start, TraversalDescription traversal) {
         return traverse((Node) getPersistentState(start), traversal);
     }

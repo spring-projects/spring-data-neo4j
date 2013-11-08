@@ -21,5 +21,5 @@ package org.springframework.data.neo4j.annotation;
  * @since 25.07.11
  */
 public enum QueryType {
-    Cypher, Gremlin
+    Cypher
 }

@@ -43,9 +43,6 @@ public interface PersonRepository extends GraphRepository<Person>, NamedIndexRep
     @Query("start team=node({p_team}) match (team)-[:persons]->(member) return member")
     Iterable<Person> findAllTeamMembers(@Param("p_team") Group team);
 
-    @Query(value = "g.v(team).out('persons')", type = QueryType.Gremlin)
-    Iterable<Person> findAllTeamMembersGremlin(@Param("team") Group team);
-
     @Query("start team=node({p_team}) match (team)-[:persons]->(member) return member.name,member.age")
     Iterable<Map<String, Object>> findAllTeamMemberData(@Param("p_team") Group team);
 

@@ -44,10 +44,6 @@
     
     
     
-    // Gremlin
-    assertEquals(thomas, neo.execute("g.v(person).out('WORKS_WITH')",
-            map("person", mark.getId())).to(Node.class).single());
-    
     // Index lookup
     assertEquals(thomas, neo.lookup("devs", "name", "Thomas").to(Node.class).single());
     
@@ -121,14 +117,6 @@
             methods the statement and parameter-Map are provided. Cypher Queries return tabular results, so the
             <code>Result&lt;Map&lt;String,Object&gt;&gt;</code> contains the rows which can be either used as they are
             or converted as needed.
-        </para>
-    </section>
-    <section>
-        <title>Gremlin Scripts</title>
-        <para>
-            Gremlin Scripts can run with the <code>execute</code> method, which also takes the parameters that will be
-            available as variables inside the script. The result of the executions is a generic
-            <code>Result&lt;Object&gt;</code> fit for conversion or usage.
         </para>
     </section>
     <section>

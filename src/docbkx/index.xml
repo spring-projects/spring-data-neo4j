@@ -3,20 +3,17 @@
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
 
     <!-- TODO
-    * Gremlin @Query on fields
-    * Gremlin @Query on repository methods
-    * variables in gremlin queries
     * variables in cypher queries
     * New Template Query API
     * Spring Roo Addon, Intro, Example Session
-    * Update tutorial to include some of the new features (cypher, gremlin)
+    * Update tutorial to include some of the new features (cypher)
     * eclipse / STS setup with m2e, AspectJConfigurator and Weaving enabled etc. https://jira.springsource.org/browse/DATAGRAPH-104
 
     * fetch-strategies / behaviour
     * cascading persist/save
     * @Indexed(level)
     *
-    * more on Gremlin / Cypher over REST
+    * more on Cypher over REST
     -->
 	<bookinfo>
 	    <title>Good Relationships</title>

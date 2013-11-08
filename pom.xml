@@ -42,9 +42,6 @@
 
 		<neo4j.spatial.version>0.12-neo4j-2.0.0-M06</neo4j.spatial.version>
 		<neo4j.graph-collections.version>0.7.1-neo4j-2.0.0-M06</neo4j.graph-collections.version>
-		<blueprints.version>1.2</blueprints.version>
-		<gremlin.version>1.5</gremlin.version>
-		<pipes.version>1.5</pipes.version>
 		<neo4j-cypher-dsl.version>2.0.0-M06</neo4j-cypher-dsl.version>
 	</properties>
 

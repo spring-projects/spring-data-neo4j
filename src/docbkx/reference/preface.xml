@@ -52,7 +52,7 @@
         references to other entities this is straightforward.
     </para>
     <para>
-        To use advanced functionality like traversals, Cypher and Gremlin, a basic understanding of the graph data model is required.
+        To use advanced functionality like traversals and Cypher, a basic understanding of the graph data model is required.
         The graph data model is explained in the chapter about Neo4j, see <xref linkend="neo4j" />.
     </para>
     <para>
@@ -70,7 +70,7 @@
 		(<xref linkend="reference_template"/>) for interacting with
 		the mapped entities and the Neo4j graph database. The operations provided by Spring Data Neo4j - Repositories
         per mapped entity class are based on the API offered by the Neo4j-Template. It also provides the operations of the Neo4j Core API
-		in a more convenient way. Especially the querying (Indexes, Cypher, Gremlin and Traversals) and result conversion
+		in a more convenient way. Especially the querying (Indexes, Cypher and Traversals) and result conversion
 		facilities allow writing very concise code.
     </para>
 
@@ -94,7 +94,7 @@
 	</para>
     <para>
         Using computed fields that are dynamically backed by graph operations is a bit more involved. First you should know
-        about traversals, Cypher queries and Gremlin expressions.
+        about traversals and Cypher queries.
         Those are explained in <xref linkend="neo4j" />. Then you can start using virtual, computed fields
 		in your entities <xref linkend="reference_programming-model_projection"/> .
     </para>

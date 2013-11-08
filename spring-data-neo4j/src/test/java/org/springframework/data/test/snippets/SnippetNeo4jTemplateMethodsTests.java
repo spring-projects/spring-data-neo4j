@@ -84,10 +84,6 @@ public class SnippetNeo4jTemplateMethodsTests extends DocumentingTestBase {
 
         // SNIPPET template
 
-        // Gremlin
-        assertEquals(thomas, neo.execute("g.v(person).out('WORKS_WITH')",
-                map("person", mark.getId())).to(Node.class).single());
-
         // Index lookup
         assertEquals(thomas, neo.lookup("devs", "name", "Thomas").to(Node.class).single());
 

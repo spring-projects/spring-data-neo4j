@@ -17,17 +17,14 @@ package org.springframework.data.neo4j.rest;
 
 import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.index.Index;
-import org.neo4j.graphdb.traversal.TraversalDescription;
 import org.neo4j.rest.graphdb.RestAPI;
 import org.neo4j.rest.graphdb.RestAPIFacade;
 import org.neo4j.rest.graphdb.entity.RestNode;
 import org.neo4j.rest.graphdb.index.RestIndex;
 import org.neo4j.rest.graphdb.index.RestIndexManager;
 import org.neo4j.rest.graphdb.query.RestCypherQueryEngine;
-import org.neo4j.rest.graphdb.query.RestGremlinQueryEngine;
 import org.neo4j.rest.graphdb.transaction.NullTransaction;
 import org.neo4j.rest.graphdb.transaction.NullTransactionManager;
-import org.neo4j.rest.graphdb.traversal.RestTraversalDescription;
 import org.neo4j.rest.graphdb.util.Config;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.data.neo4j.annotation.QueryType;
@@ -114,7 +111,6 @@ public class SpringRestGraphDatabase extends org.neo4j.rest.graphdb.RestGraphDat
     public <T> QueryEngine<T> queryEngineFor(QueryType type, final ResultConverter resultConverter) {
         switch (type) {
              case Cypher: return (QueryEngine<T>)new SpringRestCypherQueryEngine(new RestCypherQueryEngine(getRestAPI(), new SpringResultConverter(resultConverter)));
-             case Gremlin: return (QueryEngine<T>)new SpringRestGremlinQueryEngine(new RestGremlinQueryEngine(getRestAPI(),new SpringResultConverter(resultConverter)));
          }
          throw new IllegalArgumentException("Unknown Query Engine Type "+type);
     }

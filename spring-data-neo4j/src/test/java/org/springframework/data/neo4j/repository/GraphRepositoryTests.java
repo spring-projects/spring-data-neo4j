@@ -216,12 +216,6 @@ public class GraphRepositoryTests {
         assertThat(asCollection(teamMembers), hasItems(testTeam.michael, testTeam.david));
     }
 
-    @Test @Transactional
-    public void testFindIterableOfPersonWithQueryAnnotationAndGremlin() {
-        Iterable<Person> teamMembers = personRepository.findAllTeamMembersGremlin(testTeam.sdg);
-        assertThat( asCollection( teamMembers ), hasItems(testTeam.michael, testTeam.david, testTeam.emil) );
-    }
-
     @Test @Transactional 
     public void testFindPersonWithQueryAnnotation() {
         Person boss = personRepository.findBoss( testTeam.michael );

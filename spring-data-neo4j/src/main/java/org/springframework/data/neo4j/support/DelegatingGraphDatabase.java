@@ -37,7 +37,6 @@ import org.springframework.data.neo4j.support.index.IndexType;
 import org.springframework.data.neo4j.support.index.NoSuchIndexException;
 import org.springframework.data.neo4j.support.query.ConversionServiceQueryResultConverter;
 import org.springframework.data.neo4j.support.query.CypherQueryEngine;
-import org.springframework.data.neo4j.support.query.GremlinQueryEngine;
 import org.springframework.data.neo4j.support.query.QueryEngine;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.ObjectUtils;
@@ -59,7 +58,6 @@ public class DelegatingGraphDatabase implements GraphDatabase {
     private ConversionService conversionService;
     private ResultConverter resultConverter;
     private volatile QueryEngine<Object> cypherQueryEngine;
-    private volatile QueryEngine<Object> gremlinQueryEngine;
 
     public DelegatingGraphDatabase(final GraphDatabaseService delegate) {
         this(delegate,null);
@@ -90,7 +88,6 @@ public class DelegatingGraphDatabase implements GraphDatabase {
 
     private void reinitQueryEngines() {
         if (cypherQueryEngine != null) this.cypherQueryEngine = queryEngineFor(QueryType.Cypher, resultConverter, true);
-        if (gremlinQueryEngine != null) this.gremlinQueryEngine = queryEngineFor(QueryType.Gremlin, resultConverter, true);
     }
 
     @Override
@@ -211,14 +208,6 @@ public class DelegatingGraphDatabase implements GraphDatabase {
                     }
                 return (QueryEngine<T>) cypherQueryEngine;
             }
-            case Gremlin: {
-                if (reinit || gremlinQueryEngine==null) {
-                    synchronized (this) {
-                        if (reinit || gremlinQueryEngine==null) gremlinQueryEngine=createGremlinQueryEngine(resultConverter);
-                    }
-                }
-                return (QueryEngine<T>) gremlinQueryEngine;
-            }
         }
         throw new IllegalArgumentException("Unknown Query Engine Type "+type);
     }
@@ -226,13 +215,6 @@ public class DelegatingGraphDatabase implements GraphDatabase {
     @SuppressWarnings("unchecked")
     public <T> QueryEngine<T> queryEngineFor(QueryType type,ResultConverter resultConverter) {
         return queryEngineFor(type,resultConverter,false);
-    }
-
-    private <T> QueryEngine<T> createGremlinQueryEngine(ResultConverter resultConverter) {
-        if (!ClassUtils.isPresent("com.tinkerpop.blueprints.pgm.impls.neo4j.Neo4jGraph", getClass().getClassLoader())) {
-            return new FailingQueryEngine<T>("Gremlin");
-        }
-        return (QueryEngine<T>) new GremlinQueryEngine(delegate,resultConverter);
     }
 
     private <T> QueryEngine<T> createCypherQueryEngine(ResultConverter resultConverter) {

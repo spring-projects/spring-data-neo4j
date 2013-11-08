@@ -208,33 +208,4 @@ start user=node:User(login='micha') match user-[:FRIEND]-()-[r:RATED]->movie
 ]]></programlisting>
         </example>
     </section>
-    <section>
-        <title>Gremlin - a Graph Traversal DSL</title>
-        <para>
-            Gremlin is an expressive Groovy DSL developed by <ulink url="http://markorodriguez.com">Marko Rodriguez</ulink>
-            as part of the <ulink url="http://tinkerpop.com">Tinkerpop</ulink> stack. It builds on top of a pipe implementation
-            (Blueprints Pipes) that uses connected operations to traverse a graph. Gremlin has a concise syntax but is
-            Turing complete.
-        </para>
-        <para>Gremlin can be executed by including the Tinkerpop and Blueprints dependencies and then requesting a <code>ScriptEngine</code>
-        of type "gremlin" from the <code>javax.Script*</code> facilities. In Spring Data Neo4j this is encapsulated in
-        <code>GremlinQueryEngine</code>. The Neo4j-REST-Server also comes with a Gremlin-Plugin that is accessible remotely and is
-            available in the Spring Data Neo4j REST-Binding.
-        </para>
-        <example>
-            <title>Sample Gremlin Queries</title>
-            <programlisting><![CDATA[
-// Vertex with id 1
-v = g.v(1)
-
-// determine the name of the vertices that vertex 1 knows and that are older than 30 years of age
-v.outE{it.label=='knows'}.inV{it.age > 30}.name
-
-// calculate basic collaborative filtering for vertex 1
-m = [:]
-g.v(1).out('likes').in('likes').out('likes').groupCount(m)
-m.sort{a,b -> a.value <=> b.value}
-]]></programlisting>
-        </example>
-    </section>
 </chapter>

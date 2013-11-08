@@ -18,8 +18,7 @@
         the core API, and declaratively using a query-like
         <ulink url="http://docs.neo4j.org/chunked/milestone/tutorials-java-embedded-traversal.html">Traversal Description</ulink>. Besides
         those programmatic traversals there was the powerful graph query language called
-        <ulink url="http://docs.neo4j.org/chunked/milestone/cypher-query-lang.html">Cypher</ulink> and an interesting
-        looking DSL named <ulink url="https://github.com/tinkerpop/gremlin/wiki">Gremlin</ulink>. So lots of ways of working with the graph.
+        <ulink url="http://docs.neo4j.org/chunked/milestone/cypher-query-lang.html">Cypher</ulink>. So lots of ways of working with the graph.
     </para>
     <para>
         We also learned that Neo4j is fully transactional and therefore upholds

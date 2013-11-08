@@ -109,7 +109,7 @@ try {
            <li><code>@Indexed([fulltext=true],[indexName=name])</code> Auto-Indexing</li>
            <li><code>@RelatedTo([direction=Direction], [type=TYPE])</code> define type and direction of relationship on <code>Entity, Iterable&lt;E>, Set&lt;E></code> fields</li>
            <li><code>@RelatedToVia([direction=Direction], [type=TYPE])</code> like <code>@RelatedTo,</code> but targets Relationship-Entities</li>
-           <li><code>@Query(query, [type=QueryType])</code> computed field, executes graph query in Cypher or Gremlin</li>
+           <li><code>@Query(query, [type=QueryType])</code> computed field, executes graph query in Cypher</li>
            <li><code>@GraphTraversal(traversal=~TraversalBuilder.class, [elementClass=Person.class])</code> computed field, executes traversal starting from entity-node</li>
        </ul>
    </div>
@@ -160,7 +160,7 @@ interface MovieRepository extends GraphRepository&lt;Movie> {
    <div class="note">
        <h3>Neo4jTemplate</h3>
        <ul><li>convenience methods for graph operations, transaction and exception handling</li>
-       <li>index lookups, cypher and gremlin queries, traversal execution with fluent result converter API</li>
+       <li>index lookups, cypher queries, traversal execution with fluent result converter API</li>
        <li>preconfigured and customizable conversion of results to a variety of types</li></ul>
    </div>
    <div class="note">

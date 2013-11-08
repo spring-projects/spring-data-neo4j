@@ -95,7 +95,7 @@ public void foo( @Context WorldRepository repo ) {
         <para>
             Please also keep in mind that performing graph operations via the REST-API is about one order of
             magnitude slower than local operations. Try to use the Neo4j Cypher query language,
-            server-side traversals (<code>RestTraversal</code>) or Gremlin expressions whenever possible for retrieving large sets of data.
+            or server-side traversals (<code>RestTraversal</code>) whenever possible for retrieving large sets of data.
             Future versions of Spring Data Neo4j will use the more performant batch API as well as a binary protocol.
         </para>
         <para>
@@ -128,7 +128,7 @@ public void foo( @Context WorldRepository repo ) {
             Your project is now set up to work against a remote Neo4j Server.
         </para>
         <para>
-            For traversals and Cypher and Gremlin graph queries it is sensible to forward those to the remote endpoint and execute them there
+            For traversals and Cypher graph queries it is sensible to forward those to the remote endpoint and execute them there
             instead of walking the graph over the wire. SpringRestGraphDatabase already supports that by providing methods that forward
             to the remote instance. (e.g. <code>queryEngineFor(), index() and createTraversalDescription()</code>).
             Please use those methods when interacting with a remote server for optimal performance. Those methods are also

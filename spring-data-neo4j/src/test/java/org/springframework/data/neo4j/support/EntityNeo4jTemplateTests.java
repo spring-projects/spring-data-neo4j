@@ -371,12 +371,6 @@ public class EntityNeo4jTemplateTests extends EntityTestBase {
         final Person result = engine.query("start n=node({self}) return n", map("self", testTeam.michael.getId())).to(Person.class).single();
         assertEquals(testTeam.michael.getId(), result.getId());
     }
-    @Test @Transactional
-    public void testQueryEngineForGremlin() throws Exception {
-        final QueryEngine<Result<Object>> engine = neo4jOperations.queryEngineFor(QueryType.Gremlin);
-        final Person result = engine.query("g.v(self)", map("self", testTeam.michael.getId())).to(Person.class).single();
-        assertEquals(testTeam.michael.getId(), result.getId());
-    }
 
     @Test @Transactional
     public void testTraverse() throws Exception {
