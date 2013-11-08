@@ -21,12 +21,16 @@ import org.neo4j.graphdb.index.Index;
 import org.neo4j.graphdb.index.IndexManager;
 import org.neo4j.graphdb.index.RelationshipIndex;
 import org.neo4j.tooling.GlobalGraphOperations;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
 
 import java.util.HashMap;
 import java.util.Map;
 
 public abstract class Neo4jHelper {
+
+    private static final Logger log = LoggerFactory.getLogger(Neo4jHelper.class);
 
     public static void cleanDb(Neo4jTemplate template) {
         cleanDb(template.getGraphDatabaseService());
@@ -101,12 +105,20 @@ public abstract class Neo4jHelper {
     private static void clearIndex(GraphDatabaseService gds) {
         IndexManager indexManager = gds.index();
         for (String ix : indexManager.nodeIndexNames()) {
-            Index<Node> nodeIndex = indexManager.forNodes(ix);
-            if (nodeIndex.isWriteable()) nodeIndex.delete();
+            try {
+                Index<Node> nodeIndex = indexManager.forNodes(ix);
+                if (nodeIndex.isWriteable()) nodeIndex.delete();
+            } catch(Exception e) {
+                log.warn("Cannot delete node index "+ix+" "+e.getMessage());
+            }
         }
         for (String ix : indexManager.relationshipIndexNames()) {
-            RelationshipIndex relationshipIndex = indexManager.forRelationships(ix);
-            if (relationshipIndex.isWriteable()) relationshipIndex.delete();
+            try {
+                RelationshipIndex relationshipIndex = indexManager.forRelationships(ix);
+                if (relationshipIndex.isWriteable()) relationshipIndex.delete();
+            } catch(Exception e) {
+                log.warn("Cannot delete relationship index "+ix+" "+e.getMessage());
+            }
         }
     }
 }
