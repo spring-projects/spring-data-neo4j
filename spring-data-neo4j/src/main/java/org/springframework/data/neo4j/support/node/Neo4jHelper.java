@@ -17,7 +17,9 @@
 package org.springframework.data.neo4j.support.node;
 
 import org.neo4j.graphdb.*;
+import org.neo4j.graphdb.index.Index;
 import org.neo4j.graphdb.index.IndexManager;
+import org.neo4j.graphdb.index.RelationshipIndex;
 import org.neo4j.tooling.GlobalGraphOperations;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
 
@@ -62,8 +64,8 @@ public abstract class Neo4jHelper {
     public static void cleanDb( GraphDatabaseService graphDatabaseService, boolean includeReferenceNode ) {
         Transaction tx = graphDatabaseService.beginTx();
         try {
-            removeNodes(graphDatabaseService, includeReferenceNode);
             clearIndex(graphDatabaseService);
+            removeNodes(graphDatabaseService, includeReferenceNode);
             tx.success();
         } catch(Throwable t) {
             tx.failure();
@@ -99,10 +101,12 @@ public abstract class Neo4jHelper {
     private static void clearIndex(GraphDatabaseService gds) {
         IndexManager indexManager = gds.index();
         for (String ix : indexManager.nodeIndexNames()) {
-            indexManager.forNodes(ix).delete();
+            Index<Node> nodeIndex = indexManager.forNodes(ix);
+            if (nodeIndex.isWriteable()) nodeIndex.delete();
         }
         for (String ix : indexManager.relationshipIndexNames()) {
-            indexManager.forRelationships(ix).delete();
+            RelationshipIndex relationshipIndex = indexManager.forRelationships(ix);
+            if (relationshipIndex.isWriteable()) relationshipIndex.delete();
         }
     }
 }

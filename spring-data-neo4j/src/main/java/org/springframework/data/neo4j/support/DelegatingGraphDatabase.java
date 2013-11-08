@@ -19,6 +19,7 @@ package org.springframework.data.neo4j.support;
 import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.index.Index;
 import org.neo4j.graphdb.index.IndexManager;
+import org.neo4j.graphdb.index.RelationshipIndex;
 import org.neo4j.graphdb.index.UniqueFactory;
 import org.neo4j.graphdb.traversal.TraversalDescription;
 import org.neo4j.index.lucene.ValueContext;
@@ -116,14 +117,16 @@ public class DelegatingGraphDatabase implements GraphDatabase {
     private void removeFromIndexes(Node node) {
         final IndexManager indexManager = delegate.index();
         for (String indexName : indexManager.nodeIndexNames()) {
-            indexManager.forNodes(indexName).remove(node);
+            Index<Node> nodeIndex = indexManager.forNodes(indexName);
+            if (nodeIndex.isWriteable()) nodeIndex.remove(node);
         }
     }
 
     private void removeFromIndexes(Relationship relationship) {
         final IndexManager indexManager = delegate.index();
         for (String indexName : indexManager.relationshipIndexNames()) {
-            indexManager.forRelationships(indexName).remove(relationship);
+            RelationshipIndex relationshipIndex = indexManager.forRelationships(indexName);
+            if (relationshipIndex.isWriteable()) relationshipIndex.remove(relationship);
         }
     }
 
