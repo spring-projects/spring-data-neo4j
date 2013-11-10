@@ -162,6 +162,11 @@
 	</dependencies>
 	<repositories>
 		<repository>
+			<id>spring-libs-snapshot-local</id>
+			<name>Spring Snapshots</name>
+			<url>http://repo.springsource.org/libs-snapshot-local</url>
+		</repository>
+		<repository>
 			<id>spring-libs-release-local</id>
 			<name>Spring Releases</name>
 			<url>http://repo.springsource.org/libs-release-local</url>

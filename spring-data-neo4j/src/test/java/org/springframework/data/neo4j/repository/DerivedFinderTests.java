@@ -201,7 +201,7 @@ public class DerivedFinderTests {
 
     @Before
     public void setUp() throws Exception {
-        Neo4jHelper.cleanDb(graphDatabaseService, true);
+        Neo4jHelper.cleanDb(graphDatabaseService, false);
 
         CRUDRepository<Ingredient> ingredientRepository = template.repositoryFor(Ingredient.class);
 
