@@ -16,56 +16,21 @@
 
 package org.springframework.data.neo4j.repository;
 
-import org.neo4j.helpers.collection.ClosableIterable;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
+import java.util.Map;
 
+import org.springframework.data.domain.Sort;
 import org.springframework.data.neo4j.conversion.EndResult;
 import org.springframework.data.repository.NoRepositoryBean;
 import org.springframework.data.repository.PagingAndSortingRepository;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Map;
 
 /**
- * CRUD interface for graph repositories, used as base repository for crud operations
+ * CRUD interface for graph repositories, used as base repository for crud operations.
+ * 
+ * @author Michael Hunger
+ * @author Oliver Gierke
  */
 @NoRepositoryBean
 public interface CRUDRepository<T> extends PagingAndSortingRepository<T, Long> {
-
-    /**
-     * persists an entity by forwarding to entity.persist()
-     * @param entity to be persisted
-     * @return the saved entity (being the same reference as the parameter)
-     */
-    @Transactional
-    <U extends T> U save(U entity);
-
-
-    /**
-     * persists the provided entities by forwarding to their entity.persist() methods
-     * @param entities to be persisted
-     * @return the input iterable
-     */
-    @Transactional
-    <U extends T> Iterable<U> save(Iterable<U> entities);
-
-
-    /**
-     * @param id of the node or relationship-entity
-     * @return found instance or null
-     */
-    @Transactional
-    T findOne(Long id);
-
-
-    /**
-     * @param id
-     * @return true if the entity with this id exists
-     */
-    @Transactional
-    boolean exists(Long id);
 
 
     /**
@@ -73,41 +38,8 @@ public interface CRUDRepository<T> extends PagingAndSortingRepository<T, Long> {
      * @return all entities of the given type
      * NOTE: please close the iterable if it is not fully looped through
      */
-    @Transactional
     EndResult<T> findAll();
-
-
-    /**
-     * uses the configured TypeRepresentationStrategy, depending on the strategy this number might be an
-     * approximation
-     * @return number of entities of this type in the graph
-     */
-    @Transactional
-    long count();
-
-
-    /**
-     * deletes the given entity by calling its entity.remove() method
-     * @param entity to delete
-     */
-    @Transactional
-    void delete(T entity);
-
-
-    /**
-     * deletes the given entities by calling their entity.remove() methods
-     * @param entities to delete
-     */
-    @Transactional
-    void delete(Iterable<? extends T> entities);
-
-
-    /**
-     * removes all entities of this type, use with care
-     */
-    @Transactional
-    void deleteAll();
-
+    
 
     /**
      * finder that takes the provided sorting into account
@@ -116,24 +48,11 @@ public interface CRUDRepository<T> extends PagingAndSortingRepository<T, Long> {
      * @return all elements of the repository type, sorted according to the sort
      * NOTE: please close the iterable if it is not fully looped through
      */
-    @Transactional
     EndResult<T> findAll(Sort sort);
 
 
-    /**
-     * finder that takes the provided sorting and paging into account
-     * NOTE: the sorting is not yet implemented
-     *
-     * @param pageable
-     * @return all elements of the repository type, sorted according to the sort
-     * NOTE: please close the iterable if it is not fully looped through
-     */
-    @Transactional
-    Page<T> findAll(Pageable pageable);
-
-    @Transactional
     Class getStoredJavaType(Object entity);
 
-    @Transactional
+    
     EndResult<T> query(String query, Map<String, Object> params);
 }

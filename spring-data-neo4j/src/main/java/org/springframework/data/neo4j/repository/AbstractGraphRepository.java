@@ -41,6 +41,7 @@ import org.springframework.data.neo4j.support.index.NoSuchIndexException;
 import org.springframework.data.neo4j.support.index.NullReadableIndex;
 import org.springframework.data.neo4j.support.query.QueryEngine;
 import org.springframework.data.neo4j.support.typerepresentation.LabelBasedNodeTypeRepresentationStrategy;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 
@@ -54,6 +55,7 @@ import static org.neo4j.helpers.collection.MapUtil.map;
  * @param <T> GraphBacked target of this finder, enables the finder methods to return this concrete type
  * @param <S> Type of backing state, either Node or Relationship
  */
+@Transactional(readOnly = true)
 public abstract class AbstractGraphRepository<S extends PropertyContainer, T> implements GraphRepository<T>, NamedIndexRepository<T>, SpatialRepository<T>, CypherDslRepository<T> {
 
     /*
@@ -108,12 +110,13 @@ public abstract class AbstractGraphRepository<S extends PropertyContainer, T> im
     }
 
     @Override
+    @Transactional
     public <U extends T> U save(U entity) {
         return template.save(entity);
     }
 
-    @SuppressWarnings("unchecked")
     @Override
+    @Transactional
     public <U extends T> Iterable<U> save(Iterable<U> entities) {
         for (U entity : entities) {
             save(entity);
@@ -326,16 +329,19 @@ public abstract class AbstractGraphRepository<S extends PropertyContainer, T> im
     }
 
     @Override
+    @Transactional
     public void delete(T entity) {
         template.delete(entity);
     }
 
     @Override
+    @Transactional
     public void delete(Long id) {
         delete(findOne(id));
     }
 
     @Override
+    @Transactional
     public void delete(Iterable<? extends T> entities) {
         for (T entity : entities) {
             delete(entity);
@@ -343,6 +349,7 @@ public abstract class AbstractGraphRepository<S extends PropertyContainer, T> im
     }
 
     @Override
+    @Transactional
     public void deleteAll() {
         delete(findAll());
     }
