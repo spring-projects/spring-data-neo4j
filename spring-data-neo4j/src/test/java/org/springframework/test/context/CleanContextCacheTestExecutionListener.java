@@ -16,28 +16,26 @@
 
 package org.springframework.test.context;
 
-import java.lang.reflect.Field;
-import java.util.Map;
-
-import org.springframework.context.ApplicationContext;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.support.AbstractTestExecutionListener;
 
 public class CleanContextCacheTestExecutionListener extends AbstractTestExecutionListener {
 
-	@Override
+    @Override
+    public void beforeTestClass(TestContext testContext) throws Exception {
+        super.beforeTestClass(testContext);
+        testContext.markApplicationContextDirty(DirtiesContext.HierarchyMode.EXHAUSTIVE);
+    }
+
+//    @Override
+//    public void afterTestMethod(TestContext testContext) throws Exception {
+//        testContext.markApplicationContextDirty(DirtiesContext.HierarchyMode.EXHAUSTIVE);
+//        super.afterTestMethod(testContext);
+//    }
+
+    @Override
 	public void afterTestClass(TestContext testContext) throws Exception {
-
-		Field cacheField = TestContext.class.getDeclaredField("contextCache");
-		cacheField.setAccessible(true);
-		ContextCache cache = (ContextCache) cacheField.get(testContext);
-		Field cacheMapField = ContextCache.class.getDeclaredField("contextMap");
-		cacheMapField.setAccessible(true);
-		@SuppressWarnings("unchecked")
-		Map<MergedContextConfiguration, ApplicationContext> cacheMap = (Map<MergedContextConfiguration, ApplicationContext>) cacheMapField
-				.get(cache);
-
-		for (MergedContextConfiguration key : cacheMap.keySet()) {
-			cache.setDirty(key);
-		}
+        testContext.markApplicationContextDirty(DirtiesContext.HierarchyMode.EXHAUSTIVE);
+        super.afterTestClass(testContext);
 	}
 }
