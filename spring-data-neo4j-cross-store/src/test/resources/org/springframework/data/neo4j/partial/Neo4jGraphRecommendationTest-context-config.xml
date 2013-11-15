@@ -27,7 +27,7 @@
         <property name="password" value="${database.password}"/>
     </bean>
 
-    <tx:annotation-driven mode="aspectj" transaction-manager="transactionManager"/>
+    <tx:annotation-driven mode="aspectj" transaction-manager="neo4jTransactionManager"/>
 
     <bean class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean" id="entityManagerFactory">
         <property name="dataSource" ref="dataSource"/>
