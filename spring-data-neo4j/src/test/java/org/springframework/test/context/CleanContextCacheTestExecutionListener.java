@@ -27,11 +27,11 @@ public class CleanContextCacheTestExecutionListener extends AbstractTestExecutio
         testContext.markApplicationContextDirty(DirtiesContext.HierarchyMode.EXHAUSTIVE);
     }
 
-//    @Override
-//    public void afterTestMethod(TestContext testContext) throws Exception {
-//        testContext.markApplicationContextDirty(DirtiesContext.HierarchyMode.EXHAUSTIVE);
-//        super.afterTestMethod(testContext);
-//    }
+    @Override
+    public void afterTestMethod(TestContext testContext) throws Exception {
+        testContext.markApplicationContextDirty(DirtiesContext.HierarchyMode.EXHAUSTIVE);
+        super.afterTestMethod(testContext);
+    }
 
     @Override
 	public void afterTestClass(TestContext testContext) throws Exception {
