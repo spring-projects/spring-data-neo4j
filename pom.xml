@@ -135,6 +135,7 @@
 						<java.util.logging.config.file>src/test/resources/logging.properties
 						</java.util.logging.config.file>
 					</systemPropertyVariables>
+					<runOrder>alphabetical</runOrder>
 				</configuration>
 			</plugin>
 
