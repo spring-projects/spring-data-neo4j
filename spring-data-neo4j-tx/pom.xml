@@ -7,12 +7,12 @@
 
 	<name>Spring Data Neo4j - Transactions</name>
 	<description>External transaction manager support for Spring Data Neo4j</description>
-	<version>3.0.0.M1</version>
+	<version>3.0.0.BUILD-SNAPSHOT</version>
 
 	<parent>
 		<groupId>org.springframework.data</groupId>
 		<artifactId>spring-data-neo4j-parent</artifactId>
-		<version>3.0.0.M1</version>
+		<version>3.0.0.BUILD-SNAPSHOT</version>
 		<relativePath>../pom.xml</relativePath>
 	</parent>
 
