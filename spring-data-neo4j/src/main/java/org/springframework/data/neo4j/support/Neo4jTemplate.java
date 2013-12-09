@@ -50,6 +50,7 @@ import org.springframework.data.neo4j.mapping.RelationshipResult;
 import org.springframework.data.neo4j.repository.GraphRepository;
 import org.springframework.data.neo4j.repository.NodeGraphRepositoryImpl;
 import org.springframework.data.neo4j.repository.RelationshipGraphRepository;
+import org.springframework.data.neo4j.support.conversion.EntityResultConverter;
 import org.springframework.data.neo4j.support.index.IndexProvider;
 import org.springframework.data.neo4j.support.index.IndexType;
 import org.springframework.data.neo4j.support.mapping.*;
@@ -100,22 +101,29 @@ public class Neo4jTemplate implements Neo4jOperations, ApplicationContextAware {
     public Neo4jTemplate(final GraphDatabase graphDatabase, PlatformTransactionManager transactionManager) {
         notNull(graphDatabase, "graphDatabase");
         this.infrastructure = MappingInfrastructureFactoryBean.createDirect(graphDatabase, transactionManager);
+        updateDependencies();
     }
 
     public Neo4jTemplate(final GraphDatabase graphDatabase) {
         notNull(graphDatabase, "graphDatabase");
         this.infrastructure = MappingInfrastructureFactoryBean.createDirect(graphDatabase, null);
+        updateDependencies();
     }
 
     public Neo4jTemplate(final GraphDatabaseService graphDatabaseService) {
         notNull(graphDatabaseService, "graphDatabaseService");
         this.infrastructure = MappingInfrastructureFactoryBean.createDirect(graphDatabaseService, null);
+        updateDependencies();
     }
 
     public Neo4jTemplate(Infrastructure infrastructure) {
         this.infrastructure = infrastructure;
+        updateDependencies();
     }
 
+    private void updateDependencies() {
+        getDefaultConverter();
+    }
 
     @Override
     public <T> GraphRepository<T> repositoryFor(Class<T> clazz) {
