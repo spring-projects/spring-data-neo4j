@@ -179,6 +179,27 @@ public class ModificationOutsideOfTransactionTests extends EntityTestBase {
     }
 
     @Test
+    public void testSetPropertyOutsideTransactionCanBePersistedThereafter()
+    {
+        Person p = persistedPerson( "Michael", 35 );
+        p.setAge( 25 );
+        assertEquals(25, p.getAge());
+
+        try (Transaction tx = neo4jTemplate.getGraphDatabase().beginTx()) {
+            assertEquals( 35, nodeFor( p ).getProperty("age") );
+            tx.success();
+        }
+
+        p.persist();
+
+        try (Transaction tx = neo4jTemplate.getGraphDatabase().beginTx()) {
+            assertEquals( 25, nodeFor( p ).getProperty("age") );
+            tx.success();
+        }
+
+    }
+
+    @Test
     public void shouldWorkWithUninitializedCollectionFieldWithoutUnderlyingState() {
         Group group = new Group();
         Collection<Person> people = group.getPersons();
