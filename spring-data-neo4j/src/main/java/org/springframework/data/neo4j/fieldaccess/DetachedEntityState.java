@@ -159,6 +159,15 @@ public class DetachedEntityState<STATE> implements EntityState<STATE> {
                     Object valueFromDb = null;
                     if (template.transactionIsRunning()) {
                         valueFromDb = unwrap(delegate.getValue(property, MappingPolicy.MAP_FIELD_DIRECT_POLICY));
+                    } else {
+                        // For Implicit Transactions, we need to create
+                        // a tx to ensure we get the correct previous value
+                        // otherwise the possibility of getting a concurrent
+                        // modification exception when next persisting may occur
+                        try (Transaction tx = template.getGraphDatabaseService().beginTx()) {
+                            valueFromDb = unwrap(delegate.getValue(property, MappingPolicy.MAP_FIELD_DIRECT_POLICY));
+                            tx.success();
+                        }
                     }
                     addDirty(property, valueFromDb, true);
                 }
