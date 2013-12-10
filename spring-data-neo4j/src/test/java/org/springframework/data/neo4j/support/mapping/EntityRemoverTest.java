@@ -15,7 +15,8 @@ public class EntityRemoverTest {
     @Test
     public void testRemoveNodeEntityWithAutoIndex() throws Exception {
         GraphDatabaseService db = new TestGraphDatabaseFactory().newImpermanentDatabase();
-        try (Transaction tx = db.beginTx()) {
+        Transaction tx = db.beginTx();
+        try {
             AutoIndexer<Node> nodeAutoIndexer = db.index().getNodeAutoIndexer();
             nodeAutoIndexer.setEnabled(true);
             nodeAutoIndexer.startAutoIndexingProperty("foo");
@@ -27,12 +28,15 @@ public class EntityRemoverTest {
             node.setProperty("foo", "bar");
             infrastructure.getGraphDatabase().remove(node);
             tx.success();
+        } finally {
+            tx.finish();
         }
     }
     @Test
     public void testRemoveRelationshipEntityWithAutoIndex() throws Exception {
         GraphDatabaseService db = new TestGraphDatabaseFactory().newImpermanentDatabase();
-        try (Transaction tx = db.beginTx()) {
+        Transaction tx = db.beginTx();
+        try {
             AutoIndexer<Relationship> autoIndexer = db.index().getRelationshipAutoIndexer();
             autoIndexer.setEnabled(true);
             autoIndexer.startAutoIndexingProperty("foo");
@@ -47,6 +51,8 @@ public class EntityRemoverTest {
             relationship.setProperty("foo", "bar");
             infrastructure.getGraphDatabase().remove(relationship);
             tx.success();
+        } finally {
+            tx.finish();
         }
     }
 }

@@ -36,10 +36,13 @@ public class Neo4jDatabaseCleaner {
 
     public Map<String, Object> cleanDb() {
         Map<String, Object> result = new HashMap<String, Object>();
-        try (Transaction tx = graph.beginTx()) {
+        Transaction tx = graph.beginTx();
+        try {
             removeNodes(result);
             clearIndex(result);
             tx.success();
+        } finally {
+            tx.finish();
         }
         return result;
     }
