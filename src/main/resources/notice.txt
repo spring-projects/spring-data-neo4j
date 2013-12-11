@@ -1,4 +1,4 @@
-Spring Data Neo4j 2.3.2.RELEASE
+Spring Data Neo4j 2.3.3.RELEASE
 Copyright (c) [2013] Pivotal Inc.
 Copyright (c) [2013] Neo Technology
 

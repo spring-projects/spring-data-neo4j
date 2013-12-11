@@ -1,6 +1,30 @@
 Spring Data Neo4j Changelog
 ===========================
 
+Changes in version 2.3.3.RELEASE (2013-12-11)
+----------------------------------------
+* DATAGRAPH-407 - Bug when deleting nodes on an auto_index index
+* DATAGRAPH-409 - Improved default transaction configuration for repositories.
+* DATAGRAPH-415 - Release 2.3.3
+ 
+Changes in version 3.0.0.M1 (2013-11-21)
+----------------------------------------
+* DATAGRAPH-311 QueryResultProxy not Serializable
+* DATAGRAPH-349 Maven Build Plugin is missing in spring-data-neo4j-rest
+* DATAGRAPH-393 Use supplied RestGraphDatabase as GraphDatabase in MappingInfrastructure
+* DATAGRAPH-402 Use transactions for all operations
+* DATAGRAPH-407 Bug when deleting nodes on an auto_index index
+* DATAGRAPH-409 Improve default transaction configuration for repositories
+* DATAGRAPH-365 Fire an event before and after entity deletion
+* DATAGRAPH-399 Add support for nested repositories
+* DATAGRAPH-340 CDI support for Neo4j repositories
+* DATAGRAPH-387 Add Label based TypeRepresentation Strategy
+* DATAGRAPH-392 Add support for custom findAll Queries.
+* DATAGRAPH-384 Upgrade to Neo4j 2.0.0-M06
+* DATAGRAPH-406 Remove Gremlin Dependency
+* DATAGRAPH-408 Upgrade to latest Spring Data Build parent to pull in new Spring dependencies
+* DATAGRAPH-411 Release 3.0.M1
+
 Changes in version 2.3.2.RELEASE (2013-10-25)
 ----------------------------------------
 * DATAGRAPH-393 Use supplied RestGraphDatabase as GraphDatabase in MappingInfrastructure
