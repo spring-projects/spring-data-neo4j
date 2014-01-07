@@ -118,7 +118,7 @@ public class IndexProviderImpl implements IndexProvider {
 
     @Override
     public String createIndexValueForType(Object value) {
-        if (value==null) throw new IllegalArgumentException("Value to be indexed must not be null "+value);
+        if (value==null) throw new IllegalArgumentException("Value to be indexed must not be null");
         return value.toString();
     }
     
