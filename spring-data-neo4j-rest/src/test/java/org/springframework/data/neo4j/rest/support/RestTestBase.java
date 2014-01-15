@@ -46,6 +46,8 @@ public class RestTestBase {
     protected static NeoServer neoServer = null;
     public static final String SERVER_ROOT_URI = "http://" + HOSTNAME + ":" + PORT + "/db/data/";
 
+    private Node refNode;
+
     @BeforeClass
     public static void startDb() throws Exception {
         db = new ImpermanentGraphDatabase();
@@ -102,6 +104,10 @@ public class RestTestBase {
     }
 
     protected Node node() {
-        return restGraphDatabase.getReferenceNode();
+        if(refNode == null) {
+            refNode = restGraphDatabase.createNode();
+        }
+
+        return refNode;
     }
 }

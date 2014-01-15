@@ -438,7 +438,7 @@ public class GraphRepositoryTests {
 
     @Test @Transactional
     public void testConnectToRootEntity() {
-        final Node referenceNode = neo4jTemplate.getReferenceNode();
+        final Node referenceNode = neo4jTemplate.createNode();//neo4jTemplate.getReferenceNode();
         neo4jTemplate.postEntityCreation(referenceNode,RootEntity.class);
         final RootEntity root = neo4jTemplate.findOne(referenceNode.getId(), RootEntity.class);
         root.setRootName("RootName");

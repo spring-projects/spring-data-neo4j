@@ -163,7 +163,7 @@ class SpringServiceImpl extends AbstractTransactionManager
         this.transactionManager = transactionManager;
     }
 
-    @Override
+    /*@Override
     public void setKernel(KernelAPI kernelAPI) {
         this.kernelAPI = kernelAPI;
     }
@@ -181,5 +181,5 @@ class SpringServiceImpl extends AbstractTransactionManager
             return null;
         }
         return kernelTransactions.get( transaction );
-    }
+    }*/
 }

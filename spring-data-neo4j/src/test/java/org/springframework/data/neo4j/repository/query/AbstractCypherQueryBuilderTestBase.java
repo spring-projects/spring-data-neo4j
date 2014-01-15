@@ -22,12 +22,9 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.neo4j.core.NodeTypeRepresentationStrategy;
-import org.springframework.data.neo4j.repository.query.CypherQueryBuilder;
-import org.springframework.data.neo4j.repository.query.Person;
 import org.springframework.data.neo4j.support.Infrastructure;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
 import org.springframework.data.neo4j.support.mapping.Neo4jMappingContext;
-import org.springframework.data.neo4j.support.typerepresentation.IndexBasedNodeTypeRepresentationStrategy;
 import org.springframework.data.repository.query.parser.Part;
 
 import static org.hamcrest.CoreMatchers.is;

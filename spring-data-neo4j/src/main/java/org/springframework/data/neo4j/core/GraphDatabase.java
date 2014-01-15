@@ -30,10 +30,7 @@ import java.util.Map;
 
 
 public interface GraphDatabase {
-    /**
-     * @return the reference node of the underlying graph database
-     */
-    Node getReferenceNode();
+
 
     /**
      * @param id node id

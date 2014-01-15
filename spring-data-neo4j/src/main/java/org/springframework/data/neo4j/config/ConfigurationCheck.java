@@ -57,7 +57,6 @@ public class ConfigurationCheck implements ApplicationListener<ContextStartedEve
     private void checkSpringTransactionManager() {
         try {
             TransactionStatus transaction = transactionManager.getTransaction(null);
-            updateStartTime();
             transactionManager.commit(transaction);
         } catch(Exception e) {
             throw new BeanCreationException("transactionManager not correctly configured, please refer to the manual, setup section",e);
@@ -68,7 +67,6 @@ public class ConfigurationCheck implements ApplicationListener<ContextStartedEve
         Transaction tx = null;
         try {
             tx = template.getGraphDatabase().beginTx();
-            updateStartTime();
             tx.success();
         } catch (Exception e) {
             if (tx != null) {
@@ -82,9 +80,5 @@ public class ConfigurationCheck implements ApplicationListener<ContextStartedEve
                 // ignore
             }
         }
-    }
-
-    private void updateStartTime() {
-        template.getReferenceNode().setProperty("startTime", System.currentTimeMillis());
     }
 }

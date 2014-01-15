@@ -91,7 +91,7 @@ public class Neo4jTemplateApiTests {
         new TransactionTemplate(transactionManager).execute(new TransactionCallbackWithoutResult() {
             @Override
             protected void doInTransactionWithoutResult(TransactionStatus status) {
-                referenceNode = graphDatabase.getReferenceNode();
+                referenceNode = graphDatabase.createNode(null);
                 referenceNode.setProperty("name", "node0");
                 graphDatabase.createIndex(Node.class, "node", IndexType.SIMPLE).add(referenceNode, "name", "node0");
                 node1 = graphDatabase.createNode(map("name", "node1"));
@@ -118,10 +118,6 @@ public class Neo4jTemplateApiTests {
         template.getNode(Long.MAX_VALUE);
     }
 
-    @Test
-    public void testGetReferenceNode() throws Exception {
-        assertEquals(referenceNode,template.getReferenceNode());
-    }
 
     private void assertTestPropertySet(Node node, String testName) {
         assertEquals(testName, node.getProperty("test","not set"));

@@ -38,11 +38,11 @@
         <source.level>1.7</source.level>
         <target.level>1.7</target.level>
 
-		<neo4j.version>2.0.0-M06</neo4j.version>
+		<neo4j.version>2.0.0</neo4j.version>
 
-		<neo4j.spatial.version>0.12-neo4j-2.0.0-M06</neo4j.spatial.version>
-		<neo4j.graph-collections.version>0.7.1-neo4j-2.0.0-M06</neo4j.graph-collections.version>
-		<neo4j-cypher-dsl.version>2.0.0-M06</neo4j-cypher-dsl.version>
+		<neo4j.spatial.version>0.12-neo4j-2.0.0</neo4j.spatial.version>
+		<neo4j.graph-collections.version>0.7.1-neo4j-2.0.0</neo4j.graph-collections.version>
+		<neo4j-cypher-dsl.version>2.0.0</neo4j-cypher-dsl.version>
 	</properties>
 
 
@@ -189,6 +189,16 @@
 				<enabled>false</enabled>
 			</snapshots>
 		</repository>
+            <repository>
+                <id>neo4j-contrib-releases</id>
+                <url>https://raw.github.com/neo4j-contrib/m2/master/releases</url>
+                <releases>
+                    <enabled>true</enabled>
+                </releases>
+                <snapshots>
+                    <enabled>false</enabled>
+                </snapshots>
+            </repository>
 	</repositories>
     <pluginRepositories>
         <pluginRepository>

@@ -30,6 +30,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  * 
  * @author Thomas Darimont
  */
+
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = "DataGraphNamespaceHandlerTests-nested-repositories-context.xml")
 public class NestedNeo4jRepositoriesNamspaceConfigTests {

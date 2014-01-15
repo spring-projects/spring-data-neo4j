@@ -92,7 +92,7 @@ public abstract class Neo4jHelper {
             }
         }
         for (Node node : globalGraphOperations.getAllNodes()) {
-            if (includeReferenceNode || !graphDatabaseService.getReferenceNode().equals(node)) {
+            if (includeReferenceNode) {
                 try {
                     node.delete();
                 } catch(IllegalStateException ise) {

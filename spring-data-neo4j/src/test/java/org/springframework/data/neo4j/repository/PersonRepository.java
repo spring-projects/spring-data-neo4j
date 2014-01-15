@@ -46,13 +46,13 @@ public interface PersonRepository extends GraphRepository<Person>, NamedIndexRep
     @Query("start team=node({p_team}) match (team)-[:persons]->(member) return member.name,member.age")
     Iterable<Map<String, Object>> findAllTeamMemberData(@Param("p_team") Group team);
 
-    @Query("start member=node({p_person}) match team-[:persons]->member<-[?:boss]-boss return collect(team), boss")
+    @Query("start member=node({p_person}) match team-[:persons]->member OPTIONAL MATCH member<-[:boss]-boss return collect(team), boss")
     Iterable<MemberData> findMemberData(@Param("p_person") Person person);
 
-    @Query("start member=node({p_person}) match team-[:persons]->member<-[?:boss]-boss return collect(team), boss, boss.name as someonesName, boss.age as someonesAge ")
+    @Query("start member=node({p_person}) match team-[:persons]->member OPTIONAL MATCH member<-[:boss]-boss return collect(team), boss, boss.name as someonesName, boss.age as someonesAge ")
     MemberDataPOJO findMemberDataPojo(@Param("p_person") Person person);
 
-    @Query("start member=node({p_person}) match team-[:persons]->member<-[?:boss]-boss return member")
+    @Query("start member=node({p_person}) match team-[:persons]->member OPTIONAL MATCH member<-[:boss]-boss return member")
     Iterable<MemberData> nonWorkingQuery(@Param("p_person") Person person);
 
     @Query("start team=node:Group(name = {p_team}) match (team)-[:persons*1..1]->(member) return member order by member.name skip {`skip`} limit {`limit`}")

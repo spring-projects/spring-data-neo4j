@@ -91,7 +91,7 @@ public class Neo4jEntityPersisterTests extends Neo4jPersistentTestBase {
     @Test
     @Transactional
     public void testFetchSingleEntity() {
-        final Node node = template.getReferenceNode();
+        final Node node = template.createNode();
         node.setProperty("name","Fetch");
         final Person p = new Person(node.getId());
         template.fetch(p);
@@ -100,7 +100,7 @@ public class Neo4jEntityPersisterTests extends Neo4jPersistentTestBase {
     @Test
     @Transactional
     public void testFetchEntityCollection() {
-        final Node node = template.getReferenceNode();
+        final Node node = template.createNode();
         node.setProperty("name","Fetch");
         final Person p = new Person(node.getId());
         template.fetch(asList(p));

@@ -55,8 +55,5 @@ public class RestNeo4jTemplateTests extends Neo4jTemplateTests
         return graphDatabase;
     }
 
-    @Override
-    public void testRollback()
-    {
-    }
+
 }
