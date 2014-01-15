@@ -44,7 +44,6 @@ class SpringServiceImpl extends AbstractTransactionManager
     private final Map<Transaction, TransactionState> states = new WeakHashMap<Transaction, TransactionState>();
     private final Map<Transaction, KernelTransaction> kernelTransactions = new WeakHashMap<Transaction, KernelTransaction>();
     private final TransactionStateFactory stateFactory;
-    //private KernelAPI kernelAPI;
 
     SpringServiceImpl(TransactionStateFactory stateFactory)
     {

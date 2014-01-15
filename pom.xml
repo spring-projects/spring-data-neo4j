@@ -2,7 +2,7 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
 	<modelVersion>4.0.0</modelVersion>
-	
+
 	<groupId>org.springframework.data</groupId>
 	<artifactId>spring-data-neo4j-parent</artifactId>
 	<version>3.0.0.BUILD-SNAPSHOT</version>
@@ -18,7 +18,7 @@
 		<version>1.3.0.M1</version>
 		<relativePath>../spring-data-build/parent/pom.xml</relativePath>
 	</parent>
-	
+
 	<modules>
 		<module>spring-data-neo4j</module>
 		<module>spring-data-neo4j-aspects</module>
@@ -189,7 +189,7 @@
 				<enabled>false</enabled>
 			</snapshots>
 		</repository>
-            <repository>
+        <repository>
                 <id>neo4j-contrib-releases</id>
                 <url>https://raw.github.com/neo4j-contrib/m2/master/releases</url>
                 <releases>
