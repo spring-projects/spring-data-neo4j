@@ -232,13 +232,17 @@ public class DelegatingGraphDatabase implements GraphDatabase {
         if (!(delegate instanceof GraphDatabaseAPI)) {
             return true; // assume always running tx (e.g. for REST or other remotes)
         }
-        try {
+
+        return false;
+
+        //TODO: SH WHAT THE HECK ?
+        /*try {
             final TransactionManager txManager = ((GraphDatabaseAPI) delegate).getTxManager();
             return txManager.getStatus() != Status.STATUS_NO_TRANSACTION;
         } catch (SystemException e) {
             log.error("Error accessing TransactionManager", e);
             return false;
-        }
+        }*/
     }
 
     @Override
@@ -278,10 +282,10 @@ public class DelegatingGraphDatabase implements GraphDatabase {
         delegate.shutdown();
     }
 
-    @Override
+    /*@Override
     public Node getReferenceNode() {
         return delegate.getReferenceNode();
-    }
+    }*/
 
     public GraphDatabaseService getGraphDatabaseService() {
         return delegate;

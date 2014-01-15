@@ -19,7 +19,7 @@
 	<properties>
 		<validation>1.0.0.GA</validation>
 		<jersey.version>1.9</jersey.version>
-		<neo4j-rest-graphdb.version>2.0.0-M06</neo4j-rest-graphdb.version>
+		<neo4j-rest-graphdb.version>2.0.0</neo4j-rest-graphdb.version>
 	</properties>
 
 	<dependencies>

@@ -424,14 +424,14 @@ public class Neo4jTemplate implements Neo4jOperations, ApplicationContextAware {
         });
     }
 
-    @Override
+   /* @Override
     public Node getReferenceNode() {
         try {
             return infrastructure.getGraphDatabase().getReferenceNode();
         } catch (RuntimeException e) {
             throw translateExceptionIfPossible(e);
         }
-    }
+    }*/
 
     @Override
     public Node getNode(long id) {

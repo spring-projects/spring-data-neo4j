@@ -42,6 +42,8 @@ public class NeoTraversalTests extends NeoApiTests {
         MARRIED, CHILD, GRANDSON, GRANDDAUGHTER, WIFE, HUSBAND, HAS
     }
 
+    private Node referenceNode;
+
     @Test
     public void testSimpleTraverse() {
         template.exec(new GraphCallback.WithoutResult() {
@@ -58,7 +60,7 @@ public class NeoTraversalTests extends NeoApiTests {
     //        @SuppressWarnings("deprecation") final TraversalDescription description = Traversal.description().relationships(HAS).filter(returnAllButStartNode()).prune(Traversal.pruneAfterDepth(2));
             final TraversalDescription description = Traversal.description().relationships(HAS).evaluator(Evaluators.excludeStartPosition()).evaluator(Evaluators.toDepth(2));
 
-            final Result<Path> result = template.traverse(template.getReferenceNode(), description);
+            final Result<Path> result = template.traverse(referenceNode, description);
             result.handle(new Handler<Path>() {
                 @Override
                 public void handle(Path value) {
@@ -73,6 +75,8 @@ public class NeoTraversalTests extends NeoApiTests {
 
 
     private void createFamily() {
+
+        referenceNode = template.createNode();
 
         Node family = template.createNode(map("name", "family"));
         Node man = template.createNode(map("name", "wife"));
@@ -103,6 +107,6 @@ public class NeoTraversalTests extends NeoApiTests {
         grandma.createRelationshipTo(daughter, Type.GRANDDAUGHTER);
         grandpa.createRelationshipTo(daughter, Type.GRANDDAUGHTER);
 
-        graph.getReferenceNode().createRelationshipTo(family,HAS);
+        referenceNode.createRelationshipTo(family,HAS);
     }
 }

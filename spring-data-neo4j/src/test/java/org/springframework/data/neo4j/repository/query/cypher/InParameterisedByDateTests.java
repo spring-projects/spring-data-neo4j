@@ -98,7 +98,7 @@ public class InParameterisedByDateTests {
 
     @Before
     public void before() {
-        Neo4jHelper.cleanDb(graphDatabaseService, true);
+        Neo4jHelper.cleanDb(graphDatabaseService);
 
         Transaction transaction = graphDatabaseService.beginTx();
 

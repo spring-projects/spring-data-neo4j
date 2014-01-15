@@ -25,7 +25,7 @@ import org.springframework.data.neo4j.support.Neo4jTemplate;
 import org.springframework.data.neo4j.support.typerepresentation.TypeRepresentationStrategyFactory;
 
 public class TypeRepresentationTests {
-    @Test
+   /* @Test
     public void testSavingTwiceResultsOnlyInOneTRSCall() throws Exception {
         GraphDatabaseService db = new TestGraphDatabaseFactory().newImpermanentDatabase();
         MappingInfrastructureFactoryBean factoryBean = new MappingInfrastructureFactoryBean(db, null);
@@ -38,5 +38,5 @@ public class TypeRepresentationTests {
         template.save(person);
         tx.failure();
         tx.finish();
-    }
+    }*/
 }

@@ -60,14 +60,14 @@ public class JtaTransactionManagerFactoryBean implements FactoryBean<JtaTransact
             return createNullJtaTransactionManager();
         }
 
-        try
-        {
+        /*try
+        {*/
             return createJtaTransactionManager( gds );
-        }
+        /*}
         catch ( NoSuchMethodException e )
         {
             return createJtaTransactionManagerForOnePointSeven( gds );
-        }
+        }*/
     }
 
     private JtaTransactionManager createNullJtaTransactionManager()
@@ -78,13 +78,13 @@ public class JtaTransactionManagerFactoryBean implements FactoryBean<JtaTransact
         return new JtaTransactionManager( userTransaction, transactionManager );
     }
 
-    private JtaTransactionManager createJtaTransactionManagerForOnePointSeven( GraphDatabaseService gds ) throws Exception
+    /*private JtaTransactionManager createJtaTransactionManagerForOnePointSeven( GraphDatabaseService gds ) throws Exception
     {
         TransactionManager transactionManager = createTransactionManagerForOnePointSeven( gds );
         UserTransaction userTransaction = createUserTransactionForOnePointSeven( gds );
 
         return new JtaTransactionManager( userTransaction, transactionManager );
-    }
+    }*/
 
     private JtaTransactionManager createJtaTransactionManager( GraphDatabaseService gds ) throws Exception
     {
@@ -99,11 +99,11 @@ public class JtaTransactionManagerFactoryBean implements FactoryBean<JtaTransact
         return createDynamically( SpringTransactionManager.class, GraphDatabaseService.class, gds );
     }
 
-    private UserTransaction createUserTransactionForOnePointSeven( GraphDatabaseService gds ) throws Exception
+    /*private UserTransaction createUserTransactionForOnePointSeven( GraphDatabaseService gds ) throws Exception
     {
         TransactionManager txManager = ((GraphDatabaseAPI) gds).getTxManager();
         return createDynamically( UserTransactionImpl.class, TransactionManager.class, txManager );
-    }
+    }*/
 
     private TransactionManager createTransactionManagerForOnePointEight( GraphDatabaseService gds ) throws Exception
     {

@@ -12,7 +12,10 @@
 	<context:spring-configured/>
 	<context:annotation-config/>
 
-    <neo4j:config storeDirectory="target/config-test" entityManagerFactory="entityManagerFactory"/>
+    <context:annotation-config/>
+    <neo4j:config graphDatabaseService="graphDatabaseService" storeDirectory="target/test-data/impermanent-db" entityManagerFactory="entityManagerFactory"/>
+    <bean id="graphDatabaseService" class="org.neo4j.test.ImpermanentGraphDatabase" destroy-method="shutdown"/>
+
 
     <bean class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean" id="entityManagerFactory">
         <property name="dataSource" ref="dataSource"/>

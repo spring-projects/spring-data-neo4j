@@ -125,8 +125,8 @@ public class LabelBasedNodeTypeRepresentationStrategy implements NodeTypeReprese
         // don't think we need to do anything here!
     }
 
-    public static boolean isStrategyAlreadyInUse(GraphDatabase graphDatabaseService) {
+    /*public static boolean isStrategyAlreadyInUse(GraphDatabase graphDatabaseService) {
        return graphDatabaseService.getReferenceNode().hasLabel(SDN_LABEL_STRATEGY);
 
-    }
+    }*/
 }

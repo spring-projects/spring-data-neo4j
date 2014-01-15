@@ -51,19 +51,19 @@ public abstract class AbstractIndexBasedTypeRepresentationStrategy<S extends Pro
         typesIndex = createTypesIndex();
     }
 
-    public static boolean isStrategyAlreadyInUse(GraphDatabase graphDatabaseService) {
+    /*public static boolean isStrategyAlreadyInUse(GraphDatabase graphDatabaseService) {
         try {
             final Index<PropertyContainer> index = graphDatabaseService.getIndex(IndexBasedNodeTypeRepresentationStrategy.INDEX_NAME);
             return index!=null && Node.class.isAssignableFrom(index.getEntityType());
         } catch(NoSuchIndexException nsie) {
             return false;
         }
-    }
+    }*/
 
     private Object indexValueForType(Object alias) {
         return indexProvider == null ? alias : indexProvider.createIndexValueForType(alias);
     }
-    
+
     @SuppressWarnings("unchecked")
     private Index<S> createTypesIndex() {
         return (Index<S>) graphDb.createIndex(clazz, INDEX_NAME, IndexType.SIMPLE);

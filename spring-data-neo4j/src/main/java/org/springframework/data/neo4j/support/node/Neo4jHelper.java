@@ -61,15 +61,12 @@ public abstract class Neo4jHelper {
         }
     }
 
-    public static void cleanDb(GraphDatabaseService graphDatabaseService) {
-        cleanDb(graphDatabaseService, false);
-    }
 
-    public static void cleanDb( GraphDatabaseService graphDatabaseService, boolean includeReferenceNode ) {
+    public static void cleanDb( GraphDatabaseService graphDatabaseService) {
         Transaction tx = graphDatabaseService.beginTx();
         try {
             clearIndex(graphDatabaseService);
-            removeNodes(graphDatabaseService, includeReferenceNode);
+            removeNodes(graphDatabaseService);
             tx.success();
         } catch(Throwable t) {
             tx.failure();
@@ -79,7 +76,7 @@ public abstract class Neo4jHelper {
         }
     }
 
-    private static void removeNodes(GraphDatabaseService graphDatabaseService, boolean includeReferenceNode) {
+    private static void removeNodes(GraphDatabaseService graphDatabaseService) {
         final GlobalGraphOperations globalGraphOperations = GlobalGraphOperations.at(graphDatabaseService);
         for (Node node : globalGraphOperations.getAllNodes()) {
             for (Relationship rel : node.getRelationships(Direction.OUTGOING)) {
@@ -92,13 +89,13 @@ public abstract class Neo4jHelper {
             }
         }
         for (Node node : globalGraphOperations.getAllNodes()) {
-            if (includeReferenceNode || !graphDatabaseService.getReferenceNode().equals(node)) {
+
                 try {
                     node.delete();
                 } catch(IllegalStateException ise) {
                     if (!ise.getMessage().contains("since it has already been deleted")) throw ise;
                 }
-            }
+
         }
     }
 

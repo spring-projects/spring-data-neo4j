@@ -50,7 +50,7 @@ public class RestTestHelper
     }
 
     public void cleanDb() {
-        db.cleanContent(true);
+        db.cleanContent();
     }
 
     public static void shutdownServer() {

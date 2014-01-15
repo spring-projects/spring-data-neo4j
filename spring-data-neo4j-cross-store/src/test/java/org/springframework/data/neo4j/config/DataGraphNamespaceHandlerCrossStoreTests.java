@@ -44,7 +44,7 @@ public class DataGraphNamespaceHandlerCrossStoreTests {
     @Test public void injectionForCrossStore() {
         Assert.assertNotNull("template", template);
         EmbeddedGraphDatabase graphDatabaseService = (EmbeddedGraphDatabase) template.getGraphDatabaseService();
-        String fileSeparator = "target" + System.getProperty("file.separator") + "config-test";
+        String fileSeparator = "target" + System.getProperty("file.separator") + "test-data/impermanent-db";
         Assert.assertTrue("store-dir", graphDatabaseService.getStoreDir().endsWith(fileSeparator));
         Assert.assertNotNull("graphDatabaseService", graphDatabaseService);
         Assert.assertNotNull("transactionManager", transactionManager);

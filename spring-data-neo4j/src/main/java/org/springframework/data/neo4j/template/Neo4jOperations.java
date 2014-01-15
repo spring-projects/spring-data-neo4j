@@ -55,10 +55,6 @@ public interface Neo4jOperations {
 
     <T> GraphRepository<T> repositoryFor(Class<T> clazz);
 
-    /**
-     * Returns the reference node.
-     */
-    Node getReferenceNode();
 
     /**
      * Delegates to the GraphDatabase

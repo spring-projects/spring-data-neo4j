@@ -44,7 +44,6 @@ class SpringServiceImpl extends AbstractTransactionManager
     private final Map<Transaction, TransactionState> states = new WeakHashMap<Transaction, TransactionState>();
     private final Map<Transaction, KernelTransaction> kernelTransactions = new WeakHashMap<Transaction, KernelTransaction>();
     private final TransactionStateFactory stateFactory;
-    private KernelAPI kernelAPI;
 
     SpringServiceImpl(TransactionStateFactory stateFactory)
     {
@@ -97,7 +96,7 @@ class SpringServiceImpl extends AbstractTransactionManager
         delegate.begin();
         Transaction tx = getTransaction();
         states.put(tx, stateFactory.create(tx));
-        kernelTransactions.put( tx, kernelAPI.newTransaction() );
+        //kernelTransactions.put( tx, kernelAPI.newTransaction() );
     }
 
     public void commit() throws RollbackException, HeuristicMixedException,
@@ -163,12 +162,12 @@ class SpringServiceImpl extends AbstractTransactionManager
         this.transactionManager = transactionManager;
     }
 
-    @Override
+   /* @Override
     public void setKernel(KernelAPI kernelAPI) {
         this.kernelAPI = kernelAPI;
-    }
+    }*/
 
-    @Override
+    /*@Override
     public KernelTransaction getKernelTransaction()
     {
         Transaction transaction;
@@ -181,5 +180,5 @@ class SpringServiceImpl extends AbstractTransactionManager
             return null;
         }
         return kernelTransactions.get( transaction );
-    }
+    }*/
 }

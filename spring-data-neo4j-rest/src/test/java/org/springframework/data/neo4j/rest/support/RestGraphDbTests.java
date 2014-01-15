@@ -25,13 +25,6 @@ import java.util.Date;
 public class RestGraphDbTests extends RestTestBase {
 
     @Test
-    public void testGetRefNode() {
-        Node refNode = restGraphDatabase.getReferenceNode();
-        Node nodeById = restGraphDatabase.getNodeById( 0 );
-        Assert.assertEquals( refNode, nodeById );
-    }
-
-    @Test
     public void testCreateNode() {
         Node node = restGraphDatabase.createNode();
         Assert.assertEquals( node, restGraphDatabase.getNodeById( node.getId() ) );
@@ -39,7 +32,7 @@ public class RestGraphDbTests extends RestTestBase {
 
     @Test
     public void testCreateRelationship() {
-        Node refNode = restGraphDatabase.getReferenceNode();
+        Node refNode = node();
         Node node = restGraphDatabase.createNode();
         Relationship rel = refNode.createRelationshipTo( node, Type.TEST );
         Relationship foundRelationship = IsRelationshipToNodeMatcher.relationshipFromTo( refNode.getRelationships( Type.TEST, Direction.OUTGOING ), refNode, node );
@@ -53,16 +46,16 @@ public class RestGraphDbTests extends RestTestBase {
 
     @Test
     public void testBasic() {
-        Node refNode = restGraphDatabase.getReferenceNode();
+        //Node refNode = restGraphDatabase.getReferenceNode();
         Node node = restGraphDatabase.createNode();
-        Relationship rel = refNode.createRelationshipTo( node,
+        Relationship rel = node().createRelationshipTo( node,
                 DynamicRelationshipType.withName( "TEST" ) );
         rel.setProperty( "date", new Date().getTime() );
         node.setProperty( "name", "Mattias test" );
-        refNode.createRelationshipTo( node,
+        node().createRelationshipTo( node,
                 DynamicRelationshipType.withName( "TEST" ) );
 
-        for ( Relationship relationship : refNode.getRelationships() ) {
+        for ( Relationship relationship : node().getRelationships() ) {
             System.out.println( "rel prop:" + relationship.getProperty( "date", null ) );
             Node endNode = relationship.getEndNode();
             System.out.println( "node prop:" + endNode.getProperty( "name", null ) );

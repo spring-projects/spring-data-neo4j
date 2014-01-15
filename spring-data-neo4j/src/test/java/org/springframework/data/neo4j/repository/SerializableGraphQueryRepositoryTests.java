@@ -17,6 +17,7 @@
 package org.springframework.data.neo4j.repository;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
@@ -71,6 +72,7 @@ public class SerializableGraphQueryRepositoryTests {
         serialTesters = new SerialTesters();
         serialTesters.createUpgraderTeam(personRepository, groupRepository, friendshipRepository);
     }
+
 
     @Test @Transactional
     public void shouldBeAbleToTurnQueryResultIntoAPOJO() throws Exception {

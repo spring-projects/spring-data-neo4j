@@ -25,7 +25,7 @@ import org.neo4j.graphdb.traversal.Evaluators;
 import org.neo4j.graphdb.traversal.TraversalDescription;
 import org.neo4j.helpers.collection.IteratorUtil;
 import org.neo4j.kernel.Traversal;
-import org.neo4j.kernel.impl.traversal.TraversalDescriptionImpl;
+import org.neo4j.kernel.impl.traversal.MonoDirectionalTraversalDescription;
 import org.springframework.data.neo4j.aspects.Group;
 import org.springframework.data.neo4j.aspects.Person;
 import org.springframework.data.neo4j.core.EntityPath;
@@ -112,7 +112,7 @@ public class TraversalTests extends EntityTestBase {
         Group group = persist(new Group());
         group.setName("dev");
         group.addPerson(p);
-        final TraversalDescription traversalDescription = new TraversalDescriptionImpl().relationships(DynamicRelationshipType.withName("persons")).evaluator(Evaluators.excludeStartPosition());
+        final TraversalDescription traversalDescription = new MonoDirectionalTraversalDescription().relationships(DynamicRelationshipType.withName("persons")).evaluator(Evaluators.excludeStartPosition());
         Iterable<Person> people = finder.findAllByTraversal(group, traversalDescription);
         final HashSet<Person> found = new HashSet<Person>();
         for (Person person : people) {
