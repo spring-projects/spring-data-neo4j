@@ -181,7 +181,7 @@ public class Neo4jTemplateApiTests {
 
     @Test
     public void shouldFindNextNodeViaCypher() throws Exception {
-        assertSingleResult(node1, template.query("start n=node(0) match n-->m return m", null).to(Node.class));
+        assertSingleResult(node1, template.query("start n=node("+referenceNode.getId()+") match n-->m return m", null).to(Node.class));
     }
 
     @Test
