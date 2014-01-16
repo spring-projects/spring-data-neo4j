@@ -30,7 +30,7 @@ import java.net.URI;
  * @author mh
  * @since 25.01.11
  */
-public class GraphDatabaseFactory implements FactoryBean<GraphDatabase> {
+public class GraphDatabaseFactoryBean implements FactoryBean<GraphDatabase> {
 
     private String storeLocation;
     private String userName;

@@ -37,75 +37,50 @@ public class ResultColumnValueExtractor {
         NoSuchMethodException,
         IllegalAccessException,
         InvocationTargetException {
-        ResultColumn column = field.getAnnotation(ResultColumn.class);
         TypeInformation<?> classInfo = ClassTypeInformation.from(field.getDeclaringClass());
         TypeInformation<?> fieldInfo = classInfo.getProperty(field.getName());
-        return extractFromAccessibleObject(column,fieldInfo);
+        return extractFromAccessibleObject(fieldInfo, columnNameFor(field));
+    }
+
+    private String columnNameFor(Field field) {
+        ResultColumn column = field.getAnnotation(ResultColumn.class);
+        if (column != null) return column.value();
+        return field.getName();
     }
 
     public Object extractFromMethod(Method method) throws ClassNotFoundException,
             NoSuchMethodException,
             IllegalAccessException,
             InvocationTargetException {
-        ResultColumn column = method.getAnnotation(ResultColumn.class);
         TypeInformation<?> returnType = ClassTypeInformation.fromReturnTypeOf(method);
-        return extractFromAccessibleObject(column,returnType);
+        return extractFromAccessibleObject(returnType, columnNameFor(method));
     }
 
-    public Object extractFromAccessibleObject(ResultColumn column, TypeInformation<?> returnType)
+    private String columnNameFor(Method method) {
+        ResultColumn column = method.getAnnotation(ResultColumn.class);
+        if (column != null) return column.value();
+        String name = method.getName();
+        if (name.startsWith("get")) name = name.substring(3);
+        return Character.toLowerCase(name.charAt(0)) + name.substring(1);
+    }
+
+    public Object extractFromAccessibleObject(TypeInformation<?> returnType, String columnName)
             throws ClassNotFoundException,
                     NoSuchMethodException,
                     IllegalAccessException,
                     InvocationTargetException {
 
-        String columnName = column.value();
-        if(!map.containsKey( columnName )) {
-            throw new NoSuchColumnFoundException( columnName );
+        if(!map.containsKey(columnName)) {
+            throw new NoSuchColumnFoundException(columnName);
         }
 
         Object columnValue = map.get(columnName);
         if(columnValue==null) return null;
 
-        // If the returned value is a Scala iterable, transform it to a Java iterable first
-        Class iterableLikeInterface = implementsInterface("scala.collection.Iterable", columnValue.getClass());
-        if (iterableLikeInterface!=null) {
-            columnValue = transformScalaIterableToJavaIterable(columnValue, iterableLikeInterface);
-        }
-
         if (returnType.isCollectionLike()) {
              QueryResultBuilder qrb = new QueryResultBuilder((Iterable)columnValue, converter);
-             return qrb.to(returnType.getActualType().getType());
+             return qrb.to(returnType.getActualType().getType()).as(returnType.getType());
         } else
            return converter.convert(columnValue, returnType.getType(), mappingPolicy);
     }
-
-
-    public Object transformScalaIterableToJavaIterable(Object scalaIterable, Class iterableLikeIface) throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, IllegalAccessException {
-        // This is equivalent to doing this:
-        // JavaConversions.asJavaIterable(((IterableLike) columnValue).toIterable());
-
-        Class<?> javaConversions = iterableLikeIface.getClassLoader().loadClass("scala.collection.JavaConversions");
-        Method asJavaIterable = javaConversions.getMethod("asJavaIterable", iterableLikeIface);
-        Iterable<?> javaIterable = (Iterable<?>) asJavaIterable.invoke(null, scalaIterable);
-        return javaIterable;
-    }
-
-    private Class implementsInterface(String interfaceName, Class clazz) {
-        if(clazz.getCanonicalName().equals(interfaceName)) return clazz;
-
-        Class superclass = clazz.getSuperclass();
-        if(superclass != null) {
-            Class iface = implementsInterface(interfaceName, superclass);
-            if (iface!= null)  return iface;
-        }
-
-        for(Class iface : clazz.getInterfaces()) {
-            Class superIface = implementsInterface(interfaceName, iface);
-            if(superIface!=null)
-                return superIface;
-        }
-
-        return null;
-    }
-
 }

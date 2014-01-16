@@ -17,6 +17,7 @@
 package org.springframework.data.neo4j.config;
 
 import org.neo4j.graphdb.Transaction;
+import org.neo4j.helpers.collection.IteratorUtil;
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextStartedEvent;
@@ -57,7 +58,7 @@ public class ConfigurationCheck implements ApplicationListener<ContextStartedEve
     private void checkSpringTransactionManager() {
         try {
             TransactionStatus transaction = transactionManager.getTransaction(null);
-            updateStartTime();
+            IteratorUtil.count(template.getGraphDatabaseService().getRelationshipTypes());
             transactionManager.commit(transaction);
         } catch(Exception e) {
             throw new BeanCreationException("transactionManager not correctly configured, please refer to the manual, setup section",e);
@@ -68,7 +69,8 @@ public class ConfigurationCheck implements ApplicationListener<ContextStartedEve
         Transaction tx = null;
         try {
             tx = template.getGraphDatabase().beginTx();
-            updateStartTime();
+            // read transaction
+            IteratorUtil.count(template.getGraphDatabaseService().getRelationshipTypes());
             tx.success();
         } catch (Exception e) {
             if (tx != null) {
@@ -77,14 +79,10 @@ public class ConfigurationCheck implements ApplicationListener<ContextStartedEve
             throw new BeanCreationException("transactionManager not correctly configured, please refer to the manual, setup section",e);
         } finally {
             try {
-            if (tx != null) tx.finish();
+                if (tx != null) tx.close();
             } catch(Exception e) {
                 // ignore
             }
         }
-    }
-
-    private void updateStartTime() {
-        template.getReferenceNode().setProperty("startTime", System.currentTimeMillis());
     }
 }

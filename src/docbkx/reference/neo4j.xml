@@ -94,7 +94,7 @@ try {
 	relationship.setProperty( "message", "brave Neo4j" );
 	tx.success();
 } finally {
-	tx.finish();
+	tx.close();
 }
 ]]></programlisting>
         </example>
@@ -145,7 +145,7 @@ try {
     nodeIndex.add(node, "property","value");
     tx.success();
 } finally {
-    tx.finish();
+    tx.close();
 }
 for (Node foundNode : nodeIndex.get("property","value")) {
     // found node

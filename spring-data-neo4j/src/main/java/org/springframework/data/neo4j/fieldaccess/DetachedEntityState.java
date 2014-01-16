@@ -305,7 +305,7 @@ public class DetachedEntityState<STATE> implements EntityState<STATE> {
 			if (t instanceof RuntimeException) throw (RuntimeException)t;
 			throw new org.springframework.data.neo4j.core.UncategorizedGraphStoreException("Error persisting entity "+getEntity(),t);
         } finally {
-            tx.finish();
+            tx.close();
         }
     }
 }

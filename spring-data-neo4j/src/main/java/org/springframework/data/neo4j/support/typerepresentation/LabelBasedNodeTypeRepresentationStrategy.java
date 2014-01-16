@@ -24,9 +24,13 @@ import org.springframework.data.neo4j.annotation.QueryType;
 import org.springframework.data.neo4j.core.GraphDatabase;
 import org.springframework.data.neo4j.core.NodeTypeRepresentationStrategy;
 import org.springframework.data.neo4j.repository.query.CypherQuery;
+import org.springframework.data.neo4j.support.ReferenceNodes;
 import org.springframework.data.neo4j.support.mapping.StoredEntityType;
 import org.springframework.data.neo4j.support.mapping.WrappedIterableClosableIterable;
 import org.springframework.data.neo4j.support.query.QueryEngine;
+
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Provides a Node Type Representation Strategy which makes use of Labels, and specifically
@@ -37,9 +41,8 @@ import org.springframework.data.neo4j.support.query.QueryEngine;
  */
 public class LabelBasedNodeTypeRepresentationStrategy implements NodeTypeRepresentationStrategy {
 
-    public static final Label SDN_LABEL_STRATEGY = DynamicLabel.label("SDN_LABEL_STRATEGY");
+    public static final String SDN_LABEL_STRATEGY = "SDN_LABEL_STRATEGY";
     public static final String LABELSTRATEGY_PREFIX = "__TYPE__";
-    public static final long   REFERENCE_NODE_ID = 0L;
 
     protected GraphDatabase graphDb;
     protected final Class<Node> clazz;
@@ -62,7 +65,7 @@ public class LabelBasedNodeTypeRepresentationStrategy implements NodeTypeReprese
         if (state.hasLabel(sdnLabel)) {
             return; // already there
         }
-        addLabelsForEntityHierarchy(state,type);
+        addLabelsForEntityHierarchy(state, type);
     }
 
     /**
@@ -72,33 +75,36 @@ public class LabelBasedNodeTypeRepresentationStrategy implements NodeTypeReprese
      * as the primary SDN marker Label.
      */
     private void addLabelsForEntityHierarchy(Node state, StoredEntityType type) {
-        String labels = cypherHelper.buildLabelString(LABELSTRATEGY_PREFIX + type.getAlias(), (String)type.getAlias());
-        labels = buildLabelStringIncludingEachEntityInHierarchy(labels, type);
+        String alias = type.getAlias().toString();
+        Set<String> labels = collectSuperTypeLabels(type, new HashSet<String>());
+        labels.add(alias);
+        labels.add(LABELSTRATEGY_PREFIX + alias);
         cypherHelper.setLabelsOnNode(state.getId(), labels);
     }
 
-    private String buildLabelStringIncludingEachEntityInHierarchy(String labels, StoredEntityType type) {
+    private Set<String> collectSuperTypeLabels(StoredEntityType type, Set<String> labels) {
+        if (type==null) return labels;
         for (StoredEntityType superType : type.getSuperTypes()) {
-            labels += cypherHelper.buildLabelString((String)superType.getAlias());
-            labels += buildLabelStringIncludingEachEntityInHierarchy(labels, superType);
+            labels.add(superType.getAlias().toString());
+            collectSuperTypeLabels(superType, labels);
         }
         return labels;
     }
 
     /**
-     * Ensures that a special label (SDN_LABEL_STRATEGY) exists against the
-     * reference node, and if it does not, it is added. This label serves
+     * Ensures that a special label (SDN_LABEL_STRATEGY) exists in the graph,
+     * and if it does not, it is added. This label serves
      * as an indicator that the Labeling strategy has/is going to be used on this
      * data set.
      */
     private void markSDNLabelStrategyInUse() {
-        cypherHelper.setLabelOnNode(REFERENCE_NODE_ID, SDN_LABEL_STRATEGY.name());
+        cypherHelper.createMarkerLabel(SDN_LABEL_STRATEGY);
     }
 
     @Override
     public <U> ClosableIterable<Node> findAll(StoredEntityType type) {
         Iterable<Node> rin = cypherHelper.getNodesWithLabel(type.getAlias().toString());
-        return new WrappedIterableClosableIterable<Node>(rin);
+        return new WrappedIterableClosableIterable<>(rin);
     }
 
     @Override
@@ -122,11 +128,9 @@ public class LabelBasedNodeTypeRepresentationStrategy implements NodeTypeReprese
 
     @Override
     public void preEntityRemoval(Node state) {
-        // don't think we need to do anything here!
     }
 
     public static boolean isStrategyAlreadyInUse(GraphDatabase graphDatabaseService) {
-       return graphDatabaseService.getReferenceNode().hasLabel(SDN_LABEL_STRATEGY);
-
+        return graphDatabaseService.getAllLabelNames().contains(SDN_LABEL_STRATEGY);
     }
 }

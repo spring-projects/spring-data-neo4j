@@ -30,13 +30,11 @@ import org.neo4j.test.TestGraphDatabaseFactory;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.neo4j.conversion.ResultConverter;
 import org.springframework.data.neo4j.core.GraphDatabase;
-import org.springframework.data.neo4j.model.Person;
 import org.springframework.data.neo4j.support.DelegatingGraphDatabase;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
 import org.springframework.data.neo4j.support.index.IndexType;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionStatus;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.jta.JtaTransactionManager;
 import org.springframework.transaction.support.TransactionCallbackWithoutResult;
 import org.springframework.transaction.support.TransactionTemplate;
@@ -56,7 +54,7 @@ public class Neo4jTemplateApiTests {
     private static final DynamicRelationshipType HAS = DynamicRelationshipType.withName("has");
     protected Neo4jTemplate template;
     protected GraphDatabase graphDatabase;
-    protected Node referenceNode;
+    protected Node node0;
     protected Relationship relationship1;
     protected Node node1;
     protected PlatformTransactionManager transactionManager;
@@ -91,11 +89,10 @@ public class Neo4jTemplateApiTests {
         new TransactionTemplate(transactionManager).execute(new TransactionCallbackWithoutResult() {
             @Override
             protected void doInTransactionWithoutResult(TransactionStatus status) {
-                referenceNode = graphDatabase.getReferenceNode();
-                referenceNode.setProperty("name", "node0");
-                graphDatabase.createIndex(Node.class, "node", IndexType.SIMPLE).add(referenceNode, "name", "node0");
+                node0 = graphDatabase.createNode(map("name", "node0"));
+                graphDatabase.createIndex(Node.class, "node", IndexType.SIMPLE).add(node0, "name", "node0");
                 node1 = graphDatabase.createNode(map("name", "node1"));
-                relationship1 = referenceNode.createRelationshipTo(node1, KNOWS);
+                relationship1 = node0.createRelationshipTo(node1, KNOWS);
                 relationship1.setProperty("name", "rel1");
                 graphDatabase.createIndex(Relationship.class, "relationship", IndexType.SIMPLE).add(relationship1, "name", "rel1");
             }
@@ -119,24 +116,15 @@ public class Neo4jTemplateApiTests {
     }
 
     @Test
-    public void testGetReferenceNode() throws Exception {
-        assertEquals(referenceNode,template.getReferenceNode());
-    }
-
-    private void assertTestPropertySet(Node node, String testName) {
-        assertEquals(testName, node.getProperty("test","not set"));
-    }
-
-    @Test
     public void testGetNode() throws Exception {
-        Node lookedUpNode = template.getNode(referenceNode.getId());
-        assertEquals(referenceNode,lookedUpNode);
+        Node lookedUpNode = template.getNode(node0.getId());
+        assertEquals(node0,lookedUpNode);
     }
 
     @Test
     public void testGetRelationship() throws Exception {
         Relationship lookedUpRelationship = template.getRelationship(relationship1.getId());
-        assertThat(lookedUpRelationship,is(relationship1));
+        assertThat(lookedUpRelationship, is(relationship1));
 
     }
 
@@ -152,7 +140,7 @@ public class Neo4jTemplateApiTests {
         template.index("node", node1, "name","node1");
         Index<Node> index = graphDatabase.getIndex("node");
         Node lookedUpNode= index.get( "name", "node1" ).getSingle();
-        assertThat("same node from index",lookedUpNode,is(node1));
+        assertThat("same node from index", lookedUpNode, is(node1));
     }
 
     @Test
@@ -180,25 +168,25 @@ public class Neo4jTemplateApiTests {
     public void testTraverse() throws Exception {
         //final TraversalDescription description = Traversal.description().relationships(KNOWS).prune(Traversal.pruneAfterDepth(1)).filter(Traversal.returnAllButStartNode());
         final TraversalDescription description = Traversal.description().relationships(KNOWS).evaluator(Evaluators.toDepth(1)).evaluator(Evaluators.excludeStartPosition());
-        assertSingleResult("node1",template.traverse(referenceNode, description).to(String.class,new PathNodeNameMapper()));
+        assertSingleResult("node1",template.traverse(node0, description).to(String.class,new PathNodeNameMapper()));
     }
 
     @Test
     public void shouldFindNextNodeViaCypher() throws Exception {
-        assertSingleResult(node1, template.query("start n=node(0) match n-->m return m", null).to(Node.class));
+        assertSingleResult(node1, template.query("start n=node(" + node0.getId() + ") match n-->m return m", null).to(Node.class));
     }
 
     @Test
     public void shouldGetDirectRelationship() throws Exception {
-        assertSingleResult("rel1", template.convert(referenceNode.getRelationships()).to(String.class, new RelationshipNameConverter()));
+        assertSingleResult("rel1", template.convert(node0.getRelationships()).to(String.class, new RelationshipNameConverter()));
     }
     @Test
     public void shouldGetDirectRelationshipForType() throws Exception {
-        assertSingleResult("rel1", template.convert(referenceNode.getRelationships(KNOWS)).to(String.class, new RelationshipNameConverter()));
+        assertSingleResult("rel1", template.convert(node0.getRelationships(KNOWS)).to(String.class, new RelationshipNameConverter()));
     }
     @Test
     public void shouldGetDirectRelationshipForTypeAndDirection() throws Exception {
-        assertSingleResult("rel1", template.convert(referenceNode.getRelationships(KNOWS, Direction.OUTGOING)).to(String.class, new RelationshipNameConverter()));
+        assertSingleResult("rel1", template.convert(node0.getRelationships(KNOWS, Direction.OUTGOING)).to(String.class, new RelationshipNameConverter()));
     }
 
     private <T> void assertSingleResult(T expected, Iterable<T> iterable) {
@@ -210,12 +198,12 @@ public class Neo4jTemplateApiTests {
 
     @Test
     public void shouldCreateRelationshipWithProperty() throws Exception {
-        Relationship relationship = template.createRelationshipBetween(referenceNode, node1, "has", map("name", "rel2"));
+        Relationship relationship = template.createRelationshipBetween(node0, node1, "has", map("name", "rel2"));
         assertNotNull(relationship);
-        assertEquals(referenceNode, relationship.getStartNode());
+        assertEquals(node0, relationship.getStartNode());
         assertEquals(node1,relationship.getEndNode());
         assertEquals(HAS.name(), relationship.getType().name());
-        assertEquals("rel2",relationship.getProperty("name","not set"));
+        assertEquals("rel2",relationship.getProperty("name", "not set"));
     }
 
     private static class PathNodeNameMapper extends ResultConverter.ResultConverterAdapter<Path,String> {

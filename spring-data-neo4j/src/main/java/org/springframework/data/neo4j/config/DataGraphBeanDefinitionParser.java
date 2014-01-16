@@ -28,6 +28,7 @@ import org.springframework.core.type.filter.AnnotationTypeFilter;
 import org.springframework.data.annotation.Persistent;
 import org.springframework.data.neo4j.annotation.NodeEntity;
 import org.springframework.data.neo4j.annotation.RelationshipEntity;
+import org.springframework.data.neo4j.support.GraphDatabaseServiceFactoryBean;
 import org.springframework.util.ClassUtils;
 import org.w3c.dom.Element;
 
@@ -143,7 +144,7 @@ public class DataGraphBeanDefinitionParser extends AbstractBeanDefinitionParser 
         String storeDir = element.getAttribute("storeDirectory");
         if (!hasText(storeDir)) return null;
 
-        BeanDefinitionBuilder graphDefinitionBuilder = BeanDefinitionBuilder.rootBeanDefinition(EmbeddedGraphDatabase.class);
+        BeanDefinitionBuilder graphDefinitionBuilder = BeanDefinitionBuilder.rootBeanDefinition(GraphDatabaseServiceFactoryBean.class);
         graphDefinitionBuilder.addConstructorArgValue(storeDir);
         graphDefinitionBuilder.setScope("singleton");
         graphDefinitionBuilder.setDestroyMethodName("shutdown");

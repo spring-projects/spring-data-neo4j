@@ -91,7 +91,7 @@ public class EntityTestBase {
 			cleanDb();
 			tx.success();
 		} finally {
-			tx.finish();
+			tx.close();
 		}
 	}
 

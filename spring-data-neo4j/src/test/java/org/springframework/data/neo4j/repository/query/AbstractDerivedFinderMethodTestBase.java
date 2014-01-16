@@ -418,7 +418,9 @@ public abstract class AbstractDerivedFinderMethodTestBase {
         String query = derivedCypherRepositoryQuery.createQueryWithPagingAndSorting(accessor);
         Map<String, Object> params = derivedCypherRepositoryQuery.resolveParams(accessor);
         String firstWord = expectedQuery.split("\\s+")[0];
-        assertEquals(expectedQuery,query.substring(query.indexOf(firstWord)).substring(0,expectedQuery.length()));
+        String actual = query.substring(query.indexOf(firstWord));
+        actual = actual.substring(0, Math.min(expectedQuery.length(),actual.length()));
+        assertEquals(expectedQuery, actual);
         assertEquals(expectedParam.length,params.size());
         for (int i = 0; i < expectedParam.length; i++) {
             if (expectedParam[i] instanceof ValueContext) {

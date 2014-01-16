@@ -159,7 +159,7 @@ public class Neo4jPersistentTestBase {
     @After
     public void tearDown() throws Exception {
         tx.failure();
-        tx.finish();
+        tx.close();
         template.getGraphDatabaseService().shutdown();
     }
 

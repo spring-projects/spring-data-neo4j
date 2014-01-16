@@ -26,15 +26,11 @@ import org.springframework.data.neo4j.support.index.IndexType;
 import org.springframework.data.neo4j.support.query.QueryEngine;
 
 import javax.transaction.TransactionManager;
+import java.util.Collection;
 import java.util.Map;
 
 
 public interface GraphDatabase {
-    /**
-     * @return the reference node of the underlying graph database
-     */
-    Node getReferenceNode();
-
     /**
      * @param id node id
      * @return the requested node of the underlying graph database
@@ -133,4 +129,6 @@ public interface GraphDatabase {
     Transaction beginTx();
 
     void shutdown();
+
+    Collection<String> getAllLabelNames();
 }

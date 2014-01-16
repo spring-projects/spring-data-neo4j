@@ -25,6 +25,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.neo4j.core.GraphDatabase;
 import org.springframework.data.neo4j.core.NodeTypeRepresentationStrategy;
+import org.springframework.data.neo4j.support.ReferenceNodes;
 import org.springframework.data.neo4j.support.mapping.StoredEntityType;
 
 import java.util.Collections;
@@ -49,12 +50,14 @@ public class SubReferenceNodeTypeRepresentationStrategy implements NodeTypeRepre
     public static final String SUBREFERENCE_NODE_COUNTER_KEY = "count";
     public static final String SUBREF_PREFIX = "SUBREF_";
 	public static final String SUBREF_CLASS_KEY = "class";
+    private long referenceNodeId;
 
-	private GraphDatabase graphDatabase;
+    private GraphDatabase graphDatabase;
     private final EntityTypeCache typeCache;
 
     public SubReferenceNodeTypeRepresentationStrategy(GraphDatabase graphDatabase) {
 		this.graphDatabase = graphDatabase;
+        this.referenceNodeId = ReferenceNodes.obtainReferenceNode(graphDatabase,"root").getId();
         typeCache = new EntityTypeCache();
     }
 
@@ -89,7 +92,9 @@ public class SubReferenceNodeTypeRepresentationStrategy implements NodeTypeRepre
 
     public static boolean isStrategyAlreadyInUse(GraphDatabase graphDatabaseService) {
         try {
-            for (Relationship rel : graphDatabaseService.getReferenceNode().getRelationships()) {
+            Node referenceNode = ReferenceNodes.getReferenceNode(graphDatabaseService,"root");
+            if (referenceNode==null) return false;
+            for (Relationship rel : referenceNode.getRelationships()) {
                 if (rel.getType().name().startsWith(SubReferenceNodeTypeRepresentationStrategy.SUBREF_PREFIX)) {
                     return true;
                 }
@@ -206,7 +211,7 @@ public class SubReferenceNodeTypeRepresentationStrategy implements NodeTypeRepre
         return findSubreferenceNode(type.getAlias());
     }
     public Node findSubreferenceNode(final Object alias) {
-        final Relationship subrefRelationship = graphDatabase.getReferenceNode().getSingleRelationship(subRefRelationshipType(alias), Direction.OUTGOING);
+        final Relationship subrefRelationship = referenceNode().getSingleRelationship(subRefRelationshipType(alias), Direction.OUTGOING);
         return subrefRelationship != null ? subrefRelationship.getEndNode() : null;
     }
 
@@ -218,10 +223,20 @@ public class SubReferenceNodeTypeRepresentationStrategy implements NodeTypeRepre
     }
 
 	public Node getOrCreateSubReferenceNode(final RelationshipType relType) {
-	    return getOrCreateSingleOtherNode(graphDatabase.getReferenceNode(), relType, Direction.OUTGOING);
+	    return getOrCreateSingleOtherNode(referenceNode(), relType, Direction.OUTGOING);
 	}
 
-	private Node getOrCreateSingleOtherNode(Node fromNode, RelationshipType type,
+    private Node referenceNode() {
+        try {
+            return graphDatabase.getNodeById(referenceNodeId);
+        } catch (NotFoundException nfe) {
+            Node node = ReferenceNodes.obtainReferenceNode(graphDatabase, "root");
+            referenceNodeId = node.getId();
+            return node;
+        }
+    }
+
+    private Node getOrCreateSingleOtherNode(Node fromNode, RelationshipType type,
 	                                               Direction direction) {
 	    Relationship singleRelationship = fromNode.getSingleRelationship(type, direction);
 	    if (singleRelationship != null) {

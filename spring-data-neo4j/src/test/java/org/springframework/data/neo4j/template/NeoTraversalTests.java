@@ -26,12 +26,14 @@ import org.neo4j.kernel.Traversal;
 import org.springframework.data.neo4j.conversion.Handler;
 import org.springframework.data.neo4j.conversion.Result;
 import org.springframework.data.neo4j.core.GraphDatabase;
+import org.springframework.data.neo4j.support.ReferenceNodes;
 
 import java.util.HashSet;
 import java.util.Set;
 
 import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 import static org.neo4j.helpers.collection.MapUtil.map;
 // TODO import static org.neo4j.kernel.Traversal.returnAllButStartNode;
 import static org.springframework.data.neo4j.template.NeoTraversalTests.Type.HAS;
@@ -44,10 +46,10 @@ public class NeoTraversalTests extends NeoApiTests {
 
     @Test
     public void testSimpleTraverse() {
-        template.exec(new GraphCallback.WithoutResult() {
+        final Node family = template.exec(new GraphCallback<Node>() {
             @Override
-            public void doWithGraphWithoutResult(GraphDatabase graph) throws Exception {
-                createFamily();
+            public Node doWithGraph(GraphDatabase graph) throws Exception {
+                return createFamily();
             }
         });
 
@@ -55,10 +57,9 @@ public class NeoTraversalTests extends NeoApiTests {
             @Override
             public void doWithGraphWithoutResult(GraphDatabase graph) throws Exception {
         final Set<String> resultSet = new HashSet<String>();
-    //        @SuppressWarnings("deprecation") final TraversalDescription description = Traversal.description().relationships(HAS).filter(returnAllButStartNode()).prune(Traversal.pruneAfterDepth(2));
-            final TraversalDescription description = Traversal.description().relationships(HAS).evaluator(Evaluators.excludeStartPosition()).evaluator(Evaluators.toDepth(2));
+            final TraversalDescription description = Traversal.description().relationships(HAS).evaluator(Evaluators.excludeStartPosition()).evaluator(Evaluators.toDepth(1));
 
-            final Result<Path> result = template.traverse(template.getReferenceNode(), description);
+            final Result<Path> result = template.traverse(family, description);
             result.handle(new Handler<Path>() {
                 @Override
                 public void handle(Path value) {
@@ -66,13 +67,13 @@ public class NeoTraversalTests extends NeoApiTests {
                     resultSet.add(name);
                         }
                 });
-        assertEquals("all members", new HashSet<String>(asList("grandpa", "grandma", "daughter", "son", "man", "wife", "family")), resultSet);
+        assertEquals("all members", new HashSet<String>(asList("grandpa", "grandma", "daughter", "son", "man", "wife")), resultSet);
             }
         });
     }
 
 
-    private void createFamily() {
+    private Node createFamily() {
 
         Node family = template.createNode(map("name", "family"));
         Node man = template.createNode(map("name", "wife"));
@@ -103,6 +104,6 @@ public class NeoTraversalTests extends NeoApiTests {
         grandma.createRelationshipTo(daughter, Type.GRANDDAUGHTER);
         grandpa.createRelationshipTo(daughter, Type.GRANDDAUGHTER);
 
-        graph.getReferenceNode().createRelationshipTo(family,HAS);
+        return family;
     }
 }

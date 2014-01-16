@@ -5,9 +5,9 @@ import org.springframework.data.neo4j.conversion.Result;
 import org.springframework.data.neo4j.repository.query.CypherQuery;
 import org.springframework.data.neo4j.support.query.QueryEngine;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
+
+import static org.neo4j.helpers.collection.Iterables.join;
 
 /**
  * Provides some helper Cypher based functionality specifically
@@ -22,6 +22,7 @@ import java.util.Map;
 public class LabelBasedStrategyCypherHelper {
 
     static final String CYPHER_ADD_LABEL_TO_NODE = "match (n) where id(n)={nodeId} set n:`%s`";
+    static final String CYPHER_CREATE_MARKER_LABEL = "match (n) with n limit 1 set n:`%1$s` remove n:`%1$s` return count(*)";
     static final String CYPHER_ADD_LABELS_TO_NODE = "match (n) where id(n)={nodeId} set n%s";
     static final String CYPHER_COUNT_LABELS_ON_NODE = "match (n) where id(n)={nodeId} and n:`%s` return count(*) ";
     static final String CYPHER_RETURN_NODES_WITH_LABEL = "match (n:`%s`) return n";
@@ -39,9 +40,18 @@ public class LabelBasedStrategyCypherHelper {
         queryEngine.query( addLabelStatement, getParamsWithNodeId(nodeId) );
     }
 
-    public void setLabelsOnNode(Long nodeId, String labelString) {
-        String addLabelStatement = String.format(CYPHER_ADD_LABELS_TO_NODE , labelString);
+    public void createMarkerLabel(String label) {
+        String addLabelStatement = String.format(CYPHER_CREATE_MARKER_LABEL , label);
+        queryEngine.query( addLabelStatement, null );
+    }
+
+    public void setLabelsOnNode(Long nodeId, Collection<String> labelString) {
+        String addLabelStatement = formatAddLabelString(labelString);
         queryEngine.query( addLabelStatement, getParamsWithNodeId(nodeId) );
+    }
+
+    private String formatAddLabelString(Collection<String> labels) {
+        return String.format(CYPHER_ADD_LABELS_TO_NODE,":`"+join("`:`",labels)+"`");
     }
 
     public boolean doesNodeHaveLabel(Long nodeId, String label) {

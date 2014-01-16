@@ -22,7 +22,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Transaction;
 import org.neo4j.helpers.collection.IteratorUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,9 +31,9 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.neo4j.model.*;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
+import org.springframework.data.neo4j.support.ReferenceNodes;
 import org.springframework.data.neo4j.support.conversion.NoSuchColumnFoundException;
 import org.springframework.data.neo4j.support.node.Neo4jHelper;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.CleanContextCacheTestExecutionListener;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestExecutionListeners;
@@ -211,6 +210,14 @@ public class GraphRepositoryTests {
         assertThat( asCollection( teamMembers ), hasItems( testTeam.michael, testTeam.david, testTeam.emil ) );
     }
 
+
+    @Test @Transactional
+    public void testFindQueryResultWithCollection() {
+        PersonRepository.TeamResult teamMembers = personRepository.findAllTeamMembersAsGroup(testTeam.sdg);
+        assertThat( teamMembers.getName(), is( testTeam.sdg.getName() ) );
+        assertThat( asCollection( teamMembers.getMembers() ), hasItems( testTeam.michael, testTeam.david, testTeam.emil ) );
+    }
+
     @Test @Transactional
     public void testFindIterableOfPersonWithQueryAnnotationSpatial() {
         Iterable<Person> teamMembers = personRepository.findWithinBoundingBox("personLayer", 55, 15, 57, 17);
@@ -273,7 +280,7 @@ public class GraphRepositoryTests {
     }
 
     @Test @Transactional
-    @Ignore("cypher bug with escaped params")
+//    @Ignore("cypher bug with escaped params")
     public void testFindWithMultipleParameters() {
         final int depth = 1;
         final int limit = 2;
@@ -438,7 +445,7 @@ public class GraphRepositoryTests {
 
     @Test @Transactional
     public void testConnectToRootEntity() {
-        final Node referenceNode = neo4jTemplate.getReferenceNode();
+        final Node referenceNode = ReferenceNodes.obtainReferenceNode(gdb,"root");
         neo4jTemplate.postEntityCreation(referenceNode,RootEntity.class);
         final RootEntity root = neo4jTemplate.findOne(referenceNode.getId(), RootEntity.class);
         root.setRootName("RootName");

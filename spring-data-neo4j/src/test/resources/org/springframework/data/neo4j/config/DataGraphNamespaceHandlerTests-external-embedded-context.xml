@@ -10,7 +10,7 @@
 
     <context:annotation-config/>
 
-    <bean id="graphDatabaseService" class="org.neo4j.kernel.EmbeddedGraphDatabase"
+    <bean id="graphDatabaseService" class="org.springframework.data.neo4j.support.GraphDatabaseServiceFactoryBean"
             destroy-method="shutdown" scope="singleton">
         <constructor-arg value="target/config-test"/>
         <constructor-arg>

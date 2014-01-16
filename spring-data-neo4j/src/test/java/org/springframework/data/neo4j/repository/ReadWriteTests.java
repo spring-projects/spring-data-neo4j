@@ -45,7 +45,7 @@ public class ReadWriteTests {
                 Volvo volvo = template.save(new Volvo());
                 assertEquals(1, volvo.id.intValue());
                 tx.success();
-                tx.finish();
+                tx.close();
             }
         } catch (Exception e) {
             e.printStackTrace();

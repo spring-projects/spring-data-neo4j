@@ -19,11 +19,7 @@ package org.springframework.data.neo4j.transaction;
 import org.neo4j.helpers.Service;
 import org.neo4j.kernel.impl.core.KernelPanicEventGenerator;
 import org.neo4j.kernel.impl.nioneo.store.FileSystemAbstraction;
-import org.neo4j.kernel.impl.transaction.AbstractTransactionManager;
-import org.neo4j.kernel.impl.transaction.TransactionManagerProvider;
-import org.neo4j.kernel.impl.transaction.TransactionStateFactory;
-import org.neo4j.kernel.impl.transaction.TxHook;
-import org.neo4j.kernel.impl.transaction.XaDataSourceManager;
+import org.neo4j.kernel.impl.transaction.*;
 import org.neo4j.kernel.impl.util.StringLogger;
 import org.springframework.beans.factory.annotation.Configurable;
 
@@ -37,7 +33,13 @@ public class SpringProvider extends TransactionManagerProvider
     }
 
     @Override
-    public AbstractTransactionManager loadTransactionManager(String s, XaDataSourceManager xaDataSourceManager, KernelPanicEventGenerator kernelPanicEventGenerator, TxHook txHook, StringLogger stringLogger, FileSystemAbstraction fileSystemAbstraction, TransactionStateFactory transactionStateFactory) {
-        return new SpringServiceImpl(transactionStateFactory);
+    public AbstractTransactionManager loadTransactionManager( String txLogDir,
+                                                                       XaDataSourceManager xaDataSourceManager,
+                                                                       KernelPanicEventGenerator kpe,
+                                                                       RemoteTxHook rollbackHook,
+                                                                       StringLogger msgLog,
+                                                                       FileSystemAbstraction fileSystem,
+                                                                       TransactionStateFactory stateFactory ) {
+        return new SpringServiceImpl(stateFactory,xaDataSourceManager);
     }
 }

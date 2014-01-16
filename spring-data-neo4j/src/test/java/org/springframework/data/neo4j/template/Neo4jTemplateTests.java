@@ -16,7 +16,7 @@
 
 package org.springframework.data.neo4j.template;
 
-import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 import org.neo4j.graphdb.*;
 import org.springframework.data.neo4j.core.GraphDatabase;
@@ -30,6 +30,8 @@ import static org.springframework.data.neo4j.template.Neo4jTemplateTests.Type.HA
 
 public class Neo4jTemplateTests extends NeoApiTests {
 
+    private Node refNode;
+
     enum Type implements RelationshipType {
         HAS
     }
@@ -38,13 +40,12 @@ public class Neo4jTemplateTests extends NeoApiTests {
     public void testRefNode() {
         Node refNodeById = new Neo4jTemplate(graph, transactionManager).exec(new GraphCallback<Node>() {
             public Node doWithGraph(GraphDatabase graph) throws Exception {
-                Node refNode = graph.getReferenceNode();
                 return graph.getNodeById( refNode.getId() );
             }
         });
 
         try (Transaction tx=graph.beginTx()) {
-            assertEquals("same ref node", graph.getReferenceNode(), refNodeById);
+            assertEquals("same ref node", refNode, refNodeById);
             tx.success();
         }
     }
@@ -55,7 +56,6 @@ public class Neo4jTemplateTests extends NeoApiTests {
         template.exec(new GraphCallback.WithoutResult() {
             @Override
             public void doWithGraphWithoutResult(GraphDatabase graph) throws Exception {
-                Node refNode = graph.getReferenceNode();
                 Node node = graph.createNode(map("name", "Test", "size", 100));
                 refNode.createRelationshipTo(node, HAS);
 
@@ -67,7 +67,6 @@ public class Neo4jTemplateTests extends NeoApiTests {
         });
         template.exec(new GraphCallback.WithoutResult() {
             public void doWithGraphWithoutResult(GraphDatabase graph) throws Exception {
-                Node refNode = graph.getReferenceNode();
                 final Relationship toTestNode = refNode.getSingleRelationship(HAS, Direction.OUTGOING);
                 final Node nodeByRelationship = toTestNode.getEndNode();
                 assertEquals("Test", nodeByRelationship.getProperty("name"));
@@ -83,7 +82,7 @@ public class Neo4jTemplateTests extends NeoApiTests {
         template.exec(new GraphCallback.WithoutResult() {
             @Override
             public void doWithGraphWithoutResult(GraphDatabase graph) throws Exception {
-                Node node = graph.getReferenceNode();
+                Node node = refNode;
                 node.setProperty("test", "test");
                 assertEquals("test", node.getProperty("test"));
                 throw new RuntimeException();
@@ -92,9 +91,20 @@ public class Neo4jTemplateTests extends NeoApiTests {
         } catch(RuntimeException ignore) {}
         template.exec(new GraphCallback.WithoutResult() {
             public void doWithGraphWithoutResult(final GraphDatabase graph) throws Exception {
-                Node node = graph.getReferenceNode();
-                assertFalse(node.hasProperty("test"));
+                assertFalse(refNode.hasProperty("test"));
             }
         });
+    }
+
+    @Override
+    @Before
+    public void setUp() throws Exception {
+        super.setUp();
+        refNode = new Neo4jTemplate(graph, transactionManager).exec(new GraphCallback<Node>() {
+            public Node doWithGraph(GraphDatabase graph) throws Exception {
+                return graph.createNode(map());
+            }
+        });
+
     }
 }

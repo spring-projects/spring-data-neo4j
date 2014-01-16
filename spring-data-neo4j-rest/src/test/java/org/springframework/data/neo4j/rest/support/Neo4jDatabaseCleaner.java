@@ -45,17 +45,14 @@ public class Neo4jDatabaseCleaner {
     }
 
     private void removeNodes(Map<String, Object> result) {
-        Node refNode = graph.getReferenceNode();
         int nodes = 0, relationships = 0;
         for (Node node : graph.getAllNodes()) {
             for (Relationship rel : node.getRelationships(Direction.OUTGOING)) {
                 rel.delete();
                 relationships++;
             }
-            if (!refNode.equals(node)) {
-                node.delete();
-                nodes++;
-            }
+            node.delete();
+            nodes++;
         }
         result.put("nodes", nodes);
         result.put("relationships", relationships);

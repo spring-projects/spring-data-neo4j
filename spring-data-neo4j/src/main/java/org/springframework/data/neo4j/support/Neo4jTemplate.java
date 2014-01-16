@@ -50,7 +50,6 @@ import org.springframework.data.neo4j.mapping.RelationshipResult;
 import org.springframework.data.neo4j.repository.GraphRepository;
 import org.springframework.data.neo4j.repository.NodeGraphRepositoryImpl;
 import org.springframework.data.neo4j.repository.RelationshipGraphRepository;
-import org.springframework.data.neo4j.support.conversion.EntityResultConverter;
 import org.springframework.data.neo4j.support.index.IndexProvider;
 import org.springframework.data.neo4j.support.index.IndexType;
 import org.springframework.data.neo4j.support.mapping.*;
@@ -422,15 +421,6 @@ public class Neo4jTemplate implements Neo4jOperations, ApplicationContextAware {
                 return doExecute(callback);
             }
         });
-    }
-
-    @Override
-    public Node getReferenceNode() {
-        try {
-            return infrastructure.getGraphDatabase().getReferenceNode();
-        } catch (RuntimeException e) {
-            throw translateExceptionIfPossible(e);
-        }
     }
 
     @Override

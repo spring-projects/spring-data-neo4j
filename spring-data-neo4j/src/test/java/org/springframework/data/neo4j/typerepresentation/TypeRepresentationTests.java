@@ -22,12 +22,14 @@ import org.neo4j.test.TestGraphDatabaseFactory;
 import org.springframework.data.neo4j.model.Person;
 import org.springframework.data.neo4j.support.MappingInfrastructureFactoryBean;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
+import org.springframework.data.neo4j.support.ReferenceNodes;
 import org.springframework.data.neo4j.support.typerepresentation.TypeRepresentationStrategyFactory;
 
 public class TypeRepresentationTests {
     @Test
     public void testSavingTwiceResultsOnlyInOneTRSCall() throws Exception {
         GraphDatabaseService db = new TestGraphDatabaseFactory().newImpermanentDatabase();
+        ReferenceNodes.obtainReferenceNode(db,"root");
         MappingInfrastructureFactoryBean factoryBean = new MappingInfrastructureFactoryBean(db, null);
         factoryBean.setTypeRepresentationStrategy(TypeRepresentationStrategyFactory.Strategy.SubRef);
         factoryBean.afterPropertiesSet();
@@ -37,6 +39,6 @@ public class TypeRepresentationTests {
         person.setName("Bar");
         template.save(person);
         tx.failure();
-        tx.finish();
+        tx.close();
     }
 }

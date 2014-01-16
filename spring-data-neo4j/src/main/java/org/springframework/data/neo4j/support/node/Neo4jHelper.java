@@ -75,7 +75,7 @@ public abstract class Neo4jHelper {
             tx.failure();
             throw new org.springframework.data.neo4j.core.UncategorizedGraphStoreException("Error cleaning database ",t);
         } finally {
-            tx.finish();
+            tx.close();
         }
     }
 
@@ -92,12 +92,10 @@ public abstract class Neo4jHelper {
             }
         }
         for (Node node : globalGraphOperations.getAllNodes()) {
-            if (includeReferenceNode || !graphDatabaseService.getReferenceNode().equals(node)) {
-                try {
-                    node.delete();
-                } catch(IllegalStateException ise) {
-                    if (!ise.getMessage().contains("since it has already been deleted")) throw ise;
-                }
+            try {
+                node.delete();
+            } catch(IllegalStateException ise) {
+                if (!ise.getMessage().contains("since it has already been deleted")) throw ise;
             }
         }
     }

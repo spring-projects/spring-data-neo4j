@@ -26,8 +26,8 @@ public class RestGraphDbTests extends RestTestBase {
 
     @Test
     public void testGetRefNode() {
-        Node refNode = restGraphDatabase.getReferenceNode();
-        Node nodeById = restGraphDatabase.getNodeById( 0 );
+        Node refNode = restGraphDatabase.createNode();
+        Node nodeById = restGraphDatabase.getNodeById( refNode.getId() );
         Assert.assertEquals( refNode, nodeById );
     }
 
@@ -39,7 +39,7 @@ public class RestGraphDbTests extends RestTestBase {
 
     @Test
     public void testCreateRelationship() {
-        Node refNode = restGraphDatabase.getReferenceNode();
+        Node refNode = restGraphDatabase.createNode();
         Node node = restGraphDatabase.createNode();
         Relationship rel = refNode.createRelationshipTo( node, Type.TEST );
         Relationship foundRelationship = IsRelationshipToNodeMatcher.relationshipFromTo( refNode.getRelationships( Type.TEST, Direction.OUTGOING ), refNode, node );
@@ -53,7 +53,7 @@ public class RestGraphDbTests extends RestTestBase {
 
     @Test
     public void testBasic() {
-        Node refNode = restGraphDatabase.getReferenceNode();
+        Node refNode = restGraphDatabase.createNode();
         Node node = restGraphDatabase.createNode();
         Relationship rel = refNode.createRelationshipTo( node,
                 DynamicRelationshipType.withName( "TEST" ) );

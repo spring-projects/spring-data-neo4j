@@ -89,7 +89,7 @@ public class NoIndexDerivedFinderTests {
                 final Index<Node> index = gdb.index().forNodes("Test");
                 assertEquals("Test", gdb.index().nodeIndexNames()[0]);
                 tx.success();
-                tx.finish();
+                tx.close();
             }
         };
         t.start();t.join();
@@ -99,7 +99,7 @@ public class NoIndexDerivedFinderTests {
             assertEquals(0,IteratorUtil.count(result));
             assertEquals("Test", gdb.index().nodeIndexNames()[0]);
         } finally {
-            tx.success();tx.finish();
+            tx.success();tx.close();
         }
     }
 }

@@ -21,7 +21,6 @@ import org.neo4j.graphdb.DynamicRelationshipType;
 import org.neo4j.graphdb.traversal.Evaluators;
 import org.neo4j.graphdb.traversal.TraversalDescription;
 import org.neo4j.kernel.Traversal;
-import org.neo4j.kernel.impl.traversal.TraversalDescriptionImpl;
 import org.springframework.data.neo4j.annotation.Fetch;
 import org.springframework.data.neo4j.annotation.GraphId;
 import org.springframework.data.neo4j.annotation.GraphProperty;
@@ -162,7 +161,7 @@ public class Group implements  IGroup , Serializable {
         @Override
         public TraversalDescription build(Object start, Neo4jPersistentProperty property, String... params) {
             //return new TraversalDescriptionImpl().relationships(DynamicRelationshipType.withName(params[0])).filter(Traversal.returnAllButStartNode());
-            return new TraversalDescriptionImpl().relationships(DynamicRelationshipType.withName(params[0])).evaluator(Evaluators.excludeStartPosition());
+            return Traversal.description().relationships(DynamicRelationshipType.withName(params[0])).evaluator(Evaluators.excludeStartPosition());
         }
     }
 

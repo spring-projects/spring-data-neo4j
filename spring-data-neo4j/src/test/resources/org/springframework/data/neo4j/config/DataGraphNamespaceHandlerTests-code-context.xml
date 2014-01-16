@@ -13,7 +13,7 @@
 
     <bean class="org.springframework.context.annotation.ConfigurationClassPostProcessor"/>
 
-    <bean id="graphDatabaseService" class="org.neo4j.kernel.EmbeddedGraphDatabase" destroy-method="shutdown">
+    <bean id="graphDatabaseService" class="org.springframework.data.neo4j.support.GraphDatabaseServiceFactoryBean" destroy-method="shutdown">
         <constructor-arg index="0" value="target/config-test"/>
     </bean>
 

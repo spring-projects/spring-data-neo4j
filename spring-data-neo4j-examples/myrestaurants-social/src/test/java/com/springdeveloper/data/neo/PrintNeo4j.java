@@ -46,7 +46,7 @@ public class PrintNeo4j {
 			e.printStackTrace();
 		}
 		finally {
-			tx.finish();
+			tx.close();
 		}
 		try {
 			Thread.sleep(5000);

@@ -56,14 +56,11 @@ for (Node actor : actors.traverse(movie))
 
        <h4>Transactional: TX needed for write operations</h4>
        <pre>
-Transaction tx=graphDatabaseService.beginTx();
-try {
+try (Transaction tx=graphDatabaseService.beginTx()) {
   ... graph operations ...
   tx.success();
 } catch(Exception e) {
   tx.failure();
-} finally {
-  tx.finish();
 }
        </pre>
    </div>

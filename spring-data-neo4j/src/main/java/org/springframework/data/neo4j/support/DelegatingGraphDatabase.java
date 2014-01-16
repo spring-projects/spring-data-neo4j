@@ -26,6 +26,7 @@ import org.neo4j.index.lucene.ValueContext;
 import org.neo4j.kernel.GraphDatabaseAPI;
 import org.neo4j.kernel.Traversal;
 import org.neo4j.kernel.impl.transaction.SpringTransactionManager;
+import org.neo4j.tooling.GlobalGraphOperations;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.convert.ConversionService;
@@ -45,7 +46,10 @@ import org.springframework.util.ObjectUtils;
 import javax.transaction.Status;
 import javax.transaction.SystemException;
 import javax.transaction.TransactionManager;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * @author mh
@@ -59,6 +63,7 @@ public class DelegatingGraphDatabase implements GraphDatabase {
     private ConversionService conversionService;
     private ResultConverter resultConverter;
     private volatile QueryEngine<Object> cypherQueryEngine;
+    private long referenceNode = -2;
 
     public DelegatingGraphDatabase(final GraphDatabaseService delegate) {
         this(delegate,null);
@@ -167,7 +172,7 @@ public class DelegatingGraphDatabase implements GraphDatabase {
                 return (Index<T>) indexManager.forRelationships(indexName, indexConfigFor(indexType));
             }
         } finally {
-            tx.success();tx.finish();
+            tx.success();tx.close();
         }
     }
 
@@ -233,7 +238,7 @@ public class DelegatingGraphDatabase implements GraphDatabase {
             return true; // assume always running tx (e.g. for REST or other remotes)
         }
         try {
-            final TransactionManager txManager = ((GraphDatabaseAPI) delegate).getTxManager();
+            final TransactionManager txManager = ((GraphDatabaseAPI) delegate).getDependencyResolver().resolveDependency(TransactionManager.class);
             return txManager.getStatus() != Status.STATUS_NO_TRANSACTION;
         } catch (SystemException e) {
             log.error("Error accessing TransactionManager", e);
@@ -279,8 +284,12 @@ public class DelegatingGraphDatabase implements GraphDatabase {
     }
 
     @Override
-    public Node getReferenceNode() {
-        return delegate.getReferenceNode();
+    public Collection<String> getAllLabelNames() {
+        Set<String> labels=new HashSet<>();
+        for (Label label : GlobalGraphOperations.at(delegate).getAllLabels()) {
+            labels.add(label.name());
+        }
+        return labels;
     }
 
     public GraphDatabaseService getGraphDatabaseService() {

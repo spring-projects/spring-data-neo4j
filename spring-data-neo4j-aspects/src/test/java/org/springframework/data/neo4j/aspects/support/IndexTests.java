@@ -93,14 +93,11 @@ public class IndexTests extends EntityTestBase {
     //@Transactional
     //@Ignore("remove property from index not workin")
     public void testRemovePropertyFromIndex() {
-        Transaction tx = neo4jTemplate.getGraphDatabase().beginTx();
-        try {
+        try (Transaction tx = neo4jTemplate.getGraphDatabase().beginTx()) {
             Group group = persist(new Group());
             group.setName(NAME_VALUE);
             getGroupIndex().remove(getNodeState(group), NAME);
             tx.success();
-        } finally {
-            tx.finish();
         }
         final Group found = this.groupRepository.findByPropertyValue(NAME, NAME_VALUE);
         assertNull("Group.name removed from index", found);
@@ -272,7 +269,7 @@ public class IndexTests extends EntityTestBase {
         group2.setName(NAME_VALUE);
         final Iterable<Group> found = this.groupRepository.findAllByPropertyValue(NAME, NAME_VALUE);
         final Collection<Group> result = IteratorUtil.addToCollection(found.iterator(), new HashSet<Group>());
-        assertEquals(new HashSet<Group>(Arrays.asList(group, group2)), result);
+        assertEquals(new HashSet<>(Arrays.asList(group, group2)), result);
     }
 
     @Test
@@ -298,7 +295,7 @@ public class IndexTests extends EntityTestBase {
         group.setFullTextName("queryableName");
         final Iterable<Group> found = groupRepository.findAllByQuery(Group.SEARCH_GROUPS_INDEX, "fullTextName", "queryable*");
         final Collection<Group> result = IteratorUtil.addToCollection(found.iterator(), new HashSet<Group>());
-        assertEquals(new HashSet<Group>(Arrays.asList(group)), result);
+        assertEquals(new HashSet<>(Arrays.asList(group)), result);
     }
 
     @Test
@@ -371,7 +368,7 @@ public class IndexTests extends EntityTestBase {
             p = persistedPerson(NAME_VALUE2, 30);
             tx.success();
         } finally {
-            if (tx != null) tx.finish();
+            if (tx != null) tx.close();
         }
         Assert.assertEquals(p, personRepository.findByPropertyValue(NAME_INDEX, "name", NAME_VALUE2));
         try {
@@ -379,7 +376,7 @@ public class IndexTests extends EntityTestBase {
             p.setName(NAME_VALUE);
             tx.success();
         } finally {
-            tx.finish();
+            tx.close();
         }
         Assert.assertEquals(p,  personRepository.findByPropertyValue(NAME_INDEX, "name", NAME_VALUE));
         try {
@@ -387,7 +384,7 @@ public class IndexTests extends EntityTestBase {
             p.setName(NAME_VALUE2);
             tx.success();
         } finally {
-            tx.finish();
+            tx.close();
         }
         Assert.assertEquals(p,  personRepository.findByPropertyValue(NAME_INDEX, "name", NAME_VALUE2));
     }

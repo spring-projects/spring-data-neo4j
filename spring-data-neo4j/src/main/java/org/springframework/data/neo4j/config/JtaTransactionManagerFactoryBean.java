@@ -101,7 +101,7 @@ public class JtaTransactionManagerFactoryBean implements FactoryBean<JtaTransact
 
     private UserTransaction createUserTransactionForOnePointSeven( GraphDatabaseService gds ) throws Exception
     {
-        TransactionManager txManager = ((GraphDatabaseAPI) gds).getTxManager();
+        TransactionManager txManager = ((GraphDatabaseAPI) gds).getDependencyResolver().resolveDependency(TransactionManager.class);
         return createDynamically( UserTransactionImpl.class, TransactionManager.class, txManager );
     }
 

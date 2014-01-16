@@ -163,7 +163,7 @@ public class IndexBasedRelationshipTypeRepresentationStrategyTests extends Entit
             link.setLabel("link");
 			tx.success();
 		} finally {
-			tx.finish();
+			tx.close();
 		}
 	}
 

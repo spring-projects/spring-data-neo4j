@@ -17,7 +17,7 @@
     <context:annotation-config />
 
 
-    <bean name="graphDatabase" class="org.springframework.data.neo4j.support.GraphDatabaseFactory">
+    <bean name="graphDatabase" class="org.springframework.data.neo4j.support.GraphDatabaseFactoryBean">
         <property name="storeLocation" value="target/test-db"/>
 
     </bean>

@@ -88,13 +88,10 @@ public class EntityTestBase {
     }
 
     protected void manualCleanDb() {
-		Transaction tx = graphDatabaseService.beginTx();
-		try {
-			cleanDb();
-			tx.success();
-		} finally {
-			tx.finish();
-		}
+        try (Transaction tx = graphDatabaseService.beginTx()) {
+            cleanDb();
+            tx.success();
+        }
 	}
 
     @BeforeTransaction

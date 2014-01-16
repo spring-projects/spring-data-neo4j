@@ -21,12 +21,18 @@ import org.neo4j.kernel.api.KernelTransaction;
 import org.neo4j.kernel.impl.core.TransactionState;
 import org.neo4j.kernel.impl.transaction.AbstractTransactionManager;
 import org.neo4j.kernel.impl.transaction.TransactionStateFactory;
+import org.neo4j.kernel.impl.transaction.XaDataSourceManager;
+import org.neo4j.kernel.impl.transaction.xaframework.XaDataSource;
+import org.objectweb.jotm.Current;
+import org.objectweb.jotm.TransactionResourceManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.jta.JtaTransactionManager;
 
 import javax.transaction.*;
+import javax.transaction.xa.XAException;
+import javax.transaction.xa.XAResource;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.WeakHashMap;
@@ -42,13 +48,15 @@ class SpringServiceImpl extends AbstractTransactionManager
     private TransactionManager delegate;
 
     private final Map<Transaction, TransactionState> states = new WeakHashMap<Transaction, TransactionState>();
-    private final Map<Transaction, KernelTransaction> kernelTransactions = new WeakHashMap<Transaction, KernelTransaction>();
+//    private final Map<Transaction, KernelTransaction> kernelTransactions = new WeakHashMap<Transaction, KernelTransaction>();
     private final TransactionStateFactory stateFactory;
+    private XaDataSourceManager xaDataSourceManager;
     private KernelAPI kernelAPI;
 
-    SpringServiceImpl(TransactionStateFactory stateFactory)
+    SpringServiceImpl(TransactionStateFactory stateFactory, XaDataSourceManager xaDataSourceManager)
     {
         this.stateFactory = stateFactory;
+        this.xaDataSourceManager = xaDataSourceManager;
     }
 
     @Override
@@ -61,7 +69,29 @@ class SpringServiceImpl extends AbstractTransactionManager
     }
 
     @Override
-    public void doRecovery() throws Throwable {
+    public void doRecovery() throws Throwable
+    {
+        TransactionResourceManager trm = new TransactionResourceManager()
+        {
+            @Override
+            public void returnXAResource( String rmName, XAResource rmXares )
+            {
+            }
+        };
+
+        try
+        {
+            for ( XaDataSource xaDs : xaDataSourceManager.getAllRegisteredDataSources() )
+            {
+                Current.getTransactionRecovery().registerResourceManager( xaDs.getName(),
+                        xaDs.getXaConnection().getXaResource(), xaDs.getName(), trm );
+            }
+            Current.getTransactionRecovery().startResourceManagerRecovery();
+        }
+        catch ( XAException e )
+        {
+            throw new Error( "Error registering xa datasource", e );
+        }
     }
 
     @Override
@@ -97,7 +127,7 @@ class SpringServiceImpl extends AbstractTransactionManager
         delegate.begin();
         Transaction tx = getTransaction();
         states.put(tx, stateFactory.create(tx));
-        kernelTransactions.put( tx, kernelAPI.newTransaction() );
+//        kernelTransactions.put( tx, kernelAPI.newTransaction() );
     }
 
     public void commit() throws RollbackException, HeuristicMixedException,
@@ -163,23 +193,23 @@ class SpringServiceImpl extends AbstractTransactionManager
         this.transactionManager = transactionManager;
     }
 
-    @Override
-    public void setKernel(KernelAPI kernelAPI) {
-        this.kernelAPI = kernelAPI;
-    }
-
-    @Override
-    public KernelTransaction getKernelTransaction()
-    {
-        Transaction transaction;
-        try
-        {
-            transaction = getTransaction();
-        }
-        catch ( SystemException e )
-        {
-            return null;
-        }
-        return kernelTransactions.get( transaction );
-    }
+//    @Override
+//    public void setKernel(KernelAPI kernelAPI) {
+//        this.kernelAPI = kernelAPI;
+//    }
+//
+//    @Override
+//    public KernelTransaction getKernelTransaction()
+//    {
+//        Transaction transaction;
+//        try
+//        {
+//            transaction = getTransaction();
+//        }
+//        catch ( SystemException e )
+//        {
+//            return null;
+//        }
+//        return kernelTransactions.get( transaction );
+//    }
 }

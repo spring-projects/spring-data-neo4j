@@ -169,7 +169,7 @@ public abstract class AbstractNodeTypeRepresentationStrategyTestBase extends Ent
 			tx.success();
 			return thing;
 		} finally {
-			tx.finish();
+			tx.close();
 		}
 	}
 

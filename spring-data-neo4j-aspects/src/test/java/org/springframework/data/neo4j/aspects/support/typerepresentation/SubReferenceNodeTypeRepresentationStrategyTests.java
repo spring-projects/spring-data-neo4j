@@ -33,6 +33,7 @@ import org.springframework.data.neo4j.aspects.Volvo;
 import org.springframework.data.neo4j.aspects.support.EntityTestBase;
 import org.springframework.data.neo4j.core.GraphDatabase;
 import org.springframework.data.neo4j.repository.GraphRepository;
+import org.springframework.data.neo4j.support.ReferenceNodes;
 import org.springframework.data.neo4j.support.mapping.EntityStateHandler;
 import org.springframework.data.neo4j.support.typerepresentation.SubReferenceNodeTypeRepresentationStrategy;
 import org.springframework.data.neo4j.template.GraphCallback;
@@ -76,6 +77,7 @@ public class SubReferenceNodeTypeRepresentationStrategyTests extends EntityTestB
         createThing();
     }
 
+
     @Test
     @Transactional
     public void testPostEntityCreation() throws Exception {
@@ -87,8 +89,8 @@ public class SubReferenceNodeTypeRepresentationStrategyTests extends EntityTestB
     @Test(expected = IllegalArgumentException.class)
     @Transactional
     public void gettingTypeFromNonTypeNodeShouldThrowAnDescriptiveException() throws Exception {
-        Node referenceNode = neo4jTemplate.getReferenceNode();
-        nodeTypeRepresentationStrategy.readAliasFrom(referenceNode);
+        Node node = neo4jTemplate.createNode();
+        nodeTypeRepresentationStrategy.readAliasFrom(node);
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -110,7 +112,7 @@ public class SubReferenceNodeTypeRepresentationStrategyTests extends EntityTestB
             subThing.setName("subThing");
             tx.success();
         } finally {
-            tx.finish();
+            tx.close();
         }
     }
 

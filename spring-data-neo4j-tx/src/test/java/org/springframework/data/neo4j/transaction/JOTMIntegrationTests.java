@@ -25,6 +25,8 @@ import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.NotFoundException;
 import org.neo4j.graphdb.factory.GraphDatabaseSettings;
 import org.neo4j.kernel.AbstractGraphDatabase;
+import org.neo4j.kernel.GraphDatabaseAPI;
+import org.neo4j.kernel.KernelData;
 import org.neo4j.kernel.configuration.Config;
 import org.objectweb.jotm.Current;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -118,20 +120,20 @@ public class JOTMIntegrationTests {
             nodeId = node.getId();
             tx.failure();
         } finally {
-            tx.finish();
+            tx.close();
         }
         tx = gds.beginTx();
         try {
             gds.getNodeById(nodeId);
         } finally {
             tx.success();
-            tx.finish();
+            tx.close();
         }
     }
 
     @Test
     public void databaseConfiguredWithSpringJtaShouldUseJtaTransactionManager() throws SystemException, NotSupportedException {
-        final Config config = ((AbstractGraphDatabase) gds).getKernelData().getConfig();
+        final Config config = ((GraphDatabaseAPI) gds).getDependencyResolver().resolveDependency(Config.class);
         Assert.assertEquals("spring-jta", config.getParams().get(GraphDatabaseSettings.tx_manager_impl.name()));
 
         JtaTransactionManager tm = ctx.getBean("transactionManager", JtaTransactionManager.class);

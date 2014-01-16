@@ -32,28 +32,31 @@ public class RestEntityTests extends RestTestBase  {
 
     @Test
     public void testSetProperty() {
-        restGraphDatabase.getReferenceNode().setProperty( "name", "test" );
-        Node node = restGraphDatabase.getReferenceNode();
-        assertEquals("test", node.getProperty("name"));
+        Node node = restGraphDatabase.createNode();
+        node.setProperty("name", "test");
+        Node node2 = restGraphDatabase.getNodeById(node.getId());
+        assertEquals("test", node2.getProperty("name"));
     }
 
     @Test
     public void testSetStringArrayProperty() {
-        restGraphDatabase.getReferenceNode().setProperty( "name", new String[]{"test"} );
-        Node node = restGraphDatabase.getReferenceNode();
-        Assert.assertArrayEquals( new String[]{"test"}, (String[])node.getProperty( "name" ) );
+        Node node = restGraphDatabase.createNode();
+        node.setProperty("name", new String[]{"test"});
+        Node node2 = restGraphDatabase.getNodeById(node.getId());
+        Assert.assertArrayEquals( new String[]{"test"}, (String[])node2.getProperty( "name" ) );
     }
     @Test
     public void testSetDoubleArrayProperty() {
         double[] data = {0, 1, 2};
-        restGraphDatabase.getReferenceNode().setProperty( "data", data );
-        Node node = restGraphDatabase.getReferenceNode();
-        Assert.assertTrue("same double array",Arrays.equals( data, (double[])node.getProperty( "data" ) ));
+        Node node = restGraphDatabase.createNode();
+        node.setProperty("data", data);
+        Node node2 = restGraphDatabase.getNodeById(node.getId());
+        Assert.assertTrue("same double array",Arrays.equals( data, (double[])node2.getProperty( "data" ) ));
     }
 
     @Test
     public void testRemoveProperty() {
-        Node node = restGraphDatabase.getReferenceNode();
+        Node node = restGraphDatabase.createNode();
         node.setProperty( "name", "test" );
         assertEquals("test", node.getProperty("name"));
         node.removeProperty( "name" );
@@ -72,7 +75,7 @@ public class RestEntityTests extends RestTestBase  {
 
     @Test(expected = NotFoundException.class)
     public void testRemoveRelationship() {
-        Node refNode = restGraphDatabase.getReferenceNode();
+        Node refNode = restGraphDatabase.createNode();
         Node node = restGraphDatabase.createNode();
         Relationship rel = restGraphDatabase.createRelationship(refNode, node, Type.TEST, map("name","test"));
         final long relId = rel.getId();
@@ -84,7 +87,7 @@ public class RestEntityTests extends RestTestBase  {
 
     @Test
     public void testSetPropertyOnRelationship() {
-        Node refNode = restGraphDatabase.getReferenceNode();
+        Node refNode = restGraphDatabase.createNode();
         Node node = restGraphDatabase.createNode();
         Relationship rel = refNode.createRelationshipTo( node, Type.TEST );
         rel.setProperty( "name", "test" );
@@ -95,7 +98,7 @@ public class RestEntityTests extends RestTestBase  {
 
     @Test
     public void testRemovePropertyOnRelationship() {
-        Node refNode = restGraphDatabase.getReferenceNode();
+        Node refNode = restGraphDatabase.createNode();
         Node node = restGraphDatabase.createNode();
         Relationship rel = refNode.createRelationshipTo( node, Type.TEST );
         rel.setProperty( "name", "test" );

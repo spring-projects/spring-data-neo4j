@@ -45,6 +45,7 @@ public class RestTestBase {
     public static final int PORT = 7470;
     protected static NeoServer neoServer = null;
     public static final String SERVER_ROOT_URI = "http://" + HOSTNAME + ":" + PORT + "/db/data/";
+    private Node refNode;
 
     @BeforeClass
     public static void startDb() throws Exception {
@@ -78,6 +79,7 @@ public class RestTestBase {
     public void setUp() throws Exception {
         cleanDb();
         restGraphDatabase = new SpringRestGraphDatabase(SERVER_ROOT_URI);
+        refNode = restGraphDatabase.createNode();
     }
 
     public static void cleanDb() {
@@ -102,6 +104,6 @@ public class RestTestBase {
     }
 
     protected Node node() {
-        return restGraphDatabase.getReferenceNode();
+        return refNode;
     }
 }

@@ -16,19 +16,12 @@
 
 package org.springframework.data.neo4j.template;
 
-import org.apache.lucene.index.Term;
-import org.apache.lucene.search.TermQuery;
 import org.junit.*;
 import org.neo4j.graphdb.*;
-import org.neo4j.graphdb.index.Index;
-import org.neo4j.graphdb.traversal.Evaluators;
-import org.neo4j.graphdb.traversal.TraversalDescription;
 import org.neo4j.kernel.GraphDatabaseAPI;
-import org.neo4j.kernel.Traversal;
 import org.neo4j.kernel.impl.transaction.SpringTransactionManager;
 import org.neo4j.test.TestGraphDatabaseFactory;
 import org.springframework.dao.DataAccessException;
-import org.springframework.data.neo4j.conversion.ResultConverter;
 import org.springframework.data.neo4j.core.GraphDatabase;
 import org.springframework.data.neo4j.model.Person;
 import org.springframework.data.neo4j.support.DelegatingGraphDatabase;
@@ -36,13 +29,11 @@ import org.springframework.data.neo4j.support.Neo4jTemplate;
 import org.springframework.data.neo4j.support.index.IndexType;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionStatus;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.jta.JtaTransactionManager;
 import org.springframework.transaction.support.TransactionCallbackWithoutResult;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import java.io.IOException;
-import java.util.Iterator;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
@@ -55,7 +46,7 @@ public class Neo4jTemplateApiTransactionTests {
     private static final DynamicRelationshipType HAS = DynamicRelationshipType.withName("has");
     protected Neo4jTemplate template;
     protected GraphDatabase graphDatabase;
-    protected Node referenceNode;
+    protected Node node0;
     protected Relationship relationship1;
     protected Node node1;
     protected PlatformTransactionManager transactionManager;
@@ -87,13 +78,13 @@ public class Neo4jTemplateApiTransactionTests {
         Node node = template.createNode();
         node.setProperty("name","foo");
         tx.success();
-        tx.finish();
+        tx.close();
 
         tx = template.getGraphDatabase().beginTx();
         try {
             assertNotNull(node.getProperty("name"));
         } finally {
-            tx.success();tx.finish();
+            tx.success();tx.close();
         }
     }
 
@@ -105,7 +96,7 @@ public class Neo4jTemplateApiTransactionTests {
             Person michael = template.save(new Person("Michael", 37));
             assertNotNull(michael.getId());
         } finally {
-            tx.success();tx.finish();
+            tx.success();tx.close();
         }
     }
 
@@ -117,11 +108,10 @@ public class Neo4jTemplateApiTransactionTests {
         new TransactionTemplate(transactionManager).execute(new TransactionCallbackWithoutResult() {
             @Override
             protected void doInTransactionWithoutResult(TransactionStatus status) {
-                referenceNode = graphDatabase.getReferenceNode();
-                referenceNode.setProperty("name", "node0");
-                graphDatabase.createIndex(Node.class, "node", IndexType.SIMPLE).add(referenceNode, "name", "node0");
+                node0 = graphDatabase.createNode(map("name", "node0"));
+                graphDatabase.createIndex(Node.class, "node", IndexType.SIMPLE).add(node0, "name", "node0");
                 node1 = graphDatabase.createNode(map("name", "node1"));
-                relationship1 = referenceNode.createRelationshipTo(node1, KNOWS);
+                relationship1 = node0.createRelationshipTo(node1, KNOWS);
                 relationship1.setProperty("name", "rel1");
                 graphDatabase.createIndex(Relationship.class, "relationship", IndexType.SIMPLE).add(relationship1, "name", "rel1");
             }
@@ -133,17 +123,17 @@ public class Neo4jTemplateApiTransactionTests {
         Node refNode = template.exec(new GraphCallback<Node>() {
             @Override
             public Node doWithGraph(GraphDatabase graph) throws Exception {
-                Node referenceNode = graph.getReferenceNode();
+                Node referenceNode = graph.getNodeById(node0.getId());
                 referenceNode.setProperty("test", "testDoInTransaction");
                 return referenceNode;
             }
         });
         Transaction tx = graphDatabase.beginTx();
         try {
-            assertEquals("same reference node", referenceNode, refNode);
-            assertTestPropertySet(referenceNode, "testDoInTransaction");
+            assertEquals("same reference node", node0, refNode);
+            assertTestPropertySet(node0, "testDoInTransaction");
         } finally {
-            tx.success();tx.finish();
+            tx.success();tx.close();
         }
     }
 
@@ -153,7 +143,7 @@ public class Neo4jTemplateApiTransactionTests {
             template.exec(new GraphCallback.WithoutResult() {
                 @Override
                 public void doWithGraphWithoutResult(GraphDatabase graph) throws Exception {
-                    graph.getReferenceNode().setProperty("test", "shouldRollbackTransactionOnException");
+                    node0.setProperty("test", "shouldRollbackTransactionOnException");
                     throw new RuntimeException("please rollback");
                 }
             });
@@ -162,9 +152,9 @@ public class Neo4jTemplateApiTransactionTests {
         }
         Transaction tx = graphDatabase.beginTx();
         try {
-            Assert.assertThat((String) graphDatabase.getReferenceNode().getProperty("test", "not set"), not("shouldRollbackTransactionOnException"));
+            Assert.assertThat((String) node0.getProperty("test", "not set"), not("shouldRollbackTransactionOnException"));
         } finally {
-            tx.success();tx.finish();
+            tx.success();tx.close();
         }
     }
 
@@ -176,7 +166,7 @@ public class Neo4jTemplateApiTransactionTests {
                 template.exec(new GraphCallback.WithoutResult() {
                     @Override
                     public void doWithGraphWithoutResult(GraphDatabase graph) throws Exception {
-                        graph.getReferenceNode().setProperty("test", "shouldRollbackTransactionOnException");
+                        node0.setProperty("test", "shouldRollbackTransactionOnException");
                         status.setRollbackOnly();
                     }
                 });
@@ -184,9 +174,9 @@ public class Neo4jTemplateApiTransactionTests {
         });
         Transaction tx = graphDatabase.beginTx();
         try {
-            Assert.assertThat((String) graphDatabase.getReferenceNode().getProperty("test", "not set"), not("shouldRollbackTransactionOnException"));
+            Assert.assertThat((String) node0.getProperty("test", "not set"), not("shouldRollbackTransactionOnException"));
         } finally {
-            tx.success();tx.finish();
+            tx.success();tx.close();
         }
     }
 
@@ -227,14 +217,14 @@ public class Neo4jTemplateApiTransactionTests {
         Long refNodeId = template.exec(new GraphCallback<Long>() {
             @Override
             public Long doWithGraph(GraphDatabase graph) throws Exception {
-                return graph.getReferenceNode().getId();
+                return graph.getNodeById(node0.getId()).getId();
             }
         });
         Transaction tx = graphDatabase.beginTx();
         try {
-            assertEquals(referenceNode.getId(), (long) refNodeId);
+            assertEquals(node0.getId(), (long) refNodeId);
         } finally {
-            tx.success();tx.finish();
+            tx.success();tx.close();
         }
     }
 

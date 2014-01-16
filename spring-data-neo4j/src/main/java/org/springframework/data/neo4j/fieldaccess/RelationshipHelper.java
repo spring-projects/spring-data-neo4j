@@ -23,6 +23,7 @@ import org.springframework.data.neo4j.support.typerepresentation.LabelBasedNodeT
 import org.springframework.util.Assert;
 
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Set;
 
 import static java.lang.String.format;
@@ -95,18 +96,10 @@ public class RelationshipHelper {
     }
 
     private Object tryDetermineTypeAssumingLabelBasedStrategy(Relationship relationship,Node node) {
-
-        ResourceIterable<Label> labels = relationship.getOtherNode(node).getLabels();
-        ResourceIterator<Label> iterator = labels.iterator();
-        try {
-            while (iterator.hasNext()) {
-                Label l = iterator.next();
-                if (l.name().startsWith(LabelBasedNodeTypeRepresentationStrategy.LABELSTRATEGY_PREFIX)) {
-                    return l.name().substring(LabelBasedNodeTypeRepresentationStrategy.LABELSTRATEGY_PREFIX.length());
-                }
+        for (Label l : relationship.getOtherNode(node).getLabels()) {
+            if (l.name().startsWith(LabelBasedNodeTypeRepresentationStrategy.LABELSTRATEGY_PREFIX)) {
+                return l.name().substring(LabelBasedNodeTypeRepresentationStrategy.LABELSTRATEGY_PREFIX.length());
             }
-        } finally {
-            iterator.close();
         }
         return null;
 

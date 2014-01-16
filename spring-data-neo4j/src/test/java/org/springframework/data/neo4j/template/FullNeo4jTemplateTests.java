@@ -61,7 +61,7 @@ public class FullNeo4jTemplateTests {
     Neo4jTemplate neo4jTemplate;
     @Autowired
     protected GraphDatabase graphDatabase;
-    protected Node referenceNode;
+    protected Node node0;
     protected Relationship relationship1;
     protected Node node1;
     @Autowired
@@ -78,15 +78,16 @@ public class FullNeo4jTemplateTests {
         Transaction tx = neo4jTemplate.getGraphDatabase().beginTx();
         try {
             Neo4jHelper.cleanDb(neo4jTemplate);
+            tx.success();
         } finally {
-            tx.success();tx.finish();
+            tx.close();
         }
         tx = neo4jTemplate.getGraphDatabase().beginTx();
         try {
-            referenceNode = graphDatabase.getReferenceNode();
             createData();
+            tx.success();
         } finally {
-            tx.success();tx.finish();
+            tx.close();
         }
     }
 
@@ -95,10 +96,10 @@ public class FullNeo4jTemplateTests {
         new TransactionTemplate(neo4jTransactionManager).execute(new TransactionCallbackWithoutResult() {
             @Override
             protected void doInTransactionWithoutResult(TransactionStatus status) {
-                referenceNode.setProperty("name", "node0");
-                graphDatabase.createIndex(Node.class, "node", IndexType.SIMPLE).add(referenceNode, "name", "node0");
+                node0 = graphDatabase.createNode(map("name", "node0"));
+                graphDatabase.createIndex(Node.class, "node", IndexType.SIMPLE).add(node0, "name", "node0");
                 node1 = graphDatabase.createNode(map("name", "node1"));
-                relationship1 = referenceNode.createRelationshipTo(node1, KNOWS);
+                relationship1 = node0.createRelationshipTo(node1, KNOWS);
                 relationship1.setProperty("name", "rel1");
                 graphDatabase.createIndex(Relationship.class, "relationship", IndexType.SIMPLE).add(relationship1, "name", "rel1");
             }
@@ -110,15 +111,15 @@ public class FullNeo4jTemplateTests {
         Node refNode = neo4jTemplate.exec(new GraphCallback<Node>() {
             @Override
             public Node doWithGraph(GraphDatabase graph) throws Exception {
-                Node referenceNode = graph.getReferenceNode();
+                Node referenceNode = graph.getNodeById(node0.getId());
                 referenceNode.setProperty("test", "testDoInTransaction");
                 return referenceNode;
             }
         });
         Transaction tx=graphDatabase.beginTx();
         try {
-            assertEquals("same reference node", referenceNode, refNode);
-            assertTestPropertySet(referenceNode, "testDoInTransaction");
+            assertEquals("same reference node", node0, refNode);
+            assertTestPropertySet(node0, "testDoInTransaction");
         } finally {
             tx.success();tx.finish();
         }
@@ -130,7 +131,7 @@ public class FullNeo4jTemplateTests {
             neo4jTemplate.exec(new GraphCallback.WithoutResult() {
                 @Override
                 public void doWithGraphWithoutResult(GraphDatabase graph) throws Exception {
-                    graph.getReferenceNode().setProperty("test", "shouldRollbackTransactionOnException");
+                    graph.getNodeById(node0.getId()).setProperty("test", "shouldRollbackTransactionOnException");
                     throw new RuntimeException("please rollback");
                 }
             });
@@ -139,7 +140,7 @@ public class FullNeo4jTemplateTests {
         }
         Transaction tx=graphDatabase.beginTx();
         try {
-            Assert.assertThat((String) graphDatabase.getReferenceNode().getProperty("test", "not set"), not("shouldRollbackTransactionOnException"));
+            Assert.assertThat((String) node0.getProperty("test", "not set"), not("shouldRollbackTransactionOnException"));
         } finally {
             tx.success();tx.finish();
         }
@@ -153,7 +154,7 @@ public class FullNeo4jTemplateTests {
                 neo4jTemplate.exec(new GraphCallback.WithoutResult() {
                     @Override
                     public void doWithGraphWithoutResult(GraphDatabase graph) throws Exception {
-                        graph.getReferenceNode().setProperty("test", "shouldRollbackTransactionOnException");
+                        node0.setProperty("test", "shouldRollbackTransactionOnException");
                         status.setRollbackOnly();
                     }
                 });
@@ -161,7 +162,7 @@ public class FullNeo4jTemplateTests {
         });
         Transaction tx=graphDatabase.beginTx();
         try {
-            Assert.assertThat((String) graphDatabase.getReferenceNode().getProperty("test", "not set"), not("shouldRollbackTransactionOnException"));
+            Assert.assertThat((String) node0.getProperty("test", "not set"), not("shouldRollbackTransactionOnException"));
         } finally {
           tx.success();tx.finish();
         }
@@ -211,16 +212,10 @@ public class FullNeo4jTemplateTests {
         Long refNodeId = neo4jTemplate.exec(new GraphCallback<Long>() {
             @Override
             public Long doWithGraph(GraphDatabase graph) throws Exception {
-                return graph.getReferenceNode().getId();
+                return graph.getNodeById(node0.getId()).getId();
             }
         });
-        assertEquals(referenceNode.getId(), (long) refNodeId);
-    }
-
-    @Test
-    @Transactional
-    public void testGetReferenceNode() throws Exception {
-        assertEquals(referenceNode, neo4jTemplate.getReferenceNode());
+        assertEquals(node0.getId(), (long) refNodeId);
     }
 
     @Test
@@ -260,8 +255,8 @@ public class FullNeo4jTemplateTests {
     @Test
     @Transactional
     public void testGetNode() throws Exception {
-        Node lookedUpNode = neo4jTemplate.getNode(referenceNode.getId());
-        assertEquals(referenceNode, lookedUpNode);
+        Node lookedUpNode = neo4jTemplate.getNode(node0.getId());
+        assertEquals(node0, lookedUpNode);
     }
 
     @Test
@@ -319,31 +314,31 @@ public class FullNeo4jTemplateTests {
     public void testTraverse() throws Exception {
         //final TraversalDescription description = Traversal.description().relationships(KNOWS).prune(Traversal.pruneAfterDepth(1)).filter(Traversal.returnAllButStartNode());
         final TraversalDescription description = Traversal.description().relationships(KNOWS).evaluator(Evaluators.toDepth(1)).evaluator(Evaluators.excludeStartPosition());
-        assertSingleResult("node1", neo4jTemplate.traverse(referenceNode, description).to(String.class, new PathNodeNameMapper()));
+        assertSingleResult("node1", neo4jTemplate.traverse(node0, description).to(String.class, new PathNodeNameMapper()));
     }
 
     @Test
     @Transactional
     public void shouldFindNextNodeViaCypher() throws Exception {
-        assertSingleResult(node1, neo4jTemplate.query("start n=node(0) match n-[:knows]->m return m", null).to(Node.class));
+        assertSingleResult(node1, neo4jTemplate.query("start n=node(" + node0.getId() + ") match n-[:knows]->m return m", null).to(Node.class));
     }
 
     @Test
     @Transactional
     public void shouldGetDirectRelationship() throws Exception {
-        assertSingleResult("rel1", neo4jTemplate.convert(referenceNode.getRelationships(DynamicRelationshipType.withName("knows"))).to(String.class, new RelationshipNameConverter()));
+        assertSingleResult("rel1", neo4jTemplate.convert(node0.getRelationships(DynamicRelationshipType.withName("knows"))).to(String.class, new RelationshipNameConverter()));
     }
 
     @Test
     @Transactional
     public void shouldGetDirectRelationshipForType() throws Exception {
-        assertSingleResult("rel1", neo4jTemplate.convert(referenceNode.getRelationships(KNOWS)).to(String.class, new RelationshipNameConverter()));
+        assertSingleResult("rel1", neo4jTemplate.convert(node0.getRelationships(KNOWS)).to(String.class, new RelationshipNameConverter()));
     }
 
     @Test
     @Transactional
     public void shouldGetDirectRelationshipForTypeAndDirection() throws Exception {
-        assertSingleResult("rel1", neo4jTemplate.convert(referenceNode.getRelationships(KNOWS, Direction.OUTGOING)).to(String.class, new RelationshipNameConverter()));
+        assertSingleResult("rel1", neo4jTemplate.convert(node0.getRelationships(KNOWS, Direction.OUTGOING)).to(String.class, new RelationshipNameConverter()));
     }
 
     private <T> void assertSingleResult(T expected, Iterable<T> iterable) {
@@ -356,9 +351,9 @@ public class FullNeo4jTemplateTests {
     @Test
     @Transactional
     public void shouldCreateRelationshipWithProperty() throws Exception {
-        Relationship relationship = neo4jTemplate.createRelationshipBetween(referenceNode, node1, "has", map("name", "rel2"));
+        Relationship relationship = neo4jTemplate.createRelationshipBetween(node0, node1, "has", map("name", "rel2"));
         assertNotNull(relationship);
-        assertEquals(referenceNode, relationship.getStartNode());
+        assertEquals(node0, relationship.getStartNode());
         assertEquals(node1, relationship.getEndNode());
         assertEquals(HAS.name(), relationship.getType().name());
         assertEquals("rel2", relationship.getProperty("name", "not set"));

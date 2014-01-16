@@ -119,7 +119,7 @@ public class NoopTypeRepresentationStrategyTests extends EntityTestBase {
 			tx.success();
 			return thing;
 		} finally {
-			tx.finish();
+			tx.close();
 		}
 	}
 

@@ -92,7 +92,7 @@
     </bean>
     
 
-    <bean id="transactionManager" class="org.springframework.data.neo4j.transaction.ChainedTransactionManager" >
+    <bean id="transactionManager" class="org.springframework.data.transaction.ChainedTransactionManager" >
 		<constructor-arg>
             <list>
             <bean class="org.springframework.orm.jpa.JpaTransactionManager" id="jpaTransactionManager">

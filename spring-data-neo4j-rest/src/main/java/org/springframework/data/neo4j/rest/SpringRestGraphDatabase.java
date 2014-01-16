@@ -38,7 +38,7 @@ import org.springframework.data.neo4j.support.query.QueryEngine;
 import javax.transaction.TransactionManager;
 import java.util.Map;
 
-public class SpringRestGraphDatabase extends org.neo4j.rest.graphdb.RestGraphDatabase implements GraphDatabase{
+public class SpringRestGraphDatabase extends org.neo4j.rest.graphdb.RestGraphDatabase implements GraphDatabase {
     static {
         System.setProperty(Config.CONFIG_BATCH_TRANSACTION,"false");
     }
@@ -189,5 +189,4 @@ public class SpringRestGraphDatabase extends org.neo4j.rest.graphdb.RestGraphDat
             indexManager.forRelationships(indexName).remove(relationship);
         }
     }
-
 }

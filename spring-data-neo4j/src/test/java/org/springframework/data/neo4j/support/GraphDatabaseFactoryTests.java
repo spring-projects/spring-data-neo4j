@@ -45,7 +45,7 @@ public class GraphDatabaseFactoryTests {
     }
     @Test
     public void shouldCreateLocalDatabase() throws Exception {
-        GraphDatabaseFactory factory = new GraphDatabaseFactory();
+        GraphDatabaseFactoryBean factory = new GraphDatabaseFactoryBean();
         try {
             factory.setStoreLocation("target/test-db");
             GraphDatabase graphDatabase = factory.getObject();

@@ -20,7 +20,7 @@ import javax.enterprise.inject.Disposes;
 import javax.enterprise.inject.Produces;
 
 import org.springframework.data.neo4j.core.GraphDatabase;
-import org.springframework.data.neo4j.support.GraphDatabaseFactory;
+import org.springframework.data.neo4j.support.GraphDatabaseFactoryBean;
 
 /**
  * Simple component exposing a {@link GraphDatabase} as CDI bean.
@@ -34,7 +34,7 @@ class Neo4jCdiProducer {
 	@ApplicationScoped
 	GraphDatabase createGraphDatabase() throws Exception {
 
-		GraphDatabaseFactory factory = new GraphDatabaseFactory();
+		GraphDatabaseFactoryBean factory = new GraphDatabaseFactoryBean();
 		factory.setStoreLocation("target/cdi-test-db");
 
 		return factory.getObject();
