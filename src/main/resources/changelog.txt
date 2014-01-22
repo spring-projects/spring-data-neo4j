@@ -1,6 +1,12 @@
 Spring Data Neo4j Changelog
 ===========================
 
+Changes in version 3.0.0.RC1 (2014-01-22)
+-----------------------------------------
+* DATAGRAPH-423 Upgrade to Neo4j 2.0 GA (read-tx, removal reference node, fixing tests, update dependencies)
+* DATAGRAPH-414 Fixed Bundlor issue
+* DATAGRAPH-413 Fixed ConcurrentModificationException with Advanced Mode and implicit tx
+
 Changes in version 3.0.0.M1 (2013-11-21)
 ----------------------------------------
 * DATAGRAPH-311 QueryResultProxy not Serializable
