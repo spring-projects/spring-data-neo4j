@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,12 +34,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.neo4j.core.GraphDatabase;
 import org.springframework.data.neo4j.support.mapping.Neo4jMappingContext;
+import org.springframework.data.repository.cdi.CdiRepositoryBean;
 import org.springframework.data.repository.cdi.CdiRepositoryExtensionSupport;
 
 /**
  * CDI extension to export Neo4j repositories.
  * 
  * @author Nicki Watt
+ * @author Oliver Gierke
  */
 public class Neo4jCdiRepositoryExtension extends CdiRepositoryExtensionSupport {
 
@@ -77,13 +79,14 @@ public class Neo4jCdiRepositoryExtension extends CdiRepositoryExtensionSupport {
 			Set<Annotation> qualifiers = entry.getValue();
 
 			// Create the bean representing the repository.
-			Bean<?> repositoryBean = createRepositoryBean(repositoryType, qualifiers, beanManager);
+			CdiRepositoryBean<?> repositoryBean = createRepositoryBean(repositoryType, qualifiers, beanManager);
 
 			if (LOG.isInfoEnabled()) {
 				LOG.info(String.format("Registering bean for %s with qualifiers %s.", repositoryType.getName(), qualifiers));
 			}
 
 			// Register the bean to the container.
+			registerBean(repositoryBean);
 			afterBeanDiscovery.addBean(repositoryBean);
 		}
 	}
@@ -96,7 +99,7 @@ public class Neo4jCdiRepositoryExtension extends CdiRepositoryExtensionSupport {
 	 * @param beanManager The BeanManager instance.
 	 * @return The bean.
 	 */
-	private <T> Bean<T> createRepositoryBean(Class<T> repositoryType, Set<Annotation> qualifiers, BeanManager beanManager) {
+	private <T> CdiRepositoryBean<T> createRepositoryBean(Class<T> repositoryType, Set<Annotation> qualifiers, BeanManager beanManager) {
 
 		Bean<GraphDatabase> graphDatabase = this.graphDatabases.get(qualifiers);
 
