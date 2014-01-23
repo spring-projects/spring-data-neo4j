@@ -39,7 +39,7 @@ import org.springframework.data.support.IsNewStrategyFactory;
 @RunWith(MockitoJUnitRunner.class)
 public class AuditingEventListenerUnitTests {
 
-	IsNewAwareAuditingHandler<Object> handler;
+	IsNewAwareAuditingHandler handler;
 
 	IsNewStrategyFactory factory;
 	AuditingEventListener listener;
@@ -50,7 +50,7 @@ public class AuditingEventListenerUnitTests {
 		Neo4jMappingContext mappingContext = new Neo4jMappingContext();
 		factory = new MappingContextIsNewStrategyFactory(mappingContext);
 
-		handler = spy(new IsNewAwareAuditingHandler<Object>(factory));
+		handler = spy(new IsNewAwareAuditingHandler(factory));
 		doNothing().when(handler).markCreated(Mockito.any(Object.class));
 		doNothing().when(handler).markModified(Mockito.any(Object.class));
 

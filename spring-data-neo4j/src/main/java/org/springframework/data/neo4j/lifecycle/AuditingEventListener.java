@@ -28,14 +28,14 @@ import org.springframework.data.auditing.IsNewAwareAuditingHandler;
  */
 public class AuditingEventListener implements ApplicationListener<BeforeSaveEvent<Object>> {
 
-	private final IsNewAwareAuditingHandler<Object> auditingHandler;
+	private final IsNewAwareAuditingHandler auditingHandler;
 
 	/**
 	 * Creates a new {@link AuditingEventListener} using the given {@link org.springframework.data.mapping.context.MappingContext} and {@link AuditingHandler}.
 	 * 
 	 * @param auditingHandler must not be {@literal null}.
 	 */
-	public AuditingEventListener(IsNewAwareAuditingHandler<Object> auditingHandler) {
+	public AuditingEventListener(IsNewAwareAuditingHandler auditingHandler) {
 
 		Assert.notNull(auditingHandler, "IsNewAwareAuditingHandler must not be null!");
 		this.auditingHandler = auditingHandler;
