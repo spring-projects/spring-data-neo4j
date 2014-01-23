@@ -15,7 +15,7 @@
 	<parent>
 		<groupId>org.springframework.data.build</groupId>
 		<artifactId>spring-data-parent</artifactId>
-		<version>1.3.0.M1</version>
+		<version>1.3.0.BUILD-SNAPSHOT</version>
 		<relativePath>../spring-data-build/parent/pom.xml</relativePath>
 	</parent>
 	
@@ -32,7 +32,7 @@
 	<properties>
 		<project.type>multi</project.type>
 		<dist.id>spring-data-neo4j</dist.id>
-		<springdata.commons>1.7.0.M1</springdata.commons>
+		<springdata.commons>1.7.0.BUILD-SNAPSHOT</springdata.commons>
 
         <!-- Neo4j 2.0 now requires JDK 7 as a min -->
         <source.level>1.7</source.level>
@@ -163,17 +163,9 @@
 	</dependencies>
 	<repositories>
 		<repository>
-			<id>spring-libs-milestone-local</id>
+			<id>spring-libs-snapshot</id>
 			<name>Spring Snapshots</name>
-			<url>http://repo.springsource.org/libs-milestone-local</url>
-		</repository>
-		<repository>
-			<id>spring-libs-release-local</id>
-			<name>Spring Releases</name>
-			<url>http://repo.springsource.org/libs-release-local</url>
-			<snapshots>
-				<enabled>false</enabled>
-			</snapshots>
+			<url>http://repo.spring.io/libs-snapshot</url>
 		</repository>
 		<repository>
 			<id>neo4j-public-release-repository</id>
@@ -192,14 +184,8 @@
 	</repositories>
     <pluginRepositories>
         <pluginRepository>
-            <id>com.springsource.repository.bundles.release</id>
-            <name>SpringSource Enterprise Bundle Repository</name>
-            <url>http://repository.springsource.com/maven/bundles/release</url>
-        </pluginRepository>
-        <pluginRepository>
-            <id>com.springsource.repository.bundles.external</id>
-            <name>SpringSource Enterprise Bundle Repository - External Bundle Releases</name>
-            <url>http://repository.springsource.com/maven/bundles/external</url>
+            <id>spring-plugins-release</id>
+            <url>http://libs.spring.io/plugins-release</url>
         </pluginRepository>
     </pluginRepositories>
 
