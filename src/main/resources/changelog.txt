@@ -1,55 +1,62 @@
 Spring Data Neo4j Changelog
 ===========================
 
-Changes in version 3.0.0.RC1 (2014-01-22)
+Changes in version 3.0.0.RC1 (2014-01-29)
 -----------------------------------------
-* DATAGRAPH-423 Upgrade to Neo4j 2.0 GA (read-tx, removal reference node, fixing tests, update dependencies)
-* DATAGRAPH-414 Fixed Bundlor issue
-* DATAGRAPH-413 Fixed ConcurrentModificationException with Advanced Mode and implicit tx
+* DATAGRAPH-423 - Upgrade to Neo4j 2.0 GA (read-tx, removal reference node, fixing tests, update dependencies)
+* DATAGRAPH-414 - Fixed Bundlor issue
+* DATAGRAPH-413 - Fixed ConcurrentModificationException with Advanced Mode and implicit tx
+* DATAGRAPH-424 - Release Spring Data Neo4j 3.0 RC1
+
+Changes in version 2.3.3.RELEASE (2013-12-11)
+----------------------------------------
+* DATAGRAPH-407 - Bug when deleting nodes on an auto_index index
+* DATAGRAPH-409 - Improved default transaction configuration for repositories.
+* DATAGRAPH-415 - Release 2.3.3
 
 Changes in version 3.0.0.M1 (2013-11-21)
 ----------------------------------------
-* DATAGRAPH-311 QueryResultProxy not Serializable
-* DATAGRAPH-349 Maven Build Plugin is missing in spring-data-neo4j-rest
-* DATAGRAPH-393 Use supplied RestGraphDatabase as GraphDatabase in MappingInfrastructure
-* DATAGRAPH-402 Use transactions for all operations
-* DATAGRAPH-407 Bug when deleting nodes on an auto_index index
-* DATAGRAPH-409 Improve default transaction configuration for repositories
-* DATAGRAPH-365 Fire an event before and after entity deletion
-* DATAGRAPH-399 Add support for nested repositories
-* DATAGRAPH-340 CDI support for Neo4j repositories
-* DATAGRAPH-387 Add Label based TypeRepresentation Strategy
-* DATAGRAPH-392 Add support for custom findAll Queries.
-* DATAGRAPH-384 Upgrade to Neo4j 2.0.0-M06
-* DATAGRAPH-406 Remove Gremlin Dependency
-* DATAGRAPH-408 Upgrade to latest Spring Data Build parent to pull in new Spring dependencies
-* DATAGRAPH-411 Release 3.0.M1
+* DATAGRAPH-311 - QueryResultProxy not Serializable
+* DATAGRAPH-349 - Maven Build Plugin is missing in spring-data-neo4j-rest
+* DATAGRAPH-393 - Use supplied RestGraphDatabase as GraphDatabase in MappingInfrastructure
+* DATAGRAPH-402 - Use transactions for all operations
+* DATAGRAPH-407 - Bug when deleting nodes on an auto_index index
+* DATAGRAPH-409 - Improve default transaction configuration for repositories
+* DATAGRAPH-365 - Fire an event before and after entity deletion
+* DATAGRAPH-399 - Add support for nested repositories
+* DATAGRAPH-340 - CDI support for Neo4j repositories
+* DATAGRAPH-387 - Add Label based TypeRepresentation Strategy
+* DATAGRAPH-392 - Add support for custom findAll Queries.
+* DATAGRAPH-384 - Upgrade to Neo4j 2.0.0-M06
+* DATAGRAPH-406 - Remove Gremlin Dependency
+* DATAGRAPH-408 - Upgrade to latest Spring Data Build parent to pull in new Spring dependencies
+* DATAGRAPH-411 - Release 3.0.M1
 
 Changes in version 2.3.2.RELEASE (2013-10-25)
 ---------------------------------------------
-* DATAGRAPH-393 Use supplied RestGraphDatabase as GraphDatabase in MappingInfrastructure
-* DATAGRAPH-397 Release 2.3.2
-* DATAGRAPH-400 Upgrade to Neo4j 1.9.* 
+* DATAGRAPH-393 - Use supplied RestGraphDatabase as GraphDatabase in MappingInfrastructure
+* DATAGRAPH-397 - Release 2.3.2
+* DATAGRAPH-400 - Upgrade to Neo4j 1.9.* 
 
 Changes in version 2.2.3.RELEASE (2013-10-01)
 ---------------------------------------------
-*  DATAGRAPH-393 Use supplied RestGraphDatabase as GraphDatabase in MappingInfrastructure
-*  DATAGRAPH-298 GraphRepository with abstract type parameter should throw more meaningful exception when stored Java type is not a subtype
-*  DATAGRAPH-390 Release 2.2.3
-*  DATAGRAPH-394 Update to Neo4j 1.8.3
+*  DATAGRAPH-393 - Use supplied RestGraphDatabase as GraphDatabase in MappingInfrastructure
+*  DATAGRAPH-298 - GraphRepository with abstract type parameter should throw more meaningful exception when stored Java type is not a subtype
+*  DATAGRAPH-390 - Release 2.2.3
+*  DATAGRAPH-394 - Update to Neo4j 1.8.3
 
 Changes in version 2.3.1.RELEASE (2013-09-09)
 ---------------------------------------------
-* DATAGRAPH-386 Release 2.3.1 / Upgrade SD-Commons 1.6.1
+* DATAGRAPH-386 - Release 2.3.1 / Upgrade SD-Commons 1.6.1
 
 Changes in version 2.3.0.GA (2013-09-09)
 ----------------------------------------
-* DATAGRAPH-377 Upgrade to Neo4 1.9.3
-* DATAGRAPH-298 Better handling of invalid target types for repositories (e.g. abstract types, interfaces)
-* DATAGARPH-365 Before- and After-Delete events
-* DATAGRAPH-259 Handle empty query results for ResultConverter
-* DATAGRAPH-311 Serializable ManagedFieldAccessorSet and DynamicProperties
-* DATAGRAPH-311 @QueryResult annotated, serializable POJOS as query results
+* DATAGRAPH-377 - Upgrade to Neo4 1.9.3
+* DATAGRAPH-298 - Better handling of invalid target types for repositories (e.g. abstract types, interfaces)
+* DATAGARPH-365 - Before- and After-Delete events
+* DATAGRAPH-259 - Handle empty query results for ResultConverter
+* DATAGRAPH-311 - Serializable ManagedFieldAccessorSet and DynamicProperties
+* DATAGRAPH-311 - @QueryResult annotated, serializable POJOS as query results
 
 Changes in version 2.3.0.RC1 (2013-08-05)
 ----------------------------------------
