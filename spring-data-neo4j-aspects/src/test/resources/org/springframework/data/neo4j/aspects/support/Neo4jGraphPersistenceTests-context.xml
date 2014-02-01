@@ -32,6 +32,7 @@
     <bean id="conversionService" class="org.springframework.data.neo4j.fieldaccess.Neo4jConversionServiceFactoryBean"/>
     <bean id="indexCreationMappingEventListener" class="org.springframework.data.neo4j.support.mapping.IndexCreationMappingEventListener">
         <constructor-arg ref="indexProvider" />
+        <constructor-arg ref="schemaIndexProvider" />
     </bean>
 
 
@@ -58,6 +59,9 @@
     </bean>
 
 	<bean id="indexProvider" class="org.springframework.data.neo4j.support.index.IndexProviderImpl">
+		<constructor-arg ref="graphDatabase" />
+	</bean>
+	<bean id="schemaIndexProvider" class="org.springframework.data.neo4j.support.schema.SchemaIndexProvider">
 		<constructor-arg ref="graphDatabase" />
 	</bean>
 

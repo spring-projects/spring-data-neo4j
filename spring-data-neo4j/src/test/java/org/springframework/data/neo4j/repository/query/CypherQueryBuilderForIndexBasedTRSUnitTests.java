@@ -39,10 +39,6 @@ public class CypherQueryBuilderForIndexBasedTRSUnitTests extends AbstractCypherQ
         super.setUp();
     }
 
-    protected NodeTypeRepresentationStrategy getNodeTypeRepresentationStrategy() {
-        return Mockito.mock(IndexBasedNodeTypeRepresentationStrategy.class);
-    }
-
     @Override
     @Test
     public void createsQueryForLikeProperty() {

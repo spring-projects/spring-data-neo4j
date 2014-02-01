@@ -44,6 +44,7 @@ import org.springframework.data.neo4j.support.node.NodeEntityStateFactory;
 import org.springframework.data.neo4j.support.query.CypherQueryExecutor;
 import org.springframework.data.neo4j.support.relationship.RelationshipEntityInstantiator;
 import org.springframework.data.neo4j.support.relationship.RelationshipEntityStateFactory;
+import org.springframework.data.neo4j.support.schema.SchemaIndexProvider;
 import org.springframework.data.neo4j.support.typerepresentation.TypeRepresentationStrategies;
 import org.springframework.data.neo4j.support.typerepresentation.TypeRepresentationStrategyFactory;
 import org.springframework.data.neo4j.support.typesafety.TypeSafetyPolicy;
@@ -77,6 +78,7 @@ public class MappingInfrastructureFactoryBean implements FactoryBean<Infrastruct
     private PlatformTransactionManager transactionManager;
     private ResultConverter resultConverter;
     private IndexProvider indexProvider;
+    private SchemaIndexProvider schemaIndexProvider;
     private GraphDatabaseService graphDatabaseService;
     private GraphDatabase graphDatabase;
     private IsNewStrategyFactory isNewStrategyFactory;
@@ -155,13 +157,16 @@ public class MappingInfrastructureFactoryBean implements FactoryBean<Infrastruct
         }
         this.graphDatabase.setResultConverter(resultConverter);
         this.cypherQueryExecutor = new CypherQueryExecutor(graphDatabase.queryEngineFor(QueryType.Cypher, resultConverter));
+        if (schemaIndexProvider == null) {
+            schemaIndexProvider = new SchemaIndexProvider(graphDatabase);
+        }
         if (this.indexProvider == null) {
             this.indexProvider = new IndexProviderImpl(graphDatabase);
         }
         if (this.typeSafetyPolicy == null) {
             this.typeSafetyPolicy = new TypeSafetyPolicy();
         }
-        this.mappingInfrastructure = new MappingInfrastructure(graphDatabase, graphDatabaseService, indexProvider, resultConverter, transactionManager, typeRepresentationStrategies, entityRemover, entityPersister, entityStateHandler, cypherQueryExecutor, mappingContext, relationshipTypeRepresentationStrategy, nodeTypeRepresentationStrategy, validator, conversionService, typeSafetyPolicy);
+        this.mappingInfrastructure = new MappingInfrastructure(graphDatabase, graphDatabaseService, indexProvider, resultConverter, transactionManager, typeRepresentationStrategies, entityRemover, entityPersister, entityStateHandler, cypherQueryExecutor, mappingContext, relationshipTypeRepresentationStrategy, nodeTypeRepresentationStrategy, validator, conversionService, schemaIndexProvider, typeSafetyPolicy);
         } catch (Exception e) {
             throw new RuntimeException("error initializing "+getClass().getName(),e);
         }

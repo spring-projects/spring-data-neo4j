@@ -29,11 +29,7 @@ import org.springframework.data.mapping.model.BasicPersistentEntity;
 import org.springframework.data.mapping.model.MappingException;
 import org.springframework.data.neo4j.annotation.NodeEntity;
 import org.springframework.data.neo4j.annotation.RelationshipEntity;
-import org.springframework.data.neo4j.mapping.ManagedEntity;
-import org.springframework.data.neo4j.mapping.MappingPolicy;
-import org.springframework.data.neo4j.mapping.Neo4jPersistentEntity;
-import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
-import org.springframework.data.neo4j.mapping.RelationshipProperties;
+import org.springframework.data.neo4j.mapping.*;
 import org.springframework.data.util.TypeInformation;
 
 /**
@@ -75,10 +71,10 @@ public class Neo4jPersistentEntityImpl<T> extends BasicPersistentEntity<T, Neo4j
         super.verify();
         doWithProperties(new PropertyHandler<Neo4jPersistentProperty>() {
             Neo4jPersistentProperty unique = null;
-            public void doWithPersistentProperty(Neo4jPersistentProperty persistentProperty) {
-                if (persistentProperty.isUnique()) {
-                    if (unique!=null) throw new MappingException("Duplicate unique property " + persistentProperty.getName()+ ", " + unique.getName() + " has already been defined. Only one unique property is allowed per type");
-                    unique = persistentProperty;
+            public void doWithPersistentProperty(Neo4jPersistentProperty property) {
+                if (property.isUnique()) {
+                    if (unique!=null) throw new MappingException("Duplicate unique property " + qualifiedPropertyName(property)+ ", " + qualifiedPropertyName(uniqueProperty) + " has already been defined. Only one unique property is allowed per type");
+                    unique = property;
                 }
             }
         });
@@ -87,7 +83,11 @@ public class Neo4jPersistentEntityImpl<T> extends BasicPersistentEntity<T, Neo4j
         }
         final Neo4jPersistentProperty idProperty = getIdProperty();
         if (idProperty == null) throw new MappingException("No id property in " + this);
-        if (idProperty.getType().isPrimitive()) throw new MappingException("The type of the id-property in " + idProperty+" must not be a primitive type but an object type like java.lang.Long");
+        if (idProperty.getType().isPrimitive()) throw new MappingException("The type of the id-property in " + qualifiedPropertyName(idProperty)+" must not be a primitive type but an object type like java.lang.Long");
+    }
+
+    private String qualifiedPropertyName(Neo4jPersistentProperty persistentProperty) {
+        return getName() + "." + persistentProperty.getName();
     }
 
     public boolean useShortNames() {

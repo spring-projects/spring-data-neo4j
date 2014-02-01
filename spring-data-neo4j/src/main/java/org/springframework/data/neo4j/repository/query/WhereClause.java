@@ -67,7 +67,7 @@ class WhereClause {
     }
 
     protected final PartInfo partInfo;
-    private final Type type;
+    protected final Type type;
     private PropertyConverter propertyConverter;
 
     public WhereClause(PartInfo partInfo, Neo4jTemplate template) {
@@ -108,15 +108,18 @@ class WhereClause {
     public Map<Parameter, Object> resolveParameters(Map<Parameter, Object> parameters) {
         for (Map.Entry<Parameter, Object> entry : parameters.entrySet()) {
             if (partInfo.getParameterIndex() == entry.getKey().getIndex()) {
-                Object value = entry.getValue();
-                if (EnumSet.of(Type.CONTAINING,Type.STARTING_WITH,Type.ENDING_WITH).contains(type))
-                    value = QueryTemplates.formatExpression(partInfo, value);
-                else if (propertyConverter!=null) {
-                    value = propertyConverter.serializePropertyValue(value);
-                }
-                entry.setValue(value);
+                entry.setValue(convertValue(partInfo, entry.getValue()));
             }
         }
         return parameters;
+    }
+
+    protected Object convertValue(PartInfo partInfo, Object value) {
+        if (EnumSet.of(Type.CONTAINING, Type.STARTING_WITH, Type.ENDING_WITH).contains(type))
+            return QueryTemplates.formatExpression(this.partInfo, value);
+        else if (propertyConverter!=null) {
+            return propertyConverter.serializePropertyValue(value);
+        }
+        return value;
     }
 }

@@ -30,6 +30,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.instanceOf;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Tests to ensure that all scenarios involved in entity creation / reading etc
@@ -69,5 +71,9 @@ public class LabelBasedNodeTypeRepresentationStrategyTests extends AbstractNodeT
         // preEntityRemoval is a no op method, so nothing to test here!
 	}
 
-
+    @Test
+    @Override
+    public void testAssertLabelIndexOrNot() throws Exception {
+        assertTrue("label based", nodeTypeRepresentationStrategy.isLabelBased());
+    }
 }

@@ -19,6 +19,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.springframework.data.neo4j.core.NodeTypeRepresentationStrategy;
+import org.springframework.data.neo4j.support.Neo4jTemplate;
 import org.springframework.data.neo4j.support.typerepresentation.LabelBasedNodeTypeRepresentationStrategy;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -39,8 +40,9 @@ public class CypherQueryBuilderForLabelBasedTRSUnitTests extends AbstractCypherQ
         super.setUp();
     }
 
-    protected NodeTypeRepresentationStrategy getNodeTypeRepresentationStrategy() {
-        return Mockito.mock(LabelBasedNodeTypeRepresentationStrategy.class);
+    @Override
+    protected void finishMock(Neo4jTemplate template) {
+        Mockito.when(template.isLabelBased()).thenReturn(true);
     }
 
     @Override
@@ -101,7 +103,7 @@ public class CypherQueryBuilderForLabelBasedTRSUnitTests extends AbstractCypherQ
     @Override
     @Test
     public void createsSimpleTraversalClauseCorrectly() {
-        this.trsSpecificExpectedQuery = "START `person_group`=node({0}) MATCH (`person`)<-[:`members`]-(`person_group`) WHERE `person`:`Person` RETURN `person`";
+        this.trsSpecificExpectedQuery = " MATCH (`person`)<-[:`members`]-(`person_group`) WHERE id(`person_group`) = {0} AND `person`:`Person` RETURN `person`";
         super.createsSimpleTraversalClauseCorrectly();
     }
 
@@ -120,14 +122,14 @@ public class CypherQueryBuilderForLabelBasedTRSUnitTests extends AbstractCypherQ
     @Override
     @Test
     public void shouldFindByNodeEntity() throws Exception {
-        this.trsSpecificExpectedQuery = "START `person_pet`=node({0}) MATCH (`person`)-[:`owns`]->(`person_pet`) WHERE `person`:`Person` RETURN `person`";
+        this.trsSpecificExpectedQuery = " MATCH (`person`)-[:`owns`]->(`person_pet`) WHERE id(`person_pet`) = {0} AND `person`:`Person` RETURN `person`";
         super.shouldFindByNodeEntity();
     }
 
     @Override
     @Test
     public void shouldFindByNodeEntityForIncomingRelationship() {
-        this.trsSpecificExpectedQuery = "START `person_group`=node({0}) MATCH (`person`)<-[:`members`]-(`person_group`) WHERE `person`:`Person` RETURN `person`";
+        this.trsSpecificExpectedQuery = " MATCH (`person`)<-[:`members`]-(`person_group`) WHERE id(`person_group`) = {0} AND `person`:`Person` RETURN `person`";
         super.shouldFindByNodeEntityForIncomingRelationship();
     }
 

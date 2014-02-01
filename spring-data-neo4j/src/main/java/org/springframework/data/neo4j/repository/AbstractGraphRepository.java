@@ -16,15 +16,12 @@
 
 package org.springframework.data.neo4j.repository;
 
-import org.apache.lucene.search.NumericRangeQuery;
 import org.neo4j.cypherdsl.grammar.Execute;
 import org.neo4j.cypherdsl.grammar.Skip;
-import org.neo4j.graphdb.NotFoundException;
 import org.neo4j.graphdb.PropertyContainer;
 import org.neo4j.graphdb.index.IndexHits;
 import org.neo4j.graphdb.index.ReadableIndex;
 import org.neo4j.helpers.collection.ClosableIterable;
-import org.neo4j.helpers.collection.IterableWrapper;
 import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -32,15 +29,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.neo4j.annotation.QueryType;
 import org.springframework.data.neo4j.conversion.EndResult;
-import org.springframework.data.neo4j.conversion.Result;
-import org.springframework.data.neo4j.core.TypeRepresentationStrategy;
-import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.repository.query.CypherQuery;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
-import org.springframework.data.neo4j.support.index.NoSuchIndexException;
-import org.springframework.data.neo4j.support.index.NullReadableIndex;
 import org.springframework.data.neo4j.support.query.QueryEngine;
-import org.springframework.data.neo4j.support.typerepresentation.LabelBasedNodeTypeRepresentationStrategy;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
@@ -57,6 +48,7 @@ import static org.neo4j.helpers.collection.MapUtil.map;
  */
 @Transactional(readOnly = true)
 public abstract class AbstractGraphRepository<S extends PropertyContainer, T> implements GraphRepository<T>, NamedIndexRepository<T>, SpatialRepository<T>, CypherDslRepository<T> {
+    private final LegacyIndexSearcher<S,T> legacyIndexSearcher;
 
     /*
     index.query( LayerNodeIndex.WITHIN_WKT_GEOMETRY_QUERY,
@@ -70,22 +62,25 @@ public abstract class AbstractGraphRepository<S extends PropertyContainer, T> im
 
     @Override
     public EndResult<T> findWithinWellKnownText( final String indexName, String wellKnownText) {
-        return geoQuery(indexName, "withinWKTGeometry", wellKnownText);
+        return legacyIndexSearcher.geoQuery(indexName, "withinWKTGeometry", wellKnownText);
     }
     @Override
     public EndResult<T> findWithinDistance( final String indexName, final double lat, double lon, double distanceKm) {
-        return geoQuery(indexName, "withinDistance", map("point", new Double[] { lon, lat}, "distanceInKm", distanceKm));
+        return legacyIndexSearcher.geoQuery(indexName, "withinDistance", map("point", new Double[] { lon, lat}, "distanceInKm", distanceKm));
     }
 
     @Override
     public EndResult<T> findWithinBoundingBox(final String indexName, final double lowerLeftLat,
                                                      final double lowerLeftLon, final double upperRightLat, final double upperRightLon) {
-        return geoQuery(indexName, "bbox", format("[%s, %s, %s, %s]", lowerLeftLon, upperRightLon, lowerLeftLat, upperRightLat));
+        return legacyIndexSearcher.geoQuery(indexName, "bbox", format("[%s, %s, %s, %s]", lowerLeftLon, upperRightLon, lowerLeftLat, upperRightLat));
     }
 
-    private Result<T> geoQuery(String indexName, String geoQuery, Object params) {
-        final IndexHits<S> indexHits = getIndex(indexName,null).query(geoQuery, params);
-        return template.convert(new IndexHitsWrapper(indexHits));
+    interface Query<S extends PropertyContainer> {
+        IndexHits<S> query(ReadableIndex<S> index);
+    }
+
+    protected T createEntity(S node) {
+        return template.createEntityFromState(node, clazz, template.getMappingPolicy(clazz));
     }
 
     public static final ClosableIterable EMPTY_CLOSABLE_ITERABLE = new ClosableIterable() {
@@ -107,6 +102,7 @@ public abstract class AbstractGraphRepository<S extends PropertyContainer, T> im
     public AbstractGraphRepository(final Neo4jTemplate template, final Class<T> clazz) {
         this.template = template;
         this.clazz = clazz;
+        legacyIndexSearcher = new LegacyIndexSearcher<>(template,clazz);
     }
 
     @Override
@@ -175,38 +171,8 @@ public abstract class AbstractGraphRepository<S extends PropertyContainer, T> im
      */
     @Override
     public T findByPropertyValue(final String indexName, final String property, final Object value) {
-        try {
-            S result = getIndexHits(indexName, property, value).getSingle();
-            if (result == null) return null;
-            return createEntity(result);
-        } catch (NotFoundException e) {
-            return null;
-        }
+        return legacyIndexSearcher.findByPropertyValue(indexName, property, value);
 
-    }
-
-    private IndexHits<S> getIndexHits(String indexName, String propertyName, Object value) {
-        final Neo4jPersistentProperty property = template.getPersistentProperty(clazz, propertyName);
-        if (value instanceof Number && (property==null || property.getIndexInfo().isNumeric())) {
-            Number number = (Number) value;
-            return getIndex(indexName, propertyName).query(propertyName, createInclusiveRangeQuery(propertyName, number,number));
-        }
-        return getIndex(indexName, propertyName).get(propertyName, value);
-    }
-
-    protected ReadableIndex<S> getIndex(String indexName, String property) {
-        try {
-            if (indexName!=null) {
-                return template.getIndex(indexName,clazz);
-            }
-            return template.getIndex(clazz,property);
-        } catch(NoSuchIndexException nsie) {
-            return new NullReadableIndex<S>(nsie.getIndex(),template.getGraphDatabaseService());
-        }
-    }
-
-    protected T createEntity(S node) {
-        return template.createEntityFromState(node, clazz, template.getMappingPolicy(clazz));
     }
 
     /**
@@ -219,12 +185,9 @@ public abstract class AbstractGraphRepository<S extends PropertyContainer, T> im
      */
     @Override
     public EndResult<T> findAllByPropertyValue(final String indexName, final String property, final Object value) {
-        return queryResult(indexName, new Query<S>() {
-            public IndexHits<S> query(ReadableIndex<S> index) {
-                return getIndexHits(indexName, property, value);
-            }
-        });
+        return legacyIndexSearcher.findAllByPropertyValue(indexName, property, value);
     }
+
     /**
      * Index based exact finder, uses the default index name for this type (short class name).
      * @param property
@@ -255,39 +218,7 @@ public abstract class AbstractGraphRepository<S extends PropertyContainer, T> im
      */
     @Override
     public EndResult<T> findAllByQuery(final String indexName, final String property, final Object query) {
-        return queryResult(indexName, new Query<S>() {
-            public IndexHits<S> query(ReadableIndex<S> index) {
-                return getIndex(indexName, property).query(property, query);
-            }
-        });
-    }
-
-    interface Query<S extends PropertyContainer> {
-        IndexHits<S> query(ReadableIndex<S> index);
-    }
-
-    private ClosableIterable<T> query(String indexName, Query<S> query) {
-        try {
-            final IndexHits<S> indexHits = query.query(getIndex(indexName, null));
-            if (indexHits == null) return emptyClosableIterable();
-            return new IndexHitsWrapper(indexHits);
-        } catch (NotFoundException e) {
-            return null;
-        }
-    }
-
-    private EndResult<T> queryResult(String indexName, Query<S> query) {
-        try {
-            final IndexHits<S> indexHits = query.query(getIndex(indexName, null));
-            return template.convert(indexHits).to(clazz);
-        } catch (NotFoundException e) {
-            return null;
-        }
-    }
-
-    @SuppressWarnings({"unchecked"})
-    private ClosableIterable<T> emptyClosableIterable() {
-        return EMPTY_CLOSABLE_ITERABLE;
+        return legacyIndexSearcher.findAllByQuery(indexName, property, query);
     }
 
     @Override
@@ -296,21 +227,9 @@ public abstract class AbstractGraphRepository<S extends PropertyContainer, T> im
     }
     @Override
     public EndResult<T> findAllByRange(final String indexName, final String property, final Number from, final Number to) {
-        return queryResult(indexName, new Query<S>() {
-            public IndexHits<S> query(ReadableIndex<S> index) {
-                return index.query(property, createInclusiveRangeQuery(property, from, to));
-            }
-        });
+        return legacyIndexSearcher.findAllByRange(indexName, property, from, to);
     }
 
-    @SuppressWarnings("unchecked")
-    protected <T extends Number> NumericRangeQuery<T> createInclusiveRangeQuery(String property, Number from, Number to) {
-        if (from instanceof Long) return (NumericRangeQuery<T>) NumericRangeQuery.newLongRange(property, from.longValue(),to.longValue(),true,true);
-        if (from instanceof Integer) return (NumericRangeQuery<T>) NumericRangeQuery.newIntRange(property, from.intValue(), to.intValue(), true, true);
-        if (from instanceof Double) return (NumericRangeQuery<T>) NumericRangeQuery.newDoubleRange(property, from.doubleValue(), to.doubleValue(), true, true);
-        if (from instanceof Float) return (NumericRangeQuery<T>) NumericRangeQuery.newFloatRange(property, from.floatValue(), to.floatValue(), true, true);
-        return (NumericRangeQuery<T>) NumericRangeQuery.newIntRange(property, from.intValue(), to.intValue(), true, true);
-    }
 
     protected abstract S getById(long id);
 
@@ -356,8 +275,7 @@ public abstract class AbstractGraphRepository<S extends PropertyContainer, T> im
 
     @Override
     public EndResult<T> findAll(Sort sort) {
-        TypeRepresentationStrategy nodeTypeRepresentationStrategy = template.getInfrastructure().getNodeTypeRepresentationStrategy();
-        CypherQuery cq = new CypherQuery(template.getEntityType(clazz).getEntity(),template,nodeTypeRepresentationStrategy);
+        CypherQuery cq = new CypherQuery(template.getEntityType(clazz).getEntity(),template, template.isLabelBased());
         return query(cq.toQueryString(sort), Collections.EMPTY_MAP);
     }
 
@@ -425,25 +343,6 @@ public abstract class AbstractGraphRepository<S extends PropertyContainer, T> im
             if (limit + skip == 0) break;
         }
         return count;
-    }
-
-    private class IndexHitsWrapper extends IterableWrapper<T, S> implements ClosableIterable<T> {
-        private final IndexHits<S> indexHits;
-
-        public IndexHitsWrapper(IndexHits<S> indexHits) {
-            super(indexHits);
-            this.indexHits = indexHits;
-        }
-
-        @SuppressWarnings({"unchecked"})
-        protected T underlyingObjectToObject(final S result) {
-            return createEntity(result);
-        }
-
-        @Override
-        public void close() {
-           this.indexHits.close();
-        }
     }
 
     @SuppressWarnings("unchecked")

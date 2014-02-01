@@ -23,11 +23,15 @@ import java.util.Map;
 
 public enum IndexType
 {   
-    SIMPLE{ public Map<String,String> getConfig() { return LuceneIndexImplementation.EXACT_CONFIG; } },
+    SIMPLE   { public Map<String,String> getConfig() { return LuceneIndexImplementation.EXACT_CONFIG; } },
+    LABEL    { public Map<String,String> getConfig() { return null; }  public boolean isLabelBased() { return true; }},
     FULLTEXT { public Map<String,String> getConfig() { return LuceneIndexImplementation.FULLTEXT_CONFIG; } },
-    POINT { public Map<String,String> getConfig() { return MapUtil.stringMap(
-            IndexManager.PROVIDER, "spatial", "geometry_type" , "point","wkt","wkt") ; } },
-    UNIQUE(){ public Map<String, String> getConfig() { return LuceneIndexImplementation.EXACT_CONFIG; } };
+    POINT    { public Map<String,String> getConfig() { return MapUtil.stringMap(
+                      IndexManager.PROVIDER, "spatial", "geometry_type" , "point","wkt","wkt") ; } }
+
+    ;
 
     public abstract Map<String, String>getConfig();
+
+    public boolean isLabelBased() { return false; }
 }

@@ -175,6 +175,11 @@ public class SubReferenceNodeTypeRepresentationStrategy implements NodeTypeRepre
     }
 
     @Override
+    public boolean isLabelBased() {
+        return false;
+    }
+
+    @Override
     public <T> ClosableIterable<Node> findAll(final StoredEntityType type) {
         final Node subrefNode = findSubreferenceNode(type);
 		if (log.isDebugEnabled()) log.debug("Subref: " + subrefNode);

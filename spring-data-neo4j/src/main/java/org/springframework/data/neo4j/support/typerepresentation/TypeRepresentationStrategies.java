@@ -96,6 +96,11 @@ public class TypeRepresentationStrategies implements TypeRepresentationStrategy<
         getTypeRepresentationStrategy(state).preEntityRemoval(state);
     }
 
+    @Override
+    public boolean isLabelBased() {
+        return nodeTypeRepresentationStrategy.isLabelBased();
+    }
+
     public TypeRepresentationStrategy<Node> getNodeTypeRepresentationStrategy() {
         return nodeTypeRepresentationStrategy;
     }

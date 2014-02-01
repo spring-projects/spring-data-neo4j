@@ -70,4 +70,6 @@ public interface TypeRepresentationStrategy<S extends PropertyContainer> {
      * @param state Backing state of entity being removed
      */
     void preEntityRemoval(S state);
+
+    boolean isLabelBased();
 }

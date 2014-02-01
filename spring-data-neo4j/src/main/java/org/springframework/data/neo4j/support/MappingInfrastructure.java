@@ -30,6 +30,7 @@ import org.springframework.data.neo4j.support.mapping.Neo4jEntityPersister;
 import org.springframework.data.neo4j.support.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.support.node.EntityStateFactory;
 import org.springframework.data.neo4j.support.query.CypherQueryExecutor;
+import org.springframework.data.neo4j.support.schema.SchemaIndexProvider;
 import org.springframework.data.neo4j.support.typerepresentation.TypeRepresentationStrategies;
 import org.springframework.data.neo4j.support.typerepresentation.TypeRepresentationStrategyFactory;
 import org.springframework.data.neo4j.support.typesafety.TypeSafetyPolicy;
@@ -58,11 +59,12 @@ public class MappingInfrastructure implements Infrastructure {
     private final PlatformTransactionManager transactionManager;
     private final ResultConverter resultConverter;
     private final IndexProvider indexProvider;
+    private final SchemaIndexProvider schemaIndexProvider;
     private final GraphDatabaseService graphDatabaseService;
     private final GraphDatabase graphDatabase;
     private final TypeSafetyPolicy typeSafetyPolicy;
 
-    public MappingInfrastructure(GraphDatabase graphDatabase, GraphDatabaseService graphDatabaseService, IndexProvider indexProvider, ResultConverter resultConverter, PlatformTransactionManager transactionManager, TypeRepresentationStrategies typeRepresentationStrategies, EntityRemover entityRemover, Neo4jEntityPersister entityPersister, EntityStateHandler entityStateHandler, CypherQueryExecutor cypherQueryExecutor, Neo4jMappingContext mappingContext, TypeRepresentationStrategy<Relationship> relationshipTypeRepresentationStrategy, TypeRepresentationStrategy<Node> nodeTypeRepresentationStrategy, Validator validator, ConversionService conversionService, TypeSafetyPolicy typeSafetyPolicy) {
+    public MappingInfrastructure(GraphDatabase graphDatabase, GraphDatabaseService graphDatabaseService, IndexProvider indexProvider, ResultConverter resultConverter, PlatformTransactionManager transactionManager, TypeRepresentationStrategies typeRepresentationStrategies, EntityRemover entityRemover, Neo4jEntityPersister entityPersister, EntityStateHandler entityStateHandler, CypherQueryExecutor cypherQueryExecutor, Neo4jMappingContext mappingContext, TypeRepresentationStrategy<Relationship> relationshipTypeRepresentationStrategy, TypeRepresentationStrategy<Node> nodeTypeRepresentationStrategy, Validator validator, ConversionService conversionService, SchemaIndexProvider schemaIndexProvider, TypeSafetyPolicy typeSafetyPolicy) {
         this.graphDatabase = graphDatabase;
         this.graphDatabaseService = graphDatabaseService;
         this.indexProvider = indexProvider;
@@ -78,6 +80,7 @@ public class MappingInfrastructure implements Infrastructure {
         this.nodeTypeRepresentationStrategy = nodeTypeRepresentationStrategy;
         this.validator = validator;
         this.conversionService = conversionService;
+        this.schemaIndexProvider = schemaIndexProvider;
         this.typeSafetyPolicy = typeSafetyPolicy;
     }
 
@@ -154,5 +157,15 @@ public class MappingInfrastructure implements Infrastructure {
     @Override
     public TypeSafetyPolicy getTypeSafetyPolicy() {
         return typeSafetyPolicy;
+    }
+
+    @Override
+    public SchemaIndexProvider getSchemaIndexProvider() {
+        return schemaIndexProvider;
+    }
+
+    @Override
+    public CypherQueryExecutor getCypherQueryExecutor() {
+        return cypherQueryExecutor;
     }
 }

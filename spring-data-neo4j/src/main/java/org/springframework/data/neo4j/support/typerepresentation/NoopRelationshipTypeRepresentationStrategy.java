@@ -42,6 +42,11 @@ public class NoopRelationshipTypeRepresentationStrategy implements RelationshipT
     }
 
     @Override
+    public boolean isLabelBased() {
+        return false;
+    }
+
+    @Override
     public Object readAliasFrom(Relationship state) {
         return null;
     }

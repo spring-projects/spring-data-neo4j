@@ -15,7 +15,6 @@
  */
 package org.springframework.data.neo4j.support.mapping;
 
-import org.neo4j.graphdb.index.Index;
 import org.springframework.context.ApplicationListener;
 import org.springframework.data.mapping.PropertyHandler;
 import org.springframework.data.mapping.context.MappingContextEvent;
@@ -23,6 +22,7 @@ import org.springframework.data.neo4j.mapping.Neo4jPersistentEntity;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.support.index.IndexProvider;
 import org.springframework.data.neo4j.support.index.IndexType;
+import org.springframework.data.neo4j.support.schema.SchemaIndexProvider;
 
 /**
  * @author mh
@@ -30,8 +30,11 @@ import org.springframework.data.neo4j.support.index.IndexType;
  */
 public class IndexCreationMappingEventListener implements ApplicationListener<MappingContextEvent<Neo4jPersistentEntity<?>, Neo4jPersistentProperty>> {
     private IndexProvider indexProvider;
-    public IndexCreationMappingEventListener(IndexProvider indexProvider) {
+    private SchemaIndexProvider schemaIndexProvider;
+
+    public IndexCreationMappingEventListener(IndexProvider indexProvider, SchemaIndexProvider schemaIndexProvider) {
         this.indexProvider = indexProvider;
+        this.schemaIndexProvider = schemaIndexProvider;
     }
 
     @Override
@@ -43,11 +46,14 @@ public class IndexCreationMappingEventListener implements ApplicationListener<Ma
 
     private void ensureEntityIndexes(Neo4jPersistentEntity<?> entity) {
         final Class entityType = entity.getType();
-        indexProvider.getIndex(entity, null, IndexType.SIMPLE);
+        indexProvider.getIndex(entity, null, IndexType.SIMPLE); // TODO only when TRS is non-label?
         entity.doWithProperties(new PropertyHandler<Neo4jPersistentProperty>() {
             @Override
             public void doWithPersistentProperty(Neo4jPersistentProperty property) {
-                if (property.isIndexed()) {
+                if (!property.isIndexed()) return;
+                if (property.getIndexInfo().isLabelBased()) {
+                    schemaIndexProvider.createIndex(property);
+                } else {
                     indexProvider.getIndex(property, entityType);
                 }
             }

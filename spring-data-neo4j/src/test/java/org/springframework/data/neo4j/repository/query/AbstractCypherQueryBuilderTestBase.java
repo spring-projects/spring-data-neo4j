@@ -54,14 +54,14 @@ public abstract class AbstractCypherQueryBuilderTestBase {
     public void setUp() {
         Neo4jMappingContext context = new Neo4jMappingContext();
         Neo4jTemplate template = Mockito.mock(Neo4jTemplate.class);
-        Infrastructure inf = Mockito.mock(Infrastructure.class);
-        when (template.getInfrastructure()).thenReturn(inf);
-        when (inf.getNodeTypeRepresentationStrategy()).thenReturn(getNodeTypeRepresentationStrategy());
+        finishMock(template);
         this.query = new CypherQueryBuilder(context, Person.class, template);
         this.trsSpecificExpectedQuery = null;
     }
 
-    abstract NodeTypeRepresentationStrategy getNodeTypeRepresentationStrategy();
+    protected void finishMock(Neo4jTemplate template) {
+    }
+
 
     @Test
     public void createsQueryForSimplePropertyReference() {

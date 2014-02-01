@@ -113,4 +113,13 @@ public class StoredEntityType {
     public String toString() {
         return String.format("StoredEntityType for %s with alias %s",getType(),getAlias());
     }
+
+    public StoredEntityType findByTypeClass(Class type) {
+        if (getType().equals(type)) return this;
+        for (StoredEntityType superType : superTypes) {
+            StoredEntityType foundType = superType.findByTypeClass(type);
+            if (foundType!=null) return foundType;
+        }
+        return null;
+    }
 }

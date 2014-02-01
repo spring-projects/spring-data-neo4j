@@ -47,6 +47,7 @@ import org.springframework.data.neo4j.support.node.NodeEntityInstantiator;
 import org.springframework.data.neo4j.support.node.NodeEntityStateFactory;
 import org.springframework.data.neo4j.support.relationship.RelationshipEntityInstantiator;
 import org.springframework.data.neo4j.support.relationship.RelationshipEntityStateFactory;
+import org.springframework.data.neo4j.support.schema.SchemaIndexProvider;
 import org.springframework.data.neo4j.support.typerepresentation.ClassValueTypeInformationMapper;
 import org.springframework.data.neo4j.support.typerepresentation.TypeRepresentationStrategyFactory;
 import org.springframework.data.neo4j.support.typesafety.TypeSafetyPolicy;
@@ -238,7 +239,7 @@ public abstract class Neo4jConfiguration {
 
     @Bean
     public IndexCreationMappingEventListener indexCreationMappingEventListener() throws Exception {
-        return new IndexCreationMappingEventListener(indexProvider());
+        return new IndexCreationMappingEventListener(indexProvider(),schemaIndexProvider());
     }
 
     @Bean
@@ -262,6 +263,11 @@ public abstract class Neo4jConfiguration {
     @Bean
     public IndexProvider indexProvider() throws Exception {
         return new IndexProviderImpl(graphDatabase());
+    }
+
+    @Bean
+    public SchemaIndexProvider schemaIndexProvider() throws Exception {
+        return new SchemaIndexProvider(graphDatabase());
     }
 
     @Bean

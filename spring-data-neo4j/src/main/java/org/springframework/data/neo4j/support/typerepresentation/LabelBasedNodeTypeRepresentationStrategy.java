@@ -130,6 +130,11 @@ public class LabelBasedNodeTypeRepresentationStrategy implements NodeTypeReprese
     public void preEntityRemoval(Node state) {
     }
 
+    @Override
+    public boolean isLabelBased() {
+        return true;
+    }
+
     public static boolean isStrategyAlreadyInUse(GraphDatabase graphDatabaseService) {
         return graphDatabaseService.getAllLabelNames().contains(SDN_LABEL_STRATEGY);
     }

@@ -45,6 +45,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 
 public abstract class AbstractNodeTypeRepresentationStrategyTestBase extends EntityTestBase {
 
@@ -96,7 +97,12 @@ public abstract class AbstractNodeTypeRepresentationStrategyTestBase extends Ent
                 IteratorUtil.addToCollection(allThings, new HashSet<Node>()));
 	}
 
-	@Test
+    @Test
+    public void testAssertLabelIndexOrNot() throws Exception {
+        assertFalse("not label based", nodeTypeRepresentationStrategy.isLabelBased());
+    }
+
+    @Test
 	@Transactional
 	public void testCountOfSuperTypeIncludesSubTypes() throws Exception {
         final int EXPECTED_NUM_THINGS = 1;

@@ -101,6 +101,11 @@ public abstract class AbstractIndexBasedTypeRepresentationStrategy<S extends Pro
         remove(state);
     }
 
+    @Override
+    public boolean isLabelBased() {
+        return false;
+    }
+
     private void remove(S state) {
         try {
             typesIndex.remove(state);

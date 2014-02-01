@@ -295,6 +295,10 @@ public class Neo4jTemplate implements Neo4jOperations, ApplicationContextAware {
         return getMappingContext().isRelationshipEntity(targetType);
     }
 
+    public boolean isLabelBased() {
+        return getInfrastructure().getNodeTypeRepresentationStrategy().isLabelBased();
+    }
+
     @Override
     @SuppressWarnings("unchecked")
     public <T> T save(T entity) {

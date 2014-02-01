@@ -48,6 +48,7 @@ import java.util.HashSet;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 
 /**
@@ -76,7 +77,7 @@ public class IndexBasedNodeTypeRepresentationStrategyTests extends AbstractNodeT
                 instanceOf(IndexBasedNodeTypeRepresentationStrategy.class));
     }
 
-	@Test
+    @Test
 	@Transactional
     @Override
 	public void testPostEntityCreation() throws Exception {

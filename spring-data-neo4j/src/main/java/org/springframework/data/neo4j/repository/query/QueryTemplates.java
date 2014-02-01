@@ -42,6 +42,7 @@ public abstract class QueryTemplates {
     private static final String DIRECTION_INCOMING = "<-[:`%s`]-";
     private static final String DIRECTION_OUTGOING = "-[:`%s`]->";
     private static final String DIRECTION_BOTH = "-[:`%s`]-";
+    static final String MATCH_CLAUSE_SINGLE = "(`%s`)";
     static final String MATCH_CLAUSE = "(`%s`)%s(`%s`)";
     static final String MATCH_CLAUSE2 = "%s%s(`%s`)";
 
@@ -53,6 +54,7 @@ public abstract class QueryTemplates {
     static final String START_CLAUSE_INDEX_LOOKUP = "`%s`=node:`%s`(`%s`=" + PLACEHOLDER + ")";
     static final String START_CLAUSE_INDEX_QUERY = "`%s`=node:`%s`(" + PLACEHOLDER + ")";
     static final String WHERE_CLAUSE_1 = "`%1$s`.`%2$s` %3$s {%4$d}";
+    static final String WHERE_CLAUSE_ID = "id(`%1$s`) %2$s {%3$d}";
     static final String INDEXBASED_WHERE_TYPE_CHECK = "`%1$s`.__type__ IN [%2$s]";
     static final String LABELBASED_WHERE_TYPE_CHECK = "`%1$s`:%2$s";
     static final String WHERE_CLAUSE_0 = "`%1$s`.`%2$s` %3$s ";
