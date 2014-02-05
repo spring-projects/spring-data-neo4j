@@ -34,6 +34,7 @@ import org.springframework.data.neo4j.support.Neo4jTemplate;
 import org.springframework.data.neo4j.support.ReferenceNodes;
 import org.springframework.data.neo4j.support.conversion.NoSuchColumnFoundException;
 import org.springframework.data.neo4j.support.node.Neo4jHelper;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.CleanContextCacheTestExecutionListener;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestExecutionListeners;
