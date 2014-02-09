@@ -25,10 +25,12 @@ import org.neo4j.graphdb.Transaction;
 import org.neo4j.helpers.collection.ClosableIterable;
 import org.neo4j.helpers.collection.IteratorUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.neo4j.annotation.Indexed;
 import org.springframework.data.neo4j.annotation.NodeEntity;
 import org.springframework.data.neo4j.aspects.support.EntityTestBase;
 import org.springframework.data.neo4j.core.NodeTypeRepresentationStrategy;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
+import org.springframework.data.neo4j.support.index.IndexType;
 import org.springframework.data.neo4j.support.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.support.mapping.StoredEntityType;
 import org.springframework.data.neo4j.support.typerepresentation.LabelBasedNodeTypeRepresentationStrategy;
@@ -59,7 +61,7 @@ public abstract class AbstractNodeTypeRepresentationStrategyTestBase extends Ent
 
     protected Thing thing;
     protected SubThing subThing;
-    protected SubThing subSubThing;
+    protected SubSubThing subSubThing;
     protected StoredEntityType thingType;
     protected StoredEntityType subThingType;
     protected StoredEntityType subSubThingType;

@@ -17,14 +17,10 @@
 package org.springframework.data.neo4j.support.typerepresentation;
 
 import org.neo4j.graphdb.*;
-import org.neo4j.graphdb.index.Index;
 import org.springframework.data.neo4j.core.GraphDatabase;
 import org.springframework.data.neo4j.core.NodeTypeRepresentationStrategy;
 import org.springframework.data.neo4j.core.RelationshipTypeRepresentationStrategy;
-import org.springframework.data.neo4j.repository.query.CypherQuery;
 import org.springframework.data.neo4j.support.index.IndexProvider;
-import org.springframework.data.neo4j.support.index.NoSuchIndexException;
-import org.springframework.data.neo4j.support.query.QueryEngine;
 
 public class TypeRepresentationStrategyFactory {
     private final GraphDatabase graphDatabaseService;

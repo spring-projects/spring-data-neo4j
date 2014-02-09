@@ -15,9 +15,11 @@
  */
 package org.springframework.data.neo4j.support.mapping;
 
+import org.neo4j.graphdb.Node;
 import org.springframework.context.ApplicationListener;
 import org.springframework.data.mapping.PropertyHandler;
 import org.springframework.data.mapping.context.MappingContextEvent;
+import org.springframework.data.neo4j.core.TypeRepresentationStrategy;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentEntity;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.support.index.IndexProvider;
@@ -31,10 +33,12 @@ import org.springframework.data.neo4j.support.schema.SchemaIndexProvider;
 public class IndexCreationMappingEventListener implements ApplicationListener<MappingContextEvent<Neo4jPersistentEntity<?>, Neo4jPersistentProperty>> {
     private IndexProvider indexProvider;
     private SchemaIndexProvider schemaIndexProvider;
+    private TypeRepresentationStrategy<Node> nodeTypeRepresentationStrategy;
 
-    public IndexCreationMappingEventListener(IndexProvider indexProvider, SchemaIndexProvider schemaIndexProvider) {
+    public IndexCreationMappingEventListener(IndexProvider indexProvider, SchemaIndexProvider schemaIndexProvider, TypeRepresentationStrategy<Node> nodeTypeRepresentationStrategy) {
         this.indexProvider = indexProvider;
         this.schemaIndexProvider = schemaIndexProvider;
+        this.nodeTypeRepresentationStrategy = nodeTypeRepresentationStrategy;
     }
 
     @Override
@@ -46,14 +50,26 @@ public class IndexCreationMappingEventListener implements ApplicationListener<Ma
 
     private void ensureEntityIndexes(Neo4jPersistentEntity<?> entity) {
         final Class entityType = entity.getType();
-        indexProvider.getIndex(entity, null, IndexType.SIMPLE); // TODO only when TRS is non-label?
+
+        // TODO only when TRS is non-label? I think we prob need to do it
+        //      anyway as you can still mix legacy indexes with label based
+        //      ones???
+        // Pass 1 - do schema based updates first to prevent locking
         entity.doWithProperties(new PropertyHandler<Neo4jPersistentProperty>() {
             @Override
             public void doWithPersistentProperty(Neo4jPersistentProperty property) {
-                if (!property.isIndexed()) return;
-                if (property.getIndexInfo().isLabelBased()) {
+                if (nodeTypeRepresentationStrategy.isLabelBased() && property.isIndexed() && property.getIndexInfo().isLabelBased()) {
                     schemaIndexProvider.createIndex(property);
-                } else {
+                }
+            }
+        });
+
+        // Pass 2 - do everything else
+        indexProvider.getIndex(entity, null, IndexType.SIMPLE);
+        entity.doWithProperties(new PropertyHandler<Neo4jPersistentProperty>() {
+            @Override
+            public void doWithPersistentProperty(Neo4jPersistentProperty property) {
+                if (property.isIndexed() && !property.getIndexInfo().isLabelBased()){
                     indexProvider.getIndex(property, entityType);
                 }
             }

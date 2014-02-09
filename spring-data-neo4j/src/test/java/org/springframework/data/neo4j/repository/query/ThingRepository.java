@@ -55,4 +55,7 @@ public interface ThingRepository extends GraphRepository<AbstractDerivedFinderMe
     Thing findByBornAfter(Date date);
     Thing findById(long id);
     Thing findByOwnerId(long id);
+
+    // Label based indexes
+    Thing findByAlias(String alias);
 }

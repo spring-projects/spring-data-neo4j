@@ -28,6 +28,7 @@ import org.springframework.test.context.TestExecutionListeners;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
 import org.springframework.test.context.transaction.TransactionalTestExecutionListener;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -35,6 +36,8 @@ import java.util.concurrent.TimeUnit;
 import static java.util.Arrays.asList;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.instanceOf;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 
 /**
  * Tests for the various finder method based scenarios
@@ -89,6 +92,29 @@ public class DerivedFinderMethodForIndexedBasedTRSTests extends AbstractDerivedF
                 "START `thing`=node:`Thing`(`firstName`={0}) RETURN `thing`";
         this.trsSpecificExpectedParams = new Object[] { "foo" };
         super.testIndexQueryWithOneParam();
+    }
+
+    @Test
+    @Override
+    public void testLabelBasedIndexQueryWithOneParam() throws Exception {
+
+        // Ensure mappingContext set NOT to fail (but rather warn)
+        // when incompatibility detected
+        assertFalse(ctx.isFailWhenIncompatibleLabelIndexUsage());
+
+        /*
+            Is this the correct logic??? - what should we do when a derived
+            field has been marked as a label based indexed field and
+            we have a legacy based indexing strategy in play. Have currently
+            added in properties failWhenIncompatibleLabelIndexUsage and
+            isLabelBasedTRSInUse to Neo4jMappingContext to help
+
+         */
+        // "findByAlias",
+        this.trsSpecificExpectedQuery = DEFAULT_START_CLAUSE +
+                " WHERE `thing`.`alias` = {0} RETURN `thing`";
+        this.trsSpecificExpectedParams = new Object[] { "foo" };
+        super.testLabelBasedIndexQueryWithOneParam();
     }
 
     @Test
@@ -360,6 +386,12 @@ public class DerivedFinderMethodForIndexedBasedTRSTests extends AbstractDerivedF
         this.trsSpecificExpectedQuery =
                 "START `thing`=node:`Thing`(`number`={0}) RETURN `thing`";
         super.testFindByNumericIndexedField();
+    }
+
+    @Test
+    @Transactional
+    public void testMultipleIndexedFields() throws Exception {
+        super.testMultipleIndexedFields();
     }
 
 }

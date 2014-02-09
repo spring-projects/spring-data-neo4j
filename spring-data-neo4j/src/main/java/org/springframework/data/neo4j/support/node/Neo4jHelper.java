@@ -95,6 +95,9 @@ public abstract class Neo4jHelper {
                 }
 
             }
+            for (Label label: node.getLabels()) {
+                node.removeLabel(label);
+            }
         }
         for (Node node : globalGraphOperations.getAllNodes()) {
             try {

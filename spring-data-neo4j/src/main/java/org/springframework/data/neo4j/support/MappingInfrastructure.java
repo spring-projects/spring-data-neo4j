@@ -22,17 +22,14 @@ import org.springframework.core.convert.ConversionService;
 import org.springframework.data.neo4j.conversion.ResultConverter;
 import org.springframework.data.neo4j.core.GraphDatabase;
 import org.springframework.data.neo4j.core.TypeRepresentationStrategy;
-import org.springframework.data.neo4j.mapping.EntityInstantiator;
 import org.springframework.data.neo4j.support.index.IndexProvider;
 import org.springframework.data.neo4j.support.mapping.EntityRemover;
 import org.springframework.data.neo4j.support.mapping.EntityStateHandler;
 import org.springframework.data.neo4j.support.mapping.Neo4jEntityPersister;
 import org.springframework.data.neo4j.support.mapping.Neo4jMappingContext;
-import org.springframework.data.neo4j.support.node.EntityStateFactory;
 import org.springframework.data.neo4j.support.query.CypherQueryExecutor;
 import org.springframework.data.neo4j.support.schema.SchemaIndexProvider;
 import org.springframework.data.neo4j.support.typerepresentation.TypeRepresentationStrategies;
-import org.springframework.data.neo4j.support.typerepresentation.TypeRepresentationStrategyFactory;
 import org.springframework.data.neo4j.support.typesafety.TypeSafetyPolicy;
 import org.springframework.transaction.PlatformTransactionManager;
 

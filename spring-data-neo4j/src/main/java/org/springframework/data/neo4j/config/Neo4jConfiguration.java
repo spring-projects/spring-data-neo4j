@@ -203,6 +203,8 @@ public abstract class Neo4jConfiguration {
             mappingContext.setInitialEntitySet(initialEntitySet);
         }
         mappingContext.setEntityAlias(entityAlias());
+        mappingContext.setIsLabelBased(nodeTypeRepresentationStrategy().isLabelBased());
+        mappingContext.setFailWhenIncompatibleLabelIndexUsage(false);
         return mappingContext;
     }
 
@@ -239,7 +241,10 @@ public abstract class Neo4jConfiguration {
 
     @Bean
     public IndexCreationMappingEventListener indexCreationMappingEventListener() throws Exception {
-        return new IndexCreationMappingEventListener(indexProvider(),schemaIndexProvider());
+        return new IndexCreationMappingEventListener(
+                indexProvider(),
+                schemaIndexProvider(),
+                nodeTypeRepresentationStrategy());
     }
 
     @Bean

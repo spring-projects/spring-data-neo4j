@@ -32,6 +32,7 @@ import java.util.Date;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.instanceOf;
+import static org.junit.Assert.fail;
 
 /**
  * Tests for the various finder method based scenarios
@@ -365,5 +366,16 @@ public class DerivedFinderMethodForLabelBasedTRSTests extends AbstractDerivedFin
         // findByNumber
         this.trsSpecificExpectedQuery = "START `thing`=node:`Thing`(`number`={0}) RETURN `thing`";
         super.testFindByNumericIndexedField();
+    }
+
+    @Test
+    @Override
+    public void testLabelBasedIndexQueryWithOneParam() throws Exception {
+        // findByAlias
+        this.trsSpecificExpectedQuery = DEFAULT_MATCH_CLAUSE +
+                " WHERE `thing`.`alias` = {0}" +
+                " RETURN `thing`";
+        this.trsSpecificExpectedParams = new Object[] { "foo" };
+        super.testLabelBasedIndexQueryWithOneParam();
     }
 }
