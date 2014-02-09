@@ -1,5 +1,5 @@
 /**
- * Copyright 2011 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,13 +26,13 @@ import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
 
 
-public class IndexingPropertyFieldAccessorListenerFactory<S extends PropertyContainer, T> implements FieldAccessorListenerFactory {
+public class SchemaIndexingPropertyFieldAccessorListenerFactory<S extends PropertyContainer, T> implements FieldAccessorListenerFactory {
 
     private final PropertyFieldAccessorFactory propertyFieldAccessorFactory;
     private final ConvertingNodePropertyFieldAccessorFactory convertingNodePropertyFieldAccessorFactory;
     private final Neo4jTemplate template;
 
-    public IndexingPropertyFieldAccessorListenerFactory(final Neo4jTemplate template, final PropertyFieldAccessorFactory propertyFieldAccessorFactory, final ConvertingNodePropertyFieldAccessorFactory convertingNodePropertyFieldAccessorFactory) {
+    public SchemaIndexingPropertyFieldAccessorListenerFactory(final Neo4jTemplate template, final PropertyFieldAccessorFactory propertyFieldAccessorFactory, final ConvertingNodePropertyFieldAccessorFactory convertingNodePropertyFieldAccessorFactory) {
         this.template = template;
     	this.propertyFieldAccessorFactory = propertyFieldAccessorFactory;
         this.convertingNodePropertyFieldAccessorFactory = convertingNodePropertyFieldAccessorFactory;
@@ -40,7 +40,7 @@ public class IndexingPropertyFieldAccessorListenerFactory<S extends PropertyCont
 
     @Override
     public boolean accept(final Neo4jPersistentProperty property) {
-        return isPropertyField(property) && property.isIndexed() && !property.getIndexInfo().isLabelBased();
+        return isPropertyField(property) && property.isIndexed() && property.getIndexInfo().isLabelBased();
     }
 
 
@@ -50,48 +50,30 @@ public class IndexingPropertyFieldAccessorListenerFactory<S extends PropertyCont
 
     @Override
     public FieldAccessListener forField(Neo4jPersistentProperty property) {
-        return new IndexingPropertyFieldAccessorListener(property, template);
+        return new SchemaIndexingPropertyFieldAccessorListener(property, template);
     }
 
 
     /**
-	 * @author Michael Hunger
-	 * @since 12.09.2010
+	 * @author Nicki Watt
+	 * @since 09.02.2014
 	 */
-	public static class IndexingPropertyFieldAccessorListener<T extends PropertyContainer> implements FieldAccessListener {
+	public static class SchemaIndexingPropertyFieldAccessorListener<T extends PropertyContainer> implements FieldAccessListener {
 
-	    private final static Logger log = LoggerFactory.getLogger(IndexingPropertyFieldAccessorListener.class);
+	    private final static Logger log = LoggerFactory.getLogger(SchemaIndexingPropertyFieldAccessorListener.class);
 
-	    protected final String indexKey;
         private final Neo4jPersistentProperty property;
         private final Neo4jTemplate template;
 
-        public IndexingPropertyFieldAccessorListener(final Neo4jPersistentProperty property, Neo4jTemplate template) {
+        public SchemaIndexingPropertyFieldAccessorListener(final Neo4jPersistentProperty property, Neo4jTemplate template) {
             this.property = property;
             this.template = template;
-            indexKey = template.getIndexKey(property);
         }
 
 	    @Override
         public void valueChanged(Object entity, Object oldVal, Object newVal) {
-            @SuppressWarnings("unchecked") Index<T> index = template.getIndex(property, entity.getClass());
-            if (newVal instanceof Number && property.getIndexInfo().isNumeric()) newVal = ValueContext.numeric((Number) newVal);
-
-            final T state = template.getPersistentState(entity);
-            index.remove(state, indexKey);
-            if (newVal != null) {
-                if (property.isUnique()) {
-                    addUniquely(index, state, newVal);
-                } else {
-                    index.add(state, indexKey, newVal);
-                }
-            }
+            // Nothing to do as schema indexes are dealt with internally by Neo?
         }
 
-        private void addUniquely(Index<T> index, T state, Object newVal) {
-            final T existingState = index.putIfAbsent(state, indexKey, newVal);
-            if (existingState == null || existingState.equals(state)) return;
-            throw new DataIntegrityViolationException("Unique property "+property+" was to be set to duplicate value "+newVal);
-        }
     }
 }

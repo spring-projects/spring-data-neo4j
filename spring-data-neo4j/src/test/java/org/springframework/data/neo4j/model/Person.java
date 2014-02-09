@@ -46,6 +46,9 @@ public class Person implements Being , Serializable {
 	@Indexed
 	private String nickname;
 
+    @Indexed(indexType = IndexType.LABEL, numeric = false)
+    private String alias;
+
 	@Indexed(indexType = IndexType.POINT, indexName="personLayer")
     private String wkt;
 
@@ -326,5 +329,13 @@ public class Person implements Being , Serializable {
 
     public void addSerialFriend(Person serialFriend) {
         getSerialFriends().add(serialFriend);
+    }
+
+    public String getAlias() {
+        return alias;
+    }
+
+    public void setAlias(String alias) {
+        this.alias = alias;
     }
 }

@@ -59,6 +59,9 @@ public class PartInfo {
         return getLeafProperty().isRelationship();
     }
 
+    public boolean isLabelIndexed() {
+        return isIndexed() && getLeafProperty().getIndexInfo().isLabelBased();
+    }
 
     public boolean isIndexed() {
         return getLeafProperty().isIndexed();

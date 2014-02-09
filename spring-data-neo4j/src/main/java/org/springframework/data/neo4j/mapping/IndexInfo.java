@@ -53,14 +53,21 @@ public class IndexInfo {
     private String determineLabelIndexName(Indexed annotation, Neo4jPersistentProperty property) {
         if (!annotation.indexName().isEmpty()) throw new MappingException("No index name allowed on label based indexes");
         Neo4jPersistentEntity<?> entity = property.getOwner();
+        // NW StoredEntityType not available at this stage yet ....
+        // only set when entity.updateStoredType(..) called
         StoredEntityType entityType = entity.getEntityType();
         switch (annotation.level()) {
             case CLASS:
                 Class<?> declaringClass = property.getField().getDeclaringClass();
-                StoredEntityType classType = entityType.findByTypeClass(declaringClass);
-                return classType.getAlias().toString();
+                return
+                    (entityType != null)
+                            ? entityType.findByTypeClass(declaringClass).getAlias().toString()
+                            : entity.getType().getSimpleName();  // Not right but not sure what to do here
             case INSTANCE:
-                return entityType.getAlias().toString();
+                return
+                    (entityType != null)
+                            ? entityType.getAlias().toString()
+                            : entity.getType().getSimpleName();  // Not right but not sure what to do here
             case GLOBAL: throw new MappingException("No global index for label based indexes");
         }
         return entityType.getAlias().toString();

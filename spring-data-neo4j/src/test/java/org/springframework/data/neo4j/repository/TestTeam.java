@@ -39,13 +39,16 @@ public class TestTeam {
 
     public TestTeam createSDGTeam(GraphRepository<Person> repo, GraphRepository<Group> groupRepo, GraphRepository<Friendship> friendshipRepository) {
         emil = new Person("Emil", 30);
+        emil.setAlias("emilAlias");
 
         michael = new Person("Michael", 36);
         michael.setBoss(emil);
         michael.setPersonality(Personality.EXTROVERT);
         michael.setLocation( "POINT(16 56)" );
+        michael.setAlias("michaelAlias");
 
         david = new Person("David", 25);
+        david.setAlias("davidAlias");
         david.setBoss(emil);
         david.setLocation( 16.5, 56.5 );
         friendShip = michael.knows(david);

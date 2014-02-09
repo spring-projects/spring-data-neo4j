@@ -17,7 +17,10 @@
 package org.springframework.data.neo4j.support.mapping;
 
 import org.neo4j.graphdb.PropertyContainer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.annotation.Reference;
+import org.springframework.data.mapping.PropertyHandler;
 import org.springframework.data.mapping.context.AbstractMappingContext;
 import org.springframework.data.mapping.context.MappingContext;
 import org.springframework.data.mapping.model.MappingException;
@@ -34,6 +37,8 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.util.*;
 
+import static java.lang.String.format;
+
 /**
  * Neo4J specific {@link MappingContext} implementation. Simply creates {@link Neo4jPersistentEntityImpl} and
  * {@link org.springframework.data.neo4j.mapping.Neo4jPersistentProperty} instances.
@@ -41,6 +46,31 @@ import java.util.*;
  * @author Oliver Gierke
  */
 public class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersistentEntityImpl<?>, Neo4jPersistentProperty> {
+
+    private final static Logger log = LoggerFactory.getLogger(Neo4jMappingContext.class);
+
+    // By default we don't fail but rather just output a warning
+    // (perhaps people have changed, or are busy changing TRS strategies
+    // and are happy for properties annotated as label indexes to
+    // resort to simple fields in this case ???)
+    private boolean failWhenIncompatibleLabelIndexUsage = false;
+    private Boolean isLabelBasedTRSInUse;
+
+    public Boolean getIsLabelBased() {
+        return isLabelBasedTRSInUse;
+    }
+
+    public void setIsLabelBased(Boolean labelBased) {
+        isLabelBasedTRSInUse = labelBased;
+    }
+
+    public boolean isFailWhenIncompatibleLabelIndexUsage() {
+        return failWhenIncompatibleLabelIndexUsage;
+    }
+
+    public void setFailWhenIncompatibleLabelIndexUsage(boolean failWhenIncompatibleLabelIndexUsage) {
+        this.failWhenIncompatibleLabelIndexUsage = failWhenIncompatibleLabelIndexUsage;
+    }
 
     private final Map<Annotation, Boolean> referenceAnnotations = new IdentityHashMap<Annotation, java.lang.Boolean>();
     
@@ -60,7 +90,27 @@ public class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersistentE
         final Neo4jPersistentEntityImpl<?> entity = super.addPersistentEntity(typeInformation);
         Collection<Neo4jPersistentEntity<?>> superTypeEntities = addSuperTypes(entity);
         entity.updateStoredType(new StoredEntityType(entity,superTypeEntities,entityAlias));
+        doAdditionalEntityVerification(entity);
         return entity;
+    }
+
+    private void doAdditionalEntityVerification(Neo4jPersistentEntityImpl<?> entity) {
+        // NW-HACK checking if null for isLabelBasedTRSInUse, but should
+        // prob just blow up??
+        if (isLabelBasedTRSInUse!= null && !isLabelBasedTRSInUse) {
+            entity.doWithProperties(new PropertyHandler<Neo4jPersistentProperty>() {
+                @Override
+                public void doWithPersistentProperty(Neo4jPersistentProperty persistentProperty) {
+                    if (persistentProperty.isIndexed() && persistentProperty.getIndexInfo().isLabelBased()) {
+                        if (failWhenIncompatibleLabelIndexUsage) {
+                            throw new RuntimeException(format("Incompatible entity definition: property %s has label based index annotation however label type representation strategy not in use",persistentProperty.getName()));
+                        } else {
+                            log.warn("Incompatible entity definition: property {} has label based index annotation however label type representation strategy not in use - will be treated as normal property", persistentProperty.getName());
+                        }
+                    }
+                }
+            });
+        }
     }
 
     private List<Neo4jPersistentEntity<?>> addSuperTypes(Neo4jPersistentEntity<?> entity) {

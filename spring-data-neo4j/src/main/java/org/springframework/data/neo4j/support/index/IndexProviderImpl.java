@@ -23,7 +23,6 @@ import org.springframework.data.neo4j.annotation.Indexed;
 import org.springframework.data.neo4j.core.GraphDatabase;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentEntity;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
-import org.springframework.data.neo4j.support.schema.SchemaIndexProvider;
 
 import static org.springframework.data.neo4j.support.ParameterCheck.notNull;
 

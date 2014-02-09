@@ -65,6 +65,9 @@ public abstract class AbstractDerivedFinderMethodTestBase {
         @Indexed
         String lastName;
 
+        @Indexed(indexType = IndexType.LABEL, numeric = false)
+        String alias;
+
         String name;
         boolean tagged;
 
@@ -147,6 +150,15 @@ public abstract class AbstractDerivedFinderMethodTestBase {
     public void testIndexQueryWithOneParam() throws Exception {
         assertRepositoryQueryMethod(ThingRepository.class,
                 "findByFirstName",
+                new Object[]{"foo"},
+                getExpectedQuery("subclass-to-supply-trs-specific-query"),
+                getExpectedParams("foo"));
+    }
+
+    @Test
+    public void testLabelBasedIndexQueryWithOneParam() throws Exception {
+        assertRepositoryQueryMethod(ThingRepository.class,
+                "findByAlias",
                 new Object[]{"foo"},
                 getExpectedQuery("subclass-to-supply-trs-specific-query"),
                 getExpectedParams("foo"));
