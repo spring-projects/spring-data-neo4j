@@ -17,6 +17,7 @@
 package org.springframework.data.neo4j.repository;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
@@ -96,5 +97,21 @@ public class SpatialGraphRepositoryTests {
     public void testFindPeopleWithinDistance() {
         Iterable<Person> teamMembers = personRepository.findWithinDistance("personLayer", 16,56,70);
         assertThat(asCollection(teamMembers), hasItems(testTeam.michael, testTeam.david));
+    }
+
+    @Test
+    @Ignore
+    public void testPerformance() throws Exception {
+        long time=System.currentTimeMillis();
+        for (int i=0;i<5000;i++) {
+            if (i % 1000 == 0) {
+                long now = System.currentTimeMillis();
+                System.out.println(i+". entries " + (now-time));
+                time=now;
+            }
+            Person person = new Person("John " + i, 40 + i);
+            person.setLocation((i % 180) - 90,(i % 180) - 90);
+            personRepository.save(person);
+        }
     }
 }

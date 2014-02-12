@@ -56,7 +56,7 @@ public class TypeRepresentationStrategyFactory {
             if (SubReferenceNodeTypeRepresentationStrategy.isStrategyAlreadyInUse(graphDatabaseService)) return Strategy.SubRef;
             if (LabelBasedNodeTypeRepresentationStrategy.isStrategyAlreadyInUse(graphDatabaseService)) return Strategy.Labeled;
             tx.success();
-            return Strategy.Labeled;
+            return Strategy.Indexed;
         }
     }
 
