@@ -30,18 +30,18 @@ import org.springframework.test.context.support.DependencyInjectionTestExecution
 import static org.junit.Assert.assertTrue;
 
 /**
- * This version DOES work, only because the entities have been setup as part of the
- * initialSet for the mappingContext. Compare with the other LabelBasedIndex...Tests
+ * This version still DOES NOT work, tried getting the initialEntity set to be populated
+ * based on base-package scanning .
  *
  * @author Nicki Watt
  * @since 09-02-2014
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = {
-        "classpath:org/springframework/data/neo4j/aspects/support/LabelBasedIndexedPropertyEntityTests-context-with-initialset.xml",
+        "classpath:org/springframework/data/neo4j/aspects/support/LabelBasedIndexedPropertyEntityTests-context-basic.xml",
         "classpath:org/springframework/data/neo4j/aspects/support/LabelingTypeRepresentationStrategyOverride-context.xml"})
 @TestExecutionListeners({CleanContextCacheTestExecutionListener.class, DependencyInjectionTestExecutionListener.class})
-public class LabelBasedIndexedPropertyHangingAvertedViaInitialEntitySetTests extends  LabelBasedIndexedPropertyEntityTestBase {
+public class LabelBasedIndexedPropertyHangingWithBasicTests extends  LabelBasedIndexedPropertyEntityTestBase {
 
     @Override
     @Before
@@ -54,8 +54,9 @@ public class LabelBasedIndexedPropertyHangingAvertedViaInitialEntitySetTests ext
         queryEngine = neo4jTemplate.queryEngineFor(QueryType.Cypher);
 
         // NW-ISSUE01
-        // This now works because of the initialEntitySet in mappingContext
-        // see LabelBasedIndexedPropertyEntityTests-context-with-initialset.xml
+        // Still doesn't work (initialEntitySet not being populated in mappingContext)
+        // see LabelBasedIndexedPropertyEntityTests-context-basic.xml is doing a component
+        // scan but not picked up??
         try (Transaction tx = graphDatabaseService.beginTx()) {
             createThing();
             createSubThing();
