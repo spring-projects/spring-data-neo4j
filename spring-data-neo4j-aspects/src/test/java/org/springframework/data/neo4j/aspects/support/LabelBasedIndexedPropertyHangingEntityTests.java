@@ -43,7 +43,7 @@ import static org.junit.Assert.assertTrue;
         "classpath:org/springframework/data/neo4j/aspects/support/LabelBasedIndexedPropertyEntityTests-context.xml",
         "classpath:org/springframework/data/neo4j/aspects/support/LabelingTypeRepresentationStrategyOverride-context.xml"})
 @TestExecutionListeners({CleanContextCacheTestExecutionListener.class, DependencyInjectionTestExecutionListener.class})
-public class LabelBasedIndexedPropertyHangingEntityTests extends  LabelBasedIndexedPropertyEntityTests{
+public class LabelBasedIndexedPropertyHangingEntityTests extends  LabelBasedIndexedPropertyEntityTestBase {
 
     @Override
     @Before
