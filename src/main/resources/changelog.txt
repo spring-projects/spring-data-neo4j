@@ -1,8 +1,19 @@
 Spring Data Neo4j Changelog
 ===========================
 
+Changes in version 2.3.4.RELEASE (2013-02-17)
+---------------------------------------------
+* No changes.
+
+Changes in version 3.0.0.RC1 (2014-01-29)
+-----------------------------------------
+* DATAGRAPH-423 - Upgrade to Neo4j 2.0 GA (read-tx, removal reference node, fixing tests, update dependencies)
+* DATAGRAPH-414 - Fixed Bundlor issue
+* DATAGRAPH-413 - Fixed ConcurrentModificationException with Advanced Mode and implicit tx
+* DATAGRAPH-424 - Release Spring Data Neo4j 3.0 RC1
+
 Changes in version 2.3.3.RELEASE (2013-12-11)
-----------------------------------------
+---------------------------------------------
 * DATAGRAPH-407 - Bug when deleting nodes on an auto_index index
 * DATAGRAPH-409 - Improved default transaction configuration for repositories.
 * DATAGRAPH-415 - Release 2.3.3
