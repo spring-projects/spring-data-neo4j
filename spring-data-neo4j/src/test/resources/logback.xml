@@ -7,9 +7,9 @@
                 </encoder>
         </appender>
 
-        <!--
-        <logger name="org.springframework" level="debug" />
-         -->
+
+        <logger name="org.springframework.data.neo4j.support.schema" level="info" />
+
 
         <root level="error">
                 <appender-ref ref="console" />

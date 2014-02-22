@@ -19,7 +19,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.data.mapping.model.MappingException;
 import org.springframework.data.neo4j.model.Person;
-import org.springframework.data.neo4j.model.PrimitiveIdEntity;
+import org.springframework.data.neo4j.invalid.model.PrimitiveIdEntity;
 import org.springframework.data.neo4j.support.index.IndexType;
 import org.springframework.data.neo4j.support.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.support.mapping.Neo4jPersistentEntityImpl;

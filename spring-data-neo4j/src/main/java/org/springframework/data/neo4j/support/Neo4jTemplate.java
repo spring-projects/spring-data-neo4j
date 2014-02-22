@@ -663,7 +663,9 @@ public class Neo4jTemplate implements Neo4jOperations, ApplicationContextAware {
         final PropertyContainer container = entity instanceof PropertyContainer ? (PropertyContainer) entity : getPersistentState(entity);
         if (container == null) return null;
         final Object alias = getInfrastructure().getTypeRepresentationStrategies().readAliasFrom(container);
-        return getMappingContext().getPersistentEntity(alias).getEntityType();
+        return (alias == null)
+            ? null
+            : getMappingContext().getPersistentEntity(alias).getEntityType();
     }
 
     @Override

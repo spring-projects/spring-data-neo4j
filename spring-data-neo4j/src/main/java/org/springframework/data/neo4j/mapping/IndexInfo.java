@@ -33,7 +33,8 @@ public class IndexInfo {
     private final boolean unique;
     private boolean numeric;
 
-    public IndexInfo(Indexed annotation, Neo4jPersistentProperty property) {
+    public IndexInfo(Indexed annotation,
+                     Neo4jPersistentProperty property) {
         this.indexType = annotation.indexType();
         this.indexName = isLabelBased() ? determineLabelIndexName(annotation, property) : determineIndexName(annotation, property);
         fieldName = annotation.fieldName();
@@ -53,6 +54,7 @@ public class IndexInfo {
     private String determineLabelIndexName(Indexed annotation, Neo4jPersistentProperty property) {
         if (!annotation.indexName().isEmpty()) throw new MappingException("No index name allowed on label based indexes");
         Neo4jPersistentEntity<?> entity = property.getOwner();
+
         // NW StoredEntityType not available at this stage yet ....
         // only set when entity.updateStoredType(..) called
         StoredEntityType entityType = entity.getEntityType();
@@ -62,15 +64,22 @@ public class IndexInfo {
                 return
                     (entityType != null)
                             ? entityType.findByTypeClass(declaringClass).getAlias().toString()
-                            : entity.getType().getSimpleName();  // Not right but not sure what to do here
+                            : doBestGuessLabelName(entity);  // Not right but not sure what to do here
             case INSTANCE:
                 return
                     (entityType != null)
                             ? entityType.getAlias().toString()
-                            : entity.getType().getSimpleName();  // Not right but not sure what to do here
+                            : doBestGuessLabelName(entity);  // Not right but not sure what to do here
             case GLOBAL: throw new MappingException("No global index for label based indexes");
         }
         return entityType.getAlias().toString();
+    }
+
+    private String doBestGuessLabelName(Neo4jPersistentEntity<?> entity) {
+        if (entity.getTypeAlias() != null) {
+            return (String)entity.getTypeAlias();
+        }
+        return entity.getType().getName();
     }
 
 

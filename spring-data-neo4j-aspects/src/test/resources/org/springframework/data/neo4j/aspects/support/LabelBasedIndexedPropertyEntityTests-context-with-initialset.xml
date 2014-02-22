@@ -100,9 +100,9 @@
                         at startup rather than requiring them to be explicitly set here ... -->
         <property name="initialEntitySet" >
             <set>
-                <value>org.springframework.data.neo4j.aspects.support.domain.Thing</value>
-                <value>org.springframework.data.neo4j.aspects.support.domain.SubThing</value>
-                <value>org.springframework.data.neo4j.aspects.support.domain.SubSubThing</value>
+                <value>org.springframework.data.neo4j.aspects.support.domain.TypeAliasedThing</value>
+                <value>org.springframework.data.neo4j.aspects.support.domain.TypeAliasedSubThing</value>
+                <value>org.springframework.data.neo4j.aspects.support.domain.TypeAliasedSubSubThing</value>
             </set>
         </property>
     </bean>

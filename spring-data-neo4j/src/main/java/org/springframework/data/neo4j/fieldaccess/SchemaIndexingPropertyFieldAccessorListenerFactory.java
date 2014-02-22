@@ -16,14 +16,18 @@
 
 package org.springframework.data.neo4j.fieldaccess;
 
+import org.neo4j.graphdb.DynamicLabel;
+import org.neo4j.graphdb.Label;
+import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.PropertyContainer;
-import org.neo4j.graphdb.index.Index;
-import org.neo4j.index.lucene.ValueContext;
+import org.neo4j.graphdb.schema.IndexDefinition;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
+import org.springframework.data.neo4j.support.mapping.StoredEntityType;
+
+import java.util.Arrays;
 
 
 public class SchemaIndexingPropertyFieldAccessorListenerFactory<S extends PropertyContainer, T> implements FieldAccessorListenerFactory {
@@ -72,7 +76,26 @@ public class SchemaIndexingPropertyFieldAccessorListenerFactory<S extends Proper
 
 	    @Override
         public void valueChanged(Object entity, Object oldVal, Object newVal) {
-            // Nothing to do as schema indexes are dealt with internally by Neo?
+            // TODO - This logic should rather be done once when the
+            //        entity is persisted for the first time rather than
+            //        on each update ....
+            final PropertyContainer state = template.getPersistentState(entity);
+            if (state instanceof Node) {
+                Node node = (Node) state;
+                StoredEntityType set = template.getStoredEntityType(entity);
+                if (set != null) {
+                    applyMissingSchemaIndexLabels(node, set);
+                }
+            }
+        }
+
+        private void applyMissingSchemaIndexLabels(Node node, StoredEntityType set) {
+            for (StoredEntityType ancestorSet : set.getSuperTypes()) {
+                applyMissingSchemaIndexLabels(node, ancestorSet);
+            }
+            Label label = DynamicLabel.label( (String)set.getAlias());
+            if (!node.hasLabel(label))
+                node.addLabel(label);
         }
 
     }
