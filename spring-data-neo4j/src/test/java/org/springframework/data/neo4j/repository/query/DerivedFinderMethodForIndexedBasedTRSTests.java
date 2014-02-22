@@ -18,7 +18,6 @@ package org.springframework.data.neo4j.repository.query;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.neo4j.index.lucene.ValueContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.neo4j.core.NodeTypeRepresentationStrategy;
 import org.springframework.data.neo4j.support.typerepresentation.IndexBasedNodeTypeRepresentationStrategy;
@@ -30,10 +29,6 @@ import org.springframework.test.context.support.DependencyInjectionTestExecution
 import org.springframework.test.context.transaction.TransactionalTestExecutionListener;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.concurrent.TimeUnit;
-
-import static java.util.Arrays.asList;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertEquals;
@@ -96,25 +91,17 @@ public class DerivedFinderMethodForIndexedBasedTRSTests extends AbstractDerivedF
 
     @Test
     @Override
-    public void testLabelBasedIndexQueryWithOneParam() throws Exception {
-
-        // Ensure mappingContext set NOT to fail (but rather warn)
-        // when incompatibility detected
-        assertFalse(ctx.isFailWhenIncompatibleLabelIndexUsage());
+    public void testSchemaIndexQueryWithOneParam() throws Exception {
 
         /*
-            Is this the correct logic??? - what should we do when a derived
-            field has been marked as a label based indexed field and
-            we have a legacy based indexing strategy in play. Have currently
-            added in properties failWhenIncompatibleLabelIndexUsage and
-            isLabelBasedTRSInUse to Neo4jMappingContext to help
-
+            TODO - Determine exactly what correct query should be when
+                   using a schema based index and a Legacy based TRS
          */
         // "findByAlias",
         this.trsSpecificExpectedQuery = DEFAULT_START_CLAUSE +
                 " WHERE `thing`.`alias` = {0} RETURN `thing`";
         this.trsSpecificExpectedParams = new Object[] { "foo" };
-        super.testLabelBasedIndexQueryWithOneParam();
+        super.testSchemaIndexQueryWithOneParam();
     }
 
     @Test

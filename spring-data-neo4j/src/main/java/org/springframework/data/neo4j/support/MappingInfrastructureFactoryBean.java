@@ -104,7 +104,6 @@ public class MappingInfrastructureFactoryBean implements FactoryBean<Infrastruct
         try {
         if (this.mappingContext == null) {
             this.mappingContext = new Neo4jMappingContext();
-            this.mappingContext.setIsLabelBased(false);
         }
         if (this.isNewStrategyFactory == null) {
             this.isNewStrategyFactory = new MappingContextIsNewStrategyFactory(mappingContext); 

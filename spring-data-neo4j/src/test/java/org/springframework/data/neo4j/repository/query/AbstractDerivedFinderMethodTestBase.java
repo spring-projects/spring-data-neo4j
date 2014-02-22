@@ -156,7 +156,7 @@ public abstract class AbstractDerivedFinderMethodTestBase {
     }
 
     @Test
-    public void testLabelBasedIndexQueryWithOneParam() throws Exception {
+    public void testSchemaIndexQueryWithOneParam() throws Exception {
         assertRepositoryQueryMethod(ThingRepository.class,
                 "findByAlias",
                 new Object[]{"foo"},
