@@ -28,8 +28,6 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
 import org.springframework.test.context.transaction.TransactionalTestExecutionListener;
 
-import java.util.Date;
-
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.fail;
@@ -370,12 +368,12 @@ public class DerivedFinderMethodForLabelBasedTRSTests extends AbstractDerivedFin
 
     @Test
     @Override
-    public void testLabelBasedIndexQueryWithOneParam() throws Exception {
+    public void testSchemaIndexQueryWithOneParam() throws Exception {
         // findByAlias
         this.trsSpecificExpectedQuery = DEFAULT_MATCH_CLAUSE +
                 " WHERE `thing`.`alias` = {0}" +
                 " RETURN `thing`";
         this.trsSpecificExpectedParams = new Object[] { "foo" };
-        super.testLabelBasedIndexQueryWithOneParam();
+        super.testSchemaIndexQueryWithOneParam();
     }
 }

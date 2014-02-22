@@ -203,8 +203,6 @@ public abstract class Neo4jConfiguration {
             mappingContext.setInitialEntitySet(initialEntitySet);
         }
         mappingContext.setEntityAlias(entityAlias());
-        mappingContext.setIsLabelBased(nodeTypeRepresentationStrategy().isLabelBased());
-        mappingContext.setFailWhenIncompatibleLabelIndexUsage(false);
         return mappingContext;
     }
 
