@@ -16,11 +16,7 @@
 
 package org.springframework.data.neo4j.aspects.support;
 
-import org.junit.Before;
 import org.junit.runner.RunWith;
-import org.neo4j.graphdb.Transaction;
-import org.springframework.data.neo4j.annotation.QueryType;
-import org.springframework.data.neo4j.support.node.Neo4jHelper;
 import org.springframework.test.context.CleanContextCacheTestExecutionListener;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestExecutionListeners;
@@ -30,38 +26,23 @@ import org.springframework.test.context.support.DependencyInjectionTestExecution
 import static org.junit.Assert.assertTrue;
 
 /**
- * This version DOES work, only because the entities have been setup as part of the
- * initialSet for the mappingContext. Compare with the other LabelBasedIndex...Tests
+ * Tests out indexing when using in conjunction with a Label based TRS to
+ * ensure they play nicely together
  *
  * @author Nicki Watt
  * @since 09-02-2014
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = {
-        "classpath:org/springframework/data/neo4j/aspects/support/LabelBasedIndexedPropertyEntityTests-context-with-initialset.xml",
+        "classpath:org/springframework/data/neo4j/aspects/support/LabelBasedIndexedPropertyEntityTests-context-basic.xml",
         "classpath:org/springframework/data/neo4j/aspects/support/LabelingTypeRepresentationStrategyOverride-context.xml"})
 @TestExecutionListeners({CleanContextCacheTestExecutionListener.class, DependencyInjectionTestExecutionListener.class})
-public class LabelBasedIndexedPropertyHangingAvertedViaInitialEntitySetTests extends  LabelBasedIndexedPropertyEntityTestBase {
+public class SchemaIndexingTRSLabelBasedTests extends SchemaIndexingEntityTestBase {
 
     @Override
-    @Before
-    public void cleanDb() {
+    public void cleanDb() throws Exception {
+        super.cleanDb();
         assertTrue("This test expects a Label Based TRS to be in place and it is not!",neo4jTemplate.isLabelBased());
-        try (Transaction tx = graphDatabaseService.beginTx()) {
-            Neo4jHelper.cleanDb(neo4jTemplate);
-            tx.success();
-        }
-        queryEngine = neo4jTemplate.queryEngineFor(QueryType.Cypher);
-
-        // NW-ISSUE01
-        // This now works because of the initialEntitySet in mappingContext
-        // see LabelBasedIndexedPropertyEntityTests-context-with-initialset.xml
-        try (Transaction tx = graphDatabaseService.beginTx()) {
-            createThing();
-            createSubThing();
-            createSubSubThing();
-            tx.success();
-        }
     }
 
 }

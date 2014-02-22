@@ -14,15 +14,13 @@
  * limitations under the License.
  */
 
-package org.springframework.data.neo4j.model;
+package org.springframework.data.neo4j.invalid.model;
 
 import org.springframework.data.neo4j.annotation.NodeEntity;
 import org.springframework.data.neo4j.annotation.RelatedTo;
 
-import java.util.Collection;
-
 @NodeEntity
-public class InvalidOneToNEntity {
+public class InvalidReadOnlyOneToNEntity {
     @RelatedTo
-    private Collection<InvalidOneToNEntity> others;
+    private Iterable<InvalidReadOnlyOneToNEntity> others;
 }

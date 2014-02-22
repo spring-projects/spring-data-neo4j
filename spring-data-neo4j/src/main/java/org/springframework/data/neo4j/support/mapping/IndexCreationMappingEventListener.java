@@ -58,7 +58,7 @@ public class IndexCreationMappingEventListener implements ApplicationListener<Ma
         entity.doWithProperties(new PropertyHandler<Neo4jPersistentProperty>() {
             @Override
             public void doWithPersistentProperty(Neo4jPersistentProperty property) {
-                if (nodeTypeRepresentationStrategy.isLabelBased() && property.isIndexed() && property.getIndexInfo().isLabelBased()) {
+                if (property.isIndexed() && property.getIndexInfo().isLabelBased()) {
                     schemaIndexProvider.createIndex(property);
                 }
             }
