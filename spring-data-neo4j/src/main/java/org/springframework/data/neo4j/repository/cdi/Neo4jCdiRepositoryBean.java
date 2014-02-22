@@ -61,7 +61,7 @@ public class Neo4jCdiRepositoryBean<T> extends CdiRepositoryBean<T> {
 	protected T create(CreationalContext<T> creationalContext, Class<T> repositoryType) {
 
 		Neo4jMappingContext neo4jMapCtx = new Neo4jMappingContext();
-		Neo4jTemplate neo4jTemplate = new Neo4jTemplate(getDependencyInstance(graphDatabase, GraphDatabase.class)); 
+		Neo4jTemplate neo4jTemplate = new Neo4jTemplate(getDependencyInstance(graphDatabase, GraphDatabase.class));
 
 		GraphRepositoryFactory factory = new GraphRepositoryFactory(neo4jTemplate, neo4jMapCtx);
 		return factory.getRepository(repositoryType);

@@ -34,14 +34,19 @@ public class SchemaIndexProvider {
 
     public SchemaIndexProvider(GraphDatabase gd) {
         this.gd = gd;
-        if (this.gd instanceof DelegatingGraphDatabase) {
-            TransactionalHandler handler = new TransactionalHandler();
-            ((DelegatingGraphDatabase)this.gd).getGraphDatabaseService().registerTransactionEventHandler(handler);
-            indexCreator = handler;
-        } else {
-            indexCreator = new SeparateThreadIndexCreator();
-        }
+        indexCreator = setupIndexCreator();
         cypher = gd.queryEngineFor(QueryType.Cypher);
+    }
+
+    private IndexCreator setupIndexCreator() {
+//        if (this.gd instanceof DelegatingGraphDatabase) {
+//            TransactionalHandler handler = new TransactionalHandler();
+//            ((DelegatingGraphDatabase)this.gd).getGraphDatabaseService().registerTransactionEventHandler(handler);
+//            return handler;
+//        } else {
+//            return new SeparateThreadIndexCreator();
+//        }
+        return new InlineCreator();
     }
 
     public void createIndex(Neo4jPersistentProperty property) {
@@ -51,7 +56,8 @@ public class SchemaIndexProvider {
         String label = getLabel(property);
         String prop = getName(property);
         String query = indexQuery(label, prop, property.getIndexInfo().isUnique());
-        cypher.query(query,null);
+        System.err.println(query);
+        cypher.query(query, null);
     }
 
     private String getName(Neo4jPersistentProperty property) {
@@ -104,9 +110,20 @@ public class SchemaIndexProvider {
         }
 
         private void runAfterTransaction() {
-            if (gd.transactionIsRunning() || indexesToBeCreated.isEmpty()) return;
-            Neo4jPersistentProperty property = indexesToBeCreated.poll();
-            doCreateIndex(property);
+            while (gd.transactionIsRunning()) {
+                try {
+                    Thread.sleep(1);
+                } catch (InterruptedException e) { }
+            }
+            if (gd.transactionIsRunning()) return;
+            if (indexesToBeCreated.isEmpty()) return;
+            try (Transaction tx = gd.beginTx()) {
+                while (!indexesToBeCreated.isEmpty()) {
+                    Neo4jPersistentProperty property = indexesToBeCreated.poll();
+                    doCreateIndex(property);
+                }
+                tx.success();
+            }
         }
 
         @Override
@@ -120,6 +137,13 @@ public class SchemaIndexProvider {
         }
     }
 
+    private class InlineCreator implements IndexCreator {
+
+        @Override
+        public void deferCreateIndex(Neo4jPersistentProperty property) {
+            doCreateIndex(property);
+        }
+    }
     private class SeparateThreadIndexCreator implements IndexCreator {
         private final ExecutorService pool = Executors.newFixedThreadPool(1);
         @Override
@@ -150,7 +174,6 @@ public class SchemaIndexProvider {
                         return true;
                     }
                 }).get(2, TimeUnit.SECONDS);
-                pool.shutdown();
             } catch (TimeoutException e) {
                 throw new MappingException(format(
                         "Timeour occured trying to create schema index %s on against label %s: " +
