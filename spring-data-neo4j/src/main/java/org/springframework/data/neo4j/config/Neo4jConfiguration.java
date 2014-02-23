@@ -287,14 +287,14 @@ public abstract class Neo4jConfiguration {
    		this.initialEntitySet = initialEntitySet;
    	}
 
-    private String basePackage;
+    private String[] basePackage;
 
 
-    public String getBasePackage() {
+    public String[] getBasePackage() {
         return basePackage;
     }
 
-    public void setBasePackage(String basePackage) throws ClassNotFoundException {
+    public void setBasePackage(String...basePackage) throws ClassNotFoundException {
         this.basePackage = basePackage;
         setInitialEntitySet(BasePackageScanner.scanBasePackageForClasses(basePackage));
     }

@@ -18,21 +18,29 @@ import java.util.Set;
 public class BasePackageScanner {
 
     public static Set<String> scanBasePackage(String basePackage) {
+        return scanBasePackages(basePackage.split(","));
+    }
+
+    public static Set<String> scanBasePackages(String...basePackages) {
         ClassPathScanningCandidateComponentProvider componentProvider = new ClassPathScanningCandidateComponentProvider(false);
         componentProvider.addIncludeFilter(new AnnotationTypeFilter(Persistent.class));
 
         Set<String> classes = new ManagedSet<String>();
-        for (BeanDefinition candidate : componentProvider.findCandidateComponents(basePackage)) {
-            classes.add(candidate.getBeanClassName());
+        for (String basePackage : basePackages) {
+            for (BeanDefinition candidate : componentProvider.findCandidateComponents(basePackage)) {
+                classes.add(candidate.getBeanClassName());
+            }
         }
 
         return classes;
     }
 
-    static Set<? extends Class<?>> scanBasePackageForClasses(String basePackage) throws ClassNotFoundException {
+    static Set<? extends Class<?>> scanBasePackageForClasses(String...basePackages) throws ClassNotFoundException {
         Set<Class<?>> classes = new HashSet<>();
-        for (String className : scanBasePackage(basePackage)){
-            classes.add(loadClass(className));
+        for (String basePackage : basePackages) {
+            for (String className : scanBasePackage(basePackage)){
+                classes.add(loadClass(className));
+            }
         }
         return classes;
     }

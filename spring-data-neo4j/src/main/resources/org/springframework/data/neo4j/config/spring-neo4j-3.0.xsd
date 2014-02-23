@@ -30,7 +30,7 @@
                <xsd:attribute name="base-package" type="xsd:string" use="required">
                    <xsd:annotation>
                        <xsd:documentation>
-                           base package for persistent entities.
+                           comma separated base package(s) for persistent entities.
                        </xsd:documentation>
                    </xsd:annotation>
                </xsd:attribute>
