@@ -13,16 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.springframework.data.neo4j.aspects;
 
-package org.springframework.data.neo4j.invalid.model;
-
+import org.springframework.data.neo4j.annotation.GraphId;
 import org.springframework.data.neo4j.annotation.NodeEntity;
-import org.springframework.data.neo4j.annotation.RelatedTo;
 
-import java.util.Collection;
+import javax.validation.constraints.NotNull;
 
 @NodeEntity
-public class InvalidOneToNEntity {
-    @RelatedTo
-    private Collection<InvalidOneToNEntity> others;
+public class NonNullNamed {
+    @GraphId
+	private Long graphId;
+
+    @NotNull
+	private String name;
 }

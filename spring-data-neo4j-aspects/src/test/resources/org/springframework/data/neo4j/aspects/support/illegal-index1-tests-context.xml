@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:neo4j="http://www.springframework.org/schema/data/neo4j"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+		http://www.springframework.org/schema/data/neo4j http://www.springframework.org/schema/data/neo4j/spring-neo4j.xsd http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd">
+
+    <context:annotation-config/>
+    <neo4j:config graphDatabaseService="graphDatabaseService" />
+
+    <bean id="indexCreationMappingEventListener" class="org.springframework.data.neo4j.support.mapping.EntityIndexCreator">
+        <constructor-arg ref="indexProvider" />
+        <constructor-arg ref="schemaIndexProvider" />
+    </bean>
+
+    <neo4j:repositories base-package="org.springframework.data.neo4j.aspects"/>
+    <bean id="graphDatabaseService" class="org.neo4j.test.ImpermanentGraphDatabase" destroy-method="shutdown"/>
+
+    <!-- Only load the InvalidIndexed class -->
+    <beans profile="InvalidIndexed">
+        <bean id="mappingContext" class="org.springframework.data.neo4j.support.mapping.Neo4jMappingContext">
+            <property name="initialEntitySet">
+                <set>
+                    <value>org.springframework.data.neo4j.illegal.aspects.index1.IllegalIndex1Tests$InvalidIndexed</value>
+                </set>
+            </property>
+            <property name="entityIndexCreator" ref="indexCreationMappingEventListener"/>
+        </bean>
+    </beans>
+
+    <!-- Only load the InvalidSpatialIndexed1 class -->
+    <beans profile="InvalidSpatialIndexed1">
+        <bean id="mappingContext" class="org.springframework.data.neo4j.support.mapping.Neo4jMappingContext">
+            <property name="initialEntitySet">
+                <set>
+                    <value>org.springframework.data.neo4j.illegal.aspects.index1.IllegalIndex1Tests$InvalidSpatialIndexed1</value>
+                </set>
+            </property>
+            <property name="entityIndexCreator" ref="indexCreationMappingEventListener"/>
+        </bean>
+    </beans>
+
+    <!-- Only load the InvalidSpatialIndexed2 class -->
+    <beans profile="InvalidSpatialIndexed2">
+        <bean id="mappingContext" class="org.springframework.data.neo4j.support.mapping.Neo4jMappingContext">
+            <property name="initialEntitySet">
+                <set>
+                    <value>org.springframework.data.neo4j.illegal.aspects.index1.IllegalIndex1Tests$InvalidSpatialIndexed2</value>
+                </set>
+            </property>
+            <property name="entityIndexCreator" ref="indexCreationMappingEventListener"/>
+        </bean>
+    </beans>
+
+    <!-- Only load the InvalidSpatialIndexed3 class -->
+    <beans profile="InvalidSpatialIndexed3">
+        <bean id="mappingContext" class="org.springframework.data.neo4j.support.mapping.Neo4jMappingContext">
+            <property name="initialEntitySet">
+                <set>
+                    <value>org.springframework.data.neo4j.illegal.aspects.index1.IllegalIndex1Tests$InvalidSpatialIndexed3</value>
+                </set>
+            </property>
+            <property name="entityIndexCreator" ref="indexCreationMappingEventListener"/>
+        </bean>
+    </beans>
+
+</beans>

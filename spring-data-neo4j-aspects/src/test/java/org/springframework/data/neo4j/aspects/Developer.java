@@ -16,7 +16,6 @@
 
 package org.springframework.data.neo4j.aspects;
 
-import org.springframework.data.neo4j.aspects.Person;
 import org.springframework.data.neo4j.annotation.NodeEntity;
 
 /**

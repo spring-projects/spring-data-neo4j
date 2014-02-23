@@ -16,19 +16,15 @@
 
 package org.springframework.data.neo4j.aspects.support;
 
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.index.Index;
-import org.springframework.data.neo4j.annotation.Indexed;
-import org.springframework.data.neo4j.annotation.NodeEntity;
 import org.springframework.data.neo4j.aspects.Friendship;
 import org.springframework.data.neo4j.aspects.Group;
 import org.springframework.data.neo4j.aspects.Person;
 import org.springframework.data.neo4j.aspects.SubGroup;
 import org.springframework.data.neo4j.repository.GraphRepository;
-import org.springframework.data.neo4j.support.index.IndexType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.CleanContextCacheTestExecutionListener;
 import org.springframework.test.context.ContextConfiguration;
@@ -61,24 +57,6 @@ public class FailingIndexTests extends EntityTestBase {
         final Node found = subGroupIndex.get("indexLevelName", "indexLevelNameValue").getSingle();
         final SubGroup foundEntity = neo4jTemplate.createEntityFromState(found, SubGroup.class, neo4jTemplate.getMappingPolicy(SubGroup.class));
         assertEquals(group, foundEntity);
-    }
-
-    @NodeEntity
-    static class InvalidIndexed {
-
-        @Indexed(indexType=IndexType.FULLTEXT)
-        String fulltextNoIndexName;
-
-        public void setFulltextNoIndexName(String fulltextNoIndexName) {
-            this.fulltextNoIndexName = fulltextNoIndexName;
-        }
-    }
-
-    @Test(expected = IllegalStateException.class)
-    @Transactional
-    public void indexAccessWithFullAndNoIndexNameShouldFail() {
-        InvalidIndexed invalidIndexed = persist(new InvalidIndexed());
-        invalidIndexed.setFulltextNoIndexName(NAME_VALUE);
     }
 
     @Test
