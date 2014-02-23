@@ -20,7 +20,6 @@ import org.neo4j.graphdb.PropertyContainer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.annotation.Reference;
-import org.springframework.data.mapping.PropertyHandler;
 import org.springframework.data.mapping.context.AbstractMappingContext;
 import org.springframework.data.mapping.context.MappingContext;
 import org.springframework.data.mapping.model.MappingException;
@@ -37,8 +36,6 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.util.*;
 
-import static java.lang.String.format;
-
 /**
  * Neo4J specific {@link MappingContext} implementation. Simply creates {@link Neo4jPersistentEntityImpl} and
  * {@link org.springframework.data.neo4j.mapping.Neo4jPersistentProperty} instances.
@@ -49,8 +46,9 @@ public class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersistentE
 
     private final static Logger log = LoggerFactory.getLogger(Neo4jMappingContext.class);
 
-    private final Map<Annotation, Boolean> referenceAnnotations = new IdentityHashMap<Annotation, java.lang.Boolean>();
-    
+    private final Map<Annotation, Boolean> referenceAnnotations = new IdentityHashMap<>();
+    private EntityIndexCreator entityIndexCreator;
+
     protected <T> Neo4jPersistentEntityImpl<?> createPersistentEntity(TypeInformation<T> typeInformation) {
         final Class<T> type = typeInformation.getType();
         if (type.isAnnotationPresent(NodeEntity.class)) {
@@ -66,8 +64,13 @@ public class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersistentE
     protected Neo4jPersistentEntityImpl<?> addPersistentEntity(TypeInformation<?> typeInformation) {
         final Neo4jPersistentEntityImpl<?> entity = super.addPersistentEntity(typeInformation);
         Collection<Neo4jPersistentEntity<?>> superTypeEntities = addSuperTypes(entity);
-        entity.updateStoredType(new StoredEntityType(entity,superTypeEntities,entityAlias));
+        updateStoredEntityType(entity, superTypeEntities);
         return entity;
+    }
+
+    private void updateStoredEntityType(Neo4jPersistentEntityImpl<?> entity, Collection<Neo4jPersistentEntity<?>> superTypeEntities) {
+        entity.updateStoredType(new StoredEntityType(entity, superTypeEntities, entityAlias));
+        entityIndexCreator.ensureEntityIndexes(entity);
     }
 
     private List<Neo4jPersistentEntity<?>> addSuperTypes(Neo4jPersistentEntity<?> entity) {
@@ -85,6 +88,12 @@ public class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersistentE
             return Collections.<Neo4jPersistentEntity<?>>singletonList(addPersistentEntity(type));
         }
         return Collections.emptyList();
+    }
+
+    @Override
+    public void initialize() {
+        super.initialize();
+        setStrict(true);
     }
 
     private boolean isRelationshipEntityType(Class<?> type) {
@@ -188,5 +197,9 @@ public class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersistentE
             if (isReference) return true;
         }
         return false;
+    }
+
+    public void setEntityIndexCreator(EntityIndexCreator entityIndexCreator) {
+        this.entityIndexCreator = entityIndexCreator;
     }
 }

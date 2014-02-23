@@ -30,31 +30,18 @@ import org.springframework.data.neo4j.support.schema.SchemaIndexProvider;
  * @author mh
  * @since 12.04.12
  */
-public class IndexCreationMappingEventListener implements ApplicationListener<MappingContextEvent<Neo4jPersistentEntity<?>, Neo4jPersistentProperty>> {
+public class EntityIndexCreator {
     private IndexProvider indexProvider;
     private SchemaIndexProvider schemaIndexProvider;
-    private TypeRepresentationStrategy<Node> nodeTypeRepresentationStrategy;
 
-    public IndexCreationMappingEventListener(IndexProvider indexProvider, SchemaIndexProvider schemaIndexProvider, TypeRepresentationStrategy<Node> nodeTypeRepresentationStrategy) {
+    public EntityIndexCreator(IndexProvider indexProvider, SchemaIndexProvider schemaIndexProvider) {
         this.indexProvider = indexProvider;
         this.schemaIndexProvider = schemaIndexProvider;
-        this.nodeTypeRepresentationStrategy = nodeTypeRepresentationStrategy;
     }
 
-    @Override
-    public void onApplicationEvent(MappingContextEvent<Neo4jPersistentEntity<?>, Neo4jPersistentProperty> event) {
-        if (!(event.getSource() instanceof Neo4jMappingContext)) return;
-        final Neo4jPersistentEntity entity = event.getPersistentEntity();
-        ensureEntityIndexes(entity);
-    }
-
-    private void ensureEntityIndexes(Neo4jPersistentEntity<?> entity) {
+    public void ensureEntityIndexes(Neo4jPersistentEntity<?> entity) {
         final Class entityType = entity.getType();
 
-        // TODO only when TRS is non-label? I think we prob need to do it
-        //      anyway as you can still mix legacy indexes with label based
-        //      ones???
-        // Pass 1 - do schema based updates first to prevent locking
         entity.doWithProperties(new PropertyHandler<Neo4jPersistentProperty>() {
             @Override
             public void doWithPersistentProperty(Neo4jPersistentProperty property) {

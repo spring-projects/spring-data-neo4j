@@ -203,6 +203,7 @@ public abstract class Neo4jConfiguration {
             mappingContext.setInitialEntitySet(initialEntitySet);
         }
         mappingContext.setEntityAlias(entityAlias());
+        mappingContext.setEntityIndexCreator(entityIndexCreator());
         return mappingContext;
     }
 
@@ -238,11 +239,11 @@ public abstract class Neo4jConfiguration {
 	}
 
     @Bean
-    public IndexCreationMappingEventListener indexCreationMappingEventListener() throws Exception {
-        return new IndexCreationMappingEventListener(
+    public EntityIndexCreator entityIndexCreator() throws Exception {
+        return new EntityIndexCreator(
                 indexProvider(),
-                schemaIndexProvider(),
-                nodeTypeRepresentationStrategy());
+                schemaIndexProvider()
+        );
     }
 
     @Bean
@@ -285,4 +286,16 @@ public abstract class Neo4jConfiguration {
     public void setInitialEntitySet(Set<? extends Class<?>> initialEntitySet) {
    		this.initialEntitySet = initialEntitySet;
    	}
+
+    private String[] basePackage;
+
+
+    public String[] getBasePackage() {
+        return basePackage;
+    }
+
+    public void setBasePackage(String...basePackage) throws ClassNotFoundException {
+        this.basePackage = basePackage;
+        setInitialEntitySet(BasePackageScanner.scanBasePackageForClasses(basePackage));
+    }
 }

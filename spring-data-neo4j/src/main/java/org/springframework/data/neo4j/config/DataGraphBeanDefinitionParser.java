@@ -16,18 +16,11 @@
 
 package org.springframework.data.neo4j.config;
 
-import org.neo4j.kernel.EmbeddedGraphDatabase;
 import org.springframework.beans.factory.annotation.Autowire;
-import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.*;
 import org.springframework.beans.factory.xml.AbstractBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
 import org.springframework.context.annotation.ConfigurationClassPostProcessor;
-import org.springframework.core.type.filter.AnnotationTypeFilter;
-import org.springframework.data.annotation.Persistent;
-import org.springframework.data.neo4j.annotation.NodeEntity;
-import org.springframework.data.neo4j.annotation.RelationshipEntity;
 import org.springframework.data.neo4j.support.GraphDatabaseServiceFactoryBean;
 import org.springframework.util.ClassUtils;
 import org.w3c.dom.Element;
@@ -70,17 +63,7 @@ public class DataGraphBeanDefinitionParser extends AbstractBeanDefinitionParser 
     			return null;
     		}
 
-    		ClassPathScanningCandidateComponentProvider componentProvider = new ClassPathScanningCandidateComponentProvider(false);
-    		componentProvider.addIncludeFilter(new AnnotationTypeFilter(NodeEntity.class));
-    		componentProvider.addIncludeFilter(new AnnotationTypeFilter(RelationshipEntity.class));
-    		componentProvider.addIncludeFilter(new AnnotationTypeFilter(Persistent.class));
-
-    		Set<String> classes = new ManagedSet<String>();
-    		for (BeanDefinition candidate : componentProvider.findCandidateComponents(basePackage)) {
-    			classes.add(candidate.getBeanClassName());
-    		}
-
-    		return classes;
+            return BasePackageScanner.scanBasePackage(basePackage);
     	}
 
 

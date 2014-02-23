@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.neo4j.annotation.relatedto;
+package org.springframework.data.neo4j.annotation.relatedto.bidirectional;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
