@@ -16,12 +16,12 @@
 
 package org.springframework.data.neo4j.illegal.aspects.index2;
 
+import org.apache.commons.lang.exception.ExceptionUtils;
 import org.junit.Test;
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.data.neo4j.annotation.Indexed;
 import org.springframework.data.neo4j.annotation.NodeEntity;
-import org.springframework.data.neo4j.aspects.support.EntityTestBase;
 import org.springframework.data.neo4j.support.index.IndexType;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -44,25 +44,39 @@ public class IllegalIndex2Tests  {
         }
     }
 
-    @Test
+    @Test(expected = IllegalStateException.class)
     @Transactional
-    public void indexAccessWithFullAndNoIndexNameShouldFail() {
+    public void indexAccessWithFullAndNoIndexNameShouldFail() throws Throwable {
 
-        try {
-            // This no longer blows up at access time, but rather at startup
-            ClassPathXmlApplicationContext appCtx = new ClassPathXmlApplicationContext(
-                "org/springframework/data/neo4j/aspects/support/illegal-index2-tests-context.xml");
-        } catch (BeanCreationException bce) {
-            Throwable t =  bce.getCause().getCause().getCause().getCause();
-            assertEquals("unexpected underlying cause",
-                    IllegalStateException.class, t.getClass());
-            return;
-        }
+        createAppCtxAndPropagateRootExceptionIfThrown(InvalidIndexed.class);
 
-        fail("Should never get here ...");
         //InvalidIndexed invalidIndexed = persist(new InvalidIndexed());
         //invalidIndexed.setFulltextNoIndexName(NAME_VALUE);
     }
+
+    /**
+     * As the first illegal entity detected will blow up the application context - we need a way
+     * to ensure only the illegal entity under test it loaded to assert that we fail
+     * for the correct reason and in an appropriate way. This method will create and application
+     * context ensuring that only the illegal entity under test (passed in as an argument), is
+     * detected by the context.  This is currently done by wrapping each Illegal Entity bootstrap
+     * logic in a Spring profile against its same name
+     *
+     * @param entityUnderTest Class which should be detected by SDN for the purposes of testing
+     * @throws Throwable
+     */
+    private void createAppCtxAndPropagateRootExceptionIfThrown(Class entityUnderTest) throws Throwable {
+        try {
+            ClassPathXmlApplicationContext appCtx = new ClassPathXmlApplicationContext();
+            appCtx.setConfigLocation("org/springframework/data/neo4j/aspects/support/illegal-index2-tests-context.xml");
+            appCtx.getEnvironment().setActiveProfiles( entityUnderTest.getSimpleName() );
+            appCtx.refresh();
+        } catch (BeanCreationException bce) {
+            throw ExceptionUtils.getRootCause(bce);
+        }
+    }
+
+
 
 
 }

@@ -4,6 +4,5 @@
 	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
     <bean id="noopNodeStrategy" class="org.springframework.data.neo4j.support.typerepresentation.NoopNodeTypeRepresentationStrategy" />
-
     <bean id="noopRelationshipStrategy" class="org.springframework.data.neo4j.support.typerepresentation.NoopRelationshipTypeRepresentationStrategy" />
 </beans>

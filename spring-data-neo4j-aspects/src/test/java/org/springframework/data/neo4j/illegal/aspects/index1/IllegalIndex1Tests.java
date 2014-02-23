@@ -16,6 +16,7 @@
 
 package org.springframework.data.neo4j.illegal.aspects.index1;
 
+import org.apache.commons.lang.exception.ExceptionUtils;
 import org.junit.Test;
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -29,8 +30,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
 public class IllegalIndex1Tests extends EntityTestBase {
-
-    private static final String NAME_VALUE = "aName";
 
     @NodeEntity
     static class InvalidIndexed {
@@ -90,27 +89,12 @@ public class IllegalIndex1Tests extends EntityTestBase {
         // requirements) this would only blow up when actually
         // attempting to do something illegal - now everything blows up on startup
 
-        verifyAppCtxBlowsUpOnStartup(InvalidSpatialIndexed1.class);
+        createAppCtxAndPropagateRootExceptionIfThrown(InvalidSpatialIndexed1.class);
 
         //InvalidSpatialIndexed1 invalidIndexed = persist(new InvalidSpatialIndexed1());
         //String latlon = "POINT (55 15)";
         //invalidIndexed.setWkt(latlon);
     }
-
-    private void verifyAppCtxBlowsUpOnStartup(Class entityUnderTest) throws Throwable {
-        try {
-            // This no longer blows up at access time, but rather at startup
-            ClassPathXmlApplicationContext appCtx = new ClassPathXmlApplicationContext();
-            appCtx.setConfigLocation("org/springframework/data/neo4j/aspects/support/illegal-index1-tests-context.xml");
-            appCtx.getEnvironment().setActiveProfiles( entityUnderTest.getSimpleName() );
-            appCtx.refresh();
-        } catch (BeanCreationException bce) {
-            // Throw the underlying cause ....
-            throw bce.getCause();
-        }
-
-    }
-
 
     @Test(expected = IllegalStateException.class)
     @Transactional
@@ -120,7 +104,7 @@ public class IllegalIndex1Tests extends EntityTestBase {
         // requirements) this would only blow up when actually
         // attempting to do something illegal - now everything blows up on startup
 
-        verifyAppCtxBlowsUpOnStartup(InvalidSpatialIndexed2.class);
+        createAppCtxAndPropagateRootExceptionIfThrown(InvalidSpatialIndexed2.class);
 
         //InvalidSpatialIndexed2 invalidIndexed = persist(new InvalidSpatialIndexed2());
         //String latlon = "POINT (55 15)";
@@ -136,10 +120,32 @@ public class IllegalIndex1Tests extends EntityTestBase {
         // requirements) this would only blow up when actually
         // attempting to do something illegal - now everything blows up on startup
 
-        verifyAppCtxBlowsUpOnStartup(InvalidIndexed.class);
+        createAppCtxAndPropagateRootExceptionIfThrown(InvalidIndexed.class);
 
         //InvalidIndexed invalidIndexed = persist(new InvalidIndexed());
         //invalidIndexed.setFulltextNoIndexName(NAME_VALUE);
+    }
+
+    /**
+     * As the first illegal entity detected will blow up the application context - we need a way
+     * to ensure only the illegal entity under test it loaded to assert that we fail
+     * for the correct reason and in an appropriate way. This method will create and application
+     * context ensuring that only the illegal entity under test (passed in as an argument), is
+     * detected by the context.  This is currently done by wrapping each Illegal Entity bootstrap
+     * logic in a Spring profile against its same name
+     *
+     * @param entityUnderTest Class which should be detected by SDN for the purposes of testing
+     * @throws Throwable
+     */
+    private void createAppCtxAndPropagateRootExceptionIfThrown(Class entityUnderTest) throws Throwable {
+        try {
+            ClassPathXmlApplicationContext appCtx = new ClassPathXmlApplicationContext();
+            appCtx.setConfigLocation("org/springframework/data/neo4j/aspects/support/illegal-index1-tests-context.xml");
+            appCtx.getEnvironment().setActiveProfiles( entityUnderTest.getSimpleName() );
+            appCtx.refresh();
+        } catch (BeanCreationException bce) {
+            throw ExceptionUtils.getRootCause(bce);
+        }
     }
 
 
