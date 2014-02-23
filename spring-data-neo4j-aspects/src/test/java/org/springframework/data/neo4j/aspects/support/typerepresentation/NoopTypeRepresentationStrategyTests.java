@@ -49,8 +49,8 @@ public class NoopTypeRepresentationStrategyTests extends EntityTestBase {
     @Autowired
 	private NoopRelationshipTypeRepresentationStrategy noopRelationshipStrategy;
 
-	private Thing thing;
-    private Link link;
+	private NoopThing thing;
+    private NoopLink link;
 
     @Before
 	public void setUp() throws Exception {
@@ -63,22 +63,22 @@ public class NoopTypeRepresentationStrategyTests extends EntityTestBase {
 
 	@Test(expected = UnsupportedOperationException.class)
 	public void testFindAllForNodeStrategy() throws Exception {
-		noopNodeStrategy.findAll(typeOf(Thing.class));
+		noopNodeStrategy.findAll(typeOf(NoopThing.class));
 	}
 
 	@Test(expected = UnsupportedOperationException.class)
 	public void testFindAllForRelationshipStrategy() throws Exception {
-		noopRelationshipStrategy.findAll(typeOf(Link.class));
+		noopRelationshipStrategy.findAll(typeOf(NoopLink.class));
 	}
 
 	@Test(expected = UnsupportedOperationException.class)
 	public void testCountForNodeStrategy() throws Exception {
-		noopNodeStrategy.count(typeOf(Thing.class));
+		noopNodeStrategy.count(typeOf(NoopThing.class));
 	}
 
 	@Test(expected = UnsupportedOperationException.class)
 	public void testCountForRelationshipStrategy() throws Exception {
-		noopRelationshipStrategy.count(typeOf(Link.class));
+		noopRelationshipStrategy.count(typeOf(NoopLink.class));
 	}
 
 	@Test
@@ -97,25 +97,25 @@ public class NoopTypeRepresentationStrategyTests extends EntityTestBase {
         noopRelationshipStrategy.preEntityRemoval(rel(link));
     }
 
-	private Node node(Thing thing) {
+	private Node node(NoopThing thing) {
         return getNodeState(thing);
 	}
 
-	private Relationship rel(Link link) {
+	private Relationship rel(NoopLink link) {
         return getRelationshipState(link);
 	}
 
-	private Thing createThing() {
+	private NoopThing createThing() {
         Transaction tx = neo4jTemplate.getGraphDatabase().beginTx();
 		try {
 			Node node = neo4jTemplate.createNode();
-			thing = new Thing();
+			thing = new NoopThing();
             neo4jTemplate.setPersistentState(thing,node);
-            noopNodeStrategy.writeTypeTo(node, typeOf(Thing.class));
+            noopNodeStrategy.writeTypeTo(node, typeOf(NoopThing.class));
             Relationship rel = node.createRelationshipTo(neo4jTemplate.createNode(), DynamicRelationshipType.withName("link"));
-            link = new Link();
+            link = new NoopLink();
             neo4jTemplate.setPersistentState(link,rel);
-            noopRelationshipStrategy.writeTypeTo(rel, typeOf(Link.class));
+            noopRelationshipStrategy.writeTypeTo(rel, typeOf(NoopLink.class));
 			tx.success();
 			return thing;
 		} finally {
@@ -124,11 +124,11 @@ public class NoopTypeRepresentationStrategyTests extends EntityTestBase {
 	}
 
     @NodeEntity
-	public static class Thing {
+	public static class NoopThing {
 		String name;
 	}
 
     @RelationshipEntity
-    public static class Link {
+    public static class NoopLink {
     }
 }

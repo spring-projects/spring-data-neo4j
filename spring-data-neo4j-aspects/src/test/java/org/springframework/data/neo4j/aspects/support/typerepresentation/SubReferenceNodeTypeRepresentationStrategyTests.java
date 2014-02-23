@@ -33,7 +33,6 @@ import org.springframework.data.neo4j.aspects.Volvo;
 import org.springframework.data.neo4j.aspects.support.EntityTestBase;
 import org.springframework.data.neo4j.core.GraphDatabase;
 import org.springframework.data.neo4j.repository.GraphRepository;
-import org.springframework.data.neo4j.support.ReferenceNodes;
 import org.springframework.data.neo4j.support.mapping.EntityStateHandler;
 import org.springframework.data.neo4j.support.typerepresentation.SubReferenceNodeTypeRepresentationStrategy;
 import org.springframework.data.neo4j.template.GraphCallback;
@@ -68,8 +67,8 @@ public class SubReferenceNodeTypeRepresentationStrategyTests extends EntityTestB
     @Autowired
     EntityStateHandler entityStateHandler;
     private Node thingNode;
-    private Thing thing;
-    private SubThing subThing;
+    private SubRefThing thing;
+    private SubRefSubThing subThing;
     private Node subThingNode;
 
     @Before
@@ -83,7 +82,7 @@ public class SubReferenceNodeTypeRepresentationStrategyTests extends EntityTestB
     public void testPostEntityCreation() throws Exception {
         Node typeNode = getInstanceofRelationship(thingNode).getOtherNode(thingNode);
         assertNotNull("type node for thing exists", typeNode);
-        assertEquals("type node has property of type Thing.class", typeOf(Thing.class).getAlias(), typeNode.getProperty(SubReferenceNodeTypeRepresentationStrategy.SUBREF_CLASS_KEY));
+        assertEquals("type node has property of type Thing.class", typeOf(SubRefThing.class).getAlias(), typeNode.getProperty(SubReferenceNodeTypeRepresentationStrategy.SUBREF_CLASS_KEY));
         assertEquals("one thing has been created", 2, typeNode.getProperty(SubReferenceNodeTypeRepresentationStrategy.SUBREFERENCE_NODE_COUNTER_KEY));
     }
     @Test(expected = IllegalArgumentException.class)
@@ -102,13 +101,13 @@ public class SubReferenceNodeTypeRepresentationStrategyTests extends EntityTestB
         Transaction tx = neo4jTemplate.getGraphDatabase().beginTx();
         try {
             thingNode = neo4jTemplate.createNode();
-            thing = neo4jTemplate.setPersistentState(new Thing(),thingNode);
+            thing = neo4jTemplate.setPersistentState(new SubRefThing(),thingNode);
 
-            nodeTypeRepresentationStrategy.writeTypeTo(thingNode, typeOf(Thing.class));
+            nodeTypeRepresentationStrategy.writeTypeTo(thingNode, typeOf(SubRefThing.class));
             thing.setName("thing");
             subThingNode = neo4jTemplate.createNode();
-            subThing = neo4jTemplate.setPersistentState(new SubThing(),subThingNode);
-            nodeTypeRepresentationStrategy.writeTypeTo(subThingNode, typeOf(SubThing.class));
+            subThing = neo4jTemplate.setPersistentState(new SubRefSubThing(),subThingNode);
+            nodeTypeRepresentationStrategy.writeTypeTo(subThingNode, typeOf(SubRefSubThing.class));
             subThing.setName("subThing");
             tx.success();
         } finally {
@@ -116,7 +115,7 @@ public class SubReferenceNodeTypeRepresentationStrategyTests extends EntityTestB
         }
     }
 
-    private Node node(Thing thing) {
+    private Node node(SubRefThing thing) {
         return getNodeState(thing);
     }
 
@@ -142,30 +141,30 @@ public class SubReferenceNodeTypeRepresentationStrategyTests extends EntityTestB
     @Test
     @Transactional
     public void testCount() throws Exception {
-        assertEquals("one thing created", 2, nodeTypeRepresentationStrategy.count(typeOf(Thing.class)));
-        assertEquals("one thing created", 1, nodeTypeRepresentationStrategy.count(typeOf(SubThing.class)));
+        assertEquals("one thing created", 2, nodeTypeRepresentationStrategy.count(typeOf(SubRefThing.class)));
+        assertEquals("one thing created", 1, nodeTypeRepresentationStrategy.count(typeOf(SubRefSubThing.class)));
     }
 
     @Test
     @Transactional
     public void testGetJavaType() throws Exception {
-        assertEquals("class in graph is thing", typeOf(Thing.class).getAlias(), nodeTypeRepresentationStrategy.readAliasFrom(thingNode));
-        assertEquals("class in graph is thing", Thing.class, neo4jTemplate.getStoredJavaType(thingNode));
+        assertEquals("class in graph is thing", typeOf(SubRefThing.class).getAlias(), nodeTypeRepresentationStrategy.readAliasFrom(thingNode));
+        assertEquals("class in graph is thing", SubRefThing.class, neo4jTemplate.getStoredJavaType(thingNode));
 
     }
 
     @Test
     @Transactional
     public void testFindAllThings() throws Exception {
-        Collection<Node> things = IteratorUtil.asCollection(nodeTypeRepresentationStrategy.findAll(typeOf(Thing.class)));
+        Collection<Node> things = IteratorUtil.asCollection(nodeTypeRepresentationStrategy.findAll(typeOf(SubRefThing.class)));
         assertEquals("one thing created and found", 2, things.size());
     }
 
     @Test
     @Transactional
     public void testFindAllSubThings() {
-        Collection<Node> things = IteratorUtil.asCollection(nodeTypeRepresentationStrategy.findAll(typeOf(SubThing.class)));
-        assertEquals("one thing created and found", 1,things.size());
+        Collection<Node> things = IteratorUtil.asCollection(nodeTypeRepresentationStrategy.findAll(typeOf(SubRefSubThing.class)));
+        assertEquals("one thing created and found", 1, things.size());
         assertEquals("one thing created and found", entityStateHandler.<Node>getPersistentState(subThing), IteratorUtil.first(things));
     }
 
@@ -212,23 +211,23 @@ public class SubReferenceNodeTypeRepresentationStrategyTests extends EntityTestB
 	@Test
 	@Transactional
 	public void testCreateEntityAndInferType() throws Exception {
-        Thing newThing = neo4jTemplate.createEntityFromStoredType(node(thing), neo4jTemplate.getMappingPolicy(thing));
+        SubRefThing newThing = neo4jTemplate.createEntityFromStoredType(node(thing), neo4jTemplate.getMappingPolicy(thing));
         assertEquals(thing, newThing);
     }
 
 	@Test
 	@Transactional
 	public void testCreateEntityAndSpecifyType() throws Exception {
-        Thing newThing = neo4jTemplate.createEntityFromState(node(subThing), Thing.class, neo4jTemplate.getMappingPolicy(subThing));
+        SubRefThing newThing = neo4jTemplate.createEntityFromState(node(subThing), SubRefThing.class, neo4jTemplate.getMappingPolicy(subThing));
         assertEquals(subThing, newThing);
     }
 
     @Test
     public void testSaveTwice() throws Exception {
-        final Thing thing = neo4jTemplate.exec(new GraphCallback<Thing>() {
+        final SubRefThing thing = neo4jTemplate.exec(new GraphCallback<SubRefThing>() {
 
-            public Thing doWithGraph(GraphDatabase graph) throws Exception {
-                Thing thing = new Thing();
+            public SubRefThing doWithGraph(GraphDatabase graph) throws Exception {
+                SubRefThing thing = new SubRefThing();
                 thing.setName("Foo");
                 return neo4jTemplate.save(thing);
             }
@@ -236,8 +235,8 @@ public class SubReferenceNodeTypeRepresentationStrategyTests extends EntityTestB
         neo4jTemplate.exec(new GraphCallback.WithoutResult() {
             public void doWithGraphWithoutResult(GraphDatabase graph) throws Exception {
                 thing.setName("Bar");
-                Thing found = neo4jTemplate.save(thing);
-                neo4jTemplate.findOne(found.getNodeId(),Thing.class);
+                SubRefThing found = neo4jTemplate.save(thing);
+                neo4jTemplate.findOne(found.getNodeId(),SubRefThing.class);
             }
         });
     }
@@ -245,12 +244,12 @@ public class SubReferenceNodeTypeRepresentationStrategyTests extends EntityTestB
     @Test
     @Transactional
 	public void testProjectEntity() throws Exception {
-        Unrelated other = neo4jTemplate.projectTo(thing, Unrelated.class);
+        SubRefUnrelated other = neo4jTemplate.projectTo(thing, SubRefUnrelated.class);
         assertEquals("thing", other.getName());
 	}
 
     @NodeEntity
-    public static class Unrelated {
+    public static class SubRefUnrelated {
         String name;
 
         public String getName() {
@@ -259,7 +258,7 @@ public class SubReferenceNodeTypeRepresentationStrategyTests extends EntityTestB
     }
 
     @NodeEntity
-    public static class Thing {
+    public static class SubRefThing {
         String name;
 
         public String getName() {
@@ -271,6 +270,6 @@ public class SubReferenceNodeTypeRepresentationStrategyTests extends EntityTestB
         }
     }
 
-    public static class SubThing extends Thing {
+    public static class SubRefSubThing extends SubRefThing {
     }
 }

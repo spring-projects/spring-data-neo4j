@@ -1,14 +1,14 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
-	xmlns:context="http://www.springframework.org/schema/context"
-	xmlns:tx="http://www.springframework.org/schema/tx"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="
-		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
-		http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd
-		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:neo4j="http://www.springframework.org/schema/data/neo4j"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+		http://www.springframework.org/schema/data/neo4j http://www.springframework.org/schema/data/neo4j/spring-neo4j.xsd http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd">
 
-	<context:property-placeholder location="classpath*:META-INF/spring/*.properties"/>
+<context:property-placeholder location="classpath*:META-INF/spring/*.properties"/>
 
 	<context:component-scan base-package="org.springframework.data.neo4j.aspects">
 		<context:exclude-filter expression=".*_Roo_.*" type="regex"/>
@@ -27,13 +27,15 @@
 		<property name="relationshipEntityStateFactory" ref="relationshipEntityStateFactory"/>
 	</bean>
 
-	<bean id="graphDatabaseService" class="org.neo4j.test.ImpermanentGraphDatabase" destroy-method="shutdown" scope="singleton"/>
+
+
+    <bean id="graphDatabaseService" class="org.neo4j.test.ImpermanentGraphDatabase" destroy-method="shutdown" scope="singleton"/>
+
 
     <bean id="conversionService" class="org.springframework.data.neo4j.fieldaccess.Neo4jConversionServiceFactoryBean"/>
     <bean id="indexCreationMappingEventListener" class="org.springframework.data.neo4j.support.mapping.EntityIndexCreator">
         <constructor-arg ref="indexProvider" />
         <constructor-arg ref="schemaIndexProvider" />
-        <constructor-arg ref="nodeTypeRepresentationStrategy" />
     </bean>
 
 
@@ -95,7 +97,41 @@
         </constructor-arg>
     </bean>
 
-    <bean id="mappingContext" class="org.springframework.data.neo4j.support.mapping.Neo4jMappingContext"/>
+    <!--bean class="org.springframework.data.neo4j.aspects.config.Neo4jAspectConfiguration">
+        <property name="basePackage" value="org.springframework.data.neo4j.aspects"/>
+    </bean-->
+
+    <bean id="mappingContext" class="org.springframework.data.neo4j.support.mapping.Neo4jMappingContext">
+        <property name="initialEntitySet">
+            <set>
+                <value>org.springframework.data.neo4j.aspects.Developer</value>
+                <value>org.springframework.data.neo4j.aspects.Person</value>
+                <value>org.springframework.data.neo4j.aspects.Group</value>
+                <value>org.springframework.data.neo4j.aspects.SubGroup</value>
+                <value>org.springframework.data.neo4j.aspects.Toyota</value>
+                <value>org.springframework.data.neo4j.aspects.Volvo</value>
+                <value>org.springframework.data.neo4j.aspects.Named</value>
+                <value>org.springframework.data.neo4j.aspects.Mentorship</value>
+                <value>org.springframework.data.neo4j.aspects.Car</value>
+                <value>org.springframework.data.neo4j.aspects.Friendship</value>
+                <value>org.springframework.data.neo4j.aspects.Attribute</value>
+                <value>org.springframework.data.neo4j.model.NonNullNamed</value>
+                <value>org.springframework.data.neo4j.aspects.support.typerepresentation.IndexBasedRelationshipTypeRepresentationStrategyTests$Link</value>
+                <value>org.springframework.data.neo4j.aspects.support.typerepresentation.IndexBasedRelationshipTypeRepresentationStrategyTests$UnrelatedLink</value>
+                <value>org.springframework.data.neo4j.aspects.support.typerepresentation.IndexBasedRelationshipTypeRepresentationStrategyTests$SubLink</value>
+                <value>org.springframework.data.neo4j.aspects.support.typerepresentation.NoopTypeRepresentationStrategyTests.NoopThing</value>
+                <value>org.springframework.data.neo4j.aspects.support.typerepresentation.NoopTypeRepresentationStrategyTests.NoopLink</value>
+                <value>org.springframework.data.neo4j.aspects.support.typerepresentation.SubReferenceNodeTypeRepresentationStrategyTests.SubRefUnrelated</value>
+                <value>org.springframework.data.neo4j.aspects.support.typerepresentation.SubReferenceNodeTypeRepresentationStrategyTests.SubRefThing</value>
+                <value>org.springframework.data.neo4j.aspects.support.typerepresentation.SubReferenceNodeTypeRepresentationStrategyTests.SubRefSubThing</value>
+                <value>org.springframework.data.neo4j.aspects.support.typerepresentation.AbstractNodeTypeRepresentationStrategyTestBase.Thing</value>
+                <value>org.springframework.data.neo4j.aspects.support.typerepresentation.AbstractNodeTypeRepresentationStrategyTestBase.SubThing</value>
+                <value>org.springframework.data.neo4j.aspects.support.typerepresentation.AbstractNodeTypeRepresentationStrategyTestBase.SubSubThing</value>
+                <value>org.springframework.data.neo4j.aspects.support.typerepresentation.AbstractNodeTypeRepresentationStrategyTestBase.Unrelated</value>
+            </set>
+        </property>
+        <property name="entityIndexCreator" ref="indexCreationMappingEventListener" />
+    </bean>
 
     <bean id="relationshipEntityStateFactory" class="org.springframework.data.neo4j.support.relationship.RelationshipEntityStateFactory">
         <constructor-arg ref="mappingContext"/>

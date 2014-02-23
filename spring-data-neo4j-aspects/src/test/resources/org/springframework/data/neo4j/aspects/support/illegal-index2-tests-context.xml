@@ -1,22 +1,22 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
-	xmlns:context="http://www.springframework.org/schema/context"
-	xmlns:tx="http://www.springframework.org/schema/tx"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="
-		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
-		http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd
-		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:neo4j="http://www.springframework.org/schema/data/neo4j"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+		http://www.springframework.org/schema/data/neo4j http://www.springframework.org/schema/data/neo4j/spring-neo4j.xsd http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd">
 
-	<context:property-placeholder location="classpath*:META-INF/spring/*.properties"/>
+<context:property-placeholder location="classpath*:META-INF/spring/*.properties"/>
 
 	<context:component-scan base-package="org.springframework.data.neo4j.aspects">
 		<context:exclude-filter expression=".*_Roo_.*" type="regex"/>
         <context:exclude-filter expression="org.springframework.context.annotation.Configuration" type="annotation"/>
 		<context:exclude-filter expression="org.springframework.stereotype.Controller" type="annotation"/>
 	</context:component-scan>
-
-
+	
+	
 	<bean id="neo4jNodeBacking" class="org.springframework.data.neo4j.aspects.support.node.Neo4jNodeBacking" factory-method="aspectOf">
 		<property name="template" ref="template"/>
 		<property name="nodeEntityStateFactory" ref="nodeEntityStateFactory"/>
@@ -27,13 +27,15 @@
 		<property name="relationshipEntityStateFactory" ref="relationshipEntityStateFactory"/>
 	</bean>
 
-	<bean id="graphDatabaseService" class="org.neo4j.test.ImpermanentGraphDatabase" destroy-method="shutdown" scope="singleton"/>
+
+
+    <bean id="graphDatabaseService" class="org.neo4j.test.ImpermanentGraphDatabase" destroy-method="shutdown" scope="singleton"/>
+
 
     <bean id="conversionService" class="org.springframework.data.neo4j.fieldaccess.Neo4jConversionServiceFactoryBean"/>
     <bean id="indexCreationMappingEventListener" class="org.springframework.data.neo4j.support.mapping.EntityIndexCreator">
         <constructor-arg ref="indexProvider" />
         <constructor-arg ref="schemaIndexProvider" />
-        <constructor-arg ref="nodeTypeRepresentationStrategy" />
     </bean>
 
 
@@ -95,19 +97,17 @@
         </constructor-arg>
     </bean>
 
-    <bean id="mappingContext" class="org.springframework.data.neo4j.support.mapping.Neo4jMappingContext" >
+    <!--bean class="org.springframework.data.neo4j.aspects.config.Neo4jAspectConfiguration">
+        <property name="basePackage" value="org.springframework.data.neo4j.aspects"/>
+    </bean-->
 
-        <!-- NW-ISSUE01 Possibility for getting around some of the schema vs data tx issues
-                        is to set the initialEntitySet upfront, however its a pain to do this
-                        manually would probably be better if we could detect all the entities
-                        at startup rather than requiring them to be explicitly set here ... -->
-        <!--property name="initialEntitySet" >
+    <bean id="mappingContext" class="org.springframework.data.neo4j.support.mapping.Neo4jMappingContext">
+        <property name="initialEntitySet">
             <set>
-                <value>org.springframework.data.neo4j.aspects.support.typerepresentation.AbstractNodeTypeRepresentationStrategyTestBase.Thing</value>
-                <value>org.springframework.data.neo4j.aspects.support.typerepresentation.AbstractNodeTypeRepresentationStrategyTestBase.SubThing</value>
-                <value>org.springframework.data.neo4j.aspects.support.typerepresentation.AbstractNodeTypeRepresentationStrategyTestBase.SubSubThing</value>
+                <value>org.springframework.data.neo4j.illegal.aspects.index2.IllegalIndex2Tests$InvalidIndexed</value>
             </set>
-        </property-->
+        </property>
+        <property name="entityIndexCreator" ref="indexCreationMappingEventListener" />
     </bean>
 
     <bean id="relationshipEntityStateFactory" class="org.springframework.data.neo4j.support.relationship.RelationshipEntityStateFactory">
@@ -123,7 +123,25 @@
 
     <tx:annotation-driven mode="aspectj" transaction-manager="transactionManager"/>
 
-
+    <bean id="personRepository" class="org.springframework.data.neo4j.repository.GraphRepositoryFactoryBean">
+        <property name="repositoryInterface" value="org.springframework.data.neo4j.aspects.PersonRepository" />
+        <property name="neo4jTemplate" ref="template"/>
+        <property name="namedQueries">
+            <bean class="org.springframework.data.repository.core.support.PropertiesBasedNamedQueries">
+                <constructor-arg>
+                    <props><prop key="Person.findTeam">start p=node({p_person}) match (p)&lt;-[:persons]-(group) return group</prop></props>
+                </constructor-arg>
+            </bean>
+        </property>
+    </bean>
+    <bean id="groupRepository" class="org.springframework.data.neo4j.repository.GraphRepositoryFactoryBean">
+        <property name="repositoryInterface" value="org.springframework.data.neo4j.aspects.GroupRepository" />
+        <property name="neo4jTemplate" ref="template"/>
+    </bean>
+    <bean id="friendshipRepository" class="org.springframework.data.neo4j.repository.GraphRepositoryFactoryBean">
+        <property name="repositoryInterface" value="org.springframework.data.neo4j.aspects.FriendshipRepository" />
+        <property name="neo4jTemplate" ref="template"/>
+    </bean>
 
     <bean class="org.springframework.dao.annotation.PersistenceExceptionTranslationPostProcessor" />
 
