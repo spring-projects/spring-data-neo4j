@@ -20,6 +20,7 @@ import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.Node;
 import org.springframework.data.neo4j.annotation.*;
 import org.springframework.data.neo4j.fieldaccess.DynamicProperties;
+import org.springframework.data.neo4j.support.index.IndexType;
 
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
@@ -36,16 +37,16 @@ public class Person {
     @GraphId
 	private Long graphId;
 
-    @Indexed(indexName = NAME_INDEX)
+    @Indexed(indexName = NAME_INDEX,indexType = IndexType.SIMPLE)
     @Size(min = 3, max = 20)
 	private String name;
 
-	@Indexed
+	@Indexed(indexType = IndexType.SIMPLE)
 	private String nickname;
 
 	@Max(100)
 	@Min(0)
-    @Indexed
+    @Indexed(indexType = IndexType.SIMPLE,numeric = true)
     private int age;
 
 	private Short height;

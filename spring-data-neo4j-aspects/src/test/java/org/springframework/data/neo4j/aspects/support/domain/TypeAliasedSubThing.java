@@ -12,7 +12,7 @@ public class TypeAliasedSubThing extends TypeAliasedThing {
     @Indexed(indexType = IndexType.SIMPLE)
     String legacyIndexedSubThingName;
 
-    @Indexed(indexType = IndexType.LABEL, numeric = false)
+    @Indexed(indexType = IndexType.LABEL)
     String schemaIndexedSubThingName;
 
     public String getLegacyIndexedSubThingName() {

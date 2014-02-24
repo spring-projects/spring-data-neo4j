@@ -133,17 +133,17 @@ public class Neo4jTemplate implements Neo4jOperations, ApplicationContextAware {
     }
 
 
-    public <S extends PropertyContainer, T> Index<S> getIndex(Class<T> type) {
+    @Deprecated public <S extends PropertyContainer, T> Index<S> getIndex(Class<T> type) {
         notNull(type, "entity type");
         return getIndexProvider().getIndex(getPersistentEntity(type), null);
     }
 
-    public <S extends PropertyContainer> Index<S> getIndex(String name) {
+    @Deprecated public <S extends PropertyContainer> Index<S> getIndex(String name) {
         notNull(name, "index name");
         return getIndexProvider().getIndex(null, name);
     }
 
-    public <S extends PropertyContainer, T> Index<S> getIndex(Class<T> type, String indexName, IndexType indexType) {
+    @Deprecated public <S extends PropertyContainer, T> Index<S> getIndex(Class<T> type, String indexName, IndexType indexType) {
         return getIndexProvider().getIndex(getPersistentEntity(type), indexName, indexType);
     }
 

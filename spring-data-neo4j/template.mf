@@ -12,6 +12,7 @@ Import-Template:
  org.springframework.orm.*;version="[3.0.0, 4.0.0)",
  org.springframework.transaction.*;version="[3.0.0, 4.0.0)",
  org.springframework.util.*;version="[3.0.0, 4.0.0)",
+ org.springframework.aop.*;version="[3.0.0, 4.0.0)",
  org.springframework.data.*;version="[1.0.0, 2.0.0)",
  org.springframework.persistence.*;version="[1.0.0, 2.0.0)",
  org.springframework.data.neo4j.*;version="0",

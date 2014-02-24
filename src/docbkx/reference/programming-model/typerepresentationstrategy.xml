@@ -8,11 +8,12 @@
         this type information hierarchy is saved in the graph database.
     </para>
     <para>
-        As the type information is also stored in node/relationship-properties and/or indexes it might amount to a substantial
+        As the type information is also stored in labels, node/relationship-properties and/or indexes it might amount to a substantial
         amount of data in the graph. It is possible to use an <code>@TypeAlias("name")</code> annotation on nodes and relationships to have a
         short constant name for each type which is (unlike the default approach) renaming-refactoring-safe.
-        For using the simple class name by default, register a <code>Neo4jMappingContext</code> bean configured with an
-        instance of <code>EntityAlias</code>.
+        Other than in previous versions, Spring Data Neo4j uses the simple class name as default.
+        For using the fully qualified class name by default, register a <code>Neo4jMappingContext</code> bean configured with an
+        instance of <code>org.springframework.data.neo4j.support.mapping.ClassNameAlias</code>.
         It is also possible to opt out of storing type information using the <code>NoopTypeRepresentationStrategies</code>.
     </para>
     <para>
@@ -21,11 +22,21 @@
         like <code>findAll</code> and <code>count</code>. The derived finderMethods also use the type information for graph global queries.
     </para>
     <para>
-        There are three available implementations for node entities to choose from.
+        There are four available implementations for node entities to choose from, Spring Data Neo4j defaults to the label based strategy.
         <itemizedlist>
             <listitem>
                 <para>
-                    <code>IndexingNodeTypeRepresentationStrategy</code> this is the default strategy used.
+                    <code>LabelBasedNodeTypeRepresentationStrategy</code> this is the default strategy used.
+                </para>
+                <para>
+                    Stores entity types in node labels. Each node gets labeled with its type and
+                    all supertypes and interfaces that are also <code>@NodeEntity</code>-annotated. There is a special Label
+                    prefixed with _ that represents the current type of the entity.
+                </para>
+            </listitem>
+            <listitem>
+                <para>
+                    <code>IndexingNodeTypeRepresentationStrategy</code>
                 </para>
                 <para>
                     Stores entity types in the integrated index. Each entity node gets indexed with its type and

@@ -10,6 +10,27 @@
 		certain properties.
 	</para>
     <para>
+        <note>
+            Please not that the lucene based manual indexes are deprecated with Neo4j 2.0 and Spring Data Neo4j 3.0.
+            The default index is now based on labels and schema indexes. Only for fulltext and spatial indexes the
+            "legacy" index framework should be used. The related APIs have been deprecated as well.
+        </note>
+    </para>
+
+    <section>
+        <title>Label based schema indexes</title>
+        <para>
+            Since Neo4j version 2.0 indexes and unique constraints based on labels and properties are supported throughout the
+            API including cypher. For properties of entities annotated with <code>@Indexed</code> an appropriate schema index
+            and for <code>@Indexed(unique=true)</code> a constraint is created.
+        </para>
+        <para>
+            Those indexes will be automatically used by cypher queries that are generated for the derived finders and are
+            available for custom queries.
+        </para>
+    </section>
+
+    <para>
         The Neo4j graph database employs different index providers for exact lookups and fulltext
         searches. Lucene is the default index provider implementation. Each named index is configured to be
         fulltext or exact. There is also a spatial index provider for geo-searches.

@@ -21,6 +21,7 @@ import org.mockito.Mockito;
 import org.springframework.data.neo4j.core.NodeTypeRepresentationStrategy;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
 import org.springframework.data.neo4j.support.typerepresentation.LabelBasedNodeTypeRepresentationStrategy;
+import org.springframework.data.repository.query.parser.Part;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
@@ -33,7 +34,7 @@ import static org.junit.Assert.assertThat;
  */
 public class CypherQueryBuilderForLabelBasedTRSUnitTests extends AbstractCypherQueryBuilderTestBase {
 
-    private final static String DEFAULT_MATCH_STARTING_CLAUSE = " MATCH (`person`:`" + CLASS_NAME + "`)";
+    private final static String DEFAULT_MATCH_STARTING_CLAUSE = "MATCH (`person`:`" + CLASS_NAME + "`)";
 
     @Before
     public void setUp() {
@@ -76,20 +77,16 @@ public class CypherQueryBuilderForLabelBasedTRSUnitTests extends AbstractCypherQ
     @Override
     @Test
     public void createsQueryForPropertyOnRelationShipReference() {
-        this.trsSpecificExpectedQuery = "START `person_group`=node:`Group`(`name`={0}) MATCH (`person`)<-[:`members`]-(`person_group`) RETURN `person`";
-        super.createsQueryForPropertyOnRelationShipReference();
+        Part part = new Part("group.name", Person.class);
+        query.addRestriction(part);
+        assertThat(query.toString(), is( "MATCH (`person`)<-[:`members`]-(`person_group`) WHERE `person_group`.`name` = {0} RETURN `person`"));
     }
 
     @Override
     @Test
     public void createsQueryForMultipleStartClauses() {
         this.trsSpecificExpectedQuery =
-                   "START `person`=node:`Person`(" +
-                        "`name`={0}), " +
-                        "`person_group`=node:" +
-                        "`Group`(`name`={1}) " +
-                   "MATCH (`person`)<-[:`members`]-(`person_group`) " +
-                   "RETURN `person`";
+                   "MATCH (`person`)<-[:`members`]-(`person_group`) WHERE `person`.`name` = {0} AND `person_group`.`name` = {1} RETURN `person`";
         super.createsQueryForMultipleStartClauses();
     }
 
@@ -103,7 +100,7 @@ public class CypherQueryBuilderForLabelBasedTRSUnitTests extends AbstractCypherQ
     @Override
     @Test
     public void createsSimpleTraversalClauseCorrectly() {
-        this.trsSpecificExpectedQuery = " MATCH (`person`)<-[:`members`]-(`person_group`) WHERE id(`person_group`) = {0} AND `person`:`Person` RETURN `person`";
+        this.trsSpecificExpectedQuery = "MATCH (`person`)<-[:`members`]-(`person_group`) WHERE id(`person_group`) = {0} AND `person`:`Person` RETURN `person`";
         super.createsSimpleTraversalClauseCorrectly();
     }
 
@@ -111,10 +108,7 @@ public class CypherQueryBuilderForLabelBasedTRSUnitTests extends AbstractCypherQ
     @Test
     public void buildsComplexQueryCorrectly() {
         this.trsSpecificExpectedQuery =
-                "START `person`=node:`Person`(`name`={0}), `person_group`=node:`Group`(`name`={1}) " +
-                        "MATCH (`person`)<-[:`members`]-(`person_group`), (`person`)<-[:`members`]-(`person_group`)-[:`members`]->(`person_group_members`) " +
-                        "WHERE `person`.`age` > {2} AND `person_group_members`.`age` = {3} " +
-                        "RETURN `person`";
+                "MATCH (`person`)<-[:`members`]-(`person_group`), (`person`)<-[:`members`]-(`person_group`)-[:`members`]->(`person_group_members`) WHERE `person`.`name` = {0} AND `person_group`.`name` = {1} AND `person`.`age` > {2} AND `person_group_members`.`age` = {3} RETURN `person`";
         super.buildsComplexQueryCorrectly();
 
     }
@@ -122,14 +116,14 @@ public class CypherQueryBuilderForLabelBasedTRSUnitTests extends AbstractCypherQ
     @Override
     @Test
     public void shouldFindByNodeEntity() throws Exception {
-        this.trsSpecificExpectedQuery = " MATCH (`person`)-[:`owns`]->(`person_pet`) WHERE id(`person_pet`) = {0} AND `person`:`Person` RETURN `person`";
+        this.trsSpecificExpectedQuery = "MATCH (`person`)-[:`owns`]->(`person_pet`) WHERE id(`person_pet`) = {0} AND `person`:`Person` RETURN `person`";
         super.shouldFindByNodeEntity();
     }
 
     @Override
     @Test
     public void shouldFindByNodeEntityForIncomingRelationship() {
-        this.trsSpecificExpectedQuery = " MATCH (`person`)<-[:`members`]-(`person_group`) WHERE id(`person_group`) = {0} AND `person`:`Person` RETURN `person`";
+        this.trsSpecificExpectedQuery = "MATCH (`person`)<-[:`members`]-(`person_group`) WHERE id(`person_group`) = {0} AND `person`:`Person` RETURN `person`";
         super.shouldFindByNodeEntityForIncomingRelationship();
     }
 

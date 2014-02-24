@@ -16,10 +16,7 @@
 package org.springframework.data.neo4j.unique;
 
 import org.junit.Test;
-import org.neo4j.graphdb.Direction;
-import org.neo4j.graphdb.DynamicRelationshipType;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Relationship;
+import org.neo4j.graphdb.*;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentTestBase;
 import org.springframework.data.neo4j.model.BestFriend;
 import org.springframework.data.neo4j.model.Person;
@@ -28,6 +25,7 @@ import org.springframework.data.neo4j.support.mapping.Neo4jMappingContext;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotSame;
+import static org.neo4j.helpers.collection.MapUtil.map;
 
 /**
  * @author mh
@@ -51,7 +49,7 @@ public class UniqueRelationshipTests extends Neo4jPersistentTestBase {
         assertEquals(bestFriendRel,((Node)template.getPersistentState(michael)).getSingleRelationship(DynamicRelationshipType.withName("BEST_FRIEND"), Direction.OUTGOING));
         assertEquals(bestFriendRel.getEndNode(), template.getPersistentState(andres));
         assertEquals("cypher",bestFriendRel.getProperty("secretName"));
-        assertEquals(bestFriendRel,template.getIndex(BestFriend.class).get("secretName","cypher").getSingle());
+        assertEquals(bestFriendRel, getBestFriend());
 
         final Person p3 = storeInGraph(emil);
         final BestFriend bestFriend2 = new BestFriend(p1, p3, "cypher");
@@ -60,7 +58,7 @@ public class UniqueRelationshipTests extends Neo4jPersistentTestBase {
         final Relationship bestFriend2Rel = template.getPersistentState(bestFriend2);
         assertEquals(bestFriend2Rel, bestFriendRel);
         assertEquals(bestFriend2Rel.getEndNode(), template.getPersistentState(andres));
-        assertEquals(bestFriendRel,template.getIndex(BestFriend.class).get("secretName","cypher").getSingle());
+        assertEquals(bestFriendRel, getBestFriend());
     }
 
     @Test
@@ -75,7 +73,7 @@ public class UniqueRelationshipTests extends Neo4jPersistentTestBase {
         assertEquals(bestFriendRel,((Node)template.getPersistentState(michael)).getSingleRelationship(DynamicRelationshipType.withName("BEST_FRIEND"), Direction.OUTGOING));
         assertEquals(bestFriendRel.getEndNode(), template.getPersistentState(andres));
         assertEquals("cypher",bestFriendRel.getProperty("secretName"));
-        assertEquals(bestFriendRel,template.getIndex(BestFriend.class).get("secretName","cypher").getSingle());
+        assertEquals(bestFriendRel, getBestFriend());
 
         final Person p3 = storeInGraph(emil);
         p1.setBestFriend(p3,"cypher");
@@ -85,7 +83,7 @@ public class UniqueRelationshipTests extends Neo4jPersistentTestBase {
         final Relationship bestFriend2Rel = template.getPersistentState(bestFriend2);
         assertEquals(bestFriend2Rel, bestFriendRel);
         assertEquals(bestFriend2Rel.getEndNode(), template.getPersistentState(andres));
-        assertEquals(bestFriendRel,template.getIndex(BestFriend.class).get("secretName","cypher").getSingle());
+        assertEquals(bestFriendRel, getBestFriend());
 
         p1.setBestFriend(null,null);
         template.save(p1);
@@ -97,7 +95,11 @@ public class UniqueRelationshipTests extends Neo4jPersistentTestBase {
         final Relationship bestFriend3Rel = template.getPersistentState(bestFriend3);
         assertNotSame(bestFriend3Rel, bestFriendRel);
         assertEquals(bestFriend3Rel.getEndNode(), template.getPersistentState(emil));
-        assertEquals(bestFriend3Rel, template.getIndex(BestFriend.class).get("secretName", "cypher").getSingle());
+        assertEquals(bestFriend3Rel, getBestFriend());
+    }
+
+    private Relationship getBestFriend() {
+        return template.<Relationship,BestFriend>getIndex(BestFriend.class).get("secretName", "cypher").getSingle();
     }
 
     @Test

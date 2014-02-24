@@ -30,6 +30,9 @@ class Person {
     @Indexed
     String name;
 
+    @Indexed(indexType = IndexType.SIMPLE)
+    String name2;
+
     @Indexed(indexType = IndexType.FULLTEXT,indexName = "title")
     String title;
 

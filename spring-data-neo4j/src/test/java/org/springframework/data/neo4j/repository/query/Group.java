@@ -20,6 +20,7 @@ import org.springframework.data.neo4j.annotation.GraphId;
 import org.springframework.data.neo4j.annotation.Indexed;
 import org.springframework.data.neo4j.annotation.NodeEntity;
 import org.springframework.data.neo4j.annotation.RelatedTo;
+import org.springframework.data.neo4j.support.index.IndexType;
 
 import java.util.Set;
 
@@ -30,6 +31,9 @@ class Group {
 
     @Indexed
     String name;
+
+    @Indexed(indexType = IndexType.SIMPLE)
+    String name2;
 
     @RelatedTo(type = "members", direction = Direction.OUTGOING)
     Set<Person> members;

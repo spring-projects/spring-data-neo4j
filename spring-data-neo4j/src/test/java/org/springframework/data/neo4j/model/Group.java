@@ -87,7 +87,7 @@ public class Group implements  IGroup , Serializable {
     @Indexed(fieldName = OTHER_NAME_INDEX)
     private String otherName;
 
-    @Indexed(level = Indexed.Level.GLOBAL)
+    @Indexed(level = Indexed.Level.GLOBAL,indexType = IndexType.SIMPLE)
     private String globalName;
 
     @Indexed(level = Indexed.Level.CLASS)

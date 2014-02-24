@@ -90,7 +90,7 @@ public class TraversalTests extends EntityTestBase {
         assertEquals(Collections.singletonList(p),IteratorUtil.asCollection(group.getPeople()));
     }
 
-    @Ignore("TODO - add back when strict setting working properly again in AbstractMappingContext.getPersistentEntity")
+//    @Ignore("TODO - add back when strict setting working properly again in AbstractMappingContext.getPersistentEntity")
     @Test
     @Transactional
     public void testTraverseFieldFromGroupToPeopleNodes() {
@@ -100,7 +100,7 @@ public class TraversalTests extends EntityTestBase {
         assertEquals(Collections.singletonList(getNodeState(p)), IteratorUtil.asCollection(group.getPeopleNodes()));
     }
 
-    @Ignore("TODO - add back when strict setting working properly again in AbstractMappingContext.getPersistentEntity")
+//    @Ignore("TODO - add back when strict setting working properly again in AbstractMappingContext.getPersistentEntity")
     @Test
     @Transactional
     public void testTraverseFieldFromGroupToPeopleRelationships() {

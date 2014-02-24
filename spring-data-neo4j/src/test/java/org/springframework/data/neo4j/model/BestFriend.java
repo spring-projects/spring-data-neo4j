@@ -24,6 +24,7 @@ import org.springframework.data.neo4j.annotation.RelationshipEntity;
 import org.springframework.data.neo4j.annotation.RelationshipType;
 import org.springframework.data.neo4j.annotation.StartNode;
 import org.springframework.data.neo4j.fieldaccess.DynamicProperties;
+import org.springframework.data.neo4j.support.index.IndexType;
 
 import java.io.Serializable;
 import java.util.Date;
@@ -36,7 +37,7 @@ public class BestFriend implements Serializable {
     @GraphId
     private Long id;
 
-    @Indexed(unique = true)
+    @Indexed(unique = true,indexType = IndexType.SIMPLE)
     private String secretName;
 
     public BestFriend() { }

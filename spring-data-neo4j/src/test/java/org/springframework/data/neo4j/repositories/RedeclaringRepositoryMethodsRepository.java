@@ -31,7 +31,7 @@ public interface RedeclaringRepositoryMethodsRepository extends GraphRepository<
 	/**
 	 * Should not find any persons at all.
 	 */
-	@Query("START n=node(*) where HAS(n.name) AND n.name='Bubu' return n")
+	@Query("MATCH (n:Person) WHERE n.name='Bubu' return n")
 	EndResult<Person> findAll();
 
 	/**
@@ -40,6 +40,6 @@ public interface RedeclaringRepositoryMethodsRepository extends GraphRepository<
 	 * @param page
 	 * @return
 	 */
-	@Query("START n=node(*) where HAS(n.name) AND n.name='Oliver' return n")
+	@Query("MATCH (n:Person) WHERE n.name='Oliver' return n")
 	Page<Person> findAll(Pageable page);
 }

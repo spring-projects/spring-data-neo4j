@@ -10,7 +10,7 @@ public class SubSubThing extends SubThing {
     @Indexed(indexType = IndexType.SIMPLE)
     String legacyIndexedSubSubThingName;
 
-    @Indexed(indexType = IndexType.LABEL, numeric = false)
+    @Indexed(indexType = IndexType.LABEL)
     String schemaIndexedSubSubThingName;
 
     public String getLegacyIndexedSubSubThingName() {

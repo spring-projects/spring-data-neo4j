@@ -58,14 +58,14 @@ public abstract class AbstractDerivedFinderMethodTestBase {
     public static class Thing {
         @GraphId
         Long id;
-        @Indexed
+        @Indexed(indexType = IndexType.SIMPLE)
         String firstName;
-    	@Indexed
+    	@Indexed(numeric = true,indexType = IndexType.SIMPLE)
     	int number;
-        @Indexed
+        @Indexed(indexType = IndexType.SIMPLE)
         String lastName;
 
-        @Indexed(indexType = IndexType.LABEL, numeric = false)
+        @Indexed(indexType = IndexType.LABEL)
         String alias;
 
         String name;
@@ -88,7 +88,7 @@ public abstract class AbstractDerivedFinderMethodTestBase {
         }
     }
 
-    protected final static String THING_NAME = Thing.class.getName();
+    protected final static String THING_NAME = Thing.class.getSimpleName();
     @Autowired
     ThingRepository repository;
     @Autowired

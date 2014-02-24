@@ -284,9 +284,8 @@ public class GraphRepositoryTests {
     @Test @Transactional
 //    @Ignore("cypher bug with escaped params")
     public void testFindWithMultipleParameters() {
-        final int depth = 1;
         final int limit = 2;
-        Iterable<Person> teamMembers = personRepository.findSomeTeamMembers(testTeam.sdg.getName(), 0, limit, depth);
+        Iterable<Person> teamMembers = personRepository.findSomeTeamMembers(testTeam.sdg.getName(), 0, limit);
         assertThat(asCollection(teamMembers), hasItems(testTeam.david, testTeam.emil));
     }
 
@@ -509,7 +508,7 @@ public class GraphRepositoryTests {
                         txTemplate.execute(new TransactionCallbackWithoutResult() {
                             @Override
                             protected void doInTransactionWithoutResult(TransactionStatus transactionStatus) {
-                                Car singleCar = template.query("start user=node:User(name={name}) match user-[:Loves]->car return car limit 1", map("name", "foo")).to(Car.class).singleOrNull();
+                                Car singleCar = template.query("MATCH (use:User {name:{name}})-[:Loves]->car return car limit 1", map("name", "foo")).to(Car.class).singleOrNull();
                                 //Car singleCar = userRepository.getSingleCar("foo");
                                 assertEquals(singleCar.id, car.id);
                                 counter.incrementAndGet();

@@ -33,6 +33,7 @@ import org.springframework.data.neo4j.annotation.*;
 import org.springframework.data.neo4j.config.EnableNeo4jRepositories;
 import org.springframework.data.neo4j.config.Neo4jConfiguration;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
+import org.springframework.data.neo4j.support.index.IndexType;
 import org.springframework.data.neo4j.support.node.Neo4jHelper;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -69,7 +70,7 @@ class Dish {
     @GraphId
     Long id;
 
-    @Indexed(unique = true) int number;
+    @Indexed(unique = true,numeric = true) int number;
 
     Dish() {
     }

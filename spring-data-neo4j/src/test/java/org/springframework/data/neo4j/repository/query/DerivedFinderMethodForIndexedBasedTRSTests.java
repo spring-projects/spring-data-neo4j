@@ -45,7 +45,7 @@ import static org.junit.Assert.assertFalse;
 @TestExecutionListeners({CleanContextCacheTestExecutionListener.class, DependencyInjectionTestExecutionListener.class, TransactionalTestExecutionListener.class})
 public class DerivedFinderMethodForIndexedBasedTRSTests extends AbstractDerivedFinderMethodTestBase {
 
-    private static final String DEFAULT_START_CLAUSE = "START `thing`=node:__types__(className=\"org.springframework.data.neo4j.repository.query.AbstractDerivedFinderMethodTestBase$Thing\")";
+    private static final String DEFAULT_START_CLAUSE = "START `thing`=node:__types__(className=\"Thing\")";
 
     @Autowired
     NodeTypeRepresentationStrategy strategy;
@@ -65,7 +65,7 @@ public class DerivedFinderMethodForIndexedBasedTRSTests extends AbstractDerivedF
         this.trsSpecificExpectedQuery =
                 "START `thing_owner`=node({0}) " +
                 "MATCH (`thing`)-[:`owner`]->(`thing_owner`) " +
-                "WHERE `thing`.__type__ IN ['org.springframework.data.neo4j.repository.query.AbstractDerivedFinderMethodTestBase$Thing'] ";
+                "WHERE `thing`.__type__ IN ['Thing'] ";
         super.testQueryWithEntityGraphId();
     }
 

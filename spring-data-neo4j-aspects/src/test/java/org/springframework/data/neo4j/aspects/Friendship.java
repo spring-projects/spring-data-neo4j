@@ -19,6 +19,7 @@ package org.springframework.data.neo4j.aspects;
 
 import org.springframework.data.neo4j.annotation.*;
 import org.springframework.data.neo4j.fieldaccess.DynamicProperties;
+import org.springframework.data.neo4j.support.index.IndexType;
 
 import java.util.Date;
 
@@ -45,7 +46,7 @@ public class Friendship {
 	@EndNode
 	private Person p2;
 
-    @Indexed
+    @Indexed(numeric = true,indexType = IndexType.SIMPLE)
 	private int years;
 
     @RelationshipType

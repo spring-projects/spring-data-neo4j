@@ -35,13 +35,13 @@ public @interface Indexed {
      */
     String indexName() default "";
 
-    org.springframework.data.neo4j.support.index.IndexType indexType() default org.springframework.data.neo4j.support.index.IndexType.SIMPLE;
+    org.springframework.data.neo4j.support.index.IndexType indexType() default org.springframework.data.neo4j.support.index.IndexType.LABEL;
 
     String fieldName() default "";
 
     boolean unique() default false;
 
-    boolean numeric() default true;
+    boolean numeric() default false;
 
     // FQN is a fix for javac compiler bug http://bugs.sun.com/view_bug.do?bug_id=6512707
     org.springframework.data.neo4j.annotation.Indexed.Level level() default org.springframework.data.neo4j.annotation.Indexed.Level.CLASS;

@@ -46,7 +46,7 @@ public abstract class AbstractCypherQueryBuilderTestBase {
 
     // Allow subclasses to provide specific expectations
     protected String   trsSpecificExpectedQuery;
-    private CypherQueryBuilder query;
+    protected CypherQueryBuilder query;
 
     final static String CLASS_NAME = Person.class.getSimpleName();
 
@@ -68,7 +68,14 @@ public abstract class AbstractCypherQueryBuilderTestBase {
         Part part = new Part("name", Person.class);
         query.addRestriction(part);
         assertThat(query.toString(),
-                is(getExpectedQuery("START `person`=node:`Person`(`name`={0}) RETURN `person`")));
+                is(getExpectedQuery("MATCH (`person`:`Person`) WHERE `person`.`name` = {0} RETURN `person`")));
+    }
+    @Test
+    public void createsQueryForSimpleIndexedPropertyReference() {
+        Part part = new Part("name2", Person.class);
+        query.addRestriction(part);
+        assertThat(query.toString(),
+                is(getExpectedQuery("START `person`=node:`Person`(`name2`={0}) RETURN `person`")));
     }
 
     @Test
@@ -148,7 +155,7 @@ public abstract class AbstractCypherQueryBuilderTestBase {
     public void buildsQueryWithSort() {
         query.addRestriction(new Part("name",Person.class));
         String queryString = query.buildQuery(new Sort("person.name")).toQueryString();
-        assertThat(queryString, is("START `person`=node:`Person`(`name`={0}) RETURN `person` ORDER BY person.name ASC"));
+        assertThat(queryString, is("MATCH (`person`:`Person`) WHERE `person`.`name` = {0} RETURN `person` ORDER BY person.name ASC"));
     }
 
     @Test
@@ -156,7 +163,7 @@ public abstract class AbstractCypherQueryBuilderTestBase {
         query.addRestriction(new Part("name",Person.class));
         Sort sort = new Sort(new Sort.Order("person.name"),new Sort.Order(Sort.Direction.DESC, "person.age"));
         String queryString = query.buildQuery(sort).toQueryString();
-        assertThat(queryString, is("START `person`=node:`Person`(`name`={0}) RETURN `person` ORDER BY person.name ASC,person.age DESC"));
+        assertThat(queryString, is("MATCH (`person`:`Person`) WHERE `person`.`name` = {0} RETURN `person` ORDER BY person.name ASC,person.age DESC"));
     }
 
     @Test
@@ -164,7 +171,7 @@ public abstract class AbstractCypherQueryBuilderTestBase {
         query.addRestriction(new Part("name",Person.class));
         Pageable pageable = new PageRequest(3,10,new Sort("person.name"));
         String queryString = query.buildQuery().toQueryString(pageable);
-        assertThat(queryString, is("START `person`=node:`Person`(`name`={0}) RETURN `person` ORDER BY person.name ASC SKIP 30 LIMIT 10"));
+        assertThat(queryString, is("MATCH (`person`:`Person`) WHERE `person`.`name` = {0} RETURN `person` ORDER BY person.name ASC SKIP 30 LIMIT 10"));
     }
 
     @Test

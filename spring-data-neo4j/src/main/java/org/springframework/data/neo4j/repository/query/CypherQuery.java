@@ -291,7 +291,7 @@ public class CypherQuery implements CypherQueryDefinition {
             builder.append(addSorts(
                     applyMissingRefs ? getCypherEntityRefAwareSort(sort) : sort));
         }
-        return builder.toString();
+        return builder.toString().trim();
     }
 
     @Override
@@ -301,7 +301,7 @@ public class CypherQuery implements CypherQueryDefinition {
         }
         StringBuilder builder = new StringBuilder(toQueryString(pageable.getSort()));
         builder.append(String.format(QueryTemplates.SKIP_LIMIT, pageable.getOffset(), pageable.getPageSize()));
-        return builder.toString();
+        return builder.toString().trim();
     }
 
     @Override

@@ -18,11 +18,12 @@ package org.springframework.data.neo4j.unique.domain;
 import org.springframework.data.neo4j.annotation.GraphId;
 import org.springframework.data.neo4j.annotation.Indexed;
 import org.springframework.data.neo4j.annotation.NodeEntity;
+import org.springframework.data.neo4j.support.index.IndexType;
 
 @NodeEntity
 public class UniqueClub {
 
-    @Indexed(unique = true)
+    @Indexed(unique = true,indexType = IndexType.SIMPLE)
     private String name;
 
     @GraphId

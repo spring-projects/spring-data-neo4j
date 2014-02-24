@@ -39,14 +39,14 @@ public class Person implements Being , Serializable {
     @GraphId
 	private Long graphId;
 
-    @Indexed(indexName = NAME_INDEX)
+    @Indexed(indexName = NAME_INDEX,indexType = IndexType.SIMPLE)
     @Size(min = 3, max = 20)
 	private String name;
 
 	@Indexed
 	private String nickname;
 
-    @Indexed(indexType = IndexType.LABEL, numeric = false)
+    @Indexed(indexType = IndexType.LABEL)
     private String alias;
 
 	@Indexed(indexType = IndexType.POINT, indexName="personLayer")
@@ -54,7 +54,7 @@ public class Person implements Being , Serializable {
 
 	@Max(100)
 	@Min(0)
-    @Indexed
+    @Indexed(numeric = true)
     private int age;
 
 	private Object dynamicProperty;

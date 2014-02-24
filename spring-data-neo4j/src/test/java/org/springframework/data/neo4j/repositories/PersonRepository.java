@@ -42,45 +42,45 @@ import java.util.Map;
  */
 public interface PersonRepository extends GraphRepository<Person>, NamedIndexRepository<Person>, SpatialRepository<Person>, PersonRepositoryFriendship, CypherDslRepository<Person>, RelationshipOperationsRepository<Person> {
 
-    @Query("start team=node({p_team}) match (team)-[:persons]->(member) return member")
+    @Query("match (team:g)-[:persons]->(member) where id(team) = {p_team} return member")
     Iterable<Person> findAllTeamMembers(@Param("p_team") Group team);
 
-    @Query("start team=node({p_team}) match (team)-[:persons]->(member) return team.name as name,collect(member) as members")
+    @Query("match (team:g)-[:persons]->(member) where id(team) = {p_team} return team.name as name,collect(member) as members")
     TeamResult findAllTeamMembersAsGroup(@Param("p_team") Group team);
 
-    @Query("start team=node({p_team}) match (team)-[:persons]->(member) return member.name,member.age")
+    @Query("match (team:g)-[:persons]->(member) where id(team) = {p_team} return member.name,member.age")
     Iterable<Map<String, Object>> findAllTeamMemberData(@Param("p_team") Group team);
 
-    @Query("start member=node({p_person}) match team-[:persons]->member<-[:boss]-boss return collect(team), boss")
+    @Query("match team-[:persons]->member<-[:boss]-boss where id(member) = {p_person} return collect(team), boss")
     Iterable<MemberData> findMemberData(@Param("p_person") Person person);
 
-    @Query("start member=node({p_person}) match team-[:persons]->member<-[:boss]-boss return collect(team), boss, boss.name as someonesName, boss.age as someonesAge ")
+    @Query("match team-[:persons]->member<-[:boss]-boss where id(member) = {p_person} return collect(team), boss, boss.name as someonesName, boss.age as someonesAge ")
     MemberDataPOJO findMemberDataPojo(@Param("p_person") Person person);
 
-    @Query("start member=node({p_person}) match team-[:persons]->member<-[:boss]-boss return member")
+    @Query("match team-[:persons]->member<-[:boss]-boss where id(member) = {p_person} return member")
     Iterable<MemberData> nonWorkingQuery(@Param("p_person") Person person);
 
-    @Query("start team=node:Group(name = {p_team}) match (team)-[:persons*1..1]->(member) return member order by member.name skip {`skip`} limit {`limit`}")
-    Iterable<Person> findSomeTeamMembers(@Param("p_team") String team, @Param("skip") Integer skip,@Param("limit") Integer limit,@Param("depth") Integer depth);
+    @Query("MATCH (team:g {name : {p_team}})-[:persons]->(member) return member order by member.name skip {skip} limit {limit}")
+    Iterable<Person> findSomeTeamMembers(@Param("p_team") String team, @Param("skip") Integer skip, @Param("limit") Integer limit);
 
-    @Query("start person=node({p_person}) match (boss)-[:boss]->(person) return boss")
+    @Query("match (boss)-[:boss]->(person) where id(person) = {p_person} return boss")
     Person findBoss(@Param("p_person") Person person);
 
-    @Query("start person=node({p_person}) match (boss)-[:boss]->(person) return boss")
+    @Query("match (boss)-[:boss]->(person) where id(person) = {p_person}  return boss")
     Person findBoss(@Param("p_person") Long person);
 
-    @Query("start boss=node({0}) match (boss)-[:boss]->(person) with person, count(*) as cnt order by cnt return person")
+    @Query("match (boss)-[:boss]->(person) where id(boss) = {0} with person, count(*) as cnt order by cnt return person")
     Page<Person> findSubordinates(Person boss,Pageable page);
 
-    @Query(value = "start boss=node({0}) match (boss)-[:boss]->(person) with person, count(*) as cnt order by cnt return person",countQuery = "start boss=node({0}) match (boss)-[:boss]->(person) with person return count(*)")
+    @Query(value = "match (boss)-[:boss]->(person) where id(boss) = {0} with person, count(*) as cnt order by cnt return person",countQuery = "start boss=node({0}) match (boss)-[:boss]->(person) with person return count(*)")
     Page<Person> findSubordinatesWithCount(Person boss,Pageable page);
 
     Group findTeam(@Param("p_person") Person person);
 
-    @Query("start team=node({p_team}) match (team)-[:persons]->(member) return member")
+    @Query("match (team)-[:persons]->(member) where id(team) = {p_team} return member")
     Page<Person> findAllTeamMembersPaged(@Param("p_team") Group team, Pageable page);
 
-    @Query("start team=node({p_team}) match (team)-[:persons]->(member) return member")
+    @Query("match (team)-[:persons]->(member) where id(team) = {p_team} return member")
     Iterable<Person> findAllTeamMembersSorted(@Param("p_team") Group team, Sort sort);
 
 

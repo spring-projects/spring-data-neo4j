@@ -81,7 +81,15 @@
 		<constructor-arg name="entityManagerFactory" ref="entityManagerFactory"/>
     </bean>
 
-    <bean id="mappingContext" class="org.springframework.data.neo4j.support.mapping.Neo4jMappingContext"/>
+    <bean id="mappingContext" class="org.springframework.data.neo4j.support.mapping.Neo4jMappingContext">
+        <property name="initialEntitySet">
+            <set>
+                <value>org.springframework.data.neo4j.partial.model.Restaurant</value>
+                <value>org.springframework.data.neo4j.partial.model.Recommendation</value>
+                <value>org.springframework.data.neo4j.partial.model.User</value>
+            </set>
+        </property>
+    </bean>
 
 
     <bean id="relationshipEntityStateFactory" class="org.springframework.data.neo4j.support.relationship.RelationshipEntityStateFactory">

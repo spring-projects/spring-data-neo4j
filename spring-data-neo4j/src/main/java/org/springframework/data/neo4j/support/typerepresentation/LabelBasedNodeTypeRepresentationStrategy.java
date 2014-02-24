@@ -42,7 +42,7 @@ import java.util.Set;
 public class LabelBasedNodeTypeRepresentationStrategy implements NodeTypeRepresentationStrategy {
 
     public static final String SDN_LABEL_STRATEGY = "SDN_LABEL_STRATEGY";
-    public static final String LABELSTRATEGY_PREFIX = "__TYPE__";
+    public static final String LABELSTRATEGY_PREFIX = "_";
 
     protected GraphDatabase graphDb;
     protected final Class<Node> clazz;

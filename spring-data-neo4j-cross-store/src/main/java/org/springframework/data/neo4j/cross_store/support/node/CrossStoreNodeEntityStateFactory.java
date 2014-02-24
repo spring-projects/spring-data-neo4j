@@ -25,6 +25,7 @@ import org.springframework.data.neo4j.fieldaccess.FieldAccessorFactoryFactory;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentEntity;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
 import org.springframework.data.neo4j.support.mapping.Neo4jMappingContext;
+import org.springframework.data.neo4j.support.mapping.Neo4jPersistentEntityImpl;
 import org.springframework.data.neo4j.support.node.NodeEntityStateFactory;
 
 import javax.persistence.EntityManagerFactory;
@@ -47,7 +48,8 @@ public class CrossStoreNodeEntityStateFactory extends NodeEntityStateFactory {
     public EntityState<Node> getEntityState(final Object entity, boolean detachable, Neo4jTemplate template) {
         final Class<?> entityType = entity.getClass();
         if (isPartial(entityType)) {
-            final Neo4jPersistentEntity<?> persistentEntity = mappingContext.getPersistentEntity(entityType);
+            Neo4jPersistentEntity<Object> persistentEntity = getPersistentEntity(entityType);
+            if (persistentEntity==null) return null;
             final DelegatingFieldAccessorFactory fieldAccessorFactory = crossStoreFactory.provideFactoryFor(template);
             @SuppressWarnings("unchecked") final CrossStoreNodeEntityState<NodeBacked> partialNodeEntityState =
                     new CrossStoreNodeEntityState<NodeBacked>(null, (NodeBacked)entity, (Class<? extends NodeBacked>) entityType,

@@ -22,6 +22,6 @@ import org.springframework.data.neo4j.repository.GraphRepository;
 import org.springframework.data.repository.query.Param;
 
 public interface UserRepository extends GraphRepository<User> {
-    @Query("start user=node:User(name={name}) match user-[:Loves]->car return car limit 1")
+    @Query("MATCH (user:User {name:{name}})-[:Loves]->(car) return car limit 1")
     public Car getSingleCar(@Param("name") String name);
 }

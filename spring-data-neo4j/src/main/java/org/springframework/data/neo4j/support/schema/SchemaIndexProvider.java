@@ -32,7 +32,7 @@ public class SchemaIndexProvider {
         String label = getLabel(property);
         String prop = getName(property);
         String query = indexQuery(label, prop, property.getIndexInfo().isUnique());
-        if (logger.isInfoEnabled()) logger.info(query);
+        if (logger.isDebugEnabled()) logger.debug(query);
         cypher.query(query, null);
     }
 

@@ -17,9 +17,10 @@ package org.springframework.data.neo4j.repository.query;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Mockito;
-import org.springframework.data.neo4j.core.NodeTypeRepresentationStrategy;
-import org.springframework.data.neo4j.support.typerepresentation.IndexBasedNodeTypeRepresentationStrategy;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.repository.query.parser.Part;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
@@ -70,15 +71,27 @@ public class CypherQueryBuilderForIndexBasedTRSUnitTests extends AbstractCypherQ
     @Override
     @Test
     public void createsQueryForPropertyOnRelationShipReference() {
-        this.trsSpecificExpectedQuery = "START `person_group`=node:`Group`(`name`={0}) MATCH (`person`)<-[:`members`]-(`person_group`) RETURN `person`";
-        super.createsQueryForPropertyOnRelationShipReference();
+        this.trsSpecificExpectedQuery = "START `person_group`=node:`Group`(`name2`={0}) MATCH (`person`)<-[:`members`]-(`person_group`) RETURN `person`";
+        Part part = new Part("group.name2", Person.class);
+        query.addRestriction(part);
+        assertThat(query.toString(), is( trsSpecificExpectedQuery));
     }
 
     @Override
     @Test
     public void createsQueryForMultipleStartClauses() {
-        this.trsSpecificExpectedQuery = "START `person`=node:`Person`(`name`={0}), `person_group`=node:`Group`(`name`={1}) MATCH (`person`)<-[:`members`]-(`person_group`) RETURN `person`";
-        super.createsQueryForMultipleStartClauses();
+        this.trsSpecificExpectedQuery = "START `person`=node:`Person`(`name2`={0}), `person_group`=node:`Group`(`name2`={1}) MATCH (`person`)<-[:`members`]-(`person_group`) RETURN `person`";
+        query.addRestriction(new Part("name2", Person.class));
+        query.addRestriction(new Part("group.name2", Person.class));
+        assertThat(query.toString(), is( trsSpecificExpectedQuery));
+    }
+
+    @Override
+    public void createsQueryForSimplePropertyReference() {
+        Part part = new Part("name2", Person.class);
+        query.addRestriction(part);
+        assertThat(query.toString(),
+                is("START `person`=node:`Person`(`name2`={0}) RETURN `person`"));
     }
 
     @Override
@@ -99,11 +112,15 @@ public class CypherQueryBuilderForIndexBasedTRSUnitTests extends AbstractCypherQ
     @Test
     public void buildsComplexQueryCorrectly() {
         this.trsSpecificExpectedQuery =
-                        "START `person`=node:`Person`(`name`={0}), `person_group`=node:`Group`(`name`={1}) " +
+                        "START `person`=node:`Person`(`name2`={0}), `person_group`=node:`Group`(`name2`={1}) " +
                         "MATCH (`person`)<-[:`members`]-(`person_group`), (`person`)<-[:`members`]-(`person_group`)-[:`members`]->(`person_group_members`) " +
                         "WHERE `person`.`age` > {2} AND `person_group_members`.`age` = {3} " +
                         "RETURN `person`";
-        super.buildsComplexQueryCorrectly();
+        query.addRestriction(new Part("name2", Person.class));
+        query.addRestriction(new Part("group_Name2", Person.class));
+        query.addRestriction(new Part("ageGreaterThan", Person.class));
+        query.addRestriction(new Part("groupMembersAge", Person.class));
+        assertThat(query.toString(), is( trsSpecificExpectedQuery ));
     }
 
 
@@ -121,5 +138,26 @@ public class CypherQueryBuilderForIndexBasedTRSUnitTests extends AbstractCypherQ
         super.shouldFindByNodeEntityForIncomingRelationship();
     }
 
+    @Override
+    public void buildsQueryWithSort() {
+        query.addRestriction(new Part("name2",Person.class));
+        String queryString = query.buildQuery(new Sort("person.name2")).toQueryString();
+        assertThat(queryString, is("START `person`=node:`Person`(`name2`={0}) RETURN `person` ORDER BY person.name2 ASC"));
+    }
 
+    @Override
+    public void buildsQueryWithTwoSorts() {
+        query.addRestriction(new Part("name2",Person.class));
+        Sort sort = new Sort(new Sort.Order("person.name2"),new Sort.Order(Sort.Direction.DESC, "person.age"));
+        String queryString = query.buildQuery(sort).toQueryString();
+        assertThat(queryString, is("START `person`=node:`Person`(`name2`={0}) RETURN `person` ORDER BY person.name2 ASC,person.age DESC"));
+    }
+
+    @Override
+    public void buildsQueryWithPage() {
+        query.addRestriction(new Part("name2",Person.class));
+        Pageable pageable = new PageRequest(3,10,new Sort("person.name2"));
+        String queryString = query.buildQuery().toQueryString(pageable);
+        assertThat(queryString, is("START `person`=node:`Person`(`name2`={0}) RETURN `person` ORDER BY person.name2 ASC SKIP 30 LIMIT 10"));
+    }
 }

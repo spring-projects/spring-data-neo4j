@@ -19,6 +19,7 @@ package org.springframework.data.neo4j.model;
 
 import org.springframework.data.neo4j.annotation.*;
 import org.springframework.data.neo4j.fieldaccess.DynamicProperties;
+import org.springframework.data.neo4j.support.index.IndexType;
 
 import java.io.Serializable;
 import java.util.Date;
@@ -54,7 +55,7 @@ public class Friendship implements Serializable {
     @RelationshipType
     private String type;
 
-    @Indexed
+    @Indexed(indexType = IndexType.SIMPLE)
 	private int years;
 
 	private Date firstMeetingDate;

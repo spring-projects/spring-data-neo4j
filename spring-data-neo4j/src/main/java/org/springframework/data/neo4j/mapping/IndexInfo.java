@@ -46,13 +46,13 @@ public class IndexInfo {
     }
 
     private void verify(Neo4jPersistentProperty property) {
-        if (isLabelBased() && numeric) {
-            throw new MappingException("No numeric indexing and range queries currently supported for label based indexes, property: " + property.getOwner().getName()+"."+property.getName());
-        }
+//        if (isLabelBased() && numeric) {
+//            throw new MappingException("No numeric indexing and range queries currently supported for label based indexes, property: " + property.getOwner().getName()+"."+property.getName());
+//        }
     }
 
     private String determineLabelIndexName(Indexed annotation, Neo4jPersistentProperty property) {
-        if (!annotation.indexName().isEmpty()) throw new MappingException("No index name allowed on label based indexes");
+        if (!annotation.indexName().isEmpty()) throw new MappingException("No index name allowed on label based indexes, property: "+ property.getOwner().getName()+"."+property.getName());
         Neo4jPersistentEntity<?> entity = property.getOwner();
 
         // NW StoredEntityType not available at this stage yet ....
@@ -79,7 +79,7 @@ public class IndexInfo {
         if (entity.getTypeAlias() != null) {
             return (String)entity.getTypeAlias();
         }
-        return entity.getType().getName();
+        return entity.getType().getSimpleName();
     }
 
 

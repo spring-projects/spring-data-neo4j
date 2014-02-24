@@ -15,10 +15,10 @@ public class TypeAliasedThing {
     @Indexed(indexType = IndexType.SIMPLE)
     String legacyIndexedThingName;
 
-    @Indexed(indexType = IndexType.LABEL, numeric = false)
+    @Indexed(indexType = IndexType.LABEL)
     String schemaIndexedCommonName;
 
-    @Indexed(indexType = IndexType.LABEL, numeric = false)
+    @Indexed(indexType = IndexType.LABEL)
     String schemaIndexedThingName;
 
     public void setName(String name) {

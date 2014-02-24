@@ -209,7 +209,7 @@ public abstract class Neo4jConfiguration {
 
     @Bean
     protected EntityAlias entityAlias() {
-        return new ClassNameAlias();
+        return new EntityAlias();
     }
 
     @Bean
@@ -254,10 +254,10 @@ public abstract class Neo4jConfiguration {
         return new DelegatingGraphDatabase(graphDatabaseService);
     }
 
-    @Bean
-    public ConfigurationCheck configurationCheck() throws Exception {
-        return new ConfigurationCheck(neo4jTemplate(),neo4jTransactionManager());
-    }
+//    @Bean
+//    public ConfigurationCheck configurationCheck() throws Exception {
+//        return new ConfigurationCheck(neo4jTemplate(),neo4jTransactionManager());
+//    }
 
     @Bean
     public PersistenceExceptionTranslator persistenceExceptionTranslator() {

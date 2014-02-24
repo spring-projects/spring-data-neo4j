@@ -15,6 +15,7 @@
  */
 package org.springframework.data.neo4j.config;
 
+import org.springframework.aop.target.LazyInitTargetSource;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
@@ -25,6 +26,7 @@ import org.springframework.data.config.BeanComponentDefinitionBuilder;
 import org.springframework.data.config.IsNewAwareAuditingHandlerBeanDefinitionParser;
 import org.springframework.data.mapping.context.MappingContextIsNewStrategyFactory;
 import org.springframework.data.neo4j.lifecycle.AuditingEventListener;
+import org.springframework.data.support.IsNewStrategyFactory;
 import org.springframework.util.StringUtils;
 import org.w3c.dom.Element;
 
@@ -51,7 +53,7 @@ public class Neo4jAuditingBeanDefinitionParser extends AbstractSingleBeanDefinit
       * @see org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser#doParse(org.w3c.dom.Element, org.springframework.beans.factory.xml.ParserContext, org.springframework.beans.factory.support.BeanDefinitionBuilder)
       */
     @Override
-    protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
+    protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder auditingListenerBuilder) {
 
         BeanDefinitionRegistry registry = parserContext.getRegistry();
 
@@ -66,10 +68,16 @@ public class Neo4jAuditingBeanDefinitionParser extends AbstractSingleBeanDefinit
             createIsNewStrategyFactoryBeanDefinition(templateName, parserContext, element);
         }
 
-        BeanDefinitionParser parser = new IsNewAwareAuditingHandlerBeanDefinitionParser(IS_NEW_STRATEGY_FACTORY);
-        BeanDefinition handlerBeanDefinition = parser.parse(element, parserContext);
+        BeanDefinitionParser isNewStrategyParser = new IsNewAwareAuditingHandlerBeanDefinitionParser(IS_NEW_STRATEGY_FACTORY);
+        BeanDefinition isNewStrategyBeanDefinition = isNewStrategyParser.parse(element, parserContext);
 
-        builder.addConstructorArgValue(handlerBeanDefinition);
+//      TODO
+//        BeanDefinitionBuilder lazyInitTS = BeanDefinitionBuilder.genericBeanDefinition(LazyInitTargetSource.class);
+//        lazyInitTS.addPropertyValue("targetBeanName", isNewStrategyBeanDefinition);
+//        lazyInitTS.addPropertyValue("targetClass", IsNewStrategyFactory.class.getName());
+//
+//        auditingListenerBuilder.addConstructorArgValue(lazyInitTS);
+        auditingListenerBuilder.addConstructorArgValue(isNewStrategyBeanDefinition);
     }
 
     static String resolveMappingContextRef(Element element) {
