@@ -30,6 +30,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.neo4j.model.Person;
 import org.springframework.data.neo4j.model.QPerson;
+import org.springframework.data.neo4j.repositories.PersonRepository;
 import org.springframework.data.neo4j.template.Neo4jOperations;
 import org.springframework.test.context.CleanContextCacheTestExecutionListener;
 import org.springframework.test.context.ContextConfiguration;
@@ -58,7 +59,8 @@ import static org.neo4j.helpers.collection.MapUtil.map;
 @Ignore
 public class CypherDslRepositoryTests {
 
-    @Autowired PersonRepository personRepository;
+    @Autowired
+    PersonRepository personRepository;
     @Autowired Neo4jOperations template;
     private TestTeam team;
     private Map<String,Object> peopleParams;

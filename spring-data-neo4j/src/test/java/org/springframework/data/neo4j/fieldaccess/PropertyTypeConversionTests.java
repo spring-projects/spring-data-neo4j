@@ -79,6 +79,11 @@ public class PropertyTypeConversionTests {
     @Configuration
     @EnableNeo4jRepositories
     static class TestConfig extends Neo4jConfiguration {
+
+        TestConfig() throws ClassNotFoundException {
+            setBasePackage(EntityWithCustomTypeProperty.class.getPackage().getName());
+        }
+
         @Bean
         GraphDatabaseService graphDatabaseService() {
             return new TestGraphDatabaseFactory().newImpermanentDatabase();

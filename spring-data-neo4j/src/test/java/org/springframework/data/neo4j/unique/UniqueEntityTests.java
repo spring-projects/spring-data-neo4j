@@ -23,11 +23,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.mapping.model.MappingException;
 import org.springframework.data.neo4j.unique.domain.Club;
-import org.springframework.data.neo4j.unique.domain.InvalidClub;
+import org.springframework.data.neo4j.invalid.unique.InvalidClub;
 import org.springframework.data.neo4j.unique.domain.UniqueClub;
 import org.springframework.data.neo4j.unique.domain.UniqueNumericIdClub;
 import org.springframework.data.neo4j.unique.repository.ClubRepository;
-import org.springframework.data.neo4j.unique.repository.InvalidClubRepository;
+import org.springframework.data.neo4j.invalid.unique.InvalidClubRepository;
 import org.springframework.data.neo4j.unique.repository.UniqueClubRepository;
 import org.springframework.data.neo4j.unique.repository.UniqueNumericIdClubRepository;
 import org.springframework.test.context.ContextConfiguration;
@@ -46,9 +46,6 @@ public class UniqueEntityTests {
 
     @Autowired
     private UniqueClubRepository uniqueClubRepository;
-
-    @Autowired
-    private InvalidClubRepository invalidClubRepository;
 
     @Autowired
     protected GraphDatabaseService graphDatabaseService;
@@ -152,10 +149,5 @@ public class UniqueEntityTests {
         club.setName("bar");
         uniqueClubRepository.save(club);
         assertEquals(club.getId(),uniqueClubRepository.findByPropertyValue("name","bar").getId());
-    }
-    @Test(expected = MappingException.class)
-    public void shouldThrowExceptionWhenMultipleUniqueSpecified() {
-        InvalidClub club = new InvalidClub();
-        invalidClubRepository.save(club);
     }
 }

@@ -269,7 +269,7 @@ public class Neo4jTemplate implements Neo4jOperations, ApplicationContextAware {
         final Node node = createNode(properties);
         if (isNodeEntity(target)) {
             final StoredEntityType entityType = getEntityType(target);
-            infrastructure.getTypeRepresentationStrategies().writeTypeTo(node, entityType);
+            if (entityType!=null) infrastructure.getTypeRepresentationStrategies().writeTypeTo(node, entityType);
         }
         return convert(node, target);
     }

@@ -13,10 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.springframework.data.neo4j.repositories;
 
-package org.springframework.data.neo4j.repository;
-
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.neo4j.model.Friendship;
+import org.springframework.data.neo4j.model.Person;
+import org.springframework.data.neo4j.template.Neo4jOperations;
 
-public interface FriendshipRepository extends GraphRepository<Friendship> {
+/**
+ * @author mh
+ * @since 08.11.11
+ */
+public class PersonRepositoryImpl implements PersonRepositoryFriendship {
+    @Autowired
+    Neo4jOperations template;
+    @Override
+    public Friendship befriend(Person p1, Person p2) {
+        return template.createRelationshipBetween(p1, p2, Friendship.class, "knows", false);
+    }
 }

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.neo4j.annotation.relatedto.bidirectional;
+package org.springframework.data.neo4j.annotation.relatedto;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -25,20 +25,24 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Set;
 
+import static java.util.Arrays.asList;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertThat;
+import static org.hamcrest.Matchers.*;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = {"classpath:related-to-test-context.xml"})
 @Transactional
-public class BiDirectionalRelatedToViaWithSingleFetchMappingTests {
+public class BiDirectionalRelatedToViaWithCollectionFetchMappingTests {
     @NodeEntity
     static class TestEntity {
         @GraphId Long id;
-        @RelatedTo(type="test",direction = Direction.INCOMING) TestEntity directParent;
-        @RelatedToVia(type="test") Set<TestRelationship> kids;
-        @Fetch
+        @Fetch @RelatedToVia(type="test") List<TestRelationship> kids;
+        @Fetch @RelatedTo(type="test") List<TestEntity> directKids;
         @RelatedToVia(type="test",direction = Direction.INCOMING) TestRelationship parent;
     }
 
@@ -63,16 +67,23 @@ public class BiDirectionalRelatedToViaWithSingleFetchMappingTests {
     Neo4jTemplate template;
     @Test
     public void testLoadBidirectionalRelationship() throws Exception {
-        TestEntity one = template.save(new TestEntity());
+        TestEntity parent = template.save(new TestEntity());
         TestEntity kid = template.save(new TestEntity());
         TestEntity kid2 = template.save(new TestEntity());
-        TestRelationship rel1 = template.save(new TestRelationship(one, kid));
-        template.save(new TestRelationship(one,kid2));
+        TestRelationship rel1 = template.save(new TestRelationship(parent, kid));
+        TestRelationship rel2 = template.save(new TestRelationship(parent, kid2));
 
-        TestEntity anotherOne = template.findOne(kid.id, TestEntity.class);
-        assertSame(rel1.id, anotherOne.parent.id);
-        assertSame(anotherOne, anotherOne.parent.kid);
-        assertSame(one.id, anotherOne.parent.parent.id);
-        assertSame(anotherOne.directParent, anotherOne.parent.parent);
+        TestEntity aParent = template.findOne(parent.id, TestEntity.class);
+
+        List<TestRelationship> kids = aParent.kids;
+        assertEquals(2, kids.size());
+        TestRelationship kidRel1 = kids.get(0);
+        TestRelationship kidRel2 = kids.get(1);
+        assertThat(asList(kidRel1.id, kidRel2.id), hasItems(rel1.id, rel2.id));
+
+        assertSame(aParent, kidRel1.parent);
+        assertSame(aParent, kidRel2.parent);
+        assertThat(asList(kidRel1.kid.id, kidRel2.kid.id), hasItems(kid.id, kid2.id));
+        assertThat(aParent.directKids, hasItems(kidRel1.kid, kidRel2.kid));
     }
 }

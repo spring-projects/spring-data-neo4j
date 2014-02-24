@@ -24,6 +24,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.neo4j.model.Person;
+import org.springframework.data.neo4j.repositories.FriendshipRepository;
+import org.springframework.data.neo4j.repositories.GroupRepository;
+import org.springframework.data.neo4j.repositories.PersonRepository;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
 import org.springframework.data.neo4j.support.node.Neo4jHelper;
 import org.springframework.test.context.CleanContextCacheTestExecutionListener;
@@ -59,7 +62,8 @@ public class SpatialGraphRepositoryTests {
     @Autowired
     GroupRepository groupRepository;
 
-    @Autowired FriendshipRepository friendshipRepository;
+    @Autowired
+    FriendshipRepository friendshipRepository;
 
     
     @Autowired

@@ -12,7 +12,7 @@
   <context:annotation-config/>
 
   <bean class="org.springframework.data.neo4j.config.Neo4jConfiguration">
-    <property name="basePackage" value="org.springframework.data.neo4j.annotation.relatedto.bidirectional"/>
+    <property name="basePackage" value="org.springframework.data.neo4j.annotation.relatedto"/>
   </bean>
 
   <bean id="graphDatabaseService" class="org.neo4j.test.ImpermanentGraphDatabase" destroy-method="shutdown"/>

@@ -14,18 +14,10 @@
  * limitations under the License.
  */
 
-package org.springframework.data.neo4j.repository;
+package org.springframework.data.neo4j.repositories;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.neo4j.model.Group;
+import org.springframework.data.neo4j.model.Friendship;
+import org.springframework.data.neo4j.repository.GraphRepository;
 
-
-/**
- * @author mh
- * @since 29.03.11
- */
-public interface GroupRepository extends GraphRepository<Group>, NamedIndexRepository<Group> {
-    Iterable<Group> findByFullTextNameLike(String name);
-    Page<Group> findByName(String name, Pageable page);
+public interface FriendshipRepository extends GraphRepository<Friendship> {
 }

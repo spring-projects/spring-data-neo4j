@@ -79,7 +79,9 @@ public class RelationshipInfo {
                 annotation.elementClass() != Object.class ? ClassTypeInformation.from(annotation.elementClass()) : null,
                 ctx
         );
-        if (relationshipInfo.isRelatedToVia()) throw new MappingException("Relationship field with NodeEntity "+relationshipInfo.getTargetEntity().getType()+" annotated with @RelatedTo");
+        if (relationshipInfo.isRelatedToVia()) {
+            throw new MappingException("Relationship field with NodeEntity "+relationshipInfo.getTargetEntity().getType()+" annotated with @RelatedTo");
+        }
         return relationshipInfo;
     }
 
@@ -100,7 +102,9 @@ public class RelationshipInfo {
         if (!annotation.type().isEmpty()) return annotation.type();
         final TypeInformation<?> relationshipEntityType = elementClass(annotation, typeInformation);
         final RelationshipEntity relationshipEntity = relationshipEntityType.getType().getAnnotation(RelationshipEntity.class);
-        if (relationshipEntity==null) throw new MappingException(typeInformation.getType()+" is no RelationshipEntity");
+        if (relationshipEntity==null) {
+            throw new MappingException(typeInformation.getType()+" is no RelationshipEntity");
+        }
         if (relationshipEntity.type()==null || relationshipEntity.type().isEmpty()) {
             throw new MappingException("Relationship entity must have a default type");
         }

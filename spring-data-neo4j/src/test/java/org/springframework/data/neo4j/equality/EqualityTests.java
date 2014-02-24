@@ -114,6 +114,10 @@ public class EqualityTests {
     @Configuration
     @EnableNeo4jRepositories
     static class TestConfig extends Neo4jConfiguration {
+        TestConfig() throws ClassNotFoundException {
+            setBasePackage("org.springframework.data.neo4j.equality");
+        }
+
         @Bean
         GraphDatabaseService graphDatabaseService() {
             return new TestGraphDatabaseFactory().newImpermanentDatabase();

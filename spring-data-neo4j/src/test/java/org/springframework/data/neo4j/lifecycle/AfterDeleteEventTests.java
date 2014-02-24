@@ -48,6 +48,10 @@ public class AfterDeleteEventTests {
     @Configuration
     @EnableNeo4jRepositories
     static class TestConfig extends Neo4jConfiguration {
+        TestConfig() throws ClassNotFoundException {
+            setBasePackage(Program.class.getPackage().getName());
+        }
+
         @Bean
         GraphDatabaseService graphDatabaseService() {
             return new TestGraphDatabaseFactory().newImpermanentDatabase();

@@ -14,13 +14,14 @@
  * limitations under the License.
  */
 
-package org.springframework.data.neo4j.repository;
+package org.springframework.data.neo4j.repositories;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.neo4j.annotation.Query;
 import org.springframework.data.neo4j.conversion.EndResult;
 import org.springframework.data.neo4j.model.Person;
+import org.springframework.data.neo4j.repository.GraphRepository;
 
 /**
  * @author Thomas Darimont

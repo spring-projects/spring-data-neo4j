@@ -13,11 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.neo4j.mapping;
+package org.springframework.data.neo4j.mapping.context;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.data.mapping.model.MappingException;
+import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.model.Person;
 import org.springframework.data.neo4j.invalid.model.PrimitiveIdEntity;
 import org.springframework.data.neo4j.support.index.IndexType;

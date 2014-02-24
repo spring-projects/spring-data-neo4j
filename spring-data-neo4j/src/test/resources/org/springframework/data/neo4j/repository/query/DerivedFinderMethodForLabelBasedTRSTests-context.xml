@@ -13,7 +13,7 @@
         <constructor-arg index="1" value="Labeled"/>
     </bean>
 
-    <neo4j:config graphDatabaseService="graphDatabaseService" base-package="org.springframework.data.neo4j.model" />
+    <neo4j:config graphDatabaseService="graphDatabaseService" base-package="org.springframework.data.neo4j.model,org.springframework.data.neo4j.repository.query" />
     <neo4j:repositories base-package="org.springframework.data.neo4j.repository.query"/>
     <bean id="graphDatabaseService" class="org.neo4j.test.ImpermanentGraphDatabase" destroy-method="shutdown"/>
 </beans>

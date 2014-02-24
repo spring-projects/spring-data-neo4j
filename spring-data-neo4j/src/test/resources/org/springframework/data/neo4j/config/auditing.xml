@@ -5,7 +5,7 @@
 	xsi:schemaLocation="http://www.springframework.org/schema/data/neo4j http://www.springframework.org/schema/data/neo4j/spring-neo4j-2.2.xsd
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
-    <neo4j:config graphDatabaseService="graphDatabaseService" />
+    <neo4j:config graphDatabaseService="graphDatabaseService" base-package="org.springframework.data.neo4j.config.model" />
 
 	<neo4j:auditing />
 

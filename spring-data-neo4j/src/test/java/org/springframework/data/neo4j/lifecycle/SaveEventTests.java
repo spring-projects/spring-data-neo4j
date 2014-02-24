@@ -176,6 +176,11 @@ public class SaveEventTests {
     @Configuration
     @EnableNeo4jRepositories
     static class TestConfig extends Neo4jConfiguration {
+
+        public TestConfig() throws ClassNotFoundException {
+            setBasePackage(SaveEventTests.class.getPackage().getName());
+        }
+
         @Bean
         GraphDatabaseService graphDatabaseService() {
             return new TestGraphDatabaseFactory().newImpermanentDatabase();

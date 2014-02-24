@@ -30,6 +30,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.neo4j.model.*;
+import org.springframework.data.neo4j.repositories.*;
+import org.springframework.data.neo4j.repositories.FriendshipRepository;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
 import org.springframework.data.neo4j.support.ReferenceNodes;
 import org.springframework.data.neo4j.support.conversion.NoSuchColumnFoundException;
@@ -79,11 +81,11 @@ public class GraphRepositoryTests {
     private PlatformTransactionManager transactionManager;
 
     @Autowired
-    private PersonRepository personRepository;
+    private org.springframework.data.neo4j.repositories.PersonRepository personRepository;
     @Autowired
     private BeingRepository beingRepository;
     @Autowired
-    GroupRepository groupRepository;
+    org.springframework.data.neo4j.repositories.GroupRepository groupRepository;
 
     @Autowired
     FriendshipRepository friendshipRepository;
@@ -213,7 +215,7 @@ public class GraphRepositoryTests {
 
     @Test @Transactional
     public void testFindQueryResultWithCollection() {
-        PersonRepository.TeamResult teamMembers = personRepository.findAllTeamMembersAsGroup(testTeam.sdg);
+        org.springframework.data.neo4j.repositories.PersonRepository.TeamResult teamMembers = personRepository.findAllTeamMembersAsGroup(testTeam.sdg);
         assertThat( teamMembers.getName(), is( testTeam.sdg.getName() ) );
         assertThat( asCollection( teamMembers.getMembers() ), hasItems( testTeam.michael, testTeam.david, testTeam.emil ) );
     }
@@ -471,8 +473,8 @@ public class GraphRepositoryTests {
     @Transactional
     public void findWithMapResult() throws InterruptedException
     {
-        Iterable<PersonRepository.NameAndPersonResult> result = personRepository.getAllNamesAndPeople();
-        PersonRepository.NameAndPersonResult nameAndPerson = IteratorUtil.first( result );
+        Iterable<org.springframework.data.neo4j.repositories.PersonRepository.NameAndPersonResult> result = personRepository.getAllNamesAndPeople();
+        org.springframework.data.neo4j.repositories.PersonRepository.NameAndPersonResult nameAndPerson = IteratorUtil.first( result );
         assertEquals( testTeam.david.getName(), nameAndPerson.getName() );
         assertEquals( testTeam.david, nameAndPerson.getPerson() );
     }

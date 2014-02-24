@@ -13,12 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.neo4j.unique.repository;
+package org.springframework.data.neo4j.repositories;
 
+import org.springframework.data.neo4j.annotation.Query;
+import org.springframework.data.neo4j.model.Car;
+import org.springframework.data.neo4j.model.User;
 import org.springframework.data.neo4j.repository.GraphRepository;
-import org.springframework.data.neo4j.repository.NamedIndexRepository;
-import org.springframework.data.neo4j.unique.domain.InvalidClub;
+import org.springframework.data.repository.query.Param;
 
-public interface InvalidClubRepository extends GraphRepository<InvalidClub>, NamedIndexRepository<InvalidClub> {
-
+public interface UserRepository extends GraphRepository<User> {
+    @Query("start user=node:User(name={name}) match user-[:Loves]->car return car limit 1")
+    public Car getSingleCar(@Param("name") String name);
 }

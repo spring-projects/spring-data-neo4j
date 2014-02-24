@@ -13,15 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.neo4j.repository;
+package org.springframework.data.neo4j.repositories;
 
-import org.springframework.data.neo4j.annotation.Query;
-import org.springframework.data.neo4j.model.Car;
-import org.springframework.data.neo4j.model.User;
-import org.springframework.data.neo4j.repository.GraphRepository;
-import org.springframework.data.repository.query.Param;
+import org.springframework.data.neo4j.model.Friendship;
+import org.springframework.data.neo4j.model.Person;
 
-interface UserRepository extends GraphRepository<User> {
-    @Query("start user=node:User(name={name}) match user-[:Loves]->car return car limit 1")
-    public Car getSingleCar(@Param("name") String name);
+/**
+ * @author mh
+ * @since 08.11.11
+ */
+public interface PersonRepositoryFriendship {
+    Friendship befriend(Person p1, Person p2);
 }

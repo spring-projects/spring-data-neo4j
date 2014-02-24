@@ -22,6 +22,7 @@ import org.springframework.data.neo4j.mapping.Neo4jPersistentTestBase;
 import org.springframework.data.neo4j.model.Friendship;
 import org.springframework.data.neo4j.model.Person;
 import org.springframework.data.neo4j.support.conversion.NoSuchColumnFoundException;
+import org.springframework.data.neo4j.support.mapping.Neo4jMappingContext;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -61,6 +62,11 @@ public class QueryMapResultConverterTests extends Neo4jPersistentTestBase {
 
         @ResultColumn( "friends" )
         Iterable<String> getFriendNames();
+    }
+
+    @Override
+    protected void setBasePackage(Neo4jMappingContext mappingContext) throws ClassNotFoundException {
+        super.setBasePackage(mappingContext,Person.class.getPackage().getName());
     }
 
     @Before

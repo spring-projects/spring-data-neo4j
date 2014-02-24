@@ -25,6 +25,7 @@ import org.springframework.data.convert.DefaultTypeMapper;
 import org.springframework.data.convert.TypeMapper;
 import org.springframework.data.neo4j.annotation.GraphId;
 import org.springframework.data.neo4j.annotation.NodeEntity;
+import org.springframework.data.neo4j.config.BasePackageScanner;
 import org.springframework.data.neo4j.fieldaccess.DelegatingFieldAccessorFactory;
 import org.springframework.data.neo4j.fieldaccess.FieldAccessorFactoryFactory;
 import org.springframework.data.neo4j.fieldaccess.Neo4jConversionServiceFactoryBean;
@@ -36,12 +37,14 @@ import org.springframework.data.neo4j.support.DelegatingGraphDatabase;
 import org.springframework.data.neo4j.support.Infrastructure;
 import org.springframework.data.neo4j.support.MappingInfrastructureFactoryBean;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
+import org.springframework.data.neo4j.support.index.IndexProviderImpl;
 import org.springframework.data.neo4j.support.mapping.*;
 import org.springframework.data.neo4j.support.node.EntityStateFactory;
 import org.springframework.data.neo4j.support.node.NodeEntityInstantiator;
 import org.springframework.data.neo4j.support.node.NodeEntityStateFactory;
 import org.springframework.data.neo4j.support.relationship.RelationshipEntityInstantiator;
 import org.springframework.data.neo4j.support.relationship.RelationshipEntityStateFactory;
+import org.springframework.data.neo4j.support.schema.SchemaIndexProvider;
 import org.springframework.data.neo4j.support.typerepresentation.ClassValueTypeInformationMapper;
 import org.springframework.data.neo4j.support.typerepresentation.NoopNodeTypeRepresentationStrategy;
 import org.springframework.data.neo4j.support.typerepresentation.NoopRelationshipTypeRepresentationStrategy;
@@ -82,8 +85,8 @@ public class Neo4jPersistentTestBase {
     @NodeEntity
     public static class Developer {
         @GraphId
-        Long id;
-        String name;
+        public Long id;
+        public String name;
     }
 
     @Before
@@ -131,6 +134,9 @@ public class Neo4jPersistentTestBase {
         factoryBean.setNodeEntityStateFactory(nodeEntityStateFactory);
         factoryBean.setRelationshipEntityStateFactory(relationshipEntityStateFactory);
 
+        mappingContext.setEntityIndexCreator(new EntityIndexCreator(new IndexProviderImpl(graphDatabase), new SchemaIndexProvider(graphDatabase)));
+        mappingContext.setSimpleTypeHolder(null);
+        setBasePackage(mappingContext);
 
         nodeEntityInstantiator = new NodeEntityInstantiator(entityStateHandler);
         relationshipEntityInstantiator = new RelationshipEntityInstantiator(entityStateHandler);
@@ -143,9 +149,17 @@ public class Neo4jPersistentTestBase {
         final EntityTools<Relationship> relationshipEntityTools = new EntityTools<Relationship>(relationshipTypeRepresentationStrategy, relationshipEntityStateFactory, relationshipEntityInstantiator, mappingContext);
 
         entityPersister = new Neo4jEntityPersister(conversionService, nodeEntityTools, relationshipEntityTools, mappingContext, entityStateHandler);
-
+        mappingContext.afterPropertiesSet();
         factoryBean.afterPropertiesSet();
         return factoryBean.getObject();
+    }
+
+    protected void setBasePackage(Neo4jMappingContext mappingContext) throws ClassNotFoundException {
+        setBasePackage(mappingContext, getClass().getPackage().getName());
+    }
+
+    protected void setBasePackage(Neo4jMappingContext mappingContext, String...basePackages) throws ClassNotFoundException {
+        mappingContext.setInitialEntitySet(BasePackageScanner.scanBasePackageForClasses(basePackages));
     }
 
     protected List<Node> groupMemberNodes() {
@@ -158,8 +172,10 @@ public class Neo4jPersistentTestBase {
 
     @After
     public void tearDown() throws Exception {
-        tx.failure();
-        tx.close();
+        if (tx!=null) {
+            tx.failure();
+            tx.close();
+        }
         template.getGraphDatabaseService().shutdown();
     }
 

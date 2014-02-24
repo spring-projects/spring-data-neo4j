@@ -9,7 +9,7 @@
 		http://www.springframework.org/schema/data/neo4j http://www.springframework.org/schema/data/neo4j/spring-neo4j.xsd http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-2.5.xsd">
 
     <context:annotation-config/>
-    <neo4j:config graphDatabaseService="graphDatabaseService"/>
+    <neo4j:config graphDatabaseService="graphDatabaseService" base-package="org.springframework.data.neo4j.model"/>
     <neo4j:repositories base-package="org.springframework.data.neo4j.model"/>
     <bean id="graphDatabaseService" class="org.neo4j.test.ImpermanentGraphDatabase" destroy-method="shutdown"/>
     <bean id="typeSafetyPolicy" class="org.springframework.data.neo4j.support.typesafety.TypeSafetyPolicy">

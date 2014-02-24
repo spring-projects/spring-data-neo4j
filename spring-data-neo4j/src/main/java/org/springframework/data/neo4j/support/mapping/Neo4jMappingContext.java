@@ -16,7 +16,10 @@
 
 package org.springframework.data.neo4j.support.mapping;
 
+import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.PropertyContainer;
+import org.neo4j.graphdb.Relationship;
+import org.neo4j.index.lucene.ValueContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.annotation.Reference;
@@ -29,6 +32,7 @@ import org.springframework.data.neo4j.annotation.RelationshipEntity;
 import org.springframework.data.neo4j.mapping.InvalidEntityTypeException;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentEntity;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
+import org.springframework.data.util.ClassTypeInformation;
 import org.springframework.data.util.TypeInformation;
 
 import java.beans.PropertyDescriptor;
@@ -70,7 +74,7 @@ public class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersistentE
 
     private void updateStoredEntityType(Neo4jPersistentEntityImpl<?> entity, Collection<Neo4jPersistentEntity<?>> superTypeEntities) {
         entity.updateStoredType(new StoredEntityType(entity, superTypeEntities, entityAlias));
-        entityIndexCreator.ensureEntityIndexes(entity);
+        if (entityIndexCreator!=null) entityIndexCreator.ensureEntityIndexes(entity);
     }
 
     private List<Neo4jPersistentEntity<?>> addSuperTypes(Neo4jPersistentEntity<?> entity) {
@@ -134,7 +138,9 @@ public class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersistentE
     }
 
     public StoredEntityType getStoredEntityType(Class type) {
-       return getPersistentEntity(type).getEntityType();
+        if (type==null) return null;
+        Neo4jPersistentEntityImpl<?> persistentEntity = getPersistentEntity(type);
+        return persistentEntity==null ? null : persistentEntity.getEntityType();
     }
 
     @Override
@@ -146,6 +152,7 @@ public class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersistentE
     private final Map<Class<?>,Class<?>> annotationCheckCache = new IdentityHashMap<Class<?>, Class<?>>();
 
     public boolean isNodeEntity(Class<?> type) {
+        if (Node.class.isAssignableFrom(type)) return true;
         if (!annotationCheckCache.containsKey(type)) cacheType(type);
         return checkAnnotationType(type,NodeEntity.class);
     }
@@ -160,6 +167,22 @@ public class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersistentE
         } catch (InvalidEntityTypeException me) {
             annotationCheckCache.put(type, type);
         }
+    }
+
+    @Override
+    protected boolean shouldCreatePersistentEntityFor(TypeInformation<?> typeInformation) {
+        boolean result = super.shouldCreatePersistentEntityFor(typeInformation);
+        if (!result) return result;
+        if (typeInformation.isCollectionLike()) return false;
+        Class<?> type = typeInformation.getType();
+        if (type.isEnum() || type.isArray() || type.equals(Node.class) || type.equals(Relationship.class) || type.equals(ValueContext.class)) {
+            return false;
+        }
+        String packageName = type.getPackage().getName();
+        if (packageName.startsWith("java")) {
+            return false;
+        }
+        return true;
     }
 
     private boolean checkAnnotationType(Class<?> type, Class<?> annotation) {

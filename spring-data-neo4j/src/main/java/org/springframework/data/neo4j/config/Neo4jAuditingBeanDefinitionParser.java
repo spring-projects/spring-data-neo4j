@@ -80,7 +80,7 @@ public class Neo4jAuditingBeanDefinitionParser extends AbstractSingleBeanDefinit
 			return ctxRef;
 		}
         
-        return "neo4jMappingContext";
+        return MAPPING_CONTEXT;
     }
 
     private String createIsNewStrategyFactoryBeanDefinition(String mappingContextRef, ParserContext context,

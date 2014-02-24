@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.neo4j.repository;
+package org.springframework.data.neo4j.repositories;
 
 import org.springframework.data.neo4j.model.Being;
+import org.springframework.data.neo4j.repository.GraphRepository;
 
 /**
  * @author mh

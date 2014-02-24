@@ -13,13 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.neo4j.mapping;
+package org.springframework.data.neo4j.mapping.persist;
 
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.neo4j.graphdb.Node;
+import org.springframework.data.neo4j.mapping.ManagedEntity;
+import org.springframework.data.neo4j.mapping.Neo4jPersistentTestBase;
 import org.springframework.data.neo4j.model.Friendship;
 import org.springframework.data.neo4j.model.Person;
+import org.springframework.data.neo4j.support.mapping.Neo4jMappingContext;
 import org.springframework.transaction.annotation.Transactional;
 
 import static java.util.Arrays.asList;
@@ -32,6 +35,11 @@ import static org.junit.Assert.assertNotSame;
  * @since 12.10.11
  */
 public class Neo4jEntityPersisterTests extends Neo4jPersistentTestBase {
+
+    @Override
+    protected void setBasePackage(Neo4jMappingContext mappingContext) throws ClassNotFoundException {
+        super.setBasePackage(mappingContext,Person.class.getPackage().getName(),Developer.class.getPackage().getName());
+    }
 
     @Test
     public void testCreateEntityFromStoredType() throws Exception {

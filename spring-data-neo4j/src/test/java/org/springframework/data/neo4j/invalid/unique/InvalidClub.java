@@ -13,13 +13,38 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-package org.springframework.data.neo4j.config;
+package org.springframework.data.neo4j.invalid.unique;
 
 import org.springframework.data.neo4j.annotation.GraphId;
+import org.springframework.data.neo4j.annotation.Indexed;
 import org.springframework.data.neo4j.annotation.NodeEntity;
 
 @NodeEntity
-public class TestEntity {
-	@GraphId public Long id;
+public class InvalidClub {
+
+    @Indexed(unique = true)
+    private String foo;
+
+
+    @Indexed(unique = true)
+    private String bar;
+
+    @GraphId
+    Long id;
+
+    public String getFoo() {
+        return foo;
+    }
+
+    public void setFoo(String foo) {
+        this.foo = foo;
+    }
+
+    public String getBar() {
+        return bar;
+    }
+
+    public void setBar(String bar) {
+        this.bar = bar;
+    }
 }

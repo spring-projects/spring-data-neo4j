@@ -26,6 +26,8 @@ import org.springframework.data.neo4j.model.AbstractNodeEntity;
 import org.springframework.data.neo4j.model.Concrete1NodeEntity;
 import org.springframework.data.neo4j.model.Concrete2NodeEntity;
 import org.springframework.data.neo4j.model.Person;
+import org.springframework.data.neo4j.repositories.AbstractNodeEntityRepository;
+import org.springframework.data.neo4j.repositories.PersonRepository;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
 import org.springframework.data.neo4j.support.node.Neo4jHelper;
 import org.springframework.test.context.CleanContextCacheTestExecutionListener;

@@ -24,6 +24,8 @@ public class BasePackageScanner {
     public static Set<String> scanBasePackages(String...basePackages) {
         ClassPathScanningCandidateComponentProvider componentProvider = new ClassPathScanningCandidateComponentProvider(false);
         componentProvider.addIncludeFilter(new AnnotationTypeFilter(Persistent.class));
+        componentProvider.addIncludeFilter(new AnnotationTypeFilter(NodeEntity.class));
+        componentProvider.addIncludeFilter(new AnnotationTypeFilter(RelationshipEntity.class));
 
         Set<String> classes = new ManagedSet<String>();
         for (String basePackage : basePackages) {
@@ -35,7 +37,7 @@ public class BasePackageScanner {
         return classes;
     }
 
-    static Set<? extends Class<?>> scanBasePackageForClasses(String...basePackages) throws ClassNotFoundException {
+    public static Set<? extends Class<?>> scanBasePackageForClasses(String...basePackages) throws ClassNotFoundException {
         Set<Class<?>> classes = new HashSet<>();
         for (String basePackage : basePackages) {
             for (String className : scanBasePackage(basePackage)){

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.neo4j.mapping;
+package org.springframework.data.neo4j.mapping.persist;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -23,6 +23,8 @@ import org.springframework.data.neo4j.model.Person;
 import org.springframework.data.neo4j.support.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.support.mapping.Neo4jPersistentEntityImpl;
 import org.springframework.data.neo4j.support.mapping.StoredEntityType;
+
+import java.util.Collections;
 
 import static org.junit.Assert.assertEquals;
 
@@ -38,6 +40,7 @@ public class Neo4jPersistentEntityTests {
     @Before
     public void setUp() throws Exception {
         mappingContext = new Neo4jMappingContext();
+        mappingContext.setInitialEntitySet(Collections.singleton(Person.class));
         personType = mappingContext.getPersistentEntity(Person.class);
     }
 

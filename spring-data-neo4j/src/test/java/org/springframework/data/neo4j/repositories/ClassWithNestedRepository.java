@@ -1,4 +1,4 @@
-package org.springframework.data.neo4j.repository;
+package org.springframework.data.neo4j.repositories;
 
 import org.springframework.data.neo4j.model.Person;
 import org.springframework.data.repository.Repository;

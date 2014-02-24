@@ -13,15 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.neo4j.repository;
 
-import org.springframework.data.neo4j.model.Friendship;
-import org.springframework.data.neo4j.model.Person;
+package org.springframework.data.neo4j.repositories;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.neo4j.model.Group;
+import org.springframework.data.neo4j.repository.GraphRepository;
+import org.springframework.data.neo4j.repository.NamedIndexRepository;
+
 
 /**
  * @author mh
- * @since 08.11.11
+ * @since 29.03.11
  */
-public interface PersonRepositoryFriendship {
-    Friendship befriend(Person p1, Person p2);
+public interface GroupRepository extends GraphRepository<Group>, NamedIndexRepository<Group> {
+    Iterable<Group> findByFullTextNameLike(String name);
+    Page<Group> findByName(String name, Pageable page);
 }

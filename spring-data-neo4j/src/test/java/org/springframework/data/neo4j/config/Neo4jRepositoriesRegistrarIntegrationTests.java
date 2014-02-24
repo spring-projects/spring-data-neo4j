@@ -22,7 +22,7 @@ import org.neo4j.test.TestGraphDatabaseFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.neo4j.repository.PersonRepository;
+import org.springframework.data.neo4j.repositories.PersonRepository;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -36,10 +36,13 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 public class Neo4jRepositoriesRegistrarIntegrationTests {
 
 	@Configuration
-	@EnableNeo4jRepositories(basePackages = "org.springframework.data.neo4j.repository")
+	@EnableNeo4jRepositories(basePackages = "org.springframework.data.neo4j.repositories")
 	static class Config extends Neo4jConfiguration {
+        Config() throws ClassNotFoundException {
+            setBasePackage("org.springframework.data.neo4j.model");
+        }
 
-		@Bean
+        @Bean
 		public GraphDatabaseService graphDatabaseService() {
 			return new TestGraphDatabaseFactory().newImpermanentDatabase();
 		}

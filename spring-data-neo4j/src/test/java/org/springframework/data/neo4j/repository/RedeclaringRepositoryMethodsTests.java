@@ -25,6 +25,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.neo4j.conversion.EndResult;
 import org.springframework.data.neo4j.model.Person;
+import org.springframework.data.neo4j.repositories.RedeclaringRepositoryMethodsRepository;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -33,7 +34,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 public class RedeclaringRepositoryMethodsTests extends AbstractEntityBasedGraphRepositoryTests {
 
-	@Autowired RedeclaringRepositoryMethodsRepository repository;
+	@Autowired
+    RedeclaringRepositoryMethodsRepository repository;
 
 	/**
 	 * @see DATAGRAPH-392

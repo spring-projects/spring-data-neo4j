@@ -175,6 +175,10 @@ public class DerivedFinderTests {
     @EnableNeo4jRepositories
     static class TestConfig extends Neo4jConfiguration {
 
+        TestConfig() throws ClassNotFoundException {
+            setBasePackage("org.springframework.data.neo4j.repository","org.springframework.data.neo4j.model");
+        }
+
         @Bean
         GraphDatabaseService graphDatabaseService() {
             return new TestGraphDatabaseFactory().newImpermanentDatabase();

@@ -36,6 +36,7 @@ public class DefaultConverter<T,R> implements ResultConverter<T,R> {
         return convert(value,type, null);
     }
     public R convert(Object value, Class type, MappingPolicy mappingPolicy) {
+        if (type == null) return (R) value;
         if (value == null || type.isInstance(value)) return (R) value;
         Object singleValue = extractValue(value);
         if (singleValue == null || type.isInstance(singleValue)) return (R) singleValue;

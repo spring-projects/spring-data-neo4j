@@ -25,8 +25,9 @@ import org.neo4j.test.TestGraphDatabaseFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.neo4j.repository.ClassWithNestedRepository.NestedUserRepository;
-import org.springframework.data.neo4j.repository.PersonRepository;
+import org.springframework.data.neo4j.model.Person;
+import org.springframework.data.neo4j.repositories.ClassWithNestedRepository.NestedUserRepository;
+import org.springframework.data.neo4j.repositories.PersonRepository;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -42,8 +43,11 @@ public class NestedNeo4jRepositoriesJavaConfigTests {
 	@Configuration
 	@EnableNeo4jRepositories(basePackageClasses = PersonRepository.class, considerNestedRepositories = true)
 	static class Config extends Neo4jConfiguration {
+        Config() throws ClassNotFoundException {
+            setBasePackage(Person.class.getPackage().getName());
+        }
 
-		@Bean
+        @Bean
 		public GraphDatabaseService graphDatabaseService() {
 			return new TestGraphDatabaseFactory().newImpermanentDatabase();
 		}

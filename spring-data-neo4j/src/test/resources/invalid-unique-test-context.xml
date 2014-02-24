@@ -1,4 +1,5 @@
-<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+
 <beans xmlns="http://www.springframework.org/schema/beans"
        xmlns:context="http://www.springframework.org/schema/context"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -8,9 +9,16 @@
 		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd
 		http://www.springframework.org/schema/data/neo4j http://www.springframework.org/schema/data/neo4j/spring-neo4j.xsd http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-2.5.xsd">
 
+	<context:spring-configured/>
     <context:annotation-config/>
-    <neo4j:config graphDatabaseService="graphDatabaseService" base-package="org.springframework.data.neo4j.model"/>
-    <neo4j:repositories base-package="org.springframework.data.neo4j.model"/>
+
+    <bean class="org.springframework.data.neo4j.config.Neo4jConfiguration">
+        <property name="basePackage" value="org.springframework.data.neo4j.invalid.unique"/>
+    </bean>
+
     <bean id="graphDatabaseService" class="org.neo4j.test.ImpermanentGraphDatabase" destroy-method="shutdown"/>
-    <tx:annotation-driven mode="aspectj"/>
+
+    <neo4j:repositories base-package="org.springframework.data.neo4j.invalid.unique"/>
+
 </beans>
+

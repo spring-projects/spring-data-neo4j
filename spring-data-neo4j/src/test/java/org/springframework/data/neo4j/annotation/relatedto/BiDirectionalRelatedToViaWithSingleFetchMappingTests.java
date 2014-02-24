@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.neo4j.annotation.relatedto.bidirectional;
+package org.springframework.data.neo4j.annotation.relatedto;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -32,12 +32,13 @@ import static org.junit.Assert.assertSame;
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = {"classpath:related-to-test-context.xml"})
 @Transactional
-public class BiDirectionalRelatedToViaMappingTests {
+public class BiDirectionalRelatedToViaWithSingleFetchMappingTests {
     @NodeEntity
     static class TestEntity {
         @GraphId Long id;
         @RelatedTo(type="test",direction = Direction.INCOMING) TestEntity directParent;
         @RelatedToVia(type="test") Set<TestRelationship> kids;
+        @Fetch
         @RelatedToVia(type="test",direction = Direction.INCOMING) TestRelationship parent;
     }
 
@@ -70,9 +71,8 @@ public class BiDirectionalRelatedToViaMappingTests {
 
         TestEntity anotherOne = template.findOne(kid.id, TestEntity.class);
         assertSame(rel1.id, anotherOne.parent.id);
-        template.fetch(anotherOne.parent);
-        assertSame(anotherOne.id, anotherOne.parent.kid.id); // todo missing cache assertSame(anotherOne, anotherOne.parent.kid);
+        assertSame(anotherOne, anotherOne.parent.kid);
         assertSame(one.id, anotherOne.parent.parent.id);
-        assertSame(anotherOne.directParent.id, anotherOne.parent.parent.id); // todo missing cache assertSame(anotherOne.p2, anotherOne.parent.parent);
+        assertSame(anotherOne.directParent, anotherOne.parent.parent);
     }
 }

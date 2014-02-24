@@ -9,8 +9,8 @@
 		http://www.springframework.org/schema/data/neo4j http://www.springframework.org/schema/data/neo4j/spring-neo4j.xsd http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-2.5.xsd">
 
     <context:annotation-config/>
-    <neo4j:config storeDirectory="target/config-test"/>
+    <neo4j:config storeDirectory="target/config-test" base-package="org.springframework.data.neo4j.model"/>
     <bean id="config" class="org.springframework.data.neo4j.config.DataGraphNamespaceHandlerTests$Config"/>
 
-    <neo4j:repositories base-package="org.springframework.data.neo4j.repository" consider-nested-repositories="true"/>
+    <neo4j:repositories base-package="org.springframework.data.neo4j.repositories" consider-nested-repositories="true"/>
 </beans>

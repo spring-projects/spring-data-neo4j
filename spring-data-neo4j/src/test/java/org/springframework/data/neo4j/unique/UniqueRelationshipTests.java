@@ -23,6 +23,7 @@ import org.neo4j.graphdb.Relationship;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentTestBase;
 import org.springframework.data.neo4j.model.BestFriend;
 import org.springframework.data.neo4j.model.Person;
+import org.springframework.data.neo4j.support.mapping.Neo4jMappingContext;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -33,6 +34,11 @@ import static org.junit.Assert.assertNotSame;
  * @since 18.04.12
  */
 public class UniqueRelationshipTests extends Neo4jPersistentTestBase {
+
+    @Override
+    protected void setBasePackage(Neo4jMappingContext mappingContext) throws ClassNotFoundException {
+        super.setBasePackage(mappingContext,Person.class.getPackage().getName());
+    }
 
     @Test
     public void testCreateUniqueRelationship() {

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.neo4j.mapping;
+package org.springframework.data.neo4j.mapping.converter;
 
 import org.junit.Test;
 import org.neo4j.graphdb.Direction;
@@ -22,10 +22,12 @@ import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.index.Index;
 import org.neo4j.helpers.collection.IteratorUtil;
+import org.springframework.data.neo4j.mapping.Neo4jPersistentTestBase;
 import org.springframework.data.neo4j.model.Friendship;
 import org.springframework.data.neo4j.model.Group;
 import org.springframework.data.neo4j.model.Person;
 import org.springframework.data.neo4j.model.Personality;
+import org.springframework.data.neo4j.support.mapping.Neo4jMappingContext;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
@@ -70,6 +72,10 @@ public class Neo4jEntityConverterTests extends Neo4jPersistentTestBase {
 
      */
 
+    @Override
+    protected void setBasePackage(Neo4jMappingContext mappingContext) throws ClassNotFoundException {
+        super.setBasePackage(mappingContext,Person.class.getPackage().getName());
+    }
 
     @Test
     public void testWriteEntityToNewNode() {
