@@ -1,6 +1,15 @@
 Spring Data Neo4j Changelog
 ===========================
 
+Changes in version 3.0.0.RELEASE (2014-02-24)
+---------------------------------------------
+* DATAGRAPH-388 - Add Label based indexes
+* DATAGRAPH-428 - Release 3.0 GA
+
+Changes in version 2.3.4.RELEASE (2013-02-17)
+---------------------------------------------
+* No changes.
+
 Changes in version 3.0.0.RC1 (2014-01-29)
 -----------------------------------------
 * DATAGRAPH-423 - Upgrade to Neo4j 2.0 GA (read-tx, removal reference node, fixing tests, update dependencies)
