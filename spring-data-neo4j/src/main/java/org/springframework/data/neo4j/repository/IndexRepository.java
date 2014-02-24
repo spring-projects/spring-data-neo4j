@@ -24,17 +24,17 @@ import org.springframework.transaction.annotation.Transactional;
  * @author mh
  * @since 29.03.11
  */
-public interface IndexRepository<T> {
-    @Transactional
+@Deprecated public interface IndexRepository<T> {
+    @Transactional @Deprecated
     T findByPropertyValue(String property, Object value);
 
-    @Transactional
+    @Transactional @Deprecated
     EndResult<T> findAllByPropertyValue(String property, Object value);
 
-    @Transactional
+    @Transactional @Deprecated
     EndResult<T> findAllByQuery(String key, Object query);
 
-    @Transactional
+    @Transactional @Deprecated
     EndResult<T> findAllByRange(String property, Number from, Number to);
 
 }

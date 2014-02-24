@@ -170,6 +170,7 @@ public abstract class AbstractGraphRepository<S extends PropertyContainer, T> im
      * @return Single Entity with this property and value
      */
     @Override
+    @Deprecated
     public T findByPropertyValue(final String indexName, final String property, final Object value) {
         return legacyIndexSearcher.findByPropertyValue(indexName, property, value);
 
@@ -184,6 +185,7 @@ public abstract class AbstractGraphRepository<S extends PropertyContainer, T> im
      * @return Iterable over Entities with this property and value
      */
     @Override
+    @Deprecated
     public EndResult<T> findAllByPropertyValue(final String indexName, final String property, final Object value) {
         return legacyIndexSearcher.findAllByPropertyValue(indexName, property, value);
     }
@@ -206,6 +208,7 @@ public abstract class AbstractGraphRepository<S extends PropertyContainer, T> im
      *@param query lucene query object or query-string  @return Iterable over Entities with this property and value
      */
     @Override
+    @Deprecated
     public EndResult<T> findAllByQuery(final String key, final Object query) {
         return findAllByQuery(null, key,query);
     }
@@ -217,15 +220,18 @@ public abstract class AbstractGraphRepository<S extends PropertyContainer, T> im
      *@param query lucene query object or query-string  @return Iterable over Entities with this property and value
      */
     @Override
+    @Deprecated
     public EndResult<T> findAllByQuery(final String indexName, final String property, final Object query) {
         return legacyIndexSearcher.findAllByQuery(indexName, property, query);
     }
 
     @Override
+    @Deprecated
     public EndResult<T> findAllByRange(final String property, final Number from, final Number to) {
         return findAllByRange(null,property,from,to);
     }
     @Override
+    @Deprecated
     public EndResult<T> findAllByRange(final String indexName, final String property, final Number from, final Number to) {
         return legacyIndexSearcher.findAllByRange(indexName, property, from, to);
     }

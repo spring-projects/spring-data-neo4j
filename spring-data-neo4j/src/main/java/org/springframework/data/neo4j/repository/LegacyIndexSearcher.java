@@ -18,6 +18,7 @@ import org.springframework.data.neo4j.support.index.NullReadableIndex;
 * @author mh
 * @since 01.02.14
 */
+@Deprecated
 public class LegacyIndexSearcher<S extends PropertyContainer,T> {
     private final Neo4jTemplate template;
     private final Class<T> clazz;

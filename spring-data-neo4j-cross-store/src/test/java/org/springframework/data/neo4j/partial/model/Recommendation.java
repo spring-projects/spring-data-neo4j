@@ -14,12 +14,32 @@
  * limitations under the License.
  */
 
-package org.springframework.data.neo4j.partial;
+package org.springframework.data.neo4j.partial.model;
+
+import org.springframework.data.neo4j.annotation.EndNode;
+import org.springframework.data.neo4j.annotation.RelationshipEntity;
+import org.springframework.data.neo4j.annotation.StartNode;
 
 /**
  * @author Michael Hunger
  * @since 27.09.2010
  */
-public enum Cuisine {
-    FRENCH, ITALIAN, CHINESE, GREEK
+@RelationshipEntity
+public class Recommendation {
+    @StartNode
+    private User user;
+    @EndNode
+    private Restaurant restaurant;
+
+    private int stars;
+    private String comment;
+
+
+    public Recommendation() {
+    }
+
+    public void rate(int stars, String comment) {
+        this.stars = stars;
+        this.comment = comment;
+    }
 }

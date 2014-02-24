@@ -20,35 +20,36 @@ import org.neo4j.graphdb.index.Index;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentEntity;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 
+@Deprecated
 public interface IndexProvider {
 
-    <S extends PropertyContainer, T> Index<S> getIndex(Neo4jPersistentEntity<T> type);
+    @Deprecated <S extends PropertyContainer, T> Index<S> getIndex(Neo4jPersistentEntity<T> type);
 
-    <S extends PropertyContainer, T> Index<S> getIndex(Neo4jPersistentEntity<T> type, String indexName);
+    @Deprecated <S extends PropertyContainer, T> Index<S> getIndex(Neo4jPersistentEntity<T> type, String indexName);
 
     @SuppressWarnings("unchecked")
-    <S extends PropertyContainer, T> Index<S> getIndex(Neo4jPersistentEntity<T> persistentEntity, String indexName, IndexType indexType);
+    @Deprecated <S extends PropertyContainer, T> Index<S> getIndex(Neo4jPersistentEntity<T> persistentEntity, String indexName, IndexType indexType);
 
-    <T extends PropertyContainer> Index<T> getIndex(String indexName);
+    @Deprecated <T extends PropertyContainer> Index<T> getIndex(String indexName);
 
     boolean isNode(Class<? extends PropertyContainer> type);
 
     // TODO handle existing indexes
     @SuppressWarnings("unchecked")
-    <T extends PropertyContainer> Index<T> createIndex(Class<T> propertyContainerType, String indexName,
+    @Deprecated <T extends PropertyContainer> Index<T> createIndex(Class<T> propertyContainerType, String indexName,
             IndexType fullText);
 
-    <S extends PropertyContainer> Index<S> getIndex(Neo4jPersistentProperty property, final Class<?> instanceType);
+    @Deprecated <S extends PropertyContainer> Index<S> getIndex(Neo4jPersistentProperty property, final Class<?> instanceType);
     /**
      * adjust your indexName for the "__types__" indices
      * 
      * @return prefixed indexName for Type
      */
-    String createIndexValueForType(Object type);
+    @Deprecated String createIndexValueForType(Object type);
     
     /**
      * possibility to do something with the high level index name 
      */
-    String customizeIndexName(String indexName, Class<?> type);
+    @Deprecated String customizeIndexName(String indexName, Class<?> type);
 
 }

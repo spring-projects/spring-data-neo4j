@@ -23,6 +23,7 @@ import java.util.Map;
 
 public enum IndexType
 {   
+    @Deprecated
     SIMPLE   { public Map<String,String> getConfig() { return LuceneIndexImplementation.EXACT_CONFIG; } },
     LABEL    { public Map<String,String> getConfig() { return null; }  public boolean isLabelBased() { return true; }},
     FULLTEXT { public Map<String,String> getConfig() { return LuceneIndexImplementation.FULLTEXT_CONFIG; } },

@@ -79,5 +79,5 @@ public @interface Indexed {
         }
     }
 
-    enum Level { GLOBAL, CLASS, INSTANCE}
+    enum Level { @Deprecated GLOBAL, CLASS, INSTANCE}
 }
