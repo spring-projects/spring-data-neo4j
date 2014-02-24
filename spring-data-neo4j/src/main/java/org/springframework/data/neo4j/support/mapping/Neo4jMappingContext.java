@@ -97,7 +97,7 @@ public class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersistentE
     @Override
     public void initialize() {
         super.initialize();
-        setStrict(true);
+//TODO re-enable after SDC update setStrict(true);
     }
 
     private boolean isRelationshipEntityType(Class<?> type) {
@@ -161,6 +161,7 @@ public class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersistentE
         try {
             final Neo4jPersistentEntityImpl<?> entity = getPersistentEntity(type);
             if (entity == null) annotationCheckCache.put(type, type);
+            else if (!shouldCreatePersistentEntityFor(ClassTypeInformation.from(type))) annotationCheckCache.put(type, type);
             else if (entity.isNodeEntity()) annotationCheckCache.put(type, NodeEntity.class);
             else if (entity.isRelationshipEntity()) annotationCheckCache.put(type, RelationshipEntity.class);
             else annotationCheckCache.put(type, type);
