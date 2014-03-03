@@ -13,12 +13,12 @@
     <context:annotation-config/>
 
     <bean class="org.springframework.data.neo4j.config.Neo4jConfiguration">
-        <property name="basePackage" value="org.springframework.data.neo4j.unique"/>
+        <property name="basePackage" value="org.springframework.data.neo4j.unique.schemabased.domain"/>
     </bean>
 
     <bean id="graphDatabaseService" class="org.neo4j.test.ImpermanentGraphDatabase" destroy-method="shutdown"/>
 
-    <neo4j:repositories base-package="org.springframework.data.neo4j.unique.repository"/>
+    <neo4j:repositories base-package="org.springframework.data.neo4j.unique.schemabased.repository"/>
 
 </beans>
 

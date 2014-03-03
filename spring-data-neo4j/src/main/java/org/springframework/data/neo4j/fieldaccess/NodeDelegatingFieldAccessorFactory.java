@@ -39,10 +39,10 @@ public class NodeDelegatingFieldAccessorFactory extends DelegatingFieldAccessorF
                         template,
                 		new PropertyFieldAccessorFactory(template),
                 		new ConvertingNodePropertyFieldAccessorFactory(template)),
-                new SchemaIndexingPropertyFieldAccessorListenerFactory(
+                /*new SchemaIndexingPropertyFieldAccessorListenerFactory(
                         template,
                         new PropertyFieldAccessorFactory(template),
-                        new ConvertingNodePropertyFieldAccessorFactory(template)),
+                        new ConvertingNodePropertyFieldAccessorFactory(template)),  */
                 new ValidatingNodePropertyFieldAccessorListenerFactory(template)
         );
     }
@@ -53,6 +53,7 @@ public class NodeDelegatingFieldAccessorFactory extends DelegatingFieldAccessorF
                 new IdFieldAccessorFactory(template),
                 new TransientFieldAccessorFactory(),
 //TODO Labels                new LabelFieldAccessorFactory(template),
+                new SchemaIndexingFieldAccessorFactory(template),
                 new TraversalFieldAccessorFactory(template),
                 new QueryFieldAccessorFactory(template),
                 new PropertyFieldAccessorFactory(template),

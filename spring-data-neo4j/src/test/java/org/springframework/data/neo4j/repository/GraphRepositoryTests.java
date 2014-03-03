@@ -282,7 +282,6 @@ public class GraphRepositoryTests {
     }
 
     @Test @Transactional
-//    @Ignore("cypher bug with escaped params")
     public void testFindWithMultipleParameters() {
         final int limit = 2;
         Iterable<Person> teamMembers = personRepository.findSomeTeamMembers(testTeam.sdg.getName(), 0, limit);

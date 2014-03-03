@@ -13,12 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.neo4j.unique.repository;
+package org.springframework.data.neo4j.unique.schemabased.repository;
 
 import org.springframework.data.neo4j.repository.GraphRepository;
-import org.springframework.data.neo4j.repository.NamedIndexRepository;
-import org.springframework.data.neo4j.unique.domain.Club;
+import org.springframework.data.neo4j.unique.schemabased.domain.UniqueNumericIdClub;
 
-public interface ClubRepository extends GraphRepository<Club>, NamedIndexRepository<Club> {
+public interface UniqueNumericIdClubRepository extends GraphRepository<UniqueNumericIdClub> {
 
 }

@@ -54,6 +54,7 @@ import org.springframework.data.neo4j.support.index.IndexProvider;
 import org.springframework.data.neo4j.support.index.IndexType;
 import org.springframework.data.neo4j.support.mapping.*;
 import org.springframework.data.neo4j.support.query.QueryEngine;
+import org.springframework.data.neo4j.support.schema.SchemaIndexProvider;
 import org.springframework.data.neo4j.template.GraphCallback;
 import org.springframework.data.neo4j.template.Neo4jOperations;
 import org.springframework.data.util.ClassTypeInformation;
@@ -67,6 +68,7 @@ import javax.validation.Validator;
 import java.util.Collections;
 import java.util.Map;
 
+import static java.lang.String.format;
 import static org.springframework.data.neo4j.support.ParameterCheck.notNull;
 
 /**
@@ -132,6 +134,7 @@ public class Neo4jTemplate implements Neo4jOperations, ApplicationContextAware {
         throw new IllegalArgumentException("Can't create graph repository for non-graph entity of type " + clazz);
     }
 
+    // Legacy Indexes Below
 
     @Deprecated public <S extends PropertyContainer, T> Index<S> getIndex(Class<T> type) {
         notNull(type, "entity type");
@@ -145,6 +148,31 @@ public class Neo4jTemplate implements Neo4jOperations, ApplicationContextAware {
 
     @Deprecated public <S extends PropertyContainer, T> Index<S> getIndex(Class<T> type, String indexName, IndexType indexType) {
         return getIndexProvider().getIndex(getPersistentEntity(type), indexName, indexType);
+    }
+
+    // Schema Indexes Below
+
+    /**
+     * Returns the unique entity of type entityClass (if it exists) otherwise returns null.
+     * Note: this method will only work with the newer schema based indexes (not legacy)
+     *
+     * @param entityClass Entity class
+     * @param propertyName Name of uniquely indexed property
+     * @param value value of property to find
+     * @param <T> the entity
+     * @return the unique entity of type entityClass (if it exists) otherwise returns null.
+     *
+     */
+    public <T> T findUniqueEntity(final Class<T> entityClass,String propertyName, Object value) {
+        final Neo4jPersistentEntityImpl<?> persistentEntity = getPersistentEntity(entityClass);
+        Neo4jPersistentProperty persistentProperty =  persistentEntity.getPersistentProperty(propertyName);
+
+        boolean labelIndexed = persistentProperty.isIndexed() && persistentProperty.getIndexInfo().isLabelBased();
+        boolean indexedButNotUnique = persistentProperty.isIndexed() && !persistentProperty.isUnique();
+        if (!labelIndexed || indexedButNotUnique) {
+            throw new IllegalArgumentException(format("propertyName '%s' must be uniquely (schema) indexed however it is not", propertyName));
+        }
+        return (T)getSchemaIndexProvider().findAll(persistentProperty,value).singleOrNull();
     }
 
     /**
@@ -598,6 +626,10 @@ public class Neo4jTemplate implements Neo4jOperations, ApplicationContextAware {
 
     private IndexProvider getIndexProvider() {
         return infrastructure.getIndexProvider();
+    }
+
+    private SchemaIndexProvider getSchemaIndexProvider() {
+        return infrastructure.getSchemaIndexProvider();
     }
 
     private Neo4jPersistentEntityImpl<?> getPersistentEntity(Class<?> type) {
