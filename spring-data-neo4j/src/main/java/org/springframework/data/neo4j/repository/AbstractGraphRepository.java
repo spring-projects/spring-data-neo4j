@@ -18,20 +18,29 @@ package org.springframework.data.neo4j.repository;
 
 import org.neo4j.cypherdsl.grammar.Execute;
 import org.neo4j.cypherdsl.grammar.Skip;
+import org.neo4j.cypherdsl.querydsl.CypherQueryDSL;
 import org.neo4j.graphdb.PropertyContainer;
 import org.neo4j.graphdb.index.IndexHits;
 import org.neo4j.graphdb.index.ReadableIndex;
 import org.neo4j.helpers.collection.ClosableIterable;
+import org.neo4j.helpers.collection.IteratorUtil;
+import org.neo4j.helpers.collection.MapUtil;
 import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.mapping.PersistentProperty;
+import org.springframework.data.neo4j.annotation.Indexed;
 import org.springframework.data.neo4j.annotation.QueryType;
 import org.springframework.data.neo4j.conversion.EndResult;
+import org.springframework.data.neo4j.mapping.Neo4jPersistentEntity;
+import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.repository.query.CypherQuery;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
+import org.springframework.data.neo4j.support.index.IndexType;
 import org.springframework.data.neo4j.support.query.QueryEngine;
+import org.springframework.data.repository.query.parser.Part;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
@@ -47,7 +56,8 @@ import static org.neo4j.helpers.collection.MapUtil.map;
  * @param <S> Type of backing state, either Node or Relationship
  */
 @Transactional(readOnly = true)
-public abstract class AbstractGraphRepository<S extends PropertyContainer, T> implements GraphRepository<T>, NamedIndexRepository<T>, SpatialRepository<T>, CypherDslRepository<T> {
+public abstract class AbstractGraphRepository<S extends PropertyContainer, T> implements
+        GraphRepository<T>, NamedIndexRepository<T>, SpatialRepository<T>, CypherDslRepository<T> {
     private final LegacyIndexSearcher<S,T> legacyIndexSearcher;
 
     /*
@@ -236,6 +246,43 @@ public abstract class AbstractGraphRepository<S extends PropertyContainer, T> im
         return legacyIndexSearcher.findAllByRange(indexName, property, from, to);
     }
 
+
+    /**
+     * Schema (aka Label based) Index based single finder which uses the default label
+     * name for this type to find the entity.
+     *
+     * @param property
+     * @param value
+     * @return Single Entity with this property and value or null if it does not exist
+     */
+    @Override
+    public T findBySchemaPropertyValue(String property, Object value) {
+        return findAllBySchemaPropertyValue(property,value).singleOrNull();
+    }
+
+    /**
+     * Schema (aka Label based) finder, uses the default label name for this type
+     * to lookup entities.
+     * @param property
+     * @param value
+     * @return Iterable over Entities with this property and value
+     */
+    @Override
+    public EndResult<T> findAllBySchemaPropertyValue(String property, Object value) {
+        final String SCHEMA_PROP_MATCH_CLAUSE = "MATCH (entity:`%s`) where entity.`%s` = {propValue} return entity";
+
+        Neo4jPersistentEntity persistentEntity = template.getEntityType(clazz).getEntity();
+        Neo4jPersistentProperty persistentProperty = (Neo4jPersistentProperty)persistentEntity.getPersistentProperty(property);
+        if (persistentProperty.getIndexInfo() == null || !persistentProperty.getIndexInfo().isLabelBased() ) {
+            throw new IllegalArgumentException(format("property {} is not schema indexed",property));
+        }
+
+        Map<String,Object> params = new HashMap<String,Object>();
+        params.put("propValue", value);
+        String cypherQuery = format(SCHEMA_PROP_MATCH_CLAUSE,
+                persistentProperty.getIndexInfo().getIndexName(), property );
+        return template.query(cypherQuery,params).to(clazz);
+    }
 
     protected abstract S getById(long id);
 

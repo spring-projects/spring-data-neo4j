@@ -13,16 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.springframework.data.neo4j.unique.schemabased.repository;
 
-package org.springframework.data.neo4j.repository;
+import org.springframework.data.neo4j.repository.GraphRepository;
+import org.springframework.data.neo4j.unique.schemabased.domain.Club;
 
+public interface ClubRepository extends GraphRepository<Club> {
 
-import org.springframework.data.repository.NoRepositoryBean;
-
-/**
- * @author mh
- * @since 12.01.11
- */
-@NoRepositoryBean
-public interface GraphRepository<T> extends CRUDRepository<T>, IndexRepository<T>, SchemaIndexRepository<T>, TraversalRepository<T> {
 }

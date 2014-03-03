@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.neo4j.unique;
+package org.springframework.data.neo4j.unique.legacy;
 
 import org.junit.Test;
 import org.neo4j.graphdb.*;

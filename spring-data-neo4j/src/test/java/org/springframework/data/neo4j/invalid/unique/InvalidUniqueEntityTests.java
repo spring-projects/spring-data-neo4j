@@ -15,24 +15,9 @@
  */
 package org.springframework.data.neo4j.invalid.unique;
 
-import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.neo4j.graphdb.GraphDatabaseService;
 import org.springframework.beans.factory.BeanCreationException;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.data.mapping.model.MappingException;
-import org.springframework.data.neo4j.unique.domain.Club;
-import org.springframework.data.neo4j.unique.domain.UniqueClub;
-import org.springframework.data.neo4j.unique.domain.UniqueNumericIdClub;
-import org.springframework.data.neo4j.unique.repository.ClubRepository;
-import org.springframework.data.neo4j.unique.repository.UniqueClubRepository;
-import org.springframework.data.neo4j.unique.repository.UniqueNumericIdClubRepository;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.springframework.transaction.annotation.Transactional;
 
 import static org.junit.Assert.assertEquals;
 

@@ -1,5 +1,5 @@
 /**
- * Copyright 2011 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,16 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.springframework.data.neo4j.unique.common;
 
-package org.springframework.data.neo4j.repository;
+public interface CommonClub {
+
+    public Long getId();
+
+    public String getName();
 
 
-import org.springframework.data.repository.NoRepositoryBean;
-
-/**
- * @author mh
- * @since 12.01.11
- */
-@NoRepositoryBean
-public interface GraphRepository<T> extends CRUDRepository<T>, IndexRepository<T>, SchemaIndexRepository<T>, TraversalRepository<T> {
 }

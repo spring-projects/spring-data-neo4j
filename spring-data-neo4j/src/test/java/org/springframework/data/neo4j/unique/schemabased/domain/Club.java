@@ -13,13 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.neo4j.unique.domain;
+package org.springframework.data.neo4j.unique.schemabased.domain;
 
 import org.springframework.data.neo4j.annotation.GraphId;
 import org.springframework.data.neo4j.annotation.NodeEntity;
+import org.springframework.data.neo4j.unique.common.CommonClub;
 
 @NodeEntity
-public class Club {
+public class Club implements CommonClub {
 
     private String name;
 
@@ -32,5 +33,9 @@ public class Club {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public Long getId() {
+        return id;
     }
 }

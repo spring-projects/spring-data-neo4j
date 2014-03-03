@@ -1,5 +1,5 @@
 /**
- * Copyright 2014 the original author or authors.
+ * Copyright 2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,69 +16,57 @@
 
 package org.springframework.data.neo4j.fieldaccess;
 
+
 import org.neo4j.graphdb.DynamicLabel;
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.PropertyContainer;
-import org.neo4j.graphdb.index.Index;
-import org.neo4j.graphdb.schema.IndexDefinition;
-import org.neo4j.index.lucene.ValueContext;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.mapping.model.MappingException;
+import org.springframework.data.neo4j.mapping.MappingPolicy;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
 import org.springframework.data.neo4j.support.mapping.StoredEntityType;
 
-import java.util.Arrays;
+import java.util.Set;
+import java.util.TreeSet;
 
+import static org.springframework.data.neo4j.support.DoReturn.doReturn;
 
-public class SchemaIndexingPropertyFieldAccessorListenerFactory<S extends PropertyContainer, T> implements FieldAccessorListenerFactory {
-
-    private final PropertyFieldAccessorFactory propertyFieldAccessorFactory;
-    private final ConvertingNodePropertyFieldAccessorFactory convertingNodePropertyFieldAccessorFactory;
+/**
+ * @author Nicki Watt
+ * @since 01.03.2014
+ */
+public class SchemaIndexingFieldAccessorFactory implements FieldAccessorFactory {
     private final Neo4jTemplate template;
 
-    public SchemaIndexingPropertyFieldAccessorListenerFactory(final Neo4jTemplate template, final PropertyFieldAccessorFactory propertyFieldAccessorFactory, final ConvertingNodePropertyFieldAccessorFactory convertingNodePropertyFieldAccessorFactory) {
+    public SchemaIndexingFieldAccessorFactory(Neo4jTemplate template) {
         this.template = template;
-    	this.propertyFieldAccessorFactory = propertyFieldAccessorFactory;
-        this.convertingNodePropertyFieldAccessorFactory = convertingNodePropertyFieldAccessorFactory;
     }
 
     @Override
-    public boolean accept(final Neo4jPersistentProperty property) {
-        return isPropertyField(property) && property.isIndexed() && property.getIndexInfo().isLabelBased();
-    }
+	public boolean accept(final Neo4jPersistentProperty property) {
+        return property.isIndexed() && property.getIndexInfo().isLabelBased();
+	}
 
+	@Override
+	public FieldAccessor forField(final Neo4jPersistentProperty property) {
+	    return new SchemaIndexedFieldAccessor(template,property);
+	}
 
-    private boolean isPropertyField(final Neo4jPersistentProperty property) {
-        return propertyFieldAccessorFactory.accept(property) || convertingNodePropertyFieldAccessorFactory.accept(property);
-    }
+	public static class SchemaIndexedFieldAccessor extends PropertyFieldAccessorFactory.PropertyFieldAccessor {
 
-    @Override
-    public FieldAccessListener forField(Neo4jPersistentProperty property) {
-        return new SchemaIndexingPropertyFieldAccessorListener(property, template);
-    }
-
-
-    /**
-	 * @author Nicki Watt
-	 * @since 09.02.2014
-	 */
-	public static class SchemaIndexingPropertyFieldAccessorListener<T extends PropertyContainer> implements FieldAccessListener {
-
-	    private final static Logger log = LoggerFactory.getLogger(SchemaIndexingPropertyFieldAccessorListener.class);
-
-        private final Neo4jPersistentProperty property;
-        private final Neo4jTemplate template;
-
-        public SchemaIndexingPropertyFieldAccessorListener(final Neo4jPersistentProperty property, Neo4jTemplate template) {
-            this.property = property;
-            this.template = template;
+        public SchemaIndexedFieldAccessor(Neo4jTemplate template,Neo4jPersistentProperty property) {
+	        super(template,property);
         }
 
 	    @Override
-        public void valueChanged(Object entity, Object oldVal, Object newVal) {
+	    public boolean isWriteable(Object entity) {
+	        return super.isWriteable(entity);
+	    }
+
+	    @Override
+	    public Object setValue(final Object entity, final Object newVal, MappingPolicy mappingPolicy) {
             final PropertyContainer state = template.getPersistentState(entity);
             if (!(state instanceof Node)) {
                 throw new IllegalArgumentException("not expecting to deal with non node property");
@@ -86,6 +74,7 @@ public class SchemaIndexingPropertyFieldAccessorListenerFactory<S extends Proper
 
             applyMissingSchemaIndexLabels(entity,(Node)state);
             checkForUniqueViolation(entity, newVal, (Node)state);
+            return super.setValue(entity,newVal,mappingPolicy);
         }
 
         private void checkForUniqueViolation(Object entity,Object newVal, Node stateToBeSaved) {
@@ -118,5 +107,5 @@ public class SchemaIndexingPropertyFieldAccessorListenerFactory<S extends Proper
                 node.addLabel(label);
         }
 
-    }
+	}
 }

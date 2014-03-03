@@ -19,7 +19,7 @@ package org.springframework.data.neo4j.rest.integration;
 import org.junit.*;
 import org.junit.runner.RunWith;
 import org.springframework.data.neo4j.rest.support.RestTestBase;
-import org.springframework.data.neo4j.unique.UniqueEntityTests;
+import org.springframework.data.neo4j.unique.legacy.UniqueLegacyIndexBasedEntityTests;
 import org.springframework.test.context.CleanContextCacheTestExecutionListener;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestExecutionListeners;
@@ -33,10 +33,10 @@ import org.springframework.test.context.transaction.TransactionalTestExecutionLi
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = {
-        "classpath:unique-test-context.xml",
+        "classpath:unique-legacy-test-context.xml",
         "classpath:RestTests-context.xml"})
 @TestExecutionListeners({CleanContextCacheTestExecutionListener.class, DependencyInjectionTestExecutionListener.class, TransactionalTestExecutionListener.class})
-public class RestUniqueEntityTests extends UniqueEntityTests {
+public class RestUniqueEntityTests extends UniqueLegacyIndexBasedEntityTests {
 
     @BeforeClass
     public static void startDb() throws Exception {

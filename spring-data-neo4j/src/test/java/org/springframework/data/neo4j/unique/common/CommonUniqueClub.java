@@ -1,5 +1,5 @@
 /**
- * Copyright 2011 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,13 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.neo4j.unique.repository;
+package org.springframework.data.neo4j.unique.common;
 
-import org.springframework.data.neo4j.repository.GraphRepository;
-import org.springframework.data.neo4j.repository.NamedIndexRepository;
-import org.springframework.data.neo4j.unique.domain.Club;
-import org.springframework.data.neo4j.unique.domain.UniqueClub;
+public interface CommonUniqueClub {
 
-public interface UniqueClubRepository extends GraphRepository<UniqueClub>, NamedIndexRepository<Club> {
+    public Long getId();
+
+    public String getName();
+
+    public void setName(String name);
+
+    public String getDescription();
 
 }

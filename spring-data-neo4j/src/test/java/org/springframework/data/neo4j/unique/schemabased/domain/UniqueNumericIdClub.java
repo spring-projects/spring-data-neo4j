@@ -13,35 +13,36 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.neo4j.unique.domain;
+package org.springframework.data.neo4j.unique.schemabased.domain;
 
 import org.springframework.data.neo4j.annotation.GraphId;
 import org.springframework.data.neo4j.annotation.Indexed;
 import org.springframework.data.neo4j.annotation.NodeEntity;
 import org.springframework.data.neo4j.support.index.IndexType;
+import org.springframework.data.neo4j.unique.common.CommonUniqueNumericIdClub;
 
 @NodeEntity
-public class UniqueClub {
+public class UniqueNumericIdClub implements CommonUniqueNumericIdClub {
 
-    @Indexed(unique = true,indexType = IndexType.SIMPLE)
-    private String name;
+    @Indexed(unique = true, indexType = IndexType.LABEL)
+    private Long clubId;
 
     @GraphId
     Long id;
 
-    public UniqueClub() {
+    public UniqueNumericIdClub() {
     }
 
-    public UniqueClub(String name) {
-        this.name = name;
+    public UniqueNumericIdClub(Long clubId) {
+        this.clubId = clubId;
     }
 
-    public String getName() {
-        return name;
+    public Long getClubId() {
+        return clubId;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setClubId(Long clubId) {
+        this.clubId = clubId;
     }
 
     public Long getId() {

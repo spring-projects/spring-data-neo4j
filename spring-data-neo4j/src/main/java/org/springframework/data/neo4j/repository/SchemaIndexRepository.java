@@ -16,13 +16,20 @@
 
 package org.springframework.data.neo4j.repository;
 
+import org.springframework.data.neo4j.conversion.EndResult;
+import org.springframework.transaction.annotation.Transactional;
 
-import org.springframework.data.repository.NoRepositoryBean;
 
 /**
- * @author mh
- * @since 12.01.11
+ * @author Nicki Watt
+ * @since 01.03.2014
  */
-@NoRepositoryBean
-public interface GraphRepository<T> extends CRUDRepository<T>, IndexRepository<T>, SchemaIndexRepository<T>, TraversalRepository<T> {
+public interface SchemaIndexRepository<T> {
+
+    @Transactional
+    T findBySchemaPropertyValue(String property, Object value);
+
+    @Transactional
+    EndResult<T> findAllBySchemaPropertyValue(String property, Object value);
+
 }
