@@ -1,6 +1,15 @@
 Spring Data Neo4j Changelog
 ===========================
 
+Changes in version 2.3.5.RELEASE (2013-03-10)
+---------------------------------------------
+* No changes.
+
+Changes in version 3.0.0.RELEASE (2014-02-24)
+---------------------------------------------
+* DATAGRAPH-388 - Add Label based indexes
+* DATAGRAPH-428 - Release 3.0 GA
+
 Changes in version 2.3.4.RELEASE (2013-02-17)
 ---------------------------------------------
 * No changes.
@@ -17,7 +26,7 @@ Changes in version 2.3.3.RELEASE (2013-12-11)
 * DATAGRAPH-407 - Bug when deleting nodes on an auto_index index
 * DATAGRAPH-409 - Improved default transaction configuration for repositories.
 * DATAGRAPH-415 - Release 2.3.3
- 
+
 Changes in version 3.0.0.M1 (2013-11-21)
 ----------------------------------------
 * DATAGRAPH-311 QueryResultProxy not Serializable
