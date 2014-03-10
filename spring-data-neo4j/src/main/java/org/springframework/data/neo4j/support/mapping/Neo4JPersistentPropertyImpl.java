@@ -20,19 +20,15 @@ import java.beans.PropertyDescriptor;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
-import java.util.Collection;
-import java.util.IdentityHashMap;
 import java.util.Iterator;
-import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.convert.ConversionService;
-import org.springframework.data.annotation.Transient;
 import org.springframework.data.mapping.Association;
 import org.springframework.data.mapping.PersistentEntity;
 import org.springframework.data.mapping.model.AnnotationBasedPersistentProperty;
-import org.springframework.data.mapping.model.MappingException;
+import org.springframework.data.mapping.model.BeanWrapper;
 import org.springframework.data.mapping.model.SimpleTypeHolder;
 import org.springframework.data.neo4j.annotation.EndNode;
 import org.springframework.data.neo4j.annotation.Fetch;
@@ -68,24 +64,21 @@ class Neo4jPersistentPropertyImpl extends AnnotationBasedPersistentProperty<Neo4
     private final RelationshipInfo relationshipInfo;
     private final boolean isIdProperty;
     private IndexInfo indexInfo;
-    private Map<Class<? extends Annotation>, ? extends Annotation> annotations;
     private Association<Neo4jPersistentProperty> myAssociation;
     private String defaultValue;
     private Class<?> propertyType;
     private String query;
     private final boolean isNeo4jEntityType;
-    private final Boolean isAssociation;
+    private Boolean isAssociation;
     private final String neo4jPropertyName;
     private final int hash;
 
     public Neo4jPersistentPropertyImpl(Field field, PropertyDescriptor propertyDescriptor,
                                        PersistentEntity<?, Neo4jPersistentProperty> owner, SimpleTypeHolder simpleTypeHolder, Neo4jMappingContext ctx) {
         super(field, propertyDescriptor, owner, simpleTypeHolder);
-        this.hash = getField().hashCode();
+        this.hash = field == null ? propertyDescriptor.hashCode() : field.hashCode();
         this.relationshipInfo = extractRelationshipInfo(field, ctx);
-        this.annotations = extractAnnotations(field);
         this.propertyType = extractPropertyType();
-        this.isAssociation = ctx.isReference(this);
         this.isNeo4jEntityType = isNeo4jPropertyType(getType());
         this.neo4jPropertyName = createNeo4jPropertyName();
         this.indexInfo = extractIndexInfo();
@@ -121,14 +114,6 @@ class Neo4jPersistentPropertyImpl extends AnnotationBasedPersistentProperty<Neo4
         return myAssociation;
     }
 
-    private Map<Class<? extends Annotation>,? extends Annotation> extractAnnotations(Field field) {
-        Map<Class<? extends Annotation>, Annotation> result=new IdentityHashMap<Class<? extends Annotation>, Annotation>();
-        for (Annotation annotation : field.getAnnotations()) {
-            result.put(annotation.annotationType(), annotation);
-        }
-        return result;
-    }
-
     private IndexInfo extractIndexInfo() {
         final Indexed annotation = getAnnotation(Indexed.class);
         return annotation!=null ? new IndexInfo(annotation,this) : null;
@@ -140,14 +125,14 @@ class Neo4jPersistentPropertyImpl extends AnnotationBasedPersistentProperty<Neo4
 
     private RelationshipInfo extractRelationshipInfo(final Field field, Neo4jMappingContext ctx) {
         if (isAnnotationPresent(RelatedTo.class)) {
-            return RelationshipInfo.fromField(field, getAnnotation(RelatedTo.class), getTypeInformation(), ctx);
+            return RelationshipInfo.fromField(getName(), getAnnotation(RelatedTo.class), getTypeInformation(), ctx);
         }
 
         if (isAnnotationPresent(RelatedToVia.class)) {
-            return RelationshipInfo.fromField(field, getAnnotation(RelatedToVia.class), getTypeInformation(),ctx);
+            return RelationshipInfo.fromField(getName(), getAnnotation(RelatedToVia.class), getTypeInformation(),ctx);
         }
         if (hasAnnotation(getTypeInformation(), NodeEntity.class)) {
-            return RelationshipInfo.fromField(field, getTypeInformation(), ctx);
+            return RelationshipInfo.fromField(getName(), getTypeInformation(), ctx);
         }
         return null;
     }
@@ -155,12 +140,9 @@ class Neo4jPersistentPropertyImpl extends AnnotationBasedPersistentProperty<Neo4
 
     @Override
     public void setValue(Object entity, Object newValue) {
-        try {
-            if (!field.isAccessible()) field.setAccessible(true);
-            field.set(entity, newValue);
-        } catch (IllegalAccessException e) {
-            throw new MappingException("Could not access field "+field+" for setting value "+newValue+" on "+this);
-        }
+    	
+    	BeanWrapper<PersistentEntity<Object,?>,Object> wrapper = BeanWrapper.create(entity, null);
+    	wrapper.setProperty(this, newValue);
     }
 
     private static boolean hasAnnotation(TypeInformation<?> typeInformation, final Class<NodeEntity> annotationClass) {
@@ -174,7 +156,12 @@ class Neo4jPersistentPropertyImpl extends AnnotationBasedPersistentProperty<Neo4
 
     @Override
     public boolean isAssociation() {
-        return isAssociation==null ? super.isAssociation() : isAssociation|| isRelationship();
+    	
+    	if (this.isAssociation == null) {
+    		this.isAssociation = super.isAssociation();
+    	}
+    	
+    	return this.isAssociation || isRelationship();
     }
 
     @Override
@@ -202,7 +189,7 @@ class Neo4jPersistentPropertyImpl extends AnnotationBasedPersistentProperty<Neo4
     }
 
     private String createNeo4jPropertyName() {
-        final Neo4jPersistentEntity entityClass = (Neo4jPersistentEntity) getOwner();
+        final Neo4jPersistentEntity<?> entityClass = (Neo4jPersistentEntity<?>) getOwner();
         if (entityClass.useShortNames()) return getName();
         return String.format("%s.%s", entityClass.getType().getSimpleName(), getName());
     }
@@ -259,32 +246,18 @@ class Neo4jPersistentPropertyImpl extends AnnotationBasedPersistentProperty<Neo4
         return getName().contains("$");
     }
 
-    @Override
-    public Collection<? extends Annotation> getAnnotations() {
-    	
-    	  if (annotations == null) {
-    	  	
-    	  }
-    	
-        return annotations.values();
-    }
-
     public Object getValue(final Object entity, final MappingPolicy mappingPolicy) {
         if (entity instanceof ManagedEntity && !mappingPolicy.accessField()) {
-            return DoReturn.unwrap(((ManagedEntity) entity).getEntityState().getValue(this, mappingPolicy));
+            return DoReturn.unwrap(((ManagedEntity<?,?>) entity).getEntityState().getValue(this, mappingPolicy));
         }
         return getValueFromEntity(entity, mappingPolicy);
     }
 
     @Override
     public Object getValueFromEntity(Object entity, final MappingPolicy mappingPolicy) {
-        try {
-            final Field field = getField();
-            if (!field.isAccessible()) field.setAccessible(true);
-            return field.get(entity);
-        } catch (IllegalAccessException e) {
-            throw new MappingException("Could not access field "+field);
-        }
+    	
+    	BeanWrapper<PersistentEntity<Object,?>, Object> wrapper = BeanWrapper.create(entity, null);
+    	return wrapper.getProperty(this);
     }
 
     @SuppressWarnings("unchecked")
@@ -349,14 +322,12 @@ class Neo4jPersistentPropertyImpl extends AnnotationBasedPersistentProperty<Neo4
     }
 
     public boolean isTransient() {
-        return super.isTransient() || Modifier.isTransient(field.getModifiers()); //  || isAnnotationPresent(Transient.class) || isAnnotationPresent("javax.persistence.Transient");
-    }
-
-    private boolean isAnnotationPresent(String className) {
-        for (Class<? extends Annotation> annotationType : annotations.keySet()) {
-            if (annotationType.getName().equals(className)) return true;
-        }
-        return false;
+    	
+    	if (super.isTransient()) {
+    		return true;
+    	}
+    	
+    	return field == null ? false : Modifier.isTransient(field.getModifiers());
     }
 
     @Override
@@ -364,7 +335,7 @@ class Neo4jPersistentPropertyImpl extends AnnotationBasedPersistentProperty<Neo4
         final Iterable<? extends TypeInformation<?>> result = super.getPersistentEntityType();
         for (Iterator<? extends TypeInformation<?>> it = result.iterator(); it.hasNext(); ) {
             final TypeInformation<?> typeInformation = it.next();
-            final Class type = typeInformation.getType();
+            final Class<?> type = typeInformation.getType();
             if (isNodeEntity(type) || isRelationshipEntity(type)) continue;
             if (log.isInfoEnabled()) log.info("ignoring "+getName()+" "+type+" "+typeInformation.getActualType().getType());
             it.remove();

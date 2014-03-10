@@ -67,7 +67,7 @@ public class QueryFieldAccessorFactory implements FieldAccessorFactory {
         public QueryFieldAccessor(final Neo4jPersistentProperty property, Neo4jTemplate template) {
 	        this.property = property;
             this.template = template;
-            final Query query = property.getAnnotation(Query.class);
+            final Query query = property.findAnnotation(Query.class);
             this.annotationParams = query.params();
             if ((this.annotationParams.length % 2) != 0) {
                 throw new IllegalArgumentException("Number of parameters has to be even to construct a parameter map");

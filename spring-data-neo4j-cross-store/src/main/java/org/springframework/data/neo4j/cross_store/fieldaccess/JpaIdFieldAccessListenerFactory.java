@@ -36,7 +36,7 @@ public class JpaIdFieldAccessListenerFactory implements FieldAccessorListenerFac
 
 	@Override
 	public boolean accept(final Neo4jPersistentProperty property) {
-		return property.getAnnotation(Id.class) != null;
+		return property.findAnnotation(Id.class) != null;
 	}
 
 	@Override

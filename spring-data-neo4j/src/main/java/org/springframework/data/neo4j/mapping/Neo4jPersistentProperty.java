@@ -16,9 +16,6 @@
 
 package org.springframework.data.neo4j.mapping;
 
-import java.lang.annotation.Annotation;
-import java.util.Collection;
-
 import org.springframework.core.convert.ConversionService;
 import org.springframework.data.mapping.PersistentProperty;
 
@@ -63,10 +60,6 @@ public interface Neo4jPersistentProperty extends PersistentProperty<Neo4jPersist
     boolean isNeo4jPropertyValue(Object value);
 
     boolean isSyntheticField();
-
-    Collection<? extends Annotation> getAnnotations();
-
-    <T extends Annotation> T getAnnotation(Class<? extends T> annotationType);
     
     boolean isStartNode();
     

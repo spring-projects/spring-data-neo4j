@@ -93,7 +93,7 @@ public class IndexProviderImpl implements IndexProvider {
 
     @Override
     public <S extends PropertyContainer> Index<S> getIndex(Neo4jPersistentProperty property, final Class<?> instanceType) {
-        final Indexed indexedAnnotation = property.getAnnotation(Indexed.class);
+        final Indexed indexedAnnotation = property.findAnnotation(Indexed.class);
         final Neo4jPersistentEntity<?> declaringType = property.getOwner();
         final String providedIndexName = providedIndexName(indexedAnnotation);
         final Indexed.Level level = indexingLevel(indexedAnnotation);
