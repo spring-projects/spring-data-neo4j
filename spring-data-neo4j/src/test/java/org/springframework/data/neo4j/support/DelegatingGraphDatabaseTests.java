@@ -18,13 +18,14 @@ package org.springframework.data.neo4j.support;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Relationship;
-import org.neo4j.graphdb.Transaction;
+import org.neo4j.graphdb.*;
+import org.neo4j.helpers.collection.IteratorUtil;
 import org.neo4j.test.TestGraphDatabaseFactory;
+import org.springframework.data.neo4j.support.schema.SchemaIndexProvider;
 
+import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
+import static org.neo4j.helpers.collection.IteratorUtil.singleOrNull;
 import static org.neo4j.helpers.collection.MapUtil.map;
 
 /**
@@ -60,10 +61,44 @@ public class DelegatingGraphDatabaseTests {
     }
 
     @Test
+    public void mergeNode() throws Exception {
+        try (Transaction tx = graphDatabase.beginTx()) {
+            new SchemaIndexProvider(graphDatabase).createIndex("user","name",true);
+            tx.success();
+        }
+        try (Transaction tx = graphDatabase.beginTx()) {
+            final Node node = graphDatabase.merge("user", "name", "David", map("name", "David"), null);
+            final Node node2 = graphDatabase.merge("user", "name", "David", map("name", "David"), null);
+            assertEquals("David",node.getProperty("name"));
+            assertEquals(node,node2);
+            assertEquals(node,singleOrNull(gdb.findNodesByLabelAndProperty(DynamicLabel.label("user"), "name", "David")));
+            tx.success();
+        }
+    }
+
+    @Test
+    public void mergeNodeWithLabel() throws Exception {
+        try (Transaction tx = graphDatabase.beginTx()) {
+            new SchemaIndexProvider(graphDatabase).createIndex("user","name",true);
+            tx.success();
+        }
+        try (Transaction tx = graphDatabase.beginTx()) {
+            final Node node = graphDatabase.merge("user", "name", "David", map("name", "David"), asList("person"));
+            assertEquals("David",node.getProperty("name"));
+            assertEquals(2, IteratorUtil.count(node.getLabels()));
+            for (Label label : node.getLabels()) {
+                assertEquals(true, asList("user", "person").contains(label.name()));
+            }
+            assertEquals(node,singleOrNull(gdb.findNodesByLabelAndProperty(DynamicLabel.label("user"), "name", "David")));
+            tx.success();
+        }
+    }
+
+    @Test
     public void testGetOrCreateRelationship() throws Exception {
         try (Transaction tx = graphDatabase.beginTx()) {
-            final Node david = graphDatabase.createNode(map("name", "David"));
-            final Node michael = graphDatabase.createNode(map("name", "Michael"));
+            final Node david = graphDatabase.createNode(map("name", "David"), asList("Person"));
+            final Node michael = graphDatabase.createNode(map("name", "Michael"), asList("Person"));
             final Relationship rel1 = graphDatabase.getOrCreateRelationship("knows", "whom", "david_michael", david, michael, "KNOWS", map("whom", "david_michael"));
             final Relationship rel2 = graphDatabase.getOrCreateRelationship("knows", "whom", "david_michael", david, michael, "KNOWS", map("whom", "david_michael"));
             assertEquals("david_michael",rel1.getProperty("whom"));

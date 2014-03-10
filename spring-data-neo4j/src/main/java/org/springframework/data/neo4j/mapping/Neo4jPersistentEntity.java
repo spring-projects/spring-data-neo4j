@@ -20,6 +20,8 @@ import org.neo4j.graphdb.PropertyContainer;
 import org.springframework.data.mapping.PersistentEntity;
 import org.springframework.data.neo4j.support.mapping.StoredEntityType;
 
+import java.util.Collection;
+
 /**
  * Interface for Neo4J specific {@link PersistentEntity}.
  * 
@@ -46,4 +48,6 @@ public interface Neo4jPersistentEntity<T> extends PersistentEntity<T, Neo4jPersi
     Neo4jPersistentProperty getUniqueProperty();
 
     boolean isUnique();
+
+    Collection<String> getAllLabels();
 }

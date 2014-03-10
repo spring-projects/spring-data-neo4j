@@ -20,6 +20,7 @@ import org.springframework.data.util.TypeInformation;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 
 /**
  * @author mh
@@ -59,7 +60,8 @@ public class StoredEntityType {
     }
 
     private Collection<StoredEntityType> collectSuperTypes(Collection<Neo4jPersistentEntity<?>> superTypeEntities) {
-        Collection<StoredEntityType> result=new ArrayList<StoredEntityType>(superTypeEntities.size());
+        if (superTypeEntities==null) return Collections.emptyList();
+        Collection<StoredEntityType> result=new ArrayList<>(superTypeEntities.size());
         for (Neo4jPersistentEntity<?> superTypeEntity : superTypeEntities) {
             result.add(superTypeEntity.getEntityType());
         }

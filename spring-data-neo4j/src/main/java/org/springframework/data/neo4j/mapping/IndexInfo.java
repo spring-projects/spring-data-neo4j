@@ -32,23 +32,19 @@ public class IndexInfo {
     private String indexKey;
     private final boolean unique;
     private boolean numeric;
+    private Indexed annotation;
+    private Neo4jPersistentProperty property;
 
     public IndexInfo(Indexed annotation,
                      Neo4jPersistentProperty property) {
+        this.annotation = annotation;
+        this.property = property;
         this.indexType = annotation.indexType();
-        this.indexName = isLabelBased() ? determineLabelIndexName(annotation, property) : determineIndexName(annotation, property);
         fieldName = annotation.fieldName();
         this.indexKey = fieldName.isEmpty() ? property.getNeo4jPropertyName() : fieldName;
         unique = annotation.unique();
         level = annotation.level();
         numeric = annotation.numeric();
-        verify(property);
-    }
-
-    private void verify(Neo4jPersistentProperty property) {
-//        if (isLabelBased() && numeric) {
-//            throw new MappingException("No numeric indexing and range queries currently supported for label based indexes, property: " + property.getOwner().getName()+"."+property.getName());
-//        }
     }
 
     private String determineLabelIndexName(Indexed annotation, Neo4jPersistentProperty property) {
@@ -94,7 +90,11 @@ public class IndexInfo {
         return indexType.isLabelBased();
     }
 
+    // lazy because of deferred persistent entity hierarchy determination on registration
     public String getIndexName() {
+        if (indexName == null) {
+            this.indexName = isLabelBased() ? determineLabelIndexName(annotation, property) : determineIndexName(annotation, property);
+        }
         return indexName;
     }
 

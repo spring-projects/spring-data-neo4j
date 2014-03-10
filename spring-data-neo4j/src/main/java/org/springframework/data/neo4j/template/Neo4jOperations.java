@@ -32,6 +32,7 @@ import org.springframework.data.neo4j.mapping.MappingPolicy;
 import org.springframework.data.neo4j.repository.GraphRepository;
 import org.springframework.data.neo4j.support.query.QueryEngine;
 
+import java.util.Collection;
 import java.util.Map;
 
 /**
@@ -70,6 +71,11 @@ public interface Neo4jOperations {
      */
     Node createNode(Map<String, Object> properties);
 
+    /**
+     * Creates a node with the given properties and labels
+     */
+    Node createNode(final Map<String, Object> properties,Collection<String> labels);
+
     Node createNode();
 
     /**
@@ -77,6 +83,12 @@ public interface Neo4jOperations {
      * properties are used to initialize the node.
      */
     Node getOrCreateNode(String index, String key, Object value, Map<String, Object> properties);
+
+    /**
+     * creates the node uniquely or returns an existing node with the same label-key-value combination.
+     * properties are used to initialize the node.
+     */
+    Node merge(String label, String key, Object value, Map<String, Object> properties, Collection<String> labels);
 
     /**
      * Creates a node mapped by the given entity class

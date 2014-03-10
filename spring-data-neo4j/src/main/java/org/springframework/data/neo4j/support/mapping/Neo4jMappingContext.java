@@ -56,10 +56,10 @@ public class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersistentE
     protected <T> Neo4jPersistentEntityImpl<?> createPersistentEntity(TypeInformation<T> typeInformation) {
         final Class<T> type = typeInformation.getType();
         if (type.isAnnotationPresent(NodeEntity.class)) {
-            return new Neo4jPersistentEntityImpl<T>(typeInformation);
+            return new Neo4jPersistentEntityImpl<T>(typeInformation,entityAlias);
         }
         if (type.isAnnotationPresent(RelationshipEntity.class)) {
-            return new Neo4jPersistentEntityImpl<T>(typeInformation);
+            return new Neo4jPersistentEntityImpl<T>(typeInformation,entityAlias);
         }
         throw new InvalidEntityTypeException("Type " + type + " is neither a @NodeEntity nor a @RelationshipEntity");
     }
@@ -73,16 +73,21 @@ public class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersistentE
     }
 
     private void updateStoredEntityType(Neo4jPersistentEntityImpl<?> entity, Collection<Neo4jPersistentEntity<?>> superTypeEntities) {
-        entity.updateStoredType(new StoredEntityType(entity, superTypeEntities, entityAlias));
+        entity.updateStoredType(superTypeEntities);
         if (entityIndexCreator!=null) entityIndexCreator.ensureEntityIndexes(entity);
     }
 
     private List<Neo4jPersistentEntity<?>> addSuperTypes(Neo4jPersistentEntity<?> entity) {
-        List<Neo4jPersistentEntity<?>> entities=new ArrayList<Neo4jPersistentEntity<?>>();
-        final Class<?> type = entity.getType();
-        entities.addAll(addPersistentEntityWithCheck(type.getSuperclass()));
-        for (Class<?> anInterface : type.getInterfaces()) {
-            entities.addAll(addPersistentEntityWithCheck(anInterface));
+        List<Neo4jPersistentEntity<?>> entities=new ArrayList<>();
+        Class<?> type = entity.getType();
+        Collection<Class> typesToAdd = new LinkedHashSet<>();
+        while (type != null) {
+            typesToAdd.add(type.getSuperclass());
+            typesToAdd.addAll(Arrays.asList(type.getInterfaces()));
+            type = type.getSuperclass();
+        }
+        for (Class<?> superType : typesToAdd) {
+            entities.addAll(addPersistentEntityWithCheck(superType));
         }
         return entities;
     }

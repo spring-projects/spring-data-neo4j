@@ -30,6 +30,7 @@ import org.springframework.data.neo4j.support.mapping.WrappedIterableClosableIte
 import org.springframework.data.neo4j.support.query.QueryEngine;
 
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 /**
@@ -76,7 +77,7 @@ public class LabelBasedNodeTypeRepresentationStrategy implements NodeTypeReprese
      */
     private void addLabelsForEntityHierarchy(Node state, StoredEntityType type) {
         String alias = type.getAlias().toString();
-        Set<String> labels = collectSuperTypeLabels(type, new HashSet<String>());
+        Set<String> labels = collectSuperTypeLabels(type, new LinkedHashSet<String>());
         labels.add(alias);
         labels.add(LABELSTRATEGY_PREFIX + alias);
         cypherHelper.setLabelsOnNode(state.getId(), labels);

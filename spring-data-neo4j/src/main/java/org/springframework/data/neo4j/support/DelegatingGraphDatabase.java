@@ -40,16 +40,16 @@ import org.springframework.data.neo4j.support.index.NoSuchIndexException;
 import org.springframework.data.neo4j.support.query.ConversionServiceQueryResultConverter;
 import org.springframework.data.neo4j.support.query.CypherQueryEngine;
 import org.springframework.data.neo4j.support.query.QueryEngine;
+import org.springframework.data.neo4j.support.schema.SchemaIndexProvider;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.ObjectUtils;
 
 import javax.transaction.Status;
 import javax.transaction.SystemException;
 import javax.transaction.TransactionManager;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+
+import static org.neo4j.helpers.collection.MapUtil.map;
 
 /**
  * @author mh
@@ -58,12 +58,13 @@ import java.util.Set;
 public class DelegatingGraphDatabase implements GraphDatabase {
 
     private static final Logger log = LoggerFactory.getLogger(DelegatingGraphDatabase.class);
+    private static final Label[] NO_LABELS = new Label[0];
+    private final SchemaIndexProvider schemaIndexProvider;
 
     protected GraphDatabaseService delegate;
     private ConversionService conversionService;
     private ResultConverter resultConverter;
     private volatile QueryEngine<Object> cypherQueryEngine;
-    private long referenceNode = -2;
 
     public DelegatingGraphDatabase(final GraphDatabaseService delegate) {
         this(delegate,null);
@@ -71,6 +72,7 @@ public class DelegatingGraphDatabase implements GraphDatabase {
     public DelegatingGraphDatabase(final GraphDatabaseService delegate, ResultConverter resultConverter) {
         this.delegate = delegate;
         this.resultConverter = resultConverter;
+        this.schemaIndexProvider = new SchemaIndexProvider(this);
     }
 
     public void setConversionService(ConversionService conversionService) {
@@ -102,8 +104,18 @@ public class DelegatingGraphDatabase implements GraphDatabase {
     }
 
     @Override
-    public Node createNode(Map<String, Object> props) {
-        return setProperties(delegate.createNode(), props);
+    public Node createNode(Map<String, Object> props, Collection<String> labels) {
+        return setProperties(delegate.createNode(toLabels(labels)), props);
+    }
+
+    private Label[] toLabels(Collection<String> labels) {
+        if (labels==null || labels.isEmpty()) return NO_LABELS;
+        Label[] labelArray = new Label[labels.size()];
+        int i=0;
+        for (String label : labels) {
+            labelArray[i++]= DynamicLabel.label(label);
+        }
+        return labelArray;
     }
 
     private <T extends PropertyContainer> T setProperties(T primitive, Map<String, Object> properties) {
@@ -307,6 +319,10 @@ public class DelegatingGraphDatabase implements GraphDatabase {
         public Result<T> query(String statement, Map<String, Object> params) {
             throw new IllegalStateException(dependency + " is not available, please add it to your dependencies to execute: " +statement);
         }
+    }
+
+    public Node merge(String labelName, String key, Object value, final Map<String, Object> nodeProperties, Collection<String> labels) {
+        return schemaIndexProvider.merge(labelName,key,value,nodeProperties,labels);
     }
 
     public Node getOrCreateNode(String indexName, String key, Object value, final Map<String,Object> nodeProperties) {

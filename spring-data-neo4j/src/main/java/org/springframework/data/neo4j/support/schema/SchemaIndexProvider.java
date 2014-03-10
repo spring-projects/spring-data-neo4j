@@ -1,6 +1,7 @@
 package org.springframework.data.neo4j.support.schema;
 
-import org.neo4j.graphdb.Transaction;
+import org.neo4j.graphdb.Node;
+import org.neo4j.helpers.collection.MapUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.neo4j.annotation.QueryType;
@@ -10,6 +11,9 @@ import org.springframework.data.neo4j.mapping.IndexInfo;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentEntity;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.support.query.QueryEngine;
+
+import java.util.Collection;
+import java.util.Map;
 
 import static org.neo4j.helpers.collection.MapUtil.map;
 
@@ -31,7 +35,12 @@ public class SchemaIndexProvider {
     public void createIndex(Neo4jPersistentProperty property) {
         String label = getLabel(property);
         String prop = getName(property);
-        String query = indexQuery(label, prop, property.getIndexInfo().isUnique());
+        boolean unique = property.getIndexInfo().isUnique();
+        createIndex(label, prop, unique);
+    }
+
+    public void createIndex(String label, String prop, boolean unique) {
+        String query = createIndexQuery(label, prop, unique);
         if (logger.isDebugEnabled()) logger.debug(query);
         cypher.query(query, null);
     }
@@ -62,11 +71,30 @@ public class SchemaIndexProvider {
         return "MATCH (n:`"+label+"`) RETURN n";
     }
 
+    public Node merge(String labelName, String key, Object value, final Map<String, Object> nodeProperties, Collection<String> labels) {
+        if (labelName ==null || key == null || value==null) throw new IllegalArgumentException("Label "+ labelName +" key "+key+" and value must not be null");
+        Map props = nodeProperties.containsKey(key) ? nodeProperties : MapUtil.copyAndPut(nodeProperties, key, value);
+        Map<String, Object> params = map("props", props, "value", value);
+        return cypher.query(mergeQuery(labelName, key,labels), params).to(Node.class).single();
+    }
+
+    private String mergeQuery(String labelName, String key, Collection<String> labels) {
+        StringBuilder setLabels = new StringBuilder();
+        if (labels!=null) {
+            for (String label : labels) {
+                if (label.equals(labelName)) continue;
+                setLabels.append("SET n:").append(label).append(" ");
+            }
+        }
+        return "MERGE (n:`"+labelName+"` {`"+key+"`: {value}}) ON CREATE SET n={props} "+setLabels+" return n";
+    }
+
+
     private String findByLabelAndPropertyQuery(String label, String prop) {
         return "MATCH (n:`"+label+"` {`"+prop+"`:{value}}) RETURN n";
     }
 
-    private String indexQuery(String label, String prop, boolean unique) {
+    private String createIndexQuery(String label, String prop, boolean unique) {
         if (unique) {
             return  "CREATE CONSTRAINT ON (n:`"+ label +"`) ASSERT n.`"+ prop +"` IS UNIQUE";
         }

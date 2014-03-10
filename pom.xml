@@ -32,7 +32,7 @@
 	<properties>
 		<project.type>multi</project.type>
 		<dist.id>spring-data-neo4j</dist.id>
-		<springdata.commons>1.8.0.BUILD-SNAPSHOT</springdata.commons>
+		<springdata.commons>1.7.0.RELEASE</springdata.commons>
 
 		<!-- Neo4j 2.0 now requires JDK 7 as a min -->
 		<source.level>1.7</source.level>
