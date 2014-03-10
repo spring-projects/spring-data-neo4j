@@ -210,18 +210,6 @@ public class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersistentE
     public void setEntityAlias(EntityAlias entityAlias) {
         this.entityAlias = entityAlias;
     }
-    
-    public boolean isReference(Neo4jPersistentProperty property) {
-        for (Annotation annotation : property.getAnnotations()) {
-            Boolean isReference = referenceAnnotations.get(annotation);
-            if (isReference == null) {
-                isReference = Reference.class.isInstance(annotation) || annotation.annotationType().isAnnotationPresent(Reference.class);
-                referenceAnnotations.put(annotation, isReference);
-            } 
-            if (isReference) return true;
-        }
-        return false;
-    }
 
     public void setEntityIndexCreator(EntityIndexCreator entityIndexCreator) {
         this.entityIndexCreator = entityIndexCreator;

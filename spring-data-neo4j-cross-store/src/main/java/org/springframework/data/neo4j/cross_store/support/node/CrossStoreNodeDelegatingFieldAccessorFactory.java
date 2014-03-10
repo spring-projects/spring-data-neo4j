@@ -57,7 +57,7 @@ public class CrossStoreNodeDelegatingFieldAccessorFactory extends DelegatingFiel
                         newConvertingNodePropertyFieldAccessorFactory()) {
                     @Override
                     public boolean accept(Neo4jPersistentProperty property) {
-                        return property.getAnnotation(GraphProperty.class) != null && super.accept(property);
+                        return property.findAnnotation(GraphProperty.class) != null && super.accept(property);
                     }
                 },
                 new JpaIdFieldAccessListenerFactory(template));
@@ -75,7 +75,7 @@ public class CrossStoreNodeDelegatingFieldAccessorFactory extends DelegatingFiel
                 new RelatedToSingleFieldAccessorFactory(getTemplate()) {
                     @Override
                     public boolean accept(Neo4jPersistentProperty property) {
-                        return property.getAnnotation(RelatedTo.class) != null && super.accept(property);
+                        return property.findAnnotation(RelatedTo.class) != null && super.accept(property);
                     }
                 },
                 new RelatedToCollectionFieldAccessorFactory(getTemplate()),
@@ -89,7 +89,7 @@ public class CrossStoreNodeDelegatingFieldAccessorFactory extends DelegatingFiel
         return new ConvertingNodePropertyFieldAccessorFactory(getTemplate()) {
             @Override
             public boolean accept(Neo4jPersistentProperty property) {
-                return property.getAnnotation(GraphProperty.class) != null && super.accept(property);
+                return property.findAnnotation(GraphProperty.class) != null && super.accept(property);
             }
         };
     }
@@ -98,7 +98,7 @@ public class CrossStoreNodeDelegatingFieldAccessorFactory extends DelegatingFiel
         return new PropertyFieldAccessorFactory(getTemplate()) {
             @Override
             public boolean accept(Neo4jPersistentProperty property) {
-                return property.getAnnotation(GraphProperty.class) != null && super.accept(property);
+                return property.findAnnotation(GraphProperty.class) != null && super.accept(property);
             }
         };
     }
