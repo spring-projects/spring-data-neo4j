@@ -29,10 +29,15 @@ import org.springframework.data.neo4j.support.schema.SchemaIndexProvider;
 public class EntityIndexCreator {
     private IndexProvider indexProvider;
     private SchemaIndexProvider schemaIndexProvider;
+    private boolean labelBased = true;
 
     public EntityIndexCreator(IndexProvider indexProvider, SchemaIndexProvider schemaIndexProvider) {
+        this(indexProvider, schemaIndexProvider,true);
+    }
+    public EntityIndexCreator(IndexProvider indexProvider, SchemaIndexProvider schemaIndexProvider, boolean labelBased) {
         this.indexProvider = indexProvider;
         this.schemaIndexProvider = schemaIndexProvider;
+        this.labelBased = labelBased;
     }
 
     public void ensureEntityIndexes(Neo4jPersistentEntity<?> entity) {
@@ -48,7 +53,7 @@ public class EntityIndexCreator {
         });
 
         // Pass 2 - do everything else
-        indexProvider.getIndex(entity, null, IndexType.SIMPLE);
+        if (!labelBased) indexProvider.getIndex(entity, null, IndexType.SIMPLE);
         entity.doWithProperties(new PropertyHandler<Neo4jPersistentProperty>() {
             @Override
             public void doWithPersistentProperty(Neo4jPersistentProperty property) {

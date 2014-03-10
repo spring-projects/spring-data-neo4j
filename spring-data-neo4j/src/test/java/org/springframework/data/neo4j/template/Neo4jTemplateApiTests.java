@@ -42,6 +42,7 @@ import org.springframework.transaction.support.TransactionTemplate;
 import java.io.IOException;
 import java.util.Iterator;
 
+import static java.util.Arrays.asList;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
 import static org.junit.Assert.*;
@@ -89,9 +90,9 @@ public class Neo4jTemplateApiTests {
         new TransactionTemplate(transactionManager).execute(new TransactionCallbackWithoutResult() {
             @Override
             protected void doInTransactionWithoutResult(TransactionStatus status) {
-                node0 = graphDatabase.createNode(map("name", "node0"));
+                node0 = graphDatabase.createNode(map("name", "node0"), asList("Node"));
                 graphDatabase.createIndex(Node.class, "node", IndexType.SIMPLE).add(node0, "name", "node0");
-                node1 = graphDatabase.createNode(map("name", "node1"));
+                node1 = graphDatabase.createNode(map("name", "node1"), asList("Node"));
                 relationship1 = node0.createRelationshipTo(node1, KNOWS);
                 relationship1.setProperty("name", "rel1");
                 graphDatabase.createIndex(Relationship.class, "relationship", IndexType.SIMPLE).add(relationship1, "name", "rel1");

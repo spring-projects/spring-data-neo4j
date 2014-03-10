@@ -41,8 +41,13 @@ public interface GraphDatabase {
     /**
      * creates the node and initializes its properties
      */
-    Node createNode(Map<String, Object> props);
+    Node createNode(Map<String, Object> props, Collection<String> labels);
 
+    /**
+     * creates the node uniquely or returns an existing node with the same label-key-value combination.
+     * properties are used to initialize the node. It needs a unique constraint to work correctly.
+     */
+    Node merge(String labelName, String key, Object value, final Map<String, Object> properties, Collection<String> labels);
     /**
      * creates the node uniquely or returns an existing node with the same index-key-value combination.
      * properties are used to initialize the node.

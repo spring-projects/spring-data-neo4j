@@ -132,8 +132,8 @@ public class EntityStateHandler {
         final MappingPolicy mappingPolicy = persistentEntity.getMappingPolicy();
         // todo observe load policy
         if (persistentEntity.isNodeEntity()) {
-            if (persistentEntity.isUnique()) return (S)createUniqueNode(persistentEntity.getUniqueProperty(),entity);
-            return (S) graphDatabase.createNode(null);
+            if (persistentEntity.isUnique()) return (S)createUniqueNode(persistentEntity,entity);
+            return createNode(persistentEntity);
         }
         if (persistentEntity.isRelationshipEntity()) {
             return getOrCreateRelationship(entity, persistentEntity, annotationProvidedRelationshipType );
@@ -141,11 +141,20 @@ public class EntityStateHandler {
         throw new IllegalArgumentException("The entity " + persistentEntity.getEntityName() + " has to be either annotated with @NodeEntity or @RelationshipEntity");
     }
 
-    private Node createUniqueNode(Neo4jPersistentProperty uniqueProperty, Object entity) {
+    private <S extends PropertyContainer> S createNode(Neo4jPersistentEntityImpl<?> persistentEntity) {
+        return (S) graphDatabase.createNode(null,persistentEntity.getAllLabels());
+    }
+
+    private Node createUniqueNode(Neo4jPersistentEntityImpl<?> persistentEntity, Object entity) {
+        Neo4jPersistentProperty uniqueProperty = persistentEntity.getUniqueProperty();
         final IndexInfo indexInfo = uniqueProperty.getIndexInfo();
         final Object value = uniqueProperty.getValueFromEntity(entity, MappingPolicy.MAP_FIELD_DIRECT_POLICY);
         if (value==null) throw new MappingException("Error creating "+uniqueProperty.getOwner().getName()+" with "+entity+" unique property "+uniqueProperty.getName()+" has null value");
-        return graphDatabase.getOrCreateNode(indexInfo.getIndexName(), indexInfo.getIndexKey(), value, Collections.<String,Object>emptyMap());
+        if (indexInfo.isLabelBased()) {
+            return graphDatabase.merge(indexInfo.getIndexName(), indexInfo.getIndexKey(), value, Collections.<String,Object>emptyMap(), persistentEntity.getAllLabels());
+        } else {
+            return graphDatabase.getOrCreateNode(indexInfo.getIndexName(), indexInfo.getIndexKey(), value, Collections.<String,Object>emptyMap());
+        }
     }
 
     @SuppressWarnings("unchecked")

@@ -248,7 +248,7 @@ public class SubReferenceNodeTypeRepresentationStrategy implements NodeTypeRepre
 	        return singleRelationship.getOtherNode(fromNode);
 	    }
 
-	    Node otherNode = graphDatabase.createNode(null);
+	    Node otherNode = graphDatabase.createNode(null,null);
 
         if (direction == Direction.OUTGOING)
 	        fromNode.createRelationshipTo(otherNode, type);

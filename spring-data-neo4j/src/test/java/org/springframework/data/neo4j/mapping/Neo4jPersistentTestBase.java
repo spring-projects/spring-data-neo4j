@@ -134,7 +134,7 @@ public class Neo4jPersistentTestBase {
         factoryBean.setNodeEntityStateFactory(nodeEntityStateFactory);
         factoryBean.setRelationshipEntityStateFactory(relationshipEntityStateFactory);
 
-        mappingContext.setEntityIndexCreator(new EntityIndexCreator(new IndexProviderImpl(graphDatabase), new SchemaIndexProvider(graphDatabase)));
+        mappingContext.setEntityIndexCreator(new EntityIndexCreator(new IndexProviderImpl(graphDatabase), new SchemaIndexProvider(graphDatabase),true));
         mappingContext.setSimpleTypeHolder(null);
         setBasePackage(mappingContext);
 

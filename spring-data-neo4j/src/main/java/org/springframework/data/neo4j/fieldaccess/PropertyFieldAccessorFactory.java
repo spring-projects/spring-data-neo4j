@@ -16,8 +16,10 @@
 
 package org.springframework.data.neo4j.fieldaccess;
 
+import org.neo4j.graphdb.ConstraintViolationException;
 import org.neo4j.graphdb.PropertyContainer;
 
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.neo4j.mapping.MappingPolicy;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
@@ -67,10 +69,14 @@ public class PropertyFieldAccessorFactory implements FieldAccessorFactory {
         @Override
         public Object setValue(final Object entity, final Object newVal, MappingPolicy mappingPolicy) {
             final PropertyContainer propertyContainer = template.getPersistentState(entity);
-            if (newVal==null) {
-                propertyContainer.removeProperty(propertyName);
-            } else {
-                propertyContainer.setProperty(propertyName, newVal);
+            try {
+                if (newVal==null) {
+                    propertyContainer.removeProperty(propertyName);
+                } else {
+                    propertyContainer.setProperty(propertyName, newVal);
+                }
+            } catch(ConstraintViolationException cve) {
+                throw new DataIntegrityViolationException("Unique constraint violated "+property.getOwner().getName()+"."+property.getName()+" new value "+newVal,cve);
             }
             return newVal;
         }

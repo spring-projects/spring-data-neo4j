@@ -34,19 +34,27 @@ import org.springframework.data.neo4j.core.GraphDatabase;
 import org.springframework.data.neo4j.support.index.NoSuchIndexException;
 import org.springframework.data.neo4j.support.query.ConversionServiceQueryResultConverter;
 import org.springframework.data.neo4j.support.query.QueryEngine;
+import org.springframework.data.neo4j.support.schema.SchemaIndexProvider;
 
 import javax.transaction.TransactionManager;
+import java.util.Collection;
 import java.util.Map;
+
+import static org.neo4j.helpers.collection.MapUtil.map;
 
 public class SpringRestGraphDatabase extends org.neo4j.rest.graphdb.RestGraphDatabase implements GraphDatabase {
     static {
         System.setProperty(Config.CONFIG_BATCH_TRANSACTION,"false");
     }
+
+    private static final String[] NO_LABELS = new String[0];
     private ConversionService conversionService;
     private ResultConverter resultConverter;
+    private SchemaIndexProvider schemaIndexProvider;
 
     public SpringRestGraphDatabase( RestAPI api){
     	super(api);
+        schemaIndexProvider = new SchemaIndexProvider(this);
     }
 
     public SpringRestGraphDatabase( String uri ) {
@@ -58,8 +66,18 @@ public class SpringRestGraphDatabase extends org.neo4j.rest.graphdb.RestGraphDat
     }
 
     @Override
-    public Node createNode(Map<String, Object> props) {
-        return super.getRestAPI().createNode(props);
+    public Node createNode(Map<String, Object> props, Collection<String> labels) {
+        RestAPI restAPI = super.getRestAPI();
+        RestNode node = restAPI.createNode(props);
+        if (labels!=null && !labels.isEmpty()) {
+            restAPI.addLabels(node, toLabels(labels));
+        }
+        return node;
+    }
+
+    private String[] toLabels(Collection<String> labels) {
+        if (labels==null || labels.isEmpty()) return NO_LABELS;
+        return labels.toArray(new String[labels.size()]);
     }
 
     @Override
@@ -78,6 +96,11 @@ public class SpringRestGraphDatabase extends org.neo4j.rest.graphdb.RestGraphDat
         if (indexName ==null || key == null || value==null) throw new IllegalArgumentException("Unique index "+ indexName +" key "+key+" value must not be null");
         final RestIndex<Node> nodeIndex = index().forNodes(indexName);
         return getRestAPI().getOrCreateNode(nodeIndex, key, value, properties);
+    }
+
+    @Override
+    public Node merge(String labelName, String key, Object value, final Map<String, Object> nodeProperties, Collection<String> labels) {
+        return schemaIndexProvider.merge(labelName,key,value,nodeProperties, labels);
     }
 
 

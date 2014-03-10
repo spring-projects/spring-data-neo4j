@@ -65,6 +65,7 @@ import org.springframework.transaction.support.TransactionCallback;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import javax.validation.Validator;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
 
@@ -271,16 +272,23 @@ public class Neo4jTemplate implements Neo4jOperations, ApplicationContextAware {
      */
     @Override
     public Node createNode() {
-        return getGraphDatabase().createNode(null);
+        return createNode(null, null);
     }
 
     /**
-     * creates the node uniquely or returns an existing node with the same index-key-value combination.
      * properties are used to initialize the node.
      */
     @Override
     public Node createNode(final Map<String, Object> properties) {
-        return getGraphDatabase().createNode(properties);
+        return createNode(properties, null);
+    }
+
+    /**
+     * properties are used to initialize the node.
+     */
+    @Override
+    public Node createNode(final Map<String, Object> properties,Collection<String> labels) {
+        return getGraphDatabase().createNode(properties, labels);
     }
 
     /**
@@ -290,6 +298,15 @@ public class Neo4jTemplate implements Neo4jOperations, ApplicationContextAware {
     @Override
     public Node getOrCreateNode(String index, String key, Object value, final Map<String, Object> properties) {
         return getGraphDatabase().getOrCreateNode(index, key, value, properties);
+    }
+
+    /**
+     * creates the node uniquely or returns an existing node with the same label-key-value combination.
+     * properties are used to initialize the node.
+     */
+    @Override
+    public Node merge(String label, String key, Object value, final Map<String, Object> properties, Collection<String> labels) {
+        return getGraphDatabase().merge(label, key, value, properties, labels);
     }
 
     @Override
@@ -718,8 +735,12 @@ public class Neo4jTemplate implements Neo4jOperations, ApplicationContextAware {
         Object value = uniqueProperty.getValueFromEntity(entity, MappingPolicy.MAP_FIELD_DIRECT_POLICY);
         if (value == null) return createNode();
         final IndexInfo indexInfo = uniqueProperty.getIndexInfo();
-        if (value instanceof Number && indexInfo.isNumeric()) value = ValueContext.numeric((Number) value);
-        return getGraphDatabase().getOrCreateNode(indexInfo.getIndexName(), indexInfo.getIndexKey(), value, Collections.<String, Object>emptyMap());
+        if (indexInfo.isLabelBased()) {
+            return getGraphDatabase().merge(indexInfo.getIndexName(),indexInfo.getIndexKey(),value, Collections.<String,Object>emptyMap(), persistentEntity.getAllLabels());
+        } else {
+            if (value instanceof Number && indexInfo.isNumeric()) value = ValueContext.numeric((Number) value);
+            return getGraphDatabase().getOrCreateNode(indexInfo.getIndexName(), indexInfo.getIndexKey(), value, Collections.<String, Object>emptyMap());
+        }
     }
 
     @Override

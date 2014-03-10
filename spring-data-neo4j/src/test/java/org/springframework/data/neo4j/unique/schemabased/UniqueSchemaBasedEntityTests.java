@@ -70,7 +70,7 @@ public class UniqueSchemaBasedEntityTests extends CommonUniqueEntityTestBase {
     }
 
     @Override
-    @Ignore("This scenario does not currently work")
+//    @Ignore("This scenario does not currently work")
     @Test
     public void updatingToANewValueShouldKeepTheEntityUniqueAndOldValueShouldBeReusableThereafter() {
         super.updatingToANewValueShouldKeepTheEntityUniqueAndOldValueShouldBeReusableThereafter();

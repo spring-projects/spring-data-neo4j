@@ -56,7 +56,7 @@ public class Neo4jTemplateTests extends NeoApiTests {
         template.exec(new GraphCallback.WithoutResult() {
             @Override
             public void doWithGraphWithoutResult(GraphDatabase graph) throws Exception {
-                Node node = graph.createNode(map("name", "Test", "size", 100));
+                Node node = graph.createNode(map("name", "Test", "size", 100), null);
                 refNode.createRelationshipTo(node, HAS);
 
                 final Relationship toTestNode = refNode.getSingleRelationship(HAS, Direction.OUTGOING);
@@ -102,7 +102,7 @@ public class Neo4jTemplateTests extends NeoApiTests {
         super.setUp();
         refNode = new Neo4jTemplate(graph, transactionManager).exec(new GraphCallback<Node>() {
             public Node doWithGraph(GraphDatabase graph) throws Exception {
-                return graph.createNode(map());
+                return graph.createNode(map(), null);
             }
         });
 

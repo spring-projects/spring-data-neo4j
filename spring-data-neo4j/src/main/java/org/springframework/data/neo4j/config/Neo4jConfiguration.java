@@ -242,7 +242,8 @@ public abstract class Neo4jConfiguration {
     public EntityIndexCreator entityIndexCreator() throws Exception {
         return new EntityIndexCreator(
                 indexProvider(),
-                schemaIndexProvider()
+                schemaIndexProvider(),
+                nodeTypeRepresentationStrategy().isLabelBased()
         );
     }
 

@@ -274,7 +274,7 @@ public abstract class AbstractGraphRepository<S extends PropertyContainer, T> im
         Neo4jPersistentEntity persistentEntity = template.getEntityType(clazz).getEntity();
         Neo4jPersistentProperty persistentProperty = (Neo4jPersistentProperty)persistentEntity.getPersistentProperty(property);
         if (persistentProperty.getIndexInfo() == null || !persistentProperty.getIndexInfo().isLabelBased() ) {
-            throw new IllegalArgumentException(format("property {} is not schema indexed",property));
+            throw new IllegalArgumentException(format("property %s.%s is not schema indexed",persistentEntity.getName(),property));
         }
 
         Map<String,Object> params = new HashMap<String,Object>();
