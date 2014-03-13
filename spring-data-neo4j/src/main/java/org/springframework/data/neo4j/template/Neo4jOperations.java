@@ -81,7 +81,7 @@ public interface Neo4jOperations {
      * creates the node uniquely or returns an existing node with the same index-key-value combination.
      * properties are used to initialize the node.
      */
-    Node getOrCreateNode(String index, String key, Object value, Map<String, Object> properties);
+    Node getOrCreateNode(String index, String key, Object value, Map<String, Object> properties, Collection<String> labels);
 
     /**
      * creates the node uniquely or returns an existing node with the same label-key-value combination.

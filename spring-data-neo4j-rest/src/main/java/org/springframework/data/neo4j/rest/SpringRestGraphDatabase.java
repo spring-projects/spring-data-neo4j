@@ -22,7 +22,6 @@ import org.neo4j.rest.graphdb.RestAPIFacade;
 import org.neo4j.rest.graphdb.entity.RestNode;
 import org.neo4j.rest.graphdb.index.RestIndex;
 import org.neo4j.rest.graphdb.index.RestIndexManager;
-import org.neo4j.rest.graphdb.query.RestCypherQueryEngine;
 import org.neo4j.rest.graphdb.transaction.NullTransaction;
 import org.neo4j.rest.graphdb.transaction.NullTransactionManager;
 import org.neo4j.rest.graphdb.util.Config;
@@ -91,10 +90,12 @@ public class SpringRestGraphDatabase extends org.neo4j.rest.graphdb.RestGraphDat
     }
 
     @Override
-    public Node getOrCreateNode(String indexName, String key, Object value, final Map<String,Object> properties) {
+    public Node getOrCreateNode(String indexName, String key, Object value, final Map<String, Object> properties, Collection<String> labels) {
         if (indexName ==null || key == null || value==null) throw new IllegalArgumentException("Unique index "+ indexName +" key "+key+" value must not be null");
         final RestIndex<Node> nodeIndex = index().forNodes(indexName);
-        return getRestAPI().getOrCreateNode(nodeIndex, key, value, properties);
+        RestNode node = getRestAPI().getOrCreateNode(nodeIndex, key, value, properties);
+        getRestAPI().addLabels(node,toLabels(labels));
+        return node;
     }
 
     @Override

@@ -108,6 +108,8 @@ public class NodeEntityTests extends EntityTestBase {
     public void testLabels() {
         String[] labelNames = {"Person", "Developer", "Father","_Person"};
         Person p = new Person("Michael",39).persist();
+//        assertThat(p.getLabels(), hasItems(labelNames[0],labelNames[3]));
+        p = neo4jTemplate.findOne(p.getId(), Person.class);
         assertThat(p.getLabels(), hasItems(labelNames[0],labelNames[3]));
         p.addLabel(labelNames[1]);
         p.addLabel(labelNames[2]);

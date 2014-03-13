@@ -287,15 +287,24 @@ public class DelegatingGraphDatabase implements GraphDatabase {
         return schemaIndexProvider.merge(labelName,key,value,nodeProperties,labels);
     }
 
-    public Node getOrCreateNode(String indexName, String key, Object value, final Map<String,Object> nodeProperties) {
+    public Node getOrCreateNode(String indexName, String key, Object value, final Map<String, Object> nodeProperties, final Collection<String> labels) {
         if (indexName ==null || key == null || value==null) throw new IllegalArgumentException("Unique index "+ indexName +" key "+key+" value must not be null");
         if (value instanceof Number) value= ValueContext.numeric((Number)value);
         UniqueFactory.UniqueNodeFactory factory = new UniqueFactory.UniqueNodeFactory(delegate, indexName) {
             protected void initialize(Node node, Map<String, Object> _) {
                 setProperties(node,nodeProperties);
+                setLabels(node,labels);
             }
         };
         return factory.getOrCreate(key, value);
+    }
+
+    private Node setLabels(Node node, Collection<String> labels) {
+        if (labels==null || labels.isEmpty()) return node;
+        for (String label : labels) {
+            node.addLabel(DynamicLabel.label(label));
+        }
+        return node;
     }
 
     @Override

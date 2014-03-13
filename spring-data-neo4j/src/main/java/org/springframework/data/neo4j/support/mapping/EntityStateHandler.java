@@ -153,7 +153,7 @@ public class EntityStateHandler {
         if (indexInfo.isLabelBased()) {
             return graphDatabase.merge(indexInfo.getIndexName(), indexInfo.getIndexKey(), value, Collections.<String,Object>emptyMap(), persistentEntity.getAllLabels());
         } else {
-            return graphDatabase.getOrCreateNode(indexInfo.getIndexName(), indexInfo.getIndexKey(), value, Collections.<String,Object>emptyMap());
+            return graphDatabase.getOrCreateNode(indexInfo.getIndexName(), indexInfo.getIndexKey(), value, Collections.<String,Object>emptyMap(),persistentEntity.getAllLabels());
         }
     }
 

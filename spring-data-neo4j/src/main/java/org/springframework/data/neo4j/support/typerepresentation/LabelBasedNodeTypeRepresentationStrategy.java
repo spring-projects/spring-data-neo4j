@@ -72,11 +72,15 @@ public class LabelBasedNodeTypeRepresentationStrategy implements NodeTypeReprese
      * as the primary SDN marker Label.
      */
     private void addLabelsForEntityHierarchy(Node state, StoredEntityType type) {
+        cypherHelper.setLabelsOnNode(state.getId(), getAllHierarchyLabelsForType(type));
+    }
+
+    private Set<String> getAllHierarchyLabelsForType(StoredEntityType type) {
         String alias = type.getAlias().toString();
         Set<String> labels = collectSuperTypeLabels(type, new LinkedHashSet<String>());
         labels.add(alias);
         labels.add(LABELSTRATEGY_PREFIX + alias);
-        cypherHelper.setLabelsOnNode(state.getId(), labels);
+        return labels;
     }
 
     private Set<String> collectSuperTypeLabels(StoredEntityType type, Set<String> labels) {
