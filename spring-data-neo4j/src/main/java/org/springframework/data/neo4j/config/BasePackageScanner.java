@@ -23,7 +23,7 @@ public class BasePackageScanner {
 
     public static Set<String> scanBasePackages(String...basePackages) {
         ClassPathScanningCandidateComponentProvider componentProvider = new ClassPathScanningCandidateComponentProvider(false);
-        componentProvider.addIncludeFilter(new AnnotationTypeFilter(Persistent.class));
+//        componentProvider.addIncludeFilter(new AnnotationTypeFilter(Persistent.class));
         componentProvider.addIncludeFilter(new AnnotationTypeFilter(NodeEntity.class));
         componentProvider.addIncludeFilter(new AnnotationTypeFilter(RelationshipEntity.class));
 
