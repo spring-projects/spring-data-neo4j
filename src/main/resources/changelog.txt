@@ -1,10 +1,21 @@
 Spring Data Neo4j Changelog
 ===========================
 
+Changes in version 3.0.1.RELEASE (2014-03-13)
+---------------------------------------------
+* DATAGRAPH-433 - Unique Creation of label based entities
+* DATAGRAPH-441 - Adapt to latest changes in Spring Data Commons mapping metadata API.
+* DATAGRAPH-446 - Change initialization of ExecutionEngine to reduce test runtime
+* DATAGRAPH-444 - BasePackageScanner should not scan for @Persistent
+* DATAGRAPH-436 - Use case for @Labels (first stab)
+* DATAGRAPH-432 - Fix IndexInfo initialization that depends on a correct PersistentEntity.EntityType
+* DATAGRAPH-435 - Release 3.0.1
+
 Changes in version 3.0.0.RELEASE (2014-02-24)
 ---------------------------------------------
 * DATAGRAPH-388 - Add Label based indexes
 * DATAGRAPH-428 - Release 3.0 GA
+* DATAGRAPH-430 - Deprecate Legacy Index APIs
 
 Changes in version 2.3.4.RELEASE (2013-02-17)
 ---------------------------------------------
