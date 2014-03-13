@@ -45,7 +45,10 @@ class ValidatingNodePropertyFieldAccessorListenerFactory implements FieldAccesso
     }
 
     private boolean hasValidationAnnotation(final Neo4jPersistentProperty property) {
-    	return property.findAnnotation(Constraint.class) != null;
+        for (Annotation annotation : property.getAnnotations()) {
+            if (annotation.annotationType().isAnnotationPresent(Constraint.class)) return true;
+        }
+        return false;
     }
 
     @Override
