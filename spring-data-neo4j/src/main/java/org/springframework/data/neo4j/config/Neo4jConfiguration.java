@@ -21,6 +21,7 @@ import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.ApplicationContextException;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
@@ -55,6 +56,7 @@ import org.springframework.data.support.IsNewStrategyFactory;
 import org.springframework.transaction.PlatformTransactionManager;
 import javax.validation.Validator;
 
+import java.util.Arrays;
 import java.util.Set;
 
 import static java.util.Arrays.asList;
@@ -295,8 +297,12 @@ public abstract class Neo4jConfiguration {
         return basePackage;
     }
 
-    public void setBasePackage(String...basePackage) throws ClassNotFoundException {
-        this.basePackage = basePackage;
-        setInitialEntitySet(BasePackageScanner.scanBasePackageForClasses(basePackage));
+    public void setBasePackage(String...basePackage) {
+        try {
+            this.basePackage = basePackage;
+            setInitialEntitySet(BasePackageScanner.scanBasePackageForClasses(basePackage));
+        } catch(ClassNotFoundException cnfe) {
+            throw new ApplicationContextException("Error scanning packages for domain entities: "+ Arrays.toString(basePackage));
+        }
     }
 }
