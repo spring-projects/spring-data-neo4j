@@ -20,7 +20,9 @@ import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Transaction;
+import org.neo4j.helpers.collection.IteratorUtil;
 import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.data.neo4j.aspects.Attribute;
 import org.springframework.data.neo4j.aspects.Group;
@@ -40,6 +42,8 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 
 import static java.util.Arrays.asList;
+import static org.hamcrest.CoreMatchers.hasItem;
+import static org.hamcrest.CoreMatchers.hasItems;
 import static org.junit.Assert.*;
 import static org.springframework.data.neo4j.aspects.Person.persistedPerson;
 
@@ -97,6 +101,30 @@ public class NodeEntityTests extends EntityTestBase {
         g.setRoleNames(roleNames);
         assertArrayEquals(roleNames, (String[])getNodeState(g).getProperty("roleNames"));
         assertArrayEquals(roleNames, g.getRoleNames());
+    }
+
+    @Test
+    @Transactional
+    public void testLabels() {
+        String[] labelNames = {"Person", "Developer", "Father","_Person"};
+        Person p = new Person("Michael",39).persist();
+        assertThat(p.getLabels(), hasItems(labelNames[0],labelNames[3]));
+        p.addLabel(labelNames[1]);
+        p.addLabel(labelNames[2]);
+        neo4jTemplate.save(p);
+        System.out.println("p.getLabels() = " + p.getLabels());
+        assertEquals(4, IteratorUtil.count(getNodeState(p).getLabels()));
+        for (Label l : getNodeState(p).getLabels()) {
+            assertEquals("Wrong label "+l.name(),true, asList(labelNames).contains(l.name()));
+        }
+        assertThat(p.getLabels(), hasItems(labelNames));
+        Person loaded = neo4jTemplate.findOne(p.getId(), Person.class);
+        assertThat(loaded.getLabels(), hasItems(labelNames));
+        loaded.removeLabel(labelNames[2]);
+        assertThat(p.getLabels(), hasItems(labelNames[0], labelNames[1]));
+        assertThat(loaded.getLabels(), hasItems(labelNames[0], labelNames[1]));
+        loaded = neo4jTemplate.findOne(p.getId(), Person.class);
+        assertThat(loaded.getLabels(), hasItems(labelNames[0],labelNames[1]));
     }
 
     @Test
