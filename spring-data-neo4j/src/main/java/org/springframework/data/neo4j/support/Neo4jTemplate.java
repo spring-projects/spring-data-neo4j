@@ -296,8 +296,8 @@ public class Neo4jTemplate implements Neo4jOperations, ApplicationContextAware {
      * properties are used to initialize the node.
      */
     @Override
-    public Node getOrCreateNode(String index, String key, Object value, final Map<String, Object> properties) {
-        return getGraphDatabase().getOrCreateNode(index, key, value, properties);
+    public Node getOrCreateNode(String index, String key, Object value, final Map<String, Object> properties, Collection<String> labels) {
+        return getGraphDatabase().getOrCreateNode(index, key, value, properties, labels);
     }
 
     /**
@@ -739,7 +739,7 @@ public class Neo4jTemplate implements Neo4jOperations, ApplicationContextAware {
             return getGraphDatabase().merge(indexInfo.getIndexName(),indexInfo.getIndexKey(),value, Collections.<String,Object>emptyMap(), persistentEntity.getAllLabels());
         } else {
             if (value instanceof Number && indexInfo.isNumeric()) value = ValueContext.numeric((Number) value);
-            return getGraphDatabase().getOrCreateNode(indexInfo.getIndexName(), indexInfo.getIndexKey(), value, Collections.<String, Object>emptyMap());
+            return getGraphDatabase().getOrCreateNode(indexInfo.getIndexName(), indexInfo.getIndexKey(), value, Collections.<String, Object>emptyMap(), persistentEntity.getAllLabels());
         }
     }
 

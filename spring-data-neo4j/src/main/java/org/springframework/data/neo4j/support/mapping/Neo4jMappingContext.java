@@ -109,7 +109,7 @@ public class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersistentE
     @Override
     public void initialize() {
         super.initialize();
-//TODO re-enable after SDC update setStrict(true);
+        setStrict(true);
     }
 
     private boolean isRelationshipEntityType(Class<?> type) {

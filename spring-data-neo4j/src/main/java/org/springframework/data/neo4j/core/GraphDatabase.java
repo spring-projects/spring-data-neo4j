@@ -52,7 +52,7 @@ public interface GraphDatabase {
      * creates the node uniquely or returns an existing node with the same index-key-value combination.
      * properties are used to initialize the node.
      */
-    Node getOrCreateNode(String indexName, String key, Object value, final Map<String,Object> properties);
+    Node getOrCreateNode(String indexName, String key, Object value, final Map<String, Object> properties, Collection<String> labels);
 
     /**
      * @param id relationship id

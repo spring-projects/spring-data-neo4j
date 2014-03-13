@@ -51,8 +51,8 @@ public class DelegatingGraphDatabaseTests {
     @Test
     public void testGetOrCreateNode() throws Exception {
         try (Transaction tx = graphDatabase.beginTx()) {
-            final Node node = graphDatabase.getOrCreateNode("user", "name", "David", map("name", "David"));
-            final Node node2 = graphDatabase.getOrCreateNode("user", "name", "David", map("name", "David"));
+            final Node node = graphDatabase.getOrCreateNode("user", "name", "David", map("name", "David"), null);
+            final Node node2 = graphDatabase.getOrCreateNode("user", "name", "David", map("name", "David"), null);
             assertEquals("David",node.getProperty("name"));
             assertEquals(node,node2);
             assertEquals(node,gdb.index().forNodes("user").get("name","David").getSingle());
