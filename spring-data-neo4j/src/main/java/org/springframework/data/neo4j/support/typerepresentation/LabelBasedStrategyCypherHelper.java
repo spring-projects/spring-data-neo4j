@@ -3,6 +3,7 @@ package org.springframework.data.neo4j.support.typerepresentation;
 import org.neo4j.graphdb.Node;
 import org.springframework.data.neo4j.conversion.Result;
 import org.springframework.data.neo4j.repository.query.CypherQuery;
+import org.springframework.data.neo4j.support.query.CypherQueryEngine;
 import org.springframework.data.neo4j.support.query.QueryEngine;
 
 import java.util.*;
@@ -29,9 +30,9 @@ public class LabelBasedStrategyCypherHelper {
     static final String CYPHER_RETURN_COUNT_OF_NODES_WITH_LABEL = "match (n:`%s`) return count(*)";
     static final String CYPHER_RETURN_LABELS_FOR_NODE = "match (n) where id(n)={nodeId} return labels(n) as labels";
 
-    private QueryEngine<CypherQuery> queryEngine;
+    private CypherQueryEngine queryEngine;
 
-    public LabelBasedStrategyCypherHelper(QueryEngine<CypherQuery> queryEngine) {
+    public LabelBasedStrategyCypherHelper(CypherQueryEngine queryEngine) {
         this.queryEngine = queryEngine;
     }
 
@@ -52,13 +53,6 @@ public class LabelBasedStrategyCypherHelper {
 
     private String formatAddLabelString(Collection<String> labels) {
         return String.format(CYPHER_ADD_LABELS_TO_NODE,":`"+join("`:`",labels)+"`");
-    }
-
-    public boolean doesNodeHaveLabel(Long nodeId, String label) {
-        String query = String.format(CYPHER_COUNT_LABELS_ON_NODE,  label);
-        Result<CypherQuery> result =  queryEngine.query(query, getParamsWithNodeId(nodeId));
-        long labelCount = result.to(Number.class).single().longValue();
-        return labelCount > 0;
     }
 
     public Iterable<Node> getNodesWithLabel(String label) {
@@ -84,7 +78,7 @@ public class LabelBasedStrategyCypherHelper {
 
     public long countNodesWithLabel(String label) {
         String query = String.format(CYPHER_RETURN_COUNT_OF_NODES_WITH_LABEL,  label);
-        Result<CypherQuery> result = queryEngine.query(query, Collections.EMPTY_MAP);
+        Result<Map<String, Object>> result = queryEngine.query(query, Collections.EMPTY_MAP);
         return result.to(Number.class).single().longValue();
     }
 

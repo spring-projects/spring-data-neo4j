@@ -20,10 +20,10 @@ import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.index.Index;
 import org.neo4j.graphdb.traversal.TraversalDescription;
 import org.springframework.core.convert.ConversionService;
-import org.springframework.data.neo4j.annotation.QueryType;
 import org.springframework.data.neo4j.conversion.ResultConverter;
 import org.springframework.data.neo4j.support.index.IndexType;
-import org.springframework.data.neo4j.support.query.QueryEngine;
+import org.springframework.data.neo4j.support.query.CypherQueryEngine;
+import org.springframework.data.neo4j.support.query.CypherQueryEngineImpl;
 
 import javax.transaction.TransactionManager;
 import java.util.Collection;
@@ -107,12 +107,12 @@ public interface GraphDatabase {
     /**
      * returns a query engine for the provided type (Cypher) which is initialized with the default result converter
      */
-    <T> QueryEngine<T> queryEngineFor(QueryType type);
+    CypherQueryEngine queryEngine();
 
     /**
      * returns a query engine for the provided type (Cypher) which is initialized with the provided result converter
      */
-    <T> QueryEngine<T> queryEngineFor(QueryType type, ResultConverter resultConverter);
+    CypherQueryEngine queryEngine(ResultConverter resultConverter);
 
     /**
      * @param conversionService the conversion service to be used for the default result converter of this database

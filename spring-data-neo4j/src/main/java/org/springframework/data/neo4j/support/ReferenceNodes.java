@@ -20,10 +20,8 @@ import org.neo4j.cypher.javacompat.ExecutionResult;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.helpers.collection.IteratorUtil;
-import org.springframework.data.neo4j.annotation.QueryType;
-import org.springframework.data.neo4j.conversion.Result;
 import org.springframework.data.neo4j.core.GraphDatabase;
-import org.springframework.data.neo4j.support.query.QueryEngine;
+import org.springframework.data.neo4j.support.query.CypherQueryEngine;
 
 import static org.neo4j.helpers.collection.MapUtil.map;
 
@@ -73,7 +71,7 @@ public class ReferenceNodes {
     }
 
     private static Node executeQuery(GraphDatabase db, String name, String query) {
-        QueryEngine<Result> engine = db.queryEngineFor(QueryType.Cypher);
+        CypherQueryEngine engine = db.queryEngine();
         return engine.query(query,map("name", name)).to(Node.class).singleOrNull();
     }
 

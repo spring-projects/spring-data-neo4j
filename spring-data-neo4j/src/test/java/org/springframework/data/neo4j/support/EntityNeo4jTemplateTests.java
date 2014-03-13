@@ -27,10 +27,8 @@ import org.neo4j.graphdb.traversal.Evaluators;
 import org.neo4j.graphdb.traversal.TraversalDescription;
 import org.neo4j.helpers.collection.IteratorUtil;
 import org.neo4j.helpers.collection.MapUtil;
-import org.neo4j.kernel.Traversal;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataRetrievalFailureException;
-import org.springframework.data.neo4j.annotation.QueryType;
 import org.springframework.data.neo4j.conversion.EndResult;
 import org.springframework.data.neo4j.conversion.Result;
 import org.springframework.data.neo4j.mapping.ManagedEntity;
@@ -39,6 +37,7 @@ import org.springframework.data.neo4j.model.Group;
 import org.springframework.data.neo4j.model.Named;
 import org.springframework.data.neo4j.model.Person;
 import org.springframework.data.neo4j.repository.GraphRepository;
+import org.springframework.data.neo4j.support.query.CypherQueryEngine;
 import org.springframework.data.neo4j.support.query.QueryEngine;
 import org.springframework.data.neo4j.template.Neo4jOperations;
 import org.springframework.test.context.ContextConfiguration;
@@ -47,7 +46,6 @@ import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionCallback;
-import org.springframework.transaction.support.TransactionCallbackWithoutResult;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import java.util.*;
@@ -368,7 +366,7 @@ public class EntityNeo4jTemplateTests extends EntityTestBase {
 
     @Test @Transactional
     public void testQueryEngineForCypher() throws Exception {
-        final QueryEngine<Result<Map<String,Object>>> engine = neo4jOperations.queryEngineFor(QueryType.Cypher);
+        final CypherQueryEngine engine = neo4jOperations.queryEngineFor();
         final Person result = engine.query("start n=node({self}) return n", map("self", testTeam.michael.getId())).to(Person.class).single();
         assertEquals(testTeam.michael.getId(), result.getId());
     }

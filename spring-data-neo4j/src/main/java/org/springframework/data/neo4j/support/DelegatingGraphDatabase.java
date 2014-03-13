@@ -30,18 +30,15 @@ import org.neo4j.tooling.GlobalGraphOperations;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.convert.ConversionService;
-import org.springframework.data.neo4j.annotation.QueryType;
 import org.springframework.data.neo4j.conversion.DefaultConverter;
-import org.springframework.data.neo4j.conversion.Result;
 import org.springframework.data.neo4j.conversion.ResultConverter;
 import org.springframework.data.neo4j.core.GraphDatabase;
 import org.springframework.data.neo4j.support.index.IndexType;
 import org.springframework.data.neo4j.support.index.NoSuchIndexException;
 import org.springframework.data.neo4j.support.query.ConversionServiceQueryResultConverter;
 import org.springframework.data.neo4j.support.query.CypherQueryEngine;
-import org.springframework.data.neo4j.support.query.QueryEngine;
+import org.springframework.data.neo4j.support.query.CypherQueryEngineImpl;
 import org.springframework.data.neo4j.support.schema.SchemaIndexProvider;
-import org.springframework.util.ClassUtils;
 import org.springframework.util.ObjectUtils;
 
 import javax.transaction.Status;
@@ -64,7 +61,7 @@ public class DelegatingGraphDatabase implements GraphDatabase {
     protected GraphDatabaseService delegate;
     private ConversionService conversionService;
     private ResultConverter resultConverter;
-    private volatile QueryEngine<Object> cypherQueryEngine;
+    private volatile CypherQueryEngineImpl cypherQueryEngine;
 
     public DelegatingGraphDatabase(final GraphDatabaseService delegate) {
         this(delegate,null);
@@ -82,20 +79,7 @@ public class DelegatingGraphDatabase implements GraphDatabase {
     @Override
     public void setResultConverter(ResultConverter resultConverter) {
         this.resultConverter = resultConverter;
-
-        // At present, the current config may result in the scenario where
-        // the query engine was requested very early on in the lifecycle
-        // (for Type Representation Strategy) and at that stage, only the
-        // default ResultConverter was available, and thus used to create
-        // the query engines. (TODO - Try change ordering if possible)
-        //
-        // In this case we re-initialise it to ensure it uses this latest
-        // result Converter (as it is currently cached)
-        reinitQueryEngines();
-    }
-
-    private void reinitQueryEngines() {
-        if (cypherQueryEngine != null) this.cypherQueryEngine = queryEngineFor(QueryType.Cypher, resultConverter, true);
+        if (cypherQueryEngine != null) this.cypherQueryEngine.setResultConverter(this.resultConverter);
     }
 
     @Override
@@ -213,35 +197,26 @@ public class DelegatingGraphDatabase implements GraphDatabase {
         return Traversal.description();
     }
 
-    // todo create query engines only once
-    public <T> QueryEngine<T> queryEngineFor(QueryType type) {
-        return queryEngineFor(type,createResultConverter());
+    public CypherQueryEngine queryEngine() {
+        return queryEngine(createResultConverter());
     }
 
     @SuppressWarnings("unchecked")
-    private <T> QueryEngine<T> queryEngineFor(QueryType type,ResultConverter resultConverter,boolean reinit) {
-        switch (type) {
-            case Cypher:  {
-                if (reinit || cypherQueryEngine==null)
-                    synchronized (this) {
-                        if (reinit || cypherQueryEngine==null) cypherQueryEngine = createCypherQueryEngine(resultConverter);
-                    }
-                return (QueryEngine<T>) cypherQueryEngine;
+    private CypherQueryEngineImpl queryEngine(ResultConverter resultConverter, boolean reinit) {
+        if (reinit || cypherQueryEngine==null)
+            synchronized (this) {
+                if (reinit || cypherQueryEngine==null) cypherQueryEngine = createCypherQueryEngine(resultConverter);
             }
-        }
-        throw new IllegalArgumentException("Unknown Query Engine Type "+type);
+        return cypherQueryEngine;
     }
 
     @SuppressWarnings("unchecked")
-    public <T> QueryEngine<T> queryEngineFor(QueryType type,ResultConverter resultConverter) {
-        return queryEngineFor(type,resultConverter,false);
+    public CypherQueryEngineImpl queryEngine(ResultConverter resultConverter) {
+        return queryEngine(resultConverter, false);
     }
 
-    private <T> QueryEngine<T> createCypherQueryEngine(ResultConverter resultConverter) {
-        if (!ClassUtils.isPresent("org.neo4j.cypher.javacompat.ExecutionEngine", getClass().getClassLoader())) {
-            return new FailingQueryEngine<T>("Cypher");
-        }
-        return (QueryEngine<T>)new CypherQueryEngine(delegate, resultConverter);
+    private CypherQueryEngineImpl createCypherQueryEngine(ResultConverter resultConverter) {
+        return new CypherQueryEngineImpl(delegate, resultConverter);
     }
 
     @Override
@@ -306,19 +281,6 @@ public class DelegatingGraphDatabase implements GraphDatabase {
 
     public GraphDatabaseService getGraphDatabaseService() {
         return delegate;
-    }
-
-    private static class FailingQueryEngine<T> implements QueryEngine<T> {
-        private String dependency;
-
-        private FailingQueryEngine(final String dependency) {
-            this.dependency = dependency;
-        }
-
-        @Override
-        public Result<T> query(String statement, Map<String, Object> params) {
-            throw new IllegalStateException(dependency + " is not available, please add it to your dependencies to execute: " +statement);
-        }
     }
 
     public Node merge(String labelName, String key, Object value, final Map<String, Object> nodeProperties, Collection<String> labels) {

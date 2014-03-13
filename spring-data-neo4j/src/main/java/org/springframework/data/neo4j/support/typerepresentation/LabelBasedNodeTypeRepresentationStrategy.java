@@ -20,16 +20,12 @@ import org.neo4j.graphdb.DynamicLabel;
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
 import org.neo4j.helpers.collection.ClosableIterable;
-import org.springframework.data.neo4j.annotation.QueryType;
 import org.springframework.data.neo4j.core.GraphDatabase;
 import org.springframework.data.neo4j.core.NodeTypeRepresentationStrategy;
-import org.springframework.data.neo4j.repository.query.CypherQuery;
-import org.springframework.data.neo4j.support.ReferenceNodes;
 import org.springframework.data.neo4j.support.mapping.StoredEntityType;
 import org.springframework.data.neo4j.support.mapping.WrappedIterableClosableIterable;
-import org.springframework.data.neo4j.support.query.QueryEngine;
+import org.springframework.data.neo4j.support.query.CypherQueryEngine;
 
-import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -48,12 +44,12 @@ public class LabelBasedNodeTypeRepresentationStrategy implements NodeTypeReprese
     protected GraphDatabase graphDb;
     protected final Class<Node> clazz;
     protected final LabelBasedStrategyCypherHelper cypherHelper;
-    protected QueryEngine<CypherQuery> queryEngine;
+    protected CypherQueryEngine queryEngine;
 
     public LabelBasedNodeTypeRepresentationStrategy(GraphDatabase graphDb) {
         this.graphDb = graphDb;
         this.clazz = Node.class;
-        this.queryEngine = graphDb.queryEngineFor(QueryType.Cypher);
+        this.queryEngine = graphDb.queryEngine();
         this.cypherHelper = new LabelBasedStrategyCypherHelper(queryEngine);
         markSDNLabelStrategyInUse();
     }

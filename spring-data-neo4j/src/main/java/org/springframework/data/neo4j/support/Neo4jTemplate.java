@@ -30,7 +30,6 @@ import org.springframework.core.convert.ConversionService;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.mapping.model.MappingException;
-import org.springframework.data.neo4j.annotation.QueryType;
 import org.springframework.data.neo4j.conversion.EndResult;
 import org.springframework.data.neo4j.conversion.QueryResultBuilder;
 import org.springframework.data.neo4j.conversion.Result;
@@ -53,6 +52,7 @@ import org.springframework.data.neo4j.repository.RelationshipGraphRepository;
 import org.springframework.data.neo4j.support.index.IndexProvider;
 import org.springframework.data.neo4j.support.index.IndexType;
 import org.springframework.data.neo4j.support.mapping.*;
+import org.springframework.data.neo4j.support.query.CypherQueryEngine;
 import org.springframework.data.neo4j.support.query.QueryEngine;
 import org.springframework.data.neo4j.support.schema.SchemaIndexProvider;
 import org.springframework.data.neo4j.template.GraphCallback;
@@ -366,7 +366,7 @@ public class Neo4jTemplate implements Neo4jOperations, ApplicationContextAware {
     public Object query(String statement, Map<String, Object> params, final TypeInformation<?> typeInformation) {
         final TypeInformation<?> actualType = typeInformation.getActualType();
         final Class<Object> targetType = (Class<Object>) actualType.getType();
-        final Result<Object> result = queryEngineFor(QueryType.Cypher).query(statement, params);
+        final Result<Map<String, Object>> result = queryEngineFor().query(statement, params);
         final Class<? extends Iterable<Object>> containerType = (Class<? extends Iterable<Object>>) typeInformation.getType();
         if (EndResult.class.isAssignableFrom(containerType)) {
             return result;
@@ -563,15 +563,15 @@ public class Neo4jTemplate implements Neo4jOperations, ApplicationContextAware {
     }
 
     @Override
-    public <T> QueryEngine<T> queryEngineFor(QueryType type) {
-        return infrastructure.getGraphDatabase().queryEngineFor(type, getDefaultConverter());
+    public <T> CypherQueryEngine queryEngineFor() {
+        return infrastructure.getGraphDatabase().queryEngine(getDefaultConverter());
     }
 
     @Override
     @SuppressWarnings("unchecked")
     public Result<Map<String, Object>> query(String statement, Map<String, Object> params) {
         notNull(statement, "statement");
-        final QueryEngine<Map<String, Object>> queryEngine = queryEngineFor(QueryType.Cypher);
+        final QueryEngine<Map<String, Object>> queryEngine = queryEngineFor();
         return queryEngine.query(statement, params);
     }
 

@@ -20,11 +20,11 @@ import org.neo4j.graphdb.Node;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.neo4j.annotation.Query;
 
-import org.springframework.data.neo4j.annotation.QueryType;
 import org.springframework.data.neo4j.conversion.Result;
 import org.springframework.data.neo4j.mapping.MappingPolicy;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
+import org.springframework.data.neo4j.support.query.CypherQueryEngine;
 import org.springframework.data.neo4j.support.query.QueryEngine;
 import org.springframework.data.util.TypeInformation;
 
@@ -62,7 +62,7 @@ public class QueryFieldAccessorFactory implements FieldAccessorFactory {
 	    private Class<?> target;
         protected String[] annotationParams;
         private boolean iterableResult;
-        private final QueryEngine<Object> queryEngine;
+        private final CypherQueryEngine queryEngine;
 
         public QueryFieldAccessor(final Neo4jPersistentProperty property, Neo4jTemplate template) {
 	        this.property = property;
@@ -75,7 +75,7 @@ public class QueryFieldAccessorFactory implements FieldAccessorFactory {
             this.query = property.getQuery();
             this.iterableResult = Iterable.class.isAssignableFrom(property.getType());
             this.target = resolveTarget(query,property);
-            queryEngine = this.template.queryEngineFor(QueryType.Cypher);
+            queryEngine = this.template.queryEngineFor();
         }
 
         private Class<?> resolveTarget(Query query, Neo4jPersistentProperty property) {
@@ -102,7 +102,7 @@ public class QueryFieldAccessorFactory implements FieldAccessorFactory {
             final TypeInformation<?> typeInformation = property.getTypeInformation();
             final TypeInformation<?> actualType = typeInformation.getActualType();
             final Class<?> targetType = actualType.getType();
-            final Result<Object> result = queryEngine.query(queryString, params).with(mappingPolicy);
+            final Result<Map<String, Object>> result = queryEngine.query(queryString, params).with(mappingPolicy);
             if (actualType.isMap()) {
                 return result;
             }

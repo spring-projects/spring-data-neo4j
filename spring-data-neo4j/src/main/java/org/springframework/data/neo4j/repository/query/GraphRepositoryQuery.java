@@ -23,6 +23,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.neo4j.conversion.EndResult;
 import org.springframework.data.neo4j.core.GraphDatabase;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
+import org.springframework.data.neo4j.support.query.CypherQueryEngine;
 import org.springframework.data.neo4j.support.query.QueryEngine;
 import org.springframework.data.neo4j.template.GraphCallback;
 import org.springframework.data.repository.query.Parameter;
@@ -145,5 +146,5 @@ abstract class GraphRepositoryQuery implements RepositoryQuery, ParameterResolve
         return new PageImpl(resultList, pageable, currentTotal);
     }
 
-    protected abstract QueryEngine<?> getQueryEngine();
+    protected abstract CypherQueryEngine getQueryEngine();
 }

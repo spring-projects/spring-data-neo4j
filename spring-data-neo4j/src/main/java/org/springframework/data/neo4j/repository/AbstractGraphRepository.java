@@ -18,29 +18,22 @@ package org.springframework.data.neo4j.repository;
 
 import org.neo4j.cypherdsl.grammar.Execute;
 import org.neo4j.cypherdsl.grammar.Skip;
-import org.neo4j.cypherdsl.querydsl.CypherQueryDSL;
 import org.neo4j.graphdb.PropertyContainer;
 import org.neo4j.graphdb.index.IndexHits;
 import org.neo4j.graphdb.index.ReadableIndex;
 import org.neo4j.helpers.collection.ClosableIterable;
-import org.neo4j.helpers.collection.IteratorUtil;
-import org.neo4j.helpers.collection.MapUtil;
 import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.mapping.PersistentProperty;
-import org.springframework.data.neo4j.annotation.Indexed;
-import org.springframework.data.neo4j.annotation.QueryType;
 import org.springframework.data.neo4j.conversion.EndResult;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentEntity;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.repository.query.CypherQuery;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
-import org.springframework.data.neo4j.support.index.IndexType;
+import org.springframework.data.neo4j.support.query.CypherQueryEngine;
 import org.springframework.data.neo4j.support.query.QueryEngine;
-import org.springframework.data.repository.query.parser.Part;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
@@ -402,7 +395,7 @@ public abstract class AbstractGraphRepository<S extends PropertyContainer, T> im
     @Override
     public Page<T> query(Execute query, Execute countQuery, Map<String, Object> params, Pageable page) {
         final Execute limitedQuery = ((Skip)query).skip(page.getOffset()).limit(page.getPageSize());
-        QueryEngine<Object> engine = template.queryEngineFor(QueryType.Cypher);
+        CypherQueryEngine engine = template.queryEngineFor();
         Page result = engine.query(limitedQuery.toString(), params).to(clazz).as(Page.class);
         if (countQuery == null) {
             return result; 
@@ -420,6 +413,6 @@ public abstract class AbstractGraphRepository<S extends PropertyContainer, T> im
     @SuppressWarnings("unchecked")
     @Override
     public EndResult<T> query(Execute query, Map<String, Object> params) {
-        return template.queryEngineFor(QueryType.Cypher).query(query.toString(), params).to(clazz);
+        return template.queryEngineFor().query(query.toString(), params).to(clazz);
     }
 }

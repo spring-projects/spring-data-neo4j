@@ -20,13 +20,10 @@ import org.junit.Before;
 import org.junit.Test;
 import org.neo4j.graphdb.DynamicLabel;
 import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.graphdb.schema.IndexDefinition;
 import org.neo4j.helpers.collection.IteratorUtil;
-import org.neo4j.tooling.GlobalGraphOperations;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.neo4j.annotation.QueryType;
 import org.springframework.data.neo4j.aspects.core.NodeBacked;
 import org.springframework.data.neo4j.conversion.EndResult;
 import org.springframework.data.neo4j.conversion.Result;
@@ -69,7 +66,7 @@ public abstract class SchemaIndexingEntityTestBase {
             Neo4jHelper.cleanDb(neo4jTemplate);
             tx.success();
         }
-        queryEngine = neo4jTemplate.queryEngineFor(QueryType.Cypher);
+        queryEngine = neo4jTemplate.queryEngineFor();
         thingHierarchy = new ThingHierarchy(neo4jTemplate);
         thingHierarchy.createThingHierarchyWithTypeAliases();
         thingHierarchy.createThingHierarchyWithoutTypeAliases();
@@ -207,15 +204,10 @@ public abstract class SchemaIndexingEntityTestBase {
 
         assertOnlyValidPropertyIndexedLabelsExist(
                 (String) thingHierarchy.subThingType.getAlias(),
-                "schemaIndexedCommonName",
-                "schemaIndexedThingName",
                 "schemaIndexedSubThingName");
 
         assertOnlyValidPropertyIndexedLabelsExist(
                 (String) thingHierarchy.subSubThingType.getAlias(),
-                "schemaIndexedCommonName",
-                "schemaIndexedThingName",
-                "schemaIndexedSubThingName",
                 "schemaIndexedSubSubThingName");
     }
 
@@ -227,15 +219,15 @@ public abstract class SchemaIndexingEntityTestBase {
 
         assertOnlyValidPropertyIndexedLabelsExist(
                 (String) thingHierarchy.typeAliasedSubThingType.getAlias(),
-                "schemaIndexedCommonName",
-                "schemaIndexedThingName",
+//                "schemaIndexedCommonName",
+//                "schemaIndexedThingName",
                 "schemaIndexedSubThingName");
 
         assertOnlyValidPropertyIndexedLabelsExist(
                 (String) thingHierarchy.typeAliasedSubSubThingType.getAlias(),
-                "schemaIndexedCommonName",
-                "schemaIndexedThingName",
-                "schemaIndexedSubThingName",
+//                "schemaIndexedCommonName",
+//                "schemaIndexedThingName",
+//                "schemaIndexedSubThingName",
                 "schemaIndexedSubSubThingName");
     }
 
