@@ -25,9 +25,7 @@ import org.springframework.data.neo4j.support.index.IndexType;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.Size;
-import java.util.Date;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 
 @NodeEntity
@@ -92,6 +90,9 @@ public class Person {
 
     @Query(value = "start person=node({self}) match (person)<-[:persons]-(team)-[:persons]->(member) return member.name, member.age")
     private Iterable<Map<String,Object>> otherTeamMemberData;
+
+    @Labels
+    private Collection<String> labels;
 
     public Person(Node n) {
         setPersistentState(n);
@@ -261,5 +262,19 @@ public class Person {
 
     public String getDefaultedName() {
         return defaultedName;
+    }
+
+    public Collection<String> getLabels() {
+        return labels;
+    }
+
+    public void addLabel(String label) {
+        HashSet<String> newLabels = new HashSet<>(this.labels);
+        if (newLabels.add(label)) this.labels = newLabels;
+    }
+
+    public void removeLabel(String label) {
+        HashSet<String> newLabels = new HashSet<>(this.labels);
+        if (newLabels.remove(label)) this.labels = newLabels;
     }
 }

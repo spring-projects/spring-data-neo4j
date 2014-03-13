@@ -48,7 +48,7 @@ public class NodeDelegatingFieldAccessorFactory extends DelegatingFieldAccessorF
         return Arrays.<FieldAccessorFactory>asList(
                 new IdFieldAccessorFactory(template),
                 new TransientFieldAccessorFactory(),
-//TODO Labels                new LabelFieldAccessorFactory(template),
+                new LabelFieldAccessorFactory(template),
                 new TraversalFieldAccessorFactory(template),
                 new QueryFieldAccessorFactory(template),
                 new PropertyFieldAccessorFactory(template),
