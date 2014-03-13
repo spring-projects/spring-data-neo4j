@@ -186,7 +186,7 @@ public class FullNeo4jTemplateTests {
         template.exec(new GraphCallback.WithoutResult() {
             @Override
             public void doWithGraphWithoutResult(GraphDatabase graph) throws Exception {
-                graph.createNode(null, labels);
+                graph.createNode(null, null);
             }
         });
     }

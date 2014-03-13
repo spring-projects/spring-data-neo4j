@@ -18,7 +18,9 @@ package org.springframework.data.neo4j.rest.integration;
 
 import org.junit.*;
 import org.junit.runner.RunWith;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.neo4j.rest.support.RestTestBase;
+import org.springframework.data.neo4j.unique.common.CommonUniqueNumericIdClub;
 import org.springframework.data.neo4j.unique.legacy.UniqueLegacyIndexBasedEntityTests;
 import org.springframework.test.context.CleanContextCacheTestExecutionListener;
 import org.springframework.test.context.ContextConfiguration;
@@ -26,6 +28,8 @@ import org.springframework.test.context.TestExecutionListeners;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
 import org.springframework.test.context.transaction.TransactionalTestExecutionListener;
+
+import static org.junit.Assert.assertEquals;
 
 /**
  * @author mh
@@ -55,33 +59,8 @@ public class RestUniqueEntityTests extends UniqueLegacyIndexBasedEntityTests {
     }
 
     @Override
-    @Ignore("Broken in Neo4j 2.0")
     @Test
-    public void updatingToADuplicateValueShouldCauseAnException() {
-    }
-
-    @Override
-    @Ignore("Broken in Neo4j 2.0")
-    public void shouldOnlyCreateSingleInstanceForUniqueNodeEntity() {
-    }
-
-    @Override
-    @Ignore("Broken in Neo4j 2.0")
-    public void deletingUniqueNodeShouldRemoveItFromTheUniqueIndex() {
-    }
-
-    @Override
-    @Ignore("Broken in Neo4j 2.0")
     public void shouldOnlyCreateSingleInstanceForUniqueNumericNodeEntity() {
-    }
-
-    @Override
-    @Ignore("Broken in Neo4j 2.0")
-    public void updatingToANewValueShouldAlsoUpdateTheIndex() {
-    }
-
-    @Override
-    @Ignore("Broken in Neo4j 2.0")
-    public void updatingToANewValueShouldKeepTheEntityUnique() {
+        super.shouldOnlyCreateSingleInstanceForUniqueNumericNodeEntity();
     }
 }

@@ -22,7 +22,6 @@ import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.data.mapping.context.MappingContextIsNewStrategyFactory;
-import org.springframework.data.neo4j.annotation.QueryType;
 import org.springframework.data.neo4j.conversion.ResultConverter;
 import org.springframework.data.neo4j.core.GraphDatabase;
 import org.springframework.data.neo4j.core.TypeRepresentationStrategy;
@@ -158,7 +157,7 @@ public class MappingInfrastructureFactoryBean implements FactoryBean<Infrastruct
             this.resultConverter = new EntityResultConverter<Object, Object>(conversionService);
         }
         this.graphDatabase.setResultConverter(resultConverter);
-        this.cypherQueryExecutor = new CypherQueryExecutor(graphDatabase.queryEngineFor(QueryType.Cypher, resultConverter));
+        this.cypherQueryExecutor = new CypherQueryExecutor(graphDatabase.queryEngine(resultConverter));
         if (schemaIndexProvider == null) {
             schemaIndexProvider = new SchemaIndexProvider(graphDatabase);
         }

@@ -74,7 +74,14 @@ public class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersistentE
 
     private void updateStoredEntityType(Neo4jPersistentEntityImpl<?> entity, Collection<Neo4jPersistentEntity<?>> superTypeEntities) {
         entity.updateStoredType(superTypeEntities);
-        if (entityIndexCreator!=null) entityIndexCreator.ensureEntityIndexes(entity);
+        if (entityIndexCreator!=null) {
+            entityIndexCreator.ensureEntityIndexes(entity);
+//            if (superTypeEntities!=null) {
+//                for (Neo4jPersistentEntity<?> superTypeEntity : superTypeEntities) {
+//                    entityIndexCreator.ensureEntityIndexes(superTypeEntity);
+//                }
+//            }
+        }
     }
 
     private List<Neo4jPersistentEntity<?>> addSuperTypes(Neo4jPersistentEntity<?> entity) {

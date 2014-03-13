@@ -59,9 +59,6 @@ public @interface Query {
      */
     String[] params() default {};
 
-    // FQN is a fix for javac compiler bug
-    org.springframework.data.neo4j.annotation.QueryType type() default org.springframework.data.neo4j.annotation.QueryType.Cypher;
-
     /**
      * @return name of the named query to be used for this annotated method, instead of Class.method
      */

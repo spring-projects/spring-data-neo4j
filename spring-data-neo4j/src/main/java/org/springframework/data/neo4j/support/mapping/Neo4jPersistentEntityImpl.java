@@ -250,8 +250,14 @@ public class Neo4jPersistentEntityImpl<T> extends BasicPersistentEntity<T, Neo4j
     private Set<String> computeLabels() {
         String alias = storedType.getAlias().toString();
         final Set<String> labels = collectSuperTypeLabels(storedType, new LinkedHashSet<String>());
+        labels.addAll(computeIndexBasedLabels(this));
         labels.add(alias);
-        doWithProperties(new PropertyHandler<Neo4jPersistentProperty>() {
+        return labels;
+    }
+
+    private Set<String> computeIndexBasedLabels(Neo4jPersistentEntity<?> entity) {
+        final Set<String> labels = new LinkedHashSet<>();
+        entity.doWithProperties(new PropertyHandler<Neo4jPersistentProperty>() {
             @Override
             public void doWithPersistentProperty(Neo4jPersistentProperty persistentProperty) {
                 if (persistentProperty.isIndexed()) {
@@ -268,7 +274,8 @@ public class Neo4jPersistentEntityImpl<T> extends BasicPersistentEntity<T, Neo4j
     private Set<String> collectSuperTypeLabels(StoredEntityType type, Set<String> labels) {
         if (type==null) return labels;
         for (StoredEntityType superType : type.getSuperTypes()) {
-            labels.add(superType.getAlias().toString());
+            labels.addAll(superType.getEntity().getAllLabels());
+            labels.addAll(computeIndexBasedLabels(superType.getEntity()));
             collectSuperTypeLabels(superType, labels);
         }
         return labels;

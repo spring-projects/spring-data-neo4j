@@ -146,12 +146,7 @@ public class GraphQueryMethod extends QueryMethod {
                 return new DerivedCypherRepositoryQuery(mappingContext, this, template);
             }
         }
-        switch (queryAnnotation.type()) {
-        case Cypher:
-            return new CypherGraphRepositoryQuery(this, template);
-        default:
-            throw new IllegalStateException("@Query Annotation has to be configured as Cypher Query");
-        }
+        return new CypherGraphRepositoryQuery(this, template);
     }
 
     public boolean isSetResult() {

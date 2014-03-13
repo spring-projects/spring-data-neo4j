@@ -4,13 +4,12 @@ import org.neo4j.graphdb.Node;
 import org.neo4j.helpers.collection.MapUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.data.neo4j.annotation.QueryType;
 import org.springframework.data.neo4j.conversion.EndResult;
 import org.springframework.data.neo4j.core.GraphDatabase;
 import org.springframework.data.neo4j.mapping.IndexInfo;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentEntity;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
-import org.springframework.data.neo4j.support.query.QueryEngine;
+import org.springframework.data.neo4j.support.query.CypherQueryEngine;
 
 import java.util.Collection;
 import java.util.Map;
@@ -23,13 +22,13 @@ import static org.neo4j.helpers.collection.MapUtil.map;
  */
 public class SchemaIndexProvider {
     private final GraphDatabase gd;
-    private final QueryEngine<Object> cypher;
+    private final CypherQueryEngine cypher;
 
     private static final Logger logger = LoggerFactory.getLogger(SchemaIndexProvider.class);
 
     public SchemaIndexProvider(GraphDatabase gd) {
         this.gd = gd;
-        cypher = gd.queryEngineFor(QueryType.Cypher);
+        cypher = gd.queryEngine();
     }
 
     public void createIndex(Neo4jPersistentProperty property) {

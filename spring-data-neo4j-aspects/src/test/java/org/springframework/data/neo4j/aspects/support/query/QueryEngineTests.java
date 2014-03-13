@@ -27,7 +27,6 @@ import org.neo4j.helpers.collection.MapUtil;
 import org.neo4j.index.lucene.ValueContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.convert.ConversionService;
-import org.springframework.data.neo4j.annotation.QueryType;
 import org.springframework.data.neo4j.aspects.Person;
 import org.springframework.data.neo4j.aspects.Personality;
 import org.springframework.data.neo4j.aspects.support.EntityTestBase;
@@ -78,7 +77,7 @@ public class QueryEngineTests extends EntityTestBase {
         graphDatabase.setConversionService(conversionService);
         entityResultConverter = new EntityResultConverter(conversionService).with( template );
         testTeam.createSDGTeam();
-        queryEngine = graphDatabase.queryEngineFor(QueryType.Cypher);
+        queryEngine = graphDatabase.queryEngine();
         michael = testTeam.michael;
     }
 

@@ -60,7 +60,16 @@ public class CypherQuery implements CypherQueryDefinition {
     private String defaultMatchBasedStartClause(Neo4jPersistentEntity<?> entity) {
         return  String.format(QueryTemplates.DEFAULT_LABELBASED_MATCH_START_CLAUSE,
                 getEntityName(entity),
-                entity.getEntityType().getAlias());
+                toLabelString(entity.getAllLabels()));
+    }
+
+    private String toLabelString(Collection<String> labels) {
+        if (labels==null || labels.isEmpty()) return "";
+        StringBuilder sb=new StringBuilder();
+        for (String label : labels) {
+            sb.append(":`").append(label).append("`");
+        }
+        return sb.toString();
     }
 
     public void addPart(Part part, PersistentPropertyPath<Neo4jPersistentProperty> path) {

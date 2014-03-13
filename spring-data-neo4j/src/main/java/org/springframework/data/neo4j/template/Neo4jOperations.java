@@ -23,14 +23,13 @@ import org.neo4j.graphdb.PropertyContainer;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.index.Index;
 import org.neo4j.graphdb.traversal.TraversalDescription;
-import org.springframework.data.neo4j.annotation.QueryType;
 import org.springframework.data.neo4j.conversion.EndResult;
 import org.springframework.data.neo4j.conversion.Result;
 import org.springframework.data.neo4j.conversion.ResultConverter;
 import org.springframework.data.neo4j.core.GraphDatabase;
 import org.springframework.data.neo4j.mapping.MappingPolicy;
 import org.springframework.data.neo4j.repository.GraphRepository;
-import org.springframework.data.neo4j.support.query.QueryEngine;
+import org.springframework.data.neo4j.support.query.CypherQueryEngine;
 
 import java.util.Collection;
 import java.util.Map;
@@ -198,7 +197,7 @@ public interface Neo4jOperations {
     /**
      * Provides a cypher query engine set up with a default entity converter.
      */
-    <T> QueryEngine<T> queryEngineFor(QueryType type);
+    <T> CypherQueryEngine queryEngineFor();
 
     /**
      * Runs the given cypher statement and packages the result in a Result, simple conversions via the

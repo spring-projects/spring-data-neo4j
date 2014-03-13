@@ -27,13 +27,12 @@ import org.neo4j.rest.graphdb.transaction.NullTransaction;
 import org.neo4j.rest.graphdb.transaction.NullTransactionManager;
 import org.neo4j.rest.graphdb.util.Config;
 import org.springframework.core.convert.ConversionService;
-import org.springframework.data.neo4j.annotation.QueryType;
 import org.springframework.data.neo4j.conversion.DefaultConverter;
 import org.springframework.data.neo4j.conversion.ResultConverter;
 import org.springframework.data.neo4j.core.GraphDatabase;
 import org.springframework.data.neo4j.support.index.NoSuchIndexException;
 import org.springframework.data.neo4j.support.query.ConversionServiceQueryResultConverter;
-import org.springframework.data.neo4j.support.query.QueryEngine;
+import org.springframework.data.neo4j.support.query.CypherQueryEngine;
 import org.springframework.data.neo4j.support.schema.SchemaIndexProvider;
 
 import javax.transaction.TransactionManager;
@@ -131,16 +130,13 @@ public class SpringRestGraphDatabase extends org.neo4j.rest.graphdb.RestGraphDat
 
     @SuppressWarnings("unchecked")
     @Override
-    public <T> QueryEngine<T> queryEngineFor(QueryType type, final ResultConverter resultConverter) {
-        switch (type) {
-             case Cypher: return (QueryEngine<T>)new SpringRestCypherQueryEngine(new RestCypherQueryEngine(getRestAPI(), new SpringResultConverter(resultConverter)));
-         }
-         throw new IllegalArgumentException("Unknown Query Engine Type "+type);
+    public CypherQueryEngine queryEngine(final ResultConverter resultConverter) {
+        return new SpringRestCypherQueryEngine(getRestAPI(),resultConverter);
     }
 
     @Override
-    public <T> QueryEngine<T> queryEngineFor(QueryType type) {
-        return queryEngineFor(type,createResultConverter());
+    public CypherQueryEngine queryEngine() {
+        return queryEngine(createResultConverter());
     }
 
     @Override
@@ -156,20 +152,6 @@ public class SpringRestGraphDatabase extends org.neo4j.rest.graphdb.RestGraphDat
             this.resultConverter = new DefaultConverter();
         }
         return resultConverter;
-    }
-
-    private static class SpringResultConverter implements org.neo4j.rest.graphdb.util.ResultConverter {
-        private final ResultConverter resultConverter;
-
-        public SpringResultConverter(ResultConverter resultConverter) {
-            this.resultConverter = resultConverter;
-        }
-
-        @Override
-        @SuppressWarnings("unchecked")
-        public Object convert(Object value, Class target) {
-            return resultConverter.convert(value,target);
-        }
     }
 
     @Override

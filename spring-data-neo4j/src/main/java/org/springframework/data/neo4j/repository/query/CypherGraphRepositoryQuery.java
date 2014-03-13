@@ -17,9 +17,8 @@ package org.springframework.data.neo4j.repository.query;
 
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.neo4j.annotation.QueryType;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
-import org.springframework.data.neo4j.support.query.QueryEngine;
+import org.springframework.data.neo4j.support.query.CypherQueryEngine;
 import org.springframework.data.repository.query.ParameterAccessor;
 import org.springframework.data.repository.query.Parameters;
 
@@ -29,16 +28,16 @@ import org.springframework.data.repository.query.Parameters;
  */
 class CypherGraphRepositoryQuery extends GraphRepositoryQuery {
 
-    private QueryEngine<Object> queryEngine;
+    private CypherQueryEngine queryEngine;
 
     public CypherGraphRepositoryQuery(GraphQueryMethod queryMethod, final Neo4jTemplate template) {
         super(queryMethod, template);
     }
 
     @Override
-    protected QueryEngine<Object> getQueryEngine() {
+    protected CypherQueryEngine getQueryEngine() {
         if (this.queryEngine != null) return this.queryEngine;
-        this.queryEngine = getTemplate().queryEngineFor(QueryType.Cypher);
+        this.queryEngine = getTemplate().queryEngineFor();
         return this.queryEngine;
     }
 

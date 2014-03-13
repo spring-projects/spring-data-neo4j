@@ -70,8 +70,6 @@ public class UniqueLegacyIndexBasedEntityTests extends CommonUniqueEntityTestBas
 
     @Override
     @Test(expected = DataIntegrityViolationException.class)
-//    @Ignore("This method now throws a DataIntegrityViolationException for legacy indexes" +
-//            " - verify if this is correct")
     public void shouldOnlyCreateSingleInstanceForUniqueNumericNodeEntity() {
         CommonUniqueNumericIdClub club1 = createUniqueNumericClub(100L);
         CommonUniqueNumericIdClub club2 = createUniqueNumericClub(100L);

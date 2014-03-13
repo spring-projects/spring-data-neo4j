@@ -183,17 +183,17 @@ public privileged aspect Neo4jNodeBacking { // extends AbstractTypeAnnotatingMix
     }
 
     public  <T> Iterable<T> NodeBacked.findAllByQuery(final String query, final Class<T> targetType, Map<String,Object> params) {
-        final CypherQueryExecutor executor = new CypherQueryExecutor(template().queryEngineFor(QueryType.Cypher));
+        final CypherQueryExecutor executor = new CypherQueryExecutor(template().queryEngineFor());
         return executor.query(query, targetType,params);
     }
 
     public  Iterable<Map<String,Object>> NodeBacked.findAllByQuery(final String query,Map<String,Object> params) {
-        final CypherQueryExecutor executor = new CypherQueryExecutor(template().queryEngineFor(QueryType.Cypher));
+        final CypherQueryExecutor executor = new CypherQueryExecutor(template().queryEngineFor());
         return executor.queryForList(query,params);
     }
 
     public  <T> T NodeBacked.findByQuery(final String query, final Class<T> targetType,Map<String,Object> params) {
-        final CypherQueryExecutor executor = new CypherQueryExecutor(template().queryEngineFor(QueryType.Cypher));
+        final CypherQueryExecutor executor = new CypherQueryExecutor(template().queryEngineFor());
         return executor.queryForObject(query, targetType,params);
     }
 
