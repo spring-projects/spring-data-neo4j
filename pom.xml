@@ -195,12 +195,16 @@
 				<enabled>false</enabled>
 			</snapshots>
 		</repository>
+        <repository>
+            <id>spring-libs-snapshot</id>
+            <url>http://repo.spring.io/libs-snapshot/</url>
+        </repository>
 	</repositories>
 	<pluginRepositories>
-		<pluginRepository>
-			<id>spring-plugins-release</id>
-			<url>http://libs.spring.io/plugins-release</url>
-		</pluginRepository>
+        <pluginRepository>
+            <id>spring-plugins-release</id>
+            <url>http://repo.spring.io/plugins-release</url>
+        </pluginRepository>
 	</pluginRepositories>
 
 </project>
