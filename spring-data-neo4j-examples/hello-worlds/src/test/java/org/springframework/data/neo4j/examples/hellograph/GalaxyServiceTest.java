@@ -3,13 +3,13 @@ package org.springframework.data.neo4j.examples.hellograph;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.neo4j.examples.hellograph.domain.World;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
 import org.springframework.data.neo4j.support.node.Neo4jHelper;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.transaction.BeforeTransaction;
-import org.springframework.test.context.transaction.TransactionConfiguration;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
@@ -22,9 +22,8 @@ import static org.junit.Assert.*;
 @ContextConfiguration(locations = "classpath:/spring/helloWorldContext.xml")
 @RunWith(SpringJUnit4ClassRunner.class)
 @Transactional
-@TransactionConfiguration(defaultRollback = false)
 public class GalaxyServiceTest {
-	
+
 	@Autowired
 	private GalaxyService galaxyService;
 	
@@ -59,7 +58,7 @@ public class GalaxyServiceTest {
     	galaxyService.makeSomeWorlds();
     	
         for(World world : galaxyService.getAllWorlds()) {
-        	World foundWorld = galaxyService.findWorldById(world.getId()); 
+        	World foundWorld = galaxyService.findWorldById(world.getId());
             assertNotNull(foundWorld);
         }
     }

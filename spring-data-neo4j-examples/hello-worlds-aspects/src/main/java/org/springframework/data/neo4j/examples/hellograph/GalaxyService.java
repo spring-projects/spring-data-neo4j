@@ -1,13 +1,17 @@
 package org.springframework.data.neo4j.examples.hellograph;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.neo4j.aspects.core.NodeBacked;
+import org.springframework.data.neo4j.examples.hellograph.domain.World;
+import org.springframework.data.neo4j.examples.hellograph.repositories.WorldRepository;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import java.util.ArrayList;
 import java.util.Collection;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.neo4j.aspects.core.NodeBacked;
-import org.springframework.stereotype.Service;
-
 @Service
+@Transactional
 public class GalaxyService {
 	
 	@Autowired
@@ -18,8 +22,8 @@ public class GalaxyService {
 	}
 	
 	public World createWorld(String name, int moons) {
-        // The lin below is just as valid within you code (it assumes)
-        // the aspectj compilcation has occured, however the cast to
+        // The line below is just as valid within you code (it assumes)
+        // the aspectj compilation has occurred, however the cast to
         // the NodeBacked class is being used here as its helpful to
         // IDE's which struggle with aspectj stuff
         //
@@ -37,7 +41,8 @@ public class GalaxyService {
 	public World findWorldById(Long id) {
 		return worldRepository.findOne(id);
 	}
-	
+
+    // This is using the schema based index
 	public World findWorldByName(String name) {
 		return worldRepository.findBySchemaPropertyValue("name", name);
 	}
