@@ -3,6 +3,7 @@ package org.springframework.data.neo4j.examples.hellograph;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.neo4j.examples.hellograph.domain.World;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
 import org.springframework.data.neo4j.support.node.Neo4jHelper;
 import org.springframework.test.annotation.Rollback;
