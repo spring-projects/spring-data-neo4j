@@ -1,0 +1,11 @@
+lib
+.ivy
+.gradle
+target
+*.ipr
+*.iml
+*.iws
+.classpath
+.project
+.settings
+
