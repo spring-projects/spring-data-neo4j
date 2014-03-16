@@ -98,13 +98,13 @@
         <title>Java-based  configuration</title>
         <programlisting language="java"><![CDATA[
 @Configuration
-@EnableNeo4jRepositories(basePackages = "org.springframework.data.neo4j.ref.whatever.repositories")
+@EnableNeo4jRepositories(basePackages = "org.example.repositories")
 static class Config extends Neo4jConfiguration {
 
     Config() {
         // Equivalent of setting basePackage for XML based <neo4j:config base-package=".."/>
         // (This will probably move into an/the @EnableNeo4jRepositories in the future)
-        setBasePackage("org.springframework.data.neo4j.model,org.springframework.data.neo4j.repository.query");
+        setBasePackage("org.example.domain");
     }
 
     @Override

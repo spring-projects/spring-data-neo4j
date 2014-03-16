@@ -79,7 +79,7 @@ h2. Maven configuration
         <plugin>
             <groupId>org.codehaus.mojo</groupId>
             <artifactId>aspectj-maven-plugin</artifactId>
-            <version>1.0</version>
+            <version>1.4</version>
             <configuration>
                 <outxml>true</outxml>
                 <aspectLibraries>
@@ -107,12 +107,12 @@ h2. Maven configuration
                 <dependency>
                     <groupId>org.aspectj</groupId>
                     <artifactId>aspectjrt</artifactId>
-                    <version>1.6.11.RELEASE</version>
+                    <version>1.7.4</version>
                 </dependency>
                 <dependency>
                     <groupId>org.aspectj</groupId>
                     <artifactId>aspectjtools</artifactId>
-                    <version>1.6.11.RELEASE</version>
+                    <version>1.7.4</version>
                 </dependency>
             </dependencies>
         </plugin>
