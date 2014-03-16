@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<ivysettings>
+	<settings defaultResolver="chained"/>
+    <property name="local-maven2-pattern"
+     value="${user.home}/.m2/repository/[organisation]/[module]/[revision]/[module]-[revision](-[classifier]).[ext]"
+      override="false" />
+
+	<resolvers>
+	    <chain name="chained" returnFirst="false">
+            <filesystem name="local-maven2" m2compatible="true" >
+                <ivy pattern="${local-maven2-pattern}"/>
+                <artifact pattern="${local-maven2-pattern}"/>
+           </filesystem>
+	    	<ibiblio name="neo4j" root="http://m2.neo4j.org/releases" m2compatible="true"/>
+	    	<ibiblio name="maven_central" root="http://repo2.maven.org/maven2/" m2compatible="true"/>
+	        <ibiblio name="jboss" root="http://repository.jboss.org/nexus/content/groups/public/" m2compatible="true"/>   
+	        <ibiblio name="springframework" root="http://maven.springframework.org/release" m2compatible="true"/>
+	    </chain>
+	</resolvers>
+	<caches>
+	    <cache name="default-cache" basedir="${ivy.cache.dir}" />
+	</caches>
+</ivysettings>

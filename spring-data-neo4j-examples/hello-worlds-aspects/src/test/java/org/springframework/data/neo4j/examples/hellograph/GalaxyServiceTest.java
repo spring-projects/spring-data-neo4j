@@ -1,12 +1,5 @@
 package org.springframework.data.neo4j.examples.hellograph;
 
-import static org.hamcrest.CoreMatchers.anyOf;
-import static org.hamcrest.core.Is.is;
-import static org.junit.Assert.*;
-import static org.junit.internal.matchers.StringContains.containsString;
-
-import java.util.Collection;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,10 +11,17 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.transaction.BeforeTransaction;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collection;
+
+import static org.hamcrest.CoreMatchers.anyOf;
+import static org.hamcrest.CoreMatchers.containsString;
+import static org.hamcrest.core.Is.is;
+import static org.junit.Assert.*;
+
 @ContextConfiguration(locations = "classpath:/spring/helloWorldContext.xml")
 @RunWith(SpringJUnit4ClassRunner.class)
 @Transactional
-public class GalaxyServiceTests {
+public class GalaxyServiceTest {
 	
 	@Autowired
 	private GalaxyService galaxyService;
