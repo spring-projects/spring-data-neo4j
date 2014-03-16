@@ -19,11 +19,11 @@ import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.*;
 
-@ContextConfiguration(locations = "classpath:/spring/helloWorldContext.xml")
+@ContextConfiguration(locations = "classpath:/spring/helloWorldContext-subRef-TRS.xml")
 @RunWith(SpringJUnit4ClassRunner.class)
 @Transactional
 @TransactionConfiguration(defaultRollback = false)
-public class GalaxyServiceTest {
+public class SubRefBasedTRSGalaxyServiceTest {
 	
 	@Autowired
 	private GalaxyService galaxyService;
