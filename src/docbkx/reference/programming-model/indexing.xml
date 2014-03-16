@@ -11,18 +11,19 @@
 	</para>
     <para>
         <note>
-            Please not that the lucene based manual indexes are deprecated with Neo4j 2.0 and Spring Data Neo4j 3.0.
-            The default index is now based on labels and schema indexes. Only for fulltext and spatial indexes the
-            "legacy" index framework should be used. The related APIs have been deprecated as well.
+            Please note that the lucene based manual indexes are deprecated with Neo4j 2.0 and Spring Data Neo4j 3.0.
+            The default index is now based on labels and schema indexes and the related APIs have been deprecated as well.
+            The "legacy" index framework should only be used for fulltext and spatial indexes which are not currently
+            supported via schema based indexes.
         </note>
     </para>
 
     <section>
-        <title>Label based schema indexes</title>
+        <title>Schema (Label based) indexes</title>
         <para>
             Since Neo4j version 2.0 indexes and unique constraints based on labels and properties are supported throughout the
-            API including cypher. For properties of entities annotated with <code>@Indexed</code> an appropriate schema index
-            and for <code>@Indexed(unique=true)</code> a constraint is created.
+            API including cypher. For properties of entities annotated with <code>@Indexed</code>, this defaults to using the schema
+            based strategy, and an appropriate schema index is created. For <code>@Indexed(unique=true)</code> a constraint is created.
         </para>
         <para>
             Those indexes will be automatically used by cypher queries that are generated for the derived finders and are
@@ -30,28 +31,43 @@
         </para>
     </section>
 
-    <para>
-        The Neo4j graph database employs different index providers for exact lookups and fulltext
-        searches. Lucene is the default index provider implementation. Each named index is configured to be
-        fulltext or exact. There is also a spatial index provider for geo-searches.
-    </para>
+    <section>
+        <title>Legacy indexes</title>
+        <para>
+            If you would like to force a property on an entity to rather use the legacy index (instead of the
+            default schema based index), then you will need to explicitly specify the type as either
+            <code>@Indexed(indexType = IndexType.SIMPLE)</code> or <code>@Indexed(indexType = IndexType.FULLTEXT)</code>
+        </para>
+        <para>
+            The Neo4j graph database employs different index providers for legacy exact (SIMPLE) lookups and fulltext
+            searches. Lucene is the default index provider implementation. Each named index is configured to be
+            fulltext or exact. There is also a spatial index provider for geo-searches.
+        </para>
+    </section>
 
     <section>
         <title>Exact and numeric index</title>
         <para>
-            When using the standard Neo4j API, nodes and relationships have to be manually indexed with
-            key-value pairs, typically being the property name and value. When using Spring Data Neo4j,
+            Prior to Neo4j 2.0, when using the standard Neo4j API, nodes and relationships had to be manually
+            indexed with key-value pairs, typically being the property name and value. With the introduction
+            of schemas and labels, indexing now happens automatically for you under the covers.
+            When using Spring Data Neo4j,
+            irrespective of whether you are using the newer schema based indexes or legacy indexes,
             this task is simplified to just adding an <code>@Indexed</code> annotation on entity fields
-            by which the entity should be searchable. This will result in automatic updates of the index
+            by which the entity should be searchable. This will result in automatic updates of the appropriate index
             every time an indexed field changes.
         </para>
         <para>
-            Numerical fields are indexed numerically so that they are available for range queries. All
+            Numerical fields are indexed numerically so that they are available for range queries.
+            <note><para>Automatic numerical range queries are not currently supported for
+            schema based numeric indexes.</para></note>
+            All
             other fields are indexed with their string representation. If a numeric field should not be
             indexed numerically, it is possible to switch it off with <code>@Indexed(numeric=false)</code>.
         </para>
         <para>
-            The <code>@Indexed</code> annotation also provides the option of using a custom index name. The default index
+            The <code>@Indexed</code> annotation also provides the option of using a custom index name (for legacy
+            indexes). The default index
             name is the simple class name of the entity, so that each class typically gets its own index.
             It is recommended to not have two entity classes with the same class name, regardless of
             package.
@@ -63,24 +79,47 @@
 			that is provided or of the actual entity instance.
         </para>
         <para>
-            The indexes can be queried by using a repository (see
+            The schema based indexes can be queried by using a repository (see
             <xref linkend="reference_programming-model_repositories" />).
             The repository is an instance of
+            <code>org.springframework.data.neo4j.repository.SchemaIndexRepository</code>.
+            The methods <code>findBySchemaPropertyValue()</code> and <code>findAllBySchemaPropertyValue()</code> work on
+            the exact indexes and return the first or all matches. Range queries are not supported yet.
+        </para>
+        <para>
+            The legacy indexes can also be queried by using a repository (see
+            <xref linkend="reference_programming-model_repositories" />).
+            The repository is still an instance of the deprecated
             <code>org.springframework.data.neo4j.repository.IndexRepository</code>.
             The methods <code>findByPropertyValue()</code> and <code>findAllByPropertyValue()</code> work on
             the exact indexes and return the first or all matches. To do range queries, use
             <code>findAllByRange()</code> (please note that currently both values are inclusive).
         </para>
         <para>
-	        For providing explicit index names the repository has to extend <code>NamedIndexRepository</code>.
+	        When providing explicit index names (for legacy indexes) the repository has to extend <code>NamedIndexRepository</code>.
 	        This adds the shown methods with another signature that take the index name as first parameter.
 	    </para>
         <example>
-            <title>Indexing entities</title>
+            <title>Exact (schema based) indexes</title>
             <programlisting language="java"><![CDATA[@NodeEntity
 class Person {
-    @Indexed(indexName = "people") String name;
+    @Indexed String name;
     @Indexed int age;
+}
+
+GraphRepository<Person> graphRepository = template.repositoryFor(Person.class);
+
+// Exact match, in named index
+Person mark = graphRepository.findBySchemaPropertyValue("name", "mark");
+]]></programlisting>
+        </example>
+
+        <example>
+            <title>Exact (legacy) indexes</title>
+            <programlisting language="java"><![CDATA[@NodeEntity
+class Person {
+    @Indexed(indexName = "people",indexType = IndexType.SIMPLE) String name;
+    @Indexed(indexType = IndexType.SIMPLE) int age;
 }
 
 GraphRepository<Person> graphRepository = template.repositoryFor(Person.class);
@@ -97,9 +136,10 @@ for (Person middleAgedDeveloper : graphRepository.findAllByRange("age", 20, 40))
 
     </section>
     <section>
-        <title>Fulltext indexes</title>
+        <title>Fulltext (legacy) indexes</title>
         <para>
-            Spring Data Neo4j also supports fulltext indexes. By default, indexed fields are stored in
+            Spring Data Neo4j also supports fulltext indexes - currently still only via the legacy
+            indexes. By default, legacy indexed fields are stored in
             an exact lookup index. To have them analyzed and prepared for fulltext search, the
             <code>@Indexed</code> annotation has the <code>type</code> attribute which can be set to <code>IndexType.FULLTEXT</code>.
 
@@ -118,7 +158,7 @@ for (Person middleAgedDeveloper : graphRepository.findAllByRange("age", 20, 40))
                 <title>Fulltext indexing</title>
                 <programlisting language="java"><![CDATA[@NodeEntity
 class Person {
-    @Indexed(indexName = "people-search", type=FULLTEXT) String name;
+    @Indexed(indexName = "people-search", indexType=IndexType.FULLTEXT) String name;
 }
 
 GraphRepository<Person> graphRepository =
@@ -130,7 +170,7 @@ Person mark = graphRepository.findAllByQuery("people-search", "name", "ma*");
 
         </para>
         <note><para>
-            Please note that indexes are currently created on demand, so whenever an index that doesn't exist
+            Please note that the legacy indexes are currently created on demand, so whenever an index that doesn't exist
             is requested from a query or get operation it is created. This is subject to change but has
             currently the implication that those indexes won't be configured as fulltext which causes
             subsequent fulltext updates to those indexes to fail.
@@ -139,33 +179,62 @@ Person mark = graphRepository.findAllByQuery("people-search", "name", "ma*");
     <section>
         <title>Unique indexes</title>
         <para>
-            Unique indexing with <code>index.putIfAbsent</code> and <code>UniqueFactory</code> was introduced in Neo4j 1.6.
-            It is also available via the REST API.
-            In Spring Data Neo4j this is made available via <code>Neo4jTemplate.getOrCreateNode</code> and
-            <code>Neo4jTemplate.getOrCreateRelationship</code>.
+            Unique indexing can be applied either via the inbuilt schema (label based) unique constraint for nodes, or,
+            via the legacy <code>index.putIfAbsent</code> and <code>UniqueFactory</code> code for both nodes and relationships.
+            In Spring Data Neo4j this is done by setting the <code>unique=true</code> property on the <code>@Indexed</code> annotation.
+            Methods for programmatically getting and/or creating unique entities is available on the <code>Neo4jTemplate</code> class, namely
+            <code>getOrCreateNode</code> and <code>getOrCreateRelationship</code> for legacy indexes, and <code>merge</code> for schema based
+            unique entities.
         </para>
         <para>In an entity at most one field can be annotated with <code>@Indexed(unique=true)</code> regardless of the index-type used.
             The uniqueness will be taken into account when creating the entity by reusing an existing entity if that unique key-combination
-            already exists. On saving of the field it will be cross-checked against the index and fail with a DataIntegrityViolationException
-            if the field was changed to an already existing unique value. Null values are no longer allowed for these properties.
+            already exists. On saving of the field it will be cross-checked against the schema or legacy index and fail with a
+            DataIntegrityViolationException if the field was changed to an already existing unique value.
+            Null values are no longer allowed for these properties.
         </para>
         <para>
             <note>
-            This works for both Node-Entities as well as Relationship-Entities. Relationship-Uniqueness in Neo4j is global so that
+            This works for both Node-Entities as well as Relationship-Entities (legacy indexes only). Relationship-Uniqueness in Neo4j is global so that
             an existing unique instance of this relationship may connect two completely different nodes and might also have a
             different type.
             </note>
         </para>
         <para>
             <example>
-                <title>Unique indexing</title>
+                <title>Unique indexing (Schema Based)</title>
                 <programlisting language="java"><![CDATA[
-// creates or finds a node with the unique index-key-value combination
+// creates or finds a node with the unique label-key-value combination
 // and initializes it with the properties given
-template.getOrCreateNode("users", "login", "mh", map("name","Michael","age",37));
+List labels = getTRSLabels(Person.class);
+template.merge("Person", "name", "Michael", map("name","Michael","age",37),labels);
 
 @NodeEntity class Person {
     @Indexed(unique = true) String name;
+}
+
+Person mark1 = repository.save(new Person("mark"));
+Person mark2 = repository.save(new Person("mark"));
+
+// just one node is created
+assertEquals(mark1,mark2);
+assertEquals(1, personRepository.count());
+
+Person thomas = repository.save(new Person("thomas"));
+thomas.setName("mark");
+repository.save(thomas); // fails with a DataIntegrityViolationException
+
+]]></programlisting>
+            </example>
+            <example>
+                <title>Unique indexing (Legacy Based)</title>
+                <programlisting language="java"><![CDATA[
+// creates or finds a node with the unique index-key-value combination
+// and initializes it with the properties given
+List labels = getTRSLabels(Person.class);
+template.getOrCreateNode("Person", "name", "Michael", map("name","Michael","age",37),labels);
+
+@NodeEntity class Person {
+    @Indexed(indexType = IndexType.SIMPLE, unique = true) String name;
 }
 
 Person mark1 = repository.save(new Person("mark"));
@@ -186,12 +255,12 @@ repository.save(thomas); // fails with a DataIntegrityViolationException
     </section>
 
     <section>
-        <title>Manual index access</title>
+        <title>Manual (Legacy) index access</title>
         <para>
-            The index for a domain class is also available from <code>Neo4jTemplate</code> via
+            The legacy index for a domain class is also available from <code>Neo4jTemplate</code> via
             the <code>getIndex()</code> method. The second parameter is optional and takes the index name
             if it should not be inferred from the class name. It returns the index implementation that is
-            provided by Neo4j.
+            provided by Neo4j. Note: Manual Legacy index access is deprecated in SDN 3.0
         </para>
         <example>
             <title>Manual index retrieval by type and name</title>

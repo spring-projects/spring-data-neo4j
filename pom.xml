@@ -53,10 +53,17 @@
 				<maven.test.skip>true</maven.test.skip>
 			</properties>
 		</profile>
+        <profile>
+            <id>distribute</id>
+            <properties>
+                <maven.test.skip>true</maven.test.skip>
+            </properties>
+        </profile>
 		<profile>
 			<id>examples</id>
 			<modules>
 				<module>spring-data-neo4j-examples/hello-worlds</module>
+                <module>spring-data-neo4j-examples/hello-worlds-aspects</module>
 				<module>spring-data-neo4j-examples/imdb</module>
 				<module>spring-data-neo4j-examples/cineasts</module>
 				<module>spring-data-neo4j-examples/cineasts-aspects</module>

@@ -74,16 +74,15 @@
 		<title>Creating nodes and relationships</title>
 		<para>
             Using the API of GraphDatabaseService, it is easy to create nodes and relate them to each other.
-            Relationships are typed. Both nodes and relationships can have properties. Property values can be
-            primitive Java types and Strings, or arrays of both. Node creation and
-            modification has to happen within a transaction, while reading from the graph store can be
-            done with or without a transaction.
+            Relationships are typed and both nodes and relationships can have properties. Property values can be
+            primitive Java types and Strings, or arrays of both. As of Neo4j 2.0, any operation on a
+            node or relationship (creation, modification or simply reading) must happen within a transaction.
         </para>
         <example>
             <title>Neo4j usage</title>
-            <programlisting language="java" ><![CDATA[GraphDatabaseService graphDb = new EmbeddedGraphDatabase( "helloworld" );
-Transaction tx = graphDb.beginTx();
-try {
+            <programlisting language="java" ><![CDATA[GraphDatabaseService graphDb = new GraphDatabaseFactory().newEmbeddedDatabase("helloworld");
+
+try (Transaction tx = graphDb.beginTx()) {
 	Node firstNode = graphDb.createNode();
 	firstNode.setProperty( "message", "Hello, " );
 	Node secondNode = graphDb.createNode();
@@ -93,8 +92,6 @@ try {
 		DynamicRelationshipType.of("KNOWS") );
 	relationship.setProperty( "message", "brave Neo4j" );
 	tx.success();
-} finally {
-	tx.close();
 }
 ]]></programlisting>
         </example>
@@ -124,31 +121,40 @@ for (Path position : traversalDescription.traverse(myStartNode)) {
 		<title>Indexing</title>
 		<para>
             The best way for retrieving start nodes for traversals and queries is by using Neo4j's integrated index
-            facilities. The <code>GraphDatabaseService</code> provides access to the <code>IndexManager</code> which in turn provides
+            facilities.
+            <note>
+                <para>
+                    As of SDN 3.0 , schema based indexes (i.e. indexes based on labels) are the default, however
+                    the legacy indexing functionality still remains, as there is some functionality (for example full text
+                    searches, range searches) which is not possible/ available yet. It should be noted
+                    that legacy based indexes are deprecated in 3.0 and the intention is to eventually
+                    remove it completely as and when schema based indexes/functionality is fully able to support
+                    existing functionality.
+                </para>
+            </note>
+
+            The <code>GraphDatabaseService</code> still provides access to the legacy <code>IndexManager</code> which in turn provides
             named indexes for nodes and relationships. Both can be indexed with property names and values.
             Retrieval is done with query methods on indexes, returning an <code>IndexHits</code> iterator.
         </para>
         <para>
-            Spring Data Neo4j provides automatic indexing via the <code>@Indexed</code> annotation, eliminating the need
-            for manual index management.
+            Spring Data Neo4j provides automatic indexing via the <code>@Indexed</code> annotation, defaulting to make use
+            of schema based indexes (aka labels), eliminating the need for manual index management.
         </para>
-        <note><para>
-            Modifying Neo4j indexes also requires transactions.
-        </para></note>
         <example>
-            <title>Index usage</title>
+            <title>Legacy Index usage</title>
             <programlisting language="java"><![CDATA[IndexManager indexManager = graphDb.index();
 Index<Node> nodeIndex = indexManager.forNodes("a-node-index");
 Node node = ...;
-Transaction tx = graphDb.beginTx();
-try {
+try (Transaction tx = graphDb.beginTx()) {
     nodeIndex.add(node, "property","value");
     tx.success();
-} finally {
-    tx.close();
 }
-for (Node foundNode : nodeIndex.get("property","value")) {
-    // found node
+try (Transaction tx = graphDb.beginTx()) {
+    for (Node foundNode : nodeIndex.get("property","value")) {
+        // found node
+    }
+    tx.success();
 }
 ]]></programlisting>
         </example>
@@ -164,9 +170,12 @@ for (Node foundNode : nodeIndex.get("property","value")) {
 			<ulink url="http://video.neo4j.org/ybMbf/screencast-introduction-to-cypher/">Neo4j video site</ulink>.
         </para>
         <para>
-            Cypher queries always begin with a <code>start</code> set of nodes. Those can be either expressed by their
-            IDs or by an index lookup expression. Those start-nodes are then related to other nodes in the
-            <code>match</code> clause. Start and match clauses can introduce new identifiers for nodes and
+            As of Neo4 2.0, Cypher queries typically begin with a <code>match</code> clause, although the optional
+            <code>start</code> clause (only really needed when using legacy indexes) is also still supported.
+            The <code>match</code> clause can be used to provide a way to pattern match against a starting set of nodes, via their
+            IDs or label based index lookup, with the legacy <code>start</code> clause providing similar functionality.
+            These starting patterns or start nodes, are then related to other nodes via additional
+            <code>match</code> clauses. Start and/or match clauses can introduce new identifiers for nodes and
             relationships. In the <code>where</code> clause additional filtering of the result set is applied by evaluating
             expressions. The <code>return</code> clause defines which part of the query result will be available.
             Aggregation also happens in the return clause by using aggregation functions on some of the values.
@@ -182,7 +191,17 @@ for (Node foundNode : nodeIndex.get("property","value")) {
         <example>
             <title>Cypher Examples on the Cineasts.net Dataset</title>
             <programlisting><![CDATA[
-// Actors who played a Matrix movie:
+
+// ----------------------------------------------------------
+//                schema based (Label) examples
+// ----------------------------------------------------------
+//               TODO - once code has been updated
+
+// ----------------------------------------------------------
+//                Legacy index based examples
+// ----------------------------------------------------------
+
+// Actors who played a Matrix movie :
 start movie=node:Movie("title:Matrix*") match movie<-[:ACTS_IN]-actor
     return actor.name, actor.birthplace?
 
