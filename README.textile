@@ -198,41 +198,41 @@ public interface WorldRepository extends GraphRepository<World> {}
 @Transactional
 public class GalaxyService {
 
-	@Autowired
-	private WorldRepository worldRepository;
+    @Autowired
+    private WorldRepository worldRepository;
 
-	public long getNumberOfWorlds() {
-		return worldRepository.count();
-	}
+    public long getNumberOfWorlds() {
+        return worldRepository.count();
+    }
 
-	public World createWorld(String name, int moons) {
-		return worldRepository.save(new World(name, moons));
-	}
+    public World createWorld(String name, int moons) {
+        return worldRepository.save(new World(name, moons));
+    }
 
-	public Iterable<World> getAllWorlds() {
-		return worldRepository.findAll();
-	}
+    public Iterable<World> getAllWorlds() {
+        return worldRepository.findAll();
+    }
 
-	public World findWorldById(Long id) {
-		return worldRepository.findOne(id);
-	}
+    public World findWorldById(Long id) {
+        return worldRepository.findOne(id);
+    }
 
     // This is using the schema based index
-	public World findWorldByName(String name) {
-		return worldRepository.findBySchemaPropertyValue("name", name);
-	}
+    public World findWorldByName(String name) {
+        return worldRepository.findBySchemaPropertyValue("name", name);
+    }
 
     // This is using the legacy index
-	public Iterable<World> findAllByNumberOfMoons(int numberOfMoons) {
-		return worldRepository.findAllByPropertyValue("moons", numberOfMoons);
-	}
+    public Iterable<World> findAllByNumberOfMoons(int numberOfMoons) {
+        return worldRepository.findAllByPropertyValue("moons", numberOfMoons);
+    }
 
-	public Collection<World> makeSomeWorlds() {
-		Collection<World> worlds = new ArrayList<World>();
+    public Collection<World> makeSomeWorlds() {
+        Collection<World> worlds = new ArrayList<World>();
 
-		// Solar worlds
-		worlds.add(createWorld("Mercury", 0));
-		worlds.add(createWorld("Venus", 0));
+        // Solar worlds
+        worlds.add(createWorld("Mercury", 0));
+        worlds.add(createWorld("Venus", 0));
 
         World earth = createWorld("Earth", 1);
         World mars = createWorld("Mars", 2);
@@ -244,7 +244,7 @@ public class GalaxyService {
         // ... Create more worlds
 
         return worlds;
-	}
+    }
 
 }
 
