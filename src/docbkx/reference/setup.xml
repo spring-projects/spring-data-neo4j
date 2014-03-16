@@ -17,7 +17,7 @@
     <section>
            <title>Dependencies for Spring Data Neo4j Simple Mapping</title>
            <para>
-               For the simple POJO mapping it is enough to add the <code>org.springframework.data:spring-data-neo4j:2.1.0.RELEASE</code> dependency
+               For the simple POJO mapping it is enough to add the <code>org.springframework.data:spring-data-neo4j:3.0.0.RELEASE</code> dependency
                to your project.
            </para>
         <example>
@@ -25,7 +25,7 @@
             <programlisting language="xml"><![CDATA[<dependency>
 <groupId>org.springframework.data</groupId>
 <artifactId>spring-data-neo4j</artifactId>
-<version>2.1.0.RELEASE</version>
+<version>3.0.0.RELEASE</version>
 </dependency>
 ]]></programlisting>
         </example>
@@ -43,9 +43,9 @@
             <programlisting language="java"><![CDATA[sourceCompatibility = 1.6
 targetCompatibility = 1.6
 
-springVersion = "3.1.0.RELEASE"
-springDataNeo4jVersion = "2.1.0.RELEASE"
-aspectjVersion = "1.6.12"
+springVersion = "3.2.8.RELEASE"
+springDataNeo4jVersion = "3.0.0.RELEASE"
+aspectjVersion = "1.7.4"
 
 apply from:'https://github.com/SpringSource/spring-data-neo4j/raw/master/build/
 gradle/springdataneo4j.gradle'
@@ -126,13 +126,13 @@ repositories {
                 <programlisting language="xml"><![CDATA[<dependency>
     <groupId>org.springframework.data</groupId>
     <artifactId>spring-data-neo4j-aspects</artifactId>
-    <version>2.1.0.RELEASE</version>
+    <version>3.0.0.RELEASE</version>
 </dependency>
 
 <dependency>
     <groupId>org.aspectj</groupId>
     <artifactId>aspectjrt</artifactId>
-    <version>1.6.12</version>
+    <version>1.7.4</version>
 </dependency>
 ]]></programlisting>
             </example>
@@ -150,18 +150,18 @@ repositories {
                 <programlisting language="xml"><![CDATA[<plugin>
     <groupId>org.codehaus.mojo</groupId>
     <artifactId>aspectj-maven-plugin</artifactId>
-    <version>1.2</version>
+    <version>1.4</version>
     <dependencies>
         <!-- NB: You must use Maven 2.0.9 or above or these are ignored (see MNG-2972) -->
         <dependency>
             <groupId>org.aspectj</groupId>
             <artifactId>aspectjrt</artifactId>
-            <version>1.6.12</version>
+            <version>1.7.4</version>
         </dependency>
         <dependency>
             <groupId>org.aspectj</groupId>
             <artifactId>aspectjtools</artifactId>
-            <version>1.6.12</version>
+            <version>1.7.4</version>
         </dependency>
     </dependencies>
     <executions>
@@ -203,12 +203,42 @@ repositories {
             <title>XML namespace</title>
             <para>
                 The XML namespace can be used to configure Spring Data Neo4j. The <code>config</code> element
-                provides an XML-based configuration of Spring Data Neo4j in one line. It has three attributes.
-                <code>graphDatabaseService</code> points out the Neo4j instance to use. For convenience,
-                <code>storeDirectory</code> can be set instead of <code>graphDatabaseService</code> to
-                point to a directory where a new <code>EmbeddedGraphDatabase</code> will be created. For
-                cross-store configuration, the <code>entityManagerFactory</code> attribute needs to be
-                configured.
+                provides an XML-based configuration of Spring Data Neo4j in one line. It has four attributes.
+                <itemizedlist>
+                    <listitem>
+                    <para>
+                        <code>base-package</code> points to a set of packages (provided as a comma separated String of names)
+                        which SDN will scan for locate all of your domain entity classes (<code>@NodeEntity</code> and <code>@RelationshipEntity</code>).
+                        <note>
+                            <para>
+                                Neo4j 2.0 introduced the requirement to separately manage schema and data transactions which altered some
+                                options for SDN with regards be being able to automatically detect and register <code>@NodeEntity</code> and <code>@RelationshipEntity</code>s on the fly.
+                                Several approaches were attempted to try and handle this automatically with SDN 3.0.X, none of which worked in a satisfactory manner.
+                                This has resulted in the base-package becoming a mandatory field now with entity metadata handling becoming an
+                                explicit step in the lifecycle.
+                            </para>
+                        </note>
+                    </para>
+                    </listitem>
+                    <listitem>
+                        <para>
+                            <code>graphDatabaseService</code> points out the Neo4j instance to use.
+                        </para>
+                    </listitem>
+                    <listitem>
+                        <para>
+                            <code>storeDirectory</code> is a convenient alternative (instead of <code>graphDatabaseService</code>)
+                            to point to a directory where a new <code>EmbeddedGraphDatabase</code> will be created.
+                        </para>
+                    </listitem>
+                    <listitem>
+                        <para>
+                            <code>entityManagerFactory</code> is only required for cross-store configuration.
+                        </para>
+                    </listitem>
+                </itemizedlist>
+
+
             </para>
             <example>
                 <title>XML configuration with store directory</title>
@@ -226,28 +256,24 @@ repositories {
             http://www.springframework.org/schema/data/neo4j/spring-neo4j.xsd">
 
     <context:annotation-config/>
-    <neo4j:config storeDirectory="target/config-test"/>
+    <neo4j:config
+           storeDirectory="target/config-test"
+           base-package="org.example.domain"/>
 
 </beans>
 ]]></programlisting>
             </example>
             <example>
-                <title>XML configuration with GraphDatabaseService bean</title>
+                <title>XML configuration with basic GraphDatabaseService bean</title>
                 <programlisting language="xml"><![CDATA[<context:annotation-config/>
 
-<bean id="graphDatabaseService" class="org.neo4j.kernel.EmbeddedGraphDatabase"
-        destroy-method="shutdown">
-    <constructor-arg index="0" value="target/config-test"/>
-<!-- optionally pass in neo4j-config parameters to the graph database
-    <constructor-arg index="1">
-        <map>
-            <entry key="allow_store_upgrade" value="true"/>
-        </map>
-    </constructor-arg>
--->
+<bean id="graphDbFactory" class="org.neo4j.graphdb.factory.GraphDatabaseFactory"/>
+<bean id="graphDatabaseService" scope="singleton" destroy-method="shutdown"
+      factory-bean="graphDbFactory" factory-method="newEmbeddedDatabase">
+    <constructor-arg value="target/config-test"/>
 </bean>
 
-<neo4j:config graphDatabaseService="graphDatabaseService"/>
+<neo4j:config graphDatabaseService="graphDatabaseService" base-package="org.example.domain"/>
 ]]></programlisting>
             </example>
 			<example>
@@ -289,7 +315,8 @@ repositories {
 </bean>
 
 <neo4j:config storeDirectory="target/config-test"
-        entityManagerFactory="entityManagerFactory"/>
+        entityManagerFactory="entityManagerFactory"
+        base-package="org.example.domain"/>
 ]]></programlisting>
             </example>
         </section>
@@ -336,22 +363,54 @@ repositories {
                 <code>Neo4jConfiguration</code> is registered with the context. This is either done
                 explicitly in the context configuration, or via classpath scanning for classes that
                 have the @Configuration annotation. The only thing that must be provided is the
-                <code>GraphDatabaseService</code>.  The example below shows how to register the
-                <code>@Configuration Neo4jConfiguration</code> class, as well as Spring's
-                <code>ConfigurationClassPostProcessor</code> that transforms the
-                <code>@Configuration</code> class to bean definitions.
+                <code>GraphDatabaseService</code> and the <code>basePackage</code> must also be set.
+                The examples below show how this can be done.
+
                 <example>
-                    <title>Java-based bean configuration</title>
-                    <programlisting language="xml"><![CDATA[<![CDATA[<beans ...>
+                <title>Pure Java based bean configuration</title>
+                <programlisting language="java">
+@Configuration
+@EnableNeo4jRepositories(basePackages = "org.example.repositories")
+public class BasicJavaConfig extends Neo4jConfiguration {
+
+    public BasicJavaConfig() {
+        setBasePackage("org.example.domain");
+    }
+
+    @Bean
+    public GraphDatabaseService graphDatabaseService() {
+        return new GraphDatabaseFactory().newEmbeddedDatabase("path/to/mydb");
+    }
+
+    // You can add your own beans here, and/or override some of the
+    // default config (such as Type Representation Strategies etc)
+
+}
+
+                </programlisting>
+                </example>
+                    <example>
+                    <title>Java-based bean config initialiation via XML </title>
+                    <para>
+                        To register the default
+                        <code>@Configuration Neo4jConfiguration</code> class, as well as Spring's
+                        <code>ConfigurationClassPostProcessor</code> that transforms the
+                        <code>@Configuration</code> class to bean definitions via XML.
+                    </para>
+                    <programlisting language="xml"><![CDATA[
+<beans ...>
     ...
     <tx:annotation-driven mode="aspectj" transaction-manager="transactionManager"/>
-    <bean class="org.springframework.data.neo4j.config.Neo4jConfiguration"/>
+    <bean class="org.springframework.data.neo4j.config.Neo4jConfiguration">
+        <property name="basePackage" value="org.example.domain" />
+    </bean>
 
     <bean class="org.springframework.context.annotation.ConfigurationClassPostProcessor"/>
 
-    <bean id="graphDatabaseService" class="org.neo4j.kernel.EmbeddedGraphDatabase"
-          destroy-method="shutdown" scope="singleton">
-        <constructor-arg index="0" value="target/config-test"/>
+    <bean id="graphDbFactory" class="org.neo4j.graphdb.factory.GraphDatabaseFactory"/>
+    <bean id="graphDatabaseService" scope="singleton" destroy-method="shutdown"
+          factory-bean="graphDbFactory" factory-method="newEmbeddedDatabase">
+        <constructor-arg value="target/config-test"/>
     </bean>
     ...
 </beans>
