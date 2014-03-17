@@ -39,7 +39,7 @@ public class NodeDelegatingFieldAccessorFactory extends DelegatingFieldAccessorF
                         template,
                 		new PropertyFieldAccessorFactory(template),
                 		new ConvertingNodePropertyFieldAccessorFactory(template)),
-                new ValidatingNodePropertyFieldAccessorListenerFactory(template)
+                new ValidatingPropertyFieldAccessorListenerFactory(template)
         );
     }
 
