@@ -31,11 +31,11 @@ import java.lang.annotation.Annotation;
 import java.util.Set;
 
 
-class ValidatingNodePropertyFieldAccessorListenerFactory implements FieldAccessorListenerFactory {
+class ValidatingPropertyFieldAccessorListenerFactory implements FieldAccessorListenerFactory {
 
     private final Neo4jTemplate template;
 
-    ValidatingNodePropertyFieldAccessorListenerFactory(final Neo4jTemplate template) {
+    ValidatingPropertyFieldAccessorListenerFactory(final Neo4jTemplate template) {
     	this.template = template;
     }
 
@@ -50,7 +50,7 @@ class ValidatingNodePropertyFieldAccessorListenerFactory implements FieldAccesso
 
     @Override
     public FieldAccessListener forField(Neo4jPersistentProperty property) {
-        return new ValidatingNodePropertyFieldAccessorListener(property, template.getValidator());
+        return new ValidatingPropertyFieldAccessorListener(property, template.getValidator());
     }
 
 
@@ -58,14 +58,14 @@ class ValidatingNodePropertyFieldAccessorListenerFactory implements FieldAccesso
 	 * @author Michael Hunger
 	 * @since 12.09.2010
 	 */
-	public static class ValidatingNodePropertyFieldAccessorListener<T extends PropertyContainer> implements FieldAccessListener {
+	public static class ValidatingPropertyFieldAccessorListener<T extends PropertyContainer> implements FieldAccessListener {
 
-	    private final static Logger log = LoggerFactory.getLogger(ValidatingNodePropertyFieldAccessorListener.class);
+	    private final static Logger log = LoggerFactory.getLogger(ValidatingPropertyFieldAccessorListener.class);
         private String propertyName;
         private Validator validator;
         private Neo4jPersistentEntity<?> entityType;
 
-        public ValidatingNodePropertyFieldAccessorListener(final Neo4jPersistentProperty field, Validator validator) {
+        public ValidatingPropertyFieldAccessorListener(final Neo4jPersistentProperty field, Validator validator) {
             this.propertyName = field.getName();
             this.entityType = field.getOwner();
             this.validator = validator;

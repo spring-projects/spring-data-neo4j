@@ -33,8 +33,8 @@ public class RelationshipDelegatingFieldAccessorFactory extends DelegatingFieldA
                 new IndexingPropertyFieldAccessorListenerFactory(
                         template,
                         new PropertyFieldAccessorFactory(template),
-                        new ConvertingNodePropertyFieldAccessorFactory(template)
-                ));
+                        new ConvertingNodePropertyFieldAccessorFactory(template)),
+                new ValidatingPropertyFieldAccessorListenerFactory(template));
     }
 
     @Override
