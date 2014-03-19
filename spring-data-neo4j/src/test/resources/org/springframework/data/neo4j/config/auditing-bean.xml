@@ -1,19 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:neo4j="http://www.springframework.org/schema/data/neo4j"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:neo4j="http://www.springframework.org/schema/data/neo4j"
 	xsi:schemaLocation="http://www.springframework.org/schema/data/neo4j http://www.springframework.org/schema/data/neo4j/spring-neo4j-2.2.xsd
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
-    <neo4j:config graphDatabaseService="graphDatabaseService" base-package="org.springframework.data.neo4j.config"/>
+	<neo4j:config graphDatabaseService="graphDatabaseService"
+		base-package="org.springframework.data.neo4j.config" />
 
-    <bean class="org.springframework.data.neo4j.lifecycle.AuditingEventListener">
-        <constructor-arg>
-            <bean class="org.springframework.data.auditing.IsNewAwareAuditingHandler">
-                <constructor-arg ref="isNewStrategyFactory"/>
-            </bean>
-        </constructor-arg>
-    </bean>
-    <bean id="graphDatabaseService" class="org.neo4j.test.ImpermanentGraphDatabase" destroy-method="shutdown"/>
-	
+	<bean class="org.springframework.data.neo4j.lifecycle.AuditingEventListener" autowire="constructor" />
+
+	<bean id="auditingHandler" class="org.springframework.data.auditing.IsNewAwareAuditingHandler">
+		<constructor-arg ref="neo4jMappingContext" />
+	</bean>
+
+	<bean id="graphDatabaseService" class="org.neo4j.test.ImpermanentGraphDatabase"
+		destroy-method="shutdown" />
+
 </beans>

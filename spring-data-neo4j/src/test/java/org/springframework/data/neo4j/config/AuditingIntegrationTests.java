@@ -15,66 +15,69 @@
  */
 package org.springframework.data.neo4j.config;
 
+import static org.hamcrest.CoreMatchers.*;
+import static org.junit.Assert.*;
+
 import org.joda.time.DateTime;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.neo4j.annotation.GraphId;
 import org.springframework.data.neo4j.annotation.NodeEntity;
 import org.springframework.data.neo4j.lifecycle.BeforeSaveEvent;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.not;
-import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.junit.Assert.assertThat;
-
-@Ignore
+/**
+ * Integration tests for Neo4j auditing.
+ * 
+ * @author Michael Hunger
+ * @author Oliver Gierke
+ */
 public class AuditingIntegrationTests {
 
+	/**
+	 * @see DATAGRAPH-328
+	 */
 	@Test
 	public void enablesAuditingAndSetsPropertiesAccordingly() throws InterruptedException {
-		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("auditing.xml", getClass());
-        runTest(context);
-        context.close();
+		runTest(new ClassPathXmlApplicationContext("auditing.xml", getClass())).close();
 	}
 
+	/**
+	 * @see DATAGRAPH-328
+	 */
 	@Test
 	public void enablesAuditingWithBeanConfigAndSetsPropertiesAccordingly() throws InterruptedException {
-		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("auditing-bean.xml", getClass());
-        runTest(context);
-        context.close();
+		runTest(new ClassPathXmlApplicationContext("auditing-bean.xml", getClass())).close();
 	}
 
-    private void runTest(ApplicationContext context) throws InterruptedException {
-        Entity entity = new Entity();
-        BeforeSaveEvent<Entity> event = new BeforeSaveEvent<Entity>(this,entity);
-        context.publishEvent(event);
+	private <T extends ApplicationEventPublisher> T runTest(T context) throws InterruptedException {
 
-        assertThat(entity.created, is(notNullValue()));
-        assertThat(entity.modified, is(entity.created));
-        Thread.sleep(10);
-        entity.id = 1L;
-        event = new BeforeSaveEvent<Entity>(this,entity);
-        context.publishEvent(event);
+		Entity entity = new Entity();
+		BeforeSaveEvent<Entity> event = new BeforeSaveEvent<Entity>(this, entity);
+		context.publishEvent(event);
 
-        assertThat(entity.created, is(notNullValue()));
-        assertThat(entity.modified, is(not(entity.created)));
-    }
+		assertThat(entity.created, is(notNullValue()));
+		assertThat(entity.modified, is(entity.created));
+		Thread.sleep(10);
+		entity.id = 1L;
+		event = new BeforeSaveEvent<Entity>(this, entity);
+		context.publishEvent(event);
 
-    @NodeEntity
-	class Entity {
+		assertThat(entity.created, is(notNullValue()));
+		assertThat(entity.modified, is(not(entity.created)));
 
-		@CreatedDate
-        DateTime created;
+		return context;
+	}
 
-		@LastModifiedDate
-		DateTime modified;
+	@NodeEntity
+	public static class Entity {
 
-		@GraphId
-		Long id;
+		@GraphId Long id;
+		@CreatedDate DateTime created;
+		@LastModifiedDate DateTime modified;
 	}
 }

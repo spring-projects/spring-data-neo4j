@@ -15,11 +15,11 @@
  */
 package org.springframework.data.neo4j.lifecycle;
 
+import org.springframework.beans.factory.ObjectFactory;
 import org.springframework.context.ApplicationListener;
-import org.springframework.util.Assert;
-
 import org.springframework.data.auditing.AuditingHandler;
 import org.springframework.data.auditing.IsNewAwareAuditingHandler;
+import org.springframework.util.Assert;
 
 /**
  * Event listener to populate auditing related fields on an entity about to be saved.
@@ -28,14 +28,14 @@ import org.springframework.data.auditing.IsNewAwareAuditingHandler;
  */
 public class AuditingEventListener implements ApplicationListener<BeforeSaveEvent<Object>> {
 
-	private final IsNewAwareAuditingHandler auditingHandler;
+	private final ObjectFactory<IsNewAwareAuditingHandler> auditingHandler;
 
 	/**
 	 * Creates a new {@link AuditingEventListener} using the given {@link org.springframework.data.mapping.context.MappingContext} and {@link AuditingHandler}.
 	 * 
 	 * @param auditingHandler must not be {@literal null}.
 	 */
-	public AuditingEventListener(IsNewAwareAuditingHandler auditingHandler) {
+	public AuditingEventListener(ObjectFactory<IsNewAwareAuditingHandler> auditingHandler) {
 
 		Assert.notNull(auditingHandler, "IsNewAwareAuditingHandler must not be null!");
 		this.auditingHandler = auditingHandler;
@@ -48,6 +48,6 @@ public class AuditingEventListener implements ApplicationListener<BeforeSaveEven
 	public void onApplicationEvent(BeforeSaveEvent<Object> event) {
 
 		Object entity = event.getEntity();
-		auditingHandler.markAudited(entity);
+		auditingHandler.getObject().markAudited(entity);
 	}
 }

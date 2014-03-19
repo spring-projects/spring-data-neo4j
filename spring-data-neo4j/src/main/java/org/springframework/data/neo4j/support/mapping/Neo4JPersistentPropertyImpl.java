@@ -141,7 +141,7 @@ class Neo4jPersistentPropertyImpl extends AnnotationBasedPersistentProperty<Neo4
     @Override
     public void setValue(Object entity, Object newValue) {
     	
-    	BeanWrapper<PersistentEntity<Object,?>,Object> wrapper = BeanWrapper.create(entity, null);
+    	BeanWrapper<Object> wrapper = BeanWrapper.create(entity, null);
     	wrapper.setProperty(this, newValue);
     }
 
@@ -256,7 +256,7 @@ class Neo4jPersistentPropertyImpl extends AnnotationBasedPersistentProperty<Neo4
     @Override
     public Object getValueFromEntity(Object entity, final MappingPolicy mappingPolicy) {
     	
-    	BeanWrapper<PersistentEntity<Object,?>, Object> wrapper = BeanWrapper.create(entity, null);
+    	BeanWrapper<Object> wrapper = BeanWrapper.create(entity, null);
     	return wrapper.getProperty(this);
     }
 

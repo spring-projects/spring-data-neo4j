@@ -15,17 +15,16 @@
  */
 package org.springframework.data.neo4j.lifecycle;
 
-
 import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.ObjectFactory;
 import org.springframework.data.auditing.IsNewAwareAuditingHandler;
-import org.springframework.data.mapping.context.MappingContextIsNewStrategyFactory;
 import org.springframework.data.neo4j.annotation.GraphId;
 import org.springframework.data.neo4j.annotation.NodeEntity;
 import org.springframework.data.neo4j.support.mapping.Neo4jMappingContext;
@@ -47,14 +46,14 @@ public class AuditingEventListenerUnitTests {
 	@Before
 	public void setUp() {
 
-		Neo4jMappingContext mappingContext = new Neo4jMappingContext();
-		factory = new MappingContextIsNewStrategyFactory(mappingContext);
+		handler = spy(new IsNewAwareAuditingHandler(new Neo4jMappingContext()));
+		listener = new AuditingEventListener(new ObjectFactory<IsNewAwareAuditingHandler>() {
 
-		handler = spy(new IsNewAwareAuditingHandler(factory));
-		doNothing().when(handler).markCreated(Mockito.any(Object.class));
-		doNothing().when(handler).markModified(Mockito.any(Object.class));
-
-		listener = new AuditingEventListener(handler);
+			@Override
+			public IsNewAwareAuditingHandler getObject() throws BeansException {
+				return handler;
+			}
+		});
 	}
 
 	@Test(expected = IllegalArgumentException.class)
@@ -66,7 +65,7 @@ public class AuditingEventListenerUnitTests {
 	public void triggersCreationMarkForObjectWithEmptyId() {
 
 		Sample sample = new Sample();
-		listener.onApplicationEvent(new BeforeSaveEvent<Object>(this,sample));
+		listener.onApplicationEvent(new BeforeSaveEvent<Object>(this, sample));
 
 		verify(handler, times(1)).markCreated(sample);
 		verify(handler, times(0)).markModified(any(Sample.class));
@@ -77,16 +76,15 @@ public class AuditingEventListenerUnitTests {
 
 		Sample sample = new Sample();
 		sample.id = "id";
-		listener.onApplicationEvent(new BeforeSaveEvent<Object>(this,sample));
+		listener.onApplicationEvent(new BeforeSaveEvent<Object>(this, sample));
 
 		verify(handler, times(0)).markCreated(any(Sample.class));
 		verify(handler, times(1)).markModified(sample);
 	}
 
-    @NodeEntity
+	@NodeEntity
 	static class Sample {
 
-		@GraphId
-		String id;
+		@GraphId String id;
 	}
 }

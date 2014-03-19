@@ -44,7 +44,7 @@ public class SourceStateTransmitter<S extends PropertyContainer> {
         this.entityStateFactory = entityStateFactory;
     }
 
-    public <R> R copyPropertiesFrom(final BeanWrapper<Neo4jPersistentEntity<R>, R> wrapper, S source, Neo4jPersistentEntity<R> persistentEntity, final MappingPolicy mappingPolicy, final Neo4jTemplate template) {
+    public <R> R copyPropertiesFrom(final BeanWrapper<R> wrapper, S source, Neo4jPersistentEntity<R> persistentEntity, final MappingPolicy mappingPolicy, final Neo4jTemplate template) {
         final R entity = wrapper.getBean();
             final EntityState<S> entityState = entityStateFactory.getEntityState(entity, false, template);
             entityState.setPersistentState(source);
@@ -64,13 +64,13 @@ public class SourceStateTransmitter<S extends PropertyContainer> {
             return entity;
     }
 
-    private <R> void setEntityStateValue(Neo4jPersistentProperty property, EntityState<S> entityState, BeanWrapper<Neo4jPersistentEntity<R>, R> wrapper, final MappingPolicy mappingPolicy) {
+    private <R> void setEntityStateValue(Neo4jPersistentProperty property, EntityState<S> entityState, BeanWrapper<R> wrapper, final MappingPolicy mappingPolicy) {
         if (!entityState.isWritable(property)) return;
         final Object value = getProperty(wrapper, property);
         entityState.setValue(property, value, mappingPolicy);
     }
 
-    private <R> Object getProperty(BeanWrapper<Neo4jPersistentEntity<R>, R> wrapper, Neo4jPersistentProperty property) {
+    private <R> Object getProperty(BeanWrapper<R> wrapper, Neo4jPersistentProperty property) {
         try {
             return wrapper.getProperty(property);
         } catch (Exception e) {
@@ -78,7 +78,7 @@ public class SourceStateTransmitter<S extends PropertyContainer> {
         }
     }
 
-    public <R> void setProperty(BeanWrapper<Neo4jPersistentEntity<R>, ?> wrapper, Neo4jPersistentProperty property, Object value) {
+    public <R> void setProperty(BeanWrapper<?> wrapper, Neo4jPersistentProperty property, Object value) {
         try {
             wrapper.setProperty(property,value);
         } catch (Exception e) {
@@ -86,13 +86,13 @@ public class SourceStateTransmitter<S extends PropertyContainer> {
         }
     }
 
-    private <R> Object copyEntityStatePropertyValue(Neo4jPersistentProperty property, EntityState<S> nodeState, BeanWrapper<Neo4jPersistentEntity<R>, R> wrapper, final MappingPolicy mappingPolicy) {
+    private <R> Object copyEntityStatePropertyValue(Neo4jPersistentProperty property, EntityState<S> nodeState, BeanWrapper<R> wrapper, final MappingPolicy mappingPolicy) {
         final Object value = DoReturn.unwrap(nodeState.getValue(property, mappingPolicy));
         setProperty(wrapper, property, value);
         return value;
     }
 
-    public <R> void copyPropertiesTo(final BeanWrapper<Neo4jPersistentEntity<R>, R> wrapper, S target, Neo4jPersistentEntity<R> persistentEntity, MappingPolicy mappingPolicy, final Neo4jTemplate template) {
+    public <R> void copyPropertiesTo(final BeanWrapper<R> wrapper, S target, Neo4jPersistentEntity<R> persistentEntity, MappingPolicy mappingPolicy, final Neo4jTemplate template) {
         final Transaction tx = template.getGraphDatabase().beginTx();
         try {
             final EntityState<S> entityState = entityStateFactory.getEntityState(wrapper.getBean(), false, template);
