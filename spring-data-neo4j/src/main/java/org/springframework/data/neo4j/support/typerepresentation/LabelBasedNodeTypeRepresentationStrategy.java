@@ -123,7 +123,7 @@ public class LabelBasedNodeTypeRepresentationStrategy implements NodeTypeReprese
                 return label.substring(LABELSTRATEGY_PREFIX.length());
             }
         }
-        throw new IllegalStateException("No primary SDN label exists .. (i.e one with starting with " + LABELSTRATEGY_PREFIX + ") ");
+        throw new IllegalStateException("No primary SDN label exists .. (i.e one starting with " + LABELSTRATEGY_PREFIX + ") ");
 
     }
 
