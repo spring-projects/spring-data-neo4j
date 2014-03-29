@@ -4,17 +4,20 @@
 
 	<groupId>org.springframework.data.examples</groupId>
 	<artifactId>spring-data-neo4j-hello-worlds</artifactId>
-	<version>2.2.0.BUILD-SNAPSHOT</version>
+	<version>3.0.2.BUILD-SNAPSHOT</version>
 	<packaging>jar</packaging>
 
 	<name>Spring Data Neo4j hello-worlds</name>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<spring.version>3.0.7.RELEASE</spring.version>
-		<aspectj.version>1.6.12</aspectj.version>
-		<slf4j.version>1.6.1</slf4j.version>
+		<spring.version>3.2.8.RELEASE</spring.version>
+		<slf4j.version>1.7.5</slf4j.version>
 		<spring-data-neo4j.version>${project.version}</spring-data-neo4j.version>
+        <neo4j.version>2.0.1</neo4j.version>
+        <junit.version>4.11</junit.version>
+        <log4j.version>1.2.17</log4j.version>
+        <hibernate-validator.version>4.2.0.Final</hibernate-validator.version>
 	</properties>
 
 	<repositories>
@@ -74,41 +77,59 @@
 	</pluginRepositories>
 
 	<dependencies>
-		<dependency>
-			<groupId>junit</groupId>
-			<artifactId>junit</artifactId>
-			<version>4.8.1</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-test</artifactId>
-			<version>${spring.version}</version>
-			<scope>test</scope>
-			<exclusions>
-				<exclusion>
-					<groupId>commons-logging</groupId>
-					<artifactId>commons-logging</artifactId>
-				</exclusion>
-			</exclusions>
-		</dependency>
-		<dependency>
-			<groupId>cglib</groupId>
-			<artifactId>cglib-nodep</artifactId>
-			<version>2.2</version>
-		</dependency>
+        <!-- SDN for simple mapping mode -->
         <dependency>
-			<groupId>org.hibernate.javax.persistence</groupId>
-			<artifactId>hibernate-jpa-2.0-api</artifactId>
-			<version>1.0.0.Final</version>
-			<optional>true</optional>
-			<scope>compile</scope>
-		</dependency>
-        <dependency>
-            <groupId>javax.validation</groupId>
-            <artifactId>validation-api</artifactId>
-            <version>1.0.0.GA</version>
+            <groupId>org.springframework.data</groupId>
+            <artifactId>spring-data-neo4j</artifactId>
+            <version>${spring-data-neo4j.version}</version>
         </dependency>
+        <!-- Hibernate implementation of the JSR-303 Bean Validation Spec API.
+            (SDN makes use of the javax.validation:validation-api dependency and
+            hibernate provides a concrete implementation -->
+        <dependency>
+            <groupId>org.hibernate</groupId>
+            <artifactId>hibernate-validator</artifactId>
+            <version>${hibernate-validator.version}</version>
+        </dependency>
+
+        <!-- Logging Related dependencies -->
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>${slf4j.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-log4j12</artifactId>
+            <version>${slf4j.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>log4j</groupId>
+            <artifactId>log4j</artifactId>
+            <version>${log4j.version}</version>
+        </dependency>
+
+        <!-- TEST dependencies -->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-test</artifactId>
+            <version>${spring.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.neo4j</groupId>
+            <artifactId>neo4j-kernel</artifactId>
+            <version>${neo4j.version}</version>
+            <type>test-jar</type>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>${junit.version}</version>
+            <scope>test</scope>
+        </dependency>
+
 
 
     </dependencies>
@@ -119,196 +140,14 @@
 				<!-- Must use java 1.5 or higher for annotations -->
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
-				<version>2.1</version>
+				<version>3.1</version>
 				<configuration>
 					<source>1.7</source>
 					<target>1.7</target>
 				</configuration>
 			</plugin>
 
-			<plugin>
-				<!-- IntelliJ Idea Support -->
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-idea-plugin</artifactId>
-				<version>2.2</version>
-				<configuration>
-					<downloadSources>true</downloadSources>
-					<dependenciesAsLibraries>true</dependenciesAsLibraries>
-				</configuration>
-			</plugin>
-
-
-			<plugin>
-				<!-- Execute the main class -->
-				<groupId>org.codehaus.mojo</groupId>
-				<artifactId>exec-maven-plugin</artifactId>
-				<version>1.2</version>
-				<executions>
-					<execution>
-						<goals>
-							<goal>exec</goal>
-						</goals>
-					</execution>
-				</executions>
-				<configuration>
-					<mainClass>org.springframework.data.neo4j.examples.hellograph.App</mainClass>
-				</configuration>
-			</plugin>
-
-			<plugin>
-				<artifactId>maven-assembly-plugin</artifactId>
-				<configuration>
-					<finalName>hello-worlds-${project.version}</finalName>
-					<appendAssemblyId>false</appendAssemblyId>
-					<attach>false</attach>
-					<archive>
-						<manifest>
-							<mainClass>org.springframework.data.neo4j.examples.hellograph.App</mainClass>
-						</manifest>
-					</archive>
-					<descriptorRefs>
-						<descriptorRef>jar-with-dependencies</descriptorRef>
-					</descriptorRefs>
-				</configuration>
-				<executions>
-					<execution>
-						<id>make-assembly</id> <!-- this is used for inheritance merges -->
-						<phase>package</phase> <!-- bind to the packaging phase -->
-						<goals>
-							<goal>single</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
-			<plugin>
-				<artifactId>maven-resources-plugin</artifactId>
-				<executions>
-					<execution>
-						<phase>initialize</phase>
-						<goals>
-							<goal>resources</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
-
 		</plugins>
 	</build>
 
-	<profiles>
-		<profile>
-			<id>plain</id>
-			<dependencies>
-				<dependency>
-					<groupId>org.springframework.data</groupId>
-					<artifactId>spring-data-neo4j</artifactId>
-					<version>${spring-data-neo4j.version}</version>
-				</dependency>
-			</dependencies>
-
-			<build>
-				<resources>
-					<resource>
-						<directory>${project.basedir}/src/main/resources/spring/plain</directory>
-						<targetPath>${project.build.directory}/classes/spring</targetPath>
-						<filtering>true</filtering>
-						<includes>
-							<include>helloWorldContext.xml</include>
-						</includes>
-					</resource>
-				</resources>
-			</build>
-		</profile>
-		<profile>
-			<id>aspects</id>
-			<activation>
-				<activeByDefault>true</activeByDefault>
-			</activation>
-
-			<dependencies>
-				<dependency>
-					<groupId>org.springframework.data</groupId>
-					<artifactId>spring-data-neo4j-aspects</artifactId>
-					<version>${spring-data-neo4j.version}</version>
-				</dependency>
-			</dependencies>
-
-			<build>
-				<plugins>
-					<plugin>
-						<!-- required to resolve aspectj-enhanced class features -->
-						<groupId>org.codehaus.mojo</groupId>
-						<artifactId>aspectj-maven-plugin</artifactId>
-						<version>1.2</version>
-						<configuration>
-							<outxml>true</outxml>
-							<aspectLibraries>
-								<aspectLibrary>
-									<groupId>org.springframework</groupId>
-									<artifactId>spring-aspects</artifactId>
-								</aspectLibrary>
-								<aspectLibrary>
-									<groupId>org.springframework.data</groupId>
-									<artifactId>spring-data-neo4j-aspects</artifactId>
-								</aspectLibrary>
-							</aspectLibraries>
-							<source>1.7</source>
-							<target>1.7</target>
-						</configuration>
-						<executions>
-							<execution>
-								<goals>
-									<goal>compile</goal>
-									<goal>test-compile</goal>
-								</goals>
-							</execution>
-						</executions>
-						<dependencies>
-							<dependency>
-								<groupId>org.aspectj</groupId>
-								<artifactId>aspectjrt</artifactId>
-								<version>${aspectj.version}</version>
-							</dependency>
-							<dependency>
-								<groupId>org.aspectj</groupId>
-								<artifactId>aspectjtools</artifactId>
-								<version>${aspectj.version}</version>
-							</dependency>
-						</dependencies>
-					</plugin>
-
-					<!-- the eclipse plugin interacts with the aspectj-maven-plugin BUT 
-						ONLY if the ajdtVersion config value is set (remove it and it won't) -->
-					<plugin>
-						<groupId>org.apache.maven.plugins</groupId>
-						<artifactId>maven-eclipse-plugin</artifactId>
-						<version>2.8</version>
-						<configuration>
-							<!-- The ajdtVersion configuration parameter is optional. The valid 
-								values are none, 1.4, and 1.5. none indicates that AJDT should not be enabled 
-								even though Aspectj is enabled in maven. 1.4 generates the org.eclipse.ajdt.ui.prefs 
-								file in the .settings directory. 1.5 (or later) includes the configuration 
-								into the .classpath file and is the default value. -->
-							<ajdtVersion>1.5</ajdtVersion>
-							<additionalProjectnatures>
-								<projectnature>org.eclipse.ajdt.ui.ajnature</projectnature>
-								<projectnature>org.eclipse.jdt.core.javanature</projectnature>
-								<projectnature>org.springframework.ide.eclipse.core.springnature</projectnature>
-							</additionalProjectnatures>
-						</configuration>
-					</plugin>
-				</plugins>
-				<resources>
-					<resource>
-						<directory>${project.basedir}/src/main/resources/spring/aspects</directory>
-						<targetPath>${project.build.directory}/classes/spring</targetPath>
-						<filtering>true</filtering>
-						<includes>
-							<include>helloWorldContext.xml</include>
-						</includes>
-					</resource>
-				</resources>
-			</build>
-		</profile>
-	</profiles>
 </project>

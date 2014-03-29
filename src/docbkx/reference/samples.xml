@@ -16,12 +16,14 @@
     <section id="samples_hello-worlds">
         <title>Hello Worlds sample application</title>
         <para>
-            The Hello Worlds sample application is a simple console application. It creates some worlds
-            (node entities) and rocket routes (relationships) between worlds, all in a galaxy (the graph),
-            and then prints them.
+            The Hello Worlds sample application exists merely to provide a client with a way of creating some "worlds"
+            (node entities) and "rocket routes" (relationships) between worlds, all in a galaxy (the graph).
+            There is currently no GUI for this application, rather you can have a look at the associated
+            unit tests for some examples of how to interact with this domain via a dedicated <code>GalaxyService</code>
+            class.
         </para>
         <para>
-            The unit tests demonstrate some other features of Spring Data Neo4j as well. The sample comes
+            The unit tests additionally demonstrate some other features of Spring Data Neo4j as well. The sample comes
             with a minimal configuration for Maven and Spring to get up and running quickly.
         </para>
 		<para>
@@ -29,18 +31,34 @@
 			and for the advanced mapping (<code>hello-world-aspects</code>).
 		</para>
         <para>
-            Executing the application creates the following graph in the graph database:
+            Running the unit tests create two versions of the world, one based on the default Label based Type
+            Representation Strategy, and another (for comparison purposes) based on the Sub Reference type
+            representation strategy. From the <code>GalaxyService</code> clients perspective, there is no difference,
+            however how the data physically stored in the graph, does differ, and we take this opportunity to show
+            you how using two different type representation strategies can impact how your data is modelled in the
+            graph itself.
         </para>
+        <para>Hello World Galaxy - Using default "Label" Type Representation Strategy
         <mediaobject>
             <imageobject>
-                <imagedata fileref="helloworlds.png" contentwidth="15cm" scalefit="1"/>
+                <imagedata fileref="helloworlds-labeltrs.png" contentwidth="15cm" scalefit="1"/>
             </imageobject>
         </mediaobject>
+        </para>
+        <para>Hello World Galaxy - Using "Sub Reference" Type Representation Strategy
+            <mediaobject>
+                <imageobject>
+                    <imagedata fileref="helloworlds-subreftrs.png" contentwidth="15cm" scalefit="1"/>
+                </imageobject>
+            </mediaobject>
+        </para>
     </section>
 
     <section id="samples_imdb">
         <title>IMDB sample application</title>
+
         <para>
+            <note><para>This sample application still needs to be upgraded to SDN 3.0.X</para></note>
             The IMDB sample is a web application that imports datasets from the Internet Movie Database (IMDB)
             into the graph database. It allows the listing of movies with their actors, and of actors and their
             roles in different movies. It also uses graph traversal operations to calculate the
@@ -68,6 +86,7 @@
     <section id="samples_myrestaurants-original">
         <title>MyRestaurants sample application</title>
         <para>
+            <note><para>This sample application still needs to be upgraded to SDN 3.0.X</para></note>
             Simple, JPA-based web application for managing users and restaurants, with the ability to add
             restaurants as favorites to a user. It is basically the foundation for the MyRestaurants-Social
             application (see<xref linkend="samples:myrestaurants-social" />), and does therefore not use
@@ -83,6 +102,7 @@
     <section id="samples_myrestaurants-social">
         <title>MyRestaurant-Social sample application</title>
         <para>
+            <note><para>This sample application still needs to be upgraded to SDN 3.0.X</para></note>
             This application extends the MyRestaurants sample application, adding social networking
             functionality to it with cross-store persistence. The web application allows for users to add
             friends and rate restaurants. A graph traversal provides recommendations based on your friends'
@@ -104,6 +124,7 @@
     </section>
     <section id="samples_cineasts">
         <title>Cineasts social movie database</title>
+        <note><para>This sample application still needs to be upgraded to SDN 3.0.X</para></note>
         <para>
 			The cineasts.net application was introduced extensively in the first part of this guide, the 
 			tutorial. The tutorial covers the development of the simple mapping version of cineasts.

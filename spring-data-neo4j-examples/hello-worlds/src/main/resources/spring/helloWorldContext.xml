@@ -18,8 +18,10 @@
     <context:annotation-config/>
     <context:component-scan base-package="org.springframework.data.neo4j.examples.hellograph" />
 
-    <neo4j:config storeDirectory="target/neo4j-db"/>
-    <neo4j:repositories base-package="org.springframework.data.neo4j.examples.hellograph"/>
+    <neo4j:config storeDirectory="target/neo4j-db-plain"
+                  base-package="org.springframework.data.neo4j.examples.hellograph.domain"/>
+    <neo4j:repositories base-package="org.springframework.data.neo4j.examples.hellograph.repositories"/>
 
+    <tx:annotation-driven />
 </beans>
 

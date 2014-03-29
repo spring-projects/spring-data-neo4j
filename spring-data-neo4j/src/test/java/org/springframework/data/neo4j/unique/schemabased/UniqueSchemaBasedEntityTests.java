@@ -20,8 +20,10 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.Node;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.neo4j.repository.GraphRepository;
+import org.springframework.data.neo4j.support.Neo4jTemplate;
 import org.springframework.data.neo4j.unique.common.CommonClub;
 import org.springframework.data.neo4j.unique.common.CommonUniqueClub;
 import org.springframework.data.neo4j.unique.common.CommonUniqueEntityTestBase;
@@ -36,14 +38,18 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.*;
+
+import static org.junit.Assert.*;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = {"classpath:unique-schema-test-context.xml"})
 @Transactional
 public class UniqueSchemaBasedEntityTests extends CommonUniqueEntityTestBase {
+
+    @Autowired
+    private Neo4jTemplate neo4jTemplate;
 
     @Autowired
     private ClubRepository clubRepository;
@@ -80,6 +86,44 @@ public class UniqueSchemaBasedEntityTests extends CommonUniqueEntityTestBase {
     protected CommonUniqueClub lookupEntityByUniquePropertyValue(String propertyName, Object value) {
         return (CommonUniqueClub)getUniqueClubRepository().findBySchemaPropertyValue(propertyName, value);
     }
+
+    @Test
+    public void creatingDistinctUniqueEntitiesViaNeo4jTemplateShouldResolveToDifferentEntities() {
+        Collection labels = Arrays.asList( UniqueClub.class.getSimpleName(),"_"+ UniqueClub.class.getSimpleName() );
+
+        Map<String, Object> fooParams =  new HashMap<String,Object>();
+        fooParams.put("name","foo");
+        fooParams.put("description","foo description");
+        Map<String, Object> barParams = new HashMap<String,Object>();
+        barParams.put("name","bar");
+        barParams.put("description","foo description");
+
+        Node club1 = neo4jTemplate.merge(UniqueClub.class.getSimpleName(), "name", "foo", fooParams, labels);
+        Node club2 = neo4jTemplate.merge(UniqueClub.class.getSimpleName(),"name","bar", barParams, labels);
+
+        assertNotEquals("Expected different node Ids", club1.getId(), club2.getId());
+        assertEquals(2, getUniqueClubRepository().count());
+    }
+
+    @Test
+    public void creatingTheSameUniqueEntitiesViaNeo4jTemplateShouldResolveToOriginalEntity() {
+        Collection labels = Arrays.asList( UniqueClub.class.getSimpleName(),"_"+ UniqueClub.class.getSimpleName() );
+
+        Map<String, Object> fooParams = new HashMap<String,Object>();
+        fooParams.put("name","foo");
+        fooParams.put("description","foo description");
+        Map<String, Object> foo2Params = new HashMap<String,Object>();
+        foo2Params.put("name","foo");
+        foo2Params.put("description","bar description"); // Note: description differs but will be discarded
+
+        Node club1 = neo4jTemplate.getOrCreateNode(UniqueClub.class.getSimpleName(), "name", "foo", fooParams, labels);
+        Node club2 = neo4jTemplate.getOrCreateNode(UniqueClub.class.getSimpleName(),"name","foo", foo2Params, labels);
+
+        assertEquals("Expected the same node Ids", club1.getId(), club2.getId());
+        assertEquals(1, getUniqueClubRepository().count());
+        assertEquals("foo description", club2.getProperty("description"));
+    }
+
 
     @Override
     protected CommonClub createNonUniqueClub(String name) {

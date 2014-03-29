@@ -1,6 +1,7 @@
 package org.springframework.data.neo4j.examples.hellograph;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.neo4j.aspects.core.NodeBacked;
 import org.springframework.data.neo4j.examples.hellograph.domain.World;
 import org.springframework.data.neo4j.examples.hellograph.repositories.WorldRepository;
 import org.springframework.stereotype.Service;
@@ -21,7 +22,16 @@ public class GalaxyService {
 	}
 	
 	public World createWorld(String name, int moons) {
-		return worldRepository.save(new World(name, moons));
+        // The line below is just as valid within you code (it assumes)
+        // the aspectj compilation has occurred, however the cast to
+        // the NodeBacked class is being used here as its helpful to
+        // IDE's which struggle with aspectj stuff
+        //
+		//     return new World(name, moons).persist();
+
+        World world = new World(name, moons);
+        ((NodeBacked)world).persist();
+        return world;
 	}
 	
 	public Iterable<World> getAllWorlds() {

@@ -164,7 +164,7 @@ public class Neo4jTemplate implements Neo4jOperations, ApplicationContextAware {
      * @return the unique entity of type entityClass (if it exists) otherwise returns null.
      *
      */
-    public <T> T findUniqueEntity(final Class<T> entityClass,String propertyName, Object value) {
+    /*public <T> T findUniqueEntity(final Class<T> entityClass,String propertyName, Object value) {
         final Neo4jPersistentEntityImpl<?> persistentEntity = getPersistentEntity(entityClass);
         Neo4jPersistentProperty persistentProperty =  persistentEntity.getPersistentProperty(propertyName);
 
@@ -175,6 +175,7 @@ public class Neo4jTemplate implements Neo4jOperations, ApplicationContextAware {
         }
         return (T)getSchemaIndexProvider().findAll(persistentProperty,value).singleOrNull();
     }
+    */
 
     /**
      * @return true if a transaction manager is available and a transaction is currently running

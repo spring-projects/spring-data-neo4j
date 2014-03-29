@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:neo4j="http://www.springframework.org/schema/data/neo4j"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xsi:schemaLocation="
+       	http://www.springframework.org/schema/beans 
+       	http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context 
+		http://www.springframework.org/schema/context/spring-context.xsd
+		http://www.springframework.org/schema/data/neo4j
+		http://www.springframework.org/schema/data/neo4j/spring-neo4j.xsd
+		http://www.springframework.org/schema/tx
+		http://www.springframework.org/schema/tx/spring-tx.xsd">
+
+	<context:spring-configured/>
+    <context:annotation-config/>
+    <context:component-scan base-package="org.springframework.data.neo4j.examples.hellograph" />
+
+    <neo4j:config storeDirectory="target/neo4j-db-aspect"
+                  base-package="org.springframework.data.neo4j.examples.hellograph.domain"/>
+    <neo4j:repositories base-package="org.springframework.data.neo4j.examples.hellograph.repositories"/>
+
+    <tx:annotation-driven mode="aspectj"/>
+</beans>
+

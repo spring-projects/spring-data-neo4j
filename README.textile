@@ -79,7 +79,7 @@ h2. Maven configuration
         <plugin>
             <groupId>org.codehaus.mojo</groupId>
             <artifactId>aspectj-maven-plugin</artifactId>
-            <version>1.0</version>
+            <version>1.4</version>
             <configuration>
                 <outxml>true</outxml>
                 <aspectLibraries>
@@ -107,12 +107,12 @@ h2. Maven configuration
                 <dependency>
                     <groupId>org.aspectj</groupId>
                     <artifactId>aspectjrt</artifactId>
-                    <version>1.6.11.RELEASE</version>
+                    <version>1.7.4</version>
                 </dependency>
                 <dependency>
                     <groupId>org.aspectj</groupId>
                     <artifactId>aspectjtools</artifactId>
-                    <version>1.6.11.RELEASE</version>
+                    <version>1.7.4</version>
                 </dependency>
             </dependencies>
         </plugin>
@@ -125,18 +125,26 @@ h2. Spring configuration
 * Configure Spring Data Neo4j for Neo4j in your application using the provided XML namespace:
 
 <pre>
-<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
-    xmlns:context="http://www.springframework.org/schema/context"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xmlns:datagraph="http://www.springframework.org/schema/data/graph"
-    xsi:schemaLocation="
-        http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
-        http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd
-        http://www.springframework.org/schema/data/graph http://www.springframework.org/schema/data/graph/datagraph-1.0.xsd
-        ">
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:neo4j="http://www.springframework.org/schema/data/neo4j"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xsi:schemaLocation="
+       	http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+		http://www.springframework.org/schema/data/neo4j http://www.springframework.org/schema/data/neo4j/spring-neo4j.xsd
+		http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd">
+
+	<context:spring-configured/>
     <context:annotation-config/>
-    <datagraph:config storeDirectory="target/config-test"/>
+    <context:component-scan base-package="org.springframework.data.neo4j.examples.hellograph" />
+
+    <neo4j:config storeDirectory="target/neo4j-db-plain"
+                  base-package="org.springframework.data.neo4j.examples.hellograph.domain"/>
+    <neo4j:repositories base-package="org.springframework.data.neo4j.examples.hellograph.repositories"/>
+
+    <tx:annotation-driven />
 </beans>
 </pre>
 
@@ -148,10 +156,12 @@ h2. Graph entities
 @NodeEntity
 public class World {
 
+    // Uses default schema based index
     @Indexed
     private String name;
 
-    @Indexed( indexName = "moons" )
+    // Uses legacy index mechanism
+    @Indexed(indexType = IndexType.SIMPLE)
     private int moons;
 
     @RelatedTo( type = "REACHABLE_BY_ROCKET", direction = Direction.BOTH, elementClass = World.class )
@@ -179,57 +189,65 @@ public class World {
 
 h2. Transactional services
 
-* Create a repository or service to perform typical operations on your entities. The FinderFactory and Finder helper classes make searching easy for common use cases. The complete functionality is covered in the "reference manual":http://static.springsource.org/spring-data/data-neo4j/docs/current/reference/html/#programming-model.
+* Create a repository or service to perform typical operations on your entities. The complete functionality is covered in the "reference manual":http://static.springsource.org/spring-data/data-neo4j/docs/current/reference/html/#programming-model.
 
 <pre>
-public interface WorldRepository extends GraphRepository<World>, NamedIndexRepository<World> {}
+public interface WorldRepository extends GraphRepository<World> {}
 
-@Repository
-public class WorldRepositoryImpl implements WorldRepositoryExtension {
+@Service
+@Transactional
+public class GalaxyService {
 
     @Autowired
     private WorldRepository worldRepository;
 
-    @Transactional
-    public Collection<World> makeSomeWorlds()  {
-        World earth = world( "Earth", 1 );
-        World mars = world( "Mars", 2 );
-        mars.addRocketRouteTo( earth );
-
-        return Arrays.asList(
-            world( "Mercury", 0 ), world( "Venus", 0 ), earth, mars,
-            world( "Jupiter", 63 ), world( "Saturn", 62 ),
-            world( "Uranus", 27 ), world( "Neptune", 13 ));
-    }
-
-    private World world(String name, int moons) {
-        return new World(name, moons).persist();
-    }
-
-    public World findWorldIdentifiedBy( long id )  {
-        return worldRepository.findById( id );
-    }
-
-    public Iterable<World> findAllWorlds()  {
-        return worldRepository.findAll();
-    }
-
-    public long countWorlds()  {
+    public long getNumberOfWorlds() {
         return worldRepository.count();
     }
 
-    public World findWorldNamed( String name ) {
-        return worldRepository.findByPropertyValue( "name", name );
+    public World createWorld(String name, int moons) {
+        return worldRepository.save(new World(name, moons));
     }
 
-    public World findWorldWithMoons( long moonCount ) {
-        return worldRepository.findByPropertyValue( "moons", "moons", moonCount );
+    public Iterable<World> getAllWorlds() {
+        return worldRepository.findAll();
     }
 
-    public Iterable<World> findWorldsWithMoons( int moonCount )  {
-        return worldRepository.findAllByPropertyValue( "moons", "moons", moonCount );
+    public World findWorldById(Long id) {
+        return worldRepository.findOne(id);
     }
+
+    // This is using the schema based index
+    public World findWorldByName(String name) {
+        return worldRepository.findBySchemaPropertyValue("name", name);
+    }
+
+    // This is using the legacy index
+    public Iterable<World> findAllByNumberOfMoons(int numberOfMoons) {
+        return worldRepository.findAllByPropertyValue("moons", numberOfMoons);
+    }
+
+    public Collection<World> makeSomeWorlds() {
+        Collection<World> worlds = new ArrayList<World>();
+
+        // Solar worlds
+        worlds.add(createWorld("Mercury", 0));
+        worlds.add(createWorld("Venus", 0));
+
+        World earth = createWorld("Earth", 1);
+        World mars = createWorld("Mars", 2);
+        mars.addRocketRouteTo(earth);
+        worldRepository.save(mars);
+        worlds.add(earth);
+        worlds.add(mars);
+
+        // ... Create more worlds
+
+        return worlds;
+    }
+
 }
+
 </pre>
 
 

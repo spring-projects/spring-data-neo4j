@@ -1,11 +1,9 @@
-package org.springframework.data.neo4j.examples.hellograph;
+package org.springframework.data.neo4j.examples.hellograph.domain;
 
 import org.neo4j.graphdb.Direction;
-import org.springframework.data.neo4j.annotation.Fetch;
-import org.springframework.data.neo4j.annotation.GraphId;
-import org.springframework.data.neo4j.annotation.Indexed;
-import org.springframework.data.neo4j.annotation.NodeEntity;
-import org.springframework.data.neo4j.annotation.RelatedTo;
+import org.springframework.data.neo4j.annotation.*;
+import org.springframework.data.neo4j.support.index.IndexType;
+
 import java.util.Set;
 
 @NodeEntity
@@ -14,11 +12,13 @@ public class World {
 	
     @GraphId
     private Long id;
-    
+
+    // Uses default schema based index
     @Indexed
     private String name;
 
-    @Indexed(indexName = "moon-index")
+    // Uses legacy index mechanism
+    @Indexed(indexType = IndexType.SIMPLE)
     private int moons;
 
     @Fetch

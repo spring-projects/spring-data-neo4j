@@ -4,21 +4,13 @@
     <title>Entity type representation</title>
     <para>
         There are several ways to represent the Java type hierarchy of the data model in the graph. In general, for all
-        node and relationship entities, type information is needed to perform certain repository operations. Some of
-        this type information hierarchy is saved in the graph database.
-    </para>
-    <para>
-        As the type information is also stored in labels, node/relationship-properties and/or indexes it might amount to a substantial
-        amount of data in the graph. It is possible to use an <code>@TypeAlias("name")</code> annotation on nodes and relationships to have a
-        short constant name for each type which is (unlike the default approach) renaming-refactoring-safe.
-        Other than in previous versions, Spring Data Neo4j uses the simple class name as default.
-        For using the fully qualified class name by default, register a <code>Neo4jMappingContext</code> bean configured with an
-        instance of <code>org.springframework.data.neo4j.support.mapping.ClassNameAlias</code>.
-        It is also possible to opt out of storing type information using the <code>NoopTypeRepresentationStrategies</code>.
+        node and relationship entities, type information is needed to perform certain repository operations (such as findAll()).
+        This means that some of the type information hierarchy needs to be saved in the graph database, and SDN
+        makes use of "Type Representation Strategies" in order to achieve this.
     </para>
     <para>
         Implementations of <code>TypeRepresentationStrategy</code> take care of persisting this information during entity instance
-        creation. They also provide the repository methods that use this type information to perform their operations,
+        creation. They are also used by certain repository methods to perform their operations,
         like <code>findAll</code> and <code>count</code>. The derived finderMethods also use the type information for graph global queries.
     </para>
     <para>
@@ -89,8 +81,70 @@
         </itemizedlist>
     </para>
     <para>
+        In order to use a different Type Representation Strategy, simply register an alternative "typeRepresentationStrategyFactory"
+        spring bean specifying the strategy required. For example to use the legacy indexing strategy for nodes you could define
+        the following override bean.
+        <example>
+        <title>XML-based configuration</title>
+        <programlisting language="xml"><![CDATA[
+<bean id="typeRepresentationStrategyFactory" class="org.springframework.data.neo4j.support.typerepresentation.TypeRepresentationStrategyFactory">
+    <constructor-arg ref="graphDatabase"/>
+    <constructor-arg value="Indexed"/>
+</bean>
+        ]]></programlisting>
+        </example>
+        Whilst in Java Config this may look as follows:
+        <example>
+        <title>Java-based  configuration</title>
+        <programlisting language="java"><![CDATA[
+@Configuration
+@EnableNeo4jRepositories(basePackages = "org.example.repositories")
+static class Config extends Neo4jConfiguration {
+
+    Config() {
+        // Equivalent of setting basePackage for XML based <neo4j:config base-package=".."/>
+        // (This will probably move into an/the @EnableNeo4jRepositories in the future)
+        setBasePackage("org.example.domain");
+    }
+
+    @Override
+    public TypeRepresentationStrategyFactory typeRepresentationStrategyFactory() {
+        return new TypeRepresentationStrategyFactory(
+                    graphDatabase(),
+                    TypeRepresentationStrategyFactory.Strategy.Indexed);
+    }
+
+    ...
+
+}
+        ]]></programlisting>
+        </example>
+    </para>
+    <para>
+        As some type information is also stored in labels, node/relationship-properties and/or indexes it might amount to a substantial
+        amount of data in the graph. It is possible to use an <code>@TypeAlias("name")</code> annotation on nodes and relationships to have a
+        short constant name for each type which is (unlike the default approach) renaming-refactoring-safe.
+        From 3.0 onwards, Spring Data Neo4j uses the simple class name as the default whilst previous versions used to default to the fully qualified name.
+        If you would like to use the fully qualified class name by default, you can
+        <itemizedlist>
+            <listitem>
+                <para>
+                    Register a <code>Neo4jMappingContext</code> bean configured with an instance of <code>org.springframework.data.neo4j.support.mapping.ClassNameAlias</code>
+                </para>
+            </listitem>
+            <listitem>
+                <para>
+                    Override the spring "entityAlias" bean with an instance of <code>org.springframework.data.neo4j.support.mapping.ClassNameAlias</code>. For example, using XML config this would look as follows:
+                    <programlisting language="xml"><![CDATA[<bean id="entityAlias" class="org.springframework.data.neo4j.support.mapping.ClassNameAlias" />]]></programlisting>
+                </para>
+            </listitem>
+        </itemizedlist>
+        It is also possible to opt out of storing type information completely by using the <code>NoopTypeRepresentationStrategies</code>.
+    </para>
+    <para>
         Spring Data Neo4j will by default autodetect which are the most suitable strategies for node and relationship
-        entities. For new data stores, it will always opt for the indexing strategies. If a data store was created
+        entities. For new data stores, it will always opt for the indexing strategies (Label based for nodes, and legacy
+        index based for relationships). If a data store was created
         with the older<code>SubReferenceNodeTypeRepresentationStrategy</code>, then it will continue to use that
         strategy for node entities. It will however in that case use the no-op strategy for relationship entities,
         which means that the old data stores have no support for searching for relationship entities. The indexing
