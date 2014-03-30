@@ -17,6 +17,10 @@ package org.springframework.data.neo4j.rest;
 
 import org.neo4j.helpers.collection.IteratorUtil;
 import org.neo4j.rest.graphdb.util.ConvertedResult;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.data.neo4j.conversion.ContainerConverter;
 import org.springframework.data.neo4j.conversion.EndResult;
 
@@ -52,6 +56,16 @@ class SpringEndResult<R> implements EndResult<R> {
     @Override
     public <C extends Iterable<R>> C as(Class<C> container) {
         return ContainerConverter.toContainer(container,this);
+    }
+
+    @Override
+    public Slice<R> slice(int page, int pageSize) {
+        return slice(new PageRequest(page,pageSize));
+    }
+
+    @Override
+    public Slice<R> slice(Pageable page) {
+        return ContainerConverter.slice(this, page);
     }
 
     @Override

@@ -23,10 +23,7 @@ import org.neo4j.graphdb.index.IndexHits;
 import org.neo4j.graphdb.index.ReadableIndex;
 import org.neo4j.helpers.collection.ClosableIterable;
 import org.springframework.dao.DataRetrievalFailureException;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.*;
 import org.springframework.data.neo4j.conversion.EndResult;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentEntity;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
@@ -373,6 +370,13 @@ public abstract class AbstractGraphRepository<S extends PropertyContainer, T> im
         int total=subList(offset, count, iterator, result);
         if (iterator.hasNext()) total++;
         return new PageImpl<T>(result, pageable, total);
+    }
+
+    private SliceImpl<T> extractSlice(Pageable pageable, int count, int offset, Iterator<T> iterator) {
+        final List<T> result = new ArrayList<T>(count);
+        int total=subList(offset, count, iterator, result);
+        boolean hasNext = iterator.hasNext();
+        return new SliceImpl<>(result, pageable, hasNext);
     }
 
     private int subList(int skip, int limit, Iterator<T> source, final List<T> list) {

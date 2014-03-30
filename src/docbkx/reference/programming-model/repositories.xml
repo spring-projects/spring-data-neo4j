@@ -49,9 +49,8 @@
                 <varlistentry>
                     <term>Iterate over all nodes of a node entity type</term>
                     <listitem><para><code>EndResult&lt;T&gt; findAll()</code>
-                        (supported in future versions:
                         <code>EndResult&lt;T&gt; findAll(Sort)</code> and
-                        <code>Page&lt;T&gt; findAll(Pageable)</code>)</para></listitem>
+                        <code>Page&lt;T&gt; findAll(Pageable)</code></para></listitem>
                 </varlistentry>
                 <varlistentry>
                     <term>Count the instances of the repository entity type</term>
@@ -125,7 +124,7 @@
             will use the supplied query string. The named or indexed parameter <code>{node}</code> will be substituted by the actual method parameter.
             Node and Relationship-Entities are handled directly, Iterables thereof as well. All other parameters are
             replaced directly (i.e. Strings, Longs, etc). There is special support for the <code>Sort</code> and <code>Pageable</code>
-            parameters from Spring Data Commons, which are supported to add programmatic paging and sorting (alternatively
+            parameters from Spring Data Commons, which are supported to add programmatic paging, slicing and sorting (alternatively
             static paging and sorting can be supplied in the query string itself).
 
             For using the named parameters you have to either annotate the parameters of the method with the
@@ -133,7 +132,7 @@
         </para>
         <para>
             If it is required that paged results return the correct total count, the <code>@Query</code> annotation can be supplied with a count query in the <code>countQuery</code>
-            attribute. This query is executed separately after the result query and its result is used to populate the <code>totalCount</code> property of the returned Page. 
+            attribute. This query is executed separately after the result query and its result is used to populate the <code>totalCount</code> property of the returned <code>Page</code>.
         </para>
         </section>
 
@@ -148,7 +147,7 @@
         </section>
         <section>
             <title>Query results</title>
-            <para>Typical results for queries are <code>Iterable&lt;Type&gt;, Iterable&lt;Map&lt;String,Object&gt;&gt;, Type and Page&lt;Type&gt;</code>.
+            <para>Typical results for queries are <code>Iterable&lt;Type&gt;, Iterable&lt;Map&lt;String,Object&gt;&gt;, Type, Slice&lt;Type&gt; and Page&lt;Type&gt;</code>.
                 Nodes and Relationships are converted to their respective Entities (if they exist). Other values are converted
                 using the registered Spring conversion services (e.g. enums).
             </para>

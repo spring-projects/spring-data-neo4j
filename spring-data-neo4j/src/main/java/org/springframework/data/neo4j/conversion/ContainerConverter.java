@@ -16,8 +16,7 @@
 package org.springframework.data.neo4j.conversion;
 
 import org.neo4j.helpers.collection.IteratorUtil;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.*;
 
 import java.util.*;
 
@@ -35,6 +34,19 @@ public class ContainerConverter {
         if (Page.class.isAssignableFrom(container)) {
             return (C) new PageImpl<T>(list);
         }
+        if (Slice.class.isAssignableFrom(container)) {
+            return (C) new SliceImpl<T>(list);
+        }
         return (C) list;
+    }
+
+    public static <T> Slice<T> slice(Iterable<T> data, Pageable page) {
+        int offset = page.getOffset();
+        Iterator<T> it = data.iterator();
+        while (it.hasNext() && offset > 0) { it.next(); offset--; }
+        int pageSize = page.getPageSize();
+        List<T> result = new ArrayList<>(pageSize);
+        while (it.hasNext() && pageSize > 0) { result.add(it.next()); pageSize--; }
+        return new SliceImpl<T>(result,page,it.hasNext());
     }
 }

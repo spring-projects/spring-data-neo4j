@@ -20,6 +20,9 @@ import org.neo4j.graphdb.index.IndexHits;
 import org.neo4j.helpers.collection.ClosableIterable;
 import org.neo4j.helpers.collection.IteratorUtil;
 import org.neo4j.helpers.collection.IteratorWrapper;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.data.neo4j.mapping.MappingPolicy;
 
 import java.util.Arrays;
@@ -129,6 +132,16 @@ public class QueryResultBuilder<T> implements Result<T> {
             }
 
             @Override
+            public Slice<R> slice(Pageable page) {
+                return ContainerConverter.slice(this,page);
+            }
+
+            @Override
+            public Slice<R> slice(int page, int size) {
+                return ContainerConverter.slice(this,new PageRequest(page,size));
+            }
+
+            @Override
             public void finish()
             {
                 closeIfNeeded();
@@ -140,6 +153,16 @@ public class QueryResultBuilder<T> implements Result<T> {
     @Override
     public <C extends Iterable<T>> C as(Class<C> container) {
         return ContainerConverter.toContainer(container, this);
+    }
+
+    @Override
+    public Slice<T> slice(Pageable page) {
+        return ContainerConverter.slice(this,page);
+    }
+
+    @Override
+    public Slice<T> slice(int page, int size) {
+        return slice(new PageRequest(page,size));
     }
 
     @Override

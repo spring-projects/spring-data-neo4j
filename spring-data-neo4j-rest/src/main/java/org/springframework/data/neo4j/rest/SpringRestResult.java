@@ -17,6 +17,10 @@ package org.springframework.data.neo4j.rest;
 
 import org.neo4j.rest.graphdb.util.ConvertedResult;
 import org.neo4j.rest.graphdb.util.ResultConverter;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
+import org.springframework.data.neo4j.conversion.ContainerConverter;
 import org.springframework.data.neo4j.conversion.EndResult;
 import org.springframework.data.neo4j.conversion.Result;
 import org.springframework.data.neo4j.mapping.MappingPolicy;
@@ -51,6 +55,16 @@ class SpringRestResult<T> implements Result<T> {
 
     public void handle(org.springframework.data.neo4j.conversion.Handler<T> handler) {
         queryResult.handle(new SpringHandler<T>(handler));
+    }
+
+    @Override
+    public Slice<T> slice(int page, int pageSize) {
+        return slice(new PageRequest(page,pageSize));
+    }
+
+    @Override
+    public Slice<T> slice(Pageable page) {
+        return ContainerConverter.slice( queryResult, page );
     }
 
     @Override

@@ -45,7 +45,7 @@ class CypherGraphRepositoryQuery extends GraphRepositoryQuery {
         if (pageable==null) {
             return baseQuery;
         }
-        return baseQuery + " skip "+pageable.getOffset() + " limit " + pageable.getPageSize();
+        return baseQuery + " skip "+pageable.getOffset() + " limit " + pageable.getPageSize() + 1 ;
     }
 
     private String addSorting(String baseQuery, Sort sort) {

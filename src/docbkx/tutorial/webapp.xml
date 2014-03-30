@@ -85,28 +85,9 @@ public String singleMovieView(final Model model, @PathVariable String movieId) {
 <programlisting language="java"><![CDATA[public interface MovieRepository ... {
     Movie findById(String id);
     Page<Movie> findByTitleLike(String title, Pageable page);
+    Slice<Movie> findAll(Pageable page);
 }
 ]]></programlisting>
-                <!-- MOVE TO REFERENCE programlisting language="java"><![CDATA[public class CineastRepository {
-    Page<Movie> findByTitle(String title, PageRequest page);
-    ....
-    public void List<Movie> findMovies(String query, int count) {
-        List<Movie> movies=new ArrayList<Movie>(count);
-        ClosableIterable<Movie> searchResults = movieRepository.findAllByQuery("title", query);
-        for (Movie movie : searchResults) {
-            movies.add(movie);
-            if (count- - == 0) break;
-        }
-        searchResults.close();
-        return movies;
-    }
-}
-
-The corresponding
-            repository method is called <code>findAllByQuery</code>. To restrict the size of the returned set we simply
-            added a limit that truncates the result.
-
-]]></programlisting-->
             </example>
         </para>
     </section>

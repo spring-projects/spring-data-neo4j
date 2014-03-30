@@ -1,6 +1,14 @@
 Spring Data Neo4j Changelog
 ===========================
 
+Changes in version 3.1.0.M1 (2014-03-31)
+----------------------------------------
+* DATAGRAPH-440 Add support for Slice API
+* DATAGRAPH-451 RelationshipEntities will be validated when manipulated
+* DATAGRAPH-450 Updated example code
+* DATAGRAPH-449 Updated docs for 3.x
+* DATAGRAPH-452 - Adapted to changes in BeanWrapper generics.
+
 Changes in version 3.0.1.RELEASE (2014-03-13)
 ---------------------------------------------
 * DATAGRAPH-433 - Unique Creation of label based entities

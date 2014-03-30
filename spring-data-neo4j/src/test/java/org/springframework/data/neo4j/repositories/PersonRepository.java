@@ -18,6 +18,7 @@ package org.springframework.data.neo4j.repositories;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.neo4j.annotation.Query;
 import org.springframework.data.neo4j.annotation.QueryResult;
@@ -77,6 +78,9 @@ public interface PersonRepository extends GraphRepository<Person>, NamedIndexRep
 
     @Query("match (team)-[:persons]->(member) where id(team) = {p_team} return member")
     Page<Person> findAllTeamMembersPaged(@Param("p_team") Group team, Pageable page);
+
+    @Query("match (team)-[:persons]->(member) where id(team) = {p_team} return member")
+    Slice<Person> findAllTeamMembersSliced(@Param("p_team") Group team, Pageable page);
 
     @Query("match (team)-[:persons]->(member) where id(team) = {p_team} return member")
     Iterable<Person> findAllTeamMembersSorted(@Param("p_team") Group team, Sort sort);

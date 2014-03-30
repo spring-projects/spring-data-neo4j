@@ -16,6 +16,9 @@
 
 package org.springframework.data.neo4j.conversion;
 
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
+
 /**
 * @author mh
 * @since 28.06.11
@@ -25,5 +28,7 @@ public interface EndResult<R> extends Iterable<R> {
     R singleOrNull();
     void handle(Handler<R> handler);
     <C extends Iterable<R>> C as(Class<C> container);
+    Slice<R> slice(int page, int pageSize);
+    Slice<R> slice(Pageable page);
     void finish();
 }

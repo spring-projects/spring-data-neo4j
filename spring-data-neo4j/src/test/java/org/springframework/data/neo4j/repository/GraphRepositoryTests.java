@@ -28,6 +28,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.neo4j.model.*;
 import org.springframework.data.neo4j.repositories.*;
@@ -293,6 +294,30 @@ public class GraphRepositoryTests {
         final PageRequest page = new PageRequest(0, 1, Sort.Direction.ASC, "member.name","member.age");
         Page<Person> teamMemberPage1 = personRepository.findAllTeamMembersPaged(testTeam.sdg, page);
         assertThat(teamMemberPage1, hasItem(testTeam.david));
+    }
+
+    @Test @Transactional
+    public void testFindSliced() {
+        final PageRequest page = new PageRequest(0, 1, Sort.Direction.ASC, "member.name","member.age");
+        Slice<Person> teamMemberSlice = personRepository.findAllTeamMembersSliced(testTeam.sdg, page);
+        assertThat(teamMemberSlice, hasItem(testTeam.david));
+        assertThat(teamMemberSlice.hasNext(),is(true));
+    }
+
+    @Test @Transactional
+    public void testFindSlicedLastPage() {
+        final PageRequest page = new PageRequest(2, 1, Sort.Direction.ASC, "member.name","member.age");
+        Slice<Person> teamMemberSlice = personRepository.findAllTeamMembersSliced(testTeam.sdg, page);
+        assertThat(teamMemberSlice, hasItem(testTeam.michael));
+        assertThat(teamMemberSlice.hasNext(),is(false));
+    }
+
+    @Test @Transactional
+    public void testFindSlicedLastAll() {
+        final PageRequest page = new PageRequest(0, 3, Sort.Direction.ASC, "member.name","member.age");
+        Slice<Person> teamMemberSlice = personRepository.findAllTeamMembersSliced(testTeam.sdg, page);
+        assertThat(teamMemberSlice, hasItems(testTeam.david, testTeam.emil, testTeam.michael));
+        assertThat(teamMemberSlice.hasNext(), is(false));
     }
 
     @Test @Transactional 

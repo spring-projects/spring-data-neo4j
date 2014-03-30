@@ -17,16 +17,20 @@ package org.springframework.data.neo4j.conversion;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Slice;
 import org.springframework.data.neo4j.annotation.MapResult;
 import org.springframework.data.neo4j.support.conversion.EntityResultConverter;
 
-import java.util.Collections;
-import java.util.Map;
+import java.util.*;
 
 import static java.util.Arrays.asList;
+import static org.hamcrest.CoreMatchers.hasItems;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
+import static org.neo4j.helpers.collection.MapUtil.map;
 import static org.springframework.data.neo4j.conversion.QueryResultBuilder.from;
 
 /**
@@ -69,7 +73,19 @@ public class QueryResultBuilderTests {
 
     @Test
     public void testAs() throws Exception {
+        Map<String, Object> value1 = map("key", 1);
+        Map<String, Object> value2 = map("key", 2);
+        QueryResultBuilder<Map<String,Object>> builder = new QueryResultBuilder<Map<String,Object>>(Arrays.asList(value1, value2));
+        List<Map<String,Object>> list = builder.as(List.class);
+        assertEquals(2,list.size());
+        assertThat(list,hasItems(value1,value2));
+        Page<Map<String,Object>> page = builder.as(Page.class);
+        assertEquals(2,page.getNumberOfElements());
+        assertThat(page,hasItems(value1,value2));
 
+        Slice<Map<String,Object>> slice = builder.as(Slice.class);
+        assertEquals(2,slice.getNumberOfElements());
+        assertThat(page,hasItems(value1,value2));
     }
 
     @Test
