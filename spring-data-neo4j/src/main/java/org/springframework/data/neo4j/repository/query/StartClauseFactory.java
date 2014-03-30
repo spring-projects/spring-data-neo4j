@@ -66,9 +66,14 @@ public class StartClauseFactory {
      */
     public static StartClause create(PartInfo partInfo) {
         if (partInfo.isIndexed()) {
-            return (partInfo.isFullText() || isTextualSearchLikePart(partInfo))
-                ? new FullTextIndexBasedStartClause(partInfo)
-                : new ExactIndexBasedStartClause(partInfo);
+            if (partInfo.isSpatial()) {
+                // todo check for parameter types
+                if (isSpatialSearchLikePart(partInfo)) return new SpatialIndexStartClause(partInfo);
+            } else {
+                if (partInfo.isFullText() || isTextualSearchLikePart(partInfo))
+                    return new FullTextIndexBasedStartClause(partInfo);
+                return new ExactIndexBasedStartClause(partInfo);
+            }
         }
 
         Neo4jPersistentProperty leafProperty = partInfo.getLeafProperty();
@@ -79,6 +84,9 @@ public class StartClauseFactory {
         throw new IllegalArgumentException("Cannot determine an appropriate Start Clause for partInfo=" + partInfo );
     }
 
+    private static boolean isSpatialSearchLikePart(PartInfo partInfo) {
+        return EnumSet.of(Part.Type.NEAR,Part.Type.SIMPLE_PROPERTY,Part.Type.WITHIN).contains(partInfo.getType());
+    }
     private static boolean isTextualSearchLikePart(PartInfo partInfo) {
         return EnumSet.of(Part.Type.LIKE,Part.Type.STARTING_WITH,Part.Type.CONTAINING,Part.Type.ENDING_WITH).contains(partInfo.getType());
     }

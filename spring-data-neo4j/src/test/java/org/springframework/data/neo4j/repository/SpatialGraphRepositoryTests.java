@@ -23,7 +23,9 @@ import org.junit.runner.RunWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.geo.*;
 import org.springframework.data.neo4j.model.Person;
+import org.springframework.data.neo4j.model.Personality;
 import org.springframework.data.neo4j.repositories.FriendshipRepository;
 import org.springframework.data.neo4j.repositories.GroupRepository;
 import org.springframework.data.neo4j.repositories.PersonRepository;
@@ -92,15 +94,56 @@ public class SpatialGraphRepositoryTests {
     }
 
     @Test
+    public void testFindPeopleWithinBoundingBoxShape() {
+        Iterable<Person> teamMembers = personRepository.findWithinBoundingBox("personLayer", new Box(new Point(15, 55), new Point(17, 57)));
+        assertThat(asCollection(teamMembers), hasItems(testTeam.michael, testTeam.david));
+    }
+
+    @Test
+    public void testFindPeopleWithinBoundingBoxShapeDerived() {
+        Iterable<Person> teamMembers = personRepository.findByWktWithin(new Box(new Point(15, 55), new Point(17, 57)));
+        assertThat(asCollection(teamMembers), hasItems(testTeam.michael, testTeam.david));
+    }
+
+    @Test
     public void testFindPeopleWithinPolygon() {
         Iterable<Person> teamMembers = personRepository.findWithinWellKnownText("personLayer", "POLYGON ((15 55, 15 57, 17 57, 17 55, 15 55))");
         assertThat(asCollection(teamMembers), hasItems(testTeam.michael, testTeam.david));
     }
 
     @Test
-    public void testFindPeopleWithinDistance() {
-        Iterable<Person> teamMembers = personRepository.findWithinDistance("personLayer", 16,56,70);
+    public void testFindPeopleWithinPolygonShape() {
+        Iterable<Person> teamMembers = personRepository.findWithinShape("personLayer", new Polygon(new Point(15,55),new Point(15,57), new Point(17,57),new Point(17,55)));
         assertThat(asCollection(teamMembers), hasItems(testTeam.michael, testTeam.david));
+    }
+
+    @Test
+    public void testFindPeopleWithinPolygonShapeDerived() {
+        Iterable<Person> teamMembers = personRepository.findByWktWithinAndPersonality(new Polygon(new Point(15, 55), new Point(15, 57), new Point(17, 57), new Point(17, 55)), Personality.EXTROVERT);
+        assertThat(asCollection(teamMembers), hasItems(testTeam.michael));
+    }
+
+    @Test
+    public void testFindPeopleWithinDistance() {
+        Iterable<Person> teamMembers = personRepository.findWithinDistance("personLayer", 56,16,70);
+        assertThat(asCollection(teamMembers), hasItems(testTeam.michael, testTeam.david));
+    }
+
+    @Test
+    public void testFindPeopleWithinCircle() {
+        Iterable<Person> teamMembers = personRepository.findWithinDistance("personLayer", new Circle(new Point(16,56),new Distance(70, Metrics.KILOMETERS)));
+        assertThat(asCollection(teamMembers), hasItems(testTeam.michael, testTeam.david));
+    }
+
+    @Test
+    public void testFindPeopleNearCircleDerived() {
+        Iterable<Person> teamMembers = personRepository.findByWktNearAndName(new Circle(new Point(16,56),new Distance(70, Metrics.KILOMETERS)),"David");
+        assertThat(asCollection(teamMembers), contains(testTeam.david));
+    }
+    @Test
+    public void testFindPeopleWithinCircleDerived() {
+        Iterable<Person> teamMembers = personRepository.findByWktWithinAndAgeGreaterThan(new Circle(new Point(16, 56), new Distance(70, Metrics.KILOMETERS)),30);
+        assertThat(asCollection(teamMembers), contains(testTeam.michael));
     }
 
     @Test

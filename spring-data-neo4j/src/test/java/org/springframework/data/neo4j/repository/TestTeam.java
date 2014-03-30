@@ -44,7 +44,7 @@ public class TestTeam {
         michael = new Person("Michael", 36);
         michael.setBoss(emil);
         michael.setPersonality(Personality.EXTROVERT);
-        michael.setLocation( "POINT(16 56)" );
+        michael.setLocation( 16, 56 );
         michael.setAlias("michaelAlias");
 
         david = new Person("David", 25);

@@ -8,6 +8,10 @@
 	 for GIS operations. So if you include the maven dependency in your <code>pom.xml</code>, Neo4j-Spatial and
      the required <code>SPATIAL</code> index provider is available.
 	</para>
+    <para>
+    Spring Data Neo4j integrates with the common geo-spatial types in Spring Data Commons, like <code>Circle, Box, Polygon and Point</code>. You can use them as parameters
+    for repository finder methods and property values. We also provide converters between WKT and <code>Shape</code>/<code>Point</code> objects.
+    </para>
 	<para>
 		<example>
 			<title>Neo4j-Spatial Dependencies</title>
@@ -15,7 +19,7 @@
 <dependency>
     <groupId>org.neo4j</groupId>
     <artifactId>neo4j-spatial</artifactId>
-    <version>0.7-SNAPSHOT</version>
+    <version>0.13-neo4j-2.0.1</version>
 </dependency>
 ]]></programlisting>
 </example>
@@ -25,6 +29,10 @@
 	 a "well known text", location string.
 	 WKT is the <ulink url="http://en.wikipedia.org/wiki/Well-known_text">Well Known Text Spatial Format</ulink>
 	 eg. <code>POINT( LON LAT ) or POLYGON (( LON1 LAT1 LON2 LAT2 LON3 LAT3 LON1 LAT1 ))</code>        
+</para>
+<para>
+     Alternatively you can also use one of the geo-spatial primitives from Spring Data Commons which are automatically converted to WKT
+     when stored in the graph.
 </para>
 <para>
 	<example>
@@ -39,20 +47,39 @@ class Venue {
    }
 }
 
-venue.setLocation(56,15);
+venue.setLocation(15,56);
+]]></programlisting>
+</example>
+</para>
+<para>
+	<example>
+		<title>Field of Point</title>
+<programlisting language="java"><![CDATA[
+@NodeEntity
+class Venue {
+   String name;
+   @Indexed(type = POINT, indexName = "VenueLocation") Point wkt;
+}
+
+venue.setLocation(new Point(15,56));
 ]]></programlisting>
 </example>
 </para>
 <para>
    After adding the <code>SpatialRepository</code> to your repository you can use the 
-   <code>findWithinBoundingBox, findWithinDistance, findWithinWellKnownText</code>.
+   <code>findWithinBoundingBox, findWithinDistance, findWithinWellKnownText, findWithinShape</code> methods.
+   We recommend to use the methods using the geospatial primitives as they are more typesafe and less error-prone in mixing the coordinate order.
 </para>
 <para>
 		<example>
 			<title>Spatial Queries</title>
-	<programlisting language="java"><![CDATA[    Iterable<Person> teamMembers = personRepository.findWithinBoundingBox("personLayer", 55, 15, 57, 17);
+	<programlisting language="java"><![CDATA[
+Iterable<Person> teamMembers = personRepository.findWithinBoundingBox("personLayer", 55, 15, 57, 17);
+Iterable<Person> teamMembers = personRepository.findWithinBoundingBox("personLayer", new Box(new Point(15,55), new Point(17,57));
 Iterable<Person> teamMembers = personRepository.findWithinWellKnownText("personLayer", "POLYGON ((15 55, 15 57, 17 57, 17 55, 15 55))");
+Iterable<Person> teamMembers = personRepository.findWithinShape("personLayer", new Polygon(new Point(15,55),new Point(15,57), new Point(17,57),new Point(17,55)));
 Iterable<Person> teamMembers = personRepository.findWithinDistance("personLayer", 16,56,70);
+Iterable<Person> teamMembers = personRepository.findWithinDistance("personLayer", new Circle(new Point(16,56),new Distance(70, Metrics.KILOMETERS)));
 ]]></programlisting>
 	</example>
 	</para>
@@ -60,14 +87,41 @@ Iterable<Person> teamMembers = personRepository.findWithinDistance("personLayer"
 		<example>
 			<title>Methods of the Spatial Repository</title>
 	<programlisting language="java"><![CDATA[public interface SpatialRepository<T> {
-    ClosableIterable<T> findWithinBoundingBox(String indexName, double lowerLeftLat,
+    @Transactional
+    EndResult<T> findWithinBoundingBox(String indexName, double lowerLeftLat,
                                               double lowerLeftLon,
                                               double upperRightLat,
                                               double upperRightLon);
 
-    ClosableIterable<T> findWithinDistance( final String indexName, final double lat, double lon, double distanceKm);
+    @Transactional
+    EndResult<T> findWithinBoundingBox(String indexName, Box box);
 
-    ClosableIterable<T> findWithinWellKnownText( final String indexName, String wellKnownText);
+    @Transactional
+    EndResult<T> findWithinDistance( final String indexName, final double lat, double lon, double distanceKm);
+
+    @Transactional
+    EndResult<T> findWithinDistance( final String indexName, Circle circle);
+
+    @Transactional
+    EndResult<T> findWithinWellKnownText( final String indexName, String wellKnownText);
+
+    /**
+     * Converts the shape into a well-known text representation and executes the appropriate WKT query
+     */
+    @Transactional
+    EndResult<T> findWithinShape( final String indexName, Shape shape);
+}
+]]></programlisting>
+</example>
+</para>
+<para>
+		<example>
+			<title>Derived Spatial Finder Methods</title>
+	<programlisting language="java"><![CDATA[public interface PersonRepository extends GraphRepository<Person>, SpatialRepository<Person> {
+    Collection<Person> findByWktNearAndName(Circle circle, String name);
+    Collection<Person> findByWktWithinAndAgeGreaterThan(Circle circle, int age);
+    Collection<Person> findByWktWithinAndPersonality(Polygon polygon, Personality personality);
+    Collection<Person> findByWktWithin(Box box);
 }
 ]]></programlisting>
 </example>

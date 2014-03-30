@@ -23,6 +23,9 @@ import org.springframework.core.convert.converter.ConverterFactory;
 import org.springframework.core.convert.converter.ConverterRegistry;
 import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.core.convert.support.GenericConversionService;
+import org.springframework.data.geo.Point;
+import org.springframework.data.geo.Shape;
+import org.springframework.data.neo4j.repository.GeoConverter;
 
 import java.util.Date;
 
@@ -44,6 +47,10 @@ public class Neo4jConversionServiceFactoryBean implements FactoryBean<Conversion
             registry.addConverter(new StringToDateConverter());
             registry.addConverter(new NumberToDateConverter());
             registry.addConverter(new EnumToStringConverter());
+            registry.addConverter(new ShapeToStringConverter());
+            registry.addConverter(new StringToShapeConverter());
+            registry.addConverter(new PointToStringConverter());
+            registry.addConverter(new StringToPointConverter());
             registry.addConverterFactory(new StringToEnumConverterFactory());
         } else {
             throw new IllegalArgumentException("conversionservice is no ConverterRegistry:" + service);
@@ -96,6 +103,37 @@ public class Neo4jConversionServiceFactoryBean implements FactoryBean<Conversion
         @Override
         public String convert(Enum source) {
             return source.name();
+        }
+    }
+
+    public static class ShapeToStringConverter implements Converter<Shape, String> {
+
+        @Override
+        public String convert(Shape source) {
+            return GeoConverter.toWellKnownText(source);
+        }
+    }
+    public static class PointToStringConverter implements Converter<Point, String> {
+
+        @Override
+        public String convert(Point source) {
+            return GeoConverter.toWellKnownText(source);
+        }
+    }
+
+    public static class StringToShapeConverter implements Converter<String, Shape> {
+
+        @Override
+        public Shape convert(String source) {
+            return GeoConverter.fromWellKnownText(source);
+        }
+    }
+
+    public static class StringToPointConverter implements Converter<String, Point> {
+
+        @Override
+        public Point convert(String source) {
+            return GeoConverter.pointFromWellKnownText(source);
         }
     }
 

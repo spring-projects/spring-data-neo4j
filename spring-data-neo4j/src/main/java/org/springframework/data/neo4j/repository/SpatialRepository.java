@@ -16,8 +16,12 @@
 
 package org.springframework.data.neo4j.repository;
 
+import org.springframework.data.geo.*;
+import org.springframework.data.geo.Shape;
 import org.springframework.data.neo4j.conversion.EndResult;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.awt.*;
 
 /**
  * Repository for spatial queries.
@@ -37,9 +41,21 @@ public interface SpatialRepository<T> {
                                               double upperRightLon);
 
     @Transactional
+    EndResult<T> findWithinBoundingBox(String indexName, Box box);
+
+    @Transactional
     EndResult<T> findWithinDistance( final String indexName, final double lat, double lon, double distanceKm);
 
     @Transactional
+    EndResult<T> findWithinDistance( final String indexName, Circle circle);
+
+    @Transactional
     EndResult<T> findWithinWellKnownText( final String indexName, String wellKnownText);
+
+    /**
+     * Converts the shape into a well-known text representation and executes the appropriate WKT query
+     */
+    @Transactional
+    EndResult<T> findWithinShape( final String indexName, Shape shape);
 }
 

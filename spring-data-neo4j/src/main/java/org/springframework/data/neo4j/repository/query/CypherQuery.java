@@ -128,10 +128,8 @@ public class CypherQuery implements CypherQueryDefinition {
     }
 
     private boolean addedStartClause(PartInfo partInfo) {
-        boolean invalidStartClauseScenario1 = !partInfo.isIndexed();
-        boolean invalidStartClauseScenario2 = partInfo.isIndexed() && partInfo.isLabelIndexed();
 
-        if (invalidStartClauseScenario1 || invalidStartClauseScenario2 ) return false;
+        if (!partInfo.isIndexed() || partInfo.isLabelIndexed()) return false;
 
         ListIterator<StartClause> it = startClauses.listIterator();
         while (it.hasNext()) {

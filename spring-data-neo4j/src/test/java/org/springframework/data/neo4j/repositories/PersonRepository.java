@@ -20,12 +20,16 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.geo.Box;
+import org.springframework.data.geo.Circle;
+import org.springframework.data.geo.Polygon;
 import org.springframework.data.neo4j.annotation.Query;
 import org.springframework.data.neo4j.annotation.QueryResult;
 import org.springframework.data.neo4j.annotation.ResultColumn;
 import org.springframework.data.neo4j.conversion.EndResult;
 import org.springframework.data.neo4j.model.Group;
 import org.springframework.data.neo4j.model.Person;
+import org.springframework.data.neo4j.model.Personality;
 import org.springframework.data.neo4j.repository.*;
 import org.springframework.data.repository.query.Param;
 
@@ -64,6 +68,11 @@ public interface PersonRepository extends GraphRepository<Person>, NamedIndexRep
 
     @Query("match (boss)-[:boss]->(person) where id(person) = {p_person} return boss")
     Person findBoss(@Param("p_person") Person person);
+
+    Collection<Person> findByWktNearAndName(Circle circle, String name);
+    Collection<Person> findByWktWithinAndAgeGreaterThan(Circle circle, int age);
+    Collection<Person> findByWktWithinAndPersonality(Polygon polygon, Personality personality);
+    Collection<Person> findByWktWithin(Box box);
 
     @Query("match (boss)-[:boss]->(person) where id(person) = {p_person}  return boss")
     Person findBoss(@Param("p_person") Long person);

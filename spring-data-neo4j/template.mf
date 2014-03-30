@@ -25,6 +25,7 @@ Import-Template:
  org.objectweb.jotm.*;version="0";resolution:=optional,
  org.apache.lucene.*;version="0",
  org.slf4j.*;version="0",
+ org.json.simple.*;version="0",
  javax.lang.model.*;version="0";resolution:=optional,
  javax.tools.*;version="0";resolution:=optional,
  javax.validation.*;version="0";resolution:=optional,

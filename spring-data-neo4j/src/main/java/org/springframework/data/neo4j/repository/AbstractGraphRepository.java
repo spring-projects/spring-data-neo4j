@@ -24,16 +24,19 @@ import org.neo4j.graphdb.index.ReadableIndex;
 import org.neo4j.helpers.collection.ClosableIterable;
 import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.data.domain.*;
+import org.springframework.data.geo.Box;
+import org.springframework.data.geo.Circle;
+import org.springframework.data.geo.Shape;
 import org.springframework.data.neo4j.conversion.EndResult;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentEntity;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.repository.query.CypherQuery;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
 import org.springframework.data.neo4j.support.query.CypherQueryEngine;
-import org.springframework.data.neo4j.support.query.QueryEngine;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
+import java.util.List;
 
 import static java.lang.String.format;
 import static org.neo4j.helpers.collection.MapUtil.map;
@@ -49,31 +52,7 @@ import static org.neo4j.helpers.collection.MapUtil.map;
 public abstract class AbstractGraphRepository<S extends PropertyContainer, T> implements
         GraphRepository<T>, NamedIndexRepository<T>, SpatialRepository<T>, CypherDslRepository<T> {
     private final LegacyIndexSearcher<S,T> legacyIndexSearcher;
-
-    /*
-    index.query( LayerNodeIndex.WITHIN_WKT_GEOMETRY_QUERY,
-                    "withinWKTGeometry:POLYGON ((15 56, 15 57, 16 57, 16 56, 15 56))" );
-
-     hits = index.query( LayerNodeIndex.WITHIN_WKT_GEOMETRY_QUERY,
-                     "POLYGON ((15 56, 15 57, 16 57, 16 56, 15 56))" ); lon,lat
-             assertTrue( hits.hasNext() );
-        final String poly = String.format("POLYGON (())", lowerLeftLon, upperRightLon, lowerLeftLat, upperRightLat);
-     */
-
-    @Override
-    public EndResult<T> findWithinWellKnownText( final String indexName, String wellKnownText) {
-        return legacyIndexSearcher.geoQuery(indexName, "withinWKTGeometry", wellKnownText);
-    }
-    @Override
-    public EndResult<T> findWithinDistance( final String indexName, final double lat, double lon, double distanceKm) {
-        return legacyIndexSearcher.geoQuery(indexName, "withinDistance", map("point", new Double[] { lon, lat}, "distanceInKm", distanceKm));
-    }
-
-    @Override
-    public EndResult<T> findWithinBoundingBox(final String indexName, final double lowerLeftLat,
-                                                     final double lowerLeftLon, final double upperRightLat, final double upperRightLon) {
-        return legacyIndexSearcher.geoQuery(indexName, "bbox", format("[%s, %s, %s, %s]", lowerLeftLon, upperRightLon, lowerLeftLat, upperRightLat));
-    }
+    private final GeoQueries<S,T> geoQueries;
 
     interface Query<S extends PropertyContainer> {
         IndexHits<S> query(ReadableIndex<S> index);
@@ -103,6 +82,7 @@ public abstract class AbstractGraphRepository<S extends PropertyContainer, T> im
         this.template = template;
         this.clazz = clazz;
         legacyIndexSearcher = new LegacyIndexSearcher<>(template,clazz);
+        geoQueries = new GeoQueries<>(legacyIndexSearcher);
     }
 
     @Override
@@ -419,4 +399,37 @@ public abstract class AbstractGraphRepository<S extends PropertyContainer, T> im
     public EndResult<T> query(Execute query, Map<String, Object> params) {
         return template.queryEngineFor().query(query.toString(), params).to(clazz);
     }
+
+    // SpatialRepository
+
+    @Override
+    public EndResult<T> findWithinWellKnownText( final String indexName, String wellKnownText) {
+        return geoQueries.findWithinWellKnownText(indexName,wellKnownText);
+    }
+    @Override
+    public EndResult<T> findWithinDistance( final String indexName, final double lat, double lon, double distanceKm) {
+        return geoQueries.findWithinDistance(indexName, lat, lon,distanceKm);
+    }
+
+    @Override
+    public EndResult<T> findWithinBoundingBox(final String indexName, final double lowerLeftLat,
+                                              final double lowerLeftLon, final double upperRightLat, final double upperRightLon) {
+        return geoQueries.findWithinBoundingBox(indexName, lowerLeftLat, lowerLeftLon, upperRightLat, upperRightLon);
+    }
+
+    @Override
+    public EndResult<T> findWithinBoundingBox(String indexName, Box box) {
+        return geoQueries.findWithinBoundingBox(indexName,box);
+    }
+
+    @Override
+    public EndResult<T> findWithinDistance(String indexName, Circle circle) {
+        return geoQueries.findWithinDistance(indexName, circle);
+    }
+
+    @Override
+    public EndResult<T> findWithinShape(String indexName, Shape shape) {
+        return geoQueries.findWithinShape(indexName,shape);
+    }
 }
+

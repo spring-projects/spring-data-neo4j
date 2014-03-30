@@ -18,6 +18,7 @@ package org.springframework.data.neo4j.model;
 
 import org.neo4j.graphdb.*;
 import org.springframework.data.annotation.Transient;
+import org.springframework.data.geo.Point;
 import org.springframework.data.neo4j.annotation.*;
 import org.springframework.data.neo4j.fieldaccess.DynamicProperties;
 import org.springframework.data.neo4j.support.index.IndexType;
@@ -50,7 +51,7 @@ public class Person implements Being , Serializable {
     private String alias;
 
 	@Indexed(indexType = IndexType.POINT, indexName="personLayer")
-    private String wkt;
+    private Point wkt;
 
 	@Max(100)
 	@Min(0)
@@ -199,12 +200,8 @@ public class Person implements Being , Serializable {
 		this.boss = boss;
 	}
 	
-	public void setLocation(String locationInWkt) {
-        this.wkt = locationInWkt;
-    }
-
     public void setLocation(double lon, double lat) {
-        this.wkt = "POINT ( "+lon+" "+lat+" )";
+        this.wkt = new Point(lon,lat);
     }
 
 	@Override
