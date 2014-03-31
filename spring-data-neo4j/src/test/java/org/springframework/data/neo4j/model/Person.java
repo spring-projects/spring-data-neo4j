@@ -21,7 +21,6 @@ import org.springframework.data.annotation.Transient;
 import org.springframework.data.geo.Point;
 import org.springframework.data.neo4j.annotation.*;
 import org.springframework.data.neo4j.fieldaccess.DynamicProperties;
-import org.springframework.data.neo4j.repository.GeoConverter;
 import org.springframework.data.neo4j.support.index.IndexType;
 
 import javax.validation.constraints.Max;
@@ -52,8 +51,7 @@ public class Person implements Being , Serializable {
     private String alias;
 
 	@Indexed(indexType = IndexType.POINT, indexName="personLayer")
-    private String wkt;
-//    private Point wkt;
+    private Point wkt;
 
 	@Max(100)
 	@Min(0)
@@ -203,7 +201,7 @@ public class Person implements Being , Serializable {
 	}
 	
     public void setLocation(double lon, double lat) {
-        this.wkt = GeoConverter.toWellKnownText(new Point(lon,lat));
+        this.wkt = new Point(lon,lat);
     }
 
 	@Override
