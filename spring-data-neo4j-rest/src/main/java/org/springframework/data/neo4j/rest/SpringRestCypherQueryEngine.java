@@ -20,6 +20,8 @@ import org.neo4j.rest.graphdb.RestAPI;
 import org.neo4j.rest.graphdb.query.RestCypherQueryEngine;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.neo4j.conversion.QueryResultBuilder;
+import org.springframework.data.neo4j.conversion.Result;
 import org.springframework.data.neo4j.conversion.ResultConverter;
 import org.springframework.data.neo4j.support.query.CypherQueryEngine;
 import org.springframework.data.neo4j.support.query.QueryEngine;
@@ -40,10 +42,10 @@ public class SpringRestCypherQueryEngine implements CypherQueryEngine {
     }
 
     @Override
-    public SpringRestResult<Map<String,Object>> query(String statement, Map<String, Object> params) {
+    public Result<Map<String,Object>> query(String statement, Map<String, Object> params) {
         if (log.isDebugEnabled()) log.debug(String.format("Executing remote cypher query: %s params %s",statement,params));
 
-        return new SpringRestResult<Map<String, Object>>(restCypherQueryEngine.query(statement, params));
+        return new QueryResultBuilder<Map<String, Object>>(restCypherQueryEngine.query(statement, params), resultConverter);
     }
 
     public ResultConverter getResultConverter() {

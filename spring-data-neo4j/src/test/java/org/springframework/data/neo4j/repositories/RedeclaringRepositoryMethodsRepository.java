@@ -19,7 +19,7 @@ package org.springframework.data.neo4j.repositories;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.neo4j.annotation.Query;
-import org.springframework.data.neo4j.conversion.EndResult;
+import org.springframework.data.neo4j.conversion.Result;
 import org.springframework.data.neo4j.model.Person;
 import org.springframework.data.neo4j.repository.GraphRepository;
 
@@ -32,7 +32,7 @@ public interface RedeclaringRepositoryMethodsRepository extends GraphRepository<
 	 * Should not find any persons at all.
 	 */
 	@Query("MATCH (n:Person) WHERE n.name='Bubu' return n")
-	EndResult<Person> findAll();
+    Result<Person> findAll();
 
 	/**
 	 * Should only find persons with the name 'Oliver'.

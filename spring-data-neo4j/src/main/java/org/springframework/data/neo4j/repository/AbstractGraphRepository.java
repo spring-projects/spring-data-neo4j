@@ -27,7 +27,7 @@ import org.springframework.data.domain.*;
 import org.springframework.data.geo.Box;
 import org.springframework.data.geo.Circle;
 import org.springframework.data.geo.Shape;
-import org.springframework.data.neo4j.conversion.EndResult;
+import org.springframework.data.neo4j.conversion.Result;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentEntity;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.repository.query.CypherQuery;
@@ -112,7 +112,7 @@ public abstract class AbstractGraphRepository<S extends PropertyContainer, T> im
      * @return lazy Iterable over all instances of the target type.
      */
     @Override
-    public EndResult<T> findAll() {
+    public Result<T> findAll() {
         return template.findAll(clazz);
     }
 
@@ -166,7 +166,7 @@ public abstract class AbstractGraphRepository<S extends PropertyContainer, T> im
      */
     @Override
     @Deprecated
-    public EndResult<T> findAllByPropertyValue(final String indexName, final String property, final Object value) {
+    public Result<T> findAllByPropertyValue(final String indexName, final String property, final Object value) {
         return legacyIndexSearcher.findAllByPropertyValue(indexName, property, value);
     }
 
@@ -177,7 +177,7 @@ public abstract class AbstractGraphRepository<S extends PropertyContainer, T> im
      * @return Iterable over Entities with this property and value
      */
     @Override
-    public EndResult<T> findAllByPropertyValue(final String property, final Object value) {
+    public Result<T> findAllByPropertyValue(final String property, final Object value) {
         return findAllByPropertyValue(null, property, value);
     }
 
@@ -189,7 +189,7 @@ public abstract class AbstractGraphRepository<S extends PropertyContainer, T> im
      */
     @Override
     @Deprecated
-    public EndResult<T> findAllByQuery(final String key, final Object query) {
+    public Result<T> findAllByQuery(final String key, final Object query) {
         return findAllByQuery(null, key,query);
     }
     /**
@@ -201,18 +201,18 @@ public abstract class AbstractGraphRepository<S extends PropertyContainer, T> im
      */
     @Override
     @Deprecated
-    public EndResult<T> findAllByQuery(final String indexName, final String property, final Object query) {
+    public Result<T> findAllByQuery(final String indexName, final String property, final Object query) {
         return legacyIndexSearcher.findAllByQuery(indexName, property, query);
     }
 
     @Override
     @Deprecated
-    public EndResult<T> findAllByRange(final String property, final Number from, final Number to) {
+    public Result<T> findAllByRange(final String property, final Number from, final Number to) {
         return findAllByRange(null,property,from,to);
     }
     @Override
     @Deprecated
-    public EndResult<T> findAllByRange(final String indexName, final String property, final Number from, final Number to) {
+    public Result<T> findAllByRange(final String indexName, final String property, final Number from, final Number to) {
         return legacyIndexSearcher.findAllByRange(indexName, property, from, to);
     }
 
@@ -238,7 +238,7 @@ public abstract class AbstractGraphRepository<S extends PropertyContainer, T> im
      * @return Iterable over Entities with this property and value
      */
     @Override
-    public EndResult<T> findAllBySchemaPropertyValue(String property, Object value) {
+    public Result<T> findAllBySchemaPropertyValue(String property, Object value) {
         final String SCHEMA_PROP_MATCH_CLAUSE = "MATCH (entity:`%s`) where entity.`%s` = {propValue} return entity";
 
         Neo4jPersistentEntity persistentEntity = template.getEntityType(clazz).getEntity();
@@ -297,13 +297,13 @@ public abstract class AbstractGraphRepository<S extends PropertyContainer, T> im
     }
 
     @Override
-    public EndResult<T> findAll(Sort sort) {
+    public Result<T> findAll(Sort sort) {
         CypherQuery cq = new CypherQuery(template.getEntityType(clazz).getEntity(),template, template.isLabelBased());
         return query(cq.toQueryString(sort), Collections.EMPTY_MAP);
     }
 
     @Override
-    public EndResult<T> query(String query, Map<String, Object> params) {
+    public Result<T> query(String query, Map<String, Object> params) {
         return template.query(query, params).to(clazz);
     }
 
@@ -311,7 +311,7 @@ public abstract class AbstractGraphRepository<S extends PropertyContainer, T> im
     public Page<T> findAll(final Pageable pageable) {
         int count = pageable.getPageSize();
         int offset = pageable.getOffset();
-        EndResult<T> foundEntities = findAll(pageable.getSort());
+        Result<T> foundEntities = findAll(pageable.getSort());
         final Iterator<T> iterator = foundEntities.iterator();
         final PageImpl<T> page = extractPage(pageable, count, offset, iterator);
         foundEntities.finish();
@@ -396,39 +396,39 @@ public abstract class AbstractGraphRepository<S extends PropertyContainer, T> im
 
     @SuppressWarnings("unchecked")
     @Override
-    public EndResult<T> query(Execute query, Map<String, Object> params) {
+    public Result<T> query(Execute query, Map<String, Object> params) {
         return template.queryEngineFor().query(query.toString(), params).to(clazz);
     }
 
     // SpatialRepository
 
     @Override
-    public EndResult<T> findWithinWellKnownText( final String indexName, String wellKnownText) {
+    public Result<T> findWithinWellKnownText(final String indexName, String wellKnownText) {
         return geoQueries.findWithinWellKnownText(indexName,wellKnownText);
     }
     @Override
-    public EndResult<T> findWithinDistance( final String indexName, final double lat, double lon, double distanceKm) {
+    public Result<T> findWithinDistance(final String indexName, final double lat, double lon, double distanceKm) {
         return geoQueries.findWithinDistance(indexName, lat, lon,distanceKm);
     }
 
     @Override
-    public EndResult<T> findWithinBoundingBox(final String indexName, final double lowerLeftLat,
-                                              final double lowerLeftLon, final double upperRightLat, final double upperRightLon) {
+    public Result<T> findWithinBoundingBox(final String indexName, final double lowerLeftLat,
+                                           final double lowerLeftLon, final double upperRightLat, final double upperRightLon) {
         return geoQueries.findWithinBoundingBox(indexName, lowerLeftLat, lowerLeftLon, upperRightLat, upperRightLon);
     }
 
     @Override
-    public EndResult<T> findWithinBoundingBox(String indexName, Box box) {
+    public Result<T> findWithinBoundingBox(String indexName, Box box) {
         return geoQueries.findWithinBoundingBox(indexName,box);
     }
 
     @Override
-    public EndResult<T> findWithinDistance(String indexName, Circle circle) {
+    public Result<T> findWithinDistance(String indexName, Circle circle) {
         return geoQueries.findWithinDistance(indexName, circle);
     }
 
     @Override
-    public EndResult<T> findWithinShape(String indexName, Shape shape) {
+    public Result<T> findWithinShape(String indexName, Shape shape) {
         return geoQueries.findWithinShape(indexName,shape);
     }
 }

@@ -29,7 +29,7 @@ import org.neo4j.helpers.collection.IteratorUtil;
 import org.neo4j.helpers.collection.MapUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataRetrievalFailureException;
-import org.springframework.data.neo4j.conversion.EndResult;
+import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.neo4j.conversion.Result;
 import org.springframework.data.neo4j.mapping.ManagedEntity;
 import org.springframework.data.neo4j.model.Friendship;
@@ -38,7 +38,6 @@ import org.springframework.data.neo4j.model.Named;
 import org.springframework.data.neo4j.model.Person;
 import org.springframework.data.neo4j.repository.GraphRepository;
 import org.springframework.data.neo4j.support.query.CypherQueryEngine;
-import org.springframework.data.neo4j.support.query.QueryEngine;
 import org.springframework.data.neo4j.template.Neo4jOperations;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -360,7 +359,7 @@ public class EntityNeo4jTemplateTests extends EntityTestBase {
 
     @Test @Transactional
     public void testConvert() throws Exception {
-        final EndResult<Group> groups = neo4jOperations.convert(Arrays.asList(getNodeState(testTeam.sdg))).to(Group.class);
+        final Result<Group> groups = neo4jOperations.convert(Arrays.asList(getNodeState(testTeam.sdg))).to(Group.class);
         assertEquals(testTeam.sdg.getName(),groups.iterator().next().getName());
     }
 
@@ -384,9 +383,24 @@ public class EntityNeo4jTemplateTests extends EntityTestBase {
         final Person found = neo4jOperations.lookup(Person.class, "name","name:Michael").to(Person.class).single();
         assertEquals(testTeam.michael.getId(),found.getId());
     }
+
     @Test @Transactional
     public void testLookupExact() throws Exception {
         final Person found = neo4jOperations.lookup(Person.class, "name","Michael").to(Person.class).single();
+        assertEquals(testTeam.michael.getId(),found.getId());
+    }
+
+    @Test(expected = InvalidDataAccessApiUsageException.class)
+    @Transactional
+    public void testLookupExactLabelIndex() throws Exception {
+        final Person found = neo4jOperations.lookup(Person.class, "alias","michaelAlias").to(Person.class).single();
+        assertEquals(testTeam.michael.getId(),found.getId());
+    }
+
+    @Test
+    @Transactional
+    public void testFindAllSchemaIndex() throws Exception {
+        final Person found = neo4jOperations.findByIndexedValue(Person.class, "alias", "michaelAlias").single();
         assertEquals(testTeam.michael.getId(),found.getId());
     }
 }

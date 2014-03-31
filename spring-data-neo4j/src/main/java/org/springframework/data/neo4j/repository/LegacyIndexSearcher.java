@@ -7,7 +7,6 @@ import org.neo4j.graphdb.index.IndexHits;
 import org.neo4j.graphdb.index.ReadableIndex;
 import org.neo4j.helpers.collection.ClosableIterable;
 import org.neo4j.helpers.collection.IterableWrapper;
-import org.springframework.data.neo4j.conversion.EndResult;
 import org.springframework.data.neo4j.conversion.Result;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
@@ -100,7 +99,7 @@ public class LegacyIndexSearcher<S extends PropertyContainer,T> {
         return (NumericRangeQuery<T>) NumericRangeQuery.newIntRange(property, from.intValue(), to.intValue(), true, true);
     }
 
-    public EndResult<T> findAllByRange(String indexName, final String property, final Number from, final Number to) {
+    public Result<T> findAllByRange(String indexName, final String property, final Number from, final Number to) {
         return queryResult(indexName, new AbstractGraphRepository.Query<S>() {
             public IndexHits<S> query(ReadableIndex<S> index) {
                 return index.query(property, createInclusiveRangeQuery(property, from, to));
@@ -108,7 +107,7 @@ public class LegacyIndexSearcher<S extends PropertyContainer,T> {
         });
     }
 
-    public EndResult<T> findAllByQuery(final String indexName, final String property, final Object query) {
+    public Result<T> findAllByQuery(final String indexName, final String property, final Object query) {
         return queryResult(indexName, new AbstractGraphRepository.Query<S>() {
             public IndexHits<S> query(ReadableIndex<S> index) {
                 return getIndex(indexName, property).query(property, query);
@@ -127,7 +126,7 @@ public class LegacyIndexSearcher<S extends PropertyContainer,T> {
     }
 
 
-    public EndResult<T> findAllByPropertyValue(final String indexName, final String property, final Object value) {
+    public Result<T> findAllByPropertyValue(final String indexName, final String property, final Object value) {
         return queryResult(indexName, new AbstractGraphRepository.Query<S>() {
             public IndexHits<S> query(ReadableIndex<S> index) {
                 return getIndexHits(indexName, property, value);
@@ -135,7 +134,7 @@ public class LegacyIndexSearcher<S extends PropertyContainer,T> {
         });
     }
 
-    private EndResult<T> queryResult(String indexName, AbstractGraphRepository.Query<S> query) {
+    private Result<T> queryResult(String indexName, AbstractGraphRepository.Query<S> query) {
         try {
             final IndexHits<S> indexHits = query.query(getIndex(indexName, null));
             return template.convert(indexHits).to(clazz);

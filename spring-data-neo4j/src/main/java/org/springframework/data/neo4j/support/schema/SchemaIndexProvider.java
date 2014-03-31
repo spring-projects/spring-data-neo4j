@@ -4,11 +4,12 @@ import org.neo4j.graphdb.Node;
 import org.neo4j.helpers.collection.MapUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.data.neo4j.conversion.EndResult;
+import org.springframework.data.neo4j.conversion.Result;
 import org.springframework.data.neo4j.core.GraphDatabase;
 import org.springframework.data.neo4j.mapping.IndexInfo;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentEntity;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
+import org.springframework.data.neo4j.support.conversion.EntityResultConverter;
 import org.springframework.data.neo4j.support.query.CypherQueryEngine;
 
 import java.util.Collection;
@@ -52,18 +53,23 @@ public class SchemaIndexProvider {
         return property.getIndexInfo().getIndexName();
     }
 
-    public <T> EndResult<T> findAll(Neo4jPersistentEntity entity) {
+    public <T> Result<T> findAll(Neo4jPersistentEntity entity) {
         String label = entity.getTypeAlias().toString();
         String query = findByLabelQuery(label);
         return cypher.query(query, null).<T>to(entity.getType());
     }
 
-    public <T> EndResult<T> findAll(Neo4jPersistentProperty property, Object value) {
+    public <T> Result<T> findByIndexedValue(Neo4jPersistentProperty property, Object value) {
+        Result<Node> results = findAllNodes(property, value);
+        return results.<T>to((Class<T>) property.getOwner().getType());
+    }
+
+    private Result<Node> findAllNodes(Neo4jPersistentProperty property, Object value) {
         IndexInfo indexInfo = property.getIndexInfo();
         String label = indexInfo.getIndexName();
         String prop = getName(property);
         String query = findByLabelAndPropertyQuery(label, prop);
-        return cypher.query(query, map("value", value)).<T>to((Class<T>)property.getOwner().getType());
+        return cypher.query(query, map("value", value)).to(Node.class);
     }
 
     private String findByLabelQuery(String label) {
@@ -100,7 +106,4 @@ public class SchemaIndexProvider {
         return "CREATE INDEX ON :`"+ label +"`(`"+ prop +"`)";
     }
 
-    interface IndexCreator {
-        void deferCreateIndex(Neo4jPersistentProperty property);
-    }
 }

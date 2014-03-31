@@ -21,7 +21,7 @@ import org.neo4j.graphdb.PropertyContainer;
 import org.neo4j.helpers.Pair;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.geo.*;
-import org.springframework.data.neo4j.conversion.EndResult;
+import org.springframework.data.neo4j.conversion.Result;
 import org.springframework.data.repository.query.parser.Part;
 import org.springframework.util.Assert;
 
@@ -40,12 +40,12 @@ public class GeoQueries<S extends PropertyContainer, T> implements SpatialReposi
         this.legacyIndexSearcher = legacyIndexSearcher;
     }
     @Override
-    public EndResult<T> findWithinWellKnownText( final String indexName, String wellKnownText) {
+    public Result<T> findWithinWellKnownText(final String indexName, String wellKnownText) {
         return legacyIndexSearcher.geoQuery(indexName, WITHIN_WKT_GEOMETRY, wellKnownText);
     }
 
     @Override
-    public EndResult<T> findWithinShape(String indexName, Shape shape) {
+    public Result<T> findWithinShape(String indexName, Shape shape) {
         Assert.notNull(indexName, "geo-index-name must not be null");
         Assert.notNull(shape,"shape must not be null");
         if (shape instanceof Circle) return findWithinDistance(indexName,(Circle)shape);
@@ -55,7 +55,7 @@ public class GeoQueries<S extends PropertyContainer, T> implements SpatialReposi
     }
 
     @Override
-    public EndResult<T> findWithinDistance( final String indexName, final double lat, double lon, double distanceKm) {
+    public Result<T> findWithinDistance(final String indexName, final double lat, double lon, double distanceKm) {
         return legacyIndexSearcher.geoQuery(indexName, WITHIN_DISTANCE, toWithinDistanceParams(lat, lon, distanceKm));
     }
 
@@ -64,7 +64,7 @@ public class GeoQueries<S extends PropertyContainer, T> implements SpatialReposi
     }
 
     @Override
-    public EndResult<T> findWithinDistance(String indexName, Circle circle) {
+    public Result<T> findWithinDistance(String indexName, Circle circle) {
         return legacyIndexSearcher.geoQuery(indexName, WITHIN_DISTANCE, toWithinDistanceParams(circle));
     }
 
@@ -78,8 +78,8 @@ public class GeoQueries<S extends PropertyContainer, T> implements SpatialReposi
     }
 
     @Override
-    public EndResult<T> findWithinBoundingBox(final String indexName, final double lowerLeftLat,
-                                              final double lowerLeftLon, final double upperRightLat, final double upperRightLon) {
+    public Result<T> findWithinBoundingBox(final String indexName, final double lowerLeftLat,
+                                           final double lowerLeftLon, final double upperRightLat, final double upperRightLon) {
         return legacyIndexSearcher.geoQuery(indexName, BBOX, toBoundingBoxParams(lowerLeftLat, lowerLeftLon, upperRightLat, upperRightLon));
     }
 
@@ -88,7 +88,7 @@ public class GeoQueries<S extends PropertyContainer, T> implements SpatialReposi
     }
 
     @Override
-    public EndResult<T> findWithinBoundingBox(String indexName, Box box) {
+    public Result<T> findWithinBoundingBox(String indexName, Box box) {
         return legacyIndexSearcher.geoQuery(indexName,BBOX,toBoundingBoxParams(box));
     }
 

@@ -23,7 +23,6 @@ import org.neo4j.graphdb.PropertyContainer;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.index.Index;
 import org.neo4j.graphdb.traversal.TraversalDescription;
-import org.springframework.data.neo4j.conversion.EndResult;
 import org.springframework.data.neo4j.conversion.Result;
 import org.springframework.data.neo4j.conversion.ResultConverter;
 import org.springframework.data.neo4j.core.GraphDatabase;
@@ -147,6 +146,8 @@ public interface Neo4jOperations {
     <R> R createRelationshipBetween(Object start, Object end, Class<R> relationshipEntityClass, String relationshipType, boolean allowDuplicates);
 
 
+    <T> Result<T> findByIndexedValue(Class<? extends T> indexedType, String propertyName, Object value);
+
     /**
      * Retrieves an existing index for the given class and/or name
      * @param indexName might be null
@@ -239,7 +240,7 @@ public interface Neo4jOperations {
      * Provides all instances of a given entity type using the typerepresentation strategy configured for this template.
      * This method is also provided by the appropriate repository.
      */
-    <T> EndResult<T> findAll(Class<T> entityClass);
+    <T> Result<T> findAll(Class<T> entityClass);
 
     /**
      * Provies the instance count a given entity type using the typerepresentation strategy configured for this template.

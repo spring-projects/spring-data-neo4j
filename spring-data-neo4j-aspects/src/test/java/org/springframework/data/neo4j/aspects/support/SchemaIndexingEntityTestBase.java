@@ -25,7 +25,6 @@ import org.neo4j.graphdb.schema.IndexDefinition;
 import org.neo4j.helpers.collection.IteratorUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.neo4j.aspects.core.NodeBacked;
-import org.springframework.data.neo4j.conversion.EndResult;
 import org.springframework.data.neo4j.conversion.Result;
 import org.springframework.data.neo4j.core.NodeTypeRepresentationStrategy;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
@@ -160,7 +159,7 @@ public abstract class SchemaIndexingEntityTestBase {
                 "return DISTINCT ID(n)", params);
 
         assertNotNull(result);
-        EndResult<Long> results = result.to(Long.class);
+        Result<Long> results = result.to(Long.class);
         return IteratorUtil.asCollection(results.iterator());
     }
 

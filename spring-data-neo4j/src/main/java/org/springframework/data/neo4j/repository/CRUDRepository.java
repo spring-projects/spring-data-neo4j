@@ -19,7 +19,7 @@ package org.springframework.data.neo4j.repository;
 import java.util.Map;
 
 import org.springframework.data.domain.Sort;
-import org.springframework.data.neo4j.conversion.EndResult;
+import org.springframework.data.neo4j.conversion.Result;
 import org.springframework.data.repository.NoRepositoryBean;
 import org.springframework.data.repository.PagingAndSortingRepository;
 
@@ -38,7 +38,7 @@ public interface CRUDRepository<T> extends PagingAndSortingRepository<T, Long> {
      * @return all entities of the given type
      * NOTE: please close the iterable if it is not fully looped through
      */
-    EndResult<T> findAll();
+    Result<T> findAll();
     
 
     /**
@@ -48,11 +48,11 @@ public interface CRUDRepository<T> extends PagingAndSortingRepository<T, Long> {
      * @return all elements of the repository type, sorted according to the sort
      * NOTE: please close the iterable if it is not fully looped through
      */
-    EndResult<T> findAll(Sort sort);
+    Result<T> findAll(Sort sort);
 
 
     Class getStoredJavaType(Object entity);
 
     
-    EndResult<T> query(String query, Map<String, Object> params);
+    Result<T> query(String query, Map<String, Object> params);
 }

@@ -30,7 +30,6 @@ import org.springframework.core.convert.ConversionService;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.mapping.model.MappingException;
-import org.springframework.data.neo4j.conversion.EndResult;
 import org.springframework.data.neo4j.conversion.QueryResultBuilder;
 import org.springframework.data.neo4j.conversion.Result;
 import org.springframework.data.neo4j.conversion.ResultConverter;
@@ -202,7 +201,7 @@ public class Neo4jTemplate implements Neo4jOperations, ApplicationContextAware {
     }
 
     @Override
-    public <T> EndResult<T> findAll(final Class<T> entityClass) {
+    public <T> Result<T> findAll(final Class<T> entityClass) {
         notNull(entityClass, "entity type");
         final ClosableIterable<PropertyContainer> all = infrastructure.getTypeRepresentationStrategies().findAll(getEntityType(entityClass));
         return new QueryResultBuilder<PropertyContainer>(all, getDefaultConverter()).to(entityClass);
@@ -369,7 +368,7 @@ public class Neo4jTemplate implements Neo4jOperations, ApplicationContextAware {
         final Class<Object> targetType = (Class<Object>) actualType.getType();
         final Result<Map<String, Object>> result = queryEngineFor().query(statement, params);
         final Class<? extends Iterable<Object>> containerType = (Class<? extends Iterable<Object>>) typeInformation.getType();
-        if (EndResult.class.isAssignableFrom(containerType)) {
+        if (Result.class.isAssignableFrom(containerType)) {
             return result;
         }
         if (actualType.isMap()) {
@@ -613,12 +612,18 @@ public class Neo4jTemplate implements Neo4jOperations, ApplicationContextAware {
     public <T extends PropertyContainer> Result<T> lookup(final Class<?> indexedType, String propertyName, final Object value) {
         notNull(propertyName, "property name", indexedType, "indexedType", value, "query value");
         try {
-
             final Index<T> index = getIndex(indexedType, propertyName);
             return convert(index.query(propertyName, value));
         } catch (RuntimeException e) {
             throw translateExceptionIfPossible(e);
         }
+    }
+
+    @Override
+    public <T> Result<T> findByIndexedValue(final Class<? extends T> indexedType, String propertyName, Object value) {
+        Neo4jPersistentProperty persistentProperty = getPersistentProperty(indexedType, propertyName);
+        if (persistentProperty==null) throw new InvalidDataAccessApiUsageException("Unknown Property "+propertyName+" for "+indexedType);
+        return getSchemaIndexProvider().findByIndexedValue(persistentProperty, value);
     }
 
     @Override
@@ -631,6 +636,9 @@ public class Neo4jTemplate implements Neo4jOperations, ApplicationContextAware {
     public <T extends PropertyContainer> Index<T> getIndex(Class<?> indexedType, String propertyName) {
         final Neo4jPersistentProperty property = getPersistentProperty(indexedType, propertyName);
         if (property == null) return getIndexProvider().getIndex(getPersistentEntity(indexedType), null);
+        if (property.isIndexed() && property.getIndexInfo().isLabelBased()) {
+            throw new InvalidDataAccessApiUsageException("Can lookup label based property from legacy index");
+        }
         return getIndexProvider().getIndex(property, indexedType);
     }
 

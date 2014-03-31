@@ -18,10 +18,8 @@ package org.springframework.data.neo4j.repository;
 
 import org.springframework.data.geo.*;
 import org.springframework.data.geo.Shape;
-import org.springframework.data.neo4j.conversion.EndResult;
+import org.springframework.data.neo4j.conversion.Result;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.awt.*;
 
 /**
  * Repository for spatial queries.
@@ -35,27 +33,27 @@ import java.awt.*;
  */
 public interface SpatialRepository<T> {
     @Transactional
-    EndResult<T> findWithinBoundingBox(String indexName, double lowerLeftLat,
-                                              double lowerLeftLon,
-                                              double upperRightLat,
-                                              double upperRightLon);
+    Result<T> findWithinBoundingBox(String indexName, double lowerLeftLat,
+                                    double lowerLeftLon,
+                                    double upperRightLat,
+                                    double upperRightLon);
 
     @Transactional
-    EndResult<T> findWithinBoundingBox(String indexName, Box box);
+    Result<T> findWithinBoundingBox(String indexName, Box box);
 
     @Transactional
-    EndResult<T> findWithinDistance( final String indexName, final double lat, double lon, double distanceKm);
+    Result<T> findWithinDistance(final String indexName, final double lat, double lon, double distanceKm);
 
     @Transactional
-    EndResult<T> findWithinDistance( final String indexName, Circle circle);
+    Result<T> findWithinDistance(final String indexName, Circle circle);
 
     @Transactional
-    EndResult<T> findWithinWellKnownText( final String indexName, String wellKnownText);
+    Result<T> findWithinWellKnownText(final String indexName, String wellKnownText);
 
     /**
      * Converts the shape into a well-known text representation and executes the appropriate WKT query
      */
     @Transactional
-    EndResult<T> findWithinShape( final String indexName, Shape shape);
+    Result<T> findWithinShape(final String indexName, Shape shape);
 }
 

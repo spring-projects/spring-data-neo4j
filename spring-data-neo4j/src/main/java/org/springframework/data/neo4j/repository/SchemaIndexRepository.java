@@ -16,7 +16,7 @@
 
 package org.springframework.data.neo4j.repository;
 
-import org.springframework.data.neo4j.conversion.EndResult;
+import org.springframework.data.neo4j.conversion.Result;
 import org.springframework.transaction.annotation.Transactional;
 
 
@@ -30,6 +30,6 @@ public interface SchemaIndexRepository<T> {
     T findBySchemaPropertyValue(String property, Object value);
 
     @Transactional
-    EndResult<T> findAllBySchemaPropertyValue(String property, Object value);
+    Result<T> findAllBySchemaPropertyValue(String property, Object value);
 
 }

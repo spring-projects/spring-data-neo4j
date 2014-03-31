@@ -26,7 +26,7 @@ import org.springframework.data.geo.Polygon;
 import org.springframework.data.neo4j.annotation.Query;
 import org.springframework.data.neo4j.annotation.QueryResult;
 import org.springframework.data.neo4j.annotation.ResultColumn;
-import org.springframework.data.neo4j.conversion.EndResult;
+import org.springframework.data.neo4j.conversion.Result;
 import org.springframework.data.neo4j.model.Group;
 import org.springframework.data.neo4j.model.Person;
 import org.springframework.data.neo4j.model.Personality;
@@ -107,7 +107,7 @@ public interface PersonRepository extends GraphRepository<Person>, NamedIndexRep
     @Query("start person=node:`name-index`('name:*') return person.name as name, person order by name asc ")
     Iterable<NameAndPersonResult> getAllNamesAndPeople();
 
-    EndResult<Person> findByHeight( short height );
+    Result<Person> findByHeight(short height);
 
     @QueryResult
     interface NameAndPersonResult

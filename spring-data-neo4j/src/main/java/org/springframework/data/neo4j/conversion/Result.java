@@ -16,15 +16,28 @@
 
 package org.springframework.data.neo4j.conversion;
 
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.data.neo4j.mapping.MappingPolicy;
 
 /**
 * @author mh
 * @since 28.06.11
 */
-public interface Result<T> extends EndResult<T> {
-    <R> EndResult<R> to(Class<R> type);
-    <R> EndResult<R> to(Class<R> type, ResultConverter<T, R> resultConverter);
+public interface Result<T> extends Iterable<T> {
+    <R> Result<R> to(Class<R> type);
+    <R> Result<R> to(Class<R> type, ResultConverter<T, R> resultConverter);
     Result<T> with(MappingPolicy mappingPolicy);
 
+    T single();
+
+    T singleOrNull();
+
+    void handle(Handler<T> handler);
+
+    <C extends Iterable<T>> C as(Class<C> container);Slice<T> slice(int page, int pageSize);
+
+    Slice<T> slice(Pageable page);
+
+    void finish();
 }

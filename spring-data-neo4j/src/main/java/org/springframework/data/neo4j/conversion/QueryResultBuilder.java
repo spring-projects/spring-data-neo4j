@@ -18,6 +18,7 @@ package org.springframework.data.neo4j.conversion;
 
 import org.neo4j.graphdb.index.IndexHits;
 import org.neo4j.helpers.collection.ClosableIterable;
+import org.neo4j.helpers.collection.IterableWrapper;
 import org.neo4j.helpers.collection.IteratorUtil;
 import org.neo4j.helpers.collection.IteratorWrapper;
 import org.springframework.data.domain.PageRequest;
@@ -46,13 +47,13 @@ public class QueryResultBuilder<T> implements Result<T> {
 
     public QueryResultBuilder(Iterable<T> result, final ResultConverter<T,?> defaultConverter) {
         this.result = result;
-        this.isClosableIterable = result instanceof IndexHits || result instanceof ClosableIterable;
+        this.isClosableIterable = result instanceof IndexHits || result instanceof ClosableIterable || result instanceof AutoCloseable;
         this.defaultConverter = defaultConverter;
     }
 
     @SuppressWarnings("unchecked")
     @Override
-    public <R> EndResult<R> to(Class<R> type) {
+    public <R> Result<R> to(Class<R> type) {
         return this.to(type, defaultConverter);
     }
 
@@ -80,74 +81,16 @@ public class QueryResultBuilder<T> implements Result<T> {
     }
 
     @Override
-    public <R> EndResult<R> to(final Class<R> type, final ResultConverter<T, R> resultConverter) {
-        return new EndResult<R>() {
+    public <R> Result<R> to(final Class<R> type, final ResultConverter<T, R> resultConverter) {
+        Iterable<R> it = new IterableWrapper<R, T>(result) {
             @Override
-            public R single() {
-                try {
-                    final T value = IteratorUtil.single(result);
-                    return convert(value);
-                } finally {
-                    closeIfNeeded();
-                }
-            }
-            @Override
-            public R singleOrNull() {
-                try {
-                    final T value = IteratorUtil.singleOrNull(result);
-                    if (value==null) return null;
-                    return convert(value);
-                } finally {
-                    closeIfNeeded();
-                }
-            }
-
-            private R convert(T value) {
-                return resultConverter.convert(value, type, mappingPolicy);
-            }
-
-            @Override
-            public void handle(Handler<R> handler) {
-                try {
-                    for (T value : result) {
-                        handler.handle(convert(value));
-                    }
-                } finally {
-                    closeIfNeeded();
-                }
-            }
-
-            @Override
-            public Iterator<R> iterator() {
-                return new IteratorWrapper<R, T>(result.iterator()) {
-                    protected R underlyingObjectToObject(T value) {
-                        return convert(value);
-                    }
-                };
-            }
-
-            @Override
-            public <C extends Iterable<R>> C as(Class<C> container) {
-                return ContainerConverter.toContainer(container, this);
-            }
-
-            @Override
-            public Slice<R> slice(Pageable page) {
-                return ContainerConverter.slice(this,page);
-            }
-
-            @Override
-            public Slice<R> slice(int page, int size) {
-                return ContainerConverter.slice(this,new PageRequest(page,size));
-            }
-
-            @Override
-            public void finish()
-            {
-                closeIfNeeded();
+            protected R underlyingObjectToObject(T object) {
+                return resultConverter.convert(object,type,mappingPolicy);
             }
         };
+        return new QueryResultBuilder<R>(it,defaultConverter);
     }
+
 
     @SuppressWarnings("unchecked")
     @Override
