@@ -20,6 +20,7 @@ import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.neo4j.graphdb.ConstraintViolationException;
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.helpers.collection.IteratorUtil;
@@ -27,6 +28,8 @@ import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.data.neo4j.aspects.Attribute;
 import org.springframework.data.neo4j.aspects.Group;
 import org.springframework.data.neo4j.aspects.Person;
+import org.springframework.data.neo4j.aspects.support.domain.Account1;
+import org.springframework.data.neo4j.aspects.support.domain.Account2;
 import org.springframework.test.context.CleanContextCacheTestExecutionListener;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestExecutionListeners;
@@ -45,6 +48,7 @@ import static java.util.Arrays.asList;
 import static org.hamcrest.CoreMatchers.hasItem;
 import static org.hamcrest.CoreMatchers.hasItems;
 import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 import static org.springframework.data.neo4j.aspects.Person.persistedPerson;
 
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -270,4 +274,44 @@ public class NodeEntityTests extends EntityTestBase {
 	    g.getReadOnlyPersons();
 	    g.persist();
     }
+
+    @Test @Transactional
+    public void testDefaultFailOnDuplicateSetToTrueSavesCorrectlyWhenUpdating() {
+        final String UPDATED_NAME = "Mr George - Current Account 2";
+        Account2 acc1 = new Account2("111-222-333", "Mr George - Current Account 1");
+        acc1.persist();
+        acc1.setName(UPDATED_NAME);
+        acc1.persist(); // This should save fine
+
+        Account2 loadedAcc1 = account2Repository.findBySchemaPropertyValue("accountNumber","111-222-333");
+        assertNotNull(loadedAcc1);
+        assertEquals("Expected name to have been updated (merged) with last value",UPDATED_NAME,loadedAcc1.getName());
+    }
+
+    @Test(expected = ConstraintViolationException.class)  @Transactional
+    public void testDefaultFailOnDuplicateSetToTrueCausesExceptionWhenAnotherDuplicateEntityCreated() {
+        Account2 acc1 = new Account2("111-222-333", "Mr George - Current Account 1");
+        Account2 acc2 = new Account2("111-222-333", "Mr George - Current Account 2");
+        acc1.persist();
+        acc2.persist(); // This should cause an exception
+    }
+
+    @Test @Transactional
+    public void testDefaultFailOnDuplicateSetToFalseCausesMergeWhenAnotherDuplicateEntityCreated() {
+        final String UPDATED_NAME = "Mr George - Current Account 2";
+        Account1 acc1 = new Account1("111-222-333", "Mr George - Current Account 1");
+        Account1 acc2 = new Account1("111-222-333", UPDATED_NAME);
+
+        acc1.persist();
+        Long acc1NodeId = acc1.getNodeId();
+        acc2.persist(); // This should be merged
+        Long acc2NodeId = acc2.getNodeId();
+
+        assertEquals("Ids should be the same",acc1NodeId,acc2NodeId);
+        Account1 loadedAcc1 = account1Repository.findBySchemaPropertyValue("accountNumber","111-222-333");
+        assertNotNull(loadedAcc1);
+        assertEquals("Expected name to have been updated (merged) with last value",UPDATED_NAME,loadedAcc1.getName());
+    }
+
+
 }

@@ -17,12 +17,11 @@
 package org.springframework.data.neo4j.rest.integration;
 
 import org.junit.AfterClass;
-import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.data.neo4j.aspects.support.GraphRepositoryTests;
 import org.springframework.data.neo4j.rest.support.RestTestBase;
-import org.springframework.data.neo4j.support.node.Neo4jHelper;
 import org.springframework.test.context.CleanContextCacheTestExecutionListener;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestExecutionListeners;
@@ -53,7 +52,13 @@ public class RestGraphRepositoryTests extends GraphRepositoryTests {
     @AfterClass
     public static void shutdownDb() {
         RestTestBase.shutdownDb();
+    }
 
+    // TODO - Change REST to have a better (more descriptive)
+    //        exception thrown when duplicate violations occur
+    @Test(expected = IllegalStateException.class)
+    public void testSaveWhenFailOnDuplicateSetToTrue() {
+          super.testSaveWhenFailOnDuplicateSetToTrue();
     }
 
 }
