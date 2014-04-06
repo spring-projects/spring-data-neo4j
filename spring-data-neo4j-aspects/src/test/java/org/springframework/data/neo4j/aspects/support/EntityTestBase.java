@@ -24,9 +24,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.convert.ConversionService;
-import org.springframework.data.neo4j.aspects.FriendshipRepository;
-import org.springframework.data.neo4j.aspects.GroupRepository;
-import org.springframework.data.neo4j.aspects.PersonRepository;
+import org.springframework.data.neo4j.aspects.*;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
 import org.springframework.data.neo4j.support.mapping.StoredEntityType;
 import org.springframework.data.neo4j.support.node.Neo4jHelper;
@@ -48,6 +46,8 @@ public class EntityTestBase {
 
     @Autowired protected GraphDatabaseService graphDatabaseService;
 
+    @Autowired protected Account1Repository account1Repository;
+    @Autowired protected Account2Repository account2Repository;
     @Autowired protected PersonRepository personRepository;
     @Autowired protected GroupRepository groupRepository;
     @Autowired protected FriendshipRepository friendshipRepository;
