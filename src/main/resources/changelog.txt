@@ -1,6 +1,24 @@
 Spring Data Neo4j Changelog
 ===========================
 
+Changes in version 3.0.2.RELEASE (2014-04-15)
+---------------------------------------------
+* DATAGRAPH-451 - Validation on RelationshipEntity fails
+* DATAGRAPH-449 - Update Documentation for 3.0 Changes
+* DATAGRAPH-450 - Update Examples to 3.0
+* DATAGRAPH-462 - Release 3.0.2
+
+Changes in version 3.1.0.M1 (2014-03-31)
+----------------------------------------
+* DATAGRAPH-433 - Correctly Handle Uniqueness with Schema Based Indexes
+* DATAGRAPH-444 - BasePackageScanner unusable when using different repositories
+* DATAGRAPH-436 - Use case for @Labels
+* DATAGRAPH-440 - Add support for Slice API
+* DATAGRAPH-434 - Release 3.1 M1
+* DATAGRAPH-441 - Update to changes in Spring Data Commons mapping metadata API
+* DATAGRAPH-452 - Adapt to BeanWrapper API changes
+* DATAGRAPH-454 - Support for Common Geospatial Types and Derived spatial Queries
+
 Changes in version 3.0.1.RELEASE (2014-03-13)
 ---------------------------------------------
 * DATAGRAPH-433 - Unique Creation of label based entities
