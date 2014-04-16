@@ -38,6 +38,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 
 @Path( "/" )
@@ -70,8 +71,8 @@ public class SpringPluginInitializerTests extends SpringPluginInitializer implem
         ImpermanentGraphDatabase db = new ImpermanentGraphDatabase();
         final ServerConfigurator configurator = new ServerConfigurator(db) {
             @Override
-            public Set<ThirdPartyJaxRsPackage> getThirdpartyJaxRsPackages() {
-                return Collections.singleton(new ThirdPartyJaxRsPackage("org.springframework.data.neo4j.rest.support","/test"));
+            public List<ThirdPartyJaxRsPackage> getThirdpartyJaxRsPackages() {
+                return Collections.singletonList(new ThirdPartyJaxRsPackage("org.springframework.data.neo4j.rest.support","/test"));
             }
         };
         final Configuration configuration = configurator.configuration();
