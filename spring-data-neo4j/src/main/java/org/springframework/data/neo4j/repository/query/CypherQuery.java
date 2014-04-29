@@ -15,6 +15,18 @@
  */
 package org.springframework.data.neo4j.repository.query;
 
+import static org.springframework.util.StringUtils.collectionToCommaDelimitedString;
+import static org.springframework.util.StringUtils.collectionToDelimitedString;
+import static org.springframework.util.StringUtils.hasText;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.ListIterator;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
+
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mapping.context.PersistentPropertyPath;
@@ -23,11 +35,6 @@ import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
 import org.springframework.data.repository.query.Parameter;
 import org.springframework.data.repository.query.parser.Part;
-
-import java.util.*;
-
-import static org.springframework.util.StringUtils.*;
-import static org.springframework.util.StringUtils.hasText;
 
 public class CypherQuery implements CypherQueryDefinition {
     private final VariableContext variableContext = new VariableContext();
@@ -280,7 +287,8 @@ public class CypherQuery implements CypherQueryDefinition {
     }
 
     private String toQueryString(List<MatchClause> matchClauses) {
-        List<String> result = new ArrayList<String>(matchClauses.size());
+    	// Use a TreeSet to remove duplicate match clauses and maintain their order
+        Set<String> result = new TreeSet<String>();
         for (MatchClause matchClause : matchClauses) {
             result.add(matchClause.toString(variableContext));
         }
