@@ -30,7 +30,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.apache.commons.lang.builder.ToStringBuilder;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -425,8 +424,6 @@ public class DerivedFinderTests {
     	
     	CookBook book = cookBookRepository.findByTitle("Naked Chef");
     	assertThat(book, notNullValue());
-    	
-    	System.out.println(ToStringBuilder.reflectionToString(book));
     	
     	// Ensure we can find the book via the recipe author
     	Set<CookBook> books = cookBookRepository.findByRecipesAuthor("Jamie");
