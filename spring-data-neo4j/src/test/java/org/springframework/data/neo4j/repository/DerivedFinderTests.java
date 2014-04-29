@@ -15,41 +15,45 @@
  */
 package org.springframework.data.neo4j.repository;
 
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
+import static org.neo4j.graphdb.Direction.INCOMING;
+import static org.neo4j.graphdb.Direction.OUTGOING;
+import static org.neo4j.helpers.collection.IteratorUtil.asCollection;
+import static org.neo4j.helpers.collection.IteratorUtil.single;
+import static org.springframework.data.neo4j.SetHelper.asSet;
+
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import org.apache.commons.lang.builder.ToStringBuilder;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Transaction;
-import org.neo4j.helpers.collection.IteratorUtil;
 import org.neo4j.test.TestGraphDatabaseFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.neo4j.annotation.*;
+import org.springframework.data.neo4j.annotation.Fetch;
+import org.springframework.data.neo4j.annotation.GraphId;
+import org.springframework.data.neo4j.annotation.Indexed;
+import org.springframework.data.neo4j.annotation.NodeEntity;
+import org.springframework.data.neo4j.annotation.RelatedTo;
 import org.springframework.data.neo4j.config.EnableNeo4jRepositories;
 import org.springframework.data.neo4j.config.Neo4jConfiguration;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
-import org.springframework.data.neo4j.support.index.IndexType;
 import org.springframework.data.neo4j.support.node.Neo4jHelper;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.util.*;
-
-import static java.util.Arrays.asList;
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
-import static org.neo4j.graphdb.Direction.INCOMING;
-import static org.neo4j.helpers.collection.IteratorUtil.asCollection;
-import static org.neo4j.helpers.collection.IteratorUtil.single;
-import static org.springframework.data.neo4j.SetHelper.asSet;
 
 @NodeEntity
 class Ingredient {
@@ -93,6 +97,9 @@ class CookBook {
     CookBook(String title) {
         this.title = title;
     }
+    
+    @RelatedTo(type="HAS_RECIPE", direction = OUTGOING)
+    Set<Recipe> recipes;
 }
 
 @NodeEntity
@@ -105,6 +112,7 @@ class Recipe {
     @Fetch
     Ingredient ingredient;
 
+    @RelatedTo(type="HAS_RECIPE", direction = INCOMING)
     CookBook cookBook;
 
     @RelatedTo(direction = INCOMING)
@@ -128,6 +136,13 @@ class Recipe {
 
 interface DishRepository extends GraphRepository<Dish> {
     Dish findByNumber(int number);
+}
+
+interface CookBookRepository extends GraphRepository<CookBook> {
+	CookBook findByTitle(String title);
+    Set<CookBook> findByRecipesAuthor(String recipeAuthor);
+    Set<CookBook> findByRecipesTitle(String recipeTitle);
+    Set<CookBook> findByRecipesAuthorAndRecipesTitle(String recipeAuthor, String recipeTitle);
 }
 
 interface RecipeRepository extends GraphRepository<Recipe> {
@@ -198,6 +213,9 @@ public class DerivedFinderTests {
 
     @Autowired
     private DishRepository dishRepository;
+    
+    @Autowired 
+    private CookBookRepository cookBookRepository;
 
     private Ingredient fish, spice, oliveOil, pear, chocolate;
 
@@ -398,5 +416,31 @@ public class DerivedFinderTests {
         assertThat( recs.size(), equalTo(2));
         assertEquals("Nigella" , recs.get(0).author);
         assertEquals("Heston" , recs.get(1).author);
+    }
+    
+    @Test
+    public void shouldFindByMultipleRelatedProperties() {
+    	Set<Recipe> jamieR = recipeRepository.findByAuthor("Jamie");
+    	assertThat(jamieR.size(), equalTo(1));
+    	
+    	CookBook book = cookBookRepository.findByTitle("Naked Chef");
+    	assertThat(book, notNullValue());
+    	
+    	System.out.println(ToStringBuilder.reflectionToString(book));
+    	
+    	// Ensure we can find the book via the recipe author
+    	Set<CookBook> books = cookBookRepository.findByRecipesAuthor("Jamie");
+    	assertThat(books.size(), equalTo(1));
+    	assertThat(books.iterator().next().title, equalTo("Naked Chef"));
+    	
+    	// Ensure we can find the book via the recipe title
+    	books = cookBookRepository.findByRecipesTitle("pesto");
+    	assertThat(books.size(), equalTo(1));
+    	assertThat(books.iterator().next().title, equalTo("Naked Chef"));
+    	
+    	// Now try to find the book via both the recipe author and the recipe title
+    	books = cookBookRepository.findByRecipesAuthorAndRecipesTitle("Jamie", "pesto");
+    	assertThat(books.size(), equalTo(1));
+    	assertThat(books.iterator().next().title, equalTo("Naked Chef"));
     }
 }
