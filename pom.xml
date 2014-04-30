@@ -175,20 +175,6 @@
 			<url>http://repo.spring.io/libs-snapshot</url>
 		</repository>
 		<repository>
-			<id>neo4j-public-release-repository</id>
-			<url>http://m2.neo4j.org/releases</url>
-			<snapshots>
-				<enabled>false</enabled>
-			</snapshots>
-		</repository>
-		<repository>
-			<id>neo4j-contrib-releases</id>
-			<url>https://raw.github.com/neo4j-contrib/m2/master/releases</url>
-			<snapshots>
-				<enabled>false</enabled>
-			</snapshots>
-		</repository>
-		<repository>
 			<id>geotools</id>
 			<url>http://download.osgeo.org/webdav/geotools</url>
 			<snapshots>
