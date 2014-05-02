@@ -1,6 +1,13 @@
 Spring Data Neo4j Changelog
 ===========================
 
+Changes in version 3.1.0.RC1 (2014-05-02)
+-----------------------------------------
+* DATAGRAPH-468 - Remove obsolete repository declarations from pom.xml.
+* DATAGRAPH-467 - Release 3.1 RC1.
+* DATAGRAPH-463 - Upgrade to Neo4j 2.0.2.
+
+
 Changes in version 3.0.2.RELEASE (2014-04-15)
 ---------------------------------------------
 * DATAGRAPH-451 - Validation on RelationshipEntity fails
