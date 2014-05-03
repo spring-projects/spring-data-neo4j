@@ -26,6 +26,7 @@ import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.data.geo.Point;
 import org.springframework.data.geo.Shape;
 import org.springframework.data.neo4j.repository.GeoConverter;
+import org.springframework.data.neo4j.support.conversion.*;
 
 import java.util.Date;
 
@@ -52,6 +53,11 @@ public class Neo4jConversionServiceFactoryBean implements FactoryBean<Conversion
             registry.addConverter(new PointToStringConverter());
             registry.addConverter(new StringToPointConverter());
             registry.addConverterFactory(new StringToEnumConverterFactory());
+
+            // By default add in an older version of the ObjectToObjectConverter
+            // which provides backwards compatibility for Spring 4.X users
+            // DATAGRAPH-458
+            registry.addConverter(new Spring3ObjectToObjectConverter());
         } else {
             throw new IllegalArgumentException("conversionservice is no ConverterRegistry:" + service);
         }
