@@ -136,6 +136,14 @@ interface RecipeRepository extends GraphRepository<Recipe> {
     Set<Recipe> findByIngredientId(long id);
 
     Set<Recipe> findByAuthor(String author);
+    
+    Set<Recipe> findByAuthorIgnoreCase(String author);
+    
+    Set<Recipe> findByAuthorContainingIgnoreCase(String author);
+    
+    Set<Recipe> findByAuthorStartingWithIgnoreCase(String author);
+    
+    Set<Recipe> findByAuthorEndingWithIgnoreCase(String author);
 
     Set<Recipe> findByIngredient(Ingredient ingredient);
 
@@ -148,10 +156,14 @@ interface RecipeRepository extends GraphRepository<Recipe> {
     Set<Recipe> findBySecret(Ingredient ingredient);
 
     Set<Recipe> findByIngredientAndAuthor(Ingredient ingredient, String author);
-
+    
     Set<Recipe> findByAuthorAndTitle(String author, String title);
+    
+    Set<Recipe> findByAuthorIgnoreCaseAndTitle(String author, String title);
 
     Set<Recipe> findByIngredientAndCookBookTitle(Ingredient ingredient, String cookBookTitle);
+    
+    Set<Recipe> findByIngredientAndCookBookTitleIgnoreCase(Ingredient ingredient, String cookBookTitle);
 
     Set<Recipe> findByIngredientAndCookBook(Ingredient ingredient, CookBook cookBook);
     Set<Recipe> findBySecrets(Ingredient ingredient);
@@ -263,6 +275,34 @@ public class DerivedFinderTests {
         assertThat(getIngredientNames(recipes), is(equalTo(asSet("fish", "pear", "olive oil"))));
     }
 
+    @Test
+    public void shouldFindUsingSinglePropertyIgnoringCase() throws Exception {
+        Set<Recipe> recipes = recipeRepository.findByAuthorIgnoreCase("HUGH");
+
+        assertThat(getIngredientNames(recipes), is(equalTo(asSet("fish", "pear", "olive oil"))));
+    }
+
+    @Test
+    public void shouldFindContainingSinglePropertyIgnoringCase() throws Exception {
+        Set<Recipe> recipes = recipeRepository.findByAuthorContainingIgnoreCase("ug");
+
+        assertThat(getIngredientNames(recipes), is(equalTo(asSet("fish", "pear", "olive oil"))));
+    }
+
+    @Test
+    public void shouldFindStartingWithSinglePropertyIgnoringCase() throws Exception {
+        Set<Recipe> recipes = recipeRepository.findByAuthorContainingIgnoreCase("hu");
+
+        assertThat(getIngredientNames(recipes), is(equalTo(asSet("fish", "pear", "olive oil"))));
+    }
+
+    @Test
+    public void shouldFindEndingWithSinglePropertyIgnoringCase() throws Exception {
+        Set<Recipe> recipes = recipeRepository.findByAuthorContainingIgnoreCase("gh");
+
+        assertThat(getIngredientNames(recipes), is(equalTo(asSet("fish", "pear", "olive oil"))));
+    }
+
     private Set<String> getIngredientNames(Set<Recipe> recipes) {
         HashSet<String> ingredientNames = new HashSet<String>();
 
@@ -276,6 +316,13 @@ public class DerivedFinderTests {
     @Test
     public void shouldFindUsingMultipleProperties() throws Exception {
         Set<Recipe> recipes = recipeRepository.findByAuthorAndTitle("Hugh", "pear frangipane");
+
+        assertThat(single(recipes).ingredient.name, is(equalTo("pear")));
+    }
+
+    @Test
+    public void shouldFindUsingMultiplePropertiesIgnoringCaseForFirst() throws Exception {
+        Set<Recipe> recipes = recipeRepository.findByAuthorIgnoreCaseAndTitle("hugh", "pear frangipane");
 
         assertThat(single(recipes).ingredient.name, is(equalTo("pear")));
     }
@@ -364,6 +411,19 @@ public class DerivedFinderTests {
 
         assertThat(single(recipes).title, is(equalTo("pesto")));
     }
+    
+    @Test
+    public void shouldFindUsingTwoPropertiesIgnoringCase() throws Exception {
+        Set<Recipe> recipes = recipeRepository.findByIngredientAndCookBookTitleIgnoreCase(oliveOil, "naked chef");
+
+        for (Node node : graphDatabaseService.getAllNodes()) {
+            System.out.println("in test = " + node);
+        }
+
+        assertThat(single(recipes).title, is(equalTo("pesto")));
+
+    }
+
     @Test
     public void shouldFindUsingIndexedNumericValue() throws Exception {
         Dish foundDish = dishRepository.findByNumber(100);

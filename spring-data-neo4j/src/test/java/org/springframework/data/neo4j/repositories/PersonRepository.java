@@ -99,6 +99,8 @@ public interface PersonRepository extends GraphRepository<Person>, NamedIndexRep
 
     // Derived queries
     Iterable<Person> findByName(String name);
+    
+    Iterable<Person> findByNameIgnoreCase(String name);
 
     Iterable<Person> findByPersonality(String personality);
 

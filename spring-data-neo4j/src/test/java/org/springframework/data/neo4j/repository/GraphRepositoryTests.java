@@ -409,14 +409,19 @@ public class GraphRepositoryTests {
         assertThat(findByName, hasItem(testTeam.michael));
     }
 
+    @Test @Transactional 
+    public void findByNameIgnoreCase() {
+        Iterable<Person> findByNameIgnoreCase = personRepository.findByNameIgnoreCase(testTeam.michael.getName().toLowerCase());
+        assertThat(findByNameIgnoreCase, hasItem(testTeam.michael));
+    }
+
     @Test @Transactional
     public void countByName() {
         Long num = personRepository.countByName(testTeam.michael.getName());
         assertEquals((Long)1L,num);
     }
 
-
-
+    
     @Test @Transactional
     public void findByPersonalityEnum() {
         testTeam.michael.setPersonality(Personality.EXTROVERT);

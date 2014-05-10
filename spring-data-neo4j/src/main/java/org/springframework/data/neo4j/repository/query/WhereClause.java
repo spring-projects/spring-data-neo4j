@@ -17,7 +17,6 @@ package org.springframework.data.neo4j.repository.query;
 
 import java.util.*;
 
-import org.springframework.data.mapping.context.PersistentPropertyPath;
 import org.springframework.data.neo4j.fieldaccess.PropertyConverter;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
@@ -73,11 +72,22 @@ class WhereClause {
     public WhereClause(PartInfo partInfo, Neo4jTemplate template) {
         Assert.notNull(partInfo.getType());
         this.partInfo = partInfo;
-        this.type = this.partInfo.getType();
+        
+        if (checkForInvalidSimplePropertyUse()) {
+            this.type = Type.REGEX;
+        } else {
+            this.type = this.partInfo.getType();
+        }
+        
         Neo4jPersistentProperty property = partInfo.getLeafProperty();
         if (!property.isNeo4jPropertyType()) {
             propertyConverter = new PropertyConverter(template.getConversionService(), property);
         }
+    }
+
+    private boolean checkForInvalidSimplePropertyUse() {
+        Part part = this.partInfo.getPart();
+        return (part.getType() == Type.SIMPLE_PROPERTY || part.getType() == Type.NEGATING_SIMPLE_PROPERTY) && !canActuallyUseSimpleProperty();
     }
 
     @Override
@@ -87,6 +97,7 @@ class WhereClause {
         final String variable = partInfo.getIdentifier();
 
         String result;
+                        
         if (type.getNumberOfArguments()==0) {
             result = String.format(WHERE_CLAUSE_0, variable, propertyName, operator);
         } else {
@@ -115,11 +126,26 @@ class WhereClause {
     }
 
     protected Object convertValue(PartInfo partInfo, Object value) {
-        if (EnumSet.of(Type.CONTAINING, Type.STARTING_WITH, Type.ENDING_WITH).contains(type))
+        if (EnumSet.of(Type.CONTAINING, Type.STARTING_WITH, Type.ENDING_WITH, Type.REGEX, Type.LIKE, Type.NOT_LIKE).contains(type))
             return QueryTemplates.formatExpression(this.partInfo, value);
         else if (propertyConverter!=null) {
             return propertyConverter.serializePropertyValue(value);
         }
         return value;
+    }
+    
+    protected boolean canActuallyUseSimpleProperty() {
+        Part part = this.partInfo.getPart();
+        
+        switch (part.shouldIgnoreCase()) {
+            case NEVER:
+                return true;
+            case WHEN_POSSIBLE:
+                return part.getProperty().getType() != String.class;
+            case ALWAYS:
+                return false;
+            default:
+                return true;
+        }
     }
 }

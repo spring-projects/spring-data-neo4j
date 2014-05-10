@@ -48,6 +48,10 @@ public class PartInfo {
         return this.part.getType();
     }
 
+    protected Part getPart() {
+        return this.part;
+    }
+        
     Neo4jPersistentProperty getLeafProperty() {
         return path.getLeafProperty();
     }

@@ -23,11 +23,11 @@ import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
 import org.springframework.data.repository.query.Parameter;
 import org.springframework.data.repository.query.parser.Part;
+import org.springframework.data.repository.query.parser.Part.Type;
 
 import java.util.*;
 
 import static org.springframework.util.StringUtils.*;
-import static org.springframework.util.StringUtils.hasText;
 
 public class CypherQuery implements CypherQueryDefinition {
     private final VariableContext variableContext = new VariableContext();
@@ -84,7 +84,7 @@ public class CypherQuery implements CypherQueryDefinition {
         boolean isIdProperty = leafProperty.isIdProperty();
         boolean addedMatchClause = false;
         if (partInfo.isPrimitiveProperty() && !isIdProperty) {
-            if (!addedStartClause(partInfo)) {
+            if (checkForInvalidSimplePropertyUse(part) || !addedStartClause(partInfo)) {
                 whereClauses.add(new WhereClause(partInfo,template));
             }
         } else if (leafProperty.isRelationship() || isIdProperty) {
@@ -152,6 +152,24 @@ public class CypherQuery implements CypherQueryDefinition {
         }
         startClauses.add(StartClauseFactory.create(partInfo));
         return true;
+    }
+
+    private boolean canActuallyUseSimpleProperty(Part part) {
+        switch (part.shouldIgnoreCase()) {
+            case NEVER:
+                return true;
+            case WHEN_POSSIBLE:
+                return part.getProperty().getType() != String.class;
+            case ALWAYS:
+                return false;
+            default:
+                return true;
+        }
+        
+    }
+    
+    private boolean checkForInvalidSimplePropertyUse(Part part) {
+        return (part.getType() == Type.SIMPLE_PROPERTY || part.getType() == Type.NEGATING_SIMPLE_PROPERTY) && !canActuallyUseSimpleProperty(part);
     }
 
     public PartInfo getPartInfo(int parameterIndex) {

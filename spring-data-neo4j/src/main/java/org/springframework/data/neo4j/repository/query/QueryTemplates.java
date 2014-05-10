@@ -17,6 +17,7 @@ package org.springframework.data.neo4j.repository.query;
 
 import org.neo4j.graphdb.Direction;
 import org.springframework.data.neo4j.mapping.RelationshipInfo;
+import org.springframework.data.repository.query.parser.Part;
 
 import java.util.Locale;
 
@@ -124,6 +125,10 @@ public abstract class QueryTemplates {
 
     public static Object formatExpression(PartInfo partInfo, Object value) {
         if (value==null) return null;
+        
+        String regExOpts = determineRegExOptions(partInfo);
+        value = prepend(value, regExOpts);
+        
         switch (partInfo.getType()) {
             case CONTAINING: return append(prepend(value, REGEX_WILDCARD), REGEX_WILDCARD);
             case STARTING_WITH: return append(prepend(value, "^"),REGEX_WILDCARD);
@@ -131,4 +136,19 @@ public abstract class QueryTemplates {
         }
         return value;
     }
+    
+    private static String determineRegExOptions(PartInfo partInfo) {
+        String regExOpts = "";        
+        Part part = partInfo.getPart();
+        
+        switch (part.shouldIgnoreCase()) {
+            case WHEN_POSSIBLE:
+            case ALWAYS:
+                regExOpts = "(?i)";
+            case NEVER:
+        }
+        
+        return regExOpts;
+    }
+
 }
