@@ -39,7 +39,7 @@ public class NodeDelegatingFieldAccessorFactory extends DelegatingFieldAccessorF
                         template,
                 		new PropertyFieldAccessorFactory(template),
                 		new ConvertingNodePropertyFieldAccessorFactory(template)),
-                new ValidatingPropertyFieldAccessorListenerFactory(template)
+                        new ValidatingPropertyFieldAccessorListenerFactory(template)
         );
     }
 
@@ -58,7 +58,11 @@ public class NodeDelegatingFieldAccessorFactory extends DelegatingFieldAccessorF
                 new ReadOnlyRelatedToCollectionFieldAccessorFactory(template),
                 new RelatedToViaCollectionFieldAccessorFactory(template),
                 new RelatedToViaSingleFieldAccessorFactory(template),
-                new DynamicPropertiesFieldAccessorFactory(template)
+                new DynamicPropertiesFieldAccessorFactory(template),
+                // Fallback to handle any remaining non transient,
+                // generic (Object.class) based property fields
+                // which can be saved / read into Neo4j (DATAGRAPH-458)
+                new GenericNodePropertyFieldAccessorFactory(template)
         );
     }
 
