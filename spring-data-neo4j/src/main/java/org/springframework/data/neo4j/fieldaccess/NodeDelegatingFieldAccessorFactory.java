@@ -53,12 +53,17 @@ public class NodeDelegatingFieldAccessorFactory extends DelegatingFieldAccessorF
                 new QueryFieldAccessorFactory(template),
                 new PropertyFieldAccessorFactory(template),
                 new ConvertingNodePropertyFieldAccessorFactory(template),
+                // Fallback to handle generic Object based property fields
+                // DATAGRAPH-458
+                new GenericNodePropertyFieldAccessorFactory(template),
                 new RelatedToSingleFieldAccessorFactory(template),
                 new RelatedToCollectionFieldAccessorFactory(template),
                 new ReadOnlyRelatedToCollectionFieldAccessorFactory(template),
                 new RelatedToViaCollectionFieldAccessorFactory(template),
                 new RelatedToViaSingleFieldAccessorFactory(template),
                 new DynamicPropertiesFieldAccessorFactory(template)
+
+
         );
     }
 

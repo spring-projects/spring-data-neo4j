@@ -23,7 +23,6 @@ import org.springframework.core.convert.converter.ConverterFactory;
 import org.springframework.core.convert.converter.ConverterRegistry;
 import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.core.convert.support.GenericConversionService;
-import org.springframework.data.neo4j.support.conversion.Spring3ObjectToObjectConverter;
 
 import java.util.Date;
 
@@ -46,11 +45,6 @@ public class Neo4jConversionServiceFactoryBean implements FactoryBean<Conversion
             registry.addConverter(new NumberToDateConverter());
             registry.addConverter(new EnumToStringConverter());
             registry.addConverterFactory(new StringToEnumConverterFactory());
-
-            // By default add in an older version of the ObjectToObjectConverter
-            // which provides backwards compatibility for Spring 4.X users
-            // DATAGRAPH-458
-            registry.addConverter(new Spring3ObjectToObjectConverter());
         } else {
             throw new IllegalArgumentException("conversionservice is no ConverterRegistry:" + service);
         }

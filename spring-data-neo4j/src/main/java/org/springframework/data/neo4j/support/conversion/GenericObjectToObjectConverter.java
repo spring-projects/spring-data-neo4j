@@ -29,21 +29,10 @@ import org.springframework.util.ClassUtils;
 import org.springframework.util.ReflectionUtils;
 
 /**
- * This class exists (possibly only as an interim measure) to re-introduce some
- * previously lost functionality as a result of moving from Spring 3.2.X - > 4.X,
- * specifically providing the ability to be backwards compatible with regards
- * to the Object -> String conversion scenario. This functionality changed in
- * Spring 4.X and there is current debate as to whether this is a regression
- * or intended behaviour. For more information, please
- * see https://jira.spring.io/browse/SPR-11693, however in the interim this
- * class will provide the original functionality so that when used in a Spring4
- * context, the functionality should still work.
- *
- * This is basically a copy of the older Spring 3.2.8
- * {@link org.springframework.core.convert.support.ObjectToObjectConverter} class.
+ * Performs Generic Fallback Object to Object conversion
  *
  */
-public final class Spring3ObjectToObjectConverter implements ConditionalGenericConverter {
+public final class GenericObjectToObjectConverter implements ConditionalGenericConverter {
 
     public Set<ConvertiblePair> getConvertibleTypes() {
         return Collections.singleton(new ConvertiblePair(Object.class, Object.class));
