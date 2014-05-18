@@ -32,22 +32,19 @@ import org.springframework.data.neo4j.support.conversion.GenericObjectToObjectCo
 public class GenericNodePropertyFieldAccessorFactory implements FieldAccessorFactory {
 
     private final Neo4jTemplate template;
-    private final GenericConversionService genericConversionService;
 
     public GenericNodePropertyFieldAccessorFactory(Neo4jTemplate template) {
         this.template = template;
-        this.genericConversionService = new GenericConversionService();
-        genericConversionService.addConverter(new GenericObjectToObjectConverter());
     }
 
 	@Override
     public boolean accept(final Neo4jPersistentProperty property) {
-        return property.isSerializablePropertyField(genericConversionService);
+        return property.getType() == Object.class && !property.isTransient();
     }
 
     @Override
     public FieldAccessor forField(final Neo4jPersistentProperty property) {
-        return new GenericNodePropertyFieldAccessor(property, template, genericConversionService);
+        return new GenericNodePropertyFieldAccessor(property, template);
     }
 
     public static class GenericNodePropertyFieldAccessor extends PropertyFieldAccessorFactory.PropertyFieldAccessor {
@@ -55,10 +52,11 @@ public class GenericNodePropertyFieldAccessorFactory implements FieldAccessorFac
         private final PropertyConverter propertyConverter;
 
         public GenericNodePropertyFieldAccessor(Neo4jPersistentProperty property,
-                                                Neo4jTemplate template,
-                                                ConversionService conversionService) {
+                                                Neo4jTemplate template) {
             super(template, property);
-            this.propertyConverter = new PropertyConverter(conversionService,property);
+            GenericConversionService genericConversionService = new GenericConversionService();
+            genericConversionService.addConverter(new GenericObjectToObjectConverter());
+            this.propertyConverter = new PropertyConverter(genericConversionService,property);
         }
 
         @Override

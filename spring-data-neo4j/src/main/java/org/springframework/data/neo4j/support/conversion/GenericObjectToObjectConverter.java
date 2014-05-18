@@ -16,34 +16,26 @@ package org.springframework.data.neo4j.support.conversion;
  * limitations under the License.
  */
 
-import org.springframework.core.convert.converter.ConditionalGenericConverter;
+import org.springframework.core.convert.ConversionFailedException;
+import org.springframework.core.convert.TypeDescriptor;
+import org.springframework.core.convert.converter.GenericConverter;
+import org.springframework.util.ClassUtils;
+import org.springframework.util.ReflectionUtils;
+
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.Set;
 
-import org.springframework.core.convert.ConversionFailedException;
-import org.springframework.core.convert.TypeDescriptor;
-import org.springframework.util.ClassUtils;
-import org.springframework.util.ReflectionUtils;
-
 /**
  * Performs Generic Fallback Object to Object conversion
  *
  */
-public final class GenericObjectToObjectConverter implements ConditionalGenericConverter {
+public final class GenericObjectToObjectConverter implements GenericConverter {
 
     public Set<ConvertiblePair> getConvertibleTypes() {
         return Collections.singleton(new ConvertiblePair(Object.class, Object.class));
-    }
-
-    public boolean matches(TypeDescriptor sourceType, TypeDescriptor targetType) {
-        if (sourceType.getType().equals(targetType.getType())) {
-            // no conversion required
-            return false;
-        }
-        return hasValueOfMethodOrConstructor(targetType.getType(), sourceType.getType());
     }
 
     public Object convert(Object source, TypeDescriptor sourceType, TypeDescriptor targetType) {
@@ -73,10 +65,6 @@ public final class GenericObjectToObjectConverter implements ConditionalGenericC
         }
         throw new IllegalStateException("No static valueOf(" + sourceClass.getName() +
                 ") method or Constructor(" + sourceClass.getName() + ") exists on " + targetClass.getName());
-    }
-
-    static boolean hasValueOfMethodOrConstructor(Class<?> clazz, Class<?> sourceParameterType) {
-        return getValueOfMethodOn(clazz, sourceParameterType) != null || getConstructor(clazz, sourceParameterType) != null;
     }
 
     private static Method getValueOfMethodOn(Class<?> clazz, Class<?> sourceParameterType) {
