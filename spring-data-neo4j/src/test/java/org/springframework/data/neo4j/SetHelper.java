@@ -16,12 +16,13 @@
 package org.springframework.data.neo4j;
 
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 import static java.util.Arrays.asList;
 
 public class SetHelper {
     public static <T> Set<T> asSet(T... ts) {
-        return new HashSet<T>(asList(ts));
+        return new LinkedHashSet<T>(asList(ts));
     }
 }
