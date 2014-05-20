@@ -24,6 +24,7 @@ import org.neo4j.graphdb.Transaction;
 import org.neo4j.graphdb.schema.IndexDefinition;
 import org.neo4j.helpers.collection.IteratorUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.InvalidDataAccessResourceUsageException;
 import org.springframework.data.neo4j.aspects.core.NodeBacked;
 import org.springframework.data.neo4j.conversion.Result;
 import org.springframework.data.neo4j.core.NodeTypeRepresentationStrategy;
@@ -31,6 +32,7 @@ import org.springframework.data.neo4j.support.Neo4jTemplate;
 import org.springframework.data.neo4j.support.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.support.node.Neo4jHelper;
 import org.springframework.data.neo4j.support.query.QueryEngine;
+import org.springframework.data.neo4j.support.schema.SchemaIndexProvider;
 
 import java.util.*;
 
@@ -46,7 +48,8 @@ import static org.junit.Assert.*;
  */
 public abstract class SchemaIndexingEntityTestBase {
 
-	@Autowired
+    private static final int RETRIES = 3;
+    @Autowired
 	protected NodeTypeRepresentationStrategy nodeTypeRepresentationStrategy;
 
     @Autowired
@@ -152,15 +155,31 @@ public abstract class SchemaIndexingEntityTestBase {
     private Collection<Long> getNodeIdsAgainstSchemaIndexedPropertyValue(String label, String indexedPropName, String indexedPropValue) {
         Map<String,Object> params = new HashMap<String,Object>();
         params.put("indexedPropValue",indexedPropValue);
-        Result result = queryEngine.query(
-                "MATCH (n:`"+label+"`) " +
+        String statement = "MATCH (n:`" + label + "`) " +
                 "USING INDEX n:`" + label + "`(" + indexedPropName + ") " +
-                "where n.`" +indexedPropName + "` = {indexedPropValue} " +
-                "return DISTINCT ID(n)", params);
-
+                "where n.`" + indexedPropName + "` = {indexedPropValue} " +
+                "return DISTINCT ID(n)";
+        Result result = null;
+        for (int i=0;i<RETRIES;i++) {
+            try {
+                sleep(500);
+                result = queryEngine.query(statement, params);
+                break;
+            } catch (InvalidDataAccessResourceUsageException e) {
+                if (i == RETRIES-1) throw e;
+            }
+        }
         assertNotNull(result);
         Result<Long> results = result.to(Long.class);
         return IteratorUtil.asCollection(results.iterator());
+    }
+
+    private void sleep(int millis) {
+        try {
+            Thread.sleep(millis);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
     /**

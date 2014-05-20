@@ -1,19 +1,23 @@
 package org.springframework.data.neo4j.support.schema;
 
 import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.Transaction;
 import org.neo4j.helpers.collection.MapUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.dao.InvalidDataAccessResourceUsageException;
+import org.springframework.data.mapping.model.MappingException;
 import org.springframework.data.neo4j.conversion.Result;
 import org.springframework.data.neo4j.core.GraphDatabase;
 import org.springframework.data.neo4j.mapping.IndexInfo;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentEntity;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
-import org.springframework.data.neo4j.support.conversion.EntityResultConverter;
+import org.springframework.data.neo4j.support.DelegatingGraphDatabase;
 import org.springframework.data.neo4j.support.query.CypherQueryEngine;
 
 import java.util.Collection;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import static org.neo4j.helpers.collection.MapUtil.map;
 
@@ -43,6 +47,33 @@ public class SchemaIndexProvider {
         String query = createIndexQuery(label, prop, unique);
         if (logger.isDebugEnabled()) logger.debug(query);
         cypher.query(query, null);
+    }
+
+    private final static int RETRIES = 5;
+    public void awaitIndexOnline(String label, String prop) {
+        sleep(20);
+        String query = checkIndexOnlineQuery(label, prop);
+        String message = "";
+        long start = System.currentTimeMillis();
+        for (int i=0;i<RETRIES;i++) {
+            try {
+                cypher.query(query, map("value", "__f_o_o__")).single();
+                return;
+            } catch(InvalidDataAccessResourceUsageException e) {
+                if (logger.isDebugEnabled()) {
+                    logger.debug("Index for "+label+"("+prop+") not online yet.",e);
+                }
+                message = e.getMessage();
+                sleep(50*(i+1));
+            }
+        }
+        throw new MappingException("Could not make sure within ("+(System.currentTimeMillis()-start)+" ms) that the index for "+label+"("+prop+") is ONLINE, Failure: "+message);
+    }
+
+    private void sleep(int millis) {
+        try {
+            Thread.sleep(millis);
+        } catch (InterruptedException e1) { }
     }
 
     private String getName(Neo4jPersistentProperty property) {
@@ -98,6 +129,9 @@ public class SchemaIndexProvider {
     private String findByLabelAndPropertyQuery(String label, String prop) {
         return "MATCH (n:`"+label+"` {`"+prop+"`:{value}}) RETURN n";
     }
+    private String checkIndexOnlineQuery(String label, String prop) {
+        return "MATCH (n:"+label+") USING INDEX n:"+label+"("+prop+") WHERE n."+prop+"={value} WITH n LIMIT 1 RETURN count(*)";
+    }
 
     private String createIndexQuery(String label, String prop, boolean unique) {
         if (unique) {
@@ -105,5 +139,4 @@ public class SchemaIndexProvider {
         }
         return "CREATE INDEX ON :`"+ label +"`(`"+ prop +"`)";
     }
-
 }
