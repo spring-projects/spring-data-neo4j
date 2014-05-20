@@ -1,6 +1,15 @@
 Spring Data Neo4j Changelog
 ===========================
 
+Changes in version 3.1.0.RELEASE (2014-05-20)
+---------------------------------------------
+* DATAGRAPH-477 - Fix flaky test with race-condition for schema index creation.
+* DATAGRAPH-476 - Release 3.1 GA.
+* DATAGRAPH-475 - Update to Neo4j 2.0.3.
+* DATAGRAPH-460 - Make SDN Spring 4.0.X compatible.
+* DATAGRAPH-458 - SDN 3.0.1 does not store properties of type Object with spring 4.
+
+
 Changes in version 3.1.0.RC1 (2014-05-02)
 -----------------------------------------
 * DATAGRAPH-468 - Remove obsolete repository declarations from pom.xml.
