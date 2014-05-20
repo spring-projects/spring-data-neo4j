@@ -49,6 +49,20 @@ public class CypherQueryBuilderForIndexBasedTRSUnitTests extends AbstractCypherQ
 
     @Override
     @Test
+    public void createsQueryForIgnoreCaseProperty() {
+        this.trsSpecificExpectedQuery = DEFAULT_START_CLAUSE+" WHERE `person`.`info` =~ {0} RETURN `person`";        
+        super.createsQueryForIgnoreCaseProperty();
+    }
+
+    @Override
+    @Test
+    public void createsQueryForLikeIgnoreCaseProperty() {
+        this.trsSpecificExpectedQuery = DEFAULT_START_CLAUSE+" WHERE `person`.`info` =~ {0} RETURN `person`";        
+        super.createsQueryForLikeIgnoreCaseProperty();
+    }
+
+    @Override
+    @Test
     public void createsQueryForGreaterThanPropertyReference() {
         this.trsSpecificExpectedQuery = DEFAULT_START_CLAUSE+" WHERE `person`.`age` > {0} RETURN `person`";
         super.createsQueryForGreaterThanPropertyReference();
@@ -86,12 +100,22 @@ public class CypherQueryBuilderForIndexBasedTRSUnitTests extends AbstractCypherQ
         assertThat(query.toString(), is( trsSpecificExpectedQuery));
     }
 
+    // Should this be "createsQueryForSimpleIndexedPropertyReference"?
     @Override
     public void createsQueryForSimplePropertyReference() {
         Part part = new Part("name2", Person.class);
         query.addRestriction(part);
         assertThat(query.toString(),
                 is("START `person`=node:`Person`(`name2`={0}) RETURN `person`"));
+    }
+
+    @Override
+    @Test
+    public void createsQueryForSimplePropertyReferenceIgnoreCase() {
+        Part part = new Part("nameIgnoreCase", Person.class);
+        query.addRestriction(part);
+        assertThat(query.toString(),
+                is(DEFAULT_START_CLAUSE + " WHERE `person`.`name` =~ {0} RETURN `person`"));
     }
 
     @Override
@@ -123,6 +147,21 @@ public class CypherQueryBuilderForIndexBasedTRSUnitTests extends AbstractCypherQ
         assertThat(query.toString(), is( trsSpecificExpectedQuery ));
     }
 
+    @Override
+    @Test
+    public void buildsComplexQueryCorrectlyIgnoreCase() {
+        this.trsSpecificExpectedQuery =
+                        "START `person`=node:`Person`(`name2`={0}), `person_group`=node:`Group`(`name2`={1}) " +
+                        "MATCH (`person`)<-[:`members`]-(`person_group`), (`person`)<-[:`members`]-(`person_group`)-[:`members`]->(`person_group_members`) " +
+                        "WHERE `person`.`age` > {2} AND `person_group_members`.`age` = {3} AND `person`.`info` =~ {4} " +
+                        "RETURN `person`";
+        query.addRestriction(new Part("name2", Person.class));
+        query.addRestriction(new Part("group_Name2", Person.class));
+        query.addRestriction(new Part("ageGreaterThan", Person.class));
+        query.addRestriction(new Part("groupMembersAge", Person.class));
+        query.addRestriction(new Part("infoIgnoreCase", Person.class));
+        assertThat(query.toString(), is( trsSpecificExpectedQuery ));
+    }
 
     @Override
     @Test

@@ -70,9 +70,26 @@ public abstract class AbstractCypherQueryBuilderTestBase {
         assertThat(query.toString(),
                 is(getExpectedQuery("MATCH (`person`:`Person`) WHERE `person`.`name` = {0} RETURN `person`")));
     }
+    
+    @Test
+    public void createsQueryForSimplePropertyReferenceIgnoreCase() {
+        Part part = new Part("nameIgnoreCase", Person.class);
+        query.addRestriction(part);
+        assertThat(query.toString(),
+                is(getExpectedQuery("MATCH (`person`:`Person`) WHERE `person`.`name` =~ {0} RETURN `person`")));
+    }
+
     @Test
     public void createsQueryForSimpleIndexedPropertyReference() {
         Part part = new Part("name2", Person.class);
+        query.addRestriction(part);
+        assertThat(query.toString(),
+                is(getExpectedQuery("START `person`=node:`Person`(`name2`={0}) RETURN `person`")));
+    }
+
+    @Test
+    public void createsQueryForSimpleIndexedPropertyReferenceIgnoreCase() {
+        Part part = new Part("name2IgnoreCase", Person.class);
         query.addRestriction(part);
         assertThat(query.toString(),
                 is(getExpectedQuery("START `person`=node:`Person`(`name2`={0}) RETURN `person`")));
@@ -87,8 +104,38 @@ public abstract class AbstractCypherQueryBuilderTestBase {
     }
 
     @Test
+    public void createsQueryForIgnoreCasePropertyIndex() {
+        Part part = new Part("titleIgnoreCase", Person.class);
+        query.addRestriction(part);
+        assertThat(query.toString(),
+                is(getExpectedQuery("START `person`=node:`title`({0}) RETURN `person`")));
+    }
+
+    @Test
+    public void createsQueryForLikeIgnoreCasePropertyIndex() {
+        Part part = new Part("titleLikeIgnoreCase", Person.class);
+        query.addRestriction(part);
+        assertThat(query.toString(),
+                is(getExpectedQuery("START `person`=node:`title`({0}) RETURN `person`")));
+    }
+
+    @Test
     public void createsQueryForLikeProperty() {
         Part part = new Part("infoLike", Person.class);
+        query.addRestriction(part);
+        assertThat(query.toString(), is( getExpectedQuery("trs-specific-test-subclass-expected-to-set-value")));
+    }
+
+    @Test
+    public void createsQueryForIgnoreCaseProperty() {
+        Part part = new Part("infoIgnoreCase", Person.class);
+        query.addRestriction(part);
+        assertThat(query.toString(), is( getExpectedQuery("trs-specific-test-subclass-expected-to-set-value")));
+    }
+
+    @Test
+    public void createsQueryForLikeIgnoreCaseProperty() {
+        Part part = new Part("infoLikeIgnoreCase", Person.class);
         query.addRestriction(part);
         assertThat(query.toString(), is( getExpectedQuery("trs-specific-test-subclass-expected-to-set-value")));
     }
@@ -145,6 +192,15 @@ public abstract class AbstractCypherQueryBuilderTestBase {
     @Test
     public void buildsComplexQueryCorrectly() {
         query.addRestriction(new Part("name", Person.class));
+        query.addRestriction(new Part("groupName", Person.class));
+        query.addRestriction(new Part("ageGreaterThan", Person.class));
+        query.addRestriction(new Part("groupMembersAge", Person.class));
+        assertThat(query.toString(), is( getExpectedQuery("trs-specific-test-subclass-expected-to-set-value")));
+    }
+
+    @Test
+    public void buildsComplexQueryCorrectlyIgnoreCase() {
+        query.addRestriction(new Part("nameIgnoreCase", Person.class));
         query.addRestriction(new Part("groupName", Person.class));
         query.addRestriction(new Part("ageGreaterThan", Person.class));
         query.addRestriction(new Part("groupMembersAge", Person.class));

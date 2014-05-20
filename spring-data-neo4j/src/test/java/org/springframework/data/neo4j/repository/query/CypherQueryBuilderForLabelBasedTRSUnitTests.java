@@ -55,6 +55,20 @@ public class CypherQueryBuilderForLabelBasedTRSUnitTests extends AbstractCypherQ
 
     @Override
     @Test
+    public void createsQueryForIgnoreCaseProperty() {
+        this.trsSpecificExpectedQuery = DEFAULT_MATCH_STARTING_CLAUSE + " WHERE `person`.`info` =~ {0} RETURN `person`";        
+        super.createsQueryForIgnoreCaseProperty();
+    }
+    
+    @Override
+    @Test
+    public void createsQueryForLikeIgnoreCaseProperty() {
+        this.trsSpecificExpectedQuery = DEFAULT_MATCH_STARTING_CLAUSE + " WHERE `person`.`info` =~ {0} RETURN `person`";        
+        super.createsQueryForLikeIgnoreCaseProperty();
+    }
+
+    @Override
+    @Test
     public void createsQueryForGreaterThanPropertyReference() {
         this.trsSpecificExpectedQuery = DEFAULT_MATCH_STARTING_CLAUSE +" WHERE `person`.`age` > {0} RETURN `person`";
         super.createsQueryForGreaterThanPropertyReference();
@@ -110,6 +124,15 @@ public class CypherQueryBuilderForLabelBasedTRSUnitTests extends AbstractCypherQ
         this.trsSpecificExpectedQuery =
                 "MATCH (`person`)<-[:`members`]-(`person_group`), (`person`)<-[:`members`]-(`person_group`)-[:`members`]->(`person_group_members`) WHERE `person`.`name` = {0} AND `person_group`.`name` = {1} AND `person`.`age` > {2} AND `person_group_members`.`age` = {3} RETURN `person`";
         super.buildsComplexQueryCorrectly();
+
+    }
+
+    @Override
+    @Test
+    public void buildsComplexQueryCorrectlyIgnoreCase() {
+        this.trsSpecificExpectedQuery =
+                "MATCH (`person`)<-[:`members`]-(`person_group`), (`person`)<-[:`members`]-(`person_group`)-[:`members`]->(`person_group_members`) WHERE `person`.`name` =~ {0} AND `person_group`.`name` = {1} AND `person`.`age` > {2} AND `person_group_members`.`age` = {3} RETURN `person`";
+        super.buildsComplexQueryCorrectlyIgnoreCase();
 
     }
 

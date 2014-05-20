@@ -84,7 +84,7 @@ public class CypherQuery implements CypherQueryDefinition {
         boolean isIdProperty = leafProperty.isIdProperty();
         boolean addedMatchClause = false;
         if (partInfo.isPrimitiveProperty() && !isIdProperty) {
-            if (checkForInvalidSimplePropertyUse(part) || !addedStartClause(partInfo)) {
+            if (checkForInvalidSimplePropertyUse(part, partInfo) || !addedStartClause(partInfo)) {
                 whereClauses.add(new WhereClause(partInfo,template));
             }
         } else if (leafProperty.isRelationship() || isIdProperty) {
@@ -168,8 +168,8 @@ public class CypherQuery implements CypherQueryDefinition {
         
     }
     
-    private boolean checkForInvalidSimplePropertyUse(Part part) {
-        return (part.getType() == Type.SIMPLE_PROPERTY || part.getType() == Type.NEGATING_SIMPLE_PROPERTY) && !canActuallyUseSimpleProperty(part);
+    private boolean checkForInvalidSimplePropertyUse(Part part, PartInfo partInfo) {
+        return !partInfo.isIndexed() && (part.getType() == Type.SIMPLE_PROPERTY || part.getType() == Type.NEGATING_SIMPLE_PROPERTY) && !canActuallyUseSimpleProperty(part);
     }
 
     public PartInfo getPartInfo(int parameterIndex) {
