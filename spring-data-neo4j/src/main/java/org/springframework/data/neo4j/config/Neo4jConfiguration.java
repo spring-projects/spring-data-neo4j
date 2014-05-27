@@ -60,6 +60,7 @@ import java.util.Arrays;
 import java.util.Set;
 
 import static java.util.Arrays.asList;
+import javax.enterprise.inject.Produces;
 
 /**
  * Abstract base class for code based configuration of Spring managed Neo4j infrastructure.
@@ -252,6 +253,7 @@ public abstract class Neo4jConfiguration {
     @Bean
     @Autowired
     @DependsOn("graphDatabaseService")
+    @Produces
     public GraphDatabase graphDatabase() {
         if (graphDatabaseService instanceof GraphDatabase) return (GraphDatabase) graphDatabaseService;
         return new DelegatingGraphDatabase(graphDatabaseService);
