@@ -35,7 +35,9 @@ public interface Result<T> extends Iterable<T> {
 
     void handle(Handler<T> handler);
 
-    <C extends Iterable<T>> C as(Class<C> container);Slice<T> slice(int page, int pageSize);
+    <C extends Iterable<T>> C as(Class<C> container);
+
+    Slice<T> slice(int page, int pageSize);
 
     Slice<T> slice(Pageable page);
 

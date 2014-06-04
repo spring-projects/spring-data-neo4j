@@ -56,13 +56,14 @@ public class DelegatingGraphDatabase implements GraphDatabase {
 
     private static final Logger log = LoggerFactory.getLogger(DelegatingGraphDatabase.class);
     private static final Label[] NO_LABELS = new Label[0];
-    private final SchemaIndexProvider schemaIndexProvider;
+    private SchemaIndexProvider schemaIndexProvider;
 
     protected GraphDatabaseService delegate;
     private ConversionService conversionService;
     private ResultConverter resultConverter;
     private volatile CypherQueryEngineImpl cypherQueryEngine;
 
+    // just for CDI
     public DelegatingGraphDatabase() {
     }
 
