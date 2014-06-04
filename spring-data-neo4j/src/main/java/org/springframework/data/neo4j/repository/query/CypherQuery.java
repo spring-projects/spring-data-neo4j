@@ -21,11 +21,11 @@ import static org.springframework.util.StringUtils.hasText;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeSet;
 
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -288,7 +288,7 @@ public class CypherQuery implements CypherQueryDefinition {
 
     private String toQueryString(List<MatchClause> matchClauses) {
     	// Use a TreeSet to remove duplicate match clauses and maintain their order
-        Set<String> result = new TreeSet<String>();
+        Set<String> result = new LinkedHashSet<String>();
         for (MatchClause matchClause : matchClauses) {
             result.add(matchClause.toString(variableContext));
         }
