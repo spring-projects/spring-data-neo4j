@@ -92,7 +92,7 @@
 		<dependency>
 			<groupId>org.springframework.data</groupId>
 			<artifactId>spring-data-neo4j</artifactId>
-			<version>${project.version}</version>
+            <version>${project.version}</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.neo4j</groupId>
@@ -223,14 +223,14 @@
 		<dependency>
 			<groupId>org.springframework.data</groupId>
 			<artifactId>spring-data-neo4j-aspects</artifactId>
-			<version>${project.version}</version>
+			<version>3.1.0.BUILD-SNAPSHOT</version>
 			<scope>test</scope>
 		</dependency>
 
 		<dependency>
 			<groupId>org.springframework.data</groupId>
 			<artifactId>spring-data-neo4j</artifactId>
-			<version>${project.version}</version>
+			<version>3.1.0.BUILD-SNAPSHOT</version>
 			<scope>test</scope>
 			<type>test-jar</type>
 		</dependency>
@@ -238,7 +238,7 @@
 		<dependency>
 			<groupId>org.springframework.data</groupId>
 			<artifactId>spring-data-neo4j-aspects</artifactId>
-			<version>${project.version}</version>
+			<version>3.1.0.BUILD-SNAPSHOT</version>
 			<scope>test</scope>
 			<type>test-jar</type>
 		</dependency>
