@@ -36,6 +36,7 @@ import org.springframework.data.neo4j.annotation.GraphId;
 import org.springframework.data.neo4j.annotation.GraphProperty;
 import org.springframework.data.neo4j.annotation.Indexed;
 import org.springframework.data.neo4j.annotation.NodeEntity;
+import org.springframework.data.neo4j.annotation.Property;
 import org.springframework.data.neo4j.annotation.Query;
 import org.springframework.data.neo4j.annotation.RelatedTo;
 import org.springframework.data.neo4j.annotation.RelatedToVia;
@@ -190,6 +191,8 @@ class Neo4jPersistentPropertyImpl extends AnnotationBasedPersistentProperty<Neo4
 
     private String createNeo4jPropertyName() {
         final Neo4jPersistentEntity<?> entityClass = (Neo4jPersistentEntity<?>) getOwner();
+        final Property annotation = getAnnotation(Property.class);
+        if (annotation != null) return annotation.name();
         if (entityClass.useShortNames()) return getName();
         return String.format("%s.%s", entityClass.getType().getSimpleName(), getName());
     }
