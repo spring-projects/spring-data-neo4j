@@ -109,10 +109,8 @@ abstract class GraphRepositoryQuery implements RepositoryQuery, ParameterResolve
             return createPage(result, accessor.getPageable(),count, queryMethod.isPageQuery());
         }
         if (queryMethod.isIterableResult()) {
-            final Result<?> result = queryEngine.query(queryString, params).to(compoundType);
-            if (queryMethod.isSetResult()) return IteratorUtil.addToCollection(result,new LinkedHashSet());
-            if (queryMethod.isCollectionResult()) return IteratorUtil.addToCollection(result,new ArrayList());
-            return result;
+            Result<?> intialResult = queryEngine.query(queryString, params);
+            return CollectionLikeQueryResultExtractionUtil.extractCollectionLikeResult(intialResult, compoundType, queryMethod.getReturnType());
         }
         return queryEngine.query(queryString, params).to(queryMethod.getReturnType()).singleOrNull();
     }

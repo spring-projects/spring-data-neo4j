@@ -87,21 +87,20 @@ public class Person implements Being , Serializable {
 	@RelatedToVia(type = "knows", elementClass = Friendship.class)
     private Iterable<Friendship> friendships;
 
-    @Query("start person=node({self}) match (person)<-[?:boss]-(boss) return boss")
+    /*
+         Note: All @Query annotated fields should be transient so that they are not serialized
+     */
+    @Query("start person=node({self})  OPTIONAL MATCH (person)<-[:boss]-(boss) return boss")
     transient private Person bossByQuery;
-    // NW - all queries should be transient
 
-    @Query("start person=node({self}) match (person)<-[?:boss]-(boss) return boss.name")
+    @Query("start person=node({self})  OPTIONAL MATCH  (person)<-[:boss]-(boss) return boss.name")
     transient private String bossName;
-    // NW - all queries should be transient
 
     @Query("start person=node({self}) match (person)<-[:persons]-(team)-[:persons]->(member) return member")
     transient private Iterable<Person> otherTeamMembers;
-    // NW - all queries should be transient
 
-    @Query("start person=node({self}) match (person)<-[:persons]-(team)-[:persons]->(member) return member.name?, member.age?")
+    @Query("start person=node({self}) match (person)<-[:persons]-(team)-[:persons]->(member) return member.name, member.age")
     transient private Iterable<Map<String,Object>> otherTeamMemberData;
-    // NW - all queries should be transient
 
     @RelatedTo(elementClass = Group.class, type = "interface_test", direction = Direction.OUTGOING)
     private Set<IGroup> groups;
