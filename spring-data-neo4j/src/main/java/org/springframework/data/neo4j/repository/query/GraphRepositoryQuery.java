@@ -21,6 +21,7 @@ import org.neo4j.helpers.collection.IteratorUtil;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.SliceImpl;
+import org.springframework.data.neo4j.conversion.QueryResultBuilder;
 import org.springframework.data.neo4j.conversion.Result;
 import org.springframework.data.neo4j.core.GraphDatabase;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
@@ -103,18 +104,19 @@ abstract class GraphRepositoryQuery implements RepositoryQuery, ParameterResolve
         GraphQueryMethod queryMethod = getQueryMethod();
         final QueryEngine<?> queryEngine = getQueryEngine();
         final Class<?> compoundType = queryMethod.getCompoundType();
+        Result<?> queryResult = queryEngine.query(queryString, params);
+        Class<?> returnType = queryMethod.getReturnType();
         if (queryMethod.isPageQuery() || queryMethod.isSliceQuery()) {
-            @SuppressWarnings("unchecked") final Iterable<?> result = queryEngine.query(queryString, params).to(compoundType);
+            @SuppressWarnings("unchecked") final Iterable<?> result = queryResult.to(compoundType);
             Long count = computeCount(params);
-            return createPage(result, accessor.getPageable(),count, queryMethod.isPageQuery());
+            return createPage(result, accessor.getPageable(), count, queryMethod.isPageQuery());
         }
+
         if (queryMethod.isIterableResult()) {
-            final Result<?> result = queryEngine.query(queryString, params).to(compoundType);
-            if (queryMethod.isSetResult()) return IteratorUtil.addToCollection(result,new LinkedHashSet());
-            if (queryMethod.isCollectionResult()) return IteratorUtil.addToCollection(result,new ArrayList());
-            return result;
+            Class<? extends Iterable> collectionType = (Class<? extends Iterable>) returnType;
+            return queryResult.to(compoundType).as(collectionType);
         }
-        return queryEngine.query(queryString, params).to(queryMethod.getReturnType()).singleOrNull();
+        return queryResult.to(returnType).singleOrNull();
     }
 
     private Long computeCount(Map<String, Object> params) {

@@ -230,4 +230,39 @@ public class Group implements  IGroup , Serializable {
     public Collection<Person> getFetchedPersons() {
         return fetchedPersons;
     }
+
+    /*
+         Note: All @Query annotated fields should be transient so that they are not serialized
+     */
+
+    @Query("match (g2:g)-[:persons]->(member) where id(g2) = {self}  return member")
+    private transient Set<Person> teamMembersAsSetViaQuery;
+
+    @Query("match (g3:g)-[:persons]->(member) where id(g3) = {self}  return member")
+    private transient Iterable<Person> teamMembersAsIterableViaQuery;
+
+    //@Fetch //(breaks Neo4jEntityConverterTests - investigate)
+    @Query("match (g4)-[:persons]->(member) where id(g4) = {self}  return member")
+    private transient Iterable<Person> fetchedTeamMembersAsIterableViaQuery;
+
+    //@Fetch //(breaks Neo4jEntityConverterTests - investigate)
+    @Query("match (g1)-[:persons]-(member1) where id(g1) = {self} return member1")
+    private transient Set<Person> fetchedTeamMembersAsSetViaQuery;
+
+    public Iterable<Person> getFetchedTeamMembersAsIterableViaQuery() {
+        return fetchedTeamMembersAsIterableViaQuery;
+    }
+
+    public Iterable<Person> getTeamMembersAsIterableViaQuery() {
+        return teamMembersAsIterableViaQuery;
+    }
+
+    public Set<Person> getTeamMembersAsSetViaQuery() {
+        return teamMembersAsSetViaQuery;
+    }
+
+    public Set<Person> getFetchedTeamMembersAsSetViaQuery() {
+        return fetchedTeamMembersAsSetViaQuery;
+    }
+
 }
