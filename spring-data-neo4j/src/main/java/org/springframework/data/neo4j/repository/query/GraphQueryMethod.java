@@ -149,17 +149,8 @@ public class GraphQueryMethod extends QueryMethod {
         return new CypherGraphRepositoryQuery(this, template);
     }
 
-    public boolean isSetResult() {
-        final Class<Set> superClass = Set.class;
-        return hasResultOfType(superClass);
-    }
-
     public boolean hasResultOfType(Class<?> superClass) {
         return superClass.isAssignableFrom(getReturnType());
-    }
-
-    public boolean isCollectionResult() {
-        return hasResultOfType(Collection.class);
     }
 
     @Override

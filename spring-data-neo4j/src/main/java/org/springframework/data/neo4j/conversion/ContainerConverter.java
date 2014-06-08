@@ -25,8 +25,16 @@ import java.util.*;
  * @since 11.11.11
  */
 public class ContainerConverter {
+    /*
+
+        if (Set.class.isAssignableFrom(collectionLikeType)) return (C)IteratorUtil.addToCollection(this, new LinkedHashSet());
+        if (Collection.class.isAssignableFrom(collectionLikeType)) return (C)IteratorUtil.addToCollection(this,new ArrayList());
+        return (C)this;
+
+     */
     @SuppressWarnings("unchecked")
     public static <T, C extends Iterable<T>> C toContainer(Class<C> container, Iterable<T> data) {
+        if (container.isInstance(data)) return (C) data;
         if (Iterable.class.equals(container)) return (C) data;
         if (SortedSet.class.isAssignableFrom(container)) return (C) IteratorUtil.addToCollection(data, new TreeSet<T>());
         if (Set.class.isAssignableFrom(container)) return (C) IteratorUtil.addToCollection(data, new HashSet<T>());
