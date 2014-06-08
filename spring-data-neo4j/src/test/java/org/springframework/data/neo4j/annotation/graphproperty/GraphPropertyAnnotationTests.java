@@ -17,6 +17,8 @@ package org.springframework.data.neo4j.annotation.graphproperty;
 
 import static org.junit.Assert.assertEquals;
 
+import java.util.Calendar;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.neo4j.graphdb.Node;
@@ -38,7 +40,13 @@ public class GraphPropertyAnnotationTests {
 
     @Test
     public void shouldSaveANodeWithRenamedPropertyNames() throws Exception {
-    	Artist vanGogh = new Artist("Vincent", "Willem", "Van Gogh");
+    	Calendar born = Calendar.getInstance();
+    	Calendar died = Calendar.getInstance();
+    	
+    	born.set(1853, Calendar.MARCH, 30, 0, 0, 0);
+    	died.set(1890, Calendar.JULY , 29, 0, 0, 0);
+    	
+    	Artist vanGogh = new Artist("Vincent", "Willem", "Van Gogh", born.getTime(), died.getTime());
     	
     	Artist vanGoghSavedNode = artistRepository.save(vanGogh);
     	Artist vanGoghRetrievedNode = artistRepository.findOne(vanGoghSavedNode.getId());
@@ -46,11 +54,15 @@ public class GraphPropertyAnnotationTests {
     	assertEquals("Vincent", vanGoghRetrievedNode.getFirstName());
     	assertEquals("Willem", vanGoghRetrievedNode.getSecondName());
     	assertEquals("Van Gogh", vanGoghRetrievedNode.getLastName());
+    	assertEquals(born.getTime(), vanGoghRetrievedNode.getBorn());
+    	assertEquals(died.getTime(), vanGoghRetrievedNode.getDied());
     	
     	Node node = this.neo4jTemplate.getNode(vanGoghSavedNode.getId());
     	
     	assertEquals("Vincent", node.getProperty("first_name"));
     	assertEquals("Willem", node.getProperty("second_name"));
     	assertEquals("Van Gogh", node.getProperty("last_name"));
+    	assertEquals(born.getTimeInMillis(), Long.parseLong((String) node.getProperty("born")));
+    	assertEquals(died.getTimeInMillis(), Long.parseLong((String) node.getProperty("died")));
     }
 }

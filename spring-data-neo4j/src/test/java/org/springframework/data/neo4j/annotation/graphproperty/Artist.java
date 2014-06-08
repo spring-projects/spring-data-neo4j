@@ -15,6 +15,8 @@
  */
 package org.springframework.data.neo4j.annotation.graphproperty;
 
+import java.util.Date;
+
 import org.springframework.data.annotation.TypeAlias;
 import org.springframework.data.neo4j.annotation.GraphProperty;
 import org.springframework.data.neo4j.annotation.IdentifiableEntity;
@@ -33,6 +35,12 @@ public class Artist extends IdentifiableEntity {
 	@GraphProperty(propertyName = "last_name")
 	private String lastName;
 	
+	@GraphProperty()
+	private Date born;
+	
+	@GraphProperty(propertyName = "")
+	private Date died;
+	
     public Artist() {
     }
 
@@ -44,6 +52,12 @@ public class Artist extends IdentifiableEntity {
     public Artist(String firstName, String secondName, String lastName) {
     	this(firstName, lastName);
     	this.secondName = secondName;
+    }
+    
+    public Artist(String firstName, String secondName, String lastName, Date born, Date died) {
+    	this(firstName, secondName, lastName);
+    	this.born = born;
+    	this.died = died;
     }
     
 	public String getFirstName() {
@@ -68,5 +82,21 @@ public class Artist extends IdentifiableEntity {
 
 	public void setLastName(String lastName) {
 		this.lastName = lastName;
+	}
+
+	public Date getBorn() {
+		return born;
+	}
+
+	public void setBorn(Date born) {
+		this.born = born;
+	}
+
+	public Date getDied() {
+		return died;
+	}
+
+	public void setDied(Date died) {
+		this.died = died;
 	}
 }
