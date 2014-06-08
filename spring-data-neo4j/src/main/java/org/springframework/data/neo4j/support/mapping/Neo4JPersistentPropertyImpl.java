@@ -191,7 +191,7 @@ class Neo4jPersistentPropertyImpl extends AnnotationBasedPersistentProperty<Neo4
     private String createNeo4jPropertyName() {
         final Neo4jPersistentEntity<?> entityClass = (Neo4jPersistentEntity<?>) getOwner();
         final GraphProperty annotation = getAnnotation(GraphProperty.class);
-        if (annotation != null) return annotation.propertyName();
+        if (annotation != null && annotation.propertyName() != null && !annotation.propertyName().isEmpty()) return annotation.propertyName();
         if (entityClass.useShortNames()) return getName();
         return String.format("%s.%s", entityClass.getType().getSimpleName(), getName());
     }
