@@ -13,36 +13,53 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.neo4j.annotation.property;
+package org.springframework.data.neo4j.annotation.graphproperty;
 
+import org.springframework.data.annotation.TypeAlias;
+import org.springframework.data.neo4j.annotation.GraphProperty;
 import org.springframework.data.neo4j.annotation.IdentifiableEntity;
 import org.springframework.data.neo4j.annotation.NodeEntity;
-import org.springframework.data.neo4j.annotation.Property;
 
 @NodeEntity
+@TypeAlias("ARTIST")
 public class Artist extends IdentifiableEntity {
 
-	@Property(name = "first_name")
+	@GraphProperty(propertyName = "first_name")
 	private String firstName;
 
-	@Property(name = "last_name")
+	@GraphProperty(propertyName = "second_name")
+	private String secondName;
+	
+	@GraphProperty(propertyName = "last_name")
 	private String lastName;
 	
     public Artist() {
     }
 
     public Artist(String firstName, String lastName) {
-
         this.firstName = firstName;
         this.lastName = lastName;
     }
 
+    public Artist(String firstName, String secondName, String lastName) {
+    	this(firstName, lastName);
+    	this.secondName = secondName;
+    }
+    
 	public String getFirstName() {
 		return firstName;
 	}
 
 	public void setFirstName(String firstName) {
 		this.firstName = firstName;
+	}
+
+	public String getSecondName() {
+		return secondName;
+	}
+
+	public void setSecondName(String secondName) {
+		this.secondName = secondName;
 	}
 
 	public String getLastName() {

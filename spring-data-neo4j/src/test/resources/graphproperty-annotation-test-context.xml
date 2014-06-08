@@ -12,12 +12,12 @@
   <context:annotation-config/>
 
   <bean class="org.springframework.data.neo4j.config.Neo4jConfiguration">
-    <property name="basePackage" value="org.springframework.data.neo4j.annotation.property"/>
+    <property name="basePackage" value="org.springframework.data.neo4j.annotation.graphproperty"/>
   </bean>
 
   <bean id="graphDatabaseService" class="org.neo4j.test.ImpermanentGraphDatabase" destroy-method="shutdown"/>
 
-  <neo4j:repositories base-package="org.springframework.data.neo4j.annotation.property"/>
+  <neo4j:repositories base-package="org.springframework.data.neo4j.annotation.graphproperty"/>
 
 </beans>
 

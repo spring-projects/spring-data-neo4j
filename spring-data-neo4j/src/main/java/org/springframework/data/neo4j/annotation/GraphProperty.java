@@ -24,12 +24,12 @@ import java.lang.annotation.Target;
 /**
  * Annotation to explcitely declare a property handled by datastore-graph. Automatically indexes the property.
  * Only required in partial mode. Otherwise properties are handled by default if they are primitive or convertible to
- * a String using the built in conversion services.
+ * a String using the built in conversion services. You can explicitly assign node property names too. 
  *
  * @author Michael Hunger
  * @since 27.08.2010
  */
-@Retention(RetentionPolicy.RUNTIME)
+@Retention(RetentionPolicy.RUNTIME)	
 @Target({ElementType.FIELD,ElementType.METHOD})
 public @interface GraphProperty {
 
@@ -37,4 +37,5 @@ public @interface GraphProperty {
 
     String defaultValue() default UNSET_DEFAULT;
     Class<?> propertyType() default String.class;
+    String propertyName() default "";
 }

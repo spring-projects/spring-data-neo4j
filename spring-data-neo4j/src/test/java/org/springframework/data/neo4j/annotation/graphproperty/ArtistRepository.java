@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.neo4j.annotation.property;
+package org.springframework.data.neo4j.annotation.graphproperty;
 
 import org.springframework.data.neo4j.repository.CRUDRepository;
 
