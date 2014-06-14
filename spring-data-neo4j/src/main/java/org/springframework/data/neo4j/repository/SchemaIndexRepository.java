@@ -26,9 +26,22 @@ import org.springframework.transaction.annotation.Transactional;
  */
 public interface SchemaIndexRepository<T> {
 
+    /**
+     * Finds an entity based on the provided schema indexed property value if one exists.
+     * @param property The name of the schema indexed property
+     * @param value The value of the schema indexed property
+     * @return The single entity associated with this property value setting, or
+     *         null if one does not exist.
+     */
     @Transactional
     T findBySchemaPropertyValue(String property, Object value);
 
+    /**
+     * Finds all entities which have a schema indexed property set to specified value.
+     * @param property The name of the schema indexed property
+     * @param value The value of the schema indexed property
+     * @return A result of all entities which match indexed property value.
+     */
     @Transactional
     Result<T> findAllBySchemaPropertyValue(String property, Object value);
 

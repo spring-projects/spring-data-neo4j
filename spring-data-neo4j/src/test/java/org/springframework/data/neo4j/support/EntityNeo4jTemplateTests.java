@@ -30,12 +30,10 @@ import org.neo4j.helpers.collection.MapUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
+import org.springframework.dao.InvalidDataAccessResourceUsageException;
 import org.springframework.data.neo4j.conversion.Result;
 import org.springframework.data.neo4j.mapping.ManagedEntity;
-import org.springframework.data.neo4j.model.Friendship;
-import org.springframework.data.neo4j.model.Group;
-import org.springframework.data.neo4j.model.Named;
-import org.springframework.data.neo4j.model.Person;
+import org.springframework.data.neo4j.model.*;
 import org.springframework.data.neo4j.repository.GraphRepository;
 import org.springframework.data.neo4j.support.query.CypherQueryEngine;
 import org.springframework.data.neo4j.template.Neo4jOperations;
@@ -264,6 +262,33 @@ public class EntityNeo4jTemplateTests extends EntityTestBase {
         assertEquals(false, template.isRelationshipEntity(Person.class));
         assertEquals(false, template.isRelationshipEntity(Object.class));
     }
+
+    @Test @Transactional
+    public void testDefaultCreateUniqueNodeWithFailOnDuplicateSetToFalse() throws Exception {
+        final Account1 acc = new Account1("111-222-333", "Mr George - Current Account");
+        Node acc1Node = template.createUniqueNode(acc);
+        Node acc2Node = template.createUniqueNode(acc);
+        assertEquals("When failOnDuplicate is set to false, duplicate creations should be merged to same node", acc1Node.getId(), acc2Node.getId());
+    }
+
+    @Test(expected = ConstraintViolationException.class) @Transactional
+    public void testDefaultCreateUniqueNodeWithFailOnDuplicateSetToTrue() throws Exception {
+        final Account2 acc = new Account2("111-222-333", "Mr George - Current Account");
+        Node acc1Node = template.createUniqueNode(acc);
+        Node acc2Node = template.createUniqueNode(acc);
+    }
+
+
+    @Ignore("Not able to take failOnDuplicate into account")
+    @Test @Transactional
+    public void testCreateNodeAsIgnoresFailOnDuplicateValue() throws Exception {
+        Account1 acc1 = template.createNodeAs(Account1.class,map("accountNumber","111-222-333","name","Mr George - Current Account"));
+        Account1 acc2 = template.createNodeAs(Account1.class,map("accountNumber","111-222-333","name","Mr George - Current Account"));
+        // When failOnDuplicate is set to false, createNodeAs should not be
+        // throwing an exception, but it currently does as it does not take
+        // this indo into account?
+    }
+
 
     @Test @Transactional
     public void testSave() throws Exception {

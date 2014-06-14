@@ -20,6 +20,7 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.neo4j.graphdb.ConstraintViolationException;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.helpers.collection.IteratorUtil;
@@ -85,6 +86,10 @@ public class GraphRepositoryTests {
     private org.springframework.data.neo4j.repositories.PersonRepository personRepository;
     @Autowired
     private BeingRepository beingRepository;
+    @Autowired
+    private Account1Repository account1Repository;
+    @Autowired
+    private Account2Repository account2Repository;
     @Autowired
     org.springframework.data.neo4j.repositories.GroupRepository groupRepository;
 
@@ -153,6 +158,45 @@ public class GraphRepositoryTests {
                 assertThat(personRepository.exists(testTeam.michael.getId()), is(false));
             }
         });
+    }
+
+    @Test
+    @Transactional
+    public void testSaveWithDefaultFailOnDuplicateSetToFalse() {
+        // Account1
+        // @Indexed(unique = true, failOnDuplicate = false)
+        // private String accountNumber;
+        Account1 acc1 = new Account1("111-222-333", "Mr George - Current Account 1");
+        Account1 acc2 = new Account1("111-222-333", "Mr George - Current Account 2");
+        Account1 savedAcc1 = account1Repository.save(acc1);
+        Account1 savedAcc2 = account1Repository.save(acc2);
+        assertEquals("expecting the saving of the same entity result in a merge of nodes", savedAcc1.getGraphId(), savedAcc2.getGraphId());
+    }
+
+    @Test(expected = ConstraintViolationException.class)
+    @Transactional
+    public void testSaveWithDefaultFailOnDuplicateSetToTrue() {
+        // Account2
+        // @Indexed(unique = true, failOnDuplicate = true)
+        // private String accountNumber;
+        Account2 acc1 = new Account2("111-222-333", "Mr George - Current Account 1");
+        Account2 acc2 = new Account2("111-222-333", "Mr George - Current Account 2");
+        Account2 savedAcc1 = account2Repository.save(acc1);
+        Account2 savedAcc2 = account2Repository.save(acc2);
+    }
+
+    @Test
+    @Transactional
+    public void testSaveWithDefaultFailOnDuplicateSetToTrueAllowsUpdates() {
+        // Account2
+        // @Indexed(unique = true, failOnDuplicate = true)
+        // private String accountNumber;
+        Account2 acc1 = new Account2("111-222-333", "Mr George - Current Account 1");
+        Account2 savedAcc1 = account2Repository.save(acc1);
+
+        acc1.setName("Mr George - Current Account 2");
+        account2Repository.save(savedAcc1);
+        // No exception expected!
     }
 
     @Test

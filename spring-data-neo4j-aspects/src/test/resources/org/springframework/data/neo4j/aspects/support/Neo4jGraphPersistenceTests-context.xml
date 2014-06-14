@@ -115,6 +115,8 @@
     <bean id="mappingContext" class="org.springframework.data.neo4j.support.mapping.Neo4jMappingContext">
         <property name="initialEntitySet">
             <set>
+                <value>org.springframework.data.neo4j.aspects.support.domain.Account1</value>
+                <value>org.springframework.data.neo4j.aspects.support.domain.Account2</value>
                 <value>org.springframework.data.neo4j.aspects.Developer</value>
                 <value>org.springframework.data.neo4j.aspects.Person</value>
                 <value>org.springframework.data.neo4j.aspects.Group</value>
@@ -167,6 +169,14 @@
                 </constructor-arg>
             </bean>
         </property>
+    </bean>
+    <bean id="account2Repository" class="org.springframework.data.neo4j.repository.GraphRepositoryFactoryBean">
+        <property name="repositoryInterface" value="org.springframework.data.neo4j.aspects.Account2Repository" />
+        <property name="neo4jTemplate" ref="template"/>
+    </bean>
+    <bean id="account1Repository" class="org.springframework.data.neo4j.repository.GraphRepositoryFactoryBean">
+        <property name="repositoryInterface" value="org.springframework.data.neo4j.aspects.Account1Repository" />
+        <property name="neo4jTemplate" ref="template"/>
     </bean>
     <bean id="groupRepository" class="org.springframework.data.neo4j.repository.GraphRepositoryFactoryBean">
         <property name="repositoryInterface" value="org.springframework.data.neo4j.aspects.GroupRepository" />

@@ -20,18 +20,20 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.neo4j.graphdb.ConstraintViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.neo4j.aspects.Group;
 import org.springframework.data.neo4j.aspects.Person;
-import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.data.neo4j.aspects.core.NodeBacked;
+import org.springframework.data.neo4j.aspects.support.domain.Account1;
+import org.springframework.data.neo4j.aspects.support.domain.Account2;
 import org.springframework.test.context.CleanContextCacheTestExecutionListener;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestExecutionListeners;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
-import org.springframework.test.context.transaction.BeforeTransaction;
 import org.springframework.test.context.transaction.TransactionalTestExecutionListener;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -40,9 +42,10 @@ import java.util.Map;
 
 import static java.util.Arrays.asList;
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.hasItems;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
-import static org.hamcrest.Matchers.*;
 import static org.neo4j.helpers.collection.IteratorUtil.addToCollection;
 import static org.neo4j.helpers.collection.IteratorUtil.asCollection;
 
@@ -123,4 +126,66 @@ public class GraphRepositoryTests extends EntityTestBase {
         Group team = personRepository.findTeam(testTeam.michael);
         assertThat(team, is(testTeam.sdg));
     }
+
+
+    @Test
+    @Transactional
+    public void testSaveWhenFailOnDuplicateSetToFalse() {
+        // Account1
+        // @Indexed(unique = true, failOnDuplicate = false)
+        // private String accountNumber;
+        Account1 acc1 = new Account1("111-222-333", "Mr George - Current Account 1");
+        Account1 acc2 = new Account1("111-222-333", "Mr George - Current Account 2");
+        Account1 savedAcc1 = account1Repository.save(acc1);
+        Account1 savedAcc2 = account1Repository.save(acc2);
+        assertEquals("expecting the saving of the same entity result in a merge of nodes", ((NodeBacked)savedAcc1).getNodeId(), ((NodeBacked)savedAcc2).getNodeId());
+        assertEquals("Mr George - Current Account 2", savedAcc2.getName() );
+
+        Account1 loadedAcc1 = account1Repository.findBySchemaPropertyValue("accountNumber", "111-222-333");
+        assertEquals("Mr George - Current Account 2", loadedAcc1.getName() );
+
+    }
+
+    @Test(expected = ConstraintViolationException.class)
+    @Transactional
+    public void testSaveWhenFailOnDuplicateSetToTrue() {
+        // Account2
+        // @Indexed(unique = true, failOnDuplicate = true)
+        // private String accountNumber;
+        Account2 acc1 = new Account2("111-222-333", "Mr George - Current Account 1");
+        Account2 acc2 = new Account2("111-222-333", "Mr George - Current Account 2");
+        Account2 savedAcc1 = account2Repository.save(acc1);
+        Account2 savedAcc2 = account2Repository.save(acc2);
+    }
+
+    @Test
+    @Transactional
+    public void testSaveWhenDefaultFailOnDuplicateSetToTrueAllowsUpdates() {
+        // Account2
+        // @Indexed(unique = true, failOnDuplicate = true)
+        // private String accountNumber;
+        Account2 acc1 = new Account2("111-222-333", "Mr George - Current Account 1");
+        Account2 savedAcc1 = account2Repository.save(acc1);
+
+        acc1.setName("Mr George - Current Account 2");
+        account2Repository.save(savedAcc1);
+        // No exception expected!
+    }
+
+    /*
+    @Ignore("Not catering for explicit overrides at present")
+    @Test(expected = ConstraintViolationException.class)
+    @Transactional
+    public void testSaveWithOverrideFailOnDuplicateSetToTrue() {
+        // Account1
+        // @Indexed(unique = true, failOnDuplicate = false)
+        // private String accountNumber;
+        Account1 acc1 = new Account1("111-222-333", "Mr George - Current Account 1");
+        Account1 acc2 = new Account1("111-222-333", "Mr George - Current Account 2");
+        Account1 savedAcc1 = account1Repository.save(acc1,true);
+        Account1 savedAcc2 = account1Repository.save(acc2,true);
+    }
+    */
+
+
 }

@@ -39,9 +39,21 @@ public @interface Indexed {
 
     String fieldName() default "";
 
+    /**
+     * Indicates whether to apply a unique constraint on this property, defaults to false.
+     */
     boolean unique() default false;
 
     boolean numeric() default false;
+
+    /**
+     * Only applicable when indexType is LABEL and unique=true, indicates how to handle attempts to save
+     * entities where this unique property already exists, defaults to false. When set to false, default entity
+     * saving behaviour resorts to merge type behaviour whilst when set to true, results in an exception being
+     * thrown when attempting to save another entity where the same unique indexed property already exists under
+     * a different node id.
+     */
+    boolean failOnDuplicate() default false;
 
     // FQN is a fix for javac compiler bug http://bugs.sun.com/view_bug.do?bug_id=6512707
     org.springframework.data.neo4j.annotation.Indexed.Level level() default org.springframework.data.neo4j.annotation.Indexed.Level.CLASS;

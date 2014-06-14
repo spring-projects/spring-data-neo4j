@@ -31,6 +31,7 @@ public class IndexInfo {
     private final Indexed.Level level;
     private String indexKey;
     private final boolean unique;
+    private final boolean failOnDuplicate;
     private boolean numeric;
     private Indexed annotation;
     private Neo4jPersistentProperty property;
@@ -43,6 +44,7 @@ public class IndexInfo {
         fieldName = annotation.fieldName();
         this.indexKey = fieldName.isEmpty() ? property.getNeo4jPropertyName() : fieldName;
         unique = annotation.unique();
+        failOnDuplicate = annotation.failOnDuplicate();
         level = annotation.level();
         numeric = annotation.numeric();
     }
@@ -112,6 +114,10 @@ public class IndexInfo {
 
     public boolean isUnique() {
         return unique;
+    }
+
+    public boolean isFailOnDuplicate() {
+        return failOnDuplicate;
     }
 
     public boolean isNumeric() {
