@@ -1,6 +1,12 @@
 Spring Data Neo4j Changelog
 ===========================
 
+Changes in version 3.0.3.RELEASE (2014-06-18)
+---------------------------------------------
+* DATAGRAPH-481 - Release 3.0.3.
+* DATAGRAPH-463 - Upgrade to Neo4j 2.0.2.
+
+
 Changes in version 3.1.0.RELEASE (2014-05-20)
 ---------------------------------------------
 * DATAGRAPH-477 - Fix flaky test with race-condition for schema index creation.
