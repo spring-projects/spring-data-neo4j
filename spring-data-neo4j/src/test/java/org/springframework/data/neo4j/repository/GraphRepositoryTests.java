@@ -20,13 +20,13 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.neo4j.graphdb.ConstraintViolationException;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.helpers.collection.IteratorUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Slice;
@@ -64,7 +64,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import static java.util.Arrays.asList;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
-import static org.junit.Assert.assertEquals;
 import static org.neo4j.helpers.collection.IteratorUtil.addToCollection;
 import static org.neo4j.helpers.collection.IteratorUtil.asCollection;
 import static org.neo4j.helpers.collection.MapUtil.map;
@@ -173,7 +172,7 @@ public class GraphRepositoryTests {
         assertEquals("expecting the saving of the same entity result in a merge of nodes", savedAcc1.getGraphId(), savedAcc2.getGraphId());
     }
 
-    @Test(expected = ConstraintViolationException.class)
+    @Test(expected = DataIntegrityViolationException.class)
     @Transactional
     public void testSaveWithDefaultFailOnDuplicateSetToTrue() {
         // Account2

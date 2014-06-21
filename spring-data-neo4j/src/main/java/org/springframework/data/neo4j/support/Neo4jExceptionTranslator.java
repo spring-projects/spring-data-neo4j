@@ -16,6 +16,7 @@
 
 package org.springframework.data.neo4j.support;
 
+import org.neo4j.graphdb.ConstraintViolationException;
 import org.neo4j.graphdb.NotFoundException;
 import org.neo4j.graphdb.NotInTransactionException;
 import org.neo4j.graphdb.TransactionFailureException;
@@ -45,6 +46,8 @@ public class Neo4jExceptionTranslator implements PersistenceExceptionTranslator 
                 throw (InvalidEntityTypeException)iae.getCause();
             }
             throw new InvalidDataAccessApiUsageException(iae.getMessage(),iae);
+        } catch(ConstraintViolationException cve) {
+            throw new DataIntegrityViolationException(cve.getMessage(),cve);
         } catch(DataAccessException dae) {
             throw dae;
         } catch(NotInTransactionException nit) {

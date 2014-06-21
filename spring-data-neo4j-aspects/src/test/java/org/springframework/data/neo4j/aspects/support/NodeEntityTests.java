@@ -24,6 +24,7 @@ import org.neo4j.graphdb.ConstraintViolationException;
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.helpers.collection.IteratorUtil;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.data.neo4j.aspects.Attribute;
 import org.springframework.data.neo4j.aspects.Group;
@@ -288,7 +289,8 @@ public class NodeEntityTests extends EntityTestBase {
         assertEquals("Expected name to have been updated (merged) with last value",UPDATED_NAME,loadedAcc1.getName());
     }
 
-    @Test(expected = ConstraintViolationException.class)  @Transactional
+    @Test(expected = DataIntegrityViolationException.class)
+    @Transactional
     public void testDefaultFailOnDuplicateSetToTrueCausesExceptionWhenAnotherDuplicateEntityCreated() {
         Account2 acc1 = new Account2("111-222-333", "Mr George - Current Account 1");
         Account2 acc2 = new Account2("111-222-333", "Mr George - Current Account 2");

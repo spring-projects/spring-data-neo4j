@@ -17,10 +17,9 @@
 package org.springframework.data.neo4j.aspects.support;
 
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.neo4j.graphdb.ConstraintViolationException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -146,7 +145,7 @@ public class GraphRepositoryTests extends EntityTestBase {
 
     }
 
-    @Test(expected = ConstraintViolationException.class)
+    @Test(expected = DataIntegrityViolationException.class)
     @Transactional
     public void testSaveWhenFailOnDuplicateSetToTrue() {
         // Account2
