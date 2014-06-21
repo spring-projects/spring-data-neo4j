@@ -16,11 +16,9 @@
 
 package org.springframework.data.neo4j.rest.integration;
 
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Ignore;
+import org.junit.*;
 import org.junit.runner.RunWith;
+import org.neo4j.graphdb.ConstraintViolationException;
 import org.springframework.data.neo4j.aspects.support.NodeEntityTests;
 import org.springframework.data.neo4j.rest.support.RestTestBase;
 import org.springframework.test.context.CleanContextCacheTestExecutionListener;
@@ -59,5 +57,12 @@ public class RestNodeEntityTests extends NodeEntityTests {
     @Ignore
     public void testSetShortProperty() {
         // super.testSetShortProperty();
+    }
+
+    // TODO - Change REST to have a better (more descriptive)
+    //        exception thrown when duplicate violations occur
+    @Test(expected = IllegalStateException.class)
+    public void testDefaultFailOnDuplicateSetToTrueCausesExceptionWhenAnotherDuplicateEntityCreated() {
+        super.testDefaultFailOnDuplicateSetToTrueCausesExceptionWhenAnotherDuplicateEntityCreated();
     }
 }

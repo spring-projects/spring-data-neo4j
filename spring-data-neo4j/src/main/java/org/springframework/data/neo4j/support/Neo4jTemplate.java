@@ -69,6 +69,7 @@ import java.util.Collections;
 import java.util.Map;
 
 import static java.lang.String.format;
+import static org.neo4j.helpers.collection.MapUtil.map;
 import static org.springframework.data.neo4j.support.ParameterCheck.notNull;
 
 /**
@@ -738,14 +739,16 @@ public class Neo4jTemplate implements Neo4jOperations, ApplicationContextAware {
         return infrastructure.getMappingContext();
     }
 
-    public Node createUniqueNode(Object entity) {
+    public Node createUniqueNode(Object entity)  {
         final Neo4jPersistentEntityImpl<?> persistentEntity = getPersistentEntity(entity.getClass());
         final Neo4jPersistentProperty uniqueProperty = persistentEntity.getUniqueProperty();
         Object value = uniqueProperty.getValueFromEntity(entity, MappingPolicy.MAP_FIELD_DIRECT_POLICY);
         if (value == null) return createNode();
         final IndexInfo indexInfo = uniqueProperty.getIndexInfo();
         if (indexInfo.isLabelBased()) {
-            return getGraphDatabase().merge(indexInfo.getIndexName(),indexInfo.getIndexKey(),value, Collections.<String,Object>emptyMap(), persistentEntity.getAllLabels());
+            return (indexInfo.isFailOnDuplicate())
+                ? getGraphDatabase().createNode(map(uniqueProperty.getName(),value),persistentEntity.getAllLabels())
+                : getGraphDatabase().merge(indexInfo.getIndexName(),indexInfo.getIndexKey(),value, Collections.<String,Object>emptyMap(), persistentEntity.getAllLabels());
         } else {
             if (value instanceof Number && indexInfo.isNumeric()) value = ValueContext.numeric((Number) value);
             return getGraphDatabase().getOrCreateNode(indexInfo.getIndexName(), indexInfo.getIndexKey(), value, Collections.<String, Object>emptyMap(), persistentEntity.getAllLabels());

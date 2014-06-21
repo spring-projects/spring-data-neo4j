@@ -35,6 +35,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import static org.neo4j.helpers.collection.MapUtil.map;
+
 /**
  * @author mh
  * @since 02.10.11
@@ -151,7 +153,9 @@ public class EntityStateHandler {
         final Object value = uniqueProperty.getValueFromEntity(entity, MappingPolicy.MAP_FIELD_DIRECT_POLICY);
         if (value==null) throw new MappingException("Error creating "+uniqueProperty.getOwner().getName()+" with "+entity+" unique property "+uniqueProperty.getName()+" has null value");
         if (indexInfo.isLabelBased()) {
-            return graphDatabase.merge(indexInfo.getIndexName(), indexInfo.getIndexKey(), value, Collections.<String,Object>emptyMap(), persistentEntity.getAllLabels());
+            return (indexInfo.isFailOnDuplicate())
+                    ? graphDatabase.createNode(map(uniqueProperty.getName(),value),persistentEntity.getAllLabels())
+                    : graphDatabase.merge(indexInfo.getIndexName(), indexInfo.getIndexKey(), value, Collections.<String,Object>emptyMap(), persistentEntity.getAllLabels());
         } else {
             return graphDatabase.getOrCreateNode(indexInfo.getIndexName(), indexInfo.getIndexKey(), value, Collections.<String,Object>emptyMap(),persistentEntity.getAllLabels());
         }
