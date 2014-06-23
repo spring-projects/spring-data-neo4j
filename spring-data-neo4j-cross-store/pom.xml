@@ -48,25 +48,25 @@
 		<dependency>
 			<groupId>org.springframework.data</groupId>
 			<artifactId>spring-data-neo4j-aspects</artifactId>
-			<version>${project.version}</version>
+            <version>${project.version}</version>
 		</dependency>
 		
 		<dependency>
 			<groupId>org.springframework.data</groupId>
 			<artifactId>spring-data-neo4j-tx</artifactId>
-			<version>${project.version}</version>
+            <version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.data</groupId>
 			<artifactId>spring-data-neo4j</artifactId>
-			<version>${project.version}</version>
+            <version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.data</groupId>
 			<artifactId>spring-data-neo4j</artifactId>
+            <version>${project.version}</version>
 			<type>test-jar</type>
 			<scope>test</scope>
-			<version>${project.version}</version>
 		</dependency>
 
 		<dependency>
