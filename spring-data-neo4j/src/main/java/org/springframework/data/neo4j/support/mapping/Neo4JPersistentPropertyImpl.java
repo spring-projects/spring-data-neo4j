@@ -78,8 +78,8 @@ class Neo4jPersistentPropertyImpl extends AnnotationBasedPersistentProperty<Neo4
         super(field, propertyDescriptor, owner, simpleTypeHolder);
         this.hash = field == null ? propertyDescriptor.hashCode() : field.hashCode();
         this.relationshipInfo = extractRelationshipInfo(field, ctx);
-        this.propertyType = extractPropertyType();
         this.isNeo4jEntityType = isNeo4jPropertyType(getType());
+        this.propertyType = extractPropertyType();
         this.neo4jPropertyName = createNeo4jPropertyName();
         this.indexInfo = extractIndexInfo();
         this.isIdProperty = super.isIdProperty() || getAnnotation(GraphId.class) != null;
@@ -97,7 +97,7 @@ class Neo4jPersistentPropertyImpl extends AnnotationBasedPersistentProperty<Neo4
 
     private Class<?> extractPropertyType() {
         final GraphProperty graphProperty = getAnnotation(GraphProperty.class);
-        if (graphProperty==null) return String.class;
+        if (graphProperty==null) return null;
         return graphProperty.propertyType();
     }
 
@@ -196,9 +196,14 @@ class Neo4jPersistentPropertyImpl extends AnnotationBasedPersistentProperty<Neo4
         return String.format("%s.%s", entityClass.getType().getSimpleName(), getName());
     }
 
+    public boolean mustConvert() {
+        return !isNeo4jPropertyType() || propertyType != null;
+    }
+
 
     public boolean isSerializablePropertyField(final ConversionService conversionService) {
         if (isRelationship()) return false;
+        if (!mustConvert()) return false;
         final Class<?> type = getType();
         if (getTypeInformation().isCollectionLike()) {
             return isConvertible(conversionService, getComponentType());
@@ -207,7 +212,12 @@ class Neo4jPersistentPropertyImpl extends AnnotationBasedPersistentProperty<Neo4
     }
 
     private boolean isConvertible(ConversionService conversionService, Class<?> type) {
-        return conversionService.canConvert(type, propertyType) && conversionService.canConvert(propertyType, type);
+        Class targetType = getPropertyTypeOrDefault();
+        return conversionService.canConvert(type, targetType) && conversionService.canConvert(targetType, type);
+    }
+
+    private Class<?> getPropertyTypeOrDefault() {
+        return propertyType == null ? DEFAULT_NEO4J_PROPERTY_TYPE : propertyType;
     }
 
     @Override
@@ -238,7 +248,7 @@ class Neo4jPersistentPropertyImpl extends AnnotationBasedPersistentProperty<Neo4
 
     @Override
     public boolean isNeo4jPropertyValue(Object value) {
-    if (value == null || value.getClass().isArray()) {
+    if (value == null) {
         return false;
     }
     return isNeo4jPropertyType(value.getClass());

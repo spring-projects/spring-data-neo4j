@@ -54,7 +54,7 @@ abstract class IndexBasedStartClause extends StartClause {
         if (property.isNeo4jPropertyType() && property.isNeo4jPropertyValue(value)) return value;
 
         PropertyConverter converter = new PropertyConverter(template.getConversionService(), property);
-        return converter.serializePropertyValue(value);
+        return converter.serializeIfNotBuiltIn(value);
     }
 
     protected Map<Parameter,PartInfo> findMyParameters(Set<Parameter> parameters) {

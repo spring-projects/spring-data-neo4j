@@ -82,6 +82,7 @@
     <bean id="entityStateHandler" class="org.springframework.data.neo4j.support.mapping.EntityStateHandler">
         <constructor-arg ref="mappingContext"/>
         <constructor-arg ref="graphDatabase"/>
+        <constructor-arg ref="conversionService"/>
     </bean>
     <bean id="graphDatabase" class="org.springframework.data.neo4j.support.DelegatingGraphDatabase">
         <constructor-arg ref="graphDatabaseService"/>

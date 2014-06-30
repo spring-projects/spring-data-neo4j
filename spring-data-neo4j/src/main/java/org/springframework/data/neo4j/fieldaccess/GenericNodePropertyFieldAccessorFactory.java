@@ -60,18 +60,15 @@ public class GenericNodePropertyFieldAccessorFactory implements FieldAccessorFac
 
         @Override
         public Object setValue(final Object entity, final Object newVal, MappingPolicy mappingPolicy) {
-            Object value = propertyConverter.isObjectOrSupportedType(newVal) ? newVal : propertyConverter.serializePropertyValue(newVal);
+            Object value = propertyConverter.serializeIfNotBuiltIn(newVal);
             super.setValue(entity, value, mappingPolicy);
             return newVal;
         }
 
         @Override
         public Object doGetValue(final Object entity) {
-            Object ret = super.doGetValue(entity);
-            if (propertyConverter.isObjectOrSupportedType(ret)) {
-                return ret;
-            }
-            return propertyConverter.deserializePropertyValue(ret);
+            Object value = super.doGetValue(entity);
+            return propertyConverter.deserializeIfNotBuiltIn(value);
         }
 
         @Override

@@ -54,7 +54,9 @@
     <bean id="entityStateHandler" class="org.springframework.data.neo4j.support.mapping.EntityStateHandler">
         <constructor-arg ref="mappingContext"/>
         <constructor-arg ref="graphDatabase"/>
+        <constructor-arg ref="conversionService"/>
     </bean>
+    <bean id="conversionService" class="org.springframework.data.neo4j.fieldaccess.Neo4jConversionServiceFactoryBean"/>
     <bean id="relationshipEntityInstantiator" class="org.springframework.data.neo4j.support.relationship.RelationshipEntityInstantiator">
         <constructor-arg ref="entityStateHandler"/>
     </bean>
