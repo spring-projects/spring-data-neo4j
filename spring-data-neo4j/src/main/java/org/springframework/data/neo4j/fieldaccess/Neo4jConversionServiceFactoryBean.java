@@ -27,6 +27,7 @@ import org.springframework.data.geo.Point;
 import org.springframework.data.geo.Shape;
 import org.springframework.data.neo4j.repository.GeoConverter;
 
+import java.util.Arrays;
 import java.util.Date;
 
 public class Neo4jConversionServiceFactoryBean implements FactoryBean<ConversionService> {
@@ -47,11 +48,13 @@ public class Neo4jConversionServiceFactoryBean implements FactoryBean<Conversion
             registry.addConverter(new StringToDateConverter());
             registry.addConverter(new NumberToDateConverter());
             registry.addConverter(new EnumToStringConverter());
+            registry.addConverter(new EnumToIntegerConverter());
             registry.addConverter(new ShapeToStringConverter());
             registry.addConverter(new StringToShapeConverter());
             registry.addConverter(new PointToStringConverter());
             registry.addConverter(new StringToPointConverter());
             registry.addConverterFactory(new StringToEnumConverterFactory());
+            registry.addConverterFactory(new NumberToEnumConverterFactory());
         } else {
             throw new IllegalArgumentException("conversionservice is no ConverterRegistry:" + service);
         }
@@ -103,6 +106,13 @@ public class Neo4jConversionServiceFactoryBean implements FactoryBean<Conversion
         @Override
         public String convert(Enum source) {
             return source.name();
+        }
+    }
+    public static class EnumToIntegerConverter implements Converter<Enum, Integer> {
+
+        @Override
+        public Integer convert(Enum source) {
+            return source.ordinal();
         }
     }
 
@@ -162,5 +172,31 @@ public class Neo4jConversionServiceFactoryBean implements FactoryBean<Conversion
 
         }
 
+    }
+    public static class NumberToEnumConverterFactory implements ConverterFactory<Number, Enum> {
+
+        @SuppressWarnings("unchecked")
+        public <T extends Enum> Converter<Number, T> getConverter(Class<T> targetType) {
+            return new NumberToEnum(targetType);
+        }
+
+        private static class NumberToEnum<T extends Enum> implements Converter<Number, T> {
+
+            private final Class<T> enumType;
+
+            public NumberToEnum(Class<T> enumType) {
+                this.enumType = enumType;
+            }
+
+            @SuppressWarnings("RedundantCast")
+            public T convert(Number source) {
+                if (source == null) return null;
+                T[] values = this.enumType.getEnumConstants();
+                int ordinal = source.intValue();
+                if (ordinal < 0 || ordinal >= values.length) throw new IllegalArgumentException("Ordinal value for Enum out of range "+ordinal+" "+ Arrays.toString(values));
+                return (T)values[ordinal];
+            }
+
+        }
     }
 }
