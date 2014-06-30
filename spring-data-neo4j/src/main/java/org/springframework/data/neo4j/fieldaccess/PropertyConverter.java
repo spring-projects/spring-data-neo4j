@@ -95,7 +95,18 @@ public class PropertyConverter {
         }
     }
 
-    boolean isObjectOrSupportedType(final Object value, Neo4jPersistentProperty property) {
+    boolean isObjectOrSupportedType(final Object value) {
         return property.getType().equals(Object.class) && property.isNeo4jPropertyValue(value);
+    }
+
+    public Object deserializeIfNotBuiltIn(Object ret) {
+        if (isObjectOrSupportedType(ret)) {
+            return ret;
+        }
+        return deserializePropertyValue(ret);
+    }
+
+    public Object serializeIfNotBuiltIn(Object newVal) {
+        return isObjectOrSupportedType(newVal) ? newVal : serializePropertyValue(newVal);
     }
 }

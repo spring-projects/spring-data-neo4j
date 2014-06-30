@@ -112,7 +112,7 @@ public class Neo4jPersistentTestBase {
         final DelegatingGraphDatabase graphDatabase = new DelegatingGraphDatabase(gdb);
         factoryBean.setGraphDatabase(graphDatabase);
         factoryBean.setMappingContext(mappingContext);
-        final EntityStateHandler entityStateHandler = new EntityStateHandler(mappingContext, graphDatabase);
+        final EntityStateHandler entityStateHandler = new EntityStateHandler(mappingContext, graphDatabase, conversionService);
         final NoopNodeTypeRepresentationStrategy nodeTypeRepresentationStrategy = new NoopNodeTypeRepresentationStrategy();
         factoryBean.setNodeTypeRepresentationStrategy(nodeTypeRepresentationStrategy);
         final NoopRelationshipTypeRepresentationStrategy relationshipTypeRepresentationStrategy = new NoopRelationshipTypeRepresentationStrategy();
