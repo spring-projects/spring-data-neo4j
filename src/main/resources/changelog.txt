@@ -1,6 +1,12 @@
 Spring Data Neo4j Changelog
 ===========================
 
+Changes in version 3.1.1.RELEASE (2014-06-30)
+---------------------------------------------
+* DATAGRAPH-489 - Update to Neo4j 2.1.2.
+* DATAGRAPH-485 - Release 3.1.1.
+
+
 Changes in version 3.0.3.RELEASE (2014-06-18)
 ---------------------------------------------
 * DATAGRAPH-481 - Release 3.0.3.
