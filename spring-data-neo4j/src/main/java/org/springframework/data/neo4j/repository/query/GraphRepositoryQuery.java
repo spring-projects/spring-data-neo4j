@@ -21,6 +21,7 @@ import org.neo4j.helpers.collection.IteratorUtil;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.SliceImpl;
+import org.springframework.data.neo4j.conversion.QueryResultBuilder;
 import org.springframework.data.neo4j.conversion.Result;
 import org.springframework.data.neo4j.core.GraphDatabase;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
@@ -108,11 +109,12 @@ abstract class GraphRepositoryQuery implements RepositoryQuery, ParameterResolve
             Long count = computeCount(params);
             return createPage(result, accessor.getPageable(),count, queryMethod.isPageQuery());
         }
-        if (queryMethod.isIterableResult()) {
-            Result<?> intialResult = queryEngine.query(queryString, params);
-            return CollectionLikeQueryResultExtractionUtil.extractCollectionLikeResult(intialResult, compoundType, queryMethod.getReturnType());
-        }
-        return queryEngine.query(queryString, params).to(queryMethod.getReturnType()).singleOrNull();
+
+        return (queryMethod.isIterableResult())
+           ? queryEngine.query(queryString, params)
+                .to(compoundType).asCollection((Class<? extends Iterable>)queryMethod.getReturnType())
+           : queryEngine.query(queryString, params)
+                .to(queryMethod.getReturnType()).singleOrNull();
     }
 
     private Long computeCount(Map<String, Object> params) {

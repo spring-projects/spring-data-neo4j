@@ -37,6 +37,8 @@ public interface Result<T> extends Iterable<T> {
 
     <C extends Iterable<T>> C as(Class<C> container);
 
+    <C extends Iterable> C asCollection(Class<C> collectionLikeType);
+
     Slice<T> slice(int page, int pageSize);
 
     Slice<T> slice(Pageable page);
