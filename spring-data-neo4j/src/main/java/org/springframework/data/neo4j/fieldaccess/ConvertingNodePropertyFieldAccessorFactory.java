@@ -63,18 +63,14 @@ public class ConvertingNodePropertyFieldAccessorFactory implements FieldAccessor
 
         @Override
         public Object setValue(final Object entity, final Object newVal, MappingPolicy mappingPolicy) {
-            Object value = propertyConverter.isObjectOrSupportedType(newVal, this.property) ? newVal : propertyConverter.serializePropertyValue(newVal);
+            Object value = propertyConverter.serializeIfNotBuiltIn(newVal);
             super.setValue(entity, value, mappingPolicy);
             return newVal;
         }
 
         @Override
         public Object doGetValue(final Object entity) {
-            Object ret = super.doGetValue(entity);
-            if (propertyConverter.isObjectOrSupportedType(ret, this.property)) {
-                return ret;
-            }
-            return propertyConverter.deserializePropertyValue(ret);
+            return propertyConverter.deserializeIfNotBuiltIn(super.doGetValue(entity));
         }
 
         @Override

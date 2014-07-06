@@ -16,8 +16,11 @@
 
 package org.springframework.data.neo4j.support.node;
 
+import org.neo4j.graphdb.ConstraintViolationException;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.NotInTransactionException;
+import org.springframework.dao.DataAccessException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.InvalidDataAccessResourceUsageException;
 
 import org.springframework.data.neo4j.fieldaccess.DefaultEntityState;
@@ -61,6 +64,8 @@ public class NodeEntityState extends DefaultEntityState<Node> {
             template.postEntityCreation(node, type);
         } catch (NotInTransactionException e) {
             throw new InvalidDataAccessResourceUsageException("Not in a Neo4j transaction.", e);
+        } catch (ConstraintViolationException e) {
+            throw new DataIntegrityViolationException(e.getMessage(),e);
         }
     }
 

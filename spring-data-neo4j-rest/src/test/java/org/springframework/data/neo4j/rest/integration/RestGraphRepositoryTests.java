@@ -17,12 +17,11 @@
 package org.springframework.data.neo4j.rest.integration;
 
 import org.junit.AfterClass;
-import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.data.neo4j.aspects.support.GraphRepositoryTests;
 import org.springframework.data.neo4j.rest.support.RestTestBase;
-import org.springframework.data.neo4j.support.node.Neo4jHelper;
 import org.springframework.test.context.CleanContextCacheTestExecutionListener;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestExecutionListeners;
@@ -53,7 +52,21 @@ public class RestGraphRepositoryTests extends GraphRepositoryTests {
     @AfterClass
     public static void shutdownDb() {
         RestTestBase.shutdownDb();
+    }
 
+    // TODO - Change REST to have a better (more descriptive)
+    //        exception thrown when duplicate violations occur
+    /*
+    Unfortunately the REST scenario does not provide us with enough info to work out that this
+    was a constaint violation (other than parsing the message itself which is not great) as it
+    merely throws an IllegalStateException when no content is found for a response when adding
+    labels. The org.neo4j.rest.graphdb.ExecutingRestAPI.addLabels(RestNode node, String...labels)
+    method is the current offender in this case. The REST API itself would probably need to change for
+    us to be able to deal with this appropriately in SDN
+    */
+    @Test(expected = IllegalStateException.class)
+    public void testSaveWhenFailOnDuplicateSetToTrue() {
+          super.testSaveWhenFailOnDuplicateSetToTrue();
     }
 
 }

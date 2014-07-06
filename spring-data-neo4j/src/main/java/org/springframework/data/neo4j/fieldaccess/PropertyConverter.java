@@ -32,22 +32,25 @@ public class PropertyConverter {
     private final ConversionService conversionService;
     private final Neo4jPersistentProperty property;
     private final TypeInformation<?> typeInformation;
-    private final Class<?> targetType;
+    private final Class<?> propertyType;
+    private final boolean userDefinedPropertyType;
 
     public PropertyConverter(ConversionService conversionService, Neo4jPersistentProperty property) {
         this.conversionService = conversionService;
         this.property = property;
         this.typeInformation = property.getTypeInformation();
-        targetType = property.getPropertyType();
+        Class<?> configuredPropertyType = property.getPropertyType();
+        userDefinedPropertyType = configuredPropertyType != null;
+        propertyType = userDefinedPropertyType ? configuredPropertyType : Neo4jPersistentProperty.DEFAULT_NEO4J_PROPERTY_TYPE;
     }
 
     public Object serializePropertyValue(final Object newVal) {
         if (newVal == null) return null;
         final TypeInformation<?> typeInformation = property.getTypeInformation();
         if (typeInformation.isCollectionLike()) {
-            return serializeCollection(newVal, conversionService, typeInformation, targetType);
+            return serializeCollection(newVal, conversionService, typeInformation, propertyType);
         }
-        return conversionService.convert(newVal, targetType);
+        return conversionService.convert(newVal, propertyType);
     }
 
     public Object deserializePropertyValue(final Object newVal) {
@@ -95,7 +98,19 @@ public class PropertyConverter {
         }
     }
 
-    boolean isObjectOrSupportedType(final Object value, Neo4jPersistentProperty property) {
+    private boolean isObjectOrSupportedType(final Object value) {
         return property.getType().equals(Object.class) && property.isNeo4jPropertyValue(value);
+    }
+
+    public Object deserializeIfNotBuiltIn(Object ret) {
+        if (!userDefinedPropertyType && isObjectOrSupportedType(ret)) {
+            return ret;
+        } else {
+            return deserializePropertyValue(ret);
+        }
+    }
+
+    public Object serializeIfNotBuiltIn(Object newVal) {
+        return isObjectOrSupportedType(newVal) ? newVal : serializePropertyValue(newVal);
     }
 }

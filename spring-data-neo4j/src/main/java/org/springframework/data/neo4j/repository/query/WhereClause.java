@@ -117,8 +117,8 @@ class WhereClause {
     protected Object convertValue(PartInfo partInfo, Object value) {
         if (EnumSet.of(Type.CONTAINING, Type.STARTING_WITH, Type.ENDING_WITH).contains(type))
             return QueryTemplates.formatExpression(this.partInfo, value);
-        else if (propertyConverter!=null) {
-            return propertyConverter.serializePropertyValue(value);
+        else if (propertyConverter!=null ) {
+            return propertyConverter.serializeIfNotBuiltIn(value);
         }
         return value;
     }

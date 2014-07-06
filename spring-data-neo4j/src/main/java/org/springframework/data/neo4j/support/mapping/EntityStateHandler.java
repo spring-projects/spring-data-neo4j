@@ -21,8 +21,10 @@ import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.PropertyContainer;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.RelationshipType;
+import org.springframework.core.convert.ConversionService;
 import org.springframework.data.mapping.model.MappingException;
 import org.springframework.data.neo4j.core.GraphDatabase;
+import org.springframework.data.neo4j.fieldaccess.PropertyConverter;
 import org.springframework.data.neo4j.mapping.IndexInfo;
 import org.springframework.data.neo4j.mapping.ManagedEntity;
 import org.springframework.data.neo4j.mapping.MappingPolicy;
@@ -35,18 +37,22 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import static org.neo4j.helpers.collection.MapUtil.map;
+
 /**
  * @author mh
  * @since 02.10.11
  */
 public class EntityStateHandler {
 
-    private Neo4jMappingContext mappingContext;
+    private final Neo4jMappingContext mappingContext;
     private final GraphDatabase graphDatabase;
+    private final ConversionService conversionService;
 
-    public EntityStateHandler(Neo4jMappingContext mappingContext, GraphDatabase graphDatabase) {
+    public EntityStateHandler(Neo4jMappingContext mappingContext, GraphDatabase graphDatabase, ConversionService conversionService) {
         this.mappingContext = mappingContext;
         this.graphDatabase = graphDatabase;
+        this.conversionService = conversionService;
     }
 
     @SuppressWarnings("unchecked")
@@ -147,14 +153,23 @@ public class EntityStateHandler {
 
     private Node createUniqueNode(Neo4jPersistentEntityImpl<?> persistentEntity, Object entity) {
         Neo4jPersistentProperty uniqueProperty = persistentEntity.getUniqueProperty();
-        final IndexInfo indexInfo = uniqueProperty.getIndexInfo();
-        final Object value = uniqueProperty.getValueFromEntity(entity, MappingPolicy.MAP_FIELD_DIRECT_POLICY);
+        final Object value = getSerializedUniqueValue(entity, uniqueProperty);
         if (value==null) throw new MappingException("Error creating "+uniqueProperty.getOwner().getName()+" with "+entity+" unique property "+uniqueProperty.getName()+" has null value");
+        final IndexInfo indexInfo = uniqueProperty.getIndexInfo();
         if (indexInfo.isLabelBased()) {
-            return graphDatabase.merge(indexInfo.getIndexName(), indexInfo.getIndexKey(), value, Collections.<String,Object>emptyMap(), persistentEntity.getAllLabels());
+            return (indexInfo.isFailOnDuplicate())
+                    ? graphDatabase.createNode(map(uniqueProperty.getName(),value),persistentEntity.getAllLabels())
+                    : graphDatabase.merge(indexInfo.getIndexName(), indexInfo.getIndexKey(), value, Collections.<String,Object>emptyMap(), persistentEntity.getAllLabels());
         } else {
             return graphDatabase.getOrCreateNode(indexInfo.getIndexName(), indexInfo.getIndexKey(), value, Collections.<String,Object>emptyMap(),persistentEntity.getAllLabels());
         }
+    }
+
+    private Object getSerializedUniqueValue(Object entity, Neo4jPersistentProperty uniqueProperty) {
+        final Object value = uniqueProperty.getValueFromEntity(entity, MappingPolicy.MAP_FIELD_DIRECT_POLICY);
+        if (uniqueProperty.isSerializablePropertyField(conversionService))
+            return new PropertyConverter(conversionService,uniqueProperty).serializeIfNotBuiltIn(value);
+        return value;
     }
 
     @SuppressWarnings("unchecked")

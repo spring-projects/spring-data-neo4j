@@ -27,6 +27,8 @@ import org.springframework.data.mapping.PersistentProperty;
  */
 public interface Neo4jPersistentProperty extends PersistentProperty<Neo4jPersistentProperty> {
 
+    Class<?> DEFAULT_NEO4J_PROPERTY_TYPE = String.class;
+
     /**
      * Returns whether the property represents a relationship. If this returns {@literal true}, clients can expect
      * {@link #getRelationshipInfo()} to return a non-{@literal null} value.

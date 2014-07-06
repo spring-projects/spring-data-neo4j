@@ -16,16 +16,17 @@
 
 package org.springframework.data.neo4j.support;
 
+import org.neo4j.graphdb.ConstraintViolationException;
 import org.neo4j.graphdb.NotFoundException;
 import org.neo4j.graphdb.NotInTransactionException;
 import org.neo4j.graphdb.TransactionFailureException;
 import org.neo4j.index.impl.lucene.QueryNotPossibleException;
 import org.neo4j.kernel.DeadlockDetectedException;
 import org.neo4j.kernel.impl.core.ReadOnlyDbException;
+import org.neo4j.kernel.impl.locking.community.LockException;
 import org.neo4j.kernel.impl.nioneo.store.StoreFailureException;
 import org.neo4j.kernel.impl.persistence.IdGenerationFailedException;
 import org.neo4j.kernel.impl.transaction.IllegalResourceException;
-import org.neo4j.kernel.impl.transaction.LockException;
 import org.springframework.dao.*;
 import org.springframework.dao.support.PersistenceExceptionTranslator;
 import org.springframework.data.neo4j.mapping.InvalidEntityTypeException;
@@ -45,6 +46,8 @@ public class Neo4jExceptionTranslator implements PersistenceExceptionTranslator 
                 throw (InvalidEntityTypeException)iae.getCause();
             }
             throw new InvalidDataAccessApiUsageException(iae.getMessage(),iae);
+        } catch(ConstraintViolationException cve) {
+            throw new DataIntegrityViolationException(cve.getMessage(),cve);
         } catch(DataAccessException dae) {
             throw dae;
         } catch(NotInTransactionException nit) {

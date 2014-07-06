@@ -123,7 +123,7 @@ public class MappingInfrastructureFactoryBean implements FactoryBean<Infrastruct
             this.conversionService=new Neo4jConversionServiceFactoryBean().getObject();
         }
         if (entityStateHandler == null) {
-            entityStateHandler = new EntityStateHandler(mappingContext,graphDatabase);
+            entityStateHandler = new EntityStateHandler(mappingContext,graphDatabase, conversionService);
         }
         if (nodeEntityInstantiator == null) {
             nodeEntityInstantiator = new NodeEntityInstantiator(entityStateHandler);
@@ -148,7 +148,7 @@ public class MappingInfrastructureFactoryBean implements FactoryBean<Infrastruct
         }
         this.typeRepresentationStrategies = new TypeRepresentationStrategies(mappingContext, nodeTypeRepresentationStrategy, relationshipTypeRepresentationStrategy);
 
-        final EntityStateHandler entityStateHandler = new EntityStateHandler(mappingContext, graphDatabase);
+        final EntityStateHandler entityStateHandler = new EntityStateHandler(mappingContext, graphDatabase, conversionService);
         EntityTools<Node> nodeEntityTools = new EntityTools<Node>(nodeTypeRepresentationStrategy, nodeEntityStateFactory, nodeEntityInstantiator, mappingContext);
         EntityTools<Relationship> relationshipEntityTools = new EntityTools<Relationship>(relationshipTypeRepresentationStrategy, relationshipEntityStateFactory, relationshipEntityInstantiator, mappingContext);
         this.entityPersister = new Neo4jEntityPersister(conversionService, nodeEntityTools, relationshipEntityTools, mappingContext, entityStateHandler);

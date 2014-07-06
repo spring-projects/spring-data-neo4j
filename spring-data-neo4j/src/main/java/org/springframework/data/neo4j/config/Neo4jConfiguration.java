@@ -152,7 +152,7 @@ public abstract class Neo4jConfiguration {
 
     @Bean
     public EntityStateHandler entityStateHandler() throws Exception {
-        return new EntityStateHandler(neo4jMappingContext(),graphDatabase());
+        return new EntityStateHandler(neo4jMappingContext(),graphDatabase(),neo4jConversionService());
     }
 
 
