@@ -212,8 +212,8 @@ public class FinderTests extends EntityTestBase {
         assertEquals("page size",2,page0.getSize());
         assertEquals("total elements", totalElements,page0.getTotalElements());
         assertEquals("page count",totalPages,page0.getTotalPages());
-        assertEquals("next page",pageNumber < totalPages-1,page0.hasNextPage());
-        assertEquals("previous page",pageNumber > 0,page0.hasPreviousPage());
+        assertEquals("next page",pageNumber < totalPages-1,page0.hasNext());
+        assertEquals("previous page",pageNumber > 0,page0.hasPrevious());
         assertEquals("page content",asList(people),page0.getContent());
     }
 }

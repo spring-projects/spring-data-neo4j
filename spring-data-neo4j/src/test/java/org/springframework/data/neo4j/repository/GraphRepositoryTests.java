@@ -368,26 +368,26 @@ public class GraphRepositoryTests {
         final PageRequest page = new PageRequest(0, 2, Sort.Direction.DESC, "member.name");
         Page<Person> teamMemberPage1 = personRepository.findAllTeamMembersPaged(testTeam.sdg, page);
         assertEquals(asList(testTeam.michael, testTeam.emil), asCollection(teamMemberPage1));
-        assertThat(teamMemberPage1.isFirstPage(), is(true));
+		assertThat(teamMemberPage1.isFirst(), is(true));
     }
 
     @Test @Transactional 
     public void testFindPagedNull() {
         Page<Person> teamMemberPage1 = personRepository.findAllTeamMembersPaged(testTeam.sdg, null);
         assertEquals(new HashSet(asList(testTeam.david, testTeam.emil, testTeam.michael)), addToCollection(teamMemberPage1, new HashSet()));
-        assertThat(teamMemberPage1.isFirstPage(), is(true));
-        assertThat(teamMemberPage1.isLastPage(), is(true));
+		assertThat(teamMemberPage1.isFirst(), is(true));
+		assertThat(teamMemberPage1.isLast(), is(true));
     }
 
     @Test @Transactional
     public void testFindPagedEmptyResult() {
         final Group group = neo4jTemplate.save(new Group());
         Page<Person> result = personRepository.findAllTeamMembersPaged(group, new PageRequest(0,10));
-        assertThat(result.isFirstPage(), is(true));
+		assertThat(result.isFirst(), is(true));
         assertThat(result.hasContent(), is(false));
-        assertThat(result.hasNextPage(), is(false));
-        assertThat(result.hasPreviousPage(), is(false));
-        assertThat(result.isLastPage(), is(true));
+		assertThat(result.hasNext(), is(false));
+		assertThat(result.hasPrevious(), is(false));
+		assertThat(result.isLast(), is(true));
         assertEquals(true, result.getContent().isEmpty());
     }
 

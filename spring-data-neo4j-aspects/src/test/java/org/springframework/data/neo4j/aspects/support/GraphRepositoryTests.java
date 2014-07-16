@@ -92,7 +92,7 @@ public class GraphRepositoryTests extends EntityTestBase {
         final PageRequest page = new PageRequest(0, 2, Sort.Direction.DESC, "member.name");
         Page<Person> teamMemberPage1 = personRepository.findAllTeamMembersPaged(testTeam.sdg,page);
         assertEquals(asList(testTeam.michael, testTeam.emil), asCollection(teamMemberPage1));
-        assertThat(teamMemberPage1.isFirstPage(), is(true));
+        assertThat(teamMemberPage1.isFirst(), is(true));
     }
     @SuppressWarnings("unchecked")
     @Test
@@ -100,8 +100,8 @@ public class GraphRepositoryTests extends EntityTestBase {
     public void testFindPagedNull() {
         Page<Person> teamMemberPage1 = personRepository.findAllTeamMembersPaged(testTeam.sdg,null);
         assertEquals(new HashSet(asList(testTeam.david, testTeam.emil, testTeam.michael)), addToCollection(teamMemberPage1, new HashSet()));
-        assertThat(teamMemberPage1.isFirstPage(), is(true));
-        assertThat(teamMemberPage1.isLastPage(), is(true));
+        assertThat(teamMemberPage1.isFirst(), is(true));
+        assertThat(teamMemberPage1.isLast(), is(true));
     }
 
     @Test
