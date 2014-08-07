@@ -1,0 +1,47 @@
+[[reference_simple-mapping]]
+= Simple Object Graph Mapping
+
+In addition to the advanced object graph mapping using AspectJ, Spring Data Neo4j also supports a simpler mode that converts graph data into domain objects and vice versa. It does not require any additional set up and should work out of the box. The simple mapping approach uses the same annotations (<<null>>) as the advanced mapping to declare mapping meta-information.
+
+The simple object graph mapping comes into play whenever an entity is constructed from a node or relationship. This could be done explicitly like during the lookup- or create-operations of the repositories and the `Neo4jTemplate` but also implicitly while executing any graph operation that returns nodes or relationships and expecting mapped entities to be returned.
+
+It uses the available meta-information about the persistent entity to iterate over its properties and relationships, fetching their data from the graph while doing so. It also executes computed fields and stores the resulting values in the properties.
+
+We try to avoid loading the whole graph into memory by not following relationships eagerly. A dedicated `@Fetch` annotation controls instead if related entities are loaded or not. Whenever an entity is not fully loaded, then only its id is stored. Those entities or collections of entities can then later be loaded explicitly using the `template.fetch()` operation.
+
+The additional fetch information is stored in a `MappingPolicy` which can be retrieved via the `Neo4jTemplate` for classes. Both `Neo4jPersistentEntitity` as well as `Neo4jPersistentProperty` provide access to that information on their scope.
+
+NOTE: Please note that if you have two collections in an entity pointing to the same relationship and one of them has data and the other is empty due to the nature of persisting it, one will override the other in the graph so that you might end up with no data. If you want a relationship-collection to be ignored on save set it to null.
+
+.Examples for loading entities from the graph
+====
+[source,java]
+----
+@Autowired Neo4jOperations template;
+
+@NodeEntity class Person {
+String name;
+@Fetch Person boss;
+Person spouse;
+
+@RelatedTo(type = "FRIEND", direction = BOTH)
+@Fetch Set<Person> friends;
+}
+Person person = template.findOne(personId);
+assertNotNull(person.getBoss().getName());
+
+assertNotNull(person.getSpouse().getId());
+assertNull(person.getSpouse().getName());
+
+template.fetch(person.getSpouse());
+assertNotNull(person.getSpouse().getName());
+
+assertEquals(10,person.getFriends().size());
+assertNotNull(firstFriend.getName());
+----
+====
+
+NOTE: Both the simple mapping approach as well as the fetch strategies (`MappingPolicy`) debuted in Spring Data Neo4j 2.0. So there might be rough edges and there are certainly many areas for improvement and extension. We look forward to your feedback on this topic.
+
+As we tried to encapsulate each aspect of the mapping process into a separate class the resulting fabric of responsibilities is quite intricate. All of them are set up in the `MappingInfrastructure` that is part of the `Neo4jTemplate` setup.
+

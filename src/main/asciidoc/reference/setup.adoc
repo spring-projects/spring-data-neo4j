@@ -1,0 +1,351 @@
+[[setup]]
+= Environment setup
+
+Spring Data Neo4j dramatically simplifies development, but some setup is naturally required. For building the application, Maven needs to be configured to include the Spring Data Neo4j dependencies. For the advanced mapping mode, it is necessary to configure the AspectJ weaving. After the build setup is complete, the Spring application needs to be configured to make use of Spring Data Neo4j. Examples for these different setups can be found in the http://spring.neo4j.org/examples[Spring Data Neo4j examples].
+
+Spring Data Neo4j projects can be built using Maven. There are also means to build them with Gradle or Ant/Ivy.
+
+== Dependencies for Spring Data Neo4j Simple Mapping
+
+For the simple POJO mapping it is enough to add the `org.springframework.data:spring-data-neo4j:3.0.0.RELEASE` dependency to your project.
+
+.Maven dependencies for Spring Data Neo4j
+====
+[source,xml]
+----
+<dependency>
+<groupId>org.springframework.data</groupId>
+<artifactId>spring-data-neo4j</artifactId>
+<version>3.0.0.RELEASE</version>
+</dependency>
+----
+====
+
+== Gradle configuration for Advanced Mapping (AspectJ)
+
+The necessary build plugin to build Spring Data Neo4j projects with Gradle is available as part of the Spring Data Neo4j distribution or on Github which makes the usage as easy as:
+
+.Gradle Build Configuration
+====
+[source,java]
+----
+sourceCompatibility = 1.6
+targetCompatibility = 1.6
+
+springVersion = "3.2.8.RELEASE"
+springDataNeo4jVersion = "3.0.0.RELEASE"
+aspectjVersion = "1.7.4"
+
+apply from:'https://github.com/SpringSource/spring-data-neo4j/raw/master/build/
+gradle/springdataneo4j.gradle'
+
+configurations {
+    runtime
+    testCompile
+}
+repositories {
+    mavenCentral()
+	mavenLocal()
+	mavenRepo urls: "http://maven.springframework.org/release"
+}
+----
+====
+
+The actual `springdataneo4j.gradle` is very simple, just decorating the `javac` tasks with the `iajc` ant task.
+
+== Ant/Ivy configuration for Advanced Mapping (AspectJ)
+
+The supplied sample ant https://github.com/SpringSource/spring-data-neo4j/raw/master/build/ivy[build configuration] is mainly about resolving the dependencies for Spring Data Neo4j Aspects and AspectJ using Ivy and integrating the iajc ant task in the build.
+
+.Ant/Ivy Build Configuration
+====
+[source,xml]
+----
+	<taskdef resource="org/aspectj/tools/ant/taskdefs/aspectjTaskdefs.properties" classpath="${lib.dir}/aspectjtools.jar"/>
+
+<target name="compile" description="Compile production classes" depends="lib.retrieve">
+	<mkdir dir="${main.target}" />
+
+	<iajc sourceroots="${main.src}" destDir="${main.target}" classpathref="path.libs" source="1.6">
+		<aspectpath>
+			<pathelement location="${lib.dir}/spring-aspects.jar"/>
+		</aspectpath>
+		<aspectpath>
+			<pathelement location="${lib.dir}/spring-data-neo4j-aspects.jar"/>
+		</aspectpath>
+	</iajc>
+</target>
+----
+====
+
+== Maven configuration for Advanced Mapping
+
+Spring Data Neo4j projects are easiest to build with Apache Maven. The core dependency is Spring Data Neo4j Aspects which comes with transitive dependencies to Spring Data Neo4j, Spring Data Commons, parts of the Spring Framework, AspectJ and the Neo4j graph database.
+
+=== Repositories
+
+The milestone releases of Spring Data Neo4j are available from the dedicated milestone repository. Neo4j releases and milestones are available from Maven Central.
+
+.Spring milestone repository
+====
+[source,xml]
+----
+<repository>
+    <id>spring-maven-milestone</id>
+    <name>Springframework Maven Repository</name>
+    <url>http://maven.springframework.org/milestone</url>
+</repository>
+----
+
+====
+
+=== Dependencies
+
+The dependency on `spring-data-neo4j-aspects` will transitively pull in the necessary parts of Spring Framework (core, context, aop, aspects, tx), AspectJ, Neo4j, and Spring Data Commons. If you already use these (or different versions of these) in your project, then include those dependencies on your own. In this case, please make sure that the versions match.
+
+.Maven dependencies
+====
+[source,xml]
+----
+<dependency>
+    <groupId>org.springframework.data</groupId>
+    <artifactId>spring-data-neo4j-aspects</artifactId>
+    <version>3.0.0.RELEASE</version>
+</dependency>
+
+<dependency>
+    <groupId>org.aspectj</groupId>
+    <artifactId>aspectjrt</artifactId>
+    <version>1.7.4</version>
+</dependency>
+----
+====
+
+=== Maven AspectJ build configuration
+
+Since the advanced mapping uses AspectJ for build-time aspect weaving of entities, it is necessary to hook the AspectJ Maven plugin into the build process. The plugin also has its own dependencies. You also need to explicitly specify the aspect libraries (spring-aspects and spring-data-neo4j-aspects).
+
+.AspectJ configuration
+====
+[source,xml]
+----
+<plugin>
+    <groupId>org.codehaus.mojo</groupId>
+    <artifactId>aspectj-maven-plugin</artifactId>
+    <version>1.4</version>
+    <dependencies>
+        <!-- NB: You must use Maven 2.0.9 or above or these are ignored (see MNG-2972) -->
+        <dependency>
+            <groupId>org.aspectj</groupId>
+            <artifactId>aspectjrt</artifactId>
+            <version>1.7.4</version>
+        </dependency>
+        <dependency>
+            <groupId>org.aspectj</groupId>
+            <artifactId>aspectjtools</artifactId>
+            <version>1.7.4</version>
+        </dependency>
+    </dependencies>
+    <executions>
+        <execution>
+            <goals>
+                <goal>compile</goal>
+                <goal>test-compile</goal>
+            </goals>
+        </execution>
+    </executions>
+    <configuration>
+        <outxml>true</outxml>
+        <aspectLibraries>
+            <aspectLibrary>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-aspects</artifactId>
+            </aspectLibrary>
+            <aspectLibrary>
+                <groupId>org.springframework.data</groupId>
+                <artifactId>spring-data-neo4j-aspects</artifactId>
+            </aspectLibrary>
+        </aspectLibraries>
+        <source>1.6</source>
+        <target>1.6</target>
+    </configuration>
+</plugin>
+----
+====
+
+== Spring configuration
+
+Users of Spring Data Neo4j have two ways of very concisely configuring it. Either they can use a Spring Data Neo4j XML configuration namespace, or they can use a Java-based bean configuration.
+
+=== XML namespace
+
+The XML namespace can be used to configure Spring Data Neo4j. The `config` element provides an XML-based configuration of Spring Data Neo4j in one line. It has four attributes. * `base-package` points to a set of packages (provided as a comma separated String of names) which SDN will scan for locate all of your domain entity classes (`@NodeEntity` and `@RelationshipEntity`). NOTE: Neo4j 2.0 introduced the requirement to separately manage schema and data transactions which altered some options for SDN with regards be being able to automatically detect and register `@NodeEntity` and `@RelationshipEntity`s on the fly. Several approaches were attempted to try and handle this automatically with SDN 3.0.X, none of which worked in a satisfactory manner. This has resulted in the base-package becoming a mandatory field now with entity metadata handling becoming an explicit step in the lifecycle.
+* `graphDatabaseService` points out the Neo4j instance to use.
+* `storeDirectory` is a convenient alternative (instead of `graphDatabaseService`) to point to a directory where a new `EmbeddedGraphDatabase` will be created.
+* `entityManagerFactory` is only required for cross-store configuration.
+
+.XML configuration with store directory
+====
+[source,xml]
+----
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+        xmlns:context="http://www.springframework.org/schema/context"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns:neo4j="http://www.springframework.org/schema/data/neo4j"
+        xsi:schemaLocation="
+            http://www.springframework.org/schema/beans
+            http://www.springframework.org/schema/beans/spring-beans.xsd
+            http://www.springframework.org/schema/context
+            http://www.springframework.org/schema/context/spring-context.xsd
+            http://www.springframework.org/schema/data/neo4j
+            http://www.springframework.org/schema/data/neo4j/spring-neo4j.xsd">
+
+    <context:annotation-config/>
+    <neo4j:config
+           storeDirectory="target/config-test"
+           base-package="org.example.domain"/>
+
+</beans>
+----
+====
+
+.XML configuration with basic GraphDatabaseService bean
+====
+[source,xml]
+----
+<context:annotation-config/>
+
+<bean id="graphDbFactory" class="org.neo4j.graphdb.factory.GraphDatabaseFactory"/>
+<bean id="graphDatabaseService" scope="singleton" destroy-method="shutdown"
+      factory-bean="graphDbFactory" factory-method="newEmbeddedDatabase">
+    <constructor-arg value="target/config-test"/>
+</bean>
+
+<neo4j:config graphDatabaseService="graphDatabaseService" base-package="org.example.domain"/>
+----
+====
+
+.XML configuration with http://docs.neo4j.org/chunked/milestone/server-embedded.html[embedded Neo4j-Server]
+====
+[source,xml]
+----
+<context:annotation-config/>
+
+<bean id="graphDatabaseService" class="org.neo4j.kernel.EmbeddedGraphDatabase"
+    destroy-method="shutdown">
+	<constructor-arg index="0" value="foo/db" />
+	<constructor-arg index="1">
+		<map><entry key="enable_remote_shell" value="true"/></map>
+    </constructor-arg>
+</bean>
+
+<bean id="serverWrapper" class="org.neo4j.server.WrappingNeoServerBootstrapper" 
+	init-method="start" destroy-method="stop">
+	<constructor-arg ref="graphDatabaseService"/>
+</bean>
+
+// also add the static server-assets dependency to your pom.xml
+<dependency>
+    <groupId>org.neo4j.app</groupId>
+    <artifactId>neo4j-server</artifactId>
+    <classifier>static-web</classifier>
+    <version>${neo4j-version}</version>
+</dependency>
+----
+====
+
+.XML configuration with cross-store
+====
+[source,xml]
+----
+<context:annotation-config/>
+
+<bean class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean"
+        id="entityManagerFactory">
+    <property name="dataSource" ref="dataSource"/>
+    <property name="persistenceXmlLocation" value="classpath:META-INF/persistence.xml"/>
+</bean>
+
+<neo4j:config storeDirectory="target/config-test"
+        entityManagerFactory="entityManagerFactory"
+        base-package="org.example.domain"/>
+----
+====
+
+=== Repository Configuration
+
+Spring Data Neo4j repositories are configured using the `<neo4j:repositories>` element which defines the base-package (or packages) for the repositories. A reference to an existing `Neo4jTemplate` bean reference can be passed in as well.
+
+As Spring Data Neo4j repositories build upon the infrastructure provided by http://static.springsource.org/spring-data/data-commons/docs/current/reference/html/#repositories.create-instances[Spring Data Commons], the configuration options for repositories described there work here as well.
+
+.XML configuration for repositories
+====
+[source,xml]
+----
+<neo4j:repositories base-package="org.example.repository"/>		
+
+<!-- with template bean reference -->
+<neo4j:repositories base-package="org.example.repository" graph-database-context-ref="template"/>		
+----
+====
+
+=== Java-based bean configuration
+
+You can also configure Spring Data Neo4j using Java-based bean metadata.
+
+NOTE: For those not familiar with Java-based bean configuration in Spring, we recommend that you read up on it first. The Spring documentation has a http://static.springsource.org/spring/docs/3.1.x/spring-framework-reference/html/new-in-3.0.html#new-java-configuration[high-level introduction] as well as http://static.springsource.org/spring/docs/3.1.x/spring-framework-reference/html/beans.html#beans-java-instantiating-container[detailed documentation] on it.
+
+In order to configure Spring Data Neo4j with Java-based bean config, the class `Neo4jConfiguration` is registered with the context. This is either done explicitly in the context configuration, or via classpath scanning for classes that have the @Configuration annotation. The only thing that must be provided is the `GraphDatabaseService` and the `basePackage` must also be set. The examples below show how this can be done. 
+
+.Pure Java based bean configuration
+====
+[source,java]
+----
+@Configuration
+@EnableNeo4jRepositories(basePackages = "org.example.repositories")
+public class BasicJavaConfig extends Neo4jConfiguration {
+
+    public BasicJavaConfig() {
+        setBasePackage("org.example.domain");
+    }
+
+    @Bean
+    public GraphDatabaseService graphDatabaseService() {
+        return new GraphDatabaseFactory().newEmbeddedDatabase("path/to/mydb");
+    }
+
+    // You can add your own beans here, and/or override some of the
+    // default config (such as Type Representation Strategies etc)
+
+}
+----
+====
+
+.Java-based bean config initialiation via XML
+====
+To register the default `@Configuration Neo4jConfiguration` class, as well as Spring's `ConfigurationClassPostProcessor` that transforms the `@Configuration` class to bean definitions via XML.
+
+[source,xml]
+----
+
+<beans ...>
+    ...
+    <tx:annotation-driven mode="aspectj" transaction-manager="transactionManager"/>
+    <bean class="org.springframework.data.neo4j.config.Neo4jConfiguration">
+        <property name="basePackage" value="org.example.domain" />
+    </bean>
+
+    <bean class="org.springframework.context.annotation.ConfigurationClassPostProcessor"/>
+
+    <bean id="graphDbFactory" class="org.neo4j.graphdb.factory.GraphDatabaseFactory"/>
+    <bean id="graphDatabaseService" scope="singleton" destroy-method="shutdown"
+          factory-bean="graphDbFactory" factory-method="newEmbeddedDatabase">
+        <constructor-arg value="target/config-test"/>
+    </bean>
+    ...
+</beans>
+----
+====
+
+Additional beans can be configured to be included in the Neo4j-Configuration just by defining them in the Spring context. ConversionService for custom conversions, Validators for bean validation, TypeRepresentationStrategyFactory for configuring the in graph type representation, IndexProviders for custom index handling (e.g. for multi-tenancy) or Entity-Instantiators (with their config) to have more control over the creation of entity instances and much more.

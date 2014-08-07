@@ -1,0 +1,101 @@
+[[tutorial_about-spring-data]]
+= Spring Data Neo4j
+
+*_Conjuring magic_*
+
+So far it had all been pure Spring Framework and Neo4j. However, using the Neo4j code in our domain classes polluted them with graph database details. For this application, we wanted to keep the domain classes clean. Spring Data Neo4j promised to do the heavy lifting for us, so we continued investigating it.
+
+One of the more advanced mapping modes of Spring Data Neo4j depends heavily on AspectJ, see <<reference_aspectj-details>>. Via the SpringFramework we were already used to Aspects doing the work behind the scenes in lots of places, so we were not afraid. Some parts of our classes would get a bit of new behavior, but it would not be visible in our code. The upside of this is that you get rid of a lot of boilerplate code.
+
+The first step was to configure Maven: ====
+
+.Spring Data Neo4j Maven configuration
+[source,xml]
+----
+<properties>
+    <aspectj.version>1.6.12</aspectj.version>
+</properties>
+
+<dependency>
+  <groupId>org.springframework.data</groupId>
+  <artifactId>spring-data-neo4j-aspects</artifactId>
+  <version>2.1.0.RELEASE</version>
+</dependency>
+
+<dependency>
+    <groupId>org.aspectj</groupId>
+    <artifactId>aspectjrt</artifactId>
+    <version>${aspectj.version}</version>
+</dependency>
+----
+
+[source,xml]
+----
+
+<build> <plugins> <plugin>
+    <groupId>org.codehaus.mojo</groupId>
+    <artifactId>aspectj-maven-plugin</artifactId>
+    <version>1.2</version>
+    <dependencies>
+        <dependency>
+            <groupId>org.aspectj</groupId>
+            <artifactId>aspectjrt</artifactId>
+            <version>${aspectj.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.aspectj</groupId>
+            <artifactId>aspectjtools</artifactId>
+            <version>${aspectj.version}</version>
+        </dependency>
+    </dependencies>
+    <executions>
+        <execution>
+            <goals>
+                <goal>compile</goal>
+                <goal>test-compile</goal>
+            </goals>
+        </execution>
+    </executions>
+    <configuration>
+        <outxml>true</outxml>
+        <aspectLibraries>
+            <aspectLibrary>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-aspects</artifactId>
+            </aspectLibrary>
+            <aspectLibrary>
+                <groupId>org.springframework.data</groupId>
+                <artifactId>spring-data-neo4j-aspects</artifactId>
+            </aspectLibrary>
+        </aspectLibraries>
+        <source>1.6</source>
+        <target>1.6</target>
+    </configuration>
+</plugin> </plugins> </build>
+
+----
+
+====
+
+The Spring context configuration was much easier, thanks to a provided namespace:
+
+====
+
+.Spring Data Neo4j context configuration
+[source,xml]
+----
+<beans xmlns="http://www.springframework.org/schema/beans" ...
+       xmlns:neo4j="http://www.springframework.org/schema/data/neo4j"
+       xsi:schemaLocation="... http://www.springframework.org/schema/data/neo4j
+       http://www.springframework.org/schema/data/neo4j/spring-neo4j.xsd">
+    ...
+    <neo4j:config storeDirectory="data/graph.db"/>
+    ...
+</beans>
+
+----
+
+====
+
+We made sure that the AspectJ nature was enabled for this project in our STS 2.7.1 and the Aspect-Path settings of our Project-Properties pointed to the configured aspect-libraries.
+

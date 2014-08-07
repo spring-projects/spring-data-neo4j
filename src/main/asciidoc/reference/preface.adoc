@@ -1,0 +1,61 @@
+[[reference_preface]]
+= Reference Documentation
+
+== Spring Data and Spring Data Neo4j
+
+http://springsource.org/spring-data[Spring Data] is a SpringSource project that aims to provide Spring's convenient programming model and well known conventions for NOSQL databases. Currently there is support for graph (Neo4j), key-value (Redis, Riak), document (MongoDB) and relational (Oracle) databases. Mark Pollack, the author of Spring.NET, is the project lead for the Spring Data project.
+
+The Spring Data Neo4j project, as part of the Spring Data initiative, aims to simplify development with the Neo4j graph database. Like JPA, it uses annotations on simple POJO domain objects. The annotations activate one of the supported mapping approaches, either the simple mapping or the advanced AspectJ mapping. Both use the annotation and reflection metadata for mapping the POJO entities and their fields to nodes, relationships, and properties in the graph database.
+
+Spring Data Neo4j allows, at any time, to drop down to the Neo4j-API level, see <<neo4j>> to execute functionality with the highest performance possible.
+
+For integration of Neo4j and Grails/GORM please refer to the Neo4j http://www.grails.org/plugin/neo4j[grails plugin]. There are also http://docs.neo4j.org/chunked/milestone/python-embedded.html[Python bindings] as well as community-provided bindings to use Neo4j in http://docs.neo4j.org/chunked/milestone/languages.html[embedded] or http://docs.neo4j.org/chunked/milestone/tutorials-rest.html[REST mode].
+
+== Reference Documentation Overview
+
+The explanation of Spring Data Neo4j's programming model starts with some underlying details. The basic internal workings of the two mapping modes are explained in the initial chapter. <<reference_mapping>> covers the simple mapping and <<reference_aspectj>> contains details about the advanced mapping. It also explains some of the common issues around AspectJ tooling with the current IDEs.
+
+To get started with a simple application, you need only your domain model and the annotations (see <<reference_programming-model_annotations>>) provided by the library. You use annotations to mark domain objects to be reflected by nodes and relationships of the graph database. For individual fields the annotations allow you to declare how they should be processed and mapped to the graph. For property fields and references to other entities this is straightforward.
+
+To use advanced functionality like traversals and Cypher, a basic understanding of the graph data model is required. The graph data model is explained in the chapter about Neo4j, see <<neo4j>>.
+
+Relationships between entities are first class citizens in a graph database and therefore worth a separate chapter (<<reference_programming_model:relationships>>) describing their usage in Spring Data Neo4j.
+
+Indexing operations are useful for finding individual nodes and relationships in a graph. They can be used to start graph operations or to be processed in your application. Indexing in the plain Neo4j API is a bit more involved. Spring Data Neo4j maintains automatic indexes per entity class, with `@Indexed` annotations on relevant fields. (<<reference_programming-model_indexing>>)
+
+Being a Spring Data library, Spring Data Neo4j offers a comprehensive Neo4j-Template (<<reference_template>>) for interacting with the mapped entities and the Neo4j graph database. The operations provided by Spring Data Neo4j - Repositories per mapped entity class are based on the API offered by the Neo4j-Template. It also provides the operations of the Neo4j Core API in a more convenient way. Especially the querying (Indexes, Cypher and Traversals) and result conversion facilities allow writing very concise code.
+
+Spring Data Commons provides a very powerful repository infrastructure that is also leveraged in Spring Data Neo4j. Those repositories consist only of a composition of interfaces that declare the available functionality in each repository. The implementation details of commonly used persistence methods are handled by the library. At least for typical CRUD, index- and query-operations that is very convenient. The repositories are extensible by annotated, named or derived finder methods. For custom implementations of repository methods you are free to add your own code. (<<reference_programming-model_repositories>>).
+
+To be able to leverage the schema-free nature of Neo4j it is possible to project any entity to any other entity type. That is useful as long as they share some properties (or relationships). The entities don't have to share any super-types or hierarchies. How that works is explained here: <<reference_programming-model_projection>>.
+
+Spring Data Neo4j also allows you to integrate with the powerful geospatial graph library Neo4j-Spatial that offers full support for working with any kind of geo-data. Spring Data Neo4j repositories expose a couple of those operations via bounding-box and near-location searches. <<reference_spatial>>.
+
+Using computed fields that are dynamically backed by graph operations is a bit more involved. First you should know about traversals and Cypher queries. Those are explained in <<neo4j>>. Then you can start using virtual, computed fields in your entities <<reference_programming-model_projection>> .
+
+If you like the ActiveRecord approach that uses persistence methods mixed into the domain classes, you will want to look at the description of the additional entity methods (see <<reference_programming-model_introduced-methods>>) that are added to your domain objects by Spring Data Neo4j Aspects.  Those allow you to manage the entity lifecycle as well as to connect entities. Those methods also provide the means to execute the mentioned graph operations with your entity as a starting point.
+
+Neo4j is a fully ACID, enterprise grade database. It uses Java transactions, and internally a 2-phase commit protocol, to guarantee the safety of your data. The implications of that are described in the chapter around transactions. (<<reference_programming-model_transactions>>)
+
+The need of an active transaction for mutating the state of nodes or relationships implies that direct changes to the graph are only possible in a transactional context. Unfortunately many higher level application layers don't want to care about transactions and the open-session-in-view pattern is not widely used. Therefore Spring Data Neo4j's advanced mappings introduced an entity lifecyle and added support for detached entities which can be used for temporary domain objects that are not intended to be stored in the graph or which will be attached to the graph only later. (<<reference_programming-model_lifecycle>>)
+
+For the simple mapping this is not neccessary as domain objects are detached by default and have to be explicitly reattached to the graph to store the changes.
+
+Unlike Neo4j which is a schema free database, Spring Data Neo4j works on Java domain objects. So it needs to store the type information in the graph to be able to reconstruct the entities when just nodes are retrieved. To achieve that it employs type-representation-strategies which are described in a separate chapter. (see <<reference_programming-model_typerepresentationstrategy>>)
+
+Spring Data Neo4j offers basic support for bean property validation (JSR-303). Annotations from that JSR are recognized and evaluated whenever a property is set, or when a previously detached entity is persisted to the graph. (see <<reference_programming-model_validation>>)
+
+Unfortunately the setup of Spring Data Neo4j advanced mapping mode is more involved than we'd like. That is partly due to the Maven setup and dependencies for AspectJ, which can be alleviated by using different build systems like Gradle or Ant/Ivy. The Spring configuration itself boils down to two lines of `<spring-neo4j>` namespace setup. (see <<setup>>)
+
+In a polyglot persistence context Spring Data Neo4j can also be used in a JPA environment to add graph features to your JPA entities. In the <<reference_cross-store>> the slightly different behavior and setup of a Graph-JPA interaction are described.
+
+The provided samples, which are also publicly hosted on http://spring.neo4j.org/examples[Github], are explained in <<reference_samples>>.
+
+The performance implications of using Spring Data Neo4j are detailed in <<reference_performance>>. This chapter also discusses which use cases should not be handled with Spring Data Neo4j.
+
+As AspectJ might not be well known to everyone, some of the core concepts of the aspect oriented, advanced mapping mode for Java are explained in <<reference_aspectj-details>>.
+
+How to consume the REST-API of a Neo4j-Server is the topic of <<reference_neo4j-server>>. But Spring Data Neo4j can also be used to create custom Extensions for the Neo4j Server which would serve domain model abstractions to a suitable front-end. So instead of talking low level primitives to a database, the front-end or web-app  would communicate via a domain level protocol with endpoints implemented in Jersey and Spring Data Neo4j.
+
+NOTE: Please be aware that the advanced mapping mode of Spring Data Neo4j is based on AspectJ and uses some advanced features of that toolset. See the section on AspectJ (<<reference_aspectj>>) for details if you run into any problems.
+

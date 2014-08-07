@@ -1,0 +1,137 @@
+[[reference_template]]
+= Neo4jTemplate
+
+The `Neo4jTemplate` offers the convenient API of Spring templates for the Neo4j graph database. The Spring Data Neo4j Object Graph mapping builds upon the core functionality of the  template to persist objects to the graph and load them in a variety of ways. The template handles the active mapping mode (<<reference_mapping>>) transparently.
+
+Besides methods for creating, storing and deleting entities, nodes and relationships in the graph, `Neo4jTemplate` also offers a wide range of query methods. To reduce the proliferation of query methods a simple result handling DSL was added.
+
+== Basic operations
+
+For direct retrieval of nodes and relationships, the `getReferenceNode()`, `getNode()` and `getRelationship()` methods can be used.
+
+There are methods (`createNode()` and `createRelationship()`) for creating nodes and relationships that automatically set provided properties.
+
+.Neo4j template
+====
+[source,java]
+----
+Neo4jOperations neo = new Neo4jTemplate(graphDatabase);
+    
+    Node mark = neo.createNode(map("name", "Mark"));
+    Node thomas = neo.createNode(map("name", "Thomas"));
+    
+    neo.createRelationshipBetween(mark, thomas, "WORKS_WITH", 
+                                map("project", "spring-data"));
+    
+    neo.index("devs", thomas, "name", "Thomas");
+    
+    assertEquals( "Mark", 
+        neo.query("start p=node({person}) match p<-[:WORKS_WITH]-other return other.name",
+                  map("person", asList(thomas.getId()))).to(String.class).single());
+    
+    
+    
+    // Index lookup
+    assertEquals(thomas, neo.lookup("devs", "name", "Thomas").to(Node.class).single());
+    
+    // Index lookup with Result Converter
+    assertEquals("Thomas", neo.lookup("devs", "name", "Thomas")
+      .to(String.class, new ResultConverter<PropertyContainer, String>() {
+        public String convert(PropertyContainer element, Class<String> type) {
+            return (String) element.getProperty("name");
+        }
+      }).single());
+----
+====
+
+== Core-Operations
+
+`Neo4jTemplate` provides access to some of the methods of the Neo4j-Core-API directly. So accessing nodes and relationships (`getReferenceNode, getNode, getRelationship, getRelationshipBetween`), creating nodes and relationships (`createNode, createNodeAs, createRelationshipBetween`) and deleting them (`delete, deleteRelationshipBetween`) are supported. It also provides access to the underlying GraphDatabase via `getGraphDatabase`.
+
+== Entity-Persistence
+
+`Neo4jTemplate` allows to `save`, `find(One/All)`, `count`, `delete` and `projectTo` entities. It provides the stored type information via `getStoredJavaType` and can `fetch` lazy-loaded entities or `load` them altogether.
+
+== Result
+
+All querying methods of the template return a uniform result type: `Result<T>` which is also an `Iterable<T>`. The query result offers methods of converting each element to a target type `result.to(Type.class)` optionally supplying a `ResultConverter<FROM,TO>` which takes care of custom conversions. By default most query methods can already handle conversions from and to: Paths, Nodes, Relationship and GraphEntities as well as conversions backed by registered ConversionServices. A converted `Result<FROM>` is an `Iterable<TO>`. Results can be limited to a single value using the `result.single() or result.singleOrNull()` methods. It also offers support for a pure callback function using a `Handler<T>`.
+
+== Indexing
+
+Adding nodes and relationships to an index is done with the `index()` method.
+
+The `lookup()` methods either take a field/value combination to look for exact matches in the index, or a Lucene query object or string to handle more complex queries. All `lookup()` methods return a `Result<PropertyContainer>` to be used or transformed.
+
+== Graph traversal
+
+The traversal methods are at the core of graph operations. The `traverse()` method covers the full traversal operation that takes a `TraversalDescription` (typically built with the `template.getGraphDatabase().traversalDescription()` DSL) and runs it from the given start node. `traverse` returns a `Result<Path>` to be used or transformed.
+
+== Cypher Queries
+
+The `Neo4jTemplate` also allows execution of arbitrary Cypher queries. Via the `query` methods the statement and parameter-Map are provided. Cypher Queries return tabular results, so the `Result<Map<String,Object>>` contains the rows which can be either used as they are or converted as needed.
+
+== Transactions
+
+The `Neo4jTemplate` provides implicit transactions for some of its methods. For instance `save` uses them. For other modifying operations please provide Spring Transaction management using `@Transactional` or the `TransactionTemplate`.
+
+== Neo4j REST Server
+
+If the template is configured to use a `SpringRestGraphDatabase` the operations that would be expensive over the wire, like traversals and querying are executed efficiently on the server side by using the REST API to forward those calls. All the other template methods require individual network operations.
+
+The REST-batch-mode of the `SpringRestGraphDatabase` is not yet exposed via the template, but it is available via the graph database.
+
+== Lifecycle Events
+
+Neo4j Template offers basic lifecycle events via Spring's event mechanism using ApplicationListener and ApplicationEvent. The following hooks are available in the form of types of application event:
+
+* BeforeSaveEvent
+* AfterSaveEvent
+* DeleteEvent - after the event has been deleted
+
+The following example demonstrates how to hook into the application lifecycle and register listeners that perform behaviour across types of entities during this life cycle:
+
+.Auditing Entities and Generating Unique Application-level IDs
+====
+[source,java]
+----
+@Configuration
+@EnableNeo4jRepositories
+public class ApplicationConfig extends Neo4jConfiguration {
+    ...
+    @Bean
+    ApplicationListener<BeforeSaveEvent> beforeSaveEventApplicationListener() {
+        return new ApplicationListener<BeforeSaveEvent>() {
+            @Override
+            public void onApplicationEvent(BeforeSaveEvent event) {
+                AcmeEntity entity = (AcmeEntity) event.getEntity();
+                entity.setUniqueId(acmeIdFactory.create());
+            }
+        };
+    }
+
+    @Bean
+    ApplicationListener<AfterSaveEvent> afterSaveEventApplicationListener() {
+        return new ApplicationListener<AfterSaveEvent>() {
+            @Override
+            public void onApplicationEvent(AfterSaveEvent event) {
+                AcmeEntity entity = (AcmeEntity) event.getEntity();
+                auditLog.onEventSaved(entity);
+            }
+        };
+    }
+
+    @Bean
+    ApplicationListener<DeleteEvent> deleteEventApplicationListener() {
+        return new ApplicationListener<DeleteEvent>() {
+            @Override
+            public void onApplicationEvent(DeleteEvent event) {
+                AcmeEntity entity = (AcmeEntity) event.getEntity();
+                auditLog.onEventDeleted(entity);
+            }
+        };
+    }
+    ...
+----
+====
+
+Changes made to entities in the before-save event handler are reflected in the stored entity - after-save ones are not.

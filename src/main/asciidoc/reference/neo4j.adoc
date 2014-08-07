@@ -1,0 +1,147 @@
+[[neo4j]]
+= Introduction to Neo4j
+
+== What is a graph database?
+
+A graph database is a storage engine that is specialized in storing and retrieving vast networks of data. It efficiently stores nodes and relationships and allows high performance traversal of those structures. Properties can be added to nodes and relationships.
+
+Graph databases are well suited for storing most kinds of domain models. In almost all domains, there are certain things connected to other things. In most other modeling approaches, the relationships between things are reduced to a single link without identity and attributes. Graph databases allow to keep the rich relationships that originate from the domain, equally well-represented in the database without resorting to also modeling the relationships as "things". There is very little "impedance mismatch" when putting real-life domains into a graph database.
+
+== About Neo4j
+
+http://neo4j.org/[Neo4j] is a NOSQL graph database. It is a fully transactional database (ACID) that stores data structured as graphs. A graph consists of nodes, connected by relationships. Inspired by the structure of the human mind, it allows for high query performance on complex data, while remaining intuitive and simple for the developer.
+
+Neo4j has been in commercial development for 10 years and in production for over 7 years. Most importantly it has a helpful and contributing community surrounding it, but it also: 
+
+* has an intuitive, rich graph-oriented model for data representation. Instead of tables, rows, and columns, you work with a graph consisting of http://docs.neo4j.org/chunked/milestone/what-is-a-graphdb.html[nodes, relationships, and properties]
+* has a disk-based, native storage manager optimized for storing graph structures with maximum performance and scalability.
+* is scalable. Neo4j can handle graphs with many billions of nodes/relationships/properties on a single machine, but can also be scaled out across multiple machines for high availability.
+* has a powerful traversal framework and query languages for traversing the graph.
+* can be deployed as a standalone server or an embedded database with a very small distribution footprint.
+* has a core Java http://api.neo4j.org/[API]
+
+In addition, Neo4j has ACID transactions, durable persistence, concurrency control, transaction recovery, high availability, and more. Neo4j is released under a dual free software/commercial license model.
+
+== GraphDatabaseService
+
+The API of `org.neo4j.graphdb.GraphDatabaseService` provides access to the storage engine. Its features include creating and retrieving nodes and relationships, managing indexes (via the IndexManager), database life cycle callbacks, transaction management, and more.
+
+The `EmbeddedGraphDatabase` is an implementation of GraphDatabaseService that is used to embed Neo4j in a Java application. This implementation is used so as to provide the highest and tightest integration with the database. Besides the embedded mode, the http://wiki.neo4j.org/content/Getting_Started_With_Neo4j_Server[Neo4j server] provides access to the graph database via an HTTP-based REST API.
+
+== Creating nodes and relationships
+
+Using the API of GraphDatabaseService, it is easy to create nodes and relate them to each other. Relationships are typed and both nodes and relationships can have properties. Property values can be primitive Java types and Strings, or arrays of both. As of Neo4j 2.0, any operation on a node or relationship (creation, modification or simply reading) must happen within a transaction.
+
+.Neo4j usage
+====
+[source,java]
+----
+GraphDatabaseService graphDb = new GraphDatabaseFactory().newEmbeddedDatabase("helloworld");
+
+try (Transaction tx = graphDb.beginTx()) {
+	Node firstNode = graphDb.createNode();
+	firstNode.setProperty( "message", "Hello, " );
+	Node secondNode = graphDb.createNode();
+	secondNode.setProperty( "message", "world!" );
+
+	Relationship relationship = firstNode.createRelationshipTo( secondNode,
+		DynamicRelationshipType.of("KNOWS") );
+	relationship.setProperty( "message", "brave Neo4j" );
+	tx.success();
+}
+----
+====
+
+== Graph traversal
+
+Getting a single node or relationship and examining it is not the main use case of a graph database. Fast graph traversal of complex, interconnected data and application of graph algorithms are. Neo4j provides a DSL for defining `TraversalDescription`s that can then be applied to a start node and will produce a lazy `java.lang.Iterable` result of nodes and/or relationships.
+
+.Traversal usage
+====
+[source,java]
+----
+TraversalDescription traversalDescription = Traversal.description()
+   .depthFirst()
+   .relationships(KNOWS)
+   .relationships(LIKES, Direction.INCOMING)
+   .evaluator(Evaluators.toDepth(5));
+for (Path position : traversalDescription.traverse(myStartNode)) {
+   System.out.println("Path from start node to current position is " + position);
+}
+----
+====
+
+== Indexing
+
+The best way for retrieving start nodes for traversals and queries is by using Neo4j's integrated index facilities. NOTE: As of SDN 3.0 , schema based indexes (i.e. indexes based on labels) are the default, however the legacy indexing functionality still remains, as there is some functionality (for example full text searches, range searches) which is not possible/ available yet. It should be noted that legacy based indexes are deprecated in 3.0 and the intention is to eventually remove it completely as and when schema based indexes/functionality is fully able to support existing functionality.
+
+ The `GraphDatabaseService` still provides access to the legacy `IndexManager` which in turn provides named indexes for nodes and relationships. Both can be indexed with property names and values. Retrieval is done with query methods on indexes, returning an `IndexHits` iterator.
+
+Spring Data Neo4j provides automatic indexing via the `@Indexed` annotation, defaulting to make use of schema based indexes (aka labels), eliminating the need for manual index management.
+
+.Legacy Index usage
+====
+[source,java]
+----
+IndexManager indexManager = graphDb.index();
+Index<Node> nodeIndex = indexManager.forNodes("a-node-index");
+Node node = ...;
+try (Transaction tx = graphDb.beginTx()) {
+    nodeIndex.add(node, "property","value");
+    tx.success();
+}
+try (Transaction tx = graphDb.beginTx()) {
+    for (Node foundNode : nodeIndex.get("property","value")) {
+        // found node
+    }
+    tx.success();
+}
+----
+====
+
+== Querying the Graph with Cypher
+
+Neo4j provides a graph query language called http://docs.neo4j.org/chunked/milestone/cypher-query-lang.html["Cypher"] which draws from many sources. It resembles SQL but with an iconic representation of patterns in the graph (concepts drawn from SPARQL). The Cypher execution engine was written in Scala to leverage the high expressiveness for lazy sequence operations of the language and the parser combinator library. A screencast explaining the possibilities in detail can be found on the  http://video.neo4j.org/ybMbf/screencast-introduction-to-cypher/[Neo4j video site].
+
+As of Neo4 2.0, Cypher queries typically begin with a `match` clause, although the optional `start` clause (only really needed when using legacy indexes) is also still supported. The `match` clause can be used to provide a way to pattern match against a starting set of nodes, via their IDs or label based index lookup, with the legacy `start` clause providing similar functionality. These starting patterns or start nodes, are then related to other nodes via additional `match` clauses. Start and/or match clauses can introduce new identifiers for nodes and relationships. In the `where` clause additional filtering of the result set is applied by evaluating expressions. The `return` clause defines which part of the query result will be available. Aggregation also happens in the return clause by using aggregation functions on some of the values. Sorting can happen in the `order by` clause and the `skip` and `limit` parts restrict the result set to a certain window.
+
+Cypher can be executed on an embedded graph database using an `ExecutionEngine` and `CypherParser`. This is encapsulated in Spring Data Neo4j with `CypherQueryEngine`. The Neo4j-REST-Server comes with a Cypher-Plugin that is accessible remotely and is available in the Spring Data Neo4j REST-Binding.
+
+.Cypher Examples on the Cineasts.net Dataset
+====
+[source]
+----
+// ----------------------------------------------------------
+//                schema based (Label) examples
+// ----------------------------------------------------------
+//               TODO - once code has been updated
+
+// ----------------------------------------------------------
+//                Legacy index based examples
+// ----------------------------------------------------------
+
+// Actors who played a Matrix movie :
+start movie=node:Movie("title:Matrix*") match movie<-[:ACTS_IN]-actor
+    return actor.name, actor.birthplace?
+
+// User-Ratings:
+start user=node:User(login='micha') match user-[r:RATED]->movie where r.stars > 3
+    return movie.title, r.stars, r.comment
+
+// Mutual Friend recommendations:
+start user=node:Micha(login='micha') match user-[:FRIEND]-friend-[r:RATED]->movie where r.stars > 3
+    return friend.name, movie.title, r.stars, r.comment?
+
+// Movie suggestions based on a movie:
+start movie=node:Movie(id='13') match (movie)<-[:ACTS_IN]-()-[:ACTS_IN]->(suggestion)
+    return suggestion.title, count(*) order by count(*) desc limit 5
+
+// Co-Actors, sorted by count and name of Lucy Liu
+start lucy=node(1000) match lucy-[:ACTS_IN]->movie<-[:ACTS_IN]-co_actor
+    return count(*), co_actor.name order by count(*) desc,co_actor.name limit 20
+
+// Recommendations including counts, grouping and sorting
+start user=node:User(login='micha') match user-[:FRIEND]-()-[r:RATED]->movie
+    return movie.title, AVG(r.stars), count(*) order by AVG(r.stars) desc, count(*) desc
+----
+====

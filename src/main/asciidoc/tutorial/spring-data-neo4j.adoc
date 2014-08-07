@@ -1,0 +1,39 @@
+[[tutorial_about-spring-data]]
+= Spring Data Neo4j
+
+*_Conjuring magic_*
+
+So far it had all been pure Spring Framework and Neo4j. However, using the Neo4j code in our domain classes polluted them with graph database details. For this application, we wanted to keep the domain classes clean. Spring Data Neo4j promised to do the heavy lifting for us, so we continued investigating it.
+
+Spring Data Neo4j comes with two mapping modes. The more powerful one depends heavily on AspectJ, see <<reference_aspectj-details>>, so we ignored it for the time being. The simple direct POJO-mapping copies the data out of the graph and into our entities. Good enough for a web-application like ours.
+
+The first step was to configure Maven: 
+
+.Spring Data Neo4j Maven configuration
+====
+[source,xml]
+----
+<dependency>
+  <groupId>org.springframework.data</groupId>
+  <artifactId>spring-data-neo4j</artifactId>
+  <version>2.1.0.RELEASE</version>
+</dependency>
+----
+====
+
+The Spring context configuration was even easier, thanks to a provided namespace:
+
+.Spring Data Neo4j context configuration
+====
+[source,xml]
+----
+<beans xmlns="http://www.springframework.org/schema/beans" ...
+       xmlns:neo4j="http://www.springframework.org/schema/data/neo4j"
+       xsi:schemaLocation="... http://www.springframework.org/schema/data/neo4j
+       http://www.springframework.org/schema/data/neo4j/spring-neo4j.xsd">
+    ...
+    <neo4j:config storeDirectory="data/graph.db"/>
+    ...
+</beans>
+----
+====

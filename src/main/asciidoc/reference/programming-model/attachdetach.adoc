@@ -1,0 +1,78 @@
+[[reference_programming-model_lifecycle]]
+= Detached node entities in advanced mapping mode
+
+This section only applies to the advanced mapping (AspectJ-backed). The simple mapping always detaches entities on load as it copies the data out of the graph into the entities and stores it back fully too.
+
+Node entities can be in two different persistence states: attached or detached. By default, newly created node entities are in the detached state. When `persist() or template.save()` is called on the entity, it becomes attached to the graph, and its properties and relationships are stores in the database. If the save operation is not called within a transaction, it automatically creates an implicit transaction only for the operation.
+
+Changing an attached entity inside a transaction will immediately write through the changes to the datastore. Whenever an entity is changed outside of a transaction it becomes detached. The changes are stored in the entity (its fields) itself until the next call to a save operation.
+
+All entities returned by library functions are initially in an attached state. Just as with any other entity, changing them outside of a transaction detaches them, and they must be reattached with `persist()` for the data to be saved.
+
+image::attachdetach.png[]
+
+.Persisting entities
+====
+[source,java]
+----
+@NodeEntity
+class Person {
+    String name;
+    Person(String name) { this.name = name; }
+}
+
+// Store Michael in the database.
+Person p = new Person("Michael").persist();
+----
+====
+
+[[reference_programming-model_detached_relating]]
+== Relating detached entities
+
+As mentioned above, an entity simply created with the `new` keyword starts out detached. It also has no state assigned to it. If you create a new entity with `new` and then throw it away, the database won't be touched at all.
+
+Now consider this scenario: 
+
+.Relationships outside of transactions
+====
+[source,java]
+----
+@NodeEntity
+class Movie {
+    private Actor topActor;
+    public void setTopActor(Actor actor) {
+        topActor = actor;
+    }
+}
+
+@NodeEntity
+class Actor {
+}
+
+Movie movie = new Movie();
+Actor actor = new Actor();
+
+movie.setTopActor(actor);
+----
+====
+
+Neither the actor nor the movie has been assigned a node in the graph. If we were to call `movie.persist()`, then Spring Data Neo4j would first create a node for the movie. It would then note that there is a relationship to an actor, so it would call actor.persist() in a cascading fashion. Once the actor has been persisted, it will create the relationship from the movie to the actor. All of this will be done atomically in one transaction.
+
+Important to note here is that if `actor.persist()` is called instead, then only the actor will be persisted. The reason for this is that the actor entity knows nothing about the movie entity. It is the movie entity that has the reference to the actor. Also note that this behavior is not dependent on any configured relationship direction on the annotations. It is a matter of Java references and is not related to the data model in the database.
+
+The save operation (merge) stores all properties of the entity to the graph database and puts the entity in attached mode. There is no need to update the reference to the Java POJO as the underlying backing node handles the read-through transparently. If multiple object instances that point to the same node are persisted, the ordering is not important as long as they contain distinct changes. For concurrent changes a concurrent modification exception is thrown (subject to be parameterized in the future).
+
+If the relationships form a cycle, then the entities will first of all be assigned a node in the database, and then the relationships will be created. The cascading of `persist()` is however only cascaded to related entity fields that have been modified.
+
+In the following example, the actor and the movie are both attached entites, having both been previously persisted to the graph: 
+
+.Cascade for modified fields
+====
+[source,java]
+----
+actor.setName("Billy Bob");
+movie.persist();
+----
+====
+
+In this case, even though the movie has a reference to the actor, the name change on the actor will not be persisted by the call to `movie.persist()`. The reason for this is, as mentioned above, that cascading will only be done for fields that have been modified. Since the `movie.topActor` field has not been modified, it will not cascade the persist operation to the actor.

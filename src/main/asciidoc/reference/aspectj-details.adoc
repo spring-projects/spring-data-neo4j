@@ -1,0 +1,18 @@
+[[reference_aspectj-details]]
+= AspectJ details
+
+The advanced mapping mode of Spring Data Neo4j relies heavily on AspectJ. AspectJ is a Java implementation of the https://secure.wikimedia.org/wikipedia/en/wiki/Aspect-oriented_programming[aspect-oriented programming] paradigm that allows easy extraction and controlled application of so-called cross-cutting concerns. Cross-cutting concerns are typically repetitive tasks in a system (e.g. logging, security, auditing, caching, transaction scoping) that are difficult to extract using the normal OO paradigms. Many OO concepts, such as subclassing, polymorphism, overriding and delegation are still cumbersome to use with many of those concerns applied in the code base. Also, the flexibility becomes limited, potentially adding quite a number of configuration options or parameters.
+
+The AspectJ pointcut language can be intimidating, but a developer using Spring Data Neo4j will not have to deal with that. Users don't have care about hooking into a framework mechanism, or having to extend a framework superclass.
+
+AspectJ uses a declarative approach, defining concrete "advice", which is just pieces of code that contain the implementation of the "concern", as it is called. An AspectJ advice can for instance be applied before, after, or instead of a method or constructor call. It can also be applied on variable and field access. This is declared using AspectJ's expressive pointcut language, which is able to express any place within a code structure or flow. AspectJ is also able to introduce new methods, fields, annotations, interfaces, and superclasses to existing classes.
+
+Spring Data Neo4j uses a mix of these mechanisms internally. First, when encountering the `@NodeEntity` or `@RelationshipEntity` annotations it introduces a new interface `NodeBacked` or `RelationshipBacked` to the annotated class. Secondly, it introduces fields and methods to the annotated class. See <<reference_programming-model_introduced-methods>> for more information on the methods introduced.
+
+Spring Data Neo4j also leverages AspectJ to intercept access to fields, delegating the calls to the graph database instead. Under the hood, properties and relationships will be created.
+
+So how is an aspect applied to a concrete class? At compile time, the AspectJ Java compiler (ajc) takes source files and aspect definitions, and compiles the source files while adding all the necessary interception code for the aspects to hook in where they're declared to. This is known as compile-time *weaving*. At runtime only a small AspectJ runtime is needed, as the byte code of the classes has already been rewritten to delegate the appropriate calls via the declared advice in the aspects.
+
+NOTE: A caveat of using compile-time weaving is that all source files that should be part of the weaving process must be compiled with the AspectJ compiler. Fortunately, this is all taken care of seamlessly by the AspectJ Maven plugin.
+
+AspectJ also supports other types of weaving, e.g. load-time weaving and runtime weaving. These are currently not supported by Spring Data Neo4j.
