@@ -32,6 +32,7 @@ import java.util.Set;
  * {@link org.springframework.data.repository.cdi.CdiRepositoryBean} to create Neo4j repository instances via CDI.
  * 
  * @author Nicki Watt
+ * @author Mark Paluch
  */
 public class Neo4jCdiRepositoryBean<T> extends CdiRepositoryBean<T> {
 
@@ -44,11 +45,13 @@ public class Neo4jCdiRepositoryBean<T> extends CdiRepositoryBean<T> {
 	 * @param qualifiers must not be {@literal null}.
 	 * @param repositoryType must not be {@literal null}.
 	 * @param beanManager must not be {@literal null}.
+	 * @param customImplementationBean the bean for the custom implementation of the
+	 *          {@link org.springframework.data.repository.Repository}, can be {@literal null}.
 	 */
 	public Neo4jCdiRepositoryBean(Bean<GraphDatabase> graphDatabase,
-			Set<Annotation> qualifiers, Class<T> repositoryType, BeanManager beanManager) {
+			Set<Annotation> qualifiers, Class<T> repositoryType, BeanManager beanManager, Bean<?> customImplementationBean) {
 
-		super(qualifiers, repositoryType, beanManager);
+		super(qualifiers, repositoryType, beanManager, customImplementationBean);
 
 		this.graphDatabase = graphDatabase;
 	}
@@ -58,12 +61,12 @@ public class Neo4jCdiRepositoryBean<T> extends CdiRepositoryBean<T> {
 	 * @see org.springframework.data.repository.cdi.CdiRepositoryBean#create(javax.enterprise.context.spi.CreationalContext, java.lang.Class)
 	 */
 	@Override
-	protected T create(CreationalContext<T> creationalContext, Class<T> repositoryType) {
+	protected T create(CreationalContext<T> creationalContext, Class<T> repositoryType, Object customImplementation) {
 
 		Neo4jMappingContext neo4jMapCtx = new Neo4jMappingContext();
 		Neo4jTemplate neo4jTemplate = new Neo4jTemplate(getDependencyInstance(graphDatabase, GraphDatabase.class));
 
 		GraphRepositoryFactory factory = new GraphRepositoryFactory(neo4jTemplate, neo4jMapCtx);
-		return factory.getRepository(repositoryType);
+		return factory.getRepository(repositoryType, customImplementation);
 	}
 }
