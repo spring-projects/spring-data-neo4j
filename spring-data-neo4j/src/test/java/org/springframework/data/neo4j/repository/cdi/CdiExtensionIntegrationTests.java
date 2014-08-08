@@ -141,4 +141,19 @@ public class CdiExtensionIntegrationTests {
         }
 
 	}
+
+	/**
+	 * @see DATAGRAPH-500
+	 */
+	@Test
+	public void returnOneFromCustomImpl() {
+
+		GraphDatabase database = container.getInstance(GraphDatabase.class);
+
+		try (Transaction tx = database.beginTx()) {
+
+			RepositoryClient client = container.getInstance(RepositoryClient.class);
+			assertThat(client.samplePersonRepository.returnOne(), is(1));
+		}
+	}
 }

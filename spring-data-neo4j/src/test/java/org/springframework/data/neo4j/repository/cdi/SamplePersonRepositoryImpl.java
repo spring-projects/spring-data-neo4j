@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,18 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.data.neo4j.repository.cdi;
 
-import javax.inject.Inject;
-
 /**
- * @author Nicki Watt
- * @author Oliver Gierke
+ * @see DATAGRAPH-500
+ * @author Mark Paluch
  */
-class RepositoryClient {
+class SamplePersonRepositoryImpl implements SamplePersonRepositoryCustom {
 
-	@Inject CdiPersonRepository repository;
-	@Inject CdiPersonRepository2 repository2;
-	@Inject CdiPersonRepository3 repository3;
-	@Inject SamplePersonRepository samplePersonRepository;
+	@Override
+	public int returnOne() {
+		return 1;
+	}
 }
