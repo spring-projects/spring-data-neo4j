@@ -1,0 +1,213 @@
+[[reference_programming_model_relationships]]
+= Relating node entities
+
+Since relationships are first-class citizens in Neo4j, associations between node entities are represented by relationships. In general, relationships are categorized by a type, and start and end nodes (which imply the direction of the relationship). Relationships can have an arbitrary number of properties. Spring Data Neo4j has special support to represent Neo4j relationships as entities too, but it is often not needed.
+
+NOTE: As of Neo4j 1.4.M03, circular references are allowed. Spring Data Neo4j reflects this accordingly.
+
+[[reference_programming_model_relationships_relatedto]]
+== @RelatedTo: Connecting node entities
+
+Every field of a node entity that references one or more other node entities is backed by relationships in the graph. These relationships are managed by Spring Data Neo4j automatically.
+
+The simplest kind of relationship is a single field pointing to another node entity (1:1). In this case, the field does not have to be annotated at all, although the annotation may be used to control the direction and type of the relationship. When setting the field, a relationship is created when the entity is persisted. If the field is set to `null`, the relationship is removed.
+
+.Single relationship field
+====
+[source,java]
+----
+@NodeEntity
+public class Movie {
+    private Actor topActor;
+}
+----
+====
+
+It is also possible to have fields that reference a set of node entities (1:N). These fields come in two forms, modifiable or read-only. Modifiable fields are of the type `Set<T>`, and read-only fields are `Iterable<T>`, where T is a @NodeEntity-annotated class.
+
+.Node entity with relationships
+====
+[source,java]
+----
+@NodeEntity
+public class Actor {
+    @RelatedTo(type = "topActor", direction = Direction.INCOMING)
+    private Set<Movie> topActorIn;
+
+    @RelatedTo(type = "ACTS_IN")
+    private Set<Movie> movies;
+}
+----
+====
+
+For the simple mapping, the automatic transitive loading of related entities depends on declaration of `@Fetch` at the property. Otherwise the related node or relationship entities will just be initialized with their id for later loading.
+
+When using the advanced mapping, Fields referencing other entities should not be manually initialized, as they are managed by Spring Data Neo4j Aspects under the hood. 1:N fields can be accessed immediately, and Spring Data Neo4j will provide a `Set` representing the relationships.
+
+If this `Set` of related entities is modified, the changes are reflected in the graph, relationships are added, removed or updated accordingly.
+
+NOTE: Spring Data Neo4j ensures by default that there is only one relationship of a given type between any two given entities. This can be circumvented by using the  `createRelationshipBetween()` method with the `allowDuplicates` parameter on repositories or entities.
+
+NOTE: Before an entity has been persisted for the first time, it will not have its state managed by Spring Data Neo4j. For example, given the Actor class defined above, if `actor.movies` was accessed in a non-persisted entity, it would return `null`, whereas if it was accessed in a persisted entity, it would return an empty managed set.
+
+When an Interface is used as target type for the `Set` and/or as `elementClass` it should be marked as `@NodeEntity` too.
+
+By setting direction to `BOTH`, relationships are created in the outgoing direction, but when the 1:N field is read, it will include relationships in both directions. A cardinality of M:N is not necessary because relationships can be navigated in both directions.
+
+In the advanced mapping mode, the relationships can also be accessed by using the methods `entity.getRelationshipBetween(target, type)` and `entity.relateTo(target, type)` available on each NodeEntity. These methods find and create Neo4j relationships. It is also possible to manually remove relationships by using `entity.removeRelationshipTo(target, type)`. Using these methods is significantly faster than adding/removing from the collection of relationships as it doesn't have to re-synchronize a whole set of relationships with the graph.
+
+Methods of the same semantics exist in the repositories to be used in the simple mapping mode.
+
+NOTE: Other collection types than `Set` are not supported so far, also currently NO `Map<RelationshipType,Set<NodeBacked>>`.
+
+== @RelationshipEntity: Rich relationships
+
+To access the full data model of graph relationships, POJOs can also be annotated with `@RelationshipEntity`, making them relationship entities. Just as node entities represent nodes in the graph, relationship entities represent relationships. As described above, fields annotated with `@RelatedTo` provide a way to only link node entities via relationships, but it provides no way of accessing the relationships themselves.
+
+Relationship entities can be accessed via by @RelatedToVia-annotated (<<reference_programming_model:relationships:relatedtovia>>) fields or methods like `entity.getRelationshipTo()` or `template|repository.getRelationship(s)Between()`.
+
+Relationship entities either be instantiated directly and set or added to `@RelatedToVia`-annotated fields or created by the introduced `entity.relateTo(), template|repository.createRelationshipBetween()` methods (see alos <<reference_programming-model_introduced-methods>>)
+
+Fields in relationship entities are, similarly to node entities, persisted as properties on the relationship. For accessing the two endpoints of the relationship, two special annotations are available: `@StartNode` and `@EndNode`. A field annotated with one of these annotations will provide read-only access to the corresponding endpoint, depending on the chosen annotation.
+
+For the relationship-type a `String` or `RelationshipType` field annotated with `@RelationshipType` is available. When Relationship-Entities are instantiated directly, the relationship type has to be provided either in this annotated field or as part of the `@RelationshipEntity` annotation.
+
+.Relationship entity (in advanced mapping)
+====
+[source,java]
+----
+@NodeEntity
+public class Actor {
+    public Role playedIn(Movie movie, String title) {
+        return relateTo(movie, Role.class, "ACTS_IN");
+    }
+}
+
+@RelationshipEntity
+public class Role {
+    String title;
+
+    @StartNode private Actor actor;
+    @EndNode private Movie movie;
+}
+----
+====
+
+[[reference_programming_model_relationships_relatedtovia]]
+== @RelatedToVia: Accessing relationship entities
+
+To provide easy programmatic access to the richer relationship entities of the data model, the annotation `@RelatedToVia` can be added on fields of type `Iterable<T>` or `Set<T>` or T, where T is a `@RelationshipEntity`-annotated class. These fields provide access to relationship entities.
+
+.Relationship entity (in simple mapping)
+====
+[source,java]
+----
+@NodeEntity
+public class Actor {
+    @RelatedToVia
+    @Set<Role> roles=new HashSet<Role>();
+    public Role playedIn(Movie movie, String title) {
+        Role role=new Role(this,movie,title);
+        roles.add(role);
+        return role;
+    }
+    @RelatedToVia(type="FRIEND_OF", direction=Direction.INCOMING)
+    Friendship bestFriend;
+}
+
+@RelationshipEntity(type = "ACTS_IN")
+public class Role {
+    String title;
+
+    @StartNode private Actor actor;
+    @EndNode private Movie movie;
+}
+
+@RelationshipEntity
+public class Friendship {
+    Date since;
+
+    @StartNode private Actor actor;
+    @EndNode private Person buddy;
+}
+----
+====
+
+[[reference_programming_model_relationships_relationshiptypeprecedence]]
+== Relationship Type Precedence
+
+In the example above we show how to specify a default relationship type, and how to provide the relationship type using an annotation property. Here is an example of using the @RelationshipType annotation on a member variable on the relationship entity; we call this dynamic relationship type.
+
+.Dynamic Relationship Type (simple mapping)
+====
+[source,java]
+----
+
+@RelationshipEntity(type = "colleague")
+public class Acquaintance {
+      @StartNode private Actor actor;
+      @EndNode private Person acquaintance;
+      @RelationshipType private String connection;
+
+      public Acquaintance(Actor actor, Person acquaintance, String connection) {
+          ...
+
+Actor frankSinatra = ...
+Person carloGambino = ...
+new Acquaintance(frankSinatra, carloGambino, "its_complicated")
+----
+====
+
+NOTE: Because dynamic type information is, well, dynamic, it is generally not possible to read the mapping backwards using SDN. The relationship still exists, but SDN cannot help you access it because it does not know what type you gave it. Also, for this reason, we require you to specify a default relationship type, so that we can at least attempt the reverse mapping.
+
+Should you happen to provide conflicting relationship types, we have established the following precedence, in priority order:
+
+. Dynamic
+. Annotation-provided
+. Default
+
+[[reference_programming_model_relationships_relationshiptypediscrimination]]
+== Discriminating Relationships Based On End Node Type
+
+In some cases, you want to model two different aspects of a conceptual relationship using the same relationship type. Here is a canonical example:
+
+.Clashing Relationship Types
+====
+[source,java]
+----
+@NodeEntity
+class Person {
+    @RelatedTo(type="OWNS")
+    Car car;
+
+    @RelatedTo(type="OWNS")
+    Pet pet;
+...
+----
+====
+
+It is clear how we can map these relationships: by looking at the type of the end node. To enable this, we have introduced an boolean annotation parameter `enforceTargetType`, which is disabled by default. Our example now reads:
+
+.Discriminating Relationship Types Using End Node Type
+====
+[source,java]
+----
+@NodeEntity
+class Person {
+    @RelatedTo(type="OWNS", enforceTargetType=true)
+    Car car;
+
+    @RelatedTo(type="OWNS", enforceTargetType=true)
+    Pet pet;
+...
+----
+====
+
+The example easily generalises to collections too of course, but there are a few note-worthy rules and corner cases:
+
+* You need to annotate *all* clashing relationships.
+* You can't have two fields, two collections, or a field and a collection, with the same relationship type and identical end node types. SDN does not store metadata about the origin of a relationship. So when saving the entity, the first field or collection would be overwritten by the second, with the processing order being non-deterministic.
+* You *can* have clashing relation ship types when end nodes share a supertype.
+* A variation on the above, you *cannot* have two fields or two collections with the same relationship type and substitutable end node types.
+* You *can* however have a field and a collection where end node types inherit from each other.
+

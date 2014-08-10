@@ -1,0 +1,13 @@
+[[reference_mapping]]
+= Object Graph Mapping
+
+Up until recently Spring Data Neo4j supported only the more advanced and flexible AspectJ based mapping approach, see <<reference_aspectj>>. Feedback about issues with the AspectJ tooling and other implications persuaded us to add a simpler mapping (see <<reference_simple-mapping>>) to Spring Data Neo4j. Both versions work with the same annotations and provide similar API's, but differ in behaviour.
+
+Reflection and Annotation-based metadata is collected about persistent entities in the `Neo4jMappingContext` which provides it to any part of the library. The information is stored in `Neo4jPersistentEntity` instances which hold all the `Neo4jPersistentProperty`'s of the type. Each entity can be checked to determine whether it represents a Node or a Relationship. Properties declare detailed data about their indexing and relationship information as well as type information that also covers nested generic types. With all that information available it is simple to select the appropriate strategy for mapping each entity and field to elements, relationships and properties of the graph.
+
+The main difference is in the way of accessing the graph. In the simple mapping the required information is copied into the entity on load and only stored back when an explicit save operation occurs. In the advanced mapping (AspectJ-enhanced) approach a node or relationship is attached via an additional field to the entity and all read- and write-operations (inside of Transactions) happen through that.
+
+For the simple mapping mode, declaration of fetch strategies for related entities is necessary to avoid loading the whole graph eagerly into memory. The initial approach uses just a simple `@Fetch` annotations on relationship properties. The resulting `MappingPolicy` is provided to the infrastructure methods to ensure the correct loading behaviour. Both, `Neo4jPersistentEntiy` and `Neo4jPersistentProperty` can be queried for the `MappingPolicy`.
+
+Otherwise the two approaches share much of the infrastructure. E.g. for creating new entity instances from type information store in the graph (<<reference_programming-model_typerepresentationstrategy>>), the infrastructure for mapping individual fields to graph properties and relationships and everything related to indexing and querying. A certain part of that is also exposed via the Neo4jTemplate for direct use.
+

@@ -1,0 +1,54 @@
+[[reference_programming-model_conversion]]
+= Conversion
+
+`Neo4jTemplate` has a generic convert method which might also use projection underneath. The same conversion facilities that are used by default in the result handling DSL are offered here for individual use.
+
+Supported conversions are: Nodes to Paths and to Entities, Relationships to Paths and to Entities, Paths to Node (EndNode), Relationships (LastRelationship) and to EntityPaths. Entities to Nodes or Relationships.
+
+It is also possible to provide a custom ResultConverter that additionally takes care of conversions.
+
+[[reference_programming-model_mapresult]]
+== Mapping Query Results
+
+For both queries executed via the result conversion DSL as well as repository methods, it is possible to specify a conversion of complex query results to POJO interfaces or objects. Those result objects are then populated with the query result data and can be serialized and sent to a different part of the applicaton, e.g. a frontend-ui.
+
+Use an interface annotated with `@QueryResult` and getter methods which might be annotated with `@ResultColumn("columnName")` to match the query-result column names. Or use a plain POJO, both work.
+
+.Example of query result mapping
+====
+[source,java]
+----
+public interface MovieRepository extends GraphRepository<Movie> {
+
+    @Query("START movie=node:Movie(id={0})
+            MATCH movie-[rating?:rating]->(),
+                  movie<-[:ACTS_IN]-actor
+            RETURN movie, COLLECT(actor), AVG(rating.stars)")
+    MovieData getMovieData(String movieId);
+
+    @QueryResult
+    public class MovieData {
+        Movie movie;
+
+        @ResultColumn("AVG(rating.stars)")
+        Double rating;
+
+        @ResultColumn("COLLECT(actor)")
+        Collection<Actor> cast;
+    }
+
+    // alternatively use
+    @QueryResult
+    public interface MovieData {
+        @ResultColumn("movie")
+        Movie getMovie();
+
+        @ResultColumn("AVG(rating.stars)")
+        Double getRating();
+
+        @ResultColumn("COLLECT(actor)")
+        Iterable<Actor> getCast();
+    }
+}
+----
+====

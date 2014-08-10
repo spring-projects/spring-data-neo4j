@@ -1,0 +1,188 @@
+[[reference_programming-model_annotations]]
+= Defining node entities
+
+Node entities are declared using the `@NodeEntity` annotation. Relationship entities use the `@RelationshipEntity` annotation.
+
+== @NodeEntity: The basic building block
+
+The `@NodeEntity` annotation is used to turn a POJO class into an entity backed by a node in the graph database. Fields on the entity are by default mapped to properties of the node. Fields referencing other node entities (or collections thereof) are linked with relationships. If the `useShortNames` attribute is set to false, the property and relationship names will have the class name of the entity prepended.
+
+`@NodeEntity` annotations are inherited from super-types and interfaces. It is not necessary to annotate your domain objects at every inheritance level.
+
+If the `partial` attribute is set to true, this entity takes part in a cross-store setting, where the entity lives in both the graph database and a JPA data source. See <<reference_cross-store>> for more information.
+
+Entity fields can be annotated with `@GraphProperty`, `@RelatedTo`, `@RelatedToVia`, `@Indexed`, `@GraphId`, `@Query` and `@GraphTraversal`.
+
+.Simplest node entity
+====
+[source,java]
+----
+@NodeEntity
+public class Movie {
+    String title;
+}
+----
+====
+
+== @GraphId: Neo4j -id field
+
+For the simple mapping this is a required field which must be of type `Long`. It is used by Spring Data Neo4j to store the node or relationship-id to re-connect the entity to the graph.
+
+NOTE: It must not be a primitive type because then the "non-attached" case can not be represented as the default value 0 would point to the reference node. Please make also sure that  an `equals()` and `hashCode()` method have to be provided which take the `id` field into account (and also handle the "non-attached", null case).
+
+For the advanced mapping such a field is optional. Only if the underlying id has to be accessed, it is needed.
+
+=== Entity Equality
+
+Entity equality can be a grey area, and it is debatable whether natural keys or database ids best describe equality, there is the issue of versioning over time, etc. For Spring Data Neo4j we have adopted the convention that database-issued ids are the basis for equality, and that has some consequences:
+
+. Before you attach an entity to the database, i.e. before the entity has had its id-field populated, we suggest you rely on object identity for comparisons
+. Once an entity is attached, we suggest you rely solely on the id-field for equality
+. When you attach an entity, its hashcode changes - because you keep equals and hashcode consistent and rely on the database ID, and because Spring Data Neo4j populates the database ID on save
+
+That causes problems if you had inserted the newly created entity into a hash-based collection before saving. While that can be worked around, we strongly advise you adopt a convention of not working with un-attached entities, to keep your code simple. This is best illustrated in code.
+
+.Entity using id-field for equality and attaching new entity immediately
+====
+[source,java]
+----
+@NodeEntity
+public class Studio {
+    @GraphId
+    Long id
+
+    String name;
+
+    public boolean equals(Object other) {
+        if (this == other) return true;
+
+        if (id == null) return false;
+
+        if (! (other instanceof Studio)) return false;
+
+        return id.equals(((Studio) other).id);
+    }
+
+    public int hashCode() {
+        return id == null ? System.identityHashCode(this) : id.hashCode();
+    }
+}
+
+...
+Set<Studio> studios = new HashSet<Studio>();
+Studio studio = studioRepository.save(new Studio("Ghibli"));
+studios.add(studio);
+Studio sameStudio = studioRepository.findOne(studio.id);
+assertThat(studio, is(equalTo(sameStudio));
+assertThat(studios.contains(sameStudio), is(true);
+assertThat(studios.remove(sameStudio), is(true);
+----
+====
+
+A work-around for the problem of un-attached entities having their hashcode change when they get saved is to cache the hashcode. The hashcode will change next time you load the entity, but at least if you have the entity sitting in a collection, you will still be able to find it:
+
+.Caching hashcode
+====
+[source,java]
+----
+@NodeEntity
+public class Studio {
+    @GraphId
+    Long id
+
+    String name;
+
+    transient private Integer hash;
+
+    public boolean equals(Object other) {
+        if (this == other) return true;
+
+        if (id == null) return false;
+
+        if (! (other instanceof Studio)) return false;
+
+        return id.equals(((Studio) other).id);
+    }
+
+    public int hashCode() {
+        if (hash == null) hash = id == null ? System.identityHashCode(this) : id.hashCode();
+
+        return hash.hashCode();
+    }
+}
+
+...
+Set<Studio> studios = new HashSet<Studio>();
+Studio studio = new Studio("Ghibli")
+studios.add(studio);
+studioRepository.save(studio);
+assertThat(studios.contains(studio), is(true);
+assertThat(studios.remove(studio), is(true);
+Studio sameStudio = studioRepository.findOne(studio.id);
+assertThat(studio, is(equalTo(sameStudio));
+assertThat(studio.hashCode(), is(not(equalTo(sameStudio.hashCode())));
+----
+====
+
+NOTE: Remember, transient fields are *not* saved.
+
+== @GraphProperty: Optional annotation for property fields
+
+It is not necessary to annotate property fields, as they are persisted by default; all fields that contain primitive values are persisted directly to the graph. All fields convertible to a `String` using the Spring conversion services will be stored as a string. Spring Data Neo4j includes a custom conversion factory that comes with converters for `Enum`s and `Date`s. Transient fields are not persisted.
+
+Collections of collections of primitive or convertible values are stored as well. They are converted to arrays of their type or strings respectively.
+
+This annotation is typically used with cross-store persistence. When a node entity is configured as partial, then all fields that should be persisted to the graph must be explicitly annotated with `@GraphProperty`.
+
+`@GraphProperty` can specify default values for properties that are not in the graph. Default values are specified as String representations and will be converted to the correct target type using the existing conversion facilities. For example `@GraphProperty(defaultValue="20") Integer age`.
+
+It is also possible to declare the type that should be used for the storage inside of Neo4j. For instance if a `Date` property should be stored as an Long value instead of the default String, the annotation would look like `@GraphProperty(propertyType = Long.class)` For the actual mapping of the Field-Type to the Neo4j-Property type there has to be a Converter registered in the Spring-Config.
+
+== @Indexed: Making entities searchable by field value
+
+The @Indexed annotation can be declared on fields that are intended to be indexed by the Neo4j indexing facilities. The resulting index can be used to later retrieve nodes or relationships that contain a certain property value, e.g. a name. Often an index is used to establish the start node for a traversal. Indexes are accessed by a repository for a particular node or relationship entity type. See <<reference_programming-model_indexing>> and <<reference_programming-model_repositories>> for more information.
+
+== @Query: fields as query result views
+
+The `@Query` annotation leverages the delegation infrastructure supported by Spring Data Neo4j. It provides dynamic fields which, when accessed, return the values selected by the provided query language expression. The provided query must contain a placeholder named `{self}` for the the current entity. For instance the query `start n=node({self}) match n-[:FRIEND]->friend return friend`. Graph queries can return variable number of entities. That's why annotation can be put onto fields with a single value, a subclass of Iterable of a concrete type or an Iterable of `Map<String,Object>`. Additional parameters are taken from the params attribute of the `@Query` annotation. These parameter tuples form key-value pairs that are provided to the query at execution time.
+
+.@Graph on a node entity field
+====
+[source,java]
+----
+@NodeEntity
+public class Group {
+    @Query(value = "start n=node({self}) match (n)-[r]->(friend) where r.type = {relType} return friend",
+                params = {"relType", "FRIEND"})
+    private Iterable<Person> friends;
+}
+----
+====
+
+NOTE: Please note that this annotation can also be used on repository methods. (<<reference_programming-model_repositories>>)
+
+== @GraphTraversal: fields as traversal result views
+
+The `@GraphTraversal` annotation also leverages the delegation infrastructure supported by Spring Data aspects. It provides dynamic fields which, when accessed, return an `Iterable` of node or relationship entities that are the result of a traversal starting at the entity containing the field. The `TraversalDescription` used for this is created by the `FieldTraversalDescriptionBuilder` class defined by the `traversal` attribute. The class of the resulting node entities must be provided with the `elementClass` attribute.
+
+.@GraphTraversal from a node entity
+====
+[source,java]
+----
+@NodeEntity
+public class Group {
+    @GraphTraversal(traversal = PeopleTraversalBuilder.class,
+            elementClass = Person.class, params = "persons")
+    private Iterable<Person> people;
+
+    private static class PeopleTraversalBuilder implements FieldTraversalDescriptionBuilder {
+        @Override
+        public TraversalDescription build(NodeBacked start, Field field, String... params) {
+            return new TraversalDescriptionImpl()
+                    .relationships(DynamicRelationshipType.withName(params[0]))
+                    .filter(Traversal.returnAllButStartNode());
+        }
+    }
+}
+----
+====

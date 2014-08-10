@@ -1,0 +1,32 @@
+= About this guide book
+
+== The Spring Data Neo4j Project
+
+Welcome to the Spring Data Neo4j Guide Book. Thank you for taking the time to get an in-depth look into http://spring.neo4j.org[Spring Data Neo4j]. This project is part of the http://springsource.org/spring-data[Spring Data project], which brings the convenient programming model of the Spring Framework to modern NOSQL databases. Spring Data Neo4j, as the name alludes to, aims to provide support for the graph database http://neo4j.org[Neo4j].
+
+== Feedback
+
+It was written by developers for developers. Hopefully we've created a guide that is well received by our peers.
+
+If you have any feedback on Spring Data Neo4j or this book, please provide it via the http://spring.neo4j.org/issues[SpringSource JIRA], the http://spring.neo4j.org/discussion[SpringSource NOSQL Forum], http://github.com/SpringSource/spring-data-neo4j/issues[github comments or issues], or the http://neo4j.org/forums/[Neo4j mailing list].
+
+== Format of the Book
+
+This book is presented as a http://martinfowler.com/bliki/DuplexBook.html[duplex book], a term coined by Martin Fowler. A duplex book consists of at least two parts. The first part is an easily accessible tutorial or narrative that gives the reader an overview of the topics contained in the book. It contains lots of examples and discussion topics. This part of the book is highly suited for cover-to-cover reading.
+
+We chose a tutorial describing the creation of a web application that allows movie enthusiasts to find their favorite movies, rate them, connect with fellow movie geeks, and enjoy social features such as recommendations. The application is running on Neo4j using Spring Data Neo4j and the well-known Spring Web Stack.
+
+The second part of the book is the classic reference documentation, containing detailed information about the library. It discusses the programming model, the underlying assumptions, and internals, as well as the APIs for the object-graph mapping. The reference documentation is typically used to look up concrete bits of information, or to drill down into certain topics. For hackers wanting to really delve into Spring Data Neo4j, it can of course also be read cover-to-cover.
+
+== Acknowledgements
+
+We would like to thank everyone who contributed to this book, especially Mark Pollack and Thomas Risberg, the leads of the Spring Data Project, who helped a lot during the development of the library as well as sharing great feedback about the book. Also Oliver Gierke, our local German VMWare/SpringSource engineer, who invested a lot of time discussing various aspects of the library as well as providing the superb foundations for the Spring Data Repositories. We tortured Andy Clement, the AspectJ project lead, with many questions and issues around our advanced AspectJ usage which caused some headaches. He always quickly solved our issues and gave us excellent answers.
+
+Many thanks to our colleagues David Montag, Andreas Kollegger and Rickard Öberg who not only contributed to Spring Data Neo4j but also provided content and feedback for this book.
+
+We also appreciate very much the foresight of Rod Johnson and Emil Eifrem to initiate the project, and now also providing great forewords. Their leadership inspired collaboration between the engineering teams at SpringSource and Neo Technology, a tremendous help during the making of Spring Data Neo4j.
+
+Last but not least we thank our vibrant community, both in the Spring Forums as well as on the Neo4j Mailing list and on many other places on the internet for giving us feedback, reporting issues and suggesting improvements. Without that important feedback we wouldn't be where we are today. Especially Jean-Pierre Bergamin and Alfredas Chmieliauskas provided exceptional feedback and contributions.
+
+Enjoy the book!
+

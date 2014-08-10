@@ -1,0 +1,54 @@
+[[reference_programming-model_introduced-methods]]
+= Active Record Methods for Advanced Mapping Mode
+
+This chapter only applies to the advanced mapping. Currently the Aspects introduce the following methods by default, this will change in the future, there will be separate Mixin-Interfaces that can selectively be mixed into the domain entities if needed. Otherwise the AspectJ interaction will be restricted to field access interception and post-constructor handling.
+
+The node and relationship aspects introduce (via AspectJ ITD - inter-type declaration) several methods to the entities. 
+
+Persisting the node entity after creation and after changes outside of a transaction. Participates in an open transaction, or creates its own implicit transaction otherwise.::
+`nodeEntity.persist()`
+
+Accessing node and relationship IDs::
+`nodeEntity.getNodeId()` and `relationshipEntity.getRelationshipId()`
+
+Accessing the node or relationship backing the entity::
+`entity.getPersistentState()`
+
+equals() and hashCode() are delegated to the underlying state::
+`entity.equals()` and `entity.hashCode()`
+
+Creating relationships to a target node entity, and returning the relationship entity instance::
+`nodeEntity.relateTo(targetEntity, relationshipClass, relationshipType)`
+
+Retrieving a single relationship entity::
+`nodeEntity.getRelationshipTo(targetEntity, relationshipClass, relationshipType)`
+
+Creating relationships to a target node entity and returning the relationship::
+`nodeEntity.relateTo(targetEntity, relationshipType)`
+
+Retrieving a single relationship::
+`nodeEntity.getRelationshipTo(targetEnttiy, relationshipType)`
+
+Removing a single relationship::
+`nodeEntity.removeRelationshipTo(targetEntity, relationshipType)`
+
+Remove the node entity, its relationships, and all index entries for it::
+`nodeEntity.remove()` and `relationshipEntity.remove()`
+
+Project entity to a different target type, using the same backing state::
+`entity.projectTo(targetClass)`
+
+Traverse, starting from the current node. Returns end nodes of traversal converted to the provided type.::
+`nodeEntity.findAllByTraversal(targetType, traversalDescription)`
+
+Traverse, starting from the current node. Returns `EntityPath`s of the traversal result bound to the provided start and end-node-entity types::
+`Iterable<EntityPath> findAllPathsByTraversal(traversalDescription)`
+
+Executes the given Cypher query, providing the `{self}` variable with the node-id and returning the results converted to the target type.::
+`<T> Iterable<T> NodeBacked.findAllByQuery(final String query, final Class<T> targetType)`
+
+Executes the given query, providing `{self}` variable with the node-id and returning the original result, but with nodes and relationships replaced by their appropriate entities.::
+`Iterable<Map<String,Object>> NodeBacked.findAllByQuery(final String query)`
+
+Executes the given query, providing `{self}` variable with the node-id and returns a single result converted to the target type.::
+`<T> T NodeBacked.findByQuery(final String query, final Class<T> targetType)`
