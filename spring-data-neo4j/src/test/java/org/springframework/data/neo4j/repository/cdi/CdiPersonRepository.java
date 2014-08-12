@@ -17,7 +17,9 @@ package org.springframework.data.neo4j.repository.cdi;
 
 import org.springframework.data.neo4j.model.Person;
 import org.springframework.data.repository.Repository;
+import org.springframework.data.repository.cdi.Eager;
 
+@Eager
 public interface CdiPersonRepository extends Repository<Person, Long> {
 
     void deleteAll();

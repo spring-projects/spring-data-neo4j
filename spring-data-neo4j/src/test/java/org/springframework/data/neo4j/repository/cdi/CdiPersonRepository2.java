@@ -17,8 +17,7 @@ package org.springframework.data.neo4j.repository.cdi;
 
 import org.springframework.data.neo4j.model.Person;
 import org.springframework.data.repository.CrudRepository;
+import org.springframework.data.repository.cdi.Eager;
 
-public interface CdiPersonRepository2 extends CrudRepository<Person, Long> {
-
-
-}
+@Eager
+public interface CdiPersonRepository2 extends CrudRepository<Person, Long> {}
