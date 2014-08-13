@@ -1,6 +1,14 @@
 Spring Data Neo4j Changelog
 ===========================
 
+Changes in version 3.2.0.RC1 (2014-08-13)
+-----------------------------------------
+* DATAGRAPH-501 - Release 3.2 RC1.
+* DATAGRAPH-500 - Add support for custom implementations in CDI repositories.
+* DATAGRAPH-499 - Move to Asciidoctor for reference documentation.
+* DATAGRAPH-492 - Adapt to deprecation removals in Spring Data Commons.
+
+
 Changes in version 3.1.2.RELEASE (2014-07-28)
 ---------------------------------------------
 * DATAGRAPH-496 - Release 3.1.2.
