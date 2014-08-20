@@ -42,6 +42,7 @@ import org.springframework.data.repository.cdi.CdiRepositoryExtensionSupport;
  * 
  * @author Nicki Watt
  * @author Oliver Gierke
+ * @author Mark Paluch
  */
 public class Neo4jCdiRepositoryExtension extends CdiRepositoryExtensionSupport {
 
@@ -108,7 +109,9 @@ public class Neo4jCdiRepositoryExtension extends CdiRepositoryExtensionSupport {
 					Neo4jMappingContext.class.getName(), qualifiers));
 		}
 
+		Bean<?> customImplementationBean = getCustomImplementationBean(repositoryType, beanManager, qualifiers);
+
 		return new Neo4jCdiRepositoryBean<T>(graphDatabase, qualifiers, repositoryType,
-				beanManager);
+				beanManager, customImplementationBean);
 	}
 }
