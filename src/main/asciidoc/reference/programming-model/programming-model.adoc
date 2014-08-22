@@ -3,7 +3,7 @@
 
 This chapter covers the fundamentals of the programming model behind Spring Data Neo4j. It discusses the simple and advanced mapping modes, the annotations provided by Spring Data Neo4j and how to use them. Examples for this section are taken from the "IMDB" project of http://spring.neo4j.org/examples[Spring Data Neo4j examples].
 
-:leveloffset: 3
+:leveloffset: +1
 include::mapping.adoc[]
 include::aspectj.adoc[]
 include::simple_mapping.adoc[]
@@ -20,3 +20,4 @@ include::transactions.adoc[]
 include::attachdetach.adoc[]
 include::typerepresentationstrategy.adoc[]
 include::beanvalidation.adoc[]
+:leveloffset: -1

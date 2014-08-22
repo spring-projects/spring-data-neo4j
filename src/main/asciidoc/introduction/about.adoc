@@ -1,3 +1,4 @@
+[preface]
 = About this guide book
 
 == The Spring Data Neo4j Project
@@ -8,7 +9,7 @@ Welcome to the Spring Data Neo4j Guide Book. Thank you for taking the time to ge
 
 It was written by developers for developers. Hopefully we've created a guide that is well received by our peers.
 
-If you have any feedback on Spring Data Neo4j or this book, please provide it via the http://spring.neo4j.org/issues[SpringSource JIRA], the http://spring.neo4j.org/discussion[SpringSource NOSQL Forum], http://github.com/SpringSource/spring-data-neo4j/issues[github comments or issues], or the http://neo4j.org/forums/[Neo4j mailing list].
+If you have any feedback on Spring Data Neo4j or this book, please provide it via the http://spring.neo4j.org/issues[SpringSource JIRA], the http://spring.neo4j.org/discussion[SpringSource NOSQL Forum], http://github.com/spring-projects/spring-data-neo4j/issues[github comments or issues], or the http://neo4j.org/forums/[Neo4j mailing list].
 
 == Format of the Book
 

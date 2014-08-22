@@ -21,7 +21,7 @@ org.neo4j.server.thirdparty_jaxrs_classes=com.example.mypackage=/my-context
 ----
 ====
 
-Running Spring Data Neo4j on the Neo4j Server is easy. You need to tell the server where to find the Spring context configuration file, and which beans from it to expose: 
+Running Spring Data Neo4j on the Neo4j Server is easy. You need to tell the server where to find the Spring context configuration file, and which beans from it to expose:
 
 .Server plugin initialization
 ====
@@ -37,7 +37,7 @@ public class HelloWorldInitializer extends SpringPluginInitializer {
 ----
 ====
 
-Now, your resources can require the Spring beans they need, annotated with `@Context` like this: 
+Now, your resources can require the Spring beans they need, annotated with `@Context` like this:
 
 .Jersey resource
 ====
@@ -64,7 +64,7 @@ NOTE: The Neo4j Server REST API does not allow for transactions to span across r
 
 Please also keep in mind that performing graph operations via the REST-API is about one order of magnitude slower than local operations. Try to use the Neo4j Cypher query language, or server-side traversals (`RestTraversal`) whenever possible for retrieving large sets of data. Future versions of Spring Data Neo4j will use the more performant batch API as well as a binary protocol.
 
-To set up your project to use the REST bindings, add this dependency to your pom.xml: 
+To set up your project to use the REST bindings, add this dependency to your pom.xml:
 
 .REST-Client configuration - pom.xml
 ====
@@ -78,7 +78,7 @@ To set up your project to use the REST bindings, add this dependency to your pom
 ----
 ====
 
-Now, you set up the normal Spring Data Neo4j configuration, but point the database to an URL instead of a local directory, like so: 
+Now, you set up the normal Spring Data Neo4j configuration, but point the database to an URL instead of a local directory, like so:
 
 .REST client configuration - application context
 ====
@@ -99,3 +99,4 @@ Now, you set up the normal Spring Data Neo4j configuration, but point the databa
 Your project is now set up to work against a remote Neo4j Server.
 
 For traversals and Cypher graph queries it is sensible to forward those to the remote endpoint and execute them there instead of walking the graph over the wire. SpringRestGraphDatabase already supports that by providing methods that forward to the remote instance. (e.g. `queryEngineFor(), index() and createTraversalDescription()`). Please use those methods when interacting with a remote server for optimal performance. Those methods are also used by the Neo4jTemplate and the mapping infrastructure automatically.
+
