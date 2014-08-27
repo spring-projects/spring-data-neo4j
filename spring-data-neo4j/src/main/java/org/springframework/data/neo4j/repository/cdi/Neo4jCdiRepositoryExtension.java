@@ -61,12 +61,12 @@ public class Neo4jCdiRepositoryExtension extends CdiRepositoryExtensionSupport {
 
 		for (Type type : bean.getTypes()) {
 			if (type instanceof Class<?> && GraphDatabase.class.isAssignableFrom((Class<?>) type)) {
-				
+
 				if (LOG.isDebugEnabled()) {
 					LOG.debug(String.format("Discovered %s with qualifiers %s.", GraphDatabase.class.getName(),
 							bean.getQualifiers()));
 				}
-				
+
 				graphDatabases.put(new HashSet<Annotation>(bean.getQualifiers()), (Bean<GraphDatabase>) bean);
 			}
 		}
@@ -100,7 +100,8 @@ public class Neo4jCdiRepositoryExtension extends CdiRepositoryExtensionSupport {
 	 * @param beanManager The BeanManager instance.
 	 * @return The bean.
 	 */
-	private <T> CdiRepositoryBean<T> createRepositoryBean(Class<T> repositoryType, Set<Annotation> qualifiers, BeanManager beanManager) {
+	private <T> CdiRepositoryBean<T> createRepositoryBean(Class<T> repositoryType, Set<Annotation> qualifiers,
+			BeanManager beanManager) {
 
 		Bean<GraphDatabase> graphDatabase = this.graphDatabases.get(qualifiers);
 
@@ -109,9 +110,7 @@ public class Neo4jCdiRepositoryExtension extends CdiRepositoryExtensionSupport {
 					Neo4jMappingContext.class.getName(), qualifiers));
 		}
 
-		Bean<?> customImplementationBean = getCustomImplementationBean(repositoryType, beanManager, qualifiers);
-
-		return new Neo4jCdiRepositoryBean<T>(graphDatabase, qualifiers, repositoryType,
-				beanManager, customImplementationBean);
+		return new Neo4jCdiRepositoryBean<T>(graphDatabase, qualifiers, repositoryType, beanManager,
+				getCustomImplementationDetector());
 	}
 }

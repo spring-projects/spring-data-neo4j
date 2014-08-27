@@ -15,18 +15,19 @@
  */
 package org.springframework.data.neo4j.repository.cdi;
 
+import java.lang.annotation.Annotation;
+import java.util.Set;
+
+import javax.enterprise.context.spi.CreationalContext;
+import javax.enterprise.inject.spi.Bean;
+import javax.enterprise.inject.spi.BeanManager;
+
 import org.springframework.data.neo4j.core.GraphDatabase;
 import org.springframework.data.neo4j.repository.GraphRepositoryFactory;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
 import org.springframework.data.neo4j.support.mapping.Neo4jMappingContext;
 import org.springframework.data.repository.cdi.CdiRepositoryBean;
-import org.springframework.util.Assert;
-
-import javax.enterprise.context.spi.CreationalContext;
-import javax.enterprise.inject.spi.Bean;
-import javax.enterprise.inject.spi.BeanManager;
-import java.lang.annotation.Annotation;
-import java.util.Set;
+import org.springframework.data.repository.config.CustomRepositoryImplementationDetector;
 
 /**
  * {@link org.springframework.data.repository.cdi.CdiRepositoryBean} to create Neo4j repository instances via CDI.
@@ -45,13 +46,13 @@ public class Neo4jCdiRepositoryBean<T> extends CdiRepositoryBean<T> {
 	 * @param qualifiers must not be {@literal null}.
 	 * @param repositoryType must not be {@literal null}.
 	 * @param beanManager must not be {@literal null}.
-	 * @param customImplementationBean the bean for the custom implementation of the
-	 *          {@link org.springframework.data.repository.Repository}, can be {@literal null}.
+	 * @@param detector detector for the custom {@link org.springframework.data.repository.Repository} implementations
+	 *         {@link CustomRepositoryImplementationDetector}, can be {@literal null}.
 	 */
-	public Neo4jCdiRepositoryBean(Bean<GraphDatabase> graphDatabase,
-			Set<Annotation> qualifiers, Class<T> repositoryType, BeanManager beanManager, Bean<?> customImplementationBean) {
+	public Neo4jCdiRepositoryBean(Bean<GraphDatabase> graphDatabase, Set<Annotation> qualifiers, Class<T> repositoryType,
+			BeanManager beanManager, CustomRepositoryImplementationDetector detector) {
 
-		super(qualifiers, repositoryType, beanManager, customImplementationBean);
+		super(qualifiers, repositoryType, beanManager, detector);
 
 		this.graphDatabase = graphDatabase;
 	}
