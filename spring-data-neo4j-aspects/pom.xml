@@ -2,7 +2,7 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
 	<modelVersion>4.0.0</modelVersion>
-	
+
 	<artifactId>spring-data-neo4j-aspects</artifactId>
 
 	<name>Spring Data Neo4j - AspectJ Advanced Mapping</name>
@@ -20,7 +20,7 @@
 	</properties>
 
 	<dependencies>
-		
+
 		<!--  Spring -->
 		<dependency>
 			<groupId>org.springframework</groupId>
@@ -52,7 +52,7 @@
 				</exclusion>
 			</exclusions>
 		</dependency>
-		
+
 		<!-- JSR 303 Validation -->
 		<dependency>
 			<groupId>javax.validation</groupId>
@@ -120,7 +120,7 @@
 			<artifactId>cglib</artifactId>
 			<version>2.2.2</version>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>org.neo4j</groupId>
 			<artifactId>neo4j-spatial</artifactId>
@@ -141,7 +141,7 @@
 			</exclusions>
 		</dependency>
 	</dependencies>
-	
+
 	<build>
 		<plugins>
 			<plugin>
@@ -175,7 +175,7 @@
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>aspectj-maven-plugin</artifactId>
-				<version>1.4</version>
+				<version>1.6</version>
 				<dependencies>
 					<dependency>
 						<groupId>org.aspectj</groupId>
@@ -210,9 +210,10 @@
 					<source>${source.level}</source>
 					<target>${source.level}</target>
 					<complianceLevel>${source.level}</complianceLevel>
+					<xmlConfigured>aop.xml</xmlConfigured>
 				</configuration>
 			</plugin>
-			<!-- the eclipse plugin interacts with the aspectj-maven-plugin 
+			<!-- the eclipse plugin interacts with the aspectj-maven-plugin
 				 BUT ONLY if the ajdtVersion config value is set (remove it and it won't) -->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>

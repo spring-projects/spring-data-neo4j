@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<aspectj>
+	<aspects>
+		<aspect name="org.springframework.data.neo4j.aspects.support.node.Neo4jNodeBacking" />
+		<aspect name="org.springframework.data.neo4j.aspects.support.relationship.Neo4jRelationshipBacking" />
+	</aspects>
+</aspectj>
