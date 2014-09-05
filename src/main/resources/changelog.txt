@@ -1,6 +1,15 @@
 Spring Data Neo4j Changelog
 ===========================
 
+Changes in version 3.2.0.RELEASE (2014-09-05)
+---------------------------------------------
+* DATAGRAPH-512 - Release 3.2 GA.
+* DATAGRAPH-511 - Make sure Spring Data Neo4j builds on Spring 4.1.
+* DATAGRAPH-506 - Remove plugin declaration that prevents IDE import from working correctly.
+* DATAGRAPH-505 - Custom repository implementations are not picked up when using CDI.
+* DATAGRAPH-503 - Polish reference documentation.
+
+
 Changes in version 3.1.4.RELEASE (2014-08-27)
 ---------------------------------------------
 * DATAGRAPH-504 - Release 3.1.4.
