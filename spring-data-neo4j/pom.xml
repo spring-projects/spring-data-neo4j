@@ -2,7 +2,7 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
 	<modelVersion>4.0.0</modelVersion>
-	
+
 	<artifactId>spring-data-neo4j</artifactId>
 
 	<name>Spring Data Neo4j</name>
@@ -11,7 +11,7 @@
 	<parent>
 		<groupId>org.springframework.data</groupId>
 		<artifactId>spring-data-neo4j-parent</artifactId>
-		<version>3.2.0.RELEASE</version>
+		<version>3.2.1.BUILD-SNAPSHOT</version>
 		<relativePath>../pom.xml</relativePath>
 	</parent>
 
@@ -20,7 +20,7 @@
 	</properties>
 
 	<dependencies>
-		
+
 		<!--  Spring -->
 		<dependency>
 			<groupId>org.springframework</groupId>
@@ -93,7 +93,7 @@
 			<version>1.0</version>
 			<optional>true</optional>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>javax.el</groupId>
 			<artifactId>el-api</artifactId>
@@ -122,7 +122,7 @@
             </exclusions>
             <scope>test</scope>
         </dependency>
-        
+
         <dependency>
         	<groupId>org.javassist</groupId>
         	<artifactId>javassist</artifactId>
@@ -151,7 +151,7 @@
 			<version>4.2.0.Final</version>
 			<scope>test</scope>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>joda-time</groupId>
 			<artifactId>joda-time</artifactId>
@@ -224,7 +224,7 @@
             <scope>test</scope>
         </dependency>
 	</dependencies>
-	
+
 	<build>
 		<plugins>
 			<plugin>
