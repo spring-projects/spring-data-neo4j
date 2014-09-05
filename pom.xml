@@ -15,7 +15,7 @@
 	<parent>
 		<groupId>org.springframework.data.build</groupId>
 		<artifactId>spring-data-parent</artifactId>
-		<version>1.5.0.RELEASE</version>
+		<version>1.5.1.BUILD-SNAPSHOT</version>
 		<relativePath>../spring-data-build/parent/pom.xml</relativePath>
 	</parent>
 
@@ -32,7 +32,7 @@
 	<properties>
 		<project.type>multi</project.type>
 		<dist.id>spring-data-neo4j</dist.id>
-		<springdata.commons>1.9.0.RELEASE</springdata.commons>
+		<springdata.commons>1.9.1.BUILD-SNAPSHOT</springdata.commons>
 
 		<!-- Neo4j 2.0 now requires JDK 7 as a min -->
 		<source.level>1.7</source.level>
@@ -170,9 +170,9 @@
 	</dependencies>
 	<repositories>
 		<repository>
-			<id>spring-libs-release</id>
+			<id>spring-libs-snapshot</id>
 			<name>Spring</name>
-			<url>http://repo.spring.io/libs-release</url>
+			<url>http://repo.spring.io/libs-snapshot</url>
 		</repository>
 		<repository>
 			<id>geotools</id>
