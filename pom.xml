@@ -1,8 +1,8 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
 	<modelVersion>4.0.0</modelVersion>
-	
+
 	<groupId>org.springframework.data</groupId>
 	<artifactId>spring-data-neo4j-parent</artifactId>
 	<version>3.3.0.BUILD-SNAPSHOT</version>
@@ -15,10 +15,10 @@
 	<parent>
 		<groupId>org.springframework.data.build</groupId>
 		<artifactId>spring-data-parent</artifactId>
-		<version>1.5.0.RELEASE</version>
+		<version>1.6.0.BUILD-SNAPSHOT</version>
 		<relativePath>../spring-data-build/parent/pom.xml</relativePath>
 	</parent>
-	
+
 	<modules>
 		<module>spring-data-neo4j</module>
 		<module>spring-data-neo4j-aspects</module>
@@ -32,7 +32,7 @@
 	<properties>
 		<project.type>multi</project.type>
 		<dist.id>spring-data-neo4j</dist.id>
-		<springdata.commons>1.9.0.RELEASE</springdata.commons>
+		<springdata.commons>1.10.0.BUILD-SNAPSHOT</springdata.commons>
 
 		<!-- Neo4j 2.0 now requires JDK 7 as a min -->
 		<source.level>1.7</source.level>
@@ -170,9 +170,9 @@
 	</dependencies>
 	<repositories>
 		<repository>
-			<id>spring-libs-release</id>
+			<id>spring-libs-snapshot</id>
 			<name>Spring</name>
-			<url>http://repo.spring.io/libs-release</url>
+			<url>http://repo.spring.io/libs-snapshot</url>
 		</repository>
 		<repository>
 			<id>geotools</id>
