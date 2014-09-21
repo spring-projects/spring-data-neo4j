@@ -30,8 +30,8 @@ import java.util.regex.Pattern;
  */
 public class GeoConverter {
 
-    public static final Pattern WKT_POINT = Pattern.compile("^POINT *\\( *([\\d.]+) *([\\d.]+) *\\) *$",Pattern.CASE_INSENSITIVE);
-    private static final String POINT = " *[\\d.]+ *[\\d.]+ *";
+    public static final Pattern WKT_POINT = Pattern.compile("^POINT *\\( *([+-]?[\\d.]+) *([+-]?[\\d.]+) *\\) *$",Pattern.CASE_INSENSITIVE);
+    private static final String POINT = " *[+-]?[\\d.]+ *[+-]?[\\d.]+ *";
     public static final Pattern WKT_POLYGON = Pattern.compile("^POLYGON *\\( *\\(((?:" + POINT + ",)*" + POINT + ") *\\) *\\) *$", Pattern.CASE_INSENSITIVE);
 
     public static String toWktCoords(Point point) {
