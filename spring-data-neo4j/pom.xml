@@ -181,26 +181,6 @@
 					<groupId>org.neo4j</groupId>
 					<artifactId>neo4j</artifactId>
 				</exclusion>
-				<exclusion>
-					<groupId>org.neo4j</groupId>
-					<artifactId>graph-collections</artifactId>
-				</exclusion>
-			</exclusions>
-		</dependency>
-		<dependency>
-			<groupId>org.neo4j</groupId>
-			<artifactId>neo4j-graph-collections</artifactId>
-			<version>${neo4j.graph-collections.version}</version>
-			<optional>true</optional>
-			<exclusions>
-				<exclusion>
-					<groupId>org.neo4j</groupId>
-					<artifactId>neo4j</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>org.neo4j</groupId>
-					<artifactId>neo4j-lucene-index</artifactId>
-				</exclusion>
 			</exclusions>
 		</dependency>
 
