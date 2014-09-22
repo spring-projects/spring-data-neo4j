@@ -65,7 +65,6 @@
 			<groupId>org.neo4j</groupId>
 			<artifactId>neo4j-lucene-index</artifactId>
 			<version>${neo4j.version}</version>
-			<scope>test</scope>
 		</dependency>
 
         <dependency>
@@ -115,26 +114,6 @@
 			<artifactId>hibernate-validator</artifactId>
 			<version>4.2.0.Final</version>
 			<scope>test</scope>
-		</dependency>
-
-		<dependency>
-			<groupId>org.neo4j</groupId>
-			<artifactId>neo4j-rest-graphdb</artifactId>
-			<version>${neo4j-rest-graphdb.version}</version>
-			<exclusions>
-			   <exclusion>
-				   <groupId>org.neo4j</groupId>
-				   <artifactId>neo4j-kernel</artifactId>
-			   </exclusion>
-			   <exclusion>
-				   <groupId>org.neo4j</groupId>
-				   <artifactId>neo4j-lucene-index</artifactId>
-			   </exclusion>
-			   <exclusion>
-				   <groupId>org.neo4j</groupId>
-				   <artifactId>server-api</artifactId>
-			   </exclusion>
-			</exclusions>
 		</dependency>
 
 		<dependency>

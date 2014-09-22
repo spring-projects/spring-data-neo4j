@@ -15,23 +15,20 @@
  */
 package org.springframework.data.neo4j.support.mapping;
 
-import org.neo4j.graphdb.PropertyContainer;
-import org.neo4j.graphdb.Transaction;
-import org.springframework.core.convert.ConverterNotFoundException;
+import org.neo4j.graphdb.*;
 import org.springframework.data.mapping.Association;
 import org.springframework.data.mapping.AssociationHandler;
 import org.springframework.data.mapping.PropertyHandler;
 import org.springframework.data.mapping.model.BeanWrapper;
 import org.springframework.data.mapping.model.MappingException;
 import org.springframework.data.neo4j.core.EntityState;
+import org.springframework.data.neo4j.core.UpdateableState;
 import org.springframework.data.neo4j.mapping.MappingPolicy;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentEntity;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.support.DoReturn;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
 import org.springframework.data.neo4j.support.node.EntityStateFactory;
-
-import java.lang.reflect.InvocationTargetException;
 
 /**
  * @author mh
@@ -96,6 +93,9 @@ public class SourceStateTransmitter<S extends PropertyContainer> {
         final Transaction tx = template.getGraphDatabase().beginTx();
         try {
             final EntityState<S> entityState = entityStateFactory.getEntityState(wrapper.getBean(), false, template);
+            if (target instanceof UpdateableState) {
+                ((UpdateableState)target).track();
+            }
             entityState.setPersistentState(target);
             entityState.persist();
             // todo take mapping policies for attributes into account
@@ -105,6 +105,9 @@ public class SourceStateTransmitter<S extends PropertyContainer> {
                     setEntityStateValue(property, entityState, wrapper, property.getMappingPolicy());
                 }
             });
+            if (target instanceof UpdateableState) {
+                ((UpdateableState)target).flush();
+            }
             // todo take mapping policies for relationships into account
             persistentEntity.doWithAssociations(new AssociationHandler<Neo4jPersistentProperty>() {
                 @Override
@@ -123,5 +126,4 @@ public class SourceStateTransmitter<S extends PropertyContainer> {
             tx.close();
         }
     }
-
 }

@@ -149,7 +149,7 @@ public class Neo4jEntityConverterImpl<T,S extends PropertyContainer> implements 
     }
 
     @Override
-    public void write( T source, S sink, MappingPolicy mappingPolicy, final Neo4jTemplate template, RelationshipType
+    public void write( T source, S target, MappingPolicy mappingPolicy, final Neo4jTemplate template, RelationshipType
             annotationProvidedRelationshipType ) {
         final Class<?> sourceType = source.getClass();
         @SuppressWarnings("unchecked") final Neo4jPersistentEntityImpl<T> persistentEntity = (Neo4jPersistentEntityImpl<T>) mappingContext.getPersistentEntity(sourceType);
@@ -159,12 +159,12 @@ public class Neo4jEntityConverterImpl<T,S extends PropertyContainer> implements 
         }
 
         final BeanWrapper<T> wrapper = BeanWrapper.create(source, conversionService);
-        if (sink == null) {
-            sink = entityStateHandler.useOrCreateState(source,sink, annotationProvidedRelationshipType ); // todo handling of changed state
-            entityStateHandler.setPersistentState(source, sink);
-            typeMapper.writeType(sourceType, sink);
+        if (target == null) {
+            target = entityStateHandler.useOrCreateState(source,target, annotationProvidedRelationshipType ); // todo handling of changed state
+            entityStateHandler.setPersistentState(source, target);
+            typeMapper.writeType(sourceType, target);
         }
-        sourceStateTransmitter.copyPropertiesTo(wrapper, sink, persistentEntity,mappingPolicy, template);
+        sourceStateTransmitter.copyPropertiesTo(wrapper, target, persistentEntity,mappingPolicy, template);
     }
 /*
     private Node useGetOrCreateNode(S node, Neo4jPersistentEntity<?> persistentEntity, BeanWrapper<Neo4jPersistentEntity<Object>, Object> wrapper) {

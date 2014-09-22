@@ -22,6 +22,7 @@ import org.neo4j.graphdb.Node;
 import org.neo4j.helpers.collection.ClosableIterable;
 import org.springframework.data.neo4j.core.GraphDatabase;
 import org.springframework.data.neo4j.core.NodeTypeRepresentationStrategy;
+import org.springframework.data.neo4j.core.UpdateableState;
 import org.springframework.data.neo4j.support.mapping.StoredEntityType;
 import org.springframework.data.neo4j.support.mapping.WrappedIterableClosableIterable;
 import org.springframework.data.neo4j.support.query.CypherQueryEngine;
@@ -72,7 +73,15 @@ public class LabelBasedNodeTypeRepresentationStrategy implements NodeTypeReprese
      * as the primary SDN marker Label.
      */
     private void addLabelsForEntityHierarchy(Node state, StoredEntityType type) {
-        cypherHelper.setLabelsOnNode(state.getId(), getAllHierarchyLabelsForType(type));
+        Set<String> labels = getAllHierarchyLabelsForType(type);
+        if (state instanceof UpdateableState) {
+            ((UpdateableState) state).addAllLabelsBatch(labels);
+        } else {
+            for (String label : labels) {
+                state.addLabel(DynamicLabel.label(label));
+            }
+        }
+        // cypherHelper.setLabelsOnNode(state.getId(), getAllHierarchyLabelsForType(type));
     }
 
     private Set<String> getAllHierarchyLabelsForType(StoredEntityType type) {
@@ -117,10 +126,11 @@ public class LabelBasedNodeTypeRepresentationStrategy implements NodeTypeReprese
     public Object readAliasFrom(Node state) {
         if (state == null)
             throw new IllegalArgumentException("Node is null");
-        Iterable<String> labels = cypherHelper.getLabelsForNode(state.getId());
-        for (String label: labels) {
-            if (label.startsWith(LABELSTRATEGY_PREFIX)) {
-                return label.substring(LABELSTRATEGY_PREFIX.length());
+//        Iterable<String> labels = cypherHelper.getLabelsForNode(state.getId());
+//        for (String label: labels) {
+        for (Label label: state.getLabels()) {
+            if (label.name().startsWith(LABELSTRATEGY_PREFIX)) {
+                return label.name().substring(LABELSTRATEGY_PREFIX.length());
             }
         }
         throw new IllegalStateException("No primary SDN label exists .. (i.e one starting with " + LABELSTRATEGY_PREFIX + ") ");

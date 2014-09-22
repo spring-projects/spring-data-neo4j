@@ -18,7 +18,7 @@ package org.springframework.data.neo4j.rest;
 import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.index.Index;
 import org.neo4j.rest.graphdb.RestAPI;
-import org.neo4j.rest.graphdb.RestAPIFacade;
+import org.neo4j.rest.graphdb.RestAPIImpl;
 import org.neo4j.rest.graphdb.entity.RestNode;
 import org.neo4j.rest.graphdb.index.RestIndex;
 import org.neo4j.rest.graphdb.index.RestIndexManager;
@@ -56,21 +56,17 @@ public class SpringRestGraphDatabase extends org.neo4j.rest.graphdb.RestGraphDat
     }
 
     public SpringRestGraphDatabase( String uri ) {
-        this( new RestAPIFacade( uri ) );
+        this( new RestAPIImpl( uri ) );
     }
 
     public SpringRestGraphDatabase( String uri, String user, String password ) {
-        this(new RestAPIFacade( uri, user, password ));
+        this(new RestAPIImpl( uri, user, password ));
     }
 
     @Override
     public Node createNode(Map<String, Object> props, Collection<String> labels) {
         RestAPI restAPI = super.getRestAPI();
-        RestNode node = restAPI.createNode(props);
-        if (labels!=null && !labels.isEmpty()) {
-            restAPI.addLabels(node, toLabels(labels));
-        }
-        return node;
+        return restAPI.createNode(props,labels);
     }
 
     private String[] toLabels(Collection<String> labels) {
@@ -93,14 +89,13 @@ public class SpringRestGraphDatabase extends org.neo4j.rest.graphdb.RestGraphDat
     public Node getOrCreateNode(String indexName, String key, Object value, final Map<String, Object> properties, Collection<String> labels) {
         if (indexName ==null || key == null || value==null) throw new IllegalArgumentException("Unique index "+ indexName +" key "+key+" value must not be null");
         final RestIndex<Node> nodeIndex = index().forNodes(indexName);
-        RestNode node = getRestAPI().getOrCreateNode(nodeIndex, key, value, properties);
-        getRestAPI().addLabels(node,toLabels(labels));
-        return node;
+        return getRestAPI().getOrCreateNode(nodeIndex, key, value, properties, labels);
     }
 
     @Override
     public Node merge(String labelName, String key, Object value, final Map<String, Object> nodeProperties, Collection<String> labels) {
-        return schemaIndexProvider.merge(labelName,key,value,nodeProperties, labels);
+        return getRestAPI().merge(labelName,key,value,nodeProperties, labels);
+//        return schemaIndexProvider.merge(labelName,key,value,nodeProperties, labels);
     }
 
 
