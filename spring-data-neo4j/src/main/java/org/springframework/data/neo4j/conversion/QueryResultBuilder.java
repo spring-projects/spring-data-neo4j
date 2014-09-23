@@ -20,14 +20,12 @@ import org.neo4j.graphdb.index.IndexHits;
 import org.neo4j.helpers.collection.ClosableIterable;
 import org.neo4j.helpers.collection.IterableWrapper;
 import org.neo4j.helpers.collection.IteratorUtil;
-import org.neo4j.helpers.collection.IteratorWrapper;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.neo4j.mapping.MappingPolicy;
 
-import java.util.Arrays;
-import java.util.Iterator;
+import java.util.*;
 
 /**
  * @author mh
@@ -96,6 +94,14 @@ public class QueryResultBuilder<T> implements Result<T> {
     @Override
     public <C extends Iterable<T>> C as(Class<C> container) {
         return ContainerConverter.toContainer(container, this);
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public <C extends Iterable> C asCollection(Class<C> collectionLikeType) {
+        if (Set.class.isAssignableFrom(collectionLikeType)) return (C)IteratorUtil.addToCollection(this, new LinkedHashSet());
+        if (Collection.class.isAssignableFrom(collectionLikeType)) return (C)IteratorUtil.addToCollection(this,new ArrayList());
+        return (C)this;
     }
 
     @Override

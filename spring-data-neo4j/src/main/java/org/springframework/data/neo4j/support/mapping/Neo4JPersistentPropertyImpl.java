@@ -334,8 +334,18 @@ class Neo4jPersistentPropertyImpl extends AnnotationBasedPersistentProperty<Neo4
     }
 
     public boolean isTransient() {
-    	
-    	if (super.isTransient()) {
+
+        boolean primaryIsTransient = super.isTransient();
+        // DATAGRAPH-257
+        // We need to ignore @Query annotated fields for the moment. Entities should be able
+        // to be marked with the Java transient modified so that they are not serialized,
+        // however the still need @Query functionality to be able to execute and this will
+        // not be done if the property is marked as transient
+        if (field != null && field.isAnnotationPresent(Query.class)) {
+            return false;
+        }
+
+    	if (primaryIsTransient) {
     		return true;
     	}
     	
