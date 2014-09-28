@@ -44,6 +44,7 @@ import org.neo4j.rest.graphdb.query.RestQueryResult;
 import org.neo4j.rest.graphdb.transaction.NullTransaction;
 import org.neo4j.rest.graphdb.traversal.RestDirection;
 import org.neo4j.rest.graphdb.traversal.RestTraversal;
+import org.neo4j.rest.graphdb.traversal.RestTraversalDescription;
 import org.neo4j.rest.graphdb.traversal.RestTraverser;
 import org.neo4j.rest.graphdb.util.JsonHelper;
 import org.neo4j.rest.graphdb.util.QueryResult;
@@ -72,6 +73,8 @@ public class RestAPIImpl implements RestAPI {
     private long entityRefetchTimeInMillis = TimeUnit.SECONDS.toMillis(1000); //TODO move to cache
     private final RestEntityCache entityCache = new RestEntityCache(this);
     private RestEntityExtractor restEntityExtractor = new RestEntityExtractor(this);
+    private RestIndexManager restIndexManager = new RestIndexManager(this);
+    private Map<String,IndexInfo> indexInfos = new HashMap<>();
 
     public RestAPIImpl(String uri) {
         this.restRequest = createRestRequest(uri, null, null);
@@ -87,7 +90,7 @@ public class RestAPIImpl implements RestAPI {
 
     @Override
     public RestIndexManager index() {
-        return new RestIndexManager(this);
+        return restIndexManager;
     }
 
     @Override
@@ -98,14 +101,20 @@ public class RestAPIImpl implements RestAPI {
         }
         if (force == Load.FromCache) return new RestNode(RestNode.nodeUri(this, id),this);
 
-        BatchRestAPI batchRestAPI = new BatchRestAPI(this);
-        RestNode node = batchRestAPI.getNodeById(id);
-//        RequestResult response = restRequest.get("node/" + id);
-//        if (response.statusIs(Status.NOT_FOUND)) {
-//            throw new NotFoundException("" + id);
-//        }
-//        Collection<String> labels = getNodeLabels(id);
-//        RestNode node = new RestNode(id, labels, (Map<String, Object>) response.toMap(), this);
+//        BatchRestAPI batchRestAPI = new BatchRestAPI(this);
+//        RestNode node = batchRestAPI.getNodeById(id);
+        RequestResult response = restRequest.get("node/" + id);
+        if (response.statusIs(Status.NOT_FOUND)) {
+            throw new NotFoundException("" + id);
+        }
+        RestNode node;
+        Map<String, Object> data = (Map<String, Object>) response.toMap();
+        if (response.isMap() && data.containsKey("metadata")) {
+            node = new RestNode(data, this);
+        } else {
+            Collection<String> labels = getNodeLabels(id);
+            node = new RestNode(id, labels, data, this);
+        }
         return entityCache.addToCache(node);
     }
 
@@ -117,6 +126,11 @@ public class RestAPIImpl implements RestAPI {
     @Override
     public RestNode getFromCache(long id) {
         return entityCache.getNode(id);
+    }
+
+    @Override
+    public void removeFromCache(long id) {
+        entityCache.remove(id);
     }
 
     @Override
@@ -442,8 +456,8 @@ public class RestAPIImpl implements RestAPI {
 
 
     @Override
-    public TraversalDescription createTraversalDescription() {
-        return new RestTraversal();
+    public RestTraversalDescription createTraversalDescription() {
+        return RestTraversal.description();
     }
 
     @Override
@@ -521,8 +535,14 @@ public class RestAPIImpl implements RestAPI {
     }
     @Override
     public IndexInfo indexInfo(final String indexType) {
+        IndexInfo indexInfo = indexInfos.get(indexType);
+        if (indexInfo != null && !indexInfo.isExpired()) {
+
+        }
         RequestResult response = restRequest.get("index/" + encode(indexType));
-        return new RetrievedIndexInfo(response);
+        indexInfo = new RetrievedIndexInfo(response);
+        indexInfos.put(indexType,indexInfo);
+        return indexInfo;
     }
     
     @Override

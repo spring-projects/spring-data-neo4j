@@ -26,21 +26,21 @@ public class RestGraphDbTests extends RestTestBase {
 
     @Test
     public void testGetRefNode() {
-        Node refNode = restGraphDatabase.createNode();
+        Node refNode = createNode();
         Node nodeById = restGraphDatabase.getNodeById( refNode.getId() );
         Assert.assertEquals( refNode, nodeById );
     }
 
     @Test
     public void testCreateNode() {
-        Node node = restGraphDatabase.createNode();
+        Node node = createNode();
         Assert.assertEquals( node, restGraphDatabase.getNodeById( node.getId() ) );
     }
 
     @Test
     public void testCreateRelationship() {
-        Node refNode = restGraphDatabase.createNode();
-        Node node = restGraphDatabase.createNode();
+        Node refNode = createNode();
+        Node node = createNode();
         Relationship rel = refNode.createRelationshipTo( node, Type.TEST );
         Relationship foundRelationship = IsRelationshipToNodeMatcher.relationshipFromTo( refNode.getRelationships( Type.TEST, Direction.OUTGOING ), refNode, node );
         Assert.assertNotNull( "found relationship", foundRelationship );
@@ -53,8 +53,8 @@ public class RestGraphDbTests extends RestTestBase {
 
     @Test
     public void testBasic() {
-        Node refNode = restGraphDatabase.createNode();
-        Node node = restGraphDatabase.createNode();
+        Node refNode = createNode();
+        Node node = createNode();
         Relationship rel = refNode.createRelationshipTo( node,
                 DynamicRelationshipType.withName( "TEST" ) );
         rel.setProperty( "date", new Date().getTime() );

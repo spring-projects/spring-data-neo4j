@@ -23,20 +23,23 @@ import org.neo4j.kernel.GraphDatabaseAPI;
 import org.neo4j.kernel.impl.transaction.SpringTransactionManager;
 import org.neo4j.kernel.impl.transaction.UserTransactionImpl;
 import org.springframework.beans.factory.FactoryBean;
+import org.springframework.data.neo4j.core.GraphDatabase;
 import org.springframework.transaction.jta.JtaTransactionManager;
 import org.springframework.transaction.jta.UserTransactionAdapter;
+
+import java.lang.reflect.InvocationTargetException;
 
 public class JtaTransactionManagerFactoryBean implements FactoryBean<JtaTransactionManager>
 {
     private final JtaTransactionManager jtaTransactionManager;
 
-    public JtaTransactionManagerFactoryBean( GraphDatabaseService gds ) throws Exception
+    public JtaTransactionManagerFactoryBean( GraphDatabaseService gds )
     {
         jtaTransactionManager = create( gds );
     }
 
     @Override
-    public JtaTransactionManager getObject() throws Exception
+    public JtaTransactionManager getObject()
     {
         return jtaTransactionManager;
     }
@@ -53,21 +56,31 @@ public class JtaTransactionManagerFactoryBean implements FactoryBean<JtaTransact
         return true;
     }
 
-    private JtaTransactionManager create( GraphDatabaseService gds ) throws Exception
+    private JtaTransactionManager create( GraphDatabaseService gds )
     {
-        if ( !(gds instanceof GraphDatabaseAPI) )
-        {
-            return createNullJtaTransactionManager();
+        if  ( gds instanceof GraphDatabase) {
+            return createJtaTransactionManager( (GraphDatabase)gds );
         }
+        if ( gds instanceof GraphDatabaseAPI)
+            try
+            {
+                return createJtaTransactionManager( gds );
+            }
+            catch ( RuntimeException e )
+            {
+                if (e.getCause() instanceof NoSuchMethodException)
+                    return createJtaTransactionManagerForOnePointSeven( gds );
+            }
 
-        try
-        {
-            return createJtaTransactionManager( gds );
-        }
-        catch ( NoSuchMethodException e )
-        {
-            return createJtaTransactionManagerForOnePointSeven( gds );
-        }
+        return createNullJtaTransactionManager();
+    }
+
+    private JtaTransactionManager createJtaTransactionManager(GraphDatabase gdb)
+    {
+        TransactionManager transactionManager = gdb.getTransactionManager();
+        UserTransaction userTransaction = new UserTransactionAdapter( transactionManager );
+
+        return new JtaTransactionManager( userTransaction, transactionManager );
     }
 
     private JtaTransactionManager createNullJtaTransactionManager()
@@ -78,7 +91,7 @@ public class JtaTransactionManagerFactoryBean implements FactoryBean<JtaTransact
         return new JtaTransactionManager( userTransaction, transactionManager );
     }
 
-    private JtaTransactionManager createJtaTransactionManagerForOnePointSeven( GraphDatabaseService gds ) throws Exception
+    private JtaTransactionManager createJtaTransactionManagerForOnePointSeven( GraphDatabaseService gds )
     {
         TransactionManager transactionManager = createTransactionManagerForOnePointSeven( gds );
         UserTransaction userTransaction = createUserTransactionForOnePointSeven( gds );
@@ -86,7 +99,7 @@ public class JtaTransactionManagerFactoryBean implements FactoryBean<JtaTransact
         return new JtaTransactionManager( userTransaction, transactionManager );
     }
 
-    private JtaTransactionManager createJtaTransactionManager( GraphDatabaseService gds ) throws Exception
+    private JtaTransactionManager createJtaTransactionManager( GraphDatabaseService gds )
     {
         TransactionManager transactionManager = createTransactionManagerForOnePointEight( gds );
         UserTransaction userTransaction = createUserTransactionForOnePointEight( gds );
@@ -94,30 +107,34 @@ public class JtaTransactionManagerFactoryBean implements FactoryBean<JtaTransact
         return new JtaTransactionManager( userTransaction, transactionManager );
     }
 
-    private TransactionManager createTransactionManagerForOnePointSeven( GraphDatabaseService gds ) throws Exception
+    private TransactionManager createTransactionManagerForOnePointSeven( GraphDatabaseService gds )
     {
         return createDynamically( SpringTransactionManager.class, GraphDatabaseService.class, gds );
     }
 
-    private UserTransaction createUserTransactionForOnePointSeven( GraphDatabaseService gds ) throws Exception
+    private UserTransaction createUserTransactionForOnePointSeven( GraphDatabaseService gds )
     {
         TransactionManager txManager = ((GraphDatabaseAPI) gds).getDependencyResolver().resolveDependency(TransactionManager.class);
         return createDynamically( UserTransactionImpl.class, TransactionManager.class, txManager );
     }
 
-    private TransactionManager createTransactionManagerForOnePointEight( GraphDatabaseService gds ) throws Exception
+    private TransactionManager createTransactionManagerForOnePointEight( GraphDatabaseService gds )
     {
         return createDynamically( SpringTransactionManager.class, GraphDatabaseAPI.class, gds );
     }
 
-    private UserTransaction createUserTransactionForOnePointEight( GraphDatabaseService gds ) throws Exception
+    private UserTransaction createUserTransactionForOnePointEight( GraphDatabaseService gds )
     {
         return createDynamically( UserTransactionImpl.class, GraphDatabaseAPI.class, gds );
     }
 
-    private <T> T createDynamically( Class<T> requiredClass, Class<?> argumentClass, Object gds ) throws Exception
+    private <T> T createDynamically( Class<T> requiredClass, Class<?> argumentClass, Object gds )
     {
-        return requiredClass.getDeclaredConstructor( argumentClass ).newInstance( gds );
+        try {
+            return requiredClass.getDeclaredConstructor( argumentClass ).newInstance( gds );
+        } catch (InstantiationException | NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
+            throw new RuntimeException("Error accessing constructor of class "+requiredClass+ " for parameter type "+argumentClass,e);
+        }
     }
 
 }

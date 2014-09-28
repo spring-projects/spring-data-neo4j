@@ -4,12 +4,13 @@ import com.sun.jersey.api.client.ClientResponse;
 import org.neo4j.helpers.collection.IterableWrapper;
 import org.neo4j.helpers.collection.IteratorWrapper;
 import org.neo4j.rest.graphdb.*;
-import org.springframework.data.neo4j.mapping.RelationshipResult;
 
 import javax.ws.rs.core.Response;
 import java.util.*;
 
+import static java.util.Arrays.asList;
 import static org.neo4j.helpers.collection.MapUtil.map;
+import static org.neo4j.helpers.collection.MapUtil.stringMap;
 
 /**
  * @author mh
@@ -144,14 +145,14 @@ public class CypherTransaction {
         add(statement,params);
         List<Result> results = send(transactionUrl());
         if (results.size() > 0) return results.get(results.size() - 1);
-        else throw new RuntimeException("No Results after single send");
+        throw new CypherTransactionExecutionException("Error Sending",asList(new Statement(statement,params,type)),errors("No.Results","No Results after single send"));
     }
 
     public Result commit(String statement, Map<String,Object> params) {
         add(statement,params);
         List<Result> results = commit();
         if (results.size() > 0) return results.get(results.size() - 1);
-        else throw new RuntimeException("No Results after single commit");
+        else throw new CypherTransactionExecutionException("Error Sending",asList(new Statement(statement,params,type)),errors("No.Results","No Results after single commit"));
     }
 
     public List<Result> send() {
@@ -160,6 +161,7 @@ public class CypherTransaction {
 
     public List<Result> commit() {
         try {
+            if (statements.isEmpty()) add("return 1",null); // TODO hacking workaround b/c of periodic commit check in server accesses the first of an empty statement list with an NPE
             return send(commitUrl());
         } finally {
             commitUrl = null;
@@ -170,14 +172,20 @@ public class CypherTransaction {
         try {
             RequestResult result = request.post(url, map("statements", statements));
             if (result.statusIs(Response.Status.OK) || result.statusIs(Response.Status.CREATED)) {
-                return Result.toResults(handleResult(result), new ArrayList<>(statements), type);
+                ArrayList<Statement> statementsCopy = new ArrayList<>(statements);
+                return Result.toResults(handleResult(result,statementsCopy), statementsCopy, type);
             } else {
-                throw new RuntimeException("Error executing statements: " + result.getStatus() +
-                        " " + result.getText());
+                List<Map<String, String>> errors = errors("Http." + result.getStatus(), result.getText());
+                throw new CypherTransactionExecutionException("Error executing statements: " + result.getStatus() +
+                        " " + result.getText(),statements, errors);
             }
         } finally {
             statements.clear();
         }
+    }
+
+    private List<Map<String, String>> errors(String code, String message) {
+        return asList(stringMap("code", code, "message", message));
     }
 
     public void rollback() {
@@ -197,10 +205,10 @@ public class CypherTransaction {
     }
 
     @SuppressWarnings("unchecked")
-    private List<Map> handleResult(RequestResult result) {
+    private List<Map> handleResult(RequestResult result, ArrayList<Statement> statements) {
         Map<?, ?> resultData = result.toMap();
-        Object errors = resultData.get("errors");
-        if (errors != null && !((Collection)errors).isEmpty()) throw new RuntimeException("Error executing cypher statements "+errors);
+        List<Map<String,String>> errors = (List<Map<String, String>>) resultData.get("errors");
+        if (errors != null && !errors.isEmpty()) throw new CypherTransactionExecutionException("Error executing cypher statements ",statements, errors);
         if (result.statusIs(ClientResponse.Status.CREATED)) transactionUrl = result.getLocation();
         commitUrl = (String) resultData.get("commit");
         return (List<Map>) resultData.get("results");

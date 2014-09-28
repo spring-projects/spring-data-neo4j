@@ -54,6 +54,8 @@ import org.springframework.data.neo4j.support.typerepresentation.TypeRepresentat
 import org.springframework.data.neo4j.support.typesafety.TypeSafetyPolicy;
 import org.springframework.data.support.IsNewStrategyFactory;
 import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.annotation.TransactionManagementConfigurer;
+
 import javax.validation.Validator;
 
 import java.util.Arrays;
@@ -69,7 +71,7 @@ import javax.enterprise.inject.Produces;
  * @author Thomas Risberg
  */
 @Configuration
-public abstract class Neo4jConfiguration {
+public abstract class Neo4jConfiguration { // implements TransactionManagementConfigurer {
     private GraphDatabaseService graphDatabaseService;
 
     private ConversionService conversionService;
@@ -112,7 +114,7 @@ public abstract class Neo4jConfiguration {
         factoryBean.setRelationshipTypeRepresentationStrategy(relationshipTypeRepresentationStrategy());
         factoryBean.setRelationshipEntityInstantiator(graphRelationshipInstantiator());
 
-        factoryBean.setTransactionManager(neo4jTransactionManager());
+        factoryBean.setTransactionManager(neo4jTransactionManager(getGraphDatabaseService()));
         factoryBean.setGraphDatabase(graphDatabase());
         factoryBean.setIsNewStrategyFactory(isNewStrategyFactory());
         factoryBean.setTypeSafetyPolicy(typeSafetyPolicy());
@@ -237,9 +239,16 @@ public abstract class Neo4jConfiguration {
 
     @Bean(name = {"neo4jTransactionManager","transactionManager"})
     @Qualifier("neo4jTransactionManager")
-	public PlatformTransactionManager neo4jTransactionManager() throws Exception {
-        return new JtaTransactionManagerFactoryBean(getGraphDatabaseService()).getObject();
+    @DependsOn("graphDatabaseService")
+	public PlatformTransactionManager neo4jTransactionManager(GraphDatabaseService graphDatabaseService) {
+        JtaTransactionManagerFactoryBean jtaTransactionManagerFactoryBean = new JtaTransactionManagerFactoryBean(graphDatabaseService);
+        return jtaTransactionManagerFactoryBean.getObject();
 	}
+
+//    @Override
+//    public PlatformTransactionManager annotationDrivenTransactionManager() {
+//        return neo4jTransactionManager();
+//    }
 
     @Bean
     public EntityIndexCreator entityIndexCreator() throws Exception {

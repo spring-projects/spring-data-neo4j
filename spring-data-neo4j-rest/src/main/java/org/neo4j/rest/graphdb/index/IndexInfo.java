@@ -33,4 +33,6 @@ public interface IndexInfo {
     boolean exists(String indexName);
 
     Map<String, String> getConfig(String name);
+
+    boolean isExpired();
 }

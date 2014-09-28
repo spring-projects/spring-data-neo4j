@@ -111,23 +111,23 @@ public class RestIndexTests extends RestTestBase {
     }
 
     private Index<Node> nodeIndex() {
-        return restGraphDatabase.index().forNodes(NODE_INDEX_NAME);
+        return index().forNodes(NODE_INDEX_NAME);
     }
 
     private RelationshipIndex relationshipIndex() {
-        return restGraphDatabase.index().forRelationships(REL_INDEX_NAME);
+        return index().forRelationships(REL_INDEX_NAME);
     }
 
     @Test
     public void testNodeIndexIsListed() {
         nodeIndex().add(node(), "name", "test");
-        Assert.assertTrue("node index name listed", Arrays.asList(restGraphDatabase.index().nodeIndexNames()).contains(NODE_INDEX_NAME));
+        Assert.assertTrue("node index name listed", Arrays.asList(index().nodeIndexNames()).contains(NODE_INDEX_NAME));
     }
 
     @Test
     public void testRelationshipIndexIsListed() {
         relationshipIndex().add(relationship(), "name", "test");
-        Assert.assertTrue("relationship index name listed", Arrays.asList(restGraphDatabase.index().relationshipIndexNames()).contains(REL_INDEX_NAME));
+        Assert.assertTrue("relationship index name listed", Arrays.asList(index().relationshipIndexNames()).contains(REL_INDEX_NAME));
     }
 
 }

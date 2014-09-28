@@ -147,28 +147,4 @@ public class BatchRestAPI {
         }
         return uri + "/" + suffix;
     }
-
-
-    private static class BatchIndexInfo implements IndexInfo {
-
-        @Override
-        public boolean checkConfig(String indexName, Map<String, String> config) {
-            return true;
-        }
-
-        @Override
-        public String[] indexNames() {
-            return new String[0];
-        }
-
-        @Override
-        public boolean exists(String indexName) {
-            return true;
-        }
-
-        @Override
-        public Map<String, String> getConfig(String name) {
-            return null;
-        }
-    }
 }

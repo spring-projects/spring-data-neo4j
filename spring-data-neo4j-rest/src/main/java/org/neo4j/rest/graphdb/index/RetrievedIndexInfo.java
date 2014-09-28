@@ -22,6 +22,7 @@ package org.neo4j.rest.graphdb.index;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import org.neo4j.rest.graphdb.RequestResult;
 
@@ -33,10 +34,14 @@ import com.sun.jersey.api.client.ClientResponse;
  */
 public class RetrievedIndexInfo implements IndexInfo {
     private Map<String, ?> indexInfo;
+    private long expired;
 
     public RetrievedIndexInfo(RequestResult response) {
         if (response.statusIs(ClientResponse.Status.NO_CONTENT)) this.indexInfo = Collections.emptyMap();
-        else this.indexInfo = (Map<String, ?>) response.toMap();
+        else {
+            this.indexInfo = (Map<String, ?>) response.toMap();
+            this.expired = System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(10);
+        }
     }
 
     @Override
@@ -71,5 +76,10 @@ public class RetrievedIndexInfo implements IndexInfo {
     @Override
     public Map<String, String> getConfig(String name) {
         return (Map<String, String>) indexInfo.get(name);
+    }
+
+    @Override
+    public boolean isExpired() {
+        return System.currentTimeMillis() > expired;
     }
 }

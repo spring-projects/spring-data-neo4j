@@ -25,6 +25,7 @@ import org.neo4j.rest.graphdb.query.CypherRestResult;
 import org.neo4j.rest.graphdb.entity.RestEntity;
 import org.neo4j.rest.graphdb.entity.RestNode;
 import org.neo4j.rest.graphdb.entity.RestRelationship;
+import org.neo4j.rest.graphdb.traversal.RestTraversalDescription;
 import org.neo4j.rest.graphdb.traversal.RestTraverser;
 import org.neo4j.rest.graphdb.util.QueryResult;
 import org.neo4j.rest.graphdb.util.ResultConverter;
@@ -71,7 +72,7 @@ public interface RestAPI extends RestAPIIndex, RestAPIInternal {
 
     Iterable<RelationshipType> getRelationshipTypes();
 
-    TraversalDescription createTraversalDescription();
+    RestTraversalDescription createTraversalDescription();
 
     Iterable<Relationship> getRelationships(RestNode restNode, Direction direction, RelationshipType... types);
 
@@ -87,6 +88,7 @@ public interface RestAPI extends RestAPIIndex, RestAPIInternal {
 
     RestNode addToCache(RestNode restNode);
     RestNode getFromCache(long id);
+    void removeFromCache(long id);
 
     void close();
 }

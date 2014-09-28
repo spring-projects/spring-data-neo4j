@@ -15,11 +15,13 @@
  */
 package org.springframework.data.neo4j.cross_store.config;
 
+import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.DependsOn;
 import org.springframework.data.neo4j.aspects.config.Neo4jAspectConfiguration;
 import org.springframework.data.neo4j.config.JtaTransactionManagerFactoryBean;
 import org.springframework.data.neo4j.cross_store.support.node.CrossStoreNodeDelegatingFieldAccessorFactory;
@@ -69,8 +71,8 @@ public class CrossStoreNeo4jConfiguration extends Neo4jAspectConfiguration {
 	}
 
     @Bean
-	public PlatformTransactionManager neo4jTransactionManager() throws Exception {
-        JtaTransactionManager jtaTm = new JtaTransactionManagerFactoryBean( getGraphDatabaseService() ).getObject();
+	public PlatformTransactionManager neo4jTransactionManager(GraphDatabaseService graphDatabaseService) {
+        JtaTransactionManager jtaTm = new JtaTransactionManagerFactoryBean( graphDatabaseService ).getObject();
 
 		if (isUsingCrossStorePersistence()) {
 			JpaTransactionManager jpaTm = new JpaTransactionManager(getEntityManagerFactory());

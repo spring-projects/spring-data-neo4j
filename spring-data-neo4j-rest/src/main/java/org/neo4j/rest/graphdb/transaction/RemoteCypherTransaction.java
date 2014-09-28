@@ -22,19 +22,31 @@ package org.neo4j.rest.graphdb.transaction;
 import org.neo4j.graphdb.*;
 import org.neo4j.rest.graphdb.query.CypherTransaction;
 
+import javax.transaction.Status;
+
+import java.util.concurrent.atomic.AtomicInteger;
+
 import static org.neo4j.helpers.collection.MapUtil.map;
 
 public class RemoteCypherTransaction implements Transaction {
 
+    int status = Status.STATUS_NO_TRANSACTION;
     boolean success, failure;
-    ThreadLocal<CypherTransaction> tx;
+    CypherTransaction tx;
+    AtomicInteger innerCounter = new AtomicInteger(1);
 
-    public RemoteCypherTransaction(ThreadLocal<CypherTransaction> tx) {
+    public RemoteCypherTransaction(CypherTransaction tx) {
         this.tx = tx;
+        status = Status.STATUS_ACTIVE;
+    }
+
+    public void beginInner() {
+        innerCounter.incrementAndGet();
     }
 
     public void success() {
         this.success = true;
+        if (!failure) status = Status.STATUS_COMMITTING; // ???
     }
 
     public void finish() {
@@ -43,24 +55,31 @@ public class RemoteCypherTransaction implements Transaction {
 
     @Override
     public void close() {
+        if (tx() != null && innerCounter.decrementAndGet() > 0) {
+            return;
+        }
         try {
-            if (success && !failure)
+            if (success && !failure) {
                 tx().commit();
-            else
+                status = Status.STATUS_COMMITTED;
+            }
+            else {
                 tx().rollback();
+                status = Status.STATUS_ROLLEDBACK;
+            }
         } finally {
-            tx.set(null);
+            tx = null;
         }
     }
 
     private CypherTransaction tx() {
-        CypherTransaction cypherTransaction = tx.get();
-        if (cypherTransaction == null) throw new IllegalStateException("No transaction active");
-        return cypherTransaction;
+        if (tx == null) throw new IllegalStateException("No transaction active");
+        return tx;
     }
 
     public void failure() {
         this.failure = true;
+        status = Status.STATUS_MARKED_ROLLBACK;
     }
 
     @Override
@@ -77,5 +96,18 @@ public class RemoteCypherTransaction implements Transaction {
     @Override
     public Lock acquireReadLock(PropertyContainer propertyContainer) {
         return null;
+    }
+
+    public int getStatus() {
+        return status;
+    }
+
+
+    public CypherTransaction getTransaction() {
+        return tx;
+    }
+
+    public boolean isActive() {
+        return tx != null;
     }
 }
