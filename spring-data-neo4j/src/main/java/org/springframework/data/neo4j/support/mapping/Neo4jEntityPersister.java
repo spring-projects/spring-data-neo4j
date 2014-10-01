@@ -221,6 +221,10 @@ public class Neo4jEntityPersister implements EntityPersister, Neo4jEntityConvert
         return entityStateHandler.getPersistentState(entity);
     }
 
+    public Number getId(Object entity) {
+        return entityStateHandler.getId(entity);
+    }
+
 
     public Object persist( Object entity, final MappingPolicy mappingPolicy, final Neo4jTemplate template,
                            RelationshipType annotationProvidedRelationshipType ) {

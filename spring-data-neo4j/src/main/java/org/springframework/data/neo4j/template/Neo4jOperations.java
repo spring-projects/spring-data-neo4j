@@ -261,6 +261,8 @@ public interface Neo4jOperations {
      */
     <T> T save(T entity);
 
+    Number getId(Object entity);
+
     /**
      * Removes the given node or relationship entity or node or relationship from the graph, the entity is first removed
      * from all indexes and then deleted.

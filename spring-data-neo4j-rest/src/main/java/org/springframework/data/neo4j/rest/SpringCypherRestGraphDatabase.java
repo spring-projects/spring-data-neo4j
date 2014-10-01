@@ -23,9 +23,6 @@ import org.neo4j.rest.graphdb.RestAPIImpl;
 import org.neo4j.rest.graphdb.entity.RestNode;
 import org.neo4j.rest.graphdb.index.RestIndex;
 import org.neo4j.rest.graphdb.index.RestIndexManager;
-import org.neo4j.rest.graphdb.transaction.NullTransaction;
-import org.neo4j.rest.graphdb.transaction.NullTransactionManager;
-import org.neo4j.rest.graphdb.util.Config;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.data.neo4j.conversion.DefaultConverter;
 import org.springframework.data.neo4j.conversion.ResultConverter;
@@ -136,6 +133,11 @@ public class SpringCypherRestGraphDatabase extends CypherRestGraphDatabase imple
     @Override
     public TransactionManager getTransactionManager() {
         return super.getTxManager();
+    }
+
+    @Override
+    public Relationship getOrCreateRelationship(Node start, Node end, RelationshipType type, Direction direction, Map<String, Object> props) {
+        return getRestAPI().getOrCreateRelationship(start, end, type, direction, props);
     }
 
     @Override

@@ -241,13 +241,16 @@ public class Neo4jTemplate implements Neo4jOperations, ApplicationContextAware {
         return infrastructure.getEntityPersister().projectTo(entity, targetType, mappingPolicy, this);
     }
 
-    /**
-     * just sets the persistent state (i.e. Node or id) to the entity, doesn't copy any values/properties.
-     */
     @Override
     public <S extends PropertyContainer> S getPersistentState(Object entity) {
         notNull(entity, "entity");
         return infrastructure.getEntityPersister().getPersistentState(entity);
+    }
+
+    @Override
+    public Number getId(Object entity) {
+        notNull(entity, "entity");
+        return infrastructure.getEntityPersister().getId(entity);
     }
 
     public <S extends PropertyContainer, T> T setPersistentState(T entity, S state) {
@@ -758,5 +761,9 @@ public class Neo4jTemplate implements Neo4jOperations, ApplicationContextAware {
     @Override
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
         this.applicationContext = applicationContext;
+    }
+
+    public Relationship getOrCreateRelationship(final Node start, final Node end, RelationshipType type, Direction direction, Map<String, Object> props) {
+        return getGraphDatabase().getOrCreateRelationship(start, end, type, direction,props);
     }
 }

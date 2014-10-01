@@ -21,7 +21,7 @@ package org.neo4j.rest.graphdb;
 
 import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.index.IndexHits;
-import org.neo4j.graphdb.traversal.TraversalDescription;
+import org.neo4j.helpers.Pair;
 import org.neo4j.helpers.collection.IterableWrapper;
 import org.neo4j.helpers.collection.IteratorUtil;
 import org.neo4j.helpers.collection.MapUtil;
@@ -34,7 +34,6 @@ import org.neo4j.rest.graphdb.index.IndexInfo;
 import org.neo4j.rest.graphdb.index.RestIndex;
 import org.neo4j.rest.graphdb.index.RestIndexManager;
 import org.neo4j.rest.graphdb.query.*;
-import org.neo4j.rest.graphdb.transaction.RemoteCypherTransaction;
 import org.neo4j.rest.graphdb.traversal.RestTraversalDescription;
 import org.neo4j.rest.graphdb.traversal.RestTraverser;
 import org.neo4j.rest.graphdb.util.QueryResult;
@@ -44,7 +43,10 @@ import org.neo4j.rest.graphdb.util.ResultConverter;
 import javax.ws.rs.core.Response.Status;
 import java.util.*;
 
+import static java.util.Arrays.asList;
 import static org.neo4j.helpers.collection.MapUtil.map;
+import static org.neo4j.rest.graphdb.query.CypherTransaction.ResultType.row;
+import static org.neo4j.rest.graphdb.query.CypherTransaction.Statement;
 
 
 public class RestAPICypherImpl implements RestAPI {
@@ -168,8 +170,7 @@ public class RestAPICypherImpl implements RestAPI {
 
     @Override
     public RestNode createNode(Map<String, Object> props, Collection<String> labels) {
-        Map<?, Object> data = props == null ? Collections.emptyMap() : props;
-        Iterator<List<Object>> result = query(createNodeQuery(labels), map("props", data)).getData().iterator();
+        Iterator<List<Object>> result = query(createNodeQuery(labels), map("props", props(props))).getData().iterator();
         if (result.hasNext()) {
             return addToCache(toNode(result.next()));
         }
@@ -177,9 +178,10 @@ public class RestAPICypherImpl implements RestAPI {
     }
 
     @Override
-    public RestNode merge(String labelName, String key, Object value, final Map<String, Object> nodeProperties, Collection<String> labels) {
+    public RestNode merge(String labelName, String key, Object value, Map<String, Object> nodeProperties, Collection<String> labels) {
         if (labelName == null || key == null || value == null)
             throw new IllegalArgumentException("Label " + labelName + " key " + key + " and value must not be null");
+        nodeProperties = props(nodeProperties);
         Map props = nodeProperties.containsKey(key) ? nodeProperties : MapUtil.copyAndPut(nodeProperties, key, value);
         Map<String, Object> params = map("props", props, "value", value);
         Iterator<List<Object>> result = query(mergeQuery(labelName, key, labels), params).getData().iterator();
@@ -196,7 +198,7 @@ public class RestAPICypherImpl implements RestAPI {
     @Override
     public RestRelationship createRelationship(Node startNode, Node endNode, RelationshipType type, Map<String, Object> props) {
         String statement = MATCH_NODE_QUERY("n") + MATCH_NODE_QUERY("m") + " CREATE (n)-[r:`" + type.name() + "`]->(m) SET r={props} " + _QUERY_RETURN_REL;
-        Map<String, Object> params = map("id_n", startNode.getId(), "id_m", endNode.getId(), "props", props == null ? Collections.emptyMap() : props);
+        Map<String, Object> params = map("id_n", startNode.getId(), "id_m", endNode.getId(), "props", props(props));
         CypherTransaction.Result result = runQuery(statement, params);
         if (!result.hasData())
             throw new RuntimeException("Error creating relationship from " + startNode + " to " + endNode + " type " + type.name());
@@ -268,6 +270,7 @@ public class RestAPICypherImpl implements RestAPI {
         if (types == null || types.length == 0) return "";
         StringBuilder typeString = new StringBuilder();
         for (RelationshipType type : types) {
+            if (type==null) continue;
             if (typeString.length() > 0) typeString.append("|");
             typeString.append(':').append('`').append(type.name()).append("`");
         }
@@ -423,6 +426,18 @@ public class RestAPICypherImpl implements RestAPI {
         return new CypherTxResult(runQuery(statement, params));
     }
 
+    private List<CypherTransaction.Result> runQueries(Collection<Statement> statements) {
+        if (!txManager.isActive()) {
+            CypherTransaction tx = newCypherTransaction();
+            tx.addAll(statements);
+            return tx.commit();
+        } else {
+            CypherTransaction tx = txManager.getCypherTransaction();
+            tx.addAll(statements);
+            return tx.send();
+        }
+    }
+
     private CypherTransaction.Result runQuery(String statement, Map<String, Object> params) {
         if (!txManager.isActive()) {
             return newCypherTransaction().commit(statement, params);
@@ -431,7 +446,7 @@ public class RestAPICypherImpl implements RestAPI {
     }
 
     public CypherTransaction newCypherTransaction() {
-        return new CypherTransaction(this, CypherTransaction.ResultType.row);
+        return new CypherTransaction(this, row);
     }
 
     public QueryResult<Map<String, Object>> query(String statement, Map<String, Object> params, ResultConverter resultConverter) {
@@ -469,6 +484,61 @@ public class RestAPICypherImpl implements RestAPI {
     @Override
     public void close() {
         restAPI.close();
+    }
+
+    @Override
+    public Relationship getOrCreateRelationship(Node start, Node end, RelationshipType type, Direction direction, Map<String, Object> props) {
+/*
+        final Iterable<Relationship> existingRelationships = start.getRelationships(type, direction);
+        for (final Relationship existingRelationship : existingRelationships) {
+            if (existingRelationship != null && existingRelationship.getOtherNode(start).equals(end))
+                return existingRelationship;
+        }
+        if (direction == Direction.INCOMING) {
+            return end.createRelationshipTo(start, type);
+        } else {
+            return start.createRelationshipTo(end, type);
+        }
+
+ */
+        String relPattern = relPattern(direction, type);
+        String statement = MATCH_NODE_QUERY("n") + MATCH_NODE_QUERY("m") + " MERGE (n)"+relPattern+"(m) ON CREATE SET r={props}" + _QUERY_RETURN_REL;
+        CypherTransaction.Result result = runQuery(statement, map("id_n", start.getId(), "id_m", end.getId(),"props", props(props)));
+        if (!result.hasData())
+            throw new RuntimeException("Error creating relationship from " + start + " to " + end + " type " + type.name() +" direction "+direction);
+        return toRel(result.getRows().iterator().next());
+    }
+
+    @Override
+    public Iterable<Relationship> updateRelationships(Node start, Collection<Node> endNodes, RelationshipType type, Direction direction, String targetLabel) {
+        String targetLabelPredicate = targetLabel == null ? "" : " AND (m:`"+targetLabel+"` OR m:`_"+targetLabel+"`)";
+        String relPattern = relPattern(direction, type);
+        String statement1 = "MATCH (n)"+relPattern+"(m) WHERE id(n) = {id_n} "+targetLabelPredicate+" AND NOT id(m) IN {ids_m} DELETE r RETURN id(r) as id_r";
+        String statement2 = MATCH_NODE_QUERY("n") + " MATCH (m) WHERE id(m) IN {ids_m} MERGE (n)"+relPattern+"(m)" + _QUERY_RETURN_REL;
+        Map<String, Object> params = map("id_n", start.getId(), "ids_m", nodeIds(endNodes));
+        List<CypherTransaction.Result> results = runQueries(asList(
+                new Statement(statement1, params, row),
+                new Statement(statement2, params, row)));
+        Iterable<List<Object>> mergeResults = results.get(1).getRows();
+        return new IterableWrapper<Relationship,List<Object>>(mergeResults) {
+            @Override
+            protected Relationship underlyingObjectToObject(List<Object> row) {
+                return toRel(row);
+            }
+        };
+    }
+
+    private long[] nodeIds(Collection<Node> nodes) {
+        long[] ids = new long[nodes.size()];
+        int i=0;
+        for (Node node : nodes) {
+            ids[i++] = node.getId();
+        }
+        return ids;
+    }
+
+    public Map<String, Object> props(Map<String, Object> props) {
+        return props == null ? Collections.<String, Object>emptyMap() : props;
     }
 
     @Override

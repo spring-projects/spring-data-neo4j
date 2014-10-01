@@ -136,4 +136,6 @@ public interface GraphDatabase {
     void shutdown();
 
     Collection<String> getAllLabelNames();
+
+    Relationship getOrCreateRelationship(Node start, Node end, RelationshipType type, Direction direction, Map<String, Object> props);
 }

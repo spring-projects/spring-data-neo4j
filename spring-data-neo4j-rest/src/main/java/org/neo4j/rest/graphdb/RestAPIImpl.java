@@ -21,11 +21,9 @@ package org.neo4j.rest.graphdb;
 
 import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.index.IndexHits;
-import org.neo4j.graphdb.traversal.TraversalDescription;
 import org.neo4j.helpers.collection.IterableWrapper;
 import org.neo4j.helpers.collection.MapUtil;
 import org.neo4j.index.lucene.ValueContext;
-import org.neo4j.rest.graphdb.batch.BatchRestAPI;
 import org.neo4j.rest.graphdb.entity.RestEntityCache;
 import org.neo4j.rest.graphdb.query.CypherRestResult;
 import org.neo4j.rest.graphdb.converter.RelationshipIterableConverter;
@@ -49,6 +47,8 @@ import org.neo4j.rest.graphdb.traversal.RestTraverser;
 import org.neo4j.rest.graphdb.util.JsonHelper;
 import org.neo4j.rest.graphdb.util.QueryResult;
 import org.neo4j.rest.graphdb.util.ResultConverter;
+import org.springframework.data.neo4j.mapping.Neo4jPersistentEntity;
+import org.springframework.data.neo4j.support.mapping.Neo4jMappingContext;
 
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
@@ -58,6 +58,7 @@ import java.io.UnsupportedEncodingException;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
+import static java.lang.String.format;
 import static javax.ws.rs.core.Response.Status.CREATED;
 import static org.neo4j.helpers.collection.MapUtil.map;
 import static org.neo4j.rest.graphdb.ExecutingRestRequest.encode;
@@ -259,6 +260,44 @@ public class RestAPIImpl implements RestAPI {
     @Override
     public void close() {
         ExecutingRestRequest.shutdown();
+    }
+
+    // TODO
+    @Override
+    public Relationship getOrCreateRelationship(Node start, Node end, RelationshipType type, Direction direction, Map<String, Object> props) {
+        final Iterable<Relationship> existingRelationships = start.getRelationships(type, direction);
+        for (final Relationship existingRelationship : existingRelationships) {
+            if (existingRelationship != null && existingRelationship.getOtherNode(start).equals(end))
+                return existingRelationship;
+        }
+        if (direction == Direction.INCOMING) {
+            return createRelationship(end, start, type, props);
+        } else {
+            return createRelationship(start,end,type,props);
+        }
+    }
+
+    protected Collection<Node> removeMissingRelationships(Node node, Collection<Node> targetNodes,
+                                                          RelationshipType type, Direction direction, Label targetLabel) {
+        targetNodes = new ArrayList<>(targetNodes);
+        for (Relationship relationship : node.getRelationships( type, direction ) ) {
+            Node otherNode = relationship.getOtherNode(node);
+            if ( !targetNodes.remove(otherNode) ) {
+                if (targetLabel != null && !relationship.getOtherNode(node).hasLabel(targetLabel)) continue;
+                relationship.delete();
+            }
+        }
+        return targetNodes;
+    }
+    @Override
+    public Iterable<Relationship> updateRelationships(final Node start, Collection<Node> endNodes, final RelationshipType type, final Direction direction, String targetLabelName) {
+        Label targetLabel = targetLabelName==null ? null : DynamicLabel.label(targetLabelName);
+        Collection<Node> remainingEndNodes = removeMissingRelationships(start, endNodes, type, direction, targetLabel);
+        List<Relationship> result=new ArrayList<>(remainingEndNodes.size());
+        for (Node endNode : remainingEndNodes) {
+            result.add(getOrCreateRelationship(start, endNode,type,direction,null));
+        }
+        return result;
     }
 
     @Override

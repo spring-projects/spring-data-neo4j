@@ -37,6 +37,7 @@ public enum RestDirection {
     }
 
     public static RestDirection from( Direction direction ) {
+        if (direction == null) return BOTH;
         for ( RestDirection restDirection : values() ) {
             if ( restDirection.direction == direction ) return restDirection;
         }

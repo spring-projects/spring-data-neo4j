@@ -76,8 +76,10 @@ public class RestCypherTransactionManager implements TransactionManager, Transac
     @Override
     public void rollback() throws IllegalStateException, SecurityException, SystemException {
         RemoteCypherTransaction tx = getRemoteCypherTransaction();
-        tx.failure();
-        tx.close();
+        if (tx!=null) {
+            tx.failure();
+            tx.close();
+        }
     }
 
     @Override

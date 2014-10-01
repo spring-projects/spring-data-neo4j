@@ -83,7 +83,7 @@ public class EntityStateHandler {
         return getId(entity) != null;
     }
 
-    private Number getId(Object entity) {
+    public Number getId(Object entity) {
         final Class<?> type = entity.getClass();
         final Neo4jPersistentEntityImpl<?> persistentEntity = mappingContext.getPersistentEntity(type);
         final Object id = persistentEntity.getPersistentId(entity);

@@ -82,7 +82,7 @@ public class RestTestBase {
     public void setUp() throws Exception {
         System.setProperty(Config.CONFIG_BATCH_TRANSACTION,"false");
         neoServer.cleanDb();
-        restGraphDb = new RestGraphDatabase(SERVER_ROOT_URI);
+        restGraphDb = createRestGraphDatabase();
 
         GraphDatabaseService db = getGraphDatabase();
         try (Transaction tx = db.beginTx()) {
@@ -92,6 +92,10 @@ public class RestTestBase {
         }
         this.referenceNode = restGraphDb.getNodeById(referenceNodeId);
 
+    }
+
+    protected GraphDatabaseService createRestGraphDatabase() {
+        return new RestGraphDatabase(SERVER_ROOT_URI);
     }
 
     @After

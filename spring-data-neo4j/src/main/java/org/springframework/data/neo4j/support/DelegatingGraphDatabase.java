@@ -279,6 +279,18 @@ public class DelegatingGraphDatabase implements GraphDatabase {
         return labels;
     }
 
+    @Override
+    public Relationship getOrCreateRelationship(Node start, Node end, RelationshipType type, Direction direction, Map<String, Object> props) {
+        final Iterable<Relationship> existingRelationships = start.getRelationships(type, direction);
+        for (final Relationship existingRelationship : existingRelationships) {
+            if (existingRelationship != null && existingRelationship.getOtherNode(start).equals(end))
+                return existingRelationship;
+        }
+        Relationship rel = direction == Direction.INCOMING ? end.createRelationshipTo(start, type) : start.createRelationshipTo(end, type);
+        setProperties(rel, props);
+        return rel;
+    }
+
     public GraphDatabaseService getGraphDatabaseService() {
         return delegate;
     }

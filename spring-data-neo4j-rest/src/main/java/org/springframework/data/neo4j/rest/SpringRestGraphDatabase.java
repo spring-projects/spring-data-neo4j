@@ -106,6 +106,11 @@ public class SpringRestGraphDatabase extends org.neo4j.rest.graphdb.RestGraphDat
     }
 
     @Override
+    public Relationship getOrCreateRelationship(Node start, Node end, RelationshipType type, Direction direction, Map<String, Object> props) {
+        return getRestAPI().getOrCreateRelationship(start, end, type, direction,props);
+    }
+
+    @Override
     public Relationship createRelationship(Node startNode, Node endNode, RelationshipType type, Map<String, Object> properties) {
        return super.getRestAPI().createRelationship(startNode, endNode, type, properties);
     }

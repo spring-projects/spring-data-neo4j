@@ -68,6 +68,8 @@ public interface RestAPI extends RestAPIIndex, RestAPIInternal {
 
     Transaction beginTx();
 
+    Iterable<Relationship> updateRelationships(Node start, Collection<Node> endNodes, RelationshipType type, Direction direction, String targetLabel);
+
     Collection<String> getAllLabelNames();
 
     Iterable<RelationshipType> getRelationshipTypes();
@@ -91,4 +93,6 @@ public interface RestAPI extends RestAPIIndex, RestAPIInternal {
     void removeFromCache(long id);
 
     void close();
+
+    Relationship getOrCreateRelationship(Node start, Node end, RelationshipType type, Direction direction, Map<String, Object> props);
 }

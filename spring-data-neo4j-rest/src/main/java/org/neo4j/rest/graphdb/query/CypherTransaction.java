@@ -1,6 +1,7 @@
 package org.neo4j.rest.graphdb.query;
 
 import com.sun.jersey.api.client.ClientResponse;
+import org.neo4j.helpers.Pair;
 import org.neo4j.helpers.collection.IterableWrapper;
 import org.neo4j.helpers.collection.IteratorWrapper;
 import org.neo4j.rest.graphdb.*;
@@ -135,6 +136,14 @@ public class CypherTransaction {
     private String commitUrl = null;
     private final RestRequest request;
     private final List<Statement> statements = new ArrayList<>(10);
+
+    public void addAll(Statement...statements) {
+        this.statements.addAll(asList(statements));
+    }
+
+    public void addAll(Collection<Statement> statements) {
+        this.statements.addAll(statements);
+    }
 
     public void add(String statement, Map<String,Object> params) {
         statements.add(new Statement(statement,params,type));
