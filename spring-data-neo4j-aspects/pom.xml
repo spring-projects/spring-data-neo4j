@@ -125,14 +125,19 @@
 			<groupId>org.neo4j</groupId>
 			<artifactId>neo4j-spatial</artifactId>
 			<version>${neo4j.spatial.version}</version>
-			<scope>test</scope>
+            <optional>true</optional>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.neo4j</groupId>
+                    <artifactId>neo4j-graph-collections</artifactId>
+                </exclusion>
+            </exclusions>
 		</dependency>
 
 		<dependency>
 			<groupId>org.neo4j</groupId>
 			<artifactId>neo4j-cypher-dsl</artifactId>
 			<version>${neo4j-cypher-dsl.version}</version>
-			<scope>test</scope>
 		<exclusions>
 				<exclusion>
 					<groupId>org.neo4j</groupId>

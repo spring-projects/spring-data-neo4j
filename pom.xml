@@ -40,7 +40,7 @@
 
 		<neo4j.version>2.1.5</neo4j.version>
 
-		<neo4j.spatial.version>0.12-neo4j-2.0.1</neo4j.spatial.version>
+		<neo4j.spatial.version>0.13-neo4j-2.0.1</neo4j.spatial.version>
 		<neo4j-cypher-dsl.version>2.0.1</neo4j-cypher-dsl.version>
 	</properties>
 
