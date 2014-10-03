@@ -16,7 +16,6 @@
 
 package org.springframework.data.neo4j.illegal.aspects.index2;
 
-import org.apache.commons.lang.exception.ExceptionUtils;
 import org.junit.Test;
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -72,7 +71,9 @@ public class IllegalIndex2Tests  {
             appCtx.getEnvironment().setActiveProfiles( entityUnderTest.getSimpleName() );
             appCtx.refresh();
         } catch (BeanCreationException bce) {
-            throw ExceptionUtils.getRootCause(bce);
+            Throwable ex=bce;
+            while (ex.getCause() != null) ex = ex.getCause();
+            throw ex;
         }
     }
 

@@ -40,7 +40,7 @@
 
 		<neo4j.version>2.1.5</neo4j.version>
 
-		<neo4j.spatial.version>0.13-neo4j-2.0.1</neo4j.spatial.version>
+		<neo4j.spatial.version>0.13-neo4j-2.1.4</neo4j.spatial.version>
 		<neo4j-cypher-dsl.version>2.0.1</neo4j-cypher-dsl.version>
 	</properties>
 
@@ -172,6 +172,13 @@
 			<id>spring-libs-snapshot</id>
 			<name>Spring</name>
 			<url>http://repo.spring.io/libs-snapshot</url>
+		</repository>
+		<repository>
+			<id>neo4j</id>
+			<url>http://m2.neo4j.org/content/repositories/releases</url>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
 		</repository>
 		<repository>
 			<id>geotools</id>
