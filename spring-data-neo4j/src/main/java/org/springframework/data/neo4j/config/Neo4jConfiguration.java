@@ -37,10 +37,7 @@ import org.springframework.data.neo4j.fieldaccess.Neo4jConversionServiceFactoryB
 import org.springframework.data.neo4j.fieldaccess.NodeDelegatingFieldAccessorFactory;
 import org.springframework.data.neo4j.fieldaccess.RelationshipDelegatingFieldAccessorFactory;
 import org.springframework.data.neo4j.mapping.EntityInstantiator;
-import org.springframework.data.neo4j.support.DelegatingGraphDatabase;
-import org.springframework.data.neo4j.support.MappingInfrastructureFactoryBean;
-import org.springframework.data.neo4j.support.Neo4jExceptionTranslator;
-import org.springframework.data.neo4j.support.Neo4jTemplate;
+import org.springframework.data.neo4j.support.*;
 import org.springframework.data.neo4j.support.index.IndexProvider;
 import org.springframework.data.neo4j.support.index.IndexProviderImpl;
 import org.springframework.data.neo4j.support.mapping.*;
@@ -124,6 +121,7 @@ public abstract class Neo4jConfiguration { // implements TransactionManagementCo
         if (validator!=null) {
             factoryBean.setValidator(validator);
         }
+        factoryBean.afterPropertiesSet();
         return factoryBean;
     }
     
