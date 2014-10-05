@@ -16,17 +16,15 @@
 
 package org.springframework.data.neo4j.repository;
 
-import org.neo4j.helpers.collection.MapUtil;
 import org.springframework.data.neo4j.fieldaccess.DynamicPropertiesContainer;
 import org.springframework.data.neo4j.model.Friendship;
 import org.springframework.data.neo4j.model.Group;
 import org.springframework.data.neo4j.model.Person;
 import org.springframework.data.neo4j.model.Personality;
-import org.springframework.data.neo4j.template.Neo4jOperations;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Map;
+import java.util.Locale;
 
 import static java.util.Arrays.asList;
 
@@ -66,7 +64,11 @@ public class SerialTesters {
 
         tareq = new Person("Tareq", 36);
         nicki = new Person("Nicki", 36);
-        bdayFormatter = new SimpleDateFormat("dd MMM yyyy HH:mm:ss");
+
+        // Explicitly specify US locale for date parsing.  Otherwise, SimpleDateFormat
+        // will use the default locale and we may get a parse exception, e.g.
+        // French locale (fr_FR) does not recognize JAN a valid month.
+        bdayFormatter = new SimpleDateFormat("dd MMM yyyy HH:mm:ss", Locale.US);
         try {
             nicki.setBirthdate(bdayFormatter.parse("01 JAN 2013 00:00:00"));
         } catch (ParseException e) {
