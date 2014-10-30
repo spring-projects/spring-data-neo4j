@@ -1,6 +1,15 @@
 Spring Data Neo4j Changelog
 ===========================
 
+Changes in version 3.2.1.RELEASE (2014-10-30)
+---------------------------------------------
+* DATAGRAPH-522 - Release 3.2.1.
+* DATAGRPAH-517 - Update to Neo4j 2.1.5.
+* DATAGRAPH-515 - Remove Graph-Collections dependency.
+* DATAGRAPH-257 - Fixed QueryResultBuilder cannot be cast to java.util.Set in NodeEntity for SDN 3.1+ context.
+* DATAGRAPH-497 - GeoConverter negative coordinates.
+
+
 Changes in version 3.2.0.RELEASE (2014-09-05)
 ---------------------------------------------
 * DATAGRAPH-512 - Release 3.2 GA.
@@ -134,7 +143,7 @@ Changes in version 2.3.2.RELEASE (2013-10-25)
 ---------------------------------------------
 * DATAGRAPH-393 - Use supplied RestGraphDatabase as GraphDatabase in MappingInfrastructure
 * DATAGRAPH-397 - Release 2.3.2
-* DATAGRAPH-400 - Upgrade to Neo4j 1.9.* 
+* DATAGRAPH-400 - Upgrade to Neo4j 1.9.*
 
 Changes in version 2.2.3.RELEASE (2013-10-01)
 ---------------------------------------------
