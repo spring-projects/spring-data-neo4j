@@ -33,6 +33,7 @@ public class DataGraphBeanDefinitionParser extends AbstractBeanDefinitionParser 
 
     private static final String GRAPH_DATABASE_SERVICE = "graphDatabaseService";
     private static final String BASE_PACKAGE = "base-package";
+    private static final String CREATE_INDEX = "create-index";
     public static final String ASPECTJ_CONFIG = "org.springframework.data.neo4j.aspects.config.Neo4jAspectConfiguration";
     public static final String CROSS_STORE_CONFIG = "org.springframework.data.neo4j.cross_store.config.CrossStoreNeo4jConfiguration";
 
@@ -43,8 +44,15 @@ public class DataGraphBeanDefinitionParser extends AbstractBeanDefinitionParser 
         setupGraphDatabase(element, context, configBuilder);
         setupEntityManagerFactory(element, configBuilder);
         setupBaseEntities(element, configBuilder);
+        setUpIndexCreation(element, configBuilder);
         setupConfigurationClassPostProcessor(context);
         return getSourcedBeanDefinition(configBuilder, element, context);
+    }
+
+    private void setUpIndexCreation(Element element, BeanDefinitionBuilder configBuilder) {
+        String createIndexAttribute = element.getAttribute(CREATE_INDEX);
+        boolean createIndex = createIndexAttribute==null || !createIndexAttribute.equalsIgnoreCase("false");
+        configBuilder.addPropertyValue("createIndex", createIndex);
     }
 
     private void setupBaseEntities(Element element, BeanDefinitionBuilder configBuilder) {

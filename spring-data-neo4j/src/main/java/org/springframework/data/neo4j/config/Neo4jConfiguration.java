@@ -51,7 +51,6 @@ import org.springframework.data.neo4j.support.typerepresentation.TypeRepresentat
 import org.springframework.data.neo4j.support.typesafety.TypeSafetyPolicy;
 import org.springframework.data.support.IsNewStrategyFactory;
 import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.transaction.annotation.TransactionManagementConfigurer;
 
 import javax.validation.Validator;
 
@@ -74,6 +73,7 @@ public abstract class Neo4jConfiguration { // implements TransactionManagementCo
     private ConversionService conversionService;
 
     private Set<? extends Class<?>> initialEntitySet;
+    private boolean createIndex = true;
 
     @Autowired(required = false)
     private Validator validator;
@@ -250,11 +250,12 @@ public abstract class Neo4jConfiguration { // implements TransactionManagementCo
 
     @Bean
     public EntityIndexCreator entityIndexCreator() throws Exception {
-        return new EntityIndexCreator(
-                indexProvider(),
-                schemaIndexProvider(),
-                nodeTypeRepresentationStrategy().isLabelBased()
-        );
+        if (!createIndex) return new NoEntityIndexCreator();
+
+        return new DefaultEntityIndexCreator(
+            indexProvider(),
+            schemaIndexProvider(),
+            nodeTypeRepresentationStrategy().isLabelBased());
     }
 
     @Bean
@@ -298,6 +299,14 @@ public abstract class Neo4jConfiguration { // implements TransactionManagementCo
     public void setInitialEntitySet(Set<? extends Class<?>> initialEntitySet) {
    		this.initialEntitySet = initialEntitySet;
    	}
+
+    public void setCreateIndex(boolean createIndex) {
+        this.createIndex = createIndex;
+   	}
+
+    public boolean isCreateIndex() {
+        return createIndex;
+    }
 
     private String[] basePackage;
 

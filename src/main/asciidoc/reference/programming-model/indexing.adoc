@@ -1,15 +1,21 @@
 [[reference_programming-model_indexing]]
 = Indexing
 
-Indexing is used in Neo4j to quickly find nodes and relationships to start graph operations from. Either for manually traversing the graph, using the traversal framework, cypher queries or for "global" graph operations. Indexes are also employed to ensure uniqueness of elements with certain properties.
+Indexing is used in Neo4j to quickly find nodes and relationships to start graph operations from. Either for manually traversing the graph, using the traversal framework, cypher queries or for "global" graph operations. Indexes are also employed to ensure uniqueness of elements with certain labels and properties.
 
-NOTE: Please note that the lucene based manual indexes are deprecated with Neo4j 2.0 and Spring Data Neo4j 3.0. The default index is now based on labels and schema indexes and the related APIs have been deprecated as well. The "legacy" index framework should only be used for fulltext and spatial indexes which are not currently supported via schema based indexes.
+NOTE: Please note that the lucene based manual indexes are deprecated with Neo4j 2.0 and Spring Data Neo4j 3.0. The default index is now based on labels and schema indexes and the related old APIs have been deprecated as well. The "legacy" index framework should only be used for fulltext and spatial indexes which are not currently supported via schema based indexes.
 
 == Schema (Label based) indexes
 
 Since Neo4j version 2.0 indexes and unique constraints based on labels and properties are supported throughout the API including cypher. For properties of entities annotated with `@Indexed`, this defaults to using the schema based strategy, and an appropriate schema index is created. For `@Indexed(unique=true)` a constraint is created.
 
 Those indexes will be automatically used by cypher queries that are generated for the derived finders and are available for custom queries.
+
+== Index Creation
+
+Indexes are created and updated upfront, when Spring Data Neo4j scans your entities and detects indexed fields. It will use an instance of `org.springframework.data.neo4j.support.mapping.EntityIndexCreator to create both schema based and legacy indexes.
+
+For certain setups, e.g. when your system is already set-up with all the indexes or when you run in an HA-cluster against a slave, you can disable this behavior by configuring `<neo4j:config create-index="false" />` or calling `Neo4jConfiguration.setCreateIndex(false)`. The default value is "true".
 
 == Legacy indexes
 
@@ -95,8 +101,6 @@ GraphRepository<Person> graphRepository =
 Person mark = graphRepository.findAllByQuery("people-search", "name", "ma*");
 ----
 ====
-
-NOTE: Please note that the legacy indexes are currently created on demand, so whenever an index that doesn't exist is requested from a query or get operation it is created. This is subject to change but has currently the implication that those indexes won't be configured as fulltext which causes subsequent fulltext updates to those indexes to fail.
 
 == Unique indexes
 
@@ -209,7 +213,7 @@ For querying the index, the template offers query methods that take either the e
 
 == Neo4j Auto Indexes
 
-Neo4j allows to configure http://docs.neo4j.org/chunked/milestone/auto-indexing.html[auto-indexing] for certain properties on nodes and relationships. This auto-indexing differs from the approach used in Spring Data Neo4j because it only updates the indexes when the transaction is committed. So the index modifications will only be available after the successful commit. It is possible to use the specific index names `node_auto_index` and `relationship_auto_index` when querying indexes in Spring Data Neo4j either with the query methods in template and repositories or via Cypher.
+Neo4j allows to configure (legacy) http://neo4j.com/docs/milestone/auto-indexing.html[auto-indexing] for certain properties on nodes and relationships. This auto-indexing differs from the approach used in Spring Data Neo4j, because there is only one index across all nodes or relationships. It is possible to use the specific index names `node_auto_index` and `relationship_auto_index` when querying indexes in Spring Data Neo4j either with the query methods in template and repositories or via Cypher.
 
 == Spatial Indexes
 

@@ -11,7 +11,7 @@
     <context:annotation-config/>
     <neo4j:config graphDatabaseService="graphDatabaseService" />
 
-    <bean id="indexCreationMappingEventListener" class="org.springframework.data.neo4j.support.mapping.EntityIndexCreator">
+    <bean id="indexCreationMappingEventListener" class="org.springframework.data.neo4j.support.mapping.DefaultEntityIndexCreator">
         <constructor-arg ref="indexProvider" />
         <constructor-arg ref="schemaIndexProvider" />
     </bean>

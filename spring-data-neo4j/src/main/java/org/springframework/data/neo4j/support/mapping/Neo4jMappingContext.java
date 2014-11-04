@@ -22,7 +22,6 @@ import org.neo4j.graphdb.Relationship;
 import org.neo4j.index.lucene.ValueContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.data.annotation.Reference;
 import org.springframework.data.mapping.context.AbstractMappingContext;
 import org.springframework.data.mapping.context.MappingContext;
 import org.springframework.data.mapping.model.MappingException;

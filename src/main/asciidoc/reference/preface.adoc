@@ -9,7 +9,7 @@ The Spring Data Neo4j project, as part of the Spring Data initiative, aims to si
 
 Spring Data Neo4j allows, at any time, to drop down to the Neo4j-API level, see <<neo4j>> to execute functionality with the highest performance possible.
 
-For integration of Neo4j and Grails/GORM please refer to the Neo4j http://www.grails.org/plugin/neo4j[grails plugin]. There are also http://docs.neo4j.org/chunked/milestone/python-embedded.html[Python bindings] as well as community-provided bindings to use Neo4j in http://docs.neo4j.org/chunked/milestone/languages.html[embedded] or http://docs.neo4j.org/chunked/milestone/tutorials-rest.html[REST mode].
+For integration of Neo4j and Grails/GORM please refer to the Neo4j http://www.grails.org/plugin/neo4j[grails plugin]. There are also http://neo4j.com/docs/milestone/python-embedded.html[Python bindings] as well as community-provided bindings to use Neo4j in http://neo4j.com/docs/milestone/languages.html[embedded] or http://neo4j.com/docs/milestone/tutorials-rest.html[REST mode].
 
 == Reference Documentation Overview
 

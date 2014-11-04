@@ -44,7 +44,7 @@
 
 
     <bean id="conversionService" class="org.springframework.data.neo4j.fieldaccess.Neo4jConversionServiceFactoryBean"/>
-    <bean id="indexCreationMappingEventListener" class="org.springframework.data.neo4j.support.mapping.EntityIndexCreator">
+    <bean id="indexCreationMappingEventListener" class="org.springframework.data.neo4j.support.mapping.DefaultEntityIndexCreator">
         <constructor-arg ref="indexProvider" />
         <constructor-arg ref="schemaIndexProvider" />
     </bean>

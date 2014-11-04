@@ -6,6 +6,8 @@ import org.springframework.data.neo4j.mapping.Neo4jPersistentEntity;
  * @author mh
  * @since 19.10.14
  */
-public interface EntityIndexCreator {
-    void ensureEntityIndexes(Neo4jPersistentEntity<?> entity);
+public class NoEntityIndexCreator implements EntityIndexCreator {
+    @Override
+    public void ensureEntityIndexes(Neo4jPersistentEntity<?> entity) {
+    }
 }

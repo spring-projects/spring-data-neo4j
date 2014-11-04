@@ -7,7 +7,7 @@ Spring Data Neo4j projects can be built using Maven. There are also means to bui
 
 == Dependencies for Spring Data Neo4j Simple Mapping
 
-For the simple POJO mapping it is enough to add the `org.springframework.data:spring-data-neo4j:3.0.0.RELEASE` dependency to your project.
+For the simple POJO mapping it is enough to add the `org.springframework.data:spring-data-neo4j:3.3.0.M1` dependency to your project.
 
 .Maven dependencies for Spring Data Neo4j
 ====
@@ -16,7 +16,7 @@ For the simple POJO mapping it is enough to add the `org.springframework.data:sp
 <dependency>
 <groupId>org.springframework.data</groupId>
 <artifactId>spring-data-neo4j</artifactId>
-<version>3.0.0.RELEASE</version>
+<version>3.3.0.M1</version>
 </dependency>
 ----
 ====
@@ -32,8 +32,8 @@ The necessary build plugin to build Spring Data Neo4j projects with Gradle is av
 sourceCompatibility = 1.6
 targetCompatibility = 1.6
 
-springVersion = "3.2.8.RELEASE"
-springDataNeo4jVersion = "3.0.0.RELEASE"
+springVersion = "4.0.7.RELEASE"
+springDataNeo4jVersion = "3.3.0.M1"
 aspectjVersion = "1.7.4"
 
 apply from:'https://github.com/SpringSource/spring-data-neo4j/raw/master/build/
@@ -110,13 +110,13 @@ The dependency on `spring-data-neo4j-aspects` will transitively pull in the nece
 <dependency>
     <groupId>org.springframework.data</groupId>
     <artifactId>spring-data-neo4j-aspects</artifactId>
-    <version>3.0.0.RELEASE</version>
+    <version>3.3.0.M1</version>
 </dependency>
 
 <dependency>
     <groupId>org.aspectj</groupId>
     <artifactId>aspectjrt</artifactId>
-    <version>1.7.4</version>
+    <version>1.8.2</version>
 </dependency>
 ----
 ====
@@ -134,16 +134,15 @@ Since the advanced mapping uses AspectJ for build-time aspect weaving of entitie
     <artifactId>aspectj-maven-plugin</artifactId>
     <version>1.4</version>
     <dependencies>
-        <!-- NB: You must use Maven 2.0.9 or above or these are ignored (see MNG-2972) -->
         <dependency>
             <groupId>org.aspectj</groupId>
             <artifactId>aspectjrt</artifactId>
-            <version>1.7.4</version>
+            <version>1.8.2</version>
         </dependency>
         <dependency>
             <groupId>org.aspectj</groupId>
             <artifactId>aspectjtools</artifactId>
-            <version>1.7.4</version>
+            <version>1.8.2</version>
         </dependency>
     </dependencies>
     <executions>
@@ -166,8 +165,8 @@ Since the advanced mapping uses AspectJ for build-time aspect weaving of entitie
                 <artifactId>spring-data-neo4j-aspects</artifactId>
             </aspectLibrary>
         </aspectLibraries>
-        <source>1.6</source>
-        <target>1.6</target>
+        <source>1.7</source>
+        <target>1.7</target>
     </configuration>
 </plugin>
 ----
@@ -226,13 +225,27 @@ The XML namespace can be used to configure Spring Data Neo4j. The `config` eleme
 ----
 ====
 
-.XML configuration with http://docs.neo4j.org/chunked/milestone/server-embedded.html[embedded Neo4j-Server]
+
+.XML configuration with disabled index creation (e.g. for HA-slave)
+====
+[source,xml]
+----
+<context:annotation-config/>
+<neo4j:config
+       storeDirectory="target/config-test"
+       create-index="false"
+       base-package="org.example.domain"/>
+
+----
+====
+
+.XML configuration with http://neo4j.com/docs/milestone/server-embedded.html[embedded Neo4j-Server]
 ====
 [source,xml]
 ----
 <context:annotation-config/>
 
-<bean id="graphDatabaseService" class="org.neo4j.kernel.EmbeddedGraphDatabase"
+<bean id="graphDatabaseService" class="org.springframework.data.neo4j.support.GraphDatabaseServiceFactoryBean"
     destroy-method="shutdown">
 	<constructor-arg index="0" value="foo/db" />
 	<constructor-arg index="1">
@@ -286,7 +299,7 @@ As Spring Data Neo4j repositories build upon the infrastructure provided by http
 <neo4j:repositories base-package="org.example.repository"/>		
 
 <!-- with template bean reference -->
-<neo4j:repositories base-package="org.example.repository" graph-database-context-ref="template"/>		
+<neo4j:repositories base-package="org.example.repository" graph-database-context-ref="template"/>
 ----
 ====
 
@@ -322,7 +335,7 @@ public class BasicJavaConfig extends Neo4jConfiguration {
 ----
 ====
 
-.Java-based bean config initialiation via XML
+.Java-based bean config initialization via XML
 ====
 To register the default `@Configuration Neo4jConfiguration` class, as well as Spring's `ConfigurationClassPostProcessor` that transforms the `@Configuration` class to bean definitions via XML.
 
@@ -338,9 +351,8 @@ To register the default `@Configuration Neo4jConfiguration` class, as well as Sp
 
     <bean class="org.springframework.context.annotation.ConfigurationClassPostProcessor"/>
 
-    <bean id="graphDbFactory" class="org.neo4j.graphdb.factory.GraphDatabaseFactory"/>
-    <bean id="graphDatabaseService" scope="singleton" destroy-method="shutdown"
-          factory-bean="graphDbFactory" factory-method="newEmbeddedDatabase">
+    <bean id="graphDatabaseService" class="org.springframework.data.neo4j.support.GraphDatabaseServiceFactoryBean"
+          destroy-method="shutdown">
         <constructor-arg value="target/config-test"/>
     </bean>
     ...

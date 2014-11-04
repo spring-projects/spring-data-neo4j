@@ -13,7 +13,7 @@ http://neo4j.org/[Neo4j] is a NOSQL graph database. It is a fully transactional 
 
 Neo4j has been in commercial development for 10 years and in production for over 7 years. Most importantly it has a helpful and contributing community surrounding it, but it also: 
 
-* has an intuitive, rich graph-oriented model for data representation. Instead of tables, rows, and columns, you work with a graph consisting of http://docs.neo4j.org/chunked/milestone/what-is-a-graphdb.html[nodes, relationships, and properties]
+* has an intuitive, rich graph-oriented model for data representation. Instead of tables, rows, and columns, you work with a graph consisting of http://neo4j.com/docs/milestone/what-is-a-graphdb.html[nodes, relationships, and properties]
 * has a disk-based, native storage manager optimized for storing graph structures with maximum performance and scalability.
 * is scalable. Neo4j can handle graphs with many billions of nodes/relationships/properties on a single machine, but can also be scaled out across multiple machines for high availability.
 * has a powerful traversal framework and query languages for traversing the graph.
@@ -101,7 +101,7 @@ try (Transaction tx = graphDb.beginTx()) {
 
 == Querying the Graph with Cypher
 
-Neo4j provides a graph query language called http://docs.neo4j.org/chunked/milestone/cypher-query-lang.html["Cypher"] which draws from many sources. It resembles SQL but with an iconic representation of patterns in the graph (concepts drawn from SPARQL). The Cypher execution engine was written in Scala to leverage the high expressiveness for lazy sequence operations of the language and the parser combinator library. A screencast explaining the possibilities in detail can be found on the  http://video.neo4j.org/ybMbf/screencast-introduction-to-cypher/[Neo4j video site].
+Neo4j provides a graph query language called http://neo4j.com/docs/milestone/cypher-query-lang.html["Cypher"] which draws from many sources. It resembles SQL but with an iconic representation of patterns in the graph (concepts drawn from SPARQL). The Cypher execution engine was written in Scala to leverage the high expressiveness for lazy sequence operations of the language and the parser combinator library. A screencast explaining the possibilities in detail can be found on the  http://video.neo4j.org/ybMbf/screencast-introduction-to-cypher/[Neo4j video site].
 
 As of Neo4 2.0, Cypher queries typically begin with a `match` clause, although the optional `start` clause (only really needed when using legacy indexes) is also still supported. The `match` clause can be used to provide a way to pattern match against a starting set of nodes, via their IDs or label based index lookup, with the legacy `start` clause providing similar functionality. These starting patterns or start nodes, are then related to other nodes via additional `match` clauses. Start and/or match clauses can introduce new identifiers for nodes and relationships. In the `where` clause additional filtering of the result set is applied by evaluating expressions. The `return` clause defines which part of the query result will be available. Aggregation also happens in the return clause by using aggregation functions on some of the values. Sorting can happen in the `order by` clause and the `skip` and `limit` parts restrict the result set to a certain window.
 

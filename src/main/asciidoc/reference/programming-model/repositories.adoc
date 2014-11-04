@@ -3,7 +3,7 @@
 
 The repositories provided by Spring Data Neo4j build on the composable repository infrastructure in http://static.springsource.org/spring-data/data-commons/docs/current/reference/html/#repositories[Spring Data Commons]. They allow for interface based composition of repositories consisting of provided default implementations for certain interfaces and additional custom implementations for other methods.
 
-Spring Data Neo4j repositories support annotated and named queries for the Neo4j http://docs.neo4j.org/chunked/milestone/query-lang.html[Cypher] query-language.
+Spring Data Neo4j repositories support annotated and named queries for the Neo4j http://neo4j.com/docs/milestone/query-lang.html[Cypher] query-language.
 
 Spring Data Neo4j comes with typed repository implementations that provide methods for locating node and relationship entities. There are several types of basic repository interfaces and implementations. `CRUDRepository` provides basic operations, `IndexRepository` and `NamedIndexRepository` delegate to Neo4j's internal indexing subsystem for queries, and `TraversalRepository` handles Neo4j traversals.
 
