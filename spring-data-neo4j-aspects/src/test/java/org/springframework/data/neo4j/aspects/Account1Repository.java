@@ -8,4 +8,5 @@ import org.springframework.data.neo4j.repository.GraphRepository;
  * @since 06-04-2014
  */
 public interface Account1Repository extends GraphRepository<Account1> {
+    Account1 findByAccountNumber(String accountNumber);
 }

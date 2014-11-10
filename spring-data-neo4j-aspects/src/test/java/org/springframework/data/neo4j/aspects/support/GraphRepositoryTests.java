@@ -145,6 +145,16 @@ public class GraphRepositoryTests extends EntityTestBase {
 
     }
 
+    @Transactional
+    @Test
+    public void testFindAccountByEmailLikeNumber() throws Exception {
+        String accountNumber = "test@t-online.de";
+        Account1 acc1 = new Account1(accountNumber, "T-Online Test-Account");
+        Account1 savedAcc1 = account1Repository.save(acc1);
+        Account1 found = account1Repository.findByAccountNumber(accountNumber);
+        assertEquals(acc1.getName(), found.getName());
+    }
+
     @Test(expected = DataIntegrityViolationException.class)
     @Transactional
     public void testSaveWhenFailOnDuplicateSetToTrue() {
