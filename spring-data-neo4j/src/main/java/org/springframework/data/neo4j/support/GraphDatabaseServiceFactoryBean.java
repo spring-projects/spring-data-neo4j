@@ -63,6 +63,7 @@ public class GraphDatabaseServiceFactoryBean implements FactoryBean<GraphDatabas
     public void shutdown() {
         if (database != null) {
             database.shutdown();
+            database = null;
         }
     }
 }

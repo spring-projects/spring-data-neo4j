@@ -28,6 +28,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.data.neo4j.model.Person;
 import org.springframework.data.neo4j.repositories.ClassWithNestedRepository.NestedUserRepository;
 import org.springframework.data.neo4j.repositories.PersonRepository;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -38,6 +39,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
+@DirtiesContext
 public class NestedNeo4jRepositoriesJavaConfigTests {
 
 	@Configuration

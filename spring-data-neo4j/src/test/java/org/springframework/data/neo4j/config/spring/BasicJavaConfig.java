@@ -15,7 +15,7 @@ public class BasicJavaConfig extends Neo4jConfiguration {
         setBasePackage("org.springframework.data.neo4j.model");
     }
 
-    @Bean
+    @Bean(destroyMethod = "shutdown")
     public GraphDatabaseService graphDatabaseService() {
         return new TestGraphDatabaseFactory().newImpermanentDatabase();
     }

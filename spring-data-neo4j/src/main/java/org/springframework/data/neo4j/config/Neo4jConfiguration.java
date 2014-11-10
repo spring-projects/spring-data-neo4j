@@ -67,7 +67,7 @@ import javax.enterprise.inject.Produces;
  * @author Thomas Risberg
  */
 @Configuration
-public abstract class Neo4jConfiguration { // implements TransactionManagementConfigurer {
+public class Neo4jConfiguration {
     private GraphDatabaseService graphDatabaseService;
 
     private ConversionService conversionService;

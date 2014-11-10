@@ -124,12 +124,12 @@ public class DataGraphNamespaceHandlerTests {
         Config config = ctx.getBean("config", Config.class);
         Neo4jTemplate template = config.neo4jTemplate;
         Assert.assertNotNull("template", template);
-        AbstractGraphDatabase graphDatabaseService = (AbstractGraphDatabase) template.getGraphDatabaseService();
+        GraphDatabaseAPI graphDatabaseService = (GraphDatabaseAPI) template.getGraphDatabaseService();
         String fileSeparator = "target" + System.getProperty("file.separator") + "config-test";
         Assert.assertTrue("store-dir", graphDatabaseService.getStoreDir().endsWith(fileSeparator));
         Assert.assertNotNull("graphDatabaseService",config.graphDatabaseService);
         Assert.assertNotNull("transactionManager",config.transactionManager);
-        config.graphDatabaseService.shutdown();
+//        config.graphDatabaseService.shutdown();
         return config;
         } finally {
             ctx.close();

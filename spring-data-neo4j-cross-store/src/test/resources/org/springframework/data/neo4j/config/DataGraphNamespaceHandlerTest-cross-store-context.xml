@@ -12,7 +12,7 @@
 	<context:spring-configured/>
 	<context:annotation-config/>
 
-    <neo4j:config storeDirectory="target/config-test" entityManagerFactory="entityManagerFactory"/>
+    <neo4j:config storeDirectory="target/config-test" entityManagerFactory="entityManagerFactory" base-package="org.springframework.data.neo4j.config.cross"/>
 
     <bean class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean" id="entityManagerFactory">
         <property name="dataSource" ref="dataSource"/>

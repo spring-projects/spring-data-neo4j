@@ -22,6 +22,6 @@
        </constructor-arg>
     </bean>
 
-    <neo4j:config graphDatabaseService="haDatabase"/>
+    <neo4j:config graphDatabaseService="haDatabase" base-package="org.springframework.data.neo4j.config"/>
     <bean id="config" class="org.springframework.data.neo4j.config.DataGraphNamespaceHandlerTests$Config"/>
 </beans>

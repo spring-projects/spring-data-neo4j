@@ -1,6 +1,7 @@
 package org.springframework.data.neo4j.config;
 
 import org.junit.After;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Transaction;

@@ -16,6 +16,7 @@
 
 package org.springframework.data.neo4j.config;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.context.support.ClassPathXmlApplicationContext;

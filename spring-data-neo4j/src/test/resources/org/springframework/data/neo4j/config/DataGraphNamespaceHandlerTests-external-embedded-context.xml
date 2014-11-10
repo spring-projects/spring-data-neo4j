@@ -20,6 +20,6 @@
         </constructor-arg>
     </bean>
 
-    <neo4j:config graphDatabaseService="graphDatabaseService"/>
+    <neo4j:config graphDatabaseService="graphDatabaseService" base-package="org.springframework.data.neo4j.config"/>
     <bean id="config" class="org.springframework.data.neo4j.config.DataGraphNamespaceHandlerTests$Config"/>
 </beans>

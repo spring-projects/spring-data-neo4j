@@ -18,7 +18,7 @@
         </property>
     </bean>
 
-    <neo4j:config storeDirectory="target/config-test"/>
+    <neo4j:config storeDirectory="target/config-test" base-package="org.springframework.data.neo4j.config"/>
     <neo4j:repositories base-package="org.springframework.data.neo4j.model"/>
     <bean id="config" class="org.springframework.data.neo4j.config.DataGraphNamespaceHandlerTests$Config"/>
 
