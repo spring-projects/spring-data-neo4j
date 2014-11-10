@@ -7,6 +7,8 @@ import org.neo4j.test.TestGraphDatabaseFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.context.support.FileSystemXmlApplicationContext;
 import org.springframework.data.neo4j.support.mapping.DefaultEntityIndexCreator;
@@ -21,21 +23,23 @@ import static org.junit.Assert.assertEquals;
  */
 public class CreateIndexConfigTests {
 
-    private ApplicationContext ctx;
+    private AbstractApplicationContext ctx;
 
+    @Configuration
     static class DefaultTestConfiguration extends Neo4jConfiguration {
-        @Bean
+        @Bean(destroyMethod = "shutdown")
         public GraphDatabaseService graphDatabaseService() {
             return new TestGraphDatabaseFactory().newImpermanentDatabase();
         }
     }
 
+    @Configuration
     static class NoIndexTestConfiguration extends Neo4jConfiguration {
         NoIndexTestConfiguration() {
             setCreateIndex(false);
         }
 
-        @Bean
+        @Bean(destroyMethod = "shutdown")
         public GraphDatabaseService graphDatabaseService() {
             return new TestGraphDatabaseFactory().newImpermanentDatabase();
         }
@@ -75,6 +79,5 @@ public class CreateIndexConfigTests {
     @After
     public void tearDown() throws Exception {
         if (ctx != null) ctx.close();
-
     }
 }
