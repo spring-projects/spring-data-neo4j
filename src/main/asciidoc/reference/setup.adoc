@@ -215,9 +215,8 @@ The XML namespace can be used to configure Spring Data Neo4j. The `config` eleme
 ----
 <context:annotation-config/>
 
-<bean id="graphDbFactory" class="org.neo4j.graphdb.factory.GraphDatabaseFactory"/>
 <bean id="graphDatabaseService" scope="singleton" destroy-method="shutdown"
-      factory-bean="graphDbFactory" factory-method="newEmbeddedDatabase">
+      class="org.springframework.data.neo4j.support.GraphDatabaseServiceFactoryBean">
     <constructor-arg value="target/config-test"/>
 </bean>
 
