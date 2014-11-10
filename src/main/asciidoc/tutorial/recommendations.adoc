@@ -13,8 +13,8 @@ There was this query language called Cypher that looked a bit like SQL but expre
 ----
 interface MovieRepository extends GraphRepository<Movie> {
 	@Query("
-	start user=node({0}) 
-	match user-[:FRIEND]-friend-[r:RATED]->movie
+	match (user)-[:FRIEND]-(friend)-[r:RATED]->(movie)
+	where id(user) = {0}
 	return movie
 	order by avg(r.stars) desc, count(*) desc
 	limit 10
@@ -33,12 +33,13 @@ But we didn't have enough friends, so it was time to get some suggested. That wo
 interface UserRepository extends GraphRepository<User> {
 	@Query("
 	start user=node({0}) 
-	match user-[r:RATED]->movie<-[r2:RATED]-likeminded,
-	  user-[:FRIEND]-friend
-	where r.stars > 3 and r2.stars >= 3
-	return likeminded
+	match (user)-[r:RATED]->(movie)<-[r2:RATED]-(likeminded),
+	where id(user) = {0} and r.stars > 3 and r2.stars >= 3
+	and not (user)-[:FRIEND]-(likeminded)
+	with likeminded, count(*)
 	order by count(*) desc
 	limit 10
+	return likeminded
 	")
     Iterable<User> suggestFriends(User me);
 }
