@@ -116,12 +116,6 @@
 		</dependency>
 
 		<dependency>
-			<groupId>cglib</groupId>
-			<artifactId>cglib</artifactId>
-			<version>2.2.2</version>
-		</dependency>
-
-		<dependency>
 			<groupId>org.neo4j</groupId>
 			<artifactId>neo4j-spatial</artifactId>
 			<version>${neo4j.spatial.version}</version>
