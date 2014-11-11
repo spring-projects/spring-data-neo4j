@@ -91,9 +91,9 @@ The milestone releases of Spring Data Neo4j are available from the dedicated mil
 [source,xml]
 ----
 <repository>
-    <id>spring-maven-milestone</id>
-    <name>Springframework Maven Repository</name>
-    <url>http://maven.springframework.org/milestone</url>
+	<id>spring-libs-milestone</id>
+	<name>Spring Milestone</name>
+	<url>http://repo.spring.io/libs-milestone</url>
 </repository>
 ----
 
@@ -238,35 +238,6 @@ The XML namespace can be used to configure Spring Data Neo4j. The `config` eleme
 ----
 ====
 
-.XML configuration with http://neo4j.com/docs/milestone/server-embedded.html[embedded Neo4j-Server]
-====
-[source,xml]
-----
-<context:annotation-config/>
-
-<bean id="graphDatabaseService" class="org.springframework.data.neo4j.support.GraphDatabaseServiceFactoryBean"
-    destroy-method="shutdown">
-	<constructor-arg index="0" value="foo/db" />
-	<constructor-arg index="1">
-		<map><entry key="enable_remote_shell" value="true"/></map>
-    </constructor-arg>
-</bean>
-
-<bean id="serverWrapper" class="org.neo4j.server.WrappingNeoServerBootstrapper" 
-	init-method="start" destroy-method="stop">
-	<constructor-arg ref="graphDatabaseService"/>
-</bean>
-
-// also add the static server-assets dependency to your pom.xml
-<dependency>
-    <groupId>org.neo4j.app</groupId>
-    <artifactId>neo4j-server</artifactId>
-    <classifier>static-web</classifier>
-    <version>${neo4j-version}</version>
-</dependency>
-----
-====
-
 .XML configuration with cross-store
 ====
 [source,xml]
@@ -296,9 +267,6 @@ As Spring Data Neo4j repositories build upon the infrastructure provided by http
 [source,xml]
 ----
 <neo4j:repositories base-package="org.example.repository"/>		
-
-<!-- with template bean reference -->
-<neo4j:repositories base-package="org.example.repository" graph-database-context-ref="template"/>
 ----
 ====
 
@@ -334,7 +302,7 @@ public class BasicJavaConfig extends Neo4jConfiguration {
 ----
 ====
 
-.Java-based bean config initialization via XML
+.Java-based bean config registration via XML
 ====
 To register the default `@Configuration Neo4jConfiguration` class, as well as Spring's `ConfigurationClassPostProcessor` that transforms the `@Configuration` class to bean definitions via XML.
 
