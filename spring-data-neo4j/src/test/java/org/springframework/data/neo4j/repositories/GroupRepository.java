@@ -23,7 +23,9 @@ import org.springframework.data.neo4j.model.Group;
 import org.springframework.data.neo4j.model.Person;
 import org.springframework.data.neo4j.repository.GraphRepository;
 import org.springframework.data.neo4j.repository.NamedIndexRepository;
+import org.springframework.data.repository.query.Param;
 
+import java.util.List;
 import java.util.Set;
 
 
@@ -37,4 +39,7 @@ public interface GroupRepository extends GraphRepository<Group>, NamedIndexRepos
 
     @Query("match (group:g{name:{0}})-[:persons]->(aMember) return aMember")
     Set<Person> getTeamMembersAsSetViaQuery(String groupName);
+
+    @Query("match (group:g)-[:persons]->(aMember) where group.name IN {groups} return aMember")
+    Set<Person> getTeamMembersByGroupNames(@Param("groups") List<String> groups);
 }

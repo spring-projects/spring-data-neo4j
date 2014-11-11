@@ -27,6 +27,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionCallbackWithoutResult;
 import org.springframework.transaction.support.TransactionTemplate;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Set;
 
@@ -123,6 +124,14 @@ public class EntityQueryTests {
         // testFetchedPropertyQueryOfTypeSetPopulatedCorrectly
         // (theoretically, they should return the same result)
         Set<Person> members = groupRepository.getTeamMembersAsSetViaQuery(matrixTeam.matrixGroup.getName());
+        assertExpectionsOfMatrixTeamSetResult(members);
+    }
+
+    // DATAGRAPH-493
+    @Transactional
+    @Test
+    public void testFindByInQuery() {
+        Set<Person> members = groupRepository.getTeamMembersByGroupNames(Arrays.asList(matrixTeam.matrixGroup.getName()));
         assertExpectionsOfMatrixTeamSetResult(members);
     }
 
