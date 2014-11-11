@@ -68,9 +68,9 @@ public class SerialTesters {
         // Explicitly specify US locale for date parsing.  Otherwise, SimpleDateFormat
         // will use the default locale and we may get a parse exception, e.g.
         // French locale (fr_FR) does not recognize JAN a valid month.
-        bdayFormatter = new SimpleDateFormat("dd MMM yyyy HH:mm:ss", Locale.US);
+        bdayFormatter = new SimpleDateFormat("dd MM yyyy HH:mm:ss", Locale.US);
         try {
-            nicki.setBirthdate(bdayFormatter.parse("01 JAN 2013 00:00:00"));
+            nicki.setBirthdate(bdayFormatter.parse("01 01 2013 00:00:00"));
         } catch (ParseException e) {
             throw new RuntimeException("Could not parse date ...");
         }

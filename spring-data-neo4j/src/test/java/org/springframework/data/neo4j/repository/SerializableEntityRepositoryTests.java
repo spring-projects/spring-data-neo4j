@@ -88,7 +88,7 @@ public class SerializableEntityRepositoryTests {
     public void setUp() throws Exception {
         serialTesters = new SerialTesters();
         serialTesters.createUpgraderTeam(personRepository, groupRepository, friendshipRepository);
-        expectedBirthDate = serialTesters.bdayFormatter.parse("01 JAN 2013 00:00:00");
+        expectedBirthDate = serialTesters.bdayFormatter.parse("01 01 2013 00:00:00");
 
     }
 
