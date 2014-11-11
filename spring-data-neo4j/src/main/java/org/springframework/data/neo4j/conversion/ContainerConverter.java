@@ -35,10 +35,11 @@ public class ContainerConverter {
     @SuppressWarnings("unchecked")
     public static <T, C extends Iterable<T>> C toContainer(Class<C> container, Iterable<T> data) {
         if (container.isInstance(data)) return (C) data;
+        Collection<T> coll = coll = data instanceof Collection ? (Collection<T>) data : null;
         if (Iterable.class.equals(container)) return (C) data;
-        if (SortedSet.class.isAssignableFrom(container)) return (C) IteratorUtil.addToCollection(data, new TreeSet<T>());
-        if (Set.class.isAssignableFrom(container)) return (C) IteratorUtil.addToCollection(data, new HashSet<T>());
-        List<T> list = IteratorUtil.addToCollection(data, new ArrayList<T>(50));
+        if (SortedSet.class.isAssignableFrom(container)) return (C) (coll != null ? new TreeSet<T>(coll) : IteratorUtil.addToCollection(data, new TreeSet<T>()));
+        if (Set.class.isAssignableFrom(container)) return (C) ( coll != null ? new LinkedHashSet<T>(coll) : IteratorUtil.addToCollection(data, new LinkedHashSet<T>(50)));
+        List<T> list = (coll !=null ? new ArrayList<T>(coll) : IteratorUtil.addToCollection(data, new ArrayList<T>(50)));
         if (Page.class.isAssignableFrom(container)) {
             return (C) new PageImpl<T>(list);
         }
