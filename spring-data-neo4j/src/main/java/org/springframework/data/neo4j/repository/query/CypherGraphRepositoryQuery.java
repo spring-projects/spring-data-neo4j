@@ -45,7 +45,8 @@ class CypherGraphRepositoryQuery extends GraphRepositoryQuery {
         if (pageable==null) {
             return baseQuery;
         }
-        return baseQuery + " skip "+pageable.getOffset() + " limit " + pageable.getPageSize() + 1 ;
+        return baseQuery +
+                String.format(QueryTemplates.SKIP_LIMIT, pageable.getOffset(), pageable.getPageSize() + 1);
     }
 
     private String addSorting(String baseQuery, Sort sort) {
@@ -57,7 +58,7 @@ class CypherGraphRepositoryQuery extends GraphRepositoryQuery {
         if (sortOrder.isEmpty()) {
             return baseQuery;
         }
-        return baseQuery + " order by " + sortOrder;
+        return baseQuery + String.format(QueryTemplates.ORDER_BY_CLAUSE, sortOrder);
     }
 
     private String getSortOrder(Sort sort) {
