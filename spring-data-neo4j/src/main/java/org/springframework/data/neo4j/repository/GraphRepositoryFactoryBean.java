@@ -35,6 +35,7 @@ TransactionalRepositoryFactoryBeanSupport<R, T, Long> {
 
     public void setNeo4jTemplate(Neo4jTemplate template) {
         this.template = template;
+        this.neo4jMappingContext = template.getInfrastructure().getMappingContext();
     }
 
     /**
