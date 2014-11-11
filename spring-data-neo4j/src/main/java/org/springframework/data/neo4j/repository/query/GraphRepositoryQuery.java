@@ -66,6 +66,7 @@ abstract class GraphRepositoryQuery implements RepositoryQuery, ParameterResolve
     }
 
     private Object convertGraphEntityToId(Object value) {
+        if (value==null) return null;
         final Class<?> type = value.getClass();
         if (template.isNodeEntity(type)) {
             final Node state = template.getPersistentState(value);

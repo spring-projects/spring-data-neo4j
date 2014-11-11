@@ -35,6 +35,7 @@ import static junit.framework.Assert.assertNull;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.hasSize;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.neo4j.helpers.collection.IteratorUtil.asCollection;
 
@@ -125,6 +126,14 @@ public class EntityQueryTests {
         // (theoretically, they should return the same result)
         Set<Person> members = groupRepository.getTeamMembersAsSetViaQuery(matrixTeam.matrixGroup.getName());
         assertExpectionsOfMatrixTeamSetResult(members);
+    }
+
+    // DATAGRAPH-495
+    @Transactional
+    @Test
+    public void testNullParameterConversion() {
+        Set<Person> members = groupRepository.getTeamMembersAsSetViaQuery(null);
+        assertEquals(true, members.isEmpty());
     }
 
     // DATAGRAPH-493
