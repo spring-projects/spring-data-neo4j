@@ -130,13 +130,17 @@ NOTE: Remember, transient fields are *not* saved.
 
 It is not necessary to annotate property fields, as they are persisted by default; all fields that contain primitive values are persisted directly to the graph. All fields convertible to a `String` using the Spring conversion services will be stored as a string. Spring Data Neo4j includes a custom conversion factory that comes with converters for `Enum`s and `Date`s. Transient fields are not persisted.
 
-Collections of collections of primitive or convertible values are stored as well. They are converted to arrays of their type or strings respectively.
+Collections of of primitive or convertible values are stored as well. They are converted to arrays of their type or strings respectively.
 
 This annotation is typically used with cross-store persistence. When a node entity is configured as partial, then all fields that should be persisted to the graph must be explicitly annotated with `@GraphProperty`.
 
 `@GraphProperty` can specify default values for properties that are not in the graph. Default values are specified as String representations and will be converted to the correct target type using the existing conversion facilities. For example `@GraphProperty(defaultValue="20") Integer age`.
 
 It is also possible to declare the type that should be used for the storage inside of Neo4j. For instance if a `Date` property should be stored as an Long value instead of the default String, the annotation would look like `@GraphProperty(propertyType = Long.class)` For the actual mapping of the Field-Type to the Neo4j-Property type there has to be a Converter registered in the Spring-Config.
+
+Finally, node property names can also be explicitly assigned by using the `propertyName` attribute.
+ For example `@GraphProperty(propertyName="last_name") String lastName`.
+ The node property name defaults to the field name when not specified.
 
 == @Indexed: Making entities searchable by field value
 
