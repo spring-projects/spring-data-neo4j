@@ -21,6 +21,7 @@ package org.neo4j.rest.graphdb.converter;
 
 import java.util.*;
 
+import org.neo4j.graphdb.PropertyContainer;
 import org.neo4j.helpers.collection.IterableWrapper;
 import org.neo4j.rest.graphdb.RequestResult;
 import org.neo4j.rest.graphdb.RestAPI;
@@ -42,6 +43,7 @@ public class RestEntityExtractor implements RestResultConverter {
 
     @SuppressWarnings("unchecked")
     public Object convertFromRepresentation(Object value) {
+        if (value instanceof PropertyContainer) return value;
         if (value instanceof Map) {
             if (canHandle(value)) {
                 value = convertToEntityIfPossible(value);

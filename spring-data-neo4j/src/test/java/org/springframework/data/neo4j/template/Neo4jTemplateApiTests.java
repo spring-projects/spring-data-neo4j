@@ -103,11 +103,19 @@ public class Neo4jTemplateApiTests {
     @After
     public void tearDown() throws Exception {
         if (transaction!=null) {
-            transaction.success();
-            transaction.finish();
+            try {
+                transaction.success();
+                transaction.close();
+            } catch(Exception e) {
+                //ignore
+            }
         }
         if (graphDatabaseService!=null) {
             graphDatabaseService.shutdown();
+        } else {
+            if (graphDatabase != null ) {
+                graphDatabase.shutdown();
+            }
         }
     }
 
@@ -174,7 +182,7 @@ public class Neo4jTemplateApiTests {
 
     @Test
     public void shouldFindNextNodeViaCypher() throws Exception {
-        assertSingleResult(node1, template.query("start n=node(" + node0.getId() + ") match n-->m return m", null).to(Node.class));
+        assertSingleResult(node1, template.query("start n=node(" + node0.getId() + ") match (n)-->(m) return m", null).to(Node.class));
     }
 
     @Test

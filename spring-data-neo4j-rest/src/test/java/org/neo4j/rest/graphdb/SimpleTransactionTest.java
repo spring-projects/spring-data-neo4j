@@ -3,6 +3,7 @@ package org.neo4j.rest.graphdb;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.rest.graphdb.query.RestCypherQueryEngine;
@@ -22,8 +23,8 @@ public class SimpleTransactionTest extends RestTestBase {
 
     @Test
     public void testQueryWithinTransaction() throws Exception {
-        RestGraphDatabase db = (RestGraphDatabase) getRestGraphDb();
-        RestCypherQueryEngine cypher = new RestCypherQueryEngine(db.getRestAPI());
+        GraphDatabaseService db = getRestGraphDb();
+        RestCypherQueryEngine cypher = new RestCypherQueryEngine(((RestAPIProvider)db).getRestAPI());
         Transaction tx = db.beginTx();
         QueryResult<Map<String,Object>> result = cypher.query("CREATE (person1 { personId: {id}, started: {started} }) return person1",
                 map("id", 1, "started", System.currentTimeMillis()));

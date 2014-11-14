@@ -45,7 +45,7 @@ public class RestCypherQueryEngineTest extends RestTestBase {
     public void init() throws Exception {
         embeddedMatrixdata = new MatrixDataGraph(getGraphDatabase(),nodeId()).createNodespace();
         restMatrixData = new MatrixDataGraph(getRestGraphDb(),nodeId());
-        this.restAPI = ((RestGraphDatabase)getRestGraphDb()).getRestAPI();
+        this.restAPI = ((RestAPIProvider)getRestGraphDb()).getRestAPI();
         queryEngine = new RestCypherQueryEngine(restAPI);      
     }
     

@@ -52,10 +52,10 @@ import static org.springframework.data.neo4j.aspects.Person.persistedPerson;
 
 public class IndexTests extends EntityTestBase {
 
-    private static final String NAME = "name";
-    private static final String NAME_VALUE = "aName";
-    private static final String NAME_VALUE2 = "aSecondName";
-    private static final String NAME_VALUE3 = "aThirdName";
+    protected static final String NAME = "name";
+    protected static final String NAME_VALUE = "aName";
+    protected static final String NAME_VALUE2 = "aSecondName";
+    protected static final String NAME_VALUE3 = "aThirdName";
 
     @Test
     @Transactional

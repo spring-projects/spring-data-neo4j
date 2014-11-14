@@ -50,7 +50,7 @@ public class RestAPITest extends RestTestBase {
 
     @Before
 	public void init(){
-		this.restAPI = ((RestGraphDatabase)getRestGraphDb()).getRestAPI();
+		this.restAPI = ((RestAPIProvider)getRestGraphDb()).getRestAPI();
     }
 
     @Test

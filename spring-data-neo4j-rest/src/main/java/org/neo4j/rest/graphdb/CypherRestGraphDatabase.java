@@ -38,7 +38,7 @@ import java.util.Map;
 import java.util.Set;
 
 
-public class CypherRestGraphDatabase extends AbstractRemoteDatabase {
+public class CypherRestGraphDatabase extends AbstractRemoteDatabase implements RestAPIProvider {
     private RestAPICypherImpl restAPI;
 
     public CypherRestGraphDatabase(RestAPI restAPI){
@@ -121,7 +121,7 @@ public class CypherRestGraphDatabase extends AbstractRemoteDatabase {
     public void shutdown() {
         try {
             getTxManager().rollback();
-        } catch (SystemException e) {
+        } catch (SystemException|IllegalStateException e) {
             // ignore
         }
         restAPI.close();

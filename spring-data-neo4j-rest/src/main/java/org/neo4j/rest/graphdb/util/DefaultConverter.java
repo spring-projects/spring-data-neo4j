@@ -25,6 +25,7 @@ import java.util.Map;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Path;
 import org.neo4j.graphdb.Relationship;
+import org.neo4j.rest.graphdb.entity.RestNode;
 import org.neo4j.rest.graphdb.traversal.NodePath;
 import org.neo4j.rest.graphdb.traversal.RelationshipPath;
 

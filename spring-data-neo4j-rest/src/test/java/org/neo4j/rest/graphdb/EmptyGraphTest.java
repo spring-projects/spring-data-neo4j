@@ -20,6 +20,7 @@
 package org.neo4j.rest.graphdb;
 
 import org.junit.After;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.neo4j.graphdb.NotFoundException;
 import org.neo4j.graphdb.Transaction;

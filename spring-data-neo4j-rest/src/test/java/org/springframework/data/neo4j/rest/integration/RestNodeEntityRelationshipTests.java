@@ -19,7 +19,16 @@ package org.springframework.data.neo4j.rest.integration;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.neo4j.graphdb.Direction;
+import org.neo4j.graphdb.DynamicRelationshipType;
+import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.Transaction;
+import org.neo4j.helpers.collection.IteratorUtil;
+import org.springframework.data.neo4j.aspects.Group;
+import org.springframework.data.neo4j.aspects.Mentorship;
+import org.springframework.data.neo4j.aspects.Person;
 import org.springframework.data.neo4j.aspects.support.NodeEntityRelationshipTests;
 import org.springframework.data.neo4j.rest.support.RestTestBase;
 import org.springframework.test.context.CleanContextCacheTestExecutionListener;
@@ -28,6 +37,10 @@ import org.springframework.test.context.TestExecutionListeners;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
 import org.springframework.test.context.transaction.TransactionalTestExecutionListener;
+import org.springframework.transaction.annotation.Transactional;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 
 /**
 * @author mh
@@ -53,6 +66,30 @@ public class RestNodeEntityRelationshipTests extends NodeEntityRelationshipTests
     public static void shutdownDb() {
         RestTestBase.shutdownDb();
 
+    }
+
+    @Test
+    @Transactional
+    public void testUpdateSingleRelatedToViaField() {
+        Group group;
+        final Long firstMentorshipId;
+        final Person mentor2;
+        try (Transaction tx = neo4jTemplate.getGraphDatabaseService().beginTx()) {
+            group = persist(new Group());
+            group.setMentorship(new Mentorship(persist(new Person()), group));
+            persist(group);
+            firstMentorshipId = group.getMentorship().getId();
+            mentor2 = new Person();
+            group.setMentorship(new Mentorship(persist(mentor2), group));
+            persist(group);
+            tx.success();
+        }
+        final Node node = neo4jTemplate.getPersistentState(group);
+        assertEquals(1, IteratorUtil.count(node.getRelationships(Direction.INCOMING, DynamicRelationshipType.withName("mentors"))));
+        final Group loaded = neo4jTemplate.load(node, Group.class);
+        assertFalse(loaded.getMentorship().getId().equals(firstMentorshipId));
+        assertEquals(mentor2, group.getMentorship().getMentor());
+        assertEquals(group, group.getMentorship().getGroup());
     }
 
 }

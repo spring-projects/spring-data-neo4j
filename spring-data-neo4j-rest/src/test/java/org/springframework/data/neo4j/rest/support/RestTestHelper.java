@@ -25,6 +25,7 @@ import org.neo4j.server.configuration.Configurator;
 import org.neo4j.server.configuration.ServerConfigurator;
 import org.neo4j.test.ImpermanentGraphDatabase;
 import org.springframework.data.neo4j.core.GraphDatabase;
+import org.springframework.data.neo4j.rest.SpringCypherRestGraphDatabase;
 import org.springframework.data.neo4j.rest.SpringRestGraphDatabase;
 
 public class RestTestHelper
@@ -46,7 +47,7 @@ public class RestTestHelper
     }
 
     public GraphDatabase createGraphDatabase() throws URISyntaxException {
-        return new SpringRestGraphDatabase(SERVER_ROOT_URI);
+        return new SpringCypherRestGraphDatabase(SERVER_ROOT_URI);
     }
 
     public void cleanDb() {

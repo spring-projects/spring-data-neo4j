@@ -19,9 +19,9 @@
  */
 package org.neo4j.rest.graphdb;
 
+import org.apache.lucene.search.Query;
 import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.index.IndexHits;
-import org.neo4j.helpers.Pair;
 import org.neo4j.helpers.collection.IterableWrapper;
 import org.neo4j.helpers.collection.IteratorUtil;
 import org.neo4j.helpers.collection.MapUtil;
@@ -40,7 +40,6 @@ import org.neo4j.rest.graphdb.util.QueryResult;
 import org.neo4j.rest.graphdb.util.QueryResultBuilder;
 import org.neo4j.rest.graphdb.util.ResultConverter;
 
-import javax.ws.rs.core.Response.Status;
 import java.util.*;
 
 import static java.util.Arrays.asList;
@@ -51,8 +50,8 @@ import static org.neo4j.rest.graphdb.query.CypherTransaction.Statement;
 
 public class RestAPICypherImpl implements RestAPI {
 
-    public static final String _QUERY_RETURN_NODE = " RETURN id(n) as id, labels(n) as labels, n as data";
-    public static final String _QUERY_RETURN_REL = " RETURN id(r) as id, type(r) as type, r as data, id(startNode(r)) as start, id(endNode(r)) as end";
+    public static final String _QUERY_RETURN_NODE = " RETURN id(n) as id, labels(n) as labels, n as properties";
+    public static final String _QUERY_RETURN_REL = " RETURN id(r) as id, type(r) as type, r as properties, id(startNode(r)) as start, id(endNode(r)) as end";
 
     public static String MATCH_NODE_QUERY(String name) {
         return " MATCH (" + name + ") WHERE id(" + name + ") = {id_" + name + "} ";
@@ -64,6 +63,9 @@ public class RestAPICypherImpl implements RestAPI {
     public static final String GET_REL_QUERY = _MATCH_REL_QUERY + _QUERY_RETURN_REL;
 
     public static final String GET_REL_TYPES_QUERY = _MATCH_NODE_QUERY + " MATCH (n)-[r]-() RETURN distinct type(r) as relType";
+
+    private RestIndexManager restIndex = new RestIndexManager(this);
+    private RestIndexManager restIndexOld;
 
     private String createNodeQuery(Collection<String> labels) {
         String labelString = toLabelString(labels);
@@ -96,6 +98,7 @@ public class RestAPICypherImpl implements RestAPI {
 
     protected RestAPICypherImpl(RestAPI restAPI) {
         this.restAPI = restAPI;
+        restIndexOld = new RestIndexManager(restAPI);
     }
 
     @Override
@@ -105,7 +108,7 @@ public class RestAPICypherImpl implements RestAPI {
             if (restNode != null) return restNode;
         }
         if (force == Load.FromCache) return new RestNode(RestNode.nodeUri(this, id), this);
-        Iterator<List<Object>> result = query(GET_NODE_QUERY, map("id", id)).getData().iterator();
+        Iterator<List<Object>> result = runQuery(GET_NODE_QUERY, map("id", id)).getRows().iterator();
         if (!result.hasNext()) {
             throw new NotFoundException("Node not found " + id);
         }
@@ -146,7 +149,7 @@ public class RestAPICypherImpl implements RestAPI {
     @Override
     public RestRelationship getRelationshipById(long id) {
         try {
-            Iterator<List<Object>> result = query(GET_REL_QUERY, map("id", id)).getData().iterator();
+            Iterator<List<Object>> result = runQuery(GET_REL_QUERY, map("id", id)).getRows().iterator();
             if (!result.hasNext()) {
                 throw new NotFoundException("Relationship not found " + id);
             }
@@ -170,7 +173,7 @@ public class RestAPICypherImpl implements RestAPI {
 
     @Override
     public RestNode createNode(Map<String, Object> props, Collection<String> labels) {
-        Iterator<List<Object>> result = query(createNodeQuery(labels), map("props", props(props))).getData().iterator();
+        Iterator<List<Object>> result = runQuery(createNodeQuery(labels), map("props", props(props))).getRows().iterator();
         if (result.hasNext()) {
             return addToCache(toNode(result.next()));
         }
@@ -184,7 +187,7 @@ public class RestAPICypherImpl implements RestAPI {
         nodeProperties = props(nodeProperties);
         Map props = nodeProperties.containsKey(key) ? nodeProperties : MapUtil.copyAndPut(nodeProperties, key, value);
         Map<String, Object> params = map("props", props, "value", value);
-        Iterator<List<Object>> result = query(mergeQuery(labelName, key, labels), params).getData().iterator();
+        Iterator<List<Object>> result = runQuery(mergeQuery(labelName, key, labels), params).getRows().iterator();
         if (!result.hasNext())
             throw new RuntimeException("Error merging node with labels: " + labelName + " key " + key + " value " + value + " labels " + labels + " and props: " + props + " no data returned");
 
@@ -291,11 +294,10 @@ public class RestAPICypherImpl implements RestAPI {
     @Override
     public void addLabels(RestNode node, Collection<String> labels) {
         String statement = _MATCH_NODE_QUERY + " SET n" + toLabelString(labels) + _QUERY_RETURN_NODE;
-        runQuery(statement, map("id", node.getId()));
-        RequestResult response = getRestRequest().with(node.getUri()).post("labels", labels);
+        CypherTransaction.Result result = runQuery(statement, map("id", node.getId()));
 
-        if (response.statusOtherThan(Status.NO_CONTENT)) {
-            throw new IllegalStateException("error adding labels, received " + response);
+        if (!result.hasData()) {
+            throw new RuntimeException("Error adding labels " + labels + " to node " + node);
         }
     }
 
@@ -314,6 +316,7 @@ public class RestAPICypherImpl implements RestAPI {
 
     @Override
     public <S extends PropertyContainer> IndexHits<S> getIndex(Class<S> entityType, String indexName, String key, Object value) {
+        if (value instanceof Query) return restAPI.getIndex(entityType, indexName, key, value);
         String index = key == null ? ":`" + indexName + "`({query})" : ":`" + indexName + "`(`" + key + "`={query})";
         if (Node.class.isAssignableFrom(entityType)) {
             String statement = "start n=node" + index + _QUERY_RETURN_NODE;
@@ -330,7 +333,9 @@ public class RestAPICypherImpl implements RestAPI {
 
     @Override
     public <S extends PropertyContainer> IndexHits<S> queryIndex(Class<S> entityType, String indexName, String key, Object value) {
+        if (value instanceof Query) return restAPI.queryIndex(entityType,indexName,key,value);
         String index = ":`" + indexName + "`({query})";
+        if (key != null && !key.isEmpty() && !value.toString().contains(":")) value = key + ":"+value;
         if (Node.class.isAssignableFrom(entityType)) {
             String statement = "start n=node" + index + _QUERY_RETURN_NODE;
             CypherTransaction.Result result = runQuery(statement, map("query", value));
@@ -368,7 +373,7 @@ public class RestAPICypherImpl implements RestAPI {
 
     @Override
     public RestIndexManager index() {
-        return restAPI.index();
+        return restIndex;
     }
 
 
@@ -423,7 +428,7 @@ public class RestAPICypherImpl implements RestAPI {
     }
 
     public CypherResult query(String statement, Map<String, Object> params) {
-        return new CypherTxResult(runQuery(statement, params));
+        return new CypherTxResult(runQuery(statement, params,true));
     }
 
     private List<CypherTransaction.Result> runQueries(Collection<Statement> statements) {
@@ -438,11 +443,14 @@ public class RestAPICypherImpl implements RestAPI {
         }
     }
 
-    private CypherTransaction.Result runQuery(String statement, Map<String, Object> params) {
+    private CypherTransaction.Result runQuery(String statement, Map<String, Object> params, boolean replace) {
         if (!txManager.isActive()) {
-            return newCypherTransaction().commit(statement, params);
+            return newCypherTransaction().commit(statement, params, replace);
         }
-        return txManager.getCypherTransaction().send(statement, params);
+        return txManager.getCypherTransaction().send(statement, params, replace);
+    }
+    private CypherTransaction.Result runQuery(String statement, Map<String, Object> params) {
+        return runQuery(statement,params,false);
     }
 
     public CypherTransaction newCypherTransaction() {
@@ -450,8 +458,53 @@ public class RestAPICypherImpl implements RestAPI {
     }
 
     public QueryResult<Map<String, Object>> query(String statement, Map<String, Object> params, ResultConverter resultConverter) {
-        CypherTransaction.Result result = runQuery(statement, params);
-        return new QueryResultBuilder<>(result, resultConverter);
+        CypherTransaction.Result result = runQuery(statement, params,true);
+        Iterable it = new IterableWrapper<Map<String, Object>,Map<String, Object>>(result) {
+            @Override
+            protected Map<String, Object> underlyingObjectToObject(Map<String, Object> value) {
+                return convertRestEntitiesInRow(value);
+            }
+        };
+        return new QueryResultBuilder<>(it, resultConverter); // new RestEntityConverter(resultConverter));
+    }
+
+    private Map<String, Object> convertRestEntitiesInRow(Map<String, Object> value) {
+        Map<String,Object> map= value;
+        for (Map.Entry<String, Object> entry : map.entrySet()) {
+            Object original = entry.getValue();
+            if (!(original instanceof Map)) continue;
+            Map mapValue = (Map) original;
+            if (mapValue.containsKey("id") &&  mapValue.containsKey("properties")) {
+                Object v = createRestEntity(mapValue);
+                if (v != null) entry.setValue(v);
+            }
+        }
+        return map;
+    }
+
+    class RestEntityConverter implements ResultConverter {
+        ResultConverter delegate;
+
+        public RestEntityConverter(ResultConverter delegate) {
+            this.delegate = delegate;
+        }
+
+        @Override
+        public Object convert(Object value, Class type) {
+            Map<String,Object> map= (Map<String, Object>) value;
+            for (Map.Entry<String, Object> entry : map.entrySet()) {
+                Object v = doConvert(entry.getValue(), type);
+                if (v != null) entry.setValue(v);
+            }
+            return map;
+        }
+
+        protected Object doConvert(Object value, Class type) {
+            if (PropertyContainer.class.isAssignableFrom(type) && value instanceof Map) {
+                return createRestEntity((Map)value);
+            }
+            return delegate.convert(value,type);
+        }
     }
 
     @Override
@@ -466,7 +519,10 @@ public class RestAPICypherImpl implements RestAPI {
     @Override
     @SuppressWarnings("unchecked")
     public <T extends PropertyContainer> RestIndex<T> getIndex(String indexName) {
-        return restAPI.getIndex(indexName);
+        final RestIndexManager index = this.index();
+        if (index.existsForNodes(indexName)) return (RestIndex<T>) index.forNodes(indexName);
+        if (index.existsForRelationships(indexName)) return (RestIndex<T>) index.forRelationships(indexName);
+        throw new IllegalArgumentException("Index " + indexName + " does not yet exist");
     }
 
     @Override
@@ -478,7 +534,13 @@ public class RestAPICypherImpl implements RestAPI {
     @Override
     @SuppressWarnings("unchecked")
     public <T extends PropertyContainer> RestIndex<T> createIndex(Class<T> type, String indexName, Map<String, String> config) {
-        return restAPI.createIndex(type, indexName, config);
+        if (Node.class.isAssignableFrom(type)) {
+            return (RestIndex<T>) index().forNodes( indexName, config);
+        }
+        if (Relationship.class.isAssignableFrom(type)) {
+            return (RestIndex<T>) index().forRelationships(indexName, config);
+        }
+        throw new IllegalArgumentException("Required Node or Relationship types to create index, got " + type);
     }
 
     @Override
@@ -517,8 +579,8 @@ public class RestAPICypherImpl implements RestAPI {
         String statement2 = MATCH_NODE_QUERY("n") + " MATCH (m) WHERE id(m) IN {ids_m} MERGE (n)"+relPattern+"(m)" + _QUERY_RETURN_REL;
         Map<String, Object> params = map("id_n", start.getId(), "ids_m", nodeIds(endNodes));
         List<CypherTransaction.Result> results = runQueries(asList(
-                new Statement(statement1, params, row),
-                new Statement(statement2, params, row)));
+                new Statement(statement1, params, row,false),
+                new Statement(statement2, params, row,false)));
         Iterable<List<Object>> mergeResults = results.get(1).getRows();
         return new IterableWrapper<Relationship,List<Object>>(mergeResults) {
             @Override
@@ -641,7 +703,7 @@ public class RestAPICypherImpl implements RestAPI {
 
     public Iterable<Node> getAllNodes() {
         String statement = "MATCH (n) " + _QUERY_RETURN_NODE;
-        Iterable<List<Object>> result = query(statement, null).getData();
+        Iterable<List<Object>> result = runQuery(statement, null).getRows();
         return new IterableWrapper<Node, List<Object>>(result) {
             @Override
             protected Node underlyingObjectToObject(List<Object> row) {

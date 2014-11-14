@@ -1,7 +1,6 @@
 package org.neo4j.rest.graphdb.query;
 
 import com.sun.jersey.api.client.ClientResponse;
-import org.neo4j.helpers.Pair;
 import org.neo4j.helpers.collection.IterableWrapper;
 import org.neo4j.helpers.collection.IteratorWrapper;
 import org.neo4j.rest.graphdb.*;
@@ -29,6 +28,14 @@ public class CypherTransaction {
                 List result = new ArrayList((List)graph.get("nodes"));
                 result.addAll((List) graph.get("relationships"));
                 return result;
+            }
+            public List<Map> getNodes(Map data) {
+                Map graph = (Map) data.get(name());
+                return (List)graph.get("nodes");
+            }
+            public List<Map> getRelationships(Map data) {
+                Map graph = (Map) data.get(name());
+                return (List)graph.get("relationships");
             }
         }, row, rest;
 
@@ -69,12 +76,32 @@ public class CypherTransaction {
         private static Result toResult(Map resultData, Statement statement, final ResultType type) {
             List<String> columns = (List<String>) resultData.get("columns");
             List<Map> rowsData = (List<Map>) resultData.get("data");
+            final boolean replace = statement.doReplace();
             Iterable<List<Object>> rows = new IterableWrapper<List<Object>,Map>(rowsData) {
                 protected List<Object> underlyingObjectToObject(Map map) {
-                    return type.get(map);
+                    List<Object> row = type.get(map);
+                    List graph = ResultType.graph.get(map);
+                    if (replace) replaceGraphElements(row, (List<Map>) graph);
+                    return row;
                 }
             };
             return new Result(columns, rows, statement);
+        }
+
+        // todo hack !!
+        private static void replaceGraphElements(List<Object> row, List<Map> graph) {
+            for (Map pc : graph) {
+                Object props = pc.get("properties");
+                int pos = -1;
+                for (int i = 0; i < row.size(); i++) {
+                    Object o = row.get(i);
+                    if (props.equals(o)) {
+//                        row.set(i,pc);
+                        if (pos == -1) pos = i; else pos = -2;
+                    }
+                }
+                if (pos >= 0) row.set(pos,pc);
+            }
         }
 
         public List<String> getColumns() {
@@ -111,10 +138,12 @@ public class CypherTransaction {
         private final String statement;
         private final ResultType type;
         private final Map<String, Object> parameters;
+        private final boolean replace;
 
-        public Statement(String query, Map<String, Object> parameters, ResultType type) {
+        public Statement(String query, Map<String, Object> parameters, ResultType type, boolean replace) {
             this.statement = query;
             this.type = type;
+            this.replace = replace;
             this.parameters = parameters == null ? Collections.<String,Object>emptyMap() : parameters;
         }
 
@@ -127,8 +156,14 @@ public class CypherTransaction {
         }
 
         public List<String> getResultDataContents() {
-            return Collections.singletonList(type.name());
+            return Arrays.asList(type.name(), ResultType.graph.name());
         }
+
+        public ResultType getType() {
+            return type;
+        }
+
+        private boolean doReplace() { return replace; }
     }
 
     private final ResultType type;
@@ -145,23 +180,33 @@ public class CypherTransaction {
         this.statements.addAll(statements);
     }
 
-    public void add(String statement, Map<String,Object> params) {
-        statements.add(new Statement(statement,params,type));
+    public void add(String statement, Map<String, Object> params) {
+        add(statement,params,false);
+    }
+    public void add(String statement, Map<String, Object> params, boolean replace) {
+        statements.add(new Statement(statement,params,type, replace));
     }
 
+    public Result send(String statement, Map<String, Object> params) {
+        return send(statement,params,false);
+    }
 
-    public Result send(String statement, Map<String,Object> params) {
-        add(statement,params);
+    public Result send(String statement, Map<String, Object> params, boolean replace) {
+        add(statement,params, replace);
         List<Result> results = send(transactionUrl());
         if (results.size() > 0) return results.get(results.size() - 1);
-        throw new CypherTransactionExecutionException("Error Sending",asList(new Statement(statement,params,type)),errors("No.Results","No Results after single send"));
+        throw new CypherTransactionExecutionException("Error Sending",asList(new Statement(statement,params,type, replace)),errors("No.Results","No Results after single send"));
     }
 
-    public Result commit(String statement, Map<String,Object> params) {
-        add(statement,params);
+    public Result commit(String statement, Map<String, Object> params) {
+        return commit(statement,params,false);
+    }
+
+    public Result commit(String statement, Map<String, Object> params, boolean replace) {
+        add(statement,params, replace);
         List<Result> results = commit();
         if (results.size() > 0) return results.get(results.size() - 1);
-        else throw new CypherTransactionExecutionException("Error Sending",asList(new Statement(statement,params,type)),errors("No.Results","No Results after single commit"));
+        else throw new CypherTransactionExecutionException("Error Sending",asList(new Statement(statement,params,type, replace)),errors("No.Results","No Results after single commit"));
     }
 
     public List<Result> send() {
@@ -170,7 +215,7 @@ public class CypherTransaction {
 
     public List<Result> commit() {
         try {
-            if (statements.isEmpty()) add("return 1",null); // TODO hacking workaround b/c of periodic commit check in server accesses the first of an empty statement list with an NPE
+            if (statements.isEmpty()) add("return 1",null, false); // TODO hacking workaround b/c of periodic commit check in server accesses the first of an empty statement list with an NPE
             return send(commitUrl());
         } finally {
             commitUrl = null;
@@ -217,8 +262,8 @@ public class CypherTransaction {
     private List<Map> handleResult(RequestResult result, ArrayList<Statement> statements) {
         Map<?, ?> resultData = result.toMap();
         List<Map<String,String>> errors = (List<Map<String, String>>) resultData.get("errors");
-        if (errors != null && !errors.isEmpty()) throw new CypherTransactionExecutionException("Error executing cypher statements ",statements, errors);
         if (result.statusIs(ClientResponse.Status.CREATED)) transactionUrl = result.getLocation();
+        if (errors != null && !errors.isEmpty()) throw new CypherTransactionExecutionException("Error executing cypher statements ",statements, errors);
         commitUrl = (String) resultData.get("commit");
         return (List<Map>) resultData.get("results");
     }

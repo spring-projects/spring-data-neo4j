@@ -35,13 +35,28 @@ public class RemoteCypherTransaction implements Transaction {
     CypherTransaction tx;
     AtomicInteger innerCounter = new AtomicInteger(1);
 
+    @Override
+    public String toString() {
+        return "RemoteCypherTransaction@"+System.identityHashCode(this)+"{" +
+                "status=" + status +
+                ", success=" + success +
+                ", failure=" + failure +
+                ", tx=" + tx +
+                ", innerCounter=" + innerCounter +
+                '}';
+    }
+
     public RemoteCypherTransaction(CypherTransaction tx) {
         this.tx = tx;
         status = Status.STATUS_ACTIVE;
     }
 
     public void beginInner() {
-        innerCounter.incrementAndGet();
+        if (status == Status.STATUS_ACTIVE || status == Status.STATUS_COMMITTING || status == Status.STATUS_MARKED_ROLLBACK) {
+            innerCounter.incrementAndGet();
+        } else {
+            throw new IllegalStateException("Can't begin nested tx on non-active transaction status is " + status + " tx " + this);
+        }
     }
 
     public void success() {
@@ -85,10 +100,10 @@ public class RemoteCypherTransaction implements Transaction {
     @Override
     public Lock acquireWriteLock(PropertyContainer pc) {
         if (pc instanceof Node) {
-            tx().send("MATCH (n) WHERE id(n) = {id} REMOVE n.` lock property `", map("id", ((Node) pc).getId()));
+            tx().send("MATCH (n) WHERE id(n) = {id} REMOVE n.` lock property `", map("id", ((Node) pc).getId()), false);
         }
         if (pc instanceof Relationship) {
-            tx().send("START r=rel({id}) REMOVE r.` lock property `", map("id", ((Relationship) pc).getId()));
+            tx().send("START r=rel({id}) REMOVE r.` lock property `", map("id", ((Relationship) pc).getId()), false);
         }
         return new Lock() { public void release() { } }; // release at commit
     }

@@ -17,6 +17,7 @@
 package org.springframework.data.neo4j.rest.support;
 
 
+import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -85,6 +86,11 @@ public class RestTestBase {
 //        restGraphDatabase = new SpringRestGraphDatabase(SERVER_ROOT_URI);
         restGraphDatabase = new SpringCypherRestGraphDatabase(SERVER_ROOT_URI);
         refNode = createNode();
+    }
+
+    @After
+    public void tearDown() throws Exception {
+        if (restGraphDatabase!=null) restGraphDatabase.shutdown();
     }
 
     public Node createNode() {

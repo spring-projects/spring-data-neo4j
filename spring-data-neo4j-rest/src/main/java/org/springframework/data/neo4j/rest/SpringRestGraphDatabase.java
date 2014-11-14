@@ -40,6 +40,11 @@ import java.util.Map;
 
 import static org.neo4j.helpers.collection.MapUtil.map;
 
+
+/**
+ * @deprecated use SpringCypherRestGraphDatabase instead
+ */
+@Deprecated
 public class SpringRestGraphDatabase extends org.neo4j.rest.graphdb.RestGraphDatabase implements GraphDatabase {
     static {
         System.setProperty(Config.CONFIG_BATCH_TRANSACTION,"false");

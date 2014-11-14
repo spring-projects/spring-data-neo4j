@@ -576,7 +576,7 @@ public class RestAPIImpl implements RestAPI {
     public IndexInfo indexInfo(final String indexType) {
         IndexInfo indexInfo = indexInfos.get(indexType);
         if (indexInfo != null && !indexInfo.isExpired()) {
-
+//            return indexInfo;
         }
         RequestResult response = restRequest.get("index/" + encode(indexType));
         indexInfo = new RetrievedIndexInfo(response);
@@ -759,6 +759,17 @@ public class RestAPIImpl implements RestAPI {
 
     @Override
     public RestEntity createRestEntity(Map data) {
+        if (data.containsKey("id") && data.containsKey("properties")) {
+            long id = asLong(data, "id");
+            Map props = (Map) data.get("properties");
+            if (data.containsKey("type")) {
+                return RestRelationship.fromCypher(id,(String)data.get("type"),props,asLong(data, "startNode"),asLong(data, "endNode"),this);
+            }
+            if (data.containsKey("labels")) {
+                List<String> labels = (List<String>) data.get("labels");
+                return entityCache.addToCache(RestNode.fromCypher(id,labels,props, this));
+            }
+        }
         final String uri = (String) data.get("self");
         if (uri == null || uri.isEmpty()) return null;
         if (uri.contains("/node/")) {
@@ -768,6 +779,11 @@ public class RestAPIImpl implements RestAPI {
             return new RestRelationship(data, this);
         }
         return null;
+    }
+
+    protected long asLong(Map data, String idKey) {
+        Object idValue = data.get(idKey);
+        return idValue instanceof Number ? ((Number)idValue).longValue() : Long.parseLong(idValue.toString());
     }
 
     public RequestResult batch(Collection<Map<String, Object>> batchRequestData) {

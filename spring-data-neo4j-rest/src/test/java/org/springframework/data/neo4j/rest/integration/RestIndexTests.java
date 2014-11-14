@@ -19,7 +19,9 @@ package org.springframework.data.neo4j.rest.integration;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.springframework.data.neo4j.aspects.Person;
 import org.springframework.data.neo4j.aspects.support.IndexTests;
 import org.springframework.data.neo4j.rest.support.RestTestBase;
 import org.springframework.test.annotation.DirtiesContext;
@@ -29,6 +31,11 @@ import org.springframework.test.context.TestExecutionListeners;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
 import org.springframework.test.context.transaction.TransactionalTestExecutionListener;
+import org.springframework.transaction.annotation.Transactional;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.springframework.data.neo4j.aspects.Person.persistedPerson;
 
 /**
  * @author mh
@@ -56,4 +63,18 @@ public class RestIndexTests extends IndexTests {
 
     }
 
+    @Test
+    public void testOutsideRangeQueryPersonByIndexOnAnnotatedField() {
+        persistedPerson(NAME_VALUE, 35);
+        Iterable<Person> emptyResult = this.personRepository.findAllByRange("age", 0, 34);
+        assertFalse("nothing found outside range", emptyResult.iterator().hasNext());
+    }
+
+
+    @Test
+    public void testRangeQueryPersonByIndexOnAnnotatedField() {
+        Person person = persistedPerson(NAME_VALUE, 35);
+        final Person found = this.personRepository.findAllByRange("age", 10, 40).iterator().next();
+        assertEquals("person found inside range", person, found);
+    }
 }

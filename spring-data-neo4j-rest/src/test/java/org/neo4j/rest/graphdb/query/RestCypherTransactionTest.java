@@ -1,11 +1,11 @@
 package org.neo4j.rest.graphdb.query;
 
 import org.junit.Test;
+import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.NotFoundException;
-import org.neo4j.rest.graphdb.RestAPIImpl;
-import org.neo4j.rest.graphdb.RestAPIInternal;
-import org.neo4j.rest.graphdb.RestTestBase;
+import org.neo4j.graphdb.Transaction;
+import org.neo4j.rest.graphdb.*;
 import org.neo4j.rest.graphdb.entity.RestEntity;
 
 import java.util.*;
@@ -14,8 +14,9 @@ import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
 import static org.neo4j.helpers.collection.MapUtil.map;
 
-public class CypherTransactionTest extends RestTestBase {
+public class RestCypherTransactionTest extends RestTestBase {
 
+    /*
     @Test
     public void testSingleSend() throws Exception {
         CypherTransaction transaction = new CypherTransaction(SERVER_ROOT_URI, CypherTransaction.ResultType.row);
@@ -70,19 +71,24 @@ public class CypherTransactionTest extends RestTestBase {
         Node node = getRestGraphDb().getNodeById(((Number) result.getRows().iterator().next().get(0)).longValue());
         assertEquals("John",node.getProperty("name"));
     }
-
+*/
     @Test
     public void testWriteCommit() throws Exception {
-        CypherTransaction transaction = new CypherTransaction(SERVER_ROOT_URI, CypherTransaction.ResultType.row);
-        CypherTransaction.Result result = transaction.send("CREATE (n {name:'John'}) RETURN id(n) as id", null);
-        Object id = result.iterator().next().get("id");
-        CypherTransaction.Result result2 = transaction.send("MATCH (n) WHERE id(n) = {id} return id(n) as id", map("id",id));
-        List<CypherTransaction.Result> commit = transaction.commit();
-        assertEquals(1, commit.size());
-        Node node = getRestGraphDb().getNodeById(((Number) result.getRows().iterator().next().get(0)).longValue());
+        GraphDatabaseService db = getRestGraphDb();
+        RestAPI api = ((RestAPIProvider) getRestGraphDb()).getRestAPI();
+        Transaction tx1 = api.beginTx();
+        Transaction tx2 = api.beginTx();
+        CypherResult result = api.query("CREATE (n {name:'John'}) RETURN id(n) as id", null);
+        Object id = result.getData().iterator().next().get(0);
+        CypherResult result2 = api.query("MATCH (n) WHERE id(n) = {id} return id(n) as id", map("id", id));
+        Object id2 = result2.getData().iterator().next().get(0);
+        tx2.success();tx2.close();
+        tx1.success();tx1.close();
+        Node node = db.getNodeById(((Number) id2).longValue());
         assertEquals("John",node.getProperty("name"));
     }
 
+    /*
     @Test(expected = NotFoundException.class)
     public void testRollback() throws Exception {
         CypherTransaction transaction = new CypherTransaction(SERVER_ROOT_URI, CypherTransaction.ResultType.row);
@@ -91,4 +97,5 @@ public class CypherTransactionTest extends RestTestBase {
         RestAPIImpl api = new RestAPIImpl(SERVER_ROOT_URI);
         api.getNodeById(((Number) result.getRows().iterator().next().get(0)).longValue(), RestAPIInternal.Load.ForceFromServer);
     }
+    */
 }

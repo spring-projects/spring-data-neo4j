@@ -56,7 +56,7 @@ public class ResultTypeConverterTest extends RestTestBase {
 
     @Before
     public void init(){
-        restAPI = ((RestGraphDatabase)getRestGraphDb()).getRestAPI();
+        restAPI = ((RestAPIProvider)getRestGraphDb()).getRestAPI();
         converter = new ResultTypeConverter(restAPI);
     }
 

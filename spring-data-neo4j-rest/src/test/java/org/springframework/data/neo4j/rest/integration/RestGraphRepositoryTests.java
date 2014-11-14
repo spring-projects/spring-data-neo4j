@@ -20,6 +20,7 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.neo4j.rest.graphdb.query.CypherTransactionExecutionException;
 import org.springframework.data.neo4j.aspects.support.GraphRepositoryTests;
 import org.springframework.data.neo4j.rest.support.RestTestBase;
 import org.springframework.test.context.CleanContextCacheTestExecutionListener;
@@ -58,13 +59,13 @@ public class RestGraphRepositoryTests extends GraphRepositoryTests {
     //        exception thrown when duplicate violations occur
     /*
     Unfortunately the REST scenario does not provide us with enough info to work out that this
-    was a constaint violation (other than parsing the message itself which is not great) as it
+    was a constraint violation (other than parsing the message itself which is not great) as it
     merely throws an IllegalStateException when no content is found for a response when adding
     labels. The org.neo4j.rest.graphdb.ExecutingRestAPI.addLabels(RestNode node, String...labels)
     method is the current offender in this case. The REST API itself would probably need to change for
     us to be able to deal with this appropriately in SDN
     */
-    @Test(expected = IllegalStateException.class)
+    @Test(expected = CypherTransactionExecutionException.class)
     public void testSaveWhenFailOnDuplicateSetToTrue() {
           super.testSaveWhenFailOnDuplicateSetToTrue();
     }

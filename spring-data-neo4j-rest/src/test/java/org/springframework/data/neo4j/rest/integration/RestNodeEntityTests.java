@@ -19,6 +19,7 @@ package org.springframework.data.neo4j.rest.integration;
 import org.junit.*;
 import org.junit.runner.RunWith;
 import org.neo4j.graphdb.ConstraintViolationException;
+import org.neo4j.rest.graphdb.query.CypherTransactionExecutionException;
 import org.springframework.data.neo4j.aspects.support.NodeEntityTests;
 import org.springframework.data.neo4j.rest.support.RestTestBase;
 import org.springframework.test.context.CleanContextCacheTestExecutionListener;
@@ -59,9 +60,7 @@ public class RestNodeEntityTests extends NodeEntityTests {
         // super.testSetShortProperty();
     }
 
-    // TODO - Change REST to have a better (more descriptive)
-    //        exception thrown when duplicate violations occur
-    @Test(expected = IllegalStateException.class)
+    @Test(expected = CypherTransactionExecutionException.class)
     public void testDefaultFailOnDuplicateSetToTrueCausesExceptionWhenAnotherDuplicateEntityCreated() {
         super.testDefaultFailOnDuplicateSetToTrueCausesExceptionWhenAnotherDuplicateEntityCreated();
     }

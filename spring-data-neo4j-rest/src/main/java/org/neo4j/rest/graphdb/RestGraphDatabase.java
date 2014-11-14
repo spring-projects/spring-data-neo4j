@@ -36,8 +36,11 @@ import javax.transaction.TransactionManager;
 import java.util.Collection;
 import java.util.LinkedHashSet;
 
-
-public class RestGraphDatabase extends AbstractRemoteDatabase {
+/**
+ * @deprecated use CypherRestGraphDatabase instead
+ */
+@Deprecated
+public class RestGraphDatabase extends AbstractRemoteDatabase implements RestAPIProvider {
     private RestAPI restAPI;
     private final RestCypherQueryEngine cypherQueryEngine;
 

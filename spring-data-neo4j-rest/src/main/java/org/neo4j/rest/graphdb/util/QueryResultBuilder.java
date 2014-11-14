@@ -20,15 +20,19 @@
 package org.neo4j.rest.graphdb.util;
 
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
+import org.neo4j.graphdb.PropertyContainer;
 import org.neo4j.graphdb.index.IndexHits;
 import org.neo4j.helpers.collection.ClosableIterable;
 import org.neo4j.helpers.collection.IteratorUtil;
 import org.neo4j.helpers.collection.IteratorWrapper;
+import org.neo4j.rest.graphdb.query.CypherTransaction;
 
 
 public class QueryResultBuilder<T> implements QueryResult<T> {
+    private CypherTransaction.Result cypherResult;
     private Iterable<T> result;
     private final ResultConverter defaultConverter;
     private final boolean isClosableIterable;

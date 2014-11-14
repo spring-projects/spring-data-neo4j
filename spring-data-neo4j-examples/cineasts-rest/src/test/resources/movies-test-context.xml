@@ -16,7 +16,7 @@
     <neo4j:repositories base-package="org.neo4j.cineasts.repository"/>
 
     <!--<bean id="graphDatabaseService" class="org.neo4j.test.ImpermanentGraphDatabase"/>-->
-    <bean id="graphDatabaseService" class="org.springframework.data.neo4j.rest.SpringRestGraphDatabase" scope="singleton">
+    <bean id="graphDatabaseService" class="org.springframework.data.neo4j.rest.SpringCypherRestGraphDatabase" scope="singleton">
          <constructor-arg index="0" value="http://localhost:7470/db/data" />
     </bean>
     <bean class="org.neo4j.cineasts.movieimport.MovieDbApiClient">

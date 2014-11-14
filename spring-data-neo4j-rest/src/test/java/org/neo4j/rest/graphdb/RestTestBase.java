@@ -95,7 +95,7 @@ public class RestTestBase {
     }
 
     protected GraphDatabaseService createRestGraphDatabase() {
-        return new RestGraphDatabase(SERVER_ROOT_URI);
+        return new CypherRestGraphDatabase(SERVER_ROOT_URI);
     }
 
     @After

@@ -43,7 +43,7 @@ public class DefaultConverter<T,R> implements ResultConverter<T,R> {
         final Class<?> sourceType = singleValue.getClass();
         Object result = doConvert(singleValue, sourceType, type,mappingPolicy);
         if (result == null)
-            throw new RuntimeException("Cannot automatically convert " + sourceType + " to " + type + " please use a custom converter");
+            throw new RuntimeException("Cannot automatically convert " + sourceType + " to " + type + " please use a custom converter, value: "+value);
         return (R) result;
     }
 
