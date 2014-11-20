@@ -22,11 +22,10 @@ import java.util.*;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.PropertyContainer;
 import org.neo4j.graphdb.Relationship;
-import org.springframework.data.mapping.Association;
-import org.springframework.data.mapping.PersistentProperty;
-import org.springframework.data.mapping.PropertyHandler;
-import org.springframework.data.mapping.SimplePropertyHandler;
+import org.springframework.core.convert.ConversionService;
+import org.springframework.data.mapping.*;
 import org.springframework.data.mapping.model.BasicPersistentEntity;
+import org.springframework.data.mapping.model.ConvertingPropertyAccessor;
 import org.springframework.data.mapping.model.MappingException;
 import org.springframework.data.neo4j.annotation.NodeEntity;
 import org.springframework.data.neo4j.annotation.RelationshipEntity;
@@ -282,5 +281,10 @@ public class Neo4jPersistentEntityImpl<T> extends BasicPersistentEntity<T, Neo4j
             collectSuperTypeLabels(superType, labels);
         }
         return labels;
+    }
+
+    public PersistentPropertyAccessor getPropertyAccessor(Object source, ConversionService conversionService) {
+        PersistentPropertyAccessor accessor = getPropertyAccessor(source);
+        return conversionService == null ? accessor : new ConvertingPropertyAccessor(accessor,conversionService);
     }
 }

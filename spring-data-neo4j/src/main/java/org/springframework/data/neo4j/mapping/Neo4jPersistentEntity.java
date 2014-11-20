@@ -17,7 +17,9 @@
 package org.springframework.data.neo4j.mapping;
 
 import org.neo4j.graphdb.PropertyContainer;
+import org.springframework.core.convert.ConversionService;
 import org.springframework.data.mapping.PersistentEntity;
+import org.springframework.data.mapping.PersistentPropertyAccessor;
 import org.springframework.data.neo4j.support.mapping.StoredEntityType;
 
 import java.util.Collection;
@@ -50,4 +52,6 @@ public interface Neo4jPersistentEntity<T> extends PersistentEntity<T, Neo4jPersi
     boolean isUnique();
 
     Collection<String> getAllLabels();
+
+    PersistentPropertyAccessor getPropertyAccessor(Object entity, ConversionService conversionService);
 }

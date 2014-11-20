@@ -28,7 +28,6 @@ import org.springframework.core.convert.ConversionService;
 import org.springframework.data.mapping.Association;
 import org.springframework.data.mapping.PersistentEntity;
 import org.springframework.data.mapping.model.AnnotationBasedPersistentProperty;
-import org.springframework.data.mapping.model.BeanWrapper;
 import org.springframework.data.mapping.model.SimpleTypeHolder;
 import org.springframework.data.neo4j.annotation.EndNode;
 import org.springframework.data.neo4j.annotation.Fetch;
@@ -140,9 +139,7 @@ class Neo4jPersistentPropertyImpl extends AnnotationBasedPersistentProperty<Neo4
 
     @Override
     public void setValue(Object entity, Object newValue) {
-    	
-    	BeanWrapper<Object> wrapper = BeanWrapper.create(entity, null);
-    	wrapper.setProperty(this, newValue);
+        getOwner().getPropertyAccessor(entity).setProperty(this,newValue);
     }
 
     private static boolean hasAnnotation(TypeInformation<?> typeInformation, final Class<NodeEntity> annotationClass) {
@@ -267,9 +264,7 @@ class Neo4jPersistentPropertyImpl extends AnnotationBasedPersistentProperty<Neo4
 
     @Override
     public Object getValueFromEntity(Object entity, final MappingPolicy mappingPolicy) {
-    	
-    	BeanWrapper<Object> wrapper = BeanWrapper.create(entity, null);
-    	return wrapper.getProperty(this);
+    	return getOwner().getPropertyAccessor(entity).getProperty(this);
     }
 
     @SuppressWarnings("unchecked")

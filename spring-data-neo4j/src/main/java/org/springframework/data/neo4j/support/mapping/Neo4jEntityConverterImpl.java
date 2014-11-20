@@ -21,8 +21,9 @@ import org.springframework.core.convert.ConversionService;
 import org.springframework.data.convert.TypeMapper;
 import org.springframework.data.mapping.Association;
 import org.springframework.data.mapping.AssociationHandler;
+import org.springframework.data.mapping.PersistentPropertyAccessor;
 import org.springframework.data.mapping.context.MappingContext;
-import org.springframework.data.mapping.model.BeanWrapper;
+import org.springframework.data.mapping.model.ConvertingPropertyAccessor;
 import org.springframework.data.mapping.model.MappingException;
 import org.springframework.data.neo4j.mapping.*;
 import org.springframework.data.neo4j.mapping.ManagedEntity;
@@ -31,8 +32,6 @@ import org.springframework.data.neo4j.support.typesafety.TypeSafetyOption;
 import org.springframework.data.neo4j.support.typesafety.TypeSafetyPolicy;
 import org.springframework.data.util.ClassTypeInformation;
 import org.springframework.data.util.TypeInformation;
-
-import java.lang.reflect.InvocationTargetException;
 
 /**
  * @author mh
@@ -108,7 +107,7 @@ public class Neo4jEntityConverterImpl<T,S extends PropertyContainer> implements 
     @Override
     public <R extends T> R loadEntity(R entity, S source, MappingPolicy mappingPolicy, Neo4jPersistentEntityImpl<R> persistentEntity, final Neo4jTemplate template) {
         if (mappingPolicy.shouldLoad()) {
-            final BeanWrapper<R> wrapper = BeanWrapper.create(entity, conversionService);
+            PersistentPropertyAccessor wrapper = persistentEntity.getPropertyAccessor(entity, conversionService);
             sourceStateTransmitter.copyPropertiesFrom(wrapper, source, persistentEntity,mappingPolicy, template);
             // 6) handle cascading fetches
             cascadeFetch(persistentEntity, wrapper, mappingPolicy, template);
@@ -121,7 +120,7 @@ public class Neo4jEntityConverterImpl<T,S extends PropertyContainer> implements 
         return requestedType.isAssignableFrom(storedType.getType());
     }
 
-    private <R extends T> void cascadeFetch(Neo4jPersistentEntityImpl<R> persistentEntity, final BeanWrapper<R> wrapper, final MappingPolicy policy, final Neo4jTemplate template) {
+    private <R extends T> void cascadeFetch(Neo4jPersistentEntityImpl<R> persistentEntity, final PersistentPropertyAccessor wrapper, final MappingPolicy policy, final Neo4jTemplate template) {
         persistentEntity.doWithAssociations(new AssociationHandler<Neo4jPersistentProperty>() {
             @Override
             public void doWithAssociation(Association<Neo4jPersistentProperty> association) {
@@ -140,7 +139,7 @@ public class Neo4jEntityConverterImpl<T,S extends PropertyContainer> implements 
         });
     }
 
-    private <R> Object getProperty(BeanWrapper<R> wrapper, Neo4jPersistentProperty property) {
+    private <R> Object getProperty(PersistentPropertyAccessor wrapper, Neo4jPersistentProperty property) {
         try {
             return wrapper.getProperty(property);
         } catch (Exception e) {
@@ -158,7 +157,7 @@ public class Neo4jEntityConverterImpl<T,S extends PropertyContainer> implements 
             return;
         }
 
-        final BeanWrapper<T> wrapper = BeanWrapper.create(source, conversionService);
+        PersistentPropertyAccessor wrapper = persistentEntity.getPropertyAccessor(source,conversionService);
         if (target == null) {
             target = entityStateHandler.useOrCreateState(source,target, annotationProvidedRelationshipType ); // todo handling of changed state
             entityStateHandler.setPersistentState(source, target);

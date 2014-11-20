@@ -19,7 +19,8 @@ import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.PropertyContainer;
 import org.neo4j.graphdb.Relationship;
 import org.springframework.core.convert.ConversionService;
-import org.springframework.data.mapping.model.BeanWrapper;
+import org.springframework.data.mapping.PersistentPropertyAccessor;
+import org.springframework.data.mapping.model.ConvertingPropertyAccessor;
 import org.springframework.data.neo4j.mapping.MappingPolicy;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentEntity;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
@@ -55,22 +56,22 @@ public class Neo4jEntityFetchHandler {
         if (property.getTypeInformation().isCollectionLike()) {
             List<Object> replacement = new ArrayList<Object>();
             for (Object inner : ((Iterable) value)) {
-                final BeanWrapper<Object> innerWrapper = BeanWrapper.create(inner, conversionService);
+                PersistentPropertyAccessor propertyAccessor = persistentEntity.getPropertyAccessor(inner, conversionService);
                 final PropertyContainer state = entityStateHandler.getPersistentState(inner);
-                fetchValue(innerWrapper, state, persistentEntity, mappingPolicy, template);
+                fetchValue(propertyAccessor, state, persistentEntity, mappingPolicy, template);
                 replacement.add(inner);
                 //sourceStateTransmitter.copyPropertiesFrom(innerWrapper, entityStateHandler.<S>getPersistentState(inner), persistentEntity);
             }
             return replacement;
         } else {
-            final BeanWrapper<Object> innerWrapper = BeanWrapper.create(value, conversionService);
+            PersistentPropertyAccessor innerWrapper = persistentEntity.getPropertyAccessor(value,conversionService);
             final PropertyContainer state = entityStateHandler.getPersistentState(value);
             fetchValue(innerWrapper, state, persistentEntity, mappingPolicy, template);
 //                        sourceStateTransmitter.copyPropertiesFrom(innerWrapper, entityStateHandler.<S>getPersistentState(value), persistentEntity);
         }
         return value;
     }
-    public  void fetchValue(final BeanWrapper<Object> wrapper, PropertyContainer source, Neo4jPersistentEntity<Object> persistentEntity, final MappingPolicy mappingPolicy, final Neo4jTemplate template) {
+    public  void fetchValue(final PersistentPropertyAccessor wrapper, PropertyContainer source, Neo4jPersistentEntity<Object> persistentEntity, final MappingPolicy mappingPolicy, final Neo4jTemplate template) {
         if (persistentEntity.isNodeEntity()) {
             nodeStateTransmitter.copyPropertiesFrom(wrapper, (Node) source,persistentEntity, mappingPolicy, template);
         }
