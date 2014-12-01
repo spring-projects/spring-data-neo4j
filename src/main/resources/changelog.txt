@@ -1,6 +1,32 @@
 Spring Data Neo4j Changelog
 ===========================
 
+Changes in version 3.3.0.M1 (2014-12-01)
+----------------------------------------
+* DATAGRAPH-529 - Release 3.3 M1.
+* DATAGRAPH-526 - Adapt to API changes for SPRINGDATACMNS-DATACMNS-781.
+* DATAGRAPH-525 - Update to Neo4j 2.1.5.
+* DATAGRAPH-524 - Update Schema Handler to 3.0 by default, adapt failing test-xml contexts.
+* DATAGRAPH-523 - Disable REST Schema Upload.
+* DATAGRAPH-521 - Use repacked CGLib version that ships with Spring.
+* DATAGRAPH-520 - Derived finder has an issue with certain characters within the parameter variable.
+* DATAGRAPH-519 - Probably wrong example in documentation (version 3.2.0.RELEASE).
+* DATAGRAPH-517 - Update To Neo4j 2.1.5.
+* DATAGRAPH-515 - Remove Graph-Collections Dependency.
+* DATAGRAPH-508 - Pagination in Cypher annotated queries generates wrong LIMIT number.
+* DATAGRAPH-498 - Fix Limit for pageable queries.
+* DATAGRAPH-497 - GeoConverter negative coordinates.
+* DATAGRAPH-495 - NPE when @Query method invoked with null argument.
+* DATAGRAPH-493 - @Query params not working as expect for iterables.
+* DATAGRAPH-490 - Build is locale dependent and fails if executed under de_DE.
+* DATAGRAPH-483 - REST Transaction support.
+* DATAGRAPH-482 - Allow to override property-name with @GraphProperty.
+* DATAGRAPH-474 - @Query Result type is not Set.
+* DATAGRAPH-456 - Reference documentation shows XML example for Java configuration.
+* DATAGRAPH-257 - QueryResultBuilder cannot be cast to java.util.Set in NodeEntity.
+* DATAGRAPH-253 - Better abstraction layer for interfacing with Neo4j that yields equal performance in embedded and remote mode.
+
+
 Changes in version 3.2.1.RELEASE (2014-10-30)
 ---------------------------------------------
 * DATAGRAPH-522 - Release 3.2.1.
