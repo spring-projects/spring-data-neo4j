@@ -15,18 +15,18 @@ dependencies{
 
 task compileJava(overwrite: true, description: 'Compiles AspectJ Source', type: Ajc) {
     dependsOn processResources
-    sourceSet = sourceSets.main
+    def sourceSet = sourceSets.main
     inputs.files(sourceSets.main.java.srcDirs)
-    outputs.dir(sourceSet.classesDir)
-    aspectPath = configurations.aspectpath
+    outputs.dir(sourceSet.output)
+    def aspectPath = configurations.aspectpath
 }
 
 task compileTestJava(overwrite: true, description: 'Compiles AspectJ Test Source', type: Ajc) {
     dependsOn processTestResources, compileJava, jar
-    sourceSet = sourceSets.test
+    def sourceSet = sourceSets.test
     inputs.files(sourceSets.test.java.srcDirs)
-    outputs.dir(sourceSet.classesDir)
-    aspectPath = files(configurations.aspectpath, jar.archivePath)
+    outputs.dir(sourceSet.output)
+    def aspectPath = files(configurations.aspectpath, jar.archivePath)
 }
 
 class Ajc extends DefaultTask {
