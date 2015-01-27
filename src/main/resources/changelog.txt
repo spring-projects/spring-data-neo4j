@@ -1,6 +1,12 @@
 Spring Data Neo4j Changelog
 ===========================
 
+Changes in version 3.1.5.RELEASE (2015-01-27)
+---------------------------------------------
+* DATAGRAPH-536 - Release 3.1.5.
+* DATAGRAPH-511 - Make sure Spring Data Neo4j builds on Spring 4.1.
+
+
 Changes in version 3.3.0.M1 (2014-12-01)
 ----------------------------------------
 * DATAGRAPH-529 - Release 3.3 M1.
