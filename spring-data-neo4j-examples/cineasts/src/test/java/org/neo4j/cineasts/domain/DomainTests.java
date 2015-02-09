@@ -70,7 +70,7 @@ public class DomainTests {
         User user = template.save(new User("ich", "Micha", "password"));
         Rating awesome = user.rate(template,movie, 5, "Awesome");
 
-        user = userRepository.findByPropertyValue("login", "ich");
+        user = userRepository.findByLogin("ich");
         movie = movieRepository.findById("1");
         Rating rating = user.getRatings().iterator().next();
         assertEquals(awesome,rating);
@@ -81,7 +81,7 @@ public class DomainTests {
     @Test
     public void canFindUserByLogin() {
         User user = template.save(new User("ich", "Micha", "password"));
-        User foundUser = userRepository.findByPropertyValue("login", "ich");
+        User foundUser = userRepository.findByLogin("ich");
         assertEquals(user, foundUser);
     }
     @Test

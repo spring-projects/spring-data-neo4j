@@ -1,5 +1,6 @@
 package org.neo4j.cineasts.domain;
 
+import org.springframework.data.neo4j.annotation.NodeEntity;
 import org.springframework.data.neo4j.annotation.RelatedToVia;
 
 import java.util.Collection;
@@ -8,6 +9,7 @@ import java.util.Collection;
  * @author mh
  * @since 10.11.11
  */
+@NodeEntity
 public class Actor extends Person {
     public Actor(String id, String name) {
         super(id, name);

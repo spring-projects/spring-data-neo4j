@@ -3,7 +3,7 @@ package com.springone.myrestaurants.domain;
 import org.neo4j.graphdb.DynamicRelationshipType;
 import org.neo4j.graphdb.PathExpander;
 import org.neo4j.graphdb.traversal.*;
-import org.neo4j.kernel.impl.traversal.TraversalDescriptionImpl;
+import org.neo4j.kernel.Traversal;
 import org.springframework.data.neo4j.core.FieldTraversalDescriptionBuilder;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 
@@ -16,7 +16,7 @@ import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 class TopRatedRestaurantTraverser implements FieldTraversalDescriptionBuilder {
     @Override
     public TraversalDescription build(Object start, Neo4jPersistentProperty field, String... params) {
-        return new TraversalDescriptionImpl()
+        return Traversal.description()
                 .breadthFirst()
                 .relationships(DynamicRelationshipType.withName("friends"))
                 .order(new BranchOrderingPolicy() {

@@ -1,9 +1,6 @@
 package org.neo4j.cineasts.domain;
 
-import org.springframework.data.neo4j.annotation.EndNode;
-import org.springframework.data.neo4j.annotation.GraphId;
-import org.springframework.data.neo4j.annotation.RelationshipEntity;
-import org.springframework.data.neo4j.annotation.StartNode;
+import org.springframework.data.neo4j.annotation.*;
 
 /**
  * @author mh
@@ -13,6 +10,7 @@ import org.springframework.data.neo4j.annotation.StartNode;
 public class Role {
     @GraphId Long id;
     @EndNode Movie movie;
+    @Fetch
     @StartNode Actor actor;
 
     String name;

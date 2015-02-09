@@ -4,77 +4,27 @@
 
 	<groupId>org.springframework.data.examples</groupId>
 	<artifactId>spring-data-neo4j-hello-worlds</artifactId>
-	<version>3.0.2.BUILD-SNAPSHOT</version>
+	<version>3.2.1.RELEASE</version>
 	<packaging>jar</packaging>
 
 	<name>Spring Data Neo4j hello-worlds</name>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<spring.version>3.2.8.RELEASE</spring.version>
-		<slf4j.version>1.7.5</slf4j.version>
 		<spring-data-neo4j.version>${project.version}</spring-data-neo4j.version>
-        <neo4j.version>2.0.1</neo4j.version>
+		<spring.version>4.0.7.RELEASE</spring.version>
+		<slf4j.version>1.7.5</slf4j.version>
+        <neo4j.version>2.1.5</neo4j.version>
         <junit.version>4.11</junit.version>
-        <log4j.version>1.2.17</log4j.version>
-        <hibernate-validator.version>4.2.0.Final</hibernate-validator.version>
 	</properties>
 
 	<repositories>
 		<repository>
-			<id>spring-maven-release</id>
-			<name>Spring Maven Release Repository</name>
-			<url>http://maven.springframework.org/release</url>
-		</repository>
-		<repository>
-			<id>spring-maven-snapshot</id>
-			<name>Spring Maven Snapshot Repository</name>
-			<snapshots>
-				<enabled>true</enabled>
-			</snapshots>
-			<url>http://maven.springframework.org/snapshot</url>
-		</repository>
-		<repository>
-			<id>spring-maven-milestone</id>
-			<name>Spring Maven Milestone Repository</name>
-			<url>http://maven.springframework.org/milestone</url>
-		</repository>
-		<repository>
 			<id>neo4j-release-repository</id>
 			<name>Neo4j Maven 2 release repository</name>
 			<url>http://m2.neo4j.org/releases</url>
-			<releases>
-				<enabled>true</enabled>
-			</releases>
-			<snapshots>
-				<enabled>false</enabled>
-			</snapshots>
-		</repository>
-		<repository>
-			<id>neo4j-snapshot-repository</id>
-			<name>Neo4j Maven 2 snapshot repository</name>
-			<url>http://m2.neo4j.org/snapshots</url>
-			<snapshots>
-				<enabled>true</enabled>
-			</snapshots>
-			<releases>
-				<enabled>false</enabled>
-			</releases>
 		</repository>
 	</repositories>
-
-	<pluginRepositories>
-		<pluginRepository>
-			<id>spring-maven-release</id>
-			<name>Spring Maven Release Repository</name>
-			<url>http://maven.springframework.org/release</url>
-		</pluginRepository>
-		<pluginRepository>
-			<id>spring-maven-milestone</id>
-			<name>Spring Maven Milestone Repository</name>
-			<url>http://maven.springframework.org/milestone</url>
-		</pluginRepository>
-	</pluginRepositories>
 
 	<dependencies>
         <!-- SDN for simple mapping mode -->
@@ -89,24 +39,24 @@
         <dependency>
             <groupId>org.hibernate</groupId>
             <artifactId>hibernate-validator</artifactId>
-            <version>${hibernate-validator.version}</version>
+            <version>5.1.1.Final</version>
         </dependency>
 
         <!-- Logging Related dependencies -->
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
-            <version>${slf4j.version}</version>
+            <version>1.7.7</version>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-log4j12</artifactId>
-            <version>${slf4j.version}</version>
+            <version>1.7.7</version>
         </dependency>
         <dependency>
             <groupId>log4j</groupId>
             <artifactId>log4j</artifactId>
-            <version>${log4j.version}</version>
+            <version>1.2.17</version>
         </dependency>
 
         <!-- TEST dependencies -->

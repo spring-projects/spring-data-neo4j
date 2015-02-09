@@ -14,3 +14,9 @@ The tutorial is presented as a colloquial description of the steps necessary to 
 It provides the configuration and code examples that are needed to understand what's happening.
 
 The complete tutorial is contained in this projects [github wiki](https://github.com/jexp/cineasts/wiki).
+
+This example contains the different variants of configuration via maven and spring profiles.
+
+* for neo4j-embedded with   simple mapping   run `mvn install jetty:run`
+* for neo4j-embedded with advanced mapping   run `mvn -Paspects install jetty:run`
+* for neo4j-server   with   simple mapping   run `mvn -Prest install jetty:run`

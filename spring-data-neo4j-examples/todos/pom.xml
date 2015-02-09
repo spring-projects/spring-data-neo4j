@@ -4,18 +4,18 @@
 
 	<groupId>org.neo4j.app</groupId>
 	<artifactId>sdn-todos</artifactId>
-	<version>2.2.0.BUILD-SNAPSHOT</version>
+	<version>3.2.1.RELEASE</version>
 	<packaging>jar</packaging>
 
 	<name>sdn-todos</name>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<neo4j.version>1.8.1</neo4j.version>
-		<spring.version>3.1.0.RELEASE</spring.version>
+		<neo4j.version>2.1.6</neo4j.version>
+		<spring.version>4.0.7.RELEASE</spring.version>
 		<spring-data-neo4j.version>${project.version}</spring-data-neo4j.version>
-		<aspectj.version>1.6.12</aspectj.version>
-		<slf4j.version>1.6.1</slf4j.version>
+		<aspectj.version>1.8.4</aspectj.version>
+		<slf4j.version>1.7.10</slf4j.version>
 	</properties>
 
 	<repositories>

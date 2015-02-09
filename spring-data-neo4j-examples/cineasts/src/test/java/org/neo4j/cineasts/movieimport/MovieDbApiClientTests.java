@@ -20,6 +20,16 @@ public class MovieDbApiClientTests {
         Map movie = new MovieDbApiClient(API_KEY).getMovie("2");
         assertEquals(2,movie.get("id"));
     }
+    @Test
+    public void testGetProfileUrl() throws Exception {
+        String format = new MovieDbApiClient(API_KEY).getProfileFormat();
+        assertEquals("http://image.tmdb.org/t/p/w45/%s",format);
+    }
+    @Test
+    public void testGetPosterUrl() throws Exception {
+        String format = new MovieDbApiClient(API_KEY).getPosterFormat();
+        assertEquals("http://image.tmdb.org/t/p/w342/%s",format);
+    }
 
     @Test
     public void testGetPerson() throws Exception {

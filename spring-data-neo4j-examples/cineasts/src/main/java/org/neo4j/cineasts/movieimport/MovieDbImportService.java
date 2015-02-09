@@ -4,6 +4,7 @@ import org.neo4j.cineasts.domain.*;
 import org.neo4j.cineasts.repository.DirectorRepository;
 import org.neo4j.cineasts.repository.MovieRepository;
 import org.neo4j.cineasts.repository.ActorRepository;
+import org.neo4j.helpers.collection.CombiningIterable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,6 +15,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Map;
+
+import static org.neo4j.helpers.collection.IteratorUtil.asIterable;
 
 @Service
 public class MovieDbImportService {
@@ -71,7 +74,7 @@ public class MovieDbImportService {
 
         Map data = loadMovieData(movieId);
         if (data.containsKey("not_found")) throw new RuntimeException("Data for Movie "+movieId+" not found.");
-        movieDbJsonMapper.mapToMovie(data, movie);
+        movieDbJsonMapper.mapToMovie(data, movie, client.getPosterFormat());
         movieRepository.save(movie);
         relatePersonsToMovie(movie, data);
         return movie;
@@ -88,8 +91,9 @@ public class MovieDbImportService {
     }
 
     private void relatePersonsToMovie(Movie movie, Map data) {
-        @SuppressWarnings("unchecked") Collection<Map> cast = (Collection<Map>) data.get("cast");
-        for (Map entry : cast) {
+        @SuppressWarnings("unchecked") Iterable<Map> cast = (Collection<Map>) ((Map)data.get("credits")).get("cast");
+        @SuppressWarnings("unchecked") Iterable<Map> crew = (Collection<Map>) ((Map)data.get("credits")).get("crew");
+        for (Map entry : new CombiningIterable<>(asIterable(cast, crew))) {
             String id = "" + entry.get("id");
             String jobName = (String) entry.get("job");
             Roles job = movieDbJsonMapper.mapToRole(jobName);
@@ -119,11 +123,11 @@ public class MovieDbImportService {
 
     private <T extends Person> T doImportPerson(String personId, T newPerson) {
         logger.debug("Importing person " + personId);
-        Person person = template.lookup(Person.class,"id",personId).to(Person.class).singleOrNull();
+        Person person = template.findByIndexedValue(Person.class, "id", personId).to(Person.class).singleOrNull();
         if (person!=null) return (T)person;
         Map data = loadPersonData(personId);
         if (data.containsKey("not_found")) throw new RuntimeException("Data for Person "+personId+" not found.");
-        movieDbJsonMapper.mapToPerson(data, newPerson);
+        movieDbJsonMapper.mapToPerson(data, newPerson, client.getProfileFormat());
         return template.save(newPerson);
     }
 

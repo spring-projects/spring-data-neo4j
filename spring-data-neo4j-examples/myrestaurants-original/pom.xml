@@ -4,14 +4,14 @@
 	<groupId>com.springone.myrestaurants</groupId>
 	<artifactId>myrestaurants-original</artifactId>
 	<packaging>war</packaging>
-	<version>0.1.0.BUILD-SNAPSHOT</version>
+	<version>3.2.1.RELEASE</version>
 	<name>myrestaurants-original</name>
 	<properties>
-		<spring.version>3.0.4.RELEASE</spring.version>
-		<aspectj.version>1.6.10.M1</aspectj.version>
-		<slf4j.version>1.6.1</slf4j.version>
+		<spring.version>4.0.7.RELEASE</spring.version>
+		<aspectj.version>1.8.4</aspectj.version>
+		<slf4j.version>1.7.10</slf4j.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-	<spring-security.version>3.0.2.RELEASE</spring-security.version>
+	    <spring-security.version>3.2.5.RELEASE</spring-security.version>
     </properties>
 	<repositories>
         <repository>
@@ -374,7 +374,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-war-plugin</artifactId>
-				<version>2.1-beta-1</version>
+				<version>2.1.1</version>
 				<!--
 					<configuration> <webXml>target/web.xml</webXml> </configuration>
 				-->

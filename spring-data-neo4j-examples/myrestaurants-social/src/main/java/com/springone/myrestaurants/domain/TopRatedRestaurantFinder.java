@@ -5,7 +5,6 @@ import org.neo4j.graphdb.traversal.*;
 import org.neo4j.graphdb.traversal.Traverser;
 import org.neo4j.helpers.Predicate;
 import org.neo4j.kernel.Traversal;
-import org.neo4j.kernel.impl.traversal.TraversalDescriptionImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
@@ -26,7 +25,7 @@ public class TopRatedRestaurantFinder {
     public Collection<RatedRestaurant> getTopNRatedRestaurants(final UserAccount user, final int n) {
         final CalculateRatingPredicate calculateRatingPredicate = new CalculateRatingPredicate();
         final Node userNode=user.getPersistentState();
-        final TraversalDescription traversalDescription = new TraversalDescriptionImpl()
+        final TraversalDescription traversalDescription = Traversal.description()
                 .order(Traversal.postorderBreadthFirst())
                 .evaluator(Evaluators.toDepth(MAXIMUM_DEPTH))
                 .evaluator(calculateRatingPredicate)

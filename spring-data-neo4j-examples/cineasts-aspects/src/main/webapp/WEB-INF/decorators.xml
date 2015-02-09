@@ -1,8 +1,0 @@
-<decorators defaultdir="/WEB-INF/views/decorators">
-    <decorator name="frontpage" page="frontpage.jsp">
-          <pattern>/</pattern>
-    </decorator>
-    <decorator name="main" page="main.jsp">
-          <pattern>/*</pattern>
-    </decorator>
-</decorators>

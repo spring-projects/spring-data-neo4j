@@ -15,13 +15,7 @@
 
     <context:spring-configured/>
 
-    <neo4j:config storeDirectory="target/data/graph.db"/>
     <neo4j:repositories base-package="org.neo4j.cineasts.repository"/>
-
-    <!--neo4j:config graphDatabaseService="graphDatabaseService"/>
-    <bean id="graphDatabaseService" class="org.springframework.data.neo4j.rest.SpringRestGraphDatabase">
-        <constructor-arg value="http://localhost:7474"/>
-    </bean-->
 
     <bean class="org.neo4j.cineasts.movieimport.MovieDbApiClient">
         <constructor-arg value="926d2a79e82920b62f03b1cb57e532e6"/>
@@ -32,4 +26,13 @@
 
     <tx:annotation-driven mode="proxy"/>
 
+    <beans profile="default">
+        <neo4j:config storeDirectory="target/data/graph.db" base-package="org.neo4j.cineasts.domain"/>
+    </beans>
+    <beans profile="rest">
+        <neo4j:config graphDatabaseService="graphDatabaseService" base-package="org.neo4j.cineasts.domain"/>
+        <bean id="graphDatabaseService" class="org.springframework.data.neo4j.rest.SpringRestGraphDatabase">
+            <constructor-arg value="http://localhost:7474/db/data"/>
+        </bean>
+    </beans>
 </beans>

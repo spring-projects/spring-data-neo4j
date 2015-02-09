@@ -4,60 +4,25 @@
 
 	<groupId>org.neo4j.examples</groupId>
 	<artifactId>cineasts</artifactId>
-	<version>2.2.0.BUILD-SNAPSHOT</version>
+	<version>3.2.1.RELEASE</version>
 	<packaging>war</packaging>
 
 	<name>Cineasts.net</name>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<spring.version>3.1.0.RELEASE</spring.version>
-		<slf4j.version>1.6.1</slf4j.version>
+		<spring.version>4.0.7.RELEASE</spring.version>
+		<slf4j.version>1.7.10</slf4j.version>
 		<spring-data-neo4j.version>${project.version}</spring-data-neo4j.version>
-        <aspectj.version>1.6.12</aspectj.version>
-        <neo4j.version>1.8.1</neo4j.version>
+        <neo4j.version>2.1.5</neo4j.version>
+		<jetty-args></jetty-args>
 	</properties>
 
 	<repositories>
-		<repository>
-			<id>spring-maven-release</id>
-			<name>Spring Maven Release Repository</name>
-			<url>http://maven.springframework.org/release</url>
-		</repository>
-		<repository>
-			<id>spring-maven-snapshot</id>
-			<name>Spring Maven Snapshot Repository</name>
-			<snapshots>
-				<enabled>true</enabled>
-			</snapshots>
-			<url>http://maven.springframework.org/snapshot</url>
-		</repository>
-		<repository>
-			<id>spring-maven-milestone</id>
-			<name>Spring Maven Milestone Repository</name>
-			<url>http://maven.springframework.org/milestone</url>
-		</repository>
 	    <repository>
 	      <id>neo4j-release-repository</id>
 	      <name>Neo4j Maven 2 release repository</name>
 	      <url>http://m2.neo4j.org/releases</url>
-	      <releases>
-	        <enabled>true</enabled>
-	      </releases>
-	      <snapshots>
-	        <enabled>false</enabled>
-	      </snapshots>
-	    </repository>
-	    <repository>
-	      <id>neo4j-snapshot-repository</id>
-	      <name>Neo4j Maven 2 snapshot repository</name>
-	      <url>http://m2.neo4j.org/snapshots</url>
-	      <snapshots>
-	        <enabled>true</enabled>
-	      </snapshots>
-	      <releases>
-	        <enabled>false</enabled>
-	      </releases>
 	    </repository>
 		<repository>
 			<id>jboss-public-repo</id>
@@ -66,32 +31,82 @@
 		</repository>
 	</repositories>
 
-	<pluginRepositories>
-		<pluginRepository>
-			<id>spring-maven-release</id>
-			<name>Spring Maven Release Repository</name>
-			<url>http://maven.springframework.org/release</url>
-		</pluginRepository>
-		<pluginRepository>
-			<id>spring-maven-milestone</id>
-			<name>Spring Maven Milestone Repository</name>
-			<url>http://maven.springframework.org/milestone</url>
-		</pluginRepository>
-	</pluginRepositories>
+	<profiles>
+		<profile>
+			<id>rest</id>
+			<properties>
+				<jetty-args>-Dspring.profiles.active=rest</jetty-args>
+			</properties>
+			<dependencies>
+				<dependency>
+					<groupId>org.springframework.data</groupId>
+					<artifactId>spring-data-neo4j-rest</artifactId>
+					<version>${spring-data-neo4j.version}</version>
+				</dependency>
+			</dependencies>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.codehaus.mojo</groupId>
+						<artifactId>properties-maven-plugin</artifactId>
+						<version>1.0-alpha-2</version>
+						<executions>
+							<execution>
+								<goals>
+									<goal>set-system-properties</goal>
+								</goals>
+								<configuration>
+									<properties>
+										<property>
+											<name>spring.profiles.active</name>
+											<value>rest</value>
+										</property>
+									</properties>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+		<profile>
+			<id>aspects</id>
+			<properties>
+				<aspectj.version>1.8.4</aspectj.version>
+			</properties>
+			<dependencies>
+				<dependency>
+					<groupId>org.springframework.data</groupId>
+					<artifactId>spring-data-neo4j-aspects</artifactId>
+					<version>${spring-data-neo4j.version}</version>
+				</dependency>
+				<dependency>
+					<groupId>org.aspectj</groupId>
+					<artifactId>aspectjrt</artifactId>
+					<version>${aspectj.version}</version>
+				</dependency>
 
+			</dependencies>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-eclipse-plugin</artifactId>
+						<version>2.8</version>
+						<configuration>
+							<ajdtVersion>1.5</ajdtVersion>
+							<additionalProjectnatures>
+								<projectnature>org.eclipse.jdt.core.javanature</projectnature>
+								<projectnature>org.springframework.ide.eclipse.core.springnature</projectnature>
+							</additionalProjectnatures>
+						</configuration>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
 	<dependencies>
 		<!-- Spring dependencies -->
-		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-core</artifactId>
-			<version>${spring.version}</version>
-			<exclusions>
-				<exclusion>
-					<groupId>commons-logging</groupId>
-					<artifactId>commons-logging</artifactId>
-				</exclusion>
-			</exclusions>
-		</dependency>
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-test</artifactId>
@@ -103,27 +118,6 @@
 					<artifactId>commons-logging</artifactId>
 				</exclusion>
 			</exclusions>
-		</dependency>
-
-		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-context</artifactId>
-			<version>${spring.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-aop</artifactId>
-			<version>${spring.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-aspects</artifactId>
-			<version>${spring.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-tx</artifactId>
-			<version>${spring.version}</version>
 		</dependency>
 
 		<dependency>
@@ -141,12 +135,12 @@
 		<dependency>
 			<groupId>org.springframework.security</groupId>
 			<artifactId>spring-security-web</artifactId>
-			<version>${spring.version}</version>
+			<version>3.2.5.RELEASE</version>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.security</groupId>
 			<artifactId>spring-security-config</artifactId>
-			<version>${spring.version}</version>
+			<version>3.2.5.RELEASE</version>
 		</dependency>
 
 		<dependency>
@@ -220,12 +214,6 @@
 			<version>1.8.3</version>
 		</dependency>
 
-		<dependency>
-			<groupId>org.aspectj</groupId>
-			<artifactId>aspectjrt</artifactId>
-			<version>${aspectj.version}</version>
-		</dependency>
-
 		<!-- Neo4j Libraries -->
 
 		<dependency>
@@ -235,16 +223,11 @@
 			<type>test-jar</type>
 			<scope>test</scope>
 		</dependency>
-		<dependency>
-			<groupId>org.neo4j</groupId>
-			<artifactId>neo4j-cypher</artifactId>
-			<version>${neo4j.version}</version>
-		</dependency>
 
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
-			<version>4.8.1</version>
+			<version>4.11</version>
 			<scope>test</scope>
 		</dependency>
         <dependency>
@@ -261,19 +244,6 @@
 	<build>
 		<plugins>
             <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-failsafe-plugin</artifactId>
-                <version>2.12</version>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>integration-test</goal>
-                            <goal>verify</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
                 <groupId>org.mortbay.jetty</groupId>
                 <artifactId>jetty-maven-plugin</artifactId>
                 <version>7.6.5.v20120716</version>
@@ -281,31 +251,11 @@
                     <scanIntervalSeconds>10</scanIntervalSeconds>
                     <stopKey>foo</stopKey>
                     <stopPort>9999</stopPort>
+					<jvmArgs>${jetty-args}</jvmArgs>
                 </configuration>
-                <executions>
-                    <execution>
-                        <id>start-jetty</id>
-                        <phase>pre-integration-test</phase>
-                        <goals>
-                            <goal>run</goal>
-                        </goals>
-                        <configuration>
-                            <scanIntervalSeconds>0</scanIntervalSeconds>
-                            <daemon>true</daemon>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>stop-jetty</id>
-                        <phase>post-integration-test</phase>
-                        <goals>
-                            <goal>stop</goal>
-                        </goals>
-                    </execution>
-                </executions>
             </plugin>
 
 			<plugin>
-				<!-- Must use java 1.5 or higher for annotations -->
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
 				<version>2.1</version>
@@ -330,18 +280,6 @@
 					<junitArtifactName>junit:junit</junitArtifactName>
 				</configuration>
 			</plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-eclipse-plugin</artifactId>
-                <version>2.8</version>
-                <configuration>
-                    <ajdtVersion>1.5</ajdtVersion>
-                    <additionalProjectnatures>
-                        <projectnature>org.eclipse.jdt.core.javanature</projectnature>
-                        <projectnature>org.springframework.ide.eclipse.core.springnature</projectnature>
-                    </additionalProjectnatures>
-                </configuration>
-            </plugin>
 		</plugins>
 	</build>
 

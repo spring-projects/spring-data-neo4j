@@ -31,7 +31,7 @@ public class UserRepositoryImpl implements CineastsUserDetailsService {
     }
 
     private User findByLogin(String login) {
-        return template.lookup(User.class,"login",login).to(User.class).singleOrNull();
+        return template.findByIndexedValue(User.class,"login",login).to(User.class).singleOrNull();
     }
 
     @Override

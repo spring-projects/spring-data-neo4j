@@ -30,6 +30,8 @@ import org.springframework.data.neo4j.annotation.NodeEntity;
 import org.springframework.data.neo4j.support.mapping.Neo4jMappingContext;
 import org.springframework.data.support.IsNewStrategyFactory;
 
+import java.util.Collections;
+
 /**
  * Unit tests for {@link AuditingEventListener}.
  * 
@@ -46,7 +48,7 @@ public class AuditingEventListenerUnitTests {
 	@Before
 	public void setUp() {
 
-		handler = spy(new IsNewAwareAuditingHandler(new Neo4jMappingContext()));
+		handler = spy(new IsNewAwareAuditingHandler(createContext()));
 		listener = new AuditingEventListener(new ObjectFactory<IsNewAwareAuditingHandler>() {
 
 			@Override
@@ -54,6 +56,13 @@ public class AuditingEventListenerUnitTests {
 				return handler;
 			}
 		});
+	}
+
+	protected Neo4jMappingContext createContext() {
+		Neo4jMappingContext mappingContext = new Neo4jMappingContext();
+		mappingContext.setInitialEntitySet(Collections.singleton(Sample.class));
+		mappingContext.afterPropertiesSet();
+		return mappingContext;
 	}
 
 	@Test(expected = IllegalArgumentException.class)

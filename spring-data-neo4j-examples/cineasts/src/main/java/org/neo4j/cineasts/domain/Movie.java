@@ -26,13 +26,13 @@ public class Movie {
     String description;
 
     @RelatedTo(type="DIRECTED", direction = INCOMING)
-    Set<Director> directors;
+    Set<Person> directors;
 
     @RelatedTo(type = "ACTS_IN", direction = INCOMING)
-    Set<Actor> actors;
+    Set<Person> actors;
 
     @RelatedToVia(type = "ACTS_IN", direction = INCOMING)
-    Iterable<Role> roles;
+    Collection<Role> roles;
 
     @RelatedToVia(type = "RATED", direction = INCOMING)
     @Fetch Iterable<Rating> ratings;
@@ -57,12 +57,12 @@ public class Movie {
         this.title = title;
     }
 
-    public Collection<Actor> getActors() {
+    public Collection<Person> getActors() {
         return actors;
     }
 
     public Collection<Role> getRoles() {
-        return IteratorUtil.asCollection(roles);
+        return roles;
     }
 
     public int getYear() {
@@ -234,7 +234,7 @@ public class Movie {
         return nodeId != null ? nodeId.hashCode() : super.hashCode();
     }
 
-    public Set<Director> getDirectors() {
+    public Set<Person> getDirectors() {
         return directors;
     }
 }

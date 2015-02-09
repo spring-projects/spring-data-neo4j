@@ -29,11 +29,10 @@ public class TransactionTests {
     MovieRepository movieRepository;
 
     @Test
-    @Ignore
     public void testBefriendUsers() {
         final User me = userRepository.save(new User("me", "me", "me"));
         final User you = userRepository.save(new User("you", "you", "you"));
-        userRepository.addFriend("you", userRepository.getUserFromSession());
+        userRepository.addFriend("you", me);
         final User loaded = userRepository.findOne(me.getId());
         assertEquals(1,loaded.getFriends().size());
     }

@@ -73,7 +73,7 @@
         <jdbc:script location="classpath:restaurants-sample-data.sql"/>
     </jdbc:embedded-database>
 
-    <neo4j:config storeDirectory="target/db-test" entityManagerFactory="entityManagerFactory"/>
+    <neo4j:config storeDirectory="target/db-test" entityManagerFactory="entityManagerFactory" base-package="com.springone.myrestaurants.domain"/>
     <tx:annotation-driven mode="aspectj" transaction-manager="transactionManager"/>
 
 
