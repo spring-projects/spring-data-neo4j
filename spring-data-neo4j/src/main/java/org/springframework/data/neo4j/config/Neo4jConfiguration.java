@@ -48,6 +48,7 @@ import org.springframework.data.neo4j.support.relationship.RelationshipEntitySta
 import org.springframework.data.neo4j.support.schema.SchemaIndexProvider;
 import org.springframework.data.neo4j.support.typerepresentation.ClassValueTypeInformationMapper;
 import org.springframework.data.neo4j.support.typerepresentation.TypeRepresentationStrategyFactory;
+import org.springframework.data.neo4j.support.typesafety.TypeSafetyOption;
 import org.springframework.data.neo4j.support.typesafety.TypeSafetyPolicy;
 import org.springframework.data.support.IsNewStrategyFactory;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -289,7 +290,7 @@ public class Neo4jConfiguration {
 
     @Bean
     public TypeSafetyPolicy typeSafetyPolicy() throws Exception {
-        return new TypeSafetyPolicy();
+        return new TypeSafetyPolicy(TypeSafetyOption.THROWS_EXCEPTION);
     }
 
     public Set<? extends Class<?>> getInitialEntitySet() {
