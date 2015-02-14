@@ -74,7 +74,7 @@
                     Retrieving a single relationship
                 </term>
                 <listitem>
-                    <para><code>nodeEntity.getRelationshipTo(targetEnttiy, relationshipType)</code></para>
+                    <para><code>nodeEntity.getRelationshipTo(targetEntity, relationshipType)</code></para>
                 </listitem>
             </varlistentry>
             <varlistentry>

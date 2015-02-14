@@ -135,7 +135,7 @@
 		</para>
         <para>
 			A online version of cineasts can be found on <ulink url="http://cineasts.net">cineasts.net</ulink>.
-            A sample dataset of the cineasts databse is available at the neo4j <ulink url="http://sample-data.neo4j.org">sample-data page</ulink>.
+            A sample dataset of the cineasts database is available at the neo4j <ulink url="http://sample-data.neo4j.org">sample-data page</ulink>.
         </para>
 		<para>
 			This is a subset of the visualization of the cineasts graph for the "Matrix" movie.

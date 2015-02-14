@@ -5,7 +5,7 @@
     <para>
        Up until recently Spring Data Neo4j supported only the more advanced and flexible AspectJ based mapping approach, see <xref linkend="reference_aspectj" />.
         Feedback about issues with the AspectJ tooling and other implications persuaded us to add a simpler mapping (see <xref linkend="reference_simple-mapping" />) to Spring Data Neo4j.
-	   Both versions work with the same annotations and provide similar API's, but differ in behaviour.
+	   Both versions work with the same annotations and provide similar APIs, but differ in behaviour.
     </para>
 	<para>
 		Reflection and Annotation-based metadata is collected about persistent entities in the <code>Neo4jMappingContext</code>

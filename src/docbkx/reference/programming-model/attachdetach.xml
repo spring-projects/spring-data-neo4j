@@ -33,8 +33,8 @@
     <!--<para>-->
         <!--Persisting an entity not only persists that single entity but will traverse its existing and new relationships-->
         <!--and persist the cluster of detached entities that it is part of. The borders of this cluster are formed by-->
-        <!--attached entities. The persist operation creates its own, implicit transaction. When it is called withina-->
-        <!--external transaction it participates otherwise it is an atomic operation.-->
+        <!--attached entities. The persist operation creates its own, implicit transaction. When it is called within an-->
+        <!--external transaction it participates, otherwise it is an atomic operation.-->
     <!--</para>-->
     <example>
         <title>Persisting entities</title>
@@ -106,7 +106,7 @@ movie.setTopActor(actor);
             is however only cascaded to related entity fields that have been modified.
         </para>
         <para>
-            In the following example, the actor and the movie are both attached entites, having both been
+            In the following example, the actor and the movie are both attached entities, having both been
             previously persisted to the graph:
             <example>
                 <title>Cascade for modified fields</title>

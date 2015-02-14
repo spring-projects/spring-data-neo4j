@@ -134,7 +134,7 @@ public class Actor {
             Relationship entities either be instantiated directly and set or added to
             <code>@RelatedToVia</code>-annotated fields or created by the introduced
             <code>entity.relateTo(), template|repository.createRelationshipBetween()</code> methods
-            (see alos <xref linkend="reference_programming-model_introduced-methods"/>)
+            (see also <xref linkend="reference_programming-model_introduced-methods"/>)
         </para>
         <para>
             Fields in relationship entities are, similarly to node entities, persisted as properties on
