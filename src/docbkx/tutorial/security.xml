@@ -85,7 +85,7 @@
 ]]></programlisting>
         </example>
         <example>
-            <title>CinceastUserDetailsService interface and UserRepository custom implementation</title>
+            <title>CineastsUserDetailsService interface and UserRepository custom implementation</title>
             <programlisting language="java" ><![CDATA[
 public interface CineastsUserDetailsService extends UserDetailsService {
     @Override

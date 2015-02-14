@@ -17,7 +17,7 @@
     </para>
     <note>
         <para>
-			To avoid name collisons the transaction manager configured by Spring Data Neo4j is called <code>neo4jTransactionManager</code>
+			To avoid name collisions the transaction manager configured by Spring Data Neo4j is called <code>neo4jTransactionManager</code>
 			and is aliased to <code>transactionManager</code>. So defining a separate <code>transactionManager</code> bean should not
 			interfere with Spring Data Neo4j operations.
         </para>

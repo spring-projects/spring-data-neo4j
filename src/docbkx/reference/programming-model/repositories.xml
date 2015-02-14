@@ -21,7 +21,7 @@
     </para>
     <para>
         With the <code>RelationshipOperationsRepository</code> it is possible to access, create and delete
-		relationships between entitites or nodes.
+		relationships between entities or nodes.
 		The <code>SpatialRepository</code> allows geographic searches (<xref linkend="reference_spatial"/>)
     </para>
     <para>

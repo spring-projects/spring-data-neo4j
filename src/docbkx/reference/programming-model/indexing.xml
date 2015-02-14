@@ -268,7 +268,7 @@ repository.save(thomas); // fails with a DataIntegrityViolationException
 
 // Default index
 Index<Node> personIndex = template.getIndex(null, Person.class);
-personIndex.query(new QueryContext(NumericRangeQuery.newÍntRange("age", 20, 40, true, true))
+personIndex.query(new QueryContext(NumericRangeQuery.newIntRange("age", 20, 40, true, true))
                        .sort(new Sort(new SortField("age", SortField.INT, false))));
 
 // Named index
@@ -290,7 +290,7 @@ personFulltextIndex.query("{name:*cha*}");
             <programlisting language="java"><![CDATA[@Autowired Neo4jTemplate template;
 
 Index<Node> personIndex = template.getIndex(Person.class, "age");
-personIndex.query(new QueryContext(NumericRangeQuery.newÍntRange("age", 20, 40, true, true))
+personIndex.query(new QueryContext(NumericRangeQuery.newIntRange("age", 20, 40, true, true))
                        .sort(new Sort(new SortField("age", SortField.INT, false))));
 
 // Fulltext index

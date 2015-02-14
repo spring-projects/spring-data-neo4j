@@ -64,7 +64,7 @@
             indexes (via the IndexManager), database life cycle callbacks, transaction management, and more.
 		</para>
 		<para>
-			The <code>EmbeddedGraphDatabase</code> is an implementation of GraphDatabaseService that is used to
+			The <code>EmbeddedGraphDatabase</code> is an implementation of <code>GraphDatabaseService</code> that is used to
             embed Neo4j in a Java application.  This implementation is used so as to provide the highest
             and tightest integration with the database. Besides the embedded mode, the
             <ulink url="http://wiki.neo4j.org/content/Getting_Started_With_Neo4j_Server">Neo4j server</ulink>
@@ -73,7 +73,7 @@
 	<section>
 		<title>Creating nodes and relationships</title>
 		<para>
-            Using the API of GraphDatabaseService, it is easy to create nodes and relate them to each other.
+            Using the API of <code>GraphDatabaseService</code>, it is easy to create nodes and relate them to each other.
             Relationships are typed and both nodes and relationships can have properties. Property values can be
             primitive Java types and Strings, or arrays of both. As of Neo4j 2.0, any operation on a
             node or relationship (creation, modification or simply reading) must happen within a transaction.

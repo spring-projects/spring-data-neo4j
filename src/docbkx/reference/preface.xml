@@ -28,7 +28,7 @@
         </para>
         <para>
             For integration of Neo4j and Grails/GORM please refer to the Neo4j
-            <ulink url="http://www.grails.org/plugin/neo4j">grails plugin</ulink>. There are also
+            <ulink url="http://www.grails.org/plugin/neo4j">Grails plugin</ulink>. There are also
             <ulink url="http://docs.neo4j.org/chunked/milestone/python-embedded.html">Python bindings</ulink>
             as well as community-provided bindings to use Neo4j in
             <ulink url="http://docs.neo4j.org/chunked/milestone/languages.html">embedded</ulink>
@@ -114,12 +114,12 @@
         The need of an active transaction for mutating the state of nodes or relationships implies that direct changes to
         the graph are only possible in a transactional context. Unfortunately many higher level application layers don't
         want to care about transactions and the open-session-in-view pattern is not widely used. Therefore Spring Data
-        Neo4j's advanced mappings introduced an entity lifecyle and added support for detached entities which can be used for temporary
+        Neo4j's advanced mappings introduced an entity lifecycle and added support for detached entities which can be used for temporary
         domain objects that are not intended to be stored in the graph or which will be attached to the graph only later.
         (<xref linkend="reference_programming-model_lifecycle"/>)
     </para>
     <para>
-        For the simple mapping this is not neccessary as domain objects are detached by default and have to be explicitly
+        For the simple mapping this is not necessary as domain objects are detached by default and have to be explicitly
         reattached to the graph to store the changes.
     </para>
     <para>

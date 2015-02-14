@@ -26,7 +26,7 @@ public interface MovieRepository extends GraphRepository<Movie> {}
 		custom methods, which we explored later.
         Those methods' names could be more domain centric and expressive than the generic operations.
 
-		For simple use-cases like finding by id's this is good enough. So we first let Spring autowire our
+		For simple use-cases like finding by ids this is good enough. So we first let Spring autowire our
 		<code>MovieController</code> with the <code>MovieRepository</code>. That way we could perform simple persistence operations.
     </para>
     <para>

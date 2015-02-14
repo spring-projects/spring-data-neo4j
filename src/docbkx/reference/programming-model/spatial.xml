@@ -28,7 +28,7 @@
 	 To have your entities available for spatial index queries, please include a String property containing
 	 a "well known text", location string.
 	 WKT is the <ulink url="http://en.wikipedia.org/wiki/Well-known_text">Well Known Text Spatial Format</ulink>
-	 eg. <code>POINT( LON LAT ) or POLYGON (( LON1 LAT1 LON2 LAT2 LON3 LAT3 LON1 LAT1 ))</code>        
+	 e.g. <code>POINT( LON LAT )</code> or <code>POLYGON (( LON1 LAT1 LON2 LAT2 LON3 LAT3 LON1 LAT1 ))</code>        
 </para>
 <para>
      Alternatively you can also use one of the geo-spatial primitives from Spring Data Commons which are automatically converted to WKT

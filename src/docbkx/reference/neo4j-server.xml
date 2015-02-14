@@ -129,10 +129,10 @@ public void foo( @Context WorldRepository repo ) {
         </para>
         <para>
             For traversals and Cypher graph queries it is sensible to forward those to the remote endpoint and execute them there
-            instead of walking the graph over the wire. SpringRestGraphDatabase already supports that by providing methods that forward
-            to the remote instance. (e.g. <code>queryEngineFor(), index() and createTraversalDescription()</code>).
+            instead of walking the graph over the wire. <code>SpringRestGraphDatabase</code> already supports that by providing methods that forward
+            to the remote instance. (e.g. <code>queryEngineFor()</code>, <code>index()</code> and <code>createTraversalDescription()</code>).
             Please use those methods when interacting with a remote server for optimal performance. Those methods are also
-            used by the Neo4jTemplate and the mapping infrastructure automatically.
+            used by the <code>Neo4jTemplate</code> and the mapping infrastructure automatically.
         </para>
         <para>
 

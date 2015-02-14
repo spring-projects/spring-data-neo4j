@@ -44,7 +44,7 @@ class Role {
             but we got an exception saying that it misses the relationship-type.
         </para>
         <para>
-            We had to add it to the <code>@RelationshipEntity</code> as an attribute (or as a @RelationshipType annotated
+            We had to add it to the <code>@RelationshipEntity</code> as an attribute (or as a <code>@RelationshipType</code> annotated
             field in the RelationshipEntity). Another way to create
             instances of relationship-entities is to use the methods provided by the template, like
             <code>createRelationshipBetween</code>.
@@ -139,7 +139,7 @@ class Actor {
             Changes to the collections of related entities are reflected into the graph on saving of the entity.
         </para>
         <para>
-            We made sure to add some tests for using the relationshhips, so we were assured that the collections worked as
+            We made sure to add some tests for using the relationships, so we were assured that the collections worked as
             advertised.
         </para>
     </section>
@@ -160,7 +160,7 @@ class Actor {
         </para>
         <para>
             To have the collections of relationships being read eagerly during the loading of the Movie we have to annotate it
-            with the @Fetch annotation. Otherwise Spring Data Neo4j refrains from following relationships automatically.
+            with the <code>@Fetch</code> annotation. Otherwise Spring Data Neo4j refrains from following relationships automatically.
             The risk of loading the whole graph into memory would be too high.
         </para>
         <para>
