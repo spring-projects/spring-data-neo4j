@@ -4,11 +4,11 @@
     <title>Indexing</title>
     <subtitle>Do I know you?</subtitle>
     <para>
-        There is an @Indexed annotation for fields. We wanted to try this out, and use it to guide the
-        next test. We added @Indexed to the <code>id</code> field of the Movie class. This field is intended to represent
+        There is an <code>@Indexed</code> annotation for fields. We wanted to try this out, and use it to guide the
+        next test. We added <code>@Indexed</code> to the <code>id</code> field of the Movie class. This field is intended to represent
         the external ID that will be used in URIs and will be stable across database imports and updates.
         That's why we also declare it as unique.
-        This time we went with a simple GraphRepository to retrieve the indexed movie.
+        This time we went with a simple <code>GraphRepository</code> to retrieve the indexed movie.
     </para>
     <para>
         <example>
