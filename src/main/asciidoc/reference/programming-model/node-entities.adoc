@@ -144,7 +144,7 @@ Finally, node property names can also be explicitly assigned by using the `prope
 
 == @Indexed: Making entities searchable by field value
 
-The @Indexed annotation can be declared on fields that are intended to be indexed by the Neo4j indexing facilities. The resulting index can be used to later retrieve nodes or relationships that contain a certain property value, e.g. a name. Often an index is used to establish the start node for a traversal. Indexes are accessed by a repository for a particular node or relationship entity type. See <<reference_programming-model_indexing>> and <<reference_programming-model_repositories>> for more information.
+The `@Indexed` annotation can be declared on fields that are intended to be indexed by the Neo4j indexing facilities. The resulting index can be used to later retrieve nodes or relationships that contain a certain property value, e.g. a name. Often an index is used to establish the start node for a traversal. Indexes are accessed by a repository for a particular node or relationship entity type. See <<reference_programming-model_indexing>> and <<reference_programming-model_repositories>> for more information.
 
 == @Query: fields as query result views
 

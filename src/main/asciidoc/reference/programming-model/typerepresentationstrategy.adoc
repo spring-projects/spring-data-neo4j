@@ -85,11 +85,11 @@ As some type information is also stored in labels, node/relationship-properties 
 
 It is also possible to opt out of storing type information completely by using the `NoopTypeRepresentationStrategies`.
 
-Spring Data Neo4j will by default autodetect which are the most suitable strategies for node and relationship entities. For new data stores, it will always opt for the indexing strategies (Label based for nodes, and legacy index based for relationships). If a data store was created with the older`SubReferenceNodeTypeRepresentationStrategy`, then it will continue to use that strategy for node entities. It will however in that case use the no-op strategy for relationship entities, which means that the old data stores have no support for searching for relationship entities. The indexing strategies are recommended for all new users.
+Spring Data Neo4j will by default autodetect which are the most suitable strategies for node and relationship entities. For new data stores, it will always opt for the indexing strategies (Label based for nodes, and legacy index based for relationships). If a data store was created with the older `SubReferenceNodeTypeRepresentationStrategy`, then it will continue to use that strategy for node entities. It will however in that case use the no-op strategy for relationship entities, which means that the old data stores have no support for searching for relationship entities. The indexing strategies are recommended for all new users.
 
 == Entity type safety
 
-While some methods such as findAll and count will used the stored type information to return uniformly typed entities, some others such as findOne will fetch the requested node regardless of its type. This may result in odd behaviors where a repository extending GraphRepository<T> may return entities of type other than T (see example below).
+While some methods such as `findAll` and count will used the stored type information to return uniformly typed entities, some others such as `findOne` will fetch the requested node regardless of its type. This may result in odd behaviors where a repository extending `GraphRepository<T>` may return entities of type other than T (see example below).
 
 .Requests to repository without type safety enforcement
 ====
@@ -117,15 +117,15 @@ GET /dogs/1 // returns a Dog
 ----
 ====
 
-In order to customize the type safety enforcement applied when creating entities from the requested nodes in the graph, you might want to register a different "typeSafetyPolicy" spring bean specifying the TypeSafetyOption to use.
+In order to customize the type safety enforcement applied when creating entities from the requested nodes in the graph, you might want to register a different "typeSafetyPolicy" spring bean specifying the `TypeSafetyOption` to use.
 
 There are 3 different type safety options available :
 
-* TypeSafetyOption.NONE : Sets the system to not be type safe.
-* TypeSafetyOption.RETURNS_NULL : Sets the system to return null if a entity should be loaded which is not of the requested type.
-* TypeSafetyOption.THROWS_EXCEPTION : Sets the system to throw an exception if a entity should be loaded which is not of the requested type (default setting).
+* `TypeSafetyOption.NONE` : Sets the system to not be type safe.
+* `TypeSafetyOption.RETURNS_NULL` : Sets the system to return null if a entity should be loaded which is not of the requested type.
+* `TypeSafetyOption.THROWS_EXCEPTION` : Sets the system to throw an exception if a entity should be loaded which is not of the requested type (default setting).
 
-The TypeSafetyPolicy override bean can be declared in the following way :
+The `TypeSafetyPolicy` override bean can be declared in the following way :
 
 .TypeSafetyPolicy XML-based configuration
 ====

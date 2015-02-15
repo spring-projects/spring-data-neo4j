@@ -141,4 +141,4 @@ public void mapToMovie(Map data, Movie movie) {
 ----
 ====
 
-The last part involved adding a protected URI to the MovieController to allow importing ranges of movies. During testing, it became obvious that the calls to themoviedb.org were a limiting factor. As soon as the data was stored locally, the Neo4j import was a sub-second deal.
+The last part involved adding a protected URI to the `MovieController` to allow importing ranges of movies. During testing, it became obvious that the calls to themoviedb.org were a limiting factor. As soon as the data was stored locally, the Neo4j import was a sub-second deal.

@@ -276,7 +276,7 @@ You can also configure Spring Data Neo4j using Java-based bean metadata.
 
 NOTE: For those not familiar with Java-based bean configuration in Spring, we recommend that you read up on it first. The Spring documentation has a http://static.springsource.org/spring/docs/3.1.x/spring-framework-reference/html/new-in-3.0.html#new-java-configuration[high-level introduction] as well as http://static.springsource.org/spring/docs/3.1.x/spring-framework-reference/html/beans.html#beans-java-instantiating-container[detailed documentation] on it.
 
-In order to configure Spring Data Neo4j with Java-based bean config, the class `Neo4jConfiguration` is registered with the context. This is either done explicitly in the context configuration, or via classpath scanning for classes that have the @Configuration annotation. The only thing that must be provided is the `GraphDatabaseService` and the `basePackage` must also be set. The examples below show how this can be done. 
+In order to configure Spring Data Neo4j with Java-based bean config, the class `Neo4jConfiguration` is registered with the context. This is either done explicitly in the context configuration, or via classpath scanning for classes that have the `@Configuration` annotation. The only thing that must be provided is the `GraphDatabaseService` and the `basePackage` must also be set. The examples below show how this can be done. 
 
 .Pure Java based bean configuration
 ====
@@ -327,4 +327,4 @@ To register the default `@Configuration Neo4jConfiguration` class, as well as Sp
 ----
 ====
 
-Additional beans can be configured to be included in the Neo4j-Configuration just by defining them in the Spring context. ConversionService for custom conversions, Validators for bean validation, TypeRepresentationStrategyFactory for configuring the in graph type representation, IndexProviders for custom index handling (e.g. for multi-tenancy) or Entity-Instantiators (with their config) to have more control over the creation of entity instances and much more.
+Additional beans can be configured to be included in the Neo4j-Configuration just by defining them in the Spring context. `ConversionService` for custom conversions, `Validator`s for bean validation, `TypeRepresentationStrategyFactory` for configuring the in graph type representation, `IndexProvider`s for custom index handling (e.g. for multi-tenancy) or Entity-Instantiators (with their config) to have more control over the creation of entity instances and much more.

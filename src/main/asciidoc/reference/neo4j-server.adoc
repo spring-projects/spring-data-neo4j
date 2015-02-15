@@ -20,7 +20,7 @@ The Neo4j Server has two built-in extension mechanisms. It is possible to extend
 For an unrestricted implementation, an http://neo4j.com/docs/stable/server-unmanaged-extensions.html[unmanaged extension] can be used. Unmanaged extensions are essentially http://jersey.java.net/[Jersey] resource implementations.
 The resource constructors or methods can get `@Context GraphDatabaseService` and `@Context CypherExecutor` instances injected to run the necessary Neo4j API calls and Cypher statements and return appropriate `Representations`.
 
-Both kinds of extensions have to be packaged as JAR files and added to the Neo4j Server's plugin directory. Server Plugins are picked up by the server at startup if they provide the necessary `META-INF.services/org.neo4j.server.plugins.ServerPlugin` file for Java's ServiceLoader facility. Unmanaged extensions have to be registered with the Neo4j Server configuration in `conf/neo4j-wrapper.conf`.
+Both kinds of extensions have to be packaged as JAR files and added to the Neo4j Server's plugin directory. Server Plugins are picked up by the server at startup if they provide the necessary `META-INF.services/org.neo4j.server.plugins.ServerPlugin` file for Java's `ServiceLoader` facility. Unmanaged extensions have to be registered with the Neo4j Server configuration in `conf/neo4j-wrapper.conf`.
 
 .Configuring an unmanaged extension
 ====
@@ -30,7 +30,7 @@ org.neo4j.server.thirdparty_jaxrs_classes=com.example.mypackage=/my-context
 ----
 ====
 
-Integrating Spring Data Neo4j ApplicationContext configuration in the Neo4j Server is easy.
+Integrating Spring Data Neo4j `ApplicationContext` configuration in the Neo4j Server is easy.
 You provide the Spring context configuration location, and list which Spring-beans should be exposed:
 
 .Server plugin initialization
@@ -73,7 +73,7 @@ To use Neo4j's remote APIs, you can use them directly to send Cypher statements 
 
 There are also other http://neo4j.com/developer/language-guides[remote drivers] for Neo4j available.
 
-Spring Data Neo4j's integration with the server also uses the Cypher endpoint to execute GraphDatabaseService operations transactionally against the server. 
+Spring Data Neo4j's integration with the server also uses the Cypher endpoint to execute `GraphDatabaseService` operations transactionally against the server. 
  The implementation of the integration is handled by `SpringCypherRestGraphDatabase` and `RestAPICypherImpl` which wraps the _old_ REST-API methods in the appropriate Cypher statement calls.
  It integrates with the Spring Transaction APIs by providing a `javax.transaction.TransactionManager` implementation that is configured to be used by the `JtaTransactionManager` bean provided by Spring Data Neo4j.
 
@@ -125,7 +125,7 @@ Now, you set up the normal Spring Data Neo4j configuration, but point the databa
 Your project is now set up to work with a remote Neo4j Server.
 
 For direct execution of Cypher graph queries and graph traversals it is sensible to forward those to the remote side and execute them on the server.
- `SpringCypherRestGraphDatabase` already supports this approach by providing appropriate methods. (e.g. `query()`, `queryEngineFor(), index()` and `createTraversalDescription()`).
+ `SpringCypherRestGraphDatabase` already supports this approach by providing appropriate methods. (e.g. `query()`, `queryEngineFor()`, `index()` and `createTraversalDescription()`).
  Please use those methods when interacting with a remote server for better performance.
- Those methods are also used by the Neo4jTemplate and the mapping infrastructure implementation.
+ Those methods are also used by the `Neo4jTemplate` and the mapping infrastructure implementation.
 

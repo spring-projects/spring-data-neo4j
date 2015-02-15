@@ -5,7 +5,7 @@
 
 Supported conversions are: Nodes to Paths and to Entities, Relationships to Paths and to Entities, Paths to Node (EndNode), Relationships (LastRelationship) and to EntityPaths. Entities to Nodes or Relationships.
 
-It is also possible to provide a custom ResultConverter that additionally takes care of conversions.
+It is also possible to provide a custom `ResultConverter` that additionally takes care of conversions.
 
 [[reference_programming-model_mapresult]]
 == Mapping Query Results
