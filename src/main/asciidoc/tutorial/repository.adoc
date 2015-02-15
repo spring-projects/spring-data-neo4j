@@ -26,7 +26,7 @@ Then we enabled repository support in the Spring context configuration by simply
 ----
 ====
 
-Besides the existing repository operations (like CRUD, and many standard queries) it was possible to declare custom methods, which we explored later. Those methods' names could be more domain centric and expressive than the generic operations. For simple use-cases like finding by id's this is good enough. So we first let Spring autowire our `MovieController` with the `MovieRepository`. That way we could perform simple persistence operations.
+Besides the existing repository operations (like CRUD, and many standard queries) it was possible to declare custom methods, which we explored later. Those methods' names could be more domain centric and expressive than the generic operations. For simple use-cases like finding by ids this is good enough. So we first let Spring autowire our `MovieController` with the `MovieRepository`. That way we could perform simple persistence operations.
 
 .Usage of a repository
 ====

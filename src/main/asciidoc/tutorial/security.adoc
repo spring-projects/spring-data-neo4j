@@ -82,7 +82,7 @@ Being Spring users, we naturally used Spring Security for this. We wrote a simpl
 ----
 ====
 
-.CinceastUserDetailsService interface and UserRepository custom implementation
+.CineastsUserDetailsService interface and UserRepository custom implementation
 ====
 [source,java]
 ----

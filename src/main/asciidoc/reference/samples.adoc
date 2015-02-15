@@ -69,7 +69,7 @@ The cineasts.net application was introduced extensively in the first part of thi
 
 To document the differences, versions for the advanced mapping (`cineasts-aspects`) and accessing the remote server (`cineasts-rest`) are also available.
 
-A online version of cineasts can be found on http://cineasts.net[cineasts.net]. A sample dataset of the cineasts databse is available at the neo4j http://sample-data.neo4j.org[sample-data page].
+A online version of cineasts can be found on http://cineasts.net[cineasts.net]. A sample dataset of the cineasts database is available at the neo4j http://sample-data.neo4j.org[sample-data page].
 
 This is a subset of the visualization of the cineasts graph for the "Matrix" movie.
 

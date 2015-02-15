@@ -1,7 +1,7 @@
 [[reference_heroku]]
 = Heroku: Seeding the Cloud
 
-Deploying your application into the cloud is a great way to scale from from "wouldn't it be cool if.." to giving interviews to Forbes, Fast Company, and Jimmy Fallon. Heroku makes it super easy to provision everying you need, including a Neo4j Add-on. With a few simple adjustments, your Spring Data Neo4j application is ready to take that first step into the cloud.
+Deploying your application into the cloud is a great way to scale from from "wouldn't it be cool if.." to giving interviews to Forbes, Fast Company, and Jimmy Fallon. Heroku makes it super easy to provision everything you need, including a Neo4j Add-on. With a few simple adjustments, your Spring Data Neo4j application is ready to take that first step into the cloud.
 
 To deploy your Spring Data Neo4j web application to Heroku, you'll need:
 

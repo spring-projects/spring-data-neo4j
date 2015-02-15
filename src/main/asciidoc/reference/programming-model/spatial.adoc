@@ -17,7 +17,7 @@ Spring Data Neo4j integrates with the common geo-spatial types in Spring Data Co
 ----
 ====
 
-To have your entities available for spatial index queries, please include a String property containing a "well known text", location string. WKT is the http://en.wikipedia.org/wiki/Well-known_text[Well Known Text Spatial Format] eg. `POINT( LON LAT )` or `POLYGON (( LON1 LAT1 LON2 LAT2 LON3 LAT3 LON1 LAT1 ))`
+To have your entities available for spatial index queries, please include a String property containing a "well known text", location string. WKT is the http://en.wikipedia.org/wiki/Well-known_text[Well Known Text Spatial Format] e.g. `POINT( LON LAT )` or `POLYGON (( LON1 LAT1 LON2 LAT2 LON3 LAT3 LON1 LAT1 ))`
 
 Alternatively you can also use one of the geo-spatial primitives from Spring Data Commons which are automatically converted to WKT when stored in the graph.
 

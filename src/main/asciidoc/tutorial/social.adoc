@@ -61,18 +61,18 @@ We extended the `DatabasePopulator` to add some users and ratings to the initial
 @Transactional
 public List<Movie> populateDatabase() {
     Actor tomHanks = new Actor("1", "Tom Hanks");
-    Movie forestGump = new Movie("1", "Forrest Gump");
-    tomHanks.playedIn(forestGump, "Forrest");
+    Movie forrestGump = new Movie("1", "Forrest Gump");
+    tomHanks.playedIn(forrestGump, "Forrest");
     template.save(tomHanks);
 
     User me = template.save(new User("micha", "Micha", "password"));
-    Rating awesome = me.rate(template, forestGump, 5, "Awesome");
+    Rating awesome = me.rate(template, forrestGump, 5, "Awesome");
 
     User ollie = template.save(new User("ollie", "Oliver", "password"));
-    ollie.rate(template,forestGump, 2, "ok");
+    ollie.rate(template,forrestGump, 2, "ok");
     me.addFriend(ollie);
     template.save(me);
-    return asList(forestGump);
+    return asList(forrestGump);
 }
 ----
 ====

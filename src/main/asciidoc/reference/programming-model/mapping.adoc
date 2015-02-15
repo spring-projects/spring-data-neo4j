@@ -1,7 +1,7 @@
 [[reference_mapping]]
 = Object Graph Mapping
 
-Up until recently Spring Data Neo4j supported only the more advanced and flexible AspectJ based mapping approach, see <<reference_aspectj>>. Feedback about issues with the AspectJ tooling and other implications persuaded us to add a simpler mapping (see <<reference_simple-mapping>>) to Spring Data Neo4j. Both versions work with the same annotations and provide similar API's, but differ in behaviour.
+Up until recently Spring Data Neo4j supported only the more advanced and flexible AspectJ based mapping approach, see <<reference_aspectj>>. Feedback about issues with the AspectJ tooling and other implications persuaded us to add a simpler mapping (see <<reference_simple-mapping>>) to Spring Data Neo4j. Both versions work with the same annotations and provide similar APIs, but differ in behaviour.
 
 Reflection and Annotation-based metadata is collected about persistent entities in the `Neo4jMappingContext` which provides it to any part of the library. The information is stored in `Neo4jPersistentEntity` instances which hold all the `Neo4jPersistentProperty`'s of the type. Each entity can be checked to determine whether it represents a Node or a Relationship. Properties declare detailed data about their indexing and relationship information as well as type information that also covers nested generic types. With all that information available it is simple to select the appropriate strategy for mapping each entity and field to elements, relationships and properties of the graph.
 

@@ -64,7 +64,7 @@ The save operation (merge) stores all properties of the entity to the graph data
 
 If the relationships form a cycle, then the entities will first of all be assigned a node in the database, and then the relationships will be created. The cascading of `persist()` is however only cascaded to related entity fields that have been modified.
 
-In the following example, the actor and the movie are both attached entites, having both been previously persisted to the graph: 
+In the following example, the actor and the movie are both attached entities, having both been previously persisted to the graph: 
 
 .Cascade for modified fields
 ====

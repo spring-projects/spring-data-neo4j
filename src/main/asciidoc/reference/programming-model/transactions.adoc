@@ -5,7 +5,7 @@ Neo4j is a transactional database, only allowing modifications to be performed w
 
 Spring Data Neo4j integrates with transaction managers configured using Spring. The simplest scenario of just running the graph database uses a `SpringTransactionManager` provided by the Neo4j kernel to be used with Spring's `JtaTransactionManager`. That is, configuring Spring to use Neo4j's transaction manager.
 
-NOTE: To avoid name collisons the transaction manager configured by Spring Data Neo4j is called `neo4jTransactionManager` and is aliased to `transactionManager`. So defining a separate `transactionManager` bean should not interfere with Spring Data Neo4j operations.
+NOTE: To avoid name collisions the transaction manager configured by Spring Data Neo4j is called `neo4jTransactionManager` and is aliased to `transactionManager`. So defining a separate `transactionManager` bean should not interfere with Spring Data Neo4j operations.
 
 NOTE: The explicit XML configuration given below is encoded in the `Neo4jConfiguration` configuration bean that uses Spring's `@Configuration` feature. This greatly simplifies the configuration of Spring Data Neo4j.
 

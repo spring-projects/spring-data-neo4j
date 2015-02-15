@@ -95,7 +95,7 @@ class Actor {
 
 Changes to the collections of related entities are reflected into the graph on saving of the entity.
 
-We made sure to add some tests for using the relationshhips, so we were assured that the collections worked as advertised.
+We made sure to add some tests for using the relationships, so we were assured that the collections worked as advertised.
 
 == Accessing the relationship entities
 

@@ -174,7 +174,7 @@ The legacy index for a domain class is also available from `Neo4jTemplate` via t
 
 // Default index
 Index<Node> personIndex = template.getIndex(null, Person.class);
-personIndex.query(new QueryContext(NumericRangeQuery.newÍntRange("age", 20, 40, true, true))
+personIndex.query(new QueryContext(NumericRangeQuery.newIntRange("age", 20, 40, true, true))
                        .sort(new Sort(new SortField("age", SortField.INT, false))));
 
 // Named index
@@ -197,7 +197,7 @@ It is also possible to pass in the property name of the entity with an `@Indexed
 @Autowired Neo4jTemplate template;
 
 Index<Node> personIndex = template.getIndex(Person.class, "age");
-personIndex.query(new QueryContext(NumericRangeQuery.newÍntRange("age", 20, 40, true, true))
+personIndex.query(new QueryContext(NumericRangeQuery.newIntRange("age", 20, 40, true, true))
                        .sort(new Sort(new SortField("age", SortField.INT, false))));
 
 // Fulltext index
