@@ -82,6 +82,14 @@
             <timezone>GMT</timezone>
         </developer>
         <developer>
+            <id>mangrish</id>
+            <name>Mark Angrish</name>
+            <roles>
+                <role>Developer</role>
+            </roles>
+            <timezone>+11</timezone>
+        </developer>
+        <developer>
             <id>mhunger</id>
             <name>Michael Hunger</name>
             <email>michael.hunger at neotechnology.com</email>
