@@ -1,0 +1,33 @@
+{
+	"name": "jsog",
+	"version": "1.0.6",
+
+	"main": "lib/JSOG",
+
+	"devDependencies": {
+		"coffee-script": "1.7.x",
+		"mocha": "1.9.x"
+	},
+
+	"scripts": {
+		"build": "coffee --compile --lint --output lib/ src/*.coffee",
+		"prepublish": "coffee --compile --lint --output lib/ src/*.coffee",
+		"test": "./node_modules/.bin/mocha"
+	},
+
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/jsog/jsog"
+	},
+
+	"bugs": {
+		"url": "https://github.com/jsog/jsog/issues"
+	},
+
+	"licenses": [
+		{
+			"type": "MIT",
+			"url": "http://opensource.org/licenses/MIT"
+		}
+	]
+}

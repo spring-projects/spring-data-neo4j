@@ -1,0 +1,10 @@
+{
+    "main": {
+        "title": "Hilly Fields Technical College",
+        "subtitle": "Timendi Causa Est Nesciri",
+        "apptitle": "Student Registration and Curriculum Management",
+        "logged": {
+            "message": "You are logged in as user \"{{username}}\"."
+        }
+    }
+}

@@ -1,0 +1,18 @@
+{
+    "registrarApp": {
+        "school" : {
+            "home": {
+                "title": "Schools",
+                "createLabel": "Créer un nouveau School",
+                "createOrEditLabel": "Créer ou éditer un School"
+            },
+            "delete": {
+                "question": "Etes-vous certain de vouloir supprimer le School {{ id }} ?"
+            },
+            "detail": {
+                "title": "School"
+            }
+        }
+    }
+}
+

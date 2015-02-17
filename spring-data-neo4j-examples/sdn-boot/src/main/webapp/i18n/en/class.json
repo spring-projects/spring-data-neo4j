@@ -1,0 +1,21 @@
+{
+    "registrarApp": {
+        "class" : {
+            "home": {
+                "title": "Classes",
+                "createLabel": "Create a new Class",
+                "createOrEditLabel": "Create or edit a Class"
+            },
+            "delete": {
+                "question": "Are you sure you want to delete Class {{ id }}?"
+            },
+            "detail": {
+                "title": "Class"
+            },
+            "name": "Name",
+            "teacher": "Teacher",
+            "subject": "Subject",
+            "students": "Students"
+        }
+    }
+}

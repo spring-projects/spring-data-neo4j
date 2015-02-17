@@ -1,0 +1,253 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>org.springframework.data</groupId>
+    <artifactId>spring-data-neo4j-parent</artifactId>
+    <version>4.0.0.BUILD-SNAPSHOT</version>
+    <packaging>pom</packaging>
+
+    <name>*** Spring Data Neo4j - Parent ***</name>
+
+    <parent>
+        <groupId>org.springframework.data.build</groupId>
+        <artifactId>spring-data-parent</artifactId>
+        <version>1.6.0.BUILD-SNAPSHOT</version>
+    </parent>
+
+    <modules>
+        <module>spring-data-neo4j</module>
+    </modules>
+
+    <properties>
+        <project.type>multi</project.type>
+        <dist.id>spring-data-neo4j</dist.id>
+        <springdata.commons>1.10.0.BUILD-SNAPSHOT</springdata.commons>
+
+        <source.level>1.7</source.level>
+        <target.level>1.7</target.level>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+        <neo4j.version>2.1.7</neo4j.version>
+        <sdn.version>4.0.0.BUILD-SNAPSHOT</sdn.version>
+
+        <!-- todo enable? -->
+        <bundlor.enabled>false</bundlor.enabled>
+    </properties>
+
+
+    <profiles>
+        <profile>
+            <id>include-examples</id>
+            <modules>
+                <module>spring-data-neo4j-examples/sdn-boot</module>
+            </modules>
+        </profile>
+    </profiles>
+
+    <developers>
+        <developer>
+            <id>vbickers</id>
+            <name>Vince Bickers</name>
+            <email>vince at graphaware.com</email>
+            <organization>GraphAware</organization>
+            <organizationUrl>http://www.graphaware.com</organizationUrl>
+            <roles>
+                <role>Developer</role>
+            </roles>
+            <timezone>GMT</timezone>
+        </developer>
+        <developer>
+            <id>atg</id>
+            <name>Adam George</name>
+            <email>adam at graphaware.com</email>
+            <organization>GraphAware</organization>
+            <organizationUrl>http://www.graphaware.com</organizationUrl>
+            <roles>
+                <role>Developer</role>
+            </roles>
+            <timezone>GMT</timezone>
+        </developer>
+        <developer>
+            <id>bachmanm</id>
+            <name>Michal Bachman</name>
+            <email>michal at graphaware.com</email>
+            <organization>GraphAware</organization>
+            <organizationUrl>http://www.graphaware.com</organizationUrl>
+            <roles>
+                <role>Developer</role>
+            </roles>
+            <timezone>GMT</timezone>
+        </developer>
+        <developer>
+            <id>mhunger</id>
+            <name>Michael Hunger</name>
+            <email>michael.hunger at neotechnology.com</email>
+            <organization>Neo Technology</organization>
+            <organizationUrl>http://www.neotechnology.com</organizationUrl>
+            <roles>
+                <role>Project Lead</role>
+            </roles>
+            <timezone>+1</timezone>
+        </developer>
+        <developer>
+            <id>ogierke</id>
+            <name>Oliver Gierke</name>
+            <email>ogierke at gopivotal.com</email>
+            <organization>Pivotal</organization>
+            <organizationUrl>http://www.spring.io</organizationUrl>
+            <roles>
+                <role>Developer</role>
+            </roles>
+            <timezone>+1</timezone>
+        </developer>
+        <developer>
+            <id>trisberg</id>
+            <name>Thomas Risberg</name>
+            <email>trisberg at gopivotal.com</email>
+            <organization>Pivotal</organization>
+            <organizationUrl>http://www.spring.io</organizationUrl>
+            <roles>
+                <role>Developer</role>
+            </roles>
+            <timezone>-5</timezone>
+        </developer>
+        <developer>
+            <id>mpollack</id>
+            <name>Mark Pollack</name>
+            <email>mpollack at gopivotal.com</email>
+            <organization>Pivotal</organization>
+            <organizationUrl>http://www.spring.io</organizationUrl>
+            <roles>
+                <role>Developer</role>
+            </roles>
+            <timezone>-5</timezone>
+        </developer>
+    </developers>
+
+    <dependencyManagement>
+
+        <dependencies>
+
+            <dependency>
+                <groupId>org.neo4j.ogm</groupId>
+                <artifactId>neo4j-ogm</artifactId>
+                <version>1.0-SNAPSHOT</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.neo4j.ogm</groupId>
+                <artifactId>neo4j-testutils</artifactId>
+                <version>1.0-SNAPSHOT</version>
+                <scope>test</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>org.springframework.data</groupId>
+                <artifactId>spring-data-neo4j-tests</artifactId>
+                <version>4.0.0.BUILD-SNAPSHOT</version>
+                <scope>test</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>org.springframework.data</groupId>
+                <artifactId>spring-data-commons</artifactId>
+                <version>${springdata.commons}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.fasterxml.jackson.core</groupId>
+                <artifactId>jackson-databind</artifactId>
+                <version>2.3.2</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.httpcomponents</groupId>
+                <artifactId>httpclient</artifactId>
+                <version>4.3.6</version>
+            </dependency>
+
+            <dependency>
+                <groupId>commons-lang</groupId>
+                <artifactId>commons-lang</artifactId>
+                <version>2.6</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.neo4j</groupId>
+                <artifactId>neo4j</artifactId>
+                <version>${neo4j.version}</version>
+                <scope>test</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>org.neo4j</groupId>
+                <artifactId>neo4j-kernel</artifactId>
+                <version>${neo4j.version}</version>
+                <type>test-jar</type>
+                <scope>test</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>org.neo4j.app</groupId>
+                <artifactId>neo4j-server</artifactId>
+                <version>${neo4j.version}</version>
+                <scope>test</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>org.neo4j.app</groupId>
+                <artifactId>neo4j-server</artifactId>
+                <version>${neo4j.version}</version>
+                <type>test-jar</type>
+                <scope>test</scope>
+            </dependency>
+
+        </dependencies>
+
+    </dependencyManagement>
+
+    <build>
+        <plugins>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>2.1</version>
+                <configuration>
+                    <source>1.7</source>
+                    <target>1.7</target>
+                    <encoding>${project.build.sourceEncoding}</encoding>
+                </configuration>
+            </plugin>
+
+
+        </plugins>
+    </build>
+
+    <repositories>
+        <repository>
+            <id>spring-libs-snapshot</id>
+            <name>Spring</name>
+            <url>http://repo.spring.io/libs-snapshot</url>
+        </repository>
+        <repository>
+            <id>neo4j</id>
+            <url>http://m2.neo4j.org/content/repositories/releases</url>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
+    </repositories>
+
+    <pluginRepositories>
+        <pluginRepository>
+            <id>spring-plugins-release</id>
+            <url>http://repo.spring.io/plugins-release</url>
+        </pluginRepository>
+    </pluginRepositories>
+
+
+</project>

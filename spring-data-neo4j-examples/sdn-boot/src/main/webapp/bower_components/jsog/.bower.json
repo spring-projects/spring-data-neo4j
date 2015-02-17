@@ -1,0 +1,45 @@
+{
+  "name": "jsog",
+  "version": "1.0.6",
+  "homepage": "https://github.com/jsog/jsog",
+  "authors": [
+    "jeff@infohazard.org",
+    "latchkey@gmail.com"
+  ],
+  "description": "JSOG - JavaScript Object Graph",
+  "main": "lib/JSOG.js",
+  "keywords": [
+    "jsog",
+    "javascript",
+    "object",
+    "graph",
+    "json",
+    "fromJson",
+    "toJson",
+    "json",
+    "parse",
+    "stringify"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests",
+    "src-test",
+    "bin",
+    ".externalToolBuilder",
+    "*.iml"
+  ],
+  "_release": "1.0.6",
+  "_resolution": {
+    "type": "version",
+    "tag": "1.0.6",
+    "commit": "16f86b442a31b35e53e5fdb6c151b51d136f8b3f"
+  },
+  "_source": "git://github.com/jsog/jsog.git",
+  "_target": "~1.0.6",
+  "_originalSource": "jsog",
+  "_direct": true
+}

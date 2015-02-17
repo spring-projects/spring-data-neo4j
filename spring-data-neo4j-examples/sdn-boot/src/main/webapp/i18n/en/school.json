@@ -1,0 +1,18 @@
+{
+    "registrarApp": {
+        "school" : {
+            "home": {
+                "title": "Schools",
+                "createLabel": "Create a new School",
+                "createOrEditLabel": "Create or edit a School"
+            },
+            "delete": {
+                "question": "Are you sure you want to delete School {{ id }}?"
+            },
+            "detail": {
+                "title": "School"
+            },
+            "name": "Name"
+        }
+    }
+}

@@ -1,0 +1,19 @@
+{
+    "registrarApp": {
+        "subject" : {
+            "home": {
+                "title": "Subjects",
+                "createLabel": "Créer un nouveau Subject",
+                "createOrEditLabel": "Créer ou éditer un Subject"
+            },
+            "delete": {
+                "question": "Etes-vous certain de vouloir supprimer le Subject {{ id }} ?"
+            },
+            "detail": {
+                "title": "Subject"
+            },
+            "name": "Name"
+        }
+    }
+}
+

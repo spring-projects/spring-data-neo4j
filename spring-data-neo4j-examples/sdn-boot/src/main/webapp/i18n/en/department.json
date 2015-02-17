@@ -1,0 +1,19 @@
+{
+    "registrarApp": {
+        "department" : {
+            "home": {
+                "title": "Departments",
+                "createLabel": "Create a new Department",
+                "createOrEditLabel": "Create or edit a Department"
+            },
+            "delete": {
+                "question": "Are you sure you want to delete Department {{ id }}?"
+            },
+            "detail": {
+                "title": "Department"
+            },
+            "name": "Name", "subjects": "Subjects", "staff": "Staff"
+
+        }
+    }
+}

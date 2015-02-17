@@ -1,0 +1,25 @@
+<div>
+
+    <h2>Popular Study Buddies</h2>
+
+    <div>
+        <span>Find&nbsp;<label><input class="search" ng-model="searchText"></label></span>
+    </div>
+
+    <div class="table-responsive view">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Student</th>
+                    <th>No of Study Buddies</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr ng-repeat="result in results | filter:searchText">
+                    <td>{{result.p.name}}</td><td>{{result.buddies}}</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+</div>

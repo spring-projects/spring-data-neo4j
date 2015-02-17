@@ -1,0 +1,80 @@
+<div>
+
+    <h2 translate="registrarApp.department.home.title">Department</h2>
+
+    <button class="btn btn-primary btn-lg" data-toggle="modal" data-target="#saveDepartmentModal" ng-click="clear()">
+        <span class="glyphicon glyphicon-flash"></span> <span translate="registrarApp.department.home.createLabel">Create a new Department</span>
+    </button>
+
+    <div class="modal fade" id="saveDepartmentModal" tabindex="-1" role="dialog" aria-labelledby="myDepartmentLabel"
+         aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form name="form" role="form" novalidate
+                      class="ng-scope ng-invalid ng-invalid-required ng-dirty ng-valid-minlength"
+                      ng-submit="create()">
+
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true"
+                                ng-click="clear()">&times;</button>
+                        <h4 class="modal-title" id="myDepartmentLabel" translate="registrarApp.department.home.createOrEditLabel">Create or edit a Department</h4>
+                    </div>
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label translate="registrarApp.department.name">Name</label>
+                            <input type="text" class="form-control"
+                                   ng-model="department.name">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal" ng-click="clear()">
+                            <span class="glyphicon glyphicon-ban-circle"></span>&nbsp;<span translate="entity.action.cancel">Cancel</span>
+                        </button>
+                        <button type="submit" ng-disabled="form.$invalid" class="btn btn-primary">
+                            <span class="glyphicon glyphicon-save"></span>&nbsp;<span translate="entity.action.save">Save</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="deleteDepartmentConfirmation">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form name="form" ng-submit="confirmDelete(department.id)">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true"
+                                ng-click="clear()">&times;</button>
+                        <h4 class="modal-title" translate="entity.delete.title">Confirm delete operation</h4>
+                    </div>
+                    <div class="modal-body">
+                        <p translate="registrarApp.department.delete.question" translate-values="{id: '{{department.id}}'}">Are you sure you want to delete Department {{department.id}}?</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal" ng-click="clear()">
+                            <span class="glyphicon glyphicon-ban-circle"></span>&nbsp;<span translate="entity.action.cancel">Cancel</span>
+                        </button>
+                        <button type="submit" ng-disabled="form.$invalid" class="btn btn-danger">
+                            <span class="glyphicon glyphicon-remove-circle"></span>&nbsp;<span translate="entity.action.delete">Delete</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div>
+        <span>Find&nbsp;<label><input class="search" ng-model="searchText"></label></span>
+    </div>
+
+    <div class="table-responsive view">
+        <table class="table table-striped">
+            <tbody>
+                <tr ng-repeat="department in departments | filter:searchText track by department.id">
+                    <td><a ui-sref="departmentDetail({id:department.id})"><span>{{department.id}}:{{department.name}}</span></a></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>

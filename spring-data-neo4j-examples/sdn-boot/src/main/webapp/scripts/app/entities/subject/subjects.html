@@ -1,0 +1,79 @@
+<div>
+
+    <h2 translate="registrarApp.subject.home.title">Subject</h2>
+
+    <button class="btn btn-primary btn-lg" data-toggle="modal" data-target="#saveSubjectModal" ng-click="clear()">
+        <span class="glyphicon glyphicon-flash"></span> <span translate="registrarApp.subject.home.createLabel">Create a new Subject</span>
+    </button>
+
+    <div class="modal fade" id="saveSubjectModal" tabindex="-1" role="dialog" aria-labelledby="mySubjectLabel"
+         aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form name="form" role="form" novalidate
+                      class="ng-scope ng-invalid ng-invalid-required ng-dirty ng-valid-minlength"
+                      ng-submit="create()">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true"
+                                ng-click="clear()">&times;</button>
+                        <h4 class="modal-title" id="mySubjectLabel" translate="registrarApp.subject.home.createOrEditLabel">Create or edit a Subject</h4>
+                    </div>
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label translate="registrarApp.subject.name">Name</label>
+                            <input type="text" class="form-control"
+                                   ng-model="subject.name">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal" ng-click="clear()">
+                            <span class="glyphicon glyphicon-ban-circle"></span>&nbsp;<span translate="entity.action.cancel">Cancel</span>
+                        </button>
+                        <button type="submit" ng-disabled="form.$invalid" class="btn btn-primary">
+                            <span class="glyphicon glyphicon-save"></span>&nbsp;<span translate="entity.action.save">Save</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="deleteSubjectConfirmation">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form name="form" ng-submit="confirmDelete(subject.id)">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true"
+                                ng-click="clear()">&times;</button>
+                        <h4 class="modal-title" translate="entity.delete.title">Confirm delete operation</h4>
+                    </div>
+                    <div class="modal-body">
+                        <p translate="registrarApp.subject.delete.question" translate-values="{id: '{{subject.id}}'}">Are you sure you want to delete Subject {{subject.id}}?</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal" ng-click="clear()">
+                            <span class="glyphicon glyphicon-ban-circle"></span>&nbsp;<span translate="entity.action.cancel">Cancel</span>
+                        </button>
+                        <button type="submit" ng-disabled="form.$invalid" class="btn btn-danger">
+                            <span class="glyphicon glyphicon-remove-circle"></span>&nbsp;<span translate="entity.action.delete">Delete</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div>
+        <span>Find&nbsp;<label><input class="search" ng-model="searchText"></label></span>
+    </div>
+
+    <div class="table-responsive view">
+        <table class="table table-striped">
+            <tbody>
+                <tr ng-repeat="subject in subjects | filter:searchText track by subject.id">
+                    <td><a ng-model="subject.name" ui-sref="subjectDetail({id:subject.id})">{{subject.id}}:{{subject.name}}</a></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>

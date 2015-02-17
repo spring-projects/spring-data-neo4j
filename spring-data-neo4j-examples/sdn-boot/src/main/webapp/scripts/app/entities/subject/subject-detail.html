@@ -1,0 +1,100 @@
+
+<div>
+    <h2>Subject {{subject.id}}:{{subject.name}}</h2>
+    <div class="table-responsive">
+        <form name="form"
+              role="form"
+              novalidate
+              class="ng-scope ng-invalid ng-invalid-required ng-dirty ng-valid-minlength"
+              ng-controller="SubjectController">
+
+            <div>
+                <button ui-sref="subject" class="btn btn-info">
+                    <span class="glyphicon glyphicon-arrow-left"></span>&nbsp;<span translate="entity.action.back"> Back</span>
+                </button>
+
+                <button type="submit" ng-click="create()" ui-sref="subject" class="btn btn-primary">
+                    <span class="glyphicon glyphicon-save"></span>&nbsp;<span translate="entity.action.save">Save</span>
+                </button>
+
+                <button type="submit" ng-click="delete(subject.id)" class="btn btn-danger">
+                    <span class="glyphicon glyphicon-remove-circle"></span>&nbsp;<span translate="entity.action.delete"> Delete</span>
+                </button>
+            </div>
+
+            <!-- object update -->
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th translate="entity.detail.field">Field</th>
+                        <th translate="entity.detail.value">Value</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Name</span></td>
+                        <td><input type="text" class="form-control" ng-model="subject.name" value="{{subject.name}}"></td>
+                    </tr>
+
+                    <tr>
+                        <!-- todo: get this working
+                        <td>Department</td>
+                        <td>
+                            <div class="well">
+                                <div ng-controller="DepartmentController">
+                                    {{subject.department}}
+                                    <div ng-repeat="department in departments track by department.id" >
+                                        <label><input type="checkbox" class="form control pull-left" ng-model="subject.department" ng-change="select(subject.department)" checklist-value="department" />&nbsp;{{department.name}}</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    -->
+                    <tr>
+                        <td>Teachers</td>
+                        <td>
+                            <div class="well view">
+                                <div ng-controller="TeacherController">
+                                    <div ng-repeat="teacher in teachers track by teacher.id" >
+                                       <label><input type="checkbox" class="form control pull-left" checklist-model="subject.teachers" checklist-value="teacher" />&nbsp;{{teacher.name}}</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+        </form>
+    </div>
+
+    <div class="modal fade" id="deleteSubjectConfirmation">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form name="form" ng-controller="SubjectController">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true"
+                                ng-click="clear()">&times;</button>
+                        <h4 class="modal-title" translate="entity.delete.title">Confirm delete operation</h4>
+                    </div>
+                    <div class="modal-body">
+                        <p translate="registrarApp.subject.delete.question" translate-values="{id: '{{subject.id}}'}">Are you sure you want to delete Subject {{subject.id}}?</p>
+                    </div>
+                    <div class="modal-footer">
+
+                        <button type="button" class="btn btn-default" data-dismiss="modal" ng-click="clear()">
+                            <span class="glyphicon glyphicon-ban-circle"></span>&nbsp;<span translate="entity.action.cancel">Cancel</span>
+                        </button>
+
+                        <button type="button" class="btn btn-danger" ng-click="confirmDelete(subject.id)">
+                            <span class="glyphicon glyphicon-remove-circle"></span>&nbsp;<span translate="entity.action.delete">Delete</span>
+                        </button>
+
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+</div>

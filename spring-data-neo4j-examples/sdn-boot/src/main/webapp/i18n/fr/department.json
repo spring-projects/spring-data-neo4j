@@ -1,0 +1,18 @@
+{
+    "registrarApp": {
+        "department" : {
+            "home": {
+                "title": "Departments",
+                "createLabel": "Créer un nouveau Department",
+                "createOrEditLabel": "Créer ou éditer un Department"
+            },
+            "delete": {
+                "question": "Etes-vous certain de vouloir supprimer le Department {{ id }} ?"
+            },
+            "detail": {
+                "title": "Department"
+            }
+        }
+    }
+}
+
