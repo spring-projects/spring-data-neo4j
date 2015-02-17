@@ -140,22 +140,15 @@
         <dependencies>
 
             <dependency>
-                <groupId>org.neo4j.ogm</groupId>
+                <groupId>org.neo4j</groupId>
                 <artifactId>neo4j-ogm</artifactId>
                 <version>1.0-SNAPSHOT</version>
             </dependency>
 
             <dependency>
-                <groupId>org.neo4j.ogm</groupId>
-                <artifactId>neo4j-testutils</artifactId>
+                <groupId>org.neo4j</groupId>
+                <artifactId>neo4j-ogm-test</artifactId>
                 <version>1.0-SNAPSHOT</version>
-                <scope>test</scope>
-            </dependency>
-
-            <dependency>
-                <groupId>org.springframework.data</groupId>
-                <artifactId>spring-data-neo4j-tests</artifactId>
-                <version>4.0.0.BUILD-SNAPSHOT</version>
                 <scope>test</scope>
             </dependency>
 
@@ -163,31 +156,6 @@
                 <groupId>org.springframework.data</groupId>
                 <artifactId>spring-data-commons</artifactId>
                 <version>${springdata.commons}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>com.fasterxml.jackson.core</groupId>
-                <artifactId>jackson-databind</artifactId>
-                <version>2.3.2</version>
-            </dependency>
-
-            <dependency>
-                <groupId>org.apache.httpcomponents</groupId>
-                <artifactId>httpclient</artifactId>
-                <version>4.3.6</version>
-            </dependency>
-
-            <dependency>
-                <groupId>commons-lang</groupId>
-                <artifactId>commons-lang</artifactId>
-                <version>2.6</version>
-            </dependency>
-
-            <dependency>
-                <groupId>org.neo4j</groupId>
-                <artifactId>neo4j</artifactId>
-                <version>${neo4j.version}</version>
-                <scope>test</scope>
             </dependency>
 
             <dependency>
