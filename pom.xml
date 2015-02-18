@@ -83,6 +83,14 @@
             <timezone>GMT</timezone>
         </developer>
         <developer>
+            <id>mangrish</id>
+            <name>Mark Angrish</name>
+            <roles>
+                <role>Developer</role>
+            </roles>
+            <timezone>+11</timezone>
+        </developer>
+        <developer>
             <id>mhunger</id>
             <name>Michael Hunger</name>
             <email>michael.hunger at neotechnology.com</email>
@@ -156,31 +164,6 @@
                 <groupId>org.springframework.data</groupId>
                 <artifactId>spring-data-commons</artifactId>
                 <version>${springdata.commons}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>com.fasterxml.jackson.core</groupId>
-                <artifactId>jackson-databind</artifactId>
-                <version>2.3.2</version>
-            </dependency>
-
-            <dependency>
-                <groupId>org.apache.httpcomponents</groupId>
-                <artifactId>httpclient</artifactId>
-                <version>4.3.6</version>
-            </dependency>
-
-            <dependency>
-                <groupId>commons-lang</groupId>
-                <artifactId>commons-lang</artifactId>
-                <version>2.6</version>
-            </dependency>
-
-            <dependency>
-                <groupId>org.neo4j</groupId>
-                <artifactId>neo4j</artifactId>
-                <version>${neo4j.version}</version>
-                <scope>test</scope>
             </dependency>
 
             <dependency>

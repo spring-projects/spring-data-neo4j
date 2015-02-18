@@ -2,3 +2,15 @@
 */target/
 *.iml
 spring-data-neo4j-examples/sdn-boot/bower_components/
+.buildpath
+.project
+.settings
+target/
+.idea/
+*.class
+*.iml
+*.iws
+*.ipr
+*.db
+.DS_Store
+.classpath
