@@ -1,8 +1,7 @@
-package org.springframework.data.neo4j;
+package org.springframework.data.neo4j.server;
 
 import org.neo4j.server.NeoServer;
 import org.neo4j.server.helpers.CommunityServerBuilder;
-import org.springframework.data.neo4j.server.Neo4jServer;
 
 import java.io.IOException;
 

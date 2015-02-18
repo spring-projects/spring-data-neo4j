@@ -1,0 +1,55 @@
+[[tutorial_domain]]
+= The domain model
+
+*_Setting the stage_*
+
+We wanted to outline the domain model before diving into library details. We also looked at the data model of the themoviedb.org data to confirm that it matched our expectations.
+
+image::domain.png[]
+
+In Java code this looks pretty straightforward:
+
+.Domain model
+====
+[source,java]
+----
+class Movie {
+    String id;
+    String title;
+    int year;
+    Set<Role> cast;
+}
+
+class Actor {
+    String id;
+    String name;
+    Set<Movie> filmography;
+    Role playedIn(Movie movie, String role) { ... }
+}
+
+class Role {
+    Movie movie;
+    Actor actor;
+    String role;
+}
+
+class User {
+    String login;
+    String name;
+    String password;
+    Set<Rating> ratings;
+    Set<User> friends;
+    Rating rate(Movie movie, int stars, String comment) { ... }
+    void befriend(User user) { ... }
+}
+
+class Rating {
+    User user;
+    Movie movie;
+    int stars;
+    String comment;
+}
+----
+====
+
+Then we wrote some simple tests to show that the basic design of the domain is good enough so far. Just creating a movie, populating it with actors, and allowing users to rate it.

@@ -19,13 +19,8 @@
         <dependencies>
 
             <dependency>
-                <groupId>org.neo4j.ogm</groupId>
+                <groupId>org.neo4j</groupId>
                 <artifactId>neo4j-ogm</artifactId>
-            </dependency>
-
-            <dependency>
-                <groupId>org.neo4j.ogm</groupId>
-                <artifactId>neo4j-testutils</artifactId>
             </dependency>
 
             <dependency>
@@ -41,6 +36,12 @@
             <dependency>
                 <groupId>org.springframework</groupId>
                 <artifactId>spring-tx</artifactId>
+            </dependency>
+
+            <dependency>
+                <groupId>org.neo4j</groupId>
+                <artifactId>neo4j-ogm-test</artifactId>
+                <scope>test</scope>
             </dependency>
 
             <dependency>

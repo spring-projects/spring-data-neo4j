@@ -1,0 +1,4 @@
+.idea/
+*/target/
+*.iml
+spring-data-neo4j-examples/sdn-boot/bower_components/

@@ -7,7 +7,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.context.annotation.*;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Scope;
+import org.springframework.context.annotation.ScopedProxyMode;
 import org.springframework.core.env.Environment;
 import org.springframework.core.env.SimpleCommandLinePropertySource;
 import org.springframework.data.neo4j.config.Neo4jConfiguration;
@@ -17,9 +21,10 @@ import org.springframework.data.neo4j.server.RemoteServer;
 import org.springframework.data.repository.query.QueryLookupStrategy;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
-import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.util.Arrays;
+
+import javax.annotation.PostConstruct;
 
 // todo: replace these three with @SpringBootApplication
 
@@ -41,6 +46,7 @@ public class Application extends Neo4jConfiguration{
     public Neo4jServer neo4jServer() {
         log.info("Initialising server connection");
         return new RemoteServer("http://localhost:7474");
+        //return new InProcessServer();
     }
 
     @Override

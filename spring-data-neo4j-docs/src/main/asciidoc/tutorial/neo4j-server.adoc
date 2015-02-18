@@ -1,0 +1,86 @@
+[[tutorial_server]]
+= Neo4j Server
+
+*_Remotely related_*
+
+Right now our application was running with the embedded mode of Neo4j which was fine and highly performant. In certain environments you don't have the luxury of file-system access for your webapps and have to talk to a remote database service instead. Neo4j can also run as a server. It exposes its operations via a HTTP based REST API.
+
+We decided to have a look, to be at least knowledgeable about this deployment scenario. We were aware of the difference of local, in-memory calls and higher latency network hops. That would be something we would also take into careful consideration.
+
+== Getting Neo4j-Server
+
+Getting the Neo4j-Server was easy, we just went to http://neo4j.org/[neo4j.org] and downloaded the latest version. Starting it on the command-line (or installing it as a service) was a  no-brainer as well.
+
+We copied our store-directory into the `data/graph.db` directory of the server and started it up again. The admin console of Neo4j-Server, called 'web-admin' is pretty. Using JavaScript, it renders the graph visually in a highly configurable way. It also gave us the possibility to issue queries over a console,  another handy feature.
+
+image::webadmin.png[]
+
+So, how would we get our app connected to this server? It turned out the changes in configuration and setup where minimal. Spring Data Neo4j already came with a module that took care of the remote protocol. We added that maven dependency and changed the graph database used in the Spring Configuration.
+
+.Maven Dependency
+====
+[source,xml]
+----
+<dependency>
+    <groupId>org.springframework.data</groupId>
+    <artifactId>spring-data-neo4j-rest</artifactId>
+    <version>2.1.0.RELEASE</version>
+</dependency>
+----
+====
+
+.Spring Config
+====
+[source,xml]
+----
+<neo4j:config graphDatabaseService="graphDatabaseService"/>
+<bean id="graphDatabaseService" 
+	class="org.springframework.data.neo4j.rest.SpringRestGraphDatabase">
+  <constructor-arg index="0" value="http://localhost:7474/db/data" />
+</bean>
+----
+====
+
+After those two changes we restarted the app, and ... it worked. The transparent handling of the remote API was impressive. We learned that it uses a library called https://github.com/neo4j/java-rest-binding[java-rest-binding] under the hood which is also usable without the Spring Framework.
+
+Of course we noticed performance implications. Especially after moving the server to a remote machine. It turned out that the server supported remote execution of many operations, allowing us to run the graph traversal and querying inside the server. That means looking at our graph interactions and changing them in a way that switched from the transparent, direct graph access via the entities to a different interaction pattern.
+
+We looked into the different modes of remotely executed operations and found traversals, Cypher queries and index lookups. Most of them already matched our needs but the Cypher approaches were best suited, because they also handled index operations and allowed to return partial attribute sets and subgraphs.
+
+So we looked at our use-case (aka page)-based interactions with the graph entities and converted them to Cypher queries on repositories where appropriate, measuring the performance improvements as we went.
+
+There was also a nice mechanism of mapping Cypher query results to Domain Concepts. You just had to declare and annotate an interface that represents the query results as domain entities and the nodes and relationships returned by Cypher were converted into the appropriate entities.
+
+.Example of query result mapping
+====
+[source,java]
+----
+public interface MovieRepository extends GraphRepository<Movie> {
+
+    @Query("START movie=node:Movie(id={0}) 
+            MATCH movie-[rating?:rating]->(),
+                  movie<-[:ACTS_IN]-actor 
+            RETURN movie, COLLECT(actor), AVG(rating.stars)")
+    MovieData getMovieData(String movieId);
+
+    @MapResult
+    public interface MovieData {
+        @ResultColumn("movie")
+        Movie getMovie();
+
+        @ResultColumn("AVG(rating.stars)")
+        Double getRating();
+
+        @ResultColumn("COLLECT(actor)")
+        Iterable<Actor> getCast();
+    }
+}
+----
+====
+
+This allowed us to get all the data needed for rendering a page in a single call to the server, greatly diminishing the chatter between the client and the server.
+
+== Other approaches
+
+Another approach to using the Neo4j-Server would be to write a custom server extension using the `SpringPluginInitializer` provided by `spring-data-neo4j-rest`. This extension would use the well known entities and approaches as it runs inside the server atop an embedded graph database. From the extension we would expose custom, domain and use-case oriented REST endpoints that could then be consumed by any kind of webapp, even a pure Javascript based browser app.
+

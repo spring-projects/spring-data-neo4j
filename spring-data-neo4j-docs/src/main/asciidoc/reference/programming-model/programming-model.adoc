@@ -1,0 +1,20 @@
+[[reference_programming-model]]
+= Programming model
+
+This chapter covers the fundamentals of the programming model behind Spring Data Neo4j.
+It discusses the simple and advanced mapping modes, the annotations provided by Spring Data Neo4j and how to use them.
+
+:numbered:
+include::mapping.adoc[]
+include::simple_mapping.adoc[]
+include::node-entities.adoc[]
+include::relationships.adoc[]
+include::indexing.adoc[]
+include::template.adoc[]
+include::repositories.adoc[]
+include::conversion.adoc[]
+include::transactions.adoc[]
+include::attachdetach.adoc[]
+include::typerepresentationstrategy.adoc[]
+include::beanvalidation.adoc[]
+:numbered!:

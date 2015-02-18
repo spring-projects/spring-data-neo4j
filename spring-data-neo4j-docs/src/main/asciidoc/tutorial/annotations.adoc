@@ -1,0 +1,42 @@
+[[tutorial_annotations]]
+= Annotating the domain
+
+*_Decorations_*
+
+Looking at the Spring Data Neo4j documentation, we found a simple http://spring.neo4j.org/helloworld[Hello World example] and tried to understand it. We also spotted a http://spring.neo4j.org/notes[compact reference card] which helped us a lot. The entity classes were annotated with `@NodeEntity`. That was simple, so we added the annotation to our domain classes too. Entity classes representing relationships were instead annotated with `@RelationshipEntity`. Property fields were taken care of automatically. The only additional field we had to provide for all entities was an id-field to store the node- and relationship-ids.
+
+.Movie class with annotation
+====
+[source,java]
+----
+@NodeEntity
+class Movie {
+    @GraphId Long nodeId;
+    String id;
+    String title;
+    int year;
+    Set<Role> cast;
+}
+----
+====
+
+It was time to put our entities to the test. How could we now be assured that an attribute really was persisted to the graph store? We wanted to load the entity and check the attribute. Either we could have a `Neo4jTemplate` injected and use its `findOne(id,type)` method to load the entity. Or use a more versatile `Repository`. The same goes for persisting entities, both `Neo4jTemplate` or the `Repository` could be used. We decided to keep things simple for now.
+
+So here's what our test ended up looking like:
+
+.First test case
+====
+[source,java]
+----
+@Autowired Neo4jTemplate template;
+
+@Test @Transactional public void persistedMovieShouldBeRetrievableFromGraphDb() {
+    Movie forrestGump = template.save(new Movie("Forrest Gump", 1994));
+    Movie retrievedMovie = template.findOne(forrestGump.getNodeId(), Movie.class);
+    assertEquals("retrieved movie matches persisted one", forrestGump, retrievedMovie);
+    assertEquals("retrieved movie title matches", "Forrest Gump", retrievedMovie.getTitle());
+}
+----
+====
+
+As Neo4j is transactional, we have to provide the transactional boundaries for mutating operations.

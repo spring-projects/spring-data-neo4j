@@ -1,0 +1,71 @@
+[[reference_programming_model_transactions]]
+= Transactions
+
+Neo4j is a transactional database, only allowing modifications to be performed within transaction boundaries. Reading data does however not require transactions. Spring Data Neo4j integrates nicely with both the declarative transaction support with `@Transactional` as well as the manual transaction handling with `TransactionTemplate`. It also supports the rollback mechanisms of the Spring Testing library.
+
+As of version 4.0, the classes used to perform transaction management have been rewritten.  Instead of using `SpringTransactionManager` provided by the Neo4j kernel alongside Spring's `JtaTransactionManager`, the transaction management is performed by `Neo4jTransactionManager`, which implements Spring's `PlatformTransactionManager`.  
+This `Neo4jTransactionManager` is based on an OGM `Session`, on which the `beginTransaction()` method gets called, and this in turn delegates onto the underlying OGM's `TransactionManager` implementation.
+
+The `Neo4jConfiguration` Spring configuration bean will create an instance of this `Neo4jTransactionManager` for use in Spring Data Neo4j.  It is made available under the name "transactionManager" in the Spring application context.
+
+NOTE: Neither XML-based configuration nor multi-resource transactions are supported in SDN 4 M1
+
+For scenarios with multiple transactional resources there are two options. The first option is to have Neo4j participate in the externally-configured transaction manager using the Spring support in Neo4j by enabling the configuration parameter for your graph database. Neo4j will then use Spring's transaction manager instead of its own.
+
+.Neo4j Spring integration
+====
+[source,xml]
+----
+<context:annotation-config />
+<context:spring-configured/>
+
+<bean id="transactionManager" 
+	         class="org.springframework.transaction.jta.JtaTransactionManager">
+    <property name="transactionManager">
+        <bean id="jotm" class="org.springframework.data.neo4j.transaction.JotmFactoryBean"/>
+    </property>
+</bean>
+
+<bean id="graphDatabaseService" class="org.neo4j.kernel.EmbeddedGraphDatabase" 
+	   destroy-method="shutdown">
+    <constructor-arg value="target/test-db"/>
+    <constructor-arg>
+        <map>
+            <entry key="tx_manager_impl" value="spring-jta"/>
+        </map>
+    </constructor-arg>
+</bean>
+
+<tx:annotation-driven mode="aspectj" transaction-manager="transactionManager"/>
+----
+====
+
+You can also configure a custom XA transaction manager (e.g. Atomikos, JOTM, App-Server-TM) to be used with Neo4j and the other resources. For a bit less secure but fast 1-phase-commit-best-effort, use `ChainedTransactionManager`, which comes bundled with Spring Data Neo4j. It takes a list of transaction managers as constructor params and will handle them in order for transaction start and commit (or rollback) in the reverse order.
+
+NOTE: As of Neo4j 2.2, there is no XA transaction participation support
+
+.ChainedTransactionManager example
+====
+[source,xml]
+----
+<bean id="jpaTransactionManager"
+        class="org.springframework.orm.jpa.JpaTransactionManager">
+    <property name="entityManagerFactory" ref="entityManagerFactory"/>
+</bean>
+<bean id="jtaTransactionManager"
+        class="org.springframework.data.neo4j.config.JtaTransactionManagerFactoryBean">
+    <constructor-arg ref="graphDatabaseService"/>
+</bean>
+<bean id="transactionManager"
+        class="org.springframework.data.neo4j.transaction.ChainedTransactionManager">
+    <constructor-arg>
+        <list>
+            <ref bean="jpaTransactionManager"/>
+            <ref bean="jtaTransactionManager"/>
+        </list>
+    </constructor-arg>
+</bean>
+
+<tx:annotation-driven mode="aspectj" transaction-manager="transactionManager"/>
+----
+====

@@ -1,0 +1,126 @@
+[[reference_programming_model_conversion]]
+= Conversion
+
+The object-graph mapping framework on which Spring Data Neo4j is built provides support for default and bespoke type
+conversions, which allow you to configure how certain data types are mapped to nodes or relationships in Neo4j.
+
+[[reference_programming-model_conversion-built_in]]
+== Built-In Type Conversions
+
+By default, Spring Data Neo4j will automatically perform the following type conversions:
+
+- `java.util.Date` to a String in the ISO 8601 format: "yyyy-MM-dd'T'HH:mm:ss.SSSXXX"
+- `java.math.BigInteger` to a String property
+- `java.math.BigDecimal` to a String property
+- binary data (as byte[] or Byte[]) to base-64 String
+- `java.lang.Enum` types using the enum's `name()` method and `Enum.valueOf()`
+
+Two Date converters are provided "out of the box"
+
+. @DateString
+. @DateLong
+
+By default, SDN will use the @DateString converter as described above. However if you want to use a different date
+format, you can annotate your entity attribute accordingly:
+
+.Example of user-defined date format
+====
+[source, java]
+---
+public class MyEntity {
+
+    @DateString("yy-MM-dd")
+    private Date entityDate;
+}
+---
+===
+
+Alternatively, if you want to store Dates as long values, use the @DateLong annotation:
+
+.Example of date stored as a long value
+====
+[source, java]
+---
+public class MyEntity {
+
+    @DateLong
+    private Date entityDate;
+}
+---
+===
+
+Collections of primitive or convertible values are also automatically mapped by converting them to arrays of their type
+or strings respectively.
+
+[[reference_programming-model_conversion-custom]]
+== Custom Type Conversion
+
+In order to define bespoke type conversions for particular members, you can annotate a field or method with `@Convert`
+to specify an implementation of `org.neo4j.ogm.typeconversion.AttributeConverter` to use.
+
+.Example of custom type converter
+====
+[source,java]
+----
+public class MoneyConverter implements AttributeConverter<DecimalCurrencyAmount, Integer> {
+
+   @Override
+   public Integer toGraphProperty(DecimalCurrencyAmount value) {
+       return value.getFullUnits() * 100 + value.getSubUnits();
+   }
+
+   @Override
+   public DecimalCurrencyAmount toEntityAttribute(Integer value) {
+       return new DecimalCurrencyAmount(value / 100, value % 100);
+   }
+    
+}
+----
+====
+
+You could then apply this to your class as follows:
+
+====
+[source,java]
+----
+@NodeEntity
+public class Invoice {
+
+   @Convert(MoneyConverter.class)
+   private DecimalCurrencyAmount value;
+   ...
+}
+----
+====
+
+[[reference_programming-model_mapresult]]
+== Mapping Query Results
+
+NOTE: This feature isn't supported as of SDN 4 Milestone 1
+
+For queries executed via `@Query` repository methods, it's possible to specify a conversion of complex query results to POJOs. These result objects are then populated with the query result data and can be serialized and sent to a different part of the applicaton, e.g. a frontend-ui.
+
+Use a class annotated with `@QueryResult` as the method return type and SDN will apply the same simple mapping strategy as it does for normal entities.
+
+.Example of query result mapping
+====
+[source,java]
+----
+public interface MovieRepository extends GraphRepository<Movie> {
+
+    @Query("MATCH (movie:Movie)-[r:RATING]->(), (movie)<-[:ACTS_IN]-(actor:Actor) " +
+           "WHERE movie.id={0} " +
+           "RETURN movie, COLLECT(actor) AS 'cast', AVG(r.stars) AS 'averageRating'")
+    MovieData getMovieData(String movieId);
+
+    @QueryResult
+    public class MovieData {
+        Movie movie;
+        Double averageRating;
+        Collection<Actor> cast;
+    }
+
+}
+----
+====
+

@@ -2,7 +2,7 @@ package org.springframework.data.neo4j.integration.web.context;
 
 import org.neo4j.ogm.session.Session;
 import org.neo4j.ogm.session.SessionFactory;
-import org.springframework.data.neo4j.InProcessServer;
+import org.springframework.data.neo4j.server.InProcessServer;
 import org.springframework.context.annotation.*;
 import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
 import org.springframework.data.neo4j.config.Neo4jConfiguration;

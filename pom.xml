@@ -31,6 +31,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
         <neo4j.version>2.1.7</neo4j.version>
+        <neo4j-ogm.version>1.0-SNAPSHOT</neo4j-ogm.version>
         <sdn.version>4.0.0.BUILD-SNAPSHOT</sdn.version>
 
         <!-- todo enable? -->
@@ -132,22 +133,22 @@
         <dependencies>
 
             <dependency>
-                <groupId>org.neo4j.ogm</groupId>
+                <groupId>org.neo4j</groupId>
                 <artifactId>neo4j-ogm</artifactId>
-                <version>1.0-SNAPSHOT</version>
+                <version>${neo4j-ogm.version}</version>
             </dependency>
 
             <dependency>
-                <groupId>org.neo4j.ogm</groupId>
-                <artifactId>neo4j-testutils</artifactId>
-                <version>1.0-SNAPSHOT</version>
+                <groupId>org.neo4j</groupId>
+                <artifactId>neo4j-ogm-test</artifactId>
+                <version>${neo4j-ogm.version}</version>
                 <scope>test</scope>
             </dependency>
 
             <dependency>
                 <groupId>org.springframework.data</groupId>
                 <artifactId>spring-data-neo4j-tests</artifactId>
-                <version>4.0.0.BUILD-SNAPSHOT</version>
+                <version>${sdn.version}</version>
                 <scope>test</scope>
             </dependency>
 
@@ -248,6 +249,5 @@
             <url>http://repo.spring.io/plugins-release</url>
         </pluginRepository>
     </pluginRepositories>
-
 
 </project>
