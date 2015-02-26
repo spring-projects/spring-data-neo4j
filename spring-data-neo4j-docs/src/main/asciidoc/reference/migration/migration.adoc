@@ -71,15 +71,6 @@ class Person {
 === Cross-store persistence
 Neo4j is dropping XA support and therefore SDN 4 does not provide any capability for cross-store persistence
 
-=== Query DSL with Neo4jTemplate
-Previous  versions of SDN allowed you to use a DSL to generate Cypher queries. There are many different DSL
-libraries available and you're free to use which of these - or none - that you want. With Cypher changing on a regular
-basis, avoiding a DSL implementation in SDN means less ongoing maintenance and less likelihood of your code
-being incompatible with future versions of Neo4j.
-
-=== Graph traversal and node/relationship manipulation with Neo4jTemplate
-These features cannot be supported by Cypher and have therefore been dropped from Neo4jTemplate.
-
 === TypeRepresentationStrategy
 SDN 4 replaces the existing TypeRepresentionStrategy configuration with a straightforwad convention based on simple class-names
 or entities using `@NodeEntity(label=...)`
@@ -89,6 +80,30 @@ Please refer to <<reference_programming_model_typerepresentationstrategy>> for m
 === AspectJ support dropped
 Due to numerous problems reported by users in earlier versions of SDN, support for Aspect J based persistence has
 been removed from SDN 4.
+
+
+== Changes to Neo4jTemplate
+
+We've had to do loadsa stuff to this coz it were doin' too much and didn't mek sense.
+
+=== Built-In Query DSL Support
+Previous versions of SDN allowed you to use a DSL to generate Cypher queries. There are many different DSL
+libraries available and you're free to use which of these - or none - that you want. With Cypher changing on a regular
+basis, avoiding a DSL implementation in SDN means less ongoing maintenance and less likelihood of your code
+being incompatible with future versions of Neo4j.
+
+=== Graph Traversal and Node/Relationship Manipulation
+These features cannot be supported by Cypher and have therefore been dropped from `Neo4jTemplate`.
+
+
+TODO: these are the template methods we've **kept** for V4 - write them up properly
+
+* findOne():T (renamed to load)
+* findAll():Collection<T> (renamed to load, changed return type from Result)
+* query():Iterable<T> (changed return type from Result)
+* save()
+* delete()
+
 
 == Features not yet included in Milestone 1 but that are on the Roadmap
 
