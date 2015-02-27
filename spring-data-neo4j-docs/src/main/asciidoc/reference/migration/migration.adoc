@@ -108,6 +108,7 @@ TODO: these are the template methods we've **kept** for V4 - write them up prope
 * isNodeEntity(class)
 * isRelationshipEntity(class)
 * (probably worth re-mentioning that findByIndexedValue is kind-of replaced by loadByProperty - it allows the same functional behaviour)
+* (also worth mentioning exec(GraphCallback) and createXYZ() have been made obsolete by Cypher - call template.execute(String cypherQuery) instead)
 
 == Features not yet included in Milestone 1 but that are on the Roadmap
 
