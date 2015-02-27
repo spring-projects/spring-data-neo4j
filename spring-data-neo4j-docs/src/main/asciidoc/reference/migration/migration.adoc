@@ -100,10 +100,14 @@ TODO: these are the template methods we've **kept** for V4 - write them up prope
 
 * findOne():T (renamed to load)
 * findAll():Collection<T> (renamed to load, changed return type from Result)
+* findOne(...depth) (replaces fetch(entity))
 * query():Iterable<T> (changed return type from Result)
 * save()
 * delete()
-
+* count()
+* isNodeEntity(class)
+* isRelationshipEntity(class)
+* (probably worth re-mentioning that findByIndexedValue is kind-of replaced by loadByProperty - it allows the same functional behaviour)
 
 == Features not yet included in Milestone 1 but that are on the Roadmap
 
