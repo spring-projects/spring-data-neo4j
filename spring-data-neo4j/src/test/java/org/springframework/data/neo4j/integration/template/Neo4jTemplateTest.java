@@ -1,13 +1,14 @@
 package org.springframework.data.neo4j.integration.template;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.Map;
 
-import org.apache.commons.collections.IteratorUtils;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -20,7 +21,11 @@ import org.neo4j.ogm.annotation.NodeEntity;
 import org.neo4j.ogm.session.SessionFactory;
 import org.neo4j.ogm.session.Utils;
 import org.neo4j.ogm.testutil.WrappingServerIntegrationTest;
-import org.springframework.data.neo4j.integration.movies.domain.*;
+import org.springframework.data.neo4j.integration.movies.domain.Actor;
+import org.springframework.data.neo4j.integration.movies.domain.Genre;
+import org.springframework.data.neo4j.integration.movies.domain.Rating;
+import org.springframework.data.neo4j.integration.movies.domain.TempMovie;
+import org.springframework.data.neo4j.integration.movies.domain.User;
 import org.springframework.data.neo4j.template.Neo4jOperations;
 import org.springframework.data.neo4j.template.Neo4jTemplate;
 
@@ -100,6 +105,49 @@ public class Neo4jTemplateTest extends WrappingServerIntegrationTest {
         assertEquals(2.5, (Double) queryResultIterator.next().get("avg"), 0.01);
     }
 
+    @Ignore("Failing due to defect in underlying session.  See SessionCypherQueryTest in neo4j-ogm.")
+    @Test
+    public void shouldQueryForSpecificObjectUsingBespokeParameterisedCypherQuery() {
+        this.template.save(new Actor("ab", "Alec Baldwin"));
+        this.template.save(new Actor("hm", "Helen Mirren"));
+        this.template.save(new Actor("md", "Matt Damon"));
+
+        // FIXME: this loads any actor at random!
+        Actor loadedActor = this.template.queryForObject(Actor.class, "MATCH (a:Actor) WHERE a.name={param} RETURN a",
+                Collections.singletonMap("param", "Alec Baldwin"));
+        assertNotNull("The entity wasn't loaded", loadedActor);
+        assertEquals("Alec Baldwin", loadedActor.getName());
+    }
+
+    @Ignore("Failing due to defect in underlying session.  See SessionCypherQueryTest in neo4j-ogm.")
+    @Test
+    public void shouldQueryForObjectCollectionUsingBespokeCypherQuery() {
+        this.template.save(new User("Jeff"));
+        this.template.save(new User("John"));
+        this.template.save(new User("Colin"));
+
+        // FIXME: this keeps loading Colin!
+        Iterable<User> users = this.template.queryForObjects(User.class, "MATCH (u:User) WHERE u.name=~'J.*' RETURN u",
+                Collections.<String, Object>emptyMap());
+        assertNotNull("The entity wasn't loaded", users);
+        assertTrue("The entity wasn't loaded", users.iterator().hasNext());
+        for (User loadedUser : users) {
+            assertTrue("Shouldn't've loaded " + loadedUser.getName(),
+                    loadedUser.getName().equals("John") || loadedUser.getName().equals("Jeff"));
+        }
+    }
+
+    @Test
+    public void shouldRetrieveEntitiesByMatchingProperty() {
+        this.template.save(new Genre("Thriller"));
+        this.template.save(new Genre("Horror"));
+        this.template.save(new Genre("Period Drama"));
+
+        Genre loadedGenre = this.template.loadByProperty(Genre.class, "name", "Horror");
+        assertNotNull("No genre was loaded", loadedGenre);
+        assertEquals("Horror", loadedGenre.getName());
+    }
+
     @Test
     public void shouldExecuteArbitraryUpdateQuery() {
         // TODO: update section 6.3 of "Good Relationships" now we've added support for this
@@ -134,6 +182,19 @@ public class Neo4jTemplateTest extends WrappingServerIntegrationTest {
 
         assertEquals(5, this.template.count(Genre.class));
         assertEquals(3, this.template.count(TempMovie.class));
+    }
+
+    @Test
+    public void shouldDeleteExistingEntitiesByGraphId() {
+        this.template.execute("CREATE (:Genre {name:'Thriller'}), (:Genre {name:'RomCom'})");
+
+        Genre entity = this.template.load(Genre.class, 3L);
+        assertEquals("RomCom", entity.getName());
+        this.template.delete(entity);
+
+        Collection<Genre> allGenres = this.template.loadAll(Genre.class, 0);
+        assertEquals("The genre wasn't deleted", 1, allGenres.size());
+        assertEquals("The wrong genre was deleted", "Thriller", allGenres.iterator().next().getName());
     }
 
 }

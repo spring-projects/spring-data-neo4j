@@ -13,6 +13,8 @@ public interface Neo4jOperations {
 
     <T> T load(Class<T> type, Long id);
 
+    <T> T load(Class<T> type, Long id, int depth);
+
     <T> Collection<T> loadAll(Class<T> type);
 
     <T> Collection<T> loadAll(Class<T> type, int depth);
@@ -41,11 +43,11 @@ public interface Neo4jOperations {
      */
     void delete(Object entity);
 
-    Iterable<Map<String, Object>> query(String cypherQuery, Map<String, Object> params);
+    Iterable<Map<String, Object>> query(String cypherQuery, Map<String, ?> params);
 
-    <T> Iterable<T> queryForObjects(Class<T> objectType, String cypherQuery, Map<String, Object> parameters);
+    <T> Iterable<T> queryForObjects(Class<T> objectType, String cypherQuery, Map<String, ?> parameters);
 
-    <T> T queryForObject(Class<T> objectType, String cypherQuery, Map<String, Object> parameters);
+    <T> T queryForObject(Class<T> objectType, String cypherQuery, Map<String, ?> parameters);
 
     /**
      * Issue a single Cypher update operation (such as a <tt>CREATE</tt>, <tt>MERGE</tt> or <tt>DELETE</tt> statement).

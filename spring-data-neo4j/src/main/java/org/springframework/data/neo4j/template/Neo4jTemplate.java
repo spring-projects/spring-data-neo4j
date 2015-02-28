@@ -5,7 +5,6 @@ import org.neo4j.ogm.session.Session;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Map;
 
 import static org.springframework.data.neo4j.util.IterableUtils.*;
@@ -27,6 +26,7 @@ public class Neo4jTemplate implements Neo4jOperations {
         return session.load(type, id);
     }
 
+    @Override
     public <T> T load(Class<T> type, Long id, int depth) {
         return session.load(type, id, depth);
     }
@@ -44,6 +44,7 @@ public class Neo4jTemplate implements Neo4jOperations {
         return session.loadAll(type);
     }
 
+    @Override
     public <T> Collection<T> loadAll(Class<T> type, int depth) {
         return session.loadAll(type, depth);
     }
@@ -84,6 +85,7 @@ public class Neo4jTemplate implements Neo4jOperations {
         session.deleteAll(type);
     }
 
+    @Override
     public void execute(String jsonStatements) {
         session.execute(jsonStatements);
     }
@@ -104,17 +106,17 @@ public class Neo4jTemplate implements Neo4jOperations {
     }
 
     @Override
-    public Iterable<Map<String, Object>> query(String cypher, Map<String, Object> parameters) {
+    public Iterable<Map<String, Object>> query(String cypher, Map<String, ?> parameters) {
         return session.query(cypher, parameters);
     }
 
     @Override
-    public <T> Iterable<T> queryForObjects(Class<T> objectType, String cypher, Map<String, Object> parameters) {
+    public <T> Iterable<T> queryForObjects(Class<T> objectType, String cypher, Map<String, ?> parameters) {
         return session.query(objectType, cypher, parameters);
     }
 
     @Override
-    public <T> T queryForObject(Class<T> objectType, String cypher, Map<String, Object> parameters) {
+    public <T> T queryForObject(Class<T> objectType, String cypher, Map<String, ?> parameters) {
         return session.queryForObject(objectType, cypher, parameters);
     }
 
