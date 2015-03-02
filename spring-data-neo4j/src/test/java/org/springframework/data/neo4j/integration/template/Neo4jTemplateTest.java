@@ -150,7 +150,6 @@ public class Neo4jTemplateTest extends WrappingServerIntegrationTest {
 
     @Test
     public void shouldExecuteArbitraryUpdateQuery() {
-        // TODO: update section 6.3 of "Good Relationships" now we've added support for this
         assertTrue("There shouldn't be any genres in the database", this.template.loadAll(Genre.class).isEmpty());
 
         this.template.execute("CREATE (:Genre {name:'Comedy'}), (:Genre {name:'Action'})");
