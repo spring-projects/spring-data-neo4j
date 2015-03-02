@@ -37,17 +37,17 @@ For Cypher update operations, `Neo4jTemplate` provides an `execute` method, to w
 
 The `Neo4jTemplate` provides implicit transactions for some of its methods. For instance `save` uses them. For other modifying operations please provide Spring Transaction management using `@Transactional` or the `TransactionTemplate`.
 
-== Lifecycle Events
+== Data Manipulation Events (formerly Lifecycle Events)
 
-NOTE: These events are not implemented as of milestone 1 of SDN 4.
-
-Neo4j Template offers basic lifecycle events via Spring's event mechanism using ApplicationListener and ApplicationEvent. The following hooks are available in the form of types of application event:
+Neo4j Template utilises Spring's event mechanism through `ApplicationListener` and `ApplicationEvent` to notify interested parties about certain data manipulations performed through it.  The following hooks are available in the form of types of application event:
 
 * BeforeSaveEvent
 * AfterSaveEvent
-* DeleteEvent - after the event has been deleted
+* BeforeDeleteEvent
+* AfterDeleteEvent
 
-The following example demonstrates how to hook into the application lifecycle and register listeners that perform behaviour across types of entities during this life cycle:
+The point at which these events get fired by the `Neo4jTemplate` should be pretty obvious from the names.
+The following example demonstrates how to hook into the Spring application events API and register listeners that perform behaviour across types of entities as actions are performed using the template.
 
 .Auditing Entities and Generating Unique Application-level IDs
 ====
@@ -80,10 +80,10 @@ public class ApplicationConfig extends Neo4jConfiguration {
     }
 
     @Bean
-    ApplicationListener<DeleteEvent> deleteEventApplicationListener() {
-        return new ApplicationListener<DeleteEvent>() {
+    ApplicationListener<AfterDeleteEvent> deleteEventApplicationListener() {
+        return new ApplicationListener<AfterDeleteEvent>() {
             @Override
-            public void onApplicationEvent(DeleteEvent event) {
+            public void onApplicationEvent(AfterDeleteEvent event) {
                 AcmeEntity entity = (AcmeEntity) event.getEntity();
                 auditLog.onEventDeleted(entity);
             }
@@ -93,4 +93,5 @@ public class ApplicationConfig extends Neo4jConfiguration {
 ----
 ====
 
-Changes made to entities in the before-save event handler are reflected in the stored entity - after-save ones are not.
+Note that changes made to entities in the before-save event application listener are reflected in the stored entity - after-save ones are not.
+
