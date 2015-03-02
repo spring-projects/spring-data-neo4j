@@ -1,24 +1,47 @@
 package org.springframework.data.neo4j.template;
 
-import org.neo4j.ogm.model.Property;
-import org.neo4j.ogm.session.Session;
-import org.springframework.beans.factory.annotation.Autowired;
+import static org.springframework.data.neo4j.util.IterableUtils.getSingle;
+import static org.springframework.data.neo4j.util.IterableUtils.getSingleOrNull;
 
 import java.util.Collection;
 import java.util.Map;
 
-import static org.springframework.data.neo4j.util.IterableUtils.*;
+import org.neo4j.ogm.model.Property;
+import org.neo4j.ogm.session.Session;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.ApplicationEventPublisherAware;
+import org.springframework.data.neo4j.event.AfterDeleteEvent;
+import org.springframework.data.neo4j.event.AfterSaveEvent;
+import org.springframework.data.neo4j.event.BeforeDeleteEvent;
+import org.springframework.data.neo4j.event.BeforeSaveEvent;
+import org.springframework.data.neo4j.event.Neo4jDataManipulationEvent;
 
 /**
  * Spring Data template for Neo4j.  Implementation of {@link Neo4jOperations}.
  */
-public class Neo4jTemplate implements Neo4jOperations {
+public class Neo4jTemplate implements Neo4jOperations, ApplicationEventPublisherAware {
 
     private final Session session;
+    private ApplicationEventPublisher applicationEventPublisher;
 
+    /**
+     * Constructs a new {@link Neo4jTemplate} based on the given Neo4j OGM {@link Session}.
+     *
+     * @param session The Neo4j OGM session upon which to base the template
+     * @throws NullPointerException if the given {@link Session} is <code>null</code>
+     */
     @Autowired
     public Neo4jTemplate(Session session) {
+        if (session == null) {
+            throw new NullPointerException("Cannot create a Neo4jTemplate without a Session!");
+        }
         this.session = session;
+    }
+
+    @Override
+    public void setApplicationEventPublisher(ApplicationEventPublisher applicationEventPublisher) {
+        this.applicationEventPublisher = applicationEventPublisher;
     }
 
     @Override
@@ -78,7 +101,9 @@ public class Neo4jTemplate implements Neo4jOperations {
 
     @Override
     public void delete(Object entity) {
+        publishEvent(new BeforeDeleteEvent(this, entity));
         session.delete(entity);
+        publishEvent(new AfterDeleteEvent(this, entity));
     }
 
     public <T> void deleteAll(Class<T> type) {
@@ -95,14 +120,18 @@ public class Neo4jTemplate implements Neo4jOperations {
     }
 
     @Override
-    public <T> T save(T object) {
-        session.save(object);
-        return object;
+    public <T> T save(T entity) {
+        publishEvent(new BeforeSaveEvent(this, entity));
+        session.save(entity);
+        publishEvent(new AfterSaveEvent(this, entity));
+        return entity;
     }
 
-    public <T> T save(T object, int depth) {
-        session.save(object, depth);
-        return object;
+    public <T> T save(T entity, int depth) {
+        publishEvent(new BeforeSaveEvent(this, entity));
+        session.save(entity, depth);
+        publishEvent(new AfterSaveEvent(this, entity));
+        return entity;
     }
 
     @Override
@@ -123,6 +152,12 @@ public class Neo4jTemplate implements Neo4jOperations {
     @Override
     public long count(Class<?> entityClass) {
         return session.countEntitiesOfType(entityClass);
+    }
+
+    private void publishEvent(Neo4jDataManipulationEvent event) {
+        if (this.applicationEventPublisher != null) {
+            this.applicationEventPublisher.publishEvent(event);
+        }
     }
 
 }
