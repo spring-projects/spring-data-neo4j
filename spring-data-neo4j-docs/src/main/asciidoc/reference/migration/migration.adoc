@@ -84,7 +84,52 @@ been removed from SDN 4.
 
 == Changes to Neo4jTemplate
 
-We've had to do loadsa stuff to this coz it were doin' too much and didn't mek sense.
+The `Neo4jTemplate` has been slimmed-down significantly for SDN 4 with many of the method signatures changed to reflect the updated behaviour.
+
+=== API Changes
+
+The following table shows the `Neo4jTemplate` functions that have been retained for version 4 of Spring Data Neo4j.  In some cases the method names have changed but the same functionality is offered under the new version.
+
+[cols="1,1,2"]
+.Neo4j Template Method Migration
+|===
+|Old Method Name|New Method Name|Notes
+
+|`findOne`
+|`load`
+|Overloaded to take optional depth parameter
+
+|`findAll`
+|`loadAll`
+|Overloaded to take optional depth parameter, also now returns a `Collection` rather than a `Result`
+
+|`query`
+|`query`
+|Return type changed from `Result` to be `Iterable`
+
+|`save`
+|`save`
+|
+
+|`delete`
+|`delete`
+|
+
+|`count`
+|`count`
+|No longer defines generic type parameters
+
+|`findByIndexedValue`
+|`loadByProperty`
+|Indexes are not supported natively, but you can index certain properties elsewhere and use this method to find by them
+
+|===
+ 
+To achieve the old `template.fetch(entity)` equivalent behaviour, you should call one of the load methods specifying the fetch depth as a parameter.
+
+It's also worth noting that `exec(GraphCallback)` and the `create...()` methods have been made obsolete by Cypher.
+Instead, you should now issue a Cypher query to the new `execute` method to create the nodes or relationships that you need.
+
 
 === Built-In Query DSL Support
 Previous versions of SDN allowed you to use a DSL to generate Cypher queries. There are many different DSL
@@ -95,24 +140,8 @@ being incompatible with future versions of Neo4j.
 === Graph Traversal and Node/Relationship Manipulation
 These features cannot be supported by Cypher and have therefore been dropped from `Neo4jTemplate`.
 
-
-TODO: these are the template methods we've **kept** for V4 - write them up properly
-
-* findOne():T (renamed to load)
-* findAll():Collection<T> (renamed to load, changed return type from Result)
-* findOne(...depth) (replaces fetch(entity))
-* query():Iterable<T> (changed return type from Result)
-* save()
-* delete()
-* count()
-* isNodeEntity(class)
-* isRelationshipEntity(class)
-* (probably worth re-mentioning that findByIndexedValue is kind-of replaced by loadByProperty - it allows the same functional behaviour)
-* (also worth mentioning exec(GraphCallback) and createXYZ() have been made obsolete by Cypher - call template.execute(String cypherQuery) instead)
-
 == Features not yet included in Milestone 1 but that are on the Roadmap
 
 . Geospatial queries
 . @QueryResult
 
-:numbered!:
