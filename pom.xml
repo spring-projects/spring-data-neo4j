@@ -15,12 +15,15 @@
         <groupId>org.springframework.data.build</groupId>
         <artifactId>spring-data-parent</artifactId>
         <version>1.6.0.BUILD-SNAPSHOT</version>
+        <relativePath></relativePath>
     </parent>
 
     <modules>
-        <module>spring-data-neo4j</module>
+
         <module>neo4j-ogm</module>
         <module>neo4j-ogm-test</module>
+        <module>spring-data-neo4j</module>
+
     </modules>
 
     <properties>
@@ -234,7 +237,7 @@
                 <version>${neo4j.version}</version>
                 <scope>test</scope>
             </dependency>
-
+            <!--
             <dependency>
                 <groupId>org.neo4j</groupId>
                 <artifactId>neo4j-kernel</artifactId>
@@ -257,7 +260,7 @@
                 <type>test-jar</type>
                 <scope>test</scope>
             </dependency>
-
+            -->
         </dependencies>
 
     </dependencyManagement>
