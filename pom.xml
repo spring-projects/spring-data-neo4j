@@ -19,6 +19,8 @@
 
     <modules>
         <module>spring-data-neo4j</module>
+        <module>neo4j-ogm</module>
+        <module>neo4j-ogm-test</module>
     </modules>
 
     <properties>
@@ -33,6 +35,7 @@
         <neo4j.version>2.1.7</neo4j.version>
         <neo4j-ogm.version>1.0-SNAPSHOT</neo4j-ogm.version>
         <sdn.version>4.0.0.BUILD-SNAPSHOT</sdn.version>
+
 
         <!-- todo enable? -->
         <bundlor.enabled>false</bundlor.enabled>
@@ -164,6 +167,72 @@
                 <groupId>org.springframework.data</groupId>
                 <artifactId>spring-data-commons</artifactId>
                 <version>${springdata.commons}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.neo4j</groupId>
+                <artifactId>neo4j-kernel</artifactId>
+                <version>${neo4j.version}</version>
+                <type>test-jar</type>
+                <scope>test</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>org.neo4j.app</groupId>
+                <artifactId>neo4j-server</artifactId>
+                <version>${neo4j.version}</version>
+                <scope>test</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>org.neo4j.app</groupId>
+                <artifactId>neo4j-server</artifactId>
+                <version>${neo4j.version}</version>
+                <type>test-jar</type>
+                <scope>test</scope>
+            </dependency>
+
+            <!-- the following dependencies are for the ogm modules -->
+            <!-- note that duplicate dependencies on neo4j are here, so when
+                 we want to split this out again, we'll be able to
+                 do reasonably simply
+            -->
+            <dependency>
+                <groupId>com.fasterxml.jackson.core</groupId>
+                <artifactId>jackson-databind</artifactId>
+                <version>2.3.2</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.httpcomponents</groupId>
+                <artifactId>httpclient</artifactId>
+                <version>4.3.6</version>
+            </dependency>
+
+            <dependency>
+                <groupId>commons-lang</groupId>
+                <artifactId>commons-lang</artifactId>
+                <version>2.6</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>slf4j-api</artifactId>
+                <version>1.7.5</version>
+            </dependency>
+
+            <dependency>
+                <groupId>junit</groupId>
+                <artifactId>junit</artifactId>
+                <version>4.12</version>
+                <scope>test</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>org.neo4j</groupId>
+                <artifactId>neo4j</artifactId>
+                <version>${neo4j.version}</version>
+                <scope>test</scope>
             </dependency>
 
             <dependency>
