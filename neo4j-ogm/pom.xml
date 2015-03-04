@@ -23,7 +23,6 @@
         <dependency>
             <groupId>org.neo4j</groupId>
             <artifactId>neo4j-ogm-test</artifactId>
-				<version>1.0-SNAPSHOT</version>
         </dependency>
 
         <dependency>
