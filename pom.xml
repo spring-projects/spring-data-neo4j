@@ -15,7 +15,7 @@
         <groupId>org.springframework.data.build</groupId>
         <artifactId>spring-data-parent</artifactId>
         <version>1.6.0.BUILD-SNAPSHOT</version>
-        <relativePath></relativePath>
+        <relativePath>../spring-data-build/parent/pom.xml</relativePath>
     </parent>
 
     <modules>
@@ -23,6 +23,7 @@
         <module>neo4j-ogm-test</module>
         <module>neo4j-ogm</module>
         <module>spring-data-neo4j</module>
+        <module>spring-data-neo4j-docs</module>
 
     </modules>
 
@@ -196,10 +197,7 @@
             </dependency>
 
             <!-- the following dependencies are for the ogm modules -->
-            <!-- note that duplicate dependencies on neo4j are here, so when
-                 we want to split this out again, we'll be able to
-                 do reasonably simply
-            -->
+
             <dependency>
                 <groupId>com.fasterxml.jackson.core</groupId>
                 <artifactId>jackson-databind</artifactId>
@@ -237,30 +235,7 @@
                 <version>${neo4j.version}</version>
                 <scope>test</scope>
             </dependency>
-            <!--
-            <dependency>
-                <groupId>org.neo4j</groupId>
-                <artifactId>neo4j-kernel</artifactId>
-                <version>${neo4j.version}</version>
-                <type>test-jar</type>
-                <scope>test</scope>
-            </dependency>
 
-            <dependency>
-                <groupId>org.neo4j.app</groupId>
-                <artifactId>neo4j-server</artifactId>
-                <version>${neo4j.version}</version>
-                <scope>test</scope>
-            </dependency>
-
-            <dependency>
-                <groupId>org.neo4j.app</groupId>
-                <artifactId>neo4j-server</artifactId>
-                <version>${neo4j.version}</version>
-                <type>test-jar</type>
-                <scope>test</scope>
-            </dependency>
-            -->
         </dependencies>
 
     </dependencyManagement>
@@ -289,6 +264,7 @@
             <name>Spring</name>
             <url>http://repo.spring.io/libs-snapshot</url>
         </repository>
+
         <repository>
             <id>neo4j</id>
             <url>http://m2.neo4j.org/content/repositories/releases</url>
@@ -296,6 +272,7 @@
                 <enabled>false</enabled>
             </snapshots>
         </repository>
+
     </repositories>
 
     <pluginRepositories>

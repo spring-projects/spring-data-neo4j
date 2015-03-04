@@ -537,8 +537,8 @@ public class ClassInfo {
 
     /**
      *
-     * @param fieldInfo
-     * @return
+     * @param fieldInfo A {@link FieldInfo} object
+     * @return true if the {@link FieldInfo} represents a scalar value, false otherwise
      */
     public boolean isScalar(FieldInfo fieldInfo) {
         Field field = getField(fieldInfo);
@@ -547,8 +547,8 @@ public class ClassInfo {
 
     /**
      *
-     * @param fieldInfo
-     * @return
+     * @param fieldInfo A {@link FieldInfo} object
+     * @return the associated {@link Field} reflection object
      */
     public Field getField(FieldInfo fieldInfo) {
         try {
@@ -566,10 +566,11 @@ public class ClassInfo {
     }
 
     /**
+     * Request the {@link Method} reflection object that matches the supplied parameter types
      *
-     * @param methodInfo
-     * @param parameterTypes
-     * @return
+     * @param methodInfo A {@link MethodInfo} object
+     * @param parameterTypes A list of {@link Class} elements as the parameter types of the underlying {@link Method}
+     * @return The associated {@link Method}
      */
     public Method getMethod(MethodInfo methodInfo, Class... parameterTypes) {
         try {
@@ -631,7 +632,7 @@ public class ClassInfo {
     }
 
     /**
-     * Retrieves a {@link List} of {@link FieldInfo} representing all of the fields that can be iterated over
+     * Retrieves a {@link List} of {@link FieldInfo} objects representing all of the fields that can be iterated over
      * using a "foreach" loop.
      */
     public List<FieldInfo> findIterableFields() {
