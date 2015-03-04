@@ -10,7 +10,7 @@
         <version>4.0.0.BUILD-SNAPSHOT</version>
     </parent>
 
-    <artifactId>neo4j-spring-docs</artifactId>
+    <artifactId>spring-data-neo4j-docs</artifactId>
 
     <name>Spring Data Neo4j Documentation</name>
 
