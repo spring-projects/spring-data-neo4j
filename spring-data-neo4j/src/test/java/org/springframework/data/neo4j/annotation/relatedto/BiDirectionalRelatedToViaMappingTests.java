@@ -34,25 +34,25 @@ import static org.junit.Assert.assertSame;
 @Transactional
 public class BiDirectionalRelatedToViaMappingTests {
     @NodeEntity
-    static class TestEntity {
+    static class TestEntityBiDirectional {
         @GraphId Long id;
-        @RelatedTo(type="test",direction = Direction.INCOMING) TestEntity directParent;
-        @RelatedToVia(type="test") Set<TestRelationship> kids;
-        @RelatedToVia(type="test",direction = Direction.INCOMING) TestRelationship parent;
+        @RelatedTo(type="test",direction = Direction.INCOMING) TestEntityBiDirectional directParent;
+        @RelatedToVia(type="test") Set<TestRelationshipBiDirectional> kids;
+        @RelatedToVia(type="test",direction = Direction.INCOMING) TestRelationshipBiDirectional parent;
     }
 
     @RelationshipEntity(type="test")
-    static class TestRelationship {
+    static class TestRelationshipBiDirectional {
         @GraphId Long id;
         @Fetch
-        @StartNode TestEntity parent;
+        @StartNode TestEntityBiDirectional parent;
         @Fetch
-        @EndNode TestEntity kid;
+        @EndNode TestEntityBiDirectional kid;
 
-        TestRelationship() {
+        TestRelationshipBiDirectional() {
         }
 
-        public TestRelationship(TestEntity parent, TestEntity kid) {
+        public TestRelationshipBiDirectional(TestEntityBiDirectional parent, TestEntityBiDirectional kid) {
             this.parent=parent;
             this.kid=kid;
         }
@@ -62,13 +62,13 @@ public class BiDirectionalRelatedToViaMappingTests {
     Neo4jTemplate template;
     @Test
     public void testLoadBidirectionalRelationship() throws Exception {
-        TestEntity one = template.save(new TestEntity());
-        TestEntity kid = template.save(new TestEntity());
-        TestEntity kid2 = template.save(new TestEntity());
-        TestRelationship rel1 = template.save(new TestRelationship(one, kid));
-        template.save(new TestRelationship(one,kid2));
+        TestEntityBiDirectional one = template.save(new TestEntityBiDirectional());
+        TestEntityBiDirectional kid = template.save(new TestEntityBiDirectional());
+        TestEntityBiDirectional kid2 = template.save(new TestEntityBiDirectional());
+        TestRelationshipBiDirectional rel1 = template.save(new TestRelationshipBiDirectional(one, kid));
+        template.save(new TestRelationshipBiDirectional(one,kid2));
 
-        TestEntity anotherOne = template.findOne(kid.id, TestEntity.class);
+        TestEntityBiDirectional anotherOne = template.findOne(kid.id, TestEntityBiDirectional.class);
         assertSame(rel1.id, anotherOne.parent.id);
         template.fetch(anotherOne.parent);
         assertSame(anotherOne.id, anotherOne.parent.kid.id); // todo missing cache assertSame(anotherOne, anotherOne.parent.kid);

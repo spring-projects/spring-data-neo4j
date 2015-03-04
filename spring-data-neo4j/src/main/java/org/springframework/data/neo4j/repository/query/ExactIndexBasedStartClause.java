@@ -39,7 +39,7 @@ public class ExactIndexBasedStartClause extends IndexBasedStartClause {
         final PartInfo partInfo = getPartInfo();
         final String identifier = partInfo.getIdentifier();
         final String indexName = partInfo.getIndexName();
-        final int parameterIndex = partInfo.getParameterIndex();
+        final String parameterIndex = partInfo.getParamName();
         return String.format(QueryTemplates.START_CLAUSE_INDEX_LOOKUP, identifier, indexName, partInfo.getNeo4jPropertyName(), parameterIndex);
     }
 

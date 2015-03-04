@@ -34,6 +34,7 @@ import org.springframework.data.neo4j.mapping.Neo4jPersistentEntity;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
 import org.springframework.data.repository.query.Parameter;
+import org.springframework.data.repository.query.Parameters;
 import org.springframework.data.repository.query.parser.Part;
 
 public class CypherQuery implements CypherQueryDefinition {
@@ -47,11 +48,13 @@ public class CypherQuery implements CypherQueryDefinition {
     private final Neo4jTemplate template;
     private boolean isCountQuery = false;
     private boolean useLabels = false;
+    private Parameters<?, ?> parameters;
 
-    public CypherQuery(final Neo4jPersistentEntity<?> entity, Neo4jTemplate template, boolean useLabels) {
+    public CypherQuery(final Neo4jPersistentEntity<?> entity, Neo4jTemplate template, boolean useLabels, Parameters<?, ?> parameters) {
         this.entity = entity;
         this.template = template;
         this.useLabels = useLabels;
+        this.parameters = parameters;
     }
 
     private String getEntityName(Neo4jPersistentEntity<?> entity) {
@@ -81,8 +84,12 @@ public class CypherQuery implements CypherQueryDefinition {
 
     public void addPart(Part part, PersistentPropertyPath<Neo4jPersistentProperty> path) {
         String variable = variableContext.getVariableFor(path);
-
-        final PartInfo partInfo = new PartInfo(path, variable, part, index);
+        String paramName = String.valueOf(index);
+        if (parameters!=null && parameters.getNumberOfParameters() > index) {
+            Parameter param = parameters.getBindableParameter(index);
+            if (param != null && param.getName() != null) paramName = param.getName();
+        }
+        final PartInfo partInfo = new PartInfo(path, variable, part, index,paramName);
         MatchClause matchClause = new MatchClause(path);
         // index("a:foo AND b:bar")
         // a=index1(a="foo"), b=index2(b="bar") where a=b - not good b/c of cross product
@@ -96,13 +103,13 @@ public class CypherQuery implements CypherQueryDefinition {
             }
         } else if (leafProperty.isRelationship() || isIdProperty) {
             if (useLabels) {
-                whereClauses.add(new IdPropertyWhereClause(new PartInfo(path, variable, part, index), template));
-                whereClauses.add(new LabelBasedTypeRestrictingWhereClause(new PartInfo(path, variableContext.getVariableFor(entity), part, -1), entity, template));
+                whereClauses.add(new IdPropertyWhereClause(new PartInfo(path, variable, part, index, paramName), template));
+                whereClauses.add(new LabelBasedTypeRestrictingWhereClause(new PartInfo(path, variableContext.getVariableFor(entity), part), entity, template));
                 matchClauses.add(matchClause);
                 addedMatchClause = true;
             } else {
                 startClauses.add(new GraphIdStartClause(partInfo));
-                whereClauses.add(new IndexBasedTypeRestrictingWhereClause(new PartInfo(path, variableContext.getVariableFor(entity), part, -1), entity, template));
+                whereClauses.add(new IndexBasedTypeRestrictingWhereClause(new PartInfo(path, variableContext.getVariableFor(entity), part), entity, template));
             }
         } else {
             throw new IllegalStateException("Error "+part+" points neither to a primitive nor a entity property of "+entity);

@@ -56,7 +56,7 @@ public class DerivedCypherRepositoryQuery extends CypherGraphRepositoryQuery {
         EntityMetadata<?> info = queryMethod.getEntityInformation();
         PartTree tree = new PartTree(queryMethod.getName(), info.getJavaType());
 
-        this.query = new CypherQueryCreator(tree, mappingContext, info.getJavaType(),template).createQuery();
+        this.query = new CypherQueryCreator(tree, mappingContext, info.getJavaType(), queryMethod.getParameters(),template).createQuery();
         if (log.isDebugEnabled()) log.debug("Derived query: "+query+ "from method "+queryMethod);
     }
 

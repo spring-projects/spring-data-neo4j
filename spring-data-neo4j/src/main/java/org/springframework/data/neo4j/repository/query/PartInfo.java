@@ -33,14 +33,19 @@ public class PartInfo {
     private final String identifier;
     private final Part part;
     private final int index;
+    private final String paramName;
 
-    public PartInfo(PersistentPropertyPath<Neo4jPersistentProperty> path, String identifier, Part part, int index) {
+    public PartInfo(PersistentPropertyPath<Neo4jPersistentProperty> path, String identifier, Part part) {
+        this(path,identifier, part,-1,null);
+    }
+    public PartInfo(PersistentPropertyPath<Neo4jPersistentProperty> path, String identifier, Part part, int index, String paramName) {
         Assert.notNull(path);
         Assert.hasText(identifier);
 
         this.path = path;
         this.identifier = identifier;
         this.part = part;
+        this.paramName = paramName;
         this.index = index;
     }
 
@@ -74,6 +79,10 @@ public class PartInfo {
 
     public int getParameterIndex() {
         return index;
+    }
+
+    public String getParamName() {
+        return paramName;
     }
 
     public String getIndexName() {

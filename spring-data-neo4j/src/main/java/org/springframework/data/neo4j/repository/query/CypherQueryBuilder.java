@@ -16,10 +16,13 @@
 package org.springframework.data.neo4j.repository.query;
 
 import org.springframework.data.domain.Sort;
+import org.springframework.data.mapping.PropertyPath;
 import org.springframework.data.mapping.context.MappingContext;
+import org.springframework.data.mapping.context.PersistentPropertyPath;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentEntity;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
+import org.springframework.data.repository.query.Parameters;
 import org.springframework.data.repository.query.parser.Part;
 
 /**
@@ -31,12 +34,17 @@ class CypherQueryBuilder {
 
     private final MappingContext<? extends Neo4jPersistentEntity<?>, Neo4jPersistentProperty> context;
     private final CypherQuery query;
-
-    public CypherQueryBuilder(MappingContext<? extends Neo4jPersistentEntity<?>, Neo4jPersistentProperty> context, Class<?> type, Neo4jTemplate template) {
+    int index = 0;
+    public CypherQueryBuilder(MappingContext<? extends Neo4jPersistentEntity<?>, Neo4jPersistentProperty> context, Class<?> type, Neo4jTemplate template, Parameters<?, ?> parameters) {
         this.context = context;
         Neo4jPersistentEntity<?> entity = context.getPersistentEntity(type);
-        this.query = new CypherQuery(entity, template, template.isLabelBased());
+        this.query = new CypherQuery(entity, template, template.isLabelBased(),parameters);
     }
+
+    public CypherQueryBuilder(MappingContext<? extends Neo4jPersistentEntity<?>, Neo4jPersistentProperty> context, Class<?> type, Neo4jTemplate template) {
+        this(context,type,template,null);
+    }
+
 
     public CypherQueryBuilder asCountQuery() {
         query.setIsCountQuery(true);
@@ -60,4 +68,5 @@ class CypherQueryBuilder {
     public String toString() {
         return query.toQueryString();
     }
+
 }

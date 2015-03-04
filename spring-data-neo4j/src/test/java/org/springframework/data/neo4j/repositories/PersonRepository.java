@@ -98,7 +98,10 @@ public interface PersonRepository extends GraphRepository<Person>, NamedIndexRep
     Long countByName(String name);
 
     // Derived queries
-    Iterable<Person> findByName(String name);
+    Iterable<Person> findByName(@Param("name") String name);
+
+    Iterable<Person> findByNameAndAgeGreaterThan(@Param("name") String name, @Param("someAge") int age);
+    Iterable<Person> findByNameAndAgeLessThan(String name, int age);
 
     Iterable<Person> findByPersonality(String personality);
 

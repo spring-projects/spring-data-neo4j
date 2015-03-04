@@ -298,7 +298,7 @@ public abstract class AbstractGraphRepository<S extends PropertyContainer, T> im
 
     @Override
     public Result<T> findAll(Sort sort) {
-        CypherQuery cq = new CypherQuery(template.getEntityType(clazz).getEntity(),template, template.isLabelBased());
+        CypherQuery cq = new CypherQuery(template.getEntityType(clazz).getEntity(),template, template.isLabelBased(), null);
         return query(cq.toQueryString(sort), Collections.EMPTY_MAP);
     }
 

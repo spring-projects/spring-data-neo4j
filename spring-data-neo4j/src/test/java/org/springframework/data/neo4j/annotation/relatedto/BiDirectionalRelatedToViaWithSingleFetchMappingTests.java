@@ -21,6 +21,7 @@ import org.neo4j.graphdb.Direction;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.neo4j.annotation.*;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,29 +32,30 @@ import static org.junit.Assert.assertSame;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = {"classpath:related-to-test-context.xml"})
+@DirtiesContext
 @Transactional
 public class BiDirectionalRelatedToViaWithSingleFetchMappingTests {
     @NodeEntity
-    static class TestEntity {
+    static class TestEntitySingle {
         @GraphId Long id;
-        @RelatedTo(type="test",direction = Direction.INCOMING) TestEntity directParent;
-        @RelatedToVia(type="test") Set<TestRelationship> kids;
+        @RelatedTo(type="test",direction = Direction.INCOMING) TestEntitySingle directParent;
+        @RelatedToVia(type="test") Set<TestRelationshipSingle> kids;
         @Fetch
-        @RelatedToVia(type="test",direction = Direction.INCOMING) TestRelationship parent;
+        @RelatedToVia(type="test",direction = Direction.INCOMING) TestRelationshipSingle parent;
     }
 
     @RelationshipEntity(type="test")
-    static class TestRelationship {
+    static class TestRelationshipSingle {
         @GraphId Long id;
         @Fetch
-        @StartNode TestEntity parent;
+        @StartNode TestEntitySingle parent;
         @Fetch
-        @EndNode TestEntity kid;
+        @EndNode TestEntitySingle kid;
 
-        TestRelationship() {
+        TestRelationshipSingle() {
         }
 
-        public TestRelationship(TestEntity parent, TestEntity kid) {
+        public TestRelationshipSingle(TestEntitySingle parent, TestEntitySingle kid) {
             this.parent=parent;
             this.kid=kid;
         }
@@ -63,13 +65,13 @@ public class BiDirectionalRelatedToViaWithSingleFetchMappingTests {
     Neo4jTemplate template;
     @Test
     public void testLoadBidirectionalRelationship() throws Exception {
-        TestEntity one = template.save(new TestEntity());
-        TestEntity kid = template.save(new TestEntity());
-        TestEntity kid2 = template.save(new TestEntity());
-        TestRelationship rel1 = template.save(new TestRelationship(one, kid));
-        template.save(new TestRelationship(one,kid2));
+        TestEntitySingle one = template.save(new TestEntitySingle());
+        TestEntitySingle kid = template.save(new TestEntitySingle());
+        TestEntitySingle kid2 = template.save(new TestEntitySingle());
+        TestRelationshipSingle rel1 = template.save(new TestRelationshipSingle(one, kid));
+        template.save(new TestRelationshipSingle(one,kid2));
 
-        TestEntity anotherOne = template.findOne(kid.id, TestEntity.class);
+        TestEntitySingle anotherOne = template.findOne(kid.id, TestEntitySingle.class);
         assertSame(rel1.id, anotherOne.parent.id);
         assertSame(anotherOne, anotherOne.parent.kid);
         assertSame(one.id, anotherOne.parent.parent.id);

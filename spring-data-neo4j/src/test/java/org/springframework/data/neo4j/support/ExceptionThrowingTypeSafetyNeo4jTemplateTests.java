@@ -21,6 +21,7 @@ import org.junit.runner.RunWith;
 import org.neo4j.graphdb.NotFoundException;
 import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.data.neo4j.mapping.InvalidEntityTypeException;
+import org.springframework.data.neo4j.mapping.PersistentEntityConversionException;
 import org.springframework.data.neo4j.model.*;
 import org.springframework.data.neo4j.template.Neo4jOperations;
 import org.springframework.test.context.ContextConfiguration;
@@ -46,7 +47,7 @@ public class ExceptionThrowingTypeSafetyNeo4jTemplateTests extends EntityTestBas
         neo4jOperations = template;
     }
 
-    @Test(expected = InvalidEntityTypeException.class)
+    @Test(expected = PersistentEntityConversionException.class)
     @Transactional
     public void testFindOneWithWrongTypeThrowsInvalidEntityTypeException() throws Exception {
         neo4jOperations.findOne(testTeam.michael.getId(), Group.class);
@@ -65,7 +66,7 @@ public class ExceptionThrowingTypeSafetyNeo4jTemplateTests extends EntityTestBas
         neo4jOperations.findOne(Long.MAX_VALUE, Person.class);
     }
 
-    @Test(expected = InvalidEntityTypeException.class)
+    @Test(expected = PersistentEntityConversionException.class)
     @Transactional
     public void testFindOneWithAbstractWrongTypeThrowsInvalidEntityTypeException() throws Exception {
         neo4jOperations.findOne(testTeam.michael.getId(), AbstractNodeEntity.class);
@@ -89,7 +90,7 @@ public class ExceptionThrowingTypeSafetyNeo4jTemplateTests extends EntityTestBas
         assertEquals(origConcrete1NodeEntity,readConcrete1NodeEntity);
     }
 
-    @Test(expected = InvalidEntityTypeException.class)
+    @Test(expected = PersistentEntityConversionException.class)
     @Transactional
     public void testFindOneWithDifferentConcreteEntitiesThrowsInvalidEntityTypeException() throws Exception {
         Concrete2NodeEntity origConcrete2NodeEntity = neo4jOperations.save(new Concrete2NodeEntity("concrete2"));

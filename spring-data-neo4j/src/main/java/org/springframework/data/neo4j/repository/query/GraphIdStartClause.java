@@ -34,7 +34,7 @@ public class GraphIdStartClause extends StartClause {
 
     @Override
     public String toString() {
-        return String.format(QueryTemplates.START_NODE_LOOKUP, getPartInfo().getIdentifier(), getPartInfo().getParameterIndex());
+        return String.format(QueryTemplates.START_NODE_LOOKUP, getPartInfo().getIdentifier(), getPartInfo().getParamName());
     }
 
     @Override

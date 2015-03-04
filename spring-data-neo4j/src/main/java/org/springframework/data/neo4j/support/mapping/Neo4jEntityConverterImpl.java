@@ -79,21 +79,24 @@ public class Neo4jEntityConverterImpl<T,S extends PropertyContainer> implements 
         // retrieve meta-information about the type
         @SuppressWarnings("unchecked") final Neo4jPersistentEntityImpl<R> persistentEntity = (Neo4jPersistentEntityImpl<R>) mappingContext.getPersistentEntity(targetType);
 
+        if (mappingPolicy == null) {
+            mappingPolicy = persistentEntity.getMappingPolicy();
+        }
         // 4) check type safety
-        TypeSafetyPolicy typeSafetyPolicy = template.getInfrastructure().getTypeSafetyPolicy();
-        if (typeSafetyPolicy.isTypeSafetyEnabled() && !storedAndRequestedTypesMatch(requestedType, source)) {
-            if (typeSafetyPolicy.getTypeSafetyOption() == TypeSafetyOption.RETURNS_NULL) {
-                return null;
-            }
-            if (typeSafetyPolicy.getTypeSafetyOption() == TypeSafetyOption.THROWS_EXCEPTION) {
-                throw new InvalidEntityTypeException("Requested a entity of type '" + requestedType + "', but the stored entity is of type '" + typeMapper.readType(source).getType() + "'.");
+        if (!mappingPolicy.noTypeCheck()) {
+            TypeSafetyPolicy typeSafetyPolicy = template.getInfrastructure().getTypeSafetyPolicy();
+            if (typeSafetyPolicy.isTypeSafetyEnabled() && !storedAndRequestedTypesMatch(requestedType, source)) {
+                if (typeSafetyPolicy.getTypeSafetyOption() == TypeSafetyOption.RETURNS_NULL) {
+                    return null;
+                }
+                if (typeSafetyPolicy.getTypeSafetyOption() == TypeSafetyOption.THROWS_EXCEPTION) {
+                    Class<?> sourceType = typeMapper.readType(source).getType();
+                    throw new PersistentEntityConversionException(requestedType,sourceType);
+                }
             }
         }
 
         // 5) create object instance
-        if (mappingPolicy == null) {
-            mappingPolicy = persistentEntity.getMappingPolicy();
-        }
         final R createdEntity = entityInstantiator.createEntityFromState(source, targetType.getType(), mappingPolicy);
 
         // 6) connect state
@@ -116,6 +119,7 @@ public class Neo4jEntityConverterImpl<T,S extends PropertyContainer> implements 
     }
 
     private <R extends T> boolean storedAndRequestedTypesMatch(Class<R> requestedType, S source) {
+        if (requestedType == null) return true;
         TypeInformation<?> storedType = typeMapper.readType(source);
         return requestedType.isAssignableFrom(storedType.getType());
     }

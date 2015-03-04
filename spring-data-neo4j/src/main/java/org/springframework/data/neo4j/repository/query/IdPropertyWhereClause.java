@@ -44,7 +44,7 @@ public class IdPropertyWhereClause extends WhereClause {
     public String toString() {
         final String operator = SYMBOLS.get(type);
         String variable = partInfo.getIdentifier();
-        String result = String.format(WHERE_CLAUSE_ID, variable, operator, partInfo.getParameterIndex());
+        String result = String.format(WHERE_CLAUSE_ID, variable, operator, partInfo.getParamName());
         if (EnumSet.of(Part.Type.NOT_IN).contains(type)) {
             result = "not( "+result+" )";
         }

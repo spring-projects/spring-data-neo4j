@@ -203,7 +203,7 @@ public class Neo4jEntityPersister implements EntityPersister, Neo4jEntityConvert
     }
 
     public <T> T projectTo(Object entity, Class<T> targetType, final Neo4jTemplate template) {
-        return projectTo(entity,targetType,getMappingPolicy(targetType), template);
+        return projectTo(entity,targetType,getMappingPolicy(targetType).combineWith(MappingPolicy.NO_TYPE_CHECK_POLICY), template);
     }
 
     @SuppressWarnings("unchecked")

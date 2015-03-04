@@ -51,8 +51,7 @@ public class FullTextIndexBasedStartClause extends IndexBasedStartClause {
         final PartInfo partInfo = getPartInfo();
         final String identifier = partInfo.getIdentifier();
         final String indexName = partInfo.getIndexName();
-        final int parameterIndex = partInfo.getParameterIndex();
-        return String.format(QueryTemplates.START_CLAUSE_INDEX_QUERY, identifier, indexName, parameterIndex);
+        return String.format(QueryTemplates.START_CLAUSE_INDEX_QUERY, identifier, indexName, partInfo.getParamName());
     }
 
     @Override

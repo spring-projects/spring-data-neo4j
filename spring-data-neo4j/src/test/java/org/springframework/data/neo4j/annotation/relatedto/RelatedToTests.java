@@ -22,6 +22,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.convert.ConverterNotFoundException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.mapping.model.MappingException;
+import org.springframework.data.neo4j.mapping.PersistentEntityConversionException;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
 import org.springframework.data.neo4j.support.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.support.mapping.Neo4jPersistentEntityImpl;
@@ -245,9 +246,7 @@ public class RelatedToTests {
             coffeeMachines.save(coffeeMachine);
 
             fail();
-        } catch (MappingException me) {
-            assertTrue("converter not found", me.getCause() instanceof ConverterNotFoundException);
-            ConverterNotFoundException e = (ConverterNotFoundException) me.getCause();
+        } catch (PersistentEntityConversionException e) {
             assertThat(asSet(DripBrew.class.getName(), EspressoBasedCoffee.class.getName()), hasItem(e.getSourceType().getName()));
             assertThat(asSet(DripBrew.class.getName(), EspressoBasedCoffee.class.getName()), hasItem(e.getTargetType().getName()));
             assertThat(e.getSourceType().getName(), is(not(equalTo(e.getTargetType().getName()))));

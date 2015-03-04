@@ -451,6 +451,19 @@ public class GraphRepositoryTests {
         Iterable<Person> findByName = personRepository.findByName(testTeam.michael.getName());
         assertThat(findByName, hasItem(testTeam.michael));
     }
+    @Test @Transactional
+    public void findByNameAndAgeGreaterThan() {
+        Person michael = testTeam.michael;
+        Iterable<Person> findByName = personRepository.findByNameAndAgeGreaterThan(michael.getName(),michael.getAge() - 1);
+        assertThat(findByName, hasItem(michael));
+    }
+
+    @Test @Transactional
+    public void findByNameAndAgeLessThan() {
+        Person michael = testTeam.michael;
+        Iterable<Person> findByName = personRepository.findByNameAndAgeLessThan(michael.getName(),michael.getAge() + 1);
+        assertThat(findByName, hasItem(michael));
+    }
 
     @Test @Transactional
     public void countByName() {

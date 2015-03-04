@@ -90,7 +90,7 @@ class WhereClause {
         if (type.getNumberOfArguments()==0) {
             result = String.format(WHERE_CLAUSE_0, variable, propertyName, operator);
         } else {
-            result = String.format(WHERE_CLAUSE_1, variable, propertyName, operator, partInfo.getParameterIndex());
+            result = String.format(WHERE_CLAUSE_1, variable, propertyName, operator, partInfo.getParamName());
         }
         if (type==Type.EXISTS) {
             result = "has("+ result +")";

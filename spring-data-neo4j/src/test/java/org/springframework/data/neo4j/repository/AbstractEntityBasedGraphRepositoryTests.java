@@ -22,6 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.neo4j.mapping.InvalidEntityTypeException;
+import org.springframework.data.neo4j.mapping.PersistentEntityConversionException;
 import org.springframework.data.neo4j.model.AbstractNodeEntity;
 import org.springframework.data.neo4j.model.Concrete1NodeEntity;
 import org.springframework.data.neo4j.model.Concrete2NodeEntity;
@@ -66,7 +67,7 @@ public class AbstractEntityBasedGraphRepositoryTests {
 
 
     @Transactional
-    @Test(expected = InvalidEntityTypeException.class)  // DATAGRAPH-298
+    @Test(expected = PersistentEntityConversionException.class)  // DATAGRAPH-298
     public void testInvalidEntityLoadAttemptThroughAbstractRepoThrowsAppropriateException() {
 
         Person person = personRepository.save(new Person("someone",30));
