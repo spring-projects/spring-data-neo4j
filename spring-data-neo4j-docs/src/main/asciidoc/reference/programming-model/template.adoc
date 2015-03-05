@@ -27,27 +27,25 @@ All of these basic CRUD methods just call onto the corresponding methods of `Ses
 
 == Cypher Queries
 
-The `Neo4jTemplate` also allows execution of arbitrary Cypher queries via its `query`, `queryForObject` and `queryForObjects` methods.  Cypher queries that return tabular results should be passed into the `query` method and an `Iterable<Map<String,Object>>` containing the raw data is returned, which can be either used as-is or converted into a richer type if needed.  The keys in each `Map` correspond to the names listed in the return clause of the executed Cypher query.
+The `Neo4jTemplate` also allows execution of arbitrary Cypher queries via its `query`, `queryForObject` and `queryForObjects` methods.  Cypher queries that return tabular results should be passed into the `query` method and an `Iterable<Map<String,Object>>` containing the raw data is returned, which can be either used as it is or converted as needed.
 
 For the query methods that retrieve mapped objects, the recommended query format is to return a path, which should ensure that known types get mapped correctly and joined together with relationships as appropriate.
-
-For Cypher update operations, `Neo4jTemplate` provides an `execute` method, to which an arbitrary Cypher update statement (such as CREATE, MERGE or DELETE) can be passed.
 
 == Transactions
 
 The `Neo4jTemplate` provides implicit transactions for some of its methods. For instance `save` uses them. For other modifying operations please provide Spring Transaction management using `@Transactional` or the `TransactionTemplate`.
 
-== Data Manipulation Events (formerly Lifecycle Events)
+== Lifecycle Events
 
-Neo4j Template utilises Spring's event mechanism through `ApplicationListener` and `ApplicationEvent` to notify interested parties about certain data manipulations performed through it.  The following hooks are available in the form of types of application event:
+NOTE: These events are not implemented as of milestone 1 of SDN 4.
+
+Neo4j Template offers basic lifecycle events via Spring's event mechanism using ApplicationListener and ApplicationEvent. The following hooks are available in the form of types of application event:
 
 * BeforeSaveEvent
 * AfterSaveEvent
-* BeforeDeleteEvent
-* AfterDeleteEvent
+* DeleteEvent - after the event has been deleted
 
-The point at which these events get fired by the `Neo4jTemplate` should be pretty obvious from the names.
-The following example demonstrates how to hook into the Spring application events API and register listeners that perform behaviour across types of entities as actions are performed using the template.
+The following example demonstrates how to hook into the application lifecycle and register listeners that perform behaviour across types of entities during this life cycle:
 
 .Auditing Entities and Generating Unique Application-level IDs
 ====
@@ -80,10 +78,10 @@ public class ApplicationConfig extends Neo4jConfiguration {
     }
 
     @Bean
-    ApplicationListener<AfterDeleteEvent> deleteEventApplicationListener() {
-        return new ApplicationListener<AfterDeleteEvent>() {
+    ApplicationListener<DeleteEvent> deleteEventApplicationListener() {
+        return new ApplicationListener<DeleteEvent>() {
             @Override
-            public void onApplicationEvent(AfterDeleteEvent event) {
+            public void onApplicationEvent(DeleteEvent event) {
                 AcmeEntity entity = (AcmeEntity) event.getEntity();
                 auditLog.onEventDeleted(entity);
             }
@@ -93,5 +91,4 @@ public class ApplicationConfig extends Neo4jConfiguration {
 ----
 ====
 
-Note that changes made to entities in the before-save event application listener are reflected in the stored entity - after-save ones are not.
-
+Changes made to entities in the before-save event handler are reflected in the stored entity - after-save ones are not.
