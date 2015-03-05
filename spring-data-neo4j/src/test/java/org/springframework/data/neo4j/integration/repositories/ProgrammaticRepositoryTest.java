@@ -23,7 +23,8 @@ public class ProgrammaticRepositoryTest extends WrappingServerIntegrationTest {
 
     @Test
     public void canInstantiateRepositoryProgrammatically() {
-        RepositoryFactorySupport factory = new GraphRepositoryFactory(new SessionFactory("org.springframework.data.neo4j.integration.repositories.domain").openSession("http://localhost:7879"));
+        RepositoryFactorySupport factory = new GraphRepositoryFactory(
+                new SessionFactory("org.springframework.data.neo4j.integration.repositories.domain").openSession(baseNeoUrl()));
         movieRepository = factory.getRepository(MovieRepository.class);
 
         Movie movie = new Movie("PF");

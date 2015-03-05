@@ -25,29 +25,29 @@ format, you can annotate your entity attribute accordingly:
 
 .Example of user-defined date format
 ====
-[source, java]
----
+[source,java]
+----
 public class MyEntity {
 
     @DateString("yy-MM-dd")
     private Date entityDate;
 }
----
-===
+----
+====
 
 Alternatively, if you want to store Dates as long values, use the @DateLong annotation:
 
 .Example of date stored as a long value
 ====
-[source, java]
----
+[source,java]
+----
 public class MyEntity {
 
     @DateLong
     private Date entityDate;
 }
----
-===
+----
+====
 
 Collections of primitive or convertible values are also automatically mapped by converting them to arrays of their type
 or strings respectively.
