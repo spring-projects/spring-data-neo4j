@@ -22,12 +22,15 @@ import org.neo4j.ogm.annotation.EndNode;
 import org.neo4j.ogm.annotation.RelationshipEntity;
 import org.neo4j.ogm.annotation.StartNode;
 
-@RelationshipEntity
+@RelationshipEntity(type="ACTS_IN")
 public class Role {
     Long id;
     @EndNode Movie movie;
     @StartNode Actor actor;
     String role;
+
+    public Role() {
+    }
 
     public Role(Movie movie, Actor actor, String role) {
         this.movie = movie;
