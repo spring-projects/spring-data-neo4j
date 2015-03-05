@@ -25,7 +25,7 @@ import org.neo4j.ogm.domain.cineasts.annotated.Rating;
 import org.neo4j.ogm.domain.cineasts.annotated.SecurityRole;
 import org.neo4j.ogm.domain.cineasts.annotated.Title;
 import org.neo4j.ogm.domain.cineasts.annotated.User;
-import org.neo4j.ogm.integration.IntegrationTest;
+import org.neo4j.ogm.integration.InMemoryServerTest;
 import org.neo4j.ogm.model.Property;
 import org.neo4j.ogm.session.SessionFactory;
 
@@ -41,7 +41,7 @@ import static org.junit.Assert.assertTrue;
 /**
  * Simple integration test based on cineasts that exercises relationship entities.
  */
-public class CineastsIntegrationTest extends IntegrationTest {
+public class CineastsIntegrationTest extends InMemoryServerTest {
 
     @BeforeClass
     public static void init() throws IOException {

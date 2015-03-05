@@ -31,7 +31,7 @@ public interface Transaction extends AutoCloseable {
 
     /**
      * The endpoint for this transaction
-     * @return a url representing a Neo4j transaction endpoint
+     * @return
      */
     String url();
 

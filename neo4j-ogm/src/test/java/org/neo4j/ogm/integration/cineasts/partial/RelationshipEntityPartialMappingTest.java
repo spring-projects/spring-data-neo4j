@@ -22,7 +22,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.neo4j.ogm.domain.cineasts.partial.Actor;
 import org.neo4j.ogm.domain.cineasts.partial.Movie;
-import org.neo4j.ogm.integration.IntegrationTest;
+import org.neo4j.ogm.integration.InMemoryServerTest;
 import org.neo4j.ogm.session.SessionFactory;
 
 import java.io.IOException;
@@ -37,7 +37,7 @@ import static junit.framework.Assert.assertEquals;
  * In this scenario, the Role relationship, which is a RelationshipEntity
  * linking Actors and Movies, is referenced only from the Actor entity.
  */
-public class RelationshipEntityPartialMappingTest extends IntegrationTest {
+public class RelationshipEntityPartialMappingTest extends InMemoryServerTest {
 
     private static SessionFactory sessionFactory;
 

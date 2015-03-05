@@ -30,6 +30,9 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.protocol.HTTP;
 import org.apache.http.util.EntityUtils;
+import org.neo4j.ogm.authentication.CredentialsService;
+import org.neo4j.ogm.authentication.HttpRequestAuthorization;
+import org.neo4j.ogm.authentication.Neo4jCredentials;
 import org.neo4j.ogm.mapper.MappingContext;
 import org.neo4j.ogm.session.result.ResultProcessingException;
 import org.slf4j.Logger;
@@ -40,12 +43,14 @@ public class TransactionManager {
     private final Logger logger = LoggerFactory.getLogger(TransactionManager.class);
     private final CloseableHttpClient httpClient;
     private final String url;
+    private final Neo4jCredentials credentials;
 
     private static final ThreadLocal<Transaction> transaction = new ThreadLocal<>();
 
     public TransactionManager(CloseableHttpClient httpClient, String server) {
         this.url = transactionRequestEndpoint(server);
         this.httpClient = httpClient;
+        this.credentials = CredentialsService.userNameAndPassword();
         transaction.remove(); // ensures this thread does not have a current tx;
     }
 
@@ -81,6 +86,7 @@ public class TransactionManager {
         try {
 
             request.setHeader(new BasicHeader("Accept", "application/json;charset=UTF-8"));
+            HttpRequestAuthorization.authorize(request, credentials);
 
             HttpResponse response = httpClient.execute(request);
             StatusLine statusLine = response.getStatusLine();
@@ -117,7 +123,7 @@ public class TransactionManager {
     private String newTransactionEndpointUrl() {
         logger.info("POST " + url);
         HttpPost request = new HttpPost(url);
-        request.setHeader(new BasicHeader(HTTP.CONTENT_TYPE,"application/json;charset=UTF-8"));
+        request.setHeader(new BasicHeader(HTTP.CONTENT_TYPE, "application/json;charset=UTF-8"));
         HttpResponse response = executeRequest(request);
         Header location = response.getHeaders("Location")[0];
         return location.getValue();
@@ -134,4 +140,6 @@ public class TransactionManager {
         }
         return url + "db/data/transaction";
     }
+
+
 }

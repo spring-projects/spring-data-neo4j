@@ -40,7 +40,7 @@ import static org.junit.Assert.assertNotNull;
 /**
  *  Temporary playground for the full cycle.
  */
-public class EndToEndTest extends IntegrationTest {
+public class EndToEndTest extends InMemoryServerTest {
 
     private static SessionFactory sessionFactory;
 

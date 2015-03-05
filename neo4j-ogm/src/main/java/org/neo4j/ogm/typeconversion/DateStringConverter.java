@@ -30,10 +30,10 @@ import java.util.TimeZone;
  * Users can override this behaviour for Date objects using
  * the appropriate annotations:
  *
- * \@DateString("format") will convert between dates and strings
+ * @DateString("format") will convert between dates and strings
  * using a user defined date format, e.g. "yy-MM-dd"
  *
- * \@DateLong will read and write dates as Long values in the database.
+ * @DateLong will read and write dates as Long values in the database.
  */
 public class DateStringConverter implements AttributeConverter<Date, String> {
 

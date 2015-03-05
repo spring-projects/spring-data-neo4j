@@ -30,7 +30,7 @@ import java.util.Collection;
 import static junit.framework.TestCase.assertNotNull;
 import static org.junit.Assert.assertEquals;
 
-public class RelationshipEntityHydrationTest extends IntegrationTest {
+public class RelationshipEntityHydrationTest extends InMemoryServerTest {
 
     private static SessionFactory sessionFactory;
 

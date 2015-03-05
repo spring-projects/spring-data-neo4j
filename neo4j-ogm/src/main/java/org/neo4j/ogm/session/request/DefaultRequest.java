@@ -28,6 +28,9 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.protocol.HTTP;
+import org.neo4j.ogm.authentication.CredentialsService;
+import org.neo4j.ogm.authentication.HttpRequestAuthorization;
+import org.neo4j.ogm.authentication.Neo4jCredentials;
 import org.neo4j.ogm.session.response.JsonResponse;
 import org.neo4j.ogm.session.response.Neo4jResponse;
 import org.neo4j.ogm.session.result.ResultProcessingException;
@@ -39,9 +42,11 @@ public class DefaultRequest implements Neo4jRequest<String> {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultRequest.class);
 
     private final CloseableHttpClient httpClient;
+    private final Neo4jCredentials credentials;
 
     public DefaultRequest(CloseableHttpClient httpClient) {
         this.httpClient = httpClient;
+        this.credentials = CredentialsService.userNameAndPassword();
     }
 
     public Neo4jResponse<String> execute(String url, String cypherQuery) {
@@ -55,6 +60,9 @@ public class DefaultRequest implements Neo4jRequest<String> {
 
             request.setHeader(new BasicHeader(HTTP.CONTENT_TYPE,"application/json;charset=UTF-8"));
             request.setHeader(new BasicHeader("Accept", "application/json;charset=UTF-8"));
+
+            HttpRequestAuthorization.authorize(request, credentials);
+
             request.setEntity(entity);
 
             HttpResponse response = httpClient.execute(request);
@@ -81,4 +89,6 @@ public class DefaultRequest implements Neo4jRequest<String> {
             throw new ResultProcessingException("Failed to execute request: " + cypherQuery, e);
         }
     }
+
+
 }

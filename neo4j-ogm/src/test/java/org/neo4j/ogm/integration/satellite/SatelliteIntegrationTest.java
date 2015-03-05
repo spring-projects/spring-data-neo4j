@@ -22,13 +22,11 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.neo4j.ogm.domain.satellites.Program;
 import org.neo4j.ogm.domain.satellites.Satellite;
-import org.neo4j.ogm.integration.IntegrationTest;
+import org.neo4j.ogm.integration.InMemoryServerTest;
 import org.neo4j.ogm.session.SessionFactory;
 import org.neo4j.ogm.session.transaction.Transaction;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.Collection;
 import java.util.Date;
 
@@ -39,7 +37,7 @@ import static org.junit.Assert.fail;
  * This is a full integration test that requires a running neo4j
  * database on localhost.
  */
-public class SatelliteIntegrationTest extends IntegrationTest {
+public class SatelliteIntegrationTest extends InMemoryServerTest {
 
     @BeforeClass
     public static void init() throws IOException {

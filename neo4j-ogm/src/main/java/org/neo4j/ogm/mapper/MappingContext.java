@@ -194,7 +194,7 @@ public class MappingContext {
     /**
      * purges all information about this object from the mapping context
      *
-     * @param entity the entity whose object references and relationship mappings we want to purge
+     * @param type the type whose object references and relationship mappings we want to purge
      */
     public void clear(Object entity) {
         Class<?> type = entity.getClass();

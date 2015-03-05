@@ -347,7 +347,7 @@ public class EntityGraphMapper implements EntityToGraphMapper {
      * @param relationshipEntity the relationship entity to create or update the relationship from
      * @param relationshipBuilder a {@link RelationshipBuilder} that knows how to build cypher phrases about relationships
      * @param context the {@link CypherContext} for the compiler.
-     * @return the object at the end node of the relationship
+     * @return
      */
     private Object mapRelationshipEntity(Long srcIdentity, Object relationshipEntity, RelationshipBuilder relationshipBuilder, CypherContext context) {
 
@@ -491,7 +491,7 @@ public class EntityGraphMapper implements EntityToGraphMapper {
      * @param src the compiler's reference to the domain object representing the start (or end) node
      * @param type the relationship type to check
      * @param tgt the compiler's reference to the domain object representing the end (or start) node
-     * @return true if a transient relationship has already been created, false otherwise
+     * @return
      */
     private boolean hasTransientRelationship(CypherContext ctx, String src, String type, String tgt) {
         for (Object object : ctx.log()) {
