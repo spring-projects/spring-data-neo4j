@@ -24,10 +24,6 @@ public class Rating {
         this.comment = comment;
     }
 
-    public Long getId() {
-        return id;
-    }
-
     public void setUser(User user) {
         this.user = user;
     }
