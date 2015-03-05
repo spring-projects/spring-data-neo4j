@@ -68,8 +68,8 @@ public class ObjectFactoryTest {
         this.objectCreator.newObject(edge);
     }
 
-    @Test(expected = MappingException.class)
-    public void shouldFailIfZeroArgConstructorIsNotVisible() {
+    @Test
+    public void shouldBeAbleToConstructObjectWithNonPublicZeroArgConstructor() {
         NodeModel vertex = new NodeModel();
         vertex.setId(163L);
         vertex.setLabels(new String[] {"ClassWithPrivateConstructor"});

@@ -24,6 +24,7 @@ import org.neo4j.ogm.metadata.MappingException;
 import org.neo4j.ogm.metadata.MetaData;
 import org.neo4j.ogm.metadata.info.ClassInfo;
 
+import java.lang.reflect.Constructor;
 import java.util.*;
 
 public class EntityFactory {
@@ -70,9 +71,11 @@ public class EntityFactory {
 
         try {
             @SuppressWarnings("unchecked")
-            Class<T> className = (Class<T>) Class.forName(fqn);
-            return className.newInstance();
-        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException e) {
+            Class<T> loadedClass = (Class<T>) Class.forName(fqn);
+            Constructor<T> defaultConstructor = loadedClass.getDeclaredConstructor();
+            defaultConstructor.setAccessible(true);
+            return defaultConstructor.newInstance();
+        } catch (SecurityException | IllegalArgumentException | ReflectiveOperationException e) {
             throw new MappingException("Unable to instantiate class: " + fqn, e);
         }
     }

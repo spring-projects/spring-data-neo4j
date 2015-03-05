@@ -36,6 +36,7 @@ import org.neo4j.ogm.session.request.DefaultRequest;
 import org.neo4j.ogm.session.request.Neo4jRequest;
 import org.neo4j.ogm.session.request.RequestHandler;
 import org.neo4j.ogm.session.request.SessionRequestHandler;
+import org.neo4j.ogm.session.request.strategy.AggregateStatements;
 import org.neo4j.ogm.session.request.strategy.DeleteStatements;
 import org.neo4j.ogm.session.request.strategy.VariableDepthQuery;
 import org.neo4j.ogm.session.response.Neo4jResponse;
@@ -182,8 +183,7 @@ public class Neo4jSession implements Session {
 
 
     @Override
-    public <T> T queryForObject(Class<T> type, String cypher, Map<String, Object> parameters)
-    {
+    public <T> T queryForObject(Class<T> type, String cypher, Map<String, ?> parameters) {
         Iterable<T> results = query(type, cypher, parameters);
 
         int resultSize = Utils.size(results);
@@ -192,7 +192,7 @@ public class Neo4jSession implements Session {
             return null;
         }
 
-        if (resultSize < 1) {
+        if (resultSize > 1) {
             throw new RuntimeException("Result not of expected size. Expected 1 row but found " + resultSize);
         }
 
@@ -200,8 +200,7 @@ public class Neo4jSession implements Session {
     }
 
     @Override
-    public Iterable<Map<String, Object>> query(String cypher, Map<String, Object> parameters)
-    {
+    public Iterable<Map<String, Object>> query(String cypher, Map<String, ?> parameters) {
         if (StringUtils.isEmpty(cypher)) {
             throw new RuntimeException("Supplied cypher statement must not be null or empty.");
         }
@@ -234,10 +233,8 @@ public class Neo4jSession implements Session {
         }
     }
 
-
     @Override
-    public <T> Iterable<T> query(Class<T> type, String cypher, Map<String, Object> parameters)
-    {
+    public <T> Iterable<T> query(Class<T> type, String cypher, Map<String, ?> parameters) {
         if (type == null || type.equals(Void.class)) {
             throw new RuntimeException("Supplied type must not be nul or void.");
         }
@@ -284,8 +281,7 @@ public class Neo4jSession implements Session {
         }
     }
 
-    private void assertReadOnly(String cypher)
-    {
+    private void assertReadOnly(String cypher) {
         Matcher matcher = WRITE_CYPHER_KEYWORDS.matcher(cypher.toUpperCase());
 
         if (matcher.find()) {
@@ -293,10 +289,8 @@ public class Neo4jSession implements Session {
         }
     }
 
-
     @Override
-    public void execute(String cypher, Map<String, Object> parameters)
-    {
+    public void execute(String cypher, Map<String, Object> parameters) {
         if (StringUtils.isEmpty(cypher)) {
             throw new RuntimeException("Supplied cypher statement must not be null or empty.");
         }
@@ -424,6 +418,21 @@ public class Neo4jSession implements Session {
         }
     }
 
+    @Override
+    public long countEntitiesOfType(Class<?> entity) {
+        ClassInfo classInfo = metaData.classInfo(entity.getName());
+        if (classInfo == null) {
+            return 0;
+        }
+
+        RowModelQuery countStatement = new AggregateStatements().countNodesLabelledWith(classInfo.labels());
+        String url  = getOrCreateTransaction().url();
+        try (Neo4jResponse<RowModel> response = getRequestHandler().execute(countStatement, url)) {
+            RowModel queryResult = response.next();
+            return queryResult == null ? 0 : ((Number) queryResult.getValues()[0]).longValue();
+        }
+    }
+
     private static String autoCommit(String url) {
         if (url == null) return url;
         if (!url.endsWith("/")) url = url + "/";
@@ -449,4 +458,5 @@ public class Neo4jSession implements Session {
         return tx;
 
     }
+
 }

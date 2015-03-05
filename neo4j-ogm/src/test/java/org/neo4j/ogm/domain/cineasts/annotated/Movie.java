@@ -30,6 +30,8 @@ public class Movie {
 
     @Relationship(type="ACTS_IN", direction="INCOMING")
     Set<Role> cast;
+
+    @Relationship(type = "RATED", direction = Relationship.INCOMING)
     Set<Rating> ratings;
 
     Set<Nomination> nominations;

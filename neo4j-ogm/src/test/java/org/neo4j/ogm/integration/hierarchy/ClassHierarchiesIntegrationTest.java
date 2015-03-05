@@ -337,7 +337,7 @@ public class ClassHierarchiesIntegrationTest extends WrappingServerIntegrationTe
     }
 
     @Test
-    public void shouldReadHierarchy() {
+    public void shouldReadHierarchyAndRetrieveBySuperclass() {
 
         Female daniela = new Female("Daniela");
         Male michal = new Male("Michal");
@@ -356,16 +356,19 @@ public class ClassHierarchiesIntegrationTest extends WrappingServerIntegrationTe
         assertTrue(entities.containsAll(Arrays.asList(daniela, michal, adam)));
 
         assertEquals(3, people.size());
+        assertEquals(people.size(), session.countEntitiesOfType(Person.class));
         assertTrue(people.containsAll(Arrays.asList(daniela, michal, adam)));
 
         assertEquals(2, males.size());
         assertTrue(males.containsAll(Arrays.asList(michal, adam)));
 
         assertEquals(1, females.size());
+        assertEquals(females.size(), session.countEntitiesOfType(Female.class));
         assertTrue(females.contains(daniela));
 
         assertEquals(1, blokes.size());
         assertTrue(blokes.contains(adam));
+
     }
 
     @Test

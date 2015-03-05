@@ -18,6 +18,7 @@
 
 package org.neo4j.ogm.domain.cineasts.annotated;
 
+import org.neo4j.ogm.annotation.Relationship;
 import org.neo4j.ogm.annotation.typeconversion.Convert;
 
 import java.util.List;
@@ -30,6 +31,7 @@ public class User {
     String name;
     String password;
 
+    @Relationship(type = "RATED")
     Set<Rating> ratings;
     Set<User> friends;
 

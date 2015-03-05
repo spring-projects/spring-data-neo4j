@@ -79,7 +79,7 @@ public interface Session {
      *
      * @throws java.lang.RuntimeException If more than one object is found.
      */
-    <T> T queryForObject(Class<T> objectType, String cypher,  Map<String, Object> parameters);
+    <T> T queryForObject(Class<T> objectType, String cypher,  Map<String, ?> parameters);
 
     /**
      * Given a non modifying cypher statement this method will return a collection of domain objects that is hydrated to
@@ -93,7 +93,7 @@ public interface Session {
      *
      * @return A collection of domain objects or scalars as prescribed by the parametrized type.
      */
-    <T> Iterable<T> query(Class<T> objectType, String cypher, Map<String, Object> parameters);
+    <T> Iterable<T> query(Class<T> objectType, String cypher, Map<String, ?> parameters);
 
     /**
      * Given a non modifying cypher statement this method will return a collection of Map's which represent Neo4j
@@ -104,19 +104,19 @@ public interface Session {
      * TODO: Decide if we want to keep this behaviour?
      * TODO: Are we going to use the neo4jOperations conversion method to cast the value object to its proper class?
      *
-     * @param cypher  The parametrizable cypher to execute.
+     * @param cypher  The parametrisable cypher to execute.
      * @param parameters Any parameters to attach to the cypher.
      *
-     * @return An iterable collection of Maps with each entry representing a neo4j object's properties.
+     * @return An {@link Iterable} of {@link Map}s with each entry representing a neo4j object's properties.
      */
-    Iterable<Map<String, Object>> query(String cypher, Map<String, Object> parameters);
+    Iterable<Map<String, Object>> query(String cypher, Map<String, ?> parameters);
 
     /**
      * This method allows a cypher statement with a modification statement to be executed.
      *
      * <p>Parameters may be scalars or domain objects themselves.</p>
      *
-     * @param cypher The parametrizable cypher to execute.
+     * @param cypher The parametrisable cypher to execute.
      * @param parameters Any parameters to attach to the cypher. These may be domain objects or scalars. Note that
      *                   if a complex domain object is provided only the properties of that object will be set.
      *                   If relationships of a provided object also need to be set then the cypher should reflect this
@@ -124,4 +124,13 @@ public interface Session {
      *
      */
     void execute(String cypher, Map<String, Object> parameters);
+
+    /**
+     * Counts all the <em>node</em> entities of the specified type.
+     *
+     * @param entity The {@link Class} denoting the type of entity to count
+     * @return The number of entities in the database of the given type
+     */
+    long countEntitiesOfType(Class<?> entity);
+
 }

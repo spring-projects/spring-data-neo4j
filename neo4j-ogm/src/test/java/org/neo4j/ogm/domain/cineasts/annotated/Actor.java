@@ -34,6 +34,10 @@ public class Actor {
 
     private Set<Nomination> nominations;
 
+    Actor() {
+        // default constructor for OGM
+    }
+
     public Actor(String name) {
         this.name = name;
     }
@@ -54,6 +58,10 @@ public class Actor {
         Nomination nomination = new Nomination(movie,this,nominationName,year);
         nominations.add(nomination);
         return nomination;
+    }
+
+    public String getName() {
+        return name;
     }
 
 }
