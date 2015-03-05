@@ -63,4 +63,19 @@ public class SessionCypherQueryTest extends WrappingServerIntegrationTest {
         }
     }
 
+    @Test
+    public void shouldQueryForObjectByIdUsingBespokeParameterisedCypherQuery() {
+        Actor alec = new Actor("Alec Baldwin");
+        this.session.save(alec);
+        this.session.save(new Actor("Helen Mirren"));
+        this.session.save(new Actor("Matt Damon"));
+
+        setUpSession(); // including this makes the test pass
+        // FIXME: this loads any actor at random despite Neo4j always returning the correct one in t'JSON!
+        Actor loadedActor = this.session.queryForObject(Actor.class, "MATCH (a:Actor) WHERE ID(a)={0} RETURN a",
+                Collections.<String, Object>singletonMap("param", alec));
+        assertNotNull("The entity wasn't loaded", loadedActor);
+        assertEquals("Alec Baldwin", loadedActor.getName());
+    }
+
 }

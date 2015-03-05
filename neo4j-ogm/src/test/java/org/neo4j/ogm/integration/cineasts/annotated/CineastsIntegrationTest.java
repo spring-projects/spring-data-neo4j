@@ -32,6 +32,8 @@ import org.neo4j.ogm.session.SessionFactory;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -154,6 +156,181 @@ public class CineastsIntegrationTest extends InMemoryServerTest {
         assertEquals(1,users.size());
         User aki = users.iterator().next();
         assertEquals("Aki Kaurismäki", aki.getName());
+
+    }
+
+    @Test
+    public void shouldSaveRatingWithMovie() {
+        Movie movie = new Movie();
+        movie.setTitle("Pulp Fiction");
+
+        User michal = new User();
+        michal.setName("Michal");
+
+        Set<Rating> ratings = new HashSet<>();
+        Rating awesome = new Rating();
+        awesome.setComment("Awesome");
+        awesome.setMovie(movie);
+        awesome.setUser(michal);
+        awesome.setStars(5);
+        ratings.add(awesome);
+
+        michal.setRatings(ratings);
+        movie.setRatings(ratings);
+        session.save(movie);
+
+        Collection<Movie> movies = session.loadByProperty(Movie.class,new Property<String, Object>("title","Pulp Fiction"));
+        movie = movies.iterator().next();
+        assertEquals(1,movie.getRatings().size());
+        assertEquals("Michal",movie.getRatings().iterator().next().getUser().getName());
+    }
+
+    @Test
+    public void shouldBeAbleToModifyRating() {
+        Movie movie = new Movie();
+        movie.setTitle("Pulp Fiction");
+
+        User michal = new User();
+        michal.setName("Michal");
+
+        Set<Rating> ratings = new HashSet<>();
+        Rating awesome = new Rating();
+        awesome.setComment("Awesome");
+        awesome.setMovie(movie);
+        awesome.setUser(michal);
+        awesome.setStars(5);
+        ratings.add(awesome);
+
+        michal.setRatings(ratings);
+        movie.setRatings(ratings);
+        session.save(movie);
+
+        Collection<Movie> movies = session.loadByProperty(Movie.class,new Property<String, Object>("title","Pulp Fiction"));
+        movie = movies.iterator().next();
+        assertEquals(1,movie.getRatings().size());
+        Rating rating =  movie.getRatings().iterator().next();
+        assertEquals("Michal", rating.getUser().getName());
+        assertEquals(5,rating.getStars());
+
+        //Modify the rating stars
+        ratings.iterator().next().setStars(2);
+        michal.setRatings(ratings);
+        movie.setRatings(ratings);
+        session.save(movie);
+        movies = session.loadByProperty(Movie.class,new Property<String, Object>("title","Pulp Fiction"));
+        movie = movies.iterator().next();
+        assertEquals(1,movie.getRatings().size());
+        rating =  movie.getRatings().iterator().next();
+        assertEquals("Michal", rating.getUser().getName());
+        assertEquals(2,rating.getStars());
+
+    }
+
+    @Test
+    public void shouldSaveMultipleUserRatingsForAMovie() {  //Even though this is an unrealistic use case
+        Movie pulp = new Movie();
+        pulp.setTitle("Pulp Fiction");
+        session.save(pulp);
+
+        User michal = new User();
+        michal.setName("Michal");
+
+        Set<Rating> ratings = new HashSet<>();
+        Rating good = new Rating();
+        good.setUser(michal);
+        good.setMovie(pulp);
+        good.setStars(3);
+        ratings.add(good);
+        michal.setRatings(ratings);
+        pulp.setRatings(ratings);
+
+        session.save(michal);
+        Collection<Movie> movies = session.loadByProperty(Movie.class,new Property<String, Object>("title","Pulp Fiction"));
+        pulp = movies.iterator().next();
+        assertNotNull(pulp.getRatings());
+        assertEquals(1,pulp.getRatings().size());
+        assertEquals("Michal",pulp.getRatings().iterator().next().getUser().getName());
+
+        Rating betterNextTime = new Rating();
+        betterNextTime.setMovie(pulp);
+        betterNextTime.setUser(michal);
+        betterNextTime.setStars(4);
+        ratings.add(betterNextTime);
+        michal.setRatings(ratings);
+        pulp.setRatings(ratings);
+
+        session.save(michal);
+        movies = session.loadByProperty(Movie.class,new Property<String, Object>("title","Pulp Fiction"));
+        pulp = movies.iterator().next();
+        assertNotNull(pulp.getRatings());
+        assertEquals(2,pulp.getRatings().size());
+    }
+
+    @Test
+    public void shouldSaveMultipleUserRatings() {
+        Set<Rating> pulpRatings = new HashSet<>();
+        Set<Rating> topGearRatings = new HashSet<>();
+
+        Movie pulp = new Movie();
+        pulp.setTitle("Pulp Fiction");
+        session.save(pulp);
+
+        Movie topGear = new Movie();
+        topGear.setTitle("Top Gear");
+        session.save(topGear);
+
+        User michal = new User();
+        michal.setName("Michal");
+
+        Rating good = new Rating();
+        good.setUser(michal);
+        good.setMovie(pulp);
+        good.setStars(3);
+        pulpRatings.add(good);
+        pulp.setRatings(pulpRatings);
+
+        Rating okay = new Rating();
+        okay.setMovie(topGear);
+        okay.setUser(michal);
+        okay.setStars(2);
+        topGearRatings.add(okay);
+        topGear.setRatings(topGearRatings);
+
+        Set<Rating> michalsRatings = new HashSet<>();
+        michalsRatings.add(good);
+        michalsRatings.add(okay);
+        michal.setRatings(michalsRatings);
+
+        session.save(michal);
+
+        Collection<Movie> movies = session.loadByProperty(Movie.class,new Property<String, Object>("title","Pulp Fiction"));
+        pulp = movies.iterator().next();
+        assertNotNull(pulp.getRatings());
+        assertEquals(1,pulp.getRatings().size());
+
+        movies = session.loadByProperty(Movie.class,new Property<String, Object>("title","Top Gear"));
+        topGear = movies.iterator().next();
+        assertNotNull(topGear.getRatings());
+        assertEquals(1,topGear.getRatings().size());
+
+        michal = session.loadByProperty(User.class,new Property<String, Object>("name","Michal")).iterator().next();
+        assertEquals(2,michal.getRatings().size());
+
+        michal.setRatings(pulpRatings); //Get rid of the Top Gear rating
+        session.save(michal);
+
+        michal = session.loadByProperty(User.class,new Property<String, Object>("name","Michal")).iterator().next();
+        assertEquals(1,michal.getRatings().size());
+
+        movies = session.loadByProperty(Movie.class,new Property<String, Object>("title","Top Gear"));
+        topGear = movies.iterator().next();
+        assertNotNull(topGear.getRatings());
+        assertEquals(0,topGear.getRatings().size());
+
+        movies = session.loadByProperty(Movie.class,new Property<String, Object>("title","Pulp Fiction"));
+        pulp = movies.iterator().next();
+        assertNotNull(pulp.getRatings());
+        assertEquals(1,pulp.getRatings().size());
 
     }
 }
