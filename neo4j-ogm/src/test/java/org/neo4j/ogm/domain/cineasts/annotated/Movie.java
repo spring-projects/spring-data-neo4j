@@ -20,6 +20,7 @@ package org.neo4j.ogm.domain.cineasts.annotated;
 
 import org.neo4j.ogm.annotation.Relationship;
 
+import java.util.HashSet;
 import java.util.Set;
 
 public class Movie {
@@ -29,7 +30,7 @@ public class Movie {
     int year;
 
     @Relationship(type="ACTS_IN", direction="INCOMING")
-    Set<Role> cast;
+    Set<Role> roles=new HashSet<>();
 
     @Relationship(type = "RATED", direction = Relationship.INCOMING)
     Set<Rating> ratings;
@@ -61,12 +62,8 @@ public class Movie {
         this.year = year;
     }
 
-    public Set<Role> getCast() {
-        return cast;
-    }
-
-    public void setCast(Set<Role> cast) {
-        this.cast = cast;
+    public Set<Role> getRoles() {
+        return roles;
     }
 
     public Set<Rating> getRatings() {
