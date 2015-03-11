@@ -1,0 +1,328 @@
+
+@import url(typography.css);
+@import url(forms.css);
+@import url(grid.css);
+
+* {
+  outline-style: none;
+}
+
+body { 
+	margin:0; 
+	padding:0; 
+	background : #010100; 
+}
+
+a img { border:0; }
+
+/**
+ * MAIN COMPONENTS
+ */
+
+#header {
+	background: url(../images/header-curtain.png) repeat-y bottom center #010100;	
+  border-bottom: 1px solid #5C5C45;
+}
+
+#logo img {
+  padding: 10px 10px 0;
+}
+
+#header-topbar {
+	height: 49px;
+	padding: 0 0 0 10px;
+	background: url(../images/filmroll-horizontal.png) repeat-x bottom left transparent;	
+}
+
+#header-splash {
+  text-align:center;
+  background: url(../images/header-splash-bg.png) repeat-x bottom center;
+}
+
+#logo-splash {
+  position:relative;
+  top:4px;
+}
+
+
+#header-menu {
+	float: right;
+  color: #DDDDDD;
+  height:28px;
+  background:#0b0f07;
+  padding: 10px 10px;
+}
+
+.search {
+  float:left;
+  padding:0 10px;
+}
+
+.navigation {
+  float:left;
+}
+
+.navigation a {
+  color: #d8d8d8;
+  text-decoration:none;
+  padding: 0 0 0 5px;
+}
+
+#content {
+  padding: 10px;
+}
+
+#footer {
+  text-align:center;
+  color: #999999;
+  font-size: 12px;
+  padding: 10px;
+  clear:both;
+}
+
+#footer img {
+  padding: 10px;
+}
+/**
+ * SEARCH RESULTS
+ */
+
+.search-results > li {
+  border-top: 1px solid #666666;
+  padding: 10px;
+}
+
+.search-result-details {
+/*  float:left;
+  padding: 0px 10px;
+  */
+}
+
+/**
+ * PROFILE, ACTOR AND MOVIE PAGES 
+ */
+
+.profile-header {
+  clear:both;
+}
+
+.profile-image {
+  float:left;
+}
+
+.profile-image img {
+    width: 100px;
+}
+.actor-image img, .profile-image img, .friend-image img, .thumbnail img {
+  border: 1px solid #4C5C2A !important;
+}
+
+.thumbnail {
+  display:block;
+ /* float:left;*/
+}
+.thumbnail img {
+    height: 100px;
+}
+
+.actor-framed-image {
+  background: url(../images/actor-picture-frame.png) no-repeat;
+  width:166px;
+  height:214px;
+  padding: 6px 60px 16px;
+}
+
+.actor-sidebar {
+  padding: 0 56px;
+}
+
+.profile-header-details {
+  float: left;
+  padding: 0 10px;
+}
+
+.profile-feed {
+  background: none repeat scroll 0 0 #252525;
+  border: 5px solid #CACF81;
+  padding: 10px;
+} 
+
+.facts {
+  width:50%;
+  float:left;
+}
+
+.movie-content-outer, .actor-content-outer {
+  background: url(../images/filmroll-vertical-full.png) no-repeat top right;
+  padding-right: 38px;
+}
+
+.movie-content, .actor-content {
+  background: url(../images/filmroll-vertical-full.png) no-repeat top left;
+  padding: 0 10px 0 48px;
+  min-height:690px;
+}
+
+.actors-list li {
+  width:100px;
+  float:left;
+}
+
+.actors-list img {
+  height:92px;
+  display:block;
+}
+
+.friends-list li {
+  border-top:1px solid #333;
+  padding: 5px 0;
+}
+
+.friends-list .friend-image {
+  float:left;
+}
+
+.friend-image img {
+    height: 64px;
+}
+.friends-list .friend-info {
+  float:left;
+  padding: 0 5px;
+}
+
+.friends-list h3, .search-results h3 {
+  border:none;
+  margin: 5px 0;
+}
+
+.friends-list h3 a, .search-results h3 a {
+  text-decoration:none;
+  color: #99CC33;
+}
+
+.rated-movies-list h3 {
+  margin: 0;
+  padding: 5px 0;
+  float: left;
+}
+
+.rated-movies-list h3 a {
+  color: #99CC33;
+  text-decoration:none;
+}
+
+.rated-movies-list li {
+  position:relative;
+  height:20px;
+  padding:8px 0;
+}
+
+.rated-movies-list .rating {
+/*  position:absolute;
+  right:0;
+  top:5px;
+*/
+  float: right;
+}
+
+/**
+ * BIG SEARCH
+ */
+
+#big-search-wrap {
+  padding: 20px 0;
+  text-align: center;
+} 
+
+.big-search {
+  background: url("../images/searchbar-big.png") no-repeat scroll 0 0 transparent;
+  border: 0 none;
+  height: 50px;
+  width: 480px;
+  font-size: 22px;
+  padding: 0 10px;
+}
+
+.big-search-submit {
+  background: url("../images/searchbar-big-searchicon.png") no-repeat scroll 0 0 transparent;
+  border: 0 none;
+  color: transparent;
+  cursor: pointer;
+  height: 40px;
+  left: -75px;
+  position: relative;
+  width: 41px;
+}
+
+/**
+ * RATINGS
+ */
+
+.rating-input li, .rating-input lh {
+  float:left;
+}
+
+.rating {
+  display: block;
+  height: 20px;
+  width: 110px;
+}
+
+.rating li {
+  height: 28px;
+  width: 22px;
+  display:block;
+  float:left;
+  padding:0 2px;
+}
+
+.rating li.active {
+  background: url("/images/rating-active.png") no-repeat scroll center 0 transparent;
+}
+
+.rating li.disabled {
+/*  background: url("/images/rating-disabled.png") no-repeat scroll center 0 transparent; */
+}
+
+/**
+ * TABLES
+ */
+
+table th {
+  text-align: left;
+}
+
+/**
+ * LISTS
+ */
+
+ul {
+  list-style:none;
+  padding:0;
+}
+
+lh {
+  font-weight:bold;
+}
+
+/**
+ * UTILS
+ */
+
+.break {
+  clear:both;
+}
+
+
+/** 
+ * ERRORS
+ */
+
+.error {
+  color:red;
+}
+
+a {
+	text-decoration: none;
+	color: #99CC33;
+}

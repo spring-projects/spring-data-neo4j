@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:security="http://www.springframework.org/schema/security"
+       xsi:schemaLocation="
+        http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+        http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security.xsd">
+
+    <context:annotation-config/>
+    <security:global-method-security secured-annotations="enabled">
+    </security:global-method-security>
+
+    <security:http> <!-- use-expressions="true" -->
+        <security:intercept-url pattern="/admin/*" access="hasRole('ROLE_ADMIN')"/>
+        <security:intercept-url pattern="/import/*" access="hasRole('ROLE_ADMIN')"/>
+        <security:intercept-url pattern="/user/**" access="hasRole('ROLE_USER')"/>
+        <security:intercept-url pattern="/auth/login" access="isAnonymous()"/>
+        <security:intercept-url pattern="/auth/register" access="isAnonymous()"/>
+        <security:intercept-url pattern="/resources/**" access="permitAll"/>
+        <security:intercept-url pattern="/images/**" access="permitAll"/>
+        <security:intercept-url pattern="/**" access="isAnonymous() || hasRole('ROLE_USER')"/>
+        <security:form-login login-page="/auth/login" authentication-failure-url="/auth/login?login_error=true"
+        default-target-url="/user" login-processing-url="/j_spring_security_check" username-parameter="username" password-parameter="password"/>
+        <security:logout logout-success-url="/" invalidate-session="true" logout-url="/j_spring_security_logout"/>
+        <security:access-denied-handler error-page="/auth/denied" />
+        <security:csrf/>
+    </security:http>
+
+    <security:authentication-manager>
+        <security:authentication-provider user-service-ref="userRepository">
+            <security:password-encoder hash="md5">
+                <security:salt-source system-wide="cewuiqwzie"/>
+            </security:password-encoder>
+        </security:authentication-provider>
+    </security:authentication-manager>
+
+</beans>
