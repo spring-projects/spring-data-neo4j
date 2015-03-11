@@ -1,13 +1,12 @@
-package movieimport;
+package org.neo4j.cineasts.movieimport;
 
-import context.PersistenceContext;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.neo4j.cineasts.PersistenceContext;
 import org.neo4j.cineasts.domain.Actor;
 import org.neo4j.cineasts.domain.Movie;
 import org.neo4j.cineasts.domain.Person;
-import org.neo4j.cineasts.movieimport.MovieDbImportService;
 import org.neo4j.cineasts.repository.MovieRepository;
 import org.neo4j.ogm.testutil.WrappingServerIntegrationTest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,7 +23,7 @@ import static org.junit.Assert.assertEquals;
 @ContextConfiguration(classes = {PersistenceContext.class})
 @RunWith(SpringJUnit4ClassRunner.class)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
-public class MovieDbImportServiceTests extends WrappingServerIntegrationTest {
+public class MovieDbImportServiceTest extends WrappingServerIntegrationTest {
 
     @Autowired
     MovieDbImportService importService;

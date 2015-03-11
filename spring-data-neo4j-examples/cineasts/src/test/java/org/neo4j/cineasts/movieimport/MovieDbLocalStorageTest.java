@@ -1,8 +1,7 @@
-package movieimport;
+package org.neo4j.cineasts.movieimport;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.neo4j.cineasts.movieimport.MovieDbLocalStorage;
 
 import java.io.File;
 import java.util.Collections;
@@ -16,7 +15,7 @@ import static org.junit.Assert.assertTrue;
  * @author mh
  * @since 13.03.11
  */
-public class MovieDbLocalStorageTests {
+public class MovieDbLocalStorageTest {
 
 
     private static final String ID = "111";

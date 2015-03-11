@@ -1,4 +1,4 @@
-package context;
+package org.neo4j.cineasts;
 
 import org.neo4j.ogm.session.Session;
 import org.neo4j.ogm.session.SessionFactory;

@@ -1,14 +1,9 @@
-package integration;
+package org.neo4j.cineasts.domain;
 
-import context.PersistenceContext;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.neo4j.cineasts.domain.Actor;
-import org.neo4j.cineasts.domain.Director;
-import org.neo4j.cineasts.domain.Movie;
-import org.neo4j.cineasts.domain.Rating;
-import org.neo4j.cineasts.domain.User;
+import org.neo4j.cineasts.PersistenceContext;
 import org.neo4j.cineasts.repository.ActorRepository;
 import org.neo4j.cineasts.repository.DirectorRepository;
 import org.neo4j.cineasts.repository.MovieRepository;
@@ -29,7 +24,7 @@ import static org.junit.Assert.assertNotNull;
 @ContextConfiguration(classes = {PersistenceContext.class})
 @RunWith(SpringJUnit4ClassRunner.class)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
-public class DomainTests extends WrappingServerIntegrationTest{
+public class DomainTest extends WrappingServerIntegrationTest{
 
     @Autowired
     ActorRepository actorRepository;

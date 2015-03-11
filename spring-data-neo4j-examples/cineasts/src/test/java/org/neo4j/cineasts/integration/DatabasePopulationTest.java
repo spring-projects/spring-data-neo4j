@@ -1,9 +1,9 @@
-package integration;
+package org.neo4j.cineasts.integration;
 
 
-import context.PersistenceContext;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.neo4j.cineasts.PersistenceContext;
 import org.neo4j.cineasts.domain.Actor;
 import org.neo4j.cineasts.domain.Director;
 import org.neo4j.cineasts.domain.Movie;
@@ -21,7 +21,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @ContextConfiguration(classes = {PersistenceContext.class})
 @RunWith(SpringJUnit4ClassRunner.class)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
-public class DatabasePopulationTests extends WrappingServerIntegrationTest {
+public class DatabasePopulationTest extends WrappingServerIntegrationTest {
 
     @Autowired
     ActorRepository actorRepository;

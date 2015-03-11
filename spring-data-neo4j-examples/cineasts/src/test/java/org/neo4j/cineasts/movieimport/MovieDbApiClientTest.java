@@ -1,9 +1,8 @@
-package movieimport;
+package org.neo4j.cineasts.movieimport;
 
-import context.PersistenceContext;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.neo4j.cineasts.movieimport.MovieDbApiClient;
+import org.neo4j.cineasts.PersistenceContext;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -19,7 +18,7 @@ import static org.junit.Assert.assertEquals;
 @ContextConfiguration(classes = {PersistenceContext.class})
 @RunWith(SpringJUnit4ClassRunner.class)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
-public class MovieDbApiClientTests {
+public class MovieDbApiClientTest {
     private static final String API_KEY = "70c7465a780b1d65c0f3d5bd394c5b80";
 
     @Test
