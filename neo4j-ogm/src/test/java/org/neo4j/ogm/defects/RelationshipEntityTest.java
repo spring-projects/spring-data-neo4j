@@ -185,8 +185,14 @@ public class RelationshipEntityTest extends WrappingServerIntegrationTest {
         assertEquals(1,bruce.getRoles().size());
         */
 
-        /* This loads the movie but not actor.
-           It works only when either Movie.setRoles is not defined, or Movie.setRoles is defined and annotated
+        /* This loads the movie but not roles.
+           It works only when
+           1. Either Movie.setRoles is not defined, or Movie.setRoles is defined and annotated
+           2. There is no method which accepts a Role parameter such as the following in the Movie class:
+            public void addRole(Role role) {
+                roles.add(role);
+            }
+
          */
         Movie dieHard = IteratorUtil.firstOrNull(session.loadByProperty(Movie.class, new Property<String, Object>("title", "Die Hard")));
         assertNotNull(dieHard);
