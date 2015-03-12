@@ -179,14 +179,16 @@ public class RelationshipEntityTest extends WrappingServerIntegrationTest {
                         "(bw:Actor {name: 'Bruce Willis'}), " +
                         "(bw)-[:ACTS_IN {role : 'John'}]->(dh)");
 
-    /*
         //This works
-        Actor bruce = IteratorUtil.firstOrNull(session.loadByProperty(Actor.class, new Property<String, Object>("name","Bruce Willis")));
+        /*Actor bruce = IteratorUtil.firstOrNull(session.loadByProperty(Actor.class, new Property<String, Object>("name","Bruce Willis")));
         assertNotNull(bruce);
-        assertEquals(1,bruce.getRoles().size());*/
-        Movie dieHard = IteratorUtil.firstOrNull(session.loadByProperty(Movie.class, new Property<String, Object>("title", "Die Hard"), 1));
+        assertEquals(1,bruce.getRoles().size());
+        */
+
         /* This loads the movie but not actor.
+           It works only when either Movie.setRoles is not defined, or Movie.setRoles is defined and annotated
          */
+        Movie dieHard = IteratorUtil.firstOrNull(session.loadByProperty(Movie.class, new Property<String, Object>("title", "Die Hard")));
         assertNotNull(dieHard);
         assertNotNull(dieHard.getRoles());
         assertEquals(1,dieHard.getRoles().size());
