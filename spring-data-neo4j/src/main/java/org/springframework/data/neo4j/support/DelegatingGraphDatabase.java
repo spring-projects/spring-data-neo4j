@@ -25,7 +25,6 @@ import org.neo4j.graphdb.traversal.TraversalDescription;
 import org.neo4j.index.lucene.ValueContext;
 import org.neo4j.kernel.GraphDatabaseAPI;
 import org.neo4j.kernel.Traversal;
-import org.neo4j.kernel.impl.transaction.SpringTransactionManager;
 import org.neo4j.tooling.GlobalGraphOperations;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,9 +43,9 @@ import org.springframework.util.ObjectUtils;
 import javax.transaction.Status;
 import javax.transaction.SystemException;
 import javax.transaction.TransactionManager;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.util.*;
-
-import static org.neo4j.helpers.collection.MapUtil.map;
 
 /**
  * @author mh
@@ -62,6 +61,15 @@ public class DelegatingGraphDatabase implements GraphDatabase {
     private ConversionService conversionService;
     private ResultConverter resultConverter;
     private volatile CypherQueryEngineImpl cypherQueryEngine;
+
+    static Constructor springTxManagerConstructor;
+    static {
+        try {
+            springTxManagerConstructor = Class.forName("org.neo4j.kernel.impl.transaction.SpringTransactionManager").getConstructor(GraphDatabaseAPI.class);
+        } catch (ClassNotFoundException | NoSuchMethodException e) {
+            springTxManagerConstructor = null;
+        }
+    }
 
     public DelegatingGraphDatabase(final GraphDatabaseService delegate) {
         this(delegate,null);
@@ -235,7 +243,12 @@ public class DelegatingGraphDatabase implements GraphDatabase {
 
     @Override
     public TransactionManager getTransactionManager() {
-        return new SpringTransactionManager((GraphDatabaseAPI)delegate);
+        if (springTxManagerConstructor==null) return new Neo4jEmbeddedTransactionManager(delegate);
+        try {
+            return (TransactionManager)springTxManagerConstructor.newInstance((GraphDatabaseAPI) delegate);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
