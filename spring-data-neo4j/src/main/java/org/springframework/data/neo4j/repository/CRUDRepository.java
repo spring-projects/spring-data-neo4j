@@ -55,4 +55,6 @@ public interface CRUDRepository<T> extends PagingAndSortingRepository<T, Long> {
 
     
     Result<T> query(String query, Map<String, Object> params);
+
+    <U extends T>  void saveOnly(U entity);
 }

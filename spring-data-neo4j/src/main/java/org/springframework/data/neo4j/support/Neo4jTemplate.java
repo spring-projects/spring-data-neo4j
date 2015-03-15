@@ -351,13 +351,18 @@ public class Neo4jTemplate implements Neo4jOperations, ApplicationContextAware {
     @Override
     @SuppressWarnings("unchecked")
     public <T> T save(T entity) {
-        return save(entity, null);
+        return save(entity, null, getMappingPolicy(entity));
+    }
+
+    @Override
+    public <T> void saveOnly(T entity) {
+        save(entity, null, getMappingPolicy(entity).combineWith(MappingPolicy.NO_RELOAD_POLICY));
     }
 
     @SuppressWarnings("unchecked")
-    public <T> T save(T entity, final RelationshipType annotationProvidedRelationshipType) {
+    public <T> T save(T entity, final RelationshipType annotationProvidedRelationshipType, MappingPolicy mappingPolicy) {
         if (applicationContext != null) applicationContext.publishEvent(new BeforeSaveEvent<T>(this, entity));
-        T t = (T) infrastructure.getEntityPersister().persist(entity, getMappingPolicy(entity), this, annotationProvidedRelationshipType);
+        T t = (T) infrastructure.getEntityPersister().persist(entity, mappingPolicy, this, annotationProvidedRelationshipType);
         if (applicationContext != null) applicationContext.publishEvent(new AfterSaveEvent<T>(this, entity));
         return t;
     }

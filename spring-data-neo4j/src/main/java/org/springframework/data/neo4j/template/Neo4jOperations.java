@@ -261,6 +261,13 @@ public interface Neo4jOperations {
      */
     <T> T save(T entity);
 
+    /**
+     * Stores the given entity in the graph, if the entity is already attached to the graph, the node is updated, otherwise
+     * a new node is created. Attached relationships will be cascaded.
+     * This method is also provided by the appropriate repository.
+     */
+    <T> void saveOnly(T entity);
+
     Number getId(Object entity);
 
     /**

@@ -27,9 +27,10 @@ import static java.util.Arrays.asList;
 public interface MappingPolicy {
 
     enum Option {
-        FIELD_DIRECT, SHOULD_LOAD,NO_TYPE_CHECK
+        FIELD_DIRECT, SHOULD_LOAD,NO_TYPE_CHECK, NO_RELOAD
     }
     boolean accessField();
+    boolean noReload();
     boolean shouldLoad();
     boolean noTypeCheck();
     MappingPolicy combineWith(MappingPolicy mappingPolicy);
@@ -51,6 +52,11 @@ public interface MappingPolicy {
         @Override
         public boolean accessField() {
             return options.contains(Option.FIELD_DIRECT);
+        }
+
+        @Override
+        public boolean noReload() {
+            return options.contains(Option.NO_RELOAD);
         }
 
         @Override
@@ -111,6 +117,7 @@ public interface MappingPolicy {
     }
 
     public MappingPolicy LOAD_POLICY = new DefaultMappingPolicy(Option.SHOULD_LOAD);
+    public MappingPolicy NO_RELOAD_POLICY = new DefaultMappingPolicy(Option.NO_RELOAD);
     public MappingPolicy DEFAULT_POLICY = new DefaultMappingPolicy();
     public MappingPolicy MAP_FIELD_DIRECT_POLICY = new DefaultMappingPolicy(Option.FIELD_DIRECT);
     public MappingPolicy NO_TYPE_CHECK_POLICY = new DefaultMappingPolicy(Option.NO_TYPE_CHECK);

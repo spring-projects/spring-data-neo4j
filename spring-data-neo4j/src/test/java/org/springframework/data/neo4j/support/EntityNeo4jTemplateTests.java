@@ -300,6 +300,16 @@ public class EntityNeo4jTemplateTests extends EntityTestBase {
         assertEquals("created node with name", "Thomas", node.getProperty("name"));
     }
 
+    @Test @Transactional
+    public void testSaveOnly() throws Exception {
+        final Person thomas = new Person("Thomas", 30);
+        neo4jOperations.saveOnly(thomas);
+        final Node node = getNodeState(thomas);
+        assertNotNull("created node",node);
+        assertEquals("created node with id", (Long) node.getId(), thomas.getId());
+        assertEquals("created node with name", "Thomas", node.getProperty("name"));
+    }
+
     static abstract class ManagedTestEntity implements ManagedEntity {}
     @Test @Transactional
     public void testIsManaged() throws Exception {

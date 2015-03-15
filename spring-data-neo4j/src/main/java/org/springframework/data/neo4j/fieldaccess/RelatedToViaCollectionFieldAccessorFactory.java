@@ -96,7 +96,7 @@ public class RelatedToViaCollectionFieldAccessorFactory implements FieldAccessor
 
         private void persistEntities( final Collection<Object> relationshipEntities, RelationshipType relationshipType ) {
             for (Object entity : relationshipEntities) {
-                template.save(entity, relationshipType);
+                template.save(entity, relationshipType, template.getMappingPolicy(entity));
             }
         }
 

@@ -91,6 +91,11 @@ public abstract class AbstractGraphRepository<S extends PropertyContainer, T> im
         return template.save(entity);
     }
 
+    @Transactional
+    public <U extends T> void saveOnly(U entity) {
+         template.saveOnly(entity);
+    }
+
     @Override
     @Transactional
     public <U extends T> Iterable<U> save(Iterable<U> entities) {

@@ -245,12 +245,14 @@ public class Neo4jEntityPersister implements EntityPersister, Neo4jEntityConvert
         if (isNodeEntity(type)) {
             final Node node = this.<Node>getPersistentState(entity);
             this.nodeConverter.write(entity, node,mappingPolicy, template, null );
+            if (mappingPolicy.noReload()) return null;
             return createEntityFromState(getPersistentState(entity),type, getMappingPolicy(type), template);
             //return entity; // TODO ?
         }
         if (isRelationshipEntity(type)) {
             final Relationship relationship = this.<Relationship>getPersistentState(entity);
             this.relationshipConverter.write(entity, relationship,mappingPolicy, template, annotationProvidedRelationshipType );
+            if (mappingPolicy.noReload()) return null;
             return createEntityFromState(getPersistentState(entity),type, getMappingPolicy(type), template);
 //            return entity; // TODO ?
         }

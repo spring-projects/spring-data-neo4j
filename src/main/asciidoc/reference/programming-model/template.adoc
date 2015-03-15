@@ -50,7 +50,10 @@ Neo4jOperations neo = new Neo4jTemplate(graphDatabase);
 
 == Entity-Persistence
 
-`Neo4jTemplate` allows to `save`, `find(One/All)`, `count`, `delete` and `projectTo` entities. It provides the stored type information via `getStoredJavaType` and can `fetch` lazy-loaded entities or `load` them altogether.
+`Neo4jTemplate` allows to `save`,`saveOnly`, `find(One/All)`, `count`, `delete` and `projectTo` entities. It provides the stored type information via `getStoredJavaType` and can `fetch` lazy-loaded entities or `load` them altogether.
+
+The `saveOnly` method will not reload the entity from the database, saving a number of requests that are often not necessary.
+It's also available in the `GraphRepository` interface.
 
 == Result
 
@@ -86,7 +89,8 @@ Neo4j Template offers basic lifecycle events via Spring's event mechanism using 
 
 * BeforeSaveEvent
 * AfterSaveEvent
-* DeleteEvent - after the event has been deleted
+* BeforeDeleteEvent
+* AfterDeleteEvent
 
 The following example demonstrates how to hook into the application lifecycle and register listeners that perform behaviour across types of entities during this life cycle:
 
@@ -121,10 +125,10 @@ public class ApplicationConfig extends Neo4jConfiguration {
     }
 
     @Bean
-    ApplicationListener<DeleteEvent> deleteEventApplicationListener() {
-        return new ApplicationListener<DeleteEvent>() {
+    ApplicationListener<BeforeDeleteEvent> beforeDeleteEventApplicationListener() {
+        return new ApplicationListener<BeforeDeleteEvent>() {
             @Override
-            public void onApplicationEvent(DeleteEvent event) {
+            public void onApplicationEvent(BeforeDeleteEvent event) {
                 AcmeEntity entity = (AcmeEntity) event.getEntity();
                 auditLog.onEventDeleted(entity);
             }
