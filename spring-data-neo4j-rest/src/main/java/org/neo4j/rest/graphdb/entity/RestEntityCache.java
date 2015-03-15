@@ -9,7 +9,8 @@ import org.neo4j.rest.graphdb.RestAPI;
  */
 public class RestEntityCache {
 
-    private LruCache<Long,RestNode> lruCache = new LruCache<>("RestNode",10000);
+    private LruCache<Long,RestNode> lruNodeCache = new LruCache<>("RestNode",10000);
+    private LruCache<Long,RestRelationship> lruRelCache = new LruCache<>("RestRelationship",10000);
 
     private final RestAPI restAPI;
 
@@ -21,22 +22,42 @@ public class RestEntityCache {
         if (node == null) return null;
         long id = node.getId();
         if (id != -1) {
-            RestNode existing = lruCache.get(id);
+            RestNode existing = lruNodeCache.get(id);
             if (existing !=null) {
                 if (existing != node) existing.updateFrom(node, restAPI);
                 return existing;
             } else {
-                lruCache.put(id, node);
+                lruNodeCache.put(id, node);
             }
         }
         return node;
     }
-
-    public RestNode getNode(long id) {
-        return lruCache.get(id);
+    public RestRelationship addToCache(RestRelationship rel) {
+        if (rel == null) return null;
+        long id = rel.getId();
+        if (id != -1) {
+            RestRelationship existing = lruRelCache.get(id);
+            if (existing !=null) {
+                if (existing != rel) existing.updateFrom(rel, restAPI);
+                return existing;
+            } else {
+                lruRelCache.put(id, rel);
+            }
+        }
+        return rel;
     }
 
-    public void remove(long id) {
-        lruCache.remove(id);
+    public RestNode getNode(long id) {
+        return lruNodeCache.get(id);
+    }
+    public RestRelationship getRelationship(long id) {
+        return lruRelCache.get(id);
+    }
+
+    public void removeNode(long id) {
+        lruNodeCache.remove(id);
+    }
+    public void removeRelationship(long id) {
+        lruRelCache.remove(id);
     }
 }

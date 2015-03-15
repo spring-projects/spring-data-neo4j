@@ -4,6 +4,7 @@ import org.neo4j.graphdb.PropertyContainer;
 import org.neo4j.rest.graphdb.converter.RestEntityExtractor;
 import org.neo4j.rest.graphdb.entity.RestEntity;
 import org.neo4j.rest.graphdb.entity.RestNode;
+import org.neo4j.rest.graphdb.entity.RestRelationship;
 
 import java.util.Map;
 
@@ -13,6 +14,7 @@ import java.util.Map;
  */
 public interface RestAPIInternal {
     RestNode getNodeById(long id, RestAPI.Load force);
+    RestRelationship getRelationshipById(long id, RestAPI.Load force);
 
     boolean hasToUpdate(long lastUpdate);
 
@@ -30,4 +32,13 @@ public interface RestAPIInternal {
         FromServer,
         ForceFromServer
     }
+
+    RestRequest getRestRequest();
+
+    RestNode addToCache(RestNode restNode);
+    RestRelationship addToCache(RestRelationship restRelationship);
+    RestNode getNodeFromCache(long id);
+    RestRelationship getRelFromCache(long id);
+    void removeNodeFromCache(long id);
+    void removeRelFromCache(long id);
 }

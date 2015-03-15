@@ -50,7 +50,7 @@ public class RestRelationship extends RestEntity implements Relationship {
 
     @Override
     protected void doUpdate() {
-        updateFrom(restApi.getRelationshipById(getId()), restApi);
+        updateFrom(restApi.getRelationshipById(getId(),RestAPIInternal.Load.ForceFromServer), restApi);
     }
 
     public Node getEndNode() {

@@ -47,8 +47,6 @@ import org.neo4j.rest.graphdb.traversal.RestTraverser;
 import org.neo4j.rest.graphdb.util.JsonHelper;
 import org.neo4j.rest.graphdb.util.QueryResult;
 import org.neo4j.rest.graphdb.util.ResultConverter;
-import org.springframework.data.neo4j.mapping.Neo4jPersistentEntity;
-import org.springframework.data.neo4j.support.mapping.Neo4jMappingContext;
 
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
@@ -120,34 +118,61 @@ public class RestAPIImpl implements RestAPI {
     }
 
     @Override
+    public RestRelationship getRelationshipById(long id, Load force) {
+        if (force != Load.ForceFromServer) {
+            RestRelationship restRel = entityCache.getRelationship(id);
+            if (restRel != null) return restRel;
+        }
+        if (force == Load.FromCache) return new RestRelationship(RestRelationship.relUri(this, id),this);
+
+//        BatchRestAPI batchRestAPI = new BatchRestAPI(this);
+//        RestNode node = batchRestAPI.getNodeById(id);
+        RequestResult response = restRequest.get("relationship/" + id);
+        if (response.statusIs(Status.NOT_FOUND)) {
+            throw new NotFoundException("" + id);
+        }
+        Map<String, Object> data = (Map<String, Object>) response.toMap();
+        RestRelationship rel = new RestRelationship(data, this);
+        return entityCache.addToCache(rel);
+    }
+
+    @Override
     public RestNode addToCache(RestNode restNode) {
         return entityCache.addToCache(restNode);
     }
 
     @Override
-    public RestNode getFromCache(long id) {
+    public RestRelationship addToCache(RestRelationship rel) {
+        return entityCache.addToCache(rel);
+    }
+
+    @Override
+    public RestNode getNodeFromCache(long id) {
         return entityCache.getNode(id);
     }
 
     @Override
-    public void removeFromCache(long id) {
-        entityCache.remove(id);
+    public RestRelationship getRelFromCache(long id) {
+        return entityCache.getRelationship(id);
+    }
+
+    @Override
+    public void removeNodeFromCache(long id) {
+        entityCache.removeNode(id);
+    }
+    @Override
+    public void removeRelFromCache(long id) {
+        entityCache.removeRelationship(id);
     }
 
     @Override
     public RestNode getNodeById(long id) {
         return getNodeById(id, Load.FromServer);
     }
-
     @Override
     public RestRelationship getRelationshipById(long id) {
-        RequestResult requestResult = restRequest.get("relationship/" + id);
-        if (requestResult.statusIs(Status.NOT_FOUND)) {
-            throw new NotFoundException("" + id);
-        }
-        return new RestRelationship(requestResult.toMap(), this);
+        return getRelationshipById(id, Load.FromServer);
     }
-
 
     @Override
     public RestNode createNode(Map<String, Object> props) {
@@ -582,7 +607,7 @@ public class RestAPIImpl implements RestAPI {
     @Override
     public void deleteEntity(RestEntity entity) {
         getRestRequest().with(entity.getUri()).delete( "" );
-        entityCache.remove(entity.getId());
+        entityCache.removeNode(entity.getId());
     }
     @Override
     public IndexInfo indexInfo(final String indexType) {

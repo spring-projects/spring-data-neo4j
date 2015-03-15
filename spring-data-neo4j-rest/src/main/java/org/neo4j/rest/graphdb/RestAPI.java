@@ -86,12 +86,6 @@ public interface RestAPI extends RestAPIIndex, RestAPIInternal {
 
     // internal
 
-    RestRequest getRestRequest();
-
-    RestNode addToCache(RestNode restNode);
-    RestNode getFromCache(long id);
-    void removeFromCache(long id);
-
     void close();
 
     Relationship getOrCreateRelationship(Node start, Node end, RelationshipType type, Direction direction, Map<String, Object> props);

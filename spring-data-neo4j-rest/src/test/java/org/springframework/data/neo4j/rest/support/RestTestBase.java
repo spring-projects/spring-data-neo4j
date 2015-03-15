@@ -36,7 +36,7 @@ import org.neo4j.server.configuration.ServerConfigurator;
 import org.neo4j.test.ImpermanentGraphDatabase;
 import org.springframework.data.neo4j.core.GraphDatabase;
 import org.springframework.data.neo4j.rest.SpringCypherRestGraphDatabase;
-import org.springframework.data.neo4j.rest.SpringRestGraphDatabase;
+import org.springframework.data.neo4j.rest.SpringCypherRestGraphDatabase;
 
 import java.util.Iterator;
 

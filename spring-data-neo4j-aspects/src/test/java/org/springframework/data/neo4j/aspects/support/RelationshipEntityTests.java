@@ -23,6 +23,8 @@ import org.neo4j.helpers.collection.IteratorUtil;
 import org.neo4j.helpers.collection.IteratorWrapper;
 import org.springframework.data.neo4j.aspects.Friendship;
 import org.springframework.data.neo4j.aspects.Person;
+import org.springframework.data.neo4j.core.GraphDatabase;
+import org.springframework.data.neo4j.template.GraphCallback;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
@@ -81,6 +83,25 @@ public class RelationshipEntityTests extends EntityTestBase {
         friends.add(friendship);
         assertEquals(1, IteratorUtil.count(friends));
         assertEquals(friendship,IteratorUtil.first(friends));
+        assertEquals(friendship.getYears(),IteratorUtil.first(friends).getYears());
+    }
+
+    @Test
+    @Transactional
+    public void shouldSupportManagedSetAddOfRelationshipEntitiesSave() {
+        Person p = persistedPerson("Michael", 35);
+        Person p2 = persistedPerson("David", 25);
+        final Set<Friendship> friends = p.getFriendshipsSet();
+        assertEquals(0, IteratorUtil.count(friends));
+        final Friendship friendship = new Friendship(p, p2, 10);
+        Friendship friends2 = neo4jTemplate.save(friendship);
+        assertEquals(friendship, friends2);
+        assertEquals(friendship.getYears(),friends2.getYears());
+        neo4jTemplate.fetch(p);
+        Set<Friendship> friendships = neo4jTemplate.fetch(p.getFriendshipsSet());
+        Friendship friends3 = IteratorUtil.first(friendships);
+        assertEquals(friendship, friends3);
+        assertEquals(friendship.getYears(),friends3.getYears());
     }
 
     @Test
@@ -104,6 +125,21 @@ public class RelationshipEntityTests extends EntityTestBase {
         Friendship f = p.knows(p2);
         f.setYears(1);
         assertEquals(1, getRelationshipState(f).getProperty("Friendship.years"));
+    }
+
+    @Test
+    @Transactional
+    public void testRelationshipSetPropertyLater() {
+        Person p = persistedPerson("Michael", 35);
+        Person p2 = persistedPerson("David", 25);
+        Friendship f = new Friendship(p,p2,1);
+        f = neo4jTemplate.save(f);
+        Relationship r = getRelationshipState(f);
+        assertEquals(1, r.getProperty("Friendship.years"));
+        Friendship f2 = neo4jTemplate.findOne(r.getId(), Friendship.class);
+        f2.setYears(2);
+        f2 = neo4jTemplate.save(f2);
+        assertEquals(2, getRelationshipState(f2).getProperty("Friendship.years"));
     }
 
     @Test
@@ -135,7 +171,6 @@ public class RelationshipEntityTests extends EntityTestBase {
         assertEquals(f, neo4jTemplate.getRelationshipBetween(p, p2, Friendship.class, "knows"));
     }
     
-    //@Ignore("The NodeBacking.getRelationshipTo() method is broken at the moment")
     @Test
     @Transactional
     public void testGetRelationshipTo() {

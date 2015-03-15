@@ -104,7 +104,7 @@ public class RestAPICypherImpl implements RestAPI {
     @Override
     public RestNode getNodeById(long id, Load force) {
         if (force != Load.ForceFromServer) {
-            RestNode restNode = getFromCache(id);
+            RestNode restNode = getNodeFromCache(id);
             if (restNode != null) return restNode;
         }
         if (force == Load.FromCache) return new RestNode(RestNode.nodeUri(this, id), this);
@@ -116,19 +116,61 @@ public class RestAPICypherImpl implements RestAPI {
         return addToCache(toNode(row));
     }
 
-    public RestNode getFromCache(long id) {
-        return restAPI.getFromCache(id);
+    @Override
+    public RestRelationship addToCache(RestRelationship restRelationship) {
+        return restAPI.addToCache(restRelationship);
     }
 
     @Override
-    public void removeFromCache(long id) {
-        restAPI.removeFromCache(id);
+    public RestRelationship getRelationshipById(long id, Load force) {
+        if (force != Load.ForceFromServer) {
+            RestRelationship restRel = getRelFromCache(id);
+            if (restRel != null) return restRel;
+        }
+        if (force == Load.FromCache) return new RestRelationship(RestRelationship.relUri(this, id), this);
+        try {
+            Iterator<List<Object>> result = runQuery(GET_REL_QUERY, map("id", id)).getRows().iterator();
+            if (!result.hasNext()) {
+                throw new NotFoundException("Relationship not found " + id);
+            }
+            List<Object> row = result.next();
+            return addToCache(toRel(row));
+        } catch (NotFoundException e) {
+            throw e;
+        } catch (CypherTransactionExecutionException ctee) {
+            if (ctee.contains("Neo.DatabaseError.Statement.ExecutionFailure","not found")) {
+                throw new NotFoundException("Relationship not found " + id);
+            }
+            throw ctee;
+        }
+    }
+
+    public RestNode getNodeFromCache(long id) {
+        return restAPI.getNodeFromCache(id);
+    }
+    public RestRelationship getRelFromCache(long id) {
+        return restAPI.getRelFromCache(id);
+    }
+
+    @Override
+    public void removeNodeFromCache(long id) {
+        restAPI.removeNodeFromCache(id);
+    }
+    @Override
+    public void removeRelFromCache(long id) {
+        restAPI.removeRelFromCache(id);
     }
 
     @Override
     public RestNode getNodeById(long id) {
         return getNodeById(id, Load.FromServer);
     }
+
+    @Override
+    public RestRelationship getRelationshipById(long id) {
+        return getRelationshipById(id, Load.FromServer);
+    }
+
 
     private RestNode toNode(List<Object> row) {
         long id = ((Number) row.get(0)).longValue();
@@ -145,26 +187,6 @@ public class RestAPICypherImpl implements RestAPI {
         long end = ((Number) row.get(4)).longValue();
         return RestRelationship.fromCypher(id, type, props, start, end, this);
     }
-
-    @Override
-    public RestRelationship getRelationshipById(long id) {
-        try {
-            Iterator<List<Object>> result = runQuery(GET_REL_QUERY, map("id", id)).getRows().iterator();
-            if (!result.hasNext()) {
-                throw new NotFoundException("Relationship not found " + id);
-            }
-            List<Object> row = result.next();
-            return toRel(row);
-        } catch (NotFoundException e) {
-            throw e;
-        } catch (CypherTransactionExecutionException ctee) {
-            if (ctee.contains("Neo.DatabaseError.Statement.ExecutionFailure","not found")) {
-                throw new NotFoundException("Relationship not found " + id);
-            }
-            throw ctee;
-        }
-    }
-
 
     @Override
     public RestNode createNode(Map<String, Object> props) {
@@ -381,9 +403,10 @@ public class RestAPICypherImpl implements RestAPI {
     public void deleteEntity(RestEntity entity) {
         if (entity instanceof Node) {
             runQuery(_MATCH_NODE_QUERY + " DELETE n", map("id", entity.getId()));
-            restAPI.removeFromCache(entity.getId());
+            restAPI.removeNodeFromCache(entity.getId());
         } else if (entity instanceof Relationship) {
             runQuery(_MATCH_REL_QUERY + " DELETE r", map("id", entity.getId()));
+            restAPI.removeRelFromCache(entity.getId());
         }
     }
 

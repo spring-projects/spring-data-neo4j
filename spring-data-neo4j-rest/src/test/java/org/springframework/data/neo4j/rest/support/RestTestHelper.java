@@ -47,6 +47,7 @@ public class RestTestHelper
     }
 
     public GraphDatabase createGraphDatabase() throws URISyntaxException {
+//        return new SpringRestGraphDatabase(SERVER_ROOT_URI);
         return new SpringCypherRestGraphDatabase(SERVER_ROOT_URI);
     }
 
