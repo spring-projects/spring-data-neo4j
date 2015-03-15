@@ -50,7 +50,7 @@ public abstract class RestIndex<T extends PropertyContainer> implements Index<T>
        return new RestGraphDatabase(restApi);
     }
 
-    private String getTypeName() {
+    public String getTypeName() {
         return getEntityType().getSimpleName().toLowerCase();
     }
 

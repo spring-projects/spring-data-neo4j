@@ -82,4 +82,10 @@ public class RetrievedIndexInfo implements IndexInfo {
     public boolean isExpired() {
         return System.currentTimeMillis() > expired;
     }
+
+    @Override
+    public void setExpired() {
+        this.expired = 0;
+    }
+
 }

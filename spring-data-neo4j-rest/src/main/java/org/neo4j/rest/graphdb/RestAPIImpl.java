@@ -243,11 +243,23 @@ public class RestAPIImpl implements RestAPI {
         data.put("name",indexName);
         data.put("config",config);
         restRequest.post("index/" + type, data);
+        IndexInfo indexInfo = indexInfos.get(type);
+        if (indexInfo!=null) indexInfo.setExpired();
+    }
+
+    public void resetIndex(Class type) {
+        if (Node.class.isAssignableFrom(type)) {
+            indexInfo(RestIndexManager.NODE).setExpired();
+        }
+        if (Relationship.class.isAssignableFrom(type)) {
+            indexInfo(RestIndexManager.RELATIONSHIP).setExpired();
+        }
     }
 
     @Override
     @SuppressWarnings("unchecked")
     public <T extends PropertyContainer> RestIndex<T> createIndex(Class<T> type, String indexName, Map<String, String> config) {
+        resetIndex(type);
         if (Node.class.isAssignableFrom(type)) {
             return (RestIndex<T>) index().forNodes( indexName, config);
         }
@@ -576,7 +588,7 @@ public class RestAPIImpl implements RestAPI {
     public IndexInfo indexInfo(final String indexType) {
         IndexInfo indexInfo = indexInfos.get(indexType);
         if (indexInfo != null && !indexInfo.isExpired()) {
-//            return indexInfo;
+            return indexInfo;
         }
         RequestResult response = restRequest.get("index/" + encode(indexType));
         indexInfo = new RetrievedIndexInfo(response);
@@ -619,12 +631,14 @@ public class RestAPIImpl implements RestAPI {
     @Override
     public void delete(RestIndex index) {
         deleteIndex(indexPath(index, null, null));
+        resetIndex(index.getEntityType());
     }
     
     @Override
     public <T extends PropertyContainer> void removeFromIndex(RestIndex index, T entity, String key, Object value) {
         String indexPath = indexPath(index, key, value);
         deleteIndex(indexPath(indexPath, entity));
+        resetIndex(index.getEntityType());
     }
 
     protected <T extends PropertyContainer> String indexPath(String indexPath, T restEntity) {
@@ -635,6 +649,7 @@ public class RestAPIImpl implements RestAPI {
     public <T extends PropertyContainer> void removeFromIndex(RestIndex index, T entity, String key) {
         String indexPath = indexPath(index, key, null);
         deleteIndex(indexPath(indexPath, entity));
+        resetIndex(index.getEntityType());
     }
 
     private String indexPath(RestIndex index, String key, Object value) {
@@ -644,6 +659,7 @@ public class RestAPIImpl implements RestAPI {
     @Override
     public <T extends PropertyContainer> void removeFromIndex(RestIndex index, T entity) {
         deleteIndex(indexPath(indexPath(index, null, null), entity));
+        resetIndex(index.getEntityType());
     }
 
     public String uniqueIndexPath(RestIndex index) {

@@ -35,4 +35,6 @@ public interface IndexInfo {
     Map<String, String> getConfig(String name);
 
     boolean isExpired();
+
+    void setExpired();
 }

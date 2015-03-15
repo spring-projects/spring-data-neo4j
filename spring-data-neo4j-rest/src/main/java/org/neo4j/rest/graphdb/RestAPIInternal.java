@@ -1,5 +1,6 @@
 package org.neo4j.rest.graphdb;
 
+import org.neo4j.graphdb.PropertyContainer;
 import org.neo4j.rest.graphdb.converter.RestEntityExtractor;
 import org.neo4j.rest.graphdb.entity.RestEntity;
 import org.neo4j.rest.graphdb.entity.RestNode;
@@ -21,6 +22,8 @@ public interface RestAPIInternal {
 
     // todo add to cache or update data in cache
     RestEntity createRestEntity(Map data);
+
+    void resetIndex(Class type);
 
     public enum Load {
         FromCache,

@@ -534,6 +534,7 @@ public class RestAPICypherImpl implements RestAPI {
     @Override
     @SuppressWarnings("unchecked")
     public <T extends PropertyContainer> RestIndex<T> createIndex(Class<T> type, String indexName, Map<String, String> config) {
+        resetIndex(type);
         if (Node.class.isAssignableFrom(type)) {
             return (RestIndex<T>) index().forNodes( indexName, config);
         }
@@ -541,6 +542,11 @@ public class RestAPICypherImpl implements RestAPI {
             return (RestIndex<T>) index().forRelationships(indexName, config);
         }
         throw new IllegalArgumentException("Required Node or Relationship types to create index, got " + type);
+    }
+
+    @Override
+    public void resetIndex(Class type) {
+        restAPI.resetIndex(type);
     }
 
     @Override
