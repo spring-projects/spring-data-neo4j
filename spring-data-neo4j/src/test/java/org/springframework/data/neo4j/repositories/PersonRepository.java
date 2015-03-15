@@ -107,6 +107,8 @@ public interface PersonRepository extends GraphRepository<Person>, NamedIndexRep
 
     Iterable<Person> findByAge(int age);
 
+    Iterable<Person> findByAlias(@Param("alias") String alias);
+
     @Query("start person=node:`name-index`('name:*') return person.name as name, person order by name asc ")
     Iterable<NameAndPersonResult> getAllNamesAndPeople();
 

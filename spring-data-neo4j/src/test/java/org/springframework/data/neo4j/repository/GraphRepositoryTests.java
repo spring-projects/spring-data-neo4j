@@ -466,6 +466,12 @@ public class GraphRepositoryTests {
     }
 
     @Test @Transactional
+    public void findByAlias() {
+        Iterable<Person> findByName = personRepository.findByAlias(testTeam.michael.getAlias());
+        assertThat(findByName, hasItem(testTeam.michael));
+    }
+
+    @Test @Transactional
     public void countByName() {
         Long num = personRepository.countByName(testTeam.michael.getName());
         assertEquals((Long)1L,num);
