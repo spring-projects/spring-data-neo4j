@@ -34,6 +34,8 @@ public class Actor {
 
     private Set<Nomination> nominations;
 
+    private Set<Knows> knows=new HashSet<>();
+
     Actor() {
         // default constructor for OGM
     }
@@ -64,4 +66,7 @@ public class Actor {
         return name;
     }
 
+    public Set<Knows> getKnows() {
+        return knows;
+    }
 }

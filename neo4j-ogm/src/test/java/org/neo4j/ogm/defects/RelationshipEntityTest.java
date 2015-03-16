@@ -8,6 +8,8 @@ import org.neo4j.graphdb.DynamicRelationshipType;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.helpers.collection.IteratorUtil;
+import org.neo4j.ogm.domain.cineasts.annotated.Actor;
+import org.neo4j.ogm.domain.cineasts.annotated.Knows;
 import org.neo4j.ogm.domain.cineasts.annotated.Movie;
 import org.neo4j.ogm.domain.cineasts.annotated.Rating;
 import org.neo4j.ogm.domain.cineasts.annotated.User;
@@ -198,6 +200,25 @@ public class RelationshipEntityTest extends WrappingServerIntegrationTest {
         assertNotNull(dieHard);
         assertNotNull(dieHard.getRoles());
         assertEquals(1,dieHard.getRoles().size());
+    }
+
+    @Test
+    public void shouldSaveRelationshipEntityWithCamelCaseStartEndNodes() {
+        Actor bruce = new Actor("Bruce");
+        Actor jim = new Actor("Jim");
+        Knows knows = new Knows();
+        knows.setFirstActor(bruce);
+        knows.setSecondActor(jim);
+        bruce.getKnows().add(knows);
+        /*This fails with an NPE because DefaultEntityAccessStrategy.getRelationalReader with relationshipType secondActor
+        finds no reader, due to RelationshipUtils.inferRelationshipType returning snake case SECOND_ACTOR which matches nothing.
+        */
+        session.save(bruce);
+
+        Actor actor = IteratorUtil.firstOrNull(session.loadByProperty(Actor.class, new Property<String, Object>("name","Bruce Willis")));
+        assertNotNull(actor);
+        assertEquals(1,actor.getKnows().size());
+        assertEquals("Jim",actor.getKnows().iterator().next().getSecondActor().getName());
     }
 
     /**
