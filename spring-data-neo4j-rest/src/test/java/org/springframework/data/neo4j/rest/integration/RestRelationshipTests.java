@@ -23,8 +23,11 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.AdviceMode;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.data.neo4j.annotation.*;
+import org.springframework.data.neo4j.config.EnableNeo4jRepositories;
 import org.springframework.data.neo4j.config.Neo4jConfiguration;
 import org.springframework.data.neo4j.rest.SpringCypherRestGraphDatabase;
 import org.springframework.data.neo4j.rest.SpringRestGraphDatabase;
@@ -36,6 +39,7 @@ import org.springframework.test.context.TestExecutionListeners;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
 import org.springframework.test.context.transaction.TransactionalTestExecutionListener;
+import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 import static org.junit.Assert.assertEquals;
 
@@ -48,7 +52,8 @@ import static org.junit.Assert.assertEquals;
 @TestExecutionListeners({CleanContextCacheTestExecutionListener.class, DependencyInjectionTestExecutionListener.class, TransactionalTestExecutionListener.class})
 public class RestRelationshipTests {
 
-    static class MyConfig extends Neo4jConfiguration {
+    @Configuration
+    public static class MyConfig extends Neo4jConfiguration {
         public MyConfig() {
             setBasePackage("org.springframework.data.neo4j.rest.integration");
         }
