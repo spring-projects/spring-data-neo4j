@@ -1,0 +1,32 @@
+[[tutorial_indexing]]
+= Indexing
+
+*_Do I know you?_*
+
+There is an @Indexed annotation for fields. We wanted to try this out, and use it to guide the next test. We added @Indexed to the `id` field of the Movie class. This field is intended to represent the external ID that will be used in URIs and will be stable across database imports and updates. That's why we also declare it as unique. This time we went with a simple GraphRepository to retrieve the indexed movie.
+
+.Exact Indexing for Movie id
+====
+[source,java]
+----
+@NodeEntity class Movie {
+    @Indexed(unique=true) String id;
+    String title;
+    int year;
+}
+
+@Autowired Neo4jTemplate template;
+
+@Test @Transactional
+  public void persistedMovieShouldBeRetrievableFromGraphDb() {
+    int id = 1;
+    Movie forrestGump = template.save(new Movie(id, "Forrest Gump", 1994));
+    GraphRepository<Movie> movieRepository =
+                               template.repositoryFor(Movie.class);
+    Movie retrievedMovie = movieRepository.findByPropertyValue("id", id);
+    assertEqual("retrieved movie matches persisted one", forrestGump, retrievedMovie);
+    assertEqual("retrieved movie title matches", "Forrest Gump", retrievedMovie.getTitle());
+  }
+----
+====
+

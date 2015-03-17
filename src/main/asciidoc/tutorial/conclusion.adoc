@@ -1,0 +1,9 @@
+[[tutorial_conclusion]]
+= Conclusion
+
+*_To new frontiers_*
+
+Pretty neat. We were satisfied with what we got here, with little effort and high performance. Lots of opportunities to expand the social movie database showed up during development.  Like adding more social features like tagging, communication streams, location based features (cinemas) and much more.
+
+But we leave you with that as an exercise to enjoy and explore. Thanks for following the tutorial and make sure to get back to us with suggestions for improvements or reports about unexpected behaviours at the http://spring.neo4j.org/discussions[discussion forums], or the http://spring.neo4j.org/issues[issue tracker].
+

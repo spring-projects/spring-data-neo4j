@@ -1,0 +1,147 @@
+:numbered:
+== Package changes
+Because the Neo4j Object Graph Mapper can be used independently of the Spring wrappers, the core annotations have been
+moved out of the spring framework packages:
+
+. `org.springframework.data.neo4j.annotation` -> `org.neo4j.ogm.annotation`
+
+The exception to this is the `@Query` which is not supported as an annotation in the core OGM.
+
+== Annotation changes
+There have been some changes to the annotations that were used in previous versions of Spring Data Neo4j.
+Wherever possible we have tried to maintain the previous annotations verbatim, but in a few cases this has not been
+possible, usually for technical reasons but sometimes for aesthetic ones. Our goal has been to minimise the number
+of annotations you need to use as well as trying to make them more self-explanatory. The following annotations
+have been changed.
+
+. `@RelatedTo` -> `@Relationship`
+. `@RelatedToVia` -> `@Relationship`
+. `@GraphProperty` -> `@Property`
+. Relationship `Direction.BOTH` -> `Relationship.UNDIRECTED`
+
+[[custom_converters]]
+== Custom Type Conversion
+SDN 4 provides automatic type conversion for the obvious candidates: byte[] and Byte[] arrays, Dates, BigDecimal and
+BigInteger types. In order to define bespoke type conversions for particular entity attribute, you can annotate a
+field or method with `@Convert` to specify your own implementation of `org.neo4j.ogm.typeconversion.AttributeConverter`.
+
+You can find out more about type conversions here: <<reference_programming-model_conversion-custom>>
+
+== Obsolete annotations
+
+The following annotations are no longer used, either because they are no longer needed, cannot be supported via Cypher, or
+simply because they are a bad idea.
+
+. @GraphTraversal
+. @RelatedToVia
+. @RelatedTo
+. @Index
+. @TypeAlias
+. @Fetch
+
+== Features no longer supported
+
+Some features of the previous annotations have been dropped.
+
+=== Overriding @Property types
+Support for overriding property types via arguments to @Property has been dropped. If your attribute requires
+a non-default conversion to and from a database property, you can use a <<custom_converters,Custom Converter>> instead.
+
+=== @Relationship `enforceTargetType`
+In previous versions of Spring Data Neo4j, you would have to add an `enforceTargetType` attribute into every clashing
+`@Relationship` annotation.  Thanks to changes in the underlying object-graph mapping mechanism, this is no longer
+necessary and this now works just fine.
+
+.Clashing Relationship Types
+====
+[source,java]
+----
+@NodeEntity
+class Person {
+    @Relationship(type="OWNS")
+    private Car car;
+
+    @Relationship(type="OWNS")
+    private Pet pet;
+...
+}
+----
+====
+
+=== Cross-store persistence
+Neo4j is dropping XA support and therefore SDN 4 does not provide any capability for cross-store persistence
+
+=== TypeRepresentationStrategy
+SDN 4 replaces the existing TypeRepresentionStrategy configuration with a straightforwad convention based on simple class-names
+or entities using `@NodeEntity(label=...)`
+
+Please refer to <<reference_programming_model_typerepresentationstrategy>> for more details.
+
+=== AspectJ support dropped
+Due to numerous problems reported by users in earlier versions of SDN, support for Aspect J based persistence has
+been removed from SDN 4.
+
+
+== Changes to Neo4jTemplate
+
+The `Neo4jTemplate` has been slimmed-down significantly for SDN 4 with many of the method signatures changed to reflect the updated behaviour.
+
+=== API Changes
+
+The following table shows the `Neo4jTemplate` functions that have been retained for version 4 of Spring Data Neo4j.  In some cases the method names have changed but the same functionality is offered under the new version.
+
+[cols="1,1,2"]
+.Neo4j Template Method Migration
+|===
+|Old Method Name|New Method Name|Notes
+
+|`findOne`
+|`load`
+|Overloaded to take optional depth parameter
+
+|`findAll`
+|`loadAll`
+|Overloaded to take optional depth parameter, also now returns a `Collection` rather than a `Result`
+
+|`query`
+|`query`
+|Return type changed from `Result` to be `Iterable`
+
+|`save`
+|`save`
+|
+
+|`delete`
+|`delete`
+|
+
+|`count`
+|`count`
+|No longer defines generic type parameters
+
+|`findByIndexedValue`
+|`loadByProperty`
+|Indexes are not supported natively, but you can index certain properties elsewhere and use this method to find by them
+
+|===
+ 
+To achieve the old `template.fetch(entity)` equivalent behaviour, you should call one of the load methods specifying the fetch depth as a parameter.
+
+It's also worth noting that `exec(GraphCallback)` and the `create...()` methods have been made obsolete by Cypher.
+Instead, you should now issue a Cypher query to the new `execute` method to create the nodes or relationships that you need.
+
+
+=== Built-In Query DSL Support
+Previous versions of SDN allowed you to use a DSL to generate Cypher queries. There are many different DSL
+libraries available and you're free to use which of these - or none - that you want. With Cypher changing on a regular
+basis, avoiding a DSL implementation in SDN means less ongoing maintenance and less likelihood of your code
+being incompatible with future versions of Neo4j.
+
+=== Graph Traversal and Node/Relationship Manipulation
+These features cannot be supported by Cypher and have therefore been dropped from `Neo4jTemplate`.
+
+== Features not yet included in Milestone 1 but that are on the Roadmap
+
+. Geospatial queries
+. @QueryResult
+

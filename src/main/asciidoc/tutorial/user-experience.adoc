@@ -1,0 +1,15 @@
+[[tutorial_user-experience]]
+= More UI
+
+*_Oh the glamour_*
+
+To create a nice user experience, we wanted to have a nice looking app. Not something that looked like a toddler made it. So we got some user experience people involved and the results were impressive. This sections presents some of the remaining screen shots of Cineasts.net.
+
+image::cineasts_main.png[]
+
+image::cineasts_results.png[]
+
+image::cineasts_movie.png[]
+
+image::cineasts_actor.png[]
+
