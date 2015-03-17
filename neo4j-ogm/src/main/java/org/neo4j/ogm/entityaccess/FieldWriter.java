@@ -83,4 +83,15 @@ public class FieldWriter extends EntityAccess {
         return fieldInfo.relationshipDirection();
     }
 
+    @Override
+    public boolean forScalar() {
+        if (Iterable.class.isAssignableFrom(type())) {
+            return false;
+        }
+        if (type().isArray()) {
+            return false;
+        }
+        return true;
+    }
+
 }

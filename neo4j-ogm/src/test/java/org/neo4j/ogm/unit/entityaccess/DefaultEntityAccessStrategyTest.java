@@ -18,6 +18,7 @@
 
 package org.neo4j.ogm.unit.entityaccess;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.neo4j.ogm.annotation.Property;
 import org.neo4j.ogm.annotation.Relationship;
@@ -116,6 +117,7 @@ public class DefaultEntityAccessStrategyTest {
     }
 
     @Test
+    @Ignore // we do expect this to work now.
     public void shouldNotRetrieveSetterMethodObjectAccessIfTypesAreIncompatible() {
         ClassInfo classInfo = this.domainInfo.getClass(Program.class.getName());
 
@@ -132,7 +134,7 @@ public class DefaultEntityAccessStrategyTest {
         ClassInfo classInfo = this.domainInfo.getClass(Member.class.getName());
         List<? extends Activity> parameter = Arrays.asList(new Comment());
 
-        EntityAccess objectAccess = this.entityAccessStrategy.getRelationalWriter(classInfo, "HAS_ACTIVITY", parameter);
+        EntityAccess objectAccess = this.entityAccessStrategy.getRelationalWriter(classInfo, "HAS_ACTIVITY", new Comment());
         assertNotNull("The resultant object accessor shouldn't be null", objectAccess);
         assertTrue("The access mechanism should be via the setter", objectAccess instanceof MethodWriter);
         Member member = new Member();

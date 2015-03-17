@@ -1,6 +1,5 @@
 package org.neo4j.ogm.defects.defaultEntityAccessStrategy;
 
-import org.junit.Ignore;
 import org.junit.Test;
 import org.neo4j.ogm.annotation.EndNode;
 import org.neo4j.ogm.annotation.Relationship;
@@ -12,14 +11,11 @@ import org.neo4j.ogm.entityaccess.FieldWriter;
 import org.neo4j.ogm.metadata.info.ClassInfo;
 import org.neo4j.ogm.metadata.info.DomainInfo;
 
-import java.util.HashSet;
 import java.util.Set;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
-@Ignore
+//@Ignore
 public class AnnotatedFieldAndNonAnnotatedSetter {
     private DefaultEntityAccessStrategy entityAccessStrategy = new DefaultEntityAccessStrategy();
     private DomainInfo domainInfo = new DomainInfo("org.neo4j.ogm.defects");
@@ -28,7 +24,8 @@ public class AnnotatedFieldAndNonAnnotatedSetter {
     @Test
     public void shouldPreferAnnotatedFieldWithNonAnnotatedSetterForRelationshipEntity() {
         ClassInfo classInfo = this.domainInfo.getClass(End.class.getName());
-        Set<? extends RelEntity> parameter = new HashSet<>();
+
+        RelEntity parameter = new RelEntity();
 
         EntityAccess objectAccess = this.entityAccessStrategy.getRelationalWriter(classInfo, "REL_ENTITY_TYPE", parameter);
         assertNotNull("The resultant object accessor shouldn't be null", objectAccess);

@@ -1,0 +1,8 @@
+<specification>
+    <section id="1" title="Chapter 1 - Introduction"/>
+    <section id ="2" title="Chapter 2 - What's new">
+        <assertion id="a">
+            <text>A simple sample test</text>
+        </assertion>
+    </section>
+</specification>

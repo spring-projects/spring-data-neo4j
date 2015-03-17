@@ -47,7 +47,7 @@ public class NonAnnotatedFieldWithAnnotatedSetterTest {
         Set<RelEntity> parameter = new HashSet<>();
         parameter.add(new RelEntity());
 
-        EntityAccess objectAccess = this.entityAccessStrategy.getRelationalWriter(classInfo, "REL_ENTITY_TYPE", parameter);
+        EntityAccess objectAccess = this.entityAccessStrategy.getRelationalWriter(classInfo, "REL_ENTITY_TYPE", new RelEntity());
         assertNotNull("The resultant object accessor shouldn't be null", objectAccess);
         assertTrue("The access mechanism should be via the method", objectAccess instanceof MethodWriter);
         End end = new End();

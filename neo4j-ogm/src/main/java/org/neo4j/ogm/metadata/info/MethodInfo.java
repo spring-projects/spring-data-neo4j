@@ -149,4 +149,36 @@ public class MethodInfo {
         throw new RuntimeException("relationship direction call invalid");
     }
 
+    public boolean isTypeOf(Class<?> type) {
+        while (type != null) {
+            String typeSignature = "(L" + type.getName().replace(".", "/") + ";)V";
+            if (descriptor != null && descriptor.equals(typeSignature)) {
+                return true;
+            }
+            type = type.getSuperclass();
+        }
+        return false;
+    }
+
+    public boolean isParameterisedTypeOf(Class<?> type) {
+        while (type != null) {
+            String typeSignature = "L" + type.getName().replace(".", "/") + ";";
+            if (typeParameterDescriptor != null && typeParameterDescriptor.equals(typeSignature)) {
+                return true;
+            }
+            type = type.getSuperclass();
+        }
+        return false;
+    }
+
+    public boolean isArrayOf(Class<?> type) {
+        while (type != null) {
+            String typeSignature = "([L" + type.getName().replace(".", "/") + ";)V";
+            if (descriptor != null && descriptor.equals(typeSignature)) {
+                return true;
+            }
+            type = type.getSuperclass();
+        }
+        return false;
+    }
 }
