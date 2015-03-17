@@ -332,7 +332,7 @@ public class GraphEntityMapper implements GraphToEntityMapper<GraphModel> {
 
         ClassInfo classInfo = metadata.classInfo(instance);
 
-        // TODO: fix this!
+        // TODO: should just have one kind of relationshipWriter
         RelationalWriter writer = entityAccessStrategy.getIterableWriter(classInfo, valueType);
         if (writer != null) {
             if (writer.type().isArray() || Iterable.class.isAssignableFrom(writer.type())) {

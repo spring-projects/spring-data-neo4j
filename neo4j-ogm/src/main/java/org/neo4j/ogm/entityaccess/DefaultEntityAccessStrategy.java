@@ -269,7 +269,7 @@ public class DefaultEntityAccessStrategy implements EntityAccessStrategy {
     public RelationalReader getEndNodeReader(ClassInfo relationshipEntityClassInfo) {
         for (FieldInfo fieldInfo : relationshipEntityClassInfo.relationshipFields()) {
             if (fieldInfo.getAnnotations().get(EndNode.CLASS) != null) {
-                return getRelationalReader(relationshipEntityClassInfo, fieldInfo.getName());
+                return new FieldReader(relationshipEntityClassInfo, fieldInfo);
             }
         }
         logger.warn("Failed to find an @EndNode on " + relationshipEntityClassInfo);
@@ -280,7 +280,7 @@ public class DefaultEntityAccessStrategy implements EntityAccessStrategy {
     public RelationalReader getStartNodeReader(ClassInfo relationshipEntityClassInfo) {
         for (FieldInfo fieldInfo : relationshipEntityClassInfo.relationshipFields()) {
             if (fieldInfo.getAnnotations().get(StartNode.CLASS) != null) {
-                return getRelationalReader(relationshipEntityClassInfo, fieldInfo.getName());
+                return new FieldReader(relationshipEntityClassInfo, fieldInfo);
             }
         }
         logger.warn("Failed to find an @StartNode on " + relationshipEntityClassInfo);

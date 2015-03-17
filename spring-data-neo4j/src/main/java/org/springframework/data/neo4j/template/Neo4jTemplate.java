@@ -1,21 +1,17 @@
 package org.springframework.data.neo4j.template;
 
-import static org.springframework.data.neo4j.util.IterableUtils.getSingle;
-import static org.springframework.data.neo4j.util.IterableUtils.getSingleOrNull;
-
-import java.util.Collection;
-import java.util.Map;
-
 import org.neo4j.ogm.model.Property;
 import org.neo4j.ogm.session.Session;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
-import org.springframework.data.neo4j.event.AfterDeleteEvent;
-import org.springframework.data.neo4j.event.AfterSaveEvent;
-import org.springframework.data.neo4j.event.BeforeDeleteEvent;
-import org.springframework.data.neo4j.event.BeforeSaveEvent;
-import org.springframework.data.neo4j.event.Neo4jDataManipulationEvent;
+import org.springframework.data.neo4j.event.*;
+
+import java.util.Collection;
+import java.util.Map;
+
+import static org.springframework.data.neo4j.util.IterableUtils.getSingle;
+import static org.springframework.data.neo4j.util.IterableUtils.getSingleOrNull;
 
 /**
  * Spring Data template for Neo4j.  Implementation of {@link Neo4jOperations}.
@@ -116,7 +112,7 @@ public class Neo4jTemplate implements Neo4jOperations, ApplicationEventPublisher
     }
 
     public void purgeSession() {
-        session.purgeDatabase();
+        session.clear();
     }
 
     @Override

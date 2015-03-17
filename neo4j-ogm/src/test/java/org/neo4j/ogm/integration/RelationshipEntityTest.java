@@ -18,26 +18,32 @@
 
 package org.neo4j.ogm.integration;
 
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.neo4j.helpers.collection.IteratorUtil;
+import org.neo4j.ogm.domain.cineasts.annotated.Actor;
+import org.neo4j.ogm.domain.cineasts.annotated.Knows;
 import org.neo4j.ogm.domain.friendships.Friendship;
 import org.neo4j.ogm.domain.friendships.Person;
+import org.neo4j.ogm.model.Property;
 import org.neo4j.ogm.session.SessionFactory;
 
 import java.io.IOException;
 import java.util.Collection;
+import java.util.Date;
 
 import static junit.framework.TestCase.assertNotNull;
 import static org.junit.Assert.assertEquals;
 
-public class RelationshipEntityHydrationTest extends InMemoryServerTest {
+public class RelationshipEntityTest extends InMemoryServerTest {
 
     private static SessionFactory sessionFactory;
 
     @Before
     public void init() throws IOException {
         setUp();
-        sessionFactory = new SessionFactory("org.neo4j.ogm.domain.friendships");
+        sessionFactory = new SessionFactory("org.neo4j.ogm.domain.friendships", "org.neo4j.ogm.domain.cineasts.annotated");
         session = sessionFactory.openSession("http://localhost:" + neoPort);
     }
 
@@ -147,6 +153,29 @@ public class RelationshipEntityHydrationTest extends InMemoryServerTest {
         assertEquals("Mike", mikeCopy.getName());
         assertEquals(5, friendshipCopy.getStrength());
 
+    }
+
+    /**
+     * @see DATAGRAPH-567
+     */
+    @Test
+    public void shouldSaveRelationshipEntityWithCamelCaseStartEndNodes() {
+        Actor bruce = new Actor("Bruce");
+        Actor jim = new Actor("Jim");
+
+        Knows knows = new Knows();
+        knows.setFirstActor(bruce);
+        knows.setSecondActor(jim);
+        knows.setSince(new Date());
+
+        bruce.getKnows().add(knows);
+
+        session.save(bruce);
+
+        Actor actor = IteratorUtil.firstOrNull(session.loadByProperty(Actor.class, new Property<String, Object>("name", "Bruce")));
+        Assert.assertNotNull(actor);
+        assertEquals(1,actor.getKnows().size());
+        assertEquals("Jim",actor.getKnows().iterator().next().getSecondActor().getName());
     }
 
 }
