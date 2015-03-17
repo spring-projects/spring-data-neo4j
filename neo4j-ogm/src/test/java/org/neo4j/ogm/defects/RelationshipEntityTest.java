@@ -136,6 +136,7 @@ public class RelationshipEntityTest extends WrappingServerIntegrationTest {
 
         Collection<Movie> films = session.loadByProperty(Movie.class, new Property<String, Object>("title", "Top Gear"));
         Movie movie = films.iterator().next();
+        assertEquals(2,movie.getRatings().size());
 
         User michal = session.loadByProperty(User.class, new Property<String, Object>("name", "Michal")).iterator().next();
 
@@ -159,7 +160,7 @@ public class RelationshipEntityTest extends WrappingServerIntegrationTest {
     }
 
     @Test
-    public void shouldBeNotLoseRelationshipEntitiesWhenALoadedEntityIsPersisted() {
+    public void shouldNotLoseRelationshipEntitiesWhenALoadedEntityIsPersisted() {
         session.execute(load("org/neo4j/ogm/cql/cineasts.cql"));
 
         Movie topGear = session.loadByProperty(Movie.class, new Property<String, Object>("title", "Top Gear")).iterator().next();
