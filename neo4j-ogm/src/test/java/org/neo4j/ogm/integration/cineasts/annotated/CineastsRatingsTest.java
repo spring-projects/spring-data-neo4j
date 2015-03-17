@@ -70,6 +70,24 @@ public class CineastsRatingsTest extends InMemoryServerTest {
         movie = movies.iterator().next();
         assertEquals(1,movie.getRatings().size());
         assertEquals("Luanne",movie.getRatings().iterator().next().getUser().getName());
+
+        //Overwrite the rating
+        ratings = new HashSet<>();
+        awesome = new Rating();
+        awesome.setComment("Awesome");
+        awesome.setMovie(movie);
+        awesome.setUser(luanne);
+        awesome.setStars(4);
+        ratings.add(awesome);
+
+        luanne.setRatings(ratings);
+        movie.setRatings(ratings);
+        session.save(movie);
+
+        movies = session.loadByProperty(Movie.class,new Property<String, Object>("title","Harry Potter and the Chamber of Secrets"));
+        movie = movies.iterator().next();
+        assertEquals(1,movie.getRatings().size());
+        assertEquals(4,movie.getRatings().iterator().next().getStars());
     }
 
     @Test

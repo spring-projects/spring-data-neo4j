@@ -147,13 +147,13 @@ public class RelationshipEntityTest extends WrappingServerIntegrationTest {
         awesome.setStars(5);
         ratings.add(awesome);
 
-        michal.setRatings(ratings);
+        michal.setRatings(ratings); //Overwrite Michal's earlier rating
         movie.setRatings(ratings);
         session.save(movie);
 
         Collection<Movie> movies = session.loadByProperty(Movie.class,new Property<String, Object>("title","Top Gear"));
         movie = movies.iterator().next();
-        assertNotNull(movie.getRatings()); //Fails. But when entities are created first, test passes, see CineastsIntegrationTest.shouldSaveRatingWithMovie
+        assertNotNull(movie.getRatings()); //Fails. But when entities are created first, test passes, see CineastsRatingsTest.shouldSaveRatingWithMovie
         assertEquals(1,movie.getRatings().size());
         assertEquals("Michal",movie.getRatings().iterator().next().getUser().getName());
     }
