@@ -28,10 +28,14 @@ public class Rating {
 
     @GraphId
     private Long id;
+
     @StartNode
     private User user;
+
     @EndNode
     private Movie movie;
+
+
     private int stars;
     private String comment;
 

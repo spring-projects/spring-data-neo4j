@@ -20,7 +20,6 @@ package org.neo4j.ogm.entityaccess;
 
 import org.neo4j.ogm.annotation.EndNode;
 import org.neo4j.ogm.annotation.StartNode;
-import org.neo4j.ogm.metadata.ClassUtils;
 import org.neo4j.ogm.metadata.info.ClassInfo;
 import org.neo4j.ogm.metadata.info.FieldInfo;
 import org.neo4j.ogm.metadata.info.MethodInfo;
@@ -108,44 +107,56 @@ public class DefaultEntityAccessStrategy implements EntityAccessStrategy {
     @Override
     public EntityAccess getRelationalWriter(ClassInfo classInfo, String relationshipType, Object parameter) {
 
-
-        // 1st, try to find a method annotated with the relationship type.
+        // 1st, try to find a scalar method annotated with the relationship type.
         MethodInfo methodInfo = classInfo.relationshipSetter(relationshipType);
         if (methodInfo != null && !methodInfo.getAnnotations().isEmpty()) {
-            Class<?> setterParameterType = ClassUtils.getType(methodInfo.getDescriptor());
-            if (setterParameterType.isAssignableFrom(parameter.getClass())) {
-                return new MethodWriter(classInfo, methodInfo);
+
+            if (methodInfo.isTypeOf(parameter.getClass()) ||
+                methodInfo.isParameterisedTypeOf(parameter.getClass()) ||
+                methodInfo.isArrayOf(parameter.getClass())) {
+                    return new MethodWriter(classInfo, methodInfo);
+
             }
         }
 
-        // 2nd, try to find a field called or annotated as the neo4j relationship type
+        // 2nd, try to find a scalar or vector field annotated as the neo4j relationship type
         FieldInfo fieldInfo = classInfo.relationshipField(relationshipType);
-        if (fieldInfo != null && !fieldInfo.getAnnotations().isEmpty() && fieldInfo.isTypeOf(parameter.getClass())) {
-            return new FieldWriter(classInfo, fieldInfo);
+        if (fieldInfo != null && !fieldInfo.getAnnotations().isEmpty()) {
+            if (fieldInfo.isTypeOf(parameter.getClass()) ||
+                fieldInfo.isParameterisedTypeOf(parameter.getClass()) ||
+                fieldInfo.isArrayOf(parameter.getClass())) {
+                    return new FieldWriter(classInfo, fieldInfo);
+            }
         }
 
         // 3rd, try to find a "setXYZ" method where XYZ is derived from the relationship type
         methodInfo = classInfo.relationshipSetter(relationshipType);
         if (methodInfo != null) {
-            Class<?> setterParameterType = ClassUtils.getType(methodInfo.getDescriptor());
-            if (setterParameterType.isAssignableFrom(parameter.getClass())) {
+            if (methodInfo.isTypeOf(parameter.getClass()) ||
+                    methodInfo.isParameterisedTypeOf(parameter.getClass()) ||
+                    methodInfo.isArrayOf(parameter.getClass())) {
                 return new MethodWriter(classInfo, methodInfo);
+
             }
         }
 
         // 4th, try to find a "XYZ" field name where XYZ is derived from the relationship type
         fieldInfo = classInfo.relationshipField(relationshipType);
-        if (fieldInfo != null && fieldInfo.isTypeOf(parameter.getClass())) {
-            return new FieldWriter(classInfo, fieldInfo);
+        if (fieldInfo != null) {
+            if (fieldInfo.isTypeOf(parameter.getClass()) ||
+                    fieldInfo.isParameterisedTypeOf(parameter.getClass()) ||
+                    fieldInfo.isArrayOf(parameter.getClass())) {
+                return new FieldWriter(classInfo, fieldInfo);
+            }
         }
 
-        // 5th, try to find a single setter that takes the parameter
+        // 5th, try to find a unique setter method that takes the parameter
         List<MethodInfo> methodInfos = classInfo.findSetters(parameter.getClass());
         if (methodInfos.size() == 1) {
             return new MethodWriter(classInfo, methodInfos.iterator().next());
         }
 
-        // 6th, try to find a field that shares the same type as the parameter
+        // 6th, try to find a unique field that has the same type as the parameter
         List<FieldInfo> fieldInfos = classInfo.findFields(parameter.getClass());
         if (fieldInfos.size() == 1) {
             return new FieldWriter(classInfo, fieldInfos.iterator().next());
