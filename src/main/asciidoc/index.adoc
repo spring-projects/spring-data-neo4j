@@ -1,0 +1,109 @@
+= Good Relationships: The Spring Data Neo4j Guide Book
+Michael Hunger; Oliver Gierke; Vince Bickers; Adam George; Michal Bachman
+:toc:
+:toc-placement!:
+:revnumber: {version}
+:revdate: {localdate}
+:idprefix:
+:spring-data-commons-docs: https://raw.githubusercontent.com/spring-projects/spring-data-commons/issue/DATACMNS-567/src/main/asciidoc
+
+Spring Data Neo4j Version 4-M1 (Feb 2015)
+
+(C) 2010-2015 Neo Technology, Inc. - Pivotal Software, Inc.
+
+NOTE: Copies of this document may be made for your own use and for distribution to others, provided that you do not charge any fee
+for such copies and further provided that each copy contains this Copyright Notice, whether distributed in print or electronically.
+
+toc::[]
+
+
+[[preface]]
+= Preface
+:leveloffset: +1
+include::introduction/foreword.adoc[]
+include::introduction/about.adoc[]
+include::introduction/neo4j/neo4j.adoc[]
+
+:leveloffset: -1
+
+////
+[[tutorial]]
+= Tutorial
+
+image::cineasts.png[]
+
+The first part of the book provides a tutorial that walks through the creation of a complete web application
+called cineasts.net, built with Spring Data Neo4j. Cineasts are people who love movies, and the site is a gathering place
+for moviegoers. For cineasts.net we decided to add a social aspect to the rating of movies, allowing friends to share
+their scores and get recommendations for new friends and movies.
+
+The tutorial takes the reader through the steps necessary to create the application. It provides the configuration and
+code examples that are needed to understand what's happening in Spring Data Neo4j. The complete source code for the app
+is available on http://spring.neo4j.org/cineasts[Github].
+
+:leveloffset: +1
+include::tutorial/about-tutorial.adoc[]
+include::tutorial/setup.adoc[]
+include::tutorial/domain.adoc[]
+include::tutorial/neo4j.adoc[]
+include::tutorial/spring-data-neo4j.adoc[]
+include::tutorial/annotations.adoc[]
+include::tutorial/indexing.adoc[]
+include::tutorial/repository.adoc[]
+include::tutorial/relationships.adoc[]
+include::tutorial/running.adoc[]
+include::tutorial/webapp.adoc[]
+include::tutorial/social.adoc[]
+include::tutorial/security.adoc[]
+include::tutorial/user-experience.adoc[]
+include::tutorial/import.adoc[]
+include::tutorial/recommendations.adoc[]
+include::tutorial/neo4j-server.adoc[]
+include::tutorial/conclusion.adoc[]
+:leveloffset: -1
+
+////
+
+[[reference]]
+= Spring Data Neo4j 4 Reference Documentation
+
+image::springdatagraph.png[]
+
+This part of the Spring Data Neo4j Guide book provides the reference documentation for SDN 4.
+
+Its content covers information about the programming model, APIs, concepts, annotations and technical details of
+Spring Data Neo4j, version 4.
+
+Whenever you look for the means to employ the full power of the Spring Data Neo4j library, you should be able to find
+your answers in the reference section. If you don't, please inform us about missing or incorrect content so that we
+can fix it.
+
+:leveloffset: +1
+include::reference/preface.adoc[]
+include::reference/setup.adoc[]
+include::reference/programming-model/programming-model.adoc[]
+////
+include::reference/examples/samples.adoc[]
+include::reference/deployment/heroku.adoc[]
+////
+include::reference/performance/performance.adoc[]
+
+:leveloffset: -1
+
+[[migration]]
+= Migrating from previous versions of Spring Data Neo4j
+
+:leveloffset: +1
+include::reference/migration/migration.adoc[]
+
+:leveloffset: -1
+////
+[[appendix]]
+= Appendix
+
+:leveloffset: +1
+include::{spring-data-commons-docs}/repository-namespace-reference.adoc[]
+include::{spring-data-commons-docs}/repository-populator-namespace-reference.adoc[]
+include::{spring-data-commons-docs}/repository-query-keywords-reference.adoc[]
+:leveloffset: -1
+////

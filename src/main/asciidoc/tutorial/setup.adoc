@@ -1,0 +1,105 @@
+[[tutorial_setup]]
+= The Spring stack
+
+Being Spring developers, we naturally choose components from the Spring stack to do all the heavy lifting. After all, we have the concept etched out, so we're already halfway there.
+
+What database would fit both the complex network of cineasts, movies, actors, roles, ratings, and friends, while also being able to support the recommendation algorithms that we had in mind? We had no idea.
+
+But hold your horses, there is this new Spring Data project, started in 2010, which brings the convenience of the Spring programming model to NOSQL databases. That should be in line with what we already know, providing us with a quick start. We had a look at the list of projects supporting the different NOSQL databases out there. Only one of them mentioned the kind of social network we were thinking of - Spring Data Neo4j for the Neo4j graph database. Neo4j's slogan of "value in relationships" plus "Enterprise NOSQL" and the accompanying docs looked like what we needed. We decided to give it a try.
+
+== Required setup
+
+To set up the project we created a public Github account and began setting up the infrastructure for a Spring web project using Maven as the build system. So we added the dependencies for the Spring Framework libraries, added the `web.xml` for the `DispatcherServlet`, and the `applicationContext.xml` in the webapp directory.
+
+.Project pom.xml
+====
+[source,xml]
+----
+<properties>
+    <spring.version>3.0.7.RELEASE</spring.version>
+</properties>
+
+<dependencies>
+<dependency>
+    <groupId>org.springframework</groupId>
+    <!-- abbreviated for all the dependencies -->
+    <artifactId>spring-(core,context,aop,aspects,tx,webmvc)</artifactId>
+    <version>${spring.version}</version>
+</dependency>
+<dependency>
+    <groupId>org.springframework</groupId>
+    <artifactId>spring-test</artifactId>
+    <version>${spring.version}</version>
+    <scope>test</scope>
+</dependency>
+</dependencies>
+----
+====
+
+.Project web.xml
+====
+[source,xml]
+----
+<listener>
+    <listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
+</listener>
+
+<servlet>
+    <servlet-name>dispatcherServlet</servlet-name>
+    <servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
+    <load-on-startup>1</load-on-startup>
+</servlet>
+
+<servlet-mapping>
+    <servlet-name>dispatcherServlet</servlet-name>
+    <url-pattern>/</url-pattern>
+</servlet-mapping>
+----
+====
+
+With this setup in place we were ready for the first spike: creating a simple MovieController showing a static view. See the Spring Framework documentation for information on doing this.
+
+.applicationContext.xml
+====
+[source,xml]
+----
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:context="http://www.springframework.org/schema/context"
+    xmlns:tx="http://www.springframework.org/schema/tx"
+    xsi:schemaLocation="
+	http://www.springframework.org/schema/beans
+	http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+	http://www.springframework.org/schema/tx
+	http://www.springframework.org/schema/tx/spring-tx-3.0.xsd
+	http://www.springframework.org/schema/context
+	http://www.springframework.org/schema/context/spring-context-3.0.xsd">
+
+ <context:annotation-config/>
+ <context:spring-configured/>
+ <context:component-scan base-package="org.neo4j.cineasts">
+     <context:exclude-filter type="annotation" 
+	          expression="org.springframework.stereotype.Controller"/>
+ </context:component-scan>
+
+ <tx:annotation-driven mode="proxy"/>
+</beans>
+----
+====
+
+.dispatcherServlet-servlet.xml
+====
+[source,xml]
+----
+<mvc:annotation-driven/>
+<mvc:resources mapping="/images/**" location="/images/"/>
+<mvc:resources mapping="/resources/**" location="/resources/"/>
+<context:component-scan base-package="org.neo4j.cineasts.controller"/>
+
+<bean id="viewResolver" 
+	  class="org.springframework.web.servlet.view.InternalResourceViewResolver" 
+	  p:prefix="/WEB-INF/views/" p:suffix=".jsp"/>
+----
+====
+
+We spun up Tomcat in STS with the App and it worked fine. For completeness we also added Jetty to the maven-config and tested it by invoking `mvn jetty:run` to see if there were any obvious issues with the config. It all seemed to work just fine.

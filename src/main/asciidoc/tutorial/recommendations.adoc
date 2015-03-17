@@ -1,0 +1,49 @@
+[[tutorial_recommendations]]
+= Recommendations
+
+*_Movies! Friends! Bargains!_*
+
+In the last part of this exercise we wanted to add recommendations to the app. One obvious recommendation was movies that our fiends liked.
+
+There was this query language called Cypher that looked a bit like SQL but expressed graph matching queries. So we gave it a try, using the `neo4j-shell`, to incrementally expand the query, just by declaring what relationships we wanted to be taken into account and which properties of nodes and relationships to filter and sort on.
+
+.Cypher based movie recommendation on Repository
+====
+[source,java]
+----
+interface MovieRepository extends GraphRepository<Movie> {
+	@Query("
+	match (user)-[:FRIEND]-(friend)-[r:RATED]->(movie)
+	where id(user) = {0}
+	return movie
+	order by avg(r.stars) desc, count(*) desc
+	limit 10
+	")
+    Iterable<Movie> recommendMovies(User me);
+}
+----
+====
+
+But we didn't have enough friends, so it was time to get some suggested. That would be like-minded cineasts that rated movies similarly to us. Again Cypher to the rescue, this time only a bit more complex. Something that became obvious with both queries is that graph queries are always local, so they start from a node, or set of nodes or relationships, and then expand outwards from there.
+
+.Cypher - Friend Recommendation on Repository
+====
+[source,java]
+----
+interface UserRepository extends GraphRepository<User> {
+	@Query("
+	start user=node({0}) 
+	match (user)-[r:RATED]->(movie)<-[r2:RATED]-(likeminded),
+	where id(user) = {0} and r.stars > 3 and r2.stars >= 3
+	and not (user)-[:FRIEND]-(likeminded)
+	with likeminded, count(*)
+	order by count(*) desc
+	limit 10
+	return likeminded
+	")
+    Iterable<User> suggestFriends(User me);
+}
+----
+====
+
+The controllers simply called these methods, added their results to the model, and the view rendered the recommendations alongside the user's own ratings.
