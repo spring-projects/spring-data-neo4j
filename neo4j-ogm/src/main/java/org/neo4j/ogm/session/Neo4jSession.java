@@ -21,6 +21,7 @@ package org.neo4j.ogm.session;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang.StringUtils;
 import org.apache.http.impl.client.CloseableHttpClient;
+import org.neo4j.ogm.annotation.RelationshipEntity;
 import org.neo4j.ogm.cypher.compiler.CypherContext;
 import org.neo4j.ogm.cypher.query.GraphModelQuery;
 import org.neo4j.ogm.cypher.query.RowModelQuery;
@@ -29,6 +30,7 @@ import org.neo4j.ogm.entityaccess.FieldWriter;
 import org.neo4j.ogm.mapper.EntityGraphMapper;
 import org.neo4j.ogm.mapper.MappingContext;
 import org.neo4j.ogm.metadata.MetaData;
+import org.neo4j.ogm.metadata.info.AnnotationInfo;
 import org.neo4j.ogm.metadata.info.ClassInfo;
 import org.neo4j.ogm.model.GraphModel;
 import org.neo4j.ogm.model.Property;
@@ -38,7 +40,9 @@ import org.neo4j.ogm.session.request.RequestHandler;
 import org.neo4j.ogm.session.request.SessionRequestHandler;
 import org.neo4j.ogm.session.request.strategy.AggregateStatements;
 import org.neo4j.ogm.session.request.strategy.DeleteStatements;
+import org.neo4j.ogm.session.request.strategy.QueryStatements;
 import org.neo4j.ogm.session.request.strategy.VariableDepthQuery;
+import org.neo4j.ogm.session.request.strategy.VariableDepthRelationshipQuery;
 import org.neo4j.ogm.session.response.Neo4jResponse;
 import org.neo4j.ogm.session.response.ResponseHandler;
 import org.neo4j.ogm.session.response.SessionResponseHandler;
@@ -50,7 +54,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Field;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -97,7 +108,8 @@ public class Neo4jSession implements Session {
     @Override
     public <T> T load(Class<T> type, Long id, int depth) {
         String url = getOrCreateTransaction().url();
-        GraphModelQuery qry = new VariableDepthQuery().findOne(id, depth);
+        QueryStatements queryStatements = getQueryStatementsBasedOnType(type);
+        GraphModelQuery qry = queryStatements.findOne(id,depth);
         try (Neo4jResponse<GraphModel> response = getRequestHandler().execute(qry, url)) {
             return getResponseHandler().loadById(type, response, id);
         }
@@ -111,7 +123,8 @@ public class Neo4jSession implements Session {
     @Override
     public <T> Collection<T> loadAll(Class<T> type, Collection<Long> ids, int depth) {
         String url = getOrCreateTransaction().url();
-        GraphModelQuery qry = new VariableDepthQuery().findAll(ids, depth);
+        QueryStatements queryStatements = getQueryStatementsBasedOnType(type);
+        GraphModelQuery qry = queryStatements.findAll(ids, depth);
         try (Neo4jResponse<GraphModel> response = getRequestHandler().execute(qry, url)) {
             return getResponseHandler().loadAll(type, response);
         }
@@ -126,7 +139,8 @@ public class Neo4jSession implements Session {
     public <T> Collection<T> loadAll(Class<T> type, int depth) {
         ClassInfo classInfo = metaData.classInfo(type.getName());
         String url = getOrCreateTransaction().url();
-        GraphModelQuery qry = new VariableDepthQuery().findByLabel(classInfo.label(), depth);
+        QueryStatements queryStatements = getQueryStatementsBasedOnType(type);
+        GraphModelQuery qry = queryStatements.findByType(getEntityType(classInfo), depth);
         try (Neo4jResponse<GraphModel> response = getRequestHandler().execute(qry, url)) {
             return getResponseHandler().loadAll(type, response);
         }
@@ -163,7 +177,8 @@ public class Neo4jSession implements Session {
     public <T> Collection<T> loadByProperty(Class<T> type, Property<String, Object> property, int depth) {
         ClassInfo classInfo = metaData.classInfo(type.getName());
         String url = getOrCreateTransaction().url();
-        GraphModelQuery qry = new VariableDepthQuery().findByProperty(classInfo.label(), property, depth);
+        QueryStatements queryStatements = getQueryStatementsBasedOnType(type);
+        GraphModelQuery qry = queryStatements.findByProperty(getEntityType(classInfo), property, depth);
         try (Neo4jResponse<GraphModel> response = getRequestHandler().execute(qry, url)) {
             return getResponseHandler().loadByProperty(type, response, property);
         }
@@ -457,6 +472,22 @@ public class Neo4jSession implements Session {
         logger.info("Current transaction: " + tx.url() + ", tx id: " + tx);
         return tx;
 
+    }
+
+    private QueryStatements getQueryStatementsBasedOnType(Class type) {
+        if(metaData.isRelationshipEntity(type.getName())) {
+                return new VariableDepthRelationshipQuery();
+        }
+        //we can also use the mapping context to find the start node id, and if it exists, use it with the VariableDepthQuery
+        return new VariableDepthQuery();
+    }
+
+    private String getEntityType(ClassInfo classInfo) {
+        if(metaData.isRelationshipEntity(classInfo.name())) {
+            AnnotationInfo annotation = classInfo.annotationsInfo().get(RelationshipEntity.CLASS);
+               return annotation.get(RelationshipEntity.TYPE, classInfo.name());
+        }
+        return classInfo.label();
     }
 
 }

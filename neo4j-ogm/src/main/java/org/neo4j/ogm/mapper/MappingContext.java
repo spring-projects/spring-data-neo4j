@@ -172,6 +172,7 @@ public class MappingContext {
 
     public Object registerRelationshipEntity(Object relationshipEntity, Long id) {
         relationshipEntityRegister.putIfAbsent(id, relationshipEntity);
+        registerTypes(relationshipEntity.getClass(), relationshipEntity);
         return relationshipEntity;
     }
 
@@ -194,7 +195,7 @@ public class MappingContext {
     /**
      * purges all information about this object from the mapping context
      *
-     * @param type the type whose object references and relationship mappings we want to purge
+     * @param entity the type whose object references and relationship mappings we want to purge
      */
     public void clear(Object entity) {
         Class<?> type = entity.getClass();

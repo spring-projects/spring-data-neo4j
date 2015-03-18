@@ -52,7 +52,7 @@ public class ParameterisedStatementTest {
 
     @Test
     public void testFindByLabel() throws Exception {
-        statement = new VariableDepthQuery().findByLabel("NODE", 1);
+        statement = new VariableDepthQuery().findByType("NODE", 1);
         assertEquals("MATCH p=(n:NODE)-[*0..1]-(m) RETURN collect(distinct p)", statement.getStatement());
         assertEquals("{}", mapper.writeValueAsString(statement.getParameters()));
     }
