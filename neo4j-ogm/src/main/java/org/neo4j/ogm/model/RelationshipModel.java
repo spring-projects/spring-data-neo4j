@@ -18,6 +18,9 @@
 
 package org.neo4j.ogm.model;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class RelationshipModel  {
@@ -26,7 +29,7 @@ public class RelationshipModel  {
     private String type;
     private Long startNode;
     private Long endNode;
-    private Map<String, Object> properties;
+    List<Property<String, Object>> properties;
 
     public Long getId() {
         return id;
@@ -60,11 +63,26 @@ public class RelationshipModel  {
         this.endNode = endNode;
     }
 
-    public Map<String, Object> getProperties() {
+    public List<Property<String, Object>> getPropertyList() {
         return properties;
     }
 
+    public Map<String, Object> getProperties() {
+        Map<String, Object> map = new HashMap<>();
+        for (Property<String, Object> property : properties) {
+            map.put(property.getKey(), property.getValue());
+        }
+        return map;
+    }
+
     public void setProperties(Map<String, Object> properties) {
+        this.properties = new ArrayList<>();
+        for (Map.Entry<String, Object> entry : properties.entrySet()) {
+            this.properties.add(new Property<String, Object>(entry.getKey(), entry.getValue()));
+        }
+    }
+
+    public void setPropertyList(List<Property<String, Object>> properties) {
         this.properties = properties;
     }
 

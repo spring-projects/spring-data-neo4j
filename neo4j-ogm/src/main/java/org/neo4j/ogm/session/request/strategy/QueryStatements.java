@@ -48,20 +48,20 @@ public interface QueryStatements {
     GraphModelQuery findAll();
 
     /**
-     * construct a query to fetch all objects with the specified label
-     * @param label the labels attached to the objects
+     * construct a query to fetch all objects with the specified label or relationship type
+     * @param type the label attached to the object, or the relationship type
      * @param depth the depth to traverse for related objects
      * @return a Cypher expression
      */
-    GraphModelQuery findByLabel(String label, int depth);
+    GraphModelQuery findByType(String type, int depth);
 
     /**
      * construct a query to fetch all objects with the specified label and property
-     * @param label the label value to filter on
+     * @param type the label value or relationship type to filter on
      * @param property a property<K,V> value to filter on
      * @param depth the depth to traverse for related objects
      * @return a Cypher expression
      */
-    GraphModelQuery findByProperty(String label, Property<String, Object> property, int depth);
+    GraphModelQuery findByProperty(String type, Property<String, Object> property, int depth);
 
 }

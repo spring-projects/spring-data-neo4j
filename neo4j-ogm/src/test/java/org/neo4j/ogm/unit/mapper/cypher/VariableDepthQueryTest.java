@@ -47,7 +47,7 @@ public class VariableDepthQueryTest {
 
     @Test
     public void testFindByLabel() throws Exception {
-        assertEquals("MATCH p=(n:Orbit)-[*0..3]-(m) RETURN collect(distinct p)", query.findByLabel("Orbit", 3).getStatement());
+        assertEquals("MATCH p=(n:Orbit)-[*0..3]-(m) RETURN collect(distinct p)", query.findByType("Orbit", 3).getStatement());
     }
 
     @Test
@@ -67,7 +67,7 @@ public class VariableDepthQueryTest {
 
     @Test
     public void testFindByLabelZeroDepth() throws Exception {
-        assertEquals("MATCH (n:Orbit) RETURN collect(n)", query.findByLabel("Orbit", 0).getStatement());
+        assertEquals("MATCH (n:Orbit) RETURN collect(n)", query.findByType("Orbit", 0).getStatement());
     }
 
     @Test

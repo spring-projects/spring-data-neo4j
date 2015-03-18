@@ -141,5 +141,13 @@ public class MetaData {
 
     }
 
+    public boolean isRelationshipEntity(String className) {
+        ClassInfo classInfo = classInfo(className);
+        if (classInfo == null) {
+            return false;
+        }
+        return null != classInfo.annotationsInfo().get(RelationshipEntity.CLASS);
+    }
+
 
 }

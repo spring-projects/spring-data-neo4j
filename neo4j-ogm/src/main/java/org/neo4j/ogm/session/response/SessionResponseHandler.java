@@ -31,6 +31,7 @@ import org.neo4j.ogm.metadata.info.ClassInfo;
 import org.neo4j.ogm.model.GraphModel;
 import org.neo4j.ogm.model.NodeModel;
 import org.neo4j.ogm.model.Property;
+import org.neo4j.ogm.model.RelationshipModel;
 import org.neo4j.ogm.session.result.RowModel;
 
 import java.lang.reflect.Field;
@@ -55,9 +56,18 @@ public class SessionResponseHandler implements ResponseHandler {
         GraphModel graphModel;
         while ((graphModel = response.next()) != null) {
             ogm.map(type, graphModel);
-            for (NodeModel nodeModel : graphModel.getNodes()) {
-                if (nodeModel.getPropertyList().contains(filter)) {
-                    objects.add((T) mappingContext.get(nodeModel.getId()));
+            if (metaData.isRelationshipEntity(type.getName())) {
+                for (RelationshipModel relationshipModel : graphModel.getRelationships()) {
+                    if (relationshipModel.getPropertyList().contains(filter)
+                            && mappingContext.getRelationshipEntity(relationshipModel.getId()).getClass().isAssignableFrom(type)) {
+                            objects.add((T)  mappingContext.getRelationshipEntity(relationshipModel.getId()));
+                    }
+                }
+            } else {
+                for (NodeModel nodeModel : graphModel.getNodes()) {
+                    if (nodeModel.getPropertyList().contains(filter) && (mappingContext.get(nodeModel.getId()).getClass().isAssignableFrom(type))) {
+                            objects.add((T) mappingContext.get(nodeModel.getId()));
+                    }
                 }
             }
         }

@@ -17,7 +17,7 @@
  */
 package org.neo4j.ogm.integration.cineasts.annotated;
 
-import org.junit.BeforeClass;
+import org.junit.Before;
 import org.junit.Test;
 import org.neo4j.ogm.domain.cineasts.annotated.Movie;
 import org.neo4j.ogm.domain.cineasts.annotated.Rating;
@@ -28,20 +28,19 @@ import org.neo4j.ogm.session.SessionFactory;
 
 import java.io.IOException;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import static org.junit.Assert.*;
 
 /**
  * Simple integration test based on cineasts that exercises the Rating relationship entity.
  */
 public class CineastsRatingsTest extends InMemoryServerTest {
 
-    @BeforeClass
-    public static void init() throws IOException {
+    @Before
+    public void init() throws IOException {
         setUp();
         session = new SessionFactory("org.neo4j.ogm.domain.cineasts.annotated").openSession("http://localhost:" + neoPort);
     }
@@ -237,5 +236,58 @@ public class CineastsRatingsTest extends InMemoryServerTest {
         assertEquals(1,azkaban.getRatings().size());
 
     }
+
+    /**
+     * @see DATAGRAPH-552
+     */
+    @Test
+    public void shouldSaveAndRetrieveRelationshipEntitiesDirectly() {
+        // we need some guff in the database
+        session.execute(
+                "CREATE " +
+                        "(nc:NotAClass {name:'Colin'}), " +
+                        "(g:NotAClass {age: 39}), " +
+                        "(g)-[:TEST {comment : 'test'}]->(nc)");
+
+        User critic = new User();
+        critic.setName("Gary");
+        Movie film = new Movie();
+        film.setTitle("Fast and Furious XVII");
+        Rating filmRating = new Rating();
+        filmRating.setUser(critic);
+        critic.setRatings(Collections.singleton(filmRating));
+        filmRating.setMovie(film);
+        film.setRatings(Collections.singleton(filmRating));
+        filmRating.setStars(2);
+        filmRating.setComment("They've made far too many of these films now!");
+
+        session.save(filmRating);
+
+        //load the rating by id
+        Rating loadedRating = session.load(Rating.class, filmRating.getId());
+        assertNotNull("The loaded rating shouldn't be null", loadedRating);
+        assertEquals("The relationship properties weren't saved correctly", filmRating.getStars(), loadedRating.getStars());
+        assertEquals("The rated film wasn't saved correctly", film.getTitle(), loadedRating.getMovie().getTitle());
+        assertEquals("The critic wasn't saved correctly", critic.getId(), loadedRating.getUser().getId());
+    }
+
+    /**
+     * @see DATAGRAPH-552
+     */
+    @Test
+    public void shouldSaveAndRetrieveRelationshipEntitiesPreExistingDirectly() {
+
+        session.execute(
+                "CREATE " +
+                        "(ff:Movie {title:'Fast and Furious XVII'}), " +
+                        "(g:User {name: 'Gary'}), " +
+                        "(g)-[:RATED {comment : 'Too many of these films!'}]->(ff)");
+
+        Rating loadedRating = session.load(Rating.class, 0l);
+        assertNotNull("The loaded rating shouldn't be null", loadedRating);
+        assertEquals("The rated film wasn't saved correctly", "Fast and Furious XVII", loadedRating.getMovie().getTitle());
+        assertEquals("The critic wasn't saved correctly", "Gary", loadedRating.getUser().getName());
+    }
+
 
 }
