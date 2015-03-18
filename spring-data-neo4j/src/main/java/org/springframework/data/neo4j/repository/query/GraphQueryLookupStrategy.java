@@ -14,8 +14,8 @@ import java.lang.reflect.Method;
 /**
  * Created by markangrish on 13/01/2015.
  */
-public class GraphQueryLookupStrategy implements QueryLookupStrategy
-{
+public class GraphQueryLookupStrategy implements QueryLookupStrategy {
+
     private final Session session;
 
     /**
@@ -24,8 +24,7 @@ public class GraphQueryLookupStrategy implements QueryLookupStrategy
 
     public GraphQueryLookupStrategy(Session session,
                                     QueryLookupStrategy.Key key,
-                                    EvaluationContextProvider evaluationContextProvider)
-    {
+                                    EvaluationContextProvider evaluationContextProvider) {
         this.session = session;
     }
 

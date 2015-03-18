@@ -2,9 +2,7 @@ package org.springframework.data.neo4j.repository.query.derived;
 
 import org.neo4j.ogm.session.Session;
 import org.springframework.data.neo4j.repository.query.GraphQueryMethod;
-import org.springframework.data.repository.core.EntityMetadata;
 import org.springframework.data.repository.core.RepositoryMetadata;
-import org.springframework.data.repository.query.parser.PartTree;
 
 import java.lang.reflect.Method;
 import java.util.regex.Matcher;
@@ -13,15 +11,14 @@ import java.util.regex.Pattern;
 /**
  * Created by markangrish on 20/01/2015.
  */
-public class DerivedGraphQueryMethod extends GraphQueryMethod
-{
+public class DerivedGraphQueryMethod extends GraphQueryMethod {
+
     private static final Pattern PREFIX_TEMPLATE = Pattern.compile("^(find|read|get|query)((\\p{Lu}.*?))??By");
 
 
     private String query;
 
-    public DerivedGraphQueryMethod(Method method, RepositoryMetadata metadata, Session session)
-    {
+    public DerivedGraphQueryMethod(Method method, RepositoryMetadata metadata, Session session) {
         super(method, metadata, session);
         //TODO: should this be eager?
         this.query = buildQuery(method, metadata.getDomainType());
@@ -30,12 +27,10 @@ public class DerivedGraphQueryMethod extends GraphQueryMethod
     // FIXME: The hackiest thing i could do to get something working.
     // The easiest way to get this working is to use the existing graph repository dispatching and just override the
     // getQuery() method to return a derived string.
-    private String buildQuery(Method method, Class<?> type)
-    {
+    private String buildQuery(Method method, Class<?> type) {
         String methodName = method.getName();
         Matcher matcher = PREFIX_TEMPLATE.matcher(methodName);
-        if(!matcher.find())
-        {
+        if (!matcher.find()) {
             throw new RuntimeException("Could not derive query for method: " + methodName + ". Check spelling or use @Query.");
         }
 

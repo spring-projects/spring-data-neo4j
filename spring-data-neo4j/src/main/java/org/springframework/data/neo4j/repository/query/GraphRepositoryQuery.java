@@ -13,84 +13,66 @@ import java.util.Map;
 /**
  * Created by markangrish on 13/01/2015.
  */
-public class GraphRepositoryQuery implements RepositoryQuery
-{
+public class GraphRepositoryQuery implements RepositoryQuery {
+
     private final GraphQueryMethod graphQueryMethod;
 
     private final Session session;
 
-    public GraphRepositoryQuery(GraphQueryMethod graphQueryMethod, Session session)
-    {
+    public GraphRepositoryQuery(GraphQueryMethod graphQueryMethod, Session session) {
         this.graphQueryMethod = graphQueryMethod;
         this.session = session;
     }
 
     @Override
-    public Object execute(Object[] parameters)
-    {
+    public Object execute(Object[] parameters) {
         Class<?> returnType = graphQueryMethod.getMethod().getReturnType();
         Class<?> concreteType = resolveConcreteType(graphQueryMethod.getMethod().getReturnType(),
-                                                    graphQueryMethod.getMethod().getGenericReturnType());
+                graphQueryMethod.getMethod().getGenericReturnType());
 
         Map<String, Object> params = resolveParams(parameters);
 
-        if (returnType.equals(Void.class))
-        {
+        if (returnType.equals(Void.class)) {
             session.execute(graphQueryMethod.getQuery(), params);
             return null;
-        }
-        else if (Iterable.class.isAssignableFrom(returnType))
-        {
+        } else if (Iterable.class.isAssignableFrom(returnType)) {
             // Special method to handle SDN Iterable<Map<String, Object>> behaviour.
             // TODO: Do we really want this method in an OGM? It's a little too low level and/or doesn't really fit.
-            if (Map.class.isAssignableFrom(concreteType))
-            {
+            if (Map.class.isAssignableFrom(concreteType)) {
                 return session.query(graphQueryMethod.getQuery(), params);
             }
             return session.query(concreteType, graphQueryMethod.getQuery(), params);
-        }
-        else
-        {
+        } else {
             return session.queryForObject(returnType, graphQueryMethod.getQuery(), params);
         }
     }
 
-    private Map<String, Object> resolveParams(Object[] parameters)
-    {
+    private Map<String, Object> resolveParams(Object[] parameters) {
         Map<String, Object> params = new HashMap<>();
         Parameters<?, ?> methodParameters = graphQueryMethod.getParameters();
 
-        for (int i = 0; i < parameters.length; i++)
-        {
+        for (int i = 0; i < parameters.length; i++) {
             Parameter parameter = methodParameters.getParameter(i);
 
-            if (parameter.isNamedParameter())
-            {
+            if (parameter.isNamedParameter()) {
                 params.put(parameter.getName(), parameters[i]);
-            }
-            else
-            {
+            } else {
                 params.put("" + i, parameters[i]);
             }
         }
         return params;
     }
 
-    public static Class<?> resolveConcreteType(Class<?> type, final Type genericType)
-    {
-        if (Iterable.class.isAssignableFrom(type))
-        {
-            if (genericType instanceof ParameterizedType)
-            {
+    public static Class<?> resolveConcreteType(Class<?> type, final Type genericType) {
+        if (Iterable.class.isAssignableFrom(type)) {
+            if (genericType instanceof ParameterizedType) {
                 ParameterizedType returnType = (ParameterizedType) genericType;
                 Type componentType = returnType.getActualTypeArguments()[0];
 
                 return componentType instanceof ParameterizedType ?
-                               (Class<?>) ((ParameterizedType) componentType).getRawType() :
-                               (Class<?>) componentType;
-            }
-            else
-            {
+                        (Class<?>) ((ParameterizedType) componentType).getRawType() :
+                        (Class<?>) componentType;
+            } else {
                 return Object.class;
             }
         }
@@ -99,8 +81,7 @@ public class GraphRepositoryQuery implements RepositoryQuery
     }
 
     @Override
-    public GraphQueryMethod getQueryMethod()
-    {
+    public GraphQueryMethod getQueryMethod() {
         return graphQueryMethod;
     }
 }

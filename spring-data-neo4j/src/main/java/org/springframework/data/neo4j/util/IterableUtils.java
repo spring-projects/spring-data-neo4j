@@ -207,8 +207,8 @@ public final class IterableUtils {
     /**
      * Get the first element from iterator.
      *
-     * @param iterator        to find the first element.
-     * @param <T>             type of the element.
+     * @param iterator to find the first element.
+     * @param <T>      type of the element.
      * @return the element iff there is one or more, null if there is none.
      */
     public static <T> T getFirstOrNull(Iterator<T> iterator) {
@@ -224,8 +224,8 @@ public final class IterableUtils {
     /**
      * Get the first element from iterable.
      *
-     * @param iterable        to find the first element.
-     * @param <T>             type of the element.
+     * @param iterable to find the first element.
+     * @param <T>      type of the element.
      * @return the element iff there is one or more, null if there is none.
      */
     public static <T> T getFirstOrNull(Iterable<T> iterable) {
