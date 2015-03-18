@@ -20,7 +20,10 @@ package org.neo4j.ogm.integration.cineasts.annotated;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
+<<<<<<< HEAD
 
+=======
+>>>>>>> 9350fd2d3f08f85b2955caaeb0a8b31927a53673
 import org.junit.Test;
 import org.neo4j.ogm.domain.cineasts.annotated.Movie;
 import org.neo4j.ogm.domain.cineasts.annotated.Rating;
