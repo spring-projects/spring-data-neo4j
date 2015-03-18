@@ -1,6 +1,5 @@
 package org.springframework.data.neo4j.repository;
 
-import org.neo4j.ogm.model.Property;
 import org.neo4j.ogm.session.Session;
 import org.springframework.stereotype.Repository;
 
@@ -109,13 +108,14 @@ public class GraphRepositoryImpl<T> implements GraphRepository<T> {
         return (Iterable<T>) session.loadAll(clazz, (Collection<Long>) ids, depth);
     }
 
-    @Override
-    public Iterable<T> findByProperty(String propertyName, Object propertyValue) {
-        return (Iterable<T>) session.loadByProperty(clazz, new Property(propertyName, propertyValue));
-    }
-
-    @Override
-    public Iterable<T> findByProperty(String propertyName, Object propertyValue, int depth) {
-        return (Iterable<T>) session.loadByProperty(clazz, new Property(propertyName, propertyValue), depth);
-    }
+//  removed
+//    @Override
+//    public Iterable<T> findByProperty(String propertyName, Object propertyValue) {
+//        return (Iterable<T>) session.loadByProperty(clazz, new Property(propertyName, propertyValue));
+//    }
+//
+//    @Override
+//    public Iterable<T> findByProperty(String propertyName, Object propertyValue, int depth) {
+//        return (Iterable<T>) session.loadByProperty(clazz, new Property(propertyName, propertyValue), depth);
+//    }
 }

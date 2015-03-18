@@ -1,51 +1,32 @@
 package org.springframework.data.neo4j.integration.movies;
 
-import java.util.Calendar;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
-import java.util.TimeZone;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.neo4j.cypher.javacompat.ExecutionEngine;
+import org.neo4j.graphdb.Transaction;
+import org.neo4j.ogm.model.Property;
+import org.neo4j.ogm.session.Session;
+import org.neo4j.ogm.session.SessionFactory;
+import org.neo4j.ogm.testutil.WrappingServerIntegrationTest;
+import org.neo4j.tooling.GlobalGraphOperations;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.neo4j.integration.movies.context.PersistenceContext;
-import org.springframework.data.neo4j.integration.movies.domain.Actor;
-import org.springframework.data.neo4j.integration.movies.domain.Cinema;
-import org.springframework.data.neo4j.integration.movies.domain.Genre;
-import org.springframework.data.neo4j.integration.movies.domain.Movie;
-import org.springframework.data.neo4j.integration.movies.domain.ReleasedMovie;
-import org.springframework.data.neo4j.integration.movies.domain.TempMovie;
-import org.springframework.data.neo4j.integration.movies.domain.User;
-import org.springframework.data.neo4j.integration.movies.repo.AbstractAnnotatedEntityRepository;
-import org.springframework.data.neo4j.integration.movies.repo.AbstractEntityRepository;
-import org.springframework.data.neo4j.integration.movies.repo.ActorRepository;
-import org.springframework.data.neo4j.integration.movies.repo.CinemaRepository;
-import org.springframework.data.neo4j.integration.movies.repo.TempMovieRepository;
-import org.springframework.data.neo4j.integration.movies.repo.UserRepository;
+import org.springframework.data.neo4j.integration.movies.domain.*;
+import org.springframework.data.neo4j.integration.movies.repo.*;
 import org.springframework.data.neo4j.integration.movies.service.UserService;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import org.neo4j.cypher.javacompat.ExecutionEngine;
-import org.neo4j.graphdb.Transaction;
-import org.neo4j.ogm.session.SessionFactory;
-import org.neo4j.ogm.testutil.WrappingServerIntegrationTest;
-import org.neo4j.tooling.GlobalGraphOperations;
+import java.util.*;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 import static org.neo4j.ogm.testutil.GraphTestUtils.assertSameGraph;
 
 @ContextConfiguration(classes = {PersistenceContext.class})
@@ -76,6 +57,9 @@ public class End2EndIntegrationTest extends WrappingServerIntegrationTest
 
     @Autowired
     private ActorRepository actorRepository;
+
+    @Autowired
+    private Session session;
 
     @Override
     protected int neoServerPort()
@@ -230,7 +214,7 @@ public class End2EndIntegrationTest extends WrappingServerIntegrationTest
         Actor actor = new Actor("1", "Tom Hanks");
         actorRepository.save(actor);
 
-        assertNotNull(actorRepository.findByProperty( "id" , "1" ).iterator().next());
+        assertNotNull(findByProperty(Actor.class, "id" , "1" ).iterator().next());
     }
 
     @Test
@@ -499,7 +483,7 @@ public class End2EndIntegrationTest extends WrappingServerIntegrationTest
         new ExecutionEngine( getDatabase() ).execute( "CREATE (m:User {name:'Michal'})-[:FRIEND_OF]->(a:User " +
                 "{name:'Adam'})" );
 
-        User michal = userRepository.findByProperty( "name", "Michal" ).iterator().next();
+        User michal = ((Iterable<User>)findByProperty(User.class, "name", "Michal" )).iterator().next();
         assertEquals( 1, michal.getFriends().size() );
 
         User adam = michal.getFriends().iterator().next();
@@ -516,7 +500,7 @@ public class End2EndIntegrationTest extends WrappingServerIntegrationTest
         new ExecutionEngine( getDatabase() ).execute( "CREATE (m:User {name:'Michal'})<-[:FRIEND_OF]-(a:User " +
                 "{name:'Adam'})" );
 
-        User michal = userRepository.findByProperty( "name", "Michal" ).iterator().next();
+        User michal = ((Iterable<User>)findByProperty(User.class, "name", "Michal" )).iterator().next();
         assertEquals( 1, michal.getFriends().size() );
 
         User adam = michal.getFriends().iterator().next();
@@ -536,7 +520,7 @@ public class End2EndIntegrationTest extends WrappingServerIntegrationTest
         user.rate( movie, 5, "Best movie ever" );
         userRepository.save( user );
 
-        userRepository.findByProperty( "name", "Michal" ).iterator().next();
+        User michal = ((Iterable<User>)findByProperty(User.class, "name", "Michal" )).iterator().next();
 
         assertSameGraph(getDatabase(), "CREATE (u:User {name:'Michal'})-[:RATED {stars:5, " +
                 "comment:'Best movie ever'}]->(m:Movie {title:'Pulp Fiction'})");
@@ -554,7 +538,7 @@ public class End2EndIntegrationTest extends WrappingServerIntegrationTest
         user.rate( movie, 5, "Best movie ever" );
         userRepository.save( user );
 
-        TempMovie tempMovie = tempMovieRepository.findByProperty("title", "Pulp Fiction").iterator().next();
+        TempMovie tempMovie = ((Iterable<TempMovie>) findByProperty(TempMovie.class, "title", "Pulp Fiction")).iterator().next();
         assertEquals(1,tempMovie.getRatings().size());
     }
 
@@ -600,4 +584,13 @@ public class End2EndIntegrationTest extends WrappingServerIntegrationTest
             super( String.format( "Could not start neo4j instance in [%d] ms", timeoutValue ) );
         }
     }
+
+    protected Iterable<?> findByProperty(Class clazz, String propertyName, Object propertyValue) {
+        return session.loadByProperty(clazz, new Property(propertyName, propertyValue));
+    }
+
+    protected Iterable<?> findByProperty(Class clazz, String propertyName, Object propertyValue, int depth) {
+        return session.loadByProperty(clazz, new Property(propertyName, propertyValue), depth);
+    }
+
 }

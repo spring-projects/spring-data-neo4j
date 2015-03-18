@@ -1,8 +1,10 @@
 package org.springframework.data.neo4j.integration.helloworld.service;
 
+import org.neo4j.ogm.model.Property;
+import org.neo4j.ogm.session.Session;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.neo4j.integration.helloworld.domain.World;
 import org.springframework.data.neo4j.integration.helloworld.repo.WorldRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,6 +17,9 @@ public class GalaxyService {
 
     @Autowired
     private WorldRepository worldRepository;
+
+    @Autowired
+    Session session;
 
     public long getNumberOfWorlds() {
         return worldRepository.count();
@@ -32,10 +37,8 @@ public class GalaxyService {
         return worldRepository.findOne(id);
     }
 
-    // This is using the schema based index
     public World findWorldByName(String name) {
-        //return worldRepository.findBySchemaPropertyValue("name", name);
-        Iterable<World> worlds = worldRepository.findByProperty("name", name);
+        Iterable<World> worlds = findByProperty("name", name);
         if (worlds.iterator().hasNext()) {
             return worlds.iterator().next();
         } else {
@@ -43,10 +46,8 @@ public class GalaxyService {
         }
     }
 
-    // This is using the legacy index
     public Iterable<World> findAllByNumberOfMoons(int numberOfMoons) {
-        //return worldRepository.findAllByPropertyValue("moons", numberOfMoons);
-        return worldRepository.findByProperty("moons", numberOfMoons);
+        return findByProperty("moons", numberOfMoons);
     }
 
     public Collection<World> makeSomeWorlds() {
@@ -129,5 +130,14 @@ public class GalaxyService {
     public void deleteAll() {
         worldRepository.deleteAll();
     }
+
+    private Iterable<World> findByProperty(String propertyName, Object propertyValue) {
+        return session.loadByProperty(World.class, new Property(propertyName, propertyValue));
+    }
+
+    public Iterable<World> findByProperty(String propertyName, Object propertyValue, int depth) {
+        return session.loadByProperty(World.class, new Property(propertyName, propertyValue), depth);
+    }
+
 
 }
