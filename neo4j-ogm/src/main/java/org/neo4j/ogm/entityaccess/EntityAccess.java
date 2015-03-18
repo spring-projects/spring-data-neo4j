@@ -58,19 +58,6 @@ public abstract class EntityAccess implements PropertyWriter, RelationalWriter {
             return array;
         }
 
-        // we don't know how to make the requested parameter type, so let's just try to work with what we've got
-        if (currentValues != null && parameterType.isAssignableFrom(currentValues.getClass())) {
-            if (Collection.class.isAssignableFrom(currentValues.getClass())) {
-                Collection col = (Collection) currentValues;
-                for (Object object : newValues) {
-                    if (!col.contains(object)) {
-                        col.add(object);
-                    }
-                }
-                return currentValues;
-            }
-        }
-
         // hydrated is unusable at this point so we can just set the other collection if it's compatible
         if (parameterType.isAssignableFrom(newValues.getClass())) {
             return newValues;

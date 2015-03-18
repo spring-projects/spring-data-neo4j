@@ -9,20 +9,11 @@ public class World {
 
     private final static String REACHABLE_BY_ROCKET = "REACHABLE_BY_ROCKET";
 
-    //@GraphId
     private Long id;
 
-    // Uses default schema based index
-    //@Indexed
     private String name;
 
-    // Uses legacy index mechanism
-    //@Indexed(indexType = IndexType.SIMPLE)
     private int moons;
-
-    //@Fetch
-    //@RelatedTo(type = REACHABLE_BY_ROCKET, direction = Direction.UNDIRECTED)
-    //private Set<World> reachableByRocket;
 
     private Set<World> reachableByRocket = new HashSet<>();
 
@@ -48,22 +39,8 @@ public class World {
 
     public void addRocketRouteTo(World otherWorld) {
         reachableByRocket.add(otherWorld);
-
         // symmetric relationship.
-
         otherWorld.reachableByRocket.add(this); // bi-directional in domain.
-        // QUESTION. In the original SDN the symmetry (inverse mapping)
-        // is automatically established when "this" is saved. But this seems dead wrong.
-        // After all there is no requirement that the domain be saved at all,
-        // and yet, the business model demands that the
-        // reachable by rocket relationship is symmetric, regardless of whether
-        // the domain object is persisted or not.
-
-        // we don't support this behaviour. the setter method is responsible
-        // for calling 'addRocketRouteTo... in order to enforce the required
-        // symmetry.
-
-
     }
 
     @Relationship(type=REACHABLE_BY_ROCKET)
@@ -73,11 +50,8 @@ public class World {
 
     @Relationship(type=REACHABLE_BY_ROCKET)
     public void setReachableByRocket(Set<World> reachableByRocket) {
-//        for (World world : reachableByRocket) {
-//            addRocketRouteTo(world);
-//        }
         this.reachableByRocket.clear();
-        this.reachableByRocket.addAll(reachableByRocket);
+        this.reachableByRocket = reachableByRocket;
     }
 
     public boolean canBeReachedFrom(World otherWorld) {

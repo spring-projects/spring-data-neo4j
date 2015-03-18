@@ -78,9 +78,14 @@ public class WebIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(MockMvcResultMatchers.content().string("Adam Michal"));
 
+        mockMvc.perform(get("/user/{name}/friends", "Michal").session(session))
+                .andExpect(status().isOk())
+                .andExpect(MockMvcResultMatchers.content().string("Daniela Vince"));
+
         mockMvc.perform(get("/user/{name}/friends", "Vince").session(session))
                 .andExpect(status().isOk())
-                .andExpect(MockMvcResultMatchers.content().string("Adam Daniela Michal"));
+                .andExpect(MockMvcResultMatchers.content().string("Michal"));
+
     }
 
     @Test

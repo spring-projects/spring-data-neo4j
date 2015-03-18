@@ -85,4 +85,16 @@ public class MethodWriter extends EntityAccess {
         return setterMethodInfo.relationshipDirection();
     }
 
+    @Override
+    public boolean forScalar() {
+        if (Iterable.class.isAssignableFrom(type())) {
+            return false;
+        }
+        if (type().isArray()) {
+            return false;
+        }
+        return true;
+    }
+
+
 }

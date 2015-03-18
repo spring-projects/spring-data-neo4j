@@ -27,4 +27,6 @@ public interface RelationalWriter extends PropertyWriter {
     String relationshipName();
 
     String relationshipDirection();
+
+    boolean forScalar();
 }

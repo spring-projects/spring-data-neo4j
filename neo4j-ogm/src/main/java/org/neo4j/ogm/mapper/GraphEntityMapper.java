@@ -150,7 +150,7 @@ public class GraphEntityMapper implements GraphToEntityMapper<GraphModel> {
         ClassInfo sourceInfo = metadata.classInfo(source);
 
         RelationalWriter writer = entityAccessStrategy.getRelationalWriter(sourceInfo, edgeLabel, parameter);
-        if (writer != null) {
+        if (writer != null && writer.forScalar()) {
             writer.write(source, parameter);
             return true;
         }
@@ -189,7 +189,12 @@ public class GraphEntityMapper implements GraphToEntityMapper<GraphModel> {
                     // try and find a one-to-one writer
                     ClassInfo sourceInfo = metadata.classInfo(source);
                     RelationalWriter writer = entityAccessStrategy.getRelationalWriter(sourceInfo, edge.getType(), relationshipEntity);
-                    if (writer != null) {
+
+                    if (writer == null) {
+                        throw new RuntimeException("no writer for " + source);
+                    }
+
+                    if (writer.forScalar()) {
                         writer.write(source, relationshipEntity);
                         mappingContext.registerRelationship(new MappedRelationship(edge.getStartNode(), edge.getType(), edge.getEndNode()));
                     } else {
@@ -200,7 +205,12 @@ public class GraphEntityMapper implements GraphToEntityMapper<GraphModel> {
                 if (!relationshipDirection(target, edge, relationshipEntity).equals(Relationship.OUTGOING)) {
                     ClassInfo targetInfo = metadata.classInfo(target);
                     RelationalWriter writer = entityAccessStrategy.getRelationalWriter(targetInfo, edge.getType(), relationshipEntity);
-                    if (writer != null) {
+
+                    if (writer == null) {
+                        throw new RuntimeException("no writer for " + target);
+                    }
+
+                    if (writer.forScalar()) {
                         writer.write(target, relationshipEntity);
                     } else {
                         oneToMany.add(edge);
@@ -322,6 +332,7 @@ public class GraphEntityMapper implements GraphToEntityMapper<GraphModel> {
 
         ClassInfo classInfo = metadata.classInfo(instance);
 
+        // TODO: should just have one kind of relationshipWriter
         RelationalWriter writer = entityAccessStrategy.getIterableWriter(classInfo, valueType);
         if (writer != null) {
             if (writer.type().isArray() || Iterable.class.isAssignableFrom(writer.type())) {

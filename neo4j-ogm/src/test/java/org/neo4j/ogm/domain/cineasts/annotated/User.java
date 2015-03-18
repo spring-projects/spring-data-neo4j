@@ -33,6 +33,8 @@ public class User {
 
     @Relationship(type = "RATED")
     Set<Rating> ratings;
+
+
     Set<User> friends;
 
     @Convert(SecurityRoleConverter.class)

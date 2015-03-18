@@ -57,10 +57,7 @@ public class FieldInfo {
         return name;
     }
 
-    public boolean isTypeOf(Class<?> type) {
-        String fieldSignature = "L" + type.getName().replace(".", "/") + ";";
-        return descriptor.equals(fieldSignature);
-    }
+
 
     // should these two methods be on PropertyReader, RelationshipReader respectively?
     public String property() {
@@ -135,5 +132,38 @@ public class FieldInfo {
             return annotationInfo.get(Relationship.DIRECTION, Relationship.OUTGOING);
         }
         throw new RuntimeException("relationship direction call invalid");
+    }
+
+    public boolean isTypeOf(Class<?> type) {
+        while (type != null) {
+            String typeSignature = "L" + type.getName().replace(".", "/") + ";";
+            if (descriptor != null && descriptor.equals(typeSignature)) {
+                return true;
+            }
+            type = type.getSuperclass();
+        }
+        return false;
+    }
+
+    public boolean isParameterisedTypeOf(Class<?> type) {
+        while (type != null) {
+            String typeSignature = "L" + type.getName().replace(".", "/") + ";";
+            if (typeParameterDescriptor != null && typeParameterDescriptor.equals(typeSignature)) {
+                return true;
+            }
+            type = type.getSuperclass();
+        }
+        return false;
+    }
+
+    public boolean isArrayOf(Class<?> type) {
+        while (type != null) {
+            String typeSignature = "[L" + type.getName().replace(".", "/") + ";";
+            if (descriptor != null && descriptor.equals(typeSignature)) {
+                return true;
+            }
+            type = type.getSuperclass();
+        }
+        return false;
     }
 }
