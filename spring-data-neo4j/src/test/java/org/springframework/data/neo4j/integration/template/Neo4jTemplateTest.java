@@ -1,33 +1,24 @@
 package org.springframework.data.neo4j.integration.template;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import org.junit.Before;
+import org.junit.Ignore;
+import org.junit.Test;
+import org.neo4j.graphdb.*;
+import org.neo4j.ogm.annotation.NodeEntity;
+import org.neo4j.ogm.session.SessionFactory;
+import org.neo4j.ogm.session.Utils;
+import org.neo4j.ogm.testutil.WrappingServerIntegrationTest;
+import org.springframework.data.neo4j.integration.movies.domain.*;
+import org.springframework.data.neo4j.template.Neo4jOperations;
+import org.springframework.data.neo4j.template.Neo4jTemplate;
 
+import javax.persistence.PersistenceException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.Map;
 
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
-import org.neo4j.graphdb.DynamicLabel;
-import org.neo4j.graphdb.DynamicRelationshipType;
-import org.neo4j.graphdb.Label;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Transaction;
-import org.neo4j.ogm.annotation.NodeEntity;
-import org.neo4j.ogm.session.SessionFactory;
-import org.neo4j.ogm.session.Utils;
-import org.neo4j.ogm.testutil.WrappingServerIntegrationTest;
-import org.springframework.data.neo4j.integration.movies.domain.Actor;
-import org.springframework.data.neo4j.integration.movies.domain.Genre;
-import org.springframework.data.neo4j.integration.movies.domain.Rating;
-import org.springframework.data.neo4j.integration.movies.domain.TempMovie;
-import org.springframework.data.neo4j.integration.movies.domain.User;
-import org.springframework.data.neo4j.template.Neo4jOperations;
-import org.springframework.data.neo4j.template.Neo4jTemplate;
+import static org.junit.Assert.*;
 
 public class Neo4jTemplateTest extends WrappingServerIntegrationTest {
 
@@ -196,4 +187,8 @@ public class Neo4jTemplateTest extends WrappingServerIntegrationTest {
         assertEquals("The wrong genre was deleted", "Thriller", allGenres.iterator().next().getName());
     }
 
+    @Test(expected = PersistenceException.class)
+    public void shouldConvertOGMExceptionsToPersistenceExceptions() {
+        this.template.loadAll(Void.class);
+    }
 }

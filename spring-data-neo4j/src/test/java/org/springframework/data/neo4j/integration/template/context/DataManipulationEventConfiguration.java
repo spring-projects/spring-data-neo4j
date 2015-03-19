@@ -14,11 +14,13 @@ import org.springframework.data.neo4j.server.InProcessServer;
 import org.springframework.data.neo4j.server.Neo4jServer;
 import org.springframework.data.neo4j.template.Neo4jOperations;
 import org.springframework.data.neo4j.template.Neo4jTemplate;
+import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 /**
  * Spring Configuration bean for testing data manipulation events supported by <code>Neo4jTemplate</code>.
  */
 @Configuration
+@EnableTransactionManagement
 public class DataManipulationEventConfiguration extends Neo4jConfiguration {
 
     @Override

@@ -3,6 +3,7 @@ package org.springframework.data.neo4j.integration.helloworld;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.springframework.dao.DataAccessException;
 import org.springframework.data.neo4j.integration.helloworld.context.HelloWorldContext;
 import org.springframework.data.neo4j.integration.helloworld.domain.World;
 import org.springframework.data.neo4j.integration.helloworld.service.GalaxyService;

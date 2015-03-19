@@ -17,11 +17,13 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 public class PersistenceContext extends Neo4jConfiguration {
 
     @Override
+    @Bean
     public SessionFactory getSessionFactory() {
         return new SessionFactory("org.springframework.data.neo4j.integration.repositories.domain");
     }
 
     @Bean
+    @Override
     public Neo4jServer neo4jServer() {
         return new RemoteServer("http://localhost:7879");
     }

@@ -6,8 +6,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.data.neo4j.event.*;
+import org.springframework.stereotype.Repository;
 import org.springframework.util.Assert;
 
+import javax.persistence.PersistenceException;
 import java.util.Collection;
 import java.util.Map;
 
@@ -17,6 +19,7 @@ import static org.springframework.data.neo4j.util.IterableUtils.getSingleOrNull;
 /**
  * Spring Data template for Neo4j.  Implementation of {@link Neo4jOperations}.
  */
+@Repository
 public class Neo4jTemplate implements Neo4jOperations, ApplicationEventPublisherAware {
 
     private final Session session;
@@ -26,7 +29,6 @@ public class Neo4jTemplate implements Neo4jOperations, ApplicationEventPublisher
      * Constructs a new {@link Neo4jTemplate} based on the given Neo4j OGM {@link Session}.
      *
      * @param session The Neo4j OGM session upon which to base the template
-     * @throws NullPointerException if the given {@link Session} is <code>null</code>
      */
     @Autowired
     public Neo4jTemplate(Session session) {
@@ -41,112 +43,200 @@ public class Neo4jTemplate implements Neo4jOperations, ApplicationEventPublisher
 
     @Override
     public <T> T load(Class<T> type, Long id) {
-        return session.load(type, id);
+        try {
+            return session.load(type, id);
+        } catch (Exception e) {
+            throw new PersistenceException(e);
+        }
     }
 
     @Override
     public <T> T load(Class<T> type, Long id, int depth) {
-        return session.load(type, id, depth);
+        try {
+            return session.load(type, id, depth);
+        } catch (Exception e) {
+            throw new PersistenceException(e);
+        }
     }
 
     public <T> Collection<T> loadAll(Class<T> type, Collection<Long> ids) {
-        return session.loadAll(type, ids);
+        try {
+            return session.loadAll(type, ids);
+        } catch (Exception e) {
+            throw new PersistenceException(e);
+        }
     }
 
     public <T> Collection<T> loadAll(Class<T> type, Collection<Long> ids, int depth) {
-        return session.loadAll(type, ids, depth);
+        try {
+            return session.loadAll(type, ids, depth);
+        } catch (Exception e) {
+            throw new PersistenceException(e);
+        }
     }
 
     @Override
     public <T> Collection<T> loadAll(Class<T> type) {
-        return session.loadAll(type);
+        try {
+            return session.loadAll(type);
+        } catch (Exception e) {
+            throw new PersistenceException(e);
+        }
     }
 
     @Override
     public <T> Collection<T> loadAll(Class<T> type, int depth) {
-        return session.loadAll(type, depth);
+        try {
+            return session.loadAll(type, depth);
+        } catch (PersistenceException e) {
+            throw new PersistenceException(e);
+        }
     }
 
     public <T> Collection<T> loadAll(Collection<T> objects) {
-        return session.loadAll(objects);
+        try {
+            return session.loadAll(objects);
+        } catch (Exception e) {
+            throw new PersistenceException(e);
+        }
     }
 
     @Override
     public <T> Collection<T> loadAll(Collection<T> objects, int depth) {
-        return session.loadAll(objects, depth);
+        try {
+            return session.loadAll(objects, depth);
+        } catch (Exception e) {
+            throw new PersistenceException(e);
+        }
     }
 
     @Override
     public <T> T loadByProperty(Class<T> type, String propertyName, Object propertyValue) {
-        return getSingle(loadAllByProperty(type, propertyName, propertyValue));
+        try {
+            return getSingle(loadAllByProperty(type, propertyName, propertyValue));
+        } catch (Exception e) {
+            throw new PersistenceException(e);
+        }
     }
 
     public <T> T loadByPropertyOrNull(Class<T> type, String propertyName, Object propertyValue) {
-        return getSingleOrNull(loadAllByProperty(type, propertyName, propertyValue));
+        try {
+            return getSingleOrNull(loadAllByProperty(type, propertyName, propertyValue));
+        } catch (Exception e) {
+            throw new PersistenceException(e);
+        }
     }
 
     @Override
     public <T> Collection<T> loadAllByProperty(Class<T> type, String name, Object value) {
-        return session.loadByProperty(type, Property.with(name, value));
+        try {
+            return session.loadByProperty(type, Property.with(name, value));
+        } catch (Exception e) {
+            throw new PersistenceException(e);
+        }
     }
 
     public <T> Collection<T> loadAllByProperty(Class<T> type, String name, Object value, int depth) {
-        return session.loadByProperty(type, Property.with(name, value), depth);
+        try {
+            return session.loadByProperty(type, Property.with(name, value), depth);
+        } catch (Exception e) {
+            throw new PersistenceException(e);
+        }
     }
 
     @Override
     public void delete(Object entity) {
-        publishEvent(new BeforeDeleteEvent(this, entity));
-        session.delete(entity);
-        publishEvent(new AfterDeleteEvent(this, entity));
+        try {
+            publishEvent(new BeforeDeleteEvent(this, entity));
+            session.delete(entity);
+            publishEvent(new AfterDeleteEvent(this, entity));
+        } catch (Exception e) {
+            throw new PersistenceException(e);
+        }
     }
 
     public <T> void deleteAll(Class<T> type) {
-        session.deleteAll(type);
+        try {
+            session.deleteAll(type);
+        } catch (Exception e) {
+            throw new PersistenceException(e);
+        }
     }
 
     @Override
     public void execute(String jsonStatements) {
-        session.execute(jsonStatements);
+        try {
+            session.execute(jsonStatements);
+        } catch (Exception e) {
+            throw new PersistenceException(e);
+        }
     }
 
     public void purgeSession() {
-        session.clear();
+        try {
+            session.clear();
+        } catch (Exception e) {
+            throw new PersistenceException(e);
+        }
     }
 
     @Override
     public <T> T save(T entity) {
-        publishEvent(new BeforeSaveEvent(this, entity));
-        session.save(entity);
-        publishEvent(new AfterSaveEvent(this, entity));
-        return entity;
+        try {
+            publishEvent(new BeforeSaveEvent(this, entity));
+            session.save(entity);
+            publishEvent(new AfterSaveEvent(this, entity));
+            return entity;
+        } catch (Exception e) {
+            throw new PersistenceException(e);
+        }
     }
 
     public <T> T save(T entity, int depth) {
-        publishEvent(new BeforeSaveEvent(this, entity));
-        session.save(entity, depth);
-        publishEvent(new AfterSaveEvent(this, entity));
-        return entity;
+        try {
+            publishEvent(new BeforeSaveEvent(this, entity));
+            session.save(entity, depth);
+            publishEvent(new AfterSaveEvent(this, entity));
+            return entity;
+        } catch (Exception e) {
+            throw new PersistenceException(e);
+        }
     }
 
     @Override
     public Iterable<Map<String, Object>> query(String cypher, Map<String, ?> parameters) {
-        return session.query(cypher, parameters);
+        try {
+            return session.query(cypher, parameters);
+        } catch (Exception e) {
+            throw new PersistenceException(e);
+        }
     }
 
     @Override
     public <T> Iterable<T> queryForObjects(Class<T> objectType, String cypher, Map<String, ?> parameters) {
-        return session.query(objectType, cypher, parameters);
+        try {
+            return session.query(objectType, cypher, parameters);
+        } catch (Exception e) {
+            throw new PersistenceException(e);
+        }
     }
 
     @Override
     public <T> T queryForObject(Class<T> objectType, String cypher, Map<String, ?> parameters) {
-        return session.queryForObject(objectType, cypher, parameters);
+        try {
+            return session.queryForObject(objectType, cypher, parameters);
+        } catch (Exception e) {
+            throw new PersistenceException(e);
+        }
     }
 
     @Override
     public long count(Class<?> entityClass) {
-        return session.countEntitiesOfType(entityClass);
+        try {
+            return session.countEntitiesOfType(entityClass);
+        } catch (Exception e) {
+            throw new PersistenceException(e);
+        }
     }
 
     private void publishEvent(Neo4jDataManipulationEvent event) {

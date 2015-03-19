@@ -8,6 +8,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
 import org.springframework.dao.DataAccessException;
+import org.springframework.dao.annotation.PersistenceExceptionTranslationPostProcessor;
+import org.springframework.dao.support.PersistenceExceptionTranslationInterceptor;
 import org.springframework.dao.support.PersistenceExceptionTranslator;
 import org.springframework.data.neo4j.server.Neo4jServer;
 import org.springframework.data.neo4j.transaction.Neo4jTransactionManager;
@@ -36,12 +38,20 @@ public abstract class Neo4jConfiguration {
 
     @Bean
     public PersistenceExceptionTranslator persistenceExceptionTranslator() {
+        logger.info("Initialising PersistenceExceptionTranslator");
         return new PersistenceExceptionTranslator() {
             @Override
             public DataAccessException translateExceptionIfPossible(RuntimeException e) {
+                logger.info("Intercepted exception");
                 throw e;
             }
         };
+    }
+
+    @Bean
+    public PersistenceExceptionTranslationInterceptor translationInterceptor() {
+        logger.info("Initialising PersistenceExceptionTranslationInterceptor");
+        return new PersistenceExceptionTranslationInterceptor(persistenceExceptionTranslator());
     }
 
     @Bean
@@ -50,6 +60,12 @@ public abstract class Neo4jConfiguration {
         Session session = getSession();
         Assert.notNull(session, "You must provide a Session instance in your Spring configuration classes");
         return new Neo4jTransactionManager(session);
+    }
+
+    @Bean
+    PersistenceExceptionTranslationPostProcessor persistenceExceptionTranslationPostProcessor() {
+        logger.info("Initialising PersistenceExceptionTranslationPostProcessor");
+        return new PersistenceExceptionTranslationPostProcessor();
     }
 
     @Bean

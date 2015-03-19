@@ -1,5 +1,7 @@
 package org.springframework.data.neo4j.template;
 
+import org.springframework.stereotype.Repository;
+
 import java.util.Collection;
 import java.util.Map;
 
@@ -7,6 +9,7 @@ import java.util.Map;
  * Spring Data operations interface, implemented by {@link Neo4jTemplate}, that provides the API for using
  * the persistence framework in a more direct way as an alternative to the repositories.
  */
+@Repository
 public interface Neo4jOperations {
 
     /**

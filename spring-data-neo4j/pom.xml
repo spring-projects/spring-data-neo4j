@@ -82,6 +82,11 @@
                 <groupId>org.glassfish</groupId>
                 <artifactId>javax.el</artifactId>
             </dependency>
+            <dependency>
+                <groupId>javax.persistence</groupId>
+                <artifactId>com.springsource.javax.persistence</artifactId>
+                <version>1.0.0</version>
+            </dependency>
 
         </dependencies>
 

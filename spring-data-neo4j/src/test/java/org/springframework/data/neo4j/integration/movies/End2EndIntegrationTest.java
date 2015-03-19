@@ -13,6 +13,7 @@ import org.neo4j.tooling.GlobalGraphOperations;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
 import org.springframework.data.neo4j.integration.movies.context.PersistenceContext;
 import org.springframework.data.neo4j.integration.movies.domain.*;
 import org.springframework.data.neo4j.integration.movies.repo.*;
@@ -270,6 +271,13 @@ public class End2EndIntegrationTest extends WrappingServerIntegrationTest
         executor.shutdown();
 
         assertEquals( 100, userRepository.count() );
+    }
+
+    @Test(expected= DataAccessException.class)
+    @Ignore("this isn't working as the docs say it should. We must be doing something wrong")
+    public void shouldInterceptOGMExceptions() {
+        User user = null;
+        userRepository.save(user);
     }
 
     private class UserSaver implements Runnable
