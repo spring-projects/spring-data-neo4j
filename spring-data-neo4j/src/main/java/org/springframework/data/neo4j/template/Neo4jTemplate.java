@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.data.neo4j.event.*;
+import org.springframework.util.Assert;
 
 import java.util.Collection;
 import java.util.Map;
@@ -29,9 +30,7 @@ public class Neo4jTemplate implements Neo4jOperations, ApplicationEventPublisher
      */
     @Autowired
     public Neo4jTemplate(Session session) {
-        if (session == null) {
-            throw new NullPointerException("Cannot create a Neo4jTemplate without a Session!");
-        }
+        Assert.notNull(session, "Cannot create a Neo4jTemplate without a Session!");
         this.session = session;
     }
 
