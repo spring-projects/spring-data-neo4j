@@ -1,11 +1,25 @@
+/*
+ * Copyright (c)  [2011-2015] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
+ *
+ * This product is licensed to you under the Apache License, Version 2.0 (the "License").
+ * You may not use this product except in compliance with the License.
+ *
+ * This product may include a number of subcomponents with
+ * separate copyright notices and license terms. Your use of the source
+ * code for these subcomponents is subject to the terms and
+ * conditions of the subcomponent's license, as noted in the LICENSE file.
+ */
+
 package org.springframework.data.neo4j.repository;
 
-import org.neo4j.ogm.model.Property;
 import org.neo4j.ogm.session.Session;
 import org.springframework.stereotype.Repository;
 
 import java.util.Collection;
 
+/**
+ * @author Vince Bickers
+ */
 @Repository
 public class GraphRepositoryImpl<T> implements GraphRepository<T> {
 
@@ -109,13 +123,14 @@ public class GraphRepositoryImpl<T> implements GraphRepository<T> {
         return (Iterable<T>) session.loadAll(clazz, (Collection<Long>) ids, depth);
     }
 
-    @Override
-    public Iterable<T> findByProperty(String propertyName, Object propertyValue) {
-        return (Iterable<T>) session.loadByProperty(clazz, new Property(propertyName, propertyValue));
-    }
-
-    @Override
-    public Iterable<T> findByProperty(String propertyName, Object propertyValue, int depth) {
-        return (Iterable<T>) session.loadByProperty(clazz, new Property(propertyName, propertyValue), depth);
-    }
+//  removed
+//    @Override
+//    public Iterable<T> findByProperty(String propertyName, Object propertyValue) {
+//        return (Iterable<T>) session.loadByProperty(clazz, new Property(propertyName, propertyValue));
+//    }
+//
+//    @Override
+//    public Iterable<T> findByProperty(String propertyName, Object propertyValue, int depth) {
+//        return (Iterable<T>) session.loadByProperty(clazz, new Property(propertyName, propertyValue), depth);
+//    }
 }

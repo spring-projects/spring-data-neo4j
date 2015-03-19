@@ -1,4 +1,18 @@
+/*
+ * Copyright (c)  [2011-2015] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
+ *
+ * This product is licensed to you under the Apache License, Version 2.0 (the "License").
+ * You may not use this product except in compliance with the License.
+ *
+ * This product may include a number of subcomponents with
+ * separate copyright notices and license terms. Your use of the source
+ * code for these subcomponents is subject to the terms and
+ * conditions of the subcomponent's license, as noted in the LICENSE file.
+ */
+
 package org.springframework.data.neo4j.template;
+
+import org.springframework.stereotype.Repository;
 
 import java.util.Collection;
 import java.util.Map;
@@ -6,14 +20,17 @@ import java.util.Map;
 /**
  * Spring Data operations interface, implemented by {@link Neo4jTemplate}, that provides the API for using
  * the persistence framework in a more direct way as an alternative to the repositories.
+ *
+ * @author Adam George
  */
+@Repository
 public interface Neo4jOperations {
 
     /**
      * Loads an entity of type T that matches the specified ID to the default depth.
      *
      * @param type The type of entity to load
-     * @param id The ID of the node or relationship to match
+     * @param id   The ID of the node or relationship to match
      * @return The instance of T loaded from the database that matches the specified ID or <code>null</code> if no match is found
      */
     <T> T load(Class<T> type, Long id);
@@ -21,10 +38,10 @@ public interface Neo4jOperations {
     /**
      * Loads an entity of type T that matches the specified ID to the given depth.
      *
-     * @param type The type of entity to load
-     * @param id The ID of the node or relationship to match
+     * @param type  The type of entity to load
+     * @param id    The ID of the node or relationship to match
      * @param depth The maximum number of relationships away from the identified object to follow when loading related entities.
-     *        A value of 0 just loads the object's properties and no related entities.  A value of -1 implies no depth limit.
+     *              A value of 0 just loads the object's properties and no related entities.  A value of -1 implies no depth limit.
      * @return The instance of T loaded from the database that matches the specified ID or <code>null</code> if no match is found
      */
     <T> T load(Class<T> type, Long id, int depth);
@@ -41,9 +58,9 @@ public interface Neo4jOperations {
     /**
      * Retrieves all the entities of the given class in the database hydrated to the specified depth.
      *
-     * @param type The type of entity to return.
+     * @param type  The type of entity to return.
      * @param depth The maximum number of relationships away from each loaded object to follow when loading related entities.
-     *        A value of 0 just loads the object's properties and no related entities.  A value of -1 implies no depth limit.
+     *              A value of 0 just loads the object's properties and no related entities.  A value of -1 implies no depth limit.
      * @return A {@link Collection} containing all instances of the given type in the database or an empty collection if none
      *         are found, never <code>null</code>
      */
@@ -54,7 +71,7 @@ public interface Neo4jOperations {
      * only work for persistent objects (i.e., those with a non-null <code>@GraphId</code> field).
      *
      * @param objects The objects to re-hydrate
-     * @param depth The depth to which the objects should be hydrated
+     * @param depth   The depth to which the objects should be hydrated
      * @return A new {@link Collection} of entities matching those in the given collection hydrated to the given depth
      */
     <T> Collection<T> loadAll(Collection<T> objects, int depth);
@@ -65,11 +82,11 @@ public interface Neo4jOperations {
      * the database and will throw an exception unless exactly one result is found.  If several entities are expected to
      * be returned then use {@link #loadAllByProperty(Class, String, Object)} instead.
      *
-     * @param type The type of entity to load
-     * @param propertyName The name of the property on the entity against which to match the given value
+     * @param type          The type of entity to load
+     * @param propertyName  The name of the property on the entity against which to match the given value
      * @param propertyValue The value of the named property against which to match entities
      * @return The instance of T corresponding to the entity that matches the given property, never <code>null</code>
-     * @throws NotFoundException if there are no matching entities
+     * @throws NotFoundException     if there are no matching entities
      * @throws IllegalStateException if there's more than one matching entity
      */
     <T> T loadByProperty(Class<T> type, String propertyName, Object propertyValue);
@@ -77,8 +94,8 @@ public interface Neo4jOperations {
     /**
      * Retrieves all the entities of the specified type that contain a property matching the given name with the given value.
      *
-     * @param type The type of entity to load
-     * @param propertyName The name of the property on the entity against which to match the given value
+     * @param type          The type of entity to load
+     * @param propertyName  The name of the property on the entity against which to match the given value
      * @param propertyValue The value of the named property against which to match entities
      * @return A {@link Collection} containing all the entities that match the given property or an empty {@link Collection} if
      *         there aren't any matches, never <code>null</code>
@@ -111,7 +128,7 @@ public interface Neo4jOperations {
      * </p>
      *
      * @param cypherQuery The Cypher query to execute
-     * @param params The parameter to merge into the cypher query or an empty {@link Map} if the given query isn't parameterised
+     * @param params      The parameter to merge into the cypher query or an empty {@link Map} if the given query isn't parameterised
      * @return An {@link Iterable} of {@link Map}s represening the result of the query or an empty {@link Iterable} if there are
      *         no results, never <code>null</code>
      * @throws RuntimeException if the given query is not a valid Cypher <code>MATCH</code> query
@@ -122,9 +139,9 @@ public interface Neo4jOperations {
      * Runs the specified Cypher query with the given parameters against the underlying Neo4j database and returns the result
      * marshalled as an object of the requested type.
      *
-     * @param entityType The {@link Class} denoting the type of entity to return
+     * @param entityType  The {@link Class} denoting the type of entity to return
      * @param cypherQuery The Cypher query to execute
-     * @param parameters The parameter to merge into the Cypher query or an empty {@link Map} if the query's not parameterised
+     * @param parameters  The parameter to merge into the Cypher query or an empty {@link Map} if the query's not parameterised
      * @return An instance of T that corresponds to the entity found by executing the query or <code>null</code> if nothing is
      *         found by the query
      * @throws RuntimeException If more than one result is returned or there's an issue executing the query
@@ -135,9 +152,9 @@ public interface Neo4jOperations {
      * Runs the specified Cypher query with the given parameters against the underlying Neo4j database and returns the result
      * marshalled as a group of objects of the requested type.
      *
-     * @param entityType The {@link Class} denoting the type of entity to return
+     * @param entityType  The {@link Class} denoting the type of entity to return
      * @param cypherQuery The Cypher query to execute
-     * @param parameters The parameter to merge into the Cypher query or an empty {@link Map} if the query's not parameterised
+     * @param parameters  The parameter to merge into the Cypher query or an empty {@link Map} if the query's not parameterised
      * @return An {@link Iterable} over the entities found by executing the query or an empty <code>Iterable</code> if nothing
      *         is found by the query, never <code>null</code>
      * @throws RuntimeException If there's an issue executing the query

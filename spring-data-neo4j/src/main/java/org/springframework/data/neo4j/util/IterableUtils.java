@@ -1,3 +1,15 @@
+/*
+ * Copyright (c)  [2011-2015] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
+ *
+ * This product is licensed to you under the Apache License, Version 2.0 (the "License").
+ * You may not use this product except in compliance with the License.
+ *
+ * This product may include a number of subcomponents with
+ * separate copyright notices and license terms. Your use of the source
+ * code for these subcomponents is subject to the terms and
+ * conditions of the subcomponent's license, as noted in the LICENSE file.
+ */
+
 package org.springframework.data.neo4j.util;
 
 import org.neo4j.ogm.exception.NotFoundException;
@@ -9,6 +21,8 @@ import java.util.List;
 
 /**
  * Utility methods for dealing with {@link Iterable}s.
+ *
+ * @author Michal Bachman
  */
 public final class IterableUtils {
 
@@ -207,8 +221,8 @@ public final class IterableUtils {
     /**
      * Get the first element from iterator.
      *
-     * @param iterator        to find the first element.
-     * @param <T>             type of the element.
+     * @param iterator to find the first element.
+     * @param <T>      type of the element.
      * @return the element iff there is one or more, null if there is none.
      */
     public static <T> T getFirstOrNull(Iterator<T> iterator) {
@@ -224,8 +238,8 @@ public final class IterableUtils {
     /**
      * Get the first element from iterable.
      *
-     * @param iterable        to find the first element.
-     * @param <T>             type of the element.
+     * @param iterable to find the first element.
+     * @param <T>      type of the element.
      * @return the element iff there is one or more, null if there is none.
      */
     public static <T> T getFirstOrNull(Iterable<T> iterable) {

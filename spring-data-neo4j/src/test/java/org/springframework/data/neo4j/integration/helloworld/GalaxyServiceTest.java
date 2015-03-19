@@ -1,8 +1,21 @@
+/*
+ * Copyright (c)  [2011-2015] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
+ *
+ * This product is licensed to you under the Apache License, Version 2.0 (the "License").
+ * You may not use this product except in compliance with the License.
+ *
+ * This product may include a number of subcomponents with
+ * separate copyright notices and license terms. Your use of the source
+ * code for these subcomponents is subject to the terms and
+ * conditions of the subcomponent's license, as noted in the LICENSE file.
+ */
+
 package org.springframework.data.neo4j.integration.helloworld;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.springframework.dao.DataAccessException;
 import org.springframework.data.neo4j.integration.helloworld.context.HelloWorldContext;
 import org.springframework.data.neo4j.integration.helloworld.domain.World;
 import org.springframework.data.neo4j.integration.helloworld.service.GalaxyService;
@@ -19,6 +32,9 @@ import static org.hamcrest.core.StringContains.containsString;
 import static org.junit.Assert.*;
 
 
+/**
+ * @author Vince Bickers
+ */
 @ContextConfiguration(classes = {HelloWorldContext.class})
 @RunWith(SpringJUnit4ClassRunner.class)
 @Transactional

@@ -45,16 +45,6 @@
         <bundlor.enabled>false</bundlor.enabled>
     </properties>
 
-
-    <profiles>
-        <profile>
-            <id>include-examples</id>
-            <modules>
-                <module>spring-data-neo4j-examples/sdn-boot</module>
-            </modules>
-        </profile>
-    </profiles>
-
     <developers>
         <developer>
             <id>vbickers</id>

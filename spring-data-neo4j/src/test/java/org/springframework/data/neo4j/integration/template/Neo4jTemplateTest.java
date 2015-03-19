@@ -1,34 +1,41 @@
+
+/*
+ * Copyright (c)  [2011-2015] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
+ *
+ * This product is licensed to you under the Apache License, Version 2.0 (the "License").
+ * You may not use this product except in compliance with the License.
+ *
+ * This product may include a number of subcomponents with
+ * separate copyright notices and license terms. Your use of the source
+ * code for these subcomponents is subject to the terms and
+ * conditions of the subcomponent's license, as noted in the LICENSE file.
+ */
+
 package org.springframework.data.neo4j.integration.template;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import org.junit.Before;
+import org.junit.Ignore;
+import org.junit.Test;
+import org.neo4j.graphdb.*;
+import org.neo4j.ogm.annotation.NodeEntity;
+import org.neo4j.ogm.session.SessionFactory;
+import org.neo4j.ogm.session.Utils;
+import org.neo4j.ogm.testutil.WrappingServerIntegrationTest;
+import org.springframework.data.neo4j.integration.movies.domain.*;
+import org.springframework.data.neo4j.template.Neo4jOperations;
+import org.springframework.data.neo4j.template.Neo4jTemplate;
 
+import javax.persistence.PersistenceException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.Map;
 
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
-import org.neo4j.graphdb.DynamicLabel;
-import org.neo4j.graphdb.DynamicRelationshipType;
-import org.neo4j.graphdb.Label;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Transaction;
-import org.neo4j.ogm.annotation.NodeEntity;
-import org.neo4j.ogm.session.SessionFactory;
-import org.neo4j.ogm.session.Utils;
-import org.neo4j.ogm.testutil.WrappingServerIntegrationTest;
-import org.springframework.data.neo4j.integration.movies.domain.Actor;
-import org.springframework.data.neo4j.integration.movies.domain.Genre;
-import org.springframework.data.neo4j.integration.movies.domain.Rating;
-import org.springframework.data.neo4j.integration.movies.domain.TempMovie;
-import org.springframework.data.neo4j.integration.movies.domain.User;
-import org.springframework.data.neo4j.template.Neo4jOperations;
-import org.springframework.data.neo4j.template.Neo4jTemplate;
+import static org.junit.Assert.*;
 
+/**
+ * @author Adam George
+ */
 public class Neo4jTemplateTest extends WrappingServerIntegrationTest {
 
     private Neo4jOperations template;
@@ -196,4 +203,8 @@ public class Neo4jTemplateTest extends WrappingServerIntegrationTest {
         assertEquals("The wrong genre was deleted", "Thriller", allGenres.iterator().next().getName());
     }
 
+    @Test(expected = PersistenceException.class)
+    public void shouldConvertOGMExceptionsToPersistenceExceptions() {
+        this.template.loadAll(Void.class);
+    }
 }

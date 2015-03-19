@@ -1,9 +1,16 @@
-package org.springframework.data.neo4j.integration.template;
+/*
+ * Copyright (c)  [2011-2015] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
+ *
+ * This product is licensed to you under the Apache License, Version 2.0 (the "License").
+ * You may not use this product except in compliance with the License.
+ *
+ * This product may include a number of subcomponents with
+ * separate copyright notices and license terms. Your use of the source
+ * code for these subcomponents is subject to the terms and
+ * conditions of the subcomponent's license, as noted in the LICENSE file.
+ */
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
+package org.springframework.data.neo4j.integration.template;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -18,8 +25,11 @@ import org.springframework.data.neo4j.template.Neo4jOperations;
 import org.springframework.data.neo4j.template.Neo4jTemplate;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
+import static org.junit.Assert.*;
 /**
  * Test to assert the behaviour of {@link Neo4jTemplate}'s interaction with Spring application events.
+ * @author Adam George
  */
 @ContextConfiguration(classes = DataManipulationEventConfiguration.class)
 @RunWith(SpringJUnit4ClassRunner.class)
