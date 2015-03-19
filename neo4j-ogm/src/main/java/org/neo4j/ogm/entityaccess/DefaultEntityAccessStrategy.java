@@ -1,19 +1,13 @@
 /*
- * Copyright (c) 2014-2015 "GraphAware"
+ * Copyright (c)  [2011-2015] "Neo Technology" / "Graph Aware Ltd."
  *
- * GraphAware Ltd
+ * This product is licensed to you under the Apache License, Version 2.0 (the "License").
+ * You may not use this product except in compliance with the License.
  *
- * This file is part of Neo4j-OGM.
- *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file
- * except in compliance with the License. You may obtain a copy of the License at
- *
- *  http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software distributed under the
- * License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
- * either express or implied. See the License for the specific language governing
- * permissions and limitations under the License.
+ * This product may include a number of subcomponents with
+ * separate copyright notices and license terms. Your use of the source
+ * code for these subcomponents is subject to the terms and
+ * conditions of the subcomponent's license, as noted in the LICENSE file.
  */
 
 package org.neo4j.ogm.entityaccess;
@@ -41,6 +35,8 @@ import java.util.List;
  * The rationale is simply that we want annotations, whether on fields or on methods, to always take precedence, and we want to
  * use methods in preference to field access, because in many cases hydrating an object means more than just assigning values to
  * fields.
+ *
+ * @author Adam George
  */
 public class DefaultEntityAccessStrategy implements EntityAccessStrategy {
 

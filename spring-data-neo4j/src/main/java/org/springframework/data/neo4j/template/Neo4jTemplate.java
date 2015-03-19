@@ -1,3 +1,15 @@
+/*
+ * Copyright (c)  [2011-2015] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
+ *
+ * This product is licensed to you under the Apache License, Version 2.0 (the "License").
+ * You may not use this product except in compliance with the License.
+ *
+ * This product may include a number of subcomponents with
+ * separate copyright notices and license terms. Your use of the source
+ * code for these subcomponents is subject to the terms and
+ * conditions of the subcomponent's license, as noted in the LICENSE file.
+ */
+
 package org.springframework.data.neo4j.template;
 
 import org.neo4j.ogm.model.Property;
@@ -18,6 +30,8 @@ import static org.springframework.data.neo4j.util.IterableUtils.getSingleOrNull;
 
 /**
  * Spring Data template for Neo4j.  Implementation of {@link Neo4jOperations}.
+ *
+ * @author Michal Bachman
  */
 @Repository
 public class Neo4jTemplate implements Neo4jOperations, ApplicationEventPublisherAware {

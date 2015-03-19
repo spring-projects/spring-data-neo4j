@@ -1,32 +1,16 @@
 /*
- * Copyright (c) 2014 GraphAware
+ * Copyright (c)  [2011-2015] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
  *
- * This file is part of GraphAware.
+ * This product is licensed to you under the Apache License, Version 2.0 (the "License").
+ * You may not use this product except in compliance with the License.
  *
- * GraphAware is free software: you can redistribute it and/or modify it under the terms of
- * the GNU General Public License as published by the Free Software Foundation, either
- * version 3 of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
- *  without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
- * See the GNU General Public License for more details. You should have received a copy of
- * the GNU General Public License along with this program.  If not, see
- * <http://www.gnu.org/licenses/>.
+ * This product may include a number of subcomponents with
+ * separate copyright notices and license terms. Your use of the source
+ * code for these subcomponents is subject to the terms and
+ * conditions of the subcomponent's license, as noted in the LICENSE file.
  */
 
 package org.springframework.data.neo4j.util;
-
-import static java.util.Arrays.asList;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.neo4j.tooling.GlobalGraphOperations.at;
-import static org.springframework.data.neo4j.util.IterableUtils.contains;
-import static org.springframework.data.neo4j.util.IterableUtils.getFirst;
-import static org.springframework.data.neo4j.util.IterableUtils.getFirstOrNull;
-import static org.springframework.data.neo4j.util.IterableUtils.getSingle;
-import static org.springframework.data.neo4j.util.IterableUtils.getSingleOrNull;
 
 import org.junit.Test;
 import org.neo4j.graphdb.GraphDatabaseService;
@@ -38,6 +22,14 @@ import org.neo4j.test.TestGraphDatabaseFactory;
 import java.util.Arrays;
 import java.util.Collections;
 
+import static java.util.Arrays.*;
+import static org.junit.Assert.*;
+import static org.neo4j.tooling.GlobalGraphOperations.*;
+import static org.springframework.data.neo4j.util.IterableUtils.*;
+
+/**
+ * @author Michal Bachman
+ */
 public class IterableUtilsTest {
 
     @Test
