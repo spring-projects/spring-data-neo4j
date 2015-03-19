@@ -12,6 +12,7 @@ import org.springframework.dao.support.PersistenceExceptionTranslator;
 import org.springframework.data.neo4j.server.Neo4jServer;
 import org.springframework.data.neo4j.transaction.Neo4jTransactionManager;
 import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.util.Assert;
 
 import javax.annotation.Resource;
 
@@ -26,6 +27,10 @@ public abstract class Neo4jConfiguration {
     @Bean
     public Session getSession() throws Exception {
         logger.info("Initialising Neo4jSession");
+        SessionFactory sessionFactory = getSessionFactory();
+        Assert.notNull(sessionFactory, "You must provide a SessionFactory instance in your Spring configuration classes");
+        Neo4jServer neo4jServer = neo4jServer();
+        Assert.notNull(neo4jServer, "You must provide a Neo4jServer instance in your Spring configuration classes");
         return getSessionFactory().openSession(neo4jServer().url());
     }
 
@@ -42,7 +47,9 @@ public abstract class Neo4jConfiguration {
     @Bean
     public PlatformTransactionManager transactionManager() throws Exception {
         logger.info("Initialising Neo4jTransactionManager");
-        return new Neo4jTransactionManager(getSession());
+        Session session = getSession();
+        Assert.notNull(session, "You must provide a Session instance in your Spring configuration classes");
+        return new Neo4jTransactionManager(session);
     }
 
     @Bean
