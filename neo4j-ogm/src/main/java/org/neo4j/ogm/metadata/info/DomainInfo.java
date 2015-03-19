@@ -22,6 +22,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
 
+/**
+ * @author Vince Bickers
+ */
 public class DomainInfo implements ClassFileProcessor {
 
     private static final String dateSignature = "java/util/Date";

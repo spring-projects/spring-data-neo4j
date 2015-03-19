@@ -25,6 +25,9 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import static org.neo4j.ogm.testutil.GraphTestUtils.assertSameGraph;
 
+/**
+ * @author Michal Bachman
+ */
 @ContextConfiguration(classes = {PersistenceContextInTheSamePackage.class})
 @RunWith(SpringJUnit4ClassRunner.class)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)

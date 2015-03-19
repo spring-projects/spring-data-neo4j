@@ -16,6 +16,8 @@ import org.neo4j.ogm.cypher.compiler.CypherContext;
 
 /**
  * Specification for an object-graph mapper, which can map arbitrary Java objects onto Cypher data manipulation queries.
+ *
+ * @author Adam George
  */
 public interface EntityToGraphMapper {
 

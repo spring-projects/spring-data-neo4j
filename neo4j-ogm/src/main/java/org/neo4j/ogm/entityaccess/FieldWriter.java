@@ -17,6 +17,9 @@ import org.neo4j.ogm.metadata.info.FieldInfo;
 
 import java.lang.reflect.Field;
 
+/**
+ * @author Vince Bickers
+ */
 public class FieldWriter extends EntityAccess {
 
     private final FieldInfo fieldInfo;

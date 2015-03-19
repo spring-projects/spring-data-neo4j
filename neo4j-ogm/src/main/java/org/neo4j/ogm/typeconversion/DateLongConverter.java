@@ -14,6 +14,9 @@ package org.neo4j.ogm.typeconversion;
 
 import java.util.Date;
 
+/**
+ * @author Vince Bickers
+ */
 public class DateLongConverter implements AttributeConverter<Date, Long> {
 
     @Override

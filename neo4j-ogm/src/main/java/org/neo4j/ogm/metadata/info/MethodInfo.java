@@ -17,6 +17,9 @@ import org.neo4j.ogm.annotation.Relationship;
 import org.neo4j.ogm.metadata.RelationshipUtils;
 import org.neo4j.ogm.typeconversion.AttributeConverter;
 
+/**
+ * @author Vince Bickers
+ */
 public class MethodInfo {
 
     private static final String primitiveGetters="()I,()J,()S,()B,()C,()F,()D,()Z,()[I,()[J,()[S,()[B,()[C,()[F,()[D,()[Z";

@@ -24,6 +24,7 @@ import java.lang.annotation.*;
  *
  *      an accessor method
  *
+ * @author Vince Bickers
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.FIELD, ElementType.METHOD})

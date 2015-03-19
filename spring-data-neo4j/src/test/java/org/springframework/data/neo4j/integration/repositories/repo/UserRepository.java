@@ -16,6 +16,9 @@ import org.springframework.data.neo4j.integration.repositories.domain.User;
 import org.springframework.data.neo4j.repository.GraphRepository;
 import org.springframework.stereotype.Repository;
 
+/**
+ * @author Michal Bachman
+ */
 @Repository
 public interface UserRepository extends GraphRepository<User> {
 }

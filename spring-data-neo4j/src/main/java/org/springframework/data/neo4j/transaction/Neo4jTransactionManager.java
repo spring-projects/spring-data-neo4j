@@ -21,6 +21,9 @@ import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.TransactionException;
 import org.springframework.transaction.TransactionStatus;
 
+/**
+ * @author Vince Bickers
+ */
 public class Neo4jTransactionManager implements PlatformTransactionManager {
 
     private final Logger logger = LoggerFactory.getLogger(Neo4jTransactionManager.class);

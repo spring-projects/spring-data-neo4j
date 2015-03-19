@@ -12,8 +12,9 @@
 
 package org.neo4j.ogm.session.query;
 
-import java.util.Map;
-
+/**
+ * @author Vince Bickers
+ */
 public interface Query<T> extends AutoCloseable {
 
     Query<T> execute();

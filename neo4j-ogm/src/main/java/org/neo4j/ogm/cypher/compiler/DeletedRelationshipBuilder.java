@@ -15,6 +15,9 @@ package org.neo4j.ogm.cypher.compiler;
 import java.util.Map;
 import java.util.Set;
 
+/**
+ * @author Mark Angrish
+ */
 public class DeletedRelationshipBuilder implements CypherEmitter, Comparable<DeletedRelationshipBuilder> {
 
     private final String type;

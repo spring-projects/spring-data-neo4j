@@ -17,6 +17,9 @@ import org.neo4j.ogm.typeconversion.AttributeConverter;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * @author Luane Misquitta
+ */
 public class TitleConverter implements AttributeConverter<List<Title>,String[]> {
 
     @Override

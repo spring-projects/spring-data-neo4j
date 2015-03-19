@@ -15,6 +15,9 @@ package org.neo4j.ogm.unit.mapper.model.education;
 
 import org.neo4j.ogm.RequestProxy;
 
+/**
+ * @author Vince Bickers
+ */
 public class CourseRequest extends RequestProxy {
 
     public String[] getResponse() {

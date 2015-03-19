@@ -15,6 +15,9 @@ package org.neo4j.ogm.entityaccess;
 import java.lang.reflect.Array;
 import java.util.*;
 
+/**
+ * @author Vince Bickers
+ */
 public abstract class EntityAccess implements PropertyWriter, RelationalWriter {
 
 

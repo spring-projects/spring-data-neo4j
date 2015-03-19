@@ -19,6 +19,9 @@ import org.springframework.data.neo4j.integration.helloworld.domain.World;
 import org.springframework.data.neo4j.repository.GraphRepository;
 import org.springframework.stereotype.Repository;
 
+/**
+ * @author Vince Bickers
+ */
 @Repository
 public interface WorldRepository extends GraphRepository<World> {
 

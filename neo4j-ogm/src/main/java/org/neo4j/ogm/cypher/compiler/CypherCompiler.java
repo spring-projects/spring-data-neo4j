@@ -19,6 +19,8 @@ import java.util.Map;
 
 /**
  * Defines a simple API for building up Cypher queries programmatically.
+ *
+ * @author Vince Bickers
  */
 public interface CypherCompiler {
 

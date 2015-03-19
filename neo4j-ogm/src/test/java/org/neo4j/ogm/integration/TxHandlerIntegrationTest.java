@@ -32,6 +32,9 @@ import java.util.UUID;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
+/**
+ * @author Michal Bachman
+ */
 public class TxHandlerIntegrationTest extends WrappingServerIntegrationTest {
 
     private static SessionFactory sessionFactory;

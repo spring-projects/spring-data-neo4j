@@ -30,6 +30,7 @@ import java.util.Map;
  * replaced with the correct node ids, and the new MappedRelationship
  * established in the session's mappingContext.
  *
+ * @author Mark Angrish
  */
 public class TransientRelationship {
 

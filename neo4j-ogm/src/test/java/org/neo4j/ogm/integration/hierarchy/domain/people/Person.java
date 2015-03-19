@@ -14,6 +14,9 @@ package org.neo4j.ogm.integration.hierarchy.domain.people;
 
 import org.neo4j.ogm.annotation.NodeEntity;
 
+/**
+ * @author Michal Bachman
+ */
 @NodeEntity
 public abstract class Person extends Entity {
 

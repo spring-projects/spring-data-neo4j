@@ -21,7 +21,7 @@ import org.springframework.data.repository.query.RepositoryQuery;
 import java.lang.reflect.Method;
 
 /**
- * Created by markangrish on 13/01/2015.
+ * @author Mark Angrish
  */
 public class GraphQueryMethod extends QueryMethod {
 

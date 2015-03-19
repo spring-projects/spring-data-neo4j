@@ -14,6 +14,9 @@ package org.neo4j.ogm.domain.cineasts.annotated;
 
 import org.neo4j.ogm.typeconversion.AttributeConverter;
 
+/**
+ * @author Luanne Misquitta
+ */
 public class SecurityRoleConverter implements AttributeConverter<SecurityRole[],String[]> {
 
     @Override

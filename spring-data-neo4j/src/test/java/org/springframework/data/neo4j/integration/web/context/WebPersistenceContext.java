@@ -21,6 +21,9 @@ import org.springframework.data.neo4j.config.Neo4jConfiguration;
 import org.springframework.data.neo4j.server.Neo4jServer;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
+/**
+ * @author Michal Bachman
+ */
 @Configuration
 @ComponentScan({"org.springframework.data.neo4j.integration.web"})
 @EnableNeo4jRepositories("org.springframework.data.neo4j.integration.web.repo")

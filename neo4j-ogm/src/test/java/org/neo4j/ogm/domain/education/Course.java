@@ -14,6 +14,9 @@ package org.neo4j.ogm.domain.education;
 
 import java.util.List;
 
+/**
+ * @author Vince Bickers
+ */
 public class Course {
 
     private String name;

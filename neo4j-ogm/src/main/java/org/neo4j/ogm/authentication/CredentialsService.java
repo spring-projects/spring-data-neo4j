@@ -19,7 +19,7 @@ import org.slf4j.LoggerFactory;
  * A simple class that should ultimately support multiple strategies for loading
  * authorisation credentials to access Neo4j 2.2 and later
  *
- *
+ * @author Vince Bickers
  */
 public class CredentialsService {
 

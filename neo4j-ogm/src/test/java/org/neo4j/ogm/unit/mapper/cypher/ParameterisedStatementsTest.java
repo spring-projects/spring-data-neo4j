@@ -23,6 +23,9 @@ import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 
+/**
+ * @author Vince Bickers
+ */
 public class ParameterisedStatementsTest {
 
     private static final ObjectMapper mapper = new ObjectMapper();

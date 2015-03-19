@@ -29,6 +29,8 @@ package org.neo4j.ogm.cypher.compiler;
  * The use of two separate schemes ensures that the identifiers for new nodes and existing nodes cannot
  * overlap.
  *
+ * @author Vince Bickers
+ *
  */
 class IdentifierManager {
 

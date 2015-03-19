@@ -12,6 +12,9 @@
 
 package org.neo4j.ogm.entityaccess;
 
+/**
+ * @author Vince Bickers
+ */
 public class EntityAccessException extends RuntimeException {
 
     public EntityAccessException(String msg, Exception cause) {

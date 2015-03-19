@@ -14,6 +14,9 @@ package org.neo4j.ogm.domain.forum;
 
 import org.neo4j.ogm.annotation.NodeEntity;
 
+/**
+ * @author Vince Bickers
+ */
 @NodeEntity
 public abstract class Login {
 

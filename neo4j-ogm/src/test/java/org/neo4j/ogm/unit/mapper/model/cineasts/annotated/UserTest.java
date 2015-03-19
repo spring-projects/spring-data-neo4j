@@ -20,6 +20,9 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
 
+/**
+ * @author Luanne Misquitta
+ */
 public class UserTest {
 
     @Test

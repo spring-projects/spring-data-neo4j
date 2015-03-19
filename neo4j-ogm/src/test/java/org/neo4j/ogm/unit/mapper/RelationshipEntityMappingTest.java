@@ -21,6 +21,9 @@ import org.neo4j.ogm.domain.cineasts.annotated.Role;
 import java.util.HashSet;
 import java.util.Set;
 
+/**
+ * @author Vince Bickers
+ */
 public class RelationshipEntityMappingTest extends MappingTest {
 
     @BeforeClass

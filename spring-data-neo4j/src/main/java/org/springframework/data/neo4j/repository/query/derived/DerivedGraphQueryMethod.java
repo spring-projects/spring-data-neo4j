@@ -21,7 +21,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * Created by markangrish on 20/01/2015.
+ * @author Mark Angrish
  */
 public class DerivedGraphQueryMethod extends GraphQueryMethod {
 

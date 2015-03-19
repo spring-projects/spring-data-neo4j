@@ -18,6 +18,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.transaction.TransactionException;
 import org.springframework.transaction.TransactionStatus;
 
+/**
+ * @author Vince Bickers
+ */
 public class Neo4jTransactionStatus implements TransactionStatus {
 
     private final Logger logger = LoggerFactory.getLogger(Neo4jTransactionStatus.class);

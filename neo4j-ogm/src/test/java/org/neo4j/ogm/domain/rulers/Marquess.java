@@ -12,6 +12,9 @@
 
 package org.neo4j.ogm.domain.rulers;
 
+/**
+ * @author Vince Bickers
+ */
 public class Marquess extends Nobleman {
     @Override
     public String rulesOver() {

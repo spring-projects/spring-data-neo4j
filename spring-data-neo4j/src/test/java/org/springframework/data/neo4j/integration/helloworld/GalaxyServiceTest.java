@@ -31,6 +31,9 @@ import static org.hamcrest.core.StringContains.containsString;
 import static org.junit.Assert.*;
 
 
+/**
+ * @author Vince Bickers
+ */
 @ContextConfiguration(classes = {HelloWorldContext.class})
 @RunWith(SpringJUnit4ClassRunner.class)
 @Transactional

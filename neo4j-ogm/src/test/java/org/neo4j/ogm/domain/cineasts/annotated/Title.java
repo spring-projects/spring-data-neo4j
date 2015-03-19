@@ -12,6 +12,9 @@
 
 package org.neo4j.ogm.domain.cineasts.annotated;
 
+/**
+ * @author Luanne Misquitta
+ */
 public enum Title {
     MR,
     MRS,

@@ -14,6 +14,9 @@ package org.neo4j.ogm.domain.forum.activity;
 
 import org.neo4j.ogm.annotation.Property;
 
+/**
+ * @author Vince Bickers
+ */
 public class Comment extends Activity {
 
     private String comment;

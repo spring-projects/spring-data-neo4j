@@ -21,6 +21,9 @@ import org.neo4j.ogm.session.SessionFactory;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
+/**
+ * @author Michal Bachman
+ */
 public class MovieTest {
 
     @Test

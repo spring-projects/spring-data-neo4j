@@ -24,6 +24,9 @@ import java.util.List;
 
 import static org.junit.Assert.*;
 
+/**
+ * @author Vince Bickers
+ */
 public class RelationshipWriterPlainSetterTest {
 
     private DefaultEntityAccessStrategy entityAccessStrategy = new DefaultEntityAccessStrategy();

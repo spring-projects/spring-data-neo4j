@@ -12,6 +12,9 @@
 
 package org.springframework.data.neo4j.integration.web.domain;
 
+/**
+ * @author Michal Bachman
+ */
 public class Genre {
 
     private Long id;

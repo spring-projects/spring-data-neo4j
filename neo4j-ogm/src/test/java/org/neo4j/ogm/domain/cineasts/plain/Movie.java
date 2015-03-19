@@ -14,6 +14,9 @@ package org.neo4j.ogm.domain.cineasts.plain;
 
 import java.util.Set;
 
+/**
+ * @author Vince Bickers
+ */
 public class Movie {
 
     String id;

@@ -46,6 +46,8 @@ import static org.neo4j.ogm.testutil.GraphTestUtils.assertSameGraph;
  *
  * The OGM is designed to cope with such models.
  *
+ * @author Vince Bickers
+ *
  */
 public class DegenerateEntityModelTests {
 

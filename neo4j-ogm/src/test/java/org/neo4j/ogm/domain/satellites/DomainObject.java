@@ -16,6 +16,9 @@ import org.neo4j.ogm.annotation.typeconversion.DateLong;
 
 import java.util.Date;
 
+/**
+ * @author Vince Bickers
+ */
 public abstract class DomainObject {
 
     private Long id;

@@ -24,6 +24,9 @@ import org.springframework.data.repository.core.support.RepositoryFactorySupport
 import static org.neo4j.ogm.testutil.GraphTestUtils.assertSameGraph;
 import static org.junit.Assert.assertEquals;
 
+/**
+ * @author Michal Bachman
+ */
 public class ProgrammaticRepositoryTest extends WrappingServerIntegrationTest {
 
     private MovieRepository movieRepository;

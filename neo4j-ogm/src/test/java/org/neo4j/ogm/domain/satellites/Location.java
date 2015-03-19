@@ -16,6 +16,8 @@ import org.neo4j.ogm.annotation.Property;
 
 /**
  * This object is entirely hydrated via its fields
+ *
+ * @author Vince Bickers
  */
 public class Location extends DomainObject {
 

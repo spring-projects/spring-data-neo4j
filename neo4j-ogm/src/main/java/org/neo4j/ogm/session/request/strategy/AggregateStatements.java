@@ -12,13 +12,15 @@
 
 package org.neo4j.ogm.session.request.strategy;
 
+import org.neo4j.ogm.cypher.query.RowModelQuery;
+
 import java.util.Collection;
 import java.util.Collections;
 
-import org.neo4j.ogm.cypher.query.RowModelQuery;
-
 /**
  * Encapsulates Cypher statements used to execute aggregation queries.
+ *
+ * @author Adam George
  */
 public class AggregateStatements {
 

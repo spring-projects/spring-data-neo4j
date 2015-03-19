@@ -12,6 +12,9 @@
 
 package org.neo4j.ogm.integration.hierarchy.domain.plain;
 
+/**
+ * @author Michal Bachman
+ */
 public abstract class PlainAbstractParent {
 
     private Long id;

@@ -14,6 +14,9 @@ package org.neo4j.ogm.domain.convertible.enums;
 
 import org.neo4j.ogm.annotation.typeconversion.Convert;
 
+/**
+ * @author Vince Bickers
+ */
 public class Algebra {
 
     private Long id;

@@ -32,6 +32,9 @@ import org.neo4j.ogm.session.result.ResultProcessingException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * @author Vince Bickers
+ */
 public class TransactionManager {
 
     private final Logger logger = LoggerFactory.getLogger(TransactionManager.class);

@@ -18,6 +18,8 @@ import java.util.Map;
 /**
  * Spring Data operations interface, implemented by {@link Neo4jTemplate}, that provides the API for using
  * the persistence framework in a more direct way as an alternative to the repositories.
+ *
+ * @author Adam George
  */
 public interface Neo4jOperations {
 

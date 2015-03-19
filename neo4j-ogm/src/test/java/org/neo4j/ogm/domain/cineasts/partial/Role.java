@@ -16,6 +16,9 @@ import org.neo4j.ogm.annotation.EndNode;
 import org.neo4j.ogm.annotation.RelationshipEntity;
 import org.neo4j.ogm.annotation.StartNode;
 
+/**
+ * @author Vince Bickers
+ */
 @RelationshipEntity
 public class Role {
 

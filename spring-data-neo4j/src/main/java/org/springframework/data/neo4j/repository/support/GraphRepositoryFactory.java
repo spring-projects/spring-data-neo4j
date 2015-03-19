@@ -23,6 +23,9 @@ import org.springframework.data.repository.query.QueryLookupStrategy;
 
 import java.io.Serializable;
 
+/**
+ * @author Vince Bickers
+ */
 public class GraphRepositoryFactory extends RepositoryFactorySupport {
 
     private final Session session;

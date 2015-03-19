@@ -20,6 +20,9 @@ import java.util.Arrays;
 
 import static org.junit.Assert.assertEquals;
 
+/**
+ * @author Vince Bickers
+ */
 public class VariableDepthQueryTest {
 
     private final VariableDepthQuery query = new VariableDepthQuery();

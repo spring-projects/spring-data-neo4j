@@ -34,6 +34,8 @@ import static org.junit.Assert.assertTrue;
 
 /**
  * Simple integration test based on cineasts that exercises relationship entities.
+ *
+ * @author Michal Bachman
  */
 public class CineastsIntegrationTest extends InMemoryServerTest {
 

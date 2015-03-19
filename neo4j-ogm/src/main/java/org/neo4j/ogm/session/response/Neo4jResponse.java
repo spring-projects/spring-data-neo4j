@@ -12,6 +12,9 @@
 
 package org.neo4j.ogm.session.response;
 
+/**
+ * @author Vince Bickers
+ */
 public interface Neo4jResponse<T> extends AutoCloseable {
 
     T next();

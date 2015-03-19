@@ -18,6 +18,9 @@ import org.neo4j.ogm.typeconversion.*;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * @author Vince Bickers
+ */
 public class ObjectAnnotations {
 
     private String objectName; // fully qualified class, method or field name.

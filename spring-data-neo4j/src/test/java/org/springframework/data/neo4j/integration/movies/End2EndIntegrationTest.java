@@ -41,6 +41,9 @@ import java.util.concurrent.Executors;
 import static org.junit.Assert.*;
 import static org.neo4j.ogm.testutil.GraphTestUtils.assertSameGraph;
 
+/**
+ * @author Michal Bachman
+ */
 @ContextConfiguration(classes = {PersistenceContext.class})
 @RunWith(SpringJUnit4ClassRunner.class)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)

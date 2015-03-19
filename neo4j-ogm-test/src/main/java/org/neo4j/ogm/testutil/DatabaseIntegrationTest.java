@@ -26,6 +26,8 @@ import org.neo4j.test.TestGraphDatabaseFactory;
  * which is guaranteed to run in a transaction.
  * <p/>
  * Shuts the database down at the end of each test.
+ *
+ * @author Michal Bachman
  */
 public abstract class DatabaseIntegrationTest {
 

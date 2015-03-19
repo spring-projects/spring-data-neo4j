@@ -17,6 +17,8 @@ import java.util.Set;
 
 /**
  * Direct and ancestral interfaces of a given interface.
+ *
+ * @author Vince Bickers
  */
 class InterfaceInfo {
 

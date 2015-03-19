@@ -12,6 +12,9 @@
 
 package org.neo4j.ogm.domain.rulers;
 
+/**
+ * @author Vince Bickers
+ */
 public class Empress extends Person implements Ruler {
     @Override
     public String sex() {

@@ -14,6 +14,9 @@ package org.neo4j.ogm.unit.mapper.model.cineasts.annotated;
 
 import org.neo4j.ogm.RequestProxy;
 
+/**
+ * @author Michal Bachman
+ */
 public class MovieRequest extends RequestProxy {
 
     public String[] getResponse() {

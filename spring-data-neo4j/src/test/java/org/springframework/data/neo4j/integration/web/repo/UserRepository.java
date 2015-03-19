@@ -18,6 +18,9 @@ import org.springframework.stereotype.Repository;
 
 import java.util.Collection;
 
+/**
+ * @author Michal Bachman
+ */
 @Repository
 public interface UserRepository extends GraphRepository<User> {
 

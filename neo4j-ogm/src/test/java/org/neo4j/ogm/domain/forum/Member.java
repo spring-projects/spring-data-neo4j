@@ -19,6 +19,9 @@ import org.neo4j.ogm.domain.forum.activity.Activity;
 import java.util.Date;
 import java.util.List;
 
+/**
+ * @author Vince Bickers
+ */
 @NodeEntity(label ="User")
 public class Member extends Login  {
 

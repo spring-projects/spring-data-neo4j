@@ -20,6 +20,8 @@ import java.util.Collection;
  * Specification for an object-graph mapper, which can map {@link org.neo4j.ogm.model.GraphModel}s onto arbitrary Java objects.
  *
  * @param <G> The Graph implementation
+ *
+ * @author Adam George
  */
 public interface GraphToEntityMapper<G extends GraphModel> {
 

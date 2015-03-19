@@ -23,6 +23,9 @@ import java.util.*;
 
 import static org.junit.Assert.assertEquals;
 
+/**
+ * @author Vince Bickers
+ */
 public class EducationTest {
 
     private static final SessionFactory sessionFactory = new SessionFactory("org.neo4j.ogm.domain.education");

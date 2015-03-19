@@ -16,6 +16,9 @@ import org.neo4j.ogm.annotation.Relationship;
 import org.neo4j.ogm.metadata.info.ClassInfo;
 import org.neo4j.ogm.metadata.info.MethodInfo;
 
+/**
+ * @author Adam George
+ */
 public class MethodReader implements RelationalReader, PropertyReader {
 
     private final ClassInfo classInfo;

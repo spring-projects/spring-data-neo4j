@@ -14,6 +14,9 @@ package org.neo4j.ogm.integration.hierarchy.domain.annotated;
 
 import org.neo4j.ogm.annotation.NodeEntity;
 
+/**
+ * @author Michal Bachman
+ */
 @NodeEntity(label = "Child")
 public class AnnotatedNamedChildWithAnnotatedAbstractParent extends AnnotatedAbstractParent {
 }

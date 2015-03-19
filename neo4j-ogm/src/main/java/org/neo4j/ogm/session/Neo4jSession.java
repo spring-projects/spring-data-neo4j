@@ -59,6 +59,9 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/**
+ * @author Vince Bickers
+ */
 public class Neo4jSession implements Session {
 
     private final Logger logger = LoggerFactory.getLogger(Neo4jSession.class);

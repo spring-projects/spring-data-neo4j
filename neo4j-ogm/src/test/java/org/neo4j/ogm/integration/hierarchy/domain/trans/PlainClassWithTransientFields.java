@@ -16,7 +16,7 @@ import org.neo4j.ogm.annotation.Transient;
 import org.neo4j.ogm.integration.hierarchy.domain.plain.PlainSingleClass;
 
 /**
- *
+ * @author Michal Bachman
  */
 public class PlainClassWithTransientFields {
 

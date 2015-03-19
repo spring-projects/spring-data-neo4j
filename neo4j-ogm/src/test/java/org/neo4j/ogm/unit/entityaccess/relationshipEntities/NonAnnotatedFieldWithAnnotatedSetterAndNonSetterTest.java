@@ -29,6 +29,9 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
+/**
+ * @author Luanne Misquitta
+ */
 public class NonAnnotatedFieldWithAnnotatedSetterAndNonSetterTest {
     private DefaultEntityAccessStrategy entityAccessStrategy = new DefaultEntityAccessStrategy();
     private DomainInfo domainInfo = new DomainInfo("org.neo4j.ogm.unit.entityaccess.relationshipEntities");

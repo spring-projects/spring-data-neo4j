@@ -20,6 +20,9 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * @author Vince Bickers
+ */
 public class MethodsInfo {
 
     private final Map<String, MethodInfo> methods = new HashMap<>();

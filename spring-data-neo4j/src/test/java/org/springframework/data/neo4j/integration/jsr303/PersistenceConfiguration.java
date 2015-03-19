@@ -21,6 +21,9 @@ import org.springframework.data.neo4j.server.InProcessServer;
 import org.springframework.data.neo4j.server.Neo4jServer;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
+/**
+ * @author Vince Bickers
+ */
 @Configuration
 @ComponentScan
 @EnableNeo4jRepositories("org.springframework.data.neo4j.integration.jsr303.repo")

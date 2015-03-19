@@ -35,6 +35,8 @@ import java.util.List;
  * The rationale is simply that we want annotations, whether on fields or on methods, to always take precedence, and we want to
  * use methods in preference to field access, because in many cases hydrating an object means more than just assigning values to
  * fields.
+ *
+ * @author Adam George
  */
 public class DefaultEntityAccessStrategy implements EntityAccessStrategy {
 

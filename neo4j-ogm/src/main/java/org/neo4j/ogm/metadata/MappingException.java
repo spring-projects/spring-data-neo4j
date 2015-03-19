@@ -14,6 +14,8 @@ package org.neo4j.ogm.metadata;
 
 /**
  * Specialised {@link RuntimeException} thrown when an unrecoverable issue occurs when mapping between objects and graphs.
+ *
+ * @author Adam George
  */
 public class MappingException extends RuntimeException {
 

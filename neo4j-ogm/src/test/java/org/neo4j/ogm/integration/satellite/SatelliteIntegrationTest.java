@@ -30,6 +30,8 @@ import static org.junit.Assert.fail;
 /**
  * This is a full integration test that requires a running neo4j
  * database on localhost.
+ *
+ * @author Vince Bickers
  */
 public class SatelliteIntegrationTest extends InMemoryServerTest {
 

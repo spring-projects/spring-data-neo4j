@@ -14,6 +14,9 @@ package org.neo4j.ogm.authentication;
 
 import org.apache.http.client.methods.HttpRequestBase;
 
+/**
+ * @author Vince Bickers
+ */
 public class HttpRequestAuthorization {
 
     /**

@@ -18,6 +18,9 @@ import org.neo4j.ogm.annotation.typeconversion.DateString;
 
 import java.util.Date;
 
+/**
+ * @author Vince Bickers
+ */
 public class Memo {
 
     private Long id;

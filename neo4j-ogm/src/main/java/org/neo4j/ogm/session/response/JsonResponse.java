@@ -17,6 +17,9 @@ import org.neo4j.ogm.session.result.ResultProcessingException;
 import java.io.InputStream;
 import java.util.Scanner;
 
+/**
+ * @author Vince Bickers
+ */
 public class JsonResponse implements Neo4jResponse<String> {
 
     private static final String COMMA = ",";

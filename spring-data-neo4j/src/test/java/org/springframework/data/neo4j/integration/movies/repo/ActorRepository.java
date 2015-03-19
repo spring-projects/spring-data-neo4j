@@ -16,6 +16,9 @@ import org.springframework.data.neo4j.integration.movies.domain.Actor;
 import org.springframework.data.neo4j.repository.GraphRepository;
 
 
+/**
+ * @author Michal Bachman
+ */
 public interface ActorRepository extends GraphRepository<Actor> {
 }
 

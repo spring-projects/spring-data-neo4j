@@ -15,6 +15,9 @@ package org.neo4j.ogm.cypher.compiler;
 import java.util.Map;
 import java.util.Set;
 
+/**
+ * @author Vince Bickers
+ */
 public interface CypherEmitter {
 
     /**

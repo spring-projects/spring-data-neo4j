@@ -22,6 +22,9 @@ import java.util.Collection;
 
 import static org.junit.Assert.*;
 
+/**
+ * @author Vince Bickers
+ */
 public class BikeTest {
 
     @Test

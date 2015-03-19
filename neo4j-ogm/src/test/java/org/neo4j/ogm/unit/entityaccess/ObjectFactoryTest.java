@@ -12,8 +12,6 @@
 
 package org.neo4j.ogm.unit.entityaccess;
 
-import static org.junit.Assert.assertNotNull;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.neo4j.ogm.domain.canonical.ArbitraryRelationshipEntity;
@@ -24,6 +22,11 @@ import org.neo4j.ogm.metadata.MetaData;
 import org.neo4j.ogm.model.NodeModel;
 import org.neo4j.ogm.model.RelationshipModel;
 
+import static org.junit.Assert.*;
+
+/**
+ * @author Adam George
+ */
 public class ObjectFactoryTest {
 
     private EntityFactory objectCreator;

@@ -14,6 +14,9 @@ package org.neo4j.ogm.domain.convertible.enums;
 
 import org.neo4j.ogm.typeconversion.AttributeConverter;
 
+/**
+ * @author Vince Bickers
+ */
 public class NumberSystemDomainConverter implements AttributeConverter<NumberSystem, String> {
 
     @Override

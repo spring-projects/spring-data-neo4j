@@ -21,6 +21,8 @@ import java.lang.annotation.*;
  * This annotation can be placed on types, fields and methods
  * and the OGM will ignore any object or object reference with
  * the annotation
+ *
+ * @author Mark Angrish
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.TYPE, ElementType.FIELD, ElementType.METHOD})

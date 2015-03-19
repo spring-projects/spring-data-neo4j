@@ -16,6 +16,9 @@ import org.neo4j.ogm.annotation.Index;
 
 import java.util.List;
 
+/**
+ * @author Vince Bickers
+ */
 public abstract class Person {
 
     protected List<Person> heirs;

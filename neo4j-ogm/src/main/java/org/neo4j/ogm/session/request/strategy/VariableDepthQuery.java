@@ -18,6 +18,9 @@ import org.neo4j.ogm.session.Utils;
 
 import java.util.Collection;
 
+/**
+ * @author Vince Bickers
+ */
 public class VariableDepthQuery implements QueryStatements {
 
     @Override

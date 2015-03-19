@@ -17,6 +17,9 @@ import org.neo4j.ogm.cypher.query.GraphModelQuery;
 
 import java.util.Collection;
 
+/**
+ * @author Vince Bickers
+ */
 public interface QueryStatements {
 
     /**

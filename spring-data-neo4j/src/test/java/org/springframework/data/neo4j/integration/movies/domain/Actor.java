@@ -15,6 +15,9 @@ package org.springframework.data.neo4j.integration.movies.domain;
 
 import org.neo4j.ogm.annotation.GraphId;
 
+/**
+ * @author Michal Bachman
+ */
 public class Actor{
 
     @GraphId

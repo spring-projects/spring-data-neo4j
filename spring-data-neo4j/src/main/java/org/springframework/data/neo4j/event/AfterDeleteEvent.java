@@ -14,6 +14,8 @@ package org.springframework.data.neo4j.event;
 
 /**
  * {@link Neo4jDataManipulationEvent} published after a particular entity is deleted.
+ *
+ * @author Adam George
  */
 public class AfterDeleteEvent extends Neo4jDataManipulationEvent {
 

@@ -14,6 +14,9 @@ package org.springframework.data.neo4j.integration.jsr303.domain;
 
 import javax.validation.constraints.Min;
 
+/**
+ * @author Vince Bickers
+ */
 public class Adult {
 
     private Long id;

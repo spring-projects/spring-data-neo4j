@@ -17,6 +17,9 @@ import org.springframework.stereotype.Repository;
 
 import java.util.Collection;
 
+/**
+ * @author Vince Bickers
+ */
 @Repository
 public class GraphRepositoryImpl<T> implements GraphRepository<T> {
 

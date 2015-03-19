@@ -17,6 +17,9 @@ import org.neo4j.ogm.annotation.Relationship;
 import java.util.Collection;
 import java.util.HashSet;
 
+/**
+ * @author Michal Bachman
+ */
 public class User {
 
     private Long id;

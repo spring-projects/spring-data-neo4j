@@ -40,6 +40,9 @@ import java.util.*;
 import static org.junit.Assert.*;
 import static org.neo4j.ogm.testutil.GraphTestUtils.assertSameGraph;
 
+/**
+ * @author Adam George
+ */
 public class EntityGraphMapperTest {
 
     private EntityToGraphMapper mapper;

@@ -15,6 +15,9 @@ package org.springframework.data.neo4j.server;
 import java.io.IOException;
 import java.net.ServerSocket;
 
+/**
+ * @author Michal Bachman
+ */
 final class TestUtils {
 
     public static int getAvailablePort() {

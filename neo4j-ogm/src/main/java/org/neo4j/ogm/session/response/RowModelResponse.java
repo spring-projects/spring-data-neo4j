@@ -18,6 +18,9 @@ import org.neo4j.ogm.session.result.RowModelResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * @author Vince Bickers
+ */
 public class RowModelResponse implements Neo4jResponse<RowModel> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RowModelResponse.class);

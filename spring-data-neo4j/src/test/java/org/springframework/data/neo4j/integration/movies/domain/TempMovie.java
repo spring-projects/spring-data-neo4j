@@ -18,6 +18,9 @@ import org.neo4j.ogm.annotation.Relationship;
 import java.util.HashSet;
 import java.util.Set;
 
+/**
+ * @author Michal Bachman
+ */
 //todo merge with movie when tests fixed
 @NodeEntity(label = "Movie")
 public class TempMovie extends AbstractEntity {

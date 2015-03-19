@@ -23,13 +23,15 @@ import java.io.IOException;
 
 import static junit.framework.Assert.assertEquals;
 
-/*
+/**
  * The purpose of these tests is to describe the behaviour of the
  * mapper when a RelationshipEntity object is not referenced by
  * both of its Related entities, both when writing and reading
  *
  * In this scenario, the Role relationship, which is a RelationshipEntity
  * linking Actors and Movies, is referenced only from the Actor entity.
+ *
+ * @author Vince Bickers
  */
 public class RelationshipEntityPartialMappingTest extends InMemoryServerTest {
 

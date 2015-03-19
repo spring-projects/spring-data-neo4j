@@ -17,6 +17,9 @@ import org.neo4j.ogm.metadata.info.ClassInfo;
 
 import java.util.*;
 
+/**
+ * @author Vince Bickers
+ */
 public abstract class NodeBuilder implements CypherEmitter, Comparable<NodeBuilder> {
 
     private final String cypherReference;

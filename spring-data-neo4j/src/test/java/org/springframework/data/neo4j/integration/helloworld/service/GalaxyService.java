@@ -23,6 +23,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
 import java.util.Collection;
 
+/**
+ * @author Vince Bickers
+ */
 @Service
 @Transactional
 public class GalaxyService {

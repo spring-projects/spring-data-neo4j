@@ -21,6 +21,7 @@ import java.lang.annotation.*;
  * This annotation is not needed if the domain entity has a Long
  * field called id.
  *
+ * @author Vince Bickers
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.FIELD, ElementType.METHOD})

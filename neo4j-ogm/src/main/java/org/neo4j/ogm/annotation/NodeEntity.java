@@ -22,6 +22,8 @@ import java.lang.annotation.*;
  * matches at least one of the labels of the node in the graph (case
  * insensitive)
  *
+ * @author Vince Bickers
+ *
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)

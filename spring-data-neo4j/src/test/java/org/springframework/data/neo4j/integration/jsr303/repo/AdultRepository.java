@@ -16,6 +16,9 @@ import org.springframework.data.neo4j.integration.jsr303.domain.Adult;
 import org.springframework.data.neo4j.repository.GraphRepository;
 import org.springframework.stereotype.Repository;
 
+/**
+ * @author Vince Bickers
+ */
 @Repository
 public interface AdultRepository extends GraphRepository<Adult> {
 }

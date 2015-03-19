@@ -12,6 +12,9 @@
 
 package org.neo4j.ogm.domain.cineasts.plain;
 
+/**
+ * @author Vince Bickers
+ */
 public class Rating {
     User user;
     Movie movie;

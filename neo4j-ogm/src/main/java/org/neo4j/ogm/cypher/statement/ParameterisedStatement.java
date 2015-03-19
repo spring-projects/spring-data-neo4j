@@ -17,6 +17,8 @@ import java.util.Map;
 
 /**
  * Simple encapsulation of a Cypher query and its parameters.
+ *
+ * @author Vince Bickers
  */
 public class ParameterisedStatement {
 

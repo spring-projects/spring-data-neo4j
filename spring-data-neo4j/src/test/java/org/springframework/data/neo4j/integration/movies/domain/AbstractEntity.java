@@ -12,6 +12,9 @@
 
 package org.springframework.data.neo4j.integration.movies.domain;
 
+/**
+ * @author Michal Bachman
+ */
 public abstract class AbstractEntity {
 
     Long id;

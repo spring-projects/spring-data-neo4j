@@ -12,6 +12,9 @@
 
 package org.neo4j.ogm.exception;
 
+/**
+ * @author Michal Bachman
+ */
 public class NotFoundException extends RuntimeException {
 
     public NotFoundException() {

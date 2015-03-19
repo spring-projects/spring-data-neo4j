@@ -32,6 +32,9 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.fail;
 
+/**
+ * @author Michal Bachman
+ */
 @ContextConfiguration(classes = {PersistenceContext.class})
 @RunWith(SpringJUnit4ClassRunner.class)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)

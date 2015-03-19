@@ -12,6 +12,9 @@
 
 package org.neo4j.ogm.session.result;
 
+/**
+ * @author Vince Bickers
+ */
 public class RowModel {
 
     private Object[] values;

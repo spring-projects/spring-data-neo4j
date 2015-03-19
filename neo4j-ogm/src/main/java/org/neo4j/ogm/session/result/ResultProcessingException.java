@@ -12,6 +12,9 @@
 
 package org.neo4j.ogm.session.result;
 
+/**
+ * @author Vince Bickers
+ */
 public class ResultProcessingException extends RuntimeException {
 
     public ResultProcessingException(String reasonMessage, Exception cause) {

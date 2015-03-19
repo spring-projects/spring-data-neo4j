@@ -17,6 +17,9 @@ import org.neo4j.ogm.annotation.Relationship;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * @author Vince Bickers
+ */
 public class Person {
 
     private Long id;

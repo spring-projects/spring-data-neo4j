@@ -19,6 +19,7 @@ package org.neo4j.ogm.typeconversion;
  * By default, the OGM will automatically convert BigInteger and BigDecimal
  * entity attributes using this converter.
  *
+ * @author Vince Bickers
  */
 public class NumberStringConverter implements AttributeConverter<Number, String> {
 

@@ -18,6 +18,9 @@ import org.junit.Test;
 import org.neo4j.ogm.domain.policy.Person;
 import org.neo4j.ogm.domain.policy.Policy;
 
+/**
+ * @author Mark Angrish
+ */
 public class RelationshipMappingTest extends MappingTest {
 
     @BeforeClass

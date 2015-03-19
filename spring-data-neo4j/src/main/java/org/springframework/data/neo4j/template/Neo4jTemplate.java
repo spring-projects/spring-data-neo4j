@@ -28,6 +28,8 @@ import static org.springframework.data.neo4j.util.IterableUtils.getSingleOrNull;
 
 /**
  * Spring Data template for Neo4j.  Implementation of {@link Neo4jOperations}.
+ *
+ * @author Michal Bachman
  */
 public class Neo4jTemplate implements Neo4jOperations, ApplicationEventPublisherAware {
 

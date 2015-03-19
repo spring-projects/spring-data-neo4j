@@ -30,6 +30,8 @@ import java.util.Iterator;
 
 /**
  * Implementation of {@link EntityToGraphMapper} that is driven by an instance of {@link MetaData}.
+ *
+ * @author Vince Bickers
  */
 public class EntityGraphMapper implements EntityToGraphMapper {
 

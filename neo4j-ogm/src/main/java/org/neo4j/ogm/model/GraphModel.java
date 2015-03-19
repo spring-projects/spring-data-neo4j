@@ -15,6 +15,9 @@ package org.neo4j.ogm.model;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * @author Michal Bachman
+ */
 public class GraphModel  {
 
     private final Map<Long, NodeModel> nodeMap = new HashMap<>();

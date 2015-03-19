@@ -12,6 +12,9 @@
 
 package org.springframework.data.neo4j.integration.movies.domain;
 
+/**
+ * @author Michal Bachman
+ */
 public class Movie extends AbstractEntity {
 
     private String title;

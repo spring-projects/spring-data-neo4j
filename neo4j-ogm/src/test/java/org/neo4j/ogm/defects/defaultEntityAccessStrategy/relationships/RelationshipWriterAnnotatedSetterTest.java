@@ -25,6 +25,9 @@ import java.util.List;
 
 import static org.junit.Assert.*;
 
+/**
+ * @author Vince Bickers
+ */
 public class RelationshipWriterAnnotatedSetterTest {
 
     private DefaultEntityAccessStrategy entityAccessStrategy = new DefaultEntityAccessStrategy();

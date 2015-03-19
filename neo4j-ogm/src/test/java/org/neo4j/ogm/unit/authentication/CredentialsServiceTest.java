@@ -20,6 +20,9 @@ import org.neo4j.ogm.authentication.CredentialsService;
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertNull;
 
+/**
+ * @author Vince Bickers
+ */
 public class CredentialsServiceTest {
 
     @Before

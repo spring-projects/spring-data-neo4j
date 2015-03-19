@@ -12,6 +12,9 @@
 
 package org.neo4j.ogm.domain.education;
 
+/**
+ * @author Vince Bickers
+ */
 public class Student extends DomainObject {
 
     private String name;

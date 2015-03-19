@@ -19,6 +19,8 @@ import java.util.Map.Entry;
 
 /**
  * Implementation of {@link CypherCompiler} that builds a single query for the object graph.
+ *
+ * @author Vince Bickers
  */
 public class SingleStatementCypherCompiler implements CypherCompiler {
 

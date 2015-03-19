@@ -22,6 +22,9 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * @author Michal Bachman
+ */
 @Repository
 public interface UserRepository extends GraphRepository<User> {
 

@@ -16,6 +16,9 @@ import org.springframework.data.neo4j.integration.movies.domain.Genre;
 import org.springframework.data.neo4j.repository.GraphRepository;
 import org.springframework.stereotype.Repository;
 
+/**
+ * @author Michal Bachman
+ */
 @Repository
 public interface GenreRepository extends GraphRepository<Genre> {
 }

@@ -28,6 +28,9 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+/**
+ * @author Vince Bickers
+ */
 public class MappingContextTest {
 
     private MappingContext collector;

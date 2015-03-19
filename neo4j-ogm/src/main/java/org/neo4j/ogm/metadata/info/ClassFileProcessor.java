@@ -15,6 +15,9 @@ package org.neo4j.ogm.metadata.info;
 import java.io.IOException;
 import java.io.InputStream;
 
+/**
+ * @author Vince Bickers
+ */
 public interface ClassFileProcessor {
 
     void process(InputStream inputStream) throws IOException;

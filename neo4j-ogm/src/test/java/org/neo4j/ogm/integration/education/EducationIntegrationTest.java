@@ -26,6 +26,9 @@ import java.util.Collections;
 
 import static org.junit.Assert.assertEquals;
 
+/**
+ * @author Luanne Misquitta
+ */
 public class EducationIntegrationTest extends InMemoryServerTest {
 
     @BeforeClass

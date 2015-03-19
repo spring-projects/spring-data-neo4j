@@ -19,6 +19,8 @@ import org.neo4j.ogm.annotation.StartNode;
 
 /**
  * Completely pointless class that does nothing but exercise {@link RelationshipEntity}.
+ *
+ * @author Vince Bickers
  */
 @RelationshipEntity(type = "HAS_TOPIC")
 public class ForumTopicLink {

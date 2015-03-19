@@ -12,6 +12,9 @@
 
 package org.neo4j.ogm.model;
 
+/**
+ * @author Michal Bachman
+ */
 public class Property<K, V> {
 
     K key;

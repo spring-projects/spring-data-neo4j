@@ -17,6 +17,9 @@ import org.neo4j.ogm.session.Utils;
 
 import java.util.Collection;
 
+/**
+ * @author Vince Bickers
+ */
 public class DeleteStatements {
 
     public ParameterisedStatement delete(Long id) {

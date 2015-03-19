@@ -31,6 +31,9 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * @author Vince Bickers
+ */
 public class SessionRequestHandler implements RequestHandler {
 
     private final ObjectMapper mapper;

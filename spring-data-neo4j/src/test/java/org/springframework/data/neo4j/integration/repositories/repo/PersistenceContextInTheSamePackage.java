@@ -21,6 +21,9 @@ import org.springframework.data.neo4j.server.Neo4jServer;
 import org.springframework.data.neo4j.server.RemoteServer;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
+/**
+ * @author Michal Bachman
+ */
 @Configuration
 @EnableNeo4jRepositories //no package specified, that's the point of this test
 @EnableTransactionManagement

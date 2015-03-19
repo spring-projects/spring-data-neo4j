@@ -12,6 +12,9 @@
 
 package org.neo4j.ogm.integration.hierarchy.domain.people;
 
+/**
+ * @author Michal Bachman
+ */
 public class Bloke extends Male {
 
     public Bloke() {

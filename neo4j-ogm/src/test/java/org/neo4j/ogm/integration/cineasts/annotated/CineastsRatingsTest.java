@@ -12,9 +12,7 @@
 package org.neo4j.ogm.integration.cineasts.annotated;
 
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Ignore;
-
 import org.junit.Test;
 import org.neo4j.ogm.domain.cineasts.annotated.Movie;
 import org.neo4j.ogm.domain.cineasts.annotated.Rating;
@@ -33,6 +31,8 @@ import static org.junit.Assert.*;
 
 /**
  * Simple integration test based on cineasts that exercises the Rating relationship entity.
+ *
+ * @author Luanne Misquitta
  */
 public class CineastsRatingsTest extends InMemoryServerTest {
 

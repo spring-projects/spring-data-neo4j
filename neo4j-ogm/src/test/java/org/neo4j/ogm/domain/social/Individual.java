@@ -17,6 +17,8 @@ import java.util.Vector;
 
 /**
  * Arbitrary POJO used to test mapping code.
+ *
+ * @author Adam George
  */
 public class Individual {
 

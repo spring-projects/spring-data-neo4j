@@ -31,6 +31,9 @@ import org.neo4j.ogm.session.result.RowModel;
 import java.lang.reflect.Field;
 import java.util.*;
 
+/**
+ *  @author Vince Bickers
+ */
 public class SessionResponseHandler implements ResponseHandler {
 
     private final MetaData metaData;

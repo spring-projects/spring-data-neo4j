@@ -20,6 +20,9 @@ import java.util.Date;
 
 import static org.junit.Assert.assertEquals;
 
+/**
+ * @author Adam George
+ */
 public class ClassUtilsTest {
 
     @Test

@@ -15,6 +15,9 @@ package org.neo4j.ogm.domain.convertible.bytes;
 import org.neo4j.ogm.annotation.typeconversion.Convert;
 import org.neo4j.ogm.typeconversion.ByteArrayBase64Converter;
 
+/**
+ * @author Vince Bickers
+ */
 public class Photo {
 
     Long id;

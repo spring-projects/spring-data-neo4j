@@ -31,6 +31,8 @@ import java.util.concurrent.ConcurrentMap;
  * The MappingContext maintains a map of all the objects created during the hydration
  * of an object map (domain hierarchy). The MappingContext lifetime is concurrent
  * with a session lifetime.
+ *
+ * @author Vince Bickers
  */
 public class MappingContext {
 

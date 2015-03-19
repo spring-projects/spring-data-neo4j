@@ -44,6 +44,7 @@ import static org.junit.Assert.assertEquals;
  * expect that when we retrieve 'f' it won't hold a reference to 'a'
  * any longer.
  *
+ * @author Vince Bickers
  */
 public class StaleObjectTest extends LifecycleTest {
 

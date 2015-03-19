@@ -14,6 +14,9 @@ package org.neo4j.ogm.domain.forum;
 
 import org.neo4j.ogm.annotation.Property;
 
+/**
+ * @author Vince Bickers
+ */
 // todo: default label and another in the class hierarchy...
 //@Label
 public abstract class Membership implements IMembership {

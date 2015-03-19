@@ -19,6 +19,8 @@ import java.util.*;
 
 /**
  * Maintains contextual information throughout the process of compiling Cypher statements to persist a graph of objects.
+ *
+ * @author Mark Angrish
  */
 public class CypherContext {
 

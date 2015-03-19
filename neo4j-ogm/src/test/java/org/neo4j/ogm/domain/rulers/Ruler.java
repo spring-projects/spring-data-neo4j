@@ -12,6 +12,9 @@
 
 package org.neo4j.ogm.domain.rulers;
 
+/**
+ * @author Vince Bickers
+ */
 public interface Ruler {
 
     String rulesOver();

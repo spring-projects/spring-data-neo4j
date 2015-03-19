@@ -14,6 +14,9 @@ package org.neo4j.ogm.domain.forum.activity;
 
 import java.util.List;
 
+/**
+ * @author Vince Bickers
+ */
 public class Post extends Activity {
 
     private String post;

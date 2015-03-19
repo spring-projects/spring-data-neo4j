@@ -19,6 +19,8 @@ import org.springframework.data.neo4j.template.Neo4jTemplate;
  * A Spring {@link ApplicationEvent} that gets published by {@link Neo4jTemplate} to notify interested parties about data
  * manipulation events.  In previous versions of Spring Data Neo4j this was known as <code>Neo4jLifecycleEvent</code> but
  * has been renamed to better describe the nature of the events.
+ *
+ * @author Adam George
  */
 public class Neo4jDataManipulationEvent extends ApplicationEvent {
 

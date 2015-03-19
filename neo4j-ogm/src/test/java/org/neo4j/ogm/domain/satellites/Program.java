@@ -17,6 +17,9 @@ import org.neo4j.ogm.annotation.Property;
 
 import java.util.List;
 
+/**
+ * @author Vince Bickers
+ */
 @NodeEntity(label="Space_Program")
 public class Program extends DomainObject {
 

@@ -20,6 +20,9 @@ import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * @author Vince Bickers
+ */
 public class EntityMemo {
 
     private final Map<Object, Long> objectHash = new HashMap<>();

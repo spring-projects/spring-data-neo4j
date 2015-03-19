@@ -20,6 +20,9 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpSession;
 
+/**
+ * @author Michal Bachman
+ */
 @Controller
 public class UserController {
 

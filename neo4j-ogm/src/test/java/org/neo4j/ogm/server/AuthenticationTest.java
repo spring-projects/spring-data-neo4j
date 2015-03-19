@@ -25,6 +25,9 @@ import java.io.IOException;
 
 import static org.junit.Assert.*;
 
+/**
+ * @author Vince Bickers
+ */
 public class AuthenticationTest extends LocalhostServerTest {
 
     private Session session;

@@ -12,18 +12,6 @@
 
 package org.springframework.data.neo4j.util;
 
-import static java.util.Arrays.asList;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.neo4j.tooling.GlobalGraphOperations.at;
-import static org.springframework.data.neo4j.util.IterableUtils.contains;
-import static org.springframework.data.neo4j.util.IterableUtils.getFirst;
-import static org.springframework.data.neo4j.util.IterableUtils.getFirstOrNull;
-import static org.springframework.data.neo4j.util.IterableUtils.getSingle;
-import static org.springframework.data.neo4j.util.IterableUtils.getSingleOrNull;
-
 import org.junit.Test;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
@@ -34,6 +22,14 @@ import org.neo4j.test.TestGraphDatabaseFactory;
 import java.util.Arrays;
 import java.util.Collections;
 
+import static java.util.Arrays.*;
+import static org.junit.Assert.*;
+import static org.neo4j.tooling.GlobalGraphOperations.*;
+import static org.springframework.data.neo4j.util.IterableUtils.*;
+
+/**
+ * @author Michal Bachman
+ */
 public class IterableUtilsTest {
 
     @Test

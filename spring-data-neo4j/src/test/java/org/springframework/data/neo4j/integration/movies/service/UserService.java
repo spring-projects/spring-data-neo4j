@@ -16,9 +16,8 @@ import org.springframework.data.neo4j.integration.movies.domain.User;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- *
+ * @author Michal Bachman
  */
-
 public interface UserService {
 
     @Transactional

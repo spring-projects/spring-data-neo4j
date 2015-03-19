@@ -28,6 +28,8 @@ import java.net.ServerSocket;
  * access the {@link org.neo4j.graphdb.GraphDatabaseService} object using {@link #getDatabase()}.
  * </p>
  * By overriding {@link #neoServerPort()}, you can change the port number of which the server runs.
+ *
+ * @author Michal Bachman
  */
 @SuppressWarnings("deprecation")
 public abstract class WrappingServerIntegrationTest extends DatabaseIntegrationTest {

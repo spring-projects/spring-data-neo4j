@@ -12,6 +12,9 @@
 
 package org.neo4j.ogm.authentication;
 
+/**
+ * @author Vince Bickers
+ */
 public class AuthTokenCredentials implements Neo4jCredentials<String> {
 
     private final String token;

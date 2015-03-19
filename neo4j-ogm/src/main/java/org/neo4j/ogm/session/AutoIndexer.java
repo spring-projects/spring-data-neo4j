@@ -53,6 +53,8 @@ package org.neo4j.ogm.session;
  * So the question arises: should we even support @Index, or should we expect a DBA function
  * to handle indexing and other tuning options externally?
  *
+ * @author Vince Bickers
+ *
  */
 public class AutoIndexer {
 }

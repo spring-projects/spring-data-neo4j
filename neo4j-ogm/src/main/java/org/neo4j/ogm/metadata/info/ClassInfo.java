@@ -39,6 +39,8 @@ import java.util.*;
  * hierarchy, the labels associated with that type will include the labels for
  * all its superclass and interface types as well. This is to avoid the need to iterate
  * through the ClassInfo hierarchy to recover label information.
+ *
+ * @author Vince Bickers
  */
 public class ClassInfo {
 

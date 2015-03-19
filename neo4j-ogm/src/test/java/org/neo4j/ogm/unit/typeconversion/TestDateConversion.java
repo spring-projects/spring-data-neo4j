@@ -26,6 +26,9 @@ import java.util.Date;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+/**
+ * @author Vince Bickers
+ */
 public class TestDateConversion {
 
     private static final MetaData metaData = new MetaData("org.neo4j.ogm.domain.convertible.date");

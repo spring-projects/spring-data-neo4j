@@ -21,6 +21,8 @@ package org.neo4j.ogm.typeconversion;
  * to break its database mapping, whereas if its ordinal
  * was persisted instead, the mapping would be broken
  * simply by changing the declaration order in the enum set.
+ *
+ * @author Vince Bickers
  */
 public class EnumStringConverter implements AttributeConverter<Enum, String> {
 

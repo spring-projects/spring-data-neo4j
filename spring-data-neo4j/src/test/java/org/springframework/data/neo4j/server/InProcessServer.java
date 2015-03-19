@@ -17,6 +17,9 @@ import org.neo4j.server.helpers.CommunityServerBuilder;
 
 import java.io.IOException;
 
+/**
+ * @author Michal Bachman
+ */
 public class InProcessServer implements Neo4jServer {
 
     private final NeoServer neoServer;

@@ -17,6 +17,9 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * @author Vince Bickers
+ */
 public class AnnotationInfo {
 
     private String annotationName;

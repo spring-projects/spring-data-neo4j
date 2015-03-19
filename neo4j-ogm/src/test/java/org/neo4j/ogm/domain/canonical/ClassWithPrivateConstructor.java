@@ -12,6 +12,9 @@
 
 package org.neo4j.ogm.domain.canonical;
 
+/**
+ * @author Vince Bickers
+ */
 public class ClassWithPrivateConstructor {
 
     private ClassWithPrivateConstructor() {

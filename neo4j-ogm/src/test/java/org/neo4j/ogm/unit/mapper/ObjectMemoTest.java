@@ -22,6 +22,9 @@ import org.neo4j.ogm.metadata.info.ClassInfo;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+/**
+ * @author Vince Bickers
+ */
 public class ObjectMemoTest {
 
     private static final MetaData metaData = new MetaData("org.neo4j.ogm.domain.education");

@@ -19,6 +19,9 @@ import java.util.Arrays;
 
 import static org.junit.Assert.assertEquals;
 
+/**
+ * @author Vince Bickers
+ */
 public class DeleteStatementsTest {
 
     private final DeleteStatements statements = new DeleteStatements();

@@ -12,15 +12,6 @@
 
 package org.springframework.data.neo4j.integration.template;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.Map;
-
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -41,6 +32,16 @@ import org.springframework.data.neo4j.integration.movies.domain.User;
 import org.springframework.data.neo4j.template.Neo4jOperations;
 import org.springframework.data.neo4j.template.Neo4jTemplate;
 
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.Map;
+
+import static org.junit.Assert.*;
+
+/**
+ * @author Adam George
+ */
 public class Neo4jTemplateTest extends WrappingServerIntegrationTest {
 
     private Neo4jOperations template;

@@ -14,6 +14,9 @@ package org.neo4j.ogm.domain.bike;
 
 import java.util.List;
 
+/**
+ * @author Vince Bickers
+ */
 public class Bike {
 
     private String[] colours;

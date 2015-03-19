@@ -18,6 +18,9 @@ import org.neo4j.ogm.domain.forum.activity.Post;
 
 import java.util.List;
 
+/**
+ * @author Vince Bickers
+ */
 public class Topic {
 
     @Relationship(type ="HAS_POSTS")

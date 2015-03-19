@@ -18,6 +18,7 @@ import java.util.List;
 
 /**
  * Represents a forum that contains a number of topics.
+ * @author Vince Bickers
  */
 public class Forum {
 

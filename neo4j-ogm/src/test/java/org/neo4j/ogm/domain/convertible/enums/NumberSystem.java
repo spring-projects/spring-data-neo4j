@@ -12,6 +12,9 @@
 
 package org.neo4j.ogm.domain.convertible.enums;
 
+/**
+ * @author Vince Bickers
+ */
 public enum NumberSystem {
 
     NATURAL("N"),

@@ -17,6 +17,8 @@ import java.util.Map;
 
 /**
  * Used to compile Cypher that holds information about a relationship
+ *
+ * @author Adam George
  */
 public abstract class RelationshipBuilder implements CypherEmitter, Comparable<RelationshipBuilder> {
 

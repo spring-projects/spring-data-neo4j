@@ -12,6 +12,9 @@
 
 package org.springframework.data.neo4j.server;
 
+/**
+ * @author Vince Bickers
+ */
 public class RemoteServer implements Neo4jServer {
 
     private final String url;

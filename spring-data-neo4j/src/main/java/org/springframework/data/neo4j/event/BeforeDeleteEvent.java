@@ -14,6 +14,8 @@ package org.springframework.data.neo4j.event;
 
 /**
  * {@link Neo4jDataManipulationEvent} published before a particular entity is deleted.
+ *
+ * @author Adam George
  */
 public class BeforeDeleteEvent extends Neo4jDataManipulationEvent {
 

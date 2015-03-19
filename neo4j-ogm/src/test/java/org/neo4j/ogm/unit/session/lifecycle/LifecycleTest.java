@@ -23,6 +23,9 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.ServerSocket;
 
+/**
+ * @author Michal Bachman
+ */
 public class LifecycleTest {
 
     private static NeoServer neoServer;

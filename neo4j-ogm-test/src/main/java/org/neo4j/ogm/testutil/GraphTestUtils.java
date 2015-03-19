@@ -12,21 +12,6 @@
 
 package org.neo4j.ogm.testutil;
 
-import static org.junit.Assert.fail;
-import static org.neo4j.graphdb.Direction.OUTGOING;
-import static org.neo4j.helpers.collection.Iterables.count;
-import static org.neo4j.tooling.GlobalGraphOperations.at;
-
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import org.neo4j.cypher.javacompat.ExecutionEngine;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Label;
@@ -38,8 +23,25 @@ import org.neo4j.test.TestGraphDatabaseFactory;
 import org.neo4j.tooling.GlobalGraphOperations;
 import org.parboiled.common.StringUtils;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import static org.junit.Assert.*;
+import static org.neo4j.graphdb.Direction.*;
+import static org.neo4j.helpers.collection.Iterables.*;
+import static org.neo4j.tooling.GlobalGraphOperations.*;
+
 /**
  * Utility methods used to facilitate testing against a real Neo4j database.
+ *
+ * @author Michal Bachman
  */
 public final class GraphTestUtils {
 

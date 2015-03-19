@@ -13,6 +13,9 @@
 package org.springframework.data.neo4j.integration.repositories.domain;
 
 
+/**
+ * @author Michal Bachman
+ */
 public class Movie {
 
     private Long id;

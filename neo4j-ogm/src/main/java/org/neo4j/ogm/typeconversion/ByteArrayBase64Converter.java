@@ -17,6 +17,8 @@ import org.apache.commons.codec.binary.Base64;
 /**
  * By default the OGM will map byte[] objects to Base64
  * String values when being stored as a node / relationship property
+ *
+ * @author Vince Bickers
  */
 public class ByteArrayBase64Converter implements AttributeConverter<byte[], String> {
 

@@ -17,6 +17,9 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
 
+/**
+ * @author Michal Bachman
+ */
 @Configuration
 @ComponentScan({"org.springframework.data.neo4j.integration.web.controller"})
 @EnableWebMvc

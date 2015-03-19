@@ -12,6 +12,9 @@
 
 package org.neo4j.ogm.integration.hierarchy.domain.trans;
 
+/**
+ * @author Michal Bachman
+ */
 public class PlainChildOfTransientParent extends TransientSingleClass {
 
     Long id;

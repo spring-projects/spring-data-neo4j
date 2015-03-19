@@ -27,6 +27,9 @@ import java.util.Set;
 
 import static org.junit.Assert.*;
 
+/**
+ * @author Luanne Misquitta
+ */
 //@Ignore
 public class AnnotatedFieldAndNonAnnotatedSetter {
     private DefaultEntityAccessStrategy entityAccessStrategy = new DefaultEntityAccessStrategy();

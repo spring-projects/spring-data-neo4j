@@ -18,6 +18,9 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * @author Vince Bickers
+ */
 public class AnnotationsInfo {
 
     private final Map<String, AnnotationInfo> classAnnotations = new HashMap<>();

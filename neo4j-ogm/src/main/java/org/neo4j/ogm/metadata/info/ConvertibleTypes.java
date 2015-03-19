@@ -18,6 +18,9 @@ import org.neo4j.ogm.typeconversion.*;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 
+/**
+ * @author Vince Bickers
+ */
 public abstract class ConvertibleTypes {
 
     public static AttributeConverter<?, ?> getDateConverter() {

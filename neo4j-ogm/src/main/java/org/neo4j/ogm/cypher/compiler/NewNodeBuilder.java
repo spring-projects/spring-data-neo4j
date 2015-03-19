@@ -21,6 +21,8 @@ import java.util.Set;
 
 /**
  * Renders Cypher appropriate for a new node that needs creating in the database.
+ *
+ * @author Vince Bickers
  */
 class NewNodeBuilder extends NodeBuilder {
 

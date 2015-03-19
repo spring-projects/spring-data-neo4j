@@ -20,6 +20,9 @@ import org.neo4j.ogm.model.Property;
 import java.util.Collection;
 import java.util.Set;
 
+/**
+ * @author Vince Bickers
+ */
 public interface ResponseHandler {
 
     <T> T loadById(Class<T> type, Neo4jResponse<GraphModel> stream, Long id);

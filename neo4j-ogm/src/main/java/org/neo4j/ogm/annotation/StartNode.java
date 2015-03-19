@@ -22,6 +22,8 @@ import java.lang.annotation.Target;
  * a relationship in the graph, and, along with @EndNode
  * is a mandatory annotation on any domain entity that is annotated
  * with @RelationshipEntity
+ *
+ * @author Michal Bachman
  */
 
 @Retention(RetentionPolicy.RUNTIME)

@@ -15,6 +15,9 @@ package org.neo4j.ogm.integration.hierarchy.domain.annotated;
 import org.neo4j.ogm.annotation.GraphId;
 import org.neo4j.ogm.annotation.NodeEntity;
 
+/**
+ * @author Michal Bachman
+ */
 @NodeEntity
 public class AnnotatedConcreteParent {
 

@@ -30,6 +30,9 @@ import org.neo4j.test.TestGraphDatabaseFactory;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 
+/**
+ * @author Mark Angrish
+ */
 public abstract class MappingTest
 {
     protected EntityToGraphMapper mapper;

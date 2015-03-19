@@ -21,6 +21,8 @@ import java.util.Set;
 
 /**
  * Renders Cypher appropriate for a node that already exists in the database and needs updating.
+ *
+ * @author Vince Bickers
  */
 class ExistingNodeBuilder extends NodeBuilder {
 

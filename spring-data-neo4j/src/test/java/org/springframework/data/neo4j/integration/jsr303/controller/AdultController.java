@@ -23,6 +23,9 @@ import org.springframework.web.bind.annotation.*;
 import javax.validation.Valid;
 import javax.validation.ValidationException;
 
+/**
+ * @author Vince Bickers
+ */
 @Controller
 public class AdultController {
 

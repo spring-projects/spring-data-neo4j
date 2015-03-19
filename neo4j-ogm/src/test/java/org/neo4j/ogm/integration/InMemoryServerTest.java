@@ -24,6 +24,9 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.ServerSocket;
 
+/**
+ * @author Michal Bachman
+ */
 @Category(IntegrationTest.class)
 
 public class InMemoryServerTest {

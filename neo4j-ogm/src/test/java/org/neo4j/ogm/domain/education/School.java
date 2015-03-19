@@ -15,6 +15,9 @@ package org.neo4j.ogm.domain.education;
 import java.util.HashSet;
 import java.util.Set;
 
+/**
+ * @author Vince Bickers
+ */
 public class School extends DomainObject {
 
     private Set<Teacher> teachers = new HashSet<>();

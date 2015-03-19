@@ -20,6 +20,9 @@ import org.neo4j.ogm.session.transaction.Transaction;
 
 import static org.junit.Assert.assertEquals;
 
+/**
+ * @author Michal Bachman
+ */
 public class TransactionRequestHandlerTest extends InMemoryServerTest {
 
     private static final CloseableHttpClient httpClient = HttpClients.createDefault();

@@ -28,6 +28,9 @@ import org.springframework.util.Assert;
 
 import javax.annotation.Resource;
 
+/**
+ * @author Vince Bickers
+ */
 @Configuration
 public abstract class Neo4jConfiguration {
 

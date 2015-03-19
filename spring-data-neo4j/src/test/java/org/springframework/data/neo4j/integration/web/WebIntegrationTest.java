@@ -37,6 +37,9 @@ import java.util.concurrent.TimeUnit;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+/**
+ * @author Michal Bachman
+ */
 @ContextConfiguration(classes = {WebAppContext.class, WebPersistenceContext.class})
 @WebAppConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)

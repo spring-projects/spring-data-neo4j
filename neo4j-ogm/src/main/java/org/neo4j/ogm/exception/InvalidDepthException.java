@@ -11,6 +11,9 @@
  */
 package org.neo4j.ogm.exception;
 
+/**
+ * @author Luanne Misquitta
+ */
 public class InvalidDepthException extends RuntimeException{
 
     public InvalidDepthException() {

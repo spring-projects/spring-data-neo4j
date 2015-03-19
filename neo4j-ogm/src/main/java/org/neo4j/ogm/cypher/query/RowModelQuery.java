@@ -16,6 +16,9 @@ import org.neo4j.ogm.cypher.statement.ParameterisedStatement;
 
 import java.util.Map;
 
+/**
+ * @author Vince Bickers
+ */
 public class RowModelQuery extends ParameterisedStatement {
 
     public RowModelQuery(String cypher, Map<String, ?> parameters) {

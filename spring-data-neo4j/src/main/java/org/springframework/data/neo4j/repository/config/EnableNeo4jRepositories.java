@@ -19,6 +19,9 @@ import org.springframework.data.repository.query.QueryLookupStrategy;
 
 import java.lang.annotation.*;
 
+/**
+ * @author Vince Bickers
+ */
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
 @Documented

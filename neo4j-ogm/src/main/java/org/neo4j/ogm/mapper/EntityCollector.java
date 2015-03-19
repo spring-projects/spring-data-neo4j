@@ -23,6 +23,8 @@ import java.util.Set;
 
 /**
  * Utility to help group elements of a common type into a single collection to be set on an owning object.
+ *
+ * @author Adam George
  */
 class EntityCollector {
 

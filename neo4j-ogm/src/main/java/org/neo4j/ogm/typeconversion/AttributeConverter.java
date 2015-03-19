@@ -19,6 +19,8 @@ package org.neo4j.ogm.typeconversion;
  *
  * @param <T> the class of the entity attribute
  * @param <F> the class of the associated graph property
+ *
+ * @author Vince Bickers
  */
 public interface AttributeConverter<T, F> {
 

@@ -21,6 +21,9 @@ import org.neo4j.ogm.session.result.RowModel;
 
 import java.util.List;
 
+/**
+ * @author Vince Bickers
+ */
 public interface RequestHandler {
 
     Neo4jResponse<GraphModel> execute(GraphModelQuery query, String url);

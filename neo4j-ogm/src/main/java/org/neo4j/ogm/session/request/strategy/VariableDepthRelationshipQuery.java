@@ -18,6 +18,9 @@ import org.neo4j.ogm.session.Utils;
 
 import java.util.Collection;
 
+/**
+ * @author Luanne Misquitta
+ */
 public class VariableDepthRelationshipQuery implements QueryStatements {
     @Override
     public GraphModelQuery findOne(Long id, int depth) {

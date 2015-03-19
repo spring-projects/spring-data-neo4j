@@ -15,6 +15,9 @@ package org.neo4j.ogm;
 import org.neo4j.ogm.session.request.Neo4jRequest;
 import org.neo4j.ogm.session.response.Neo4jResponse;
 
+/**
+ * @author Vince Bickers
+ */
 public abstract class RequestProxy implements Neo4jRequest<String> {
 
     protected abstract String[] getResponse();

@@ -17,6 +17,9 @@ import org.neo4j.ogm.typeconversion.DateStringConverter;
 
 import java.util.Date;
 
+/**
+ * @author Vince Bickers
+ */
 public class DateNumericStringConverter implements AttributeConverter<Date, String> {
 
     private final DateStringConverter converter = new DateStringConverter("yyyyMMddhhmmss");

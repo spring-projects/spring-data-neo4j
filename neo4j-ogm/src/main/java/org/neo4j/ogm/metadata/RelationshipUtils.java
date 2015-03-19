@@ -19,6 +19,8 @@ package org.neo4j.ogm.metadata;
  * lowerCamelCase.  The de-facto Java Bean getter/setter pattern is also assumed when inferring accessor methods.
  * </p>
  * The utility methods here will all throw a <code>NullPointerException</code> if invoked with <code>null</code>.
+ *
+ * @author Adam George
  */
 public class RelationshipUtils {
 

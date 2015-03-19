@@ -18,6 +18,9 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
+/**
+ * @author Michal Bachman
+ */
 public class User {
 
     private Long id;

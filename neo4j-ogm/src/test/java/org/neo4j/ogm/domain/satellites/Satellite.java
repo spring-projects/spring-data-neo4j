@@ -30,6 +30,7 @@ import org.neo4j.ogm.annotation.Property;
  *
  * Does the absence of an 'ACTIVE' relationship imply 'INACTIVE' and therefore active=False?
  *
+ * @author Vince Bickers
  */
 public class Satellite extends DomainObject {
 

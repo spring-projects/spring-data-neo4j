@@ -17,6 +17,9 @@ import org.neo4j.ogm.annotation.StartNode;
 
 import java.util.Date;
 
+/**
+ * @author Luanne Misquitta
+ */
 @RelationshipEntity
 public class Knows {
 

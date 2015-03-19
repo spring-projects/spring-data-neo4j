@@ -17,10 +17,12 @@ import org.junit.Test;
 import org.neo4j.ogm.domain.cineasts.partial.Actor;
 import org.neo4j.ogm.domain.cineasts.partial.Movie;
 
-/*
+/**
  * The purpose of these tests is to describe the behaviour of the
  * mapper when a RelationshipEntity object is not referenced by
  * both of its Related entities.
+ *
+ * @author Vince Bickers
  */
 public class RelationshipEntityPartialMappingTest extends MappingTest {
 

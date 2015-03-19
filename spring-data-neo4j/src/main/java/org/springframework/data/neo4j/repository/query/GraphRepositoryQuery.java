@@ -23,7 +23,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Created by markangrish on 13/01/2015.
+ * @author Mark Angrish
  */
 public class GraphRepositoryQuery implements RepositoryQuery {
 

@@ -18,6 +18,9 @@ import org.neo4j.ogm.metadata.info.MethodInfo;
 
 import java.lang.reflect.Method;
 
+/**
+ * @author Vince Bickers
+ */
 public class MethodWriter extends EntityAccess {
 
     private final MethodInfo setterMethodInfo;

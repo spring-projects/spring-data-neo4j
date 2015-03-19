@@ -16,6 +16,9 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
+/**
+ * @author Vince Bickers
+ */
 public class ReturnClauseBuilder implements CypherEmitter {
     @Override
     public boolean emit(StringBuilder queryBuilder, Map<String, Object> parameters, Set<String> varStack) {

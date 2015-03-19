@@ -14,6 +14,9 @@ package org.neo4j.ogm.integration.hierarchy.domain.trans;
 
 import org.neo4j.ogm.annotation.Transient;
 
+/**
+ * @author Michal Bachman
+ */
 @Transient
 public class TransientSingleClass {
 }

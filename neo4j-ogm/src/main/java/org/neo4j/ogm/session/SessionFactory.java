@@ -17,6 +17,9 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.neo4j.ogm.metadata.MetaData;
 
+/**
+ * @author Vince Bickers
+ */
 public class SessionFactory {
 
     private static final ObjectMapper objectMapper = new ObjectMapper();

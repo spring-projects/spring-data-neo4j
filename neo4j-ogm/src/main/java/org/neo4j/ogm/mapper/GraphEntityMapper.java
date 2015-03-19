@@ -39,6 +39,9 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+/**
+ * @author Vince Bickers
+ */
 public class GraphEntityMapper implements GraphToEntityMapper<GraphModel> {
 
     private final Logger logger = LoggerFactory.getLogger(GraphEntityMapper.class);

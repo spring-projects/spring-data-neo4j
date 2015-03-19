@@ -12,6 +12,9 @@
 
 package org.neo4j.ogm.domain.policy;
 
+/**
+ * @author Mark Angrish
+ */
 public class DomainObject {
 
     private Long id;

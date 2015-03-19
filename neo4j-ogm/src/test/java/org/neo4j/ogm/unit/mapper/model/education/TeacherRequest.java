@@ -16,6 +16,8 @@ import org.neo4j.ogm.RequestProxy;
 
 /**
  * MATCH p=(t:TEACHER)--(c) return p
+ *
+ * @author Vince Bickers
  */
 public class TeacherRequest extends RequestProxy {
 

@@ -18,6 +18,8 @@ import java.util.Vector;
 
 /**
  * This class defines every type we should be able to map to.
+ *
+ * @author Vince Bickers
  */
 public class Mappable {
 

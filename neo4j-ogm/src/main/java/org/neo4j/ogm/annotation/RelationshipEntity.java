@@ -23,6 +23,7 @@ import java.lang.annotation.*;
  * can be omitted if the domain entity's simple class name matches
  * exactly the relationship type.
  *
+ * @author Michal Bachman
  */
 
 @Retention(RetentionPolicy.RUNTIME)

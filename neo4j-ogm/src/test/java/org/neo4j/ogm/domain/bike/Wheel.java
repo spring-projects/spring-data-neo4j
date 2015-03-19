@@ -12,6 +12,9 @@
 
 package org.neo4j.ogm.domain.bike;
 
+/**
+ * @author Vince Bickers
+ */
 public class Wheel {
     private Long id;
     private Integer spokes;

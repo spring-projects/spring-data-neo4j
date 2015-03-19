@@ -17,6 +17,9 @@ import org.springframework.data.repository.config.RepositoryConfigurationExtensi
 
 import java.lang.annotation.Annotation;
 
+/**
+ * @author Vince Bickers
+ */
 public class Neo4jRepositoriesRegistrar extends RepositoryBeanDefinitionRegistrarSupport {
 
     @Override

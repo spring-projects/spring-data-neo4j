@@ -18,6 +18,9 @@ import org.neo4j.ogm.session.transaction.Transaction;
 import java.util.Collection;
 import java.util.Map;
 
+/**
+ * @author Vince Bickers
+ */
 public interface Session {
 
     <T> T load(Class<T> type, Long id);

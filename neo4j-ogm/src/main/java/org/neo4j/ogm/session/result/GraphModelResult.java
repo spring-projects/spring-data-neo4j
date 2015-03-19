@@ -14,6 +14,9 @@ package org.neo4j.ogm.session.result;
 
 import org.neo4j.ogm.model.GraphModel;
 
+/**
+ * @author Vince Bickers
+ */
 public class GraphModelResult {
 
     private GraphModel graph;

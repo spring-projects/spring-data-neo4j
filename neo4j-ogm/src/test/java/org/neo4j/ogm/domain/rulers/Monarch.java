@@ -12,6 +12,9 @@
 
 package org.neo4j.ogm.domain.rulers;
 
+/**
+ * @author Vince Bickers
+ */
 public abstract class Monarch extends Person implements Ruler {
 
     public String rulesOver() {

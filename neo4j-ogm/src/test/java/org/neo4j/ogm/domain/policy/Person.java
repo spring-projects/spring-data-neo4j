@@ -17,6 +17,9 @@ import org.neo4j.ogm.annotation.Relationship;
 import java.util.HashSet;
 import java.util.Set;
 
+/**
+ * @author Mark Angrish
+ */
 public class Person extends DomainObject {
 
     private Set<Policy> influenced = new HashSet<>();

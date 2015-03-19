@@ -33,6 +33,9 @@ import java.util.*;
 
 import static org.junit.Assert.*;
 
+/**
+ * @author Adam George
+ */
 public class DefaultEntityAccessStrategyTest {
 
     private DefaultEntityAccessStrategy entityAccessStrategy = new DefaultEntityAccessStrategy();

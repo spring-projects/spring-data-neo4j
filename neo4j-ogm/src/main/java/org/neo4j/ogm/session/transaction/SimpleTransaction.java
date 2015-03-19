@@ -22,6 +22,9 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * @author Vince Bickers
+ */
 public class SimpleTransaction implements Transaction {
 
     private final Logger logger = LoggerFactory.getLogger(Transaction.class);

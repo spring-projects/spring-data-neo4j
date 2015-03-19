@@ -12,5 +12,8 @@
 
 package org.neo4j.ogm.integration;
 
+/**
+ * @author Michal Bachman
+ */
 public interface IntegrationTest {
 }

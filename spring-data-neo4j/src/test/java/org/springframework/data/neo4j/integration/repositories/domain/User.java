@@ -12,6 +12,9 @@
 
 package org.springframework.data.neo4j.integration.repositories.domain;
 
+/**
+ * @author Michal Bachman
+ */
 public class User {
 
     private Long id;

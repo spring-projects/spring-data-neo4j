@@ -15,6 +15,9 @@ package org.neo4j.ogm.domain.convertible.numbers;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 
+/**
+ * @author Vince Bickers
+ */
 public class Account {
 
     private Long id;

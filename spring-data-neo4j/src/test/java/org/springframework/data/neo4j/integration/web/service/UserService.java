@@ -16,6 +16,9 @@ import org.springframework.data.neo4j.integration.web.domain.User;
 
 import java.util.Collection;
 
+/**
+ * @author Michal Bachman
+ */
 public interface UserService {
 
     User getUserByName(String name);

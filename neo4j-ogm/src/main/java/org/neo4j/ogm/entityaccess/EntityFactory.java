@@ -21,6 +21,9 @@ import org.neo4j.ogm.metadata.info.ClassInfo;
 import java.lang.reflect.Constructor;
 import java.util.*;
 
+/**
+ * @author Adam George
+ */
 public class EntityFactory {
 
     private final Map<String, String> taxaLeafClass = new HashMap<>();

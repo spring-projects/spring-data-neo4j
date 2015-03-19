@@ -33,6 +33,8 @@ import static org.junit.Assert.assertNotNull;
 
 /**
  *  Temporary playground for the full cycle.
+ *
+ *  @author Michal Bachman
  */
 public class EndToEndTest extends InMemoryServerTest {
 

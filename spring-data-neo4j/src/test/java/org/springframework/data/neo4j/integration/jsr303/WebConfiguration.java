@@ -19,6 +19,9 @@ import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
 
+/**
+ * @author Vince Bickers
+ */
 @Configuration
 @ComponentScan({"org.springframework.data.neo4j.integration.jsr303.controller"})
 @EnableWebMvc

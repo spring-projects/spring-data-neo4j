@@ -12,6 +12,9 @@
 
 package org.neo4j.ogm.domain.cineasts.partial;
 
+/**
+ * @author Vince Bickers
+ */
 public class Movie {
 
     Long id;

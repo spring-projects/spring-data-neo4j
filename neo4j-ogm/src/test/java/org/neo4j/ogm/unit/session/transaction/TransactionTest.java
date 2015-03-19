@@ -24,6 +24,9 @@ import org.neo4j.ogm.session.transaction.TransactionException;
 
 import static org.junit.Assert.*;
 
+/**
+ * @author Vince Bickers
+ */
 public class TransactionTest {
 
     private Transaction tx;

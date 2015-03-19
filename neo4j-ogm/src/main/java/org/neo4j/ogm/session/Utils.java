@@ -19,6 +19,9 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
+/**
+ * @author Vince Bickers
+ */
 public class Utils {
 
     public static final Map<String, Object> map(final Object... keysAndValues) {

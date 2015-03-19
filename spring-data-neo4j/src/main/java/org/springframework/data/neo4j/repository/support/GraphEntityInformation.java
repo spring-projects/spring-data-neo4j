@@ -18,7 +18,7 @@ import org.springframework.data.repository.core.support.AbstractEntityInformatio
 import java.io.Serializable;
 
 /**
- * Created by markangrish on 13/01/2015.
+ * @author Mark Angrish
  */
 public class GraphEntityInformation<ID extends Serializable, T> extends AbstractEntityInformation<T, Long> {
     private final Session session;

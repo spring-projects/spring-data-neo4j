@@ -18,6 +18,9 @@ import org.neo4j.ogm.annotation.typeconversion.Convert;
 import java.util.List;
 import java.util.Set;
 
+/**
+ * @author Vince Bickers
+ */
 public class User {
 
     Long id;

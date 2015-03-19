@@ -14,6 +14,9 @@ package org.neo4j.ogm.session.transaction;
 
 import org.neo4j.ogm.cypher.compiler.CypherContext;
 
+/**
+ * @author Vince Bickers
+ */
 public interface Transaction extends AutoCloseable {
 
 

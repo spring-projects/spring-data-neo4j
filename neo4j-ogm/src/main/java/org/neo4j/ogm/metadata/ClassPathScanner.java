@@ -23,6 +23,9 @@ import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
+/**
+ * @author Vince Bickers
+ */
 public class ClassPathScanner {
 
     private List<String> classPaths;

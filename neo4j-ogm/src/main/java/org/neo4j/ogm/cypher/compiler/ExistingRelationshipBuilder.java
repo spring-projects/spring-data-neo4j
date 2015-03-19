@@ -15,6 +15,9 @@ package org.neo4j.ogm.cypher.compiler;
 import java.util.Map;
 import java.util.Set;
 
+/**
+ * @author Adam George
+ */
 class ExistingRelationshipBuilder extends RelationshipBuilder {
 
     private final Long id;

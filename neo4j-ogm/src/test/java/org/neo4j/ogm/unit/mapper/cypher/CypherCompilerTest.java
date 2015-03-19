@@ -36,6 +36,9 @@ import java.util.Collections;
 
 import static org.junit.Assert.*;
 
+/**
+ * @author Vince Bickers
+ */
 public class CypherCompilerTest {
 
     private EntityToGraphMapper mapper;

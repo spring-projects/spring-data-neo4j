@@ -30,6 +30,9 @@ import java.util.Date;
 import static junit.framework.TestCase.assertNotNull;
 import static org.junit.Assert.assertEquals;
 
+/**
+ * @author Vince Bickers
+ */
 public class RelationshipEntityTest extends InMemoryServerTest {
 
     private static SessionFactory sessionFactory;

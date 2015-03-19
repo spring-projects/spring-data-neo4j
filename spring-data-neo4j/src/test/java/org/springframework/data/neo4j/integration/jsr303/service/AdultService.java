@@ -17,6 +17,9 @@ import org.springframework.data.neo4j.integration.jsr303.domain.Adult;
 import org.springframework.data.neo4j.integration.jsr303.repo.AdultRepository;
 import org.springframework.stereotype.Service;
 
+/**
+ * @author Vince Bickers
+ */
 @Service
 public class AdultService {
 

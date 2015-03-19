@@ -17,6 +17,9 @@ import org.neo4j.ogm.annotation.Relationship;
 import java.util.HashSet;
 import java.util.Set;
 
+/**
+ * @author Vince Bickers
+ */
 public class World {
 
     private final static String REACHABLE_BY_ROCKET = "REACHABLE_BY_ROCKET";

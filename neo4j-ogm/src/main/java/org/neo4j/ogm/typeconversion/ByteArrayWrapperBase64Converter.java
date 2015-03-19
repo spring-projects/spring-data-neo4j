@@ -23,6 +23,8 @@ import org.apache.commons.lang.ArrayUtils;
  * Byte[] means that this converter is slightly slower than
  * using the ByteArray64Converter, which works with primitive
  * byte arrays directly.
+ *
+ * @author Vince Bickers
  */
 public class ByteArrayWrapperBase64Converter implements AttributeConverter<Byte[], String> {
 

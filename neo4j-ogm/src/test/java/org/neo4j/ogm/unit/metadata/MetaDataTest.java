@@ -28,6 +28,9 @@ import java.util.List;
 
 import static org.junit.Assert.*;
 
+/**
+ * @author Vince Bickers
+ */
 public class MetaDataTest {
 
     private static final MetaData metaData = new MetaData("org.neo4j.ogm.domain.forum", "org.neo4j.ogm.domain.canonical");

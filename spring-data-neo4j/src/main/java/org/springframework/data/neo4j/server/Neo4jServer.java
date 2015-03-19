@@ -12,6 +12,9 @@
 
 package org.springframework.data.neo4j.server;
 
+/**
+ * @author Michal Bachman
+ */
 public interface Neo4jServer {
     String url();
 }

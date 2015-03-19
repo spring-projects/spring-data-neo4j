@@ -14,6 +14,9 @@ package org.neo4j.ogm.domain.forum;
 
 import java.beans.Transient;
 
+/**
+ * @author Vince Bickers
+ */
 public interface IMembership {
 
     // we assert fees are stored as Integers in the DB.

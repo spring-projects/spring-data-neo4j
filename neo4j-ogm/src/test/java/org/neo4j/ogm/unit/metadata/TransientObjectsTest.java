@@ -23,6 +23,9 @@ import org.neo4j.ogm.metadata.info.MethodInfo;
 import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.assertNull;
 
+/**
+ * @author Mark Angrish
+ */
 public class TransientObjectsTest {
 
     private static final MetaData metaData = new MetaData("org.neo4j.ogm.unit.metadata");

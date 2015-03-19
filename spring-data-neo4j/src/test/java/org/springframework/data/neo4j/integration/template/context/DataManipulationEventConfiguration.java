@@ -29,6 +29,8 @@ import org.springframework.data.neo4j.template.Neo4jTemplate;
 
 /**
  * Spring Configuration bean for testing data manipulation events supported by <code>Neo4jTemplate</code>.
+ *
+ * @author Adam George
  */
 @Configuration
 public class DataManipulationEventConfiguration extends Neo4jConfiguration {

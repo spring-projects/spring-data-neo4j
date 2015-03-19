@@ -12,12 +12,6 @@
 
 package org.neo4j.ogm.defects;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-
-import java.util.Collections;
-
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -26,6 +20,13 @@ import org.neo4j.ogm.session.Session;
 import org.neo4j.ogm.session.SessionFactory;
 import org.neo4j.ogm.testutil.WrappingServerIntegrationTest;
 
+import java.util.Collections;
+
+import static org.junit.Assert.*;
+
+/**
+ * @author Adam George
+ */
 @Ignore
 public class SessionCypherQueryTest extends WrappingServerIntegrationTest {
 

@@ -29,6 +29,9 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
+/**
+ * @author Luanne Misquitta
+ */
 public class NonAnnotatedFieldWithAnnotatedSetterTest {
 
     private DefaultEntityAccessStrategy entityAccessStrategy = new DefaultEntityAccessStrategy();

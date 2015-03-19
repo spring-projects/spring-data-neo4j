@@ -16,6 +16,8 @@ import org.neo4j.ogm.annotation.Property;
 
 /**
  * This object is entirely hydrated via its setters
+ *
+ * @author Vince Bickers
  */
 public class Orbit extends DomainObject {
 

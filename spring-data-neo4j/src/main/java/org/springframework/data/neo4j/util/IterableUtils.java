@@ -21,6 +21,8 @@ import java.util.List;
 
 /**
  * Utility methods for dealing with {@link Iterable}s.
+ *
+ * @author Michal Bachman
  */
 public final class IterableUtils {
 

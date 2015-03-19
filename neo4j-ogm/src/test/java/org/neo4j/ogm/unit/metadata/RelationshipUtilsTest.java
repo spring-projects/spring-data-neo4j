@@ -17,6 +17,9 @@ import org.neo4j.ogm.metadata.RelationshipUtils;
 
 import static org.junit.Assert.assertEquals;
 
+/**
+ * @author Mark Angrish
+ */
 public class RelationshipUtilsTest {
 
     @Test

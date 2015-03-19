@@ -14,6 +14,9 @@ package org.neo4j.ogm.unit.mapper.model.bike;
 
 import org.neo4j.ogm.RequestProxy;
 
+/**
+ * @author Vince Bickers
+ */
 public class BikeRequest extends RequestProxy {
 
     public String[] getResponse() {

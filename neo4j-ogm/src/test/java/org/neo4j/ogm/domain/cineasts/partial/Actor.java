@@ -19,6 +19,9 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
+/**
+ * @author Vince Bickers
+ */
 public class Actor {
 
     Long id;

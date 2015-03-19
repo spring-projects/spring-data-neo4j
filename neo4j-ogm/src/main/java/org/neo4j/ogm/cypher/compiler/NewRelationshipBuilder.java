@@ -16,6 +16,9 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+/**
+ * @author Vince Bickers
+ */
 class NewRelationshipBuilder extends RelationshipBuilder {
 
     public NewRelationshipBuilder(String reference) {

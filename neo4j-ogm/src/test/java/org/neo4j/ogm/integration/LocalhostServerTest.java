@@ -18,6 +18,9 @@ import org.neo4j.ogm.session.SessionFactory;
 
 import java.io.IOException;
 
+/**
+ * @author Michal Bachman
+ */
 @Category(IntegrationTest.class)
 
 public class LocalhostServerTest {

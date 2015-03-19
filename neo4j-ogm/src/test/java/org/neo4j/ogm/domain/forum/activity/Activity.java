@@ -16,6 +16,9 @@ import org.neo4j.ogm.annotation.GraphId;
 
 import java.util.Date;
 
+/**
+ * @author Vince Bickers
+ */
 public abstract class Activity {
 
     private Date date;

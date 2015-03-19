@@ -31,6 +31,9 @@ import org.springframework.web.context.WebApplicationContext;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+/**
+ * @author Vince Bickers
+ */
 @ContextConfiguration(classes = {WebConfiguration.class, PersistenceConfiguration.class})
 @WebAppConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)

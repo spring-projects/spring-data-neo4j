@@ -14,6 +14,9 @@ package org.neo4j.ogm.authentication;
 
 import org.apache.commons.codec.binary.Base64;
 
+/**
+ * @author Vince Bickers
+ */
 public class UsernamePasswordCredentials implements Neo4jCredentials<String> {
 
     private String credentials;

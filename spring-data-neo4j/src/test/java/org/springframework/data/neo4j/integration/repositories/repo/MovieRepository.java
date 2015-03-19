@@ -15,6 +15,9 @@ package org.springframework.data.neo4j.integration.repositories.repo;
 import org.springframework.data.neo4j.integration.repositories.domain.Movie;
 import org.springframework.data.repository.RepositoryDefinition;
 
+/**
+ * @author Michal Bachman
+ */
 @RepositoryDefinition(domainClass = Movie.class, idClass = Long.class)
 public interface MovieRepository {
 

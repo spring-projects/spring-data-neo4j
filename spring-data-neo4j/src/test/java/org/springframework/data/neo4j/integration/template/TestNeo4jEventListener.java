@@ -19,6 +19,8 @@ import org.springframework.data.neo4j.event.Neo4jDataManipulationEvent;
  * Spring {@code ApplicationListener} used to capture {@link Neo4jDataManipulationEvent}s that occur during a test run.
  * Note that this is abstract because you're supposed to create an anonymous subclass to handle event type 'E' when you
  * use it.  This ensures Spring doesn't just send {@link Neo4jDataManipulationEvent}s to everything regardless.
+ *
+ * @author Adam George
  */
 public abstract class TestNeo4jEventListener<E extends Neo4jDataManipulationEvent> implements ApplicationListener<E> {
 

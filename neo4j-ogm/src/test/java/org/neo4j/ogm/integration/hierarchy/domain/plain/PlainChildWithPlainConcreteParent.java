@@ -12,5 +12,8 @@
 
 package org.neo4j.ogm.integration.hierarchy.domain.plain;
 
+/**
+ * @author Michal Bachman
+ */
 public class PlainChildWithPlainConcreteParent extends PlainConcreteParent {
 }

@@ -28,6 +28,8 @@ import java.util.TimeZone;
  * using a user defined date format, e.g. "yy-MM-dd"
  *
  * @DateLong will read and write dates as Long values in the database.
+ *
+ * @author Vince Bickers
  */
 public class DateStringConverter implements AttributeConverter<Date, String> {
 

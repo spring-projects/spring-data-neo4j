@@ -14,6 +14,9 @@ package org.neo4j.ogm.domain.filesystem;
 
 import org.neo4j.ogm.annotation.Relationship;
 
+/**
+ * @author Vince Bickers
+ */
 public class Document {
 
     private Folder folder;

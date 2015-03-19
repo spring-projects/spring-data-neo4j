@@ -23,6 +23,9 @@ import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
 import org.springframework.data.neo4j.server.Neo4jServer;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
+/**
+ * @author Vince Bickers
+ */
 @Configuration
 @ComponentScan({"org.springframework.data.neo4j.integration.helloworld.*"})
 @PropertySource("classpath:helloworld.properties")

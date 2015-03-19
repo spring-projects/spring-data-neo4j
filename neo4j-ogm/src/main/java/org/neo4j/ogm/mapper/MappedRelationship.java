@@ -15,6 +15,8 @@ package org.neo4j.ogm.mapper;
 /**
  * Light-weight record of a relationship mapped from the database, stored as a triplet:
  * <code>startNodeId - relationshipType - endNodeId</code>
+ *
+ * @author Adam George
  */
 public class MappedRelationship {
 
