@@ -1,28 +1,31 @@
 [[reference_programming_model_repositories]]
 = CRUD with repositories
 
-The repositories provided by Spring Data Neo4j build on the composable repository infrastructure in http://static.springsource.org/spring-data/data-commons/docs/current/reference/html/#repositories[Spring Data Commons]. They allow for interface-based composition of repositories consisting of provided default implementations for certain interfaces and additional custom implementations for other methods.
+The repositories provided by Spring Data Neo4j build on the composable repository infrastructure in http://static.springsource.org/spring-data/data-commons/docs/current/reference/html/#repositories[Spring Data Commons]. 
+These allow for interface-based composition of repositories consisting of provided default implementations for certain interfaces and additional custom implementations for other methods.
 
 Spring Data Neo4j comes with a single `org.springframework.data.repository.CrudRepository` specialisation called
-`GraphRepository<T>` used for all object-graph mapping repositories.  This sub-interface also adds specific finder methods
-that take a _depth_ argument to control the eagerness with which related entities are fetched. Generally, it has all the
-desired repository methods. If other operations are required then the additional repository interfaces should be added
-to the individual interface declaration.
+`GraphRepository<T>` used for all object-graph mapping repositories.  
+This sub-interface also adds specific finder methods that take a _depth_ argument to control the horizon with which related entities are fetched. 
+Generally, it provides all the desired repository methods. 
+If other operations are required then the additional repository interfaces should be added to the individual interface declaration.
 
-NOTE: `GraphRepository` no longer combines `IndexRepository` and `TraversalRepository` because, for reasons explained
-above, these features are no longer supported in Spring Data Neo4j as of version 4.
+[NOTE]
+====
+`GraphRepository` no longer combines `IndexRepository` and `TraversalRepository` because, for reasons explained
+earlier, these features are no longer supported in Spring Data Neo4j as of version 4.
+====
 
 
 == GraphRepository
 
-As of SDN 4, this `GraphRepository<T>` should be the interface from which your entity repository interfaces inherit,
-with `T` being specified as the node entity type to persist.
+As of SDN 4, this `GraphRepository<T>` should be the interface from which your entity repository interfaces inherit, with `T` being specified as the domain entity type to persist.
 
-There is also no `TypeRepresentationStrategy` in the latest framework version.  Instead, the type representation strategy
-has been greatly simplified to use a single label-based mechanism as described in more detail here: <<reference_programming-model_typerepresentationstrategy>>
+There is also no `TypeRepresentationStrategy` in the latest framework version.  
+Instead, the type representation strategy has been greatly simplified to use a single label-based mechanism as described in more detail here: <<reference_programming-model_typerepresentationstrategy,Entity Type Representation>>
 
-Examples of methods you get for free out of `GraphRepository` are as follows.  For all of these examples the ID parameter
-is a `Long` that matches the graph ID:
+Examples of methods you get for free out of `GraphRepository` are as follows.  
+For all of these examples the ID parameter is a `Long` that matches the graph ID:
 
 Load an entity instance via an id::
 `T findOne(id)`
@@ -31,7 +34,7 @@ Check for existence of an id in the graph::
 `boolean exists(id)`
 
 Iterate over all nodes of a node entity type::
-`Iterable<T> findAll()` `Iterable<T> findAll(Sort)`
+`Iterable<T> findAll()` // TODO SDN4_GA `Iterable<T> findAll(Sort)`
 
 Count the instances of the repository entity type::
 `Long count()`
@@ -44,21 +47,29 @@ Delete graph entities::
 
 == Query and Finder Methods
 
-[[reference_programming-model_annotatedQueries]]
+[[reference_programming_model_annotatedQueries]]
 === Annotated queries
 
-Queries using the Cypher graph query language can be supplied with the `@Query` annotation. That means every method
-annotated with `@Query("start n=node:IndexName(key={node or 0}) match (n)-->(m) return m")` will use the supplied query string. The named or indexed parameter `{node}` will be substituted by the actual method parameter. Node and Relationship-Entities are handled directly, Iterables thereof as well. All other parameters are replaced directly (i.e. Strings, Longs, etc).
+Queries using the Cypher graph query language can be supplied with the `@Query` annotation. 
 
-NOTE: As of milestone 1 of Spring Data Neo4j 4, paging is not natively supported
+That means a repository method annotated with +
+`@Query("MATCH (:Actor {name:{name}})-[:ACTED_IN]->(m:Movie) return m")` +
+will use the supplied query query to retrieve data from Neo4j. 
+
+The named or indexed parameter `{param}` will be substituted by the actual method parameter. 
+Node and Relationship-Entities are handled directly and converted into their respective ids, Iterables thereof as well. 
+All other parameters types are provided directly (i.e. Strings, Longs, etc).
+
+[NOTE]
+As of Milestone 1 of Spring Data Neo4j 4, paging is not natively supported
 
 
 === Query results
 
-Typical results for queries are `Iterable<Type>`, `Iterable<Map<String,Object>>` or `Type`.  As of milestone one,
-`Slice<Type>` and `Page<Type>` are not supported. Nodes and relationships are converted to their respective entities
-(if they exist). Other values are converted using the registered <<reference_programming-model_conversion,conversion
-services>> (e.g. enums).
+Typical results for queries are `Iterable<Type>`, `Iterable<Map<String,Object>>` or `Type`.  As of Milestone 1,
+`Slice<Type>` and `Page<Type>` are not supported. 
+Nodes and relationships are converted to their respective entities (if they exist). 
+Other values are converted using the registered <<reference_programming-model_conversion,conversion services>> (e.g. enums).
 
 === Cypher examples
 
@@ -74,12 +85,14 @@ returns the names of the actors that have a ACTS_IN relationship to the movie no
 `MATCH (movie:Movie {title:'Matrix'})<-[r:RATED]-(user) WHERE r.stars > 3 RETURN user.name, r.stars, r.comment`::
 returns users names and their ratings (>3) of the movie titled 'Matrix'
 
-`(user:User {login='micha'})-[:FRIEND]-(friend)-[r:RATED]->(movie) RETURN movie.title, AVG(r.stars), COUNT(*) ORDER BY AVG(r.stars) DESC, COUNT(*) DESC`::
-returns the movies rated by the friends of the user 'micha', aggregated by movie.title, with averaged ratings and rating-counts sorted by both
+`MATCH (user:User {name='Michael'})-[:FRIEND]-(friend)-[r:RATED]->(movie) RETURN movie.title, AVG(r.stars), COUNT(*) ORDER BY AVG(r.stars) DESC, COUNT(*) DESC`::
+returns the movies rated by the friends of the user 'Michael', aggregated by `movie.title`, with averaged ratings and rating-counts sorted by both
 
-.Examples of Cypher queries placed on repository methods with @Query where values are replaced with method parameters,
-as described in the <<reference_programming-model_annotatedQueries>>) section.
-====
+Examples of Cypher queries placed on repository methods with @Query where values are replaced with method parameters,
+as described in the <<reference_programming_model_annotatedQueries>>) section.
+
+////
+TODO SDN4_GA
 [source,java]
 ----
 public interface MovieRepository extends GraphRepository<Movie> {
@@ -88,21 +101,20 @@ public interface MovieRepository extends GraphRepository<Movie> {
     @Query("MATCH (n) WHERE id(n)={0} RETURN n")
     Movie getMovieFromId(Integer idOfMovie);
 
-    // returns the nodes which will use index named title equal to movieTitle parameter
-    // movieTitle String must not contain any spaces, otherwise you will receive a NullPointerException.
+    // returns the nodes which have a title according to the movieTitle parameter
     @Query("MATCH (movie:Movie {title={0}}) RETURN movie")
     Movie getMovieFromTitle(String movieTitle);
 
-    // returns the Actors that have a ACTS_IN relationship to the movie node with the title equal to movieTitle parameter. 
-    // (The parenthesis around 'movie' and 'actor' in the match clause are optional.)                       
-    @Query("MATCH (movie:Movie {title={0}})<-[:ACTS_IN]-(actor) RETURN actor")
-    Page<Actor> getActorsThatActInMovieFromTitle(String movieTitle, PageRequest);
+	// returns the Actors that have a ACTS_IN relationship to the movie node with the title equal to movieTitle parameter. 
+	// (The parenthesis around 'movie' and 'actor' in the match clause are optional.)                       
+	@Query("MATCH (movie:Movie {title={0}})<-[:ACTS_IN]-(actor) RETURN actor")
+	Page<Actor> getActorsThatActInMovieFromTitle(String movieTitle, PageRequest);
 
     // returns users who rated a movie (movie parameter) higher than rating (rating parameter)
     @Query("MATCH (movie:Movie)<-[r:RATED]-(user) " +
-           "WHERE id(movie)={0} AND r.stars > {1} " +
+           "WHERE id(movie)={movieId} AND r.stars > {rating} " +
            "RETURN user")
-    Iterable<User> getUsersWhoRatedMovieFromTitle(Movie movie, Integer rating);
+    Iterable<User> getUsersWhoRatedMovieFromTitle(@Param("movieId") Movie movie, @Param("rating") Integer rating);
 
     // returns users who rated a movie based on movie title (movieTitle parameter) higher than rating (rating parameter)
     @Query("MATCH (movie:Movie {title:{0}})<-[r:RATED]-(user) " +
@@ -111,18 +123,45 @@ public interface MovieRepository extends GraphRepository<Movie> {
      Iterable<User> getUsersWhoRatedMovieFromTitle(String movieTitle, Integer rating);
  }
 ----
-====
+////
+
+[source,java]
+----
+public interface MovieRepository extends GraphRepository<Movie> {
+    
+    // returns the node with id equal to idOfMovie parameter  
+    @Query("MATCH (n) WHERE id(n)={0} RETURN n")
+    Movie getMovieFromId(Integer idOfMovie);
+
+    // returns the nodes which have a title according to the movieTitle parameter
+    @Query("MATCH (movie:Movie {title={0}}) RETURN movie")
+    Movie getMovieFromTitle(String movieTitle);
+
+    // returns users who rated a movie based on movie title (movieTitle parameter) 
+    // higher than rating (rating parameter)
+    @Query("MATCH (movie:Movie {title:{title}})<-[r:RATED]-(user) " +
+           "WHERE r.stars > {rating} " +
+           "RETURN user")
+     Iterable<User> getUsersWhoRatedMovieFromTitle(@Param("title"} String movieTitle, 
+                                                   @Param("rating") Integer rating);
+ }
+----
+
+
+If you provided a `@Param("name")` annotation or use Java 8 then the method parameter name can be used directly (e.g. `findByTitle(String title)`).
 
 === Queries derived from finder-method names
 
-As known from Rails or Grails it is possible to derive queries for domain entities from finder method names like
-`Iterable<Person> findByNameAndAgeGreaterThan(String name, int age)`. Using the metadata infrastructure in the underlying
-object-graph mapper, a finder method name can be split into its semantic parts and converted into a cypher query.  Navigation along relationships will be reflected in the generated `MATCH` clause and properties with operators will end up as expressions in the `WHERE` clause.  Order and limiting of the query will by handled by provided `Pageable` or `Sort` parameters.  The other parameters will be used in the order they appear in the method signature so they should align with the expressions stated in the method name.
+As known from Rails or Grails it is possible to derive queries for domain entities from finder method names like +
+`Iterable<Person> findByNameAndAgeGreaterThan(String name, int age)`. 
 
-NOTE: This feature is unsupported as of SDN 4 Milestone 1
+Using the metadata infrastructure in the underlying object-graph mapper, a finder method name can be split into its semantic parts and converted into a cypher query.  
+Navigation along relationships will be reflected in the generated `MATCH` clause and properties with operators will end up as expressions in the `WHERE` clause.  
+// TODO SDN4_GA Order and limiting of the query will by handled by provided `Pageable` or `Sort` parameters.  
+// The other
+The parameters will be used in the order they appear in the method signature so they should align with the expressions stated in the method name.
 
 .Some examples of methods and corresponding Cypher queries of a PersonRepository
-====
 [source,java]
 ----
 public interface PersonRepository extends GraphRepository<Person> {
@@ -140,67 +179,12 @@ public interface PersonRepository extends GraphRepository<Person> {
 
 }
 ----
-====
-
-=== Derived Finder Methods
-
-Use the meta information of your domain model classes to declare repository finders that navigate along relationships
-and compare properties. The path defined with the method name is used to create a Cypher query that is executed on the graph.
-
-NOTE: This feature is unsupported as of SDN 4 Milestone 1
-
-.Repository and usage of derived finder methods
-====
-[source,java]
-----
-@NodeEntity
-public static class Person {
-    @GraphId Long id;
-    private String name;
-    private Group group;
-
-    private Person(){}
-    public Person(String name) {
-        this.name = name;
-    }
-}
-
-@NodeEntity
-public static class Group {
-    @GraphId Long id;
-    private String title;
-    // incoming relationship for the person -> group
-    @Relationship(type = "group", direction = Relationship.INCOMING)
-    private Set<Person> members = new HashSet<>();
-
-    private Group(){}
-    public Group(String title, Person... people) {
-        this.title = title;
-        members.addAll(asList(people));
-    }
-}
-public interface PersonRepository extends GraphRepository<Person> {
-    Iterable<Person> findByGroupTitle(String name);
-}
-
-@Autowired PersonRepository personRepository;
-
-Person oliver=personRepository.save(new Person("Oliver"));
-final Group springData = new Group("spring-data",oliver);
-groupRepository.save(springData);
-
-final Iterable<Person> members = personRepository.findByGroupTitle("spring-data");
-assertThat(members.iterator().next().name, is(oliver.name));
-----
-====
 
 == Creating repositories
 
-The `Repository` instances are created through Spring and can be auto-wired into your Spring beans as required.
-In previous versions, it was possible to create repositories using `Neo4jTemplate` but this is no longer possible
-as of SDN 4..
+The `Repository` instances are only created through Spring and can be auto-wired into your Spring beans as required.
 
-.Using basic GraphRepository methods
+.Using basic GraphRepository CRUD-methods
 ====
 [source,java]
 ----
@@ -216,21 +200,16 @@ public class MySpringBean {
 // then you can use the repository as you would any other object
 Person michael = repo.save(new Person("Michael", 36));
 
-Person dave = repo.findOne(123);
+Person dave = repo.load(123);
 
-Long numberOfPeople = repo.count();
-
-EndResult<Person> devs = graphRepository.findAllByProperty("occupation", "developer");
-
+long numberOfPeople = repo.count();
 ----
-====
 
-The recommended way of providing repositories is to define a repository interface per domain class. The undelying Spring
-repository infrastructure will automatically detect these repositories, along with additional implementation classes,
+The recommended way of providing repositories is to define a repository interface per domain class. 
+The underlying Spring repository infrastructure will automatically detect these repositories, along with additional implementation classes,
 and create an injectable repository implementation to be used in services or other spring beans.
 
 .Example Spring configuration bean
-====
 [source,java]
 ----
 @Configuration
@@ -246,5 +225,4 @@ public class PersistenceContext {
    // more bean definition methods here
 }
 ----
-====
 

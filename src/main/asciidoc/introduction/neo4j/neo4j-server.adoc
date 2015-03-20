@@ -1,3 +1,5 @@
+[NOTE] Not used.
+
 [[reference_neo4j-server]]
 = Neo4j Server
 

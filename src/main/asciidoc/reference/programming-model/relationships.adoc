@@ -1,33 +1,48 @@
 [[reference_programming_model_relationships]]
 = Relating node entities
 
-Since relationships are first-class citizens in Neo4j, associations between node entities are represented by relationships. In general, relationships are categorized by a type, and start and end nodes (which imply the direction of the relationship). Relationships can have an arbitrary number of properties. Spring Data Neo4j has special support to represent Neo4j relationships as entities too, but it is often not needed.
+Since relationships are first-class citizens in Neo4j, associations between node entities are represented by relationships. 
+In general, relationships are categorized by a type, and start and end nodes (which imply the direction of the relationship). 
+Relationships can have an arbitrary number of properties. 
+Spring Data Neo4j has special support to represent Neo4j relationships as entities too, but it is often not needed.
+
+// TODO SDN4_GA
+[NOTE]
+====
+The Milestone 1 of Spring Data Neo4j 4 provides support for Relationship-Entities but it is not fully implemented and tested.
+Use it only for providing feedback to the authors.
+====
 
 == @Relationship: Connecting node entities
 
-Every field of a node entity that references one or more other node entities is backed by relationships in the graph. These relationships are managed by Spring Data Neo4j automatically.
+Every field of a node entity that references one or more other node entities is backed by relationships in the graph. 
+These relationships are managed by Spring Data Neo4j automatically.
 
-The simplest kind of relationship is a single field pointing to another node entity (1:1). In this case, the field does not have to be annotated at all, although the annotation may be used to control the direction and type of the relationship. When setting the field, a relationship is created when the entity is persisted. If the field is set to `null`, the relationship is removed.
+The simplest kind of relationship is a single field pointing to another node entity (1:1). 
+In this case, the field does not have to be annotated at all, although the annotation may be used to control the direction and type of the relationship. 
+When setting the field, a relationship is created when the entity is persisted. 
+If the field is set to `null`, the relationship is removed.
 
 .Single relationship field
-====
 [source,java]
 ----
 @NodeEntity
 public class Movie {
+    ...
     private Actor topActor;
 }
 ----
-====
 
-It is also possible to have fields that reference a set of node entities (1:N). These fields come in two forms, modifiable or read-only. Modifiable fields are of the type `Collection<T>`, and read-only fields are `Iterable<T>`, where T is a type annotated with `@NodeEntity`.
+It is also possible to have fields that reference a set of node entities (1:N). 
+These fields come in two forms, modifiable or read-only. 
+Modifiable fields are of the type `Collection<T>`, and read-only fields are `Iterable<T>`, where T is a type annotated with `@NodeEntity`.
 
 .Node entity with relationships
-====
 [source,java]
 ----
 @NodeEntity
 public class Actor {
+    ...
     @Relationship(type = "TOP_ACTOR", direction = Relationship.INCOMING)
     private Set<Movie> topActorIn;
 
@@ -35,60 +50,61 @@ public class Actor {
     private Set<Movie> movies;
 }
 ----
-====
 
-For graph to object mapping, the automatic transitive loading of related entities depends on the depth of the search specified on the call to `Session.load()`.  By default, the _related_ node or relationship entities will just be loaded to minimum depth 0, which means their properties will be set but no further related entities will be populated.
+For graph to object mapping, the automatic transitive loading of related entities depends on the depth of the horizon specified on the call to `Session.load()`.  
+By default, the _related_ node or relationship entities will just be loaded to minimum depth 0, which means their properties will be set but no further related entities will be populated.
 
-If this `Set` of related entities is modified, the changes are reflected in the graph once the root object (`Actor`, in this case) is saved.  Relationships are added, removed or updated according to the differences between the root object that was loaded and the corresponding one that was saved..
+If this `Set` of related entities is modified, the changes are reflected in the graph once the root object (`Actor`, in this case) is saved. 
+Relationships are added, removed or updated according to the differences between the root object that was loaded and the corresponding one that was saved..
 
-Spring Data Neo4j ensures by default that there is only one relationship of a given type between any two given entities.  In previous versions of the framework `Direction.BOTH` could be used but this is no longer supported, since relationships are navigable in both directions anyway so duplicates don't need to be created.  If you don't care about the direction then you can specify `direction=Relationship.UNDIRECTED` which will guarantee that the path between two node entities is navigable from either side..
-
+Spring Data Neo4j ensures by default that there is only one relationship of a given type between any two given entities.  
+If you don't care about the direction then you can specify `direction=Relationship.UNDIRECTED` which will guarantee that the path between two node entities is navigable from either side.
 
 == @RelationshipEntity: Rich relationships
 
-To access the full data model of graph relationships, POJOs can also be annotated with `@RelationshipEntity`, making them relationship entities. Just as node entities represent nodes in the graph, relationship entities represent relationships. As described above, fields annotated with `@Relationship` provide a way to only link node entities via relationships, but it provides no way of accessing the relationships themselves.
+To access the full data model of graph relationships, POJOs can also be annotated with `@RelationshipEntity`, making them relationship entities. 
+Just as node entities represent nodes in the graph, relationship entities represent relationships. 
+As described above, fields annotated with `@Relationship` provide a way to only link node entities via relationships, but it provides no way of accessing the relationships themselves.
 
-Fields in relationship entities are similar to node entities, in that they're persisted as properties on the relationship. For accessing the two endpoints of the relationship, two special annotations are available: `@StartNode` and `@EndNode`. A field annotated with one of these annotations will provide read-only access to the corresponding endpoint, depending on the chosen annotation.
+Fields in relationship entities are similar to node entities, in that they're persisted as properties on the relationship. 
+For accessing the two endpoints of the relationship, two special annotations are available: `@StartNode` and `@EndNode`. 
+A field annotated with one of these annotations will provide read-only access to the corresponding endpoint, depending on the chosen annotation.
 
-For the relationship-type a `String` attribute called `type` is available on the `@RelationshipEntity` annotation.  Rather like the simple strategy for labelling node entities, if this is unset then the name of the class is used to derive the relationship type.  
+For controlling the relationship-type a `String` attribute called `type` is available on the `@RelationshipEntity` annotation.  
+Like the simple strategy for labelling node entities, if this is unset then the name of the class is used to derive the relationship type.  
 
-NOTE: You must include `@RelationshipEntity` plus exactly one `@StartNode` field and one `@EndNode` field on your relationship entity classes or the OGM will throw a MappingException when reading or writing.  It is not possible to use relationship entities in a non-annotated domain model.
+[NOTE]
+====
+You must include `@RelationshipEntity` plus exactly one `@StartNode` field and one `@EndNode` field on your relationship entity classes or the OGM will throw a MappingException when reading or writing.  
+It is not possible to use relationship entities in a non-annotated domain model.
+====
 
 .A simple Relationship entity
-====
 [source,java]
 ----
 @NodeEntity
 public class Actor {
-
+    Long id;
     private Role playedIn;
-
 }
 
 @RelationshipEntity
 public class Role {
-
-    @GraphId
-    private Long relationshipId;
-    @Property(name="partPlayed")
-    private String title;
-    @StartNode
-    private Actor actor;
-    @EndNode
-    private Movie movie;
-
+    @GraphId   private Long relationshipId;
+    @Property  private String title;
+    @StartNode private Actor actor;
+    @EndNode   private Movie movie;
 }
 
 @NodeEntity
 public class Movie {
-
+    private Long id;
     private String title;
-
 }
 ----
-====
 
-In previous versions of Spring Data Neo4j, a dynamic relationship type was supported.  However, this has been dropped completely for version 4, since it was not possible to manage it effectively for both reading from and writing to the graph.
+In previous versions of Spring Data Neo4j, a dynamic relationship type field was supported.  
+However, this has been dropped completely for version 4, since it was not possible to manage it effectively for both reading from and writing to the graph.
 
 
 [[reference_programming_model_relationships_relationshiptypediscrimination]]
@@ -97,12 +113,12 @@ In previous versions of Spring Data Neo4j, a dynamic relationship type was suppo
 In some cases, you want to model two different aspects of a conceptual relationship using the same relationship type.
 Here is a canonical example:
 
-.Clashing Relationship Types
-====
+.Clashing Relationship Type
 [source,java]
 ----
 @NodeEntity
 class Person {
+    private Long id;
     @Relationship(type="OWNS")
     private Car car;
 
@@ -111,12 +127,10 @@ class Person {
 ...
 }
 ----
-====
 
 In previous versions of Spring Data Neo4j, you would have to add an `enforceTargetType` attribute into every clashing
-`@Relationship` annotation for this to map correctly.  Thanks to changes in the underlying object-graph mapping mechanism,
-this is no longer necessary and the above will work just fine.
+`@Relationship` annotation for this to map correctly.  
+Thanks to changes in the underlying object-graph mapping mechanism, this is no longer necessary and the above will work just fine.
 
 However, please be aware that this will only work because the end node types (Car and Pet) are different types.
 If you wanted a person to own two cars, for example, then you'd have to use a `Collection` of cars or use differently-named relationship types.
-

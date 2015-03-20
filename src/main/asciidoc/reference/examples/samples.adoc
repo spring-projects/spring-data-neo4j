@@ -1,10 +1,12 @@
+[NOTE] Not used.
+
 [[reference_samples]]
 = Sample code
 
 [[samples_introduction]]
 == Introduction
 
-Spring Data Neo4j comes with a number of sample applications. The source code of the samples can be found on http://spring.neo4j.org/exampless[Github]. The different sample projects are introduced below.
+Spring Data Neo4j comes with a number of sample applications. The source code of the samples can be found on http://github.com/neo4j-examples[Github]. The different sample projects are introduced below.
 
 [[samples_hello-worlds]]
 == Hello Worlds sample application

@@ -1,67 +1,57 @@
 [[setup]]
 = Getting started
 
-Spring Data Neo4j dramatically simplifies development, but some setup is naturally required. For building the
-application, Maven needs to be configured to include the Spring Data Neo4j dependencies and
-after the build setup is complete, the Spring application needs to be configured to make use of Spring Data Neo4j.
-Examples for these different setups can be found in the http://spring.neo4j.org/examples[Spring Data Neo4j examples].
+Spring Data Neo4j dramatically simplifies development, but some setup is naturally required.
+For building the application, Maven needs to be configured to include the Spring Data Neo4j dependencies and after the build setup is complete, the Spring application needs to be configured to make use of Spring Data Neo4j.
+Examples for these different setups can be found in the http://github.com/neo4j-examples[Spring Data Neo4j examples].
 
 Spring Data Neo4j projects can be built using Maven, Gradle or Ant/Ivy.
 
 == Dependencies for Spring Data Neo4j
 
 .Maven dependencies for Spring Data Neo4j
-====
 [source,xml]
 ----
-        <dependency>
-            <groupId>org.neo4j.ogm</groupId>
-            <artifactId>neo4j-ogm</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>org.springframework.data</groupId>
-            <artifactId>spring-data-neo4j</artifactId>
-        </dependency>
+<dependency>
+    <groupId>org.springframework.data</groupId>
+    <artifactId>spring-data-neo4j</artifactId>
+    <version>{version}</version>
+</dependency>
 ----
-====
-
 
 == Spring configuration
 
-Users of Spring Data Neo4j 4 can current only configure their applications using Java-based bean configuration. Support
-for XML namespace configuration is expected to be available in Milestone 2
+Users of Spring Data Neo4j 4 can current only configure their applications using Java-based bean configuration.
+Support for XML namespace configuration is expected to be available in later versions.
 
 === Java-based bean configuration
 
-In order to configure Spring Data Neo4j with Java-based bean config, your Spring context must extend the core
-`Neo4jConfiguration` context that comes with Spring Data Neo4j. The example below shows how this can be done.
+In order to configure Spring Data Neo4j with Java-based bean config, your Spring context must extend the core `Neo4jConfiguration` class that comes with Spring Data Neo4j. 
+The example below shows how this can be done.
 
 NOTE:   You will need to override the `neo4jServer()`, `getSessionFactory()` and `getSession()` bean definitions to provide
 the required context for your own application. This is explained in more detail below.
 
-.Pure Java bean configuration
-====
+.Pure Java Configuration
 [source,java]
 ----
 @Configuration
 @EnableNeo4jRepositories(basePackages = "org.neo4j.example.repository")
 @EnableTransactionManagement
-public class Application extends Neo4jConfiguration {
+public class MyConfiguration extends Neo4jConfiguration {
 
-    @Override
     @Bean
     public Neo4jServer neo4jServer() {
         return new RemoteServer("http://localhost:7474");
     }
 
-    @Override
     @Bean
     public SessionFactory getSessionFactory() {
+        // with domain entity base package(s)
         return new SessionFactory("org.neo4j.example.domain");
     }
 
-    @Override
+    // needed for session in view in web-applications
     @Bean
     @Scope(value = "session", proxyMode = ScopedProxyMode.TARGET_CLASS)
     public Session getSession() throws Exception {
@@ -70,51 +60,64 @@ public class Application extends Neo4jConfiguration {
 
 }
 ----
-====
 
 === Neo4jServer Bean
 
-The `Neo4jServer` interface simply provides a URL with which to access the database.  The default implementations are `RemoteServer` and `InProcessServer`.
+The `Neo4jServer` interface simply provides a URL with which to access the database.  
+The default implementations are `RemoteServer` and `InProcessServer` (for testing).
 
-As the name implies, `RemoteServer` is used to provide the URL of a remote Neo4j server.  This will be the most typical use case for deployed applications.  As the above example shows, you simply construct a new instance with the URL of the server that you want to use.
+As the name implies, `RemoteServer` is used to provide the URL of a remote Neo4j server.  
+This will be the most typical use case for deployed applications.  
+As the above example shows, you simply construct a new instance with the URL of the server that you want to use.
 
-`InProcessServer` is useful for test and development environments, but is not recommended for production use.  This implementation will start a new instance of `CommunityNeoServer` running on an available local port and return the URL needed to connect to it.  It also registers a shutdown hook so that the underlying Neo4j server exits cleanly when the JVM shuts down, via _Control+C_, for example.
-To use the `InProcessServer` in your tests, you will need to add a dependency to the spring-data-neo4j-tests.jar:
+`InProcessServer` is useful for test and development environments, but is not recommended for production use.  
+This implementation will start a new instance of `CommunityNeoServer` running on an available local port and return the URL needed to connect to it. 
+It also registers a shutdown hook so that the underlying Neo4j server exits cleanly when the JVM shuts down, via _Control+C_, for example.
+To use the `InProcessServer` in your tests, you will need to add a dependency to the `spring-data-neo4j-tests.jar``:
 
 .Maven dependencies for Spring Data Neo4j Test classes
-====
 [source,xml]
 ----
         <dependency>
             <groupId>org.neo4j.ogm</groupId>
             <artifactId>neo4j-testutils</artifactId>
             <type>test-jar</type>
+            <scope>test</scope>
         </dependency>
 
         <dependency>
             <groupId>org.springframework.data</groupId>
             <artifactId>spring-data-neo4j-tests</artifactId>
             <type>test-jar</type>
+            <scope>test</scope>
         </dependency>
 ----
-====
 
 === SessionFactory Bean
 
-The `SessionFactory` is needed by SDN to create instances of `org.neo4j.ogm.session.Session` as required.  This also sets up the object-graph mapping metadata when constructed, which is then used across all `Session` objects that it creates.  As seen in the above example, the packages to scan for domain object metadata should be provided to the `SessionFactory` constructor.
+The `SessionFactory` is needed by SDN to create instances of `org.neo4j.ogm.session.Session` as required.  
+This also sets up the object-graph mapping metadata when constructed, which is then used across all `Session` objects that it creates.  
+As seen in the above example, the packages to scan for domain object metadata should be provided to the `SessionFactory` constructor.
 
-Note that the session factory should typically be application-scoped.  While you can use a narrower scope for this if you like, there is typically no advantage in doing so.
+Note that the session factory should typically be application-scoped.  
+While you can use a narrower scope for this if you like, there is typically no advantage in doing so.
 
 === Session Bean
 
-A `Session` is used to drive the object-graph mapping framework on which Spring Data Neo4j is based.  All repository implementations and `Neo4jTemplate` are driven by the `Session`, and you can also auto-wire it into your Spring beans and code against it directly if you wish.
+A `Session` is used to drive the object-graph mapping framework on which Spring Data Neo4j is based.  
+All repository implementations and `Neo4jTemplate` are driven by the `Session`, and you can also auto-wire it into your Spring beans and code against it directly if you wish.
 
-The life cycle of a `Session` is important to consider because it keeps track of the changes that have been made to entities and their relationships.  The reason it does this is so that only entities and relationships that have changed get persisted on save, which is particularly efficient when working with large graphs.  Note, however, that the `Session` doesn't ever return cached objects so there's no risk of getting stale data on load; it always hits the database.
+The life cycle of a `Session` is important to consider because it keeps track of the changes that have been made to entities and their relationships.  
+The reason it does this is so that only entities and relationships that have changed get persisted on save, which is particularly efficient when working with large graphs.  
+Note, however, that the `Session` *doesn't ever return cached objects* so there's no risk of getting stale data on load; it always hits the database.
 
-If your application relies on long-running sessions and doesn't reload entities then you may not see changes made from other users and find yourself working with outdated objects.  On the other hand, if your sessions have too narrow a scope then your save operations can be unnecessarily expensive, as updates will be made to all objects if the session isn't aware of the those that were originally loaded.
+If your application relies on long-running sessions and doesn't reload entities then you may not see changes made from other users and find yourself working with outdated objects.  
+On the other hand, if your sessions have too narrow a scope then your save operations can be unnecessarily expensive, as updates will be made to all objects if the session isn't aware of the those that were originally loaded.
 
-There's therefore a trade off between the two approaches.  In general, the scope of a `Session` should correspond to a "unit of work" in your application.  What this means depends on the usage scenario, but in a typical web-based Spring application we recommend using a request-scoped or HTTP-session-scoped `Session`.  Either way, if you make sure you load fresh data at the beginning of each unit of work then data integrity shouldn't be a problem.
+There's therefore a trade off between the two approaches.  
+In general, the scope of a `Session` should correspond to a "unit of work" in your application.  
+What this means depends on the usage scenario, but in a typical web-based Spring application we recommend using a request-scoped or HTTP-session-scoped `Session`.  
+Either way, if you make sure you load fresh data at the beginning of each unit of work then data integrity shouldn't be a problem.
 
-Additional beans can be configured to be included in the Neo4j-Configuration just by defining them in the
-Spring context in the normal way.
+Additional beans can be configured to be included in the Neo4j-Configuration just by defining them in the Spring context in the normal way.
 
