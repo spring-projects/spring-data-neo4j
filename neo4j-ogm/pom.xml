@@ -14,28 +14,22 @@
 
     <groupId>org.neo4j</groupId>
     <artifactId>neo4j-ogm</artifactId>
-    <version>1.0</version>
+    <version>1.0.0.BUILD-SNAPSHOT</version>
 
     <name>Neo4j OGM</name>
 
-    <!-- switchable via profile -->
-    <properties>
-        <neo4j.version>2.1.7</neo4j.version>
-    </properties>
-
     <dependencies>
-
 
         <dependency>
             <groupId>org.neo4j</groupId>
             <artifactId>neo4j-ogm-test</artifactId>
-            <version>1.0</version>
+            <version>${project.version}</version>
         </dependency>
 
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
-            <version>2.3.2</version>
+            <version>${jackson}</version>
         </dependency>
 
         <dependency>
@@ -45,14 +39,21 @@
         </dependency>
 
         <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-        </dependency>
-
-        <dependency>
             <groupId>org.neo4j</groupId>
             <artifactId>neo4j</artifactId>
             <version>${neo4j.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.neo4j.app</groupId>
+            <artifactId>neo4j-server</artifactId>
+            <version>${neo4j.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>commons-lang</groupId>
+            <artifactId>commons-lang</artifactId>
+            <version>${commonslang.version}</version>
         </dependency>
 
         <dependency>
@@ -60,12 +61,7 @@
             <artifactId>neo4j-kernel</artifactId>
             <version>${neo4j.version}</version>
             <type>test-jar</type>
-        </dependency>
-
-        <dependency>
-            <groupId>org.neo4j.app</groupId>
-            <artifactId>neo4j-server</artifactId>
-            <version>${neo4j.version}</version>
+            <scope>test</scope>
         </dependency>
 
         <dependency>
@@ -73,16 +69,7 @@
             <artifactId>neo4j-server</artifactId>
             <version>${neo4j.version}</version>
             <type>test-jar</type>
-        </dependency>
-
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>commons-lang</groupId>
-            <artifactId>commons-lang</artifactId>
+            <scope>test</scope>
         </dependency>
 
     </dependencies>
