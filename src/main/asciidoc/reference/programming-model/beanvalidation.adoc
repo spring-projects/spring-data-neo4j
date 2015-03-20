@@ -1,12 +1,14 @@
 [[reference_programming_model_validation]]
 = Bean Validation (JSR-303)
 
-NOTE: As of Spring Data Neo4j 4 milestone 1, Java standards validation is not supported 
+NOTE: As of Spring Data Neo4j 4 Milestone 1, Java standards validation is not supported 
+
+////
+TODO SDN4_GA
 
 Spring Data Neo4j supports property-based validation as defined by JSR-303.  When a property is changed and persisted, it is checked against the annotated constraints, such as `@Min`, `@Max` and `@Size`.  Validation errors cause a `ValidationException` to be thrown. The validation support that comes with Spring is used for evaluating the constraints. To use this feature, a validator has to be registered with the `Neo4jTemplate`, which is done automatically by the `Neo4jConfiguration` if one is present in the Spring Config.
 
 .Bean validation
-====
 [source,java]
 ----
 @NodeEntity
@@ -19,12 +21,10 @@ class Person {
     int age;
 }
 ----
-====
 
 The validation supports needs the bean validation API and a reference implementation configured. Right now this is the Hibernate Validator by default (which is not integrated with Hibernate ORM). The maven dependency is:
 
 .Validation setup
-====
 [source,xml]
 ----
 <dependency>
@@ -34,4 +34,5 @@ The validation supports needs the bean validation API and a reference implementa
 </dependency>
 
 ----
-====
+
+////

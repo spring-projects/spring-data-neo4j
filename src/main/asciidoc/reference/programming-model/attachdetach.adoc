@@ -1,20 +1,24 @@
 [[reference_programming_model_lifecycle]]
 = Entity Attachment
 
-In previous versions of Spring Data Neo4j, entities could be "attached" or "detached" depending on whether or not they were enhanced by AspectJ and actively managed by the framework. As of SDN 4, this is no longer the case and the AspectJ involvement has completely gone away.
-
-The motivation for removing this was to achieve greater simplicity.  AspectJ-enhanced methods can provide a way to right neat, object-oriented code, but often it can be confusing to know whether an entity is managed or not, and the way in which cascading worked from "magic" methods like `entity.persist()` often caused confusion.  The new method is much simpler.
-
+In previous versions of Spring Data Neo4j, entities could be "attached" or "detached" depending on whether or not they were enhanced by AspectJ and actively managed by the framework. 
+As of SDN 4, this is no longer the case and the AspectJ involvement has completely gone away.
 
 [[reference_programming-model_lifecycle_persistence]]
 == Persisting Entities
 
-From version 4 onwards, the entity persistence is all performed through the `save()` method on the `Session` object.  This method is normally invoked indirectly via a Spring repository or `Neo4jTemplate`, but will work just as well if invoked directly if you're working with the `Session` in its raw form.
+From version 4 onwards, the entity persistence is all performed through the `save()` method on the underlying `Session` object.  
+This method is normally invoked indirectly via a Spring repository or `Neo4jTemplate`.
 
-Under the bonnet, the implementation of `Session` has access to the `MappingContext` that keeps track of the data that has been loaded from Neo4j during the lifetime of the session.  Upon invocation of `save()` with an entity, it checks the given object graph for changes compared with the data that was loaded from the database.  The differences are used to construct a Cypher query that persists the deltas to Neo4j before repopulating it's state based on the response from the database server.
+Under the bonnet, the implementation of `Session` has access to the `MappingContext` that keeps track of the data that has been loaded from Neo4j during the lifetime of the session.  
+Upon invocation of `save()` with an entity, it checks the given object graph for changes compared with the data that was loaded from the database.  
+The differences are used to construct a Cypher query that persists the deltas to Neo4j before repopulating it's state based on the response from the database server.
 
-One thing that hasn't changed in version 4 is the fact that all entities returned by library functions are initially in an attached state, and those created with the `new` keyword aren't.  However, there's no longer any attachment or detachment that goes on depending on where certain code is executed, because entities aren't managed with AspectJ enhancements.  Therefore calling `save()` is always required in order to persist your changes back to Neo4j.
-
+////
+One thing that hasn't changed in version 4 is the fact that all entities returned by library functions are initially in an attached state, and those created with the `new` keyword aren't.  
+However, there's no longer any attachment or detachment that goes on depending on where certain code is executed, because entities aren't managed with AspectJ enhancements.  
+Therefore calling `save()` is always required in order to persist your changes back to Neo4j.
+////
 
 .Persisting entities
 ====
@@ -39,19 +43,24 @@ neo4jTemplate.save(p);
 [[reference_programming-model_detached_relating]]
 == Save Depth 
 
-As mentioned previously, `save(entity)` is overloaded as `save(entity, depth)`, where depth dictates the number of related entities to save starting from the given entity.  A depth of 0 will persist only the properties of the specified entity to the database, and a depth of -1 will persist everything in the object graph rooted at the given entity. 
+As mentioned previously, `save(entity)` is overloaded as `save(entity, depth)`, where depth dictates the number of related entities to save starting from the given entity.  
+A depth of 0 will persist only the properties of the specified entity to the database, and a depth of -1 will persist everything in the object graph rooted at the given entity. 
 
 Specifying the save depth is handy when it comes to dealing with complex collections, that could potentially be very expensive to load.
 
-NOTE: If you're using this overloaded method rather than the repositories, it's *strongly* recommended to use depth consistently between load and save invocations.  If you don't then you may unexpectedly see relationships deleted or updates not persisting as you expect.
+[NOTE]
+====
+If you're using this overloaded method rather than the repositories, it's *strongly* recommended to use depth consistently between load and save invocations.  
+If you don't then you may unexpectedly see relationships deleted or updates not persisting as you expect.
+====
 
 .Relationship save cascading
-====
 [source,java]
 ----
 @NodeEntity
 class Movie {
-    private Actor topActor;
+    String title;
+    Actor topActor;
     public void setTopActor(Actor actor) {
         topActor = actor;
     }
@@ -59,31 +68,41 @@ class Movie {
 
 @NodeEntity
 class Actor {
+    String name;
 }
 
-Movie movie = new Movie();
-Actor actor = new Actor();
+Movie movie = new Movie("Polar Express");
+Actor actor = new Actor("Tom Hanks");
 
 movie.setTopActor(actor);
 ----
-====
 
-Neither the actor nor the movie has been assigned a node in the graph. If we were to call `repository.save(movie)`, then Spring Data Neo4j would first create a node for the movie. It would then note that there is a relationship to an actor, so it would save the actor in a cascading fashion.  Once the actor has been persisted, it will create the relationship from the movie to the actor. All of this will be done atomically in one transaction.
+Neither the actor nor the movie has been assigned a node in the graph. 
+If we were to call `repository.save(movie)`, then Spring Data Neo4j would first create a node for the movie. 
+It would then note that there is a relationship to an actor, so it would save the actor in a cascading fashion.  
+Once the actor has been persisted, it will create the relationship from the movie to the actor. 
+All of this will be done atomically in one transaction.
 
-The important thing to note here is that if `repository.save(actor)` is called instead, then only the actor will be persisted. The reason for this is that the actor entity knows nothing about the movie entity - it is the movie entity that has the reference to the actor. Also note that this behaviour is not dependent on any configured relationship direction on the annotations. It is a matter of Java references and is not related to the data model in the database.
+The important thing to note here is that if `repository.save(actor)` is called instead, then only the actor will be persisted. 
+The reason for this is that the actor entity knows nothing about the movie entity - it is the movie entity that has the reference to the actor. 
+Also note that this behaviour is not dependent on any configured relationship direction on the annotations. 
+It is a matter of Java references and is not related to the data model in the database.
 
-If the relationships form a cycle, then the entities will first of all be assigned a node in the database, and then the relationships will be created. The cascading is however only propagated to related entity fields that have been modified.
+If the relationships form a cycle, then the entities will first of all be assigned a node in the database, and then the relationships will be created. 
+The cascading is however only propagated to related entity fields that have been modified.
 
 In the following example, the actor and the movie are both attached entites, having both been previously persisted to the graph: 
 
 .Cascade for modified fields
-====
 [source,java]
 ----
-actor.setName("Billy Bob");
+actor.setBirthyear(1956);
 movieRepository.save(movie);
 ----
+
+[NOTE]
 ====
-
-In this case, even though the movie has a reference to the actor, the name change on the actor will not be persisted by the call to `movie.persist()`. The reason for this is, as mentioned above, that cascading will only be done for fields that have been modified. Since the `movie.topActor` field has not been modified, it will not cascade the persist operation to the actor.
-
+In this case, even though the movie has a reference to the actor, the property change on the actor will not be persisted by the call to `movie.persist()`.
+The reason for this is, as mentioned above, that cascading will only be done for fields that have been modified. 
+Since the `movie.topActor` field has not been modified, it will not cascade the persist operation to the actor.
+====

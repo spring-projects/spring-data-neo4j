@@ -1,4 +1,4 @@
-[[reference_programming_model_conversion]]
+[[reference_programming-model_conversion]]
 = Conversion
 
 The object-graph mapping framework on which Spring Data Neo4j is built provides support for default and bespoke type
@@ -12,7 +12,7 @@ By default, Spring Data Neo4j will automatically perform the following type conv
 - `java.util.Date` to a String in the ISO 8601 format: "yyyy-MM-dd'T'HH:mm:ss.SSSXXX"
 - `java.math.BigInteger` to a String property
 - `java.math.BigDecimal` to a String property
-- binary data (as byte[] or Byte[]) to base-64 String
+- binary data (as byte[] or Byte[]) to base-64 String as Cypher does not support byte arrays
 - `java.lang.Enum` types using the enum's `name()` method and `Enum.valueOf()`
 
 Two Date converters are provided "out of the box"
@@ -24,7 +24,6 @@ By default, SDN will use the @DateString converter as described above. However i
 format, you can annotate your entity attribute accordingly:
 
 .Example of user-defined date format
-====
 [source,java]
 ----
 public class MyEntity {
@@ -33,12 +32,10 @@ public class MyEntity {
     private Date entityDate;
 }
 ----
-====
 
 Alternatively, if you want to store Dates as long values, use the @DateLong annotation:
 
 .Example of date stored as a long value
-====
 [source,java]
 ----
 public class MyEntity {
@@ -47,7 +44,6 @@ public class MyEntity {
     private Date entityDate;
 }
 ----
-====
 
 Collections of primitive or convertible values are also automatically mapped by converting them to arrays of their type
 or strings respectively.
@@ -98,12 +94,14 @@ public class Invoice {
 
 NOTE: This feature isn't supported as of SDN 4 Milestone 1
 
+////
+TODO SDN4_GA
+
 For queries executed via `@Query` repository methods, it's possible to specify a conversion of complex query results to POJOs. These result objects are then populated with the query result data and can be serialized and sent to a different part of the applicaton, e.g. a frontend-ui.
 
 Use a class annotated with `@QueryResult` as the method return type and SDN will apply the same simple mapping strategy as it does for normal entities.
 
 .Example of query result mapping
-====
 [source,java]
 ----
 public interface MovieRepository extends GraphRepository<Movie> {
@@ -122,5 +120,5 @@ public interface MovieRepository extends GraphRepository<Movie> {
 
 }
 ----
-====
 
+////

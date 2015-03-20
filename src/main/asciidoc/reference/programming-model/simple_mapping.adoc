@@ -4,24 +4,24 @@
 As of version 4, Spring Data Neo4j supports mapping annotated and non-annotated objects models.
 It's possible to save any POJO without annotations to the graph, as the framework applies conventions to decide what to do.
 This is useful in cases when you don't have control over the classes that you want to persist.
-The recommended approach, however, is to use annotations wherever possible, since this gives greater control and means
-that code can be refactored safely without risking breaking changes to the labels and relationships in your graph.
+The recommended approach, however, is to use annotations wherever possible, since this gives greater control and means that code can be refactored safely without risking breaking changes to the labels and relationships in your graph.
 
-Annotated and non-annoted objects can be used within the same project without issue.  There is an `EntityAccessStrategy`
-used to control how objects are read from or written to.  The default implementation of this uses the following convention:
+Annotated and non-annoted objects can be used within the same project without issue.  
+There is an `EntityAccessStrategy` used to control how objects are read from or written to.  
+The default implementation of this uses the following convention:
 
 . Annotated method (getter/setter)
 . Annotated field 
 . Plain method (getter/setter)
 . Plain field
 
-The object graph mapping comes into play whenever an entity is constructed from a node or relationship. This could be done
-explicitly like during the lookup or create operations of the repositories and the `Neo4jTemplate` but also implicitly
-while executing any graph operation that returns nodes or relationships and expecting mapped entities to be returned.
+The object graph mapping comes into play whenever an entity is constructed from a node or relationship. 
+This could be done explicitly during the lookup or create operations of the repositories and the `Neo4jTemplate` but also implicitly while executing any graph operation that returns nodes or relationships and expecting mapped entities to be returned.
 
-Unless annotations are used to specify otherwise, the framework will attempt to map any of an object's "simple" fields
-to node properties and any rich composite objects to related nodes.  A "simple" field is any primitive, boxed primitive
-or String or arrays thereof, essentially anything that naturally fits into a Neo4j node property.  For related entities
-the type of a relationship is inferred by the bean property name, as outlined in the <<reference_programming-model_annotations,examples below>>.
+Entities handled by Spring Data Neo4j must have one empty public constructor to allow the library to construct the objects.
+
+Unless annotations are used to specify otherwise, the framework will attempt to map any of an object's "simple" fields to node properties and any rich composite objects to related nodes.  
+A "simple" field is any primitive, boxed primitive or String or arrays thereof, essentially anything that naturally fits into a Neo4j node property.  
+For related entities the type of a relationship is inferred by the bean property name, as outlined in the <<reference_programming-model_annotations,examples below>>.
 
 

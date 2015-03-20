@@ -1,3 +1,5 @@
+[NOTE] Not used.
+
 [[reference_cross-store]]
 = Cross-store persistence
 
