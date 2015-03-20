@@ -34,7 +34,8 @@ Check for existence of an id in the graph::
 `boolean exists(id)`
 
 Iterate over all nodes of a node entity type::
-`Iterable<T> findAll()` // TODO SDN4_GA `Iterable<T> findAll(Sort)`
+`Iterable<T> findAll()`
+// TODO SDN4_GA `Iterable<T> findAll(Sort)`
 
 Count the instances of the repository entity type::
 `Long count()`
@@ -185,7 +186,6 @@ public interface PersonRepository extends GraphRepository<Person> {
 The `Repository` instances are only created through Spring and can be auto-wired into your Spring beans as required.
 
 .Using basic GraphRepository CRUD-methods
-====
 [source,java]
 ----
 @Repository

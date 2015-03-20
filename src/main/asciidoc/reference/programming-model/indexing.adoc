@@ -1,27 +1,45 @@
 [[reference_programming_model_indexing]]
 = Indexing
 
-Indexing is used in Neo4j to quickly find nodes and relationships from which to start graph operations. Either for manually traversing the graph, using the traversal framework, cypher queries or for "global" graph operations. Indexes are also employed to ensure uniqueness of elements with certain labels and properties.
+Indexing is used in Neo4j to quickly find nodes and relationships from which to start graph operations. 
+Indexes are also employed to ensure uniqueness of elements with certain labels and properties.
 
-NOTE: Please note that the lucene-based manual indexes are deprecated with Neo4j 2.0. The default index is now based on labels and schema indexes and the related old APIs have been deprecated as well. The "legacy" index framework should only be used for fulltext and spatial indexes which are not currently supported via schema-based indexes.
+[NOTE]
+====
+Please note that the lucene-based manual indexes are deprecated with Neo4j 2.0.
+The default index is now based on labels and schema indexes and the related old APIs have been deprecated as well. 
+The "legacy" index framework should only be used for fulltext and spatial indexes which are not currently supported via schema-based indexes.
+====
 
 == Index Management in Spring Data Neo4j 4
 
-From Spring Data Neo4j 4, `@Indexed` no longer exists.  The reason for this is because index creation should not be the job of the mapping framework, but should instead be managed within the database environment and tuned for the particular use case of your application.  Indexes shouldn't be added arbitrarily to fields by developers, but should instead be the result of design decisions made alongside the rest of the performance requirements.
+From Spring Data Neo4j 4, `@Indexed` is no longer available.
+The index management concern was separated from the mapping framework.
+Creating indexes should be done when seeding and migrating databases instead as part of data model design decisions.
 
-Index creation and management is therefore now outside the scope of this document.  Please see the Neo4j documention on indexes for for information:  http://neo4j.com/docs/stable/query-schema-index.html
+Index creation and management is therefore now outside the scope of this document.  
+Please see the Neo4j documention on indexes for for information:  http://neo4j.com/docs/stable/query-schema-index.html
 
 == Index queries in Neo4jTemplate
 
-For querying on indexes, certainly as of SDN 4 milestone one, your best bet is to take advantage of the `GraphRepository` load-by-property methods, or the corresponding ones on `Neo4jTemplate`.  If you know that particular properties are indexed in the database then this will ensure that the indexes are utilised so you still take advantage of the performance benefits.
-
-In the full release, the ability to do this through Spring repositories should also be fully implemented.
+Schema indexes are automatically used by Neo4j's Cypher engine, so using the annotated or derived repository finders or the query methods in `Neo4jTemplate` will use them out of the box.
 
 == Neo4j Auto Indexes
 
-Neo4j allows to configure (legacy) http://neo4j.com/docs/stable/auto-indexing.html[auto-indexing] for certain properties on nodes and relationships.  It is possible to use the specific index names `node_auto_index` and `relationship_auto_index` when querying indexes in Spring Data Neo4j either with the query methods in template and repositories or via Cypher.
+Neo4j allows to configure (legacy) http://neo4j.com/docs/stable/auto-indexing.html[auto-indexing] for certain properties on nodes and relationships.  
+It is possible to use the specific index names `node_auto_index` and `relationship_auto_index` when querying indexes in Spring Data Neo4j either with the query methods in template and repositories or via Cypher.
+
+== Full-Text Indexes
+
+Previous versions of Spring Data Neo4j offered support for full-text queries using the manual index facilities. 
+However, as of SDN 4 milestone 1 at least, this is no longer supported.
+To create fulltext entries for an entity you can add the updated nodes within `AfterSaveEvents` to a remote fulltext-index via Neo4j's REST API.
+Fulltext query support is still available via Cypher queries and will be fully addressed by a future Neo4j version.
 
 == Spatial Indexes
 
-Older versions of Spring Data Neo4j offered limited support for spatial queries using the `neo4j-spatial` library. However, as of SDN 4 milestone 1 at least, this is no longer supported.
+Previous versions of Spring Data Neo4j offered support for spatial queries using the `neo4j-spatial` library. 
+However, as of SDN 4 milestone 1 at least, this is no longer supported.
+To create spatial entries for an entity you can add the updated nodes within `AfterSaveEvents` to a remote fulltext-index via Neo4j's REST API.
+Spatial query support is still available via Cypher queries and will be fully addressed by a future Neo4j version.
 

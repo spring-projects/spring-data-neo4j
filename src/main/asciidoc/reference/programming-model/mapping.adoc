@@ -5,7 +5,7 @@
 Reflection and annotation-based metadata is collected about persistent entities in `org.neo4j.ogm.metadata.Metadata` which provides it to any part of the library. 
 This information is gathered by reading the class files directly rather than loading via reflection, resulting in much faster startup times.
 
-The information is stored in `ClassInfo` instances which hold all the required object-graph mapping information for each type.  
+The metadata holds all the required object-graph mapping information for each type.
 This metadata is discovered at start-up by specifying a list of packages in which all classes are scanned, including those in sub-packages.
 In order to omit a class from being metadata-mapped you should annotate it with `@org.neo4j.ogm.annotation.Transient`.
 

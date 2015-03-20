@@ -55,7 +55,6 @@ In order to define bespoke type conversions for particular members, you can anno
 to specify an implementation of `org.neo4j.ogm.typeconversion.AttributeConverter` to use.
 
 .Example of custom type converter
-====
 [source,java]
 ----
 public class MoneyConverter implements AttributeConverter<DecimalCurrencyAmount, Integer> {
@@ -72,11 +71,9 @@ public class MoneyConverter implements AttributeConverter<DecimalCurrencyAmount,
     
 }
 ----
-====
 
 You could then apply this to your class as follows:
 
-====
 [source,java]
 ----
 @NodeEntity
@@ -87,7 +84,6 @@ public class Invoice {
    ...
 }
 ----
-====
 
 [[reference_programming-model_mapresult]]
 == Mapping Query Results
