@@ -1,6 +1,36 @@
 Spring Data Neo4j Changelog
 ===========================
 
+Changes in version 4.0.0.M1 (2015-03-20)
+----------------------------------------
+
+* Complete rewrite of SDN for Neo4j Server based on Cypher
+* Plain Object Graph Mapper 
+** Support for CRUD persistence of Node- and Relationship-Entities
+** scoped Neo4jSession with change tracking
+** remote Transaction support
+** property conversion handling
+** new set of mapping annotations
+** annotation free mapping
+** configurable fetch and store - depth
+** support for Auth and HTTPS protocol
+** fast class scanner for metadata
+* Repository support with @Query and derived query methods
+* Slimmed down Neo4jTemplate implementation
+* Label based type representation
+* Lifecycle Events (Before|After-Save|Delete)
+* JavaConfig Support
+* Spring Transaction Management Integration
+* Spring Converter Integration
+* Migration Guide
+* Compatible with Neo4j 2.1.x and 2.2.x
+* DATAGRAPH-572 - Documentation Updates for SDN 4
+* DATAGRAPH-570 - Distribution and Module Cleanup
+* Examples: Available in http://github.com/neo4j-examples
+** Cineasts Example Migration
+** New Angular + Spring-Boot Example: University Course Management
+
+
 Changes in version 3.3.0.RC1 (2015-03-05)
 -----------------------------------------
 * DATAGRAPH-543 - Release 3.3 RC1.
