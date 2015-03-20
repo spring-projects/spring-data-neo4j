@@ -28,7 +28,10 @@
     </modules>
 
     <properties>
+
         <project.type>multi</project.type>
+        <project.version>4.0.0.BUILD-SNAPSHOT</project.version>
+
         <dist.id>spring-data-neo4j</dist.id>
         <springdata.commons>1.10.0.BUILD-SNAPSHOT</springdata.commons>
 
@@ -36,10 +39,9 @@
         <target.level>1.7</target.level>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-        <neo4j.version>2.1.7</neo4j.version>
-        <neo4j-ogm.version>1.0-SNAPSHOT</neo4j-ogm.version>
-        <sdn.version>4.0.0.BUILD-SNAPSHOT</sdn.version>
-
+        <commons.lang.version>2.6</commons.lang.version>
+        <sfl4j.version>1.7.5</sfl4j.version>
+        <junit.version>4.12</junit.version>
 
         <!-- todo enable? -->
         <bundlor.enabled>false</bundlor.enabled>
@@ -138,53 +140,11 @@
         <dependencies>
 
             <dependency>
-                <groupId>org.neo4j</groupId>
-                <artifactId>neo4j-ogm</artifactId>
-                <version>${neo4j-ogm.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>org.neo4j</groupId>
-                <artifactId>neo4j-ogm-test</artifactId>
-                <version>${neo4j-ogm.version}</version>
-                <scope>test</scope>
-            </dependency>
-
-            <dependency>
-                <groupId>org.springframework.data</groupId>
-                <artifactId>spring-data-neo4j-tests</artifactId>
-                <version>${sdn.version}</version>
-                <scope>test</scope>
-            </dependency>
-
-            <dependency>
                 <groupId>org.springframework.data</groupId>
                 <artifactId>spring-data-commons</artifactId>
                 <version>${springdata.commons}</version>
             </dependency>
 
-            <dependency>
-                <groupId>org.neo4j</groupId>
-                <artifactId>neo4j-kernel</artifactId>
-                <version>${neo4j.version}</version>
-                <type>test-jar</type>
-                <scope>test</scope>
-            </dependency>
-
-            <dependency>
-                <groupId>org.neo4j.app</groupId>
-                <artifactId>neo4j-server</artifactId>
-                <version>${neo4j.version}</version>
-                <scope>test</scope>
-            </dependency>
-
-            <dependency>
-                <groupId>org.neo4j.app</groupId>
-                <artifactId>neo4j-server</artifactId>
-                <version>${neo4j.version}</version>
-                <type>test-jar</type>
-                <scope>test</scope>
-            </dependency>
 
             <dependency>
                 <groupId>org.hibernate</groupId>
@@ -200,49 +160,29 @@
                 <scope>test</scope>
             </dependency>
 
-            <!-- the following dependencies are for the ogm modules -->
-
-            <dependency>
-                <groupId>com.fasterxml.jackson.core</groupId>
-                <artifactId>jackson-databind</artifactId>
-                <version>2.3.2</version>
-            </dependency>
-
-            <dependency>
-                <groupId>org.apache.httpcomponents</groupId>
-                <artifactId>httpclient</artifactId>
-                <version>4.3.6</version>
-            </dependency>
-
             <dependency>
                 <groupId>commons-lang</groupId>
                 <artifactId>commons-lang</artifactId>
-                <version>2.6</version>
+                <version>${commons.lang.version}</version>
             </dependency>
 
             <dependency>
                 <groupId>org.slf4j</groupId>
                 <artifactId>slf4j-api</artifactId>
-                <version>1.7.5</version>
+                <version>${sfl4j.version}</version>
             </dependency>
 
             <dependency>
                 <groupId>junit</groupId>
                 <artifactId>junit</artifactId>
-                <version>4.12</version>
-                <scope>test</scope>
-            </dependency>
-
-            <dependency>
-                <groupId>org.neo4j</groupId>
-                <artifactId>neo4j</artifactId>
-                <version>${neo4j.version}</version>
+                <version>${junit.version}</version>
                 <scope>test</scope>
             </dependency>
 
         </dependencies>
 
     </dependencyManagement>
+
 
     <build>
         <plugins>
