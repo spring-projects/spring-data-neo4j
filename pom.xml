@@ -14,7 +14,7 @@
     <parent>
         <groupId>org.springframework.data.build</groupId>
         <artifactId>spring-data-parent</artifactId>
-        <version>1.6.0.BUILD-SNAPSHOT</version>
+        <version>1.6.0.RC1</version>
         <relativePath>../spring-data-build/parent/pom.xml</relativePath>
     </parent>
 
@@ -28,11 +28,8 @@
     </modules>
 
     <properties>
-
         <project.type>multi</project.type>
-        <project.version>4.0.0.BUILD-SNAPSHOT</project.version>
-
-        <springdata.commons>1.10.0.BUILD-SNAPSHOT</springdata.commons>
+        <springdata.commons>1.10.0.RC1</springdata.commons>
         <source.level>1.7</source.level>
         <commonslang.version>2.6</commonslang.version>
         <neo4j.version>2.1.7</neo4j.version>
