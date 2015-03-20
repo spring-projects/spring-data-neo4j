@@ -6,12 +6,12 @@
     <parent>
         <groupId>org.springframework.data</groupId>
         <artifactId>spring-data-neo4j-parent</artifactId>
-        <version>4.0.0.M1</version>
+        <version>4.0.0.BUILD-SNAPSHOT</version>
     </parent>
 
     <groupId>org.neo4j</groupId>
     <artifactId>neo4j-ogm-test</artifactId>
-    <version>1.0.0.M1</version>
+    <version>1.0.0.BUILD-SNAPSHOT</version>
 
     <name>Neo4j OGM Testing Utilities</name>
 
