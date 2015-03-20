@@ -14,15 +14,20 @@
 
     <groupId>org.neo4j</groupId>
     <artifactId>neo4j-ogm-test</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>1.0</version>
 
     <name>Neo4j OGM Testing Utilities</name>
+
+    <properties>
+        <neo4j.version>2.1.7</neo4j.version>
+    </properties>
 
     <dependencies>
 
         <dependency>
             <groupId>org.neo4j</groupId>
             <artifactId>neo4j</artifactId>
+            <version>${neo4j.version}</version>
             <scope>compile</scope>
         </dependency>
 
@@ -35,6 +40,7 @@
         <dependency>
             <groupId>org.neo4j</groupId>
             <artifactId>neo4j-kernel</artifactId>
+            <version>${neo4j.version}</version>
             <type>test-jar</type>
             <scope>compile</scope>
         </dependency>
@@ -42,6 +48,7 @@
         <dependency>
             <groupId>org.neo4j.app</groupId>
             <artifactId>neo4j-server</artifactId>
+            <version>${neo4j.version}</version>
             <scope>compile</scope>
         </dependency>
 
