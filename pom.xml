@@ -38,7 +38,7 @@
 		<source.level>1.7</source.level>
 		<target.level>1.7</target.level>
 
-		<neo4j.version>2.1.6</neo4j.version>
+		<neo4j.version>2.1.7</neo4j.version>
 
 		<neo4j.spatial.version>0.13-neo4j-2.1.4</neo4j.spatial.version>
 		<neo4j-cypher-dsl.version>2.0.1</neo4j-cypher-dsl.version>
@@ -51,6 +51,32 @@
 			<properties>
 				<maven.test.skip>true</maven.test.skip>
 			</properties>
+		</profile>
+		<profile>
+			<id>neo22</id>
+			<properties>
+				<neo4j.version>2.2.0-RC01</neo4j.version>
+			</properties>
+			<dependencies>
+				<dependency>
+					<groupId>org.neo4j</groupId>
+					<artifactId>neo4j-io</artifactId>
+					<version>${neo4j.version}</version>
+					<scope>test</scope>
+					<type>test-jar</type>
+				</dependency>
+				<dependency>
+					<groupId>org.neo4j</groupId>
+					<artifactId>neo4j-spatial</artifactId>
+					<version>0.14-neo4j-2.2.0-M02</version>
+				</dependency>
+			</dependencies>
+			<repositories>
+				<repository>
+					<id>neo4j-contrib-releases</id>
+					<url>https://raw.github.com/neo4j-contrib/m2/master/releases</url>
+				</repository>
+			</repositories>
 		</profile>
         <profile>
             <id>distribute</id>
@@ -152,9 +178,9 @@
 			<version>${neo4j.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>org.neo4j</groupId>
-			<artifactId>neo4j-cypher</artifactId>
-			<version>${neo4j.version}</version>
+			<groupId>org.apache.geronimo.specs</groupId>
+			<artifactId>geronimo-jta_1.1_spec</artifactId>
+			<version>1.1.1</version>
 		</dependency>
 		<dependency>
 			<groupId>org.neo4j</groupId>

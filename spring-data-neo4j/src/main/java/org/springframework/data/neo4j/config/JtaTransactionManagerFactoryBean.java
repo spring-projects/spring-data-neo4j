@@ -20,8 +20,6 @@ import javax.transaction.UserTransaction;
 
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.kernel.GraphDatabaseAPI;
-import org.neo4j.kernel.impl.transaction.SpringTransactionManager;
-import org.neo4j.kernel.impl.transaction.UserTransactionImpl;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.data.neo4j.core.GraphDatabase;
 import org.springframework.transaction.jta.JtaTransactionManager;
@@ -109,25 +107,32 @@ public class JtaTransactionManagerFactoryBean implements FactoryBean<JtaTransact
 
     private TransactionManager createTransactionManagerForOnePointSeven( GraphDatabaseService gds )
     {
-        return createDynamically( SpringTransactionManager.class, GraphDatabaseService.class, gds );
+        return createDynamically( this.<TransactionManager>classFor("org.neo4j.kernel.impl.transaction.SpringTransactionManager"), GraphDatabaseService.class, gds );
     }
 
     private UserTransaction createUserTransactionForOnePointSeven( GraphDatabaseService gds )
     {
         TransactionManager txManager = ((GraphDatabaseAPI) gds).getDependencyResolver().resolveDependency(TransactionManager.class);
-        return createDynamically( UserTransactionImpl.class, TransactionManager.class, txManager );
+        return createDynamically(this.<UserTransaction>classFor("org.neo4j.kernel.impl.transaction.UserTransactionImpl"), TransactionManager.class, txManager);
     }
 
     private TransactionManager createTransactionManagerForOnePointEight( GraphDatabaseService gds )
     {
-        return createDynamically( SpringTransactionManager.class, GraphDatabaseAPI.class, gds );
+        return createDynamically( this.<TransactionManager>classFor("org.neo4j.kernel.impl.transaction.SpringTransactionManager"), GraphDatabaseAPI.class, gds );
     }
 
     private UserTransaction createUserTransactionForOnePointEight( GraphDatabaseService gds )
     {
-        return createDynamically( UserTransactionImpl.class, GraphDatabaseAPI.class, gds );
+        return createDynamically( this.<UserTransaction>classFor("org.neo4j.kernel.impl.transaction.UserTransactionImpl"), GraphDatabaseAPI.class, gds );
     }
 
+    private <T> Class<T> classFor(String name) {
+        try {
+            return (Class<T>) Class.forName(name);
+        } catch (ClassNotFoundException cnfe) {
+            throw new RuntimeException("Class not found",cnfe);
+        }
+    }
     private <T> T createDynamically( Class<T> requiredClass, Class<?> argumentClass, Object gds )
     {
         try {
@@ -136,5 +141,4 @@ public class JtaTransactionManagerFactoryBean implements FactoryBean<JtaTransact
             throw new RuntimeException("Error accessing constructor of class "+requiredClass+ " for parameter type "+argumentClass,e);
         }
     }
-
 }

@@ -18,7 +18,6 @@
 	<properties>
 		<validation>1.0.0.GA</validation>
 		<jersey.version>1.9</jersey.version>
-		<neo4j.version>2.1.6</neo4j.version>
     </properties>
 
 	<dependencies>
