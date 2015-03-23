@@ -5,9 +5,9 @@ Michael Hunger; Oliver Gierke
 :revnumber: {version}
 :revdate: {localdate}
 :idprefix:
-:spring-data-commons-docs: https://raw.githubusercontent.com/spring-projects/spring-data-commons/issue/DATACMNS-567/src/main/asciidoc
+:spring-data-commons-docs: ../../../../spring-data-commons/src/main/asciidoc
 
-(C) 2010-2014 Neo Technology, Inc. - Pivotal Software, Inc.
+(C) 2010-2015 Neo Technology, Inc. - Pivotal Software, Inc.
 
 NOTE: Copies of this document may be made for your own use and for distribution to others, provided that you do not charge any fee for such copies and further provided that each copy contains this Copyright Notice, whether distributed in print or electronically.
 
@@ -85,5 +85,6 @@ include::reference/neo4j-server.adoc[]
 include::{spring-data-commons-docs}/repository-namespace-reference.adoc[]
 include::{spring-data-commons-docs}/repository-populator-namespace-reference.adoc[]
 include::{spring-data-commons-docs}/repository-query-keywords-reference.adoc[]
+include::{spring-data-commons-docs}/repository-query-return-types-reference.adoc[]
 :leveloffset: -1
 
