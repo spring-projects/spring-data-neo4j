@@ -2,7 +2,7 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
 	<modelVersion>4.0.0</modelVersion>
-	
+
 	<artifactId>spring-data-neo4j-rest</artifactId>
 
 	<name>Spring Data Neo4j - Rest Binding</name>
@@ -11,7 +11,7 @@
 	<parent>
 		<groupId>org.springframework.data</groupId>
 		<artifactId>spring-data-neo4j-parent</artifactId>
-		<version>3.3.0.RELEASE</version>
+		<version>3.3.1.BUILD-SNAPSHOT</version>
 		<relativePath>../pom.xml</relativePath>
 	</parent>
 
@@ -21,7 +21,7 @@
     </properties>
 
 	<dependencies>
-		
+
 		<!--  Spring -->
 		<dependency>
 			<groupId>org.springframework</groupId>
@@ -90,7 +90,7 @@
 		<dependency>
 			<groupId>org.springframework.data</groupId>
 			<artifactId>spring-data-neo4j</artifactId>
-            <version>3.3.0.RELEASE</version>
+            <version>${project.version}</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.neo4j</groupId>
@@ -201,14 +201,14 @@
 		<dependency>
 			<groupId>org.springframework.data</groupId>
 			<artifactId>spring-data-neo4j-aspects</artifactId>
-			<version>3.3.0.RELEASE</version>
+			<version>${project.version}</version>
 			<scope>test</scope>
 		</dependency>
 
 		<dependency>
 			<groupId>org.springframework.data</groupId>
 			<artifactId>spring-data-neo4j</artifactId>
-			<version>3.3.0.RELEASE</version>
+			<version>${project.version}</version>
 			<scope>test</scope>
 			<type>test-jar</type>
 		</dependency>
@@ -216,12 +216,12 @@
 		<dependency>
 			<groupId>org.springframework.data</groupId>
 			<artifactId>spring-data-neo4j-aspects</artifactId>
-			<version>3.3.0.RELEASE</version>
+			<version>${project.version}</version>
 			<scope>test</scope>
 			<type>test-jar</type>
 		</dependency>
 
-		
+
 		<dependency>
 			<groupId>com.sun.jersey</groupId>
 			<artifactId>jersey-server</artifactId>
@@ -230,7 +230,7 @@
 		</dependency>
 
 	</dependencies>
-	
+
 	<build>
 		<plugins>
             <plugin>

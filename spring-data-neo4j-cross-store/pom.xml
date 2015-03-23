@@ -2,22 +2,22 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
 	<modelVersion>4.0.0</modelVersion>
-	
+
 	<parent>
 		<groupId>org.springframework.data</groupId>
 		<artifactId>spring-data-neo4j-parent</artifactId>
-		<version>3.3.0.RELEASE</version>
+		<version>3.3.1.BUILD-SNAPSHOT</version>
 		<relativePath>../pom.xml</relativePath>
 	</parent>
-	
+
 	<artifactId>spring-data-neo4j-cross-store</artifactId>
 	<name>Spring Data Neo4j - Cross-Store Persistence Support</name>
-	
+
 	<properties>
 		<jpa>1.0.0.Final</jpa>
 		<hibernate>3.6.10.Final</hibernate>
 	</properties>
-	
+
 	<dependencies>
 
 		<!-- Spring -->
@@ -48,23 +48,23 @@
 		<dependency>
 			<groupId>org.springframework.data</groupId>
 			<artifactId>spring-data-neo4j-aspects</artifactId>
-            <version>3.3.0.RELEASE</version>
+            <version>${project.version}</version>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>org.springframework.data</groupId>
 			<artifactId>spring-data-neo4j-tx</artifactId>
-            <version>3.3.0.RELEASE</version>
+            <version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.data</groupId>
 			<artifactId>spring-data-neo4j</artifactId>
-            <version>3.3.0.RELEASE</version>
+            <version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.data</groupId>
 			<artifactId>spring-data-neo4j</artifactId>
-            <version>3.3.0.RELEASE</version>
+            <version>${project.version}</version>
 			<type>test-jar</type>
 			<scope>test</scope>
 		</dependency>
