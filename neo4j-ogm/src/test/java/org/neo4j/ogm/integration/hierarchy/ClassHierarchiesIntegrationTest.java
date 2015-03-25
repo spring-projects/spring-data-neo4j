@@ -97,6 +97,9 @@ public class ClassHierarchiesIntegrationTest extends WrappingServerIntegrationTe
         assertNotNull(session.load(AnnotatedChildWithAnnotatedAbstractNamedParent.class, 0L));
     }
 
+    /**
+     * @see DATAGRAPH-577
+     */
     @Test
     public void annotatedChildWithAnnotatedNamedInterfaceParent() {
         session.save(new AnnotatedChildWithAnnotatedNamedInterfaceParent());
@@ -116,6 +119,9 @@ public class ClassHierarchiesIntegrationTest extends WrappingServerIntegrationTe
         assertNotNull(session.load(AnnotatedChildWithAnnotatedAbstractParent.class, 0L));
     }
 
+    /**
+     * @see DATAGRAPH-577
+     */
     @Test
     public void annotatedChildWithAnnotatedInterfaceParent() {
         session.save(new AnnotatedChildWithAnnotatedInterfaceParent());
@@ -152,6 +158,9 @@ public class ClassHierarchiesIntegrationTest extends WrappingServerIntegrationTe
         assertNotNull(session.load(AnnotatedChildWithPlainAbstractParent.class, 0L));
     }
 
+    /**
+     * @see DATAGRAPH-577
+     */
     @Test
     public void annotatedChildWithPlainInterfaceParent() {
         session.save(new AnnotatedChildWithPlainInterfaceParent());
@@ -179,6 +188,9 @@ public class ClassHierarchiesIntegrationTest extends WrappingServerIntegrationTe
         assertNotNull(session.load(AnnotatedNamedChildWithAnnotatedAbstractNamedParent.class, 0L));
     }
 
+    /**
+     * @see DATAGRAPH-577
+     */
     @Test
     public void annotatedNamedChildWithAnnotatedNamedInterface() {
         session.save(new AnnotatedNamedChildWithAnnotatedNamedInterfaceParent());
@@ -197,6 +209,9 @@ public class ClassHierarchiesIntegrationTest extends WrappingServerIntegrationTe
         assertNotNull(session.load(AnnotatedNamedChildWithAnnotatedAbstractParent.class, 0L));
     }
 
+    /**
+     * @see DATAGRAPH-577
+     */
     @Test
     public void annotatedNamedChildWithAnnotatedInterfaceParent() {
         session.save(new AnnotatedNamedChildWithAnnotatedInterfaceParent());
@@ -233,6 +248,9 @@ public class ClassHierarchiesIntegrationTest extends WrappingServerIntegrationTe
         assertNotNull(session.load(AnnotatedNamedChildWithPlainAbstractParent.class, 0L));
     }
 
+    /**
+     * @see DATAGRAPH-577
+     */
     @Test
     public void annotatedNamedChildWithPlainInterfaceParent() {
         session.save(new AnnotatedNamedChildWithPlainInterfaceParent());
@@ -278,6 +296,9 @@ public class ClassHierarchiesIntegrationTest extends WrappingServerIntegrationTe
         assertNotNull(session.load(PlainChildWithAnnotatedAbstractNamedParent.class, 0L));
     }
 
+    /**
+     * @see DATAGRAPH-577
+     */
     @Test
     public void plainChildWithAnnotatedNamedInterfaceParent() {
         session.save(new PlainChildWithAnnotatedNamedInterfaceParent());
@@ -296,6 +317,9 @@ public class ClassHierarchiesIntegrationTest extends WrappingServerIntegrationTe
         assertNotNull(session.load(PlainChildWithAnnotatedAbstractParent.class, 0L));
     }
 
+    /**
+     * @see DATAGRAPH-577
+     */
     @Test
     public void plainChildWithAnnotatedInterfaceParent() {
         session.save(new PlainChildWithAnnotatedInterfaceParent());
@@ -332,6 +356,9 @@ public class ClassHierarchiesIntegrationTest extends WrappingServerIntegrationTe
         assertNotNull(session.load(PlainChildWithPlainAbstractParent.class, 0L));
     }
 
+    /**
+     * @see DATAGRAPH-577
+     */
     @Test
     public void plainChildWithPlainInterfaceParent() {
         session.save(new PlainChildWithPlainInterfaceParent());
@@ -351,6 +378,9 @@ public class ClassHierarchiesIntegrationTest extends WrappingServerIntegrationTe
         assertNotNull(session.load(PlainChildWithPlainConcreteParent.class, 0L));
     }
 
+    /**
+     * @see DATAGRAPH-577
+     */
     @Test
     public void plainChildWithPlainConcreteParentImplementingInterface() {
         session.save(new PlainChildWithPlainConcreteParentImplementingInterface());
@@ -361,6 +391,9 @@ public class ClassHierarchiesIntegrationTest extends WrappingServerIntegrationTe
         assertNotNull(session.load(PlainConcreteParent.class, 0L));
     }
 
+    /**
+     * @see DATAGRAPH-577
+     */
     @Test
     public void plainChildWithPlainInterfaceChild() {
         session.save(new PlainChildWithPlainInterfaceChild());
@@ -370,6 +403,9 @@ public class ClassHierarchiesIntegrationTest extends WrappingServerIntegrationTe
         assertNotNull(session.load(PlainChildWithPlainInterfaceChild.class, 0L));
     }
 
+    /**
+     * @see DATAGRAPH-577
+     */
     @Test
     public void plainChildWithAnnotatedSuperInterface() {
         /*
@@ -381,6 +417,9 @@ public class ClassHierarchiesIntegrationTest extends WrappingServerIntegrationTe
         assertNotNull(session.load(PlainChildWithAnnotatedSuperInterface.class, 0L));
     }
 
+    /**
+     * @see DATAGRAPH-577
+     */
     @Test
     public void annotatedChildWithAnnotatedInterface() {
         /*
@@ -394,7 +433,9 @@ public class ClassHierarchiesIntegrationTest extends WrappingServerIntegrationTe
         assertEquals("org.neo4j.ogm.integration.hierarchy.domain.annotated.AnnotatedChildWithAnnotatedInterface",session.load(AnnotatedInterfaceWithSingleImpl.class, 0L).getClass().getName());
     }
 
-
+    /**
+     * @see DATAGRAPH-577
+     */
     @Test
     public void plainChildWithAnnotatedSuperclass() {
         /*
@@ -408,6 +449,9 @@ public class ClassHierarchiesIntegrationTest extends WrappingServerIntegrationTe
         assertNotNull(session.load(AnnotatedConcreteParent.class, 0L));
     }
 
+    /**
+     * @see DATAGRAPH-577
+     */
     @Test
     public void plainChildWithAbstractParentAndAnnotatedSuperclass() {
         /*
@@ -420,6 +464,9 @@ public class ClassHierarchiesIntegrationTest extends WrappingServerIntegrationTe
         assertNotNull(session.load(AnnotatedSingleClass.class, 0L));
     }
 
+    /**
+     * @see DATAGRAPH-577
+     */
     @Test
     public void annotatedChildWithMultipleAnnotatedInterfaces() {
         session.save(new AnnotatedChildWithMultipleAnnotatedInterfaces());
@@ -446,6 +493,9 @@ public class ClassHierarchiesIntegrationTest extends WrappingServerIntegrationTe
         }
     }
 
+    /**
+     * @see DATAGRAPH-577
+     */
     @Test
     public void plainChildOfTransientInterface() {
         session.save(new PlainChildOfTransientInterface());

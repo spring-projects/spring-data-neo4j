@@ -513,6 +513,8 @@ public class MetaDataTest {
     @Test
     /**
      * Taxa corresponding to interfaces with a single implementor can be resolved
+     *
+     * @see DATAGRAPH-577
      */
     public void testInterfaceWithSingleImplTaxa() {
         ClassInfo classInfo = metaData.resolve("AnnotatedInterfaceWithSingleImpl");
