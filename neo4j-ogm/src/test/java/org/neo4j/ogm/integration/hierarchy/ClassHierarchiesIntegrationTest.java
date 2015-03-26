@@ -473,7 +473,10 @@ public class ClassHierarchiesIntegrationTest extends WrappingServerIntegrationTe
 
         assertSameGraph(getDatabase(), "CREATE (:AnnotatedChildWithMultipleAnnotatedInterfaces:AnnotatedInterface:Parent)");
         assertNotNull(session.load(AnnotatedChildWithMultipleAnnotatedInterfaces.class, 0L));
+        assertEquals(1,session.loadAll(AnnotatedInterface.class).size());
+        assertEquals(1,session.loadAll(AnnotatedNamedInterfaceParent.class).size());
     }
+
     @Test
     public void plainSingleClass() {
         session.save(new PlainSingleClass());
