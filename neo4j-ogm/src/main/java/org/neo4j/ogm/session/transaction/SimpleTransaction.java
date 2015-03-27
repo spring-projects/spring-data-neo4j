@@ -106,16 +106,11 @@ public class SimpleTransaction implements Transaction {
                         mappingContext.mappedRelationships().remove(mappedRelationship);
                     }
                 } else if (!(o instanceof TransientRelationship)) {
+                    logger.debug("remembering " + o);
                     mappingContext.remember(o);
                 }
             }
-            logger.debug("checked objects: " + cypherContext.log().size());
-        }
-
-        logger.debug("relationships registered active:");
-
-        for (MappedRelationship mappedRelationship : mappingContext.mappedRelationships()) {
-            logger.debug("(${})-[:{}]->(${})", mappedRelationship.getStartNodeId(), mappedRelationship.getRelationshipType(), mappedRelationship.getEndNodeId());
+            logger.debug("number of objects: " + cypherContext.log().size());
         }
 
         contexts.clear();

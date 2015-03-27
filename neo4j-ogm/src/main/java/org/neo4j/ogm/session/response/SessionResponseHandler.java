@@ -52,7 +52,9 @@ public class SessionResponseHandler implements ResponseHandler {
 
         GraphModel graphModel;
         while ((graphModel = response.next()) != null) {
+
             ogm.map(type, graphModel);
+
             if (metaData.isRelationshipEntity(type.getName())) {
                 for (RelationshipModel relationshipModel : graphModel.getRelationships()) {
                     if (relationshipModel.getPropertyList().contains(filter)

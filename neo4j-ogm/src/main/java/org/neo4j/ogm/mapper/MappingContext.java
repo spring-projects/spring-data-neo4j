@@ -61,13 +61,11 @@ public class MappingContext {
         this.metaData = metaData;
     }
 
-    // these methods belong on the nodeEntityRegister
     public Object get(Long id) {
         return nodeEntityRegister.get(id);
     }
 
     public Object registerNodeEntity(Object entity, Long id) {
-        //logger.info("registering entity: " + entity);
         nodeEntityRegister.putIfAbsent(id, entity);
         entity = nodeEntityRegister.get(id);
         registerTypes(entity.getClass(), entity);
@@ -75,7 +73,6 @@ public class MappingContext {
     }
 
     private void registerTypes(Class type, Object entity) {
-        //System.out.println("registering " + object + " as instance of " + type.getSimpleName());
         getAll(type).add(entity);
         if (type.getSuperclass() != null
                 && metaData != null
@@ -86,8 +83,6 @@ public class MappingContext {
     }
 
     private void deregisterTypes(Class type, Object entity) {
-        //System.out.println("deregistering " + object.getClass().getSimpleName() + " as instance of " + type.getSimpleName());
-        //getAll(type).remove(entity);
         Set<Object> entities = typeRegister.get(type);
         if (entities != null) {
             if (type.getSuperclass() != null
@@ -108,7 +103,6 @@ public class MappingContext {
      * @param id the id of the object in Neo4j
      */
     public void deregister(Object entity, Long id) {
-        //logger.info("de-registering: " + entity);
         deregisterTypes(entity.getClass(), entity);
         nodeEntityRegister.remove(id);
     }
@@ -130,12 +124,12 @@ public class MappingContext {
 
     // object memoisations
     public void remember(Object entity) {
-        //logger.info("remembering node values: " + entity);
         objectMemo.remember(entity, metaData.classInfo(entity));
     }
 
     public boolean isDirty(Object entity) {
-        return !objectMemo.remembered(entity, metaData.classInfo(entity));
+        ClassInfo classInfo = metaData.classInfo(entity);
+        return !objectMemo.remembered(entity, classInfo);
     }
 
     // these methods belong on the relationship registry
@@ -148,7 +142,6 @@ public class MappingContext {
     }
 
     public void registerRelationship(MappedRelationship relationship) {
-        //logger.info("registering edge : (${})-[:{}]->(${})", relationship.getStartNodeId(), relationship.getRelationshipType(), relationship.getEndNodeId());
         relationshipRegister.add(relationship);
     }
 
@@ -220,5 +213,18 @@ public class MappingContext {
             }
         }
 
+    }
+
+    public void dump() {
+
+        for (Object o : nodeEntityRegister.values()) {
+            boolean remembered = objectMemo.contains(o);
+            System.out.println(String.format("%s, %s", o, remembered));
+        }
+
+        for (Object o : relationshipEntityRegister.values()) {
+            boolean remembered = objectMemo.contains(o);
+            System.out.println(String.format("%s, %s", o, remembered));
+        }
     }
 }

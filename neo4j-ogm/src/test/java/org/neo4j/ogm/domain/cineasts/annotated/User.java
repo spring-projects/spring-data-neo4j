@@ -109,4 +109,28 @@ public class User {
     public void setTitles(List<Title> titles) {
         this.titles = titles;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        User user = (User) o;
+        if (name == null || user.getName() == null) return false;
+
+        if (!name.equals(user.name)) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        return (name != null) ? name.hashCode() : 0;
+    }
+
+    @Override
+    public String toString() {
+        return "User:" + name;
+    }
+
 }

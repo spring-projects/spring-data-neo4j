@@ -21,10 +21,12 @@ import java.util.*;
  * Maintains contextual information throughout the process of compiling Cypher statements to persist a graph of objects.
  *
  * @author Mark Angrish
+ * @author Vince Bickers
  */
 public class CypherContext {
 
     private final Map<Object, NodeBuilder> visitedObjects = new HashMap<>();
+    private final Set<Object> visitedRelationshipEntities = new HashSet<>();
 
     private final Map<String, Object> createdObjects = new HashMap<>();
     private final Collection<MappedRelationship> registeredRelationships = new HashSet<>();
@@ -45,7 +47,7 @@ public class CypherContext {
         this.registeredRelationships.add(mappedRelationship);
     }
 
-    public NodeBuilder retrieveNodeBuilderForObject(Object obj) {
+    public NodeBuilder nodeBuilder(Object obj) {
         return this.visitedObjects.get(obj);
     }
 
@@ -99,5 +101,14 @@ public class CypherContext {
                 iterator.remove();
             }
         }
+    }
+
+    public void visitRelationshipEntity(Object relationshipEntity) {
+        visitedRelationshipEntities.add(relationshipEntity);
+
+    }
+
+    public boolean visitedRelationshipEntity(Object relationshipEntity) {
+        return visitedRelationshipEntities.contains(relationshipEntity);
     }
 }

@@ -19,6 +19,7 @@ import java.util.Map;
  * Used to compile Cypher that holds information about a relationship
  *
  * @author Adam George
+ * @author Vince Bickers
  */
 public abstract class RelationshipBuilder implements CypherEmitter, Comparable<RelationshipBuilder> {
 
@@ -58,6 +59,8 @@ public abstract class RelationshipBuilder implements CypherEmitter, Comparable<R
     }
 
     public abstract void relate(String startNodeIdentifier, String endNodeIdentifier);
+
+    public abstract boolean isNew();
 
     public String getReference() {
         return reference;

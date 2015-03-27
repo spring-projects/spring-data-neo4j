@@ -10,7 +10,7 @@
  * conditions of the subcomponent's license, as noted in the LICENSE file.
  */
 
-package org.neo4j.ogm.defects.defaultEntityAccessStrategy.relationships;
+package org.neo4j.ogm.unit.entityaccess.relationships;
 
 
 import org.junit.Test;
@@ -30,7 +30,7 @@ import static org.junit.Assert.*;
 public class RelationshipWriterPlainSetterTest {
 
     private DefaultEntityAccessStrategy entityAccessStrategy = new DefaultEntityAccessStrategy();
-    private DomainInfo domainInfo = new DomainInfo("org.neo4j.ogm.defects.defaultEntityAccessStrategy.relationships");
+    private DomainInfo domainInfo = new DomainInfo(this.getClass().getPackage().getName());
 
     @Test
     public void shouldFindWriterForCollection() {

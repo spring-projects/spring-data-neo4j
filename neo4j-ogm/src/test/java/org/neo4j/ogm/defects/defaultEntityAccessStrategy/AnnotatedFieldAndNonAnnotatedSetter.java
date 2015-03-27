@@ -29,8 +29,8 @@ import static org.junit.Assert.*;
 
 /**
  * @author Luanne Misquitta
+ * @author Vince Bickers
  */
-//@Ignore
 public class AnnotatedFieldAndNonAnnotatedSetter {
     private DefaultEntityAccessStrategy entityAccessStrategy = new DefaultEntityAccessStrategy();
     private DomainInfo domainInfo = new DomainInfo("org.neo4j.ogm.defects");

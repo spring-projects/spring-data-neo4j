@@ -13,7 +13,6 @@
 package org.neo4j.ogm.defects;
 
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.neo4j.ogm.domain.cineasts.annotated.Actor;
 import org.neo4j.ogm.session.Session;
@@ -26,8 +25,8 @@ import static org.junit.Assert.*;
 
 /**
  * @author Adam George
+ * @author Vince Bickers
  */
-@Ignore
 public class SessionCypherQueryTest extends WrappingServerIntegrationTest {
 
     private Session session;
@@ -47,7 +46,8 @@ public class SessionCypherQueryTest extends WrappingServerIntegrationTest {
         this.session.save(new Actor("Helen Mirren"));
         this.session.save(new Actor("Matt Damon"));
 
-//        setUpSession(); // including this makes the test pass
+        //session.clear(); // including this makes the test pass
+
         // FIXME: this loads any actor at random despite Neo4j always returning the correct one in t'JSON!
         Actor loadedActor = this.session.queryForObject(Actor.class, "MATCH (a:Actor) WHERE a.name={param} RETURN a",
                 Collections.singletonMap("param", "Alec Baldwin"));
@@ -64,7 +64,8 @@ public class SessionCypherQueryTest extends WrappingServerIntegrationTest {
         this.session.save(new Actor("John"));
         this.session.save(new Actor("Colin"));
 
-//        setUpSession(); // including this makes the test pass
+        //session.clear(); // including this makes the test pass
+
         // FIXME: this keeps loading Colin!
         Iterable<Actor> actors = this.session.query(Actor.class, "MATCH (a:Actor) WHERE a.name=~'J.*' RETURN a",
                 Collections.<String, Object>emptyMap());
@@ -83,7 +84,8 @@ public class SessionCypherQueryTest extends WrappingServerIntegrationTest {
         this.session.save(new Actor("Helen Mirren"));
         this.session.save(new Actor("Matt Damon"));
 
-        setUpSession(); // including this makes the test pass
+        //session.clear(); // including this makes the test pass
+
         // FIXME: this loads any actor at random despite Neo4j always returning the correct one in t'JSON!
         Actor loadedActor = this.session.queryForObject(Actor.class, "MATCH (a:Actor) WHERE ID(a)={0} RETURN a",
                 Collections.<String, Object>singletonMap("param", alec));

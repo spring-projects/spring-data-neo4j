@@ -13,190 +13,165 @@
 package org.neo4j.ogm.defects;
 
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
-import org.neo4j.graphdb.DynamicLabel;
-import org.neo4j.graphdb.DynamicRelationshipType;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Transaction;
-import org.neo4j.helpers.collection.IteratorUtil;
-import org.neo4j.ogm.domain.cineasts.annotated.Movie;
-import org.neo4j.ogm.domain.cineasts.annotated.Rating;
-import org.neo4j.ogm.domain.cineasts.annotated.User;
-import org.neo4j.ogm.model.Property;
+import org.neo4j.ogm.annotation.*;
 import org.neo4j.ogm.session.Session;
 import org.neo4j.ogm.session.SessionFactory;
 import org.neo4j.ogm.testutil.WrappingServerIntegrationTest;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 
 /**
- * @author Adam George
+ * @author: Vince Bickers
  */
-@Ignore
 public class RelationshipEntityTest extends WrappingServerIntegrationTest {
+
+
+    private U u;
+    private M m;
+    private R r1;
 
     private Session session;
 
     @Before
     public void setUpSession() {
-        SessionFactory sessionFactory = new SessionFactory("org.neo4j.ogm.domain.cineasts.annotated");
+        SessionFactory sessionFactory = new SessionFactory("org.neo4j.ogm.defects");
         session = sessionFactory.openSession(baseNeoUrl());
+
+        // setup domain
+        u = new U("Luanne");
+        m = new M("Taken");
+        r1 = new R(u, m, "great!", 4);
+
+        u.rset.add(r1);
+        m.rset.add(r1);
     }
 
 
     @Test
-    public void shouldSaveMultipleRatingsFromDifferentUsersForSameMovie() {
-        Movie movie = new Movie();
-        movie.setTitle("Pulp Fiction");
-        session.save(movie);
+    public void shouldAddR() {
 
-        User michal = new User();
-        michal.setName("Michal");
+        session.save(u);
 
-        Rating awesome = new Rating();
-        awesome.setMovie(movie);
-        awesome.setUser(michal);
-        awesome.setStars(5);
-        michal.setRatings(Collections.singleton(awesome));
-        session.save(michal);
+        R r2 = new R(u, m, "even better next time!", 5);
+        u.rset.add(r2);
+        m.rset.add(r2);
 
-        //Check that Pulp Fiction has one rating from Michal
-        Collection<Movie> films = session.loadByProperty(Movie.class, new Property<String, Object>("title", "Pulp Fiction"));
-        assertEquals(1, films.size());
+        session.save(u);
 
-        Movie film = films.iterator().next();
-        assertNotNull(film);
-        assertEquals(1, film.getRatings().size());
-        assertEquals("Michal",film.getRatings().iterator().next().getUser().getName());
+        m = session.load(M.class, m.id);
 
-        //Add a rating from luanne for the same movie
-        User luanne = new User();
-        luanne.setName("luanne");
-        luanne.setLogin("luanne");
-        luanne.setPassword("luanne");
-
-        Rating rating = new Rating();
-        rating.setMovie(film);
-        rating.setUser(luanne);
-        rating.setStars(3);
-        luanne.setRatings(Collections.singleton(rating));
-        session.save(luanne);
-
-        //Verify that pulp fiction has two ratings
-        films = session.loadByProperty(Movie.class, new Property<String, Object>("title", "Pulp Fiction"));
-        film = films.iterator().next();
-        assertEquals(2, film.getRatings().size());   //Fail, it has just one rating, luannes
-
-        //Verify that luanne's rating is saved
-        Collection<User> users = session.loadByProperty(User.class,new Property<String, Object>("login","luanne"));
-        User foundLuanne = users.iterator().next();
-        assertEquals(1,foundLuanne.getRatings().size());
-
-        //Verify that Michals rating still exists
-        users = session.loadByProperty(User.class,new Property<String, Object>("name","Michal"));
-        User foundMichal = users.iterator().next();
-        assertEquals(1,foundMichal.getRatings().size()); //Fail, Michals rating is gone
+        assertEquals(2, m.rset.size());
     }
 
     @Test
-    public void shouldCreateREWithExistingStartAndEndNodes() {
-        session.execute(load("org/neo4j/ogm/cql/cineasts.cql"));
+    public void shouldUpdateExistingR() {
 
-        Collection<Movie> films = session.loadByProperty(Movie.class, new Property<String, Object>("title", "Top Gear"));
-        Movie movie = films.iterator().next();
-        assertEquals(2,movie.getRatings().size());
+        session.save(u);
 
-        User michal = session.loadByProperty(User.class, new Property<String, Object>("name", "Michal")).iterator().next();
+        r1.stars=3;
 
-        Set<Rating> ratings = new HashSet<>();
-        Rating awesome = new Rating();
-        awesome.setComment("Awesome");
-        awesome.setMovie(movie);
-        awesome.setUser(michal);
-        awesome.setStars(5);
-        ratings.add(awesome);
+        session.save(u);
 
-        michal.setRatings(ratings); //Overwrite Michal's earlier rating
-        movie.setRatings(ratings);
-        session.save(movie);
+        m = session.load(M.class, m.id);
 
-        Collection<Movie> movies = session.loadByProperty(Movie.class,new Property<String, Object>("title","Top Gear"));
-        movie = movies.iterator().next();
-        assertNotNull(movie.getRatings()); //Fails. But when entities are created first, test passes, see CineastsRatingsTest.shouldSaveRatingWithMovie
-        assertEquals(1,movie.getRatings().size());
-        assertEquals("Michal",movie.getRatings().iterator().next().getUser().getName());
+        assertEquals(1, m.rset.size());
+        assertEquals(3, m.rset.iterator().next().stars.intValue());
+    }
+
+
+    @Test
+    public void shouldDeleteR() {
+
+        session.save(u);
+
+        u.rset.clear();
+        m.rset.clear();
+
+        session.save(u);
+
+        m = session.load(M.class, m.id);
+
+        assertEquals(0, m.rset.size());
+
     }
 
     @Test
-    public void shouldNotLoseRelationshipEntitiesWhenALoadedEntityIsPersisted() {
-        session.execute(load("org/neo4j/ogm/cql/cineasts.cql"));
+    public void shouldReplaceExistingR() {
 
-        Movie topGear = session.loadByProperty(Movie.class, new Property<String, Object>("title", "Top Gear")).iterator().next();
-        assertEquals(2,topGear.getRatings().size());  //2 ratings
-        session.save(topGear);
+        session.save(u);
 
-        topGear = session.loadByProperty(Movie.class, new Property<String, Object>("title", "Top Gear")).iterator().next();
-        assertEquals(2,topGear.getRatings().size());  //Then there was one
+        R r3 = new R(u, m, "Only Gravity sucks more than this film", 0);
 
-        User michal = session.loadByProperty(User.class, new Property<String, Object>("name", "Michal")).iterator().next();
-        assertEquals(2,michal.getRatings().size());  //The Top Gear Rating is gone
+        u.rset.clear();
+        u.rset.add(r3);
+
+        m.rset.clear();
+        m.rset.add(r3);
+
+        session.save(u);
+
+        m = session.load(M.class, m.id);
+
+        assertEquals(1, m.rset.size());
+        assertEquals(0, m.rset.iterator().next().stars.intValue());
     }
 
-    @Test
-    public void shouldLoadActorsForAPersistedMovie() {
-        session.execute(
-                "CREATE " +
-                        "(dh:Movie {title:'Die Hard'}), " +
-                        "(bw:Actor {name: 'Bruce Willis'}), " +
-                        "(bw)-[:ACTS_IN {role : 'John'}]->(dh)");
+    @NodeEntity(label="U")
+    public static class U {
+        Long id;
+        String name;
 
-        //This works
-        /*Actor bruce = IteratorUtil.firstOrNull(session.loadByProperty(Actor.class, new Property<String, Object>("name","Bruce Willis")));
-        assertNotNull(bruce);
-        assertEquals(1,bruce.getRoles().size());
-        */
+        public U() {}
 
-        /* This loads the movie but not roles.
-           It works only when
-           1. Either Movie.setRoles is not defined, or Movie.setRoles is defined and annotated
-           2. There is no method which accepts a Role parameter such as the following in the Movie class:
-            public void addRole(Role role) {
-                roles.add(role);
-            }
-
-         */
-        Movie dieHard = IteratorUtil.firstOrNull(session.loadByProperty(Movie.class, new Property<String, Object>("title", "Die Hard")));
-        assertNotNull(dieHard);
-        assertNotNull(dieHard.getRoles());
-        assertEquals(1,dieHard.getRoles().size());
-    }
-
-    /**
-     From IntegrationTest, move tests that depend on it to appropriate places once fixed
-     */
-    private static String load(String cqlFile) {    //
-        StringBuilder sb = new StringBuilder();
-        BufferedReader reader = new BufferedReader(new InputStreamReader(Thread.currentThread().getContextClassLoader().getResourceAsStream(cqlFile)));
-        String line;
-        try {
-            while ((line = reader.readLine()) != null) {
-                sb.append(line);
-                sb.append(" ");
-            }
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+        public U(String name) {
+            this.name = name;
         }
-        return sb.toString();
+
+        @Relationship(type="EDGE", direction = Relationship.OUTGOING)
+        Set<R> rset = new HashSet<>();
     }
 
+    @RelationshipEntity(type="EDGE")
+    public static class R {
+
+        Long id;
+        String comments;
+        Integer stars;
+
+        @StartNode
+        U u;
+
+        @EndNode
+        M m;
+
+        public R() {}
+
+        public R(U u, M m, String comments, Integer stars) {
+            this.u = u;
+            this.m = m;
+            this.comments = comments;
+            this.stars = stars;
+        }
+
+    }
+
+    @NodeEntity(label="M")
+    public static class M {
+
+        Long id;
+        String title;
+
+        public M () {}
+
+        public M (String title) {
+            this.title = title;
+        }
+
+        @Relationship(type="EDGE", direction= Relationship.INCOMING)
+        Set<R> rset = new HashSet<>();
+    }
 }
