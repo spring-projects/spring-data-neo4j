@@ -32,6 +32,11 @@ class NewRelationshipBuilder extends RelationshipBuilder {
     }
 
     @Override
+    public boolean isNew() {
+        return true;
+    }
+
+    @Override
     public boolean emit(StringBuilder queryBuilder, Map<String, Object> parameters, Set<String> varStack) {
         // don't emit anything if this relationship isn't used to link any nodes
         // admittedly, this isn't brilliant, as we'd ideally avoid creating the relationship in the first place

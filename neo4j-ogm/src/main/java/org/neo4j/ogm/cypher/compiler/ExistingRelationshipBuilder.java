@@ -17,6 +17,7 @@ import java.util.Set;
 
 /**
  * @author Adam George
+ * @author Vince Bickers
  */
 class ExistingRelationshipBuilder extends RelationshipBuilder {
 
@@ -32,6 +33,11 @@ class ExistingRelationshipBuilder extends RelationshipBuilder {
         this.startNodeIdentifier = startNodeIdentifier;
         this.endNodeIdentifier = endNodeIdentifier;
         this.reference = reference;
+    }
+
+    @Override
+    public boolean isNew() {
+        return false;
     }
 
     @Override

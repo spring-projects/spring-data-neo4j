@@ -31,16 +31,19 @@ import java.util.Map;
  * established in the session's mappingContext.
  *
  * @author Mark Angrish
+ * @author Vince Bickers
  */
 public class TransientRelationship {
 
     private final String src;
     private final String tgt;
+    private final String ref;
     private final String rel;
 
-    public TransientRelationship(String src, String rel, String tgt) {
+    public TransientRelationship(String src, String ref, String rel, String tgt) {
         this.src = src;
         this.tgt = tgt;
+        this.ref = ref;
         this.rel = rel;
     }
 

@@ -12,7 +12,6 @@
 
 package org.neo4j.ogm.defects.defaultEntityAccessStrategy;
 
-import org.junit.Ignore;
 import org.junit.Test;
 import org.neo4j.ogm.annotation.EndNode;
 import org.neo4j.ogm.annotation.Relationship;
@@ -27,14 +26,12 @@ import org.neo4j.ogm.metadata.info.DomainInfo;
 import java.util.HashSet;
 import java.util.Set;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 /**
  * @author Luanne Misquitta
+ * @author Vince Bickers
  */
-@Ignore
 public class AnnotatedFieldAndNoSetterTest {
 
     private DefaultEntityAccessStrategy entityAccessStrategy = new DefaultEntityAccessStrategy();

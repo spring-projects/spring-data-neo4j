@@ -19,6 +19,7 @@ import java.util.Set;
 
 /**
  * @author Michal Bachman
+ * @author Vince Bickers
  */
 public class Movie {
 
@@ -78,5 +79,30 @@ public class Movie {
 
     public void setNominations(Set<Nomination> nominations) {
         this.nominations = nominations;
+    }
+
+    @Override
+    public String toString() {
+        return "Movie:" + title;
+    }
+
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Movie movie = (Movie) o;
+
+        if (title == null || movie.getTitle() == null) return false;
+
+        if (!title.equals(movie.title)) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        return title != null ? title.hashCode() : 0;
     }
 }

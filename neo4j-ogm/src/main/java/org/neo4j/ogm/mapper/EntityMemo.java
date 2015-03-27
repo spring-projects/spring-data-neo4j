@@ -51,7 +51,16 @@ public class EntityMemo {
      * @return true if the object hasn't changed since it was remembered, false otherwise
      */
     public boolean remembered(Object object, ClassInfo classInfo) {
-        return objectHash.containsKey(object) && hash(object, classInfo) == objectHash.get(object);
+
+        if (!objectHash.containsKey(object)) {
+            return false;
+        }
+
+        long actual = hash(object, classInfo);
+        long expected = objectHash.get(object);
+
+        return (actual == expected);
+        //return objectHash.containsKey(object) && hash(object, classInfo) == objectHash.get(object);
     }
 
     public void clear() {

@@ -487,4 +487,8 @@ public class Neo4jSession implements Session {
         return classInfo.label();
     }
 
+    // NOT on the interface
+    public MappingContext context() {
+        return mappingContext;
+    }
 }

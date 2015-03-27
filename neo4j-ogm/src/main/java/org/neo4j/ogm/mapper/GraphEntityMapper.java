@@ -13,15 +13,7 @@
 package org.neo4j.ogm.mapper;
 
 import org.neo4j.ogm.annotation.Relationship;
-import org.neo4j.ogm.entityaccess.DefaultEntityAccessStrategy;
-import org.neo4j.ogm.entityaccess.EntityAccess;
-import org.neo4j.ogm.entityaccess.EntityAccessStrategy;
-import org.neo4j.ogm.entityaccess.EntityFactory;
-import org.neo4j.ogm.entityaccess.FieldWriter;
-import org.neo4j.ogm.entityaccess.PropertyReader;
-import org.neo4j.ogm.entityaccess.PropertyWriter;
-import org.neo4j.ogm.entityaccess.RelationalReader;
-import org.neo4j.ogm.entityaccess.RelationalWriter;
+import org.neo4j.ogm.entityaccess.*;
 import org.neo4j.ogm.metadata.MappingException;
 import org.neo4j.ogm.metadata.MetaData;
 import org.neo4j.ogm.metadata.info.ClassInfo;
@@ -33,11 +25,8 @@ import org.neo4j.ogm.model.RelationshipModel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Set;
 
 /**
  * @author Vince Bickers
@@ -157,7 +146,7 @@ public class GraphEntityMapper implements GraphToEntityMapper<GraphModel> {
 
     private void mapRelationships(GraphModel graphModel) {
 
-        final Set<RelationshipModel> oneToMany = new HashSet<>();
+        final List<RelationshipModel> oneToMany = new ArrayList<>();
 
         for (RelationshipModel edge : graphModel.getRelationships()) {
 
@@ -234,6 +223,8 @@ public class GraphEntityMapper implements GraphToEntityMapper<GraphModel> {
         Object relationshipEntity = entityFactory.newObject(edge);
         setIdentity(relationshipEntity, edge.getId());
         setProperties(edge, relationshipEntity);
+        // REs also have properties
+        mappingContext.remember(relationshipEntity);
 
         // register it in the mapping context
         mappingContext.registerRelationshipEntity(relationshipEntity, edge.getId());
@@ -257,7 +248,7 @@ public class GraphEntityMapper implements GraphToEntityMapper<GraphModel> {
         return mappingContext.getAll(clazz);
     }
 
-    private void mapOneToMany(Set<RelationshipModel> oneToManyRelationships) {
+    private void mapOneToMany(Collection<RelationshipModel> oneToManyRelationships) {
 
         EntityCollector typeRelationships = new EntityCollector();
 
