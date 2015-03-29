@@ -20,10 +20,16 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Vince Bickers
+ * @author Luanne Misquitta
  */
 public class DomainInfo implements ClassFileProcessor {
 
@@ -32,6 +38,8 @@ public class DomainInfo implements ClassFileProcessor {
     private static final String bigIntegerSignature = "java/math/BigInteger";
     private static final String byteArraySignature = "[B";
     private static final String byteArrayWrapperSignature = "[Ljava/lang/Byte";
+    private static final String arraySignature = "[L";
+    private static final String collectionSignature = "L";
 
     private final List<String> classPaths = new ArrayList<>();
     private final Map<String, ClassInfo> classNameToClassInfo = new HashMap<>();
@@ -66,63 +74,13 @@ public class DomainInfo implements ClassFileProcessor {
 
         for (ClassInfo classInfo : classNameToClassInfo.values()) {
             if (!classInfo.isEnum() && !classInfo.isInterface()) {
-
-                for (FieldInfo fieldInfo : classInfo.fieldsInfo().fields()) {
-                    if (!fieldInfo.hasConverter()) {
-                        if (fieldInfo.getDescriptor().contains(dateSignature)) {
-                            fieldInfo.setConverter(ConvertibleTypes.getDateConverter());
-                        }
-                        else if (fieldInfo.getDescriptor().contains(bigIntegerSignature)) {
-                            fieldInfo.setConverter(ConvertibleTypes.getBigIntegerConverter());
-                        }
-                        else if (fieldInfo.getDescriptor().contains(bigDecimalSignature)) {
-                            fieldInfo.setConverter(ConvertibleTypes.getBigDecimalConverter());
-                        }
-                        else if (fieldInfo.getDescriptor().contains(byteArraySignature)) {
-                            fieldInfo.setConverter(ConvertibleTypes.getByteArrayBase64Converter());
-                        }
-                        else if (fieldInfo.getDescriptor().contains(byteArrayWrapperSignature)) {
-                            fieldInfo.setConverter(ConvertibleTypes.getByteArrayWrapperBase64Converter());
-                        }
-                        else {
-                            for (String enumSignature : enumTypes) {
-                                if (fieldInfo.getDescriptor().contains(enumSignature)) {
-                                    fieldInfo.setConverter(ConvertibleTypes.getEnumConverter(enumSignature));
-                                }
-                            }
-                        }
-                    }
-                }
-
-                for (MethodInfo methodInfo : classInfo.methodsInfo().methods()) {
-                    if (!methodInfo.hasConverter()) {
-                        if (methodInfo.getDescriptor().contains(dateSignature)) {
-                            methodInfo.setConverter(ConvertibleTypes.getDateConverter());
-                        }
-                        else if (methodInfo.getDescriptor().contains(bigIntegerSignature)) {
-                            methodInfo.setConverter(ConvertibleTypes.getBigIntegerConverter());
-                        }
-                        else if (methodInfo.getDescriptor().contains(bigDecimalSignature)) {
-                            methodInfo.setConverter(ConvertibleTypes.getBigDecimalConverter());
-                        }
-                        else if (methodInfo.getDescriptor().contains(byteArraySignature)) {
-                            methodInfo.setConverter(ConvertibleTypes.getByteArrayBase64Converter());
-                        }
-                        else if (methodInfo.getDescriptor().contains(byteArrayWrapperSignature)) {
-                            methodInfo.setConverter(ConvertibleTypes.getByteArrayWrapperBase64Converter());
-                        }
-                        else {
-                            for (String enumSignature : enumTypes) {
-                                if (methodInfo.getDescriptor().contains(enumSignature)) {
-                                    methodInfo.setConverter(ConvertibleTypes.getEnumConverter(enumSignature));
-                                }
-                            }
-                        }
-                    }
-                }
+                registerDefaultFieldConverters(classInfo);
+                registerDefaultMethodConverters(classInfo);
             }
         }
     }
+
+
 
     public void finish() {
         buildAnnotationNameToClassInfoMap();
@@ -246,5 +204,166 @@ public class DomainInfo implements ClassFileProcessor {
 
     public List<ClassInfo> getClassInfosWithAnnotation(String annotation) {
         return annotationNameToClassInfo.get(annotation);
+    }
+
+    private void registerDefaultMethodConverters(ClassInfo classInfo) {
+        for (MethodInfo methodInfo : classInfo.methodsInfo().methods()) {
+            if (!methodInfo.hasConverter()) {
+                if (methodInfo.getDescriptor().contains(dateSignature)
+                        || (methodInfo.getTypeParameterDescriptor()!=null && methodInfo.getTypeParameterDescriptor().contains(dateSignature))) {
+                    setDateMethodConverter(methodInfo);
+                }
+                else if (methodInfo.getDescriptor().contains(bigIntegerSignature)
+                        || (methodInfo.getTypeParameterDescriptor()!=null && methodInfo.getTypeParameterDescriptor().contains(bigIntegerSignature))) {
+                    setBigIntegerMethodConverter(methodInfo);
+                }
+                else if (methodInfo.getDescriptor().contains(bigDecimalSignature)
+                        || (methodInfo.getTypeParameterDescriptor()!=null && methodInfo.getTypeParameterDescriptor().contains(bigDecimalSignature))) {
+
+                    setBigDecimalMethodConverter(methodInfo);
+                }
+                else if (methodInfo.getDescriptor().contains(byteArraySignature)) {
+                    methodInfo.setConverter(ConvertibleTypes.getByteArrayBase64Converter());
+                }
+                else if (methodInfo.getDescriptor().contains(byteArrayWrapperSignature)) {
+                    methodInfo.setConverter(ConvertibleTypes.getByteArrayWrapperBase64Converter());
+                }
+                else {
+                    for (String enumSignature : enumTypes) {
+                        if (methodInfo.getDescriptor().contains(enumSignature) || (methodInfo.getTypeParameterDescriptor()!=null && methodInfo.getTypeParameterDescriptor().contains(enumSignature))) {
+                            setEnumMethodConverter(methodInfo, enumSignature);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private void setEnumMethodConverter(MethodInfo methodInfo, String enumSignature) {
+        if(methodInfo.getDescriptor().contains(arraySignature)) {
+            methodInfo.setConverter(ConvertibleTypes.getEnumArrayConverter(enumSignature));
+        }
+        else if(methodInfo.getDescriptor().contains(collectionSignature) && methodInfo.isCollection()) {
+            methodInfo.setConverter(ConvertibleTypes.getEnumCollectionConverter(enumSignature,methodInfo.getCollectionClassname()));
+        }
+        else {
+            methodInfo.setConverter(ConvertibleTypes.getEnumConverter(enumSignature));
+        }
+    }
+
+    private void setBigDecimalMethodConverter(MethodInfo methodInfo) {
+        if(methodInfo.getDescriptor().contains(arraySignature)) {
+            methodInfo.setConverter(ConvertibleTypes.getBigDecimalArrayConverter());
+        }
+        else if(methodInfo.getDescriptor().contains(collectionSignature) && methodInfo.isCollection()) {
+            methodInfo.setConverter(ConvertibleTypes.getBigDecimalCollectionConverter(methodInfo.getCollectionClassname()));
+        }
+        else {
+            methodInfo.setConverter(ConvertibleTypes.getBigDecimalConverter());
+        }
+    }
+
+    private void setBigIntegerMethodConverter(MethodInfo methodInfo) {
+        if(methodInfo.getDescriptor().contains(arraySignature)) {
+            methodInfo.setConverter(ConvertibleTypes.getBigIntegerArrayConverter());
+        }
+        else if(methodInfo.getDescriptor().contains(collectionSignature) && methodInfo.isCollection()) {
+            methodInfo.setConverter(ConvertibleTypes.getBigIntegerCollectionConverter(methodInfo.getCollectionClassname()));
+        }
+        else {
+            methodInfo.setConverter(ConvertibleTypes.getBigIntegerConverter());
+        }
+    }
+
+    private void setDateMethodConverter(MethodInfo methodInfo) {
+        if(methodInfo.getDescriptor().contains(arraySignature)) {
+            methodInfo.setConverter(ConvertibleTypes.getDateArrayConverter());
+        }
+        else if(methodInfo.getDescriptor().contains(collectionSignature) && methodInfo.isCollection()) {
+            methodInfo.setConverter(ConvertibleTypes.getDateCollectionConverter(methodInfo.getCollectionClassname()));
+        }
+        else {
+            methodInfo.setConverter(ConvertibleTypes.getDateConverter());
+        }
+    }
+
+    private void registerDefaultFieldConverters(ClassInfo classInfo) {
+        for (FieldInfo fieldInfo : classInfo.fieldsInfo().fields()) {
+            if (!fieldInfo.hasConverter()) {
+                if (fieldInfo.getDescriptor().contains(dateSignature)
+                        || (fieldInfo.getTypeParameterDescriptor()!=null && fieldInfo.getTypeParameterDescriptor().contains(dateSignature))) {
+                    setDateFieldConverter(fieldInfo);
+                }
+                else if (fieldInfo.getDescriptor().contains(bigIntegerSignature)
+                        || (fieldInfo.getTypeParameterDescriptor()!=null && fieldInfo.getTypeParameterDescriptor().contains(bigIntegerSignature))) {
+                    setBigIntegerFieldConverter(fieldInfo);
+                }
+                else if (fieldInfo.getDescriptor().contains(bigDecimalSignature)
+                        || (fieldInfo.getTypeParameterDescriptor()!=null && fieldInfo.getTypeParameterDescriptor().contains(bigDecimalSignature))) {
+                    setBigDecimalConverter(fieldInfo);
+                }
+                else if (fieldInfo.getDescriptor().contains(byteArraySignature)) {
+                    fieldInfo.setConverter(ConvertibleTypes.getByteArrayBase64Converter());
+                }
+                else if (fieldInfo.getDescriptor().contains(byteArrayWrapperSignature)) {
+                    fieldInfo.setConverter(ConvertibleTypes.getByteArrayWrapperBase64Converter());
+                }
+                else {
+                    for (String enumSignature : enumTypes) {
+                        if (fieldInfo.getDescriptor().contains(enumSignature) || (fieldInfo.getTypeParameterDescriptor()!=null && fieldInfo.getTypeParameterDescriptor().contains(enumSignature))) {
+                            setEnumFieldConverter(fieldInfo, enumSignature);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private void setEnumFieldConverter(FieldInfo fieldInfo, String enumSignature) {
+        if(fieldInfo.getDescriptor().contains(arraySignature)) {
+            fieldInfo.setConverter(ConvertibleTypes.getEnumArrayConverter(enumSignature));
+        }
+        else if(fieldInfo.getDescriptor().contains(collectionSignature) && fieldInfo.isCollection()) {
+            fieldInfo.setConverter(ConvertibleTypes.getEnumCollectionConverter(enumSignature,fieldInfo.getCollectionClassname()));
+        }
+        else {
+            fieldInfo.setConverter(ConvertibleTypes.getEnumConverter(enumSignature));
+        }
+    }
+
+    private void setBigDecimalConverter(FieldInfo fieldInfo) {
+        if(fieldInfo.getDescriptor().contains(arraySignature)) {
+            fieldInfo.setConverter(ConvertibleTypes.getBigDecimalArrayConverter());
+        }
+        else if(fieldInfo.getDescriptor().contains(collectionSignature) && fieldInfo.isCollection()) {
+            fieldInfo.setConverter(ConvertibleTypes.getBigDecimalCollectionConverter(fieldInfo.getCollectionClassname()));
+        }
+        else {
+            fieldInfo.setConverter(ConvertibleTypes.getBigDecimalConverter());
+        }
+    }
+
+    private void setBigIntegerFieldConverter(FieldInfo fieldInfo) {
+        if(fieldInfo.getDescriptor().contains(arraySignature)) {
+            fieldInfo.setConverter(ConvertibleTypes.getBigIntegerArrayConverter());
+        }
+        else if(fieldInfo.getDescriptor().contains(collectionSignature) && fieldInfo.isCollection()) {
+            fieldInfo.setConverter(ConvertibleTypes.getBigIntegerCollectionConverter(fieldInfo.getCollectionClassname()));
+        }
+        else {
+            fieldInfo.setConverter(ConvertibleTypes.getBigIntegerConverter());
+        }
+    }
+
+    private void setDateFieldConverter(FieldInfo fieldInfo) {
+        if(fieldInfo.getDescriptor().contains(arraySignature)) {
+            fieldInfo.setConverter(ConvertibleTypes.getDateArrayConverter());
+        }
+        else if(fieldInfo.getDescriptor().contains(collectionSignature) && fieldInfo.isCollection()) {
+            fieldInfo.setConverter(ConvertibleTypes.getDateCollectionConverter(fieldInfo.getCollectionClassname()));
+        }
+        else {
+            fieldInfo.setConverter(ConvertibleTypes.getDateConverter());
+        }
     }
 }
