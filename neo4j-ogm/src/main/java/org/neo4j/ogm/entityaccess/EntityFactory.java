@@ -86,7 +86,7 @@ public class EntityFactory {
             if (classInfo != null) {
                 taxaLeafClass.put(Arrays.toString(taxa), fqn=classInfo.name());
             } else {
-                throw new MappingException("Could not resolve a single base class from " + taxa);
+                throw new MappingException("Could not resolve a single base class from " + Arrays.toString(taxa));
             }
         }
         return fqn;

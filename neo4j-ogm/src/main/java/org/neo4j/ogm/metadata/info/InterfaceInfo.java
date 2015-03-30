@@ -12,9 +12,6 @@
 
 package org.neo4j.ogm.metadata.info;
 
-import java.util.HashSet;
-import java.util.Set;
-
 /**
  * Direct and ancestral interfaces of a given interface.
  *
@@ -23,21 +20,9 @@ import java.util.Set;
 class InterfaceInfo {
 
     private final String interfaceName;
-    private final Set<InterfaceInfo> superInterfaces = new HashSet<>();
-
-    // what's this for?
-    private final Set<InterfaceInfo> allSuperInterfaces = new HashSet<>();
 
     public InterfaceInfo(String name) {
         this.interfaceName = name;
-    }
-
-    public Set<InterfaceInfo> superInterfaces() {
-        return superInterfaces;
-    }
-
-    public Set<InterfaceInfo> allSuperInterfaces() {
-        return allSuperInterfaces;
     }
 
     String name() {

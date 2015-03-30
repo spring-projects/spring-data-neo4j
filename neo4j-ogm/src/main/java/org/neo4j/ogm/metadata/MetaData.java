@@ -53,7 +53,11 @@ public class MetaData {
         if (classInfo != null) {
             return classInfo;
         }
-        return domainInfo.getClassSimpleName(name);
+        classInfo = domainInfo.getClassSimpleName(name);
+        if (classInfo != null) {
+            return classInfo;
+        }
+        return domainInfo.getClassInfoForInterface(name);
     }
 
 
@@ -111,6 +115,13 @@ public class MetaData {
                             // taxon class now.
                             baseClasses.add(taxonClassInfo);
                         }
+                        else {
+                            //try to find a single implementing class if this is an interface
+                            ClassInfo singleImplementor = findSingleImplementor(taxon);
+                            if(singleImplementor!=null) {
+                                baseClasses.add(singleImplementor);
+                            }
+                        }
                     }
                 } // not found, try again
             }
@@ -127,6 +138,9 @@ public class MetaData {
 
     private ClassInfo findSingleBaseClass(ClassInfo fqn, List<ClassInfo> classInfoList) {
         if (classInfoList.isEmpty()) {
+            if(fqn.isInterface()) {
+                return null;
+            }
             return fqn;
         }
         if (classInfoList.size() > 1) {
@@ -144,6 +158,14 @@ public class MetaData {
             return false;
         }
         return null != classInfo.annotationsInfo().get(RelationshipEntity.CLASS);
+    }
+
+    private ClassInfo findSingleImplementor(String taxon) {
+        ClassInfo interfaceInfo = domainInfo.getClassInfoForInterface(taxon);
+        if(interfaceInfo!=null && interfaceInfo.directImplementingClasses()!=null && interfaceInfo.directImplementingClasses().size()==1) {
+            return interfaceInfo.directImplementingClasses().get(0);
+        }
+        return null;
     }
 
 
