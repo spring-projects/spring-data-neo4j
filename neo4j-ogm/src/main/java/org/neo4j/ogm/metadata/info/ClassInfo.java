@@ -61,6 +61,8 @@ public class ClassInfo {
 
     private ClassInfo directSuperclass;
     private final List<ClassInfo> directSubclasses = new ArrayList<>();
+    private final List<ClassInfo> directInterfaces = new ArrayList<>();
+    private final List<ClassInfo> directImplementingClasses = new ArrayList<>();
 
     // ??
     private final Set<InterfaceInfo> interfaces = new HashSet<>();
@@ -179,6 +181,9 @@ public class ClassInfo {
         if (directSuperclass != null && !"java.lang.Object".equals(directSuperclass.className)) {
             directSuperclass.collectLabels(labelNames);
         }
+        for(ClassInfo interfaceInfo : directInterfaces()) {
+            interfaceInfo.collectLabels(labelNames);
+        }
         return labelNames;
     }
 
@@ -186,8 +191,20 @@ public class ClassInfo {
         return directSubclasses;
     }
 
+    public List<ClassInfo> directImplementingClasses() {
+        return directImplementingClasses;
+    }
+
+    public List<ClassInfo> directInterfaces() {
+        return directInterfaces;
+    }
+
     Set<InterfaceInfo> interfaces() {
         return interfaces;
+    }
+
+    public InterfacesInfo interfacesInfo() {
+        return interfacesInfo;
     }
 
     public Collection<AnnotationInfo> annotations() {

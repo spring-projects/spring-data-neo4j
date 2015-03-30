@@ -17,9 +17,34 @@ import org.junit.Test;
 import org.neo4j.cypher.javacompat.ExecutionEngine;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.ogm.integration.hierarchy.domain.annotated.*;
-import org.neo4j.ogm.integration.hierarchy.domain.people.*;
-import org.neo4j.ogm.integration.hierarchy.domain.plain.*;
-import org.neo4j.ogm.integration.hierarchy.domain.trans.*;
+import org.neo4j.ogm.integration.hierarchy.domain.people.Bloke;
+import org.neo4j.ogm.integration.hierarchy.domain.people.Entity;
+import org.neo4j.ogm.integration.hierarchy.domain.people.Female;
+import org.neo4j.ogm.integration.hierarchy.domain.people.Male;
+import org.neo4j.ogm.integration.hierarchy.domain.people.Person;
+import org.neo4j.ogm.integration.hierarchy.domain.plain.PlainAbstractWithAnnotatedParent;
+import org.neo4j.ogm.integration.hierarchy.domain.plain.PlainChildWithAbstractParentAndAnnotatedSuperclass;
+import org.neo4j.ogm.integration.hierarchy.domain.plain.PlainChildWithAnnotatedAbstractNamedParent;
+import org.neo4j.ogm.integration.hierarchy.domain.plain.PlainChildWithAnnotatedAbstractParent;
+import org.neo4j.ogm.integration.hierarchy.domain.plain.PlainChildWithAnnotatedConcreteNamedParent;
+import org.neo4j.ogm.integration.hierarchy.domain.plain.PlainChildWithAnnotatedConcreteParent;
+import org.neo4j.ogm.integration.hierarchy.domain.plain.PlainChildWithAnnotatedConcreteSuperclass;
+import org.neo4j.ogm.integration.hierarchy.domain.plain.PlainChildWithAnnotatedInterfaceParent;
+import org.neo4j.ogm.integration.hierarchy.domain.plain.PlainChildWithAnnotatedNamedInterfaceParent;
+import org.neo4j.ogm.integration.hierarchy.domain.plain.PlainChildWithAnnotatedSuperInterface;
+import org.neo4j.ogm.integration.hierarchy.domain.plain.PlainChildWithPlainAbstractParent;
+import org.neo4j.ogm.integration.hierarchy.domain.plain.PlainChildWithPlainConcreteParent;
+import org.neo4j.ogm.integration.hierarchy.domain.plain.PlainChildWithPlainConcreteParentImplementingInterface;
+import org.neo4j.ogm.integration.hierarchy.domain.plain.PlainChildWithPlainInterfaceChild;
+import org.neo4j.ogm.integration.hierarchy.domain.plain.PlainChildWithPlainInterfaceParent;
+import org.neo4j.ogm.integration.hierarchy.domain.plain.PlainConcreteParent;
+import org.neo4j.ogm.integration.hierarchy.domain.plain.PlainSingleClass;
+import org.neo4j.ogm.integration.hierarchy.domain.trans.PlainChildOfTransientInterface;
+import org.neo4j.ogm.integration.hierarchy.domain.trans.PlainChildOfTransientParent;
+import org.neo4j.ogm.integration.hierarchy.domain.trans.PlainClassWithTransientFields;
+import org.neo4j.ogm.integration.hierarchy.domain.trans.TransientChildWithPlainConcreteParent;
+import org.neo4j.ogm.integration.hierarchy.domain.trans.TransientSingleClass;
+import org.neo4j.ogm.integration.hierarchy.domain.trans.TransientSingleClassWithId;
 import org.neo4j.ogm.session.Session;
 import org.neo4j.ogm.session.SessionFactory;
 import org.neo4j.ogm.testutil.WrappingServerIntegrationTest;
@@ -29,8 +54,8 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
 
-import static org.neo4j.ogm.testutil.GraphTestUtils.assertSameGraph;
 import static org.junit.Assert.*;
+import static org.neo4j.ogm.testutil.GraphTestUtils.*;
 
 /**
  * Integration test for label-based mapping of class hierarchies.
@@ -39,12 +64,14 @@ import static org.junit.Assert.*;
  * <ul>
  * <li>any plain concrete class in the hierarchy generates a label by default</li>
  * <li>plain abstract class does not generate a label by default</li>
+ * <li>plain interface does not generate a label by default</li>
  * <li>any class annotated with @NodeEntity or @NodeEntity(label="something") generates a label</li>
  * <li>empty or null labels must not be allowed</li>
  * <li>classes / hierarchies that are not to be persisted must be annotated with @Transient</li>
  * </ul>
  *
  * @author Michal Bachman
+ * @author Luanne Misquitta
  */
 public class ClassHierarchiesIntegrationTest extends WrappingServerIntegrationTest {
 
@@ -70,6 +97,19 @@ public class ClassHierarchiesIntegrationTest extends WrappingServerIntegrationTe
         assertNotNull(session.load(AnnotatedChildWithAnnotatedAbstractNamedParent.class, 0L));
     }
 
+    /**
+     * @see DATAGRAPH-577
+     */
+    @Test
+    public void annotatedChildWithAnnotatedNamedInterfaceParent() {
+        session.save(new AnnotatedChildWithAnnotatedNamedInterfaceParent());
+
+        assertSameGraph(getDatabase(), "CREATE (:AnnotatedChildWithAnnotatedNamedInterfaceParent:Parent)");
+
+        assertNotNull(session.load(AnnotatedChildWithAnnotatedNamedInterfaceParent.class, 0L));
+    }
+
+
     @Test
     public void annotatedChildWithAnnotatedAbstractParent() {
         session.save(new AnnotatedChildWithAnnotatedAbstractParent());
@@ -77,6 +117,18 @@ public class ClassHierarchiesIntegrationTest extends WrappingServerIntegrationTe
         assertSameGraph(getDatabase(), "CREATE (:AnnotatedChildWithAnnotatedAbstractParent:AnnotatedAbstractParent)");
 
         assertNotNull(session.load(AnnotatedChildWithAnnotatedAbstractParent.class, 0L));
+    }
+
+    /**
+     * @see DATAGRAPH-577
+     */
+    @Test
+    public void annotatedChildWithAnnotatedInterfaceParent() {
+        session.save(new AnnotatedChildWithAnnotatedInterfaceParent());
+
+        assertSameGraph(getDatabase(), "CREATE (:AnnotatedChildWithAnnotatedInterfaceParent:AnnotatedInterface)");
+
+        assertNotNull(session.load(AnnotatedChildWithAnnotatedInterfaceParent.class, 0L));
     }
 
     @Test
@@ -106,6 +158,18 @@ public class ClassHierarchiesIntegrationTest extends WrappingServerIntegrationTe
         assertNotNull(session.load(AnnotatedChildWithPlainAbstractParent.class, 0L));
     }
 
+    /**
+     * @see DATAGRAPH-577
+     */
+    @Test
+    public void annotatedChildWithPlainInterfaceParent() {
+        session.save(new AnnotatedChildWithPlainInterfaceParent());
+
+        assertSameGraph(getDatabase(), "CREATE (:AnnotatedChildWithPlainInterfaceParent)");
+
+        assertNotNull(session.load(AnnotatedChildWithPlainInterfaceParent.class, 0L));
+    }
+
     @Test
     public void annotatedChildWithPlainConcreteParent() {
         session.save(new AnnotatedChildWithPlainConcreteParent());
@@ -124,6 +188,18 @@ public class ClassHierarchiesIntegrationTest extends WrappingServerIntegrationTe
         assertNotNull(session.load(AnnotatedNamedChildWithAnnotatedAbstractNamedParent.class, 0L));
     }
 
+    /**
+     * @see DATAGRAPH-577
+     */
+    @Test
+    public void annotatedNamedChildWithAnnotatedNamedInterface() {
+        session.save(new AnnotatedNamedChildWithAnnotatedNamedInterfaceParent());
+
+        assertSameGraph(getDatabase(), "CREATE (:Child:Parent)");
+
+        assertNotNull(session.load(AnnotatedNamedChildWithAnnotatedNamedInterfaceParent.class, 0L));
+    }
+
     @Test
     public void annotatedNamedChildWithAnnotatedAbstractParent() {
         session.save(new AnnotatedNamedChildWithAnnotatedAbstractParent());
@@ -131,6 +207,18 @@ public class ClassHierarchiesIntegrationTest extends WrappingServerIntegrationTe
         assertSameGraph(getDatabase(), "CREATE (:Child:AnnotatedAbstractParent)");
 
         assertNotNull(session.load(AnnotatedNamedChildWithAnnotatedAbstractParent.class, 0L));
+    }
+
+    /**
+     * @see DATAGRAPH-577
+     */
+    @Test
+    public void annotatedNamedChildWithAnnotatedInterfaceParent() {
+        session.save(new AnnotatedNamedChildWithAnnotatedInterfaceParent());
+
+        assertSameGraph(getDatabase(), "CREATE (:Child:AnnotatedInterface)");
+
+        assertNotNull(session.load(AnnotatedNamedChildWithAnnotatedInterfaceParent.class, 0L));
     }
 
     @Test
@@ -158,6 +246,18 @@ public class ClassHierarchiesIntegrationTest extends WrappingServerIntegrationTe
         assertSameGraph(getDatabase(), "CREATE (:Child)");
 
         assertNotNull(session.load(AnnotatedNamedChildWithPlainAbstractParent.class, 0L));
+    }
+
+    /**
+     * @see DATAGRAPH-577
+     */
+    @Test
+    public void annotatedNamedChildWithPlainInterfaceParent() {
+        session.save(new AnnotatedNamedChildWithPlainInterfaceParent());
+
+        assertSameGraph(getDatabase(), "CREATE (:Child)");
+
+        assertNotNull(session.load(AnnotatedNamedChildWithPlainInterfaceParent.class, 0L));
     }
 
     @Test
@@ -196,6 +296,18 @@ public class ClassHierarchiesIntegrationTest extends WrappingServerIntegrationTe
         assertNotNull(session.load(PlainChildWithAnnotatedAbstractNamedParent.class, 0L));
     }
 
+    /**
+     * @see DATAGRAPH-577
+     */
+    @Test
+    public void plainChildWithAnnotatedNamedInterfaceParent() {
+        session.save(new PlainChildWithAnnotatedNamedInterfaceParent());
+
+        assertSameGraph(getDatabase(), "CREATE (:PlainChildWithAnnotatedNamedInterfaceParent:Parent)");
+
+        assertNotNull(session.load(PlainChildWithAnnotatedNamedInterfaceParent.class, 0L));
+    }
+
     @Test
     public void plainChildWithAnnotatedAbstractParent() {
         session.save(new PlainChildWithAnnotatedAbstractParent());
@@ -203,6 +315,18 @@ public class ClassHierarchiesIntegrationTest extends WrappingServerIntegrationTe
         assertSameGraph(getDatabase(), "CREATE (:PlainChildWithAnnotatedAbstractParent:AnnotatedAbstractParent)");
 
         assertNotNull(session.load(PlainChildWithAnnotatedAbstractParent.class, 0L));
+    }
+
+    /**
+     * @see DATAGRAPH-577
+     */
+    @Test
+    public void plainChildWithAnnotatedInterfaceParent() {
+        session.save(new PlainChildWithAnnotatedInterfaceParent());
+
+        assertSameGraph(getDatabase(), "CREATE (:PlainChildWithAnnotatedInterfaceParent:AnnotatedInterface)");
+
+        assertNotNull(session.load(PlainChildWithAnnotatedInterfaceParent.class, 0L));
     }
 
     @Test
@@ -232,6 +356,19 @@ public class ClassHierarchiesIntegrationTest extends WrappingServerIntegrationTe
         assertNotNull(session.load(PlainChildWithPlainAbstractParent.class, 0L));
     }
 
+    /**
+     * @see DATAGRAPH-577
+     */
+    @Test
+    public void plainChildWithPlainInterfaceParent() {
+        session.save(new PlainChildWithPlainInterfaceParent());
+
+        assertSameGraph(getDatabase(), "CREATE (:PlainChildWithPlainInterfaceParent)");
+
+        assertNotNull(session.load(PlainChildWithPlainInterfaceParent.class, 0L));
+    }
+
+
     @Test
     public void plainChildWithPlainConcreteParent() {
         session.save(new PlainChildWithPlainConcreteParent());
@@ -239,6 +376,105 @@ public class ClassHierarchiesIntegrationTest extends WrappingServerIntegrationTe
         assertSameGraph(getDatabase(), "CREATE (:PlainChildWithPlainConcreteParent:PlainConcreteParent)");
 
         assertNotNull(session.load(PlainChildWithPlainConcreteParent.class, 0L));
+    }
+
+    /**
+     * @see DATAGRAPH-577
+     */
+    @Test
+    public void plainChildWithPlainConcreteParentImplementingInterface() {
+        session.save(new PlainChildWithPlainConcreteParentImplementingInterface());
+
+        assertSameGraph(getDatabase(), "CREATE (:PlainChildWithPlainConcreteParentImplementingInterface:PlainConcreteParent)");
+
+        assertNotNull(session.load(PlainChildWithPlainConcreteParentImplementingInterface.class, 0L));
+        assertNotNull(session.load(PlainConcreteParent.class, 0L));
+    }
+
+    /**
+     * @see DATAGRAPH-577
+     */
+    @Test
+    public void plainChildWithPlainInterfaceChild() {
+        session.save(new PlainChildWithPlainInterfaceChild());
+
+        assertSameGraph(getDatabase(), "CREATE (:PlainChildWithPlainInterfaceChild)");
+
+        assertNotNull(session.load(PlainChildWithPlainInterfaceChild.class, 0L));
+    }
+
+    /**
+     * @see DATAGRAPH-577
+     */
+    @Test
+    public void plainChildWithAnnotatedSuperInterface() {
+        /*
+        PlainChildWithAnnotatedSuperInterface->PlainInterfaceChildWithAnnotatedParentInterface->AnnotatedInterface
+         */
+        session.save(new PlainChildWithAnnotatedSuperInterface());
+
+        assertSameGraph(getDatabase(), "CREATE (:PlainChildWithAnnotatedSuperInterface:AnnotatedInterface)");
+        assertNotNull(session.load(PlainChildWithAnnotatedSuperInterface.class, 0L));
+    }
+
+    /**
+     * @see DATAGRAPH-577
+     */
+    @Test
+    public void annotatedChildWithAnnotatedInterface() {
+        /*
+        AnnotatedChildWithAnnotatedInterface->AnnotatedInterfaceWithSingleImpl
+         */
+        session.save(new AnnotatedChildWithAnnotatedInterface());
+
+        assertSameGraph(getDatabase(), "CREATE (:AnnotatedChildWithAnnotatedInterface:AnnotatedInterfaceWithSingleImpl)");
+        assertNotNull(session.load(AnnotatedChildWithAnnotatedInterface.class, 0L));
+        assertNotNull(session.load(AnnotatedInterfaceWithSingleImpl.class, 0L)); //AnnotatedInterfaceWithSingleImpl has a single implementation so we should be able to load it
+        assertEquals("org.neo4j.ogm.integration.hierarchy.domain.annotated.AnnotatedChildWithAnnotatedInterface",session.load(AnnotatedInterfaceWithSingleImpl.class, 0L).getClass().getName());
+    }
+
+    /**
+     * @see DATAGRAPH-577
+     */
+    @Test
+    public void plainChildWithAnnotatedSuperclass() {
+        /*
+           PlainChildWithAnnotatedConcreteSuperclass->PlainChildWithAnnotatedConcreteParent->AnnotatedConcreteParent
+         */
+        session.save(new PlainChildWithAnnotatedConcreteSuperclass());
+
+        assertSameGraph(getDatabase(), "CREATE (:PlainChildWithAnnotatedConcreteSuperclass:PlainChildWithAnnotatedConcreteParent:AnnotatedConcreteParent)");
+        assertNotNull(session.load(PlainChildWithAnnotatedConcreteSuperclass.class, 0L));
+        assertNotNull(session.load(PlainChildWithAnnotatedConcreteParent.class, 0L));
+        assertNotNull(session.load(AnnotatedConcreteParent.class, 0L));
+    }
+
+    /**
+     * @see DATAGRAPH-577
+     */
+    @Test
+    public void plainChildWithAbstractParentAndAnnotatedSuperclass() {
+        /*
+           PlainChildWithAbstractParentAndAnnotatedSuperclass->PlainAbstractWithAnnotatedParent->AnnotatedSingleClass
+         */
+        session.save(new PlainChildWithAbstractParentAndAnnotatedSuperclass());
+        assertSameGraph(getDatabase(), "CREATE (:PlainChildWithAbstractParentAndAnnotatedSuperclass:AnnotatedSingleClass)");
+        assertNotNull(session.load(PlainChildWithAbstractParentAndAnnotatedSuperclass.class, 0L));
+        assertNotNull(session.load(PlainAbstractWithAnnotatedParent.class, 0L));
+        assertNotNull(session.load(AnnotatedSingleClass.class, 0L));
+    }
+
+    /**
+     * @see DATAGRAPH-577
+     */
+    @Test
+    public void annotatedChildWithMultipleAnnotatedInterfaces() {
+        session.save(new AnnotatedChildWithMultipleAnnotatedInterfaces());
+
+        assertSameGraph(getDatabase(), "CREATE (:AnnotatedChildWithMultipleAnnotatedInterfaces:AnnotatedInterface:Parent)");
+        assertNotNull(session.load(AnnotatedChildWithMultipleAnnotatedInterfaces.class, 0L));
+        assertEquals(1,session.loadAll(AnnotatedInterface.class).size());
+        assertEquals(1,session.loadAll(AnnotatedNamedInterfaceParent.class).size());
     }
 
     @Test
@@ -254,6 +490,18 @@ public class ClassHierarchiesIntegrationTest extends WrappingServerIntegrationTe
     public void plainChildOfTransientParent() {
         session.save(new PlainChildOfTransientParent());
 
+        try (Transaction tx = getDatabase().beginTx()) {
+            assertFalse(GlobalGraphOperations.at(getDatabase()).getAllNodes().iterator().hasNext());
+            tx.success();
+        }
+    }
+
+    /**
+     * @see DATAGRAPH-577
+     */
+    @Test
+    public void plainChildOfTransientInterface() {
+        session.save(new PlainChildOfTransientInterface());
         try (Transaction tx = getDatabase().beginTx()) {
             assertFalse(GlobalGraphOperations.at(getDatabase()).getAllNodes().iterator().hasNext());
             tx.success();
@@ -507,8 +755,4 @@ public class ClassHierarchiesIntegrationTest extends WrappingServerIntegrationTe
 
         session.loadAll(Person.class);
     }
-
-    //todo interfaces in domain objects
-
-
 }

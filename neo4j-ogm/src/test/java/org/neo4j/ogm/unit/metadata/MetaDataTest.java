@@ -33,7 +33,7 @@ import static org.junit.Assert.*;
  */
 public class MetaDataTest {
 
-    private static final MetaData metaData = new MetaData("org.neo4j.ogm.domain.forum", "org.neo4j.ogm.domain.canonical");
+    private static final MetaData metaData = new MetaData("org.neo4j.ogm.domain.forum", "org.neo4j.ogm.domain.canonical","org.neo4j.ogm.integration.hierarchy.domain");
 
     /**
      * A class can be found if its simple name is unique in the domain
@@ -504,10 +504,22 @@ public class MetaDataTest {
 
     @Test
     /**
-     * Taxa corresponding to interfaces can't be resolved
+     * Taxa corresponding to interfaces with multiple implementations can't be resolved
      */
-    public void testInterfaceTaxa() {
+    public void testInterfaceWithMultipleImplTaxa() {
         assertEquals(null, metaData.resolve("IMembership"));
+    }
+
+    @Test
+    /**
+     * Taxa corresponding to interfaces with a single implementor can be resolved
+     *
+     * @see DATAGRAPH-577
+     */
+    public void testInterfaceWithSingleImplTaxa() {
+        ClassInfo classInfo = metaData.resolve("AnnotatedInterfaceWithSingleImpl");
+        assertNotNull(classInfo);
+        assertEquals("org.neo4j.ogm.integration.hierarchy.domain.annotated.AnnotatedChildWithAnnotatedInterface",classInfo.name());
     }
 
     @Test

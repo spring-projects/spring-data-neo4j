@@ -80,6 +80,14 @@ public class MappingContext {
                 && !type.getSuperclass().getName().equals("java.lang.Object")) {
             registerTypes(type.getSuperclass(), entity);
         }
+        if(type.getInterfaces() != null
+                && metaData!=null) {
+            for(Class interfaceClass : type.getInterfaces()) {
+                if(metaData.classInfo(interfaceClass.getName())!=null) {
+                    registerTypes(interfaceClass,entity);
+                }
+            }
+        }
     }
 
     private void deregisterTypes(Class type, Object entity) {
