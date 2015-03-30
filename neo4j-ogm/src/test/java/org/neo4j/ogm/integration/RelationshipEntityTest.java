@@ -458,55 +458,5 @@ public class RelationshipEntityTest extends InMemoryServerTest {
 
     }
 
-    /**
-     * @see DATAGRAPH-565
-     * @see DATAGRAPH-568
-     */
-    @Test
-    public void shouldAllowRatingsToBeAdded() {
-
-        // create and save a movie
-        Movie azkaban = new Movie();
-        azkaban.setTitle("Harry Potter and the Prisoner of Azkaban");
-
-        // create and save a user rating the movie
-        User daniela = new User();
-        daniela.setName("Daniela");
-
-        Set<Rating> ratings = new HashSet<>();
-        Rating good = new Rating();
-        good.setUser(daniela);
-        good.setMovie(azkaban);
-        good.setStars(3);
-        ratings.add(good);
-
-        daniela.setRatings(ratings);
-        azkaban.setRatings(ratings);
-
-        session.save(daniela);
-
-        // daniela now rates the movie for a second time (two ratings)
-        Rating betterNextTime = new Rating();
-
-        betterNextTime.setMovie(azkaban);
-        betterNextTime.setUser(daniela);
-
-        betterNextTime.setStars(4);
-        ratings.add(betterNextTime);
-
-        //
-        daniela.setRatings(ratings);
-        azkaban.setRatings(ratings);
-
-
-        session.save(daniela);
-
-        // load the movie and check the ratings from daniela
-
-        Collection<Movie> movies = session.loadByProperty(Movie.class,new Property<String, Object>("title","Harry Potter and the Prisoner of Azkaban"));
-        azkaban = movies.iterator().next();
-        Assert.assertNotNull(azkaban.getRatings());
-        assertEquals(2, azkaban.getRatings().size());
-    }
 
 }
