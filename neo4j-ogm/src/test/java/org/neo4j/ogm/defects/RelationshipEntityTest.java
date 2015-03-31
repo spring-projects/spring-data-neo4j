@@ -14,7 +14,11 @@ package org.neo4j.ogm.defects;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.neo4j.ogm.annotation.*;
+import org.neo4j.ogm.annotation.EndNode;
+import org.neo4j.ogm.annotation.NodeEntity;
+import org.neo4j.ogm.annotation.Relationship;
+import org.neo4j.ogm.annotation.RelationshipEntity;
+import org.neo4j.ogm.annotation.StartNode;
 import org.neo4j.ogm.session.Session;
 import org.neo4j.ogm.session.SessionFactory;
 import org.neo4j.ogm.testutil.WrappingServerIntegrationTest;
@@ -22,7 +26,7 @@ import org.neo4j.ogm.testutil.WrappingServerIntegrationTest;
 import java.util.HashSet;
 import java.util.Set;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 
 /**
  * @author: Vince Bickers
@@ -94,8 +98,10 @@ public class RelationshipEntityTest extends WrappingServerIntegrationTest {
         session.save(u);
 
         m = session.load(M.class, m.id);
+        u = session.load(U.class, u.id);
 
         assertEquals(0, m.rset.size());
+        assertEquals(0, u.rset.size());
 
     }
 
@@ -119,6 +125,59 @@ public class RelationshipEntityTest extends WrappingServerIntegrationTest {
         assertEquals(1, m.rset.size());
         assertEquals(0, m.rset.iterator().next().stars.intValue());
     }
+
+    @Test
+    public void shouldDirectlyAddR() {
+
+        session.save(r1);
+        session.clear();
+        r1 = session.load(R.class, r1.id);
+
+        assertEquals(1, r1.m.rset.size());
+        assertEquals(1, r1.u.rset.size());
+    }
+
+    @Test
+    public void shouldDirectlyUpdateR() {
+
+        session.save(r1);
+        r1 = session.load(R.class, r1.id);
+        r1.stars = 5;
+        session.save(r1);
+        session.clear();
+        assertEquals(1, r1.m.rset.size());
+        assertEquals(1, r1.u.rset.size());
+        assertEquals(Integer.valueOf(5), r1.stars);
+
+        u = session.load(U.class,u.id);
+        assertEquals(1, u.rset.size());
+        m = session.load(M.class,m.id);
+        assertEquals(1,m.rset.size());
+        assertEquals(Integer.valueOf(5),m.rset.iterator().next().stars);
+    }
+
+    @Test
+    public void shouldDirectlyDeleteR() {
+        session.save(r1);
+
+        r1 = session.load(R.class, r1.id);
+        u = session.load(U.class,u.id);
+        m = session.load(M.class,m.id);
+        u.rset.clear();
+        m.rset.clear();
+        session.delete(r1);
+
+        assertNull(session.load(R.class, r1.id));
+
+        m = session.load(M.class,m.id);
+        assertNotNull(m);
+        assertEquals(0, m.rset.size());
+
+        u = session.load(U.class,u.id);
+        assertNotNull(u);
+        assertEquals(0,u.rset.size());
+    }
+
 
     @NodeEntity(label="U")
     public static class U {

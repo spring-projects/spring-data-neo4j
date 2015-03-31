@@ -14,18 +14,20 @@ package org.neo4j.ogm.unit.mapper.cypher;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Test;
-import org.neo4j.ogm.model.Property;
 import org.neo4j.ogm.cypher.statement.ParameterisedStatement;
-import org.neo4j.ogm.session.request.strategy.DeleteStatements;
+import org.neo4j.ogm.model.Property;
+import org.neo4j.ogm.session.request.strategy.DeleteNodeStatements;
+import org.neo4j.ogm.session.request.strategy.DeleteRelationshipStatements;
 import org.neo4j.ogm.session.request.strategy.VariableDepthQuery;
 
 import java.util.Arrays;
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 
 /**
  * @author Vince Bickers
+ * @author Luanne Misquitta
  */
 public class ParameterisedStatementTest {
 
@@ -98,7 +100,7 @@ public class ParameterisedStatementTest {
 
     @Test
     public void delete() throws Exception {
-        statement = new DeleteStatements().delete(123L);
+        statement = new DeleteNodeStatements().delete(123L);
         assertEquals("MATCH (n) WHERE id(n) = { id } OPTIONAL MATCH (n)-[r]-() DELETE r, n", statement.getStatement());
         assertEquals("{\"id\":123}", mapper.writeValueAsString(statement.getParameters()));
     }
@@ -106,22 +108,53 @@ public class ParameterisedStatementTest {
     @Test
     public void deleteAll() throws Exception {
         List<Long> ids = Arrays.asList(new Long[] { 123L, 234L, 345L });
-        statement = new DeleteStatements().deleteAll(ids);
+        statement = new DeleteNodeStatements().deleteAll(ids);
         assertEquals("MATCH (n) WHERE id(n) in { ids } OPTIONAL MATCH (n)-[r]-() DELETE r, n", statement.getStatement());
         assertEquals("{\"ids\":[123,234,345]}", mapper.writeValueAsString(statement.getParameters()));
     }
 
     @Test
     public void deleteAllByLabel() throws Exception {
-        statement = new DeleteStatements().deleteByLabel("NODE");
+        statement = new DeleteNodeStatements().deleteByType("NODE");
         assertEquals("MATCH (n:NODE) OPTIONAL MATCH (n)-[r]-() DELETE r, n", statement.getStatement());
         assertEquals("{}", mapper.writeValueAsString(statement.getParameters()));
     }
 
     @Test
     public void purge() throws Exception {
-        statement = new DeleteStatements().purge();
+        statement = new DeleteNodeStatements().purge();
         assertEquals("MATCH (n) OPTIONAL MATCH (n)-[r]-() DELETE r, n", statement.getStatement());
+        assertEquals("{}", mapper.writeValueAsString(statement.getParameters()));
+    }
+
+    /**
+     * @see DATAGRAPH-586
+     */
+    @Test
+    public void deleteRel() throws Exception {
+        statement = new DeleteRelationshipStatements().delete(123L);
+        assertEquals("MATCH (n)-[r]->() WHERE ID(r) = { id } DELETE r", statement.getStatement());
+        assertEquals("{\"id\":123}", mapper.writeValueAsString(statement.getParameters()));
+    }
+
+    /**
+     * @see DATAGRAPH-586
+     */
+    @Test
+    public void deleteAllRels() throws Exception {
+        List<Long> ids = Arrays.asList(new Long[]{123L, 234L, 345L});
+        statement = new DeleteRelationshipStatements().deleteAll(ids);
+        assertEquals("MATCH (n)-[r]->() WHERE id(r) in { ids } DELETE r", statement.getStatement());
+        assertEquals("{\"ids\":[123,234,345]}", mapper.writeValueAsString(statement.getParameters()));
+    }
+
+    /**
+     * @see DATAGRAPH-586
+     */
+    @Test
+    public void deleteAllRelsByType() throws Exception {
+        statement = new DeleteRelationshipStatements().deleteByType("REL");
+        assertEquals("MATCH (n)-[r:REL]-() DELETE r", statement.getStatement());
         assertEquals("{}", mapper.writeValueAsString(statement.getParameters()));
     }
 

@@ -33,6 +33,8 @@ import org.neo4j.ogm.session.request.Neo4jRequest;
 import org.neo4j.ogm.session.request.RequestHandler;
 import org.neo4j.ogm.session.request.SessionRequestHandler;
 import org.neo4j.ogm.session.request.strategy.AggregateStatements;
+import org.neo4j.ogm.session.request.strategy.DeleteNodeStatements;
+import org.neo4j.ogm.session.request.strategy.DeleteRelationshipStatements;
 import org.neo4j.ogm.session.request.strategy.DeleteStatements;
 import org.neo4j.ogm.session.request.strategy.QueryStatements;
 import org.neo4j.ogm.session.request.strategy.VariableDepthQuery;
@@ -61,6 +63,7 @@ import java.util.regex.Pattern;
 
 /**
  * @author Vince Bickers
+ * @author Luanne Misquitta
  */
 public class Neo4jSession implements Session {
 
@@ -329,7 +332,7 @@ public class Neo4jSession implements Session {
     @Override
     public void purgeDatabase() {
         String url = getOrCreateTransaction().url();
-        getRequestHandler().execute(new DeleteStatements().purge(), url).close();
+        getRequestHandler().execute(new DeleteNodeStatements().purge(), url).close();
         mappingContext.clear();
     }
 
@@ -405,7 +408,7 @@ public class Neo4jSession implements Session {
                 Long identity = (Long) FieldWriter.read(identityField, object);
                 if (identity != null) {
                     String url = getOrCreateTransaction().url();
-                    ParameterisedStatement request = new DeleteStatements().delete(identity);
+                    ParameterisedStatement request = getDeleteStatementsBasedOnType(object.getClass()).delete(identity);
                     try (Neo4jResponse<String> response = getRequestHandler().execute(request, url)) {
                         mappingContext.clear(object);
                     }
@@ -421,7 +424,7 @@ public class Neo4jSession implements Session {
         ClassInfo classInfo = metaData.classInfo(type.getName());
         if (classInfo != null) {
             String url = getOrCreateTransaction().url();
-            ParameterisedStatement request = new DeleteStatements().deleteByLabel(classInfo.label());
+            ParameterisedStatement request = getDeleteStatementsBasedOnType(type).deleteByType(getEntityType(classInfo));
             try (Neo4jResponse<String> response = getRequestHandler().execute(request, url)) {
                 mappingContext.clear(type);
             }
@@ -477,6 +480,13 @@ public class Neo4jSession implements Session {
         }
         //we can also use the mapping context to find the start node id, and if it exists, use it with the VariableDepthQuery
         return new VariableDepthQuery();
+    }
+
+    private DeleteStatements getDeleteStatementsBasedOnType(Class type) {
+        if (metaData.isRelationshipEntity(type.getName())) {
+            return new DeleteRelationshipStatements();
+        }
+        return new DeleteNodeStatements();
     }
 
     private String getEntityType(ClassInfo classInfo) {
