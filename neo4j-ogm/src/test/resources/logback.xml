@@ -23,7 +23,7 @@
 	<logger name="org.springframework" level="debug" />
 	 -->
 
-	<root level="info">
+	<root level="warn">
 		<appender-ref ref="console" />
 	</root>
 

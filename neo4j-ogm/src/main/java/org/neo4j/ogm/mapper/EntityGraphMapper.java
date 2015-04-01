@@ -232,7 +232,15 @@ public class EntityGraphMapper implements EntityToGraphMapper {
             CypherContext context=compiler.context();
             Long srcIdentity = (Long) entityAccessStrategy.getIdentityPropertyReader(srcInfo).read(entity);
 
-            clearContextRelationships(context, srcIdentity, relationshipType, relationshipDirection);
+            logger.debug("mapping reference type: " + relationshipType);
+
+            if (srcIdentity != null) {
+                boolean cleared = clearContextRelationships(context, srcIdentity, relationshipType, relationshipDirection);
+                if (!cleared) {
+                    logger.debug("this relationship is already being managed: {}");
+                    continue;
+                }
+            }
 
             Object relatedObject = reader.read(entity);
 
@@ -261,15 +269,13 @@ public class EntityGraphMapper implements EntityToGraphMapper {
      * @param identity the id of the node at the the 'start' of the relationship
      * @param relationshipType the type of relationship
      */
-    private void clearContextRelationships(CypherContext context, Long identity, String relationshipType, String relationshipDirection) {
-        if (identity != null) {
-            if (relationshipDirection.equals(Relationship.OUTGOING)) {
-                logger.debug("context-del: ({})-[:{}]->()", identity, relationshipType);
-                context.deregisterOutgoingRelationships(identity, relationshipType);
-            } else {
-                logger.debug("context-del: ()-[:{}]->({})", relationshipType, identity);
-                context.deregisterIncomingRelationships(identity, relationshipType);
-            }
+    private boolean clearContextRelationships(CypherContext context, Long identity, String relationshipType, String relationshipDirection) {
+        if (relationshipDirection.equals(Relationship.OUTGOING)) {
+            logger.debug("context-del: ({})-[:{}]->()", identity, relationshipType);
+            return context.deregisterOutgoingRelationships(identity, relationshipType);
+        } else {
+            logger.debug("context-del: ({})<-[:{}]-()", identity, relationshipType);
+            return context.deregisterIncomingRelationships(identity, relationshipType);
         }
     }
 
@@ -313,7 +319,7 @@ public class EntityGraphMapper implements EntityToGraphMapper {
                 mapRelatedEntity(cypherCompiler, nodeBuilder, source, srcIdentity, relationshipBuilder, target, horizon);
             }
         } else {
-            logger.warn("cannot create relationship: ({})-[:{}]->(null)", srcIdentity, relationshipType);
+            logger.debug("cannot create relationship: ({})-[:{}]->(null)", srcIdentity, relationshipType);
         }
     }
 
@@ -466,7 +472,7 @@ public class EntityGraphMapper implements EntityToGraphMapper {
     private void mapRelatedEntity(CypherCompiler compiler, NodeBuilder srcNodeBuilder, Object srcEntity, Long srcIdentity, RelationshipBuilder relationshipBuilder, Object tgtEntity, int horizon) {
 
         if (srcEntity == tgtEntity) {
-            logger.warn("refusing to map an entity to itself! {} ", srcEntity);
+            logger.debug("refusing to map an entity to itself! {} ", srcEntity);
             return;
         }
 
@@ -524,7 +530,7 @@ public class EntityGraphMapper implements EntityToGraphMapper {
     }
     /**
      * Checks the relationship creation request to ensure it will be handled correctly. This includes
-     * ensuring the correct direction is observed, and that a relationship with direction UNDIRECTED is created only
+     * ensuring the correct direction is observed, and that a new relationship (a)-[:TYPE]-(b) is created only
      * once from one of the participating nodes (rather than from both ends).
      *
      * @param context the current compiler {@link CypherContext}
@@ -534,12 +540,10 @@ public class EntityGraphMapper implements EntityToGraphMapper {
      */
     private void maybeCreateRelationship(CypherContext context, String src, RelationshipBuilder relationshipBuilder, String tgt) {
 
-        if (relationshipBuilder.hasDirection(Relationship.UNDIRECTED)) {
-            if (hasTransientRelationship(context, src, relationshipBuilder.getType(), tgt)) {
-                return;
-            }
+        if (hasTransientRelationship(context, src, relationshipBuilder.getType(), tgt)) {
+            logger.debug("new relationship is already registered");
+            return;
         }
-
 
         if (relationshipBuilder.hasDirection(Relationship.OUTGOING)) {
             reallyCreateRelationship(context, src, relationshipBuilder, tgt);

@@ -97,7 +97,7 @@ public class StaleObjectTest extends LifecycleTest {
 
         Folder p = session.load(Folder.class, f.getId());
 
-        assertEquals("Folder{name='f', documents=1}", p.toString());
+        assertEquals("Folder{name='f', documents=1, archived=0}", p.toString());
 
     }
 
