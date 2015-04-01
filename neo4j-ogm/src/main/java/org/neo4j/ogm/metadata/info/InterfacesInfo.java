@@ -21,7 +21,7 @@ import java.util.Map;
 /**
  * @author Vince Bickers
  */
-class InterfacesInfo {
+public class InterfacesInfo {
 
     private final Map<String, InterfaceInfo> interfaceMap = new HashMap<>();
 

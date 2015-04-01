@@ -17,7 +17,7 @@ package org.neo4j.ogm.metadata.info;
  *
  * @author Vince Bickers
  */
-class InterfaceInfo {
+public class InterfaceInfo {
 
     private final String interfaceName;
 

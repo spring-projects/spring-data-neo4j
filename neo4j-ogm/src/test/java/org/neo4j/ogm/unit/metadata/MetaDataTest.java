@@ -586,5 +586,17 @@ public class MetaDataTest {
         assertEquals(Arrays.asList("Student", "DomainObject"), nonAnnotatedClassInfo.labels());
     }
 
+    @Test
+    public void testClassInfoForAbstractClassImplementingInterface() {
+        assertEquals(0, metaData.classInfo("Membership").interfacesInfo().list().size());
+    }
+
+    @Test
+    public void testClassInfoForAbstractClassImplementingInterfaceName() {
+        assertTrue(metaData.classInfo("Membership").interfacesInfo().list().iterator().next().toString().contains("IMembership"));
+    }
+
+
+
 
 }
