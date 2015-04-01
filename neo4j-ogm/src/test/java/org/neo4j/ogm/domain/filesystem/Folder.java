@@ -14,8 +14,8 @@ package org.neo4j.ogm.domain.filesystem;
 
 import org.neo4j.ogm.annotation.Relationship;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.Collection;
 
 /**
  * @author Vince Bickers
@@ -24,14 +24,20 @@ public class Folder {
 
     private Long id;
     private String name;
-    private Set<Document> documents = new HashSet<>();
+    private Collection<Document> documents = new ArrayList<>();
+    private Collection<Document> archived = new ArrayList<>();
 
     @Relationship(type = "CONTAINS", direction= Relationship.OUTGOING)
-    public Set<Document> getDocuments() {
+    public Collection<Document> getDocuments() {
         return documents;
     }
 
-    public void setDocuments(Set<Document> documents) {
+    @Relationship(type = "ARCHIVED", direction= Relationship.OUTGOING)
+    public Collection<Document> getArchived() {
+        return archived;
+    }
+
+    public void setDocuments(Collection<Document> documents) {
         this.documents = documents;
     }
 
@@ -56,6 +62,7 @@ public class Folder {
         return "Folder{" +
                 "name='" + name + '\'' +
                 ", documents=" + documents.size() +
+                ", archived=" + archived.size() +
                 '}';
     }
 }
