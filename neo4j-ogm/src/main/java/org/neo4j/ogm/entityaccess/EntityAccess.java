@@ -82,17 +82,18 @@ public abstract class EntityAccess implements PropertyWriter, RelationalWriter {
         return null;
     }
 
-    private static Set<Object> union(Iterable<?> collection, Iterable<?> hydrated) {
-        Set<Object> set = new HashSet<>();
+    private static Collection<Object> union(Iterable<?> collection, Iterable<?> hydrated) {
+        Collection<Object> result = new ArrayList<>();
         for (Object object : collection) {
-            set.add(object);
+            result.add(object);
         }
         if (hydrated != null) {
             for (Object object : hydrated) {
-                set.add(object);
+                if (!result.contains( object )) {
+                    result.add(object);
+                }
             }
         }
-        return set;
+        return result;
     }
-
 }
