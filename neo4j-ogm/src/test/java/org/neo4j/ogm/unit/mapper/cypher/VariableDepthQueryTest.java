@@ -12,16 +12,17 @@
 
 package org.neo4j.ogm.unit.mapper.cypher;
 
-import org.neo4j.ogm.model.Property;
-import org.junit.Test;
-import org.neo4j.ogm.session.request.strategy.VariableDepthQuery;
+import static org.junit.Assert.*;
 
 import java.util.Arrays;
 
-import static org.junit.Assert.assertEquals;
+import org.junit.Test;
+import org.neo4j.ogm.model.Property;
+import org.neo4j.ogm.session.request.strategy.VariableDepthQuery;
 
 /**
  * @author Vince Bickers
+ * @author Luanne Misquitta
  */
 public class VariableDepthQueryTest {
 
@@ -44,12 +45,12 @@ public class VariableDepthQueryTest {
 
     @Test
     public void testFindByLabel() throws Exception {
-        assertEquals("MATCH p=(n:Orbit)-[*0..3]-(m) RETURN collect(distinct p)", query.findByType("Orbit", 3).getStatement());
+        assertEquals("MATCH p=(n:`Orbit`)-[*0..3]-(m) RETURN collect(distinct p)", query.findByType("Orbit", 3).getStatement());
     }
 
     @Test
     public void testFindByProperty() throws Exception {
-        assertEquals("MATCH p=(n:Asteroid)-[*0..4]-(m) WHERE n.diameter = { diameter } RETURN collect(distinct p)", query.findByProperty("Asteroid", new Property<String, Object>("diameter", 60.2), 4).getStatement());
+        assertEquals("MATCH p=(n:`Asteroid`)-[*0..4]-(m) WHERE n.diameter = { diameter } RETURN collect(distinct p)", query.findByProperty("Asteroid", new Property<String, Object>("diameter", 60.2), 4).getStatement());
     }
 
     @Test
@@ -64,12 +65,21 @@ public class VariableDepthQueryTest {
 
     @Test
     public void testFindByLabelZeroDepth() throws Exception {
-        assertEquals("MATCH (n:Orbit) RETURN collect(n)", query.findByType("Orbit", 0).getStatement());
+        assertEquals("MATCH (n:`Orbit`) RETURN collect(n)", query.findByType("Orbit", 0).getStatement());
     }
 
     @Test
     public void testFindByPropertyZeroDepth() throws Exception {
-        assertEquals("MATCH (n:Asteroid) WHERE n.diameter = { diameter } RETURN collect(n)", query.findByProperty("Asteroid", new Property<String, Object>("diameter", 60.2), 0).getStatement());
+        assertEquals("MATCH (n:`Asteroid`) WHERE n.diameter = { diameter } RETURN collect(n)", query.findByProperty("Asteroid", new Property<String, Object>("diameter", 60.2), 0).getStatement());
+    }
+
+    /**
+     * @see DATAGRAPH-589
+     * @throws Exception
+     */
+    @Test
+    public void testFindByLabelWithIllegalCharacters() throws Exception {
+        assertEquals("MATCH p=(n:`l'artiste`)-[*0..3]-(m) RETURN collect(distinct p)", query.findByType("l'artiste", 3).getStatement());
     }
 
 
