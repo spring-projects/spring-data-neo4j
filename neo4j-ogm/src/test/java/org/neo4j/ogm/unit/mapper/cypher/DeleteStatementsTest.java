@@ -12,14 +12,14 @@
 
 package org.neo4j.ogm.unit.mapper.cypher;
 
-import static org.junit.Assert.*;
-
-import java.util.Arrays;
-
 import org.junit.Test;
 import org.neo4j.ogm.session.request.strategy.DeleteNodeStatements;
 import org.neo4j.ogm.session.request.strategy.DeleteRelationshipStatements;
 import org.neo4j.ogm.session.request.strategy.DeleteStatements;
+
+import java.util.Arrays;
+
+import static org.junit.Assert.assertEquals;
 
 /**
  * @author Vince Bickers

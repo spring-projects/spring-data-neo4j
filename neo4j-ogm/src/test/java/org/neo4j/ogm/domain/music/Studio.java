@@ -10,24 +10,31 @@
  * conditions of the subcomponent's license, as noted in the LICENSE file.
  */
 
-package org.neo4j.ogm.session.request.strategy;
+package org.neo4j.ogm.domain.music;
 
-import org.neo4j.ogm.cypher.statement.ParameterisedStatement;
-
-import java.util.Collection;
+import org.neo4j.ogm.annotation.Property;
 
 /**
- * @author Vince Bickers
  * @author Luanne Misquitta
  */
-public interface DeleteStatements {
+public class Studio {
 
-    ParameterisedStatement delete(Long id);
+	private Long id;
+	@Property(name = "studio-name")
+	private String name;
 
-    ParameterisedStatement deleteAll(Collection<Long> ids);
+	public Studio() {
+	}
 
-    ParameterisedStatement purge();
+	public Studio(String name) {
+		this.name = name;
+	}
 
-    ParameterisedStatement deleteByType(String label);
+	public String getName() {
+		return name;
+	}
 
+	public void setName(String name) {
+		this.name = name;
+	}
 }
