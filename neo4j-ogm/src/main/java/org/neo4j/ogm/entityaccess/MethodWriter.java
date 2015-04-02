@@ -12,11 +12,11 @@
 
 package org.neo4j.ogm.entityaccess;
 
+import java.lang.reflect.Method;
+
 import org.neo4j.ogm.metadata.ClassUtils;
 import org.neo4j.ogm.metadata.info.ClassInfo;
 import org.neo4j.ogm.metadata.info.MethodInfo;
-
-import java.lang.reflect.Method;
 
 /**
  * @author Vince Bickers
@@ -66,7 +66,7 @@ public class MethodWriter extends EntityAccess {
         if (setterMethodInfo.hasConverter()) {
             try {
                 for(Method method : setterMethodInfo.converter().getClass().getDeclaredMethods()) {
-                    if(method.getName().equals("toGraphProperty") && !method.isSynthetic()) { //we don't want the method on the AttributeConverter interface
+                    if(method.getName().equals("toGraphProperty") && !method.getClass().isInterface()) { //we don't want the method on the AttributeConverter interface
                         return method.getReturnType();
                     }
                 }
