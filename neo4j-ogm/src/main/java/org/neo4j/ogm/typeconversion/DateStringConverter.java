@@ -51,7 +51,9 @@ public class DateStringConverter implements AttributeConverter<Date, String> {
     public Date toEntityAttribute(String value) {
         if (value == null) return null;
         try {
-            return new SimpleDateFormat(format).parse((String) value);
+            SimpleDateFormat simpleDateFormat = new SimpleDateFormat(format);
+            simpleDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+            return simpleDateFormat.parse((String) value);
         } catch (ParseException e) {
             throw new RuntimeException(e);
         }
