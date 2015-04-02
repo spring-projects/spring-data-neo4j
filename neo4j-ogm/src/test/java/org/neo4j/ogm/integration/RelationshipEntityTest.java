@@ -16,16 +16,22 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.neo4j.helpers.collection.IteratorUtil;
-import org.neo4j.ogm.domain.cineasts.annotated.*;
+import org.neo4j.ogm.domain.cineasts.annotated.Actor;
+import org.neo4j.ogm.domain.cineasts.annotated.Knows;
+import org.neo4j.ogm.domain.cineasts.annotated.Movie;
+import org.neo4j.ogm.domain.cineasts.annotated.Rating;
+import org.neo4j.ogm.domain.cineasts.annotated.User;
 import org.neo4j.ogm.domain.friendships.Friendship;
 import org.neo4j.ogm.domain.friendships.Person;
-import org.neo4j.ogm.mapper.MappingContext;
 import org.neo4j.ogm.model.Property;
-import org.neo4j.ogm.session.Neo4jSession;
 import org.neo4j.ogm.session.SessionFactory;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
 
 import static junit.framework.TestCase.assertNotNull;
 import static org.junit.Assert.assertEquals;
@@ -458,5 +464,120 @@ public class RelationshipEntityTest extends InMemoryServerTest {
 
     }
 
+    /**
+     * @see DATAGRAPH-586
+     */
+    @Test
+    public void shouldBeAbleToDeleteAllRatings() {
+        Set<Rating> gobletRatings = new HashSet<>();
+        Set<Rating> phoenixRatings = new HashSet<>();
+
+
+        Movie goblet = new Movie();
+        goblet.setTitle("Harry Potter and the Goblet of Fire");
+        session.save(goblet);
+
+        Movie phoenix = new Movie();
+        phoenix.setTitle("Harry Potter and the Order of the Phoenix");
+        session.save(phoenix);
+
+        User adam = new User();
+        adam.setName("Adam");
+
+        Rating good = new Rating();
+        good.setUser(adam);
+        good.setMovie(goblet);
+        good.setStars(3);
+        gobletRatings.add(good);
+        goblet.setRatings(gobletRatings);
+
+        Rating okay = new Rating();
+        okay.setMovie(phoenix);
+        okay.setUser(adam);
+        okay.setStars(2);
+        phoenixRatings.add(okay);
+        phoenix.setRatings(phoenixRatings);
+
+        Set<Rating> adamsRatings = new HashSet<>();
+        adamsRatings.add(good);
+        adamsRatings.add(okay);
+        adam.setRatings(adamsRatings);
+
+        session.save(adam);
+
+        adam = session.loadByProperty(User.class, new Property<String, Object>("name", "Adam")).iterator().next();
+        assertEquals(2, adam.getRatings().size());
+
+        //delete all ratings
+        session.deleteAll(Rating.class);
+        assertEquals(0, session.loadAll(Rating.class).size());
+
+        phoenix = session.loadByProperty(Movie.class, new Property<String, Object>("title", "Harry Potter and the Order of the Phoenix")).iterator().next();
+        assertNull(phoenix.getRatings());
+
+        goblet = session.loadByProperty(Movie.class, new Property<String, Object>("title", "Harry Potter and the Goblet of Fire")).iterator().next();
+        assertNull(goblet.getRatings());
+
+        adam = session.loadByProperty(User.class, new Property<String, Object>("name", "Adam")).iterator().next();
+        assertNull(adam.getRatings());
+    }
+
+    /**
+     * @see DATAGRAPH-586
+     */
+    @Test
+    public void shouldBeAbleToDeleteOneRating() {
+        Set<Rating> gobletRatings = new HashSet<>();
+        Set<Rating> phoenixRatings = new HashSet<>();
+
+
+        Movie goblet = new Movie();
+        goblet.setTitle("Harry Potter and the Goblet of Fire");
+        session.save(goblet);
+
+        Movie phoenix = new Movie();
+        phoenix.setTitle("Harry Potter and the Order of the Phoenix");
+        session.save(phoenix);
+
+        User adam = new User();
+        adam.setName("Adam");
+
+        Rating good = new Rating();
+        good.setUser(adam);
+        good.setMovie(goblet);
+        good.setStars(3);
+        gobletRatings.add(good);
+        goblet.setRatings(gobletRatings);
+
+        Rating okay = new Rating();
+        okay.setMovie(phoenix);
+        okay.setUser(adam);
+        okay.setStars(2);
+        phoenixRatings.add(okay);
+        phoenix.setRatings(phoenixRatings);
+
+        Set<Rating> adamsRatings = new HashSet<>();
+        adamsRatings.add(good);
+        adamsRatings.add(okay);
+        adam.setRatings(adamsRatings);
+
+        session.save(adam);
+
+        adam = session.loadByProperty(User.class, new Property<String, Object>("name", "Adam")).iterator().next();
+        assertEquals(2, adam.getRatings().size());
+
+        //delete one rating
+        session.delete(okay);
+        assertEquals(1, session.loadAll(Rating.class).size());
+
+        phoenix = session.loadByProperty(Movie.class, new Property<String, Object>("title", "Harry Potter and the Order of the Phoenix")).iterator().next();
+        assertNull(phoenix.getRatings());
+
+        goblet = session.loadByProperty(Movie.class, new Property<String, Object>("title", "Harry Potter and the Goblet of Fire")).iterator().next();
+        assertEquals(1, goblet.getRatings().size());
+
+        adam = session.loadByProperty(User.class, new Property<String, Object>("name", "Adam")).iterator().next();
+        assertEquals(1, adam.getRatings().size());
+    }
 
 }

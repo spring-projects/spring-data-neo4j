@@ -13,28 +13,20 @@
 package org.neo4j.ogm.session.request.strategy;
 
 import org.neo4j.ogm.cypher.statement.ParameterisedStatement;
-import org.neo4j.ogm.session.Utils;
 
 import java.util.Collection;
 
 /**
  * @author Vince Bickers
+ * @author Luanne Misquitta
  */
-public class DeleteStatements {
+public interface DeleteStatements {
 
-    public ParameterisedStatement delete(Long id) {
-        return new ParameterisedStatement("MATCH (n) WHERE id(n) = { id } OPTIONAL MATCH (n)-[r]-() DELETE r, n", Utils.map("id",id));
-    }
+    ParameterisedStatement delete(Long id);
 
-    public ParameterisedStatement deleteAll(Collection<Long> ids) {
-        return new ParameterisedStatement("MATCH (n) WHERE id(n) in { ids } OPTIONAL MATCH (n)-[r]-() DELETE r, n", Utils.map("ids", ids));
-    }
+    ParameterisedStatement deleteAll(Collection<Long> ids);
 
-    public ParameterisedStatement purge() {
-        return new ParameterisedStatement("MATCH (n) OPTIONAL MATCH (n)-[r]-() DELETE r, n", Utils.map());
-    }
+    ParameterisedStatement purge();
 
-    public ParameterisedStatement deleteByLabel(String label) {
-        return new ParameterisedStatement(String.format("MATCH (n:%s) OPTIONAL MATCH (n)-[r]-() DELETE r, n", label), Utils.map());
-    }
+    ParameterisedStatement deleteByType(String label);
 }
