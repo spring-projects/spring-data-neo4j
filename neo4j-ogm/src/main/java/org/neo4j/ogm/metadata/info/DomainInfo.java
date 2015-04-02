@@ -34,9 +34,10 @@ public class DomainInfo implements ClassFileProcessor {
     private static final String byteArrayWrapperSignature = "[Ljava/lang/Byte";
 
     private final List<String> classPaths = new ArrayList<>();
+
     private final Map<String, ClassInfo> classNameToClassInfo = new HashMap<>();
     private final Map<String, ArrayList<ClassInfo>> annotationNameToClassInfo = new HashMap<>();
-    private final Map<String, ClassInfo> interfaceNameToClassInfo = new HashMap<>();
+    private final Map<String, ArrayList<ClassInfo>> interfaceNameToClassInfo = new HashMap<>();
 
     private final Set<String> enumTypes = new HashSet<>();
 
@@ -45,11 +46,13 @@ public class DomainInfo implements ClassFileProcessor {
     public DomainInfo(String... packages) {
         long now = -System.currentTimeMillis();
         load(packages);
+
         LOGGER.info(classNameToClassInfo.entrySet().size() + " classes loaded in " + (now + System.currentTimeMillis()) + " milliseconds");
     }
 
     private void buildAnnotationNameToClassInfoMap() {
-        // A <-[:has_annotation]- T
+
+        LOGGER.info("Building annotation class map");
         for (ClassInfo classInfo : classNameToClassInfo.values()) {
             for (AnnotationInfo annotation : classInfo.annotations()) {
                 ArrayList<ClassInfo> classInfoList = annotationNameToClassInfo.get(annotation.getName());
@@ -61,8 +64,24 @@ public class DomainInfo implements ClassFileProcessor {
         }
     }
 
+    private void buildInterfaceNameToClassInfoMap() {
+        LOGGER.info("Building interface class map for " + classNameToClassInfo.values().size() + " classes");
+        for (ClassInfo classInfo : classNameToClassInfo.values()) {
+            LOGGER.debug(" - " + classInfo.simpleName() + " implements " + classInfo.interfacesInfo().list().size() + " interfaces");
+            for (InterfaceInfo iface : classInfo.interfacesInfo().list()) {
+                ArrayList<ClassInfo> classInfoList = interfaceNameToClassInfo.get(iface.name());
+                if (classInfoList == null) {
+                    interfaceNameToClassInfo.put(iface.name(), classInfoList = new ArrayList<>());
+                }
+                LOGGER.debug("   - " + iface.name());
+                classInfoList.add(classInfo);
+            }
+        }
+    }
+
     private void registerDefaultTypeConverters() {
 
+        LOGGER.info("Registering default type converters...");
         for (ClassInfo classInfo : classNameToClassInfo.values()) {
             if (!classInfo.isEnum() && !classInfo.isInterface()) {
 
@@ -124,14 +143,24 @@ public class DomainInfo implements ClassFileProcessor {
     }
 
     public void finish() {
+
+        LOGGER.info("Starting Post-processing phase");
+
         buildAnnotationNameToClassInfoMap();
+        buildInterfaceNameToClassInfoMap();
+
         registerDefaultTypeConverters();
+
         List<ClassInfo> transientClasses = new ArrayList<>();
+
         for (ClassInfo classInfo : classNameToClassInfo.values()) {
+
             if (classInfo.name() == null || classInfo.name().equals("java.lang.Object")) continue;
 
+            LOGGER.debug("Post-processing: " + classInfo.name());
+
             if (classInfo.isTransient()) {
-                LOGGER.info("Registering @Transient baseclass: " + classInfo.name());
+                LOGGER.info(" - Registering @Transient baseclass: " + classInfo.name());
                 transientClasses.add(classInfo);
                 continue;
             }
@@ -140,23 +169,30 @@ public class DomainInfo implements ClassFileProcessor {
                 extend(classInfo, classInfo.directSubclasses());
             }
 
-            if(classInfo.interfacesInfo()!=null) {
-                for(InterfaceInfo interfaceInfo : classInfo.interfacesInfo().list()) {
-                    implement(classInfo, interfaceInfo);
+            for(InterfaceInfo interfaceInfo : classInfo.interfacesInfo().list()) {
+                implement(classInfo, interfaceInfo);
+            }
+        }
+
+        LOGGER.debug("Checking for @Transient classes....");
+
+        // find transient interfaces
+        Collection<ArrayList<ClassInfo>> interfaceInfos = interfaceNameToClassInfo.values();
+        for (ArrayList<ClassInfo> classInfos : interfaceInfos) {
+            for (ClassInfo classInfo : classInfos) {
+                if(classInfo.isTransient()) {
+                    LOGGER.info("Registering @Transient baseclass: " + classInfo.name());
+                    transientClasses.add(classInfo);
                 }
             }
         }
-        // find transient interfaces
-        for(ClassInfo classInfo : interfaceNameToClassInfo.values()) {
-            if(classInfo.isTransient()) {
-                LOGGER.info("Registering @Transient baseclass: " + classInfo.name());
-                transientClasses.add(classInfo);
-            }
-        }
+
         // remove all transient class hierarchies
         for (ClassInfo transientClass : transientClasses) {
             removeTransientClass(transientClass);
         }
+
+        LOGGER.info("Post-processing complete");
 
     }
 
@@ -183,14 +219,27 @@ public class DomainInfo implements ClassFileProcessor {
     }
 
     private void implement(ClassInfo implementingClass, InterfaceInfo interfaceInfo) {
-        ClassInfo interfaceClassInfo = interfaceNameToClassInfo.get(interfaceInfo.name());
-        if(interfaceClassInfo!=null) {
-            implementingClass.directInterfaces().add(interfaceNameToClassInfo.get(interfaceInfo.name()));
-            interfaceNameToClassInfo.get(interfaceInfo.name()).directImplementingClasses().add(implementingClass);
-            for (InterfaceInfo superInterface : interfaceClassInfo.interfacesInfo().list()) {
-                implement(implementingClass, superInterface);
+
+        ClassInfo interfaceClass = classNameToClassInfo.get(interfaceInfo.name());
+
+        if (interfaceClass != null) {
+            if (!implementingClass.directInterfaces().contains(interfaceClass)) {
+                LOGGER.debug(" - Setting " + implementingClass.simpleName() + " implements " + interfaceClass.simpleName());
+                implementingClass.directInterfaces().add(interfaceClass);
             }
+
+            if (!interfaceClass.directImplementingClasses().contains(implementingClass)) {
+                interfaceClass.directImplementingClasses().add(implementingClass);
+            }
+
+            for (ClassInfo subClassInfo : implementingClass.directSubclasses()) {
+                implement(subClassInfo, interfaceInfo);
+            }
+
+        } else {
+            LOGGER.warn(" - No ClassInfo found for interface class: " + interfaceInfo.name());
         }
+
     }
 
     public void process(final InputStream inputStream) throws IOException {
@@ -200,36 +249,35 @@ public class DomainInfo implements ClassFileProcessor {
         String className = classInfo.name();
         String superclassName = classInfo.superclassName();
 
-        LOGGER.debug("processing: " + className + " -> " + superclassName);
+        LOGGER.debug("Processing: " + className + " -> " + superclassName);
 
         if (className != null) {
-            if (classInfo.isInterface()) {
-                if(interfaceNameToClassInfo.get(className)==null) {
-                    interfaceNameToClassInfo.put(className,classInfo);
-                }
-            } else {
-                ClassInfo thisClassInfo = classNameToClassInfo.get(className);
-                if (thisClassInfo == null) {
-                    thisClassInfo = classInfo;
-                    classNameToClassInfo.put(className, thisClassInfo);
-                }
-                if (!thisClassInfo.hydrated()) {
-                    thisClassInfo.hydrate(classInfo);
-                    ClassInfo superclassInfo = classNameToClassInfo.get(superclassName);
-                    if (superclassInfo == null) {
-                        classNameToClassInfo.put(superclassName, new ClassInfo(superclassName, thisClassInfo));
-                    } else {
-                        superclassInfo.addSubclass(thisClassInfo);
-                    }
-                }
-                if (thisClassInfo.isEnum()) {
-                    String enumSignature = thisClassInfo.name().replace(".", "/");
-                    LOGGER.info("Registering enum class: " + enumSignature);
-                    enumTypes.add(enumSignature);
+
+            ClassInfo thisClassInfo = classNameToClassInfo.get(className);
+
+            if (thisClassInfo == null) {
+                thisClassInfo = classInfo;
+                classNameToClassInfo.put(className, thisClassInfo);
+            }
+
+            if (!thisClassInfo.hydrated()) {
+
+                thisClassInfo.hydrate(classInfo);
+
+                ClassInfo superclassInfo = classNameToClassInfo.get(superclassName);
+                if (superclassInfo == null) {
+                    classNameToClassInfo.put(superclassName, new ClassInfo(superclassName, thisClassInfo));
+                } else {
+                    superclassInfo.addSubclass(thisClassInfo);
                 }
             }
-        }
 
+            if (thisClassInfo.isEnum()) {
+                String enumSignature = thisClassInfo.name().replace(".", "/");
+                LOGGER.info("Registering enum class: " + enumSignature);
+                enumTypes.add(enumSignature);
+            }
+        }
     }
 
     private void load(String... packages) {
@@ -252,8 +300,10 @@ public class DomainInfo implements ClassFileProcessor {
         return classNameToClassInfo.get(fqn);
     }
 
+    // all classes, including interfaces will be registered in classNameToClassInfo map
     public ClassInfo getClassSimpleName(String fullOrPartialClassName) {
-       return getInterfaceOrClassInfo(fullOrPartialClassName,classNameToClassInfo);
+        ClassInfo classInfo = getClassInfo(fullOrPartialClassName, classNameToClassInfo);
+        return classInfo;
     }
 
     public List<ClassInfo> getClassInfosWithAnnotation(String annotation) {
@@ -261,10 +311,14 @@ public class DomainInfo implements ClassFileProcessor {
     }
 
     public ClassInfo getClassInfoForInterface(String fullOrPartialClassName) {
-        return getInterfaceOrClassInfo(fullOrPartialClassName,interfaceNameToClassInfo);
+        ClassInfo classInfo = getClassSimpleName(fullOrPartialClassName);
+        if (classInfo.isInterface()) {
+            return classInfo;
+        }
+        return null;
     }
 
-    private ClassInfo getInterfaceOrClassInfo(String fullOrPartialClassName, Map<String,ClassInfo> infos) {
+    private ClassInfo getClassInfo(String fullOrPartialClassName, Map<String, ClassInfo> infos) {
         ClassInfo match = null;
         for (String fqn : infos.keySet()) {
             if (fqn.endsWith("." + fullOrPartialClassName) || fqn.equals(fullOrPartialClassName)) {
@@ -277,5 +331,4 @@ public class DomainInfo implements ClassFileProcessor {
         }
         return match;
     }
-
 }

@@ -39,25 +39,32 @@ public class MetaData {
     }
 
     /**
-     * Finds the ClassInfo for the supplied partial class name or label
+     * Finds the ClassInfo for the supplied partial class name or label.
+     *
+     * The supplied ClassInfo, if found can represent either a Class or an Interface
      *
      * @param name the simple class name or label for a class we want to find
      * @return A ClassInfo matching the supplied name, or null if it doesn't exist
      */
     public ClassInfo classInfo(String name) {
+
         ClassInfo classInfo = _classInfo(name, NodeEntity.class.getName(), "label");
         if (classInfo != null) {
             return classInfo;
         }
+
         classInfo = _classInfo(name, RelationshipEntity.class.getName(), "type");
         if (classInfo != null) {
             return classInfo;
         }
+
         classInfo = domainInfo.getClassSimpleName(name);
         if (classInfo != null) {
             return classInfo;
         }
-        return domainInfo.getClassInfoForInterface(name);
+
+        // not found
+        return null;
     }
 
 
