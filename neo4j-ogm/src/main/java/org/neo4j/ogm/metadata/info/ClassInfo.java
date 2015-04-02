@@ -58,15 +58,14 @@ public class ClassInfo {
     private FieldsInfo fieldsInfo = new FieldsInfo();
     private MethodsInfo methodsInfo= new MethodsInfo();
     private AnnotationsInfo annotationsInfo = new AnnotationsInfo();
+    private InterfacesInfo interfacesInfo = new InterfacesInfo();
 
     private ClassInfo directSuperclass;
+
     private final List<ClassInfo> directSubclasses = new ArrayList<>();
     private final List<ClassInfo> directInterfaces = new ArrayList<>();
     private final List<ClassInfo> directImplementingClasses = new ArrayList<>();
 
-    // ??
-    private final Set<InterfaceInfo> interfaces = new HashSet<>();
-    private InterfacesInfo interfacesInfo = new InterfacesInfo();
 
     // todo move this to a factory class
     public ClassInfo(InputStream inputStream) throws IOException {
@@ -105,7 +104,8 @@ public class ClassInfo {
 
     /** A class that was previously only seen as a temp superclass of another class can now be fully hydrated. */
     public void hydrate(ClassInfo classInfoDetails) {
-       if (!this.hydrated) {
+
+        if (!this.hydrated) {
             this.hydrated = true;
 
             this.isAbstract = classInfoDetails.isAbstract;
@@ -113,15 +113,20 @@ public class ClassInfo {
             this.isEnum = classInfoDetails.isEnum;
             this.directSuperclassName = classInfoDetails.directSuperclassName;
 
-            this.interfaces.addAll(classInfoDetails.interfaces());
+            //this.interfaces.addAll(classInfoDetails.interfaces());
+
+            this.interfacesInfo.append(classInfoDetails.interfacesInfo());
+
             this.annotationsInfo.append(classInfoDetails.annotationsInfo());
             this.fieldsInfo.append(classInfoDetails.fieldsInfo());
             this.methodsInfo.append(classInfoDetails.methodsInfo());
-       }
+        }
     }
 
     void extend(ClassInfo classInfo) {
-        this.interfaces.addAll(classInfo.interfaces());
+        //this.interfaces.addAll(classInfo.interfaces());
+        this.interfacesInfo.append(classInfo.interfacesInfo());
+
         this.fieldsInfo.append(classInfo.fieldsInfo());
         this.methodsInfo.append(classInfo.methodsInfo());
     }
@@ -197,10 +202,6 @@ public class ClassInfo {
 
     public List<ClassInfo> directInterfaces() {
         return directInterfaces;
-    }
-
-    Set<InterfaceInfo> interfaces() {
-        return interfaces;
     }
 
     public InterfacesInfo interfacesInfo() {

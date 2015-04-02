@@ -12,6 +12,7 @@
 
 package org.neo4j.ogm.unit.metadata;
 
+import org.junit.Before;
 import org.junit.Test;
 import org.neo4j.ogm.annotation.NodeEntity;
 import org.neo4j.ogm.annotation.Transient;
@@ -28,7 +29,12 @@ import static junit.framework.Assert.assertNull;
  */
 public class TransientObjectsTest {
 
-    private static final MetaData metaData = new MetaData("org.neo4j.ogm.unit.metadata");
+    private MetaData metaData;
+
+    @Before
+    public void setUp() {
+        metaData = new MetaData("org.neo4j.ogm.unit.metadata");
+    }
 
     @Test
     public void testFieldMarkedWithTransientModifierIsNotInMetaData() {
