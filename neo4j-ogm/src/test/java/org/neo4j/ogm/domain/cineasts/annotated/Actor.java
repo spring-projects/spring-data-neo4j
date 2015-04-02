@@ -19,6 +19,7 @@ import java.util.Set;
 
 /**
  * @author Vince Bickers
+ * @author Luanne Misquitta
  */
 public class Actor {
 
@@ -47,6 +48,7 @@ public class Actor {
         }
         Role role = new Role(movie,this,roleName);
         roles.add(role);
+        movie.getRoles().add(role);
         return role;
     }
 
