@@ -12,14 +12,19 @@
 
 package org.neo4j.ogm.domain.convertible.enums;
 
+import java.util.List;
+
 /**
  * @author Vince Bickers
+ * @author Luanne Misquitta
  */
 public class Person {
 
     private Long id;
     private String name;
     private Gender gender;
+    private List<Education> completedEducation;
+    private Education[] inProgressEducation;
 
     public String getName() {
         return name;
@@ -35,5 +40,21 @@ public class Person {
 
     public void setGender(Gender gender) {
         this.gender = gender;
+    }
+
+    public List<Education> getCompletedEducation() {
+        return completedEducation;
+    }
+
+    public void setCompletedEducation(List<Education> completedEducation) {
+        this.completedEducation = completedEducation;
+    }
+
+    public Education[] getInProgressEducation() {
+        return inProgressEducation;
+    }
+
+    public void setInProgressEducation(Education[] inProgressEducation) {
+        this.inProgressEducation = inProgressEducation;
     }
 }

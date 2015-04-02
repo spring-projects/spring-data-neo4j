@@ -14,15 +14,19 @@ package org.neo4j.ogm.domain.convertible.numbers;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.util.List;
 
 /**
  * @author Vince Bickers
+ * @author Luanne Misquitta
  */
 public class Account {
 
     private Long id;
     private BigDecimal balance;
     private BigInteger facility;
+    private BigDecimal[] deposits;
+    private List<BigInteger> loans;
 
     public Account(BigDecimal balance, BigInteger facility) {
         this.balance = balance;
@@ -43,5 +47,21 @@ public class Account {
 
     public void setFacility(BigInteger facility) {
         this.facility = facility;
+    }
+
+    public BigDecimal[] getDeposits() {
+        return deposits;
+    }
+
+    public void setDeposits(BigDecimal[] deposits) {
+        this.deposits = deposits;
+    }
+
+    public List<BigInteger> getLoans() {
+        return loans;
+    }
+
+    public void setLoans(List<BigInteger> loans) {
+        this.loans = loans;
     }
 }

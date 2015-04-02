@@ -20,6 +20,7 @@ import java.lang.reflect.Method;
 
 /**
  * @author Vince Bickers
+ * @author Luanne Misquitta
  */
 public class MethodWriter extends EntityAccess {
 
@@ -64,7 +65,11 @@ public class MethodWriter extends EntityAccess {
     public Class<?> type() {
         if (setterMethodInfo.hasConverter()) {
             try {
-                return setterMethodInfo.converter().getClass().getDeclaredMethod("toGraphProperty", parameterType).getReturnType();
+                for(Method method : setterMethodInfo.converter().getClass().getDeclaredMethods()) {
+                    if(method.getName().equals("toGraphProperty") && !method.isSynthetic()) { //we don't want the method on the AttributeConverter interface
+                        return method.getReturnType();
+                    }
+                }
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }

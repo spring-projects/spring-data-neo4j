@@ -17,9 +17,11 @@ import org.neo4j.ogm.annotation.typeconversion.DateLong;
 import org.neo4j.ogm.annotation.typeconversion.DateString;
 
 import java.util.Date;
+import java.util.Set;
 
 /**
  * @author Vince Bickers
+ * @author Luanne Misquitta
  */
 public class Memo {
 
@@ -38,6 +40,15 @@ public class Memo {
 
     @DateLong
     private Date closed;
+
+    // uses default ISO 8601 date format
+    private Date[] escalations;
+
+    // uses default ISO 8601 date format
+    private Set<Date> implementations;
+
+    public Memo() {
+    }
 
     public Long getId() {
         return id;
@@ -90,4 +101,19 @@ public class Memo {
         this.approved = approved;
     }
 
+    public Date[] getEscalations() {
+        return escalations;
+    }
+
+    public void setEscalations(Date[] escalations) {
+        this.escalations = escalations;
+    }
+
+    public Set<Date> getImplementations() {
+        return implementations;
+    }
+
+    public void setImplementations(Set<Date> implementations) {
+        this.implementations = implementations;
+    }
 }
