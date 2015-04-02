@@ -11,6 +11,15 @@
  */
 package org.neo4j.ogm.integration.convertible;
 
+import static org.junit.Assert.*;
+
+import java.io.IOException;
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.*;
+
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.neo4j.ogm.annotation.typeconversion.DateString;
@@ -22,24 +31,6 @@ import org.neo4j.ogm.domain.convertible.numbers.Account;
 import org.neo4j.ogm.integration.InMemoryServerTest;
 import org.neo4j.ogm.model.Property;
 import org.neo4j.ogm.session.SessionFactory;
-
-import java.io.IOException;
-import java.math.BigDecimal;
-import java.math.BigInteger;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.GregorianCalendar;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
-import java.util.TimeZone;
-
-import static org.junit.Assert.*;
-import static org.junit.Assert.assertEquals;
 
 /**
  * @author Luanne Misquitta
@@ -85,21 +76,21 @@ public class ConvertibleIntegrationTest extends InMemoryServerTest {
         SimpleDateFormat simpleDateISO8601format = new SimpleDateFormat(DateString.ISO_8601);
         simpleDateISO8601format.setTimeZone(TimeZone.getTimeZone("UTC"));
 
-        Calendar date0 = new GregorianCalendar();
+        Calendar date0 = new GregorianCalendar(TimeZone.getTimeZone("UTC"));
         date0.setTimeInMillis(0);
-        Calendar date20000 = new GregorianCalendar();
+        Calendar date20000 = new GregorianCalendar(TimeZone.getTimeZone("UTC"));
         date20000.setTimeInMillis(20000);
         Set<Date> implementations = new HashSet<>();
         implementations.add(date0.getTime());
         implementations.add(date20000.getTime());
 
-        Calendar date40000 = new GregorianCalendar();
+        Calendar date40000 = new GregorianCalendar(TimeZone.getTimeZone("UTC"));
         date40000.setTimeInMillis(40000);
-        Calendar date100000 = new GregorianCalendar();
+        Calendar date100000 = new GregorianCalendar(TimeZone.getTimeZone("UTC"));
         date100000.setTimeInMillis(100000);
         Date[] escalations = new Date[] {date40000.getTime(), date100000.getTime()};
 
-        Calendar actioned = new GregorianCalendar();
+        Calendar actioned = new GregorianCalendar(TimeZone.getTimeZone("UTC"));
         actioned.setTimeInMillis(20000);
 
         Memo memo = new Memo();
@@ -111,7 +102,7 @@ public class ConvertibleIntegrationTest extends InMemoryServerTest {
 
         Memo loadedMemo = session.loadByProperty(Memo.class,new Property<String, Object>("memo","theMemo")).iterator().next();
 
-        Calendar loadedCal = new GregorianCalendar();
+        Calendar loadedCal = new GregorianCalendar(TimeZone.getTimeZone("UTC"));
         loadedCal.setTime(loadedMemo.getActioned());
         assertEquals(actioned.get(Calendar.DAY_OF_MONTH), loadedCal.get(Calendar.DAY_OF_MONTH));
         assertEquals(actioned.get(Calendar.MONTH), loadedCal.get(Calendar.MONTH));
