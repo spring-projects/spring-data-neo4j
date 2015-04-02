@@ -17,8 +17,11 @@ import org.neo4j.ogm.annotation.Relationship;
 import org.neo4j.ogm.metadata.RelationshipUtils;
 import org.neo4j.ogm.typeconversion.AttributeConverter;
 
+import java.util.Collection;
+
 /**
  * @author Vince Bickers
+ * @author Luanne Misquitta
  */
 public class FieldInfo {
 
@@ -142,6 +145,19 @@ public class FieldInfo {
         return false;
     }
 
+    public boolean isCollection() {
+        String descriptorClass =getCollectionClassname();
+        try {
+            Class descriptorClazz = Class.forName(descriptorClass);
+            if (Collection.class.isAssignableFrom(descriptorClazz)) {
+                return true;
+            }
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
     public boolean isParameterisedTypeOf(Class<?> type) {
         while (type != null) {
             String typeSignature = "L" + type.getName().replace(".", "/") + ";";
@@ -162,5 +178,17 @@ public class FieldInfo {
             type = type.getSuperclass();
         }
         return false;
+    }
+
+    /**
+     * Get the collection class name for the field
+     * @return collection class name
+     */
+    public String getCollectionClassname() {
+        String descriptorClass = descriptor.replace("/", ".");
+        if (descriptorClass.startsWith("L")) {
+            descriptorClass = descriptorClass.substring(1,descriptorClass.length()-1); //remove the leading L and trailing ;
+        }
+       return descriptorClass;
     }
 }

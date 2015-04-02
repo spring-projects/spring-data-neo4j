@@ -13,18 +13,27 @@
 package org.neo4j.ogm.unit.typeconversion;
 
 import org.junit.Test;
-import org.neo4j.ogm.domain.convertible.enums.*;
+import org.neo4j.ogm.domain.convertible.enums.Algebra;
+import org.neo4j.ogm.domain.convertible.enums.Education;
+import org.neo4j.ogm.domain.convertible.enums.Gender;
+import org.neo4j.ogm.domain.convertible.enums.NumberSystem;
+import org.neo4j.ogm.domain.convertible.enums.NumberSystemDomainConverter;
+import org.neo4j.ogm.domain.convertible.enums.Person;
 import org.neo4j.ogm.metadata.MetaData;
 import org.neo4j.ogm.metadata.info.ClassInfo;
 import org.neo4j.ogm.metadata.info.FieldInfo;
 import org.neo4j.ogm.metadata.info.MethodInfo;
 import org.neo4j.ogm.typeconversion.AttributeConverter;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import static org.junit.Assert.*;
 
 /**
  * @author Vince Bickers
+ * @author Luanne Misquitta
  */
 public class TestEnumConversion {
 
@@ -121,4 +130,144 @@ public class TestEnumConversion {
         assertEquals(null, attributeConverter.toGraphProperty(null));
     }
 
+    /**
+     * @see DATAGRAPH-550
+     */
+    @Test
+    public void testEducationArrayFieldWithAutoDetectedConverter() {
+
+        Person bob = new Person();
+        bob.setGender(Gender.MALE);
+        Education[] inProgress = new Education[] {Education.MASTERS,Education.PHD};
+        bob.setInProgressEducation(inProgress);
+
+        FieldInfo fieldInfo = personInfo.propertyField("inProgressEducation");
+
+        assertTrue(fieldInfo.hasConverter());
+        String[] converted = (String[])fieldInfo.converter().toGraphProperty(bob.getInProgressEducation());
+        assertTrue("MASTERS".equals(converted[0]) || "MASTERS".equals(converted[1]));
+        assertTrue("PHD".equals(converted[0]) || "PHD".equals(converted[1]));
+
+    }
+
+    /**
+     * @see DATAGRAPH-550
+     */
+    @Test
+    public void testEducationArraySetterWithAutoDetectedConverter() {
+        Person bob = new Person();
+        Education[] inProgress = new Education[] {Education.MASTERS,Education.PHD};
+        MethodInfo methodInfo = personInfo.propertySetter("inProgressEducation");
+        assertTrue(methodInfo.hasConverter());
+        bob.setInProgressEducation((Education[]) methodInfo.converter().toEntityAttribute(new String[]{"MASTERS","PHD"}));
+        assertArrayEquals(inProgress, bob.getInProgressEducation());
+
+    }
+
+    /**
+     * @see DATAGRAPH-550
+     */
+    @Test
+    public void testEducationArrayGetterWithAutoDetectedConverter() {
+        Person bob = new Person();
+        Education[] inProgress = new Education[] {Education.MASTERS,Education.PHD};
+        bob.setInProgressEducation(inProgress);
+        MethodInfo methodInfo = personInfo.propertyGetter("inProgressEducation");
+        assertTrue(methodInfo.hasConverter());
+        String[] converted = (String[])methodInfo.converter().toGraphProperty(bob.getInProgressEducation());
+        assertTrue("MASTERS".equals(converted[0]) || "MASTERS".equals(converted[1]));
+        assertTrue("PHD".equals(converted[0]) || "PHD".equals(converted[1]));
+    }
+
+    /**
+     * @see DATAGRAPH-550
+     */
+    @Test
+    public void assertConvertingNullArrayGraphPropertyWorksCorrectly() {
+        MethodInfo methodInfo = personInfo.propertyGetter("inProgressEducation");
+        assertTrue(methodInfo.hasConverter());
+        AttributeConverter attributeConverter = methodInfo.converter();
+        assertEquals(null, attributeConverter.toEntityAttribute(null));
+    }
+
+    /**
+     * @see DATAGRAPH-550
+     */
+    @Test
+    public void assertConvertingNullArrayAttributeWorksCorrectly() {
+        MethodInfo methodInfo = personInfo.propertyGetter("inProgressEducation");
+        assertTrue(methodInfo.hasConverter());
+        AttributeConverter attributeConverter = methodInfo.converter();
+        assertEquals(null, attributeConverter.toGraphProperty(null));
+    }
+
+    /**
+     * @see DATAGRAPH-550
+     */
+    @Test
+    public void testEducationCollectionFieldWithAutoDetectedConverter() {
+        List<Education> completedEducation = new ArrayList<>();
+        completedEducation.add(Education.HIGHSCHOOL);
+        completedEducation.add(Education.BACHELORS);
+
+        Person bob = new Person();
+        bob.setCompletedEducation(completedEducation);
+
+        FieldInfo fieldInfo = personInfo.propertyField("completedEducation");
+
+        assertTrue(fieldInfo.hasConverter());
+        String[] converted = (String[])fieldInfo.converter().toGraphProperty(bob.getCompletedEducation());
+        assertTrue("HIGHSCHOOL".equals(converted[0]) || "HIGHSCHOOL".equals(converted[1]));
+        assertTrue("BACHELORS".equals(converted[0]) || "BACHELORS".equals(converted[1]));
+    }
+
+    /**
+     * @see DATAGRAPH-550
+     */
+    @Test
+    public void testEducationCollectionSetterWithAutoDetectedConverter() {
+        Person bob = new Person();
+        MethodInfo methodInfo = personInfo.propertySetter("completedEducation");
+        assertTrue(methodInfo.hasConverter());
+        bob.setCompletedEducation((List) methodInfo.converter().toEntityAttribute(new String[]{"HIGHSCHOOL", "BACHELORS"}));
+        assertTrue(bob.getCompletedEducation().contains(Education.HIGHSCHOOL));
+        assertTrue(bob.getCompletedEducation().contains(Education.BACHELORS));
+    }
+
+    /**
+     * @see DATAGRAPH-550
+     */
+    @Test
+    public void testGenderCollectionGetterWithAutoDetectedConverter() {
+        Person bob = new Person();
+        List<Education> completed = Arrays.asList(Education.HIGHSCHOOL,Education.BACHELORS);
+        bob.setCompletedEducation(completed);
+        MethodInfo methodInfo = personInfo.propertySetter("completedEducation");
+        assertTrue(methodInfo.hasConverter());
+        String[] converted = (String[])methodInfo.converter().toGraphProperty(bob.getCompletedEducation());
+        assertTrue("HIGHSCHOOL".equals(converted[0]) || "HIGHSCHOOL".equals(converted[1]));
+        assertTrue("BACHELORS".equals(converted[0]) || "BACHELORS".equals(converted[1]));
+    }
+
+    /**
+     * @see DATAGRAPH-550
+     */
+    @Test
+    public void assertConvertingNullCollectionGraphPropertyWorksCorrectly() {
+        MethodInfo methodInfo = personInfo.propertyGetter("completedEducation");
+        assertTrue(methodInfo.hasConverter());
+        AttributeConverter attributeConverter = methodInfo.converter();
+        assertEquals(null, attributeConverter.toEntityAttribute(null));
+    }
+
+    /**
+     * @see DATAGRAPH-550
+     */
+    @Test
+    public void assertConvertingNullCollectionAttributeWorksCorrectly() {
+        MethodInfo methodInfo = personInfo.propertyGetter("completedEducation");
+        assertTrue(methodInfo.hasConverter());
+        AttributeConverter attributeConverter = methodInfo.converter();
+        assertEquals(null, attributeConverter.toGraphProperty(null));
+    }
 }

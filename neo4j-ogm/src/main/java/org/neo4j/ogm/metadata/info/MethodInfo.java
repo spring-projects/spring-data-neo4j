@@ -17,6 +17,8 @@ import org.neo4j.ogm.annotation.Relationship;
 import org.neo4j.ogm.metadata.RelationshipUtils;
 import org.neo4j.ogm.typeconversion.AttributeConverter;
 
+import java.util.Collection;
+
 /**
  * @author Vince Bickers
  */
@@ -177,5 +179,33 @@ public class MethodInfo {
             type = type.getSuperclass();
         }
         return false;
+    }
+
+    public boolean isCollection() {
+        String descriptorClass =getCollectionClassname();
+        try {
+            Class descriptorClazz = Class.forName(descriptorClass);
+            if (Collection.class.isAssignableFrom(descriptorClazz)) {
+                return true;
+            }
+        } catch (ClassNotFoundException e) {
+            return false;
+        }
+        return false;
+    }
+
+    /**
+     * Get the collection class name for the method
+     * @return collection class name
+     */
+    public String getCollectionClassname() {
+        String descriptorClass = descriptor.replace("/", ".");
+        if (descriptorClass.startsWith("(L")) {
+            descriptorClass = descriptorClass.substring(2,descriptorClass.length()-3); //remove the leading (L and trailing ;)V
+        }
+        if(descriptorClass.startsWith("()L")) {
+            descriptorClass = descriptorClass.substring(3,descriptorClass.length()-1); //remove the leading ()L and trailing ;
+        }
+        return descriptorClass;
     }
 }

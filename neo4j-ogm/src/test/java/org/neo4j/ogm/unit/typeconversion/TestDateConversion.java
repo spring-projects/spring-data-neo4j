@@ -13,26 +13,37 @@
 package org.neo4j.ogm.unit.typeconversion;
 
 import org.junit.Test;
+import org.neo4j.ogm.annotation.typeconversion.DateString;
+import org.neo4j.ogm.domain.convertible.date.Memo;
 import org.neo4j.ogm.metadata.MetaData;
 import org.neo4j.ogm.metadata.info.ClassInfo;
 import org.neo4j.ogm.metadata.info.FieldInfo;
 import org.neo4j.ogm.metadata.info.MethodInfo;
 import org.neo4j.ogm.typeconversion.AttributeConverter;
+import org.neo4j.ogm.typeconversion.DateArrayStringConverter;
+import org.neo4j.ogm.typeconversion.DateCollectionStringConverter;
 import org.neo4j.ogm.typeconversion.DateLongConverter;
 import org.neo4j.ogm.typeconversion.DateStringConverter;
 
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.TimeZone;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 /**
  * @author Vince Bickers
+ * @author Luanne Misquitta
  */
 public class TestDateConversion {
 
     private static final MetaData metaData = new MetaData("org.neo4j.ogm.domain.convertible.date");
     private static final ClassInfo memoInfo = metaData.classInfo("Memo");
+    SimpleDateFormat simpleDateISO8601format = new SimpleDateFormat(DateString.ISO_8601);
 
     @Test
     public void assertFieldDateConversionToISO8601FormatByDefault() {
@@ -125,5 +136,157 @@ public class TestDateConversion {
         AttributeConverter attributeConverter = methodInfo.converter();
         assertEquals(null, attributeConverter.toGraphProperty(null));
     }
+
+    /**
+     * @see DATAGRAPH-550
+     */
+    @Test
+    public void assertArrayFieldDateConversionToISO8601FormatByDefault() {//here
+        simpleDateISO8601format.setTimeZone(TimeZone.getTimeZone("UTC"));
+        Date[] dates = new Date[]{new Date(0),new Date(20000)};
+        FieldInfo fieldInfo = memoInfo.propertyField("escalations");
+        assertTrue(fieldInfo.hasConverter());
+        AttributeConverter attributeConverter = fieldInfo.converter();
+        assertTrue(attributeConverter.getClass().isAssignableFrom(DateArrayStringConverter.class));
+        String[] converted = (String[]) attributeConverter.toGraphProperty(dates);
+        assertTrue(converted[0].equals("1970-01-01T00:00:00.000Z") || converted[1].equals("1970-01-01T00:00:00.000Z"));
+        assertTrue(converted[0].equals(simpleDateISO8601format.format(new Date(20000))) || converted[1].equals(simpleDateISO8601format.format(new Date(20000))));
+    }
+
+    /**
+     * @see DATAGRAPH-550
+     */
+    @Test
+    public void assertMethodGetterDateArrayConversionToISO8601FormatByDefault() {
+        simpleDateISO8601format.setTimeZone(TimeZone.getTimeZone("UTC"));
+        Date[] dates = new Date[]{new Date(0),new Date(20000)};
+
+        MethodInfo methodInfo = memoInfo.propertyGetter("escalations");
+        assertTrue(methodInfo.hasConverter());
+        AttributeConverter attributeConverter = methodInfo.converter();
+        assertTrue(attributeConverter.getClass().isAssignableFrom(DateArrayStringConverter.class));
+        String[] converted = (String[]) attributeConverter.toGraphProperty(dates);
+        assertTrue(converted[0].equals("1970-01-01T00:00:00.000Z") || converted[1].equals("1970-01-01T00:00:00.000Z"));
+        assertTrue(converted[0].equals(simpleDateISO8601format.format(new Date(20000))) || converted[1].equals(simpleDateISO8601format.format(new Date(20000))));
+    }
+
+    /**
+     * @see DATAGRAPH-550
+     */
+    @Test
+    public void assertMethodSetterDateArrayConversionToISO8601FormatByDefault() {
+        simpleDateISO8601format.setTimeZone(TimeZone.getTimeZone("UTC"));
+        Date[] dates = new Date[]{new Date(0),new Date(20000)};
+        String[] stringDates = new String[]{"1970-01-01T00:00:00.000Z",simpleDateISO8601format.format(new Date(20000))};
+
+        Memo memo = new Memo();
+        MethodInfo methodInfo = memoInfo.propertySetter("escalations");
+        assertTrue(methodInfo.hasConverter());
+        memo.setEscalations((Date[]) methodInfo.converter().toEntityAttribute(stringDates));
+        assertArrayEquals(dates, memo.getEscalations());
+
+    }
+
+    /**
+     * @see DATAGRAPH-550
+     */
+    @Test
+    public void assertConvertingNullArrayGraphPropertyWorksCorrectly() {
+        MethodInfo methodInfo = memoInfo.propertyGetter("escalations");
+        assertTrue(methodInfo.hasConverter());
+        AttributeConverter attributeConverter = methodInfo.converter();
+        assertEquals(null, attributeConverter.toEntityAttribute(null));
+    }
+
+    /**
+     * @see DATAGRAPH-550
+     */
+    @Test
+    public void assertConvertingNullArrayAttributeWorksCorrectly() {
+        MethodInfo methodInfo = memoInfo.propertyGetter("escalations");
+        assertTrue(methodInfo.hasConverter());
+        AttributeConverter attributeConverter = methodInfo.converter();
+        assertEquals(null, attributeConverter.toGraphProperty(null));
+    }
+
+    /**
+     * @see DATAGRAPH-550
+     */
+    @Test
+    public void assertCollectionFieldDateConversionToISO8601FormatByDefault() {//here
+        simpleDateISO8601format.setTimeZone(TimeZone.getTimeZone("UTC"));
+        List<Date> dates = new ArrayList<>();
+        dates.add(new Date(0));
+        dates.add(new Date(20000));
+        FieldInfo fieldInfo = memoInfo.propertyField("implementations");
+        assertTrue(fieldInfo.hasConverter());
+        AttributeConverter attributeConverter = fieldInfo.converter();
+        assertTrue(attributeConverter.getClass().isAssignableFrom(DateCollectionStringConverter.class));
+        String[] converted = (String[]) attributeConverter.toGraphProperty(dates);
+        assertTrue(converted[0].equals("1970-01-01T00:00:00.000Z") || converted[1].equals("1970-01-01T00:00:00.000Z"));
+        assertTrue(converted[0].equals(simpleDateISO8601format.format(new Date(20000))) || converted[1].equals(simpleDateISO8601format.format(new Date(20000))));
+    }
+
+    /**
+     * @see DATAGRAPH-550
+     */
+    @Test
+    public void assertMethodGetterDateCollectionConversionToISO8601FormatByDefault() {
+        simpleDateISO8601format.setTimeZone(TimeZone.getTimeZone("UTC"));
+        List<Date> dates = new ArrayList<>();
+        dates.add(new Date(0));
+        dates.add(new Date(20000));
+
+        MethodInfo methodInfo = memoInfo.propertyGetter("implementations");
+        assertTrue(methodInfo.hasConverter());
+        AttributeConverter attributeConverter = methodInfo.converter();
+        assertTrue(attributeConverter.getClass().isAssignableFrom(DateCollectionStringConverter.class));
+        String[] converted = (String[]) attributeConverter.toGraphProperty(dates);
+        assertTrue(converted[0].equals("1970-01-01T00:00:00.000Z") || converted[1].equals("1970-01-01T00:00:00.000Z"));
+        assertTrue(converted[0].equals(simpleDateISO8601format.format(new Date(20000))) || converted[1].equals(simpleDateISO8601format.format(new Date(20000))));
+    }
+
+    /**
+     * @see DATAGRAPH-550
+     */
+    @Test
+    public void assertMethodSetterDateCollectionConversionToISO8601FormatByDefault() {
+        simpleDateISO8601format.setTimeZone(TimeZone.getTimeZone("UTC"));
+        Set<Date> dates = new HashSet<>();
+        dates.add(new Date(0));
+        dates.add(new Date(20000));
+
+        String[] stringDates = new String[]{"1970-01-01T00:00:00.000Z",simpleDateISO8601format.format(new Date(20000))};
+
+        Memo memo = new Memo();
+        MethodInfo methodInfo = memoInfo.propertySetter("implementations");
+        assertTrue(methodInfo.hasConverter());
+        memo.setImplementations((Set<Date>) methodInfo.converter().toEntityAttribute(stringDates));
+        assertEquals(dates, memo.getImplementations());
+
+    }
+
+    /**
+     * @see DATAGRAPH-550
+     */
+    @Test
+    public void assertConvertingNullCollectionGraphPropertyWorksCorrectly() {
+        MethodInfo methodInfo = memoInfo.propertyGetter("implementations");
+        assertTrue(methodInfo.hasConverter());
+        AttributeConverter attributeConverter = methodInfo.converter();
+        assertEquals(null, attributeConverter.toEntityAttribute(null));
+    }
+
+    /**
+     * @see DATAGRAPH-550
+     */
+    @Test
+    public void assertConvertingNullCollectionAttributeWorksCorrectly() {
+        MethodInfo methodInfo = memoInfo.propertyGetter("implementations");
+        assertTrue(methodInfo.hasConverter());
+        AttributeConverter attributeConverter = methodInfo.converter();
+        assertEquals(null, attributeConverter.toGraphProperty(null));
+    }
+
 
 }
