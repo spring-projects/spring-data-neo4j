@@ -12,10 +12,10 @@
 
 package org.neo4j.ogm.session.request.strategy;
 
+import java.util.Collection;
+
 import org.neo4j.ogm.cypher.statement.ParameterisedStatement;
 import org.neo4j.ogm.session.Utils;
-
-import java.util.Collection;
 
 /**
  * @author Luanne Misquitta
@@ -34,6 +34,6 @@ public class DeleteRelationshipStatements implements DeleteStatements {
     }
 
     public ParameterisedStatement deleteByType(String type) {
-        return new ParameterisedStatement(String.format("MATCH (n)-[r:%s]-() DELETE r", type), Utils.map());
+        return new ParameterisedStatement(String.format("MATCH (n)-[r:`%s`]-() DELETE r", type), Utils.map());
     }
 }

@@ -12,6 +12,11 @@
 
 package org.neo4j.ogm.unit.mapper.cypher;
 
+import static org.junit.Assert.*;
+
+import java.util.Arrays;
+import java.util.List;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Test;
 import org.neo4j.ogm.cypher.statement.ParameterisedStatement;
@@ -19,11 +24,6 @@ import org.neo4j.ogm.model.Property;
 import org.neo4j.ogm.session.request.strategy.DeleteNodeStatements;
 import org.neo4j.ogm.session.request.strategy.DeleteRelationshipStatements;
 import org.neo4j.ogm.session.request.strategy.VariableDepthQuery;
-
-import java.util.Arrays;
-import java.util.List;
-
-import static org.junit.Assert.*;
 
 /**
  * @author Vince Bickers
@@ -116,7 +116,7 @@ public class ParameterisedStatementTest {
     @Test
     public void deleteAllByLabel() throws Exception {
         statement = new DeleteNodeStatements().deleteByType("NODE");
-        assertEquals("MATCH (n:NODE) OPTIONAL MATCH (n)-[r]-() DELETE r, n", statement.getStatement());
+        assertEquals("MATCH (n:`NODE`) OPTIONAL MATCH (n)-[r]-() DELETE r, n", statement.getStatement());
         assertEquals("{}", mapper.writeValueAsString(statement.getParameters()));
     }
 
@@ -154,7 +154,7 @@ public class ParameterisedStatementTest {
     @Test
     public void deleteAllRelsByType() throws Exception {
         statement = new DeleteRelationshipStatements().deleteByType("REL");
-        assertEquals("MATCH (n)-[r:REL]-() DELETE r", statement.getStatement());
+        assertEquals("MATCH (n)-[r:`REL`]-() DELETE r", statement.getStatement());
         assertEquals("{}", mapper.writeValueAsString(statement.getParameters()));
     }
 

@@ -12,14 +12,14 @@
 
 package org.neo4j.ogm.unit.mapper.cypher;
 
+import static org.junit.Assert.*;
+
+import java.util.Arrays;
+
 import org.junit.Test;
 import org.neo4j.ogm.session.request.strategy.DeleteNodeStatements;
 import org.neo4j.ogm.session.request.strategy.DeleteRelationshipStatements;
 import org.neo4j.ogm.session.request.strategy.DeleteStatements;
-
-import java.util.Arrays;
-
-import static org.junit.Assert.*;
 
 /**
  * @author Vince Bickers
@@ -47,7 +47,7 @@ public class DeleteStatementsTest {
 
     @Test
     public void testDeleteByLabel() {
-        assertEquals("MATCH (n:TRAFFIC_WARDENS) OPTIONAL MATCH (n)-[r]-() DELETE r, n", deleteNodeStatements.deleteByType("TRAFFIC_WARDENS").getStatement());
+        assertEquals("MATCH (n:`TRAFFIC_WARDENS`) OPTIONAL MATCH (n)-[r]-() DELETE r, n", deleteNodeStatements.deleteByType("TRAFFIC_WARDENS").getStatement());
     }
 
     @Test
@@ -63,6 +63,6 @@ public class DeleteStatementsTest {
 
     @Test
     public void testDeleteByType() {
-        assertEquals("MATCH (n)-[r:TRAFFIC_WARDEN]-() DELETE r", deleteRelStatements.deleteByType("TRAFFIC_WARDEN").getStatement());
+        assertEquals("MATCH (n)-[r:`TRAFFIC_WARDEN`]-() DELETE r", deleteRelStatements.deleteByType("TRAFFIC_WARDEN").getStatement());
     }
 }
