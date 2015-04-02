@@ -12,6 +12,12 @@
 
 package org.neo4j.ogm.unit.mapper.cypher;
 
+import static org.junit.Assert.*;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -24,20 +30,17 @@ import org.neo4j.ogm.domain.education.Teacher;
 import org.neo4j.ogm.domain.forum.Forum;
 import org.neo4j.ogm.domain.forum.ForumTopicLink;
 import org.neo4j.ogm.domain.forum.Topic;
+import org.neo4j.ogm.domain.music.Album;
+import org.neo4j.ogm.domain.music.Artist;
 import org.neo4j.ogm.mapper.EntityGraphMapper;
 import org.neo4j.ogm.mapper.EntityToGraphMapper;
 import org.neo4j.ogm.mapper.MappedRelationship;
 import org.neo4j.ogm.mapper.MappingContext;
 import org.neo4j.ogm.metadata.MetaData;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-
-import static org.junit.Assert.*;
-
 /**
  * @author Vince Bickers
+ * @author Luanne Misquitta
  */
 public class CypherCompilerTest {
 
@@ -47,7 +50,7 @@ public class CypherCompilerTest {
 
     @BeforeClass
     public static void setUpTestDatabase() {
-        mappingMetadata = new MetaData("org.neo4j.ogm.domain.education", "org.neo4j.ogm.domain.forum", "org.neo4j.ogm.domain.social", "org.neo4j.domain.policy");
+        mappingMetadata = new MetaData("org.neo4j.ogm.domain.education", "org.neo4j.ogm.domain.forum", "org.neo4j.ogm.domain.social", "org.neo4j.domain.policy","org.neo4j.ogm.domain.music");
         mappingContext = new MappingContext(mappingMetadata);
     }
 
@@ -76,7 +79,7 @@ public class CypherCompilerTest {
 
         expectOnSave(newStudent,
                 "CREATE (_0:`Student`:`DomainObject`{_0_props}) " +
-                "RETURN id(_0) AS _0");
+                        "RETURN id(_0) AS _0");
     }
 
     @Test
@@ -551,6 +554,24 @@ public class CypherCompilerTest {
 
         // todo: more tests re saving deletes from REs marked as incoming relationships
 
+    }
+
+    /**
+     * @see DATAGRAPH-589
+     */
+    @Test
+    public void createSimpleRelationshipWithIllegalCharactersBetweenObjects() {
+
+        Artist theBeatles = new Artist("The Beatles");
+        Album please = new Album("Please Please Me");
+        theBeatles.getAlbums().add(please);
+        please.setArtist(theBeatles);
+
+        String cypher =
+                "CREATE (_0:`l'artiste`{_0_props}), (_2:`l'album`{_2_props}) " +
+                        "WITH _0,_2 MERGE (_0)-[_3:`HAS-ALBUM`]->(_2) " +
+                        "RETURN id(_0) AS _0, id(_2) AS _2, id(_3) AS _3";
+        expectOnSave(theBeatles, cypher);
     }
 
     private void expectOnSave(Object object, String... cypher) {

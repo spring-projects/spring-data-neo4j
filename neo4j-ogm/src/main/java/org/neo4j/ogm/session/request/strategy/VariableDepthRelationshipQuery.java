@@ -21,6 +21,7 @@ import java.util.Collection;
 
 /**
  * @author Luanne Misquitta
+ * @author Luanne Misquitta
  */
 public class VariableDepthRelationshipQuery implements QueryStatements {
     @Override
@@ -57,7 +58,7 @@ public class VariableDepthRelationshipQuery implements QueryStatements {
         int max = max(depth);
         int min = min(max);
         if (max > 0) {
-            String qry = String.format("MATCH p=(n)-[:%s*%d..%d]-(m) RETURN collect(distinct p)", type, min, max);
+            String qry = String.format("MATCH p=(n)-[:`%s`*%d..%d]-(m) RETURN collect(distinct p)", type, min, max);
             return new GraphModelQuery(qry, Utils.map());
         } else {
             throw new InvalidDepthException("Cannot load a relationship entity with depth 0 i.e. no start or end node");
@@ -69,7 +70,7 @@ public class VariableDepthRelationshipQuery implements QueryStatements {
         int max = max(depth);
         int min = min(max);
         if (max > 0) {
-            String qry = String.format("MATCH (n)-[r:%s]->() WHERE r.%s = { %s } WITH n MATCH p=(n)-[*%d..%d]-(m)  RETURN collect(distinct p)", type, property.getKey(), property.getKey(), min, max);
+            String qry = String.format("MATCH (n)-[r:`%s`]->() WHERE r.%s = { %s } WITH n MATCH p=(n)-[*%d..%d]-(m)  RETURN collect(distinct p)", type, property.getKey(), property.getKey(), min, max);
             return new GraphModelQuery(qry, Utils.map(property.getKey(), property.asParameter()));
         } else {
             throw new InvalidDepthException("Cannot load a relationship entity with depth 0 i.e. no start or end node");
