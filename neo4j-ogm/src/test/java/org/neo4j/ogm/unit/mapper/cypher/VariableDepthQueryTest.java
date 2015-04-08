@@ -82,5 +82,43 @@ public class VariableDepthQueryTest {
         assertEquals("MATCH p=(n:`l'artiste`)-[*0..3]-(m) RETURN collect(distinct p)", query.findByType("l'artiste", 3).getStatement());
     }
 
+    /**
+     * @see DATAGRAPH-595
+     * @throws Exception
+     */
+    @Test
+    public void testFindOneNegativeDepth() throws Exception {
+        assertEquals("MATCH p=(n)-[*0..]-(m) WHERE id(n) = { id } RETURN collect(distinct p)", query.findOne(0L, -1).getStatement());
+    }
+
+    /**
+     * @see DATAGRAPH-595
+     * @throws Exception
+     */
+    @Test
+    public void testFindAllCollectionNegativeDepth() throws Exception {
+        assertEquals("MATCH p=(n)-[*0..]-(m) WHERE id(n) in { ids } RETURN collect(distinct p)", query.findAll(Arrays.asList(1L, 2L, 3L), -1).getStatement());
+    }
+
+
+    /**
+     * @see DATAGRAPH-595
+     * @throws Exception
+     */
+    @Test
+    public void testFindByLabelNegativeDepth() throws Exception {
+        assertEquals("MATCH p=(n:`Orbit`)-[*0..]-(m) RETURN collect(distinct p)", query.findByType("Orbit", -1).getStatement());
+    }
+
+    /**
+     * @see DATAGRAPH-595
+     * @throws Exception
+     */
+    @Test
+    public void testFindByPropertyNegativeDepth() throws Exception {
+        assertEquals("MATCH p=(n:`Asteroid`)-[*0..]-(m) WHERE n.diameter = { diameter } RETURN collect(distinct p)", query.findByProperty("Asteroid", new Property<String, Object>("diameter", 60.2), -1).getStatement());
+    }
+
+
 
 }
