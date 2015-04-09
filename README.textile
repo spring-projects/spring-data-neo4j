@@ -49,6 +49,14 @@ The primary goal of the "Spring Data":http://projects.spring.io/spring-data/ is 
 
 The Spring Data Neo4j project provides a simplified POJO based programming model that reduces that amount of boilerplate code needed to create neo4j applications.  It also provides a cross-store persistence solution that can extend existing JPA data models with new parts (properties, entities, relationships) that are stored exclusively in the graph while being transparently integrated with the JPA entities.  This enables for easy and seamless addition of new features that were not available before to JPA-based applications.
 
+h3. Neo4j Support
+
+|_. Neo4j Version|_. SDN4J 3.x|_. SDN4J 4.x|
+|1.9|?|?|
+|2.0|*Yes*|*Yes*|
+|2.1|*Yes*|*Yes*|
+|2.2|No|*Yes*|
+
 See also the "Spring Data Neo4J homepage":http://projects.spring.io/spring-data-neo4j/
 
 h2. Maven configuration
