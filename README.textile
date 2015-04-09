@@ -53,7 +53,7 @@ See also the "Spring Data Neo4J homepage":http://projects.spring.io/spring-data-
 
 h2. Maven configuration
 
-The current release is: !https://maven-badges.herokuapp.com/maven-central/org.springframework.data/spring-data-neo4j/badge.svg?style=plastic(Maven Central)!:http://mvnrepository.com/artifact/org.springframework.data/spring-data-neo4j
+The current release is: !https://img.shields.io/maven-central/v/org.springframework.data/spring-data-neo4j.svg?style=plastic(Maven Central)!:http://mvnrepository.com/artifact/org.springframework.data/spring-data-neo4j
 
 * Add the maven repository and dependency:
 
