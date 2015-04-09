@@ -53,7 +53,11 @@ See also the "Spring Data Neo4J homepage":http://projects.spring.io/spring-data-
 
 h3. Getting Help
 
-!https://img.shields.io/badge/StackOverflow-Ask%20a%20question-blue.svg(Ask a Question on StackOverflow)!:http://stackoverflow.com/questions/ask?tags=spring-data-neo4j
+This README and the "User Guide":http://static.springsource.org/spring-data/data-neo4j/docs/current/reference/html/ are the best places to start learning about Spring Data Neo4j.  There are also "three sample applications":https://github.com/SpringSource/spring-data-neo4j/tree/master/spring-data-neo4j-examples briefly described in the reference documentation.
+
+The main project "website":http://www.springsource.org/spring-data contains links to basic project information such as source code, JavaDocs, Issue tracking, etc.
+
+For more detailed questions, "ask a question on StackOverflow":http://stackoverflow.com/questions/ask?tags=spring-data-neo4j. If you are new to Spring as well as to Spring Data, look for information about "Spring projects":http://www.springsource.org/projects.
 
 h3. Neo4j Version Support
 
@@ -277,15 +281,6 @@ public class GalaxyService {
 
 
 Please see the "Hello Worlds sample project":https://github.com/SpringSource/spring-data-graph-examples/tree/master/hello-worlds in the examples repository for more information.
-
-
-h2. Getting Help
-
-This README and the "User Guide":http://static.springsource.org/spring-data/data-neo4j/docs/current/reference/html/ are the best places to start learning about Spring Data Neo4j.  There are also "three sample applications":https://github.com/SpringSource/spring-data-neo4j/tree/master/spring-data-neo4j-examples briefly described in the reference documentation.
-
-The main project "website":http://www.springsource.org/spring-data contains links to basic project information such as source code, JavaDocs, Issue tracking, etc.
-
-For more detailed questions, use the "forum":http://forum.springsource.org/forumdisplay.php?f=80. If you are new to Spring as well as to Spring Data, look for information about "Spring projects":http://www.springsource.org/projects.
 
 
 h2. Contributing to Spring Data
