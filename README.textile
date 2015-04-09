@@ -51,7 +51,7 @@ The Spring Data Neo4j project provides a simplified POJO based programming model
 
 h2. Maven configuration
 
-The current release is: [![Maven Central](https://maven-badges.herokuapp.com/maven-central/org.springframework.data/spring-data-neo4j/badge.svg?style=plastic)](http://mvnrepository.com/artifact/org.springframework.data/spring-data-neo4j)
+The current release is: !https://maven-badges.herokuapp.com/maven-central/org.springframework.data/spring-data-neo4j/badge.svg?style=plastic(Maven Central)!:http://mvnrepository.com/artifact/org.springframework.data/spring-data-neo4j
 
 * Add the maven repository and dependency:
 
