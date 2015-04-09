@@ -53,7 +53,7 @@ See also the "Spring Data Neo4J homepage":http://projects.spring.io/spring-data-
 
 h3. Getting Help
 
-!https://img.shields.io/badge/StackOverflow-Ask%20a%20question!-blue.svg(Ask a Question on StackOverflow):http://stackoverflow.com/questions/ask?tags=spring-data-neo4j
+!https://img.shields.io/badge/StackOverflow-Ask%20a%20question-blue.svg(Ask a Question on StackOverflow):http://stackoverflow.com/questions/ask?tags=spring-data-neo4j
 
 h3. Neo4j Version Support
 
