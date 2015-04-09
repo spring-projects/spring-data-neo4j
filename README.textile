@@ -45,11 +45,46 @@ long numberOfPeople = repo.count();
 
 h2. About
 
-The primary goal of the "Spring Data":http://www.springsource.org/spring-data project is to make it easier to build Spring-powered applications that use new data access technologies such as non-relational databases, map-reduce frameworks, and cloud based data services. As the name implies, the **Graph** project provides integration with graph value stores.  The only supported Graph Database now is "Neo4j":http://neo4j.org/.
+The primary goal of the "Spring Data":http://projects.spring.io/spring-data/ is to make it easier to build Spring-powered applications that use new data access technologies such as non-relational databases, map-reduce frameworks, and cloud based data services. As the name implies, the **Graph** project provides integration with graph value stores.  The only supported Graph Database now is "Neo4j":http://neo4j.org/.
 
 The Spring Data Neo4j project provides a simplified POJO based programming model that reduces that amount of boilerplate code needed to create neo4j applications.  It also provides a cross-store persistence solution that can extend existing JPA data models with new parts (properties, entities, relationships) that are stored exclusively in the graph while being transparently integrated with the JPA entities.  This enables for easy and seamless addition of new features that were not available before to JPA-based applications.
 
+See also the "Spring Data Neo4J homepage":http://projects.spring.io/spring-data-neo4j/
+
+h3. What is Neo4j?
+
+Neo4j is a transactional, open-source graph database. A graph database manages data in a connected data structure, capable of representing any kind of data in a very accessible way. Information is stored in nodes and relationships connecting them, both of which can have arbitrary properties. To learn more visit "What is a Graph Database":http://neo4j.com/developer/graph-database/?
+
+h3. Getting Help
+
+This README and the "User Guide":http://static.springsource.org/spring-data/data-neo4j/docs/current/reference/html/ are the best places to start learning about Spring Data Neo4j.  There are also "three sample applications":https://github.com/SpringSource/spring-data-neo4j/tree/master/spring-data-neo4j-examples briefly described in the reference documentation.
+
+The main "Spring Data website":http://www.springsource.org/spring-data contains links to basic project information such as source code, JavaDocs, Issue tracking, etc.
+
+For more detailed questions, "ask a question on StackOverflow":http://stackoverflow.com/questions/ask?tags=spring-data-neo4j. If you are new to Spring as well as to Spring Data, look for information about "Spring projects":http://www.springsource.org/projects.
+
+h3. Neo4j Version Support
+
+*NOTE:* A 3.4 snapshot is listed, but this is actually version 4.0.  Version 4.0 is a rewrite of Spring Data Neo4j
+
+|_. Neo4j Version|_. SDN4J 3.x|_. SDN4J 4.x|
+|1.9|?|?|
+|2.0|*Yes*|*Yes*|
+|2.1|*Yes*|*Yes*|
+|2.2|No|*Yes*|
+
+h3. Neo4j Feature Support
+
+|Feature|_. SDN4J 3.x|_. SDN4J 4.x|
+|Auth|No|*Yes*|
+|Remote Cypher|?|?|
+|Transactions|?|?|
+|High Availability|?|?|
+|Embedded JVM support|*Yes*|*Yes*|
+
 h2. Maven configuration
+
+The current release is: !https://img.shields.io/maven-central/v/org.springframework.data/spring-data-neo4j.svg?style=plastic(Maven Central)!:http://mvnrepository.com/artifact/org.springframework.data/spring-data-neo4j
 
 * Add the maven repository and dependency:
 
@@ -58,7 +93,7 @@ h2. Maven configuration
     <dependency>
         <groupId>org.springframework.data</groupId>
         <artifactId>spring-data-neo4j</artifactId>
-        <version>3.1.0.RELEASE</version>
+        <version>3.3.0.RELEASE</version>
     </dependency>
 </dependencies>
 <repositories>
@@ -252,15 +287,6 @@ public class GalaxyService {
 
 
 Please see the "Hello Worlds sample project":https://github.com/SpringSource/spring-data-graph-examples/tree/master/hello-worlds in the examples repository for more information.
-
-
-h2. Getting Help
-
-This README and the "User Guide":http://static.springsource.org/spring-data/data-neo4j/docs/current/reference/html/ are the best places to start learning about Spring Data Neo4j.  There are also "three sample applications":https://github.com/SpringSource/spring-data-neo4j/tree/master/spring-data-neo4j-examples briefly described in the reference documentation.
-
-The main project "website":http://www.springsource.org/spring-data contains links to basic project information such as source code, JavaDocs, Issue tracking, etc.
-
-For more detailed questions, use the "forum":http://forum.springsource.org/forumdisplay.php?f=80. If you are new to Spring as well as to Spring Data, look for information about "Spring projects":http://www.springsource.org/projects.
 
 
 h2. Contributing to Spring Data
