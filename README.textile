@@ -61,7 +61,7 @@ For more detailed questions, "ask a question on StackOverflow":http://stackoverf
 
 h3. Neo4j Version Support
 
-*NOTE:* A 3.4 snapshot is listen, but this is actually version 4.0.  Version 4.0 is a rewrite of Spring Data Neo4j
+*NOTE:* A 3.4 snapshot is listed, but this is actually version 4.0.  Version 4.0 is a rewrite of Spring Data Neo4j
 
 |_. Neo4j Version|_. SDN4J 3.x|_. SDN4J 4.x|
 |1.9|?|?|
