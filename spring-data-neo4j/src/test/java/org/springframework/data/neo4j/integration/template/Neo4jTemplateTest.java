@@ -112,28 +112,24 @@ public class Neo4jTemplateTest extends WrappingServerIntegrationTest {
         assertEquals(2.5, (Double) queryResultIterator.next().get("avg"), 0.01);
     }
 
-    @Ignore("Failing due to defect in underlying session.  See SessionCypherQueryTest in neo4j-ogm.")
     @Test
     public void shouldQueryForSpecificObjectUsingBespokeParameterisedCypherQuery() {
         this.template.save(new Actor("ab", "Alec Baldwin"));
         this.template.save(new Actor("hm", "Helen Mirren"));
         this.template.save(new Actor("md", "Matt Damon"));
 
-        // FIXME: this loads any actor at random!
         Actor loadedActor = this.template.queryForObject(Actor.class, "MATCH (a:Actor) WHERE a.name={param} RETURN a",
                 Collections.singletonMap("param", "Alec Baldwin"));
         assertNotNull("The entity wasn't loaded", loadedActor);
         assertEquals("Alec Baldwin", loadedActor.getName());
     }
 
-    @Ignore("Failing due to defect in underlying session.  See SessionCypherQueryTest in neo4j-ogm.")
     @Test
     public void shouldQueryForObjectCollectionUsingBespokeCypherQuery() {
         this.template.save(new User("Jeff"));
         this.template.save(new User("John"));
         this.template.save(new User("Colin"));
 
-        // FIXME: this keeps loading Colin!
         Iterable<User> users = this.template.queryForObjects(User.class, "MATCH (u:User) WHERE u.name=~'J.*' RETURN u",
                 Collections.<String, Object>emptyMap());
         assertNotNull("The entity wasn't loaded", users);
