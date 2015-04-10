@@ -146,9 +146,6 @@ public class SessionResponseHandler implements ResponseHandler {
         } else {
             ref = mappingContext.getRelationshipEntity(id);
         }
-//        if (ref == null) {
-//            throw new RuntimeException("Object of type " + type + " with id " + id + " expected in mapping context, but was not found");
-//        }
         return type.cast(ref);
     }
 

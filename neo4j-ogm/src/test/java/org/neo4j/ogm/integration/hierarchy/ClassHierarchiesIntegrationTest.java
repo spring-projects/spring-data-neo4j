@@ -596,8 +596,7 @@ public class ClassHierarchiesIntegrationTest extends WrappingServerIntegrationTe
         Collection<Female> females = session.loadAll(Female.class);
         Collection<Bloke> blokes = session.loadAll(Bloke.class);
 
-        assertEquals(3, entities.size());
-        assertTrue(entities.containsAll(Arrays.asList(daniela, michal, adam)));
+        assertTrue("Shouldn't be able to load by non-annotated, abstract classes", entities.isEmpty());
 
         assertEquals(3, people.size());
         assertEquals(people.size(), session.countEntitiesOfType(Person.class));

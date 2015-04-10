@@ -50,9 +50,7 @@ public class MappingContext {
     private final ConcurrentMap<Long, Object> nodeEntityRegister = new ConcurrentHashMap<>();
     private final Set<MappedRelationship> relationshipRegister = new HashSet<>();
 
-    // in addition we need the following
-    // a typeRegister                   register of all entities of a specific type (including supertypes)
-    // a
+    /** register of all mapped entities of a specific type (including supertypes) */
     private final ConcurrentMap<Class<?>, Set<Object>> typeRegister = new ConcurrentHashMap<>();
     private final EntityMemo objectMemo = new EntityMemo();
 
@@ -96,10 +94,10 @@ public class MappingContext {
         Set<Object> entities = typeRegister.get(type);
         if (entities != null) {
             if (type.getSuperclass() != null
-                && metaData != null
-                && metaData.classInfo(type.getSuperclass().getName()) != null
-                && !type.getSuperclass().getName().equals("java.lang.Object")) {
-            deregisterTypes(type.getSuperclass(), entity);
+                    && metaData != null
+                    && metaData.classInfo(type.getSuperclass().getName()) != null
+                    && !type.getSuperclass().getName().equals("java.lang.Object")) {
+                deregisterTypes(type.getSuperclass(), entity);
             }
         }
     }
@@ -132,7 +130,7 @@ public class MappingContext {
         return objectList;
     }
 
-    // object memoisations
+    // object memorisations
     public void remember(Object entity) {
         objectMemo.remember(entity, metaData.classInfo(entity));
     }

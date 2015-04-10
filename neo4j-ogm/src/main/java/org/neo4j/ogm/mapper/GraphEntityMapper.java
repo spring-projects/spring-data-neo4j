@@ -53,7 +53,11 @@ public class GraphEntityMapper implements GraphToEntityMapper<GraphModel> {
         try {
             Set<T> set = new HashSet<>();
             for (Object o : mappingContext.getAll(type)) {
-                set.add(type.cast(o));
+                // can't use the "type" argument to determine ClassInfo because it might be an interface as of DATAGRAPH-577
+                PropertyReader graphIdReader = entityAccessStrategy.getIdentityPropertyReader(metadata.classInfo(o.getClass().getName()));
+                if (graphModel.containsNodeWithId((Long) graphIdReader.read(o))) {
+                    set.add(type.cast(o));
+                }
             }
             return set;
         } catch (Exception e) {
@@ -91,7 +95,7 @@ public class GraphEntityMapper implements GraphToEntityMapper<GraphModel> {
     private void setProperties(NodeModel nodeModel, Object instance) {
         // cache this.
         ClassInfo classInfo = metadata.classInfo(instance);
-        for (Property property : nodeModel.getPropertyList()) {
+        for (Property<?, ?> property : nodeModel.getPropertyList()) {
             writeProperty(classInfo, instance, property);
         }
     }
@@ -105,7 +109,7 @@ public class GraphEntityMapper implements GraphToEntityMapper<GraphModel> {
         }}
     }
 
-    private void writeProperty(ClassInfo classInfo, Object instance, Property property) {
+    private void writeProperty(ClassInfo classInfo, Object instance, Property<?, ?> property) {
 
         PropertyWriter writer = entityAccessStrategy.getPropertyWriter(classInfo, property.getKey().toString());
 
@@ -118,7 +122,7 @@ public class GraphEntityMapper implements GraphToEntityMapper<GraphModel> {
                 PropertyReader reader = entityAccessStrategy.getPropertyReader(classInfo, property.getKey().toString());
                 if (reader != null) {
                     Object currentValue = reader.read(instance);
-                    Class paramType = writer.type();
+                    Class<?> paramType = writer.type();
                     if (paramType.isArray()) {
                         value = EntityAccess.merge(paramType, (Iterable<?>) value, (Object[]) currentValue);
                     } else {

@@ -26,8 +26,13 @@ public interface PropertyReader {
      */
     String propertyName();
 
+    /**
+     * Reads the value corresponding to this property from the given object.
+     *
+     * @param instance The instance from which to read the property value
+     * @return The value of the property, which may be <code>null</code>
+     * @throws RuntimeException if there's an error reading the property or if it's not found on the given object
+     */
     Object read(Object instance);
-
-
 
 }
