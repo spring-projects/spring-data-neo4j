@@ -12,6 +12,8 @@
 
 package org.neo4j.ogm.mapper;
 
+import java.util.Iterator;
+
 import org.neo4j.ogm.annotation.Relationship;
 import org.neo4j.ogm.annotation.RelationshipEntity;
 import org.neo4j.ogm.cypher.compiler.*;
@@ -25,12 +27,11 @@ import org.neo4j.ogm.metadata.info.ClassInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Iterator;
-
 /**
  * Implementation of {@link EntityToGraphMapper} that is driven by an instance of {@link MetaData}.
  *
  * @author Vince Bickers
+ * @author Luanne Misquitta
  */
 public class EntityGraphMapper implements EntityToGraphMapper {
 
@@ -270,12 +271,12 @@ public class EntityGraphMapper implements EntityToGraphMapper {
      * @param relationshipType the type of relationship
      */
     private boolean clearContextRelationships(CypherContext context, Long identity, String relationshipType, String relationshipDirection) {
-        if (relationshipDirection.equals(Relationship.OUTGOING)) {
-            logger.debug("context-del: ({})-[:{}]->()", identity, relationshipType);
-            return context.deregisterOutgoingRelationships(identity, relationshipType);
-        } else {
+        if (relationshipDirection.equals(Relationship.INCOMING)) {
             logger.debug("context-del: ({})<-[:{}]-()", identity, relationshipType);
             return context.deregisterIncomingRelationships(identity, relationshipType);
+        } else {
+            logger.debug("context-del: ({})-[:{}]->()", identity, relationshipType);
+            return context.deregisterOutgoingRelationships(identity, relationshipType);
         }
     }
 
@@ -445,10 +446,10 @@ public class EntityGraphMapper implements EntityToGraphMapper {
 
 
     private MappedRelationship createMappedRelationship(Long aNode, RelationshipBuilder relationshipBuilder, Long bNode) {
-        if (relationshipBuilder.hasDirection(Relationship.OUTGOING)) {
-            return new MappedRelationship(aNode, relationshipBuilder.getType(), bNode);
-        }  else {
+        if (relationshipBuilder.hasDirection(Relationship.INCOMING)) {
             return new MappedRelationship(bNode, relationshipBuilder.getType(), aNode);
+        }  else {
+            return new MappedRelationship(aNode, relationshipBuilder.getType(), bNode);
         }
     }
 
@@ -545,10 +546,11 @@ public class EntityGraphMapper implements EntityToGraphMapper {
             return;
         }
 
-        if (relationshipBuilder.hasDirection(Relationship.OUTGOING)) {
-            reallyCreateRelationship(context, src, relationshipBuilder, tgt);
-        } else {
+        if (relationshipBuilder.hasDirection(Relationship.INCOMING)) {
             reallyCreateRelationship(context, tgt, relationshipBuilder, src);
+        } else {
+            reallyCreateRelationship(context, src, relationshipBuilder, tgt);
+
         }
     }
 

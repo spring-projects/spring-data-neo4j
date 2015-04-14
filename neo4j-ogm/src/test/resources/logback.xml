@@ -19,9 +19,7 @@
 		</encoder>
 	</appender>
 
-	<!--
-	<logger name="org.springframework" level="debug" />
-	 -->
+	<logger name="org.neo4j.ogm" level="debug" />
 
 	<root level="warn">
 		<appender-ref ref="console" />

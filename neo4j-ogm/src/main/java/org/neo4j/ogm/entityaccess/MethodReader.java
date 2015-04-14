@@ -18,6 +18,7 @@ import org.neo4j.ogm.metadata.info.MethodInfo;
 
 /**
  * @author Adam George
+ * @author Luanne Misquitta
  */
 public class MethodReader implements RelationalReader, PropertyReader {
 
@@ -46,9 +47,9 @@ public class MethodReader implements RelationalReader, PropertyReader {
     @Override
     public String relationshipDirection() {
         try {
-            return methodInfo.getAnnotations().get(Relationship.CLASS).get(Relationship.DIRECTION, Relationship.OUTGOING);
+            return methodInfo.getAnnotations().get(Relationship.CLASS).get(Relationship.DIRECTION, Relationship.UNDIRECTED);
         } catch (NullPointerException npe) {
-            return Relationship.OUTGOING;
+            return Relationship.UNDIRECTED;
         }
     }
 
