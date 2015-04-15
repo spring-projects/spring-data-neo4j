@@ -12,15 +12,16 @@
 
 package org.neo4j.ogm.cypher.compiler;
 
-import org.neo4j.ogm.cypher.statement.ParameterisedStatement;
-
 import java.util.List;
 import java.util.Map;
+
+import org.neo4j.ogm.cypher.statement.ParameterisedStatement;
 
 /**
  * Defines a simple API for building up Cypher queries programmatically.
  *
  * @author Vince Bickers
+ * @author Luanne Misquitta
  */
 public interface CypherCompiler {
 
@@ -66,6 +67,13 @@ public interface CypherCompiler {
      * @return A new {@link RelationshipBuilder}
      */
     RelationshipBuilder newRelationship();
+
+    /**
+     * Returns a {@link RelationshipBuilder} to use for constructing Cypher for writing a new directed relationship in both directions to the database.
+     *
+     * @return A new {@link RelationshipBuilder}
+     */
+    RelationshipBuilder newBiDirectionalRelationship();
 
     /**
      * Returns a {@link RelationshipBuilder} to use for constructing Cypher to update an existing relationship in the database

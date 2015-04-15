@@ -12,30 +12,22 @@
 
 package org.neo4j.ogm.integration;
 
+import static junit.framework.TestCase.assertNotNull;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+
+import java.io.IOException;
+import java.util.*;
+
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.neo4j.helpers.collection.IteratorUtil;
-import org.neo4j.ogm.domain.cineasts.annotated.Actor;
-import org.neo4j.ogm.domain.cineasts.annotated.Knows;
-import org.neo4j.ogm.domain.cineasts.annotated.Movie;
-import org.neo4j.ogm.domain.cineasts.annotated.Rating;
-import org.neo4j.ogm.domain.cineasts.annotated.User;
+import org.neo4j.ogm.domain.cineasts.annotated.*;
 import org.neo4j.ogm.domain.friendships.Friendship;
 import org.neo4j.ogm.domain.friendships.Person;
 import org.neo4j.ogm.model.Property;
 import org.neo4j.ogm.session.SessionFactory;
-
-import java.io.IOException;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Set;
-
-import static junit.framework.TestCase.assertNotNull;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
 
 /**
  * @author Vince Bickers
@@ -88,7 +80,7 @@ public class RelationshipEntityTest extends InMemoryServerTest {
             }
             else if (person.getName().equals("Mike")) {
                 expected--;
-                assertEquals(0, person.getFriends().size());
+                assertEquals("Dave", person.getFriends().get(0).getPerson().getName());
             }
         }
         assertEquals(0, expected);
