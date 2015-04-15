@@ -109,10 +109,73 @@ public class SocialRelationshipsIntegrationTest extends WrappingServerIntegratio
 		personA.getPeopleILike().add(personB);
 		personB.getPeopleILike().add(personA);
 		session.save(personA);
-		session.save(personB); //TODO test fails if you do not save personB
+
 		assertSameGraph(getDatabase(), "CREATE (a:Person {name:'A'}) CREATE (b:Person {name:'B'}) " +
 				"CREATE (a)-[:LIKES]->(b) CREATE (b)-[:LIKES]->(a)");
 	}
+
+	/**
+	 * @see DATAGRAPH-594
+	 */
+	@Test
+	public void saveOutgoingToExistingNodesSavesOutgoingRelationshipInBothDirections() {
+		Person personA = new Person("A");
+		Person personB = new Person("B");
+		session.save(personA);
+		session.save(personB);
+		personA.getPeopleILike().add(personB);
+		personB.getPeopleILike().add(personA);
+		session.save(personA);
+		assertSameGraph(getDatabase(), "CREATE (a:Person {name:'A'}) CREATE (b:Person {name:'B'}) " +
+				"CREATE (a)-[:LIKES]->(b) CREATE (b)-[:LIKES]->(a)");
+	}
+
+	/**
+	 * @see DATAGRAPH-594
+	 */
+	@Test
+	public void updateOutgoingRelSavesOutgoingRelationshipInBothDirections() {
+		Person personA = new Person("A");
+		Person personB = new Person("B");
+		Person personC = new Person("C");
+		personA.getPeopleILike().add(personB);
+		personB.getPeopleILike().add(personA);
+		session.save(personA);
+		assertSameGraph(getDatabase(), "CREATE (a:Person {name:'A'}) CREATE (b:Person {name:'B'}) " +
+				"CREATE (a)-[:LIKES]->(b) CREATE (b)-[:LIKES]->(a)");
+
+		personA.getPeopleILike().clear();
+		personA.getPeopleILike().add(personC);
+		personC.getPeopleILike().add(personA);
+		session.save(personA);
+		assertSameGraph(getDatabase(), "CREATE (a:Person {name:'A'}) CREATE (b:Person {name:'B'}) CREATE (c:Person {name:'C'}) " +
+				" CREATE (a)-[:LIKES]->(c) CREATE (c)-[:LIKES]->(a) CREATE (b)-[:LIKES]->(a)");
+	}
+
+	/**
+	 * @see DATAGRAPH-594
+	 */
+	@Test
+	public void updateOutgoingRelInListSavesOutgoingRelationshipInBothDirections() {
+		Person personA = new Person("A");
+		Person personB = new Person("B");
+		Person personC = new Person("C");
+		Person personD = new Person("D");
+		personA.getPeopleILike().add(personB);
+		personA.getPeopleILike().add(personC);
+		personB.getPeopleILike().add(personA);
+		personD.getPeopleILike().add(personA);
+
+		session.save(personA);
+		session.save(personB);
+		session.save(personC);
+		session.save(personD);
+		assertSameGraph(getDatabase(), "CREATE (a:Person {name:'A'}) CREATE (b:Person {name:'B'}) CREATE (c:Person {name:'C'}) CREATE (d:Person {name:'D'})" +
+				"CREATE (a)-[:LIKES]->(b) CREATE (a)-[:LIKES]->(c) CREATE (b)-[:LIKES]->(a) CREATE (d)-[:LIKES]->(a)");
+
+	}
+
+
 
 
 

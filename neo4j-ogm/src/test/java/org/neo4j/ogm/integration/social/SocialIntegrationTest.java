@@ -142,9 +142,8 @@ public class SocialIntegrationTest  extends InMemoryServerTest {
 		userB.getPeopleILike().add(userA);
 
 		session.save(userA);
-	//	session.save(userB);
 
-		//session.clear(); //TODO fails when the session is cleared
+		session.clear();
 		userA = session.loadByProperty(Person.class, new Property<String, Object>("name","A")).iterator().next();
 		assertNotNull(userA);
 		assertEquals(1, userA.getPeopleILike().size());
