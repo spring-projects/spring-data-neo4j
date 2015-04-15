@@ -123,6 +123,16 @@ public interface Session {
     void execute(String cypher, Map<String, Object> parameters);
 
     /**
+     * Applies the given {@link GraphCallback} in the scope of this {@link Session}, giving fine-grained control over
+     * behaviour.
+     *
+     * @param graphCallback The {@link GraphCallback} to execute
+     * @return The result of calling the given {@link GraphCallback}
+     * @throws NullPointerException if invoked with <code>null</code>
+     */
+    <T> T doInTransaction(GraphCallback<T> graphCallback);
+
+    /**
      * Counts all the <em>node</em> entities of the specified type.
      *
      * @param entity The {@link Class} denoting the type of entity to count

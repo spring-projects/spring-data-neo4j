@@ -30,7 +30,12 @@ import static org.springframework.data.neo4j.util.IterableUtils.getSingleOrNull;
 
 /**
  * Spring Data template for Neo4j.  Implementation of {@link Neo4jOperations}.
+ * <p>
+ * Please note that all methods on this class throw a {@link PersistenceException} if any underlying {@code Exception} is
+ * thrown.  Since {@link PersistenceException} is a runtime exception, this is not documented at the method level.
+ * </p>
  *
+ * @author Adam George
  * @author Michal Bachman
  */
 @Repository

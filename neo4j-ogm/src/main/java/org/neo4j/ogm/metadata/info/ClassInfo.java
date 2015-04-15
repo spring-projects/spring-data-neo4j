@@ -240,6 +240,14 @@ public class ClassInfo {
         return name();
     }
 
+    private FieldInfo identityFieldOrNull() {
+        try {
+            return identityField();
+        } catch (MappingException me) {
+            return null;
+        }
+    }
+
     /**
      * The identity field is a field annotated with @NodeId, or if none exists, a field
      * of type Long called 'id'
@@ -272,10 +280,10 @@ public class ClassInfo {
      * @return A Collection of FieldInfo objects describing the classInfo's property fields
      */
     public Collection<FieldInfo> propertyFields() {
-        FieldInfo identityField = identityField();
+        FieldInfo identityField = identityFieldOrNull();
         Set<FieldInfo> fieldInfos = new HashSet<>();
         for (FieldInfo fieldInfo : fieldsInfo().fields()) {
-            if (!fieldInfo.getName().equals(identityField.getName())) {
+            if (fieldInfo != identityField) {
                 AnnotationInfo annotationInfo = fieldInfo.getAnnotations().get(Property.CLASS);
                 if (annotationInfo == null) {
                     if (fieldInfo.isSimple()) {
@@ -311,7 +319,7 @@ public class ClassInfo {
      * @return A Collection of FieldInfo objects describing the classInfo's relationship fields
      */
     public Collection<FieldInfo> relationshipFields() {
-        FieldInfo identityField = identityField();
+        FieldInfo identityField = identityFieldOrNull();
         Set<FieldInfo> fieldInfos = new HashSet<>();
         for (FieldInfo fieldInfo : fieldsInfo().fields()) {
             if (fieldInfo != identityField) {

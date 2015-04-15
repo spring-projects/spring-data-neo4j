@@ -38,6 +38,10 @@ public class Actor {
         // default constructor for OGM
     }
 
+    public Long getId() {
+        return id;
+    }
+
     public Actor(String name) {
         this.name = name;
     }

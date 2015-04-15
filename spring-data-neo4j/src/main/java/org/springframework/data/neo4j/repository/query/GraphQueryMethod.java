@@ -14,11 +14,14 @@ package org.springframework.data.neo4j.repository.query;
 
 import org.neo4j.ogm.session.Session;
 import org.springframework.data.neo4j.annotation.Query;
+import org.springframework.data.neo4j.annotation.QueryResult;
 import org.springframework.data.repository.core.RepositoryMetadata;
 import org.springframework.data.repository.query.QueryMethod;
 import org.springframework.data.repository.query.RepositoryQuery;
 
 import java.lang.reflect.Method;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 
 /**
  * @author Mark Angrish
@@ -49,7 +52,34 @@ public class GraphQueryMethod extends QueryMethod {
         throw new UnsupportedOperationException("OGM does not currently support named queries.");
     }
 
+    /**
+     * @return The concrete, non-generic return type of this query method - i.e., the type to which graph database query results
+     *         should be mapped
+     */
+    Class<?> resolveConcreteReturnType() {
+        Class<?> type = this.method.getReturnType();
+        Type genericType = this.method.getGenericReturnType();
+
+        if (Iterable.class.isAssignableFrom(type)) {
+            if (genericType instanceof ParameterizedType) {
+                ParameterizedType returnType = (ParameterizedType) genericType;
+                Type componentType = returnType.getActualTypeArguments()[0];
+
+                return componentType instanceof ParameterizedType ?
+                        (Class<?>) ((ParameterizedType) componentType).getRawType() :
+                        (Class<?>) componentType;
+            } else {
+                return Object.class;
+            }
+        }
+
+        return type;
+    }
+
     public RepositoryQuery createQuery() {
+        if (resolveConcreteReturnType().isAnnotationPresent(QueryResult.class)) {
+            return new QueryResultGraphRepositoryQuery(this, session);
+        }
         return new GraphRepositoryQuery(this, session);
     }
 }

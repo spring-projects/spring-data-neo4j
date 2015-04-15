@@ -27,25 +27,25 @@ import static org.junit.Assert.*;
 /**
  * @author Adam George
  */
-public class ObjectFactoryTest {
+public class EntityFactoryTest {
 
-    private EntityFactory objectCreator;
+    private EntityFactory entityFactory;
 
     @Before
     public void setUp() {
-        this.objectCreator = new EntityFactory(new MetaData("org.neo4j.ogm.domain.social", "org.neo4j.ogm.domain.canonical"));
+        this.entityFactory = new EntityFactory(new MetaData("org.neo4j.ogm.domain.social", "org.neo4j.ogm.domain.canonical"));
     }
 
     @Test
     public void shouldConstructObjectOfParticularTypeUsingItsDefaultZeroArgConstructor() {
         RelationshipModel personRelationshipModel = new RelationshipModel();
         personRelationshipModel.setType("MEMBER_OF");
-        ArbitraryRelationshipEntity gary = this.objectCreator.newObject(personRelationshipModel);
+        ArbitraryRelationshipEntity gary = this.entityFactory.newObject(personRelationshipModel);
         assertNotNull(gary);
 
         NodeModel personNodeModel = new NodeModel();
         personNodeModel.setLabels(new String[] {"Individual"});
-        Individual sheila = this.objectCreator.newObject(personNodeModel);
+        Individual sheila = this.entityFactory.newObject(personNodeModel);
         assertNotNull(sheila);
     }
 
@@ -53,7 +53,7 @@ public class ObjectFactoryTest {
     public void shouldHandleMultipleLabelsSafely() {
         NodeModel personNodeModel = new NodeModel();
         personNodeModel.setLabels(new String[] {"Female", "Individual", "Lass"});
-        Individual ourLass = this.objectCreator.newObject(personNodeModel);
+        Individual ourLass = this.entityFactory.newObject(personNodeModel);
         assertNotNull(ourLass);
     }
 
@@ -62,7 +62,7 @@ public class ObjectFactoryTest {
         RelationshipModel edge = new RelationshipModel();
         edge.setId(49L);
         edge.setType("ClassWithoutZeroArgumentConstructor");
-        this.objectCreator.newObject(edge);
+        this.entityFactory.newObject(edge);
     }
 
     @Test
@@ -70,7 +70,7 @@ public class ObjectFactoryTest {
         NodeModel vertex = new NodeModel();
         vertex.setId(163L);
         vertex.setLabels(new String[] {"ClassWithPrivateConstructor"});
-        this.objectCreator.newObject(vertex);
+        this.entityFactory.newObject(vertex);
     }
 
     @Test(expected = MappingException.class)
@@ -78,7 +78,13 @@ public class ObjectFactoryTest {
         NodeModel vertex = new NodeModel();
         vertex.setId(302L);
         vertex.setLabels(new String[0]);
-        this.objectCreator.newObject(vertex);
+        this.entityFactory.newObject(vertex);
+    }
+
+    @Test
+    public void shouldConstructObjectIfExplicitlyGivenClassToInstantiate() {
+        Individual instance = this.entityFactory.newObject(Individual.class);
+        assertNotNull("The resultant instance shouldn't be null", instance);
     }
 
 }
