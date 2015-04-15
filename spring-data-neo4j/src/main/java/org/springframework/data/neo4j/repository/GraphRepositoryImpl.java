@@ -23,31 +23,31 @@ import java.util.Collection;
 @Repository
 public class GraphRepositoryImpl<T> implements GraphRepository<T> {
 
-    private final Class clazz;
+    private final Class<T> clazz;
     private final Session session;
 
-    public GraphRepositoryImpl(Class clazz, Session session) {
+    public GraphRepositoryImpl(Class<T> clazz, Session session) {
         this.clazz = clazz;
         this.session = session;
     }
 
     @Override
-    public <S extends T> S save(S s) {
-        session.save(s);
-        return s;
+    public <S extends T> S save(S entity) {
+        session.save(entity);
+        return entity;
     }
 
     @Override
-    public <S extends T> Iterable<S> save(Iterable<S> ses) {
-        for (S s : ses) {
-            session.save(s);
+    public <S extends T> Iterable<S> save(Iterable<S> entities) {
+        for (S entity : entities) {
+            session.save(entity);
         }
         return null;
     }
 
     @Override
     public T findOne(Long id) {
-        return (T) session.load(clazz, id);
+        return session.load(clazz, id);
     }
 
     @Override
@@ -57,18 +57,18 @@ public class GraphRepositoryImpl<T> implements GraphRepository<T> {
 
     @Override
     public Iterable<T> findAll() {
-        return (Iterable<T>) session.loadAll(clazz);
+        return session.loadAll(clazz);
     }
 
     @Override
     public Iterable<T> findAll(Iterable<Long> longs) {
-        return (Iterable<T>) session.loadAll(clazz, (Collection<Long>) longs);
+        return session.loadAll(clazz, (Collection<Long>) longs);
     }
 
     @Override
+    @SuppressWarnings("rawtypes")
     public long count() {
-        Collection<?> all = (Collection) findAll();
-        return all.size();
+        return ((Collection) findAll()).size();
     }
 
     @Override
@@ -110,27 +110,17 @@ public class GraphRepositoryImpl<T> implements GraphRepository<T> {
 
     @Override
     public T findOne(Long id, int depth) {
-        return (T) session.load(clazz, id, depth);
+        return session.load(clazz, id, depth);
     }
 
     @Override
     public Iterable<T> findAll(int depth) {
-        return (Iterable<T>) session.loadAll(clazz, depth);
+        return session.loadAll(clazz, depth);
     }
 
     @Override
     public Iterable<T> findAll(Iterable<Long> ids, int depth) {
-        return (Iterable<T>) session.loadAll(clazz, (Collection<Long>) ids, depth);
+        return session.loadAll(clazz, (Collection<Long>) ids, depth);
     }
 
-//  removed
-//    @Override
-//    public Iterable<T> findByProperty(String propertyName, Object propertyValue) {
-//        return (Iterable<T>) session.loadByProperty(clazz, new Property(propertyName, propertyValue));
-//    }
-//
-//    @Override
-//    public Iterable<T> findByProperty(String propertyName, Object propertyValue, int depth) {
-//        return (Iterable<T>) session.loadByProperty(clazz, new Property(propertyName, propertyValue), depth);
-//    }
 }

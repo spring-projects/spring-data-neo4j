@@ -12,16 +12,20 @@
 
 package org.neo4j.ogm.entityaccess;
 
-import org.neo4j.ogm.model.NodeModel;
-import org.neo4j.ogm.model.RelationshipModel;
+import java.lang.reflect.Constructor;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+
 import org.neo4j.ogm.metadata.MappingException;
 import org.neo4j.ogm.metadata.MetaData;
 import org.neo4j.ogm.metadata.info.ClassInfo;
-
-import java.lang.reflect.Constructor;
-import java.util.*;
+import org.neo4j.ogm.model.NodeModel;
+import org.neo4j.ogm.model.RelationshipModel;
 
 /**
+ * A metadata-driven factory class for creating node and relationship entities.
+ *
  * @author Adam George
  */
 public class EntityFactory {
@@ -30,6 +34,11 @@ public class EntityFactory {
 
     private final MetaData metadata;
 
+    /**
+     * Constructs a new {@link EntityFactory} driven by the specified {@link MetaData}.
+     *
+     * @param metadata The mapping {@link MetaData}
+     */
     public EntityFactory(MetaData metadata) {
         this.metadata = metadata;
     }
@@ -58,9 +67,19 @@ public class EntityFactory {
         return instantiateObjectFromTaxa(edgeModel.getType());
     }
 
-    private <T> T instantiateObjectFromTaxa(String... taxa) {
+    /**
+     * Constructs a new instance of the specified class using the same logic as the graph model factory methods.
+     *
+     * @param clarse The class to instantiate
+     * @return A new instance of the specified {@link Class}
+     * @throws MappingException if it's not possible to instantiate the given class for any reason
+     */
+    public <T> T newObject(Class<T> clarse) {
+        return instantiate(clarse);
+    }
 
-        if (taxa.length == 0) {
+    private <T> T instantiateObjectFromTaxa(String... taxa) {
+        if (taxa == null || taxa.length == 0) {
             throw new MappingException("Cannot map to a class with no taxa by which to determine the class name.");
         }
 
@@ -69,11 +88,9 @@ public class EntityFactory {
         try {
             @SuppressWarnings("unchecked")
             Class<T> loadedClass = (Class<T>) Class.forName(fqn);
-            Constructor<T> defaultConstructor = loadedClass.getDeclaredConstructor();
-            defaultConstructor.setAccessible(true);
-            return defaultConstructor.newInstance();
-        } catch (SecurityException | IllegalArgumentException | ReflectiveOperationException e) {
-            throw new MappingException("Unable to instantiate class: " + fqn, e);
+            return instantiate(loadedClass);
+        } catch (ClassNotFoundException e) {
+            throw new MappingException("Unable to load class with FQN: " + fqn, e);
         }
     }
 
@@ -90,6 +107,16 @@ public class EntityFactory {
             }
         }
         return fqn;
+    }
+
+    private static <T> T instantiate(Class<T> loadedClass) {
+        try {
+            Constructor<T> defaultConstructor = loadedClass.getDeclaredConstructor();
+            defaultConstructor.setAccessible(true);
+            return defaultConstructor.newInstance();
+        } catch (SecurityException | IllegalArgumentException | ReflectiveOperationException e) {
+            throw new MappingException("Unable to instantiate " + loadedClass, e);
+        }
     }
 
 }

@@ -30,13 +30,8 @@ public class GraphQueryLookupStrategy implements QueryLookupStrategy {
 
     private final Session session;
 
-    /**
-     * Private constructor to prevent instantiation.
-     */
-
-    public GraphQueryLookupStrategy(Session session,
-                                    QueryLookupStrategy.Key key,
-                                    EvaluationContextProvider evaluationContextProvider) {
+    public GraphQueryLookupStrategy(Session session, QueryLookupStrategy.Key key,
+            EvaluationContextProvider evaluationContextProvider) {
         this.session = session;
     }
 

@@ -59,13 +59,13 @@ public class SessionResponseHandler implements ResponseHandler {
                 for (RelationshipModel relationshipModel : graphModel.getRelationships()) {
                     if (relationshipModel.getPropertyList().contains(filter)
                             && mappingContext.getRelationshipEntity(relationshipModel.getId()).getClass().isAssignableFrom(type)) {
-                            objects.add((T)  mappingContext.getRelationshipEntity(relationshipModel.getId()));
+                        objects.add(type.cast(mappingContext.getRelationshipEntity(relationshipModel.getId())));
                     }
                 }
             } else {
                 for (NodeModel nodeModel : graphModel.getNodes()) {
                     if (nodeModel.getPropertyList().contains(filter) && (mappingContext.get(nodeModel.getId()).getClass().isAssignableFrom(type))) {
-                            objects.add((T) mappingContext.get(nodeModel.getId()));
+                        objects.add(type.cast(mappingContext.get(nodeModel.getId())));
                     }
                 }
             }

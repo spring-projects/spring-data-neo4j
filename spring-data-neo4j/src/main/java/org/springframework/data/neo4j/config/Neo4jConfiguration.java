@@ -31,6 +31,8 @@ import org.springframework.util.Assert;
 import javax.annotation.Resource;
 
 /**
+ * The base Spring configuration bean from which users are recommended to inherit when setting up Spring Data Neo4j.
+ *
  * @author Vince Bickers
  */
 @Configuration
