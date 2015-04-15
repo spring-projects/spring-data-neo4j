@@ -28,7 +28,6 @@ public abstract class RelationshipBuilder implements CypherEmitter, Comparable<R
     protected String startNodeIdentifier;
     protected String endNodeIdentifier;
     protected String reference;
-    protected boolean mapBothDirections;
 
     private String direction;
     final Map<String, Object> props = new HashMap<>();
