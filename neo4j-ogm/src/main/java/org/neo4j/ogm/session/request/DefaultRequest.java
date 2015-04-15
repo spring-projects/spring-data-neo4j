@@ -32,6 +32,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
+ *
  * @author Vince Bickers
  */
 public class DefaultRequest implements Neo4jRequest<String> {
@@ -57,6 +58,9 @@ public class DefaultRequest implements Neo4jRequest<String> {
 
             request.setHeader(new BasicHeader(HTTP.CONTENT_TYPE,"application/json;charset=UTF-8"));
             request.setHeader(new BasicHeader("Accept", "application/json;charset=UTF-8"));
+
+            // http://tools.ietf.org/html/rfc7231#section-5.5.3
+            request.setHeader(new BasicHeader("User-Agent", "SDN/4.0"));
 
             HttpRequestAuthorization.authorize(request, credentials);
 
