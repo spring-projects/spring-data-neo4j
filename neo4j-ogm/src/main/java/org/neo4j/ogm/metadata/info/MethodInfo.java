@@ -12,15 +12,16 @@
 
 package org.neo4j.ogm.metadata.info;
 
+import java.util.Collection;
+
 import org.neo4j.ogm.annotation.Property;
 import org.neo4j.ogm.annotation.Relationship;
 import org.neo4j.ogm.metadata.RelationshipUtils;
 import org.neo4j.ogm.typeconversion.AttributeConverter;
 
-import java.util.Collection;
-
 /**
  * @author Vince Bickers
+ * @author Luanne Misquitta
  */
 public class MethodInfo {
 
@@ -141,9 +142,9 @@ public class MethodInfo {
         if (relationship() != null) {
             AnnotationInfo annotationInfo = getAnnotations().get(Relationship.CLASS);
             if (annotationInfo == null) {
-                return Relationship.OUTGOING;
+                return Relationship.UNDIRECTED;
             }
-            return annotationInfo.get(Relationship.DIRECTION, Relationship.OUTGOING);
+            return annotationInfo.get(Relationship.DIRECTION, Relationship.UNDIRECTED);
         }
         throw new RuntimeException("relationship direction call invalid");
     }

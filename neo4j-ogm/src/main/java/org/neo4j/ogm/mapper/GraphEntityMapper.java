@@ -12,6 +12,9 @@
 
 package org.neo4j.ogm.mapper;
 
+import java.util.*;
+import java.util.Map.Entry;
+
 import org.neo4j.ogm.annotation.Relationship;
 import org.neo4j.ogm.entityaccess.*;
 import org.neo4j.ogm.metadata.MappingException;
@@ -25,11 +28,9 @@ import org.neo4j.ogm.model.RelationshipModel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
-import java.util.Map.Entry;
-
 /**
  * @author Vince Bickers
+ * @author Luanne Misquitta
  */
 public class GraphEntityMapper implements GraphToEntityMapper<GraphModel> {
 
@@ -209,8 +210,13 @@ public class GraphEntityMapper implements GraphToEntityMapper<GraphModel> {
             }
             else {
                 boolean oneToOne = true;
-                oneToOne &= tryMappingAsSingleton(source, target, edge);
-                oneToOne &= tryMappingAsSingleton(target, source, edge);
+                if (!relationshipDirection(source, edge, target).equals(Relationship.INCOMING)) {
+                    oneToOne &= tryMappingAsSingleton(source, target, edge);
+                }
+                if (!relationshipDirection(target, edge, source).equals(Relationship.OUTGOING)) {
+                    oneToOne &= tryMappingAsSingleton(target, source, edge);
+
+                }
                 if (!oneToOne) {
                     oneToMany.add(edge);
                 } else {
@@ -274,8 +280,12 @@ public class GraphEntityMapper implements GraphToEntityMapper<GraphModel> {
                 }
             }
             else {
-                typeRelationships.recordTypeRelationship(instance, parameter);  //
-                typeRelationships.recordTypeRelationship(parameter, instance);   // try both directions?
+                if (!relationshipDirection(instance, edge, parameter).equals(Relationship.INCOMING)) {
+                    typeRelationships.recordTypeRelationship(instance, parameter);
+                }
+                if (!relationshipDirection(parameter, edge, instance).equals(Relationship.OUTGOING)) {
+                    typeRelationships.recordTypeRelationship(parameter, instance);
+                }
             }
         }
 

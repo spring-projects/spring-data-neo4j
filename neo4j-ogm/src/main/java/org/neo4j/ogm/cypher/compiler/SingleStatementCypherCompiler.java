@@ -12,10 +12,10 @@
 
 package org.neo4j.ogm.cypher.compiler;
 
-import org.neo4j.ogm.cypher.statement.ParameterisedStatement;
-
 import java.util.*;
 import java.util.Map.Entry;
+
+import org.neo4j.ogm.cypher.statement.ParameterisedStatement;
 
 /**
  * Implementation of {@link CypherCompiler} that builds a single query for the object graph.
@@ -69,6 +69,13 @@ public class SingleStatementCypherCompiler implements CypherCompiler {
     @Override
     public RelationshipBuilder newRelationship() {
         RelationshipBuilder builder = new NewRelationshipBuilder(identifiers.nextIdentifier());
+        this.newRelationships.add(builder);
+        return builder;
+    }
+
+    @Override
+    public RelationshipBuilder newBiDirectionalRelationship() {
+        RelationshipBuilder builder = new NewBiDirectionalRelationshipBuilder(identifiers.nextIdentifier(), identifiers.nextIdentifier());
         this.newRelationships.add(builder);
         return builder;
     }
