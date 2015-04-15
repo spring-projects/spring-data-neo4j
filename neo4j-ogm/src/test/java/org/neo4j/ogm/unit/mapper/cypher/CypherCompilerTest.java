@@ -32,6 +32,8 @@ import org.neo4j.ogm.domain.forum.ForumTopicLink;
 import org.neo4j.ogm.domain.forum.Topic;
 import org.neo4j.ogm.domain.music.Album;
 import org.neo4j.ogm.domain.music.Artist;
+import org.neo4j.ogm.domain.social.Individual;
+import org.neo4j.ogm.domain.social.Mortal;
 import org.neo4j.ogm.mapper.EntityGraphMapper;
 import org.neo4j.ogm.mapper.EntityToGraphMapper;
 import org.neo4j.ogm.mapper.MappedRelationship;
@@ -573,6 +575,46 @@ public class CypherCompilerTest {
                         "RETURN id(_0) AS _0, id(_2) AS _2, id(_3) AS _3";
         expectOnSave(theBeatles, cypher);
     }
+
+    /**
+     * @see DATAGRAPH-594
+     */
+    @Test
+    public void createOutgoingRelationWhenUnmarkedRelationIsSpecified() {
+
+        Individual adam = new Individual();
+        adam.setName("Adam");
+
+        Individual vince = new Individual();
+        vince.setName("Vince");
+
+        adam.setFriends(Collections.singletonList(vince));
+
+        String cypher =
+                "CREATE (_0:`Individual`{_0_props}), (_2:`Individual`{_2_props}) " +
+                        "WITH _0,_2 MERGE (_0)-[_1:`FRIENDS`]->(_2) " +
+                        "RETURN id(_0) AS _0, id(_1) AS _1, id(_2) AS _2";
+        expectOnSave(adam, cypher);
+    }
+
+    /**
+     * @see DATAGRAPH-594
+     */
+    @Test
+    public void createIncomingRelationWhenSpecified() {
+        Mortal adam = new Mortal("Adam");
+        Mortal vince = new Mortal("Vince");
+
+        adam.getKnownBy().add(vince);
+
+        String cypher =
+                "CREATE (_0:`Mortal`{_0_props}), (_2:`Mortal`{_2_props}) " +
+                        "WITH _0,_2 MERGE (_2)-[_1:`KNOWN_BY`]->(_0) " +
+                        "RETURN id(_0) AS _0, id(_1) AS _1, id(_2) AS _2";
+        expectOnSave(adam, cypher);
+
+    }
+
 
     private void expectOnSave(Object object, String... cypher) {
         ParameterisedStatements statements = new ParameterisedStatements(this.mapper.map(object).getStatements());

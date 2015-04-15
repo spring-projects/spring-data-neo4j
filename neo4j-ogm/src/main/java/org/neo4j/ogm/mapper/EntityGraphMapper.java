@@ -12,6 +12,8 @@
 
 package org.neo4j.ogm.mapper;
 
+import java.util.Iterator;
+
 import org.neo4j.ogm.annotation.Relationship;
 import org.neo4j.ogm.annotation.RelationshipEntity;
 import org.neo4j.ogm.cypher.compiler.*;
@@ -25,12 +27,11 @@ import org.neo4j.ogm.metadata.info.ClassInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Iterator;
-
 /**
  * Implementation of {@link EntityToGraphMapper} that is driven by an instance of {@link MetaData}.
  *
  * @author Vince Bickers
+ * @author Luanne Misquitta
  */
 public class EntityGraphMapper implements EntityToGraphMapper {
 
@@ -248,14 +249,17 @@ public class EntityGraphMapper implements EntityToGraphMapper {
 
                 if (relatedObject instanceof Iterable) {
                     for (Object tgtObject : (Iterable<?>) relatedObject) {
-                        link(tgtObject, compiler, relationshipDirection, relationshipType, srcIdentity, nodeBuilder, entity, horizon);
+                        boolean mapBothWays = bothWayMappingRequired(entity, relationshipType, tgtObject);
+                        link(tgtObject, compiler, relationshipDirection, relationshipType, srcIdentity, nodeBuilder, entity, horizon, mapBothWays);
                     }
                 } else if (relatedObject.getClass().isArray()) {
                     for (Object tgtObject : (Object[]) relatedObject) {
-                        link(tgtObject, compiler, relationshipDirection, relationshipType, srcIdentity, nodeBuilder, entity, horizon);
+                        boolean mapBothWays = bothWayMappingRequired(entity, relationshipType, tgtObject);
+                        link(tgtObject, compiler, relationshipDirection, relationshipType, srcIdentity, nodeBuilder, entity, horizon, mapBothWays);
                     }
                 } else {
-                    link(relatedObject, compiler, relationshipDirection, relationshipType, srcIdentity, nodeBuilder, entity, horizon);
+                    boolean mapBothWays = bothWayMappingRequired(entity, relationshipType, relatedObject);
+                    link(relatedObject, compiler, relationshipDirection, relationshipType, srcIdentity, nodeBuilder, entity, horizon, mapBothWays);
                 }
             }
         }
@@ -270,12 +274,12 @@ public class EntityGraphMapper implements EntityToGraphMapper {
      * @param relationshipType the type of relationship
      */
     private boolean clearContextRelationships(CypherContext context, Long identity, String relationshipType, String relationshipDirection) {
-        if (relationshipDirection.equals(Relationship.OUTGOING)) {
-            logger.debug("context-del: ({})-[:{}]->()", identity, relationshipType);
-            return context.deregisterOutgoingRelationships(identity, relationshipType);
-        } else {
+        if (relationshipDirection.equals(Relationship.INCOMING)) {
             logger.debug("context-del: ({})<-[:{}]-()", identity, relationshipType);
             return context.deregisterIncomingRelationships(identity, relationshipType);
+        } else {
+            logger.debug("context-del: ({})-[:{}]->()", identity, relationshipType);
+            return context.deregisterOutgoingRelationships(identity, relationshipType);
         }
     }
 
@@ -299,15 +303,16 @@ public class EntityGraphMapper implements EntityToGraphMapper {
      * @param nodeBuilder        a {@link NodeBuilder} that knows how to create cypher node phrases
      * @param source          represents the node at the end of the relationship that is not represented by source
      * @param horizon            the current depth we have mapped the domain model to.
+     * @param mapBothDirections  whether the nodes should be linked in both directions
      */
-    private void link(Object target, CypherCompiler cypherCompiler, String relationshipDirection, String relationshipType, Long srcIdentity, NodeBuilder nodeBuilder, Object source, int horizon) {
+    private void link(Object target, CypherCompiler cypherCompiler, String relationshipDirection, String relationshipType, Long srcIdentity, NodeBuilder nodeBuilder, Object source, int horizon, boolean mapBothDirections) {
 
-        logger.debug("linking to entity {}", target);
+        logger.debug("linking to entity {} in {} direction", target, mapBothDirections ? "both" : "one");
 
         if (target != null) {
             CypherContext context = cypherCompiler.context();
 
-            RelationshipBuilder relationshipBuilder = getRelationshipBuilder(cypherCompiler, target, relationshipDirection, relationshipType);
+            RelationshipBuilder relationshipBuilder = getRelationshipBuilder(cypherCompiler, target, relationshipDirection, relationshipType, mapBothDirections);
 
             if (isRelationshipEntity(target)) {
                 if (!context.visitedRelationshipEntity(target)) {
@@ -334,9 +339,10 @@ public class EntityGraphMapper implements EntityToGraphMapper {
      * @param entity  an object representing a node or relationship entity in the graph
      * @param relationshipDirection the relationship direction we want to establish
      * @param relationshipType the type of the relationship
+     * @param mapBothDirections whether the nodes should be linked in both directions
      * @return The appropriate {@link RelationshipBuilder}
      */
-    private RelationshipBuilder getRelationshipBuilder(CypherCompiler cypherBuilder, Object entity, String relationshipDirection, String relationshipType) {
+    private RelationshipBuilder getRelationshipBuilder(CypherCompiler cypherBuilder, Object entity, String relationshipDirection, String relationshipType, boolean mapBothDirections) {
 
         RelationshipBuilder relationshipBuilder;
 
@@ -348,10 +354,11 @@ public class EntityGraphMapper implements EntityToGraphMapper {
                     : cypherBuilder.newRelationship();
             relationshipBuilder.type(relationshipType);
         } else {
-            relationshipBuilder = cypherBuilder.newRelationship().type(relationshipType);
+            relationshipBuilder = mapBothDirections ? cypherBuilder.newBiDirectionalRelationship().type(relationshipType) : cypherBuilder.newRelationship().type(relationshipType);
         }
 
         relationshipBuilder.direction(relationshipDirection);
+        relationshipBuilder.mapBothDirections(mapBothDirections);
         return relationshipBuilder;
     }
 
@@ -445,10 +452,10 @@ public class EntityGraphMapper implements EntityToGraphMapper {
 
 
     private MappedRelationship createMappedRelationship(Long aNode, RelationshipBuilder relationshipBuilder, Long bNode) {
-        if (relationshipBuilder.hasDirection(Relationship.OUTGOING)) {
-            return new MappedRelationship(aNode, relationshipBuilder.getType(), bNode);
-        }  else {
+        if (relationshipBuilder.hasDirection(Relationship.INCOMING)) {
             return new MappedRelationship(bNode, relationshipBuilder.getType(), aNode);
+        }  else {
+            return new MappedRelationship(aNode, relationshipBuilder.getType(), bNode);
         }
     }
 
@@ -545,10 +552,11 @@ public class EntityGraphMapper implements EntityToGraphMapper {
             return;
         }
 
-        if (relationshipBuilder.hasDirection(Relationship.OUTGOING)) {
-            reallyCreateRelationship(context, src, relationshipBuilder, tgt);
-        } else {
+        if (relationshipBuilder.hasDirection(Relationship.INCOMING)) {
             reallyCreateRelationship(context, tgt, relationshipBuilder, src);
+        } else {
+            reallyCreateRelationship(context, src, relationshipBuilder, tgt);
+
         }
     }
 
@@ -590,6 +598,9 @@ public class EntityGraphMapper implements EntityToGraphMapper {
 
         // TODO: probably needs refactoring, this is not exactly an intuitive design!
         ctx.log(new TransientRelationship(src, relBuilder.getReference(), relBuilder.getType(), tgt)); // we log the new relationship as part of the transaction context.
+        if(relBuilder.isMappedInBothDirections()) {
+            ctx.log(new TransientRelationship(tgt, relBuilder.getReference(), relBuilder.getType(), src)); // we log the new relationship in the opposite direction as part of the transaction context.
+        }
     }
 
     /**
@@ -606,5 +617,51 @@ public class EntityGraphMapper implements EntityToGraphMapper {
         }
         return null != classInfo.annotationsInfo().get(RelationshipEntity.CLASS);
     }
+
+    /**
+     * Determines whether or not a two way mapping is required for the relationship.
+     * Relationships annotated with either {@link Relationship} direction INCOMING or OUTGOING and defined between two entities of the same type will be mapped both ways.
+     *
+     * @param srcObject the domain object representing the start node of the relationship
+     * @param relationshipType the type of the relationship
+     * @param tgtObject the domain object representing the end node of the relationship
+     * @return true if the relationship should be mapped both ways, false otherwise
+     */
+    private boolean bothWayMappingRequired(Object srcObject, String relationshipType, Object tgtObject) {
+        boolean mapBothWays = false;
+
+        if(tgtObject.getClass().equals(srcObject.getClass())) { //Make sure the source and target objects are of the same type
+            ClassInfo tgtInfo = metaData.classInfo(tgtObject);
+            for (RelationalReader tgtRelReader : entityAccessStrategy.getRelationalReaders(tgtInfo)) {
+                String relationshipDirection = tgtRelReader.relationshipDirection();
+                if ((relationshipDirection.equals(Relationship.OUTGOING) || relationshipDirection.equals(Relationship.INCOMING)) //The relationship direction must be explicitly incoming or outgoing
+                        && tgtRelReader.relationshipType().equals(relationshipType)) { //The source must have the same relationship type to the target as the target to the source
+                    Object target = tgtRelReader.read(tgtObject);
+                    if(target!=null) {
+                        if (target instanceof Iterable) {
+                            for (Object relatedObject : (Iterable<?>) target) {
+                                if (relatedObject.equals(srcObject)) { //the target is mapped to the source as well
+                                    mapBothWays = true;
+                                }
+                            }
+                        } else if (target.getClass().isArray()) {
+                            for (Object relatedObject : (Object[]) target) {
+                                if (relatedObject.equals(srcObject)) { //the target is mapped to the source as well
+                                    mapBothWays = true;
+                                }
+                            }
+                        } else {
+                            if (target.equals(srcObject)) { //the target is mapped to the source as well
+                                mapBothWays = true;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return mapBothWays;
+    }
+
+
 
 }
