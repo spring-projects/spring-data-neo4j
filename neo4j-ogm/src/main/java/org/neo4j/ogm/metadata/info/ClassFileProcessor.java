@@ -22,5 +22,5 @@ public interface ClassFileProcessor {
 
     void process(InputStream inputStream) throws IOException;
     void finish();
-
+    void validate();
 }

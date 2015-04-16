@@ -14,6 +14,9 @@ package org.neo4j.ogm.metadata.info;
 
 import org.neo4j.ogm.metadata.ClassPathScanner;
 import org.neo4j.ogm.metadata.MappingException;
+import org.neo4j.ogm.metadata.info.validation.ValidationException;
+import org.neo4j.ogm.metadata.info.validation.ValidatorResolver;
+import org.neo4j.ogm.metadata.info.validation.EntityValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -93,7 +96,26 @@ public class DomainInfo implements ClassFileProcessor {
         }
     }
 
+    public void validate() {
+        LOGGER.info("Validating domain model");
 
+        ValidatorResolver validatorResolver = new ValidatorResolver();
+        StringBuilder errorMessage = new StringBuilder();
+
+        for (ClassInfo classInfo : this.classNameToClassInfo.values()) {
+            for (AnnotationInfo annotationInfo : classInfo.annotations()) {
+                EntityValidator entityValidator = validatorResolver.getValidator(annotationInfo.getName());
+                if(entityValidator != null) {
+                    entityValidator.validate(classInfo);
+                    errorMessage.append(entityValidator.getErrorMessage());
+                }
+            }
+        }
+
+        if(errorMessage.length() > 0) {
+            throw new ValidationException(errorMessage.toString());
+        }
+    }
 
     public void finish() {
 
