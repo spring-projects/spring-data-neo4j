@@ -107,7 +107,7 @@ public class Neo4jSession implements Session {
 
     @Override
     public <T> T load(Class<T> type, Long id, int depth) {
-        String url = getOrCreateTransaction().url();
+        String url = getCurrentOrCreateAutocommitTransaction().url();
         QueryStatements queryStatements = getQueryStatementsBasedOnType(type);
         GraphModelQuery qry = queryStatements.findOne(id,depth);
         try (Neo4jResponse<GraphModel> response = getRequestHandler().execute(qry, url)) {
@@ -122,7 +122,7 @@ public class Neo4jSession implements Session {
 
     @Override
     public <T> Collection<T> loadAll(Class<T> type, Collection<Long> ids, int depth) {
-        String url = getOrCreateTransaction().url();
+        String url = getCurrentOrCreateAutocommitTransaction().url();
         QueryStatements queryStatements = getQueryStatementsBasedOnType(type);
         GraphModelQuery qry = queryStatements.findAll(ids, depth);
         try (Neo4jResponse<GraphModel> response = getRequestHandler().execute(qry, url)) {
@@ -138,7 +138,7 @@ public class Neo4jSession implements Session {
     @Override
     public <T> Collection<T> loadAll(Class<T> type, int depth) {
         ClassInfo classInfo = metaData.classInfo(type.getName());
-        String url = getOrCreateTransaction().url();
+        String url = getCurrentOrCreateAutocommitTransaction().url();
         QueryStatements queryStatements = getQueryStatementsBasedOnType(type);
         GraphModelQuery qry = queryStatements.findByType(getEntityType(classInfo), depth);
         try (Neo4jResponse<GraphModel> response = getRequestHandler().execute(qry, url)) {
@@ -176,7 +176,7 @@ public class Neo4jSession implements Session {
     @Override
     public <T> Collection<T> loadByProperty(Class<T> type, Property<String, Object> property, int depth) {
         ClassInfo classInfo = metaData.classInfo(type.getName());
-        String url = getOrCreateTransaction().url();
+        String url = getCurrentOrCreateAutocommitTransaction().url();
         QueryStatements queryStatements = getQueryStatementsBasedOnType(type);
         GraphModelQuery qry = queryStatements.findByProperty(getEntityType(classInfo), property, depth);
         try (Neo4jResponse<GraphModel> response = getRequestHandler().execute(qry, url)) {
@@ -237,7 +237,7 @@ public class Neo4jSession implements Session {
 
         assertReadOnly(cypher);
 
-        String url = getOrCreateTransaction().url();
+        String url = getCurrentOrCreateAutocommitTransaction().url();
 
         if (type != null && metaData.classInfo(type.getSimpleName()) != null) {
             GraphModelQuery qry = new GraphModelQuery(cypher, parameters);
@@ -280,7 +280,7 @@ public class Neo4jSession implements Session {
             throw new RuntimeException("Supplied Parameters cannot be null.");
         }
 
-        String url  = getOrCreateTransaction().url();
+        String url  = getCurrentOrCreateAutocommitTransaction().url();
         // NOTE: No need to check if domain objects are parameters and flatten them to json as this is done
         // for us using the existing execute() method.
         RowModelQuery qry = new RowModelQuery(cypher, parameters);
@@ -289,19 +289,19 @@ public class Neo4jSession implements Session {
 
     @Override
     public <T> T doInTransaction(GraphCallback<T> graphCallback) {
-        return graphCallback.apply(getRequestHandler(), getOrCreateTransaction(), this.metaData);
+        return graphCallback.apply(getRequestHandler(), getCurrentOrCreateAutocommitTransaction(), this.metaData);
     }
 
     @Override
     public void execute(String statement) {
         ParameterisedStatement parameterisedStatement = new ParameterisedStatement(statement, Utils.map());
-        String url = getOrCreateTransaction().url();
+        String url = getCurrentOrCreateAutocommitTransaction().url();
         getRequestHandler().execute(parameterisedStatement, url).close();
     }
 
     @Override
     public void purgeDatabase() {
-        String url = getOrCreateTransaction().url();
+        String url = getCurrentOrCreateAutocommitTransaction().url();
         getRequestHandler().execute(new DeleteNodeStatements().purge(), url).close();
         mappingContext.clear();
     }
@@ -351,7 +351,7 @@ public class Neo4jSession implements Session {
         } else {
             ClassInfo classInfo = metaData.classInfo(object);
             if (classInfo != null) {
-                Transaction tx = getOrCreateTransaction();
+                Transaction tx = getCurrentOrCreateAutocommitTransaction();
                 CypherContext context = new EntityGraphMapper(metaData, mappingContext).map(object, depth);
                 try (Neo4jResponse<String> response = getRequestHandler().execute(context.getStatements(), tx.url())) {
                     getResponseHandler().updateObjects(context, response, mapper);
@@ -373,7 +373,7 @@ public class Neo4jSession implements Session {
                 Field identityField = classInfo.getField(classInfo.identityField());
                 Long identity = (Long) FieldWriter.read(identityField, object);
                 if (identity != null) {
-                    String url = getOrCreateTransaction().url();
+                    String url = getCurrentOrCreateAutocommitTransaction().url();
                     ParameterisedStatement request = getDeleteStatementsBasedOnType(object.getClass()).delete(identity);
                     try (Neo4jResponse<String> response = getRequestHandler().execute(request, url)) {
                         mappingContext.clear(object);
@@ -389,7 +389,7 @@ public class Neo4jSession implements Session {
     public <T> void deleteAll(Class<T> type) {
         ClassInfo classInfo = metaData.classInfo(type.getName());
         if (classInfo != null) {
-            String url = getOrCreateTransaction().url();
+            String url = getCurrentOrCreateAutocommitTransaction().url();
             ParameterisedStatement request = getDeleteStatementsBasedOnType(type).deleteByType(getEntityType(classInfo));
             try (Neo4jResponse<String> response = getRequestHandler().execute(request, url)) {
                 mappingContext.clear(type);
@@ -400,6 +400,13 @@ public class Neo4jSession implements Session {
     }
 
     @Override
+    public Transaction getTransaction() {
+
+        return txManager.getCurrentTransaction();
+
+    }
+
+    @Override
     public long countEntitiesOfType(Class<?> entity) {
         ClassInfo classInfo = metaData.classInfo(entity.getName());
         if (classInfo == null) {
@@ -407,7 +414,7 @@ public class Neo4jSession implements Session {
         }
 
         RowModelQuery countStatement = new AggregateStatements().countNodesLabelledWith(classInfo.labels());
-        String url  = getOrCreateTransaction().url();
+        String url  = getCurrentOrCreateAutocommitTransaction().url();
         try (Neo4jResponse<RowModel> response = getRequestHandler().execute(countStatement, url)) {
             RowModel queryResult = response.next();
             return queryResult == null ? 0 : ((Number) queryResult.getValues()[0]).longValue();
@@ -420,7 +427,7 @@ public class Neo4jSession implements Session {
         return url + "db/data/transaction/commit";
     }
 
-    private Transaction getOrCreateTransaction() {
+    private Transaction getCurrentOrCreateAutocommitTransaction() {
 
         logger.info("--------- new request ----------");
         logger.info("getOrCreateTransaction() being called on thread: " + Thread.currentThread().getId());
