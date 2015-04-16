@@ -12,13 +12,16 @@
 
 package org.neo4j.ogm.entityaccess;
 
+import java.lang.reflect.Field;
+
+import org.neo4j.ogm.metadata.ClassUtils;
 import org.neo4j.ogm.metadata.info.ClassInfo;
 import org.neo4j.ogm.metadata.info.FieldInfo;
-
-import java.lang.reflect.Field;
+import org.neo4j.ogm.session.Utils;
 
 /**
  * @author Vince Bickers
+ * @author Luanne Misquitta
  */
 public class FieldWriter extends EntityAccess {
 
@@ -55,7 +58,8 @@ public class FieldWriter extends EntityAccess {
         if (fieldInfo.hasConverter()) {
             value = fieldInfo.converter().toEntityAttribute(value);
         }
-        FieldWriter.write(field, instance, value);
+        String descriptor = fieldInfo.getTypeParameterDescriptor()==null ? fieldInfo.getDescriptor() : fieldInfo.getTypeParameterDescriptor();
+        FieldWriter.write(field, instance, Utils.convertTypes(ClassUtils.getType(descriptor), value));
     }
 
     @Override

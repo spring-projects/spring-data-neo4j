@@ -19,16 +19,28 @@ import java.util.Vector;
  * Arbitrary POJO used to test mapping code.
  *
  * @author Adam George
+ * @author Luanne Misquitta
  */
 public class Individual {
 
     private Long id;
     private String name;
     private int age;
+    private float bankBalance;
+    private byte code;
+    private Integer numberOfPets;
+    private Float distanceFromZoo;
+    private Byte numberOfShoes;
 
     private List<Individual> friends;
     private int[] primitiveIntArray;
     private byte[] primitiveByteArray;
+    public float[] primitiveFloatArray;
+    public Integer[] integerArray;
+    public Float[] floatArray;
+    public List<Integer> integerCollection;
+    private List<Float> floatCollection;
+    private List<Byte> byteCollection;
 
     private Vector<Double> favouriteRadioStations;
 
@@ -54,6 +66,46 @@ public class Individual {
 
     public void setAge(int age) {
         this.age = age;
+    }
+
+    public float getBankBalance() {
+        return bankBalance;
+    }
+
+    public void setBankBalance(float bankBalance) {
+        this.bankBalance = bankBalance;
+    }
+
+    public byte getCode() {
+        return code;
+    }
+
+    public void setCode(byte code) {
+        this.code = code;
+    }
+
+    public Integer getNumberOfPets() {
+        return numberOfPets;
+    }
+
+    public void setNumberOfPets(Integer numberOfPets) {
+        this.numberOfPets = numberOfPets;
+    }
+
+    public Float getDistanceFromZoo() {
+        return distanceFromZoo;
+    }
+
+    public void setDistanceFromZoo(Float distanceFromZoo) {
+        this.distanceFromZoo = distanceFromZoo;
+    }
+
+    public Byte getNumberOfShoes() {
+        return numberOfShoes;
+    }
+
+    public void setNumberOfShoes(Byte numberOfShoes) {
+        this.numberOfShoes = numberOfShoes;
     }
 
     public List<Individual> getFriends() {
@@ -86,5 +138,21 @@ public class Individual {
 
     public void setPrimitiveByteArray(byte[] primitiveByteArray) {
         this.primitiveByteArray = primitiveByteArray;
+    }
+
+    public List<Float> getFloatCollection() {
+        return floatCollection;
+    }
+
+    public void setFloatCollection(List<Float> floatCollection) {
+        this.floatCollection = floatCollection;
+    }
+
+    public List<Byte> getByteCollection() {
+        return byteCollection;
+    }
+
+    public void setByteCollection(List<Byte> byteCollection) {
+        this.byteCollection = byteCollection;
     }
 }

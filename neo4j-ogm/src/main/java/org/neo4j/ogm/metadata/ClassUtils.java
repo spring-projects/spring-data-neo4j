@@ -16,14 +16,11 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @author Vince Bickers
+ * @author Luanne Misquitta
  */
 public abstract class ClassUtils {
 
@@ -54,6 +51,21 @@ public abstract class ClassUtils {
             if (setterDescriptor.startsWith("(L")) {
                 p++;
             }
+            if(setterDescriptor.startsWith("L")) { //handles descriptors of the format Ljava/lang/Byte;
+                p++;
+                q = setterDescriptor.length()-1;
+            }
+        }
+        if(setterDescriptor.startsWith("[")) { //handles descriptors of the format [F
+            p = 0;
+            q = 2;
+        }
+        if(setterDescriptor.startsWith("[L")) { //handles descriptors of the format [Ljava/lang/Float;
+            p = 1;
+            q = setterDescriptor.length()-1;
+        }
+        if(setterDescriptor.length()==1) { //handles descriptors of the format I
+                q=1;
         }
         String typeName = setterDescriptor.substring(p + 1, q).replace("/", ".");
         if (typeName.length() == 1) {

@@ -12,6 +12,11 @@
 
 package org.neo4j.ogm.unit.mapper;
 
+import static org.junit.Assert.*;
+import static org.neo4j.ogm.testutil.GraphTestUtils.*;
+
+import java.util.*;
+
 import org.junit.*;
 import org.neo4j.cypher.javacompat.ExecutionEngine;
 import org.neo4j.cypher.javacompat.ExecutionResult;
@@ -35,13 +40,9 @@ import org.neo4j.ogm.mapper.MappingContext;
 import org.neo4j.ogm.metadata.MetaData;
 import org.neo4j.test.TestGraphDatabaseFactory;
 
-import java.util.*;
-
-import static org.junit.Assert.*;
-import static org.neo4j.ogm.testutil.GraphTestUtils.assertSameGraph;
-
 /**
  * @author Adam George
+ * @author Luanne Misquitta
  */
 public class EntityGraphMapperTest {
 
@@ -452,11 +453,12 @@ public class EntityGraphMapperTest {
         Individual individual = new Individual();
         individual.setName("Jeff");
         individual.setAge(41);
-        individual.setPrimitiveIntArray(new int[] {1, 6, 4, 7, 2});
+        individual.setBankBalance(1000.50f);
+        individual.setPrimitiveIntArray(new int[]{1, 6, 4, 7, 2});
 
         ParameterisedStatements cypher = new ParameterisedStatements(this.mapper.map(individual).getStatements());
 
-        executeStatementsAndAssertSameGraph(cypher, "CREATE (:Individual {name:'Jeff', age:41, primitiveIntArray:[1,6,4,7,2]})");
+        executeStatementsAndAssertSameGraph(cypher, "CREATE (:Individual {name:'Jeff', age:41, bankBalance: 1000.50, code:0, primitiveIntArray:[1,6,4,7,2]})");
 
         ExecutionResult executionResult = executionEngine.execute("MATCH (i:Individual) RETURN i.primitiveIntArray AS ints");
         for (Map<String, Object> result : executionResult) {
@@ -465,19 +467,20 @@ public class EntityGraphMapperTest {
     }
 
     @Test
-    @Ignore // FIXME - conversion test
     public void shouldGenerateCypherToPersistByteArray() {
 
         Individual individual = new Individual();
+        individual.setAge(41);
+        individual.setBankBalance(1000.50f);
         individual.setPrimitiveByteArray(new byte[]{1, 2, 3, 4, 5});
 
         ParameterisedStatements cypher = new ParameterisedStatements(this.mapper.map(individual).getStatements());
 
-        executeStatementsAndAssertSameGraph(cypher, "CREATE (:Individual {primitiveByteArray:[1,2,3,4,5]})");
+        executeStatementsAndAssertSameGraph(cypher, "CREATE (:Individual {age:41, bankBalance: 1000.50, code:0, primitiveByteArray:'AQIDBAU='})");
 
         ExecutionResult executionResult = executionEngine.execute("MATCH (i:Individual) RETURN i.primitiveByteArray AS bytes");
         for (Map<String, Object> result : executionResult) {
-            assertEquals("The array wasn't persisted as the correct type", 5, ((byte[]) result.get("bytes")).length);
+            assertEquals("The array wasn't persisted as the correct type", "AQIDBAU=",result.get("bytes")); //Byte arrays are converted to Base64 Strings
         }
     }
 
@@ -486,11 +489,12 @@ public class EntityGraphMapperTest {
         Individual individual = new Individual();
         individual.setName("Gary");
         individual.setAge(36);
+        individual.setBankBalance(99.99f);
         individual.setFavouriteRadioStations(new Vector<Double>(Arrays.asList(97.4, 105.4, 98.2)));
 
         ParameterisedStatements cypher = new ParameterisedStatements(this.mapper.map(individual).getStatements());
         executeStatementsAndAssertSameGraph(cypher,
-                "CREATE (:Individual {name:'Gary', age:36, favouriteRadioStations:[97.4, 105.4, 98.2]})");
+                "CREATE (:Individual {name:'Gary', age:36, bankBalance:99.99, code:0, favouriteRadioStations:[97.4, 105.4, 98.2]})");
     }
 
     @Test

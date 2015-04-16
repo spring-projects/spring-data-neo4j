@@ -12,11 +12,12 @@
 
 package org.neo4j.ogm.entityaccess;
 
+import java.lang.reflect.Method;
+
 import org.neo4j.ogm.metadata.ClassUtils;
 import org.neo4j.ogm.metadata.info.ClassInfo;
 import org.neo4j.ogm.metadata.info.MethodInfo;
-
-import java.lang.reflect.Method;
+import org.neo4j.ogm.session.Utils;
 
 /**
  * @author Vince Bickers
@@ -58,7 +59,8 @@ public class MethodWriter extends EntityAccess {
         if (setterMethodInfo.hasConverter()) {
             value = setterMethodInfo.converter().toEntityAttribute(value);
         }
-        MethodWriter.write(method, instance, value);
+        String descriptor = setterMethodInfo.getTypeParameterDescriptor() == null ? setterMethodInfo.getDescriptor() : setterMethodInfo.getTypeParameterDescriptor();
+        MethodWriter.write(method, instance, Utils.convertTypes(ClassUtils.getType(descriptor), value));
     }
 
     @Override
