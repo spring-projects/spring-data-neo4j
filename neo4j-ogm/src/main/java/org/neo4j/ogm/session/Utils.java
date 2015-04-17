@@ -67,14 +67,14 @@ public class Utils {
     }
 
     /**
-     * Convert numeric types when mapping properties from nodes to entities.
+     * Coerce numeric types when mapping properties from nodes to entities.
      * This deals with numeric types - Longs to ints, Doubles to floats, Integers to bytes.
      *
      * @param clazz the entity field type
      * @param value the property value
      * @return converted value
      */
-    public static Object convertTypes(Class clazz, Object value) {
+    public static Object coerceTypes(Class clazz, Object value) {
         if("int".equals(clazz.getName()) || Integer.class.equals(clazz)) {
             if(value.getClass().equals(Long.class)) {
                 Long longValue = (Long) value;

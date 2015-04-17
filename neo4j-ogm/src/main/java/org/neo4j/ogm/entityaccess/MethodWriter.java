@@ -60,8 +60,8 @@ public class MethodWriter extends EntityAccess {
             value = setterMethodInfo.converter().toEntityAttribute(value);
         }
         String descriptor = setterMethodInfo.getTypeParameterDescriptor() == null ? setterMethodInfo.getDescriptor() : setterMethodInfo.getTypeParameterDescriptor();
-        if (!descriptor.startsWith("L") && !descriptor.startsWith("[L")) { //ignore arrays and collections for converting types
-            value = Utils.convertTypes(ClassUtils.getType(descriptor), value);
+        if (!ClassUtils.isIterableSetter(setterMethodInfo)) {
+            value = Utils.coerceTypes(ClassUtils.getType(descriptor), value);
         }
         MethodWriter.write(method, instance, value);
     }

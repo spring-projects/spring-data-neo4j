@@ -12,22 +12,23 @@
 
 package org.neo4j.ogm.unit.metadata;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.neo4j.ogm.domain.education.Student;
-import org.neo4j.ogm.domain.forum.Member;
-import org.neo4j.ogm.domain.forum.activity.Activity;
-import org.neo4j.ogm.metadata.MetaData;
-import org.neo4j.ogm.metadata.info.ClassInfo;
-import org.neo4j.ogm.metadata.info.FieldInfo;
-import org.neo4j.ogm.metadata.info.MethodInfo;
+import static org.junit.Assert.*;
 
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
-import static org.junit.Assert.*;
+import org.junit.Before;
+import org.junit.Test;
+import org.neo4j.ogm.domain.education.Student;
+import org.neo4j.ogm.domain.forum.Member;
+import org.neo4j.ogm.domain.forum.activity.Activity;
+import org.neo4j.ogm.metadata.ClassUtils;
+import org.neo4j.ogm.metadata.MetaData;
+import org.neo4j.ogm.metadata.info.ClassInfo;
+import org.neo4j.ogm.metadata.info.FieldInfo;
+import org.neo4j.ogm.metadata.info.MethodInfo;
 
 /**
  * @author Vince Bickers
@@ -602,6 +603,35 @@ public class MetaDataTest {
         assertTrue(metaData.classInfo("Membership").interfacesInfo().list().iterator().next().toString().contains("IMembership"));
     }
 
+    /**
+     * @see DATAGRAPH-600
+     */
+    @Test
+    public void testArraySetterInfo() {
+        ClassInfo classInfo = metaData.classInfo("Member");
+        MethodInfo methodInfo = classInfo.propertySetter("nicknames");
+        assertTrue(ClassUtils.isIterableSetter(methodInfo));
+    }
+
+    /**
+     * @see DATAGRAPH-600
+     */
+    @Test
+    public void testCollectionSetterInfo() {
+        ClassInfo classInfo = metaData.classInfo("Member");
+        MethodInfo methodInfo = classInfo.relationshipSetter("followers");
+        assertTrue(ClassUtils.isIterableSetter(methodInfo));
+    }
+
+    /**
+     * @see DATAGRAPH-600
+     */
+    @Test
+    public void testScalarSetterInfo() {
+        ClassInfo classInfo = metaData.classInfo("Comment");
+        MethodInfo methodInfo = classInfo.propertySetter("remark");
+        assertFalse(ClassUtils.isIterableSetter(methodInfo));
+    }
 
 
 

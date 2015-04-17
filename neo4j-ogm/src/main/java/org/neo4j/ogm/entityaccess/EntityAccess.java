@@ -52,7 +52,7 @@ public abstract class EntityAccess implements PropertyWriter, RelationalWriter {
 
             Object array = Array.newInstance(type, objects.size());
             for (int i = 0; i < objects.size(); i++) {
-                Array.set(array, i, Utils.convertTypes(type, objects.get(i)));
+                Array.set(array, i, Utils.coerceTypes(type, objects.get(i)));
             }
             return array;
         }
