@@ -59,7 +59,10 @@ public class FieldWriter extends EntityAccess {
             value = fieldInfo.converter().toEntityAttribute(value);
         }
         String descriptor = fieldInfo.getTypeParameterDescriptor()==null ? fieldInfo.getDescriptor() : fieldInfo.getTypeParameterDescriptor();
-        FieldWriter.write(field, instance, Utils.convertTypes(ClassUtils.getType(descriptor), value));
+        if (!descriptor.startsWith("L") && !descriptor.startsWith("[L")) { //ignore arrays and collections for converting types
+            value = Utils.convertTypes(ClassUtils.getType(descriptor), value);
+        }
+        FieldWriter.write(field, instance, value);
     }
 
     @Override
