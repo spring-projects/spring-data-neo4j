@@ -15,6 +15,7 @@ package org.neo4j.ogm.entityaccess;
 import org.neo4j.ogm.metadata.ClassUtils;
 import org.neo4j.ogm.metadata.info.ClassInfo;
 import org.neo4j.ogm.metadata.info.MethodInfo;
+import org.neo4j.ogm.session.Utils;
 
 import java.lang.reflect.Method;
 
@@ -57,6 +58,11 @@ public class MethodWriter extends EntityAccess {
     public void write(Object instance, Object value) {
         if (setterMethodInfo.hasConverter()) {
             value = setterMethodInfo.converter().toEntityAttribute(value);
+        }
+
+        if (setterMethodInfo.isScalar()) {
+            String descriptor = setterMethodInfo.getTypeParameterDescriptor() == null ? setterMethodInfo.getDescriptor() : setterMethodInfo.getTypeParameterDescriptor();
+            value = Utils.coerceTypes(ClassUtils.getType(descriptor), value);
         }
         MethodWriter.write(method, instance, value);
     }

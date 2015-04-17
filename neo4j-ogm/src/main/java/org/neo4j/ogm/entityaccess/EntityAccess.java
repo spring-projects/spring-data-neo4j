@@ -15,6 +15,8 @@ package org.neo4j.ogm.entityaccess;
 import java.lang.reflect.Array;
 import java.util.*;
 
+import org.neo4j.ogm.session.Utils;
+
 /**
  * @author Vince Bickers
  */
@@ -50,7 +52,7 @@ public abstract class EntityAccess implements PropertyWriter, RelationalWriter {
 
             Object array = Array.newInstance(type, objects.size());
             for (int i = 0; i < objects.size(); i++) {
-                Array.set(array, i, objects.get(i));
+                Array.set(array, i, Utils.coerceTypes(type, objects.get(i)));
             }
             return array;
         }
