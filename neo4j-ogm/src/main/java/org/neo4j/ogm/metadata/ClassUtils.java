@@ -14,13 +14,9 @@ package org.neo4j.ogm.metadata;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Field;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.*;
-
-import org.neo4j.ogm.metadata.info.FieldInfo;
-import org.neo4j.ogm.metadata.info.MethodInfo;
 
 /**
  * @author Vince Bickers
@@ -111,22 +107,4 @@ public abstract class ClassUtils {
         return pathFiles;
     }
 
-    /**
-     * Checks whether a field is scalar or not
-     * @param field the field
-     * @param fieldInfo fieldInfo
-     * @return true if scalar, false otherwise
-     */
-    public static boolean isScalarField(Field field, FieldInfo fieldInfo) {
-        return(!Iterable.class.isAssignableFrom(field.getType()) && !fieldInfo.getDescriptor().contains("["));
-    }
-
-    /**
-     * Checks whether a setter method has an array or collection parameter
-     * @param methodInfo setter methodInfo
-     * @return true if iterable, false otherwise.
-     */
-    public static boolean isIterableSetter(MethodInfo methodInfo) {
-        return methodInfo.getDescriptor().startsWith("(Ljava/util") || methodInfo.getDescriptor().startsWith("([");
-    }
 }

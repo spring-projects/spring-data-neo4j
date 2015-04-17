@@ -12,12 +12,12 @@
 
 package org.neo4j.ogm.entityaccess;
 
-import java.lang.reflect.Field;
-
 import org.neo4j.ogm.metadata.ClassUtils;
 import org.neo4j.ogm.metadata.info.ClassInfo;
 import org.neo4j.ogm.metadata.info.FieldInfo;
 import org.neo4j.ogm.session.Utils;
+
+import java.lang.reflect.Field;
 
 /**
  * @author Vince Bickers
@@ -55,11 +55,13 @@ public class FieldWriter extends EntityAccess {
 
     @Override
     public void write(Object instance, Object value) {
+
         if (fieldInfo.hasConverter()) {
             value = fieldInfo.converter().toEntityAttribute(value);
         }
-        String descriptor = fieldInfo.getTypeParameterDescriptor()==null ? fieldInfo.getDescriptor() : fieldInfo.getTypeParameterDescriptor();
-        if (ClassUtils.isScalarField(field,fieldInfo)) {
+
+        if (fieldInfo.isScalar()) {
+            String descriptor = fieldInfo.getTypeParameterDescriptor()==null ? fieldInfo.getDescriptor() : fieldInfo.getTypeParameterDescriptor();
             value = Utils.coerceTypes(ClassUtils.getType(descriptor), value);
         }
         FieldWriter.write(field, instance, value);

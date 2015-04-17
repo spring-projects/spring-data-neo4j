@@ -12,23 +12,22 @@
 
 package org.neo4j.ogm.unit.metadata;
 
-import static org.junit.Assert.*;
+import org.junit.Before;
+import org.junit.Test;
+import org.neo4j.ogm.domain.education.Student;
+import org.neo4j.ogm.domain.forum.Member;
+import org.neo4j.ogm.domain.forum.activity.Activity;
+import org.neo4j.ogm.metadata.MetaData;
+import org.neo4j.ogm.metadata.info.ClassInfo;
+import org.neo4j.ogm.metadata.info.FieldInfo;
+import org.neo4j.ogm.metadata.info.MethodInfo;
 
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.neo4j.ogm.domain.education.Student;
-import org.neo4j.ogm.domain.forum.Member;
-import org.neo4j.ogm.domain.forum.activity.Activity;
-import org.neo4j.ogm.metadata.ClassUtils;
-import org.neo4j.ogm.metadata.MetaData;
-import org.neo4j.ogm.metadata.info.ClassInfo;
-import org.neo4j.ogm.metadata.info.FieldInfo;
-import org.neo4j.ogm.metadata.info.MethodInfo;
+import static org.junit.Assert.*;
 
 /**
  * @author Vince Bickers
@@ -400,36 +399,6 @@ public class MetaDataTest {
     }
 
     @Test
-    public void testCollectionFieldInfo() {
-
-        ClassInfo classInfo = metaData.classInfo("Member");
-        FieldInfo fieldInfo = classInfo.relationshipField("followers");
-
-        assertFalse(classInfo.isScalar( fieldInfo));
-
-    }
-
-    @Test
-    public void testArrayFieldInfo() {
-
-        ClassInfo classInfo = metaData.classInfo("Member");
-        FieldInfo fieldInfo = classInfo.fieldsInfo().get("nicknames");
-
-        assertFalse(classInfo.isScalar(fieldInfo));
-
-    }
-
-    @Test
-    public void testScalarFieldInfo() {
-
-        ClassInfo classInfo = metaData.classInfo("Member");
-        FieldInfo fieldInfo = classInfo.fieldsInfo().get("userName");
-
-        assertTrue(classInfo.isScalar(fieldInfo));
-
-    }
-
-    @Test
     public void testFindDateSetter() {
         ClassInfo classInfo = metaData.classInfo("Member");
         List<MethodInfo> methodInfos = classInfo.findSetters(Date.class);
@@ -603,6 +572,31 @@ public class MetaDataTest {
         assertTrue(metaData.classInfo("Membership").interfacesInfo().list().iterator().next().toString().contains("IMembership"));
     }
 
+    @Test
+    public void testCollectionFieldInfo() {
+
+        ClassInfo classInfo = metaData.classInfo("Member");
+        FieldInfo fieldInfo = classInfo.relationshipField("followers");
+        assertFalse(fieldInfo.isScalar());
+    }
+
+    @Test
+    public void testArrayFieldInfo() {
+
+        ClassInfo classInfo = metaData.classInfo("Member");
+        FieldInfo fieldInfo = classInfo.fieldsInfo().get("nicknames");
+        assertFalse(fieldInfo.isScalar());
+    }
+
+    @Test
+    public void testScalarFieldInfo() {
+
+        ClassInfo classInfo = metaData.classInfo("Member");
+        FieldInfo fieldInfo = classInfo.fieldsInfo().get("userName");
+        assertTrue(fieldInfo.isScalar());
+    }
+
+
     /**
      * @see DATAGRAPH-600
      */
@@ -610,7 +604,7 @@ public class MetaDataTest {
     public void testArraySetterInfo() {
         ClassInfo classInfo = metaData.classInfo("Member");
         MethodInfo methodInfo = classInfo.propertySetter("nicknames");
-        assertTrue(ClassUtils.isIterableSetter(methodInfo));
+        assertFalse(methodInfo.isScalar());
     }
 
     /**
@@ -620,7 +614,7 @@ public class MetaDataTest {
     public void testCollectionSetterInfo() {
         ClassInfo classInfo = metaData.classInfo("Member");
         MethodInfo methodInfo = classInfo.relationshipSetter("followers");
-        assertTrue(ClassUtils.isIterableSetter(methodInfo));
+        assertFalse(methodInfo.isScalar());
     }
 
     /**
@@ -630,9 +624,7 @@ public class MetaDataTest {
     public void testScalarSetterInfo() {
         ClassInfo classInfo = metaData.classInfo("Comment");
         MethodInfo methodInfo = classInfo.propertySetter("remark");
-        assertFalse(ClassUtils.isIterableSetter(methodInfo));
+        assertTrue(methodInfo.isScalar());
     }
-
-
 
 }

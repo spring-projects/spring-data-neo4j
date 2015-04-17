@@ -12,6 +12,9 @@
 
 package org.neo4j.ogm.metadata.info;
 
+import org.neo4j.ogm.annotation.*;
+import org.neo4j.ogm.metadata.MappingException;
+
 import java.io.BufferedInputStream;
 import java.io.DataInputStream;
 import java.io.IOException;
@@ -19,10 +22,6 @@ import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.*;
-
-import org.neo4j.ogm.annotation.*;
-import org.neo4j.ogm.metadata.ClassUtils;
-import org.neo4j.ogm.metadata.MappingException;
 
 /**
  * Maintains object to graph mapping details at the class (type) level
@@ -556,16 +555,6 @@ public class ClassInfo {
             }
         }
         return null;
-    }
-
-    /**
-     *
-     * @param fieldInfo
-     * @return
-     */
-    public boolean isScalar(FieldInfo fieldInfo) {
-        Field field = getField(fieldInfo);
-        return ClassUtils.isScalarField(field,fieldInfo);
     }
 
     /**
