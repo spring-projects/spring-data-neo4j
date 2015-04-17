@@ -12,9 +12,11 @@
 
 package org.springframework.data.neo4j.transaction;
 
+import org.neo4j.ogm.session.Session;
 import org.neo4j.ogm.session.transaction.Transaction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.TransactionException;
 import org.springframework.transaction.TransactionStatus;
 
@@ -24,15 +26,36 @@ import org.springframework.transaction.TransactionStatus;
 public class Neo4jTransactionStatus implements TransactionStatus {
 
     private final Logger logger = LoggerFactory.getLogger(Neo4jTransactionStatus.class);
-    private final Transaction transaction;
 
-    public Neo4jTransactionStatus(Transaction transaction) {
-        this.transaction = transaction;
+    private final Transaction transaction;
+    private boolean newTransaction = false;
+
+    public Neo4jTransactionStatus(Session session, TransactionDefinition transactionDefinition) {
+
+        Transaction tx;
+        int propagation = transactionDefinition.getPropagationBehavior();
+        if (propagation == TransactionDefinition.PROPAGATION_REQUIRES_NEW)  {
+            tx = session.beginTransaction();
+            newTransaction = true;
+        } else if (propagation == TransactionDefinition.PROPAGATION_REQUIRED) {
+            tx = session.getTransaction();
+            if (tx == null
+                    || tx.status().equals(Transaction.Status.CLOSED)
+                    || tx.status().equals(Transaction.Status.COMMITTED)
+                    || tx.status().equals(Transaction.Status.ROLLEDBACK)) {
+                tx = session.beginTransaction();
+                newTransaction = true;
+            }
+        } else {
+            throw new RuntimeException("Transaction propagation type not supported: " + transactionDefinition.getPropagationBehavior());
+        }
+
+        this.transaction = tx;
     }
 
     @Override
     public boolean isNewTransaction() {
-        return transaction.status().equals(Transaction.Status.OPEN);
+        return newTransaction;
     }
 
     @Override

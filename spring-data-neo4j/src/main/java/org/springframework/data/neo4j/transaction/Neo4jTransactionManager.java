@@ -35,17 +35,21 @@ public class Neo4jTransactionManager implements PlatformTransactionManager {
 
     @Override
     public TransactionStatus getTransaction(TransactionDefinition transactionDefinition) throws TransactionException {
-        logger.info("Requesting new transaction");
-        return new Neo4jTransactionStatus(session.beginTransaction());
+        logger.info("Requesting to create or join a transaction");
+        return new Neo4jTransactionStatus(session, transactionDefinition);
     }
 
     @Override
     public void commit(TransactionStatus transactionStatus) throws TransactionException {
         Transaction tx = ((Neo4jTransactionStatus) transactionStatus).getTransaction();
         logger.info("Commit requested: " + tx.url() + ", status: " + tx.status().toString());
-        if (tx.status() == (Transaction.Status.PENDING) || tx.status() == (Transaction.Status.OPEN)) {
-            logger.info("Commit invoked");
-            tx.commit();
+        if (transactionStatus.isNewTransaction()) {
+            if (tx.status() == (Transaction.Status.PENDING) || tx.status() == (Transaction.Status.OPEN)) {
+                logger.info("Commit invoked");
+                tx.commit();
+            }
+        } else {
+            logger.info("Commit deferred");
         }
     }
 
