@@ -562,16 +562,6 @@ public class ClassInfo {
      * @param fieldInfo
      * @return
      */
-    public boolean isScalar(FieldInfo fieldInfo) {
-        Field field = getField(fieldInfo);
-        return(!Iterable.class.isAssignableFrom(field.getType()) && !fieldInfo.getDescriptor().contains("["));
-    }
-
-    /**
-     *
-     * @param fieldInfo
-     * @return
-     */
     public Field getField(FieldInfo fieldInfo) {
         try {
             return Class.forName(name()).getDeclaredField(fieldInfo.getName());

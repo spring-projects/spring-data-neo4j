@@ -70,7 +70,7 @@ public class SocialRelationshipsIntegrationTest extends WrappingServerIntegratio
 		individualA.setFriends(Collections.singletonList(individualB));
 		session.save(individualA);
 
-		assertSameGraph(getDatabase(), "CREATE (a:Individual {name:'A', age: 0}) CREATE (b:Individual {name:'B', age:0}) CREATE (a)-[:FRIENDS]->(b)");
+		assertSameGraph(getDatabase(), "CREATE (a:Individual {name:'A', age: 0, code:0, bankBalance:0.0}) CREATE (b:Individual {name:'B', age:0, code:0, bankBalance:0.0}) CREATE (a)-[:FRIENDS]->(b)");
 	}
 
 	/**

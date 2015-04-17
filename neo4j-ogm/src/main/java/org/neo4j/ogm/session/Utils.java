@@ -12,12 +12,12 @@
 
 package org.neo4j.ogm.session;
 
-import org.neo4j.ogm.model.Property;
-
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+
+import org.neo4j.ogm.model.Property;
 
 /**
  * @author Vince Bickers
@@ -64,5 +64,44 @@ public class Utils {
             count++;
         }
         return count;
+    }
+
+    /**
+     * Coerce numeric types when mapping properties from nodes to entities.
+     * This deals with numeric types - Longs to ints, Doubles to floats, Integers to bytes.
+     *
+     * @param clazz the entity field type
+     * @param value the property value
+     * @return converted value
+     */
+    public static Object coerceTypes(Class clazz, Object value) {
+        if("int".equals(clazz.getName()) || Integer.class.equals(clazz)) {
+            if(value.getClass().equals(Long.class)) {
+                Long longValue = (Long) value;
+                if (longValue < Integer.MIN_VALUE || longValue > Integer.MAX_VALUE) {
+                    throw new IllegalArgumentException(longValue + " cannot be cast to int without an overflow.");
+                }
+                return longValue.intValue();
+            }
+        }
+        if("float".equals(clazz.getName()) || (Float.class.equals(clazz))) {
+            if(value.getClass().equals(Double.class)) {
+                Double dblValue = (Double) value;
+                if (dblValue < -(Float.MAX_VALUE) || dblValue > Float.MAX_VALUE) {
+                    throw new IllegalArgumentException(dblValue + " cannot be cast to float without an overflow.");
+                }
+                return dblValue.floatValue();
+            }
+        }
+        if("byte".equals(clazz.getName()) || Byte.class.equals(clazz)) {
+            if(value.getClass().equals(Integer.class)) {
+                Integer intValue = (Integer) value;
+                if (intValue < Byte.MIN_VALUE || intValue > Byte.MAX_VALUE) {
+                    throw new IllegalArgumentException(intValue + " cannot be cast to byte without an overflow.");
+                }
+                return intValue.byteValue();
+            }
+        }
+        return value;
     }
 }

@@ -399,36 +399,6 @@ public class MetaDataTest {
     }
 
     @Test
-    public void testCollectionFieldInfo() {
-
-        ClassInfo classInfo = metaData.classInfo("Member");
-        FieldInfo fieldInfo = classInfo.relationshipField("followers");
-
-        assertFalse(classInfo.isScalar( fieldInfo));
-
-    }
-
-    @Test
-    public void testArrayFieldInfo() {
-
-        ClassInfo classInfo = metaData.classInfo("Member");
-        FieldInfo fieldInfo = classInfo.fieldsInfo().get("nicknames");
-
-        assertFalse(classInfo.isScalar(fieldInfo));
-
-    }
-
-    @Test
-    public void testScalarFieldInfo() {
-
-        ClassInfo classInfo = metaData.classInfo("Member");
-        FieldInfo fieldInfo = classInfo.fieldsInfo().get("userName");
-
-        assertTrue(classInfo.isScalar(fieldInfo));
-
-    }
-
-    @Test
     public void testFindDateSetter() {
         ClassInfo classInfo = metaData.classInfo("Member");
         List<MethodInfo> methodInfos = classInfo.findSetters(Date.class);
@@ -602,7 +572,59 @@ public class MetaDataTest {
         assertTrue(metaData.classInfo("Membership").interfacesInfo().list().iterator().next().toString().contains("IMembership"));
     }
 
+    @Test
+    public void testCollectionFieldInfo() {
+
+        ClassInfo classInfo = metaData.classInfo("Member");
+        FieldInfo fieldInfo = classInfo.relationshipField("followers");
+        assertFalse(fieldInfo.isScalar());
+    }
+
+    @Test
+    public void testArrayFieldInfo() {
+
+        ClassInfo classInfo = metaData.classInfo("Member");
+        FieldInfo fieldInfo = classInfo.fieldsInfo().get("nicknames");
+        assertFalse(fieldInfo.isScalar());
+    }
+
+    @Test
+    public void testScalarFieldInfo() {
+
+        ClassInfo classInfo = metaData.classInfo("Member");
+        FieldInfo fieldInfo = classInfo.fieldsInfo().get("userName");
+        assertTrue(fieldInfo.isScalar());
+    }
 
 
+    /**
+     * @see DATAGRAPH-600
+     */
+    @Test
+    public void testArraySetterInfo() {
+        ClassInfo classInfo = metaData.classInfo("Member");
+        MethodInfo methodInfo = classInfo.propertySetter("nicknames");
+        assertFalse(methodInfo.isScalar());
+    }
+
+    /**
+     * @see DATAGRAPH-600
+     */
+    @Test
+    public void testCollectionSetterInfo() {
+        ClassInfo classInfo = metaData.classInfo("Member");
+        MethodInfo methodInfo = classInfo.relationshipSetter("followers");
+        assertFalse(methodInfo.isScalar());
+    }
+
+    /**
+     * @see DATAGRAPH-600
+     */
+    @Test
+    public void testScalarSetterInfo() {
+        ClassInfo classInfo = metaData.classInfo("Comment");
+        MethodInfo methodInfo = classInfo.propertySetter("remark");
+        assertTrue(methodInfo.isScalar());
+    }
 
 }

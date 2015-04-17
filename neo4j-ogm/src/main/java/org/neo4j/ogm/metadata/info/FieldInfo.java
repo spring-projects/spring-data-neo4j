@@ -12,12 +12,12 @@
 
 package org.neo4j.ogm.metadata.info;
 
-import java.util.Collection;
-
 import org.neo4j.ogm.annotation.Property;
 import org.neo4j.ogm.annotation.Relationship;
 import org.neo4j.ogm.metadata.RelationshipUtils;
 import org.neo4j.ogm.typeconversion.AttributeConverter;
+
+import java.util.Collection;
 
 /**
  * @author Vince Bickers
@@ -190,5 +190,13 @@ public class FieldInfo {
             descriptorClass = descriptorClass.substring(1,descriptorClass.length()-1); //remove the leading L and trailing ;
         }
        return descriptorClass;
+    }
+
+    public boolean isScalar() {
+
+        if (typeParameterDescriptor != null) return false;
+        if (descriptor.startsWith("[")) return false;
+
+        return true;
     }
 }
