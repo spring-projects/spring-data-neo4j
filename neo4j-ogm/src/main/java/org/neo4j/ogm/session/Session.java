@@ -59,6 +59,21 @@ public interface Session {
     <T> void deleteAll(Class<T> type);
 
 
+    /**
+     * Get the existing transaction if available
+     *
+     * @return an active Transaction, or null if none exists
+     */
+    Transaction getTransaction();
+
+    /**
+     * Begin a new transaction. If an existing transaction already exists, users must
+     * decide whether to commit or rollback. Only one transaction can be bound to a thread
+     * at any time, so active transactions that have not been closed but are no longer bound
+     * to the thread must be handled by client code.
+     *
+     * @return a new active Transaction
+     */
     Transaction beginTransaction();
 
     /**
