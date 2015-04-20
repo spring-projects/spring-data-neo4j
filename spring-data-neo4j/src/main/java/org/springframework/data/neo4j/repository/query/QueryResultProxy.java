@@ -23,7 +23,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Method {@link InvocationHandler} used for proxy objects that implement arbitrary interfaces annoated with
+ * Method {@link InvocationHandler} used for proxy objects that implement arbitrary interfaces annotated with
  * <code>&#064;QueryResult</code>.
  *
  * @author Adam George

@@ -27,14 +27,12 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertNull;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertNotNull;
 
 /**
- *  Temporary playground for the full cycle.
- *
- *  @author Michal Bachman
+ * @author Michal Bachman
  */
 public class EndToEndTest extends InMemoryServerTest {
 
