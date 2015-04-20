@@ -23,13 +23,16 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.ServerSocket;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
 
 /**
+ * Base class to facilitate testing a {@link Session} against an in-memory Neo4j database.
+ *
  * @author Michal Bachman
  */
 @Category(IntegrationTest.class)
-
-public class InMemoryServerTest {
+public abstract class InMemoryServerTest {
 
     private static NeoServer neoServer;
     protected static int neoPort;
@@ -75,4 +78,9 @@ public class InMemoryServerTest {
         }
         return sb.toString();
     }
+
+    protected static String baseNeoUrl() {
+        return "http://localhost:" + neoPort;
+    }
+
 }

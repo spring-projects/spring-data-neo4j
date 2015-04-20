@@ -14,6 +14,7 @@ package org.neo4j.ogm.integration.cineasts.annotated;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.neo4j.ogm.domain.cineasts.annotated.Actor;
 import org.neo4j.ogm.domain.cineasts.annotated.Movie;
 import org.neo4j.ogm.domain.cineasts.annotated.Rating;
 import org.neo4j.ogm.domain.cineasts.annotated.SecurityRole;
@@ -26,6 +27,7 @@ import org.neo4j.ogm.session.SessionFactory;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -36,13 +38,14 @@ import static org.junit.Assert.assertTrue;
  * Simple integration test based on cineasts that exercises relationship entities.
  *
  * @author Michal Bachman
+ * @author Adam George
  */
 public class CineastsIntegrationTest extends InMemoryServerTest {
 
     @BeforeClass
     public static void init() throws IOException {
         setUp();
-        session = new SessionFactory("org.neo4j.ogm.domain.cineasts.annotated").openSession("http://localhost:" + neoPort);
+        session = new SessionFactory("org.neo4j.ogm.domain.cineasts.annotated").openSession(baseNeoUrl());
         importCineasts();
     }
 
@@ -58,15 +61,11 @@ public class CineastsIntegrationTest extends InMemoryServerTest {
 
         for (Movie movie : movies) {
 
-            System.out.println("Movie: " + movie.getTitle());
             if (movie.getRatings() != null) {
                 for (Rating rating : movie.getRatings()) {
                     assertNotNull("The film on the rating shouldn't be null", rating.getMovie());
                     assertSame("The film on the rating was not mapped correctly", movie, rating.getMovie());
                     assertNotNull("The film critic wasn't set", rating.getUser());
-                    System.out.println("\trating: " + rating.getMovie());
-                    System.out.println("\t\tcomment: " + rating.getComment());
-                    System.out.println("\t\tcritic:  " + rating.getUser().getName());
                 }
             }
         }
@@ -153,5 +152,44 @@ public class CineastsIntegrationTest extends InMemoryServerTest {
 
     }
 
+    @Test
+    public void shouldQueryForSpecificActorUsingBespokeParameterisedCypherQuery() {
+        session.save(new Actor("Alec Baldwin"));
+        session.save(new Actor("Helen Mirren"));
+        session.save(new Actor("Matt Damon"));
+
+        Actor loadedActor = session.queryForObject(Actor.class, "MATCH (a:Actor) WHERE a.name={param} RETURN a",
+                Collections.singletonMap("param", "Alec Baldwin"));
+        assertNotNull("The entity wasn't loaded", loadedActor);
+        assertEquals("Alec Baldwin", loadedActor.getName());
+    }
+
+    @Test
+    public void shouldQueryForCollectionOfActorsUsingBespokeCypherQuery() {
+        session.save(new Actor("Jeff"));
+        session.save(new Actor("John"));
+        session.save(new Actor("Colin"));
+
+        Iterable<Actor> actors = session.query(Actor.class, "MATCH (a:Actor) WHERE a.name=~'J.*' RETURN a",
+                Collections.<String, Object>emptyMap());
+        assertNotNull("The entities weren't loaded", actors);
+        assertTrue("The entity wasn't loaded", actors.iterator().hasNext());
+        for (Actor actor : actors) {
+            assertTrue("Shouldn't've loaded " + actor.getName(), actor.getName().equals("John") || actor.getName().equals("Jeff"));
+        }
+    }
+
+    @Test
+    public void shouldQueryForActorByIdUsingBespokeParameterisedCypherQuery() {
+        session.save(new Actor("Helen Mirren"));
+        Actor alec = new Actor("Alec Baldwin");
+        session.save(alec);
+        session.save(new Actor("Matt Damon"));
+
+        Actor loadedActor = session.queryForObject(Actor.class, "MATCH (a:Actor) WHERE ID(a)={param} RETURN a",
+                Collections.<String, Object>singletonMap("param", alec.getId()));
+        assertNotNull("The entity wasn't loaded", loadedActor);
+        assertEquals("Alec Baldwin", loadedActor.getName());
+    }
 
 }
