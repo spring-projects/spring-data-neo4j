@@ -203,4 +203,13 @@ public class Neo4jTemplateTest extends WrappingServerIntegrationTest {
     public void shouldConvertOGMExceptionsToPersistenceExceptions() {
         this.template.loadAll(Void.class);
     }
+
+    /**
+     * @see DATAGRAPH-604
+     */
+    @Test(expected = PersistenceException.class)
+    public void shouldHandleErrorsOnExecute() {
+        this.template.execute("CREAT (node:NODE)");
+    }
+
 }

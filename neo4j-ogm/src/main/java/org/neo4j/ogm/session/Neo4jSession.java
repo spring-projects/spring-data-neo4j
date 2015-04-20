@@ -296,7 +296,10 @@ public class Neo4jSession implements Session {
     public void execute(String statement) {
         ParameterisedStatement parameterisedStatement = new ParameterisedStatement(statement, Utils.map());
         String url = getCurrentOrCreateAutocommitTransaction().url();
-        getRequestHandler().execute(parameterisedStatement, url).close();
+        try (Neo4jResponse<String> response = getRequestHandler().execute(parameterisedStatement, url)) {
+            // ensure that any errors in the response body get detected and thrown
+            response.initialiseScan("row");
+        }
     }
 
     @Override
