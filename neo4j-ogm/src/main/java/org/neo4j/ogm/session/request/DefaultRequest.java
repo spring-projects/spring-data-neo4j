@@ -60,7 +60,7 @@ public class DefaultRequest implements Neo4jRequest<String> {
             request.setHeader(new BasicHeader("Accept", "application/json;charset=UTF-8"));
 
             // http://tools.ietf.org/html/rfc7231#section-5.5.3
-            request.setHeader(new BasicHeader("User-Agent", "SDN/4.0"));
+            request.setHeader(new BasicHeader("User-Agent", "neo4j-ogm.java/1.0"));
 
             HttpRequestAuthorization.authorize(request, credentials);
 

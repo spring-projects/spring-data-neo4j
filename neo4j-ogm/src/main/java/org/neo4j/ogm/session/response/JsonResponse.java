@@ -102,7 +102,7 @@ public class JsonResponse implements Neo4jResponse<String> {
             parseErrors(header);
         } else {
             String colStart = header.substring(cp);
-            this.columns = colStart.substring(colStart.indexOf("[") + 1, colStart.indexOf("]")).replaceAll("\"", "").split(",");
+            this.columns = colStart.substring(colStart.indexOf("[") + 1, colStart.indexOf("]")).replace("\"", "").split(",");
         }
     }
 
