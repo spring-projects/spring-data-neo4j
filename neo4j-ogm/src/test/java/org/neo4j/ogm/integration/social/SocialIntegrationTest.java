@@ -17,6 +17,7 @@ import static org.junit.Assert.*;
 import java.io.IOException;
 import java.util.Collections;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.neo4j.ogm.domain.social.Individual;
@@ -30,12 +31,17 @@ import org.neo4j.ogm.session.SessionFactory;
 /**
  * @author Luanne Misquitta
  */
-public class SocialIntegrationTest  extends InMemoryServerTest {
+public class SocialIntegrationTest extends InMemoryServerTest {
 
 	@Before
 	public void init() throws IOException {
 		setUp();
-		session = new SessionFactory("org.neo4j.ogm.domain.social").openSession("http://localhost:" + neoPort);
+		session = new SessionFactory("org.neo4j.ogm.domain.social").openSession(neo4jRule.baseNeoUrl());
+	}
+
+	@After
+	public void clearDatabase() {
+	    neo4jRule.clearDatabase();
 	}
 
 	/**

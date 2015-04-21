@@ -12,12 +12,17 @@
 
 package org.neo4j.ogm.integration.cineasts.partial;
 
+import org.junit.After;
 import org.junit.Before;
+import org.junit.ClassRule;
+import org.junit.Rule;
 import org.junit.Test;
 import org.neo4j.ogm.domain.cineasts.partial.Actor;
 import org.neo4j.ogm.domain.cineasts.partial.Movie;
 import org.neo4j.ogm.integration.InMemoryServerTest;
+import org.neo4j.ogm.session.Session;
 import org.neo4j.ogm.session.SessionFactory;
+import org.neo4j.ogm.testutil.Neo4jIntegrationTestRule;
 
 import java.io.IOException;
 
@@ -33,15 +38,17 @@ import static junit.framework.Assert.assertEquals;
  *
  * @author Vince Bickers
  */
-public class RelationshipEntityPartialMappingTest extends InMemoryServerTest {
+public class RelationshipEntityPartialMappingTest {
 
-    private static SessionFactory sessionFactory;
+    @Rule
+    public final Neo4jIntegrationTestRule neo4jRule = new Neo4jIntegrationTestRule();
+
+    private Session session;
 
     @Before
-    public void init() throws IOException {
-        setUp();
-        sessionFactory = new SessionFactory("org.neo4j.ogm.domain.cineasts.partial");
-        session = sessionFactory.openSession("http://localhost:" + neoPort);
+    public void init() {
+        SessionFactory sessionFactory = new SessionFactory("org.neo4j.ogm.domain.cineasts.partial");
+        session = sessionFactory.openSession(neo4jRule.baseNeoUrl());
     }
 
     @Test

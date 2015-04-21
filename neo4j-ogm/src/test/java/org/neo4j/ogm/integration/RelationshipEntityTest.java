@@ -21,26 +21,31 @@ import java.util.*;
 
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.neo4j.helpers.collection.IteratorUtil;
 import org.neo4j.ogm.domain.cineasts.annotated.*;
 import org.neo4j.ogm.domain.friendships.Friendship;
 import org.neo4j.ogm.domain.friendships.Person;
 import org.neo4j.ogm.model.Property;
+import org.neo4j.ogm.session.Session;
 import org.neo4j.ogm.session.SessionFactory;
+import org.neo4j.ogm.testutil.Neo4jIntegrationTestRule;
 
 /**
  * @author Vince Bickers
  */
-public class RelationshipEntityTest extends InMemoryServerTest {
+public class RelationshipEntityTest {
 
-    private static SessionFactory sessionFactory;
+    @Rule
+    public Neo4jIntegrationTestRule neo4jRule = new Neo4jIntegrationTestRule();
+
+    private Session session;
 
     @Before
     public void init() throws IOException {
-        setUp();
-        sessionFactory = new SessionFactory("org.neo4j.ogm.domain.friendships", "org.neo4j.ogm.domain.cineasts.annotated");
-        session = sessionFactory.openSession("http://localhost:" + neoPort);
+        SessionFactory factory = new SessionFactory("org.neo4j.ogm.domain.friendships", "org.neo4j.ogm.domain.cineasts.annotated");
+        session = factory.openSession(neo4jRule.baseNeoUrl());
     }
 
     @Test
@@ -207,7 +212,7 @@ public class RelationshipEntityTest extends InMemoryServerTest {
 
     @Test
     public void shouldCreateREWithExistingStartAndEndNodes() {
-        session.execute(load("org/neo4j/ogm/cql/cineasts.cql"));
+        neo4jRule.loadClasspathCypherScriptFile("org/neo4j/ogm/cql/cineasts.cql");
 
         Collection<Movie> films = session.loadByProperty(Movie.class, new Property<String, Object>("title", "Top Gear"));
         Movie movie = films.iterator().next();
@@ -236,7 +241,7 @@ public class RelationshipEntityTest extends InMemoryServerTest {
 
     @Test
     public void shouldNotLoseRelationshipEntitiesWhenALoadedEntityIsPersisted() {
-        session.execute(load("org/neo4j/ogm/cql/cineasts.cql"));
+        neo4jRule.loadClasspathCypherScriptFile("org/neo4j/ogm/cql/cineasts.cql");
 
         Movie topGear = session.loadByProperty(Movie.class, new Property<String, Object>("title", "Top Gear")).iterator().next();
         assertEquals(2,topGear.getRatings().size());  //2 ratings

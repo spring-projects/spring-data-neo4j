@@ -39,7 +39,7 @@ public class ABTest extends RelationshipTest {
     public void init() throws IOException {
         setUp();
         sessionFactory = new SessionFactory("org.neo4j.ogm.unit.mapper.direct.ab");
-        session = sessionFactory.openSession("http://localhost:" + neoPort);
+        session = sessionFactory.openSession(neo4jRule.baseNeoUrl());
         setUpEntityModel();
     }
 

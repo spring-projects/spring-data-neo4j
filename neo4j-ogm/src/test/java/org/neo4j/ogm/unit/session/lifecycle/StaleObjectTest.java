@@ -12,12 +12,14 @@
 
 package org.neo4j.ogm.unit.session.lifecycle;
 
-import org.junit.After;
 import org.junit.Before;
+import org.junit.ClassRule;
 import org.junit.Test;
 import org.neo4j.ogm.domain.filesystem.Document;
 import org.neo4j.ogm.domain.filesystem.Folder;
+import org.neo4j.ogm.session.Session;
 import org.neo4j.ogm.session.SessionFactory;
+import org.neo4j.ogm.testutil.Neo4jIntegrationTestRule;
 
 import java.io.IOException;
 
@@ -46,20 +48,21 @@ import static org.junit.Assert.assertEquals;
  *
  * @author Vince Bickers
  */
-public class StaleObjectTest extends LifecycleTest {
+public class StaleObjectTest {
 
-    private static SessionFactory sessionFactory;
+    @ClassRule
+    public static Neo4jIntegrationTestRule neo4jRule = new Neo4jIntegrationTestRule();
 
     private Folder f;
     private Document a;
     private Document b;
 
+    private Session session;
+
     @Before
     public void init() throws IOException {
-        setUp();
-
-        sessionFactory = new SessionFactory("org.neo4j.ogm.domain.filesystem");
-        session = sessionFactory.openSession("http://localhost:" + neoPort);
+        SessionFactory sessionFactory = new SessionFactory("org.neo4j.ogm.domain.filesystem");
+        session = sessionFactory.openSession(neo4jRule.baseNeoUrl());
 
         a = new Document();
         a.setName("a");
@@ -80,11 +83,6 @@ public class StaleObjectTest extends LifecycleTest {
         //session.clear();
 
 
-    }
-
-    @After
-    public void tearDownTest() {
-        tearDown();
     }
 
     @Test
@@ -114,7 +112,6 @@ public class StaleObjectTest extends LifecycleTest {
 
         assertEquals("Document{folder=null, name='a'}", aa.toString());
         assertEquals("Document{folder=null, name='b'}", bb.toString());
-
-
     }
+
 }

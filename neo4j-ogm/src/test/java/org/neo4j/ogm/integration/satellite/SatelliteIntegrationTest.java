@@ -37,10 +37,12 @@ public class SatelliteIntegrationTest extends InMemoryServerTest {
 
     @BeforeClass
     public static void init() throws IOException {
-        setUp();
-        session = new SessionFactory("org.neo4j.ogm.domain.satellites").openSession("http://localhost:" + neoPort);
+        session = new SessionFactory("org.neo4j.ogm.domain.satellites").openSession(neo4jRule.baseNeoUrl());
         importSatellites();
+    }
 
+    private static void importSatellites() {
+        neo4jRule.loadClasspathCypherScriptFile("org/neo4j/ogm/cql/satellites.cql");
     }
 
     @Test
@@ -211,8 +213,4 @@ public class SatelliteIntegrationTest extends InMemoryServerTest {
         }
     }
 
-
-    private static void importSatellites() {
-        session.execute(load("org/neo4j/ogm/cql/satellites.cql"));
-    }
 }

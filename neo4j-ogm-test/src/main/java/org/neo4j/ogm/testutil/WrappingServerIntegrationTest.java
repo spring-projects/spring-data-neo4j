@@ -29,9 +29,10 @@ import java.net.ServerSocket;
  * </p>
  * By overriding {@link #neoServerPort()}, you can change the port number of which the server runs.
  *
+ * @deprecated Use the {@link Neo4jIntegrationTestRule} instead
  * @author Michal Bachman
  */
-@SuppressWarnings("deprecation")
+@Deprecated
 public abstract class WrappingServerIntegrationTest extends DatabaseIntegrationTest {
 
     private static final int DEFAULT_NEO_PORT = 7575;
