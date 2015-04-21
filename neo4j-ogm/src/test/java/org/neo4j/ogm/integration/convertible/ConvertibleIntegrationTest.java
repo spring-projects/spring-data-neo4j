@@ -21,6 +21,7 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 
 import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Test;
 import org.neo4j.ogm.annotation.typeconversion.DateString;
 import org.neo4j.ogm.domain.convertible.date.Memo;
@@ -28,19 +29,24 @@ import org.neo4j.ogm.domain.convertible.enums.Education;
 import org.neo4j.ogm.domain.convertible.enums.Gender;
 import org.neo4j.ogm.domain.convertible.enums.Person;
 import org.neo4j.ogm.domain.convertible.numbers.Account;
-import org.neo4j.ogm.integration.InMemoryServerTest;
 import org.neo4j.ogm.model.Property;
+import org.neo4j.ogm.session.Session;
 import org.neo4j.ogm.session.SessionFactory;
+import org.neo4j.ogm.testutil.Neo4jIntegrationTestRule;
 
 /**
  * @author Luanne Misquitta
  */
-public class ConvertibleIntegrationTest extends InMemoryServerTest {
+public class ConvertibleIntegrationTest {
+
+    @ClassRule
+    public static Neo4jIntegrationTestRule neo4jRule = new Neo4jIntegrationTestRule();
+
+    private static Session session;
 
     @BeforeClass
     public static void init() throws IOException {
-        setUp();
-        session = new SessionFactory("org.neo4j.ogm.domain.convertible").openSession("http://localhost:" + neoPort);
+        session = new SessionFactory("org.neo4j.ogm.domain.convertible").openSession(neo4jRule.baseNeoUrl());
     }
 
     /**

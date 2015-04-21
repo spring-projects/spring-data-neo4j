@@ -13,6 +13,7 @@
 package org.neo4j.ogm.integration.cineasts.annotated;
 
 import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Test;
 import org.neo4j.ogm.domain.cineasts.annotated.Actor;
 import org.neo4j.ogm.domain.cineasts.annotated.Movie;
@@ -20,9 +21,10 @@ import org.neo4j.ogm.domain.cineasts.annotated.Rating;
 import org.neo4j.ogm.domain.cineasts.annotated.SecurityRole;
 import org.neo4j.ogm.domain.cineasts.annotated.Title;
 import org.neo4j.ogm.domain.cineasts.annotated.User;
-import org.neo4j.ogm.integration.InMemoryServerTest;
 import org.neo4j.ogm.model.Property;
+import org.neo4j.ogm.session.Session;
 import org.neo4j.ogm.session.SessionFactory;
+import org.neo4j.ogm.testutil.Neo4jIntegrationTestRule;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -40,17 +42,21 @@ import static org.junit.Assert.assertTrue;
  * @author Michal Bachman
  * @author Adam George
  */
-public class CineastsIntegrationTest extends InMemoryServerTest {
+public class CineastsIntegrationTest {
+
+    @ClassRule
+    public static Neo4jIntegrationTestRule databaseServerRule = new Neo4jIntegrationTestRule();
+
+    private static Session session;
 
     @BeforeClass
     public static void init() throws IOException {
-        setUp();
-        session = new SessionFactory("org.neo4j.ogm.domain.cineasts.annotated").openSession(baseNeoUrl());
+        session = new SessionFactory("org.neo4j.ogm.domain.cineasts.annotated").openSession(databaseServerRule.baseNeoUrl());
         importCineasts();
     }
 
     private static void importCineasts() {
-        session.execute(load("org/neo4j/ogm/cql/cineasts.cql"));
+        databaseServerRule.loadClasspathCypherScriptFile("org/neo4j/ogm/cql/cineasts.cql");
     }
 
     @Test

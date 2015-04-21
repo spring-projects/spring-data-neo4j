@@ -18,24 +18,30 @@ import java.io.IOException;
 import java.util.Collection;
 
 import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Test;
 import org.neo4j.ogm.domain.music.Album;
 import org.neo4j.ogm.domain.music.Artist;
 import org.neo4j.ogm.domain.music.Recording;
 import org.neo4j.ogm.domain.music.Studio;
-import org.neo4j.ogm.integration.InMemoryServerTest;
 import org.neo4j.ogm.model.Property;
+import org.neo4j.ogm.session.Session;
 import org.neo4j.ogm.session.SessionFactory;
+import org.neo4j.ogm.testutil.Neo4jIntegrationTestRule;
 
 /**
  * @author Luanne Misquitta
  */
-public class MusicIntegrationTest extends InMemoryServerTest {
+public class MusicIntegrationTest {
 
-	@BeforeClass
+    @ClassRule
+    public static Neo4jIntegrationTestRule neo4jRule = new Neo4jIntegrationTestRule();
+
+    private static Session session;
+
+    @BeforeClass
 	public static void init() throws IOException {
-		setUp();
-		session = new SessionFactory("org.neo4j.ogm.domain.music").openSession("http://localhost:" + neoPort);
+		session = new SessionFactory("org.neo4j.ogm.domain.music").openSession(neo4jRule.baseNeoUrl());
 	}
 
 	/**

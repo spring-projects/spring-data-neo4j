@@ -14,12 +14,15 @@ package org.neo4j.ogm.integration;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.ClassRule;
 import org.junit.Test;
 import org.neo4j.ogm.domain.bike.Bike;
 import org.neo4j.ogm.domain.bike.Frame;
 import org.neo4j.ogm.domain.bike.Saddle;
 import org.neo4j.ogm.domain.bike.Wheel;
+import org.neo4j.ogm.session.Session;
 import org.neo4j.ogm.session.SessionFactory;
+import org.neo4j.ogm.testutil.Neo4jIntegrationTestRule;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -34,20 +37,22 @@ import static org.junit.Assert.assertNotNull;
 /**
  * @author Michal Bachman
  */
-public class EndToEndTest extends InMemoryServerTest {
+public class EndToEndTest {
 
-    private static SessionFactory sessionFactory;
+    @ClassRule
+    public static Neo4jIntegrationTestRule databaseServerRule = new Neo4jIntegrationTestRule();
+
+    private Session session;
 
     @Before
     public void init() throws IOException {
-        setUp();
-        sessionFactory = new SessionFactory("org.neo4j.ogm.domain.bike");
-        session = sessionFactory.openSession("http://localhost:" + neoPort);
+        SessionFactory sessionFactory = new SessionFactory("org.neo4j.ogm.domain.bike");
+        session = sessionFactory.openSession(databaseServerRule.baseNeoUrl());
     }
 
     @After
-    public void tearDownTest() {
-        tearDown();
+    public void clearDatabase() {
+        databaseServerRule.clearDatabase();
     }
 
     @Test

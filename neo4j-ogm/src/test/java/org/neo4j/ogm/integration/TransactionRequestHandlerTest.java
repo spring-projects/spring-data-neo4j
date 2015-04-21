@@ -30,7 +30,7 @@ public class TransactionRequestHandlerTest extends InMemoryServerTest {
     @Test
     public void testCreateLongTransaction() {
 
-        TransactionManager txRequestHandler = new TransactionManager(httpClient, "http://localhost:" + neoPort);
+        TransactionManager txRequestHandler = new TransactionManager(httpClient, neo4jRule.baseNeoUrl());
         try (Transaction tx = txRequestHandler.openTransaction(null)) {
             assertEquals(Transaction.Status.OPEN, tx.status());
         }
@@ -39,7 +39,7 @@ public class TransactionRequestHandlerTest extends InMemoryServerTest {
     @Test
     public void testCreateConcurrentTransactions() {
 
-        TransactionManager txRequestHandler = new TransactionManager(httpClient, "http://localhost:" + neoPort);
+        TransactionManager txRequestHandler = new TransactionManager(httpClient, neo4jRule.baseNeoUrl());
 
         // note that the try-with-resources implies these transactions are nested, but they are in fact independent
         try (Transaction tx1 = txRequestHandler.openTransaction(null)) {

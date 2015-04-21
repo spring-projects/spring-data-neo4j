@@ -38,9 +38,8 @@ public class ABTest extends InMemoryServerTest {
 
     @Before
     public void init() throws IOException {
-        setUp();
         sessionFactory = new SessionFactory("org.neo4j.ogm.unit.mapper.transitive.ab");
-        session = sessionFactory.openSession("http://localhost:" + neoPort);
+        session = sessionFactory.openSession(neo4jRule.baseNeoUrl());
         setUpEntityModel();
     }
 
@@ -123,6 +122,7 @@ public class ABTest extends InMemoryServerTest {
         @EndNode
         B b;
 
+        @Override
         public String toString() {
             return this.getClass().getSimpleName() + ":" + a.id + "->" + b.id;
         }
@@ -149,6 +149,7 @@ public class ABTest extends InMemoryServerTest {
             this.key = UUID.randomUUID().toString();
         }
 
+        @Override
         public String toString() {
             return this.getClass().getSimpleName() + ":" + id + ":" + key;
         }

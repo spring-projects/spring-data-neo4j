@@ -12,19 +12,10 @@
 
 package org.neo4j.ogm.integration;
 
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.experimental.categories.Category;
 import org.neo4j.ogm.session.Session;
-import org.neo4j.server.NeoServer;
-import org.neo4j.server.helpers.CommunityServerBuilder;
-
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.ServerSocket;
-import java.nio.charset.Charset;
-import java.nio.file.Files;
+import org.neo4j.ogm.testutil.Neo4jIntegrationTestRule;
 
 /**
  * Base class to facilitate testing a {@link Session} against an in-memory Neo4j database.
@@ -32,55 +23,24 @@ import java.nio.file.Files;
  * @author Michal Bachman
  */
 @Category(IntegrationTest.class)
+//TODO: since we're not @RunningWith(Categories.class) anywhere, do we need this class at all?
 public abstract class InMemoryServerTest {
 
-    private static NeoServer neoServer;
-    protected static int neoPort;
+    @ClassRule
+    public static Neo4jIntegrationTestRule neo4jRule = new Neo4jIntegrationTestRule();
 
     protected static Session session;
 
-    @BeforeClass
-    public static void setUp() throws IOException {
-        neoPort = getAvailablePort();
-        neoServer = CommunityServerBuilder.server().onPort(neoPort).build();
-        neoServer.start();
+    protected static void setUp() {
+        // doesn't do anything now - will be removed shortly
     }
 
-    @AfterClass
-    public static void tearDown() {
-        neoServer.stop();
-    }
-
-    private static int getAvailablePort() {
-        try {
-            ServerSocket socket = new ServerSocket(0);
-            try {
-                return socket.getLocalPort();
-            } finally {
-                socket.close();
-            }
-        } catch (IOException e) {
-            throw new IllegalStateException("Cannot find available port: " + e.getMessage(), e);
-        }
-    }
-
-    protected static String load(String cqlFile) {
-        StringBuilder sb = new StringBuilder();
-        BufferedReader reader = new BufferedReader(new InputStreamReader(Thread.currentThread().getContextClassLoader().getResourceAsStream(cqlFile)));
-        String line;
-        try {
-            while ((line = reader.readLine()) != null) {
-                sb.append(line);
-                sb.append(" ");
-            }
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-        return sb.toString();
+    protected static void load(String cqlFile) {
+        neo4jRule.loadClasspathCypherScriptFile(cqlFile);
     }
 
     protected static String baseNeoUrl() {
-        return "http://localhost:" + neoPort;
+        return neo4jRule.baseNeoUrl();
     }
 
 }

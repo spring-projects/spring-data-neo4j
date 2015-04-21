@@ -13,8 +13,10 @@
 package org.neo4j.ogm.integration.hierarchy;
 
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.neo4j.cypher.javacompat.ExecutionEngine;
+import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.ogm.integration.hierarchy.domain.annotated.*;
 import org.neo4j.ogm.integration.hierarchy.domain.people.Bloke;
@@ -47,7 +49,7 @@ import org.neo4j.ogm.integration.hierarchy.domain.trans.TransientSingleClass;
 import org.neo4j.ogm.integration.hierarchy.domain.trans.TransientSingleClassWithId;
 import org.neo4j.ogm.session.Session;
 import org.neo4j.ogm.session.SessionFactory;
-import org.neo4j.ogm.testutil.WrappingServerIntegrationTest;
+import org.neo4j.ogm.testutil.Neo4jIntegrationTestRule;
 import org.neo4j.tooling.GlobalGraphOperations;
 
 import java.io.IOException;
@@ -73,19 +75,21 @@ import static org.neo4j.ogm.testutil.GraphTestUtils.*;
  * @author Michal Bachman
  * @author Luanne Misquitta
  */
-public class ClassHierarchiesIntegrationTest extends WrappingServerIntegrationTest {
+public class ClassHierarchiesIntegrationTest {
+
+    @Rule
+    public Neo4jIntegrationTestRule neo4jRule = new Neo4jIntegrationTestRule();
 
     private Session session;
-
-    @Override
-    protected int neoServerPort() {
-        return 7896;
-    }
 
     @Before
     public void init() throws IOException {
         SessionFactory sessionFactory = new SessionFactory("org.neo4j.ogm.integration.hierarchy.domain");
-        session = sessionFactory.openSession("http://localhost:" + 7896);
+        session = sessionFactory.openSession(neo4jRule.baseNeoUrl());
+    }
+
+    private GraphDatabaseService getDatabase() {
+        return neo4jRule.getGraphDatabaseService();
     }
 
     @Test
@@ -750,7 +754,7 @@ public class ClassHierarchiesIntegrationTest extends WrappingServerIntegrationTe
         new ExecutionEngine(getDatabase()).execute("CREATE (:Female:Person {name:'Daniela'})");
 
         SessionFactory sessionFactory = new SessionFactory("org.neo4j.ogm.integration.hierarchy.domain", "org.neo4j.ogm.integration.hierarchy.conflicting");
-        session = sessionFactory.openSession("http://localhost:" + 7896);
+        session = sessionFactory.openSession(neo4jRule.baseNeoUrl());
 
         session.loadAll(Person.class);
     }
