@@ -20,11 +20,13 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import org.junit.After;
+import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.neo4j.cypher.javacompat.ExecutionEngine;
 import org.neo4j.ogm.metadata.MappingException;
-import org.neo4j.ogm.testutil.WrappingServerIntegrationTest;
+import org.neo4j.ogm.testutil.Neo4jIntegrationTestRule;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.neo4j.integration.movies.context.PersistenceContext;
 import org.springframework.data.neo4j.integration.movies.domain.User;
@@ -42,18 +44,21 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @ContextConfiguration(classes = {PersistenceContext.class})
 @RunWith(SpringJUnit4ClassRunner.class)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
-public class QueryIntegrationTest extends WrappingServerIntegrationTest {
+public class QueryIntegrationTest {
+
+    @ClassRule
+    public static Neo4jIntegrationTestRule neo4jRule = new Neo4jIntegrationTestRule(7879);
 
     @Autowired
     private UserRepository userRepository;
 
-    @Override
-    protected int neoServerPort() {
-        return 7879;
+    @After
+    public void clearDatabase() {
+        neo4jRule.clearDatabase();
     }
 
     private void executeUpdate(String cypher) {
-        new ExecutionEngine(getDatabase()).execute(cypher);
+        new ExecutionEngine(neo4jRule.getGraphDatabaseService()).execute(cypher);
     }
 
     @Test
