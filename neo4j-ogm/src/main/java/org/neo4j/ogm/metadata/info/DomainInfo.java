@@ -241,7 +241,7 @@ public class DomainInfo implements ClassFileProcessor {
         interfaceNameToClassInfo.clear();
 
         for (String packageName : packages) {
-            String path = packageName.replaceAll("\\.", File.separator);
+            String path = packageName.replace(".", File.separator);
             classPaths.add(path);
         }
 
