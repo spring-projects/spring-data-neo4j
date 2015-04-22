@@ -10,7 +10,7 @@
  * conditions of the subcomponent's licence, as noted in the LICENSE file.
  */
 
-package org.springframework.data.neo4j.integration.movies.domain;
+package org.springframework.data.neo4j.integration.movies.domain.queryresult;
 
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 import org.neo4j.ogm.annotation.Property;
