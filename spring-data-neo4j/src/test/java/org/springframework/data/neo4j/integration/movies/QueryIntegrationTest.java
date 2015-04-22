@@ -22,6 +22,7 @@ import java.util.Map;
 
 import org.junit.After;
 import org.junit.ClassRule;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.neo4j.cypher.javacompat.ExecutionEngine;
@@ -30,8 +31,11 @@ import org.neo4j.ogm.testutil.Neo4jIntegrationTestRule;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.neo4j.integration.movies.context.PersistenceContext;
 import org.springframework.data.neo4j.integration.movies.domain.User;
-import org.springframework.data.neo4j.integration.movies.domain.UserQueryResult;
-import org.springframework.data.neo4j.integration.movies.domain.UserQueryResultInterface;
+import org.springframework.data.neo4j.integration.movies.domain.queryresult.EntityWrappingQueryResult;
+import org.springframework.data.neo4j.integration.movies.domain.queryresult.Gender;
+import org.springframework.data.neo4j.integration.movies.domain.queryresult.RichUserQueryResult;
+import org.springframework.data.neo4j.integration.movies.domain.queryresult.UserQueryResult;
+import org.springframework.data.neo4j.integration.movies.domain.queryresult.UserQueryResultInterface;
 import org.springframework.data.neo4j.integration.movies.repo.UnmanagedUserPojo;
 import org.springframework.data.neo4j.integration.movies.repo.UserRepository;
 import org.springframework.test.annotation.DirtiesContext;
@@ -195,6 +199,37 @@ public class QueryIntegrationTest {
         assertNotNull("The query result shouldn't be null", result);
         assertEquals("The wrong user was returned", "Abraham", result.getNameOfUser());
         assertEquals("The wrong user was returned", 31, result.getAgeOfUser());
+    }
+
+    @Ignore
+    @Test
+    public void shouldRetrieveUsersByGenderAndConvertToCorrectEnumType() {
+        executeUpdate("CREATE (:User {name:'David Warner', gender:'MALE'}), (:User {name:'Shikhar Dhawan', gender:'MALE'}), "
+                + "(:User {name:'Sarah Taylor', gender:'FEMALE'})");
+
+        Iterable<RichUserQueryResult> usersByGender = userRepository.findUsersByGender(Gender.FEMALE);
+        assertNotNull("The resultant users list shouldn't be null", usersByGender);
+
+        Iterator<RichUserQueryResult> userIterator = usersByGender.iterator();
+        assertTrue(userIterator.hasNext());
+        RichUserQueryResult userQueryResult = userIterator.next();
+        assertEquals(Gender.FEMALE, userQueryResult.getUserGender());
+        assertEquals("Sarah Taylor", userQueryResult.getUserName());
+        assertFalse(userIterator.hasNext());
+    }
+
+    /**
+     * I'm not sure whether we should actually support this because you could just return an entity!
+     */
+    @Ignore
+    @Test
+    public void shouldMapNodeEntitiesIntoQueryResultObjects() {
+        executeUpdate("CREATE (:User {name:'Abraham'}), (:User {name:'Barry'}), (:User {name:'Colin'})");
+
+        EntityWrappingQueryResult wrappedUser = userRepository.findWrappedUserByName("Barry");
+        assertNotNull("The loaded wrapper object shouldn't be null", wrappedUser);
+        assertNotNull("The enclosed user shouldn't be null", wrappedUser.getUser());
+        assertEquals("Barry", wrappedUser.getUser().getName());
     }
 
 }

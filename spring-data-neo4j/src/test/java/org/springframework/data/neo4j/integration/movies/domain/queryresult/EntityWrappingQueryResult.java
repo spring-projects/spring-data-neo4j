@@ -10,24 +10,21 @@
  * conditions of the subcomponent's licence, as noted in the LICENSE file.
  */
 
-package org.springframework.data.neo4j.integration.movies.domain;
+package org.springframework.data.neo4j.integration.movies.domain.queryresult;
 
-import org.neo4j.ogm.annotation.Property;
 import org.springframework.data.neo4j.annotation.QueryResult;
-import org.springframework.data.neo4j.integration.movies.repo.UserRepository;
+import org.springframework.data.neo4j.integration.movies.domain.User;
 
 /**
- * Example interface annotated with {@link QueryResult} to test mapping onto proxied objects, where only getter methods are
- * needed to define the mapped result columns.
- *
- * @see UserRepository
+ * {@link QueryResult} that wraps entity objects.
  */
 @QueryResult
-public interface UserQueryResultInterface {
+public class EntityWrappingQueryResult {
 
-    @Property(name = "user.name")
-    String getNameOfUser();
+    private User user;
 
-    int getAgeOfUser();
+    public User getUser() {
+        return user;
+    }
 
 }
