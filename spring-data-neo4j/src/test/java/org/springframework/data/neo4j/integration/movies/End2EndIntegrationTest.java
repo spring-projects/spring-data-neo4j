@@ -12,15 +12,17 @@
 
 package org.springframework.data.neo4j.integration.movies;
 
+import org.junit.Rule;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.neo4j.cypher.javacompat.ExecutionEngine;
+import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.ogm.model.Property;
 import org.neo4j.ogm.session.Session;
 import org.neo4j.ogm.session.SessionFactory;
-import org.neo4j.ogm.testutil.WrappingServerIntegrationTest;
+import org.neo4j.ogm.testutil.Neo4jIntegrationTestRule;
 import org.neo4j.tooling.GlobalGraphOperations;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,10 +50,12 @@ import static org.neo4j.ogm.testutil.GraphTestUtils.assertSameGraph;
 @ContextConfiguration(classes = {PersistenceContext.class})
 @RunWith(SpringJUnit4ClassRunner.class)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
-public class End2EndIntegrationTest extends WrappingServerIntegrationTest
-{
+public class End2EndIntegrationTest {
 
     private final Logger logger = LoggerFactory.getLogger( End2EndIntegrationTest.class );
+
+    @Rule
+    public final Neo4jIntegrationTestRule neo4jRule = new Neo4jIntegrationTestRule(7879);
 
     @Autowired
     private UserRepository userRepository;
@@ -77,10 +81,8 @@ public class End2EndIntegrationTest extends WrappingServerIntegrationTest
     @Autowired
     private Session session;
 
-    @Override
-    protected int neoServerPort()
-    {
-        return 7879;
+    private GraphDatabaseService getDatabase() {
+        return neo4jRule.getGraphDatabaseService();
     }
 
     @Test
@@ -591,7 +593,7 @@ public class End2EndIntegrationTest extends WrappingServerIntegrationTest
 
         do
         {
-            transaction = new SessionFactory().openSession( baseNeoUrl() ).beginTransaction();
+            transaction = new SessionFactory().openSession( neo4jRule.baseNeoUrl() ).beginTransaction();
         } while ( transaction == null && System.currentTimeMillis() - startTime <= maxTimeToWait );
 
         if ( transaction == null )

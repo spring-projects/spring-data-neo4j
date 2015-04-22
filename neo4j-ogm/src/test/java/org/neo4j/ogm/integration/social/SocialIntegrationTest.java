@@ -35,7 +35,6 @@ public class SocialIntegrationTest extends InMemoryServerTest {
 
 	@Before
 	public void init() throws IOException {
-		setUp();
 		session = new SessionFactory("org.neo4j.ogm.domain.social").openSession(neo4jRule.baseNeoUrl());
 	}
 

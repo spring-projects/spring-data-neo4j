@@ -12,7 +12,8 @@
 
 package org.springframework.data.neo4j.integration.repositories;
 
-import org.neo4j.ogm.testutil.WrappingServerIntegrationTest;
+import org.neo4j.ogm.testutil.Neo4jIntegrationTestRule;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,21 +32,20 @@ import static org.neo4j.ogm.testutil.GraphTestUtils.assertSameGraph;
 @ContextConfiguration(classes = {PersistenceContextInTheSamePackage.class})
 @RunWith(SpringJUnit4ClassRunner.class)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
-public class RepoScanningTest extends WrappingServerIntegrationTest {
+public class RepoScanningTest {
+
+    @Rule
+    public final Neo4jIntegrationTestRule neo4jRule = new Neo4jIntegrationTestRule(7879);
 
     @Autowired
     private UserRepository userRepository;
-
-    @Override
-    protected int neoServerPort() {
-        return 7879;
-    }
 
     @Test
     public void enableNeo4jRepositoriesShouldScanSelfPackageByDefault() {
         User user = new User("Michal");
         userRepository.save(user);
 
-        assertSameGraph(getDatabase(), "CREATE (u:User {name:'Michal'})");
+        assertSameGraph(neo4jRule.getGraphDatabaseService(), "CREATE (u:User {name:'Michal'})");
     }
+
 }

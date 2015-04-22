@@ -13,48 +13,71 @@
 
 package org.springframework.data.neo4j.integration.template;
 
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
-import org.neo4j.graphdb.*;
-import org.neo4j.ogm.annotation.NodeEntity;
-import org.neo4j.ogm.session.SessionFactory;
-import org.neo4j.ogm.session.Utils;
-import org.neo4j.ogm.testutil.WrappingServerIntegrationTest;
-import org.springframework.data.neo4j.integration.movies.domain.*;
-import org.springframework.data.neo4j.template.Neo4jOperations;
-import org.springframework.data.neo4j.template.Neo4jTemplate;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
-import javax.persistence.PersistenceException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.Map;
 
-import static org.junit.Assert.*;
+import javax.persistence.PersistenceException;
+
+import org.junit.After;
+import org.junit.Before;
+import org.junit.ClassRule;
+import org.junit.Ignore;
+import org.junit.Test;
+import org.neo4j.cypher.javacompat.ExecutionEngine;
+import org.neo4j.graphdb.DynamicLabel;
+import org.neo4j.graphdb.DynamicRelationshipType;
+import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.Label;
+import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.Transaction;
+import org.neo4j.ogm.annotation.NodeEntity;
+import org.neo4j.ogm.session.SessionFactory;
+import org.neo4j.ogm.session.Utils;
+import org.neo4j.ogm.testutil.Neo4jIntegrationTestRule;
+import org.springframework.data.neo4j.integration.movies.domain.Actor;
+import org.springframework.data.neo4j.integration.movies.domain.Genre;
+import org.springframework.data.neo4j.integration.movies.domain.Rating;
+import org.springframework.data.neo4j.integration.movies.domain.TempMovie;
+import org.springframework.data.neo4j.integration.movies.domain.User;
+import org.springframework.data.neo4j.template.Neo4jOperations;
+import org.springframework.data.neo4j.template.Neo4jTemplate;
 
 /**
  * @author Adam George
  */
-public class Neo4jTemplateTest extends WrappingServerIntegrationTest {
+public class Neo4jTemplateTest {
+
+    @ClassRule
+    public static Neo4jIntegrationTestRule neo4jRule = new Neo4jIntegrationTestRule();
 
     private Neo4jOperations template;
 
     @Before
     public void setUpOgmSession() {
         SessionFactory sessionFactory = new SessionFactory("org.springframework.data.neo4j.integration.movies.domain");
-        this.template = new Neo4jTemplate(sessionFactory.openSession(baseNeoUrl()));
+        this.template = new Neo4jTemplate(sessionFactory.openSession(neo4jRule.baseNeoUrl()));
         addArbitraryDataToDatabase();
+    }
+
+    @After
+    public void clearDatabase() {
+        neo4jRule.clearDatabase();
     }
 
     /**
      * While this may seem trivial, some of these tests actually used to fail when run against a database containing unrelated data.
      */
     private void addArbitraryDataToDatabase() {
-        try (Transaction tx = getDatabase().beginTx()) {
-            Node arbitraryNode = getDatabase().createNode(DynamicLabel.label("NotAClass"));
+        try (Transaction tx = neo4jRule.getGraphDatabaseService().beginTx()) {
+            Node arbitraryNode = neo4jRule.getGraphDatabaseService().createNode(DynamicLabel.label("NotAClass"));
             arbitraryNode.setProperty("name", "Colin");
-            Node otherNode = getDatabase().createNode(DynamicLabel.label("NotAClass"));
+            Node otherNode = neo4jRule.getGraphDatabaseService().createNode(DynamicLabel.label("NotAClass"));
             otherNode.setProperty("age", 39);
             arbitraryNode.createRelationshipTo(otherNode, DynamicRelationshipType.withName("TEST"));
 
@@ -163,21 +186,22 @@ public class Neo4jTemplateTest extends WrappingServerIntegrationTest {
 
     @Test
     public void shouldCountNumberOfEntitiesOfParticularTypeInGraphDatabase() {
-        try (Transaction tx = getDatabase().beginTx()) {
+        GraphDatabaseService database = neo4jRule.getGraphDatabaseService();
+        try (Transaction tx = database.beginTx()) {
             // create test entities where label matches simple name
             Label genreTypeLabel = DynamicLabel.label(Genre.class.getSimpleName());
             for (int i = 0; i < 5; i++) {
-                getDatabase().createNode(genreTypeLabel);
+                database.createNode(genreTypeLabel);
             }
 
             // create test entities where label's controlled by annotations
             Label filmTypeLabel = DynamicLabel.label(TempMovie.class.getAnnotation(NodeEntity.class).label());
             for (int i = 0; i < 3; i++) {
-                getDatabase().createNode(filmTypeLabel);
+                database.createNode(filmTypeLabel);
             }
 
             // throw in a User to check it doesn't confuse things
-            getDatabase().createNode(DynamicLabel.label(User.class.getSimpleName()));
+            database.createNode(DynamicLabel.label(User.class.getSimpleName()));
 
             tx.success();
         }
@@ -188,9 +212,11 @@ public class Neo4jTemplateTest extends WrappingServerIntegrationTest {
 
     @Test
     public void shouldDeleteExistingEntitiesByGraphId() {
-        this.template.execute("CREATE (:Genre {name:'Thriller'}), (:Genre {name:'RomCom'})");
+        ExecutionEngine ee = new ExecutionEngine(neo4jRule.getGraphDatabaseService());
+        Long genreId = ee.execute("CREATE (t:Genre {name:'Thriller'}), (r:Genre {name:'RomCom'}) RETURN id(r) AS gid")
+                .<Long>columnAs("gid").next();
 
-        Genre entity = this.template.load(Genre.class, 3L);
+        Genre entity = this.template.load(Genre.class, genreId);
         assertEquals("RomCom", entity.getName());
         this.template.delete(entity);
 

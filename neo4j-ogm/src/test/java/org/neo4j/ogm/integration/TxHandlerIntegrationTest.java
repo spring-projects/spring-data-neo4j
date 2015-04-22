@@ -15,8 +15,8 @@ package org.neo4j.ogm.integration;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
+import org.junit.Rule;
 import org.junit.Test;
-import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.graphdb.event.TransactionData;
@@ -24,7 +24,7 @@ import org.neo4j.graphdb.event.TransactionEventHandler;
 import org.neo4j.ogm.domain.bike.WheelWithUUID;
 import org.neo4j.ogm.session.Session;
 import org.neo4j.ogm.session.SessionFactory;
-import org.neo4j.ogm.testutil.WrappingServerIntegrationTest;
+import org.neo4j.ogm.testutil.Neo4jIntegrationTestRule;
 
 import java.io.IOException;
 import java.util.UUID;
@@ -35,7 +35,10 @@ import static org.junit.Assert.assertNotNull;
 /**
  * @author Michal Bachman
  */
-public class TxHandlerIntegrationTest extends WrappingServerIntegrationTest {
+public class TxHandlerIntegrationTest {
+
+    @Rule
+    public Neo4jIntegrationTestRule neo4jRule = new Neo4jIntegrationTestRule(7577);
 
     private static SessionFactory sessionFactory;
     private Session session;
@@ -45,11 +48,19 @@ public class TxHandlerIntegrationTest extends WrappingServerIntegrationTest {
         sessionFactory = new SessionFactory("org.neo4j.ogm.domain.bike");
     }
 
-    @Override
     @Before
     public void setUp() throws Exception {
-        super.setUp();
-        session = sessionFactory.openSession(baseNeoUrl());
+        neo4jRule.getGraphDatabaseService().registerTransactionEventHandler(new TransactionEventHandler.Adapter<Object>() {
+            @Override
+            public Object beforeCommit(TransactionData data) throws Exception {
+                for (Node createdNode : data.createdNodes()) {
+                    createdNode.setProperty("uuid", UUID.randomUUID().toString());
+                }
+
+                return null;
+            }
+        });
+        session = sessionFactory.openSession(neo4jRule.baseNeoUrl());
     }
 
     @Test
@@ -63,8 +74,8 @@ public class TxHandlerIntegrationTest extends WrappingServerIntegrationTest {
         long id = wheel.getId();
 
         String uuid;
-        try (Transaction tx = getDatabase().beginTx()) {
-            uuid = getDatabase().getNodeById(id).getProperty("uuid", "unknown").toString();
+        try (Transaction tx = neo4jRule.getGraphDatabaseService().beginTx()) {
+            uuid = neo4jRule.getGraphDatabaseService().getNodeById(id).getProperty("uuid", "unknown").toString();
             tx.success();
         }
 
@@ -74,26 +85,4 @@ public class TxHandlerIntegrationTest extends WrappingServerIntegrationTest {
         assertEquals(uuid, wheel.getUuid());
     }
 
-    @Override
-    protected GraphDatabaseService createDatabase() {
-        GraphDatabaseService database = super.createDatabase();
-
-        database.registerTransactionEventHandler(new TransactionEventHandler.Adapter<Object>() {
-            @Override
-            public Object beforeCommit(TransactionData data) throws Exception {
-                for (Node createdNode : data.createdNodes()) {
-                    createdNode.setProperty("uuid", UUID.randomUUID().toString());
-                }
-
-                return null;
-            }
-        });
-
-        return database;
-    }
-
-    @Override
-    protected int neoServerPort() {
-        return 7577;
-    }
 }
