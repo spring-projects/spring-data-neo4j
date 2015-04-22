@@ -18,6 +18,7 @@ import java.util.Set;
 /**
  * @author Adam George
  * @author Vince Bickers
+ * @author Luanne Misquitta
  */
 class ExistingRelationshipBuilder extends RelationshipBuilder {
 
@@ -30,7 +31,6 @@ class ExistingRelationshipBuilder extends RelationshipBuilder {
     public void relate(String startNodeIdentifier, String endNodeIdentifier) {
         this.startNodeIdentifier = startNodeIdentifier;
         this.endNodeIdentifier = endNodeIdentifier;
-        this.reference = reference;
     }
 
     @Override

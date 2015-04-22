@@ -17,6 +17,7 @@ import java.util.Set;
 
 /**
  * @author Mark Angrish
+ * @author Luanne Misquitta
  */
 public class DeletedRelationshipBuilder implements CypherEmitter, Comparable<DeletedRelationshipBuilder> {
 
@@ -82,7 +83,7 @@ public class DeletedRelationshipBuilder implements CypherEmitter, Comparable<Del
             }
             queryBuilder.append(rid);
             queryBuilder.append(")=");
-            queryBuilder.append(relId); // existing nodes have an id. we pass it in as $id
+            queryBuilder.append(relId); // existing relationships have an id. we pass it in as $id
             varStack.add(rid);
         }
 

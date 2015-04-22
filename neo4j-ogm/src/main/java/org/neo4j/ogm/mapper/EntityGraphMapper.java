@@ -104,8 +104,8 @@ public class EntityGraphMapper implements EntityToGraphMapper {
         while (mappedRelationshipIterator.hasNext()) {
             MappedRelationship mappedRelationship = mappedRelationshipIterator.next();
             if (!context.isRegisteredRelationship(mappedRelationship)) {
-                logger.debug("context-del: (${})-[{}:{}]->(${})", mappedRelationship.getStartNodeId(), mappedRelationship.getRelId(), mappedRelationship.getRelationshipType(), mappedRelationship.getEndNodeId());
-                compiler.unrelate("$" + mappedRelationship.getStartNodeId(), mappedRelationship.getRelationshipType(), "$" + mappedRelationship.getEndNodeId(), mappedRelationship.getRelId());
+                logger.debug("context-del: (${})-[{}:{}]->(${})", mappedRelationship.getStartNodeId(), mappedRelationship.getRelationshipId(), mappedRelationship.getRelationshipType(), mappedRelationship.getEndNodeId());
+                compiler.unrelate("$" + mappedRelationship.getStartNodeId(), mappedRelationship.getRelationshipType(), "$" + mappedRelationship.getEndNodeId(), mappedRelationship.getRelationshipId());
                 clearRelatedObjects(mappedRelationship.getStartNodeId());
                 mappedRelationshipIterator.remove();
             }
@@ -391,7 +391,6 @@ public class EntityGraphMapper implements EntityToGraphMapper {
             context.log(relationshipEntity);
             if (tgtIdentity != null && srcIdentity!=null) {
                 MappedRelationship mappedRelationship = createMappedRelationship(srcIdentity, relationshipBuilder, tgtIdentity);
-                mappedRelationship.setRelId(relationshipBuilder.getId());
                 if (mappingContext.mappedRelationships().remove(mappedRelationship)) {
                     logger.debug("RE successfully marked for re-writing");
                 } else {
@@ -453,13 +452,9 @@ public class EntityGraphMapper implements EntityToGraphMapper {
 
     private MappedRelationship createMappedRelationship(Long aNode, RelationshipBuilder relationshipBuilder, Long bNode) {
         if (relationshipBuilder.hasDirection(Relationship.INCOMING)) {
-            MappedRelationship mappedRelationship = new MappedRelationship(bNode, relationshipBuilder.getType(), aNode);
-            mappedRelationship.setRelId(relationshipBuilder.getId());
-            return mappedRelationship;
+            return new MappedRelationship(bNode, relationshipBuilder.getType(), aNode, relationshipBuilder.getId());
         }  else {
-            MappedRelationship mappedRelationship = new MappedRelationship(aNode, relationshipBuilder.getType(), bNode);
-            mappedRelationship.setRelId(relationshipBuilder.getId());
-            return mappedRelationship;
+            return new MappedRelationship(aNode, relationshipBuilder.getType(), bNode, relationshipBuilder.getId());
         }
     }
 
@@ -529,7 +524,6 @@ public class EntityGraphMapper implements EntityToGraphMapper {
             maybeCreateRelationship(context, srcNodeBuilder.reference(), relationshipBuilder, tgtNodeBuilder.reference());
         } else {
             MappedRelationship mappedRelationship = createMappedRelationship(srcIdentity, relationshipBuilder, tgtIdentity);
-            mappedRelationship.setRelId(relationshipBuilder.getId());
             if (!mappingContext.isRegisteredRelationship(mappedRelationship)) {
                 maybeCreateRelationship(context, srcNodeBuilder.reference(), relationshipBuilder, tgtNodeBuilder.reference());
             } else {

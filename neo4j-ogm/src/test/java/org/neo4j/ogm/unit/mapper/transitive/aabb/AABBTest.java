@@ -42,14 +42,14 @@ public class AABBTest extends RelationshipTest {
 
     private void setUpEntityModel() {
         // three source nodes
-        a1 = new A("a1");
-        a2 = new A("a2");
-        a3 = new A("a3");
+        a1 = new A();
+        a2 = new A();
+        a3 = new A();
 
         // three target nodes
-        b1 = new B("b1");
-        b2 = new B("b2");
-        b3 = new B("b3");
+        b1 = new B();
+        b2 = new B();
+        b3 = new B();
 
         // six relationships
         r1 = new R(a1, b1);
@@ -137,13 +137,10 @@ public class AABBTest extends RelationshipTest {
     @Test
     @Ignore
     public void shouldHandleAddNewRelationshipBetweenASingleABPair() {
-//todo luanne
         // fully connected, will persist everything
         session.save(a1);
-        session.clear();
-        a1 = session.load(A.class, a1.id);
-        assertSameArray(new R[]{r1, r2}, a1.r);
-     /*   R r7 = new R(a1, b1);
+
+        R r7 = new R(a1, b1);
 
         a1.r = new R[] { r2, r7 };
         b1.r = new R[] { r3, r7 };
@@ -153,7 +150,7 @@ public class AABBTest extends RelationshipTest {
         b1 = session.load(B.class, b1.id);
 
         assertSameArray(new R[] { r1, r3, r7}, b1.r);
-        assertSameArray(new R[] { r1, r2, r7}, a1.r);*/
+        assertSameArray(new R[] { r1, r2, r7}, a1.r);
 
     }
 
@@ -163,15 +160,6 @@ public class AABBTest extends RelationshipTest {
         @Relationship(type="EDGE", direction = Relationship.OUTGOING)
         R[] r;
 
-        public A() {
-
-        }
-
-        public A(String n) {
-            super();
-            this.name = n;
-        }
-
     }
 
     @NodeEntity(label="B")
@@ -179,14 +167,6 @@ public class AABBTest extends RelationshipTest {
 
         @Relationship(type="EDGE", direction = Relationship.INCOMING)
         R[] r;
-
-        public B() {
-
-        }
-        public B(String n) {
-            super();
-            this.name = n;
-        }
 
     }
 
@@ -199,9 +179,6 @@ public class AABBTest extends RelationshipTest {
         A a;
         @EndNode
         B b;
-
-        public R() {
-        }
 
         public R(A a, B b) {
             this.a = a;
@@ -230,7 +207,6 @@ public class AABBTest extends RelationshipTest {
 
         public Long id;
         public String key;
-        public String name;
 
         public E() {
             this.key = UUID.randomUUID().toString();

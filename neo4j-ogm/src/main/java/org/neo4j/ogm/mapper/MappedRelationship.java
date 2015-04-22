@@ -13,17 +13,18 @@
 package org.neo4j.ogm.mapper;
 
 /**
- * Light-weight record of a relationship mapped from the database, stored as a triplet:
- * <code>startNodeId - relationshipType - endNodeId</code>
- *
+ * Light-weight record of a relationship mapped from the database
+ * <code>startNodeId - relationshipId - relationshipType - endNodeId</code>
+ * The relationshipId is recorded for relationship entities, and not for simple relationships.
  * @author Adam George
+ * @author Luanne Misquitta
  */
 public class MappedRelationship {
 
     private final long startNodeId;
     private final String relationshipType;
     private final long endNodeId;
-    private Long relId;
+    private Long relationshipId;
 
     private boolean active = true;
 
@@ -31,6 +32,13 @@ public class MappedRelationship {
         this.startNodeId = startNodeId;
         this.relationshipType = relationshipType;
         this.endNodeId = endNodeId;
+    }
+
+    public MappedRelationship(long startNodeId, String relationshipType, long endNodeId, Long relationshipId) {
+        this.startNodeId = startNodeId;
+        this.relationshipType = relationshipType;
+        this.endNodeId = endNodeId;
+        this.relationshipId = relationshipId;
     }
 
     public long getStartNodeId() {
@@ -45,12 +53,12 @@ public class MappedRelationship {
         return endNodeId;
     }
 
-    public Long getRelId() {
-        return relId;
+    public Long getRelationshipId() {
+        return relationshipId;
     }
 
-    public void setRelId(Long relId) {
-        this.relId = relId;
+    public void setRelationshipId(Long relationshipId) {
+        this.relationshipId = relationshipId;
     }
 
     /**
@@ -87,7 +95,7 @@ public class MappedRelationship {
         if (startNodeId != that.startNodeId) return false;
         if (endNodeId != that.endNodeId) return false;
         if (!relationshipType.equals(that.relationshipType)) return false;
-        return !(relId != null ? !relId.equals(that.relId) : that.relId != null);
+        return !(relationshipId != null ? !relationshipId.equals(that.relationshipId) : that.relationshipId != null);
     }
 
     @Override
@@ -95,7 +103,7 @@ public class MappedRelationship {
         int result = (int) (startNodeId ^ (startNodeId >>> 32));
         result = 31 * result + relationshipType.hashCode();
         result = 31 * result + (int) (endNodeId ^ (endNodeId >>> 32));
-        result = 31 * result + (relId != null ? relId.hashCode() : 0);
+        result = 31 * result + (relationshipId != null ? relationshipId.hashCode() : 0);
         return result;
     }
 }

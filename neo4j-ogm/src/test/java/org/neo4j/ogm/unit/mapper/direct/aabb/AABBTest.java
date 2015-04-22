@@ -105,16 +105,7 @@ public class AABBTest extends RelationshipTest {
         a1.b = new B[] { b1 };
         a3.b = new B[] { b3 };
 
-        System.out.println("a1.id = " + a1.id);
-        System.out.println("a2.id = " + a2.id);
-        System.out.println("a3.id = " + a3.id);
-        System.out.println("b1.id = " + b1.id);
-        System.out.println("b2.id = " + b2.id);
-        System.out.println("b3.id = " + b3.id);
-        System.out.println("*****************************************");
         session.save(b2);
-        System.out.println("*****************************************");
-
 
         // when we reload a1
         a1 = session.load(A.class, a1.id);

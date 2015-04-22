@@ -33,6 +33,7 @@ import org.neo4j.ogm.session.result.RowModel;
 
 /**
  *  @author Vince Bickers
+ *  @author Luanne Misquitta
  */
 public class SessionResponseHandler implements ResponseHandler {
 
@@ -121,8 +122,8 @@ public class SessionResponseHandler implements ResponseHandler {
             for (Object object : context.log()) {
                 if (object instanceof TransientRelationship) {
                     MappedRelationship relationship = (((TransientRelationship) object).convert(directRefMap));
-                    if(mappingContext.getRelationshipEntity(relationship.getRelId()) == null) {
-                        relationship.setRelId(null);
+                    if(mappingContext.getRelationshipEntity(relationship.getRelationshipId()) == null) {
+                        relationship.setRelationshipId(null);
                     }
                     mappingContext.mappedRelationships().add(relationship);
                 }

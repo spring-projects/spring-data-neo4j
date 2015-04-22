@@ -50,14 +50,6 @@ public class SingleStatementCypherCompiler implements CypherCompiler {
     @Override
     public void unrelate(String startNode, String relationshipType, String endNode, Long relId) {
         deletedRelationships.add(new DeletedRelationshipBuilder(relationshipType,startNode, endNode, this.identifiers.nextIdentifier(), relId));
-       /* Iterator<CypherEmitter> existingRelIterator = updatedRelationships.iterator();
-        while(existingRelIterator.hasNext()) {
-            ExistingRelationshipBuilder existingRelBuilder = (ExistingRelationshipBuilder) existingRelIterator.next();
-            if(relId.equals(existingRelBuilder.getId())) {
-                existingRelIterator.remove();
-                break;
-            }
-        }*/
     }
 
     @Override
