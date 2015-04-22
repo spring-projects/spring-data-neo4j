@@ -23,6 +23,7 @@ public class MappedRelationship {
     private final long startNodeId;
     private final String relationshipType;
     private final long endNodeId;
+    private Long relId;
 
     private boolean active = true;
 
@@ -42,6 +43,14 @@ public class MappedRelationship {
 
     public long getEndNodeId() {
         return endNodeId;
+    }
+
+    public Long getRelId() {
+        return relId;
+    }
+
+    public void setRelId(Long relId) {
+        this.relId = relId;
     }
 
     /**
@@ -75,11 +84,10 @@ public class MappedRelationship {
 
         MappedRelationship that = (MappedRelationship) o;
 
-        if (endNodeId != that.endNodeId) return false;
         if (startNodeId != that.startNodeId) return false;
+        if (endNodeId != that.endNodeId) return false;
         if (!relationshipType.equals(that.relationshipType)) return false;
-
-        return true;
+        return !(relId != null ? !relId.equals(that.relId) : that.relId != null);
     }
 
     @Override
@@ -87,6 +95,7 @@ public class MappedRelationship {
         int result = (int) (startNodeId ^ (startNodeId >>> 32));
         result = 31 * result + relationshipType.hashCode();
         result = 31 * result + (int) (endNodeId ^ (endNodeId >>> 32));
+        result = 31 * result + (relId != null ? relId.hashCode() : 0);
         return result;
     }
 }

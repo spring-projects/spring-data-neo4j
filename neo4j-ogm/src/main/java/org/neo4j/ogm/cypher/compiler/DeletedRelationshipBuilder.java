@@ -24,12 +24,14 @@ public class DeletedRelationshipBuilder implements CypherEmitter, Comparable<Del
     private final String src;
     private final String tgt;
     private final String rid;
+    private final Long relId;
 
-    public DeletedRelationshipBuilder(String type, String src, String tgt, String rid) {
+    public DeletedRelationshipBuilder(String type, String src, String tgt, String rid, Long relId) {
         this.type = type;
         this.src = src;
         this.tgt = tgt;
         this.rid = rid;
+        this.relId = relId;
     }
 
     public boolean emit(StringBuilder queryBuilder, Map<String, Object> parameters, Set<String> varStack) {
@@ -69,6 +71,19 @@ public class DeletedRelationshipBuilder implements CypherEmitter, Comparable<Del
             queryBuilder.append(")=");
             queryBuilder.append(tgt.substring(1)); // existing nodes have an id. we pass it in as $id
             varStack.add(tgt);
+            where = true;
+        }
+
+        if (!varStack.contains(rid) && relId!=null) {
+            if (where) {
+                queryBuilder.append(" AND id(");
+            } else {
+                queryBuilder.append(" WHERE id(");
+            }
+            queryBuilder.append(rid);
+            queryBuilder.append(")=");
+            queryBuilder.append(relId); // existing nodes have an id. we pass it in as $id
+            varStack.add(rid);
         }
 
         queryBuilder.append(" DELETE ");

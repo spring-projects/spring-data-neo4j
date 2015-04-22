@@ -21,11 +21,9 @@ import java.util.Set;
  */
 class ExistingRelationshipBuilder extends RelationshipBuilder {
 
-    private final Long id;
-
     ExistingRelationshipBuilder(String variableName, Long relationshipId) {
         super(variableName);
-        this.id = relationshipId;
+        setId(relationshipId);
     }
 
     @Override
@@ -53,7 +51,7 @@ class ExistingRelationshipBuilder extends RelationshipBuilder {
         }
 
         queryBuilder.append(" MATCH ()-[").append(this.reference).append("]->() WHERE id(")
-                .append(this.reference).append(")=").append(this.id);
+                .append(this.reference).append(")=").append(this.getId());
 
         if (!this.props.isEmpty()) {
             queryBuilder.append(" SET ").append(this.reference).append("+={").append(this.reference).append("_props} ");

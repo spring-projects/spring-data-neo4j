@@ -57,6 +57,16 @@ public class TransientRelationship {
 
         Long srcIdentity = src.startsWith("_") ? refMap.get(src) : Long.parseLong(src.substring(1));
         Long tgtIdentity = tgt.startsWith("_") ? refMap.get(tgt) : Long.parseLong(tgt.substring(1));
+        Long relIdentity=null;
+        if(ref != null) {
+            if(ref.startsWith("_")) {
+                relIdentity = refMap.get(ref);
+            }
+            else {
+                relIdentity = Long.parseLong(ref.substring(1));
+            }
+        }
+        //Long relIdentity = ref == null ? null : ref.startsWith("_") ? refMap.get(ref) : Long.parseLong(ref.substring(1));
 
         if (srcIdentity == null) {
             throw new RuntimeException("Couldn't get identity for " + src);
@@ -66,7 +76,9 @@ public class TransientRelationship {
             throw new RuntimeException("Couldn't get identity for " + tgt);
         }
 
-        return new MappedRelationship(srcIdentity, rel, tgtIdentity);
+        MappedRelationship mappedRelationship = new MappedRelationship(srcIdentity, rel, tgtIdentity);
+        mappedRelationship.setRelId(relIdentity);
+        return mappedRelationship;
     }
 
     public boolean equalsIgnoreDirection(String src, String type, String tgt) {

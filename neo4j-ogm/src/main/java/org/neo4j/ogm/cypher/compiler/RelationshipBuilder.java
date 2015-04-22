@@ -24,6 +24,7 @@ import java.util.Map;
  */
 public abstract class RelationshipBuilder implements CypherEmitter, Comparable<RelationshipBuilder> {
 
+    protected Long id;
     protected String type;
     protected String startNodeIdentifier;
     protected String endNodeIdentifier;
@@ -57,6 +58,14 @@ public abstract class RelationshipBuilder implements CypherEmitter, Comparable<R
 
     public boolean hasDirection(String direction) {
         return this.direction != null && this.direction.equals(direction);
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
     }
 
     public abstract void relate(String startNodeIdentifier, String endNodeIdentifier);

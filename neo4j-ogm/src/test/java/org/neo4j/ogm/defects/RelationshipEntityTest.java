@@ -12,21 +12,17 @@
 
 package org.neo4j.ogm.defects;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.neo4j.ogm.annotation.EndNode;
-import org.neo4j.ogm.annotation.NodeEntity;
-import org.neo4j.ogm.annotation.Relationship;
-import org.neo4j.ogm.annotation.RelationshipEntity;
-import org.neo4j.ogm.annotation.StartNode;
-import org.neo4j.ogm.session.Session;
-import org.neo4j.ogm.session.SessionFactory;
-import org.neo4j.ogm.testutil.WrappingServerIntegrationTest;
+import static org.junit.Assert.*;
 
 import java.util.HashSet;
 import java.util.Set;
 
-import static org.junit.Assert.*;
+import org.junit.Before;
+import org.junit.Test;
+import org.neo4j.ogm.annotation.*;
+import org.neo4j.ogm.session.Session;
+import org.neo4j.ogm.session.SessionFactory;
+import org.neo4j.ogm.testutil.WrappingServerIntegrationTest;
 
 /**
  * @author: Vince Bickers
@@ -143,14 +139,18 @@ public class RelationshipEntityTest extends WrappingServerIntegrationTest {
         session.save(r1);
         r1 = session.load(R.class, r1.id);
         r1.stars = 5;
+        System.out.println("*******************************************************");
         session.save(r1);
         session.clear();
+        r1 = session.load(R.class, r1.id);
+
         assertEquals(1, r1.m.rset.size());
         assertEquals(1, r1.u.rset.size());
         assertEquals(Integer.valueOf(5), r1.stars);
 
         u = session.load(U.class,u.id);
         assertEquals(1, u.rset.size());
+        assertEquals(Integer.valueOf(5), u.rset.iterator().next().stars);
         m = session.load(M.class,m.id);
         assertEquals(1,m.rset.size());
         assertEquals(Integer.valueOf(5),m.rset.iterator().next().stars);
