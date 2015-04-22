@@ -19,24 +19,28 @@ import java.io.IOException;
 import java.util.Collection;
 
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.neo4j.ogm.domain.friendships.Friendship;
 import org.neo4j.ogm.domain.friendships.Person;
-import org.neo4j.ogm.integration.InMemoryServerTest;
+import org.neo4j.ogm.session.Session;
 import org.neo4j.ogm.session.SessionFactory;
+import org.neo4j.ogm.testutil.Neo4jIntegrationTestRule;
 
 /**
  * @author Vince Bickers
+ * @author Luanne Misquitta
  */
-public class FriendshipsRelationshipEntityTest  extends InMemoryServerTest {
+public class FriendshipsRelationshipEntityTest {
 
-	private static SessionFactory sessionFactory;
+	@Rule
+	public Neo4jIntegrationTestRule neo4jRule = new Neo4jIntegrationTestRule();
+
+	private Session session;
 
 	@Before
 	public void init() throws IOException {
-		setUp();
-		sessionFactory = new SessionFactory("org.neo4j.ogm.domain.friendships");
-		session = sessionFactory.openSession("http://localhost:" + neoPort);
+		session =  new SessionFactory("org.neo4j.ogm.domain.friendships").openSession(neo4jRule.baseNeoUrl());
 	}
 
 	@Test

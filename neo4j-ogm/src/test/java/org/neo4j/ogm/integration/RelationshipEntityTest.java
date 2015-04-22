@@ -18,13 +18,10 @@ import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-
 import org.neo4j.ogm.annotation.*;
-
 import org.neo4j.ogm.session.Session;
 import org.neo4j.ogm.session.SessionFactory;
 import org.neo4j.ogm.testutil.Neo4jIntegrationTestRule;
@@ -47,8 +44,13 @@ public class RelationshipEntityTest {
 
     @Before
     public void init() throws IOException {
-        SessionFactory factory = new SessionFactory("org.neo4j.ogm.domain.friendships", "org.neo4j.ogm.domain.cineasts.annotated");
-        session = factory.openSession(neo4jRule.baseNeoUrl());
+        session = new SessionFactory("org.neo4j.ogm.integration").openSession(neo4jRule.baseNeoUrl());
+        u = new U("Luanne");
+        m = new M("Taken");
+        r1 = new R(u, m, "great!", 4);
+
+        u.rset.add(r1);
+        m.rset.add(r1);
     }
 
     @Test
