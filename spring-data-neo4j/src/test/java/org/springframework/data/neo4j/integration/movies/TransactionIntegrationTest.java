@@ -12,10 +12,11 @@
 
 package org.springframework.data.neo4j.integration.movies;
 
-import org.neo4j.ogm.testutil.WrappingServerIntegrationTest;
+import org.neo4j.ogm.testutil.Neo4jIntegrationTestRule;
+import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.graphdb.event.TransactionData;
 import org.neo4j.graphdb.event.TransactionEventHandler;
@@ -38,7 +39,10 @@ import static org.junit.Assert.fail;
 @ContextConfiguration(classes = {PersistenceContext.class})
 @RunWith(SpringJUnit4ClassRunner.class)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
-public class TransactionIntegrationTest extends WrappingServerIntegrationTest {
+public class TransactionIntegrationTest {
+
+    @Rule
+    public final Neo4jIntegrationTestRule neo4jRule = new Neo4jIntegrationTestRule(7879);
 
     @Autowired
     private UserRepository userRepository;
@@ -46,22 +50,16 @@ public class TransactionIntegrationTest extends WrappingServerIntegrationTest {
     @Autowired
     private UserService userService;
 
-    @Override
-    protected int neoServerPort() {
-        return 7879;
-    }
-
-    @Override
-    protected void populateDatabase(GraphDatabaseService database) {
-        super.populateDatabase(database);
-        database.registerTransactionEventHandler(new TransactionEventHandler.Adapter<Object>() {
+    @Before
+    public void populateDatabase() {
+        neo4jRule.getGraphDatabaseService().registerTransactionEventHandler(new TransactionEventHandler.Adapter<Object>() {
             @Override
             public Object beforeCommit(TransactionData data) throws Exception {
                 System.out.println("The request to commit is denied");
                 throw new TransactionInterceptException("Deliberate testing exception");
                 // the exception here does not get propagated to the caller if we're.
             }
-        }) ;
+        });
     }
 
 
@@ -111,8 +109,8 @@ public class TransactionIntegrationTest extends WrappingServerIntegrationTest {
     }
 
     private void checkDatabase() {
-        try (Transaction tx = getDatabase().beginTx()) {
-            assertFalse(GlobalGraphOperations.at(getDatabase()).getAllNodes().iterator().hasNext());
+        try (Transaction tx = neo4jRule.getGraphDatabaseService().beginTx()) {
+            assertFalse(GlobalGraphOperations.at(neo4jRule.getGraphDatabaseService()).getAllNodes().iterator().hasNext());
             tx.success();
         }
     }

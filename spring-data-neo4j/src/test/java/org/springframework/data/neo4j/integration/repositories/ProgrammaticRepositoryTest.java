@@ -12,9 +12,10 @@
 
 package org.springframework.data.neo4j.integration.repositories;
 
+import org.junit.Rule;
 import org.junit.Test;
 import org.neo4j.ogm.session.SessionFactory;
-import org.neo4j.ogm.testutil.WrappingServerIntegrationTest;
+import org.neo4j.ogm.testutil.Neo4jIntegrationTestRule;
 import org.springframework.data.neo4j.integration.repositories.domain.Movie;
 import org.springframework.data.neo4j.integration.repositories.repo.MovieRepository;
 import org.springframework.data.neo4j.repository.support.GraphRepositoryFactory;
@@ -27,26 +28,25 @@ import static org.junit.Assert.assertEquals;
 /**
  * @author Michal Bachman
  */
-public class ProgrammaticRepositoryTest extends WrappingServerIntegrationTest {
+public class ProgrammaticRepositoryTest {
+
+    @Rule
+    public final Neo4jIntegrationTestRule neo4jRule = new Neo4jIntegrationTestRule(7879);
 
     private MovieRepository movieRepository;
-
-    @Override
-    protected int neoServerPort() {
-        return 7879;
-    }
 
     @Test
     public void canInstantiateRepositoryProgrammatically() {
         RepositoryFactorySupport factory = new GraphRepositoryFactory(
-                new SessionFactory("org.springframework.data.neo4j.integration.repositories.domain").openSession(baseNeoUrl()));
+                new SessionFactory("org.springframework.data.neo4j.integration.repositories.domain").openSession(neo4jRule.baseNeoUrl()));
         movieRepository = factory.getRepository(MovieRepository.class);
 
         Movie movie = new Movie("PF");
         movieRepository.save(movie);
 
-        assertSameGraph(getDatabase(), "CREATE (m:Movie {title:'PF'})");
+        assertSameGraph(neo4jRule.getGraphDatabaseService(), "CREATE (m:Movie {title:'PF'})");
 
         assertEquals(1, IterableUtils.count(movieRepository.findAll()));
     }
+
 }

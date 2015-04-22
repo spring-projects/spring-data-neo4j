@@ -17,32 +17,42 @@ import static org.neo4j.ogm.testutil.GraphTestUtils.*;
 import java.io.IOException;
 import java.util.Collections;
 
+import org.junit.After;
 import org.junit.Before;
+import org.junit.ClassRule;
 import org.junit.Test;
+import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.ogm.domain.social.Individual;
 import org.neo4j.ogm.domain.social.Mortal;
 import org.neo4j.ogm.domain.social.Person;
 import org.neo4j.ogm.domain.social.User;
 import org.neo4j.ogm.session.Session;
 import org.neo4j.ogm.session.SessionFactory;
-import org.neo4j.ogm.testutil.WrappingServerIntegrationTest;
+import org.neo4j.ogm.testutil.Neo4jIntegrationTestRule;
 
 /**
  * @author Luanne Misquitta
  */
-public class SocialRelationshipsIntegrationTest extends WrappingServerIntegrationTest {
+public class SocialRelationshipsIntegrationTest {
+
+    @ClassRule
+    public static Neo4jIntegrationTestRule neo4jRule = new Neo4jIntegrationTestRule();
 
 	private Session session;
-
-	@Override
-	protected int neoServerPort() {
-		return 7896;
-	}
 
 	@Before
 	public void init() throws IOException {
 		SessionFactory sessionFactory = new SessionFactory("org.neo4j.ogm.domain.social");
-		session = sessionFactory.openSession("http://localhost:" + 7896);
+		session = sessionFactory.openSession(neo4jRule.baseNeoUrl());
+	}
+
+    @After
+    public void clearDatabase() {
+        neo4jRule.clearDatabase();
+    }
+
+	private static GraphDatabaseService getDatabase() {
+	    return neo4jRule.getGraphDatabaseService();
 	}
 
 	/**

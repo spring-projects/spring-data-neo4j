@@ -34,7 +34,6 @@ public class AABBTest extends RelationshipTest {
 
     @Before
     public void init() throws IOException {
-        setUp();
         sessionFactory = new SessionFactory("org.neo4j.ogm.unit.mapper.transitive.aabb");
         session = sessionFactory.openSession(neo4jRule.baseNeoUrl());
         setUpEntityModel();
@@ -185,6 +184,7 @@ public class AABBTest extends RelationshipTest {
             this.b = b;
         }
 
+        @Override
         public String toString() {
             return this.getClass().getSimpleName() + ":" + a.id + "->" + b.id;
         }
