@@ -24,6 +24,7 @@ import org.neo4j.ogm.unit.mapper.direct.RelationshipTest;
 
 /**
  * @author Vince Bickers
+ * @author Luanne Misquitta
  */
 public class AABBTest extends RelationshipTest {
 
@@ -152,6 +153,84 @@ public class AABBTest extends RelationshipTest {
         assertSameArray(new R[] { r1, r3, r7}, b1.r);
         assertSameArray(new R[] { r1, r2, r7}, a1.r);
 
+    }
+
+    /**
+     * @see DATAGRAPH-611
+     */
+    @Test
+    public void shouldSaveRelationsForA1InTheCorrectDirection() {
+        session.save(a1);
+
+        session.clear();
+
+        a1 = session.load(A.class, a1.id);
+        assertSameArray(new R[] { r1, r2}, a1.r);
+    }
+
+    /**
+     * @see DATAGRAPH-611
+     */
+    @Test
+    public void shouldSaveRelationsForA2TheCorrectDirection() {
+        session.save(a2);
+
+        session.clear();
+
+        a2 = session.load(A.class, a2.id);
+        assertSameArray(new R[] { r3, r4}, a2.r);
+    }
+
+    /**
+     * @see DATAGRAPH-611
+     */
+    @Test
+    public void shouldSaveRelationsForA3TheCorrectDirection() {
+        session.save(a3);
+
+        session.clear();
+
+        a3 = session.load(A.class, a3.id);
+        assertSameArray(new R[] { r5, r6}, a3.r);
+    }
+
+    /**
+     * @see DATAGRAPH-611
+     */
+    @Test
+    public void shouldSaveRelationsForB1TheCorrectDirection() {
+        session.save(b1);
+
+        session.clear();
+
+        b1 = session.load(B.class, b1.id);
+        assertSameArray(new R[] { r1, r3}, b1.r);
+    }
+
+    /**
+     * @see DATAGRAPH-611
+     */
+    @Test
+    public void shouldSaveRelationsForB2TheCorrectDirection() {
+        session.save(b2);
+
+        session.clear();
+
+        b2 = session.load(B.class, b2.id);
+        assertSameArray(new R[] { r2, r5}, b2.r);
+    }
+
+    /**
+     * @see DATAGRAPH-611
+     */
+    @Test
+    public void shouldSaveRelationsForB3TheCorrectDirection() {
+        session.save(b3);
+
+        session.clear();
+
+        b3 = session.load(B.class, b3.id);
+        assertSameArray(new R[] { r4, r6}, b3.r);
     }
 
     @NodeEntity(label="A")
